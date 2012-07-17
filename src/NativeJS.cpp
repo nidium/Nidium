@@ -21,9 +21,9 @@ Print(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec glob_funcs[] = {
     
-	JS_FN("echo", Print, 0, 0),
+    JS_FN("echo", Print, 0, 0),
 
-	JS_FS_END
+    JS_FS_END
 };
 
 static void reportError(JSContext *cx, const char *message, JSErrorReport *report)
@@ -69,19 +69,19 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJS::NativeJS()
 {
-	JSRuntime *rt;
-	JSObject *gbl;
+    JSRuntime *rt;
+    JSObject *gbl;
 
-	JS_SetCStringsAreUTF8();
+    JS_SetCStringsAreUTF8();
 
-	if ((rt = JS_NewRuntime(1024L * 1024L * 128L)) == NULL) {
-		printf("Failed to init JS runtime\n");
-		return;
-	}
+    if ((rt = JS_NewRuntime(1024L * 1024L * 128L)) == NULL) {
+        printf("Failed to init JS runtime\n");
+        return;
+    }
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
-		printf("Failed to init JS context\n");
-		return;    	
+        printf("Failed to init JS context\n");
+        return;     
     }
 
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
@@ -93,7 +93,7 @@ NativeJS::NativeJS()
 
 
     if (!JS_InitStandardClasses(cx, gbl))
-    	return;
+        return;
 
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
@@ -103,16 +103,16 @@ NativeJS::NativeJS()
 int NativeJS::LoadScript(const char *filename)
 {
 
-	JSObject *gbl = JS_GetGlobalObject(cx);
+    JSObject *gbl = JS_GetGlobalObject(cx);
 
     JSScript *script = JS_CompileUTF8File(cx, gbl, filename);
 
     if (script == NULL) {
-    	return 0;
+        return 0;
     }
 
     JS_ExecuteScript(cx, gbl, script, NULL);
 
-	return 1;
+    return 1;
 }
 

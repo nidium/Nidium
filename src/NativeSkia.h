@@ -21,7 +21,7 @@ class NativeSkia
         SkCanvas *canvas;
 
     public:
-    	int bindGL(int width, int height);
+        int bindGL(int width, int height);
         static NativeSkia &getInstance() {
             static NativeSkia ret;
 

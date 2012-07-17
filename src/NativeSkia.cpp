@@ -39,8 +39,8 @@ int NativeSkia::bindGL(int width, int height)
 {
     const GrGLInterface *interface = GrGLCreateNativeInterface();
     if (interface == NULL) {
-    	printf("Cant get interface\n");
-    	return 0;
+        printf("Cant get interface\n");
+        return 0;
     }
     printf("Interface ok\n");
     GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine, (GrPlatform3DContext)interface);
@@ -61,14 +61,14 @@ int NativeSkia::bindGL(int width, int height)
     
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
     if (target == NULL) {
-    	printf("Failed to init Skia\n");
-    	return 0;
+        printf("Failed to init Skia\n");
+        return 0;
     }
     
     SkGpuDevice *dev = new SkGpuDevice(context, target);
     if (dev == NULL) {
-    	printf("Failed to init Skia (2)\n");
-    	return 0;
+        printf("Failed to init Skia (2)\n");
+        return 0;
     }
     
     printf("Skia init !\n");
@@ -76,6 +76,6 @@ int NativeSkia::bindGL(int width, int height)
     
     //dev->unref();
 
-	return 1;
+    return 1;
 }
 
