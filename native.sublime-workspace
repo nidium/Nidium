@@ -1,0 +1,292 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"SSL_ERROR",
+				"SSL_ERROR_SYSCALL	macro"
+			],
+			[
+				"EIN",
+				"EINTR	macro"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "main.cpp",
+			"settings":
+			{
+				"buffer_size": 1756,
+				"line_ending": "Unix",
+				"name": "#include <stdio.h>"
+			}
+		},
+		{
+			"file": "native.sublime-project",
+			"settings":
+			{
+				"buffer_size": 76,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/C++/C++.sublime-build",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"Insta",
+				"Package Control: Install Package"
+			],
+			[
+				"syntax: ht",
+				"Set Syntax: HTML"
+			],
+			[
+				"",
+				"Bracket Highlighter: Select Tag"
+			],
+			[
+				"Pack",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 494.0
+	},
+	"console":
+	{
+		"height": 125.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/anthonycatel/Nativestudio/skhello.png",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_base64.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_array.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_socket.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_user.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_timers.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_socket.h",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_server.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_cmd.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/etc/ape.conf",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_entry.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/Makefile",
+		"/Users/anthonycatel/ape2_project/ape2.sublime-project",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeGDB/SublimeGDB.sublime-settings",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/Makefile",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/ws.html",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_buffer.c",
+		"/usr/include/stdio.h",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_event_epoll.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_string.c",
+		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/JSON_parser.c",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/BracketHighlighter.py",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeGDB/Default.sublime-keymap",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/User/ape.sublime-build",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/BracketHighlighter.sublime-settings",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeClang/SublimeClang.sublime-settings"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"	\n",
+			"array",
+			"hstrerror",
+			"if",
+			"ape_socket_job_get_slot",
+			"sendfile",
+			"APE_socket_sendfile",
+			"ape",
+			"read(",
+			"accept",
+			"ape_socket_queue_data",
+			"settings"
+		],
+		"highlight": true,
+		"in_selection": true,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "main.cpp",
+					"settings":
+					{
+						"buffer_size": 1756,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								809,
+								809
+							]
+						],
+						"settings":
+						{
+							"auto_name": "#include <stdio.h>",
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 346.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "native.sublime-project",
+					"settings":
+					{
+						"buffer_size": 76,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								73,
+								73
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.clang":
+	{
+		"height": 100.0
+	},
+	"output.exec":
+	{
+		"height": 100.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"aa",
+				"src/core/ape_array.c"
+			],
+			[
+				"ape_socket",
+				"src/core/ape_socket.c"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+			[
+				"",
+				"/Users/anthonycatel/ape2_project/ape2.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 206.0,
+	"status_bar_visible": true
+}

@@ -1,0 +1,6 @@
+SUBDIRS = src
+
+.PHONY: $(SUBDIRS)
+
+$(SUBDIRS):
+		$(MAKE) -w -C $@ $(MAKECMDGOALS)
