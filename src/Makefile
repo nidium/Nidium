@@ -1,6 +1,6 @@
 SKIA=/Users/anthonycatel/src/skia/trunk
 CXX=g++
-CPPFLAGS=-c -g -Wall -I../mozilla/js/src/dist/include/ \
+CPPFLAGS=-fvisibility=hidden -fvisibility-inlines-hidden -c -g -Wall -I../mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\
@@ -25,7 +25,7 @@ EXECUTABLE=libnativestudio.a
 all: $(SOURCES) $(EXECUTABLE)
 		
 $(EXECUTABLE): $(OBJECTS)
-		$(AR) $(ARFLAGS) $@ $(OBJECTS)
+		$(AR) $(ARFLAGS) $@ $(OBJECTS) 
 
 .cpp.o:
 		$(CXX) $(CPPFLAGS) $< -o $@

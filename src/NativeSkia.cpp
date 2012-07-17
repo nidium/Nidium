@@ -18,7 +18,7 @@
 #include "SkPicture.h"
 #include "SkStream.h"
 #include "SkTime.h"
-
+#include "SkRefCnt.h"
 
 #include "GrContext.h"
 #include "SkTypeface.h"
@@ -58,13 +58,12 @@ int NativeSkia::bindGL(int width, int height)
     GrGLint buffer;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
     desc.fRenderTargetHandle = buffer;
-    
+
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
     if (target == NULL) {
         printf("Failed to init Skia\n");
         return 0;
     }
-    
     SkGpuDevice *dev = new SkGpuDevice(context, target);
     if (dev == NULL) {
         printf("Failed to init Skia (2)\n");
@@ -72,10 +71,11 @@ int NativeSkia::bindGL(int width, int height)
     }
     
     printf("Skia init !\n");
-    //canvas = new SkCanvas(dev);
+    canvas = new SkCanvas(dev);
     
-    //dev->unref();
+    SkSafeUnref(dev);
 
     return 1;
 }
+
 
