@@ -32,7 +32,7 @@ static JSClass canvas_class = {
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_canvas_fillStyle(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -60,6 +60,8 @@ static JSFunctionSpec glob_funcs[] = {
 static JSFunctionSpec canvas_funcs[] = {
     
     JS_FN("fillRect", native_canvas_fillRect, 4, 0),
+    JS_FN("fillText", native_canvas_fillText, 3, 0),
+
     JS_FS_END
 };
 
@@ -109,7 +111,7 @@ static JSBool native_canvas_fillStyle_set(JSContext *cx, JSHandleObject obj,
 {
     if (!JSVAL_IS_STRING(*vp)) {
         *vp = JSVAL_NULL;
-        printf("Not a string\n");
+
         return JS_TRUE;
     }
     JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
@@ -127,6 +129,23 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeSkia::getInstance().drawRect(x, y, width+x, height+y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int x, y, maxwidth;
+    JSString *str;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sii/i",
+            &str, &x, &y, &maxwidth)) {
+        return JS_TRUE;
+    }
+
+    JSAutoByteString text(cx, str);
+
+    NativeSkia::getInstance().drawText(text.ptr(), x, y);
 
     return JS_TRUE;
 }

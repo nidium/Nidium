@@ -24,6 +24,7 @@ class NativeSkia
 
     public:
         int bindGL(int width, int height);
+        void drawText(const char *text, int x, int y);
         void drawRect(int, int, int, int);
         void setFillColor(const char *str);
         static NativeSkia &getInstance() {

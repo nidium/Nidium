@@ -79,6 +79,7 @@ int NativeSkia::bindGL(int width, int height)
 
     paint->setARGB(255, 0, 0, 0);
     paint->setAntiAlias(true);
+    paint->setLCDRenderText(true);
 
     #if 0
     SkString path("skhello.png");
@@ -141,6 +142,15 @@ void NativeSkia::drawRect(int x, int y, int width, int height)
     canvas->flush();
 }
 
+void NativeSkia::drawText(const char *text, int x, int y)
+{
+    printf("Draw text : %s\n", text);
+    canvas->drawText(text, strlen(text),
+        SkIntToScalar(x), SkIntToScalar(y), *paint);
+
+    canvas->flush();
+}
+
 void NativeSkia::setFillColor(const char *str)
 {   
     SkColor color = SK_ColorBLACK;;
@@ -149,3 +159,5 @@ void NativeSkia::setFillColor(const char *str)
     paint->setStyle(SkPaint::kFill_Style);
     paint->setColor(color);
 }
+
+
