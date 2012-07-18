@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <jsapi.h>
 
+enum {
+    CANVAS_PROP_FILLRECT = 1
+};
 
 static JSClass global_class = {
     "_GLOBAL", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -25,9 +28,26 @@ static JSClass canvas_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+
+/******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillStyle(JSContext *cx, unsigned argc, jsval *vp);
+/*************************/
+
+/******** Setters ********/
+
+static JSBool native_canvas_fillStyle_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, jsval *vp);
+
+
+static JSPropertySpec canvas_props[] = {
+    {"fillStyle", CANVAS_PROP_FILLRECT, JSPROP_PERMANENT, NULL,
+        native_canvas_fillStyle_set},
+    {NULL}
+};
+/*************************/
+
 
 
 static JSFunctionSpec glob_funcs[] = {
@@ -40,7 +60,6 @@ static JSFunctionSpec glob_funcs[] = {
 static JSFunctionSpec canvas_funcs[] = {
     
     JS_FN("fillRect", native_canvas_fillRect, 4, 0),
-    JS_FN("fillStyle", native_canvas_fillStyle, 1, 0),
     JS_FS_END
 };
 
@@ -85,6 +104,21 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
+static JSBool native_canvas_fillStyle_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, jsval *vp)
+{
+    if (!JSVAL_IS_STRING(*vp)) {
+        *vp = JSVAL_NULL;
+        printf("Not a string\n");
+        return JS_TRUE;
+    }
+    JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
+
+    NativeSkia::getInstance().setFillColor(colorName.ptr());
+
+    return JS_TRUE;
+}
+
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 {
     int x, y, width, height;
@@ -97,18 +131,6 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-static JSBool native_canvas_fillStyle(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSString *color;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &color)) {
-        return JS_TRUE;
-    }    
-    JSAutoByteString colorName(cx, color);
-
-    NativeSkia::getInstance().setFillColor(colorName.ptr());
-
-    return JS_TRUE;
-}
 
 NativeJS::NativeJS()
 {
@@ -167,5 +189,7 @@ void NativeJS::LoadCanvasObject()
 
     canvasObj = JS_DefineObject(cx, gbl, "canvas", &canvas_class, NULL, 0);
     JS_DefineFunctions(cx, canvasObj, canvas_funcs);
+
+    JS_DefineProperties(cx, canvasObj, canvas_props);
 }
 
