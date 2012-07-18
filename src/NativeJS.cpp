@@ -6,23 +6,41 @@
  **/
 
 #include "NativeJS.h"
+#include "NativeSkia.h"
 #include <stdio.h>
 #include <jsapi.h>
-
 
 
 static JSClass global_class = {
     "_GLOBAL", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
-static JSBool
-Print(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSClass canvas_class = {
+    "canvas", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_fillStyle(JSContext *cx, unsigned argc, jsval *vp);
+
 
 static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
 
+    JS_FS_END
+};
+
+static JSFunctionSpec canvas_funcs[] = {
+    
+    JS_FN("fillRect", native_canvas_fillRect, 4, 0),
+    JS_FN("fillStyle", native_canvas_fillStyle, 1, 0),
     JS_FS_END
 };
 
@@ -67,6 +85,31 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
+static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int x, y, width, height;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &width, &height)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().drawRect(x, y, width+x, height+y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_fillStyle(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *color;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &color)) {
+        return JS_TRUE;
+    }    
+    JSAutoByteString colorName(cx, color);
+
+    NativeSkia::getInstance().setFillColor(colorName.ptr());
+
+    return JS_TRUE;
+}
+
 NativeJS::NativeJS()
 {
     JSRuntime *rt;
@@ -98,6 +141,7 @@ NativeJS::NativeJS()
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
+    LoadCanvasObject();
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -118,6 +162,10 @@ int NativeJS::LoadScript(const char *filename)
 
 void NativeJS::LoadCanvasObject()
 {
-    
+    JSObject *gbl = JS_GetGlobalObject(cx);
+    JSObject *canvasObj;
+
+    canvasObj = JS_DefineObject(cx, gbl, "canvas", &canvas_class, NULL, 0);
+    JS_DefineFunctions(cx, canvasObj, canvas_funcs);
 }
 

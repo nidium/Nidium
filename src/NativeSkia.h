@@ -9,6 +9,7 @@
 #define nativeskia_h__
 
 class SkCanvas;
+class SkPaint;
 
 class NativeSkia
 {
@@ -19,9 +20,12 @@ class NativeSkia
         void operator=(NativeSkia const&);
 
         SkCanvas *canvas;
+        SkPaint *paint;
 
     public:
         int bindGL(int width, int height);
+        void drawRect(int, int, int, int);
+        void setFillColor(const char *str);
         static NativeSkia &getInstance() {
             static NativeSkia ret;
 

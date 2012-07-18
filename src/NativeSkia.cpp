@@ -19,6 +19,7 @@
 #include "SkStream.h"
 #include "SkTime.h"
 #include "SkRefCnt.h"
+#include "SkParse.h"
 
 #include "GrContext.h"
 #include "SkTypeface.h"
@@ -74,7 +75,12 @@ int NativeSkia::bindGL(int width, int height)
     
     SkSafeUnref(dev);
 
-   SkAutoGraphics ag;
+    paint = new SkPaint;
+
+    paint->setARGB(255, 0, 0, 0);
+    paint->setAntiAlias(true);
+
+    #if 0
     SkString path("skhello.png");
     //Set Text To Draw
     SkString text("Native Studio");
@@ -93,7 +99,7 @@ int NativeSkia::bindGL(int width, int height)
     //Set Text Size
     paint.setTextSize(SkIntToScalar(40));
 
-    canvas->drawARGB(255, 25, 25, 25);
+    canvas->drawARGB(255, 255, 255, 255);
     
     //Text X, Y Position Varibles
     int x = 80;
@@ -120,9 +126,26 @@ int NativeSkia::bindGL(int width, int height)
     //Draw Circle (X, Y, Size, Paint)
     canvas->drawCircle(100, 400, 50, paint);
     canvas->flush();
-
-
+#endif
     return 1;
 }
 
+void NativeSkia::drawRect(int x, int y, int width, int height)
+{
+    SkIRect rect;
 
+    rect.set(x, y, width, height);
+
+    canvas->drawIRect(rect, *paint);
+
+    canvas->flush();
+}
+
+void NativeSkia::setFillColor(const char *str)
+{   
+    SkColor color = SK_ColorBLACK;;
+
+    SkParse::FindColor(str, &color);
+    paint->setStyle(SkPaint::kFill_Style);
+    paint->setColor(color);
+}
