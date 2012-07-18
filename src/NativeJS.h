@@ -16,6 +16,8 @@ class NativeJS
     private:
         NativeJS();
         NativeJS(NativeJS const&); 
+        void LoadCanvasObject();
+
         void operator=(NativeJS const&);
 
         JSContext *cx;

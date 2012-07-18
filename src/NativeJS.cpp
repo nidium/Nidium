@@ -116,3 +116,8 @@ int NativeJS::LoadScript(const char *filename)
     return 1;
 }
 
+void NativeJS::LoadCanvasObject()
+{
+    
+}
+

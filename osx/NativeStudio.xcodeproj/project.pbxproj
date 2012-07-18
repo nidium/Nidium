@@ -1,0 +1,415 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		752C491115B3854D005AF341 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C491015B3854D005AF341 /* Cocoa.framework */; };
+		752C491B15B3854D005AF341 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 752C491915B3854D005AF341 /* InfoPlist.strings */; };
+		752C491D15B3854D005AF341 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 752C491C15B3854D005AF341 /* main.m */; };
+		752C492115B3854D005AF341 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 752C491F15B3854D005AF341 /* Credits.rtf */; };
+		752C492415B3854D005AF341 /* NativeStudioAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 752C492315B3854D005AF341 /* NativeStudioAppDelegate.mm */; };
+		752C492715B3854D005AF341 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 752C492515B3854D005AF341 /* MainMenu.xib */; };
+		752C493215B385C7005AF341 /* libnativestudio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C493115B385C7005AF341 /* libnativestudio.a */; };
+		752C493915B43D1A005AF341 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C493815B43D1A005AF341 /* SDL.framework */; };
+		752C493B15B43D86005AF341 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C493A15B43D86005AF341 /* OpenGL.framework */; };
+		752C4B1715B627FF005AF341 /* libsfnt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0815B627FF005AF341 /* libsfnt.a */; };
+		752C4B1815B627FF005AF341 /* libzlib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0915B627FF005AF341 /* libzlib.a */; };
+		752C4B1915B627FF005AF341 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0A15B627FF005AF341 /* libjpeg.a */; };
+		752C4B1A15B627FF005AF341 /* libopts_ssse3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0B15B627FF005AF341 /* libopts_ssse3.a */; };
+		752C4B1B15B627FF005AF341 /* libopts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0C15B627FF005AF341 /* libopts.a */; };
+		752C4B1C15B627FF005AF341 /* libutils.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0D15B627FF005AF341 /* libutils.a */; };
+		752C4B1D15B627FF005AF341 /* libpicture_utils.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0E15B627FF005AF341 /* libpicture_utils.a */; };
+		752C4B1E15B627FF005AF341 /* libpdf.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B0F15B627FF005AF341 /* libpdf.a */; };
+		752C4B1F15B627FF005AF341 /* libports.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1015B627FF005AF341 /* libports.a */; };
+		752C4B2015B627FF005AF341 /* libimages.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1115B627FF005AF341 /* libimages.a */; };
+		752C4B2115B627FF005AF341 /* libskgr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1215B627FF005AF341 /* libskgr.a */; };
+		752C4B2215B627FF005AF341 /* libgr.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1315B627FF005AF341 /* libgr.a */; };
+		752C4B2315B627FF005AF341 /* libeffects.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1415B627FF005AF341 /* libeffects.a */; };
+		752C4B2415B627FF005AF341 /* libexperimental.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1515B627FF005AF341 /* libexperimental.a */; };
+		752C4B2515B627FF005AF341 /* libcore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B1615B627FF005AF341 /* libcore.a */; };
+		752C4B7515B62CC1005AF341 /* libjs_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 752C4B7415B62CC1005AF341 /* libjs_static.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		752C490C15B3854D005AF341 /* NativeStudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NativeStudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		752C491015B3854D005AF341 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		752C491315B3854D005AF341 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		752C491415B3854D005AF341 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		752C491515B3854D005AF341 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		752C491815B3854D005AF341 /* NativeStudio-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "NativeStudio-Info.plist"; sourceTree = "<group>"; };
+		752C491A15B3854D005AF341 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		752C491C15B3854D005AF341 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		752C491E15B3854D005AF341 /* NativeStudio-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NativeStudio-Prefix.pch"; sourceTree = "<group>"; };
+		752C492015B3854D005AF341 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		752C492215B3854D005AF341 /* NativeStudioAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NativeStudioAppDelegate.h; sourceTree = "<group>"; };
+		752C492315B3854D005AF341 /* NativeStudioAppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NativeStudioAppDelegate.mm; sourceTree = "<group>"; };
+		752C492615B3854D005AF341 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		752C493115B385C7005AF341 /* libnativestudio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libnativestudio.a; path = ../../../Nativestudio/src/libnativestudio.a; sourceTree = "<group>"; };
+		752C493815B43D1A005AF341 /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = Library/Frameworks/SDL.framework; sourceTree = SDKROOT; };
+		752C493A15B43D86005AF341 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		752C4B0815B627FF005AF341 /* libsfnt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsfnt.a; path = ../../src/skia/trunk/xcodebuild/Debug/libsfnt.a; sourceTree = "<group>"; };
+		752C4B0915B627FF005AF341 /* libzlib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzlib.a; path = ../../src/skia/trunk/xcodebuild/Debug/libzlib.a; sourceTree = "<group>"; };
+		752C4B0A15B627FF005AF341 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../../src/skia/trunk/xcodebuild/Debug/libjpeg.a; sourceTree = "<group>"; };
+		752C4B0B15B627FF005AF341 /* libopts_ssse3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopts_ssse3.a; path = ../../src/skia/trunk/xcodebuild/Debug/libopts_ssse3.a; sourceTree = "<group>"; };
+		752C4B0C15B627FF005AF341 /* libopts.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopts.a; path = ../../src/skia/trunk/xcodebuild/Debug/libopts.a; sourceTree = "<group>"; };
+		752C4B0D15B627FF005AF341 /* libutils.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libutils.a; path = ../../src/skia/trunk/xcodebuild/Debug/libutils.a; sourceTree = "<group>"; };
+		752C4B0E15B627FF005AF341 /* libpicture_utils.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpicture_utils.a; path = ../../src/skia/trunk/xcodebuild/Debug/libpicture_utils.a; sourceTree = "<group>"; };
+		752C4B0F15B627FF005AF341 /* libpdf.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpdf.a; path = ../../src/skia/trunk/xcodebuild/Debug/libpdf.a; sourceTree = "<group>"; };
+		752C4B1015B627FF005AF341 /* libports.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libports.a; path = ../../src/skia/trunk/xcodebuild/Debug/libports.a; sourceTree = "<group>"; };
+		752C4B1115B627FF005AF341 /* libimages.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimages.a; path = ../../src/skia/trunk/xcodebuild/Debug/libimages.a; sourceTree = "<group>"; };
+		752C4B1215B627FF005AF341 /* libskgr.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskgr.a; path = ../../src/skia/trunk/xcodebuild/Debug/libskgr.a; sourceTree = "<group>"; };
+		752C4B1315B627FF005AF341 /* libgr.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgr.a; path = ../../src/skia/trunk/xcodebuild/Debug/libgr.a; sourceTree = "<group>"; };
+		752C4B1415B627FF005AF341 /* libeffects.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libeffects.a; path = ../../src/skia/trunk/xcodebuild/Debug/libeffects.a; sourceTree = "<group>"; };
+		752C4B1515B627FF005AF341 /* libexperimental.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libexperimental.a; path = ../../src/skia/trunk/xcodebuild/Debug/libexperimental.a; sourceTree = "<group>"; };
+		752C4B1615B627FF005AF341 /* libcore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcore.a; path = ../../src/skia/trunk/xcodebuild/Debug/libcore.a; sourceTree = "<group>"; };
+		752C4B7415B62CC1005AF341 /* libjs_static.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjs_static.a; path = ../../Nativestudio/mozilla/js/src/libjs_static.a; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		752C490915B3854C005AF341 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				752C4B7515B62CC1005AF341 /* libjs_static.a in Frameworks */,
+				752C4B1715B627FF005AF341 /* libsfnt.a in Frameworks */,
+				752C4B1815B627FF005AF341 /* libzlib.a in Frameworks */,
+				752C4B1915B627FF005AF341 /* libjpeg.a in Frameworks */,
+				752C4B1A15B627FF005AF341 /* libopts_ssse3.a in Frameworks */,
+				752C4B1B15B627FF005AF341 /* libopts.a in Frameworks */,
+				752C4B1C15B627FF005AF341 /* libutils.a in Frameworks */,
+				752C4B1D15B627FF005AF341 /* libpicture_utils.a in Frameworks */,
+				752C4B1E15B627FF005AF341 /* libpdf.a in Frameworks */,
+				752C4B1F15B627FF005AF341 /* libports.a in Frameworks */,
+				752C4B2015B627FF005AF341 /* libimages.a in Frameworks */,
+				752C4B2115B627FF005AF341 /* libskgr.a in Frameworks */,
+				752C4B2215B627FF005AF341 /* libgr.a in Frameworks */,
+				752C4B2315B627FF005AF341 /* libeffects.a in Frameworks */,
+				752C4B2415B627FF005AF341 /* libexperimental.a in Frameworks */,
+				752C4B2515B627FF005AF341 /* libcore.a in Frameworks */,
+				752C493B15B43D86005AF341 /* OpenGL.framework in Frameworks */,
+				752C493915B43D1A005AF341 /* SDL.framework in Frameworks */,
+				752C493215B385C7005AF341 /* libnativestudio.a in Frameworks */,
+				752C491115B3854D005AF341 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		752C490115B3854B005AF341 = {
+			isa = PBXGroup;
+			children = (
+				752C491615B3854D005AF341 /* NativeStudio */,
+				752C490F15B3854D005AF341 /* Frameworks */,
+				752C490D15B3854D005AF341 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		752C490D15B3854D005AF341 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				752C490C15B3854D005AF341 /* NativeStudio.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		752C490F15B3854D005AF341 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				752C4B0815B627FF005AF341 /* libsfnt.a */,
+				752C4B7415B62CC1005AF341 /* libjs_static.a */,
+				752C4B0915B627FF005AF341 /* libzlib.a */,
+				752C4B0A15B627FF005AF341 /* libjpeg.a */,
+				752C4B0B15B627FF005AF341 /* libopts_ssse3.a */,
+				752C4B0C15B627FF005AF341 /* libopts.a */,
+				752C4B0D15B627FF005AF341 /* libutils.a */,
+				752C4B0E15B627FF005AF341 /* libpicture_utils.a */,
+				752C4B0F15B627FF005AF341 /* libpdf.a */,
+				752C4B1015B627FF005AF341 /* libports.a */,
+				752C4B1115B627FF005AF341 /* libimages.a */,
+				752C4B1215B627FF005AF341 /* libskgr.a */,
+				752C4B1315B627FF005AF341 /* libgr.a */,
+				752C4B1415B627FF005AF341 /* libeffects.a */,
+				752C4B1515B627FF005AF341 /* libexperimental.a */,
+				752C4B1615B627FF005AF341 /* libcore.a */,
+				752C493A15B43D86005AF341 /* OpenGL.framework */,
+				752C493815B43D1A005AF341 /* SDL.framework */,
+				752C491015B3854D005AF341 /* Cocoa.framework */,
+				752C491215B3854D005AF341 /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		752C491215B3854D005AF341 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				752C491315B3854D005AF341 /* AppKit.framework */,
+				752C491415B3854D005AF341 /* CoreData.framework */,
+				752C491515B3854D005AF341 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		752C491615B3854D005AF341 /* NativeStudio */ = {
+			isa = PBXGroup;
+			children = (
+				752C492215B3854D005AF341 /* NativeStudioAppDelegate.h */,
+				752C492315B3854D005AF341 /* NativeStudioAppDelegate.mm */,
+				752C492515B3854D005AF341 /* MainMenu.xib */,
+				752C491715B3854D005AF341 /* Supporting Files */,
+			);
+			path = NativeStudio;
+			sourceTree = "<group>";
+		};
+		752C491715B3854D005AF341 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				752C493115B385C7005AF341 /* libnativestudio.a */,
+				752C491815B3854D005AF341 /* NativeStudio-Info.plist */,
+				752C491915B3854D005AF341 /* InfoPlist.strings */,
+				752C491C15B3854D005AF341 /* main.m */,
+				752C491E15B3854D005AF341 /* NativeStudio-Prefix.pch */,
+				752C491F15B3854D005AF341 /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		752C490B15B3854C005AF341 /* NativeStudio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 752C492A15B3854D005AF341 /* Build configuration list for PBXNativeTarget "NativeStudio" */;
+			buildPhases = (
+				752C490815B3854C005AF341 /* Sources */,
+				752C490915B3854C005AF341 /* Frameworks */,
+				752C490A15B3854C005AF341 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NativeStudio;
+			productName = NativeStudio;
+			productReference = 752C490C15B3854D005AF341 /* NativeStudio.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		752C490315B3854B005AF341 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = NativeStudio;
+				LastUpgradeCheck = 0430;
+			};
+			buildConfigurationList = 752C490615B3854B005AF341 /* Build configuration list for PBXProject "NativeStudio" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 752C490115B3854B005AF341;
+			productRefGroup = 752C490D15B3854D005AF341 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				752C490B15B3854C005AF341 /* NativeStudio */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		752C490A15B3854C005AF341 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				752C491B15B3854D005AF341 /* InfoPlist.strings in Resources */,
+				752C492115B3854D005AF341 /* Credits.rtf in Resources */,
+				752C492715B3854D005AF341 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		752C490815B3854C005AF341 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				752C491D15B3854D005AF341 /* main.m in Sources */,
+				752C492415B3854D005AF341 /* NativeStudioAppDelegate.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		752C491915B3854D005AF341 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				752C491A15B3854D005AF341 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		752C491F15B3854D005AF341 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				752C492015B3854D005AF341 /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		752C492515B3854D005AF341 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				752C492615B3854D005AF341 /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		752C492815B3854D005AF341 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		752C492915B3854D005AF341 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		752C492B15B3854D005AF341 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "NativeStudio/NativeStudio-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = (
+					/Users/anthonycatel/Nativestudio/src,
+					/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include,
+					/Users/anthonycatel/src/skia/trunk/include/device,
+					/Users/anthonycatel/src/skia/trunk/include/gpu,
+					/Users/anthonycatel/src/skia/trunk/include/ports,
+					/Users/anthonycatel/src/skia/trunk/include/utils/mac,
+					/Users/anthonycatel/src/skia/trunk/include/config,
+					/Users/anthonycatel/src/skia/trunk/include/core,
+					/Users/anthonycatel/src/skia/trunk/src/gpu/gl,
+					/Users/anthonycatel/src/skia/trunk/src/gpu,
+					/Users/anthonycatel/src/skia/trunk/src/core,
+					/Users/anthonycatel/src/skia/trunk/include/effects/,
+				);
+				INFOPLIST_FILE = "NativeStudio/NativeStudio-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Nativestudio/src\"",
+					"\"$(SRCROOT)/../../Nativestudio/mozilla/js/src\"",
+					"\"$(SRCROOT)/../../src/skia/trunk/xcodebuild/Debug\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		752C492C15B3854D005AF341 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "NativeStudio/NativeStudio-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = (
+					/Users/anthonycatel/Nativestudio/src,
+					/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include,
+					/Users/anthonycatel/src/skia/trunk/include/device,
+					/Users/anthonycatel/src/skia/trunk/include/gpu,
+					/Users/anthonycatel/src/skia/trunk/include/ports,
+					/Users/anthonycatel/src/skia/trunk/include/utils/mac,
+					/Users/anthonycatel/src/skia/trunk/include/config,
+					/Users/anthonycatel/src/skia/trunk/include/core,
+					/Users/anthonycatel/src/skia/trunk/src/gpu/gl,
+					/Users/anthonycatel/src/skia/trunk/src/gpu,
+					/Users/anthonycatel/src/skia/trunk/src/core,
+					/Users/anthonycatel/src/skia/trunk/include/effects/,
+				);
+				INFOPLIST_FILE = "NativeStudio/NativeStudio-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Nativestudio/src\"",
+					"\"$(SRCROOT)/../../Nativestudio/mozilla/js/src\"",
+					"\"$(SRCROOT)/../../src/skia/trunk/xcodebuild/Debug\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		752C490615B3854B005AF341 /* Build configuration list for PBXProject "NativeStudio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				752C492815B3854D005AF341 /* Debug */,
+				752C492915B3854D005AF341 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		752C492A15B3854D005AF341 /* Build configuration list for PBXNativeTarget "NativeStudio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				752C492B15B3854D005AF341 /* Debug */,
+				752C492C15B3854D005AF341 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 752C490315B3854B005AF341 /* Project object */;
+}
