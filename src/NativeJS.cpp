@@ -42,6 +42,8 @@ static JSBool native_canvas_moveTo(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_lineTo(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fill(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_closePath(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -81,6 +83,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("lineTo", native_canvas_lineTo, 2, 0),
     JS_FN("fill", native_canvas_fill, 0, 0),
     JS_FN("stroke", native_canvas_stroke, 0, 0),
+    JS_FN("closePath", native_canvas_closePath, 0, 0),
+    JS_FN("arc", native_canvas_arc, 5, 0),
     JS_FS_END
 };
 
@@ -271,6 +275,26 @@ static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp)
     NativeSkia::getInstance().stroke();
 
     return JS_TRUE;
+}
+static JSBool native_canvas_closePath(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().closePath();
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int x, y, radius;
+    double startAngle, endAngle;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiidd", &x, &y,
+        &radius, &startAngle, &endAngle)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().arc(x, y, radius, startAngle, endAngle);
+
 }
 
 NativeJS::NativeJS()

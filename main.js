@@ -1,6 +1,12 @@
 canvas.fillStyle = "red";
+canvas.strokeStyle = "black";
+canvas.lineWidth = 2;
+
 canvas.beginPath();  
-canvas.moveTo(0,0);  
-canvas.lineTo(100,0);  
-canvas.lineTo(100,25);  
-canvas.fill();  
+
+canvas.arc(100, 100, 100, Math.PI, Math.PI*2);
+
+
+canvas.stroke();
+
+canvas.fillText("Fuck yeah, ça rox", 10, 10);

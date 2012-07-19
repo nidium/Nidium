@@ -199,7 +199,6 @@ void NativeSkia::setLineWidth(int size)
 void NativeSkia::beginPath()
 {
     if (currentPath) {
-        currentPath->close();
         delete currentPath;
     }
 
@@ -244,4 +243,31 @@ void NativeSkia::stroke()
 
     canvas->drawPath(*currentPath, *paint_stroke);
     canvas->flush();   
+}
+
+void NativeSkia::closePath()
+{
+    if (!currentPath) {
+        return;
+    }
+
+    currentPath->close();
+
+}
+
+void NativeSkia::arc(int x, int y, int radius,
+    double startAngle, double endAngle)
+{
+    if (!currentPath) {
+        return;
+    }
+
+    SkRect rect;
+    SkScalar start = SkDoubleToScalar(180 * (startAngle) / SK_ScalarPI);
+    SkScalar end = SkDoubleToScalar(180 * (endAngle) / SK_ScalarPI) - start;
+
+    rect.set(SkIntToScalar(x-radius), SkIntToScalar(y-radius),
+        SkIntToScalar(x+radius), SkIntToScalar(y+radius));
+
+    currentPath->addArc(rect, start, end);
 }
