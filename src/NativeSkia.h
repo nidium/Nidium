@@ -29,6 +29,8 @@ class NativeSkia
         void drawRect(int, int, int, int, int);
         void setFillColor(const char *str);
         void setStrokeColor(const char *str);
+        void setLineWidth(int size);
+        void clearRect(int, int, int, int);
         static NativeSkia &getInstance() {
             static NativeSkia ret;
 

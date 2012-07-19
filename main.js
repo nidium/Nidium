@@ -1,10 +1,3 @@
-
-canvas.fillStyle = "#BB0000";
-canvas.fillRect(0, 0, 150, 100);
-
-canvas.fillStyle = "#00FF00";
-canvas.strokeStyle = "#000000";
-canvas.strokeRect(0, 80, 50, 50);
-
-canvas.fillStyle = "black";
-canvas.fillText("Browser qui déchire", 10, 200);
+	canvas.fillRect(25,25,100,100);
+    canvas.clearRect(45,45,60,60);
+    canvas.strokeRect(50,50,50,50);

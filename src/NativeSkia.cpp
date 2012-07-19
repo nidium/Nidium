@@ -88,6 +88,7 @@ int NativeSkia::bindGL(int width, int height)
     paint_stroke->setAntiAlias(true);
     paint_stroke->setLCDRenderText(true);
     paint_stroke->setStyle(SkPaint::kStroke_Style);
+    /* TODO: stroke miter? */
 
     #if 0
     SkString path("skhello.png");
@@ -151,11 +152,21 @@ void NativeSkia::drawRect(int x, int y, int width, int height, int stroke)
     canvas->flush();
 }
 
+/* TODO: check if there is a best way to do this; */
+void NativeSkia::clearRect(int x, int y, int width, int height)
+{
+    SkPaint clearPaint;
+    clearPaint.setColor(SK_ColorWHITE);
+    clearPaint.setStyle(SkPaint::kFill_Style);
 
+    canvas->drawRectCoords(SkIntToScalar(x), SkIntToScalar(y),
+        SkIntToScalar(width), SkIntToScalar(height), clearPaint);
+
+    canvas->flush();
+}
 
 void NativeSkia::drawText(const char *text, int x, int y)
 {
-    printf("Draw text : %s\n", text);
     canvas->drawText(text, strlen(text),
         SkIntToScalar(x), SkIntToScalar(y), *paint);
 
@@ -178,4 +189,7 @@ void NativeSkia::setStrokeColor(const char *str)
     paint_stroke->setColor(color);
 }
 
-
+void NativeSkia::setLineWidth(int size)
+{
+    paint_stroke->setStrokeWidth(SkIntToScalar(size));
+}
