@@ -1,3 +1,6 @@
-	canvas.fillRect(25,25,100,100);
-    canvas.clearRect(45,45,60,60);
-    canvas.strokeRect(50,50,50,50);
+canvas.fillStyle = "red";
+canvas.beginPath();  
+canvas.moveTo(0,0);  
+canvas.lineTo(100,0);  
+canvas.lineTo(100,25);  
+canvas.fill();  

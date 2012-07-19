@@ -75,6 +75,8 @@ int NativeSkia::bindGL(int width, int height)
     
     SkSafeUnref(dev);
 
+    currentPath = NULL;
+
     paint = new SkPaint;
 
     paint->setARGB(255, 0, 0, 0);
@@ -192,4 +194,54 @@ void NativeSkia::setStrokeColor(const char *str)
 void NativeSkia::setLineWidth(int size)
 {
     paint_stroke->setStrokeWidth(SkIntToScalar(size));
+}
+
+void NativeSkia::beginPath()
+{
+    if (currentPath) {
+        currentPath->close();
+        delete currentPath;
+    }
+
+    currentPath = new SkPath();
+    currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
+
+}
+
+void NativeSkia::moveTo(int x, int y)
+{
+    if (!currentPath) {
+        beginPath();
+    }
+
+    currentPath->moveTo(SkIntToScalar(x), SkIntToScalar(y));
+}
+
+void NativeSkia::lineTo(int x, int y)
+{
+    if (!currentPath) {
+        beginPath();
+    }
+
+    currentPath->lineTo(SkIntToScalar(x), SkIntToScalar(y));
+}
+
+void NativeSkia::fill()
+{
+    if (!currentPath) {
+        return;
+    }
+
+    canvas->drawPath(*currentPath, *paint);
+    canvas->flush();
+}
+
+void NativeSkia::stroke()
+{
+    if (!currentPath) {
+        return;
+    }
+
+    canvas->drawPath(*currentPath, *paint_stroke);
+    canvas->flush();   
 }

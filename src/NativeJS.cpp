@@ -37,6 +37,11 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clearRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_beginPath(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_moveTo(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_lineTo(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_fill(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -71,6 +76,11 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("fillText", native_canvas_fillText, 3, 0),
     JS_FN("strokeRect", native_canvas_strokeRect, 4, 0),
     JS_FN("clearRect", native_canvas_clearRect, 4, 0),
+    JS_FN("beginPath", native_canvas_beginPath, 0, 0),
+    JS_FN("moveTo", native_canvas_moveTo, 2, 0),
+    JS_FN("lineTo", native_canvas_lineTo, 2, 0),
+    JS_FN("fill", native_canvas_fill, 0, 0),
+    JS_FN("stroke", native_canvas_stroke, 0, 0),
     JS_FS_END
 };
 
@@ -215,6 +225,53 @@ static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+
+static JSBool native_canvas_beginPath(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().beginPath();
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_moveTo(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &x, &y)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().moveTo(x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_lineTo(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &x, &y)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().lineTo(x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_fill(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().fill();
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().stroke();
+
+    return JS_TRUE;
+}
 
 NativeJS::NativeJS()
 {

@@ -10,6 +10,7 @@
 
 class SkCanvas;
 class SkPaint;
+class SkPath;
 
 class NativeSkia
 {
@@ -22,15 +23,27 @@ class NativeSkia
         SkCanvas *canvas;
         SkPaint *paint;
         SkPaint *paint_stroke;
+        SkPath *currentPath;
 
     public:
         int bindGL(int width, int height);
+
+        /* Basics */
         void drawText(const char *text, int x, int y);
         void drawRect(int, int, int, int, int);
         void setFillColor(const char *str);
         void setStrokeColor(const char *str);
         void setLineWidth(int size);
         void clearRect(int, int, int, int);
+
+        /* Shapes */
+        void beginPath();
+        void moveTo(int x, int y);
+        void lineTo(int x, int y);
+        void fill();
+        void stroke();
+        void closePath();
+
         static NativeSkia &getInstance() {
             static NativeSkia ret;
 
