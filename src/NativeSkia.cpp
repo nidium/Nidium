@@ -80,6 +80,14 @@ int NativeSkia::bindGL(int width, int height)
     paint->setARGB(255, 0, 0, 0);
     paint->setAntiAlias(true);
     paint->setLCDRenderText(true);
+    paint->setStyle(SkPaint::kFill_Style);
+
+    paint_stroke = new SkPaint;
+
+    paint_stroke->setARGB(255, 0, 0, 0);
+    paint_stroke->setAntiAlias(true);
+    paint_stroke->setLCDRenderText(true);
+    paint_stroke->setStyle(SkPaint::kStroke_Style);
 
     #if 0
     SkString path("skhello.png");
@@ -131,16 +139,19 @@ int NativeSkia::bindGL(int width, int height)
     return 1;
 }
 
-void NativeSkia::drawRect(int x, int y, int width, int height)
+void NativeSkia::drawRect(int x, int y, int width, int height, int stroke)
 {
     SkIRect rect;
 
+    /* TODO: replace with drawRectCoord */
     rect.set(x, y, width, height);
 
-    canvas->drawIRect(rect, *paint);
+    canvas->drawIRect(rect, (stroke ? *paint_stroke : *paint));
 
     canvas->flush();
 }
+
+
 
 void NativeSkia::drawText(const char *text, int x, int y)
 {
@@ -156,8 +167,15 @@ void NativeSkia::setFillColor(const char *str)
     SkColor color = SK_ColorBLACK;;
 
     SkParse::FindColor(str, &color);
-    paint->setStyle(SkPaint::kFill_Style);
     paint->setColor(color);
+}
+
+void NativeSkia::setStrokeColor(const char *str)
+{   
+    SkColor color = SK_ColorBLACK;;
+
+    SkParse::FindColor(str, &color);
+    paint_stroke->setColor(color);
 }
 
 

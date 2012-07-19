@@ -21,12 +21,14 @@ class NativeSkia
 
         SkCanvas *canvas;
         SkPaint *paint;
+        SkPaint *paint_stroke;
 
     public:
         int bindGL(int width, int height);
         void drawText(const char *text, int x, int y);
-        void drawRect(int, int, int, int);
+        void drawRect(int, int, int, int, int);
         void setFillColor(const char *str);
+        void setStrokeColor(const char *str);
         static NativeSkia &getInstance() {
             static NativeSkia ret;
 

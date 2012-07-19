@@ -11,7 +11,8 @@
 #include <jsapi.h>
 
 enum {
-    CANVAS_PROP_FILLRECT = 1
+    CANVAS_PROP_FILLSTYLE = 1,
+    CANVAS_PROP_STROKESTYLE
 };
 
 static JSClass global_class = {
@@ -32,18 +33,21 @@ static JSClass canvas_class = {
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
 
-static JSBool native_canvas_fillStyle_set(JSContext *cx, JSHandleObject obj,
+static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp);
 
 
 static JSPropertySpec canvas_props[] = {
-    {"fillStyle", CANVAS_PROP_FILLRECT, JSPROP_PERMANENT, NULL,
-        native_canvas_fillStyle_set},
+    {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"strokeStyle", CANVAS_PROP_STROKESTYLE, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
     {NULL}
 };
 /*************************/
@@ -61,6 +65,7 @@ static JSFunctionSpec canvas_funcs[] = {
     
     JS_FN("fillRect", native_canvas_fillRect, 4, 0),
     JS_FN("fillText", native_canvas_fillText, 3, 0),
+    JS_FN("strokeRect", native_canvas_strokeRect, 4, 0),
 
     JS_FS_END
 };
@@ -106,7 +111,7 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
-static JSBool native_canvas_fillStyle_set(JSContext *cx, JSHandleObject obj,
+static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp)
 {
     if (!JSVAL_IS_STRING(*vp)) {
@@ -116,7 +121,17 @@ static JSBool native_canvas_fillStyle_set(JSContext *cx, JSHandleObject obj,
     }
     JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
 
-    NativeSkia::getInstance().setFillColor(colorName.ptr());
+    switch(JSID_TO_INT(id)) {
+        case CANVAS_PROP_FILLSTYLE:
+            NativeSkia::getInstance().setFillColor(colorName.ptr());
+            break;
+        case CANVAS_PROP_STROKESTYLE:
+            NativeSkia::getInstance().setStrokeColor(colorName.ptr());
+            break;
+        default:
+            break;
+    }
+
 
     return JS_TRUE;
 }
@@ -128,7 +143,19 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NativeSkia::getInstance().drawRect(x, y, width+x, height+y);
+    NativeSkia::getInstance().drawRect(x, y, width+x, height+y, 0);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int x, y, width, height;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &width, &height)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().drawRect(x, y, width+x, height+y, 1);
 
     return JS_TRUE;
 }
