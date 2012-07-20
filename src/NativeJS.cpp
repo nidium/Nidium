@@ -181,7 +181,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
 
-            NativeSkia::getInstance().setLineWidth(JSVAL_TO_INT(*vp));
+            NativeSkia::getInstance().setLineWidth(JSVAL_TO_DOUBLE(*vp));
         }
         break;
         default:

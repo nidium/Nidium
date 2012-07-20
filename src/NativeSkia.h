@@ -33,7 +33,7 @@ class NativeSkia
         void drawRect(int, int, int, int, int);
         void setFillColor(const char *str);
         void setStrokeColor(const char *str);
-        void setLineWidth(int size);
+        void setLineWidth(double size);
         void clearRect(int, int, int, int);
 
         /* Shapes */

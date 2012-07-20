@@ -247,9 +247,9 @@ void NativeSkia::setStrokeColor(const char *str)
     paint_stroke->setColor(color);
 }
 
-void NativeSkia::setLineWidth(int size)
+void NativeSkia::setLineWidth(double size)
 {
-    paint_stroke->setStrokeWidth(SkIntToScalar(size));
+    paint_stroke->setStrokeWidth(SkDoubleToScalar(size));
 
 }
 
