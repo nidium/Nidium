@@ -36,6 +36,23 @@
 #include "SkGPipe.h"
 
 
+static int count_separators(const char* str, const char* sep) {
+    char c;
+    int separators = 0;
+    while ((c = *str++) != '\0') {
+        if (strchr(sep, c) == NULL)
+            continue;
+        do {
+            if ((c = *str++) == '\0')
+            goto goHome;
+        } while (strchr(sep, c) != NULL);
+        separators++;
+    }
+    goHome:
+    return separators;
+}
+
+
 int NativeSkia::bindGL(int width, int height)
 {
     const GrGLInterface *interface = GrGLCreateNativeInterface();
@@ -185,9 +202,40 @@ void NativeSkia::drawText(const char *text, int x, int y)
 
 void NativeSkia::setFillColor(const char *str)
 {   
-    SkColor color = SK_ColorBLACK;;
+    SkColor color = SK_ColorBLACK;
 
-    SkParse::FindColor(str, &color);
+    if (strncasecmp(str, "rgb", 3) == 0) {
+        
+        SkScalar array[4];
+
+        int count = count_separators(str, ",") + 1;
+        
+        if (count == 4) {
+            if (str[3] != 'a') {
+                count = 3;
+            }
+        } else if (count != 3) {
+            return;
+        } 
+
+        array[3] = SK_Scalar1;
+        
+        const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
+            array, count);
+
+        if (end == NULL) {   
+            return;
+        }
+
+        array[3] *= 255;
+
+        color = SkColorSetARGB(SkScalarRound(array[3]), SkScalarRound(array[0]),
+        SkScalarRound(array[1]), SkScalarRound(array[2]));
+
+    } else {
+        SkParse::FindColor(str, &color);
+    }
+
     paint->setColor(color);
 }
 
@@ -215,23 +263,23 @@ void NativeSkia::beginPath()
     //currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
 }
 
-void NativeSkia::moveTo(int x, int y)
+void NativeSkia::moveTo(double x, double y)
 {
     if (!currentPath) {
         beginPath();
     }
 
-    currentPath->moveTo(SkIntToScalar(x), SkIntToScalar(y));
+    currentPath->moveTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-void NativeSkia::lineTo(int x, int y)
+void NativeSkia::lineTo(double x, double y)
 {
     /* moveTo is set? */
     if (!currentPath) {
         beginPath();
     }
 
-    currentPath->lineTo(SkIntToScalar(x), SkIntToScalar(y));
+    currentPath->lineTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 void NativeSkia::fill()
@@ -332,4 +380,19 @@ void NativeSkia::rotate(double angle)
 void NativeSkia::scale(double x, double y)
 {
     canvas->scale(SkDoubleToScalar(x), SkDoubleToScalar(y));
+}
+
+void NativeSkia::translate(double x, double y)
+{
+    canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
+}
+
+void NativeSkia::save()
+{
+    canvas->save();
+}
+
+void NativeSkia::restore()
+{
+    canvas->restore();
 }

@@ -38,8 +38,8 @@ class NativeSkia
 
         /* Shapes */
         void beginPath();
-        void moveTo(int x, int y);
-        void lineTo(int x, int y);
+        void moveTo(double x, double y);
+        void lineTo(double x, double y);
         void fill();
         void stroke();
         void closePath();
@@ -49,6 +49,9 @@ class NativeSkia
             double cpy2, double x, double y);
         void rotate(double angle);
         void scale(double x, double y);
+        void translate(double x, double y);
+        void save();
+        void restore();
 
         static NativeSkia &getInstance() {
             static NativeSkia ret;

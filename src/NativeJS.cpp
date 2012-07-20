@@ -50,7 +50,9 @@ static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_rotate(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_scale(JSContext *cx, unsigned argc, jsval *vp);
-
+static JSBool native_canvas_save(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_restore(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -96,6 +98,9 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("bezierCurveTo", native_canvas_bezierCurveTo, 4, 0),
     JS_FN("rotate", native_canvas_rotate, 1, 0),
     JS_FN("scale", native_canvas_scale, 2, 0),
+    JS_FN("save", native_canvas_save, 0, 0),
+    JS_FN("restore", native_canvas_restore, 0, 0),
+    JS_FN("translate", native_canvas_translate, 2, 0),
     JS_FS_END
 };
 
@@ -250,9 +255,9 @@ static JSBool native_canvas_beginPath(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas_moveTo(JSContext *cx, unsigned argc, jsval *vp)
 {
-    int x, y;
+    double x, y;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &x, &y)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
         return JS_TRUE;
     }
 
@@ -263,9 +268,9 @@ static JSBool native_canvas_moveTo(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas_lineTo(JSContext *cx, unsigned argc, jsval *vp)
 {
-    int x, y;
+    double x, y;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &x, &y)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
         return JS_TRUE;
     }
 
@@ -360,6 +365,33 @@ static JSBool native_canvas_scale(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeSkia::getInstance().scale(x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().translate(x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_save(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().save();
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_restore(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().restore();
 
     return JS_TRUE;
 }

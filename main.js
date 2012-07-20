@@ -1,3 +1,2 @@
-canvas.strokeRect(50,50,100,100);
-canvas.scale(5, 3);
-canvas.strokeRect(50,50,100,100);
+canvas.fillStyle = "rgba(100, 100, 100, 0.5)";
+canvas.fillRect(50,50,100,100);
