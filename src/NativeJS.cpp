@@ -48,6 +48,9 @@ static JSBool native_canvas_quadraticCurveTo(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_rotate(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_scale(JSContext *cx, unsigned argc, jsval *vp);
+
 /*************************/
 
 /******** Setters ********/
@@ -91,6 +94,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("arc", native_canvas_arc, 5, 0),
     JS_FN("quadraticCurveTo", native_canvas_quadraticCurveTo, 4, 0),
     JS_FN("bezierCurveTo", native_canvas_bezierCurveTo, 4, 0),
+    JS_FN("rotate", native_canvas_rotate, 1, 0),
+    JS_FN("scale", native_canvas_scale, 2, 0),
     JS_FS_END
 };
 
@@ -329,6 +334,32 @@ static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
     }
 
     NativeSkia::getInstance().bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_rotate(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double angle;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &angle)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().rotate(angle);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_scale(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().scale(x, y);
 
     return JS_TRUE;
 }

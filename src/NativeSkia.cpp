@@ -45,6 +45,7 @@ int NativeSkia::bindGL(int width, int height)
     }
 
     GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine, (GrPlatform3DContext)interface);
+
     GrPlatformRenderTargetDesc desc;
     
     desc.fWidth = SkScalarRound(width);
@@ -152,9 +153,12 @@ void NativeSkia::drawRect(int x, int y, int width, int height, int stroke)
     canvas->drawIRect(rect, (stroke ? *paint_stroke : *paint));
 
     canvas->flush();
+
 }
 
-/* TODO: check if there is a best way to do this; */
+/* TODO: check if there is a best way to do this;
+    context->clear() ?
+*/
 void NativeSkia::clearRect(int x, int y, int width, int height)
 {
     SkPaint clearPaint;
@@ -165,6 +169,7 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
         SkIntToScalar(width), SkIntToScalar(height), clearPaint);
 
     canvas->flush();
+
 }
 
 void NativeSkia::drawText(const char *text, int x, int y)
@@ -313,4 +318,14 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
     currentPath->cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
         SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2),
         SkDoubleToScalar(x), SkDoubleToScalar(y));
+}
+
+void NativeSkia::rotate(double angle)
+{
+    canvas->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));
+}
+
+void NativeSkia::scale(double x, double y)
+{
+    canvas->scale(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
