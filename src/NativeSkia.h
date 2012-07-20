@@ -44,6 +44,9 @@ class NativeSkia
         void stroke();
         void closePath();
         void arc(int, int, int, double, double, int);
+        void quadraticCurveTo(int cpx, int cpy, int x, int y);
+        void bezierCurveTo(double cpx, double cpy, double cpx2,
+            double cpy2, double x, double y);
 
         static NativeSkia &getInstance() {
             static NativeSkia ret;

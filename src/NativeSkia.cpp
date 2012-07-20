@@ -203,8 +203,7 @@ void NativeSkia::beginPath()
     }
 
     currentPath = new SkPath();
-    currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
-
+    //currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
 }
 
 void NativeSkia::moveTo(int x, int y)
@@ -218,6 +217,7 @@ void NativeSkia::moveTo(int x, int y)
 
 void NativeSkia::lineTo(int x, int y)
 {
+    /* moveTo is set? */
     if (!currentPath) {
         beginPath();
     }
@@ -255,26 +255,62 @@ void NativeSkia::closePath()
 
 }
 
-void NativeSkia::arc(int x, int y, int radius,
+void NativeSkia::arc(int x, int y, int r,
     double startAngle, double endAngle, int CCW)
 {
-    if (!currentPath || (!startAngle && !endAngle) || !radius) {
+    if (!currentPath || (!startAngle && !endAngle) || !r) {
         return;
     }
 
+    double sweep = endAngle - startAngle;
+
     SkRect rect;
-    SkScalar start = SkDoubleToScalar(180 * (startAngle) / SK_ScalarPI);
-    SkScalar end = SkDoubleToScalar(180 * (endAngle) / SK_ScalarPI);
+    SkScalar cx = SkIntToScalar(x);
+    SkScalar cy = SkIntToScalar(y);
+    SkScalar s360 = SkIntToScalar(360);
+    SkScalar radius = SkIntToScalar(r);
 
-    if (CCW) {
-        /* TODO: wrong */
-        end = end - (360 + start);
+    SkScalar start = SkDoubleToScalar(180 * startAngle / SK_ScalarPI);
+    SkScalar end = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
+
+    rect.set(cx-radius, cy-radius, cx+radius, cy+radius);
+
+    if (end >= s360 || end <= -s360) {
+        // Move to the start position (0 sweep means we add a single point).
+        currentPath->arcTo(rect, start, 0, false);
+        // Draw the circle.
+        currentPath->addOval(rect);
+        // Force a moveTo the end position.
+        currentPath->arcTo(rect, start + end, 0, true);        
     } else {
-        end -= start;
-    }
-    
-    rect.set(SkIntToScalar(x-radius), SkIntToScalar(y-radius),
-        SkIntToScalar(x+radius), SkIntToScalar(y+radius));
+        if (CCW && end > 0) {
+            end -= s360;
+        } else if (!CCW && end < 0) {
+            end += s360;
+        }
 
-    currentPath->addArc(rect, start, end);
+        currentPath->arcTo(rect, start, end, false);        
+    }
+}
+
+void NativeSkia::quadraticCurveTo(int cpx, int cpy, int x, int y)
+{
+    if (!currentPath) {
+        return;
+    }
+
+    currentPath->quadTo(SkIntToScalar(cpx), SkIntToScalar(cpy),
+        SkIntToScalar(x), SkIntToScalar(y));
+}
+
+void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
+    double x, double y)
+{
+    if (!currentPath) {
+        return;
+    }
+
+    currentPath->cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
+        SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2),
+        SkDoubleToScalar(x), SkDoubleToScalar(y));
 }

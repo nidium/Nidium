@@ -44,6 +44,10 @@ static JSBool native_canvas_fill(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_closePath(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_quadraticCurveTo(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
+    jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -85,6 +89,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("stroke", native_canvas_stroke, 0, 0),
     JS_FN("closePath", native_canvas_closePath, 0, 0),
     JS_FN("arc", native_canvas_arc, 5, 0),
+    JS_FN("quadraticCurveTo", native_canvas_quadraticCurveTo, 4, 0),
+    JS_FN("bezierCurveTo", native_canvas_bezierCurveTo, 4, 0),
     JS_FS_END
 };
 
@@ -296,6 +302,35 @@ static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeSkia::getInstance().arc(x, y, radius, startAngle, endAngle, CCW);
 
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_quadraticCurveTo(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    int x, y, cpx, cpy;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &cpx, &cpy,
+        &x, &y)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().quadraticCurveTo(cpx, cpy, x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double x, y, cpx, cpy, cpx2, cpy2;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd", &cpx, &cpy,
+        &cpx2, &cpy2, &x, &y)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
+
+    return JS_TRUE;
 }
 
 NativeJS::NativeJS()
