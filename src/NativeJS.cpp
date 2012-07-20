@@ -287,13 +287,14 @@ static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp)
 {
     int x, y, radius;
     double startAngle, endAngle;
+    JSBool CCW = JS_FALSE;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiidd", &x, &y,
-        &radius, &startAngle, &endAngle)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiidd/b", &x, &y,
+        &radius, &startAngle, &endAngle, &CCW)) {
         return JS_TRUE;
     }
 
-    NativeSkia::getInstance().arc(x, y, radius, startAngle, endAngle);
+    NativeSkia::getInstance().arc(x, y, radius, startAngle, endAngle, CCW);
 
 }
 

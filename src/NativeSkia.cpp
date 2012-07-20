@@ -256,16 +256,23 @@ void NativeSkia::closePath()
 }
 
 void NativeSkia::arc(int x, int y, int radius,
-    double startAngle, double endAngle)
+    double startAngle, double endAngle, int CCW)
 {
-    if (!currentPath) {
+    if (!currentPath || (!startAngle && !endAngle) || !radius) {
         return;
     }
 
     SkRect rect;
     SkScalar start = SkDoubleToScalar(180 * (startAngle) / SK_ScalarPI);
-    SkScalar end = SkDoubleToScalar(180 * (endAngle) / SK_ScalarPI) - start;
+    SkScalar end = SkDoubleToScalar(180 * (endAngle) / SK_ScalarPI);
 
+    if (CCW) {
+        /* TODO: wrong */
+        end = end - (360 + start);
+    } else {
+        end -= start;
+    }
+    
     rect.set(SkIntToScalar(x-radius), SkIntToScalar(y-radius),
         SkIntToScalar(x+radius), SkIntToScalar(y+radius));
 

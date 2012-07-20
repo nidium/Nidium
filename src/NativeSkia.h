@@ -43,7 +43,7 @@ class NativeSkia
         void fill();
         void stroke();
         void closePath();
-        void arc(int, int, int, double, double);
+        void arc(int, int, int, double, double, int);
 
         static NativeSkia &getInstance() {
             static NativeSkia ret;
