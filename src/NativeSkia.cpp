@@ -91,6 +91,9 @@ int NativeSkia::bindGL(int width, int height)
     paint_stroke->setAntiAlias(true);
     paint_stroke->setLCDRenderText(true);
     paint_stroke->setStyle(SkPaint::kStroke_Style);
+
+    this->setLineWidth(1);
+
     /* TODO: stroke miter? */
 
     #if 0
@@ -199,6 +202,7 @@ void NativeSkia::setStrokeColor(const char *str)
 void NativeSkia::setLineWidth(int size)
 {
     paint_stroke->setStrokeWidth(SkIntToScalar(size));
+
 }
 
 void NativeSkia::beginPath()
