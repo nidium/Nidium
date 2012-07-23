@@ -1,16 +1,34 @@
-
-  var i = 0;
-  var sin = Math.sin(Math.PI/6);
-  var cos = Math.cos(Math.PI/6);
-  canvas.translate(200, 200);
-  var c = 0;
-  for (i; i <= 12; i++) {
-    c = Math.floor(255 / 12 * i);
-    canvas.fillStyle = "rgb(" + c + "," + c + "," + c + ")";
-    canvas.fillRect(0, 0, 100, 10);
-    canvas.transform(cos, sin, -sin, cos, 0, 0);
-  }
+/*  canvas.fillRect(0,0,150,150);  
+  canvas.translate(75,75);  
   
-  canvas.setTransform(-1, 0, 0, 1, 200, 200);
-  canvas.fillStyle = "rgba(255, 128, 255, 0.5)";
-  canvas.fillRect(0, 50, 100, 100);
+  // Create a circular clipping path  
+  canvas.beginPath();  
+  canvas.arc(0,0,60,0,Math.PI*2,true);  
+  canvas.clip();  
+  
+
+    
+  canvas.fillStyle = "blue";  
+  canvas.fillRect(-75,-75,150,150);
+*/
+
+
+  canvas.fillStyle = '#FD0';  
+  canvas.fillRect(0,0,75,75);  
+  canvas.fillStyle = '#6C0';  
+  canvas.fillRect(75,0,75,75);  
+  canvas.fillStyle = '#09F';  
+  canvas.fillRect(0,75,75,75);  
+  canvas.fillStyle = '#F30';  
+  canvas.fillRect(75,75,75,75);  
+  canvas.fillStyle = '#FFF';  
+  
+  // set transparency value  
+  canvas.globalAlpha = 0.2;  
+  
+  // Draw semi transparent circles  
+  for (var i=0;i<7;i++){  
+      canvas.beginPath();  
+      canvas.arc(75,75,10+10*i,0,Math.PI*2,true);  
+      canvas.fill();  
+  }  

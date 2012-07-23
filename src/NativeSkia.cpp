@@ -89,6 +89,9 @@ int NativeSkia::bindGL(int width, int height)
     }
     
     printf("Skia init !\n");
+
+    globalAlpha = 255;
+
     canvas = new SkCanvas(dev);
     
     SkSafeUnref(dev);
@@ -243,6 +246,9 @@ void NativeSkia::setFillColor(const char *str)
     }
 
     paint->setColor(color);
+    SkAlpha current = paint->getAlpha();
+
+    paint->setAlpha(SkAlphaMul(current, SkAlpha255To256(globalAlpha)));
 }
 
 void NativeSkia::setStrokeColor(const char *str)
@@ -280,12 +286,27 @@ void NativeSkia::setStrokeColor(const char *str)
     }
 
     paint_stroke->setColor(color);
+    SkAlpha current = paint_stroke->getAlpha();
+
+    paint_stroke->setAlpha(SkAlphaMul(current, SkAlpha255To256(globalAlpha)));
+
+}
+
+void NativeSkia::setGlobalAlpha(double value)
+{
+
+    if (value < 0) return;
+    
+    SkScalar maxuint = SkIntToScalar(255);
+    globalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
+
+    paint->setAlpha(globalAlpha);
+    paint_stroke->setAlpha(globalAlpha);
 }
 
 void NativeSkia::setLineWidth(double size)
 {
     paint_stroke->setStrokeWidth(SkDoubleToScalar(size));
-
 }
 
 void NativeSkia::beginPath()
@@ -346,6 +367,17 @@ void NativeSkia::closePath()
     currentPath->close();
 
 }
+
+void NativeSkia::clip()
+{
+    if (!currentPath) {
+        return;
+    }
+
+    canvas->clipPath(*currentPath);
+    canvas->flush();
+}
+
 
 void NativeSkia::arc(int x, int y, int r,
     double startAngle, double endAngle, int CCW)
@@ -437,6 +469,11 @@ void NativeSkia::skew(double x, double y)
 {
     canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
+
+/*
+    composite :
+    http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp
+*/
 
 void NativeSkia::transform(double scalex, double skewy, double skewx,
             double scaley, double translatex, double translatey, int set)

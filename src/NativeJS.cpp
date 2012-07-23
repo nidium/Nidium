@@ -13,7 +13,8 @@
 enum {
     CANVAS_PROP_FILLSTYLE = 1,
     CANVAS_PROP_STROKESTYLE,
-    CANVAS_PROP_LINEWIDTH
+    CANVAS_PROP_LINEWIDTH,
+    CANVAS_PROP_GLOBALALPHA
 };
 
 static JSClass global_class = {
@@ -55,6 +56,7 @@ static JSBool native_canvas_restore(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -69,6 +71,8 @@ static JSPropertySpec canvas_props[] = {
     {"strokeStyle", CANVAS_PROP_STROKESTYLE, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
     {"lineWidth", CANVAS_PROP_LINEWIDTH, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"globalAlpha", CANVAS_PROP_GLOBALALPHA, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
     {NULL}
 };
@@ -95,6 +99,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("fill", native_canvas_fill, 0, 0),
     JS_FN("stroke", native_canvas_stroke, 0, 0),
     JS_FN("closePath", native_canvas_closePath, 0, 0),
+    JS_FN("clip", native_canvas_clip, 0, 0),
     JS_FN("arc", native_canvas_arc, 5, 0),
     JS_FN("quadraticCurveTo", native_canvas_quadraticCurveTo, 4, 0),
     JS_FN("bezierCurveTo", native_canvas_bezierCurveTo, 4, 0),
@@ -149,6 +154,7 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
+/* TODO: do not change the value when a wrong type is set */
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp)
 {
@@ -180,12 +186,24 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_LINEWIDTH:
         {
+            double ret;
             if (!JSVAL_IS_NUMBER(*vp)) {
                 *vp = JSVAL_NULL;
                 return JS_TRUE;
             }
-
-            NativeSkia::getInstance().setLineWidth(JSVAL_TO_DOUBLE(*vp));
+            JS_ValueToNumber(cx, *vp, &ret);
+            NativeSkia::getInstance().setLineWidth(ret);
+        }
+        break;
+        case CANVAS_PROP_GLOBALALPHA:
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(*vp)) {
+                *vp = JSVAL_NULL;
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, *vp, &ret);
+            NativeSkia::getInstance().setGlobalAlpha(ret);
         }
         break;
         default:
@@ -299,6 +317,13 @@ static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_closePath(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeSkia::getInstance().closePath();
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeSkia::getInstance().clip();
 
     return JS_TRUE;
 }

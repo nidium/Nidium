@@ -8,6 +8,8 @@
 #ifndef nativeskia_h__
 #define nativeskia_h__
 
+#include <stdint.h>
+
 class SkCanvas;
 class SkPaint;
 class SkPath;
@@ -25,6 +27,8 @@ class NativeSkia
         SkPaint *paint_stroke;
         SkPath *currentPath;
 
+        uint8_t globalAlpha;
+
     public:
         int bindGL(int width, int height);
 
@@ -34,6 +38,7 @@ class NativeSkia
         void setFillColor(const char *str);
         void setStrokeColor(const char *str);
         void setLineWidth(double size);
+        void setGlobalAlpha(double value);
         void clearRect(int, int, int, int);
 
         /* Shapes */
@@ -43,6 +48,7 @@ class NativeSkia
         void fill();
         void stroke();
         void closePath();
+        void clip();
         void arc(int, int, int, double, double, int);
         void quadraticCurveTo(int cpx, int cpy, int x, int y);
         void bezierCurveTo(double cpx, double cpy, double cpx2,
