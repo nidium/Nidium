@@ -109,6 +109,7 @@ int NativeSkia::bindGL(int width, int height)
     paint_stroke->setLCDRenderText(true);
     paint_stroke->setStyle(SkPaint::kStroke_Style);
 
+
     this->setLineWidth(1);
 
     /* TODO: stroke miter? */
@@ -181,6 +182,12 @@ void NativeSkia::drawRect(int x, int y, int width, int height, int stroke)
 */
 void NativeSkia::clearRect(int x, int y, int width, int height)
 {
+/*
+    SkPaint paint;
+    platformContext()->setupPaintForFilling(&paint);
+    paint.setXfermodeMode(SkXfermode::kClear_Mode);
+
+*/
     SkPaint clearPaint;
     clearPaint.setColor(SK_ColorWHITE);
     clearPaint.setStyle(SkPaint::kFill_Style);
@@ -200,12 +207,11 @@ void NativeSkia::drawText(const char *text, int x, int y)
     canvas->flush();
 }
 
+/* TODO : move color logic to a separate function */
 void NativeSkia::setFillColor(const char *str)
 {   
     SkColor color = SK_ColorBLACK;
-
     if (strncasecmp(str, "rgb", 3) == 0) {
-        
         SkScalar array[4];
 
         int count = count_separators(str, ",") + 1;
@@ -223,7 +229,7 @@ void NativeSkia::setFillColor(const char *str)
         const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
             array, count);
 
-        if (end == NULL) {   
+        if (end == NULL) {
             return;
         }
 
@@ -241,9 +247,38 @@ void NativeSkia::setFillColor(const char *str)
 
 void NativeSkia::setStrokeColor(const char *str)
 {   
-    SkColor color = SK_ColorBLACK;;
+    SkColor color = SK_ColorBLACK;
+    if (strncasecmp(str, "rgb", 3) == 0) {
+        SkScalar array[4];
 
-    SkParse::FindColor(str, &color);
+        int count = count_separators(str, ",") + 1;
+        
+        if (count == 4) {
+            if (str[3] != 'a') {
+                count = 3;
+            }
+        } else if (count != 3) {
+            return;
+        } 
+
+        array[3] = SK_Scalar1;
+        
+        const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
+            array, count);
+
+        if (end == NULL) {
+            return;
+        }
+
+        array[3] *= 255;
+
+        color = SkColorSetARGB(SkScalarRound(array[3]), SkScalarRound(array[0]),
+        SkScalarRound(array[1]), SkScalarRound(array[2]));
+
+    } else {
+        SkParse::FindColor(str, &color);
+    }
+
     paint_stroke->setColor(color);
 }
 
@@ -395,4 +430,36 @@ void NativeSkia::save()
 void NativeSkia::restore()
 {
     canvas->restore();
+
+}
+
+void NativeSkia::skew(double x, double y)
+{
+    canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
+}
+
+void NativeSkia::transform(double scalex, double skewy, double skewx,
+            double scaley, double translatex, double translatey, int set)
+{
+    SkMatrix m;
+    SkMatrix original = canvas->getTotalMatrix();
+
+    m.setScaleX(SkDoubleToScalar(scalex));
+    m.setSkewX(SkDoubleToScalar(skewx));
+    m.setTranslateX(SkDoubleToScalar(translatex));
+
+    m.setScaleY(SkDoubleToScalar(scaley));
+    m.setSkewY(SkDoubleToScalar(skewy));
+    m.setTranslateY(SkDoubleToScalar(translatey));
+
+    m.setPerspX(0);
+    m.setPerspY(0);
+
+    m.set(SkMatrix::kMPersp2, SK_Scalar1);
+
+    if (set) {
+        canvas->setMatrix(m);
+    } else {
+        canvas->concat(m);
+    }
 }

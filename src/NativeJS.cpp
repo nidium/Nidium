@@ -53,6 +53,8 @@ static JSBool native_canvas_scale(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_save(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_restore(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -101,6 +103,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("save", native_canvas_save, 0, 0),
     JS_FN("restore", native_canvas_restore, 0, 0),
     JS_FN("translate", native_canvas_translate, 2, 0),
+    JS_FN("transform", native_canvas_transform, 6, 0),
+    JS_FN("setTransform", native_canvas_setTransform, 6, 0),
     JS_FS_END
 };
 
@@ -378,6 +382,36 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeSkia::getInstance().translate(x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double scalex, skewx, skewy, scaley, translatex, translatey;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
+        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().transform(scalex, skewx, skewy, scaley,
+        translatex, translatey, 0);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double scalex, skewx, skewy, scaley, translatex, translatey;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
+        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+        return JS_TRUE;
+    }
+
+    NativeSkia::getInstance().transform(scalex, skewx, skewy, scaley,
+        translatex, translatey, 1);
 
     return JS_TRUE;
 }

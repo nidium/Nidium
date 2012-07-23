@@ -50,6 +50,9 @@ class NativeSkia
         void rotate(double angle);
         void scale(double x, double y);
         void translate(double x, double y);
+        void skew(double x, double y);
+        void transform(double scalex, double skewx, double skewy,
+            double scaley, double translatex, double translatey, int set);
         void save();
         void restore();
 

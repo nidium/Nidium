@@ -9,7 +9,7 @@
     {
 	    "sublimeclang_options":
 	    [
-	    	"-x c++",
+	    	"-xc++",
 	    	"-Wno-invalid-offsetof",
 	    	"-I/Users/anthonycatel/src/skia/trunk/include/core",
 	    	"-I/Users/anthonycatel/src/skia/trunk/include/gpu",
