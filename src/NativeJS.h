@@ -10,26 +10,23 @@
 
 #include <jsapi.h>
 
+#include "NativeSkia.h"
+
 /* JSAPI binding (singleton) */
 class NativeJS
 {
-    private:
-        NativeJS();
-        NativeJS(NativeJS const&); 
+    private:   
         void LoadCanvasObject();
 
-        void operator=(NativeJS const&);
+        //void operator=(NativeJS const&);
 
         JSContext *cx;
 
     public:
+        NativeSkia *nskia;
+        NativeJS();
+        ~NativeJS();
         int LoadScript(const char *filename);
-        
-        static NativeJS &getInstance() {
-            static NativeJS ret;
-
-            return ret;
-        }
 
 };
 

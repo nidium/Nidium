@@ -18,18 +18,14 @@ class NativeSkia
 {
     private:
 
-        NativeSkia(){};
-        NativeSkia(NativeSkia const&); 
-        void operator=(NativeSkia const&);
-
         SkCanvas *canvas;
         SkPaint *paint;
         SkPaint *paint_stroke;
         SkPath *currentPath;
 
         uint8_t globalAlpha;
-
     public:
+        ~NativeSkia();
         int bindGL(int width, int height);
 
         /* Basics */
@@ -63,13 +59,13 @@ class NativeSkia
             double scaley, double translatex, double translatey, int set);
         void save();
         void restore();
-
+#if 0
         static NativeSkia &getInstance() {
             static NativeSkia ret;
 
             return ret;
         }
-
+#endif
 };
 
 

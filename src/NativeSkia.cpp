@@ -179,6 +179,15 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 }
 
+NativeSkia::~NativeSkia()
+{
+    delete paint;
+    delete paint_stroke;
+    if (currentPath) delete currentPath;
+
+    delete canvas;
+}
+
 /* TODO: check if there is a best way to do this;
     context->clear() ?
 */
@@ -477,7 +486,6 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
             double scaley, double translatex, double translatey, int set)
 {
     SkMatrix m;
-    SkMatrix original = canvas->getTotalMatrix();
 
     m.setScaleX(SkDoubleToScalar(scalex));
     m.setSkewX(SkDoubleToScalar(skewx));
@@ -519,4 +527,5 @@ void NativeSkia::setLineJoin(const char *joinStyle)
     } else {
         paint_stroke->setStrokeJoin(SkPaint::kMiter_Join);
     }
+
 }
