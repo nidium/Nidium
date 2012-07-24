@@ -509,3 +509,14 @@ void NativeSkia::setLineCap(const char *capStyle)
         paint_stroke->setStrokeCap(SkPaint::kButt_Cap);
     }
 }
+
+void NativeSkia::setLineJoin(const char *joinStyle)
+{
+     if (strcasecmp(joinStyle, "round") == 0) {
+        paint_stroke->setStrokeJoin(SkPaint::kRound_Join);
+    } else if (strcasecmp(joinStyle, "bevel") == 0) {
+        paint_stroke->setStrokeJoin(SkPaint::kBevel_Join);
+    } else {
+        paint_stroke->setStrokeJoin(SkPaint::kMiter_Join);
+    }
+}

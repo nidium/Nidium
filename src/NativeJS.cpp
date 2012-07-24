@@ -15,7 +15,8 @@ enum {
     CANVAS_PROP_STROKESTYLE,
     CANVAS_PROP_LINEWIDTH,
     CANVAS_PROP_GLOBALALPHA,
-    CANVAS_PROP_LINECAP
+    CANVAS_PROP_LINECAP,
+    CANVAS_PROP_LINEJOIN
 };
 
 static JSClass global_class = {
@@ -77,7 +78,8 @@ static JSPropertySpec canvas_props[] = {
         native_canvas_prop_set},
     {"lineCap", CANVAS_PROP_LINECAP, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
-
+    {"lineJoin", CANVAS_PROP_LINEJOIN, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
     {NULL}
 };
 /*************************/
@@ -221,6 +223,17 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             NativeSkia::getInstance().setLineCap(lineCap.ptr());                
         }
         break;
+        case CANVAS_PROP_LINEJOIN:
+        {
+            if (!JSVAL_IS_STRING(*vp)) {
+                *vp = JSVAL_NULL;
+
+                return JS_TRUE;
+            }
+            JSAutoByteString lineJoin(cx, JSVAL_TO_STRING(*vp));
+            NativeSkia::getInstance().setLineJoin(lineJoin.ptr());                
+        }
+        break;        
         default:
             break;
     }

@@ -13,24 +13,15 @@
 */
 
 
-  var lineCap = ['butt','round','square'];
-
-  // Draw guides
-  canvas.strokeStyle = '#09f';
-  canvas.beginPath();
-  canvas.moveTo(10,10);
-  canvas.lineTo(140,10);
-  canvas.moveTo(10,140);
-  canvas.lineTo(140,140);
-  canvas.stroke();
-
-  // Draw lines
-  canvas.strokeStyle = 'black';
-  for (i=0;i<lineCap.length;i++){
-    canvas.lineWidth = 15;
-    canvas.lineCap = lineCap[i];
-    canvas.beginPath();
-    canvas.moveTo(25+i*50,10);
-    canvas.lineTo(25+i*50,140);
-    canvas.stroke();
-  }
+   var lineJoin = ['round','bevel','miter'];  
+  canvas.lineWidth = 10;  
+  for (var i=0;i<lineJoin.length;i++){  
+    canvas.lineJoin = lineJoin[i];  
+    canvas.beginPath();  
+    canvas.moveTo(-5,5+i*40);  
+    canvas.lineTo(35,45+i*40);  
+    canvas.lineTo(75,5+i*40);  
+    canvas.lineTo(115,45+i*40);  
+    canvas.lineTo(155,5+i*40);  
+    canvas.stroke();  
+  }  
