@@ -216,8 +216,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    int x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &width, &height)) {
+    double x, y, width, height;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y, &width, &height)) {
         return JS_TRUE;
     }
 
@@ -228,8 +228,8 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    int x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &width, &height)) {
+    double x, y, width, height;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y, &width, &height)) {
         return JS_TRUE;
     }
 

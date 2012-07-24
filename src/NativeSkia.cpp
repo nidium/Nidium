@@ -61,7 +61,8 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
 
-    GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine, (GrPlatform3DContext)interface);
+    GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine,
+        (GrPlatform3DContext)interface);
 
     GrPlatformRenderTargetDesc desc;
     
@@ -167,14 +168,12 @@ int NativeSkia::bindGL(int width, int height)
     return 1;
 }
 
-void NativeSkia::drawRect(int x, int y, int width, int height, int stroke)
+void NativeSkia::drawRect(double x, double y, double width,
+    double height, double stroke)
 {
-    SkIRect rect;
-
-    /* TODO: replace with drawRectCoord */
-    rect.set(x, y, width, height);
-
-    canvas->drawIRect(rect, (stroke ? *paint_stroke : *paint));
+    canvas->drawRectCoords(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height),
+        (stroke ? *paint_stroke : *paint));
 
     canvas->flush();
 
@@ -246,9 +245,9 @@ void NativeSkia::setFillColor(const char *str)
     }
 
     paint->setColor(color);
-    SkAlpha current = paint->getAlpha();
 
-    paint->setAlpha(SkAlphaMul(current, SkAlpha255To256(globalAlpha)));
+    paint->setAlpha(SkAlphaMul(paint->getAlpha(),
+        SkAlpha255To256(globalAlpha)));
 }
 
 void NativeSkia::setStrokeColor(const char *str)
@@ -286,9 +285,9 @@ void NativeSkia::setStrokeColor(const char *str)
     }
 
     paint_stroke->setColor(color);
-    SkAlpha current = paint_stroke->getAlpha();
 
-    paint_stroke->setAlpha(SkAlphaMul(current, SkAlpha255To256(globalAlpha)));
+    paint_stroke->setAlpha(SkAlphaMul(paint_stroke->getAlpha(),
+        SkAlpha255To256(globalAlpha)));
 
 }
 
@@ -296,7 +295,7 @@ void NativeSkia::setGlobalAlpha(double value)
 {
 
     if (value < 0) return;
-    
+
     SkScalar maxuint = SkIntToScalar(255);
     globalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
 
