@@ -461,7 +461,6 @@ void NativeSkia::save()
 void NativeSkia::restore()
 {
     canvas->restore();
-
 }
 
 void NativeSkia::skew(double x, double y)
@@ -497,5 +496,16 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
         canvas->setMatrix(m);
     } else {
         canvas->concat(m);
+    }
+}
+
+void NativeSkia::setLineCap(const char *capStyle)
+{
+    if (strcasecmp(capStyle, "round") == 0) {
+        paint_stroke->setStrokeCap(SkPaint::kRound_Cap);
+    } else if (strcasecmp(capStyle, "square") == 0) {
+        paint_stroke->setStrokeCap(SkPaint::kSquare_Cap);
+    } else {
+        paint_stroke->setStrokeCap(SkPaint::kButt_Cap);
     }
 }

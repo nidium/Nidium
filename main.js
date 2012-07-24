@@ -13,19 +13,24 @@
 */
 
 
-   canvas.fillStyle = 'rgb(255,221,0)';
-  canvas.fillRect(0,0,150,37.5);
-  canvas.fillStyle = 'rgb(102,204,0)';
-  canvas.fillRect(0,37.5,150,37.5);
-  canvas.fillStyle = 'rgb(0,153,255)';
-  canvas.fillRect(0,75,150,37.5);
-  canvas.fillStyle = 'rgb(255,51,0)';
-  canvas.fillRect(0,112.5,150,37.5);
+  var lineCap = ['butt','round','square'];
 
-  // Draw semi transparent circles
-  for (i=0;i<10;i++){
-    canvas.fillStyle = 'rgba(255,255,255,'+(i+1)/10+')';
-    for (j=0;j<4;j++){
-      canvas.fillRect(5+i*14,5+j*37.5,14,27.5)
-    }
+  // Draw guides
+  canvas.strokeStyle = '#09f';
+  canvas.beginPath();
+  canvas.moveTo(10,10);
+  canvas.lineTo(140,10);
+  canvas.moveTo(10,140);
+  canvas.lineTo(140,140);
+  canvas.stroke();
+
+  // Draw lines
+  canvas.strokeStyle = 'black';
+  for (i=0;i<lineCap.length;i++){
+    canvas.lineWidth = 15;
+    canvas.lineCap = lineCap[i];
+    canvas.beginPath();
+    canvas.moveTo(25+i*50,10);
+    canvas.lineTo(25+i*50,140);
+    canvas.stroke();
   }

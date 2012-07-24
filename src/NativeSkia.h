@@ -41,6 +41,7 @@ class NativeSkia
         void setGlobalAlpha(double value);
         void clearRect(int, int, int, int);
 
+        void setLineCap(const char *capStyle);
         /* Shapes */
         void beginPath();
         void moveTo(double x, double y);

@@ -14,7 +14,8 @@ enum {
     CANVAS_PROP_FILLSTYLE = 1,
     CANVAS_PROP_STROKESTYLE,
     CANVAS_PROP_LINEWIDTH,
-    CANVAS_PROP_GLOBALALPHA
+    CANVAS_PROP_GLOBALALPHA,
+    CANVAS_PROP_LINECAP
 };
 
 static JSClass global_class = {
@@ -74,6 +75,9 @@ static JSPropertySpec canvas_props[] = {
         native_canvas_prop_set},
     {"globalAlpha", CANVAS_PROP_GLOBALALPHA, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
+    {"lineCap", CANVAS_PROP_LINECAP, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+
     {NULL}
 };
 /*************************/
@@ -204,6 +208,17 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToNumber(cx, *vp, &ret);
             NativeSkia::getInstance().setGlobalAlpha(ret);
+        }
+        break;
+        case CANVAS_PROP_LINECAP:
+        {
+            if (!JSVAL_IS_STRING(*vp)) {
+                *vp = JSVAL_NULL;
+
+                return JS_TRUE;
+            }
+            JSAutoByteString lineCap(cx, JSVAL_TO_STRING(*vp));
+            NativeSkia::getInstance().setLineCap(lineCap.ptr());                
         }
         break;
         default:
