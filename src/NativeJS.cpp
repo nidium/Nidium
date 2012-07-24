@@ -7,6 +7,7 @@
 
 #include "NativeJS.h"
 #include "NativeSkia.h"
+#include "NativeSkGradient.h"
 #include <stdio.h>
 #include <jsapi.h>
 
@@ -29,7 +30,7 @@ static JSClass global_class = {
 };
 
 static JSClass canvas_class = {
-    "canvas", JSCLASS_HAS_PRIVATE,
+    "Canvas", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -70,6 +71,8 @@ static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_createLinearGradient(JSContext *cx,
     unsigned argc, jsval *vp);
+static JSBool native_canvasGradient_addColorStop(JSContext *cx,
+    unsigned argc, jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -100,6 +103,13 @@ static JSPropertySpec canvas_props[] = {
 static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
+
+    JS_FS_END
+};
+
+static JSFunctionSpec gradient_funcs[] = {
+    
+    JS_FN("addColorStop", native_canvasGradient_addColorStop, 2, 0),
 
     JS_FS_END
 };
@@ -180,13 +190,23 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_FILLSTYLE:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
+            if (JSVAL_IS_STRING(*vp)) {
+                JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
+                NSKIA->setFillColor(colorName.ptr());
+            } else if (!JSVAL_IS_PRIMITIVE(*vp) && 
+                JS_InstanceOf(cx, JSVAL_TO_OBJECT(*vp),
+                    &canvasGradient_class, NULL)) {
+
+                NativeSkGradient *gradient = (class NativeSkGradient *)
+                                            JS_GetPrivate(JSVAL_TO_OBJECT(*vp));
+
+                NSKIA->setFillColor(gradient);
+
+            } else {
                 *vp = JSVAL_VOID;
 
-                return JS_TRUE;
+                return JS_TRUE;                
             }
-            JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setFillColor(colorName.ptr());          
         }
             
         break;
@@ -508,6 +528,33 @@ static JSBool native_canvas_createLinearGradient(JSContext *cx,
     linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(linearObject));
+
+    JS_SetPrivate(linearObject,
+        new NativeSkGradient(x1, y1, x2, y2));
+
+    JS_DefineFunctions(cx, linearObject, gradient_funcs);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvasGradient_addColorStop(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    double position;
+    JSString *color;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    NativeSkGradient *gradient;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dS",
+        &position, &color)) {
+        return JS_TRUE;
+    }
+
+    if ((gradient = (NativeSkGradient *)JS_GetPrivate(caller)) != NULL) {
+        JSAutoByteString colorstr(cx, color);
+
+        gradient->addColorStop(position, colorstr.ptr());
+    }
 
     return JS_TRUE;
 }

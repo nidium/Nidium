@@ -18,7 +18,7 @@ CPPFLAGS=-fvisibility=hidden -fvisibility-inlines-hidden -c -g -Wall -I../mozill
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeJS.cpp NativeSkia.cpp ape_array.cpp ape_pool.cpp ape_buffer.cpp
+SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp ape_array.cpp ape_pool.cpp ape_buffer.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a
 

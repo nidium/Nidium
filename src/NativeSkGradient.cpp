@@ -65,7 +65,7 @@ SkShader *NativeSkGradient::build()
 	SkColor colors[colorsStop.count];
 	SkScalar pos[colorsStop.count];
 
-	for (int i = 0; i < colorsStop.count; i++) {
+	for (unsigned int i = 0; i < colorsStop.count; i++) {
 		colors[i] = colorsStop.items[i].color;
 		pos[i] = colorsStop.items[i].position;
 	}
@@ -73,7 +73,7 @@ SkShader *NativeSkGradient::build()
 	needUpdate = 0;
 
 	SkSafeUnref(currentShader);
-	
+
 	currentShader = SkGradientShader::CreateLinear(pts, colors,
 		pos, colorsStop.count, SkShader::kClamp_TileMode);
 

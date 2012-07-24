@@ -7,7 +7,7 @@
 
 
 #include "NativeSkia.h"
-
+#include "NativeSkGradient.h"
 #include "SkData.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
@@ -52,6 +52,42 @@ static int count_separators(const char* str, const char* sep) {
     return separators;
 }
 
+uint32_t NativeSkia::parseColor(const char *str)
+{
+    SkColor color = SK_ColorBLACK;
+    if (strncasecmp(str, "rgb", 3) == 0) {
+        SkScalar array[4];
+
+        int count = count_separators(str, ",") + 1;
+        
+        if (count == 4) {
+            if (str[3] != 'a') {
+                count = 3;
+            }
+        } else if (count != 3) {
+            return 0;
+        } 
+
+        array[3] = SK_Scalar1;
+        
+        const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
+            array, count);
+
+        if (end == NULL) {
+            return 0;
+        }
+
+        array[3] *= 255;
+
+        color = SkColorSetARGB(SkScalarRound(array[3]), SkScalarRound(array[0]),
+        SkScalarRound(array[1]), SkScalarRound(array[2]));
+
+    } else {
+        SkParse::FindColor(str, &color);
+    }
+
+    return color;
+}
 
 int NativeSkia::bindGL(int width, int height)
 {
@@ -197,7 +233,6 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
     SkPaint paint;
     platformContext()->setupPaintForFilling(&paint);
     paint.setXfermodeMode(SkXfermode::kClear_Mode);
-
 */
     SkPaint clearPaint;
     clearPaint.setColor(SK_ColorWHITE);
@@ -216,6 +251,16 @@ void NativeSkia::drawText(const char *text, int x, int y)
         SkIntToScalar(x), SkIntToScalar(y), *paint);
 
     canvas->flush();
+}
+
+void NativeSkia::setFillColor(NativeSkGradient *gradient)
+{ 
+    SkShader *shader;
+
+    if ((shader = gradient->build()) == NULL) {
+        return;
+    }
+    paint->setShader(gradient->build()); 
 }
 
 /* TODO : move color logic to a separate function */

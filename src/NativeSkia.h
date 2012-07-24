@@ -13,6 +13,7 @@
 class SkCanvas;
 class SkPaint;
 class SkPath;
+class NativeSkGradient;
 
 class NativeSkia
 {
@@ -32,6 +33,7 @@ class NativeSkia
         void drawText(const char *text, int x, int y);
         void drawRect(double, double, double, double, double);
         void setFillColor(const char *str);
+        void setFillColor(NativeSkGradient *);
         void setStrokeColor(const char *str);
         void setLineWidth(double size);
         void setGlobalAlpha(double value);
@@ -59,6 +61,7 @@ class NativeSkia
             double scaley, double translatex, double translatey, int set);
         void save();
         void restore();
+        static uint32_t parseColor(const char *str);
 #if 0
         static NativeSkia &getInstance() {
             static NativeSkia ret;
