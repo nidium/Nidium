@@ -28,13 +28,14 @@ class NativeSkia
     public:
         ~NativeSkia();
         int bindGL(int width, int height);
-
+        void flush();
         /* Basics */
         void drawText(const char *text, int x, int y);
         void drawRect(double, double, double, double, double);
         void setFillColor(const char *str);
-        void setFillColor(NativeSkGradient *);
+        void setFillColor(NativeSkGradient *gradient);
         void setStrokeColor(const char *str);
+        void setStrokeColor(NativeSkGradient *gradient);
         void setLineWidth(double size);
         void setGlobalAlpha(double value);
         void clearRect(int, int, int, int);

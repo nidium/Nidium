@@ -8,17 +8,10 @@
 
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
-#include "SkData.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
-#include "SkGraphics.h"
-#include "SkImageEncoder.h"
-#include "SkPaint.h"
-#include "SkPicture.h"
-#include "SkStream.h"
-#include "SkTime.h"
-#include "SkRefCnt.h"
+
 #include "SkParse.h"
 
 #include "GrContext.h"
@@ -28,13 +21,8 @@
 #include "gl/GrGLUtil.h"
 #include "GrRenderTarget.h"
 
-#include "SkOSFile.h"
-#include "SkPDFDevice.h"
-#include "SkPDFDocument.h"
-#include "SkStream.h"
-
-#include "SkGPipe.h"
-
+//#define CANVAS_FLUSH() canvas->flush()
+#define CANVAS_FLUSH()
 
 static int count_separators(const char* str, const char* sep) {
     char c;
@@ -199,7 +187,7 @@ int NativeSkia::bindGL(int width, int height)
     
     //Draw Circle (X, Y, Size, Paint)
     canvas->drawCircle(100, 400, 50, paint);
-    canvas->flush();
+    CANVAS_FLUSH();
 #endif
     return 1;
 }
@@ -211,7 +199,7 @@ void NativeSkia::drawRect(double x, double y, double width,
         SkDoubleToScalar(width), SkDoubleToScalar(height),
         (stroke ? *paint_stroke : *paint));
 
-    canvas->flush();
+    CANVAS_FLUSH();
 
 }
 
@@ -241,7 +229,7 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
     canvas->drawRectCoords(SkIntToScalar(x), SkIntToScalar(y),
         SkIntToScalar(width), SkIntToScalar(height), clearPaint);
 
-    canvas->flush();
+    CANVAS_FLUSH();
 
 }
 
@@ -250,7 +238,7 @@ void NativeSkia::drawText(const char *text, int x, int y)
     canvas->drawText(text, strlen(text),
         SkIntToScalar(x), SkIntToScalar(y), *paint);
 
-    canvas->flush();
+    CANVAS_FLUSH();
 }
 
 void NativeSkia::setFillColor(NativeSkGradient *gradient)
@@ -260,7 +248,19 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
     if ((shader = gradient->build()) == NULL) {
         return;
     }
+
     paint->setShader(gradient->build()); 
+}
+
+void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
+{ 
+    SkShader *shader;
+
+    if ((shader = gradient->build()) == NULL) {
+        return;
+    }
+
+    paint_stroke->setShader(gradient->build()); 
 }
 
 /* TODO : move color logic to a separate function */
@@ -398,7 +398,7 @@ void NativeSkia::fill()
     }
 
     canvas->drawPath(*currentPath, *paint);
-    canvas->flush();
+    CANVAS_FLUSH();
 }
 
 void NativeSkia::stroke()
@@ -408,7 +408,7 @@ void NativeSkia::stroke()
     }
 
     canvas->drawPath(*currentPath, *paint_stroke);
-    canvas->flush();   
+    CANVAS_FLUSH();   
 }
 
 void NativeSkia::closePath()
@@ -428,7 +428,7 @@ void NativeSkia::clip()
     }
 
     canvas->clipPath(*currentPath);
-    canvas->flush();
+    CANVAS_FLUSH();
 }
 
 
@@ -572,5 +572,25 @@ void NativeSkia::setLineJoin(const char *joinStyle)
     } else {
         paint_stroke->setStrokeJoin(SkPaint::kMiter_Join);
     }
+    
+}
 
+/*
+static SkBitmap load_bitmap() {
+    SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
+    SkAutoUnref aur(stream);
+    
+    SkBitmap bm;
+    if (SkImageDecoder::DecodeStream(stream, &bm, SkBitmap::kNo_Config,
+                                     SkImageDecoder::kDecodeBounds_Mode)) {
+        SkPixelRef* pr = new SkImageRef_GlobalPool(stream, bm.config(), 1);
+        bm.setPixelRef(pr)->unref();
+    }
+    return bm;
+}
+*/
+
+void NativeSkia::flush()
+{
+    canvas->flush();
 }

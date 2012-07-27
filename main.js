@@ -11,13 +11,14 @@
   canvas.fillStyle = "blue";  
   canvas.fillRect(-75,-75,150,150);
 */
-
-  var lingrad = canvas.createLinearGradient(0,0,100,100);  
-  lingrad.addColorStop(0, '#FF0000');  
-  lingrad.addColorStop(1, '#00FF00');  
-
-  canvas.fillStyle = lingrad;
-
-  
-
-  canvas.fillRect(10,10,100,100);  
+canvas.beginPath();
+canvas.moveTo(20, 10);
+canvas.lineTo(80, 10);
+canvas.quadraticCurveTo(90, 10, 90, 20);
+canvas.lineTo(90, 80);
+canvas.quadraticCurveTo(90, 90, 80, 90);
+canvas.lineTo(20, 90);
+canvas.quadraticCurveTo(10, 90, 10, 80);
+canvas.lineTo(10, 20);
+canvas.quadraticCurveTo(10, 10, 20, 10);
+canvas.stroke();

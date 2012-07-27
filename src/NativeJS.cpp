@@ -43,6 +43,8 @@ static JSClass canvasGradient_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+jsval gfunc = JSVAL_VOID;
+
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -73,6 +75,9 @@ static JSBool native_canvas_createLinearGradient(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvasGradient_addColorStop(JSContext *cx,
     unsigned argc, jsval *vp);
+static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
+    unsigned argc, jsval *vp);
+
 /*************************/
 
 /******** Setters ********/
@@ -138,6 +143,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("transform", native_canvas_transform, 6, 0),
     JS_FN("setTransform", native_canvas_setTransform, 6, 0),
     JS_FN("createLinearGradient", native_canvas_createLinearGradient, 4, 0),
+    JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FS_END
 };
 
@@ -208,19 +214,27 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;                
             }
         }
-            
         break;
         case CANVAS_PROP_STROKESTYLE:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
+            if (JSVAL_IS_STRING(*vp)) {
+                JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
+                NSKIA->setStrokeColor(colorName.ptr());
+            } else if (!JSVAL_IS_PRIMITIVE(*vp) && 
+                JS_InstanceOf(cx, JSVAL_TO_OBJECT(*vp),
+                    &canvasGradient_class, NULL)) {
+
+                NativeSkGradient *gradient = (class NativeSkGradient *)
+                                            JS_GetPrivate(JSVAL_TO_OBJECT(*vp));
+
+                NSKIA->setStrokeColor(gradient);
+
+            } else {
                 *vp = JSVAL_VOID;
 
-                return JS_TRUE;
-            }
-            JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setStrokeColor(colorName.ptr());       
+                return JS_TRUE;                
+            }    
         }
-            
         break;
         case CANVAS_PROP_LINEWIDTH:
         {
@@ -559,6 +573,25 @@ static JSBool native_canvasGradient_addColorStop(JSContext *cx,
     return JS_TRUE;
 }
 
+static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gfunc)) {
+        return JS_TRUE;
+    }
+
+    return JS_TRUE;
+}
+
+void NativeJS::callFrame()
+{
+    jsval rval;
+    if (gfunc != JSVAL_VOID) {
+        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
+    }
+}
+
 NativeJS::NativeJS()
 {
     JSRuntime *rt;
@@ -597,6 +630,8 @@ NativeJS::NativeJS()
     nskia = new NativeSkia();
 
     JS_SetContextPrivate(cx, nskia);
+
+    animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 
 NativeJS::~NativeJS()
