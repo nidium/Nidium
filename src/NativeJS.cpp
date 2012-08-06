@@ -8,8 +8,10 @@
 #include "NativeJS.h"
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
+#include "NativeSkImage.h"
 #include <stdio.h>
 #include <jsapi.h>
+#include <jsprf.h>
 
 enum {
     CANVAS_PROP_FILLSTYLE = 1,
@@ -17,10 +19,13 @@ enum {
     CANVAS_PROP_LINEWIDTH,
     CANVAS_PROP_GLOBALALPHA,
     CANVAS_PROP_LINECAP,
-    CANVAS_PROP_LINEJOIN
+    CANVAS_PROP_LINEJOIN,
+    CANVAS_PROP_WIDTH,
+    CANVAS_PROP_HEIGHT
 };
 
 #define NSKIA ((class NativeSkia *)JS_GetContextPrivate(cx))
+#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 static JSClass global_class = {
     "_GLOBAL", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -43,10 +48,13 @@ static JSClass canvasGradient_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-jsval gfunc = JSVAL_VOID;
+jsval gfunc  = JSVAL_VOID;
+jsval gmove  = JSVAL_VOID;
+jsval gclick = JSVAL_VOID;
 
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clearRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -77,14 +85,22 @@ static JSBool native_canvasGradient_addColorStop(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
     unsigned argc, jsval *vp);
-
+static JSBool native_canvas_mouseMove(JSContext *cx,
+    unsigned argc, jsval *vp);
+static JSBool native_canvas_mouseClick(JSContext *cx,
+    unsigned argc, jsval *vp);
+static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
+    jsval *vp);
 /*************************/
 
 /******** Setters ********/
 
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp);
-
+static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, NULL,
@@ -99,6 +115,10 @@ static JSPropertySpec canvas_props[] = {
         native_canvas_prop_set},
     {"lineJoin", CANVAS_PROP_LINEJOIN, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
+    {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT, native_canvas_prop_get,
+        NULL},
+    {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT, native_canvas_prop_get,
+        NULL},
     {NULL}
 };
 /*************************/
@@ -108,6 +128,7 @@ static JSPropertySpec canvas_props[] = {
 static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
+    JS_FN("load", native_load, 1, 0),
 
     JS_FS_END
 };
@@ -121,6 +142,7 @@ static JSFunctionSpec gradient_funcs[] = {
 
 static JSFunctionSpec canvas_funcs[] = {
     
+    JS_FN("onerror", native_canvas_stub, 0, 0),
     JS_FN("fillRect", native_canvas_fillRect, 4, 0),
     JS_FN("fillText", native_canvas_fillText, 3, 0),
     JS_FN("strokeRect", native_canvas_strokeRect, 4, 0),
@@ -144,15 +166,100 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setTransform", native_canvas_setTransform, 6, 0),
     JS_FN("createLinearGradient", native_canvas_createLinearGradient, 4, 0),
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
+    JS_FN("mouseMove", native_canvas_mouseMove, 1, 0),
+    JS_FN("mouseClick", native_canvas_mouseClick, 1, 0),
+    JS_FN("drawImage", native_canvas_drawImage, 0, 0),
+    JS_FN("measureText", native_canvas_measureText, 1, 0),
     JS_FS_END
 };
 
-static void reportError(JSContext *cx, const char *message, JSErrorReport *report)
+static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp)
 {
-    fprintf(stdout, "%s:%u:%s\n",
-            report->filename ? report->filename : "<no filename>",
-            (unsigned int) report->lineno,
-            message);
+    return JS_TRUE;
+}
+
+static void
+reportError(JSContext *cx, const char *message, JSErrorReport *report)
+{
+    int i, j, k, n;
+    char *prefix, *tmp;
+    const char *ctmp;
+
+    if (!report) {
+        fprintf(stdout, "%s\n", message);
+        fflush(stdout);
+        return;
+    }
+
+    /* Conditionally ignore reported warnings. */
+    /*if (JSREPORT_IS_WARNING(report->flags) && !reportWarnings)
+        return;*/
+
+    prefix = NULL;
+    if (report->filename)
+        prefix = JS_smprintf("%s:", report->filename);
+    if (report->lineno) {
+        tmp = prefix;
+        prefix = JS_smprintf("%s%u: ", tmp ? tmp : "", report->lineno);
+        JS_free(cx, tmp);
+    }
+    if (JSREPORT_IS_WARNING(report->flags)) {
+        tmp = prefix;
+        prefix = JS_smprintf("%s%swarning: ",
+                             tmp ? tmp : "",
+                             JSREPORT_IS_STRICT(report->flags) ? "strict " : "");
+        JS_free(cx, tmp);
+    }
+
+    /* embedded newlines -- argh! */
+    while ((ctmp = strchr(message, '\n')) != 0) {
+        ctmp++;
+        if (prefix)
+            fputs(prefix, stdout);
+        fwrite(message, 1, ctmp - message, stdout);
+        message = ctmp;
+    }
+
+    /* If there were no filename or lineno, the prefix might be empty */
+    if (prefix)
+        fputs(prefix, stdout);
+    fputs(message, stdout);
+
+    if (!report->linebuf) {
+        fputc('\n', stdout);
+        goto out;
+    }
+
+    /* report->linebuf usually ends with a newline. */
+    n = strlen(report->linebuf);
+    fprintf(stdout, ":\n%s%s%s%s",
+            prefix,
+            report->linebuf,
+            (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
+            prefix);
+    n = report->tokenptr - report->linebuf;
+    for (i = j = 0; i < n; i++) {
+        if (report->linebuf[i] == '\t') {
+            for (k = (j + 8) & ~7; j < k; j++) {
+                fputc('.', stdout);
+            }
+            continue;
+        }
+        fputc('.', stdout);
+        j++;
+    }
+    fputs("^\n", stdout);
+ out:
+    fflush(stdout);
+    if (!JSREPORT_IS_WARNING(report->flags)) {
+    /*
+        if (report->errorNumber == JSMSG_OUT_OF_MEMORY) {
+            gExitCode = EXITCODE_OUT_OF_MEMORY;
+        } else {
+            gExitCode = EXITCODE_RUNTIME_ERROR;
+        }*/
+    }
+    JS_free(cx, prefix);
 }
 
 static JSBool
@@ -186,6 +293,27 @@ static JSBool
 Print(JSContext *cx, unsigned argc, jsval *vp)
 {
     return PrintInternal(cx, argc, vp, stdout);
+}
+
+static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, jsval *vp)
+{
+    switch(JSID_TO_INT(id)) {
+        case CANVAS_PROP_WIDTH:
+        {
+            *vp = INT_TO_JSVAL(NSKIA->getWidth());
+        }
+        break;
+        case CANVAS_PROP_HEIGHT:
+        {
+            *vp = INT_TO_JSVAL(NSKIA->getHeight());
+        }
+        break;
+        default:
+            break;
+    }
+
+    return JS_TRUE;
 }
 
 /* TODO: do not change the value when a wrong type is set */
@@ -287,6 +415,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 
     return JS_TRUE;
 }
+
 
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -580,6 +709,56 @@ static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gfunc)) {
         return JS_TRUE;
     }
+    JS_AddValueRoot(cx, &gfunc);
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_mouseMove(JSContext *cx, unsigned argc, jsval *vp)
+{
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gmove)) {
+        return JS_TRUE;
+    }
+
+    JS_AddValueRoot(cx, &gmove);
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_mouseClick(JSContext *cx, unsigned argc, jsval *vp)
+{
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gclick)) {
+        return JS_TRUE;
+    }
+
+    JS_AddValueRoot(cx, &gclick);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NSKIA->drawImage();
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    JSString *text;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
+        &text)) {
+        JS_SET_RVAL(cx, vp, JSVAL_ZERO);
+        return JS_TRUE;
+    }
+
+    JSAutoByteString ctext(cx, text);
+
+    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(NSKIA->measureText(ctext.ptr(),
+        strlen(ctext.ptr()))));
+
 
     return JS_TRUE;
 }
@@ -587,9 +766,55 @@ static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
 void NativeJS::callFrame()
 {
     jsval rval;
+    //JS_MaybeGC(cx);
+    //JS_GC(JS_GetRuntime(cx));
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
+}
+
+void NativeJS::mouseClick(int x, int y)
+{
+    jsval rval, coord[2];
+
+    coord[0] = INT_TO_JSVAL(x);
+    coord[1] = INT_TO_JSVAL(y);
+
+    if (gclick != JSVAL_VOID) {
+
+        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gclick, 2,
+            coord, &rval);
+    }
+}
+
+void NativeJS::mouseMove(int x, int y)
+{
+    jsval rval, coord[2];
+
+    coord[0] = INT_TO_JSVAL(x);
+    coord[1] = INT_TO_JSVAL(y);
+
+    if (gmove != JSVAL_VOID) {
+        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gmove, 2,
+            coord, &rval);
+    }
+}
+
+static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *script;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
+        return JS_TRUE;
+    }
+
+    JSAutoByteString scriptstr(cx, script);
+
+    if (!NJS->LoadScript(scriptstr.ptr())) {
+        return JS_TRUE;
+    }
+
+    return JS_TRUE;
 }
 
 NativeJS::NativeJS()
@@ -597,21 +822,30 @@ NativeJS::NativeJS()
     JSRuntime *rt;
     JSObject *gbl;
 
-    JS_SetCStringsAreUTF8();
+    /* TODO: BUG */
+    //JS_SetCStringsAreUTF8();
 
-    printf("New JS runtime\n");
+    //printf("New JS runtime\n");
 
-    if ((rt = JS_NewRuntime(1024L * 1024L * 128L)) == NULL) {
+    if ((rt = JS_NewRuntime(128L * 1024L * 1024L)) == NULL) {
         printf("Failed to init JS runtime\n");
         return;
     }
+
+
+    JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
+    JS_SetGCParameter(rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
+    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 10);
+    JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
+
+    JS_SetNativeStackQuota(rt, 500000);
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return;     
     }
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_METHODJIT_ALWAYS);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
     JS_SetErrorReporter(cx, reportError);
@@ -630,8 +864,9 @@ NativeJS::NativeJS()
     nskia = new NativeSkia();
 
     JS_SetContextPrivate(cx, nskia);
+    JS_SetRuntimePrivate(rt, this);
 
-    animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+    //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 
 NativeJS::~NativeJS()
@@ -645,17 +880,21 @@ NativeJS::~NativeJS()
 
 int NativeJS::LoadScript(const char *filename)
 {
-    printf("Load script\n");
+    uint32_t oldopts;
+
     JSObject *gbl = JS_GetGlobalObject(cx);
+    oldopts = JS_GetOptions(cx);
+
+    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
 
     JSScript *script = JS_CompileUTF8File(cx, gbl, filename);
 
-    if (script == NULL) {
+    JS_SetOptions(cx, oldopts);
+
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
         return 0;
     }
-
-    JS_ExecuteScript(cx, gbl, script, NULL);
-
+    
     return 1;
 }
 
@@ -668,5 +907,7 @@ void NativeJS::LoadCanvasObject()
     JS_DefineFunctions(cx, canvasObj, canvas_funcs);
 
     JS_DefineProperties(cx, canvasObj, canvas_props);
+
 }
+
 

@@ -5,31 +5,31 @@
 			"path": "/Users/anthonycatel/Nativestudio"
 		}
 	],
-    "settings":
-    {
-	    "sublimeclang_options":
-	    [
-	    	"-xc++",
-	    	"-Wno-invalid-offsetof",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/core",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/gpu",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/utils",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/device",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/config",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/images",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/test",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/pdf",
-	    	"-I/Users/anthonycatel/src/skia/trunk/include/pipe",
-	    	"-I/Users/anthonycatel/src/skia/trunk/src/gpu/gl",
+	"settings":
+	{
+		"sublimeclang_options":
+		[
+			"-xc++",
+			"-Wno-invalid-offsetof",
+			"-I/Users/anthonycatel/src/skia/trunk/include/core",
+			"-I/Users/anthonycatel/src/skia/trunk/include/gpu",
+			"-I/Users/anthonycatel/src/skia/trunk/include/utils",
+			"-I/Users/anthonycatel/src/skia/trunk/include/device",
+			"-I/Users/anthonycatel/src/skia/trunk/include/config",
+			"-I/Users/anthonycatel/src/skia/trunk/include/images",
+			"-I/Users/anthonycatel/src/skia/trunk/include/test",
+			"-I/Users/anthonycatel/src/skia/trunk/include/pdf",
+			"-I/Users/anthonycatel/src/skia/trunk/include/pipe",
+			"-I/Users/anthonycatel/src/skia/trunk/src/gpu/gl",
 			"-I/Users/anthonycatel/src/skia/trunk/src/gpu",
 			"-I/Users/anthonycatel/src/skia/trunk/src/core",
 			"-I/Users/anthonycatel/src/skia/trunk/include/effects",
 			"-I/Users/anthonycatel/src/skia/trunk/include/utils/mac",
 			"-I/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include",
 			"-I/Users/anthonycatel/Nativestudio/mozilla/js/src/",
-	    	"-Wno-deprecated-declarations",
-	    	"-Wno-c++11-extensions",
-	    	"-Wno-return-type-c-linkage"
-	    ]
-    }
+			"-Wno-deprecated-declarations",
+			"-Wno-c++11-extensions",
+			"-Wno-return-type-c-linkage"
+		]
+	}
 }

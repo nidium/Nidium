@@ -8,9 +8,11 @@
 
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
+#include "NativeSkImage.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
+//#include "SkGLCanvas.h"
 
 #include "SkParse.h"
 
@@ -20,6 +22,14 @@
 #include "gl/GrGLInterface.h"
 #include "gl/GrGLUtil.h"
 #include "GrRenderTarget.h"
+
+#include "GrGLRenderTarget.h"
+
+
+#include "SkGpuCanvas.h"
+#include "gl/SkNativeGLContext.h"
+
+#include "SkGraphics.h"
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -38,6 +48,72 @@ static int count_separators(const char* str, const char* sep) {
     }
     goHome:
     return separators;
+}
+
+
+static inline double calcHue(double temp1, double temp2, double hueVal) {
+  if (hueVal < 0.0)
+    hueVal++;
+  else if (hueVal > 1.0)
+    hueVal--;
+
+  if (hueVal * 6.0 < 1.0)
+    return temp1 + (temp2 - temp1) * hueVal * 6.0;
+  if (hueVal * 2.0 < 1.0)
+    return temp2;
+  if (hueVal * 3.0 < 2.0)
+    return temp1 + (temp2 - temp1) * (2.0 / 3.0 - hueVal) * 6.0;
+
+  return temp1;
+}
+
+
+int NativeSkia::getWidth()
+{
+    return canvas->getDeviceSize().fWidth;
+}
+
+int NativeSkia::getHeight()
+{
+    return canvas->getDeviceSize().fHeight;
+}
+
+SkPMColor NativeSkia::HSLToSKColor(U8CPU alpha, float hsl[3])
+{
+  double hue = SkScalarToDouble(hsl[0]);
+  double saturation = SkScalarToDouble(hsl[1]);
+  double lightness = SkScalarToDouble(hsl[2]);
+  double scaleFactor = 256.0;
+  
+  // If there's no color, we don't care about hue and can do everything based
+  // on brightness.
+  if (!saturation) {
+    U8CPU lightness;
+
+    if (hsl[2] < 0)
+      lightness = 0;
+    else if (hsl[2] >= SK_Scalar1)
+      lightness = 255;
+    else
+      lightness = SkScalarToFixed(hsl[2]) >> 8;
+
+    unsigned greyValue = SkAlphaMul(lightness, alpha);
+    return SkColorSetARGB(alpha, greyValue, greyValue, greyValue);
+  }
+
+  double temp2 = (lightness < 0.5) ?
+      lightness * (1.0 + saturation) :
+      lightness + saturation - (lightness * saturation);
+  double temp1 = 2.0 * lightness - temp2;
+
+  double rh = calcHue(temp1, temp2, hue + 1.0 / 3.0);
+  double gh = calcHue(temp1, temp2, hue);
+  double bh = calcHue(temp1, temp2, hue - 1.0 / 3.0);
+
+  return SkColorSetARGB(alpha,
+      SkAlphaMul(static_cast<int>(rh * scaleFactor), alpha),
+      SkAlphaMul(static_cast<int>(gh * scaleFactor), alpha),
+      SkAlphaMul(static_cast<int>(bh * scaleFactor), alpha));
 }
 
 uint32_t NativeSkia::parseColor(const char *str)
@@ -70,6 +146,8 @@ uint32_t NativeSkia::parseColor(const char *str)
         color = SkColorSetARGB(SkScalarRound(array[3]), SkScalarRound(array[0]),
         SkScalarRound(array[1]), SkScalarRound(array[2]));
 
+    } else if (strncasecmp(str, "hsl", 3) == 0) {
+        
     } else {
         SkParse::FindColor(str, &color);
     }
@@ -79,26 +157,33 @@ uint32_t NativeSkia::parseColor(const char *str)
 
 int NativeSkia::bindGL(int width, int height)
 {
-    const GrGLInterface *interface = GrGLCreateNativeInterface();
+    const GrGLInterface *interface =  GrGLCreateNativeInterface();
+
     if (interface == NULL) {
         printf("Cant get interface\n");
         return 0;
     }
-
+    
     GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine,
         (GrPlatform3DContext)interface);
 
+    if (context == NULL) {
+        printf("Cant get context\n");
+    }
+
     GrPlatformRenderTargetDesc desc;
+    //GrGLRenderTarget *t = new GrGLRenderTarget();
     
     desc.fWidth = SkScalarRound(width);
     desc.fHeight = SkScalarRound(height);
 
     desc.fConfig = kSkia8888_PM_GrPixelConfig;
-    
+
+
     GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
     GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
 
-    GrGLint buffer;
+    GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
     desc.fRenderTargetHandle = buffer;
 
@@ -112,12 +197,11 @@ int NativeSkia::bindGL(int width, int height)
         printf("Failed to init Skia (2)\n");
         return 0;
     }
-    
-    printf("Skia init !\n");
 
     globalAlpha = 255;
 
     canvas = new SkCanvas(dev);
+
     
     SkSafeUnref(dev);
 
@@ -222,6 +306,8 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
     platformContext()->setupPaintForFilling(&paint);
     paint.setXfermodeMode(SkXfermode::kClear_Mode);
 */
+    //CANVAS_FLUSH();
+    //glClear(GL_COLOR_BUFFER_BIT);
     SkPaint clearPaint;
     clearPaint.setColor(SK_ColorWHITE);
     clearPaint.setStyle(SkPaint::kFill_Style);
@@ -250,6 +336,7 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
     }
 
     paint->setShader(gradient->build()); 
+
 }
 
 void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
@@ -297,6 +384,11 @@ void NativeSkia::setFillColor(const char *str)
     } else {
         SkParse::FindColor(str, &color);
     }
+    SkShader *shader = paint->getShader();
+
+    if (shader) {
+        paint->setShader(NULL);
+    }
 
     paint->setColor(color);
 
@@ -336,6 +428,12 @@ void NativeSkia::setStrokeColor(const char *str)
 
     } else {
         SkParse::FindColor(str, &color);
+    }
+
+    SkShader *shader = paint_stroke->getShader();
+
+    if (shader) {
+        paint_stroke->setShader(NULL);
     }
 
     paint_stroke->setColor(color);
@@ -517,6 +615,11 @@ void NativeSkia::restore()
     canvas->restore();
 }
 
+double NativeSkia::measureText(const char *str, size_t length)
+{
+    return SkScalarToDouble(paint->measureText(str, length));
+}
+
 void NativeSkia::skew(double x, double y)
 {
     canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
@@ -573,6 +676,12 @@ void NativeSkia::setLineJoin(const char *joinStyle)
         paint_stroke->setStrokeJoin(SkPaint::kMiter_Join);
     }
     
+}
+
+void NativeSkia::drawImage()
+{
+    NativeSkImage *img = new NativeSkImage(canvas);
+    CANVAS_FLUSH();
 }
 
 /*

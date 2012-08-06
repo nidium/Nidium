@@ -9,11 +9,15 @@
 #define nativeskia_h__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 class SkCanvas;
 class SkPaint;
 class SkPath;
 class NativeSkGradient;
+
+typedef uint32_t SkPMColor;
+typedef unsigned U8CPU;
 
 class NativeSkia
 {
@@ -39,6 +43,9 @@ class NativeSkia
         void setLineWidth(double size);
         void setGlobalAlpha(double value);
         void clearRect(int, int, int, int);
+        void drawImage();
+        int getWidth();
+        int getHeight();
 
         void setLineCap(const char *capStyle);
         void setLineJoin(const char *joinStyle);
@@ -62,7 +69,9 @@ class NativeSkia
             double scaley, double translatex, double translatey, int set);
         void save();
         void restore();
+        double measureText(const char *str, size_t length);
         static uint32_t parseColor(const char *str);
+        static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
         static NativeSkia &getInstance() {
             static NativeSkia ret;

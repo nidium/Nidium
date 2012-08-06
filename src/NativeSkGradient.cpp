@@ -18,6 +18,29 @@ NativeSkGradient::NativeSkGradient(double x1, double y1, double x2, double y2)
 		colorsStop.allocated);
 
 	needUpdate = 1;
+	isRadial = 0;
+	currentShader = NULL;
+}
+
+NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
+	double x1, double y1, double r1)
+{
+	startPoint.x = x0;
+	startPoint.y = y0;
+	startPoint.radius = r0;
+
+	endPoint.x = x1;
+	endPoint.y = y1;
+	endPoint.radius = r0;
+
+	colorsStop.count = 0;
+	colorsStop.allocated = 8;
+
+	colorsStop.items = (struct _colorStop *)malloc(sizeof(struct _colorStop) *
+		colorsStop.allocated);
+
+	needUpdate = 1;
+	isRadial = 1;
 	currentShader = NULL;
 }
 
@@ -74,8 +97,15 @@ SkShader *NativeSkGradient::build()
 
 	SkSafeUnref(currentShader);
 
-	currentShader = SkGradientShader::CreateLinear(pts, colors,
-		pos, colorsStop.count, SkShader::kClamp_TileMode);
+	if (isRadial) {
+		currentShader = SkGradientShader::CreateTwoPointConical(pts[0],
+			SkDoubleToScalar(startPoint.radius), pts[1],
+			SkDoubleToScalar(endPoint.radius), colors, pos, colorsStop.count,
+			SkShader::kRepeat_TileMode);
+	} else {
+		currentShader = SkGradientShader::CreateLinear(pts, colors,
+			pos, colorsStop.count, SkShader::kRepeat_TileMode);
+	}
 
 	return currentShader;
 }

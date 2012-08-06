@@ -30,6 +30,8 @@ class NativeJS
         ~NativeJS();
         int LoadScript(const char *filename);
         void callFrame();
+        void mouseMove(int x, int y);
+        void mouseClick(int x, int y);
 };
 
 #endif

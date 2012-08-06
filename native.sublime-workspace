@@ -4,34 +4,521 @@
 		"selected_items":
 		[
 			[
-				"SSL_ERROR",
-				"SSL_ERROR_SYSCALL	macro"
+				"JS_Add",
+				"JS_AddValueRoot(JSContext *cx, jsval *vp)	JSBool"
 			],
 			[
-				"EIN",
-				"EINTR	macro"
+				"JS_GC",
+				"JS_GC(JSRuntime *rt)	void"
+			],
+			[
+				"JS_zea",
+				"JS_GC_ZEAL	macro"
+			],
+			[
+				"JSOPTION_",
+				"JSOPTION_METHODJIT_ALWAYS	macro"
+			],
+			[
+				"DOUBLE",
+				"DOUBLE_TO_JSVAL(double d)	jsval"
+			],
+			[
+				"JS_SET",
+				"JS_SET_RVAL	macro"
+			],
+			[
+				"JS_String",
+				"JS_GetStringLength(JSString *str)	size_t"
+			],
+			[
+				"SkScalarT",
+				"SkScalarToDouble	macro"
+			],
+			[
+				"mes",
+				"measureText(const void *text, size_t length) const	SkScalar"
+			],
+			[
+				"GR_GL_STEN",
+				"GR_GL_STENCIL_BITS	macro"
+			],
+			[
+				"glGetInter",
+				"glGetIntegerv(GLenum pname, GLint *params)	void"
+			],
+			[
+				"glGetIn",
+				"glGetIntegerv(GLenum pname, GLint *params)	void"
+			],
+			[
+				"get",
+				"getWidth()	int"
+			],
+			[
+				"getDev",
+				"getDeviceSize() const	SkISize"
+			],
+			[
+				"INT_TO",
+				"INT_TO_JSVAL(int32_t i)	jsval"
+			],
+			[
+				"CAN",
+				"CANVAS_PROP_WIDTH	enum <anonymous>"
+			],
+			[
+				"SkSaf",
+				"SkSafeUnref(T *obj)	void"
+			],
+			[
+				"script",
+				"scriptstr	JSAutoByteString"
+			],
+			[
+				"JS_SetRun",
+				"JS_SetRuntimePrivate(JSRuntime *rt, void *data)	void"
+			],
+			[
+				"drawBit",
+				"drawBitmap(const SkBitmap &bitmap, SkScalar left, SkScalar top)	void"
+			],
+			[
+				"bitmap",
+				"drawBitmapNine(const SkBitmap &bitmap, const SkIRect &center, const SkRect &dst)	void"
+			],
+			[
+				"bitm",
+				"drawBitmapMatrix(const SkBitmap &bitmap, const SkMatrix &m)	void"
+			],
+			[
+				"pixel",
+				"writePixels(const SkBitmap &bitmap, int x, int y)	void"
+			],
+			[
+				"drawIm",
+				"drawBitmap(const SkBitmap &bitmap, SkScalar left, SkScalar top)	void"
+			],
+			[
+				"Na",
+				"NativeSkImage	class"
+			],
+			[
+				"NativeSk",
+				"NativeSkImage	class"
+			],
+			[
+				"m",
+				"MakeSize(const SkISize &size)	SkIRect"
+			],
+			[
+				"read",
+				"readPixels(const SkIRect &srcRect, SkBitmap *bitmap)	bool"
+			],
+			[
+				"getDe",
+				"getDeviceSize() const	SkISize"
+			],
+			[
+				"size",
+				"getDeviceSize() const	SkISize"
+			],
+			[
+				"readPixels",
+				"readPixels(const SkIRect &srcRect, SkBitmap *bitmap)	bool"
+			],
+			[
+				"bit",
+				"readPixels(const SkIRect &srcRect, SkBitmap *bitmap)	bool"
+			],
+			[
+				"JS_pending",
+				"JS_ReportPendingException(JSContext *cx)	JSBool"
+			],
+			[
+				"JSVAL_TO",
+				"JSVAL_TO_OBJECT(jsval v)	JSObject *"
+			],
+			[
+				"JS_CallFu",
+				"JS_CallFunctionName(JSContext *cx, JSObject *obj, const char *name, unsigned int argc, jsval *argv, jsval *rval)	JSBool"
+			],
+			[
+				"JS_GetPro",
+				"JS_GetProperty(JSContext *cx, JSObject *obj, const char *name, jsval *vp)	JSBool"
+			],
+			[
+				"native_",
+				"native_canvas_fill	JSBool"
+			],
+			[
+				"drawI",
+				"drawBitmapNine(const SkBitmap &bitmap, const SkIRect &center, const SkRect &dst)	void"
+			],
+			[
+				"JS_CallFun",
+				"JS_CallFunctionValue(JSContext *cx, JSObject *obj, jsval fval, unsigned int argc, jsval *argv, jsval *rval)	JSBool"
+			],
+			[
+				"JS_Call",
+				"JS_CallFunction(JSContext *cx, JSObject *obj, JSFunction *fun, unsigned int argc, jsval *argv, jsval *rval)	JSBool"
+			],
+			[
+				"setFi",
+				"setFillColor(NativeSkGradient *)	void"
+			],
+			[
+				"gra",
+				"gradient	NativeSkGradient *"
+			],
+			[
+				"gr",
+				"gradient	NativeSkGradient *"
+			],
+			[
+				"Nati",
+				"NativeSkGradient	class"
+			],
+			[
+				"JS_Get",
+				"JS_GetPrivate(JSObject *obj)	void *"
+			],
+			[
+				"JStypeof",
+				"JS_TypeOfValue(JSContext *cx, jsval v)	JSType"
+			],
+			[
+				"tile",
+				"kRepeat_TileMode	SkShader::TileMode"
+			],
+			[
+				"colors",
+				"colorsStop	struct <anonymous>"
+			],
+			[
+				"color",
+				"colorsStop	struct <anonymous>"
+			],
+			[
+				"JSAuto",
+				"JSAutoByteString	class"
+			],
+			[
+				"Native",
+				"NativeSkGradient	class"
+			],
+			[
+				"JS_THIS",
+				"JS_THIS_OBJECT	macro"
+			],
+			[
+				"Nat",
+				"NativeSkGradient	class"
+			],
+			[
+				"JS_Private",
+				"JS_SetPrivate(JSObject *obj, void *data)	void"
+			],
+			[
+				"str",
+				"startPoint	struct <anonymous>"
+			],
+			[
+				"JS_RunTimese",
+				"JS_ClearRuntimeThread(JSRuntime *rt)	void"
+			],
+			[
+				"JS_Destr",
+				"JS_DestroyContext(JSContext *cx)	void"
+			],
+			[
+				"JS_SET_",
+				"JS_SET_RVAL	macro"
+			],
+			[
+				"OBJECT",
+				"OBJECT_TO_JSVAL(JSObject *obj)	jsval"
+			],
+			[
+				"JS_Object",
+				"JS_NewObject(JSContext *cx, JSClass *clasp, JSObject *proto, JSObject *parent)	JSObject *"
+			],
+			[
+				"roun",
+				"kRound_Join	SkPaint::Join"
+			],
+			[
+				"setStroke",
+				"setStrokeJoin(SkPaint::Join join)	void"
+			],
+			[
+				"CANVAS",
+				"CANVAS_PROP_LINECAP	enum <anonymous>"
+			],
+			[
+				"drawRect",
+				"drawRectCoords(SkScalar left, SkScalar top, SkScalar right, SkScalar bottom, const SkPaint &paint)	void"
+			],
+			[
+				"SkAlpha",
+				"SkAlpha255To256(U8CPU alpha)	unsigned int"
+			],
+			[
+				"glo",
+				"globalAlpha	uint8_t"
+			],
+			[
+				"paint",
+				"paint_stroke	SkPaint *"
+			],
+			[
+				"JSVAL_IS_",
+				"JSVAL_IS_DOUBLE(jsval v)	JSBool"
+			],
+			[
+				"getC",
+				"getColor() const	SkColor"
+			],
+			[
+				"SkColo",
+				"SkColor	typedef"
+			],
+			[
+				"SkAlp",
+				"SkAlphaMul	macro"
+			],
+			[
+				"Skalp",
+				"SkAlpha	typedef"
+			],
+			[
+				"SkColor",
+				"SkColorFilter	class"
+			],
+			[
+				"SkInt",
+				"SkIntToScalar(int param)	float"
+			],
+			[
+				"SkDouble",
+				"SkDoubleToScalar	macro"
+			],
+			[
+				"SkMin",
+				"SkMinScalar(SkScalar a, SkScalar b)	SkScalar"
+			],
+			[
+				"alpha",
+				"setAlpha(U8CPU a)	void"
+			],
+			[
+				"setPer",
+				"setPerspY(SkPersp v)	void"
+			],
+			[
+				"setTran",
+				"setTranslateY(SkScalar v)	void"
+			],
+			[
+				"sk",
+				"skewy	double"
+			],
+			[
+				"setSke",
+				"setSkewY(SkScalar v)	void"
+			],
+			[
+				"sca",
+				"scaley	double"
+			],
+			[
+				"setScale",
+				"setScaleY(SkScalar v)	void"
+			],
+			[
+				"skew",
+				"skewx	double"
+			],
+			[
+				"setSkew",
+				"setSkewX(SkScalar v)	void"
+			],
+			[
+				"scale",
+				"scalex	double"
+			],
+			[
+				"matrix",
+				"setMatrix(const SkMatrix &matrix)	void"
+			],
+			[
+				"tran",
+				"translatey	double"
+			],
+			[
+				"tr",
+				"translatex	double"
+			],
+			[
+				"setTr",
+				"setTranslate(SkScalar dx, SkScalar dy)	void"
+			],
+			[
+				"setS",
+				"setSkew(SkScalar kx, SkScalar ky)	void"
+			],
+			[
+				"setScal",
+				"setScale(SkScalar sx, SkScalar sy)	void"
+			],
+			[
+				"SkMa",
+				"SkMatrix	class"
+			],
+			[
+				"path",
+				"createCompatibleDevice(SkBitmap::Config config, int width, int height, bool isOpaque)	SkDevice *"
+			],
+			[
+				"tra",
+				"translatey	double"
+			],
+			[
+				"cpy",
+				"cpy2	int"
+			],
+			[
+				"be",
+				"bezierCurveTo(int cpx, int cpy, int cpx2, int cpy2, int x, int y)	void"
+			],
+			[
+				"cub",
+				"cubicTo(SkScalar x1, SkScalar y1, SkScalar x2, SkScalar y2, SkScalar x3, SkScalar y3)	void"
+			],
+			[
+				"qua",
+				"quadTo(const SkPoint &p1, const SkPoint &p2)	void"
+			],
+			[
+				"SkIntTo",
+				"SkIntToScalar(float)	float"
+			],
+			[
+				"SkDoub",
+				"SkDoubleToScalar	macro"
+			],
+			[
+				"arcTo",
+				"arcTo(const SkPoint p1, const SkPoint p2, SkScalar radius)	void"
+			],
+			[
+				"arc",
+				"arcTo(const SkRect &oval, SkScalar startAngle, SkScalar sweepAngle, bool forceMoveTo)	void"
+			],
+			[
+				"SkHalf",
+				"SkScalarHalf	macro"
+			],
+			[
+				"set",
+				"setXYWH(SkScalar x, SkScalar y, SkScalar width, SkScalar height)	void"
+			],
+			[
+				"stroke",
+				"strokeStyle"
+			],
+			[
+				"Sk_PI",
+				"SK_ScalarPI	macro"
+			],
+			[
+				"ra",
+				"radius	int"
+			],
+			[
+				"native_ca",
+				"native_canvas_arc	JSBool"
+			],
+			[
+				"end",
+				"endAngle	double"
+			],
+			[
+				"SkDou",
+				"SkDoubleToScalar	macro"
+			],
+			[
+				"arcT",
+				"arcTo(const SkPoint p1, const SkPoint p2, SkScalar radius)	void"
+			],
+			[
+				"begin",
+				"beginPath()	void"
+			],
+			[
+				"fill",
+				"setFillType(SkPath::FillType ft)	void"
+			],
+			[
+				"moveTo",
+				"moveTo(SkScalar x, SkScalar y)	void"
+			],
+			[
+				"SkPa",
+				"SkPath	class"
+			],
+			[
+				"clear",
+				"clearPaint	SkPaint"
+			],
+			[
+				"cl",
+				"clipRect(const SkRect &rect)	bool"
+			],
+			[
+				"CANVAS_P",
+				"CANVAS_PROP_LINEWIDTH	enum <anonymous>"
+			],
+			[
+				"JSId",
+				"JSID_TO_INT(jsid iden)	int32_t"
+			],
+			[
+				"kSt",
+				"kStroke_Style	SkPaint::Style"
+			],
+			[
+				"drawText",
+				"drawTextOnPath(const void *text, size_t byteLength, const SkPath &path, const SkMatrix *matrix, const SkPaint &paint)	void"
+			],
+			[
+				"drawRec",
+				"drawRectCoords(SkScalar left, SkScalar top, SkScalar right, SkScalar bottom, const SkPaint &paint)	void"
+			],
+			[
+				"dra",
+				"drawText(const char *text, int x, int y)	void"
+			],
+			[
+				"JS_DefinePro",
+				"JS_DefineProperties(JSContext *cx, JSObject *obj, JSPropertySpec *ps)	JSBool"
+			],
+			[
+				"can",
+				"canvasObj	JSObject *"
+			],
+			[
+				"JS_DefineProper",
+				"JS_DefineProperty(JSContext *cx, JSObject *obj, const char *name, jsval value, JSPropertyOp getter, JSStrictPropertyOp setter, unsigned int attrs)	JSBool"
+			],
+			[
+				"JS_DefinePrope",
+				"JS_DefineProperties(JSContext *cx, JSObject *obj, JSPropertySpec *ps)	JSBool"
 			]
 		]
 	},
 	"buffers":
 	[
-		{
-			"file": "main.cpp",
-			"settings":
-			{
-				"buffer_size": 1756,
-				"line_ending": "Unix",
-				"name": "#include <stdio.h>"
-			}
-		},
-		{
-			"file": "native.sublime-project",
-			"settings":
-			{
-				"buffer_size": 76,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "Packages/C++/C++.sublime-build",
 	"command_palette":
@@ -39,6 +526,10 @@
 		"height": 392.0,
 		"selected_items":
 		[
+			[
+				"setsyn html",
+				"Set Syntax: HTML"
+			],
 			[
 				"instal",
 				"Package Control: Install Package"
@@ -60,7 +551,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 494.0
+		"width": 449.0
 	},
 	"console":
 	{
@@ -77,6 +568,78 @@
 	},
 	"file_history":
 	[
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include/jsprf.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/views/SkOSWindow_SDL.h",
+		"/Users/anthonycatel/src/skia/trunk/include/gpu/gl/GrGLUtil.h",
+		"/Users/anthonycatel/Nativestudio/src/Makefile",
+		"/Users/anthonycatel/Library/Developer/Xcode/DerivedData/NativeStudio-csavljejdjserldnaohlvxxspoda/Build/Products/Release/main.js",
+		"/Users/anthonycatel/Nativestudio/src/NativeJS.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/effects/SkGradientShader.cpp",
+		"/Users/anthonycatel/Nativestudio/src/NativeSkImage.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/text/SkTextLayout.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/text/SkTextLayout.cpp",
+		"/Users/anthonycatel/Nativestudio/src/NativeSkImage.h",
+		"/Users/anthonycatel/Nativestudio/src/NativeSkia.h",
+		"/Users/anthonycatel/Nativestudio/src/NativeSkia.cpp",
+		"/Users/anthonycatel/Downloads/starfield/main.js",
+		"/Users/anthonycatel/Downloads/starfield/versionHTML.html",
+		"/Users/anthonycatel/Nativestudio/src/NativeSkGradient.cpp",
+		"/Users/anthonycatel/Nativestudio/src/NativeJS.h",
+		"/Applications/foo.js",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/shell/js.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/core/SkPaint.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/effects/SkBlurMask.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/gpu/GrGLInterface.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/toolkit/crashreporter/google-breakpad/src/breakpad_googletest_includes.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/views/SkWindow.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/views/SkView.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/views/SkView.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/core/SkCanvas.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/gpu/GrGLRenderTarget.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/gpu/GrGLRenderTarget.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/utils/SkGLCanvas.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/core/SkDevice.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/core/SkCanvas.cpp",
+		"/Applications/main.js",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jsapi.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/core/SkRect.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jsapi-tests/testXDR.cpp",
+		"/Users/anthonycatel/Nativestudio/canvas.html",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/gpu/GrPathUtils.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/gpu/GrPaint.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/src/gpu/GrPathRendererChain.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/gpu/GrPath.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/vm/Xdr.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/core/SkBitmap.h",
+		"/Users/anthonycatel/Nativestudio/src/NativeSkGradient.h",
+		"/Users/anthonycatel/Nativestudio/native.sublime-project",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/views/SkImageView.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/core/SkImageFilter.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/gfx/skia/include/core/SkPicture.h",
+		"/Users/anthonycatel/Nativestudio/main.js",
+		"/Users/anthonycatel/Nativestudio/src/ape_pool.cpp",
+		"/Users/anthonycatel/Nativestudio/src/ape_pool.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include/jsval.h",
+		"/Users/anthonycatel/src/skia/trunk/include/core/SkRefCnt.h",
+		"/Users/anthonycatel/Nativestudio/src/ape_buffer.cpp",
+		"/Users/anthonycatel/Nativestudio/src/ape_array.h",
+		"/Users/anthonycatel/Nativestudio/src/ape_array.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include/jsapi.h",
+		"/Users/anthonycatel/Nativestudio/src/ape_buffer.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jsstr.h",
+		"/Users/anthonycatel/Nativestudio/src/main.cpp",
+		"/Users/anthonycatel/src/skia2/trunk/src/core/SkPath.cpp",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/builtin/TestingFunctions.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jsdbgapi.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jsprf.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include/js/Utility.h",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jsalloc.cpp",
+		"/Users/anthonycatel/Nativestudio/mozilla/browser/base/content/aboutDialog.css",
+		"/Users/anthonycatel/Nativestudio/mozilla/js/src/jskwgen.cpp",
+		"/Users/anthonycatel/Nativestudio/Makefile",
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeClang/SublimeClang.sublime-settings",
+		"/Users/anthonycatel/Nativestudio/main.cpp",
 		"/Users/anthonycatel/Nativestudio/skhello.png",
 		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_base64.c",
 		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_array.c",
@@ -93,7 +656,6 @@
 		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeGDB/SublimeGDB.sublime-settings",
 		"/Users/anthonycatel/ape2_project/APE-Server-v2/Makefile",
 		"/Users/anthonycatel/ape2_project/APE-Server-v2/ws.html",
-		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
 		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_buffer.c",
 		"/usr/include/stdio.h",
 		"/Users/anthonycatel/ape2_project/APE-Server-v2/src/core/ape_event_epoll.c",
@@ -102,8 +664,7 @@
 		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/BracketHighlighter.py",
 		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeGDB/Default.sublime-keymap",
 		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/User/ape.sublime-build",
-		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/BracketHighlighter.sublime-settings",
-		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/SublimeClang/SublimeClang.sublime-settings"
+		"/Users/anthonycatel/Library/Application Support/Sublime Text 2/Packages/BracketHighlighter/BracketHighlighter.sublime-settings"
 	],
 	"find":
 	{
@@ -114,6 +675,7 @@
 		"height": 0.0,
 		"where_history":
 		[
+			""
 		]
 	},
 	"find_state":
@@ -121,25 +683,145 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"	\n",
-			"array",
-			"hstrerror",
-			"if",
-			"ape_socket_job_get_slot",
-			"sendfile",
-			"APE_socket_sendfile",
-			"ape",
-			"read(",
-			"accept",
-			"ape_socket_queue_data",
-			"settings"
+			"JS_gC(",
+			"resetstar",
+			"requestAnimFrame",
+			"mouseClick",
+			"gclick",
+			"native_canvas_mouseClick",
+			"fillText",
+			"measure",
+			"fillText",
+			"native_canvas_measureText",
+			"JS_SET_RVAL",
+			"measureText",
+			"canvasGradient_class",
+			"native_canvas_createLinearGradient",
+			"640",
+			"x",
+			"set left",
+			"native_canvas_mouseClick",
+			"native_canvas_mouseMove",
+			"native_canvas_moseMove",
+			"native_canvas_requestAnimationFrame",
+			"gfunc",
+			"callFrame",
+			"refresh",
+			"hide",
+			"layout",
+			"error",
+			"GR_GL_CHECK_ERROR_IMPL",
+			"GR_GL_LOG_CALLS_IMPL",
+			"GR_GL_CHECK_ERROR_IMPL",
+			"GR_GL_LOG_CALLS_IMPL",
+			"GR_GL_CALL",
+			"GetIntegerv",
+			"0x0B92",
+			"0x0B90",
+			"mac",
+			"Error",
+			"getIntegerv",
+			"GR_GL_CALL",
+			"GetIntegerv",
+			"draw",
+			"viewport",
+			"target",
+			"setView",
+			"setVi",
+			"flush",
+			"\"yes\"",
+			"gfunc",
+			"request",
+			"LoadScript",
+			"fillText",
+			"getDeviceSize",
+			"native_canvas_prop_get",
+			"native_canvas_prop_set",
+			"static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject o",
+			"static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,\n    JSHandleId id, JSBool strict, jsval *vp)",
+			"native_canvas_prop_get",
+			"native_canvas_prop_set",
+			"canvas_props",
+			"SkSafeUnref",
+			"arc(",
+			"Skia init",
+			"printf",
+			"Can'",
+			"JS_ConvertArguments",
+			"callFrame",
+			"Load(",
+			"gErrFile",
+			"MaybeOverrideOutFileFromEnv",
+			"gErrFile",
+			"js_options",
+			"reportWarnings",
+			"SetDebuggerHandler",
+			"DebuggerAndThrowHandler",
+			"TrapHandler",
+			"DebuggerAndThrowHandler",
+			"ReportE",
+			"gCanceled",
+			"gExitCode",
+			"gGotError",
+			"JS_CompileUTF8File",
+			"Timeout",
+			"\"setTimeout\"",
+			"setTimeout",
+			"setInter",
+			"Load(",
+			"\"load\"",
+			"gCanceled",
+			"clearP",
+			"Syntax",
+			"native_canvas_drawImage",
+			"Make",
+			"readPixel",
+			"native_canvas_stub",
+			"Print",
+			"init(",
+			"JS_EncodeScript",
+			"incremen",
+			"ION",
+			"INFER",
+			"INDER",
+			"inder",
+			"INFER",
+			"INFEREN",
+			"ION",
+			"JS_NewObjectForConstructor",
+			"ctx",
+			"canvas->flush()",
+			"ape_grow_pool",
+			"ctx",
+			"context",
+			"ctx",
+			"JSVAL_IS_NUMBER",
+			"JSVAL_IS_STRING(",
+			"JSVAL_IS_STRING",
+			"JSVAL_IS_OBJECT",
+			"addColor",
+			"native_canvasGradient_addColorStop",
+			"JS_DefineFunctions",
+			"native_canvasGradient_addColorStop",
+			"ctx",
+			"NativeSkia::getInstance().",
+			"SetPri",
+			"NativeSkia::getInstance().",
+			"ctx",
+			"ape_array_delete",
+			"JSVAL_NULL",
+			"RVAL"
 		],
 		"highlight": true,
-		"in_selection": true,
+		"in_selection": false,
 		"preserve_case": false,
 		"regex": false,
 		"replace_history":
 		[
+			"CANVAS_FLUSH()",
+			"NSKIA->",
+			"nskia->",
+			"= "
 		],
 		"reverse": false,
 		"show_context": true,
@@ -150,64 +832,8 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "main.cpp",
-					"settings":
-					{
-						"buffer_size": 1756,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								809,
-								809
-							]
-						],
-						"settings":
-						{
-							"auto_name": "#include <stdio.h>",
-							"syntax": "Packages/C++/C++.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 346.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "native.sublime-project",
-					"settings":
-					{
-						"buffer_size": 76,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								73,
-								73
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],
@@ -252,7 +878,7 @@
 	},
 	"replace":
 	{
-		"height": 0.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -260,6 +886,146 @@
 		"height": 0.0,
 		"selected_items":
 		[
+			[
+				"sktext",
+				"mozilla/gfx/skia/src/text/SkTextLayout.cpp"
+			],
+			[
+				"skpai",
+				"mozilla/gfx/skia/include/core/SkPaint.h"
+			],
+			[
+				"skblu",
+				"mozilla/gfx/skia/src/effects/SkBlurMask.cpp"
+			],
+			[
+				"skgradi",
+				"mozilla/gfx/skia/src/effects/SkGradientShader.cpp"
+			],
+			[
+				"",
+				"2012-08-02 17:12:51.658 SwelenBrowser[22284:503] r"
+			],
+			[
+				"grglu",
+				"/Users/anthonycatel/src/skia/trunk/include/gpu/gl/GrGLUtil.h"
+			],
+			[
+				"grglin",
+				"mozilla/gfx/skia/include/gpu/GrGLInterface.h"
+			],
+			[
+				"skcan",
+				"mozilla/gfx/skia/include/core/SkCanvas.h"
+			],
+			[
+				"skview.c",
+				"mozilla/gfx/skia/src/views/SkView.cpp"
+			],
+			[
+				"skview",
+				"mozilla/gfx/skia/include/views/SkView.h"
+			],
+			[
+				"skwindow",
+				"mozilla/gfx/skia/include/views/SkWindow.h"
+			],
+			[
+				"skoswin",
+				"mozilla/gfx/skia/include/views/SkOSWindow_SDL.h"
+			],
+			[
+				"grglren",
+				"mozilla/gfx/skia/src/gpu/GrGLRenderTarget.cpp"
+			],
+			[
+				"grglta",
+				"mozilla/gfx/skia/src/gpu/GrGLRenderTarget.cpp"
+			],
+			[
+				"skglcanvas",
+				"mozilla/gfx/skia/include/utils/SkGLCanvas.h"
+			],
+			[
+				"skoswindow_sdl.h",
+				"mozilla/gfx/skia/include/views/SkOSWindow_SDL.h"
+			],
+			[
+				"skde",
+				"mozilla/gfx/skia/src/core/SkDevice.cpp"
+			],
+			[
+				"skca",
+				"mozilla/gfx/skia/src/core/SkCanvas.cpp"
+			],
+			[
+				"jsapi",
+				"mozilla/js/src/jsapi.h"
+			],
+			[
+				"js.cpp",
+				"mozilla/js/src/shell/js.cpp"
+			],
+			[
+				"skrec",
+				"mozilla/gfx/skia/include/core/SkRect.h"
+			],
+			[
+				"skdevi",
+				"mozilla/gfx/skia/src/core/SkDevice.cpp"
+			],
+			[
+				"gpu",
+				"mozilla/gfx/skia/src/gpu/GrPathUtils.cpp"
+			],
+			[
+				"grpai",
+				"mozilla/gfx/skia/src/gpu/GrPathRendererChain.cpp"
+			],
+			[
+				"grpa",
+				"mozilla/gfx/skia/include/gpu/GrPath.h"
+			],
+			[
+				"grpaint.h",
+				"mozilla/gfx/skia/include/gpu/GrPaint.h"
+			],
+			[
+				"xdr",
+				"mozilla/js/src/jsapi-tests/testXDR.cpp"
+			],
+			[
+				"jsxd",
+				"mozilla/js/src/vm/Xdr.h"
+			],
+			[
+				"skima",
+				"mozilla/gfx/skia/include/views/SkImageView.h"
+			],
+			[
+				"skbit",
+				"mozilla/gfx/skia/include/core/SkBitmap.h"
+			],
+			[
+				"skim",
+				"mozilla/gfx/skia/include/core/SkImageFilter.h"
+			],
+			[
+				"skpic",
+				"mozilla/gfx/skia/include/core/SkPicture.h"
+			],
+			[
+				"jsval",
+				"mozilla/js/src/dist/include/jsval.h"
+			],
+			[
+				"jsapi.h",
+				"mozilla/js/src/jsapi.h"
+			],
+			[
+				"jsstr",
+				"mozilla/js/src/jsstr.h"
+			],
 			[
 				"aa",
 				"src/core/ape_array.c"
@@ -287,6 +1053,6 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 206.0,
+	"side_bar_width": 208.0,
 	"status_bar_visible": true
 }
