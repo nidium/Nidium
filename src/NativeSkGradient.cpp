@@ -31,7 +31,7 @@ NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
 
 	endPoint.x = x1;
 	endPoint.y = y1;
-	endPoint.radius = r0;
+	endPoint.radius = r1;
 
 	colorsStop.count = 0;
 	colorsStop.allocated = 8;
@@ -98,13 +98,13 @@ SkShader *NativeSkGradient::build()
 	SkSafeUnref(currentShader);
 
 	if (isRadial) {
-		currentShader = SkGradientShader::CreateTwoPointConical(pts[0],
+		currentShader = SkGradientShader::CreateTwoPointRadial(pts[0],
 			SkDoubleToScalar(startPoint.radius), pts[1],
 			SkDoubleToScalar(endPoint.radius), colors, pos, colorsStop.count,
-			SkShader::kRepeat_TileMode);
+			SkShader::kClamp_TileMode);
 	} else {
 		currentShader = SkGradientShader::CreateLinear(pts, colors,
-			pos, colorsStop.count, SkShader::kRepeat_TileMode);
+			pos, colorsStop.count, SkShader::kClamp_TileMode);
 	}
 
 	return currentShader;

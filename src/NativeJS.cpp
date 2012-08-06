@@ -81,6 +81,8 @@ static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_createLinearGradient(JSContext *cx,
     unsigned argc, jsval *vp);
+static JSBool native_canvas_createRadialGradient(JSContext *cx,
+    unsigned argc, jsval *vp);
 static JSBool native_canvasGradient_addColorStop(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
@@ -165,6 +167,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("transform", native_canvas_transform, 6, 0),
     JS_FN("setTransform", native_canvas_setTransform, 6, 0),
     JS_FN("createLinearGradient", native_canvas_createLinearGradient, 4, 0),
+    JS_FN("createRadialGradient", native_canvas_createRadialGradient, 6, 0),
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FN("mouseMove", native_canvas_mouseMove, 1, 0),
     JS_FN("mouseClick", native_canvas_mouseClick, 1, 0),
@@ -664,7 +667,7 @@ static JSBool native_canvas_createLinearGradient(JSContext *cx,
     JSObject *linearObject;
     double x1, y1, x2, y2;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd",
-        &x1, &y2, &x2, &y2)) {
+        &x1, &y1, &x2, &y2)) {
         return JS_TRUE;
     }
 
@@ -674,6 +677,29 @@ static JSBool native_canvas_createLinearGradient(JSContext *cx,
 
     JS_SetPrivate(linearObject,
         new NativeSkGradient(x1, y1, x2, y2));
+
+    JS_DefineFunctions(cx, linearObject, gradient_funcs);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_createRadialGradient(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JSObject *linearObject;
+    double x1, y1, x2, y2, r1, r2;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
+        &x1, &y1, &r1, &x2, &y2, &r2)) {
+        return JS_TRUE;
+    }
+
+    linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(linearObject));
+
+    JS_SetPrivate(linearObject,
+        new NativeSkGradient(x1, y1, r1, x2, y2, r2));
 
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
 
