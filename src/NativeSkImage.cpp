@@ -13,4 +13,5 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 	//canvas->drawBitmap(bitmap, SkIntToScalar(30), SkScalar(30));
 	//canvas->writePixels(bitmap, 30, 30);
 	//canvas->flush();
+	
 }

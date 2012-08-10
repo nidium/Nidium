@@ -1,9 +1,3 @@
-/**
- **   Copyright (c) 2012 All Right Reserved, Troll Face Studio
- **
- **   Authors :
- **       * Anthony Catel <a.catel@trollfacestudio.com>
- **/
 
 #ifndef nativeskia_h__
 #define nativeskia_h__
@@ -26,15 +20,18 @@ class NativeSkia
         SkCanvas *canvas;
         SkPaint *paint;
         SkPaint *paint_stroke;
+        SkPaint *paint_system;
         SkPath *currentPath;
 
         uint8_t globalAlpha;
+        uint8_t asComposite;
     public:
         ~NativeSkia();
         int bindGL(int width, int height);
         void flush();
         /* Basics */
         void drawText(const char *text, int x, int y);
+        void system(const char *text, int x, int y);
         void drawRect(double, double, double, double, double);
         void setFillColor(const char *str);
         void setFillColor(NativeSkGradient *gradient);
@@ -42,6 +39,7 @@ class NativeSkia
         void setStrokeColor(NativeSkGradient *gradient);
         void setLineWidth(double size);
         void setGlobalAlpha(double value);
+        void setGlobalComposite(const char *str);
         void clearRect(int, int, int, int);
         void drawImage();
         int getWidth();
@@ -69,6 +67,7 @@ class NativeSkia
             double scaley, double translatex, double translatey, int set);
         void save();
         void restore();
+        void redrawScreen();
         double measureText(const char *str, size_t length);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);

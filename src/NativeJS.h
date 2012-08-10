@@ -1,10 +1,3 @@
-/**
- **   Copyright (c) 2012 All Right Reserved, Troll Face Studio
- **
- **   Authors :
- **       * Anthony Catel <a.catel@trollfacestudio.com>
- **/
-
 #ifndef nativejs_h__
 #define nativejs_h__
 
@@ -30,8 +23,10 @@ class NativeJS
         ~NativeJS();
         int LoadScript(const char *filename);
         void callFrame();
-        void mouseMove(int x, int y);
-        void mouseClick(int x, int y);
+        void mouseMove(int x, int y, int xrel, int yrel);
+        void mouseClick(int x, int y, int state, int button);
+        void gc();
+        uint32_t currentFPS;
 };
 
 #endif

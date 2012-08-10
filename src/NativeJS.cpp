@@ -1,10 +1,3 @@
-/**
- **   Copyright (c) 2012 All Right Reserved, Troll Face Studio
- **
- **   Authors :
- **       * Anthony Catel <a.catel@trollfacestudio.com>
- **/
-
 #include "NativeJS.h"
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
@@ -21,7 +14,8 @@ enum {
     CANVAS_PROP_LINECAP,
     CANVAS_PROP_LINEJOIN,
     CANVAS_PROP_WIDTH,
-    CANVAS_PROP_HEIGHT
+    CANVAS_PROP_HEIGHT,
+    CANVAS_PROP_GLOBALCOMPOSITEOPERATION
 };
 
 #define NSKIA ((class NativeSkia *)JS_GetContextPrivate(cx))
@@ -43,6 +37,13 @@ static JSClass canvas_class = {
 
 static JSClass canvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass mouseEvent_class = {
+    "MouseEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -112,6 +113,8 @@ static JSPropertySpec canvas_props[] = {
     {"lineWidth", CANVAS_PROP_LINEWIDTH, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
     {"globalAlpha", CANVAS_PROP_GLOBALALPHA, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"globalCompositeOperation", CANVAS_PROP_GLOBALCOMPOSITEOPERATION, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
     {"lineCap", CANVAS_PROP_LINECAP, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
@@ -387,6 +390,17 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToNumber(cx, *vp, &ret);
             NSKIA->setGlobalAlpha(ret);
+        }
+        break;
+        case CANVAS_PROP_GLOBALCOMPOSITEOPERATION:
+        {
+            if (!JSVAL_IS_STRING(*vp)) {
+                *vp = JSVAL_VOID;
+
+                return JS_TRUE;
+            }
+            JSAutoByteString composite(cx, JSVAL_TO_STRING(*vp));
+            NSKIA->setGlobalComposite(composite.ptr());            
         }
         break;
         case CANVAS_PROP_LINECAP:
@@ -792,38 +806,90 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
 void NativeJS::callFrame()
 {
     jsval rval;
+    char fps[16];
     //JS_MaybeGC(cx);
     //JS_GC(JS_GetRuntime(cx));
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
+    sprintf(fps, "%d fps", currentFPS);
+    NSKIA->system(fps, 5, 15);
 }
 
-void NativeJS::mouseClick(int x, int y)
+void NativeJS::mouseClick(int x, int y, int state, int button)
 {
-    jsval rval, coord[2];
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
 
-    coord[0] = INT_TO_JSVAL(x);
-    coord[1] = INT_TO_JSVAL(y);
+    jsval rval, jevent;
+    JSObject *event;
+    char evname[16];
 
-    if (gclick != JSVAL_VOID) {
+    jsval canvas, onclick;
 
-        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gclick, 2,
-            coord, &rval);
+    event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
+    JS_AddObjectRoot(cx, &event);
+
+    EVENT_PROP("x", INT_TO_JSVAL(x));
+    EVENT_PROP("y", INT_TO_JSVAL(y));
+    EVENT_PROP("clientX", INT_TO_JSVAL(x));
+    EVENT_PROP("clientY", INT_TO_JSVAL(y));
+    EVENT_PROP("which", INT_TO_JSVAL(button));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+
+    if (button == 4 || button == 5) {
+        strcpy(evname, "onmousewheel");
+    } else if (state) {
+        strcpy(evname, "onmousedown");
+    } else {
+        strcpy(evname, "onmouseup");
     }
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), evname, &onclick) &&
+        !JSVAL_IS_PRIMITIVE(onclick) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclick))) {
+
+        JS_CallFunctionValue(cx, event, onclick, 1, &jevent, &rval);
+    }
+
+    JS_RemoveObjectRoot(cx, &event);
+
 }
 
-void NativeJS::mouseMove(int x, int y)
+void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 {
-    jsval rval, coord[2];
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    
+    jsval rval, jevent, canvas, onmove;
+    JSObject *event;
 
-    coord[0] = INT_TO_JSVAL(x);
-    coord[1] = INT_TO_JSVAL(y);
+    event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
+    JS_AddObjectRoot(cx, &event);
 
-    if (gmove != JSVAL_VOID) {
-        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gmove, 2,
-            coord, &rval);
+    EVENT_PROP("x", INT_TO_JSVAL(x));
+    EVENT_PROP("y", INT_TO_JSVAL(y));
+    EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
+    EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
+    EVENT_PROP("clientX", INT_TO_JSVAL(x));
+    EVENT_PROP("clientY", INT_TO_JSVAL(y));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousemove", &onmove) &&
+        !JSVAL_IS_PRIMITIVE(onmove) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmove))) {
+
+        JS_CallFunctionValue(cx, event, onmove, 1, &jevent, &rval);
     }
+
+
+    JS_RemoveObjectRoot(cx, &event);
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
@@ -853,15 +919,16 @@ NativeJS::NativeJS()
 
     //printf("New JS runtime\n");
 
+    currentFPS = 0;
+
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L)) == NULL) {
         printf("Failed to init JS runtime\n");
         return;
     }
 
-
     JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
     JS_SetGCParameter(rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
-    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 10);
+    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
     JS_SetNativeStackQuota(rt, 500000);
@@ -877,7 +944,6 @@ NativeJS::NativeJS()
     JS_SetErrorReporter(cx, reportError);
 
     gbl = JS_NewGlobalObject(cx, &global_class, NULL);
-
 
     if (!JS_InitStandardClasses(cx, gbl))
         return;
@@ -934,6 +1000,11 @@ void NativeJS::LoadCanvasObject()
 
     JS_DefineProperties(cx, canvasObj, canvas_props);
 
+}
+
+void NativeJS::gc()
+{
+    JS_GC(JS_GetRuntime(cx));
 }
 
 
