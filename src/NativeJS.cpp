@@ -15,7 +15,9 @@ enum {
     CANVAS_PROP_LINEJOIN,
     CANVAS_PROP_WIDTH,
     CANVAS_PROP_HEIGHT,
-    CANVAS_PROP_GLOBALCOMPOSITEOPERATION
+    CANVAS_PROP_GLOBALCOMPOSITEOPERATION,
+
+    IMAGE_PROP_SRC
 };
 
 #define NSKIA ((class NativeSkia *)JS_GetContextPrivate(cx))
@@ -30,6 +32,13 @@ static JSClass global_class = {
 
 static JSClass canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass image_class = {
+    "Image", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -104,6 +113,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp);
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, jsval *vp);
+static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, NULL,
@@ -124,8 +135,14 @@ static JSPropertySpec canvas_props[] = {
         NULL},
     {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT, native_canvas_prop_get,
         NULL},
-    {NULL}
+    {0, 0, 0, 0, 0}
 };
+
+static JSPropertySpec Image_props[] = {
+    {"src", IMAGE_PROP_SRC, 0, NULL, native_image_prop_set},
+    {0, 0, 0, 0, 0}
+};
+
 /*************************/
 
 
@@ -319,6 +336,27 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
     }
 
+    return JS_TRUE;
+}
+
+static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, jsval *vp)
+{
+    switch(JSID_TO_INT(id)) {
+        case IMAGE_PROP_SRC:
+        {
+            if (JSVAL_IS_STRING(*vp)) {
+                JSAutoByteString imgPath(cx, JSVAL_TO_STRING(*vp));
+                JS_SetPrivate(obj, new NativeSkImage(imgPath.ptr()));
+            } else {
+                *vp = JSVAL_VOID;
+                return JS_TRUE;
+            }
+        }
+        break;
+        default:
+            break;
+    }
     return JS_TRUE;
 }
 
@@ -803,20 +841,34 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
+{
+    printf("Constructor called\n");
+    JSObject *ret = JS_NewObjectForConstructor(cx, &image_class, vp);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    JS_DefineProperties(cx, ret, Image_props);
+    return JS_TRUE;
+}
+
 void NativeJS::callFrame()
 {
     jsval rval;
     char fps[16];
     //JS_MaybeGC(cx);
     //JS_GC(JS_GetRuntime(cx));
+    //NSKIA->save();
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
     sprintf(fps, "%d fps", currentFPS);
     NSKIA->system(fps, 5, 15);
+    //NSKIA->restore();
 }
 
-void NativeJS::mouseClick(int x, int y, int state, int button)
+void NativeJS::mouseClick(int x, int y, int state, int button,
+    int xrel, int yrel)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
@@ -835,6 +887,8 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     EVENT_PROP("clientX", INT_TO_JSVAL(x));
     EVENT_PROP("clientY", INT_TO_JSVAL(y));
     EVENT_PROP("which", INT_TO_JSVAL(button));
+    EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
+    EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
 
     jevent = OBJECT_TO_JSVAL(event);
 
@@ -1000,6 +1054,9 @@ void NativeJS::LoadCanvasObject()
 
     JS_DefineProperties(cx, canvasObj, canvas_props);
 
+    /* Image object */
+    JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,
+        0, NULL, NULL, NULL, NULL);
 }
 
 void NativeJS::gc()

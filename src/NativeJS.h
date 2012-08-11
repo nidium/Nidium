@@ -24,7 +24,8 @@ class NativeJS
         int LoadScript(const char *filename);
         void callFrame();
         void mouseMove(int x, int y, int xrel, int yrel);
-        void mouseClick(int x, int y, int state, int button);
+        void mouseClick(int x, int y, int state, int button,
+            int xrel, int yrel);
         void gc();
         uint32_t currentFPS;
 };

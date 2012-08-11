@@ -27,8 +27,8 @@
 #include "SkGraphics.h"
 #include "SkXfermode.h"
 
-#define CANVAS_FLUSH() canvas->flush()
-//#define CANVAS_FLUSH()
+//#define CANVAS_FLUSH() canvas->flush()
+#define CANVAS_FLUSH()
 
 static int count_separators(const char* str, const char* sep) {
     char c;
@@ -289,11 +289,6 @@ int NativeSkia::bindGL(int width, int height)
 
 
     this->setLineWidth(1);
-
-    SkPaint cleared;
-    drawRect(100, 100, 200, 200, 0);
-    
-    cleared.setColor(0);
 
     /*SkRect r;
     r.setXYWH(SkIntToScalar(0), SkIntToScalar(0),
@@ -701,6 +696,7 @@ void NativeSkia::translate(double x, double y)
 
 void NativeSkia::save()
 {
+    //canvas->saveLayer(NULL, NULL, SkCanvas::kARGB_NoClipLayer_SaveFlag);
     canvas->save();
 }
 
@@ -777,7 +773,7 @@ void NativeSkia::setLineJoin(const char *joinStyle)
 
 void NativeSkia::drawImage()
 {
-    NativeSkImage *img = new NativeSkImage(canvas);
+    //NativeSkImage *img = new NativeSkImage("me.jpg", canvas);
     CANVAS_FLUSH();
 }
 

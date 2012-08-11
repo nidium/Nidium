@@ -1,6 +1,6 @@
 SKIA=/Users/anthonycatel/src/skia/trunk
 CXX=g++
-CPPFLAGS=-DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_ENABLE_INST_COUNT -DGR_DEBUG=1 -fvisibility=hidden -fvisibility-inlines-hidden -c -g -Wall -I../mozilla/js/src/dist/include/ \
+CPPFLAGS= -O2 -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_BUILD_FOR_MAC -DSK_USE_POSIX_THREADS -DGR_MAC_BUILD=1 -DSK_SUPPORT_PDF -DSK_RELEASE -DGR_RELEASE=1 -DNDEBUG -fvisibility=hidden -fvisibility-inlines-hidden -c -g -Wall -I../mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\
