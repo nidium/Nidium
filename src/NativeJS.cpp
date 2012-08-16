@@ -6,6 +6,8 @@
 #include <jsapi.h>
 #include <jsprf.h>
 
+#include <pthread.h>
+
 enum {
     CANVAS_PROP_FILLSTYLE = 1,
     CANVAS_PROP_STROKESTYLE,
@@ -22,6 +24,8 @@ enum {
 
 #define NSKIA ((class NativeSkia *)JS_GetContextPrivate(cx))
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
+
+static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass global_class = {
     "_GLOBAL", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -44,10 +48,17 @@ static JSClass image_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass thread_class = {
+    "Thread", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSClass canvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasGradient_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -76,6 +87,7 @@ static JSBool native_canvas_fill(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_closePath(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_rect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_quadraticCurveTo(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
@@ -177,6 +189,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("closePath", native_canvas_closePath, 0, 0),
     JS_FN("clip", native_canvas_clip, 0, 0),
     JS_FN("arc", native_canvas_arc, 5, 0),
+    JS_FN("rect", native_canvas_rect, 4, 0),
     JS_FN("quadraticCurveTo", native_canvas_quadraticCurveTo, 4, 0),
     JS_FN("bezierCurveTo", native_canvas_bezierCurveTo, 4, 0),
     JS_FN("rotate", native_canvas_rotate, 1, 0),
@@ -191,7 +204,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FN("mouseMove", native_canvas_mouseMove, 1, 0),
     JS_FN("mouseClick", native_canvas_mouseClick, 1, 0),
-    JS_FN("drawImage", native_canvas_drawImage, 0, 0),
+    JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
     JS_FS_END
 };
@@ -199,6 +212,14 @@ static JSFunctionSpec canvas_funcs[] = {
 static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp)
 {
     return JS_TRUE;
+}
+
+void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
+    if (gradient != NULL) {
+        delete gradient;
+    }
 }
 
 static void
@@ -586,6 +607,20 @@ static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_canvas_rect(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double x, y, width, height;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
+        &width, &height)) {
+        return JS_TRUE;
+    }
+
+    NSKIA->rect(x, y, width, height);
+
+    return JS_TRUE;
+}
+
 static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp)
 {
     int x, y, radius;
@@ -816,7 +851,46 @@ static JSBool native_canvas_mouseClick(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->drawImage();
+    JSObject *jsimage;
+    NativeSkImage *image;
+    double x, y, width, height;
+    int sx, sy, swidth, sheight;
+
+    if (argc == 9) {
+         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oiiiidddd",
+            &jsimage, &sx, &sy, &swidth, &sheight, &x, &y, &width, &height)) {
+            return JS_TRUE;
+        }
+    } else {
+
+        if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "odd/dd",
+            &jsimage, &x, &y, &width, &height)) {
+            return JS_TRUE;
+        }
+    }
+
+    if (JS_InstanceOf(cx, jsimage, &canvas_class, NULL)) {
+        image = new NativeSkImage(NSKIA->canvas);
+
+    } else if (!JS_InstanceOf(cx, jsimage, &image_class, NULL) ||
+        (image = (class NativeSkImage *)JS_GetPrivate(jsimage)) == NULL) {
+        return JS_TRUE;
+    }
+
+    switch(argc) {
+        case 3:
+            NSKIA->drawImage(image, x, y);
+            break;
+        case 5:
+            NSKIA->drawImage(image, x, y, width, height);
+            break;
+        case 9:
+            NSKIA->drawImage(image, sx, sy, swidth, sheight,
+                x, y, width, height);
+            break;
+        default:
+            break;
+    }
 
     return JS_TRUE;
 }
@@ -828,7 +902,6 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
         &text)) {
-        JS_SET_RVAL(cx, vp, JSVAL_ZERO);
         return JS_TRUE;
     }
 
@@ -843,12 +916,118 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
 
 static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    printf("Constructor called\n");
     JSObject *ret = JS_NewObjectForConstructor(cx, &image_class, vp);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
+    return JS_TRUE;
+}
+
+struct tpass
+{
+    JSContext *cx;
+    jsval fn;
+    JSFunction *nfn;
+    JSString *str;
+};
+
+static void *native_thread(void *arg)
+{
+    struct tpass *pass = (struct tpass *)arg;
+
+    JSRuntime *rt;
+    JSContext *tcx;
+    jsval rval;
+    JSObject *gbl;
+
+
+    if ((rt = JS_NewRuntime(128L * 1024L * 1024L)) == NULL) {
+        printf("Failed to init JS runtime\n");
+        return NULL;
+    }
+
+    if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
+        printf("Failed to init JS context\n");
+        return NULL;     
+    }
+
+    gbl = JS_NewGlobalObject(tcx, &global_class, NULL);
+
+
+    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_METHODJIT_ALWAYS);
+    JS_SetVersion(tcx, JSVERSION_LATEST);
+
+    if (!JS_InitStandardClasses(tcx, gbl))
+        return NULL;
+    
+    JS_SetErrorReporter(tcx, reportError);
+
+    JS_SetGlobalObject(tcx, gbl);
+
+    JS_DefineFunctions(tcx, gbl, glob_funcs);
+
+    JSAutoByteString str(tcx, pass->str);
+
+#if 0
+    JSObject *ff = (JSObject *)pass->nfn;
+    JSCrossCompartmentCall *call;
+    if ((call = JS_EnterCrossCompartmentCall(tcx, ff)) == NULL) {
+        printf("Failed to cross compart\n");
+    }
+
+    //JSAutoEnterCompartment ac;
+    //ac.enter(tcx, (JSObject *)fn);
+    if (JS_WrapObject(tcx, &ff) == JS_FALSE) {
+        printf("failed to wrap\n");
+    }
+    printf("calling\n");
+    //JS_CallFunction(JSContext *cx, JSObject *obj, JSFunction *fun, unsigned int argc, jsval *argv, jsval *rval)
+    JS_CallFunction(tcx, gbl, (JSFunction *)ff, 0, NULL, &rval);
+    /*if (JS_CallFunctionValue(tcx, gbl, pass->fn, 0, NULL, &rval) == JS_FALSE) {
+        printf("failed\n");
+    }*/
+    JS_LeaveCrossCompartmentCall(call);
+#endif
+    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, str.ptr(), strlen(str.ptr()), NULL, 0);
+    if (cf == NULL) {
+        printf("Cant compile function\n");
+    }
+    
+    if (JS_CallFunction(tcx, gbl, cf, 0, NULL, &rval) == JS_FALSE) {
+        printf("Got an error?\n");
+    }
+
+    return NULL;
+}
+
+static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSObject *ret = JS_NewObjectForConstructor(cx, &thread_class, vp);
+
+    pthread_t currentThread;
+    jsval func;
+
+
+    uint64_t *data;
+    size_t nbytes;
+
+    struct tpass *pass = (struct tpass *)malloc(sizeof(*pass));
+
+    pass->nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0]);
+
+    //JSString *src = JS_ValueToSource(cx, JS_ARGV(cx, vp)[0]);
+    JSString *src = JS_DecompileFunctionBody(cx, pass->nfn, 0);
+
+    pass->cx = cx;
+    pass->fn = func;
+    pass->str = src;
+
+    pthread_create(&currentThread, NULL,
+                            native_thread, pass);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
     return JS_TRUE;
 }
 
@@ -863,12 +1042,13 @@ void NativeJS::callFrame()
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
     sprintf(fps, "%d fps", currentFPS);
+    //printf("Fps : %s\n", fps);
     NSKIA->system(fps, 5, 15);
     //NSKIA->restore();
 }
 
 void NativeJS::mouseClick(int x, int y, int state, int button,
-    int xrel, int yrel)
+    int xrel, int yrel, double delta)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
@@ -895,6 +1075,9 @@ void NativeJS::mouseClick(int x, int y, int state, int button,
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
 
     if (button == 4 || button == 5) {
+        int idelta = ceil(delta);
+        EVENT_PROP("state", INT_TO_JSVAL(state));
+        EVENT_PROP("delta", INT_TO_JSVAL(button == 5 ? idelta : idelta*-1));
         strcpy(evname, "onmousewheel");
     } else if (state) {
         strcpy(evname, "onmousedown");
@@ -1002,6 +1185,10 @@ NativeJS::NativeJS()
     if (!JS_InitStandardClasses(cx, gbl))
         return;
 
+
+    /* TODO: HAS_CTYPE in clang */
+    //JS_InitCTypesClass(cx, gbl);
+
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
@@ -1056,6 +1243,9 @@ void NativeJS::LoadCanvasObject()
 
     /* Image object */
     JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,
+        0, NULL, NULL, NULL, NULL);
+
+    JS_InitClass(cx, gbl, NULL, &thread_class, native_Thread_constructor,
         0, NULL, NULL, NULL, NULL);
 }
 

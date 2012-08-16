@@ -22,3 +22,4 @@ canvas.quadraticCurveTo(10, 90, 10, 80);
 canvas.lineTo(10, 20);
 canvas.quadraticCurveTo(10, 10, 20, 10);
 canvas.stroke();
+

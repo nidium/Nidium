@@ -215,12 +215,11 @@ uint32_t NativeSkia::parseColor(const char *str)
 int NativeSkia::bindGL(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
-
+    
     if (interface == NULL) {
         printf("Cant get interface\n");
         return 0;
     }
-
     
     GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine,
         (GrPlatform3DContext)interface);
@@ -271,6 +270,7 @@ int NativeSkia::bindGL(int width, int height)
     paint->setAntiAlias(true);
     paint->setLCDRenderText(true);
     paint->setStyle(SkPaint::kFill_Style);
+    paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
 
     paint_system = new SkPaint;
@@ -287,15 +287,18 @@ int NativeSkia::bindGL(int width, int height)
     paint_stroke->setLCDRenderText(true);
     paint_stroke->setStyle(SkPaint::kStroke_Style);
 
-
+    
     this->setLineWidth(1);
-
     /*SkRect r;
     r.setXYWH(SkIntToScalar(0), SkIntToScalar(0),
         SkIntToScalar(640), SkIntToScalar(480));
     canvas->drawRect(r, cleared);*/
 
     asComposite = 0;
+
+    screen = new SkBitmap();
+    screen->setConfig(SkBitmap::kARGB_8888_Config, 640, 480);
+    screen->allocPixels();
 
 #if 0
     SkIRect rr;
@@ -414,6 +417,7 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
 
 }
 
+/* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
     canvas->drawText(text, strlen(text),
@@ -440,7 +444,7 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
         return;
     }
     paint->setColor(SK_ColorBLACK);
-    paint->setShader(gradient->build());
+    paint->setShader(gradient->build()); /* TODO: SafeUnref(setShader())? */
     paint->setAlpha(SkAlphaMul(paint->getAlpha(),
         SkAlpha255To256(globalAlpha)));
 }
@@ -539,7 +543,7 @@ void NativeSkia::setGlobalComposite(const char *str)
     //paint->setAlpha(0);
     paint->setAlpha(0);
     paint->setXfermodeMode(SkXfermode::kDstOver_Mode);
-
+    
     asComposite = 1;
 
 }
@@ -556,6 +560,7 @@ void NativeSkia::beginPath()
     }
 
     currentPath = new SkPath();
+
     //currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
 }
 
@@ -616,6 +621,20 @@ void NativeSkia::clip()
 
     canvas->clipPath(*currentPath);
     CANVAS_FLUSH();
+}
+
+void NativeSkia::rect(double x, double y, double width, double height)
+{
+    if (!currentPath) {
+        beginPath();
+    }
+
+    SkRect r;
+
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
+    
+    currentPath->addRect(r);
 }
 
 
@@ -771,19 +790,70 @@ void NativeSkia::setLineJoin(const char *joinStyle)
     
 }
 
-void NativeSkia::drawImage()
+void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
 {
-    //NativeSkImage *img = new NativeSkImage("me.jpg", canvas);
+    if (image->isCanvas) {
+        canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+            &image->img);
+    }
+
+    canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+        paint);
+
+    /* TODO: clear read'd pixel? */
+    CANVAS_FLUSH();
+}
+
+void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
+    double width, double height)
+{
+    SkRect r;
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
+
+    if (image->isCanvas) {
+        canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+            &image->img);
+    }
+
+    if (!image->img.hasMipMap()) {
+        printf("build mipmap\n");
+        image->img.buildMipMap();
+    }
+    canvas->drawBitmapRect(image->img, NULL, r, paint)
+
+    CANVAS_FLUSH();
+}
+
+void NativeSkia::drawImage(NativeSkImage *image,
+    int sx, int sy, int swidth, int sheight,
+    double dx, double dy, double dwidth, double dheight)
+{
+    SkRect dst;
+    SkIRect src;
+
+    src.setXYWH(sx, sy, swidth, sheight);
+
+    if (image->isCanvas) {
+        canvas->readPixels(src, &image->img);
+    }
+
+    dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
+        SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
+
+    if (!image->img.hasMipMap())
+        image->img.buildMipMap();
+
+    canvas->drawBitmapRect(image->img, (image->isCanvas ? NULL : &src), dst, paint);
+
     CANVAS_FLUSH();
 }
 
 void NativeSkia::redrawScreen()
 {
-    SkBitmap bitmap;
-
     canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
-        &bitmap);
-    canvas->writePixels(bitmap, 0, 0);
+        screen);
+    canvas->writePixels(*screen, 0, 0);
     CANVAS_FLUSH();  
 }
 

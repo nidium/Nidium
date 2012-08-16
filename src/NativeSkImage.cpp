@@ -25,6 +25,10 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
 	bool ret = canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+
+	isCanvas = 1;
+	canvasRef = canvas;
+
 	//printf("Draw image : %d\n", ret);
 	canvas->drawBitmap(img, SkIntToScalar(200), SkScalar(200));
 	//canvas->writePixels(bitmap, 30, 30);
@@ -43,6 +47,8 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
 		ramAllocated = 1;
 	}
+
+	isCanvas = 0;
 
 	SkFILEStream* stream = new SkFILEStream(imgPath);
 

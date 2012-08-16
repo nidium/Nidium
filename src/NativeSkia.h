@@ -9,6 +9,8 @@ class SkCanvas;
 class SkPaint;
 class SkPath;
 class NativeSkGradient;
+class NativeSkImage;
+class SkBitmap;
 
 typedef uint32_t SkPMColor;
 typedef unsigned U8CPU;
@@ -17,7 +19,7 @@ class NativeSkia
 {
     private:
 
-        SkCanvas *canvas;
+        
         SkPaint *paint;
         SkPaint *paint_stroke;
         SkPaint *paint_system;
@@ -25,7 +27,9 @@ class NativeSkia
 
         uint8_t globalAlpha;
         uint8_t asComposite;
+        SkBitmap *screen;
     public:
+        SkCanvas *canvas;
         ~NativeSkia();
         int bindGL(int width, int height);
         void flush();
@@ -41,7 +45,12 @@ class NativeSkia
         void setGlobalAlpha(double value);
         void setGlobalComposite(const char *str);
         void clearRect(int, int, int, int);
-        void drawImage();
+        void drawImage(NativeSkImage *image, double x, double y);
+        void drawImage(NativeSkImage *image, double x, double y,
+            double width, double height);
+        void drawImage(NativeSkImage *image,
+            int sx, int sy, int swidth, int sheight,
+            double dx, double dy, double dwidth, double dheight);
         int getWidth();
         int getHeight();
 
@@ -55,6 +64,7 @@ class NativeSkia
         void stroke();
         void closePath();
         void clip();
+        void rect(double x, double y, double width, double height);
         void arc(int, int, int, double, double, int);
         void quadraticCurveTo(int cpx, int cpy, int x, int y);
         void bezierCurveTo(double cpx, double cpy, double cpx2,

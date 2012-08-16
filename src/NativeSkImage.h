@@ -9,10 +9,11 @@ class SkCanvas;
 class SkBitmap;
 
 class NativeSkImage
-{
-  private:
-  	SkBitmap img;
+{	
   public:
+  	int isCanvas;
+  	SkCanvas *canvasRef;
+  	SkBitmap img;
   	NativeSkImage(SkCanvas *canvas);
   	NativeSkImage(const char *imgpath);
   	~NativeSkImage();
