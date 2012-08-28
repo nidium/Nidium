@@ -18,7 +18,12 @@ enum {
     CANVAS_PROP_WIDTH,
     CANVAS_PROP_HEIGHT,
     CANVAS_PROP_GLOBALCOMPOSITEOPERATION,
-
+    CANVAS_PROP_FONTSIZE,
+    CANVAS_PROP_FONTTYPE,
+    CANVAS_PROP_SHADOWOFFSETX,
+    CANVAS_PROP_SHADOWOFFSETY,
+    CANVAS_PROP_SHADOWBLUR,
+    CANVAS_PROP_SHADOWCOLOR,
     IMAGE_PROP_SRC
 };
 
@@ -70,12 +75,12 @@ static JSClass mouseEvent_class = {
 };
 
 jsval gfunc  = JSVAL_VOID;
-jsval gmove  = JSVAL_VOID;
-jsval gclick = JSVAL_VOID;
 
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clearRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -109,10 +114,6 @@ static JSBool native_canvasGradient_addColorStop(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
     unsigned argc, jsval *vp);
-static JSBool native_canvas_mouseMove(JSContext *cx,
-    unsigned argc, jsval *vp);
-static JSBool native_canvas_mouseClick(JSContext *cx,
-    unsigned argc, jsval *vp);
 static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
@@ -137,11 +138,24 @@ static JSPropertySpec canvas_props[] = {
         native_canvas_prop_set},
     {"globalAlpha", CANVAS_PROP_GLOBALALPHA, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
-    {"globalCompositeOperation", CANVAS_PROP_GLOBALCOMPOSITEOPERATION, JSPROP_PERMANENT, NULL,
+    {"globalCompositeOperation", CANVAS_PROP_GLOBALCOMPOSITEOPERATION,
+    JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
+    {"fontSize", CANVAS_PROP_FONTSIZE, JSPROP_PERMANENT, NULL,
+    native_canvas_prop_set},
+    {"fontType", CANVAS_PROP_FONTTYPE, JSPROP_PERMANENT, NULL,
+    native_canvas_prop_set},
     {"lineCap", CANVAS_PROP_LINECAP, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
     {"lineJoin", CANVAS_PROP_LINEJOIN, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"shadowOffsetX", CANVAS_PROP_SHADOWOFFSETX, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"shadowOffsetY", CANVAS_PROP_SHADOWOFFSETY, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"shadowBlur", CANVAS_PROP_SHADOWBLUR, JSPROP_PERMANENT, NULL,
+        native_canvas_prop_set},
+    {"shadowColor", CANVAS_PROP_SHADOWCOLOR, JSPROP_PERMANENT, NULL,
         native_canvas_prop_set},
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT, native_canvas_prop_get,
         NULL},
@@ -175,7 +189,7 @@ static JSFunctionSpec gradient_funcs[] = {
 };
 
 static JSFunctionSpec canvas_funcs[] = {
-    
+    JS_FN("shadow", native_canvas_shadow, 0, 0),
     JS_FN("onerror", native_canvas_stub, 0, 0),
     JS_FN("fillRect", native_canvas_fillRect, 4, 0),
     JS_FN("fillText", native_canvas_fillText, 3, 0),
@@ -202,8 +216,6 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("createLinearGradient", native_canvas_createLinearGradient, 4, 0),
     JS_FN("createRadialGradient", native_canvas_createRadialGradient, 6, 0),
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
-    JS_FN("mouseMove", native_canvas_mouseMove, 1, 0),
-    JS_FN("mouseClick", native_canvas_mouseClick, 1, 0),
     JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
     JS_FS_END
@@ -387,6 +399,76 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 {
 
     switch(JSID_TO_INT(id)) {
+        case CANVAS_PROP_SHADOWOFFSETX:
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(*vp)) {
+                *vp = JSVAL_VOID;
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, *vp, &ret);
+
+            NSKIA->setShadowOffsetX(ret);  
+        }
+        break;
+        case CANVAS_PROP_SHADOWOFFSETY:
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(*vp)) {
+                *vp = JSVAL_VOID;
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, *vp, &ret);
+
+            NSKIA->setShadowOffsetY(ret);  
+        }
+        break;
+        case CANVAS_PROP_SHADOWBLUR:
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(*vp)) {
+                *vp = JSVAL_VOID;
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, *vp, &ret);
+
+            NSKIA->setShadowBlur(ret);  
+        }
+        break;
+        case CANVAS_PROP_SHADOWCOLOR:
+        {
+            if (!JSVAL_IS_STRING(*vp)) {
+                *vp = JSVAL_VOID;
+
+                return JS_TRUE;
+            }
+            JSAutoByteString color(cx, JSVAL_TO_STRING(*vp));
+            NSKIA->setShadowColor(color.ptr());          
+        }
+        break;
+        case CANVAS_PROP_FONTSIZE:
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(*vp)) {
+                *vp = JSVAL_VOID;
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, *vp, &ret);
+            NSKIA->setFontSize(ret);
+
+        }
+        break;
+        case CANVAS_PROP_FONTTYPE:
+        {
+            if (!JSVAL_IS_STRING(*vp)) {
+                *vp = JSVAL_VOID;
+
+                return JS_TRUE;
+            }
+            JSAutoByteString font(cx, JSVAL_TO_STRING(*vp));
+            NSKIA->setFontType(font.ptr());          
+        }
+        break;
         case CANVAS_PROP_FILLSTYLE:
         {
             if (JSVAL_IS_STRING(*vp)) {
@@ -546,6 +628,11 @@ static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NSKIA->setShadow();
+    return JS_TRUE;
+}
 
 static JSBool native_canvas_beginPath(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -826,28 +913,6 @@ static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
     return JS_TRUE;
 }
 
-static JSBool native_canvas_mouseMove(JSContext *cx, unsigned argc, jsval *vp)
-{
-
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gmove)) {
-        return JS_TRUE;
-    }
-
-    JS_AddValueRoot(cx, &gmove);
-    return JS_TRUE;
-}
-
-static JSBool native_canvas_mouseClick(JSContext *cx, unsigned argc, jsval *vp)
-{
-
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gclick)) {
-        return JS_TRUE;
-    }
-
-    JS_AddValueRoot(cx, &gclick);
-
-    return JS_TRUE;
-}
 
 static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -1043,12 +1108,42 @@ void NativeJS::callFrame()
     }
     sprintf(fps, "%d fps", currentFPS);
     //printf("Fps : %s\n", fps);
-    NSKIA->system(fps, 5, 15);
+    NSKIA->system(fps, 5, 300);
     //NSKIA->restore();
 }
 
-void NativeJS::mouseClick(int x, int y, int state, int button,
-    int xrel, int yrel, double delta)
+void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    
+    jsval rval, jevent, canvas, onwheel;
+    JSObject *event;
+
+    event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
+    JS_AddObjectRoot(cx, &event);
+
+    EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
+    EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
+    EVENT_PROP("x", INT_TO_JSVAL(x));
+    EVENT_PROP("y", INT_TO_JSVAL(y));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
+        !JSVAL_IS_PRIMITIVE(onwheel) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
+
+        JS_CallFunctionValue(cx, event, onwheel, 1, &jevent, &rval);
+    }
+
+
+    JS_RemoveObjectRoot(cx, &event);    
+}
+
+void NativeJS::mouseClick(int x, int y, int state, int button)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
@@ -1067,23 +1162,12 @@ void NativeJS::mouseClick(int x, int y, int state, int button,
     EVENT_PROP("clientX", INT_TO_JSVAL(x));
     EVENT_PROP("clientY", INT_TO_JSVAL(y));
     EVENT_PROP("which", INT_TO_JSVAL(button));
-    EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
-    EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
 
     jevent = OBJECT_TO_JSVAL(event);
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
 
-    if (button == 4 || button == 5) {
-        int idelta = ceil(delta);
-        EVENT_PROP("state", INT_TO_JSVAL(state));
-        EVENT_PROP("delta", INT_TO_JSVAL(button == 5 ? idelta : idelta*-1));
-        strcpy(evname, "onmousewheel");
-    } else if (state) {
-        strcpy(evname, "onmousedown");
-    } else {
-        strcpy(evname, "onmouseup");
-    }
+    strcpy(evname, state ? "onmousedown" : "onmouseup");
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), evname, &onclick) &&
         !JSVAL_IS_PRIMITIVE(onclick) && 
@@ -1151,6 +1235,7 @@ NativeJS::NativeJS()
     JSRuntime *rt;
     JSObject *gbl;
 
+    gfunc = JSVAL_VOID;
     /* TODO: BUG */
     //JS_SetCStringsAreUTF8();
 
@@ -1209,6 +1294,18 @@ NativeJS::~NativeJS()
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
     delete nskia;
+}
+
+void NativeJS::bufferSound(int16_t *data, int len)
+{
+    jsval rval, jevent, canvas, onwheel;
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
+        !JSVAL_IS_PRIMITIVE(onwheel) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
+
+       // JS_CallFunctionValue(cx, event, onwheel, 0, NULL, &rval);
+    }    
 }
 
 int NativeJS::LoadScript(const char *filename)

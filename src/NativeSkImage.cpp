@@ -30,7 +30,7 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 	canvasRef = canvas;
 
 	//printf("Draw image : %d\n", ret);
-	canvas->drawBitmap(img, SkIntToScalar(200), SkScalar(200));
+	//canvas->drawBitmap(img, SkIntToScalar(200), SkScalar(200));
 	//canvas->writePixels(bitmap, 30, 30);
 
 	canvas->flush();

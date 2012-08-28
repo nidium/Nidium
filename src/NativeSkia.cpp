@@ -6,7 +6,7 @@
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
-#include "SkPorterDuff.h"
+#include "SkBlurDrawLooper.h"
 //#include "SkGLCanvas.h"
 
 #include "SkParse.h"
@@ -26,6 +26,7 @@
 
 #include "SkGraphics.h"
 #include "SkXfermode.h"
+
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -238,12 +239,15 @@ int NativeSkia::bindGL(int width, int height)
 
     desc.fConfig = kSkia8888_PM_GrPixelConfig;
 
+
     GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
     GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
 
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
     desc.fRenderTargetHandle = buffer;
+
+    printf("Samples : %d\n", desc.fSampleCnt);
 
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
     if (target == NULL) {
@@ -262,31 +266,44 @@ int NativeSkia::bindGL(int width, int height)
     
     SkSafeUnref(dev);
 
+    glClearColor(1, 1, 1, 0);
+    glClearStencil(0);
+    glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
     currentPath = NULL;
 
     paint = new SkPaint;
 
+    memset(&currentShadow, 0, sizeof(NativeShadow_t));
+    currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
+
     paint->setARGB(255, 0, 0, 0);
     paint->setAntiAlias(true);
-    paint->setLCDRenderText(true);
+    
+    //paint->setLCDRenderText(true);
     paint->setStyle(SkPaint::kFill_Style);
     paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
+    paint->setSubpixelText(true);
+    paint->setAutohinted(true);
 
     paint_system = new SkPaint;
 
     paint_system->setARGB(255, 255, 0, 0);
     paint_system->setAntiAlias(true);
-    paint_system->setLCDRenderText(true);
+    //paint_system->setLCDRenderText(true);
     paint_system->setStyle(SkPaint::kFill_Style);
+    paint->setSubpixelText(true);
+    paint->setAutohinted(true);
    
     paint_stroke = new SkPaint;
 
     paint_stroke->setARGB(255, 0, 0, 0);
     paint_stroke->setAntiAlias(true);
-    paint_stroke->setLCDRenderText(true);
+    //paint_stroke->setLCDRenderText(true);
     paint_stroke->setStyle(SkPaint::kStroke_Style);
-
+    paint->setSubpixelText(true);
+    paint->setAutohinted(true);
     
     this->setLineWidth(1);
     /*SkRect r;
@@ -417,6 +434,22 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
 
 }
 
+void NativeSkia::setFontSize(double size)
+{
+    SkScalar ssize = SkDoubleToScalar(size);
+    paint->setTextSize(ssize);
+    paint_stroke->setTextSize(ssize);
+}
+
+void NativeSkia::setFontType(const char *str)
+{
+    SkTypeface *tf = SkTypeface::CreateFromName(str,
+        SkTypeface::kNormal);
+
+    paint->setTypeface(tf)->unref();
+    paint_stroke->setTypeface(tf)->unref();
+}
+
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
@@ -463,6 +496,55 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
 
 }
 
+SkBlurDrawLooper *NativeSkia::buildShadow()
+{
+    return new SkBlurDrawLooper (SkDoubleToScalar(currentShadow.blur),
+                                SkDoubleToScalar(currentShadow.x),
+                                SkDoubleToScalar(currentShadow.y),
+                                currentShadow.color,
+                                SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
+                                SkBlurDrawLooper::kOverrideColor_BlurFlag |
+                                SkBlurDrawLooper::kHighQuality_BlurFlag );
+}
+
+void NativeSkia::setShadowOffsetX(double x)
+{
+    currentShadow.x = x;
+    paint->setLooper(buildShadow())->unref();
+}
+
+void NativeSkia::setShadowOffsetY(double y)
+{
+    currentShadow.y = y;
+    paint->setLooper(buildShadow())->unref();
+}
+
+void NativeSkia::setShadowBlur(double blur)
+{
+    currentShadow.blur = blur;
+    paint->setLooper(buildShadow())->unref();
+}
+
+void NativeSkia::setShadowColor(const char *str)
+{
+    SkColor color = parseColor(str);
+
+    currentShadow.color = color;
+    paint->setLooper(buildShadow())->unref();
+}
+
+void NativeSkia::setShadow()
+{
+    SkBlurDrawLooper *shadown =  new SkBlurDrawLooper (SkIntToScalar(10), SkIntToScalar(10),
+                              SkIntToScalar(10), 0xFFFF0000,
+                              SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
+                              SkBlurDrawLooper::kOverrideColor_BlurFlag |
+                              SkBlurDrawLooper::kHighQuality_BlurFlag );
+
+
+    paint->setLooper(shadown)->unref();
+}
+
 /* TODO : move color logic to a separate function */
 void NativeSkia::setFillColor(const char *str)
 {   
@@ -499,7 +581,13 @@ void NativeSkia::setStrokeColor(const char *str)
 
 void NativeSkia::setGlobalAlpha(double value)
 {
-
+    /*
+        TODO : replace by :
+                //The SrcIn xfer mode will multiply 'color' by the incoming alpha
+        fColorFilter = SkColorFilter::CreateModeFilter(opaqueColor,
+                                                       SkXfermode::kSrcIn_Mode);
+        paint->setColorMask
+    */
     if (value < 0) return;
 
     SkScalar maxuint = SkIntToScalar(255);
@@ -564,6 +652,7 @@ void NativeSkia::beginPath()
     //currentPath->moveTo(SkIntToScalar(0), SkIntToScalar(0));
 }
 
+/* TODO: bug? looks like we need to add to the previous value (strange) */
 void NativeSkia::moveTo(double x, double y)
 {
     if (!currentPath) {
@@ -841,8 +930,9 @@ void NativeSkia::drawImage(NativeSkImage *image,
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
         SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
-    if (!image->img.hasMipMap())
+    if (!image->img.hasMipMap()) {
         image->img.buildMipMap();
+    }
 
     canvas->drawBitmapRect(image->img, (image->isCanvas ? NULL : &src), dst, paint);
 

@@ -11,9 +11,21 @@ class SkPath;
 class NativeSkGradient;
 class NativeSkImage;
 class SkBitmap;
+class SkBlurDrawLooper;
 
 typedef uint32_t SkPMColor;
+typedef uint32_t SkColor;
 typedef unsigned U8CPU;
+
+typedef struct _NativeShadow
+{
+    double x;
+    double y;
+    double blur;
+
+    SkColor color;
+
+} NativeShadow_t;
 
 class NativeSkia
 {
@@ -28,12 +40,21 @@ class NativeSkia
         uint8_t globalAlpha;
         uint8_t asComposite;
         SkBitmap *screen;
+        NativeShadow_t currentShadow;
+        SkBlurDrawLooper *buildShadow();
     public:
         SkCanvas *canvas;
         ~NativeSkia();
         int bindGL(int width, int height);
         void flush();
         /* Basics */
+        void setShadowOffsetX(double x);
+        void setShadowOffsetY(double y);
+        void setShadowBlur(double blur);
+        void setShadowColor(const char *str);
+        void setShadow();
+        void setFontSize(double size);
+        void setFontType(const char *str);
         void drawText(const char *text, int x, int y);
         void system(const char *text, int x, int y);
         void drawRect(double, double, double, double, double);
