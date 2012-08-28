@@ -27,6 +27,8 @@
 #include "SkGraphics.h"
 #include "SkXfermode.h"
 
+#include "NativeShadowLooper.h"
+
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -447,7 +449,7 @@ void NativeSkia::setFontType(const char *str)
         SkTypeface::kNormal);
 
     paint->setTypeface(tf)->unref();
-    paint_stroke->setTypeface(tf)->unref();
+    paint_stroke->setTypeface(tf);
 }
 
 /* TODO: bug with alpha */
@@ -496,33 +498,41 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
 
 }
 
-SkBlurDrawLooper *NativeSkia::buildShadow()
+NativeShadowLooper *NativeSkia::buildShadow()
 {
-    return new SkBlurDrawLooper (SkDoubleToScalar(currentShadow.blur),
+    if (currentShadow.blur == 0) {
+        return NULL;
+    }
+
+    currentShadow.color = SkColorSetA(currentShadow.color,
+        SkAlphaMul(SkColorGetA(currentShadow.color),
+            SkAlpha255To256(globalAlpha)));
+
+    return new NativeShadowLooper (SkDoubleToScalar(currentShadow.blur),
                                 SkDoubleToScalar(currentShadow.x),
                                 SkDoubleToScalar(currentShadow.y),
                                 currentShadow.color,
                                 SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
-                                SkBlurDrawLooper::kOverrideColor_BlurFlag |
                                 SkBlurDrawLooper::kHighQuality_BlurFlag );
 }
 
 void NativeSkia::setShadowOffsetX(double x)
 {
     currentShadow.x = x;
-    paint->setLooper(buildShadow())->unref();
+    SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowOffsetY(double y)
 {
     currentShadow.y = y;
-    paint->setLooper(buildShadow())->unref();
+    SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowBlur(double blur)
 {
     currentShadow.blur = blur;
-    paint->setLooper(buildShadow())->unref();
+
+    SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowColor(const char *str)
@@ -530,7 +540,7 @@ void NativeSkia::setShadowColor(const char *str)
     SkColor color = parseColor(str);
 
     currentShadow.color = color;
-    paint->setLooper(buildShadow())->unref();
+    SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadow()
@@ -560,6 +570,7 @@ void NativeSkia::setFillColor(const char *str)
 
     paint->setAlpha(SkAlphaMul(paint->getAlpha(),
         SkAlpha255To256(globalAlpha)));
+    printf("Setting alpha to : %d\n", paint->getAlpha());
 }
 
 void NativeSkia::setStrokeColor(const char *str)
@@ -587,6 +598,10 @@ void NativeSkia::setGlobalAlpha(double value)
         fColorFilter = SkColorFilter::CreateModeFilter(opaqueColor,
                                                        SkXfermode::kSrcIn_Mode);
         paint->setColorMask
+
+        OR
+
+        setColorFilter?
     */
     if (value < 0) return;
 

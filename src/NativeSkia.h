@@ -11,7 +11,7 @@ class SkPath;
 class NativeSkGradient;
 class NativeSkImage;
 class SkBitmap;
-class SkBlurDrawLooper;
+class NativeShadowLooper;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -41,7 +41,7 @@ class NativeSkia
         uint8_t asComposite;
         SkBitmap *screen;
         NativeShadow_t currentShadow;
-        SkBlurDrawLooper *buildShadow();
+        NativeShadowLooper *buildShadow();
     public:
         SkCanvas *canvas;
         ~NativeSkia();
