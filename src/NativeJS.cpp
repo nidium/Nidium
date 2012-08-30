@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
+#include <jsfriendapi.h>
 
 #include <pthread.h>
 
@@ -48,6 +49,13 @@ static JSClass canvas_class = {
 
 static JSClass image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass imageData_class = {
+    "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -106,6 +114,10 @@ static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_createImageData(JSContext *cx,
+    unsigned argc, jsval *vp);
+static JSBool native_canvas_putImageData(JSContext *cx,
+    unsigned argc, jsval *vp);
 static JSBool native_canvas_createLinearGradient(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas_createRadialGradient(JSContext *cx,
@@ -215,6 +227,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setTransform", native_canvas_setTransform, 6, 0),
     JS_FN("createLinearGradient", native_canvas_createLinearGradient, 4, 0),
     JS_FN("createRadialGradient", native_canvas_createRadialGradient, 6, 0),
+    JS_FN("createImageData", native_canvas_createImageData, 2, 0),
+    JS_FN("putImageData", native_canvas_putImageData, 3, 0),
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
@@ -853,6 +867,68 @@ static JSBool native_canvas_createLinearGradient(JSContext *cx,
         new NativeSkGradient(x1, y1, x2, y2));
 
     JS_DefineFunctions(cx, linearObject, gradient_funcs);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_putImageData(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JSObject *dataObject;
+    double x, y;
+    uint8_t *pixels;
+    jsval jdata, jwidth, jheight;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "odd",
+        &dataObject, &x, &y)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_InstanceOf(cx, dataObject, &imageData_class, NULL)) {
+        return JS_TRUE;
+    }
+
+    JS_GetProperty(cx, dataObject, "data", &jdata);
+    JS_GetProperty(cx, dataObject, "width", &jwidth);
+    JS_GetProperty(cx, dataObject, "height", &jheight);
+
+    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata), cx);
+
+    NSKIA->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight));
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_createImageData(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    unsigned long x, y;
+    JSObject *dataObject;
+    JSObject *arrBuffer;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu",
+        &x, &y)) {
+        return JS_TRUE;
+    }
+
+    dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
+
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
+    if (arrBuffer == NULL) {
+        JS_ReportOutOfMemory(cx);
+        return JS_TRUE;
+    }
+
+    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
+        NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(dataObject));
 
     return JS_TRUE;
 }

@@ -7,6 +7,7 @@
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
 #include "SkBlurDrawLooper.h"
+#include "SkConfig8888.h"
 //#include "SkGLCanvas.h"
 
 #include "SkParse.h"
@@ -319,6 +320,8 @@ int NativeSkia::bindGL(int width, int height)
     screen->setConfig(SkBitmap::kARGB_8888_Config, 640, 480);
     screen->allocPixels();
 
+    //canvas->drawARGB(0, 0, 0, 0, SkXfermode::kClear_Mode);
+
 #if 0
     SkIRect rr;
     SkPaint p;
@@ -570,7 +573,7 @@ void NativeSkia::setFillColor(const char *str)
 
     paint->setAlpha(SkAlphaMul(paint->getAlpha(),
         SkAlpha255To256(globalAlpha)));
-    printf("Setting alpha to : %d\n", paint->getAlpha());
+    //printf("Setting alpha to : %d\n", paint->getAlpha());
 }
 
 void NativeSkia::setStrokeColor(const char *str)
@@ -960,6 +963,24 @@ void NativeSkia::redrawScreen()
         screen);
     canvas->writePixels(*screen, 0, 0);
     CANVAS_FLUSH();  
+}
+
+void NativeSkia::drawPixels(uint8_t *pixels, int width, int height)
+{
+    SkBitmap bt;
+    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
+
+    uint32_t *PMPixels = (uint32_t *)alloca(width * height * 4);
+
+    SkConvertConfig8888Pixels(PMPixels, width*4,
+        SkCanvas::kNative_Premul_Config8888,
+        (uint32_t*)pixels, width*4, SkCanvas::kRGBA_Unpremul_Config8888,
+        width, height);
+
+    bt.setPixels(PMPixels);
+
+    canvas->drawSprite(bt, 0, 0, paint);
+
 }
 
 /*
