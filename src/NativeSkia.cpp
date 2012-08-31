@@ -146,6 +146,7 @@ SkPMColor NativeSkia::HSLToSKColor(U8CPU alpha, float hsl[3])
       SkAlphaMul(static_cast<int>(bh * scaleFactor), alpha));
 }
 
+/* TODO: Only accept ints int rgb(a)() */
 uint32_t NativeSkia::parseColor(const char *str)
 {
     SkColor color = SK_ColorBLACK;
@@ -305,8 +306,6 @@ int NativeSkia::bindGL(int width, int height)
     paint_stroke->setAntiAlias(true);
     //paint_stroke->setLCDRenderText(true);
     paint_stroke->setStyle(SkPaint::kStroke_Style);
-    paint->setSubpixelText(true);
-    paint->setAutohinted(true);
     
     this->setLineWidth(1);
     /*SkRect r;
@@ -939,6 +938,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
     SkRect dst;
     SkIRect src;
 
+    /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
     src.setXYWH(sx, sy, swidth, sheight);
 
     if (image->isCanvas) {
@@ -965,22 +965,51 @@ void NativeSkia::redrawScreen()
     CANVAS_FLUSH();  
 }
 
-void NativeSkia::drawPixels(uint8_t *pixels, int width, int height)
+void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
+    int x, int y)
 {
     SkBitmap bt;
-    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
+    SkPaint pt;
+    SkRect r;
 
     uint32_t *PMPixels = (uint32_t *)alloca(width * height * 4);
+    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
 
     SkConvertConfig8888Pixels(PMPixels, width*4,
         SkCanvas::kNative_Premul_Config8888,
         (uint32_t*)pixels, width*4, SkCanvas::kRGBA_Unpremul_Config8888,
         width, height);
 
+
     bt.setPixels(PMPixels);
+    r.setXYWH(x, y, width, height);
 
-    canvas->drawSprite(bt, 0, 0, paint);
+    canvas->saveLayer(NULL, NULL);
+        canvas->clipRect(r, SkRegion::kReplace_Op);
+        canvas->drawColor(SK_ColorWHITE);
+        canvas->drawBitmap(bt, x, y);
+    canvas->restore();
+}
 
+int NativeSkia::readPixels(int top, int left, int width, int height,
+    uint8_t *pixels)
+{
+    SkBitmap bt;
+    SkIRect src;
+
+    src.setXYWH(top, left, width, height);
+
+    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
+    memset(pixels, 0, width * height * 4);
+
+    bt.setPixels(pixels);
+
+    if (!canvas->readPixels(&bt, left, top, SkCanvas::kRGBA_Premul_Config8888)) {
+        printf("Failed to read pixels\n");
+        return 0;
+    }
+
+    return 1;
 }
 
 /*

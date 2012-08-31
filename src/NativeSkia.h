@@ -48,7 +48,9 @@ class NativeSkia
         int bindGL(int width, int height);
         void flush();
         /* Basics */
-        void drawPixels(uint8_t *pixels, int width, int height);
+        int readPixels(int top, int left, int width, int height,
+            uint8_t *pixels);
+        void drawPixels(uint8_t *pixels, int width, int height, int x, int y);
         void setShadowOffsetX(double x);
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);

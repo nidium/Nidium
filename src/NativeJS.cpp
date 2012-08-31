@@ -118,6 +118,8 @@ static JSBool native_canvas_createImageData(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas_putImageData(JSContext *cx,
     unsigned argc, jsval *vp);
+static JSBool native_canvas_getImageData(JSContext *cx,
+    unsigned argc, jsval *vp);
 static JSBool native_canvas_createLinearGradient(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas_createRadialGradient(JSContext *cx,
@@ -229,6 +231,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("createRadialGradient", native_canvas_createRadialGradient, 6, 0),
     JS_FN("createImageData", native_canvas_createImageData, 2, 0),
     JS_FN("putImageData", native_canvas_putImageData, 3, 0),
+    JS_FN("getImageData", native_canvas_getImageData, 4, 0),
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
@@ -871,15 +874,47 @@ static JSBool native_canvas_createLinearGradient(JSContext *cx,
     return JS_TRUE;
 }
 
+static JSBool native_canvas_getImageData(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    int left, top, width, height;
+    JSObject *dataObject;
+    JSObject *arrBuffer;
+    uint8_t *data;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii",
+        &left, &top, &width, &height)) {
+        return JS_TRUE;
+    }
+
+    dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
+
+    arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
+    data = JS_GetUint8ClampedArrayData(arrBuffer, cx);
+
+    NSKIA->readPixels(top, left, width, height, data);
+
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer),
+        NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(dataObject));
+
+    return JS_TRUE;
+}
+
 static JSBool native_canvas_putImageData(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JSObject *dataObject;
-    double x, y;
+    int x, y;
     uint8_t *pixels;
     jsval jdata, jwidth, jheight;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "odd",
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oii",
         &dataObject, &x, &y)) {
         return JS_TRUE;
     }
@@ -894,7 +929,8 @@ static JSBool native_canvas_putImageData(JSContext *cx,
 
     pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata), cx);
 
-    NSKIA->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight));
+    NSKIA->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
+        x, y);
 
     return JS_TRUE;
 }
