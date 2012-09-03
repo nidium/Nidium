@@ -13,6 +13,7 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
                                  SkImageDecoder::kDecodeBounds_Mode, NULL)) {
         SkASSERT(bitmap->config() != SkBitmap::kNo_Config);
 
+
         SkImageRef* ref = new SkImageRef_GlobalPool(stream, bitmap->config());
         ref->setURI(name);
         bitmap->setPixelRef(ref)->unref();
@@ -57,4 +58,14 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 	stream->unref();
 	//img->buildMipMap();
 	//canvas->drawBitmap(*img, SkIntToScalar(0), SkScalar(0));
+}
+
+int NativeSkImage::getWidth()
+{
+	return img.width();
+}
+
+int NativeSkImage::getHeight()
+{
+	return img.height();
 }

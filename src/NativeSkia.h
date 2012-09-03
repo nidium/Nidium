@@ -12,6 +12,7 @@ class NativeSkGradient;
 class NativeSkImage;
 class SkBitmap;
 class NativeShadowLooper;
+class GrContext;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -36,6 +37,7 @@ class NativeSkia
         SkPaint *paint_stroke;
         SkPaint *paint_system;
         SkPath *currentPath;
+        GrContext *context;
 
         uint8_t globalAlpha;
         uint8_t asComposite;
@@ -50,6 +52,7 @@ class NativeSkia
         /* Basics */
         int readPixels(int top, int left, int width, int height,
             uint8_t *pixels);
+        void drawPixelsGL(uint8_t *pixels, int width, int height, int x, int y);
         void drawPixels(uint8_t *pixels, int width, int height, int x, int y);
         void setShadowOffsetX(double x);
         void setShadowOffsetY(double y);

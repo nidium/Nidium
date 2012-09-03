@@ -226,9 +226,8 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
     
-    GrContext *context = GrContext::Create(kOpenGL_Shaders_GrEngine,
+    context = GrContext::Create(kOpenGL_Shaders_GrEngine,
         (GrPlatform3DContext)interface);
-
 
     if (context == NULL) {
         printf("Cant get context\n");
@@ -965,9 +964,31 @@ void NativeSkia::redrawScreen()
     CANVAS_FLUSH();  
 }
 
+
+void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
+    int x, int y)
+{
+    canvas->flush();
+    glDisable(GL_ALPHA_TEST);
+
+    glWindowPos2i(x, y);
+
+    if (glGetError() != GL_NO_ERROR) {
+        printf("got an error\n");
+    }
+    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, pixels);
+    if (glGetError() != GL_NO_ERROR) {
+        printf("got an error\n");
+    }
+    context->resetContext();
+}
+
 void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     int x, int y)
 {
+    //drawPixelsGL(pixels, width, height, x, y);
+    //return;
+
     SkBitmap bt;
     SkPaint pt;
     SkRect r;

@@ -6,6 +6,7 @@
 #include <jsapi.h>
 #include <jsprf.h>
 #include <jsfriendapi.h>
+#include <math.h>
 
 #include <pthread.h>
 
@@ -87,7 +88,7 @@ jsval gfunc  = JSVAL_VOID;
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
-
+static JSBool native_internal_for(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -191,7 +192,7 @@ static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 1, 0),
-
+    JS_FN("internal_for", native_internal_for, 3, 0),
     JS_FS_END
 };
 
@@ -396,8 +397,16 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
         case IMAGE_PROP_SRC:
         {
             if (JSVAL_IS_STRING(*vp)) {
+                NativeSkImage *ImageObject;
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(*vp));
-                JS_SetPrivate(obj, new NativeSkImage(imgPath.ptr()));
+                ImageObject = new NativeSkImage(imgPath.ptr());
+                JS_SetPrivate(obj, ImageObject);
+                JS_DefineProperty(cx, obj, "width",
+                    INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
+                    JSPROP_PERMANENT | JSPROP_READONLY);
+                JS_DefineProperty(cx, obj, "height",
+                    INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
+                    JSPROP_PERMANENT | JSPROP_READONLY);              
             } else {
                 *vp = JSVAL_VOID;
                 return JS_TRUE;
@@ -1132,7 +1141,7 @@ static void *native_thread(void *arg)
     gbl = JS_NewGlobalObject(tcx, &global_class, NULL);
 
 
-    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_METHODJIT_ALWAYS);
+    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
     JS_SetVersion(tcx, JSVERSION_LATEST);
 
     if (!JS_InitStandardClasses(tcx, gbl))
@@ -1325,6 +1334,36 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     JS_RemoveObjectRoot(cx, &event);
 }
 
+static JSBool native_internal_for(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int start, end;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
+        &start, &end)) {
+        return JS_TRUE;
+    }
+
+    jsval f = JS_ARGV(cx, vp)[2];
+    jsval cur[2];
+    JSObject *gbl = JS_GetGlobalObject(cx);
+    jsval rval;
+
+    for (int y = 0; y < end; y++) {
+        for (int x = 0; x < start; x++) {
+            cur[0] = INT_TO_JSVAL(x);
+            cur[1] = INT_TO_JSVAL(y);
+
+
+            //JS_CallFunctionValue(cx, gbl, f, 2, cur, &rval);
+        }
+    }
+
+    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    //jsval ret = floor(val + 0.5);
+
+    return JS_TRUE;
+}
+
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *script;
@@ -1365,14 +1404,14 @@ NativeJS::NativeJS()
     JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
-    JS_SetNativeStackQuota(rt, 500000);
+    //JS_SetNativeStackQuota(rt, 500000);
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return;     
     }
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_METHODJIT_ALWAYS);
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
     JS_SetErrorReporter(cx, reportError);

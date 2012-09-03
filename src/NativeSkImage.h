@@ -17,6 +17,9 @@ class NativeSkImage
   	NativeSkImage(SkCanvas *canvas);
   	NativeSkImage(const char *imgpath);
   	~NativeSkImage();
+
+  	int getWidth();
+  	int getHeight();
 };
 
 #endif
