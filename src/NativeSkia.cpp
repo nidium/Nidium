@@ -217,6 +217,58 @@ uint32_t NativeSkia::parseColor(const char *str)
     return color;
 }
 
+int NativeSkia::bindOffScreen(int width, int height)
+{
+    SkBitmap bitmap;
+
+    bitmap.setConfig(SkBitmap::kARGB_8888_Config, width, height);
+    bitmap.allocPixels();
+
+    canvas = new SkCanvas(bitmap);
+
+    /* TODO: Move the following in a common methode (init) */
+    globalAlpha = 255;
+    currentPath = NULL;
+
+    paint = new SkPaint;
+
+    memset(&currentShadow, 0, sizeof(NativeShadow_t));
+    currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
+
+    paint->setARGB(255, 0, 0, 0);
+    paint->setAntiAlias(true);
+
+    paint->setStyle(SkPaint::kFill_Style);
+    paint->setFilterBitmap(true);
+ 
+    paint->setSubpixelText(true);
+    paint->setAutohinted(true);
+
+    paint_system = new SkPaint;
+
+    paint_system->setARGB(255, 255, 0, 0);
+    paint_system->setAntiAlias(true);
+    //paint_system->setLCDRenderText(true);
+    paint_system->setStyle(SkPaint::kFill_Style);
+    paint->setSubpixelText(true);
+    paint->setAutohinted(true);
+   
+    paint_stroke = new SkPaint;
+
+    paint_stroke->setARGB(255, 0, 0, 0);
+    paint_stroke->setAntiAlias(true);
+    //paint_stroke->setLCDRenderText(true);
+    paint_stroke->setStyle(SkPaint::kStroke_Style);
+    
+    this->setLineWidth(1);
+
+
+    asComposite = 0;
+
+
+    return 0;
+}
+
 int NativeSkia::bindGL(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
@@ -1016,9 +1068,6 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     uint8_t *pixels)
 {
     SkBitmap bt;
-    SkIRect src;
-
-    src.setXYWH(top, left, width, height);
 
     bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
     memset(pixels, 0, width * height * 4);

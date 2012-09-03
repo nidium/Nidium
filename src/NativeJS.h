@@ -10,7 +10,7 @@
 class NativeJS
 {
     private:   
-        void LoadCanvasObject();
+        void LoadCanvasObject(NativeSkia *);
 
         //void operator=(NativeJS const&);
 

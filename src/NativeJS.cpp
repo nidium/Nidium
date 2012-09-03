@@ -29,7 +29,11 @@ enum {
     IMAGE_PROP_SRC
 };
 
+#define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
 #define NSKIA ((class NativeSkia *)JS_GetContextPrivate(cx))
+#define NSKIA_OBJ(obj) ((class NativeSkia *)JS_GetPrivate(obj))
+
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -372,15 +376,17 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, jsval *vp)
 {
+    NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
+
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_WIDTH:
         {
-            *vp = INT_TO_JSVAL(NSKIA->getWidth());
+            *vp = INT_TO_JSVAL(curSkia->getWidth());
         }
         break;
         case CANVAS_PROP_HEIGHT:
         {
-            *vp = INT_TO_JSVAL(NSKIA->getHeight());
+            *vp = INT_TO_JSVAL(curSkia->getHeight());
         }
         break;
         default:
@@ -398,15 +404,26 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
         {
             if (JSVAL_IS_STRING(*vp)) {
                 NativeSkImage *ImageObject;
+                jsval rval, onload_callback;
+
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(*vp));
                 ImageObject = new NativeSkImage(imgPath.ptr());
                 JS_SetPrivate(obj, ImageObject);
+
                 JS_DefineProperty(cx, obj, "width",
                     INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
                     JSPROP_PERMANENT | JSPROP_READONLY);
+
                 JS_DefineProperty(cx, obj, "height",
                     INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
-                    JSPROP_PERMANENT | JSPROP_READONLY);              
+                    JSPROP_PERMANENT | JSPROP_READONLY);
+
+                if (JS_GetProperty(cx, obj, "onload", &onload_callback) &&
+                    JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
+
+                    JS_CallFunctionValue(cx, obj, onload_callback,
+                        0, NULL, &rval);
+                }         
             } else {
                 *vp = JSVAL_VOID;
                 return JS_TRUE;
@@ -423,6 +440,7 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp)
 {
+    NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_SHADOWOFFSETX:
@@ -434,7 +452,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToNumber(cx, *vp, &ret);
 
-            NSKIA->setShadowOffsetX(ret);  
+            curSkia->setShadowOffsetX(ret);  
         }
         break;
         case CANVAS_PROP_SHADOWOFFSETY:
@@ -446,7 +464,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToNumber(cx, *vp, &ret);
 
-            NSKIA->setShadowOffsetY(ret);  
+            curSkia->setShadowOffsetY(ret);  
         }
         break;
         case CANVAS_PROP_SHADOWBLUR:
@@ -458,7 +476,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToNumber(cx, *vp, &ret);
 
-            NSKIA->setShadowBlur(ret);  
+            curSkia->setShadowBlur(ret);  
         }
         break;
         case CANVAS_PROP_SHADOWCOLOR:
@@ -469,7 +487,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString color(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setShadowColor(color.ptr());          
+            curSkia->setShadowColor(color.ptr());          
         }
         break;
         case CANVAS_PROP_FONTSIZE:
@@ -480,7 +498,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, *vp, &ret);
-            NSKIA->setFontSize(ret);
+            curSkia->setFontSize(ret);
 
         }
         break;
@@ -492,14 +510,14 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString font(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setFontType(font.ptr());          
+            curSkia->setFontType(font.ptr());          
         }
         break;
         case CANVAS_PROP_FILLSTYLE:
         {
             if (JSVAL_IS_STRING(*vp)) {
                 JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
-                NSKIA->setFillColor(colorName.ptr());
+                curSkia->setFillColor(colorName.ptr());
             } else if (!JSVAL_IS_PRIMITIVE(*vp) && 
                 JS_InstanceOf(cx, JSVAL_TO_OBJECT(*vp),
                     &canvasGradient_class, NULL)) {
@@ -507,7 +525,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(JSVAL_TO_OBJECT(*vp));
 
-                NSKIA->setFillColor(gradient);
+                curSkia->setFillColor(gradient);
 
             } else {
                 *vp = JSVAL_VOID;
@@ -520,7 +538,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             if (JSVAL_IS_STRING(*vp)) {
                 JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
-                NSKIA->setStrokeColor(colorName.ptr());
+                curSkia->setStrokeColor(colorName.ptr());
             } else if (!JSVAL_IS_PRIMITIVE(*vp) && 
                 JS_InstanceOf(cx, JSVAL_TO_OBJECT(*vp),
                     &canvasGradient_class, NULL)) {
@@ -528,7 +546,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(JSVAL_TO_OBJECT(*vp));
 
-                NSKIA->setStrokeColor(gradient);
+                curSkia->setStrokeColor(gradient);
 
             } else {
                 *vp = JSVAL_VOID;
@@ -545,7 +563,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, *vp, &ret);
-            NSKIA->setLineWidth(ret);
+            curSkia->setLineWidth(ret);
         }
         break;
         case CANVAS_PROP_GLOBALALPHA:
@@ -556,7 +574,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, *vp, &ret);
-            NSKIA->setGlobalAlpha(ret);
+            curSkia->setGlobalAlpha(ret);
         }
         break;
         case CANVAS_PROP_GLOBALCOMPOSITEOPERATION:
@@ -567,7 +585,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString composite(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setGlobalComposite(composite.ptr());            
+            curSkia->setGlobalComposite(composite.ptr());            
         }
         break;
         case CANVAS_PROP_LINECAP:
@@ -578,7 +596,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString lineCap(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setLineCap(lineCap.ptr());                
+            curSkia->setLineCap(lineCap.ptr());                
         }
         break;
         case CANVAS_PROP_LINEJOIN:
@@ -589,7 +607,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString lineJoin(cx, JSVAL_TO_STRING(*vp));
-            NSKIA->setLineJoin(lineJoin.ptr());                
+            curSkia->setLineJoin(lineJoin.ptr());                
         }
         break;        
         default:
@@ -608,7 +626,7 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->drawRect(x, y, width+x, height+y, 0);
+    NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 0);
 
     return JS_TRUE;
 }
@@ -616,11 +634,12 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp)
 {
     double x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y, &width, &height)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
+        &width, &height)) {
         return JS_TRUE;
     }
 
-    NSKIA->drawRect(x, y, width+x, height+y, 1);
+    NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 1);
 
     return JS_TRUE;
 }
@@ -628,11 +647,12 @@ static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_clearRect(JSContext *cx, unsigned argc, jsval *vp)
 {
     int x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &width, &height)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y,
+        &width, &height)) {
         return JS_TRUE;
     }
 
-    NSKIA->clearRect(x, y, width+x, height+y);
+    NSKIA_NATIVE->clearRect(x, y, width+x, height+y);
 
     return JS_TRUE;
 }
@@ -649,20 +669,20 @@ static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp)
 
     JSAutoByteString text(cx, str);
 
-    NSKIA->drawText(text.ptr(), x, y);
+    NSKIA_NATIVE->drawText(text.ptr(), x, y);
 
     return JS_TRUE;
 }
 
 static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->setShadow();
+    NSKIA_NATIVE->setShadow();
     return JS_TRUE;
 }
 
 static JSBool native_canvas_beginPath(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->beginPath();
+    NSKIA_NATIVE->beginPath();
 
     return JS_TRUE;
 }
@@ -675,7 +695,7 @@ static JSBool native_canvas_moveTo(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->moveTo(x, y);
+    NSKIA_NATIVE->moveTo(x, y);
 
     return JS_TRUE;
 }
@@ -688,34 +708,34 @@ static JSBool native_canvas_lineTo(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->lineTo(x, y);
+    NSKIA_NATIVE->lineTo(x, y);
 
     return JS_TRUE;
 }
 
 static JSBool native_canvas_fill(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->fill();
+    NSKIA_NATIVE->fill();
 
     return JS_TRUE;
 }
 
 static JSBool native_canvas_stroke(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->stroke();
+    NSKIA_NATIVE->stroke();
 
     return JS_TRUE;
 }
 static JSBool native_canvas_closePath(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->closePath();
+    NSKIA_NATIVE->closePath();
 
     return JS_TRUE;
 }
 
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->clip();
+    NSKIA_NATIVE->clip();
 
     return JS_TRUE;
 }
@@ -729,7 +749,7 @@ static JSBool native_canvas_rect(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->rect(x, y, width, height);
+    NSKIA_NATIVE->rect(x, y, width, height);
 
     return JS_TRUE;
 }
@@ -745,7 +765,7 @@ static JSBool native_canvas_arc(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->arc(x, y, radius, startAngle, endAngle, CCW);
+    NSKIA_NATIVE->arc(x, y, radius, startAngle, endAngle, CCW);
 
     return JS_TRUE;
 }
@@ -759,7 +779,7 @@ static JSBool native_canvas_quadraticCurveTo(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    NSKIA->quadraticCurveTo(cpx, cpy, x, y);
+    NSKIA_NATIVE->quadraticCurveTo(cpx, cpy, x, y);
 
     return JS_TRUE;
 }
@@ -773,7 +793,7 @@ static JSBool native_canvas_bezierCurveTo(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    NSKIA->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
+    NSKIA_NATIVE->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
 
     return JS_TRUE;
 }
@@ -786,7 +806,7 @@ static JSBool native_canvas_rotate(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->rotate(angle);
+    NSKIA_NATIVE->rotate(angle);
 
     return JS_TRUE;
 }
@@ -799,7 +819,7 @@ static JSBool native_canvas_scale(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->scale(x, y);
+    NSKIA_NATIVE->scale(x, y);
 
     return JS_TRUE;
 }
@@ -812,7 +832,7 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->translate(x, y);
+    NSKIA_NATIVE->translate(x, y);
 
     return JS_TRUE;
 }
@@ -826,7 +846,7 @@ static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NSKIA->transform(scalex, skewx, skewy, scaley,
+    NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
         translatex, translatey, 0);
 
     return JS_TRUE;
@@ -841,7 +861,7 @@ static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc, jsval *vp
         return JS_TRUE;
     }
 
-    NSKIA->transform(scalex, skewx, skewy, scaley,
+    NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
         translatex, translatey, 1);
 
     return JS_TRUE;
@@ -849,14 +869,14 @@ static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc, jsval *vp
 
 static JSBool native_canvas_save(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->save();
+    NSKIA_NATIVE->save();
 
     return JS_TRUE;
 }
 
 static JSBool native_canvas_restore(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA->restore();
+    NSKIA_NATIVE->restore();
 
     return JS_TRUE;
 }
@@ -901,12 +921,12 @@ static JSBool native_canvas_getImageData(JSContext *cx,
     arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
     data = JS_GetUint8ClampedArrayData(arrBuffer, cx);
 
-    NSKIA->readPixels(top, left, width, height, data);
+    NSKIA_NATIVE->readPixels(top, left, width, height, data);
 
-    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
-        JSPROP_PERMANENT | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
-        JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
+        NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
+        NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer),
         NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
 
@@ -938,7 +958,7 @@ static JSBool native_canvas_putImageData(JSContext *cx,
 
     pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata), cx);
 
-    NSKIA->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
+    NSKIA_NATIVE->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
         x, y);
 
     return JS_TRUE;
@@ -1056,7 +1076,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (JS_InstanceOf(cx, jsimage, &canvas_class, NULL)) {
-        image = new NativeSkImage(NSKIA->canvas);
+        image = new NativeSkImage(NSKIA_NATIVE->canvas);
 
     } else if (!JS_InstanceOf(cx, jsimage, &image_class, NULL) ||
         (image = (class NativeSkImage *)JS_GetPrivate(jsimage)) == NULL) {
@@ -1065,13 +1085,13 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
 
     switch(argc) {
         case 3:
-            NSKIA->drawImage(image, x, y);
+            NSKIA_NATIVE->drawImage(image, x, y);
             break;
         case 5:
-            NSKIA->drawImage(image, x, y, width, height);
+            NSKIA_NATIVE->drawImage(image, x, y, width, height);
             break;
         case 9:
-            NSKIA->drawImage(image, sx, sy, swidth, sheight,
+            NSKIA_NATIVE->drawImage(image, sx, sy, swidth, sheight,
                 x, y, width, height);
             break;
         default:
@@ -1093,7 +1113,7 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
 
     JSAutoByteString ctext(cx, text);
 
-    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(NSKIA->measureText(ctext.ptr(),
+    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(NSKIA_NATIVE->measureText(ctext.ptr(),
         strlen(ctext.ptr()))));
 
 
@@ -1104,9 +1124,36 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &image_class, vp);
 
+    /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
+    return JS_TRUE;
+}
+
+static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int width, height;
+    NativeSkia *CanvasObject;
+
+    JSObject *ret = JS_NewObjectForConstructor(cx, &canvas_class, vp);
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
+        &width, &height)) {
+        return JS_TRUE;
+    }
+
+    CanvasObject = new NativeSkia();
+    CanvasObject->bindOffScreen(width, height);
+
+    JS_SetPrivate(ret, CanvasObject);
+
+    JS_DefineFunctions(cx, ret, canvas_funcs);
+    JS_DefineProperties(cx, ret, canvas_props);
+
+    /* TODO: JS_IsConstructing() */
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
     return JS_TRUE;
 }
 
@@ -1141,7 +1188,8 @@ static void *native_thread(void *arg)
     gbl = JS_NewGlobalObject(tcx, &global_class, NULL);
 
 
-    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
+    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
+        JSOPTION_TYPE_INFERENCE);
     JS_SetVersion(tcx, JSVERSION_LATEST);
 
     if (!JS_InitStandardClasses(tcx, gbl))
@@ -1175,7 +1223,8 @@ static void *native_thread(void *arg)
     }*/
     JS_LeaveCrossCompartmentCall(call);
 #endif
-    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, str.ptr(), strlen(str.ptr()), NULL, 0);
+    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, str.ptr(),
+        strlen(str.ptr()), NULL, 0);
     if (cf == NULL) {
         printf("Cant compile function\n");
     }
@@ -1411,7 +1460,8 @@ NativeJS::NativeJS()
         return;     
     }
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
+        JSOPTION_TYPE_INFERENCE);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
     JS_SetErrorReporter(cx, reportError);
@@ -1428,12 +1478,12 @@ NativeJS::NativeJS()
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
-    LoadCanvasObject();
-
     nskia = new NativeSkia();
 
     JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
+
+    LoadCanvasObject(nskia);
 
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
@@ -1479,7 +1529,7 @@ int NativeJS::LoadScript(const char *filename)
     return 1;
 }
 
-void NativeJS::LoadCanvasObject()
+void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 {
     JSObject *gbl = JS_GetGlobalObject(cx);
     JSObject *canvasObj;
@@ -1489,10 +1539,17 @@ void NativeJS::LoadCanvasObject()
 
     JS_DefineProperties(cx, canvasObj, canvas_props);
 
+    JS_SetPrivate(canvasObj, currentSkia);
+
     /* Image object */
     JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,
         0, NULL, NULL, NULL, NULL);
 
+    /* Secondary Canvas object */
+    JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
+        2, NULL, NULL, NULL, NULL);   
+
+    /* Threaded object */
     JS_InitClass(cx, gbl, NULL, &thread_class, native_Thread_constructor,
         0, NULL, NULL, NULL, NULL);
 }

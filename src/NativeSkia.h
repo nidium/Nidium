@@ -47,6 +47,7 @@ class NativeSkia
     public:
         SkCanvas *canvas;
         ~NativeSkia();
+        int bindOffScreen(int width, int height);
         int bindGL(int width, int height);
         void flush();
         /* Basics */
