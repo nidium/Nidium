@@ -37,6 +37,8 @@ enum {
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass global_class = {
     "_GLOBAL", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -48,14 +50,14 @@ static JSClass global_class = {
 static JSClass canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -253,6 +255,22 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
         delete gradient;
+    }
+}
+
+void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeSkia *currSkia = NSKIA_NATIVE_GETTER(obj);
+    if (currSkia != NULL) {
+        delete currSkia;
+    }
+}
+
+void Image_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeSkImage *img = (class NativeSkImage *)JS_GetPrivate(obj);
+    if (img != NULL) {
+        delete img;
     }
 }
 
@@ -935,6 +953,7 @@ static JSBool native_canvas_getImageData(JSContext *cx,
     return JS_TRUE;
 }
 
+/* TODO: Huge memory leak? */
 static JSBool native_canvas_putImageData(JSContext *cx,
     unsigned argc, jsval *vp)
 {
@@ -1061,6 +1080,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
     NativeSkImage *image;
     double x, y, width, height;
     int sx, sy, swidth, sheight;
+    int need_free = 0;
 
     if (argc == 9) {
          if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oiiiidddd",
@@ -1077,6 +1097,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
 
     if (JS_InstanceOf(cx, jsimage, &canvas_class, NULL)) {
         image = new NativeSkImage(NSKIA_NATIVE->canvas);
+        need_free = 1;
 
     } else if (!JS_InstanceOf(cx, jsimage, &image_class, NULL) ||
         (image = (class NativeSkImage *)JS_GetPrivate(jsimage)) == NULL) {
@@ -1096,6 +1117,10 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
             break;
         default:
             break;
+    }
+
+    if (need_free) {
+        delete image;
     }
 
     return JS_TRUE;

@@ -25,16 +25,10 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
-	bool ret = canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+	canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
 	isCanvas = 1;
 	canvasRef = canvas;
-
-	//printf("Draw image : %d\n", ret);
-	//canvas->drawBitmap(img, SkIntToScalar(200), SkScalar(200));
-	//canvas->writePixels(bitmap, 30, 30);
-
-	canvas->flush();
 	
 }
 

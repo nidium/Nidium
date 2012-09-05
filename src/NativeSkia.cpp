@@ -459,6 +459,9 @@ NativeSkia::~NativeSkia()
 {
     delete paint;
     delete paint_stroke;
+    delete paint_system;
+    delete screen;
+    
     if (currentPath) delete currentPath;
 
     delete canvas;
