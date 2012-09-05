@@ -1,7 +1,6 @@
 #ifndef __APE_EVENTS_H_
 #define __APE_EVENTS_H_
 
-#define USE_KQUEUE_HANDLER
 
 #include "common.h"
 

@@ -116,9 +116,10 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     ret->states.state   = APE_SOCKET_ST_PENDING;
     ret->states.proto   = pt;
     ret->ctx            = NULL;
+#ifdef _HAVE_SSL_SUPPORT
     ret->SSL.issecure   = (pt == APE_SOCKET_PT_SSL);
     ret->SSL.ssl        = NULL;
-
+#endif
     ret->callbacks.on_read          = NULL;
     ret->callbacks.on_disconnect    = NULL;
     ret->callbacks.on_connect       = NULL;
@@ -370,11 +371,12 @@ int APE_socket_writev(ape_socket *socket, const struct iovec *iov, int iovcnt)
             iovcnt == 0) {
         return -1;        
     }
+#ifdef _HAVE_SSL_SUPPORT
     if (APE_SOCKET_ISSECURE(socket)) {
         /* NOT IMPLEMENTED */
         return -1;
     }
-    
+#endif    
     writev(socket->s.fd, iov, iovcnt);
     
     return 0;

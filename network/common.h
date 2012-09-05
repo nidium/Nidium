@@ -1,7 +1,9 @@
 #ifndef _APE_COMMON_H_
 #define _APE_COMMON_H_
 
-#define APE_BASEMEM 40960
+#define USE_KQUEUE_HANDLER
+
+#define APE_BASEMEM 4096
 
 #define ape_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define ape_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
@@ -15,7 +17,6 @@
 typedef struct _ape_global ape_global;
 
 #include "ape_events.h"
-
 
 struct _ape_global {
     int basemem;

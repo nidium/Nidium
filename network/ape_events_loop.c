@@ -15,6 +15,8 @@ void events_loop(ape_global *ape)
     
     void *attach;
     struct timeval t_start, t_end;
+
+    printf("Start socket loop\n");
     
     gettimeofday(&t_start, NULL);
     while(ape->is_running && ape_running) {

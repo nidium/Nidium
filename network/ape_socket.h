@@ -133,12 +133,12 @@ struct _ape_socket {
         uint8_t type;
         uint8_t state;
     } states;
-	
+#ifdef _HAVE_SSL_SUPPORT  	
 	struct {
 		uint8_t issecure;
 		struct _ape_ssl *ssl;
 	} SSL;
-
+#endif
     uint16_t    remote_port;
 };
 
@@ -154,6 +154,9 @@ struct _ape_socket_packet {
 	ape_socket_data_autorelease data_type;
 } typedef ape_socket_packet_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape);
 
@@ -170,6 +173,10 @@ int ape_socket_do_jobs(ape_socket *socket);
 inline int ape_socket_accept(ape_socket *socket);
 inline int ape_socket_read(ape_socket *socket);
 inline void ape_socket_connected(ape_socket *socket);
+
+#ifdef __cplusplus
+}
+#endif
 
 /*int ape_socket_write_file(ape_socket *socket, const char *file,
         ape_global *ape);

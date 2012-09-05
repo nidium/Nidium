@@ -1,0 +1,18 @@
+#ifndef _NATIVE_NETLIB_H_
+#define _NATIVE_NETLIB_H_
+
+#include "common.h"
+#include "ape_socket.h"
+#include "ape_events_loop.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+ape_global *native_netlib_init();	
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
