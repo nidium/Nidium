@@ -1119,6 +1119,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
             break;
     }
 
+    /* TODO: add cache (keep an SkBitmap for the canvas) */
     if (need_free) {
         delete image;
     }
