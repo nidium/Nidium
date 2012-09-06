@@ -200,6 +200,7 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     addr.sin_addr.s_addr = inet_addr(remote_ip);
     memset(&(addr.sin_zero), '\0', 8);
 
+    printf("connecting...\n");
     if (connect(socket->s.fd, (struct sockaddr *)&addr,
                 sizeof(struct sockaddr)) == 0 ||
             errno != EINPROGRESS) {
@@ -694,6 +695,7 @@ static int ape_socket_queue_buffer(ape_socket *socket, buffer *b)
 
 inline void ape_socket_connected(ape_socket *socket)
 {
+    printf("connected!\n");
     if (socket->callbacks.on_connected != NULL) {
         socket->callbacks.on_connected(socket, socket->ape);
     }
@@ -782,7 +784,7 @@ inline int ape_socket_read(ape_socket *socket)
             socket->data_in.used += ape_max(nread, 0);
         } else {
 #endif
-socket_reread:        
+socket_reread:
             nread = read(socket->s.fd,
                 socket->data_in.data + socket->data_in.used,
                 socket->data_in.size - socket->data_in.used);

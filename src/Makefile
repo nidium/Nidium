@@ -18,7 +18,7 @@ CPPFLAGS= -O2 -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_IN
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp ape_array.cpp ape_pool.cpp ape_buffer.cpp
+SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a
 

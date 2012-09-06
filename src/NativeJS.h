@@ -4,7 +4,6 @@
 #include <jsapi.h>
 
 #include "NativeSkia.h"
-#include "ape_pool.h"
 
 /* JSAPI binding (singleton) */
 class NativeJS
@@ -15,7 +14,6 @@ class NativeJS
         //void operator=(NativeJS const&);
 
         JSContext *cx;
-        ape_pool_t *animationframeCallbacks;
         jsval func;
     public:
         NativeSkia *nskia;
