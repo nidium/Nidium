@@ -21,7 +21,7 @@
 
 #include "ape_socket.h"
 //#include "ape_dns.h"
-#include "ape_timers.h"
+#include "ape_timers_next.h"
 //#include "ape_ssl.h"
 
 #include <stdio.h>
@@ -274,10 +274,10 @@ static void ape_socket_shutdown_force(ape_socket *socket)
     }
 }
 
-static void ape_socket_free(ape_socket *socket)
+static int ape_socket_free(void *arg)
 {
     _ndec++;
-
+    ape_socket *socket = arg;
 #ifdef _HAVE_SSL_SUPPORT
     if (socket->SSL.issecure) {
         ape_ssl_destroy(socket->SSL.ssl);
@@ -287,6 +287,8 @@ static void ape_socket_free(ape_socket *socket)
     ape_destroy_pool(socket->jobs.head);
 
     free(socket);
+
+    return 0;
 }
 
 int APE_socket_destroy(ape_socket *socket)
@@ -306,7 +308,7 @@ int APE_socket_destroy(ape_socket *socket)
 
     socket->states.state = APE_SOCKET_ST_OFFLINE;
 
-    ape_dispatch_async(ape_socket_free, socket);
+    timer_dispatch_async(ape_socket_free, socket);
     
     /* TODO: Free any pending job !!! */
 

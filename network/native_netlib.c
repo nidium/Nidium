@@ -29,6 +29,9 @@ ape_global *native_netlib_init()
     ape->is_running = 1;
     ape->timers.ntimers = 0;
     ape->timers.timers  = NULL;
+
+    ape->timersng.head = NULL;
+    ape->timersng.last_identifier = 0;
 	
     events_init(ape);
 	

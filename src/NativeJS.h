@@ -6,6 +6,9 @@
 #include "NativeSkia.h"
 
 /* JSAPI binding (singleton) */
+
+typedef struct _ape_global ape_global;
+
 class NativeJS
 {
     private:   
@@ -26,6 +29,7 @@ class NativeJS
         void mouseMove(int x, int y, int xrel, int yrel);
         void mouseClick(int x, int y, int state, int button);
         void gc();
+        void bindNetObject(ape_global *net);
         uint32_t currentFPS;
 };
 

@@ -14,7 +14,8 @@ CPPFLAGS= -O2 -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_IN
 				-I$(SKIA)/src/gpu			\
 				-I$(SKIA)/src/core			\
 				-I$(SKIA)/include/effects	\
-				-I$(SKIA)/include/utils/mac
+				-I$(SKIA)/include/utils/mac \
+				-I../network
 
 AR=ar
 ARFLAGS=rcs

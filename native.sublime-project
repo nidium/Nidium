@@ -27,6 +27,7 @@
 			"-I/Users/anthonycatel/src/skia/trunk/include/utils/mac",
 			"-I/Users/anthonycatel/Nativestudio/mozilla/js/src/dist/include",
 			"-I/Users/anthonycatel/Nativestudio/mozilla/js/src/",
+			"-I/Users/anthonycatel/Nativestudio/network/",
 			"-Wno-deprecated-declarations",
 			"-Wno-c++11-extensions",
 			"-Wno-return-type-c-linkage",

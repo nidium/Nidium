@@ -294,7 +294,6 @@ int NativeSkia::bindGL(int width, int height)
 
     desc.fConfig = kSkia8888_PM_GrPixelConfig;
 
-
     GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
     GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
 
@@ -303,7 +302,7 @@ int NativeSkia::bindGL(int width, int height)
     desc.fRenderTargetHandle = buffer;
 
     printf("Samples : %d\n", desc.fSampleCnt);
-
+ 
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
     if (target == NULL) {
         printf("Failed to init Skia\n");
@@ -1056,7 +1055,7 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
         (uint32_t*)pixels, width*4, SkCanvas::kRGBA_Unpremul_Config8888,
         width, height);
 
-
+    bt.setIsVolatile(true);
     bt.setPixels(PMPixels);
     r.setXYWH(x, y, width, height);
 

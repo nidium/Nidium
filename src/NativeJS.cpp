@@ -2,6 +2,7 @@
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
+#include <native_netlib.h>
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
@@ -29,12 +30,26 @@ enum {
     IMAGE_PROP_SRC
 };
 
+struct _native_sm_timer
+{
+    JSContext *cx;
+    JSObject *global;
+    jsval func;
+
+    unsigned argc;
+    jsval *argv;
+
+    int cleared;
+    struct _ticks_callback *timer;
+};
+
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
-#define NSKIA ((class NativeSkia *)JS_GetContextPrivate(cx))
 #define NSKIA_OBJ(obj) ((class NativeSkia *)JS_GetPrivate(obj))
 
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
+
+static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -120,6 +135,8 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_createImageData(JSContext *cx,
     unsigned argc, jsval *vp);
@@ -199,6 +216,8 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 1, 0),
     JS_FN("internal_for", native_internal_for, 3, 0),
+    JS_FN("setTimeout", native_set_timeout, 2, 0),
+    JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FS_END
 };
 
@@ -1304,7 +1323,7 @@ void NativeJS::callFrame()
     }
     sprintf(fps, "%d fps", currentFPS);
     //printf("Fps : %s\n", fps);
-    NSKIA->system(fps, 5, 300);
+    nskia->system(fps, 5, 300);
     //NSKIA->restore();
 }
 
@@ -1506,7 +1525,7 @@ NativeJS::NativeJS()
 
     nskia = new NativeSkia();
 
-    JS_SetContextPrivate(cx, nskia);
+    //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
 
     LoadCanvasObject(nskia);
@@ -1533,6 +1552,11 @@ void NativeJS::bufferSound(int16_t *data, int len)
 
        // JS_CallFunctionValue(cx, event, onwheel, 0, NULL, &rval);
     }    
+}
+
+void NativeJS::bindNetObject(ape_global *net)
+{
+    JS_SetContextPrivate(cx, net);
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -1583,6 +1607,120 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 void NativeJS::gc()
 {
     JS_GC(JS_GetRuntime(cx));
+}
+
+static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
+{
+    struct _native_sm_timer *params;
+    struct _ticks_callback *timer;
+    int ms, i;
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+
+    params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
+
+    if (params == NULL) {
+        return JS_FALSE;
+    }
+
+    params->cx = cx;
+    params->global = obj;
+    params->argc = argc-2;
+    params->cleared = 0;
+    params->timer = NULL;
+
+    params->argv = (argc-2 ? (jsval *)JS_malloc(cx, sizeof(*params->argv) * argc-2) : NULL);
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+        return JS_TRUE;
+    }
+
+    JS_AddValueRoot(cx, &params->func);
+
+    for (i = 0; i < (int)argc-2; i++) {
+        params->argv[i] = JS_ARGV(cx, vp)[i+2];
+    }
+
+    timer = add_timeout(ms, (void *)native_timer_wrapper, params,
+        (ape_global *)JS_GetContextPrivate(cx));
+    timer->flag &= ~APE_TIMER_PROTECTED;
+    params->timer = timer;
+
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(timer->identifier));
+
+    return JS_TRUE;
+}
+
+static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
+{
+    struct _native_sm_timer *params;
+    struct _ticks_callback *timer;
+    int ms, i;
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+
+    params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
+
+    if (params == NULL) {
+        return JS_FALSE;
+    }
+
+    params->cx = cx;
+    params->global = obj;
+    params->argc = argc-2;
+    params->cleared = 0;
+    params->timer = NULL;
+
+    params->argv = (argc-2 ? (jsval *)JS_malloc(cx, sizeof(*params->argv) * argc-2) : NULL);
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+        return JS_TRUE;
+    }
+
+    JS_AddValueRoot(cx, &params->func);
+
+    for (i = 0; i < (int)argc-2; i++) {
+        params->argv[i] = JS_ARGV(cx, vp)[i+2];
+    }
+
+    timer = add_periodical(ms, 0, (void *)native_timer_wrapper, params, 0,
+        (ape_global *)JS_GetContextPrivate(cx));
+    timer->flag &= ~APE_TIMER_PROTECTED;
+    params->timer = timer;
+
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(timer->identifier));
+
+    return JS_TRUE; 
+}
+
+static void native_timer_wrapper(struct _native_sm_timer *params, int *last)
+{
+    jsval rval;
+
+    if (!params->cleared) {
+        JS_CallFunctionValue(params->cx, params->global, params->func,
+            params->argc, params->argv, &rval);
+    }
+
+    if (params->cleared && !*last) { /* JS_CallFunctionValue can set params->Cleared to true */
+        *last = 1;
+    }
+
+    if (*last) {
+        JS_RemoveValueRoot(params->cx, &params->func);
+
+        if (params->argv != NULL) {
+            free(params->argv);
+        }
+        free(params);
+    }
+
 }
 
 

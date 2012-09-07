@@ -17,6 +17,7 @@
 typedef struct _ape_global ape_global;
 
 #include "ape_events.h"
+#include "ape_timers_next.h"
 
 struct _ape_global {
     int basemem;
@@ -29,6 +30,8 @@ struct _ape_global {
 		struct _ticks_callback *timers;
 		unsigned int ntimers;
 	} timers;
+
+	ape_timers timersng;
 	
     int is_running;
 };

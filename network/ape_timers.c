@@ -10,20 +10,29 @@ inline void process_tick(ape_global *ape)
 	while (timers != NULL && --timers->delta <= 0) {
 		int lastcall = (timers->times > 0 && --timers->times == 0);
 		void (*func_timer)(void *param, int *) = timers->func;
-		
-		func_timer(timers->params, &lastcall);
+		int (*func_timer_resample)(void *param, int *) = timers->func;
+		int resample = 0;
 
+		if (timers->flag & APE_TIMER_RESAMPLE) {
+			resample = func_timer_resample(timers->params, &lastcall);
+			if (resample == 0) {
+				resample = timers->ticks_need;
+			}
+		} else {
+			resample = timers->ticks_need;
+			func_timer(timers->params, &lastcall);
+		}
 		ape->timers.timers = timers->next;
 
 		if (!lastcall) {
-			struct _ticks_callback *new_timer = add_timeout(timers->ticks_need, 
+			struct _ticks_callback *new_timer = add_timeout(resample, 
 													timers->func, 
 													timers->params, ape);
 			
 			ape->timers.ntimers--;
 			new_timer->identifier = timers->identifier;
 			new_timer->times = timers->times;
-			new_timer->protect = timers->protect;
+			new_timer->flag = timers->flag;
 		}
 
 		free(timers);
@@ -47,7 +56,7 @@ struct _ticks_callback *add_timeout(unsigned int msec,
 	new_timer->delta = msec;
 	new_timer->times = 1;
 	new_timer->identifier = ape->timers.ntimers;
-	new_timer->protect = 1;
+	new_timer->flag = APE_TIMER_PROTECTED;
 	new_timer->func = callback;
 	new_timer->params = params;
 	new_timer->next = NULL;
@@ -76,12 +85,15 @@ struct _ticks_callback *add_timeout(unsigned int msec,
 }
 
 /* Exec callback "times"x each "sec" */
-/* If "times" is 0, the function is executed indefinitifvly */
+/* If "times" is 0, the function is executed infinitely */
 
 struct _ticks_callback *add_periodical(unsigned int msec,
-	int times, void *callback, void *params, ape_global *ape)
+	int times, void *callback, void *params, int resamp, ape_global *ape)
 {
 	struct _ticks_callback *new_timer = add_timeout(msec, callback, params, ape);
+
+	if (resamp)
+		new_timer->flag |= APE_TIMER_RESAMPLE;
 
 	new_timer->times = times;
 	
