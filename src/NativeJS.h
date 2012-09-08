@@ -28,6 +28,7 @@ class NativeJS
         void mouseWheel(int xrel, int yrel, int x, int y);
         void mouseMove(int x, int y, int xrel, int yrel);
         void mouseClick(int x, int y, int state, int button);
+        void textInput(const char *data);
         void gc();
         void bindNetObject(ape_global *net);
         uint32_t currentFPS;

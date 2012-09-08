@@ -125,6 +125,13 @@ static JSClass mouseEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass textEvent_class = {
+    "TextInputEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 jsval gfunc  = JSVAL_VOID;
 
 /******** Natives ********/
@@ -1572,6 +1579,42 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     JS_RemoveObjectRoot(cx, &event);    
 }
 
+void NativeJS::keyupdown(int keycode, int mod)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+
+    
+}
+
+void NativeJS::textInput(const char *data)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+
+    JSObject *event;
+    jsval jevent, ontextinput, canvas, rval;
+
+    event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
+    JS_AddObjectRoot(cx, &event);
+
+    EVENT_PROP("val",
+        STRING_TO_JSVAL(JS_NewStringCopyN(cx, data, strlen(data))));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "ontextinput", &ontextinput) &&
+        !JSVAL_IS_PRIMITIVE(ontextinput) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ontextinput))) {
+
+        JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
+    }    
+
+    JS_RemoveObjectRoot(cx, &event);
+}
+
 void NativeJS::mouseClick(int x, int y, int state, int button)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
@@ -1694,10 +1737,13 @@ NativeJS::NativeJS()
     JSRuntime *rt;
     JSObject *gbl;
 
+    static int isUTF8 = 0;
     gfunc = JSVAL_VOID;
     /* TODO: BUG */
-    //JS_SetCStringsAreUTF8();
-
+    if (!isUTF8) {
+        JS_SetCStringsAreUTF8();
+        isUTF8 = 1;
+    }
     //printf("New JS runtime\n");
 
     currentFPS = 0;
