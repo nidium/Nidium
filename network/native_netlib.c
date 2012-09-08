@@ -1,5 +1,6 @@
 #include "native_netlib.h"
 #include "common.h"
+#include "ape_dns.h"
 
 #include <stdlib.h>
 #include <signal.h>
@@ -33,6 +34,7 @@ ape_global *native_netlib_init()
     ape->timersng.head = NULL;
     ape->timersng.last_identifier = 0;
 	
+    ape_dns_init(ape);
     events_init(ape);
 	
     return ape;

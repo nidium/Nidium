@@ -13,7 +13,7 @@ int process_timers(ape_timers *timers)
 		uint64_t start;
 		if ((start = mach_absolute_time()) >= cur->schedule-150000) {
 			uint64_t ret;
-			int duration;
+			unsigned int duration;
 			
 			ret = cur->callback(cur->arg);
 
@@ -103,7 +103,7 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 
 	timers->last_identifier++;
 	timer->callback = cb;
-	timer->ticks_needs = ms * 1000000;
+	timer->ticks_needs = (uint64_t)ms * 1000000;
 	timer->schedule = mach_absolute_time() + timer->ticks_needs;
 	timer->arg = arg;
 	timer->flags = 0;

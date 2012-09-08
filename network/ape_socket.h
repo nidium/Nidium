@@ -121,7 +121,7 @@ struct _ape_socket {
 	
     ape_pool_list_t jobs;
 
-    void *ctx[2];  /* public pointer */
+    void *ctx[3];  /* public pointer */
     void *_ctx; /* internal public pointer */
     ape_global *ape;
 

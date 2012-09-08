@@ -3,6 +3,8 @@
 
 #define USE_KQUEUE_HANDLER
 
+#include "../c-ares/ares.h"
+
 #define APE_BASEMEM 4096
 
 #define ape_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
@@ -25,7 +27,17 @@ struct _ape_global {
 
     unsigned int seed;
     struct _fdevent events;
-    
+
+    struct {
+        ares_channel channel;
+        struct {
+            struct _ares_sockets *list;
+            size_t size;
+            size_t used;
+        } sockets;
+
+    } dns;
+
 	struct {
 		struct _ticks_callback *timers;
 		unsigned int ntimers;

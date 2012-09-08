@@ -20,7 +20,7 @@
 /* sock.c */
 
 #include "ape_socket.h"
-//#include "ape_dns.h"
+#include "ape_dns.h"
 #include "ape_timers_next.h"
 //#include "ape_ssl.h"
 
@@ -117,6 +117,8 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     ret->states.proto   = pt;
     ret->ctx[0]            = NULL;
     ret->ctx[1]            = NULL;
+    ret->ctx[2]            = NULL;
+
 #ifdef _HAVE_SSL_SUPPORT
     ret->SSL.issecure   = (pt == APE_SOCKET_PT_SSL);
     ret->SSL.ssl        = NULL;
@@ -201,13 +203,11 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     addr.sin_addr.s_addr = inet_addr(remote_ip);
     memset(&(addr.sin_zero), '\0', 8);
 
-    printf("connecting...\n");
     if (connect(socket->s.fd, (struct sockaddr *)&addr,
                 sizeof(struct sockaddr)) == 0 ||
             errno != EINPROGRESS) {
 
         APE_socket_destroy(socket);
-        printf("not ready to connect\n");
         return -1;
     }
 
