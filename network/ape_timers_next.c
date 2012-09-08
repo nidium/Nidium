@@ -12,19 +12,20 @@ int process_timers(ape_timers *timers)
 	while(cur != NULL) {
 		uint64_t start;
 		if ((start = mach_absolute_time()) >= cur->schedule-150000) {
-			int ret;
+			uint64_t ret;
 			int duration;
-			cur->nexec++;
+			
 			ret = cur->callback(cur->arg);
 
 			if (ret == -1) {
-				cur->ticks_needs = ret * 1000000;
+				//cur->ticks_needs = ret * 1000000;
 				cur->schedule = start + cur->ticks_needs;
 			} else if (ret == 0) {
 				cur = del_timer(timers, cur);
 				continue;
 			} else {
-				cur->schedule = start + ret*1000000;
+				cur->ticks_needs = ret * 1000000;
+				cur->schedule = start + cur->ticks_needs;
 			}
 			duration = mach_absolute_time() - start;
 
@@ -34,7 +35,7 @@ int process_timers(ape_timers *timers)
 			if (cur->stats.min == 0 || duration / 1000000 < cur->stats.min) {
 				cur->stats.min = duration / 1000000;
 			}
-			
+			cur->stats.nexec++;
 			cur->stats.totaltime += duration / 1000000;
 
 		}
@@ -82,7 +83,8 @@ void timer_stats_print(ape_timer *timer)
 		timer->stats.totaltime,
 		timer->stats.max,
 		timer->stats.min,
-		timer->stats.totaltime/timer->stats.nexec);
+		(timer->stats.nexec == 0 ? timer->stats.totaltime :
+			timer->stats.totaltime/timer->stats.nexec));
 }
 
 void timers_stats_print(ape_timers *timers)

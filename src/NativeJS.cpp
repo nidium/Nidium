@@ -1710,7 +1710,7 @@ static int native_timerng_wrapper(void *arg)
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);
 
-    timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
+    //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
     return params->ms;
 }
 

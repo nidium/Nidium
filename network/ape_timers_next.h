@@ -10,7 +10,7 @@ typedef struct _ape_timer
 	int identifier;
 	int flags;
 	int ticks_left;
-	int ticks_needs;
+	uint64_t ticks_needs;
 	uint64_t schedule;
 	int nexec;
 	timer_callback callback;

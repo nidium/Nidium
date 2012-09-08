@@ -41,12 +41,12 @@ int test_timer(void *arg)
 {
     ape_global *ape = (ape_global *)arg;
     tend = mach_absolute_time();
-    usleep(1000000);
+    //usleep(500000);
     printf("Exec timer %lld\n", (tend-tstart)/1000000);
     tstart = tend;
-    //if (++x%50 == 0) timers_stats_print(&ape->timersng);
+    if (++x%10 == 0) timers_stats_print(&ape->timersng);
 
-    return 100;
+    return 5000;
 }
 
 int test_timer2(void *arg)
