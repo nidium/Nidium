@@ -1,0 +1,206 @@
+/* -------------------------- */
+/* Native (@) 2012 Stight.com */
+/* -------------------------- */
+
+UIElement.extend("UIDropDownController", {
+	init : function(){
+		var self = this;
+
+		this.w = 140;
+		this.h = 24;
+		this.background = this.options.background || "#191a18";
+		this.color = this.options.color || "#ffffff";
+		this.selectedBackground = this.options.selectedBackground || "#4D90FE";
+		this.selectedColor = this.options.selectedColor || "#FFFFFF";
+		this.name = this.options.name || "Default";
+		this.selection = 0;
+		this.tabs = [];
+
+		this.resetTabs = function(){
+			let	l = self.tabs.length;
+			for (let i=0; i<l; i++){
+				self.tabs[i].selected = false;
+			}
+
+			if (self.tabs[self.selection]) {
+				self.tabs[self.selection].selected = true;
+			}
+		};
+
+		this.selectTab = function(tabnum){
+			self.selection = Math.max(Math.min(tabnum, self.tabs.length-1), 0);
+			self.resetTabs(self.selection);
+			self.closeSelector();
+		};
+
+		this.selectNextTab = function(){
+		};
+
+		this.selectPreviousTab = function(){
+		};
+
+		this.removeTab = function(position){
+		};
+
+		this.insertTab = function(position, options){
+		};
+
+		this._addTab = function(i, options, y){
+			let label = options.label ? options.label : "New options",
+				selected = options.selected ? options.selected : false,
+				background = options.background ? options.background : "#262722",
+				color = options.color ? options.color : "#abacaa";
+
+			if (selected) {
+				self.selection = i;
+			}
+
+			this.tabs[i] = this.tabsContainer.createElement("UIDropDownOption", {
+				x : 0,
+				y : y,
+				name : "option_" + this.name,
+				label : label,
+				selected : selected,
+				background : background,
+				color : color
+			});
+
+			this.tabs[i].tabnum = i;
+			//this.tabs[i].zIndex = this.zIndex-1;
+		};
+
+		var y = 0,
+			tabs = this.options.elements ? this.options.elements : [],
+			l = tabs.length;
+
+		this.tabsContainer = this.createElement("UIView", {
+			x : 2,
+			y : this.h+2,
+			w : this.w-4,
+			h : 0.001,
+			radius : 0,
+			background : '#262722',
+			shadowBlur : 10
+		});
+
+		this.tabsContainer.zIndex += 1000;
+
+		for (let i=0; i<l; i++){
+			self._addTab(i, tabs[i], y);
+			y += this.tabs[i].h;
+			this.tabs[i].visible = false;
+		}
+
+		this.downButton = this.createElement("UIButtonDown", {
+			x : this.w-18,
+			y : 4,
+			w : 16,
+			h : 16,
+			background : "rgba(0, 0, 0, 0.75)",
+			color : "#888888"
+		});
+
+		this.showTabs = function(){
+			let l = tabs.length;
+			for (let i=0; i<l; i++){
+				self.tabs[i].visible = true;
+				self.tabs[i].draw();
+			}
+		};
+
+		this.hideTabs = function(){
+			let l = tabs.length;
+			for (let i=0; i<l; i++){
+				self.tabs[i].visible = false;
+			}
+		};
+
+		this.openSelector = function(){
+			var from = self.tabsContainer.h,
+				delta = l*self.h;
+
+			this.toggleState = true;
+			
+			self.showTabs();
+
+			self.tabsContainer.animate("h", from, delta, 180, function(){
+				self.showTabs();
+			}, FXAnimation.easeOutCubic);
+
+		};
+
+		this.closeSelector = function(){
+			var from = self.tabsContainer.h,
+				delta = 0;
+
+			this.toggleState = false;
+			
+			self.tabsContainer.animate("h", from, delta, 150, function(){
+				self.hideTabs();
+			}, FXAnimation.easeOutQuint);
+
+		};
+
+		this.addEventListener("mousedown", function(e){
+			if (this.toggleState) {
+				self.closeSelector();
+			} else {
+				self.openSelector();
+			}
+
+
+		}, false);
+
+		this.resetTabs();
+
+	},
+
+	draw : function(){
+		var params = {
+				x : this._x,
+				y : this._y,
+				w : this.w,
+				h : this.h
+			},
+	
+			radius = Math.max(4, this.radius),
+			textHeight = 10,
+			textOffsetX = 8,
+			textOffsetY = (this.h-textHeight)/2 + 9,
+			textColor = this.color,
+			textShadow = '#000000',
+
+			label = this.tabs[this.selection].label;
+
+
+
+		this.shadow = true;
+		if (this.shadow) {
+			if (this.selected){
+				canvas.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
+			} else {
+				canvas.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
+			}
+		}
+		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view
+		if (this.shadow){
+			canvas.setShadow(0, 0, 0);
+		}
+
+		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
+		gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
+		gdBackground.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+		gdBackground.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+
+		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
+
+		canvas.fontSize = 11;
+		canvas.fillStyle = textShadow;
+		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+
+		canvas.fillStyle = textColor;
+		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+
+
+	}
+});
