@@ -15,7 +15,7 @@ void events_loop(ape_global *ape)
     int nfd, fd, bitev;
     
     void *attach;
-    uint64_t start_monotonic = mach_absolute_time(), end_monotonic;
+    //uint64_t start_monotonic = mach_absolute_time(), end_monotonic;
 
     printf("Start socket loop\n");
 
@@ -99,11 +99,7 @@ void events_loop(ape_global *ape)
             }
         }
 
-        end_monotonic = mach_absolute_time();
-        //printf("Call it with : %d\n", (int)(end_monotonic - start_monotonic) / 100000);
-        process_timers(&ape->timersng,
-            (int)(end_monotonic - start_monotonic) / 100);
-        start_monotonic = end_monotonic;
+        process_timers(&ape->timersng);
     }
 }
 

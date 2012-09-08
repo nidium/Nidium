@@ -1,6 +1,8 @@
 #ifndef __APE_TIMERS_NEXT_H
 #define __APE_TIMERS_NEXT_H
 
+#include <stdint.h>
+
 typedef int (*timer_callback)(void *arg);
 
 typedef struct _ape_timer
@@ -9,6 +11,7 @@ typedef struct _ape_timer
 	int flags;
 	int ticks_left;
 	int ticks_needs;
+	uint64_t schedule;
 	int nexec;
 	timer_callback callback;
 	void *arg;
@@ -35,7 +38,7 @@ typedef struct _ape_timers
 extern "C" {
 #endif
 
-int process_timers(ape_timers *timers, int elapsed);
+int process_timers(ape_timers *timers);
 ape_timer *del_timer(ape_timers *timers, ape_timer *timer);
 ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg);
 ape_timer *get_timer_by_id(ape_timers *timers, int identifier);

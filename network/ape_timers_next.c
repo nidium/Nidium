@@ -5,37 +5,40 @@
 #include <mach/mach_time.h>
 
 
-int process_timers(ape_timers *timers, int elapsed)
+int process_timers(ape_timers *timers)
 {
 	ape_timer *cur = timers->head;
 
 	while(cur != NULL) {
-		if ((cur->ticks_left = ape_max(cur->ticks_left - elapsed, 0)) == 0) {
+		uint64_t start;
+		if ((start = mach_absolute_time()) >= cur->schedule-150000) {
 			int ret;
-			uint64_t start = mach_absolute_time();
-			unsigned int duration;
+			int duration;
+			cur->nexec++;
 			ret = cur->callback(cur->arg);
-			duration = (int)(mach_absolute_time() - start) / 100;
-			elapsed += duration;
 
 			if (ret == -1) {
-				cur->ticks_left = cur->ticks_needs;
+				cur->ticks_needs = ret * 1000000;
+				cur->schedule = start + cur->ticks_needs;
 			} else if (ret == 0) {
 				cur = del_timer(timers, cur);
 				continue;
 			} else {
-				cur->ticks_left = cur->ticks_needs = ret*10000;
+				cur->schedule = start + ret*1000000;
 			}
-			if (cur->stats.max < duration) {
-				cur->stats.max = duration;
+			duration = mach_absolute_time() - start;
+
+			if (cur->stats.max < duration / 1000000) {
+				cur->stats.max = duration / 1000000;
 			}
-			if (cur->stats.min == 0 || duration < cur->stats.min) {
-				cur->stats.min = duration;
+			if (cur->stats.min == 0 || duration / 1000000 < cur->stats.min) {
+				cur->stats.min = duration / 1000000;
 			}
-			cur->stats.nexec++;
-			cur->stats.totaltime += duration;
+			
+			cur->stats.totaltime += duration / 1000000;
 
 		}
+
 		cur = cur->next;
 	}
 
@@ -74,7 +77,7 @@ ape_timer *del_timer(ape_timers *timers, ape_timer *timer)
 
 void timer_stats_print(ape_timer *timer)
 {
-	printf("%d\t%d\t%d\t%d\t%d\t%d\n", timer->identifier,
+	printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", timer->identifier,
 		timer->stats.nexec,
 		timer->stats.totaltime,
 		timer->stats.max,
@@ -86,7 +89,7 @@ void timers_stats_print(ape_timers *timers)
 {
 	ape_timer *cur;
 	printf("=======================\n");
-	printf("Id\ttimes\texec\tmax\tmin\tavg\n");
+	printf("Id\t\ttimes\texec\t\tmax\t\tmin\t\tavg\n");
 	for (cur = timers->head; cur != NULL; cur = cur->next) {
 		timer_stats_print(cur);
 	}
@@ -99,8 +102,8 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 
 	timers->last_identifier++;
 	timer->callback = cb;
-	timer->ticks_needs = timer->ticks_left = ms*10000;
-
+	timer->ticks_needs = ms * 1000000;
+	timer->schedule = mach_absolute_time() + timer->ticks_needs;
 	timer->arg = arg;
 	timer->flags = 0;
 	timer->prev = NULL;

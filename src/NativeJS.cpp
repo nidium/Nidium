@@ -38,9 +38,10 @@ struct _native_sm_timer
 
     unsigned argc;
     jsval *argv;
-
+    int ms;
     int cleared;
     struct _ticks_callback *timer;
+    ape_timer *timerng;
 };
 
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
@@ -50,6 +51,7 @@ struct _native_sm_timer
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
+static int native_timerng_wrapper(void *arg);
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -1612,7 +1614,7 @@ void NativeJS::gc()
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
-    struct _ticks_callback *timer;
+
     int ms, i;
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
@@ -1627,6 +1629,8 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     params->argc = argc-2;
     params->cleared = 0;
     params->timer = NULL;
+    params->timerng = NULL;
+    params->ms = 0;
 
     params->argv = (argc-2 ? (jsval *)JS_malloc(cx, sizeof(*params->argv) * argc-2) : NULL);
 
@@ -1644,12 +1648,11 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
         params->argv[i] = JS_ARGV(cx, vp)[i+2];
     }
 
-    timer = add_timeout(ms, (void *)native_timer_wrapper, params,
-        (ape_global *)JS_GetContextPrivate(cx));
-    timer->flag &= ~APE_TIMER_PROTECTED;
-    params->timer = timer;
+    params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+        ms, native_timerng_wrapper,
+        (void *)params);
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(timer->identifier));
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
     return JS_TRUE;
 }
@@ -1657,7 +1660,6 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
-    struct _ticks_callback *timer;
     int ms, i;
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
@@ -1683,20 +1685,33 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
+    params->ms = ms;
+
     JS_AddValueRoot(cx, &params->func);
 
     for (i = 0; i < (int)argc-2; i++) {
         params->argv[i] = JS_ARGV(cx, vp)[i+2];
     }
 
-    timer = add_periodical(ms, 0, (void *)native_timer_wrapper, params, 0,
-        (ape_global *)JS_GetContextPrivate(cx));
-    timer->flag &= ~APE_TIMER_PROTECTED;
-    params->timer = timer;
+    params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+        ms, native_timerng_wrapper,
+        (void *)params);
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(timer->identifier));
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
     return JS_TRUE; 
+}
+
+static int native_timerng_wrapper(void *arg)
+{
+    jsval rval;
+    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    JS_CallFunctionValue(params->cx, params->global, params->func,
+        params->argc, params->argv, &rval);
+
+    timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
+    return params->ms;
 }
 
 static void native_timer_wrapper(struct _native_sm_timer *params, int *last)

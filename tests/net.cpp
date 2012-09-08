@@ -21,29 +21,32 @@ void test_onread(ape_socket *s, ape_global *ape)
 void test_onconnect(ape_socket *s, ape_global *ape)
 {
     printf("It's connected\n");
-    APE_socket_write(s, (unsigned char *)"GET / HTTP/1.1\nHost: google.com\n\n",
-                     strlen("GET / HTTP/1.1\nHost: google.com\n\n"),
+    APE_socket_write(s, (unsigned char *)"GET / HTTP/1.0\nHost: www.google.fr\n\n",
+                     strlen("GET / HTTP/1.0\nHost: www.google.fr\n\n"),
                      APE_DATA_COPY);
 }
 
-void test_async(ape_socket *s, int *last)
+int test_async(void *arg)
 {
+    ape_socket *s = (ape_socket *)arg;
     s->callbacks.on_connected = test_onconnect;
     s->callbacks.on_read = test_onread;
     
-    APE_socket_connect(s, 80, "91.121.5.68");
+    APE_socket_connect(s, 80, "173.194.67.94");
+
+    return 0;
 }
 
 int test_timer(void *arg)
 {
     ape_global *ape = (ape_global *)arg;
     tend = mach_absolute_time();
-    sleep(1);
+    usleep(1000000);
     printf("Exec timer %lld\n", (tend-tstart)/1000000);
     tstart = tend;
-    if (++x%50 == 0) timers_stats_print(&ape->timersng);
+    //if (++x%50 == 0) timers_stats_print(&ape->timersng);
 
-    return 500;
+    return 100;
 }
 
 int test_timer2(void *arg)
@@ -53,28 +56,34 @@ int test_timer2(void *arg)
 
     printf("Exec timer 2 %lld\n", (tend2-tstart2)/1000000);
     tstart2 = tend2;
-    if (++x%50 == 0) timers_stats_print(&ape->timersng);
+    //if (++x%50 == 0) timers_stats_print(&ape->timersng);
 
     return 356;
 }
 
+int test_async_msg(void *arg)
+{
+    printf("test 2\n");
+    return 100;
+}
 
 static void *NativeRunNetworkThread(void *arg)
 {
-	#define NCONNECT 5
+	#define NCONNECT 0
     ape_global *ape = (ape_global *)arg;
     ape_socket *s[NCONNECT];
     int i;
     
     for (i = 0; i < NCONNECT; i++) {
         s[i] = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);
-        add_timeout(1, (void *)test_async, s[i], ape);
+        add_timer(&ape->timersng, 1, test_async, s[i]);
     }
     tstart = mach_absolute_time();
     tstart2 = tstart;
-    add_timer(&ape->timersng, 500, test_timer2, ape);
+    //add_timer(&ape->timersng, 277, test_timer2, ape);
     add_timer(&ape->timersng, 500, test_timer, ape);
-    
+    //timer_dispatch_async(test_timer, NULL);
+    printf("Test 1\n");
     events_loop(ape);
     
     return NULL;
