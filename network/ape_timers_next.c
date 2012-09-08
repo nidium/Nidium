@@ -18,7 +18,6 @@ int process_timers(ape_timers *timers)
 			ret = cur->callback(cur->arg);
 
 			if (ret == -1) {
-				//cur->ticks_needs = ret * 1000000;
 				cur->schedule = start + cur->ticks_needs;
 			} else if (ret == 0) {
 				cur = del_timer(timers, cur);

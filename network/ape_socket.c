@@ -115,7 +115,8 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     ret->states.type    = APE_SOCKET_TP_UNKNOWN;
     ret->states.state   = APE_SOCKET_ST_PENDING;
     ret->states.proto   = pt;
-    ret->ctx            = NULL;
+    ret->ctx[0]            = NULL;
+    ret->ctx[1]            = NULL;
 #ifdef _HAVE_SSL_SUPPORT
     ret->SSL.issecure   = (pt == APE_SOCKET_PT_SSL);
     ret->SSL.ssl        = NULL;
