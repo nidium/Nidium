@@ -7,6 +7,8 @@ load('core/events.inc.js');
 
 load('core/layout/core.js');
 
+/* dummy */
+
 load('core/layout/elements/UIView.js');
 load('core/layout/elements/UIButton.js');
 load('core/layout/elements/UIButtonClose.js');
