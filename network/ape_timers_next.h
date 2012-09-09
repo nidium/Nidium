@@ -5,6 +5,10 @@
 
 typedef int (*timer_callback)(void *arg);
 
+enum {
+	APE_TIMER_IS_PROTECTED = 1 << 0
+};
+
 typedef struct _ape_timer
 {
 	int identifier;
@@ -43,6 +47,7 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg);
 ape_timer *get_timer_by_id(ape_timers *timers, int identifier);
 void timer_stats_print(ape_timer *timer);
 void timers_stats_print(ape_timers *timers);
+void del_timers_unprotected(ape_timers *timers);
 
 #ifdef __cplusplus
 }

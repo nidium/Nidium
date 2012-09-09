@@ -272,7 +272,7 @@ static JSPropertySpec Socket_props[] = {
 /*************************/
 
 static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("postMessage", native_post_message, 1, 0),
+    JS_FN("send", native_post_message, 1, 0),
     JS_FS_END
 };
 
@@ -1920,9 +1920,18 @@ NativeJS::~NativeJS()
 {
     JSRuntime *rt;
     rt = JS_GetRuntime(cx);
+
+    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+
+    /* clear all non protected timers */
+    del_timers_unprotected(&net->timersng);
+
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
+
     delete messages;
+
+
     //delete nskia; /* TODO: why is that commented out? */
 }
 
@@ -1986,7 +1995,10 @@ void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
 
-    add_timer(&net->timersng, 1, Native_handle_messages, this);
+    ape_timer *timer = add_timer(&net->timersng, 1,
+        Native_handle_messages, this);
+
+    timer->flags &= ~APE_TIMER_IS_PROTECTED;
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -2084,6 +2096,8 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
         ms, native_timerng_wrapper,
         (void *)params);
 
+    params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
+
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
     return JS_TRUE;
@@ -2128,6 +2142,8 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         ms, native_timerng_wrapper,
         (void *)params);
+
+    params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 

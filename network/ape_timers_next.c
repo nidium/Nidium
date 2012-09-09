@@ -12,7 +12,7 @@ int process_timers(ape_timers *timers)
 
 	/* TODO: paused timer */
 
-	while(cur != NULL) {
+	while (cur != NULL) {
 		uint64_t start;
 		if ((start = mach_absolute_time()) >= cur->schedule-150000) {
 			uint64_t ret;
@@ -57,6 +57,20 @@ ape_timer *get_timer_by_id(ape_timers *timers, int identifier)
 		}
 	}
 	return NULL;
+}
+
+void del_timers_unprotected(ape_timers *timers)
+{
+	ape_timer *cur = timers->head;
+
+	while (cur != NULL) {
+		if (!(cur->flags & APE_TIMER_IS_PROTECTED)) {
+			cur = del_timer(timers, cur);
+			continue;
+		}
+
+		cur = cur->next;
+	}
 }
 
 /* delete *timer* and returns *timer->next* */
@@ -109,7 +123,7 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 	timer->ticks_needs = (uint64_t)ms * 1000000;
 	timer->schedule = mach_absolute_time() + timer->ticks_needs;
 	timer->arg = arg;
-	timer->flags = 0;
+	timer->flags = APE_TIMER_IS_PROTECTED;
 	timer->prev = NULL;
 	timer->identifier = timers->last_identifier;
 	timer->next = timers->head;
