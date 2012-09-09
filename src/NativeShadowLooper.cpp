@@ -77,9 +77,8 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
                 fState = kDone;
                 return false;
             }
-            SkColor blurColor;
 #ifdef SK_BUILD_FOR_ANDROID
-            
+            SkColor blurColor;
             blurColor = fBlurColor;
             if (SkColorGetA(blurColor) == 255) {
                 blurColor = SkColorSetA(blurColor, paint->getAlpha());

@@ -6,6 +6,8 @@
 inline void process_tick(ape_global *ape)
 {
 	struct _ticks_callback *timers = ape->timers.timers;
+
+	/* TODO: paused timer */
 	
 	while (timers != NULL && --timers->delta <= 0) {
 		int lastcall = (timers->times > 0 && --timers->times == 0);

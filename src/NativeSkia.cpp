@@ -173,6 +173,9 @@ uint32_t NativeSkia::parseColor(const char *str)
         }
 
         array[3] *= 255;
+        for (int c = 0; c <= 3; c++) {
+            array[c] = SkMaxScalar(SkMinScalar(array[c], 255), 0);
+        }
 
         color = SkColorSetARGB(SkScalarRound(array[3]), SkScalarRound(array[0]),
         SkScalarRound(array[1]), SkScalarRound(array[2]));
@@ -461,6 +464,7 @@ NativeSkia::~NativeSkia()
     delete paint_system;
     delete screen;
     
+
     if (currentPath) delete currentPath;
 
     delete canvas;

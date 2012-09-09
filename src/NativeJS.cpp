@@ -2,6 +2,7 @@
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
+#include "NativeSharedMessages.h"
 #include <native_netlib.h>
 #include <stdio.h>
 #include <jsapi.h>
@@ -27,7 +28,8 @@ enum {
     CANVAS_PROP_SHADOWOFFSETY,
     CANVAS_PROP_SHADOWBLUR,
     CANVAS_PROP_SHADOWCOLOR,
-    IMAGE_PROP_SRC
+    IMAGE_PROP_SRC,
+    SOCKET_PROP_BINARY
 };
 
 struct _native_sm_timer
@@ -44,11 +46,17 @@ struct _native_sm_timer
     ape_timer *timerng;
 };
 
+enum {
+    NATIVE_SOCKET_ISBINARY = 1 << 0
+};
+
 typedef struct _native_socket
 {
     const char *host;
     unsigned short port;
     ape_socket *socket;
+    int flags;
+
 } native_socket;
 
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
@@ -132,12 +140,18 @@ static JSClass textEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass keyEvent_class = {
+    "keyEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 jsval gfunc  = JSVAL_VOID;
 
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_internal_for(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -199,6 +213,8 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, jsval *vp);
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, jsval *vp);
+static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, NULL,
@@ -240,6 +256,11 @@ static JSPropertySpec Image_props[] = {
     {0, 0, 0, 0, 0}
 };
 
+static JSPropertySpec Socket_props[] = {
+    {"isBinary", SOCKET_PROP_BINARY, 0, NULL, native_socket_prop_set},
+    {0, 0, 0, 0, 0}
+};
+
 /*************************/
 
 
@@ -248,7 +269,6 @@ static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 1, 0),
-    JS_FN("internal_for", native_internal_for, 3, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FS_END
@@ -319,12 +339,17 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 
 void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    ape_socket *socket = (ape_socket *)JS_GetPrivate(obj);
-    if (socket != NULL) {
-        socket->ctx[0] = NULL;
-        socket->ctx[1] = NULL;
-        APE_socket_destroy(socket);
+    native_socket *nsocket = (native_socket *)JS_GetPrivate(obj);
+    if (nsocket == NULL) {
+        return;
     }
+    if (nsocket->socket != NULL) {
+        nsocket->socket->ctx[0] = NULL;
+        nsocket->socket->ctx[1] = NULL;
+        nsocket->socket->ctx[2] = NULL;
+        APE_socket_destroy(nsocket->socket);
+    }
+    free(nsocket);
 }
 
 void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -480,6 +505,32 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
     }
 
+    return JS_TRUE;
+}
+
+static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, jsval *vp)
+{
+    switch(JSID_TO_INT(id)) {
+        case SOCKET_PROP_BINARY:
+        {
+            native_socket *nsocket;
+            if (JSVAL_IS_BOOLEAN(*vp) &&
+                (nsocket = (native_socket *)JS_GetPrivate(obj.get())) != NULL) {
+
+                nsocket->flags = (JSVAL_TO_BOOLEAN(*vp) == JS_TRUE ?
+                    nsocket->flags | NATIVE_SOCKET_ISBINARY :
+                    nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
+
+            } else {
+                *vp = JSVAL_FALSE;
+                return JS_TRUE;
+            }
+        }
+        break;
+        default:
+            break;
+    }
     return JS_TRUE;
 }
 
@@ -1314,14 +1365,26 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
     JSObject *this_socket = (JSObject *)s->ctx[0];
     JSContext *cx = (JSContext *)s->ctx[1];
     jsval onread, rval, jdata;
-    JSString *data;
+
+    native_socket *nsocket;
 
     if (this_socket == NULL || cx == NULL) {
         return;
     }
 
-    data = JS_NewStringCopyN(cx, (char *)s->data_in.data, s->data_in.used);
-    jdata = STRING_TO_JSVAL(data);
+    nsocket = (native_socket *)JS_GetPrivate(this_socket);
+
+    if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
+        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, s->data_in.used);
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer, cx);
+        memcpy(data, s->data_in.data, s->data_in.used);
+
+        jdata = OBJECT_TO_JSVAL(arrayBuffer);
+
+    } else {
+        jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx, (char *)s->data_in.data,
+            s->data_in.used));        
+    }
 
     if (JS_GetProperty(cx, this_socket, "onread", &onread) &&
         JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
@@ -1361,6 +1424,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *host;
     unsigned int port;
     native_socket *nsocket;
+    jsval isBinary = JSVAL_FALSE;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &socket_class, vp);
 
@@ -1375,13 +1439,19 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     nsocket->host   = JS_EncodeString(cx, host);
     nsocket->port   = port;
     nsocket->socket = NULL;
+    nsocket->flags  = 0;
+    JS_SetPrivate(ret, nsocket);
 
     /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineFunctions(cx, ret, socket_funcs);
+    JS_DefineProperties(cx, ret, Socket_props);
 
-    JS_SetPrivate(ret, nsocket);
+    JS_SetProperty(cx, ret, "isBinary", &isBinary);
+    //JS_SetPropertyById(cx, ret, SOCKET_PROP_BINARY, &isBinary);
+
+    
 
     return JS_TRUE;
 }
@@ -1493,6 +1563,7 @@ static void *native_thread(void *arg)
         strlen(str.ptr()), NULL, 0);
     if (cf == NULL) {
         printf("Cant compile function\n");
+        return NULL;
     }
     
     if (JS_CallFunction(tcx, gbl, cf, 0, NULL, &rval) == JS_FALSE) {
@@ -1508,10 +1579,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     pthread_t currentThread;
     jsval func;
-
-
-    uint64_t *data;
-    size_t nbytes;
+    //uint64_t *data;
+    //size_t nbytes;
 
     struct tpass *pass = (struct tpass *)malloc(sizeof(*pass));
 
@@ -1579,12 +1648,37 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     JS_RemoveObjectRoot(cx, &event);    
 }
 
-void NativeJS::keyupdown(int keycode, int mod)
+void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
-
     
+    JSObject *event;
+    jsval jevent, onkeyupdown, canvas, rval;
+
+    event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
+    JS_AddObjectRoot(cx, &event);
+
+    EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
+    EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_ALT));
+    EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_CTRL));
+    EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_SHIFT));
+    EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(repeat));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
+        (state ? "onkeydown" : "onkeyup"), &onkeyupdown) &&
+        !JSVAL_IS_PRIMITIVE(onkeyupdown) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onkeyupdown))) {
+
+        JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
+    }    
+
+
+    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::textInput(const char *data)
@@ -1610,7 +1704,7 @@ void NativeJS::textInput(const char *data)
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ontextinput))) {
 
         JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
-    }    
+    }
 
     JS_RemoveObjectRoot(cx, &event);
 }
@@ -1622,7 +1716,6 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
     jsval rval, jevent;
     JSObject *event;
-    char evname[16];
 
     jsval canvas, onclick;
 
@@ -1639,9 +1732,8 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
 
-    strcpy(evname, state ? "onmousedown" : "onmouseup");
-
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), evname, &onclick) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
+        (state ? "onmousedown" : "onmouseup"), &onclick) &&
         !JSVAL_IS_PRIMITIVE(onclick) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclick))) {
 
@@ -1683,36 +1775,6 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 
 
     JS_RemoveObjectRoot(cx, &event);
-}
-
-static JSBool native_internal_for(JSContext *cx, unsigned argc, jsval *vp)
-{
-    int start, end;
-
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
-        &start, &end)) {
-        return JS_TRUE;
-    }
-
-    jsval f = JS_ARGV(cx, vp)[2];
-    jsval cur[2];
-    JSObject *gbl = JS_GetGlobalObject(cx);
-    jsval rval;
-
-    for (int y = 0; y < end; y++) {
-        for (int x = 0; x < start; x++) {
-            cur[0] = INT_TO_JSVAL(x);
-            cur[1] = INT_TO_JSVAL(y);
-
-
-            //JS_CallFunctionValue(cx, gbl, f, 2, cur, &rval);
-        }
-    }
-
-    JS_SET_RVAL(cx, vp, JSVAL_NULL);
-    //jsval ret = floor(val + 0.5);
-
-    return JS_TRUE;
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
@@ -1799,12 +1861,12 @@ NativeJS::~NativeJS()
     rt = JS_GetRuntime(cx);
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
-    delete nskia;
+    //delete nskia;
 }
 
 void NativeJS::bufferSound(int16_t *data, int len)
 {
-    jsval rval, jevent, canvas, onwheel;
+    jsval canvas, onwheel;
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
         !JSVAL_IS_PRIMITIVE(onwheel) && 
