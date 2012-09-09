@@ -53,7 +53,7 @@ var UIView = function(type, options, parent){
 	//this._zIndex = this.zIndex;
 
 	if (this.parent) {
-		this._rIndex = 1000;
+		this._rIndex = layout.getHigherZindex() + 1;
 	} else {
 		this._rIndex = 0;
 	}
@@ -139,7 +139,7 @@ UIView.prototype = {
 		view._uid = this._uid + "_clone";
 		view.id = view._uid;
 
-		view.zIndex = layout.getHigherZindex() + 1;
+		view._rIndex = layout.getHigherZindex() + 1;
 		view.opacity = 0.8;
 		view.nodes = {}; // kill children nodes
 
@@ -671,8 +671,6 @@ var UIElement = {
 		let self = this,
 			UIElement = UIView.type;
 
-		echo(UIView._uid, UIView.id);
-
 		if (this[UIElement]){
 
 			this[UIElement].init.call(UIView);
@@ -691,6 +689,7 @@ var UIElement = {
 
 var Application = function(options){
 	var view = new UIView("UIView", options, null);
+	view._root = true;
 	UIElement.init(view);
 
 	layout.register(view);

@@ -12,6 +12,11 @@ UIElement.extend("UIWindow", {
 		this.shadowBlur = this.options.shadowBlur || 12;
 		this.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 
+		this.addEventListener("mousedown", function(e){
+			this.bringToTop();
+			e.stopPropagation();
+		}, false);
+
 		this.handle = this.createElement("UIView", {
 			x : 0,
 			y : 0,

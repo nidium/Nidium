@@ -117,6 +117,7 @@ canvas.onmouseup = function(e){
 	if (canvas.global.__startDragLaunched && canvas.global.__dragSourceElement){
 		if (canvas.global.__dragGhost){
 			canvas.global.__dragGhost.remove();
+			delete(canvas.global.__dragGhost);
 		}
 
 		UIEvents.dispatch("drop", e);

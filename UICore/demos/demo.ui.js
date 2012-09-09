@@ -103,16 +103,18 @@ var line = overlayView.createElement("UILine", {x1:20, y1:110, x2:100, y2:180, s
 var brique = document.createElement("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
 
 
-var	win1 = document.createElement("UIWindow", {
-		x : 150,
-		y : 150,
-		w : 400,
-		h : 300,
+for (var i=0; i<20; i++){
+	document.createElement("UIWindow", {
+		x : 20+i*20,
+		y : 40+i*15,
+		w : 300,
+		h : 200,
 		background : "#191a18",
 		resizable : true,
 		closeable : true,
 		movable : true
 	});
+}
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
@@ -163,30 +165,20 @@ docButton5.addEventListener("mousedown", function(e){
 docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
 
-	var tab = "";
-		ch = "";
-	var dx = function(nodes, parent){
-		ch += " ";
-		for (var child in nodes){
 
-			echo(
-				ch + nodes[child]._zIndex, 
-				ch + nodes[child]._rIndex, 
-				ch + nodes[child].zIndex, 
-				ch + "("+nodes[child].label+")",
-				ch + nodes[child].type,
-				ch + nodes[child].id
-			);
 
-			if (count(nodes[child].nodes)>0) {
-				dx(nodes[child].nodes, nodes[child].parent);
-				ch = "";
-			}
-		}
-		echo("");
-	};
+	for (var child in layout.elements){
+		let nodes = layout.elements;
+		echo(
+			nodes[child]._zIndex, 
+			nodes[child]._rIndex, 
+			nodes[child].zIndex, 
+			"("+nodes[child].label+")",
+			nodes[child].type,
+			nodes[child].id
+		);
+	}
 
-	dx(layout.nodes, null);
 
 });
 
@@ -215,16 +207,15 @@ setTimeout(function() {
 
 //redViewButton4.scale = 2;
 
-greenView.addEventListener("dragstart", function(e){
+greenView.addEventListener("mousedown", function(e){
 	//console.log("start");
+	this.bringToTop();
 });
 
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
 });
-
-
 
 
 /*

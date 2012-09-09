@@ -46,9 +46,9 @@ var layout = {
 	},
 
 	remove : function(element){
-		echo(this.nodes, element._uid, this.nodes[element._uid] );
 		delete(this.nodes[element._uid]);
-		this.refresh();
+		delete(element);
+		this.draw();
 	},
 
 	clear : function(){
