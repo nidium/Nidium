@@ -7,6 +7,8 @@
 
 /* JSAPI binding (singleton) */
 
+class NativeSharedMessages;
+
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
     NATIVE_KEY_ALT = 1 << 1,
@@ -19,12 +21,12 @@ class NativeJS
 {
     private:   
         void LoadCanvasObject(NativeSkia *);
-
         //void operator=(NativeJS const&);
-
-        JSContext *cx;
+        
         jsval func;
     public:
+        JSContext *cx;
+        NativeSharedMessages *messages;
         NativeSkia *nskia;
         NativeJS();
         ~NativeJS();

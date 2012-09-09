@@ -8,12 +8,23 @@ NativeSharedMessages::NativeSharedMessages()
 {
 	messageslist.count = 0;
 	messageslist.head  = NULL;
+	messageslist.queue = NULL;
+	
 	pthread_mutex_init(&messageslist.lock, NULL);
+}
+
+NativeSharedMessages::~NativeSharedMessages()
+{
+	while (readMessage() != NULL);
 }
 
 void NativeSharedMessages::postMessage(void *ptr)
 {
 	native_shared_message *message;
+
+	if (ptr == NULL) {
+		return;
+	}
 
 	message = new native_shared_message;
 
@@ -37,6 +48,7 @@ void NativeSharedMessages::postMessage(void *ptr)
 void *NativeSharedMessages::readMessage()
 {
 	NSMAutoLock lock(&messageslist.lock);
+	void *ret;
 
 	native_shared_message *message = messageslist.queue;
 
@@ -50,5 +62,10 @@ void *NativeSharedMessages::readMessage()
 		messageslist.head = NULL;
 	}
 	messageslist.count--;
-	return message->ptr;
+
+	ret = message->ptr;
+
+	delete message;
+
+	return ret;
 }

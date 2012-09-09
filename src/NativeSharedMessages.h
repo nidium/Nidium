@@ -23,6 +23,7 @@ class NativeSharedMessages
 	} messageslist;
   public:
   	NativeSharedMessages();
+  	~NativeSharedMessages();
   	void postMessage(void *ptr);
   	void *readMessage();
 };

@@ -4,10 +4,13 @@
 #include <stdio.h>
 #include <mach/mach_time.h>
 
+/* TOOD: clear unprotected timers */
 
 int process_timers(ape_timers *timers)
 {
 	ape_timer *cur = timers->head;
+
+	/* TODO: paused timer */
 
 	while(cur != NULL) {
 		uint64_t start;

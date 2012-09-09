@@ -133,6 +133,13 @@ static JSClass mouseEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass messageEvent_class = {
+    "MessageEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSClass textEvent_class = {
     "TextInputEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -178,6 +185,7 @@ static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_createImageData(JSContext *cx,
@@ -263,7 +271,10 @@ static JSPropertySpec Socket_props[] = {
 
 /*************************/
 
-
+static JSFunctionSpec glob_funcs_threaded[] = {
+    JS_FN("postMessage", native_post_message, 1, 0),
+    JS_FS_END
+};
 
 static JSFunctionSpec glob_funcs[] = {
     
@@ -1499,7 +1510,19 @@ struct tpass
     jsval fn;
     JSFunction *nfn;
     JSString *str;
+    NativeJS *njs;
 };
+
+static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJS *njs = (NativeJS *)JS_GetContextPrivate(cx);
+
+    char *foo = strdup("hello world");
+
+    njs->messages->postMessage(foo);
+
+    return JS_TRUE;
+}
 
 static void *native_thread(void *arg)
 {
@@ -1535,9 +1558,12 @@ static void *native_thread(void *arg)
 
     JS_SetGlobalObject(tcx, gbl);
 
-    JS_DefineFunctions(tcx, gbl, glob_funcs);
+    JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
 
     JSAutoByteString str(tcx, pass->str);
+
+    /* Hold the parent cx */
+    JS_SetContextPrivate(tcx, pass->njs);
 
 #if 0
     JSObject *ff = (JSObject *)pass->nfn;
@@ -1570,6 +1596,7 @@ static void *native_thread(void *arg)
         printf("Got an error?\n");
     }
 
+    free(pass);
     return NULL;
 }
 
@@ -1592,6 +1619,7 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     pass->cx = cx;
     pass->fn = func;
     pass->str = src;
+    pass->njs = NJS;
 
     pthread_create(&currentThread, NULL,
                             native_thread, pass);
@@ -1852,6 +1880,8 @@ NativeJS::NativeJS()
 
     LoadCanvasObject(nskia);
 
+    messages = new NativeSharedMessages();
+
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 
@@ -1861,7 +1891,8 @@ NativeJS::~NativeJS()
     rt = JS_GetRuntime(cx);
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
-    //delete nskia;
+    delete messages;
+    //delete nskia; /* TODO: why is that commented out? */
 }
 
 void NativeJS::bufferSound(int16_t *data, int len)
@@ -1873,12 +1904,50 @@ void NativeJS::bufferSound(int16_t *data, int len)
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
 
        // JS_CallFunctionValue(cx, event, onwheel, 0, NULL, &rval);
-    }    
+    }
+}
+
+static int Native_handle_messages(void *arg)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+
+    NativeJS *njs = (NativeJS *)arg;
+    JSContext *cx = njs->cx;
+    void *ptr;
+    jsval canvas, onmessage, jevent, rval;
+
+    JSObject *event;
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmessage", &onmessage) &&
+        !JSVAL_IS_PRIMITIVE(onmessage) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+
+        while ((ptr = njs->messages->readMessage()) != NULL) {
+            event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+            JS_AddObjectRoot(cx, &event);
+
+            EVENT_PROP("message", INT_TO_JSVAL(1));
+
+            jevent = OBJECT_TO_JSVAL(event);
+            JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
+            JS_RemoveObjectRoot(cx, &event);
+        }        
+    } else {
+        /* No callback : consume messages (lost) */
+        while (njs->messages->readMessage());
+    }
+
+    return 1;
 }
 
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
+
+    add_timer(&net->timersng, 1, Native_handle_messages, this);
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -1972,7 +2041,6 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
         params->argv[i] = JS_ARGV(cx, vp)[i+2];
     }
 
-    printf("Adding timeout for %d ms\n", ms);
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         ms, native_timerng_wrapper,
         (void *)params);
