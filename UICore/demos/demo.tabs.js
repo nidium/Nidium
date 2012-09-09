@@ -38,7 +38,6 @@ addButton.addEventListener("mouseclick", function(){
 		background : "#202a15",
 		color : "#ffffff"
 	});
-
 });
 
 
