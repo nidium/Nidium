@@ -7,8 +7,6 @@ load('core/events.inc.js');
 
 load('core/layout/core.js');
 
-/* dummy */
-
 load('core/layout/elements/UIView.js');
 load('core/layout/elements/UIButton.js');
 load('core/layout/elements/UIButtonClose.js');
@@ -25,6 +23,7 @@ load('core/layout/elements/UIDropDownOption.js');
 load('core/layout/elements/UIDropDownController.js');
 
 load('core/layout/elements/UIWindow.js');
+load('core/layout/elements/UIWindowResizer.js');
 
 
 load('core/plugins/blur.inc.js');
@@ -43,15 +42,12 @@ var layout = {
 	higherzIndex : 0,
 
 	register : function(element){
-		this.nodes['_obj_' + this.objID++] = element;
-	},
-
-	registerClone : function(element){
-		this.nodes[element.id] = element;
+		this.nodes[element._uid] = element;
 	},
 
 	remove : function(element){
-		delete(this.nodes[element.id]);
+		echo(this.nodes, element._uid, this.nodes[element._uid] );
+		delete(this.nodes[element._uid]);
 		this.refresh();
 	},
 
@@ -65,7 +61,7 @@ var layout = {
 
 		let z = this.getElements();
 
-		if (canvas.__mustBeDrawn) {
+		if (canvas.__mustBeDrawn || true) {
 			for (let i in z){
 				if (z[i].visible){
 					z[i].beforeDraw();
@@ -105,10 +101,10 @@ var layout = {
 		dx(this.nodes, null);
 
 		this.elements = elements.sort(function(a, b){
-			return a.zIndex - b.zIndex;
+			return a._zIndex - b._zIndex;
 		});
 
-		this.higherzIndex = elements[elements.length-1] ? elements[elements.length-1].zIndex : 0;
+		this.higherzIndex = elements[elements.length-1] ? elements[elements.length-1]._zIndex : 0;
 		return elements;
 	},
 
@@ -131,7 +127,7 @@ var layout = {
 
 		elements.each = function(cb){
 			for (var i in elements) {
-				if (elements.hasOwnProperty(i) && elements[i].id){
+				if (elements.hasOwnProperty(i) && elements[i]._uid){
 					cb.call(elements[i]);
 				}
 			}
@@ -145,7 +141,7 @@ var layout = {
 
 		let dx = function(nodes, parent){
 			for (var child in nodes){
-				zindexes.push(nodes[child].zIndex);
+				zindexes.push(nodes[child]._zIndex);
 				if (count(nodes[child].nodes)>0) {
 					dx(nodes[child].nodes, nodes[child].parent);
 				}
@@ -156,7 +152,7 @@ var layout = {
 	},
 
 	refresh : function(){
-		//this.draw();
+		/* dummy */
 	}
 
 };

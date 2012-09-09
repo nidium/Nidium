@@ -25,8 +25,7 @@ UIElement.extend("UITabController", {
 			for (let i=0; i<l; i++){
 				let t = self.taborder[i];
 				self.tabs[t].position = i;
-				self.tabs[t].zIndex = self.zIndex + l-i;
-				self.tabs[t].closeButton && (self.tabs[t].closeButton.zIndex = self.zIndex + (l-i)+1);
+				self.tabs[t].zIndex = l-i-1;
 				self.tabs[t].selected = false;
 				if (animate) {
 					var _callback = (i==1 ? callback : null);
@@ -38,8 +37,7 @@ UIElement.extend("UITabController", {
 			}
 			if (self.tabs[self.selection]) {
 				self.tabs[self.selection].selected = true;
-				self.tabs[self.selection].zIndex = self.zIndex + l + 2;
-				self.tabs[self.selection].closeButton && (self.tabs[self.selection].closeButton.zIndex = self.zIndex + l + 3);
+				self.tabs[self.selection].zIndex = 2*l;
 			}
 		};
 
@@ -217,20 +215,21 @@ UIElement.extend("UITabController", {
 
 			this.tabs[i].tabnum = i;
 			this.tabs[i].position = position;
-			this.tabs[i].zIndex += l-i;
-			this.tabs[i].closeButton && (this.tabs[i].closeButton.zIndex += (l-i)+1);
+			this.tabs[i].zIndex = l-i-1;
 		};
 
 		var x = 0,
 			tabs = this.options.tabs ? this.options.tabs : [],
 			l = 0;
 
+			/*
 			tabs.push({
 				label : "+",
 				closable : false,
 				preventmove : true,
 				type : "normal"
 			});
+			*/
 
 			l = tabs.length;
 

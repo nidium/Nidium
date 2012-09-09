@@ -159,6 +159,25 @@ canvas.onmouseup = function(e){
 
 };
 
+/*
+	EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
+	EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_ALT));
+	EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_CTRL));
+	EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_SHIFT));
+	EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(repeat));
+*/
+
+canvas.onkeydown = function(e){
+};
+canvas.onkeyup = function(e){
+};
+
+canvas.ontextinput = function(e){
+	// e.val;
+};
+
+
+
 var UIEvents = {
 	stopDrag : function(){
 		canvas.global.__mouseDown = false;

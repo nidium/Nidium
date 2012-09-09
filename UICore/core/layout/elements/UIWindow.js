@@ -9,26 +9,44 @@ UIElement.extend("UIWindow", {
 		this.background = this.options.background || "#191a18";
 		this.color = this.options.color || "#ffffff";
 		this.name = this.options.name || "Default";
+		this.shadowBlur = this.options.shadowBlur || 12;
+		this.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 
-		this.handleBar = this.createElement("UIView", {
+		this.handle = this.createElement("UIView", {
 			x : 0,
 			y : 0,
 			w : self.w,
 			h : 24,
 			radius : 4,
-			background : "rgba(0, 0, 0, 0.75)",
+			background : "rgba(0, 0, 0, 0.05)",
 			color : "#888888"
 		});
 
-		this.handleBar.addEventListener("drag", function(e){
-			let c = this,
-				p = this.parent.parent;
 
-			c.left += e.xrel;
-		});
+		this.handle.addEventListener("dragstart", function(){
+			self.bounceScale(1.1, 80, function(){
 
+			});
+			self.shadowBlur = 30;
+			self.shadowColor = "rgba(0, 0, 0, 0.95)";
+		}, false);
 
-		this.handleBar.closeButton = this.createElement("UIButtonClose", {
+		this.handle.addEventListener("dragend", function(){
+			self.bounceScale(1, 50, function(){
+				
+			});
+			self.shadowBlur = this.options.shadowBlur || 12;
+			self.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+		}, false);
+
+		if (this.options.movable) {
+			this.handle.addEventListener("drag", function(e){
+				this.parent.left += e.xrel;
+				this.parent.top += e.yrel;
+			});
+		}
+
+		this.handle.closeButton = this.createElement("UIButtonClose", {
 			x : this.w-18,
 			y : 4,
 			w : 16,
@@ -37,7 +55,15 @@ UIElement.extend("UIWindow", {
 			color : "#888888"
 		});
 
-		this.content = this.createElement("UIView", {
+		this.handle.closeButton.addEventListener("mousedown", function(){
+			self.bounceScale(0, 120, function(){
+			});
+			self.shadowBlur = 6;
+			self.shadowColor = "rgba(0, 0, 0, 0.20)";
+		}, false);
+
+
+		this.contentView = this.createElement("UIView", {
 			x : 3,
 			y : 24,
 			w : self.w-6,
@@ -46,6 +72,8 @@ UIElement.extend("UIWindow", {
 			background : "#ffffff",
 			color : "#333333"
 		});
+
+		this.resizer = this.createElement("UIWindowResizer");
 
 	},
 
@@ -70,7 +98,7 @@ UIElement.extend("UIWindow", {
 
 		this.shadow = true;
 		if (this.shadow) {
-			canvas.setShadow(2, 2, 12, "rgba(0, 0, 0, 0.5)");
+			canvas.setShadow(0, 15, this.shadowBlur, this.shadowColor);
 		}
 
 		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view

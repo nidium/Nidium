@@ -35,8 +35,6 @@ var sampleText = "In olden times when wishing still helped one, there lived a ki
 	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
 	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
 	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
-
-
 	//sampleText = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
 
 
@@ -73,7 +71,7 @@ var document = new Application({background:"#262722"}),
 	docButton5 = document.createElement("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
 	docButton6 = document.createElement("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
 
-	greenView = document.createElement("UIView", {x:340, y:180, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
+	greenView = document.createElement("UIView", {id:"greenView", x:340, y:180, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
 	overlayView = greenView.createElement("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
 	davidButton = greenView.createElement("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
 	redViewButton1 = greenView.createElement("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
@@ -102,10 +100,19 @@ var	tabController = greenView.createElement("UITabController", {
 
 
 var line = overlayView.createElement("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
-
 var brique = document.createElement("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
 
-line.scale = 1;
+
+var	win1 = document.createElement("UIWindow", {
+		x : 150,
+		y : 150,
+		w : 400,
+		h : 300,
+		background : "#191a18",
+		resizable : true,
+		closeable : true,
+		movable : true
+	});
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
@@ -155,7 +162,46 @@ docButton5.addEventListener("mousedown", function(e){
 
 docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
+
+	var tab = "";
+		ch = "";
+	var dx = function(nodes, parent){
+		ch += " ";
+		for (var child in nodes){
+
+			echo(
+				ch + nodes[child]._zIndex, 
+				ch + nodes[child]._rIndex, 
+				ch + nodes[child].zIndex, 
+				ch + "("+nodes[child].label+")",
+				ch + nodes[child].type,
+				ch + nodes[child].id
+			);
+
+			if (count(nodes[child].nodes)>0) {
+				dx(nodes[child].nodes, nodes[child].parent);
+				ch = "";
+			}
+		}
+		echo("");
+	};
+
+	dx(layout.nodes, null);
+
 });
+
+//greenView.zIndex = 800;
+
+/*
+var t = new Thread(function(){
+	this.send();
+});
+
+t.onmessage = function(e){
+	e.data;
+};
+*/
+
 
 /*
 var l = +new Date();
@@ -173,12 +219,12 @@ greenView.addEventListener("dragstart", function(e){
 	//console.log("start");
 });
 
-docButton3.zIndex = 800;
-
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
 });
+
+
 
 
 /*
@@ -233,11 +279,6 @@ greenView.addEventListener("mouseout", function(e){
 
 
 
-
-
-
-
-
 /*
 
 window.onmousemove = function(x, y){
@@ -260,8 +301,21 @@ for (var i=0; i<5; i++){
 
 */
 
+/*
 
+var file = new DataStream("http://www.google.fr/logo.gif");
+file.buffer(4096);
+file.chunk(2048);
+file.seek(154555);
+file.ondata = function(data){
+	for (var i=0; i<data.length; i++){
+		echo(data[i]);
+	}
+};
+file.open();
+file.onclose();
 
+*/
 
 
 /*

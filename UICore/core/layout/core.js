@@ -2,55 +2,64 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-var UIView = function(type, options){
+var UIView = function(type, options, parent){
+	var view = this;
 	this.options = options || {};
+	this.parent = parent ? parent : null; // parent element
+	this.nodes = {}; // children elements
 
 	if (!UIElement[type]) {
 		throw("Unknown element " + type);
 	}
 
-	this.id = '_obj_' + layout.objID;
-	this.type = type || 'UIView';
-	this.text = '';
-	this.name = this.options.name || "";
+	let _get = function(property, defaultValue, min, max){
+		let p = view.options[property] ? view.options[property] : defaultValue;
+		if (typeof p == "number") {
+			p = (typeof min != "undefined") ? Math.max(min, p) : p;
+			p = (typeof max != "undefined") ? Math.min(max, p) : p;
+		}
+		return p;
+	};
 
-	this.x = this.options.x ? this.options.x : 0;
-	this.y = this.options.y ? this.options.y : 0;
+	this._uid = "_obj_" + layout.objID++;
+	this.id = _get("id", this._uid);
+
+	this.type = type ? type : "UIView";
+	this.name = _get("name", "");
+	this.text = _get("text", "");
+	this.label = _get("label", "Default");
+
+	this._eventQueues = [];
+	this._area = null;
+
+	// -- coordinate properties
+	this.x = _get("x", 0);
+	this.y = _get("y", 0);
 	this.w = this.options.w ? this.options.w : this.parent ? this.parent.w : window.width;
 	this.h = this.options.h ? this.options.h : this.parent ? this.parent.h : window.height;
 
-	this.radius = this.options.radius ? this.options.radius : 0;
-
-	this.scale = 1;
-	this._scale = 1;
-
-	this.shadowBlur = this.options.shadowBlur ? Math.round(this.options.shadowBlur) : 0;
-
 	this.rotate = 0;
-	this._rotate = 0;
+	this.scale = _get("scale", 1, 0, 1000); //this.options.scale ? parseFloat(this.options.scale) : 1;
+	this.zIndex = _get("zIndex", 0); //this.options.zIndex ? Math.round(this.options.zIndex) : 0;
+	this.opacity = _get("zIndex", 1, 0, 1); // this.options.opacity ? parseFloat(this.options.opacity) : 1;
 
+	// -- dynamic properties (properties prefixed by _ inherits from parent at draw time)
+	this._rotate = this.rotate;
+	this._scale = this.scale;
 	this._x = this.x;
 	this._y = this.y;
-	this._eventQueues = [];
-
-	this.opacity = this.options.opacity ? this.options.opacity : 1;
 	this._opacity = this.opacity;
-	this._area = null;
 
-	this.zIndex = 0;
+	//this._zIndex = this.zIndex;
 
-	this.nodes = {};
+	if (this.parent) {
+		this._rIndex = 1000;
+	} else {
+		this._rIndex = 0;
+	}
+//	layout.getHigherZindex()
 
-	this.scroll = {
-		top : 0,
-		left : 0
-	};
-
-	this.content = {
-		width : this.w,
-		height : this.h
-	};
-
+	// -- transform matrix inheritance (experimental)
 	this.g = {
 		x : 0,
 		y : 0
@@ -68,179 +77,141 @@ var UIView = function(type, options){
 		y : 0
 	};
 
-	this.hover = false;
-	this.selected = (this.options.selected==undefined) ? false : (this.options.selected===false) ? false : true;
+	// -- events flags
+	this.flags = {
+		_mouseoverCalled : false,
+		_mouseoutCalled : false,
+		_dragendCallend : false
+	};
 
-	this.draggable = (this.options.draggable==undefined) ? false : (this.options.draggable===false) ? false : true;
-
-	this.label = this.options.label ? this.options.label : 'Default';
-	this.background = this.options.background ? this.options.background : '';
-	this.color = this.options.color ? this.options.color : '';
-	this.fontSize = this.options.fontSize ? this.options.fontSize : 12;
-	this.lineWidth = this.options.lineWidth ? this.options.lineWidth : 1;
-};
-UIView.prototype = {
-	id : '',
-	parent : null,
-
-	type : 'UIView',
-	label : 'Default',
-	text : '',
-	name : '',
-
-	visible : true,
-	selected : false,
-	hover : false,
-	draggable : false,
-
-	x : 0,
-	y : 0,
-	w : 0,
-	h : 0,
-
-	background : '',
-	color : '',
-	lineWidth : 1,
-	fontSize : 12,
-	radius : 0,
-	zIndex : 0,
-
-	shadowBlur : 0,
-
-	scale : 1,
-	_scale : 1,
-
-	rotate : 0,
-	_rotate : 0,
-
-	_x : 0,
-	_y : 0,
-	
-	scroll : {
+	this.scroll = {
 		top : 0,
 		left : 0
-	},
+	};
 
-	content : {
-		width : 0,
-		height : 0
-	},
+	this.content = {
+		width : this.w,
+		height : this.h
+	};
 
-	g : {
-		x : 0,
-		y : 0
-	},
+	// -- style properties
+	this.hover = false;
+	this.selected = (this.options.selected==undefined) ? false : (this.options.selected===false) ? false : true;
+	this.draggable = (this.options.draggable==undefined) ? false : (this.options.draggable===false) ? false : true;
+	this.background = (this.options.background && this.options.background!='') ? this.options.background : '';
 
-	_g : {
-		x : 0,
-		y : 0
-	},
+	this.color = _get("color", ""); //this.options.color ? this.options.color : '';
+	this.fontSize = _get("fontSize", 12, 0, 200); //this.options.fontSize ? this.options.fontSize : 12;
+	this.lineWidth = _get("lineWidth", 1, 0); //this.options.lineWidth ? this.options.lineWidth : 1;
+	this.radius = _get("radius", 0, 0); //this.options.radius ? this.options.radius : 0;
+	this.shadowBlur = _get("shadowBlur", 0, 0, 128); //this.options.shadowBlur ? Math.round(this.options.shadowBlur) : 0;
 
-	t : {
-		_x : 0,
-		_y : 0,
-		x : 0,
-		y : 0
-	},
+	// -- launch view constructor and init dynamic properties
+	this.__construct();
+	this.__refreshDynamicProperties();
+};
 
-	_area : null,
-
-	opacity : 1,
-	_opacity : 1,
-
-	_eventQueues : [],
-
-	nodes : {},
-
+UIView.prototype = {
 	__construct : function(){
 
 	},
 
 	createElement : function(type, options){
-		if (!options) {
-			options = {};
-		}
-
-		var view = new UIView(type, options);
-
-		view.parent = this;
-		view.text = options.text || "";
-		view.zIndex = view.parent.zIndex + 1;
-
-		view._x = this._x + options.x;
-		view._y = this._y + options.y;
-
-		view.g = {
-			x : 0,
-			y : 0
-		};
-
-		view._g = {
-			x : 0,
-			y : 0
-		};
-
-		view._eventQueues = [];
-		view._opacity = this._opacity * (options.opacity ? parseFloat(options.opacity) : 1);
-		view.background = (options.background && options.background!='') ? options.background : '';
+		var view = new UIView(type, options, this);
 
 		UIElement.init(view);
+		this.addChild(view);
+		return view;
 
+		/*
 		view.__defineGetter__("nbnodes", function() {
 			return count(view.nodes);
 		});
-
-		view.flags = {
-			_mouseoverCalled : false,
-			_mouseoutCalled : false,
-			_dragendCallend : false
-		},
-
-		view.__construct();
-
-		this.addChild(view);
-
-		return view;
+		*/
 	},
 
 	clone : function(){
-		var view = new UIView(this.type, this.options);
+		var view = new UIView(this.type, this.options, this.parent);
 		for (var i in this){
 			view[i] = this[i];
 		}
 
-		view.id = view.id + "_clone";
+		view._uid = this._uid + "_clone";
+		view.id = view._uid;
+
 		view.zIndex = layout.getHigherZindex() + 1;
+		view.opacity = 0.8;
 		view.nodes = {}; // kill children nodes
 
-		view._opacity = 0.5;
-
 		UIElement.init(view);
-		layout.registerClone(view);
+		layout.register(view);
 
 		return view;
 	},
 
 	addChild : function(view){
-		this.nodes[view.id] = view;
-		layout.objID++;
+		this.nodes[view._uid] = view;
 		layout.refresh();
 	},
 
-	beforeDraw : function(){
-		this._x = (this.parent) ? this.parent._x + this.x : this.x;
-		this._y = (this.parent) ? this.parent._y + this.y : this.y;
-		this._opacity = (this.parent) ? this.parent._opacity * this.opacity : this.opacity;
+	remove : function(){
+		layout.remove(this);
+	},
 
-		this._protate = (this.parent) ? this.parent._rotate : this.rotate;
+	show : function(){
+		if (!this.visible) {
+			this.visible = true;
+			layout.refresh();
+		}
+	},
+
+	hide : function(){
+		if (this.visible) {
+			this.visible = false;
+			layout.refresh();
+		}
+	},
+
+	bringToTop : function(){
+		this.zIndex = layout.getHigherZindex() + 1;
+	},
+
+
+	__refreshDynamicProperties : function(){
+		// -- dynamic properties
+		// -- properties prefixed by _ inherits from parent at draw time
+		var parent = this.parent;
+
+		this._x = parent ? parent._x + this.x : this.x;
+		this._y = parent ? parent._y + this.y : this.y;
+		this._opacity = parent ? parent._opacity * this.opacity : this.opacity;
+		this._zIndex = parent ? parent._zIndex + this._rIndex + this.zIndex : this._rIndex + this.zIndex;
+
+		// rotation inheritance
+		this._protate = parent ? parent._rotate : this.rotate;
 		this._rotate = this._protate + this.rotate;
 		
-		this._pscale = (this.parent) ? this.parent._scale : this.scale;
+		// scale inheritance
+		this._pscale = parent ? parent._scale : this.scale;
 		this._scale =  this._pscale * this.scale;
 
-		this.t._x = (this.parent) ? this.parent.t._x + this.t.x : this.t.x;
-		this.t._y = (this.parent) ? this.parent.t._y + this.t.y : this.t.y;
+		// translation inheritance
+		this.t._x = parent ? parent.t._x + this.t.x : this.t.x;
+		this.t._y = parent ? parent.t._y + this.t.y : this.t.y;
 
+		// gravity center before transformation
+		this._g.x = (this._x + this.g.x + this.w/2);
+		this._g.y = (this._y + this.g.y + this.h/2);
+
+		// gravity center after scale + translation
+		this._gs = {
+			x : (this._g.x - this.t._x)*this._pscale,
+			y : (this._g.y - this.t._y)*this._pscale
+		};
+	},
+
+	beforeDraw : function(){
+		this.__refreshDynamicProperties();
 
 		if (this.clip){
 			canvas.save();
@@ -248,21 +219,10 @@ UIView.prototype = {
 			canvas.clip();
 		}
 
-		// gravity center before transformation
-		this._g.x = (this._x + this.g.x + this.w/2);
-		this._g.y = (this._y + this.g.y + this.h/2);
-
 		var DX = this._g.x - this.t._x,
 			DY = this._g.y - this.t._y;
 
-
-		// gravity center after scale + translation
-		this._gs = {
-			x : (this._g.x - this.t._x)*this._pscale,
-			y : (this._g.y - this.t._y)*this._pscale
-		};
-
-		// new object details after scale + translation
+		// new coordinates after scale + translation
 		var p = this.__projection(this._x, this._y); // p is the new coords after scale + translation
 		this.__x = p.x;
 		this.__y = p.y;
@@ -305,8 +265,8 @@ UIView.prototype = {
 			canvas.translate(-this.rx, -this.ry);
 
 			this.rt = {
-				x : (this.parent ? this.parent._gs.x : this._gs.x),
-				y : (this.parent ? this.parent._gs.y : this._gs.y)
+				x : (parent ? parent._gs.x : this._gs.x),
+				y : (parent ? parent._gs.y : this._gs.y)
 			};
 			this.angle = this._protate*Math.PI/180;
 
@@ -401,36 +361,10 @@ UIView.prototype = {
 
 	},
 
-	remove : function(){
-		layout.remove(this);
-	},
-
-	show : function(){
-		if (!this.visible) {
-			this.visible = true;
-			layout.refresh();
-		}
-	},
-
-	hide : function(){
-		if (this.visible) {
-			this.visible = false;
-			layout.refresh();
-		}
-	},
-
-	onmouseover : null,
-	onmouseout : null,
-	onmousedown : null,
-
-	flags : {
-		_mouseoverCalled : false,
-		_mouseoutCalled : false,
-		_dragendCallend : false
-	},
+	/* -------------------------------------------------------------- */
 
 	fireEvent : function(eventName, e){
-			canvas.__mustBeDrawn = true;
+		canvas.__mustBeDrawn = true;
 		if (typeof this["on"+eventName] == 'function'){
 			this["on"+eventName](e);
 		}
@@ -606,6 +540,8 @@ UIView.prototype = {
 		return	(mx>=x1 && mx<=x2 && my>=y1 && my<=y2) ? true : false;
 	},
 
+	/* -------------------------------------------------------------- */
+
 	get left() {
   		return this.x;
 	},
@@ -628,7 +564,93 @@ UIView.prototype = {
 		this._y += dy;
 		this.y += dy;
 		layout.refresh();
-	}
+	},
+
+	/* -------------------------------------------------------------- */
+
+	id : '', // user defined ID
+	_uid : '', // internal Unique ID
+	parent : null,
+
+	type : 'UIView',
+	label : 'Default',
+	text : '',
+	name : '',
+
+	visible : true,
+	selected : false,
+	hover : false,
+	draggable : false,
+
+	x : 0,
+	y : 0,
+	w : 0,
+	h : 0,
+
+	background : '',
+	color : '',
+	lineWidth : 1,
+	fontSize : 12,
+	radius : 0,
+	shadowBlur : 0,
+
+	zIndex : 0,
+	_zIndex : 0,
+
+	opacity : 1,
+	_opacity : 1,
+
+	scale : 1,
+	_scale : 1,
+
+	rotate : 0,
+	_rotate : 0,
+
+	_x : 0,
+	_y : 0,
+	
+	scroll : {
+		top : 0,
+		left : 0
+	},
+
+	content : {
+		width : 0,
+		height : 0
+	},
+
+	g : {
+		x : 0,
+		y : 0
+	},
+
+	_g : {
+		x : 0,
+		y : 0
+	},
+
+	t : {
+		_x : 0,
+		_y : 0,
+		x : 0,
+		y : 0
+	},
+
+	onmouseover : null,
+	onmouseout : null,
+	onmousedown : null,
+
+	flags : {
+		_mouseoverCalled : false,
+		_mouseoutCalled : false,
+		_dragendCallend : false
+	},
+
+	_area : null,
+
+	_eventQueues : [],
+
+	nodes : {}
 
 };
 
@@ -649,6 +671,8 @@ var UIElement = {
 		let self = this,
 			UIElement = UIView.type;
 
+		echo(UIView._uid, UIView.id);
+
 		if (this[UIElement]){
 
 			this[UIElement].init.call(UIView);
@@ -666,17 +690,15 @@ var UIElement = {
 };
 
 var Application = function(options){
-	var view = new UIView("UIView", options);
-
+	var view = new UIView("UIView", options, null);
 	UIElement.init(view);
 
 	layout.register(view);
 	layout.refresh();
 
-	
 	/*
 	var z = new Image();
-	z.src = "assets/bg01.png";
+	z.src = "demos/assets/bg02.jpeg";
 	*/
 
 	canvas.globalAlpha = 1;
@@ -693,7 +715,6 @@ var Application = function(options){
 			let r = 2 + (+ new Date()) - __DATE__,
 				fps = Math.round(1000/r);
 
-			//echo(r);
 			if (__FPS__%30==0){
 				__FPS_OLD__ = fps;
 			} 				
@@ -713,8 +734,8 @@ var Application = function(options){
 			__DATE__ = (+ new Date());
 	 		if (canvas.animate) {
 				layout.draw();
+				//canvas.drawImage(z, 0, 0, 1024, 868);
 				//layout.grid();
-				//canvas.drawImage(z, 0, 0, 1124, 868);
 			}
 			//canvas.blur(0, 0, 1024, 768, 2);
 	 		canvas.showFPS();
