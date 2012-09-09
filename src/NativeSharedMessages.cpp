@@ -9,7 +9,6 @@ NativeSharedMessages::NativeSharedMessages()
 	messageslist.count = 0;
 	messageslist.head  = NULL;
 	messageslist.queue = NULL;
-	
 	pthread_mutex_init(&messageslist.lock, NULL);
 }
 

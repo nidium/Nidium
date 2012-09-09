@@ -1511,15 +1511,42 @@ struct tpass
     JSFunction *nfn;
     JSString *str;
     NativeJS *njs;
+    JSObject *obj;
+};
+
+struct thread_msg
+{
+    uint64_t *data;
+    size_t nbytes;
+    JSObject *callee;
 };
 
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NativeJS *njs = (NativeJS *)JS_GetContextPrivate(cx);
+    uint64_t *datap;
+    size_t nbytes;
+    struct tpass *pass = (struct tpass*)JS_GetContextPrivate(cx);
+    NativeJS *njs = pass->njs;
 
-    char *foo = strdup("hello world");
+    struct thread_msg *msg;
 
-    njs->messages->postMessage(foo);
+    if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
+        NULL, NULL)) {
+        printf("Failed to write strclone\n");
+        /* TODO: exception */
+        return JS_TRUE;
+    }
+
+    msg = new struct thread_msg;
+
+    //JS_WriteStructuredClone(JSContext *cx, jsval v, uint64_t **datap,
+    //size_t *nbytesp, const JSStructuredCloneCallbacks *optionalCallbacks, void *closure)
+
+    msg->data   = datap;
+    msg->nbytes = nbytes;
+    msg->callee = pass->obj;
+
+    njs->messages->postMessage(msg);
 
     return JS_TRUE;
 }
@@ -1563,7 +1590,7 @@ static void *native_thread(void *arg)
     JSAutoByteString str(tcx, pass->str);
 
     /* Hold the parent cx */
-    JS_SetContextPrivate(tcx, pass->njs);
+    JS_SetContextPrivate(tcx, pass);
 
 #if 0
     JSObject *ff = (JSObject *)pass->nfn;
@@ -1597,6 +1624,9 @@ static void *native_thread(void *arg)
     }
 
     free(pass);
+
+    /* TODO: destroy context, runtime, etc... */
+
     return NULL;
 }
 
@@ -1616,10 +1646,11 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     //JSString *src = JS_ValueToSource(cx, JS_ARGV(cx, vp)[0]);
     JSString *src = JS_DecompileFunctionBody(cx, pass->nfn, 0);
 
-    pass->cx = cx;
-    pass->fn = func;
+    pass->cx  = cx;
+    pass->fn  = func;
     pass->str = src;
     pass->njs = NJS;
+    pass->obj = ret;
 
     pthread_create(&currentThread, NULL,
                             native_thread, pass);
@@ -1914,30 +1945,38 @@ static int Native_handle_messages(void *arg)
 
     NativeJS *njs = (NativeJS *)arg;
     JSContext *cx = njs->cx;
-    void *ptr;
-    jsval canvas, onmessage, jevent, rval;
+    struct thread_msg *ptr;
+    jsval onmessage, jevent, rval;
 
     JSObject *event;
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+    while ((ptr = (struct thread_msg *)njs->messages->readMessage()) != NULL) {
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmessage", &onmessage) &&
-        !JSVAL_IS_PRIMITIVE(onmessage) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+        if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
+            !JSVAL_IS_PRIMITIVE(onmessage) && 
+            JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-        while ((ptr = njs->messages->readMessage()) != NULL) {
+            jsval inval;
+
+            if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+                JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+
+                printf("Failed to read input data (readMessage)\n");
+
+                continue;
+            }
+
             event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
             JS_AddObjectRoot(cx, &event);
 
-            EVENT_PROP("message", INT_TO_JSVAL(1));
+            EVENT_PROP("message", inval);
 
             jevent = OBJECT_TO_JSVAL(event);
             JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
-            JS_RemoveObjectRoot(cx, &event);
-        }        
-    } else {
-        /* No callback : consume messages (lost) */
-        while (njs->messages->readMessage());
+            JS_RemoveObjectRoot(cx, &event);            
+
+        }
+
     }
 
     return 1;
