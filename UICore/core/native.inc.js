@@ -11,7 +11,10 @@ load('core/layout/elements/UIView.js');
 load('core/layout/elements/UIButton.js');
 load('core/layout/elements/UIButtonClose.js');
 load('core/layout/elements/UIButtonDown.js');
+
 load('core/layout/elements/UIText.js');
+load('core/layout/elements/UITextInput.js');
+
 load('core/layout/elements/UIScrollBars.js');
 load('core/layout/elements/UIRadio.js');
 load('core/layout/elements/UILines.js');

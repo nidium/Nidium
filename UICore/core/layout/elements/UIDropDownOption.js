@@ -12,7 +12,8 @@ UIElement.extend("UIDropDownOption", {
 
 		this.addEventListener("mousedown", function(e){
 			controller.selectTab(this.tabnum);
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.addEventListener("mouseover", function(e){
 			this.hover = true;
@@ -23,10 +24,10 @@ UIElement.extend("UIDropDownOption", {
 		});
 
 		this.clip = {
-			x : this.parent._x,
-			y : this.parent._y,
-			w : this.parent.w,
-			h : this.parent.h
+			x : this.parent.__x,
+			y : this.parent.__y,
+			w : this.parent.__w,
+			h : this.parent.__h
 		};
 
 	},
@@ -51,10 +52,10 @@ UIElement.extend("UIDropDownOption", {
 
 
 		this.clip = {
-			x : this.parent._x,
-			y : this.parent._y,
-			w : this.parent.w,
-			h : this.parent.h
+			x : this.parent.__x,
+			y : this.parent.__y,
+			w : this.parent.__w,
+			h : this.parent.__h
 		};
 		
 

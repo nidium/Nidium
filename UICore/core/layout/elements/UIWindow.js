@@ -17,6 +17,10 @@ UIElement.extend("UIWindow", {
 			e.stopPropagation();
 		}, false);
 
+		this.addEventListener("mouseover", function(e){
+			e.stopPropagation();
+		}, false);
+
 		this.handle = this.createElement("UIView", {
 			x : 0,
 			y : 0,
@@ -65,6 +69,7 @@ UIElement.extend("UIWindow", {
 			});
 			self.shadowBlur = 6;
 			self.shadowColor = "rgba(0, 0, 0, 0.20)";
+			e.stopPropagation();
 		}, false);
 
 

@@ -103,18 +103,16 @@ var line = overlayView.createElement("UILine", {x1:20, y1:110, x2:100, y2:180, s
 var brique = document.createElement("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
 
 
-for (var i=0; i<20; i++){
-	document.createElement("UIWindow", {
-		x : 20+i*20,
-		y : 40+i*15,
-		w : 300,
-		h : 200,
-		background : "#191a18",
-		resizable : true,
-		closeable : true,
-		movable : true
-	});
-}
+var win = document.createElement("UIWindow", {
+	x : 80,
+	y : 100,
+	w : 300,
+	h : 200,
+	background : "#191a18",
+	resizable : true,
+	closeable : true,
+	movable : true
+});
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {

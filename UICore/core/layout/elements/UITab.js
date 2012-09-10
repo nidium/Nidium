@@ -12,7 +12,8 @@ UIElement.extend("UITab", {
 
 		this.addEventListener("mousedown", function(e){
 			this.parent.selectTab(this.tabnum);
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.addEventListener("mouseover", function(e){
 			this.hover = true;

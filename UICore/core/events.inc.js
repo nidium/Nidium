@@ -169,15 +169,16 @@ canvas.onmouseup = function(e){
 */
 
 canvas.onkeydown = function(e){
+	UIEvents.dispatch("keydown", e);
 };
+
 canvas.onkeyup = function(e){
+	UIEvents.dispatch("keyup", e);
 };
 
 canvas.ontextinput = function(e){
-	// e.val;
+	UIEvents.dispatch("textinput", e);
 };
-
-
 
 var UIEvents = {
 	stopDrag : function(){

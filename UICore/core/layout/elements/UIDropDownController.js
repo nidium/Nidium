@@ -147,8 +147,7 @@ UIElement.extend("UIDropDownController", {
 			} else {
 				self.openSelector();
 			}
-
-
+			e.stopPropagation();
 		}, false);
 
 		this.resetTabs();
