@@ -6,7 +6,8 @@
 typedef int (*timer_callback)(void *arg);
 
 enum {
-	APE_TIMER_IS_PROTECTED = 1 << 0
+	APE_TIMER_IS_PROTECTED = 1 << 0,
+	APE_TIMER_IS_CLEARED   = 1 << 1
 };
 
 typedef struct _ape_timer
@@ -45,6 +46,7 @@ int process_timers(ape_timers *timers);
 ape_timer *del_timer(ape_timers *timers, ape_timer *timer);
 ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg);
 ape_timer *get_timer_by_id(ape_timers *timers, int identifier);
+void clear_timer_by_id(ape_timers *timers, int identifier, int force);
 void timer_stats_print(ape_timer *timer);
 void timers_stats_print(ape_timers *timers);
 void del_timers_unprotected(ape_timers *timers);
