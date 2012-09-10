@@ -14,6 +14,12 @@ int process_timers(ape_timers *timers)
 
 	while (cur != NULL) {
 		uint64_t start;
+
+		if (cur->flags & APE_TIMER_IS_CLEARED) {
+			cur = del_timer(timers, cur);
+			continue;
+		}
+
 		if ((start = mach_absolute_time()) >= cur->schedule-150000) {
 			uint64_t ret;
 			unsigned int duration;
@@ -57,6 +63,21 @@ ape_timer *get_timer_by_id(ape_timers *timers, int identifier)
 		}
 	}
 	return NULL;
+}
+
+void clear_timer_by_id(ape_timers *timers, int identifier, int force)
+{
+	ape_timer *cur;
+	for (cur = timers->head; cur != NULL; cur = cur->next) {
+		if (cur->identifier == identifier) {
+			if (!(cur->flags & APE_TIMER_IS_PROTECTED) ||
+				(cur->flags & APE_TIMER_IS_PROTECTED && force)) {
+				
+				cur->flags |= APE_TIMER_IS_CLEARED;
+			}
+			return;
+		}
+	}	
 }
 
 void del_timers_unprotected(ape_timers *timers)

@@ -5,7 +5,7 @@
 /* --- DEMO APP --------------------------------------------------------- */
 
 load("core/native.inc.js");
-load('demos/demo.windows.js');
+load('demos/demo.ui.js');
 
 //load('demos/demo.cube.js');
 //load('demos/demo.flamme.js');

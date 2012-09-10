@@ -187,6 +187,7 @@ static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_createImageData(JSContext *cx,
     unsigned argc, jsval *vp);
@@ -282,6 +283,8 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("load", native_load, 1, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
+    JS_FN("clearTimeout", native_clear_timeout, 1, 0),
+    JS_FN("clearInterval", native_clear_timeout, 1, 0),
     JS_FS_END
 };
 
@@ -1930,9 +1933,8 @@ NativeJS::~NativeJS()
     JS_DestroyRuntime(rt);
 
     delete messages;
-
-
     //delete nskia; /* TODO: why is that commented out? */
+    // is it covered by Canvas_Finalize()?
 }
 
 void NativeJS::bufferSound(int16_t *data, int len)
@@ -2150,6 +2152,22 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE; 
 }
 
+static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
+{
+    unsigned int identifier;
+
+    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "i", &identifier)) {
+        return JS_TRUE;
+    }
+
+    clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
+        identifier, 0);
+
+    /* TODO: remove root / clear params */
+
+    return JS_TRUE;    
+}
+
 static int native_timerng_wrapper(void *arg)
 {
     jsval rval;
@@ -2159,6 +2177,14 @@ static int native_timerng_wrapper(void *arg)
         params->argc, params->argv, &rval);
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
+    if (params->ms == 0) {
+        JS_RemoveValueRoot(params->cx, &params->func);
+
+        if (params->argv != NULL) {
+            free(params->argv);
+        }
+        free(params);        
+    }
     return params->ms;
 }
 
