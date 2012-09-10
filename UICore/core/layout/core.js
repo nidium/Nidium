@@ -30,7 +30,6 @@ var UIView = function(type, options, parent){
 	this.label = _get("label", "Default");
 
 	this._eventQueues = [];
-	this._area = null;
 
 	// -- coordinate properties
 	this.x = _get("x", 0);
@@ -43,21 +42,19 @@ var UIView = function(type, options, parent){
 	this.zIndex = _get("zIndex", 0); //this.options.zIndex ? Math.round(this.options.zIndex) : 0;
 	this.opacity = _get("zIndex", 1, 0, 1); // this.options.opacity ? parseFloat(this.options.opacity) : 1;
 
+	if (this.parent) {
+		this._rIndex = layout.getHigherZindex() + 1;
+	} else {
+		this._rIndex = 0;
+	}
+
 	// -- dynamic properties (properties prefixed by _ inherits from parent at draw time)
 	this._rotate = this.rotate;
 	this._scale = this.scale;
 	this._x = this.x;
 	this._y = this.y;
 	this._opacity = this.opacity;
-
-	//this._zIndex = this.zIndex;
-
-	if (this.parent) {
-		this._rIndex = layout.getHigherZindex() + 1;
-	} else {
-		this._rIndex = 0;
-	}
-//	layout.getHigherZindex()
+	this._zIndex = this._rIndex + this.zIndex;
 
 	// -- transform matrix inheritance (experimental)
 	this.g = {
@@ -81,9 +78,12 @@ var UIView = function(type, options, parent){
 	this.flags = {
 		_mouseoverCalled : false,
 		_mouseoutCalled : false,
-		_dragendCallend : false
+		_dragendCallend : false,
+		_canReceiveFocus : false,
+		_outlineOnFocus : false
 	};
 
+	// -- scroll properties
 	this.scroll = {
 		top : 0,
 		left : 0
@@ -94,12 +94,16 @@ var UIView = function(type, options, parent){
 		height : this.h
 	};
 
-	// -- style properties
+
+	// -- misc flag
 	this.hover = false;
+	this.hasFocus = false;
+	this.visible = (this.options.visible==undefined) ? true : (this.options.selected===false) ? false : true;
 	this.selected = (this.options.selected==undefined) ? false : (this.options.selected===false) ? false : true;
 	this.draggable = (this.options.draggable==undefined) ? false : (this.options.draggable===false) ? false : true;
-	this.background = (this.options.background && this.options.background!='') ? this.options.background : '';
 
+	// -- style properties
+	this.background = (this.options.background && this.options.background!='') ? this.options.background : '';
 	this.color = _get("color", ""); //this.options.color ? this.options.color : '';
 	this.fontSize = _get("fontSize", 12, 0, 200); //this.options.fontSize ? this.options.fontSize : 12;
 	this.lineWidth = _get("lineWidth", 1, 0); //this.options.lineWidth ? this.options.lineWidth : 1;
@@ -156,6 +160,10 @@ UIView.prototype = {
 
 	remove : function(){
 		layout.remove(this);
+	},
+
+	focus : function(){
+		layout.focus(this);
 	},
 
 	show : function(){
@@ -229,28 +237,6 @@ UIView.prototype = {
 		this.__w = this.w * this._scale;
 		this.__h = this.h * this._scale;
 
-
-		/*
-
-		var dt = {
-			x : (this._gs.x*this.scale - this._gs.x)/this._scale,
-			y : (this._gs.y*this.scale - this._gs.y)/this._scale
-		};
-								|
-								v
-		var dt = {
-			x : ( DX*S - DX*S*1/ts ) / S,
-			y : ( DY*S - DY*S*1/ts ) / S
-		};
-								|
-								v
-		var dt = {
-			x : S( DX - DX/ts ) / S   =  DX - DX/ts,
-			y : S( DY - DY/ts ) / S   =  DY - DY/ts
-		};
-
-		*/
-
 		this.t._x += (DX - DX/this.scale); // dt.x
 		this.t._y += (DY - DY/this.scale); // dt.y
 
@@ -278,16 +264,36 @@ UIView.prototype = {
 		*/
 
 		/* scale */
-		//if (this._scale!=1){
+		if (this._scale!=1){
 			canvas.save();
 			canvas.scale(this._scale, this._scale);
 			canvas.translate( -this.t._x, -this.t._y);
 
-		//}
+		}
 		/* scale */
 
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
 		canvas.globalAlpha = this._opacity;
+
+
+		if (this.hasFocus) { /* this.flags._canReceiveFocus */
+			let params = {
+					x : this._x,
+					y : this._y,
+					w : this.w,
+					h : this.h
+				},
+				radius = this.radius;
+
+			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			canvas.setShadow(0, 0, 0);
+		}
+
 
 	},
 
@@ -306,6 +312,7 @@ UIView.prototype = {
 	},
 
 	afterDraw : function(){
+
 		canvas.globalAlpha = canvas.oldGlobalAlpha;
 
 		/*
@@ -323,11 +330,11 @@ UIView.prototype = {
 		}
 		*/
 
-		//if (this._scale!=1){
+		if (this._scale!=1){
 			canvas.translate(this.t._x, this.t._y);
 			canvas.scale(1/this._scale, 1/this._scale);
 			canvas.restore();
-		//}
+		}
 
 		/*
         canvas.beginPath();
@@ -564,93 +571,7 @@ UIView.prototype = {
 		this._y += dy;
 		this.y += dy;
 		layout.refresh();
-	},
-
-	/* -------------------------------------------------------------- */
-
-	id : '', // user defined ID
-	_uid : '', // internal Unique ID
-	parent : null,
-
-	type : 'UIView',
-	label : 'Default',
-	text : '',
-	name : '',
-
-	visible : true,
-	selected : false,
-	hover : false,
-	draggable : false,
-
-	x : 0,
-	y : 0,
-	w : 0,
-	h : 0,
-
-	background : '',
-	color : '',
-	lineWidth : 1,
-	fontSize : 12,
-	radius : 0,
-	shadowBlur : 0,
-
-	zIndex : 0,
-	_zIndex : 0,
-
-	opacity : 1,
-	_opacity : 1,
-
-	scale : 1,
-	_scale : 1,
-
-	rotate : 0,
-	_rotate : 0,
-
-	_x : 0,
-	_y : 0,
-	
-	scroll : {
-		top : 0,
-		left : 0
-	},
-
-	content : {
-		width : 0,
-		height : 0
-	},
-
-	g : {
-		x : 0,
-		y : 0
-	},
-
-	_g : {
-		x : 0,
-		y : 0
-	},
-
-	t : {
-		_x : 0,
-		_y : 0,
-		x : 0,
-		y : 0
-	},
-
-	onmouseover : null,
-	onmouseout : null,
-	onmousedown : null,
-
-	flags : {
-		_mouseoverCalled : false,
-		_mouseoutCalled : false,
-		_dragendCallend : false
-	},
-
-	_area : null,
-
-	_eventQueues : [],
-
-	nodes : {}
+	}
 
 };
 
@@ -679,6 +600,13 @@ var UIElement = {
 			if (this[UIElement].isPointInside) UIView.isPointInside = this[UIElement].isPointInside;
 			if (this[UIElement].__construct) UIView.__construct = this[UIElement].__construct;
 
+			if (UIView.flags._canReceiveFocus) {
+				UIView.addEventListener("mousedown", function(e){
+					this.focus();
+					e.stopPropagation();
+				}, false);
+			}
+
 		} else {
 			UIView.beforeDraw = function(){};
 			UIView.draw = function(){};
@@ -690,6 +618,7 @@ var UIElement = {
 var Application = function(options){
 	var view = new UIView("UIView", options, null);
 	view._root = true;
+	view.flags._canReceiveFocus = true;
 	UIElement.init(view);
 
 	layout.register(view);

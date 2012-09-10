@@ -6,6 +6,7 @@ UIElement.extend("UIWindow", {
 	init : function(){
 		var self = this;
 
+		this.flags._canReceiveFocus = true;
 		this.background = this.options.background || "#191a18";
 		this.color = this.options.color || "#ffffff";
 		this.name = this.options.name || "Default";

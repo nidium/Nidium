@@ -38,6 +38,8 @@ canvas.__mustBeDrawn = true;
 
 var layout = {
 	objID : 0,
+	focusObj : 0,
+	nbObj : 0,
 
 	nodes : {},
 	elements : [],
@@ -89,12 +91,30 @@ var layout = {
 		}
 	},
 
+	focus : function(element){
+		if (element.flags._canReceiveFocus) {
+			element.hasFocus = true;
+			this.focusObj = element._nid;
+		} else {
+			this.focusNextElement();
+		}
+	},
+
 	getElements : function(){
-		let elements = [];
+		let elements = [],
+			self = this,
+			z = 0;
 
 		var dx = function(nodes, parent){
 			for (var child in nodes){
 				elements.push(nodes[child]);
+
+				nodes[child]._nid = z;
+				nodes[child].hasFocus = false;
+				if (self.focusObj == z) {
+					self.focus(nodes[child]);
+				}
+				z++;
 				if (count(nodes[child].nodes)>0) {
 					dx(nodes[child].nodes, nodes[child].parent);
 				}
@@ -102,6 +122,7 @@ var layout = {
 		};
 
 		dx(this.nodes, null);
+		this.nbObj = z;
 
 		this.elements = elements.sort(function(a, b){
 			return a._zIndex - b._zIndex;
@@ -152,6 +173,13 @@ var layout = {
 		};
 		dx(this.nodes, null);
 		return zindexes.length ? Math.max.apply(null, zindexes) : 0;
+	},
+
+	focusNextElement : function(){
+		this.focusObj++;
+		if (this.focusObj > this.nbObj-2) {
+			this.focusObj = 0;
+		}
 	},
 
 	refresh : function(){

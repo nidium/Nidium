@@ -13,6 +13,7 @@ UIElement.extend("UIRadio", {
 	init : function(){
 		this.w = 16;
 		this.h = 17;
+		this.flags._canReceiveFocus = true;
 
 		this.addEventListener("mousedown", function(e){
 

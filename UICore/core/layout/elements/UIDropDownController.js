@@ -8,6 +8,7 @@ UIElement.extend("UIDropDownController", {
 
 		this.w = 140;
 		this.h = 24;
+		this.flags._canReceiveFocus = true;
 		this.background = this.options.background || "#191a18";
 		this.color = this.options.color || "#ffffff";
 		this.selectedBackground = this.options.selectedBackground || "#4D90FE";
