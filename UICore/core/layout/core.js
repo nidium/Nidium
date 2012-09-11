@@ -80,7 +80,7 @@ var UIView = function(type, options, parent){
 		_mouseoutCalled : false,
 		_dragendCallend : false,
 		_canReceiveFocus : false,
-		_outlineOnFocus : false
+		_outlineOnFocus : true
 	};
 
 	// -- scroll properties
@@ -163,7 +163,23 @@ UIView.prototype = {
 	},
 
 	focus : function(){
-		layout.focus(this);
+		if (this.hasFocus === true) {
+			return false;
+		}
+
+		if (this.flags._canReceiveFocus) {
+			this.hasFocus = true;
+	
+			this.fireEvent("focus", {});
+
+			if (layout.lastFocusedElement) {
+				layout.lastFocusedElement.fireEvent("blur", {});
+			}
+
+			layout.lastFocusedElement = this;
+
+			layout.focusObj = this._nid;
+		}
 	},
 
 	show : function(){
@@ -276,7 +292,7 @@ UIView.prototype = {
 		canvas.globalAlpha = this._opacity;
 
 
-		if (this.hasFocus) { /* this.flags._canReceiveFocus */
+		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
 			let params = {
 					x : this._x,
 					y : this._y,
@@ -619,6 +635,7 @@ var Application = function(options){
 	var view = new UIView("UIView", options, null);
 	view._root = true;
 	view.flags._canReceiveFocus = true;
+	view.flags._outlineOnFocus = false;
 	UIElement.init(view);
 
 	layout.register(view);

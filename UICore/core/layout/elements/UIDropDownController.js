@@ -117,6 +117,7 @@ UIElement.extend("UIDropDownController", {
 		};
 
 		this.openSelector = function(){
+			if (this.toggleState == true) { return false; }
 			var from = self.tabsContainer.h,
 				delta = l*self.h;
 
@@ -131,6 +132,7 @@ UIElement.extend("UIDropDownController", {
 		};
 
 		this.closeSelector = function(){
+			if (this.toggleState == false) { return false; }
 			var from = self.tabsContainer.h,
 				delta = 0;
 
@@ -149,6 +151,11 @@ UIElement.extend("UIDropDownController", {
 				self.openSelector();
 			}
 			e.stopPropagation();
+		}, false);
+
+
+		this.addEventListener("blur", function(e){
+			self.closeSelector();
 		}, false);
 
 		this.resetTabs();

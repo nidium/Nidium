@@ -91,7 +91,7 @@ var layout = {
 		}
 	},
 
-	focus : function(element){
+	_animateFocus : function(element){
 		if (element.flags._canReceiveFocus) {
 			element.hasFocus = true;
 			this.focusObj = element._nid;
@@ -111,10 +111,9 @@ var layout = {
 
 				nodes[child]._nid = z;
 				nodes[child].hasFocus = false;
-				if (self.focusObj == z) {
-					self.focus(nodes[child]);
+				if (self.focusObj == z++) {
+					self._animateFocus(nodes[child]);
 				}
-				z++;
 				if (count(nodes[child].nodes)>0) {
 					dx(nodes[child].nodes, nodes[child].parent);
 				}

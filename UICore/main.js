@@ -4,8 +4,17 @@
 
 /* --- DEMO APP --------------------------------------------------------- */
 
+/* NativeOS Demos */
+
 load("core/native.inc.js");
-load('demos/demo.ui.js');
+//load('demos/demo.ui.js');
+//load('demos/demo.tabs.js');
+//load('demos/demo.dropdown.js');
+load('demos/demo.windows.js');
+
+/* StandAlone Demos */
+
+//load('demos/demo.threads.js');
 
 //load('demos/demo.cube.js');
 //load('demos/demo.flamme.js');
