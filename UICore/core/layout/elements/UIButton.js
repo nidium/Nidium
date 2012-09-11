@@ -7,6 +7,7 @@ UIElement.extend("UIButton", {
 		canvas.fontSize = this.fontSize;
 		this.w = 10 + Math.round(canvas.measureText(this.label)) + 10;
 		this.h = 22;
+		this.flags._canReceiveFocus = true;
 
 		this.addEventListener("mousedown", function(e){
 			this.selected = true;
@@ -52,7 +53,7 @@ UIElement.extend("UIButton", {
 			textOffsetY = (h-textHeight)/2 + 9,
 			textColor = '#e0e0e0',
 			textShadow = '#000000';
-		
+
 		this.shadow = true;
 		if (this.shadow) {
 			if (this.selected){

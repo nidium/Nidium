@@ -6,6 +6,7 @@ UIElement.extend("UITab", {
 	init : function(){
 		var self = this;
 
+		this.flags._canReceiveFocus = true;
 		this.w = 14 + Math.round(canvas.measureText(this.label)) + 14;
 		this.h = 24;
 		//this.color = this.options.color ? this.options.color : "#aaaaaa";

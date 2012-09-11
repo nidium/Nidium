@@ -170,9 +170,14 @@ canvas.onmouseup = function(e){
 
 canvas.onkeydown = function(e){
 	UIEvents.dispatch("keydown", e);
+
+	if (e.keyCode == 9) {
+		layout.focusNextElement();
+	}
 };
 
 canvas.onkeyup = function(e){
+	//console.log(e.keyCode, e.altKey===true ? "shift" : "");
 	UIEvents.dispatch("keyup", e);
 };
 

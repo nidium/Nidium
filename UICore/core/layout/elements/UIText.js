@@ -5,6 +5,9 @@
 UIElement.extend("UIText", {
 	init : function(){
 
+		this._area = null;
+		this.flags._canReceiveFocus = true;
+
 		this.addEventListener("mouseover", function(e){
 			this.verticalScrollBar.fadeIn(150, function(){
 				console.log("done");

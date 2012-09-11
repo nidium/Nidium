@@ -8,6 +8,7 @@ UIElement.extend("UIDropDownController", {
 
 		this.w = 140;
 		this.h = 24;
+		this.flags._canReceiveFocus = true;
 		this.background = this.options.background || "#191a18";
 		this.color = this.options.color || "#ffffff";
 		this.selectedBackground = this.options.selectedBackground || "#4D90FE";
@@ -116,6 +117,7 @@ UIElement.extend("UIDropDownController", {
 		};
 
 		this.openSelector = function(){
+			if (this.toggleState == true) { return false; }
 			var from = self.tabsContainer.h,
 				delta = l*self.h;
 
@@ -130,6 +132,7 @@ UIElement.extend("UIDropDownController", {
 		};
 
 		this.closeSelector = function(){
+			if (this.toggleState == false) { return false; }
 			var from = self.tabsContainer.h,
 				delta = 0;
 
@@ -148,6 +151,11 @@ UIElement.extend("UIDropDownController", {
 				self.openSelector();
 			}
 			e.stopPropagation();
+		}, false);
+
+
+		this.addEventListener("blur", function(e){
+			self.closeSelector();
 		}, false);
 
 		this.resetTabs();

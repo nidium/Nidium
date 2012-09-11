@@ -34,8 +34,6 @@ win1.contentView.background = "#444444";
 
 */
 
-
-
 var	myElements = [
 		/* Tab 0 */ {label : "France", 	value : 5},
 		/* Tab 1 */ {label : "Belgium", 	value : 7 },
@@ -66,6 +64,7 @@ var	dropDownController = win1.contentView.createElement("UIDropDownController", 
 var input = win1.contentView.createElement("UITextInput", {
 	x : 158,
 	y : 8,
+	w : 80,
 	text : "Yes, Edit me !",
 	background : "#191a18",
 	color : "#222222"
