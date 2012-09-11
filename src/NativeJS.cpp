@@ -8,6 +8,7 @@
 #include <jsapi.h>
 #include <jsprf.h>
 #include <jsfriendapi.h>
+#include <jsdbgapi.h>
 #include <math.h>
 
 #include <pthread.h>
@@ -217,57 +218,57 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
 /******** Setters ********/
 
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, jsval *vp);
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, jsval *vp);
+    JSHandleId id, JSMutableHandleValue vp);
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, jsval *vp);
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, jsval *vp);
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
 static JSPropertySpec canvas_props[] = {
-    {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"strokeStyle", CANVAS_PROP_STROKESTYLE, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"lineWidth", CANVAS_PROP_LINEWIDTH, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"globalAlpha", CANVAS_PROP_GLOBALALPHA, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
+    {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"strokeStyle", CANVAS_PROP_STROKESTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"lineWidth", CANVAS_PROP_LINEWIDTH, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"globalAlpha", CANVAS_PROP_GLOBALALPHA, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
     {"globalCompositeOperation", CANVAS_PROP_GLOBALCOMPOSITEOPERATION,
-    JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"fontSize", CANVAS_PROP_FONTSIZE, JSPROP_PERMANENT, NULL,
-    native_canvas_prop_set},
-    {"fontType", CANVAS_PROP_FONTTYPE, JSPROP_PERMANENT, NULL,
-    native_canvas_prop_set},
-    {"lineCap", CANVAS_PROP_LINECAP, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"lineJoin", CANVAS_PROP_LINEJOIN, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"shadowOffsetX", CANVAS_PROP_SHADOWOFFSETX, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"shadowOffsetY", CANVAS_PROP_SHADOWOFFSETY, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"shadowBlur", CANVAS_PROP_SHADOWBLUR, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"shadowColor", CANVAS_PROP_SHADOWCOLOR, JSPROP_PERMANENT, NULL,
-        native_canvas_prop_set},
-    {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT, native_canvas_prop_get,
-        NULL},
-    {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT, native_canvas_prop_get,
-        NULL},
-    {0, 0, 0, 0, 0}
+    JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"fontSize", CANVAS_PROP_FONTSIZE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    JSOP_WRAPPER(native_canvas_prop_set)},
+    {"fontType", CANVAS_PROP_FONTTYPE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    JSOP_WRAPPER(native_canvas_prop_set)},
+    {"lineCap", CANVAS_PROP_LINECAP, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"lineJoin", CANVAS_PROP_LINEJOIN, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"shadowOffsetX", CANVAS_PROP_SHADOWOFFSETX, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"shadowOffsetY", CANVAS_PROP_SHADOWOFFSETY, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"shadowBlur", CANVAS_PROP_SHADOWBLUR, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"shadowColor", CANVAS_PROP_SHADOWCOLOR, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT, JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT, JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSPropertySpec Image_props[] = {
-    {"src", IMAGE_PROP_SRC, 0, NULL, native_image_prop_set},
-    {0, 0, 0, 0, 0}
+    {"src", IMAGE_PROP_SRC, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_image_prop_set)},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSPropertySpec Socket_props[] = {
-    {"isBinary", SOCKET_PROP_BINARY, 0, NULL, native_socket_prop_set},
-    {0, 0, 0, 0, 0}
+    {"isBinary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_socket_prop_set)},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 /*************************/
@@ -500,19 +501,19 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, jsval *vp)
+    JSHandleId id, JSMutableHandleValue vp)
 {
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_WIDTH:
         {
-            *vp = INT_TO_JSVAL(curSkia->getWidth());
+            vp.set(INT_TO_JSVAL(curSkia->getWidth()));
         }
         break;
         case CANVAS_PROP_HEIGHT:
         {
-            *vp = INT_TO_JSVAL(curSkia->getHeight());
+            vp.set(INT_TO_JSVAL(curSkia->getHeight()));
         }
         break;
         default:
@@ -523,21 +524,21 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 }
 
 static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, jsval *vp)
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
     switch(JSID_TO_INT(id)) {
         case SOCKET_PROP_BINARY:
         {
             native_socket *nsocket;
-            if (JSVAL_IS_BOOLEAN(*vp) &&
+            if (JSVAL_IS_BOOLEAN(vp) &&
                 (nsocket = (native_socket *)JS_GetPrivate(obj.get())) != NULL) {
 
-                nsocket->flags = (JSVAL_TO_BOOLEAN(*vp) == JS_TRUE ?
+                nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
                     nsocket->flags | NATIVE_SOCKET_ISBINARY :
                     nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
 
             } else {
-                *vp = JSVAL_FALSE;
+                vp.set(JSVAL_FALSE);
                 return JS_TRUE;
             }
         }
@@ -549,16 +550,16 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
 }
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, jsval *vp)
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
     switch(JSID_TO_INT(id)) {
         case IMAGE_PROP_SRC:
         {
-            if (JSVAL_IS_STRING(*vp)) {
+            if (JSVAL_IS_STRING(vp)) {
                 NativeSkImage *ImageObject;
                 jsval rval, onload_callback;
 
-                JSAutoByteString imgPath(cx, JSVAL_TO_STRING(*vp));
+                JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
                 ImageObject = new NativeSkImage(imgPath.ptr());
                 JS_SetPrivate(obj, ImageObject);
 
@@ -577,7 +578,7 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                         0, NULL, &rval);
                 }         
             } else {
-                *vp = JSVAL_VOID;
+                vp.set(JSVAL_VOID);
                 return JS_TRUE;
             }
         }
@@ -590,7 +591,7 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
 /* TODO: do not change the value when a wrong type is set */
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, jsval *vp)
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
@@ -598,11 +599,12 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_SHADOWOFFSETX:
         {
             double ret;
-            if (!JSVAL_IS_NUMBER(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
+                
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, *vp, &ret);
+            JS_ValueToNumber(cx, vp, &ret);
 
             curSkia->setShadowOffsetX(ret);  
         }
@@ -610,11 +612,11 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_SHADOWOFFSETY:
         {
             double ret;
-            if (!JSVAL_IS_NUMBER(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, *vp, &ret);
+            JS_ValueToNumber(cx, vp, &ret);
 
             curSkia->setShadowOffsetY(ret);  
         }
@@ -622,65 +624,65 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_SHADOWBLUR:
         {
             double ret;
-            if (!JSVAL_IS_NUMBER(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, *vp, &ret);
+            JS_ValueToNumber(cx, vp, &ret);
 
             curSkia->setShadowBlur(ret);  
         }
         break;
         case CANVAS_PROP_SHADOWCOLOR:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;
             }
-            JSAutoByteString color(cx, JSVAL_TO_STRING(*vp));
+            JSAutoByteString color(cx, JSVAL_TO_STRING(vp));
             curSkia->setShadowColor(color.ptr());          
         }
         break;
         case CANVAS_PROP_FONTSIZE:
         {
             double ret;
-            if (!JSVAL_IS_NUMBER(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, *vp, &ret);
+            JS_ValueToNumber(cx, vp, &ret);
             curSkia->setFontSize(ret);
 
         }
         break;
         case CANVAS_PROP_FONTTYPE:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;
             }
-            JSAutoByteString font(cx, JSVAL_TO_STRING(*vp));
+            JSAutoByteString font(cx, JSVAL_TO_STRING(vp));
             curSkia->setFontType(font.ptr());          
         }
         break;
         case CANVAS_PROP_FILLSTYLE:
         {
-            if (JSVAL_IS_STRING(*vp)) {
-                JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
+            if (JSVAL_IS_STRING(vp)) {
+                JSAutoByteString colorName(cx, JSVAL_TO_STRING(vp));
                 curSkia->setFillColor(colorName.ptr());
-            } else if (!JSVAL_IS_PRIMITIVE(*vp) && 
-                JS_InstanceOf(cx, JSVAL_TO_OBJECT(*vp),
+            } else if (!JSVAL_IS_PRIMITIVE(vp) && 
+                JS_InstanceOf(cx, JSVAL_TO_OBJECT(vp),
                     &canvasGradient_class, NULL)) {
 
                 NativeSkGradient *gradient = (class NativeSkGradient *)
-                                            JS_GetPrivate(JSVAL_TO_OBJECT(*vp));
+                                            JS_GetPrivate(JSVAL_TO_OBJECT(vp));
 
                 curSkia->setFillColor(gradient);
 
             } else {
-                *vp = JSVAL_VOID;
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;                
             }
@@ -688,20 +690,20 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_STROKESTYLE:
         {
-            if (JSVAL_IS_STRING(*vp)) {
-                JSAutoByteString colorName(cx, JSVAL_TO_STRING(*vp));
+            if (JSVAL_IS_STRING(vp)) {
+                JSAutoByteString colorName(cx, JSVAL_TO_STRING(vp));
                 curSkia->setStrokeColor(colorName.ptr());
-            } else if (!JSVAL_IS_PRIMITIVE(*vp) && 
-                JS_InstanceOf(cx, JSVAL_TO_OBJECT(*vp),
+            } else if (!JSVAL_IS_PRIMITIVE(vp) && 
+                JS_InstanceOf(cx, JSVAL_TO_OBJECT(vp),
                     &canvasGradient_class, NULL)) {
 
                 NativeSkGradient *gradient = (class NativeSkGradient *)
-                                            JS_GetPrivate(JSVAL_TO_OBJECT(*vp));
+                                            JS_GetPrivate(JSVAL_TO_OBJECT(vp));
 
                 curSkia->setStrokeColor(gradient);
 
             } else {
-                *vp = JSVAL_VOID;
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;                
             }    
@@ -710,55 +712,55 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_LINEWIDTH:
         {
             double ret;
-            if (!JSVAL_IS_NUMBER(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, *vp, &ret);
+            JS_ValueToNumber(cx, vp, &ret);
             curSkia->setLineWidth(ret);
         }
         break;
         case CANVAS_PROP_GLOBALALPHA:
         {
             double ret;
-            if (!JSVAL_IS_NUMBER(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, *vp, &ret);
+            JS_ValueToNumber(cx, vp, &ret);
             curSkia->setGlobalAlpha(ret);
         }
         break;
         case CANVAS_PROP_GLOBALCOMPOSITEOPERATION:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;
             }
-            JSAutoByteString composite(cx, JSVAL_TO_STRING(*vp));
+            JSAutoByteString composite(cx, JSVAL_TO_STRING(vp));
             curSkia->setGlobalComposite(composite.ptr());            
         }
         break;
         case CANVAS_PROP_LINECAP:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;
             }
-            JSAutoByteString lineCap(cx, JSVAL_TO_STRING(*vp));
+            JSAutoByteString lineCap(cx, JSVAL_TO_STRING(vp));
             curSkia->setLineCap(lineCap.ptr());                
         }
         break;
         case CANVAS_PROP_LINEJOIN:
         {
-            if (!JSVAL_IS_STRING(*vp)) {
-                *vp = JSVAL_VOID;
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
 
                 return JS_TRUE;
             }
-            JSAutoByteString lineJoin(cx, JSVAL_TO_STRING(*vp));
+            JSAutoByteString lineJoin(cx, JSVAL_TO_STRING(vp));
             curSkia->setLineJoin(lineJoin.ptr());                
         }
         break;        
@@ -1578,7 +1580,7 @@ static void *native_thread(void *arg)
 
 
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
-        JSOPTION_TYPE_INFERENCE);
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
     JS_SetVersion(tcx, JSVERSION_LATEST);
 
     if (!JS_InitStandardClasses(tcx, gbl))
@@ -1890,7 +1892,7 @@ NativeJS::NativeJS()
     }
 
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
-        JSOPTION_TYPE_INFERENCE);
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
     JS_SetErrorReporter(cx, reportError);
@@ -1900,6 +1902,7 @@ NativeJS::NativeJS()
     if (!JS_InitStandardClasses(cx, gbl))
         return;
 
+    JS_DefineProfilingFunctions(cx, gbl);
 
     /* TODO: HAS_CTYPE in clang */
     //JS_InitCTypesClass(cx, gbl);
