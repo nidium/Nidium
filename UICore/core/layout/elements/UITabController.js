@@ -201,7 +201,7 @@ UIElement.extend("UITabController", {
 				self.position = i;
 			}
 			
-			this.tabs[i] = this.createElement("UITab", {
+			this.tabs[i] = this.add("UITab", {
 				x : x,
 				y : 8,
 				name : "tab_" + this.name,

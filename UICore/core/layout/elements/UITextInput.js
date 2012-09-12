@@ -11,7 +11,7 @@ UIElement.extend("UITextInput", {
 		this.background = this.options.background || "#191a18";
 		this.color = this.options.color || "#ffffff";
 
-		this.textView = this.createElement("UIText", {
+		this.textView = this.add("UIText", {
 			x : 2,
 			y : 2, 
 			w : self.w - 4,

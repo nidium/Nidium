@@ -20,12 +20,16 @@
 		gdBackground.addColorStop(1.00,'#111111');
 
 var sampleText = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
+	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
+	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
+	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
+	sampleText += "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
 
 
 
 /* --------------- */
 
-var document = new Application({background:"#262722"}),
+var main = new Application({background:"#262722"}),
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
@@ -40,34 +44,37 @@ var document = new Application({background:"#262722"}),
 		/* Tab 9 */ {label : "native.inc.js"}
 	],
 
-	mainTabController = document.createElement("UITabController", {
+	mainTabController = main.add("UITabController", {
 		name : "masterTabs",
 		tabs : myTabs,
 		background : "#191a18"
 	});
 
-	textView = document.createElement("UIText", {x:743, y:80, w:280, h:568, text:sampleText, background:"rgba(255, 255, 255, 1.00)"}),
+	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, background:"rgba(255, 255, 255, 1.00)"}),
 
-	docButton1 = document.createElement("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
-	docButton2 = document.createElement("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
-	docButton3 = document.createElement("UIButton", {x:10, y:170, label:"docButton3", background:"#CC4488", radius:6, fontSize:12, selected:false}),
-	docButton4 = document.createElement("UIButton", {x:10, y:200, label:"docButton4", background:"#8844CC", radius:6, fontSize:11, selected:false}),
-	docButton5 = document.createElement("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
-	docButton6 = document.createElement("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
+	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
-	greenView = document.createElement("UIView", {id:"greenView", x:340, y:180, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
-	overlayView = greenView.createElement("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
-	davidButton = greenView.createElement("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
-	redViewButton1 = greenView.createElement("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
-	redViewButton2 = greenView.createElement("UIButton", {x:5, y:70, label:"RedView 2", background:"#338800", selected:false}),
-	redViewButton3 = greenView.createElement("UIButton", {x:5, y:120, label:"RedView 3", background:"#338800", selected:false}),
+	//docButton1 = new UIButton({x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false});
 
-	redViewButton4 = overlayView.createElement("UIButton", {x:5, y:5, label:"RedView 4", background:"#222222", selected:false}),
-	radio1 = overlayView.createElement("UIRadio", {x:5, y:36, name:"choice", label:"Select this", selected:true}),
-	radio2 = overlayView.createElement("UIRadio", {x:5, y:56, name:"choice", label:"... or this"});
+	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
+	docButton3 = main.add("UIButton", {x:10, y:170, label:"docButton3", background:"#CC4488", radius:6, fontSize:12, selected:false}),
+	docButton4 = main.add("UIButton", {x:10, y:200, label:"docButton4", background:"#8844CC", radius:6, fontSize:11, selected:false}),
+	docButton5 = main.add("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
+	docButton6 = main.add("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
+
+	greenView = main.add("UIView", {id:"greenView", x:340, y:180, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
+	overlayView = greenView.add("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
+	davidButton = greenView.add("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
+	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
+	redViewButton2 = greenView.add("UIButton", {x:5, y:70, label:"RedView 2", background:"#338800", selected:false}),
+	redViewButton3 = greenView.add("UIButton", {x:5, y:120, label:"RedView 3", background:"#338800", selected:false}),
+
+	redViewButton4 = overlayView.add("UIButton", {x:5, y:5, label:"RedView 4", background:"#222222", selected:false}),
+	radio1 = overlayView.add("UIRadio", {x:5, y:36, name:"choice", label:"Select this", selected:true}),
+	radio2 = overlayView.add("UIRadio", {x:5, y:56, name:"choice", label:"... or this"});
 
 
-var	tabController = greenView.createElement("UITabController", {
+var	tabController = greenView.add("UITabController", {
 	name : "helloTabs",
 	y : -32,
 	tabs : [
@@ -83,11 +90,11 @@ var	tabController = greenView.createElement("UITabController", {
 
 
 
-var line = overlayView.createElement("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
-var brique = document.createElement("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
+var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
+var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
 
 
-var win = document.createElement("UIWindow", {
+var win = main.add("UIWindow", {
 	x : 80,
 	y : 100,
 	w : 300,
@@ -201,8 +208,8 @@ greenView.addEventListener("drag", function(e){
 
 
 /*
-document.addEventListener("mousedown", function(e){
-	this.createElement("UIButton", {x:e.x, y:e.y, label:"Default", background:"#222222", radius:3, selected:false})
+main.addEventListener("mousedown", function(e){
+	this.add("UIButton", {x:e.x, y:e.y, label:"Default", background:"#222222", radius:3, selected:false})
 });
 */
 
@@ -256,8 +263,8 @@ greenView.addEventListener("mouseout", function(e){
 
 window.onmousemove = function(x, y){
 
-	document.left = x - 30;
-	document.top = y - 30; 
+	main.left = x - 30;
+	main.top = y - 30; 
 
 };
 
@@ -269,7 +276,7 @@ window.onmousemove = function(x, y){
 for (var i=0; i<5; i++){
 	var x = Math.round(Math.random()*1024);
 	var y = Math.round(Math.random()*768);
-	document.createElement("UIView", {x:x, y:y, w:90, h:90, radius:10, background:"rgba(255,255,0,0.5)"});
+	main.add("UIView", {x:x, y:y, w:90, h:90, radius:10, background:"rgba(255,255,0,0.5)"});
 }
 
 */
@@ -292,8 +299,8 @@ file.onclose();
 
 
 /*
-document.hide();
-document.show();
+main.hide();
+main.show();
 myButton1.hide();
 myButton1.show();
 docButton1.show();

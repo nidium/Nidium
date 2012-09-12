@@ -3,9 +3,9 @@
 /* -------------------------- */
 
 
-var document = new Application({background:"#262722"}),
+var main = new Application({background:"#262722"}),
 
-	win1 = document.createElement("UIWindow", {
+	win1 = main.add("UIWindow", {
 		x : 150,
 		y : 150,
 		w : 400,
@@ -14,13 +14,21 @@ var document = new Application({background:"#262722"}),
 		resizable : true,
 		closeable : true,
 		movable : true
+	}),
+
+	win2 = main.add("UIWindow", {
+		x : main.w - 150,
+		y : 30,
+		w : 120,
+		h : 100,
+		closeable : true
 	});
 
-/*
-for (var i=0; i<3; i++){
-	win1.createElement("UIWindow", {
-		x : 20+i*20,
-		y : 40+i*15,
+
+for (var i=0; i<2; i++){
+	win1.add("UIWindow", {
+		x : 10+i*20,
+		y : 60+i*15,
 		w : 300,
 		h : 200,
 		background : "#191a18",
@@ -30,9 +38,7 @@ for (var i=0; i<3; i++){
 	});
 }
 
-win1.contentView.background = "#444444";
-
-*/
+win1.contentView.background = "#e0e4e8";
 
 var	myElements = [
 		/* Tab 0 */ {label : "France", 	value : 5},
@@ -51,7 +57,7 @@ var	myElements = [
 		/* Tab 9 */ {label : "Japan"}
 	];
 
-var	dropDownController = win1.contentView.createElement("UIDropDownController", {
+var	dropDownController = win1.contentView.add("UIDropDownController", {
 	x : 8,
 	y : 8,
 	name : "helloDrop",
@@ -61,7 +67,7 @@ var	dropDownController = win1.contentView.createElement("UIDropDownController", 
 	selectedColor : "#FFFFFF"
 });
 
-var input = win1.contentView.createElement("UITextInput", {
+var input = win1.contentView.add("UITextInput", {
 	x : 158,
 	y : 8,
 	w : 80,

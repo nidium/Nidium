@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 
-var document = new Application({background:"#262722"}),
+var main = new Application({background:"#262722"}),
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js", selected:true},
@@ -18,16 +18,16 @@ var document = new Application({background:"#262722"}),
 		/* Tab 9 */ {label : "native.inc.js"}
 	];
 
-var	tabController = document.createElement("UITabController", {
+var	tabController = main.add("UITabController", {
 	name : "helloTabs",
 	tabs : myTabs,
 	background : "#191a18"
 });
 
-var removeButton = document.createElement("UIButton", {x:20, y:60, label:"Remove", background:"#4488EE", fontSize:10.5}),
-	nextButton = document.createElement("UIButton", {x:82, y:60, label:"Next", background:"#882266", fontSize:10.5}),
-	addButton = document.createElement("UIButton", {x:130, y:85, label:"Add", background:"#668822", fontSize:10.5}),
-	b3 = document.createElement("UIButton", {x:20, y:85, label:"Tab 0, Position 0", background:"#000000", fontSize:10.5});
+var removeButton = main.add("UIButton", {x:20, y:60, label:"Remove", background:"#4488EE", fontSize:10.5}),
+	nextButton = main.add("UIButton", {x:82, y:60, label:"Next", background:"#882266", fontSize:10.5}),
+	addButton = main.add("UIButton", {x:130, y:85, label:"Add", background:"#668822", fontSize:10.5}),
+	b3 = main.add("UIButton", {x:20, y:85, label:"Tab 0, Position 0", background:"#000000", fontSize:10.5});
 
 
 addButton.addEventListener("mouseclick", function(){
@@ -65,7 +65,7 @@ nextButton.addEventListener("mousedown", function(){
 
 tabController.addEventListener("tabselect", function(e){
 	b3.label = "Tab " + e.tab + ", Position " + e.position;
-	document.background = tabController.tabs[e.tab].background;
+	main.background = tabController.tabs[e.tab].background;
 });
 
 tabController.addEventListener("tabswap", function(e){

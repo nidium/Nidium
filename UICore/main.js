@@ -2,9 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-/* --- DEMO APP --------------------------------------------------------- */
-
-/* NativeOS Demos */
+/* -- Native FrameWork Demos  ------------------ */
 
 load("core/native.inc.js");
 //load('demos/demo.ui.js');
@@ -12,7 +10,8 @@ load("core/native.inc.js");
 //load('demos/demo.dropdown.js');
 load('demos/demo.windows.js');
 
-/* StandAlone Demos */
+
+/* -- StandAlone Demos ------------------------- */
 
 //load('demos/demo.threads.js');
 

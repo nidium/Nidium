@@ -54,8 +54,8 @@ UIElement.extend("UIText", {
 			}
 		}, false);
 
-		this.verticalScrollBar = this.createElement("UIVerticalScrollBar");
-		this.verticalScrollBarHandle = this.verticalScrollBar.createElement("UIVerticalScrollBarHandle");
+		this.verticalScrollBar = this.add("UIVerticalScrollBar");
+		this.verticalScrollBarHandle = this.verticalScrollBar.add("UIVerticalScrollBarHandle");
 
 	},
 
