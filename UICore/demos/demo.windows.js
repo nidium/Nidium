@@ -24,7 +24,7 @@ var main = new Application({background:"#262722"}),
 		closeable : true
 	});
 
-
+/*
 for (var i=0; i<2; i++){
 	win1.add("UIWindow", {
 		x : 10+i*20,
@@ -37,8 +37,14 @@ for (var i=0; i<2; i++){
 		movable : true
 	});
 }
+*/
 
-win1.contentView.background = "#e0e4e8";
+win1.contentView.background = "#555555";
+
+var sampleText = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm.";
+textView = main.add("UIText", {x:650, y:130, w:180, h:400, text:sampleText, background:"rgba(255, 255, 255, 1.00)"});
+
+
 
 var	myElements = [
 		/* Tab 0 */ {label : "France", 	value : 5},

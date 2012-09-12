@@ -6,8 +6,8 @@
 
 var floor = Math.floor,
 	ctx = canvas,
-	cw = 160,
-	ch = 120,
+	cw = 320,
+	ch = 240,
 	width = cw,
 	height = ch,
 	size = width * height,
@@ -93,7 +93,7 @@ for (i = 0; i < size; i++) {
 	buffer1.push(0);
 }
 
-loadImage("demos/demo.water.jpeg", function(img){
+loadImage("demos/demo.water320x240.jpg", function(img){
 
 	texture = getDataFromImage(img);
 	ctx.fillRect(0, 0, width, height);

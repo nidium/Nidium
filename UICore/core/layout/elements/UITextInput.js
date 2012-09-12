@@ -18,6 +18,7 @@ UIElement.extend("UITextInput", {
 			h : self.h - 4,
 			fontSize : 11,
 			text : self.text,
+			editable : true,
 			background : "rgba(255, 255, 255, 0.85)"
 		});
 
