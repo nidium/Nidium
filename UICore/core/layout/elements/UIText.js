@@ -310,7 +310,8 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 		nb_spaces = nb_words-1,
 		nb_letters = textLine.length - nb_spaces,
 
-		spacing = fontSize/3,
+		spacewidth = 0,
+		spacing = (textAlign == "justify") ? fontSize/3 : fontSize/10,
 
 		linegap = 0,
 		gap = 0,
@@ -328,6 +329,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 	}
 
 	context.fontSize = fontSize;
+	spacewidth = widthOf(" ");
 	linegap = fitWidth - widthOf(textLine);
 
 	switch(textAlign) {
@@ -349,14 +351,17 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 			letterWidth = cachedLetterWidth(char);
 
 		if (textAlign=="justify"){
-			//letterWidth += linegap/textLine.length;
+			if (char==" "){
+				letterWidth += spacing;
+			} else {
+				letterWidth -= spacing*nb_spaces/nb_letters;
+			}
 		}
-
-		if (char==" "){
-			letterWidth += spacing;
-		} else {
-			letterWidth -= spacing*nb_spaces/nb_letters;
-		}
+		/*
+		if ( char.charCodeAt(0) == 9) {
+			letterWidth = 6 * spacewidth;
+		};
+		*/
 
 		letters[i] = {
 			char : char,

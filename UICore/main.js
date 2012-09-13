@@ -21,7 +21,7 @@ load('demos/demo.ui.js');
 //load('demos/demo.raytracer.js');
 //load('demos/demo.realtimeRayTracer.js');
 //load('demos/demo.sand.js');
-load('demos/demo.water.js');
+//load('demos/demo.water.js');
 //load('demos/demo.wires.js');
 
 

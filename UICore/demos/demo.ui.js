@@ -52,7 +52,7 @@ var main = new Application({background:"#262722"}),
 	});
 
 
-var	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, lineHeight:18, fontSize:13, textAlign:"right", background:"rgba(255, 255, 255, 1.00)", color:"#000000"}),
+var	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, lineHeight:18, fontSize:13, textAlign:"justify", background:"rgba(255, 255, 255, 1.00)", color:"#000000"}),
 
 	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
