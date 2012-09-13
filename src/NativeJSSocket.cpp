@@ -1,0 +1,265 @@
+#include "NativeJSSocket.h"
+
+static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
+static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSClass socket_class = {
+    "Socket", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSFunctionSpec socket_funcs[] = {
+    JS_FN("connect", native_socket_connect, 0, 0),
+    JS_FN("write", native_socket_write, 1, 0),
+    JS_FN("disconnect", native_socket_close, 0, 0),
+    JS_FS_END
+};
+
+static JSPropertySpec Socket_props[] = {
+    {"isBinary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
+    JSOP_WRAPPER(native_socket_prop_set)},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
+static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+{
+    switch(JSID_TO_INT(id)) {
+        case SOCKET_PROP_BINARY:
+        {
+            native_socket *nsocket;
+            if (JSVAL_IS_BOOLEAN(vp) &&
+                (nsocket = (native_socket *)JS_GetPrivate(obj.get())) != NULL) {
+
+                nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
+                    nsocket->flags | NATIVE_SOCKET_ISBINARY :
+                    nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
+
+            } else {
+                vp.set(JSVAL_FALSE);
+                return JS_TRUE;
+            }
+        }
+        break;
+        default:
+            break;
+    }
+    return JS_TRUE;
+}
+
+
+static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape)
+{
+    JSObject *this_socket = (JSObject *)s->ctx[0];
+    JSContext *cx = (JSContext *)s->ctx[1];
+    jsval onconnect, rval;
+    native_socket *nsocket;
+
+    if (this_socket == NULL || cx == NULL) {
+        return;
+    }
+
+    nsocket = (native_socket *)JS_GetPrivate(this_socket);
+    nsocket->socket = s;
+
+    if (JS_GetProperty(cx, this_socket, "onconnect", &onconnect) &&
+        JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, this_socket, onconnect,
+            0, NULL, &rval);
+    }
+}
+
+static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
+{
+    JSObject *this_socket = (JSObject *)s->ctx[0];
+    JSContext *cx = (JSContext *)s->ctx[1];
+    jsval onread, rval, jdata;
+
+    native_socket *nsocket;
+
+    if (this_socket == NULL || cx == NULL) {
+        return;
+    }
+
+    nsocket = (native_socket *)JS_GetPrivate(this_socket);
+
+    if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
+        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, s->data_in.used);
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer, cx);
+        memcpy(data, s->data_in.data, s->data_in.used);
+
+        jdata = OBJECT_TO_JSVAL(arrayBuffer);
+
+    } else {
+        jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx, (char *)s->data_in.data,
+            s->data_in.used));        
+    }
+
+    if (JS_GetProperty(cx, this_socket, "onread", &onread) &&
+        JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, this_socket, onread,
+            1, &jdata, &rval);
+    }
+}
+
+static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
+{
+    JSObject *this_socket = (JSObject *)s->ctx[0];
+    JSContext *cx = (JSContext *)s->ctx[1];
+    native_socket *nsocket = (native_socket *)s->ctx[2];
+    jsval ondisconnect, rval;
+
+    if (this_socket == NULL || cx == NULL) {
+        return;
+    }
+
+    nsocket->socket = NULL;
+
+    s->ctx[0] = NULL;
+    s->ctx[1] = NULL;
+    s->ctx[2] = NULL;
+
+    if (JS_GetProperty(cx, this_socket, "ondisconnect", &ondisconnect) &&
+        JS_TypeOfValue(cx, ondisconnect) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, this_socket, ondisconnect,
+            0, NULL, &rval);
+    }
+}
+
+static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *host;
+    unsigned int port;
+    native_socket *nsocket;
+    jsval isBinary = JSVAL_FALSE;
+
+    JSObject *ret = JS_NewObjectForConstructor(cx, &socket_class, vp);
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Su",
+        &host, &port)) {
+        return JS_TRUE;
+    }
+    JSAutoByteString chost(cx, host);
+
+    nsocket = (native_socket *)malloc(sizeof(native_socket));
+
+    nsocket->host   = JS_EncodeString(cx, host);
+    nsocket->port   = port;
+    nsocket->socket = NULL;
+    nsocket->flags  = 0;
+    JS_SetPrivate(ret, nsocket);
+
+    /* TODO: JS_IsConstructing() */
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    JS_DefineFunctions(cx, ret, socket_funcs);
+    JS_DefineProperties(cx, ret, Socket_props);
+
+    JS_SetProperty(cx, ret, "isBinary", &isBinary);
+
+    return JS_TRUE;
+}
+
+static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
+{
+    native_socket *nsocket;
+    ape_socket *socket;
+    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    nsocket = (native_socket *)JS_GetPrivate(caller);
+
+    if (nsocket == NULL || nsocket->socket != NULL) {
+        return JS_TRUE;
+    }
+
+    if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
+        printf("[Socket] Cant load socket (new)\n");
+        /* TODO: add exception */
+        return JS_TRUE;
+    }
+
+
+    socket->callbacks.on_connected  = native_socket_wrapper_onconnect;
+    socket->callbacks.on_read       = native_socket_wrapper_read;
+    socket->callbacks.on_disconnect = native_socket_wrapper_disconnect;
+
+    socket->ctx[0] = caller;
+    socket->ctx[1] = cx;
+    socket->ctx[2] = nsocket;
+
+    if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
+        printf("[Socket] Cant connect (0)\n");
+        return JS_TRUE;
+    }
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
+
+    return JS_TRUE;
+}
+
+static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *data;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    native_socket *nsocket = (native_socket *)JS_GetPrivate(caller);
+
+    if (nsocket == NULL || nsocket->socket == NULL ||
+        !JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
+        return JS_TRUE;
+    }
+
+    /* TODO: Use APE_DATA_AUTORELEASE and specicy a free func (JS_free)) */
+    JSAutoByteString cdata(cx, data);
+
+    APE_socket_write(nsocket->socket, (unsigned char*)cdata.ptr(),
+        strlen(cdata.ptr()), APE_DATA_COPY);
+
+    return JS_TRUE;
+}
+
+static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    native_socket *nsocket = (native_socket *)JS_GetPrivate(caller);
+
+    if (nsocket == NULL || nsocket->socket == NULL) {
+        return JS_TRUE;
+    }
+
+    APE_socket_shutdown(nsocket->socket);
+
+    return JS_TRUE;
+}
+
+static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    native_socket *nsocket = (native_socket *)JS_GetPrivate(obj);
+    if (nsocket == NULL) {
+        return;
+    }
+    if (nsocket->socket != NULL) {
+        nsocket->socket->ctx[0] = NULL;
+        nsocket->socket->ctx[1] = NULL;
+        nsocket->socket->ctx[2] = NULL;
+        APE_socket_destroy(nsocket->socket);
+    }
+    free(nsocket);
+}
+
+void NativeJSSocket::registerObject(JSContext *cx)
+{
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &socket_class,
+    	native_Socket_constructor,
+        0, NULL, NULL, NULL, NULL);
+
+}

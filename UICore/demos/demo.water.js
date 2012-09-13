@@ -5,9 +5,8 @@
  */
 
 var floor = Math.floor,
-	ctx = canvas,
-	cw = 160,
-	ch = 120,
+	cw = 320,
+	ch = 240,
 	width = cw,
 	height = ch,
 	size = width * height,
@@ -23,8 +22,8 @@ function clamp(x, min, max) {
 }
 
 function getDataFromImage(img) {
-	ctx.drawImage(img, 0, 0, img.width, img.height);
-	return ctx.getImageData(0, 0, img.width, img.height);
+	//ctx.drawImage(img, 0, 0, img.width, img.height);
+	return img;
 }
 
 function loadImage(src, callback) {
@@ -41,7 +40,7 @@ function disturb(x, y, z) {
 }
 
 function process() {
-	var img = ctx.getImageData(0, 0, width, height),
+	var img = {width: 320, height: 240, data: new Uint8ClampedArray(320*240*4)},
 		data = img.data,
 		i, x;
 
@@ -83,9 +82,6 @@ function process() {
 	aux = buffer0;
 	buffer0 = buffer1;
 	buffer1 = aux;
-
-	canvas.fillRect(0, 0, 1024, 768);
-	ctx.putImageData(img, 0, 0);
 }
 
 for (i = 0; i < size; i++) {
@@ -93,19 +89,16 @@ for (i = 0; i < size; i++) {
 	buffer1.push(0);
 }
 
-loadImage("demos/demo.water.jpeg", function(img){
 
-	texture = getDataFromImage(img);
-	ctx.fillRect(0, 0, width, height);
 
-	canvas.requestAnimationFrame(function(){
-		process();
-	});
 
-});
+var img = {width: 320, height: 240, data: new Uint8ClampedArray(320*240*4)};
+texture = getDataFromImage(img);
 
-canvas.onmousemove = function(e) {
-	disturb(floor(e.x / cw * width), floor(e.y / ch * height), 15000);
-}
+
+process();
+
+
+
 
 

@@ -9,6 +9,7 @@
 #include <jsprf.h>
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
+
 #include <math.h>
 
 #include <pthread.h>
@@ -59,6 +60,33 @@ typedef struct _native_socket
     int flags;
 
 } native_socket;
+
+struct native_thread_arg
+{
+    JSContext *cx;
+    jsval fn;
+    JSFunction *nfn;
+    JSString *str;
+    NativeJS *njs;
+    JSObject *obj;
+};
+
+struct native_threads_list
+{
+    JSRuntime *rt;
+    JSContext *cx;
+    pthread_t handle;
+    int is_running;
+
+    struct native_threads_list *next;
+};
+
+struct native_thread_msg
+{
+    uint64_t *data;
+    size_t nbytes;
+    JSObject *callee;
+};
 
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
@@ -1509,31 +1537,15 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-struct tpass
-{
-    JSContext *cx;
-    jsval fn;
-    JSFunction *nfn;
-    JSString *str;
-    NativeJS *njs;
-    JSObject *obj;
-};
-
-struct thread_msg
-{
-    uint64_t *data;
-    size_t nbytes;
-    JSObject *callee;
-};
 
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 {
     uint64_t *datap;
     size_t nbytes;
-    struct tpass *pass = (struct tpass*)JS_GetContextPrivate(cx);
+    struct native_thread_arg *pass = (struct native_thread_arg*)JS_GetContextPrivate(cx);
     NativeJS *njs = pass->njs;
 
-    struct thread_msg *msg;
+    struct native_thread_msg *msg;
 
     if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
         NULL, NULL)) {
@@ -1542,7 +1554,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    msg = new struct thread_msg;
+    msg = new struct native_thread_msg;
 
     //JS_WriteStructuredClone(JSContext *cx, jsval v, uint64_t **datap,
     //size_t *nbytesp, const JSStructuredCloneCallbacks *optionalCallbacks, void *closure)
@@ -1558,7 +1570,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 static void *native_thread(void *arg)
 {
-    struct tpass *pass = (struct tpass *)arg;
+    struct native_thread_arg *pass = (struct native_thread_arg *)arg;
 
     JSRuntime *rt;
     JSContext *tcx;
@@ -1578,10 +1590,10 @@ static void *native_thread(void *arg)
 
     gbl = JS_NewGlobalObject(tcx, &global_class, NULL);
 
+    JS_SetVersion(tcx, JSVERSION_LATEST);
 
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
-    JS_SetVersion(tcx, JSVERSION_LATEST);
 
     if (!JS_InitStandardClasses(tcx, gbl))
         return NULL;
@@ -1639,23 +1651,29 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &thread_class, vp);
 
+    struct native_threads_list *new_thread;
+
     pthread_t currentThread;
     jsval func;
     //uint64_t *data;
     //size_t nbytes;
 
-    struct tpass *pass = (struct tpass *)malloc(sizeof(*pass));
+    struct native_thread_arg *pass = (struct native_thread_arg *)malloc(sizeof(*pass));
 
     pass->nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0]);
 
     //JSString *src = JS_ValueToSource(cx, JS_ARGV(cx, vp)[0]);
     JSString *src = JS_DecompileFunctionBody(cx, pass->nfn, 0);
 
+    new_thread = new struct native_threads_list;
+    
+    
     pass->cx  = cx;
     pass->fn  = func;
     pass->str = src;
     pass->njs = NJS;
     pass->obj = ret;
+
 
     pthread_create(&currentThread, NULL,
                             native_thread, pass);
@@ -1891,9 +1909,12 @@ NativeJS::NativeJS()
         return;     
     }
 
+    JS_SetVersion(cx, JSVERSION_LATEST);
+
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
-    JS_SetVersion(cx, JSVERSION_LATEST);
+
+    //ion::js_IonOptions.gvnIsOptimistic = true;
 
     JS_SetErrorReporter(cx, reportError);
 
@@ -1916,6 +1937,9 @@ NativeJS::NativeJS()
     JS_SetRuntimePrivate(rt, this);
 
     LoadCanvasObject(nskia);
+
+    threads.count = 0;
+    threads.head  = NULL;
 
     messages = new NativeSharedMessages();
 
@@ -1959,12 +1983,12 @@ static int Native_handle_messages(void *arg)
 
     NativeJS *njs = (NativeJS *)arg;
     JSContext *cx = njs->cx;
-    struct thread_msg *ptr;
+    struct native_thread_msg *ptr;
     jsval onmessage, jevent, rval;
 
     JSObject *event;
 
-    while ((ptr = (struct thread_msg *)njs->messages->readMessage()) != NULL) {
+    while ((ptr = (struct native_thread_msg *)njs->messages->readMessage()) != NULL) {
 
         if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
             !JSVAL_IS_PRIMITIVE(onmessage) && 

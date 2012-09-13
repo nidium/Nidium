@@ -16,14 +16,18 @@ enum {
 };
 
 typedef struct _ape_global ape_global;
+struct native_threads_list;
 
 class NativeJS
 {
     private:   
         void LoadCanvasObject(NativeSkia *);
-        //void operator=(NativeJS const&);
         
-        jsval func;
+        struct {
+            struct native_threads_list *head;
+            int count;
+        } threads;
+
     public:
         JSContext *cx;
         NativeSharedMessages *messages;
