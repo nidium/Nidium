@@ -22,7 +22,7 @@ UIElement.extend("UIWindow", {
 			e.stopPropagation();
 		}, false);
 
-		this.handle = this.createElement("UIView", {
+		this.handle = this.add("UIView", {
 			x : 0,
 			y : 0,
 			w : self.w,
@@ -33,48 +33,50 @@ UIElement.extend("UIWindow", {
 		});
 
 
-		this.handle.addEventListener("dragstart", function(){
-			self.bounceScale(1.1, 80, function(){
-
-			});
-			self.shadowBlur = 30;
-			self.shadowColor = "rgba(0, 0, 0, 0.95)";
-		}, false);
-
-		this.handle.addEventListener("dragend", function(){
-			self.bounceScale(1, 50, function(){
-				
-			});
-			self.shadowBlur = this.options.shadowBlur || 12;
-			self.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
-		}, false);
-
 		if (this.options.movable) {
+			this.handle.addEventListener("dragstart", function(){
+				self.bounceScale(1.1, 80, function(){
+
+				});
+				self.shadowBlur = 30;
+				self.shadowColor = "rgba(0, 0, 0, 0.95)";
+			}, false);
+
 			this.handle.addEventListener("drag", function(e){
 				this.parent.left += e.xrel;
 				this.parent.top += e.yrel;
 			});
+
+			this.handle.addEventListener("dragend", function(){
+				self.bounceScale(1, 50, function(){
+					
+				});
+				self.shadowBlur = this.options.shadowBlur || 12;
+				self.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+			}, false);
+
 		}
 
-		this.handle.closeButton = this.createElement("UIButtonClose", {
-			x : this.w-18,
-			y : 4,
-			w : 16,
-			h : 16,
-			background : "rgba(0, 0, 0, 0.75)",
-			color : "#888888"
-		});
-
-		this.handle.closeButton.addEventListener("mousedown", function(){
-			self.bounceScale(0, 120, function(){
+		if (this.options.closeable) {
+			this.handle.closeButton = this.add("UIButtonClose", {
+				x : this.w-18,
+				y : 4,
+				w : 16,
+				h : 16,
+				background : "rgba(0, 0, 0, 0.75)",
+				color : "#888888"
 			});
-			self.shadowBlur = 6;
-			self.shadowColor = "rgba(0, 0, 0, 0.20)";
-			e.stopPropagation();
-		}, false);
 
+			this.handle.closeButton.addEventListener("mousedown", function(){
+				self.bounceScale(0, 120, function(){
+				});
+				self.shadowBlur = 6;
+				self.shadowColor = "rgba(0, 0, 0, 0.20)";
+				e.stopPropagation();
+			}, false);
+		}
 
-		this.contentView = this.createElement("UIView", {
+		this.contentView = this.add("UIView", {
 			x : 3,
 			y : 24,
 			w : self.w-6,
@@ -84,7 +86,9 @@ UIElement.extend("UIWindow", {
 			color : "#333333"
 		});
 
-		this.resizer = this.createElement("UIWindowResizer");
+		if (this.options.resizable) {
+			this.resizer = this.add("UIWindowResizer");
+		}
 
 	},
 

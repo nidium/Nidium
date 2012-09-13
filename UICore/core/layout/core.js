@@ -120,7 +120,7 @@ UIView.prototype = {
 
 	},
 
-	createElement : function(type, options){
+	add : function(type, options){
 		var view = new UIView(type, options, this);
 
 		UIElement.init(view);
@@ -640,6 +640,8 @@ var Application = function(options){
 
 	layout.register(view);
 	layout.refresh();
+
+	layout.rootElement = view;
 
 	/*
 	var z = new Image();

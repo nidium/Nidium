@@ -43,13 +43,13 @@ UIElement.extend("UILine", {
 		});
 		*/
 
-		this.controlPoint1 = this.createElement("UIControlPoint", {
+		this.controlPoint1 = this.add("UIControlPoint", {
 			x : this.x1,
 			y : this.y1,
 			color : this.color
 		});
 
-		this.controlPoint2 = this.createElement("UIControlPoint", {
+		this.controlPoint2 = this.add("UIControlPoint", {
 			x : this.x2,
 			y : this.y2,
 			color : this.color
@@ -77,7 +77,7 @@ UIElement.extend("UILine", {
 				y : this.y1 + (this.y2 - this.y1)/2
 			};
 
-			this.controlPoint3 = this.createElement("UIControlPoint", {
+			this.controlPoint3 = this.add("UIControlPoint", {
 				x : this.control.x,
 				y : this.control.y,
 				color : this.color

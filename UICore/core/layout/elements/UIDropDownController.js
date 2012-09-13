@@ -56,7 +56,7 @@ UIElement.extend("UIDropDownController", {
 				self.selection = i;
 			}
 
-			this.tabs[i] = this.tabsContainer.createElement("UIDropDownOption", {
+			this.tabs[i] = this.tabsContainer.add("UIDropDownOption", {
 				x : 0,
 				y : y,
 				name : "option_" + this.name,
@@ -74,7 +74,7 @@ UIElement.extend("UIDropDownController", {
 			tabs = this.options.elements ? this.options.elements : [],
 			l = tabs.length;
 
-		this.tabsContainer = this.createElement("UIView", {
+		this.tabsContainer = this.add("UIView", {
 			x : 2,
 			y : this.h+2,
 			w : this.w-4,
@@ -92,7 +92,7 @@ UIElement.extend("UIDropDownController", {
 			this.tabs[i].visible = false;
 		}
 
-		this.downButton = this.createElement("UIButtonDown", {
+		this.downButton = this.add("UIButtonDown", {
 			x : this.w-18,
 			y : 4,
 			w : 16,
@@ -150,6 +150,11 @@ UIElement.extend("UIDropDownController", {
 			} else {
 				self.openSelector();
 			}
+			e.stopPropagation();
+		}, false);
+
+		this.addEventListener("mousedown", function(e){
+			this.bringToTop();
 			e.stopPropagation();
 		}, false);
 

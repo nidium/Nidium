@@ -4,7 +4,7 @@
 
 /* --- DEMO APP : RealTime Spectral Analyser --------------------------------------------------------- */
 
-var document = new Application({animation:false});
+var main = new Application({animation:false});
 
 var Spectral = {
 
@@ -36,10 +36,10 @@ var Spectral = {
 		gdSpectrum.addColorStop(0.50,'#00ff00');
 		gdSpectrum.addColorStop(1.00,'#0000ff');
 
-		document.background = gdBack;
+		main.background = gdBack;
 
 		for (let i=0 ; i<this.nbars ; i++){
-			this.bars[i] = document.createElement("UIView", {
+			this.bars[i] = main.createElement("UIView", {
 				x : 1 + i * this.barW,
 				y : this.barY,
 				w : this.barW - 2,

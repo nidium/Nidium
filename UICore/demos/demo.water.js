@@ -5,6 +5,7 @@
  */
 
 var floor = Math.floor,
+	ctx = canvas,
 	cw = 320,
 	ch = 240,
 	width = cw,
@@ -89,6 +90,10 @@ for (i = 0; i < size; i++) {
 	buffer1.push(0);
 }
 
+<<<<<<< HEAD
+=======
+loadImage("demos/demo.water320x240.jpg", function(img){
+>>>>>>> 74e3cf311380455e055eb170aaaf67f0a7aa936a
 
 
 

@@ -28,7 +28,7 @@ UIElement.extend("UITab", {
 		if (this.options.closable) {
 			this.w += 16;
 
-			this.closeButton = this.createElement("UIButtonClose", {
+			this.closeButton = this.add("UIButtonClose", {
 				x : this.w-26,
 				y : 6,
 				w : 12,
@@ -61,7 +61,7 @@ UIElement.extend("UITab", {
 			__currentDragingTabPosition = self.parent.getPosition(this.tabnum);
 		}, false);
 
-		document.addEventListener("dragover", function(e){
+		layout.rootElement.addEventListener("dragover", function(e){
 			if (__currentDragingTabPosition===false) { return false; }
 
 			var i = __currentDragingTabPosition,

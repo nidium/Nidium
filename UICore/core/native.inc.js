@@ -44,6 +44,8 @@ var layout = {
 	nodes : {},
 	elements : [],
 
+	rootElement : null,
+
 	higherzIndex : 0,
 
 	register : function(element){

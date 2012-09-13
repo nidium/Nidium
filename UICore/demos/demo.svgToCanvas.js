@@ -4,8 +4,6 @@
 
 /* --- DEMO APP --------------------------------------------------------- */
 
-
-var document = new Application({animation:false});
 var ctx = canvas;
 
 canvas.requestAnimationFrame(function(){

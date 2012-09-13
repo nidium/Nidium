@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 
-var document = new Application({background:"#262722"}),
+var main = new Application({background:"#262722"}),
 
 
 	myTabs = [
@@ -19,7 +19,7 @@ var document = new Application({background:"#262722"}),
 		/* Tab 9 */ {label : "native.inc.js"}
 	];
 
-var	tabController = document.createElement("UITabController", {
+var	tabController = main.add("UITabController", {
 	name : "helloTabs",
 	tabs : myTabs,
 	background : "#191a18"
@@ -44,9 +44,9 @@ var	myElements = [
 		/* Tab 9 */ {label : "Japan"}
 	];
 
-var	dropDownController = document.createElement("UIDropDownController", {
+var	dropDownController = main.add("UIDropDownController", {
 	x : 80,
-	y : 50,
+	y : 80,
 	name : "helloDrop",
 	radius : 6,
 	elements : myElements,
@@ -55,12 +55,3 @@ var	dropDownController = document.createElement("UIDropDownController", {
 	selectedColor : "#FFFFFF"
 });
 
-
-var win1 = document.createElement("UIWindow", {
-	x : 50,
-	y : 200,
-	w : 400,
-	h : 300,
-	resizable : true,
-	closeable : true
-});
