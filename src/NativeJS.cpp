@@ -4,6 +4,7 @@
 #include "NativeSkImage.h"
 #include "NativeSharedMessages.h"
 #include "NativeJSSocket.h"
+#include "NativeJSThread.h"
 #include <native_netlib.h>
 #include <stdio.h>
 #include <jsapi.h>
@@ -13,7 +14,6 @@
 
 #include <math.h>
 
-#include <pthread.h>
 
 enum {
     CANVAS_PROP_FILLSTYLE = 1,
@@ -49,33 +49,6 @@ struct _native_sm_timer
 };
 
 
-
-struct native_thread_arg
-{
-    JSContext *cx;
-    jsval fn;
-    JSFunction *nfn;
-    JSString *str;
-    NativeJS *njs;
-    JSObject *obj;
-};
-
-struct native_threads_list
-{
-    JSRuntime *rt;
-    JSContext *cx;
-    pthread_t handle;
-    int is_running;
-
-    struct native_threads_list *next;
-};
-
-struct native_thread_msg
-{
-    uint64_t *data;
-    size_t nbytes;
-    JSObject *callee;
-};
 
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
@@ -119,12 +92,6 @@ static JSClass imageData_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSClass thread_class = {
-    "Thread", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
 
 static JSClass canvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
@@ -268,10 +235,6 @@ static JSPropertySpec Image_props[] = {
 
 /*************************/
 
-static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("send", native_post_message, 1, 0),
-    JS_FS_END
-};
 
 static JSFunctionSpec glob_funcs[] = {
     
@@ -357,7 +320,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static void
+void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     int i, j, k, n;
@@ -1267,152 +1230,6 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-
-static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
-{
-    uint64_t *datap;
-    size_t nbytes;
-    struct native_thread_arg *pass = (struct native_thread_arg*)JS_GetContextPrivate(cx);
-    NativeJS *njs = pass->njs;
-
-    struct native_thread_msg *msg;
-
-    if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
-        NULL, NULL)) {
-        printf("Failed to write strclone\n");
-        /* TODO: exception */
-        return JS_TRUE;
-    }
-
-    msg = new struct native_thread_msg;
-
-    //JS_WriteStructuredClone(JSContext *cx, jsval v, uint64_t **datap,
-    //size_t *nbytesp, const JSStructuredCloneCallbacks *optionalCallbacks, void *closure)
-
-    msg->data   = datap;
-    msg->nbytes = nbytes;
-    msg->callee = pass->obj;
-
-    njs->messages->postMessage(msg);
-
-    return JS_TRUE;
-}
-
-static void *native_thread(void *arg)
-{
-    struct native_thread_arg *pass = (struct native_thread_arg *)arg;
-
-    JSRuntime *rt;
-    JSContext *tcx;
-    jsval rval;
-    JSObject *gbl;
-
-
-    if ((rt = JS_NewRuntime(128L * 1024L * 1024L)) == NULL) {
-        printf("Failed to init JS runtime\n");
-        return NULL;
-    }
-
-    if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
-        printf("Failed to init JS context\n");
-        return NULL;     
-    }
-
-    gbl = JS_NewGlobalObject(tcx, &global_class, NULL);
-
-    JS_SetVersion(tcx, JSVERSION_LATEST);
-
-    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
-        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
-
-    if (!JS_InitStandardClasses(tcx, gbl))
-        return NULL;
-    
-    JS_SetErrorReporter(tcx, reportError);
-
-    JS_SetGlobalObject(tcx, gbl);
-
-    JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
-
-    JSAutoByteString str(tcx, pass->str);
-
-    /* Hold the parent cx */
-    JS_SetContextPrivate(tcx, pass);
-
-#if 0
-    JSObject *ff = (JSObject *)pass->nfn;
-    JSCrossCompartmentCall *call;
-    if ((call = JS_EnterCrossCompartmentCall(tcx, ff)) == NULL) {
-        printf("Failed to cross compart\n");
-    }
-
-    //JSAutoEnterCompartment ac;
-    //ac.enter(tcx, (JSObject *)fn);
-    if (JS_WrapObject(tcx, &ff) == JS_FALSE) {
-        printf("failed to wrap\n");
-    }
-    printf("calling\n");
-    //JS_CallFunction(JSContext *cx, JSObject *obj, JSFunction *fun, unsigned int argc, jsval *argv, jsval *rval)
-    JS_CallFunction(tcx, gbl, (JSFunction *)ff, 0, NULL, &rval);
-    /*if (JS_CallFunctionValue(tcx, gbl, pass->fn, 0, NULL, &rval) == JS_FALSE) {
-        printf("failed\n");
-    }*/
-    JS_LeaveCrossCompartmentCall(call);
-#endif
-    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, str.ptr(),
-        strlen(str.ptr()), NULL, 0);
-    if (cf == NULL) {
-        printf("Cant compile function\n");
-        return NULL;
-    }
-    
-    if (JS_CallFunction(tcx, gbl, cf, 0, NULL, &rval) == JS_FALSE) {
-        printf("Got an error?\n");
-    }
-
-    free(pass);
-
-    /* TODO: destroy context, runtime, etc... */
-
-    return NULL;
-}
-
-static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSObject *ret = JS_NewObjectForConstructor(cx, &thread_class, vp);
-
-    struct native_threads_list *new_thread;
-
-    pthread_t currentThread;
-    jsval func;
-    //uint64_t *data;
-    //size_t nbytes;
-
-    struct native_thread_arg *pass = (struct native_thread_arg *)malloc(sizeof(*pass));
-
-    pass->nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0]);
-
-    //JSString *src = JS_ValueToSource(cx, JS_ARGV(cx, vp)[0]);
-    JSString *src = JS_DecompileFunctionBody(cx, pass->nfn, 0);
-
-    new_thread = new struct native_threads_list;
-
-
-    pass->cx  = cx;
-    pass->fn  = func;
-    pass->str = src;
-    pass->njs = NJS;
-    pass->obj = ret;
-
-
-    pthread_create(&currentThread, NULL,
-                            native_thread, pass);
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    return JS_TRUE;
-}
-
 void NativeJS::callFrame()
 {
     jsval rval;
@@ -1668,9 +1485,6 @@ NativeJS::NativeJS()
 
     LoadCanvasObject(nskia);
 
-    threads.count = 0;
-    threads.head  = NULL;
-
     messages = new NativeSharedMessages();
 
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
@@ -1792,8 +1606,10 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 
     JS_SetPrivate(canvasObj, currentSkia);
 
-    /* Socket (client) object */
+    /* Socket() (client) object */
     NativeJSSocket::registerObject(cx);
+    /* Thread() object */
+    NativeJSThread::registerObject(cx);
 
     /* Image object */
     JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,
@@ -1803,9 +1619,6 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
         2, NULL, NULL, NULL, NULL);   
 
-    /* Threaded object */
-    JS_InitClass(cx, gbl, NULL, &thread_class, native_Thread_constructor,
-        0, NULL, NULL, NULL, NULL);
 }
 
 void NativeJS::gc()
