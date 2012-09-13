@@ -7,7 +7,7 @@
 class NativeJSExposer
 {
   public:
-  	JSContext *cx;
+    JSContext *cx;
 };
 
 #endif

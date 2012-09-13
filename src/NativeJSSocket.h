@@ -9,7 +9,7 @@ enum {
 };
 
 enum {
-	SOCKET_PROP_BINARY
+    SOCKET_PROP_BINARY
 };
 
 typedef struct _native_socket
@@ -25,26 +25,26 @@ typedef struct _native_socket
 class NativeJSSocket : public NativeJSExposer
 {
   public:
-	static void registerObject(JSContext *cx);
-	NativeJSSocket(const char *host, unsigned short port);
-	~NativeJSSocket();
+    static void registerObject(JSContext *cx);
+    NativeJSSocket(const char *host, unsigned short port);
+    ~NativeJSSocket();
 
-	void write(unsigned char *data, size_t len,
-		ape_socket_data_autorelease data_type);
+    void write(unsigned char *data, size_t len,
+        ape_socket_data_autorelease data_type);
 
-	void destroy();
-	void shutdown();
+    void destroy();
+    void shutdown();
 
-	void dettach();
-	bool isAttached();
+    void dettach();
+    bool isAttached();
 
-	bool isJSCallable();
+    bool isJSCallable();
 
-	JSObject *jsobject;
-	const char *host;
-	unsigned short port;
-	ape_socket *socket;
-	int flags;
+    JSObject *jsobject;
+    const char *host;
+    unsigned short port;
+    ape_socket *socket;
+    int flags;
 };
 
 #endif
