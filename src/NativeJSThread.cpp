@@ -32,9 +32,22 @@ static JSFunctionSpec glob_funcs_threaded[] = {
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSThread *nthread = (NativeJSThread *)JS_GetPrivate(obj);
+
     if (nthread != NULL) {
+        printf("Thread is out of scope\n");
         delete nthread;
-    }    
+    }
+}
+
+static JSBool JSThreadCallback(JSContext *cx)
+{
+    NativeJSThread *nthread;
+
+    if ((nthread = (NativeJSThread *)JS_GetContextPrivate(cx)) == NULL ||
+        nthread->markedStop) {
+        return JS_FALSE;
+    }
+    return JS_TRUE;
 }
 
 static void *native_thread(void *arg)
@@ -51,10 +64,17 @@ static void *native_thread(void *arg)
         return NULL;
     }
 
+    JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
+    JS_SetGCParameter(rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
+    JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
+    
     if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
         return NULL;     
     }
+    JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
+
+    JS_SetOperationCallback(tcx, JSThreadCallback);
 
     nthread->jsRuntime = rt;
     nthread->jsCx      = tcx;
@@ -89,8 +109,10 @@ static void *native_thread(void *arg)
     }
     
     if (JS_CallFunction(tcx, gbl, cf, 0, NULL, &rval) == JS_FALSE) {
-        printf("Got an error?\n");
+        printf("Got an error?\n"); /* or thread has ended */
     }
+
+    printf("Thread has ended\n");
 
     return NULL;
 }
@@ -112,6 +134,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     nthread->jsObject 	= ret;
     nthread->njs 		= NJS;
+
+    JS_SetPrivate(ret, nthread);
 
     pthread_create(&nthread->threadHandle, NULL,
                             native_thread, nthread);
@@ -154,7 +178,11 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSThread::~NativeJSThread()
 {
+    printf("Destroying...\n");
+    this->markedStop = true;
+    JS_TriggerOperationCallback(this->jsRuntime);
 
+    pthread_join(this->threadHandle, NULL);
 	if (this->jsCx) {
 		JS_DestroyContext(this->jsCx);
 	}
@@ -165,7 +193,8 @@ NativeJSThread::~NativeJSThread()
 }
 
 NativeJSThread::NativeJSThread()
-	: jsFunction(NULL), jsRuntime(NULL), jsCx(NULL), jsObject(NULL), njs(NULL)
+	: jsFunction(NULL), jsRuntime(NULL), jsCx(NULL),
+    jsObject(NULL), njs(NULL), markedStop(false)
 {
 	/* cx hold the main context (caller) */
 	/* jsCx hold the newly created context (along with jsRuntime) */

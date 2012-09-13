@@ -19,6 +19,7 @@ class NativeJSThread : public NativeJSExposer
     JSContext *jsCx;
     JSObject *jsObject;
     NativeJS *njs;
+    bool markedStop;
 
     pthread_t threadHandle;
 };
