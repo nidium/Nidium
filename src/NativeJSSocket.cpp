@@ -242,9 +242,12 @@ static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
-	: socket(NULL), flags(0), jsobject(NULL)
+	: jsobject(NULL), socket(NULL), flags(0)
 {
 	cx = NULL;
+	
+	this->host = host;
+	this->port = port;
 }
 
 NativeJSSocket::~NativeJSSocket()

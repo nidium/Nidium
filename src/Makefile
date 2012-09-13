@@ -19,7 +19,7 @@ CPPFLAGS= -O2  -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1  -Qunus
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp NativeSharedMessages.cpp
+SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp NativeSharedMessages.cpp NativeJSExposer.cpp NativeJSSocket.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a
 
