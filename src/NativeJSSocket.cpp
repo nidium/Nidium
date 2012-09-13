@@ -33,9 +33,9 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     switch(JSID_TO_INT(id)) {
         case SOCKET_PROP_BINARY:
         {
-            native_socket *nsocket;
+            NativeJSSocket *nsocket;
             if (JSVAL_IS_BOOLEAN(vp) &&
-                (nsocket = (native_socket *)JS_GetPrivate(obj.get())) != NULL) {
+                (nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get())) != NULL) {
 
                 nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
                     nsocket->flags | NATIVE_SOCKET_ISBINARY :
@@ -53,42 +53,40 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     return JS_TRUE;
 }
 
-
 static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape)
 {
-    JSObject *this_socket = (JSObject *)s->ctx[0];
-    JSContext *cx = (JSContext *)s->ctx[1];
+    JSContext *cx;
     jsval onconnect, rval;
-    native_socket *nsocket;
+    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx[2];
 
-    if (this_socket == NULL || cx == NULL) {
+    if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
     }
 
-    nsocket = (native_socket *)JS_GetPrivate(this_socket);
+    cx = nsocket->cx;
+
     nsocket->socket = s;
 
-    if (JS_GetProperty(cx, this_socket, "onconnect", &onconnect) &&
+    if (JS_GetProperty(cx, nsocket->jsobject, "onconnect", &onconnect) &&
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, this_socket, onconnect,
+        JS_CallFunctionValue(cx, nsocket->jsobject, onconnect,
             0, NULL, &rval);
     }
 }
 
 static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
 {
-    JSObject *this_socket = (JSObject *)s->ctx[0];
-    JSContext *cx = (JSContext *)s->ctx[1];
+    JSContext *cx;
     jsval onread, rval, jdata;
 
-    native_socket *nsocket;
+    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx[2];
 
-    if (this_socket == NULL || cx == NULL) {
+    if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
     }
 
-    nsocket = (native_socket *)JS_GetPrivate(this_socket);
+    cx = nsocket->cx;
 
     if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, s->data_in.used);
@@ -102,35 +100,32 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
             s->data_in.used));        
     }
 
-    if (JS_GetProperty(cx, this_socket, "onread", &onread) &&
+    if (JS_GetProperty(cx, nsocket->jsobject, "onread", &onread) &&
         JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, this_socket, onread,
+        JS_CallFunctionValue(cx, nsocket->jsobject, onread,
             1, &jdata, &rval);
     }
 }
 
 static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
 {
-    JSObject *this_socket = (JSObject *)s->ctx[0];
-    JSContext *cx = (JSContext *)s->ctx[1];
-    native_socket *nsocket = (native_socket *)s->ctx[2];
+    JSContext *cx;
+    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx[2];
     jsval ondisconnect, rval;
 
-    if (this_socket == NULL || cx == NULL) {
+    if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
     }
 
-    nsocket->socket = NULL;
+    cx = nsocket->cx;
 
-    s->ctx[0] = NULL;
-    s->ctx[1] = NULL;
-    s->ctx[2] = NULL;
+    nsocket->dettach();
 
-    if (JS_GetProperty(cx, this_socket, "ondisconnect", &ondisconnect) &&
+    if (JS_GetProperty(cx, nsocket->jsobject, "ondisconnect", &ondisconnect) &&
         JS_TypeOfValue(cx, ondisconnect) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, this_socket, ondisconnect,
+        JS_CallFunctionValue(cx, nsocket->jsobject, ondisconnect,
             0, NULL, &rval);
     }
 }
@@ -139,7 +134,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *host;
     unsigned int port;
-    native_socket *nsocket;
+    NativeJSSocket *nsocket;
     jsval isBinary = JSVAL_FALSE;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &socket_class, vp);
@@ -150,12 +145,8 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
     JSAutoByteString chost(cx, host);
 
-    nsocket = (native_socket *)malloc(sizeof(native_socket));
+    nsocket = new NativeJSSocket(JS_EncodeString(cx, host), port);
 
-    nsocket->host   = JS_EncodeString(cx, host);
-    nsocket->port   = port;
-    nsocket->socket = NULL;
-    nsocket->flags  = 0;
     JS_SetPrivate(ret, nsocket);
 
     /* TODO: JS_IsConstructing() */
@@ -171,14 +162,12 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    native_socket *nsocket;
     ape_socket *socket;
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
-    nsocket = (native_socket *)JS_GetPrivate(caller);
-
-    if (nsocket == NULL || nsocket->socket != NULL) {
+    if (nsocket == NULL || nsocket->isAttached()) {
         return JS_TRUE;
     }
 
@@ -197,6 +186,9 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     socket->ctx[1] = cx;
     socket->ctx[2] = nsocket;
 
+    nsocket->cx 	  = cx;
+    nsocket->jsobject = caller;
+
     if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
         printf("[Socket] Cant connect (0)\n");
         return JS_TRUE;
@@ -211,9 +203,9 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *data;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
-    native_socket *nsocket = (native_socket *)JS_GetPrivate(caller);
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
-    if (nsocket == NULL || nsocket->socket == NULL ||
+    if (nsocket == NULL || !nsocket->isAttached() ||
         !JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
         return JS_TRUE;
     }
@@ -221,8 +213,8 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     /* TODO: Use APE_DATA_AUTORELEASE and specicy a free func (JS_free)) */
     JSAutoByteString cdata(cx, data);
 
-    APE_socket_write(nsocket->socket, (unsigned char*)cdata.ptr(),
-        strlen(cdata.ptr()), APE_DATA_COPY);
+    nsocket->write((unsigned char*)cdata.ptr(),
+    	strlen(cdata.ptr()), APE_DATA_COPY);
 
     return JS_TRUE;
 }
@@ -230,30 +222,75 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
-    native_socket *nsocket = (native_socket *)JS_GetPrivate(caller);
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
-    if (nsocket == NULL || nsocket->socket == NULL) {
+    if (nsocket == NULL || !nsocket->isAttached()) {
         return JS_TRUE;
     }
 
-    APE_socket_shutdown(nsocket->socket);
+    nsocket->shutdown();
 
     return JS_TRUE;
 }
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    native_socket *nsocket = (native_socket *)JS_GetPrivate(obj);
-    if (nsocket == NULL) {
-        return;
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    if (nsocket != NULL) {
+        delete nsocket;
     }
-    if (nsocket->socket != NULL) {
-        nsocket->socket->ctx[0] = NULL;
-        nsocket->socket->ctx[1] = NULL;
-        nsocket->socket->ctx[2] = NULL;
-        APE_socket_destroy(nsocket->socket);
-    }
-    free(nsocket);
+}
+
+NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
+	: socket(NULL), flags(0), jsobject(NULL)
+{
+	cx = NULL;
+}
+
+NativeJSSocket::~NativeJSSocket()
+{
+	if (isAttached()) {
+		socket->ctx[0] = NULL;
+		socket->ctx[1] = NULL;
+		socket->ctx[2] = NULL;
+	}
+}
+
+bool NativeJSSocket::isAttached()
+{
+	return (socket != NULL);
+}
+
+bool NativeJSSocket::isJSCallable()
+{
+	return (cx != NULL && jsobject != NULL);
+}
+
+void NativeJSSocket::dettach()
+{
+	if (isAttached()) {
+		socket->ctx[0] = NULL;
+		socket->ctx[1] = NULL;
+		socket->ctx[2] = NULL;
+
+		socket = NULL;
+	}
+}
+
+void NativeJSSocket::write(unsigned char *data, size_t len,
+	ape_socket_data_autorelease data_type)
+{
+	APE_socket_write(socket, data, len, data_type);
+}
+
+void NativeJSSocket::destroy()
+{
+	APE_socket_destroy(socket);
+}
+
+void NativeJSSocket::shutdown()
+{
+	APE_socket_shutdown(socket);
 }
 
 void NativeJSSocket::registerObject(JSContext *cx)
