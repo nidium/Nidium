@@ -22,7 +22,7 @@
 var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
 	st = [],
 	sampleText = '';
-for (var t=0; t<200; t++){
+for (var t=0; t<30; t++){
 	st.push(template);
 }
 sampleText = st.join('');
@@ -51,7 +51,8 @@ var main = new Application({background:"#262722"}),
 		background : "#191a18"
 	});
 
-	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, background:"rgba(255, 255, 255, 1.00)"}),
+
+var	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, lineHeight:18, fontSize:13, textAlign:"right", background:"rgba(255, 255, 255, 1.00)", color:"#000000"}),
 
 	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
@@ -63,7 +64,10 @@ var main = new Application({background:"#262722"}),
 	docButton5 = main.add("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
 	docButton6 = main.add("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
 
-	greenView = main.add("UIView", {id:"greenView", x:340, y:180, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
+	getTextButton = main.add("UIButton", {x:743, y:50, label:"Get Text Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
+
+
+	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
 	overlayView = greenView.add("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
 	davidButton = greenView.add("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
 	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
@@ -96,7 +100,7 @@ var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:
 
 
 var win = main.add("UIWindow", {
-	x : 80,
+	x : 280,
 	y : 100,
 	w : 300,
 	h : 200,
@@ -135,6 +139,12 @@ docButton3.addEventListener("mousedown", function(e){
 
 docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200, function(){});
+});
+
+
+getTextButton.addEventListener("mousedown", function(e){
+	echo(">>" + textView.selection.text + "<<");
+	echo("");
 });
 
 

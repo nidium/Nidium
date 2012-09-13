@@ -104,11 +104,17 @@ var UIView = function(type, options, parent){
 
 	// -- style properties
 	this.background = (this.options.background && this.options.background!='') ? this.options.background : '';
-	this.color = _get("color", ""); //this.options.color ? this.options.color : '';
-	this.fontSize = _get("fontSize", 12, 0, 200); //this.options.fontSize ? this.options.fontSize : 12;
-	this.lineWidth = _get("lineWidth", 1, 0); //this.options.lineWidth ? this.options.lineWidth : 1;
-	this.radius = _get("radius", 0, 0); //this.options.radius ? this.options.radius : 0;
-	this.shadowBlur = _get("shadowBlur", 0, 0, 128); //this.options.shadowBlur ? Math.round(this.options.shadowBlur) : 0;
+	this.color = _get("color", "");
+	this.radius = _get("radius", 0, 0);
+	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
+	this.lineWidth = _get("lineWidth", 1, 0);
+	this.lineHeight = _get("lineHeight", 18, 1, this.fontSize);
+	this.fontSize = _get("fontSize", 12, 0, 74);
+	this.fontType = _get("fontType", "arial");
+
+	let align = this.options.textAlign && typeof(this.options.textAlign=="string") ? this.options.textAlign.toLowerCase() : "left";
+	this.textAlign = align && (align=="left" || align=="right" || align=="justify" || align=="center") ? align : 'left';
+
 
 	// -- launch view constructor and init dynamic properties
 	this.__construct();

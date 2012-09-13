@@ -35,6 +35,10 @@ canvas.implement({
 	}
 });
 
+Number.prototype.bound = function(min, max){
+	return Math.min(Math.max(min, this), max);
+};
+
 var console = {
 	iteration : 0,
 	maxIterations : 10,
