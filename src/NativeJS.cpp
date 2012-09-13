@@ -3,15 +3,17 @@
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
 #include "NativeSharedMessages.h"
+#include "NativeJSSocket.h"
+#include "NativeJSThread.h"
 #include <native_netlib.h>
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
+
 #include <math.h>
 
-#include <pthread.h>
 
 enum {
     CANVAS_PROP_FILLSTYLE = 1,
@@ -29,8 +31,7 @@ enum {
     CANVAS_PROP_SHADOWOFFSETY,
     CANVAS_PROP_SHADOWBLUR,
     CANVAS_PROP_SHADOWCOLOR,
-    IMAGE_PROP_SRC,
-    SOCKET_PROP_BINARY
+    IMAGE_PROP_SRC
 };
 
 struct _native_sm_timer
@@ -47,18 +48,7 @@ struct _native_sm_timer
     ape_timer *timerng;
 };
 
-enum {
-    NATIVE_SOCKET_ISBINARY = 1 << 0
-};
 
-typedef struct _native_socket
-{
-    const char *host;
-    unsigned short port;
-    ape_socket *socket;
-    int flags;
-
-} native_socket;
 
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
@@ -72,11 +62,7 @@ static int native_timerng_wrapper(void *arg);
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
-static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape);
-static void native_socket_wrapper_read(ape_socket *s, ape_global *ape);
-static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape);
 
 static JSClass global_class = {
     "_GLOBAL", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -89,13 +75,6 @@ static JSClass canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-
-static JSClass socket_class = {
-    "Socket", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -113,12 +92,6 @@ static JSClass imageData_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSClass thread_class = {
-    "Thread", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
 
 static JSClass canvasGradient_class = {
     "CanvasGradient", JSCLASS_HAS_PRIVATE,
@@ -205,10 +178,6 @@ static JSBool native_canvasGradient_addColorStop(JSContext *cx,
 static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
     unsigned argc, jsval *vp);
 
-static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
-
 static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
@@ -222,8 +191,6 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
-static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
 static JSPropertySpec canvas_props[] = {
@@ -266,17 +233,8 @@ static JSPropertySpec Image_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSPropertySpec Socket_props[] = {
-    {"isBinary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_socket_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
-};
-
 /*************************/
 
-static JSFunctionSpec glob_funcs_threaded[] = {
-    JS_FN("send", native_post_message, 1, 0),
-    JS_FS_END
-};
 
 static JSFunctionSpec glob_funcs[] = {
     
@@ -293,13 +251,6 @@ static JSFunctionSpec gradient_funcs[] = {
     
     JS_FN("addColorStop", native_canvasGradient_addColorStop, 2, 0),
 
-    JS_FS_END
-};
-
-static JSFunctionSpec socket_funcs[] = {
-    JS_FN("connect", native_socket_connect, 0, 0),
-    JS_FN("write", native_socket_write, 1, 0),
-    JS_FN("disconnect", native_socket_close, 0, 0),
     JS_FS_END
 };
 
@@ -352,20 +303,6 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    native_socket *nsocket = (native_socket *)JS_GetPrivate(obj);
-    if (nsocket == NULL) {
-        return;
-    }
-    if (nsocket->socket != NULL) {
-        nsocket->socket->ctx[0] = NULL;
-        nsocket->socket->ctx[1] = NULL;
-        nsocket->socket->ctx[2] = NULL;
-        APE_socket_destroy(nsocket->socket);
-    }
-    free(nsocket);
-}
 
 void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -383,7 +320,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static void
+void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     int i, j, k, n;
@@ -520,32 +457,6 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
     }
 
-    return JS_TRUE;
-}
-
-static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
-{
-    switch(JSID_TO_INT(id)) {
-        case SOCKET_PROP_BINARY:
-        {
-            native_socket *nsocket;
-            if (JSVAL_IS_BOOLEAN(vp) &&
-                (nsocket = (native_socket *)JS_GetPrivate(obj.get())) != NULL) {
-
-                nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
-                    nsocket->flags | NATIVE_SOCKET_ISBINARY :
-                    nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
-
-            } else {
-                vp.set(JSVAL_FALSE);
-                return JS_TRUE;
-            }
-        }
-        break;
-        default:
-            break;
-    }
     return JS_TRUE;
 }
 
@@ -1198,79 +1109,6 @@ static JSBool native_canvasGradient_addColorStop(JSContext *cx,
     return JS_TRUE;
 }
 
-static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
-{
-    native_socket *nsocket;
-    ape_socket *socket;
-    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
-
-    nsocket = (native_socket *)JS_GetPrivate(caller);
-
-    if (nsocket == NULL || nsocket->socket != NULL) {
-        return JS_TRUE;
-    }
-
-    if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
-        printf("[Socket] Cant load socket (new)\n");
-        /* TODO: add exception */
-        return JS_TRUE;
-    }
-
-
-    socket->callbacks.on_connected  = native_socket_wrapper_onconnect;
-    socket->callbacks.on_read       = native_socket_wrapper_read;
-    socket->callbacks.on_disconnect = native_socket_wrapper_disconnect;
-
-    socket->ctx[0] = caller;
-    socket->ctx[1] = cx;
-    socket->ctx[2] = nsocket;
-
-    if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
-        printf("[Socket] Cant connect (0)\n");
-        return JS_TRUE;
-    }
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
-
-    return JS_TRUE;
-}
-
-static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSString *data;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
-    native_socket *nsocket = (native_socket *)JS_GetPrivate(caller);
-
-    if (nsocket == NULL || nsocket->socket == NULL ||
-        !JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
-        return JS_TRUE;
-    }
-
-    /* TODO: Use APE_DATA_AUTORELEASE and specicy a free func (JS_free)) */
-    JSAutoByteString cdata(cx, data);
-
-    APE_socket_write(nsocket->socket, (unsigned char*)cdata.ptr(),
-        strlen(cdata.ptr()), APE_DATA_COPY);
-
-    return JS_TRUE;
-}
-
-static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
-    native_socket *nsocket = (native_socket *)JS_GetPrivate(caller);
-
-    if (nsocket == NULL || nsocket->socket == NULL) {
-        return JS_TRUE;
-    }
-
-    APE_socket_shutdown(nsocket->socket);
-
-    return JS_TRUE;
-}
-
-
 static JSBool native_canvas_requestAnimationFrame(JSContext *cx,
     unsigned argc, jsval *vp)
 {
@@ -1354,123 +1192,6 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
-static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape)
-{
-    JSObject *this_socket = (JSObject *)s->ctx[0];
-    JSContext *cx = (JSContext *)s->ctx[1];
-    jsval onconnect, rval;
-    native_socket *nsocket;
-
-    if (this_socket == NULL || cx == NULL) {
-        return;
-    }
-
-    nsocket = (native_socket *)JS_GetPrivate(this_socket);
-    nsocket->socket = s;
-
-    if (JS_GetProperty(cx, this_socket, "onconnect", &onconnect) &&
-        JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
-
-        JS_CallFunctionValue(cx, this_socket, onconnect,
-            0, NULL, &rval);
-    }
-}
-
-static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
-{
-    JSObject *this_socket = (JSObject *)s->ctx[0];
-    JSContext *cx = (JSContext *)s->ctx[1];
-    jsval onread, rval, jdata;
-
-    native_socket *nsocket;
-
-    if (this_socket == NULL || cx == NULL) {
-        return;
-    }
-
-    nsocket = (native_socket *)JS_GetPrivate(this_socket);
-
-    if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
-        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, s->data_in.used);
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer, cx);
-        memcpy(data, s->data_in.data, s->data_in.used);
-
-        jdata = OBJECT_TO_JSVAL(arrayBuffer);
-
-    } else {
-        jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx, (char *)s->data_in.data,
-            s->data_in.used));        
-    }
-
-    if (JS_GetProperty(cx, this_socket, "onread", &onread) &&
-        JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
-
-        JS_CallFunctionValue(cx, this_socket, onread,
-            1, &jdata, &rval);
-    }
-}
-
-static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
-{
-    JSObject *this_socket = (JSObject *)s->ctx[0];
-    JSContext *cx = (JSContext *)s->ctx[1];
-    native_socket *nsocket = (native_socket *)s->ctx[2];
-    jsval ondisconnect, rval;
-
-    if (this_socket == NULL || cx == NULL) {
-        return;
-    }
-
-    nsocket->socket = NULL;
-
-    s->ctx[0] = NULL;
-    s->ctx[1] = NULL;
-    s->ctx[2] = NULL;
-
-    if (JS_GetProperty(cx, this_socket, "ondisconnect", &ondisconnect) &&
-        JS_TypeOfValue(cx, ondisconnect) == JSTYPE_FUNCTION) {
-
-        JS_CallFunctionValue(cx, this_socket, ondisconnect,
-            0, NULL, &rval);
-    }
-}
-
-static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSString *host;
-    unsigned int port;
-    native_socket *nsocket;
-    jsval isBinary = JSVAL_FALSE;
-
-    JSObject *ret = JS_NewObjectForConstructor(cx, &socket_class, vp);
-
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Su",
-        &host, &port)) {
-        return JS_TRUE;
-    }
-    JSAutoByteString chost(cx, host);
-
-    nsocket = (native_socket *)malloc(sizeof(native_socket));
-
-    nsocket->host   = JS_EncodeString(cx, host);
-    nsocket->port   = port;
-    nsocket->socket = NULL;
-    nsocket->flags  = 0;
-    JS_SetPrivate(ret, nsocket);
-
-    /* TODO: JS_IsConstructing() */
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    JS_DefineFunctions(cx, ret, socket_funcs);
-    JS_DefineProperties(cx, ret, Socket_props);
-
-    JS_SetProperty(cx, ret, "isBinary", &isBinary);
-    //JS_SetPropertyById(cx, ret, SOCKET_PROP_BINARY, &isBinary);
-
-    
-
-    return JS_TRUE;
-}
 
 static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -1504,162 +1225,6 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineProperties(cx, ret, canvas_props);
 
     /* TODO: JS_IsConstructing() */
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    return JS_TRUE;
-}
-
-struct tpass
-{
-    JSContext *cx;
-    jsval fn;
-    JSFunction *nfn;
-    JSString *str;
-    NativeJS *njs;
-    JSObject *obj;
-};
-
-struct thread_msg
-{
-    uint64_t *data;
-    size_t nbytes;
-    JSObject *callee;
-};
-
-static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
-{
-    uint64_t *datap;
-    size_t nbytes;
-    struct tpass *pass = (struct tpass*)JS_GetContextPrivate(cx);
-    NativeJS *njs = pass->njs;
-
-    struct thread_msg *msg;
-
-    if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
-        NULL, NULL)) {
-        printf("Failed to write strclone\n");
-        /* TODO: exception */
-        return JS_TRUE;
-    }
-
-    msg = new struct thread_msg;
-
-    //JS_WriteStructuredClone(JSContext *cx, jsval v, uint64_t **datap,
-    //size_t *nbytesp, const JSStructuredCloneCallbacks *optionalCallbacks, void *closure)
-
-    msg->data   = datap;
-    msg->nbytes = nbytes;
-    msg->callee = pass->obj;
-
-    njs->messages->postMessage(msg);
-
-    return JS_TRUE;
-}
-
-static void *native_thread(void *arg)
-{
-    struct tpass *pass = (struct tpass *)arg;
-
-    JSRuntime *rt;
-    JSContext *tcx;
-    jsval rval;
-    JSObject *gbl;
-
-
-    if ((rt = JS_NewRuntime(128L * 1024L * 1024L)) == NULL) {
-        printf("Failed to init JS runtime\n");
-        return NULL;
-    }
-
-    if ((tcx = JS_NewContext(rt, 8192)) == NULL) {
-        printf("Failed to init JS context\n");
-        return NULL;     
-    }
-
-    gbl = JS_NewGlobalObject(tcx, &global_class, NULL);
-
-
-    JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
-        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
-    JS_SetVersion(tcx, JSVERSION_LATEST);
-
-    if (!JS_InitStandardClasses(tcx, gbl))
-        return NULL;
-    
-    JS_SetErrorReporter(tcx, reportError);
-
-    JS_SetGlobalObject(tcx, gbl);
-
-    JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
-
-    JSAutoByteString str(tcx, pass->str);
-
-    /* Hold the parent cx */
-    JS_SetContextPrivate(tcx, pass);
-
-#if 0
-    JSObject *ff = (JSObject *)pass->nfn;
-    JSCrossCompartmentCall *call;
-    if ((call = JS_EnterCrossCompartmentCall(tcx, ff)) == NULL) {
-        printf("Failed to cross compart\n");
-    }
-
-    //JSAutoEnterCompartment ac;
-    //ac.enter(tcx, (JSObject *)fn);
-    if (JS_WrapObject(tcx, &ff) == JS_FALSE) {
-        printf("failed to wrap\n");
-    }
-    printf("calling\n");
-    //JS_CallFunction(JSContext *cx, JSObject *obj, JSFunction *fun, unsigned int argc, jsval *argv, jsval *rval)
-    JS_CallFunction(tcx, gbl, (JSFunction *)ff, 0, NULL, &rval);
-    /*if (JS_CallFunctionValue(tcx, gbl, pass->fn, 0, NULL, &rval) == JS_FALSE) {
-        printf("failed\n");
-    }*/
-    JS_LeaveCrossCompartmentCall(call);
-#endif
-    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, str.ptr(),
-        strlen(str.ptr()), NULL, 0);
-    if (cf == NULL) {
-        printf("Cant compile function\n");
-        return NULL;
-    }
-    
-    if (JS_CallFunction(tcx, gbl, cf, 0, NULL, &rval) == JS_FALSE) {
-        printf("Got an error?\n");
-    }
-
-    free(pass);
-
-    /* TODO: destroy context, runtime, etc... */
-
-    return NULL;
-}
-
-static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSObject *ret = JS_NewObjectForConstructor(cx, &thread_class, vp);
-
-    pthread_t currentThread;
-    jsval func;
-    //uint64_t *data;
-    //size_t nbytes;
-
-    struct tpass *pass = (struct tpass *)malloc(sizeof(*pass));
-
-    pass->nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0]);
-
-    //JSString *src = JS_ValueToSource(cx, JS_ARGV(cx, vp)[0]);
-    JSString *src = JS_DecompileFunctionBody(cx, pass->nfn, 0);
-
-    pass->cx  = cx;
-    pass->fn  = func;
-    pass->str = src;
-    pass->njs = NJS;
-    pass->obj = ret;
-
-    pthread_create(&currentThread, NULL,
-                            native_thread, pass);
-
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     return JS_TRUE;
@@ -1867,7 +1432,7 @@ NativeJS::NativeJS()
     gfunc = JSVAL_VOID;
     /* TODO: BUG */
     if (!isUTF8) {
-        JS_SetCStringsAreUTF8();
+        //JS_SetCStringsAreUTF8();
         isUTF8 = 1;
     }
     //printf("New JS runtime\n");
@@ -1891,9 +1456,12 @@ NativeJS::NativeJS()
         return;     
     }
 
+    JS_SetVersion(cx, JSVERSION_LATEST);
+
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
-    JS_SetVersion(cx, JSVERSION_LATEST);
+
+    //ion::js_IonOptions.gvnIsOptimistic = true;
 
     JS_SetErrorReporter(cx, reportError);
 
@@ -1959,12 +1527,12 @@ static int Native_handle_messages(void *arg)
 
     NativeJS *njs = (NativeJS *)arg;
     JSContext *cx = njs->cx;
-    struct thread_msg *ptr;
+    struct native_thread_msg *ptr;
     jsval onmessage, jevent, rval;
 
     JSObject *event;
 
-    while ((ptr = (struct thread_msg *)njs->messages->readMessage()) != NULL) {
+    while ((ptr = (struct native_thread_msg *)njs->messages->readMessage()) != NULL) {
 
         if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
             !JSVAL_IS_PRIMITIVE(onmessage) && 
@@ -2038,9 +1606,10 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 
     JS_SetPrivate(canvasObj, currentSkia);
 
-    /* Socket (client) object */
-    JS_InitClass(cx, gbl, NULL, &socket_class, native_Socket_constructor,
-        0, NULL, NULL, NULL, NULL);
+    /* Socket() (client) object */
+    NativeJSSocket::registerObject(cx);
+    /* Thread() object */
+    NativeJSThread::registerObject(cx);
 
     /* Image object */
     JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,
@@ -2050,9 +1619,6 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
         2, NULL, NULL, NULL, NULL);   
 
-    /* Threaded object */
-    JS_InitClass(cx, gbl, NULL, &thread_class, native_Thread_constructor,
-        0, NULL, NULL, NULL, NULL);
 }
 
 void NativeJS::gc()
@@ -2214,5 +1780,3 @@ static void native_timer_wrapper(struct _native_sm_timer *params, int *last)
     }
 
 }
-
-

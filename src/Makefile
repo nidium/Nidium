@@ -1,6 +1,6 @@
 SKIA=/Users/anthonycatel/src/skia/trunk
 CXX=g++
-CPPFLAGS= -O2  -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1  -Qunused-arguments -DMOZILLA_CLIENT -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_SUPPORT_GPU=1 -DSK_BUILD_FOR_MAC -DSK_USE_POSIX_THREADS -DSK_RELEASE -DGR_RELEASE=1 -DNDEBUG -fvisibility=hidden -fvisibility-inlines-hidden -c -g -Wall -I../mozilla/js/src/dist/include/ \
+CPPFLAGS= -O2  -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1  -Qunused-arguments -DMOZILLA_CLIENT -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_SUPPORT_GPU=1 -DSK_BUILD_FOR_MAC -DSK_USE_POSIX_THREADS -DSK_RELEASE -DGR_RELEASE=1 -DNDEBUG -fvisibility=hidden -fvisibility-inlines-hidden -Wno-invalid-offsetof -c -g -Wall -I../mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\
@@ -19,7 +19,7 @@ CPPFLAGS= -O2  -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1  -Qunus
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp NativeSharedMessages.cpp
+SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp NativeSharedMessages.cpp NativeJSExposer.cpp NativeJSSocket.cpp NativeJSThread.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a
 

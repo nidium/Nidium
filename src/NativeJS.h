@@ -5,9 +5,6 @@
 
 #include "NativeSkia.h"
 
-/* JSAPI binding (singleton) */
-
-class NativeSharedMessages;
 
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
@@ -15,15 +12,21 @@ enum {
     NATIVE_KEY_CTRL = 1 << 2
 };
 
+struct native_thread_msg
+{
+    uint64_t *data;
+    size_t nbytes;
+    JSObject *callee;
+};
+
+class NativeSharedMessages;
 typedef struct _ape_global ape_global;
 
 class NativeJS
 {
     private:   
         void LoadCanvasObject(NativeSkia *);
-        //void operator=(NativeJS const&);
-        
-        jsval func;
+
     public:
         JSContext *cx;
         NativeSharedMessages *messages;
