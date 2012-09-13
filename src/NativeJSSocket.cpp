@@ -57,7 +57,7 @@ static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape)
 {
     JSContext *cx;
     jsval onconnect, rval;
-    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx[2];
+    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -80,7 +80,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
     JSContext *cx;
     jsval onread, rval, jdata;
 
-    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx[2];
+    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -98,7 +98,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
     } else {
     	JSString *jstr = JS_NewStringCopyN(cx, (char *)s->data_in.data,
             s->data_in.used);
-    	
+
     	if (jstr == NULL) {
     		printf("JS_NewStringCopyN Failed\n");
     		return;
@@ -117,7 +117,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
 static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
 {
     JSContext *cx;
-    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx[2];
+    NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
     jsval ondisconnect, rval;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
@@ -188,9 +188,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     socket->callbacks.on_read       = native_socket_wrapper_read;
     socket->callbacks.on_disconnect = native_socket_wrapper_disconnect;
 
-    socket->ctx[0] = caller;
-    socket->ctx[1] = cx;
-    socket->ctx[2] = nsocket;
+    socket->ctx = nsocket;
 
     nsocket->cx 	  = cx;
     nsocket->jsobject = caller;
@@ -259,9 +257,7 @@ NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
 NativeJSSocket::~NativeJSSocket()
 {
 	if (isAttached()) {
-		socket->ctx[0] = NULL;
-		socket->ctx[1] = NULL;
-		socket->ctx[2] = NULL;
+		socket->ctx = NULL;
 	}
 }
 
@@ -278,9 +274,7 @@ bool NativeJSSocket::isJSCallable()
 void NativeJSSocket::dettach()
 {
 	if (isAttached()) {
-		socket->ctx[0] = NULL;
-		socket->ctx[1] = NULL;
-		socket->ctx[2] = NULL;
+		socket->ctx = NULL;
 
 		socket = NULL;
 	}
