@@ -96,8 +96,14 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
         jdata = OBJECT_TO_JSVAL(arrayBuffer);
 
     } else {
-        jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx, (char *)s->data_in.data,
-            s->data_in.used));        
+    	JSString *jstr = JS_NewStringCopyN(cx, (char *)s->data_in.data,
+            s->data_in.used);
+    	
+    	if (jstr == NULL) {
+    		printf("JS_NewStringCopyN Failed\n");
+    		return;
+    	}
+        jdata = STRING_TO_JSVAL(jstr);        
     }
 
     if (JS_GetProperty(cx, nsocket->jsobject, "onread", &onread) &&
@@ -245,7 +251,7 @@ NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
 	: jsobject(NULL), socket(NULL), flags(0)
 {
 	cx = NULL;
-	
+
 	this->host = host;
 	this->port = port;
 }

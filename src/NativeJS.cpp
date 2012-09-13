@@ -1615,7 +1615,7 @@ NativeJS::NativeJS()
     gfunc = JSVAL_VOID;
     /* TODO: BUG */
     if (!isUTF8) {
-        JS_SetCStringsAreUTF8();
+        //JS_SetCStringsAreUTF8();
         isUTF8 = 1;
     }
     //printf("New JS runtime\n");
