@@ -58,13 +58,13 @@ var console = {
 				indent = '\t';
 
 			self.iteration++;
-			if (self.iteration>10){
+			if (self.iteration>20){
 				return false;
 			}
 
 			pad = (!pad) ? '' : pad;
 
-			if (object) {
+			if (typeof(object) != "undefined") {
 				if (object.constructor == Array){
 					out += '[\n';
 					for (var i=0; i<object.length; i++){
@@ -75,13 +75,19 @@ var console = {
 					out += '{\n';
 					for (var i in object){
 						if (object.hasOwnProperty(i)) {
-							out += pad + indent + i + ': ' + dmp(object[i], pad + indent) + '\n';
+							out += pad + indent + i + ' : ' + dmp(object[i], pad + indent) + '\n';
 						}
 					}
 					out += pad + '}';
+				} else if (typeof(object) == "string"){
+					out += '"' + object + '"';
+				} else if (typeof(object) == "number"){
+					out += object.toString();
 				} else {
 					out += object;
 				}
+			} else {
+				out += 'undefined';
 			}
 			return out;
 		}
