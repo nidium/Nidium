@@ -19,10 +19,10 @@
 		gdBackground.addColorStop(0.00,'#444444');
 		gdBackground.addColorStop(1.00,'#111111');
 
-var template = "[ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt, 日内瓦大学汉学系, In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
+var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
 	st = [],
 	sampleText = '';
-for (var t=0; t<10; t++){
+for (var t=0; t<100; t++){
 	st.push(template);
 }
 sampleText = st.join('');
@@ -93,12 +93,23 @@ var	tabController = greenView.add("UITabController", {
 
 /* ------------------------------------------------- */
 
+textView.caret = {
+	x1 : 5,
+	y1 : 2,
+	x2 : 40,
+	y2 : 4
+};
 
-var t = +new Date();
-for (var z=0; z<10000; z++){
-	textView.select();
+/*
+var t = +new Date(),
+	s;
+for (var z=0; z<2; z++){
+	s = textView.getTextSelectionFromCaret(textView.caret);
 }
 echo((+new Date()-t));
+
+console.log(s);
+*/
 
 
 var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
