@@ -41,13 +41,13 @@ UIElement.extend("UIText", {
 		};
 
 		this.addEventListener("mouseover", function(e){
-			this.verticalScrollBar.fadeIn(150, function(){
+			this.verticalScrollBar && this.verticalScrollBar.fadeIn(150, function(){
 				/* dummy */
 			});
 		}, false);
 
 		this.addEventListener("mouseout", function(e){
-			this.verticalScrollBar.fadeOut(400, function(){
+			this.verticalScrollBar && this.verticalScrollBar.fadeOut(400, function(){
 				/* dummy */
 			});
 		}, false);
@@ -106,13 +106,14 @@ UIElement.extend("UIText", {
 
 		this.addEventListener("dragend", function(e){
 			this.__startTextSelectionProcessing = false;
+			self.fireEvent("textselect", self.selection);
 		}, false);
 
 		this.addEventListener("mousedown", function(e){
 			if (this.mouseSelectionArea) {
 				this.mouseSelectionArea = null;
-				this.select(false);
 			}
+			this.select(false);
 			if (this.scroll.scrolling){
 				Timers.remove(this.scroll.timer);
 				this.scroll.scrolling = false;
@@ -144,22 +145,14 @@ UIElement.extend("UIText", {
 
 			var getCharPosition = function(line, x, flag){
 				let i = 0, l = line.letters;
-				while (i<l.length && x > l[i].position + (flag ? l[i].width : 0) ){	i++; }
+				while (i<l.length && x > l[i].position + (flag ? l[i].width/2 : 0) ){	i++; }
 				return i;
 			};
 
 			c.y1 = c.y1.bound(0, m.length-1);
 			c.y2 = c.y2.bound(0, m.length-1);
-			c.x1 = getCharPosition(m[c.y1], x1) -1; // letters of line y1
+			c.x1 = getCharPosition(m[c.y1], x1) - 1; // letters of line y1
 			c.x2 = getCharPosition(m[c.y2], x2, true); // letters of line y2
-
-		 	if (c.x2 < 0){
-		 		c.x2 = m[--c.y2].letters.length - 1;
-		 	}
-
-		 	if (c.x2 > m[c.y2].letters.length - 1){
-		 		c.x2 = m[c.y2].letters.length - 1;
-		 	}
 
 		 	if (c.x1 < 0){
 		 		c.x1 = 0;
@@ -207,16 +200,16 @@ UIElement.extend("UIText", {
 				select = false,
 				__setted__ = false,
 				c = {
-					x1 : null,
-					y1 : null,
-					x2 : null,
-					y2 : null
+					x1 : false,
+					y1 : false,
+					x2 : false,
+					y2 : false
 				};
-			
-			for (y=0; y<m.length; o--, y++) for (x=0, chars = m[y].letters; x<chars.length && s>(y-c.y1); x++){
+
+			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
 				chars[x].selected = false;
 
-				if (o == walk) {
+				if (walk >= o) {
 					select = true;
 				}
 
@@ -226,13 +219,16 @@ UIElement.extend("UIText", {
 						c.y1 = y;
 						__setted__ = true;
 					}
-					chars[x].selected = true;
+					if (s>=1) {
+						chars[x].selected = true;
+					}
 			 		s--;
 				}
 
-				if (s == (y-c.y1)) {
+				if (s <= 0) {
 					c.x2 = x;
 					c.y2 = y;
+					select = false;
 				}
 
 				walk++;
@@ -240,12 +236,13 @@ UIElement.extend("UIText", {
 			}
 
 			this.caret = c;
+
 			this.selection = {
-		 		text : this.text.slice(offset, offset+size),
+		 		text : this.text.substr(offset, size),
 		 		offset : offset,
 		 		size : size
 		 	}
-		 	
+
 		 	return this.selection;
 		}
 
@@ -275,6 +272,9 @@ UIElement.extend("UIText", {
 		 		size++;
 		 	};
 
+		 	c.x1 = Math.min(c.x1, m[c.y1].letters.length - 1);
+		 	c.x2 = Math.min(c.x2, m[c.y2].letters.length - 1);
+
 			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length; x++){
 				chars[x].selected = false;
 
@@ -283,30 +283,26 @@ UIElement.extend("UIText", {
 					select = true;
 				}
 
+				if (x == c.x2 && y == c.y2) {
+					select = false;
+				}
+
 				if (select){
 					chars[x].selected = true;
 			 		size++;
 				}
 
-				if (x == c.x2 && y == c.y2) {
-					select = false;
-				}
-
-
 				walk++;
 			}
 
-			offset += c.y1;
-			size += c.y2-c.y1;
-
 		 	return {
-		 		text : this.text.slice(offset, offset+size),
+		 		text : this.text.substr(offset, size),
 		 		offset : offset,
 		 		size : size
 		 	};
 
 		};
-
+		
 		this.verticalScrollBar = this.add("UIVerticalScrollBar");
 		this.verticalScrollBarHandle = this.verticalScrollBar.add("UIVerticalScrollBarHandle");
 
@@ -454,6 +450,14 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 	if ((0.05 + last.position + last.width) > fitWidth) {
 		last.position = Math.floor(last.position - delta - 0.5);
 	}
+
+	letters[i] = {
+		char : " ",
+		position : offset + position + offgap,
+		width : 10,
+		linegap : linegap,
+		selected : false
+	};
 
 	return letters;
 }

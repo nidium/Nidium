@@ -64,7 +64,7 @@ var console = {
 
 			pad = (!pad) ? '' : pad;
 
-			if (object && typeof(object) != "undefined") {
+			if (object != null && typeof(object) != "undefined") {
 				if (object.constructor == Array){
 					out += '[\n';
 					for (var i=0; i<object.length; i++){

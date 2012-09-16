@@ -93,31 +93,49 @@ var	tabController = greenView.add("UITabController", {
 
 /* ------------------------------------------------- */
 
+/*
 textView.caret = {
-	x1 : 15,
-	y1 : 12,
-	x2 : 17,
-	y2 : 22
+	x1 : 28,
+	y1 : 15,
+	x2 : 38,
+	y2 : 15
 };
 
-/*
+
 var t = +new Date(),
 	s;
-for (var z=0; z<10000; z++){
+for (var z=0; z<1; z++){
 	//s = textView.getTextSelectionFromCaret(textView.caret);
-	s = textView.setTextSelection(523, 423);
+	s = textView.setTextSelection(658, 10);
 }
 echo((+new Date()-t));
-*/
 
-/*
+
 console.log(s);
 console.log(textView.caret);
+
+echo('"' + textView.text.substr(40, 1) + '"');
+echo('"' + textView._textMatrix[0].letters[40].char + '"');
+echo(textView._textMatrix[0].letters.length);
+
+
+echo(' ');
+echo('"' + textView.text.substr(213, 451) + '"');
 */
+
+var s = textView.setTextSelection(46, 178);
+
+textView.addEventListener("textselect", function(s){
+	console.log(s);
+	//echo('"' + textView.text.substr(s.offset, s.size) + '"');
+	//this.select(false);
+	//this.setTextSelection(s.offset, s.size);
+	//this.getTextSelectionFromCaret(this.caret);
+});
+
 
 
 //s = textView.getTextSelectionFromCaret(textView.caret);
-s = textView.setTextSelection(523, 423);
 //console.log(textView.caret);
 
 
