@@ -190,7 +190,64 @@ UIElement.extend("UIText", {
 			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length; x++){
 				chars[x].selected = state;
 			}
+
+			this.selection = {
+				text : state ? this.text : '',
+				position : 0,
+				size : state ? this.text.length-1 : 0
+			};
+
 		};
+
+		this.setTextSelection = function(offset, size){
+			/* 3 times faster than getTextSelectionFromCaret */
+			var m = this._textMatrix,
+				chars, o = offset, s = size,
+				walk = x = y = 0, 
+				select = false,
+				__setted__ = false,
+				c = {
+					x1 : null,
+					y1 : null,
+					x2 : null,
+					y2 : null
+				};
+			
+			for (y=0; y<m.length; o--, y++) for (x=0, chars = m[y].letters; x<chars.length && s>(y-c.y1); x++){
+				chars[x].selected = false;
+
+				if (o == walk) {
+					select = true;
+				}
+
+				if (select){
+					if (!__setted__) {
+						c.x1 = x;
+						c.y1 = y;
+						__setted__ = true;
+					}
+					chars[x].selected = true;
+			 		s--;
+				}
+
+				if (s == (y-c.y1)) {
+					c.x2 = x;
+					c.y2 = y;
+				}
+
+				walk++;
+
+			}
+
+			this.caret = c;
+			this.selection = {
+		 		text : this.text.slice(offset, offset+size),
+		 		offset : offset,
+		 		size : size
+		 	}
+		 	
+		 	return this.selection;
+		}
 
 		this.getTextSelectionFromCaret = function(c){
 			/* 10 times faster than the old method */
@@ -238,6 +295,7 @@ UIElement.extend("UIText", {
 
 				walk++;
 			}
+
 			offset += c.y1;
 			size += c.y2-c.y1;
 
@@ -283,10 +341,6 @@ UIElement.extend("UIText", {
 				canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
 				canvas.clip();
 		
-				if (this.mouseSelectionArea) {
-					//this.selection = drawCaretSelection(this._textMatrix, this.caret, x, y - this.scroll.top, this.lineHeight);
-				}
-
 				printTextMatrix(this._textMatrix, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color);
 
 			canvas.restore();
