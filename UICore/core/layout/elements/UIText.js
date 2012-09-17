@@ -7,6 +7,7 @@ UIElement.extend("UIText", {
 		var self = this;
 
 		this.flags._canReceiveFocus = true;
+		this.caretOpacity = 1;
 		this.caretCounter = 0;
 
 		if (!this.color){
@@ -29,7 +30,7 @@ UIElement.extend("UIText", {
 
 			this.selection = {
 				text : '',
-				position : 0,
+				offset : 0,
 				size : 0
 			};
 
@@ -55,12 +56,62 @@ UIElement.extend("UIText", {
 		}, false);
 
 		this.addEventListener("dragstart", function(e){
-			this.__startTextSelectionProcessing = true;
-			this.__startx = e.x;
-			this.__starty = e.y + this.scroll.top;
+			self._startMouseSelection(e);
 		}, false);
 
 		layout.rootElement.addEventListener("dragover", function(e){
+			self._doMouseSelection(e);
+		}, false);
+
+		this.addEventListener("dragend", function(e){
+			self._endMouseSelection();
+			self.fireEvent("textselect", self.selection);
+		}, false);
+
+		this.addEventListener("mousedown", function(e){
+			if (this.mouseSelectionArea) {
+				this.mouseSelectionArea = null;
+			}
+
+			self._startMouseSelection(e);
+			self._doMouseSelection(e);
+			self._endMouseSelection();
+			this.setCaret(this.selection.offset, 0);
+			console.log(this.selection);
+			this.caretCounter = -20;
+
+			this.select(false);
+
+			if (this.scroll.scrolling){
+				Timers.remove(this.scroll.timer);
+				this.scroll.scrolling = false;
+				this.scroll.initied = false;
+			}
+		}, false);
+
+		this.addEventListener("mousewheel", function(e){
+			if (this.h / this.scrollBarHeight < 1) {
+				canvas.__mustBeDrawn = true;
+				this.scrollY(1 + (-e.yrel-1) * 18);
+			}
+		}, false);
+
+		this.addEventListener("focus", function(e){
+		}, false);
+
+		/* -------------------------------------------------------------------------------- */
+
+		this._startMouseSelection = function(e){
+			this.__startTextSelectionProcessing = true;
+			this.__startx = e.x;
+			this.__starty = e.y + this.scroll.top;
+		};
+
+		this._endMouseSelection = function(e){
+			this.__startTextSelectionProcessing = false;
+		};
+
+		this._doMouseSelection = function(e){
 			if (self.__startTextSelectionProcessing) {
 				self.mouseSelectionArea = {
 					x1 : self.__startx,
@@ -104,35 +155,7 @@ UIElement.extend("UIText", {
 				self.selection = self.getSelectionFromMatricialCaret(self.caret);
 
 			}
-		}, false);
-
-		this.addEventListener("dragend", function(e){
-			this.__startTextSelectionProcessing = false;
-			self.fireEvent("textselect", self.selection);
-		}, false);
-
-		this.addEventListener("mousedown", function(e){
-			if (this.mouseSelectionArea) {
-				this.mouseSelectionArea = null;
-			}
-			this.select(false);
-			if (this.scroll.scrolling){
-				Timers.remove(this.scroll.timer);
-				this.scroll.scrolling = false;
-				this.scroll.initied = false;
-			}
-		}, false);
-
-		this.addEventListener("mousewheel", function(e){
-			if (this.h / this.scrollBarHeight < 1) {
-				canvas.__mustBeDrawn = true;
-				this.scrollY(1 + (-e.yrel-1) * 18);
-			}
-		}, false);
-
-		this.addEventListener("focus", function(e){
-		}, false);
-
+		};
 
 		/* -------------------------------------------------------------------------------- */
 
@@ -179,18 +202,28 @@ UIElement.extend("UIText", {
 
 		this.select = function(state){
 			/* 2 times faster than the old while loop method */
-			var m = this._textMatrix, chars, x = y = 0;
+			var m = this._textMatrix, chars, x = y = 0, offset = this.selection.offset,
 			state = (typeof(state) == "undefined") ? true : state ? true : false;
 			
 			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length; x++){
 				chars[x].selected = state;
 			}
-
-			this.selection = {
-				text : state ? this.text : '',
-				position : 0,
-				size : state ? this.text.length-1 : 0
-			};
+			if (state) {
+				var lastLine = this._textMatrix.length - 1;
+				this.selection = {
+					text : this.text,
+					offset : 0,
+					size : this.text.length-1
+				};
+				this.caret = {
+					x1 : 0,
+					y1 : 0,
+					x2 : this._textMatrix[lastLine].letters.length - 1,
+					y2 : lastLine
+				}
+			} else {
+				this.setCaret(offset, 0);
+			}
 
 		};
 
@@ -381,17 +414,23 @@ UIElement.extend("UIText", {
 				canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
 				canvas.clip();
 		
-				this.caretCounter++;
-				if (this.caretCounter >= 25 && this.caret.x1==this.caret.x2 && this.caret.y1==this.caret.y2) {
-					blinkingCaret = this.caret;	
-				}
-				if (this.caretCounter >= 50){
-					blinkingCaret = false;
-					this.caretCounter = 0;
+				if (this.selection.size == 0) {
+					this.caretCounter++;
+
+					if (this.caretCounter<=20){
+						this.caretOpacity = 1;					
+					} else if (this.caretCounter>20 && this.caretCounter<60) {
+						this.caretOpacity *= 0.80;
+					}
+
+					if (this.caretCounter>=60){
+						this.caretCounter = 0;
+					}
+				} else {
+					this.caretOpacity = 0;
 				}
 
-
-				printTextMatrix(this._textMatrix, blinkingCaret, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color);
+				printTextMatrix(this._textMatrix, this.caret, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color, this.caretOpacity);
 
 
 			canvas.restore();
@@ -416,13 +455,16 @@ canvas.implement({
 		}
 	},
 
-	drawLettersWithCaret : function(letters, x, y, lineHeight, vOffset, caretPosition){
+	drawLettersWithCaret : function(letters, x, y, lineHeight, vOffset, caretPosition, caretOpacity){
 		let c, cx;
 		for (var i=0; i<letters.length; i++){
 			c = letters[i];
 			cx = x + c.position;
-			if (i==caretPosition){
+			if (i == caretPosition){
+				var oldG = this.globalAlpha;
+				this.globalAlpha = caretOpacity;
 				this.fillRect(cx, y - vOffset, 1, lineHeight);
+				this.globalAlpha = oldG;
 			}
 			this.fillText(c.char, cx, y);
 		}
@@ -590,7 +632,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 
 };
 
-function printTextMatrix(textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color){
+function printTextMatrix(textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
 	canvas.fontSize = fontSize;
 	canvas.fontType = fontType;
 	var letters = [];
@@ -606,8 +648,8 @@ function printTextMatrix(textMatrix, caret, x, y, vOffset, viewportWidth, viewpo
 			canvas.highlightLetters(letters, tx, ty - vOffset, lineHeight);
 		
 			canvas.fillStyle = color;
-			if (caret && line == caret.y2) {
-				canvas.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2);
+			if (line == caret.y2 && caretOpacity >= 0.10) {
+				canvas.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2, caretOpacity);
 			} else {
 				canvas.drawLetters(letters, tx, ty);
 			}
