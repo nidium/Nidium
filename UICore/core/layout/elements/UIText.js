@@ -7,6 +7,7 @@ UIElement.extend("UIText", {
 		var self = this;
 
 		this.flags._canReceiveFocus = true;
+		this.caretCounter = 0;
 
 		if (!this.color){
 			this.color = "#000000";
@@ -193,32 +194,36 @@ UIElement.extend("UIText", {
 
 		};
 
-		this._insert = function(text, offset, size){
+		this._insert = function(text, offset, size, newsize){
 			this.setText(this.text.splice(offset, size, text));
-			this.setCaret(offset, text.length);
-		};
-
-		this.insert = function(text){
-			this._insert(text, this.selection.offset, 0);
+			this.setCaret(offset, newsize);
 		};
 
 		this.replace = function(text){
-			this._insert(text, this.selection.offset, this.selection.size);
+			this._insert(text, this.selection.offset, this.selection.size, text.length);
+		};
+
+		this.insert = function(text){
+			this._insert(text, this.selection.offset, 0, 0);
 		};
 
 		this.cut = function(){
-			var offset = this.selection.offset;
 			this.copy();
-			this.setText(this.text.splice(this.selection.offset, this.selection.size));
-			this.setCaret(offset, 0);
+			this._insert('', this.selection.offset, this.selection.size, 0);
 		};
 
 		this.copy = function(){
-			layout.pasteBuffer = this.selection.text;
+			if (this.selection.size>0) {
+				layout.pasteBuffer = this.selection.text;
+			} else {
+				layout.pasteBuffer = '';
+			}
 		};
 
 		this.paste = function(){
-			this.replace(layout.pasteBuffer);
+			if (layout.pasteBuffer != '') {
+				this.insert(layout.pasteBuffer);
+			}
 		};
 
 		this.getTextSelection = function(){
@@ -339,7 +344,6 @@ UIElement.extend("UIText", {
 		 		offset : offset,
 		 		size : size
 		 	};
-
 		};
 		
 		this.verticalScrollBar = this.add("UIVerticalScrollBar");
@@ -356,6 +360,8 @@ UIElement.extend("UIText", {
 				w : this.w,
 				h : this.h
 			},
+
+			blinkingCaret = false,
 
 			x = params.x + this.padding.left,
 			y = params.y + this.padding.top,
@@ -375,7 +381,18 @@ UIElement.extend("UIText", {
 				canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
 				canvas.clip();
 		
-				printTextMatrix(this._textMatrix, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color);
+				this.caretCounter++;
+				if (this.caretCounter >= 25 && this.caret.x1==this.caret.x2 && this.caret.y1==this.caret.y2) {
+					blinkingCaret = this.caret;	
+				}
+				if (this.caretCounter >= 50){
+					blinkingCaret = false;
+					this.caretCounter = 0;
+				}
+
+
+				printTextMatrix(this._textMatrix, blinkingCaret, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color);
+
 
 			canvas.restore();
 			//this.__cache = canvas.getImageData(params.x, params.y, params.w, params.h);
@@ -396,6 +413,18 @@ canvas.implement({
  			if (c.selected){
 				this.fillRect(cx, cy, cw, lineHeight);
 			}
+		}
+	},
+
+	drawLettersWithCaret : function(letters, x, y, lineHeight, vOffset, caretPosition){
+		let c, cx;
+		for (var i=0; i<letters.length; i++){
+			c = letters[i];
+			cx = x + c.position;
+			if (i==caretPosition){
+				this.fillRect(cx, y - vOffset, 1, lineHeight);
+			}
+			this.fillText(c.char, cx, y);
 		}
 	},
 
@@ -561,9 +590,10 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 
 };
 
-function printTextMatrix(textMatrix, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color){
+function printTextMatrix(textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color){
 	canvas.fontSize = fontSize;
 	canvas.fontType = fontType;
+	var letters = [];
 
 	for (var line=0; line<textMatrix.length; line++){
 		var tx = x,
@@ -571,13 +601,20 @@ function printTextMatrix(textMatrix, x, y, vOffset, viewportWidth, viewportHeigh
 
 		// only draw visible lines
 		if ( ty < (viewportTop + viewportHeight + lineHeight) && ty >= viewportTop) {
+			letters = textMatrix[line].letters;
 			canvas.fillStyle = "rgba(180, 180, 255, 0.60)";
-			canvas.highlightLetters(textMatrix[line].letters, tx, ty - vOffset, lineHeight);
+			canvas.highlightLetters(letters, tx, ty - vOffset, lineHeight);
 		
 			canvas.fillStyle = color;
-			canvas.drawLetters(textMatrix[line].letters, tx, ty);
+			if (caret && line == caret.y2) {
+				canvas.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2);
+			} else {
+				canvas.drawLetters(letters, tx, ty);
+			}
+
 		}
 	}
 }
+
 
 

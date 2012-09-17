@@ -28,7 +28,6 @@ canvas.implement = function(props){
 
 canvas.implement({
 	setShadow : function(x, y, b, c){
-		return false;
 		this.shadowOffsetX = x;
 		this.shadowOffsetY = y;
 		this.shadowColor = c;

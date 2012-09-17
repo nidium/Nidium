@@ -155,6 +155,10 @@ cutButton.addEventListener("mousedown", function(e){
 	textView.cut();
 });
 
+copyButton.addEventListener("mousedown", function(e){
+	textView.copy();
+});
+
 pasteButton.addEventListener("mousedown", function(e){
 	textView.paste();
 });
