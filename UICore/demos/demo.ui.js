@@ -27,7 +27,6 @@ for (var t=0; t<20; t++){
 }
 sampleText = st.join('');
 
-
 /* --------------- */
 
 var main = new Application({background:"#262722"}),
@@ -52,7 +51,18 @@ var main = new Application({background:"#262722"}),
 	});
 
 
-var	textView = main.add("UIText", {x:643, y:80, w:280, h:568, text:sampleText, lineHeight:18, fontSize:13, textAlign:"justify", background:"rgba(255, 255, 255, 1.00)", color:"#000000"}),
+var	textView = main.add("UIText", {
+		x : 733,
+		y : 80,
+		w : 280,
+		h : 568,
+		text : sampleText,
+		lineHeight : 18,
+		fontSize : 13,
+		textAlign : "justify",
+		background : "rgba(255, 255, 255, 1.00)",
+		color : "#000000"
+	}),
 
 	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
@@ -64,7 +74,10 @@ var	textView = main.add("UIText", {x:643, y:80, w:280, h:568, text:sampleText, l
 	docButton5 = main.add("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
 	docButton6 = main.add("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
 
-	getTextButton = main.add("UIButton", {x:743, y:50, label:"Get Text Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
+	getTextButton = main.add("UIButton", {x:733, y:50, label:"Get Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
+	cutButton = main.add("UIButton", {x:858, y:50, label:"Cut", background:"#331111", radius:6, fontSize:13, selected:false}),
+	copyButton = main.add("UIButton", {x:904, y:50, label:"Copy", background:"#113311", radius:6, fontSize:13, selected:false}),
+	pasteButton = main.add("UIButton", {x:960, y:50, label:"Paste", background:"#111133", radius:6, fontSize:13, selected:false}),
 
 
 	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
@@ -106,7 +119,7 @@ var t = +new Date(),
 	s;
 for (var z=0; z<1; z++){
 	//s = textView.getTextSelectionFromCaret(textView.caret);
-	s = textView.setTextSelection(658, 10);
+	s = textView.setCaret(658, 10);
 }
 echo((+new Date()-t));
 
@@ -123,17 +136,32 @@ echo(' ');
 echo('"' + textView.text.substr(213, 451) + '"');
 */
 
-var s = textView.setTextSelection(46, 178);
+var s = textView.setCaret(46, 178);
 
 textView.addEventListener("textselect", function(s){
-	console.log(s);
+	//console.log(s);
 	//echo('"' + textView.text.substr(s.offset, s.size) + '"');
 	//this.select(false);
-	//this.setTextSelection(s.offset, s.size);
+	//this.setCaret(s.offset, s.size);
 	//this.getTextSelectionFromCaret(this.caret);
 });
 
+getTextButton.addEventListener("mousedown", function(e){
+	echo(">>" + textView.getTextSelection() + "<<");
+	echo("");
+});
 
+cutButton.addEventListener("mousedown", function(e){
+	textView.cut();
+});
+
+pasteButton.addEventListener("mousedown", function(e){
+	textView.paste();
+});
+
+
+//textView.cut(3, 5);
+//echo(layout.pasteBuffer);
 
 //s = textView.getTextSelectionFromCaret(textView.caret);
 //console.log(textView.caret);
@@ -185,11 +213,6 @@ docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200, function(){});
 });
 
-
-getTextButton.addEventListener("mousedown", function(e){
-	echo(">>" + textView.selection.text + "<<");
-	echo("");
-});
 
 
 var blurCache = false;

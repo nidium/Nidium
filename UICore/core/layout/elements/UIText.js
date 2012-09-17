@@ -20,6 +20,7 @@ UIElement.extend("UIText", {
 		};
 
 		this.setText = function(text){
+			this.text = text;
 			this._textMatrix = getTextMatrixLines(text, this.lineHeight, this.w, this.textAlign, this.fontSize);
 			this.content.height = this.lineHeight * this._textMatrix.length;
 
@@ -99,7 +100,7 @@ UIElement.extend("UIText", {
 				r.y2 = isNaN(r.y2) ? 0 : r.y2;
 
 				self.setCaretFromRelativeMouseSelection(r);
-				self.selection = self.getTextSelectionFromCaret(self.caret);
+				self.selection = self.getSelectionFromMatricialCaret(self.caret);
 
 			}
 		}, false);
@@ -192,8 +193,46 @@ UIElement.extend("UIText", {
 
 		};
 
-		this.setTextSelection = function(offset, size){
-			/* 3 times faster than getTextSelectionFromCaret */
+		this._insert = function(text, offset, size){
+			this.setText(this.text.splice(offset, size, text));
+			this.setCaret(offset, text.length);
+		};
+
+		this.insert = function(text){
+			this._insert(text, this.selection.offset, 0);
+		};
+
+		this.replace = function(text){
+			this._insert(text, this.selection.offset, this.selection.size);
+		};
+
+		this.cut = function(){
+			var offset = this.selection.offset;
+			this.copy();
+			this.setText(this.text.splice(this.selection.offset, this.selection.size));
+			this.setCaret(offset, 0);
+		};
+
+		this.copy = function(){
+			layout.pasteBuffer = this.selection.text;
+		};
+
+		this.paste = function(){
+			this.replace(layout.pasteBuffer);
+		};
+
+		this.getTextSelection = function(){
+			return this.selection.text;
+		};
+
+		this.getCaret = function(){
+			return this.selection;
+		};
+
+		this.setCaret = function(offset, size){
+			/* 3 times faster than getSelectionFromMatricialCaret */
+			offset = Math.max(0, (typeof(offset)!=undefined ? parseInt(offset, 10) : 0));
+			size = Math.max(0, (typeof(size)!=undefined ? parseInt(size, 10) : 0));
 			var m = this._textMatrix,
 				chars, o = offset, s = size,
 				walk = x = y = 0, 
@@ -244,9 +283,9 @@ UIElement.extend("UIText", {
 		 	}
 
 		 	return this.selection;
-		}
+		};
 
-		this.getTextSelectionFromCaret = function(c){
+		this.getSelectionFromMatricialCaret = function(c){
 			/* 10 times faster than the old method */
 			var m = this._textMatrix,
 				selection = [],
@@ -329,7 +368,6 @@ UIElement.extend("UIText", {
 		//if (this.__cache) {
 			//canvas.putImageData(this.__cache, params.x, params.y);
 		//} else {
-
 			canvas.save();
 				if (this.background){
 					canvas.fillStyle = this.background;

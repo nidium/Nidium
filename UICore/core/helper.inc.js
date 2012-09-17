@@ -28,6 +28,7 @@ canvas.implement = function(props){
 
 canvas.implement({
 	setShadow : function(x, y, b, c){
+		return false;
 		this.shadowOffsetX = x;
 		this.shadowOffsetY = y;
 		this.shadowColor = c;
@@ -37,6 +38,16 @@ canvas.implement({
 
 Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(min, this), max);
+};
+
+String.prototype.cut = function(offset, size, insert){
+	var characterArray = this.split("");
+	characterArray.splice(offset, size, insert);
+	return characterArray.join("");
+};
+
+String.prototype.splice = function(offset, size, insert){
+    return (this.slice(0,offset) + (insert?insert:'') + this.slice(offset + Math.abs(size)));
 };
 
 var console = {
