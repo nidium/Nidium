@@ -48,6 +48,8 @@ var layout = {
 
 	higherzIndex : 0,
 
+	pasteBuffer : '',
+
 	register : function(element){
 		this.nodes[element._uid] = element;
 	},

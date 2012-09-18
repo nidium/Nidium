@@ -39,6 +39,16 @@ Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(min, this), max);
 };
 
+String.prototype.cut = function(offset, size, insert){
+	var characterArray = this.split("");
+	characterArray.splice(offset, size, insert);
+	return characterArray.join("");
+};
+
+String.prototype.splice = function(offset, size, insert){
+    return (this.slice(0,offset) + (insert && insert!=''?insert:'') + this.slice(offset + Math.abs(size)));
+};
+
 var console = {
 	iteration : 0,
 	maxIterations : 10,
@@ -58,13 +68,13 @@ var console = {
 				indent = '\t';
 
 			self.iteration++;
-			if (self.iteration>10){
+			if (self.iteration>20){
 				return false;
 			}
 
 			pad = (!pad) ? '' : pad;
 
-			if (object) {
+			if (object != null && typeof(object) != "undefined") {
 				if (object.constructor == Array){
 					out += '[\n';
 					for (var i=0; i<object.length; i++){
@@ -75,13 +85,19 @@ var console = {
 					out += '{\n';
 					for (var i in object){
 						if (object.hasOwnProperty(i)) {
-							out += pad + indent + i + ': ' + dmp(object[i], pad + indent) + '\n';
+							out += pad + indent + i + ' : ' + dmp(object[i], pad + indent) + '\n';
 						}
 					}
 					out += pad + '}';
+				} else if (typeof(object) == "string"){
+					out += '"' + object + '"';
+				} else if (typeof(object) == "number"){
+					out += object.toString();
 				} else {
 					out += object;
 				}
+			} else {
+				out += 'undefined';
 			}
 			return out;
 		}

@@ -9,6 +9,8 @@ UIElement.extend("UITab", {
 		this.flags._canReceiveFocus = true;
 		this.w = 14 + Math.round(canvas.measureText(this.label)) + 14;
 		this.h = 24;
+		this.fontSize = 11;
+		this.fontType = "arial";
 		//this.color = this.options.color ? this.options.color : "#aaaaaa";
 
 		this.addEventListener("mousedown", function(e){
@@ -23,7 +25,6 @@ UIElement.extend("UITab", {
 		this.addEventListener("mouseout", function(e){
 			this.hover = false;
 		});
-
 
 		if (this.options.closable) {
 			this.w += 16;
@@ -219,7 +220,8 @@ UIElement.extend("UITab", {
 
 		canvas.tabbox(params.x, params.y, w, h, radius, gdBackground, false);
 
-		canvas.fontSize = 11;
+		canvas.fontSize = this.fontSize;
+		canvas.fontType = this.fontType;
 		canvas.fillStyle = textShadow;
 		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 

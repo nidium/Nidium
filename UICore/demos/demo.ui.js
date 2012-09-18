@@ -19,14 +19,13 @@
 		gdBackground.addColorStop(0.00,'#444444');
 		gdBackground.addColorStop(1.00,'#111111');
 
-var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. ";
+var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
 	st = [],
 	sampleText = '';
-for (var t=0; t<30; t++){
+for (var t=0; t<2; t++){
 	st.push(template);
 }
 sampleText = st.join('');
-
 
 /* --------------- */
 
@@ -52,7 +51,18 @@ var main = new Application({background:"#262722"}),
 	});
 
 
-var	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, lineHeight:18, fontSize:13, textAlign:"right", background:"rgba(255, 255, 255, 1.00)", color:"#000000"}),
+var	textView = main.add("UIText", {
+		x : 733,
+		y : 80,
+		w : 280,
+		h : 568,
+		text : sampleText,
+		lineHeight : 18,
+		fontSize : 13,
+		textAlign : "justify",
+		background : "rgba(255, 255, 255, 1.00)",
+		color : "#000000"
+	}),
 
 	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
@@ -64,7 +74,10 @@ var	textView = main.add("UIText", {x:743, y:80, w:280, h:568, text:sampleText, l
 	docButton5 = main.add("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
 	docButton6 = main.add("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
 
-	getTextButton = main.add("UIButton", {x:743, y:50, label:"Get Text Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
+	getTextButton = main.add("UIButton", {x:733, y:50, label:"Get Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
+	cutButton = main.add("UIButton", {x:858, y:50, label:"Cut", background:"#331111", radius:6, fontSize:13, selected:false}),
+	copyButton = main.add("UIButton", {x:904, y:50, label:"Copy", background:"#113311", radius:6, fontSize:13, selected:false}),
+	pasteButton = main.add("UIButton", {x:960, y:50, label:"Paste", background:"#111133", radius:6, fontSize:13, selected:false}),
 
 
 	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
@@ -93,6 +106,69 @@ var	tabController = greenView.add("UITabController", {
 
 /* ------------------------------------------------- */
 
+/*
+textView.caret = {
+	x1 : 28,
+	y1 : 15,
+	x2 : 38,
+	y2 : 15
+};
+
+
+var t = +new Date(),
+	s;
+for (var z=0; z<1; z++){
+	//s = textView.getTextSelectionFromCaret(textView.caret);
+	s = textView.setCaret(658, 10);
+}
+echo((+new Date()-t));
+
+
+console.log(s);
+console.log(textView.caret);
+
+echo('"' + textView.text.substr(40, 1) + '"');
+echo('"' + textView._textMatrix[0].letters[40].char + '"');
+echo(textView._textMatrix[0].letters.length);
+
+
+echo(' ');
+echo('"' + textView.text.substr(213, 451) + '"');
+*/
+
+var s = textView.setCaret(46, 178);
+
+textView.addEventListener("textselect", function(s){
+	//console.log(s);
+	//echo('"' + textView.text.substr(s.offset, s.size) + '"');
+	//this.select(false);
+	//this.setCaret(s.offset, s.size);
+	//this.getTextSelectionFromCaret(this.caret);
+});
+
+getTextButton.addEventListener("mousedown", function(e){
+	echo(">>" + textView.getTextSelection() + "<<");
+	echo("");
+});
+
+cutButton.addEventListener("mousedown", function(e){
+	textView.cut();
+});
+
+copyButton.addEventListener("mousedown", function(e){
+	textView.copy();
+});
+
+pasteButton.addEventListener("mousedown", function(e){
+	textView.paste();
+});
+
+
+//textView.cut(3, 5);
+//echo(layout.pasteBuffer);
+
+//s = textView.getTextSelectionFromCaret(textView.caret);
+//console.log(textView.caret);
 
 
 var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
@@ -141,11 +217,6 @@ docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200, function(){});
 });
 
-
-getTextButton.addEventListener("mousedown", function(e){
-	echo(">>" + textView.selection.text + "<<");
-	echo("");
-});
 
 
 var blurCache = false;
