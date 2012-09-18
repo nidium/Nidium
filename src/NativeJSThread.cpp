@@ -151,8 +151,8 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     size_t nbytes;
     NativeJSThread *nthread = (NativeJSThread *)JS_GetContextPrivate(cx);
 
-    if (nthread == NULL) {
-        printf("Could not retrieve thread\n");
+    if (nthread == NULL || nthread->markedStop) {
+        printf("Could not retrieve thread (or marked for stopping)\n");
         return JS_TRUE;
     }
 
@@ -178,7 +178,6 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSThread::~NativeJSThread()
 {
-    printf("Destroying...\n");
     this->markedStop = true;
     JS_TriggerOperationCallback(this->jsRuntime);
 
