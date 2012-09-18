@@ -68,6 +68,54 @@ UIElement.extend("UIText", {
 			self.fireEvent("textselect", self.selection);
 		}, false);
 
+		this.addEventListener("keydown", function(e){
+			if (!this.hasFocus) return false;
+
+			if (e.ctrlKey) {
+				switch (e.keyCode) {
+					case 88 : // CTRL-X
+						this.cut();
+						break;
+
+					case 67 : // CTRL-C
+						this.copy();
+						break;
+
+					case 86 : // CTRL-V
+						this.paste();
+						break;
+				}
+			} else {
+				switch (e.keyCode) {
+					case 8 : // backspace
+						if (this.selection.offset-1 < 0) return false;
+						this._insert('', this.selection.offset, this.selection.size, this.selection.offset-1, 0);
+						this._insert('', this.selection.offset, 1, this.selection.offset, 0);
+						break;
+
+					case 127 : // delete
+						this._insert('', this.selection.offset, Math.max(1, this.selection.size), this.selection.offset, 0);
+						break;
+
+					case 1073741903 : // left
+						this.setCaret(++this.selection.offset, 0);
+						break;
+
+					case 1073741904 : // right
+						this.setCaret(--this.selection.offset, 0);
+						break;
+
+					default : break;
+				}
+			}
+		}, false);
+
+		this.addEventListener("textinput", function(e){
+			if (!this.hasFocus) return false;
+			this.insert(e.text);
+		}, false);
+
+
 		this.addEventListener("mousedown", function(e){
 			if (this.mouseSelectionArea) {
 				this.mouseSelectionArea = null;
@@ -77,7 +125,6 @@ UIElement.extend("UIText", {
 			self._doMouseSelection(e);
 			self._endMouseSelection();
 			this.setCaret(this.selection.offset, 0);
-			console.log(this.selection);
 			this.caretCounter = -20;
 
 			this.select(false);
@@ -168,16 +215,16 @@ UIElement.extend("UIText", {
 					y2 : r.y2/this.lineHeight - 1
 				};
 
-			var getCharPosition = function(line, x, flag){
+			var getCharPosition = function(line, x){
 				let i = 0, l = line.letters;
-				while (i<l.length && x > l[i].position + (flag ? l[i].width/2 : 0) ){	i++; }
+				while (i<l.length && x > l[i].position + l[i].width/2){	i++; }
 				return i;
 			};
 
 			c.y1 = c.y1.bound(0, m.length-1);
 			c.y2 = c.y2.bound(0, m.length-1);
-			c.x1 = getCharPosition(m[c.y1], x1) - 1; // letters of line y1
-			c.x2 = getCharPosition(m[c.y2], x2, true); // letters of line y2
+			c.x1 = getCharPosition(m[c.y1], x1); // letters of line y1
+			c.x2 = getCharPosition(m[c.y2], x2); // letters of line y2
 
 		 	if (c.x1 < 0){
 		 		c.x1 = 0;
@@ -227,22 +274,22 @@ UIElement.extend("UIText", {
 
 		};
 
-		this._insert = function(text, offset, size, newsize){
+		this._insert = function(text, offset, size, newoffset, newsize){
 			this.setText(this.text.splice(offset, size, text));
-			this.setCaret(offset, newsize);
+			this.setCaret(newoffset, newsize);
 		};
 
 		this.replace = function(text){
-			this._insert(text, this.selection.offset, this.selection.size, text.length);
+			this._insert(text, this.selection.offset, this.selection.size, this.selection.offset + text.length, 0);
 		};
 
 		this.insert = function(text){
-			this._insert(text, this.selection.offset, 0, 0);
+			this._insert(text, this.selection.offset, this.selection.size, ++this.selection.offset, 0);
 		};
 
 		this.cut = function(){
 			this.copy();
-			this._insert('', this.selection.offset, this.selection.size, 0);
+			this._insert('', this.selection.offset, this.selection.size, this.selection.offset, 0);
 		};
 
 		this.copy = function(){
@@ -255,7 +302,7 @@ UIElement.extend("UIText", {
 
 		this.paste = function(){
 			if (layout.pasteBuffer != '') {
-				this.insert(layout.pasteBuffer);
+				this.replace(layout.pasteBuffer);
 			}
 		};
 
@@ -319,6 +366,8 @@ UIElement.extend("UIText", {
 		 		offset : offset,
 		 		size : size
 		 	}
+
+			this.caretCounter = 0;
 
 		 	return this.selection;
 		};
@@ -414,13 +463,13 @@ UIElement.extend("UIText", {
 				canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
 				canvas.clip();
 		
-				if (this.selection.size == 0) {
+				if (this.selection.size == 0 && this.hasFocus) {
 					this.caretCounter++;
 
 					if (this.caretCounter<=20){
 						this.caretOpacity = 1;					
 					} else if (this.caretCounter>20 && this.caretCounter<60) {
-						this.caretOpacity *= 0.80;
+						this.caretOpacity *= 0.85;
 					}
 
 					if (this.caretCounter>=60){
@@ -553,21 +602,22 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 	}
 
 	// last letter Position Approximation Corrector
-	var last = letters[textLine.length-1],
-		delta = fitWidth - (last.position + last.width);
+	if (letters[textLine.length-1]) {
+		var last = letters[textLine.length-1],
+			delta = fitWidth - (last.position + last.width);
 
-	if ((0.05 + last.position + last.width) > fitWidth) {
-		last.position = Math.floor(last.position - delta - 0.5);
+		if ((0.05 + last.position + last.width) > fitWidth) {
+			last.position = Math.floor(last.position - delta - 0.5);
+		}
+
+		letters[i] = {
+			char : " ",
+			position : offset + position + offgap,
+			width : 10,
+			linegap : linegap,
+			selected : false
+		};
 	}
-
-	letters[i] = {
-		char : " ",
-		position : offset + position + offgap,
-		width : 10,
-		linegap : linegap,
-		selected : false
-	};
-
 	return letters;
 }
 

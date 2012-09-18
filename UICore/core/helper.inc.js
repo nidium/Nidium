@@ -46,7 +46,7 @@ String.prototype.cut = function(offset, size, insert){
 };
 
 String.prototype.splice = function(offset, size, insert){
-    return (this.slice(0,offset) + (insert?insert:'') + this.slice(offset + Math.abs(size)));
+    return (this.slice(0,offset) + (insert && insert!=''?insert:'') + this.slice(offset + Math.abs(size)));
 };
 
 var console = {

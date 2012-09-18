@@ -182,6 +182,7 @@ canvas.onkeyup = function(e){
 };
 
 canvas.ontextinput = function(e){
+	e.text = e.val;
 	UIEvents.dispatch("textinput", e);
 };
 
@@ -213,6 +214,12 @@ var UIEvents = {
 
 			if (!view.visible) {
 				continue;
+			}
+
+			if (eventName=='keydown' || eventName=='keyup' ||eventName=='textinput'){
+				if (cancelEvent===false){
+					view.fireEvent(eventName, e);
+				}
 			}
 
 			if (view.isPointInside(x, y)){
