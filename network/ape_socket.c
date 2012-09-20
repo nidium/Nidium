@@ -255,6 +255,7 @@ void APE_socket_shutdown(ape_socket *socket)
     }
 #endif    
     if (shutdown(socket->s.fd, 2) != 0) {
+        printf("Force shutdown\n");
         APE_socket_destroy(socket);
     }
 }
@@ -298,6 +299,9 @@ int APE_socket_destroy(ape_socket *socket)
         return -1;
     
     ape_global *ape = socket->ape;
+
+    /* Set disconnect flag before callback in case of recursion */
+    socket->states.state = APE_SOCKET_ST_OFFLINE;
     
     if (socket->callbacks.on_disconnect != NULL) {
         socket->callbacks.on_disconnect(socket, ape);
@@ -305,8 +309,6 @@ int APE_socket_destroy(ape_socket *socket)
     
     printf("====== Destroy : %d ======\n", APE_SOCKET_FD(socket));
     close(APE_SOCKET_FD(socket));
-
-    socket->states.state = APE_SOCKET_ST_OFFLINE;
 
     timer_dispatch_async(ape_socket_free, socket);
     
