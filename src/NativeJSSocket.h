@@ -12,15 +12,6 @@ enum {
     SOCKET_PROP_BINARY
 };
 
-typedef struct _native_socket
-{
-    const char *host;
-    unsigned short port;
-    ape_socket *socket;
-    int flags;
-
-} native_socket;
-
 
 class NativeJSSocket : public NativeJSExposer
 {

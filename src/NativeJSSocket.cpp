@@ -4,6 +4,7 @@ static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
 
@@ -15,6 +16,7 @@ static JSClass socket_class = {
 };
 
 static JSFunctionSpec socket_funcs[] = {
+    JS_FN("listen", native_socket_listen, 0, 0),
     JS_FN("connect", native_socket_connect, 0, 0),
     JS_FN("write", native_socket_write, 1, 0),
     JS_FN("disconnect", native_socket_close, 0, 0),
@@ -53,7 +55,7 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     return JS_TRUE;
 }
 
-static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape)
+static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape)
 {
     JSContext *cx;
     jsval onconnect, rval;
@@ -73,6 +75,23 @@ static void native_socket_wrapper_onconnect(ape_socket *s, ape_global *ape)
         JS_CallFunctionValue(cx, nsocket->jsobject, onconnect,
             0, NULL, &rval);
     }
+}
+
+
+static void native_socket_wrapper_onaccept(ape_socket *socket_server,
+    ape_socket *socket_client, ape_global *ape)
+{
+    JSContext *cx;
+    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    jsval onaccept, rval;
+
+    if (nsocket == NULL || !nsocket->isJSCallable()) {
+        return;
+    }
+
+    cx = nsocket->cx;
+
+
 }
 
 static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
@@ -136,6 +155,7 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
     }
 }
 
+
 static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *host;
@@ -149,7 +169,6 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
         &host, &port)) {
         return JS_TRUE;
     }
-    JSAutoByteString chost(cx, host);
 
     nsocket = new NativeJSSocket(JS_EncodeString(cx, host), port);
 
@@ -162,6 +181,39 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineProperties(cx, ret, Socket_props);
 
     JS_SetProperty(cx, ret, "isBinary", &isBinary);
+
+    return JS_TRUE;
+}
+
+static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
+{
+    ape_socket *socket;
+    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
+
+    if (nsocket == NULL || nsocket->isAttached()) {
+        return JS_TRUE;
+    }
+
+    if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
+        printf("[Socket] Cant load socket (new)\n");
+        /* TODO: add exception */
+        return JS_TRUE;
+    }
+
+    if (APE_socket_listen(socket, nsocket->port, nsocket->host) == -1) {
+        printf("[Socket] Cant listen (0)\n");
+        return JS_TRUE;
+    }
+
+    printf("Listening on port %d...\n", nsocket->port);
+
+    socket->callbacks.on_connect    = native_socket_wrapper_onaccept;
+    socket->callbacks.on_read       = NULL;
+    socket->callbacks.on_disconnect = NULL;
+
+    nsocket->socket = socket;
 
     return JS_TRUE;
 }
@@ -184,7 +236,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     }
 
 
-    socket->callbacks.on_connected  = native_socket_wrapper_onconnect;
+    socket->callbacks.on_connected  = native_socket_wrapper_onconnected;
     socket->callbacks.on_read       = native_socket_wrapper_read;
     socket->callbacks.on_disconnect = native_socket_wrapper_disconnect;
 
