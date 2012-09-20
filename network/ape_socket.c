@@ -116,6 +116,7 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     ret->states.state   = APE_SOCKET_ST_PENDING;
     ret->states.proto   = pt;
     ret->ctx            = NULL;
+    ret->parent         = NULL;
 
 #ifdef _HAVE_SSL_SUPPORT
     ret->SSL.issecure   = (pt == APE_SOCKET_PT_SSL);
@@ -723,6 +724,7 @@ inline int ape_socket_accept(ape_socket *socket)
 
         /* clients inherits server callbacks */
         client->callbacks    = socket->callbacks;
+        client->parent       = socket;
 
         client->states.state = APE_SOCKET_ST_ONLINE;
         client->states.type  = APE_SOCKET_TP_CLIENT;

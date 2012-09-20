@@ -124,6 +124,7 @@ struct _ape_socket {
     void *ctx;  /* public pointer */
     void *_ctx; /* internal public pointer */
     ape_global *ape;
+    ape_socket *parent; /* server socket in case of client */
 
     ape_socket_callbacks    callbacks;
 
