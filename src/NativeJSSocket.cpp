@@ -1,5 +1,8 @@
 #include "NativeJSSocket.h"
 
+/* only use on connected clients */
+#define NATIVE_SOCKET_JSOBJECT(socket) ((JSObject *)socket->ctx)
+
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -8,11 +11,27 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
 
+static JSBool native_socket_client_write(JSContext *cx,
+    unsigned argc, jsval *vp);
+
 static JSClass socket_class = {
     "Socket", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass socket_client_class = {
+    "SocketClient", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSFunctionSpec socket_client_funcs[] = {
+    JS_FN("write", native_socket_client_write, 1, 0),
+    JS_FN("disconnect", native_socket_close, 0, 0),
+    JS_FS_END
 };
 
 static JSFunctionSpec socket_funcs[] = {
@@ -82,8 +101,9 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     ape_socket *socket_client, ape_global *ape)
 {
     JSContext *cx;
+    JSObject *jclient;
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
-    jsval onaccept, rval;
+    jsval onaccept, rval, arg;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -91,6 +111,23 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     cx = nsocket->cx;
 
+    jclient = JS_NewObject(cx, &socket_client_class, NULL, NULL);
+    socket_client->ctx = jclient;
+
+    JS_AddObjectRoot(cx, (JSObject **)&socket_client->ctx);
+
+    JS_SetPrivate(jclient, socket_client);
+
+    JS_DefineFunctions(cx, jclient, socket_client_funcs);
+
+    arg = OBJECT_TO_JSVAL(jclient);
+
+    if (JS_GetProperty(cx, nsocket->jsobject, "onaccept", &onaccept) &&
+        JS_TypeOfValue(cx, onaccept) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, nsocket->jsobject, onaccept,
+            1, &arg, &rval);
+    }    
 
 }
 
@@ -190,6 +227,11 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     ape_socket *socket;
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }
+
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || nsocket->isAttached()) {
@@ -202,10 +244,6 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    if (APE_socket_listen(socket, nsocket->port, nsocket->host) == -1) {
-        printf("[Socket] Cant listen (0)\n");
-        return JS_TRUE;
-    }
 
     printf("Listening on port %d...\n", nsocket->port);
 
@@ -213,7 +251,18 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     socket->callbacks.on_read       = NULL;
     socket->callbacks.on_disconnect = NULL;
 
-    nsocket->socket = socket;
+    socket->ctx = nsocket;
+
+    nsocket->socket     = socket;
+    nsocket->cx         = cx;
+    nsocket->jsobject   = caller;
+
+    if (APE_socket_listen(socket, nsocket->port, nsocket->host) == -1) {
+        printf("[Socket] Cant listen (0)\n");
+        return JS_TRUE;
+    }
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
     return JS_TRUE;
 }
@@ -223,6 +272,11 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     ape_socket *socket;
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }
+
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || nsocket->isAttached()) {
@@ -255,17 +309,53 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_socket_client_write(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JSString *data;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    ape_socket *socket_client;
+
+    if (JS_InstanceOf(cx, caller, &socket_client_class,
+        JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }
+
+    socket_client = (ape_socket *)JS_GetPrivate(caller);
+
+    if (socket_client->ctx != caller) {
+        printf("Internal socket error\n");
+        return JS_TRUE;
+    }
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
+        return JS_TRUE;
+    }
+
+    JSAutoByteString cdata(cx, data);
+
+    APE_socket_write(socket_client, (unsigned char *)cdata.ptr(),
+        strlen(cdata.ptr()), APE_DATA_COPY);
+
+    return JS_TRUE;
+}
+
 static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *data;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }
+
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || !nsocket->isAttached() ||
         !JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
         return JS_TRUE;
     }
-
+    /* TODO array buffer */
     /* TODO: Use APE_DATA_AUTORELEASE and specicy a free func (JS_free)) */
     JSAutoByteString cdata(cx, data);
 
@@ -278,6 +368,11 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }
+
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || !nsocket->isAttached()) {
