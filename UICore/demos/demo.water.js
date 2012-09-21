@@ -1,13 +1,12 @@
 /* 
- * RealTime JavaScript Raytracer DEMO
  * Forked from Jonas Wagner's work
  * http://29a.ch/sandbox/2010/water/
  */
 
 var floor = Math.floor,
 	ctx = canvas,
-	cw = 320,
-	ch = 240,
+	cw = 450,
+	ch = 338,
 	width = cw,
 	height = ch,
 	size = width * height,
@@ -23,8 +22,8 @@ function clamp(x, min, max) {
 }
 
 function getDataFromImage(img) {
-	//ctx.drawImage(img, 0, 0, img.width, img.height);
-	return img;
+	ctx.drawImage(img, 0, 0, img.width, img.height);
+	return ctx.getImageData(0, 0, img.width, img.height);
 }
 
 function loadImage(src, callback) {
@@ -41,7 +40,7 @@ function disturb(x, y, z) {
 }
 
 function process() {
-	var img = {width: 320, height: 240, data: new Uint8ClampedArray(320*240*4)},
+	var img = ctx.getImageData(0, 0, width, height),
 		data = img.data,
 		i, x;
 
@@ -83,6 +82,7 @@ function process() {
 	aux = buffer0;
 	buffer0 = buffer1;
 	buffer1 = aux;
+    ctx.putImageData(img, 0, 0);	
 }
 
 for (i = 0; i < size; i++) {
@@ -90,20 +90,20 @@ for (i = 0; i < size; i++) {
 	buffer1.push(0);
 }
 
-<<<<<<< HEAD
-=======
-loadImage("demos/demo.water320x240.jpg", function(img){
->>>>>>> 74e3cf311380455e055eb170aaaf67f0a7aa936a
 
+loadImage("demos/demo.water450x338.jpeg", function(img){
+	texture = getDataFromImage(img);
+	canvas.requestAnimationFrame(function(){
+		process();
+	});
 
+	canvas.onmousemove = function(e){
+		disturb(
+			Math.floor(e.x),
+			Math.floor(e.y),
+			15000
+		);
 
-var img = {width: 320, height: 240, data: new Uint8ClampedArray(320*240*4)};
-texture = getDataFromImage(img);
+	};
 
-
-process();
-
-
-
-
-
+});

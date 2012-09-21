@@ -114,15 +114,14 @@ UIElement.extend("UITabController", {
 
 
 		this.insertTab = function(position, options){
-			let to = self.taborder,
+			var to = self.taborder,
 				tb = self.tabs,
 				tab = self.getTab(position),
-				tabnum = tab.tabnum || false,
+				tabnum = tab.tabnum,
 				left = tab.left || false,
 				newtab;
 
-
-			for (let i=tabnum; i<tb.length; i++){
+			for (var i=tabnum; i<tb.length; i++){
 				tb[i].position++;
 				tb[i].tabnum++;
 			}
@@ -138,7 +137,7 @@ UIElement.extend("UITabController", {
 			};
 			newtab.scale = 0;
 
-			for (let i=0; i<to.length; i++){
+			for (var i=0; i<to.length; i++){
 				if (to[i] >= tabnum){
 					to[i]++;
 				}

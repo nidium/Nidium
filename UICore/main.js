@@ -5,8 +5,8 @@
 /* -- Native FrameWork Demos  ------------------ */
 
 load("core/native.inc.js");
-load('demos/demo.ui.js');
-//load('demos/demo.tabs.js');
+//load('demos/demo.ui.js');
+load('demos/demo.tabs.js');
 //load('demos/demo.spectral.js');
 //load('demos/demo.windows.js');
 
