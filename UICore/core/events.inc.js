@@ -140,7 +140,7 @@ canvas.onmouseup = function(e){
 		} else {
 
 			if (!canvas.global.__timerEngaged) {
-				setTimeout(function(){
+				setTimer(function(){
 					if (!canvas.global.__doubleClickLaunched) {
 						UIEvents.dispatch("mouseclick", e);
 					}

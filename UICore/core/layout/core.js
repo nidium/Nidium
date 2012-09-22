@@ -299,20 +299,20 @@ UIView.prototype = {
 
 
 		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
-			let params = {
+			var params = {
 					x : this._x,
 					y : this._y,
 					w : this.w,
 					h : this.h
 				},
-				radius = this.radius;
+				radius = this.radius+1;
 
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,1)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,0.8)", "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,0.6)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
 		}
 
@@ -502,7 +502,7 @@ UIView.prototype = {
 		}
 
 		if (this.scroll.scrolling) {
-			Timers.remove(self.scroll.timer);
+			self.scroll.timer.remove();
 			this.scroll.scrolling = false;
 			this.scroll.initied = false;
 		}
@@ -512,7 +512,7 @@ UIView.prototype = {
 
 			self.scroll.scrolling = true;
 
-			self.scroll.timer = setTimeout(function(){
+			self.scroll.timer = setTimer(function(){
 				let stop = false;
 		
 				self.scroll.top = FXAnimation.easeOutCubic(0, self.scroll.time, startY, deltaY, self.scroll.duration);
@@ -682,7 +682,6 @@ var Application = function(options){
 
 		canvas.animate = true;
 	    canvas.requestAnimationFrame(function(){
-			Timers.manage();
 			
 			__DATE__ = (+ new Date());
 	 		if (canvas.animate) {

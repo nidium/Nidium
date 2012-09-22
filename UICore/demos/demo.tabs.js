@@ -24,10 +24,37 @@ var	tabController = main.add("UITabController", {
 	background : "#191a18"
 });
 
-var removeButton = main.add("UIButton", {x:20, y:60, label:"Remove", background:"#4488EE", fontSize:10.5}),
-	nextButton = main.add("UIButton", {x:82, y:60, label:"Next", background:"#882266", fontSize:10.5}),
-	addButton = main.add("UIButton", {x:130, y:85, label:"Add", background:"#668822", fontSize:10.5}),
-	b3 = main.add("UIButton", {x:20, y:85, label:"Tab 0, Position 0", background:"#000000", fontSize:10.5});
+var removeButton = main.add("UIButton", {
+		x:20,
+		y:60,
+		label:"Remove",
+		background:"#4488EE",
+		fontSize:10.5
+	}),
+
+	nextButton = main.add("UIButton", {
+		x:82, 
+		y:60, 
+		label:"Next", 
+		background:"#882266", 
+		fontSize:10.5
+	}),
+
+	addButton = main.add("UIButton", {
+		x:130, 
+		y:85, 
+		label:"Add", 
+		background:"#668822", 
+		fontSize:10.5
+	}),
+
+	b3 = main.add("UIButton", {
+		x:20, 
+		y:85, 
+		label:"Tab 0, Position 0", 
+		background:"#000000", 
+		fontSize:10.5
+	});
 
 
 addButton.addEventListener("mouseclick", function(){
@@ -52,13 +79,6 @@ removeButton.addEventListener("mouseclick", function(){
 });
 
 nextButton.addEventListener("mousedown", function(){
-	/*
-	var s = tabController.selection, // current selected tab
-		p = tabController.position, // current selected tab position
-		tab = tabController.getTab(p+1).tabnum; // next tab at position p+1
-
-	tabController.selectTab(tab);
-	*/
 	tabController.selectNextTab();
 });
 
