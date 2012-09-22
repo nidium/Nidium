@@ -26,6 +26,7 @@ canvas.implement = function(props){
 	}
 };
 
+var ___shadowCTX = 0;
 canvas.implement({
 	setShadow : function(x, y, b, c){
 		this.shadowOffsetX = x;

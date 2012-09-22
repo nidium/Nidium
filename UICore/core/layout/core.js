@@ -297,7 +297,6 @@ UIView.prototype = {
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
 		canvas.globalAlpha = this._opacity;
 
-
 		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
 			var params = {
 					x : this._x,
@@ -665,17 +664,18 @@ var Application = function(options){
 
 		canvas.showFPS = function(){
 			__FPS__++;
-			let r = 2 + (+ new Date()) - __DATE__,
-				fps = Math.round(1000/r);
+			let r = 0.1 + (+ new Date()) - __DATE__,
+				fps = 1000/r;
 
 			if (__FPS__%30==0){
-				__FPS_OLD__ = fps;
+				__FPS_OLD__ = Math.round(r*10)/10; // fps
 			} 				
 
 			canvas.fillStyle = "black";
 			canvas.fillRect(0, canvas.height-40, 60, 30);
+			canvas.fillRect(0, 280, 50, 30);
 			canvas.fillStyle = "yellow";
-			canvas.fillText(__FPS_OLD__ + " FPS", 5, canvas.height-20);
+			canvas.fillText(__FPS_OLD__ + " ms", 5, canvas.height-20);
 
 			return r;
 		};
@@ -689,11 +689,8 @@ var Application = function(options){
 				//canvas.drawImage(z, 0, 0, 1024, 868);
 				//layout.grid();
 			}
-			//canvas.blur(0, 0, 1024, 768, 2);
 	 		canvas.showFPS();
-
-			canvas.fillStyle = "black";
-			canvas.fillRect(0, 280, 50, 30);
+			//canvas.blur(0, 0, 320, 200, 2);
 	    });
 	}
 

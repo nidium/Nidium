@@ -13,7 +13,7 @@ UIView.implement({
 		//view.visible = true;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			view._currentAnimation.remove();
 		}
 		view._currentAnimation = setTimer(function(){
 
@@ -23,7 +23,7 @@ UIView.implement({
 			time += slice;
 
 			if (time>duration && view._currentAnimation){
-				view._currentAnimation.remove();
+				this.remove();
 				if(typeof(callback)=="function") callback.call(view);
 			}
 		}, slice, true, true);
@@ -38,7 +38,7 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			view._currentAnimation.remove();
 		}
 		view._currentAnimation = setTimer(function(){
 
@@ -49,7 +49,7 @@ UIView.implement({
 
 			if (time>duration && view._currentAnimation){
 				//view.visible = false;
-				view._currentAnimation.remove();
+				this.remove();
 				if(typeof(callback)=="function") callback.call(view);
 			}
 		}, slice, true, true);
@@ -63,7 +63,7 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			view._currentAnimation.remove();
+			this.remove();
 		}
 		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
@@ -75,7 +75,7 @@ UIView.implement({
 			time += slice;
 
 			if (time>duration && view._currentAnimation){
-				view._currentAnimation.remove();
+				this.remove();
 				if(typeof(callback)=="function") callback.call(view);
 			}
 		}, slice, true, true);
@@ -89,7 +89,7 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			view._currentAnimation.remove();
+			this.remove();
 		}
 		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
@@ -100,8 +100,8 @@ UIView.implement({
 			time += slice;
 
 			if (time>duration && view._currentAnimation){
-				if (view._currentAnimation.remove) {
-					view._currentAnimation.remove();
+				if (this.remove) {
+					this.remove();
 				}
 				if(typeof(callback)=="function") callback.call(view);
 			}
@@ -116,7 +116,7 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			view._currentAnimation.remove();
+			this.remove();
 		}
 		view._currentAnimation = setTimeout(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
@@ -127,9 +127,9 @@ UIView.implement({
 
 			time += slice;
 
-			if (view._currentAnimation.remove && time>duration && view._currentAnimation){
+			if (this.remove && time>duration && view._currentAnimation){
 				//view.visible = false;
-				view._currentAnimation.remove();
+				this.remove();
 				view[property] = from+end;
 				canvas.__mustBeDrawn = true;
 				if(typeof(callback)=="function") callback.call(view);
