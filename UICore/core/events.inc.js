@@ -146,7 +146,7 @@ canvas.onmouseup = function(e){
 					}
 					canvas.global.__timerEngaged = false;
 					canvas.global.__doubleClickLaunched = false;
-				}, 1);
+				}, 10);
 
 				canvas.global.__timerEngaged = true;
 			} else {
@@ -194,11 +194,11 @@ var UIEvents = {
 	},
 
 	dispatch : function(eventName, e){
-		let x = e.x,
+		var x = e.x,
 			y = e.y,
 			elements = [];
 
-		let z = layout.getElements();
+		var z = layout.getElements();
 
 		var cancelBubble = false;
 
@@ -207,8 +207,8 @@ var UIEvents = {
 			cancelEvent = true;
 		};
 
-		for(let i=z.length-1 ; i>=0 ; i--) {
-			let view = z[i],
+		for(var i=z.length-1 ; i>=0 ; i--) {
+			var view = z[i],
 				cancelEvent = false;
 
 			if (!view.visible) {
@@ -300,5 +300,98 @@ var UIEvents = {
 	}
 
 };
+
+UIView.implement({
+	fireEvent : function(eventName, e){
+		canvas.__mustBeDrawn = true;
+		if (typeof this["on"+eventName] == 'function'){
+			this["on"+eventName](e);
+		}
+	},
+
+	throwMouseOver : function(e){
+		if (!this.flags._mouseoverCalled) {
+			this.flags._mouseoverCalled = true;
+			this.flags._mouseoutCalled = false;
+			
+			if (canvas.global.__dragging) {
+				if (this.ondragenter && typeof(this.ondragenter)=="function"){
+					this.ondragenter(e);
+					canvas.__mustBeDrawn = true;
+					return false;
+				}
+			} else {
+				if (this.onmouseover && typeof(this.onmouseover)=="function"){
+					this.onmouseover(e);
+					canvas.__mustBeDrawn = true;
+					return false;
+				}
+			}
+		}
+	},
+
+	throwMouseOut : function(e){
+		if (this.flags._mouseoverCalled && !this.flags._mouseoutCalled) {
+			this.flags._mouseoverCalled = false;
+			this.flags._mouseoutCalled = true;
+			if (canvas.global.__dragging) {
+
+				/* to check */
+				if (this.onmouseout && typeof(this.onmouseout)=="function"){
+					this.onmouseout(e);
+					canvas.__mustBeDrawn = true;
+				}
+				if (this.onmouseleave && typeof(this.onmouseleave)=="function"){
+					this.onmouseleave(e);
+					canvas.__mustBeDrawn = true;
+				}
+				/* -------- */
+
+				if (this.ondragleave && typeof(this.ondragleave)=="function"){
+					this.ondragleave(e);
+					canvas.__mustBeDrawn = true;
+					return false;
+				}
+			} else {
+				if (this.onmouseout && typeof(this.onmouseout)=="function"){
+					this.onmouseout(e);
+					canvas.__mustBeDrawn = true;
+				}
+				if (this.onmouseleave && typeof(this.onmouseleave)=="function"){
+					this.onmouseleave(e);
+					canvas.__mustBeDrawn = true;
+				}
+				return true;
+			}
+		}
+	},
+
+	addEventListener : function(eventName, callback, propagation){
+		var self = this;
+
+		propagation = (typeof propagation == "undefined") ? true : (propagation===true) ? true : false;
+		
+
+		if (!self._eventQueues[eventName]) {
+			self._eventQueues[eventName] = [];
+		}
+
+		self._eventQueues[eventName].push({
+			name : eventName,
+			throwEvent : callback,
+			propagation : true
+		});
+
+		self["on"+eventName] = function(e){
+			for(var i in self._eventQueues[eventName]){
+				self._eventQueues[eventName][i].throwEvent.call(self, e);
+				if (self._eventQueues[eventName][i].propagation===false){
+					break;
+				}
+			}
+		};
+
+	}
+});
 
 

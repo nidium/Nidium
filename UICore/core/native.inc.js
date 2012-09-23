@@ -3,9 +3,8 @@
 /* -------------------------- */
 
 load('core/helper.inc.js');
-load('core/events.inc.js');
-
 load('core/layout/core.js');
+load('core/events.inc.js');
 
 load('core/layout/elements/UIView.js');
 load('core/layout/elements/UIButton.js');
@@ -27,7 +26,6 @@ load('core/layout/elements/UIDropDownController.js');
 
 load('core/layout/elements/UIWindow.js');
 load('core/layout/elements/UIWindowResizer.js');
-
 
 load('core/plugins/blur.inc.js');
 load('core/plugins/roundbox.inc.js');

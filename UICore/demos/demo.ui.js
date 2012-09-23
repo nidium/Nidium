@@ -50,7 +50,6 @@ var main = new Application({background:"#262722"}),
 		background : "#191a18"
 	});
 
-
 var	textView = main.add("UIText", {
 		x : 733,
 		y : 80,
@@ -137,7 +136,7 @@ echo(' ');
 echo('"' + textView.text.substr(213, 451) + '"');
 */
 
-var s = textView.setCaret(46, 178);
+var s = textView.setCaret(70, 50);
 
 textView.addEventListener("textselect", function(s){
 	//console.log(s);

@@ -12,7 +12,7 @@ var UIView = function(type, options, parent){
 		throw("Unknown element " + type);
 	}
 
-	let _get = function(property, defaultValue, min, max){
+	var _get = function(property, defaultValue, min, max){
 		let p = view.options[property] ? view.options[property] : defaultValue;
 		if (typeof p == "number") {
 			p = (typeof min != "undefined") ? Math.max(min, p) : p;
@@ -391,174 +391,6 @@ UIView.prototype = {
 
 	/* -------------------------------------------------------------- */
 
-	fireEvent : function(eventName, e){
-		canvas.__mustBeDrawn = true;
-		if (typeof this["on"+eventName] == 'function'){
-			this["on"+eventName](e);
-		}
-	},
-
-	throwMouseOver : function(e){
-		if (!this.flags._mouseoverCalled) {
-			this.flags._mouseoverCalled = true;
-			this.flags._mouseoutCalled = false;
-			
-			if (canvas.global.__dragging) {
-				if (this.ondragenter && typeof(this.ondragenter)=="function"){
-					this.ondragenter(e);
-					canvas.__mustBeDrawn = true;
-					return false;
-				}
-			} else {
-				if (this.onmouseover && typeof(this.onmouseover)=="function"){
-					this.onmouseover(e);
-					canvas.__mustBeDrawn = true;
-					return false;
-				}
-			}
-		}
-	},
-
-	throwMouseOut : function(e){
-		if (this.flags._mouseoverCalled && !this.flags._mouseoutCalled) {
-			this.flags._mouseoverCalled = false;
-			this.flags._mouseoutCalled = true;
-			if (canvas.global.__dragging) {
-
-				/* to check */
-				if (this.onmouseout && typeof(this.onmouseout)=="function"){
-					this.onmouseout(e);
-					canvas.__mustBeDrawn = true;
-				}
-				if (this.onmouseleave && typeof(this.onmouseleave)=="function"){
-					this.onmouseleave(e);
-					canvas.__mustBeDrawn = true;
-				}
-				/* -------- */
-
-				if (this.ondragleave && typeof(this.ondragleave)=="function"){
-					this.ondragleave(e);
-					canvas.__mustBeDrawn = true;
-					return false;
-				}
-			} else {
-				if (this.onmouseout && typeof(this.onmouseout)=="function"){
-					this.onmouseout(e);
-					canvas.__mustBeDrawn = true;
-				}
-				if (this.onmouseleave && typeof(this.onmouseleave)=="function"){
-					this.onmouseleave(e);
-					canvas.__mustBeDrawn = true;
-				}
-				return true;
-			}
-		}
-	},
-
-	addEventListener : function(eventName, callback, propagation){
-		var self = this;
-
-		propagation = (typeof propagation == "undefined") ? true : (propagation===true) ? true : false;
-		
-
-		if (!self._eventQueues[eventName]) {
-			self._eventQueues[eventName] = [];
-		}
-
-		self._eventQueues[eventName].push({
-			name : eventName,
-			throwEvent : callback,
-			propagation : true
-		});
-
-		self["on"+eventName] = function(e){
-			for(var i in self._eventQueues[eventName]){
-				self._eventQueues[eventName][i].throwEvent.call(self, e);
-				if (self._eventQueues[eventName][i].propagation===false){
-					break;
-				}
-			}
-		};
-
-	},
-
-	scrollY : function(deltaY){
-		var self = this,
-			startY = this.scroll.top,
-			endY = this.scroll.top + deltaY,
-			maxY = this.content.height-this.h,
-			slice = 10,
-			duration = 80;
-
-		if (!this.scroll.initied){
-			self.scroll.initied = true;
-			self.scroll.time = 0;
-			self.scroll.duration = duration;
-			self.scroll.startY = startY;
-			self.scroll.endY = endY;
-			self.scroll.deltaY = deltaY;
-			self.scroll.accy = 1.0;
-		}
-
-		if (this.scroll.scrolling) {
-			self.scroll.timer.remove();
-			this.scroll.scrolling = false;
-			this.scroll.initied = false;
-		}
-
-		if (!this.scroll.scrolling){
-
-
-			self.scroll.scrolling = true;
-
-			self.scroll.timer = setTimer(function(){
-				let stop = false;
-		
-				self.scroll.top = FXAnimation.easeOutCubic(0, self.scroll.time, startY, deltaY, self.scroll.duration);
-				self.scroll.time += slice;
-
-				delete(self.__cache);
-				canvas.__mustBeDrawn = true;
-
-
-				if (deltaY>=0) {
-					if (self.scroll.top > maxY) {
-						self.scroll.top = maxY;
-						stop = true;
-					}
-
-					if (self.scroll.top > endY) {
-						self.scroll.top = endY;
-						stop = true;
-					}
-				} else {
-					if (self.scroll.top < endY) {
-						self.scroll.top = endY;
-						stop = true;
-					}
-
-					if (self.scroll.top < 0) {
-						self.scroll.top = 0;
-						stop = true;
-					}
-				}
-
-				if (self.scroll.time>duration){
-					stop = true;
-				}
-
-				if (stop && this.remove){
-					self.scroll.scrolling = false;
-					self.scroll.initied = false;
-					this.remove();
-				}
-
-			}, slice, true, true);
-
-		}
-
-	},
-
 	isPointInside : function(mx, my){
 		var x1 = this.__x,
 			y1 = this.__y,
@@ -668,7 +500,7 @@ var Application = function(options){
 				fps = 1000/r;
 
 			if (__FPS__%30==0){
-				__FPS_OLD__ = Math.round(r*10)/10; // fps
+				__FPS_OLD__ = Math.round(r*10)/10-0.1; // fps
 			} 				
 
 			canvas.fillStyle = "black";
@@ -685,8 +517,9 @@ var Application = function(options){
 			
 			__DATE__ = (+ new Date());
 	 		if (canvas.animate) {
+
 				layout.draw();
-				//canvas.drawImage(z, 0, 0, 1024, 868);
+
 				//layout.grid();
 			}
 	 		canvas.showFPS();
