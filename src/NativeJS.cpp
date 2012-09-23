@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
+#include <stdint.h>
+
+#define UINT32_MAX 4294967295u
+
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
 
@@ -159,7 +163,6 @@ static JSBool native_canvas_transform(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setTransform(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clip(JSContext *cx, unsigned argc, jsval *vp);

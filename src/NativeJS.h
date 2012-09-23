@@ -1,6 +1,7 @@
 #ifndef nativejs_h__
 #define nativejs_h__
 
+#include <stdint.h>
 #include <jsapi.h>
 
 #include "NativeSkia.h"

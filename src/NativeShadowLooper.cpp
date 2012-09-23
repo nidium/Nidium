@@ -110,8 +110,3 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
             return false;
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-
-SK_DEFINE_FLATTENABLE_REGISTRAR(NativeShadowLooper)
-

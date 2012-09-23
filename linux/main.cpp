@@ -1,92 +1,98 @@
+
 #include <GL/gl.h>
 #include <SDL.h>
+//#include <SDL2/SDL_opengl.h>
 #include <SDL_video.h>
+#include <pthread.h>
 
 #include "NativeJS.h"
 #include "NativeSkia.h"
+#include "native_netlib.h"
+#include "ape_timers.h"
 
 #define kNativeWidth 1024
 #define kNativeHeight 768
-#define kFPS 70
+#define kFPS 100
 
 
 uint32_t tfps = 0, ttfps = 0;
-#define NELEM(x) (sizeof(x)/sizeof(double))
+int ape_running = 1;
 
 NativeJS *NJS;
-//NativeConsole *console;
+ape_global *gnet = NULL;
+int NativeEvents(SDL_Window *win);
+
+uint32_t starttime = SDL_GetTicks();
+uint32_t newtime;
 
 Uint32 NativeFPS(Uint32 interval, 
                  void*  param)
 {
-    NJS->currentFPS = tfps*2;
+    NJS->currentFPS = tfps;
     tfps = 0;
-    return 500;
+    return 1000;
 }
 
-double arrLowpass(double *array, size_t arrsize, double x)
+
+static int NativeProcessUI(void *arg)
 {
-    double ret = 0;
-    double decel = 1;
-    
-    while (arrsize) {
-        ret += array[arrsize-1] * decel; 
-        arrsize--;
-        decel *= 0.8;
-    }
-    return (ret+x) / (arrsize+1);
+    SDL_Window *win = (SDL_Window *)arg;
+    //printf("process UI\n");
+    return NativeEvents(win);
 }
 
-void NativeEvents(SDL_Window *win)
+static void NativeRunMainLoop(ape_global *net, SDL_Window *win)
+{
+    add_timer(&net->timersng, 1, NativeProcessUI, (void *)win);
+    
+    events_loop(net);
+}
+
+
+int NativeEvents(SDL_Window *win)
 {   
-    uint32_t starttime = SDL_GetTicks();
-    uint32_t newtime;
+
     SDL_Event event;
-    int32_t lastwheel = -1;
-    double arrdelta[8];
-    memset(arrdelta, 0, sizeof(arrdelta));
-    
-    int ndelta = 0;
-    
-    while(1) {
-        
+    uint32_t tstart, tend;
+    tstart = SDL_GetTicks();
+    //while(1) {
+    int nevents = 0;
         while(SDL_PollEvent(&event)) {
+            nevents++;
             switch(event.type) {
+                case SDL_TEXTINPUT:
+                    NJS->textInput(event.text.text);
+                    break;
+                case SDL_USEREVENT:
+                    //NJS->bufferSound((int16_t *)event.user.data1, 4096);
+                    break;
                 case SDL_QUIT:
-                    return;
+                    return 0;
                 case SDL_MOUSEMOTION:
                     NJS->mouseMove(event.motion.x, event.motion.y,
                                    event.motion.xrel, event.motion.yrel);
                     break;
+                case SDL_MOUSEWHEEL:
+                {
+                    int cx, cy;
+                    SDL_GetMouseState(&cx, &cy);
+                    NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy);
+                    break;
+                }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                {
-                    double delta = 0;
-                    double detail = 0;
-                    if (event.button.state == 1 &&
-                        (event.button.button == 4 || event.button.button == 5)) {
-                        uint32_t wheeltime = SDL_GetTicks();
-                        uint32_t t = (lastwheel == -1 ? 40 : 1 + (wheeltime - lastwheel));
-                        
-                        delta = 12 * 1./t;
-                        arrdelta[ndelta%NELEM(arrdelta)] = delta;
-                        
-                        detail = arrLowpass(arrdelta, NELEM(arrdelta), delta);
-                        
-                        
-                        ndelta++;
-                        
-                        lastwheel = wheeltime;
-                    }
                     NJS->mouseClick(event.button.x, event.button.y,
-                                    event.button.state, event.button.button,
-                                    event.motion.xrel, event.motion.yrel, detail);
-                    
-                }
+                                    event.button.state, event.button.button);
                 break;
                 case SDL_KEYDOWN:
+                case SDL_KEYUP:
+                {
+                    int keyCode = 0;
+                    
+                    int mod = 0;
                     if (
-                        (&event.key)->keysym.sym == SDLK_r) {
+                        (&event.key)->keysym.sym == SDLK_r &&
+                        event.key.keysym.mod & KMOD_GUI) {
                         //printf("Refresh...\n");
                         //[console clear];
                         delete NJS;
@@ -96,44 +102,74 @@ void NativeEvents(SDL_Window *win)
                         
                         NJS = new NativeJS();
                         NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
+                        NJS->bindNetObject(gnet);
                         NJS->LoadScript("./main.js");
                         //SDL_GL_SwapBuffers();
-                        
-                        
+                        break;
                     }
-                    //return;
-                    break;
+                    if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
+                        keyCode = event.key.keysym.sym - 32;
+                    } else {
+                        keyCode = event.key.keysym.sym;
+                    }
+                    
+                    if (event.key.keysym.mod & KMOD_SHIFT) {
+                        mod |= NATIVE_KEY_SHIFT;
+                    }
+                    if (event.key.keysym.mod & KMOD_ALT) {
+                        mod |= NATIVE_KEY_ALT;
+                    }
+                    if (event.key.keysym.mod & KMOD_CTRL) {
+                        mod |= NATIVE_KEY_CTRL;
+                    }
+                    
+                    NJS->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
 
+                    break;
+                }
             }
         }
         
-        //glClear( GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         //NJS->nskia->redrawScreen();
+        /*glClear (GL_STENCIL_BUFFER_BIT);
+
+        glEnable(GL_STENCIL_TEST) ;
+        glStencilFunc(GL_ALWAYS, 1, 1);
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);*/
         
+
+//        glDisable(GL_ALPHA_TEST);
+
         NJS->callFrame();
         NJS->nskia->flush();
-        //glFlush();
-        //glFinish();
+    
+        /*for (int x = 0; x < 3000; x++) {
+            glWindowPos2i(10+(x), 700);
+            glDrawPixels(2, 2, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, pxls);
+        }*/
+        /*if (glGetError() != GL_NO_ERROR) {
+            printf("got an err\n");
+        }*/
+        //glDisable(GL_STENCIL_TEST);
+        glFlush();
         //glDrawBuffer(GL_FRONT);
         //glDrawBuffer(GL_BACK);
-        //SDL_GL_SwapBuffers();
+        //SDL_GL_SwapBuffers();:q
+         
         SDL_GL_SwapWindow(win);
-        if (++ttfps == 30) {
-            NJS->gc();
-            ttfps = 0;
-        }
+
+        tend = SDL_GetTicks();
+        
+        if (tend - tstart > 10) {
+            //NSLog(@"Took : %d\n", tend - tstart);
         //NJS->gc();
-        
-        newtime = SDL_GetTicks();
-        
-        if (newtime - starttime < 1000/kFPS) {
-            /* TODO: JS_GC() */
-            SDL_Delay((1000/kFPS) - (newtime - starttime));
-        }
-        
+            ttfps = 0;
+        }        
         tfps++;
-        starttime = SDL_GetTicks();
-    }
+    //}
+
+    //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
+    return 16;
 }
 
 
@@ -142,7 +178,7 @@ void resizeGLScene(int width, int height)
 {
     glViewport(0, 0, width, height);
     
-    
+#if 0    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     
@@ -153,18 +189,20 @@ void resizeGLScene(int width, int height)
     glMatrixMode(GL_MODELVIEW);
     
     glLoadIdentity();
-    
+#endif    
 }
 int initGL()
 {
     //glShadeModel(GL_SMOOTH);
     glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
-    glEnable(GL_TEXTURE_2D);
-    glClearColor(1, 1, 1, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+    //glEnable(GL_TEXTURE_2D);
+    //glClearColor(1, 1, 1, 0);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_FASTEST);
+    //glEnable(GL_MULTISAMPLE);
     //glClearDepth(1.0f);
     //glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);    
@@ -173,75 +211,77 @@ int initGL()
     return 1;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
+
     SDL_Window *win;
     SDL_GLContext contexteOpenGL;
-    
+
     if( SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1 )
     {
         printf( "Can't init SDL:  %s\n", SDL_GetError( ) );
-        return 1;
+        return 0;
     }
 
+    //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     
-    //SDL_GL_SetSwapInterval(1);
-    //SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 0);
-    /*
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 4 );
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 4 );
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 4 );
+    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, true );
+    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 4 ); /* TODO check */
+
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8 );
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
     
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    */
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     
     NJS = new NativeJS();
     
-    win = SDL_CreateWindow("Swelen Browser", 100, 100, kNativeWidth, kNativeHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
-    if (win == NULL) {
-        printf("%s\n", SDL_GetError());
-        return 1;
-    }
-    /*
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    */
+    win = SDL_CreateWindow("Native - Running", 100, 100, kNativeWidth, kNativeHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 
     contexteOpenGL = SDL_GL_CreateContext(win);
-    printf("after\n");
-    if (contexteOpenGL == NULL) {
-        printf("%s\n", SDL_GetError());
-        return 1;
+    if (SDL_GL_SetSwapInterval(1) == -1) {
+        printf("Cant vsync\n");
     }
-
     //SDL_SetWindowFullscreen(win, SDL_TRUE);
 
     resizeGLScene(kNativeWidth, kNativeHeight);
-    printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
-    printf("after\n");
-    initGL();
-    printf("after\n");
-    
-    NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
-    printf("after\n");
-    
-    //[self setupWorkingDirectory:YES];
-    
-    SDL_AddTimer(500, NativeFPS, NULL);
-    if (!NJS->LoadScript("./main.js")) {
-        printf("Cant load script");
-    }
 
+    initGL();
+
+    NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
+
+    SDL_AddTimer(1000, NativeFPS, NULL);
+    SDL_StartTextInput();
+    
+    gnet = native_netlib_init();
+    
+    NJS->bindNetObject(gnet);
+    
+    int e = 0;
+    if ((e = glGetError()) != GL_NO_ERROR) {
+        printf("first error %d\n", e);
+    }
+    
+    if (!NJS->LoadScript("./main.js")) {
+        printf("Cant load script\n");
+    }
+    e = 0;
+    if ((e = glGetError()) != GL_NO_ERROR) {
+        printf("got an error here %d\n", e);
+    }    
     printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     atexit( SDL_Quit );
-    
-    
-    //[self.window dealloc];
-    NativeEvents(win);
+    //glClear(GL_COLOR_BUFFER_BIT);
+    //NJS->nskia->flush();
+    SDL_GL_SwapWindow(win);
+    //glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-    return 1;
+
+        //[self.window dealloc];
+    //NativeEvents(win);
+    NativeRunMainLoop(gnet, win);
 }
-

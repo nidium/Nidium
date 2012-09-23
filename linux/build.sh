@@ -1,13 +1,16 @@
 #!/bin/sh
 g++ \
     main.cpp \
-    -I ../../SDL/SDL2/include/ \
+    -I ../SDL/include/ \
     -I ../src/ \
+    -I ../network/ \
     -I ../mozilla/js/src/dist/include/ \
-    -L ../../SDL/build/.libs/ \
-    -L ../../skia-read-only/out/Release/obj.target/gyp/ \
+    -L ../SDL/build/build/.libs/ \
+    -L ../skia/out/Release/obj.target/gyp/ \
     -L ../mozilla/js/src/ \
     -L ../src/ \
-    -lSDL2 -lGL -lfreetype\
+    -L ../network/ \
+    -L ../c-ares/.libs/ \
+    ../SDL/build/build/.libs/libSDL2.a -lGL -lfreetype -lrt \
     -Wl,--start-group \
-    -lnativestudio -lsfnt -ljs_static -lzlib -ljpeg -lopts_ssse3 -lopts -lutils -lpicture_utils -lports -limages -lskgr -lgr -leffects -lcore -Wl,--end-group
+    -lnativestudio -lnativenetwork -lcares -lsfnt -ljs_static -lzlib -ljpeg -lopts_ssse3 -lopts -lutils -lpicture_utils -lports -limages -lskgr -lgr -leffects -lcore -Wl,--end-group

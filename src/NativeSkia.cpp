@@ -1022,7 +1022,7 @@ void NativeSkia::redrawScreen()
     CANVAS_FLUSH();  
 }
 
-
+#if 0
 void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
     int x, int y)
 {
@@ -1040,6 +1040,7 @@ void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
     }
     context->resetContext();
 }
+#endif
 
 void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     int x, int y)
