@@ -26,6 +26,7 @@ canvas.implement = function(props){
 	}
 };
 
+var ___shadowCTX = 0;
 canvas.implement({
 	setShadow : function(x, y, b, c){
 		this.shadowOffsetX = x;
@@ -118,57 +119,25 @@ var count = function(arr){
 	return len;
 };
 
-var Timers = {
-	tid : 0,
-	instances : {},
-
-	add : function(timer){
-		let identifier = "__timer__" + this.tid++;
-		this.instances[identifier] = timer;
-		return identifier;
-	},
-
-	remove : function(identifier){
-		delete(this.instances[identifier]);
-	},
-
-	manage : function(){
-		let timers = Timers.instances,
-			inc = 1/60;
-
-		for (let i in timers){
-			if (timers[i].deleteBeforeNextLaunch){
-				this.remove(i);
-			} else if (timers[i].active){
-				timers[i].count += inc;
-				if (timers[i].count >= timers[i].time){
-					timers[i].count = 0;
-					if (!timers[i].loop){
-						timers[i].active = false;
-					}
-					timers[i].fn();
-				}
-			}
-		}
-	}
-
-};
-
-var setTimeout = function(fn, time, loop, execFirst){
-	if (execFirst) {
-		fn();
-	}
-	return Timers.add({
-		loop : loop || false,
-		active : true,
-		count : 0,
-		time : time/1000,
-		fn : fn,
-		deleteAfterNextLaunch : false,
+var setTimer = function(fn, ms, loop, execFirst){
+	var t = {
+		loop : loop,
+		tid : loop ? setInterval(function(){fn.call(t);}, ms) : setTimeout(function(){fn.call(t);}, ms),
 		remove : function(){
-			this.deleteBeforeNextLaunch = true;
+			if (this.loop) {
+				clearInterval(this.tid);
+			} else {
+				clearTimeout(this.tid);
+			}
+			delete(this.tid);
 		}
-	});
+	};
+
+	if (execFirst) {
+		fn.call(t);
+	}
+	
+	return t;
 };
 
 /* ----------------------- */

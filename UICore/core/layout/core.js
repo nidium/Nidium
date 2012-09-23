@@ -297,22 +297,21 @@ UIView.prototype = {
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
 		canvas.globalAlpha = this._opacity;
 
-
 		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
-			let params = {
+			var params = {
 					x : this._x,
 					y : this._y,
 					w : this.w,
 					h : this.h
 				},
-				radius = this.radius;
+				radius = this.radius+1;
 
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,1)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,0.8)", "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,0.6)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
 		}
 
@@ -502,7 +501,7 @@ UIView.prototype = {
 		}
 
 		if (this.scroll.scrolling) {
-			Timers.remove(self.scroll.timer);
+			self.scroll.timer.remove();
 			this.scroll.scrolling = false;
 			this.scroll.initied = false;
 		}
@@ -512,7 +511,7 @@ UIView.prototype = {
 
 			self.scroll.scrolling = true;
 
-			self.scroll.timer = setTimeout(function(){
+			self.scroll.timer = setTimer(function(){
 				let stop = false;
 		
 				self.scroll.top = FXAnimation.easeOutCubic(0, self.scroll.time, startY, deltaY, self.scroll.duration);
@@ -665,24 +664,24 @@ var Application = function(options){
 
 		canvas.showFPS = function(){
 			__FPS__++;
-			let r = 2 + (+ new Date()) - __DATE__,
-				fps = Math.round(1000/r);
+			let r = 0.1 + (+ new Date()) - __DATE__,
+				fps = 1000/r;
 
 			if (__FPS__%30==0){
-				__FPS_OLD__ = fps;
+				__FPS_OLD__ = Math.round(r*10)/10; // fps
 			} 				
 
 			canvas.fillStyle = "black";
 			canvas.fillRect(0, canvas.height-40, 60, 30);
+			canvas.fillRect(0, 280, 50, 30);
 			canvas.fillStyle = "yellow";
-			canvas.fillText(__FPS_OLD__ + " FPS", 5, canvas.height-20);
+			canvas.fillText(__FPS_OLD__ + " ms", 5, canvas.height-20);
 
 			return r;
 		};
 
 		canvas.animate = true;
 	    canvas.requestAnimationFrame(function(){
-			Timers.manage();
 			
 			__DATE__ = (+ new Date());
 	 		if (canvas.animate) {
@@ -690,11 +689,8 @@ var Application = function(options){
 				//canvas.drawImage(z, 0, 0, 1024, 868);
 				//layout.grid();
 			}
-			//canvas.blur(0, 0, 1024, 768, 2);
 	 		canvas.showFPS();
-
-			canvas.fillStyle = "black";
-			canvas.fillRect(0, 280, 50, 30);
+			//canvas.blur(0, 0, 320, 200, 2);
 	    });
 	}
 

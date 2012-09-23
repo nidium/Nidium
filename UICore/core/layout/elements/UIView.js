@@ -20,7 +20,7 @@ UIElement.extend("UIView", {
 
 		canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
 
-		if (this.shadowBlur!=0) {
+		if (this.shadowBlur != 0) {
 			canvas.setShadow(0, 0, 0);
 		}
 

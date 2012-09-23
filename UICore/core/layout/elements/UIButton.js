@@ -106,12 +106,23 @@ UIElement.extend("UIButton", {
 
 		canvas.fontSize = this.fontSize;
 
+
+		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
+			canvas.fillStyle = "rgba(0, 0, 0, 1)";
+			canvas.setShadow(0, 0, 6, "rgba(255, 255, 255, 1)");
+			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+			canvas.setShadow(0, 0, 2, "rgba(255, 190, 230, 1)");
+			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+			canvas.setShadow(0, 0, 0);
+		}
+
 		canvas.fillStyle = textShadow;
 		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
 		canvas.fillStyle = textColor;
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-
 
 
 	}

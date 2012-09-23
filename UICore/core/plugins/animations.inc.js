@@ -13,9 +13,9 @@ UIView.implement({
 		//view.visible = true;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			view._currentAnimation.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 
 			view.opacity = FXAnimation.easeOutCubic(0, time, start, end, duration);
 			canvas.__mustBeDrawn = true;
@@ -38,9 +38,9 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			view._currentAnimation.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 
 			view.opacity = FXAnimation.easeOutCubic(0, time, start, end, duration);
 			canvas.__mustBeDrawn = true;
@@ -63,9 +63,9 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			this.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
 
 			view.scale = fx(0, time, start, end, duration);
@@ -89,9 +89,9 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			this.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
 
 			view.left = fx(0, time, start, end, duration);
@@ -116,7 +116,7 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			this.remove();
 		}
 		view._currentAnimation = setTimeout(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
