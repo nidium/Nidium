@@ -97,18 +97,67 @@ UIElement.extend("UIText", {
 						this._insert('', this.selection.offset, Math.max(1, this.selection.size), this.selection.offset, 0);
 						break;
 
+					case 1073741906 : // up
+						if (this.caret.y1 >=1 && this.caret.y2 >= 1){
+							if (e.shiftKey){
+								this.caret.y1--;
+							} else {
+								this.resetStartPoint();
+								this.caret.y1--;
+								this.caret.y2--;
+							}
+							this.setSelectionFromMatricialCaret(this.caret);
+						}
+						break;
+
+					case 1073741905 : // down
+						var nblines = this._textMatrix.length-1;
+						if (this.caret.y1 < nblines && this.caret.y2 < nblines){
+							if (e.shiftKey){
+								this.caret.y1++;
+							} else {
+								this.resetStartPoint();
+								this.caret.y1++;
+								this.caret.y2++;
+							}
+							this.setSelectionFromMatricialCaret(this.caret);
+						} 
+						break;
+
 					case 1073741903 : // left
-						this.setCaret(++this.selection.offset, 0);
+						if (e.shiftKey){
+							this.setCaret(++this.selection.offset, --this.selection.size);
+						} else {
+							this.resetStartPoint();
+							this.setCaret(++this.selection.offset, 0);
+						}
 						break;
 
 					case 1073741904 : // right
-						this.setCaret(--this.selection.offset, 0);
+						if (e.shiftKey){
+							this.setCaret(--this.selection.offset, ++this.selection.size);
+						} else {
+							this.resetStartPoint();
+							this.setCaret(--this.selection.offset, 0);
+						}
 						break;
 
 					default : break;
 				}
 			}
 		}, false);
+
+		this.setStartPoint = function(){
+			this._StartCaret = {
+				x : this.caret.x1,
+				y : this.caret.y1
+			};
+			console.log(this._StartCaret);
+		};
+
+		this.resetStartPoint = function(){
+			delete(this._StartCaret);
+		};
 
 		this.addEventListener("textinput", function(e){
 			if (!this.hasFocus) return false;
@@ -121,10 +170,11 @@ UIElement.extend("UIText", {
 				this.mouseSelectionArea = null;
 			}
 
-			self._startMouseSelection(e);
-			self._doMouseSelection(e);
-			self._endMouseSelection();
+			this._startMouseSelection(e);
+			this._doMouseSelection(e);
+			this._endMouseSelection();
 			this.setCaret(this.selection.offset, 0);
+			this.setStartPoint();
 			this.caretCounter = -20;
 
 			this.select(false);
@@ -198,15 +248,15 @@ UIElement.extend("UIText", {
 				r.x2 = isNaN(r.x2) ? 0 : r.x2;
 				r.y2 = isNaN(r.y2) ? 0 : r.y2;
 
-				self.setCaretFromRelativeMouseSelection(r);
-				self.selection = self.getSelectionFromMatricialCaret(self.caret);
+				self.setMatricialCaretFromRelativeMouseSelection(r);
+				self.setSelectionFromMatricialCaret(self.caret);
 
 			}
 		};
 
 		/* -------------------------------------------------------------------------------- */
 
-		this.setCaretFromRelativeMouseSelection = function(r){
+		this.setMatricialCaretFromRelativeMouseSelection = function(r){
 			var m = this._textMatrix;
 				x1 = r.x1,
 				x2 = r.x2,
@@ -315,7 +365,7 @@ UIElement.extend("UIText", {
 		};
 
 		this.setCaret = function(offset, size){
-			/* 3 times faster than getSelectionFromMatricialCaret */
+			/* 3 times faster than setSelectionFromMatricialCaret */
 			offset = Math.max(0, (typeof(offset)!=undefined ? parseInt(offset, 10) : 0));
 			size = Math.max(0, (typeof(size)!=undefined ? parseInt(size, 10) : 0));
 			var m = this._textMatrix,
@@ -372,7 +422,7 @@ UIElement.extend("UIText", {
 		 	return this.selection;
 		};
 
-		this.getSelectionFromMatricialCaret = function(c){
+		this.setSelectionFromMatricialCaret = function(c){
 			/* 10 times faster than the old method */
 			var m = this._textMatrix,
 				selection = [],
@@ -421,11 +471,13 @@ UIElement.extend("UIText", {
 				walk++;
 			}
 
-		 	return {
+		 	this.selection = {
 		 		text : this.text.substr(offset, size),
 		 		offset : offset,
 		 		size : size
 		 	};
+
+			this.caretCounter = 0;
 		};
 		
 		this.verticalScrollBar = this.add("UIVerticalScrollBar");

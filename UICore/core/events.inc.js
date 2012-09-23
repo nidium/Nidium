@@ -177,7 +177,6 @@ canvas.onkeydown = function(e){
 };
 
 canvas.onkeyup = function(e){
-	//console.log(e.keyCode, e.altKey===true ? "shift" : "");
 	UIEvents.dispatch("keyup", e);
 };
 
