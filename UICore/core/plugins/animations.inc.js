@@ -13,9 +13,9 @@ UIView.implement({
 		//view.visible = true;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			view._currentAnimation.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 
 			view.opacity = FXAnimation.easeOutCubic(0, time, start, end, duration);
 			canvas.__mustBeDrawn = true;
@@ -38,9 +38,9 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			view._currentAnimation.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 
 			view.opacity = FXAnimation.easeOutCubic(0, time, start, end, duration);
 			canvas.__mustBeDrawn = true;
@@ -63,9 +63,9 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			this.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
 
 			view.scale = fx(0, time, start, end, duration);
@@ -89,9 +89,9 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			this.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
 
 			view.left = fx(0, time, start, end, duration);
@@ -108,6 +108,83 @@ UIView.implement({
 		}, slice, true, true);
 	},
 
+	scrollY : function(deltaY){
+		var self = this,
+			startY = this.scroll.top,
+			endY = this.scroll.top + deltaY,
+			maxY = this.content.height-this.h,
+			slice = 10,
+			duration = 80;
+
+		if (!this.scroll.initied){
+			self.scroll.initied = true;
+			self.scroll.time = 0;
+			self.scroll.duration = duration;
+			self.scroll.startY = startY;
+			self.scroll.endY = endY;
+			self.scroll.deltaY = deltaY;
+			self.scroll.accy = 1.0;
+		}
+
+		if (this.scroll.scrolling) {
+			self.scroll.timer.remove();
+			this.scroll.scrolling = false;
+			this.scroll.initied = false;
+		}
+
+		if (!this.scroll.scrolling){
+
+
+			self.scroll.scrolling = true;
+
+			self.scroll.timer = setTimer(function(){
+				let stop = false;
+		
+				self.scroll.top = FXAnimation.easeOutCubic(0, self.scroll.time, startY, deltaY, self.scroll.duration);
+				self.scroll.time += slice;
+
+				delete(self.__cache);
+				canvas.__mustBeDrawn = true;
+
+
+				if (deltaY>=0) {
+					if (self.scroll.top > maxY) {
+						self.scroll.top = maxY;
+						stop = true;
+					}
+
+					if (self.scroll.top > endY) {
+						self.scroll.top = endY;
+						stop = true;
+					}
+				} else {
+					if (self.scroll.top < endY) {
+						self.scroll.top = endY;
+						stop = true;
+					}
+
+					if (self.scroll.top < 0) {
+						self.scroll.top = 0;
+						stop = true;
+					}
+				}
+
+				if (self.scroll.time>duration){
+					stop = true;
+				}
+
+				if (stop && this.remove){
+					self.scroll.scrolling = false;
+					self.scroll.initied = false;
+					this.remove();
+				}
+
+			}, slice, true, true);
+
+		}
+
+	},
+	
 	animate : function(property, from, delta, duration, callback, fx, rtCallback){
 		var view = this,
 			start = from,
@@ -116,7 +193,7 @@ UIView.implement({
 			time = 0;
 
 		if (view._currentAnimation) {
-			Timers.remove(view._currentAnimation);
+			this.remove();
 		}
 		view._currentAnimation = setTimeout(function(){
 			fx = fx || FXAnimation.easeInOutQuad;

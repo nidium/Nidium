@@ -50,7 +50,6 @@ var main = new Application({background:"#262722"}),
 		background : "#191a18"
 	});
 
-
 var	textView = main.add("UIText", {
 		x : 733,
 		y : 80,
@@ -59,12 +58,13 @@ var	textView = main.add("UIText", {
 		text : sampleText,
 		lineHeight : 18,
 		fontSize : 13,
-		textAlign : "justify",
+		fontType : "arial",
+		textAlign : "left",
 		background : "rgba(255, 255, 255, 1.00)",
 		color : "#000000"
-	}),
+	});
 
-	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
+var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
 	//docButton1 = new UIButton({x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false});
 
@@ -136,7 +136,7 @@ echo(' ');
 echo('"' + textView.text.substr(213, 451) + '"');
 */
 
-var s = textView.setCaret(46, 178);
+var s = textView.setCaret(70, 50);
 
 textView.addEventListener("textselect", function(s){
 	//console.log(s);

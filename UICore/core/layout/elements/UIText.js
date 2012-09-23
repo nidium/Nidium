@@ -44,13 +44,13 @@ UIElement.extend("UIText", {
 		};
 
 		this.addEventListener("mouseover", function(e){
-			this.verticalScrollBar && this.verticalScrollBar.fadeIn(150, function(){
+			this.verticalScrollBar && this.verticalScrollBar.fadeIn(100, function(){
 				/* dummy */
 			});
 		}, false);
 
 		this.addEventListener("mouseout", function(e){
-			this.verticalScrollBar && this.verticalScrollBar.fadeOut(400, function(){
+			this.verticalScrollBar && this.verticalScrollBar.fadeOut(200, function(){
 				/* dummy */
 			});
 		}, false);
@@ -97,12 +97,49 @@ UIElement.extend("UIText", {
 						this._insert('', this.selection.offset, Math.max(1, this.selection.size), this.selection.offset, 0);
 						break;
 
+					case 1073741906 : // up
+						if (this.caret.y1 >=1 && this.caret.y2 >= 1){
+							if (e.shiftKey){
+								this.caret.y1--;
+							} else {
+								this.resetStartPoint();
+								this.caret.y1--;
+								this.caret.y2--;
+							}
+							this.setSelectionFromMatricialCaret(this.caret);
+						}
+						break;
+
+					case 1073741905 : // down
+						var nblines = this._textMatrix.length-1;
+						if (this.caret.y1 < nblines && this.caret.y2 < nblines){
+							if (e.shiftKey){
+								this.caret.y1++;
+							} else {
+								this.resetStartPoint();
+								this.caret.y1++;
+								this.caret.y2++;
+							}
+							this.setSelectionFromMatricialCaret(this.caret);
+						} 
+						break;
+
 					case 1073741903 : // left
-						this.setCaret(++this.selection.offset, 0);
+						if (e.shiftKey){
+							this.setCaret(++this.selection.offset, --this.selection.size);
+						} else {
+							this.resetStartPoint();
+							this.setCaret(++this.selection.offset, 0);
+						}
 						break;
 
 					case 1073741904 : // right
-						this.setCaret(--this.selection.offset, 0);
+						if (e.shiftKey){
+							this.setCaret(--this.selection.offset, ++this.selection.size);
+						} else {
+							this.resetStartPoint();
+							this.setCaret(--this.selection.offset, 0);
+						}
 						break;
 
 					default : break;
@@ -121,10 +158,11 @@ UIElement.extend("UIText", {
 				this.mouseSelectionArea = null;
 			}
 
-			self._startMouseSelection(e);
-			self._doMouseSelection(e);
-			self._endMouseSelection();
+			this._startMouseSelection(e);
+			this._doMouseSelection(e);
+			this._endMouseSelection();
 			this.setCaret(this.selection.offset, 0);
+			this.setStartPoint();
 			this.caretCounter = -20;
 
 			this.select(false);
@@ -147,6 +185,19 @@ UIElement.extend("UIText", {
 		}, false);
 
 		/* -------------------------------------------------------------------------------- */
+
+		this.setStartPoint = function(){
+			this._StartCaret = {
+				x : this.caret.x1,
+				y : this.caret.y1
+			};
+			console.log(this._StartCaret);
+		};
+
+		this.resetStartPoint = function(){
+			delete(this._StartCaret);
+		};
+
 
 		this._startMouseSelection = function(e){
 			this.__startTextSelectionProcessing = true;
@@ -198,15 +249,15 @@ UIElement.extend("UIText", {
 				r.x2 = isNaN(r.x2) ? 0 : r.x2;
 				r.y2 = isNaN(r.y2) ? 0 : r.y2;
 
-				self.setCaretFromRelativeMouseSelection(r);
-				self.selection = self.getSelectionFromMatricialCaret(self.caret);
+				self.setMatricialCaretFromRelativeMouseSelection(r);
+				self.setSelectionFromMatricialCaret(self.caret);
 
 			}
 		};
 
 		/* -------------------------------------------------------------------------------- */
 
-		this.setCaretFromRelativeMouseSelection = function(r){
+		this.setMatricialCaretFromRelativeMouseSelection = function(r){
 			var m = this._textMatrix;
 				x1 = r.x1,
 				x2 = r.x2,
@@ -315,7 +366,7 @@ UIElement.extend("UIText", {
 		};
 
 		this.setCaret = function(offset, size){
-			/* 3 times faster than getSelectionFromMatricialCaret */
+			/* 3 times faster than setSelectionFromMatricialCaret */
 			offset = Math.max(0, (typeof(offset)!=undefined ? parseInt(offset, 10) : 0));
 			size = Math.max(0, (typeof(size)!=undefined ? parseInt(size, 10) : 0));
 			var m = this._textMatrix,
@@ -372,7 +423,7 @@ UIElement.extend("UIText", {
 		 	return this.selection;
 		};
 
-		this.getSelectionFromMatricialCaret = function(c){
+		this.setSelectionFromMatricialCaret = function(c){
 			/* 10 times faster than the old method */
 			var m = this._textMatrix,
 				selection = [],
@@ -421,11 +472,13 @@ UIElement.extend("UIText", {
 				walk++;
 			}
 
-		 	return {
+		 	this.selection = {
 		 		text : this.text.substr(offset, size),
 		 		offset : offset,
 		 		size : size
 		 	};
+
+			this.caretCounter = 0;
 		};
 		
 		this.verticalScrollBar = this.add("UIVerticalScrollBar");
@@ -450,41 +503,36 @@ UIElement.extend("UIText", {
 			w = params.w - this.padding.right - this.padding.left,
 			h = params.h - this.padding.top - this.padding.bottom,
 
-			vOffset = (this.lineHeight/2)+5;
+			vOffset = (this.lineHeight/2)+5,
 
+			ctx = canvas;
 
-		//if (this.__cache) {
-			//canvas.putImageData(this.__cache, params.x, params.y);
-		//} else {
-			canvas.save();
-				if (this.background){
-					canvas.fillStyle = this.background;
-				}
-				canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
-				canvas.clip();
-		
-				if (this.selection.size == 0 && this.hasFocus) {
-					this.caretCounter++;
+		ctx.save();
+			if (this.background){
+				ctx.fillStyle = this.background;
+			}
+			ctx.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
+			ctx.clip();
+	
+			if (this.selection.size == 0 && this.hasFocus) {
+				this.caretCounter++;
 
-					if (this.caretCounter<=20){
-						this.caretOpacity = 1;					
-					} else if (this.caretCounter>20 && this.caretCounter<60) {
-						this.caretOpacity *= 0.85;
-					}
-
-					if (this.caretCounter>=60){
-						this.caretCounter = 0;
-					}
-				} else {
-					this.caretOpacity = 0;
+				if (this.caretCounter<=20){
+					this.caretOpacity = 1;					
+				} else if (this.caretCounter>20 && this.caretCounter<60) {
+					this.caretOpacity *= 0.85;
 				}
 
-				printTextMatrix(this._textMatrix, this.caret, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color, this.caretOpacity);
+				if (this.caretCounter>=60){
+					this.caretCounter = 0;
+				}
+			} else {
+				this.caretOpacity = 0;
+			}
 
+			printTextMatrix(ctx, this._textMatrix, this.caret, x, y - this.scroll.top, vOffset, w, h, params.y, this.lineHeight, this.fontSize, this.fontType, this.color, this.caretOpacity);
 
-			canvas.restore();
-			//this.__cache = canvas.getImageData(params.x, params.y, params.w, params.h);
-		//}
+		ctx.restore();
 
 	}
 });
@@ -513,7 +561,7 @@ canvas.implement({
 				var oldG = this.globalAlpha;
 				this.globalAlpha = caretOpacity;
 				this.fillRect(cx, y - vOffset, 1, lineHeight);
-				this.globalAlpha = oldG;
+				this.globalAlpha = 1;
 			}
 			this.fillText(c.char, cx, y);
 		}
@@ -529,7 +577,7 @@ canvas.implement({
 });
 
 function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
-	var context = new Canvas(640, 480),
+	var context = new Canvas(1, 1),
 		widthOf = context.measureText,
 		textLine = wordsArray.join(' '),
 		
@@ -682,26 +730,30 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 
 };
 
-function printTextMatrix(textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
-	canvas.fontSize = fontSize;
-	canvas.fontType = fontType;
+function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
+	ctx.fontSize = fontSize;
+	ctx.fontType = fontType;
 	var letters = [];
 
-	for (var line=0; line<textMatrix.length; line++){
+	var start = -Math.ceil((y - viewportTop)/lineHeight),
+		end = Math.min(textMatrix.length, start + Math.ceil(viewportHeight/lineHeight) );
+
+	for (var line=start; line<end; line++){
 		var tx = x,
 			ty = y + vOffset + lineHeight * line;
 
 		// only draw visible lines
 		if ( ty < (viewportTop + viewportHeight + lineHeight) && ty >= viewportTop) {
 			letters = textMatrix[line].letters;
-			canvas.fillStyle = "rgba(180, 180, 255, 0.60)";
-			canvas.highlightLetters(letters, tx, ty - vOffset, lineHeight);
-		
-			canvas.fillStyle = color;
+
+			ctx.fillStyle = "rgba(180, 180, 255, 0.60)";
+			ctx.highlightLetters(letters, tx, ty - vOffset, lineHeight);
+	
+			ctx.fillStyle = color;
 			if (line == caret.y2 && caretOpacity >= 0.10) {
-				canvas.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2, caretOpacity);
+				ctx.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2, caretOpacity);
 			} else {
-				canvas.drawLetters(letters, tx, ty);
+				ctx.drawLetters(letters, tx, ty);
 			}
 
 		}

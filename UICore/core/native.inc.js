@@ -3,9 +3,8 @@
 /* -------------------------- */
 
 load('core/helper.inc.js');
-load('core/events.inc.js');
-
 load('core/layout/core.js');
+load('core/events.inc.js');
 
 load('core/layout/elements/UIView.js');
 load('core/layout/elements/UIButton.js');
@@ -27,7 +26,6 @@ load('core/layout/elements/UIDropDownController.js');
 
 load('core/layout/elements/UIWindow.js');
 load('core/layout/elements/UIWindowResizer.js');
-
 
 load('core/plugins/blur.inc.js');
 load('core/plugins/roundbox.inc.js');
@@ -68,10 +66,10 @@ var layout = {
 
 		//this.clear();
 
-		let z = this.getElements();
+		var z = this.getElements();
 
 		if (canvas.__mustBeDrawn || true) {
-			for (let i in z){
+			for (var i in z){
 				if (z[i].visible){
 					z[i].beforeDraw();
 					z[i].draw();
@@ -105,7 +103,7 @@ var layout = {
 	},
 
 	getElements : function(){
-		let elements = [],
+		var elements = [],
 			self = this,
 			z = 0;
 
@@ -137,10 +135,10 @@ var layout = {
 
 	find : function(property, value){
 
-		let elements = [];
+		var elements = [];
 
-		let dx = function(nodes, parent){
-			for (let child in nodes){
+		var dx = function(nodes, parent){
+			for (var child in nodes){
 				if (nodes[child][property] && nodes[child][property] == value){
 					elements.push(nodes[child]);
 				}
@@ -164,9 +162,9 @@ var layout = {
 	},
 
 	getHigherZindex : function(){
-		let zindexes = [];
+		var zindexes = [];
 
-		let dx = function(nodes, parent){
+		var dx = function(nodes, parent){
 			for (var child in nodes){
 				zindexes.push(nodes[child]._zIndex);
 				if (count(nodes[child].nodes)>0) {
