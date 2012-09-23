@@ -35,6 +35,21 @@ canvas.implement({
 	}
 });
 
+canvas.implement({
+	currentColor : '',
+	currentFontSize : '',
+	setColor : function(color){
+		if (this.currentColor == color) return false;
+		this.currentColor = color;
+		this.fillStyle = color;
+	},
+	setFontSize : function(fontSize){
+		if (this.currentFontSize == fontSize) return false;
+		this.currentFontSize = fontSize;
+		this.fontSize = fontSize;
+	}
+});
+
 Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(min, this), max);
 };

@@ -59,7 +59,7 @@ var	textView = main.add("UIText", {
 		lineHeight : 18,
 		fontSize : 13,
 		fontType : "arial",
-		textAlign : "left",
+		textAlign : "justify",
 		background : "rgba(255, 255, 255, 1.00)",
 		color : "#000000"
 	});

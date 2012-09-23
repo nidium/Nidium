@@ -44,7 +44,7 @@ UIElement.extend("UIRadio", {
 
         canvas.beginPath();
         canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-        canvas.fillStyle = gBackground;
+        canvas.setColor(gBackground);
         canvas.fill();
         canvas.lineWidth = 1;
         canvas.strokeStyle = "rgba(140, 140, 140, 0.7)";
@@ -54,7 +54,7 @@ UIElement.extend("UIRadio", {
 	        var r = 4;
 	        canvas.beginPath();
 	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius-r, 0, 6.2831852, false);
-	        canvas.fillStyle = "rgba(60, 80, 200, 0.5)";
+	        canvas.setColor("rgba(60, 80, 200, 0.5)");
 	        canvas.fill();
 	        canvas.lineWidth = 1;
     	    canvas.strokeStyle = "rgba(0, 0, 180, 0.1)";
@@ -65,10 +65,10 @@ UIElement.extend("UIRadio", {
 		canvas.textAlign = "center";
 		canvas.textBaseline = 'center';
 
-		canvas.fillStyle = textShadow;
+		canvas.setColor(textShadow);
 		canvas.fillText(this.label, params.x+params.w+8, params.y+5+params.h*0.5);
 
-		canvas.fillStyle = textColor;
+		canvas.setColor(textColor);
 		canvas.fillText(this.label, params.x+params.w+8, params.y+5+params.h*0.5);
 
 	}

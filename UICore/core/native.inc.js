@@ -69,13 +69,14 @@ var layout = {
 		var z = this.getElements();
 
 		if (canvas.__mustBeDrawn || true) {
-			for (var i in z){
+			for (var i=0; i<z.length; i++){
 				if (z[i].visible){
 					z[i].beforeDraw();
 					z[i].draw();
 					z[i].afterDraw();
 				}
 			}
+
 			canvas.__mustBeDrawn = false;
 		}
 

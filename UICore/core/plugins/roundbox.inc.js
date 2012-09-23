@@ -42,7 +42,7 @@ canvas.implement({
 		}
 
 		if (fill) {
-			this.fillStyle = (fill=='') ? "rgba(0, 0, 0, 0.6)" : fill;
+			this.setColor((fill=='') ? "rgba(0, 0, 0, 0.6)" : fill);
 			this.fill();
 		}        
 	}

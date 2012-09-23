@@ -206,12 +206,13 @@ UIElement.extend("UIDropDownController", {
 
 		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
 
-		canvas.fontSize = 11;
-		canvas.fillStyle = textShadow;
-		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+		canvas.setFontSize(11);
 
-		canvas.fillStyle = textColor;
+		//if (this.shadow) { canvas.setShadow(1, 1, 1, textShadow); }
+		canvas.setColor(textColor);
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+		//if (this.shadow){ canvas.setShadow(0, 0, 0); }
+
 
 
 	}

@@ -509,7 +509,7 @@ UIElement.extend("UIText", {
 
 		ctx.save();
 			if (this.background){
-				ctx.fillStyle = this.background;
+				ctx.setColor(this.background);
 			}
 			ctx.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
 			ctx.clip();
@@ -603,7 +603,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char);
 	}
 
-	context.fontSize = fontSize;
+	context.setFontSize(fontSize);
 	spacewidth = widthOf(" ");
 	linegap = fitWidth - widthOf(textLine);
 
@@ -677,7 +677,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 
 	var matrix = [];
 
-	context.fontSize = fontSize;
+	context.setFontSize(fontSize);
 
 	for (var i = 0; i < paragraphe.length; i++) {
 		var words = paragraphe[i].split(' '),
@@ -731,7 +731,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 };
 
 function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
-	ctx.fontSize = fontSize;
+	ctx.setFontSize(fontSize);
 	ctx.fontType = fontType;
 	var letters = [];
 
@@ -746,10 +746,10 @@ function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, v
 		if ( ty < (viewportTop + viewportHeight + lineHeight) && ty >= viewportTop) {
 			letters = textMatrix[line].letters;
 
-			ctx.fillStyle = "rgba(180, 180, 255, 0.60)";
+			ctx.setColor("rgba(180, 180, 255, 0.60)");
 			ctx.highlightLetters(letters, tx, ty - vOffset, lineHeight);
 	
-			ctx.fillStyle = color;
+			ctx.setColor(color);
 			if (line == caret.y2 && caretOpacity >= 0.10) {
 				ctx.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2, caretOpacity);
 			} else {

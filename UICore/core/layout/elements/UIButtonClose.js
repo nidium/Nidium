@@ -37,8 +37,6 @@ UIElement.extend("UIButtonClose", {
 				h : this.h
 			},
 
-			textColor = "rgba(255, 255, 255, 0.8)",
-			textShadow = "rgba(0, 0, 0, 0.15)",
 			radius = this.w/2;
 
 		if (this.background!='') {
@@ -54,20 +52,20 @@ UIElement.extend("UIButtonClose", {
 
 	        canvas.beginPath();
 	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-	        canvas.fillStyle = this.background;
+	        canvas.setColor(this.background);
 	        canvas.fill();
 	        canvas.lineWidth = 1;
 
 	        canvas.beginPath();
 	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-	        canvas.fillStyle = gdBackground;
+	        canvas.setColor(gdBackground);
 	        canvas.fill();
 	        canvas.lineWidth = 1;
 
 	        if (this.selected){
 		        canvas.beginPath();
 		        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-		        canvas.fillStyle = this.background;
+		        canvas.setColor(this.background);
 		        canvas.fill();
 		        canvas.lineWidth = 1;
 	        }
@@ -78,22 +76,6 @@ UIElement.extend("UIButtonClose", {
         	y1 = params.y+m,
         	x2 = params.x+params.w - m,
         	y2 = params.y+params.h - m;
-
-        /*
-        canvas.lineWidth = 1;
-		canvas.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-		canvas.beginPath();
-		canvas.moveTo(x1+0.5, y2+0.5);
-		canvas.lineTo(x2+1, y1+1);
-		canvas.stroke();
-
-        canvas.lineWidth = 1;
-		canvas.strokeStyle = 'rgba(0, 0, 0, 0.7)';
-		canvas.beginPath();
-		canvas.moveTo(x1-1, y1+1);
-		canvas.lineTo(x2-0.5, y2+0.5);
-		canvas.stroke();
-		*/
 
 		canvas.strokeStyle = this.hover ? "#ffffff" : this.color;
         canvas.lineWidth = 2;
