@@ -33,7 +33,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/uio.h>
-//#include <sys/sendfile.h>
+#ifdef __linux__
+  #include <sys/sendfile.h>
+#endif
 #include <limits.h>
 #include <string.h>
       
@@ -143,8 +145,9 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
 {
     struct sockaddr_in addr;
     int reuse_addr = 1;
-    //int timeout = 2;
-
+#ifdef TCP_DEFER_ACCEPT
+    int timeout = 2;
+#endif
     if (port == 0) {
         return -1;
     }
@@ -392,7 +395,7 @@ int APE_socket_write(ape_socket *socket, unsigned char *data,
     size_t len, ape_socket_data_autorelease data_type)
 {
     ssize_t t_bytes = 0, r_bytes = len, n = 0;
-    int io_error = 0, rerrno;
+    int io_error = 0, rerrno = 0;
 
     if (socket->states.state != APE_SOCKET_ST_ONLINE ||
             len == 0) {

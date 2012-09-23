@@ -1,7 +1,11 @@
 #ifndef _APE_COMMON_H_
 #define _APE_COMMON_H_
 
-#define USE_KQUEUE_HANDLER
+#ifdef __linux__
+  #define USE_EPOLL_HANDLER
+#else
+  #define USE_KQUEUE_HANDLER
+#endif
 
 #include "../c-ares/ares.h"
 

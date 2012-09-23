@@ -2,9 +2,19 @@
 #include "common.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <mach/mach_time.h>
 
-/* TOOD: clear unprotected timers */
+#if defined(__APPLE__)
+  #include <mach/mach_time.h>
+#else
+  #include <time.h>
+static inline uint64_t mach_absolute_time()
+{
+	struct timespec t;
+	clock_gettime(CLOCK_MONOTONIC, &t);
+
+	return t.tv_sec * 1000000000 + t.tv_nsec;
+}
+#endif
 
 int process_timers(ape_timers *timers)
 {
