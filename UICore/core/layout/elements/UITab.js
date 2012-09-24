@@ -185,7 +185,7 @@ UIElement.extend("UITab", {
 			}
 		}
 
-//		canvas.tabbox(params.x, params.y, w, h, radius, this.background, false);
+		canvas.tabbox(params.x, params.y, w, h, radius, this.background, false);
 
 		if (this.shadow){
 			canvas.setShadow(0, 0, 0);
