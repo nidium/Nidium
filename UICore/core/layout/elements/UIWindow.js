@@ -110,7 +110,6 @@ UIElement.extend("UIWindow", {
 			label = this.name;
 
 
-
 		this.shadow = true;
 		if (this.shadow) {
 			canvas.setShadow(0, 15, this.shadowBlur, this.shadowColor);
@@ -130,8 +129,8 @@ UIElement.extend("UIWindow", {
 		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
 
 		canvas.setFontSize(11);
-		canvas.setColor(textShadow);
-		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+		//canvas.setColor(textShadow);
+		//canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
 		canvas.setColor(textColor);
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);

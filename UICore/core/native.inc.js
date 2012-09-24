@@ -76,7 +76,6 @@ var layout = {
 					z[i].afterDraw();
 				}
 			}
-
 			canvas.__mustBeDrawn = false;
 		}
 

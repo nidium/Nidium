@@ -35,6 +35,7 @@ canvas.implement({
 	}
 });
 
+//var ___call = 0;
 canvas.implement({
 	currentColor : '',
 	currentFontSize : '',
@@ -47,8 +48,16 @@ canvas.implement({
 		if (this.currentFontSize == fontSize) return false;
 		this.currentFontSize = fontSize;
 		this.fontSize = fontSize;
+//		___call++;
 	}
 });
+
+/*
+setInterval(function(){
+	echo(___call);
+	___call = 0;
+}, 1000);
+*/
 
 Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(min, this), max);

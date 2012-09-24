@@ -217,18 +217,16 @@ docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200, function(){});
 });
 
-
-
 var blurCache = false;
 
 docButton5.addEventListener("mousedown", function(e){
 	canvas.animate = false;
 
-	//if (!blurCache) {
-		blurCache = canvas.fastblur(0, 0, 1024, 768, 2);
-	//} else {
-	//	context.putImageData(blurCache, 0, 0);
-	//}
+	if (!blurCache) {
+		blurCache = canvas.blur(0, 0, 1024, 768, 2);
+	} else {
+		context.putImageData(blurCache, 0, 0);
+	}
 	//canvas.fillStyle = "rgba(255, 255, 255, 0.1)";
 	//canvas.fillRect(0, 0, 1024, 768);
 });

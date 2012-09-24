@@ -449,8 +449,7 @@ var UIElement = {
 
 		if (this[UIElement]){
 
-			this[UIElement].init.call(UIView);
-			
+			if (this[UIElement].init) this[UIElement].init.call(UIView);
 			if (this[UIElement].draw) UIView.draw = this[UIElement].draw;
 			if (this[UIElement].isPointInside) UIView.isPointInside = this[UIElement].isPointInside;
 			if (this[UIElement].__construct) UIView.__construct = this[UIElement].__construct;
@@ -523,7 +522,12 @@ var Application = function(options){
 				layout.draw();
 
 				//layout.grid();
+			} else {
+				if (blurCache){
+					canvas.putImageData(blurCache, 0, 0);
+				}
 			}
+
 	 		canvas.showFPS();
 			//canvas.blur(0, 0, 320, 200, 2);
 	    });

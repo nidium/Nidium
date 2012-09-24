@@ -176,17 +176,16 @@ UIElement.extend("UITab", {
 			textColor = this.color,
 			textShadow = '#000000';
 			
-
 		this.shadow = true;
 		if (this.shadow) {
 			if (this.selected){
 				canvas.setShadow(0, 0, 2, this.background);
 			} else {
-				canvas.setShadow(2, -2, 3, "rgba(0, 0, 0, 0.4)");
+				canvas.setShadow(3, -2, 3, "rgba(0, 0, 0, 0.4)");
 			}
 		}
 
-		canvas.tabbox(params.x, params.y, w, h, radius, this.background, false);
+//		canvas.tabbox(params.x, params.y, w, h, radius, this.background, false);
 
 		if (this.shadow){
 			canvas.setShadow(0, 0, 0);
@@ -219,6 +218,7 @@ UIElement.extend("UITab", {
 		}
 
 		canvas.tabbox(params.x, params.y, w, h, radius, gdBackground, false);
+		delete(gdBackground);
 
 		canvas.setFontSize(this.fontSize);
 		canvas.fontType = this.fontType;
