@@ -481,10 +481,14 @@ var Application = function(options){
 
 	layout.rootElement = view;
 
-	/*
-	var z = new Image();
-	z.src = "demos/assets/bg02.jpeg";
-	*/
+	var bgCanvas = new Image(),
+		background = new Canvas(1024, 768),
+		backgroundData;
+
+	bgCanvas.src = "demos/assets/flavor.jpeg";
+	background.drawImage(bgCanvas, 0, 0);
+	backgroundData = background.getImageData(0, 0, 1024, 768);
+
 
 	canvas.globalAlpha = 1;
 
@@ -519,15 +523,11 @@ var Application = function(options){
 			__DATE__ = (+ new Date());
 	 		if (canvas.animate) {
 
+	 			canvas.putImageData(backgroundData, 0, 0);
 				layout.draw();
 
 				//layout.grid();
-			} else {
-				if (blurCache){
-					canvas.putImageData(blurCache, 0, 0);
-				}
-			}
-
+			} 
 	 		canvas.showFPS();
 			//canvas.blur(0, 0, 320, 200, 2);
 	    });
