@@ -16,7 +16,8 @@ UIElement.extend("UISliderController", {
 		this.min = this.options.min && typeof(this.options.min)=='number' ? this.options.min : 0;
 		this.max = this.options.max && typeof(this.options.max)=='number' ? this.options.max : 100;
 
-		this.progressBar = this.options.progressBar || false;
+		this.progressBarColor = this.options.progressBarColor || false;
+		this.splitColor = this.options.splitColor || false;
 
 		this.knob = this.add("UISliderKnob", {
 			x : -this.h/2,
@@ -91,7 +92,7 @@ UIElement.extend("UISliderController", {
 
 					},
 
-					FXAnimation.easeOutQuad,
+					self.options.ease ? self.options.ease : FXAnimation.easeInExpo,
 
 					function(kx){
 						self.setKnobPosition(kx);
@@ -127,14 +128,25 @@ UIElement.extend("UISliderController", {
 			canvas.roundbox(params.x, y, params.w, h, this.radius, "rgba(0, 0, 0, 0.25)", false);
 		}
 
-		if (this.progressBar){
+		if (this.progressBarColor){
 			var ga = canvas.globalAlpha;
 			canvas.globalAlpha = 0.8;
-			canvas.setShadow(0, 0, 4, this.color);
+			canvas.setShadow(0, 0, 4, this.progressBarColor);
 			canvas.globalAlpha = ga;
-			canvas.roundbox(params.x, y, this.pixelValue, h, this.radius, this.color, false);
+			canvas.roundbox(params.x, y, this.pixelValue, h, this.radius, this.progressBarColor, false);
 			canvas.setShadow(0, 0, 0);
 		}
+
+		if (this.splitColor){
+			canvas.strokeStyle = this.splitColor;
+			canvas.beginPath();
+			for (var i=0; i<params.w; i+=4){
+				canvas.moveTo(params.x+i, y);
+				canvas.lineTo(params.x+i, y+h);
+			}
+			canvas.stroke();
+		}
+
 
 	}
 });

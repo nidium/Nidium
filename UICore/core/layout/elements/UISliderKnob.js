@@ -44,16 +44,16 @@ UIElement.extend("UISliderKnob", {
 
 			if (this.hover){
 				gdBackground.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
-				gdBackground.addColorStop(0.40, 'rgba(255, 255, 255, 0.1)');
-				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.4)');
-			} else {
-				gdBackground.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
 				gdBackground.addColorStop(0.20, 'rgba(255, 255, 255, 0.1)');
 				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.9)');
+			} else {
+				gdBackground.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
+				gdBackground.addColorStop(0.40, 'rgba(255, 255, 255, 0.1)');
+				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.4)');
 			}
 
 	        canvas.lineWidth = 1;
-			canvas.setShadow(0, 0, 3, "rgba(0, 0, 0, 0.50)");
+			canvas.setShadow(-1, 1, 3, "rgba(0, 0, 0, 0.70)");
 
 	        canvas.setColor(this.background);
 	        canvas.beginPath();
