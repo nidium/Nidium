@@ -67,6 +67,7 @@ int NativeEvents(SDL_Window *win)
                     //NJS->bufferSound((int16_t *)event.user.data1, 4096);
                     break;
                 case SDL_QUIT:
+                    ape_running = 0;
                     return 0;
                 case SDL_MOUSEMOTION:
                     NJS->mouseMove(event.motion.x, event.motion.y,
@@ -81,6 +82,7 @@ int NativeEvents(SDL_Window *win)
                 }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
+
                     NJS->mouseClick(event.button.x, event.button.y,
                                     event.button.state, event.button.button);
                 break;

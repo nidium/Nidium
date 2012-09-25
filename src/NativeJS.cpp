@@ -689,25 +689,37 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 
 static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    double x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y, &width, &height)) {
+    double x, y, width, height, rx = 0, ry = 0;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd/dd", &x, &y,
+        &width, &height, &rx, &ry)) {
         return JS_TRUE;
     }
 
-    NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 0);
+    if (argc > 4) {
+        NSKIA_NATIVE->drawRect(x, y, width, height,
+            rx, (argc == 5 ? rx : ry), 0);
+    } else {
+        NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 0);
+    }
 
     return JS_TRUE;
 }
 
 static JSBool native_canvas_strokeRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    double x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
-        &width, &height)) {
+    double x, y, width, height, rx = 0, ry = 0;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd/dd", &x, &y,
+        &width, &height, &rx, &ry)) {
         return JS_TRUE;
     }
 
-    NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 1);
+    if (argc > 4) {
+        NSKIA_NATIVE->drawRect(x, y, width, height,
+            rx, (argc == 5 ? rx : ry), 1);
+    } else {
+        NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 1);
+    }
+
 
     return JS_TRUE;
 }
