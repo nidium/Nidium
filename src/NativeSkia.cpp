@@ -338,7 +338,7 @@ int NativeSkia::bindGL(int width, int height)
     paint->setAntiAlias(true);
     
     //paint->setLCDRenderText(true);
-    paint->setStyle(SkPaint::kFill_Style);
+    paint->setStyle(SkPaint::kStrokeAndFill_Style);
     paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
     paint->setSubpixelText(true);
@@ -447,7 +447,7 @@ int NativeSkia::bindGL(int width, int height)
 }
 
 void NativeSkia::drawRect(double x, double y, double width,
-    double height, double stroke)
+    double height, int stroke)
 {
     canvas->drawRectCoords(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height),
@@ -455,6 +455,18 @@ void NativeSkia::drawRect(double x, double y, double width,
 
     CANVAS_FLUSH();
 
+}
+
+void NativeSkia::drawRect(double x, double y, double width,
+    double height, double rx, double ry, int stroke)
+{
+    SkRect r;
+
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
+
+    canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
+        (stroke ? *paint_stroke : *paint));
 }
 
 NativeSkia::~NativeSkia()
