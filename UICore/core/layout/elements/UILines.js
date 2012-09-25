@@ -171,7 +171,7 @@ UIElement.extend("UILine", {
 		this.y2 = this.controlPoint2.y;
 		
 		/*
-		canvas.fillStyle = "rgba(0, 0, 0, 0.5)";
+		canvas.setColor("rgba(0, 0, 0, 0.5)");
 		var r = {
 			x : this._x + this.x1,
 			y : this._y + this.y1,

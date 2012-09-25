@@ -29,7 +29,7 @@ sampleText = st.join('');
 
 /* --------------- */
 
-var main = new Application({background:"#262722"}),
+var main = new Application({background : '#262722'}),
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
@@ -59,8 +59,8 @@ var	textView = main.add("UIText", {
 		lineHeight : 18,
 		fontSize : 13,
 		fontType : "arial",
-		textAlign : "left",
-		background : "rgba(255, 255, 255, 1.00)",
+		textAlign : "justify",
+		background : "rgba(255, 255, 255, 1)",
 		color : "#000000"
 	});
 
@@ -217,40 +217,20 @@ docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200, function(){});
 });
 
-
-
 var blurCache = false;
 
 docButton5.addEventListener("mousedown", function(e){
 	canvas.animate = false;
 
 	//if (!blurCache) {
-		blurCache = canvas.fastblur(0, 0, 1024, 768, 2);
+		blurCache = canvas.blur(0, 0, 1024, 768, 2);
 	//} else {
-	//	context.putImageData(blurCache, 0, 0);
+		context.putImageData(blurCache, 0, 0);
 	//}
-	//canvas.fillStyle = "rgba(255, 255, 255, 0.1)";
-	//canvas.fillRect(0, 0, 1024, 768);
 });
 
 docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
-
-
-
-	for (var child in layout.elements){
-		let nodes = layout.elements;
-		echo(
-			nodes[child]._zIndex, 
-			nodes[child]._rIndex, 
-			nodes[child].zIndex, 
-			"("+nodes[child].label+")",
-			nodes[child].type,
-			nodes[child].id
-		);
-	}
-
-
 });
 
 //greenView.zIndex = 800;
@@ -279,25 +259,14 @@ setTimeout(function() {
 //redViewButton4.scale = 2;
 
 greenView.addEventListener("mousedown", function(e){
-	//console.log("start");
 	this.bringToTop();
-});
+	e.stopPropagation();
+}, false);
 
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
 });
-
-
-/*
-main.addEventListener("mousedown", function(e){
-	this.add("UIButton", {x:e.x, y:e.y, label:"Default", background:"#222222", radius:3, selected:false})
-});
-*/
-
-
-/*
-
 
 brique.addEventListener("dragstart", function(e){
 	console.log("dragstart : " + e.target.id);
@@ -328,40 +297,6 @@ docButton1.addEventListener("drop", function(e){
 	console.log("using dataTransfer : " + e.dataTransfer.getData("Text") );
 });
 
-greenView.addEventListener("mouseover", function(e){
-	console.log("over");
-});
-greenView.addEventListener("mouseout", function(e){
-	console.log("out");
-});
-
-
-
-*/
-
-
-
-/*
-
-window.onmousemove = function(x, y){
-
-	main.left = x - 30;
-	main.top = y - 30; 
-
-};
-
-
-
-
-
-
-for (var i=0; i<5; i++){
-	var x = Math.round(Math.random()*1024);
-	var y = Math.round(Math.random()*768);
-	main.add("UIView", {x:x, y:y, w:90, h:90, radius:10, background:"rgba(255,255,0,0.5)"});
-}
-
-*/
 
 /*
 
@@ -375,18 +310,8 @@ file.ondata = function(data){
 	}
 };
 file.open();
-file.onclose();
+file.oncomplete = function(data){};
+file.onclose = function(){};
 
 */
-
-
-/*
-main.hide();
-main.show();
-myButton1.hide();
-myButton1.show();
-docButton1.show();
-*/
-
-
 

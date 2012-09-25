@@ -27,6 +27,9 @@ load('core/layout/elements/UIDropDownController.js');
 load('core/layout/elements/UIWindow.js');
 load('core/layout/elements/UIWindowResizer.js');
 
+load('core/layout/elements/UISliderKnob.js');
+load('core/layout/elements/UISliderController.js');
+
 load('core/plugins/blur.inc.js');
 load('core/plugins/roundbox.inc.js');
 load('core/plugins/tabbox.inc.js');
@@ -69,7 +72,7 @@ var layout = {
 		var z = this.getElements();
 
 		if (canvas.__mustBeDrawn || true) {
-			for (var i in z){
+			for (var i=0; i<z.length; i++){
 				if (z[i].visible){
 					z[i].beforeDraw();
 					z[i].draw();

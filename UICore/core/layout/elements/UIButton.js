@@ -4,7 +4,7 @@
 
 UIElement.extend("UIButton", {
 	init : function(){
-		canvas.fontSize = this.fontSize;
+		canvas.setFontSize(this.fontSize);
 		this.w = 10 + Math.round(canvas.measureText(this.label)) + 10;
 		this.h = 22;
 		this.flags._canReceiveFocus = true;
@@ -32,7 +32,7 @@ UIElement.extend("UIButton", {
 	},
 
 	draw : function(){
-		canvas.fontSize = this.fontSize;
+		canvas.setFontSize(this.fontSize);
 		this.w = 10 + Math.round(canvas.measureText(this.label)) + 10;
 		this.h = 22;
 		
@@ -104,25 +104,15 @@ UIElement.extend("UIButton", {
 
 		canvas.roundbox(params.x, params.y, w, h, radius, gdBackground, false);
 
-		canvas.fontSize = this.fontSize;
+		canvas.setFontSize(this.fontSize);
 
+//		canvas.setColor(textShadow);
+//		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
-		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
-			canvas.fillStyle = "rgba(0, 0, 0, 1)";
-			canvas.setShadow(0, 0, 6, "rgba(255, 255, 255, 1)");
-			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-			canvas.setShadow(0, 0, 2, "rgba(255, 190, 230, 1)");
-			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-			canvas.setShadow(0, 0, 0);
-		}
-
-		canvas.fillStyle = textShadow;
-		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
-
-		canvas.fillStyle = textColor;
+//		if (this.shadow) { canvas.setShadow(1, 1, 1, '#000000'); }
+		canvas.setColor(textColor);
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+//		if (this.shadow){ canvas.setShadow(0, 0, 0); }
 
 
 	}

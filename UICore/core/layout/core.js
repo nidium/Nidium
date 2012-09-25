@@ -306,13 +306,15 @@ UIView.prototype = {
 				},
 				radius = this.radius+1;
 
-			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,1)", "#ffffff");
-			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,0.8)", "#4D90FE");
-			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x-2, params.y-2, params.w+4, params.h+4, radius, "rgba(0,0,0,0.6)", "#4D90FE");
-			canvas.setShadow(0, 0, 0);
+			if (this.type=="UIText" || this.type=="UIWindow") {
+				canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+				canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+				canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+				canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+				canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
+				canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+				canvas.setShadow(0, 0, 0);
+			}
 		}
 
 
@@ -360,7 +362,7 @@ UIView.prototype = {
 		/*
         canvas.beginPath();
         canvas.arc(this._g.x, this._g.y, 2, 0, 6.2831852, false);
-        canvas.fillStyle = "#ff0000";
+        canvas.setColor("#ff0000");
         canvas.fill();
         canvas.lineWidth = 1;
         canvas.strokeStyle = "rgba(140, 140, 140, 0.7)";
@@ -376,7 +378,7 @@ UIView.prototype = {
 
         canvas.beginPath();
         canvas.arc(this._gs.x, this._gs.y, 2, 0, 6.2831852, false);
-        canvas.fillStyle = "#00ff00";
+        canvas.setColor("#00ff00");
         canvas.fill();
         canvas.lineWidth = 1;
         canvas.strokeStyle = "rgba(140, 140, 140, 0.7)";
@@ -447,8 +449,7 @@ var UIElement = {
 
 		if (this[UIElement]){
 
-			this[UIElement].init.call(UIView);
-			
+			if (this[UIElement].init) this[UIElement].init.call(UIView);
 			if (this[UIElement].draw) UIView.draw = this[UIElement].draw;
 			if (this[UIElement].isPointInside) UIView.isPointInside = this[UIElement].isPointInside;
 			if (this[UIElement].__construct) UIView.__construct = this[UIElement].__construct;
@@ -481,8 +482,13 @@ var Application = function(options){
 	layout.rootElement = view;
 
 	/*
-	var z = new Image();
-	z.src = "demos/assets/bg02.jpeg";
+	var bgCanvas = new Image(),
+		background = new Canvas(1024, 768),
+		backgroundData;
+
+	bgCanvas.src = "demos/assets/flavor.jpeg";
+	background.drawImage(bgCanvas, 0, 0);
+	backgroundData = background.getImageData(0, 0, 1024, 768);
 	*/
 
 	canvas.globalAlpha = 1;
@@ -500,13 +506,13 @@ var Application = function(options){
 				fps = 1000/r;
 
 			if (__FPS__%30==0){
-				__FPS_OLD__ = Math.round(r*10)/10-0.1; // fps
+				__FPS_OLD__ = Math.round((r-0.1)*10)/10; // fps
 			} 				
 
-			canvas.fillStyle = "black";
+			canvas.setColor("#000000");
 			canvas.fillRect(0, canvas.height-40, 60, 30);
 			canvas.fillRect(0, 280, 50, 30);
-			canvas.fillStyle = "yellow";
+			canvas.setColor("yellow");
 			canvas.fillText(__FPS_OLD__ + " ms", 5, canvas.height-20);
 
 			return r;
@@ -518,10 +524,11 @@ var Application = function(options){
 			__DATE__ = (+ new Date());
 	 		if (canvas.animate) {
 
+	 			//canvas.putImageData(backgroundData, 0, 0);
 				layout.draw();
 
 				//layout.grid();
-			}
+			} 
 	 		canvas.showFPS();
 			//canvas.blur(0, 0, 320, 200, 2);
 	    });

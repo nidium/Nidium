@@ -18,7 +18,7 @@ UIElement.extend("UIVerticalScrollBar", {
 				h : this.h
 			};
 
-		canvas.fillStyle = "rgba(80, 80, 80, 0.4)";
+		canvas.setColor("rgba(80, 80, 80, 0.4)");
 		canvas.fillRect(params.x, params.y, params.w, params.h);
 	}
 });

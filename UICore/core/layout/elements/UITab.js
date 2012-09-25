@@ -87,7 +87,7 @@ UIElement.extend("UITab", {
 							position : __currentDragingTabPosition+1
 						});
 
-						n.slideX(__startX, 250, function(){}, FXAnimation.easeOutCubic);
+						n.slideX(__startX, 150, function(){}, FXAnimation.easeOutCubic);
 						self.parent.swapTabs(i, i+1);
 						__fireEvent = true;
 
@@ -114,7 +114,7 @@ UIElement.extend("UITab", {
 							position : __currentDragingTabPosition-1
 						});
 
-						p.slideX(__endX - p.__w, 250, function(){}, FXAnimation.easeOutCubic);
+						p.slideX(__endX - p.__w, 150, function(){}, FXAnimation.easeOutCubic);
 						self.parent.swapTabs(i, i-1);
 						__fireEvent = true;
 
@@ -176,13 +176,12 @@ UIElement.extend("UITab", {
 			textColor = this.color,
 			textShadow = '#000000';
 			
-
 		this.shadow = true;
 		if (this.shadow) {
 			if (this.selected){
 				canvas.setShadow(0, 0, 2, this.background);
 			} else {
-				canvas.setShadow(2, -2, 3, "rgba(0, 0, 0, 0.4)");
+				canvas.setShadow(3, -2, 3, "rgba(0, 0, 0, 0.4)");
 			}
 		}
 
@@ -219,13 +218,22 @@ UIElement.extend("UITab", {
 		}
 
 		canvas.tabbox(params.x, params.y, w, h, radius, gdBackground, false);
+		delete(gdBackground);
 
-		canvas.fontSize = this.fontSize;
+		canvas.setFontSize(this.fontSize);
 		canvas.fontType = this.fontType;
-		canvas.fillStyle = textShadow;
-		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
-		canvas.fillStyle = textColor;
+		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
+			canvas.setColor("rgba(0, 0, 0, 1)");
+			canvas.setShadow(0, 0, 3, "rgba(255, 255, 255, 0.4)");
+			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+			canvas.setShadow(0, 0, 0);
+		}
+
+//		canvas.setColor(textShadow);
+//		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+
+		canvas.setColor(textColor);
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
 
 	}

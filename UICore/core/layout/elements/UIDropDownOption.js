@@ -92,11 +92,11 @@ UIElement.extend("UIDropDownOption", {
 
 		canvas.roundbox(params.x, params.y, w, h, 0, gdBackground, false);
 
-		canvas.fontSize = 11;
-		canvas.fillStyle = textShadow;
-		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+		canvas.setFontSize(11);
+		//canvas.setColor(textShadow);
+		//canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
-		canvas.fillStyle = textColor;
+		canvas.setColor(textColor);
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
 
 	}

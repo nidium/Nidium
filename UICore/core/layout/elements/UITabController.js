@@ -29,7 +29,7 @@ UIElement.extend("UITabController", {
 				self.tabs[t].selected = false;
 				if (animate) {
 					var _callback = (i==1 ? callback : null);
-					self.tabs[t].slideX(x, 30*j++, _callback);
+					self.tabs[t].slideX(x, 26*j++, _callback);
 				} else {
 					self.tabs[t].left = x;
 				}

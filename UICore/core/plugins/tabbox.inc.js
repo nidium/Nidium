@@ -37,12 +37,12 @@ canvas.implement({
 		this.moveTo(x1 + t, y1);
 
 		this.lineTo(x2 - t, y1);
-		this.quadraticCurveTo(x2 - b - a, y1,		x2 - b, y1 + c); // ---------
-		this.quadraticCurveTo(x2 - b + a, y2,		x2, y2);  
+		this.quadraticCurveTo(x2 - b - a, y1,	x2 - b, y1 + c);
+		this.quadraticCurveTo(x2 - b + a, y2,	x2, y2);  
 
 		this.lineTo(x, y + h);
-		this.quadraticCurveTo(x1 + b - a, y2,		x1 + b, y1 + c);
-		this.quadraticCurveTo(x1 + b + a, y1,		x1 + t, y1); // ---------
+		this.quadraticCurveTo(x1 + b - a, y2,	x1 + b, y1 + c);
+		this.quadraticCurveTo(x1 + b + a, y1,	x1 + t, y1);
 
 		this.closePath();
 
@@ -52,7 +52,7 @@ canvas.implement({
 		}
 
 		if (fill) {
-			this.fillStyle = (fill=='') ? "rgba(0, 0, 0, 0.6)" : fill;
+			this.setColor((fill=='') ? "rgba(0, 0, 0, 0.6)" : fill);
 			this.fill();
 		}        
 	}
