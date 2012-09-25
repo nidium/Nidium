@@ -195,12 +195,12 @@ UIView.implement({
 		if (view._currentAnimation) {
 			this.remove();
 		}
-		view._currentAnimation = setTimeout(function(){
+		view._currentAnimation = setTimer(function(){
 			fx = fx || FXAnimation.easeInOutQuad;
 
 			view[property] = fx(0, time, start, end, duration);
 			canvas.__mustBeDrawn = true;
-			if(typeof(rtcallback)=="function") rtcallback.call(view);
+			if(typeof(rtCallback)=="function") rtCallback.call(view, view[property]);
 
 			time += slice;
 

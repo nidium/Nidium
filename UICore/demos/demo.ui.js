@@ -29,7 +29,7 @@ sampleText = st.join('');
 
 /* --------------- */
 
-var main = new Application(),
+var main = new Application({background : '#262722'}),
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
@@ -48,13 +48,6 @@ var main = new Application(),
 		name : "masterTabs",
 		tabs : myTabs,
 		background : "#191a18"
-	}),
-
-	mainTabBar = main.add("UIView", {
-		x : 0,
-		y : 30,
-		h : 8,
-		background : '#262722'
 	});
 
 var	textView = main.add("UIText", {
@@ -67,8 +60,8 @@ var	textView = main.add("UIText", {
 		fontSize : 13,
 		fontType : "arial",
 		textAlign : "justify",
-		background : "rgba(0, 0, 0, 0.50)",
-		color : "#ffffff"
+		background : "rgba(255, 255, 255, 1)",
+		color : "#000000"
 	});
 
 var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
