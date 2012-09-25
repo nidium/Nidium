@@ -40,6 +40,7 @@ var main = new Application({background:"#262722"}),
 		w : 250,
 		h : 18,
 		splitColor : 'rgba(0, 0, 0, 0.5)',
+		boxColor : 'rgba(255, 255, 255, 0.02)',
 		disabled : false,
 		radius : 2,
 		min : -1,
@@ -50,15 +51,15 @@ var main = new Application({background:"#262722"}),
 	master = main.add("UISliderController", {
 		x : 800,
 		y : 210,
-		w : 20,
+		w : 12,
 		h : 300,
 		vertical : true,
 		background : '#161712',
 		color : 'rgba(255, 40, 210, 1)',
 		progressBarColor : 'rgba(255, 40, 210, 1)',
-		splitColor : 'rgba(0, 0, 0, 0.5)',
+		splitColor : 'rgba(50, 40, 10, 0.7)',
 		disabled : false,
-		radius : 2,
+		radius : 3,
 		min : 0,
 		max : 300,
 		value : 0
@@ -66,7 +67,7 @@ var main = new Application({background:"#262722"}),
 
 
 master.addEventListener("change", function(value){
-	echo(value);
+	//echo(value);
 }, false);
 
 
@@ -107,6 +108,7 @@ for (var s=0; s<nb_sliders; s++){
 		h : 20,
 		background : '#161712',
 		color : '#111111',
+		boxColor : 'rgba(0, 0, 0, 0.25)',
 		progressBarColor : gdSpectrum,
 		splitColor : 'rgba(60, 60, 60, 0.40)',
 		ease : FXAnimation.easeInCubic,
@@ -135,6 +137,4 @@ setTimeout(function(){
 
 
 }, 1500);
-
-
 

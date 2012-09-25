@@ -205,7 +205,6 @@ UIView.implement({
 			time += slice;
 
 			if (this.remove && time>duration && view._currentAnimation){
-				//view.visible = false;
 				this.remove();
 				view[property] = from+end;
 				canvas.__mustBeDrawn = true;

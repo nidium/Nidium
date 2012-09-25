@@ -14,7 +14,7 @@ UIElement.extend("UISliderController", {
 		this.max = this.options.max && typeof(this.options.max)=='number' ? this.options.max : 100;
 
 		this.color = this.options.color || "#3388dd";
-		this.boxColor = this.options.boxColor || 'rgba(0, 0, 0, 0.1)';
+		this.boxColor = (this.options.boxColor) ? this.options.boxColor : false;
 		this.progressBarColor = this.options.progressBarColor || false;
 		this.splitColor = this.options.splitColor || false;
 
@@ -140,8 +140,10 @@ UIElement.extend("UISliderController", {
 		};
 
 		this.setValue = function(value, duration){
+			var oldValue = this.value,
+				d = this.max - this.min;
+
 			if (this.draggingSlider) return false;
-			var d = this.max - this.min;
 
 			this.value = Math.max(Math.min(this.max, value), this.min);
 
