@@ -45,7 +45,31 @@ var main = new Application({background:"#262722"}),
 		min : -1,
 		max : 1,
 		value : 0
+	}),
+
+	master = main.add("UISliderController", {
+		x : 800,
+		y : 210,
+		w : 20,
+		h : 300,
+		vertical : true,
+		background : '#161712',
+		color : 'rgba(255, 40, 210, 1)',
+		progressBarColor : 'rgba(255, 40, 210, 1)',
+		splitColor : 'rgba(0, 0, 0, 0.5)',
+		disabled : false,
+		radius : 2,
+		min : 0,
+		max : 300,
+		value : 0
 	});
+
+
+master.addEventListener("change", function(value){
+	echo(value);
+}, false);
+
+
 
 // Big Blue Slider controls the small sliders
 slider3.addEventListener("change", function(value){
