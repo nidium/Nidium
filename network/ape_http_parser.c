@@ -219,6 +219,10 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
 
     state = state_transition_table[parser->state][c_classe]; /* state > 0, action < 0 */
 
+    if (state >= C2 && state <= CG) {
+        parser->callback(parser->ctx, HTTP_HEADER_KEYC, c, parser->step);
+    }
+
     if (state >= 0) {
         parser->state = state;
     } else {
@@ -264,10 +268,12 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 if ((parser->cl = (parser->cl*10) + (c - '0')) > MAX_CL) {
                     return 0;
                 }
+                parser->callback(parser->ctx, HTTP_HEADER_VALC, c, parser->step);
                 parser->state = CV;
                 break;
             case VE:
                 parser->callback(parser->ctx, HTTP_CL_VAL, parser->cl, parser->step);
+                parser->callback(parser->ctx, HTTP_HEADER_VAL, 0, parser->step);
                 parser->state = (c_classe == C_CR ? ER : C1); /* \r\n or \n */
                 break;
 

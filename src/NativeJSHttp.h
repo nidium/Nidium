@@ -13,6 +13,8 @@ class NativeJSHttp : public NativeJSExposer
     NativeJSHttp();
     ~NativeJSHttp();
 
+    void requestEnded();
+
     char *host;
     char *path;
     u_short port;

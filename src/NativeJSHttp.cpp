@@ -67,6 +67,7 @@ static int parse_uri(char *url, char *host,
     return 0;
 }
 
+
 static int native_http_callback(void **ctx, callback_type type,
         int value, uint32_t step)
 {
@@ -80,10 +81,10 @@ static int native_http_callback(void **ctx, callback_type type,
             buffer_append_char(nhttp->http.headers.tval, (unsigned char)value);
             break;
         case HTTP_CL_VAL:
-            printf("CL value : %d\n", value);
         break;
         case HTTP_HEADER_VAL:
-
+            buffer_append_char(nhttp->http.headers.tkey, '\0');
+            buffer_append_char(nhttp->http.headers.tval, '\0');
             ape_array_add_b(nhttp->http.headers.list,
                     nhttp->http.headers.tkey, nhttp->http.headers.tval);
             nhttp->http.headers.tkey = buffer_new(16);
@@ -91,9 +92,9 @@ static int native_http_callback(void **ctx, callback_type type,
             
             break;
         case HTTP_READY:
-            printf("=== Http is ready\n");
             buffer_destroy(nhttp->http.headers.tkey);
             buffer_destroy(nhttp->http.headers.tval);
+            nhttp->requestEnded();
             break;
         default:break;
     }
@@ -103,7 +104,6 @@ static int native_http_callback(void **ctx, callback_type type,
 
 static void native_http_connected(ape_socket *s, ape_global *ape)
 {
-    printf("Connected to http server\n");
     NativeJSHttp *nhttp = (NativeJSHttp *)s->ctx;
 
     if (nhttp == NULL) {
@@ -125,7 +125,6 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
 
 static void native_http_read(ape_socket *s, ape_global *ape)
 {
-    printf("data to read\n");
     unsigned int i;
     NativeJSHttp *nhttp = (NativeJSHttp *)s->ctx;
 
@@ -174,6 +173,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     nhttp->host = strdup(host);
     nhttp->path = strdup(path);
     nhttp->port = port;
+    nhttp->cx   = cx;
 
     JS_SetPrivate(ret, nhttp);
 
@@ -224,6 +224,36 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     return JS_TRUE;
+}
+
+void NativeJSHttp::requestEnded()
+{
+#define REQUEST_HEADER(header) ape_array_lookup(http.headers.list, \
+    CONST_STR_LEN(header))
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+
+    buffer *k, *v;
+    JSObject *headers, *event;
+    jsval rval, jevent;
+
+    event = JS_NewObject(cx, NULL, NULL, NULL);
+    headers = JS_NewObject(cx, NULL, NULL, NULL);
+
+    APE_A_FOREACH(http.headers.list, k, v) {
+        JSString *jstr = JS_NewStringCopyN(cx, (char *)&v->data[1],
+            v->used-2);
+        SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
+    }
+    
+    SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
+        1, &jevent, &rval);
+
 }
 
 NativeJSHttp::NativeJSHttp()
