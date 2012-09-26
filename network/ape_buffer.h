@@ -14,6 +14,10 @@ typedef struct {
     uint32_t pos;
 } buffer;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void buffer_init(buffer *b);
 buffer *buffer_new(size_t size);
 void buffer_delete(buffer *b);
@@ -25,6 +29,10 @@ void buffer_append_string(buffer *b, const char *string);
 void buffer_append_string_n(buffer *b, const char *string, size_t length);
 buffer *buffer_to_buffer_utf8(buffer *b);
 buffer *buffer_utf8_to_buffer(buffer *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

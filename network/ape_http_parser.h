@@ -98,10 +98,15 @@ typedef enum methods {
     HTTP_POST
 } http_method_t;
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int parse_http_char(struct _http_parser *parser, const unsigned char c);
 
+#ifdef __cplusplus
+}
+#endif
 
 #define HTTP_PARSER_RESET(p) \
     do { \

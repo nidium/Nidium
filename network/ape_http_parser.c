@@ -134,7 +134,7 @@ static int state_transition_table[NR_STATES][NR_CLASSES] = {
 /*HTTP/[0-9]/[0-9]H8*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,HB,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* new line       EL*/ {__,__,__,ER,C1,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* \r expect \n   ER*/ {__,__,__,__,C1,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* header key     HH*/ {__,__,__,__,__,KH,__,__,__,__,__,HK,__,__,__,__,HK,__,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,__},
+/* header key     HH*/ {__,__,__,__,__,KH,__,__,__,__,__,HK,__,__,__,HK,HK,__,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,__},
 /* header value   HI*/ {__,HV,__,VH,VH,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV},
 #if 1
 /*C               C1*/ {__,__,__,FI,EH,KH,__,__,__,__,__,HK,__,__,__,__,HK,__,HK,HK,HK,HK,HK,HK,HK,HK,C2,HK,HK,__},
@@ -207,7 +207,9 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
 
     parser->step++;
 
-    if (c_classe == C_NUL || HTTP_ISREADY()) return 0;
+    if ((parser->state != AA && c_classe == C_NUL) || HTTP_ISREADY()) {
+        return 0;
+    }
 
     if (parser->state == AA) {
         parser->callback(parser->ctx, HTTP_BODY_CHAR, c, parser->step);
