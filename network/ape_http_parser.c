@@ -12,6 +12,7 @@
 #define __   -1
 
 #define MAX_CL 1048576
+#define MAX_RCODE 9999
 
 /* Todo : check for endieness + aligned */
 #define BYTES_GET(b) \
@@ -105,7 +106,8 @@ typedef enum actions {
     HV = -20,
     RA = -21,
     RB = -22,
-    RC = -23
+    RC = -23,
+    RH = -24
 } parser_actions;
 
 
@@ -132,7 +134,7 @@ static int state_transition_table[NR_STATES][NR_CLASSES] = {
 /*HTTP/[0-9]/[0-9]H8*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,HB,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* new line       EL*/ {__,__,__,ER,C1,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* \r expect \n   ER*/ {__,__,__,__,C1,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* header key     HH*/ {__,__,__,__,__,KH,__,__,__,__,__,HK,__,__,__,__,HK,__,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,__},
+/* header key     HH*/ {__,__,__,__,__,KH,__,__,__,__,__,HK,__,__,__,HK,HK,__,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,HK,__},
 /* header value   HI*/ {__,HV,__,VH,VH,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV,HV},
 #if 1
 /*C               C1*/ {__,__,__,FI,EH,KH,__,__,__,__,__,HK,__,__,__,__,HK,__,HK,HK,HK,HK,HK,HK,HK,HK,C2,HK,HK,__},
@@ -157,15 +159,16 @@ static int state_transition_table[NR_STATES][NR_CLASSES] = {
 /*                E2*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,EB,__,__,EB,EB,__,__,__,__,__,__,EB,__,__,__},
 /*                FI*/ {__,__,__,__,EH,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /* body           BT*/ {__,BC,BC,BC,BC,__,__,__,__,BC,BC,BC,BC,__,BH,BC,BC,__,BC,BC,BC,BC,BC,BC,BC,BC,BC,BC,BC,BC},
-/*H               R1*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R2,__,__,__,__,__,__},
-/*HT              R2*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R3,__,__,__,__,__,__,__,__},
-/*HTT             R3*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R4,__,__,__,__,__,__,__,__},
-/*HTTP            R4*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R5,__,__,__,__,__,__,__},
+/*HT              R1*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R2,__,__,__,__,__,__,__,__},
+/*HTT             R2*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R3,__,__,__,__,__,__,__,__},
+/*HTTP            R3*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,R5,__,__,__,__,__,__,__},
 /*HTTP/           R5*/ {__,__,__,__,__,__,__,__,__,R6,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /*HTTP/[0-9]      R6*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,RA,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /*HTTP/[0-9]/     R7*/ {__,__,__,__,__,__,__,__,__,__,__,__,R8,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
 /*HTTP/[0-9]/[0-9]R8*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,RB,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
-/* response code  RN*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,RC,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/*HTTP/[0-9]/[0-9]R9*/ {__,RN,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/* response code  RN*/ {__,RD,__,__,__,__,__,__,__,__,__,__,__,__,__,RC,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
+/* response desc  RD*/ {__,RD,__,RH,RH,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD,RD},
 };
 
 /* compiled as jump table by gcc */
@@ -192,17 +195,33 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
 
 #define HTTP_BODY_AS_ENDED() (HTTP_ISBODYCONTENT() && --parser->cl == 0 && (parser->rx |= HTTP_FLG_READY, 1))
 
-
-    parser_class c_classe = ascii_class[c];
+    parser_class c_classe;
     int8_t state;
     unsigned char ch;
 
+    if (c >= 128) {
+        c_classe = C_ETC;
+    } else {
+        c_classe = ascii_class[c];
+    }
+
     parser->step++;
 
-    if (c_classe == C_NUL || HTTP_ISREADY()) return 0;
+    if ((parser->state != AA && c_classe == C_NUL) || HTTP_ISREADY()) {
+        return 0;
+    }
+
+    if (parser->state == AA) {
+        parser->callback(parser->ctx, HTTP_BODY_CHAR, c, parser->step);
+        HTTP_CONSUME_BODY();
+        return 1;  
+    }
 
     state = state_transition_table[parser->state][c_classe]; /* state > 0, action < 0 */
 
+    if (state >= C2 && state <= CG) {
+        parser->callback(parser->ctx, HTTP_HEADER_KEYC, c, parser->step);
+    }
 
     if (state >= 0) {
         parser->state = state;
@@ -249,10 +268,12 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 if ((parser->cl = (parser->cl*10) + (c - '0')) > MAX_CL) {
                     return 0;
                 }
+                parser->callback(parser->ctx, HTTP_HEADER_VALC, c, parser->step);
                 parser->state = CV;
                 break;
             case VE:
                 parser->callback(parser->ctx, HTTP_CL_VAL, parser->cl, parser->step);
+                parser->callback(parser->ctx, HTTP_HEADER_VAL, 0, parser->step);
                 parser->state = (c_classe == C_CR ? ER : C1); /* \r\n or \n */
                 break;
 
@@ -290,8 +311,11 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 if (HTTP_ISPOST()) {
                     parser->state = BT;
                     parser->rx = HTTP_FLG_POST | HTTP_FLG_QS | HTTP_FLG_BODYCONTENT;
-                    if (parser->cl) break; /* assume ready if 0/no content-length */
+                } else if (parser->rcode) {
+                    parser->rx = HTTP_FLG_BODYCONTENT;
+                    parser->state = AA;
                 }
+                if (parser->cl) break;  /* assume ready if 0/no content-length */
                 parser->rx |= HTTP_FLG_READY;
                 parser->callback(parser->ctx, HTTP_READY, 0, parser->step);
                 break;
@@ -333,11 +357,16 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 break;
             case RB: /* HTTP Minor */
                 parser->callback(parser->ctx, HTTP_VERSION_MINOR, c-'0', parser->step);
-                parser->state = EL;
+                parser->state = R9;
                 break;
             case RC: /* HTTP response code */
-                parser->callback(parser->ctx, HTTP_VERSION_MINOR, c-'0', parser->step);
+                if ((parser->rcode = (parser->rcode*10) + (c - '0')) > MAX_RCODE) {
+                    return 0;
+                }
                 parser->state = RN;
+                break;
+            case RH: /* Header value */
+                parser->state = (c_classe == C_CR ? ER : C1); /* \r\n or \n */
                 break;
             default:
                 return 0;
@@ -348,10 +377,10 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
 }
 
 
-
+#ifdef HTTP_TEST
 /* also compiled as jump table */
-/*
-static int parse_callback(void *ctx, callback_type type, int value, uint32_t step)
+
+static int parse_callback(void **ctx, callback_type type, int value, uint32_t step)
 {
     switch(type) {
         case HTTP_METHOD:
@@ -386,15 +415,18 @@ static int parse_callback(void *ctx, callback_type type, int value, uint32_t ste
         case HTTP_HEADER_END:
             printf("--------- HEADERS END ---------\n");
             break;
+        case HTTP_READY:
+            printf("--------- HTTP END ---------\n");
+            break;
+        case HTTP_BODY_CHAR:
+            printf("char %c\n", value);
+            break;
         default:
             break;
     }
     return 1;
 }
 
-*/
-
-#if 0
 /* TEST */
 int main()
 {
@@ -403,22 +435,22 @@ int main()
 
     /* Process BYTE_GET/POST opti check before running the parser */
 
-    PARSER_RESET(&p);
+    HTTP_PARSER_RESET(&p);
 
-    p.ctx = &p;
+    p.ctx[0] = &p;
     p.callback = parse_callback;
 
-    char chaine[] = "POST /foo/bar/beer HTTP/1.1\nCONTENT-LENGTH: 320900\r\nfoo: bar\n";
-
+    char chaine[] = "HTTP/1.1 200 OK\nfoo: bar\ncontent-length: 10\n\n1234567890";
+    //char chaine[] = "POST / HTTP/1.1\ncontent-length: 8\n\n%40a%40b";
     /* TODO implement a "duff device" here */
     for (i = 0, length = strlen(chaine); i < length; i++) {
         if (parse_http_char(&p, chaine[i]) == 0) {
-            printf("fail\n");
+            printf("fail at %i\n", i);
             break;
         }
     }
+    printf("done with status %d\n", p.rcode);
 }
 #endif
 
 // vim: ts=4 sts=4 sw=4 et
-

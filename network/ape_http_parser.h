@@ -68,12 +68,14 @@ typedef enum states {
     R1, /* H response */
     R2, /* HT response */
     R3, /* HTT response */
-    R4, /* HTTP response */
     R5, /* HTTP/ response */
     R6, /* HTTP/1 response */
     R7, /* HTTP/1. response */
     R8, /* HTTP/1.1 response */
-    RN, /* HTTP/1.1 response */
+    R9, /* HTTP/1.1 space */
+    RN, /* HTTP/1.1 response code */
+    RD, /* response description */
+    AA, /* catchall */
     NR_STATES
 } parser_state;
 
@@ -86,6 +88,7 @@ typedef struct _http_parser {
     uint32_t rx;            /* flag (32bit) (pass through states) */
     uint32_t step;          /* char number */
     uint32_t cl;            /* content-length */ /* TODO : store cl in rx */
+    uint16_t rcode;         /* response code */
     parser_state state;     /* state */
 } http_parser;
 
@@ -95,10 +98,15 @@ typedef enum methods {
     HTTP_POST
 } http_method_t;
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 int parse_http_char(struct _http_parser *parser, const unsigned char c);
 
+#ifdef __cplusplus
+}
+#endif
 
 #define HTTP_PARSER_RESET(p) \
     do { \
@@ -107,6 +115,7 @@ int parse_http_char(struct _http_parser *parser, const unsigned char c);
         (p)->cl = 0; \
         (p)->callback = NULL; \
         (p)->rx = 0; \
+        (p)->rcode = 0; \
         (p)->ctx[0] = NULL; \
         (p)->ctx[1] = NULL; \
     } while(0) \

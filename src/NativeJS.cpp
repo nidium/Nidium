@@ -5,6 +5,7 @@
 #include "NativeSharedMessages.h"
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
+#include "NativeJSHttp.h"
 #include <native_netlib.h>
 #include <stdio.h>
 #include <jsapi.h>
@@ -1625,6 +1626,8 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSSocket::registerObject(cx);
     /* Thread() object */
     NativeJSThread::registerObject(cx);
+    /* Http() object */
+    NativeJSHttp::registerObject(cx);
 
     /* Image object */
     JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,

@@ -32,7 +32,7 @@ class NativeJSSocket : public NativeJSExposer
     bool isJSCallable();
 
     JSObject *jsobject;
-    const char *host;
+    char *host;
     unsigned short port;
     ape_socket *socket;
     int flags;
