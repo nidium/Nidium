@@ -17,7 +17,7 @@ UIElement.extend("UIRadio", {
 
 		this.addEventListener("mousedown", function(e){
 
-			layout.find("name", "choice").each(function(){
+			NativeRenderer.find("name", "choice").each(function(){
 				this.selected = false;
 			});
 

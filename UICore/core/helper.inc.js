@@ -63,12 +63,6 @@ Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(min, this), max);
 };
 
-String.prototype.cut = function(offset, size, insert){
-	var characterArray = this.split("");
-	characterArray.splice(offset, size, insert);
-	return characterArray.join("");
-};
-
 String.prototype.splice = function(offset, size, insert){
     return (this.slice(0,offset) + (insert && insert!=''?insert:'') + this.slice(offset + Math.abs(size)));
 };
@@ -163,9 +157,38 @@ var setTimer = function(fn, ms, loop, execFirst){
 	return t;
 };
 
+var FPS = {
+	date : 0,
+	count : 0,
+	old : 0,
+
+	start : function(){
+		this.date = + new Date();
+	},
+
+	show : function(){
+		var r = 0.1 + (+ new Date()) - this.date,
+			fps = 1000/r;
+
+		this.count++;
+
+		if (this.count%30==0){
+			this.old = Math.round((r-0.1)*10)/10;
+		} 				
+
+		canvas.setColor("#000000");
+		canvas.fillRect(0, canvas.height-40, 60, 30);
+		canvas.fillRect(0, 280, 50, 30);
+		canvas.setColor("yellow");
+		canvas.fillText(this.old + " ms", 5, canvas.height-20);
+
+		return r;
+	}
+};
+
 /* ----------------------- */
 
-var Struct = function(){
+var CStruct = function(){
 	var seek = 0,
 		shader = [],
 		types = {
@@ -187,8 +210,8 @@ var Struct = function(){
 	this.size = 0;
 	this.buffer = null;
 
-	for (let a in arguments){
-		let c = arguments[a].replace(";", ""),
+	for (var a in arguments){
+		var c = arguments[a].replace(";", ""),
 			s = c.split(" "), i = s.length-1,
 			t = (c.replace(" " + s[i], "")).toLowerCase(),
 			n = s[i].split("["), name = (n[0]).toLowerCase(),
@@ -207,7 +230,7 @@ var Struct = function(){
 		eval(shader.join(""));
 	}
 };
-Struct.prototype = {
+CStruct.prototype = {
 	seek : 0,
 	buffer : null
 };

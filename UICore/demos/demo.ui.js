@@ -225,36 +225,13 @@ docButton5.addEventListener("mousedown", function(e){
 	//if (!blurCache) {
 		blurCache = canvas.blur(0, 0, 1024, 768, 2);
 	//} else {
-		context.putImageData(blurCache, 0, 0);
+		//canvas.putImageData(blurCache, 0, 0);
 	//}
 });
 
 docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
 });
-
-//greenView.zIndex = 800;
-
-/*
-var t = new Thread(function(){
-	this.send();
-});
-
-t.onmessage = function(e){
-	e.data;
-};
-*/
-
-
-/*
-var l = +new Date();
-setTimeout(function() {
-    var c = +new Date();
-    echo("Timer", c-l);
-    l = c;
-}, 1000, true, true);
-*/
-
 
 //redViewButton4.scale = 2;
 
@@ -276,7 +253,6 @@ brique.addEventListener("dragstart", function(e){
 brique.addEventListener("dragend", function(e){
 	console.log("dragend brique");
 });
-
 
 docButton1.addEventListener("dragover", function(e){
 	console.log("dragover");

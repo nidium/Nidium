@@ -35,9 +35,7 @@ load('core/plugins/roundbox.inc.js');
 load('core/plugins/tabbox.inc.js');
 load('core/plugins/animations.inc.js');
 
-canvas.__mustBeDrawn = true;
-
-var layout = {
+var NativeRenderer = {
 	objID : 0,
 	focusObj : 0,
 	nbObj : 0,
@@ -66,9 +64,6 @@ var layout = {
 	},
 
 	draw : function(){
-
-		//this.clear();
-
 		var z = this.getElements();
 
 		if (canvas.__mustBeDrawn || true) {
@@ -137,7 +132,6 @@ var layout = {
 	},
 
 	find : function(property, value){
-
 		var elements = [];
 
 		var dx = function(nodes, parent){

@@ -28,56 +28,32 @@ UIElement.extend("UISliderController", {
 			this.h = this.options.h || 12;
 		}
 
-		if (this.vertical) {
-			this.knob = this.add("UISliderKnob", {
-				x : 0,
-				y : this.h-this.w/2,
-				w : this.w,
-				h : this.w,
-				background : this.color
-			});
-		} else {
-			this.knob = this.add("UISliderKnob", {
-				x : -this.h/2,
-				y : 0, 
-				w : this.h,
-				h : this.h,
-				background : this.color
-			});
-		}
+		this.knob = this.add("UISliderKnob", {
+			x : this.vertical ? 0 : -this.h/2,
+			y : this.vertical ? this.h-this.w/2 : 0,
+			w : this.vertical ? this.w : this.h,
+			h : this.vertical ? this.w : this.h,
+			background : this.color
+		});
 
 		this.addEventListener("mousedown", function(e){
-			if (self.vertical){
-				var start = this.knob.y;
-					y = e.y - this.__y - this.knob.h/2;
-				this.knob.animate("top", start, y, 200,
-					function(){
+			var start = self.vertical ? this.knob.y : this.knob.x,
+				delta = self.vertical ?(e.y - this.__y - this.knob.h/2) : (e.x - this.__x - this.knob.w/2),
+				property = self.vertical ? "top" : "left";
 
-					},
+			this.knob.animate(property, start, delta, 200,
+				function(){
 
-					FXAnimation.easeOutQuad,
+				},
 
-					function(ky){
-						self.setKnobPosition(ky);
-					}
-				);
-				self.draggingSlider = true;
-			} else {
-				var start = this.knob.x;
-						x = e.x - this.__x - this.knob.w/2;
-					this.knob.animate("left", start, x, 200,
-						function(){
+				FXAnimation.easeOutQuad,
 
-						},
+				function(pixelValue){
+					self.setKnobPosition(pixelValue);
+				}
+			);
 
-						FXAnimation.easeOutQuad,
-
-						function(kx){
-							self.setKnobPosition(kx);
-						}
-					);
-					self.draggingSlider = true;
-			}
+			self.draggingSlider = true;
 
 		}, false);
 
@@ -109,16 +85,14 @@ UIElement.extend("UISliderController", {
 
 		this.knob.addEventListener("dragend", function(){
 			self.draggingSlider = false;
+			self.fireEvent("complete", self.value);
 		}, false);
 
 		this.addEventListener("mousewheel", function(e){
 			var d = e.yrel !=0 ? e.yrel : e.xrel !=0 ? e.xrel : 0,
 				delta = 1 + (-d-1);
-			if (self.vertical){
-				self.setKnobPosition(this.knob.top + delta);
-			} else {
-				self.setKnobPosition(this.knob.left + delta);
-			}
+
+			self.setKnobPosition( self.vertical ? this.knob.top + delta : this.knob.left + delta);
 		}, false);
 
 		this.setKnobPosition = function(pixelValue){
@@ -139,13 +113,14 @@ UIElement.extend("UISliderController", {
 			this.fireEvent("change", this.value);
 		};
 
-		this.setValue = function(value, duration){
+		this.setValue = function(value, duration, callback){
 			var oldValue = this.value,
 				d = this.max - this.min;
 
 			if (this.draggingSlider) return false;
 
 			this.value = Math.max(Math.min(this.max, value), this.min);
+			this.moving = true;
 
 			if (this.vertical){
 				this.pixelValue = (this.max - this.value)*this.h/d - this.knob.h/2;
@@ -155,7 +130,8 @@ UIElement.extend("UISliderController", {
 
 					this.knob.animate("top", start, y, duration,
 						function(){
-
+							self.moving = false;
+							typeof(callback)=="function" && callback.call(self, self.value);
 						},
 
 						self.options.ease ? self.options.ease : FXAnimation.easeInExpo,
@@ -176,7 +152,8 @@ UIElement.extend("UISliderController", {
 
 					this.knob.animate("left", start, x, duration,
 						function(){
-
+							self.moving = false;
+							typeof(callback)=="function" && callback.call(self, self.value);
 						},
 
 						self.options.ease ? self.options.ease : FXAnimation.easeInExpo,
@@ -193,7 +170,7 @@ UIElement.extend("UISliderController", {
 
 		};
 
-		this.setValue(this.value, 800);
+		this.setValue(this.value, 400);
 
 	},
 

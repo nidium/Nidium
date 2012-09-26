@@ -59,7 +59,7 @@ UIElement.extend("UIText", {
 			self._startMouseSelection(e);
 		}, false);
 
-		layout.rootElement.addEventListener("dragover", function(e){
+		NativeRenderer.rootElement.addEventListener("dragover", function(e){
 			self._doMouseSelection(e);
 		}, false);
 
@@ -345,15 +345,15 @@ UIElement.extend("UIText", {
 
 		this.copy = function(){
 			if (this.selection.size>0) {
-				layout.pasteBuffer = this.selection.text;
+				NativeRenderer.pasteBuffer = this.selection.text;
 			} else {
-				layout.pasteBuffer = '';
+				NativeRenderer.pasteBuffer = '';
 			}
 		};
 
 		this.paste = function(){
-			if (layout.pasteBuffer != '') {
-				this.replace(layout.pasteBuffer);
+			if (NativeRenderer.pasteBuffer != '') {
+				this.replace(NativeRenderer.pasteBuffer);
 			}
 		};
 

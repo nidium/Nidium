@@ -66,8 +66,8 @@ var main = new Application({background:"#262722"}),
 	});
 
 
-master.addEventListener("change", function(value){
-	//echo(value);
+master.addEventListener("complete", function(value){
+	echo(value);
 }, false);
 
 
@@ -81,7 +81,6 @@ slider3.addEventListener("change", function(value){
 	slider2.setValue(g2+value*20);
 	frequency = (value+1)/5;
 }, false);
-
 
 /*
  * -- Sinus Sliders Demo -----------------

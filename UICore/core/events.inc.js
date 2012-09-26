@@ -2,7 +2,148 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-canvas.global = {
+canvas.onmousedown = function(e){
+	UIEvents.__mouseDown = true;
+	UIEvents.__startDragLaunched = false;
+
+	e.time = +new Date();
+	e.duration = null;
+	e.dataTransfer = UIEvents.__dataTransfer;
+
+	if (UIEvents.__lastClickEvent){
+		e.duration = e.time - UIEvents.__lastClickEvent.time;
+	}
+	UIEvents.__lastClickEvent = e;
+
+	canvas.__mustBeDrawn = true;
+	UIEvents.dispatch("mousedown", e);
+
+};
+
+canvas.onmousemove = function(e){
+	canvas.mouseX = e.x;
+	canvas.mouseY = e.y;
+	e.dataTransfer = UIEvents.__dataTransfer;
+
+	if (UIEvents.__mouseDown){
+
+		canvas.__mustBeDrawn = true;
+		
+		if (UIEvents.__startDragLaunched){
+			UIEvents.__dragging = true;
+			UIEvents.dispatch("dragover", e);
+			UIEvents.dispatch("drag", e);
+
+			let (ghost = UIEvents.__dragGhost){
+				if (ghost) {
+					ghost.left = e.xrel + (ghost.x);
+					ghost.top = e.yrel + (ghost.y);
+				}
+			}
+
+		} else {
+			UIEvents.__startDragLaunched = true;
+			UIEvents.dispatch("dragstart", e);
+		}
+
+	} else {
+		UIEvents.dispatch("mousemove", e);
+	}
+};
+
+canvas.onmousewheel = function(e){
+	UIEvents.dispatch("mousewheel", e);
+};
+
+
+canvas.onmouseup = function(e){
+	var o = UIEvents.__lastClickEvent || {x:0, y:0},
+		d = Math.distance(o.x, o.y, e.x, e.y) || 0,
+		timeEllapsedFromMouseDown = 0;
+
+	canvas.__mustBeDrawn = true;
+
+	// prevent MouseDown + CTRL R + Mouse UP error
+	if (UIEvents.__lastClickEvent) {
+		timeEllapsedFromMouseDown = (+new Date()) - UIEvents.__lastClickEvent.time;
+	}
+
+	UIEvents.__mouseDown = false;
+
+	e.dataTransfer = UIEvents.__dataTransfer;
+
+	if (UIEvents.__startDragLaunched && UIEvents.__dragSourceElement){
+		if (UIEvents.__dragGhost){
+			UIEvents.__dragGhost.remove();
+			delete(UIEvents.__dragGhost);
+		}
+
+		UIEvents.dispatch("drop", e);
+	}
+	UIEvents.__dragging = false;
+	UIEvents.__startDragLaunched = false;
+	UIEvents.__dragSourceElement = null;
+
+	//if (!UIEvents.__timerEngaged) {
+		UIEvents.dispatch("mouseup", e);
+	//}
+
+	if (o && d<5) {
+
+		if (timeEllapsedFromMouseDown > UIEvents.devices.pointerHoldTime) {
+			UIEvents.__doubleClickLaunched = false;
+			UIEvents.__timerEngaged = false;
+			//UIEvents.dispatch("mouselongclick", e);
+			UIEvents.dispatch("mouseclick", e);
+		} else {
+
+			if (!UIEvents.__timerEngaged) {
+				setTimer(function(){
+					if (!UIEvents.__doubleClickLaunched) {
+						UIEvents.dispatch("mouseclick", e);
+					}
+					UIEvents.__timerEngaged = false;
+					UIEvents.__doubleClickLaunched = false;
+				}, 10);
+
+				UIEvents.__timerEngaged = true;
+			} else {
+				UIEvents.dispatch("mousedblclick", e);
+				UIEvents.__doubleClickLaunched = true;
+				UIEvents.__timerEngaged = false;
+			}
+		}
+
+	}
+
+};
+
+/*
+	EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
+	EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_ALT));
+	EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_CTRL));
+	EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_SHIFT));
+	EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(repeat));
+*/
+
+canvas.onkeydown = function(e){
+	UIEvents.dispatch("keydown", e);
+
+	if (e.keyCode == 9) {
+		NativeRenderer.focusNextElement();
+	}
+};
+
+canvas.onkeyup = function(e){
+	UIEvents.dispatch("keyup", e);
+};
+
+canvas.ontextinput = function(e){
+	e.text = e.val;
+	UIEvents.dispatch("textinput", e);
+};
+
+var UIEvents = {
 	devices : {
 		doubleTapTime : 450,
 		pointerHoldTime : 600
@@ -38,159 +179,13 @@ canvas.global = {
 			delete(this.data);
 			this.data = {};
 		}
-	}
+	},
 
-};
-
-canvas.onmousedown = function(e){
-	canvas.global.__mouseDown = true;
-	canvas.global.__startDragLaunched = false;
-
-	e.time = +new Date();
-	e.duration = null;
-	e.dataTransfer = canvas.global.__dataTransfer;
-
-	if (canvas.global.__lastClickEvent){
-		e.duration = e.time - canvas.global.__lastClickEvent.time;
-	}
-	canvas.global.__lastClickEvent = e;
-
-	canvas.__mustBeDrawn = true;
-	UIEvents.dispatch("mousedown", e);
-
-};
-
-canvas.onmousemove = function(e){
-	canvas.mouseX = e.x;
-	canvas.mouseY = e.y;
-	e.dataTransfer = canvas.global.__dataTransfer;
-
-	if (canvas.global.__mouseDown){
-
-		canvas.__mustBeDrawn = true;
-		
-		if (canvas.global.__startDragLaunched){
-			canvas.global.__dragging = true;
-			UIEvents.dispatch("dragover", e);
-			UIEvents.dispatch("drag", e);
-
-			let (ghost = canvas.global.__dragGhost){
-				if (ghost) {
-					ghost.left = e.xrel + (ghost.x);
-					ghost.top = e.yrel + (ghost.y);
-				}
-			}
-
-		} else {
-			canvas.global.__startDragLaunched = true;
-			UIEvents.dispatch("dragstart", e);
-		}
-
-	} else {
-		UIEvents.dispatch("mousemove", e);
-	}
-};
-
-canvas.onmousewheel = function(e){
-	e.x = canvas.mouseX;
-	e.y = canvas.mouseY;
-	UIEvents.dispatch("mousewheel", e);
-};
-
-
-canvas.onmouseup = function(e){
-	var o = canvas.global.__lastClickEvent || {x:0, y:0},
-		d = Math.distance(o.x, o.y, e.x, e.y) || 0,
-		timeEllapsedFromMouseDown = 0;
-
-	canvas.__mustBeDrawn = true;
-
-	// prevent MouseDown + CTRL R + Mouse UP error
-	if (canvas.global.__lastClickEvent) {
-		timeEllapsedFromMouseDown = (+new Date()) - canvas.global.__lastClickEvent.time;
-	}
-
-	canvas.global.__mouseDown = false;
-
-	e.dataTransfer = canvas.global.__dataTransfer;
-
-	if (canvas.global.__startDragLaunched && canvas.global.__dragSourceElement){
-		if (canvas.global.__dragGhost){
-			canvas.global.__dragGhost.remove();
-			delete(canvas.global.__dragGhost);
-		}
-
-		UIEvents.dispatch("drop", e);
-	}
-	canvas.global.__dragging = false;
-	canvas.global.__startDragLaunched = false;
-	canvas.global.__dragSourceElement = null;
-
-	//if (!canvas.global.__timerEngaged) {
-		UIEvents.dispatch("mouseup", e);
-	//}
-
-	if (o && d<5) {
-
-		if (timeEllapsedFromMouseDown > canvas.global.devices.pointerHoldTime) {
-			canvas.global.__doubleClickLaunched = false;
-			canvas.global.__timerEngaged = false;
-			//UIEvents.dispatch("mouselongclick", e);
-			UIEvents.dispatch("mouseclick", e);
-		} else {
-
-			if (!canvas.global.__timerEngaged) {
-				setTimer(function(){
-					if (!canvas.global.__doubleClickLaunched) {
-						UIEvents.dispatch("mouseclick", e);
-					}
-					canvas.global.__timerEngaged = false;
-					canvas.global.__doubleClickLaunched = false;
-				}, 10);
-
-				canvas.global.__timerEngaged = true;
-			} else {
-				UIEvents.dispatch("mousedblclick", e);
-				canvas.global.__doubleClickLaunched = true;
-				canvas.global.__timerEngaged = false;
-			}
-		}
-
-	}
-
-};
-
-/*
-	EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
-	EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_ALT));
-	EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_CTRL));
-	EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_SHIFT));
-	EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(repeat));
-*/
-
-canvas.onkeydown = function(e){
-	UIEvents.dispatch("keydown", e);
-
-	if (e.keyCode == 9) {
-		layout.focusNextElement();
-	}
-};
-
-canvas.onkeyup = function(e){
-	UIEvents.dispatch("keyup", e);
-};
-
-canvas.ontextinput = function(e){
-	e.text = e.val;
-	UIEvents.dispatch("textinput", e);
-};
-
-var UIEvents = {
 	stopDrag : function(){
-		canvas.global.__mouseDown = false;
-		canvas.global.__dragging = false;
-		canvas.global.__startDragLaunched = false;
-		canvas.global.__dragSourceElement = null;
+		this.__mouseDown = false;
+		this.__dragging = false;
+		this.__startDragLaunched = false;
+		this.__dragSourceElement = null;
 	},
 
 	dispatch : function(eventName, e){
@@ -198,7 +193,7 @@ var UIEvents = {
 			y = e.y,
 			elements = [];
 
-		var z = layout.getElements();
+		var z = NativeRenderer.getElements();
 
 		var cancelBubble = false;
 
@@ -225,9 +220,9 @@ var UIEvents = {
 
 				switch (eventName) {
 					case "mousemove" :
-						e.source = canvas.global.__dragSourceElement;
+						e.source = this.__dragSourceElement;
 						e.target = view;
-						cancelBubble = view.throwMouseOver(e);
+						cancelBubble = view.fireMouseOver(e);
 						break;
 
 					case "drag" :
@@ -238,7 +233,7 @@ var UIEvents = {
 						break;
 
 					case "dragover" :
-						e.source = canvas.global.__dragSourceElement;
+						e.source = this.__dragSourceElement;
 						e.target = view;
 
 						if (!e.source) {
@@ -246,7 +241,7 @@ var UIEvents = {
 							this.stopDrag();
 						}
 
-						cancelBubble = view.throwMouseOver(e);
+						cancelBubble = view.fireMouseOver(e);
 						break;
 
 					case "dragstart" :
@@ -254,17 +249,17 @@ var UIEvents = {
 						e.target = view;
 						e.source.flags._dragendCallend = false;
 
-						canvas.global.__dragSourceElement = view;
+						this.__dragSourceElement = view;
 
 						if (view.draggable) {
-							canvas.global.__dragGhost = view.clone();
+							this.__dragGhost = view.clone();
 						}
 						cancelBubble = true;
 						break;
 
 					case "drop":
 
-						e.source = canvas.global.__dragSourceElement;
+						e.source = this.__dragSourceElement;
 						e.target = view;
 
 						//if (e.source.id != e.target.id && e.source.flags._dragendCallend===false){
@@ -282,9 +277,9 @@ var UIEvents = {
 
 
 			} else {
-				e.source = canvas.global.__dragSourceElement || view;
+				e.source = this.__dragSourceElement || view;
 				e.target = view;
-				cancelBubble = view.throwMouseOut(e);
+				cancelBubble = view.fireMouseOut(e);
 			}
 
 			if (cancelBubble) break;
@@ -292,7 +287,7 @@ var UIEvents = {
 		}
 
 		if (eventName=="drag"){
-			e.source = canvas.global.__dragSourceElement;
+			e.source = this.__dragSourceElement;
 			e.source && e.source.fireEvent("drag", e);
 		}
 
@@ -309,12 +304,12 @@ UIView.implement({
 		}
 	},
 
-	throwMouseOver : function(e){
+	fireMouseOver : function(e){
 		if (!this.flags._mouseoverCalled) {
 			this.flags._mouseoverCalled = true;
 			this.flags._mouseoutCalled = false;
 			
-			if (canvas.global.__dragging) {
+			if (UIEvents.__dragging) {
 				if (this.ondragenter && typeof(this.ondragenter)=="function"){
 					this.ondragenter(e);
 					canvas.__mustBeDrawn = true;
@@ -330,11 +325,11 @@ UIView.implement({
 		}
 	},
 
-	throwMouseOut : function(e){
+	fireMouseOut : function(e){
 		if (this.flags._mouseoverCalled && !this.flags._mouseoutCalled) {
 			this.flags._mouseoverCalled = false;
 			this.flags._mouseoutCalled = true;
-			if (canvas.global.__dragging) {
+			if (UIEvents.__dragging) {
 
 				/* to check */
 				if (this.onmouseout && typeof(this.onmouseout)=="function"){
@@ -367,25 +362,23 @@ UIView.implement({
 	},
 
 	addEventListener : function(eventName, callback, propagation){
-		var self = this;
+		var self = this,
+			event = self._eventQueues[eventName];
 
-		propagation = (typeof propagation == "undefined") ? true : (propagation===true) ? true : false;
-		
+		propagation = (propagation == "undefined") ? true : (propagation===true) ? true : false;
 
-		if (!self._eventQueues[eventName]) {
-			self._eventQueues[eventName] = [];
-		}
+		event = !event ? self._eventQueues[eventName] = [] : self._eventQueues[eventName];
 
-		self._eventQueues[eventName].push({
+		event.push({
 			name : eventName,
-			throwEvent : callback,
+			fn : callback,
 			propagation : true
 		});
 
 		self["on"+eventName] = function(e){
-			for(var i in self._eventQueues[eventName]){
-				self._eventQueues[eventName][i].throwEvent.call(self, e);
-				if (self._eventQueues[eventName][i].propagation===false){
+			for(var i in event){
+				event[i].fn.call(self, e);
+				if (!event[i].propagation){
 					break;
 				}
 			}

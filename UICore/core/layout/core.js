@@ -13,7 +13,7 @@ var UIView = function(type, options, parent){
 	}
 
 	var _get = function(property, defaultValue, min, max){
-		let p = view.options[property] ? view.options[property] : defaultValue;
+		var p = view.options[property] ? view.options[property] : defaultValue;
 		if (typeof p == "number") {
 			p = (typeof min != "undefined") ? Math.max(min, p) : p;
 			p = (typeof max != "undefined") ? Math.min(max, p) : p;
@@ -21,7 +21,7 @@ var UIView = function(type, options, parent){
 		return p;
 	};
 
-	this._uid = "_obj_" + layout.objID++;
+	this._uid = "_obj_" + NativeRenderer.objID++;
 	this.id = _get("id", this._uid);
 
 	this.type = type ? type : "UIView";
@@ -43,7 +43,7 @@ var UIView = function(type, options, parent){
 	this.opacity = _get("zIndex", 1, 0, 1); // this.options.opacity ? parseFloat(this.options.opacity) : 1;
 
 	if (this.parent) {
-		this._rIndex = layout.getHigherZindex() + 1;
+		this._rIndex = NativeRenderer.getHigherZindex() + 1;
 	} else {
 		this._rIndex = 0;
 	}
@@ -112,7 +112,7 @@ var UIView = function(type, options, parent){
 	this.fontSize = _get("fontSize", 12, 0, 74);
 	this.fontType = _get("fontType", "arial");
 
-	let align = this.options.textAlign && typeof(this.options.textAlign=="string") ? this.options.textAlign.toLowerCase() : "left";
+	var align = this.options.textAlign && typeof(this.options.textAlign=="string") ? this.options.textAlign.toLowerCase() : "left";
 	this.textAlign = align && (align=="left" || align=="right" || align=="justify" || align=="center") ? align : 'left';
 
 
@@ -149,23 +149,23 @@ UIView.prototype = {
 		view._uid = this._uid + "_clone";
 		view.id = view._uid;
 
-		view._rIndex = layout.getHigherZindex() + 1;
+		view._rIndex = NativeRenderer.getHigherZindex() + 1;
 		view.opacity = 0.8;
 		view.nodes = {}; // kill children nodes
 
 		UIElement.init(view);
-		layout.register(view);
+		NativeRenderer.register(view);
 
 		return view;
 	},
 
 	addChild : function(view){
 		this.nodes[view._uid] = view;
-		layout.refresh();
+		NativeRenderer.refresh();
 	},
 
 	remove : function(){
-		layout.remove(this);
+		NativeRenderer.remove(this);
 	},
 
 	focus : function(){
@@ -178,32 +178,32 @@ UIView.prototype = {
 	
 			this.fireEvent("focus", {});
 
-			if (layout.lastFocusedElement) {
-				layout.lastFocusedElement.fireEvent("blur", {});
+			if (NativeRenderer.lastFocusedElement) {
+				NativeRenderer.lastFocusedElement.fireEvent("blur", {});
 			}
 
-			layout.lastFocusedElement = this;
+			NativeRenderer.lastFocusedElement = this;
 
-			layout.focusObj = this._nid;
+			NativeRenderer.focusObj = this._nid;
 		}
 	},
 
 	show : function(){
 		if (!this.visible) {
 			this.visible = true;
-			layout.refresh();
+			NativeRenderer.refresh();
 		}
 	},
 
 	hide : function(){
 		if (this.visible) {
 			this.visible = false;
-			layout.refresh();
+			NativeRenderer.refresh();
 		}
 	},
 
 	bringToTop : function(){
-		this.zIndex = layout.getHigherZindex() + 1;
+		this.zIndex = NativeRenderer.getHigherZindex() + 1;
 	},
 
 
@@ -413,7 +413,7 @@ UIView.prototype = {
 		if (dx==0) {return false;}
 		this._x += dx;
 		this.x += dx;
-		layout.refresh();
+		NativeRenderer.refresh();
 	},
 
 	get top() {
@@ -425,7 +425,7 @@ UIView.prototype = {
 		if (dy==0) {return false;}
 		this._y += dy;
 		this.y += dy;
-		layout.refresh();
+		NativeRenderer.refresh();
 	}
 
 };
@@ -444,7 +444,7 @@ var UIElement = {
 	},
 
 	init : function(UIView){
-		let self = this,
+		var self = this,
 			UIElement = UIView.type;
 
 		if (this[UIElement]){
@@ -476,10 +476,10 @@ var Application = function(options){
 	view.flags._outlineOnFocus = false;
 	UIElement.init(view);
 
-	layout.register(view);
-	layout.refresh();
+	NativeRenderer.register(view);
+	NativeRenderer.refresh();
 
-	layout.rootElement = view;
+	NativeRenderer.rootElement = view;
 
 	/*
 	var bgCanvas = new Image(),
@@ -492,50 +492,24 @@ var Application = function(options){
 	*/
 
 	canvas.globalAlpha = 1;
+	canvas.__mustBeDrawn = true;
 
 	if (options && options.animation===false){
 		/* dummy */
 	} else {
-		var __DATE__,
-			__FPS__ = 0,
-			__FPS_OLD__ = 0;
-
-		canvas.showFPS = function(){
-			__FPS__++;
-			let r = 0.1 + (+ new Date()) - __DATE__,
-				fps = 1000/r;
-
-			if (__FPS__%30==0){
-				__FPS_OLD__ = Math.round((r-0.1)*10)/10; // fps
-			} 				
-
-			canvas.setColor("#000000");
-			canvas.fillRect(0, canvas.height-40, 60, 30);
-			canvas.fillRect(0, 280, 50, 30);
-			canvas.setColor("yellow");
-			canvas.fillText(__FPS_OLD__ + " ms", 5, canvas.height-20);
-
-			return r;
-		};
-
 		canvas.animate = true;
 	    canvas.requestAnimationFrame(function(){
-			
-			__DATE__ = (+ new Date());
+			FPS.start();
 	 		if (canvas.animate) {
 
 	 			//canvas.putImageData(backgroundData, 0, 0);
-				layout.draw();
-
-				//layout.grid();
+				NativeRenderer.draw();
+				//NativeRenderer.grid();
 			} 
-	 		canvas.showFPS();
-			//canvas.blur(0, 0, 320, 200, 2);
+	 		FPS.show();
 	    });
 	}
 
 
 	return view;
 };
-
-

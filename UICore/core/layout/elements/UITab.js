@@ -62,7 +62,7 @@ UIElement.extend("UITab", {
 			__currentDragingTabPosition = self.parent.getPosition(this.tabnum);
 		}, false);
 
-		layout.rootElement.addEventListener("dragover", function(e){
+		NativeRenderer.rootElement.addEventListener("dragover", function(e){
 			if (__currentDragingTabPosition===false) { return false; }
 
 			var i = __currentDragingTabPosition,
