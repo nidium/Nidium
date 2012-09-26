@@ -75,6 +75,7 @@ typedef enum states {
     R9, /* HTTP/1.1 space */
     RN, /* HTTP/1.1 response code */
     RD, /* response description */
+    AA, /* catchall */
     NR_STATES
 } parser_state;
 

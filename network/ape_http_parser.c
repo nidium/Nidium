@@ -195,14 +195,25 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
 
 #define HTTP_BODY_AS_ENDED() (HTTP_ISBODYCONTENT() && --parser->cl == 0 && (parser->rx |= HTTP_FLG_READY, 1))
 
-
-    parser_class c_classe = ascii_class[c];
+    parser_class c_classe;
     int8_t state;
     unsigned char ch;
+
+    if (c >= 128) {
+        c_classe = C_ETC;
+    } else {
+        c_classe = ascii_class[c];
+    }
 
     parser->step++;
 
     if (c_classe == C_NUL || HTTP_ISREADY()) return 0;
+
+    if (parser->state == AA) {
+        parser->callback(parser->ctx, HTTP_BODY_CHAR, c, parser->step);
+        HTTP_CONSUME_BODY();
+        return 1;  
+    }
 
     state = state_transition_table[parser->state][c_classe]; /* state > 0, action < 0 */
 
@@ -292,12 +303,16 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 if (HTTP_ISPOST()) {
                     parser->state = BT;
                     parser->rx = HTTP_FLG_POST | HTTP_FLG_QS | HTTP_FLG_BODYCONTENT;
-                    if (parser->cl) break; /* assume ready if 0/no content-length */
+                } else if (parser->rcode) {
+                    parser->rx = HTTP_FLG_BODYCONTENT;
+                    parser->state = AA;
                 }
+                if (parser->cl) break;  /* assume ready if 0/no content-length */
                 parser->rx |= HTTP_FLG_READY;
                 parser->callback(parser->ctx, HTTP_READY, 0, parser->step);
                 break;
             case BC:
+                printf("running char %d %d\n", state, parser->state);
                 parser->callback(parser->ctx, HTTP_BODY_CHAR, c, parser->step);
                 HTTP_CONSUME_BODY();
                 break;
@@ -393,6 +408,12 @@ static int parse_callback(void **ctx, callback_type type, int value, uint32_t st
         case HTTP_HEADER_END:
             printf("--------- HEADERS END ---------\n");
             break;
+        case HTTP_READY:
+            printf("--------- HTTP END ---------\n");
+            break;
+        case HTTP_BODY_CHAR:
+            printf("char %c\n", value);
+            break;
         default:
             break;
     }
@@ -412,8 +433,8 @@ int main()
     p.ctx[0] = &p;
     p.callback = parse_callback;
 
-    char chaine[] = "HTTP/1.1 200 OK\nfoo: bar\ncontent-length: 500\n\n";
-
+    char chaine[] = "HTTP/1.1 200 OK\nfoo: bar\ncontent-length: 10\n\n1234567890";
+    //char chaine[] = "POST / HTTP/1.1\ncontent-length: 8\n\n%40a%40b";
     /* TODO implement a "duff device" here */
     for (i = 0, length = strlen(chaine); i < length; i++) {
         if (parse_http_char(&p, chaine[i]) == 0) {
@@ -421,7 +442,7 @@ int main()
             break;
         }
     }
-    printf("done %d\n", p.rcode);
+    printf("done with status %d\n", p.rcode);
 }
 #endif
 
