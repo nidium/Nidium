@@ -312,7 +312,6 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 parser->callback(parser->ctx, HTTP_READY, 0, parser->step);
                 break;
             case BC:
-                printf("running char %d %d\n", state, parser->state);
                 parser->callback(parser->ctx, HTTP_BODY_CHAR, c, parser->step);
                 HTTP_CONSUME_BODY();
                 break;
@@ -370,7 +369,7 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
 }
 
 
-#if HTTP_TEST
+#ifdef HTTP_TEST
 /* also compiled as jump table */
 
 static int parse_callback(void **ctx, callback_type type, int value, uint32_t step)

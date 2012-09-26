@@ -486,7 +486,7 @@ NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
 {
 	cx = NULL;
 
-	this->host = host;
+	this->host = strdup(host);
 	this->port = port;
 }
 
@@ -495,6 +495,7 @@ NativeJSSocket::~NativeJSSocket()
 	if (isAttached()) {
 		socket->ctx = NULL;
 	}
+    free(host);
 }
 
 bool NativeJSSocket::isAttached()
@@ -536,6 +537,5 @@ void NativeJSSocket::registerObject(JSContext *cx)
 {
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &socket_class,
     	native_Socket_constructor,
-        0, NULL, NULL, NULL, NULL);
-
+        2, NULL, NULL, NULL, NULL);
 }
