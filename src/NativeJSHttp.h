@@ -40,17 +40,5 @@ typedef enum _native_http_data_type {
     NATIVE_DATA_END
 } native_http_data_type;
 
-struct native_http_mime {
-    const char *str;
-    native_http_data_type data_type;
-} native_mime[] = {
-    {"text/plain",              NATIVE_DATA_STRING},
-    {"image/jpeg",              NATIVE_DATA_IMAGE},
-    {"image/png",               NATIVE_DATA_IMAGE},
-    {"application/json",        NATIVE_DATA_JSON},
-    {"text/html",               NATIVE_DATA_STRING}, /* TODO: use dom.js */
-    {"application/octet-stream",NATIVE_DATA_BINARY},
-    {NULL,                      NATIVE_DATA_END}
-};
 
 #endif

@@ -22,6 +22,20 @@ static JSFunctionSpec http_funcs[] = {
     JS_FS_END
 };
 
+
+static struct native_http_mime {
+    const char *str;
+    native_http_data_type data_type;
+} native_mime[] = {
+    {"text/plain",              NATIVE_DATA_STRING},
+    {"image/jpeg",              NATIVE_DATA_IMAGE},
+    {"image/png",               NATIVE_DATA_IMAGE},
+    {"application/json",        NATIVE_DATA_JSON},
+    {"text/html",               NATIVE_DATA_STRING}, /* TODO: use dom.js */
+    {"application/octet-stream",NATIVE_DATA_BINARY},
+    {NULL,                      NATIVE_DATA_END}
+};
+
 static int parse_uri(char *url, char *host,
     u_short *port, char *file)
 {
@@ -238,14 +252,15 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 void NativeJSHttp::requestEnded()
 {
 #define REQUEST_HEADER(header) ape_array_lookup(http.headers.list, \
-    CONST_STR_LEN(header))
+    CONST_STR_LEN(header "\0"))
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
-    buffer *k, *v;
+    buffer *k, *v, *content_type;
     JSObject *headers, *event;
-    jsval rval, jevent;
+    jsval rval, jevent, jdata;
+    native_http_data_type ret_type = NATIVE_DATA_STRING;
 
     event = JS_NewObject(cx, NULL, NULL, NULL);
     headers = JS_NewObject(cx, NULL, NULL, NULL);
@@ -257,6 +272,33 @@ void NativeJSHttp::requestEnded()
     }
     
     SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
+
+    if ((content_type = REQUEST_HEADER("Content-Type")) != NULL &&
+        content_type->used > 3) {
+        int i;
+        char *type = (char *)&content_type->data[1];
+
+        for (i = 0; native_mime[i].str != NULL; i++) {
+            if (strncasecmp(native_mime[i].str, type,
+                strlen(native_mime[i].str)) == 0) {
+                ret_type = native_mime[i].data_type;
+                break;
+            }
+        }
+    }
+
+    switch(ret_type) {
+        case NATIVE_DATA_STRING:
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("string"))));
+            jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                (const char *)http.data->data, http.data->used));
+            break;
+        default:
+            break;
+    }
+
+    SET_PROP(event, "data", jdata);
 
     jevent = OBJECT_TO_JSVAL(event);
 
