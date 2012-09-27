@@ -70,7 +70,7 @@ static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 
 
 static JSClass global_class = {
-    "_GLOBAL", JSCLASS_GLOBAL_FLAGS,
+    "global", JSCLASS_GLOBAL_FLAGS,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -1600,7 +1600,18 @@ int NativeJS::LoadScript(const char *filename)
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
 
     JSScript *script = JS_CompileUTF8File(cx, gbl, filename);
+#if 0
+    uint32_t encoded;
+    void *data;
+    data = JS_EncodeScript(cx, script, &encoded);
 
+    printf("script encoded with %d size\n", encoded);
+
+    FILE *jsc = fopen("./compiled.jsc", "w+");
+
+    fwrite(data, 1, encoded, jsc);
+    fclose(jsc);
+#endif
     JS_SetOptions(cx, oldopts);
 
     if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {

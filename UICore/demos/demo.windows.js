@@ -10,7 +10,7 @@ var main = new Application({background:"#262722"}),
 		y : 150,
 		w : 400,
 		h : 300,
-		background : "#191a18",
+		background : "rgba(0, 0, 0, 0.4)",
 		resizable : true,
 		closeable : true,
 		movable : true

@@ -81,7 +81,8 @@ static int native_http_callback(void **ctx, callback_type type,
             buffer_append_char(nhttp->http.headers.tval, (unsigned char)value);
             break;
         case HTTP_CL_VAL:
-        break;
+            nhttp->http.data = buffer_new(value);
+            break;
         case HTTP_HEADER_VAL:
             buffer_append_char(nhttp->http.headers.tkey, '\0');
             buffer_append_char(nhttp->http.headers.tval, '\0');
@@ -90,6 +91,13 @@ static int native_http_callback(void **ctx, callback_type type,
             nhttp->http.headers.tkey = buffer_new(16);
             nhttp->http.headers.tval = buffer_new(64);
             
+            break;
+        case HTTP_BODY_CHAR:
+            if (nhttp->http.data == NULL) {
+                nhttp->http.data = buffer_new(2048);
+            }
+
+            buffer_append_char(nhttp->http.data, (unsigned char)value);
             break;
         case HTTP_READY:
             buffer_destroy(nhttp->http.headers.tkey);
@@ -113,6 +121,7 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
     nhttp->http.headers.list = ape_array_new(16);
     nhttp->http.headers.tkey = buffer_new(16);
     nhttp->http.headers.tval = buffer_new(64);
+    nhttp->http.data = NULL;
 
     nhttp->http.parser.ctx[0] = nhttp;
 

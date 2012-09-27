@@ -54,6 +54,9 @@ void buffer_prepare(buffer *b, size_t size)
         b->used = 0;
         b->data = malloc(sizeof(char) * b->size);
     } else if (b->used + size > b->size) {
+        if (size == 0) {
+            size = 1;
+        }
         b->size += size;
         b->data = realloc(b->data, sizeof(char) * b->size);
     }
@@ -68,7 +71,7 @@ void buffer_append_data(buffer *b, const unsigned char *data, size_t size)
 
 void buffer_append_char(buffer *b, const unsigned char data)
 {
-    buffer_prepare(b, 1);
+    buffer_prepare(b, b->size);
     b->data[b->used] = data;
     b->used++;
 }
