@@ -371,7 +371,7 @@ UIView.implement({
 
 		event.push({
 			name : eventName,
-			fn : callback,
+			fn : typeof(callback)=="function" ? callback : function(){},
 			propagation : true
 		});
 

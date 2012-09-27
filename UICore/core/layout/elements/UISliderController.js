@@ -13,10 +13,23 @@ UIElement.extend("UISliderController", {
 		this.min = this.options.min && typeof(this.options.min)=='number' ? this.options.min : 0;
 		this.max = this.options.max && typeof(this.options.max)=='number' ? this.options.max : 100;
 
+
+
 		this.color = this.options.color || "#3388dd";
 		this.boxColor = (this.options.boxColor) ? this.options.boxColor : false;
 		this.progressBarColor = this.options.progressBarColor || false;
 		this.splitColor = this.options.splitColor || false;
+
+		this.labelBackground = this.options.labelBackground || false;
+		this.labelColor = this.options.labelColor || false;
+		this.labelOffset = -24;
+		this.labelWidth = this.options.labelWidth && typeof(this.options.labelWidth)=='number' ? this.options.labelWidth : 36;
+
+		this.displayLabel = this.options.displayLabel ? true : false;
+		this.labelPrefix = this.options.labelPrefix ? this.options.labelPrefix : '';
+		this.labelSuffix = this.options.labelSuffix ? this.options.labelSuffix : '';
+
+
 
 		this.vertical = this.options.vertical || false;
 
@@ -198,6 +211,35 @@ UIElement.extend("UISliderController", {
 			x = params.x;
 			y = Math.floor(params.y + h);
 		}
+
+		if (!this.vertical && this.displayLabel){
+			var kx = this.knob.__x,
+				ky = this.knob.__y,
+				kw = this.knob.__w,
+				kh = this.knob.__h,
+				vOffset = 2+this.lineHeight/2,
+				tx = mx = 0,
+				textWidth = 0,
+				value = this.labelPrefix + Math.round(this.value*10)/10 + this.labelSuffix;
+
+
+			canvas.setFontSize(this.fontSize);
+			textWidth = canvas.measureText(value);
+
+			tx = Math.round(kx + kw/2 - this.labelWidth/2);
+			mx = (this.labelWidth - textWidth)/2;
+
+			if (this.labelBackground){
+				canvas.roundbox(tx, ky+this.labelOffset, this.labelWidth, this.lineHeight, 8, this.labelBackground, false);
+			}
+
+			if (this.labelColor){
+				canvas.setColor(this.labelColor);
+				canvas.fillText(value, tx+mx, ky - vOffset);
+			}
+		}
+
+
 
 		canvas.setShadow(0, 1, 1, "rgba(255, 255, 255, 0.10)");
 		canvas.roundbox(x, y, w, h, this.radius, this.background, false);
