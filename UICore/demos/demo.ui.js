@@ -29,6 +29,18 @@ sampleText = st.join('');
 
 /* --------------- */
 
+
+/*
+var wm1 = new WeakMap(),
+    wm2 = new WeakMap();
+var o1 = {},
+    o2 = function(){},
+    o3 = window;
+ 
+wm1.set(o1, 37);
+wm1.set(o2, "azerty");
+*/
+
 var main = new Application({background : '#262722'}),
 
 	myTabs = [

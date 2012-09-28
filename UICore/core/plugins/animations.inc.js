@@ -3,109 +3,20 @@
 /* -------------------------- */
 
 UIView.implement({
-	fadeIn : function(duration, callback){
-		var view = this,
-			start = view.opacity,
-			end = 1 - start,
-			slice = 10,
-			time = 0;
-
-		//view.visible = true;
-
-		if (view._currentAnimation) {
-			view._currentAnimation.remove();
-		}
-		view._currentAnimation = setTimer(function(){
-
-			view.opacity = FXAnimation.easeOutCubic(0, time, start, end, duration);
-			canvas.__mustBeDrawn = true;
-
-			time += slice;
-
-			if (time>duration && view._currentAnimation){
-				this.remove();
-				if(typeof(callback)=="function") callback.call(view);
-			}
-		}, slice, true, true);
+	fadeIn : function(duration, callback, fx){
+		this.animate("opacity", this.opacity, 1, duration, callback, fx);
 	},
 
-
-	fadeOut : function(duration, callback){
-		var view = this,
-			start = view.opacity,
-			end = 0 - start,
-			slice = 10,
-			time = 0;
-
-		if (view._currentAnimation) {
-			view._currentAnimation.remove();
-		}
-		view._currentAnimation = setTimer(function(){
-
-			view.opacity = FXAnimation.easeOutCubic(0, time, start, end, duration);
-			canvas.__mustBeDrawn = true;
-
-			time += slice;
-
-			if (time>duration && view._currentAnimation){
-				//view.visible = false;
-				this.remove();
-				if(typeof(callback)=="function") callback.call(view);
-			}
-		}, slice, true, true);
+	fadeOut : function(duration, callback, fx){
+		this.animate("opacity", this.opacity, 0, duration, callback, fx);
 	},
 
-	bounceScale : function(scale, duration, callback, fx){
-		var view = this,
-			start = view.scale,
-			end = scale - start,
-			slice = 10,
-			time = 0;
-
-		if (view._currentAnimation) {
-			this.remove();
-		}
-		view._currentAnimation = setTimer(function(){
-			fx = fx || FXAnimation.easeInOutQuad;
-
-			view.scale = fx(0, time, start, end, duration);
-			canvas.__mustBeDrawn = true;
-			view.opacity = fx(0, time, start, end, duration);
-
-			time += slice;
-
-			if (time>duration && view._currentAnimation){
-				this.remove();
-				if(typeof(callback)=="function") callback.call(view);
-			}
-		}, slice, true, true);
+	bounceScale : function(delta, duration, callback, fx){
+		this.animate("scale", this.scale, delta, duration, callback, fx);
 	},
 
 	slideX : function(delta, duration, callback, fx){
-		var view = this,
-			start = view.left,
-			end = delta - start,
-			slice = 10,
-			time = 0;
-
-		if (view._currentAnimation) {
-			this.remove();
-		}
-		view._currentAnimation = setTimer(function(){
-			fx = fx || FXAnimation.easeInOutQuad;
-
-			view.left = fx(0, time, start, end, duration);
-			canvas.__mustBeDrawn = true;
-
-			time += slice;
-
-			if (time>duration && view._currentAnimation){
-				if (this.remove) {
-					this.remove();
-				}
-				if(typeof(callback)=="function") callback.call(view);
-			}
-		}, slice, true, true);
+		this.animate("left", this.left, delta, duration, callback, fx);
 	},
 
 	scrollY : function(deltaY){
@@ -214,7 +125,6 @@ UIView.implement({
 	}
 
 });
-
 
 
 /*

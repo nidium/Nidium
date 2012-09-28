@@ -239,8 +239,6 @@ UIElement.extend("UISliderController", {
 			}
 		}
 
-
-
 		canvas.setShadow(0, 1, 1, "rgba(255, 255, 255, 0.10)");
 		canvas.roundbox(x, y, w, h, this.radius, this.background, false);
 		canvas.setShadow(0, 0, 0);

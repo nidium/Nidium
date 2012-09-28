@@ -60,16 +60,33 @@ setInterval(function(){
 */
 
 Number.prototype.bound = function(min, max){
-	return Math.min(Math.max(min, this), max);
+	return Math.min(Math.max(Number(min), this), Number(max));
 };
 
 String.prototype.splice = function(offset, size, insert){
-    return (this.slice(0,offset) + (insert && insert!=''?insert:'') + this.slice(offset + Math.abs(size)));
+    return (this.slice(0,offset) + OptionalString(insert, '') + this.slice(offset + Math.abs(size)));
 };
+
+String.prototype.htmlTrim = function(){
+	return this.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, "");
+}
+
+function OptionalString(x, def) {
+	return x === null || x === undefined ? String(def) : String(x);
+}
+
+function OptionalBoolean(x, def) {
+	return x === null || x === undefined ? Boolean(def) : Boolean(x);
+}
+
+function OptionalCallback(x, def) {
+	return typeof x === "function" ? x : def;
+}
+
 
 var console = {
 	iteration : 0,
-	maxIterations : 10,
+	maxIterations : 20,
 
 	log : function(message){
 		if (typeof message == 'object'){
@@ -86,7 +103,7 @@ var console = {
 				indent = '\t';
 
 			self.iteration++;
-			if (self.iteration>20){
+			if (self.iteration>self.maxIterations){
 				return false;
 			}
 
@@ -139,7 +156,10 @@ var count = function(arr){
 var setTimer = function(fn, ms, loop, execFirst){
 	var t = {
 		loop : loop,
-		tid : loop ? setInterval(function(){fn.call(t);}, ms) : setTimeout(function(){fn.call(t);}, ms),
+		tid : loop 
+			? setInterval(function(){fn.call(t);}, ms)
+			: setTimeout(function(){fn.call(t);}, ms),
+
 		remove : function(){
 			if (this.loop) {
 				clearInterval(this.tid);

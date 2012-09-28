@@ -34,19 +34,15 @@ var UIView = function(type, options, parent){
 	// -- coordinate properties
 	this.x = _get("x", 0);
 	this.y = _get("y", 0);
-	this.w = this.options.w ? this.options.w : this.parent ? this.parent.w : window.width;
-	this.h = this.options.h ? this.options.h : this.parent ? this.parent.h : window.height;
+	this.w = this.options.w ? this.options.w : this.parent ? this.parent.w : canvas.width;
+	this.h = this.options.h ? this.options.h : this.parent ? this.parent.h : canvas.height;
 
 	this.rotate = 0;
-	this.scale = _get("scale", 1, 0, 1000); //this.options.scale ? parseFloat(this.options.scale) : 1;
-	this.zIndex = _get("zIndex", 0); //this.options.zIndex ? Math.round(this.options.zIndex) : 0;
-	this.opacity = _get("zIndex", 1, 0, 1); // this.options.opacity ? parseFloat(this.options.opacity) : 1;
+	this.scale = _get("scale", 1, 0, 1000);
+	this.zIndex = _get("zIndex", 0);
+	this.opacity = _get("zIndex", 1, 0, 1);
 
-	if (this.parent) {
-		this._rIndex = NativeRenderer.getHigherZindex() + 1;
-	} else {
-		this._rIndex = 0;
-	}
+	this._rIndex = this.parent ? NativeRenderer.getHigherZindex() + 1 : 0;
 
 	// -- dynamic properties (properties prefixed by _ inherits from parent at draw time)
 	this._rotate = this.rotate;
@@ -98,13 +94,13 @@ var UIView = function(type, options, parent){
 	// -- misc flag
 	this.hover = false;
 	this.hasFocus = false;
-	this.visible = (this.options.visible==undefined) ? true : (this.options.selected===false) ? false : true;
-	this.selected = (this.options.selected==undefined) ? false : (this.options.selected===false) ? false : true;
-	this.draggable = (this.options.draggable==undefined) ? false : (this.options.draggable===false) ? false : true;
+	this.visible = OptionalBoolean(this.options.visible, true);
+	this.selected = OptionalBoolean(this.options.selected, false);
+	this.draggable = OptionalBoolean(this.options.draggable, false);
 
 	// -- style properties
-	this.background = (this.options.background && this.options.background!='') ? this.options.background : '';
-	this.color = _get("color", "");
+	this.background = OptionalString(this.options.background, '');
+	this.color = OptionalString(this.options.color, '');
 	this.radius = _get("radius", 0, 0);
 	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
 	this.lineWidth = _get("lineWidth", 1, 0);
@@ -112,8 +108,9 @@ var UIView = function(type, options, parent){
 	this.fontSize = _get("fontSize", 12, 0, 74);
 	this.fontType = _get("fontType", "arial");
 
-	var align = this.options.textAlign && typeof(this.options.textAlign=="string") ? this.options.textAlign.toLowerCase() : "left";
-	this.textAlign = align && (align=="left" || align=="right" || align=="justify" || align=="center") ? align : 'left';
+	var align = OptionalString(this.options.textAlign, 'left').toLowerCase();
+	this.textAlign = align && (align=="left" || align=="right" ||
+					 align=="justify" || align=="center") ? align : 'left';
 
 
 	// -- launch view constructor and init dynamic properties
@@ -209,25 +206,25 @@ UIView.prototype = {
 
 	__refreshDynamicProperties : function(){
 		// -- dynamic properties
-		// -- properties prefixed by _ inherits from parent at draw time
-		var parent = this.parent;
+		// -- properties prefixed with _ inherits from parent at draw time
+		var p = this.parent;
 
-		this._x = parent ? parent._x + this.x : this.x;
-		this._y = parent ? parent._y + this.y : this.y;
-		this._opacity = parent ? parent._opacity * this.opacity : this.opacity;
-		this._zIndex = parent ? parent._zIndex + this._rIndex + this.zIndex : this._rIndex + this.zIndex;
+		this._x = p ? p._x + this.x : this.x;
+		this._y = p ? p._y + this.y : this.y;
+		this._opacity = p ? p._opacity * this.opacity : this.opacity;
+		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : this._rIndex + this.zIndex;
 
 		// rotation inheritance
-		this._protate = parent ? parent._rotate : this.rotate;
+		this._protate = p ? p._rotate : this.rotate;
 		this._rotate = this._protate + this.rotate;
 		
 		// scale inheritance
-		this._pscale = parent ? parent._scale : this.scale;
+		this._pscale = p ? p._scale : this.scale;
 		this._scale =  this._pscale * this.scale;
 
 		// translation inheritance
-		this.t._x = parent ? parent.t._x + this.t.x : this.t.x;
-		this.t._y = parent ? parent.t._y + this.t.y : this.t.y;
+		this.t._x = p ? p.t._x + this.t.x : this.t.x;
+		this.t._y = p ? p.t._y + this.t.y : this.t.y;
 
 		// gravity center before transformation
 		this._g.x = (this._x + this.g.x + this.w/2);
@@ -245,7 +242,7 @@ UIView.prototype = {
 
 		if (this.clip){
 			canvas.save();
-			canvas.roundbox(this.clip.x, this.clip.y, this.clip.w, this.clip.h, 0, false, false); // main view
+			canvas.roundbox(this.clip.x, this.clip.y, this.clip.w, this.clip.h, 0, false, false);
 			canvas.clip();
 		}
 
@@ -253,7 +250,7 @@ UIView.prototype = {
 			DY = this._g.y - this.t._y;
 
 		// new coordinates after scale + translation
-		var p = this.__projection(this._x, this._y); // p is the new coords after scale + translation
+		var p = this.__projection(this._x, this._y);
 		this.__x = p.x;
 		this.__y = p.y;
 		this.__w = this.w * this._scale;
@@ -298,29 +295,33 @@ UIView.prototype = {
 		canvas.globalAlpha = this._opacity;
 
 		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
-			var params = {
-					x : this._x,
-					y : this._y,
-					w : this.w,
-					h : this.h
-				},
-				radius = this.radius+1;
-
-			if (this.type=="UIText" || this.type=="UIWindow") {
-				canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-				canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
-				canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-				canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
-				canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-				canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
-				canvas.setShadow(0, 0, 0);
-			}
+			this.drawFocus();
 		}
 
 
 	},
 
 	draw : function(){},
+
+	drawFocus : function(){
+		var params = {
+				x : this._x,
+				y : this._y,
+				w : this.w,
+				h : this.h
+			},
+			radius = this.radius+1;
+
+		if (this.type=="UIText" || this.type=="UIWindow") {
+			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			canvas.setShadow(0, 0, 0);
+		}
+	},
 
 	__projection : function(x, y){
 		var k = {
@@ -410,7 +411,7 @@ UIView.prototype = {
 
 	set left(value) {
 		var dx = value - this.x;
-		if (dx==0) {return false;}
+		if (dx==0) { return false; }
 		this._x += dx;
 		this.x += dx;
 		NativeRenderer.refresh();
@@ -422,7 +423,7 @@ UIView.prototype = {
 
 	set top(value) {
 		var dy = value - this.y;
-		if (dy==0) {return false;}
+		if (dy==0) { return false; }
 		this._y += dy;
 		this.y += dy;
 		NativeRenderer.refresh();
@@ -445,14 +446,15 @@ var UIElement = {
 
 	init : function(UIView){
 		var self = this,
-			UIElement = UIView.type;
+			UIElement = UIView.type,
+			plugin = this[UIElement];
 
-		if (this[UIElement]){
+		if (plugin){
 
-			if (this[UIElement].init) this[UIElement].init.call(UIView);
-			if (this[UIElement].draw) UIView.draw = this[UIElement].draw;
-			if (this[UIElement].isPointInside) UIView.isPointInside = this[UIElement].isPointInside;
-			if (this[UIElement].__construct) UIView.__construct = this[UIElement].__construct;
+			if (plugin.init) plugin.init.call(UIView);
+			if (plugin.draw) UIView.draw = plugin.draw;
+			if (plugin.isPointInside) UIView.isPointInside = plugin.isPointInside;
+			if (plugin.__construct) UIView.__construct = plugin.__construct;
 
 			if (UIView.flags._canReceiveFocus) {
 				UIView.addEventListener("mousedown", function(e){
@@ -476,10 +478,10 @@ var Application = function(options){
 	view.flags._outlineOnFocus = false;
 	UIElement.init(view);
 
+	NativeRenderer.rootElement = view;
 	NativeRenderer.register(view);
 	NativeRenderer.refresh();
 
-	NativeRenderer.rootElement = view;
 
 	/*
 	var bgCanvas = new Image(),
