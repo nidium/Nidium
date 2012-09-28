@@ -308,6 +308,29 @@ void NativeJSHttp::requestEnded()
 
             break;
         }
+        case NATIVE_DATA_JSON:
+        {
+            JSString *str;
+            const jschar *chars;
+            size_t clen;
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("json"))));
+
+            str = JS_NewStringCopyN(cx, (const char *)http.data->data,
+                http.data->used);
+            if (str == NULL) {
+                printf("Cant encode json string\n");
+                break;
+            }
+            chars = JS_GetStringCharsZAndLength(cx, str, &clen);
+
+            if (JS_ParseJSON(cx, chars, clen, &jdata) == JS_FALSE) {
+                jdata = JSVAL_NULL;
+                printf("Cant JSON parse\n");
+            }
+
+            break;
+        }
         default:
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("null"))));
