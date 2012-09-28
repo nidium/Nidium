@@ -108,7 +108,6 @@ UIView.implement({
 			fx : fx
 		});
 	}
-
 });
 
 var MotionFactory = {
@@ -120,7 +119,7 @@ var MotionFactory = {
 	ended : 0,
 
 	add : function(o){
-		if (o.view && o.view[o.property]){
+		if (o.view && o.view[o.property] != undefined){
 			this.queue.push({
 				view : o.view,
 				property : String(o.property),
@@ -137,21 +136,23 @@ var MotionFactory = {
 		this.play();
 	},
 
-	animate : function(q){
-		var view = q.view,
-			property = q.property,
-			duration = q.duration,
-			start = q.start,
-			end = q.end;
+	animate : function(animation){
+		var view = animation.view,
+			property = animation.property,
+			duration = animation.duration,
+			start = animation.start,
+			end = animation.end;
 
-		view[property] = q.fx(0, q.time, start, end, duration);
-		if (q.rtCallback) q.rtCallback.call(view, view[property]);
-		q.time += this.slice;
+		view[property] = animation.fx(0, animation.time, start, end, duration);
+		if (animation.rtCallback) animation.rtCallback.call(view, view[property]);
+		animation.time += this.slice;
 
-		if (q.time>duration){
+		if (animation.time>duration){
+			animation.complete = true;
 			view[property] = start + end;
-			if (q.callback) q.callback.call(view);
-			q.complete = true;
+			if (animation.callback) animation.callback.call(view);
+			delete(animation);
+			canvas.__mustBeDrawn = true;
 			this.ended++;
 		}
 	},

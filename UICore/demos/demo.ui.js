@@ -200,14 +200,13 @@ var win = main.add("UIWindow", {
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
-		greenView.bounceScale(0.0, 150, function(){
+		greenView.bounceScale(0.1, 8000, function(){
 			this.visible = false;
 		}, FXAnimation.easeInOutQuad);
 		this.toggle = true;
 	} else {
-		this.visible = true;
-		greenView.bounceScale(2, 300, function(){
-			this.scale = 2;
+		greenView.visible = true;
+		greenView.bounceScale(1.5, 250, function(){
 		}, FXAnimation.easeOutElastic);
 		this.toggle = false;
 	}
@@ -284,22 +283,3 @@ docButton1.addEventListener("drop", function(e){
 
 	console.log("using dataTransfer : " + e.dataTransfer.getData("Text") );
 });
-
-
-/*
-
-var file = new DataStream("http://www.google.fr/logo.gif");
-file.buffer(4096);
-file.chunk(2048);
-file.seek(154555);
-file.ondata = function(data){
-	for (var i=0; i<data.length; i++){
-		echo(data[i]);
-	}
-};
-file.open();
-file.oncomplete = function(data){};
-file.onclose = function(){};
-
-*/
-
