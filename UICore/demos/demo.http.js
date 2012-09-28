@@ -4,9 +4,9 @@
 
 var h = new HTTP("http://code.downthemall.net/maierman/metalink-test/test.png");
 h.get(function(e){
-    if (e.type == "image") {
-        canvas.drawImage(e.data, 0, 0);
- 	}
+	if (e.type == "image") {
+		canvas.drawImage(e.data, 0, 0);
+	}
 });
 
 var file = new DataStream("http://www.google.fr/logo.gif");
