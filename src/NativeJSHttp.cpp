@@ -1,6 +1,7 @@
 #include "NativeJSHttp.h"
 #include "ape_http_parser.h"
 #include "NativeSkImage.h"
+#include "NativeJSImage.h"
 
 #define HTTP_PREFIX "http://"
 #define SOCKET_WRITE_STATIC(data) APE_socket_write(s, \
@@ -302,8 +303,7 @@ void NativeJSHttp::requestEnded()
                 CONST_STR_LEN("image"))));
 
             nimg = new NativeSkImage(http.data->data, http.data->used);
-
-            
+            jdata = OBJECT_TO_JSVAL(NativeJSImage::buildImageObject(cx, nimg));
 
             printf("New Image! of width : %d (%ld)\n", nimg->getWidth(), http.data->used);
             break;

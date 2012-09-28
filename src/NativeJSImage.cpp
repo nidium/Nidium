@@ -1,6 +1,8 @@
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
 
+JSObject *NativeJSImage::classe = NULL;
+
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
@@ -75,6 +77,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
+
     return JS_TRUE;
 }
 
@@ -83,9 +86,34 @@ bool NativeJSImage::JSObjectIs(JSContext *cx, JSObject *obj)
 	return JS_InstanceOf(cx, obj, &image_class, NULL);
 }
 
+
+JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
+	const char name[])
+{	
+	JSObject *ret = JS_NewObject(cx, &image_class, NativeJSImage::classe, NULL);
+
+    JS_SetPrivate(ret, image);
+
+    JS_DefineProperty(cx, ret, "width",
+        INT_TO_JSVAL(image->getWidth()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, ret, "height",
+        INT_TO_JSVAL(image->getHeight()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, ret, "src",
+        STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (name ? name : "unknown"))),
+        NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);    
+
+	return ret;
+}
+
 void NativeJSImage::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &image_class,
+    NativeJSImage::classe = JS_InitClass(cx, JS_GetGlobalObject(cx), NULL,
+    	&image_class,
     	native_Image_constructor,
     	0, NULL, NULL, NULL, NULL);
 
