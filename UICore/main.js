@@ -18,6 +18,7 @@
 //load('demos/demo.ionBug.js');
 //load('demos/demo.timers.js');
 load('demos/demo.http.js');
+//load('demos/demo.sockets.js');
 
 /* -- StandAlone Demos ------------------------- */
 
