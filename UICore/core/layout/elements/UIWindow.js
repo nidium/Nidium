@@ -67,7 +67,7 @@ UIElement.extend("UIWindow", {
 				color : "#888888"
 			});
 
-			this.handle.closeButton.addEventListener("mousedown", function(){
+			this.handle.closeButton.addEventListener("mousedown", function(e){
 				self.bounceScale(0, 120, function(){
 				});
 				self.shadowBlur = 6;

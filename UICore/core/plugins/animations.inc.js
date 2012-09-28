@@ -13,7 +13,6 @@ UIView.implement({
 
 	bounceScale : function(delta, duration, callback, fx){
 		this.animate("scale", this.scale, delta, duration, callback, fx);
-		this.animate("opacity", this.opacity, 0, duration);
 	},
 
 	slideX : function(delta, duration, callback, fx){
