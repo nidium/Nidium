@@ -7,7 +7,7 @@ g++ \
     -I ../network/ \
     -I ../mozilla/js/src/dist/include/ \
     -L ../SDL/build/build/.libs/ \
-    -L ../skia/out/Debug/obj.target/gyp/ \
+    -L ../skia/out/Release/obj.target/gyp/ \
     -L ../mozilla/js/src/ \
     -L ../src/ \
     -L ../network/ \

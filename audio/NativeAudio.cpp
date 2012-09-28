@@ -24,23 +24,19 @@ void NativeAudio::bufferData() {
     while (tracks != NULL) 
     {
         if (tracks->curr != NULL && tracks->curr->opened) {
-            int i;
-            int n;
+            int i, n;
             track = tracks->curr;
 
             n = PaUtil_GetRingBufferWriteAvailable(&track->rBufferIn);
 
             if (n > 0) {
                 AVPacket pkt;
-                int ret;
 
                 av_init_packet(&pkt);
 
                 for (i = 0; i < n; i++) 
                 {
-                    ret = av_read_frame(track->container, &pkt);
-
-                    if (ret < 0) {
+                    if (av_read_frame(track->container, &pkt) < 0) {
                         break;
                     } else {
                         av_dup_packet(&pkt);
@@ -84,13 +80,9 @@ void *NativeAudio::decodeThread(void *args) {
                 avctx = track->container->streams[track->audioStream]->codec;
                 av_init_packet(&pkt);
 
-                int got_frame;
-
-                got_frame = 0;
-
 
                 // Loop as long as there is data to read and write
-                for (;;) {
+                for (int got_frame = 0;;) {
                     nR = PaUtil_GetRingBufferReadAvailable(&track->rBufferIn);
 
                     // If there is data to read
@@ -215,18 +207,14 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     for (i = 0; i < framesPerBuffer; i++)
     {
         NativeAudioTracks *tracks = this->tracks;
-        double left, right;
-
-        left = right = 0;
+        double left = 0, right = 0;
 
         // Loop all track and mix them 
         while (tracks != NULL) 
         {
             if (tracks->curr != NULL && tracks->curr->playing) {
-                int16_t tmp[2];
+                int16_t tmp[2] = {0, 0};
                 ring_buffer_size_t read;
-                
-                tmp[0] = tmp[1] = 0;
 
                 read = PaUtil_ReadRingBuffer(&tracks->curr->rBufferOut, &tmp, 1);
                 totalRead += read;
@@ -314,8 +302,6 @@ NativeAudio::~NativeAudio() {
     {
         if (tracks->curr != NULL) {
             delete tracks->curr;
-           
-            free(tracks->curr);
 
             tracks = tracks->next;
         }
@@ -388,7 +374,7 @@ int NativeAudioTrack::open(void *buffer, int size)
 	// Open input 
 	int ret = avformat_open_input(&this->container, "dummyFile", NULL, NULL);
 	if (ret != 0) {
-		char* error = (char*)malloc(1024);
+		char error[1024];
 		av_strerror(ret, error, 1024);
 		fprintf(stderr, "Couldn't open file : %s\n", error);
         return -2;
