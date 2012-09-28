@@ -8,7 +8,7 @@ static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
-static JSClass image_class = {
+static JSClass Image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
@@ -71,7 +71,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *ret = JS_NewObjectForConstructor(cx, &image_class, vp);
+    JSObject *ret = JS_NewObjectForConstructor(cx, &Image_class, vp);
 
     /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -83,14 +83,14 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 bool NativeJSImage::JSObjectIs(JSContext *cx, JSObject *obj)
 {
-	return JS_InstanceOf(cx, obj, &image_class, NULL);
+	return JS_InstanceOf(cx, obj, &Image_class, NULL);
 }
 
 
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 	const char name[])
 {	
-	JSObject *ret = JS_NewObject(cx, &image_class, NativeJSImage::classe, NULL);
+	JSObject *ret = JS_NewObject(cx, &Image_class, NativeJSImage::classe, NULL);
 
     JS_SetPrivate(ret, image);
 
@@ -110,11 +110,4 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 	return ret;
 }
 
-void NativeJSImage::registerObject(JSContext *cx)
-{
-    NativeJSImage::classe = JS_InitClass(cx, JS_GetGlobalObject(cx), NULL,
-    	&image_class,
-    	native_Image_constructor,
-    	0, NULL, NULL, NULL, NULL);
-
-}
+NATIVE_OBJECT_EXPOSE(Image)

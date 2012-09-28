@@ -16,7 +16,7 @@ static JSBool native_socket_client_write(JSContext *cx,
 static JSBool native_socket_client_close(JSContext *cx,
     unsigned argc, jsval *vp);
 
-static JSClass socket_class = {
+static JSClass Socket_class = {
     "Socket", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
@@ -274,7 +274,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSSocket *nsocket;
     jsval isBinary = JSVAL_FALSE;
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &socket_class, vp);
+    JSObject *ret = JS_NewObjectForConstructor(cx, &Socket_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Su",
         &host, &port)) {
@@ -302,7 +302,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
 
@@ -345,7 +345,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
 
@@ -414,7 +414,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     JSString *data;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
 
@@ -458,7 +458,7 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
 
@@ -533,9 +533,4 @@ void NativeJSSocket::shutdown()
 	APE_socket_shutdown(socket);
 }
 
-void NativeJSSocket::registerObject(JSContext *cx)
-{
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &socket_class,
-    	native_Socket_constructor,
-        2, NULL, NULL, NULL, NULL);
-}
+NATIVE_OBJECT_EXPOSE(Socket)

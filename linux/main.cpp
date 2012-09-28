@@ -94,8 +94,11 @@ int NativeEvents(SDL_Window *win)
                     int mod = 0;
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
-                        event.key.keysym.mod & KMOD_GUI) {
-                        //printf("Refresh...\n");
+                        (event.key.keysym.mod & KMOD_GUI ||
+                            event.key.keysym.mod & KMOD_CTRL) &&
+                            event.type == SDL_KEYUP) {
+                        
+                        printf("Refresh...\n");
                         //[console clear];
                         delete NJS;
                         
