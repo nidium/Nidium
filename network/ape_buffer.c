@@ -62,6 +62,21 @@ void buffer_prepare(buffer *b, size_t size)
     }
 }
 
+static void buffer_prepare_for(buffer *b, size_t size, size_t forsize)
+{
+    if (b->size == 0) {
+        b->size = size;
+        b->used = 0;
+        b->data = malloc(sizeof(char) * b->size);
+    } else if (b->used + forsize > b->size) {
+        if (size == 0) {
+            size = 1;
+        }
+        b->size += size;
+        b->data = realloc(b->data, sizeof(char) * b->size);
+    }    
+}
+
 void buffer_append_data(buffer *b, const unsigned char *data, size_t size)
 {
     buffer_prepare(b, size);
@@ -71,7 +86,7 @@ void buffer_append_data(buffer *b, const unsigned char *data, size_t size)
 
 void buffer_append_char(buffer *b, const unsigned char data)
 {
-    buffer_prepare(b, b->size);
+    buffer_prepare_for(b, 2048, 1);
     b->data[b->used] = data;
     b->used++;
 }

@@ -109,6 +109,7 @@ static int native_http_callback(void **ctx, callback_type type,
             
             break;
         case HTTP_BODY_CHAR:
+
             if (nhttp->http.data == NULL) {
                 nhttp->http.data = buffer_new(2048);
             }
@@ -305,7 +306,6 @@ void NativeJSHttp::requestEnded()
             nimg = new NativeSkImage(http.data->data, http.data->used);
             jdata = OBJECT_TO_JSVAL(NativeJSImage::buildImageObject(cx, nimg));
 
-            printf("New Image! of width : %d (%ld)\n", nimg->getWidth(), http.data->used);
             break;
         }
         default:
