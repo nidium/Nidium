@@ -290,6 +290,10 @@ void NativeJSHttp::requestEnded()
         }
     }
 
+    if (http.data == NULL) {
+        ret_type = NATIVE_DATA_NULL;
+    }
+
     switch(ret_type) {
         case NATIVE_DATA_STRING:
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,

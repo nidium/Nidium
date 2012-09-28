@@ -249,7 +249,7 @@ void APE_socket_shutdown(ape_socket *socket)
     if (socket->states.flags & APE_SOCKET_WOULD_BLOCK ||
             socket->jobs.head->flags & APE_SOCKET_JOB_ACTIVE) {
         ape_socket_job_get_slot(socket, APE_SOCKET_JOB_SHUTDOWN);
-        printf("Shutdown pushed to queue\n");
+        //printf("Shutdown pushed to queue\n");
         return;
     }
 #ifdef _HAVE_SSL_SUPPORT       
@@ -258,7 +258,7 @@ void APE_socket_shutdown(ape_socket *socket)
     }
 #endif    
     if (shutdown(socket->s.fd, 2) != 0) {
-        printf("Force shutdown\n");
+        //printf("Force shutdown\n");
         APE_socket_destroy(socket);
     }
 }
@@ -310,7 +310,7 @@ int APE_socket_destroy(ape_socket *socket)
         socket->callbacks.on_disconnect(socket, ape);
     }
     
-    printf("====== Destroy : %d ======\n", APE_SOCKET_FD(socket));
+    //printf("====== Destroy : %d ======\n", APE_SOCKET_FD(socket));
     close(APE_SOCKET_FD(socket));
 
     timer_dispatch_async(ape_socket_free, socket);
@@ -702,7 +702,6 @@ static int ape_socket_queue_buffer(ape_socket *socket, buffer *b)
 
 inline void ape_socket_connected(ape_socket *socket)
 {
-    printf("connected!\n");
     if (socket->callbacks.on_connected != NULL) {
         socket->callbacks.on_connected(socket, socket->ape);
     }
