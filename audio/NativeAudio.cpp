@@ -374,7 +374,7 @@ int NativeAudioTrack::open(void *buffer, int size)
 	// Open input 
 	int ret = avformat_open_input(&this->container, "dummyFile", NULL, NULL);
 	if (ret != 0) {
-		char error[1024]
+		char error[1024];
 		av_strerror(ret, error, 1024);
 		fprintf(stderr, "Couldn't open file : %s\n", error);
         return -2;
