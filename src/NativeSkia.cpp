@@ -972,10 +972,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
             &image->img);
     }
 
-    printf("drawing image on screen\n");
     canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
         paint);
-    printf("done drawing\n");
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }

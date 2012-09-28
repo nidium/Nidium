@@ -46,9 +46,7 @@ NativeSkImage::NativeSkImage(void *data, size_t len)
 	SkMemoryStream *stream = new SkMemoryStream(data, len, false);
 
 	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, NULL)) {
-		printf("Failed to parse image\n");
-	} else {
-		printf("Image parsed\n");
+		printf("Failed to decode image\n");
 	}
 
 	stream->unref();
@@ -61,8 +59,6 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 
 	static int ramAllocated = 0;
 
-	printf("New image\n");
-
 	if (!ramAllocated) {
 		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
 		ramAllocated = 1;
@@ -73,9 +69,7 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 	SkFILEStream* stream = new SkFILEStream(imgPath);
 
 	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, imgPath)) {
-		printf("failed to parse image\n");
-	} else {
-		printf("parsed\n");
+		printf("failed to decode image\n");
 	}
 
 	stream->unref();

@@ -6,6 +6,7 @@
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
+#include "NativeJSImage.h"
 #include <native_netlib.h>
 #include "SkImageDecoder.h"
 #include <stdio.h>
@@ -36,8 +37,7 @@ enum {
     CANVAS_PROP_SHADOWOFFSETX,
     CANVAS_PROP_SHADOWOFFSETY,
     CANVAS_PROP_SHADOWBLUR,
-    CANVAS_PROP_SHADOWCOLOR,
-    IMAGE_PROP_SRC
+    CANVAS_PROP_SHADOWCOLOR
 };
 
 struct _native_sm_timer
@@ -67,8 +67,6 @@ static int native_timerng_wrapper(void *arg);
 
 static void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
-static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
-
 
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
@@ -84,12 +82,6 @@ static JSClass canvas_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSClass image_class = {
-    "Image", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
 
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
@@ -233,11 +225,6 @@ static JSPropertySpec canvas_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSPropertySpec Image_props[] = {
-    {"src", IMAGE_PROP_SRC, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_image_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
-};
-
 /*************************/
 
 
@@ -314,14 +301,6 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeSkia *currSkia = NSKIA_NATIVE_GETTER(obj);
     if (currSkia != NULL) {
         delete currSkia;
-    }
-}
-
-void Image_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    NativeSkImage *img = (class NativeSkImage *)JS_GetPrivate(obj);
-    if (img != NULL) {
-        delete img;
     }
 }
 
@@ -462,46 +441,6 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
     }
 
-    return JS_TRUE;
-}
-
-static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
-{
-    switch(JSID_TO_INT(id)) {
-        case IMAGE_PROP_SRC:
-        {
-            if (JSVAL_IS_STRING(vp)) {
-                NativeSkImage *ImageObject;
-                jsval rval, onload_callback;
-
-                JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
-                ImageObject = new NativeSkImage(imgPath.ptr());
-                JS_SetPrivate(obj, ImageObject);
-
-                JS_DefineProperty(cx, obj, "width",
-                    INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
-                    JSPROP_PERMANENT | JSPROP_READONLY);
-
-                JS_DefineProperty(cx, obj, "height",
-                    INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
-                    JSPROP_PERMANENT | JSPROP_READONLY);
-
-                if (JS_GetProperty(cx, obj, "onload", &onload_callback) &&
-                    JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
-
-                    JS_CallFunctionValue(cx, obj, onload_callback,
-                        0, NULL, &rval);
-                }         
-            } else {
-                vp.set(JSVAL_VOID);
-                return JS_TRUE;
-            }
-        }
-        break;
-        default:
-            break;
-    }
     return JS_TRUE;
 }
 
@@ -1163,7 +1102,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
         image = new NativeSkImage(NSKIA_NATIVE->canvas);
         need_free = 1;
 
-    } else if (!JS_InstanceOf(cx, jsimage, &image_class, NULL) ||
+    } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
         (image = (class NativeSkImage *)JS_GetPrivate(jsimage)) == NULL) {
         return JS_TRUE;
     }
@@ -1209,17 +1148,6 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
-
-static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
-{
-    JSObject *ret = JS_NewObjectForConstructor(cx, &image_class, vp);
-
-    /* TODO: JS_IsConstructing() */
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    JS_DefineProperties(cx, ret, Image_props);
-    return JS_TRUE;
-}
 
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -1651,9 +1579,8 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     /* Http() object */
     NativeJSHttp::registerObject(cx);
 
-    /* Image object */
-    JS_InitClass(cx, gbl, NULL, &image_class, native_Image_constructor,
-        0, NULL, NULL, NULL, NULL);
+    /* Image() object */
+    NativeJSImage::registerObject(cx);
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
