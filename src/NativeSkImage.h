@@ -16,6 +16,7 @@ class NativeSkImage
   	SkBitmap img;
   	NativeSkImage(SkCanvas *canvas);
   	NativeSkImage(const char *imgpath);
+  	NativeSkImage(void *data, size_t len);
   	//~NativeSkImage();
 
   	int getWidth();

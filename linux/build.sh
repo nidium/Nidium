@@ -12,7 +12,7 @@ g++ \
     -L ../src/ \
     -L ../network/ \
     -L ../c-ares/.libs/ \
-    ../SDL/build/build/.libs/libSDL2.a  -lGL -lfreetype -lrt -lz -lpthread \
+    ../SDL/build/build/.libs/libSDL2.a  -lGL -lfreetype -lrt -lz -lpthread -lpng \
     -Wl,--start-group \
     -lnativestudio -lnativenetwork -lcares -lsfnt -ljs_static -lzlib -ljpeg -lopts_ssse3 -lopts -lutils -lpicture_utils -lports -limages -lskgr -lgr -leffects -lcore -Wl,--end-group
     

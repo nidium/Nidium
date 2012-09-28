@@ -13,8 +13,7 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
                                  SkImageDecoder::kDecodeBounds_Mode, NULL)) {
         SkASSERT(bitmap->config() != SkBitmap::kNo_Config);
 
-
-        SkImageRef* ref = new SkImageRef_GlobalPool(stream, bitmap->config());
+        SkImageRef* ref = new SkImageRef_GlobalPool(stream, bitmap->config(), 1);
         ref->setURI(name);
         bitmap->setPixelRef(ref)->unref();
         return true;
@@ -22,6 +21,7 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
         return false;
     }
 }
+
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
@@ -32,11 +32,36 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 	
 }
 
+NativeSkImage::NativeSkImage(void *data, size_t len)
+{
+	static int ramAllocated = 0;
+
+	if (!ramAllocated) {
+		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
+		ramAllocated = 1;
+	}
+
+	isCanvas = 0;
+	
+	SkMemoryStream *stream = new SkMemoryStream(data, len, false);
+
+	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, NULL)) {
+		printf("Failed to parse image\n");
+	} else {
+		printf("Image parsed\n");
+	}
+
+	stream->unref();
+
+}
+
 NativeSkImage::NativeSkImage(const char *imgPath)
 {
 	/* TODO: put this at start */
 
 	static int ramAllocated = 0;
+
+	printf("New image\n");
 
 	if (!ramAllocated) {
 		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
@@ -47,7 +72,11 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 
 	SkFILEStream* stream = new SkFILEStream(imgPath);
 
-	SetImageRef(&img, stream, SkBitmap::kNo_Config, imgPath);
+	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, imgPath)) {
+		printf("failed to parse image\n");
+	} else {
+		printf("parsed\n");
+	}
 
 	stream->unref();
 	//img->buildMipMap();

@@ -44,6 +44,7 @@ class NativeJS
         void keyupdown(int keycode, int mod, int state, int repeat);
         void gc();
         void bindNetObject(ape_global *net);
+        void forceLinking();
         uint32_t currentFPS;
 };
 
