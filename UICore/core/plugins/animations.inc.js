@@ -13,6 +13,7 @@ UIView.implement({
 
 	bounceScale : function(delta, duration, callback, fx){
 		this.animate("scale", this.scale, delta, duration, callback, fx);
+		this.animate("opacity", this.opacity, 0, duration);
 	},
 
 	slideX : function(delta, duration, callback, fx){
@@ -95,37 +96,93 @@ UIView.implement({
 		}
 
 	},
-	
+
 	animate : function(property, from, delta, duration, callback, fx, rtCallback){
-		var view = this,
-			start = from,
-			end = delta - start,
-			slice = 10,
-			time = 0;
-
-		if (view._currentAnimation) {
-			this.remove();
-		}
-		view._currentAnimation = setTimer(function(){
-			fx = fx || FXAnimation.easeInOutQuad;
-
-			view[property] = fx(0, time, start, end, duration);
-			canvas.__mustBeDrawn = true;
-			if(typeof(rtCallback)=="function") rtCallback.call(view, view[property]);
-
-			time += slice;
-
-			if (this.remove && time>duration && view._currentAnimation){
-				this.remove();
-				view[property] = from+end;
-				canvas.__mustBeDrawn = true;
-				if(typeof(callback)=="function") callback.call(view);
-			}
-		}, slice, true, true);
+		MotionFactory.add({
+			view : this,
+			property : property,
+			from : from,
+			delta : delta,
+			duration : duration,
+			callback : callback,
+			rtCallback : rtCallback,
+			fx : fx
+		});
 	}
 
 });
 
+var MotionFactory = {
+	queue : [],
+	timer : null,
+	slice : 10,
+
+	playing : false,
+	ended : 0,
+
+	add : function(o){
+		if (o.view && o.view[o.property]){
+			this.queue.push({
+				view : o.view,
+				property : String(o.property),
+				start : Number(o.from),
+				end : Number(o.delta - o.from),
+				duration : Number(o.duration),
+				callback : OptionalCallback(o.callback, null),
+				rtCallback : OptionalCallback(o.rtCallback, null),
+				fx : OptionalCallback(o.fx, FXAnimation.easeInOutQuad),
+				time : 0,
+				complete : false,
+			});
+		}
+		this.play();
+	},
+
+	animate : function(q){
+		var view = q.view,
+			property = q.property,
+			duration = q.duration,
+			start = q.start,
+			end = q.end;
+
+		view[property] = q.fx(0, q.time, start, end, duration);
+		if (q.rtCallback) q.rtCallback.call(view, view[property]);
+		q.time += this.slice;
+
+		if (q.time>duration){
+			view[property] = start + end;
+			if (q.callback) q.callback.call(view);
+			q.complete = true;
+			this.ended++;
+		}
+	},
+
+	play : function(){
+		if (this.playing) return false;
+
+		var self = this,
+			q = this.queue;
+
+		this.playing = true;
+		this.ended = 0;
+
+		this.timer = setTimer(function(){
+			for (var i in q){
+				if (!q[i].complete){
+					self.animate(q[i]);
+				}
+			}
+			canvas.__mustBeDrawn = true;
+
+			if (self.ended>=q.length){
+				self.playing = false;
+				this.remove();
+			}
+
+		}, this.slice, true, true);
+
+	}
+};
 
 /*
  * Open source under the BSD License. 
