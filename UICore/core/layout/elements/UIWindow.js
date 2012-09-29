@@ -7,7 +7,7 @@ UIElement.extend("UIWindow", {
 		var self = this;
 
 		this.flags._canReceiveFocus = true;
-		this.background = this.options.background || "#191a18";
+		this.background = OptionalValue(this.options.background, "#191a18");
 		this.color = this.options.color || "#ffffff";
 		this.name = this.options.name || "Default";
 		this.shadowBlur = this.options.shadowBlur || 12;
@@ -29,15 +29,26 @@ UIElement.extend("UIWindow", {
 			h : 24,
 			radius : 4,
 			background : "rgba(0, 0, 0, 0.05)",
-			color : "#888888"
-		});
+			color : "#888888",
+			callback : function(){
+				var p = this.parent,
+					textHeight = 10,
+					textOffsetX = 8,
+					textOffsetY = (24-textHeight)/2 + 9;
 
+				canvas.setFontSize(11);
+				//canvas.setColor('#000000');
+				//canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+
+				canvas.setColor(p.color);
+				canvas.fillText(p.name, p._x+textOffsetX, p._y+textOffsetY);
+			}
+		});
 
 		if (this.options.movable) {
 			this.handle.addEventListener("dragstart", function(){
-				self.bounceScale(1.1, 80, function(){
-
-				});
+				self.bounceScale(1.1, 80);
+				self.bounceBlur(4, 80);
 				self.shadowBlur = 30;
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
 			}, false);
@@ -48,11 +59,10 @@ UIElement.extend("UIWindow", {
 			});
 
 			this.handle.addEventListener("dragend", function(){
-				self.bounceScale(1, 50, function(){
-					
-				});
-				self.shadowBlur = this.options.shadowBlur || 12;
-				self.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+				self.bounceScale(1, 50);
+				self.bounceBlur(0, 50);
+				self.shadowBlur = self.options.shadowBlur || 12;
+				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 			}, false);
 
 		}
@@ -100,15 +110,16 @@ UIElement.extend("UIWindow", {
 				h : this.h
 			},
 	
-			radius = Math.max(4, this.radius),
-			textHeight = 10,
-			textOffsetX = 8,
-			textOffsetY = (24-textHeight)/2 + 9,
-			textColor = this.color,
-			textShadow = '#000000',
+			radius = Math.max(4, this.radius);
 
-			label = this.name;
-
+		if (this.blur){
+			this.blurbox = {
+				x : this.__x,
+				y : this.__y,
+				w : this.__w,
+				h : 2*this.lineHeight*this._scale
+			};
+		}
 
 		this.shadow = true;
 		if (this.shadow) {
@@ -127,13 +138,5 @@ UIElement.extend("UIWindow", {
 		gdBackground.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
 
 		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
-
-		canvas.setFontSize(11);
-		//canvas.setColor(textShadow);
-		//canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
-
-		canvas.setColor(textColor);
-		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-
 	}
 });

@@ -512,6 +512,7 @@ UIElement.extend("UIText", {
 				ctx.setColor(this.background);
 			}
 			ctx.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
+			ctx.clipbox(params.x, params.y, params.w, params.h, this.radius); // main view
 			ctx.clip();
 	
 			if (this.selection.size == 0 && this.hasFocus) {

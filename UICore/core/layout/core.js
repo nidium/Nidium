@@ -90,6 +90,13 @@ var UIView = function(type, options, parent){
 		height : this.h
 	};
 
+	// -- blur box
+	this.blurbox = {
+		x : 0,
+		y : 0,
+		w : 0,
+		h : 0
+	};
 
 	// -- misc flag
 	this.hover = false;
@@ -99,8 +106,9 @@ var UIView = function(type, options, parent){
 	this.draggable = OptionalBoolean(this.options.draggable, false);
 
 	// -- style properties
-	this.background = OptionalString(this.options.background, '');
-	this.color = OptionalString(this.options.color, '');
+	this.blur = OptionalNumber(this.options.blur, 0);
+	this.background = OptionalValue(this.options.background, '');
+	this.color = OptionalValue(this.options.color, '');
 	this.radius = _get("radius", 0, 0);
 	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
 	this.lineWidth = _get("lineWidth", 1, 0);
@@ -112,6 +120,8 @@ var UIView = function(type, options, parent){
 	this.textAlign = align && (align=="left" || align=="right" ||
 					 align=="justify" || align=="center") ? align : 'left';
 
+
+	this.callback = OptionalCallback(this.options.callback, null);
 
 	// -- launch view constructor and init dynamic properties
 	this.__construct();
@@ -242,8 +252,12 @@ UIView.prototype = {
 
 		if (this.clip){
 			canvas.save();
-			canvas.roundbox(this.clip.x, this.clip.y, this.clip.w, this.clip.h, 0, false, false);
+			canvas.clipbox(this.clip.x, this.clip.y, this.clip.w, this.clip.h, this.radius);
 			canvas.clip();
+		}
+
+		if (this.blur){
+			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
 		}
 
 		var DX = this._g.x - this.t._x,
@@ -314,11 +328,11 @@ UIView.prototype = {
 
 		if (this.type=="UIText" || this.type=="UIWindow") {
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
 		}
 	},
@@ -336,7 +350,7 @@ UIView.prototype = {
 	},
 
 	afterDraw : function(){
-
+		if (this.callback) this.callback.call(this);
 		canvas.globalAlpha = canvas.oldGlobalAlpha;
 
 		/*

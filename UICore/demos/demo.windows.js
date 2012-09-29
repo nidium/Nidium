@@ -6,11 +6,13 @@
 var main = new Application({background:"#262722"}),
 
 	win1 = main.add("UIWindow", {
-		x : 150,
-		y : 150,
+		x : 60,
+		y : 60,
 		w : 400,
 		h : 300,
+		name : 'Main Window',
 		background : "rgba(0, 0, 0, 0.4)",
+		color : '#ff0000',
 		resizable : true,
 		closeable : true,
 		movable : true
@@ -24,26 +26,16 @@ var main = new Application({background:"#262722"}),
 		closeable : true
 	});
 
-/*
-for (var i=0; i<2; i++){
-	win1.add("UIWindow", {
-		x : 10+i*20,
-		y : 60+i*15,
-		w : 300,
-		h : 200,
-		background : "#191a18",
-		resizable : true,
-		closeable : true,
-		movable : true
-	});
-}
-*/
+/* Add some customsization to Main Window */
+win1.color = "rgba(0, 255, 0, 1)";
+win1.handle.background = "rgba(0, 0, 0, 0.1)";
+win1.handle.closeButton.background = "rgba(255, 255, 255, 0.8)";
+win1.handle.closeButton.color = "rgba(0, 0, 0, 0.7)";
+win1.contentView.background = "#ffffff";
 
-win1.contentView.background = "#555555";
 
 var sampleText = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm.";
 textView = main.add("UIText", {x:650, y:130, w:180, h:400, text:sampleText, background:"rgba(255, 255, 255, 1.00)"});
-
 
 
 var	myElements = [
@@ -82,10 +74,24 @@ var input = win1.contentView.add("UITextInput", {
 	color : "#222222"
 });
 
-/*
-win1.handle.background = "rgba(255, 255, 0, 0.7)";
-win1.handle.closeButton.background = "rgba(0, 255, 255, 0.7)";
-win1.handle.closeButton.color = "rgba(0, 0, 0, 0.7)";
-win1.contentView.background = "rgba(0, 255, 0, 0.2)";
-*/
+
+/* Add 4 children windows to main window */
+
+var w = [];
+for (var i=0; i<4; i++){
+	w[i] = win1.add("UIWindow", {
+		x : i*160,
+		y : win1.h+20,
+		w : 150,
+		h : 150,
+		background : "rgba(0, 20, 100, 0.5)",
+		resizable : true,
+		closeable : true,
+		movable : true,
+		name : 'Child ' + i
+	});
+	w[i].contentView.background = "rgba(255, 255, 255, 0.90)";
+}
+
+w[w.length-1].contentView.background = 'rgba(0, 0, 0, 0.85)';
 

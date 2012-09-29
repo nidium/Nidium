@@ -4,11 +4,10 @@
 
 /* -- Native FrameWork Demos  ------------------ */
 
-//load("core/native.inc.js");
-//load('demos/demo.ui.js');
+load("core/native.inc.js");
 //load('demos/demo.ui.js');
 //load('demos/demo.spectral.js');
-//load('demos/demo.windows.js');
+load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
 
 /* -- Unit Tests ------------------------------- */
@@ -17,7 +16,7 @@
 //load('demos/demo.threads.js');
 //load('demos/demo.ionBug.js');
 //load('demos/demo.timers.js');
-load('demos/demo.http.js');
+//load('demos/demo.http.js');
 //load('demos/demo.sockets.js');
 
 /* -- StandAlone Demos ------------------------- */

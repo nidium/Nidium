@@ -75,6 +75,14 @@ function OptionalString(x, def) {
 	return x === null || x === undefined ? String(def) : String(x);
 }
 
+function OptionalValue(x, def) {
+	return x === null || x === undefined ? def : x;
+}
+
+function OptionalNumber(x, def) {
+	return x === null || x === undefined ? Number(def) : Number(x);
+}
+
 function OptionalBoolean(x, def) {
 	return x === null || x === undefined ? Boolean(def) : Boolean(x);
 }

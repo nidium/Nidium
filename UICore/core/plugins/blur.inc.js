@@ -31,27 +31,28 @@
  */
 
 canvas.implement({
-	blur : function(x, y, w, h, pass){
+	blur : function(wx, wy, w, h, pass){
 		var blur, imageData,
 			v = new Canvas(w, h),
 			r = 1;
 
-		v.putImageData(this.getImageData(x, y, w, h), 0, 0);
+		v.putImageData(this.getImageData(wx, wy, w, h), 0, 0);
 		for(var i=0, g = 0.325; i<pass; i++){
-			v.putImageData(v.getImageData(x, y, w, h), 0, 0);
+			v.putImageData(v.getImageData(0, 0, w, h), 0, 0);
 			for (var cy=-r; cy<(r+1); cy++){
 				for (var cx=-r; cx<(r+1); cx++){
 					v.globalAlpha = g;
-					v.drawImage(v, x+cx-0.15, y+cy+0.28);
+					v.drawImage(v, cx-0.15, cy+0.28);
 					g = g * 0.98;
 				}
 			}
 			v.globalAlpha = 1;
 			v.fillStyle = "rgba(255, 255, 255, 0.036)";
-			v.fillRect(x, y, w, h);
+			v.fillRect(0, 0, w, h);
 		}
-		blur = v.getImageData(x, y, w, h);
-		this.putImageData(blur, 0, 0);
+		blur = v.getImageData(0, 0, w, h);
+		this.putImageData(blur, wx, wy);
+
 		return blur;
 	}
 });
