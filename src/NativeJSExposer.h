@@ -11,4 +11,12 @@ class NativeJSExposer
     JSContext *cx;
 };
 
+#define NATIVE_OBJECT_EXPOSE(name) \
+	void NativeJS ## name::registerObject(JSContext *cx) \
+	{ \
+	    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &name ## _class, \
+	        native_ ## name ## _constructor, \
+	        1, NULL, NULL, NULL, NULL); \
+	}
+
 #endif

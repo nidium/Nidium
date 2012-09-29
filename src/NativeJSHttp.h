@@ -37,6 +37,7 @@ typedef enum _native_http_data_type {
     NATIVE_DATA_BINARY,
     NATIVE_DATA_IMAGE,
     NATIVE_DATA_JSON,
+    NATIVE_DATA_NULL,
     NATIVE_DATA_END
 } native_http_data_type;
 

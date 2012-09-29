@@ -12,7 +12,7 @@
 
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 
-static JSClass http_class = {
+static JSClass Http_class = {
     "Http", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
@@ -177,7 +177,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     u_short port;
     NativeJSHttp *nhttp;
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &http_class, vp);
+    JSObject *ret = JS_NewObjectForConstructor(cx, &Http_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
         &url)) {
@@ -217,7 +217,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
     ape_socket *socket;
 
-    if (JS_InstanceOf(cx, caller, &http_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &Http_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
 
@@ -288,6 +288,10 @@ void NativeJSHttp::requestEnded()
                 break;
             }
         }
+    }
+
+    if (http.data == NULL) {
+        ret_type = NATIVE_DATA_NULL;
     }
 
     switch(ret_type) {
@@ -362,10 +366,5 @@ NativeJSHttp::~NativeJSHttp()
     free(path);
 }
 
-void NativeJSHttp::registerObject(JSContext *cx)
-{
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &http_class,
-        native_Http_constructor,
-        1, NULL, NULL, NULL, NULL);
 
-}
+NATIVE_OBJECT_EXPOSE(Http)

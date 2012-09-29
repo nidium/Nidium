@@ -16,7 +16,7 @@ static JSClass global_Thread_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSClass thread_class = {
+static JSClass Thread_class = {
     "Thread", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Thread_Finalize,
@@ -120,7 +120,7 @@ static void *native_thread(void *arg)
 
 static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *ret = JS_NewObjectForConstructor(cx, &thread_class, vp);
+    JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
 
     NativeJSThread *nthread = new NativeJSThread();
     JSFunction *nfn;
@@ -200,9 +200,5 @@ NativeJSThread::NativeJSThread()
 	cx = NULL;
 }
 
-void NativeJSThread::registerObject(JSContext *cx)
-{
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &thread_class,
-    	native_Thread_constructor,
-        0, NULL, NULL, NULL, NULL);
-}
+
+NATIVE_OBJECT_EXPOSE(Thread)
