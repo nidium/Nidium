@@ -240,6 +240,7 @@ SkPMColor NativeSkia::HSLToSKColor(U8CPU alpha, float hsl[3])
 uint32_t NativeSkia::parseColor(const char *str)
 {
     SkColor color = SK_ColorBLACK;
+    /* TODO: use strncasecmp */
     if (str == strstr(str, "rgba")) {
         short ok;
         color = rgba_from_rgba_string(str, &ok);
@@ -411,7 +412,7 @@ int NativeSkia::bindGL(int width, int height)
     
     //paint->setLCDRenderText(true);
     paint->setStyle(SkPaint::kStrokeAndFill_Style);
-    paint->setFilterBitmap(true);
+    //paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
     paint->setSubpixelText(true);
     paint->setAutohinted(true);
@@ -1043,9 +1044,13 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
         canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
             &image->img);
     }
-
-    canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-        paint);
+    if (image->fixedImg != NULL) {
+        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            paint);
+    } else {
+        canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            paint);
+    }
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }

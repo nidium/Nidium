@@ -97,7 +97,7 @@ int NativeEvents(SDL_Window *win)
                         (event.key.keysym.mod & KMOD_GUI ||
                             event.key.keysym.mod & KMOD_CTRL) &&
                             event.type == SDL_KEYUP) {
-                        
+
                         printf("Refresh...\n");
                         //[console clear];
                         delete NJS;
@@ -156,7 +156,7 @@ int NativeEvents(SDL_Window *win)
             printf("got an err\n");
         }*/
         //glDisable(GL_STENCIL_TEST);
-        glFlush();
+        //glFlush();
         //glDrawBuffer(GL_FRONT);
         //glDrawBuffer(GL_BACK);
         //SDL_GL_SwapBuffers();:q

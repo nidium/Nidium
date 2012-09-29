@@ -29,6 +29,7 @@ class NativeJSHttp : public NativeJSExposer
             buffer *tval;
         } headers;
         buffer *data;
+        int ended;
     } http;
 };
 
