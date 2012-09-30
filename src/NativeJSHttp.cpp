@@ -364,6 +364,7 @@ void NativeJSHttp::requestEnded()
 
     buffer_destroy(http.headers.tkey);
     buffer_destroy(http.headers.tval);
+    buffer_destroy(http.data);
     /* TODO: free received buffer */
 
 }
