@@ -68,6 +68,7 @@ int NativeEvents(SDL_Window *win)
                     break;
                 case SDL_QUIT:
                     ape_running = 0;
+                    delete NJS;
                     return 0;
                 case SDL_MOUSEMOTION:
                     NJS->mouseMove(event.motion.x, event.motion.y,
