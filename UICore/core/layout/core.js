@@ -497,15 +497,8 @@ var Application = function(options){
 	NativeRenderer.refresh();
 
 
-	/*
-	var bgCanvas = new Image(),
-		background = new Canvas(1024, 768),
-		backgroundData;
-
+	var bgCanvas = new Image();
 	bgCanvas.src = "demos/assets/flavor.jpeg";
-	background.drawImage(bgCanvas, 0, 0);
-	backgroundData = background.getImageData(0, 0, 1024, 768);
-	*/
 
 	canvas.globalAlpha = 1;
 	canvas.__mustBeDrawn = true;
@@ -518,7 +511,7 @@ var Application = function(options){
 			FPS.start();
 	 		if (canvas.animate) {
 
-	 			//canvas.putImageData(backgroundData, 0, 0);
+	 			canvas.drawImage(bgCanvas, 0, 0);
 				NativeRenderer.draw();
 				//NativeRenderer.grid();
 			} 

@@ -13,7 +13,7 @@ load('demos/demo.ui.js');
 
 /* -- Benchmarks ------------------------------- */
 
-load('bench/suite.js');
+//load('bench/suite.js');
 
 
 /* -- Unit Tests ------------------------------- */
@@ -24,6 +24,7 @@ load('bench/suite.js');
 //load('demos/demo.timers.js');
 //load('demos/demo.http.js');
 //load('demos/demo.sockets.js');
+//load('demos/demo.flickr.js');
 
 /* -- StandAlone Demos ------------------------- */
 

@@ -4,7 +4,7 @@
 
 /* --- DEMO APP --------------------------------------------------------- */
 
-var main = new Application({background : '#262722'}),
+var main = new Application(),
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
