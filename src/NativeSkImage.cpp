@@ -50,7 +50,8 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 	
 }
 
-NativeSkImage::NativeSkImage(void *data, size_t len)
+NativeSkImage::NativeSkImage(void *data, size_t len) :
+	canvasRef(NULL)
 {
 	static int ramAllocated = 0;
 	fixedImg = NULL;
