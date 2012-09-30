@@ -4,7 +4,7 @@
 
 /* --- DEMO APP --------------------------------------------------------- */
 
-var main = new Application(),
+var main = new Application(), /* {background : '#262722'} */
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
@@ -42,6 +42,18 @@ var	textView = main.add("UIText", {
 		background : "rgba(255, 255, 255, 1)",
 		color : "#000000"
 	});
+
+var win = main.add("UIWindow", {
+	x : 280,
+	y : 100,
+	w : 300,
+	h : 200,
+	background : "rgba(100, 100, 255, 0.2)",
+	resizable : true,
+	closeable : true,
+	movable : true
+});
+
 
 var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
@@ -117,16 +129,6 @@ var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quad
 var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
 
 
-var win = main.add("UIWindow", {
-	x : 280,
-	y : 100,
-	w : 300,
-	h : 200,
-	background : "#191a18",
-	resizable : true,
-	closeable : true,
-	movable : true
-});
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {

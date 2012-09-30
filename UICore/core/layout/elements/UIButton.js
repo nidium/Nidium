@@ -32,6 +32,10 @@ UIElement.extend("UIButton", {
 	},
 
 	draw : function(){
+		canvas.setFontSize(this.fontSize);
+		this.w = 10 + Math.round(canvas.measureText(this.label)) + 10;
+		this.h = 22;
+		
 		var params = {
 				x : this._x,
 				y : this._y,
@@ -41,14 +45,7 @@ UIElement.extend("UIButton", {
 
 			radius = Math.max(3, this.radius),
 			label = this.label,
-
-			ctx = canvas;
-
-		ctx.setFontSize(this.fontSize);
-		this.w = 10 + Math.round(ctx.measureText(this.label)) + 10;
-		this.h = 22;
-
-		var	textWidth = Math.round(ctx.measureText(label)),
+			textWidth = Math.round(canvas.measureText(label)),
 			textHeight = 10,
 			w = params.w,
 			h = params.h,
@@ -60,17 +57,17 @@ UIElement.extend("UIButton", {
 		this.shadow = true;
 		if (this.shadow) {
 			if (this.selected){
-				ctx.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
+				canvas.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
 			} else {
-				ctx.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
+				canvas.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
 			}
 		}
-		ctx.roundbox(params.x, params.y, w, h, radius, this.background, false);
+		canvas.roundbox(params.x, params.y, w, h, radius, this.background, false);
 		if (this.shadow){
-			ctx.setShadow(0, 0, 0);
+			canvas.setShadow(0, 0, 0);
 		}
 
-		var gdBackground = ctx.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
+		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
 
 		if (this.selected){
 
@@ -104,17 +101,18 @@ UIElement.extend("UIButton", {
 
 		}
 
-		ctx.roundbox(params.x, params.y, w, h, radius, gdBackground, false);
 
-		ctx.setFontSize(this.fontSize);
+		canvas.roundbox(params.x, params.y, w, h, radius, gdBackground, false);
 
-	//	ctx.setColor(textShadow);
-	//	ctx.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+		canvas.setFontSize(this.fontSize);
 
-	//	if (this.shadow) { ctx.setShadow(1, 1, 1, '#000000'); }
-		ctx.setColor(textColor);
-		ctx.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-	//	if (this.shadow){ ctx.setShadow(0, 0, 0); }
+//		canvas.setColor(textShadow);
+//		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+
+//		if (this.shadow) { canvas.setShadow(1, 1, 1, '#000000'); }
+		canvas.setColor(textColor);
+		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+//		if (this.shadow){ canvas.setShadow(0, 0, 0); }
 
 
 	}
