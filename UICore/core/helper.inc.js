@@ -8,7 +8,7 @@ Math.distance = function(x1, y1, x2, y2){
 	return Math.sqrt(a*a+b*b);
 };
 
-/* ------------------------------------ */
+/* --------------------------------------------------------------------------- */
 
 var window = {
 	width : canvas.width,
@@ -27,6 +27,21 @@ canvas.implement = function(props){
 };
 
 canvas.implement({
+	currentColor : '',
+	currentFontSize : '',
+
+	setColor : function(color){
+		if (this.currentColor == color) return false;
+		this.currentColor = color;
+		this.fillStyle = color;
+	},
+
+	setFontSize : function(fontSize){
+		if (this.currentFontSize == fontSize) return false;
+		this.currentFontSize = fontSize;
+		this.fontSize = fontSize;
+	},
+
 	setShadow : function(x, y, b, c){
 		this.shadowOffsetX = x;
 		this.shadowOffsetY = y;
@@ -35,32 +50,83 @@ canvas.implement({
 	}
 });
 
-//var ___call = 0;
-canvas.implement({
-	currentColor : '',
-	currentFontSize : '',
-	setColor : function(color){
-		if (this.currentColor == color) return false;
-		this.currentColor = color;
-		this.fillStyle = color;
-	},
-	setFontSize : function(fontSize){
-		if (this.currentFontSize == fontSize) return false;
-		this.currentFontSize = fontSize;
-		this.fontSize = fontSize;
-//		___call++;
-	}
-});
 
-/*
-setInterval(function(){
-	echo(___call);
-	___call = 0;
-}, 1000);
-*/
+/* --------------------------------------------------------------------------- */
 
 Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(Number(min), this), Number(max));
+};
+
+/* Based on php.js -- http://phpjs.org/functions/number_format:481 */
+Number.prototype.format = function(decimals, d, t){
+	var number = (this + '').replace(/[^0-9+\-Ee.]/g, ''),
+		n = !isFinite(+number) ? 0 : +number,
+		prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+		sep = (t === undefined) ? ',' : t,
+		dec = (d === undefined) ? '.' : d,
+		s = '',
+		toFixedFix = function (n, prec){
+			var k = Math.pow(10, prec);
+			return '' + Math.round(n * k) / k;
+		};
+
+	s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+	if (s[0].length > 3){
+		s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+	}
+	if ((s[1] || '').length < prec) {
+		s[1] = s[1] || '';
+		s[1] += new Array(prec - s[1].length + 1).join('0');
+	}
+	return s.join(dec);
+};
+
+var BenchThis = function(name, iterations, fn){
+	var t = +new Date(),
+		exec = 0,
+		ips = 0;
+
+	for (var i = 0; i < iterations; i++){
+		fn(i);
+	}
+
+	exec = (+new Date()-t),
+	ips = Math.round(1000*iterations/exec);
+
+	echo(name);
+	echo('  - '+iterations.format(0, '.', ' ')+' executions takes', exec.format(0, '.', ' '), "ms");
+	echo('  - Result: '+ips.format(0, '.', ' ')+" exec/s");
+	echo('');
+};
+
+/* --------------------------------------------------------------------------- */
+
+function OptionalString(x, def){
+	return x === null || x === undefined ? String(def) : String(x);
+}
+
+function OptionalValue(x, def){
+	return x === null || x === undefined ? def : x;
+}
+
+function OptionalNumber(x, def){
+	return x === null || x === undefined ? Number(def) : Number(x);
+}
+
+function OptionalBoolean(x, def){
+	return x === null || x === undefined ? Boolean(def) : Boolean(x);
+}
+
+function OptionalCallback(x, def){
+	return typeof x === "function" ? x : def;
+}
+
+String.prototype.mul = function(n){
+	var st = [], m = Math.abs(Number(n));
+	for (var t=0; t<m; t++){
+		st.push(this);
+	}
+	return st.join('');
 };
 
 String.prototype.splice = function(offset, size, insert){
@@ -71,26 +137,7 @@ String.prototype.htmlTrim = function(){
 	return this.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, "");
 }
 
-function OptionalString(x, def) {
-	return x === null || x === undefined ? String(def) : String(x);
-}
-
-function OptionalValue(x, def) {
-	return x === null || x === undefined ? def : x;
-}
-
-function OptionalNumber(x, def) {
-	return x === null || x === undefined ? Number(def) : Number(x);
-}
-
-function OptionalBoolean(x, def) {
-	return x === null || x === undefined ? Boolean(def) : Boolean(x);
-}
-
-function OptionalCallback(x, def) {
-	return typeof x === "function" ? x : def;
-}
-
+/* --------------------------------------------------------------------------- */
 
 var console = {
 	iteration : 0,
@@ -117,7 +164,7 @@ var console = {
 
 			pad = (!pad) ? '' : pad;
 
-			if (object != null && typeof(object) != "undefined") {
+			if (object != null && typeof(object) != "undefined"){
 				if (object.constructor == Array){
 					out += '[\n';
 					for (var i=0; i<object.length; i++){
@@ -151,15 +198,19 @@ var console = {
 	}
 };
 
+/* --------------------------------------------------------------------------- */
+
 var count = function(arr){
 	var len = 0;
 	for (var i in arr){
-		if (arr.hasOwnProperty(i)) {
+		if (arr.hasOwnProperty(i)){
 			len++;
 		}
 	}
 	return len;
 };
+
+/* --------------------------------------------------------------------------- */
 
 var setTimer = function(fn, ms, loop, execFirst){
 	var t = {
@@ -184,6 +235,8 @@ var setTimer = function(fn, ms, loop, execFirst){
 	
 	return t;
 };
+
+/* --------------------------------------------------------------------------- */
 
 var FPS = {
 	date : 0,
@@ -214,7 +267,7 @@ var FPS = {
 	}
 };
 
-/* ----------------------- */
+/* --------------------------------------------------------------------------- */
 
 var CStruct = function(){
 	var seek = 0,
@@ -265,7 +318,7 @@ CStruct.prototype = {
 
 /*
 
-var s = new Struct(
+var s = new CStruct(
 	"unsigned long id",
 	"char username[16]",
 	"float amountDue;"

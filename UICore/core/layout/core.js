@@ -328,11 +328,11 @@ UIView.prototype = {
 
 		if (this.type=="UIText" || this.type=="UIWindow") {
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, false, "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, false, "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, false, "#4D90FE");
 			canvas.setShadow(0, 0, 0);
 		}
 	},
