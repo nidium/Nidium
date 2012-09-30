@@ -411,7 +411,7 @@ int NativeSkia::bindGL(int width, int height)
     paint->setAntiAlias(true);
     
     //paint->setLCDRenderText(true);
-    paint->setStyle(SkPaint::kStrokeAndFill_Style);
+    paint->setStyle(SkPaint::kFill_Style);
     //paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
     paint->setSubpixelText(true);
@@ -1071,7 +1071,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
         printf("build mipmap\n");
         image->img.buildMipMap();
     }
-    canvas->drawBitmapRect(image->img, NULL, r, paint)
+    canvas->drawBitmapRect(image->img, NULL, r, paint);
 
     CANVAS_FLUSH();
 }
