@@ -4,7 +4,6 @@
 #include <portaudio.h>
 #include <pthread.h>
 #include "pa_ringbuffer.h"
-#include "pa_util.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"

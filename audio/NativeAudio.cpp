@@ -62,7 +62,6 @@ void *NativeAudio::decodeThread(void *args) {
     NativeAudio *audio = (NativeAudio *)args;
 
     while (true) {
-        bool wrote = false;
         NativeAudioTracks *tracks = audio->tracks;
         NativeAudioTrack *track;
 
@@ -70,8 +69,7 @@ void *NativeAudio::decodeThread(void *args) {
         while (tracks != NULL) 
         {
             if (tracks->curr != NULL && tracks->curr->opened) {
-                ring_buffer_size_t nW, nR, i, len, wrote;
-
+                ring_buffer_size_t len;
 	            AVCodecContext *avctx;
                 AVPacket pkt;
 
@@ -83,10 +81,8 @@ void *NativeAudio::decodeThread(void *args) {
 
                 // Loop as long as there is data to read and write
                 for (int got_frame = 0;;) {
-                    nR = PaUtil_GetRingBufferReadAvailable(&track->rBufferIn);
-
                     // If there is data to read
-                    if (nR > 0 || !track->frameConsumed) {
+                    if (0 < PaUtil_GetRingBufferReadAvailable(&track->rBufferIn)|| !track->frameConsumed) {
                         // No last frame, get a new one
                         if (track->frameConsumed) {
                             PaUtil_ReadRingBuffer(&track->rBufferIn, (void *)&pkt, 1);
@@ -99,6 +95,7 @@ void *NativeAudio::decodeThread(void *args) {
 
                         if (len < 0) {
                             fprintf(stderr, "Error while decoding\n");
+                            // TODO : Better error handling (events?)
                             exit(1);
                         } else {
                             //printf("Read len = %lu\n", len);
@@ -107,11 +104,13 @@ void *NativeAudio::decodeThread(void *args) {
                         av_free_packet(&pkt);
 
                         // Is there enought space in ouput to write the frame?
-                        nW = PaUtil_GetRingBufferWriteAvailable(&track->rBufferOut);
-                        if (nW >= track->tmpFrame->nb_samples) {
+                        if (PaUtil_GetRingBufferWriteAvailable(&track->rBufferOut) >= track->tmpFrame->nb_samples) {
                             // Write data to ring buffer
-                            wrote = PaUtil_WriteRingBuffer(&track->rBufferOut, track->tmpFrame->data[0], track->tmpFrame->nb_samples);
-                            track->frameConsumed = true;
+                            if (0 < PaUtil_WriteRingBuffer(&track->rBufferOut, track->tmpFrame->data[0], track->tmpFrame->nb_samples)) {
+                                track->frameConsumed = true;
+                            } else {
+                                track->frameConsumed = false;
+                            }
                         } else {
                             // No more space to write, exit;
                             track->frameConsumed = false;
@@ -310,8 +309,8 @@ NativeAudio::~NativeAudio() {
 }
 
 NativeAudioTrack::NativeAudioTrack(NativeAudio::OutputParameters *outputParameters) 
-    : outputParameters(outputParameters), container(NULL), 
-      playing(false), paused(false), audioStream(-1), frameConsumed(true), opened(false)
+    : outputParameters(outputParameters), container(NULL), frameConsumed(true), audioStream(-1),
+      opened(false), playing(false), paused(false)
 {
 
     int framePerBuffer = this->outputParameters->bufferSize / (this->outputParameters->sampleFmt * this->outputParameters->channel);
@@ -357,7 +356,7 @@ NativeAudioTrack::NativeAudioTrack(NativeAudio::OutputParameters *outputParamete
 
 int NativeAudioTrack::open(void *buffer, int size) 
 {
-    int i;
+    unsigned int i;
     AVCodecContext *avctx;
     AVCodec *codec;
 

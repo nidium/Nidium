@@ -87,7 +87,7 @@ typedef struct _http_parser {
     void *ctx[2];              /* user defined */
     uint32_t rx;            /* flag (32bit) (pass through states) */
     uint32_t step;          /* char number */
-    uint32_t cl;            /* content-length */ /* TODO : store cl in rx */
+    int32_t cl;            /* content-length */ /* TODO : store cl in rx */
     uint16_t rcode;         /* response code */
     parser_state state;     /* state */
 } http_parser;
@@ -112,7 +112,7 @@ int parse_http_char(struct _http_parser *parser, const unsigned char c);
     do { \
         (p)->state = GO; \
         (p)->step   = 0; \
-        (p)->cl = 0; \
+        (p)->cl = -1; \
         (p)->callback = NULL; \
         (p)->rx = 0; \
         (p)->rcode = 0; \

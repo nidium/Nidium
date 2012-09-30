@@ -261,6 +261,7 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                 parser->state = (c_classe == C_CR ? ER : C1); /* \r\n or \n */
                 break;
             case KC: /* Content length */
+                parser->cl = 0;
                 parser->callback(parser->ctx, HTTP_HEADER_KEY, 0, parser->step);
                 parser->state = CV;
                 break;
@@ -315,7 +316,7 @@ inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
                     parser->rx = HTTP_FLG_BODYCONTENT;
                     parser->state = AA;
                 }
-                if (parser->cl) break;  /* assume ready if 0/no content-length */
+                if (parser->cl || parser->cl == -1) break;  /* assume ready if 0 content-length */
                 parser->rx |= HTTP_FLG_READY;
                 parser->callback(parser->ctx, HTTP_READY, 0, parser->step);
                 break;

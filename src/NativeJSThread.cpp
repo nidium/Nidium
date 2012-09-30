@@ -200,5 +200,4 @@ NativeJSThread::NativeJSThread()
 	cx = NULL;
 }
 
-
 NATIVE_OBJECT_EXPOSE(Thread)

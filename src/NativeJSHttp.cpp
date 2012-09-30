@@ -117,8 +117,6 @@ static int native_http_callback(void **ctx, callback_type type,
             buffer_append_char(nhttp->http.data, (unsigned char)value);
             break;
         case HTTP_READY:
-            buffer_destroy(nhttp->http.headers.tkey);
-            buffer_destroy(nhttp->http.headers.tval);
             nhttp->requestEnded();
             break;
         default:break;
@@ -131,14 +129,13 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
 {
     NativeJSHttp *nhttp = (NativeJSHttp *)s->ctx;
 
-    if (nhttp == NULL) {
-        return;
-    }
+    if (nhttp == NULL) return;
 
     nhttp->http.headers.list = ape_array_new(16);
     nhttp->http.headers.tkey = buffer_new(16);
     nhttp->http.headers.tval = buffer_new(64);
     nhttp->http.data = NULL;
+    nhttp->http.ended = 0;
 
     nhttp->http.parser.ctx[0] = nhttp;
 
@@ -149,10 +146,21 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
     SOCKET_WRITE_STATIC("\nUser-Agent: Nativestudio/1.0\nConnection: close\n\n");
 }
 
+static void native_http_disconnect(ape_socket *s, ape_global *ape)
+{
+    NativeJSHttp *nhttp = (NativeJSHttp *)s->ctx;
+
+    if (nhttp == NULL) return;
+
+    nhttp->requestEnded();
+}
+
 static void native_http_read(ape_socket *s, ape_global *ape)
 {
     unsigned int i;
     NativeJSHttp *nhttp = (NativeJSHttp *)s->ctx;
+
+    if (nhttp == NULL) return;
 
     for (i = 0; i < s->data_in.used; i++) {
 
@@ -241,6 +249,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     socket->callbacks.on_connected  = native_http_connected;
     socket->callbacks.on_read       = native_http_read;
+    socket->callbacks.on_disconnect = native_http_disconnect;
 
     socket->ctx = nhttp;
 
@@ -264,6 +273,10 @@ void NativeJSHttp::requestEnded()
     JSObject *headers, *event;
     jsval rval, jevent, jdata = JSVAL_NULL;
     native_http_data_type ret_type = NATIVE_DATA_STRING;
+
+    if (http.ended) return;
+
+    http.ended = 1;
 
     event = JS_NewObject(cx, NULL, NULL, NULL);
     headers = JS_NewObject(cx, NULL, NULL, NULL);
@@ -348,6 +361,9 @@ void NativeJSHttp::requestEnded()
 
     JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
         1, &jevent, &rval);
+
+    buffer_destroy(http.headers.tkey);
+    buffer_destroy(http.headers.tval);
 
 }
 

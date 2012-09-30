@@ -34,6 +34,33 @@
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
 
+/*
+ * Consume whitespace.
+ */
+
+#define WHITESPACE \
+  while (' ' == *str) ++str;
+
+/*
+ * Parse color channel value
+ */
+
+#define CHANNEL(NAME) \
+   c = 0; \
+   if (*str >= '0' && *str <= '9') { \
+     do { \
+       c *= 10; \
+       c += *str++ - '0'; \
+     } while (*str >= '0' && *str <= '9'); \
+   } else { \
+     return 0; \
+   } \
+   if (c > 255) c = 255; \
+   NAME = c; \
+   while (' ' == *str || ',' == *str) str++;
+
+
+
 static int count_separators(const char* str, const char* sep) {
     char c;
     int separators = 0;
@@ -48,6 +75,69 @@ static int count_separators(const char* str, const char* sep) {
     }
     goHome:
     return separators;
+}
+
+static inline int32_t
+argb_from_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+  return a << 24
+    | r << 16
+    | g << 8
+    | b;
+}
+
+static int32_t
+rgba_from_rgba_string(const char *str, short *ok) {
+  if (str == strstr(str, "rgba(")) {
+    str += 5;
+    WHITESPACE;
+    uint8_t r = 0, g = 0, b = 0;
+    int c;
+    float a = 0;
+    CHANNEL(r);
+    CHANNEL(g);
+    CHANNEL(b);
+    if (*str >= '1' && *str <= '9') {
+      a = 1;
+    } else {
+      if ('0' == *str) ++str;
+      if ('.' == *str) {
+        ++str;
+        float n = .1;
+        while (*str >= '0' && *str <= '9') {
+          a += (*str++ - '0') * n;
+          n *= .1;
+        }
+      }
+    }
+    return *ok = 1, argb_from_rgba(r, g, b, (int) (a * 255));
+  }
+  return *ok = 0;
+}
+
+
+static int32_t
+argb_from_rgb(uint8_t r, uint8_t g, uint8_t b) {
+  return argb_from_rgba(r, g, b, 255);
+}
+
+
+/*
+ * Return rgb from "rgb()"
+ */
+
+static int32_t
+rgba_from_rgb_string(const char *str, short *ok) {
+  if (str == strstr(str, "rgb(")) {
+    str += 4;
+    WHITESPACE;
+    uint8_t r = 0, g = 0, b = 0;
+    int c;
+    CHANNEL(r);
+    CHANNEL(g);
+    CHANNEL(b);
+    return *ok = 1, argb_from_rgb(r, g, b);
+  }
+  return *ok = 0;
 }
 
 
@@ -150,35 +240,18 @@ SkPMColor NativeSkia::HSLToSKColor(U8CPU alpha, float hsl[3])
 uint32_t NativeSkia::parseColor(const char *str)
 {
     SkColor color = SK_ColorBLACK;
-    if (strncasecmp(str, "rgb", 3) == 0) {
-        SkScalar array[4];
+    /* TODO: use strncasecmp */
+    if (str == strstr(str, "rgba")) {
+        short ok;
+        color = rgba_from_rgba_string(str, &ok);
 
-        int count = count_separators(str, ",") + 1;
-        
-        if (count == 4) {
-            if (str[3] != 'a') {
-                count = 3;
-            }
-        } else if (count != 3) {
-            return 0;
-        } 
+        if (!ok) color = 0;
 
-        array[3] = SK_Scalar1;
-        
-        const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
-            array, count);
+    } else if (str == strstr(str, "rgb")) {
+        short ok;
+        color = rgba_from_rgb_string(str, &ok);
 
-        if (end == NULL) {
-            return 0;
-        }
-
-        array[3] *= 255;
-        for (int c = 0; c <= 3; c++) {
-            array[c] = SkMaxScalar(SkMinScalar(array[c], 255), 0);
-        }
-
-        color = SkColorSetARGB(SkScalarRound(array[3]), SkScalarRound(array[0]),
-        SkScalarRound(array[1]), SkScalarRound(array[2]));
+        if (!ok) color = 0;
 
     } else if (strncasecmp(str, "hsl", 3) == 0) {
         SkScalar array[4];
@@ -339,7 +412,7 @@ int NativeSkia::bindGL(int width, int height)
     
     //paint->setLCDRenderText(true);
     paint->setStyle(SkPaint::kStrokeAndFill_Style);
-    paint->setFilterBitmap(true);
+    //paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
     paint->setSubpixelText(true);
     paint->setAutohinted(true);
@@ -971,9 +1044,13 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
         canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
             &image->img);
     }
-
-    canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-        paint);
+    if (image->fixedImg != NULL) {
+        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            paint);
+    } else {
+        canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            paint);
+    }
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }

@@ -5,6 +5,7 @@
 #include "SkRect.h"
 #include "SkImageRef_GlobalPool.h"
 #include "SkStream.h"
+#include "SkData.h"
 
 static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
                         SkBitmap::Config pref, const char name[] = NULL)
@@ -22,6 +23,21 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
     }
 }
 
+static SkData* fileToData(const char path[]) {
+    SkFILEStream stream(path);
+    if (!stream.isValid()) {
+        return SkData::NewEmpty();
+    }
+    size_t size = stream.getLength();
+    void* mem = sk_malloc_throw(size);
+    stream.read(mem, size);
+    return SkData::NewFromMalloc(mem, size);
+}
+
+static SkData* dataToData(void *data, size_t size) {
+
+    return SkData::NewWithCopy(data, size);
+}
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
@@ -29,12 +45,14 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 
 	isCanvas = 1;
 	canvasRef = canvas;
+	fixedImg = NULL;
 	
 }
 
 NativeSkImage::NativeSkImage(void *data, size_t len)
 {
 	static int ramAllocated = 0;
+	fixedImg = NULL;
 
 	if (!ramAllocated) {
 		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
@@ -49,6 +67,9 @@ NativeSkImage::NativeSkImage(void *data, size_t len)
 		printf("Failed to decode image\n");
 	}
 
+    SkAutoDataUnref datas(dataToData(data, len));
+    fixedImg = SkImage::NewEncodedData(datas); /* Todo unref */
+
 	stream->unref();
 
 }
@@ -58,6 +79,7 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 	/* TODO: put this at start */
 
 	static int ramAllocated = 0;
+	fixedImg = NULL;
 
 	if (!ramAllocated) {
 		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
@@ -71,6 +93,9 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, imgPath)) {
 		printf("failed to decode image\n");
 	}
+
+    SkAutoDataUnref data(fileToData(imgPath));
+    fixedImg = SkImage::NewEncodedData(data); /* Todo unref */
 
 	stream->unref();
 	//img->buildMipMap();
