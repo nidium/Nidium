@@ -18,6 +18,7 @@ typedef struct _ape_timer
 	uint64_t schedule;
 	int nexec;
 	timer_callback callback;
+	timer_callback clearfunc;
 	void *arg;
 
 	struct {

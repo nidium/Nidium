@@ -1234,10 +1234,10 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
-    EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_ALT));
-    EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_CTRL));
-    EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_SHIFT));
-    EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(repeat));
+    EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
+    EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
+    EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
+    EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
 
     jevent = OBJECT_TO_JSVAL(event);
 
@@ -1593,6 +1593,26 @@ void NativeJS::gc()
     JS_GC(JS_GetRuntime(cx));
 }
 
+
+static int native_timer_deleted(void *arg)
+{
+    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    if (params == NULL) {
+        return 0;
+    }
+
+    JS_RemoveValueRoot(params->cx, &params->func);
+
+    if (params->argv != NULL) {
+        free(params->argv);
+    }
+    
+    free(params);
+
+    return 1;
+}
+
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
@@ -1635,6 +1655,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
         (void *)params);
 
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
+    params->timerng->clearfunc = native_timer_deleted;
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
@@ -1682,6 +1703,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
         (void *)params);
 
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
+    params->timerng->clearfunc = native_timer_deleted;
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
@@ -1713,37 +1735,6 @@ static int native_timerng_wrapper(void *arg)
         params->argc, params->argv, &rval);
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
-    if (params->ms == 0) {
-        JS_RemoveValueRoot(params->cx, &params->func);
 
-        if (params->argv != NULL) {
-            free(params->argv);
-        }
-        free(params);        
-    }
     return params->ms;
-}
-
-static void native_timer_wrapper(struct _native_sm_timer *params, int *last)
-{
-    jsval rval;
-
-    if (!params->cleared) {
-        JS_CallFunctionValue(params->cx, params->global, params->func,
-            params->argc, params->argv, &rval);
-    }
-
-    if (params->cleared && !*last) { /* JS_CallFunctionValue can set params->Cleared to true */
-        *last = 1;
-    }
-
-    if (*last) {
-        JS_RemoveValueRoot(params->cx, &params->func);
-
-        if (params->argv != NULL) {
-            free(params->argv);
-        }
-        free(params);
-    }
-
 }
