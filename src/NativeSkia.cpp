@@ -549,7 +549,6 @@ NativeSkia::~NativeSkia()
     delete paint_system;
     delete screen;
     
-
     if (currentPath) delete currentPath;
 
     delete canvas;
@@ -662,18 +661,21 @@ NativeShadowLooper *NativeSkia::buildShadow()
 
 void NativeSkia::setShadowOffsetX(double x)
 {
+    if (currentShadow.x == x) return;
     currentShadow.x = x;
     SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowOffsetY(double y)
 {
+    if (currentShadow.y == y) return;
     currentShadow.y = y;
     SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowBlur(double blur)
 {
+    if (currentShadow.blur == blur) return;
     currentShadow.blur = blur;
 
     SkSafeUnref(paint->setLooper(buildShadow()));
@@ -683,20 +685,10 @@ void NativeSkia::setShadowColor(const char *str)
 {
     SkColor color = parseColor(str);
 
+    if (currentShadow.color == color) return;
     currentShadow.color = color;
+
     SkSafeUnref(paint->setLooper(buildShadow()));
-}
-
-void NativeSkia::setShadow()
-{
-    SkBlurDrawLooper *shadown =  new SkBlurDrawLooper (SkIntToScalar(10), SkIntToScalar(10),
-                              SkIntToScalar(10), 0xFFFF0000,
-                              SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
-                              SkBlurDrawLooper::kOverrideColor_BlurFlag |
-                              SkBlurDrawLooper::kHighQuality_BlurFlag );
-
-
-    paint->setLooper(shadown)->unref();
 }
 
 /* TODO : move color logic to a separate function */
