@@ -28,9 +28,10 @@ var BurningWords = function() {
 	};
 
 	
-	this.show = function(text, font_size, text_color){
+	this.show = function(text, font_size){
 		var bg_color = "000000",
-			bg_alpha = 0;
+			bg_alpha = 0,
+			dc = canvas;
 
 		this.stop();
 
@@ -46,19 +47,15 @@ var BurningWords = function() {
 		}
 
 		this.text = text;
-		this.text_color_string = "rgba(" + parseInt(text_color.substring(0, 2), 16) + "," + parseInt(text_color.substring(2, 4), 16) + "," + parseInt(text_color.substring(4, 6), 16) + ", 0.9)";
+		this.text_color_string = "rgba(33, 0, 0, 1.0)";
 
-		this.bg_color_r = parseInt(bg_color.substring(0, 2), 16);
-		this.bg_color_g = parseInt(bg_color.substring(2, 4), 16);
-		this.bg_color_b = parseInt(bg_color.substring(4, 6), 16);
-		this.bg_color_a = Math.floor(255 * bg_alpha / 100);
-		this.bg_color_a_pct = bg_alpha / 100;
-
-		this.bg_color_string = "rgba(" + this.bg_color_r + "," + this.bg_color_g + "," + this.bg_color_b + "," + this.bg_alpha + ")";
+		this.bg_color_r = 0;
+		this.bg_color_g = 0;
+		this.bg_color_b = 0;
+		this.bg_color_a = 1;
 
 		this.canvas = {};
 
-		var dc = canvas;
 		dc.fontType = "times";
 		dc.fontSize = font_size;
 		this.text_size = dc.measureText(text);
@@ -68,19 +65,17 @@ var BurningWords = function() {
 
 		this.fire_decay = Math.floor(3 + Math.exp(3.6 - font_size / 7));
 
-		dc.fillStyle = this.bg_color_string;
-		dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		this.image = dc.createImageData(this.canvas.width, this.canvas.height);
 
-		dc.fillStyle = this.bg_color_string;
+		dc.fillStyle = "#000000";
 		dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		this.image_flame = dc.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
 		// drawing code here
-		//dc.fillStyle = "rgb(0,0,0)";
+		dc.fillStyle = "#000000";
 		dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-		dc.fillStyle = "rgb(255,255,255)";
+		dc.fillStyle = "#ffffff";
 		dc.fontSize = font_size;
 		dc.fillText(text, 5, this.canvas.height/1.3);
 		this.image_src = dc.getImageData(0, 0, this.canvas.width, this.canvas.height);
@@ -89,6 +84,7 @@ var BurningWords = function() {
 
 		var that = this;
 		dc.globalAlpha = 0.9;
+
 		canvas.requestAnimationFrame(function(){
 			that.burn();
 		});
@@ -154,19 +150,18 @@ var BurningWords = function() {
 			}
 		}
 
-		dc.fillStyle = "rgb(33, 0, 0)";
-		dc.fillRect(0, 0, 1024, 350);
+		dc.fillStyle = "#ffffff";
+		dc.fillRect(0, 0, 1024, 768);
 
 		dc.putImageData(this.image, 80, 0);
 
 		dc.fillStyle = this.text_color_string;
 		dc.fillText(this.text, 80+5, this.canvas.height/1.3-1);
-		dc.fillText(this.text, 80+5, this.canvas.height/1.3-1);
 	}
 };
 
 var b = new BurningWords();
-	b.show("p.nf:{NATiVE}", 128, "000000");
+b.show("p.nf:{NATiVE}", 128);
 
 
 

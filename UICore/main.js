@@ -5,9 +5,10 @@
 /* -- Native FrameWork Demos  ------------------ */
 
 load("core/native.inc.js");
+
 load('demos/demo.windows.js');
+
 //load('demos/demo.spectral.js');
-//load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
 
 
@@ -38,3 +39,28 @@ load('demos/demo.windows.js');
 //load('demos/demo.wires.js');
 
 
+
+/*
+var background = native.getCanvas2D(1024, 768);
+
+var x = new Canvas(320, 200);
+x.zIndex = 5;
+x.opacity = 0.5;
+x.left = 50;
+x.top = 300;
+x.hide();
+
+var y = new Canvas(320, 200);
+y.zIndex = 6;
+y.opacity = 0.9;
+y.left = 80;
+y.top = 300;
+
+native.requestAnimationFrame = function(){
+	if (backgroundModified) redrawBackground();
+	for (var i in layer){
+		if (layer[i].modified) redrawLayer(1);
+	}
+};
+
+*/
