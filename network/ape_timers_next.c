@@ -118,6 +118,11 @@ ape_timer *del_timer(ape_timers *timers, ape_timer *timer)
 		timer->next->prev = timer->prev;
 	}
 	ret = timer->next;
+
+	if (timer->clearfunc) {
+		timer->clearfunc(timer->arg);
+	}
+	
 	free(timer);
 
 	return ret;
@@ -158,6 +163,7 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 	timer->prev = NULL;
 	timer->identifier = timers->last_identifier;
 	timer->next = timers->head;
+	timer->clearfunc = NULL;
 
 	timer->stats.nexec = 0;
 	timer->stats.totaltime = 0;
