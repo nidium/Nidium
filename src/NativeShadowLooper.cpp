@@ -27,16 +27,7 @@ NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy
         fBlur = NULL;
     }
 
-    if (flags & kOverrideColor_BlurFlag) {
-        // Set alpha to 1 for the override since transparency will already
-        // be baked into the blurred mask.
-        SkColor opaqueColor = SkColorSetA(color, 255);
-        //The SrcIn xfer mode will multiply 'color' by the incoming alpha
-        fColorFilter = SkColorFilter::CreateModeFilter(opaqueColor,
-                                                       SkXfermode::kSrcIn_Mode);
-    } else {
-        fColorFilter = NULL;
-    }
+    fColorFilter = NULL;
 }
 
 NativeShadowLooper::NativeShadowLooper(SkFlattenableReadBuffer& buffer)
@@ -81,7 +72,7 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
             paint->setColor(fBlurColor);
 
             paint->setMaskFilter(fBlur);
-            paint->setColorFilter(fColorFilter);
+
             canvas->save(SkCanvas::kMatrix_SaveFlag);
 
             if (fBlurFlags & kIgnoreTransform_BlurFlag) {
