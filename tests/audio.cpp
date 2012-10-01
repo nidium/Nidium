@@ -17,7 +17,7 @@ static void *thread_io(void *arg) {
     // in Native, event system will be used
     while (true) {
         audio->bufferData();
-        sleep(1);
+        usleep(100);
     }
 }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, &audio);
 
     // 2) Open ouput
-    int ret = audio.openOutput(2048, 2, NativeAudio::INT16, 44100);
+    int ret = audio.openOutput(2048, 2, NativeAudio::FLOAT32, 44100);
     if (ret == 0) {
         printf("Audio ouput is ok\n");
     } else {

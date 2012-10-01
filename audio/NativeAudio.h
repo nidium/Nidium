@@ -21,7 +21,7 @@ class NativeAudio
         enum SampleFormat {FLOAT32 = 4, INT24 = 3, INT16 = 2, UINT8 = 1};
 
         struct OutputParameters {
-            int bufferSize, channel, sampleFmt, sampleRate;
+            int bufferSize, channels, sampleFmt, sampleRate, framesPerBuffer;
         };
 
         struct InputParameters {
@@ -37,6 +37,7 @@ class NativeAudio
 
         int openOutput(int bufferSize, int channel, SampleFormat sampleFmt, int sampleRate);
         int openInput(int bufferSize, int channel, SampleFormat sampleFmt, int sampleRate);
+        bool resample(void *data, int format, int channels, int sample, float *dest);
 
         NativeAudioTrack *addTrack();
 
@@ -60,6 +61,7 @@ class NativeAudio
         int *filterList;
         NativeAudioTracks *tracks;
         int tracksCount;
+        static inline int getSampleSize(int sampleFmt);
 
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,
@@ -72,7 +74,7 @@ class NativeAudio
             const PaStreamCallbackTimeInfo* timeInfo,
             PaStreamCallbackFlags statusFlags);
 
-            bool convert();
+        bool convert();
 };
 
 class NativeAudioTrack;
@@ -93,14 +95,16 @@ class NativeAudioTrack
 
 	    AVFormatContext *container;
         AVFrame *tmpFrame;
+        AVPacket tmpPacket;
         bool frameConsumed;
+        bool packetConsumed;
+        int samplesConsumed;
         int audioStream;
 
         bool opened;
         bool playing;
         bool paused;
 
-        int init();
         int open(void *buffer, int size);
         void play();
         void pause();

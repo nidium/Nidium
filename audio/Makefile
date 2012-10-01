@@ -3,7 +3,7 @@ CPPFLAGS=-I./ -c -g -Wall -D__STDC_CONSTANT_MACROS
 
 AR=ar
 ARFLAGS=rcs
-C_SOURCES=pa_ringbuffer.c
+C_SOURCES=pa_dither.c pa_ringbuffer.c pa_converters.c
 SOURCES=NativeAudio.cpp 
 OBJECTS=$(C_SOURCES:.c=.o) $(SOURCES:.cpp=.o)
 EXECUTABLE=libnativeaudio.a

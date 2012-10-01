@@ -14,7 +14,9 @@
 #include <jsprf.h>
 #include <stdint.h>
 
-#define UINT32_MAX 4294967295u
+#ifdef __linux__
+   #define UINT32_MAX 4294967295u
+#endif
 
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
@@ -1437,12 +1439,14 @@ NativeJS::NativeJS()
 
 void NativeJS::forceLinking()
 {
+#ifdef __linux__
     CreateJPEGImageDecoder();
     CreatePNGImageDecoder();
     //CreateGIFImageDecoder();
     CreateBMPImageDecoder();
     CreateICOImageDecoder();
-    CreateWBMPImageDecoder();    
+    CreateWBMPImageDecoder();
+#endif
 }
 
 NativeJS::~NativeJS()
