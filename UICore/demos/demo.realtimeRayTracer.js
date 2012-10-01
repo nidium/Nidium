@@ -228,15 +228,15 @@ var Renderer = function(scene, ctx) {
 
 Renderer.prototype = {
 	render: function() {
-		let w = this.img.width,
+		var w = this.img.width,
 			h = this.img.height,
 			i = 0,
 			data = this.data;
 
-		for (let y = 0.0, ystep = 1.0 / h; y < 0.99999; y += ystep) {
-			for (let x = 0, xstep = 1.0 / w; x < 0.99999; x += xstep) {
+		for (var y = 0.0, ystep = 1.0 / h; y < 0.99999; y += ystep) {
+			for (var x = 0, xstep = 1.0 / w; x < 0.99999; x += xstep) {
 				
-				let ray = this.scene.camera.getRay(x, y),
+				var ray = this.scene.camera.getRay(x, y),
 					color = this.trace(ray, 1);
 
 				data[i++] = min(floor(color.x * 256), 255);
@@ -245,7 +245,7 @@ Renderer.prototype = {
 				data[i++] = 255;
 			}
 		}
-		this.ctx.putImageData(this.img, 0, 0);
+		return this.img;
 	},
 	
 	trace: function(ray, n) {
@@ -365,65 +365,53 @@ function main(cw, ch, img, quality, motionblur) {
 
 		objects: [
 			new Body(
-				new Sphere(new V3(0.0, 0.0, 3.0), 0.5), 
-				new Glass(new V3(1.0, 1.0, 1.0), 1.5)
+				new Sphere(new V3(0.0, 0.0, 3.0), 1.0), 
+				new Glass(new V3(0.0, 1.0, 1.0), 1.5)
 			),
 
 			new Body(
-				new Sphere(new V3(0.0, 0.0, 4.5), 0.7), 
+				new Sphere(new V3(0.0, 0.0, 0.0), 1.5), 
 				new Chrome(new V3(0.5, 0.5, 0.8))
 			), 
 
 			new Body(
-				new Sphere(new V3(0.0, 0.0, 6.0), 0.6), 
-				new Chrome(new V3(0.5, 0.8, 0.5))
-			),
-
-			new Body(
-				new Sphere(new V3(4.0, 0.8, 1.0), 1.3), 
-				new Chrome(new V3(0.5, 0.8, 0.5))
-			),
-
-			new Body(
-				new Sphere(new V3(3.0, 1.0, 6.0), 0.6), 
-				new Chrome(new V3(0.0, 0.8, 0.5))
-			),
-
-			new Body(
-				new Sphere(new V3(0.0, 0.8, 4.8), 2.2), 
-				new Chrome(new V3(0.7, 0.7, 0.9), 1.3)
-			),
-
-			new Body(
-				new Sphere(new V3(0.0, 0.0, 7.5), 0.5),
-				new Chrome(new V3(0.8, 0.5, 0.5))
+				new Sphere(new V3(0.0, 0.5, 6.0), 0.6), 
+				new Chrome(new V3(0.8, 0.1, 0.2))
 			)
+
 		]
 	}
 
-	var ctx = canvas;
+	var ctx = new Canvas(cw, ch);
 
-	var animator = new Animator(scene);
+	var animator = new Animator(scene),
+		speed = 0;
+
 	animator.add(scene.camera.origin, 0.15);
 	animator.add(scene.camera.topleft, 0.15);
 	animator.add(scene.camera.topright, 0.15);
 	animator.add(scene.camera.bottomleft, 0.15);
 
 	for (var i = 0; i < scene.objects.length; i++) {
-		var speed = 2 / (i + 1);
+		speed = 2 / (i + 1);
 		if (i & 1) speed = -speed;
 		animator.add(scene.objects[i].shape.center, speed);
 	}
 
-	var renderer = new Renderer(scene, ctx);
-	ctx.globalAlpha = 1.00 - motionblur;
-	ctx.fillStyle = "#222222";
+	var renderer = new Renderer(scene, ctx),
+		frame = null;
+
+	canvas.globalAlpha = 1.00 - motionblur;
+	canvas.fillStyle = "#222222";
+	
 	canvas.requestAnimationFrame(function(){
-		animator.tick(0.07);
+		animator.tick(0.15);
 		scene.camera.update();
 		
-		ctx.fillRect(0, 0, 140, 768);
-		renderer.render();
+		frame = renderer.render();
+		canvas.fillRect(0, 0, cw, 768);
+		canvas.putImageData(frame, 0, 0);
+
 	});
 
 
@@ -433,24 +421,21 @@ function init() {
 	var img = new Image(),
 		q = 1.00; // 0.2   ....   2.0
 
-	img.onload = function(){};
 	img.src = 'demos/demo.realtimeRayTracer.jpeg';
+	img.onload = function(){
+		
+	};
 
-	var cw = 140,
-		ch = 100;
+	var cw = 160,
+		ch = 120;
 
-	main(cw, ch, img, q, 0.05);
+	main(cw, ch, img, q, 0.2);
 }
 
-function getDataFromImage(img) {
-	canvas.drawImage(img, 141, 0, img.width, img.height);
-
-	let tt = canvas.getImageData(141, 0, img.width, img.height);
-
-	//canvas.fillStyle = "#ffffff";
-	//canvas.fillRect(0, 0, img.width, img.height);
-
-	return tt;
+function getDataFromImage(img){
+	var c = new Canvas(img.width, img.height);
+	c.drawImage(img, 0, 0, img.width, img.height);
+	return c.getImageData(0, 0, img.width, img.height);
 }
 
 init();

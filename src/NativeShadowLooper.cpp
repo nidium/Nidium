@@ -77,21 +77,13 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
                 fState = kDone;
                 return false;
             }
-#ifdef SK_BUILD_FOR_ANDROID
-            SkColor blurColor;
-            blurColor = fBlurColor;
-            if (SkColorGetA(blurColor) == 255) {
-                blurColor = SkColorSetA(blurColor, paint->getAlpha());
-            }
-            paint->setColor(blurColor);
-#else
-            fColorFilter = SkColorFilter::CreateModeFilter(SkColorSetA(fBlurColor, paint->getAlpha()),
-                                    SkXfermode::kSrcIn_Mode);
+
             paint->setColor(fBlurColor);
-#endif
+
             paint->setMaskFilter(fBlur);
             paint->setColorFilter(fColorFilter);
             canvas->save(SkCanvas::kMatrix_SaveFlag);
+
             if (fBlurFlags & kIgnoreTransform_BlurFlag) {
                 SkMatrix transform(canvas->getTotalMatrix());
                 transform.postTranslate(fDx, fDy);

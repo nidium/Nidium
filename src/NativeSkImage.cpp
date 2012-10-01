@@ -41,15 +41,17 @@ static SkData* dataToData(void *data, size_t size) {
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
-	canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+	//canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
 	isCanvas = 1;
 	canvasRef = canvas;
+	canvas->ref();
 	fixedImg = NULL;
 	
 }
 
-NativeSkImage::NativeSkImage(void *data, size_t len)
+NativeSkImage::NativeSkImage(void *data, size_t len) :
+	canvasRef(NULL)
 {
 	static int ramAllocated = 0;
 	fixedImg = NULL;
@@ -61,23 +63,28 @@ NativeSkImage::NativeSkImage(void *data, size_t len)
 
 	isCanvas = 0;
 	
-	SkMemoryStream *stream = new SkMemoryStream(data, len, false);
+	SkMemoryStream *stream = new SkMemoryStream();
+
+    SkAutoDataUnref datas(dataToData(data, len));
+    fixedImg = SkImage::NewEncodedData(datas);
+
+    stream->setData(datas);
 
 	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, NULL)) {
 		printf("Failed to decode image\n");
 	}
 
-    SkAutoDataUnref datas(dataToData(data, len));
-    fixedImg = SkImage::NewEncodedData(datas); /* Todo unref */
+    if (fixedImg == NULL) {
+    	printf("Fixed is nulll\n");
+    }
 
 	stream->unref();
 
 }
 
-NativeSkImage::NativeSkImage(const char *imgPath)
+NativeSkImage::NativeSkImage(const char *imgPath) :
+	canvasRef(NULL)
 {
-	/* TODO: put this at start */
-
 	static int ramAllocated = 0;
 	fixedImg = NULL;
 
@@ -87,19 +94,29 @@ NativeSkImage::NativeSkImage(const char *imgPath)
 	}
 
 	isCanvas = 0;
+	
+	SkMemoryStream *stream = new SkMemoryStream();
 
-	SkFILEStream* stream = new SkFILEStream(imgPath);
+    SkAutoDataUnref datas(fileToData(imgPath));
+    fixedImg = SkImage::NewEncodedData(datas);
 
-	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, imgPath)) {
-		printf("failed to decode image\n");
+    stream->setData(datas);
+
+	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, NULL)) {
+		printf("Failed to decode image\n");
 	}
 
-    SkAutoDataUnref data(fileToData(imgPath));
-    fixedImg = SkImage::NewEncodedData(data); /* Todo unref */
+    if (fixedImg == NULL) {
+    	printf("Fixed is nulll\n");
+    }
 
 	stream->unref();
-	//img->buildMipMap();
-	//canvas->drawBitmap(*img, SkIntToScalar(0), SkScalar(0));
+}
+
+NativeSkImage::~NativeSkImage()
+{
+	if (canvasRef) canvasRef->unref();
+	if (fixedImg) fixedImg->unref();
 }
 
 int NativeSkImage::getWidth()

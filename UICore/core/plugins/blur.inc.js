@@ -32,27 +32,53 @@
 
 canvas.implement({
 	blur : function(wx, wy, w, h, pass){
-		var blur, imageData,
-			v = new Canvas(w, h),
-			r = 1;
+		var r = 1,
+			offscreen = new Canvas(w, h);
 
-		v.putImageData(this.getImageData(wx, wy, w, h), 0, 0);
+		var g = this.getImageData(wx, wy, w, h);
+		offscreen.putImageData(g, 0, 0);
+
 		for(var i=0, g = 0.325; i<pass; i++){
-			v.putImageData(v.getImageData(0, 0, w, h), 0, 0);
+			offscreen.putImageData(offscreen.getImageData(0, 0, w, h), 0, 0);
 			for (var cy=-r; cy<(r+1); cy++){
 				for (var cx=-r; cx<(r+1); cx++){
-					v.globalAlpha = g;
-					v.drawImage(v, cx-0.15, cy+0.28);
+					offscreen.globalAlpha = g;
+					offscreen.drawImage(offscreen, cx-0.15, cy+0.28);
 					g = g * 0.98;
 				}
 			}
-			v.globalAlpha = 1;
-			v.fillStyle = "rgba(255, 255, 255, 0.036)";
-			v.fillRect(0, 0, w, h);
+			offscreen.globalAlpha = 1;
+			offscreen.fillStyle = "rgba(255, 255, 255, 0.036)";
+			offscreen.fillRect(0, 0, w, h);
 		}
-		blur = v.getImageData(0, 0, w, h);
+		var blur = offscreen.getImageData(0, 0, w, h);
 		this.putImageData(blur, wx, wy);
+	},
 
-		return blur;
+	fastblur : function(wx, wy, w, h, pass){
+		var r = 1,
+			offscreen = new Canvas(w, h);
+
+		//var g = this.getImageData(wx, wy, w, h);
+		//offscreen.putImageData(g, 0, 0);
+		offscreen.drawImage(this, wx, wy, w, h, 0, 0, w, h);
+
+		for(var i=0, g = 0.325; i<pass; i++){
+			offscreen.putImageData(offscreen.getImageData(0, 0, w, h), 0, 0);
+			for (var cy=-r; cy<(r+1); cy++){
+				for (var cx=-r; cx<(r+1); cx++){
+					offscreen.globalAlpha = g;
+					offscreen.drawImage(offscreen, cx-0.15, cy+0.28);
+					g = g * 0.98;
+				}
+			}
+			offscreen.globalAlpha = 1;
+			offscreen.fillStyle = "rgba(255, 255, 255, 0.036)";
+			offscreen.fillRect(0, 0, w, h);
+		}
+		//var blur = offscreen.getImageData(0, 0, w, h);
+		//this.putImageData(blur, wx, wy);
+		this.drawImage(offscreen, wx, wy);
 	}
+
 });

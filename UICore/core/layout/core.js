@@ -125,7 +125,7 @@ var UIView = function(type, options, parent){
 
 	// -- launch view constructor and init dynamic properties
 	this.__construct();
-	this.__refreshDynamicProperties();
+	this.refresh();
 };
 
 UIView.prototype = {
@@ -214,7 +214,7 @@ UIView.prototype = {
 	},
 
 
-	__refreshDynamicProperties : function(){
+	refresh : function(){
 		// -- dynamic properties
 		// -- properties prefixed with _ inherits from parent at draw time
 		var p = this.parent;
@@ -248,8 +248,6 @@ UIView.prototype = {
 	},
 
 	beforeDraw : function(){
-		this.__refreshDynamicProperties();
-
 		if (this.clip){
 			canvas.save();
 			canvas.clipbox(this.clip.x, this.clip.y, this.clip.w, this.clip.h, this.radius);
@@ -257,7 +255,7 @@ UIView.prototype = {
 		}
 
 		if (this.blur){
-			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
+			canvas.fastblur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
 		}
 
 		var DX = this._g.x - this.t._x,
@@ -301,9 +299,7 @@ UIView.prototype = {
 			canvas.save();
 			canvas.scale(this._scale, this._scale);
 			canvas.translate( -this.t._x, -this.t._y);
-
 		}
-		/* scale */
 
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
 		canvas.globalAlpha = this._opacity;
@@ -326,15 +322,17 @@ UIView.prototype = {
 			},
 			radius = this.radius+1;
 
+		/*
 		if (this.type=="UIText" || this.type=="UIWindow") {
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,1)", "#ffffff");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.5)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.8)", "#4D90FE");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.1)", "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			//canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0,0,0,0.6)", "#4D90FE");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.1)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
 		}
+		*/
 	},
 
 	__projection : function(x, y){
@@ -496,19 +494,11 @@ var Application = function(options){
 	NativeRenderer.register(view);
 	NativeRenderer.refresh();
 
-
-	/*
-	var bgCanvas = new Image(),
-		background = new Canvas(1024, 768),
-		backgroundData;
-
-	bgCanvas.src = "demos/assets/flavor.jpeg";
-	background.drawImage(bgCanvas, 0, 0);
-	backgroundData = background.getImageData(0, 0, 1024, 768);
-	*/
-
 	canvas.globalAlpha = 1;
 	canvas.__mustBeDrawn = true;
+
+	var bgCanvas = new Image();
+	bgCanvas.src = "demos/assets/spheres.jpeg";
 
 	if (options && options.animation===false){
 		/* dummy */
@@ -518,7 +508,7 @@ var Application = function(options){
 			FPS.start();
 	 		if (canvas.animate) {
 
-	 			//canvas.putImageData(backgroundData, 0, 0);
+				canvas.drawImage(bgCanvas, 0, 0);
 				NativeRenderer.draw();
 				//NativeRenderer.grid();
 			} 

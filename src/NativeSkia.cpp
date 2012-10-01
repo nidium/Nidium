@@ -411,7 +411,7 @@ int NativeSkia::bindGL(int width, int height)
     paint->setAntiAlias(true);
     
     //paint->setLCDRenderText(true);
-    paint->setStyle(SkPaint::kStrokeAndFill_Style);
+    paint->setStyle(SkPaint::kFill_Style);
     //paint->setFilterBitmap(true);
     //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
     paint->setSubpixelText(true);
@@ -549,7 +549,6 @@ NativeSkia::~NativeSkia()
     delete paint_system;
     delete screen;
     
-
     if (currentPath) delete currentPath;
 
     delete canvas;
@@ -662,18 +661,21 @@ NativeShadowLooper *NativeSkia::buildShadow()
 
 void NativeSkia::setShadowOffsetX(double x)
 {
+    if (currentShadow.x == x) return;
     currentShadow.x = x;
     SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowOffsetY(double y)
 {
+    if (currentShadow.y == y) return;
     currentShadow.y = y;
     SkSafeUnref(paint->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowBlur(double blur)
 {
+    if (currentShadow.blur == blur) return;
     currentShadow.blur = blur;
 
     SkSafeUnref(paint->setLooper(buildShadow()));
@@ -683,20 +685,10 @@ void NativeSkia::setShadowColor(const char *str)
 {
     SkColor color = parseColor(str);
 
+    if (currentShadow.color == color) return;
     currentShadow.color = color;
+
     SkSafeUnref(paint->setLooper(buildShadow()));
-}
-
-void NativeSkia::setShadow()
-{
-    SkBlurDrawLooper *shadown =  new SkBlurDrawLooper (SkIntToScalar(10), SkIntToScalar(10),
-                              SkIntToScalar(10), 0xFFFF0000,
-                              SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
-                              SkBlurDrawLooper::kOverrideColor_BlurFlag |
-                              SkBlurDrawLooper::kHighQuality_BlurFlag );
-
-
-    paint->setLooper(shadown)->unref();
 }
 
 /* TODO : move color logic to a separate function */
@@ -1041,7 +1033,8 @@ void NativeSkia::setLineJoin(const char *joinStyle)
 void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
 {
     if (image->isCanvas) {
-        canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+        image->canvasRef->readPixels(
+            SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
             &image->img);
     }
     if (image->fixedImg != NULL) {
@@ -1063,7 +1056,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
     if (image->isCanvas) {
-        canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+        image->canvasRef->readPixels(SkIRect::MakeSize(
+            image->canvasRef->getDeviceSize()),
             &image->img);
     }
 
@@ -1071,7 +1065,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
         printf("build mipmap\n");
         image->img.buildMipMap();
     }
-    canvas->drawBitmapRect(image->img, NULL, r, paint)
+    canvas->drawBitmapRect(image->img, NULL, r, paint);
 
     CANVAS_FLUSH();
 }
@@ -1087,7 +1081,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
     src.setXYWH(sx, sy, swidth, sheight);
 
     if (image->isCanvas) {
-        canvas->readPixels(src, &image->img);
+        image->canvasRef->readPixels(src, &image->img);
     }
 
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),

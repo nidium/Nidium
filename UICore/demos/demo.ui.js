@@ -4,44 +4,7 @@
 
 /* --- DEMO APP --------------------------------------------------------- */
 
-		var gdGreen = canvas.createLinearGradient(0, 0, 0, 400);
-		gdGreen.addColorStop(0.00,'#44ff77');
-		gdGreen.addColorStop(0.60,'#228855');
-		gdGreen.addColorStop(1.00,'#ffffff');
-
-		var gdDark = canvas.createLinearGradient(0, 0, 0, 150);
-		gdDark.addColorStop(0.00,'#222222');
-		gdDark.addColorStop(0.25,'#444444');
-		gdDark.addColorStop(0.60,'#222222');
-		gdDark.addColorStop(1.00,'#000000');
-
-		var gdBackground = canvas.createLinearGradient(0, 0, 0, window.height);
-		gdBackground.addColorStop(0.00,'#444444');
-		gdBackground.addColorStop(1.00,'#111111');
-
-var template = "In é olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
-	st = [],
-	sampleText = '';
-for (var t=0; t<2; t++){
-	st.push(template);
-}
-sampleText = st.join('');
-
-/* --------------- */
-
-
-/*
-var wm1 = new WeakMap(),
-    wm2 = new WeakMap();
-var o1 = {},
-    o2 = function(){},
-    o3 = window;
- 
-wm1.set(o1, 37);
-wm1.set(o2, "azerty");
-*/
-
-var main = new Application({background : '#262722'}),
+var main = new Application(), /* {background : '#262722'} */
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
@@ -62,6 +25,10 @@ var main = new Application({background : '#262722'}),
 		background : "#191a18"
 	});
 
+
+var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
+var	sampleText = template.mul(3);
+
 var	textView = main.add("UIText", {
 		x : 733,
 		y : 80,
@@ -75,6 +42,18 @@ var	textView = main.add("UIText", {
 		background : "rgba(255, 255, 255, 1)",
 		color : "#000000"
 	});
+
+var win = main.add("UIWindow", {
+	x : 280,
+	y : 100,
+	w : 300,
+	h : 200,
+	background : "rgba(100, 100, 255, 0.2)",
+	resizable : true,
+	closeable : true,
+	movable : true
+});
+
 
 var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 
@@ -118,68 +97,6 @@ var	tabController = greenView.add("UITabController", {
 
 /* ------------------------------------------------- */
 
-/*
-
-echo("random fillStyle");
-var t = +new Date();
-for (var i = 0; i < 5000; i++) {
-	canvas.fillStyle = "rgba("+Math.random()*255+", "+Math.random()*255+", "+Math.random()*255+", "+Math.random()*255+")";
-}
-echo(+new Date()-t);
-
-
-
-echo("Round Box : old way");
-var t = +new Date();
-for (var z=0; z<15000; z++){
-	canvas.oldbox(10, 10, 250, 250, 10, '#ffffff', false);
-}
-echo((+new Date()-t));
-
-
-echo("RoundBox : fillRect way");
-var t = +new Date();
-for (var z=0; z<15000; z++){
-	canvas.roundbox(10, 10, 250, 250, 10, '#ffffff', false);
-	canvas.clipbox(10, 10, 250, 250, 10);
-}
-echo((+new Date()-t));
-
-*/
-
-
-
-
-/*
-textView.caret = {
-	x1 : 28,
-	y1 : 15,
-	x2 : 38,
-	y2 : 15
-};
-
-
-var t = +new Date(),
-	s;
-for (var z=0; z<1; z++){
-	//s = textView.getTextSelectionFromCaret(textView.caret);
-	s = textView.setCaret(658, 10);
-}
-echo((+new Date()-t));
-
-
-console.log(s);
-console.log(textView.caret);
-
-echo('"' + textView.text.substr(40, 1) + '"');
-echo('"' + textView._textMatrix[0].letters[40].char + '"');
-echo(textView._textMatrix[0].letters.length);
-
-
-echo(' ');
-echo('"' + textView.text.substr(213, 451) + '"');
-*/
-
 var s = textView.setCaret(70, 50);
 
 textView.addEventListener("textselect", function(s){
@@ -208,31 +125,14 @@ pasteButton.addEventListener("mousedown", function(e){
 });
 
 
-//textView.cut(3, 5);
-//echo(layout.pasteBuffer);
-
-//s = textView.getTextSelectionFromCaret(textView.caret);
-//console.log(textView.caret);
-
-
 var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
 var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
 
 
-var win = main.add("UIWindow", {
-	x : 280,
-	y : 100,
-	w : 300,
-	h : 200,
-	background : "#191a18",
-	resizable : true,
-	closeable : true,
-	movable : true
-});
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
-		greenView.bounceScale(0.1, 8000, function(){
+		greenView.bounceScale(0, 150, function(){
 			this.visible = false;
 		}, FXAnimation.easeInOutQuad);
 		this.toggle = true;
@@ -260,16 +160,9 @@ docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200, function(){});
 });
 
-var blurCache = false;
-
 docButton5.addEventListener("mousedown", function(e){
 	canvas.animate = false;
-
-	//if (!blurCache) {
-		blurCache = canvas.blur(0, 0, 1024, 768, 2);
-	//} else {
-		//canvas.putImageData(blurCache, 0, 0);
-	//}
+	canvas.blur(0, 0, 1024, 768, 2);
 });
 
 docButton6.addEventListener("mousedown", function(e){
@@ -282,6 +175,7 @@ greenView.addEventListener("mousedown", function(e){
 	this.bringToTop();
 	e.stopPropagation();
 }, false);
+
 
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;

@@ -37,9 +37,6 @@ UIElement.extend("UIWindow", {
 					textOffsetY = (24-textHeight)/2 + 9;
 
 				canvas.setFontSize(11);
-				//canvas.setColor('#000000');
-				//canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
-
 				canvas.setColor(p.color);
 				canvas.fillText(p.name, p._x+textOffsetX, p._y+textOffsetY);
 			}
@@ -47,9 +44,9 @@ UIElement.extend("UIWindow", {
 
 		if (this.options.movable) {
 			this.handle.addEventListener("dragstart", function(){
-				self.bounceScale(1.1, 80);
-				self.bounceBlur(4, 80);
-				self.shadowBlur = 30;
+				self.set("scale", 1.1, 80);
+				self.set("blur", 1, 80);
+				self.set("shadowBlur", 26, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
 			}, false);
 
@@ -59,9 +56,9 @@ UIElement.extend("UIWindow", {
 			});
 
 			this.handle.addEventListener("dragend", function(){
-				self.bounceScale(1, 50);
-				self.bounceBlur(0, 50);
-				self.shadowBlur = self.options.shadowBlur || 12;
+				self.set("scale", 1, 50);
+				self.set("blur", 0, 50);
+				self.set("shadowBlur", self.options.shadowBlur || 12, 50);
 				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 			}, false);
 

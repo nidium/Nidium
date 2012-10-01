@@ -14,7 +14,9 @@
 #include <jsprf.h>
 #include <stdint.h>
 
-#define UINT32_MAX 4294967295u
+#ifdef __linux__
+   #define UINT32_MAX 4294967295u
+#endif
 
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
@@ -697,7 +699,7 @@ static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA_NATIVE->setShadow();
+    //NSKIA_NATIVE->setShadow();
     return JS_TRUE;
 }
 
@@ -1099,7 +1101,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (JS_InstanceOf(cx, jsimage, &canvas_class, NULL)) {
-        image = new NativeSkImage(NSKIA_NATIVE->canvas);
+        image = new NativeSkImage(NSKIA_NATIVE_GETTER(jsimage)->canvas);
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
@@ -1234,10 +1236,10 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
-    EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_ALT));
-    EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_CTRL));
-    EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(mod & NATIVE_KEY_SHIFT));
-    EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(repeat));
+    EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
+    EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
+    EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
+    EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
 
     jevent = OBJECT_TO_JSVAL(event);
 
@@ -1403,7 +1405,7 @@ NativeJS::NativeJS()
 
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
     //ion::js_IonOptions.gvnIsOptimistic = true;
@@ -1437,12 +1439,14 @@ NativeJS::NativeJS()
 
 void NativeJS::forceLinking()
 {
+#ifdef __linux__
     CreateJPEGImageDecoder();
     CreatePNGImageDecoder();
     //CreateGIFImageDecoder();
     CreateBMPImageDecoder();
     CreateICOImageDecoder();
-    CreateWBMPImageDecoder();    
+    CreateWBMPImageDecoder();
+#endif
 }
 
 NativeJS::~NativeJS()
@@ -1451,6 +1455,8 @@ NativeJS::~NativeJS()
     rt = JS_GetRuntime(cx);
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+
+    JS_RemoveValueRoot(cx, &gfunc);
 
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
@@ -1593,6 +1599,26 @@ void NativeJS::gc()
     JS_GC(JS_GetRuntime(cx));
 }
 
+
+static int native_timer_deleted(void *arg)
+{
+    struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    if (params == NULL) {
+        return 0;
+    }
+
+    JS_RemoveValueRoot(params->cx, &params->func);
+
+    if (params->argv != NULL) {
+        free(params->argv);
+    }
+
+    free(params);
+
+    return 1;
+}
+
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
@@ -1635,6 +1661,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
         (void *)params);
 
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
+    params->timerng->clearfunc = native_timer_deleted;
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
@@ -1682,6 +1709,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
         (void *)params);
 
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
+    params->timerng->clearfunc = native_timer_deleted;
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
 
@@ -1713,37 +1741,6 @@ static int native_timerng_wrapper(void *arg)
         params->argc, params->argv, &rval);
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
-    if (params->ms == 0) {
-        JS_RemoveValueRoot(params->cx, &params->func);
 
-        if (params->argv != NULL) {
-            free(params->argv);
-        }
-        free(params);        
-    }
     return params->ms;
-}
-
-static void native_timer_wrapper(struct _native_sm_timer *params, int *last)
-{
-    jsval rval;
-
-    if (!params->cleared) {
-        JS_CallFunctionValue(params->cx, params->global, params->func,
-            params->argc, params->argv, &rval);
-    }
-
-    if (params->cleared && !*last) { /* JS_CallFunctionValue can set params->Cleared to true */
-        *last = 1;
-    }
-
-    if (*last) {
-        JS_RemoveValueRoot(params->cx, &params->func);
-
-        if (params->argv != NULL) {
-            free(params->argv);
-        }
-        free(params);
-    }
-
 }

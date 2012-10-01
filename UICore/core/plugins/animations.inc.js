@@ -16,7 +16,7 @@ UIView.implement({
 	},
 
 	bounceBlur : function(delta, duration, callback, fx){
-		this.animate("blur", this.scale, delta, duration, callback, fx);
+		this.animate("blur", this.blur, delta, duration, callback, fx);
 	},
 
 	slideX : function(delta, duration, callback, fx){
@@ -98,6 +98,10 @@ UIView.implement({
 
 		}
 
+	},
+
+	set : function(property, delta, duration, callback, fx){
+		this.animate(property, this[property], delta, duration, callback, fx);
 	},
 
 	animate : function(property, from, delta, duration, callback, fx, rtCallback){
