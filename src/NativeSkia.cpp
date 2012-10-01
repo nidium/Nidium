@@ -1033,7 +1033,8 @@ void NativeSkia::setLineJoin(const char *joinStyle)
 void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
 {
     if (image->isCanvas) {
-        canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+        image->canvasRef->readPixels(
+            SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
             &image->img);
     }
     if (image->fixedImg != NULL) {
@@ -1055,7 +1056,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
     if (image->isCanvas) {
-        canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+        image->canvasRef->readPixels(SkIRect::MakeSize(
+            image->canvasRef->getDeviceSize()),
             &image->img);
     }
 
@@ -1079,7 +1081,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
     src.setXYWH(sx, sy, swidth, sheight);
 
     if (image->isCanvas) {
-        canvas->readPixels(src, &image->img);
+        image->canvasRef->readPixels(src, &image->img);
     }
 
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),

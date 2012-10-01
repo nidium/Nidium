@@ -178,4 +178,3 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 
 	return timer;
 }
-

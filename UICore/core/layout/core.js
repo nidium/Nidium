@@ -255,7 +255,7 @@ UIView.prototype = {
 		}
 
 		if (this.blur){
-			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
+			canvas.fastblur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
 		}
 
 		var DX = this._g.x - this.t._x,

@@ -1099,7 +1099,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (JS_InstanceOf(cx, jsimage, &canvas_class, NULL)) {
-        image = new NativeSkImage(NSKIA_NATIVE->canvas);
+        image = new NativeSkImage(NSKIA_NATIVE_GETTER(jsimage)->canvas);
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
@@ -1403,7 +1403,8 @@ NativeJS::NativeJS()
 
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX);
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
     //ion::js_IonOptions.gvnIsOptimistic = true;
 
