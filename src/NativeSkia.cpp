@@ -7,6 +7,7 @@
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
 #include "SkBlurDrawLooper.h"
+#include "SkColorFilter.h"
 #include "SkConfig8888.h"
 //#include "SkGLCanvas.h"
 
@@ -623,8 +624,6 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
     }
     paint->setColor(SK_ColorBLACK);
     paint->setShader(gradient->build()); /* TODO: SafeUnref(setShader())? */
-    paint->setAlpha(SkAlphaMul(paint->getAlpha(),
-        SkAlpha255To256(globalAlpha)));
 }
 
 void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
@@ -636,8 +635,6 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
     }
     paint_stroke->setColor(SK_ColorBLACK);
     paint_stroke->setShader(gradient->build()); 
-    paint_stroke->setAlpha(SkAlphaMul(paint_stroke->getAlpha(),
-        SkAlpha255To256(globalAlpha)));
 
 }
 
@@ -646,10 +643,6 @@ NativeShadowLooper *NativeSkia::buildShadow()
     if (currentShadow.blur == 0) {
         return NULL;
     }
-
-    currentShadow.color = SkColorSetA(currentShadow.color,
-        SkAlphaMul(SkColorGetA(currentShadow.color),
-            SkAlpha255To256(globalAlpha)));
 
     return new NativeShadowLooper (SkDoubleToScalar(currentShadow.blur),
                                 SkDoubleToScalar(currentShadow.x),
@@ -704,9 +697,6 @@ void NativeSkia::setFillColor(const char *str)
 
     paint->setColor(color);
 
-    paint->setAlpha(SkAlphaMul(paint->getAlpha(),
-        SkAlpha255To256(globalAlpha)));
-    //printf("Setting alpha to : %d\n", paint->getAlpha());
 }
 
 void NativeSkia::setStrokeColor(const char *str)
@@ -721,33 +711,20 @@ void NativeSkia::setStrokeColor(const char *str)
 
     paint_stroke->setColor(color);
 
-    paint_stroke->setAlpha(SkAlphaMul(paint_stroke->getAlpha(),
-        SkAlpha255To256(globalAlpha)));
-
 }
 
 void NativeSkia::setGlobalAlpha(double value)
 {
-    /*
-        TODO : replace by :
-                //The SrcIn xfer mode will multiply 'color' by the incoming alpha
-        fColorFilter = SkColorFilter::CreateModeFilter(opaqueColor,
-                                                       SkXfermode::kSrcIn_Mode);
-        paint->setColorMask
-
-        OR
-
-        setColorFilter?
-    */
     if (value < 0) return;
 
     SkScalar maxuint = SkIntToScalar(255);
     globalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
 
-    paint->setAlpha(globalAlpha);
-    paint_stroke->setAlpha(globalAlpha);
-}
+    paint->setColorFilter(SkColorFilter::CreateModeFilter(
+        SkColorSetARGB(globalAlpha, 255, 255, 255),
+        SkXfermode::kMultiply_Mode));
 
+}
 
 static SkXfermode::Mode lst[] = {
        SkXfermode::kDstOut_Mode, SkXfermode::kSrcOver_Mode,/* 0, 1 */
