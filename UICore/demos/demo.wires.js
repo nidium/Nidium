@@ -1,15 +1,16 @@
 /*
- * port from http://js1k.com/2010-first/demo/114
+ * inspired from http://js1k.com/2010-first/demo/114
  */
 
 var cw = 1024,
 	ch = 768,
+
 	c = cw > ch ? cw / 15 : ch / 15,
 	d = canvas,
 	e, f, g = [],
-	h, i;
+	h, i, m;
 
-for (e = 0; e < 150; e++) {
+for (e = 0; e < 200; e++) {
 	h = {
 		x : Math.random() * cw,
 		y : Math.random() * ch,
@@ -24,15 +25,15 @@ var j, k, l,
 	dd = 180 * Math.PI;
 
 
-d.lineWidth = 2;
+d.lineWidth = 3;
 d.lineCap = "round";
-var m;
 
+d.globalAlpha = 0.6;
 canvas.requestAnimationFrame(function(){
-	d.fillStyle = "rgba(0, 0, 0, 0.4)";
+	d.fillStyle = "rgba(0, 0, 0, 0.1)";
 	d.fillRect(0, 0, cw, ch);
 
-	for (e = 0; e < 150; e++) {
+	for (e = 0; e < 200; e++) {
 		h = g[e];
 		h.a += Math.random() > 0.5 ? -1 : 1;
 		h.b -= (h.b - h.a) * 0.01;
@@ -45,21 +46,21 @@ canvas.requestAnimationFrame(function(){
 		if (h.y < 0) h.y = ch;
 		if (h.y > ch) h.y = 0;
 		
-		for (f = e + 1; f < 150; f++) {
+		d.beginPath();
+		for (f = e + 1; f < 200; f++) {
 			i = g[f];
 			k = h.x - i.x;
 			l = h.y - i.y;
 			j = Math.sqrt(k*k + l*l);
 
 			if (j < c) {
-				d.strokeStyle = "rgba( 255, 100, 255, " + (c - j) / c + " )";
-				d.beginPath();
+				d.strokeStyle = "rgba("+(128+Math.round(127*Math.cos(f)))+", "+0+", "+(128+Math.round(127*Math.sin(f)))+", " + (c - j) / c + " )";
 				d.moveTo(h.x, h.y);
 				d.lineTo(i.x, i.y);
-				d.stroke()
 			}
 
 		}
+		d.stroke()
 
 		d.fillStyle = "#ffffff";
 		d.fillRect(h.x - 1, h.y - 1, 3, 3)

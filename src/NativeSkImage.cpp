@@ -41,7 +41,7 @@ static SkData* dataToData(void *data, size_t size) {
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
-	canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
+	//canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
 
 	isCanvas = 1;
 	canvasRef = canvas;

@@ -255,7 +255,7 @@ UIView.prototype = {
 		}
 
 		if (this.blur){
-			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
+			canvas.fastblur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
 		}
 
 		var DX = this._g.x - this.t._x,
@@ -299,7 +299,6 @@ UIView.prototype = {
 			canvas.save();
 			canvas.scale(this._scale, this._scale);
 			canvas.translate( -this.t._x, -this.t._y);
-
 		}
 
 		canvas.oldGlobalAlpha = canvas.globalAlpha;

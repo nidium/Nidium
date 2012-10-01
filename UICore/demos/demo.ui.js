@@ -162,7 +162,7 @@ docButton4.addEventListener("mousedown", function(e){
 
 docButton5.addEventListener("mousedown", function(e){
 	canvas.animate = false;
-	blurCache = canvas.blur(0, 0, 1024, 768, 2);
+	canvas.blur(0, 0, 1024, 768, 2);
 });
 
 docButton6.addEventListener("mousedown", function(e){
