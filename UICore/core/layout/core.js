@@ -299,7 +299,6 @@ UIView.prototype = {
 			canvas.save();
 			canvas.scale(this._scale, this._scale);
 			canvas.translate( -this.t._x, -this.t._y);
-
 		}
 
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
