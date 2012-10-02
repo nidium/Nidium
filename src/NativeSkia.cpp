@@ -633,7 +633,7 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
-    PAINT_STROKE->setShader(shader); /* TODO: SafeUnref(setShader())? */
+    PAINT->setShader(shader);
 
     shader->unref();
 }
@@ -649,7 +649,6 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
     PAINT_STROKE->setShader(shader);
 
     shader->unref();
-
 }
 
 NativeShadowLooper *NativeSkia::buildShadow()

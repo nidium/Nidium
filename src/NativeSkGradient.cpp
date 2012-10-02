@@ -47,7 +47,7 @@ NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
 NativeSkGradient::~NativeSkGradient()
 {
 	free(colorsStop.items);
-	SkSafeUnref(currentShader);
+	//SkSafeUnref(currentShader);
 }
 
 void NativeSkGradient::addColorStop(double position, char *color)
