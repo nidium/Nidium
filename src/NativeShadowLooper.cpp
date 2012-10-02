@@ -5,6 +5,7 @@
 #include "SkPaint.h"
 #include "SkMaskFilter.h"
 #include "SkColorFilter.h"
+#include "SkColorPriv.h"
 
 NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
                                    SkColor color, uint32_t flags)
@@ -61,6 +62,7 @@ void NativeShadowLooper::init(SkCanvas* canvas) {
 }
 
 bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
+    U8CPU a;
     switch (fState) {
         case kBeforeEdge:
             // we do nothing if a maskfilter is already installed
@@ -68,8 +70,9 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
                 fState = kDone;
                 return false;
             }
-
+            a = paint->getAlpha();
             paint->setColor(fBlurColor);
+            paint->setAlpha(SkAlphaMul(paint->getAlpha(), SkAlpha255To256(a)));
 
             paint->setMaskFilter(fBlur);
 
