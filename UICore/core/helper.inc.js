@@ -84,18 +84,21 @@ Number.prototype.format = function(decimals, d, t){
 var BenchThis = function(name, iterations, fn){
 	var t = +new Date(),
 		exec = 0,
-		ips = 0;
+		ips = 0,
+		ipf = 0;
 
 	for (var i = 0; i < iterations; i++){
 		fn(i);
 	}
 
-	exec = (+new Date()-t),
+	exec = (+new Date()-t);
 	ips = Math.round(1000*iterations/exec);
+	ipf = 16*iterations/exec;
 
 	echo(name);
 	echo('  - '+iterations.format(0, '.', ' ')+' executions takes', exec.format(0, '.', ' '), "ms");
-	echo('  - Result: '+ips.format(0, '.', ' ')+" exec/s");
+	echo('  - Speed: '+ips.format(0, '.', ' ')+" exec/s");
+	echo('  - Oneshot ~ '+(exec/iterations).format(2, '.', ' ')+" ms" + " (max "+ipf.format(0, '.', ' ')+" exec/frame)");
 	echo('');
 };
 

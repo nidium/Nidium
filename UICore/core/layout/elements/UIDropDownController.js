@@ -8,12 +8,13 @@ UIElement.extend("UIDropDownController", {
 
 		this.w = 140;
 		this.h = 24;
+		
 		this.flags._canReceiveFocus = true;
-		this.background = this.options.background || "#191a18";
-		this.color = this.options.color || "#ffffff";
-		this.selectedBackground = this.options.selectedBackground || "#4D90FE";
-		this.selectedColor = this.options.selectedColor || "#FFFFFF";
-		this.name = this.options.name || "Default";
+		this.background = OptionalValue(this.options.background, '#191a18');
+		this.color = OptionalValue(this.options.color, "#ffffff");
+		this.selectedBackground = OptionalValue(this.options.selectedBackground, "#4D90FE");
+		this.selectedColor = OptionalValue(this.options.selectedColor, "#FFFFFF");
+		this.name = OptionalString(this.options.name, "Default");
 		this.selection = 0;
 		this.tabs = [];
 

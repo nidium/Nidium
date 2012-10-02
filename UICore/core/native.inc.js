@@ -30,38 +30,45 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-load('core/helper.inc.js');
-load('core/layout/core.js');
-load('core/events.inc.js');
+var __PATH_CORE__ = 'core/',
+	__PATH_LAYOUT__ = 'core/layout/',
+	__PATH_ELEMENTS__ = 'core/layout/elements/',
+	__PATH_PLUGINS__ = 'core/plugins/';
 
-load('core/layout/elements/UIView.js');
-load('core/layout/elements/UIButton.js');
-load('core/layout/elements/UIButtonClose.js');
-load('core/layout/elements/UIButtonDown.js');
+load(__PATH_CORE__ +	'helper.inc.js');
+load(__PATH_LAYOUT__ +	'core.js');
+load(__PATH_CORE__ +	'events.inc.js');
 
-load('core/layout/elements/UIText.js');
-load('core/layout/elements/UITextInput.js');
+/* -- Load UI Elements -- */
+load(__PATH_ELEMENTS__ + 'UIView.js');
+load(__PATH_ELEMENTS__ + 'UIButton.js');
+load(__PATH_ELEMENTS__ + 'UIButtonClose.js');
+load(__PATH_ELEMENTS__ + 'UIButtonDown.js');
 
-load('core/layout/elements/UIScrollBars.js');
-load('core/layout/elements/UIRadio.js');
-load('core/layout/elements/UILines.js');
+load(__PATH_ELEMENTS__ + 'UIText.js');
+load(__PATH_ELEMENTS__ + 'UITextInput.js');
 
-load('core/layout/elements/UITab.js');
-load('core/layout/elements/UITabController.js');
+load(__PATH_ELEMENTS__ + 'UIScrollBars.js');
+load(__PATH_ELEMENTS__ + 'UIRadio.js');
+load(__PATH_ELEMENTS__ + 'UILines.js');
 
-load('core/layout/elements/UIDropDownOption.js');
-load('core/layout/elements/UIDropDownController.js');
+load(__PATH_ELEMENTS__ + 'UITab.js');
+load(__PATH_ELEMENTS__ + 'UITabController.js');
 
-load('core/layout/elements/UIWindow.js');
-load('core/layout/elements/UIWindowResizer.js');
+load(__PATH_ELEMENTS__ + 'UIDropDownOption.js');
+load(__PATH_ELEMENTS__ + 'UIDropDownController.js');
 
-load('core/layout/elements/UISliderKnob.js');
-load('core/layout/elements/UISliderController.js');
+load(__PATH_ELEMENTS__ + 'UIWindow.js');
+load(__PATH_ELEMENTS__ + 'UIWindowResizer.js');
 
-load('core/plugins/blur.inc.js');
-load('core/plugins/roundbox.inc.js');
-load('core/plugins/tabbox.inc.js');
-load('core/plugins/animations.inc.js');
+load(__PATH_ELEMENTS__ + 'UISliderKnob.js');
+load(__PATH_ELEMENTS__ + 'UISliderController.js');
+
+/* -- Load plugins -- */
+load(__PATH_PLUGINS__ + 'blur.inc.js');
+load(__PATH_PLUGINS__ + 'roundbox.inc.js');
+load(__PATH_PLUGINS__ + 'tabbox.inc.js');
+load(__PATH_PLUGINS__ + 'animations.inc.js');
 
 var NativeRenderer = {
 	objID : 0,

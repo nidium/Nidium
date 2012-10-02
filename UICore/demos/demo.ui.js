@@ -124,11 +124,8 @@ pasteButton.addEventListener("mousedown", function(e){
 	textView.paste();
 });
 
-
 var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
-var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
-
-
+var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255, 0, 0, 0.2)", draggable:true});
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
@@ -169,6 +166,7 @@ docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
 });
 
+
 //redViewButton4.scale = 2;
 
 greenView.addEventListener("mousedown", function(e){
@@ -176,10 +174,10 @@ greenView.addEventListener("mousedown", function(e){
 	e.stopPropagation();
 }, false);
 
-
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
+	this.scale = e.y>=(canvas.height/2) ? 1 : (e.y/(canvas.height/2));
 });
 
 brique.addEventListener("dragstart", function(e){

@@ -39,7 +39,6 @@ canvas.implement({
 		offscreen.putImageData(g, 0, 0);
 
 		for(var i=0, g = 0.325; i<pass; i++){
-			offscreen.putImageData(offscreen.getImageData(0, 0, w, h), 0, 0);
 			for (var cy=-r; cy<(r+1); cy++){
 				for (var cx=-r; cx<(r+1); cx++){
 					offscreen.globalAlpha = g;
@@ -59,12 +58,9 @@ canvas.implement({
 		var r = 1,
 			offscreen = new Canvas(w, h);
 
-		//var g = this.getImageData(wx, wy, w, h);
-		//offscreen.putImageData(g, 0, 0);
 		offscreen.drawImage(this, wx, wy, w, h, 0, 0, w, h);
 
 		for(var i=0, g = 0.325; i<pass; i++){
-			offscreen.putImageData(offscreen.getImageData(0, 0, w, h), 0, 0);
 			for (var cy=-r; cy<(r+1); cy++){
 				for (var cx=-r; cx<(r+1); cx++){
 					offscreen.globalAlpha = g;
@@ -76,9 +72,6 @@ canvas.implement({
 			offscreen.fillStyle = "rgba(255, 255, 255, 0.036)";
 			offscreen.fillRect(0, 0, w, h);
 		}
-		//var blur = offscreen.getImageData(0, 0, w, h);
-		//this.putImageData(blur, wx, wy);
 		this.drawImage(offscreen, wx, wy);
 	}
-
 });

@@ -46,7 +46,7 @@ UIElement.extend("UIWindow", {
 			this.handle.addEventListener("dragstart", function(){
 				self.set("scale", 1.1, 80);
 				self.set("blur", 1, 80);
-				self.set("shadowBlur", 26, 70);
+				self.set("shadowBlur", 20, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
 			}, false);
 
@@ -75,8 +75,7 @@ UIElement.extend("UIWindow", {
 			});
 
 			this.handle.closeButton.addEventListener("mousedown", function(e){
-				self.bounceScale(0, 120, function(){
-				});
+				self.set("scale", 0, 120, function(){});
 				self.shadowBlur = 6;
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";
 				e.stopPropagation();
@@ -114,7 +113,7 @@ UIElement.extend("UIWindow", {
 				x : this.__x,
 				y : this.__y,
 				w : this.__w,
-				h : 2*this.lineHeight*this._scale
+				h : 24*this._scale
 			};
 		}
 

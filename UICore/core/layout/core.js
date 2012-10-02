@@ -108,6 +108,7 @@ var UIView = function(type, options, parent){
 	// -- style properties
 	this.blur = OptionalNumber(this.options.blur, 0);
 	this.background = OptionalValue(this.options.background, '');
+
 	this.color = OptionalValue(this.options.color, '');
 	this.radius = _get("radius", 0, 0);
 	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
@@ -213,7 +214,6 @@ UIView.prototype = {
 		this.zIndex = NativeRenderer.getHigherZindex() + 1;
 	},
 
-
 	refresh : function(){
 		// -- dynamic properties
 		// -- properties prefixed with _ inherits from parent at draw time
@@ -247,6 +247,18 @@ UIView.prototype = {
 		};
 	},
 
+	__projection : function(x, y){
+		var k = {
+			x : this.parent ? this.parent.t._x : this.t.x,
+			y : this.parent ? this.parent.t._y : this.t.y
+		};
+
+		return {
+			x : (this._g.x - k.x)*this._pscale - (this._g.x - x)*this._scale,
+			y : (this._g.y - k.y)*this._pscale - (this._g.y - y)*this._scale
+		};
+	},
+
 	beforeDraw : function(){
 		if (this.clip){
 			canvas.save();
@@ -255,7 +267,7 @@ UIView.prototype = {
 		}
 
 		if (this.blur){
-			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
+			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, 3);
 		}
 
 		var DX = this._g.x - this.t._x,
@@ -268,8 +280,8 @@ UIView.prototype = {
 		this.__w = this.w * this._scale;
 		this.__h = this.h * this._scale;
 
-		this.t._x += (DX - DX/this.scale); // dt.x
-		this.t._y += (DY - DY/this.scale); // dt.y
+		this.t._x += (DX - DX/this.scale);
+		this.t._y += (DY - DY/this.scale);
 
 		/*		
 		if (this._rotate!=0){
@@ -308,7 +320,6 @@ UIView.prototype = {
 			this.drawFocus();
 		}
 
-
 	},
 
 	draw : function(){},
@@ -322,29 +333,19 @@ UIView.prototype = {
 			},
 			radius = this.radius+1;
 
-		/*
 		if (this.type=="UIText" || this.type=="UIWindow") {
+
+			//canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+/*
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.5)", "#ffffff");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.0)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.1)", "#4D90FE");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.0)", "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.1)", "#4D90FE");
+			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.0)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
+*/
 		}
-		*/
-	},
-
-	__projection : function(x, y){
-		var k = {
-			x : this.parent ? this.parent.t._x : this.t.x,
-			y : this.parent ? this.parent.t._y : this.t.y
-		};
-
-		return {
-			x : (this._g.x - k.x)*this._pscale - (this._g.x - x)*this._scale,
-			y : (this._g.y - k.y)*this._pscale - (this._g.y - y)*this._scale
-		};
 	},
 
 	afterDraw : function(){
