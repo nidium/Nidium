@@ -498,7 +498,7 @@ var Application = function(options){
 	canvas.__mustBeDrawn = true;
 
 	var bgCanvas = new Image();
-	bgCanvas.src = "demos/assets/spheres.jpeg";
+	//bgCanvas.src = "demos/assets/spheres.jpeg";
 
 	if (options && options.animation===false){
 		/* dummy */
@@ -508,7 +508,7 @@ var Application = function(options){
 			FPS.start();
 	 		if (canvas.animate) {
 
-				canvas.drawImage(bgCanvas, 0, 0);
+				//canvas.drawImage(bgCanvas, 0, 0);
 				NativeRenderer.draw();
 				//NativeRenderer.grid();
 			} 

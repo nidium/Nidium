@@ -30,18 +30,17 @@
 #include "SkXfermode.h"
 
 #include "NativeShadowLooper.h"
-
+#include "SkBlurMaskFilter.h"
+#include "SkBlurImageFilter.h"
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
 
+/* Current SkPaint (change during a this::save()/restore()) */
 #define PAINT state->paint
 #define PAINT_STROKE state->paint_stroke
 
-/*
- * Consume whitespace.
- */
-
+/* TODO: Move this to an util file */
 #define WHITESPACE \
   while (' ' == *str) ++str;
 
@@ -519,6 +518,10 @@ int NativeSkia::bindGL(int width, int height)
     canvas->drawCircle(100, 400, 50, paint);
     CANVAS_FLUSH();
 #endif
+PAINT->setImageFilter(new SkBlurImageFilter(10.0f, 10.0f))->unref();
+    /*PAINT->setMaskFilter(SkBlurMaskFilter::Create(10,
+                             SkBlurMaskFilter::kInner_BlurStyle,
+                             SkBlurMaskFilter::kNone_BlurFlag));*/
     return 1;
 }
 
