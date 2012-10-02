@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // Compile with : 
-// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -o audio
+// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o
 static void *thread_io(void *arg) {
     NativeAudio *audio = (NativeAudio *)arg;
     printf("Hello thread io\n");
