@@ -35,6 +35,9 @@
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
 
+#define PAINT state->paint
+#define PAINT_STROKE state->paint_stroke
+
 /*
  * Consume whitespace.
  */
@@ -307,19 +310,22 @@ int NativeSkia::bindOffScreen(int width, int height)
     globalAlpha = 255;
     currentPath = NULL;
 
-    paint = new SkPaint;
+    state = new struct _nativeState;
+    state->next = NULL;
+
+    PAINT = new SkPaint;
 
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
     currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
 
-    paint->setARGB(255, 0, 0, 0);
-    paint->setAntiAlias(true);
+    PAINT->setARGB(255, 0, 0, 0);
+    PAINT->setAntiAlias(true);
 
-    paint->setStyle(SkPaint::kFill_Style);
-    paint->setFilterBitmap(true);
+    PAINT->setStyle(SkPaint::kFill_Style);
+    PAINT->setFilterBitmap(true);
  
-    paint->setSubpixelText(true);
-    paint->setAutohinted(true);
+    PAINT->setSubpixelText(true);
+    PAINT->setAutohinted(true);
 
     paint_system = new SkPaint;
 
@@ -327,21 +333,19 @@ int NativeSkia::bindOffScreen(int width, int height)
     paint_system->setAntiAlias(true);
     //paint_system->setLCDRenderText(true);
     paint_system->setStyle(SkPaint::kFill_Style);
-    paint->setSubpixelText(true);
-    paint->setAutohinted(true);
+    PAINT->setSubpixelText(true);
+    PAINT->setAutohinted(true);
    
-    paint_stroke = new SkPaint;
+    PAINT_STROKE = new SkPaint;
 
-    paint_stroke->setARGB(255, 0, 0, 0);
-    paint_stroke->setAntiAlias(true);
-    //paint_stroke->setLCDRenderText(true);
-    paint_stroke->setStyle(SkPaint::kStroke_Style);
+    PAINT_STROKE->setARGB(255, 0, 0, 0);
+    PAINT_STROKE->setAntiAlias(true);
+    //PAINT_STROKE->setLCDRenderText(true);
+    PAINT_STROKE->setStyle(SkPaint::kStroke_Style);
     
     this->setLineWidth(1);
 
-
     asComposite = 0;
-
 
     return 0;
 }
@@ -403,20 +407,23 @@ int NativeSkia::bindGL(int width, int height)
 
     currentPath = NULL;
 
-    paint = new SkPaint;
+    state = new struct _nativeState;
+    state->next = NULL;
+
+    PAINT = new SkPaint;
 
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
     currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
 
-    paint->setARGB(255, 0, 0, 0);
-    paint->setAntiAlias(true);
+    PAINT->setARGB(255, 0, 0, 0);
+    PAINT->setAntiAlias(true);
     
-    //paint->setLCDRenderText(true);
-    paint->setStyle(SkPaint::kFill_Style);
-    //paint->setFilterBitmap(true);
-    //paint->setXfermodeMode(SkXfermode::kSrcOver_Mode);
-    paint->setSubpixelText(true);
-    paint->setAutohinted(true);
+    //PAINT->setLCDRenderText(true);
+    PAINT->setStyle(SkPaint::kFill_Style);
+    //PAINT->setFilterBitmap(true);
+    //PAINT->setXfermodeMode(SkXfermode::kSrcOver_Mode);
+    PAINT->setSubpixelText(true);
+    PAINT->setAutohinted(true);
 
     paint_system = new SkPaint;
 
@@ -424,15 +431,13 @@ int NativeSkia::bindGL(int width, int height)
     paint_system->setAntiAlias(true);
     //paint_system->setLCDRenderText(true);
     paint_system->setStyle(SkPaint::kFill_Style);
-    paint->setSubpixelText(true);
-    paint->setAutohinted(true);
    
-    paint_stroke = new SkPaint;
+    PAINT_STROKE = new SkPaint;
 
-    paint_stroke->setARGB(255, 0, 0, 0);
-    paint_stroke->setAntiAlias(true);
-    //paint_stroke->setLCDRenderText(true);
-    paint_stroke->setStyle(SkPaint::kStroke_Style);
+    PAINT_STROKE->setARGB(255, 0, 0, 0);
+    PAINT_STROKE->setAntiAlias(true);
+    //PAINT_STROKE->setLCDRenderText(true);
+    PAINT_STROKE->setStyle(SkPaint::kStroke_Style);
     
     this->setLineWidth(1);
     /*SkRect r;
@@ -442,9 +447,6 @@ int NativeSkia::bindGL(int width, int height)
 
     asComposite = 0;
 
-    screen = new SkBitmap();
-    screen->setConfig(SkBitmap::kARGB_8888_Config, 640, 480);
-    screen->allocPixels();
 
     //canvas->drawARGB(0, 0, 0, 0, SkXfermode::kClear_Mode);
 
@@ -525,7 +527,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 {
     canvas->drawRectCoords(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height),
-        (stroke ? *paint_stroke : *paint));
+        (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
 
@@ -540,15 +542,21 @@ void NativeSkia::drawRect(double x, double y, double width,
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
     canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
-        (stroke ? *paint_stroke : *paint));
+        (stroke ? *PAINT_STROKE : *PAINT));
 }
 
 NativeSkia::~NativeSkia()
 {
-    delete paint;
-    delete paint_stroke;
+    struct _nativeState *nstate = state;
+
+    while(nstate) {
+        struct _nativeState *tmp = nstate->next;
+        delete nstate->paint;
+        delete nstate->paint_stroke;
+        delete nstate;
+        nstate = tmp;
+    }
     delete paint_system;
-    delete screen;
     
     if (currentPath) delete currentPath;
 
@@ -583,8 +591,8 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
 void NativeSkia::setFontSize(double size)
 {
     SkScalar ssize = SkDoubleToScalar(size);
-    paint->setTextSize(ssize);
-    paint_stroke->setTextSize(ssize);
+    PAINT->setTextSize(ssize);
+    PAINT_STROKE->setTextSize(ssize);
 }
 
 void NativeSkia::setFontType(const char *str)
@@ -592,15 +600,17 @@ void NativeSkia::setFontType(const char *str)
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
 
-    paint->setTypeface(tf)->unref();
-    paint_stroke->setTypeface(tf);
+    PAINT->setTypeface(tf);
+    PAINT_STROKE->setTypeface(tf);
+
+    tf->unref();
 }
 
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
     canvas->drawText(text, strlen(text),
-        SkIntToScalar(x), SkIntToScalar(y), *paint);
+        SkIntToScalar(x), SkIntToScalar(y), *PAINT);
 
     CANVAS_FLUSH();
 }
@@ -622,8 +632,10 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
         //paint->setShader(NULL);
         return;
     }
-    paint->setColor(SK_ColorBLACK);
-    paint->setShader(gradient->build()); /* TODO: SafeUnref(setShader())? */
+    PAINT->setColor(SK_ColorBLACK);
+    PAINT_STROKE->setShader(shader); /* TODO: SafeUnref(setShader())? */
+
+    shader->unref();
 }
 
 void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
@@ -633,8 +645,10 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
     if ((shader = gradient->build()) == NULL) {
         return;
     }
-    paint_stroke->setColor(SK_ColorBLACK);
-    paint_stroke->setShader(gradient->build()); 
+    PAINT_STROKE->setColor(SK_ColorBLACK);
+    PAINT_STROKE->setShader(shader);
+
+    shader->unref();
 
 }
 
@@ -656,14 +670,14 @@ void NativeSkia::setShadowOffsetX(double x)
 {
     if (currentShadow.x == x) return;
     currentShadow.x = x;
-    SkSafeUnref(paint->setLooper(buildShadow()));
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowOffsetY(double y)
 {
     if (currentShadow.y == y) return;
     currentShadow.y = y;
-    SkSafeUnref(paint->setLooper(buildShadow()));
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowBlur(double blur)
@@ -671,7 +685,7 @@ void NativeSkia::setShadowBlur(double blur)
     if (currentShadow.blur == blur) return;
     currentShadow.blur = blur;
 
-    SkSafeUnref(paint->setLooper(buildShadow()));
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
 void NativeSkia::setShadowColor(const char *str)
@@ -681,7 +695,7 @@ void NativeSkia::setShadowColor(const char *str)
     if (currentShadow.color == color) return;
     currentShadow.color = color;
 
-    SkSafeUnref(paint->setLooper(buildShadow()));
+    SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
 /* TODO : move color logic to a separate function */
@@ -689,13 +703,13 @@ void NativeSkia::setFillColor(const char *str)
 {   
     SkColor color = parseColor(str);
 
-    SkShader *shader = paint->getShader();
+    SkShader *shader = PAINT->getShader();
 
     if (shader) {
-        paint->setShader(NULL);
+        PAINT->setShader(NULL);
     }
 
-    paint->setColor(color);
+    PAINT->setColor(color);
 
 }
 
@@ -703,13 +717,13 @@ void NativeSkia::setStrokeColor(const char *str)
 {   
     SkColor color = parseColor(str);
 
-    SkShader *shader = paint_stroke->getShader();
+    SkShader *shader = PAINT_STROKE->getShader();
 
     if (shader) {
-        paint_stroke->setShader(NULL);
+        PAINT_STROKE->setShader(NULL);
     }
 
-    paint_stroke->setColor(color);
+    PAINT_STROKE->setColor(color);
 
 }
 
@@ -723,8 +737,8 @@ void NativeSkia::setGlobalAlpha(double value)
         SkColorSetARGB(globalAlpha, 255, 255, 255),
         SkXfermode::kMultiply_Mode);
 
-    paint->setColorFilter(filter);
-    paint_stroke->setColorFilter(filter);
+    PAINT->setColorFilter(filter);
+    PAINT_STROKE->setColorFilter(filter);
 
     filter->unref();
 }
@@ -760,8 +774,8 @@ void NativeSkia::setGlobalComposite(const char *str)
     printf("Set to : %d %d\n", lst[sum % 35], sum % 35);
     //SkXfermode *xfer = SkXfermode::Create(SkXfermode::kDstOver_Mode);
     //paint->setAlpha(0);
-    paint->setAlpha(0);
-    paint->setXfermodeMode(SkXfermode::kDstOver_Mode);
+    PAINT->setAlpha(0);
+    PAINT->setXfermodeMode(SkXfermode::kDstOver_Mode);
     
     asComposite = 1;
 
@@ -769,7 +783,7 @@ void NativeSkia::setGlobalComposite(const char *str)
 
 void NativeSkia::setLineWidth(double size)
 {
-    paint_stroke->setStrokeWidth(SkDoubleToScalar(size));
+    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
 }
 
 void NativeSkia::beginPath()
@@ -809,7 +823,7 @@ void NativeSkia::fill()
         return;
     }
 
-    canvas->drawPath(*currentPath, *paint);
+    canvas->drawPath(*currentPath, *PAINT);
     CANVAS_FLUSH();
 }
 
@@ -819,7 +833,7 @@ void NativeSkia::stroke()
         return;
     }
 
-    canvas->drawPath(*currentPath, *paint_stroke);
+    canvas->drawPath(*currentPath, *PAINT_STROKE);
     CANVAS_FLUSH();   
 }
 
@@ -933,20 +947,40 @@ void NativeSkia::translate(double x, double y)
     canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
+SkPaint *NativeSkia::newPaintFromPaint(SkPaint *paint)
+{
+    return new SkPaint(*paint);
+}
+
 void NativeSkia::save()
 {
-    //canvas->saveLayer(NULL, NULL, SkCanvas::kARGB_NoClipLayer_SaveFlag);
+    struct _nativeState *nstate = new struct _nativeState;
+
+    nstate->paint = newPaintFromPaint(state->paint);
+    nstate->paint_stroke = newPaintFromPaint(state->paint_stroke);
+    nstate->next = state;
+
+    state = nstate;
+
     canvas->save();
 }
 
 void NativeSkia::restore()
 {
+    if (state->next) {
+        struct _nativeState *dstate = state;
+        delete dstate->paint;
+        delete dstate->paint_stroke;
+        state = dstate->next;
+        delete dstate;
+    }
+
     canvas->restore();
 }
 
 double NativeSkia::measureText(const char *str, size_t length)
 {
-    return SkScalarToDouble(paint->measureText(str, length));
+    return SkScalarToDouble(PAINT->measureText(str, length));
 }
 
 void NativeSkia::skew(double x, double y)
@@ -990,22 +1024,22 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
 void NativeSkia::setLineCap(const char *capStyle)
 {
     if (strcasecmp(capStyle, "round") == 0) {
-        paint_stroke->setStrokeCap(SkPaint::kRound_Cap);
+        PAINT_STROKE->setStrokeCap(SkPaint::kRound_Cap);
     } else if (strcasecmp(capStyle, "square") == 0) {
-        paint_stroke->setStrokeCap(SkPaint::kSquare_Cap);
+        PAINT_STROKE->setStrokeCap(SkPaint::kSquare_Cap);
     } else {
-        paint_stroke->setStrokeCap(SkPaint::kButt_Cap);
+        PAINT_STROKE->setStrokeCap(SkPaint::kButt_Cap);
     }
 }
 
 void NativeSkia::setLineJoin(const char *joinStyle)
 {
      if (strcasecmp(joinStyle, "round") == 0) {
-        paint_stroke->setStrokeJoin(SkPaint::kRound_Join);
+        PAINT_STROKE->setStrokeJoin(SkPaint::kRound_Join);
     } else if (strcasecmp(joinStyle, "bevel") == 0) {
-        paint_stroke->setStrokeJoin(SkPaint::kBevel_Join);
+        PAINT_STROKE->setStrokeJoin(SkPaint::kBevel_Join);
     } else {
-        paint_stroke->setStrokeJoin(SkPaint::kMiter_Join);
+        PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
     }
     
 }
@@ -1019,10 +1053,10 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     }
     if (image->fixedImg != NULL) {
         image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            paint);
+            PAINT);
     } else {
         canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            paint);
+            PAINT);
     }
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
@@ -1045,7 +1079,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
         printf("build mipmap\n");
         image->img.buildMipMap();
     }
-    canvas->drawBitmapRect(image->img, NULL, r, paint);
+    canvas->drawBitmapRect(image->img, NULL, r, PAINT);
 
     CANVAS_FLUSH();
 }
@@ -1071,7 +1105,8 @@ void NativeSkia::drawImage(NativeSkImage *image,
         image->img.buildMipMap();
     }
 
-    canvas->drawBitmapRect(image->img, (image->isCanvas ? NULL : &src), dst, paint);
+    canvas->drawBitmapRect(image->img,
+        (image->isCanvas ? NULL : &src), dst, PAINT);
 
     CANVAS_FLUSH();
 }

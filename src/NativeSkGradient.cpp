@@ -71,6 +71,7 @@ void NativeSkGradient::addColorStop(double position, char *color)
 SkShader *NativeSkGradient::build()
 {
 	if (!needUpdate) {
+		SkSafeRef(currentShader);
 		return currentShader;
 	}
 
@@ -95,7 +96,7 @@ SkShader *NativeSkGradient::build()
 
 	needUpdate = 0;
 
-	SkSafeUnref(currentShader);
+	//SkSafeUnref(currentShader);
 
 	if (isRadial) {
 		currentShader = SkGradientShader::CreateTwoPointRadial(pts[0],
