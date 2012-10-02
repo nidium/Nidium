@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // Compile with : 
-// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -o audio
+// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o
 static void *thread_io(void *arg) {
     NativeAudio *audio = (NativeAudio *)arg;
     printf("Hello thread io\n");
@@ -17,7 +17,7 @@ static void *thread_io(void *arg) {
     // in Native, event system will be used
     while (true) {
         audio->bufferData();
-        sleep(1);
+        usleep(100);
     }
 }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, &audio);
 
     // 2) Open ouput
-    int ret = audio.openOutput(2048, 2, NativeAudio::INT16, 44100);
+    int ret = audio.openOutput(2048, 2, NativeAudio::FLOAT32, 44100);
     if (ret == 0) {
         printf("Audio ouput is ok\n");
     } else {

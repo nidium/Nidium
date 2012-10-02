@@ -267,7 +267,11 @@ UIView.prototype = {
 		}
 
 		if (this.blur){
+<<<<<<< HEAD
 			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, 3);
+=======
+			canvas.fastblur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.blur);
+>>>>>>> f50562049096810d15a9f4c5e40a2f202b7fb4ff
 		}
 
 		var DX = this._g.x - this.t._x,
@@ -499,7 +503,7 @@ var Application = function(options){
 	canvas.__mustBeDrawn = true;
 
 	var bgCanvas = new Image();
-	bgCanvas.src = "demos/assets/spheres.jpeg";
+	//bgCanvas.src = "demos/assets/spheres.jpeg";
 
 	if (options && options.animation===false){
 		/* dummy */
@@ -509,7 +513,7 @@ var Application = function(options){
 			FPS.start();
 	 		if (canvas.animate) {
 
-				canvas.drawImage(bgCanvas, 0, 0);
+				//canvas.drawImage(bgCanvas, 0, 0);
 				NativeRenderer.draw();
 				//NativeRenderer.grid();
 			} 

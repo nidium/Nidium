@@ -14,7 +14,9 @@
 #include <jsprf.h>
 #include <stdint.h>
 
-#define UINT32_MAX 4294967295u
+#ifdef __linux__
+   #define UINT32_MAX 4294967295u
+#endif
 
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
@@ -697,7 +699,7 @@ static JSBool native_canvas_fillText(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas_shadow(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NSKIA_NATIVE->setShadow();
+    //NSKIA_NATIVE->setShadow();
     return JS_TRUE;
 }
 
@@ -1099,7 +1101,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (JS_InstanceOf(cx, jsimage, &canvas_class, NULL)) {
-        image = new NativeSkImage(NSKIA_NATIVE->canvas);
+        image = new NativeSkImage(NSKIA_NATIVE_GETTER(jsimage)->canvas);
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
@@ -1403,7 +1405,7 @@ NativeJS::NativeJS()
 
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
     //ion::js_IonOptions.gvnIsOptimistic = true;
@@ -1437,12 +1439,14 @@ NativeJS::NativeJS()
 
 void NativeJS::forceLinking()
 {
+#ifdef __linux__
     CreateJPEGImageDecoder();
     CreatePNGImageDecoder();
     //CreateGIFImageDecoder();
     CreateBMPImageDecoder();
     CreateICOImageDecoder();
-    CreateWBMPImageDecoder();    
+    CreateWBMPImageDecoder();
+#endif
 }
 
 NativeJS::~NativeJS()
@@ -1451,6 +1455,8 @@ NativeJS::~NativeJS()
     rt = JS_GetRuntime(cx);
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+
+    JS_RemoveValueRoot(cx, &gfunc);
 
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
@@ -1607,7 +1613,7 @@ static int native_timer_deleted(void *arg)
     if (params->argv != NULL) {
         free(params->argv);
     }
-    
+
     free(params);
 
     return 1;

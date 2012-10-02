@@ -1,7 +1,10 @@
 #ifndef nativejsexposer_h__
 #define nativejsexposer_h__
 
-#define UINT32_MAX 4294967295u
+#ifdef __linux__
+  #define UINT32_MAX 4294967295u
+#endif
+
 #include <jsapi.h>
 #include <jsfriendapi.h>
 
