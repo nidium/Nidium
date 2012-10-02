@@ -719,11 +719,14 @@ void NativeSkia::setGlobalAlpha(double value)
 
     SkScalar maxuint = SkIntToScalar(255);
     globalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
-
-    paint->setColorFilter(SkColorFilter::CreateModeFilter(
+    SkColorFilter *filter = SkColorFilter::CreateModeFilter(
         SkColorSetARGB(globalAlpha, 255, 255, 255),
-        SkXfermode::kMultiply_Mode));
+        SkXfermode::kMultiply_Mode);
 
+    paint->setColorFilter(filter);
+    paint_stroke->setColorFilter(filter);
+
+    filter->unref();
 }
 
 static SkXfermode::Mode lst[] = {
