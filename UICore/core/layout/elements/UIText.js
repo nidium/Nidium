@@ -10,9 +10,8 @@ UIElement.extend("UIText", {
 		this.caretOpacity = 1;
 		this.caretCounter = 0;
 
-		if (!this.color){
-			this.color = "#000000";
-		}
+		this.background = OptionalValue(this.options.background, '#ffffff');
+		this.color = OptionalValue(this.options.color, "#000000");
 
 		this.padding = {
 			left : 0,

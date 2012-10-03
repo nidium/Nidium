@@ -210,7 +210,7 @@ var UIEvents = {
 				continue;
 			}
 
-			if (eventName=='keydown' || eventName=='keyup' ||eventName=='textinput'){
+			if (eventName=='keydown' || eventName=='keyup' || eventName=='textinput'){
 				if (cancelEvent===false){
 					view.fireEvent(eventName, e);
 				}
@@ -219,6 +219,10 @@ var UIEvents = {
 			if (view.isPointInside(x, y)){
 
 				switch (eventName) {
+					case "mousewheel" :
+						cancelBubble = true;
+						break;
+
 					case "mousemove" :
 						e.source = this.__dragSourceElement;
 						e.target = view;

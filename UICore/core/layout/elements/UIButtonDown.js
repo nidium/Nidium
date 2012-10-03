@@ -4,8 +4,8 @@
 
 UIElement.extend("UIButtonDown", {
 	init : function(){
-		this.w = this.options.w || 10;
-		this.h = this.options.h || 10;
+		this.w = OptionalNumber(this.options.w, 10);
+		this.h = OptionalNumber(this.options.h, 10);
 
 		this.addEventListener("mousedown", function(e){
 			this.selected = true;
