@@ -43,7 +43,8 @@ SOURCES=NativeJS.cpp 				\
 		NativeHTTP.cpp 				\
 		NativeJSHttp.cpp 			\
 		NativeJSImage.cpp 			\
-		NativeJSNative.cpp
+		NativeJSNative.cpp 			\
+		NativeFileIO.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a
