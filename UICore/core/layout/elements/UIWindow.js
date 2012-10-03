@@ -57,7 +57,7 @@ UIElement.extend("UIWindow", {
 			this.handle.addEventListener("dragend", function(){
 				self.set("scale", 1, 50);
 				self.set("blur", 0, 50);
-				self.set("shadowBlur", self.options.shadowBlur || 12, 50);
+				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
 				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 			}, false);
 
@@ -112,7 +112,7 @@ UIElement.extend("UIWindow", {
 				x : this.__x,
 				y : this.__y,
 				w : this.__w,
-				h : 24*this._scale
+				h : this.handle.__h
 			};
 		}
 

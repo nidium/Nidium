@@ -420,6 +420,19 @@ UIView.prototype = {
 		return	(mx>=x1 && mx<=x2 && my>=y1 && my<=y2) ? true : false;
 	},
 
+	isVisible : function(){
+		var x1 = this.__x,
+			x2 = this.__x+this.__w,
+			y1 = this.__y,
+			y2 = this.__y+this.__y;
+
+		if (this._visible === false || x2 < 0 || x1>window.width || y2 < 0 || y1>window.height){
+			return false;
+		} else {
+			return true;
+		}
+	},
+
 	/* -------------------------------------------------------------- */
 
 	get left() {

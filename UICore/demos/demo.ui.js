@@ -48,6 +48,7 @@ var win = main.add("UIWindow", {
 	y : 100,
 	w : 300,
 	h : 200,
+	background : "rgba(0, 0, 0, 0.25)",
 	resizable : true,
 	closeable : true,
 	movable : true

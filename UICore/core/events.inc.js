@@ -206,7 +206,7 @@ var UIEvents = {
 			var view = z[i],
 				cancelEvent = false;
 
-			if (!view.visible) {
+			if (!view.isVisible()) {
 				continue;
 			}
 
