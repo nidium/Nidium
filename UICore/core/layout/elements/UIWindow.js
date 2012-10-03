@@ -9,8 +9,10 @@ UIElement.extend("UIWindow", {
 		this.flags._canReceiveFocus = true;
 		this.color = OptionalValue(this.options.color, "#ffffff");
 		this.name = OptionalString(this.options.name, "Default");
+
 		this.shadowBlur = OptionalNumber(this.options.shadowBlur, 12);
 		this.shadowColor = OptionalValue(this.options.shadowColor, "rgba(0, 0, 0, 0.5)");
+		this.backgroundBlur = 0; //OptionalNumber(this.options.backgroundBlur, 0);
 
 		this.addEventListener("mousedown", function(e){
 			this.bringToTop();
@@ -44,7 +46,7 @@ UIElement.extend("UIWindow", {
 		if (this.options.movable) {
 			this.handle.addEventListener("dragstart", function(){
 				self.set("scale", 1.1, 80);
-				self.set("blur", 1, 80);
+				self.set("backgroundBlur", 1, 80);
 				self.set("shadowBlur", 20, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
 			}, false);
@@ -56,7 +58,7 @@ UIElement.extend("UIWindow", {
 
 			this.handle.addEventListener("dragend", function(){
 				self.set("scale", 1, 50);
-				self.set("blur", 0, 50);
+				self.set("backgroundBlur", 0, 50);
 				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
 				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 			}, false);
@@ -107,12 +109,12 @@ UIElement.extend("UIWindow", {
 	
 			radius = Math.max(4, this.radius);
 
-		if (this.blur){
+		if (this.backgroundBlur){
 			this.blurbox = {
 				x : this.__x,
 				y : this.__y,
 				w : this.__w,
-				h : this.handle.__h
+				h : this.handle.__h + 1
 			};
 		}
 

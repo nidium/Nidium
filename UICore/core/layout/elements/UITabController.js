@@ -38,6 +38,8 @@ UIElement.extend("UITabController", {
 			if (self.tabs[self.selection]) {
 				self.tabs[self.selection].selected = true;
 				self.tabs[self.selection].zIndex = 2*l;
+				echo(self.tabs[self.selection].zIndex);
+				echo(self.tabs[self.selection].closeButton.zIndex);
 			}
 		};
 
