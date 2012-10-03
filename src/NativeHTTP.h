@@ -28,6 +28,7 @@ class NativeHTTP
     char *path;
     u_short port;
     int err;
+    NativeHTTPDelegate *delegate;
 
     struct HTTPData {
         http_parser parser;
@@ -40,10 +41,7 @@ class NativeHTTP
         int ended;
     } http;
 
-
-    NativeHTTPDelegate *delegate;
-
-    static int ParseURI(char *url, char *host,
+    static int ParseURI(char *url, size_t url_len, char *host,
     u_short *port, char *file);
     void requestEnded();
     void setPrivate(void *ptr);

@@ -1105,7 +1105,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
-        (image = (class NativeSkImage *)JS_GetPrivate(jsimage)) == NULL) {
+        (image = NativeJSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
         return JS_TRUE;
     }
 
