@@ -5,28 +5,18 @@
 UIElement.extend("UILine", {
 
 	__construct : function(){
-		this.x1 = this.options.x1 || 0;
-		this.y1 = this.options.y1 || 0;
-		this.x2 = this.options.x2 || 0;
-		this.y2 = this.options.y2 || 0;
-
-		this.w = Math.abs(this.x2 - this.x1);
-		this.h = Math.abs(this.y2 - this.y1);
-
-		this.g = {
-			x : this.x1>=this.x2 ? this.x2 : this.x1,
-			y : this.y1>=this.y2 ? this.y2 : this.y1
-		};
 
 	},
 
 	init : function(){
 		var self = this;
 
-		this.x1 = this.options.x1 || 0;
-		this.y1 = this.options.y1 || 0;
-		this.x2 = this.options.x2 || 0;
-		this.y2 = this.options.y2 || 0;
+		this.x1 = OptionalNumber(this.options.x1, 0);
+		this.y1 = OptionalNumber(this.options.y1, 0);
+		this.x2 = OptionalNumber(this.options.x2, 0);
+		this.y2 = OptionalNumber(this.options.y2, 0);
+
+		this.lineWidth = OptionalNumber(this.options.lineWidth, 1);
 
 		/*
 		this.addEventListener("drag", function(e){
@@ -43,33 +33,36 @@ UIElement.extend("UILine", {
 		});
 		*/
 
+		this.updateParameters = function(){
+			this.x1 = this.controlPoint1.x;
+			this.y1 = this.controlPoint1.y;
+			this.x2 = this.controlPoint2.x;
+			this.y2 = this.controlPoint2.y;
+
+			this.w = Math.abs(this.x2 - this.x1);
+			this.h = Math.abs(this.y2 - this.y1);
+
+			this.g = {
+				x : this.x1>=this.x2 ? this.x2 : this.x1,
+				y : this.y1>=this.y2 ? this.y2 : this.y1
+			};
+		};
+
 		this.controlPoint1 = this.add("UIControlPoint", {
-			x : this.x1,
-			y : this.y1,
-			color : this.color
+			x : self.x1,
+			y : self.y1,
+			color : self.color
 		});
 
 		this.controlPoint2 = this.add("UIControlPoint", {
-			x : this.x2,
-			y : this.y2,
-			color : this.color
+			x : self.x2,
+			y : self.y2,
+			color : self.color
 		});
 
-		this.controlPoint1.opacity = 0.1;
-		this.controlPoint2.opacity = 0.1;
-
-		this.controlPoint1.addEventListener("mouseover", function(e){
-			this.opacity = 0.6;
-		});
-		this.controlPoint1.addEventListener("mouseout", function(e){
-			this.opacity = 0.1;
-		});
-		this.controlPoint2.addEventListener("mouseover", function(e){
-			this.opacity = 0.6;
-		});
-		this.controlPoint2.addEventListener("mouseout", function(e){
-			this.opacity = 0.1;
-		});
+		this.addEventListener("change", function(e){
+			this.updateParameters();
+		}, false);
 
 		if (this.options.split){
 			this.control = {
@@ -78,64 +71,17 @@ UIElement.extend("UILine", {
 			};
 
 			this.controlPoint3 = this.add("UIControlPoint", {
-				x : this.control.x,
-				y : this.control.y,
-				color : this.color
+				x : self.control.x,
+				y : self.control.y,
+				color : self.color
 			});
 
-			this.controlPoint3.opacity = 0.1;
-			
 			this.controlPoint3.addEventListener("drag", function(e){
-				var dx = e.xrel / self._scale,
-					dy = e.yrel / self._scale;
-
-				this._x += dx;
-				this._y += dy;
-				this.x += dx;
-				this.y += dy;
-
-				self.control.x += dx;
-				self.control.y += dy;
+				self.control.x += e.dx;
+				self.control.y += e.dy;
 			}, false);
 
-			this.controlPoint3.addEventListener("mouseover", function(e){
-				this.opacity = 0.6;
-			});
-			this.controlPoint3.addEventListener("mouseout", function(e){
-				this.opacity = 0.1;
-			});
-
 		}
-	
-
-		var moveControlPoint = function(UIControlPoint, e, p){
-			var dx = e.xrel / self._scale; //(e.x - UIControlPoint._x),
-				dy = e.yrel / self._scale; //(e.y - UIControlPoint._y);
-
-			UIControlPoint._x += dx;
-			UIControlPoint._y += dy;
-			UIControlPoint.x += dx;
-			UIControlPoint.y += dy;
-
-			//self["x"+p] += dx;
-			//self["y"+p] += dy;
-
-			self.w = Math.abs(self.x2 - self.x1);
-			self.h = Math.abs(self.y2 - self.y1);
-
-			self.g = {
-				x : self.x1>=self.x2 ? self.x2 : self.x1,
-				y : self.y1>=self.y2 ? self.y2 : self.y1
-			};
-		};
-
-		this.controlPoint1.addEventListener("drag", function(e){
-			moveControlPoint(this, e, 1);
-		}, false);
-
-		this.controlPoint2.addEventListener("drag", function(e){
-			moveControlPoint(this, e, 2);
-		}, false);
 
 	},
 
@@ -149,14 +95,7 @@ UIElement.extend("UILine", {
 	},
 
 	draw : function(){
-		this.w = Math.abs(this.x2 - this.x1);
-		this.h = Math.abs(this.y2 - this.y1);
-
-		
-		this.g = {
-			x : this.x1>=this.x2 ? this.x2 : this.x1,
-			y : this.y1>=this.y2 ? this.y2 : this.y1
-		};
+		this.updateParameters();
 
 		var params = {
 				x : this._x,
@@ -164,11 +103,6 @@ UIElement.extend("UILine", {
 				w : this.w,
 				h : this.h,
 			};
-
-		this.x1 = this.controlPoint1.x;
-		this.y1 = this.controlPoint1.y;
-		this.x2 = this.controlPoint2.x;
-		this.y2 = this.controlPoint2.y;
 		
 		/*
 		canvas.setColor("rgba(0, 0, 0, 0.5)");
@@ -182,7 +116,7 @@ UIElement.extend("UILine", {
 		*/
 
 		canvas.strokeStyle = this.color;
-		canvas.lineWidth = 1;
+		canvas.lineWidth = this.lineWidth;
 		
 		canvas.beginPath();
 		canvas.moveTo(params.x + this.x1, params.y + this.y1);
@@ -209,17 +143,15 @@ UIElement.extend("UILine", {
 });
 
 UIElement.extend("UIControlPoint", {
-	__construct : function(){
-		this.radius = this.options.radius || 2;
-		this.background = "rgba(255, 255, 255, 0.2)",
-		this.lineWidth = 2;
-		this.opacity = 0.5;
-	},
-
 	init : function(){
 		var self = this;
-		this.w = 12;
-		this.h = 12;
+		this.w = 16;
+		this.h = 16;
+
+		this.radius = OptionalNumber(this.options.radius, 3);
+		this.background = OptionalValue(this.options.background, "rgba(0, 0, 0, 0.5)"),
+		this.lineWidth = 1;
+		this.opacity = 0.5;
 
 		this.g = {
 			x : - this.w/2,
@@ -227,8 +159,30 @@ UIElement.extend("UIControlPoint", {
 		};
 
 		this.addEventListener("mousedown", function(e){
+			this.opacity = 1.00;
 			e.stopPropagation();
 		}, true);
+
+		this.addEventListener("mouseup", function(e){
+			this.set("opacity", 0.50, 90);
+			e.stopPropagation();
+		}, true);
+
+		this.addEventListener("dragstart", function(e){
+			this.opacity = 1.00;
+		}, false);
+
+		this.addEventListener("drag", function(e){
+			this.left += e.dx; // e.dx = e.xrel / this._scale
+			this.top += e.dy; // e.dy = e.yrel / this._scale
+			this.parent.fireEvent("change", e);
+			this.opacity = 1.00;
+			e.stopPropagation();
+		}, false);
+
+		this.addEventListener("dragend", function(e){
+			this.set("opacity", 0.50, 90);
+		});
 
 	},
 
@@ -251,8 +205,8 @@ UIElement.extend("UIControlPoint", {
 				h : this.h
 			};
 
-		canvas.roundbox(params.x-hx-1, params.y-hy-1, params.w+2, params.h+2, this.radius, '', 'rgba(0, 0, 0, 0.5)', this.lineWidth); // main view
-		canvas.roundbox(params.x-hx, params.y-hy, params.w, params.h, this.radius, this.background, 'rgba(255, 255, 255, 0.5)', this.lineWidth); // main view
+		canvas.roundbox(params.x-hx+2, params.y-hy+2, params.w-4, params.h-4, this.radius, '', "#000000", this.lineWidth); // main view
+		canvas.roundbox(params.x-hx+4, params.y-hy+4, params.w-8, params.h-8, 0, this.background, "#ffffff", this.lineWidth); // main view
 
 	}
 });

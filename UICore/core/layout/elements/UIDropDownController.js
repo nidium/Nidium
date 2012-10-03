@@ -6,10 +6,11 @@ UIElement.extend("UIDropDownController", {
 	init : function(){
 		var self = this;
 
-		this.w = 140;
-		this.h = 24;
-		
 		this.flags._canReceiveFocus = true;
+
+		this.w = OptionalNumber(this.options.w, 140);
+		this.h = OptionalNumber(this.options.h, 24);
+		
 		this.background = OptionalValue(this.options.background, '#191a18');
 		this.color = OptionalValue(this.options.color, "#ffffff");
 		this.selectedBackground = OptionalValue(this.options.selectedBackground, "#4D90FE");

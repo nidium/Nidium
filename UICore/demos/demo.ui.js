@@ -70,7 +70,7 @@ var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", backgrou
 	pasteButton = main.add("UIButton", {x:960, y:50, label:"Paste", background:"#111133", radius:6, fontSize:13, selected:false}),
 
 
-	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
+	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#fffffe", shadowBlur:26}),
 	overlayView = greenView.add("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
 	davidButton = greenView.add("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
 	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
@@ -123,7 +123,7 @@ pasteButton.addEventListener("mousedown", function(e){
 	textView.paste();
 });
 
-var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
+var line = overlayView.add("UILine", {x1:170, y1:16, x2:350, y2:200, split:"quadratic", color:"#ff0000", lineWidth:4});
 var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255, 0, 0, 0.2)", draggable:true});
 
 docButton1.addEventListener("mousedown", function(e){
