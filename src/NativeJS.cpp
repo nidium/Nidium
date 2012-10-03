@@ -189,8 +189,6 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
-static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
@@ -527,6 +525,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_FILLSTYLE:
         {
             if (JSVAL_IS_STRING(vp)) {
+
                 JSAutoByteString colorName(cx, JSVAL_TO_STRING(vp));
                 curSkia->setFillColor(colorName.ptr());
             } else if (!JSVAL_IS_PRIMITIVE(vp) && 

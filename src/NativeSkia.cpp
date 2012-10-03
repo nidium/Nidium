@@ -517,11 +517,12 @@ int NativeSkia::bindGL(int width, int height)
     //Draw Circle (X, Y, Size, Paint)
     canvas->drawCircle(100, 400, 50, paint);
     CANVAS_FLUSH();
-#endif
+
 PAINT->setImageFilter(new SkBlurImageFilter(10.0f, 10.0f))->unref();
     /*PAINT->setMaskFilter(SkBlurMaskFilter::Create(10,
                              SkBlurMaskFilter::kInner_BlurStyle,
                              SkBlurMaskFilter::kNone_BlurFlag));*/
+#endif
     return 1;
 }
 
@@ -712,7 +713,6 @@ void NativeSkia::setFillColor(const char *str)
     }
 
     PAINT->setColor(color);
-
 }
 
 void NativeSkia::setStrokeColor(const char *str)
@@ -949,17 +949,12 @@ void NativeSkia::translate(double x, double y)
     canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-SkPaint *NativeSkia::newPaintFromPaint(SkPaint *paint)
-{
-    return new SkPaint(*paint);
-}
-
 void NativeSkia::save()
 {
     struct _nativeState *nstate = new struct _nativeState;
 
-    nstate->paint = newPaintFromPaint(state->paint);
-    nstate->paint_stroke = newPaintFromPaint(state->paint_stroke);
+    nstate->paint = new SkPaint(*PAINT);
+    nstate->paint_stroke = new SkPaint(*PAINT_STROKE);
     nstate->next = state;
 
     state = nstate;
@@ -970,13 +965,16 @@ void NativeSkia::save()
 void NativeSkia::restore()
 {
     if (state->next) {
-        struct _nativeState *dstate = state;
-        delete dstate->paint;
-        delete dstate->paint_stroke;
-        state = dstate->next;
-        delete dstate;
-    }
+        struct _nativeState *dstate = state->next;
+        delete state->paint;
+        delete state->paint_stroke;
+        delete state;
 
+        state = dstate;
+    } else {
+        printf("Shouldnt be there\n");
+    }
+    
     canvas->restore();
 }
 
@@ -1048,11 +1046,15 @@ void NativeSkia::setLineJoin(const char *joinStyle)
 
 void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
 {
+    SkColor old = PAINT->getColor();
+    PAINT->setColor(SK_ColorBLACK);
+
     if (image->isCanvas) {
         image->canvasRef->readPixels(
             SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
             &image->img);
     }
+
     if (image->fixedImg != NULL) {
         image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
@@ -1060,6 +1062,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
         canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
     }
+    PAINT->setColor(old);
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }
@@ -1070,6 +1073,9 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     SkRect r;
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
+
+    SkColor old = PAINT->getColor();
+    PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
         image->canvasRef->readPixels(SkIRect::MakeSize(
@@ -1083,6 +1089,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     }
     canvas->drawBitmapRect(image->img, NULL, r, PAINT);
 
+    PAINT->setColor(old);
+
     CANVAS_FLUSH();
 }
 
@@ -1093,6 +1101,8 @@ void NativeSkia::drawImage(NativeSkImage *image,
     SkRect dst;
     SkIRect src;
 
+    SkColor old = PAINT->getColor();
+    PAINT->setColor(SK_ColorBLACK);
     /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
     src.setXYWH(sx, sy, swidth, sheight);
 
@@ -1109,6 +1119,8 @@ void NativeSkia::drawImage(NativeSkImage *image,
 
     canvas->drawBitmapRect(image->img,
         (image->isCanvas ? NULL : &src), dst, PAINT);
+
+    PAINT->setColor(old);
 
     CANVAS_FLUSH();
 }

@@ -115,7 +115,6 @@ class NativeSkia
         void restore();
         void redrawScreen();
         double measureText(const char *str, size_t length);
-        SkPaint *newPaintFromPaint(SkPaint *paint);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
