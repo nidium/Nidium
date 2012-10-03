@@ -141,11 +141,16 @@ docButton1.addEventListener("mousedown", function(e){
 });
 
 docButton2.addEventListener("mousedown", function(e){
-	redViewButton4.g = {
-		x : -redViewButton4.w/2,
-		y : -redViewButton4.h/2
+	var o = redViewButton4;
+
+	o.transformOrigin = {
+		x : o._x + o.w/2,
+		y : o._y + o.h/2
 	};
-	redViewButton4.set("scale", 1.2, 350);
+
+	console.log(o.transformOrigin);
+
+	o.set("scale", 1.2, 350);
 });
 
 docButton3.addEventListener("mousedown", function(e){

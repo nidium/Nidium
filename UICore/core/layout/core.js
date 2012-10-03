@@ -444,6 +444,21 @@ UIView.prototype = {
 		this._y += dy;
 		this.y += dy;
 		NativeRenderer.refresh();
+	},
+
+	get transformOrigin() {
+  		return this._g;
+	},
+
+	set transformOrigin(g) {
+		var ox = this.g.x,
+			oy = this.g.y;
+
+		this.g = {
+			x : OptionalNumber(g.x, ox) - this._x - this.w/2,
+			y : OptionalNumber(g.y, oy) - this._y - this.h/2
+		}
+		NativeRenderer.refresh();
 	}
 
 };

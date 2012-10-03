@@ -32,7 +32,6 @@
 
 canvas.implement({
 	blur : function(wx, wy, w, h, pass){
-		return false;
 		var r = 1,
 			offscreen = new Canvas(w, h);
 

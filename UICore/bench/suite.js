@@ -1,15 +1,15 @@
 /* -------------------------- */
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
-/*
-BenchThis("JS canvas.blur (GetImage + ImageData)", 500, function(i){
-	canvas.blur(10, 10, 100, 80, 1);
+
+
+BenchThis("JS canvas.blur (GetImage + ImageData)", 50, function(i){
+	canvas.blur(0, 0, 1024, 768, 1);
 });
 
-BenchThis("JS canvas.blur (drawImage)", 500, function(i){
-	canvas.fastblur(10, 10, 100, 80, 1);
+BenchThis("JS canvas.blur (drawImage)", 50, function(i){
+	canvas.fastblur(0, 0, 1024, 768, 1);
 });
-*/
 
 /*
 
