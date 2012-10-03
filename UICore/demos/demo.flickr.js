@@ -15,15 +15,12 @@ if (ev.type == "json") {
 	for (let i = 0; i < ev.data.photos.photo.length; i++) {
 		let item = ev.data.photos.photo[i];
 		let iurl = 'http://farm' + item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '_n.jpg';
-		var p = new Http(iurl);
-		p.request(function(e) {
-			if (e.type == "image") {
-				canvas.drawImage(e.data, Math.random()*300, Math.random()*300);
-				ilist.push(e.data);
-			}
-			else
-				echo("Not an Image", e.type, e.data);
-		});
+		var img = new Image();
+		img.src = iurl;
+		img.onload = function() {
+			canvas.drawImage(this, Math.random()*300, Math.random()*300);
+			ilist.push(this);			
+		}
 	}
 } else {
 	echo("failed");
