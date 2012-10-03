@@ -21,55 +21,55 @@ var UIView = function(type, options, parent){
 		return p;
 	};
 
+	var o = this.options;
+
 	this._uid = "_obj_" + NativeRenderer.objID++;
 	this.id = _get("id", this._uid);
 
 	this.type = OptionalString(type, 'UIView');
-	this.name = OptionalString(this.options.name, "");
-	this.text = OptionalString(this.options.text, "");
-	this.label = OptionalString(this.options.label, "Default");
+	this.name = OptionalString(o.name, "");
+	this.text = OptionalString(o.text, "");
+	this.label = OptionalString(o.label, "Default");
 
 	this._eventQueues = [];
 
 	// -- coordinate properties
-	this.x = _get("x", 0);
-	this.y = _get("y", 0);
-	this.w = this.options.w ? this.options.w : this.parent ? this.parent.w : canvas.width;
-	this.h = this.options.h ? this.options.h : this.parent ? this.parent.h : canvas.height;
+	this.x = OptionalNumber(o.x, 0);
+	this.y = OptionalNumber(o.y, 0);
+	this.w = o.w ? o.w : this.parent ? this.parent.w : canvas.width;
+	this.h = o.h ? o.h : this.parent ? this.parent.h : canvas.height;
 
 	this.rotate = 0;
-	this.scale = _get("scale", 1, 0, 1000);
-	this.zIndex = _get("zIndex", 0);
-	this.opacity = _get("zIndex", 1, 0, 1);
+	this.scale = OptionalNumber(o.scale, 1);
+	this.zIndex = OptionalNumber(o.zIndex, 0);
+	this.opacity = OptionalNumber(o.opacity, 1);
 
 	// -- misc flag
 	this.hover = false;
 	this.hasFocus = false;
-	this.visible = OptionalBoolean(this.options.visible, true);
-	this.selected = OptionalBoolean(this.options.selected, false);
-	this.draggable = OptionalBoolean(this.options.draggable, false);
+	this.visible = OptionalBoolean(o.visible, true);
+	this.selected = OptionalBoolean(o.selected, false);
+	this.draggable = OptionalBoolean(o.draggable, false);
 
 	// -- style properties
-	this.blur = OptionalNumber(this.options.blur, 0);
+	this.blur = OptionalNumber(o.blur, 0);
 
-	this.backgroundBlur = OptionalNumber(this.options.backgroundBlur, 0);
-	this.background = OptionalValue(this.options.background, '');
+	this.backgroundBlur = OptionalNumber(o.backgroundBlur, 0);
+	this.background = OptionalValue(o.background, '');
 
-	this.color = OptionalValue(this.options.color, '');
-	this.radius = _get("radius", 0, 0);
-	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
-	this.lineWidth = _get("lineWidth", 1, 0);
-	this.lineHeight = _get("lineHeight", 18, 1, this.fontSize);
-	this.fontSize = _get("fontSize", 12, 0, 74);
-	this.fontType = _get("fontType", "arial");
+	this.color = OptionalValue(o.color, '');
+	this.radius = OptionalNumber(o.radius, 0, 0);
+	this.shadowBlur = OptionalNumber(o.shadowBlur, 0);
+	this.lineWidth = OptionalNumber(o.lineWidth, 1);
+	this.lineHeight = OptionalNumber(o.lineHeight, 18);
+	this.fontSize = OptionalNumber(o.fontSize, 12);
+	this.fontType = OptionalString(o.fontType, "arial");
 
-	var align = OptionalString(this.options.textAlign, 'left').toLowerCase();
+	var align = OptionalString(o.textAlign, 'left').toLowerCase();
 	this.textAlign = align && (align=="left" || align=="right" ||
 					 align=="justify" || align=="center") ? align : 'left';
 
-
-	this.callback = OptionalCallback(this.options.callback, null);
-
+	this.callback = OptionalCallback(o.callback, null);
 
 	this._rIndex = this.parent ? NativeRenderer.getHigherZindex() + 1 : 0;
 

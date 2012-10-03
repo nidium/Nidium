@@ -55,6 +55,37 @@ canvas.implement({
 	}
 });
 
+/* --------------------------------------------------------------------------- */
+
+/* -- Debug Button --
+ * 
+ *	syntaxe : 
+ *	DB(function(){
+ *		Do Something On Click
+ *	});
+ * 
+ */
+
+var DB = function(cb){
+	if (!NativeRenderer.rootElement) return false;
+	if (!this.DebugButton){
+		this.DebugButton = NativeRenderer.rootElement.add("UIButton", {
+			x : 970,
+			y : 744,
+			h : 16,
+			label : "debug",
+			color : "#000000",
+			background : "#ff9900",
+			radius : 2,
+			fontSize : 10,
+			lineHeight : 6
+		});
+	}
+	this.DebugButton.addEventListener("mousedown", function(e){
+		cb.call(this);
+		e.stopPropagation();
+	}, false);
+};
 
 /* --------------------------------------------------------------------------- */
 
