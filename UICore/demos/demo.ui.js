@@ -182,7 +182,15 @@ greenView.addEventListener("mousedown", function(e){
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
-	this.scale = e.y>=(canvas.height/2) ? 1 : (e.y/(canvas.height/2));
+
+	this.transformOrigin = {
+		x : e.x,
+		y : e.y
+	};
+
+	var v = e.y>=(canvas.height/2) ? 1 : (e.y/(canvas.height/2));
+	this.scale = v;
+	this.opacity = v;
 });
 
 brique.addEventListener("dragstart", function(e){
