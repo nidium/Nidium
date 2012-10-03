@@ -161,8 +161,8 @@ int NativeHTTP::ParseURI(char *url, char *host,
 }
 
 NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
-    host(NULL), path(NULL), port(0),
-    err(0), net(n), delegate(NULL), ptr(NULL)
+    ptr(NULL), net(n), host(NULL), path(NULL), port(0),
+    err(0), delegate(NULL)
 {
     size_t url_len = strlen(url);
     char *durl = strdup(url);
@@ -239,6 +239,10 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
         printf("[Socket] Cant connect (0)\n");
         return 0;
     }
+
+    socket->callbacks.on_connected = native_http_connected;
+    socket->callbacks.on_read = native_http_read;
+    socket->callbacks.on_disconnect = native_http_disconnect;
 
     socket->ctx = this;
     this->delegate = delegate;
