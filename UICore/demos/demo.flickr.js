@@ -5,7 +5,7 @@
 var tag = "cat";
 
 
-var ilist = [];
+var ilist = new Set();
 
 var h = new Http("http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=94772f188a7f918c9d3116cae17d43b8&tags="+encodeURIComponent(tag)+"&format=json&nojsoncallback=1&per_page=500");
 h.request(function(ev) {
@@ -19,7 +19,7 @@ if (ev.type == "json") {
 		img.src = iurl;
 		img.onload = function() {
 			canvas.drawImage(this, Math.random()*300, Math.random()*300);
-			ilist.push(this);			
+			ilist.add(this);		
 		}
 	}
 } else {
@@ -41,7 +41,7 @@ canvas.requestAnimationFrame(function() {
 	canvas.fillRect(0, 0, canvas.width, canvas.height);
 	canvas.globalAlpha = 1;
 
-	for (var i = 0; i < ilist.length; i++) {
-		canvas.drawImage(ilist[i], Math.random()*1024, Math.random()*768);
+	for (let i of ilist) {
+		canvas.drawImage(i, Math.random()*1024, Math.random()*768);
 	}
 });
