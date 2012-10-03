@@ -1,6 +1,7 @@
 #include "NativeHTTP.h"
 #include "ape_http_parser.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <string.h>
 
 #define HTTP_PREFIX "http://"
 #define SOCKET_WRITE_STATIC(data) APE_socket_write(s, \
