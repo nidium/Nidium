@@ -48,7 +48,6 @@ var win = main.add("UIWindow", {
 	y : 100,
 	w : 300,
 	h : 200,
-	background : "rgba(100, 100, 255, 0.2)",
 	resizable : true,
 	closeable : true,
 	movable : true
@@ -146,15 +145,15 @@ docButton2.addEventListener("mousedown", function(e){
 		x : -redViewButton4.w/2,
 		y : -redViewButton4.h/2
 	};
-	redViewButton4.bounceScale(1.2, 350, function(){});
+	redViewButton4.set("scale", 1.2, 350);
 });
 
 docButton3.addEventListener("mousedown", function(e){
-	davidButton.bounceScale(davidButton.scale+1, 150, function(){});
+	davidButton.set("scale", davidButton.scale+1, 150, function(){});
 });
 
 docButton4.addEventListener("mousedown", function(e){
-	greenView.fadeOut(200, function(){});
+	greenView.fadeOut(200);
 });
 
 docButton5.addEventListener("mousedown", function(e){
@@ -164,6 +163,7 @@ docButton5.addEventListener("mousedown", function(e){
 
 docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
+	greenView.hide();
 });
 
 

@@ -7,11 +7,10 @@ UIElement.extend("UIWindow", {
 		var self = this;
 
 		this.flags._canReceiveFocus = true;
-		this.background = OptionalValue(this.options.background, "#191a18");
-		this.color = this.options.color || "#ffffff";
-		this.name = this.options.name || "Default";
-		this.shadowBlur = this.options.shadowBlur || 12;
-		this.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+		this.color = OptionalValue(this.options.color, "#ffffff");
+		this.name = OptionalString(this.options.name, "Default");
+		this.shadowBlur = OptionalNumber(this.options.shadowBlur, 12);
+		this.shadowColor = OptionalValue(this.options.shadowColor, "rgba(0, 0, 0, 0.5)");
 
 		this.addEventListener("mousedown", function(e){
 			this.bringToTop();

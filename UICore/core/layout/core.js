@@ -15,8 +15,8 @@ var UIView = function(type, options, parent){
 	var _get = function(property, defaultValue, min, max){
 		var p = view.options[property] ? view.options[property] : defaultValue;
 		if (typeof p == "number") {
-			p = (typeof min != "undefined") ? Math.max(min, p) : p;
-			p = (typeof max != "undefined") ? Math.min(max, p) : p;
+			p = (min != undefined) ? Math.max(min, p) : p;
+			p = (max != undefined) ? Math.min(max, p) : p;
 		}
 		return p;
 	};
@@ -24,10 +24,10 @@ var UIView = function(type, options, parent){
 	this._uid = "_obj_" + NativeRenderer.objID++;
 	this.id = _get("id", this._uid);
 
-	this.type = type ? type : "UIView";
-	this.name = _get("name", "");
-	this.text = _get("text", "");
-	this.label = _get("label", "Default");
+	this.type = OptionalString(type, 'UIView');
+	this.name = OptionalString(this.options.name, "");
+	this.text = OptionalString(this.options.text, "");
+	this.label = OptionalString(this.options.label, "Default");
 
 	this._eventQueues = [];
 
@@ -42,6 +42,33 @@ var UIView = function(type, options, parent){
 	this.zIndex = _get("zIndex", 0);
 	this.opacity = _get("zIndex", 1, 0, 1);
 
+	// -- misc flag
+	this.hover = false;
+	this.hasFocus = false;
+	this.visible = OptionalBoolean(this.options.visible, true);
+	this.selected = OptionalBoolean(this.options.selected, false);
+	this.draggable = OptionalBoolean(this.options.draggable, false);
+
+	// -- style properties
+	this.blur = OptionalNumber(this.options.blur, 0);
+	this.background = OptionalValue(this.options.background, '');
+
+	this.color = OptionalValue(this.options.color, '');
+	this.radius = _get("radius", 0, 0);
+	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
+	this.lineWidth = _get("lineWidth", 1, 0);
+	this.lineHeight = _get("lineHeight", 18, 1, this.fontSize);
+	this.fontSize = _get("fontSize", 12, 0, 74);
+	this.fontType = _get("fontType", "arial");
+
+	var align = OptionalString(this.options.textAlign, 'left').toLowerCase();
+	this.textAlign = align && (align=="left" || align=="right" ||
+					 align=="justify" || align=="center") ? align : 'left';
+
+
+	this.callback = OptionalCallback(this.options.callback, null);
+
+
 	this._rIndex = this.parent ? NativeRenderer.getHigherZindex() + 1 : 0;
 
 	// -- dynamic properties (properties prefixed by _ inherits from parent at draw time)
@@ -51,6 +78,7 @@ var UIView = function(type, options, parent){
 	this._y = this.y;
 	this._opacity = this.opacity;
 	this._zIndex = this._rIndex + this.zIndex;
+	this._visible = this.visible;
 
 	// -- transform matrix inheritance (experimental)
 	this.g = {
@@ -97,32 +125,6 @@ var UIView = function(type, options, parent){
 		w : 0,
 		h : 0
 	};
-
-	// -- misc flag
-	this.hover = false;
-	this.hasFocus = false;
-	this.visible = OptionalBoolean(this.options.visible, true);
-	this.selected = OptionalBoolean(this.options.selected, false);
-	this.draggable = OptionalBoolean(this.options.draggable, false);
-
-	// -- style properties
-	this.blur = OptionalNumber(this.options.blur, 0);
-	this.background = OptionalValue(this.options.background, '');
-
-	this.color = OptionalValue(this.options.color, '');
-	this.radius = _get("radius", 0, 0);
-	this.shadowBlur = _get("shadowBlur", 0, 0, 128);
-	this.lineWidth = _get("lineWidth", 1, 0);
-	this.lineHeight = _get("lineHeight", 18, 1, this.fontSize);
-	this.fontSize = _get("fontSize", 12, 0, 74);
-	this.fontType = _get("fontType", "arial");
-
-	var align = OptionalString(this.options.textAlign, 'left').toLowerCase();
-	this.textAlign = align && (align=="left" || align=="right" ||
-					 align=="justify" || align=="center") ? align : 'left';
-
-
-	this.callback = OptionalCallback(this.options.callback, null);
 
 	// -- launch view constructor and init dynamic properties
 	this.__construct();
@@ -223,6 +225,8 @@ UIView.prototype = {
 		this._y = p ? p._y + this.y : this.y;
 		this._opacity = p ? p._opacity * this.opacity : this.opacity;
 		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : this._rIndex + this.zIndex;
+		this._visible = p ? p._visible && this.visible : this.visible;
+
 
 		// rotation inheritance
 		this._protate = p ? p._rotate : this.rotate;
