@@ -511,6 +511,7 @@ var Application = function(options){
 
 				canvas.drawImage(bgCanvas, 0, 0);
 				NativeRenderer.draw();
+
 				//NativeRenderer.grid();
 			} 
 	 		FPS.show();

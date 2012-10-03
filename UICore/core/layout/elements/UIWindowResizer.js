@@ -31,7 +31,6 @@ UIElement.extend("UIWindowResizer", {
 			this.hover = false;
 		});
 
-
 		this.addEventListener("drag", function(e){
 			var win = this.parent;
 

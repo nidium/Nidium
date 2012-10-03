@@ -7,7 +7,14 @@ Math.distance = function(x1, y1, x2, y2){
 		b = (x2 - x1);
 	return Math.sqrt(a*a+b*b);
 };
-
+/*
+canvas.save = function(){};
+canvas.restore = function(){};
+canvas.clip = function(){};
+canvas.scale = function(){};
+canvas.translate = function(){};
+canvas.rotate = function(){};
+*/
 /* --------------------------------------------------------------------------- */
 
 var window = {
@@ -31,13 +38,11 @@ canvas.implement({
 	currentFontSize : '',
 
 	setColor : function(color){
-		if (this.currentColor == color) return false;
 		this.currentColor = color;
 		this.fillStyle = color;
 	},
 
 	setFontSize : function(fontSize){
-		if (this.currentFontSize == fontSize) return false;
 		this.currentFontSize = fontSize;
 		this.fontSize = fontSize;
 	},
@@ -259,13 +264,13 @@ var FPS = {
 		if (this.count%30==0){
 			this.old = Math.round((r-0.1)*10)/10;
 		} 				
-
+		
 		canvas.setColor("#000000");
 		canvas.fillRect(0, canvas.height-40, 60, 30);
 		canvas.fillRect(0, 280, 50, 30);
 		canvas.setColor("yellow");
 		canvas.fillText(this.old + " ms", 5, canvas.height-20);
-
+		
 		return r;
 	}
 };
