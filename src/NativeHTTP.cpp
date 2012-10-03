@@ -115,7 +115,7 @@ static void native_http_read(ape_socket *s, ape_global *ape)
     }
 }
 
-int NativeHTTP::ParseURI(char *url, char *host,
+int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
     u_short *port, char *file)
 {
     char *p;
@@ -128,9 +128,8 @@ int NativeHTTP::ParseURI(char *url, char *host,
     }
 
     url += len;
-
-    /* We might overrun */
-    strncpy(host, url, 1023);
+    
+    memcpy(host, url, (url_len-len));
 
     p = strchr(host, '/');
     if (p != NULL) {
@@ -165,15 +164,19 @@ NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
     err(0), delegate(NULL)
 {
     size_t url_len = strlen(url);
-    char *durl = strdup(url);
+    char *durl = (char *)malloc(sizeof(char) * (url_len+1));
 
-    host = (char *)malloc(sizeof(char) * url_len);
-    path = (char *)malloc(sizeof(char) * url_len);
+    memcpy(durl, url, url_len+1);
 
-    if (ParseURI(durl, host, &port, path) == -1) {
+    host = (char *)malloc(url_len+1);
+    path = (char *)malloc(url_len+1);
+    memset(host, 0, url_len+1);
+    memset(path, 0, url_len+1);
+
+    if (ParseURI(durl, url_len, host, &port, path) == -1) {
         err = 1;
-        memset(host, 0, url_len);
-        memset(path, 0, url_len);
+        memset(host, 0, url_len+1);
+        memset(path, 0, url_len+1);
         port = 0;
     }
 

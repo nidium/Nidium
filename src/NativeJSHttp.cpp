@@ -39,6 +39,8 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
 
+    jshttp->cx = cx;
+
     JS_SetPrivate(ret, nhttp);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
