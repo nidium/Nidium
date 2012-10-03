@@ -292,7 +292,9 @@ var UIEvents = {
 
 		if (eventName=="drag"){
 			e.source = this.__dragSourceElement;
-			e.source && e.source.fireEvent("drag", e);
+			if (e.source) {
+				e.source.fireEvent("drag", e);
+			}
 		}
 
 
@@ -304,6 +306,8 @@ UIView.implement({
 	fireEvent : function(eventName, e){
 		canvas.__mustBeDrawn = true;
 		if (typeof this["on"+eventName] == 'function'){
+			e.dx = e.xrel / this._scale;
+			e.dy = e.yrel / this._scale;
 			this["on"+eventName](e);
 		}
 	},
