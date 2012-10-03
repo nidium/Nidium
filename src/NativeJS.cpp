@@ -1635,8 +1635,8 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
 
-    if (params == NULL) {
-        return JS_FALSE;
+    if (params == NULL || argc < 2) {
+        return JS_TRUE;
     }
 
     params->cx = cx;
@@ -1683,8 +1683,8 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 
     params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
 
-    if (params == NULL) {
-        return JS_FALSE;
+    if (params == NULL || argc < 2) {
+        return JS_TRUE;
     }
 
     params->cx = cx;
