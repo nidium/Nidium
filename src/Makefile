@@ -31,7 +31,7 @@ CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I../mozilla/js/src/dist/include/ \
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp NativeSharedMessages.cpp NativeJSExposer.cpp NativeJSSocket.cpp NativeJSThread.cpp NativeJSHttp.cpp NativeJSImage.cpp
+SOURCES=NativeJS.cpp NativeSkia.cpp NativeSkGradient.cpp NativeSkImage.cpp NativeShadowLooper.cpp NativeSharedMessages.cpp NativeJSExposer.cpp NativeJSSocket.cpp NativeJSThread.cpp NativeHTTP.cpp NativeJSHttp.cpp NativeJSImage.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a
 

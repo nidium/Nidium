@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-var tag = "smoke";
+var tag = "cat";
 
 
 var ilist = [];

@@ -1102,6 +1102,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
     SkIRect src;
 
     SkColor old = PAINT->getColor();
+    /* DrawImage must not takes the paint alpha */
     PAINT->setColor(SK_ColorBLACK);
     /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
     src.setXYWH(sx, sy, swidth, sheight);
