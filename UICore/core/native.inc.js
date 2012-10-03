@@ -104,7 +104,7 @@ var NativeRenderer = {
 		if (canvas.__mustBeDrawn || true) {
 			for (var i=0; i<z.length; i++){
 				z[i].refresh();
-				if (z[i]._visible){
+				if (z[i].isVisible()){
 					z[i].beforeDraw();
 					z[i].draw();
 					z[i].afterDraw();

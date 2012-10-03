@@ -15,8 +15,8 @@ var UIView = function(type, options, parent){
 	var _get = function(property, defaultValue, min, max){
 		var p = view.options[property] ? view.options[property] : defaultValue;
 		if (typeof p == "number") {
-			p = (min != undefined) ? Math.max(min, p) : p;
-			p = (max != undefined) ? Math.min(max, p) : p;
+			p = (min != undefined) ? Math.max(Number(min), Number(p)) : Number(p);
+			p = (max != undefined) ? Math.min(Number(max), Number(p)) : Number(p);
 		}
 		return p;
 	};
@@ -51,6 +51,8 @@ var UIView = function(type, options, parent){
 
 	// -- style properties
 	this.blur = OptionalNumber(this.options.blur, 0);
+
+	this.backgroundBlur = OptionalNumber(this.options.backgroundBlur, 0);
 	this.background = OptionalValue(this.options.background, '');
 
 	this.color = OptionalValue(this.options.color, '');
@@ -270,8 +272,8 @@ UIView.prototype = {
 			canvas.clip();
 		}
 
-		if (this.blur){
-			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, 3);
+		if (this.backgroundBlur){
+			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.backgroundBlur);
 		}
 
 		var DX = this._g.x - this.t._x,
