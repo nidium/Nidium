@@ -218,6 +218,7 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_set)},
     {"shadowColor", CANVAS_PROP_SHADOWCOLOR, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas_prop_set)},
+    /* TODO : cache (see https://bugzilla.mozilla.org/show_bug.cgi?id=786126) */
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT, JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
     {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT, JSOP_WRAPPER(native_canvas_prop_get),
