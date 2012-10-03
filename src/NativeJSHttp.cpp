@@ -23,6 +23,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *url;
     NativeHTTP *nhttp;
+    NativeJSHttp *jshttp;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Http_class, vp);
 
@@ -34,7 +35,9 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     nhttp = new NativeHTTP(curl.ptr(), (ape_global *)JS_GetContextPrivate(cx));
 
-    nhttp->setPrivate(new NativeJSHttp());
+    jshttp = new NativeJSHttp();
+    nhttp->setPrivate(jshttp);
+    jshttp->refHttp = nhttp;
 
     JS_SetPrivate(ret, nhttp);
 
@@ -156,9 +159,15 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 }
 
 NativeJSHttp::NativeJSHttp()
-    : request(JSVAL_NULL)
+    : request(JSVAL_NULL), refHttp(NULL)
 {
 }
 
+NativeJSHttp::~NativeJSHttp()
+{
+    if (refHttp) {
+        delete refHttp;
+    }
+}
 
 NATIVE_OBJECT_EXPOSE(Http)
