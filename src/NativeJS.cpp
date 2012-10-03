@@ -7,8 +7,10 @@
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
-#include <native_netlib.h>
+#include "NativeJSNative.h"
+
 #include "SkImageDecoder.h"
+
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
@@ -1181,15 +1183,19 @@ void NativeJS::callFrame()
 {
     jsval rval;
     char fps[16];
+
     //JS_MaybeGC(cx);
     //JS_GC(JS_GetRuntime(cx));
     //NSKIA->save();
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
-    sprintf(fps, "%d fps", currentFPS);
-    //printf("Fps : %s\n", fps);
-    nskia->system(fps, 5, 300);
+
+    if (NativeJSNative::showFPS) {
+        sprintf(fps, "%d fps", currentFPS);
+        //printf("Fps : %s\n", fps);
+        nskia->system(fps, 5, 300);
+    }
     //NSKIA->restore();
 }
 
@@ -1584,9 +1590,10 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSThread::registerObject(cx);
     /* Http() object */
     NativeJSHttp::registerObject(cx);
-
     /* Image() object */
     NativeJSImage::registerObject(cx);
+    /* Native() object */
+    NativeJSNative::registerObject(cx);
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
