@@ -23,7 +23,7 @@ class NativeHTTP
     } native_http_data_type;
 
     ape_global *net;
-
+    ape_socket *currentSock;
     char *host;
     char *path;
     u_short port;

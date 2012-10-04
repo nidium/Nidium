@@ -3,12 +3,14 @@
 /* -------------------------- */
 
 
-BenchThis("JS canvas.blur (GetImage + ImageData)", 10, function(i){
-	canvas.blur(0, 0, 1024, 768, 1);
+
+BenchThis("SpiderMonkey Math.sin()", 3000000, function(i){
+	Math.acos(i);
 });
 
-BenchThis("JS canvas.blur (drawImage)", 10, function(i){
-	canvas.fastblur(0, 0, 1024, 768, 1);
+
+BenchThis("FastMath.sin()", 3000000, function(i){
+	FastMath.acos(i);
 });
 
 

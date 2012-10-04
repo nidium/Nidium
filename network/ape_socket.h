@@ -169,6 +169,7 @@ int APE_socket_write(ape_socket *socket, unsigned char *data,
 	size_t len, ape_socket_data_autorelease data_type);
 int APE_socket_destroy(ape_socket *socket);
 void APE_socket_shutdown(ape_socket *socket);
+void APE_socket_shutdown_now(ape_socket *socket);
 int APE_sendfile(ape_socket *socket, const char *file);
 int ape_socket_do_jobs(ape_socket *socket);
 inline int ape_socket_accept(ape_socket *socket);
