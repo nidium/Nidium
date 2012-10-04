@@ -91,11 +91,8 @@ var DOMElement = function(type, options, parent){
 		y : 0
 	};
 
-	// -- events flags
+	// -- misc flags
 	this.flags = {
-		_mouseoverCalled : false,
-		_mouseoutCalled : false,
-		_dragendCallend : false,
 		_canReceiveFocus : false,
 		_outlineOnFocus : true
 	};
@@ -217,7 +214,10 @@ DOMElement.prototype = {
 		this._x = p ? p._x + this.x : this.x;
 		this._y = p ? p._y + this.y : this.y;
 		this._opacity = p ? p._opacity * this.opacity : this.opacity;
-		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : this._rIndex + this.zIndex;
+
+		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : 
+						   this._rIndex + this.zIndex;
+
 		this._visible = p ? p._visible && this.visible : this.visible;
 
 

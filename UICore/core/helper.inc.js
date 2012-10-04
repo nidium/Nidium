@@ -56,8 +56,8 @@ Number.prototype.format = function(decimals, d, t){
 	var number = (this + '').replace(/[^0-9+\-Ee.]/g, ''),
 		n = !isFinite(+number) ? 0 : +number,
 		prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
-		sep = (t === undefined) ? ',' : t,
-		dec = (d === undefined) ? '.' : d,
+		sep = t === undefined ? ',' : t,
+		dec = d === undefined ? '.' : d,
 		s = '',
 		toFixedFix = function (n, prec){
 			var k = Math.pow(10, prec);
