@@ -45,7 +45,7 @@ static JSFunctionSpec socket_funcs[] = {
 };
 
 static JSPropertySpec Socket_props[] = {
-    {"isBinary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
+    {"binary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_socket_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
@@ -291,7 +291,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
 
-    JS_SetProperty(cx, ret, "isBinary", &isBinary);
+    JS_SetProperty(cx, ret, "binary", &isBinary);
 
     return JS_TRUE;
 }

@@ -79,7 +79,7 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
 void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSImage *img = (class NativeJSImage *)JS_GetPrivate(obj);
+    NativeJSImage *img = NATIVE_IMAGE_GETTER(obj);
     if (img != NULL) {
         delete img;
     }
@@ -151,6 +151,8 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     nimg->img   = image;
     nimg->jsobj = ret;
     nimg->cx    = cx;
+
+    JS_SetPrivate(ret, nimg);
 
     JS_DefineProperty(cx, ret, "width",
         INT_TO_JSVAL(image->getWidth()), NULL, NULL,
