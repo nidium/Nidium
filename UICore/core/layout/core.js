@@ -70,7 +70,7 @@ var DOMElement = function(type, options, parent){
 	this._y = this.y;
 	this._opacity = this.opacity;
 
-	this._rIndex = this.parent ? 0 : 0;
+	this._rIndex = 0;
 	this._zIndex = this._rIndex + this.zIndex;
 
 	this._visible = this.visible;

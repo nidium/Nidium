@@ -120,7 +120,8 @@ for (var s=0; s<nb_sliders; s++){
 		background : '#161712',
 		color : '#111111',
 		boxColor : 'rgba(0, 0, 0, 1)',
-		progressBarColor : gdSpectrum,
+		progressBarColor : "#003300",
+		//progressBarColor : gdSpectrum,
 		splitColor : 'rgba(60, 60, 60, 0.40)',
 		ease : FXAnimation.easeInCubic,
 		radius : 3,
@@ -129,7 +130,6 @@ for (var s=0; s<nb_sliders; s++){
 		value : 0
 	});
 }
-
 
 setTimeout(function(){
 	slider1.setValue(-50, 400);

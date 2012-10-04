@@ -8,9 +8,9 @@ Native.elements.export("UITabController", {
 
 		this.w = this.parent.w;
 		this.h = 32;
-		this.background = this.options.background || "";
-		this.name = this.options.name || "Default";
-		this.overlap = 12;
+		this.background = OptionalValue(this.options.background, "");
+		this.name = OptionalString(this.options.name, "Default");
+		this.overlap = OptionalNumber(this.options.overlap, 14);
 		this.selection = false;
 		this.position = false;
 

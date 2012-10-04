@@ -96,19 +96,30 @@ var	tabController = greenView.add("UITabController", {
 	]
 });
 
+var	slider = main.add("UISliderController", {
+	x : 908,
+	y : 10,
+	background : '#161712',
+	color : 'rgba(255, 40, 210, 1)',
+	disabled : false,
+	radius : 2,
+	min : 4,
+	max : 18,
+	value : 14
+});
+
+slider.addEventListener("change", function(value){
+	mainTabController.overlap = value;
+	mainTabController.resetTabs();
+}, false);
+
+
+
 /* ------------------------------------------------- */
 
 
 DBT(function(){
-	var	element = tabController,
-		tabs = element.taborder,
-		nbtabs = tabs.length;
-
-	for (var i=0; i<nbtabs; i++){
-		var t = tabs[i];
-		echo(element.tabs[t].closeButton.zIndex, element.tabs[t].closeButton._zIndex);
-	}
-	echo("");
+	echo("Nothing to debug.");
 });
 
 var s = textView.setCaret(70, 50);
