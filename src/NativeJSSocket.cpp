@@ -494,6 +494,7 @@ NativeJSSocket::~NativeJSSocket()
 {
 	if (isAttached()) {
 		socket->ctx = NULL;
+        this->destroy();
 	}
     free(host);
 }
@@ -525,7 +526,7 @@ void NativeJSSocket::write(unsigned char *data, size_t len,
 
 void NativeJSSocket::destroy()
 {
-	APE_socket_destroy(socket);
+	APE_socket_shutdown_now(socket);
 }
 
 void NativeJSSocket::shutdown()

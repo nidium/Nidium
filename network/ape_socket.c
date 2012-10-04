@@ -263,6 +263,11 @@ void APE_socket_shutdown(ape_socket *socket)
     }
 }
 
+void APE_socket_shutdown_now(ape_socket *socket)
+{
+    ape_socket_shutdown_force(socket);
+}
+
 static void ape_socket_shutdown_force(ape_socket *socket)
 {
     if (socket->states.state != APE_SOCKET_ST_ONLINE) {

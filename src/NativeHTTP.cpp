@@ -234,6 +234,8 @@ void NativeHTTP::requestEnded()
         http.headers.tval = NULL;
         http.headers.tkey = NULL;
         http.headers.list = NULL;
+
+        APE_socket_shutdown(currentSock);
     } 
 }
 
@@ -257,6 +259,7 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
 
     socket->ctx = this;
     this->delegate = delegate;
+    this->currentSock = socket;
 
     return 1;
 }
@@ -272,5 +275,7 @@ NativeHTTP::~NativeHTTP()
         buffer_destroy(http.data);
 
         ape_array_destroy(http.headers.list);
+        APE_socket_shutdown(currentSock);
+        currentSock->ctx = NULL;
     }
 }
