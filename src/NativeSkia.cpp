@@ -22,8 +22,6 @@
 
 #include "GrGLRenderTarget.h"
 
-
-#include "SkGpuCanvas.h"
 #include "gl/SkNativeGLContext.h"
 
 #include "SkGraphics.h"
