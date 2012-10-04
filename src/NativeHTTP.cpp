@@ -227,6 +227,13 @@ void NativeHTTP::requestEnded()
         buffer_destroy(http.headers.tkey);
         buffer_destroy(http.headers.tval);
         buffer_destroy(http.data);
+
+        ape_array_destroy(http.headers.list);
+
+        http.data = NULL;
+        http.headers.tval = NULL;
+        http.headers.tkey = NULL;
+        http.headers.list = NULL;
     } 
 }
 
@@ -258,4 +265,12 @@ NativeHTTP::~NativeHTTP()
 {
     free(host);
     free(path);
+
+    if (!http.ended && http.data != NULL) {
+        buffer_destroy(http.headers.tkey);
+        buffer_destroy(http.headers.tval);
+        buffer_destroy(http.data);
+
+        ape_array_destroy(http.headers.list);
+    }
 }
