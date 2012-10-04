@@ -130,7 +130,7 @@ canvas.onkeydown = function(e){
 	UIEvents.dispatch("keydown", e);
 
 	if (e.keyCode == 9) {
-		NativeRenderer.focusNextElement();
+		Native.layout.focusNextElement();
 	}
 };
 
@@ -193,7 +193,7 @@ var UIEvents = {
 			y = e.y,
 			elements = [];
 
-		var z = NativeRenderer.getElements();
+		var z = Native.layout.getElements();
 
 		var cancelBubble = false;
 
@@ -302,7 +302,7 @@ var UIEvents = {
 
 };
 
-UIView.implement({
+DOMElement.implement({
 	fireEvent : function(eventName, e){
 		canvas.__mustBeDrawn = true;
 		if (typeof this["on"+eventName] == 'function'){

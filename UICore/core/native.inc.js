@@ -73,7 +73,7 @@ load(__PATH_PLUGINS__ + 'roundbox.inc.js');
 load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'animations.inc.js');
 
-var NativeRenderer = {
+Native.layout = {
 	objID : 0,
 	focusObj : 0,
 	nbObj : 0,
@@ -153,7 +153,7 @@ var NativeRenderer = {
 				if (self.focusObj == z++) {
 					self._animateFocus(nodes[child]);
 				}
-				if (count(nodes[child].nodes)>0) {
+				if (self.count(nodes[child].nodes)>0) {
 					dx(nodes[child].nodes, nodes[child].parent);
 				}
 			}
@@ -180,7 +180,7 @@ var NativeRenderer = {
 				if (nodes[child][property] && nodes[child][property] == value){
 					elements.push(nodes[child]);
 				}
-				if (count(nodes[child].nodes)>0) {
+				if (self.count(nodes[child].nodes)>0) {
 					dx(nodes[child].nodes, nodes[child].parent);
 				}
 			}
@@ -199,13 +199,24 @@ var NativeRenderer = {
 		return elements;
 	},
 
+	count : function(nodes){
+		var len = 0;
+		for (var i in nodes){
+			if (nodes.hasOwnProperty(i)){
+				len++;
+			}
+		}
+		return len;
+	},
+
 	getHigherZindex : function(){
-		var zindexes = [];
+		var self = this,
+			zindexes = [];
 
 		var dx = function(nodes, parent){
 			for (var child in nodes){
 				zindexes.push(nodes[child]._zIndex);
-				if (count(nodes[child].nodes)>0) {
+				if (self.count(nodes[child].nodes)>0) {
 					dx(nodes[child].nodes, nodes[child].parent);
 				}
 			}

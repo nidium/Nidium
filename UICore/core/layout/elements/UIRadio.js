@@ -9,7 +9,7 @@ canvas.fontWeight = "bold";
 canvas.fontStyle = "italic";
 */
 
-UIElement.extend("UIRadio", {
+Native.elements.export("UIRadio", {
 	init : function(){
 		this.w = 16;
 		this.h = 17;
@@ -17,7 +17,7 @@ UIElement.extend("UIRadio", {
 
 		this.addEventListener("mousedown", function(e){
 
-			NativeRenderer.find("name", "choice").each(function(){
+			Native.document.find("name", "choice").each(function(){
 				this.selected = false;
 			});
 

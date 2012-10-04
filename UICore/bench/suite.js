@@ -3,11 +3,11 @@
 /* -------------------------- */
 
 
-BenchThis("JS canvas.blur (GetImage + ImageData)", 50, function(i){
+BenchThis("JS canvas.blur (GetImage + ImageData)", 10, function(i){
 	canvas.blur(0, 0, 1024, 768, 1);
 });
 
-BenchThis("JS canvas.blur (drawImage)", 50, function(i){
+BenchThis("JS canvas.blur (drawImage)", 10, function(i){
 	canvas.fastblur(0, 0, 1024, 768, 1);
 });
 

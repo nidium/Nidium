@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UITextInput", {
+Native.elements.export("UITextInput", {
 	init : function(){
 		var self = this;
 

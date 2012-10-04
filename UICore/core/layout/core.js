@@ -2,31 +2,22 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-var UIView = function(type, options, parent){
-	var view = this;
+var DOMElement = function(type, options, parent){
 	this.options = options || {};
 	this.parent = parent ? parent : null; // parent element
 	this.nodes = {}; // children elements
 
-	if (!UIElement[type]) {
+	if (!Native.elements[type]) {
 		throw("Unknown element " + type);
 	}
 
-	var _get = function(property, defaultValue, min, max){
-		var p = view.options[property] ? view.options[property] : defaultValue;
-		if (typeof p == "number") {
-			p = (min != undefined) ? Math.max(Number(min), Number(p)) : Number(p);
-			p = (max != undefined) ? Math.min(Number(max), Number(p)) : Number(p);
-		}
-		return p;
-	};
+	var element = this,
+		o = this.options;
 
-	var o = this.options;
+	this._uid = "_obj_" + Native.layout.objID++;
+	this.id = OptionalString(o.id, this._uid);
 
-	this._uid = "_obj_" + NativeRenderer.objID++;
-	this.id = _get("id", this._uid);
-
-	this.type = OptionalString(type, 'UIView');
+	this.type = OptionalString(type, "UIView");
 	this.name = OptionalString(o.name, "");
 	this.text = OptionalString(o.text, "");
 	this.label = OptionalString(o.label, "Default");
@@ -71,9 +62,9 @@ var UIView = function(type, options, parent){
 
 	this.callback = OptionalCallback(o.callback, null);
 
-	this._rIndex = this.parent ? NativeRenderer.getHigherZindex() + 1 : 0;
+	this._rIndex = this.parent ? Native.layout.getHigherZindex() + 1 : 0;
 
-	// -- dynamic properties (properties prefixed by _ inherits from parent at draw time)
+	// -- dynamic properties inherits from parent at draw time
 	this._rotate = this.rotate;
 	this._scale = this.scale;
 	this._x = this.x;
@@ -128,56 +119,56 @@ var UIView = function(type, options, parent){
 		h : 0
 	};
 
-	// -- launch view constructor and init dynamic properties
+	// -- launch element constructor and init dynamic properties
 	this.__construct();
 	this.refresh();
 };
 
-UIView.prototype = {
+DOMElement.prototype = {
 	__construct : function(){
 
 	},
 
 	add : function(type, options){
-		var view = new UIView(type, options, this);
+		var element = new DOMElement(type, options, this);
 
-		UIElement.init(view);
-		this.addChild(view);
-		return view;
+		Native.elements.init(element);
+		this.addChild(element);
+		return element;
 
 		/*
-		view.__defineGetter__("nbnodes", function() {
-			return count(view.nodes);
+		element.__defineGetter__("nbnodes", function() {
+			return Native.layout.count(element.nodes);
 		});
 		*/
 	},
 
 	clone : function(){
-		var view = new UIView(this.type, this.options, this.parent);
+		var element = new DOMElement(this.type, this.options, this.parent);
 		for (var i in this){
-			view[i] = this[i];
+			element[i] = this[i];
 		}
 
-		view._uid = this._uid + "_clone";
-		view.id = view._uid;
+		element._uid = this._uid + "_clone";
+		element.id = element._uid;
 
-		view._rIndex = NativeRenderer.getHigherZindex() + 1;
-		view.opacity = 0.8;
-		view.nodes = {}; // kill children nodes
+		element._rIndex = Native.layout.getHigherZindex() + 1;
+		element.opacity = 0.8;
+		element.nodes = {}; // kill children nodes
 
-		UIElement.init(view);
-		NativeRenderer.register(view);
+		Native.elements.init(element);
+		Native.layout.register(element);
 
-		return view;
+		return element;
 	},
 
-	addChild : function(view){
-		this.nodes[view._uid] = view;
-		NativeRenderer.refresh();
+	addChild : function(element){
+		this.nodes[element._uid] = element;
+		Native.layout.refresh();
 	},
 
 	remove : function(){
-		NativeRenderer.remove(this);
+		Native.layout.remove(this);
 	},
 
 	focus : function(){
@@ -190,32 +181,32 @@ UIView.prototype = {
 	
 			this.fireEvent("focus", {});
 
-			if (NativeRenderer.lastFocusedElement) {
-				NativeRenderer.lastFocusedElement.fireEvent("blur", {});
+			if (Native.layout.lastFocusedElement) {
+				Native.layout.lastFocusedElement.fireEvent("blur", {});
 			}
 
-			NativeRenderer.lastFocusedElement = this;
+			Native.layout.lastFocusedElement = this;
 
-			NativeRenderer.focusObj = this._nid;
+			Native.layout.focusObj = this._nid;
 		}
 	},
 
 	show : function(){
 		if (!this.visible) {
 			this.visible = true;
-			NativeRenderer.refresh();
+			Native.layout.refresh();
 		}
 	},
 
 	hide : function(){
 		if (this.visible) {
 			this.visible = false;
-			NativeRenderer.refresh();
+			Native.layout.refresh();
 		}
 	},
 
 	bringToTop : function(){
-		this.zIndex = NativeRenderer.getHigherZindex() + 1;
+		this.zIndex = Native.layout.getHigherZindex() + 1;
 	},
 
 	refresh : function(){
@@ -268,12 +259,24 @@ UIView.prototype = {
 	beforeDraw : function(){
 		if (this.clip){
 			canvas.save();
-			canvas.clipbox(this.clip.x, this.clip.y, this.clip.w, this.clip.h, this.radius);
+			canvas.clipbox(
+				this.clip.x, 
+				this.clip.y, 
+				this.clip.w, 
+				this.clip.h, 
+				this.radius
+			);
 			canvas.clip();
 		}
 
 		if (this.backgroundBlur){
-			canvas.blur(this.blurbox.x, this.blurbox.y, this.blurbox.w, this.blurbox.h, this.backgroundBlur);
+			canvas.blur(
+				this.blurbox.x, 
+				this.blurbox.y, 
+				this.blurbox.w, 
+				this.blurbox.h, 
+				this.backgroundBlur
+			);
 		}
 
 		var DX = this._g.x - this.t._x,
@@ -446,7 +449,7 @@ UIView.prototype = {
 		if (dx==0) { return false; }
 		this._x += dx;
 		this.x += dx;
-		NativeRenderer.refresh();
+		Native.layout.refresh();
 	},
 
 	get top() {
@@ -458,7 +461,7 @@ UIView.prototype = {
 		if (dy==0) { return false; }
 		this._y += dy;
 		this.y += dy;
-		NativeRenderer.refresh();
+		Native.layout.refresh();
 	},
 
 	get transformOrigin() {
@@ -473,61 +476,62 @@ UIView.prototype = {
 			x : OptionalNumber(g.x, ox) - this._x - this.w/2,
 			y : OptionalNumber(g.y, oy) - this._y - this.h/2
 		}
-		NativeRenderer.refresh();
+		Native.layout.refresh();
 	}
 
 };
 
-UIView.implement = function(props){
+DOMElement.implement = function(props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
-			UIView.prototype[key] = props[key];
+			DOMElement.prototype[key] = props[key];
 		}
 	}
 };
 
-var UIElement = {
-	extend : function(UIElement, implement){
-		this[UIElement] = implement;
+Native.elements = {
+	export : function(elementType, implement){
+		this[elementType] = implement;
 	},
 
-	init : function(UIView){
+	init : function(element){
 		var self = this,
-			UIElement = UIView.type,
-			plugin = this[UIElement];
+			plugin = this[element.type];
 
 		if (plugin){
 
-			if (plugin.init) plugin.init.call(UIView);
-			if (plugin.draw) UIView.draw = plugin.draw;
-			if (plugin.isPointInside) UIView.isPointInside = plugin.isPointInside;
-			if (plugin.__construct) UIView.__construct = plugin.__construct;
+			if (plugin.init) plugin.init.call(element);
+			if (plugin.draw) element.draw = plugin.draw;
+			if (plugin.isPointInside) {
+				element.isPointInside = plugin.isPointInside;
+			}
+			if (plugin.__construct) element.__construct = plugin.__construct;
 
-			if (UIView.flags._canReceiveFocus) {
-				UIView.addEventListener("mousedown", function(e){
+			if (element.flags._canReceiveFocus) {
+				element.addEventListener("mousedown", function(e){
 					this.focus();
 					e.stopPropagation();
 				}, false);
 			}
 
 		} else {
-			UIView.beforeDraw = function(){};
-			UIView.draw = function(){};
-			UIView.afterDraw = function(){};
+			element.beforeDraw = function(){};
+			element.draw = function(){};
+			element.afterDraw = function(){};
 		}
 	}
 };
 
 var Application = function(options){
-	var view = new UIView("UIView", options, null);
-	view._root = true;
-	view.flags._canReceiveFocus = true;
-	view.flags._outlineOnFocus = false;
-	UIElement.init(view);
+	var app = new DOMElement("UIView", options, null);
+	app._root = true;
+	app.flags._canReceiveFocus = true;
+	app.flags._outlineOnFocus = false;
 
-	NativeRenderer.rootElement = view;
-	NativeRenderer.register(view);
-	NativeRenderer.refresh();
+	Native.elements.init(app);
+	Native.layout.rootElement = app;
+	Native.layout.register(app);
+	Native.layout.refresh();
 
 	canvas.globalAlpha = 1;
 	canvas.__mustBeDrawn = true;
@@ -544,14 +548,14 @@ var Application = function(options){
 	 		if (canvas.animate) {
 
 				canvas.drawImage(bgCanvas, 0, 0);
-				NativeRenderer.draw();
+				Native.layout.draw();
 
-				//NativeRenderer.grid();
+				//Native.layout.grid();
 			} 
 	 		FPS.show();
 	    });
 	}
 
 
-	return view;
+	return app;
 };

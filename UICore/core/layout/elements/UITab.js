@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UITab", {
+Native.elements.export("UITab", {
 	init : function(){
 		var self = this;
 
@@ -62,7 +62,7 @@ UIElement.extend("UITab", {
 			__currentDragingTabPosition = self.parent.getPosition(this.tabnum);
 		}, false);
 
-		NativeRenderer.rootElement.addEventListener("dragover", function(e){
+		Native.layout.rootElement.addEventListener("dragover", function(e){
 			if (__currentDragingTabPosition===false) { return false; }
 
 			var i = __currentDragingTabPosition,

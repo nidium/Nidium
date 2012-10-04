@@ -2,11 +2,12 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIButton", {
+Native.elements.export("UIButton", {
 	init : function(){
 		canvas.setFontSize(this.fontSize);
 		this.w = 10 + Math.round(canvas.measureText(this.label)) + 10;
 		this.h = OptionalNumber(this.options.h, 22);
+		this.radius = OptionalNumber(this.options.radius, 2);
 
 		this.flags._canReceiveFocus = true;
 

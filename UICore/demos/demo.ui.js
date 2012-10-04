@@ -95,8 +95,8 @@ var	tabController = greenView.add("UITabController", {
 /* ------------------------------------------------- */
 
 
-DB(function(){
-	echo("fdf");
+DBT(function(){
+	echo(line.controlPoint2.isVisible());
 });
 
 var s = textView.setCaret(70, 50);
@@ -131,14 +131,13 @@ var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
-		greenView.bounceScale(0, 150, function(){
+		greenView.set("scale", 0, 150, function(){
 			this.visible = false;
 		}, FXAnimation.easeInOutQuad);
 		this.toggle = true;
 	} else {
 		greenView.visible = true;
-		greenView.bounceScale(1.5, 250, function(){
-		}, FXAnimation.easeOutElastic);
+		greenView.set("scale", 1.5, 250, function(){}, FXAnimation.easeOutElastic);
 		this.toggle = false;
 	}
 });
@@ -223,3 +222,8 @@ docButton1.addEventListener("drop", function(e){
 
 	console.log("using dataTransfer : " + e.dataTransfer.getData("Text") );
 });
+
+
+
+
+

@@ -2,27 +2,22 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-Math.distance = function(x1, y1, x2, y2){
-	var a = (y2 - y1),
-		b = (x2 - x1);
-	return Math.sqrt(a*a+b*b);
-};
-/*
-canvas.save = function(){};
-canvas.restore = function(){};
-canvas.clip = function(){};
-canvas.scale = function(){};
-canvas.translate = function(){};
-canvas.rotate = function(){};
-*/
-/* --------------------------------------------------------------------------- */
-
 var window = {
 	width : canvas.width,
 	height : canvas.height,
 	mouseX : 0,
 	mouseY : 0
 };
+
+/* -------------------------------------------------------------------------- */
+
+Math.distance = function(x1, y1, x2, y2){
+	var a = (y2 - y1),
+		b = (x2 - x1);
+	return Math.sqrt(a*a+b*b);
+};
+
+/* -------------------------------------------------------------------------- */
 
 canvas.implement = function(props){
 	for (var key in props){
@@ -34,16 +29,11 @@ canvas.implement = function(props){
 };
 
 canvas.implement({
-	currentColor : '',
-	currentFontSize : '',
-
 	setColor : function(color){
-		this.currentColor = color;
 		this.fillStyle = color;
 	},
 
 	setFontSize : function(fontSize){
-		this.currentFontSize = fontSize;
 		this.fontSize = fontSize;
 	},
 
@@ -55,39 +45,7 @@ canvas.implement({
 	}
 });
 
-/* --------------------------------------------------------------------------- */
-
-/* -- Debug Button --
- * 
- *	syntaxe : 
- *	DB(function(){
- *		Do Something On Click
- *	});
- * 
- */
-
-var DB = function(cb){
-	if (!NativeRenderer.rootElement) return false;
-	if (!this.DebugButton){
-		this.DebugButton = NativeRenderer.rootElement.add("UIButton", {
-			x : 970,
-			y : 744,
-			h : 16,
-			label : "debug",
-			color : "#000000",
-			background : "#ff9900",
-			radius : 2,
-			fontSize : 10,
-			lineHeight : 6
-		});
-	}
-	this.DebugButton.addEventListener("mousedown", function(e){
-		cb.call(this);
-		e.stopPropagation();
-	}, false);
-};
-
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(Number(min), this), Number(max));
@@ -117,6 +75,30 @@ Number.prototype.format = function(decimals, d, t){
 	return s.join(dec);
 };
 
+/* -------------------------------------------------------------------------- */
+
+String.prototype.mul = function(n){
+	var st = [], m = Math.abs(Number(n));
+	for (var t=0; t<m; t++){
+		st.push(this);
+	}
+	return st.join('');
+};
+
+String.prototype.splice = function(offset, size, insert){
+    return (
+    	this.slice(0,offset) + 
+    	OptionalString(insert, '') + 
+    	this.slice(offset + Math.abs(size))
+    );
+};
+
+String.prototype.htmlTrim = function(){
+	return this.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, "");
+}
+
+/* -------------------------------------------------------------------------- */
+
 var BenchThis = function(name, iterations, fn){
 	var t = +new Date(),
 		exec = 0,
@@ -132,51 +114,78 @@ var BenchThis = function(name, iterations, fn){
 	ipf = 16*iterations/exec;
 
 	echo(name);
-	echo('  - '+iterations.format(0, '.', ' ')+' executions takes', exec.format(0, '.', ' '), "ms");
+
+	echo(
+		'  - '+iterations.format(0, '.', ' ')+' executions takes',
+		exec.format(0, '.', ' '),
+		"ms"
+	);
+
 	echo('  - Speed: '+ips.format(0, '.', ' ')+" exec/s");
-	echo('  - Oneshot ~ '+(exec/iterations).format(2, '.', ' ')+" ms" + " (max "+ipf.format(0, '.', ' ')+" exec/frame)");
+	echo(
+		'  - Oneshot ~ '+(exec/iterations).format(2, '.', ' ')+" ms", 
+		"(max "+ipf.format(0, '.', ' ')+" exec/frame)"
+	);
+
 	echo('');
 };
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
-function OptionalString(x, def){
+var OptionalString = function(x, def){
 	return x === null || x === undefined ? String(def) : String(x);
 }
 
-function OptionalValue(x, def){
+var OptionalValue = function(x, def){
 	return x === null || x === undefined ? def : x;
 }
 
-function OptionalNumber(x, def){
-	return x === null || x === undefined ? Number(def) : Number(x);
+var OptionalNumber = function(x, def, min, max){
+	var p = x === null || x === undefined ? Number(def) : Number(x);
+	p = (min != undefined) ? Math.max(Number(min), p) : p;
+	return (max != undefined) ? Math.min(Number(max), p) : p;
 }
 
-function OptionalBoolean(x, def){
+var OptionalBoolean = function(x, def){
 	return x === null || x === undefined ? Boolean(def) : Boolean(x);
 }
 
-function OptionalCallback(x, def){
+var OptionalCallback = function(x, def){
 	return typeof x === "function" ? x : def;
 }
 
-String.prototype.mul = function(n){
-	var st = [], m = Math.abs(Number(n));
-	for (var t=0; t<m; t++){
-		st.push(this);
+/* -------------------------------------------------------------------------- */
+
+/*  Debug Button
+ * 
+ *	Syntaxe: 	DBT(function(){
+ *					Do Something On Click
+ *				});
+ * 
+ */
+
+var DBT = function(cb){
+	if (!Native.layout.rootElement) return false;
+	if (!this.DebugButton){
+		this.DebugButton = Native.layout.rootElement.add("UIButton", {
+			x : 970,
+			y : 744,
+			h : 16,
+			label : "debug",
+			color : "#000000",
+			background : "#ff9900",
+			radius : 2,
+			fontSize : 10,
+			lineHeight : 6
+		});
 	}
-	return st.join('');
+	this.DebugButton.addEventListener("mousedown", function(e){
+		cb.call(this);
+		e.stopPropagation();
+	}, false);
 };
 
-String.prototype.splice = function(offset, size, insert){
-    return (this.slice(0,offset) + OptionalString(insert, '') + this.slice(offset + Math.abs(size)));
-};
-
-String.prototype.htmlTrim = function(){
-	return this.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, "");
-}
-
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 var console = {
 	iteration : 0,
@@ -191,30 +200,31 @@ var console = {
 	},
 
 	dump : function(object, pad){
-		var self = this;
-		var dmp = function(object, pad){
+		var self = this,
+			dmp = function(object, pad){
 			var	out = '',
-				indent = '\t';
+				idt = '\t';
 
 			self.iteration++;
 			if (self.iteration>self.maxIterations){
 				return false;
 			}
 
-			pad = (!pad) ? '' : pad;
+			pad = (pad === undefined) ? '' : pad;
 
-			if (object != null && typeof(object) != "undefined"){
+			if (object != null && object != undefined){
 				if (object.constructor == Array){
 					out += '[\n';
 					for (var i=0; i<object.length; i++){
-						out += pad + indent + dmp(object[i], pad + indent) + '\n';
+						out += pad + idt + dmp(object[i], pad + idt) + '\n';
 					}
 					out += pad + ']';
 				} else if (object.constructor == Object){
 					out += '{\n';
 					for (var i in object){
 						if (object.hasOwnProperty(i)) {
-							out += pad + indent + i + ' : ' + dmp(object[i], pad + indent) + '\n';
+							out += pad + idt + i + ' : ' 
+								+ dmp(object[i], pad + idt) + '\n';
 						}
 					}
 					out += pad + '}';
@@ -237,19 +247,7 @@ var console = {
 	}
 };
 
-/* --------------------------------------------------------------------------- */
-
-var count = function(arr){
-	var len = 0;
-	for (var i in arr){
-		if (arr.hasOwnProperty(i)){
-			len++;
-		}
-	}
-	return len;
-};
-
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 var setTimer = function(fn, ms, loop, execFirst){
 	var t = {
@@ -275,7 +273,7 @@ var setTimer = function(fn, ms, loop, execFirst){
 	return t;
 };
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 var FPS = {
 	date : 0,
@@ -298,7 +296,7 @@ var FPS = {
 		
 		canvas.setColor("#000000");
 		canvas.fillRect(0, canvas.height-40, 60, 30);
-		canvas.fillRect(0, 280, 50, 30);
+		//canvas.fillRect(0, 280, 50, 30);
 		canvas.setColor("yellow");
 		canvas.fillText(this.old + " ms", 5, canvas.height-20);
 		
@@ -306,7 +304,7 @@ var FPS = {
 	}
 };
 
-/* --------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 var CStruct = function(){
 	var seek = 0,
@@ -328,6 +326,7 @@ var CStruct = function(){
 		};
 
 	this.size = 0;
+	this.seek = 0;
 	this.buffer = null;
 
 	for (var a in arguments){
@@ -339,7 +338,10 @@ var CStruct = function(){
 			size = f ? f : 1;
 
 		if (types[t]) {
-			shader.push("this."+name+" = new "+types[t].m+"(this.buffer, "+seek+", "+size+");\n");
+			shader.push(
+				"this." + name + " = new " + 
+				types[t].m + "(this.buffer, " + seek + ", " + size + ");\n"
+			);
 			seek += types[t].l * size;
 		}
 	}
@@ -349,10 +351,7 @@ var CStruct = function(){
 		this.buffer = new ArrayBuffer(this.size);
 		eval(shader.join(""));
 	}
-};
-CStruct.prototype = {
-	seek : 0,
-	buffer : null
+	return this;
 };
 
 /*

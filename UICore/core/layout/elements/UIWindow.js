@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIWindow", {
+Native.elements.export("UIWindow", {
 	init : function(){
 		var self = this;
 
