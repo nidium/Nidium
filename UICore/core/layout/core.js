@@ -38,6 +38,7 @@ var DOMElement = function(type, options, parent){
 	// -- misc flag
 	this.hover = false;
 	this.hasFocus = false;
+	this.isOnTop = false;
 	this.visible = OptionalBoolean(o.visible, true);
 	this.selected = OptionalBoolean(o.selected, false);
 	this.draggable = OptionalBoolean(o.draggable, false);
@@ -62,15 +63,16 @@ var DOMElement = function(type, options, parent){
 
 	this.callback = OptionalCallback(o.callback, null);
 
-	this._rIndex = this.parent ? Native.layout.getHigherZindex() + 1 : 0;
-
 	// -- dynamic properties inherits from parent at draw time
 	this._rotate = this.rotate;
 	this._scale = this.scale;
 	this._x = this.x;
 	this._y = this.y;
 	this._opacity = this.opacity;
+
+	this._rIndex = this.parent ? 0 : 0;
 	this._zIndex = this._rIndex + this.zIndex;
+
 	this._visible = this.visible;
 
 	// -- transform matrix inheritance (experimental)
@@ -168,26 +170,6 @@ DOMElement.prototype = {
 		Native.layout.remove(this);
 	},
 
-	focus : function(){
-		if (this.hasFocus === true) {
-			return false;
-		}
-
-		if (this.flags._canReceiveFocus) {
-			this.hasFocus = true;
-	
-			this.fireEvent("focus", {});
-
-			if (Native.layout.lastFocusedElement) {
-				Native.layout.lastFocusedElement.fireEvent("blur", {});
-			}
-
-			Native.layout.lastFocusedElement = this;
-
-			Native.layout.focusObj = this._nid;
-		}
-	},
-
 	show : function(){
 		if (!this.visible) {
 			this.visible = true;
@@ -202,8 +184,12 @@ DOMElement.prototype = {
 		}
 	},
 
+	focus : function(){
+		Native.layout.focus(this);
+	},
+
 	bringToTop : function(){
-		this.zIndex = Native.layout.getHigherZindex() + 1;
+		Native.layout.bringToTop(this);
 	},
 
 	refresh : function(){
@@ -316,7 +302,7 @@ DOMElement.prototype = {
 		*/
 
 		/* scale */
-		if (this._scale!=1){
+		if (this._scale != 1){
 			canvas.save();
 			canvas.scale(this._scale, this._scale);
 			canvas.translate( -this.t._x, -this.t._y);
@@ -334,26 +320,24 @@ DOMElement.prototype = {
 	draw : function(){},
 
 	drawFocus : function(){
-		var params = {
+		var p = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
 				h : this.h
 			},
-			radius = this.radius+1;
+			r = this.r+1;
 
 		if (this.type=="UIText" || this.type=="UIWindow") {
-
-			//canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-/*
+			/*
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.0)", "#ffffff");
+			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.0)", "#4D90FE");
+			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, radius, "rgba(0, 0, 0, 0.0)", "#4D90FE");
+			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
-*/
+			*/
 		}
 	},
 
@@ -376,7 +360,7 @@ DOMElement.prototype = {
 		}
 		*/
 
-		if (this._scale!=1){
+		if (this._scale !=1 ){
 			canvas.translate(this.t._x, this.t._y);
 			canvas.scale(1/this._scale, 1/this._scale);
 			canvas.restore();
@@ -426,16 +410,15 @@ DOMElement.prototype = {
 	},
 
 	isVisible : function(){
-		var x1 = this.__x,
+		var mx = window.width,
+			my = window.height,
+
+			x1 = this.__x,
 			x2 = this.__x+this.__w,
 			y1 = this.__y,
 			y2 = this.__y+this.__y;
 
-		if (this._visible === false || x2 < 0 || x1>window.width || y2 < 0 || y1>window.height){
-			return false;
-		} else {
-			return true;
-		}
+		return this._visible;
 	},
 
 	/* -------------------------------------------------------------- */

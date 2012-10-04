@@ -18,14 +18,15 @@ Native.elements.export("UITabController", {
 		this.taborder = [];
 
 		this.resetTabs = function(animate, callback){
-			let x = 0,
+			var x = 0,
 				j = 2,
-				l = self.taborder.length;
+				nbtabs = self.taborder.length;
 
-			for (let i=0; i<l; i++){
-				let t = self.taborder[i];
+			for (var i=0; i<nbtabs; i++){
+				var t = self.taborder[i];
 				self.tabs[t].position = i;
-				self.tabs[t].zIndex = l-i-1;
+				self.tabs[t].zIndex = nbtabs-i-1;
+				self.tabs[t].closeButton.zIndex = 0;
 				self.tabs[t].selected = false;
 				if (animate) {
 					var _callback = (i==1 ? callback : null);
@@ -37,7 +38,7 @@ Native.elements.export("UITabController", {
 			}
 			if (self.tabs[self.selection]) {
 				self.tabs[self.selection].selected = true;
-				self.tabs[self.selection].zIndex = 2*l;
+				self.tabs[self.selection].zIndex = nbtabs-1;
 			}
 		};
 
@@ -67,7 +68,7 @@ Native.elements.export("UITabController", {
 		};
 
 		this.removeTab = function(position){
-			let tab = self.getTab(position);
+			var tab = self.getTab(position);
 			if (!tab) {
 				return false;
 			}
@@ -84,12 +85,12 @@ Native.elements.export("UITabController", {
 		};
 
 		this._removeTab = function(tabnum){
-			let to = self.taborder,
+			var to = self.taborder,
 				position = self.tabs[tabnum].position,
 				tb = self.tabs;
 
 
-			for (let i=0; i<to.length; i++){
+			for (var i=0; i<to.length; i++){
 				if (to[i] > tabnum){
 					to[i]--;
 				}
@@ -97,7 +98,7 @@ Native.elements.export("UITabController", {
 
 			to.splice(position, 1);
 
-			for (let i=tabnum; i<tb.length; i++){
+			for (var i=tabnum; i<tb.length; i++){
 				tb[i].position--;
 				tb[i].tabnum--;
 			}
@@ -159,7 +160,7 @@ Native.elements.export("UITabController", {
 
 
 		this.swapTabs = function(x, y){
-			let A = self.taborder;
+			var A = self.taborder;
 			A[x]= A.splice(y, 1, A[x])[0];
 
 			self.tabs[A[x]].position = x;
@@ -167,10 +168,10 @@ Native.elements.export("UITabController", {
 		};
 
 		this.getPosition = function(tabnum){
-			let r = false,
+			var r = false,
 				to = self.taborder;
 
-			for (let i=0; i<to.length; i++){
+			for (var i=0; i<to.length; i++){
 				if (to[i] == tabnum) {
 					r = i;
 					break;
@@ -185,7 +186,7 @@ Native.elements.export("UITabController", {
 
 
 		this._addTab = function(i, position, options, x){
-			let label = options.label ? options.label : "New tab",
+			var label = options.label ? options.label : "New tab",
 				selected = options.selected ? options.selected : false,
 				closable = options.closable===false ? false : true,
 				preventmove = options.preventmove===true ? true : false,
@@ -232,7 +233,7 @@ Native.elements.export("UITabController", {
 
 			l = tabs.length;
 
-		for (let i=0; i<l; i++){
+		for (var i=0; i<l; i++){
 			self._addTab(i, i, tabs[i], x);
 			self.taborder[i] = i;
 			x += self.tabs[i].w-self.overlap;

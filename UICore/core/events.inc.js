@@ -2,9 +2,12 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
+Native.system = {
+	doubleClickInterval : 250
+};
+
 Native.events = {
 	options : {
-		pointerDoubleTapTime : 250,
 		pointerHoldTime : 600
 	},
 
@@ -287,7 +290,7 @@ Native.events = {
 						}
 						self.timer = false;
 						self.doubleclick = false;
-					}, this.options.pointerDoubleTapTime);
+					}, Native.system.doubleClickInterval);
 
 					this.timer = true;
 				} else {

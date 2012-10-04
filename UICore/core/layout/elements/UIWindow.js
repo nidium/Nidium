@@ -67,7 +67,7 @@ Native.elements.export("UIWindow", {
 
 		if (this.options.closeable) {
 			this.handle.closeButton = this.add("UIButtonClose", {
-				x : this.w-18,
+				x : this.w-19,
 				y : 4,
 				w : 16,
 				h : 16,

@@ -82,6 +82,8 @@ Native.layout = {
 	elements : [],
 
 	rootElement : null,
+	currentFocusedElement : null,
+	currentOnTopElement : null,
 
 	higherzIndex : 0,
 
@@ -132,11 +134,46 @@ Native.layout = {
 
 	_animateFocus : function(element){
 		if (element.flags._canReceiveFocus) {
-			element.hasFocus = true;
-			this.focusObj = element._nid;
+			this.focus(element);
 		} else {
 			this.focusNextElement();
 		}
+	},
+
+	focus : function(element){
+		if (element.hasFocus === true) {
+			return false;
+		}
+
+		if (element.flags._canReceiveFocus) {
+			/* Blur last focused element */
+			if (this.currentFocusedElement) {
+				this.currentFocusedElement.fireEvent("blur", {});
+			}
+
+			/* set this element as the new focused element */
+			element.hasFocus = true;
+			element.fireEvent("focus", {});
+			this.currentFocusedElement = element;
+			this.focusObj = element._nid;
+		}
+	},
+
+	bringToTop : function(element){
+		if (element.isOnTop === true) {
+			return false;
+		}
+
+		if (this.currentOnTopElement) {
+			this.currentOnTopElement.isOnTop = false;
+			this.currentOnTopElement.fireEvent("back", {});
+		}
+
+		/* set this element as the new on top element */
+		element.isOnTop = true;
+		element.fireEvent("top", {});
+		element.zIndex = this.getHigherZindex() + 1;
+		this.currentOnTopElement = element;
 	},
 
 	getElements : function(){

@@ -11,6 +11,16 @@ BenchThis("JS canvas.blur (drawImage)", 10, function(i){
 	canvas.fastblur(0, 0, 1024, 768, 1);
 });
 
+
+BenchThis("SpiderMonkey Math.sin()", 300000, function(i){
+	Math.sin(i);
+});
+
+BenchThis("Native.sin()", 300000, function(i){
+	Native.sin(i);
+});
+
+
 /*
 
 canvas.fillStyle = "rgba(255, 0, 0, 1)";

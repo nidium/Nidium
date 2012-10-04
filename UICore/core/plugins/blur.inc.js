@@ -35,8 +35,7 @@ canvas.implement({
 		var r = 1,
 			offscreen = new Canvas(w, h);
 
-		var g = this.getImageData(wx, wy, w, h);
-		offscreen.putImageData(g, 0, 0);
+		offscreen.putImageData(this.getImageData(wx, wy, w, h), 0, 0);
 
 		for(var i=0, g = 0.325; i<pass; i++){
 			for (var cy=-r; cy<(r+1); cy++){

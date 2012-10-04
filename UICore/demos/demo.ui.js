@@ -100,7 +100,15 @@ var	tabController = greenView.add("UITabController", {
 
 
 DBT(function(){
-	echo(line.controlPoint2.isVisible());
+	var	element = tabController,
+		tabs = element.taborder,
+		nbtabs = tabs.length;
+
+	for (var i=0; i<nbtabs; i++){
+		var t = tabs[i];
+		echo(element.tabs[t].closeButton.zIndex, element.tabs[t].closeButton._zIndex);
+	}
+	echo("");
 });
 
 var s = textView.setCaret(70, 50);
