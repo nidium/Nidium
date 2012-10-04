@@ -2,8 +2,9 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-var tag = "cat";
+Native.showFPS(true);
 
+var tag = "cat";
 
 var ilist = new Set();
 
