@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UISliderController", {
+Native.elements.export("UISliderController", {
 	init : function(){
 		var self = this;
 

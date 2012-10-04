@@ -2,10 +2,10 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UILine", {
+Native.elements.export("UILine", {
 
 	__construct : function(){
-
+		this.updateParameters();
 	},
 
 	init : function(){
@@ -142,7 +142,7 @@ UIElement.extend("UILine", {
 	}
 });
 
-UIElement.extend("UIControlPoint", {
+Native.elements.export("UIControlPoint", {
 	init : function(){
 		var self = this;
 		this.w = 16;

@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIDropDownController", {
+Native.elements.export("UIDropDownController", {
 	init : function(){
 		var self = this;
 

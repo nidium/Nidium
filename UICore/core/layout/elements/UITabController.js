@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UITabController", {
+Native.elements.export("UITabController", {
 	init : function(){
 		var self = this;
 

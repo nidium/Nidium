@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UISliderKnob", {
+Native.elements.export("UISliderKnob", {
 	init : function(){
 		this.w = this.options.w || 10;
 		this.h = this.options.h || 10;

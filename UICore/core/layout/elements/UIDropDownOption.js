@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIDropDownOption", {
+Native.elements.export("UIDropDownOption", {
 	init : function(){
 		var self = this,
 			controller = this.parent.parent;

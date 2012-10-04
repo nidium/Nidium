@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIWindowResizer", {
+Native.elements.export("UIWindowResizer", {
 	init : function(){
 		this.w = this.options.w || 8;
 		this.h = this.options.h || 8;

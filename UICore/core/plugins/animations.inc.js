@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIView.implement({
+DOMElement.implement({
 	fadeIn : function(duration, callback, fx){
 		this.animate("opacity", this.opacity, 1, duration, callback, fx);
 	},
