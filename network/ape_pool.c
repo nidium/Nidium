@@ -84,13 +84,11 @@ void ape_destroy_pool_ordered(ape_pool_t *pool, ape_pool_clean_callback cleaner)
     ape_pool_t *tPool = NULL;
 
     while (pool != NULL) {
-        /* TODO : callback ? (cleaner) */
+        if (cleaner != NULL) {
+            cleaner(pool);
+        }
         if (pool->flags & APE_POOL_ALLOC) {
-
             if (tPool != NULL) {
-                if (cleaner != NULL) {
-                    cleaner(tPool);
-                }
                 free(tPool);
             }
             tPool = pool;
@@ -98,9 +96,6 @@ void ape_destroy_pool_ordered(ape_pool_t *pool, ape_pool_clean_callback cleaner)
         pool = pool->next;
     }
     if (tPool != NULL) {
-        if (cleaner != NULL) {
-            cleaner(tPool);
-        }
         free(tPool);
     }
 }
