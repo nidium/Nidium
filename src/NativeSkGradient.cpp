@@ -47,7 +47,7 @@ NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
 NativeSkGradient::~NativeSkGradient()
 {
 	free(colorsStop.items);
-	//SkSafeUnref(currentShader);
+	SkSafeUnref(currentShader);
 }
 
 void NativeSkGradient::addColorStop(double position, char *color)
@@ -71,13 +71,13 @@ void NativeSkGradient::addColorStop(double position, char *color)
 SkShader *NativeSkGradient::build()
 {
 	if (!needUpdate) {
-		SkSafeRef(currentShader);
 		return currentShader;
 	}
 
 	if (colorsStop.count < 2) {
 		currentShader = NULL;
 		needUpdate = 0;
+		printf("Bad color count\n");
 		return NULL;
 	}
 
@@ -96,7 +96,7 @@ SkShader *NativeSkGradient::build()
 
 	needUpdate = 0;
 
-	//SkSafeUnref(currentShader);
+	SkSafeUnref(currentShader);
 
 	if (isRadial) {
 		currentShader = SkGradientShader::CreateTwoPointRadial(pts[0],

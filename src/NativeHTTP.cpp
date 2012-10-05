@@ -116,52 +116,9 @@ static void native_http_read(ape_socket *s, ape_global *ape)
     }
 }
 
-int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
-    u_short *port, char *file)
-{
-    char *p;
-    const char *p2;
-    int len;
-
-    len = strlen(HTTP_PREFIX);
-    if (strncasecmp(url, HTTP_PREFIX, len)) {
-        return -1;
-    }
-
-    url += len;
-    
-    memcpy(host, url, (url_len-len));
-
-    p = strchr(host, '/');
-    if (p != NULL) {
-        *p = '\0';
-        p2 = p + 1;
-    } else {
-        p2 = NULL;
-    }
-    if (file != NULL) {
-        /* Generate request file */
-        if (p2 == NULL)
-            p2 = "";
-        sprintf(file, "/%s", p2);
-    }
-
-    p = strchr(host, ':');
-
-    if (p != NULL) {
-        *p = '\0';
-        *port = atoi(p + 1);
-
-        if (*port == 0)
-            return -1;
-    } else
-        *port = 80;
-
-    return 0;
-}
-
 NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
-    ptr(NULL), net(n), host(NULL), path(NULL), port(0),
+    ptr(NULL), net(n), currentSock(NULL),
+    host(NULL), path(NULL), port(0),
     err(0), delegate(NULL)
 {
     size_t url_len = strlen(url);
@@ -269,13 +226,62 @@ NativeHTTP::~NativeHTTP()
     free(host);
     free(path);
 
+    if (currentSock != NULL) {
+        APE_socket_shutdown_now(currentSock);
+        currentSock->ctx = NULL;
+    }
+    
+
     if (!http.ended && http.data != NULL) {
         buffer_destroy(http.headers.tkey);
         buffer_destroy(http.headers.tval);
         buffer_destroy(http.data);
 
         ape_array_destroy(http.headers.list);
-        APE_socket_shutdown(currentSock);
-        currentSock->ctx = NULL;
     }
+}
+
+
+int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
+    u_short *port, char *file)
+{
+    char *p;
+    const char *p2;
+    int len;
+
+    len = strlen(HTTP_PREFIX);
+    if (strncasecmp(url, HTTP_PREFIX, len)) {
+        return -1;
+    }
+
+    url += len;
+    
+    memcpy(host, url, (url_len-len));
+
+    p = strchr(host, '/');
+    if (p != NULL) {
+        *p = '\0';
+        p2 = p + 1;
+    } else {
+        p2 = NULL;
+    }
+    if (file != NULL) {
+        /* Generate request file */
+        if (p2 == NULL)
+            p2 = "";
+        sprintf(file, "/%s", p2);
+    }
+
+    p = strchr(host, ':');
+
+    if (p != NULL) {
+        *p = '\0';
+        *port = atoi(p + 1);
+
+        if (*port == 0)
+            return -1;
+    } else
+        *port = 80;
+
+    return 0;
 }

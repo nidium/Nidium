@@ -553,6 +553,7 @@ NativeSkia::~NativeSkia()
 
     while(nstate) {
         struct _nativeState *tmp = nstate->next;
+
         delete nstate->paint;
         delete nstate->paint_stroke;
         delete nstate;
@@ -636,8 +637,33 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
     }
     PAINT->setColor(SK_ColorBLACK);
     PAINT->setShader(shader);
+}
 
-    shader->unref();
+void NativeSkia::setFillColor(const char *str)
+{   
+    SkColor color = parseColor(str);
+
+    SkShader *shader = PAINT->getShader();
+
+    if (shader) {
+        PAINT->setShader(NULL);
+    }
+
+    PAINT->setColor(color);
+}
+
+void NativeSkia::setStrokeColor(const char *str)
+{   
+    SkColor color = parseColor(str);
+
+    SkShader *shader = PAINT_STROKE->getShader();
+
+    if (shader) {
+        PAINT_STROKE->setShader(NULL);
+    }
+
+    PAINT_STROKE->setColor(color);
+
 }
 
 void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
@@ -649,8 +675,6 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
     }
     PAINT_STROKE->setColor(SK_ColorBLACK);
     PAINT_STROKE->setShader(shader);
-
-    shader->unref();
 }
 
 NativeShadowLooper *NativeSkia::buildShadow()
@@ -699,33 +723,6 @@ void NativeSkia::setShadowColor(const char *str)
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
-/* TODO : move color logic to a separate function */
-void NativeSkia::setFillColor(const char *str)
-{   
-    SkColor color = parseColor(str);
-
-    SkShader *shader = PAINT->getShader();
-
-    if (shader) {
-        PAINT->setShader(NULL);
-    }
-
-    PAINT->setColor(color);
-}
-
-void NativeSkia::setStrokeColor(const char *str)
-{   
-    SkColor color = parseColor(str);
-
-    SkShader *shader = PAINT_STROKE->getShader();
-
-    if (shader) {
-        PAINT_STROKE->setShader(NULL);
-    }
-
-    PAINT_STROKE->setColor(color);
-
-}
 
 void NativeSkia::setGlobalAlpha(double value)
 {
