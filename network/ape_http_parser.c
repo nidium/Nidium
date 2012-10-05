@@ -11,7 +11,7 @@
 
 #define __   -1
 
-#define MAX_CL 1048576
+#define MAX_CL 10485760
 #define MAX_RCODE 9999
 
 /* Todo : check for endieness + aligned */

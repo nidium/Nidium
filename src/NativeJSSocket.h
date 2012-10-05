@@ -23,7 +23,7 @@ class NativeJSSocket : public NativeJSExposer
     void write(unsigned char *data, size_t len,
         ape_socket_data_autorelease data_type);
 
-    void destroy();
+    void disconnect();
     void shutdown();
 
     void dettach();

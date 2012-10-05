@@ -5,11 +5,12 @@
 
 
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
+static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Http_class = {
     "Http", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Http_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -18,6 +19,16 @@ static JSFunctionSpec http_funcs[] = {
     JS_FS_END
 };
 
+static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeHTTP *nhttp = (NativeHTTP *)JS_GetPrivate(obj);
+    if (nhttp != NULL) {
+        NativeJSHttp *jshttp = (NativeJSHttp *)nhttp->getPrivate();
+        if (jshttp != NULL) {
+            delete jshttp;
+        }
+    }
+}
 
 static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -41,6 +52,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     jshttp->cx = cx;
 
+    /* TODO: store jshttp intead of nhttp */
     JS_SetPrivate(ret, nhttp);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -71,8 +83,6 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     jshttp = (NativeJSHttp *)nhttp->getPrivate();
     jshttp->request = callback;
-
-    JS_AddValueRoot(cx, &jshttp->request);
 
     nhttp->request(jshttp);
 

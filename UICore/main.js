@@ -25,7 +25,7 @@ load('demos/demo.diagrams.js');
 //load('demos/demo.timers.js');
 //load('demos/demo.http.js');
 //load('demos/demo.sockets.js');
-//load('demos/demo.flickr.js');
+load('demos/demo.flickr.js');
 
 /* -- StandAlone Demos ------------------------- */
 

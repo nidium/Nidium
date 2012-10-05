@@ -43,7 +43,6 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                     NativeHTTP *http = new NativeHTTP(imgPath.ptr(),
                         (ape_global *)JS_GetContextPrivate(cx));
                     http->request(NATIVE_IMAGE_GETTER(obj.get()));
-
                 } else {
 
                     ImageObject = new NativeSkImage(imgPath.ptr());
@@ -173,13 +172,16 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 NativeJSImage::NativeJSImage() :
     img(NULL), jsobj(NULL)
 {
-
+    httpref = NULL;
 }
 
 NativeJSImage::~NativeJSImage()
 {
     if (img != NULL) {
         delete img;
+    }
+    if (httpref) {
+        delete httpref;
     }
 }
 
