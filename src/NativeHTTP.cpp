@@ -92,6 +92,7 @@ static void native_http_disconnect(ape_socket *s, ape_global *ape)
     if (nhttp == NULL) return;
 
     nhttp->requestEnded();
+    nhttp->currentSock = NULL;
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape)
@@ -230,7 +231,6 @@ NativeHTTP::~NativeHTTP()
         APE_socket_shutdown_now(currentSock);
         currentSock->ctx = NULL;
     }
-    
 
     if (!http.ended && http.data != NULL) {
         buffer_destroy(http.headers.tkey);

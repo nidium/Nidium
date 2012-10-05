@@ -21,7 +21,6 @@ static JSFunctionSpec http_funcs[] = {
 
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    printf("Finalizing http\n");
     NativeHTTP *nhttp = (NativeHTTP *)JS_GetPrivate(obj);
     if (nhttp != NULL) {
         NativeJSHttp *jshttp = (NativeJSHttp *)nhttp->getPrivate();
@@ -84,8 +83,6 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     jshttp = (NativeJSHttp *)nhttp->getPrivate();
     jshttp->request = callback;
-
-    JS_AddValueRoot(cx, &jshttp->request);
 
     nhttp->request(jshttp);
 
@@ -181,12 +178,7 @@ NativeJSHttp::NativeJSHttp()
 NativeJSHttp::~NativeJSHttp()
 {
     if (refHttp) {
-        printf("Deleting http\n");
         delete refHttp;
-    }
-    if (request != JSVAL_NULL) {
-        printf("Removing request\n");
-        JS_RemoveValueRoot(cx, &request);
     }
 }
 
