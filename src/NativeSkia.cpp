@@ -42,6 +42,9 @@
 #define WHITESPACE \
   while (' ' == *str) ++str;
 
+#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
+#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
+
 /*
  * Parse color channel value
  */
@@ -986,10 +989,68 @@ void NativeSkia::skew(double x, double y)
 /*
     composite :
     http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp
+*/
 
+/*
     pointInPath :
     http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp#115
 */
+bool NativeSkia::SkPathContainsPoint(double x, double y)
+{
+    if (currentPath == NULL) {
+        return false;
+    }
+
+    SkRect bounds = currentPath->getBounds();
+    SkPath::FillType ft = SkPath::kWinding_FillType;
+
+    // We can immediately return false if the point is outside the bounding
+    // rect.  We don't use bounds.contains() here, since it would exclude
+    // points on the right and bottom edges of the bounding rect, and we want
+    // to include them.
+    SkScalar fX = SkDoubleToScalar(x);
+    SkScalar fY = SkDoubleToScalar(y);
+    if (fX < bounds.fLeft || fX > bounds.fRight ||
+        fY < bounds.fTop || fY > bounds.fBottom)
+        return false;
+
+    // Scale the path to a large size before hit testing for two reasons:
+    // 1) Skia has trouble with coordinates close to the max signed 16-bit values, so we scale larger paths down.
+    //    TODO: when Skia is patched to work properly with large values, this will not be necessary.
+    // 2) Skia does not support analytic hit testing, so we scale paths up to do raster hit testing with subpixel accuracy.
+
+    SkScalar biggestCoord = native_max(native_max(native_max(bounds.fRight,
+        bounds.fBottom), -bounds.fLeft), -bounds.fTop);
+
+    if (SkScalarNearlyZero(biggestCoord))
+        return false;
+
+    biggestCoord = native_max(native_max(biggestCoord, fX + 1), fY + 1);
+
+    const SkScalar kMaxCoordinate = SkIntToScalar(1 << 15);
+    SkScalar scale = SkScalarDiv(kMaxCoordinate, biggestCoord);
+
+    SkRegion rgn;  
+    SkRegion clip;
+    SkMatrix m;
+    SkPath scaledPath;
+
+    SkPath::FillType originalFillType = currentPath->getFillType();
+    currentPath->setFillType(ft);
+
+    m.setScale(scale, scale);
+    currentPath->transform(m, &scaledPath);
+
+    int ix = static_cast<int>(floor(0.5 + x * scale));
+    int iy = static_cast<int>(floor(0.5 + y * scale));
+    clip.setRect(ix - 1, iy - 1, ix + 1, iy + 1);
+
+    bool contains = rgn.setPath(scaledPath, clip);
+    currentPath->setFillType(originalFillType);
+
+    return contains;
+}
+
 
 void NativeSkia::transform(double scalex, double skewy, double skewx,
             double scaley, double translatex, double translatey, int set)

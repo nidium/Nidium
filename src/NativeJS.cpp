@@ -183,6 +183,8 @@ static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
+    jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -282,6 +284,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
+    JS_FN("isPointInPath", native_canvas_isPointInPath, 2, 0),
     JS_FS_END
 };
 
@@ -1152,6 +1155,20 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
+        vp->setBoolean(false);
+        return JS_TRUE;
+    }
+
+    vp->setBoolean(NSKIA_NATIVE->SkPathContainsPoint(x, y));
+
+    return JS_TRUE;
+}
 
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
