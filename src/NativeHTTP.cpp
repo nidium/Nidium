@@ -141,7 +141,11 @@ NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
 
     HTTP_PARSER_RESET(&http.parser);
 
-    http.headers.list    = NULL;
+    http.data = NULL;
+    http.headers.tval = NULL;
+    http.headers.tkey = NULL;
+    http.headers.list = NULL;
+    
     http.parser.callback = native_http_callback;
 
     free(durl);
@@ -218,6 +222,7 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
     socket->ctx = this;
     this->delegate = delegate;
     this->currentSock = socket;
+    delegate->httpref = this;
 
     return 1;
 }

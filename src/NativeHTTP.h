@@ -56,6 +56,7 @@ class NativeHTTPDelegate
 {
   public:
     virtual void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)=0;
+    NativeHTTP *httpref;
 };
 
 
