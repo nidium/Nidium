@@ -302,6 +302,7 @@ DOMElement.prototype = {
 		*/
 
 		/* scale */
+
 		if (this._scale != 1){
 			canvas.save();
 			canvas.scale(this._scale, this._scale);

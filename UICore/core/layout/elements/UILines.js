@@ -9,89 +9,69 @@ Native.elements.export("UILine", {
 	},
 
 	init : function(){
-		var self = this;
+		var self = this,
+			nbparams = 0,
+			nbpoints = 0;
 
-		this.x1 = OptionalNumber(this.options.x1, 0);
-		this.y1 = OptionalNumber(this.options.y1, 0);
-		this.x2 = OptionalNumber(this.options.x2, 0);
-		this.y2 = OptionalNumber(this.options.y2, 0);
+		this.points = []; // array of points
+		this.controlPoint = []; // array of Native Elements
 
 		this.lineWidth = OptionalNumber(this.options.lineWidth, 1);
+		this.path = OptionalValue(this.options.path, []);
 
-		/*
-		this.addEventListener("drag", function(e){
-			var dx = e.xrel / this._scale,
-				dy = e.yrel / this._scale;
+		nbparams = this.path.length;
 
-				this._x += dx;
-				this._y += dy;
-				this.x += dx;
-				this.y += dy;
+		if (nbparams%2 != 0 || nbparams < 4){
+			throw "UILine: Incorrect number of points in path " + nbparams;
+		}
 
-				self.controlPoint3.x += dx
-				self.controlPoint3.y += dy;
-		});
-		*/
+		nbpoints = nbparams/2;
+
+		for (var i=0; i<nbpoints; i++){
+			var px = Number(this.path[2*i]),
+				py = Number(this.path[2*i+1]);
+
+			this.points.push({
+				x : px,
+				y : py
+			});
+
+			this.controlPoint[i] = this.add("UIControlPoint", {
+				x : px,
+				y : py,
+				color : this.color
+			});
+
+		}
 
 		this.updateParameters = function(){
-			this.x1 = this.controlPoint1.x;
-			this.y1 = this.controlPoint1.y;
-			this.x2 = this.controlPoint2.x;
-			this.y2 = this.controlPoint2.y;
+			for (var i=0; i<nbpoints; i++){
+				this.points[i].x = this.controlPoint[i].x;
+				this.points[i].y = this.controlPoint[i].y;
+			}
 
-			this.w = Math.abs(this.x2 - this.x1);
-			this.h = Math.abs(this.y2 - this.y1);
+			var first = 0,
+				last = nbpoints-1;
+
+			this.w = Math.abs(this.points[last].x - this.points[first].x);
+			this.h = Math.abs(this.points[last].y - this.points[first].y);
 
 			this.g = {
-				x : this.x1>=this.x2 ? this.x2 : this.x1,
-				y : this.y1>=this.y2 ? this.y2 : this.y1
+				x : this.points[first].x>=this.points[last].x ? this.points[last].x : this.points[first].x,
+				y : this.points[first].y>=this.points[last].y ? this.points[last].y : this.points[first].y
 			};
 		};
-
-		this.controlPoint1 = this.add("UIControlPoint", {
-			x : self.x1,
-			y : self.y1,
-			color : self.color
-		});
-
-		this.controlPoint2 = this.add("UIControlPoint", {
-			x : self.x2,
-			y : self.y2,
-			color : self.color
-		});
 
 		this.addEventListener("change", function(e){
 			this.updateParameters();
 		}, false);
 
-		if (this.options.split){
-			this.control = {
-				x : this.x1 + (this.x2 - this.x1)/2,
-				y : this.y1 + (this.y2 - this.y1)/2
-			};
 
-			this.controlPoint3 = this.add("UIControlPoint", {
-				x : self.control.x,
-				y : self.control.y,
-				color : self.color
-			});
 
-			this.controlPoint3.addEventListener("drag", function(e){
-				self.control.x += e.dx;
-				self.control.y += e.dy;
-			}, false);
-
-		}
 
 	},
 
 	isPointInside : function(mx, my){
-		var x1 = this.__x + this.x1*this._scale,
-			y1 = this.__y + this.y1*this._scale,
-			x2 = x1 + this.__w,
-			y2 = y1 + this.__h;
-
-		return	(mx>=x1 && mx<=x2 && my>=y1 && my<=y2) ? true : false;
 	},
 
 	draw : function(){
@@ -102,13 +82,15 @@ Native.elements.export("UILine", {
 				y : this._y,
 				w : this.w,
 				h : this.h,
-			};
+			},
+
+			nbpoints = this.points.length;
 		
 		/*
 		canvas.setColor("rgba(0, 0, 0, 0.5)");
 		var r = {
-			x : this._x + this.x1,
-			y : this._y + this.y1,
+			x : this._x + this.points[0].x,
+			y : this._y + this.points[0].y,
 			w : this.w,
 			h : this.h
 		}
@@ -118,26 +100,34 @@ Native.elements.export("UILine", {
 		canvas.strokeStyle = this.color;
 		canvas.lineWidth = this.lineWidth;
 		
-		canvas.beginPath();
-		canvas.moveTo(params.x + this.x1, params.y + this.y1);
-		
-		if (this.options.split){
-			
-			if (this.options.split=="quadratic"){
-				canvas.quadraticCurveTo(
-					params.x + this.control.x + this.x, params.y + this.control.y + this.y, 
-					params.x + this.x2, params.y + this.y2
-				);
-			} else {
-				canvas.lineTo(params.x + this.control.x + this.x, params.y + this.control.y + this.y);
-				canvas.lineTo(params.x + this.x2, params.y + this.y2);
-			}
-
-		} else {
-			canvas.lineTo(params.x + this.x2, params.y + this.y2);
+		if (nbpoints==2){
+			canvas.beginPath();
+			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
+			canvas.lineTo(params.x + this.points[1].x, params.y + this.points[1].y);
+			canvas.stroke();
 		}
 
-		canvas.stroke();
+		else if (nbpoints==3){
+			canvas.beginPath();
+			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
+			canvas.quadraticCurveTo(
+				params.x + this.points[1].x, params.y + this.points[1].y, 
+				params.x + this.points[2].x, params.y + this.points[2].y
+			);
+			canvas.stroke();
+		}
+
+		else if (nbpoints>=4){
+			var path = [];
+			for (var i=0; i<nbpoints; i++){
+				path.push([
+					params.x + this.points[i].x,
+					params.y + this.points[i].y
+				]);
+			}
+
+			canvas.spline(path);
+		}
 
 	}
 });

@@ -149,7 +149,6 @@ pasteButton.addEventListener("mousedown", function(e){
 	textView.paste();
 });
 
-var line = overlayView.add("UILine", {x1:170, y1:16, x2:350, y2:200, split:"quadratic", color:"#ff0000", lineWidth:4});
 var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255, 0, 0, 0.2)", draggable:true});
 
 docButton1.addEventListener("mousedown", function(e){

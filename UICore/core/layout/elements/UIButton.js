@@ -9,6 +9,9 @@ Native.elements.export("UIButton", {
 		this.h = OptionalNumber(this.options.h, 22);
 		this.radius = OptionalNumber(this.options.radius, 2);
 
+		this.background = OptionalValue(this.options.background, "#2277E0");
+		this.color = OptionalValue(this.options.color, "#ffffff");
+
 		this.flags._canReceiveFocus = true;
 
 		this.addEventListener("mousedown", function(e){
@@ -50,7 +53,6 @@ Native.elements.export("UIButton", {
 			h = params.h,
 			textOffsetX = 9,
 			textOffsetY = (h-this.lineHeight)/2 + 4 + this.lineHeight/2,
-			textColor = '#e0e0e0',
 			textShadow = '#000000';
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
@@ -68,10 +70,8 @@ Native.elements.export("UIButton", {
 
 		if (this.selected){
 			textOffsetY++;
-			textColor = "rgba(255, 255, 255, 0.8)";
 			textShadow = "rgba(255, 255, 255, 0.15)";
 		} else {
-			textColor = "rgba(255, 255, 255, 0.95)";
 			textShadow = "rgba(0, 0, 0, 0.2)";
 		}
 
@@ -104,10 +104,8 @@ Native.elements.export("UIButton", {
 			canvas.roundbox(params.x, params.y, w, h, this.radius, gdBackground, false);
 		}
 
-		canvas.setFontSize(this.fontSize);
-
 		//if (__TEXT_SHADOWS__) { canvas.setShadow(1, 1, 1, '#000000'); }
-		canvas.setColor(textColor);
+		canvas.setColor(this.color);
 		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
 		//if (__TEXT_SHADOWS__){ canvas.setShadow(0, 0, 0); }
 
