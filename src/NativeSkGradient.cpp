@@ -99,7 +99,7 @@ SkShader *NativeSkGradient::build()
 	SkSafeUnref(currentShader);
 
 	if (isRadial) {
-		currentShader = SkGradientShader::CreateTwoPointRadial(pts[0],
+		currentShader = SkGradientShader::CreateTwoPointConical(pts[0],
 			SkDoubleToScalar(startPoint.radius), pts[1],
 			SkDoubleToScalar(endPoint.radius), colors, pos, colorsStop.count,
 			SkShader::kClamp_TileMode);
