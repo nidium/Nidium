@@ -185,6 +185,8 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
+    jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -285,6 +287,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
     JS_FN("isPointInPath", native_canvas_isPointInPath, 2, 0),
+    JS_FN("getPathBounds", native_canvas_getPathBounds, 0, 0),
     JS_FS_END
 };
 
@@ -1166,6 +1169,28 @@ static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
     }
 
     vp->setBoolean(NSKIA_NATIVE->SkPathContainsPoint(x, y));
+
+    return JS_TRUE;
+}
+
+/* TODO: return undefined if the path is invalid */
+static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+#define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+
+    double left = 0, right = 0, top = 0, bottom = 0;
+    JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
+
+    NSKIA_NATIVE->getPathBounds(&left, &right, &top, &bottom);
+
+    OBJ_PROP("left", DOUBLE_TO_JSVAL(left));
+    OBJ_PROP("right", DOUBLE_TO_JSVAL(right));
+    OBJ_PROP("top", DOUBLE_TO_JSVAL(top));
+    OBJ_PROP("bottom", DOUBLE_TO_JSVAL(bottom));
+
+    vp->setObject(*obj);
 
     return JS_TRUE;
 }

@@ -991,6 +991,21 @@ void NativeSkia::skew(double x, double y)
     http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp
 */
 
+
+void NativeSkia::getPathBounds(double *left, double *right,
+    double *top, double *bottom)
+{
+    if (currentPath == NULL) {
+        return;
+    }
+    SkRect bounds = currentPath->getBounds();
+
+    *left = SkScalarToDouble(bounds.fLeft);
+    *right = SkScalarToDouble(bounds.fRight);
+    *top = SkScalarToDouble(bounds.fTop);
+    *bottom = SkScalarToDouble(bounds.fBottom);
+}
+
 /*
     pointInPath :
     http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/SkiaUtils.cpp#115
