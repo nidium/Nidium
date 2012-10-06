@@ -185,7 +185,7 @@ Native.events = {
 			if (this.dragging) {
 				element.fireEvent("mouseout", e);
 				element.fireEvent("mouseleave", e);
-				element.fireEvent("ondragleave", e);
+				element.fireEvent("dragleave", e);
 				return false;
 			} else {
 				element.fireEvent("mouseout", e);

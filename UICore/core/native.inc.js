@@ -97,10 +97,54 @@ Native.layout = {
 		this.nodes[element._uid] = element;
 	},
 
+	destroy : function(element){
+		if (element.parent){
+			delete(element.parent.nodes[element._uid]);
+			delete(this.nodes[element._uid]);
+			delete(element);
+			element = null;
+		}
+	},
+
 	remove : function(element){
-		delete(this.nodes[element._uid]);
-		delete(element);
-		this.draw();
+		this.applyRecursiveInference(element, function(){
+			this.garbageCollector = true;
+		});
+
+		var z = this.getElements();
+		for (var i=0; i<z.length; i++){
+			if (z[i].garbageCollector){
+				this.destroy(z[i]);
+			}
+		}
+		this.destroy(element);
+		canvas.__mustBeDrawn = true;
+	},
+
+	applyRecursiveInference : function(element, inference){
+		var self = this,
+			e = this.nodes[element._uid],
+			cb = OptionalCallback(inference, null);
+
+		if (!e){
+			throw("Inference: Unregistered element " + element._uid);
+			return false;
+		}
+
+		var dx = function(nodes, parent){
+			for (var i in nodes){
+				cb.call(nodes[i]);
+				if (self.count(nodes[i].nodes)>0) {
+					dx(nodes[i].nodes, nodes[i].parent);
+				}
+			}
+		};
+
+		if (element && cb) {
+			cb.call(element);
+			e.nodes && dx(e.nodes);
+		}
+
 	},
 
 	clear : function(){
@@ -109,7 +153,6 @@ Native.layout = {
 
 	draw : function(){
 		var z = this.getElements();
-
 		if (canvas.__mustBeDrawn || true) {
 			for (var i=0; i<z.length; i++){
 				z[i].refresh();
@@ -134,50 +177,6 @@ Native.layout = {
 			canvas.stroke();
 
 		}
-	},
-
-	_animateFocus : function(element){
-		if (element.flags._canReceiveFocus) {
-			this.focus(element);
-		} else {
-			this.focusNextElement();
-		}
-	},
-
-	focus : function(element){
-		if (element.hasFocus === true) {
-			return false;
-		}
-
-		if (element.flags._canReceiveFocus) {
-			/* Blur last focused element */
-			if (this.currentFocusedElement) {
-				this.currentFocusedElement.fireEvent("blur", {});
-			}
-
-			/* set this element as the new focused element */
-			element.hasFocus = true;
-			element.fireEvent("focus", {});
-			this.currentFocusedElement = element;
-			this.focusObj = element._nid;
-		}
-	},
-
-	bringToTop : function(element){
-		if (element.isOnTop === true) {
-			return false;
-		}
-
-		if (this.currentOnTopElement) {
-			this.currentOnTopElement.isOnTop = false;
-			this.currentOnTopElement.fireEvent("back", {});
-		}
-
-		/* set this element as the new on top element */
-		element.isOnTop = true;
-		element.fireEvent("top", {});
-		element.zIndex = this.getHigherZindex() + 1;
-		this.currentOnTopElement = element;
 	},
 
 	getElements : function(){
@@ -271,6 +270,50 @@ Native.layout = {
 		if (this.focusObj > this.nbObj-2) {
 			this.focusObj = 0;
 		}
+	},
+
+	_animateFocus : function(element){
+		if (element.flags._canReceiveFocus) {
+			this.focus(element);
+		} else {
+			this.focusNextElement();
+		}
+	},
+
+	focus : function(element){
+		if (element.hasFocus === true) {
+			return false;
+		}
+
+		if (element.flags._canReceiveFocus) {
+			/* Blur last focused element */
+			if (this.currentFocusedElement) {
+				this.currentFocusedElement.fireEvent("blur", {});
+			}
+
+			/* set this element as the new focused element */
+			element.hasFocus = true;
+			element.fireEvent("focus", {});
+			this.currentFocusedElement = element;
+			this.focusObj = element._nid;
+		}
+	},
+
+	bringToTop : function(element){
+		if (element.isOnTop === true) {
+			return false;
+		}
+
+		if (this.currentOnTopElement) {
+			this.currentOnTopElement.isOnTop = false;
+			this.currentOnTopElement.fireEvent("back", {});
+		}
+
+		/* set this element as the new on top element */
+		element.isOnTop = true;
+		element.fireEvent("top", {});
+		element.zIndex = this.getHigherZindex() + 1;
+		this.currentOnTopElement = element;
 	},
 
 	refresh : function(){

@@ -80,6 +80,7 @@ Native.elements.export("UIDiagram", {
 			this.handle.addEventListener("drag", function(e){
 				this.parent.left += e.xrel;
 				this.parent.top += e.yrel;
+				self.updatePins();
 			});
 
 			this.handle.addEventListener("dragend", function(){
@@ -120,10 +121,138 @@ Native.elements.export("UIDiagram", {
 
 		/* --------------------- */
 
-		this._initPin = function(pin){
-			pin.addEventListener("dragstart", function(){
+		this.updatePins = function(){
+			for (var i=0; i<nbpins; i++){
+				var	pin = this.pins[i];
+
+				if (pin.link){
+					var	e = {
+							x : pin.link.controlPoints[4].x,
+							y : pin.link.controlPoints[4].y
+						},
+						p = pin.updateControlPoints({x:e.x, y:e.y});
+
+					pin.setPoint(0, {x : p.sx0, y : p.sy0});
+					pin.setPoint(1, {x : p.sx1, y : p.sy1});
+					pin.setPoint(2, {x : p.sx2, y : p.sy2});
+					pin.setPoint(3, {x : p.sx3, y : p.sy3});
+					pin.setPoint(4, {x : e.x,	y : e.y});
+				}
+			}
+		};
+
+		this.attachAllTheGoodThingsToPin = function(pin){
+
+			pin.setPoint = function(i, p){
+				this.link.controlPoints[i].x = p.x;
+				this.link.controlPoints[i].y = p.y;
+			};
+
+			pin.updateControlPoints = function(e){
+				var	sx0 = 0, sy0 = 0,
+					sx1 = 0, sy1 = 0,
+					sx2 = 0, sy2 = 0,
+					sx3 = 0, sy3 = 0;
+
+				sx0 = this.__x + this.__w;
+				sy0 = this.__y + this.__h / 2;
+
+				if (this.pintype == "output") {
+					sx0 = this.__x + this.__w;
+					sy0 = this.__y + this.__h / 2;
+		
+					sx1 = sx0 + Math.abs(e.x - sx0)/2;
+					sy1 = sy0;
+				} else {
+					sx0 = this.__x;
+					sy0 = this.__y + this.__h / 2;
+
+					sx1 = sx0 - Math.abs(sx0 - e.x)/2;
+					sy1 = sy0;
+				}
+
+				sx2 = sx1;
+				sy2 = sy1 - (sy1 - e.y)/2;
+
+				sx3 = sx2;					
+				sy3 = e.y;
+
+				return {
+					sx0 : sx0,
+					sy0 : sy0,
+
+					sx1 : sx1,
+					sy1 : sy1,
+
+					sx2 : sx2,
+					sy2 : sy2,
+
+					sx3 : sx3,
+					sy3 : sy3
+				};
+			};
+
+			pin.addEventListener("dragstart", function(e){
+				var ground = self.parent,
+					p = this.updateControlPoints(e);
+
+				pin.link = ground.add("UILine", {
+					vertices : [
+						p.sx0, p.sy0,
+						p.sx1, p.sy1,
+						p.sx2, p.sy2,
+						p.sx3, p.sy3,
+						e.x, e.y
+					],
+					displayControlPoints : true,
+					color : "#ff0000",
+					lineWidth : 3
+				});
 
 			}, false)
+
+			pin.addEventListener("drag", function(e){
+				pin.link.focus();
+				var	p = this.updateControlPoints(e);
+			
+				this.setPoint(1, {x:p.sx1, y:p.sy1});
+				this.setPoint(2, {x:p.sx2, y:p.sy2});
+				this.setPoint(3, {x:p.sx3, y:p.sy3});
+				this.setPoint(4, {x:e.x, y:e.y});
+			}, false)
+
+			pin.addEventListener("dragend", function(e){
+				var pin = this;
+
+				pin.link.addEventListener("change", function(e){
+					var	p = pin.updateControlPoints(e);
+				
+					pin.setPoint(1, {x:p.sx1, y:p.sy1});
+					pin.setPoint(2, {x:p.sx2, y:p.sy2});
+					pin.setPoint(3, {x:p.sx3, y:p.sy3});
+					pin.setPoint(4, {x:e.x, y:e.y});
+				}, false)
+
+
+				pin.link.remove();
+
+			}, false)
+
+
+			pin.addEventListener("dragover", function(e){
+				if (this.pintype == "output") return false;
+				this.background = '#ff9900';
+			}, false)
+
+			pin.addEventListener("dragleave", function(e){
+				this.background = '';
+			}, false)
+
+			pin.addEventListener("drop", function(e){
+				echo(e.source.label);
+				this.background = '';
+			}, false)
+
 		};
 
 		this._addPin = function(i, options, y){
@@ -152,7 +281,6 @@ Native.elements.export("UIDiagram", {
 					textAlign = "left";
 					txt = '- ' + label;
 					break;
-
 			}
 
 			this.pins[i] = this.contentView.add("UILabel", {
@@ -170,7 +298,8 @@ Native.elements.export("UIDiagram", {
 			});
 
 			this.pins[i].pinnum = i;
-			this._initPin(this.pins[i]);
+			this.pins[i].pintype = type;
+			this.attachAllTheGoodThingsToPin(this.pins[i]);
 
 		};
 

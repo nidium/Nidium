@@ -163,7 +163,14 @@ DOMElement.prototype = {
 
 	addChild : function(element){
 		this.nodes[element._uid] = element;
-		Native.layout.refresh();
+		Native.layout.register(element);
+	},
+
+	removeChild : function(element){
+		if (element.parent != this) {
+			throw("Unable to remove this element.");
+		}
+		Native.layout.remove(element);
 	},
 
 	remove : function(){
@@ -329,8 +336,7 @@ DOMElement.prototype = {
 			},
 			r = this.r+1;
 
-		if (this.type=="UIText" || this.type=="UIWindow") {
-			/*
+		if (this.type=="UIText" || this.type=="UIWindow" || this.type=="UIDiagram") {
 			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
 			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
 			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
@@ -338,8 +344,16 @@ DOMElement.prototype = {
 			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
 			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
-			*/
 		}
+
+		else if (this.type == "UILine") {
+			canvas.save();
+			canvas.strokeStyle = "rgba(0, 0, 0, 0.25)";
+			canvas.lineWidth = this.lineWidth+20;
+			canvas.spline(this.path);
+			canvas.restore();
+		}
+
 	},
 
 	afterDraw : function(){

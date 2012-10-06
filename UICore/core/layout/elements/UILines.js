@@ -13,41 +13,59 @@ Native.elements.export("UILine", {
 			nbparams = 0,
 			nbpoints = 0;
 
-		this.points = []; // array of points
-		this.controlPoint = []; // array of Native Elements
+		this.vertices = OptionalValue(this.options.vertices, []);
+		this.points = []; // array of points, relative coordinates to parent
+		this.path = []; // array of points, absolute coordinates
+
+		this.controlPoints = []; // array of Native Elements
+		this.flags._canReceiveFocus = true;
 
 		this.lineWidth = OptionalNumber(this.options.lineWidth, 1);
-		this.path = OptionalValue(this.options.path, []);
 
-		nbparams = this.path.length;
+		this.displayControlPoints = OptionalBoolean(this.options.displayControlPoints, false);
+
+		nbparams = this.vertices.length;
 
 		if (nbparams%2 != 0 || nbparams < 4){
-			throw "UILine: Incorrect number of points in path " + nbparams;
+			throw "UILine: Incorrect number of points in vertices " + nbparams;
 		}
 
 		nbpoints = nbparams/2;
 
 		for (var i=0; i<nbpoints; i++){
-			var px = Number(this.path[2*i]),
-				py = Number(this.path[2*i+1]);
+			var px = Number(this.vertices[2*i]),
+				py = Number(this.vertices[2*i+1]);
 
+			// relative coords
 			this.points.push({
 				x : px,
 				y : py
 			});
 
-			this.controlPoint[i] = this.add("UIControlPoint", {
+			// absolute coords
+			this.path.push([
+				this._x + px,
+				this._y + py
+			]);
+
+			this.controlPoints[i] = this.add("UIControlPoint", {
 				x : px,
 				y : py,
-				color : this.color
+				color : this.color,
+				hidden : !this.displayControlPoints
 			});
 
 		}
 
+		this.nbpoints = this.points.length;
+
 		this.updateParameters = function(){
 			for (var i=0; i<nbpoints; i++){
-				this.points[i].x = this.controlPoint[i].x;
-				this.points[i].y = this.controlPoint[i].y;
+				this.points[i].x = this.controlPoints[i].x;
+				this.points[i].y = this.controlPoints[i].y;
+
+				this.path[i][0] = this._x + this.points[i].x;
+				this.path[i][1] = this._y + this.points[i].y;
 			}
 
 			var first = 0,
@@ -65,9 +83,6 @@ Native.elements.export("UILine", {
 		this.addEventListener("change", function(e){
 			this.updateParameters();
 		}, false);
-
-
-
 
 	},
 
@@ -117,16 +132,19 @@ Native.elements.export("UILine", {
 			canvas.stroke();
 		}
 
-		else if (nbpoints>=4){
-			var path = [];
-			for (var i=0; i<nbpoints; i++){
-				path.push([
-					params.x + this.points[i].x,
-					params.y + this.points[i].y
-				]);
-			}
+		else if (nbpoints==4){
+			canvas.beginPath();
+			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
+			canvas.bezierCurveTo(
+				params.x + this.points[1].x, params.y + this.points[1].y, 
+				params.x + this.points[2].x, params.y + this.points[2].y,
+				params.x + this.points[3].x, params.y + this.points[3].y
+			);
+			canvas.stroke();
+		}
 
-			canvas.spline(path);
+		else if (nbpoints>=5){
+			canvas.spline(this.path);
 		}
 
 	}
@@ -140,6 +158,7 @@ Native.elements.export("UIControlPoint", {
 
 		this.radius = OptionalNumber(this.options.radius, 3);
 		this.background = OptionalValue(this.options.background, "rgba(0, 0, 0, 0.5)"),
+		this.hidden = OptionalBoolean(this.options.hidden, false),
 		this.lineWidth = 1;
 		this.opacity = 0.5;
 
@@ -150,6 +169,7 @@ Native.elements.export("UIControlPoint", {
 
 		this.addEventListener("mousedown", function(e){
 			this.opacity = 1.00;
+			this.parent.focus();
 			e.stopPropagation();
 		}, true);
 
@@ -195,8 +215,10 @@ Native.elements.export("UIControlPoint", {
 				h : this.h
 			};
 
-		canvas.roundbox(params.x-hx+2, params.y-hy+2, params.w-4, params.h-4, this.radius, '', "#000000", this.lineWidth); // main view
-		canvas.roundbox(params.x-hx+4, params.y-hy+4, params.w-8, params.h-8, 0, this.background, "#ffffff", this.lineWidth); // main view
+		if (this.parent.hasFocus && !this.hidden){
+			canvas.roundbox(params.x-hx+2, params.y-hy+2, params.w-4, params.h-4, this.radius, '', "#000000", this.lineWidth); // main view
+			canvas.roundbox(params.x-hx+4, params.y-hy+4, params.w-8, params.h-8, 0, this.background, "#ffffff", this.lineWidth); // main view
+		}
 
 	}
 });

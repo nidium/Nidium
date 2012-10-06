@@ -5,9 +5,22 @@
 
 var main = new Application({background:"#262722"});
 
-var LPF = main.add("UIDiagram", {
+var LFO = main.add("UIDiagram", {
 	x : 180, 
 	y : 320, 
+	label : "Low Frequency Oscillator",
+	background : "#222222",
+	elements : 	[
+		{label:"Input",				type:"output"},
+		{label:"Cutoff Frequency",	type:"output"},
+		{label:"Resonnance",		type:"output"},
+		{label:"Output",			type:"output"}
+	]
+});
+
+var LPF = main.add("UIDiagram", {
+	x : 600, 
+	y : 480, 
 	label : "Low Pass Filter",
 	background : "#222222",
 	elements : 	[
@@ -19,8 +32,8 @@ var LPF = main.add("UIDiagram", {
 });
 
 var VCA = main.add("UIDiagram", {
-	x : 500, 
-	y : 160, 
+	x : 750, 
+	y : 80, 
 	label : "Voltage Controlled Amplifier",
 	background : "#331111",
 	elements : 	[
@@ -31,17 +44,24 @@ var VCA = main.add("UIDiagram", {
 	]
 });
 
-var link = main.add("UILine", {
-	path : [
-		50, 150,
-		200, 70,
-		340, 90,
-		460, 200,
-		500, 400
-	],
-	controlPoints : true,
-	color : "#ff0000",
-	lineWidth : 5
+DBT(function(){
+	LPF.remove();
 });
 
 
+/*
+
+var link = main.add("UILine", {
+	vertices : [
+		10, 600,
+		100, 500,
+		200, 700,
+		300, 500,
+		400, 700
+	],
+	displayControlPoints : true,
+	color : "#ff0000",
+	lineWidth : 3
+});
+
+*/

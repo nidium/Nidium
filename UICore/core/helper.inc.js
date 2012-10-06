@@ -204,8 +204,9 @@ var console = {
 	},
 
 	dump : function(object, pad){
-		var self = this,
-			dmp = function(object, pad){
+		var self = this;
+		
+		var	dmp = function(object, pad){
 			var	out = '',
 				idt = '\t';
 
