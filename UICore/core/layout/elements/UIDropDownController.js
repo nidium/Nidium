@@ -49,7 +49,7 @@ Native.elements.export("UIDropDownController", {
 		};
 
 		this._addTab = function(i, options, y){
-			let label = options.label ? options.label : "New options",
+			var label = options.label ? options.label : "New options",
 				selected = options.selected ? options.selected : false,
 				background = options.background ? options.background : "#262722",
 				color = options.color ? options.color : "#abacaa";

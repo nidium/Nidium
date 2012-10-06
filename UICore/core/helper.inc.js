@@ -17,6 +17,10 @@ Math.distance = function(x1, y1, x2, y2){
 	return Math.sqrt(a*a+b*b);
 };
 
+Math.factorial = function(n){
+	return (n==0 || n==1) ? 1 : n*Math.factorial(n-1);
+}
+
 /* -------------------------------------------------------------------------- */
 
 canvas.implement = function(props){

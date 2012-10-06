@@ -48,6 +48,7 @@ load(__PATH_ELEMENTS__ + 'UIButton.js');
 load(__PATH_ELEMENTS__ + 'UIButtonClose.js');
 load(__PATH_ELEMENTS__ + 'UIButtonDown.js');
 
+load(__PATH_ELEMENTS__ + 'UILabel.js');
 load(__PATH_ELEMENTS__ + 'UIText.js');
 load(__PATH_ELEMENTS__ + 'UITextInput.js');
 
@@ -67,8 +68,11 @@ load(__PATH_ELEMENTS__ + 'UIWindowResizer.js');
 load(__PATH_ELEMENTS__ + 'UISliderKnob.js');
 load(__PATH_ELEMENTS__ + 'UISliderController.js');
 
+load(__PATH_ELEMENTS__ + 'UIDiagram.js');
+
 /* -- Load plugins -- */
 load(__PATH_PLUGINS__ + 'blur.inc.js');
+load(__PATH_PLUGINS__ + 'spline.inc.js');
 load(__PATH_PLUGINS__ + 'roundbox.inc.js');
 load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'animations.inc.js');
