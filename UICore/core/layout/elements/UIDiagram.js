@@ -140,7 +140,7 @@ Native.elements.export("UIDiagram", {
 		this.attachAllTheGoodThingsToPin = function(pin){
 
 			pin.setPoint = function(i, p){
-				pin._templink.setControlPoint(i, p);
+				pin.link.setControlPoint(i, p);
 			};
 
 			pin.getControlPoints = function(end){
@@ -226,7 +226,7 @@ Native.elements.export("UIDiagram", {
 			pin.addEventListener("dragstart", function(e){
 				var p = this.getControlPoints(e);
 
-				pin._templink = diagramController.add("UILine", {
+				pin.link = diagramController.add("UILine", {
 					vertices : [
 						p.sx0, p.sy0,
 						p.sx1, p.sy1,
@@ -239,11 +239,11 @@ Native.elements.export("UIDiagram", {
 					lineWidth : 3
 				});
 
-				pin._templink.bringToTop();
-				pin._templink.controlPoints[4]._diagram = self;
-				pin._templink.controlPoints[4]._pin = pin;
+				pin.link.bringToTop();
+				pin.link.controlPoints[4]._diagram = self;
+				pin.link.controlPoints[4]._pin = pin;
 
-				pin._templink.addEventListener("change", function(e){
+				pin.link.addEventListener("change", function(e){
 					pin.updateLink(e);
 				}, false)
 
@@ -253,14 +253,14 @@ Native.elements.export("UIDiagram", {
 
 
 			pin.addEventListener("drag", function(e){
-				pin._templink.focus();
+				pin.link.focus();
 				pin.updateLink(e);
 				e.stopPropagation();
 			}, false)
 
 			pin.addEventListener("dragend", function(e){
-				pin._templink.remove();
-				pin._templink = null;
+				pin.link.remove();
+				pin.link = null;
 			}, false)
 
 
