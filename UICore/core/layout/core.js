@@ -39,6 +39,7 @@ var DOMElement = function(type, options, parent){
 	this.hover = false;
 	this.hasFocus = false;
 	this.isOnTop = false;
+	this.mouseOverPath = false;
 	this.visible = OptionalBoolean(o.visible, true);
 	this.selected = OptionalBoolean(o.selected, false);
 	this.draggable = OptionalBoolean(o.draggable, false);
@@ -348,7 +349,7 @@ DOMElement.prototype = {
 
 		else if (this.type == "UILine") {
 			canvas.save();
-			canvas.strokeStyle = "rgba(0, 0, 0, 0.25)";
+			canvas.strokeStyle = "rgba(0, 0, 0, 0.10)";
 			canvas.lineWidth = this.lineWidth+20;
 			canvas.spline(this.path);
 			canvas.restore();
@@ -421,7 +422,7 @@ DOMElement.prototype = {
 			x2 = x1 + this.__w,
 			y2 = y1 + this.__h;
 
-		return	(mx>=x1 && mx<=x2 && my>=y1 && my<=y2) ? true : false;
+		return	(mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
 
 	isVisible : function(){

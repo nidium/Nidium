@@ -12,14 +12,23 @@ var window = {
 /* -------------------------------------------------------------------------- */
 
 Math.distance = function(x1, y1, x2, y2){
-	var a = (y2 - y1),
-		b = (x2 - x1);
+	var a = y2-y1, b = x2-x1;
 	return Math.sqrt(a*a+b*b);
 };
 
-Math.factorial = function(n){
-	return (n==0 || n==1) ? 1 : n*Math.factorial(n-1);
-}
+/* -- The Catel Fontaine !n */
+Math.factorial = (function(n){
+	var c = [],
+		f = function(n){
+			if (n==0 || n==1) return 1;
+			if (c[n]) return c[n];
+			for (var r=i=1; i<=n; i++){r *= i}
+			return c[n] = r;
+		};
+	for (var i=0; i<5000; i++) f(i);
+	return f;
+}());
+
 
 /* -------------------------------------------------------------------------- */
 

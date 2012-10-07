@@ -2,24 +2,12 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-
-
-BenchThis("SpiderMonkey Math.sin()", 3000000, function(i){
-	Math.acos(i);
+BenchThis("mul", 30000000, function(i){
+	var d = Math.distance(20, 20, 500, 500);
 });
 
-
-BenchThis("FastMath.sin()", 3000000, function(i){
-	FastMath.acos(i);
-});
-
-
-BenchThis("SpiderMonkey Math.sin()", 300000, function(i){
-	Math.sin(i);
-});
-
-BenchThis("Native.sin()", 300000, function(i){
-	Native.sin(i);
+BenchThis("pow", 30000000, function(i){
+	var d = Math.FastDistance(20, 20, 500, 500);
 });
 
 

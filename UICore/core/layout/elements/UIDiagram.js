@@ -234,7 +234,7 @@ Native.elements.export("UIDiagram", {
 				}, false)
 
 
-				pin.link.remove();
+				//pin.link.remove();
 
 			}, false)
 

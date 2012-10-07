@@ -33,13 +33,14 @@
  */
 
 canvas.implement({
-	spline : function(points){
+	spline : function(points, mx=0, my=0, lineWidth=2){
 		var len = 0,
-			step = 0;
+			step = 0,
+			mouseOnPath = false,
+			f = Math.factorial, pw = Math.pow;
 
 		var B = function(i, n, t){
-			return	Math.factorial(n) / (Math.factorial(i) * Math.factorial(n - i)) * 
-					Math.pow(t, i) * Math.pow(1 - t, n - i);
+			return	f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
 		}
 
 		for (var i=0; i<points.length-1; i++) {
@@ -61,9 +62,13 @@ canvas.implement({
 				r[0] += points[i][0] * B(i, n, t);
 				r[1] += points[i][1] * B(i, n, t);
 			}
+			
+			mouseOnPath = (Math.distance(r[0], r[1], mx, my) <= lineWidth) ? true : mouseOnPath;
+
 			this.lineTo(r[0], r[1]);
 		}
 		this.stroke();
+		return mouseOnPath;
 	}
 });
 

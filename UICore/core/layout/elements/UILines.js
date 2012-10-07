@@ -84,9 +84,14 @@ Native.elements.export("UILine", {
 			this.updateParameters();
 		}, false);
 
+		this.addEventListener("mousedown", function(e){
+			this.focus();
+			e.stopPropagation();
+		}, false);
 	},
 
 	isPointInside : function(mx, my){
+		return this.mouseOverPath;
 	},
 
 	draw : function(){
@@ -114,7 +119,10 @@ Native.elements.export("UILine", {
 
 		canvas.strokeStyle = this.color;
 		canvas.lineWidth = this.lineWidth;
-		
+
+		this.mouseOverPath = canvas.spline(this.path, canvas.mouseX, canvas.mouseY, this.lineWidth+8);
+
+		/*		
 		if (nbpoints==2){
 			canvas.beginPath();
 			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
@@ -144,8 +152,9 @@ Native.elements.export("UILine", {
 		}
 
 		else if (nbpoints>=5){
-			canvas.spline(this.path);
+			this.mouseOverPath = canvas.spline(this.path, canvas.mouseX, canvas.mouseY);
 		}
+		*/
 
 	}
 });
