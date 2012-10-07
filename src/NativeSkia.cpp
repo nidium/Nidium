@@ -447,7 +447,7 @@ int NativeSkia::bindGL(int width, int height)
 
     asComposite = 0;
 
-    canvas->drawColor(SkColorSetARGB(0, 0, 0, 0));
+    //canvas->drawColor(SkColorSetARGB(0, 0, 0, 0));
 
     //canvas->drawARGB(0, 0, 0, 0, SkXfermode::kClear_Mode);
 
@@ -525,16 +525,30 @@ PAINT->setImageFilter(new SkBlurImageFilter(10.0f, 10.0f))->unref();
                              SkBlurMaskFilter::kInner_BlurStyle,
                              SkBlurMaskFilter::kNone_BlurFlag));*/
 #endif
+    canvas->drawColor(SkColorSetARGB(0, 1, 1, 1));
     return 1;
 }
 
 void NativeSkia::drawRect(double x, double y, double width,
     double height, int stroke)
 {
-    canvas->drawRectCoords(SkDoubleToScalar(x), SkDoubleToScalar(y),
-        SkDoubleToScalar(width), SkDoubleToScalar(height),
-        (stroke ? *PAINT_STROKE : *PAINT));
+    SkRect r;
 
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
+#if 0
+    if (asComposite) {
+        canvas->saveLayer(&r, NULL, SkCanvas::kARGB_ClipLayer_SaveFlag);
+        //PAINT->setXfermodeMode(SkXfermode::kDstOver_Mode);
+        //canvas->drawColor(SK_ColorGRAY);
+    }
+#endif
+    canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
+#if 0
+    if (asComposite) {
+        canvas->restore();
+    }
+#endif
     CANVAS_FLUSH();
 
 }
@@ -768,6 +782,7 @@ void NativeSkia::setGlobalComposite(const char *str)
     for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
         if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
             PAINT->setXfermodeMode(native_xfer_mode[i].mode);
+            PAINT_STROKE->setXfermodeMode(native_xfer_mode[i].mode);
             break;
         }
     }
