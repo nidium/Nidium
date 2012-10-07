@@ -69,6 +69,7 @@ load(__PATH_ELEMENTS__ + 'UISliderKnob.js');
 load(__PATH_ELEMENTS__ + 'UISliderController.js');
 
 load(__PATH_ELEMENTS__ + 'UIDiagram.js');
+load(__PATH_ELEMENTS__ + 'UIDiagramController.js');
 
 /* -- Load plugins -- */
 load(__PATH_PLUGINS__ + 'blur.inc.js');

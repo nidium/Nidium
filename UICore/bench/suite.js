@@ -2,12 +2,8 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-BenchThis("mul", 30000000, function(i){
-	var d = Math.distance(20, 20, 500, 500);
-});
+BenchThis("Native.layout.getElements()", 3000, function(i){
 
-BenchThis("pow", 30000000, function(i){
-	var d = Math.FastDistance(20, 20, 500, 500);
 });
 
 

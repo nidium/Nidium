@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"#262722"}),
+var main = new Application(),
 
 	// Small Green Slider
 	slider1 = main.add("UISliderController", {

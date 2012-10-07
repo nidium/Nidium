@@ -199,13 +199,28 @@ Native.elements.export("UIDiagram", {
 				};
 			};
 
-			pin.updateLink = function(e){
-				var	p = this.getControlPoints(e);
+			pin.updateLink = function(endPoint){
+				var	p = this.getControlPoints(endPoint);
 			
-				this.setPoint(1, {x:p.sx1, y:p.sy1});
-				this.setPoint(2, {x:p.sx2, y:p.sy2});
-				this.setPoint(3, {x:p.sx3, y:p.sy3});
-				this.setPoint(4, {x:e.x, y:e.y});
+				this.setPoint(1, {
+					x : p.sx1,
+					y : p.sy1
+				});
+
+				this.setPoint(2, {
+					x : p.sx2,
+					y : p.sy2
+				});
+
+				this.setPoint(3, {
+					x : p.sx3,
+					y : p.sy3
+				});
+
+				this.setPoint(4, {
+					x : p.sx4,	
+					y : p.sy4
+				});
 			};
 
 
@@ -226,8 +241,15 @@ Native.elements.export("UIDiagram", {
 					lineWidth : 3
 				});
 
+				pin.link.bringToTop();
 				pin.link.controlPoints[4]._diagram = self;
 				pin.link.controlPoints[4]._pin = pin;
+
+				pin.link.addEventListener("change", function(e){
+					pin.updateLink(e);
+				}, false)
+
+
 				e.stopPropagation();
 			}, false)
 
@@ -238,17 +260,8 @@ Native.elements.export("UIDiagram", {
 				e.stopPropagation();
 			}, false)
 
-
 			pin.addEventListener("dragend", function(e){
-				var pin = this;
-
-				pin.link.addEventListener("change", function(e){
-					pin.updateLink(e);
-				}, false)
-
-
 				pin.link.remove();
-
 			}, false)
 
 
@@ -275,6 +288,7 @@ Native.elements.export("UIDiagram", {
 			pin.addEventListener("dragenter", function(e){
 				var link = this.getLink(e);
 				if (!link) return false;
+
 				self.parent.fireEvent("pinEnter", link);
 				e.stopPropagation();
 			}, false)
@@ -296,6 +310,7 @@ Native.elements.export("UIDiagram", {
 			pin.addEventListener("drop", function(e){
 				var link = this.getLink(e);
 				if (!link) return false;
+
 				self.parent.fireEvent("pinDrop", link);
 				e.stopPropagation();
 			}, false)

@@ -3,9 +3,12 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"#262722"});
+var main = new Application({background:"rgba(30, 20, 20, 0.7)"});
 
-var LFO = main.add("UIDiagram", {
+var myDiagram = main.add("UIDiagramController", {x:50, y:100});
+
+
+var LFO = myDiagram.add("UIDiagram", {
 	x : 180, 
 	y : 320,
 	label : "Low Frequency Oscillator",
@@ -18,7 +21,7 @@ var LFO = main.add("UIDiagram", {
 	]
 });
 
-var LPF = main.add("UIDiagram", {
+var LPF = myDiagram.add("UIDiagram", {
 	x : 600, 
 	y : 480, 
 	label : "Low Pass Filter",
@@ -31,7 +34,7 @@ var LPF = main.add("UIDiagram", {
 	]
 });
 
-var VCA = main.add("UIDiagram", {
+var VCA = myDiagram.add("UIDiagram", {
 	x : 750, 
 	y : 80, 
 	label : "Voltage Controlled Amplifier",
@@ -57,20 +60,20 @@ DBT(function(){
  *	link.target.pin : Target UILabel Element (target pin of the drag operation)
  *
  */
-main.addEventListener("pinEnter", function(link){
+myDiagram.addEventListener("pinEnter", function(link){
 }, false);
 
-main.addEventListener("pinOver", function(link){
+myDiagram.addEventListener("pinOver", function(link){
 	link.source.pin.color = '#009900';
 	link.target.pin.background = '#ff9900';
 }, false);
 
-main.addEventListener("pinLeave", function(link){
+myDiagram.addEventListener("pinLeave", function(link){
 	link.source.pin.color = '';
 	link.target.pin.background = '';
 }, false);
 
-main.addEventListener("pinDrop", function(link){
+myDiagram.addEventListener("pinDrop", function(link){
 	var s = link.source,
 		t = link.target;
 
