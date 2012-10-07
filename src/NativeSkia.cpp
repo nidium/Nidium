@@ -401,7 +401,7 @@ int NativeSkia::bindGL(int width, int height)
     
     SkSafeUnref(dev);
 
-    glClearColor(1, 1, 1, 0);
+    glClearColor(0, 0, 0, 0);
     glClearStencil(0);
     glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -447,6 +447,7 @@ int NativeSkia::bindGL(int width, int height)
 
     asComposite = 0;
 
+    canvas->drawColor(SkColorSetARGB(0, 0, 0, 0));
 
     //canvas->drawARGB(0, 0, 0, 0, SkXfermode::kClear_Mode);
 
@@ -743,42 +744,35 @@ void NativeSkia::setGlobalAlpha(double value)
     filter->unref();
 }
 
-static SkXfermode::Mode lst[] = {
-       SkXfermode::kDstOut_Mode, SkXfermode::kSrcOver_Mode,/* 0, 1 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kDarken_Mode,/* 2, 3 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 4, 5 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 6, 7 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 8, 9 */
-       SkXfermode::kDstOver_Mode, SkXfermode::kDstIn_Mode,/* 10, 11 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 12, 13 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 14, 15 */
-       SkXfermode::kLighten_Mode, SkXfermode::kSrcOver_Mode,/* 16, 17 */
-       SkXfermode::kSrcATop_Mode, SkXfermode::kSrcOver_Mode,/* 18, 19 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 20, 21 */
-       SkXfermode::kDstATop_Mode, SkXfermode::kOverlay_Mode,/* 22, 23 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 24, 25 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 26, 27 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kSrcOver_Mode,/* 28, 29 */
-       SkXfermode::kSrcOver_Mode, SkXfermode::kXor_Mode,/* 30, 31 */
+static struct _native_xfer_mode {
+    const char *str;
+    SkXfermode::Mode mode;
+} native_xfer_mode[] = {
+    {"source-over",        SkXfermode::kSrcOver_Mode},
+    {"source-in",          SkXfermode::kSrcIn_Mode},
+    {"source-out",         SkXfermode::kSrcOut_Mode},
+    {"source-atop",        SkXfermode::kSrcATop_Mode},
+    {"destination-over",   SkXfermode::kDstOver_Mode},
+    {"destination-in",     SkXfermode::kDstIn_Mode},
+    {"destination-out",    SkXfermode::kDstOut_Mode},
+    {"destination-atop",   SkXfermode::kDstATop_Mode},
+    {"lighter",            SkXfermode::kPlus_Mode},
+    {"darker",             SkXfermode::kDarken_Mode},
+    {"copy",               SkXfermode::kSrc_Mode},
+    {"xor",                SkXfermode::kXor_Mode},
+    {NULL,                 SkXfermode::kSrcOver_Mode}
 };
 
 void NativeSkia::setGlobalComposite(const char *str)
 {
-    int sum = 0;
-
-    for (int i = 0; str[i] != '\0'; i++) {
-        sum += str[i];
+    for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
+        if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
+            PAINT->setXfermodeMode(native_xfer_mode[i].mode);
+            break;
+        }
     }
-
-    //canvas->drawColor(SkColor color)
-    printf("Set to : %d %d\n", lst[sum % 35], sum % 35);
-    //SkXfermode *xfer = SkXfermode::Create(SkXfermode::kDstOver_Mode);
-    //paint->setAlpha(0);
-    PAINT->setAlpha(0);
-    PAINT->setXfermodeMode(SkXfermode::kDstOver_Mode);
     
     asComposite = 1;
-
 }
 
 void NativeSkia::setLineWidth(double size)
