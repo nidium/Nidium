@@ -650,7 +650,7 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
         NSKIA_NATIVE->drawRect(x, y, width, height,
             rx, (argc == 5 ? rx : ry), 0);
     } else {
-        NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 0);
+        NSKIA_NATIVE->drawRect(x, y, width, height, 0);
     }
 
     return JS_TRUE;
