@@ -6,7 +6,7 @@ Native.elements.export("UIDiagramController", {
 	init : function(){
 		var self = this;
 
-		this.background = OptionalValue(this.options.background, '#191a18');
+		this.background = OptionalValue(this.options.background, 'rgba(0, 0, 10, 0.4)');
 		this.color = OptionalValue(this.options.color, "#ffffff");
 		this.name = OptionalString(this.options.name, "Default");
 

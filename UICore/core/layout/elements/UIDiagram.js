@@ -5,6 +5,7 @@
 Native.elements.export("UIDiagram", {
 	init : function(){
 		var self = this,
+			diagramController = self.parent ? self.parent : null,
 			y = 0,
 			pins = OptionalValue(this.options.pins, []),
 			nbpins = pins.length;
@@ -152,38 +153,45 @@ Native.elements.export("UIDiagram", {
 			};
 
 			pin.getControlPoints = function(e){
-				var	sx0 = 0, sy0 = 0,
+				var	dx = diagramController.__x,
+					dy = diagramController.__y,
+	
+					startPoint = {
+						x : this.__x - dx,
+						y : this.__y + this.__h/2 - dy
+					},
+
+					endPoint = {
+						x : e.x - dx,
+						y : e.y - dy
+					},
+
 					sx1 = 0, sy1 = 0,
 					sx2 = 0, sy2 = 0,
-					sx3 = 0, sy3 = 0,
-					sx4 = 0, sy4 = 0;
+					sx3 = 0, sy3 = 0;
+
 
 				if (this.pintype == "output") {
-					sx0 = this.__x + this.__w;
-					sy0 = this.__y + this.__h / 2;
-		
-					sx1 = sx0 + Math.abs(e.x - sx0)/2;
-					sy1 = sy0;
-				} else {
-					sx0 = this.__x;
-					sy0 = this.__y + this.__h / 2;
+					startPoint.x += this.__w;
+				}
 
-					sx1 = sx0 - Math.abs(sx0 - e.x)/2;
-					sy1 = sy0;
+				if (this.pintype == "output") {
+					sx1 = startPoint.x + Math.abs(endPoint.x - startPoint.x)/2;
+					sy1 = startPoint.y;
+				} else {
+					sx1 = startPoint.x - Math.abs(startPoint.x - endPoint.x)/2;
+					sy1 = startPoint.y;
 				}
 
 				sx2 = sx1;
-				sy2 = sy1 - (sy1 - e.y)/2;
+				sy2 = sy1 - (sy1 - endPoint.y)/2;
 
 				sx3 = sx2;					
-				sy3 = e.y;
-
-				sx4 = e.x;
-				sy4 = e.y;
+				sy3 = endPoint.y;
 
 				return {
-					sx0 : sx0,
-					sy0 : sy0,
+					sx0 : startPoint.x,
+					sy0 : startPoint.y,
 
 					sx1 : sx1,
 					sy1 : sy1,
@@ -194,8 +202,8 @@ Native.elements.export("UIDiagram", {
 					sx3 : sx3,
 					sy3 : sy3,
 
-					sx4 : sx4,
-					sy4 : sy4
+					sx4 : endPoint.x,
+					sy4 : endPoint.y
 				};
 			};
 
@@ -225,16 +233,15 @@ Native.elements.export("UIDiagram", {
 
 
 			pin.addEventListener("dragstart", function(e){
-				var ground = self.parent,
-					p = this.getControlPoints(e);
+				var p = this.getControlPoints(e);
 
-				pin.link = ground.add("UILine", {
+				pin.link = diagramController.add("UILine", {
 					vertices : [
 						p.sx0, p.sy0,
 						p.sx1, p.sy1,
 						p.sx2, p.sy2,
 						p.sx3, p.sy3,
-						e.x, e.y
+						p.sx4, p.sy4
 					],
 					displayControlPoints : true,
 					color : "#ff0000",
@@ -291,21 +298,21 @@ Native.elements.export("UIDiagram", {
 
 				self.parent.fireEvent("pinEnter", link);
 				e.stopPropagation();
-			}, false)
+			}, false);
 
 			pin.addEventListener("dragover", function(e){
 				var link = this.getLink(e);
 				if (!link) return false;
 				self.parent.fireEvent("pinOver", link);
 				e.stopPropagation();
-			}, false)
+			}, false);
 
 			pin.addEventListener("dragleave", function(e){
 				var link = this.getLink(e);
 				if (!link) return false;
 				self.parent.fireEvent("pinLeave", link);
 				e.stopPropagation();
-			}, false)
+			}, false);
 
 			pin.addEventListener("drop", function(e){
 				var link = this.getLink(e);
@@ -313,7 +320,7 @@ Native.elements.export("UIDiagram", {
 
 				self.parent.fireEvent("pinDrop", link);
 				e.stopPropagation();
-			}, false)
+			}, false);
 
 		};
 

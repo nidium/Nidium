@@ -3,9 +3,9 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"rgba(30, 20, 20, 0.7)"});
+var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:40, y:40});
 
-var myDiagram = main.add("UIDiagramController", {x:50, y:100});
+var myDiagram = main.add("UIDiagramController", {x:30, y:90});
 
 
 var LFO = myDiagram.add("UIDiagram", {
