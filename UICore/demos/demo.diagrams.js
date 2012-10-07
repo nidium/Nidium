@@ -47,6 +47,13 @@ var VCA = myDiagram.add("UIDiagram", {
 	]
 });
 
+/*
+myDiagram.link({
+
+});
+*/
+
+
 DBT(function(){
 	LPF.remove();
 });

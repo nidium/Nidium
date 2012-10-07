@@ -5,7 +5,7 @@
 Native.elements.export("UIDiagram", {
 	init : function(){
 		var self = this,
-			diagramController = self.parent ? self.parent : null,
+			diagramController = self.parent ? self.parent : self,
 			y = 0,
 			pins = OptionalValue(this.options.pins, []),
 			nbpins = pins.length;
@@ -129,30 +129,21 @@ Native.elements.export("UIDiagram", {
 			for (var i=0; i<nbpins; i++){
 				var	pin = this.pins[i];
 
-				if (pin.link){
-					var	e = {
-							x : pin.link.controlPoints[4].x,
-							y : pin.link.controlPoints[4].y
-						},
-						p = pin.getControlPoints({x:e.x, y:e.y});
-
-					pin.setPoint(0, {x : p.sx0, y : p.sy0});
-					pin.setPoint(1, {x : p.sx1, y : p.sy1});
-					pin.setPoint(2, {x : p.sx2, y : p.sy2});
-					pin.setPoint(3, {x : p.sx3, y : p.sy3});
-					pin.setPoint(4, {x : e.x,	y : e.y});
+				/*
+				for (var l in pin.links){
+					diagramController.setLinkPosition(pin.links[l]);
 				}
+				*/
 			}
 		};
 
 		this.attachAllTheGoodThingsToPin = function(pin){
 
 			pin.setPoint = function(i, p){
-				this.link.controlPoints[i].x = p.x;
-				this.link.controlPoints[i].y = p.y;
+				pin._templink.setControlPoint(i, p);
 			};
 
-			pin.getControlPoints = function(e){
+			pin.getControlPoints = function(end){
 				var	dx = diagramController.__x,
 					dy = diagramController.__y,
 	
@@ -162,8 +153,8 @@ Native.elements.export("UIDiagram", {
 					},
 
 					endPoint = {
-						x : e.x - dx,
-						y : e.y - dy
+						x : end.x - dx,
+						y : end.y - dy
 					},
 
 					sx1 = 0, sy1 = 0,
@@ -235,7 +226,7 @@ Native.elements.export("UIDiagram", {
 			pin.addEventListener("dragstart", function(e){
 				var p = this.getControlPoints(e);
 
-				pin.link = diagramController.add("UILine", {
+				pin._templink = diagramController.add("UILine", {
 					vertices : [
 						p.sx0, p.sy0,
 						p.sx1, p.sy1,
@@ -248,11 +239,11 @@ Native.elements.export("UIDiagram", {
 					lineWidth : 3
 				});
 
-				pin.link.bringToTop();
-				pin.link.controlPoints[4]._diagram = self;
-				pin.link.controlPoints[4]._pin = pin;
+				pin._templink.bringToTop();
+				pin._templink.controlPoints[4]._diagram = self;
+				pin._templink.controlPoints[4]._pin = pin;
 
-				pin.link.addEventListener("change", function(e){
+				pin._templink.addEventListener("change", function(e){
 					pin.updateLink(e);
 				}, false)
 
@@ -262,13 +253,14 @@ Native.elements.export("UIDiagram", {
 
 
 			pin.addEventListener("drag", function(e){
-				pin.link.focus();
+				pin._templink.focus();
 				pin.updateLink(e);
 				e.stopPropagation();
 			}, false)
 
 			pin.addEventListener("dragend", function(e){
-				pin.link.remove();
+				pin._templink.remove();
+				pin._templink = null;
 			}, false)
 
 
