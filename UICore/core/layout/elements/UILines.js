@@ -80,7 +80,7 @@ Native.elements.export("UILine", {
 			};
 		};
 
-		this.setControlPoint = function(i, point){
+		this.setPoint = function(i, point){
 			this.controlPoints[i].x = point.x;
 			this.controlPoints[i].y = point.y;
 		};

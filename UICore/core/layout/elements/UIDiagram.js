@@ -137,102 +137,41 @@ Native.elements.export("UIDiagram", {
 			}
 		};
 
+		this.getPin = function(pinnum){
+			return this.pins[pinnum] ? this.pins[pinnum] : undefined;
+		};
+
 		this.attachAllTheGoodThingsToPin = function(pin){
 
 			pin.setPoint = function(i, p){
 				pin.link.setControlPoint(i, p);
 			};
 
-			pin.getControlPoints = function(end){
-				var	dx = diagramController.__x,
-					dy = diagramController.__y,
-	
-					startPoint = {
-						x : this.__x - dx,
-						y : this.__y + this.__h/2 - dy
-					},
-
-					endPoint = {
-						x : end.x - dx,
-						y : end.y - dy
-					},
-
-					sx1 = 0, sy1 = 0,
-					sx2 = 0, sy2 = 0,
-					sx3 = 0, sy3 = 0;
-
-
-				if (this.pintype == "output") {
-					startPoint.x += this.__w;
-				}
-
-				if (this.pintype == "output") {
-					sx1 = startPoint.x + Math.abs(endPoint.x - startPoint.x)/2;
-					sy1 = startPoint.y;
-				} else {
-					sx1 = startPoint.x - Math.abs(startPoint.x - endPoint.x)/2;
-					sy1 = startPoint.y;
-				}
-
-				sx2 = sx1;
-				sy2 = sy1 - (sy1 - endPoint.y)/2;
-
-				sx3 = sx2;					
-				sy3 = endPoint.y;
-
-				return {
-					sx0 : startPoint.x,
-					sy0 : startPoint.y,
-
-					sx1 : sx1,
-					sy1 : sy1,
-
-					sx2 : sx2,
-					sy2 : sy2,
-
-					sx3 : sx3,
-					sy3 : sy3,
-
-					sx4 : endPoint.x,
-					sy4 : endPoint.y
-				};
+			pin.updateLink = function(absStartPoint, absEndPoint){
+				var	vertices = diagramController.getUILineVertives(pin.pintype, absStartPoint, absEndPoint);
+				diagramController.setUILineVertices(pin.link, vertices);
 			};
-
-			pin.updateLink = function(endPoint){
-				var	p = this.getControlPoints(endPoint);
-			
-				this.setPoint(1, {
-					x : p.sx1,
-					y : p.sy1
-				});
-
-				this.setPoint(2, {
-					x : p.sx2,
-					y : p.sy2
-				});
-
-				this.setPoint(3, {
-					x : p.sx3,
-					y : p.sy3
-				});
-
-				this.setPoint(4, {
-					x : p.sx4,	
-					y : p.sy4
-				});
-			};
-
 
 			pin.addEventListener("dragstart", function(e){
-				var p = this.getControlPoints(e);
+				var absStartPoint = {
+						x : pin.__x + (pin.pintype == "output" ? pin.__w : 0) - dx,
+						y : pin.__y + pin.__h/2 - dy
+					},
+
+					absEndPoint = {
+						x : e.x,
+						y : e.y
+					};
+
+				var v = diagramController.getUILineVertives(pin.pintype, absStartPoint, absEndPoint);
 
 				pin.link = diagramController.add("UILine", {
 					vertices : [
-						p.sx0, p.sy0,
-						p.sx1, p.sy1,
-						p.sx2, p.sy2,
-						p.sx3, p.sy3,
-						p.sx4, p.sy4
+						v.sx0, v.sy0,
+						v.sx1, v.sy1,
+						v.sx2, v.sy2,
+						v.sx3, v.sy3,
+						v.sx4, v.sy4
 					],
 					displayControlPoints : true,
 					color : "#ff0000",
@@ -243,25 +182,38 @@ Native.elements.export("UIDiagram", {
 				pin.link.controlPoints[4]._diagram = self;
 				pin.link.controlPoints[4]._pin = pin;
 
+				/*
 				pin.link.addEventListener("change", function(e){
 					pin.updateLink(e);
 				}, false)
+				*/
 
 
 				e.stopPropagation();
 			}, false)
+
+
+
 
 
 			pin.addEventListener("drag", function(e){
 				pin.link.focus();
 				pin.updateLink(e);
+
 				e.stopPropagation();
 			}, false)
 
+
+
+
+
 			pin.addEventListener("dragend", function(e){
-				pin.link.remove();
-				pin.link = null;
+				//pin.link.remove();
+				//pin.link = null;
 			}, false)
+
+
+
 
 
 			pin.getLink = function(e){

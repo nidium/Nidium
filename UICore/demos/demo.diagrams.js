@@ -14,10 +14,10 @@ var LFO = myDiagram.add("UIDiagram", {
 	label : "Low Frequency Oscillator",
 	background : "#222222",
 	pins : [
-		{label:"Pitch",			type:"output"},
-		{label:"Frequency",		type:"output"},
-		{label:"Resonnance",	type:"output"},
-		{label:"Audio Out",		type:"output"}
+	/* pin 0 */	{label:"Pitch",			type:"output"},
+	/* pin 1 */	{label:"Frequency",		type:"output"},
+	/* pin 2 */	{label:"Resonnance",	type:"output"},
+	/* pin 3 */	{label:"Audio Out",		type:"output"}
 	]
 });
 
@@ -27,10 +27,10 @@ var LPF = myDiagram.add("UIDiagram", {
 	label : "Low Pass Filter",
 	background : "#224422",
 	pins : [
-		{label:"Input",				type:"input"},
-		{label:"Cutoff Frequency",	type:"controller"},
-		{label:"Resonnance",		type:"controller"},
-		{label:"Output",			type:"output"}
+	/* pin 0 */	{label:"Input",				type:"input"},
+	/* pin 1 */	{label:"Cutoff Frequency",	type:"controller"},
+	/* pin 2 */	{label:"Resonnance",		type:"controller"},
+	/* pin 3 */	{label:"Output",			type:"output"}
 	]
 });
 
@@ -40,10 +40,10 @@ var VCA = myDiagram.add("UIDiagram", {
 	label : "Voltage Controlled Amplifier",
 	background : "#331111",
 	pins : [
-		{label:"In L",	type:"input"},
-		{label:"In R",	type:"input"},
-		{label:"Out L",	type:"output"},
-		{label:"Out R",	type:"output"}
+	/* pin 0 */	{label:"In L",	type:"input"},
+	/* pin 1 */	{label:"In R",	type:"input"},
+	/* pin 2 */	{label:"Out L",	type:"output"},
+	/* pin 3 */	{label:"Out R",	type:"output"}
 	]
 });
 
@@ -53,6 +53,9 @@ myDiagram.link({
 });
 */
 
+/*
+myDiagram.connect(LFO.pins[1], VCA.pins[0]);
+*/
 
 DBT(function(){
 	LPF.remove();
