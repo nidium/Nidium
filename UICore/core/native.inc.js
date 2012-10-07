@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 /* -----------------------------------------------------------------------------
- * Native Object Framework (@) 2012 Stight.com                                 * 
+ * NOM : Native Object Model Framework (@) 2012 Stight.com                     * 
  * ----------------------------------------------------------------------------- 
  * Version: 	1.0
  * Author:		Vincent Fontaine
@@ -82,8 +82,8 @@ Native.layout = {
 	focusObj : 0,
 	nbObj : 0,
 
-	nodes : {},
-	elements : [],
+	nodes : {}, // May content several trees of elements 
+	elements : [], // flat representation of Trees (zIndex sorted elements)
 
 	rootElement : null,
 	currentFocusedElement : null,
@@ -93,8 +93,13 @@ Native.layout = {
 
 	pasteBuffer : '',
 
-	register : function(element){
-		this.nodes[element._uid] = element;
+	register : function(rootElement){
+		this.nodes[rootElement._uid] = rootElement;
+	},
+
+	unregister : function(rootElement){
+		delete(this.nodes[rootElement._uid]);
+		delete(rootElement);
 	},
 
 	destroy : function(element){
@@ -106,45 +111,46 @@ Native.layout = {
 		}
 	},
 
-	remove : function(element){
-		this.applyRecursiveInference(element, function(){
-			this.garbageCollector = true;
+	collectGarbage : function(z){
+		for (var i=z.length-1; i>0; i--){
+			z[i].__garbageCollector && this.destroy(z[i]);
+		}
+	},
+
+	remove : function(rootElement){
+		var self = this,
+			elements = [];
+
+		this.bubble(rootElement, function(){
+			elements.push(this);
+			this.__garbageCollector = true;
 		});
 
-		var z = this.getElements();
-		for (var i=0; i<z.length; i++){
-			if (z[i].garbageCollector){
-				this.destroy(z[i]);
-			}
-		}
-		this.destroy(element);
+		this.collectGarbage(elements);
+		this.destroy(rootElement);
 		canvas.__mustBeDrawn = true;
 	},
 
-	applyRecursiveInference : function(element, inference){
+	/*
+	 * Apply Recursive Inference to rootElement and children
+	 */
+	bubble : function(rootElement, inference){
 		var self = this,
-			e = this.nodes[element._uid],
-			cb = OptionalCallback(inference, null);
-
-		if (!e){
-			throw("Inference: Unregistered element " + element._uid);
-			return false;
-		}
-
-		var dx = function(nodes, parent){
-			for (var i in nodes){
-				cb.call(nodes[i]);
-				if (self.count(nodes[i].nodes)>0) {
-					dx(nodes[i].nodes, nodes[i].parent);
+			fn = OptionalCallback(inference, null),
+			dx = function(z, parent){
+				for (var i in z){
+					fn.call(z[i]);
+					if (z[i] && self.count(z[i].nodes)>0) {
+						/* test z[i] as it may be destroyed by inference */
+						dx(z[i].nodes, z[i].parent);
+					}
 				}
-			}
-		};
+			};
 
-		if (element && cb) {
-			cb.call(element);
-			e.nodes && dx(e.nodes);
+		if (rootElement && fn){
+			if (rootElement != this) fn.call(rootElement);
+			dx(rootElement.nodes);
 		}
-
 	},
 
 	clear : function(){
@@ -182,25 +188,18 @@ Native.layout = {
 	getElements : function(){
 		var elements = [],
 			self = this,
-			z = 0;
+			n = 0;
 
-		var dx = function(nodes, parent){
-			for (var child in nodes){
-				elements.push(nodes[child]);
-
-				nodes[child]._nid = z;
-				nodes[child].hasFocus = false;
-				if (self.focusObj == z++) {
-					self._animateFocus(nodes[child]);
-				}
-				if (self.count(nodes[child].nodes)>0) {
-					dx(nodes[child].nodes, nodes[child].parent);
-				}
+		this.bubble(this, function(){
+			elements.push(this);
+			this._nid = n;
+			this.hasFocus = false;
+			if (self.focusObj == n++){
+				self._animateFocus(this);
 			}
-		};
+		});
 
-		dx(this.nodes, null);
-		this.nbObj = z;
+		this.nbObj = n;
 
 		this.elements = elements.sort(function(a, b){
 			return a._zIndex - b._zIndex;
@@ -213,20 +212,14 @@ Native.layout = {
 	},
 
 	find : function(property, value){
-		var elements = [];
+		var elements = [],
+			self = this;
 
-		var dx = function(nodes, parent){
-			for (var child in nodes){
-				if (nodes[child][property] && nodes[child][property] == value){
-					elements.push(nodes[child]);
-				}
-				if (self.count(nodes[child].nodes)>0) {
-					dx(nodes[child].nodes, nodes[child].parent);
-				}
+		this.bubble(this, function(){
+			if (this[property] && this[property] == value){
+				elements.push(this);
 			}
-		};
-
-		dx(this.nodes, null);
+		});
 
 		elements.each = function(cb){
 			for (var i in elements) {
@@ -253,15 +246,10 @@ Native.layout = {
 		var self = this,
 			zindexes = [];
 
-		var dx = function(nodes, parent){
-			for (var child in nodes){
-				zindexes.push(nodes[child]._zIndex);
-				if (self.count(nodes[child].nodes)>0) {
-					dx(nodes[child].nodes, nodes[child].parent);
-				}
-			}
-		};
-		dx(this.nodes, null);
+		this.bubble(this, function(){
+			zindexes.push(this._zIndex);
+		});
+
 		return zindexes.length ? Math.max.apply(null, zindexes) : 0;
 	},
 

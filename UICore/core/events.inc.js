@@ -27,6 +27,14 @@ Native.events = {
 	__dataTransfer : {
 		data : {},
 
+		set : function(o){
+			for (var i in o){
+				if (o.hasOwnProperty(i)){
+					this.data[i] = o[i];
+				}
+			}
+		},
+
 		setData : function(key, value){
 			this.data[key] = value;
 		},

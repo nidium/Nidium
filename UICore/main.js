@@ -10,6 +10,7 @@ load("core/native.inc.js");
 //load('demos/demo.sliders.js');
 load('demos/demo.diagrams.js');
 //load('demos/demo.spectral.js');
+//load('demos/demo.tabs.js');
 
 
 /* -- Benchmarks ------------------------------- */

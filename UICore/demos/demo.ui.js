@@ -17,13 +17,14 @@ var main = new Application(), /* {background : '#262722'} */
 		/* Tab 7 */ {label : "rotation.js"},
 		/* Tab 8 */ {label : "scale.js"},
 		/* Tab 9 */ {label : "native.inc.js"}
-	],
+	];
 
-	mainTabController = main.add("UITabController", {
+var	mainTabController = main.add("UITabController", {
 		name : "masterTabs",
 		tabs : myTabs,
 		background : "#191a18"
 	});
+
 
 main.addEventListener("mousedblclick", function(){
 	echo("dbl");
@@ -34,18 +35,18 @@ var template = "In olden times when wishing still helped one, there lived a king
 var	sampleText = template.mul(3);
 
 var	textView = main.add("UIText", {
-		x : 733,
-		y : 80,
-		w : 280,
-		h : 568,
-		text : sampleText,
-		lineHeight : 18,
-		fontSize : 13,
-		fontType : "arial",
-		textAlign : "justify",
-		background : "rgba(255, 255, 255, 1)",
-		color : "#000000"
-	});
+	x : 733,
+	y : 80,
+	w : 280,
+	h : 568,
+	text : sampleText,
+	lineHeight : 18,
+	fontSize : 13,
+	fontType : "arial",
+	textAlign : "justify",
+	background : "rgba(255, 255, 255, 1)",
+	color : "#000000"
+});
 
 var win = main.add("UIWindow", {
 	x : 280,
@@ -117,10 +118,14 @@ slider.addEventListener("change", function(value){
 
 /* ------------------------------------------------- */
 
-
 DBT(function(){
-	echo("Nothing to debug.");
+	greenView.remove();
+	Native.layout.unregister(main);
+	Native.layout.register(mainTabController);
 });
+
+/* ------------------------------------------------- */
+
 
 var s = textView.setCaret(70, 50);
 

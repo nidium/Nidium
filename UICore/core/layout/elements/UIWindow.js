@@ -75,7 +75,7 @@ Native.elements.export("UIWindow", {
 				color : "#888888"
 			});
 
-			this.handle.closeButton.addEventListener("mousedown", function(e){
+			this.handle.closeButton.addEventListener("mouseup", function(e){
 				self.set("scale", 0, 120, function(){});
 				self.shadowBlur = 6;
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";

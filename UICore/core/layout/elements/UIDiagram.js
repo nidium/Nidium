@@ -6,7 +6,7 @@ Native.elements.export("UIDiagram", {
 	init : function(){
 		var self = this,
 			y = 0,
-			pins = OptionalValue(this.options.elements, []),
+			pins = OptionalValue(this.options.pins, []),
 			nbpins = pins.length;
 
 		this.flags._canReceiveFocus = true;
@@ -70,24 +70,27 @@ Native.elements.export("UIDiagram", {
 		});
 
 		if (this.movable) {
-			this.handle.addEventListener("dragstart", function(){
+			this.handle.addEventListener("dragstart", function(e){
 				self.set("scale", 1.1, 80);
 				//self.set("backgroundBlur", 1, 80);
 				self.set("shadowBlur", 20, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
+				e.stopPropagation();
 			}, false);
 
 			this.handle.addEventListener("drag", function(e){
 				this.parent.left += e.xrel;
 				this.parent.top += e.yrel;
 				self.updatePins();
+				e.stopPropagation();
 			});
 
-			this.handle.addEventListener("dragend", function(){
+			this.handle.addEventListener("dragend", function(e){
 				self.set("scale", 1, 50);
 				//self.set("backgroundBlur", 0, 50);
 				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
 				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+				e.stopPropagation();
 			}, false);
 		}
 
@@ -101,7 +104,7 @@ Native.elements.export("UIDiagram", {
 				color : "#888888"
 			});
 
-			this.handle.closeButton.addEventListener("mousedown", function(e){
+			this.handle.closeButton.addEventListener("mouseup", function(e){
 				self.set("scale", 0, 120, function(){});
 				self.shadowBlur = 6;
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";
@@ -130,7 +133,7 @@ Native.elements.export("UIDiagram", {
 							x : pin.link.controlPoints[4].x,
 							y : pin.link.controlPoints[4].y
 						},
-						p = pin.updateControlPoints({x:e.x, y:e.y});
+						p = pin.getControlPoints({x:e.x, y:e.y});
 
 					pin.setPoint(0, {x : p.sx0, y : p.sy0});
 					pin.setPoint(1, {x : p.sx1, y : p.sy1});
@@ -148,14 +151,12 @@ Native.elements.export("UIDiagram", {
 				this.link.controlPoints[i].y = p.y;
 			};
 
-			pin.updateControlPoints = function(e){
+			pin.getControlPoints = function(e){
 				var	sx0 = 0, sy0 = 0,
 					sx1 = 0, sy1 = 0,
 					sx2 = 0, sy2 = 0,
-					sx3 = 0, sy3 = 0;
-
-				sx0 = this.__x + this.__w;
-				sy0 = this.__y + this.__h / 2;
+					sx3 = 0, sy3 = 0,
+					sx4 = 0, sy4 = 0;
 
 				if (this.pintype == "output") {
 					sx0 = this.__x + this.__w;
@@ -177,6 +178,9 @@ Native.elements.export("UIDiagram", {
 				sx3 = sx2;					
 				sy3 = e.y;
 
+				sx4 = e.x;
+				sy4 = e.y;
+
 				return {
 					sx0 : sx0,
 					sy0 : sy0,
@@ -188,13 +192,26 @@ Native.elements.export("UIDiagram", {
 					sy2 : sy2,
 
 					sx3 : sx3,
-					sy3 : sy3
+					sy3 : sy3,
+
+					sx4 : sx4,
+					sy4 : sy4
 				};
 			};
 
+			pin.updateLink = function(e){
+				var	p = this.getControlPoints(e);
+			
+				this.setPoint(1, {x:p.sx1, y:p.sy1});
+				this.setPoint(2, {x:p.sx2, y:p.sy2});
+				this.setPoint(3, {x:p.sx3, y:p.sy3});
+				this.setPoint(4, {x:e.x, y:e.y});
+			};
+
+
 			pin.addEventListener("dragstart", function(e){
 				var ground = self.parent,
-					p = this.updateControlPoints(e);
+					p = this.getControlPoints(e);
 
 				pin.link = ground.add("UILine", {
 					vertices : [
@@ -209,48 +226,78 @@ Native.elements.export("UIDiagram", {
 					lineWidth : 3
 				});
 
+				pin.link.controlPoints[4]._diagram = self;
+				pin.link.controlPoints[4]._pin = pin;
+				e.stopPropagation();
 			}, false)
+
 
 			pin.addEventListener("drag", function(e){
 				pin.link.focus();
-				var	p = this.updateControlPoints(e);
-			
-				this.setPoint(1, {x:p.sx1, y:p.sy1});
-				this.setPoint(2, {x:p.sx2, y:p.sy2});
-				this.setPoint(3, {x:p.sx3, y:p.sy3});
-				this.setPoint(4, {x:e.x, y:e.y});
+				pin.updateLink(e);
+				e.stopPropagation();
 			}, false)
+
 
 			pin.addEventListener("dragend", function(e){
 				var pin = this;
 
 				pin.link.addEventListener("change", function(e){
-					var	p = pin.updateControlPoints(e);
-				
-					pin.setPoint(1, {x:p.sx1, y:p.sy1});
-					pin.setPoint(2, {x:p.sx2, y:p.sy2});
-					pin.setPoint(3, {x:p.sx3, y:p.sy3});
-					pin.setPoint(4, {x:e.x, y:e.y});
+					pin.updateLink(e);
 				}, false)
 
 
-				//pin.link.remove();
+				pin.link.remove();
 
 			}, false)
 
 
+			pin.getLink = function(e){
+				var src = e.source,
+					dst = this,
+					stype = src._pin ? src._pin.pintype : null,
+					dtype = dst._pin.pintype;
+
+				if (!src._diagram || !src._pin) return false;
+				if (src._diagram == dst._diagram) return false;
+				if ((stype == "input" || stype == "controller") && dtype == "input") return false;
+				if (stype == "output" && dtype == "output") return false;
+
+				src._diagram.pin = src._pin;
+				dst._diagram.pin = dst._pin;
+				
+				return {
+					source : src._diagram,
+					target : dst._diagram
+				};
+			};
+
+			pin.addEventListener("dragenter", function(e){
+				var link = this.getLink(e);
+				if (!link) return false;
+				self.parent.fireEvent("pinEnter", link);
+				e.stopPropagation();
+			}, false)
+
 			pin.addEventListener("dragover", function(e){
-				if (this.pintype == "output") return false;
-				this.background = '#ff9900';
+				var link = this.getLink(e);
+				if (!link) return false;
+				self.parent.fireEvent("pinOver", link);
+				e.stopPropagation();
 			}, false)
 
 			pin.addEventListener("dragleave", function(e){
-				this.background = '';
+				var link = this.getLink(e);
+				if (!link) return false;
+				self.parent.fireEvent("pinLeave", link);
+				e.stopPropagation();
 			}, false)
 
 			pin.addEventListener("drop", function(e){
-				echo(e.source.label);
-				this.background = '';
+				var link = this.getLink(e);
+				if (!link) return false;
+				self.parent.fireEvent("pinDrop", link);
+				e.stopPropagation();
 			}, false)
 
 		};
@@ -299,6 +346,9 @@ Native.elements.export("UIDiagram", {
 
 			this.pins[i].pinnum = i;
 			this.pins[i].pintype = type;
+			this.pins[i]._diagram = self;
+			this.pins[i]._pin = this.pins[i];
+
 			this.attachAllTheGoodThingsToPin(this.pins[i]);
 
 		};

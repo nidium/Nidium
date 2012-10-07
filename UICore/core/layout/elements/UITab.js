@@ -38,7 +38,7 @@ Native.elements.export("UITab", {
 				background : "rgba(0, 0, 0, 0.3)"
 			});
 
-			this.closeButton.addEventListener("mouseclick", function(){
+			this.closeButton.addEventListener("mouseup", function(){
 				this.parent.g = {
 					x : 0,
 					y : this.parent.h/2
