@@ -190,8 +190,11 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
                 // TODO : Handle stereo/mono
 
                 left += tmp[0];
-                right += tmp[1];
-
+                if (tracks->curr->nbChannel == 1) {
+                    right += tmp[0];
+                } else {
+                    right += tmp[1];
+                }
             }
 
             tracks = tracks->next;
@@ -385,6 +388,8 @@ int NativeAudioTrack::open(void *buffer, int size)
 		return -5;
 	}
 
+    this->nbChannel = avctx->channels;
+
     // Frequency resampling
     if (avctx->sample_rate != this->outputParameters->sampleRate) {
         this->fCvt = new Resampler();
@@ -536,14 +541,14 @@ bool NativeAudioTrack::decode()
                 free(this->tmpFrame.data);
             }
             this->tmpFrame.size = tmpFrame->linesize[0];
-            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * avctx->channels);
+            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * this->nbChannel);
         }
 
         this->tmpFrame.nbSamples = tmpFrame->nb_samples;
 
         // Format resampling
         if (this->sCvt) {
-            (*this->sCvt)(this->tmpFrame.data, 1, tmpFrame->data[0], 1, tmpFrame->nb_samples * avctx->channels, NULL);
+            (*this->sCvt)(this->tmpFrame.data, 1, tmpFrame->data[0], 1, tmpFrame->nb_samples * this->nbChannel, NULL);
         } else {
             memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
         }
@@ -567,7 +572,7 @@ bool NativeAudioTrack::decode()
     return true;
 }
 int NativeAudioTrack::resample(float *dest, int destSamples) {
-    int channels = this->avctx->channels;
+    int channels = this->nbChannel;
 
     if (this->fCvt) {
         for (;;) {
@@ -621,7 +626,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
     } else {
         int sampleSize, copied;
 
-        sampleSize = this->avctx->channels * NativeAudio::FLOAT32;
+        sampleSize = this->nbChannel * NativeAudio::FLOAT32;
         copied = 0;
 
         for (;;) {

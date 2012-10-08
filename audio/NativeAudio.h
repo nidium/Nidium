@@ -97,6 +97,7 @@ class NativeAudioTrack
         bool opened;
         bool playing;
         bool paused;
+        int nbChannel;
 
         int open(void *buffer, int size);
         void play();

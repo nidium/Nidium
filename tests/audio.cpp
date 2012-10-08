@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     buffer1 = (uint8_t *)malloc(bufferSize);
     buffer2 = (uint8_t *)malloc(bufferSize);
 
-    load("/tmp/test.wav", buffer1, bufferSize);
+    load("/tmp/96k.wav", buffer1, bufferSize);
     //load("/tmp/test.mp3", buffer2, bufferSize);
 
 
