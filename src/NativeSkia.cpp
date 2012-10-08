@@ -276,15 +276,16 @@ uint32_t NativeSkia::parseColor(const char *str)
 
         if (end == NULL) printf("Not found\n");
         else {
-            SkScalar final[4];
+            float final[3];
+            U8CPU alpha;
 
             /* TODO: limits? */
-            final[0] = SkScalarDiv(array[0], SkIntToScalar(360));
-            final[1] = SkScalarDiv(array[1], SkIntToScalar(100));
-            final[2] = SkScalarDiv(array[2], SkIntToScalar(100));
-            final[3] = SkScalarMul(array[3], SkIntToScalar(255));
+            final[0] = SkScalarToFloat(SkScalarDiv(array[0], SkIntToScalar(360)));
+            final[1] = SkScalarToFloat(SkScalarDiv(array[1], SkIntToScalar(100)));
+            final[2] = SkScalarToFloat(SkScalarDiv(array[2], SkIntToScalar(100)));
+            alpha = SkScalarMul(array[3], SkIntToScalar(255));
 
-            SkPMColor hsl = HSLToSKColor(final[3], final);
+            SkPMColor hsl = HSLToSKColor(alpha, final);
             //printf("Got an HSL : %f %f %f %d\n", array[0], array[1], array[2], hsl);
             return SkPMColorToColor(hsl);
 
