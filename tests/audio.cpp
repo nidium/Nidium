@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // Compile with : 
-// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o
+// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o
 static void *thread_io(void *arg) {
     NativeAudio *audio = (NativeAudio *)arg;
     printf("Hello thread io\n");
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, &audio);
 
     // 2) Open ouput
-    int ret = audio.openOutput(2048, 2, NativeAudio::FLOAT32, 44100);
+    int ret = audio.openOutput(32, 2, NativeAudio::FLOAT32, 96000);
     if (ret == 0) {
         printf("Audio ouput is ok\n");
     } else {
@@ -59,18 +59,18 @@ int main(int argc, char *argv[]) {
     buffer1 = (uint8_t *)malloc(bufferSize);
     buffer2 = (uint8_t *)malloc(bufferSize);
 
-    load("/tmp/test2.mp3", buffer1, bufferSize);
-    load("/tmp/test.mp3", buffer2, bufferSize);
+    load("/tmp/test.wav", buffer1, bufferSize);
+    //load("/tmp/test.mp3", buffer2, bufferSize);
 
 
     NativeAudioTrack *track1 = audio.addTrack();
-    NativeAudioTrack *track2 = audio.addTrack();
+    //NativeAudioTrack *track2 = audio.addTrack();
 
     track1->open(buffer1, bufferSize);
-    track2->open(buffer2, bufferSize);
+    //track2->open(buffer2, bufferSize);
 
     track1->play();
-    track2->play();
+    //track2->play();
 
     pthread_join(threadIO, NULL);
     pthread_join(threadDecode, NULL);

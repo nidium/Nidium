@@ -4,12 +4,17 @@
 #include <portaudio.h>
 #include <pthread.h>
 #include "pa_ringbuffer.h"
+#include "pa_converters.h"
+#include "pa_dither.h"
+#include "zita-resampler/resampler.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
 
-#define NATIVE_AV_BUFFER_SIZE 2048 
+#define NATIVE_AVIO_BUFFER_SIZE 2048 
+#define NATIVE_AVDECODE_BUFFER_SAMPLES 16384 
+#define NATIVE_RESAMPLER_BUFFER_SAMPLES 8192 
 
 class NativeAudioTrack;
 
@@ -37,9 +42,10 @@ class NativeAudio
 
         int openOutput(int bufferSize, int channel, SampleFormat sampleFmt, int sampleRate);
         int openInput(int bufferSize, int channel, SampleFormat sampleFmt, int sampleRate);
-        bool resample(void *data, int format, int channels, int sample, float *dest);
 
         NativeAudioTrack *addTrack();
+
+        static inline int getSampleSize(int sampleFmt);
 
         void link(int nb, ...);
 
@@ -61,7 +67,6 @@ class NativeAudio
         int *filterList;
         NativeAudioTracks *tracks;
         int tracksCount;
-        static inline int getSampleSize(int sampleFmt);
 
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,
@@ -89,18 +94,6 @@ class NativeAudioTrack
         PaUtilRingBuffer rBufferIn;
         PaUtilRingBuffer rBufferOut;
 
-        void *rBufferOutData;
-        void *rBufferInData;
-        unsigned char *avioBuffer;
-
-	    AVFormatContext *container;
-        AVFrame *tmpFrame;
-        AVPacket tmpPacket;
-        bool frameConsumed;
-        bool packetConsumed;
-        int samplesConsumed;
-        int audioStream;
-
         bool opened;
         bool playing;
         bool paused;
@@ -109,6 +102,12 @@ class NativeAudioTrack
         void play();
         void pause();
         void stop();
+
+        int buffer();
+        int buffer(int n);
+
+        bool decode();
+        int resample(float *dest, int destSamples);
 
         ~NativeAudioTrack();
 
@@ -141,7 +140,30 @@ class NativeAudioTrack
                 unsigned long pos;
         };
 
+	    AVFormatContext *container;
+        AVCodecContext *avctx;
         BufferReader *br;
+
+        struct TmpFrame {
+            int size;
+            int nbSamples;
+            float *data;
+        } tmpFrame;
+        AVPacket tmpPacket;
+
+        bool frameConsumed;
+        bool packetConsumed;
+        int samplesConsumed;
+        int audioStream;
+
+        PaUtilConverter *sCvt;
+        Resampler *fCvt;
+
+        unsigned char *avioBuffer;
+        float *fBufferInData, *fBufferOutData;
+        void *rBufferOutData, *rBufferInData;
+
+        bool eof;
 
         void close(bool reset);
 };
