@@ -153,11 +153,7 @@ Native.elements.export("UIDiagram", {
 			};
 
 			pin.addEventListener("dragstart", function(e){
-				var absStartPoint = {
-						x : pin.__x + (pin.pintype == "output" ? pin.__w : 0) - dx,
-						y : pin.__y + pin.__h/2 - dy
-					},
-
+				var absStartPoint = diagramController.getPinConnectionPoint(pin),
 					absEndPoint = {
 						x : e.x,
 						y : e.y
@@ -182,12 +178,14 @@ Native.elements.export("UIDiagram", {
 				pin.link.controlPoints[4]._diagram = self;
 				pin.link.controlPoints[4]._pin = pin;
 
-				/*
 				pin.link.addEventListener("change", function(e){
-					pin.updateLink(e);
+					var absStartPoint = diagramController.getPinConnectionPoint(pin),
+						absEndPoint = {
+							x : e.x,
+							y : e.y
+						};
+					pin.updateLink(absStartPoint, absEndPoint);
 				}, false)
-				*/
-
 
 				e.stopPropagation();
 			}, false)
@@ -197,8 +195,15 @@ Native.elements.export("UIDiagram", {
 
 
 			pin.addEventListener("drag", function(e){
+				var absStartPoint = diagramController.getPinConnectionPoint(pin),
+					
+					absEndPoint = {
+						x : e.x,
+						y : e.y
+					};
+
 				pin.link.focus();
-				pin.updateLink(e);
+				pin.updateLink(absStartPoint, absEndPoint);
 
 				e.stopPropagation();
 			}, false)

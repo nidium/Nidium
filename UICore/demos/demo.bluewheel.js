@@ -4,12 +4,15 @@ var c = canvas,
 	ctx = canvas,
 	cw = c.width,
 	ch = c.height,
+	
 	rand = function(a, b) {
 		return ~~ ((Math.random() * (b - a + 1)) + a);
 	},
+	
 	dToR = function(degrees) {
 		return degrees * (Math.PI / 180);
 	},
+
 	circle = {
 		x: (cw / 2) + 5,
 		y: (ch / 2) + 22,
@@ -24,6 +27,7 @@ var c = canvas,
 	},
 	particles = [],
 	particleMax = 100,
+
 	updateCircle = function() {
 		if (circle.rotation < 360) {
 			circle.rotation += circle.speed;
@@ -31,6 +35,7 @@ var c = canvas,
 			circle.rotation = 0;
 		}
 	},
+
 	renderCircle = function() {
 		ctx.save();
 		
@@ -45,6 +50,7 @@ var c = canvas,
 		
 		ctx.restore();
 	},
+
 	renderCircleBorder = function() {
 		ctx.save();
 		
@@ -59,6 +65,7 @@ var c = canvas,
 		
 		ctx.restore();
 	},
+
 	renderCircleFlare = function() {
 		ctx.save();
 		
@@ -78,6 +85,7 @@ var c = canvas,
 		
 		ctx.restore();
 	},
+
 	renderCircleFlare2 = function() {
 		ctx.save();
 		
@@ -97,6 +105,7 @@ var c = canvas,
 		
 		ctx.restore();
 	},
+
 	createParticles = function() {
 		if (particles.length < particleMax) {
 			particles.push({
@@ -124,6 +133,7 @@ var c = canvas,
 			}
 		}
 	},
+
 	renderParticles = function() {
 		var i = particles.length;
 		while (i--) {
@@ -136,41 +146,37 @@ var c = canvas,
 			ctx.fillStyle = 'hsla(0, 0, 100, ' + p.alpha + ')';
 		}
 	},
+
 	clear = function() {
 		ctx.globalCompositeOperation = 'destination-out';
 		ctx.fillStyle = 'rgba(0, 0, 0, .1)';
 		ctx.fillRect(0, 0, cw, ch);
 		ctx.globalCompositeOperation = 'lighter';
-	}
+	},
+
 	loop = function() {
+
 		clear();
-		
 		updateCircle();
-		
 		renderCircle();
-		
 		renderCircleBorder();
-		
 		renderCircleFlare();
-		
 		renderCircleFlare2();
-		
 		createParticles();
-		
 		updateParticles();
-		
 		renderParticles();
-	}
+
+	};
 
 
 
-	/* Set Constant Properties */
-	ctx.shadowBlur = circle.blur;
+/* Set Constant Properties */
+ctx.shadowBlur = circle.blur;
 ctx.shadowColor = 'hsla(' + circle.hue + ', 80, 60, 1)';
-ctx.lineCap = 'round'
+ctx.lineCap = 'round';
 
 var gradient1 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
-gradient1.addColorStop(0, 'hsla(' + circle.hue + ', 60, 50, .25)');
+gradient1.addColorStop(0, 'hsla(' + circle.hue + ', 60, 50, .25');
 gradient1.addColorStop(1, 'hsla(' + circle.hue + ', 60, 50, 0)');
 
 var gradient2 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);

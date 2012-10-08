@@ -25,8 +25,8 @@ Native.elements.export("UIDiagramController", {
 					x : link.controlPoints[4].x,
 					y : link.controlPoints[4].y
 				};
-			var points = this.getUILineVertives(pin.pintype, endPoint);
-			this.setUILineVertices(points);
+			//var points = this.getUILineVertives(pin.pintype, endPoint);
+			//this.setUILineVertices(points);
 		};
 
 		this.getUILineVertives = function(pintype, absStartPoint, absEndPoint){
@@ -34,8 +34,8 @@ Native.elements.export("UIDiagramController", {
 				dy = this.__y,
 
 				startPoint = {
-					x : absStartPoint - dx,
-					y : absStartPoint - dy
+					x : absStartPoint.x - dx,
+					y : absStartPoint.y - dy
 				},
 
 				endPoint = {
@@ -79,30 +79,30 @@ Native.elements.export("UIDiagramController", {
 			};
 		};
 
-		this.setUILineVertices = function(UILine, p){
-			UILine.setPoint(0, {
-				x : p.sx1,
-				y : p.sy1
-			});
-	
-			UILine.setPoint(1, {
-				x : p.sx1,
-				y : p.sy1
+		this.setUILineVertices = function(UILine, v){
+			UILine.setVertex(0, {
+				x : v.sx0,
+				y : v.sy0
 			});
 
-			UILine.setPoint(2, {
-				x : p.sx2,
-				y : p.sy2
+			UILine.setVertex(1, {
+				x : v.sx1,
+				y : v.sy1
 			});
 
-			UILine.setPoint(3, {
-				x : p.sx3,
-				y : p.sy3
+			UILine.setVertex(2, {
+				x : v.sx2,
+				y : v.sy2
 			});
 
-			UILine.setPoint(4, {
-				x : p.sx4,	
-				y : p.sy4
+			UILine.setVertex(3, {
+				x : v.sx3,
+				y : v.sy3
+			});
+
+			UILine.setVertex(4, {
+				x : v.sx4,	
+				y : v.sy4
 			});
 		};
 
