@@ -153,14 +153,7 @@ Native.elements.export("UIDiagram", {
 				return pin.connections.has(targetPin) || targetPin.connections.has(pin);
 			};
 
-			pin.setPoint = function(i, p){
-				pin.link.setControlPoint(i, p);
-			};
 
-			pin.updateLink = function(absStartPoint, absEndPoint){
-				var	vertices = diagramController.getUILineVertives(pin.pintype, absStartPoint, absEndPoint);
-				diagramController.setUILineVertices(pin.link, vertices);
-			};
 
 			pin.addEventListener("dragstart", function(e){
 				var absStartPoint = diagramController.getPinConnectionPoint(pin),
@@ -188,46 +181,29 @@ Native.elements.export("UIDiagram", {
 				pin.link.controlPoints[4]._diagram = self;
 				pin.link.controlPoints[4]._pin = pin;
 
-				pin.link.addEventListener("change", function(e){
-					var absStartPoint = diagramController.getPinConnectionPoint(pin),
-						absEndPoint = {
-							x : e.x,
-							y : e.y
-						};
-					pin.updateLink(absStartPoint, absEndPoint);
-				}, false)
-
 				e.stopPropagation();
 			}, false)
 
 
 
-
-
 			pin.addEventListener("drag", function(e){
 				var absStartPoint = diagramController.getPinConnectionPoint(pin),
-					
 					absEndPoint = {
 						x : e.x,
 						y : e.y
 					};
 
 				pin.link.focus();
-				pin.updateLink(absStartPoint, absEndPoint);
+				diagramController.updateUILine(pin.link, pin.pintype, absStartPoint, absEndPoint);
 
 				e.stopPropagation();
 			}, false)
 
 
-
-
-
 			pin.addEventListener("dragend", function(e){
-				//pin.link.remove();
-				//pin.link = null;
+				pin.link.remove();
+				pin.link = null;
 			}, false)
-
-
 
 
 
@@ -242,14 +218,9 @@ Native.elements.export("UIDiagram", {
 				if ((stype == "input" || stype == "controller") && dtype == "input") return false;
 				if (stype == "output" && dtype == "output") return false;
 
-				src._diagram.pin = src._pin;
-				dst._diagram.pin = dst._pin;
-				
-				return {
-					source : src._diagram,
-					target : dst._diagram
-				};
+				return diagramController.getLinkEvent(src._pin, dst._pin);
 			};
+
 
 			pin.addEventListener("dragenter", function(e){
 				var link = this.getLink(e);
@@ -262,6 +233,7 @@ Native.elements.export("UIDiagram", {
 			pin.addEventListener("dragover", function(e){
 				var link = this.getLink(e);
 				if (!link) return false;
+
 				self.parent.fireEvent("pinOver", link);
 				e.stopPropagation();
 			}, false);
@@ -269,6 +241,7 @@ Native.elements.export("UIDiagram", {
 			pin.addEventListener("dragleave", function(e){
 				var link = this.getLink(e);
 				if (!link) return false;
+				
 				self.parent.fireEvent("pinLeave", link);
 				e.stopPropagation();
 			}, false);
@@ -277,7 +250,12 @@ Native.elements.export("UIDiagram", {
 				var link = this.getLink(e);
 				if (!link) return false;
 
-				self.parent.fireEvent("pinDrop", link);
+				self.parent.fireEvent("pinDrop", link, function(){
+					self.parent.fireEvent("connect", link, function(){
+						diagramController.connect(link.source.pin, link.target.pin);
+					});
+				});
+
 				e.stopPropagation();
 			}, false);
 

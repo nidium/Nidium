@@ -21,12 +21,10 @@ Native.elements.export("UIDiagramController", {
 		};
 
 		this.setLinkPosition = function(pin, link){
-				endPoint = {
-					x : link.controlPoints[4].x,
-					y : link.controlPoints[4].y
-				};
-			//var points = this.getUILineVertives(pin.pintype, endPoint);
-			//this.setUILineVertices(points);
+				var absStartPoint = this.getPinConnectionPoint(sourcePin),
+					absEndPoint = this.getPinConnectionPoint(targetPin);
+
+				var v = this.getUILineVertives(sourcePin.pintype, absStartPoint, absEndPoint);
 		};
 
 		this.getLinkEvent = function(sourcePin, targetPin){
@@ -41,6 +39,8 @@ Native.elements.export("UIDiagramController", {
 				target : target
 			};
 		};
+
+		this.links = [];
 
 		this.connect = function(sourcePin, targetPin, opt){
 			var options = opt || {},
@@ -72,9 +72,27 @@ Native.elements.export("UIDiagramController", {
 					lineWidth : lineWidth
 				});
 
+				link.controlPoints[4]._diagram = sourcePin.getParentDiagram();
+				link.controlPoints[4]._pin = sourcePin;
+
+				link.addEventListener("change", function(e){
+					var absStartPoint = self.getPinConnectionPoint(sourcePin),
+						absEndPoint = {
+							x : e.x,
+							y : e.y
+						};
+
+					self.updateUILine(this, sourcePin.pintype, absStartPoint, absEndPoint);
+				}, false)
+
 				sourcePin.connections.add(targetPin);
 				targetPin.connections.add(sourcePin);
 			});
+		};
+
+		this.updateUILine = function(UILine, pintype, absStartPoint, absEndPoint){
+			var	vertices = this.getUILineVertives(pintype, absStartPoint, absEndPoint);
+			this.setUILineVertices(UILine, vertices);
 		};
 
 
