@@ -55,6 +55,7 @@ class NativeSkia
         ~NativeSkia();
         int bindOffScreen(int width, int height);
         int bindGL(int width, int height);
+        void resetGLContext();
         void flush();
         /* Basics */
         int readPixels(int top, int left, int width, int height,

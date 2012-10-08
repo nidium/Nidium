@@ -355,7 +355,7 @@ int NativeSkia::bindGL(int width, int height)
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
     desc.fRenderTargetHandle = buffer;
 
-    printf("Samples : %d\n", desc.fSampleCnt);
+    printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
     if (target == NULL) {
@@ -363,6 +363,7 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
     SkGpuDevice *dev = new SkGpuDevice(context, target);
+
     if (dev == NULL) {
         printf("Failed to init Skia (2)\n");
         return 0;
@@ -1206,6 +1207,11 @@ void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
     context->resetContext();
 }
 #endif
+
+void NativeSkia::resetGLContext()
+{
+    context->resetContext();
+}
 
 void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     int x, int y)
