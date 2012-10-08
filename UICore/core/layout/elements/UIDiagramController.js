@@ -10,6 +10,8 @@ Native.elements.export("UIDiagramController", {
 		this.color = OptionalValue(this.options.color, "#ffffff");
 		this.name = OptionalString(this.options.name, "Default");
 
+		this.links = new Set(); // link repository set
+
 		this.getPinConnectionPoint = function(pin){
 			var	dx = this.__x,
 				dy = this.__y;
@@ -34,43 +36,49 @@ Native.elements.export("UIDiagramController", {
 		};
 
 		this.getLink = function(sourcePin, targetPin){
-			var z = this.links,
-				link = null;
+			var linkset = this.links,
+				r = null;
 
-			for (var i in z){
-				var s = z[i].sourcePin,
-					t = z[i].targetPin;
+			for (var link of linkset){
+				var s = link.sourcePin,
+					t = link.targetPin;
 
 				if (sourcePin == s && targetPin == t){
-					link = z[i];
+					r = link;
 					break;
 				}
 			}
-			return link;
+			return r;
 		};
 
 		this.reset = function(){
 			var linkset = this.links;
 
 			for (var link of linkset){
-				var event = this.getLinkEvent(link.sourcePin, link.targetPin);
-				this.fireEvent("disconnect", event, function(){
-					self.removeLink(link);
-				});
+				self.removeLink(link);
 			}
 		};
 
-		this.links = new Set();
-
 		this.removeLink = function(link){
-			var sourcePin = link.sourcePin,
-				targetPin = link.targetPin;
+			var event = this.getLinkEvent(link.sourcePin, link.targetPin);
+			this.fireEvent("disconnect", event, function(){
 
-			sourcePin.connections.delete(targetPin);
-			targetPin.connections.delete(sourcePin);
+				var sourcePin = link.sourcePin,
+					targetPin = link.targetPin;
 
-			this.links.delete(link);
-			link.remove();
+				sourcePin.connections.delete(targetPin);
+				targetPin.connections.delete(sourcePin);
+
+				this.links.delete(link);
+				link.fadeOut(100, function(){
+					this.remove();
+				});
+			});
+		};
+
+		this.disconnect = function(sourcePin, targetPin){
+			var link = this.getLink(sourcePin, targetPin);
+			this.removeLink(link);
 		};
 
 		this.connect = function(sourcePin, targetPin, opt){

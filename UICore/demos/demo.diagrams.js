@@ -100,14 +100,16 @@ main.addEventListener("load", function(){
 	myDiagram.connect(LPF1.pins[3], VCA.pins[0]);
 	myDiagram.connect(LPF2.pins[3], VCA.pins[1]);
 
-
-	// c
 	myDiagram.connect(VCA.pins[2], MIXER.pins[1]);
 	myDiagram.connect(VCA.pins[3], MIXER.pins[2]);
 
-	// connect mixer --> speakers
 	myDiagram.connect(MIXER.pins[5], OUTPUT.pins[0]);
 	myDiagram.connect(MIXER.pins[6], OUTPUT.pins[1]);
+
+	setTimeout(function(){
+		myDiagram.disconnect(MIXER.pins[5], OUTPUT.pins[0]);
+		myDiagram.disconnect(MIXER.pins[6], OUTPUT.pins[1]);
+	}, 1500);
 
 });
 
