@@ -345,6 +345,7 @@ DOMElement.implement({
 
 	fireEvent : function(name, e, successCallback){
 		var acceptedEvent = true,
+			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
 
 		if (typeof this["on"+name] == 'function'){
@@ -354,10 +355,11 @@ DOMElement.implement({
 				e.refuse = function(){
 					acceptedEvent = false;
 				};
-				this["on"+name](e);
+				listenerResponse = this["on"+name](e);
 				if (cb && acceptedEvent) cb.call(this);
+				return OptionalBoolean(listenerResponse, true);
 			} else {
-				this["on"+name]();
+				listenerResponse = this["on"+name]();
 			}
 		}
 	},
@@ -372,16 +374,19 @@ DOMElement.implement({
 		queue.push({
 			name : OptionalString(name, "error"),
 			fn : OptionalCallback(callback, function(){}),
-			propagation : OptionalBoolean(propagation, true)
+			propagation : OptionalBoolean(propagation, true),
+			response : null
 		});
 
 		self["on"+name] = function(e){
 			for(var i in queue){
-				queue[i].fn.call(self, e);
+				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
 					continue;
 				}
 			}
+			// uncomment to support return in listener (you should not)
+			//if (queue && queue[queue.length-1]) return queue[queue.length-1].response;
 		};
 
 	}

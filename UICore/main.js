@@ -41,7 +41,6 @@ load('demos/demo.diagrams.js');
 //load('demos/demo.wires.js');
 
 
-
 /*
 var background = native.getCanvas2D(1024, 768);
 

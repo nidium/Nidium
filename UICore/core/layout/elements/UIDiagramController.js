@@ -42,8 +42,11 @@ Native.elements.export("UIDiagramController", {
 			};
 		};
 
-		this.connect = function(sourcePin, targetPin){
-			var link = this.getLinkEvent(sourcePin, targetPin);
+		this.connect = function(sourcePin, targetPin, opt){
+			var options = opt || {},
+				link = this.getLinkEvent(sourcePin, targetPin),
+				color = OptionalValue(options.color, "#ff0000"),
+				lineWidth = OptionalNumber(options.lineWidth, 3);
 
 			if (sourcePin.connectedTo(targetPin)) {
 				this.fireEvent("alreadyconnected", link);
@@ -65,14 +68,13 @@ Native.elements.export("UIDiagramController", {
 						v.sx4, v.sy4
 					],
 					displayControlPoints : true,
-					color : "#ff0000",
-					lineWidth : 3
+					color : color,
+					lineWidth : lineWidth
 				});
 
 				sourcePin.connections.add(targetPin);
 				targetPin.connections.add(sourcePin);
 			});
-
 		};
 
 
@@ -152,6 +154,7 @@ Native.elements.export("UIDiagramController", {
 				y : v.sy4
 			});
 		};
+
 
 	},
 
