@@ -2,18 +2,20 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIDropDownController", {
+Native.elements.export("UIDropDownController", {
 	init : function(){
 		var self = this;
 
-		this.w = 140;
-		this.h = 24;
 		this.flags._canReceiveFocus = true;
-		this.background = this.options.background || "#191a18";
-		this.color = this.options.color || "#ffffff";
-		this.selectedBackground = this.options.selectedBackground || "#4D90FE";
-		this.selectedColor = this.options.selectedColor || "#FFFFFF";
-		this.name = this.options.name || "Default";
+
+		this.w = OptionalNumber(this.options.w, 140);
+		this.h = OptionalNumber(this.options.h, 24);
+		
+		this.background = OptionalValue(this.options.background, '#191a18');
+		this.color = OptionalValue(this.options.color, "#ffffff");
+		this.selectedBackground = OptionalValue(this.options.selectedBackground, "#4D90FE");
+		this.selectedColor = OptionalValue(this.options.selectedColor, "#FFFFFF");
+		this.name = OptionalString(this.options.name, "Default");
 		this.selection = 0;
 		this.tabs = [];
 
@@ -47,7 +49,7 @@ UIElement.extend("UIDropDownController", {
 		};
 
 		this._addTab = function(i, options, y){
-			let label = options.label ? options.label : "New options",
+			var label = options.label ? options.label : "New options",
 				selected = options.selected ? options.selected : false,
 				background = options.background ? options.background : "#262722",
 				color = options.color ? options.color : "#abacaa";

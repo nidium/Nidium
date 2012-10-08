@@ -2,43 +2,39 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UISliderController", {
+Native.elements.export("UISliderController", {
 	init : function(){
 		var self = this;
 
 		this.flags._canReceiveFocus = true;
-		this.name = this.options.name || "Default";
+		this.name = OptionalString(this.options.name, "Default");
 
-		this.value = this.options.value && typeof(this.options.value)=='number' ? this.options.value : 0;
-		this.min = this.options.min && typeof(this.options.min)=='number' ? this.options.min : 0;
-		this.max = this.options.max && typeof(this.options.max)=='number' ? this.options.max : 100;
+		this.value = OptionalNumber(this.options.value, 0);
+		this.min = OptionalNumber(this.options.min, 0);
+		this.max = OptionalNumber(this.options.max, 100);
 
+		this.color = OptionalValue(this.options.color, "#3388dd");
+		this.boxColor = OptionalValue(this.options.boxColor, false);
+		this.progressBarColor = OptionalValue(this.options.progressBarColor, false);
+		this.splitColor = OptionalValue(this.options.splitColor, false);
 
-
-		this.color = this.options.color || "#3388dd";
-		this.boxColor = (this.options.boxColor) ? this.options.boxColor : false;
-		this.progressBarColor = this.options.progressBarColor || false;
-		this.splitColor = this.options.splitColor || false;
-
-		this.labelBackground = this.options.labelBackground || false;
-		this.labelColor = this.options.labelColor || false;
+		this.labelBackground = OptionalValue(this.options.labelBackground, false);
+		this.labelColor = OptionalValue(this.options.labelColor, false);
 		this.labelOffset = -24;
-		this.labelWidth = this.options.labelWidth && typeof(this.options.labelWidth)=='number' ? this.options.labelWidth : 36;
+		this.labelWidth = OptionalNumber(this.options.labelWidth, 36);
 
-		this.displayLabel = this.options.displayLabel ? true : false;
-		this.labelPrefix = this.options.labelPrefix ? this.options.labelPrefix : '';
-		this.labelSuffix = this.options.labelSuffix ? this.options.labelSuffix : '';
+		this.displayLabel = OptionalBoolean(this.options.displayLabel, false);
+		this.labelPrefix = OptionalString(this.options.labelPrefix, '');
+		this.labelSuffix = OptionalString(this.options.labelSuffix, '');
 
-
-
-		this.vertical = this.options.vertical || false;
+		this.vertical = OptionalBoolean(this.options.vertical, false);
 
 		if (this.vertical){
-			this.w = this.options.w || 12;
-			this.h = this.options.h || 100;
+			this.w = OptionalNumber(this.options.w, 12);
+			this.h = OptionalNumber(this.options.h, 100);
 		} else {
-			this.w = this.options.w || 100;
-			this.h = this.options.h || 12;
+			this.w = OptionalNumber(this.options.w, 100);
+			this.h = OptionalNumber(this.options.h, 12);
 		}
 
 		this.knob = this.add("UISliderKnob", {
@@ -56,7 +52,7 @@ UIElement.extend("UISliderController", {
 
 			this.knob.animate(property, start, delta, 200,
 				function(){
-
+					self.fireEvent("complete", self.value);
 				},
 
 				FXAnimation.easeOutQuad,
@@ -105,8 +101,8 @@ UIElement.extend("UISliderController", {
 			var d = e.yrel !=0 ? e.yrel : e.xrel !=0 ? e.xrel : 0,
 				delta = 1 + (-d-1);
 
-			self.setKnobPosition( self.vertical ? this.knob.top + delta : this.knob.left + delta);
-		}, false);
+			self.setKnobPosition(self.vertical ? this.knob.top + delta : this.knob.left + delta);
+		}, true);
 
 		this.setKnobPosition = function(pixelValue){
 			var k = this.knob,
@@ -183,7 +179,7 @@ UIElement.extend("UISliderController", {
 
 		};
 
-		this.setValue(this.value, 400);
+		this.setValue(this.value);
 
 	},
 

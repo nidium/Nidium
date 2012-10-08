@@ -35,7 +35,7 @@ win1.contentView.background = "#ffffff";
 
 
 var sampleText = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm.";
-textView = main.add("UIText", {x:650, y:130, w:180, h:400, text:sampleText, background:"rgba(255, 255, 255, 1.00)"});
+var textView = main.add("UIText", {x:650, y:130, w:180, h:400, text:sampleText, background:"rgba(255, 255, 255, 1.00)"});
 
 
 var	myElements = [
@@ -93,5 +93,6 @@ for (var i=0; i<4; i++){
 	w[i].contentView.background = "rgba(255, 255, 255, 0.90)";
 }
 
-w[w.length-1].contentView.background = 'rgba(0, 0, 0, 0.85)';
+w[w.length-1].background = 'rgba(0, 0, 0, 0.1)';
+w[w.length-1].contentView.background = 'rgba(0, 0, 0, 0.15)';
 

@@ -2,179 +2,120 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UILine", {
+Native.elements.export("UILine", {
 
 	__construct : function(){
-		this.x1 = this.options.x1 || 0;
-		this.y1 = this.options.y1 || 0;
-		this.x2 = this.options.x2 || 0;
-		this.y2 = this.options.y2 || 0;
-
-		this.w = Math.abs(this.x2 - this.x1);
-		this.h = Math.abs(this.y2 - this.y1);
-
-		this.g = {
-			x : this.x1>=this.x2 ? this.x2 : this.x1,
-			y : this.y1>=this.y2 ? this.y2 : this.y1
-		};
-
+		this.updateParameters();
 	},
 
 	init : function(){
-		var self = this;
+		var self = this,
+			nbparams = 0,
+			nbpoints = 0;
 
-		this.x1 = this.options.x1 || 0;
-		this.y1 = this.options.y1 || 0;
-		this.x2 = this.options.x2 || 0;
-		this.y2 = this.options.y2 || 0;
+		this.vertices = OptionalValue(this.options.vertices, []);
+		this.points = []; // array of points, relative coordinates to parent
+		this.path = []; // array of points, absolute coordinates
 
-		/*
-		this.addEventListener("drag", function(e){
-			var dx = e.xrel / this._scale,
-				dy = e.yrel / this._scale;
+		this.controlPoints = []; // array of Native Elements
+		this.flags._canReceiveFocus = true;
 
-				this._x += dx;
-				this._y += dy;
-				this.x += dx;
-				this.y += dy;
+		this.lineWidth = OptionalNumber(this.options.lineWidth, 1);
 
-				self.controlPoint3.x += dx
-				self.controlPoint3.y += dy;
-		});
-		*/
+		this.displayControlPoints = OptionalBoolean(this.options.displayControlPoints, false);
 
-		this.controlPoint1 = this.add("UIControlPoint", {
-			x : this.x1,
-			y : this.y1,
-			color : this.color
-		});
+		nbparams = this.vertices.length;
 
-		this.controlPoint2 = this.add("UIControlPoint", {
-			x : this.x2,
-			y : this.y2,
-			color : this.color
-		});
+		if (nbparams%2 != 0 || nbparams < 4){
+			throw "UILine: Incorrect number of points in vertices " + nbparams;
+		}
 
-		this.controlPoint1.opacity = 0.1;
-		this.controlPoint2.opacity = 0.1;
+		nbpoints = nbparams/2;
 
-		this.controlPoint1.addEventListener("mouseover", function(e){
-			this.opacity = 0.6;
-		});
-		this.controlPoint1.addEventListener("mouseout", function(e){
-			this.opacity = 0.1;
-		});
-		this.controlPoint2.addEventListener("mouseover", function(e){
-			this.opacity = 0.6;
-		});
-		this.controlPoint2.addEventListener("mouseout", function(e){
-			this.opacity = 0.1;
-		});
+		for (var i=0; i<nbpoints; i++){
+			var px = Number(this.vertices[2*i]),
+				py = Number(this.vertices[2*i+1]);
 
-		if (this.options.split){
-			this.control = {
-				x : this.x1 + (this.x2 - this.x1)/2,
-				y : this.y1 + (this.y2 - this.y1)/2
-			};
-
-			this.controlPoint3 = this.add("UIControlPoint", {
-				x : this.control.x,
-				y : this.control.y,
-				color : this.color
+			// relative coords
+			this.points.push({
+				x : px,
+				y : py
 			});
 
-			this.controlPoint3.opacity = 0.1;
-			
-			this.controlPoint3.addEventListener("drag", function(e){
-				var dx = e.xrel / self._scale,
-					dy = e.yrel / self._scale;
+			// absolute coords
+			this.path.push([
+				this._x + px,
+				this._y + py
+			]);
 
-				this._x += dx;
-				this._y += dy;
-				this.x += dx;
-				this.y += dy;
-
-				self.control.x += dx;
-				self.control.y += dy;
-			}, false);
-
-			this.controlPoint3.addEventListener("mouseover", function(e){
-				this.opacity = 0.6;
-			});
-			this.controlPoint3.addEventListener("mouseout", function(e){
-				this.opacity = 0.1;
+			this.controlPoints[i] = this.add("UIControlPoint", {
+				x : px,
+				y : py,
+				color : this.color,
+				hidden : !this.displayControlPoints
 			});
 
 		}
-	
 
-		var moveControlPoint = function(UIControlPoint, e, p){
-			var dx = e.xrel / self._scale; //(e.x - UIControlPoint._x),
-				dy = e.yrel / self._scale; //(e.y - UIControlPoint._y);
+		this.nbpoints = this.points.length;
 
-			UIControlPoint._x += dx;
-			UIControlPoint._y += dy;
-			UIControlPoint.x += dx;
-			UIControlPoint.y += dy;
+		this.updateParameters = function(){
+			for (var i=0; i<nbpoints; i++){
+				this.points[i].x = this.controlPoints[i].x;
+				this.points[i].y = this.controlPoints[i].y;
 
-			//self["x"+p] += dx;
-			//self["y"+p] += dy;
+				this.path[i][0] = this._x + this.points[i].x;
+				this.path[i][1] = this._y + this.points[i].y;
+			}
 
-			self.w = Math.abs(self.x2 - self.x1);
-			self.h = Math.abs(self.y2 - self.y1);
+			var first = 0,
+				last = nbpoints-1;
 
-			self.g = {
-				x : self.x1>=self.x2 ? self.x2 : self.x1,
-				y : self.y1>=self.y2 ? self.y2 : self.y1
+			this.w = Math.abs(this.points[last].x - this.points[first].x);
+			this.h = Math.abs(this.points[last].y - this.points[first].y);
+
+			this.g = {
+				x : this.points[first].x>=this.points[last].x ? this.points[last].x : this.points[first].x,
+				y : this.points[first].y>=this.points[last].y ? this.points[last].y : this.points[first].y
 			};
 		};
 
-		this.controlPoint1.addEventListener("drag", function(e){
-			moveControlPoint(this, e, 1);
+		this.setVertex = function(i, vertex){
+			this.controlPoints[i].x = vertex.x;
+			this.controlPoints[i].y = vertex.y;
+		};
+
+		this.addEventListener("change", function(e){
+			this.updateParameters();
 		}, false);
 
-		this.controlPoint2.addEventListener("drag", function(e){
-			moveControlPoint(this, e, 2);
+		this.addEventListener("mousedown", function(e){
+			this.focus();
+			e.stopPropagation();
 		}, false);
-
 	},
 
 	isPointInside : function(mx, my){
-		var x1 = this.__x + this.x1*this._scale,
-			y1 = this.__y + this.y1*this._scale,
-			x2 = x1 + this.__w,
-			y2 = y1 + this.__h;
-
-		return	(mx>=x1 && mx<=x2 && my>=y1 && my<=y2) ? true : false;
+		return this.mouseOverPath;
 	},
 
 	draw : function(){
-		this.w = Math.abs(this.x2 - this.x1);
-		this.h = Math.abs(this.y2 - this.y1);
-
-		
-		this.g = {
-			x : this.x1>=this.x2 ? this.x2 : this.x1,
-			y : this.y1>=this.y2 ? this.y2 : this.y1
-		};
+		this.updateParameters();
 
 		var params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
 				h : this.h,
-			};
+			},
 
-		this.x1 = this.controlPoint1.x;
-		this.y1 = this.controlPoint1.y;
-		this.x2 = this.controlPoint2.x;
-		this.y2 = this.controlPoint2.y;
+			nbpoints = this.points.length;
 		
 		/*
 		canvas.setColor("rgba(0, 0, 0, 0.5)");
 		var r = {
-			x : this._x + this.x1,
-			y : this._y + this.y1,
+			x : this._x + this.points[0].x,
+			y : this._y + this.points[0].y,
 			w : this.w,
 			h : this.h
 		}
@@ -182,44 +123,58 @@ UIElement.extend("UILine", {
 		*/
 
 		canvas.strokeStyle = this.color;
-		canvas.lineWidth = 1;
-		
-		canvas.beginPath();
-		canvas.moveTo(params.x + this.x1, params.y + this.y1);
-		
-		if (this.options.split){
-			
-			if (this.options.split=="quadratic"){
-				canvas.quadraticCurveTo(
-					params.x + this.control.x + this.x, params.y + this.control.y + this.y, 
-					params.x + this.x2, params.y + this.y2
-				);
-			} else {
-				canvas.lineTo(params.x + this.control.x + this.x, params.y + this.control.y + this.y);
-				canvas.lineTo(params.x + this.x2, params.y + this.y2);
-			}
+		canvas.lineWidth = this.lineWidth;
 
-		} else {
-			canvas.lineTo(params.x + this.x2, params.y + this.y2);
+		this.mouseOverPath = canvas.spline(this.path, canvas.mouseX, canvas.mouseY, this.lineWidth+8);
+
+		/*		
+		if (nbpoints==2){
+			canvas.beginPath();
+			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
+			canvas.lineTo(params.x + this.points[1].x, params.y + this.points[1].y);
+			canvas.stroke();
 		}
 
-		canvas.stroke();
+		else if (nbpoints==3){
+			canvas.beginPath();
+			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
+			canvas.quadraticCurveTo(
+				params.x + this.points[1].x, params.y + this.points[1].y, 
+				params.x + this.points[2].x, params.y + this.points[2].y
+			);
+			canvas.stroke();
+		}
+
+		else if (nbpoints==4){
+			canvas.beginPath();
+			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
+			canvas.bezierCurveTo(
+				params.x + this.points[1].x, params.y + this.points[1].y, 
+				params.x + this.points[2].x, params.y + this.points[2].y,
+				params.x + this.points[3].x, params.y + this.points[3].y
+			);
+			canvas.stroke();
+		}
+
+		else if (nbpoints>=5){
+			this.mouseOverPath = canvas.spline(this.path, canvas.mouseX, canvas.mouseY);
+		}
+		*/
 
 	}
 });
 
-UIElement.extend("UIControlPoint", {
-	__construct : function(){
-		this.radius = this.options.radius || 2;
-		this.background = "rgba(255, 255, 255, 0.2)",
-		this.lineWidth = 2;
-		this.opacity = 0.5;
-	},
-
+Native.elements.export("UIControlPoint", {
 	init : function(){
 		var self = this;
-		this.w = 12;
-		this.h = 12;
+		this.w = 16;
+		this.h = 16;
+
+		this.radius = OptionalNumber(this.options.radius, 3);
+		this.background = OptionalValue(this.options.background, "rgba(0, 0, 0, 0.5)"),
+		this.hidden = OptionalBoolean(this.options.hidden, false),
+		this.lineWidth = 1;
+		this.opacity = 0.5;
 
 		this.g = {
 			x : - this.w/2,
@@ -227,8 +182,31 @@ UIElement.extend("UIControlPoint", {
 		};
 
 		this.addEventListener("mousedown", function(e){
+			this.opacity = 1.00;
+			this.parent.focus();
 			e.stopPropagation();
 		}, true);
+
+		this.addEventListener("mouseup", function(e){
+			this.set("opacity", 0.50, 90);
+			e.stopPropagation();
+		}, true);
+
+		this.addEventListener("dragstart", function(e){
+			this.opacity = 1.00;
+		}, false);
+
+		this.addEventListener("drag", function(e){
+			this.left += e.dx; // e.dx = e.xrel / this._scale
+			this.top += e.dy; // e.dy = e.yrel / this._scale
+			this.parent.fireEvent("change", e);
+			this.opacity = 1.00;
+			e.stopPropagation();
+		}, false);
+
+		this.addEventListener("dragend", function(e){
+			this.set("opacity", 0.50, 90);
+		});
 
 	},
 
@@ -251,8 +229,10 @@ UIElement.extend("UIControlPoint", {
 				h : this.h
 			};
 
-		canvas.roundbox(params.x-hx-1, params.y-hy-1, params.w+2, params.h+2, this.radius, '', 'rgba(0, 0, 0, 0.5)', this.lineWidth); // main view
-		canvas.roundbox(params.x-hx, params.y-hy, params.w, params.h, this.radius, this.background, 'rgba(255, 255, 255, 0.5)', this.lineWidth); // main view
+		if (this.parent.hasFocus && !this.hidden){
+			canvas.roundbox(params.x-hx+2, params.y-hy+2, params.w-4, params.h-4, this.radius, '', "#000000", this.lineWidth); // main view
+			canvas.roundbox(params.x-hx+4, params.y-hy+4, params.w-8, params.h-8, 0, this.background, "#ffffff", this.lineWidth); // main view
+		}
 
 	}
 });

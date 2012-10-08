@@ -28,13 +28,19 @@ typedef struct _NativeShadow
 
 } NativeShadow_t;
 
+struct _nativeState {
+    SkPaint *paint;
+    SkPaint *paint_stroke;
+
+    struct _nativeState *next;    
+};
+
 class NativeSkia
 {
     private:
 
-        
-        SkPaint *paint;
-        SkPaint *paint_stroke;
+        struct _nativeState *state;
+
         SkPaint *paint_system;
         SkPath *currentPath;
         GrContext *context;
@@ -109,6 +115,9 @@ class NativeSkia
         void restore();
         void redrawScreen();
         double measureText(const char *str, size_t length);
+        bool SkPathContainsPoint(double x, double y);
+        void getPathBounds(double *left, double *right,
+            double *top, double *bottom);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0

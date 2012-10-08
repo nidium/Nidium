@@ -5,11 +5,12 @@
 /* -- Native FrameWork Demos  ------------------ */
 
 load("core/native.inc.js");
-
-load('demos/demo.ui.js');
-
-//load('demos/demo.spectral.js');
+//load('demos/demo.ui.js');
+//load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
+load('demos/demo.diagrams.js');
+//load('demos/demo.spectral.js');
+//load('demos/demo.tabs.js');
 
 
 /* -- Benchmarks ------------------------------- */
@@ -29,6 +30,7 @@ load('demos/demo.ui.js');
 
 /* -- StandAlone Demos ------------------------- */
 
+//load('demos/demo.bluewheel.js');
 //load('demos/demo.cube.js');
 //load('demos/demo.flamme.js');
 //load('demos/demo.particles.js');

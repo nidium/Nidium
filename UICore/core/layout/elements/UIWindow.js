@@ -2,16 +2,17 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIWindow", {
+Native.elements.export("UIWindow", {
 	init : function(){
 		var self = this;
 
 		this.flags._canReceiveFocus = true;
-		this.background = OptionalValue(this.options.background, "#191a18");
-		this.color = this.options.color || "#ffffff";
-		this.name = this.options.name || "Default";
-		this.shadowBlur = this.options.shadowBlur || 12;
-		this.shadowColor = this.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+		this.color = OptionalValue(this.options.color, "#ffffff");
+		this.name = OptionalString(this.options.name, "Default");
+
+		this.shadowBlur = OptionalNumber(this.options.shadowBlur, 12);
+		this.shadowColor = OptionalValue(this.options.shadowColor, "rgba(0, 0, 0, 0.5)");
+		this.backgroundBlur = 0; //OptionalNumber(this.options.backgroundBlur, 0);
 
 		this.addEventListener("mousedown", function(e){
 			this.bringToTop();
@@ -45,8 +46,8 @@ UIElement.extend("UIWindow", {
 		if (this.options.movable) {
 			this.handle.addEventListener("dragstart", function(){
 				self.set("scale", 1.1, 80);
-				self.set("blur", 1, 80);
-				self.set("shadowBlur", 26, 70);
+				self.set("backgroundBlur", 1, 80);
+				self.set("shadowBlur", 20, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
 			}, false);
 
@@ -57,8 +58,8 @@ UIElement.extend("UIWindow", {
 
 			this.handle.addEventListener("dragend", function(){
 				self.set("scale", 1, 50);
-				self.set("blur", 0, 50);
-				self.set("shadowBlur", self.options.shadowBlur || 12, 50);
+				self.set("backgroundBlur", 0, 50);
+				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
 				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
 			}, false);
 
@@ -66,7 +67,7 @@ UIElement.extend("UIWindow", {
 
 		if (this.options.closeable) {
 			this.handle.closeButton = this.add("UIButtonClose", {
-				x : this.w-18,
+				x : this.w-19,
 				y : 4,
 				w : 16,
 				h : 16,
@@ -74,9 +75,8 @@ UIElement.extend("UIWindow", {
 				color : "#888888"
 			});
 
-			this.handle.closeButton.addEventListener("mousedown", function(e){
-				self.bounceScale(0, 120, function(){
-				});
+			this.handle.closeButton.addEventListener("mouseup", function(e){
+				self.set("scale", 0, 120, function(){});
 				self.shadowBlur = 6;
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";
 				e.stopPropagation();
@@ -109,12 +109,12 @@ UIElement.extend("UIWindow", {
 	
 			radius = Math.max(4, this.radius);
 
-		if (this.blur){
+		if (this.backgroundBlur){
 			this.blurbox = {
 				x : this.__x,
 				y : this.__y,
 				w : this.__w,
-				h : 2*this.lineHeight*this._scale
+				h : this.handle.__h + 1
 			};
 		}
 

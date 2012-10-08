@@ -103,7 +103,7 @@ int NativeEvents(SDL_Window *win)
                         //[console clear];
                         delete NJS;
                         
-                        glClearColor(1, 1, 1, 0);
+                        glClearColor(0, 0, 0, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
                         NJS = new NativeJS();
@@ -145,6 +145,12 @@ int NativeEvents(SDL_Window *win)
         
 
 //        glDisable(GL_ALPHA_TEST);
+        /*glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+        glEnable(GL_TEXTURE_2D);
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT);*/
 
         NJS->callFrame();
         NJS->nskia->flush();
@@ -200,7 +206,7 @@ void resizeGLScene(int width, int height)
 int initGL()
 {
     //glShadeModel(GL_SMOOTH);
-    glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    //glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);

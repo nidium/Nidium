@@ -17,53 +17,55 @@ var main = new Application(), /* {background : '#262722'} */
 		/* Tab 7 */ {label : "rotation.js"},
 		/* Tab 8 */ {label : "scale.js"},
 		/* Tab 9 */ {label : "native.inc.js"}
-	],
+	];
 
-	mainTabController = main.add("UITabController", {
+var	mainTabController = main.add("UITabController", {
 		name : "masterTabs",
 		tabs : myTabs,
 		background : "#191a18"
 	});
 
 
+main.addEventListener("mousedblclick", function(){
+	echo("dbl");
+});
+
+
 var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
 var	sampleText = template.mul(3);
 
 var	textView = main.add("UIText", {
-		x : 733,
-		y : 80,
-		w : 280,
-		h : 568,
-		text : sampleText,
-		lineHeight : 18,
-		fontSize : 13,
-		fontType : "arial",
-		textAlign : "justify",
-		background : "rgba(255, 255, 255, 1)",
-		color : "#000000"
-	});
+	x : 733,
+	y : 80,
+	w : 280,
+	h : 568,
+	text : sampleText,
+	lineHeight : 18,
+	fontSize : 13,
+	fontType : "arial",
+	textAlign : "justify",
+	background : "rgba(255, 255, 255, 1)",
+	color : "#000000"
+});
 
 var win = main.add("UIWindow", {
 	x : 280,
 	y : 100,
 	w : 300,
 	h : 200,
-	background : "rgba(100, 100, 255, 0.2)",
+	background : "rgba(0, 0, 0, 0.25)",
 	resizable : true,
 	closeable : true,
 	movable : true
 });
 
 
-var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
-
-	//docButton1 = new UIButton({x:10, y:110, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false});
-
+var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
 	docButton3 = main.add("UIButton", {x:10, y:170, label:"docButton3", background:"#CC4488", radius:6, fontSize:12, selected:false}),
 	docButton4 = main.add("UIButton", {x:10, y:200, label:"docButton4", background:"#8844CC", radius:6, fontSize:11, selected:false}),
 	docButton5 = main.add("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
-	docButton6 = main.add("UIButton", {x:10, y:260, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
+	docButton6 = main.add("UIButton", {x:10, y:260, h:40, lineHeight:40, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
 
 	getTextButton = main.add("UIButton", {x:733, y:50, label:"Get Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
 	cutButton = main.add("UIButton", {x:858, y:50, label:"Cut", background:"#331111", radius:6, fontSize:13, selected:false}),
@@ -71,7 +73,7 @@ var	docButton1 = main.add("UIButton", {x:10, y:110, label:"docButton1", backgrou
 	pasteButton = main.add("UIButton", {x:960, y:50, label:"Paste", background:"#111133", radius:6, fontSize:13, selected:false}),
 
 
-	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#ffffff", shadowBlur:26}),
+	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#fffffe", shadowBlur:26}),
 	overlayView = greenView.add("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
 	davidButton = greenView.add("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
 	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
@@ -95,7 +97,35 @@ var	tabController = greenView.add("UITabController", {
 	]
 });
 
+var	slider = main.add("UISliderController", {
+	x : 908,
+	y : 10,
+	background : '#161712',
+	color : 'rgba(255, 40, 210, 1)',
+	disabled : false,
+	radius : 2,
+	min : 4,
+	max : 18,
+	value : 14
+});
+
+slider.addEventListener("change", function(value){
+	mainTabController.overlap = value;
+	mainTabController.resetTabs();
+}, false);
+
+
+
 /* ------------------------------------------------- */
+
+DBT(function(){
+	greenView.remove();
+	Native.layout.unregister(main);
+	Native.layout.register(mainTabController);
+});
+
+/* ------------------------------------------------- */
+
 
 var s = textView.setCaret(70, 50);
 
@@ -124,40 +154,40 @@ pasteButton.addEventListener("mousedown", function(e){
 	textView.paste();
 });
 
-
-var line = overlayView.add("UILine", {x1:20, y1:110, x2:100, y2:180, split:"quadratic", color:"#ff0000"});
-var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255,0,0,0.2)", draggable:true});
-
-
+var brique = main.add("UIView", {x:150, y:150, w:60, h:60, radius:4, background:"rgba(255, 0, 0, 0.2)", draggable:true});
 
 docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
-		greenView.bounceScale(0, 150, function(){
+		greenView.set("scale", 0, 150, function(){
 			this.visible = false;
 		}, FXAnimation.easeInOutQuad);
 		this.toggle = true;
 	} else {
 		greenView.visible = true;
-		greenView.bounceScale(1.5, 250, function(){
-		}, FXAnimation.easeOutElastic);
+		greenView.set("scale", 1.5, 250, function(){}, FXAnimation.easeOutElastic);
 		this.toggle = false;
 	}
 });
 
 docButton2.addEventListener("mousedown", function(e){
-	redViewButton4.g = {
-		x : -redViewButton4.w/2,
-		y : -redViewButton4.h/2
+	var o = redViewButton4;
+
+	o.transformOrigin = {
+		x : o._x + o.w/2,
+		y : o._y + o.h/2
 	};
-	redViewButton4.bounceScale(1.2, 350, function(){});
+
+	console.log(o.transformOrigin);
+
+	o.set("scale", 1.2, 350);
 });
 
 docButton3.addEventListener("mousedown", function(e){
-	davidButton.bounceScale(davidButton.scale+1, 150, function(){});
+	davidButton.set("scale", davidButton.scale+1, 150, function(){});
 });
 
 docButton4.addEventListener("mousedown", function(e){
-	greenView.fadeOut(200, function(){});
+	greenView.fadeOut(200);
 });
 
 docButton5.addEventListener("mousedown", function(e){
@@ -167,7 +197,9 @@ docButton5.addEventListener("mousedown", function(e){
 
 docButton6.addEventListener("mousedown", function(e){
 	canvas.animate = true;
+	greenView.hide();
 });
+
 
 //redViewButton4.scale = 2;
 
@@ -176,10 +208,18 @@ greenView.addEventListener("mousedown", function(e){
 	e.stopPropagation();
 }, false);
 
-
 greenView.addEventListener("drag", function(e){
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
+
+	this.transformOrigin = {
+		x : e.x,
+		y : e.y
+	};
+
+	var v = e.y>=(canvas.height/2) ? 1 : (e.y/(canvas.height/2));
+	this.scale = v;
+	this.opacity = v;
 });
 
 brique.addEventListener("dragstart", function(e){
@@ -209,3 +249,8 @@ docButton1.addEventListener("drop", function(e){
 
 	console.log("using dataTransfer : " + e.dataTransfer.getData("Text") );
 });
+
+
+
+
+

@@ -3,11 +3,13 @@
 /* -------------------------- */
 
 /* -----------------------------------------------------------------
- * NativeBlur - an ultra fast dirty blur For Canvas                *
+ * Native Splines for Native Canvas                                *
  * ----------------------------------------------------------------- 
  * Version: 	1.0
- * Author:		Vincent Fontaine
- * 
+ * Author: 		Vincent Fontaine
+ *
+ * The MIT License (MIT)
+
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -31,46 +33,43 @@
  */
 
 canvas.implement({
-	blur : function(wx, wy, w, h, pass){
-		var r = 1,
-			offscreen = new Canvas(w, h);
+	spline : function(points, mx=0, my=0, lineWidth=2){
+		var len = 0,
+			step = 0,
+			mouseOnPath = false,
+			f = Math.factorial, pw = Math.pow;
 
-		offscreen.putImageData(this.getImageData(wx, wy, w, h), 0, 0);
-
-		for(var i=0, g = 0.325; i<pass; i++){
-			for (var cy=-r; cy<(r+1); cy++){
-				for (var cx=-r; cx<(r+1); cx++){
-					offscreen.globalAlpha = g;
-					offscreen.drawImage(offscreen, cx-0.15, cy+0.28);
-					g = g * 0.98;
-				}
-			}
-			offscreen.globalAlpha = 1;
-			offscreen.fillStyle = "rgba(255, 255, 255, 0.036)";
-			offscreen.fillRect(0, 0, w, h);
+		var B = function(i, n, t){
+			return	f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
 		}
-		var blur = offscreen.getImageData(0, 0, w, h);
-		this.putImageData(blur, wx, wy);
-	},
 
-	fastblur : function(wx, wy, w, h, pass){
-		var r = 1,
-			offscreen = new Canvas(w, h);
-
-		offscreen.drawImage(this, wx, wy, w, h, 0, 0, w, h);
-
-		for(var i=0, g = 0.325; i<pass; i++){
-			for (var cy=-r; cy<(r+1); cy++){
-				for (var cx=-r; cx<(r+1); cx++){
-					offscreen.globalAlpha = g;
-					offscreen.drawImage(offscreen, cx-0.15, cy+0.28);
-					g = g * 0.98;
-				}
-			}
-			offscreen.globalAlpha = 1;
-			offscreen.fillStyle = "rgba(255, 255, 255, 0.036)";
-			offscreen.fillRect(0, 0, w, h);
+		for (var i=0; i<points.length-1; i++) {
+			len += Math.distance(
+				points[i][0], points[i][1],
+				points[i + 1][0], points[i + 1][1]
+			);
 		}
-		this.drawImage(offscreen, wx, wy);
+
+		step = 1/len;
+
+		this.beginPath();
+		this.moveTo(points[0][0], points[0][1]);
+		for (var t=0; t<=1; t+=step){
+			var r = [0, 0],
+				n = points.length - 1;
+
+			for (var i=0; i<=n; i++) {
+				r[0] += points[i][0] * B(i, n, t);
+				r[1] += points[i][1] * B(i, n, t);
+			}
+			
+			mouseOnPath = (Math.distance(r[0], r[1], mx, my) <= lineWidth) ? true : mouseOnPath;
+
+			this.lineTo(r[0], r[1]);
+		}
+		this.stroke();
+		return mouseOnPath;
 	}
 });
+
+

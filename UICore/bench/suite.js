@@ -2,6 +2,13 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
+BenchThis("Native.layout.getElements()", 3000, function(i){
+
+});
+
+
+/*
+
 canvas.fillStyle = "rgba(255, 0, 0, 1)";
 
 BenchThis("1024x768 FillRect", 100, function(i){
@@ -35,3 +42,5 @@ BenchThis("1024x768 FillRect", 6400, function(i){
 BenchThis("1024x768 FillRect", 12800, function(i){
 	canvas.fillRect(0, 0, 1024, 768);
 });
+
+*/

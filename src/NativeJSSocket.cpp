@@ -45,7 +45,7 @@ static JSFunctionSpec socket_funcs[] = {
 };
 
 static JSPropertySpec Socket_props[] = {
-    {"isBinary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
+    {"binary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_socket_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
@@ -291,7 +291,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
 
-    JS_SetProperty(cx, ret, "isBinary", &isBinary);
+    JS_SetProperty(cx, ret, "binary", &isBinary);
 
     return JS_TRUE;
 }
@@ -494,6 +494,7 @@ NativeJSSocket::~NativeJSSocket()
 {
 	if (isAttached()) {
 		socket->ctx = NULL;
+        this->disconnect();
 	}
     free(host);
 }
@@ -512,7 +513,6 @@ void NativeJSSocket::dettach()
 {
 	if (isAttached()) {
 		socket->ctx = NULL;
-
 		socket = NULL;
 	}
 }
@@ -523,9 +523,9 @@ void NativeJSSocket::write(unsigned char *data, size_t len,
 	APE_socket_write(socket, data, len, data_type);
 }
 
-void NativeJSSocket::destroy()
+void NativeJSSocket::disconnect()
 {
-	APE_socket_destroy(socket);
+	APE_socket_shutdown_now(socket);
 }
 
 void NativeJSSocket::shutdown()

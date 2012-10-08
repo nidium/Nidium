@@ -7,8 +7,10 @@
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
-#include <native_netlib.h>
+#include "NativeJSNative.h"
+
 #include "SkImageDecoder.h"
+
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
@@ -181,6 +183,10 @@ static JSBool native_canvas_stub(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
+    jsval *vp);
 /*************************/
 
 /******** Setters ********/
@@ -189,8 +195,6 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
-static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
@@ -220,6 +224,7 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_set)},
     {"shadowColor", CANVAS_PROP_SHADOWCOLOR, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas_prop_set)},
+    /* TODO : cache (see https://bugzilla.mozilla.org/show_bug.cgi?id=786126) */
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT, JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
     {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT, JSOP_WRAPPER(native_canvas_prop_get),
@@ -281,6 +286,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("requestAnimationFrame", native_canvas_requestAnimationFrame, 1, 0),
     JS_FN("drawImage", native_canvas_drawImage, 3, 0),
     JS_FN("measureText", native_canvas_measureText, 1, 0),
+    JS_FN("isPointInPath", native_canvas_isPointInPath, 2, 0),
+    JS_FN("getPathBounds", native_canvas_getPathBounds, 0, 0),
     JS_FS_END
 };
 
@@ -527,6 +534,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_FILLSTYLE:
         {
             if (JSVAL_IS_STRING(vp)) {
+
                 JSAutoByteString colorName(cx, JSVAL_TO_STRING(vp));
                 curSkia->setFillColor(colorName.ptr());
             } else if (!JSVAL_IS_PRIMITIVE(vp) && 
@@ -642,7 +650,7 @@ static JSBool native_canvas_fillRect(JSContext *cx, unsigned argc, jsval *vp)
         NSKIA_NATIVE->drawRect(x, y, width, height,
             rx, (argc == 5 ? rx : ry), 0);
     } else {
-        NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 0);
+        NSKIA_NATIVE->drawRect(x, y, width, height, 0);
     }
 
     return JS_TRUE;
@@ -1105,7 +1113,7 @@ static JSBool native_canvas_drawImage(JSContext *cx, unsigned argc, jsval *vp)
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
-        (image = (class NativeSkImage *)JS_GetPrivate(jsimage)) == NULL) {
+        (image = NativeJSImage::JSObjectToNativeSkImage(jsimage)) == NULL) {
         return JS_TRUE;
     }
 
@@ -1150,6 +1158,42 @@ static JSBool native_canvas_measureText(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
+        vp->setBoolean(false);
+        return JS_TRUE;
+    }
+
+    vp->setBoolean(NSKIA_NATIVE->SkPathContainsPoint(x, y));
+
+    return JS_TRUE;
+}
+
+/* TODO: return undefined if the path is invalid */
+static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+#define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+
+    double left = 0, right = 0, top = 0, bottom = 0;
+    JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
+
+    NSKIA_NATIVE->getPathBounds(&left, &right, &top, &bottom);
+
+    OBJ_PROP("left", DOUBLE_TO_JSVAL(left));
+    OBJ_PROP("right", DOUBLE_TO_JSVAL(right));
+    OBJ_PROP("top", DOUBLE_TO_JSVAL(top));
+    OBJ_PROP("bottom", DOUBLE_TO_JSVAL(bottom));
+
+    vp->setObject(*obj);
+
+    return JS_TRUE;
+}
 
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -1181,15 +1225,19 @@ void NativeJS::callFrame()
 {
     jsval rval;
     char fps[16];
+
     //JS_MaybeGC(cx);
     //JS_GC(JS_GetRuntime(cx));
     //NSKIA->save();
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
-    sprintf(fps, "%d fps", currentFPS);
-    //printf("Fps : %s\n", fps);
-    nskia->system(fps, 5, 300);
+
+    if (NativeJSNative::showFPS) {
+        sprintf(fps, "%d fps", currentFPS);
+        //printf("Fps : %s\n", fps);
+        nskia->system(fps, 5, 300);
+    }
     //NSKIA->restore();
 }
 
@@ -1584,9 +1632,10 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSThread::registerObject(cx);
     /* Http() object */
     NativeJSHttp::registerObject(cx);
-
     /* Image() object */
     NativeJSImage::registerObject(cx);
+    /* Native() object */
+    NativeJSNative::registerObject(cx);
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
@@ -1628,8 +1677,8 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
 
-    if (params == NULL) {
-        return JS_FALSE;
+    if (params == NULL || argc < 2) {
+        return JS_TRUE;
     }
 
     params->cx = cx;
@@ -1676,8 +1725,8 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 
     params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
 
-    if (params == NULL) {
-        return JS_FALSE;
+    if (params == NULL || argc < 2) {
+        return JS_TRUE;
     }
 
     params->cx = cx;

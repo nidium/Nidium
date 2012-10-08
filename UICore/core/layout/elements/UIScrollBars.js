@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIVerticalScrollBar", {
+Native.elements.export("UIVerticalScrollBar", {
 	init : function(){
 		this.w = 8;
 		this.h = this.parent.h;
@@ -24,7 +24,7 @@ UIElement.extend("UIVerticalScrollBar", {
 });
 
 
-UIElement.extend("UIVerticalScrollBarHandle", {
+Native.elements.export("UIVerticalScrollBarHandle", {
 	init : function(){
 		this.w = 8;
 		this.h = this.parent.parent.h; // grandpere

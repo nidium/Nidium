@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-UIElement.extend("UIText", {
+Native.elements.export("UIText", {
 	init : function(){
 		var self = this;
 
@@ -10,9 +10,8 @@ UIElement.extend("UIText", {
 		this.caretOpacity = 1;
 		this.caretCounter = 0;
 
-		if (!this.color){
-			this.color = "#000000";
-		}
+		this.background = OptionalValue(this.options.background, '#ffffff');
+		this.color = OptionalValue(this.options.color, "#000000");
 
 		this.padding = {
 			left : 0,
@@ -59,7 +58,7 @@ UIElement.extend("UIText", {
 			self._startMouseSelection(e);
 		}, false);
 
-		NativeRenderer.rootElement.addEventListener("dragover", function(e){
+		Native.layout.rootElement.addEventListener("dragover", function(e){
 			self._doMouseSelection(e);
 		}, false);
 
@@ -345,15 +344,15 @@ UIElement.extend("UIText", {
 
 		this.copy = function(){
 			if (this.selection.size>0) {
-				NativeRenderer.pasteBuffer = this.selection.text;
+				Native.pasteBuffer = this.selection.text;
 			} else {
-				NativeRenderer.pasteBuffer = '';
+				Native.pasteBuffer = '';
 			}
 		};
 
 		this.paste = function(){
-			if (NativeRenderer.pasteBuffer != '') {
-				this.replace(NativeRenderer.pasteBuffer);
+			if (Native.pasteBuffer != '') {
+				this.replace(Native.pasteBuffer);
 			}
 		};
 
