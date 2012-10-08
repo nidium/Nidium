@@ -172,17 +172,17 @@ var c = canvas,
 
 /* Set Constant Properties */
 ctx.shadowBlur = circle.blur;
-ctx.shadowColor = 'hsla(' + circle.hue + ', 80, 60, 1)';
-ctx.lineCap = 'round';
-
+ctx.shadowColor = 'hsla('+circle.hue+', 80, 60, 1)';
+ctx.lineCap = 'round'
+  
 var gradient1 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
-gradient1.addColorStop(0, 'hsla(' + circle.hue + ', 60, 50, .25');
-gradient1.addColorStop(1, 'hsla(' + circle.hue + ', 60, 50, 0)');
-
+gradient1.addColorStop(0, 'hsla('+circle.hue+', 60, 50, .25)');
+gradient1.addColorStop(1, 'hsla('+circle.hue+', 60, 50, 0)');
+  
 var gradient2 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
-gradient2.addColorStop(0, 'hsla(' + circle.hue + ', 100, 50, 0)');
-gradient2.addColorStop(.1, 'hsla(' + circle.hue + ', 100, 100, .7)');
-gradient2.addColorStop(1, 'hsla(' + circle.hue + ', 100, 50, 0)');
+gradient2.addColorStop(0, 'hsla('+circle.hue+', 100, 50, 0)');
+gradient2.addColorStop(.1, 'hsla('+circle.hue+', 100, 100, .7)');
+gradient2.addColorStop(1, 'hsla('+circle.hue+', 100, 50, 0)');
 
 /* Loop It, Loop It Good */
 canvas.requestAnimationFrame(loop);

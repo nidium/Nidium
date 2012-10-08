@@ -53,9 +53,11 @@ myDiagram.link({
 });
 */
 
-/*
-myDiagram.connect(LFO.pins[1], VCA.pins[0]);
-*/
+main.addEventListener("load", function(){
+	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
+});
+
+
 
 DBT(function(){
 	LPF.remove();

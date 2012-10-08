@@ -346,9 +346,13 @@ DOMElement.implement({
 	fireEvent : function(name, e){
 		canvas.__mustBeDrawn = true;
 		if (typeof this["on"+name] == 'function'){
-			e.dx = e.xrel / this._scale;
-			e.dy = e.yrel / this._scale;
-			this["on"+name](e);
+			if (e){
+				e.dx = e.xrel / this._scale;
+				e.dy = e.yrel / this._scale;
+				this["on"+name](e);
+			} else {
+				this["on"+name]();
+			}
 		}
 	},
 

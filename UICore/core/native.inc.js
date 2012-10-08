@@ -79,6 +79,8 @@ load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'animations.inc.js');
 
 Native.layout = {
+	ready : false,
+
 	objID : 0,
 	focusObj : 0,
 	nbObj : 0,
@@ -170,6 +172,10 @@ Native.layout = {
 				}
 			}
 			canvas.__mustBeDrawn = false;
+		}
+		if (this.ready===false){
+			this.ready = true;
+			this.rootElement.fireEvent("load");
 		}
 
 	},

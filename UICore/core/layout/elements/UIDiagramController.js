@@ -29,6 +29,36 @@ Native.elements.export("UIDiagramController", {
 			//this.setUILineVertices(points);
 		};
 
+		this.links = [];
+
+		this.connect = function(sourcePin, targetPin){
+			var absStartPoint = this.getPinConnectionPoint(sourcePin),
+				absEndPoint = this.getPinConnectionPoint(targetPin);
+
+			var v = this.getUILineVertives(sourcePin.pintype, absStartPoint, absEndPoint);
+
+			var link = this.add("UILine", {
+					vertices : [
+						v.sx0, v.sy0,
+						v.sx1, v.sy1,
+						v.sx2, v.sy2,
+						v.sx3, v.sy3,
+						v.sx4, v.sy4
+					],
+					displayControlPoints : true,
+					color : "#ff0000",
+					lineWidth : 3
+				});
+
+			this.links.push({
+				source : sourcePin,
+				target : targetPin,
+				link : link
+			});
+
+		};
+
+
 		this.getUILineVertives = function(pintype, absStartPoint, absEndPoint){
 			var	dx = this.__x,
 				dy = this.__y,
