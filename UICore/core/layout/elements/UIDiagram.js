@@ -125,25 +125,23 @@ Native.elements.export("UIDiagram", {
 
 		/* --------------------- */
 
+		this.getPin = function(pinnum){
+			return this.pins[pinnum] ? this.pins[pinnum] : undefined;
+		};
+
 		this.updatePins = function(){
 			for (var i=0; i<nbpins; i++){
 				var	pin = this.pins[i];
 
-				/*
-				for (var l in pin.links){
-					diagramController.setLinkPosition(pin.links[l]);
-				}
-				*/
-			}
-		};
+				//diagramController.updateLinkPosition(link, pin, targetPin);
 
-		this.getPin = function(pinnum){
-			return this.pins[pinnum] ? this.pins[pinnum] : undefined;
+			}
 		};
 
 		this.attachAllTheGoodThingsToPin = function(pin){
 
 			pin.connections = new Set();
+			pin.targetLinks = [];
 
 			pin.getParentDiagram = function(){
 				return self;
@@ -152,8 +150,6 @@ Native.elements.export("UIDiagram", {
 			pin.connectedTo = function(targetPin){
 				return pin.connections.has(targetPin) || targetPin.connections.has(pin);
 			};
-
-
 
 			pin.addEventListener("dragstart", function(e){
 				var absStartPoint = diagramController.getPinConnectionPoint(pin),

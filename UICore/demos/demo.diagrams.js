@@ -114,8 +114,8 @@ main.addEventListener("load", function(){
 
 
 DBT(function(){
-	LPF1.remove();
-	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
+	myDiagram.reset();
+//	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
 });
 
 
@@ -130,6 +130,7 @@ DBT(function(){
  *
  */
 myDiagram.addEventListener("pinEnter", function(e){
+	/* dummy */
 }, false);
 
 myDiagram.addEventListener("pinOver", function(e){
@@ -143,24 +144,24 @@ myDiagram.addEventListener("pinLeave", function(e){
 }, false);
 
 myDiagram.addEventListener("pinDrop", function(e){
-	var s = e.source,
-		t = e.target;
-
-	echo("[" + s.label + "] " + s.pin.label + "-" + t.pin.label + " [" + t.label + "]");
-	s.pin.color = '';
-	t.pin.background = '';
+	e.source.pin.color = '';
+	e.target.pin.background = '';
 }, false);
 
 myDiagram.addEventListener("alreadyconnected", function(e){
 	echo("already connected:", e.source.pin.label+ "-" + e.target.pin.label);
 }, false);
 
-
 myDiagram.addEventListener("connect", function(e){
-	echo("dd connect:", e.source.pin.label+ "-" + e.target.pin.label);
-	//e.refuse();
+	var s = e.source,
+		t = e.target;
+	echo("Connection : [" + s.label + "] " + s.pin.label + "-" + t.pin.label + " [" + t.label + "]");
 }, false);
 
+myDiagram.addEventListener("disconnect", function(e){
+	echo("disconnect:", e.source.pin.label+ "-" + e.target.pin.label);
+//	e.refuse();
+}, false);
 
 
 

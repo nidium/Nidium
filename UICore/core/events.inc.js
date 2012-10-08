@@ -361,6 +361,9 @@ DOMElement.implement({
 			} else {
 				listenerResponse = this["on"+name]();
 			}
+		} else {
+			if (cb) cb.call(this);
+			return true;
 		}
 	},
 

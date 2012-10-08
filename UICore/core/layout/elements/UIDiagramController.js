@@ -20,13 +20,6 @@ Native.elements.export("UIDiagramController", {
 			}
 		};
 
-		this.setLinkPosition = function(pin, link){
-				var absStartPoint = this.getPinConnectionPoint(sourcePin),
-					absEndPoint = this.getPinConnectionPoint(targetPin);
-
-				var v = this.getUILineVertives(sourcePin.pintype, absStartPoint, absEndPoint);
-		};
-
 		this.getLinkEvent = function(sourcePin, targetPin){
 			var source = sourcePin.getParentDiagram(),
 				target = targetPin.getParentDiagram();
@@ -40,20 +33,58 @@ Native.elements.export("UIDiagramController", {
 			};
 		};
 
-		this.links = [];
+		this.getLink = function(sourcePin, targetPin){
+			var z = this.links,
+				link = null;
+
+			for (var i in z){
+				var s = z[i].sourcePin,
+					t = z[i].targetPin;
+
+				if (sourcePin == s && targetPin == t){
+					link = z[i];
+					break;
+				}
+			}
+			return link;
+		};
+
+		this.reset = function(){
+			var linkset = this.links;
+
+			for (var link of linkset){
+				var event = this.getLinkEvent(link.sourcePin, link.targetPin);
+				this.fireEvent("disconnect", event, function(){
+					self.removeLink(link);
+				});
+			}
+		};
+
+		this.links = new Set();
+
+		this.removeLink = function(link){
+			var sourcePin = link.sourcePin,
+				targetPin = link.targetPin;
+
+			sourcePin.connections.delete(targetPin);
+			targetPin.connections.delete(sourcePin);
+
+			this.links.delete(link);
+			link.remove();
+		};
 
 		this.connect = function(sourcePin, targetPin, opt){
 			var options = opt || {},
-				link = this.getLinkEvent(sourcePin, targetPin),
+				event = this.getLinkEvent(sourcePin, targetPin),
 				color = OptionalValue(options.color, "#ff0000"),
 				lineWidth = OptionalNumber(options.lineWidth, 3);
 
 			if (sourcePin.connectedTo(targetPin)) {
-				this.fireEvent("alreadyconnected", link);
+				this.fireEvent("alreadyconnected", event);
 				return false;
 			}
 
-			this.fireEvent("connect", link, function(){
+			this.fireEvent("connect", event, function(){
 				var absStartPoint = this.getPinConnectionPoint(sourcePin),
 					absEndPoint = this.getPinConnectionPoint(targetPin);
 
@@ -75,6 +106,11 @@ Native.elements.export("UIDiagramController", {
 				link.controlPoints[4]._diagram = sourcePin.getParentDiagram();
 				link.controlPoints[4]._pin = sourcePin;
 
+				link.sourcePin = sourcePin;
+				link.targetPin = targetPin;
+				
+				self.links.add(link);
+
 				link.addEventListener("change", function(e){
 					var absStartPoint = self.getPinConnectionPoint(sourcePin),
 						absEndPoint = {
@@ -83,11 +119,29 @@ Native.elements.export("UIDiagramController", {
 						};
 
 					self.updateUILine(this, sourcePin.pintype, absStartPoint, absEndPoint);
-				}, false)
+				}, false);
+
+				link.addEventListener("keydown", function(e){
+					if (!this.hasFocus) return false;
+
+					switch (e.keyCode) {
+						case 8, 127 : // backspace, delete
+							self.removeLink(link);
+							break;
+					}
+
+				}, false);
 
 				sourcePin.connections.add(targetPin);
 				targetPin.connections.add(sourcePin);
 			});
+		};
+
+		this.updateLinkPosition = function(link, sourcePin, targetPin){
+			var absStartPoint = this.getPinConnectionPoint(sourcePin),
+				absEndPoint = this.getPinConnectionPoint(targetPin);
+
+			this.updateUILine(link, sourcePin.pintype, absStartPoint, absEndPoint);
 		};
 
 		this.updateUILine = function(UILine, pintype, absStartPoint, absEndPoint){
