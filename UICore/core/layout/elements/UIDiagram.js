@@ -143,6 +143,16 @@ Native.elements.export("UIDiagram", {
 
 		this.attachAllTheGoodThingsToPin = function(pin){
 
+			pin.connections = new Set();
+
+			pin.getParentDiagram = function(){
+				return self;
+			};
+
+			pin.connectedTo = function(targetPin){
+				return pin.connections.has(targetPin) || targetPin.connections.has(pin);
+			};
+
 			pin.setPoint = function(i, p){
 				pin.link.setControlPoint(i, p);
 			};

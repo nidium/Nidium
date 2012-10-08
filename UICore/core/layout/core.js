@@ -8,7 +8,7 @@ var DOMElement = function(type, options, parent){
 	this.nodes = {}; // children elements
 
 	if (!Native.elements[type]) {
-		throw("Unknown element " + type);
+		throw("Undefined element " + type);
 	}
 
 	var element = this,

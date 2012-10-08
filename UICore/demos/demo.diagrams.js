@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:40, y:40});
+var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:-40, y:-40});
 
 var myDiagram = main.add("UIDiagramController", {x:30, y:90});
 
@@ -54,44 +54,56 @@ myDiagram.link({
 */
 
 main.addEventListener("load", function(){
-	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
+	myDiagram.connect(VCA.pins[0], LFO.pins[1]);
 });
-
 
 
 DBT(function(){
 	LPF.remove();
+	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
 });
 
 
 /*
- *	link.source : Source UIDiagram Element (source diagram)
- *	link.source.pin : Source UILabel Element (source pin of the drag operation)
+ *  UIDiagramController Events
+ *  --------------------------
+ *	e.source : Source UIDiagram Element (source diagram)
+ *	e.source.pin : Source UILabel Element (source pin of the drag operation)
  * 
- *	link.target : Target UIDiagram Element (target diagram) 
- *	link.target.pin : Target UILabel Element (target pin of the drag operation)
+ *	e.target : Target UIDiagram Element (target diagram) 
+ *	e.target.pin : Target UILabel Element (target pin of the drag operation)
  *
  */
-myDiagram.addEventListener("pinEnter", function(link){
+myDiagram.addEventListener("pinEnter", function(e){
 }, false);
 
-myDiagram.addEventListener("pinOver", function(link){
-	link.source.pin.color = '#009900';
-	link.target.pin.background = '#ff9900';
+myDiagram.addEventListener("pinOver", function(e){
+	e.source.pin.color = '#009900';
+	e.target.pin.background = '#ff9900';
 }, false);
 
-myDiagram.addEventListener("pinLeave", function(link){
-	link.source.pin.color = '';
-	link.target.pin.background = '';
+myDiagram.addEventListener("pinLeave", function(e){
+	e.source.pin.color = '';
+	e.target.pin.background = '';
 }, false);
 
-myDiagram.addEventListener("pinDrop", function(link){
-	var s = link.source,
-		t = link.target;
+myDiagram.addEventListener("pinDrop", function(e){
+	var s = e.source,
+		t = e.target;
 
 	echo("[" + s.label + "] " + s.pin.label + "-" + t.pin.label + " [" + t.label + "]");
 	s.pin.color = '';
 	t.pin.background = '';
+}, false);
+
+myDiagram.addEventListener("alreadyconnected", function(e){
+	echo("already connected:", e.source.pin.label+ "-" + e.target.pin.label);
+}, false);
+
+
+myDiagram.addEventListener("connect", function(e){
+	echo("connect:", e.source.pin.label+ "-" + e.target.pin.label);
+	//e.refuse();
 }, false);
 
 

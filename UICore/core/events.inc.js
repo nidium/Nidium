@@ -343,13 +343,19 @@ DOMElement.implement({
 	mouseout : false,
 	dragendFired : false,
 
-	fireEvent : function(name, e){
-		canvas.__mustBeDrawn = true;
+	fireEvent : function(name, e, successCallback){
+		var acceptedEvent = true,
+			cb = OptionalCallback(successCallback, null);
+
 		if (typeof this["on"+name] == 'function'){
 			if (e){
 				e.dx = e.xrel / this._scale;
 				e.dy = e.yrel / this._scale;
+				e.refuse = function(){
+					acceptedEvent = false;
+				};
 				this["on"+name](e);
+				if (cb && acceptedEvent) cb.call(this);
 			} else {
 				this["on"+name]();
 			}

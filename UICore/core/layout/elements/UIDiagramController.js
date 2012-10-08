@@ -29,15 +29,34 @@ Native.elements.export("UIDiagramController", {
 			//this.setUILineVertices(points);
 		};
 
-		this.links = [];
+		this.getLinkEvent = function(sourcePin, targetPin){
+			var source = sourcePin.getParentDiagram(),
+				target = targetPin.getParentDiagram();
+
+			source.pin = sourcePin;
+			target.pin = targetPin;
+			
+			return {
+				source : source,
+				target : target
+			};
+		};
 
 		this.connect = function(sourcePin, targetPin){
-			var absStartPoint = this.getPinConnectionPoint(sourcePin),
-				absEndPoint = this.getPinConnectionPoint(targetPin);
+			var link = this.getLinkEvent(sourcePin, targetPin);
 
-			var v = this.getUILineVertives(sourcePin.pintype, absStartPoint, absEndPoint);
+			if (sourcePin.connectedTo(targetPin)) {
+				this.fireEvent("alreadyconnected", link);
+				return false;
+			}
 
-			var link = this.add("UILine", {
+			this.fireEvent("connect", link, function(){
+				var absStartPoint = this.getPinConnectionPoint(sourcePin),
+					absEndPoint = this.getPinConnectionPoint(targetPin);
+
+				var v = this.getUILineVertives(sourcePin.pintype, absStartPoint, absEndPoint);
+
+				var link = this.add("UILine", {
 					vertices : [
 						v.sx0, v.sy0,
 						v.sx1, v.sy1,
@@ -50,10 +69,8 @@ Native.elements.export("UIDiagramController", {
 					lineWidth : 3
 				});
 
-			this.links.push({
-				source : sourcePin,
-				target : targetPin,
-				link : link
+				sourcePin.connections.add(targetPin);
+				targetPin.connections.add(sourcePin);
 			});
 
 		};
