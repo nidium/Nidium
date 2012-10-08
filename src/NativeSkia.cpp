@@ -201,43 +201,23 @@ static SkColor SkPMColorToColor(SkPMColor pm)
                           InvScaleByte(SkGetPackedB32(pm), scale));
 }
 
-
-SkPMColor NativeSkia::HSLToSKColor(U8CPU alpha, float hsl[3])
+SkColor makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
 {
-  double hue = SkScalarToDouble(hsl[0]);
-  double saturation = SkScalarToDouble(hsl[1]);
-  double lightness = SkScalarToDouble(hsl[2]);
-  double scaleFactor = 256.0;
-  
-  // If there's no color, we don't care about hue and can do everything based
-  // on brightness.
-  if (!saturation) {
-    U8CPU lightness;
+    const double scaleFactor = nextafter(256.0, 0.0);
 
-    if (hsl[2] < 0)
-      lightness = 0;
-    else if (hsl[2] >= SK_Scalar1)
-      lightness = 255;
-    else
-      lightness = SkScalarToFixed(hsl[2]) >> 8;
+    if (!saturation) {
+        int greyValue = static_cast<int>(lightness * scaleFactor);
+        return SkColorSetARGB(static_cast<int>(alpha * scaleFactor),
+            greyValue, greyValue, greyValue);
+    }
 
-    unsigned greyValue = SkAlphaMul(lightness, alpha);
-    return SkColorSetARGB(alpha, greyValue, greyValue, greyValue);
-  }
-
-  double temp2 = (lightness < 0.5) ?
-      lightness * (1.0 + saturation) :
-      lightness + saturation - (lightness * saturation);
-  double temp1 = 2.0 * lightness - temp2;
-
-  double rh = calcHue(temp1, temp2, hue + 1.0 / 3.0);
-  double gh = calcHue(temp1, temp2, hue);
-  double bh = calcHue(temp1, temp2, hue - 1.0 / 3.0);
-
-  return SkColorSetARGB(alpha,
-      static_cast<int>(rh * scaleFactor),
-      static_cast<int>(gh * scaleFactor),
-      static_cast<int>(bh * scaleFactor));
+    double temp2 = lightness < 0.5 ? lightness * (1.0 + saturation) : lightness + saturation - lightness * saturation;
+    double temp1 = 2.0 * lightness - temp2;
+    
+    return SkColorSetARGB(static_cast<int>(alpha * scaleFactor),
+                    static_cast<int>(calcHue(temp1, temp2, hue + 1.0 / 3.0) * scaleFactor), 
+                    static_cast<int>(calcHue(temp1, temp2, hue) * scaleFactor),
+                    static_cast<int>(calcHue(temp1, temp2, hue - 1.0 / 3.0) * scaleFactor));
 }
 
 /* TODO: Only accept ints int rgb(a)() */
@@ -276,18 +256,11 @@ uint32_t NativeSkia::parseColor(const char *str)
 
         if (end == NULL) printf("Not found\n");
         else {
-            float final[3];
-            U8CPU alpha;
-
             /* TODO: limits? */
-
-            final[0] = SkScalarToFloat(SkScalarDiv(array[0], SkIntToScalar(360)));
-            final[1] = SkScalarToFloat(SkScalarDiv(array[1], SkIntToScalar(100)));
-            final[2] = SkScalarToFloat(SkScalarDiv(array[2], SkIntToScalar(100)));
-            alpha = SkScalarMul(array[3], SkIntToScalar(255));
-
-            return HSLToSKColor(alpha, final);
-
+            return makeRGBAFromHSLA(SkScalarToDouble(array[0])/360.,
+                SkScalarToDouble(array[1])/100.,
+                SkScalarToDouble(array[2])/100.,
+                SkScalarToDouble(array[3]));
         }
 
     } else {
@@ -382,7 +355,7 @@ int NativeSkia::bindGL(int width, int height)
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
     desc.fRenderTargetHandle = buffer;
 
-    printf("Samples : %d\n", desc.fSampleCnt);
+    printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
     if (target == NULL) {
@@ -390,6 +363,7 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
     SkGpuDevice *dev = new SkGpuDevice(context, target);
+
     if (dev == NULL) {
         printf("Failed to init Skia (2)\n");
         return 0;
@@ -1233,6 +1207,11 @@ void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
     context->resetContext();
 }
 #endif
+
+void NativeSkia::resetGLContext()
+{
+    context->resetContext();
+}
 
 void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     int x, int y)

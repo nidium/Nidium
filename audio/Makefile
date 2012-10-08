@@ -1,6 +1,7 @@
 CXX=~/.vim/bin/cc_args.py g++
 PORTAUDIO=../../portaudio/
-CPPFLAGS=-I./ -I$(PORTAUDIO)/src/common/ -c -g -Wall -D__STDC_CONSTANT_MACROS
+LIBFSRC=../../libfsrc/libfsrc/
+CPPFLAGS=-I./ -I$(PORTAUDIO)/src/common/ -I$(LIBFSRC) -c -O2 -g -Wall -D__STDC_CONSTANT_MACROS
 
 AR=ar
 ARFLAGS=rcs
