@@ -145,6 +145,17 @@ Native.elements.export("UIDiagramController", {
 			});
 		};
 
+		this.updatePinLinks = function(pin){
+			var linkset = this.links;
+
+			for (var link of linkset){
+				var sourcePin = link.sourcePin,
+					targetPin = link.targetPin;
+
+				this.updateLinkPosition(link, sourcePin, targetPin);
+			}
+		};
+
 		this.updateLinkPosition = function(link, sourcePin, targetPin){
 			var absStartPoint = this.getPinConnectionPoint(sourcePin),
 				absEndPoint = this.getPinConnectionPoint(targetPin);

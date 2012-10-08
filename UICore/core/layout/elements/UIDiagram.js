@@ -133,7 +133,7 @@ Native.elements.export("UIDiagram", {
 			for (var i=0; i<nbpins; i++){
 				var	pin = this.pins[i];
 
-				//diagramController.updateLinkPosition(link, pin, targetPin);
+				diagramController.updatePinLinks(pin);
 
 			}
 		};
