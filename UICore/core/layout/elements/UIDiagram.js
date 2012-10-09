@@ -106,10 +106,13 @@ Native.elements.export("UIDiagram", {
 			});
 
 			this.handle.closeButton.addEventListener("mouseup", function(e){
-				self.set("scale", 0, 120, function(){});
-				self.shadowBlur = 6;
-				self.shadowColor = "rgba(0, 0, 0, 0.20)";
-				e.stopPropagation();
+				self.fireEvent("close", e, function(){
+					self.set("scale", 0, 120, function(){});
+					self.shadowBlur = 6;
+					self.shadowColor = "rgba(0, 0, 0, 0.20)";
+					self.closeDiagram();
+					e.stopPropagation();
+				});
 			}, false);
 		}
 
@@ -132,9 +135,15 @@ Native.elements.export("UIDiagram", {
 		this.updatePins = function(){
 			for (var i=0; i<nbpins; i++){
 				var	pin = this.pins[i];
-
 				diagramController.updatePinLinks(pin);
+			}
+		};
 
+		this.closeDiagram = function(){
+			
+			for (var i=0; i<nbpins; i++){
+				var	pin = this.pins[i];
+				diagramController.deletePinLinks(pin);
 			}
 		};
 

@@ -70,7 +70,7 @@ Native.elements.export("UIDiagramController", {
 				targetPin.connections.delete(sourcePin);
 
 				this.links.delete(link);
-				link.fadeOut(100, function(){
+				link.fadeOut(50, function(){
 					this.remove();
 				});
 			});
@@ -133,7 +133,8 @@ Native.elements.export("UIDiagramController", {
 					if (!this.hasFocus) return false;
 
 					switch (e.keyCode) {
-						case 8, 127 : // backspace, delete
+						case 8 :
+						case 127 : // backspace, delete
 							self.removeLink(link);
 							break;
 					}
@@ -152,7 +153,22 @@ Native.elements.export("UIDiagramController", {
 				var sourcePin = link.sourcePin,
 					targetPin = link.targetPin;
 
-				this.updateLinkPosition(link, sourcePin, targetPin);
+				if (sourcePin == pin || targetPin == pin) {
+					this.updateLinkPosition(link, sourcePin, targetPin);
+				}
+			}
+		};
+
+		this.deletePinLinks = function(pin){
+			var linkset = this.links;
+
+			for (var link of linkset){
+				var sourcePin = link.sourcePin,
+					targetPin = link.targetPin;
+
+				if (sourcePin == pin || targetPin == pin) {
+					this.removeLink(link);
+				}
 			}
 		};
 

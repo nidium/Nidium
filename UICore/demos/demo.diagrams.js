@@ -33,6 +33,12 @@ var LPF1 = myDiagram.add("UIDiagram", {
 	]
 });
 
+LPF1.addEventListener("close", function(e){
+	// prevent LPF1 to be closed
+	e.refuse();
+});
+
+
 var LPF2 = myDiagram.add("UIDiagram", {
 	x : 320, 
 	y : 300, 
@@ -106,10 +112,12 @@ main.addEventListener("load", function(){
 	myDiagram.connect(MIXER.pins[5], OUTPUT.pins[0]);
 	myDiagram.connect(MIXER.pins[6], OUTPUT.pins[1]);
 
+	/*
 	setTimeout(function(){
 		myDiagram.disconnect(MIXER.pins[5], OUTPUT.pins[0]);
 		myDiagram.disconnect(MIXER.pins[6], OUTPUT.pins[1]);
 	}, 1500);
+	*/
 
 });
 
