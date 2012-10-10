@@ -246,8 +246,10 @@ var console = {
 					out += '"' + object + '"';
 				} else if (typeof(object) == "number"){
 					out += object.toString();
-				} else {
+				} else if (object.toString) {
 					out += object;
+				} else {
+					out += "null";
 				}
 			} else {
 				out += 'undefined';

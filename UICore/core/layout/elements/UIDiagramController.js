@@ -214,8 +214,19 @@ Native.elements.export("UIDiagramController", {
 			sx2 = sx1;
 			sy2 = sy1 - (sy1 - endPoint.y)/2;
 
-			sx3 = sx2;					
+			sx3 = sx2;
 			sy3 = endPoint.y;
+
+			if (endPoint.x<=startPoint.x && pintype=="output") {
+				sx1 = sx1 + 0.25*(startPoint.x-endPoint.x);
+				sx2 = sx1 - 1.50*(startPoint.x-endPoint.x);
+				sx3 = sx2 - (startPoint.x-endPoint.x);
+
+				if (endPoint.y>startPoint.y) {
+					sy1 = sy1 + Math.abs(startPoint.y-endPoint.x)/8;
+					sy3 = sy3 - Math.abs(startPoint.y-endPoint.x)/8;
+				}
+			}
 
 			return {
 				sx0 : startPoint.x,

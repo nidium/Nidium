@@ -349,7 +349,7 @@ DOMElement.implement({
 			cb = OptionalCallback(successCallback, null);
 
 		if (typeof this["on"+name] == 'function'){
-			if (e){
+			if (e !== undefined){
 				e.dx = e.xrel / this._scale;
 				e.dy = e.yrel / this._scale;
 				e.refuse = function(){

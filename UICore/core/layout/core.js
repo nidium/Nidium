@@ -129,6 +129,10 @@ DOMElement.prototype = {
 
 	},
 
+	__noSuchMethod__ : function(id, args){
+		throw("Undefined method " + id);
+	},
+
 	add : function(type, options){
 		var element = new DOMElement(type, options, this);
 
@@ -489,6 +493,24 @@ DOMElement.implement = function(props){
 	}
 };
 
+/* Map ES5 Property Descriptor to our DOMElement object */
+DOMElement.defineProperty = function(property, defaultValue, readOnly){
+	Object.defineProperty(this.prototype, property, {
+		value : defaultValue,
+		enumerable : true,
+		writable : readOnly === undefined ? true : !readOnly,
+		configurable : false
+	});
+};
+
+DOMElement.getPropertyDescriptor = function(property){
+	return Object.getOwnPropertyDescriptor(this.prototype, property)
+};
+
+DOMElement.proxy = function(obj, handler){
+	return Proxy.create(handler, obj, Object.getPrototypeOf(obj));
+};
+
 Native.elements = {
 	export : function(elementType, implement){
 		this[elementType] = implement;
@@ -559,3 +581,4 @@ var Application = function(options){
 
 	return app;
 };
+

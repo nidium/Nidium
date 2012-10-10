@@ -72,7 +72,7 @@ Native.elements.export("UIDiagram", {
 
 		if (this.movable) {
 			this.handle.addEventListener("dragstart", function(e){
-				self.set("scale", 1.1, 80);
+				//self.set("scale", 1.1, 80);
 				//self.set("backgroundBlur", 1, 80);
 				self.set("shadowBlur", 20, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
@@ -87,7 +87,7 @@ Native.elements.export("UIDiagram", {
 			});
 
 			this.handle.addEventListener("dragend", function(e){
-				self.set("scale", 1, 50);
+				//self.set("scale", 1, 50);
 				//self.set("backgroundBlur", 0, 50);
 				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
 				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
@@ -108,7 +108,7 @@ Native.elements.export("UIDiagram", {
 			this.handle.closeButton.addEventListener("mouseup", function(e){
 				self.fireEvent("close", e, function(){
 					self.set("scale", 0, 120, function(){});
-					self.shadowBlur = 6;
+					self.shadowBlur = 0;
 					self.shadowColor = "rgba(0, 0, 0, 0.20)";
 					self.closeDiagram();
 					e.stopPropagation();

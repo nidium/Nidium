@@ -4,8 +4,113 @@
 
 
 var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:0, y:0});
-
 var myDiagram = main.add("UIDiagramController", {x:0, y:0});
+
+
+/*
+
+DOMElement.defineProperty("kx", 15);
+main.kx = 10;
+console.log(main.kx); // 10
+console.log(myDiagram.kx); // 15
+
+var g = DOMElement.getPropertyDescriptor("kx");
+console.log(g);
+*/
+
+/*
+
+function ProxyHandler(obj){
+	this.target = obj;
+}
+ProxyHandler.prototype = {
+	has : function(name){
+		return name in this.target;
+	},
+
+	get : function(rcvr, name){
+		return this.target[name];
+	},
+
+	set : function(rcvr, name, val){
+		this.target[name] = val;
+		return true;
+	},
+
+	delete : function(name){
+		return delete this.target[name];
+	},
+
+	enumerate : function(){
+		var props = [];
+		for (name in this.target){
+			props.push(name);
+		};
+		return props;
+	}
+};
+
+
+function JSProfiler(target){
+	var forwarder = new ProxyHandler(target),
+		reads = {},
+		writes = {};
+
+	forwarder.get = function(rcvr, name){
+		reads[name] = (reads[name] || 0) + 1;
+		return this.target[name];
+	};
+
+	forwarder.set = function(rcvr, name, val){
+		writes[name] = (writes[name] || 0) + 1;
+		this.target[name] = val;
+		return true;
+	};
+
+	return {
+		proxy : DOMElement.proxy(target, forwarder),
+		get stats() {
+			return {
+				reads : reads,
+				writes : writes
+			}
+		}
+	};
+}
+
+var profiler = JSProfiler(main);
+var main = profiler.proxy;
+
+
+
+
+
+
+
+Object.getOwnPropertyNames(Math).forEach(function(n){
+	//Object.defineProperty(r, n, Object.getOwnPropertyDescriptor(o, n));
+	console.log(n);
+});
+
+
+
+
+DBT(function(){
+	//myDiagram.reset();
+	echo("reads:");
+	console.log(profiler.stats.reads);
+	echo("");
+
+	echo("writes:");
+	console.log(profiler.stats.writes);
+
+//	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
+});
+
+
+*/
+
+
 
 var LFO = myDiagram.add("UIDiagram", {
 	x : 50, 
@@ -123,11 +228,6 @@ main.addEventListener("load", function(){
 
 
 
-DBT(function(){
-	myDiagram.reset();
-//	myDiagram.connect(LFO.pins[1], VCA.pins[0]);
-});
-
 
 /*
  *  UIDiagramController Events
@@ -139,8 +239,11 @@ DBT(function(){
  *	e.target.pin : Target UILabel Element (target pin of the drag operation)
  *
  */
+
+
+
+
 myDiagram.addEventListener("pinEnter", function(e){
-	/* dummy */
 }, false);
 
 myDiagram.addEventListener("pinOver", function(e){
@@ -172,6 +275,5 @@ myDiagram.addEventListener("disconnect", function(e){
 	echo("disconnect:", e.source.pin.label+ "-" + e.target.pin.label);
 //	e.refuse();
 }, false);
-
 
 
