@@ -3,8 +3,16 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:0, y:0});
+var app = new Application({background:"rgba(30, 20, 20, 0.7)", x:0, y:0});
+
+var m = new Membrane(app);
+
+var main = m.wrapper;
+
 var myDiagram = main.add("UIDiagramController", {x:0, y:0});
+
+
+//m.revoke();
 
 /*
 

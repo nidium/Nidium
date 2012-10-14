@@ -478,7 +478,7 @@ Object.Handler = function(obj){
  * ----------------------------
  * The following is a membrane implementation that satisfies the formal property
  * of unavoidable transitive interposition. The implementation preserves the
- * boundary between the two "wet" and "dry" sides
+ * boundary between the two "wet" and "dry" sides.
  *
  * More @ http://wiki.ecmascript.org/doku.php?id=harmony:proxies
  */
@@ -487,124 +487,91 @@ var Membrane = function(wetTarget){
 	var wet2dry = new WeakMap(),
 		dry2wet = new WeakMap();
 
-	var asDry = function(obj){
-		if (Object.isPrimitive(obj)){
-			return obj;
-		}
-
-		var result = wet2dry.get(obj);
-		if (result){
-			return result;
-		}
-
-		var wetHandler = Object.Handler(obj);
-
-		var revokeHandler = Proxy.create(Object.freeze({
-			get : function(rcvr, name){
-				return function(...dryArgs){
-					var handler = dry2wet.get(revokeHandler);
+	var getRevokeHandler = function(heat, source, mapper){
+		var h = Proxy.create(Object.freeze({
+			get : function(receiver, key){
+				return function(...n){
+					var handler = heat.get(h);
 					try {
-						return asDry(handler[name].apply(handler, dryArgs.map(asWet)));
-					} catch (e) {
-						throw asDry(e);
+						return source(handler[key].apply(handler, n.map(mapper)));
+					} catch(e) {
+						throw source(e);
 					}
 				};
 			}
 		}));
+		return h;
+	};
 
-		dry2wet.set(revokeHandler, wetHandler);
+	var getProxy = function(obj, signal){
+		var source = (signal == "wet") ? asWet : asDry,
+			mapper = (signal == "wet") ? asDry : asWet,
+
+			heat1 = (signal == "wet") ? dry2wet : wet2dry,
+			heat2 = (signal == "wet") ? wet2dry : dry2wet;
+
+		var forwardingHandler = Object.Handler(obj),
+			revokeHandler = getRevokeHandler(heat2, source, mapper);
+
+		heat2.set(revokeHandler, forwardingHandler);
+
+		var callTrap = function(...n){
+			return source(obj.apply(mapper(this), n.map(mapper)));
+		};
+
+		var constructorTrap = function(...n){
+			var forward = function(args){
+				return obj.apply(mapper(this), args);
+			};
+			return source(new forward(n.map(mapper)));
+		};
 
 		if (typeof obj === "function"){
-			function callTrap(...dryArgs){
-				return asDry(obj.apply(asWet(this), dryArgs.map(asWet)));
-			}
-		
-			function cTrap(...dryArgs){
-				function forward(args){
-					return obj.apply(asWet(this), args);
-				}
-				return asDry(new forward(dryArgs.map(asWet)));
-			}
-			
-			result = Proxy.createFunction(revokeHandler, callTrap, cTrap);
+			var proxy = Proxy.createFunction(
+				revokeHandler, 
+				callTrap,
+				constructorTrap
+			);
 		} else {
-			result = Proxy.create(revokeHandler, asDry(Object.getPrototypeOf(obj)));
+			var proxy = Proxy.create(
+				revokeHandler, 
+				source(Object.getPrototypeOf(obj))
+			);
 		}
-		
-		wet2dry.set(obj, result);
-		dry2wet.set(result, obj);
 
-		return result;
+		heat1.set(obj, proxy);
+		heat2.set(proxy, obj);
 
+		return proxy;
+	};
+
+	var asDry = function(obj){
+		if (Object.isPrimitive(obj)) return obj;
+		var proxy = wet2dry.get(obj);
+		return proxy ? proxy : getProxy(obj, "dry");
 	};
 
 	var asWet = function(obj){
-		if (Object.isPrimitive(obj)){
-			return obj;
-		}
-	
-		var result = dry2wet.get(obj);
-		if (result){
-			return result;
-		}
-
-		var dryHandler = Object.Handler(obj);
-
-		var revokeHandler = Proxy.create(Object.freeze({
-			get : function(rcvr, name){
-				return function(...wetArgs){
-					var handler = wet2dry.get(revokeHandler);
-					try {
-						return asWet(handler[name].apply(handler, wetArgs.map(asDry)));
-					} catch(e) {
-						throw asWet(e);
-					}
-				};
-			}
-		}));
-
-		wet2dry.set(revokeHandler, dryHandler);
-
-		if (typeof obj === "function"){
-			function callTrap(...wetArgs){
-				return asWet(obj.apply(asDry(this), wetArgs.map(asDry)));
-			}
-
-			function cTrap(...wetArgs){
-				function forward(args){
-					return obj.apply(asDry(this), args);
-				}
-				return asWet(new forward(wetArgs.map(asDry)));
-			}
-			
-			result = Proxy.createFunction(revokeHandler, callTrap, cTrap);
-		} else {
-			result = Proxy.create(revokeHandler, asWet(Object.getPrototypeOf(obj)));
-		}
-
-		dry2wet.set(obj, result);
-		wet2dry.set(result, obj);
-
-		return result;
+		if (Object.isPrimitive(obj)) return obj;
+		var proxy = dry2wet.get(obj);
+		return proxy ? proxy : getProxy(obj, "wet");
 	}
 
-	var gate = Object.freeze({
-		revoke : function(){
-			dry2wet = wet2dry = Object.freeze({
-				get : function(key){
-					throw new Error("Access Denied. Membrane was revoked.");
-				},
+	var revoke = function(){
+		dry2wet = wet2dry = Object.freeze({
+			get : function(key){
+				throw new Error("Access Denied. Membrane was revoked.");
+			},
 
-				set : function(key, val){
+			set : function(key, val){
 
-				}
-			});
-		}
-	});
+			}
+		});
+	};
 
 	return Object.freeze({
 		wrapper : asDry(wetTarget),
-		gate : gate
+		revoke : Object.freeze(revoke)
 	});
 
 };
