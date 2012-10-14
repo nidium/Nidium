@@ -2,6 +2,8 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
+"use strict";
+
 var DOMElement = function(type, options, parent){
 	this.options = options || {};
 	this.parent = parent ? parent : null; // parent element
@@ -504,7 +506,7 @@ DOMElement.defineProperty = function(property, defaultValue, readOnly){
 };
 
 DOMElement.getPropertyDescriptor = function(property){
-	return Object.getOwnPropertyDescriptor(this.prototype, property)
+	return Object.getOwnPropertyDescriptor(this.prototype, property);
 };
 
 DOMElement.proxy = function(obj, handler){

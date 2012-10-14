@@ -247,7 +247,11 @@ var console = {
 				} else if (typeof(object) == "number"){
 					out += object.toString();
 				} else if (object.toString) {
-					out += object;
+					try {
+						out += object;
+					} catch(e){
+						out += "function(){ [Native Code] }";
+					}
 				} else {
 					out += "null";
 				}
@@ -320,25 +324,336 @@ var FPS = {
 	}
 };
 
+
 /* -------------------------------------------------------------------------- */
+
+Object.append = function(o, prototype){
+	if (typeof prototype !== "number" && typeof prototype !== "boolean"){
+		var p = prototype,
+			f = obj = last = o instanceof this ? o : new o.constructor(o),
+			FP = Function.prototype,
+			OP = Object.prototype,
+			AP = Array.prototype,
+			get = this.getPrototypeOf;
+
+		for (var k = get(obj);	k !== OP && k !== FP; k = get(obj)){
+			obj = k;
+		}
+
+		if (prototype.constructor === String){
+			p = FP;
+			f = Function.apply(null, AP.slice.call(arguments, 1));
+			f.__proto__ = last;
+		}
+
+		obj.__proto__ = p;
+		return f;
+	}
+}
+
+
+/*
+ *  JS Sourced Function (Sunction)
+ *
+ *  ---------
+ *  + USAGE +
+ *  ---------
+ *
+ *  var buddy = "dude";
+ *  
+ *  var f = new Sunction(
+ *  	'var z = Math.random(),' + 
+ *  	'	 o = arguments[0];' +
+ *  
+ *  	'this.foo = {' +
+ *  	'	x : o,' +
+ *  	'	y : buddy' +
+ *  	'};'
+ *  );
+ * 
+ *  f(48);
+ *  
+ */
+
+var Sunction = function(source){
+	return Object.append(new Function, source);
+};
+
+/* -------------------------------------------------------------------------- */
+
+
+/* -- Implement Object.isPrimitive() if not already built-in */
+
+if (!("isPrimitive" in Object && typeof(Object.isPrimitive)==="function")) {
+	Object.isPrimitive = function (o) o !== Object(o);
+}
+
+
+/* 
+ * Default Forwarding Proxy Handler Implementation
+ * That proxy forwards all operations applied to it to an existing object
+ */
+
+Object.Handler = function(obj){
+	return {
+		/* -- Fundamental Traps */
+
+		defineProperty : function(key, descriptor){
+			Object.defineProperty(obj, key, descriptor);
+		},
+
+		getOwnPropertyDescriptor : function(key){
+			var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+			if (descriptor !== undefined) descriptor.configurable = true;
+			return descriptor;
+		},
+
+		getPropertyDescriptor : function(key){
+			var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+			if (descriptor !== undefined) descriptor.configurable = true;
+			return descriptor;
+		},
+
+		getOwnPropertyNames : function(){
+			return Object.getOwnPropertyNames(obj);
+		},
+
+		getPropertyNames : function(){
+			return Object.getOwnPropertyNames(obj);
+		},
+
+		
+		delete : function(key){
+			return delete obj[key];
+		},
+
+		fix : function(){
+			if (Object.isFrozen(obj)){
+				var result = {};
+				Object.getOwnPropertyNames(obj).forEach(function(key){
+					result[key] = Object.getOwnPropertyDescriptor(obj, key);
+				});
+				return result;
+			}
+			return undefined;
+		},
+
+		/* -- Derived Traps  */
+
+		get : function(receiver, key){
+			return obj[key];
+		},
+
+		set : function(receiver, key, val){
+			obj[key] = val;
+			return true;
+		},
+
+		has : function(key){
+			return key in obj;
+		},
+
+		hasOwn : function(name){
+			return ({}).hasOwnProperty.call(obj, name);
+		},
+
+		
+		keys : function(){
+			return Object.keys(obj);
+		},
+
+	 	enumerate : function(){
+			var props = [];
+			for (key in obj){
+				props.push(key);
+			};
+			return props;
+		}
+
+	};
+};
+
+/*
+ * Identity-Preserving Membrane
+ * ----------------------------
+ * The following is a membrane implementation that satisfies the formal property
+ * of unavoidable transitive interposition. The implementation preserves the
+ * boundary between the two "wet" and "dry" sides
+ *
+ * More @ http://wiki.ecmascript.org/doku.php?id=harmony:proxies
+ */
+
+var Membrane = function(wetTarget){
+	var wet2dry = new WeakMap(),
+		dry2wet = new WeakMap();
+
+	var asDry = function(obj){
+		if (Object.isPrimitive(obj)){
+			return obj;
+		}
+
+		var result = wet2dry.get(obj);
+		if (result){
+			return result;
+		}
+
+		var wetHandler = Object.Handler(obj);
+
+		var revokeHandler = Proxy.create(Object.freeze({
+			get : function(rcvr, name){
+				return function(...dryArgs){
+					var handler = dry2wet.get(revokeHandler);
+					try {
+						return asDry(handler[name].apply(handler, dryArgs.map(asWet)));
+					} catch (e) {
+						throw asDry(e);
+					}
+				};
+			}
+		}));
+
+		dry2wet.set(revokeHandler, wetHandler);
+
+		if (typeof obj === "function"){
+			function callTrap(...dryArgs){
+				return asDry(obj.apply(asWet(this), dryArgs.map(asWet)));
+			}
+		
+			function cTrap(...dryArgs){
+				function forward(args){
+					return obj.apply(asWet(this), args);
+				}
+				return asDry(new forward(dryArgs.map(asWet)));
+			}
+			
+			result = Proxy.createFunction(revokeHandler, callTrap, cTrap);
+		} else {
+			result = Proxy.create(revokeHandler, asDry(Object.getPrototypeOf(obj)));
+		}
+		
+		wet2dry.set(obj, result);
+		dry2wet.set(result, obj);
+
+		return result;
+
+	};
+
+	var asWet = function(obj){
+		if (Object.isPrimitive(obj)){
+			return obj;
+		}
+	
+		var result = dry2wet.get(obj);
+		if (result){
+			return result;
+		}
+
+		var dryHandler = Object.Handler(obj);
+
+		var revokeHandler = Proxy.create(Object.freeze({
+			get : function(rcvr, name){
+				return function(...wetArgs){
+					var handler = wet2dry.get(revokeHandler);
+					try {
+						return asWet(handler[name].apply(handler, wetArgs.map(asDry)));
+					} catch(e) {
+						throw asWet(e);
+					}
+				};
+			}
+		}));
+
+		wet2dry.set(revokeHandler, dryHandler);
+
+		if (typeof obj === "function"){
+			function callTrap(...wetArgs){
+				return asWet(obj.apply(asDry(this), wetArgs.map(asDry)));
+			}
+
+			function cTrap(...wetArgs){
+				function forward(args){
+					return obj.apply(asDry(this), args);
+				}
+				return asWet(new forward(wetArgs.map(asDry)));
+			}
+			
+			result = Proxy.createFunction(revokeHandler, callTrap, cTrap);
+		} else {
+			result = Proxy.create(revokeHandler, asWet(Object.getPrototypeOf(obj)));
+		}
+
+		dry2wet.set(obj, result);
+		wet2dry.set(result, obj);
+
+		return result;
+	}
+
+	var gate = Object.freeze({
+		revoke : function(){
+			dry2wet = wet2dry = Object.freeze({
+				get : function(key){
+					throw new Error("Access Denied. Membrane was revoked.");
+				},
+
+				set : function(key, val){
+
+				}
+			});
+		}
+	});
+
+	return Object.freeze({
+		wrapper : asDry(wetTarget),
+		gate : gate
+	});
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+
+/*
+ *  CStruct Fast Buffer
+ *
+ *  var s = new CStruct(
+ *  	"unsigned long id",
+ *  	"char username[16]",
+ *  	"float amountDue;"
+ *  );
+ *  
+ *  var view = new Float32Array(s.buffer);
+ *  
+ *  for (var i=0; i<6; i++){
+ *  	echo("buffer : " + view[i]);
+ *  }
+ *  
+ *  s.amountDue[0] = 158.5;
+ *  
+ *  for (var i=0; i<6; i++){
+ *  	echo("buffer : " + view[i]);
+ *  }
+ *  
+ */
+
 
 var CStruct = function(){
 	var seek = 0,
 		shader = [],
 		types = {
-			"char" : {m:"Int8Array", l:1},
-			"signed char" : {m:"Int8Array", l:1},
-			"unsigned char" : {m:"Uint8Array", l:1},
+			"char" : {m:Int8Array, l:1},
+			"signed char" : {m:Int8Array, l:1},
+			"unsigned char" : {m:Uint8Array, l:1},
 
-			"short" : {m:"Int16Array", l:2},
-			"unsigned short" : {m:"Uint16Array", l:2},
+			"short" : {m:Int16Array, l:2},
+			"unsigned short" : {m:Uint16Array, l:2},
 
 			"int" : {m:"Int32Array", l:4},
-			"unsigned int" : {m:"Uint32Array", l:4},
-			"unsigned long" : {m:"Uint32Array", l:4},
+			"unsigned int" : {m:Uint32Array, l:4},
+			"unsigned long" : {m:Uint32Array, l:4},
 
-			"float" : {m:"Float32Array", l:4},
-			"double int" : {m:"Float64Array", l:8}
+			"float" : {m:Float32Array, l:4},
+			"double" : {m:Float64Array, l:8},
+			"double int" : {m:Float64Array, l:8}
 		};
 
 	this.size = 0;
@@ -349,15 +664,17 @@ var CStruct = function(){
 		var c = arguments[a].replace(";", ""),
 			s = c.split(" "), i = s.length-1,
 			t = (c.replace(" " + s[i], "")).toLowerCase(),
-			n = s[i].split("["), name = (n[0]).toLowerCase(),
+			n = s[i].split("["), name = (n[0]),
 			f = n[1] ? (n[1].split("]"))[0] : null,
 			size = f ? f : 1;
 
 		if (types[t]) {
-			shader.push(
-				"this." + name + " = new " + 
-				types[t].m + "(this.buffer, " + seek + ", " + size + ");\n"
-			);
+			shader.push({
+				name : name,
+				fn : types[t].m,
+				seek : seek,
+				size : size
+			});
 			seek += types[t].l * size;
 		}
 	}
@@ -365,32 +682,14 @@ var CStruct = function(){
 	if (seek!=0) {
 		this.size = seek;
 		this.buffer = new ArrayBuffer(this.size);
-		eval(shader.join(""));
+		for (var i in shader){
+			var name = shader[i].name,
+				fn = shader[i].fn;
+			this[name] = new fn(this.buffer, shader[i].seek, shader[i].size);
+		}
 	}
 	return this;
 };
-
-/*
-
-var s = new CStruct(
-	"unsigned long id",
-	"char username[16]",
-	"float amountDue;"
-);
-
-var access = new Float32Array(s.buffer);
-
-for (var i=0; i<6; i++){
-	echo("buffer : " + access[i]);
-}
-
-s.amountDue[0] = 158.5;
-
-for (var i=0; i<6; i++){
-	echo("buffer : " + access[i]);
-}
-
-*/
 
 
 

@@ -6,7 +6,6 @@
 var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:0, y:0});
 var myDiagram = main.add("UIDiagramController", {x:0, y:0});
 
-
 /*
 
 DOMElement.defineProperty("kx", 15);
@@ -19,36 +18,6 @@ console.log(g);
 */
 
 /*
-
-function ProxyHandler(obj){
-	this.target = obj;
-}
-ProxyHandler.prototype = {
-	has : function(name){
-		return name in this.target;
-	},
-
-	get : function(rcvr, name){
-		return this.target[name];
-	},
-
-	set : function(rcvr, name, val){
-		this.target[name] = val;
-		return true;
-	},
-
-	delete : function(name){
-		return delete this.target[name];
-	},
-
-	enumerate : function(){
-		var props = [];
-		for (name in this.target){
-			props.push(name);
-		};
-		return props;
-	}
-};
 
 
 function JSProfiler(target){
@@ -110,6 +79,69 @@ DBT(function(){
 
 */
 
+Object.update = function(o, prototype){
+	if (typeof prototype !== "number" && typeof prototype !== "boolean"){
+		var p = prototype,
+			f = obj = last = o instanceof this ? o : new o.constructor(o),
+			FP = Function.prototype,
+			OP = Object.prototype,
+			AP = Array.prototype,
+			get = this.getPrototypeOf;
+
+		for (var k = get(obj);	k !== OP && k !== FP; k = get(obj)){
+			obj = k;
+		}
+
+		if (prototype.constructor === String){
+			p = FP;
+			f = Function.apply(null, AP.slice.call(arguments, 1));
+			f.__proto__ = last;
+		}
+
+		obj.__proto__ = p;
+		return f;
+	}
+}
+
+var Scope = function(source){
+	return Object.update(new Function, source);
+};
+
+
+/*
+var buddy = "dude";
+
+var f = new Scope(
+	'var z = Math.random(),' + 
+	'	 o = arguments[0];' +
+
+	'this.foo = {' +
+	'	x : o,' +
+	'	y : 5' +
+	'};' +
+);
+
+f(78);
+
+echo(this.foo.y); // --->  5
+echo(z); // --->  z is undefined
+*/
+
+
+var data = 'var z = Math.random(),' + 
+    '     o = arguments[0];' +
+
+    'this.foo = {' +
+    '    x : o,' +
+    '    y : 5' +
+    '};'
+    
+
+var f = eval("(function(){"+data+"})");
+f(48);
+
+
+
 
 
 var LFO = myDiagram.add("UIDiagram", {
@@ -143,7 +175,6 @@ LPF1.addEventListener("close", function(e){
 	e.refuse();
 });
 
-
 var LPF2 = myDiagram.add("UIDiagram", {
 	x : 320, 
 	y : 300, 
@@ -170,6 +201,18 @@ var MIXER = myDiagram.add("UIDiagram", {
 	/* pin 4 */	{label:"Source 2 R",	type:"input"},
 	/* pin 5 */	{label:"Output L",		type:"output"},
 	/* pin 6 */	{label:"Output R",		type:"output"},
+	]
+});
+
+
+var COMB = myDiagram.add("UIDiagram", {
+	x : 720, 
+	y : 260, 
+	label : "Comber Filter",
+	background : "rgba(50, 20, 160, 0.4)",
+	pins : [
+	/* pin 0 */	{label:"In",	type:"input"},
+	/* pin 1 */	{label:"Out",	type:"output"}
 	]
 });
 
@@ -243,6 +286,7 @@ main.addEventListener("load", function(){
 
 
 
+
 myDiagram.addEventListener("pinEnter", function(e){
 }, false);
 
@@ -265,6 +309,9 @@ myDiagram.addEventListener("alreadyconnected", function(e){
 	echo("already connected:", e.source.pin.label+ "-" + e.target.pin.label);
 }, false);
 
+
+/*
+
 myDiagram.addEventListener("connect", function(e){
 	var s = e.source,
 		t = e.target;
@@ -277,3 +324,4 @@ myDiagram.addEventListener("disconnect", function(e){
 }, false);
 
 
+*/

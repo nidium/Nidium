@@ -2,9 +2,13 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-BenchThis("Native.layout.getElements()", 3000, function(i){
-
+/*
+BenchThis("Read/Write CStruct Point", 50000, function(i){
 });
+
+BenchThis("Read/Write Object Litteral Point", 50000, function(i){
+});
+*/
 
 
 /*
