@@ -3,11 +3,13 @@
 /* -------------------------- */
 
 
+/*
 var app = new Application({background:"rgba(30, 20, 20, 0.7)", x:0, y:0});
-
 var m = new Membrane(app);
-
 var main = m.wrapper;
+*/
+
+var main = new Application({background:"rgba(30, 20, 20, 0.7)", x:0, y:0});
 
 var myDiagram = main.add("UIDiagramController", {x:0, y:0});
 
@@ -86,69 +88,6 @@ DBT(function(){
 
 
 */
-
-Object.update = function(o, prototype){
-	if (typeof prototype !== "number" && typeof prototype !== "boolean"){
-		var p = prototype,
-			f = obj = last = o instanceof this ? o : new o.constructor(o),
-			FP = Function.prototype,
-			OP = Object.prototype,
-			AP = Array.prototype,
-			get = this.getPrototypeOf;
-
-		for (var k = get(obj);	k !== OP && k !== FP; k = get(obj)){
-			obj = k;
-		}
-
-		if (prototype.constructor === String){
-			p = FP;
-			f = Function.apply(null, AP.slice.call(arguments, 1));
-			f.__proto__ = last;
-		}
-
-		obj.__proto__ = p;
-		return f;
-	}
-}
-
-var Scope = function(source){
-	return Object.update(new Function, source);
-};
-
-
-/*
-var buddy = "dude";
-
-var f = new Scope(
-	'var z = Math.random(),' + 
-	'	 o = arguments[0];' +
-
-	'this.foo = {' +
-	'	x : o,' +
-	'	y : 5' +
-	'};' +
-);
-
-f(78);
-
-echo(this.foo.y); // --->  5
-echo(z); // --->  z is undefined
-*/
-
-
-var data = 'var z = Math.random(),' + 
-    '     o = arguments[0];' +
-
-    'this.foo = {' +
-    '    x : o,' +
-    '    y : 5' +
-    '};'
-    
-
-var f = eval("(function(){"+data+"})");
-f(48);
-
-
 
 
 

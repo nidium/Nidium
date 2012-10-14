@@ -78,6 +78,8 @@ load(__PATH_PLUGINS__ + 'roundbox.inc.js');
 load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'animations.inc.js');
 
+"use strict";
+
 Native.layout = {
 	ready : false,
 
