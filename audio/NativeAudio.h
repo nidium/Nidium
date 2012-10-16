@@ -7,43 +7,52 @@
 #include "pa_converters.h"
 #include "pa_dither.h"
 #include "zita-resampler/resampler.h"
+#include "NativeAudioNode.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
 
+#if 1
+  #define SPAM(a) printf a
+#else
+  #define SPAM(a) (void)0
+#endif
+
 #define NATIVE_AVIO_BUFFER_SIZE 2048 
 #define NATIVE_AVDECODE_BUFFER_SAMPLES 16384 
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 8192 
+
 
 class NativeAudioTrack;
 
 class NativeAudio
 {
     public:
-        NativeAudio();
+        NativeAudio(int bufferSize, int channels, int sampleRate);
 
-        enum SampleFormat {FLOAT32 = 4, INT24 = 3, INT16 = 2, UINT8 = 1};
-
-        struct OutputParameters {
-            int bufferSize, channels, sampleFmt, sampleRate, framesPerBuffer;
+        enum SampleFormat {
+            FLOAT32 = sizeof(float), 
+            INT24 = sizeof(int), 
+            INT16 = sizeof(int16_t), 
+            UINT8 = sizeof(uint8_t)
         };
 
-        struct InputParameters {
-            int bufferSize, channel, sampleRate;
-            SampleFormat sampleFmt;
-        };
+        NativeAudioParameters *outputParameters;
+        NativeAudioParameters *inputParameters;
 
-        OutputParameters outputParameters;
-        InputParameters inputParameters;
-
+        static void *queueThread(void *args);
         static void *decodeThread(void *args);
         void bufferData();
 
-        int openOutput(int bufferSize, int channel, SampleFormat sampleFmt, int sampleRate);
-        int openInput(int bufferSize, int channel, SampleFormat sampleFmt, int sampleRate);
+        int openOutput();
+        int openInput();
+
+        NativeAudioNodeTarget *output;
 
         NativeAudioTrack *addTrack();
+        NativeAudioNode *createNode(const char *name, int input, int ouput);
+        void connect(NativeAudioNode::NodeLink *input, NativeAudioNode::NodeLink *output);
 
         static inline int getSampleSize(int sampleFmt);
 
@@ -58,15 +67,19 @@ class NativeAudio
             NativeAudioTracks *prev;
         };
 
+
         PaStream *inputStream;
         PaStream *outputStream;
 
-        pthread_cond_t bufferNotEmpty;
-        pthread_mutex_t decodeLock;
+        PaUtilRingBuffer rBufferOut;
+        float *rBufferOutData;
 
-        int *filterList;
+        pthread_cond_t bufferNotEmpty, queueHaveData;
+        pthread_mutex_t decodeLock, queueLock;
+
         NativeAudioTracks *tracks;
         int tracksCount;
+        int queueCount;
 
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,
@@ -84,12 +97,12 @@ class NativeAudio
 
 class NativeAudioTrack;
 
-class NativeAudioTrack
+class NativeAudioTrack : public NativeAudioNode
 {
     public:
-        NativeAudioTrack(NativeAudio::OutputParameters *outputParameters);
+        NativeAudioTrack(NativeAudioParameters *outputParameters);
 
-        NativeAudio::OutputParameters *outputParameters;
+        NativeAudioParameters *outputParameters;
 
         PaUtilRingBuffer rBufferIn;
         PaUtilRingBuffer rBufferOut;
@@ -104,11 +117,15 @@ class NativeAudioTrack
         void pause();
         void stop();
 
+        int avail();
         int buffer();
         int buffer(int n);
 
+        virtual bool process();
+        bool work();
         bool decode();
         int resample(float *dest, int destSamples);
+        bool getFrame();
 
         ~NativeAudioTrack();
 
