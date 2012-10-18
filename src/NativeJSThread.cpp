@@ -59,7 +59,7 @@ static void *native_thread(void *arg)
     jsval rval;
     JSObject *gbl;
 
-    if ((rt = JS_NewRuntime(128L * 1024L * 1024L)) == NULL) {
+    if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
         printf("Failed to init JS runtime\n");
         return NULL;
     }
@@ -159,7 +159,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     struct native_thread_msg *msg;
 
     if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
-        NULL, NULL)) {
+        NULL, NULL, JSVAL_VOID)) {
         printf("Failed to write strclone\n");
         /* TODO: exception */
         return JS_TRUE;
