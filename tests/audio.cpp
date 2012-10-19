@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // Compile with : 
-// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../audio/ -L../audio/ -lnativeaudio -lpthread -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o
+// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../../libfsrc/libfsrc/ -I../audio/ -L../audio/ -lnativeaudio -lpthread -lfsrc -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o && ./audio
 static void *thread_io(void *arg) {
     NativeAudio *audio = (NativeAudio *)arg;
     printf("Hello thread io\n");
@@ -36,21 +36,29 @@ void load(const char *file, uint8_t *buffer, int bufferSize) {
 int main(int argc, char *argv[]) {
     pthread_t threadIO;
     pthread_t threadDecode;
-    NativeAudio audio;
+    pthread_t threadQueue;
+    NativeAudio *audio;
+
+    audio = new NativeAudio(2048, 2, 44100);
 
     // 1) Create thread for I/O
-    pthread_create(&threadIO, NULL, thread_io, &audio);
+    pthread_create(&threadIO, NULL, thread_io, audio);
 
     // 2) Create thread for decoding
-    pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, &audio);
+    pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, audio);
+
+    // 3) Create thread for JS processing
+    pthread_create(&threadQueue, NULL, NativeAudio::queueThread, audio);
 
     // 2) Open ouput
-    int ret = audio.openOutput(32, 2, NativeAudio::FLOAT32, 96000);
+    /*
+    int ret = audio->openOutput();
     if (ret == 0) {
         printf("Audio ouput is ok\n");
     } else {
         printf("Failed to open audio ouput : %d\n", ret);
     }
+    */
 
     // 4) Play a file 
     int bufferSize = sizeof(uint8_t)*4*1024*1024;
@@ -59,17 +67,60 @@ int main(int argc, char *argv[]) {
     buffer1 = (uint8_t *)malloc(bufferSize);
     buffer2 = (uint8_t *)malloc(bufferSize);
 
-    load("/tmp/96k.wav", buffer1, bufferSize);
-    //load("/tmp/test.mp3", buffer2, bufferSize);
+    load("/tmp/test.mp3", buffer1, bufferSize);
+    //load("/tmp/foo.mp3", buffer2, bufferSize);
 
 
-    NativeAudioTrack *track1 = audio.addTrack();
-    //NativeAudioTrack *track2 = audio.addTrack();
+    NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode("source", 0, 2);
+    NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
+    /*
+    NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode("source", 0, 2);
+    NativeAudioNodeMixer *mixer = (NativeAudioNodeMixer*)audio->createNode("mixer", 4, 2);
+    NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
+    */
+    NativeAudioNodeTarget *target= (NativeAudioNodeTarget *)audio->createNode("target", 2, 0);
+
+    gain->gain = 1;
+
+    audio->connect(gain->output[0], gain->input[0]);
+
+    audio->connect(track1->output[0], gain->input[0]);
+    audio->connect(track1->output[1], gain->input[1]);
+
+
+    audio->connect(gain->output[0], target->input[0]);
+    audio->connect(gain->output[1], target->input[1]);
+    /*
+    gain2->gain = 0.2;
+
+    audio->connect(track1->channel(0), gain->channel(0));
+    audio->connect(track1->channel(1), gain->channel(1));
+
+    audio->connect(gain->channel(0), mixer->channel(0));
+    audio->connect(gain->channel(1), mixer->channel(1));
+
+    //
+
+    audio->connect(track2->channel(0), gain2->channel(0));
+    audio->connect(track2->channel(1), gain2->channel(1));
+
+    audio->connect(gain2->channel(0), mixer->channel(2));
+    audio->connect(gain2->channel(1), mixer->channel(3));
+
+    //
+
+    audio->connect(mixer->channel(0), target->channel(0));
+    audio->connect(mixer->channel(1), target->channel(1));
+    */
 
     track1->open(buffer1, bufferSize);
     //track2->open(buffer2, bufferSize);
 
     track1->play();
+    //track2->play();
+
+    //NativeAudioTrack *track2 = audio->addTrack();
+    //track2->open(buffer2, bufferSize);
     //track2->play();
 
     pthread_join(threadIO, NULL);
