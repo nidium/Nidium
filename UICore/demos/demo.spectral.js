@@ -39,7 +39,7 @@ var Spectral = {
 		main.background = gdBack;
 
 		for (let i=0 ; i<this.nbars ; i++){
-			this.bars[i] = main.createElement("UIView", {
+			this.bars[i] = main.add("UIView", {
 				x : 1 + i * this.barW,
 				y : this.barY,
 				w : this.barW - 2,
@@ -50,9 +50,8 @@ var Spectral = {
 		}
 
 		canvas.requestAnimationFrame(function(){
-			layout.draw();
+			Native.layout.draw();
 			self.drawLines();
-			Timers.manage();
 		});
 
 	},

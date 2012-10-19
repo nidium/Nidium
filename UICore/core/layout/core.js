@@ -514,8 +514,19 @@ DOMElement.proxy = function(obj, handler){
 };
 
 Native.elements = {
-	export : function(elementType, implement){
-		this[elementType] = implement;
+	export : function(type, implement){
+		if (type=="export" || type=="export" || type=="export"){
+			return false;
+		}
+		this[type] = implement;
+		this.build(Object.scope, type);
+	},
+
+	build : function(scope, name){
+		var f = function(parent, options){
+			return parent.add(name, options);
+		};
+		scope[String(name)] = f;
 	},
 
 	init : function(element){
