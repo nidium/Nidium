@@ -1546,34 +1546,38 @@ static int Native_handle_messages(void *arg)
     NativeSharedMessages::Message msg;
 
     while (njs->messages->readMessage(&msg)) {
+        switch (msg.event()) {
+            case NATIVE_THREAD_MESSAGE:
+            ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
-        ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
+            if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
+                !JSVAL_IS_PRIMITIVE(onmessage) && 
+                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-        if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
-            !JSVAL_IS_PRIMITIVE(onmessage) && 
-            JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+                jsval inval;
 
-            jsval inval;
+                if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+                    JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
 
-            if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
-                JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+                    printf("Failed to read input data (readMessage)\n");
 
-                printf("Failed to read input data (readMessage)\n");
+                    continue;
+                }
 
-                continue;
+                event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+                JS_AddObjectRoot(cx, &event);
+
+                EVENT_PROP("message", inval);
+
+                jevent = OBJECT_TO_JSVAL(event);
+                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
+                JS_RemoveObjectRoot(cx, &event);            
+
             }
-
-            event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-            JS_AddObjectRoot(cx, &event);
-
-            EVENT_PROP("message", inval);
-
-            jevent = OBJECT_TO_JSVAL(event);
-            JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
-            JS_RemoveObjectRoot(cx, &event);            
-
+            free(ptr);
+            break;
+            default:break;
         }
-        free(ptr);
     }
 
     return 1;
