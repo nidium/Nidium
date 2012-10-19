@@ -171,7 +171,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     msg->nbytes = nbytes;
     msg->callee = nthread->jsObject;
 
-    nthread->njs->messages->postMessage(msg);
+    nthread->njs->messages->postMessage(msg, 0);
 
     return JS_TRUE;
 }
