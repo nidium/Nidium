@@ -2,7 +2,6 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-
 var main = new Application(),
 
 	// Small Green Slider

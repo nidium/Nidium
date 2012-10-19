@@ -204,12 +204,12 @@ var console = {
 	iteration : 0,
 	maxIterations : 20,
 
-	log : function(message){
-		if (typeof message == 'object'){
-			echo(this.dump(message));
-		} else {
-			echo(message);
+	log : function(...n){
+		var m = [];
+		for (var i in n){
+			m.push(this.dump(n[i]));
 		}
+		echo.apply(this, m);
 	},
 
 	dump : function(object, pad){
@@ -327,6 +327,8 @@ var FPS = {
 
 /* -------------------------------------------------------------------------- */
 
+Object.scope = this;
+
 Object.append = function(o, prototype){
 	if (typeof prototype !== "number" && typeof prototype !== "boolean"){
 		var p = prototype,
@@ -421,10 +423,22 @@ Object.Handler = function(obj){
 		getPropertyNames : function(){
 			return Object.getOwnPropertyNames(obj);
 		},
-
 		
 		delete : function(key){
 			return delete obj[key];
+		},
+
+		call : function(that, args){
+			/* function call trap */
+			return obj.apply(that, args);
+		},
+
+		construct : function(args){
+			/* contructor trap */
+			var Forward = function(args){
+				return obj.apply(this, args);
+			};
+			return new Forward(args);
 		},
 
 		fix : function(){
@@ -473,6 +487,7 @@ Object.Handler = function(obj){
 	};
 };
 
+
 /*
  * Identity-Preserving Membrane
  * ----------------------------
@@ -483,7 +498,7 @@ Object.Handler = function(obj){
  * More @ http://wiki.ecmascript.org/doku.php?id=harmony:proxies
  */
 
-var Membrane = function(wetTarget){
+Object.Membrane = function(wetTarget, profiler){
 	var wet2dry = new WeakMap(),
 		dry2wet = new WeakMap();
 
@@ -516,14 +531,13 @@ var Membrane = function(wetTarget){
 		heat2.set(revokeHandler, forwardingHandler);
 
 		var callTrap = function(...n){
-			return source(obj.apply(mapper(this), n.map(mapper)));
+			var k = revokeHandler.call(mapper(this), n.map(mapper));
+			return source(k);
 		};
 
 		var constructorTrap = function(...n){
-			var forward = function(args){
-				return obj.apply(mapper(this), args);
-			};
-			return source(new forward(n.map(mapper)));
+			var k = revokeHandler.construct(n.map(mapper));
+			return source(k);
 		};
 
 		if (typeof obj === "function"){
@@ -555,7 +569,7 @@ var Membrane = function(wetTarget){
 		if (Object.isPrimitive(obj)) return obj;
 		var proxy = dry2wet.get(obj);
 		return proxy ? proxy : getProxy(obj, "wet");
-	}
+	};
 
 	var revoke = function(){
 		dry2wet = wet2dry = Object.freeze({

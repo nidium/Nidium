@@ -8,14 +8,14 @@ load("core/native.inc.js");
 //load('demos/demo.ui.js');
 //load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
-load('demos/demo.diagrams.js');
+//load('demos/demo.diagrams.js');
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
 
 
 /* -- Benchmarks ------------------------------- */
 
-//load('bench/suite.js');
+load('bench/suite.js');
 
 
 /* -- Unit Tests ------------------------------- */
@@ -39,7 +39,6 @@ load('demos/demo.diagrams.js');
 //load('demos/demo.sand.js');
 //load('demos/demo.water.js');
 //load('demos/demo.wires.js');
-
 
 /*
 var background = native.getCanvas2D(1024, 768);
