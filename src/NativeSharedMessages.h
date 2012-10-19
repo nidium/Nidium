@@ -5,27 +5,64 @@
 
 typedef struct _native_shared_message
 {
-	void *ptr;
-	struct _native_shared_message *prev;
+    void *ptr;
+    struct _native_shared_message *prev;
 } native_shared_message;
 
 class NativeSharedMessages
 {
+  public:
+
+    class Message
+    {
+        public:
+            Message(void *ptr, int type)
+            : type(type), prev(NULL) {
+                msgdata.dataptr = ptr;
+            }
+            Message(unsigned int dataint, int type)
+            : type(type), prev(NULL) {
+                msgdata.dataint = dataint;
+            }
+
+            Message(){};
+
+            void *dataPtr() const {
+                return msgdata.dataptr;
+            }
+
+            unsigned int dataUInt() const {
+                return msgdata.dataint;
+            }
+
+            int event() const {
+                return type;
+            }
+            Message *prev;
+        private:
+
+            union {
+                void *dataptr;
+                unsigned int dataint;
+            } msgdata;
+
+            int type;
+    };
+    NativeSharedMessages();
+    ~NativeSharedMessages();
+    void postMessage(void *dataptr, int event);
+    void postMessage(unsigned int dataint, int event);
+    int readMessage(NativeSharedMessages::Message *msg);
   private:
 
-	struct
-	{
-		int count;
-		struct _native_shared_message *head;
-		struct _native_shared_message *queue;
-		pthread_mutex_t lock;
+    struct
+    {
+        int count;
+        Message *head;
+        Message *queue;
+        pthread_mutex_t lock;
 
-	} messageslist;
-  public:
-  	NativeSharedMessages();
-  	~NativeSharedMessages();
-  	void postMessage(void *ptr);
-  	void *readMessage();
+    } messageslist;
 };
 
 class NSMAutoLock {
@@ -33,14 +70,14 @@ class NSMAutoLock {
     NSMAutoLock(pthread_mutex_t *mutex)
       : lock(mutex) {
 
-      	pthread_mutex_lock(lock);
+        pthread_mutex_lock(lock);
     }
 
     ~NSMAutoLock() {
-    	pthread_mutex_unlock(lock);
+        pthread_mutex_unlock(lock);
     }
   private:
-  	pthread_mutex_t *lock;
+    pthread_mutex_t *lock;
 };
 
 #endif

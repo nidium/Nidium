@@ -1543,7 +1543,11 @@ static int Native_handle_messages(void *arg)
 
     JSObject *event;
 
-    while ((ptr = (struct native_thread_msg *)njs->messages->readMessage()) != NULL) {
+    NativeSharedMessages::Message msg;
+
+    while (njs->messages->readMessage(&msg)) {
+
+        ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
         if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
             !JSVAL_IS_PRIMITIVE(onmessage) && 
@@ -1569,7 +1573,7 @@ static int Native_handle_messages(void *arg)
             JS_RemoveObjectRoot(cx, &event);            
 
         }
-
+        free(ptr);
     }
 
     return 1;
