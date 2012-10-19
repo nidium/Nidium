@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // Compile with : 
-// g++ audio.cpp -D__STDC_CONSTANT_MACROS -I../../libfsrc/libfsrc/ -I../audio/ -L../audio/ -lnativeaudio -lpthread -lfsrc -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o && ./audio
+// g++ audio.cpp -D__STDC_CONSTANT_MACROS  -I../audio/ -L../audio/ -lnativeaudio -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o && ./audio
 static void *thread_io(void *arg) {
     NativeAudio *audio = (NativeAudio *)arg;
     printf("Hello thread io\n");
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     audio = new NativeAudio(2048, 2, 44100);
 
     // 1) Create thread for I/O
-    pthread_create(&threadIO, NULL, thread_io, audio);
+//    pthread_create(&threadIO, NULL, thread_io, audio);
 
     // 2) Create thread for decoding
     pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, audio);
@@ -71,25 +71,25 @@ int main(int argc, char *argv[]) {
     //load("/tmp/foo.mp3", buffer2, bufferSize);
 
 
-    NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode("source", 0, 2);
-    NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
+    NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
+    //NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
     /*
     NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode("source", 0, 2);
     NativeAudioNodeMixer *mixer = (NativeAudioNodeMixer*)audio->createNode("mixer", 4, 2);
     NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
     */
-    NativeAudioNodeTarget *target= (NativeAudioNodeTarget *)audio->createNode("target", 2, 0);
+    NativeAudioNodeTarget *target= (NativeAudioNodeTarget *)audio->createNode(NativeAudio::TARGET, 2, 0);
 
-    gain->gain = 1;
+    //gain->gain = 1;
 
-    audio->connect(gain->output[0], gain->input[0]);
+    //audio->connect(gain->output[0], gain->input[0]);
 
-    audio->connect(track1->output[0], gain->input[0]);
-    audio->connect(track1->output[1], gain->input[1]);
+    audio->connect(track1->output[0], target->input[0]);
+//    audio->connect(track1->output[1], target->input[1]);
 
 
-    audio->connect(gain->output[0], target->input[0]);
-    audio->connect(gain->output[1], target->input[1]);
+    //audio->connect(gain->output[0], target->input[0]);
+    //audio->connect(gain->output[1], target->input[1]);
     /*
     gain2->gain = 0.2;
 

@@ -17,6 +17,11 @@ static struct native_http_mime {
     {"text/plain",              NativeHTTP::DATA_STRING},
     {"image/jpeg",              NativeHTTP::DATA_IMAGE},
     {"image/png",               NativeHTTP::DATA_IMAGE},
+    {"audio/mp3",               NativeHTTP::DATA_AUDIO},
+    {"audio/mpeg",              NativeHTTP::DATA_AUDIO},
+    {"audio/wave",              NativeHTTP::DATA_AUDIO},
+    {"audio/ogg",               NativeHTTP::DATA_AUDIO},
+    {"audio/webm",              NativeHTTP::DATA_AUDIO},
     {"application/json",        NativeHTTP::DATA_JSON},
     {"text/html",               NativeHTTP::DATA_STRING}, /* TODO: use dom.js */
     {"application/octet-stream",NativeHTTP::DATA_BINARY},

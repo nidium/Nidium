@@ -21,7 +21,7 @@ extern "C" {
 
 #define NATIVE_AVIO_BUFFER_SIZE 2048 
 #define NATIVE_AVDECODE_BUFFER_SAMPLES 16384 
-#define NATIVE_RESAMPLER_BUFFER_SAMPLES 8192 
+#define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
 
 
 class NativeAudioTrack;
@@ -38,6 +38,10 @@ class NativeAudio
             UINT8 = sizeof(uint8_t)
         };
 
+        enum Node {
+            SOURCE, GAIN, TARGET 
+        };
+
         NativeAudioParameters *outputParameters;
         NativeAudioParameters *inputParameters;
 
@@ -51,12 +55,12 @@ class NativeAudio
         NativeAudioNodeTarget *output;
 
         NativeAudioTrack *addTrack();
-        NativeAudioNode *createNode(const char *name, int input, int ouput);
+        NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         void connect(NativeAudioNode::NodeLink *input, NativeAudioNode::NodeLink *output);
 
         static inline int getSampleSize(int sampleFmt);
 
-        void link(int nb, ...);
+        void shutdown();
 
         ~NativeAudio();
     private:
@@ -67,15 +71,20 @@ class NativeAudio
             NativeAudioTracks *prev;
         };
 
+        NativeSharedMessages *sharedMsg;
 
         PaStream *inputStream;
         PaStream *outputStream;
 
         PaUtilRingBuffer rBufferOut;
         float *rBufferOutData;
+        float *nullBuffer;
+        float *cbkBuffer;
 
         pthread_cond_t bufferNotEmpty, queueHaveData;
-        pthread_mutex_t decodeLock, queueLock;
+        pthread_mutex_t decodeLock, queueLock, shutdownLock;
+
+        bool threadShutdown;
 
         NativeAudioTracks *tracks;
         int tracksCount;
@@ -100,9 +109,11 @@ class NativeAudioTrack;
 class NativeAudioTrack : public NativeAudioNode
 {
     public:
-        NativeAudioTrack(NativeAudioParameters *outputParameters);
+        NativeAudioTrack(NativeAudioParameters *outputParameters, pthread_cond_t *bufferNotEmpty);
 
         NativeAudioParameters *outputParameters;
+
+        pthread_cond_t *bufferNotEmpty;
 
         PaUtilRingBuffer rBufferIn;
         PaUtilRingBuffer rBufferOut;

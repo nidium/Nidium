@@ -3,7 +3,11 @@
 
 #include "NativeAudioParameters.h"
 
-#if 1
+#define NATIVE_AUDIONODE_ARGS_SIZE 32
+#define NATIVE_AUDIONODE_CHANNEL_SIZE 32
+#define NATIVE_AUDIONODE_WIRE_SIZE 32
+
+#if 0
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -13,12 +17,26 @@ class NativeAudioNode
 {
     public :
         enum TypeIO {INPUT, OUTPUT};
+        enum ArgType {INT, DOUBLE};
+        struct ExportsArgs {
+            const char *name;
+            ArgType type;
+            void *ptr;
 
-        NativeAudioNode(int inCount, int outCount, NativeAudioParameters *params)
-            : nodeProcessed(false), inQueueCount(0), inCount(inCount), outCount(outCount), params(params)
+            ExportsArgs(const char *name, ArgType type, void *prt) : name(name), type(type), ptr(ptr) {};
+        };
+        ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
+
+        NativeAudioNode(int inCount, int outCount, NativeAudioParameters *params, NativeSharedMessages *sharedMsg)
+            : nodeProcessed(false), inQueueCount(0), inCount(inCount), outCount(outCount), params(params), sharedMsg(sharedMsg);
         {
             SPAM(("NativeAudioNode init located at %p\n", this));
             int max;
+
+            // Init exports array
+            for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
+                this->args[i] = NULL;
+            }
 
             // Init node IO queue
             for (int i = 0; i < inCount; i++) {
@@ -87,7 +105,20 @@ class NativeAudioNode
         int outCount;
 
         void get(const char *name);
-        void set(const char *name, void *value);
+        bool set(const char *name, void *value, ArgType type) 
+        {
+            for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
+                if (this->args[i] != NULL && strcmp(name, this->args[i]->name) == 0) {
+                    if (this->args[i]->type == type) {
+                        // Post to SharedMessage
+                    } /* else {
+                         return false;
+                    } */
+                }
+            }
+
+            return false;
+        }
 
         // Check if output is connected to previous input
         void updateFeedback(NativeAudioNode *nOut) {
@@ -146,8 +177,19 @@ class NativeAudioNode
         bool recurseGetData();
 
         virtual bool process() = 0;
+
+        ~NativeAudioNode() {
+            for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
+                if (this->args[i] != NULL) {
+                    delete this->args[i];
+                }
+            }
+        }
     private:
+        void post(ArgType type, void *ptr) {
+        }
         NativeAudioParameters *params;
+        NativeSharedMessages *sharedMsg;
 };
 
 class NativeAudioNodeTarget : public NativeAudioNode
@@ -197,18 +239,15 @@ class NativeAudioNodeWirdo : public NativeAudioNode
 class NativeAudioNodeGain : public NativeAudioNode
 {
     public :
-        NativeAudioNodeGain(int inCount, int outCount, NativeAudioParameters *params) : NativeAudioNode(inCount, outCount, params) 
+        NativeAudioNodeGain(int inCount, int outCount, NativeAudioParameters *params) 
+            : NativeAudioNode(inCount, outCount, params) 
         {
             printf("gain init\n");
-            printf("count %d/%d\n", inCount, outCount);
-            /*
-            for (int i = 0; i < inCount; i++) {
-                this->inQueue[j]
-            }
-            */
+            this->args[0] = new ExportsArgs("gain", DOUBLE, &this->gain);
+            this->args[1] = new ExportsArgs("gain", INT, &this->gain);
         }
 
-        float gain;
+        double gain;
 
         virtual bool process() 
         {

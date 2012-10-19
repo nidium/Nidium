@@ -1636,6 +1636,9 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSHttp::registerObject(cx);
     /* Image() object */
     NativeJSImage::registerObject(cx);
+    /* Audio() object */
+    NativeJSAudio::registerObject(cx);
+    NativeJSAudioNode::registerObject(cx);
     /* Native() object */
     NativeJSNative::registerObject(cx);
 

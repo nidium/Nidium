@@ -2,7 +2,7 @@ UNAME := $(shell uname)
 
 ifeq ($(UNAME), Linux)
 SKIA=/home/efyx/dev/NativeStudio/NativeStudio/skia-read-only
-NATIVEFLAGS=-DEXPORT_JS_API -DIMPL_MFBT -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1 -DEXPORT_JS_API -DIMPL_MFBT  -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_SUPPORT_GPU=1 -DSK_SAMPLES_FOR_X -DSK_BUILD_FOR_UNIX -DSK_USE_POSIX_THREADS -DSK_SUPPORT_PDF -DGR_LINUX_BUILD=1 -DSK_RELEASE -DGR_RELEASE=1 -DNDEBUG -Wno-invalid-offsetof
+NATIVEFLAGS=-D__STDC_CONSTANT_MACROS -DEXPORT_JS_API -DIMPL_MFBT -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1 -DEXPORT_JS_API -DIMPL_MFBT  -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_SUPPORT_GPU=1 -DSK_SAMPLES_FOR_X -DSK_BUILD_FOR_UNIX -DSK_USE_POSIX_THREADS -DSK_SUPPORT_PDF -DGR_LINUX_BUILD=1 -DSK_RELEASE -DGR_RELEASE=1 -DNDEBUG -Wno-invalid-offsetof
 endif
 
 ifeq ($(UNAME), Darwin)
@@ -27,6 +27,8 @@ CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I/home/efyx/dev/mozilla-central/js
 				-I$(SKIA)/include/effects	\
 				-I$(SKIA)/include/utils/mac \
 				-I../network \
+				-I../audio/ \
+				-I ../../portaudio/src/common/ 
 				
 
 AR=ar
@@ -44,6 +46,7 @@ SOURCES=NativeJS.cpp 				\
 		NativeJSHttp.cpp 			\
 		NativeJSImage.cpp 			\
 		NativeJSNative.cpp 			\
+		NativeJSAudio.cpp ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o \
 		NativeFileIO.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)

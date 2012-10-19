@@ -3,7 +3,6 @@
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
 
-
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -128,6 +127,20 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             nimg = new NativeSkImage(h->data->data, h->data->used);
             jdata = OBJECT_TO_JSVAL(NativeJSImage::buildImageObject(cx, nimg));
+
+            break;
+        }
+        case NativeHTTP::DATA_AUDIO:
+        {
+            JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
+            uint8_t *data = JS_GetArrayBufferData(arr, cx);
+
+            memcpy(data, h->data->data, h->data->used);
+
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("audio"))));
+
+            jdata = OBJECT_TO_JSVAL(arr);
 
             break;
         }

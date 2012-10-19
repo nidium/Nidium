@@ -31,4 +31,3 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 NATIVE_OBJECT_EXPOSE_NOT_INST(Native)
-
