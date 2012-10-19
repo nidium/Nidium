@@ -17,11 +17,11 @@ class NativeSharedMessages
     {
         public:
             Message(void *ptr, int type)
-            : type(type), prev(NULL) {
+            : prev(NULL), type(type) {
                 msgdata.dataptr = ptr;
             }
             Message(unsigned int dataint, int type)
-            : type(type), prev(NULL) {
+            : prev(NULL), type(type) {
                 msgdata.dataint = dataint;
             }
 

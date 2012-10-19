@@ -44,7 +44,6 @@ void NativeSharedMessages::postMessage(void *dataptr, int event)
 int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 {
 	NSMAutoLock lock(&messageslist.lock);
-	void *ret;
 
 	Message *message = messageslist.queue;
 
