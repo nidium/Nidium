@@ -209,7 +209,7 @@ var console = {
 		for (var i in n){
 			m.push(this.dump(n[i]));
 		}
-		echo(m.join(" "));
+		echo.apply(this, m);
 	},
 
 	dump : function(object, pad){
