@@ -46,6 +46,7 @@ Native.scheduler = {
 	currentWorker : null,
 
 	_started : false,
+	_paused : false,
 
 	add : function(task){
 		task.TID = this.nbtasks++;
@@ -57,16 +58,19 @@ Native.scheduler = {
 			return false;
 		}
 		this._started = true;
+		this.next();
 		this.cycle(); 
 	},
 
 	cycle : function(){
 		var self = this;
-		
+
 		clearTimeout(this.timer);
-		this.timer = setTimeout(function(){
-			self.next();
-		}, this.clock);
+		if (this._paused === false) {
+			this.timer = setTimeout(function(){
+				self.next();
+			}, this.clock);
+		}
 	},
 
 	next : function(){
@@ -85,11 +89,18 @@ Native.scheduler = {
 		this.cycle();
 	},
 
-	stop : function(){
-		if (!this._started) {
+	pause : function(){
+		if (this._paused) {
 			return false;
 		}
-		this._started = false;
+		this._paused = true;
+	},
+
+	release : function(){
+		if (this._paused === false) {
+			return false;
+		}
+		this._paused = false;
 	}
 }
 

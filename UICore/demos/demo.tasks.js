@@ -21,10 +21,13 @@ var task3 = new Task(function(cycle){
 
 
 Native.scheduler.clock = 20; // switch tasks every 20 ms
+Native.scheduler.pause();
+Native.scheduler.release();
 
 
+/*
 var k = 0;
 setInterval(function(){
 	echo("----------------- Generic Scope Timer", k++);
 }, 500)
-
+*/
