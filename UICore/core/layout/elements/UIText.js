@@ -558,10 +558,10 @@ canvas.implement({
 			c = letters[i];
 			cx = x + c.position;
 			if (i == caretPosition){
-				var oldG = this.globalAlpha;
+				this.save();
 				this.globalAlpha = caretOpacity;
 				this.fillRect(Math.floor(cx), y - vOffset+1, 1, lineHeight);
-				this.globalAlpha = 1;
+				this.restore();
 			}
 			this.fillText(c.char, cx, y);
 		}

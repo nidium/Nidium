@@ -42,6 +42,8 @@ load(__PATH_CORE__ +	'helper.inc.js');
 load(__PATH_LAYOUT__ +	'core.js');
 load(__PATH_CORE__ +	'events.inc.js');
 
+load(__PATH_CORE__ +	'kernel.inc.js');
+
 /* -- Load UI Elements -- */
 load(__PATH_ELEMENTS__ + 'UIView.js');
 load(__PATH_ELEMENTS__ + 'UIButton.js');

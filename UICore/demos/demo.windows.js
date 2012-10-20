@@ -3,9 +3,9 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"#262722"}),
+var main = new Application({background:"#262722"});
 
-	win1 = main.add("UIWindow", {
+var	win1 = main.add("UIWindow", {
 		x : 60,
 		y : 60,
 		w : 400,
@@ -16,9 +16,9 @@ var main = new Application({background:"#262722"}),
 		resizable : true,
 		closeable : true,
 		movable : true
-	}),
+	});
 
-	win2 = main.add("UIWindow", {
+var win2 = new UIWindow(main, {
 		x : main.w - 150,
 		y : 30,
 		w : 120,

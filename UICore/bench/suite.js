@@ -31,6 +31,57 @@ function assertEquals(a, b){
 	if (a === b) echo(a, "===", b);
 }
 
+/*
+
+(function(){
+	var timeouts = [];
+	var messageName = "zero-timeout-message";
+
+	function setZeroTimeout(fn){
+		timeouts.push(fn);
+		window.postMessage(messageName, "*");
+	}
+
+	function handleMessage(event) {
+		if (event.source == window && event.data == messageName) {
+			event.stopPropagation();
+			if (timeouts.length > 0) {
+				var fn = timeouts.shift();
+				fn();
+			}
+		}
+	}
+
+	window.addEventListener("message", handleMessage, true);
+
+	// Add the one thing we want added to the window object.
+	window.setZeroTimeout = setZeroTimeout;
+})();
+
+
+        var i = 0;
+        var startTime = Date.now();
+
+        function test2() {
+            if (++i == 100) {
+                var endTime = Date.now();
+                echo("100 iterations of setTimeout(0) took " +
+                            (endTime - startTime) + " milliseconds.");
+            } else {
+                setTimeout(test2, 0);
+            }
+        }
+
+        test2();
+
+
+
+*/
+
+
+z = [5, 8, 9, 10];
+
+var b = [1, 2, ...z, 6];
 
 
 /*
