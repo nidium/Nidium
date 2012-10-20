@@ -200,12 +200,8 @@ Native.layout = {
 			n = 0;
 
 		this.bubble(this, function(){
+			this._nid = n++;
 			elements.push(this);
-			this._nid = n;
-			this.hasFocus = false;
-			if (self.focusObj == n++){
-				self._animateFocus(this);
-			}
 		});
 
 		this.nbObj = n;
@@ -267,6 +263,17 @@ Native.layout = {
 		if (this.focusObj > this.nbObj-2) {
 			this.focusObj = 0;
 		}
+		this.setFocus();
+	},
+
+	setFocus : function(){
+		var self = this;
+
+		this.bubble(this, function(){
+			if (self.focusObj == this._nid){
+				self._animateFocus(this);
+			}
+		});
 	},
 
 	_animateFocus : function(element){
@@ -281,11 +288,12 @@ Native.layout = {
 		if (element.hasFocus === true) {
 			return false;
 		}
-
+		console.log(element.id, element.hasFocus);
 		if (element.flags._canReceiveFocus) {
-			/* Blur last focused element */
+			/* Fire blur event on last focused element */
 			if (this.currentFocusedElement) {
 				this.currentFocusedElement.fireEvent("blur", {});
+				this.currentFocusedElement.hasFocus = false;
 			}
 
 			/* set this element as the new focused element */

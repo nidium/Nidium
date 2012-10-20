@@ -123,6 +123,7 @@ Native.elements.export("UIDropDownController", {
 			var from = self.tabsContainer.h,
 				delta = l*self.h;
 
+
 			this.toggleState = true;
 			
 			self.showTabs();
@@ -152,10 +153,6 @@ Native.elements.export("UIDropDownController", {
 			} else {
 				self.openSelector();
 			}
-			e.stopPropagation();
-		}, false);
-
-		this.addEventListener("mousedown", function(e){
 			this.bringToTop();
 			e.stopPropagation();
 		}, false);
