@@ -164,6 +164,8 @@ Native.elements.export("UIDropDownController", {
 
 		this.resetTabs();
 
+		this.tabsContainer.h = 0;
+		this.closeSelector();
 	},
 
 	draw : function(){

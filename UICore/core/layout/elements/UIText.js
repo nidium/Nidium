@@ -217,10 +217,10 @@ Native.elements.export("UIText", {
 					y2 : e.y + self.scroll.top
 				};
 
-				let area = self.mouseSelectionArea;
+				var area = self.mouseSelectionArea;
 
 				if (area.y2 <= self.__starty) {
-					let x1 = area.x2,
+					var x1 = area.x2,
 						y1 = Math.min(area.y1, area.y2),
 						x2 = area.x1,
 						y2 = Math.max(area.y1, area.y2);
@@ -266,7 +266,7 @@ Native.elements.export("UIText", {
 				};
 
 			var getCharPosition = function(line, x){
-				let i = 0, l = line.letters;
+				var i = 0, l = line.letters;
 				while (i<l.length && x > l[i].position + l[i].width/2){	i++; }
 				return i;
 			};
@@ -281,7 +281,7 @@ Native.elements.export("UIText", {
 		 	}
 
 			if (c.y2 <= c.y1) {
-				let x1 = Math.min(c.x1, c.x2),
+				var x1 = Math.min(c.x1, c.x2),
 					y1 = Math.min(c.y1, c.y2),
 					x2 = Math.max(c.x1, c.x2),
 					y2 = Math.max(c.y1, c.y2);
@@ -439,7 +439,7 @@ Native.elements.export("UIText", {
 
 
 		 	var selectLetter = function(line, char){
-		 		let letter = m[line].letters[char],
+		 		var letter = m[line].letters[char],
 		 			nush = m[line].letters[char+1] ? m[line].letters[char+1].position - letter.position - letter.width : 0;
 
 		 		letter.selected = true;
@@ -539,7 +539,7 @@ Native.elements.export("UIText", {
 
 canvas.implement({
 	highlightLetters : function(letters, x, y, lineHeight){
-		let c, nush, cx, cy, cw;
+		var c, nush, cx, cy, cw;
 		for (var i=0; i<letters.length; i++){
 			c = letters[i];
 	 		nush = letters[i+1] ? letters[i+1].position - c.position - c.width : 0;
@@ -553,14 +553,14 @@ canvas.implement({
 	},
 
 	drawLettersWithCaret : function(letters, x, y, lineHeight, vOffset, caretPosition, caretOpacity){
-		let c, cx;
+		var c, cx;
 		for (var i=0; i<letters.length; i++){
 			c = letters[i];
 			cx = x + c.position;
 			if (i == caretPosition){
 				var oldG = this.globalAlpha;
 				this.globalAlpha = caretOpacity;
-				this.fillRect(cx, y - vOffset, 1, lineHeight);
+				this.fillRect(cx, y - vOffset+1, 1, lineHeight);
 				this.globalAlpha = 1;
 			}
 			this.fillText(c.char, cx, y);
@@ -568,7 +568,7 @@ canvas.implement({
 	},
 
 	drawLetters : function(letters, x, y){
-		let c;
+		var c;
 		for (var i=0; i<letters.length; i++){
 			c = letters[i];
 			this.fillText(c.char, x + c.position, y);
@@ -622,7 +622,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 	}
 
 	for (var i=0; i<textLine.length; i++){
-		let char = textLine[i],
+		var char = textLine[i],
 			letterWidth = cachedLetterWidth(char);
 
 		if (textAlign=="justify"){
@@ -711,7 +711,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 		// last line
 		if (idx > 0) {
 
-			let align = (textAlign=="justify") ? "left" : textAlign;
+			var align = (textAlign=="justify") ? "left" : textAlign;
 			matrix[currentLine] = {
 				text : words.join(' '),
 				align : align,

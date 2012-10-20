@@ -84,7 +84,7 @@ Native.layout = {
 	ready : false,
 
 	objID : 0,
-	focusObj : 0,
+	focusID : 0,
 	nbObj : 0,
 
 	nodes : {}, // May content several trees of elements 
@@ -259,36 +259,28 @@ Native.layout = {
 	},
 
 	focusNextElement : function(){
-		this.focusObj++;
-		if (this.focusObj > this.nbObj-2) {
-			this.focusObj = 0;
-		}
-		this.setFocus();
-	},
-
-	setFocus : function(){
 		var self = this;
 
+		this.focusID++;
+		if (this.focusID > this.nbObj-2) {
+			this.focusID = 0;
+		}
+
 		this.bubble(this, function(){
-			if (self.focusObj == this._nid){
-				self._animateFocus(this);
+			if (self.focusID == this._nid){
+				if (this.flags._canReceiveFocus){
+					self.focus(this);
+				} else {
+					self.focusNextElement();
+				}
 			}
 		});
-	},
-
-	_animateFocus : function(element){
-		if (element.flags._canReceiveFocus) {
-			this.focus(element);
-		} else {
-			this.focusNextElement();
-		}
 	},
 
 	focus : function(element){
 		if (element.hasFocus === true) {
 			return false;
 		}
-		console.log(element.id, element.hasFocus);
 		if (element.flags._canReceiveFocus) {
 			/* Fire blur event on last focused element */
 			if (this.currentFocusedElement) {
@@ -300,7 +292,7 @@ Native.layout = {
 			element.hasFocus = true;
 			element.fireEvent("focus", {});
 			this.currentFocusedElement = element;
-			this.focusObj = element._nid;
+			this.focusID = element._nid;
 		}
 	},
 
