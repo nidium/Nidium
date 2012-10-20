@@ -116,9 +116,9 @@ Native.layout = {
 		}
 	},
 
-	collectGarbage : function(z){
-		for (var i=z.length-1; i>0; i--){
-			z[i].__garbageCollector && this.destroy(z[i]);
+	collectGarbage : function(elements){
+		for (var i=elements.length-1; i>0; i--){
+			elements[i].__garbageCollector && this.destroy(elements[i]);
 		}
 	},
 
@@ -137,7 +137,7 @@ Native.layout = {
 	},
 
 	/*
-	 * Apply Recursive Inference to rootElement and children
+	 * Apply Recursive Inference to rootElement and its children
 	 */
 	bubble : function(rootElement, inference){
 		var self = this,

@@ -25,30 +25,12 @@ echo(h.zz);
 w.revoke();
 echo(h.zz);
 
+*/
 
-
-
-function f() {
-  var g;
-  {
-    // TODO(keuchel): introduce let
-    var x = 0;
-    g = function () {
-      x = x + 1;
-      return x;
-    }
-  }
-  return g;
+function assertEquals(a, b){
+	if (a === b) echo(a, "===", b);
 }
 
-var o = f();
-assertEquals(1, o());
-assertEquals(2, o());
-
-
-
-
-*/
 
 
 /*

@@ -560,7 +560,7 @@ canvas.implement({
 			if (i == caretPosition){
 				var oldG = this.globalAlpha;
 				this.globalAlpha = caretOpacity;
-				this.fillRect(cx, y - vOffset+1, 1, lineHeight);
+				this.fillRect(Math.floor(cx), y - vOffset+1, 1, lineHeight);
 				this.globalAlpha = 1;
 			}
 			this.fillText(c.char, cx, y);
