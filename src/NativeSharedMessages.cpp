@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
 
 NativeSharedMessages::NativeSharedMessages()
 {
@@ -14,21 +14,18 @@ NativeSharedMessages::NativeSharedMessages()
 
 NativeSharedMessages::~NativeSharedMessages()
 {
-	while (readMessage() != NULL);
+	while (readMessage(NULL));
 }
 
-void NativeSharedMessages::postMessage(void *ptr)
+void NativeSharedMessages::postMessage(void *dataptr, int event)
 {
-	native_shared_message *message;
+	Message *message;
 
-	if (ptr == NULL) {
+	if (dataptr == NULL) {
 		return;
 	}
 
-	message = new native_shared_message;
-
-	message->ptr  = ptr;
-	message->prev = NULL;
+	message = new Message(dataptr, event);
 
 	NSMAutoLock lock(&messageslist.lock);
 
@@ -44,15 +41,14 @@ void NativeSharedMessages::postMessage(void *ptr)
 	messageslist.count++;
 }
 
-void *NativeSharedMessages::readMessage()
+int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 {
 	NSMAutoLock lock(&messageslist.lock);
-	void *ret;
 
-	native_shared_message *message = messageslist.queue;
+	Message *message = messageslist.queue;
 
 	if (message == NULL) {
-		return NULL;
+		return 0;
 	}
 
 	messageslist.queue = message->prev;
@@ -60,11 +56,14 @@ void *NativeSharedMessages::readMessage()
 	if (messageslist.queue == NULL) {
 		messageslist.head = NULL;
 	}
+
 	messageslist.count--;
 
-	ret = message->ptr;
+	if (msg != NULL) {
+		memcpy(msg, message, sizeof(Message));
+	}
 
 	delete message;
 
-	return ret;
+	return 1;
 }

@@ -1543,33 +1543,41 @@ static int Native_handle_messages(void *arg)
 
     JSObject *event;
 
-    while ((ptr = (struct native_thread_msg *)njs->messages->readMessage()) != NULL) {
+    NativeSharedMessages::Message msg;
 
-        if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
-            !JSVAL_IS_PRIMITIVE(onmessage) && 
-            JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+    while (njs->messages->readMessage(&msg)) {
+        switch (msg.event()) {
+            case NATIVE_THREAD_MESSAGE:
+            ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
-            jsval inval;
+            if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
+                !JSVAL_IS_PRIMITIVE(onmessage) && 
+                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-            if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
-                JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+                jsval inval;
 
-                printf("Failed to read input data (readMessage)\n");
+                if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+                    JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
 
-                continue;
+                    printf("Failed to read input data (readMessage)\n");
+
+                    continue;
+                }
+
+                event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+                JS_AddObjectRoot(cx, &event);
+
+                EVENT_PROP("message", inval);
+
+                jevent = OBJECT_TO_JSVAL(event);
+                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
+                JS_RemoveObjectRoot(cx, &event);            
+
             }
-
-            event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-            JS_AddObjectRoot(cx, &event);
-
-            EVENT_PROP("message", inval);
-
-            jevent = OBJECT_TO_JSVAL(event);
-            JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
-            JS_RemoveObjectRoot(cx, &event);            
-
+            free(ptr);
+            break;
+            default:break;
         }
-
     }
 
     return 1;

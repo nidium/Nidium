@@ -24,4 +24,8 @@ class NativeJSThread : public NativeJSExposer
     pthread_t threadHandle;
 };
 
+enum {
+    NATIVE_THREAD_MESSAGE
+};
+
 #endif
