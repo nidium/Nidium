@@ -85,6 +85,7 @@ var task1 = new Task(function(){
 var task2 = new Task(function(){
 	print("task " + this.TID + " start", log[2]);
 	yield;
+	yield;
 	for (var z=0; z<20; z++){
 		yield print("task " + this.TID + " said " + z, log[2]);
 	}

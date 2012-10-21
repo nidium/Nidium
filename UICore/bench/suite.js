@@ -93,3 +93,51 @@ BenchThis("Native 250x250 FillRect", 50000, function(i){
 	canvas.fillRect(10, 10, 250, 250);
 });
 */
+
+
+
+
+/* console.log unit test */
+
+var l = {
+	x : 5,
+	y : 7,
+	z : function(){
+		echo("fdsf");
+	}
+};
+
+l.parent = {
+	h : 45,
+	g : 95,
+
+	zref : l.z,
+
+	child : {
+		k : 9,
+		p : null,
+		u : undefined,
+		a : [5, 8, {k:5, cc:function(){echo("fdf");}}, 9, 8],
+		b : true,
+		mm : false,
+
+		child : {
+			q : "fsdf",
+
+			r : function(){
+				return false;
+			},
+			y : l,
+			m : Math.random
+		}
+	}
+
+};
+
+console.log(l);
+
+
+
+
+
+
