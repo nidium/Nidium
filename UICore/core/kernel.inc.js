@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 /* -----------------------------------------------------------------------------
- * SCTK : Simple Cooperative Threading Kernel                                  * 
+ * Native MTK : Native MultiTask Kernel                                        * 
  * ----------------------------------------------------------------------------- 
  * Version: 	1.0
  * Author:		Vincent Fontaine
@@ -31,8 +31,9 @@
 const 
 	__TASK_STATUS_IDLE__ = 0,
 	__TASK_STATUS_RUNNING__ = 1,
-	__TASK_STATUS_FINISHED__ = 2,
-	__TASK_STATUS_FREEZED__ = 3;
+	__TASK_STATUS_FREEZED__ = 2,
+	__TASK_STATUS_COMPLETE__ = 3,
+	__TASK_STATUS_ERROR__ = 4;
 
 
 Native.scheduler = {
@@ -58,7 +59,6 @@ Native.scheduler = {
 			return false;
 		}
 		this._started = true;
-		this.next();
 		this.cycle(); 
 	},
 
@@ -66,45 +66,67 @@ Native.scheduler = {
 		var self = this;
 
 		clearTimeout(this.timer);
-		if (this._paused === false) {
+		if (this._paused === false){
 			this.timer = setTimeout(function(){
-				self.next();
+				self.switch();
 			}, this.clock);
 		}
 	},
 
-	next : function(){
-		if (this.currentTID>=this.nbtasks) this.currentTID = 0;
-		this.currentWorker = this.tasks[this.currentTID].worker();
-		var result = this.currentWorker.next();
-		
-		if (result && result.next) {
-			if (result) {
-				result.next();
+	switch : function(){
+		var result, task, worker;
+
+		if (this.currentTID >= this.nbtasks){
+			this.currentTID = 0;
+		}
+
+		task = this.tasks[this.currentTID];
+
+		if (task.status === __TASK_STATUS_RUNNING__){
+			worker = task.worker;
+
+			if (worker && "next" in worker 
+				&& "close" in worker && "send" in worker){
+
+				try {
+					result = worker.next();
+					task.cycle++;
+				} catch (e) {
+					worker.close();
+					task.complete();
+					this.oncomplete(task);
+				}
 			} else {
-				this.currentWorker.close();
+				task.error("Missing yield operator");
+				this.oncomplete(task);
 			}
 		}
+		
+		/* 
+		 * FIXME : when a task is complete, switch immediatly to the next
+		 *         task, and do not wait for the next processing cycle.
+		 */
+
 		this.currentTID++;
 		this.cycle();
 	},
 
 	pause : function(){
-		if (this._paused) {
-			return false;
-		}
+		if (this._paused) return false;
 		this._paused = true;
 	},
 
-	release : function(){
-		if (this._paused === false) {
-			return false;
-		}
+	resume : function(){
+		if (this._paused === false) return false;
 		this._paused = false;
-	}
-}
+	},
 
-function Task(fn){
+	oncomplete : function(task){
+
+	}
+};
+
+var Task = function(fn){
 	var self = this;
 
 	this.TID = 0;
@@ -112,28 +134,52 @@ function Task(fn){
 	this.priority = 1;
 	this.status = __TASK_STATUS_RUNNING__;
 
-	this.worker = function(){
-		while (self.status === __TASK_STATUS_RUNNING__) {
-			yield fn.call(this, self.cycle++);
-		}
+	this.onfreeze = function(e){};
+	this.onrelease = function(e){};
+	this.oncomplete = function(e){};
+	this.onerror = function(e){
+		throw e.message + " (task "+e.tid+")";
+	};
+
+	this.freeze = function(){
+		if (this.status !== __TASK_STATUS_RUNNING__) return false;
+		this.onfreeze({
+			tid : this.TID
+		});
+		this.status = __TASK_STATUS_FREEZED__;
+	};
+
+	this.release = function(){
+		if (this.status !== __TASK_STATUS_FREEZED__) return false;
+		this.onrelease({
+			tid : this.TID
+		});
+		this.status = __TASK_STATUS_RUNNING__;
+	};
+
+	this.complete = function(){
+		this.oncomplete({
+			tid : this.TID
+		});
+		this.status = __TASK_STATUS_COMPLETE__;
+	};
+
+	this.error = function(message){
+		this.onerror({
+			message : message,
+			tid : this.TID
+		});
+		this.status = __TASK_STATUS_ERROR__;
 	};
 
 	Native.scheduler.add(this);
-	Native.scheduler.start();
-}
 
+	if (fn.toString().indexOf("yield") !== -1){
+		this.worker = fn.apply(this);
+		Native.scheduler.start();
+	} else {
+		this.error("Missing yield operator");
+	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+};
 
