@@ -337,6 +337,10 @@ Native.elements.export("UIText", {
 			this._insert(text, this.selection.offset, this.selection.size, ++this.selection.offset, 0);
 		};
 
+		this.append = function(text){
+			this.setText(this.text + text);
+		};
+
 		this.cut = function(){
 			this.copy();
 			this._insert('', this.selection.offset, this.selection.size, this.selection.offset, 0);

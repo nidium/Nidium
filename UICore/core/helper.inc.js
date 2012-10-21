@@ -108,7 +108,7 @@ String.prototype.splice = function(offset, size, insert){
 
 String.prototype.htmlTrim = function(){
 	return this.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, "");
-}
+};
 
 /* -------------------------------------------------------------------------- */
 

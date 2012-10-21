@@ -43,7 +43,7 @@ Native.scheduler = {
 	timer : null,
 	clock : 16,
 
-	currentTID : 0,
+	qid : 0,
 	currentWorker : null,
 
 	_started : false,
@@ -73,14 +73,23 @@ Native.scheduler = {
 		}
 	},
 
+	findNext : function(){
+		for (var t=0; t<this.tasks.length; t++){
+			var task = this.tasks[t];
+			if (task.TID !== this.qid && task.status){
+
+			}
+		}
+	},
+
 	switch : function(){
 		var result, task, worker;
 
-		if (this.currentTID >= this.nbtasks){
-			this.currentTID = 0;
+		if (this.qid >= this.tasks.length){
+			this.qid = 0;
 		}
 
-		task = this.tasks[this.currentTID];
+		task = this.tasks[this.qid];
 
 		if (task.status === __TASK_STATUS_RUNNING__){
 			worker = task.worker;
@@ -107,11 +116,11 @@ Native.scheduler = {
 		 *         task, and do not wait for the next processing cycle.
 		 */
 
-		this.currentTID++;
+		this.qid++;
 		this.cycle();
 	},
 
-	pause : function(){
+	freeze : function(){
 		if (this._paused) return false;
 		this._paused = true;
 	},
