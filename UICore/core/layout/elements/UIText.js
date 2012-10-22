@@ -564,10 +564,10 @@ canvas.implement({
 			if (i == caretPosition){
 				this.save();
 				this.globalAlpha = caretOpacity;
-				this.fillRect(Math.floor(cx), y - vOffset+1, 1, lineHeight);
+				this.fillRect(Math.floor(cx), y - vOffset+1, 1, lineHeight-2);
 				this.restore();
 			}
-			this.fillText(c.char, cx, y);
+			this.fillText(c.char, cx, y-1);
 		}
 	},
 
@@ -575,7 +575,7 @@ canvas.implement({
 		var c;
 		for (var i=0; i<letters.length; i++){
 			c = letters[i];
-			this.fillText(c.char, x + c.position, y);
+			this.fillText(c.char, x + c.position, y-1);
 		}
 	}
 });

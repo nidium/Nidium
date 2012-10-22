@@ -65,13 +65,10 @@ var	dropDownController = win1.contentView.add("UIDropDownController", {
 	selectedColor : "#FFFFFF"
 });
 
-var input = win1.contentView.add("UITextInput", {
+var input = new UITextInput(win1.contentView, {
 	x : 158,
 	y : 8,
-	w : 80,
-	text : "Yes, Edit me !",
-	background : "#191a18",
-	color : "#222222"
+	text : "Yes, Edit me !"
 });
 
 

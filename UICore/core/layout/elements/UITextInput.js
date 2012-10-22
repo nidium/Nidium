@@ -6,17 +6,19 @@ Native.elements.export("UITextInput", {
 	init : function(){
 		var self = this;
 
-		this.w = 140;
-		this.h = 24;
-		this.background = this.options.background || "#191a18";
-		this.color = this.options.color || "#ffffff";
+		this.w = OptionalNumber(this.options.w, 140);;
+		this.h = OptionalNumber(this.options.h, 24);
+		this.lineHeight = OptionalNumber(this.options.lineHeight, this.h-4);
+		this.background = OptionalValue(this.options.background, "#191a18");
+		this.color = OptionalValue(this.options.color, "#222222");
 
 		this.textView = this.add("UIText", {
 			x : 2,
 			y : 2, 
 			w : self.w - 4,
 			h : self.h - 4,
-			fontSize : 11,
+			fontSize : self.fontSize,
+			lineHeight : self.lineHeight,
 			text : self.text,
 			editable : true,
 			background : "rgba(255, 255, 255, 0.85)"
