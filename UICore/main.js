@@ -6,11 +6,14 @@
 
 load("core/native.inc.js");
 //load('demos/demo.ui.js');
-load('demos/demo.windows.js');
+//load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
 //load('demos/demo.diagrams.js');
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
+
+/* -- Featured Demos --------------------------- */
+load('demos/featured.audiobasics.js');
 
 
 /* -- Benchmarks ------------------------------- */
