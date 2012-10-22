@@ -9,7 +9,7 @@ Native.elements.export("UITextInput", {
 		this.w = OptionalNumber(this.options.w, 140);;
 		this.h = OptionalNumber(this.options.h, 24);
 		this.lineHeight = OptionalNumber(this.options.lineHeight, this.h-4);
-		this.background = OptionalValue(this.options.background, "#191a18");
+		this.background = OptionalValue(this.options.background, "#121212");
 		this.color = OptionalValue(this.options.color, "#222222");
 
 		this.textView = this.add("UIText", {
@@ -21,7 +21,7 @@ Native.elements.export("UITextInput", {
 			lineHeight : self.lineHeight,
 			text : self.text,
 			editable : true,
-			background : "rgba(255, 255, 255, 0.85)"
+			background : "#f2f2f4"
 		});
 
 	},
@@ -34,24 +34,15 @@ Native.elements.export("UITextInput", {
 				h : this.h
 			},
 	
-			radius = Math.max(4, this.radius),
-			textHeight = 10,
-			textOffsetX = 8,
-			textOffsetY = (this.h-textHeight)/2 + 9,
-			textColor = this.color,
-			textShadow = '#000000';
+			radius = Math.max(4, this.radius);
 
 
-		this.shadow = true;
-		if (this.shadow) {
-			if (this.selected){
-				canvas.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
-			} else {
-				canvas.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
-			}
+		if (__ENABLE_BUTTON_SHADOWS__) {
+			canvas.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
 		}
 		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view
-		if (this.shadow){
+
+		if (__ENABLE_BUTTON_SHADOWS__){
 			canvas.setShadow(0, 0, 0);
 		}
 

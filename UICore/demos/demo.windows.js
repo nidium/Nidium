@@ -71,6 +71,15 @@ var input = new UITextInput(win1.contentView, {
 	text : "Yes, Edit me !"
 });
 
+var biginput = new UITextInput(win1.contentView, {
+	x : 158,
+	y : 40,
+	h : 36,
+	fontSize : 20,
+	text : "XXX ggg"
+});
+
+
 
 /* Add 4 children windows to main window */
 
