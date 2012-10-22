@@ -3,9 +3,9 @@
 /* -------------------------- */
 
 
-var main = new Application({background:"#262722"}),
+var main = new Application({background:"#262722"});
 
-	win1 = main.add("UIWindow", {
+var	win1 = main.add("UIWindow", {
 		x : 60,
 		y : 60,
 		w : 400,
@@ -16,9 +16,9 @@ var main = new Application({background:"#262722"}),
 		resizable : true,
 		closeable : true,
 		movable : true
-	}),
+	});
 
-	win2 = main.add("UIWindow", {
+var win2 = new UIWindow(main, {
 		x : main.w - 150,
 		y : 30,
 		w : 120,
@@ -65,14 +65,20 @@ var	dropDownController = win1.contentView.add("UIDropDownController", {
 	selectedColor : "#FFFFFF"
 });
 
-var input = win1.contentView.add("UITextInput", {
+var input = new UITextInput(win1.contentView, {
 	x : 158,
 	y : 8,
-	w : 80,
-	text : "Yes, Edit me !",
-	background : "#191a18",
-	color : "#222222"
+	text : "Yes, Edit me !"
 });
+
+var biginput = new UITextInput(win1.contentView, {
+	x : 158,
+	y : 40,
+	h : 36,
+	fontSize : 20,
+	text : "XXX ggg"
+});
+
 
 
 /* Add 4 children windows to main window */

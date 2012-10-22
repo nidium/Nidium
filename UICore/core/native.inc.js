@@ -42,6 +42,8 @@ load(__PATH_CORE__ +	'helper.inc.js');
 load(__PATH_LAYOUT__ +	'core.js');
 load(__PATH_CORE__ +	'events.inc.js');
 
+load(__PATH_CORE__ +	'kernel.inc.js');
+
 /* -- Load UI Elements -- */
 load(__PATH_ELEMENTS__ + 'UIView.js');
 load(__PATH_ELEMENTS__ + 'UIButton.js');
@@ -84,7 +86,7 @@ Native.layout = {
 	ready : false,
 
 	objID : 0,
-	focusObj : 0,
+	focusID : 0,
 	nbObj : 0,
 
 	nodes : {}, // May content several trees of elements 
@@ -116,9 +118,9 @@ Native.layout = {
 		}
 	},
 
-	collectGarbage : function(z){
-		for (var i=z.length-1; i>0; i--){
-			z[i].__garbageCollector && this.destroy(z[i]);
+	collectGarbage : function(elements){
+		for (var i=elements.length-1; i>0; i--){
+			elements[i].__garbageCollector && this.destroy(elements[i]);
 		}
 	},
 
@@ -137,7 +139,7 @@ Native.layout = {
 	},
 
 	/*
-	 * Apply Recursive Inference to rootElement and children
+	 * Apply Recursive Inference to rootElement and its children
 	 */
 	bubble : function(rootElement, inference){
 		var self = this,
@@ -200,12 +202,8 @@ Native.layout = {
 			n = 0;
 
 		this.bubble(this, function(){
+			this._nid = n++;
 			elements.push(this);
-			this._nid = n;
-			this.hasFocus = false;
-			if (self.focusObj == n++){
-				self._animateFocus(this);
-			}
 		});
 
 		this.nbObj = n;
@@ -263,36 +261,40 @@ Native.layout = {
 	},
 
 	focusNextElement : function(){
-		this.focusObj++;
-		if (this.focusObj > this.nbObj-2) {
-			this.focusObj = 0;
-		}
-	},
+		var self = this;
 
-	_animateFocus : function(element){
-		if (element.flags._canReceiveFocus) {
-			this.focus(element);
-		} else {
-			this.focusNextElement();
+		this.focusID++;
+		if (this.focusID > this.nbObj-2) {
+			this.focusID = 0;
 		}
+
+		this.bubble(this, function(){
+			if (self.focusID == this._nid){
+				if (this.flags._canReceiveFocus){
+					self.focus(this);
+				} else {
+					self.focusNextElement();
+				}
+			}
+		});
 	},
 
 	focus : function(element){
 		if (element.hasFocus === true) {
 			return false;
 		}
-
 		if (element.flags._canReceiveFocus) {
-			/* Blur last focused element */
+			/* Fire blur event on last focused element */
 			if (this.currentFocusedElement) {
 				this.currentFocusedElement.fireEvent("blur", {});
+				this.currentFocusedElement.hasFocus = false;
 			}
 
 			/* set this element as the new focused element */
 			element.hasFocus = true;
 			element.fireEvent("focus", {});
 			this.currentFocusedElement = element;
-			this.focusObj = element._nid;
+			this.focusID = element._nid;
 		}
 	},
 

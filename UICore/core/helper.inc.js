@@ -108,7 +108,12 @@ String.prototype.splice = function(offset, size, insert){
 
 String.prototype.htmlTrim = function(){
 	return this.replace(/^[ \t\n\r\f]+|[ \t\n\r\f]+$/g, "");
-}
+};
+
+String.prototype.collapseWhitespace = function(){
+	return this.s.replace(/[\s\xa0]+/g, ' ').replace(/^\s+|\s+$/g, '');
+};
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -204,20 +209,27 @@ var console = {
 	iteration : 0,
 	maxIterations : 20,
 
-	log : function(message){
-		if (typeof message == 'object'){
-			echo(this.dump(message));
-		} else {
-			echo(message);
-		}
+	log : function(...n){
+		echo.apply(this, n.map(this.dump));
 	},
 
-	dump : function(object, pad){
-		var self = this;
+	dump : function(object){
+		var self = this,
+			visited = [],
+			circular = false;
 		
 		var	dmp = function(object, pad){
 			var	out = '',
 				idt = '\t';
+
+			circular = false;
+
+			for (i = 0; i < visited.length; i++) {
+				if (object === visited[i]) {
+					circular = true; 
+					break;
+				}
+			}
 
 			self.iteration++;
 			if (self.iteration>self.maxIterations){
@@ -226,27 +238,60 @@ var console = {
 
 			pad = (pad === undefined) ? '' : pad;
 
-			if (object != null && object != undefined){
+			if (circular) {
+				out = '[circular reference]';
+			} 
+
+			else if (object === null){
+				out = 'null';
+			} 
+
+			else if (object != null && object != undefined){
+				
 				if (object.constructor == Array){
-					out += '[\n';
-					for (var i=0; i<object.length; i++){
-						out += pad + idt + dmp(object[i], pad + idt) + '\n';
-					}
-					out += pad + ']';
-				} else if (object.constructor == Object){
-					out += '{\n';
-					for (var i in object){
-						if (object.hasOwnProperty(i)) {
-							out += pad + idt + i + ' : ' 
-								+ dmp(object[i], pad + idt) + '\n';
+					out += '[';
+					if (object.length>0){
+						var arr = [];
+						out += '\n';
+						for (var i=0; i<object.length; i++){
+							arr.push(pad + idt + dmp(object[i], pad + idt));
 						}
+						out += arr.join(',' + '\n') + '\n';
+						out += pad;
+					}
+					out += ']';
+				} 
+
+				else if (object.constructor == Object){
+					out += '{\n';
+					visited.push(object);
+					for (var i in object){
+						out += pad + idt + i + ' : ' 
+							+ dmp(object[i], pad + idt) + '\n';
 					}
 					out += pad + '}';
-				} else if (typeof(object) == "string"){
+				} 
+
+				else if (typeof(object) == "string"){
 					out += '"' + object + '"';
-				} else if (typeof(object) == "number"){
+				} 
+
+				else if (typeof(object) == "number"){
 					out += object.toString();
-				} else if (object.toString) {
+				} 
+
+				else if (object.constructor === Function){
+					visited.push(object);
+					var source = object.toString();
+					if (source.indexOf('[native code]') > -1) {
+						out += "function(){ [native code] }";
+					} else {
+						out += "function(){ ... }"; //source;
+					}
+
+				} 
+
+				else if (object.toString) {
 					try {
 						out += object;
 					} catch(e){
@@ -262,7 +307,7 @@ var console = {
 		}
 
 		self.iteration = 0;
-		return dmp(object, pad);
+		return dmp(object);
 
 	}
 };
@@ -324,8 +369,43 @@ var FPS = {
 	}
 };
 
+/* -------------------------------------------------------------------------- */
+
+/*
+ *  Simple Iterator
+ *
+ *  ---------
+ *  + USAGE +
+ *  ---------
+ *
+ * 	var o = new Iterator(function(i){
+ * 		echo(i);
+ * 	});
+ * 
+ * 	o(); // 0
+ * 	o(); // 1
+ * 	o(); // 2
+ * 	o(); // 3
+ *
+ */
+
+var Iterator = function(fn){
+	let g;
+	
+	{
+		var i = 0;
+		g = function(){
+			fn.call(this, i);
+			return i++;
+		}
+	}
+
+	return g;
+};
 
 /* -------------------------------------------------------------------------- */
+
+Object.scope = this;
 
 Object.append = function(o, prototype){
 	if (typeof prototype !== "number" && typeof prototype !== "boolean"){
@@ -421,10 +501,22 @@ Object.Handler = function(obj){
 		getPropertyNames : function(){
 			return Object.getOwnPropertyNames(obj);
 		},
-
 		
 		delete : function(key){
 			return delete obj[key];
+		},
+
+		call : function(that, args){
+			/* function call trap */
+			return obj.apply(that, args);
+		},
+
+		construct : function(args){
+			/* contructor trap */
+			var Forward = function(args){
+				return obj.apply(this, args);
+			};
+			return new Forward(args);
 		},
 
 		fix : function(){
@@ -473,6 +565,7 @@ Object.Handler = function(obj){
 	};
 };
 
+
 /*
  * Identity-Preserving Membrane
  * ----------------------------
@@ -483,7 +576,7 @@ Object.Handler = function(obj){
  * More @ http://wiki.ecmascript.org/doku.php?id=harmony:proxies
  */
 
-var Membrane = function(wetTarget){
+Object.Membrane = function(wetTarget, profiler){
 	var wet2dry = new WeakMap(),
 		dry2wet = new WeakMap();
 
@@ -516,14 +609,13 @@ var Membrane = function(wetTarget){
 		heat2.set(revokeHandler, forwardingHandler);
 
 		var callTrap = function(...n){
-			return source(obj.apply(mapper(this), n.map(mapper)));
+			var k = revokeHandler.call(mapper(this), n.map(mapper));
+			return source(k);
 		};
 
 		var constructorTrap = function(...n){
-			var forward = function(args){
-				return obj.apply(mapper(this), args);
-			};
-			return source(new forward(n.map(mapper)));
+			var k = revokeHandler.construct(n.map(mapper));
+			return source(k);
 		};
 
 		if (typeof obj === "function"){
@@ -555,7 +647,7 @@ var Membrane = function(wetTarget){
 		if (Object.isPrimitive(obj)) return obj;
 		var proxy = dry2wet.get(obj);
 		return proxy ? proxy : getProxy(obj, "wet");
-	}
+	};
 
 	var revoke = function(){
 		dry2wet = wet2dry = Object.freeze({
