@@ -13,7 +13,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 }
 
-#if 1
+#if 0
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -54,7 +54,7 @@ class NativeAudio
 
         NativeAudioNodeTarget *output;
 
-        NativeAudioTrack *addTrack();
+        NativeAudioTrack *addTrack(int out);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         void connect(NativeAudioNode::NodeLink *input, NativeAudioNode::NodeLink *output);
 
@@ -109,7 +109,7 @@ class NativeAudioTrack;
 class NativeAudioTrack : public NativeAudioNode
 {
     public:
-        NativeAudioTrack(NativeAudioParameters *outputParameters, pthread_cond_t *bufferNotEmpty);
+        NativeAudioTrack(int out, NativeAudioParameters *outputParameters, NativeSharedMessages *msg, pthread_cond_t *bufferNotEmpty);
 
         NativeAudioParameters *outputParameters;
 

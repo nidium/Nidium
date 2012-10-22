@@ -149,14 +149,16 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSAudioNode *node;
 
     node = NULL;
+    ret = NULL;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Suu", &name, &in, &out)) {
         return JS_TRUE;
     }
 
     JSAutoByteString cname(cx, name);
+    ret = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
 
-    if (strcmp("source", cname.ptr()) == 0) {                                                                                                 
+    if (strcmp("source", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(audio->createNode(NativeAudio::SOURCE, in, out));
         JS_DefineFunctions(cx, ret, audionode_source_funcs);
     } else if (strcmp("gain", cname.ptr()) == 0) {
@@ -169,13 +171,11 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (node == NULL) {
+        // TODO : Free ret
         JS_ReportError(cx, "Error while creating node : %s\n", cname.ptr());
         delete node;
         return JS_TRUE;
     }
-
-
-    ret = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
 
     node->jsobj = ret;
     node->cx = cx;
@@ -229,7 +229,7 @@ static JSBool native_audionode_input(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    if (channel < 0 || channel > node->inCount) {
+    if (channel < 0 || channel >= node->inCount) {
         JS_ReportError(cx, "Wrong input index\n");
         return JS_TRUE;
     }
@@ -267,11 +267,12 @@ static JSBool native_audionode_output(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *name;
-    NativeAudio *audio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp))->audio;
-    NativeJSAudioNode *node;
+    NativeAudioNode *node = (NativeAudioNode *)NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
     NativeAudioNode::ArgType type;
-
-    node = NULL;
+    void *value;
+    int intVal;
+    double doubleVal;
+    unsigned long size;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
         return JS_TRUE;
@@ -282,12 +283,21 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
 
     if (val.isInt32()) {
         type = NativeAudioNode::INT;
-        printf("it's an int\n");
+        size = sizeof(int);
+        intVal = val.toInt32();
+        value = &intVal;
     } else if (val.isDouble()) {
-        type = NativeAudioNode::FLOAT;
-        printf("it's a double\n");
+        type = NativeAudioNode::DOUBLE;
+        size = sizeof(double);
+        doubleVal = val.toDouble();
+        value = &doubleVal;
     } else {
         JS_ReportError(cx, "Unsuported value\n");
+        return JS_TRUE;
+    }
+
+    if (!node->set("gain", type, value, size)) {
+        JS_ReportError(cx, "Unknown argument name %s\n", cname.ptr());
         return JS_TRUE;
     }
 
@@ -296,6 +306,7 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_audionode_get(JSContext *cx, unsigned argc, jsval *vp)
 {
+    return JS_TRUE;
 }
 
 static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *vp) 
@@ -315,15 +326,15 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
         return JS_TRUE;
     }
 
+    jnode->arrayBuff = arrayBuff;
+    JS_AddObjectRoot(cx, &jnode->arrayBuff);
+
     if (int ret = source->open(
                 JS_GetArrayBufferData(arrayBuff, cx), 
                 JS_GetArrayBufferByteLength(arrayBuff, cx)) < 0) {
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
         return JS_TRUE;
     }
-
-    jnode->arrayBuff = arrayBuff;
-    JS_AddObjectRoot(cx, &jnode->arrayBuff);
 
     return JS_TRUE;
 }

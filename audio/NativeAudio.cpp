@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "NativeAudio.h"
+#include <NativeSharedMessages.h>
 
 // TODO : use Singleton
 // if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
@@ -17,7 +18,7 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
 
     pthread_mutex_init(&this->shutdownLock, NULL);
 
-    sharedMsg = new NativeSharedMessages();
+    this->sharedMsg = new NativeSharedMessages();
 
     // Save output parameters
     this->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
@@ -161,10 +162,24 @@ void *NativeAudio::queueThread(void *args) {
     wrote = false;
 
     while (true) {
+        NativeSharedMessages::Message msg;
+
         pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
 
         // Process input message
-        sharedMsg
+        while (audio->sharedMsg->readMessage(&msg)) {
+            switch (msg.event()) {
+                case NATIVE_AUDIO_NODE_SET : {
+                    NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
+                    memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
+                    delete nodeMsg;
+                }
+                    break;
+                case NATIVE_AUDIO_SHUTDOWN :
+                    audio->threadShutdown = true;
+                    break;
+            }
+        }
 
         if (audio->output != NULL) {
             for (;;) {
@@ -200,8 +215,7 @@ void *NativeAudio::queueThread(void *args) {
                 }
             }
             SPAM(("Finished FX queue\n"));
-        }
-
+        } 
         /*
         pthread_mutex_lock(&audio->shutdownLock);
         if(audio->threadShutdown) {
@@ -378,10 +392,10 @@ int NativeAudio::getSampleSize(int sampleFormat) {
     }
 }
 
-NativeAudioTrack *NativeAudio::addTrack() {
+NativeAudioTrack *NativeAudio::addTrack(int out) {
     NativeAudioTracks *tracks = (NativeAudioTracks *)malloc(sizeof(NativeAudioTracks));
 
-    tracks->curr = new NativeAudioTrack(this->outputParameters, &this->bufferNotEmpty);
+    tracks->curr = new NativeAudioTrack(out, this->outputParameters, this->sharedMsg, &this->bufferNotEmpty);
 
     tracks->prev = NULL;
     tracks->next = this->tracks;
@@ -401,13 +415,14 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
 {
     switch (node) {
         case SOURCE:
-                return this->addTrack();
+                return this->addTrack(output);
             break;
         case GAIN:
+                return new NativeAudioNodeGain(input, output, this->outputParameters, this->sharedMsg);
             break;
         case TARGET:
                 if (this->openOutput() == 0) {
-                    this->output = new NativeAudioNodeTarget(input, output, this->outputParameters);
+                    this->output = new NativeAudioNodeTarget(input, output, this->outputParameters, this->sharedMsg);
                     return this->output;
                 } else {
                     return NULL;
@@ -419,22 +434,6 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
 
     return NULL;
 }
-
-bool NativeAudio::setNodeArg(const char *name, void *value, ArgType type) 
-{
-    for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
-        if (this->args[i] != NULL && strcmp(name, this->args[i]->name) == 0) {
-            if (this->args[i]->type == type) {
-                // Post to SharedMessage
-            } /* else {
-                 return false;
-            } */
-        }
-    }
-
-    return false;
-}
-
 
 void NativeAudio::connect(NativeAudioNode::NodeLink *input, NativeAudioNode::NodeLink *output) {
     output->node->queue(input, output);
@@ -476,8 +475,8 @@ NativeAudio::~NativeAudio() {
 
 }
 
-NativeAudioTrack::NativeAudioTrack(NativeAudioParameters *outputParameters, pthread_cond_t *bufferNotEmpty) 
-    : NativeAudioNode(0, 2, outputParameters), outputParameters(outputParameters), bufferNotEmpty(bufferNotEmpty), opened(false), playing(false), paused(false), 
+NativeAudioTrack::NativeAudioTrack(int out, NativeAudioParameters *outputParameters, NativeSharedMessages *msg, pthread_cond_t *bufferNotEmpty) 
+    : NativeAudioNode(0, out, outputParameters, msg), outputParameters(outputParameters), bufferNotEmpty(bufferNotEmpty), opened(false), playing(false), paused(false), 
       container(NULL), avctx(NULL), frameConsumed(true), packetConsumed(true), audioStream(-1),
       sCvt(NULL), fCvt(NULL), eof(false)
 {

@@ -28,6 +28,7 @@ CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I/home/efyx/dev/mozilla-central/js
 				-I$(SKIA)/include/utils/mac \
 				-I../network \
 				-I../audio/ \
+				-I./ \
 				-I ../../portaudio/src/common/ 
 				
 
