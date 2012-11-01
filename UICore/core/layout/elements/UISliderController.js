@@ -47,7 +47,9 @@ Native.elements.export("UISliderController", {
 
 		this.addEventListener("mousedown", function(e){
 			var start = self.vertical ? this.knob.y : this.knob.x,
-				delta = self.vertical ?(e.y - this.__y - this.knob.h/2) : (e.x - this.__x - this.knob.w/2),
+				delta = self.vertical ? (e.y - this.__y - this.knob.h/2)
+									  : (e.x - this.__x - this.knob.w/2),
+
 				property = self.vertical ? "top" : "left";
 
 			this.knob.animate(property, start, delta, 200,
@@ -55,7 +57,7 @@ Native.elements.export("UISliderController", {
 					self.fireEvent("complete", self.value);
 				},
 
-				FXAnimation.easeOutQuad,
+				Math.physics.quadOut,
 
 				function(pixelValue){
 					self.setKnobPosition(pixelValue);
@@ -88,8 +90,17 @@ Native.elements.export("UISliderController", {
 
 		this.knob.addEventListener("drag", function(e){
 			self.draggingSlider = true;
-			var position = self.vertical ? this.top + e.yrel : this.left + e.xrel;
-			self.setKnobPosition(position);
+
+			var exrel = e.x<this.__x || e.x>this.__x+this.__w ? 0 : e.xrel,
+				eyrel = e.y<this.__y || e.y>this.__y+this.__h ? 0 : e.yrel;
+
+			var nx = this.left + e.xrel,
+				ny = this.top + e.yrel;
+
+			nx = e.x - self.__x - this.w/2;
+			ny = e.y - self.__y - this.h/2;
+
+			self.setKnobPosition(self.vertical ? ny : nx);
 		});
 
 		this.knob.addEventListener("dragend", function(){
@@ -101,7 +112,10 @@ Native.elements.export("UISliderController", {
 			var d = e.yrel !=0 ? e.yrel : e.xrel !=0 ? e.xrel : 0,
 				delta = 1 + (-d-1);
 
-			self.setKnobPosition(self.vertical ? this.knob.top + delta : this.knob.left + delta);
+			self.setKnobPosition(
+				self.vertical ? this.knob.top + delta : this.knob.left + delta
+			);
+			e.forcePropagation();
 		}, true);
 
 		this.setKnobPosition = function(pixelValue){
@@ -140,10 +154,13 @@ Native.elements.export("UISliderController", {
 					this.knob.animate("top", start, y, duration,
 						function(){
 							self.moving = false;
-							typeof(callback)=="function" && callback.call(self, self.value);
+							if (typeof(callback)=="function"){
+								callback.call(self, self.value);
+							}
 						},
 
-						self.options.ease ? self.options.ease : FXAnimation.easeInExpo,
+						self.options.ease ? self.options.ease 
+										  : Math.physics.expoIn,
 
 						function(ky){
 							self.setKnobPosition(ky);
@@ -162,10 +179,13 @@ Native.elements.export("UISliderController", {
 					this.knob.animate("left", start, x, duration,
 						function(){
 							self.moving = false;
-							typeof(callback)=="function" && callback.call(self, self.value);
+							if (typeof(callback)=="function"){
+								callback.call(self, self.value);
+							}
 						},
 
-						self.options.ease ? self.options.ease : FXAnimation.easeInExpo,
+						self.options.ease ? self.options.ease 
+										  : Math.physics.expoIn,
 
 						function(kx){
 							self.setKnobPosition(kx);
@@ -190,10 +210,16 @@ Native.elements.export("UISliderController", {
 				w : this.w,
 				h : this.h
 			},
-			x, y, w, h;
+			
+			x, y, 
+			w, h;
 
 		if (this.boxColor){
-			canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.boxColor, false);
+			canvas.roundbox(
+				params.x, params.y, 
+				params.w, params.h, 
+				this.radius, this.boxColor, false
+			);
 		}
 
 		if (this.vertical){
@@ -216,7 +242,10 @@ Native.elements.export("UISliderController", {
 				vOffset = 2+this.lineHeight/2,
 				tx = mx = 0,
 				textWidth = 0,
-				value = this.labelPrefix + Math.round(this.value*10)/10 + this.labelSuffix;
+
+				value = this.labelPrefix + 
+						Math.round(this.value*10)/10 + 
+						this.labelSuffix;
 
 
 			canvas.setFontSize(this.fontSize);
@@ -226,7 +255,11 @@ Native.elements.export("UISliderController", {
 			mx = (this.labelWidth - textWidth)/2;
 
 			if (this.labelBackground){
-				canvas.roundbox(tx, ky+this.labelOffset, this.labelWidth, this.lineHeight, 8, this.labelBackground, false);
+				canvas.roundbox(
+					tx, ky+this.labelOffset, 
+					this.labelWidth, this.lineHeight, 
+					8, this.labelBackground, false
+				);
 			}
 
 			if (this.labelColor){
@@ -240,7 +273,11 @@ Native.elements.export("UISliderController", {
 		canvas.setShadow(0, 0, 0);
 
 		if (this.background){
-			canvas.roundbox(x, y, w, h, this.radius, "rgba(0, 0, 0, 0.25)", false);
+			canvas.roundbox(
+				x, y, 
+				w, h, 
+				this.radius, "rgba(0, 0, 0, 0.25)", false
+			);
 		}
 
 		if (this.progressBarColor){
@@ -249,9 +286,17 @@ Native.elements.export("UISliderController", {
 			canvas.setShadow(0, 0, 4, this.progressBarColor);
 			canvas.globalAlpha = ga;
 			if (this.vertical){
-				canvas.roundbox(x, y + this.pixelValue, w, h-this.pixelValue, this.radius, this.progressBarColor, false);
+				canvas.roundbox(
+					x, y + this.pixelValue, 
+					w, h-this.pixelValue, 
+					this.radius, this.progressBarColor, false
+				);
 			} else {
-				canvas.roundbox(x, y, this.pixelValue, h, this.radius, this.progressBarColor, false);
+				canvas.roundbox(
+					x, y, 
+					this.pixelValue, h, 
+					this.radius, this.progressBarColor, false
+				);
 			}
 			canvas.setShadow(0, 0, 0);
 		}

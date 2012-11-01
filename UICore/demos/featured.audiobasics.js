@@ -88,7 +88,6 @@ var myAudioApp = {
 
 	load : function(url, callback){
 		var self = this;
-
 		var r = new Http(url).request(function(e){
 			if (e.type == "audio"){
 				callback.call(self, e.data);
@@ -105,7 +104,8 @@ var myAudioApp = {
 };
 
 
-var tune = "http://195.122.253.112/public/mp3/Symphony%20X/Symphony%20X%20'Prelude'.mp3";
+//var tune = "http://195.122.253.112/public/mp3/Symphony%20X/Symphony%20X%20'Prelude'.mp3";
+var tune = "http://labs.swelen.com/games/ztype4coders/media/music/endure.ogg";
 
 myAudioApp.init();
 myAudioApp.load(tune, function(audioBuffer){

@@ -87,7 +87,7 @@ Native.elements.export("UITab", {
 							position : __currentDragingTabPosition+1
 						});
 
-						n.slideX(__startX, 150, function(){}, FXAnimation.easeOutCubic);
+						n.slideX(__startX, 150, function(){}, Math.physics.cubicOut);
 						self.parent.swapTabs(i, i+1);
 						__fireEvent = true;
 
@@ -114,7 +114,7 @@ Native.elements.export("UITab", {
 							position : __currentDragingTabPosition-1
 						});
 
-						p.slideX(__endX - p.__w, 150, function(){}, FXAnimation.easeOutCubic);
+						p.slideX(__endX - p.__w, 150, function(){}, Math.physics.cubicOut);
 						self.parent.swapTabs(i, i-1);
 						__fireEvent = true;
 

@@ -160,11 +160,11 @@ docButton1.addEventListener("mousedown", function(e){
 	if (!this.toggle) {
 		greenView.set("scale", 0, 150, function(){
 			this.visible = false;
-		}, FXAnimation.easeInOutQuad);
+		}, Math.physics.quadInOut);
 		this.toggle = true;
 	} else {
 		greenView.visible = true;
-		greenView.set("scale", 1.5, 250, function(){}, FXAnimation.easeOutElastic);
+		greenView.set("scale", 1.5, 250, function(){}, Math.physics.elasticOut);
 		this.toggle = false;
 	}
 });
