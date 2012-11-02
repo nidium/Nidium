@@ -3,12 +3,14 @@
 #include "common.h"
 #include "ape_events.h"
 #include "ape_socket.h"
+#ifndef __WIN32
 #include <sys/time.h>
+#include <unistd.h>
+#endif
 #include <time.h>
 
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 
 #ifdef USE_KQUEUE_HANDLER

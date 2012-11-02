@@ -3,12 +3,21 @@
 
 #ifdef __linux__
   #define USE_EPOLL_HANDLER
-#else
+#elif defined(__APPLE__)
   #define USE_KQUEUE_HANDLER
+#elif defined(_MSC_VER)
+  #define USE_SELECT_HANDLER
+  #define __WIN32
+#else
+  #error "No suitable IO handler found"
 #endif
 
-#include "../c-ares/ares.h"
 
+#ifdef _MSC_VER
+  #include <ares.h>
+#else
+  #include "../c-ares/ares.h"
+#endif
 #define APE_BASEMEM 4096
 
 #define ape_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))

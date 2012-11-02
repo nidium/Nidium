@@ -172,7 +172,7 @@ static int state_transition_table[NR_STATES][NR_CLASSES] = {
 };
 
 /* compiled as jump table by gcc */
-inline int parse_http_char(struct _http_parser *parser, const unsigned char c)
+int parse_http_char(struct _http_parser *parser, const unsigned char c)
 {
 #define HTTP_FLG_POST (1 << 31)
 #define HTTP_FLG_QS (1 << 30)

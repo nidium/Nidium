@@ -27,7 +27,7 @@ int events_del(int fd, ape_global *ape)
     return 1;
 }
 
-inline int events_poll(struct _fdevent *ev, int timeout_ms)
+__inline int events_poll(struct _fdevent *ev, int timeout_ms)
 {
     int nfds;
 
@@ -39,7 +39,7 @@ inline int events_poll(struct _fdevent *ev, int timeout_ms)
 }
 
 
-inline void *events_get_current_fd(struct _fdevent *ev, int i)
+__inline void *events_get_current_fd(struct _fdevent *ev, int i)
 {
     return ev->get_current_fd(ev, i);
 }

@@ -1,24 +1,35 @@
-#include "../c-ares/ares.h"
-#include <netdb.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
+#ifdef _MSC_VER
+  #include <ares.h>
+  #include <WinSock2.h>
+  #include <io.h>
+#else
+  #include "../c-ares/ares.h"
+  #include <netdb.h>
+  #include <unistd.h>
+  #include <arpa/inet.h>
+#endif
 
+#include <stdlib.h>
 #include "common.h"
 #include "ape_dns.h"
 #include "ape_events.h"
 
 #include <stdio.h>
-#include <unistd.h>
+
 #include <fcntl.h>
 
 /* gcc *.c -I../deps/ ../deps/c-ares/.libs/libcares.a -lrt */
 
 #ifdef FIONBIO
-static inline int setnonblocking(int fd)
+static __inline int setnonblocking(int fd)
 {
     int  ret = 1;
-
+#ifdef _MSC_VER
+	return ioctlsocket(fd, FIONBIO, &ret);
+    #define close _close
+#else
     return ioctl(fd, FIONBIO, &ret);
+#endif
 }
 #else
 #define setnonblocking(fd) fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)

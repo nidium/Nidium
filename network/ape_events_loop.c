@@ -4,7 +4,9 @@
 #include "ape_timers.h"
 #include "ape_timers_next.h"
 
+#ifndef __WIN32
 #include <sys/time.h>
+#endif
 #include <stdio.h>
 
 
