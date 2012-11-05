@@ -220,6 +220,8 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     ape_socket *socket = arg;
     struct sockaddr_in addr;
 
+	printf("Ready to connect...\n");
+
 #ifdef _HAS_ARES_SUPPORT
     if (status != ARES_SUCCESS) {
         APE_socket_destroy(socket);
@@ -230,11 +232,18 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     addr.sin_port = htons(socket->remote_port);
     addr.sin_addr.s_addr = inet_addr(remote_ip);
     memset(&(addr.sin_zero), '\0', 8);
+#ifdef __WIN32
+  #undef EINPROGRESS
+  #undef EWOULDBLOCK
+  #undef errno
 
+  #define EINPROGRESS WSAEINPROGRESS
+  #define EWOULDBLOCK WSAEWOULDBLOCK
+  #define errno  WSAGetLastError()
+#endif
     if (connect(socket->s.fd, (struct sockaddr *)&addr,
                 sizeof(struct sockaddr)) == 0 ||
-            errno != EINPROGRESS) {
-
+				(errno != EWOULDBLOCK && errno != EINPROGRESS)) {
         APE_socket_destroy(socket);
         return -1;
     }
@@ -258,6 +267,7 @@ int APE_socket_connect(ape_socket *socket, uint16_t port,
 
     socket->remote_port = port;
 #ifdef _HAS_ARES_SUPPORT
+	printf("Connecting...\n");
     ape_gethostbyname(remote_ip_host, ape_socket_connect_ready_to_connect,
             socket, socket->ape);
 #else
@@ -807,7 +817,6 @@ int ape_socket_read(ape_socket *socket)
         printf("socket is not online\n");
         return 0;
     }
-    
     do {
         /* TODO : avoid extra calling (avoid realloc) */
         buffer_prepare(&socket->data_in, 2048);
@@ -845,7 +854,7 @@ socket_reread:
             nread = read(socket->s.fd,
                 socket->data_in.data + socket->data_in.used,
                 socket->data_in.size - socket->data_in.used);
-
+			
             if (nread == -1) {
                 switch(errno) {
                     case EINTR:
@@ -853,7 +862,9 @@ socket_reread:
                     default:
                         break;
                 }
-            }
+			} else {
+				printf("read %d\n", nread);
+			}
 
             socket->data_in.used += ape_max(nread, 0);
 #ifdef _HAVE_SSL_SUPPORT

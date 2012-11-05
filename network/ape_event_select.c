@@ -45,7 +45,7 @@ static int event_select_add(struct _fdevent *ev, int fd, int bitadd,
 		ev->fds[fd].read |= evsb_added;
 
 	if (bitadd & EVENT_WRITE) 
-		ev->fds[fd].write |= evsb_added;
+		ev->fds[fd].write |= evsb_added | evsb_writeWatch;
 
 	ev->fds[fd].fd = fd;
 	ev->fds[fd].ptr = attach;
@@ -83,10 +83,10 @@ static int event_select_poll(struct _fdevent *ev, int timeout_ms)
   {
     if (ev->fds[fd].read) {
       FD_SET(fd, &rfds);
-      printf("[----] WATCH read on %d\n", fd);
+    
     }
     if (ev->fds[fd].write & evsb_writeWatch) {
-      printf("[----] WATCH WRITE on %d\n", fd);
+      
       FD_SET(fd, &wfds);
     }
     if (ev->fds[fd].read || ev->fds[fd].write & evsb_writeWatch)
@@ -106,20 +106,20 @@ static int event_select_poll(struct _fdevent *ev, int timeout_ms)
     case 0:
       return numfds;
   }
-  printf("passed\n");
+ 
   /* Mark pending data */
   for (fd=0; fd <= maxfd; fd++)
   {
     if (FD_ISSET(fd, &rfds)) {
       ev->fds[fd].read |= evsb_ready;
-	  printf("ready for read\n");
+	  
 	}
     else
       ev->fds[fd].read &= ~evsb_ready;
 
     if (FD_ISSET(fd, &wfds)) {
       ev->fds[fd].write |= evsb_ready;
-      printf("[++] Write is ready in select()\n\n");
+     
     }
     else
     {
@@ -135,7 +135,7 @@ static int event_select_poll(struct _fdevent *ev, int timeout_ms)
       ev->events[i++] = &ev->fds[fd];
     }
   }
-  if (i > 0) printf("got something %d\n", i);
+  
   return i;
 }
 
