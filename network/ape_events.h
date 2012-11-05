@@ -1,7 +1,6 @@
 #ifndef __APE_EVENTS_H_
 #define __APE_EVENTS_H_
 
-
 #include "common.h"
 
 #ifdef USE_KQUEUE_HANDLER
@@ -56,6 +55,7 @@ typedef struct {
   int  fd;
   char read:4;          /* bitmask */
   char write:4;         /* bitmask */
+  void *ptr;
 } select_fd_t;
 #endif
 
@@ -91,11 +91,12 @@ struct _fdevent {
 int events_init(ape_global *ape);
 int events_add(int fd, void *attach, int bitadd, ape_global *ape);
 int events_del(int fd, ape_global *ape);
-__inline void *events_get_current_fd(struct _fdevent *ev, int i);
-__inline int events_poll(struct _fdevent *ev, int timeout_ms);
+void *events_get_current_fd(struct _fdevent *ev, int i);
+int events_poll(struct _fdevent *ev, int timeout_ms);
 
 int event_kqueue_init(struct _fdevent *ev);
 int event_epoll_init(struct _fdevent *ev);
+int event_select_init(struct _fdevent *ev);
 int events_revent(struct _fdevent *ev, int i);
 #endif
 

@@ -63,7 +63,7 @@ static __inline int setnonblocking(int fd)
 #endif
 
 #ifdef __WIN32
-#define read _read
+#define read(fd, buf, len) recv(fd, buf, len, 0)
 long int writev(int fd, const struct iovec* vector, int count)
 {
 	DWORD sent;
@@ -111,6 +111,7 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
 
     err = WSAStartup(wVersionRequested, &wsaData);
     if (err != 0) {
+		printf("WSA failed\n");
         return NULL;
     }
 
@@ -122,6 +123,8 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     if ((sock == 0 &&
         (sock = socket(AF_INET /* TODO AF_INET6 */, proto, 0)) == -1) ||
         setnonblocking(sock) == -1) {
+
+		printf("Cant create socket\n");
         return NULL;
     }
 
@@ -186,10 +189,11 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
                     socket->states.proto == APE_SOCKET_PT_SSL) &&
                 listen(socket->s.fd, APE_SOCKET_BACKLOG) == -1)) {
 #ifdef __WIN32
-		_close(socket->s.fd);
+		closesocket(socket->s.fd);
 #else
         close(socket->s.fd);
 #endif
+		printf("cant bind\n");
         return -1;
     }
 #ifdef TCP_DEFER_ACCEPT
@@ -203,7 +207,7 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
 #endif
     socket->states.type = APE_SOCKET_TP_SERVER;
     socket->states.state = APE_SOCKET_ST_ONLINE;
-
+	printf("Socket %d listening\n", socket->s.fd);
     events_add(socket->s.fd, socket, EVENT_READ|EVENT_WRITE, socket->ape);
 
     return 0;
@@ -340,7 +344,7 @@ int APE_socket_destroy(ape_socket *socket)
     
     //printf("====== Destroy : %d ======\n", APE_SOCKET_FD(socket));
 #ifdef __WIN32
-	_close(APE_SOCKET_FD(socket));
+	closesocket(APE_SOCKET_FD(socket));
 #else
     close(APE_SOCKET_FD(socket));
 #endif
@@ -485,7 +489,7 @@ int APE_socket_write(ape_socket *socket, unsigned char *data,
 #endif
         while (t_bytes < len) {
 #ifdef __WIN32
-			if ((n = _write(socket->s.fd, data + t_bytes, r_bytes)) < 0) {
+			if ((n = send(socket->s.fd, data + t_bytes, r_bytes, 0)) < 0) {
 #else
             if ((n = write(socket->s.fd, data + t_bytes, r_bytes)) < 0) {
 #endif
@@ -746,14 +750,14 @@ static int ape_socket_queue_buffer(ape_socket *socket, buffer *b)
 }
 #endif
 
-__inline void ape_socket_connected(ape_socket *socket)
+void ape_socket_connected(ape_socket *socket)
 {
     if (socket->callbacks.on_connected != NULL) {
         socket->callbacks.on_connected(socket, socket->ape);
     }
 }
 
-__inline int ape_socket_accept(ape_socket *socket)
+int ape_socket_accept(ape_socket *socket)
 {
     int fd, sin_size = sizeof(struct sockaddr_in);
     struct sockaddr_in their_addr;
@@ -795,7 +799,7 @@ __inline int ape_socket_accept(ape_socket *socket)
 }
 
 /* Consume socket buffer */
-__inline int ape_socket_read(ape_socket *socket)
+int ape_socket_read(ape_socket *socket)
 {
     ssize_t nread;
     

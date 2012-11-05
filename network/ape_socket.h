@@ -184,9 +184,9 @@ void APE_socket_shutdown(ape_socket *socket);
 void APE_socket_shutdown_now(ape_socket *socket);
 int APE_sendfile(ape_socket *socket, const char *file);
 int ape_socket_do_jobs(ape_socket *socket);
-__inline int ape_socket_accept(ape_socket *socket);
-__inline int ape_socket_read(ape_socket *socket);
-__inline void ape_socket_connected(ape_socket *socket);
+int ape_socket_accept(ape_socket *socket);
+int ape_socket_read(ape_socket *socket);
+void ape_socket_connected(ape_socket *socket);
 
 #ifdef __cplusplus
 }

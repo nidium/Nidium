@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #endif
 #include <stdio.h>
-
+#include <stddef.h>
 
 extern int ape_running;
 

@@ -91,7 +91,6 @@ int process_timers(ape_timers *timers)
 	ape_timer *cur = timers->head;
 
 	/* TODO: paused timer */
-
 	while (cur != NULL) {
 		uint64_t start;
 
@@ -245,6 +244,6 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 	}
 
 	timers->head = timer;
-
+	printf("Timer added %d %p\n", ms, timers->head);
 	return timer;
 }
