@@ -74,7 +74,8 @@ int main(int argc, char *argv[]) {
 
     NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
-    NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
+    NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
+    //NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     /*
     NativeAudioNodeMixer *mixer = (NativeAudioNodeMixer*)audio->createNode("mixer", 4, 2);
     NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
@@ -85,24 +86,33 @@ int main(int argc, char *argv[]) {
 
     //audio->connect(gain->output[0], gain->input[0]);
 
-    audio->connect(track1->output[0], gain->input[0]);
-    audio->connect(track1->output[1], gain->input[1]);
 
-    audio->connect(track2->output[0], target->input[0]);
-    audio->connect(track2->output[1], target->input[1]);
+    //audio->connect(track2->output[0], target->input[0]);
+    //audio->connect(track2->output[1], target->input[1]);
 
 
     double gainValue = 1;
+    double gainValue2 = 1;
     gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
+    gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
+
+    audio->connect(track1->output[0], gain->input[0]);
+    audio->connect(track1->output[1], gain->input[1]);
 
     audio->connect(gain->output[0], target->input[0]);
     audio->connect(gain->output[1], target->input[1]);
 
+    audio->connect(gain->output[0], gain2->input[0]);
+    audio->connect(gain->output[1], gain2->input[1]);
+
+    audio->connect(gain2->output[0], gain->input[0]);
+    audio->connect(gain2->output[1], gain->input[1]);
+
     track1->open(buffer1, bufferSize);
-    track2->open(buffer2, bufferSize);
+    //track2->open(buffer2, bufferSize);
 
     track1->play();
-    track2->play();
+    //track2->play();
 
     //NativeAudioTrack *track2 = audio->addTrack();
     //track2->open(buffer2, bufferSize);

@@ -7,12 +7,6 @@
 #define NATIVE_AUDIONODE_CHANNEL_SIZE 32
 #define NATIVE_AUDIONODE_WIRE_SIZE 32
 
-#if 1
-  #define SPAM(a) printf a
-#else
-  #define SPAM(a) (void)0
-#endif
-
 class NativeAudioNode;
 
 
@@ -96,6 +90,7 @@ class NativeAudioNode
         bool set(const char *name, ArgType type, void *value, unsigned long size);
 
         void updateFeedback(NativeAudioNode *nOut);
+        void updateWiresFrame(int channel, float *frame);
 
         void queue(NodeLink *in, NodeLink *out);
 
@@ -103,13 +98,7 @@ class NativeAudioNode
 
         virtual bool process() = 0;
 
-        ~NativeAudioNode() {
-            for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
-                if (this->args[i] != NULL) {
-                    delete this->args[i];
-                } 
-            }
-        }
+        ~NativeAudioNode();
 
     protected:
         NativeAudio *audio;

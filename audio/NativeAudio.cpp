@@ -266,6 +266,11 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
         {
             for (int j = 0; j < this->outputParameters->channels; j++) {
                 *out++ = this->cbkBuffer[i + (j * framesPerBuffer)];
+                if (j%2 == 0) {
+                SPAM(("out %f", this->cbkBuffer[i + (j * framesPerBuffer)]));
+                } else {
+                SPAM(("/%f\n", this->cbkBuffer[i + (j * framesPerBuffer)]));
+                }
             }
         }
 
