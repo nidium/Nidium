@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <NativeAudio.h>
+#include <NativeAudioNode.h>
 
 #include <pthread.h>
 #include <unistd.h>
@@ -68,13 +69,13 @@ int main(int argc, char *argv[]) {
     buffer2 = (uint8_t *)malloc(bufferSize);
 
     load("/tmp/test.mp3", buffer1, bufferSize);
-    //load("/tmp/foo.mp3", buffer2, bufferSize);
+    load("/tmp/foo.mp3", buffer2, bufferSize);
 
 
     NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
+    NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     /*
-    NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode("source", 0, 2);
     NativeAudioNodeMixer *mixer = (NativeAudioNodeMixer*)audio->createNode("mixer", 4, 2);
     NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
     */
@@ -87,25 +88,35 @@ int main(int argc, char *argv[]) {
     audio->connect(track1->output[0], gain->input[0]);
     audio->connect(track1->output[1], gain->input[1]);
 
+    audio->connect(track2->output[0], target->input[0]);
+    audio->connect(track2->output[1], target->input[1]);
 
-    double gainValue = 0.25;
-    gain->set("gain", NativeAudioNode::DOUBLE, (void *)&gainValue, sizeof(double));
+
+    double gainValue = 1;
+    gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
 
     audio->connect(gain->output[0], target->input[0]);
     audio->connect(gain->output[1], target->input[1]);
 
     track1->open(buffer1, bufferSize);
-    //track2->open(buffer2, bufferSize);
+    track2->open(buffer2, bufferSize);
 
     track1->play();
-    //track2->play();
+    track2->play();
 
     //NativeAudioTrack *track2 = audio->addTrack();
     //track2->open(buffer2, bufferSize);
     //track2->play();
 
-    pthread_join(threadIO, NULL);
+    /*
+    printf("sleep");
+    sleep(5);
+    audio->shutdown();
+    printf("post\n");
+    */
     pthread_join(threadDecode, NULL);
+    pthread_join(threadDecode, NULL);
+    printf("post join\n");
 
     free(buffer1);
     free(buffer2);

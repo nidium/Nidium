@@ -4,6 +4,7 @@
 #define NATIVE_AUDIO_NODE_GETTER(obj) ((class NativeJSAudioNode *)JS_GetPrivate(obj))
 
 static void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Audio_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp);
@@ -21,7 +22,7 @@ static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *
 static JSClass Audio_class = {
     "Audio", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL, // TODO : Add finalizer
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Audio_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -72,7 +73,8 @@ NativeJSAudio::NativeJSAudio(int size, int channels, int frequency) {
 
 NativeJSAudio::~NativeJSAudio() {
     this->audio->shutdown();
-    // pthread_join
+    pthread_join(this->threadQueue, NULL);
+    pthread_join(this->threadDecode, NULL);
     delete this->audio;
 }
 
@@ -315,6 +317,8 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = (NativeAudioTrack *)jnode->node;
     JSObject *arrayBuff;
 
+    JS_AddValueRoot(cx, &JS_ARGV(cx, vp)[0]);
+
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
         return JS_TRUE;
     }
@@ -326,8 +330,9 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
         return JS_TRUE;
     }
 
-    jnode->arrayBuff = arrayBuff;
-    JS_AddObjectRoot(cx, &jnode->arrayBuff);
+    NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
+    node->arrayBuff = arrayBuff;
+    //JS_AddObjectRoot(cx, &node->arrayBuff);
 
     if (int ret = source->open(
                 JS_GetArrayBufferData(arrayBuff, cx), 
@@ -352,12 +357,20 @@ static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *
     return JS_TRUE;
 }
 
+void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
+    if (audio != NULL) {
+        delete audio;
+    }
+}
+
 void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSAudioNode *source = NATIVE_AUDIO_NODE_GETTER(obj);
     if (source != NULL) {
         delete source;
-    }
+    } 
 }
 
 NATIVE_OBJECT_EXPOSE(Audio)

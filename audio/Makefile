@@ -5,7 +5,7 @@ CPPFLAGS=-I./ -I../src/ -I$(PORTAUDIO)/src/common/ -I$(LIBFSRC) -c -O2 -g -Wall 
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeAudio.cpp 
+SOURCES=NativeAudioNode.cpp NativeAudio.cpp 
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativeaudio.a
 

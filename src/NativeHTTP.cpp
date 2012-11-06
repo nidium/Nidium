@@ -21,6 +21,7 @@ static struct native_http_mime {
     {"audio/mpeg",              NativeHTTP::DATA_AUDIO},
     {"audio/wave",              NativeHTTP::DATA_AUDIO},
     {"audio/ogg",               NativeHTTP::DATA_AUDIO},
+    {"video/ogg",               NativeHTTP::DATA_AUDIO},
     {"audio/webm",              NativeHTTP::DATA_AUDIO},
     {"application/json",        NativeHTTP::DATA_JSON},
     {"text/html",               NativeHTTP::DATA_STRING}, /* TODO: use dom.js */
