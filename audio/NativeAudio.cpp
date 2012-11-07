@@ -15,6 +15,7 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
     pthread_mutex_init(&this->decodeLock, NULL);
 
     pthread_cond_init(&this->queueHaveData, NULL);
+    pthread_cond_init(&this->queueHaveSpace, NULL);
     pthread_mutex_init(&this->queueLock, NULL);
 
     pthread_mutex_init(&this->shutdownLock, NULL);
@@ -79,13 +80,21 @@ void NativeAudio::bufferData() {
 void *NativeAudio::queueThread(void *args) {
     NativeAudio *audio = (NativeAudio *)args;
     bool wrote;
+    int cause;
 
     wrote = false;
+    cause = 0;
 
     while (true && !audio->threadShutdown) {
         NativeSharedMessages::Message msg;
 
-        pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
+        if (cause == 0) {
+            SPAM(("Waiting for more data\n"));
+            pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
+        } else {
+            SPAM(("Waiting for more space\n"));
+            pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
+        }
 
         // Process input message
         while (audio->sharedMsg->readMessage(&msg)) {
@@ -106,13 +115,17 @@ void *NativeAudio::queueThread(void *args) {
         if (audio->output != NULL) {
             for (;;) {
                 if (PaUtil_GetRingBufferWriteAvailable(&audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
+                    SPAM(("Write avail %lu\n", PaUtil_GetRingBufferWriteAvailable(&audio->rBufferOut)));
                     if (!audio->output->recurseGetData()) {
                         SPAM(("break cause of false\n"));
                         break;
                     } else {
                         wrote = true;
                     }
-                    audio->output->nodeProcessed = false;
+
+                    audio->output->nodeProcessed = 0;
+                    cause = 0;
+
                     SPAM(("----------------------\n"));
 
                     if (wrote) {
@@ -122,6 +135,14 @@ void *NativeAudio::queueThread(void *args) {
                             SPAM(("write data = %f/%f\n", audio->output->frames[0][i], audio->output->frames[1][i]));
                         }
                         */
+
+
+                        /*
+                        for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
+                            SPAM(("frame data %f/%f\n", audio->output->frames[0][i], audio->output->frames[1][i]));
+                        }
+                        */
+
                         for (int i = 0; i < audio->output->inCount; i++) {
                             if (audio->output->frames[i] != NULL) {
                                 PaUtil_WriteRingBuffer(&audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
@@ -133,6 +154,7 @@ void *NativeAudio::queueThread(void *args) {
                     }
                 } else {
                     SPAM(("no more space to write\n"));
+                    cause = 1;
                     break;
                 }
             }
@@ -261,22 +283,25 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
 
     if (PaUtil_GetRingBufferReadAvailable(&this->rBufferOut) >= (ring_buffer_size_t) (framesPerBuffer * this->outputParameters->channels)) {
         SPAM(("------------------------------------data avail\n"));
+        SPAM(("SIZE avail : %lu\n", PaUtil_GetRingBufferReadAvailable(&this->rBufferOut)));
         PaUtil_ReadRingBuffer(&this->rBufferOut, this->cbkBuffer, framesPerBuffer * this->outputParameters->channels);
         for (unsigned int i = 0; i < framesPerBuffer; i++)
         {
             for (int j = 0; j < this->outputParameters->channels; j++) {
                 *out++ = this->cbkBuffer[i + (j * framesPerBuffer)];
+                /*
                 if (j%2 == 0) {
-                SPAM(("out %f", this->cbkBuffer[i + (j * framesPerBuffer)]));
+                SPAM(("play data %f", this->cbkBuffer[i + (j * framesPerBuffer)]));
                 } else {
                 SPAM(("/%f\n", this->cbkBuffer[i + (j * framesPerBuffer)]));
                 }
+                */
             }
         }
 
         // Data was read from ring buffer
         // need to process more data
-        pthread_cond_signal(&this->queueHaveData);
+        pthread_cond_signal(&this->queueHaveSpace);
     } else {
         SPAM(("-----------------------------------NO DATA\n"));
         for (unsigned int i = 0; i < framesPerBuffer; i++)

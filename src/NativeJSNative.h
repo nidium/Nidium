@@ -2,7 +2,6 @@
 #define nativejsnative_h__
 
 #include "NativeJSExposer.h"
-#include "NativeJSAudio.h"
 
 
 class NativeJSNative : public NativeJSExposer

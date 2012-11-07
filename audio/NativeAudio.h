@@ -14,7 +14,7 @@ extern "C" {
 #include "libavformat/avformat.h"
 }
 
-#if 1
+#if 0
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -52,7 +52,8 @@ class NativeAudio
         // XXX : Use friend class instead of exposing those var
         float *nullBuffer;
         NativeSharedMessages *sharedMsg;
-        pthread_cond_t bufferNotEmpty, queueHaveData;
+        pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
+        PaUtilRingBuffer rBufferOut;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
@@ -83,7 +84,6 @@ class NativeAudio
         PaStream *inputStream;
         PaStream *outputStream;
 
-        PaUtilRingBuffer rBufferOut;
         float *rBufferOutData;
         float *cbkBuffer;
 

@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 
 
     double gainValue = 1;
-    double gainValue2 = 1;
+    double gainValue2 = 0.80;
     gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
     gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
 
@@ -118,12 +118,10 @@ int main(int argc, char *argv[]) {
     //track2->open(buffer2, bufferSize);
     //track2->play();
 
-    /*
-    printf("sleep");
-    sleep(5);
-    audio->shutdown();
-    printf("post\n");
-    */
+    printf("sleep\n");
+    //usleep(500000);
+    //audio->shutdown();
+
     pthread_join(threadDecode, NULL);
     pthread_join(threadDecode, NULL);
     printf("post join\n");

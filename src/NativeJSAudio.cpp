@@ -17,6 +17,7 @@ static JSBool native_audionode_get(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass Audio_class = {
@@ -57,6 +58,7 @@ static JSFunctionSpec AudioNode_funcs[] = {
 static JSFunctionSpec audionode_source_funcs[] = {
     JS_FN("open", native_audionode_source_open, 1, 0),
     JS_FN("play", native_audionode_source_play, 0, 0),
+    JS_FN("pause", native_audionode_source_pause, 0, 0),
     JS_FN("stop", native_audionode_source_stop, 0, 0),
     JS_FS_END
 };
@@ -81,7 +83,7 @@ NativeJSAudio::~NativeJSAudio() {
 NativeJSAudioNode::~NativeJSAudioNode()
 {
     if (this->arrayBuff != NULL) {
-        JS_RemoveObjectRoot(this->cx, &this->arrayBuff);
+        JS_RemoveValueRoot(this->cx, this->arrayBuff);
     }
     delete this->node;
 }
@@ -193,24 +195,24 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *link1;
     JSObject *link2;
-    NativeAudioNode::NodeLink *nlink1;
-    NativeAudioNode::NodeLink *nlink2;
+    NodeLink *nlink1;
+    NodeLink *nlink2;
     NativeAudio *audio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp))->audio;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &link1, &link2)) {
         return JS_TRUE;
     }
 
-    nlink1 = (NativeAudioNode::NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, JS_ARGV(cx, vp));
-    nlink2 = (NativeAudioNode::NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, JS_ARGV(cx, vp));
+    nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, JS_ARGV(cx, vp));
+    nlink2 = (NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, JS_ARGV(cx, vp));
 
     if (nlink1 == NULL || nlink2 == NULL) {
         JS_ReportError(cx, "Bad AudioNodeLink\n");
         return JS_TRUE;
     }
 
-    if ((nlink1->type == NativeAudioNode::INPUT && nlink2->type == NativeAudioNode::OUTPUT) ||
-        (nlink1->type == NativeAudioNode::OUTPUT && nlink2->type == NativeAudioNode::INPUT)) {
+    if ((nlink1->type == INPUT && nlink2->type == OUTPUT) ||
+        (nlink1->type == OUTPUT && nlink2->type == INPUT)) {
         audio->connect(nlink1, nlink2);
     } else {
         JS_ReportError(cx, "You must give one input and one output\n");
@@ -270,7 +272,7 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *name;
     NativeAudioNode *node = (NativeAudioNode *)NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
-    NativeAudioNode::ArgType type;
+    ArgType type;
     void *value;
     int intVal;
     double doubleVal;
@@ -284,12 +286,12 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
     JS::Value val = JS_ARGV(cx, vp)[1];
 
     if (val.isInt32()) {
-        type = NativeAudioNode::INT;
+        type = INT;
         size = sizeof(int);
         intVal = val.toInt32();
         value = &intVal;
     } else if (val.isDouble()) {
-        type = NativeAudioNode::DOUBLE;
+        type = DOUBLE;
         size = sizeof(double);
         doubleVal = val.toDouble();
         value = &doubleVal;
@@ -317,7 +319,6 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = (NativeAudioTrack *)jnode->node;
     JSObject *arrayBuff;
 
-    JS_AddValueRoot(cx, &JS_ARGV(cx, vp)[0]);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
         return JS_TRUE;
@@ -331,7 +332,8 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     }
 
     NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
-    node->arrayBuff = arrayBuff;
+    node->arrayBuff = &JS_ARGV(cx, vp)[0];
+    JS_AddValueRoot(cx, node->arrayBuff);
     //JS_AddObjectRoot(cx, &node->arrayBuff);
 
     if (int ret = source->open(
@@ -351,9 +353,19 @@ static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *
 
     return JS_TRUE;
 }
+
+static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
+
+    source->pause();
+    return JS_TRUE;
+}
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp)
 {
-    // Nothing yet
+    NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
+
+    source->stop();
     return JS_TRUE;
 }
 

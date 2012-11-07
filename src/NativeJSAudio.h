@@ -3,6 +3,7 @@
 
 #include "NativeJSExposer.h"
 #include <NativeAudio.h>
+#include <NativeAudioNode.h>
 
 /*
 class NativeJSAudioLink 
@@ -39,7 +40,7 @@ class NativeJSAudioNode: public NativeJSExposer
 
         NativeAudioNode *node;
         JSObject *jsobj;
-        JSObject *arrayBuff;
+        jsval *arrayBuff;
 
         static void registerObject(JSContext *cx);
 };

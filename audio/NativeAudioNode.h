@@ -219,7 +219,7 @@ class NativeAudioTrack : public NativeAudioNode
 
         bool opened;
         bool playing;
-        bool paused;
+        bool stopped;
         int nbChannel;
 
         int open(void *buffer, int size);
@@ -259,6 +259,35 @@ class NativeAudioTrack : public NativeAudioNode
                     }
 
                     return size;
+                }
+
+                static int64_t seek(void *opaque, int64_t offset, int whence) 
+                {
+                    BufferReader *reader = (BufferReader *)opaque;
+                    int64_t pos = 0;
+
+                    switch(whence)
+                    {
+                        case AVSEEK_SIZE:
+                            return reader->bufferSize;
+                        case SEEK_SET:
+                            pos = offset;
+                            break;
+                        case SEEK_CUR:
+                            pos = reader->pos + offset;
+                        case SEEK_END:
+                            pos = reader->bufferSize - offset;
+                        default:
+                            return -1;
+                    }
+
+                    if( pos < 0 || pos > reader->bufferSize) {
+                        return -1;
+                    }
+
+                    reader->pos = pos;
+
+                    return pos;
                 }
 
                 ~BufferReader() {};
