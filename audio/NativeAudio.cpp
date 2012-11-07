@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <portaudio.h>
+#include "pa_ringbuffer.h"
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
 #include <NativeSharedMessages.h>
+extern "C" {
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+}
 
 // TODO : use Singleton
 // if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
@@ -21,6 +27,7 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
     pthread_mutex_init(&this->shutdownLock, NULL);
 
     this->sharedMsg = new NativeSharedMessages();
+    this->rBufferOut = new PaUtilRingBuffer();
 
     // Save output parameters
     this->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
@@ -44,7 +51,7 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
         return;
     }
 
-    if (0 < PaUtil_InitializeRingBuffer((PaUtilRingBuffer*)&this->rBufferOut, 
+    if (0 < PaUtil_InitializeRingBuffer(this->rBufferOut, 
             (NativeAudio::FLOAT32),
             NATIVE_AVDECODE_BUFFER_SAMPLES,
             this->rBufferOutData)) {
@@ -114,8 +121,8 @@ void *NativeAudio::queueThread(void *args) {
 
         if (audio->output != NULL) {
             for (;;) {
-                if (PaUtil_GetRingBufferWriteAvailable(&audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
-                    SPAM(("Write avail %lu\n", PaUtil_GetRingBufferWriteAvailable(&audio->rBufferOut)));
+                if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
+                    SPAM(("Write avail %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
                     if (!audio->output->recurseGetData()) {
                         SPAM(("break cause of false\n"));
                         break;
@@ -145,9 +152,9 @@ void *NativeAudio::queueThread(void *args) {
 
                         for (int i = 0; i < audio->output->inCount; i++) {
                             if (audio->output->frames[i] != NULL) {
-                                PaUtil_WriteRingBuffer(&audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
+                                PaUtil_WriteRingBuffer(audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
                             } else {
-                                PaUtil_WriteRingBuffer(&audio->rBufferOut, audio->nullBuffer, audio->outputParameters->framesPerBuffer);
+                                PaUtil_WriteRingBuffer(audio->rBufferOut, audio->nullBuffer, audio->outputParameters->framesPerBuffer);
                             }
                         }
                         pthread_cond_signal(&audio->bufferNotEmpty);
@@ -211,7 +218,7 @@ void *NativeAudio::decodeThread(void *args) {
         }
 
         if (audio->tracksCount > 0 /*&& haveEnought == audio->tracksCount*/) {
-            if (PaUtil_GetRingBufferWriteAvailable(&audio->rBufferOut) > 0) {
+            if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) > 0) {
                 pthread_cond_signal(&audio->queueHaveData);
             } 
         }
@@ -281,10 +288,10 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     (void) statusFlags;
     (void) inputBuffer;
 
-    if (PaUtil_GetRingBufferReadAvailable(&this->rBufferOut) >= (ring_buffer_size_t) (framesPerBuffer * this->outputParameters->channels)) {
+    if (PaUtil_GetRingBufferReadAvailable(this->rBufferOut) >= (ring_buffer_size_t) (framesPerBuffer * this->outputParameters->channels)) {
         SPAM(("------------------------------------data avail\n"));
-        SPAM(("SIZE avail : %lu\n", PaUtil_GetRingBufferReadAvailable(&this->rBufferOut)));
-        PaUtil_ReadRingBuffer(&this->rBufferOut, this->cbkBuffer, framesPerBuffer * this->outputParameters->channels);
+        SPAM(("SIZE avail : %lu\n", PaUtil_GetRingBufferReadAvailable(this->rBufferOut)));
+        PaUtil_ReadRingBuffer(this->rBufferOut, this->cbkBuffer, framesPerBuffer * this->outputParameters->channels);
         for (unsigned int i = 0; i < framesPerBuffer; i++)
         {
             for (int j = 0; j < this->outputParameters->channels; j++) {

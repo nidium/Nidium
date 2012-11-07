@@ -1,18 +1,10 @@
 #ifndef nativeaudio_h__
 #define nativeaudio_h__
 
-#include <portaudio.h>
 #include <pthread.h>
-#include "pa_ringbuffer.h"
-#include "pa_converters.h"
-#include "pa_dither.h"
-#include "zita-resampler/resampler.h"
+#include <stdint.h>
 #include "NativeAudioParameters.h"
-#include <NativeSharedMessages.h>
-extern "C" {
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
-}
+
 
 #if 0
   #define SPAM(a) printf a
@@ -29,6 +21,13 @@ class NativeAudioTrack;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
 struct NodeLink;
+
+class NativeSharedMessages;
+
+struct PaUtilRingBuffer;
+struct PaStreamCallbackTimeInfo;
+typedef void PaStream;
+typedef unsigned long PaStreamCallbackFlags;
 
 class NativeAudio
 {
@@ -53,7 +52,7 @@ class NativeAudio
         float *nullBuffer;
         NativeSharedMessages *sharedMsg;
         pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
-        PaUtilRingBuffer rBufferOut;
+        PaUtilRingBuffer *rBufferOut;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);

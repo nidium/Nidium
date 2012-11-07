@@ -7,8 +7,13 @@
 #define NATIVE_AUDIONODE_CHANNEL_SIZE 32
 #define NATIVE_AUDIONODE_WIRE_SIZE 32
 
-class NativeAudioNode;
+struct AVFormatContext;
+struct AVPacket;
+struct AVCodecContext;
+typedef void PaUtilConverter(void*, int, void*, int, unsigned int, struct PaUtilTriangularDitherGenerator*);
 
+class Resampler;
+class NativeAudioNode;
 
 enum TypeIO {INPUT, OUTPUT};
 enum ArgType {INT, DOUBLE};
@@ -55,20 +60,8 @@ class NativeAudioNode
             NativeAudioNode *node;
             void *source, *dest;
             unsigned long size;
-
-            Message(NativeAudioNode *node, void *source, void *dest, unsigned long size)
-                : node(node)
-            {
-                this->source = malloc(size);
-                this->size = size;
-                this->dest = dest;
-
-                memcpy(this->source, source, size);
-            }
-
-            ~Message() {
-                free(this->source);
-            }
+            Message(NativeAudioNode *node, void *source, void *dest, unsigned long size);
+            ~Message();
         };
 
 
@@ -112,7 +105,7 @@ class NativeAudioNodeTarget : public NativeAudioNode
         NativeAudioNodeTarget(int inCount, int outCount, NativeAudio *audio) 
             : NativeAudioNode(inCount, outCount, audio)
         { 
-            printf("Target init\n");
+            SPAM("Target init\n");
 
         }
 
@@ -214,8 +207,8 @@ class NativeAudioTrack : public NativeAudioNode
 
         pthread_cond_t *bufferNotEmpty;
 
-        PaUtilRingBuffer rBufferIn;
-        PaUtilRingBuffer rBufferOut;
+        PaUtilRingBuffer *rBufferIn;
+        PaUtilRingBuffer *rBufferOut;
 
         bool opened;
         bool playing;
@@ -243,52 +236,10 @@ class NativeAudioTrack : public NativeAudioNode
         class BufferReader
         {
             public:
-                BufferReader(uint8_t *buffer, unsigned long bufferSize) 
-                    : buffer(buffer), bufferSize(bufferSize), pos(0) {}
+                BufferReader(uint8_t *buffer, unsigned long bufferSize);
 
-                static int read(void *opaque, uint8_t *buffer, int size) {
-                    BufferReader *reader = (BufferReader *)opaque;
-
-                    if (reader->pos + size > reader->bufferSize) {
-                        size = reader->bufferSize - reader->pos;
-                    }
-
-                    if (size > 0) {
-                        memcpy(buffer, reader->buffer + reader->pos, size);
-                        reader->pos += size;
-                    }
-
-                    return size;
-                }
-
-                static int64_t seek(void *opaque, int64_t offset, int whence) 
-                {
-                    BufferReader *reader = (BufferReader *)opaque;
-                    int64_t pos = 0;
-
-                    switch(whence)
-                    {
-                        case AVSEEK_SIZE:
-                            return reader->bufferSize;
-                        case SEEK_SET:
-                            pos = offset;
-                            break;
-                        case SEEK_CUR:
-                            pos = reader->pos + offset;
-                        case SEEK_END:
-                            pos = reader->bufferSize - offset;
-                        default:
-                            return -1;
-                    }
-
-                    if( pos < 0 || pos > reader->bufferSize) {
-                        return -1;
-                    }
-
-                    reader->pos = pos;
-
-                    return pos;
-                }
+                static int read(void *opaque, uint8_t *buffer, int size);
+                static int64_t seek(void *opaque, int64_t offset, int whence);
 
                 ~BufferReader() {};
             private:
@@ -306,7 +257,7 @@ class NativeAudioTrack : public NativeAudioNode
             int nbSamples;
             float *data;
         } tmpFrame;
-        AVPacket tmpPacket;
+        AVPacket *tmpPacket;
 
         bool frameConsumed;
         bool packetConsumed;

@@ -39,15 +39,19 @@ var slider3 = main.add("UISliderController", {
 HTTPAudioRequest("http://f.z.nf/song.mp3", function(data) {
     source.open(data);
     source.play();
+    setTimeout(function() {
+        source.pause();
+    }, 5000);
+    setTimeout(function() {
+        source.play();
+    }, 10000);
 
 });
 
-/*
 HTTPAudioRequest("http://labs.swelen.com/games/ztype4coders/media/music/endure.ogg", function(data) {
     source2.open(data);
     source2.play();
 });
-*/
 
 
 var dsp = new Audio(1024, 2, 44100);
@@ -58,10 +62,10 @@ var gain = dsp.createNode("gain", 2, 2);
 var target = dsp.createNode("target", 2, 0);
 
 dsp.connect(source.output(0), gain.input(0));
-//dsp.connect(source.output(1), gain.input(1));
+dsp.connect(source.output(1), gain.input(1));
 
-//dsp.connect(source2.output(0), gain.input(0));
-//dsp.connect(source2.output(1), gain.input(1));
+dsp.connect(source2.output(0), target.input(0));
+dsp.connect(source2.output(1), target.input(1));
 
 dsp.connect(gain.output(0), target.input(0));
 dsp.connect(gain.output(1), target.input(1));

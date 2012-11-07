@@ -7,6 +7,7 @@
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
+#include "NativeJSAudio.h"
 #include "NativeJSNative.h"
 
 #include "SkImageDecoder.h"
