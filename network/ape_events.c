@@ -27,7 +27,7 @@ int events_del(int fd, ape_global *ape)
     return 1;
 }
 
-inline int events_poll(struct _fdevent *ev, int timeout_ms)
+int events_poll(struct _fdevent *ev, int timeout_ms)
 {
     int nfds;
 
@@ -39,7 +39,7 @@ inline int events_poll(struct _fdevent *ev, int timeout_ms)
 }
 
 
-inline void *events_get_current_fd(struct _fdevent *ev, int i)
+void *events_get_current_fd(struct _fdevent *ev, int i)
 {
     return ev->get_current_fd(ev, i);
 }
@@ -73,6 +73,9 @@ int events_init(ape_global *ape)
         case EVENT_KQUEUE:
             return event_kqueue_init(&ape->events);
             break;
+		case EVENT_SELECT:
+			return event_select_init(&ape->events);
+			break;
         default:
             break;
     }

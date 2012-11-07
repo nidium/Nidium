@@ -11,7 +11,7 @@ NATIVEFLAGS=-DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER=1 -DENABLE_JIT=1 -DEXPORT_J
 endif
 
 CXX=g++
-CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I/home/efyx/dev/mozilla-central/js/src/dist/include/ \
+CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I../mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\

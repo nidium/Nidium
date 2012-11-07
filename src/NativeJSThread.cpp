@@ -6,6 +6,7 @@ extern void reportError(JSContext *cx, const char *message,
 	JSErrorReport *report);
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
+static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp);
 
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
@@ -28,6 +29,10 @@ static JSFunctionSpec glob_funcs_threaded[] = {
     JS_FS_END
 };
 
+static JSFunctionSpec Thread_funcs[] = {
+    JS_FN("start", native_thread_start, 0, 0),
+    JS_FS_END
+};
 
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -96,27 +101,90 @@ static void *native_thread(void *arg)
     JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
 
     JSAutoByteString str(tcx, nthread->jsFunction);
+    char *scoped = new char[strlen(str.ptr()) + 128];
+
+    /*
+        JS_CompileFunction takes a function body.
+        This is a hack in order to catch the arguments name, etc...
+        
+        function() {
+            (function (a) {
+                this.send("hello" + a);
+            }).apply(this, Array.prototype.slice.apply(arguments));
+        };    
+    */
+    sprintf(scoped, "%c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
 
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
 
-    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, str.ptr(),
-        strlen(str.ptr()), NULL, 0);
+    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
+        strlen(scoped), NULL, 0);
+
+    delete scoped;
     
     if (cf == NULL) {
         printf("Cant compile function\n");
         return NULL;
     }
     
-    if (JS_CallFunction(tcx, gbl, cf, 0, NULL, &rval) == JS_FALSE) {
+    jsval *arglst = new jsval[nthread->params.argc];
+
+    for (int i = 0; i < nthread->params.argc; i++) {
+        JS_ReadStructuredClone(tcx,
+                    nthread->params.argv[i],
+                    nthread->params.nbytes[i],
+                    JS_STRUCTURED_CLONE_VERSION, &arglst[i], NULL, NULL);
+    }
+
+    if (JS_CallFunction(tcx, gbl, cf, nthread->params.argc,
+        arglst, &rval) == JS_FALSE) {
         printf("Got an error?\n"); /* or thread has ended */
     }
+
+    free(nthread->params.argv);
+    free(nthread->params.nbytes);
+
+    delete arglst;
 
     printf("Thread has ended\n");
 
     return NULL;
 }
 
+static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSThread *nthread;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    if (JS_InstanceOf(cx, caller, &Thread_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }    
+
+    if ((nthread = (NativeJSThread *)JS_GetPrivate(caller)) == NULL) {
+        return JS_TRUE;
+    }
+
+    nthread->params.argv = (argc ?
+        (uint64_t **)malloc(sizeof(*nthread->params.argv) * argc) : NULL);
+    nthread->params.nbytes = (argc ?
+        (size_t *)malloc(sizeof(*nthread->params.nbytes) * argc) : NULL);
+
+    for (int i = 0; i < (int)argc; i++) {
+        JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[i],
+            &nthread->params.argv[i], &nthread->params.nbytes[i],
+            NULL, NULL, JSVAL_VOID);
+    }
+
+    nthread->params.argc = argc;
+
+    /* TODO: check if already running */
+    pthread_create(&nthread->threadHandle, NULL,
+                            native_thread, nthread);
+
+
+    return JS_TRUE;
+}
 
 static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -126,8 +194,7 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSFunction *nfn;
 
     if ((nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0])) == NULL ||
-    	(nthread->jsFunction = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
-
+    	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
     	printf("Failed to read Threaded function\n");
     	return JS_TRUE;
     }
@@ -137,10 +204,9 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, nthread);
 
-    pthread_create(&nthread->threadHandle, NULL,
-                            native_thread, nthread);
-
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    JS_DefineFunctions(cx, ret, Thread_funcs);
 
     return JS_TRUE;
 }

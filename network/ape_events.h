@@ -1,7 +1,6 @@
 #ifndef __APE_EVENTS_H_
 #define __APE_EVENTS_H_
 
-
 #include "common.h"
 
 #ifdef USE_KQUEUE_HANDLER
@@ -9,6 +8,12 @@
 #endif
 #ifdef USE_EPOLL_HANDLER
 #include <sys/epoll.h>
+#endif
+#ifdef USE_SELECT_HANDLER
+  #include <WinSock2.h>
+  #ifndef FD_SETSIZE
+    #define FD_SETSIZE 1024
+  #endif
 #endif
 
 /* Generics flags */
@@ -45,6 +50,15 @@ struct _ape_fd_delegate {
     _APE_FD_DELEGATE_TPL
 };
 
+#ifdef USE_SELECT_HANDLER
+typedef struct {
+  int  fd;
+  char read:4;          /* bitmask */
+  char write:4;         /* bitmask */
+  void *ptr;
+} select_fd_t;
+#endif
+
 struct _fdevent {
     /* Common values */
     int *basemem;
@@ -67,18 +81,22 @@ struct _fdevent {
     struct epoll_event *events;
     int epoll_fd;
 #endif
-
+#ifdef USE_SELECT_HANDLER
+	select_fd_t fds[FD_SETSIZE];
+	select_fd_t **events; /* Pointers into fds */
+#endif
     fdevent_handler_t handler;
 };
 
 int events_init(ape_global *ape);
 int events_add(int fd, void *attach, int bitadd, ape_global *ape);
 int events_del(int fd, ape_global *ape);
-inline void *events_get_current_fd(struct _fdevent *ev, int i);
-inline int events_poll(struct _fdevent *ev, int timeout_ms);
+void *events_get_current_fd(struct _fdevent *ev, int i);
+int events_poll(struct _fdevent *ev, int timeout_ms);
 
 int event_kqueue_init(struct _fdevent *ev);
 int event_epoll_init(struct _fdevent *ev);
+int event_select_init(struct _fdevent *ev);
 int events_revent(struct _fdevent *ev, int i);
 #endif
 

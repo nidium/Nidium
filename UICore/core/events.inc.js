@@ -79,6 +79,11 @@ Native.events = {
 			cancelEvent = true;
 		};
 
+		e.forcePropagation = function(){
+			cancelBubble = false;
+			cancelEvent = false;
+		};
+
 		for(var i=z.length-1 ; i>=0 ; i--) {
 			var element = z[i];
 			cancelEvent = false;

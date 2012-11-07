@@ -130,7 +130,7 @@ Native.elements.export("UIDropDownController", {
 
 			self.tabsContainer.animate("h", from, delta, 180, function(){
 				self.showTabs();
-			}, FXAnimation.easeOutCubic);
+			}, Math.physics.cubicOut);
 
 		};
 
@@ -143,7 +143,7 @@ Native.elements.export("UIDropDownController", {
 			
 			self.tabsContainer.animate("h", from, delta, 150, function(){
 				self.hideTabs();
-			}, FXAnimation.easeOutQuint);
+			}, Math.physics.quintOut);
 
 		};
 

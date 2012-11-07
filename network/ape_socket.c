@@ -23,31 +23,36 @@
 #include "ape_dns.h"
 #include "ape_timers_next.h"
 //#include "ape_ssl.h"
-
+#include <stdint.h>
 #include <stdio.h>
-#include <sys/time.h>
+#ifndef __WIN32
+  #include <sys/time.h>
+  #include <unistd.h>
+  #include <sys/uio.h>
+  #include <openssl/err.h>
+#else
+  #include <io.h>
+  #include <malloc.h>
+#endif
 #include <fcntl.h>
 #include <time.h>
 #include <errno.h>
-#include <stdint.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/uio.h>
+
+
 #ifdef __linux__
   #include <sys/sendfile.h>
 #endif
 #include <limits.h>
 #include <string.h>
       
-#include <openssl/err.h>
-
 /*
 Use only one syscall (ioctl) if FIONBIO is defined
 It behaves the same for socket file descriptor to use
 either ioctl(...FIONBIO...) or fcntl(...O_NONBLOCK...)
 */
 #ifdef FIONBIO
-static inline int setnonblocking(int fd)
+static __inline int setnonblocking(int fd)
 {
     int  ret = 1;
 
@@ -55,6 +60,17 @@ static inline int setnonblocking(int fd)
 }
 #else
 #define setnonblocking(fd) fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
+#endif
+
+#ifdef __WIN32
+#define read(fd, buf, len) recv(fd, buf, len, 0)
+long int writev(int fd, const struct iovec* vector, int count)
+{
+	DWORD sent;
+	int ret = WSASend(fd, (LPWSABUF)vector, count, &sent, 0, 0, 0);
+
+	return sent;
+}
 #endif
 
 int _nco = 0, _ndec = 0;
@@ -68,7 +84,7 @@ static int ape_socket_queue_data(ape_socket *socket, unsigned char *data, size_t
 static void ape_init_job_list(ape_pool_list_t *list, size_t n);
 static void ape_socket_shutdown_force(ape_socket *socket);
 
-inline static void ape_socket_release_data(unsigned char *data, ape_socket_data_autorelease data_type)
+__inline static void ape_socket_release_data(unsigned char *data, ape_socket_data_autorelease data_type)
 {
     switch (data_type) {
         case APE_DATA_AUTORELEASE:
@@ -85,7 +101,7 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     int sock = from, proto = SOCK_STREAM;
 
     ape_socket *ret = NULL;
-    _nco++;
+    
 #ifdef __WIN32
     WORD wVersionRequested;
     WSADATA wsaData;
@@ -95,17 +111,20 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
 
     err = WSAStartup(wVersionRequested, &wsaData);
     if (err != 0) {
+		printf("WSA failed\n");
         return NULL;
     }
 
     /* TODO WSAClean et al */
 #endif
-
+	_nco++;
     proto = (pt == APE_SOCKET_PT_UDP ? SOCK_DGRAM : SOCK_STREAM);
 
     if ((sock == 0 &&
         (sock = socket(AF_INET /* TODO AF_INET6 */, proto, 0)) == -1) ||
         setnonblocking(sock) == -1) {
+
+		printf("Cant create socket\n");
         return NULL;
     }
 
@@ -144,7 +163,11 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
         const char *local_ip)
 {
     struct sockaddr_in addr;
+#ifdef __WIN32
+	const char reuse_addr = 1;
+#else
     int reuse_addr = 1;
+#endif
 #ifdef TCP_DEFER_ACCEPT
     int timeout = 2;
 #endif
@@ -165,9 +188,12 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
                 ((socket->states.proto == APE_SOCKET_PT_TCP ||
                     socket->states.proto == APE_SOCKET_PT_SSL) &&
                 listen(socket->s.fd, APE_SOCKET_BACKLOG) == -1)) {
-
+#ifdef __WIN32
+		closesocket(socket->s.fd);
+#else
         close(socket->s.fd);
-
+#endif
+		printf("cant bind\n");
         return -1;
     }
 #ifdef TCP_DEFER_ACCEPT
@@ -181,7 +207,7 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
 #endif
     socket->states.type = APE_SOCKET_TP_SERVER;
     socket->states.state = APE_SOCKET_ST_ONLINE;
-
+	printf("Socket %d listening\n", socket->s.fd);
     events_add(socket->s.fd, socket, EVENT_READ|EVENT_WRITE, socket->ape);
 
     return 0;
@@ -194,6 +220,8 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     ape_socket *socket = arg;
     struct sockaddr_in addr;
 
+	printf("Ready to connect...\n");
+
 #ifdef _HAS_ARES_SUPPORT
     if (status != ARES_SUCCESS) {
         APE_socket_destroy(socket);
@@ -204,11 +232,18 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     addr.sin_port = htons(socket->remote_port);
     addr.sin_addr.s_addr = inet_addr(remote_ip);
     memset(&(addr.sin_zero), '\0', 8);
+#ifdef __WIN32
+  #undef EINPROGRESS
+  #undef EWOULDBLOCK
+  #undef errno
 
+  #define EINPROGRESS WSAEINPROGRESS
+  #define EWOULDBLOCK WSAEWOULDBLOCK
+  #define errno  WSAGetLastError()
+#endif
     if (connect(socket->s.fd, (struct sockaddr *)&addr,
                 sizeof(struct sockaddr)) == 0 ||
-            errno != EINPROGRESS) {
-
+				(errno != EWOULDBLOCK && errno != EINPROGRESS)) {
         APE_socket_destroy(socket);
         return -1;
     }
@@ -232,6 +267,7 @@ int APE_socket_connect(ape_socket *socket, uint16_t port,
 
     socket->remote_port = port;
 #ifdef _HAS_ARES_SUPPORT
+	printf("Connecting...\n");
     ape_gethostbyname(remote_ip_host, ape_socket_connect_ready_to_connect,
             socket, socket->ape);
 #else
@@ -285,8 +321,8 @@ static void ape_socket_shutdown_force(ape_socket *socket)
 
 static int ape_socket_free(void *arg)
 {
-    _ndec++;
     ape_socket *socket = arg;
+	_ndec++;
 #ifdef _HAVE_SSL_SUPPORT
     if (socket->SSL.issecure) {
         ape_ssl_destroy(socket->SSL.ssl);
@@ -302,11 +338,12 @@ static int ape_socket_free(void *arg)
 
 int APE_socket_destroy(ape_socket *socket)
 {
+	ape_global *ape;
 
     if (socket == NULL || socket->states.state == APE_SOCKET_ST_OFFLINE)
         return -1;
     
-    ape_global *ape = socket->ape;
+    ape = socket->ape;
 
     /* Set disconnect flag before callback in case of recursion */
     socket->states.state = APE_SOCKET_ST_OFFLINE;
@@ -316,8 +353,11 @@ int APE_socket_destroy(ape_socket *socket)
     }
     
     //printf("====== Destroy : %d ======\n", APE_SOCKET_FD(socket));
+#ifdef __WIN32
+	closesocket(APE_SOCKET_FD(socket));
+#else
     close(APE_SOCKET_FD(socket));
-
+#endif
     timer_dispatch_async(ape_socket_free, socket);
     
     /* TODO: Free any pending job !!! */
@@ -325,6 +365,7 @@ int APE_socket_destroy(ape_socket *socket)
     return 0;
 }
 
+#ifndef __WIN32
 int APE_sendfile(ape_socket *socket, const char *file)
 {
     int fd;
@@ -394,11 +435,14 @@ int APE_socket_writev(ape_socket *socket, const struct iovec *iov, int iovcnt)
     
     return 0;
 }
-
+#endif
 
 int APE_socket_write(ape_socket *socket, unsigned char *data,
     size_t len, ape_socket_data_autorelease data_type)
 {
+#ifdef __WIN32
+  #define ssize_t int
+#endif
     ssize_t t_bytes = 0, r_bytes = len, n = 0;
     int io_error = 0, rerrno = 0;
 
@@ -454,7 +498,11 @@ int APE_socket_write(ape_socket *socket, unsigned char *data,
     } else {
 #endif
         while (t_bytes < len) {
+#ifdef __WIN32
+			if ((n = send(socket->s.fd, data + t_bytes, r_bytes, 0)) < 0) {
+#else
             if ((n = write(socket->s.fd, data + t_bytes, r_bytes)) < 0) {
+#endif
                 printf("Socket failure?\n");
                 if (errno == EAGAIN && r_bytes != 0) {
                     socket->states.flags |= APE_SOCKET_WOULD_BLOCK;
@@ -504,11 +552,14 @@ int ape_socket_do_jobs(ape_socket *socket)
 #elif defined(_SC_IOV_MAX)
     const size_t max_chunks = sysconf(_SC_IOV_MAX);
 #else
-#error "Cannot get the _SC_IOV_MAX value"
+    const unsigned int max_chunks = 1024;
 #endif
     ape_socket_jobs_t *job;
+#ifndef __WIN32
     struct iovec chunks[max_chunks];
-
+#else
+	struct iovec *chunks = _alloca(sizeof(struct iovec)*max_chunks);
+#endif
     job = (ape_socket_jobs_t *)socket->jobs.head;
 
     while(job != NULL && job->flags & APE_SOCKET_JOB_ACTIVE) {
@@ -552,7 +603,7 @@ int ape_socket_do_jobs(ape_socket *socket)
                     if (packet->pool.ptr.data == NULL) {
                         break;
                     }
-                    chunks[i].iov_base = packet->pool.ptr.data + packet->offset;
+                    chunks[i].iov_base = (char *)packet->pool.ptr.data + packet->offset;
                     chunks[i].iov_len  = packet->len - packet->offset;
 
                     packet = (ape_socket_packet_t *)packet->pool.next;
@@ -602,7 +653,7 @@ int ape_socket_do_jobs(ape_socket *socket)
 #endif
             break;
         }
-
+#ifndef __WIN32
         case APE_SOCKET_JOB_SENDFILE:
         {
             off_t nwrite = 4096;
@@ -625,13 +676,17 @@ int ape_socket_do_jobs(ape_socket *socket)
                 return 0;
             }
             /* Job finished */
+#ifndef __WIN32
             close(job->ptr.fd);
+#else
+			_close(job->ptr.fd);
+#endif
             job->offset = 0;
             job->ptr.data = NULL;
             
             break;
         }
-
+#endif
         case APE_SOCKET_JOB_SHUTDOWN:
 #ifdef _HAVE_SSL_SUPPORT
             if (APE_SOCKET_ISSECURE(socket)) {
@@ -705,14 +760,14 @@ static int ape_socket_queue_buffer(ape_socket *socket, buffer *b)
 }
 #endif
 
-inline void ape_socket_connected(ape_socket *socket)
+void ape_socket_connected(ape_socket *socket)
 {
     if (socket->callbacks.on_connected != NULL) {
         socket->callbacks.on_connected(socket, socket->ape);
     }
 }
 
-inline int ape_socket_accept(ape_socket *socket)
+int ape_socket_accept(ape_socket *socket)
 {
     int fd, sin_size = sizeof(struct sockaddr_in);
     struct sockaddr_in their_addr;
@@ -754,7 +809,7 @@ inline int ape_socket_accept(ape_socket *socket)
 }
 
 /* Consume socket buffer */
-inline int ape_socket_read(ape_socket *socket)
+int ape_socket_read(ape_socket *socket)
 {
     ssize_t nread;
     
@@ -762,7 +817,6 @@ inline int ape_socket_read(ape_socket *socket)
         printf("socket is not online\n");
         return 0;
     }
-    
     do {
         /* TODO : avoid extra calling (avoid realloc) */
         buffer_prepare(&socket->data_in, 2048);
@@ -800,7 +854,7 @@ socket_reread:
             nread = read(socket->s.fd,
                 socket->data_in.data + socket->data_in.used,
                 socket->data_in.size - socket->data_in.used);
-
+			
             if (nread == -1) {
                 switch(errno) {
                     case EINTR:
@@ -808,7 +862,9 @@ socket_reread:
                     default:
                         break;
                 }
-            }
+			} else {
+				printf("read %d\n", nread);
+			}
 
             socket->data_in.used += ape_max(nread, 0);
 #ifdef _HAVE_SSL_SUPPORT

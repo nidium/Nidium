@@ -121,7 +121,7 @@ for (var s=0; s<nb_sliders; s++){
 		boxColor : 'rgba(0, 0, 0, 1)',
 		progressBarColor : gdSpectrum,
 		splitColor : 'rgba(60, 60, 60, 0.40)',
-		ease : FXAnimation.easeInCubic,
+		ease : Math.physics.cubicIn,
 		radius : 3,
 		min : -20,
 		max : 20,

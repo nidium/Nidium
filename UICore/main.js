@@ -15,6 +15,9 @@ load("demos/test.audioslide.js");
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
 
+/* -- Featured Demos --------------------------- */
+//load('demos/featured.audiobasics.js');
+
 
 /* -- Benchmarks ------------------------------- */
 
@@ -34,6 +37,7 @@ load("demos/test.audioslide.js");
 
 /* -- StandAlone Demos ------------------------- */
 
+//load('demos/demo.smoothie.js');
 //load('demos/demo.bluewheel.js');
 //load('demos/demo.cube.js');
 //load('demos/demo.flamme.js');

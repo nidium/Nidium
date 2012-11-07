@@ -15,8 +15,9 @@ ape_global *native_netlib_init()
 
     if ((ape = malloc(sizeof(*ape))) == NULL) return NULL;
 
+#ifndef __WIN32
     signal(SIGPIPE, SIG_IGN);
-
+#endif
     fdev = &ape->events;
     fdev->handler = EVENT_UNKNOWN;
     #ifdef USE_EPOLL_HANDLER
@@ -24,6 +25,9 @@ ape_global *native_netlib_init()
     #endif
     #ifdef USE_KQUEUE_HANDLER
     fdev->handler = EVENT_KQUEUE;
+    #endif
+    #ifdef USE_SELECT_HANDLER
+	fdev->handler = EVENT_SELECT;
     #endif
 
     ape->basemem    = APE_BASEMEM;
