@@ -1534,6 +1534,8 @@ void NativeJS::bufferSound(int16_t *data, int len)
 
 static int Native_handle_messages(void *arg)
 {
+#define MAX_MSG_IN_ROW 20
+
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
 
@@ -1541,12 +1543,13 @@ static int Native_handle_messages(void *arg)
     JSContext *cx = njs->cx;
     struct native_thread_msg *ptr;
     jsval onmessage, jevent, rval;
+    int nread = 0;
 
     JSObject *event;
 
     NativeSharedMessages::Message msg;
 
-    while (njs->messages->readMessage(&msg)) {
+    while (++nread < MAX_MSG_IN_ROW && njs->messages->readMessage(&msg)) {
         switch (msg.event()) {
             case NATIVE_THREAD_MESSAGE:
             ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
