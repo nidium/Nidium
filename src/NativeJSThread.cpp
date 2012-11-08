@@ -218,7 +218,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSThread *nthread = (NativeJSThread *)JS_GetContextPrivate(cx);
 
     if (nthread == NULL || nthread->markedStop) {
-        printf("Could not retrieve thread (or marked for stopping)\n");
+        printf("thread.send() Could not retrieve thread (or marked for stopping)\n");
         return JS_TRUE;
     }
 
