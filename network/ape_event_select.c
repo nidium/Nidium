@@ -191,7 +191,7 @@ int event_select_init(struct _fdevent *ev)
 }
 
 #else
-int event_epoll_init(struct _fdevent *ev)
+int event_select_init(struct _fdevent *ev)
 {
     return 0;
 }

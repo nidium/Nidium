@@ -862,8 +862,6 @@ socket_reread:
                     default:
                         break;
                 }
-			} else {
-				printf("read %d\n", nread);
 			}
 
             socket->data_in.used += ape_max(nread, 0);

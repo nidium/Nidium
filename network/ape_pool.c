@@ -7,9 +7,9 @@ ape_pool_t *ape_new_pool(size_t size, size_t n)
     ape_pool_t *pool = malloc(size * n), *current = NULL;
 
     for (i = 0; i < n; i++) {
-        current            = ((char *)&pool[0])+(i*size);
+        current            = (ape_pool_t *)((char *)&pool[0])+(i*size);
         /* contiguous blocks */
-        current->next      = (i == n-1 ? NULL : ((char *)&pool[0])+((i+1)*size));
+        current->next      = (i == n-1 ? NULL : (ape_pool_t *)((char *)&pool[0])+((i+1)*size));
         current->ptr.data  = NULL;
         current->flags     = (i == 0 ? APE_POOL_ALLOC : 0);
     }
@@ -32,7 +32,7 @@ void ape_init_pool_list(ape_pool_list_t *list, size_t size, size_t n)
 
     list->head  = pool;
     list->current   = pool;
-    list->queue     = ((char *)&pool[0])+((n-1)*size);
+    list->queue     = (ape_pool_t *)((char *)&pool[0])+((n-1)*size);
 }
 
 ape_pool_t *ape_pool_head_to_queue(ape_pool_list_t *list)
@@ -74,7 +74,7 @@ ape_pool_t *ape_grow_pool(ape_pool_list_t *list, size_t size, size_t n)
 
     pool = ape_new_pool(size, n);
     list->queue->next = pool;
-    list->queue = ((char *)&pool[0])+((n-1)*size);
+    list->queue = (ape_pool_t *)((char *)&pool[0])+((n-1)*size);
 
     return pool;
 }
