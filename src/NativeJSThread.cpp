@@ -245,16 +245,14 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 NativeJSThread::~NativeJSThread()
 {
     this->markedStop = true;
-    JS_TriggerOperationCallback(this->jsRuntime);
-
-    pthread_join(this->threadHandle, NULL);
-	if (this->jsCx) {
-		JS_DestroyContext(this->jsCx);
-	}
-	if (this->jsRuntime) {
-		JS_DestroyRuntime(this->jsRuntime);
-	}
-
+    if (this->jsRuntime) {
+        JS_TriggerOperationCallback(this->jsRuntime);
+        pthread_join(this->threadHandle, NULL);
+        if (this->jsCx) {
+            JS_DestroyContext(this->jsCx);
+        }
+        JS_DestroyRuntime(this->jsRuntime);
+    }
 }
 
 NativeJSThread::NativeJSThread()
