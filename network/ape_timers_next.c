@@ -73,7 +73,7 @@ static __inline uint64_t mach_absolute_time()
 	struct timeval t;
 	clock_gettime(0, &t);
 
-	return (t.tv_sec * 1000000 + t.tv_usec)*1000;
+	return ((uint64_t)t.tv_sec * 1000000 + (uint64_t)t.tv_usec)*1000;
 }
 #else // !__WIN32
 static __inline uint64_t mach_absolute_time()
@@ -81,7 +81,7 @@ static __inline uint64_t mach_absolute_time()
 	struct timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
 
-	return t.tv_sec * 1000000000 + t.tv_nsec;
+	return (uint64_t)t.tv_sec * 1000000000 + (uint64_t)t.tv_nsec;
 }
 #endif
 #endif
