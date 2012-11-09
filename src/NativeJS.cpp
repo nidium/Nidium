@@ -1587,6 +1587,24 @@ static int Native_handle_messages(void *arg)
     return 1;
 }
 
+#if 0
+void NativeJS::onNFIOOpen(NativeFileIO *nfio)
+{
+    printf("Open success\n");
+    nfio->getContents();
+}
+
+void NativeJS::onNFIOError(NativeFileIO *nfio, int errno)
+{
+    printf("Error while opening file\n");
+}
+
+void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
+{
+    printf("Data from file : %s\n", data);
+}
+#endif
+
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
@@ -1596,7 +1614,7 @@ void NativeJS::bindNetObject(ape_global *net)
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
 
-    //NativeFileIO *io = new NativeFileIO("foo.html", net);
+    //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
     //io->open();
 }
 
