@@ -8,6 +8,7 @@
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
 #include "NativeJSNative.h"
+#include "NativefileIO.h"
 
 #include "SkImageDecoder.h"
 
@@ -1594,6 +1595,9 @@ void NativeJS::bindNetObject(ape_global *net)
         Native_handle_messages, this);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+
+    //NativeFileIO *io = new NativeFileIO("foo.html", net);
+    //io->open();
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -1652,7 +1656,7 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
-        2, NULL, NULL, NULL, NULL);   
+        2, NULL, NULL, NULL, NULL);
 
 }
 
