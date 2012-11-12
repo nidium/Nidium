@@ -5,7 +5,6 @@
 #include <jsapi.h>
 
 #include "NativeSkia.h"
-#include "NativeFileIO.h"
 
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
@@ -24,7 +23,7 @@ class NativeSharedMessages;
 
 typedef struct _ape_global ape_global;
 
-class NativeJS : public NativeFileIODelegate
+class NativeJS
 {
     private:   
         void LoadCanvasObject(NativeSkia *);
@@ -48,9 +47,6 @@ class NativeJS : public NativeFileIODelegate
         void forceLinking();
         uint32_t currentFPS;
 
-        void onNFIOOpen(NativeFileIO *io);
-        void onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len);
-        void onNFIOError(NativeFileIO *nfio, int errno);
 };
 
 #endif
