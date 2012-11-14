@@ -5,9 +5,9 @@
 /* -- Native FrameWork Demos  ------------------ */
 
 load("core/native.inc.js");
-//load('demos/demo.ui.js');
+load('demos/demo.ui.js');
 //load('demos/demo.windows.js');
-load('demos/demo.sliders.js');
+//load('demos/demo.sliders.js');
 //load('demos/demo.diagrams.js');
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
@@ -24,15 +24,20 @@ load('demos/demo.sliders.js');
 /* -- Unit Tests ------------------------------- */
 
 //load('demos/demo.hello.js');
-//load('demos/demo.threads.js');
 //load('demos/demo.ionBug.js');
 //load('demos/demo.timers.js');
 //load('demos/demo.http.js');
 //load('demos/demo.sockets.js');
 //load('demos/demo.flickr.js');
+
+//load('demos/demo.threads.js');
 //load('demos/demo.tasks.js');
 
 /* -- StandAlone Demos ------------------------- */
+
+
+//load('demos/demo.box2d.basics.js');
+//load('demos/demo.box2d.advanced.js');
 
 //load('demos/demo.smoothie.js');
 //load('demos/demo.bluewheel.js');

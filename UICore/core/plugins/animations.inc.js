@@ -23,11 +23,128 @@ DOMElement.implement({
 		this.animate("left", this.left, delta, duration, callback, fx);
 	},
 
+	scrollContentY : function(deltaY, callback){
+		var self = this,
+
+			startY = this.scroll.top,
+			endY = self.scroll.top + deltaY,
+
+			maxY = self.content.height - self.h,
+
+			slice = 16,
+			duration = 1200;
+			time = 0;
+
+		var stopScroll = function(){
+			//self.scroll.initied = false;
+			self.scroll.expired = true;
+			echo("-------------------------------- self.scroll.expired")
+			echo("Velocity :", time);
+		};
+
+		if (!self.scroll.initied) {
+			self.scroll.initied = true;
+			self.lastWheelEventTime = +new Date();
+		} else {
+			var now = +new Date(),
+				time = now - self.lastWheelEventTime;
+
+			self.scroll.expired = false;
+
+			self.lastWheelEventTime = now;
+			if (time>50) {
+				time = 0;
+				stopScroll();
+				return false;
+			} 
+
+			clearTimeout(self.scroll.tim);
+			delete(self.scroll.tim);
+
+			self.scroll.tim = setTimeout(function(){
+				stopScroll();
+			}, 50);
+		}
+
+		if (!self.scroll.scrolling){
+			self.scroll.scrolling = true;
+
+			self.scroll.time = 0;
+			self.scroll.duration = duration;
+
+			if (deltaY>=0){
+				echo('1 -------------------------', deltaY);
+				self.scroll.startY = startY;
+				self.scroll.endY = maxY - startY;
+			} else {
+				echo('2 -------------------------', deltaY);
+				self.scroll.startY = startY;
+				self.scroll.endY = -startY;
+			}
+
+			self.scroll.timer = setTimer(function(){
+				let stop = false,
+					value = Math.physics.cubicOut(
+						0, 
+						self.scroll.time, 
+						self.scroll.startY, 
+						self.scroll.endY, 
+						duration
+					);
+
+				self.scroll.time += slice;
+
+				if (deltaY>=0) {
+					if (value > maxY) {
+						value = maxY;
+						stop = true;
+					}
+				}
+
+				if (deltaY<0) {
+					if (value <= 0) {
+						value = 0;
+						stop = true;
+					}
+				}
+
+				if (self.scroll.time>duration){
+					stop = true;
+				}
+
+				if (self.scroll.expired === true){
+					stop = true;
+				}
+
+				if (stop && this.remove){
+					echo("stopped");
+					
+					self.scroll.scrolling = false;
+					self.scroll.initied = false;
+					this.remove();
+				} else {
+					self.scroll.top = value;
+				}
+
+			}, slice, true, true);
+
+		} else {
+			/*
+			self.scroll.timer.remove();
+			self.scroll.scrolling = false;
+			self.scroll.initied = false;
+			*/
+		}
+
+		return false;
+
+	},
+
 	scrollY : function(deltaY){
 		var self = this,
 			startY = this.scroll.top,
 			endY = this.scroll.top + deltaY,
-			maxY = this.content.height-this.h,
+			maxY = this.content.height - this.h,
 			slice = 10,
 			duration = 80;
 
@@ -97,7 +214,6 @@ DOMElement.implement({
 			}, slice, true, true);
 
 		}
-
 	},
 
 	set : function(property, delta, duration, callback, fx){

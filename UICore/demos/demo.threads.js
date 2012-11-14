@@ -4,22 +4,35 @@
 
 /* Native Sandboxed Thread Demo */
 
-var t = new Thread(function(){
+/* Define a function that describe the job */
+var job = function(params){
 	for (var i=0; i<500000000; i++){
-		if (i%10000000 == 0) {
-			this.send(i);
+		if (i%20000000 == 0){
+			this.send(params.k + i);
 		}
 	}
-});
-
-t.onmessage = function(e){
-	echo(e.message);
 };
 
-t.onfinish = function(r){
-	echo("Thread returned", r);
-}
+/* Create a new thread */
+var t = new Thread(job);
 
-canvas.requestAnimationFrame(function(){
-	canvas.clearRect(0, 0, 1024, 768);
+/* add some listeners */
+t.addEventListener("message", function(e){
+	echo(e.message);
 });
+
+t.addEventListener("complete", function(e){
+	echo("task complete");
+});
+
+t.addEventListener("error", function(e){
+	echo("error", e.message);
+});
+
+/* start the task */
+t.start({
+	id : 15,
+	x : 320,
+	k : 200
+});
+
