@@ -2,6 +2,10 @@
 #include "ape_array.h"
 #include <string.h>
 
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#endif
+
 static void ape_array_clean_cb(ape_pool_t *item);
 
 ape_array_t *ape_array_new(size_t n)

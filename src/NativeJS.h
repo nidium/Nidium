@@ -6,7 +6,6 @@
 
 #include "NativeSkia.h"
 
-
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
     NATIVE_KEY_ALT = 1 << 1,
@@ -21,6 +20,7 @@ struct native_thread_msg
 };
 
 class NativeSharedMessages;
+
 typedef struct _ape_global ape_global;
 
 class NativeJS
@@ -46,6 +46,7 @@ class NativeJS
         void bindNetObject(ape_global *net);
         void forceLinking();
         uint32_t currentFPS;
+
 };
 
 #endif

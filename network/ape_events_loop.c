@@ -4,9 +4,11 @@
 #include "ape_timers.h"
 #include "ape_timers_next.h"
 
+#ifndef __WIN32
 #include <sys/time.h>
+#endif
 #include <stdio.h>
-
+#include <stddef.h>
 
 extern int ape_running;
 
@@ -73,10 +75,10 @@ void events_loop(ape_global *ape)
                         } else if (APE_SOCKET(attach)->states.state == APE_SOCKET_ST_PROGRESS) {
                             int serror = 0, ret;
                             socklen_t serror_len = sizeof(serror);
-
+							
                             if ((ret = getsockopt(fd, SOL_SOCKET, SO_ERROR, &serror, &serror_len)) == 0 &&
                                 serror == 0) {
-
+								
                                 APE_SOCKET(attach)->states.state = APE_SOCKET_ST_ONLINE;
 
                                 ape_socket_connected(APE_SOCKET(attach));

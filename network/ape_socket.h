@@ -8,11 +8,14 @@
 #ifdef __WIN32
 
 #include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
 
+#if 0
 #define ECONNRESET WSAECONNRESET
 #define EINPROGRESS WSAEINPROGRESS
 #define EALREADY WSAEALREADY
 #define ECONNABORTED WSAECONNABORTED
+#endif
 #define ioctl ioctlsocket
 #define hstrerror(x) ""
 #else
@@ -31,6 +34,15 @@
 /* get a ape_socket pointer from event returns */
 #define APE_SOCKET(attach) ((ape_socket *)attach)
 #define APE_SOCKET_ISSECURE(socket) socket->SSL.issecure
+
+#ifdef __WIN32
+struct iovec
+{
+  unsigned long iov_len;
+  char*         iov_base;
+};
+
+#endif
 
 /* TODO: TCP_NOPUSH  */
 
@@ -172,9 +184,9 @@ void APE_socket_shutdown(ape_socket *socket);
 void APE_socket_shutdown_now(ape_socket *socket);
 int APE_sendfile(ape_socket *socket, const char *file);
 int ape_socket_do_jobs(ape_socket *socket);
-inline int ape_socket_accept(ape_socket *socket);
-inline int ape_socket_read(ape_socket *socket);
-inline void ape_socket_connected(ape_socket *socket);
+int ape_socket_accept(ape_socket *socket);
+int ape_socket_read(ape_socket *socket);
+void ape_socket_connected(ape_socket *socket);
 
 #ifdef __cplusplus
 }

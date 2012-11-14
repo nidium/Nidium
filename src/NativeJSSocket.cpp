@@ -220,8 +220,14 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
 {
     JSContext *cx;
     jsval ondisconnect, rval, jparams[1];
+    NativeJSSocket *nsocket;
+
     ape_socket *socket_server = socket_client->parent;
-    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    if (socket_server == NULL) { /* the server has disconnected */
+        return;
+    }
+
+    nsocket = (NativeJSSocket *)socket_server->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;

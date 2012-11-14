@@ -8,6 +8,7 @@
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
 #include "NativeJSNative.h"
+#include "NativefileIO.h"
 
 #include "SkImageDecoder.h"
 
@@ -1533,6 +1534,8 @@ void NativeJS::bufferSound(int16_t *data, int len)
 
 static int Native_handle_messages(void *arg)
 {
+#define MAX_MSG_IN_ROW 20
+
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
 
@@ -1540,12 +1543,13 @@ static int Native_handle_messages(void *arg)
     JSContext *cx = njs->cx;
     struct native_thread_msg *ptr;
     jsval onmessage, jevent, rval;
+    int nread = 0;
 
     JSObject *event;
 
     NativeSharedMessages::Message msg;
 
-    while (njs->messages->readMessage(&msg)) {
+    while (++nread < MAX_MSG_IN_ROW && njs->messages->readMessage(&msg)) {
         switch (msg.event()) {
             case NATIVE_THREAD_MESSAGE:
             ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
@@ -1583,6 +1587,24 @@ static int Native_handle_messages(void *arg)
     return 1;
 }
 
+#if 0
+void NativeJS::onNFIOOpen(NativeFileIO *nfio)
+{
+    printf("Open success\n");
+    nfio->getContents();
+}
+
+void NativeJS::onNFIOError(NativeFileIO *nfio, int errno)
+{
+    printf("Error while opening file\n");
+}
+
+void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
+{
+    printf("Data from file : %s\n", data);
+}
+#endif
+
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
@@ -1591,6 +1613,9 @@ void NativeJS::bindNetObject(ape_global *net)
         Native_handle_messages, this);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+
+    //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
+    //io->open();
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -1649,7 +1674,7 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
-        2, NULL, NULL, NULL, NULL);   
+        2, NULL, NULL, NULL, NULL);
 
 }
 

@@ -1,9 +1,11 @@
-#include <sys/time.h>
+#ifndef _MSC_VER
+  #include <sys/time.h>
+#endif
 #include <time.h>
 #include "ape_timers.h"
 #include <stdlib.h>
 
-inline void process_tick(ape_global *ape)
+__inline void process_tick(ape_global *ape)
 {
 	struct _ticks_callback *timers = ape->timers.timers;
 

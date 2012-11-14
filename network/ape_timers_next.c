@@ -7,13 +7,83 @@
   #include <mach/mach_time.h>
 #else
   #include <time.h>
-static inline uint64_t mach_absolute_time()
+  
+#ifdef __WIN32
+LARGE_INTEGER
+getFILETIMEoffset()
+{
+    SYSTEMTIME s;
+    FILETIME f;
+    LARGE_INTEGER t;
+
+    s.wYear = 1970;
+    s.wMonth = 1;
+    s.wDay = 1;
+    s.wHour = 0;
+    s.wMinute = 0;
+    s.wSecond = 0;
+    s.wMilliseconds = 0;
+    SystemTimeToFileTime(&s, &f);
+    t.QuadPart = f.dwHighDateTime;
+    t.QuadPart <<= 32;
+    t.QuadPart |= f.dwLowDateTime;
+    return (t);
+}
+
+int
+clock_gettime(int X, struct timeval *tv)
+{
+    LARGE_INTEGER           t;
+    FILETIME            f;
+    double                  microseconds;
+    static LARGE_INTEGER    offset;
+    static double           frequencyToMicroseconds;
+    static int              initialized = 0;
+    static BOOL             usePerformanceCounter = 0;
+
+    if (!initialized) {
+        LARGE_INTEGER performanceFrequency;
+        initialized = 1;
+        usePerformanceCounter = QueryPerformanceFrequency(&performanceFrequency);
+        if (usePerformanceCounter) {
+            QueryPerformanceCounter(&offset);
+            frequencyToMicroseconds = (double)performanceFrequency.QuadPart / 1000000.;
+        } else {
+            offset = getFILETIMEoffset();
+            frequencyToMicroseconds = 10.;
+        }
+    }
+    if (usePerformanceCounter) QueryPerformanceCounter(&t);
+    else {
+        GetSystemTimeAsFileTime(&f);
+        t.QuadPart = f.dwHighDateTime;
+        t.QuadPart <<= 32;
+        t.QuadPart |= f.dwLowDateTime;
+    }
+
+    t.QuadPart -= offset.QuadPart;
+    microseconds = (double)t.QuadPart / frequencyToMicroseconds;
+    t.QuadPart = microseconds;
+    tv->tv_sec = t.QuadPart / 1000000;
+    tv->tv_usec = t.QuadPart % 1000000;
+    return (0);
+}
+static __inline uint64_t mach_absolute_time()
+{
+	struct timeval t;
+	clock_gettime(0, &t);
+
+	return ((uint64_t)t.tv_sec * 1000000 + (uint64_t)t.tv_usec)*1000;
+}
+#else // !__WIN32
+static __inline uint64_t mach_absolute_time()
 {
 	struct timespec t;
 	clock_gettime(CLOCK_MONOTONIC, &t);
 
-	return t.tv_sec * 1000000000 + t.tv_nsec;
+	return (uint64_t)t.tv_sec * 1000000000 + (uint64_t)t.tv_nsec;
 }
+#endif
 #endif
 
 int process_timers(ape_timers *timers)
@@ -21,7 +91,6 @@ int process_timers(ape_timers *timers)
 	ape_timer *cur = timers->head;
 
 	/* TODO: paused timer */
-
 	while (cur != NULL) {
 		uint64_t start;
 
@@ -175,6 +244,6 @@ ape_timer *add_timer(ape_timers *timers, int ms, timer_callback cb, void *arg)
 	}
 
 	timers->head = timer;
-
+	printf("Timer added %d %p\n", ms, timers->head);
 	return timer;
 }
