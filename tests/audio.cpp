@@ -68,8 +68,8 @@ int main(int argc, char *argv[]) {
     buffer1 = (uint8_t *)malloc(bufferSize);
     buffer2 = (uint8_t *)malloc(bufferSize);
 
-    load("/tmp/test.mp3", buffer1, bufferSize);
-    load("/tmp/foo.mp3", buffer2, bufferSize);
+    load("/tmp/foo.mp3", buffer1, bufferSize);
+    //load("/tmp/foo.mp3", buffer2, bufferSize);
 
 
     NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
@@ -96,17 +96,19 @@ int main(int argc, char *argv[]) {
     gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
     gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
 
-    audio->connect(track1->output[0], gain->input[0]);
-    audio->connect(track1->output[1], gain->input[1]);
+    audio->connect(track1->output[0], target->input[0]);
+    audio->connect(track1->output[1], target->input[1]);
 
-    audio->connect(gain->output[0], target->input[0]);
-    audio->connect(gain->output[1], target->input[1]);
+ //   audio->connect(gain->output[0], target->input[0]);
+    //audio->connect(gain->output[1], target->input[1]);
 
+    /*
     audio->connect(gain->output[0], gain2->input[0]);
     audio->connect(gain->output[1], gain2->input[1]);
 
     audio->connect(gain2->output[0], gain->input[0]);
     audio->connect(gain2->output[1], gain->input[1]);
+    */
 
     track1->open(buffer1, bufferSize);
     //track2->open(buffer2, bufferSize);
@@ -119,7 +121,11 @@ int main(int argc, char *argv[]) {
     //track2->play();
 
     printf("sleep\n");
-    //usleep(500000);
+    sleep(5);
+    audio->disconnect(track1->output[0], target->input[0]);
+    sleep(2);
+    audio->disconnect(track1->output[1], target->input[1]);
+    printf("disconnected\n");
     //audio->shutdown();
 
     pthread_join(threadDecode, NULL);

@@ -6,7 +6,7 @@
 #include "NativeAudioParameters.h"
 
 
-#if 0
+#if 1
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -66,6 +66,7 @@ class NativeAudio
         NativeAudioTrack *addTrack(int out);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         void connect(NodeLink *input, NodeLink *output);
+        void disconnect(NodeLink *input, NodeLink *output);
 
         static inline int getSampleSize(int sampleFmt);
 

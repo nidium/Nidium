@@ -396,8 +396,14 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
     return NULL;
 }
 
-void NativeAudio::connect(NodeLink *input, NodeLink *output) {
+void NativeAudio::connect(NodeLink *input, NodeLink *output) 
+{
     output->node->queue(input, output);
+}
+
+void NativeAudio::disconnect(NodeLink *input, NodeLink *output) 
+{
+    output->node->unqueue(input, output);
 }
 
 void NativeAudio::shutdown()
