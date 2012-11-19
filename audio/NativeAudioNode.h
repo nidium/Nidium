@@ -2,6 +2,7 @@
 #define nativeaudionode_h__
 
 #include "NativeAudio.h"
+#include <stdio.h>
 
 #define NATIVE_AUDIONODE_ARGS_SIZE 32
 #define NATIVE_AUDIONODE_CHANNEL_SIZE 32
@@ -86,6 +87,7 @@ class NativeAudioNode
         void updateWiresFrame(int channel, float *frame);
 
         void queue(NodeLink *in, NodeLink *out);
+        void unqueue(NodeLink *in, NodeLink *out);
 
         bool recurseGetData();
 
@@ -105,7 +107,7 @@ class NativeAudioNodeTarget : public NativeAudioNode
         NativeAudioNodeTarget(int inCount, int outCount, NativeAudio *audio) 
             : NativeAudioNode(inCount, outCount, audio)
         { 
-            SPAM("Target init\n");
+            SPAM(("Target init\n"));
 
         }
 
@@ -213,6 +215,7 @@ class NativeAudioTrack : public NativeAudioNode
         bool opened;
         bool playing;
         bool stopped;
+        bool repeat;
         int nbChannel;
 
         int open(void *buffer, int size);
