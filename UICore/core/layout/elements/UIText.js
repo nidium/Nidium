@@ -81,26 +81,31 @@ Native.elements.export("UIText", {
 			}
 		}, false);
 
-/*
-this.scroll.top = 1600;
-*/
-
 		this.addEventListener("mousewheel", function(e){
+
 			if (this.h / this.scrollBarHeight < 1) {
 				canvas.__mustBeDrawn = true;
-	
+
+				this.verticalScrollBar.cancelCurrentAnimations("opacity");
+				this.scroll.fading = false;
 				this.verticalScrollBar.opacity = 1;
 	
-				this.scrollY(1 + (-e.yrel-1) * 18, function(){
-					this.verticalScrollBar.fadeOut(200);
-				});
+				this.scrollContentY(-e.yrel * 4, function(){
 
-				/*
-				this.scrollContentY(-e.yrel, function(){
-					self.verticalScrollBar.fadeOut(200);
-				});
-				*/
+					if (!self.scroll.fading) {
+						self.scroll.fading = true;
 
+						clearTimeout(self.scroll.fadeScheduler);
+						self.scroll.fadeScheduler = setTimeout(function(){
+
+							self.verticalScrollBar.fadeOut(200, function(){
+								self.scroll.fading = false;
+							});
+
+						}, 250);
+					}
+
+				});
 			}
 
 

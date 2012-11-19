@@ -25,195 +25,81 @@ DOMElement.implement({
 
 	scrollContentY : function(deltaY, callback){
 		var self = this,
-
-			startY = this.scroll.top,
-			endY = self.scroll.top + deltaY,
-
+			fn = OptionalCallback(callback),
 			maxY = self.content.height - self.h,
-
-			slice = 16,
-			duration = 1200;
-			time = 0;
-
-		var stopScroll = function(){
-			//self.scroll.initied = false;
-			self.scroll.expired = true;
-			echo("-------------------------------- self.scroll.expired")
-			echo("Velocity :", time);
-		};
+			slice = 10;
 
 		if (!self.scroll.initied) {
 			self.scroll.initied = true;
-			self.lastWheelEventTime = +new Date();
+			self.scroll.goal = self.scroll.top + deltaY;
 		} else {
-			var now = +new Date(),
-				time = now - self.lastWheelEventTime;
+			/* set new goal */
+			self.scroll.goal += deltaY;
+		}
 
-			self.scroll.expired = false;
+		/* Scroll Velocity Interpolation */
+		if (deltaY>0) {
+			self.scroll.acc = (self.scroll.goal - self.scroll.top)/12;
+		} else {
+			self.scroll.acc = (self.scroll.top - self.scroll.goal)/12;
+		}
 
-			self.lastWheelEventTime = now;
-			if (time>50) {
-				time = 0;
-				stopScroll();
-				return false;
+		if (self.scroll.timer) {
+			self.scroll.timer.remove();
+		}
+
+		/* Scroll to goal and slowdown velocity */
+		self.scroll.timer = setTimer(function(){
+			var stop = false,
+				value = self.scroll.top;
+
+			if (deltaY>0) {
+
+				if (value < self.scroll.goal){
+					value += self.scroll.acc;
+					self.scroll.acc *= 0.95;
+				} else {
+					value = self.scroll.goal;
+					stop = true;
+				}
+
+			} else {
+
+				if (value > self.scroll.goal){
+					value += -self.scroll.acc;
+					self.scroll.acc *= 0.95;
+				} else {
+					value = self.scroll.goal;
+					stop = true;
+				}
+
 			} 
 
-			clearTimeout(self.scroll.tim);
-			delete(self.scroll.tim);
-
-			self.scroll.tim = setTimeout(function(){
-				stopScroll();
-			}, 50);
-		}
-
-		if (!self.scroll.scrolling){
-			self.scroll.scrolling = true;
-
-			self.scroll.time = 0;
-			self.scroll.duration = duration;
-
-			if (deltaY>=0){
-				echo('1 -------------------------', deltaY);
-				self.scroll.startY = startY;
-				self.scroll.endY = maxY - startY;
-			} else {
-				echo('2 -------------------------', deltaY);
-				self.scroll.startY = startY;
-				self.scroll.endY = -startY;
+			/* stop below bottom */
+			if (value > maxY) {
+				value = maxY;
+				stop = true;
 			}
 
-			self.scroll.timer = setTimer(function(){
-				let stop = false,
-					value = Math.physics.cubicOut(
-						0, 
-						self.scroll.time, 
-						self.scroll.startY, 
-						self.scroll.endY, 
-						duration
-					);
+			/* stop above top */
+			if (value < 0) {
+				value = 0;
+				stop = true;
+			}
 
-				self.scroll.time += slice;
+			if (stop){
+				self.scroll.initied = false;
+				this.remove();
+				fn.call(self);
+			}
 
-				if (deltaY>=0) {
-					if (value > maxY) {
-						value = maxY;
-						stop = true;
-					}
-				}
+			/* subpixel precision */
+			self.scroll.top = Math.round(value*10)/10;
 
-				if (deltaY<0) {
-					if (value <= 0) {
-						value = 0;
-						stop = true;
-					}
-				}
+		}, slice, true, true);
 
-				if (self.scroll.time>duration){
-					stop = true;
-				}
+		return true;
 
-				if (self.scroll.expired === true){
-					stop = true;
-				}
-
-				if (stop && this.remove){
-					echo("stopped");
-					
-					self.scroll.scrolling = false;
-					self.scroll.initied = false;
-					this.remove();
-				} else {
-					self.scroll.top = value;
-				}
-
-			}, slice, true, true);
-
-		} else {
-			/*
-			self.scroll.timer.remove();
-			self.scroll.scrolling = false;
-			self.scroll.initied = false;
-			*/
-		}
-
-		return false;
-
-	},
-
-	scrollY : function(deltaY){
-		var self = this,
-			startY = this.scroll.top,
-			endY = this.scroll.top + deltaY,
-			maxY = this.content.height - this.h,
-			slice = 10,
-			duration = 80;
-
-		if (!this.scroll.initied){
-			self.scroll.initied = true;
-			self.scroll.time = 0;
-			self.scroll.duration = duration;
-			self.scroll.startY = startY;
-			self.scroll.endY = endY;
-			self.scroll.deltaY = deltaY;
-			self.scroll.accy = 1.0;
-		}
-
-		if (this.scroll.scrolling) {
-			self.scroll.timer.remove();
-			this.scroll.scrolling = false;
-			this.scroll.initied = false;
-		}
-
-		if (!this.scroll.scrolling){
-
-
-			self.scroll.scrolling = true;
-
-			self.scroll.timer = setTimer(function(){
-				let stop = false;
-		
-				self.scroll.top = Math.physics.cubicOut(0, self.scroll.time, startY, deltaY, self.scroll.duration);
-				self.scroll.time += slice;
-
-				delete(self.__cache);
-				canvas.__mustBeDrawn = true;
-
-
-				if (deltaY>=0) {
-					if (self.scroll.top > maxY) {
-						self.scroll.top = maxY;
-						stop = true;
-					}
-
-					if (self.scroll.top > endY) {
-						self.scroll.top = endY;
-						stop = true;
-					}
-				} else {
-					if (self.scroll.top < endY) {
-						self.scroll.top = endY;
-						stop = true;
-					}
-
-					if (self.scroll.top < 0) {
-						self.scroll.top = 0;
-						stop = true;
-					}
-				}
-
-				if (self.scroll.time>duration){
-					stop = true;
-				}
-
-				if (stop && this.remove){
-					self.scroll.scrolling = false;
-					self.scroll.initied = false;
-					this.remove();
-				}
-
-			}, slice, true, true);
-
-		}
 	},
 
 	set : function(property, delta, duration, callback, fx){
@@ -221,7 +107,7 @@ DOMElement.implement({
 	},
 
 	animate : function(property, from, delta, duration, callback, fx, rtCallback){
-		Native.MotionFactory.add({
+		return Native.MotionFactory.add({
 			view : this,
 			property : property,
 			from : from,
@@ -231,10 +117,27 @@ DOMElement.implement({
 			rtCallback : rtCallback,
 			fx : fx
 		});
+	},
+
+	getCurrentAnimations : function(property){
+		return Native.MotionFactory.get({
+			view : this,
+			property : property
+		});
+	},
+
+	cancelCurrentAnimations : function(property){
+		var q = this.getCurrentAnimations(property);
+
+		for (var i in q){
+			q[i].cancel();
+		}
 	}
+
 });
 
 Native.MotionFactory = {
+	mutex : [],
 	queue : [],
 	timer : null,
 	slice : 10,
@@ -242,11 +145,39 @@ Native.MotionFactory = {
 	playing : false,
 	ended : 0,
 
+	get : function(o){
+		var q = this.queue,
+			property = String(o.property),
+			view = o.view,
+			animations = [];
+
+		if (view && property) {
+			for (var i in q){
+				if (q[i].property == property){
+					animations.push(q[i]);
+				}
+			}
+		}
+		return animations;
+	},
+
 	add : function(o){
-		if (o.view && o.view[o.property] != undefined){
-			this.queue.push({
+		var self = this,
+			animation = {},
+			property = String(o.property);
+
+		if (o.view && o.view[property] != undefined){
+			
+			if (this.mutex[property] === true) {
+				echo("mutex on", property);
+				return false;
+			}
+
+			this.mutex[property] = true;
+
+			animation = {
 				view : o.view,
-				property : String(o.property),
+				property : property,
 				start : Number(o.from),
 				end : Number(o.delta - o.from),
 				duration : Number(o.duration),
@@ -255,9 +186,15 @@ Native.MotionFactory = {
 				fx : OptionalCallback(o.fx, Math.physics.quadInOut),
 				time : 0,
 				complete : false,
-			});
+				cancel : function(){
+					self.finish(this);
+				}
+			};
+
+			this.queue.push(animation);
 		}
 		this.play();
+		return animation;
 	},
 
 	animate : function(animation){
@@ -272,13 +209,30 @@ Native.MotionFactory = {
 		animation.time += this.slice;
 
 		if (animation.time>duration){
-			animation.complete = true;
 			view[property] = start + end;
-			if (animation.callback) animation.callback.call(view);
-			delete(animation);
-			canvas.__mustBeDrawn = true;
-			this.ended++;
+			this.finish(animation);
 		}
+	},
+
+	finish : function(animation){
+		var	q = this.queue,
+			view = animation.view,
+			property = animation.property;
+
+		animation.complete = true;
+		this.mutex[property] = null;
+
+		if (animation.callback) animation.callback.call(view);
+
+		for (var i in q){
+			if (q[i] == animation){
+				q.splice(i, 1);
+				break;
+			}
+		}
+
+		canvas.__mustBeDrawn = true;
+		this.ended++;
 	},
 
 	play : function(){

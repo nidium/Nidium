@@ -583,6 +583,7 @@ var Application = function(options){
 	 		if (canvas.animate) {
 
 				canvas.drawImage(bgCanvas, 0, 0);
+				if (Native.layout.hook) Native.layout.hook();
 				Native.layout.draw();
 
 				//Native.layout.grid();
