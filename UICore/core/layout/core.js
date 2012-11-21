@@ -25,6 +25,7 @@ var DOMElement = function(type, options, parent){
 	this.label = OptionalString(o.label, "Default");
 
 	this._eventQueues = [];
+	this._mutex = [];
 
 	// -- coordinate properties
 	this.x = OptionalNumber(o.x, 0);

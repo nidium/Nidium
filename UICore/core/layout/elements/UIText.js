@@ -98,11 +98,11 @@ Native.elements.export("UIText", {
 						clearTimeout(self.scroll.fadeScheduler);
 						self.scroll.fadeScheduler = setTimeout(function(){
 
-							self.verticalScrollBar.fadeOut(200, function(){
+							self.verticalScrollBar.fadeOut(250, function(){
 								self.scroll.fading = false;
 							});
 
-						}, 250);
+						}, 350);
 					}
 
 				});
@@ -355,7 +355,6 @@ Native.elements.export("UIText", {
 			} else {
 				this.setCaret(offset, 0);
 			}
-
 		};
 
 		this._insert = function(text, offset, size, newoffset, newsize){

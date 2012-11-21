@@ -27,21 +27,25 @@ DOMElement.implement({
 		var self = this,
 			fn = OptionalCallback(callback),
 			maxY = self.content.height - self.h,
-			slice = 10;
+			slice = 10,
+			step = 5,
+			dec = 0.98;
 
 		if (!self.scroll.initied) {
 			self.scroll.initied = true;
 			self.scroll.goal = self.scroll.top + deltaY;
+			self.scroll.dy = 1
 		} else {
 			/* set new goal */
+			//self.scroll.top = Math.round(self.scroll.goal*10)/10;
 			self.scroll.goal += deltaY;
 		}
 
 		/* Scroll Velocity Interpolation */
 		if (deltaY>0) {
-			self.scroll.acc = (self.scroll.goal - self.scroll.top)/12;
+			self.scroll.dy = (self.scroll.goal - self.scroll.top)/step;
 		} else {
-			self.scroll.acc = (self.scroll.top - self.scroll.goal)/12;
+			self.scroll.dy = (self.scroll.top - self.scroll.goal)/step;
 		}
 
 		if (self.scroll.timer) {
@@ -56,8 +60,8 @@ DOMElement.implement({
 			if (deltaY>0) {
 
 				if (value < self.scroll.goal){
-					value += self.scroll.acc;
-					self.scroll.acc *= 0.95;
+					value += self.scroll.dy;
+					self.scroll.dy *= dec;
 				} else {
 					value = self.scroll.goal;
 					stop = true;
@@ -66,8 +70,8 @@ DOMElement.implement({
 			} else {
 
 				if (value > self.scroll.goal){
-					value += -self.scroll.acc;
-					self.scroll.acc *= 0.95;
+					value += -self.scroll.dy;
+					self.scroll.dy *= dec;
 				} else {
 					value = self.scroll.goal;
 					stop = true;
@@ -137,7 +141,6 @@ DOMElement.implement({
 });
 
 Native.MotionFactory = {
-	mutex : [],
 	queue : [],
 	timer : null,
 	slice : 10,
@@ -168,12 +171,14 @@ Native.MotionFactory = {
 
 		if (o.view && o.view[property] != undefined){
 			
-			if (this.mutex[property] === true) {
+			/*
+			if (o.view._mutex[property] === true) {
 				echo("mutex on", property);
 				return false;
 			}
 
-			this.mutex[property] = true;
+			o.view._mutex[property] = true;
+			*/
 
 			animation = {
 				view : o.view,
@@ -220,16 +225,18 @@ Native.MotionFactory = {
 			property = animation.property;
 
 		animation.complete = true;
-		this.mutex[property] = null;
+		view._mutex[property] = null;
 
 		if (animation.callback) animation.callback.call(view);
 
+/*
 		for (var i in q){
 			if (q[i] == animation){
 				q.splice(i, 1);
 				break;
 			}
 		}
+*/
 
 		canvas.__mustBeDrawn = true;
 		this.ended++;
