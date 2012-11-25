@@ -1631,6 +1631,7 @@ int NativeJS::LoadScript(const char *filename)
            .setFileAndLine(filename, 1);
     js::RootedObject rgbl(cx, gbl);
     JSScript *script = JS::Compile(cx, rgbl, options, filename);
+
 #if 0
     uint32_t encoded;
     void *data;
@@ -1646,6 +1647,9 @@ int NativeJS::LoadScript(const char *filename)
     JS_SetOptions(cx, oldopts);
 
     if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+        if (JS_IsExceptionPending(cx)) {
+            JS_ReportPendingException(cx);
+        }        
         return 0;
     }
     
@@ -1826,6 +1830,7 @@ static int native_timerng_wrapper(void *arg)
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);
+    
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 
