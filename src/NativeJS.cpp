@@ -951,7 +951,7 @@ static JSBool native_canvas_getImageData(JSContext *cx,
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
 
     arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
-    data = JS_GetUint8ClampedArrayData(arrBuffer, cx);
+    data = JS_GetUint8ClampedArrayData(arrBuffer);
 
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
 
@@ -989,7 +989,7 @@ static JSBool native_canvas_putImageData(JSContext *cx,
     JS_GetProperty(cx, dataObject, "width", &jwidth);
     JS_GetProperty(cx, dataObject, "height", &jheight);
 
-    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata), cx);
+    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata));
 
     NSKIA_NATIVE->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
         x, y);
@@ -1626,8 +1626,11 @@ int NativeJS::LoadScript(const char *filename)
     oldopts = JS_GetOptions(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
-
-    JSScript *script = JS_CompileUTF8File(cx, gbl, filename);
+    JS::CompileOptions options(cx);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1);
+    js::RootedObject rgbl(cx, gbl);
+    JSScript *script = JS::Compile(cx, rgbl, options, filename);
 #if 0
     uint32_t encoded;
     void *data;
