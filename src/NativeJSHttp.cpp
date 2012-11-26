@@ -133,7 +133,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         case NativeHTTP::DATA_AUDIO:
         {
             JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
-            uint8_t *data = JS_GetArrayBufferData(arr, cx);
+            uint8_t *data = JS_GetArrayBufferData(arr);
 
             memcpy(data, h->data->data, h->data->used);
 
