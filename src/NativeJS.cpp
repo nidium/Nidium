@@ -1578,7 +1578,7 @@ static int Native_handle_messages(void *arg)
                 JS_RemoveObjectRoot(cx, &event);            
 
             }
-            free(ptr);
+            delete ptr;
             break;
             default:break;
         }
