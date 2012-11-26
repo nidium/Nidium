@@ -34,6 +34,17 @@ void load(const char *file, uint8_t *buffer, int bufferSize) {
     } while (read > 0);
 }
 
+static void nodecb(const struct NodeEvent *ev) {
+    for (int i = 0; i < ev->size; i++) {
+        ev->data[0][i] *= 0;
+        ev->data[1][i] *= 0;
+    }
+}
+
+static void cbk(NativeAudioNode *node) {
+    printf("callback called\n");
+}
+
 int main(int argc, char *argv[]) {
     pthread_t threadIO;
     pthread_t threadDecode;
@@ -74,13 +85,16 @@ int main(int argc, char *argv[]) {
 
     NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
-    NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
+//    NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
     //NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     /*
     NativeAudioNodeMixer *mixer = (NativeAudioNodeMixer*)audio->createNode("mixer", 4, 2);
     NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
     */
+    NativeAudioNodeCustom *custom = (NativeAudioNodeCustom *)audio->createNode(NativeAudio::CUSTOM, 2, 2);
     NativeAudioNodeTarget *target= (NativeAudioNodeTarget *)audio->createNode(NativeAudio::TARGET, 2, 0);
+
+    custom->setCallback(nodecb, NULL);
 
     //gain->gain = 1;
 
@@ -94,10 +108,14 @@ int main(int argc, char *argv[]) {
     double gainValue = 1;
     double gainValue2 = 0.80;
     gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
-    gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
+    //gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
 
     audio->connect(track1->output[0], target->input[0]);
     audio->connect(track1->output[1], target->input[1]);
+
+    //audio->connect(custom->output[0], target->input[0]);
+    //audio->connect(custom->output[1], target->input[1]);
+
 
  //   audio->connect(gain->output[0], target->input[0]);
     //audio->connect(gain->output[1], target->input[1]);
@@ -110,6 +128,7 @@ int main(int argc, char *argv[]) {
     audio->connect(gain2->output[1], gain->input[1]);
     */
 
+    //gain->callback(cbk);
     track1->open(buffer1, bufferSize);
     //track2->open(buffer2, bufferSize);
 
@@ -119,6 +138,7 @@ int main(int argc, char *argv[]) {
     //NativeAudioTrack *track2 = audio->addTrack();
     //track2->open(buffer2, bufferSize);
     //track2->play();
+    /*
 
     printf("sleep\n");
     sleep(5);
@@ -127,6 +147,7 @@ int main(int argc, char *argv[]) {
     audio->disconnect(track1->output[1], target->input[1]);
     printf("disconnected\n");
     //audio->shutdown();
+    */
 
     pthread_join(threadDecode, NULL);
     pthread_join(threadDecode, NULL);
