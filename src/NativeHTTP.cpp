@@ -27,7 +27,7 @@ static int native_http_callback(void **ctx, callback_type type,
         int value, uint32_t step)
 {
     NativeHTTP *nhttp = (NativeHTTP *)ctx[0];
-
+    
     switch(type) {
         case HTTP_HEADER_KEYC:
             buffer_append_char(nhttp->http.headers.tkey, (unsigned char)value);

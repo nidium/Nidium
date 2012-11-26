@@ -1648,7 +1648,9 @@ int NativeJS::LoadScript(const char *filename)
 
     if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
         if (JS_IsExceptionPending(cx)) {
-            JS_ReportPendingException(cx);
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
         }        
         return 0;
     }
@@ -1830,7 +1832,7 @@ static int native_timerng_wrapper(void *arg)
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);
-    
+
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 
