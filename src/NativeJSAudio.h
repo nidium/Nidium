@@ -50,9 +50,9 @@ class NativeJSAudioNode: public NativeJSExposer
 {
     public :
         NativeJSAudioNode(NativeAudioNode *node, NativeJSAudio *audio) 
-            : audio(audio), node(node), msgFn(NULL), bufferFn(NULL), nodeObj(NULL), hashObj(NULL), fn(NULL),arrayBuff(NULL) {}
+            :  audio(audio), node(node), bufferFn(NULL), nodeObj(NULL), hashObj(NULL), fn(NULL),arrayBuff(NULL) {}
         NativeJSAudioNode(NativeAudioNode *node) 
-            : audio(audio), node(node), msgFn(NULL), bufferFn(NULL), nodeObj(NULL), hashObj(NULL), fn(NULL),arrayBuff(NULL) {}
+            : audio(audio), node(node), bufferFn(NULL), nodeObj(NULL), hashObj(NULL), fn(NULL),arrayBuff(NULL) {}
 
         ~NativeJSAudioNode();
 
@@ -76,7 +76,6 @@ class NativeJSAudioNode: public NativeJSExposer
         static void ctxCallback(NativeAudioNode *node, void *custom);
         static void setPropCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
-        JSFunction *msgFn;
         JSFunction *bufferFn;
         JSObject *nodeObj;
         JSObject *hashObj;
