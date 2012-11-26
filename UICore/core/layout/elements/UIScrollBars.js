@@ -8,6 +8,7 @@ Native.elements.export("UIVerticalScrollBar", {
 		this.h = this.parent.h;
 		this.x = this.parent.w - this.w;
 		this.y = 0;
+		this.opacity = 0;
 	},
 
 	draw : function(){

@@ -9,6 +9,7 @@
 #include "NativeJSImage.h"
 #include "NativeJSAudio.h"
 #include "NativeJSNative.h"
+#include "NativefileIO.h"
 
 #include "SkImageDecoder.h"
 
@@ -951,7 +952,7 @@ static JSBool native_canvas_getImageData(JSContext *cx,
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
 
     arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
-    data = JS_GetUint8ClampedArrayData(arrBuffer, cx);
+    data = JS_GetUint8ClampedArrayData(arrBuffer);
 
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
 
@@ -989,7 +990,7 @@ static JSBool native_canvas_putImageData(JSContext *cx,
     JS_GetProperty(cx, dataObject, "width", &jwidth);
     JS_GetProperty(cx, dataObject, "height", &jheight);
 
-    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata), cx);
+    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata));
 
     NSKIA_NATIVE->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
         x, y);
@@ -1587,6 +1588,24 @@ static int Native_handle_messages(void *arg)
     return 1;
 }
 
+#if 0
+void NativeJS::onNFIOOpen(NativeFileIO *nfio)
+{
+    printf("Open success\n");
+    nfio->getContents();
+}
+
+void NativeJS::onNFIOError(NativeFileIO *nfio, int errno)
+{
+    printf("Error while opening file\n");
+}
+
+void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
+{
+    printf("Data from file : %s\n", data);
+}
+#endif
+
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
@@ -1595,6 +1614,9 @@ void NativeJS::bindNetObject(ape_global *net)
         Native_handle_messages, this);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+
+    //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
+    //io->open();
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -1605,8 +1627,12 @@ int NativeJS::LoadScript(const char *filename)
     oldopts = JS_GetOptions(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
+    JS::CompileOptions options(cx);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1);
+    js::RootedObject rgbl(cx, gbl);
+    JSScript *script = JS::Compile(cx, rgbl, options, filename);
 
-    JSScript *script = JS_CompileUTF8File(cx, gbl, filename);
 #if 0
     uint32_t encoded;
     void *data;
@@ -1622,6 +1648,9 @@ int NativeJS::LoadScript(const char *filename)
     JS_SetOptions(cx, oldopts);
 
     if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+        if (JS_IsExceptionPending(cx)) {
+            JS_ReportPendingException(cx);
+        }        
         return 0;
     }
     
@@ -1656,7 +1685,7 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
-        2, NULL, NULL, NULL, NULL);   
+        2, NULL, NULL, NULL, NULL);
 
 }
 
@@ -1805,6 +1834,7 @@ static int native_timerng_wrapper(void *arg)
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);
+    
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 

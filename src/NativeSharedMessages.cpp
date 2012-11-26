@@ -41,6 +41,26 @@ void NativeSharedMessages::postMessage(void *dataptr, int event)
 	messageslist.count++;
 }
 
+void NativeSharedMessages::postMessage(unsigned int dataint, int event)
+{
+	Message *message;
+
+	message = new Message(dataint, event);
+
+	NSMAutoLock lock(&messageslist.lock);
+
+	if (messageslist.head) {
+		messageslist.head->prev = message;
+	}
+
+	if (messageslist.queue == NULL) {
+		messageslist.queue = message;
+	}
+
+	messageslist.head = message;
+	messageslist.count++;
+}
+
 int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 {
 	NSMAutoLock lock(&messageslist.lock);

@@ -111,7 +111,7 @@ var task4 = new Task(function(){
 });
 
 
-Native.scheduler.clock = 20; // switch tasks every 20 ms
+Native.scheduler.clock = 50; // switch tasks every 20 ms
 Native.scheduler.freeze();
 Native.scheduler.resume();
 

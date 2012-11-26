@@ -28,7 +28,8 @@
  *
  */
 
-var __PATH_CORE__ = 'core/',
+var ಠ_ಠ = '1.0',
+	__PATH_CORE__ = 'core/',
 	__PATH_LAYOUT__ = 'core/layout/',
 	__PATH_ELEMENTS__ = 'core/layout/elements/',
 	__PATH_PLUGINS__ = 'core/plugins/';
@@ -308,7 +309,7 @@ Native.layout = {
 			this.currentOnTopElement.fireEvent("back", {});
 		}
 
-		/* set this element as the new on top element */
+		/* set this element as the new "on top" element */
 		element.isOnTop = true;
 		element.fireEvent("top", {});
 		element.zIndex = this.getHigherZindex() + 1;

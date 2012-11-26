@@ -25,6 +25,7 @@ var DOMElement = function(type, options, parent){
 	this.label = OptionalString(o.label, "Default");
 
 	this._eventQueues = [];
+	this._mutex = [];
 
 	// -- coordinate properties
 	this.x = OptionalNumber(o.x, 0);
@@ -583,6 +584,7 @@ var Application = function(options){
 	 		if (canvas.animate) {
 
 				canvas.drawImage(bgCanvas, 0, 0);
+				if (Native.layout.hook) Native.layout.hook();
 				Native.layout.draw();
 
 				//Native.layout.grid();

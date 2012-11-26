@@ -6,6 +6,9 @@
 		},
 		{
 			"path": "UICore/NativeOSX 2.app"
+		},
+		{
+			"path": "/Users/anthonycatel/Library/Developer/Xcode/DerivedData/NativeOSX-bygegizbyeuynbdtwddtwsubagxn/Build/Products/Release/server/NativeOSX-server.app"
 		}
 	],
 	"settings":

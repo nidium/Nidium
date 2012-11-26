@@ -23,80 +23,86 @@ DOMElement.implement({
 		this.animate("left", this.left, delta, duration, callback, fx);
 	},
 
-	scrollY : function(deltaY){
+	scrollContentY : function(deltaY, callback){
 		var self = this,
-			startY = this.scroll.top,
-			endY = this.scroll.top + deltaY,
-			maxY = this.content.height-this.h,
+			fn = OptionalCallback(callback),
+			maxY = self.content.height - self.h,
 			slice = 10,
-			duration = 80;
+			step = 5,
+			dec = 0.98;
 
-		if (!this.scroll.initied){
+		if (!self.scroll.initied) {
 			self.scroll.initied = true;
-			self.scroll.time = 0;
-			self.scroll.duration = duration;
-			self.scroll.startY = startY;
-			self.scroll.endY = endY;
-			self.scroll.deltaY = deltaY;
-			self.scroll.accy = 1.0;
+			self.scroll.goal = self.scroll.top + deltaY;
+			self.scroll.dy = 1
+		} else {
+			/* set new goal */
+			//self.scroll.top = Math.round(self.scroll.goal*10)/10;
+			self.scroll.goal += deltaY;
 		}
 
-		if (this.scroll.scrolling) {
+		/* Scroll Velocity Interpolation */
+		if (deltaY>0) {
+			self.scroll.dy = (self.scroll.goal - self.scroll.top)/step;
+		} else {
+			self.scroll.dy = (self.scroll.top - self.scroll.goal)/step;
+		}
+
+		if (self.scroll.timer) {
 			self.scroll.timer.remove();
-			this.scroll.scrolling = false;
-			this.scroll.initied = false;
 		}
 
-		if (!this.scroll.scrolling){
+		/* Scroll to goal and slowdown velocity */
+		self.scroll.timer = setTimer(function(){
+			var stop = false,
+				value = self.scroll.top;
 
+			if (deltaY>0) {
 
-			self.scroll.scrolling = true;
-
-			self.scroll.timer = setTimer(function(){
-				let stop = false;
-		
-				self.scroll.top = Math.physics.cubicOut(0, self.scroll.time, startY, deltaY, self.scroll.duration);
-				self.scroll.time += slice;
-
-				delete(self.__cache);
-				canvas.__mustBeDrawn = true;
-
-
-				if (deltaY>=0) {
-					if (self.scroll.top > maxY) {
-						self.scroll.top = maxY;
-						stop = true;
-					}
-
-					if (self.scroll.top > endY) {
-						self.scroll.top = endY;
-						stop = true;
-					}
+				if (value < self.scroll.goal){
+					value += self.scroll.dy;
+					self.scroll.dy *= dec;
 				} else {
-					if (self.scroll.top < endY) {
-						self.scroll.top = endY;
-						stop = true;
-					}
-
-					if (self.scroll.top < 0) {
-						self.scroll.top = 0;
-						stop = true;
-					}
-				}
-
-				if (self.scroll.time>duration){
+					value = self.scroll.goal;
 					stop = true;
 				}
 
-				if (stop && this.remove){
-					self.scroll.scrolling = false;
-					self.scroll.initied = false;
-					this.remove();
+			} else {
+
+				if (value > self.scroll.goal){
+					value += -self.scroll.dy;
+					self.scroll.dy *= dec;
+				} else {
+					value = self.scroll.goal;
+					stop = true;
 				}
 
-			}, slice, true, true);
+			} 
 
-		}
+			/* stop below bottom */
+			if (value > maxY) {
+				value = maxY;
+				stop = true;
+			}
+
+			/* stop above top */
+			if (value < 0) {
+				value = 0;
+				stop = true;
+			}
+
+			if (stop){
+				self.scroll.initied = false;
+				this.remove();
+				fn.call(self);
+			}
+
+			/* subpixel precision */
+			self.scroll.top = Math.round(value*10)/10;
+
+		}, slice, true, true);
+
+		return true;
 
 	},
 
@@ -105,7 +111,7 @@ DOMElement.implement({
 	},
 
 	animate : function(property, from, delta, duration, callback, fx, rtCallback){
-		Native.MotionFactory.add({
+		return Native.MotionFactory.add({
 			view : this,
 			property : property,
 			from : from,
@@ -115,7 +121,23 @@ DOMElement.implement({
 			rtCallback : rtCallback,
 			fx : fx
 		});
+	},
+
+	getCurrentAnimations : function(property){
+		return Native.MotionFactory.get({
+			view : this,
+			property : property
+		});
+	},
+
+	cancelCurrentAnimations : function(property){
+		var q = this.getCurrentAnimations(property);
+
+		for (var i in q){
+			q[i].cancel();
+		}
 	}
+
 });
 
 Native.MotionFactory = {
@@ -126,11 +148,41 @@ Native.MotionFactory = {
 	playing : false,
 	ended : 0,
 
+	get : function(o){
+		var q = this.queue,
+			property = String(o.property),
+			view = o.view,
+			animations = [];
+
+		if (view && property) {
+			for (var i in q){
+				if (q[i].property == property){
+					animations.push(q[i]);
+				}
+			}
+		}
+		return animations;
+	},
+
 	add : function(o){
-		if (o.view && o.view[o.property] != undefined){
-			this.queue.push({
+		var self = this,
+			animation = {},
+			property = String(o.property);
+
+		if (o.view && o.view[property] != undefined){
+			
+			/*
+			if (o.view._mutex[property] === true) {
+				echo("mutex on", property);
+				return false;
+			}
+
+			o.view._mutex[property] = true;
+			*/
+
+			animation = {
 				view : o.view,
-				property : String(o.property),
+				property : property,
 				start : Number(o.from),
 				end : Number(o.delta - o.from),
 				duration : Number(o.duration),
@@ -139,9 +191,15 @@ Native.MotionFactory = {
 				fx : OptionalCallback(o.fx, Math.physics.quadInOut),
 				time : 0,
 				complete : false,
-			});
+				cancel : function(){
+					self.finish(this);
+				}
+			};
+
+			this.queue.push(animation);
 		}
 		this.play();
+		return animation;
 	},
 
 	animate : function(animation){
@@ -156,13 +214,32 @@ Native.MotionFactory = {
 		animation.time += this.slice;
 
 		if (animation.time>duration){
-			animation.complete = true;
 			view[property] = start + end;
-			if (animation.callback) animation.callback.call(view);
-			delete(animation);
-			canvas.__mustBeDrawn = true;
-			this.ended++;
+			this.finish(animation);
 		}
+	},
+
+	finish : function(animation){
+		var	q = this.queue,
+			view = animation.view,
+			property = animation.property;
+
+		animation.complete = true;
+		view._mutex[property] = null;
+
+		if (animation.callback) animation.callback.call(view);
+
+/*
+		for (var i in q){
+			if (q[i] == animation){
+				q.splice(i, 1);
+				break;
+			}
+		}
+*/
+
+		canvas.__mustBeDrawn = true;
+		this.ended++;
 	},
 
 	play : function(){

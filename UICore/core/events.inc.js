@@ -373,8 +373,9 @@ DOMElement.implement({
 	},
 
 	addEventListener : function(name, callback, propagation){
-		var self = this,
-			queue = self._eventQueues[name];
+		var self = this;
+		self._eventQueues = self._eventQueues ? self._eventQueues : [];
+		var queue = self._eventQueues[name];
 
 		queue = !queue ? self._eventQueues[name] = [] : 
 						 self._eventQueues[name];
@@ -399,6 +400,34 @@ DOMElement.implement({
 
 	}
 });
+
+/* -- THREAD EVENT LISTENER ------------------------------------------------- */
+
+Thread.prototype.addEventListener = function(name, callback, propagation){
+	var self = this;
+	self._eventQueues = self._eventQueues ? self._eventQueues : [];
+	var queue = self._eventQueues[name];
+
+	queue = !queue ? self._eventQueues[name] = [] : 
+					 self._eventQueues[name];
+
+	queue.push({
+		name : OptionalString(name, "error"),
+		fn : OptionalCallback(callback, function(){}),
+		propagation : OptionalBoolean(propagation, true),
+		response : null
+	});
+
+	self["on"+name] = function(e){
+		for(var i in queue){
+			queue[i].response = queue[i].fn.call(self, e);
+			if (!queue[i].propagation){
+				continue;
+			}
+		}
+	};
+
+};
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 

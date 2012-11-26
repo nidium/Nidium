@@ -4,6 +4,7 @@
 #define NATIVE_SOCKET_JSOBJECT(socket) ((JSObject *)socket->ctx)
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
 static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
@@ -26,7 +27,7 @@ static JSClass Socket_class = {
 static JSClass socket_client_class = {
     "SocketClient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize_client,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -117,10 +118,11 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     socket_client->ctx = jclient;
 
     JS_AddObjectRoot(cx, (JSObject **)&socket_client->ctx);
-
+#if 1
     JS_SetPrivate(jclient, socket_client);
 
     JS_DefineFunctions(cx, jclient, socket_client_funcs);
+    
 
     arg = OBJECT_TO_JSVAL(jclient);
 
@@ -129,8 +131,8 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
         JS_CallFunctionValue(cx, nsocket->jsobject, onaccept,
             1, &arg, &rval);
-    }    
-
+    }
+    #endif
 }
 
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
@@ -151,7 +153,7 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
 
     if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, socket_client->data_in.used);
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer, cx);
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, socket_client->data_in.data, socket_client->data_in.used);
 
         jparams[1] = OBJECT_TO_JSVAL(arrayBuffer);
@@ -191,7 +193,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
 
     if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, s->data_in.used);
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer, cx);
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, s->data_in.data, s->data_in.used);
 
         jdata = OBJECT_TO_JSVAL(arrayBuffer);
@@ -220,8 +222,16 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
 {
     JSContext *cx;
     jsval ondisconnect, rval, jparams[1];
+    NativeJSSocket *nsocket;
+
+    printf("Disconnecting event (client_disconnect)\n");
+
     ape_socket *socket_server = socket_client->parent;
-    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    if (socket_server == NULL) { /* the server has disconnected */
+        return;
+    }
+
+    nsocket = (NativeJSSocket *)socket_server->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -238,7 +248,7 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
             1, jparams, &rval);
     }
 
-    JS_RemoveObjectRoot(cx, (JSObject **)&socket_client->ctx);
+    //JS_RemoveObjectRoot(cx, (JSObject **)&socket_client->ctx);
     
     JS_SetPrivate((JSObject *)socket_client->ctx, NULL);
     socket_client->ctx = NULL;
@@ -476,7 +486,19 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    printf("Finalized\n");
     if (nsocket != NULL) {
+        printf("Finalize confirmed\n");
+        delete nsocket;
+    }
+}
+
+static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
+{
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
+    printf("Finalized client\n");
+    if (nsocket != NULL) {
+        printf("Finalize client confirmed\n");
         delete nsocket;
     }
 }
@@ -494,6 +516,7 @@ NativeJSSocket::~NativeJSSocket()
 {
 	if (isAttached()) {
 		socket->ctx = NULL;
+        printf("destructor called\n");
         this->disconnect();
 	}
     free(host);

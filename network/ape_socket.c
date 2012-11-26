@@ -307,14 +307,17 @@ void APE_socket_shutdown_now(ape_socket *socket)
 static void ape_socket_shutdown_force(ape_socket *socket)
 {
     if (socket->states.state != APE_SOCKET_ST_ONLINE) {
+        printf("not online\n");
         return;
     }
 #ifdef _HAVE_SSL_SUPPORT
     if (APE_SOCKET_ISSECURE(socket)) {
         ape_ssl_shutdown(socket->SSL.ssl);
     }
-#endif    
+#endif
+    printf("Closing socket %d\n", socket->s.fd);
     if (shutdown(socket->s.fd, 2) != 0) {
+        printf("Destroying now\n");
         APE_socket_destroy(socket);
     }
 }
@@ -356,6 +359,7 @@ int APE_socket_destroy(ape_socket *socket)
 #ifdef __WIN32
 	closesocket(APE_SOCKET_FD(socket));
 #else
+    printf("Closing() socket %d\n", APE_SOCKET_FD(socket));
     close(APE_SOCKET_FD(socket));
 #endif
     timer_dispatch_async(ape_socket_free, socket);
