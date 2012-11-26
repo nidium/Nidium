@@ -165,7 +165,6 @@ bool NativeJSAudio::createContext()
 
         gbl = JS_NewGlobalObject(this->tcx, &global_AudioThread_class, NULL);
         JS_AddObjectRoot(this->tcx, &gbl);
-
         if (!JS_InitStandardClasses(tcx, gbl)) {
             printf("Failed to init std class\n");
             return false;
@@ -173,12 +172,10 @@ bool NativeJSAudio::createContext()
 
         JS_SetVersion(this->tcx, JSVERSION_LATEST);
 
-        JS_SetOptions(this->tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE);
+        JS_SetOptions(this->tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
         JS_SetErrorReporter(this->tcx, reportError);
-
         JS_SetGlobalObject(this->tcx, gbl);
-
         JS_DefineFunctions(this->tcx, gbl, glob_funcs_threaded);
 
         //JS_SetContextPrivate(this->tcx, static_cast<void *>(this));
@@ -235,6 +232,7 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
 void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
 {
     NativeJSAudioNode *thiz;
+    printf("cbk\n");
 
     thiz = static_cast<NativeJSAudioNode *>(ev->custom);
 
@@ -250,15 +248,14 @@ void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
 
         thiz->nodeObj = JS_NewObject(tcx, &AudioNode_threaded_class, NULL, NULL);
         JS_AddObjectRoot(tcx, &thiz->nodeObj);
-        JS_DefineFunctions(tcx, thiz->nodeObj, AudioNodeCustom_threaded_funcs);
-
-        thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(thiz->audio->tcx), NULL, 2, args, str.ptr(), strlen(str.ptr()), "audioNodeCallback", 0);
+        thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), NULL, 0, NULL, str.ptr(), strlen(str.ptr()), "audioNodeCallback", 0);
 
         funObj = JS_GetFunctionObject(thiz->bufferFn);
         thiz->fnval = OBJECT_TO_JSVAL(funObj);
+        JS_AddValueRoot(tcx, &thiz->fnval);
 
+        JS_DefineFunctions(tcx, thiz->nodeObj, AudioNodeCustom_threaded_funcs);
         JS_SetPrivate(thiz->nodeObj, static_cast<void *>(thiz));
-        JS_AddValueRoot(thiz->audio->tcx, &thiz->fnval);
     }
 
     if (thiz->bufferFn) {
@@ -269,6 +266,9 @@ void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
         JSContext *tcx;
 
         tcx = thiz->audio->tcx;
+
+        /*
+
 
         count = thiz->node->inCount > thiz->node->outCount ? thiz->node->inCount : thiz->node->outCount;
         size = thiz->node->audio->outputParameters->bufferSize/2;
@@ -285,7 +285,7 @@ void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
 
             // TODO : Avoid memcpy (custom allocator for NativeAudioNode?)
             arrBuff = JS_NewArrayBuffer(tcx, size);
-            data = JS_GetArrayBufferData(arrBuff, tcx);
+            data = JS_GetArrayBufferData(arrBuff);
 
             memcpy(data, ev->data[i], size);
 
@@ -306,17 +306,19 @@ void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
 
         params[0] = OBJECT_TO_JSVAL(obj);
         params[1] = OBJECT_TO_JSVAL(JS_GetGlobalObject(tcx));
+        */
+        JS_CallFunction(tcx, NULL, thiz->bufferFn, 0, NULL, &rval);
 
-        JS_CallFunctionValue(tcx, thiz->nodeObj, thiz->fnval, 2, params, &rval);
-
+        /*
         for (int i = 0; i < count; i++) 
         {
             jsval val;
 
             JS_GetElement(tcx, frames, i, &val);
 
-            memcpy(ev->data[i], JS_GetFloat32ArrayData(JSVAL_TO_OBJECT(val), tcx), size);
+            memcpy(ev->data[i], JS_GetFloat32ArrayData(JSVAL_TO_OBJECT(val)), size);
         }
+        */
     }
 }
 
@@ -757,7 +759,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 
     // TODO : use JS_StealArrayBufferContents
 
-    if (!JS_IsArrayBufferObject(arrayBuff, cx)) {
+    if (!JS_IsArrayBufferObject(arrayBuff)) {
         JS_ReportError(cx, "Data is not an ArrayBuffer\n");
         return JS_TRUE;
     }
@@ -768,8 +770,8 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     //JS_AddObjectRoot(cx, &node->arrayBuff);
 
     if (int ret = source->open(
-                JS_GetArrayBufferData(arrayBuff, cx), 
-                JS_GetArrayBufferByteLength(arrayBuff, cx)) < 0) {
+                JS_GetArrayBufferData(arrayBuff), 
+                JS_GetArrayBufferByteLength(arrayBuff)) < 0) {
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
         return JS_TRUE;
     }
