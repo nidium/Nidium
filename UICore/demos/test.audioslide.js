@@ -39,37 +39,87 @@ var slider3 = main.add("UISliderController", {
 HTTPAudioRequest("http://f.z.nf/song.mp3", function(data) {
     source.open(data);
     source.play();
+    /*
     setTimeout(function() {
         source.pause();
     }, 5000);
     setTimeout(function() {
         source.play();
     }, 10000);
+    */
 
 });
 
+/*
 HTTPAudioRequest("http://labs.swelen.com/games/ztype4coders/media/music/endure.ogg", function(data) {
     source2.open(data);
     source2.play();
 });
+*/
 
 
-var dsp = new Audio(1024, 2, 44100);
+var dsp = new Audio(128, 2, 44100);
 
 var source = dsp.createNode("source", 0, 2);
-var source2 = dsp.createNode("source", 0, 2);
+//var source2 = dsp.createNode("source", 0, 2);
 var gain = dsp.createNode("gain", 2, 2);
+var custom = dsp.createNode("custom", 2, 2);
+var custom2 = dsp.createNode("custom", 2, 2);
 var target = dsp.createNode("target", 2, 0);
 
-dsp.connect(source.output(0), gain.input(0));
-dsp.connect(source.output(1), gain.input(1));
+custom.set("sent", false);
+custom.onbuffer = function(ev, scope) {
+    var gain = this.get("gain");
 
-dsp.connect(source2.output(0), target.input(0));
-dsp.connect(source2.output(1), target.input(1));
+    if (!gain) {
+        gain = 0.5;
+    }
 
-dsp.connect(gain.output(0), target.input(0));
-dsp.connect(gain.output(1), target.input(1));
+    scope.doubleGain = gain*5;
+
+        //this.send("Gain is > 1");
+    if (scope.doubleGain > 5 && !this.get("sent")) {
+        echo("sending");
+        this.set("sent", true);
+        //this.send("Gain is > 1");
+    }
+    for (let i = 0; i < ev.data.length; i++) {
+        for (let j = 0; j < ev.data[i].length; j++) {
+            ev.data[i][j] *= gain;
+        }
+    }
+}
+custom.onmessage = function(ev) {
+    echo(ev.message);
+    custom.set("sent", false);
+}
+
+//custom.set("foo", {"x": "foo", "y": "bar"});
+
+
+custom2.onbuffer = function(ev, scope) {
+    for (let i = 0; i < ev.data.length; i++) {
+        for (let j = 0; j < ev.data[i].length; j++) {
+            ev.data[i][j] *= scope.doubleGain;
+        }
+    }
+}
+
+dsp.connect(source.output(0), custom.input(0));
+dsp.connect(source.output(1), custom.input(1));
+
+/*
+dsp.connect(source2.output(0), custom2.input(0));
+dsp.connect(source2.output(1), custom2.input(1));
+*/
+
+dsp.connect(custom.output(0), custom2.input(0));
+dsp.connect(custom.output(1), custom2.input(1));
+
+dsp.connect(custom2.output(0), target.input(0));
+dsp.connect(custom2.output(1), target.input(1));
+
 
 slider3.addEventListener("change", function(value){
-    gain.set("gain", value);
+    custom.set("gain", value);
 }, false);
