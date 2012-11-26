@@ -15,7 +15,8 @@ extern "C" {
 // if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
 // should reset all parameters and buffers to fit last asked audio context
 NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
-    :inputStream(NULL), outputStream(NULL), threadShutdown(false), tracks(NULL), tracksCount(0)
+    :inputStream(NULL), outputStream(NULL), threadShutdown(false), tracks(NULL), tracksCount(0),
+     haveData(false), notEmpty(false)
 {
     pthread_cond_init(&this->bufferNotEmpty, NULL);
     pthread_mutex_init(&this->decodeLock, NULL);
@@ -96,8 +97,10 @@ void *NativeAudio::queueThread(void *args) {
         NativeSharedMessages::Message msg;
 
         if (cause == 0) {
-            SPAM(("Waiting for more data\n"));
-            pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
+            if (!audio->haveData) {
+                SPAM(("Waiting for more data\n"));
+                pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
+            }
         } else {
             SPAM(("Waiting for more space\n"));
             pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
@@ -106,6 +109,12 @@ void *NativeAudio::queueThread(void *args) {
         // Process input message
         while (audio->sharedMsg->readMessage(&msg)) {
             switch (msg.event()) {
+                case NATIVE_AUDIO_NODE_CALLBACK : {
+                    NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                    cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
+                    delete cbkMsg;
+                }
+                    break;
                 case NATIVE_AUDIO_NODE_SET : {
                     NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
                     memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
@@ -120,11 +129,12 @@ void *NativeAudio::queueThread(void *args) {
         }
 
         if (audio->output != NULL) {
-            for (;;) {
+            for (int i = 0;i < 10; i++) {
                 if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
                     SPAM(("Write avail %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
                     if (!audio->output->recurseGetData()) {
                         SPAM(("break cause of false\n"));
+                        audio->haveData = false;
                         break;
                     } else {
                         wrote = true;
@@ -157,7 +167,6 @@ void *NativeAudio::queueThread(void *args) {
                                 PaUtil_WriteRingBuffer(audio->rBufferOut, audio->nullBuffer, audio->outputParameters->framesPerBuffer);
                             }
                         }
-                        pthread_cond_signal(&audio->bufferNotEmpty);
                     }
                 } else {
                     SPAM(("no more space to write\n"));
@@ -166,6 +175,8 @@ void *NativeAudio::queueThread(void *args) {
                 }
             }
             SPAM(("Finished FX queue\n"));
+            pthread_cond_signal(&audio->bufferNotEmpty);
+            audio->notEmpty = true;
         } 
         /*
         pthread_mutex_lock(&audio->shutdownLock);
@@ -181,6 +192,7 @@ void *NativeAudio::queueThread(void *args) {
     return NULL;
 }
 
+// TODO : Better locking/unlocking
 void *NativeAudio::decodeThread(void *args) {
     NativeAudio *audio = (NativeAudio *)args;
 
@@ -188,9 +200,10 @@ void *NativeAudio::decodeThread(void *args) {
     {
         NativeAudioTracks *tracks = audio->tracks;
         NativeAudioTrack *track;
-        int haveEnought;
+        int haveEnought, tracksCount;
 
         haveEnought = 0;
+        tracksCount = audio->tracksCount;
 
         // Go through all the tracks that need data to be decoded
         while (tracks != NULL) 
@@ -202,29 +215,46 @@ void *NativeAudio::decodeThread(void *args) {
                 track = tracks->curr;
 
                 // Loop as long as there is data to read and write
-                for (;;)
+                while(track->avail() <= audio->outputParameters->framesPerBuffer * 2)
                 {
+                    SPAM(("Buffering\n"));
                     if (!track->work()) {
                         // No data to process, exit. 
                         break;
                     }  
                 }
 
-                if (track->avail() >= audio->outputParameters->framesPerBuffer) {
+                if (track->avail() >= audio->outputParameters->framesPerBuffer * 2) {
                     haveEnought++;
+                    audio->notEmpty = false;
+                } 
+
+                if (!track->opened || !track->playing) {
+                    tracksCount--;
                 }
             }
             tracks = tracks->next;
         }
+        SPAM(("haveEnought %d / tracksCount %d\n", haveEnought, tracksCount));
 
-        if (audio->tracksCount > 0 /*&& haveEnought == audio->tracksCount*/) {
+        if (audio->tracksCount > 0 && haveEnought == tracksCount) {
             if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) > 0) {
+                SPAM(("Have data\n"));
                 pthread_cond_signal(&audio->queueHaveData);
-            } 
+                audio->haveData = true;
+            }  else {
+                SPAM(("dont Have data %lu\n",PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
+            }
         }
 
         // Wait for work to do
-        pthread_cond_wait(&audio->bufferNotEmpty, &audio->decodeLock);
+        if (!audio->threadShutdown) {
+            SPAM(("Waitting for bufferNotEmpty\n"));
+            if (!audio->notEmpty) {
+                pthread_cond_wait(&audio->bufferNotEmpty, &audio->decodeLock);
+            }
+            SPAM(("Buffer not empty received\n"));
+        }
     }
 
     SPAM(("Exiting"));
@@ -381,6 +411,9 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
         case GAIN:
                 return new NativeAudioNodeGain(input, output, this);
             break;
+        case CUSTOM:
+                return new NativeAudioNodeCustom(input, output, this);
+            break;
         case TARGET:
                 if (this->openOutput() == 0) {
                     this->output = new NativeAudioNodeTarget(input, output, this);
@@ -412,12 +445,14 @@ void NativeAudio::shutdown()
     this->threadShutdown = true;
     pthread_mutex_unlock(&this->shutdownLock);
 
+    pthread_cond_signal(&this->queueHaveSpace);
     pthread_cond_signal(&this->queueHaveData);
     pthread_cond_signal(&this->bufferNotEmpty);
 }
 
 NativeAudio::~NativeAudio() {
     if (this->outputStream != NULL) {
+        SPAM(("stopStream\n"));
         Pa_StopStream(this->outputStream); 
     }
 

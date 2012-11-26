@@ -42,7 +42,7 @@ class NativeAudio
         };
 
         enum Node {
-            SOURCE, GAIN, TARGET 
+            SOURCE, GAIN, TARGET, CUSTOM
         };
 
         NativeAudioParameters *outputParameters;
@@ -89,6 +89,7 @@ class NativeAudio
 
         pthread_mutex_t decodeLock, queueLock, shutdownLock;
 
+        bool haveData, notEmpty;
         bool threadShutdown;
 
         NativeAudioTracks *tracks;

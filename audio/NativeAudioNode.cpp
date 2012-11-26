@@ -68,6 +68,11 @@ NativeAudioNode::Message::~Message() {
     free(this->source);
 }
 
+void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom) 
+{
+    this->audio->sharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
+}
+
 bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned long size) 
 {
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
@@ -228,7 +233,8 @@ bool NativeAudioNode::recurseGetData()
                     if (!this->input[i]->wire[j]->feedback) {
                         if (!this->input[i]->wire[j]->node->recurseGetData()) {
                             SPAM(("FAILED\n"));
-                            //return false;
+                            // TODO : Check side effect of returning false (two source?)
+                            return false;
                         }
                     }
                 }
@@ -325,6 +331,7 @@ NativeAudioNode::~NativeAudioNode() {
     // TODO : Call disconnect() to update tree 
     //        and free local _tmp_ buffer
 
+    /*
     for (int i = 0; i < this->inCount; i++) 
     {
         for (int j = 0; j < this->input[i]->count) 
@@ -337,6 +344,7 @@ NativeAudioNode::~NativeAudioNode() {
     {
         this->unqueue(this->output[i], this->output[i]->);
     }
+    */
 
     /*
     if (this->outCount > this->inCount || this->inCount == 0) {
@@ -374,6 +382,32 @@ bool NativeAudioNodeGain::process()
 
         SPAM(("Gain data %f/%f\n", this->frames[0][i], this->frames[1][i]));
     }
+    return true;
+}
+
+NativeAudioNodeCustom::NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio) 
+    : NativeAudioNode(inCount, outCount, audio), cbk(NULL)
+{
+}
+
+void NativeAudioNodeCustom::setCallback(NodeCallback cbk, void *custom)
+{
+    this->cbk = cbk;
+    this->custom = custom;
+}
+
+bool NativeAudioNodeCustom::process()
+{
+    if (this->cbk != NULL) {
+        NodeEvent ev;
+
+        ev.data = this->frames;
+        ev.size = this->audio->outputParameters->framesPerBuffer;
+        ev.custom = this->custom;
+
+        this->cbk(&ev);
+    }
+
     return true;
 }
 
@@ -624,6 +658,7 @@ int NativeAudioTrack::buffer(int n) {
             if (ret < 0) {
                 if (ret == AVERROR(EOF) || (this->container->pb && this->container->pb->eof_reached)) {
                     this->eof = true;
+                    break;
                 } else if (ret != AVERROR(EAGAIN)) {
                     break;
                 }
@@ -857,6 +892,7 @@ bool NativeAudioTrack::process() {
 
     // Make sure enought data is available
     if (this->audio->outputParameters->framesPerBuffer > PaUtil_GetRingBufferReadAvailable(this->rBufferOut)) {
+        SPAM(("Not enought to read\n"));
         return false;
     }
 

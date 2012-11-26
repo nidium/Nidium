@@ -16,6 +16,7 @@ class NativeAudioParameters {
 
 enum {
     NATIVE_AUDIO_NODE_SET,
+    NATIVE_AUDIO_NODE_CALLBACK,
     NATIVE_AUDIO_SHUTDOWN
 };
 #endif

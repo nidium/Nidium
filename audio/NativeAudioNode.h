@@ -26,6 +26,11 @@ struct NodeIO {
     NodeIO(NativeAudioNode *node, float *frame) : node(node), feedback(false), frame(frame) {};
 };
 
+struct NodeEvent {
+    float **data;
+    unsigned long size;
+    void *custom;
+};
 
 struct NodeLink {
     int count;
@@ -43,6 +48,10 @@ struct NodeLink {
         }
     };
 };
+
+// XXX : Normalize arguments
+typedef void (*NodeCallback)(const struct NodeEvent *ev);
+typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom);
 
 class NativeAudioNode
 {
@@ -65,6 +74,14 @@ class NativeAudioNode
             ~Message();
         };
 
+        struct CallbackMessage {
+            NodeMessageCallback cbk;
+            NativeAudioNode *node;
+            void *custom;
+            CallbackMessage(NodeMessageCallback cbk, NativeAudioNode *node, void *custom)
+                : cbk(cbk), node(node), custom(custom) {}
+        };
+
 
         float **frames;
 
@@ -78,10 +95,15 @@ class NativeAudioNode
         int inCount;
         int outCount;
 
+        // XXX : Should be private 
+        // (but for now JS need access to it)
+        NativeAudio *audio;
+
         NativeAudioNode(int inCount, int outCount, NativeAudio *audio);
 
-        void get(const char *name);
+        void callback(NodeMessageCallback cbk, void *custom);
         bool set(const char *name, ArgType type, void *value, unsigned long size);
+        void get(const char *name);
 
         void updateFeedback(NativeAudioNode *nOut);
         void updateWiresFrame(int channel, float *frame);
@@ -95,8 +117,6 @@ class NativeAudioNode
 
         ~NativeAudioNode();
 
-    protected:
-        NativeAudio *audio;
     private:
         void post(int msg, void *source, void *dest, unsigned long size);
 };
@@ -155,6 +175,19 @@ class NativeAudioNodeGain : public NativeAudioNode
         double gain;
 
         virtual bool process();
+};
+
+class NativeAudioNodeCustom : public NativeAudioNode
+{
+    public :
+        NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio);
+
+        void setCallback(NodeCallback cbk, void *custom);
+
+        virtual bool process();
+    private : 
+        NodeCallback cbk;
+        void *custom;
 };
 
 #if 0
