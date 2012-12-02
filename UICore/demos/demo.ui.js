@@ -35,9 +35,9 @@ var template = "In olden times when wishing still helped one, there lived a king
 var	sampleText = template.mul(10);
 
 var	textView = main.add("UIText", {
-	x : 733,
+	x : 633,
 	y : 80,
-	w : 280,
+	w : 380,
 	h : 568,
 	text : sampleText,
 	lineHeight : 18,
@@ -45,8 +45,69 @@ var	textView = main.add("UIText", {
 	fontType : "arial",
 	textAlign : "justify",
 	background : "rgba(255, 255, 255, 1)",
-	color : "#000000"
+	color : "#000000",
+	overflow : false
 });
+
+var illustration1 = textView.add("UIView", {
+	x : 126,
+	y : 0,
+	w : 254,
+	h : 72,
+	background : "#4455FF",
+	fixed : false
+});
+
+var	illustration2 = textView.add("UIView", {
+	x : 154,
+	y : 72,
+	w : 226,
+	h : 90,
+	background : "#ff5599",
+	overflow : false,
+	fixed : false
+});
+
+var icon = textView.add("UIView", {
+	x : 160,
+	y : 200,
+	w : 100,
+	h : 80,
+	background : "#000033",
+	overflow : false,
+	fixed : true
+});
+
+var chld = icon.add("UIView", {
+	x : 5,
+	y : 45,
+	w : 40,
+	h : 50,
+	background : "#999900"
+});
+
+var chld2 = chld.add("UIView", {
+	x : 22,
+	y : 4,
+	w : 10,
+	h : 80,
+	background : "#0055DD"
+});
+
+
+DBT(function(){
+	/*
+	greenView.remove();
+	Native.layout.unregister(main);
+	Native.layout.register(mainTabController);
+	*/
+
+	textView.dummy();
+
+});
+
+
+
 
 var win = main.add("UIWindow", {
 	x : 280,
@@ -58,7 +119,6 @@ var win = main.add("UIWindow", {
 	closeable : true,
 	movable : true
 });
-
 
 var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
@@ -118,11 +178,6 @@ slider.addEventListener("change", function(value){
 
 /* ------------------------------------------------- */
 
-DBT(function(){
-	greenView.remove();
-	Native.layout.unregister(main);
-	Native.layout.register(mainTabController);
-});
 
 /* ------------------------------------------------- */
 

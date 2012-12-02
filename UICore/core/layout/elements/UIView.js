@@ -6,7 +6,7 @@ Native.elements.export("UIView", {
 	draw : function(){
 		var params = {
 				x : this._x,
-				y : this._y,
+				y : this._y - (this._fixed===false ? this.scroll._top : 0),
 				w : this.w,
 				h : this.h
 			};
@@ -18,6 +18,5 @@ Native.elements.export("UIView", {
 		} else {
 			canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false);
 		}
-
 	}
 });
