@@ -124,7 +124,6 @@ argb_from_rgb(uint8_t r, uint8_t g, uint8_t b) {
   return argb_from_rgba(r, g, b, 255);
 }
 
-
 /*
  * Return rgb from "rgb()"
  */

@@ -951,7 +951,7 @@ static JSBool native_canvas_getImageData(JSContext *cx,
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
 
     arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
-    data = JS_GetUint8ClampedArrayData(arrBuffer, cx);
+    data = JS_GetUint8ClampedArrayData(arrBuffer);
 
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
 
@@ -989,7 +989,7 @@ static JSBool native_canvas_putImageData(JSContext *cx,
     JS_GetProperty(cx, dataObject, "width", &jwidth);
     JS_GetProperty(cx, dataObject, "height", &jheight);
 
-    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata), cx);
+    pixels = JS_GetUint8ClampedArrayData(JSVAL_TO_OBJECT(jdata));
 
     NSKIA_NATIVE->drawPixels(pixels, JSVAL_TO_INT(jwidth), JSVAL_TO_INT(jheight),
         x, y);
@@ -1578,7 +1578,7 @@ static int Native_handle_messages(void *arg)
                 JS_RemoveObjectRoot(cx, &event);            
 
             }
-            free(ptr);
+            delete ptr;
             break;
             default:break;
         }
@@ -1626,8 +1626,12 @@ int NativeJS::LoadScript(const char *filename)
     oldopts = JS_GetOptions(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
+    JS::CompileOptions options(cx);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1);
+    js::RootedObject rgbl(cx, gbl);
+    JSScript *script = JS::Compile(cx, rgbl, options, filename);
 
-    JSScript *script = JS_CompileUTF8File(cx, gbl, filename);
 #if 0
     uint32_t encoded;
     void *data;
@@ -1643,6 +1647,11 @@ int NativeJS::LoadScript(const char *filename)
     JS_SetOptions(cx, oldopts);
 
     if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }        
         return 0;
     }
     
@@ -1823,6 +1832,7 @@ static int native_timerng_wrapper(void *arg)
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);
+
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 
