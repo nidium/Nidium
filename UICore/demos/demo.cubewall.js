@@ -1,3 +1,7 @@
+/*
+ * Port of Markus Persson's demo (http://jsfiddle.net/uzMPU/)
+ */
+
 var ctx;
 var pixels;
 
@@ -6,12 +10,13 @@ var h = 192;
 
 canvas.scale(4, 4);
 
+var k = 16,
+	kk = 32;
+
 /*
 var map = new Array(64 * 64 * 64);
 var texmap = new Array(k * k * 3 * k);
 */
-var k = 16,
-	kk = 32;
 
 var map = new Uint8Array(64 * 64 * 64);
 var texmap = new Uint32Array(k * k * 3 * k);
@@ -130,7 +135,7 @@ function renderMinecraft() {
 	var xCos = Math.cos(xRot);
 	var xSin = Math.sin(xRot);
 
-	var ox = 32.5 + Date.now() % 10000 / 10000 * 64;
+	var ox = 32.5 + Date.now() % 10000 / 10000 * 256;
 	var oy = 32.5;
 	var oz = 32.5;
 
