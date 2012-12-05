@@ -12,6 +12,11 @@
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
 
+/* -- WebGL Demos --------------------------- */
+//load("demos/test.webgl.three.js");
+//load("demos/test.webgl.three.particles.js");
+load("demos/test.webgl.three.camaro.js");
+//load("demos/test.webgl.js");
 /* -- Featured Demos --------------------------- */
 //load('demos/featured.audiobasics.js');
 
@@ -35,7 +40,7 @@
 
 /* -- StandAlone Demos ------------------------- */
 
-load('demos/demo.cubewall.js');
+//load('demos/demo.cubewall.js');
 //load('demos/demo.box2d.basics.js');
 //load('demos/demo.box2d.advanced.js');
 

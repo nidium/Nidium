@@ -9,6 +9,7 @@
 #include "NativeJSImage.h"
 #include "NativeJSNative.h"
 #include "NativeFileIO.h"
+#include "NativeJSWebGL.h"
 
 #include "SkImageDecoder.h"
 
@@ -1678,6 +1679,18 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSHttp::registerObject(cx);
     /* Image() object */
     NativeJSImage::registerObject(cx);
+    /* WebGL*() object */
+    NativeJSNativeGL::registerObject(cx);
+    NativeJSWebGLRenderingContext::registerObject(cx);
+    NativeJSWebGLObject::registerObject(cx);
+    NativeJSWebGLBuffer::registerObject(cx);
+    NativeJSWebGLFrameBuffer::registerObject(cx);
+    NativeJSWebGLProgram::registerObject(cx);
+    NativeJSWebGLRenderbuffer::registerObject(cx);
+    NativeJSWebGLShader::registerObject(cx);
+    NativeJSWebGLTexture::registerObject(cx);
+    NativeJSWebGLUniformLocation::registerObject(cx);
+
     /* Native() object */
     NativeJSNative::registerObject(cx);
 

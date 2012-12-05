@@ -44,6 +44,7 @@ SOURCES=NativeJS.cpp 				\
 		NativeJSHttp.cpp 			\
 		NativeJSImage.cpp 			\
 		NativeJSNative.cpp 			\
+		NativeJSWebGL.cpp 			\
 		NativeFileIO.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
