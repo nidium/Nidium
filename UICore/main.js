@@ -4,14 +4,19 @@
 
 /* -- Native FrameWork Demos  ------------------ */
 
-load("core/native.inc.js");
-load('demos/demo.ui.js');
+//load("core/native.inc.js");
+//load('demos/demo.ui.js');
 //load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
 //load('demos/demo.diagrams.js');
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
 
+/* -- WebGL Demos --------------------------- */
+//load("demos/test.webgl.three.js");
+//load("demos/test.webgl.three.particles.js");
+load("demos/test.webgl.three.camaro.js");
+//load("demos/test.webgl.js");
 /* -- Featured Demos --------------------------- */
 //load('demos/featured.audiobasics.js');
 
@@ -35,7 +40,7 @@ load('demos/demo.ui.js');
 
 /* -- StandAlone Demos ------------------------- */
 
-
+//load('demos/demo.cubewall.js');
 //load('demos/demo.box2d.basics.js');
 //load('demos/demo.box2d.advanced.js');
 

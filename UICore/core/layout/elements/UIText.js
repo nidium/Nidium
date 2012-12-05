@@ -4,7 +4,8 @@
 
 Native.elements.export("UIText", {
 	init : function(){
-		var self = this;
+		var self = this,
+			scrollY = (this._fixed===false ? this.scroll._top : 0);
 
 		this.flags._canReceiveFocus = true;
 		this.caretOpacity = 1;
@@ -107,8 +108,6 @@ Native.elements.export("UIText", {
 
 				});
 			}
-
-
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -266,7 +265,7 @@ Native.elements.export("UIText", {
 				}
 
 				var x = self._x + self.padding.left,
-					y = self._y + self.padding.top,
+					y = self._y + self.padding.top - scrollY,
 
 					r = {
 						x1 : (area.x1 - x),
@@ -327,6 +326,13 @@ Native.elements.export("UIText", {
 			}
 
 			this.caret = c;
+		};
+
+
+		/* ------------------------------------------------------------------ */
+
+		this.dummy = function(){
+			console.log(this._textMatrix[0]);
 		};
 
 		/* ------------------------------------------------------------------ */
@@ -530,9 +536,12 @@ Native.elements.export("UIText", {
 
 		/* ------------------------------------------------------------------ */
 		
-		this.verticalScrollBar = this.add("UIVerticalScrollBar");
+		this.verticalScrollBar = this.add("UIVerticalScrollBar", {
+			zIndex : 10,
+			fixed : true,
+			overflow : true
+		});
 		this.verticalScrollBarHandle = this.verticalScrollBar.add("UIVerticalScrollBarHandle");
-
 		this.setText(this.text);
 
 	},
@@ -544,7 +553,7 @@ Native.elements.export("UIText", {
 	draw : function(){
 		var params = {
 				x : this._x,
-				y : this._y,
+				y : this._y - (this._fixed===false ? this.scroll._top : 0),
 				w : this.w,
 				h : this.h
 			},
@@ -707,7 +716,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 			letterWidth = cachedLetterWidth(char);
 
 		if (textAlign=="justify"){
-			if (char==" "){
+			if (char == " "){
 				letterWidth += spacing;
 			} else {
 				letterWidth -= spacing*nb_spaces/nb_letters;
@@ -752,6 +761,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 
 function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 	var	paragraphe = text.split(/\r\n|\r|\n/),
+		lineWidth = fitWidth,
 		wordsArray = [],
 		currentLine = 0,
 		context = new Canvas(1, 1);
@@ -759,6 +769,9 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 	var matrix = [];
 
 	context.setFontSize(fontSize);
+
+	var k = 0;
+	var lw = [120, 120, 120, 120, 150, 150, 150, 150, 150];
 
 	for (var i = 0; i < paragraphe.length; i++) {
 		var words = paragraphe[i].split(' '),
@@ -768,20 +781,24 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
 
-			if (w > fitWidth) {
+			var currentLineWidth = lw[k] ? lw[k] : fitWidth;
+
+			if (w > currentLineWidth) {
 				idx = (idx == 1) ? 2 : idx;
 
 				wordsArray = words.slice(0, idx - 1);
 
 				matrix[currentLine++] = {
 					text : wordsArray.join(' '),
-					align :textAlign,
+					align : textAlign,
 					words : wordsArray,
 					letters : getLineLetters(
 								wordsArray, textAlign, 
-								fitWidth, fontSize
+								currentLineWidth, fontSize
 							  )
 				};
+
+				k++;
 				
 				words = words.splice(idx - 1);
 				idx = 1;
@@ -802,7 +819,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 				words : words,
 				letters : getLineLetters(
 							words, align, 
-							fitWidth, fontSize
+							lineWidth, fontSize
 						  )
 			};
 

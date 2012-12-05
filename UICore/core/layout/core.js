@@ -33,6 +33,10 @@ var DOMElement = function(type, options, parent){
 	this.w = o.w ? o.w : this.parent ? this.parent.w : canvas.width;
 	this.h = o.h ? o.h : this.parent ? this.parent.h : canvas.height;
 
+	this.scroll = {
+		top : OptionalNumber(o.scrollTop, 0)
+	};
+
 	this.rotate = 0;
 	this.scale = OptionalNumber(o.scale, 1);
 	this.zIndex = OptionalNumber(o.zIndex, 0);
@@ -44,6 +48,8 @@ var DOMElement = function(type, options, parent){
 	this.isOnTop = false;
 	this.mouseOverPath = false;
 	this.visible = OptionalBoolean(o.visible, true);
+	this.overflow = OptionalBoolean(o.overflow, true);
+	this.fixed = OptionalBoolean(o.fixed, true);
 	this.selected = OptionalBoolean(o.selected, false);
 	this.draggable = OptionalBoolean(o.draggable, false);
 
@@ -73,11 +79,14 @@ var DOMElement = function(type, options, parent){
 	this._x = this.x;
 	this._y = this.y;
 	this._opacity = this.opacity;
+	this.scroll._top = this.scroll.top;
 
 	this._rIndex = 0;
 	this._zIndex = this._rIndex + this.zIndex;
 
 	this._visible = this.visible;
+	this._overflow = this.overflow;
+	this._fixed = this.fixed;
 
 	// -- transform matrix inheritance (experimental)
 	this.g = {
@@ -211,14 +220,47 @@ DOMElement.prototype = {
 		// -- properties prefixed with _ inherits from parent at draw time
 		var p = this.parent;
 
+
+		this.scroll._top = p ? p.scroll._top + this.scroll.top : 
+							   this.scroll.top;
+
 		this._x = p ? p._x + this.x : this.x;
 		this._y = p ? p._y + this.y : this.y;
+
 		this._opacity = p ? p._opacity * this.opacity : this.opacity;
 
 		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : 
 						   this._rIndex + this.zIndex;
 
 		this._visible = p ? p._visible && this.visible : this.visible;
+		this._overflow = p ? p._overflow && this.overflow : this.overflow;
+		this._fixed = p ? p._fixed && this.fixed : this.fixed;
+
+		// clipping area
+		var scrollY = this._fixed===false ? (p ? p.scroll._top : 0) : 0;
+		this._miny = this._y - scrollY;
+		this._maxy = this._y+this.h - scrollY;
+
+		if (p && p._overflow === false) {
+			if (p && this._miny<p._miny) this._miny = p._miny;
+			if (p && this._maxy>p._maxy) this._maxy = p._maxy;
+
+			this.offscreen = false;
+
+			if (this._maxy <= this._miny) {
+				this._maxy = this._miny;
+				this.offscreen = true;
+			}
+
+			this.parent.clipping = {
+				x : p._x,
+				y : p._miny,
+				w : p.w,
+				h : p._maxy - p._miny
+			};
+
+		}
+
 
 
 		// rotation inheritance
@@ -257,6 +299,7 @@ DOMElement.prototype = {
 	},
 
 	beforeDraw : function(){
+
 		if (this.clip){
 			canvas.save();
 			canvas.clipbox(
@@ -323,6 +366,28 @@ DOMElement.prototype = {
 			canvas.translate( -this.t._x, -this.t._y);
 		}
 
+
+		if (this.parent && this.parent._overflow === false){
+			canvas.save();
+
+			/*			
+			canvas.roundbox(
+				this.parent.clipping.x, this.parent.clipping.y,
+				this.parent.clipping.w, this.parent.clipping.h,
+				this.parent.radius, "rgba(255, 0, 0, 0.05)", false
+			);
+			*/
+
+			canvas.clipbox(
+				this.parent.clipping.x, this.parent.clipping.y,
+				this.parent.clipping.w, this.parent.clipping.h,
+				this.parent.radius
+			);
+
+			canvas.clip();
+		}
+
+
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
 		canvas.globalAlpha = this._opacity;
 
@@ -383,6 +448,12 @@ DOMElement.prototype = {
 			canvas.restore();
 		}
 		*/
+
+
+		if (this.parent && this.parent._overflow === false){
+			canvas.restore();
+		}
+
 
 		if (this._scale !=1 ){
 			canvas.translate(this.t._x, this.t._y);

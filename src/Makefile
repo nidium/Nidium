@@ -45,7 +45,8 @@ SOURCES=NativeJS.cpp 				\
 		NativeJSImage.cpp 			\
 		NativeJSNative.cpp 			\
 		NativeFileIO.cpp 			\
-		NativeJSWindow.cpp
+		NativeJSWindow.cpp 			\
+		NativeJSWebGL.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=libnativestudio.a

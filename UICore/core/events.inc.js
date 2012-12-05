@@ -100,7 +100,7 @@ Native.events = {
 
 				switch (name) {
 					case "mousewheel" :
-						cancelBubble = true;
+						//cancelBubble = true;
 						break;
 
 					case "mousemove" :
