@@ -8,7 +8,8 @@
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
 #include "NativeJSNative.h"
-#include "NativefileIO.h"
+#include "NativeJSWindow.h"
+#include "NativeFileIO.h"
 
 #include "SkImageDecoder.h"
 
@@ -1680,6 +1681,8 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSImage::registerObject(cx);
     /* Native() object */
     NativeJSNative::registerObject(cx);
+    /* window() object */
+    NativeJSwindow::registerObject(cx);
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
