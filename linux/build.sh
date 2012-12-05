@@ -14,6 +14,8 @@ g++ \
     -L ../c-ares/.libs/ \
     ../SDL/build/build/.libs/libSDL2.a -lGL -lfreetype -lrt -lz -lpthread -lpng \
     -Wl,--start-group \
-    -lnativestudio -lnativenetwork -lcares -lsfnt -ljs_static -lzlib -ljpeg -lopts_ssse3 -lopts -lutils -lpicture_utils -lports -limages -lskgr -lgr -leffects -lcore -Wl,--end-group
+    -ljs_static \
+    -lnativestudio -lnativenetwork -lcares -lskia_sfnt -lzlib -ljpeg -lskia_opts_ssse3 -lskia_opts -lskia_utils -lpicture_utils -lskia_ports -lskia_images -lskia_skgr -lskia_gr -lskia_effects -lskia_core \
+    -Wl,--end-group
 
 cp a.out ../UICore/
