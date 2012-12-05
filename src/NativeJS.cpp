@@ -8,7 +8,7 @@
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
 #include "NativeJSNative.h"
-#include "NativefileIO.h"
+#include "NativeFileIO.h"
 
 #include "SkImageDecoder.h"
 
