@@ -37,4 +37,7 @@ NEW_CLASS(WebGLShader)
 NEW_CLASS(WebGLTexture)
 NEW_CLASS(WebGLUniformLocation)
 
+
+
+
 #endif
