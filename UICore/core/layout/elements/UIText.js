@@ -666,7 +666,7 @@ canvas.implement({
 	}
 });
 
-function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
+function getLineLetters(wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 	var context = new Canvas(1, 1),
 		widthOf = context.measureText,
 		textLine = wordsArray.join(' '),
@@ -730,7 +730,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 
 		letters[i] = {
 			char : char,
-			position : offset + position + offgap,
+			position : offsetLeft + offset + position + offgap,
 			width : letterWidth,
 			linegap : linegap,
 			selected : false
@@ -745,12 +745,12 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 			delta = fitWidth - (last.position + last.width);
 
 		if ((0.05 + last.position + last.width) > fitWidth) {
-			last.position = Math.floor(last.position - delta - 0.5);
+			last.position = Math.floor(last.position - delta - 0.5) - offsetLeft;
 		}
 
 		letters[i] = {
 			char : " ",
-			position : offset + position + offgap,
+			position : offsetLeft + offset + position + offgap,
 			width : 10,
 			linegap : linegap,
 			selected : false
@@ -761,7 +761,6 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 
 function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 	var	paragraphe = text.split(/\r\n|\r|\n/),
-		lineWidth = fitWidth,
 		wordsArray = [],
 		currentLine = 0,
 		context = new Canvas(1, 1);
@@ -771,7 +770,8 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 	context.setFontSize(fontSize);
 
 	var k = 0;
-	var textLayout = [, 226, 226, 226, 226, , , 150, 150];
+	var offsetRight = [0, 154, 154, 154, 154, , , 230, 230, 230, 230, 230],
+		offsetLeft = [0, 0, 0, 50, 50, 50, 50, 50, 50];
 
 	for (var i = 0; i < paragraphe.length; i++) {
 		var words = paragraphe[i].split(' '),
@@ -781,9 +781,12 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
 
-			var currentLineWidth = textLayout[k] ? textLayout[k] : fitWidth;
+			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
+				offRght = offsetRight[k] ? offsetRight[k] : 0,
 
-			if (w > currentLineWidth) {
+				currentFitWidth = fitWidth - offRght - offLeft;
+
+			if (w > currentFitWidth) {
 				idx = (idx == 1) ? 2 : idx;
 
 				wordsArray = words.slice(0, idx - 1);
@@ -794,7 +797,9 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 					words : wordsArray,
 					letters : getLineLetters(
 								wordsArray, textAlign, 
-								currentLineWidth, fontSize
+								offLeft,
+								currentFitWidth,
+								fontSize
 							  )
 				};
 
@@ -812,14 +817,25 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 		// last line
 		if (idx > 0) {
 
-			var align = (textAlign=="justify") ? "left" : textAlign;
+			var align = (textAlign=="justify") ? "left" : textAlign,
+
+				offLeft = offsetLeft[currentLine] ?
+									offsetLeft[currentLine] : 0,
+
+				offRght = offsetRight[currentLine] ?
+									offsetRight[currentLine] : 0,
+
+				currentFitWidth = fitWidth - offRght - offLeft;
+
 			matrix[currentLine] = {
 				text : words.join(' '),
 				align : align,
 				words : words,
 				letters : getLineLetters(
 							words, align, 
-							lineWidth, fontSize
+							offLeft,
+							currentFitWidth,
+							fontSize
 						  )
 			};
 

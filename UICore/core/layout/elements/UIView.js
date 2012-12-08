@@ -44,7 +44,7 @@ Native.elements.export("UIView", {
 		}
 
 		if (this._backgroundImage && this.backgroundImage != "") {
-			canvas.drawImage(this._backgroundImage, params.x, params.y);
+			canvas.drawImage(this._backgroundImage, params.x, params.y, params.w, params.h);
 		}
 
 	}

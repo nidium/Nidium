@@ -49,6 +49,16 @@ var	textView = main.add("UIText", {
 	overflow : false
 });
 
+var illustration0 = textView.add("UIView", {
+	x : 0,
+	y : 56,
+	w : 48,
+	h : 104,
+	background : "#4455FF",
+	fixed : false,
+	overflow : true
+});
+
 var illustration1 = textView.add("UIView", {
 	x : 230,
 	y : 18,
@@ -283,7 +293,7 @@ slider.addEventListener("change", function(value){
 /* ------------------------------------------------- */
 
 
-var s = textView.setCaret(70, 50);
+var s = textView.setCaret(0, 540);
 
 textView.addEventListener("textselect", function(s){
 	//console.log(s);
