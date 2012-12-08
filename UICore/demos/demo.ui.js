@@ -38,7 +38,7 @@ var	textView = main.add("UIText", {
 	x : 633,
 	y : 80,
 	w : 380,
-	h : 568,
+	h : 410,
 	text : sampleText,
 	lineHeight : 18,
 	fontSize : 13,
@@ -50,27 +50,38 @@ var	textView = main.add("UIText", {
 });
 
 var illustration1 = textView.add("UIView", {
-	x : 126,
-	y : 0,
-	w : 254,
-	h : 72,
+	x : 230,
+	y : 18,
+	w : 150,
+	h : 74,
 	background : "#4455FF",
-	fixed : false
+	backgroundImage : "demos/assets/video.png",
+	fixed : false,
+	overflow : true
 });
 
 var	illustration2 = textView.add("UIView", {
 	x : 154,
-	y : 72,
+	y : 126,
 	w : 226,
 	h : 90,
 	background : "#ff5599",
-	overflow : false,
+	overflow : true,
 	fixed : false
+});
+
+var	d = illustration2.add("UIButton", {
+	x : 10, 
+	y : 80, 
+	label : "Fuck", 
+	background : "#CC4488",
+	radius : 6, 
+	fontSize : 12
 });
 
 var icon = textView.add("UIView", {
 	x : 160,
-	y : 200,
+	y : 250,
 	w : 100,
 	h : 80,
 	background : "#000033",
@@ -94,6 +105,92 @@ var chld2 = chld.add("UIView", {
 	background : "#0055DD"
 });
 
+/* ---------------------------------------------------------------------- */
+
+var NatBug = main.add("UIView", {
+	id : "NatBug",
+	x : 0,
+	y : 500,
+	w : 1024,
+	h : 268,
+	background : "#262722"
+});
+
+var lines = 0,
+	col = 0,
+	labels = {},
+	values = {},
+	attr = [
+		"type", "id", "label", "name", "x", "y", "w", "h", "scale", "opacity",
+		"selected", "fixed", "overflow", "opacity", "__x", "__y", "__w", "__h", "zIndex", "radius",
+		"hasFocus", "isOnTop", "background", "color", "lineWidth", "lineHeight", "fontSize", "fontType", "textAlign", "shadowBlur"
+	];
+for (var l = 0; l<attr.length; l++){
+	var a = attr[l],
+		b1 = "rgba(0, 0, 0, 0.4)",
+		b2 = "rgba(255, 255, 255, 0.05)";
+
+	if (lines>=10){
+		lines = 0;
+		col++;
+	}
+
+	if (lines%2 == 0) {
+		b1 = "rgba(0, 0, 0, 0.25)";
+		b2 = "rgba(255, 255, 255, 0.075)";
+	}
+
+	labels[a] = NatBug.add("UILabel", {
+		x : 5 + 240*col,
+		y : 5 + 20*lines,
+		w : 80,
+		color : "#ffffff",
+		background : b1,
+		label : attr[l]
+	});
+
+	values[a] = NatBug.add("UILabel", {
+		x : 88 + 240*col,
+		y : 5 + 20*lines,
+		w : 150,
+		color : "#ffffff",
+		background : b2,
+		label : attr[l],
+		radius : 2
+	});
+
+	lines++;
+
+}
+
+Native.mouseHook = function(e){
+	if (e.y<NatBug._y){
+		for (var l = 0; l<attr.length; l++){
+			var a = attr[l];
+			values[a].label = this[a];
+		}
+
+		var p = {
+				x : this.__x,
+				y : Math.min(this.__y, NatBug._y),
+				w : this.__w,
+				h : Math.min(this.__h, NatBug._y - this.__y) 
+			},
+			r = this.r+1;
+
+		window.requestAnimationFrame = function(){
+			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
+			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
+			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
+			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(50, 80, 200, 0.05)", "#4D90FE");
+			canvas.setShadow(0, 0, 0);
+		};
+	}
+
+	e.stopPropagation();
+};
 
 DBT(function(){
 	/*
@@ -106,6 +203,8 @@ DBT(function(){
 
 });
 
+
+/* ---------------------------------------------------------------------- */
 
 
 
@@ -124,8 +223,6 @@ var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"
 	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
 	docButton3 = main.add("UIButton", {x:10, y:170, label:"docButton3", background:"#CC4488", radius:6, fontSize:12, selected:false}),
 	docButton4 = main.add("UIButton", {x:10, y:200, label:"docButton4", background:"#8844CC", radius:6, fontSize:11, selected:false}),
-	docButton5 = main.add("UIButton", {x:10, y:230, label:"docButton5", background:"#4400CC", radius:6, fontSize:10, selected:false}),
-	docButton6 = main.add("UIButton", {x:10, y:260, h:40, lineHeight:40, label:"docButton6", background:"#0044CC", radius:6, fontSize:9, selected:false}),
 
 	getTextButton = main.add("UIButton", {x:733, y:50, label:"Get Selection", background:"#0044CC", radius:6, fontSize:13, selected:false}),
 	cutButton = main.add("UIButton", {x:858, y:50, label:"Cut", background:"#331111", radius:6, fontSize:13, selected:false}),
@@ -133,7 +230,7 @@ var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"
 	pasteButton = main.add("UIButton", {x:960, y:50, label:"Paste", background:"#111133", radius:6, fontSize:13, selected:false}),
 
 
-	greenView = main.add("UIView", {id:"greenView", x:140, y:480, w:450, h:220, radius:6, background:"#fffffe", shadowBlur:26}),
+	greenView = main.add("UIView", {id:"greenView", x:6, y:272, w:450, h:220, radius:6, background:"#fffffe", shadowBlur:26}),
 	overlayView = greenView.add("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
 	davidButton = greenView.add("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
 	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
@@ -156,6 +253,10 @@ var	tabController = greenView.add("UITabController", {
 		/* Tab 7 */ {label : "rotation.js"}
 	]
 });
+
+
+
+
 
 var	slider = main.add("UISliderController", {
 	x : 908,
@@ -244,17 +345,6 @@ docButton3.addEventListener("mousedown", function(e){
 docButton4.addEventListener("mousedown", function(e){
 	greenView.fadeOut(200);
 });
-
-docButton5.addEventListener("mousedown", function(e){
-	canvas.animate = false;
-	canvas.blur(0, 0, 1024, 768, 2);
-});
-
-docButton6.addEventListener("mousedown", function(e){
-	canvas.animate = true;
-	greenView.hide();
-});
-
 
 //redViewButton4.scale = 2;
 

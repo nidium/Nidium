@@ -106,12 +106,19 @@ Native.events = {
 					case "mousemove" :
 						this.setSource(e, this.sourceElement, element);
 						cancelBubble = this.fireMouseOver(element, e);
+
+						if (typeof Native.mouseHook == "function"){
+							Native.mouseHook.call(element, e);
+						}
 						break;
 
 					case "drag" :
 						cancelEvent = true;
 						if (!e.source) {
 							this.stopDrag();
+						}
+						if (typeof Native.mouseHook == "function"){
+							Native.mouseHook.call(element, e);
 						}
 						break;
 
@@ -180,7 +187,6 @@ Native.events = {
 		if (!element.mouseover) {
 			element.mouseover = true;
 			element.mouseout = false;
-			
 			if (this.dragging) {
 				element.fireEvent("dragenter", e);
 			} else {
@@ -194,7 +200,6 @@ Native.events = {
 		if (element.mouseover && !element.mouseout) {
 			element.mouseover = false;
 			element.mouseout = true;
-
 			if (this.dragging) {
 				element.fireEvent("mouseout", e);
 				element.fireEvent("mouseleave", e);
@@ -362,6 +367,13 @@ DOMElement.implement({
 				};
 				listenerResponse = this["on"+name](e);
 				if (cb && acceptedEvent) cb.call(this);
+
+				if (name == "mousedown" && name == "mousewheel") {
+					if (typeof Native.mouseHook == "function"){
+						Native.mouseHook.call(this, e);
+					}
+				}
+
 				return OptionalBoolean(listenerResponse, true);
 			} else {
 				listenerResponse = this["on"+name]();

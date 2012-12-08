@@ -771,7 +771,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 	context.setFontSize(fontSize);
 
 	var k = 0;
-	var lw = [120, 120, 120, 120, 150, 150, 150, 150, 150];
+	var textLayout = [, 226, 226, 226, 226, , , 150, 150];
 
 	for (var i = 0; i < paragraphe.length; i++) {
 		var words = paragraphe[i].split(' '),
@@ -781,7 +781,7 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
 
-			var currentLineWidth = lw[k] ? lw[k] : fitWidth;
+			var currentLineWidth = textLayout[k] ? textLayout[k] : fitWidth;
 
 			if (w > currentLineWidth) {
 				idx = (idx == 1) ? 2 : idx;

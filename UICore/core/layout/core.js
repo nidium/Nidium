@@ -22,7 +22,7 @@ var DOMElement = function(type, options, parent){
 	this.type = OptionalString(type, "UIView");
 	this.name = OptionalString(o.name, "");
 	this.text = OptionalString(o.text, "");
-	this.label = OptionalString(o.label, "Default");
+	this.label = OptionalString(o.label, "");
 
 	this._eventQueues = [];
 	this._mutex = [];
@@ -237,13 +237,21 @@ DOMElement.prototype = {
 		this._fixed = p ? p._fixed && this.fixed : this.fixed;
 
 		// clipping area
-		var scrollY = this._fixed===false ? (p ? p.scroll._top : 0) : 0;
+		var scrollY = this._fixed===false ? (p ? p.scroll._top : 0) : 0,
+			scrollX = 0;
+
 		this._miny = this._y - scrollY;
 		this._maxy = this._y+this.h - scrollY;
+
+		this._minx = this._x - scrollX;
+		this._maxx = this._x+this.w - scrollX;
 
 		if (p && p._overflow === false) {
 			if (p && this._miny<p._miny) this._miny = p._miny;
 			if (p && this._maxy>p._maxy) this._maxy = p._maxy;
+
+			if (p && this._minx<p._minx) this._minx = p._minx;
+			if (p && this._maxx>p._maxx) this._maxx = p._maxx;
 
 			this.offscreen = false;
 
@@ -252,16 +260,19 @@ DOMElement.prototype = {
 				this.offscreen = true;
 			}
 
+			if (this._maxx <= this._minx) {
+				this._maxx = this._minx;
+				this.offscreen = true;
+			}
+
 			this.parent.clipping = {
-				x : p._x,
+				x : p._minx,
 				y : p._miny,
-				w : p.w,
+				w : p._maxx - p._minx,
 				h : p._maxy - p._miny
 			};
 
 		}
-
-
 
 		// rotation inheritance
 		this._protate = p ? p._rotate : this.rotate;
@@ -300,6 +311,9 @@ DOMElement.prototype = {
 
 	beforeDraw : function(){
 
+		this._oldy = this._y;
+		this._y = this._y - (this._fixed===false ? this.scroll._top : 0);
+
 		if (this.clip){
 			canvas.save();
 			canvas.clipbox(
@@ -331,6 +345,11 @@ DOMElement.prototype = {
 		this.__y = p.y;
 		this.__w = this.w * this._scale;
 		this.__h = this.h * this._scale;
+
+		// new coordinates after scale + translation
+		var m = this.__projection(this._maxx, this._maxy);
+		this.__maxx = m.y;
+		this.__maxy = m.y;
 
 		this.t._x += (DX - DX/this.scale);
 		this.t._y += (DY - DY/this.scale);
@@ -431,6 +450,8 @@ DOMElement.prototype = {
 	},
 
 	afterDraw : function(){
+		this._y = this._oldy;
+
 		if (this.callback) this.callback.call(this);
 		canvas.globalAlpha = canvas.oldGlobalAlpha;
 
@@ -499,7 +520,7 @@ DOMElement.prototype = {
 		var x1 = this.__x,
 			y1 = this.__y,
 			x2 = x1 + this.__w,
-			y2 = y1 + this.__h;
+			y2 = this.__maxy; //y1 + this.__h;
 
 		return	(mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
@@ -657,6 +678,10 @@ var Application = function(options){
 				canvas.drawImage(bgCanvas, 0, 0);
 				if (Native.layout.hook) Native.layout.hook();
 				Native.layout.draw();
+
+				if (window && window.requestAnimationFrame){
+					window.requestAnimationFrame();
+				}
 
 				//Native.layout.grid();
 			} 
