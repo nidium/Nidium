@@ -701,6 +701,8 @@ function getLineLetters(wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 		case "justify" :
 			gap = (linegap/(textLine.length-1));
 			break;
+		case "left" :
+			break;
 		case "right" :
 			offset = linegap;
 			break;
@@ -744,7 +746,7 @@ function getLineLetters(wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 		var last = letters[textLine.length-1],
 			delta = fitWidth - (last.position + last.width);
 
-		if ((0.05 + last.position + last.width) > fitWidth) {
+		if ((0.05 + last.position + last.width) > fitWidth+offsetLeft) {
 			last.position = Math.floor(last.position - delta - 0.5) - offsetLeft;
 		}
 
