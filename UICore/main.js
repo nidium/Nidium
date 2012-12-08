@@ -15,8 +15,9 @@ load('demos/demo.ui.js');
 /* -- WebGL Demos --------------------------- */
 //load("demos/test.webgl.three.js");
 //load("demos/test.webgl.three.particles.js");
-load("demos/test.webgl.three.camaro.js");
+//load("demos/test.webgl.three.camaro.js");
 //load("demos/test.webgl.js");
+
 /* -- Featured Demos --------------------------- */
 //load('demos/featured.audiobasics.js');
 
