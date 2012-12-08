@@ -50,10 +50,14 @@ class NativeSkia
         SkBitmap *screen;
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
+
+        void initPaints();
     public:
         SkCanvas *canvas;
+        SkCanvas *surface;
         ~NativeSkia();
         int bindOffScreen(int width, int height);
+        int bindOnScreen(int width, int height);
         int bindGL(int width, int height);
         void resetGLContext();
         void flush();

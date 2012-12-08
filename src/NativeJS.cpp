@@ -8,7 +8,10 @@
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
 #include "NativeJSNative.h"
-#include "NativefileIO.h"
+#include "NativeJSWindow.h"
+#include "NativeFileIO.h"
+#include "NativeJSWebGL.h"
+#include "NativeJSDebug.h"
 
 #include "SkImageDecoder.h"
 
@@ -1300,8 +1303,7 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onkeyupdown))) {
 
         JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
-    }    
-
+    }
 
     JS_RemoveObjectRoot(cx, &event);
 }
@@ -1419,6 +1421,11 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static void gccb(JSRuntime *rt, JSGCStatus status)
+{
+    printf("Gc TH1 callback?\n");
+}
+
 NativeJS::NativeJS()
 {
     JSRuntime *rt;
@@ -1453,7 +1460,8 @@ NativeJS::NativeJS()
         printf("Failed to init JS context\n");
         return;     
     }
-
+    JS_BeginRequest(cx);
+    //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
     JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
@@ -1469,6 +1477,8 @@ NativeJS::NativeJS()
         return;
 
     JS_DefineProfilingFunctions(cx, gbl);
+
+    JS_SetGCCallback(rt, gccb);
 
     /* TODO: HAS_CTYPE in clang */
     //JS_InitCTypesClass(cx, gbl);
@@ -1621,7 +1631,7 @@ void NativeJS::bindNetObject(ape_global *net)
 int NativeJS::LoadScript(const char *filename)
 {
     uint32_t oldopts;
-
+    
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
 
@@ -1678,8 +1688,24 @@ void NativeJS::LoadCanvasObject(NativeSkia *currentSkia)
     NativeJSHttp::registerObject(cx);
     /* Image() object */
     NativeJSImage::registerObject(cx);
+    /* WebGL*() object */
+    NativeJSNativeGL::registerObject(cx);
+    NativeJSWebGLRenderingContext::registerObject(cx);
+    NativeJSWebGLObject::registerObject(cx);
+    NativeJSWebGLBuffer::registerObject(cx);
+    NativeJSWebGLFrameBuffer::registerObject(cx);
+    NativeJSWebGLProgram::registerObject(cx);
+    NativeJSWebGLRenderbuffer::registerObject(cx);
+    NativeJSWebGLShader::registerObject(cx);
+    NativeJSWebGLTexture::registerObject(cx);
+    NativeJSWebGLUniformLocation::registerObject(cx);
+
     /* Native() object */
     NativeJSNative::registerObject(cx);
+    /* window() object */
+    NativeJSwindow::registerObject(cx);
+
+    NativeJSDebug::registerObject(cx);
 
     /* Offscreen Canvas object */
     JS_InitClass(cx, gbl, NULL, &canvas_class, native_Canvas_constructor,
@@ -1719,9 +1745,10 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     int ms, i;
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
+    params = (struct _native_sm_timer *)malloc(sizeof(*params));
 
     if (params == NULL || argc < 2) {
+        if (params) free(params);
         return JS_TRUE;
     }
 
@@ -1733,13 +1760,17 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng = NULL;
     params->ms = 0;
 
-    params->argv = (argc-2 ? (jsval *)JS_malloc(cx, sizeof(*params->argv) * argc-2) : NULL);
+    params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
 
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
+        free(params->argv);
+        free(params);
         return JS_TRUE;
     }
 
     if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+        free(params->argv);
+        free(params);
         return JS_TRUE;
     }
 
@@ -1767,9 +1798,10 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     int ms, i;
     JSObject *obj = JS_THIS_OBJECT(cx, vp);
 
-    params = (struct _native_sm_timer *)JS_malloc(cx, sizeof(*params));
+    params = (struct _native_sm_timer *)malloc(sizeof(*params));
 
     if (params == NULL || argc < 2) {
+        if (params) free(params);
         return JS_TRUE;
     }
 
@@ -1779,13 +1811,17 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     params->cleared = 0;
     params->timer = NULL;
 
-    params->argv = (argc-2 ? (jsval *)JS_malloc(cx, sizeof(*params->argv) * argc-2) : NULL);
+    params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
 
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
+        free(params->argv);
+        free(params);
         return JS_TRUE;
     }
 
     if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+        free(params->argv);
+        free(params);
         return JS_TRUE;
     }
 

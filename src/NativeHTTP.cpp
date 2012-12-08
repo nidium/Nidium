@@ -15,6 +15,8 @@ static struct native_http_mime {
     NativeHTTP::DataType data_type;
 } native_mime[] = {
     {"text/plain",              NativeHTTP::DATA_STRING},
+    {"application/x-javascript",NativeHTTP::DATA_STRING},
+    {"application/octet-stream",NativeHTTP::DATA_STRING},
     {"image/jpeg",              NativeHTTP::DATA_IMAGE},
     {"image/png",               NativeHTTP::DATA_IMAGE},
     {"application/json",        NativeHTTP::DATA_JSON},

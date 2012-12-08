@@ -19,6 +19,9 @@ class NativeSkImage
   	NativeSkImage(SkCanvas *canvas);
   	NativeSkImage(const char *imgpath);
   	NativeSkImage(void *data, size_t len);
+    static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
+        bool flipY, bool premultiply);
+
   	~NativeSkImage();
 
   	int getWidth();

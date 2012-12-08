@@ -269,22 +269,8 @@ uint32_t NativeSkia::parseColor(const char *str)
     return color;
 }
 
-int NativeSkia::bindOffScreen(int width, int height)
+void NativeSkia::initPaints()
 {
-    SkBitmap bitmap;
-
-    bitmap.setConfig(SkBitmap::kARGB_8888_Config, width, height);
-    bitmap.allocPixels();
-
-    canvas = new SkCanvas(bitmap);
-
-    /* TODO: Move the following in a common methode (init) */
-    globalAlpha = 255;
-    currentPath = NULL;
-
-    state = new struct _nativeState;
-    state->next = NULL;
-
     PAINT = new SkPaint;
 
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
@@ -317,9 +303,58 @@ int NativeSkia::bindOffScreen(int width, int height)
     
     this->setLineWidth(1);
 
-    asComposite = 0;
+    asComposite = 0;            
+}
 
-    return 0;
+int NativeSkia::bindOnScreen(int width, int height)
+{
+    const GrGLInterface *interface =  GrGLCreateNativeInterface();
+
+    SkGpuDevice *dev = new SkGpuDevice(GrContext::Create(kOpenGL_Shaders_GrEngine,
+        (GrPlatform3DContext)interface), SkBitmap::kARGB_8888_Config,
+        width, height);
+
+    if (dev == NULL) {
+        printf("Failed to create onscreen canvas");
+        return 0;
+    }
+    canvas = new SkCanvas(dev);
+
+    SkSafeUnref(dev);
+
+    globalAlpha = 255;
+    currentPath = NULL;
+
+    state = new struct _nativeState;
+    state->next = NULL;
+
+    initPaints();
+
+    canvas->clear(0x00000000);
+
+    return 1;
+}
+
+int NativeSkia::bindOffScreen(int width, int height)
+{
+    SkBitmap bitmap;
+
+    bitmap.setConfig(SkBitmap::kARGB_8888_Config, width, height);
+    bitmap.allocPixels();
+
+    canvas = new SkCanvas(bitmap);
+    surface = NULL;
+
+    /* TODO: Move the following in a common methode (init) */
+    globalAlpha = 255;
+    currentPath = NULL;
+
+    state = new struct _nativeState;
+    state->next = NULL;
+
+    initPaints();
+
+    return 1;
 }
 
 int NativeSkia::bindGL(int width, int height)
@@ -338,7 +373,6 @@ int NativeSkia::bindGL(int width, int height)
         printf("Cant get context\n");
     }
     
-
     GrPlatformRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
     
@@ -357,6 +391,7 @@ int NativeSkia::bindGL(int width, int height)
     printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
     GrRenderTarget * target = context->createPlatformRenderTarget(desc);
+
     if (target == NULL) {
         printf("Failed to init Skia\n");
         return 0;
@@ -368,137 +403,15 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
 
-    globalAlpha = 255;
-
-    canvas = new SkCanvas(dev);
+    surface = new SkCanvas(dev);
     
     SkSafeUnref(dev);
 
-    glClearColor(0, 0, 0, 0);
-    glClearStencil(0);
-    glClear(GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    surface->clear(0xFFFFFFFF);
 
-    currentPath = NULL;
+    /* Create the "main" canvas object to draw on */
+    this->bindOnScreen(width, height);
 
-    state = new struct _nativeState;
-    state->next = NULL;
-
-    PAINT = new SkPaint;
-
-    memset(&currentShadow, 0, sizeof(NativeShadow_t));
-    currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
-
-    PAINT->setARGB(255, 0, 0, 0);
-    PAINT->setAntiAlias(true);
-    
-    //PAINT->setLCDRenderText(true);
-    PAINT->setStyle(SkPaint::kFill_Style);
-    //PAINT->setFilterBitmap(true);
-    //PAINT->setXfermodeMode(SkXfermode::kSrcOver_Mode);
-    PAINT->setSubpixelText(true);
-    PAINT->setAutohinted(true);
-
-    paint_system = new SkPaint;
-
-    paint_system->setARGB(255, 255, 0, 0);
-    paint_system->setAntiAlias(true);
-    //paint_system->setLCDRenderText(true);
-    paint_system->setStyle(SkPaint::kFill_Style);
-   
-    PAINT_STROKE = new SkPaint;
-
-    PAINT_STROKE->setARGB(255, 0, 0, 0);
-    PAINT_STROKE->setAntiAlias(true);
-    //PAINT_STROKE->setLCDRenderText(true);
-    PAINT_STROKE->setStyle(SkPaint::kStroke_Style);
-    
-    this->setLineWidth(1);
-    /*SkRect r;
-    r.setXYWH(SkIntToScalar(0), SkIntToScalar(0),
-        SkIntToScalar(640), SkIntToScalar(480));
-    canvas->drawRect(r, cleared);*/
-
-    asComposite = 0;
-
-    //canvas->drawColor(SkColorSetARGB(0, 0, 0, 0));
-
-    //canvas->drawARGB(0, 0, 0, 0, SkXfermode::kClear_Mode);
-
-#if 0
-    SkIRect rr;
-    SkPaint p;
-    p.setColor(SK_ColorRED);
-    canvas->saveLayer(NULL, NULL, SkCanvas::kARGB_ClipLayer_SaveFlag);
-    rr.setXYWH(100, 0, 100, 100);
-    canvas->drawIRect(rr, p);
-    //canvas->flush();
-    //canvas->restore();
-
-    //canvas->saveLayer(NULL, NULL, SkCanvas::kARGB_ClipLayer_SaveFlag);
-    SkPaint p2;
-    p.setColor(SK_ColorBLUE);
-    p.setXfermodeMode(SkXfermode::kDstOver_Mode);
-    rr.setXYWH(150, 50, 100, 100);
-    canvas->drawIRect(rr, p); 
-    //canvas->flush();
-    canvas->restore();
-#endif
-    //canvas->drawColor(SkColorSetRGB(255, 0, 0));
-    /* TODO: stroke miter? */
-
-    #if 0
-    SkString path("skhello.png");
-    //Set Text To Draw
-    SkString text("Native Studio");
-    
-    SkPaint paint;
-    
-    //Set Text ARGB Color
-    paint.setARGB(255, 255, 255, 255);
-    
-    //Turn AntiAliasing On
-    
-    paint.setAntiAlias(true);
-    paint.setLCDRenderText(true);
-    paint.setTypeface(SkTypeface::CreateFromName("Courier new bold", SkTypeface::kNormal));
-    
-    //Set Text Size
-    paint.setTextSize(SkIntToScalar(40));
-
-    canvas->drawARGB(255, 255, 255, 255);
-    
-    //Text X, Y Position Varibles
-    int x = 80;
-    int y = 60;
-    
-    canvas->drawText(text.c_str(), text.size(), x, y, paint);
-    
-    //Set Style and Stroke Width
-    paint.setStyle(SkPaint::kStroke_Style);
-    paint.setStrokeWidth(3);
-    
-    //Draw A Rectangle
-    SkRect rect;
-    paint.setARGB(255, 255, 255, 255);
-    //Left, Top, Right, Bottom
-    rect.set(50, 100, 200, 200);
-    canvas->drawRoundRect(rect, 20, 20, paint);
-    
-    canvas->drawOval(rect, paint);
-    
-    //Draw A Line
-    canvas->drawLine(10, 300, 300, 300, paint);
-    
-    //Draw Circle (X, Y, Size, Paint)
-    canvas->drawCircle(100, 400, 50, paint);
-    CANVAS_FLUSH();
-
-PAINT->setImageFilter(new SkBlurImageFilter(10.0f, 10.0f))->unref();
-    /*PAINT->setMaskFilter(SkBlurMaskFilter::Create(10,
-                             SkBlurMaskFilter::kInner_BlurStyle,
-                             SkBlurMaskFilter::kNone_BlurFlag));*/
-#endif
-    canvas->drawColor(SkColorSetARGB(0, 1, 1, 1));
     return 1;
 }
 
@@ -555,6 +468,9 @@ NativeSkia::~NativeSkia()
     if (currentPath) delete currentPath;
 
     delete canvas;
+    if (surface) {
+        delete surface;
+    }
 }
 
 /* TODO: check if there is a best way to do this;
@@ -1277,4 +1193,9 @@ static SkBitmap load_bitmap() {
 void NativeSkia::flush()
 {
     canvas->flush();
+    if (surface) {
+        surface->drawBitmap(canvas->getDevice()->accessBitmap(false),
+            0, 0, NULL);
+        surface->flush();
+    }
 }

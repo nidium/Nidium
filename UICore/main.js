@@ -12,6 +12,11 @@ load('demos/demo.ui.js');
 //load('demos/demo.spectral.js');
 //load('demos/demo.tabs.js');
 
+/* -- WebGL Demos --------------------------- */
+//load("demos/test.webgl.three.js");
+//load("demos/test.webgl.three.particles.js");
+load("demos/test.webgl.three.camaro.js");
+//load("demos/test.webgl.js");
 /* -- Featured Demos --------------------------- */
 //load('demos/featured.audiobasics.js');
 
