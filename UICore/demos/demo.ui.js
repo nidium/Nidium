@@ -40,6 +40,8 @@ var	textView = main.add("UIText", {
 	w : 380,
 	h : 410,
 	text : sampleText,
+	offsetLeft : [0, 0, 0, 50, 50, 50, 50, 50, 50],
+	offsetRight : [0, 154, 154, 154, 154, , , 230, 230, 230, 230, 230],
 	lineHeight : 18,
 	fontSize : 13,
 	fontType : "arial",
@@ -208,9 +210,6 @@ DBT(function(){
 	Native.layout.unregister(main);
 	Native.layout.register(mainTabController);
 	*/
-
-	textView.dummy();
-
 });
 
 

@@ -14,6 +14,9 @@ Native.elements.export("UIText", {
 		this.background = OptionalValue(this.options.background, '#ffffff');
 		this.color = OptionalValue(this.options.color, "#000000");
 
+		this.offsetLeft = OptionalValue(this.options.offsetLeft, []);
+		this.offsetRight = OptionalValue(this.options.offsetRight, []);
+
 		this.padding = {
 			left : 0,
 			right : 0,
@@ -25,13 +28,8 @@ Native.elements.export("UIText", {
 
 		this.setText = function(text){
 			this.text = text;
-			this._textMatrix = getTextMatrixLines(
-				text, 
-				this.lineHeight, 
-				this.w, 
-				this.textAlign, 
-				this.fontSize
-			);
+
+			this._textMatrix = getTextMatrixLines(this);
 			this.content.height = this.lineHeight * this._textMatrix.length;
 
 			this.mouseSelectionArea = null;
@@ -49,6 +47,12 @@ Native.elements.export("UIText", {
 				y2 : 0
 			};
 
+		};
+
+		this.setLayout = function(offsetLeft, offsetRight){
+			this.offsetLeft = OptionalValue(offsetLeft, []);
+			this.offsetRight = OptionalValue(offsetRight, []);
+			this.setText(this.text);
 		};
 
 		/* ------------------------------------------------------------------ */
@@ -221,7 +225,7 @@ Native.elements.export("UIText", {
 				x : this.caret.x1,
 				y : this.caret.y1
 			};
-			console.log(this._StartCaret);
+			//console.log(this._StartCaret);
 		};
 
 		this.resetStartPoint = function(){
@@ -328,12 +332,6 @@ Native.elements.export("UIText", {
 			this.caret = c;
 		};
 
-
-		/* ------------------------------------------------------------------ */
-
-		this.dummy = function(){
-			console.log(this._textMatrix[0]);
-		};
 
 		/* ------------------------------------------------------------------ */
 
@@ -761,19 +759,25 @@ function getLineLetters(wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 	return letters;
 }
 
-function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
-	var	paragraphe = text.split(/\r\n|\r|\n/),
+function getTextMatrixLines(element){
+	var	paragraphe = element.text.split(/\r\n|\r|\n/),
+
+		lineHeight = element.lineHeight,
+		fitWidth = element.w,
+		textAlign = element.textAlign,
+		fontSize = element.fontSize,
+		offsetLeft = element.offsetLeft,
+		offsetRight = element.offsetRight,
+
+		matrix = [],
 		wordsArray = [],
+
+		k = 0,
 		currentLine = 0,
 		context = new Canvas(1, 1);
 
-	var matrix = [];
 
 	context.setFontSize(fontSize);
-
-	var k = 0;
-	var offsetRight = [0, 154, 154, 154, 154, , , 230, 230, 230, 230, 230],
-		offsetLeft = [0, 0, 0, 50, 50, 50, 50, 50, 50];
 
 	for (var i = 0; i < paragraphe.length; i++) {
 		var words = paragraphe[i].split(' '),
