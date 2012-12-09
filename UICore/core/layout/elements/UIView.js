@@ -46,11 +46,22 @@ Native.elements.export("UIView", {
 			canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false);
 		}
 
+
+
 		if (this._backgroundImage && this.backgroundImage != "") {
+			canvas.save();
+			canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false);
+			canvas.clipbox(
+				params.x, params.y,
+				params.w, params.h,
+				this.radius
+			);
+			canvas.clip();
 			canvas.drawImage(
-				this._backgroundImage, 
+				this._backgroundImage,
 				params.x, params.y
 			);
+			canvas.restore();
 		}
 
 	}

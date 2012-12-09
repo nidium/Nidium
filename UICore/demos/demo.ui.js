@@ -5,7 +5,7 @@
 /* --- DEMO APP --------------------------------------------------------- */
 
 var main = new Application({
-		backgroundImage : "demos/assets/spheres.jpeg"
+		backgroundImage : "demos/assets/back.png"
 	}),
 
 	myTabs = [
@@ -23,8 +23,8 @@ var main = new Application({
 
 var	mainTabController = main.add("UITabController", {
 		name : "masterTabs",
-		tabs : myTabs,
-		background : "#191a18"
+		y : 5,
+		tabs : myTabs
 	});
 
 
@@ -34,10 +34,10 @@ main.addEventListener("mousedblclick", function(){
 
 
 var win = main.add("UIWindow", {
-	x : 280,
+	x : 626,
 	y : 100,
-	w : 300,
-	h : 200,
+	w : 392,
+	h : 394,
 	background : "rgba(0, 0, 0, 0.25)",
 	resizable : true,
 	closeable : true,
@@ -45,15 +45,14 @@ var win = main.add("UIWindow", {
 });
 
 
-
 var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
 var	sampleText = template.mul(10);
 
-var	textView = main.add("UIText", {
-	x : 633,
-	y : 80,
+var	textView = win.contentView.add("UIText", {
+	x : 3,
+	y : 3,
 	w : 380,
-	h : 410,
+	h : 360,
 	text : sampleText,
 	offsetLeft : [0, 0, 0, 50, 50, 50, 50, 50, 50],
 	offsetRight : [0, 154, 154, 154, 154, , , 230, 230, 230, 230, 230],
@@ -302,12 +301,23 @@ var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"
 	pasteButton = main.add("UIButton", {x:960, y:50, label:"Paste", background:"#111133", radius:6, fontSize:13, selected:false}),
 
 
-	greenView = main.add("UIView", {id:"greenView", x:6, y:272, w:450, h:220, radius:6, background:"#fffffe", shadowBlur:26}),
-	overlayView = greenView.add("UIView", {x:90, y:5, w:154, h:210, background:"rgba(0, 0, 0, 0.50)"}),
-	davidButton = greenView.add("UIButton", {x:5, y:5, label:"David", background:"#338800"}),
-	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#338800", selected:true}),
-	redViewButton2 = greenView.add("UIButton", {x:5, y:70, label:"RedView 2", background:"#338800", selected:false}),
-	redViewButton3 = greenView.add("UIButton", {x:5, y:120, label:"RedView 3", background:"#338800", selected:false}),
+	greenView = main.add("UIView", {
+		id : "greenView", 
+		x : 6,
+		y : 272,
+		w : 450,
+		h : 220,
+		radius : 6,
+		background : "#000000",
+		backgroundImage : "demos/assets/win.jpeg",
+		shadowBlur : 26
+	}),
+
+	overlayView = greenView.add("UIView", {x:90, y:5, w:354, h:210, background:"rgba(0, 0, 0, 0.50)"}),
+	davidButton = greenView.add("UIButton", {x:5, y:5, label:"RedView 0", background:"#8844CC"}),
+	redViewButton1 = greenView.add("UIButton", {x:5, y:34, label:"RedView 1", background:"#8844CC", selected:true}),
+	redViewButton2 = greenView.add("UIButton", {x:5, y:70, label:"RedView 2", background:"#8844CC", selected:false}),
+	redViewButton3 = greenView.add("UIButton", {x:5, y:120, label:"RedView 3", background:"#8844CC", selected:false}),
 
 	redViewButton4 = overlayView.add("UIButton", {x:5, y:5, label:"RedView 4", background:"#222222", selected:false}),
 	radio1 = overlayView.add("UIRadio", {x:5, y:36, name:"choice", label:"Select this", selected:true}),
@@ -332,8 +342,8 @@ var	tabController = greenView.add("UITabController", {
 
 var	slider = main.add("UISliderController", {
 	x : 908,
-	y : 10,
-	background : '#161712',
+	y : 14,
+	background : '#262722',
 	color : 'rgba(255, 40, 210, 1)',
 	disabled : false,
 	radius : 2,
@@ -392,7 +402,7 @@ docButton1.addEventListener("mousedown", function(e){
 		this.toggle = true;
 	} else {
 		greenView.visible = true;
-		greenView.set("scale", 1.5, 250, function(){}, Math.physics.elasticOut);
+		greenView.set("scale", 1, 250, function(){}, Math.physics.elasticOut);
 		this.toggle = false;
 	}
 });
