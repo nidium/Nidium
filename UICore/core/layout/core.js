@@ -585,6 +585,7 @@ DOMElement.prototype = {
 	},
 
 	set transformOrigin(g) {
+		g = g || {};
 		var ox = this.g.x,
 			oy = this.g.y;
 
