@@ -9,7 +9,7 @@ Native.elements.export("UITextInput", {
 		this.w = OptionalNumber(this.options.w, 140);;
 		this.h = OptionalNumber(this.options.h, 24);
 		this.lineHeight = OptionalNumber(this.options.lineHeight, this.h-4);
-		this.background = OptionalValue(this.options.background, "#121212");
+		this.background = OptionalValue(this.options.background, "#555555");
 		this.color = OptionalValue(this.options.color, "#222222");
 
 		this.textView = this.add("UIText", {

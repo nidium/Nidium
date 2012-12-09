@@ -247,21 +247,35 @@ DOMElement.prototype = {
 		this._maxx = this._x+this.w - scrollX;
 
 		if (p && p._overflow === false) {
-			if (p && this._miny<p._miny) this._miny = p._miny;
-			if (p && this._maxy>p._maxy) this._maxy = p._maxy;
+			if (this._miny<p._miny) this._miny = p._miny;
+			if (this._maxy>p._maxy) this._maxy = p._maxy;
 
-			if (p && this._minx<p._minx) this._minx = p._minx;
-			if (p && this._maxx>p._maxx) this._maxx = p._maxx;
+			if (this._minx<p._minx) this._minx = p._minx;
+			if (this._maxx>p._maxx) this._maxx = p._maxx;
 
 			this.offscreen = false;
 
+			/* below bottom */
 			if (this._maxy <= this._miny) {
 				this._maxy = this._miny;
 				this.offscreen = true;
 			}
 
+			/* above top */
+			if (this._miny >= this._maxy) {
+				this._miny = this._maxy;
+				this.offscreen = true;
+			}
+
+			/* below left */
 			if (this._maxx <= this._minx) {
 				this._maxx = this._minx;
+				this.offscreen = true;
+			}
+
+			/* above right */
+			if (this._minx >= this._maxx) {
+				this._minx = this._maxx;
 				this.offscreen = true;
 			}
 
@@ -346,10 +360,13 @@ DOMElement.prototype = {
 		this.__w = this.w * this._scale;
 		this.__h = this.h * this._scale;
 
-		// new coordinates after scale + translation
-		var m = this.__projection(this._maxx, this._maxy);
-		this.__maxx = m.y;
-		this.__maxy = m.y;
+		var p = this.__projection(this._maxx, this._maxy);
+		this.__maxx = p.x;
+		this.__maxy = p.y;
+
+		var p = this.__projection(this._minx, this._miny);
+		this.__minx = p.x;
+		this.__miny = p.y;
 
 		this.t._x += (DX - DX/this.scale);
 		this.t._y += (DY - DY/this.scale);
@@ -517,10 +534,10 @@ DOMElement.prototype = {
 	/* -------------------------------------------------------------- */
 
 	isPointInside : function(mx, my){
-		var x1 = this.__x,
-			y1 = this.__y,
-			x2 = x1 + this.__w,
-			y2 = this.__maxy; //y1 + this.__h;
+		var x1 = this.__minx, //this.__x,
+			y1 = this.__miny, //this.__y,
+			x2 = this.__maxx, //x1 + this.__w,
+			y2 = this.__maxy; // y1 + this.__h;
 
 		return	(mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},

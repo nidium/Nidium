@@ -332,7 +332,6 @@ Native.elements.export("UIText", {
 			this.caret = c;
 		};
 
-
 		/* ------------------------------------------------------------------ */
 
 		this.select = function(state){

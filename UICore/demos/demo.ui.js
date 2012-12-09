@@ -83,8 +83,8 @@ var	illustration2 = textView.add("UIView", {
 });
 
 var	d = illustration2.add("UIButton", {
-	x : 10, 
-	y : 80, 
+	x : -10, 
+	y : -12, 
 	label : "Fuck", 
 	background : "#CC4488",
 	radius : 6, 
