@@ -668,6 +668,9 @@ Native.elements = {
 };
 
 var Application = function(options){
+	options = options || {};
+	options.background = OptionalValue(options.background, '#262722');
+
 	var app = new DOMElement("UIView", options, null);
 	app._root = true;
 	app.flags._canReceiveFocus = true;
@@ -681,9 +684,6 @@ var Application = function(options){
 	canvas.globalAlpha = 1;
 	canvas.__mustBeDrawn = true;
 
-	var bgCanvas = new Image();
-	bgCanvas.src = "demos/assets/spheres.jpeg";
-
 	if (options && options.animation===false){
 		/* dummy */
 	} else {
@@ -692,7 +692,6 @@ var Application = function(options){
 			FPS.start();
 	 		if (canvas.animate) {
 
-				canvas.drawImage(bgCanvas, 0, 0);
 				if (Native.layout.hook) Native.layout.hook();
 				Native.layout.draw();
 

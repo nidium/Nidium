@@ -20,7 +20,10 @@ Native.getLocalImage = function(element, url, callback){
 
 Native.elements.export("UIView", {
 	init : function(){
-		this.backgroundImage = OptionalValue(this.options.backgroundImage, "");
+		this.backgroundImage = OptionalValue(
+			this.options.backgroundImage, 
+			""
+		);
 
 		if (this.backgroundImage != "") {
 			Native.getLocalImage(this, this.backgroundImage);
@@ -44,7 +47,10 @@ Native.elements.export("UIView", {
 		}
 
 		if (this._backgroundImage && this.backgroundImage != "") {
-			canvas.drawImage(this._backgroundImage, params.x, params.y, params.w, params.h);
+			canvas.drawImage(
+				this._backgroundImage, 
+				params.x, params.y
+			);
 		}
 
 	}

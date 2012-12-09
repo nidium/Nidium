@@ -55,6 +55,33 @@ Native.elements.export("UIText", {
 			this.setText(this.text);
 		};
 
+		this.updateScrollTop = function(dy){
+			if (this.h / this.scrollBarHeight < 1) {
+				canvas.__mustBeDrawn = true;
+
+				this.verticalScrollBar.cancelCurrentAnimations("opacity");
+				this.scroll.fading = false;
+				this.verticalScrollBar.opacity = 1;
+	
+				this.scrollContentY(-dy * 4, function(){
+
+					if (!self.scroll.fading) {
+						self.scroll.fading = true;
+
+						clearTimeout(self.scroll.fadeScheduler);
+						self.scroll.fadeScheduler = setTimeout(function(){
+
+							self.verticalScrollBar.fadeOut(250, function(){
+								self.scroll.fading = false;
+							});
+
+						}, 350);
+					}
+
+				});
+			}
+		};
+
 		/* ------------------------------------------------------------------ */
 
 		this.addEventListener("mouseout", function(e){
@@ -87,31 +114,7 @@ Native.elements.export("UIText", {
 		}, false);
 
 		this.addEventListener("mousewheel", function(e){
-
-			if (this.h / this.scrollBarHeight < 1) {
-				canvas.__mustBeDrawn = true;
-
-				this.verticalScrollBar.cancelCurrentAnimations("opacity");
-				this.scroll.fading = false;
-				this.verticalScrollBar.opacity = 1;
-	
-				this.scrollContentY(-e.yrel * 4, function(){
-
-					if (!self.scroll.fading) {
-						self.scroll.fading = true;
-
-						clearTimeout(self.scroll.fadeScheduler);
-						self.scroll.fadeScheduler = setTimeout(function(){
-
-							self.verticalScrollBar.fadeOut(250, function(){
-								self.scroll.fading = false;
-							});
-
-						}, 350);
-					}
-
-				});
-			}
+			this.updateScrollTop(e.yrel);
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -121,10 +124,27 @@ Native.elements.export("UIText", {
 		}, false);
 
 		Native.layout.rootElement.addEventListener("dragover", function(e){
+			if (!self.__startTextSelectionProcessing) return false;
+
 			self._doMouseSelection(e);
+
+			if (self._autoScrollTop && self.isPointInside(e.x, e.y)) {
+				self._autoScrollTop = false;
+			} else {
+				self._autoScrollTop = false;
+
+				if (e.y > (self.__y+self.__h)){
+					self._autoScrollTop = -(e.y-(self.__y+self.__h))/4;
+				}
+				if (e.y <= self.__y){
+					self._autoScrollTop = (self.__y - e.y)/4;
+				}
+			}
+
 		}, false);
 
 		this.addEventListener("dragend", function(e){
+			self._autoScrollTop = false;
 			self._endMouseSelection();
 			self.fireEvent("textselect", self.selection);
 		}, false);
@@ -336,12 +356,17 @@ Native.elements.export("UIText", {
 
 		this.select = function(state){
 			/* 2 times faster than the old while loop method */
-			var m = this._textMatrix, chars, x = y = 0, offset = this.selection.offset,
-			state = (typeof(state) == "undefined") ? true : state ? true : false;
+			var m = this._textMatrix,
+				chars, x = y = 0,
+				offset = this.selection.offset,
+				state = (typeof(state) == "undefined") ? 
+										true : state ? true : false;
 			
-			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length; x++){
-				chars[x].selected = state;
-			}
+			for (y=0; y<m.length; y++)
+				for (x=0, chars = m[y].letters; x<chars.length; x++){
+					chars[x].selected = state;
+				}
+
 			if (state) {
 				var lastLine = this._textMatrix.length - 1;
 				this.selection = {
@@ -366,11 +391,23 @@ Native.elements.export("UIText", {
 		};
 
 		this.replace = function(text){
-			this._insert(text, this.selection.offset, this.selection.size, this.selection.offset + text.length, 0);
+			this._insert(
+				text, 
+				this.selection.offset, 
+				this.selection.size, 
+				this.selection.offset + text.length,
+				0
+			);
 		};
 
 		this.insert = function(text){
-			this._insert(text, this.selection.offset, this.selection.size, ++this.selection.offset, 0);
+			this._insert(
+				text, 
+				this.selection.offset, 
+				this.selection.size, 
+				++this.selection.offset, 
+				0
+			);
 		};
 
 		this.append = function(text){
@@ -379,7 +416,13 @@ Native.elements.export("UIText", {
 
 		this.cut = function(){
 			this.copy();
-			this._insert('', this.selection.offset, this.selection.size, this.selection.offset, 0);
+			this._insert(
+				'', 
+				this.selection.offset, 
+				this.selection.size, 
+				this.selection.offset, 
+				0
+			);
 		};
 
 		this.copy = function(){
@@ -432,34 +475,35 @@ Native.elements.export("UIText", {
 					y2 : false
 				};
 
-			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
-				chars[x].selected = false;
+			for (y=0; y<m.length; y++)
+				for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
+					chars[x].selected = false;
 
-				if (walk >= o) {
-					select = true;
-				}
-
-				if (select){
-					if (!__setted__) {
-						c.x1 = x;
-						c.y1 = y;
-						__setted__ = true;
+					if (walk >= o) {
+						select = true;
 					}
-					if (s>=1) {
-						chars[x].selected = true;
+
+					if (select){
+						if (!__setted__) {
+							c.x1 = x;
+							c.y1 = y;
+							__setted__ = true;
+						}
+						if (s>=1) {
+							chars[x].selected = true;
+						}
+				 		s--;
 					}
-			 		s--;
+
+					if (s <= 0) {
+						c.x2 = x;
+						c.y2 = y;
+						select = false;
+					}
+
+					walk++;
+
 				}
-
-				if (s <= 0) {
-					c.x2 = x;
-					c.y2 = y;
-					select = false;
-				}
-
-				walk++;
-
-			}
 
 			this.caret = c;
 
@@ -538,7 +582,11 @@ Native.elements.export("UIText", {
 			fixed : true,
 			overflow : true
 		});
-		this.verticalScrollBarHandle = this.verticalScrollBar.add("UIVerticalScrollBarHandle");
+		
+		this.verticalScrollBarHandle = this.verticalScrollBar.add(
+			"UIVerticalScrollBarHandle"
+		);
+		
 		this.setText(this.text);
 
 	},
@@ -565,6 +613,14 @@ Native.elements.export("UIText", {
 			vOffset = (this.lineHeight/2)+5,
 
 			ctx = canvas;
+
+		if (this.__startTextSelectionProcessing && this._autoScrollTop && this._autoScrollTop !== false) {
+			this.updateScrollTop(this._autoScrollTop);
+			this._doMouseSelection({
+				x : canvas.mouseX,
+				y : canvas.mouseY
+			});
+		}
 
 		ctx.save();
 			if (this.background){
@@ -862,6 +918,9 @@ function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, v
 
 	var start = -Math.ceil((y - viewportTop)/lineHeight),
 		end = Math.min(textMatrix.length, start + Math.ceil(viewportHeight/lineHeight) );
+
+	if (start-1 >= 0) start--;
+	if (end+1 <= textMatrix.length) end++;
 
 	for (var line=start; line<end; line++){
 		var tx = x,

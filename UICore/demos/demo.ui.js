@@ -4,7 +4,9 @@
 
 /* --- DEMO APP --------------------------------------------------------- */
 
-var main = new Application(), /* {background : '#262722'} */
+var main = new Application({
+		backgroundImage : "demos/assets/spheres.jpeg"
+	}),
 
 	myTabs = [
 		/* Tab 0 */ {label : "main.js"},
@@ -29,6 +31,19 @@ var	mainTabController = main.add("UITabController", {
 main.addEventListener("mousedblclick", function(){
 	echo("dbl");
 });
+
+
+var win = main.add("UIWindow", {
+	x : 280,
+	y : 100,
+	w : 300,
+	h : 200,
+	background : "rgba(0, 0, 0, 0.25)",
+	resizable : true,
+	closeable : true,
+	movable : true
+});
+
 
 
 var template = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
@@ -117,6 +132,64 @@ var chld2 = chld.add("UIView", {
 	background : "#0055DD"
 });
 
+chld2.addEventListener("drag", function(e){
+	this.left = e.xrel + this.x;
+	this.top = e.yrel + this.y;
+}, true);
+
+
+
+var	myElements = [
+	/* Tab 0 */ {label : "France", 	value : 5},
+	/* Tab 1 */ {label : "Belgium", 	value : 7 },
+	/* Tab 2 */ {label : "Monaco", 	value : 9 },
+	/* Tab 3 */ {label : "United States", 	value : 15, selected : true},
+	/* Tab 4 */ {label : "Italy", 	value : 1 },
+	/* Tab 5 */ {label : "Spain", 	value : 3, background : "#202a15", color : "#ffffff"},
+	/* Tab 6 */ {label : "Bulgaria", 		value : 1, background : "#442033", color : "#ffffff"},
+	/* Tab 7 */ {label : "Romania", value : 2},
+	/* Tab 8 */ {label : "Sweden", 	value : 9},
+	/* Tab 8 */ {label : "China", 	value : 9},
+	/* Tab 8 */ {label : "Korea", 	value : 9},
+	/* Tab 8 */ {label : "Luxembourg", 	value : 9},
+	/* Tab 8 */ {label : "Switzerland", value : 9},
+	/* Tab 9 */ {label : "Japan"}
+];
+
+/*
+var	drop1 = main.add("UIDropDownController", {
+	x : 3,
+	y : 38,
+	name : "helloDrop1",
+	elements : myElements,
+	background : "#191a18",
+	selectedBackground : "#4D90FE",
+	selectedColor : "#FFFFFF"
+});
+
+var	drop2 = main.add("UIDropDownController", {
+	x : 148,
+	y : 38,
+	name : "helloDrop2",
+	elements : myElements,
+	background : "#191a18",
+	selectedBackground : "#4D90FE",
+	selectedColor : "#FFFFFF"
+});
+
+var	drop3 = main.add("UIDropDownController", {
+	x : 292,
+	y : 38,
+	name : "helloDrop3",
+	elements : myElements,
+	background : "#191a18",
+	selectedBackground : "#4D90FE",
+	selectedColor : "#FFFFFF"
+});
+*/
+
+
+
 /* ---------------------------------------------------------------------- */
 
 var NatBug = main.add("UIView", {
@@ -182,6 +255,7 @@ Native.mouseHook = function(e){
 			values[a].label = this[a];
 		}
 
+		/*
 		var p = {
 				x : this.__x,
 				y : Math.min(this.__y, NatBug._y),
@@ -199,6 +273,7 @@ Native.mouseHook = function(e){
 			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(50, 80, 200, 0.05)", "#4D90FE");
 			canvas.setShadow(0, 0, 0);
 		};
+		*/
 	}
 
 	e.stopPropagation();
@@ -215,18 +290,6 @@ DBT(function(){
 
 /* ---------------------------------------------------------------------- */
 
-
-
-var win = main.add("UIWindow", {
-	x : 280,
-	y : 100,
-	w : 300,
-	h : 200,
-	background : "rgba(0, 0, 0, 0.25)",
-	resizable : true,
-	closeable : true,
-	movable : true
-});
 
 var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
