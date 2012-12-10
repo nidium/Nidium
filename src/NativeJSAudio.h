@@ -11,16 +11,6 @@ enum {
     NODE_CUSTOM_PROP_BUFFER
 };
 
-/*
-class NativeJSAudioLink 
-{
-    public :
-        NativeJSAudioLink(NativeAudioLink *link);
-        ~NativeJSAudioLink();
-}
-
-*/
-
 class NativeJS;
 
 class NativeJSAudio: public NativeJSExposer
@@ -42,6 +32,7 @@ class NativeJSAudio: public NativeJSExposer
 
         JSRuntime *rt;
         JSContext *tcx;
+        const char *fun;
 
         static void registerObject(JSContext *cx);
 };
@@ -50,9 +41,9 @@ class NativeJSAudioNode: public NativeJSExposer
 {
     public :
         NativeJSAudioNode(NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), bufferFn(NULL), nodeObj(NULL), hashObj(NULL), fn(NULL),arrayBuff(NULL) {}
+            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayBuff(NULL) {}
         NativeJSAudioNode(NativeAudioNode *node) 
-            : audio(audio), node(node), bufferFn(NULL), nodeObj(NULL), hashObj(NULL), fn(NULL),arrayBuff(NULL) {}
+            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayBuff(NULL) {}
 
         ~NativeJSAudioNode();
 
@@ -77,10 +68,10 @@ class NativeJSAudioNode: public NativeJSExposer
         static void setPropCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
         JSFunction *bufferFn;
+        JSObject *bufferObj;
+        const char *bufferStr;
         JSObject *nodeObj;
         JSObject *hashObj;
-        jsval fnval;
-        JSString *fn;
 
         // Source node
         jsval *arrayBuff;

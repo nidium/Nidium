@@ -4,9 +4,10 @@
 
 /* -- Native FrameWork Demos  ------------------ */
 
-Native.showFPS(true);
+
+//Native.showFPS(true);
 load("core/native.inc.js");
-load('demos/demo.ui.js');
+//load('demos/demo.ui.js');
 //load('demos/demo.windows.js');
 //load('demos/demo.sliders.js');
 //load('demos/demo.diagrams.js');

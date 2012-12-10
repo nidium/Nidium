@@ -100,6 +100,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JSObject *headers, *event;
     jsval rval, jevent, jdata = JSVAL_NULL;
 
+    JSAutoRequest ar(cx);
+
     event = JS_NewObject(cx, NULL, NULL, NULL);
     headers = JS_NewObject(cx, NULL, NULL, NULL);
 

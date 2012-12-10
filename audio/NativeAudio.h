@@ -6,7 +6,7 @@
 #include "NativeAudioParameters.h"
 
 
-#if 1
+#if 0
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0

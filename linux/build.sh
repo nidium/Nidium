@@ -21,15 +21,16 @@
 #!/bin/sh
 g++ \
     main.cpp \
-    -fno-rtti -ffunction-sections -fdata-sections -fno-exceptions -DNDEBUG -DTRIMMED -g -O3 -freorder-blocks  -fomit-frame-pointer \
+    -fno-rtti -ffunction-sections -fdata-sections -fno-exceptions -DTRIMMED -g -O3 -freorder-blocks  -fomit-frame-pointer \
     -I ../SDL/include/ \
     -I ../src/ \
     -I ../network/ \
-    -I /home/efyx/dev/mozilla/js/src/dist/include/ \
-    -L /home/efyx/dev/mozilla/js/src/ \
+    -I ../audio/ \
+    -I /home/efyx/dev/mozilla-central/js/src/dist/include/ \
+    -L /home/efyx/dev/mozilla-central/js/src/ \
     -L ../SDL/build/build/.libs/ \
     -L ../skia-read-only/out/Release/obj.target/gyp/ \
-    -L ../../../mozilla/js/src/ \
+    -L ../../../mozilla-central/js/src/ \
     -L ../src/ \
     -L ../network/ \
     -L ../audio/ \
@@ -43,6 +44,7 @@ g++ \
     -ljs_static \
     -lnativeaudio \
     -lavformat -lavcodec -lavutil -lportaudio -lzita-resampler \
-    -lnativestudio -lnativenetwork -lcares -lskia_sfnt -lzlib -ljpeg -lskia_opts_ssse3 -lskia_opts -lskia_utils -lpicture_utils -lskia_ports -lskia_images -lskia_skgr -lskia_gr -lskia_effects -lskia_core -Wl,--end-group
+    -lnativestudio -lnativenetwork -lcares -lskia_sfnt -lzlib -ljpeg -lskia_opts_ssse3 -lskia_opts -lskia_utils -lpicture_utils -lskia_ports -lskia_images -lskia_skgr -lskia_gr -lskia_effects -lskia_core \
+    -Wl,--end-group
 
 cp a.out ../UICore/

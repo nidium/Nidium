@@ -9,7 +9,7 @@
 #include "NativeJSImage.h"
 #include "NativeJSAudio.h"
 #include "NativeJSNative.h"
-#include "NativefileIO.h"
+#include "NativeFileIO.h"
 
 #include "SkImageDecoder.h"
 
@@ -1232,6 +1232,7 @@ void NativeJS::callFrame()
     //JS_GC(JS_GetRuntime(cx));
     //NSKIA->save();
     if (gfunc != JSVAL_VOID) {
+        JSAutoRequest ar(cx);
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
 
@@ -1250,6 +1251,8 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     
     jsval rval, jevent, canvas, onwheel;
     JSObject *event;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
     JS_AddObjectRoot(cx, &event);
@@ -1281,6 +1284,8 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     
     JSObject *event;
     jsval jevent, onkeyupdown, canvas, rval;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
     JS_AddObjectRoot(cx, &event);
@@ -1315,6 +1320,8 @@ void NativeJS::textInput(const char *data)
     JSObject *event;
     jsval jevent, ontextinput, canvas, rval;
 
+    JSAutoRequest ar(cx);
+
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
     JS_AddObjectRoot(cx, &event);
 
@@ -1344,6 +1351,8 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     JSObject *event;
 
     jsval canvas, onclick;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
     JS_AddObjectRoot(cx, &event);
@@ -1377,6 +1386,8 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     
     jsval rval, jevent, canvas, onmove;
     JSObject *event;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
     JS_AddObjectRoot(cx, &event);
@@ -1464,6 +1475,8 @@ NativeJS::NativeJS()
 
     JS_SetErrorReporter(cx, reportError);
 
+    JSAutoRequest ar(cx);
+
     gbl = JS_NewGlobalObject(cx, &global_class, NULL);
 
     if (!JS_InitStandardClasses(cx, gbl))
@@ -1549,6 +1562,7 @@ static int Native_handle_messages(void *arg)
     JSObject *event;
 
     NativeSharedMessages::Message msg;
+    JSAutoRequest ar(cx);
 
     while (++nread < MAX_MSG_IN_ROW && njs->messages->readMessage(&msg)) {
         switch (msg.event()) {
@@ -1623,6 +1637,7 @@ int NativeJS::LoadScript(const char *filename)
 {
     uint32_t oldopts;
 
+    JSAutoRequest ar(cx);
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
 
@@ -1698,6 +1713,8 @@ void NativeJS::gc()
 static int native_timer_deleted(void *arg)
 {
     struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    JSAutoRequest ar(params->cx);
 
     if (params == NULL) {
         return 0;
@@ -1831,6 +1848,8 @@ static int native_timerng_wrapper(void *arg)
 {
     jsval rval;
     struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    JSAutoRequest ar(params->cx);
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);

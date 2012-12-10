@@ -35,13 +35,16 @@ void load(const char *file, uint8_t *buffer, int bufferSize) {
 }
 
 static void nodecb(const struct NodeEvent *ev) {
+    printf("node cbk\n");
+    /*
     for (int i = 0; i < ev->size; i++) {
         ev->data[0][i] *= 0;
         ev->data[1][i] *= 0;
     }
+    */
 }
 
-static void cbk(NativeAudioNode *node) {
+static void cbk(NativeAudioNode *node, void *custom) {
     printf("callback called\n");
 }
 
@@ -113,8 +116,8 @@ int main(int argc, char *argv[]) {
     audio->connect(track1->output[0], target->input[0]);
     audio->connect(track1->output[1], target->input[1]);
 
-    //audio->connect(custom->output[0], target->input[0]);
-    //audio->connect(custom->output[1], target->input[1]);
+    audio->connect(custom->output[0], target->input[0]);
+    audio->connect(custom->output[1], target->input[1]);
 
 
  //   audio->connect(gain->output[0], target->input[0]);
@@ -128,7 +131,7 @@ int main(int argc, char *argv[]) {
     audio->connect(gain2->output[1], gain->input[1]);
     */
 
-    //gain->callback(cbk);
+    //gain->setCallback(cbk, (void*)NULL);
     track1->open(buffer1, bufferSize);
     //track2->open(buffer2, bufferSize);
 
