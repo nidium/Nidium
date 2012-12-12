@@ -19,7 +19,7 @@ class NativeJSExposer
     { \
         JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &name ## _class, \
             native_ ## name ## _constructor, \
-            1, NULL, NULL, NULL, NULL); \
+            0, NULL, NULL, NULL, NULL); \
     }
 
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \

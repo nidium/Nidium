@@ -25,13 +25,13 @@ typedef struct _ape_global ape_global;
 class NativeJS
 {
     private:   
-        void LoadCanvasObject(NativeSkia *);
+        void LoadGlobalObjects(NativeSkia *);
 
     public:
         struct JSContext *cx;
         NativeSharedMessages *messages;
-        NativeSkia *nskia;
-        NativeJS();
+        NativeSkia *surface;
+        NativeJS(int width, int height);
         ~NativeJS();
         int LoadScript(const char *filename);
         void callFrame();

@@ -1,7 +1,8 @@
 #include "NativeJSNative.h"
-
+#include "NativeSkia.h"
 
 bool NativeJSNative::showFPS = false;
+NativeSkia *NativeJSNative::context2D = NULL;
 
 static JSClass Native_class = {
     "Native", 0,
@@ -11,11 +12,23 @@ static JSClass Native_class = {
 };
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec Native_funcs[] = {
     JS_FN("showFPS", native_showfps, 1, 0),
+    JS_FN("getContext", native_getContext, 1, 0),
     JS_FS_END
 };
+
+static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp)
+{
+    if (NativeJSNative::context2D == NULL) {
+        NativeJSNative::context2D = new NativeSkia();
+        
+    }
+
+    return JS_TRUE;
+}
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
 {

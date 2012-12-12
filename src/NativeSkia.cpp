@@ -303,16 +303,14 @@ void NativeSkia::initPaints()
     
     this->setLineWidth(1);
 
-    asComposite = 0;            
+    asComposite = 0;
 }
 
-int NativeSkia::bindOnScreen(int width, int height)
+int NativeSkia::bindOnScreen(int width, int height, SkCanvas *surface)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
 
-    SkGpuDevice *dev = new SkGpuDevice(GrContext::Create(kOpenGL_Shaders_GrEngine,
-        (GrPlatform3DContext)interface), SkBitmap::kARGB_8888_Config,
-        width, height);
+    SkDevice *dev = surface->createCompatibleDevice(SkBitmap::kARGB_8888_Config, width, height, false);
 
     if (dev == NULL) {
         printf("Failed to create onscreen canvas");
@@ -332,6 +330,8 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     canvas->clear(0x00000000);
 
+    this->native_canvas_bind_mode = NativeSkia::BIND_ONSCREEN;
+
     return 1;
 }
 
@@ -343,7 +343,6 @@ int NativeSkia::bindOffScreen(int width, int height)
     bitmap.allocPixels();
 
     canvas = new SkCanvas(bitmap);
-    surface = NULL;
 
     /* TODO: Move the following in a common methode (init) */
     globalAlpha = 255;
@@ -353,6 +352,42 @@ int NativeSkia::bindOffScreen(int width, int height)
     state->next = NULL;
 
     initPaints();
+
+    this->native_canvas_bind_mode = NativeSkia::BIND_OFFSCREEN;
+
+    return 1;
+}
+
+void NativeSkia::unlink()
+{
+    if (handler.parent) {
+        NativeSkia *parent = handler.parent;
+
+
+
+        handler.parent = NULL;
+    }
+    
+    //handler.children.last = NULL;
+    /*if (handler.children.prev) {
+        handler.children.prev->handler.children.next = handler.children.next;
+        handler.children.prev = NULL;
+    }
+    if (handler.children.next) {
+        handler.children.next->handler.children.prev = handler.children.prev;
+        handler.children.next = NULL;
+    }*/
+}
+
+int NativeSkia::addSubCanvas(NativeSkia *sub)
+{
+    if (sub->native_canvas_bind_mode == NativeSkia::BIND_GL ||
+        native_canvas_bind_mode == NativeSkia::BIND_NO) {
+        printf("Wrong bind\n");
+        return 0;
+    }
+
+    sub->unlink();
 
     return 1;
 }
@@ -403,14 +438,13 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
 
-    surface = new SkCanvas(dev);
+    this->native_canvas_bind_mode = NativeSkia::BIND_GL;
+
+    canvas = new SkCanvas(dev);
     
     SkSafeUnref(dev);
 
-    surface->clear(0xFFFFFFFF);
-
-    /* Create the "main" canvas object to draw on */
-    this->bindOnScreen(width, height);
+    canvas->clear(0xFFFFFFFF);
 
     return 1;
 }
@@ -451,6 +485,12 @@ void NativeSkia::drawRect(double x, double y, double width,
         (stroke ? *PAINT_STROKE : *PAINT));
 }
 
+NativeSkia::NativeSkia()
+{
+    handler.self = this;
+    this->native_canvas_bind_mode = NativeSkia::BIND_NO;
+}
+
 NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
@@ -468,9 +508,7 @@ NativeSkia::~NativeSkia()
     if (currentPath) delete currentPath;
 
     delete canvas;
-    if (surface) {
-        delete surface;
-    }
+
 }
 
 /* TODO: check if there is a best way to do this;
@@ -1193,9 +1231,37 @@ static SkBitmap load_bitmap() {
 void NativeSkia::flush()
 {
     canvas->flush();
+#if 0
     if (surface) {
-        surface->drawBitmap(canvas->getDevice()->accessBitmap(false),
-            0, 0, NULL);
+        surface->clear(0xFFFFFFFF);
+
+        surface->drawBitmap(canvas->getDevice()->accessBitmap(false), 0, 0, NULL);
         surface->flush();
+        
     }
+#endif
+}
+
+void NativeSkia::layerize(NativeSkia *layer = NULL)
+{
+    NativeSkia *cur;
+#if 0
+    if (handler.parent && layer == NULL) {
+        printf("Warning : Layerize on a non-root canvas\n");
+    }
+#endif
+    if (layer == NULL) {
+        layer = this;
+        layer->canvas->clear(0xFFFFFFFF);
+    } else {
+        layer->canvas->drawBitmap(canvas->getDevice()->accessBitmap(false),
+                                    SkDoubleToScalar(handler.left),
+                                    SkDoubleToScalar(handler.top));
+        layer->canvas->flush();
+    }
+
+    for (cur = handler.children; cur != NULL; cur = cur->handler.next) {
+        cur->layerize(layer);
+    }
+
 }
