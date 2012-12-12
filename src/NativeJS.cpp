@@ -268,7 +268,7 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
         !JSVAL_IS_PRIMITIVE(onwheel) && 
@@ -300,7 +300,7 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
         (state ? "onkeydown" : "onkeyup"), &onkeyupdown) &&
@@ -329,7 +329,7 @@ void NativeJS::textInput(const char *data)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "ontextinput", &ontextinput) &&
         !JSVAL_IS_PRIMITIVE(ontextinput) && 
@@ -362,7 +362,7 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
         (state ? "onmousedown" : "onmouseup"), &onclick) &&
@@ -396,7 +396,7 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "canvas", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousemove", &onmove) &&
         !JSVAL_IS_PRIMITIVE(onmove) && 

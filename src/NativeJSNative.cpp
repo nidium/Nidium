@@ -21,15 +21,26 @@ static JSFunctionSpec Native_funcs[] = {
     JS_FS_END
 };
 
+/* Lazy resolve the "main" canvas surface */
 static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *obj;
 
+    if (NativeSkia::glsurface == NULL) {
+        printf("No gl surface\n");
+        return JS_TRUE;
+    }
+
     if (NativeJSNative::context2D == NULL) {
         NativeJSNative::context2D = new NativeSkia();
 
-        NativeJSNative::context2D->bindOnScreen(128, 128);
-        /* TODO: addSub to surface */
+        if (!NativeJSNative::context2D->bindOnScreen(1024, 768)) {
+            JS_SET_RVAL(cx, vp, JSVAL_NULL);
+            printf("failed to get 2DContext\n");
+            return JS_TRUE;
+        }
+
+        NativeSkia::glsurface->addSubCanvas(NativeJSNative::context2D);
 
         obj = NativeJSCanvas::generateJSObject(cx,
                             NativeJSNative::context2D);

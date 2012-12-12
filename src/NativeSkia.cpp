@@ -31,6 +31,7 @@
 #include "SkBlurImageFilter.h"
 
 SkCanvas *NativeSkia::glcontext = NULL;
+NativeSkia *NativeSkia::glsurface = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -431,6 +432,9 @@ int NativeSkia::bindGL(int width, int height)
     if (NativeSkia::glcontext == NULL) {
         NativeSkia::glcontext = canvas;
     }
+    if (NativeSkia::glsurface == NULL) {
+        NativeSkia::glsurface = this;
+    }
     
     SkSafeUnref(dev);
 
@@ -486,7 +490,7 @@ NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
 
-    if (obj) {
+    if (obj && cx) {
         JS_RemoveObjectRoot(cx, &this->obj);
     }
 
@@ -1237,7 +1241,7 @@ void NativeSkia::flush()
 #endif
 }
 
-void NativeSkia::layerize(NativeSkia *layer = NULL)
+void NativeSkia::layerize(NativeSkia *layer)
 {
     NativeSkia *cur;
 #if 0
