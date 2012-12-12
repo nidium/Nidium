@@ -6,7 +6,7 @@
 
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
-jsval gfunc  = JSVAL_VOID;
+extern jsval gfunc;
 
 enum {
     CANVAS_PROP_FILLSTYLE = 1,
@@ -1002,4 +1002,27 @@ void NativeJSCanvas::registerObject(JSContext *cx)
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas_class,
         native_Canvas_constructor,
         2, NULL, NULL, NULL, NULL);
+}
+
+JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, NativeSkia *skia)
+{
+    JSObject *ret;
+
+    if (skia->cx && skia->obj) {
+        printf("Warning generate already existing canvas obj\n");
+        return skia->obj;
+    }
+
+    ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
+
+    skia->obj = ret;
+    skia->cx = cx;
+
+    JS_DefineFunctions(cx, ret, canvas_funcs);
+    JS_DefineProperties(cx, ret, canvas_props);
+
+    JS_SetPrivate(ret, skia);
+    JS_AddObjectRoot(cx, &skia->obj);
+
+    return ret;
 }

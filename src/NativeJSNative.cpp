@@ -1,5 +1,6 @@
 #include "NativeJSNative.h"
 #include "NativeSkia.h"
+#include "NativeJSCanvas.h"
 
 bool NativeJSNative::showFPS = false;
 NativeSkia *NativeJSNative::context2D = NULL;
@@ -22,10 +23,21 @@ static JSFunctionSpec Native_funcs[] = {
 
 static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JSObject *obj;
+
     if (NativeJSNative::context2D == NULL) {
         NativeJSNative::context2D = new NativeSkia();
-        
+
+        NativeJSNative::context2D->bindOnScreen(128, 128);
+        /* TODO: addSub to surface */
+
+        obj = NativeJSCanvas::generateJSObject(cx,
+                            NativeJSNative::context2D);
+    } else {
+        obj = NativeJSNative::context2D->obj;
     }
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
 
     return JS_TRUE;
 }

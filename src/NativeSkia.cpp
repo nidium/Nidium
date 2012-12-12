@@ -1,5 +1,4 @@
-
-
+#include <jsapi.h>
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
@@ -30,6 +29,8 @@
 #include "NativeShadowLooper.h"
 #include "SkBlurMaskFilter.h"
 #include "SkBlurImageFilter.h"
+
+SkCanvas *NativeSkia::glcontext = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -62,7 +63,6 @@
    if (c > 255) c = 255; \
    NAME = c; \
    while (' ' == *str || ',' == *str) str++;
-
 
 
 static int count_separators(const char* str, const char* sep) {
@@ -306,11 +306,17 @@ void NativeSkia::initPaints()
     asComposite = 0;
 }
 
-int NativeSkia::bindOnScreen(int width, int height, SkCanvas *surface)
+int NativeSkia::bindOnScreen(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
 
-    SkDevice *dev = surface->createCompatibleDevice(SkBitmap::kARGB_8888_Config, width, height, false);
+    if (NativeSkia::glcontext == NULL) {
+        printf("Cant find GL context\n");
+        return 0;
+    }
+    SkDevice *dev = NativeSkia::glcontext
+                        ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+                            width, height, false);
 
     if (dev == NULL) {
         printf("Failed to create onscreen canvas");
@@ -358,26 +364,6 @@ int NativeSkia::bindOffScreen(int width, int height)
     return 1;
 }
 
-void NativeSkia::unlink()
-{
-    if (handler.parent) {
-        NativeSkia *parent = handler.parent;
-
-
-
-        handler.parent = NULL;
-    }
-    
-    //handler.children.last = NULL;
-    /*if (handler.children.prev) {
-        handler.children.prev->handler.children.next = handler.children.next;
-        handler.children.prev = NULL;
-    }
-    if (handler.children.next) {
-        handler.children.next->handler.children.prev = handler.children.prev;
-        handler.children.next = NULL;
-    }*/
-}
 
 int NativeSkia::addSubCanvas(NativeSkia *sub)
 {
@@ -387,7 +373,7 @@ int NativeSkia::addSubCanvas(NativeSkia *sub)
         return 0;
     }
 
-    sub->unlink();
+    handler.addChild(sub);
 
     return 1;
 }
@@ -441,6 +427,10 @@ int NativeSkia::bindGL(int width, int height)
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
     canvas = new SkCanvas(dev);
+
+    if (NativeSkia::glcontext == NULL) {
+        NativeSkia::glcontext = canvas;
+    }
     
     SkSafeUnref(dev);
 
@@ -487,6 +477,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 NativeSkia::NativeSkia()
 {
+    obj = NULL;
     handler.self = this;
     this->native_canvas_bind_mode = NativeSkia::BIND_NO;
 }
@@ -494,6 +485,10 @@ NativeSkia::NativeSkia()
 NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
+
+    if (obj) {
+        JS_RemoveObjectRoot(cx, &this->obj);
+    }
 
     while(nstate) {
         struct _nativeState *tmp = nstate->next;

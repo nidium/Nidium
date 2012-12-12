@@ -10,6 +10,8 @@ NativeCanvasHandler::NativeCanvasHandler() :
 
 void NativeCanvasHandler::addChild(NativeSkia *insert)
 {
+	insert->handler.removeFromParent();
+	
 	if (children) {
 		children->handler.prev = insert;
 	}

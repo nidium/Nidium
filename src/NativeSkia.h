@@ -55,7 +55,8 @@ class NativeSkia
         NativeCanvasHandler handler;
 
         void initPaints();
-
+        
+        struct JSContext *cx;
     public:
         enum BindMode {
             BIND_NO,
@@ -65,11 +66,15 @@ class NativeSkia
         } native_canvas_bind_mode;
 
         friend class NativeCanvasHandler;
+        friend class NativeJSCanvas;
+
+        static SkCanvas *glcontext;
         SkCanvas *canvas;
+        struct JSObject *obj;
         ~NativeSkia();
         NativeSkia();
         int bindOffScreen(int width, int height);
-        int bindOnScreen(int width, int height, SkCanvas *surface);
+        int bindOnScreen(int width, int height);
         int bindGL(int width, int height);
         int addSubCanvas(NativeSkia *sub);
         void resetGLContext();

@@ -15,13 +15,14 @@ struct handler_children
 class NativeCanvasHandler
 {
     private:
-        NativeSkia *children;
         NativeSkia *parent;
+        NativeSkia *children;
         NativeSkia *next;
         NativeSkia *prev;
         NativeSkia *self;
 
         double left, top;
+        
         void addChild(NativeSkia *child);
         void removeFromParent();
     public:
