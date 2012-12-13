@@ -668,7 +668,7 @@ int NativeJS::LoadScript(const char *filename)
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
             }
-        }        
+        }
         return 0;
     }
     

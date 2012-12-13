@@ -81,7 +81,7 @@ class NativeSkia
         int addSubCanvas(NativeSkia *sub);
         void resetGLContext();
         void flush();
-        void layerize(NativeSkia *surface);
+        void layerize(NativeSkia *surface, double left, double top);
         void unlink();
         /* Basics */
         int readPixels(int top, int left, int width, int height,

@@ -1247,7 +1247,8 @@ void NativeSkia::flush()
 #endif
 }
 
-void NativeSkia::layerize(NativeSkia *layer)
+/* TODO: calculate the right position relative to parent */
+void NativeSkia::layerize(NativeSkia *layer, double left, double top)
 {
     NativeSkia *cur;
 #if 0
@@ -1260,13 +1261,13 @@ void NativeSkia::layerize(NativeSkia *layer)
         layer->canvas->clear(0xFFFFFFFF);
     } else {
         layer->canvas->drawBitmap(canvas->getDevice()->accessBitmap(false),
-                                    SkDoubleToScalar(handler.left),
-                                    SkDoubleToScalar(handler.top));
+                                    SkDoubleToScalar(left) + SkDoubleToScalar(handler.left),
+                                    SkDoubleToScalar(top) + SkDoubleToScalar(handler.top));
         layer->canvas->flush();
     }
 
     for (cur = handler.children; cur != NULL; cur = cur->handler.next) {
-        cur->layerize(layer);
+        cur->layerize(layer, handler.left + left, handler.top + top);
     }
 
 }
