@@ -104,6 +104,8 @@ static JSBool native_canvas_isPointInPath(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
@@ -176,6 +178,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("measureText", native_canvas_measureText, 1, 0),
     JS_FN("isPointInPath", native_canvas_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas_getPathBounds, 0, 0),
+    JS_FN("addSubCanvas", native_canvas_addSubCanvas, 1, 0),
     JS_FS_END
 };
 
@@ -748,6 +751,36 @@ static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    JSObject *sub;
+    NativeSkia *subskia;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &sub)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_InstanceOf(cx, sub, &Canvas_class, NULL)) {
+        return JS_TRUE;
+    }
+
+    subskia = (NativeSkia *)JS_GetPrivate(sub);
+
+    if (subskia == NULL) {
+        return JS_TRUE;
+    }
+
+    if (NSKIA_NATIVE == subskia) {
+        printf("Cant add canvas to itself\n");
+        return JS_TRUE;
+    }
+
+    NSKIA_NATIVE->addSubCanvas(subskia);
+
+    return JS_TRUE;
+}
+
 /* TODO: do not change the value when a wrong type is set */
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
@@ -968,7 +1001,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     CanvasObject = new NativeSkia();
-    CanvasObject->bindOffScreen(width, height);
+    CanvasObject->bindOnScreen(width, height);
 
     JS_SetPrivate(ret, CanvasObject);
 
