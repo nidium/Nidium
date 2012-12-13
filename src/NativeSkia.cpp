@@ -1212,6 +1212,12 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     return 1;
 }
 
+void NativeSkia::setPosition(double left, double top)
+{
+    handler.left = left;
+    handler.top = top;
+}
+
 /*
 static SkBitmap load_bitmap() {
     SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");

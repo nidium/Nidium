@@ -70,7 +70,7 @@ class NativeSkia
 
         static SkCanvas *glcontext;
         static NativeSkia *glsurface;
-        
+
         SkCanvas *canvas;
         struct JSObject *obj;
         ~NativeSkia();
@@ -145,6 +145,7 @@ class NativeSkia
         bool SkPathContainsPoint(double x, double y);
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
+        void setPosition(double left, double top);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0

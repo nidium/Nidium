@@ -756,8 +756,10 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
 {
     JSObject *sub;
     NativeSkia *subskia;
+    double left = 0.0, top = 0.0;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &sub)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o/dd", &sub,
+        &left, &top)) {
         return JS_TRUE;
     }
 
@@ -775,6 +777,8 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         printf("Cant add canvas to itself\n");
         return JS_TRUE;
     }
+
+    subskia->setPosition(left, top);
 
     NSKIA_NATIVE->addSubCanvas(subskia);
 
