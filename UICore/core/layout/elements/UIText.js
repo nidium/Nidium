@@ -4,7 +4,8 @@
 
 Native.elements.export("UIText", {
 	init : function(){
-		var self = this;
+		var self = this,
+			scrollY = (this._fixed===false ? this.scroll._top : 0);
 
 		this.flags._canReceiveFocus = true;
 		this.caretOpacity = 1;
@@ -12,6 +13,9 @@ Native.elements.export("UIText", {
 
 		this.background = OptionalValue(this.options.background, '#ffffff');
 		this.color = OptionalValue(this.options.color, "#000000");
+
+		this.offsetLeft = OptionalValue(this.options.offsetLeft, []);
+		this.offsetRight = OptionalValue(this.options.offsetRight, []);
 
 		this.padding = {
 			left : 0,
@@ -24,13 +28,8 @@ Native.elements.export("UIText", {
 
 		this.setText = function(text){
 			this.text = text;
-			this._textMatrix = getTextMatrixLines(
-				text, 
-				this.lineHeight, 
-				this.w, 
-				this.textAlign, 
-				this.fontSize
-			);
+
+			this._textMatrix = getTextMatrixLines(this);
 			this.content.height = this.lineHeight * this._textMatrix.length;
 
 			this.mouseSelectionArea = null;
@@ -48,6 +47,39 @@ Native.elements.export("UIText", {
 				y2 : 0
 			};
 
+		};
+
+		this.setLayout = function(offsetLeft, offsetRight){
+			this.offsetLeft = OptionalValue(offsetLeft, []);
+			this.offsetRight = OptionalValue(offsetRight, []);
+			this.setText(this.text);
+		};
+
+		this.updateScrollTop = function(dy){
+			if (this.h / this.scrollBarHeight < 1) {
+				canvas.__mustBeDrawn = true;
+
+				this.verticalScrollBar.cancelCurrentAnimations("opacity");
+				this.scroll.fading = false;
+				this.verticalScrollBar.opacity = 1;
+	
+				this.scrollContentY(-dy * 4, function(){
+
+					if (!self.scroll.fading) {
+						self.scroll.fading = true;
+
+						clearTimeout(self.scroll.fadeScheduler);
+						self.scroll.fadeScheduler = setTimeout(function(){
+
+							self.verticalScrollBar.fadeOut(250, function(){
+								self.scroll.fading = false;
+							});
+
+						}, 350);
+					}
+
+				});
+			}
 		};
 
 		/* ------------------------------------------------------------------ */
@@ -82,33 +114,7 @@ Native.elements.export("UIText", {
 		}, false);
 
 		this.addEventListener("mousewheel", function(e){
-
-			if (this.h / this.scrollBarHeight < 1) {
-				canvas.__mustBeDrawn = true;
-
-				this.verticalScrollBar.cancelCurrentAnimations("opacity");
-				this.scroll.fading = false;
-				this.verticalScrollBar.opacity = 1;
-	
-				this.scrollContentY(-e.yrel * 4, function(){
-
-					if (!self.scroll.fading) {
-						self.scroll.fading = true;
-
-						clearTimeout(self.scroll.fadeScheduler);
-						self.scroll.fadeScheduler = setTimeout(function(){
-
-							self.verticalScrollBar.fadeOut(250, function(){
-								self.scroll.fading = false;
-							});
-
-						}, 350);
-					}
-
-				});
-			}
-
-
+			this.updateScrollTop(e.yrel);
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -118,10 +124,27 @@ Native.elements.export("UIText", {
 		}, false);
 
 		Native.layout.rootElement.addEventListener("dragover", function(e){
+			if (!self.__startTextSelectionProcessing) return false;
+
 			self._doMouseSelection(e);
+
+			if (self._autoScrollTop && self.isPointInside(e.x, e.y)) {
+				self._autoScrollTop = false;
+			} else {
+				self._autoScrollTop = false;
+
+				if (e.y > (self.__y+self.__h)){
+					self._autoScrollTop = -(e.y-(self.__y+self.__h))/4;
+				}
+				if (e.y <= self.__y){
+					self._autoScrollTop = (self.__y - e.y)/4;
+				}
+			}
+
 		}, false);
 
 		this.addEventListener("dragend", function(e){
+			self._autoScrollTop = false;
 			self._endMouseSelection();
 			self.fireEvent("textselect", self.selection);
 		}, false);
@@ -222,7 +245,7 @@ Native.elements.export("UIText", {
 				x : this.caret.x1,
 				y : this.caret.y1
 			};
-			console.log(this._StartCaret);
+			//console.log(this._StartCaret);
 		};
 
 		this.resetStartPoint = function(){
@@ -266,7 +289,7 @@ Native.elements.export("UIText", {
 				}
 
 				var x = self._x + self.padding.left,
-					y = self._y + self.padding.top,
+					y = self._y + self.padding.top - scrollY,
 
 					r = {
 						x1 : (area.x1 - x),
@@ -333,12 +356,17 @@ Native.elements.export("UIText", {
 
 		this.select = function(state){
 			/* 2 times faster than the old while loop method */
-			var m = this._textMatrix, chars, x = y = 0, offset = this.selection.offset,
-			state = (typeof(state) == "undefined") ? true : state ? true : false;
+			var m = this._textMatrix,
+				chars, x = y = 0,
+				offset = this.selection.offset,
+				state = (typeof(state) == "undefined") ? 
+										true : state ? true : false;
 			
-			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length; x++){
-				chars[x].selected = state;
-			}
+			for (y=0; y<m.length; y++)
+				for (x=0, chars = m[y].letters; x<chars.length; x++){
+					chars[x].selected = state;
+				}
+
 			if (state) {
 				var lastLine = this._textMatrix.length - 1;
 				this.selection = {
@@ -363,11 +391,23 @@ Native.elements.export("UIText", {
 		};
 
 		this.replace = function(text){
-			this._insert(text, this.selection.offset, this.selection.size, this.selection.offset + text.length, 0);
+			this._insert(
+				text, 
+				this.selection.offset, 
+				this.selection.size, 
+				this.selection.offset + text.length,
+				0
+			);
 		};
 
 		this.insert = function(text){
-			this._insert(text, this.selection.offset, this.selection.size, ++this.selection.offset, 0);
+			this._insert(
+				text, 
+				this.selection.offset, 
+				this.selection.size, 
+				++this.selection.offset, 
+				0
+			);
 		};
 
 		this.append = function(text){
@@ -376,7 +416,13 @@ Native.elements.export("UIText", {
 
 		this.cut = function(){
 			this.copy();
-			this._insert('', this.selection.offset, this.selection.size, this.selection.offset, 0);
+			this._insert(
+				'', 
+				this.selection.offset, 
+				this.selection.size, 
+				this.selection.offset, 
+				0
+			);
 		};
 
 		this.copy = function(){
@@ -429,34 +475,35 @@ Native.elements.export("UIText", {
 					y2 : false
 				};
 
-			for (y=0; y<m.length; y++) for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
-				chars[x].selected = false;
+			for (y=0; y<m.length; y++)
+				for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
+					chars[x].selected = false;
 
-				if (walk >= o) {
-					select = true;
-				}
-
-				if (select){
-					if (!__setted__) {
-						c.x1 = x;
-						c.y1 = y;
-						__setted__ = true;
+					if (walk >= o) {
+						select = true;
 					}
-					if (s>=1) {
-						chars[x].selected = true;
+
+					if (select){
+						if (!__setted__) {
+							c.x1 = x;
+							c.y1 = y;
+							__setted__ = true;
+						}
+						if (s>=1) {
+							chars[x].selected = true;
+						}
+				 		s--;
 					}
-			 		s--;
+
+					if (s <= 0) {
+						c.x2 = x;
+						c.y2 = y;
+						select = false;
+					}
+
+					walk++;
+
 				}
-
-				if (s <= 0) {
-					c.x2 = x;
-					c.y2 = y;
-					select = false;
-				}
-
-				walk++;
-
-			}
 
 			this.caret = c;
 
@@ -530,9 +577,16 @@ Native.elements.export("UIText", {
 
 		/* ------------------------------------------------------------------ */
 		
-		this.verticalScrollBar = this.add("UIVerticalScrollBar");
-		this.verticalScrollBarHandle = this.verticalScrollBar.add("UIVerticalScrollBarHandle");
-
+		this.verticalScrollBar = this.add("UIVerticalScrollBar", {
+			zIndex : 10,
+			fixed : true,
+			overflow : true
+		});
+		
+		this.verticalScrollBarHandle = this.verticalScrollBar.add(
+			"UIVerticalScrollBarHandle"
+		);
+		
 		this.setText(this.text);
 
 	},
@@ -544,7 +598,7 @@ Native.elements.export("UIText", {
 	draw : function(){
 		var params = {
 				x : this._x,
-				y : this._y,
+				y : this._y - (this._fixed===false ? this.scroll._top : 0),
 				w : this.w,
 				h : this.h
 			},
@@ -559,6 +613,14 @@ Native.elements.export("UIText", {
 			vOffset = (this.lineHeight/2)+5,
 
 			ctx = canvas;
+
+		if (this.__startTextSelectionProcessing && this._autoScrollTop && this._autoScrollTop !== false) {
+			this.updateScrollTop(this._autoScrollTop);
+			this._doMouseSelection({
+				x : canvas.mouseX,
+				y : canvas.mouseY
+			});
+		}
 
 		ctx.save();
 			if (this.background){
@@ -657,7 +719,7 @@ canvas.implement({
 	}
 });
 
-function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
+function getLineLetters(wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 	var context = new Canvas(1, 1),
 		widthOf = context.measureText,
 		textLine = wordsArray.join(' '),
@@ -692,6 +754,8 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 		case "justify" :
 			gap = (linegap/(textLine.length-1));
 			break;
+		case "left" :
+			break;
 		case "right" :
 			offset = linegap;
 			break;
@@ -707,7 +771,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 			letterWidth = cachedLetterWidth(char);
 
 		if (textAlign=="justify"){
-			if (char==" "){
+			if (char == " "){
 				letterWidth += spacing;
 			} else {
 				letterWidth -= spacing*nb_spaces/nb_letters;
@@ -721,7 +785,7 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 
 		letters[i] = {
 			char : char,
-			position : offset + position + offgap,
+			position : offsetLeft + offset + position + offgap,
 			width : letterWidth,
 			linegap : linegap,
 			selected : false
@@ -735,13 +799,13 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 		var last = letters[textLine.length-1],
 			delta = fitWidth - (last.position + last.width);
 
-		if ((0.05 + last.position + last.width) > fitWidth) {
-			last.position = Math.floor(last.position - delta - 0.5);
+		if ((0.05 + last.position + last.width) > fitWidth+offsetLeft) {
+			last.position = Math.floor(last.position - delta - 0.5) - offsetLeft;
 		}
 
 		letters[i] = {
 			char : " ",
-			position : offset + position + offgap,
+			position : offsetLeft + offset + position + offgap,
 			width : 10,
 			linegap : linegap,
 			selected : false
@@ -750,13 +814,23 @@ function getLineLetters(wordsArray, textAlign, fitWidth, fontSize){
 	return letters;
 }
 
-function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
-	var	paragraphe = text.split(/\r\n|\r|\n/),
+function getTextMatrixLines(element){
+	var	paragraphe = element.text.split(/\r\n|\r|\n/),
+
+		lineHeight = element.lineHeight,
+		fitWidth = element.w,
+		textAlign = element.textAlign,
+		fontSize = element.fontSize,
+		offsetLeft = element.offsetLeft,
+		offsetRight = element.offsetRight,
+
+		matrix = [],
 		wordsArray = [],
+
+		k = 0,
 		currentLine = 0,
 		context = new Canvas(1, 1);
 
-	var matrix = [];
 
 	context.setFontSize(fontSize);
 
@@ -768,20 +842,29 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
 
-			if (w > fitWidth) {
+			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
+				offRght = offsetRight[k] ? offsetRight[k] : 0,
+
+				currentFitWidth = fitWidth - offRght - offLeft;
+
+			if (w > currentFitWidth) {
 				idx = (idx == 1) ? 2 : idx;
 
 				wordsArray = words.slice(0, idx - 1);
 
 				matrix[currentLine++] = {
 					text : wordsArray.join(' '),
-					align :textAlign,
+					align : textAlign,
 					words : wordsArray,
 					letters : getLineLetters(
 								wordsArray, textAlign, 
-								fitWidth, fontSize
+								offLeft,
+								currentFitWidth,
+								fontSize
 							  )
 				};
+
+				k++;
 				
 				words = words.splice(idx - 1);
 				idx = 1;
@@ -795,14 +878,25 @@ function getTextMatrixLines(text, lineHeight, fitWidth, textAlign, fontSize){
 		// last line
 		if (idx > 0) {
 
-			var align = (textAlign=="justify") ? "left" : textAlign;
+			var align = (textAlign=="justify") ? "left" : textAlign,
+
+				offLeft = offsetLeft[currentLine] ?
+									offsetLeft[currentLine] : 0,
+
+				offRght = offsetRight[currentLine] ?
+									offsetRight[currentLine] : 0,
+
+				currentFitWidth = fitWidth - offRght - offLeft;
+
 			matrix[currentLine] = {
 				text : words.join(' '),
 				align : align,
 				words : words,
 				letters : getLineLetters(
 							words, align, 
-							fitWidth, fontSize
+							offLeft,
+							currentFitWidth,
+							fontSize
 						  )
 			};
 
@@ -824,6 +918,9 @@ function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, v
 
 	var start = -Math.ceil((y - viewportTop)/lineHeight),
 		end = Math.min(textMatrix.length, start + Math.ceil(viewportHeight/lineHeight) );
+
+	if (start-1 >= 0) start--;
+	if (end+1 <= textMatrix.length) end++;
 
 	for (var line=start; line<end; line++){
 		var tx = x,

@@ -22,7 +22,7 @@ var DOMElement = function(type, options, parent){
 	this.type = OptionalString(type, "UIView");
 	this.name = OptionalString(o.name, "");
 	this.text = OptionalString(o.text, "");
-	this.label = OptionalString(o.label, "Default");
+	this.label = OptionalString(o.label, "");
 
 	this._eventQueues = [];
 	this._mutex = [];
@@ -32,6 +32,10 @@ var DOMElement = function(type, options, parent){
 	this.y = OptionalNumber(o.y, 0);
 	this.w = o.w ? o.w : this.parent ? this.parent.w : canvas.width;
 	this.h = o.h ? o.h : this.parent ? this.parent.h : canvas.height;
+
+	this.scroll = {
+		top : OptionalNumber(o.scrollTop, 0)
+	};
 
 	this.rotate = 0;
 	this.scale = OptionalNumber(o.scale, 1);
@@ -44,6 +48,8 @@ var DOMElement = function(type, options, parent){
 	this.isOnTop = false;
 	this.mouseOverPath = false;
 	this.visible = OptionalBoolean(o.visible, true);
+	this.overflow = OptionalBoolean(o.overflow, true);
+	this.fixed = OptionalBoolean(o.fixed, true);
 	this.selected = OptionalBoolean(o.selected, false);
 	this.draggable = OptionalBoolean(o.draggable, false);
 
@@ -73,11 +79,14 @@ var DOMElement = function(type, options, parent){
 	this._x = this.x;
 	this._y = this.y;
 	this._opacity = this.opacity;
+	this.scroll._top = this.scroll.top;
 
 	this._rIndex = 0;
 	this._zIndex = this._rIndex + this.zIndex;
 
 	this._visible = this.visible;
+	this._overflow = this.overflow;
+	this._fixed = this.fixed;
 
 	// -- transform matrix inheritance (experimental)
 	this.g = {
@@ -211,15 +220,73 @@ DOMElement.prototype = {
 		// -- properties prefixed with _ inherits from parent at draw time
 		var p = this.parent;
 
+
+		this.scroll._top = p ? p.scroll._top + this.scroll.top : 
+							   this.scroll.top;
+
 		this._x = p ? p._x + this.x : this.x;
 		this._y = p ? p._y + this.y : this.y;
+
 		this._opacity = p ? p._opacity * this.opacity : this.opacity;
 
 		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : 
 						   this._rIndex + this.zIndex;
 
 		this._visible = p ? p._visible && this.visible : this.visible;
+		this._overflow = p ? p._overflow && this.overflow : this.overflow;
+		this._fixed = p ? p._fixed && this.fixed : this.fixed;
 
+		// clipping area
+		var scrollY = this._fixed===false ? (p ? p.scroll._top : 0) : 0,
+			scrollX = 0;
+
+		this._miny = this._y - scrollY;
+		this._maxy = this._y+this.h - scrollY;
+
+		this._minx = this._x - scrollX;
+		this._maxx = this._x+this.w - scrollX;
+
+		if (p && p._overflow === false) {
+			if (this._miny<p._miny) this._miny = p._miny;
+			if (this._maxy>p._maxy) this._maxy = p._maxy;
+
+			if (this._minx<p._minx) this._minx = p._minx;
+			if (this._maxx>p._maxx) this._maxx = p._maxx;
+
+			this.offscreen = false;
+
+			/* below bottom */
+			if (this._maxy <= this._miny) {
+				this._maxy = this._miny;
+				this.offscreen = true;
+			}
+
+			/* above top */
+			if (this._miny >= this._maxy) {
+				this._miny = this._maxy;
+				this.offscreen = true;
+			}
+
+			/* below left */
+			if (this._maxx <= this._minx) {
+				this._maxx = this._minx;
+				this.offscreen = true;
+			}
+
+			/* above right */
+			if (this._minx >= this._maxx) {
+				this._minx = this._maxx;
+				this.offscreen = true;
+			}
+
+			this.parent.clipping = {
+				x : p._minx,
+				y : p._miny,
+				w : p._maxx - p._minx,
+				h : p._maxy - p._miny
+			};
+
+		}
 
 		// rotation inheritance
 		this._protate = p ? p._rotate : this.rotate;
@@ -257,6 +324,10 @@ DOMElement.prototype = {
 	},
 
 	beforeDraw : function(){
+
+		this._oldy = this._y;
+		this._y = this._y - (this._fixed===false ? this.scroll._top : 0);
+
 		if (this.clip){
 			canvas.save();
 			canvas.clipbox(
@@ -288,6 +359,14 @@ DOMElement.prototype = {
 		this.__y = p.y;
 		this.__w = this.w * this._scale;
 		this.__h = this.h * this._scale;
+
+		var p = this.__projection(this._maxx, this._maxy);
+		this.__maxx = p.x;
+		this.__maxy = p.y;
+
+		var p = this.__projection(this._minx, this._miny);
+		this.__minx = p.x;
+		this.__miny = p.y;
 
 		this.t._x += (DX - DX/this.scale);
 		this.t._y += (DY - DY/this.scale);
@@ -322,6 +401,28 @@ DOMElement.prototype = {
 			canvas.scale(this._scale, this._scale);
 			canvas.translate( -this.t._x, -this.t._y);
 		}
+
+
+		if (this.parent && this.parent._overflow === false){
+			canvas.save();
+
+			/*			
+			canvas.roundbox(
+				this.parent.clipping.x, this.parent.clipping.y,
+				this.parent.clipping.w, this.parent.clipping.h,
+				this.parent.radius, "rgba(255, 0, 0, 0.05)", false
+			);
+			*/
+
+			canvas.clipbox(
+				this.parent.clipping.x, this.parent.clipping.y,
+				this.parent.clipping.w, this.parent.clipping.h,
+				this.parent.radius
+			);
+
+			canvas.clip();
+		}
+
 
 		canvas.oldGlobalAlpha = canvas.globalAlpha;
 		canvas.globalAlpha = this._opacity;
@@ -366,6 +467,8 @@ DOMElement.prototype = {
 	},
 
 	afterDraw : function(){
+		this._y = this._oldy;
+
 		if (this.callback) this.callback.call(this);
 		canvas.globalAlpha = canvas.oldGlobalAlpha;
 
@@ -383,6 +486,12 @@ DOMElement.prototype = {
 			canvas.restore();
 		}
 		*/
+
+
+		if (this.parent && this.parent._overflow === false){
+			canvas.restore();
+		}
+
 
 		if (this._scale !=1 ){
 			canvas.translate(this.t._x, this.t._y);
@@ -425,10 +534,10 @@ DOMElement.prototype = {
 	/* -------------------------------------------------------------- */
 
 	isPointInside : function(mx, my){
-		var x1 = this.__x,
-			y1 = this.__y,
-			x2 = x1 + this.__w,
-			y2 = y1 + this.__h;
+		var x1 = this.__minx, //this.__x,
+			y1 = this.__miny, //this.__y,
+			x2 = this.__maxx, //x1 + this.__w,
+			y2 = this.__maxy; // y1 + this.__h;
 
 		return	(mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
@@ -476,6 +585,7 @@ DOMElement.prototype = {
 	},
 
 	set transformOrigin(g) {
+		g = g || {};
 		var ox = this.g.x,
 			oy = this.g.y;
 
@@ -559,6 +669,9 @@ Native.elements = {
 };
 
 var Application = function(options){
+	options = options || {};
+	options.background = OptionalValue(options.background, '#262722');
+
 	var app = new DOMElement("UIView", options, null);
 	app._root = true;
 	app.flags._canReceiveFocus = true;
@@ -572,9 +685,6 @@ var Application = function(options){
 	canvas.globalAlpha = 1;
 	canvas.__mustBeDrawn = true;
 
-	var bgCanvas = new Image();
-	bgCanvas.src = "demos/assets/spheres.jpeg";
-
 	if (options && options.animation===false){
 		/* dummy */
 	} else {
@@ -583,9 +693,12 @@ var Application = function(options){
 			FPS.start();
 	 		if (canvas.animate) {
 
-				canvas.drawImage(bgCanvas, 0, 0);
 				if (Native.layout.hook) Native.layout.hook();
 				Native.layout.draw();
+
+				if (window && window.requestAnimationFrame){
+					window.requestAnimationFrame();
+				}
 
 				//Native.layout.grid();
 			} 

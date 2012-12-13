@@ -2,9 +2,7 @@
 #define nativejs_h__
 
 #include <stdint.h>
-#include <jsapi.h>
-
-#include "NativeSkia.h"
+#include <stddef.h>
 
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
@@ -16,23 +14,24 @@ struct native_thread_msg
 {
     uint64_t *data;
     size_t nbytes;
-    JSObject *callee;
+    struct JSObject *callee;
 };
 
 class NativeSharedMessages;
+class NativeSkia;
 
 typedef struct _ape_global ape_global;
 
 class NativeJS
 {
     private:   
-        void LoadCanvasObject(NativeSkia *);
+        void LoadGlobalObjects(NativeSkia *);
 
     public:
-        JSContext *cx;
+        struct JSContext *cx;
         NativeSharedMessages *messages;
-        NativeSkia *nskia;
-        NativeJS();
+        NativeSkia *surface;
+        NativeJS(int width, int height);
         ~NativeJS();
         int LoadScript(const char *filename);
         void callFrame();

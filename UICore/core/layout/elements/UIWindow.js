@@ -44,11 +44,26 @@ Native.elements.export("UIWindow", {
 		});
 
 		if (this.options.movable) {
-			this.handle.addEventListener("dragstart", function(){
+
+			this.handle.addEventListener("mousedown", function(e){
+				self._mdownhandleStarted = true;
+				self.transformOrigin = {
+					x : e.x,
+					y : e.y
+				};
+				self.set("scale", 1.10, 60);
+				//self.set("backgroundBlur", 1, 80);
+				self.set("shadowBlur", 25, 70);
+				self.shadowColor = "rgba(0, 0, 0, 0.98)";
+			}, false);
+
+			this.handle.addEventListener("dragstart", function(e){
+				/*
 				self.set("scale", 1.1, 80);
 				self.set("backgroundBlur", 1, 80);
 				self.set("shadowBlur", 20, 70);
 				self.shadowColor = "rgba(0, 0, 0, 0.95)";
+				*/
 			}, false);
 
 			this.handle.addEventListener("drag", function(e){
@@ -57,6 +72,15 @@ Native.elements.export("UIWindow", {
 			});
 
 			this.handle.addEventListener("dragend", function(){
+				self.set("scale", 1, 50);
+				//self.set("backgroundBlur", 0, 50);
+				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
+				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+			}, false);
+
+			this.handle.addEventListener("mouseup", function(){
+				if (!self._mdownhandleStarted) return false;
+				self._mdownhandleStarted = false;
 				self.set("scale", 1, 50);
 				self.set("backgroundBlur", 0, 50);
 				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
@@ -77,7 +101,7 @@ Native.elements.export("UIWindow", {
 
 			this.handle.closeButton.addEventListener("mouseup", function(e){
 				self.set("scale", 0, 120, function(){});
-				self.shadowBlur = 6;
+				self.shadowBlur = 0;
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";
 				e.stopPropagation();
 			}, false);

@@ -15,6 +15,8 @@ static struct native_http_mime {
     NativeHTTP::DataType data_type;
 } native_mime[] = {
     {"text/plain",              NativeHTTP::DATA_STRING},
+    {"application/x-javascript",NativeHTTP::DATA_STRING},
+    {"application/octet-stream",NativeHTTP::DATA_STRING},
     {"image/jpeg",              NativeHTTP::DATA_IMAGE},
     {"image/png",               NativeHTTP::DATA_IMAGE},
     {"application/json",        NativeHTTP::DATA_JSON},
@@ -27,7 +29,7 @@ static int native_http_callback(void **ctx, callback_type type,
         int value, uint32_t step)
 {
     NativeHTTP *nhttp = (NativeHTTP *)ctx[0];
-
+    
     switch(type) {
         case HTTP_HEADER_KEYC:
             buffer_append_char(nhttp->http.headers.tkey, (unsigned char)value);
