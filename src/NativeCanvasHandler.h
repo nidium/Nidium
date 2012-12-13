@@ -5,13 +5,6 @@
 
 class NativeSkia;
 
-struct handler_children
-{
-    NativeSkia *child;
-    struct handler_children *next;
-    struct handler_children *prev;
-};
-
 class NativeCanvasHandler
 {
     private:
@@ -20,14 +13,16 @@ class NativeCanvasHandler
         NativeSkia *next;
         NativeSkia *prev;
         NativeSkia *self;
+        NativeSkia *last;
 
         double left, top;
-        
+
         void addChild(NativeSkia *child);
         void removeFromParent();
     public:
         friend class NativeSkia;
         NativeCanvasHandler();
+        ~NativeCanvasHandler();
 };
 
 #endif
