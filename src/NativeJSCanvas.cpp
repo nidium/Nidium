@@ -106,6 +106,8 @@ static JSBool native_canvas_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_setPosition(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"fillStyle", CANVAS_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
@@ -179,6 +181,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("isPointInPath", native_canvas_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas_getPathBounds, 0, 0),
     JS_FN("addSubCanvas", native_canvas_addSubCanvas, 1, 0),
+    JS_FN("setPosition", native_canvas_setPosition, 2, 0),
     JS_FS_END
 };
 
@@ -781,6 +784,20 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     subskia->setPosition(left, top);
 
     NSKIA_NATIVE->addSubCanvas(subskia);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_setPosition(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double left = 0.0, top = 0.0;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &left, &top)) {
+        return JS_TRUE;
+    }
+
+    NSKIA_NATIVE->setPosition(left, top);
 
     return JS_TRUE;
 }
