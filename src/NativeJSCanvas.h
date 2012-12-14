@@ -13,4 +13,3 @@ class NativeJSCanvas: public NativeJSExposer
 };
 
 #endif
-

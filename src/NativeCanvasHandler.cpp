@@ -4,7 +4,7 @@
 
 NativeCanvasHandler::NativeCanvasHandler() :
     parent(NULL), children(NULL), next(NULL),
-    prev(NULL), last(NULL), left(0.0), top(0.0)
+    prev(NULL), last(NULL), left(0.0), top(0.0), coordPosition(COORD_RELATIVE)
 {
 
 }
@@ -22,24 +22,41 @@ NativeCanvasHandler::~NativeCanvasHandler()
 	}
 }
 
-void NativeCanvasHandler::addChild(NativeSkia *insert)
+void NativeCanvasHandler::addChild(NativeSkia *insert,
+	NativeCanvasHandler::Position position)
 {
 	/* Already belong to a parent? move it */
 	insert->handler.removeFromParent();
-	
-	if (!children) {
-		children = insert;
+
+	switch(position) {
+		case NativeCanvasHandler::POSITION_FRONT:
+			if (!children) {
+				children = insert;
+			}
+			insert->handler.next = NULL;
+			insert->handler.prev = last;
+
+			if (last) {
+				last->handler.next = insert;
+			}
+
+			last = insert;
+			break;
+		case NativeCanvasHandler::POSITION_BACK:
+			if (!last) {
+				last = insert;
+			}
+			if (children) {
+				children->handler.prev = insert;
+			}
+			insert->handler.next = children;
+			insert->handler.prev = NULL;
+			children = insert;
+			break;
 	}
 
-	insert->handler.next = NULL;
-	insert->handler.prev = last;
 	insert->handler.parent = self;
 
-	if (last) {
-		last->handler.next = insert;
-	}
-	
-	last = insert;
 }
 
 void NativeCanvasHandler::removeFromParent()

@@ -35,6 +35,7 @@ class NativeJS
         ~NativeJS();
         int LoadScript(const char *filename);
         void callFrame();
+        void postDraw();
         void bufferSound(int16_t *data, int len);
         void mouseWheel(int xrel, int yrel, int x, int y);
         void mouseMove(int x, int y, int xrel, int yrel);

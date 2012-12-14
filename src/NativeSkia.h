@@ -146,6 +146,7 @@ class NativeSkia
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
         void setPosition(double left, double top);
+        void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
