@@ -5,8 +5,9 @@
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
 
-#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
-#define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
+#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
+#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->jsobj)
 
 extern jsval gfunc;
 
@@ -994,13 +995,13 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 
 void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeSkia *currSkia = NSKIA_NATIVE_GETTER(obj);
-    if (currSkia != NULL) {
-        delete currSkia;
+    NativeCanvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
+    if (canvasctx != NULL) {
+        delete canvasctx;
     }
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, NativeSkia *skia)
+NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
@@ -1008,12 +1009,13 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, NativeSkia *skia)
     JS_DefineFunctions(cx, jsobj, canvas2dctx_funcs);
     JS_DefineProperties(cx, jsobj, canvas2dctx_props);
 
-    JS_SetPrivate(jsobj, skia);    
+    skia = new NativeSkia();
+    skia->bindOnScreen(width, height);
 
-    JS_AddObjectRoot(cx, &this->jsobj);
+    JS_SetPrivate(jsobj, this);    
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
-    JS_RemoveObjectRoot(jscx, &this->jsobj);
+    delete skia;
 }

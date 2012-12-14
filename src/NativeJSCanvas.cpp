@@ -5,11 +5,18 @@
 #include "NativeJSImage.h"
 #include "NativeCanvas2DContext.h"
 
-#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)JS_GetPrivate(obj))
-#define NSKIA_NATIVE ((class NativeSkia *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
+#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
+#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->jsobj)
 #define CANVASCTX_FROM_CALLEE ((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
 extern jsval gfunc;
+
+enum {
+    CANVAS_PROP_WIDTH = 1,
+    CANVAS_PROP_HEIGHT,
+    CANVAS_PROP_POSITION
+};
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -105,7 +112,8 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     NativeCanvas2DContext *canvasctx = CANVASCTX_FROM_CALLEE;
 
     if (canvasctx == NULL) {
-        canvasctx = new NativeCanvas2DContext(cx, NULL);
+        printf("Cant get context\n");
+        return JS_TRUE;
     }
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(canvasctx->jsobj));
@@ -170,7 +178,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     int width, height;
-    NativeSkia *CanvasObject;
+    NativeCanvas2DContext *canvasctx;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
 
@@ -179,13 +187,12 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    CanvasObject = new NativeSkia();
-    CanvasObject->bindOnScreen(width, height);
+    canvasctx = new NativeCanvas2DContext(cx, width, height);
 
-    JS_SetPrivate(ret, CanvasObject);
+    /* Retain a ref to this, so that we are sure we can't get an undefined ctx */
+    JS_AddObjectRoot(cx, &canvasctx->jsobj);
 
-    JS_DefineFunctions(cx, ret, canvas_funcs);
-    JS_DefineProperties(cx, ret, canvas_props);
+    JS_SetPrivate(ret, canvasctx);
 
     /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -195,9 +202,13 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeSkia *currSkia = NSKIA_NATIVE_GETTER(obj);
-    if (currSkia != NULL) {
-        delete currSkia;
+    NativeCanvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
+    if (canvasctx != NULL) {
+        JS_RemoveObjectRoot(canvasctx->jscx, &canvasctx->jsobj);
+
+        /* Don't delete canvasctx, otherwise
+           ctx->jsobj's private would be undefined
+        */
     }
 }
 
@@ -240,3 +251,4 @@ void NativeJSCanvas::registerObject(JSContext *cx)
         native_Canvas_constructor,
         2, NULL, NULL, NULL, NULL);
 }
+
