@@ -38,7 +38,11 @@ Image.prototype.addEventListener = function(ev, callback) {
 
 window = {};
 window.addEventListener = function() {};
-requestAnimationFrame = canvas.requestAnimationFrame;
+//var canvas = Native.getContext("2D");
+//requestAnimationFrame = canvas.requestAnimationFrame;
+function requestAnimationFrame(fn) {
+    setTimeout(fn, 5);
+}
 window.innerWidth = 1024;
 window.innerHeight = 768;
 

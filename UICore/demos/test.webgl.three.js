@@ -34,8 +34,9 @@ function init() {
     renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
+
 function animate() {
-    canvas.requestAnimationFrame( animate );
+    requestAnimationFrame(animate);
 
     mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.02;
