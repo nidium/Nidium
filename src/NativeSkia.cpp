@@ -437,7 +437,13 @@ int NativeSkia::bindGL(int width, int height)
     }
     
     SkSafeUnref(dev);
+    globalAlpha = 255;
+    currentPath = NULL;
 
+    state = new struct _nativeState;
+    state->next = NULL;
+
+    initPaints();
     canvas->clear(0xFFFFFFFF);
 
     return 1;
@@ -491,6 +497,7 @@ NativeSkia::~NativeSkia()
     struct _nativeState *nstate = state;
 
     if (obj && cx) {
+        /* Added in NativeJSCanvas::generateJSObject */
         JS_RemoveObjectRoot(cx, &this->obj);
     }
 
@@ -1218,6 +1225,11 @@ void NativeSkia::setPosition(double left, double top)
     handler.top = top;
 }
 
+void NativeSkia::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
+{
+    handler.coordPosition = mode;
+}
+
 /*
 static SkBitmap load_bitmap() {
     SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
@@ -1236,18 +1248,9 @@ static SkBitmap load_bitmap() {
 void NativeSkia::flush()
 {
     canvas->flush();
-#if 0
-    if (surface) {
-        surface->clear(0xFFFFFFFF);
-
-        surface->drawBitmap(canvas->getDevice()->accessBitmap(false), 0, 0, NULL);
-        surface->flush();
-        
-    }
-#endif
 }
 
-void NativeSkia::layerize(NativeSkia *layer)
+void NativeSkia::layerize(NativeSkia *layer, double left, double top)
 {
     NativeSkia *cur;
 #if 0
@@ -1259,14 +1262,21 @@ void NativeSkia::layerize(NativeSkia *layer)
         layer = this;
         layer->canvas->clear(0xFFFFFFFF);
     } else {
+        double cleft = 0.0, ctop = 0.0;
+
+        if (handler.coordPosition == NativeCanvasHandler::COORD_RELATIVE) {
+            cleft = left;
+            ctop = top;
+        }
+
         layer->canvas->drawBitmap(canvas->getDevice()->accessBitmap(false),
-                                    SkDoubleToScalar(handler.left),
-                                    SkDoubleToScalar(handler.top));
+                                    SkDoubleToScalar(cleft) + SkDoubleToScalar(handler.left),
+                                    SkDoubleToScalar(ctop) + SkDoubleToScalar(handler.top));
         layer->canvas->flush();
     }
 
     for (cur = handler.children; cur != NULL; cur = cur->handler.next) {
-        cur->layerize(layer);
+        cur->layerize(layer, handler.left + left, handler.top + top);
     }
 
 }

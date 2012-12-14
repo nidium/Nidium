@@ -7,6 +7,20 @@ class NativeSkia;
 
 class NativeCanvasHandler
 {
+    public:
+        
+        enum Position {
+            POSITION_FRONT,
+            POSITION_BACK
+        };
+        enum COORD_POSITION {
+            COORD_RELATIVE,
+            COORD_ABSOLUTE
+        };
+
+        friend class NativeSkia;
+        NativeCanvasHandler();
+        ~NativeCanvasHandler();    
     private:
         NativeSkia *parent;
         NativeSkia *children;
@@ -17,12 +31,12 @@ class NativeCanvasHandler
 
         double left, top;
 
-        void addChild(NativeSkia *child);
+        void addChild(NativeSkia *child,
+            NativeCanvasHandler::Position position = POSITION_FRONT);
         void removeFromParent();
-    public:
-        friend class NativeSkia;
-        NativeCanvasHandler();
-        ~NativeCanvasHandler();
+
+        COORD_POSITION coordPosition;
+
 };
 
 #endif

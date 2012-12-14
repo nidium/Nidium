@@ -229,25 +229,23 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
+void NativeJS::postDraw()
+{
+    char fps[16];
+    if (NativeJSNative::showFPS) {
+        sprintf(fps, "%d fps", currentFPS);
+        surface->system(fps, 5, 300);
+        surface->flush();
+    }
+}
 
 void NativeJS::callFrame()
 {
     jsval rval;
-    char fps[16];
 
-    //JS_MaybeGC(cx);
-    //JS_GC(JS_GetRuntime(cx));
-    //NSKIA->save();
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
-
-    if (NativeJSNative::showFPS) {
-        sprintf(fps, "%d fps", currentFPS);
-        //printf("Fps : %s\n", fps);
-        surface->system(fps, 5, 300);
-    }
-    //NSKIA->restore();
 }
 
 void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
@@ -465,7 +463,7 @@ NativeJS::NativeJS(int width, int height)
         printf("Failed to init JS context\n");
         return;     
     }
-    JS_BeginRequest(cx);
+    //JS_BeginRequest(cx);
     //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
@@ -477,6 +475,10 @@ NativeJS::NativeJS(int width, int height)
     JS_SetErrorReporter(cx, reportError);
 
     gbl = JS_NewGlobalObject(cx, &global_class, NULL);
+    if (gbl == NULL) {
+        printf("Cant create global object\n");
+        return;
+    }
 
     if (!JS_InitStandardClasses(cx, gbl))
         return;
@@ -528,9 +530,15 @@ NativeJS::~NativeJS()
 
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-
+    //JS_EndRequest(cx);
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
+
+    JS_ShutDown();
+
+    NativeSkia::glcontext = NULL;
+    NativeSkia::glsurface = NULL;
+    NativeJSNative::context2D = NULL;
 
     delete messages;
     //delete nskia; /* TODO: why is that commented out? */
@@ -668,7 +676,7 @@ int NativeJS::LoadScript(const char *filename)
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
             }
-        }        
+        }
         return 0;
     }
     

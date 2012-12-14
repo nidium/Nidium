@@ -81,7 +81,7 @@ class NativeSkia
         int addSubCanvas(NativeSkia *sub);
         void resetGLContext();
         void flush();
-        void layerize(NativeSkia *surface);
+        void layerize(NativeSkia *surface, double left, double top);
         void unlink();
         /* Basics */
         int readPixels(int top, int left, int width, int height,
@@ -146,6 +146,7 @@ class NativeSkia
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
         void setPosition(double left, double top);
+        void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
