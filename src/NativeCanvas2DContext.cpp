@@ -5,9 +5,11 @@
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
 
+#include <SkDevice.h>
+
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
-#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->jsobj)
+#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->skia)
 
 extern jsval gfunc;
 
@@ -26,8 +28,7 @@ enum {
     CTX_PROP_SHADOWOFFSETX,
     CTX_PROP_SHADOWOFFSETY,
     CTX_PROP_SHADOWBLUR,
-    CTX_PROP_SHADOWCOLOR,
-    CTX_PROP_POSITION
+    CTX_PROP_SHADOWCOLOR
 };
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -110,10 +111,6 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_canvas2dctx_addSubCanvas(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_canvas2dctx_setPosition(JSContext *cx, unsigned argc,
-    jsval *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
     {"fillStyle", CTX_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
@@ -150,8 +147,6 @@ static JSPropertySpec canvas2dctx_props[] = {
     {"height", CTX_PROP_HEIGHT, JSPROP_PERMANENT,
         JSOP_WRAPPER(native_canvas2dctx_prop_get),
         JSOP_NULLWRAPPER},
-    {"position", CTX_PROP_POSITION, JSPROP_PERMANENT,
-        JSOP_NULLWRAPPER, JSOP_WRAPPER(native_canvas2dctx_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -190,8 +185,6 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("measureText", native_canvas2dctx_measureText, 1, 0),
     JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas2dctx_getPathBounds, 0, 0),
-    JS_FN("addSubCanvas", native_canvas2dctx_addSubCanvas, 1, 0),
-    JS_FN("setPosition", native_canvas2dctx_setPosition, 2, 0),
     JS_FS_END
 };
 
@@ -770,7 +763,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
-        caseCTXPROP_SHADOWOFFSETX:
+        case CTX_PROP_SHADOWOFFSETX:
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -938,21 +931,6 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             JSAutoByteString lineJoin(cx, JSVAL_TO_STRING(vp));
             curSkia->setLineJoin(lineJoin.ptr());                
         }
-        break;     
-        case CTX_PROP_POSITION:
-        {
-            if (!JSVAL_IS_STRING(vp)) {
-                vp.set(JSVAL_VOID);
-
-                return JS_TRUE;
-            }
-            JSAutoByteString mode(cx, JSVAL_TO_STRING(vp));
-            if (strcasecmp(mode.ptr(), "absolute") == 0) {
-                curSkia->setPositioning(NativeCanvasHandler::COORD_ABSOLUTE);
-            } else {
-                curSkia->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
-            }
-        }    
         break;
         default:
             break;
@@ -1001,6 +979,25 @@ void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
+void NativeCanvas2DContext::clear(uint32_t color)
+{
+    skia->canvas->clear(color);
+}
+
+void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
+    double left, double top)
+{
+    skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
+        left, top);
+    
+    skia->canvas->flush();
+}
+
+void NativeCanvas2DContext::flush()
+{
+    skia->canvas->flush();
+}
+
 NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
@@ -1013,6 +1010,12 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     skia->bindOnScreen(width, height);
 
     JS_SetPrivate(jsobj, this);    
+}
+
+NativeCanvas2DContext::NativeCanvas2DContext(int width, int height)
+{
+    skia = new NativeSkia();
+    skia->bindGL(width, height);
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()

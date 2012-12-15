@@ -4,6 +4,15 @@
 #include <stdint.h>
 
 class NativeSkia;
+class NativeCanvas2DContext;
+
+/*
+    Handle a canvas layer.
+    Agnostic to any renderer.
+    A NativeCanvasContext must be attached to it
+
+    TODO: NativeCanvasContext interface instead of NativeCanvas2DContext;
+*/
 
 class NativeCanvasHandler
 {
@@ -18,22 +27,29 @@ class NativeCanvasHandler
             COORD_ABSOLUTE
         };
 
+        NativeCanvas2DContext *context;
+        int width, height;
+
         friend class NativeSkia;
-        NativeCanvasHandler();
-        ~NativeCanvasHandler();    
+        NativeCanvasHandler(int width, int height);
+        ~NativeCanvasHandler();
+
+        void setPosition(double left, double top);
+        void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
+
+        void addChild(NativeCanvasHandler *insert,
+            NativeCanvasHandler::Position position = POSITION_FRONT);
+        void removeFromParent();
+        void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
-        NativeSkia *parent;
-        NativeSkia *children;
-        NativeSkia *next;
-        NativeSkia *prev;
-        NativeSkia *self;
-        NativeSkia *last;
+        NativeCanvasHandler *parent;
+        NativeCanvasHandler *children;
+        NativeCanvasHandler *next;
+        NativeCanvasHandler *prev;
+        NativeCanvasHandler *last;
 
         double left, top;
 
-        void addChild(NativeSkia *child,
-            NativeCanvasHandler::Position position = POSITION_FRONT);
-        void removeFromParent();
 
         COORD_POSITION coordPosition;
 

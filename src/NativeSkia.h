@@ -52,11 +52,8 @@ class NativeSkia
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
 
-        NativeCanvasHandler handler;
-
         void initPaints();
         
-        struct JSContext *cx;
     public:
         enum BindMode {
             BIND_NO,
@@ -72,16 +69,13 @@ class NativeSkia
         static NativeSkia *glsurface;
 
         SkCanvas *canvas;
-        struct JSObject *obj;
         ~NativeSkia();
         NativeSkia();
         int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
         int bindGL(int width, int height);
-        int addSubCanvas(NativeSkia *sub);
         void resetGLContext();
         void flush();
-        void layerize(NativeSkia *surface, double left, double top);
         void unlink();
         /* Basics */
         int readPixels(int top, int left, int width, int height,
@@ -145,8 +139,6 @@ class NativeSkia
         bool SkPathContainsPoint(double x, double y);
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
-        void setPosition(double left, double top);
-        void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0

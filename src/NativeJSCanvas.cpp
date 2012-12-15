@@ -1,14 +1,10 @@
 #include "NativeJSCanvas.h"
 #include "NativeSkia.h"
-#include "NativeSkGradient.h"
-#include "NativeSkImage.h"
-#include "NativeJSImage.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeCanvasHandler.h"
 
-#define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
-#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
-#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->jsobj)
-#define CANVASCTX_FROM_CALLEE ((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
+#define HANDLER_FROM_CALLEE ((class NativeCanvasHandler *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
 extern jsval gfunc;
 
@@ -20,7 +16,7 @@ enum {
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSClass Canvas_class = {
+JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
@@ -62,7 +58,7 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     JSObject *sub;
-    NativeSkia *subskia;
+    NativeCanvasHandler *handler;
     double left = 0.0, top = 0.0;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o/dd", &sub,
@@ -74,20 +70,20 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    subskia = (NativeSkia *)JS_GetPrivate(sub);
+    handler = (NativeCanvasHandler *)JS_GetPrivate(sub);
 
-    if (subskia == NULL) {
+    if (handler == NULL) {
         return JS_TRUE;
     }
 
-    if (NSKIA_NATIVE == subskia) {
+    if (HANDLER_FROM_CALLEE == handler) {
         printf("Cant add canvas to itself\n");
         return JS_TRUE;
     }
 
-    subskia->setPosition(left, top);
+    handler->setPosition(left, top);
 
-    NSKIA_NATIVE->addSubCanvas(subskia);
+    HANDLER_FROM_CALLEE->addChild(handler);
 
     return JS_TRUE;
 }
@@ -101,7 +97,7 @@ static JSBool native_canvas_setPosition(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    NSKIA_NATIVE->setPosition(left, top);
+    HANDLER_FROM_CALLEE->setPosition(left, top);
 
     return JS_TRUE;
 }
@@ -109,7 +105,7 @@ static JSBool native_canvas_setPosition(JSContext *cx, unsigned argc,
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvas2DContext *canvasctx = CANVASCTX_FROM_CALLEE;
+    NativeCanvas2DContext *canvasctx = HANDLER_FROM_CALLEE->context;
 
     if (canvasctx == NULL) {
         printf("Cant get context\n");
@@ -125,7 +121,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
-    NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
+    NativeCanvasHandler *handler = HANDLER_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
 
@@ -138,9 +134,9 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JSAutoByteString mode(cx, JSVAL_TO_STRING(vp));
             if (strcasecmp(mode.ptr(), "absolute") == 0) {
-                curSkia->setPositioning(NativeCanvasHandler::COORD_ABSOLUTE);
+                handler->setPositioning(NativeCanvasHandler::COORD_ABSOLUTE);
             } else {
-                curSkia->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
+                handler->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
             }
         }    
         break;
@@ -155,17 +151,17 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
-    NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
+    NativeCanvasHandler *handler = HANDLER_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_WIDTH:
         {
-            vp.set(INT_TO_JSVAL(curSkia->getWidth()));
+            vp.set(INT_TO_JSVAL(handler->width));
         }
         break;
         case CANVAS_PROP_HEIGHT:
         {
-            vp.set(INT_TO_JSVAL(curSkia->getHeight()));
+            vp.set(INT_TO_JSVAL(handler->height));
         }
         break;
         default:
@@ -178,7 +174,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     int width, height;
-    NativeCanvas2DContext *canvasctx;
+    NativeCanvasHandler *handler;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
 
@@ -187,12 +183,15 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    canvasctx = new NativeCanvas2DContext(cx, width, height);
+    handler = new NativeCanvasHandler(width, height);
+    handler->context = new NativeCanvas2DContext(cx, width, height);
 
     /* Retain a ref to this, so that we are sure we can't get an undefined ctx */
-    JS_AddObjectRoot(cx, &canvasctx->jsobj);
+    JS_AddObjectRoot(cx, &handler->context->jsobj);
+    JS_SetPrivate(ret, handler);
 
-    JS_SetPrivate(ret, canvasctx);
+    JS_DefineFunctions(cx, ret, canvas_funcs);
+    JS_DefineProperties(cx, ret, canvas_props);    
 
     /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -202,45 +201,36 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeCanvas2DContext *canvasctx = CANVASCTX_GETTER(obj);
-    if (canvasctx != NULL) {
-        JS_RemoveObjectRoot(canvasctx->jscx, &canvasctx->jsobj);
-
-        /* Don't delete canvasctx, otherwise
-           ctx->jsobj's private would be undefined
-        */
+    NativeCanvasHandler *handler = HANDLER_GETTER(obj);
+    if (handler != NULL) {
+        delete handler;
     }
 }
 
-void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
-{
-    NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
-    if (gradient != NULL) {
-        delete gradient;
-    }
-}
-
-JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, NativeSkia *skia)
+/* TODO: nuke this */
+JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 {
     JSObject *ret;
-
-    if (skia->cx && skia->obj) {
-        printf("Warning generate already existing canvas obj\n");
-        return skia->obj;
-    }
+    NativeCanvasHandler *handler;
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
+/*
     skia->obj = ret;
     skia->cx = cx;
+*/
+    handler = new NativeCanvasHandler(width, height);
+    handler->context = new NativeCanvas2DContext(cx, width, height);
+
+    JS_AddObjectRoot(cx, &handler->context->jsobj);
+    JS_SetPrivate(ret, handler);
 
     JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
 
-    JS_SetPrivate(ret, skia);
 
     /* Removed in NativeSkia destructor */
-    JS_AddObjectRoot(cx, &skia->obj);
+    //JS_AddObjectRoot(cx, &skia->obj);
 
     return ret;
 }
