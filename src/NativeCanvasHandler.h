@@ -53,6 +53,7 @@ class NativeCanvasHandler
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
         void setHidden(bool val);
+        bool isDisplayed();
         bool isHidden();
         void setOpacity(double val);
         void removeFromParent();
