@@ -5,9 +5,9 @@
 /* -- Native Framework  ------------------ */
 
 load("carbon/native.inc.js");
-//load("_demos/apps/ui.js");
+load("_demos/apps/ui.js");
 
-load('_demos/apps/windows.js');
+//load('_demos/apps/windows.js');
 //load('_demos/apps/sliders.js');
 //load('_demos/apps/diagrams.js');
 //load('_demos/apps/tabs.js');
