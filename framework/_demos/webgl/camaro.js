@@ -1,6 +1,3 @@
-load("libs/wrapper.js");
-load("libs/three.js");
-
 var SCREEN_WIDTH = window.innerWidth;
 var SCREEN_HEIGHT = window.innerHeight;
 

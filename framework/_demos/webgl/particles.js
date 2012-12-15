@@ -1,6 +1,3 @@
-load("libs/wrapper.js");
-load("libs/three.js");
-
 /*
 var vertexShader = "attribute float size;"+
 "attribute vec4 ca;"+
