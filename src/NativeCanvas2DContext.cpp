@@ -989,7 +989,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 {
     skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
         left, top);
-    
+
     skia->canvas->flush();
 }
 
@@ -1012,7 +1012,8 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     JS_SetPrivate(jsobj, this);    
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(int width, int height)
+NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
+    jsobj(NULL), jscx(NULL)
 {
     skia = new NativeSkia();
     skia->bindGL(width, height);

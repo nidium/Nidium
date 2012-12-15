@@ -17,7 +17,8 @@ class NativeCanvas2DContext;
 class NativeCanvasHandler
 {
     public:
-        
+        friend class NativeSkia;
+
         enum Position {
             POSITION_FRONT,
             POSITION_BACK
@@ -28,9 +29,10 @@ class NativeCanvasHandler
         };
 
         NativeCanvas2DContext *context;
-        int width, height;
 
-        friend class NativeSkia;
+        int width, height;
+        double left, top;
+        
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
 
@@ -47,9 +49,6 @@ class NativeCanvasHandler
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
-
-        double left, top;
-
 
         COORD_POSITION coordPosition;
 

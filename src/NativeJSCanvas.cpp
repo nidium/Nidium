@@ -11,7 +11,9 @@ extern jsval gfunc;
 enum {
     CANVAS_PROP_WIDTH = 1,
     CANVAS_PROP_HEIGHT,
-    CANVAS_PROP_POSITION
+    CANVAS_PROP_POSITION,
+    CANVAS_PROP_TOP,
+    CANVAS_PROP_LEFT
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -32,8 +34,6 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_canvas_setPosition(JSContext *cx, unsigned argc,
-    jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT,
@@ -44,13 +44,16 @@ static JSPropertySpec canvas_props[] = {
         JSOP_NULLWRAPPER},
     {"position", CANVAS_PROP_POSITION, JSPROP_PERMANENT,
         JSOP_NULLWRAPPER, JSOP_WRAPPER(native_canvas_prop_set)},
+    {"top", CANVAS_PROP_TOP, JSPROP_PERMANENT,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getContext", native_canvas_getContext, 1, 0),
-    JS_FN("addSubCanvas", native_canvas_addSubCanvas, 1, 0),
-    JS_FN("setPosition", native_canvas_setPosition, 2, 0),
+    JS_FN("add", native_canvas_addSubCanvas, 1, 0),
     JS_FS_END
 };
 
@@ -59,10 +62,8 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
 {
     JSObject *sub;
     NativeCanvasHandler *handler;
-    double left = 0.0, top = 0.0;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o/dd", &sub,
-        &left, &top)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &sub)) {
         return JS_TRUE;
     }
 
@@ -81,26 +82,11 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    handler->setPosition(left, top);
-
     HANDLER_FROM_CALLEE->addChild(handler);
 
     return JS_TRUE;
 }
 
-static JSBool native_canvas_setPosition(JSContext *cx, unsigned argc,
-    jsval *vp)
-{
-    double left = 0.0, top = 0.0;
-
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &left, &top)) {
-        return JS_TRUE;
-    }
-
-    HANDLER_FROM_CALLEE->setPosition(left, top);
-
-    return JS_TRUE;
-}
 
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp)
@@ -140,6 +126,24 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
         }    
         break;
+        case CANVAS_PROP_LEFT:
+        {
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+
+            handler->left = JSVAL_TO_INT(vp);
+        }
+        break;
+        case CANVAS_PROP_TOP:
+        {
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+
+            handler->top = JSVAL_TO_INT(vp);
+        }
+        break;
         default:
             break;
     }
@@ -155,15 +159,17 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_WIDTH:
-        {
             vp.set(INT_TO_JSVAL(handler->width));
-        }
-        break;
+            break;
         case CANVAS_PROP_HEIGHT:
-        {
             vp.set(INT_TO_JSVAL(handler->height));
-        }
-        break;
+            break;
+        case CANVAS_PROP_LEFT:
+            vp.set(DOUBLE_TO_JSVAL(handler->left));
+            break;
+        case CANVAS_PROP_TOP:
+            vp.set(DOUBLE_TO_JSVAL(handler->top));
+            break;
         default:
             break;
     }
@@ -227,7 +233,6 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 
     JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
-
 
     /* Removed in NativeSkia destructor */
     //JS_AddObjectRoot(cx, &skia->obj);

@@ -6,8 +6,8 @@
 #include <jsapi.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), parent(NULL), children(NULL), next(NULL),
-    prev(NULL), last(NULL), left(0.0), top(0.0), coordPosition(COORD_RELATIVE)
+    context(NULL), left(0.0), top(0.0), parent(NULL), children(NULL), next(NULL),
+    prev(NULL), last(NULL), coordPosition(COORD_RELATIVE)
 {
 	this->width = width;
 	this->height = height;
@@ -137,7 +137,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
 		printf("Warning: a canvas got orphaned (%p)\n", cur);
 		cur->removeFromParent();
 	}
-	if (context) {
+	if (context && context->jsobj && context->jscx) {
 		JS_RemoveObjectRoot(context->jscx, &context->jsobj);
 	}
 
