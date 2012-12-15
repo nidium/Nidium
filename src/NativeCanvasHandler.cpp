@@ -6,8 +6,10 @@
 #include <jsapi.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), left(0.0), top(0.0), parent(NULL), children(NULL), next(NULL),
-    prev(NULL), last(NULL), coordPosition(COORD_RELATIVE)
+    context(NULL), left(0.0), top(0.0), a_left(0), a_top(0), opacity(1.0),
+    parent(NULL), children(NULL), next(NULL),
+    prev(NULL), last(NULL), coordPosition(COORD_RELATIVE),
+    visibility(CANVAS_VISIBILITY_VISIBLE)
 {
 	this->width = width;
 	this->height = height;
@@ -31,7 +33,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
 	insert->removeFromParent();
 
 	switch(position) {
-		case NativeCanvasHandler::POSITION_FRONT:
+		case POSITION_FRONT:
 			if (!children) {
 				children = insert;
 			}
@@ -44,7 +46,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
 
 			last = insert;
 			break;
-		case NativeCanvasHandler::POSITION_BACK:
+		case POSITION_BACK:
 			if (!last) {
 				last = insert;
 			}
@@ -95,6 +97,10 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
 {
     NativeCanvasHandler *cur;
 
+	if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
+		return;
+	}
+
     /*
 		Fill the root layer with white
 		This is the base surface on top of the window frame buffer
@@ -105,17 +111,23 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     } else {
         double cleft = 0.0, ctop = 0.0;
 
-        if (coordPosition == NativeCanvasHandler::COORD_RELATIVE) {
+        if (coordPosition == COORD_RELATIVE) {
             cleft = pleft;
             ctop = ptop;
         }
 
         /*
-			draw current context on top of the root layer
+			Set the absolute position
         */
+		this->a_left = cleft + this->left;
+		this->a_top = ctop + this->top;
+
+        /*
+			draw current context on top of the root layer
+        */		
         layer->context->composeWith(context,
-        	cleft + this->left, 
-        	ctop + this->top);
+        	this->a_left, 
+        	this->a_top);
     }
 
     for (cur = children; cur != NULL; cur = cur->next) {
@@ -124,6 +136,25 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         	this->top + ptop);
     }
 
+}
+
+bool NativeCanvasHandler::isHidden()
+{
+	return (visibility == CANVAS_VISIBILITY_HIDDEN);
+}
+
+void NativeCanvasHandler::setHidden(bool val)
+{
+	visibility = (val ? CANVAS_VISIBILITY_HIDDEN : CANVAS_VISIBILITY_VISIBLE);
+}
+
+void NativeCanvasHandler::setOpacity(double val)
+{
+	if (val < 0.0 || val > 1.) {
+		val = 1;
+	}
+
+	opacity = val;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()

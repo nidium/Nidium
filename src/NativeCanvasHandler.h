@@ -28,10 +28,20 @@ class NativeCanvasHandler
             COORD_ABSOLUTE
         };
 
+        enum Visibility {
+            CANVAS_VISIBILITY_VISIBLE,
+            CANVAS_VISIBILITY_HIDDEN
+        };
+
         NativeCanvas2DContext *context;
 
         int width, height;
-        double left, top;
+        /*
+            left and top are relative to parent
+            a_left and a_top are relative to the root layer
+        */
+        double left, top, a_left, a_top;
+        double opacity;
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
@@ -41,6 +51,10 @@ class NativeCanvasHandler
 
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
+
+        void setHidden(bool val);
+        bool isHidden();
+        void setOpacity(double val);
         void removeFromParent();
         void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
@@ -51,6 +65,7 @@ class NativeCanvasHandler
         NativeCanvasHandler *last;
 
         COORD_POSITION coordPosition;
+        Visibility visibility;
 
 };
 

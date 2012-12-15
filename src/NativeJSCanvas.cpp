@@ -13,7 +13,8 @@ enum {
     CANVAS_PROP_HEIGHT,
     CANVAS_PROP_POSITION,
     CANVAS_PROP_TOP,
-    CANVAS_PROP_LEFT
+    CANVAS_PROP_LEFT,
+    CANVAS_PROP_VISIBLE
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -34,6 +35,8 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT,
@@ -48,14 +51,32 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getContext", native_canvas_getContext, 1, 0),
     JS_FN("add", native_canvas_addSubCanvas, 1, 0),
+    JS_FN("show", native_canvas_show, 0, 0),
+    JS_FN("hide", native_canvas_hide, 0, 0),
     JS_FS_END
 };
+
+static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
+{
+    HANDLER_FROM_CALLEE->setHidden(false);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
+{
+    HANDLER_FROM_CALLEE->setHidden(true);
+    
+    return JS_TRUE;
+}
 
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp)
@@ -144,6 +165,14 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->top = JSVAL_TO_INT(vp);
         }
         break;
+        case CANVAS_PROP_VISIBLE:
+        {
+            if (!JSVAL_IS_BOOLEAN(vp)) {
+                return JS_TRUE;
+            }
+
+            handler->setHidden(!JSVAL_TO_BOOLEAN(vp));
+        }
         default:
             break;
     }
@@ -169,6 +198,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_TOP:
             vp.set(DOUBLE_TO_JSVAL(handler->top));
+            break;
+        case CANVAS_PROP_VISIBLE:
+            vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
             break;
         default:
             break;
