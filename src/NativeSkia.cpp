@@ -1,5 +1,4 @@
-
-
+#include <jsapi.h>
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
@@ -30,6 +29,9 @@
 #include "NativeShadowLooper.h"
 #include "SkBlurMaskFilter.h"
 #include "SkBlurImageFilter.h"
+
+SkCanvas *NativeSkia::glcontext = NULL;
+NativeSkia *NativeSkia::glsurface = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -62,7 +64,6 @@
    if (c > 255) c = 255; \
    NAME = c; \
    while (' ' == *str || ',' == *str) str++;
-
 
 
 static int count_separators(const char* str, const char* sep) {
@@ -303,16 +304,20 @@ void NativeSkia::initPaints()
     
     this->setLineWidth(1);
 
-    asComposite = 0;            
+    asComposite = 0;
 }
 
 int NativeSkia::bindOnScreen(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
 
-    SkGpuDevice *dev = new SkGpuDevice(GrContext::Create(kOpenGL_Shaders_GrEngine,
-        (GrPlatform3DContext)interface), SkBitmap::kARGB_8888_Config,
-        width, height);
+    if (NativeSkia::glcontext == NULL) {
+        printf("Cant find GL context\n");
+        return 0;
+    }
+    SkDevice *dev = NativeSkia::glcontext
+                        ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+                            width, height, false);
 
     if (dev == NULL) {
         printf("Failed to create onscreen canvas");
@@ -332,6 +337,8 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     canvas->clear(0x00000000);
 
+    this->native_canvas_bind_mode = NativeSkia::BIND_ONSCREEN;
+
     return 1;
 }
 
@@ -343,7 +350,6 @@ int NativeSkia::bindOffScreen(int width, int height)
     bitmap.allocPixels();
 
     canvas = new SkCanvas(bitmap);
-    surface = NULL;
 
     /* TODO: Move the following in a common methode (init) */
     globalAlpha = 255;
@@ -353,6 +359,22 @@ int NativeSkia::bindOffScreen(int width, int height)
     state->next = NULL;
 
     initPaints();
+
+    this->native_canvas_bind_mode = NativeSkia::BIND_OFFSCREEN;
+
+    return 1;
+}
+
+
+int NativeSkia::addSubCanvas(NativeSkia *sub)
+{
+    if (sub->native_canvas_bind_mode == NativeSkia::BIND_GL ||
+        native_canvas_bind_mode == NativeSkia::BIND_NO) {
+        printf("Wrong bind\n");
+        return 0;
+    }
+
+    handler.addChild(sub);
 
     return 1;
 }
@@ -403,14 +425,26 @@ int NativeSkia::bindGL(int width, int height)
         return 0;
     }
 
-    surface = new SkCanvas(dev);
+    this->native_canvas_bind_mode = NativeSkia::BIND_GL;
+
+    canvas = new SkCanvas(dev);
+
+    if (NativeSkia::glcontext == NULL) {
+        NativeSkia::glcontext = canvas;
+    }
+    if (NativeSkia::glsurface == NULL) {
+        NativeSkia::glsurface = this;
+    }
     
     SkSafeUnref(dev);
+    globalAlpha = 255;
+    currentPath = NULL;
 
-    surface->clear(0xFFFFFFFF);
+    state = new struct _nativeState;
+    state->next = NULL;
 
-    /* Create the "main" canvas object to draw on */
-    this->bindOnScreen(width, height);
+    initPaints();
+    canvas->clear(0xFFFFFFFF);
 
     return 1;
 }
@@ -451,9 +485,21 @@ void NativeSkia::drawRect(double x, double y, double width,
         (stroke ? *PAINT_STROKE : *PAINT));
 }
 
+NativeSkia::NativeSkia()
+{
+    obj = NULL;
+    handler.self = this;
+    this->native_canvas_bind_mode = NativeSkia::BIND_NO;
+}
+
 NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
+
+    if (obj && cx) {
+        /* Added in NativeJSCanvas::generateJSObject */
+        JS_RemoveObjectRoot(cx, &this->obj);
+    }
 
     while(nstate) {
         struct _nativeState *tmp = nstate->next;
@@ -468,9 +514,7 @@ NativeSkia::~NativeSkia()
     if (currentPath) delete currentPath;
 
     delete canvas;
-    if (surface) {
-        delete surface;
-    }
+
 }
 
 /* TODO: check if there is a best way to do this;
@@ -1175,6 +1219,17 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     return 1;
 }
 
+void NativeSkia::setPosition(double left, double top)
+{
+    handler.left = left;
+    handler.top = top;
+}
+
+void NativeSkia::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
+{
+    handler.coordPosition = mode;
+}
+
 /*
 static SkBitmap load_bitmap() {
     SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
@@ -1193,9 +1248,35 @@ static SkBitmap load_bitmap() {
 void NativeSkia::flush()
 {
     canvas->flush();
-    if (surface) {
-        surface->drawBitmap(canvas->getDevice()->accessBitmap(false),
-            0, 0, NULL);
-        surface->flush();
+}
+
+void NativeSkia::layerize(NativeSkia *layer, double left, double top)
+{
+    NativeSkia *cur;
+#if 0
+    if (handler.parent && layer == NULL) {
+        printf("Warning : Layerize on a non-root canvas\n");
     }
+#endif
+    if (layer == NULL) {
+        layer = this;
+        layer->canvas->clear(0xFFFFFFFF);
+    } else {
+        double cleft = 0.0, ctop = 0.0;
+
+        if (handler.coordPosition == NativeCanvasHandler::COORD_RELATIVE) {
+            cleft = left;
+            ctop = top;
+        }
+
+        layer->canvas->drawBitmap(canvas->getDevice()->accessBitmap(false),
+                                    SkDoubleToScalar(cleft) + SkDoubleToScalar(handler.left),
+                                    SkDoubleToScalar(ctop) + SkDoubleToScalar(handler.top));
+        layer->canvas->flush();
+    }
+
+    for (cur = handler.children; cur != NULL; cur = cur->handler.next) {
+        cur->layerize(layer, handler.left + left, handler.top + top);
+    }
+
 }

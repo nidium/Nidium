@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "NativeCanvasHandler.h"
 
 class SkCanvas;
 class SkPaint;
@@ -51,16 +52,37 @@ class NativeSkia
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
 
+        NativeCanvasHandler handler;
+
         void initPaints();
+        
+        struct JSContext *cx;
     public:
+        enum BindMode {
+            BIND_NO,
+            BIND_GL,
+            BIND_OFFSCREEN,
+            BIND_ONSCREEN
+        } native_canvas_bind_mode;
+
+        friend class NativeCanvasHandler;
+        friend class NativeJSCanvas;
+
+        static SkCanvas *glcontext;
+        static NativeSkia *glsurface;
+
         SkCanvas *canvas;
-        SkCanvas *surface;
+        struct JSObject *obj;
         ~NativeSkia();
+        NativeSkia();
         int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
         int bindGL(int width, int height);
+        int addSubCanvas(NativeSkia *sub);
         void resetGLContext();
         void flush();
+        void layerize(NativeSkia *surface, double left, double top);
+        void unlink();
         /* Basics */
         int readPixels(int top, int left, int width, int height,
             uint8_t *pixels);
@@ -123,6 +145,8 @@ class NativeSkia
         bool SkPathContainsPoint(double x, double y);
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
+        void setPosition(double left, double top);
+        void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0
