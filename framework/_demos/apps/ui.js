@@ -5,7 +5,7 @@
 /* --- DEMO APP --------------------------------------------------------- */
 
 var main = new Application({
-		backgroundImage : "demos/assets/back.png"
+		backgroundImage : "_demos/apps/images/back.png"
 	}),
 
 	myTabs = [
@@ -81,7 +81,7 @@ var illustration1 = textView.add("UIView", {
 	w : 150,
 	h : 74,
 	background : "#4455FF",
-	backgroundImage : "demos/assets/video.png",
+	backgroundImage : "_demos/apps/images/video.png",
 	fixed : false,
 	overflow : false
 });
@@ -319,7 +319,7 @@ var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"
 		h : 220,
 		radius : 6,
 		background : "#000000",
-		backgroundImage : "demos/assets/win.jpeg",
+		backgroundImage : "_demos/apps/images/win.jpeg",
 		shadowBlur : 26
 	}),
 
