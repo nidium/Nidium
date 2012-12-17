@@ -57,7 +57,6 @@ Native.elements.export("UIText", {
 
 		this.updateScrollTop = function(dy){
 			if (this.h / this.scrollBarHeight < 1) {
-				canvas.__mustBeDrawn = true;
 
 				this.verticalScrollBar.cancelCurrentAnimations("opacity");
 				this.scroll.fading = false;
@@ -172,12 +171,33 @@ Native.elements.export("UIText", {
 				switch (e.keyCode) {
 					case 8 : // backspace
 						if (this.selection.offset-1 < 0) return false;
-						this._insert('', this.selection.offset, this.selection.size, this.selection.offset-1, 0);
-						this._insert('', this.selection.offset, 1, this.selection.offset, 0);
+						
+						this._insert(
+							'', 
+							this.selection.offset, 
+							this.selection.size, 
+							this.selection.offset-1, 
+							0
+						);
+
+						this._insert(
+							'', 
+							this.selection.offset, 
+							1, 
+							this.selection.offset, 
+							0
+						);
+
 						break;
 
 					case 127 : // delete
-						this._insert('', this.selection.offset, Math.max(1, this.selection.size), this.selection.offset, 0);
+						this._insert(
+							'', 
+							this.selection.offset, 
+							Math.max(1, this.selection.size), 
+							this.selection.offset, 
+							0
+						);
 						break;
 
 					case 1073741906 : // up
@@ -209,19 +229,31 @@ Native.elements.export("UIText", {
 
 					case 1073741903 : // left
 						if (e.shiftKey){
-							this.setCaret(++this.selection.offset, --this.selection.size);
+							this.setCaret(
+								++this.selection.offset, 
+								--this.selection.size
+							);
 						} else {
 							this.resetStartPoint();
-							this.setCaret(++this.selection.offset, 0);
+							this.setCaret(
+								++this.selection.offset, 
+								0
+							);
 						}
 						break;
 
 					case 1073741904 : // right
 						if (e.shiftKey){
-							this.setCaret(--this.selection.offset, ++this.selection.size);
+							this.setCaret(
+								--this.selection.offset, 
+								++this.selection.size
+							);
 						} else {
 							this.resetStartPoint();
-							this.setCaret(--this.selection.offset, 0);
+							this.setCaret(
+								--this.selection.offset, 
+								0
+							);
 						}
 						break;
 
@@ -596,7 +628,8 @@ Native.elements.export("UIText", {
 	/* ---------------------------------------------------------------------- */
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y - (this._fixed===false ? this.scroll._top : 0),
 				w : this.w,
@@ -610,36 +643,36 @@ Native.elements.export("UIText", {
 			w = params.w - this.padding.right - this.padding.left,
 			h = params.h - this.padding.top - this.padding.bottom,
 
-			vOffset = (this.lineHeight/2)+5,
+			vOffset = (this.lineHeight/2)+5;
 
-			ctx = canvas;
+			
 
 		if (this.__startTextSelectionProcessing && this._autoScrollTop && this._autoScrollTop !== false) {
 			this.updateScrollTop(this._autoScrollTop);
 			this._doMouseSelection({
-				x : canvas.mouseX,
-				y : canvas.mouseY
+				x : window.mouseX,
+				y : window.mouseY
 			});
 		}
 
-		ctx.save();
+		context.save();
 			if (this.background){
-				ctx.setColor(this.background);
+				context.setColor(this.background);
 			}
 			
-			ctx.roundbox(
+			context.roundbox(
 				params.x, params.y,
 				params.w, params.h,
 				this.radius, this.background, false
 			);
 
-			ctx.clipbox(
+			context.clipbox(
 				params.x, params.y,
 				params.w, params.h,
 				this.radius
 			);
 
-			ctx.clip();
+			context.clip();
 
 			if (this.selection.size == 0 && this.hasFocus) {
 				this.caretCounter++;
@@ -658,7 +691,7 @@ Native.elements.export("UIText", {
 			}
 
 			printTextMatrix(
-				ctx,
+				context,
 				this._textMatrix, this.caret,
 				x, y - this.scroll.top, 
 				vOffset, 
@@ -671,14 +704,14 @@ Native.elements.export("UIText", {
 				this.caretOpacity
 			);
 
-		ctx.restore();
+		context.restore();
 
 	}
 });
 
 /* -------------------------------------------------------------------------- */
 
-canvas.implement({
+Native.canvas.implement({
 	highlightLetters : function(letters, x, y, lineHeight){
 		var c, nush, cx, cy, cw;
 		for (var i=0; i<letters.length; i++){
@@ -719,9 +752,8 @@ canvas.implement({
 	}
 });
 
-function getLineLetters(wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
-	var context = new Canvas(1, 1),
-		widthOf = context.measureText,
+function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
+	var widthOf = context.measureText,
 		textLine = wordsArray.join(' '),
 		
 		nb_words = wordsArray.length,
@@ -829,7 +861,7 @@ function getTextMatrixLines(element){
 
 		k = 0,
 		currentLine = 0,
-		context = new Canvas(1, 1);
+		context = element.layer.context;
 
 
 	context.setFontSize(fontSize);
@@ -857,6 +889,7 @@ function getTextMatrixLines(element){
 					align : textAlign,
 					words : wordsArray,
 					letters : getLineLetters(
+								context,
 								wordsArray, textAlign, 
 								offLeft,
 								currentFitWidth,
@@ -893,6 +926,7 @@ function getTextMatrixLines(element){
 				align : align,
 				words : words,
 				letters : getLineLetters(
+							context,
 							words, align, 
 							offLeft,
 							currentFitWidth,
@@ -911,13 +945,17 @@ function getTextMatrixLines(element){
 
 };
 
-function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
-	ctx.setFontSize(fontSize);
-	ctx.fontType = fontType;
+function printTextMatrix(context, textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
+	context.setFontSize(fontSize);
+	context.fontType = fontType;
 	var letters = [];
 
 	var start = -Math.ceil((y - viewportTop)/lineHeight),
-		end = Math.min(textMatrix.length, start + Math.ceil(viewportHeight/lineHeight) );
+		
+		end = Math.min(
+			textMatrix.length, 
+			start + Math.ceil(viewportHeight/lineHeight)
+		);
 
 	if (start-1 >= 0) start--;
 	if (end+1 <= textMatrix.length) end++;
@@ -930,14 +968,18 @@ function printTextMatrix(ctx, textMatrix, caret, x, y, vOffset, viewportWidth, v
 		if ( ty < (viewportTop + viewportHeight + lineHeight) && ty >= viewportTop) {
 			letters = textMatrix[line].letters;
 
-			ctx.setColor("rgba(180, 180, 255, 0.60)");
-			ctx.highlightLetters(letters, tx, ty - vOffset, lineHeight);
+			context.setColor("rgba(180, 180, 255, 0.60)");
+			context.highlightLetters(letters, tx, ty - vOffset, lineHeight);
 	
-			ctx.setColor(color);
+			context.setColor(color);
 			if (line == caret.y2 && caretOpacity >= 0.10) {
-				ctx.drawLettersWithCaret(letters, tx, ty, lineHeight, vOffset, caret.x2, caretOpacity);
+				context.drawLettersWithCaret(
+					letters, 
+					tx, ty, 
+					lineHeight, vOffset, caret.x2, caretOpacity
+				);
 			} else {
-				ctx.drawLetters(letters, tx, ty);
+				context.drawLetters(letters, tx, ty);
 			}
 
 		}

@@ -100,10 +100,14 @@ DOMElement.implement({
 			/* subpixel precision */
 			self.scroll.top = Math.round(value*10)/10;
 
+			self.fireEvent("motion", {
+				dx : 0,
+				dy : deltaY
+			});
+
 		}, slice, true, true);
 
 		return true;
-
 	},
 
 	set : function(property, delta, duration, callback, fx){
@@ -210,7 +214,14 @@ Native.MotionFactory = {
 			end = animation.end;
 
 		view[property] = animation.fx(0, animation.time, start, end, duration);
-		if (animation.rtCallback) animation.rtCallback.call(view, view[property]);
+
+		view.fireEvent("motion", {
+			animation : animation
+		});
+
+		if (animation.rtCallback) {
+			animation.rtCallback.call(view, view[property]);
+		}
 		animation.time += this.slice;
 
 		if (animation.time>duration){
@@ -238,7 +249,6 @@ Native.MotionFactory = {
 		}
 */
 
-		canvas.__mustBeDrawn = true;
 		this.ended++;
 	},
 
@@ -257,7 +267,6 @@ Native.MotionFactory = {
 					self.animate(q[i]);
 				}
 			}
-			canvas.__mustBeDrawn = true;
 
 			if (self.ended>=q.length){
 				self.playing = false;

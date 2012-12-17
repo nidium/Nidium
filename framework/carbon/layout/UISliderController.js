@@ -15,10 +15,22 @@ Native.elements.export("UISliderController", {
 
 		this.color = OptionalValue(this.options.color, "#3388dd");
 		this.boxColor = OptionalValue(this.options.boxColor, false);
-		this.progressBarColor = OptionalValue(this.options.progressBarColor, false);
-		this.splitColor = OptionalValue(this.options.splitColor, false);
 
-		this.labelBackground = OptionalValue(this.options.labelBackground, false);
+		this.progressBarColor = OptionalValue(
+			this.options.progressBarColor, 
+			false
+		);
+
+		this.splitColor = OptionalValue(
+			this.options.splitColor, 
+			false
+		);
+
+		this.labelBackground = OptionalValue(
+			this.options.labelBackground, 
+			false
+		);
+
 		this.labelColor = OptionalValue(this.options.labelColor, false);
 		this.labelOffset = -24;
 		this.labelWidth = OptionalNumber(this.options.labelWidth, 36);
@@ -171,7 +183,6 @@ Native.elements.export("UISliderController", {
 				}
 			} else {
 				this.pixelValue = (this.value - this.min)*this.w/d - this.knob.w/2;
-
 				if (duration && duration>0) {
 					var start = this.knob.x,
 						x = this.pixelValue;
@@ -196,7 +207,6 @@ Native.elements.export("UISliderController", {
 				}
 			}
 
-
 		};
 
 		this.setValue(this.value);
@@ -204,7 +214,8 @@ Native.elements.export("UISliderController", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -215,7 +226,7 @@ Native.elements.export("UISliderController", {
 			w, h;
 
 		if (this.boxColor){
-			canvas.roundbox(
+			context.roundbox(
 				params.x, params.y, 
 				params.w, params.h, 
 				this.radius, this.boxColor, false
@@ -248,14 +259,14 @@ Native.elements.export("UISliderController", {
 						this.labelSuffix;
 
 
-			canvas.setFontSize(this.fontSize);
-			textWidth = canvas.measureText(value);
+			context.setFontSize(this.fontSize);
+			textWidth = context.measureText(value);
 
 			tx = Math.round(kx + kw/2 - this.labelWidth/2);
 			mx = (this.labelWidth - textWidth)/2;
 
 			if (this.labelBackground){
-				canvas.roundbox(
+				context.roundbox(
 					tx, ky+this.labelOffset, 
 					this.labelWidth, this.lineHeight, 
 					8, this.labelBackground, false
@@ -263,17 +274,17 @@ Native.elements.export("UISliderController", {
 			}
 
 			if (this.labelColor){
-				canvas.setColor(this.labelColor);
-				canvas.fillText(value, tx+mx, ky - vOffset);
+				context.setColor(this.labelColor);
+				context.fillText(value, tx+mx, ky - vOffset);
 			}
 		}
 
-		canvas.setShadow(0, 1, 1, "rgba(255, 255, 255, 0.10)");
-		canvas.roundbox(x, y, w, h, this.radius, this.background, false);
-		canvas.setShadow(0, 0, 0);
+		context.setShadow(0, 1, 1, "rgba(255, 255, 255, 0.10)");
+		context.roundbox(x, y, w, h, this.radius, this.background, false);
+		context.setShadow(0, 0, 0);
 
 		if (this.background){
-			canvas.roundbox(
+			context.roundbox(
 				x, y, 
 				w, h, 
 				this.radius, "rgba(0, 0, 0, 0.25)", false
@@ -281,41 +292,41 @@ Native.elements.export("UISliderController", {
 		}
 
 		if (this.progressBarColor){
-			var ga = canvas.globalAlpha;
-			canvas.globalAlpha = 0.8;
-			canvas.setShadow(0, 0, 4, this.progressBarColor);
-			canvas.globalAlpha = ga;
+			var ga = context.globalAlpha;
+			context.globalAlpha = 0.8;
+			context.setShadow(0, 0, 4, this.progressBarColor);
+			context.globalAlpha = ga;
 			if (this.vertical){
-				canvas.roundbox(
+				context.roundbox(
 					x, y + this.pixelValue, 
 					w, h-this.pixelValue, 
 					this.radius, this.progressBarColor, false
 				);
 			} else {
-				canvas.roundbox(
+				context.roundbox(
 					x, y, 
 					this.pixelValue, h, 
 					this.radius, this.progressBarColor, false
 				);
 			}
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 		}
 
 		if (this.splitColor){
-			canvas.strokeStyle = this.splitColor;
-			canvas.beginPath();
+			context.strokeStyle = this.splitColor;
+			context.beginPath();
 			if (this.vertical){
 				for (var i=0; i<h; i+=4){
-					canvas.moveTo(x, y+i);
-					canvas.lineTo(x+w, y+i);
+					context.moveTo(x, y+i);
+					context.lineTo(x+w, y+i);
 				}
 			} else {
 				for (var i=0; i<w; i+=4){
-					canvas.moveTo(x+i, y);
-					canvas.lineTo(x+i, y+h);
+					context.moveTo(x+i, y);
+					context.lineTo(x+i, y+h);
 				}
 			}
-			canvas.stroke();
+			context.stroke();
 		}
 
 	}

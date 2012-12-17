@@ -22,7 +22,10 @@ Native.elements.export("UILine", {
 
 		this.lineWidth = OptionalNumber(this.options.lineWidth, 1);
 
-		this.displayControlPoints = OptionalBoolean(this.options.displayControlPoints, false);
+		this.displayControlPoints = OptionalBoolean(
+			this.options.displayControlPoints, 
+			false
+		);
 
 		nbparams = this.vertices.length;
 
@@ -75,8 +78,11 @@ Native.elements.export("UILine", {
 			this.h = Math.abs(this.points[last].y - this.points[first].y);
 
 			this.g = {
-				x : this.points[first].x>=this.points[last].x ? this.points[last].x : this.points[first].x,
-				y : this.points[first].y>=this.points[last].y ? this.points[last].y : this.points[first].y
+				x : this.points[first].x>=this.points[last].x ? 
+					this.points[last].x : this.points[first].x,
+
+				y : this.points[first].y>=this.points[last].y ? 
+					this.points[last].y : this.points[first].y
 			};
 		};
 
@@ -102,7 +108,8 @@ Native.elements.export("UILine", {
 	draw : function(){
 		this.updateParameters();
 
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -112,52 +119,82 @@ Native.elements.export("UILine", {
 			nbpoints = this.points.length;
 		
 		/*
-		canvas.setColor("rgba(0, 0, 0, 0.5)");
+		context.setColor("rgba(0, 0, 0, 0.5)");
 		var r = {
 			x : this._x + this.points[0].x,
 			y : this._y + this.points[0].y,
 			w : this.w,
 			h : this.h
 		}
-		canvas.fillRect(r.x, r.y, r.w, r.h);
+		context.fillRect(r.x, r.y, r.w, r.h);
 		*/
 
-		canvas.strokeStyle = this.color;
-		canvas.lineWidth = this.lineWidth;
+		context.strokeStyle = this.color;
+		context.lineWidth = this.lineWidth;
 
-		this.mouseOverPath = canvas.spline(this.path, canvas.mouseX, canvas.mouseY, this.lineWidth+8);
+		this.mouseOverPath = context.spline(
+			this.path, 
+			window.mouseX, 
+			window.mouseY, 
+			this.lineWidth+8
+		);
 
 		/*		
 		if (nbpoints==2){
-			canvas.beginPath();
-			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
-			canvas.lineTo(params.x + this.points[1].x, params.y + this.points[1].y);
-			canvas.stroke();
+			context.beginPath();
+			
+			context.moveTo(
+				params.x + this.points[0].x, 
+				params.y + this.points[0].y
+			);
+			
+			context.lineTo(
+				params.x + this.points[1].x, 
+				params.y + this.points[1].y
+			);
+			
+			context.stroke();
 		}
 
 		else if (nbpoints==3){
-			canvas.beginPath();
-			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
-			canvas.quadraticCurveTo(
+			context.beginPath();
+			
+			context.moveTo(
+				params.x + this.points[0].x, 
+				params.y + this.points[0].y
+			);
+
+			context.quadraticCurveTo(
 				params.x + this.points[1].x, params.y + this.points[1].y, 
 				params.x + this.points[2].x, params.y + this.points[2].y
 			);
-			canvas.stroke();
+			
+			context.stroke();
 		}
 
 		else if (nbpoints==4){
-			canvas.beginPath();
-			canvas.moveTo(params.x + this.points[0].x, params.y + this.points[0].y);
-			canvas.bezierCurveTo(
+			context.beginPath();
+			
+			context.moveTo(
+				params.x + this.points[0].x, 
+				params.y + this.points[0].y
+			);
+			
+			context.bezierCurveTo(
 				params.x + this.points[1].x, params.y + this.points[1].y, 
 				params.x + this.points[2].x, params.y + this.points[2].y,
 				params.x + this.points[3].x, params.y + this.points[3].y
 			);
-			canvas.stroke();
+			
+			context.stroke();
 		}
 
 		else if (nbpoints>=5){
-			this.mouseOverPath = canvas.spline(this.path, canvas.mouseX, canvas.mouseY);
+			this.mouseOverPath = context.spline(
+				this.path, 
+				window.mouseX,
+				window.mouseY
+			);
 		}
 		*/
 
@@ -171,8 +208,13 @@ Native.elements.export("UIControlPoint", {
 		this.h = 16;
 
 		this.radius = OptionalNumber(this.options.radius, 3);
-		this.background = OptionalValue(this.options.background, "rgba(0, 0, 0, 0.5)"),
-		this.hidden = OptionalBoolean(this.options.hidden, false),
+		
+		this.background = OptionalValue(
+			this.options.background, 
+			"rgba(0, 0, 0, 0.5)"
+		);
+
+		this.hidden = OptionalBoolean(this.options.hidden, false);
 		this.lineWidth = 1;
 		this.opacity = 0.5;
 
@@ -220,7 +262,8 @@ Native.elements.export("UIControlPoint", {
 	},
 
 	draw : function(){
-		var hx = this.w / 2,
+		var context = this.layer.context,
+			hx = this.w / 2,
 			hy = this.h / 2,
 			params = {
 				x : this._x,
@@ -230,8 +273,17 @@ Native.elements.export("UIControlPoint", {
 			};
 
 		if (this.parent.hasFocus && !this.hidden){
-			canvas.roundbox(params.x-hx+2, params.y-hy+2, params.w-4, params.h-4, this.radius, '', "#000000", this.lineWidth); // main view
-			canvas.roundbox(params.x-hx+4, params.y-hy+4, params.w-8, params.h-8, 0, this.background, "#ffffff", this.lineWidth); // main view
+			context.roundbox(
+				params.x-hx+2, params.y-hy+2, 
+				params.w-4, params.h-4, 
+				this.radius, '', "#000000", this.lineWidth
+			);
+
+			context.roundbox(
+				params.x-hx+4, params.y-hy+4, 
+				params.w-8, params.h-8, 
+				0, this.background, "#ffffff", this.lineWidth
+			);
 		}
 
 	}

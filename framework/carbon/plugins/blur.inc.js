@@ -30,7 +30,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-canvas.implement({
+Native.canvas.implement({
 	blur : function(wx, wy, w, h, pass){
 		var r = 1,
 			offscreen = new Canvas(w, h);

@@ -30,7 +30,8 @@ Native.elements.export("UISliderKnob", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -40,32 +41,41 @@ Native.elements.export("UISliderKnob", {
 			radius = this.w/2;
 
 		if (this.background!='') {
-			var gdBackground = canvas.createRadialGradient(params.x+radius, params.y+radius, radius, params.x+radius-1, params.y+radius-2, radius/8);
+			var gradient = context.createRadialGradient(
+				params.x+radius, params.y+radius, 
+				radius, params.x+radius-1, params.y+radius-2, radius/8
+			);
 
 			if (this.hover){
-				gdBackground.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
-				gdBackground.addColorStop(0.20, 'rgba(255, 255, 255, 0.1)');
-				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.9)');
+				gradient.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
+				gradient.addColorStop(0.20, 'rgba(255, 255, 255, 0.1)');
+				gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.9)');
 			} else {
-				gdBackground.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
-				gdBackground.addColorStop(0.40, 'rgba(255, 255, 255, 0.1)');
-				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.4)');
+				gradient.addColorStop(0.00, 'rgba(0, 0, 0, 0.1)');
+				gradient.addColorStop(0.40, 'rgba(255, 255, 255, 0.1)');
+				gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.4)');
 			}
 
-	        canvas.lineWidth = 1;
-			canvas.setShadow(-1, 1, 3, "rgba(0, 0, 0, 0.70)");
+	        context.lineWidth = 1;
+			context.setShadow(-1, 1, 3, "rgba(0, 0, 0, 0.70)");
 
-	        canvas.setColor(this.background);
-	        canvas.beginPath();
-	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-	        canvas.fill();
+	        context.setColor(this.background);
+	        context.beginPath();
+	        context.arc(
+	        	params.x+radius, params.y+params.h*0.5, 
+	        	radius, 0, 6.2831852, false
+	        );
+	        context.fill();
 
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 
-	        canvas.setColor(gdBackground);
-	        canvas.beginPath();
-	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-	        canvas.fill();
+	        context.setColor(gradient);
+	        context.beginPath();
+	        context.arc(
+	        	params.x+radius, params.y+params.h*0.5, 
+	        	radius, 0, 6.2831852, false
+	        );
+	        context.fill();
 		}
 
 	}

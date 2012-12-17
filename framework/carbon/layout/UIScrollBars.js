@@ -12,15 +12,16 @@ Native.elements.export("UIVerticalScrollBar", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
 				h : this.h
 			};
 
-		canvas.setColor("rgba(80, 80, 80, 0.4)");
-		canvas.fillRect(params.x, params.y, params.w, params.h);
+		context.setColor("rgba(80, 80, 80, 0.4)");
+		context.fillRect(params.x, params.y, params.w, params.h);
 	}
 });
 
@@ -34,7 +35,8 @@ Native.elements.export("UIVerticalScrollBarHandle", {
 	},
 
 	draw : function(){
-		var UIView = this.parent.parent;
+		var context = this.layer.context,
+			UIView = this.parent.parent;
 
 		UIView.scrollBarHeight = Math.max(UIView.content.height, UIView.h);
 
@@ -56,7 +58,11 @@ Native.elements.export("UIVerticalScrollBarHandle", {
 		this._x = params.x;
 		this._y = params.y;
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, 5, "rgba(40, 40, 40, 0.80)", false);
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			5, "rgba(40, 40, 40, 0.80)", false
+		);
 
 	}
 });

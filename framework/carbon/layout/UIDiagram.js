@@ -5,6 +5,7 @@
 Native.elements.export("UIDiagram", {
 	init : function(){
 		var self = this,
+			context = this.layer.context,
 			diagramController = self.parent ? self.parent : self,
 			y = 0,
 			pins = OptionalValue(this.options.pins, []),
@@ -18,7 +19,9 @@ Native.elements.export("UIDiagram", {
 		this.name = OptionalString(this.options.name, "Default");
 
 		this.shadowBlur = OptionalNumber(this.options.shadowBlur, 12);
-		this.shadowColor = OptionalValue(this.options.shadowColor, "rgba(0, 0, 0, 0.5)");
+		this.shadowColor = OptionalValue(
+			this.options.shadowColor, "rgba(0, 0, 0, 0.5)"
+		);
 		this.backgroundBlur = 0; //OptionalNumber(this.options.backgroundBlur, 0);
 
 		this.movable = OptionalBoolean(this.options.movable, true);
@@ -33,8 +36,8 @@ Native.elements.export("UIDiagram", {
 
 		/* --------------------- */
 
-		canvas.setFontSize(this.fontSize);
-		this.w = 10 + Math.round(canvas.measureText(this.label)) + 10 + (this.closeable?16:0) + 26;
+		context.setFontSize(this.fontSize);
+		this.w = 10 + Math.round(context.measureText(this.label)) + 10 + (this.closeable?16:0) + 26;
 		this.h = OptionalNumber(this.options.h, 24 + nbpins*this.pinLabelHeight + 4);
 
 		this.pins = [];
@@ -60,13 +63,14 @@ Native.elements.export("UIDiagram", {
 			color : "#888888",
 			callback : function(){
 				var p = this.parent,
+					context = this.layer.context,
 					textHeight = 10,
 					textOffsetX = 8,
 					textOffsetY = (24-textHeight)/2 + 9;
 
-				canvas.setFontSize(11);
-				canvas.setColor(p.color);
-				canvas.fillText(p.label, p._x+textOffsetX, p._y+textOffsetY);
+				context.setFontSize(11);
+				context.setColor(p.color);
+				context.fillText(p.label, p._x+textOffsetX, p._y+textOffsetY);
 			}
 		});
 
@@ -89,8 +93,15 @@ Native.elements.export("UIDiagram", {
 			this.handle.addEventListener("dragend", function(e){
 				//self.set("scale", 1, 50);
 				//self.set("backgroundBlur", 0, 50);
-				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
-				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+				self.set(
+					"shadowBlur", 
+					OptionalNumber(this.options.shadowBlur, 12), 
+					50
+				);
+
+				self.shadowColor = self.options.shadowColor || 
+								   "rgba(0, 0, 0, 0.5)";
+
 				e.stopPropagation();
 			}, false);
 		}
@@ -140,7 +151,6 @@ Native.elements.export("UIDiagram", {
 		};
 
 		this.closeDiagram = function(){
-			
 			for (var i=0; i<nbpins; i++){
 				var	pin = this.pins[i];
 				diagramController.deletePinLinks(pin);
@@ -157,7 +167,8 @@ Native.elements.export("UIDiagram", {
 			};
 
 			pin.connectedTo = function(targetPin){
-				return pin.connections.has(targetPin) || targetPin.connections.has(pin);
+				return pin.connections.has(targetPin) || 
+					   targetPin.connections.has(pin);
 			};
 
 			pin.addEventListener("dragstart", function(e){
@@ -167,7 +178,9 @@ Native.elements.export("UIDiagram", {
 						y : e.y
 					};
 
-				var v = diagramController.getUILineVertives(pin.pintype, absStartPoint, absEndPoint);
+				var v = diagramController.getUILineVertives(
+					pin.pintype, absStartPoint, absEndPoint
+				);
 
 				pin.link = diagramController.add("UILine", {
 					vertices : [
@@ -189,8 +202,6 @@ Native.elements.export("UIDiagram", {
 				e.stopPropagation();
 			}, false)
 
-
-
 			pin.addEventListener("drag", function(e){
 				var absStartPoint = diagramController.getPinConnectionPoint(pin),
 					absEndPoint = {
@@ -199,7 +210,10 @@ Native.elements.export("UIDiagram", {
 					};
 
 				pin.link.focus();
-				diagramController.updateUILine(pin.link, pin.pintype, absStartPoint, absEndPoint);
+				diagramController.updateUILine(
+					pin.link, pin.pintype,
+					absStartPoint, absEndPoint
+				);
 
 				e.stopPropagation();
 			}, false)
@@ -257,7 +271,10 @@ Native.elements.export("UIDiagram", {
 
 				self.parent.fireEvent("pinDrop", link, function(){
 					self.parent.fireEvent("connect", link, function(){
-						diagramController.connect(link.source.pin, link.target.pin);
+						diagramController.connect(
+							link.source.pin,
+							link.target.pin
+						);
 					});
 				});
 
@@ -332,7 +349,8 @@ Native.elements.export("UIDiagram", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -352,18 +370,29 @@ Native.elements.export("UIDiagram", {
 
 		this.shadow = true;
 		if (this.shadow) {
-			canvas.setShadow(0, 15, this.shadowBlur, this.shadowColor);
+			context.setShadow(0, 15, this.shadowBlur, this.shadowColor);
 		}
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, this.background, false
+		);
 		if (this.shadow){
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 		}
 
-		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+24);
-		gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
-		gdBackground.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
-		gdBackground.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+		var gradient = context.createLinearGradient(
+			params.x, params.y, 
+			params.x, params.y+24
+		);
+		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
+		gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+		gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, gradient, false
+		);
 	}
 });

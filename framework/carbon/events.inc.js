@@ -233,8 +233,8 @@ Native.events = {
 	},
 
 	mousemoveEvent : function(e){
-		canvas.mouseX = e.x;
-		canvas.mouseY = e.y;
+		window.mouseX = e.x;
+		window.mouseY = e.y;
 		e.dataTransfer = this.__dataTransfer;
 
 		if (this.mousedown){
@@ -358,6 +358,10 @@ DOMElement.implement({
 			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
 
+		if (name == "motion") {
+			this.refresh();
+		}
+
 		if (typeof this["on"+name] == 'function'){
 			if (e !== undefined){
 				e.dx = e.xrel / this._scale;
@@ -443,33 +447,33 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 
-canvas.onmousedown = function(e){
+Native.onmousedown = function(e){
 	Native.events.mousedownEvent(e);
 };
 
-canvas.onmousemove = function(e){
+Native.onmousemove = function(e){
 	Native.events.mousemoveEvent(e);
 };
 
-canvas.onmousewheel = function(e){
+Native.onmousewheel = function(e){
 	Native.events.mousewheelEvent(e);
 };
 
-canvas.onmouseup = function(e){
+Native.onmouseup = function(e){
 	Native.events.mouseupEvent(e);
 };
 
 /* -- KEYBOARD EVENTS ------------------------------------------------------- */
 
-canvas.onkeydown = function(e){
+Native.onkeydown = function(e){
 	Native.events.keydownEvent(e);
 };
 
-canvas.onkeyup = function(e){
+Native.onkeyup = function(e){
 	Native.events.keyupEvent(e);
 };
 
-canvas.ontextinput = function(e){
+Native.ontextinput = function(e){
 	Native.events.textinputEvent(e);
 };
 

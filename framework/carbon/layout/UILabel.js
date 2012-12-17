@@ -4,14 +4,20 @@
 
 Native.elements.export("UILabel", {
 	init : function(){
-		canvas.setFontSize(this.fontSize);
+		var context = this.layer.context;
 
-		this.textWidth = Math.round(canvas.measureText(this.label));
+		context.setFontSize(this.fontSize);
+
+		this.textWidth = Math.round(context.measureText(this.label));
 		this.paddingLeft = OptionalNumber(this.options.paddingLeft, 0);
 		this.paddingRight = OptionalNumber(this.options.paddingLeft, 0);
 
 
-		this.w = OptionalNumber(this.options.w , this.paddingLeft + this.textWidth + this.paddingRight);
+		this.w = OptionalNumber(
+			this.options.w, 
+			this.paddingLeft + this.textWidth + this.paddingRight
+		);
+
 		this.h = OptionalNumber(this.options.h, this.lineHeight);
 		this.radius = OptionalNumber(this.options.radius, 0);
 
@@ -22,8 +28,10 @@ Native.elements.export("UILabel", {
 	},
 
 	draw : function(){
-		canvas.setFontSize(this.fontSize);
-		this.textWidth = Math.round(canvas.measureText(this.label));
+		var context = this.layer.context;
+
+		context.setFontSize(this.fontSize);
+		this.textWidth = Math.round(context.measureText(this.label));
 		
 		var params = {
 				x : this._x,
@@ -46,12 +54,16 @@ Native.elements.export("UILabel", {
 			tx = params.x + params.w - this.textWidth - this.paddingRight;
 		}
 
-		canvas.roundbox(params.x, params.y, w, h, this.radius, this.background, false);
+		context.roundbox(
+			params.x, params.y, 
+			w, h, 
+			this.radius, this.background, false
+		);
 
-		if (__ENABLE_TEXT_SHADOWS__) { canvas.setShadow(1, 1, 1, '#000000'); }
-		canvas.setColor(this.color);
-		canvas.fillText(label, tx, ty);
-		if (__ENABLE_TEXT_SHADOWS__){ canvas.setShadow(0, 0, 0); }
+		if (__ENABLE_TEXT_SHADOWS__) { context.setShadow(1, 1, 1, '#000000'); }
+		context.setColor(this.color);
+		context.fillText(label, tx, ty);
+		if (__ENABLE_TEXT_SHADOWS__){ context.setShadow(0, 0, 0); }
 
 	}
 });

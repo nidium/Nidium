@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-canvas.implement({
+Native.canvas.implement({
 	tabbox : function(x, y, w, h, radius, fill, stroke, lineWidth) {
 		if (typeof fill == "undefined" ) {
 			fill = false;

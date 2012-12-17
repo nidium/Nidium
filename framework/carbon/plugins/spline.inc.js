@@ -32,7 +32,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-canvas.implement({
+Native.canvas.implement({
 	spline : function(points, mx=0, my=0, lineWidth=2){
 		var len = 0,
 			step = 0,

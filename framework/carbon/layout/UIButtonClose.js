@@ -30,7 +30,8 @@ Native.elements.export("UIButtonClose", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -40,7 +41,14 @@ Native.elements.export("UIButtonClose", {
 			radius = this.w/2;
 
 		if (this.background!='') {
-			var gdBackground = canvas.createRadialGradient(params.x+radius, params.y+radius, radius, params.x+radius, params.y+radius, radius/4);
+			var gdBackground = context.createRadialGradient(
+				params.x+radius,
+				params.y+radius,
+				radius,
+				params.x+radius,
+				params.y+radius,
+				radius/4
+			);
 
 			if (this.hover){
 				gdBackground.addColorStop(0.00, 'rgba(0, 0, 0, 0.01)');
@@ -50,24 +58,33 @@ Native.elements.export("UIButtonClose", {
 				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.1)');
 			}
 
-	        canvas.beginPath();
-	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-	        canvas.setColor(this.background);
-	        canvas.fill();
-	        canvas.lineWidth = 1;
+	        context.beginPath();
+	        context.arc(
+	        	params.x+radius, params.y+params.h*0.5,
+	        	radius, 0, 6.2831852, false
+	        );
+	        context.setColor(this.background);
+	        context.fill();
+	        context.lineWidth = 1;
 
-	        canvas.beginPath();
-	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-	        canvas.setColor(gdBackground);
-	        canvas.fill();
-	        canvas.lineWidth = 1;
+	        context.beginPath();
+	        context.arc(
+	        	params.x+radius, params.y+params.h*0.5,
+	        	radius, 0, 6.2831852, false
+	        );
+	        context.setColor(gdBackground);
+	        context.fill();
+	        context.lineWidth = 1;
 
 	        if (this.selected){
-		        canvas.beginPath();
-		        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-		        canvas.setColor(this.background);
-		        canvas.fill();
-		        canvas.lineWidth = 1;
+		        context.beginPath();
+		        context.arc(
+		        	params.x+radius, params.y+params.h*0.5,
+		        	radius, 0, 6.2831852, false
+		        );
+		        context.setColor(this.background);
+		        context.fill();
+		        context.lineWidth = 1;
 	        }
 		}
 
@@ -77,18 +94,18 @@ Native.elements.export("UIButtonClose", {
         	x2 = params.x+params.w - m,
         	y2 = params.y+params.h - m;
 
-		canvas.strokeStyle = this.hover ? "#ffffff" : this.color;
-        canvas.lineWidth = 2;
+		context.strokeStyle = this.hover ? "#ffffff" : this.color;
+        context.lineWidth = 2;
 
-		canvas.beginPath();
-		canvas.moveTo(x1, y1);
-		canvas.lineTo(x2, y2);
-		canvas.stroke();
+		context.beginPath();
+		context.moveTo(x1, y1);
+		context.lineTo(x2, y2);
+		context.stroke();
 
-		canvas.beginPath();
-		canvas.moveTo(x1, y2);
-		canvas.lineTo(x2, y1);
-		canvas.stroke();
+		context.beginPath();
+		context.moveTo(x1, y2);
+		context.lineTo(x2, y1);
+		context.stroke();
 
 	}
 });

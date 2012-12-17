@@ -2,13 +2,6 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-/*
-canvas.fontName = "arial";
-canvas.fontSize = 13.5;
-canvas.fontWeight = "bold";
-canvas.fontStyle = "italic";
-*/
-
 Native.elements.export("UIRadio", {
 	init : function(){
 		this.w = 16;
@@ -23,11 +16,11 @@ Native.elements.export("UIRadio", {
 
 			this.selected = true;
 		});
-
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -38,40 +31,69 @@ Native.elements.export("UIRadio", {
 			textShadow = "rgba(0, 0, 0, 0.15)",
 			radius = this.w/2;
 
-		canvas.setFontSize(this.fontSize);
+		context.setFontSize(this.fontSize);
 
-		var gBackground = canvas.createRadialGradient(params.x+radius, params.y+radius, radius, params.x+radius*0.7, params.y+radius*0.7, radius>>1);
-		gBackground.addColorStop(0.00,'#ccccff');
-		gBackground.addColorStop(1.00,'#ffffff');
+		var gradient = context.createRadialGradient(
+			params.x+radius, 
+			params.y+radius, 
+			radius, 
+			params.x+radius*0.7, 
+			params.y+radius*0.7, 
+			radius>>1
+		);
 
-        canvas.beginPath();
-        canvas.arc(params.x+radius, params.y+params.h*0.5, radius, 0, 6.2831852, false);
-        canvas.setColor(gBackground);
-        canvas.fill();
-        canvas.lineWidth = 1;
-        canvas.strokeStyle = "rgba(140, 140, 140, 0.7)";
-        canvas.stroke();
+		gradient.addColorStop(0.00,'#ccccff');
+		gradient.addColorStop(1.00,'#ffffff');
+
+        context.beginPath();
+        
+        context.arc(
+        	params.x+radius, 
+        	params.y+params.h*0.5, 
+        	radius, 0, 6.2831852, false
+        );
+
+        context.setColor(gradient);
+        context.fill();
+        context.lineWidth = 1;
+        context.strokeStyle = "rgba(140, 140, 140, 0.7)";
+        context.stroke();
 
         if (this.selected){
 	        var r = 4;
-	        canvas.beginPath();
-	        canvas.arc(params.x+radius, params.y+params.h*0.5, radius-r, 0, 6.2831852, false);
-	        canvas.setColor("rgba(60, 80, 200, 0.5)");
-	        canvas.fill();
-	        canvas.lineWidth = 1;
-    	    canvas.strokeStyle = "rgba(0, 0, 180, 0.1)";
-	        canvas.stroke();
+	        context.beginPath();
+
+	        context.arc(
+	        	params.x+radius, 
+	        	params.y+params.h*0.5, 
+	        	radius-r, 0, 6.2831852, false
+	        );
+
+	        context.setColor("rgba(60, 80, 200, 0.5)");
+	        context.fill();
+	        context.lineWidth = 1;
+    	    context.strokeStyle = "rgba(0, 0, 180, 0.1)";
+	        context.stroke();
         }
 
 
-		canvas.textAlign = "center";
-		canvas.textBaseline = 'center';
+		context.textAlign = "center";
+		context.textBaseline = 'center';
 
-		canvas.setColor(textShadow);
-		canvas.fillText(this.label, params.x+params.w+8, params.y+5+params.h*0.5);
+		context.setColor(textShadow);
+		
+		context.fillText(
+			this.label, 
+			params.x+params.w+8, 
+			params.y+5+params.h*0.5
+		);
 
-		canvas.setColor(textColor);
-		canvas.fillText(this.label, params.x+params.w+8, params.y+5+params.h*0.5);
+		context.setColor(textColor);
+		context.fillText(
+			this.label, 
+			params.x+params.w+8, 
+			params.y+5+params.h*0.5
+		);
 
 	}
 });

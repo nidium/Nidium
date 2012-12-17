@@ -5,16 +5,14 @@
 "use strict";
 
 var DOMElement = function(type, options, parent){
-	this.options = options || {};
+	var o = this.options = options || {};
+
 	this.parent = parent ? parent : null; // parent element
 	this.nodes = {}; // children elements
 
 	if (!Native.elements[type]) {
 		throw("Undefined element " + type);
 	}
-
-	var element = this,
-		o = this.options;
 
 	this._uid = "_obj_" + Native.layout.objID++;
 	this.id = OptionalString(o.id, this._uid);
@@ -27,11 +25,13 @@ var DOMElement = function(type, options, parent){
 	this._eventQueues = [];
 	this._mutex = [];
 
+	this.layer = o.layer ? o.layer : this.parent ? this.parent.layer : Native.layer;
+
 	// -- coordinate properties
 	this.x = OptionalNumber(o.x, 0);
 	this.y = OptionalNumber(o.y, 0);
-	this.w = o.w ? o.w : this.parent ? this.parent.w : canvas.width;
-	this.h = o.h ? o.h : this.parent ? this.parent.h : canvas.height;
+	this.w = o.w ? o.w : this.parent ? this.parent.w : window.width;
+	this.h = o.h ? o.h : this.parent ? this.parent.h : window.height;
 
 	this.scroll = {
 		top : OptionalNumber(o.scrollTop, 0)
@@ -47,6 +47,8 @@ var DOMElement = function(type, options, parent){
 	this.hasFocus = false;
 	this.isOnTop = false;
 	this.mouseOverPath = false;
+	this.needRedraw = true;
+
 	this.visible = OptionalBoolean(o.visible, true);
 	this.overflow = OptionalBoolean(o.overflow, true);
 	this.fixed = OptionalBoolean(o.fixed, true);
@@ -196,14 +198,14 @@ DOMElement.prototype = {
 	show : function(){
 		if (!this.visible) {
 			this.visible = true;
-			Native.layout.refresh();
+			Native.layout.refresh(this);
 		}
 	},
 
 	hide : function(){
 		if (this.visible) {
 			this.visible = false;
-			Native.layout.refresh();
+			Native.layout.refresh(this);
 		}
 	},
 
@@ -221,21 +223,21 @@ DOMElement.prototype = {
 		var p = this.parent;
 
 
-		this.scroll._top = p ? p.scroll._top + this.scroll.top : 
-							   this.scroll.top;
+		this.scroll._top = p ? p.scroll._top + this.scroll.top 
+							 : this.scroll.top;
 
 		this._x = p ? p._x + this.x : this.x;
 		this._y = p ? p._y + this.y : this.y;
 
 		this._opacity = p ? p._opacity * this.opacity : this.opacity;
 
-		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex : 
-						   this._rIndex + this.zIndex;
+		this._zIndex = p ? p._zIndex + this._rIndex + this.zIndex
+						 : this._rIndex + this.zIndex;
 
 		this._visible = p ? p._visible && this.visible : this.visible;
 		this._overflow = p ? p._overflow && this.overflow : this.overflow;
 		this._fixed = p ? p._fixed && this.fixed : this.fixed;
-
+		
 		// clipping area
 		var scrollY = this._fixed===false ? (p ? p.scroll._top : 0) : 0,
 			scrollX = 0;
@@ -309,6 +311,10 @@ DOMElement.prototype = {
 			x : (this._g.x - this.t._x)*this._pscale,
 			y : (this._g.y - this.t._y)*this._pscale
 		};
+
+		// need to be redrawn
+		Native.layout.refresh(this);
+
 	},
 
 	__projection : function(x, y){
@@ -329,19 +335,19 @@ DOMElement.prototype = {
 		this._y = this._y - (this._fixed===false ? this.scroll._top : 0);
 
 		if (this.clip){
-			canvas.save();
-			canvas.clipbox(
+			this.layer.context.save();
+			this.layer.context.clipbox(
 				this.clip.x, 
 				this.clip.y, 
 				this.clip.w, 
 				this.clip.h, 
 				this.radius
 			);
-			canvas.clip();
+			this.layer.context.clip();
 		}
 
 		if (this.backgroundBlur){
-			canvas.blur(
+			this.layer.context.blur(
 				this.blurbox.x, 
 				this.blurbox.y, 
 				this.blurbox.w, 
@@ -373,13 +379,13 @@ DOMElement.prototype = {
 
 		/*		
 		if (this._rotate!=0){
-			canvas.save();
+			this.layer.context.save();
 			this.rx = this._gs.x;
 			this.ry = this._gs.y;
 
-			canvas.translate(this.rx, this.ry);
-			canvas.rotate(this.rotate*Math.PI/180);
-			canvas.translate(-this.rx, -this.ry);
+			this.layer.context.translate(this.rx, this.ry);
+			this.layer.context.rotate(this.rotate*Math.PI/180);
+			this.layer.context.translate(-this.rx, -this.ry);
 
 			this.rt = {
 				x : (parent ? parent._gs.x : this._gs.x),
@@ -387,36 +393,36 @@ DOMElement.prototype = {
 			};
 			this.angle = this._protate*Math.PI/180;
 
-			canvas.translate(this.rt.x, this.rt.y);
-			canvas.rotate(this.angle);
-			canvas.translate(-this.rt.x, -this.rt.y);
+			this.layer.context.translate(this.rt.x, this.rt.y);
+			this.layer.context.rotate(this.angle);
+			this.layer.context.translate(-this.rt.x, -this.rt.y);
 
 		}
 		*/
 
 		/* scale */
 
-		if (this._scale != 1){
-			canvas.save();
-			canvas.scale(this._scale, this._scale);
-			canvas.translate( -this.t._x, -this.t._y);
-		}
+		//if (this._scale != 1){
+			this.layer.context.save();
+			this.layer.context.scale(this._scale, this._scale);
+			this.layer.context.translate( -this.t._x, -this.t._y);
+		//}
 
 
 		if (this.parent && this.parent.overflow === false){
-			canvas.save();
+			this.layer.context.save();
 
-			canvas.clipbox(
+			this.layer.context.clipbox(
 				this.parent.clipping.x, this.parent.clipping.y,
 				this.parent.clipping.w, this.parent.clipping.h,
 				this.parent.radius
 			);
 
-			canvas.clip();
+			this.layer.context.clip();
 		}
 
-		canvas.oldGlobalAlpha = canvas.globalAlpha;
-		canvas.globalAlpha = this._opacity;
+		this.layer.context.oldGlobalAlpha = this.layer.context.globalAlpha;
+		this.layer.context.globalAlpha = this._opacity;
 
 		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
 			this.drawFocus();
@@ -437,22 +443,22 @@ DOMElement.prototype = {
 
 		if (this.type=="UIText" || this.type=="UIWindow" || this.type=="UIDiagram") {
 			/*
-			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
-			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
-			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
-			canvas.setShadow(0, 0, 0);
+			this.layer.context.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+			this.layer.context.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
+			this.layer.context.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+			this.layer.context.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
+			this.layer.context.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
+			this.layer.context.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
+			this.layer.context.setShadow(0, 0, 0);
 			*/
 		}
 
 		else if (this.type == "UILine") {
-			canvas.save();
-			canvas.strokeStyle = "rgba(0, 0, 0, 0.10)";
-			canvas.lineWidth = this.lineWidth+20;
-			canvas.spline(this.path);
-			canvas.restore();
+			this.layer.context.save();
+			this.layer.context.strokeStyle = "rgba(0, 0, 0, 0.10)";
+			this.layer.context.lineWidth = this.lineWidth+20;
+			this.layer.context.spline(this.path);
+			this.layer.context.restore();
 		}
 
 	},
@@ -461,43 +467,43 @@ DOMElement.prototype = {
 		this._y = this._oldy;
 
 		if (this.callback) this.callback.call(this);
-		canvas.globalAlpha = canvas.oldGlobalAlpha;
+		this.layer.context.globalAlpha = this.layer.context.oldGlobalAlpha;
 
 		/*
 		if (this._rotate!=0){
 
-			canvas.translate(this.rt.x, this.rt.y);
-			canvas.rotate(-this.angle);
-			canvas.translate(-this.rt.x, -this.rt.y);
+			this.layer.context.translate(this.rt.x, this.rt.y);
+			this.layer.context.rotate(-this.angle);
+			this.layer.context.translate(-this.rt.x, -this.rt.y);
 
-			canvas.translate(this.rx, this.ry);
-			canvas.rotate(-this.rotate*Math.PI/180);
-			canvas.translate(-this.rx, -this.ry);
+			this.layer.context.translate(this.rx, this.ry);
+			this.layer.context.rotate(-this.rotate*Math.PI/180);
+			this.layer.context.translate(-this.rx, -this.ry);
 
-			canvas.restore();
+			this.layer.context.restore();
 		}
 		*/
 
 
 		if (this.parent && this.parent.overflow === false){
-			canvas.restore();
+			this.layer.context.restore();
 		}
 
 
-		if (this._scale !=1 ){
-			canvas.translate(this.t._x, this.t._y);
-			canvas.scale(1/this._scale, 1/this._scale);
-			canvas.restore();
-		}
+		//if (this._scale !=1 ){
+			this.layer.context.translate(this.t._x, this.t._y);
+			this.layer.context.scale(1/this._scale, 1/this._scale);
+			this.layer.context.restore();
+		//}
 
 		/*
-        canvas.beginPath();
-        canvas.arc(this._g.x, this._g.y, 2, 0, 6.2831852, false);
-        canvas.setColor("#ff0000");
-        canvas.fill();
-        canvas.lineWidth = 1;
-        canvas.strokeStyle = "rgba(140, 140, 140, 0.7)";
-        canvas.stroke();
+        this.layer.context.beginPath();
+        this.layer.context.arc(this._g.x, this._g.y, 2, 0, 6.2831852, false);
+        this.layer.context.setColor("#ff0000");
+        this.layer.context.fill();
+        this.layer.context.lineWidth = 1;
+        this.layer.context.strokeStyle = "rgba(140, 140, 140, 0.7)";
+        this.layer.context.stroke();
         */
 
 		//gravity center after scale + translation
@@ -507,17 +513,17 @@ DOMElement.prototype = {
 			y : (this._g.y - this.t._y)*this._pscale
 		};
 
-        canvas.beginPath();
-        canvas.arc(this._gs.x, this._gs.y, 2, 0, 6.2831852, false);
-        canvas.setColor("#00ff00");
-        canvas.fill();
-        canvas.lineWidth = 1;
-        canvas.strokeStyle = "rgba(140, 140, 140, 0.7)";
-        canvas.stroke();
+        this.layer.context.beginPath();
+        this.layer.context.arc(this._gs.x, this._gs.y, 2, 0, 6.2831852, false);
+        this.layer.context.setColor("#00ff00");
+        this.layer.context.fill();
+        this.layer.context.lineWidth = 1;
+        this.layer.context.strokeStyle = "rgba(140, 140, 140, 0.7)";
+        this.layer.context.stroke();
         */
 
 		if (this.clip){
-			canvas.restore();
+			this.layer.context.restore();
 		}
 
 	},
@@ -525,10 +531,10 @@ DOMElement.prototype = {
 	/* -------------------------------------------------------------- */
 
 	isPointInside : function(mx, my){
-		var x1 = this.__minx, //this.__x,
-			y1 = this.__miny, //this.__y,
-			x2 = this.__maxx, //x1 + this.__w,
-			y2 = this.__maxy; // y1 + this.__h;
+		var x1 = this.__minx + this.layer.left, //this.__x,
+			y1 = this.__miny + this.layer.top, //this.__y,
+			x2 = this.__maxx + this.layer.left, //x1 + this.__w,
+			y2 = this.__maxy + this.layer.top; // y1 + this.__h;
 
 		return	(mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
@@ -556,7 +562,11 @@ DOMElement.prototype = {
 		if (dx==0) { return false; }
 		this._x += dx;
 		this.x += dx;
-		Native.layout.refresh();
+		this.fireEvent("motion", {
+			dx : dx,
+			dy : 0
+		});
+		Native.layout.refresh(this);
 	},
 
 	get top() {
@@ -568,7 +578,7 @@ DOMElement.prototype = {
 		if (dy==0) { return false; }
 		this._y += dy;
 		this.y += dy;
-		Native.layout.refresh();
+		Native.layout.refresh(this);
 	},
 
 	get transformOrigin() {
@@ -584,7 +594,7 @@ DOMElement.prototype = {
 			x : OptionalNumber(g.x, ox) - this._x - this.w/2,
 			y : OptionalNumber(g.y, oy) - this._y - this.h/2
 		}
-		Native.layout.refresh();
+		Native.layout.refresh(this);
 	}
 
 };
@@ -659,44 +669,50 @@ Native.elements = {
 	}
 };
 
+Native.getLocalImage = function(element, url, callback){
+	var cb = OptionalCallback(callback, function(){});
+
+	if (element._backgroundImage) {
+		cb(element._backgroundImage);
+	} else {
+		var img = new Image();
+		img.onload = function(){
+			element._backgroundImage = img;
+			cb(img);
+		};
+		img.src = url;
+	}
+
+};
+
 var Application = function(options){
 	options = options || {};
 	options.background = OptionalValue(options.background, '#262722');
 
 	var app = new DOMElement("UIView", options, null);
 	app._root = true;
+	app._physical = true; // virtual or physical layer
+
+	app.layer = Native.canvas;
+	app.layer.context = Native.canvas.context;
+
 	app.flags._canReceiveFocus = true;
 	app.flags._outlineOnFocus = false;
 
 	Native.elements.init(app);
 	Native.layout.rootElement = app;
 	Native.layout.register(app);
-	Native.layout.refresh();
+	Native.layout.refresh(app);
 
-	canvas.globalAlpha = 1;
-	canvas.__mustBeDrawn = true;
+	app.layer.context.globalAlpha = 1;
 
-	if (options && options.animation===false){
-		/* dummy */
-	} else {
-		canvas.animate = true;
-	    canvas.requestAnimationFrame(function(){
-			FPS.start();
-	 		if (canvas.animate) {
+	window.requestAnimationFrame(function(){
+		FPS.start();
 
-				if (Native.layout.hook) Native.layout.hook();
-				Native.layout.draw();
-
-				if (window && window.requestAnimationFrame){
-					window.requestAnimationFrame();
-				}
-
-				//Native.layout.grid();
-			} 
-	 		FPS.show();
-	    });
-	}
-
+		Native.layout.draw();
+		//Native.layout.grid();
+ 		FPS.show();
+	});
 
 	return app;
 };

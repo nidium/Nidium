@@ -33,7 +33,8 @@ Native.elements.export("UIDropDownOption", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -41,7 +42,7 @@ Native.elements.export("UIDropDownOption", {
 			},
 
 			label = this.label,
-			textWidth = Math.round(canvas.measureText(label)),
+			textWidth = Math.round(context.measureText(label)),
 			textHeight = 10,
 			w = params.w,
 			h = params.h,
@@ -58,22 +59,23 @@ Native.elements.export("UIDropDownOption", {
 			h : this.parent.__h
 		};
 		
+		context.roundbox(params.x, params.y, w, h, 0, this.background, false);
 
-		canvas.roundbox(params.x, params.y, w, h, 0, this.background, false);
-
-		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
+		var gradient = context.createLinearGradient(
+			params.x, params.y, 
+			params.x, params.y+params.h
+		);
 
 		if (this.selected){
 			//textOffsetY++;
 			textColor = this.parent.parent.selectedColor;
 			textShadow = "rgba(0, 0, 0, 0.10)";
-
 			/*
-			gdBackground.addColorStop(0.00, 'rgba(40, 60, 255, 0.90)');
-			gdBackground.addColorStop(0.10, 'rgba(40, 60, 255, 0.90)');
-			gdBackground.addColorStop(0.90, 'rgba(40, 60, 255, 0.90)');
+			gradient.addColorStop(0.00, 'rgba(40, 60, 255, 0.90)');
+			gradient.addColorStop(0.10, 'rgba(40, 60, 255, 0.90)');
+			gradient.addColorStop(0.90, 'rgba(40, 60, 255, 0.90)');
 			*/
-			gdBackground = this.parent.parent.selectedBackground;
+			gradient = this.parent.parent.selectedBackground;
 
 		} else {
 
@@ -81,23 +83,23 @@ Native.elements.export("UIDropDownOption", {
 			textShadow = "rgba(0, 0, 0, 0.35)";
 
 			if (this.hover){
-				gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.25)');
-				gdBackground.addColorStop(1.00, 'rgba(255, 255, 255, 0.15)');
+				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.25)');
+				gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.15)');
 			} else {
-				gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.10)');
-				gdBackground.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.10)');
+				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
 			}
 
 		}
 
-		canvas.roundbox(params.x, params.y, w, h, 0, gdBackground, false);
+		context.roundbox(params.x, params.y, w, h, 0, gradient, false);
 
-		canvas.setFontSize(11);
-		//canvas.setColor(textShadow);
-		//canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+		context.setFontSize(11);
+		//context.setColor(textShadow);
+		//context.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
-		canvas.setColor(textColor);
-		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+		context.setColor(textColor);
+		context.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
 
 	}
 });

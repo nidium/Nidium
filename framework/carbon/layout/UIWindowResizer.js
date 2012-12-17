@@ -52,7 +52,8 @@ Native.elements.export("UIWindowResizer", {
 		this.x = this.parent.w - this.w - 4;
 		this.y = this.parent.h - this.h - 4;
 
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -65,29 +66,29 @@ Native.elements.export("UIWindowResizer", {
         	x2 = params.x+params.w,
         	y2 = params.y+params.h;
 
-		canvas.strokeStyle = "rgba(0, 0, 0, 0.3)";
-        canvas.lineWidth = 1;
+		context.strokeStyle = "rgba(0, 0, 0, 0.3)";
+        context.lineWidth = 1;
 
-		canvas.beginPath();
-		canvas.moveTo(x1, y2);
-		canvas.lineTo(x2, y1);
-		canvas.stroke();
+		context.beginPath();
+		context.moveTo(x1, y2);
+		context.lineTo(x2, y1);
+		context.stroke();
 
-		canvas.beginPath();
-		canvas.moveTo(x1+4, y2);
-		canvas.lineTo(x2, y1+4);
-		canvas.stroke();
+		context.beginPath();
+		context.moveTo(x1+4, y2);
+		context.lineTo(x2, y1+4);
+		context.stroke();
 
-		canvas.strokeStyle = "rgba(255, 255, 255, 0.15)";
-		canvas.beginPath();
-		canvas.moveTo(x1+1, y2);
-		canvas.lineTo(x2, y1+1);
-		canvas.stroke();
+		context.strokeStyle = "rgba(255, 255, 255, 0.15)";
+		context.beginPath();
+		context.moveTo(x1+1, y2);
+		context.lineTo(x2, y1+1);
+		context.stroke();
 
-		canvas.beginPath();
-		canvas.moveTo(x1+5, y2);
-		canvas.lineTo(x2, y1+5);
-		canvas.stroke();
+		context.beginPath();
+		context.moveTo(x1+5, y2);
+		context.lineTo(x2, y1+5);
+		context.stroke();
 
 
 	}

@@ -2,11 +2,19 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
+Native.layer = new Canvas(1024, 768),
+Native.layer.context = Native.layer.getContext("2D");
+Native.canvas.context = Native.canvas.getContext("2D");
+Native.canvas.add(Native.layer);
+
+//var canvas = Native.layer.context;
+
 var window = {
-	width : canvas.width,
-	height : canvas.height,
+	width : Native.canvas.width,
+	height : Native.canvas.height,
 	mouseX : 0,
-	mouseY : 0
+	mouseY : 0,
+	requestAnimationFrame : Native.canvas.context.requestAnimationFrame
 };
 
 /* -------------------------------------------------------------------------- */
@@ -16,7 +24,7 @@ Math.distance = function(x1, y1, x2, y2){
 	return Math.sqrt(a*a+b*b);
 };
 
-/* -- The Catel Fontaine !n */
+/* -- Precalc !n */
 Math.factorial = (function(n){
 	var c = [],
 		f = function(n){
@@ -31,17 +39,15 @@ Math.factorial = (function(n){
 
 
 /* -------------------------------------------------------------------------- */
-
-canvas.implement = function(props){
+Native.canvas.implement = function(props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
-			canvas[key] = props[key];
-			Canvas.prototype[key] = props[key];
+			CanvasRenderingContext2D.prototype[key] = props[key];
 		}
 	}
 };
 
-canvas.implement({
+Native.canvas.implement({
 	setColor : function(color){
 		this.fillStyle = color;
 	},
@@ -350,7 +356,8 @@ var FPS = {
 	},
 
 	show : function(){
-		var r = 0.1 + (+ new Date()) - this.date,
+		var context = Native.layer.context,
+			r = 0.1 + (+ new Date()) - this.date,
 			fps = 1000/r;
 
 		this.count++;
@@ -359,48 +366,14 @@ var FPS = {
 			this.old = Math.round((r-0.1)*10)/10;
 		} 				
 		
-		canvas.setColor("#000000");
-		canvas.fillRect(0, canvas.height-40, 60, 30);
-		//canvas.fillRect(0, 280, 50, 30);
-		canvas.setColor("yellow");
-		canvas.fillText(this.old + " ms", 5, canvas.height-20);
+		context.setColor("#000000");
+		context.fillRect(0, window.height-40, 60, 30);
+		//context.fillRect(0, 280, 50, 30);
+		context.setColor("yellow");
+		context.fillText(this.old + " ms", 5, window.height-20);
 		
 		return r;
 	}
-};
-
-/* -------------------------------------------------------------------------- */
-
-/*
- *  Simple Iterator
- *
- *  ---------
- *  + USAGE +
- *  ---------
- *
- * 	var o = new Iterator(function(i){
- * 		echo(i);
- * 	});
- * 
- * 	o(); // 0
- * 	o(); // 1
- * 	o(); // 2
- * 	o(); // 3
- *
- */
-
-var Iterator = function(fn){
-	let g;
-	
-	{
-		var i = 0;
-		g = function(){
-			fn.call(this, i);
-			return i++;
-		}
-	}
-
-	return g;
 };
 
 /* -------------------------------------------------------------------------- */

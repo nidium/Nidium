@@ -274,13 +274,13 @@ Native.mouseHook = function(e){
 			r = this.r+1;
 
 		window.requestAnimationFrame = function(){
-			canvas.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
-			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
-			canvas.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
-			canvas.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
-			canvas.roundbox(p.x, p.y, p.w, p.h, r, "rgba(50, 80, 200, 0.05)", "#4D90FE");
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 2, "rgba(255, 255, 255, 1)");
+			context.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#ffffff");
+			context.setShadow(0, 0, 4, "rgba(80, 190, 230, 1)");
+			context.roundbox(p.x, p.y, p.w, p.h, r, "rgba(0, 0, 0, 0.0)", "#4D90FE");
+			context.setShadow(0, 0, 5, "rgba(80, 190, 230, 1)");
+			context.roundbox(p.x, p.y, p.w, p.h, r, "rgba(50, 80, 200, 0.05)", "#4D90FE");
+			context.setShadow(0, 0, 0);
 		};
 		*/
 	}
@@ -299,6 +299,27 @@ DBT(function(){
 
 /* ---------------------------------------------------------------------- */
 
+Native.canvas.apply = function(context){
+	var plugins = Native.canvas.plugins;
+
+	for (var i in plugins) {
+		var props = plugins[i];
+		for (var key in props){
+			if (props.hasOwnProperty(key)){
+				context[key] = props[key];
+			}
+		}
+	}
+};
+
+var layer02 = new Canvas(1024, 768);
+layer02.context = layer02.getContext("2D");
+Native.canvas.add(layer02);
+
+layer02.left = 150;
+
+
+
 
 var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
@@ -312,7 +333,8 @@ var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"
 
 
 	greenView = main.add("UIView", {
-		id : "greenView", 
+		id : "greenView",
+		layer : layer02, 
 		x : 6,
 		y : 272,
 		w : 450,
@@ -446,6 +468,7 @@ greenView.addEventListener("mousedown", function(e){
 }, false);
 
 greenView.addEventListener("drag", function(e){
+/*
 	this.left = e.xrel + this.x;
 	this.top = e.yrel + this.y;
 
@@ -454,9 +477,13 @@ greenView.addEventListener("drag", function(e){
 		y : e.y
 	};
 
-	var v = e.y>=(canvas.height/2) ? 1 : (e.y/(canvas.height/2));
+	var v = e.y>=(window.height/2) ? 1 : (e.y/(window.height/2));
 	this.scale = v;
 	this.opacity = v;
+*/
+
+	this.layer.left = e.x;
+
 });
 
 brique.addEventListener("dragstart", function(e){

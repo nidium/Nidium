@@ -2,7 +2,7 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-canvas.implement({
+Native.canvas.implement({
 	roundbox : function(x, y, width, height, radius, fill, stroke, lineWidth) {
 		if (!stroke && !fill) return false;
 

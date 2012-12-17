@@ -11,7 +11,12 @@ Native.elements.export("UIWindow", {
 		this.name = OptionalString(this.options.name, "Default");
 
 		this.shadowBlur = OptionalNumber(this.options.shadowBlur, 12);
-		this.shadowColor = OptionalValue(this.options.shadowColor, "rgba(0, 0, 0, 0.5)");
+
+		this.shadowColor = OptionalValue(
+			this.options.shadowColor, 
+			"rgba(0, 0, 0, 0.5)"
+		);
+
 		this.backgroundBlur = 0; //OptionalNumber(this.options.backgroundBlur, 0);
 
 		this.addEventListener("mousedown", function(e){
@@ -33,13 +38,14 @@ Native.elements.export("UIWindow", {
 			color : "#888888",
 			callback : function(){
 				var p = this.parent,
+					context = this.layer.context,
 					textHeight = 10,
 					textOffsetX = 8,
 					textOffsetY = (24-textHeight)/2 + 9;
 
-				canvas.setFontSize(11);
-				canvas.setColor(p.color);
-				canvas.fillText(p.name, p._x+textOffsetX, p._y+textOffsetY);
+				context.setFontSize(11);
+				context.setColor(p.color);
+				context.fillText(p.name, p._x+textOffsetX, p._y+textOffsetY);
 			}
 		});
 
@@ -74,8 +80,15 @@ Native.elements.export("UIWindow", {
 			this.handle.addEventListener("dragend", function(){
 				self.set("scale", 1, 50);
 				//self.set("backgroundBlur", 0, 50);
-				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
-				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+				self.set(
+					"shadowBlur", 
+					OptionalNumber(this.options.shadowBlur, 12), 
+					50
+				);
+
+				self.shadowColor = self.options.shadowColor || 
+								   "rgba(0, 0, 0, 0.5)";
+
 			}, false);
 
 			this.handle.addEventListener("mouseup", function(){
@@ -83,8 +96,16 @@ Native.elements.export("UIWindow", {
 				self._mdownhandleStarted = false;
 				self.set("scale", 1, 50);
 				self.set("backgroundBlur", 0, 50);
-				self.set("shadowBlur", OptionalNumber(this.options.shadowBlur, 12), 50);
-				self.shadowColor = self.options.shadowColor || "rgba(0, 0, 0, 0.5)";
+
+				self.set(
+					"shadowBlur", 
+					OptionalNumber(this.options.shadowBlur, 12), 
+					50
+				);
+
+				self.shadowColor = self.options.shadowColor || 
+								   "rgba(0, 0, 0, 0.5)";
+
 			}, false);
 
 		}
@@ -124,7 +145,8 @@ Native.elements.export("UIWindow", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -144,20 +166,32 @@ Native.elements.export("UIWindow", {
 
 		this.shadow = true;
 		if (this.shadow) {
-			canvas.setShadow(0, 15, this.shadowBlur, this.shadowColor);
+			context.setShadow(0, 15, this.shadowBlur, this.shadowColor);
 		}
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, this.background, false
+		);
 
 		if (this.shadow){
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 		}
 
-		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+24);
-		gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
-		gdBackground.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
-		gdBackground.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+		var gradient = context.createLinearGradient(
+			params.x, params.y, 
+			params.x, params.y+24
+		);
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
+		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
+		gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+		gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, gradient, false
+		);
 	}
 });

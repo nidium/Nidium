@@ -6,7 +6,11 @@ Native.elements.export("UIDiagramController", {
 	init : function(){
 		var self = this;
 
-		this.background = OptionalValue(this.options.background, 'rgba(0, 0, 10, 0.4)');
+		this.background = OptionalValue(
+			this.options.background, 
+			'rgba(0, 0, 10, 0.4)'
+		);
+
 		this.color = OptionalValue(this.options.color, "#ffffff");
 		this.name = OptionalString(this.options.name, "Default");
 
@@ -96,7 +100,11 @@ Native.elements.export("UIDiagramController", {
 				var absStartPoint = this.getPinConnectionPoint(sourcePin),
 					absEndPoint = this.getPinConnectionPoint(targetPin);
 
-				var v = this.getUILineVertives(sourcePin.pintype, absStartPoint, absEndPoint);
+				var v = this.getUILineVertives(
+					sourcePin.pintype, 
+					absStartPoint, 
+					absEndPoint
+				);
 
 				var link = this.add("UILine", {
 					vertices : [
@@ -126,7 +134,12 @@ Native.elements.export("UIDiagramController", {
 							y : e.y
 						};
 
-					self.updateUILine(this, sourcePin.pintype, absStartPoint, absEndPoint);
+					self.updateUILine(
+						this, 
+						sourcePin.pintype, 
+						absStartPoint, 
+						absEndPoint
+					);
 				}, false);
 
 				link.addEventListener("keydown", function(e){
@@ -176,14 +189,22 @@ Native.elements.export("UIDiagramController", {
 			var absStartPoint = this.getPinConnectionPoint(sourcePin),
 				absEndPoint = this.getPinConnectionPoint(targetPin);
 
-			this.updateUILine(link, sourcePin.pintype, absStartPoint, absEndPoint);
+			this.updateUILine(
+				link, 
+				sourcePin.pintype, 
+				absStartPoint, 
+				absEndPoint
+			);
 		};
 
 		this.updateUILine = function(UILine, pintype, absStartPoint, absEndPoint){
-			var	vertices = this.getUILineVertives(pintype, absStartPoint, absEndPoint);
+			var	vertices = this.getUILineVertives(
+				pintype, 
+				absStartPoint, 
+				absEndPoint
+			);
 			this.setUILineVertices(UILine, vertices);
 		};
-
 
 		this.getUILineVertives = function(pintype, absStartPoint, absEndPoint){
 			var	dx = this.__x,
@@ -277,7 +298,8 @@ Native.elements.export("UIDiagramController", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -285,11 +307,19 @@ Native.elements.export("UIDiagramController", {
 			};
 
 		if (this.shadowBlur != 0) {
-			canvas.setShadow(0, 0, this.shadowBlur, "rgba(0, 0, 0, 0.5)");
-			canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false);
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, this.shadowBlur, "rgba(0, 0, 0, 0.5)");
+			context.roundbox(
+				params.x, params.y, 
+				params.w, params.h, 
+				this.radius, this.background, false
+			);
+			context.setShadow(0, 0, 0);
 		} else {
-			canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false);
+			context.roundbox(
+				params.x, params.y, 
+				params.w, params.h, 
+				this.radius, this.background, false
+			);
 		}
 
 	}

@@ -2,7 +2,13 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
-/* -- Native Framework  ------------------ */
+/* -- Falcon Framework ------------------ */
+
+//load("falcon/kernel.js");
+//load("applications/demos/hello.js");
+
+
+/* -- Old Native Framework Demos ------------------ */
 
 load("carbon/native.inc.js");
 load("_demos/apps/ui.js");
@@ -68,3 +74,4 @@ load("_demos/apps/ui.js");
 /* -- Benchmarks ------------------------------- */
 
 //load('_bench/suite.js');
+

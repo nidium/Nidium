@@ -4,10 +4,11 @@
 
 Native.elements.export("UITab", {
 	init : function(){
-		var self = this;
+		var self = this,
+			context = this.layer.context;
 
 		this.flags._canReceiveFocus = true;
-		this.w = 14 + Math.round(canvas.measureText(this.label)) + 14;
+		this.w = 14 + Math.round(context.measureText(this.label)) + 14;
 		this.h = 24;
 		this.fontSize = 11;
 		this.fontType = "arial";
@@ -87,7 +88,13 @@ Native.elements.export("UITab", {
 							position : __currentDragingTabPosition+1
 						});
 
-						n.slideX(__startX, 150, function(){}, Math.physics.cubicOut);
+						n.slideX(
+							__startX, 
+							150, 
+							function(){}, 
+							Math.physics.cubicOut
+						);
+						
 						self.parent.swapTabs(i, i+1);
 						__fireEvent = true;
 
@@ -114,7 +121,13 @@ Native.elements.export("UITab", {
 							position : __currentDragingTabPosition-1
 						});
 
-						p.slideX(__endX - p.__w, 150, function(){}, Math.physics.cubicOut);
+						p.slideX(
+							__endX - p.__w, 
+							150, 
+							function(){}, 
+							Math.physics.cubicOut
+						);
+
 						self.parent.swapTabs(i, i-1);
 						__fireEvent = true;
 
@@ -158,7 +171,8 @@ Native.elements.export("UITab", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -167,7 +181,7 @@ Native.elements.export("UITab", {
 
 			radius = Math.max(3, this.radius),
 			label = this.label,
-			textWidth = Math.round(canvas.measureText(label)),
+			textWidth = Math.round(context.measureText(label)),
 			textHeight = 10,
 			w = params.w,
 			h = params.h,
@@ -179,19 +193,26 @@ Native.elements.export("UITab", {
 		this.shadow = true;
 		if (this.shadow) {
 			if (this.selected){
-				canvas.setShadow(0, 0, 2, this.background);
+				context.setShadow(0, 0, 2, this.background);
 			} else {
-				canvas.setShadow(3, -2, 3, "rgba(0, 0, 0, 0.4)");
+				context.setShadow(3, -2, 3, "rgba(0, 0, 0, 0.4)");
 			}
 		}
 
-		canvas.tabbox(params.x, params.y, w, h, radius, this.background, false);
+		context.tabbox(
+			params.x, params.y, 
+			w, h, 
+			radius, this.background, false
+		);
 
 		if (this.shadow){
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 		}
 
-		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
+		var gdBackground = context.createLinearGradient(
+			params.x, params.y, 
+			params.x, params.y+params.h
+		);
 
 		if (this.selected){
 			//textOffsetY++;
@@ -217,24 +238,24 @@ Native.elements.export("UITab", {
 
 		}
 
-		canvas.tabbox(params.x, params.y, w, h, radius, gdBackground, false);
+		context.tabbox(params.x, params.y, w, h, radius, gdBackground, false);
 		delete(gdBackground);
 
-		canvas.setFontSize(this.fontSize);
-		canvas.fontType = this.fontType;
+		context.setFontSize(this.fontSize);
+		context.fontType = this.fontType;
 
 		if (this.hasFocus && this.flags._canReceiveFocus && this.flags._outlineOnFocus) {
-			canvas.setColor("rgba(0, 0, 0, 1)");
-			canvas.setShadow(0, 0, 3, "rgba(255, 255, 255, 0.4)");
-			canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-			canvas.setShadow(0, 0, 0);
+			context.setColor("rgba(0, 0, 0, 1)");
+			context.setShadow(0, 0, 3, "rgba(255, 255, 255, 0.4)");
+			context.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+			context.setShadow(0, 0, 0);
 		}
 
-//		canvas.setColor(textShadow);
-//		canvas.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
+//		context.setColor(textShadow);
+//		context.fillText(label, params.x+textOffsetX+1, params.y+textOffsetY+1);
 
-		canvas.setColor(textColor);
-		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+		context.setColor(textColor);
+		context.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
 
 	}
 });

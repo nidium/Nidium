@@ -81,6 +81,8 @@ load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 
 "use strict";
 
+var counter = 0;
+
 Native.layout = {
 	ready : false,
 
@@ -134,7 +136,6 @@ Native.layout = {
 
 		this.collectGarbage(elements);
 		this.destroy(rootElement);
-		canvas.__mustBeDrawn = true;
 	},
 
 	/*
@@ -164,18 +165,51 @@ Native.layout = {
 	},
 
 	draw : function(){
+/*
+		var self = this;
+
+		var dx = function(z, parent){
+			for (var i in z){
+
+				if (z[i].needRedraw){
+					z[i].refresh();
+
+					if (z[i].isVisible()){
+
+						z[i].beforeDraw();
+						z[i].draw();
+						z[i].afterDraw();
+
+
+						if (self.count(z[i].nodes)>0) {
+							dx(z[i].nodes, z[i].parent);
+						}
+					}
+
+					z[i].needRedraw = false;
+
+				}
+
+			}
+		};
+
+		dx(this.nodes);
+*/
+
 		var z = this.getElements();
-		if (canvas.__mustBeDrawn || true) {
-			for (var i=0; i<z.length; i++){
+
+		for (var i=0; i<z.length; i++){
+			//if (z[i].needRedraw) {
 				z[i].refresh();
 				if (z[i].isVisible()){
 					z[i].beforeDraw();
 					z[i].draw();
 					z[i].afterDraw();
 				}
-			}
-			canvas.__mustBeDrawn = false;
+				z[i].needRedraw = false;
+			//}
 		}
+
 		if (this.ready===false){
 			this.ready = true;
 			this.rootElement.fireEvent("load");
@@ -184,13 +218,15 @@ Native.layout = {
 	},
 
 	grid : function(){
-		for (var x=0; x<canvas.width ; x+=80) {
-			canvas.beginPath();
-			canvas.moveTo(x, 0);
-			canvas.lineTo(x, canvas.height);
-			canvas.moveTo(0, x);
-			canvas.lineTo(canvas.width, x);
-			canvas.stroke();
+		var context = Native.layer.context;
+
+		for (var x=0; x<window.width ; x+=80) {
+			context.beginPath();
+			context.moveTo(x, 0);
+			context.lineTo(x, window.height);
+			context.moveTo(0, x);
+			context.lineTo(window.width, x);
+			context.stroke();
 
 		}
 	},
@@ -312,10 +348,18 @@ Native.layout = {
 		element.fireEvent("top", {});
 		element.zIndex = this.getHigherZindex() + 1;
 		this.currentOnTopElement = element;
+		this.refresh(element);
 	},
 
-	refresh : function(){
-		/* dummy */
+	refresh : function(element){
+		//element.needRedraw = true;
+
+			
+		this.bubble(element, function(){
+			this.needRedraw = true;
+		});
+		
+		
 	}
 
 };

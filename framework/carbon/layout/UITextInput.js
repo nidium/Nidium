@@ -27,7 +27,8 @@ Native.elements.export("UITextInput", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -38,19 +39,31 @@ Native.elements.export("UITextInput", {
 
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
-			canvas.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
+			context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
 		}
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, this.background, false
+		);
 
 		if (__ENABLE_BUTTON_SHADOWS__){
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 		}
 
-		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
-		gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
-		gdBackground.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
-		gdBackground.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+		var gradient = context.createLinearGradient(
+			params.x, params.y, 
+			params.x, params.y+params.h
+		);
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
+		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
+		gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+		gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, gradient, false
+		);
 	}
 });

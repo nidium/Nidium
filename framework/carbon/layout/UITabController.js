@@ -55,14 +55,20 @@ Native.elements.export("UITabController", {
 
 		this.selectNextTab = function(){
 			var p = self.position, // current selected tab position
-				tab = self.getTab(p+1) ? self.getTab(p+1).tabnum : self.getTab(p).tabnum; // next tab at position p+1
+				
+				// next tab at position p+1
+				tab = self.getTab(p+1) ? 
+					  self.getTab(p+1).tabnum : self.getTab(p).tabnum;
 
 			self.selectTab(tab);
 		};
 
 		this.selectPreviousTab = function(){
 			var p = self.position, // current selected tab position
-				tab = self.getTab(p-1) ? self.getTab(p-1).tabnum : self.getTab(p).tabnum;; // previous tab at position p-1
+			
+				// previous tab at position p-1
+				tab = self.getTab(p-1) ? 
+					  self.getTab(p-1).tabnum : self.getTab(p).tabnum; 
 
 			self.selectTab(tab);
 		};
@@ -190,11 +196,13 @@ Native.elements.export("UITabController", {
 				selected = options.selected ? options.selected : false,
 				closable = options.closable===false ? false : true,
 				preventmove = options.preventmove===true ? true : false,
-				background = options.background ? options.background : "#262722",
+
+				background = options.background ? 
+							 options.background : "#262722",
+
 				color = options.color ? options.color : "#abacaa",
 
 				l = tabs.length;
-
 
 			if (selected) {
 				self.selection = i;
@@ -244,14 +252,19 @@ Native.elements.export("UITabController", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
 				h : this.h
 			};
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, this.radius, this.background, false); // main view
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			this.radius, this.background, false
+		);
 
 	}
 });

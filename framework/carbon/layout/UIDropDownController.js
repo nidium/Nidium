@@ -13,8 +13,17 @@ Native.elements.export("UIDropDownController", {
 		
 		this.background = OptionalValue(this.options.background, '#191a18');
 		this.color = OptionalValue(this.options.color, "#ffffff");
-		this.selectedBackground = OptionalValue(this.options.selectedBackground, "#4D90FE");
-		this.selectedColor = OptionalValue(this.options.selectedColor, "#FFFFFF");
+		
+		this.selectedBackground = OptionalValue(
+			this.options.selectedBackground, 
+			"#4D90FE"
+		);
+		
+		this.selectedColor = OptionalValue(
+			this.options.selectedColor, 
+			"#FFFFFF"
+		);
+
 		this.name = OptionalString(this.options.name, "Default");
 		this.selection = 0;
 		this.tabs = [];
@@ -51,7 +60,10 @@ Native.elements.export("UIDropDownController", {
 		this._addTab = function(i, options, y){
 			var label = options.label ? options.label : "New options",
 				selected = options.selected ? options.selected : false,
-				background = options.background ? options.background : "#262722",
+
+				background = options.background ? options.background 
+												: "#262722",
+
 				color = options.color ? options.color : "#abacaa";
 
 			if (selected) {
@@ -169,7 +181,8 @@ Native.elements.export("UIDropDownController", {
 	},
 
 	draw : function(){
-		var params = {
+		var context = this.layer.context,
+			params = {
 				x : this._x,
 				y : this._y,
 				w : this.w,
@@ -185,36 +198,48 @@ Native.elements.export("UIDropDownController", {
 
 			label = this.tabs[this.selection].label;
 
-
-
 		this.shadow = true;
 		if (this.shadow) {
 			if (this.selected){
-				canvas.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
+				context.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
 			} else {
-				canvas.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
+				context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
 			}
 		}
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, this.background, false); // main view
+		
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, 
+			this.background, 
+			false
+		);
+
 		if (this.shadow){
-			canvas.setShadow(0, 0, 0);
+			context.setShadow(0, 0, 0);
 		}
 
-		var gdBackground = canvas.createLinearGradient(params.x, params.y, params.x, params.y+params.h);
-		gdBackground.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
-		gdBackground.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
-		gdBackground.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
+		var gradient = context.createLinearGradient(
+			params.x, params.y, 
+			params.x, params.y+params.h
+		);
 
-		canvas.roundbox(params.x, params.y, params.w, params.h, radius, gdBackground, false); // main view
+		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
+		gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+		gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
 
-		canvas.setFontSize(11);
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			radius, gradient, false
+		);
 
-		//if (this.shadow) { canvas.setShadow(1, 1, 1, textShadow); }
-		canvas.setColor(textColor);
-		canvas.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-		//if (this.shadow){ canvas.setShadow(0, 0, 0); }
+		context.setFontSize(11);
 
-
+		//if (this.shadow) { context.setShadow(1, 1, 1, textShadow); }
+		context.setColor(textColor);
+		context.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
+		//if (this.shadow){ context.setShadow(0, 0, 0); }
 
 	}
 });
