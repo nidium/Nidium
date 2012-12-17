@@ -199,13 +199,13 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
         jdata = OBJECT_TO_JSVAL(arrayBuffer);
 
     } else {
-    	JSString *jstr = JS_NewStringCopyN(cx, (char *)s->data_in.data,
+        JSString *jstr = JS_NewStringCopyN(cx, (char *)s->data_in.data,
             s->data_in.used);
 
-    	if (jstr == NULL) {
-    		printf("JS_NewStringCopyN Failed\n");
-    		return;
-    	}
+        if (jstr == NULL) {
+            printf("JS_NewStringCopyN Failed\n");
+            return;
+        }
         jdata = STRING_TO_JSVAL(jstr);        
     }
 
@@ -378,7 +378,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 
     socket->ctx = nsocket;
 
-    nsocket->cx 	  = cx;
+    nsocket->cx       = cx;
     nsocket->jsobject = caller;
 
     if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
@@ -439,7 +439,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     JSAutoByteString cdata(cx, data);
 
     nsocket->write((unsigned char*)cdata.ptr(),
-    	strlen(cdata.ptr()), APE_DATA_COPY);
+        strlen(cdata.ptr()), APE_DATA_COPY);
 
     return JS_TRUE;
 }
@@ -504,56 +504,56 @@ static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 }
 
 NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
-	: jsobject(NULL), socket(NULL), flags(0)
+    : jsobject(NULL), socket(NULL), flags(0)
 {
-	cx = NULL;
+    cx = NULL;
 
-	this->host = strdup(host);
-	this->port = port;
+    this->host = strdup(host);
+    this->port = port;
 }
 
 NativeJSSocket::~NativeJSSocket()
 {
-	if (isAttached()) {
-		socket->ctx = NULL;
+    if (isAttached()) {
+        socket->ctx = NULL;
         printf("destructor called\n");
         this->disconnect();
-	}
+    }
     free(host);
 }
 
 bool NativeJSSocket::isAttached()
 {
-	return (socket != NULL);
+    return (socket != NULL);
 }
 
 bool NativeJSSocket::isJSCallable()
 {
-	return (cx != NULL && jsobject != NULL);
+    return (cx != NULL && jsobject != NULL);
 }
 
 void NativeJSSocket::dettach()
 {
-	if (isAttached()) {
-		socket->ctx = NULL;
-		socket = NULL;
-	}
+    if (isAttached()) {
+        socket->ctx = NULL;
+        socket = NULL;
+    }
 }
 
 void NativeJSSocket::write(unsigned char *data, size_t len,
-	ape_socket_data_autorelease data_type)
+    ape_socket_data_autorelease data_type)
 {
-	APE_socket_write(socket, data, len, data_type);
+    APE_socket_write(socket, data, len, data_type);
 }
 
 void NativeJSSocket::disconnect()
 {
-	APE_socket_shutdown_now(socket);
+    APE_socket_shutdown_now(socket);
 }
 
 void NativeJSSocket::shutdown()
 {
-	APE_socket_shutdown(socket);
+    APE_socket_shutdown(socket);
 }
 
 NATIVE_OBJECT_EXPOSE(Socket)

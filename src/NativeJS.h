@@ -19,6 +19,7 @@ struct native_thread_msg
 
 class NativeSharedMessages;
 class NativeSkia;
+class NativeCanvasHandler;
 
 typedef struct _ape_global ape_global;
 
@@ -31,8 +32,11 @@ class NativeJS
         struct JSContext *cx;
         NativeSharedMessages *messages;
         NativeSkia *surface;
+        NativeCanvasHandler *rootHandler;
+
         NativeJS(int width, int height);
         ~NativeJS();
+        
         int LoadScript(const char *filename);
         void callFrame();
         void postDraw();

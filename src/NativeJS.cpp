@@ -11,8 +11,10 @@
 #include "NativeJSWindow.h"
 #include "NativeFileIO.h"
 #include "NativeJSWebGL.h"
-#include "NativeJSDebug.h"
 #include "NativeJSCanvas.h"
+
+#include "NativeCanvasHandler.h"
+#include "NativeCanvas2DContext.h"
 
 #include "SkImageDecoder.h"
 
@@ -494,8 +496,11 @@ NativeJS::NativeJS(int width, int height)
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
     /* surface contains the window frame buffer */
-    surface = new NativeSkia();
-    surface->bindGL(width, height);
+
+    rootHandler = new NativeCanvasHandler(width, height);
+    rootHandler->context = new NativeCanvas2DContext(width, height);
+
+    surface = rootHandler->context->skia;
 
     //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
@@ -536,9 +541,10 @@ NativeJS::~NativeJS()
 
     JS_ShutDown();
 
+    delete rootHandler;
+
     NativeSkia::glcontext = NULL;
     NativeSkia::glsurface = NULL;
-    NativeJSNative::context2D = NULL;
 
     delete messages;
     //delete nskia; /* TODO: why is that commented out? */
@@ -685,6 +691,8 @@ int NativeJS::LoadScript(const char *filename)
 
 void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
 {
+    /* CanvasRenderingContext2D object */
+    NativeCanvas2DContext::registerObject(cx);
     /* Canvas() object */
     NativeJSCanvas::registerObject(cx);
     /* Socket() object */
@@ -696,6 +704,7 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     /* Image() object */
     NativeJSImage::registerObject(cx);
     /* WebGL*() object */
+    #if WEBGL_ENABLED
     NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLObject::registerObject(cx);
@@ -706,13 +715,14 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     NativeJSWebGLShader::registerObject(cx);
     NativeJSWebGLTexture::registerObject(cx);
     NativeJSWebGLUniformLocation::registerObject(cx);
+    #endif
 
     /* Native() object */
     NativeJSNative::registerObject(cx);
     /* window() object */
     NativeJSwindow::registerObject(cx);
 
-    NativeJSDebug::registerObject(cx);
+    //NativeJSDebug::registerObject(cx);
 
 }
 

@@ -366,19 +366,6 @@ int NativeSkia::bindOffScreen(int width, int height)
 }
 
 
-int NativeSkia::addSubCanvas(NativeSkia *sub)
-{
-    if (sub->native_canvas_bind_mode == NativeSkia::BIND_GL ||
-        native_canvas_bind_mode == NativeSkia::BIND_NO) {
-        printf("Wrong bind\n");
-        return 0;
-    }
-
-    handler.addChild(sub);
-
-    return 1;
-}
-
 int NativeSkia::bindGL(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
@@ -487,19 +474,12 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 NativeSkia::NativeSkia()
 {
-    obj = NULL;
-    handler.self = this;
     this->native_canvas_bind_mode = NativeSkia::BIND_NO;
 }
 
 NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
-
-    if (obj && cx) {
-        /* Added in NativeJSCanvas::generateJSObject */
-        JS_RemoveObjectRoot(cx, &this->obj);
-    }
 
     while(nstate) {
         struct _nativeState *tmp = nstate->next;
@@ -1219,17 +1199,6 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     return 1;
 }
 
-void NativeSkia::setPosition(double left, double top)
-{
-    handler.left = left;
-    handler.top = top;
-}
-
-void NativeSkia::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
-{
-    handler.coordPosition = mode;
-}
-
 /*
 static SkBitmap load_bitmap() {
     SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
@@ -1250,33 +1219,4 @@ void NativeSkia::flush()
     canvas->flush();
 }
 
-void NativeSkia::layerize(NativeSkia *layer, double left, double top)
-{
-    NativeSkia *cur;
-#if 0
-    if (handler.parent && layer == NULL) {
-        printf("Warning : Layerize on a non-root canvas\n");
-    }
-#endif
-    if (layer == NULL) {
-        layer = this;
-        layer->canvas->clear(0xFFFFFFFF);
-    } else {
-        double cleft = 0.0, ctop = 0.0;
 
-        if (handler.coordPosition == NativeCanvasHandler::COORD_RELATIVE) {
-            cleft = left;
-            ctop = top;
-        }
-
-        layer->canvas->drawBitmap(canvas->getDevice()->accessBitmap(false),
-                                    SkDoubleToScalar(cleft) + SkDoubleToScalar(handler.left),
-                                    SkDoubleToScalar(ctop) + SkDoubleToScalar(handler.top));
-        layer->canvas->flush();
-    }
-
-    for (cur = handler.children; cur != NULL; cur = cur->handler.next) {
-        cur->layerize(layer, handler.left + left, handler.top + top);
-    }
-
-}

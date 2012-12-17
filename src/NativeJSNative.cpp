@@ -1,9 +1,9 @@
 #include "NativeJSNative.h"
 #include "NativeSkia.h"
 #include "NativeJSCanvas.h"
+#include "NativeJS.h"
 
 bool NativeJSNative::showFPS = false;
-NativeSkia *NativeJSNative::context2D = NULL;
 
 static JSClass Native_class = {
     "Native", 0,
@@ -13,14 +13,13 @@ static JSClass Native_class = {
 };
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec Native_funcs[] = {
     JS_FN("showFPS", native_showfps, 1, 0),
-    JS_FN("getContext", native_getContext, 1, 0),
     JS_FS_END
 };
 
+#if 0
 /* Lazy resolve the "main" canvas surface */
 static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -52,6 +51,7 @@ static JSBool native_getContext(JSContext *cx, unsigned argc, jsval *vp)
 
     return JS_TRUE;
 }
+#endif
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -66,5 +66,22 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-NATIVE_OBJECT_EXPOSE_NOT_INST(Native)
+void NativeJSNative::registerObject(JSContext *cx)
+{
+    JSObject *NativeObj;
+    JSObject *canvas;
+    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+
+    NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "Native",
+        &Native_class , NULL, 0);
+
+    canvas = NativeJSCanvas::generateJSObject(cx, 1024, 768);
+
+    /* Set the newly generated CanvasHandler as first child of rootHandler */
+    NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
+
+    JS_DefineFunctions(cx, NativeObj, Native_funcs);
+    JS_DefineProperty(cx, NativeObj, "canvas",
+        OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
+}
 
