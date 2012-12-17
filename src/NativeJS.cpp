@@ -11,7 +11,6 @@
 #include "NativeJSWindow.h"
 #include "NativeFileIO.h"
 #include "NativeJSWebGL.h"
-#include "NativeJSDebug.h"
 #include "NativeJSCanvas.h"
 
 #include "NativeCanvasHandler.h"
@@ -703,7 +702,8 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     /* Image() object */
     NativeJSImage::registerObject(cx);
     /* WebGL*() object */
-    /*NativeJSNativeGL::registerObject(cx);
+    #if WEBGL_ENABLED
+    NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLObject::registerObject(cx);
     NativeJSWebGLBuffer::registerObject(cx);
@@ -712,7 +712,8 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     NativeJSWebGLRenderbuffer::registerObject(cx);
     NativeJSWebGLShader::registerObject(cx);
     NativeJSWebGLTexture::registerObject(cx);
-    NativeJSWebGLUniformLocation::registerObject(cx);*/
+    NativeJSWebGLUniformLocation::registerObject(cx);
+    #endif
 
     /* Native() object */
     NativeJSNative::registerObject(cx);

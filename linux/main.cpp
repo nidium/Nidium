@@ -154,7 +154,8 @@ int NativeEvents(SDL_Window *win)
         glClear(GL_COLOR_BUFFER_BIT);*/
 
         NJS->callFrame();
-        NJS->surface->layerize(NULL);
+        NJS->rootHandler->layerize(NULL, 0, 0);
+        NJS->postDraw();
     
         /*for (int x = 0; x < 3000; x++) {
             glWindowPos2i(10+(x), 700);
