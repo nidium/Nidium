@@ -36,6 +36,8 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
+    jsval *vp);
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 
@@ -43,7 +45,7 @@ static JSPropertySpec canvas_props[] = {
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-        
+
     {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
@@ -68,6 +70,7 @@ static JSPropertySpec canvas_props[] = {
 static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getContext", native_canvas_getContext, 1, 0),
     JS_FN("add", native_canvas_addSubCanvas, 1, 0),
+    JS_FN("removeFromParent", native_canvas_removeFromParent, 0, 0),
     JS_FN("show", native_canvas_show, 0, 0),
     JS_FN("hide", native_canvas_hide, 0, 0),
     JS_FS_END
@@ -83,6 +86,14 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
 {
     HANDLER_FROM_CALLEE->setHidden(true);
+    
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    HANDLER_FROM_CALLEE->removeFromParent();
     
     return JS_TRUE;
 }
