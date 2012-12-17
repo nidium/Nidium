@@ -692,6 +692,8 @@ int NativeJS::LoadScript(const char *filename)
 
 void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
 {
+    /* CanvasRenderingContext2D object */
+    NativeCanvas2DContext::registerObject(cx);
     /* Canvas() object */
     NativeJSCanvas::registerObject(cx);
     /* Socket() object */

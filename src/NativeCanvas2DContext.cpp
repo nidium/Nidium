@@ -1023,3 +1023,19 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
 {
     delete skia;
 }
+
+static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
+{
+    if (JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
+    return JS_TRUE;
+}
+
+void NativeCanvas2DContext::registerObject(JSContext *cx)
+{
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas2DContext_class,
+                native_Canvas2DContext_constructor,
+                0, NULL, NULL, NULL, NULL);
+}
