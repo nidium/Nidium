@@ -14,7 +14,8 @@ enum {
     CANVAS_PROP_POSITION,
     CANVAS_PROP_TOP,
     CANVAS_PROP_LEFT,
-    CANVAS_PROP_VISIBLE
+    CANVAS_PROP_VISIBLE,
+    CANVAS_PROP___VISIBLE
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -39,20 +40,28 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
-    {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT,
+    {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT,
+        
+    {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"position", CANVAS_PROP_POSITION, JSPROP_PERMANENT,
+
+    {"position", CANVAS_PROP_POSITION, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER, JSOP_WRAPPER(native_canvas_prop_set)},
-    {"top", CANVAS_PROP_TOP, JSPROP_PERMANENT,
+
+    {"top", CANVAS_PROP_TOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT,
+
+    {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT,
+
+    {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"__visible", CANVAS_PROP___VISIBLE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -202,6 +211,8 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
             break;
+        case CANVAS_PROP___VISIBLE:
+            vp.set(BOOLEAN_TO_JSVAL(handler->isDisplayed()));
         default:
             break;
     }
