@@ -68,12 +68,12 @@ void NativeCanvasHandler::removeFromParent()
     if (!parent) {
         return;
     }
-
+    
     if (parent->children == this) {
         parent->children = next;
     }
 
-    if (parent->last == this->last) {
+    if (parent->last == this) {
         parent->last = prev;
     }
 

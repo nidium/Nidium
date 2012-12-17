@@ -113,38 +113,38 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
-    {"fillStyle", CTX_PROP_FILLSTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"fillStyle", CTX_PROP_FILLSTYLE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"strokeStyle", CTX_PROP_STROKESTYLE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"strokeStyle", CTX_PROP_STROKESTYLE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"lineWidth", CTX_PROP_LINEWIDTH, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"lineWidth", CTX_PROP_LINEWIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"globalAlpha", CTX_PROP_GLOBALALPHA, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"globalAlpha", CTX_PROP_GLOBALALPHA, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
     {"globalCompositeOperation", CTX_PROP_GLOBALCOMPOSITEOPERATION,
-    JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"fontSize", CTX_PROP_FONTSIZE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"fontSize", CTX_PROP_FONTSIZE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"fontType", CTX_PROP_FONTTYPE, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"fontType", CTX_PROP_FONTTYPE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"lineCap", CTX_PROP_LINECAP, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"lineCap", CTX_PROP_LINECAP, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"lineJoin", CTX_PROP_LINEJOIN, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"lineJoin", CTX_PROP_LINEJOIN, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowOffsetX", CTX_PROP_SHADOWOFFSETX, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"shadowOffsetX", CTX_PROP_SHADOWOFFSETX, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowOffsetY", CTX_PROP_SHADOWOFFSETY, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"shadowOffsetY", CTX_PROP_SHADOWOFFSETY, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowBlur", CTX_PROP_SHADOWBLUR, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"shadowBlur", CTX_PROP_SHADOWBLUR, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowColor", CTX_PROP_SHADOWCOLOR, JSPROP_PERMANENT, JSOP_NULLWRAPPER,
+    {"shadowColor", CTX_PROP_SHADOWCOLOR, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
     /* TODO : cache (see https://bugzilla.mozilla.org/show_bug.cgi?id=786126) */
-    {"width", CTX_PROP_WIDTH, JSPROP_PERMANENT,
+    {"width", CTX_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas2dctx_prop_get),
         JSOP_NULLWRAPPER},
-    {"height", CTX_PROP_HEIGHT, JSPROP_PERMANENT,
+    {"height", CTX_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas2dctx_prop_get),
         JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
@@ -517,11 +517,11 @@ static JSBool native_canvas2dctx_getImageData(JSContext *cx,
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
-        NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+        NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
-        NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+        NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer),
-        NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+        NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(dataObject));
 
@@ -573,10 +573,10 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), NULL, NULL,
-        JSPROP_PERMANENT | JSPROP_READONLY);
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), NULL, NULL,
-        JSPROP_PERMANENT | JSPROP_READONLY);
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
     if (arrBuffer == NULL) {
@@ -585,7 +585,7 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     }
 
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
-        NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(dataObject));
 
@@ -740,7 +740,7 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp)
 {
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
     double left = 0, right = 0, top = 0, bottom = 0;
     JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
@@ -1022,4 +1022,20 @@ NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
     delete skia;
+}
+
+static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
+{
+    if (JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
+    return JS_TRUE;
+}
+
+void NativeCanvas2DContext::registerObject(JSContext *cx)
+{
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas2DContext_class,
+                native_Canvas2DContext_constructor,
+                0, NULL, NULL, NULL, NULL);
 }
