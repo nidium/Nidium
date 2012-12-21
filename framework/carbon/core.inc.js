@@ -627,7 +627,7 @@ DOMElement.proxy = function(obj, handler){
 
 Native.elements = {
 	export : function(type, implement){
-		if (type=="export" || type=="export" || type=="export"){
+		if (type=="export" || type=="build" || type=="init"){
 			return false;
 		}
 		this[type] = implement;

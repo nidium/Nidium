@@ -1,17 +1,17 @@
 /* -------------------------- */
-/* Native (@) 2012 Stight.com */
+/* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
 /* -- Falcon Framework ------------------ */
 
-//load("falcon/kernel.js");
-//load("applications/demos/hello.js");
+load("falcon/native.js");
+load("applications/demos/hello.js");
 
 
 /* -- Old Native Framework Demos ------------------ */
 
-load("carbon/native.inc.js");
-load("_demos/apps/ui.js");
+//load("carbon/native.inc.js");
+//load("_demos/apps/ui.js");
 
 //load('_demos/apps/windows.js');
 //load('_demos/apps/sliders.js');
