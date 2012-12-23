@@ -10,8 +10,10 @@ Native.scope = this;
 
 Native.layout = {
 	objID : 0,
+	nbObj : 0, // Number of elements
+
 	nodes : {}, // May content several trees of elements
-	elements : [], // Flat representation of Trees (zIndex sorted elements)
+	elements : [], // Flat representation of node trees (zIndex sorted elements)
 
 	rootElement : null,
 	higherzIndex : 0,
@@ -73,9 +75,33 @@ Native.layout = {
 		}
 	},
 
-	draw : function(){
+	/*
+	 * Recompute index on element insertion or removal
+	 */
+	update : function(){
+		var elements = [],
+			self = this,
+			n = 0;
 
-		var z = this.getElements();
+		this.bubble(this, function(){
+			this._nid = n++;
+			elements.push(this);
+		});
+
+		this.nbObj = n;
+
+		this.elements = elements.sort(function(a, b){
+			return a._zIndex - b._zIndex;
+		});
+
+		this.higherzIndex = elements[elements.length-1] ?
+			elements[elements.length-1]._zIndex : 0;
+
+		this.elements = elements;
+	},
+
+	draw : function(){
+		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
 			if (z[i]._needRedraw) {
@@ -98,39 +124,16 @@ Native.layout = {
 
 	},
 
-	getElements : function(){
-		var elements = [],
-			self = this,
-			n = 0;
-
-		this.bubble(this, function(){
-			this._nid = n++;
-			elements.push(this);
-		});
-
-		this.nbObj = n;
-
-		/*
-		this.elements = elements.sort(function(a, b){
-			return a._zIndex - b._zIndex;
-		});
-
-		this.higherzIndex = elements[elements.length-1] ?
-			elements[elements.length-1]._zIndex : 0;
-		*/
-
-		return elements;
-	},
-
 	find : function(property, value){
 		var elements = [],
-			self = this;
+			z = this.elements;
 
-		this.bubble(this, function(){
-			if (this[property] && this[property] == value){
-				elements.push(this);
+		for (var i=0; i<z.length; i++){
+			let o = z[i];
+			if (o[property] && o[property] == value){
+				elements.push(o);
 			}
-		});
+		}
 
 		elements.each = function(cb){
 			for (var i in elements) {
@@ -141,6 +144,38 @@ Native.layout = {
 		};
 
 		return elements;
+	},
+
+	getElements : function(){
+		return this.elements;
+	},
+
+	getElementsByName : function(name){
+		return this.find("name", name);
+	},
+
+	getElementsByClassName : function(name){
+		var pattern = new RegExp("(^|\\s)"+searchClass+"(\\s|$)"),
+			z = this.elements,
+			elements = [];
+
+		for (var i=0; i<z.length; i++){
+			pattern.test(z[i].className) && elements.push(z[i]);
+		}
+		return elements;
+	},
+
+	getElementById : function(id){
+		var z = this.elements,
+			element = undefined;
+
+		for (var i=0; i<z.length; i++){
+			let o = z[i];
+			if (o.id && o.id == id){
+				element = z[i];
+			}
+		}
+		return element;
 	},
 
 	count : function(nodes){
@@ -251,4 +286,30 @@ Native.getLocalImage = function(element, url, callback){
 		img.src = url;
 	}
 };
+
+/* -------------------------------------------------------------------------- */
+
+Native.StyleSheet = {
+	document : {},
+	add : function(sheet){
+		for (var k in sheet){
+			if (sheet.hasOwnProperty(k)){
+				if (this.document[k]){
+					this.mergeProperties(k, sheet[k]);
+				} else {
+					this.document[k] = sheet[k];
+				}
+			}
+		}
+	},
+
+	mergeProperties : function(klass, properties){
+		var prop = this.document[klass];
+		for (var p in properties){
+			prop[p] = properties[p];
+		}
+	}
+};
+
+/* -------------------------------------------------------------------------- */
 

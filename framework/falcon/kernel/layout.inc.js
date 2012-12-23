@@ -73,6 +73,10 @@ var DOMElement = function(type, options, parent){
 		fontSize : OptionalNumber(o.fontSize, 12),
 		fontType : OptionalString(o.fontType, "arial"),
 
+		// class management
+		className : "",
+
+		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
 		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),
 
@@ -111,6 +115,10 @@ var DOMElement = function(type, options, parent){
 };
 
 Native.proxy = {
+	__noSuchMethod__ : function(id, args){
+		throw("Undefined method " + id);
+	},
+
 	add : function(type, options){
 		var element = new DOMElement(type, options, this);
 		this.addChild(element);
@@ -141,13 +149,14 @@ Native.proxy = {
 		var w = Math.round(element._width + 2*element._layerPadding),
 			h = Math.round(element._height + 2*element._layerPadding);
 
-		element.parent = this;
 		element.layer = new Canvas(w, h);
 		element.layer.context = element.layer.getContext("2D");
-		this.layer.add(element.layer);
+		element.parent = this;
+		element.parent.layer.add(element.layer);
 
 		Native.elements.init(element);
 		this.nodes[element._uid] = element;
+		Native.layout.update();
 	},
 
 	removeChild : function(element){
@@ -155,6 +164,7 @@ Native.proxy = {
 			throw("Unable to remove this element.");
 		}
 		Native.layout.remove(element);
+		Native.layout.update();
 	},
 
 	clear : function(){
@@ -215,13 +225,31 @@ Native.proxy = {
 			w : this.width,
 			h : this.height
 		};
+	},
+
+	hasClass : function(name){
+		return new RegExp('(\\s|^)'+name+'(\\s|$)').test(this.className);
+	},
+
+	addClass : function(name){
+		if (!this.hasClass(name)){
+			this.className += (this.className ? ' ' : '') +name;
+		}
+	},
+
+	removeClass : function(name){
+		if (this.hasClass(name)){
+			let r = new RegExp('(\\s|^)'+name+'(\\s|$)'),
+				k = this.className;
+
+			this.className = k.replace(r,' ').replace(/^\s+|\s+$/g, '');
+		}
 	}
+
 };
 
 DOMElement.prototype = {
-	__noSuchMethod__ : function(id, args){
-		throw("Undefined method " + id);
-	},
+	__noSuchMethod__ : Native.proxy.__noSuchMethod__,
 
 	add : Native.proxy.add,
 	remove : Native.proxy.remove,
@@ -241,6 +269,10 @@ DOMElement.prototype = {
 	isPointInside : Native.proxy.isPointInside,
 	isVisible : Native.proxy.isVisible,
 	getDrawingBounds : Native.proxy.getDrawingBounds,
+
+	hasClass : Native.proxy.hasClass,
+	addClass : Native.proxy.addClass,
+	removeClass : Native.proxy.removeClass,
 
 	update : function(context){},
 	draw : function(context){}
@@ -339,6 +371,7 @@ var Application = function(options){
 	Native.elements.init(element);
 	Native.layout.rootElement = element;
 	Native.layout.register(element);
+	Native.layout.update();
 
 	window.requestAnimationFrame(function(){
 		FPS.start();
