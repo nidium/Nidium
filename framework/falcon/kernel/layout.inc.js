@@ -42,8 +42,7 @@ var DOMElement = function(type, options, parent){
 
 	/* Read Only Properties */
 	DOMElement.defineReadOnlyProperties(this, {
-		type : OptionalString(type, "UIView"),
-		root : p ? p.root : this
+		type : OptionalString(type, "UIView")
 	});
 
 	/* Public Properties (visual impact on element, need redraw) */
@@ -92,6 +91,7 @@ var DOMElement = function(type, options, parent){
 
 	/* Internal Hidden Properties */
 	DOMElement.defineInternalProperties(this, {
+		_root : p ? p._root : this,
 		_uid : "_obj_" + Native.layout.objID++,
 		_eventQueues : [],
 		_mutex : [],
@@ -184,8 +184,8 @@ Native.proxy = {
 			this.layer.clear();
 			this.layer.visible = this.visible;
 			this.layer.context.globalAlpha = this.opacity;
-			this.layer.left = this.left + this.__layerPadding;
-			this.layer.top = this.top + this.__layerPadding;
+			this.layer.left = Math.round(this.left + this.__layerPadding);
+			this.layer.top = Math.round(this.top + this.__layerPadding);
 		}
 	},
 

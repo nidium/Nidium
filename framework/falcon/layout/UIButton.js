@@ -3,6 +3,16 @@
 /* -------------------------- */
 
 Native.elements.export("UIButton", {
+	refresh : function(){
+		var textWidth = Native.getTextWidth(
+			this.label,
+			this.fontSize,
+			this.fontType
+		);
+
+		this.width = 10 + Math.round(textWidth) + 10;
+	},
+
 	init : function(){
 		var o = this.options;
 
@@ -34,16 +44,6 @@ Native.elements.export("UIButton", {
 			this.hover = false;
 		});
 
-	},
-
-	refresh : function(){
-		var textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
-		);
-
-		this.width = 10 + Math.round(textWidth) + 10;
 	},
 
 	draw : function(context){

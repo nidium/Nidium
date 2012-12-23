@@ -15,7 +15,6 @@ Native.layout = {
 	nodes : {}, // May content several trees of elements
 	elements : [], // Flat representation of node trees (zIndex sorted elements)
 
-	rootElement : null,
 	higherzIndex : 0,
 
 	register : function(rootElement){
@@ -235,6 +234,7 @@ Native.elements = {
 
 		if (!element.parent){
 			element._layerPadding = 0;
+			element._root = element;
 			element.layer = Native.canvas;
 			element.layer.context = Native.canvas.context;
 			Native.layout.register(element);
@@ -242,11 +242,11 @@ Native.elements = {
 
 		if (plugin){
 
-			if (plugin.init) plugin.init.call(element);
 			if (plugin.refresh) {
 				element.update = plugin.refresh;
 				element.update();
 			}
+			if (plugin.init) plugin.init.call(element);
 			if (plugin.draw) element.draw = plugin.draw;
 			if (element.canReceiveFocus) {
 				element.addEventListener("mousedown", function(e){
