@@ -104,7 +104,7 @@ var DOMElement = function(type, options, parent){
 		_absx : 0,
 		_absy : 0,
 
-		_layerPadding : 12,
+		_layerPadding : 10,
 		_cachedBackgroundImage : null,
 
 		_needRedraw : true
@@ -171,7 +171,7 @@ Native.proxy = {
 		this._absx = p ? p._absx + x : x;
 		this._absy = p ? p._absy + y : y;
 
-		this.__layerPadding = p ? p._layerPadding + this._layerPadding 
+		this.__layerPadding = p ? p._layerPadding - this._layerPadding 
 								: this._layerPadding;
 
 		this._minx = this._absx;
@@ -184,8 +184,8 @@ Native.proxy = {
 			this.layer.clear();
 			this.layer.visible = this.visible;
 			this.layer.context.globalAlpha = this.opacity;
-			this.layer.left = this.left - this._layerPadding;
-			this.layer.top = this.top - this._layerPadding;
+			this.layer.left = this.left + this.__layerPadding;
+			this.layer.top = this.top + this.__layerPadding;
 		}
 	},
 
@@ -361,7 +361,6 @@ var Application = function(options){
 
 	var element = new DOMElement("UIView", options, null);
 	Native.layout.update();
-
 
 	window.requestAnimationFrame(function(){
 		FPS.start();

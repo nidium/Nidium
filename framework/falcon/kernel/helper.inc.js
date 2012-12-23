@@ -19,7 +19,7 @@ Canvas.prototype.clear = function(){
 		this.width,
 		this.height
 	);
-
+	/*
 	this.getContext("2D").fillStyle = "rgba(180, 180, 0, 0.05)";
 	this.getContext("2D").fillRect(
 		0, 
@@ -35,8 +35,7 @@ Canvas.prototype.clear = function(){
 		this.width,
 		this.height
 	);
-
-
+	*/
 };
 
 /* -------------------------------------------------------------------------- */

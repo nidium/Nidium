@@ -24,17 +24,17 @@ var main = new Application({
 	background : "#999999"
 });
 
-var	toggle = main.add("UIButton", {
+var	toggle = new UIButton(main, {
 	left : 966,
 	top : 8,
 	label : "Do It"
 });
 
 var	win = new UIView(main, {
-	left : 80,
-	top : 80,
-	height : 200,
-	width : 700,
+	left : 30,
+	top : 50,
+	width : 608,
+	height : 184,
 	background : "rgba(50, 50, 150, 0.7)",
 	radius : 12
 });
@@ -63,12 +63,11 @@ toggle.addEventListener("mousedown", function(e){
 
 toggle.background = "#3366bb";
 
-
 var buttons = [],
 	x = 0,
 	y = 0;
 
-for (var t=0; t<10; t++){
+for (var t=0; t<100; t++){
 	buttons[t] = main.add("UIButton", {
 		left : 25+x*100,
 		top : 350+y*38,
@@ -91,25 +90,24 @@ for (var t=0; t<10; t++){
 	}
 }
 
-
 var bwin = [],
 	x = 0,
 	y = 0;
 
-for (var t=0; t<5; t++){
+for (var t=0; t<48; t++){
 	bwin[t] = win.add("UIButton", {
-		left : 0+x*76,
-		top : 0+y*28,
+		left : 10+x*74,
+		top : 10+y*28,
 		height : 24,
-		fontSize : 11,
+		fontSize : 12,
 		lineHeight : 14,
 		radius : 6,
 		label : "Button " + (t<10 ? '0' : '') + t,
 		color : "rgba(0, 0, 0, 0.65)",
 		background : "rgb("
-			+Math.round(128+Math.random()*120)+", "
-			+Math.round(128+Math.random()*120)+", "
-			+Math.round(128+Math.random()*120)
+			+Math.round(64+Math.random()*190)+", "
+			+Math.round(64+Math.random()*190)+", "
+			+Math.round(64+Math.random()*190)
 		+")"
 	});
 
@@ -122,5 +120,26 @@ for (var t=0; t<5; t++){
 	}
 
 }
+
+var lay = win.add("UIView", {
+	left : 630,
+	top : 0,
+	width : 100,
+	height : 100,
+	background : "rgba(0, 0, 0, 0.7)"
+});
+
+var sublay = lay.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 50,
+	height : 50,
+	background : "red"
+});
+
+lay.addEventListener("drag", function(e){
+	this.left += e.xrel;
+	this.top += e.yrel;
+});
 
 

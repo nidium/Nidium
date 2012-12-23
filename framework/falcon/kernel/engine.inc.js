@@ -289,13 +289,14 @@ Native.canvas.implement = function(props){
 Native._cachedMeasures = {};
 Native.getTextWidth = function(text, fontSize, fontType){
 	var c = Native._cachedMeasures,
+		key = text + fontSize + fontType,
 		canvas = new Canvas(1, 1),
 		context = canvas.getContext("2D");
 
 	context.fontSize = fontSize;
 	context.fontType = fontType;
 
-	return c[text] ? c[text] : c[text] = context.measureText(text);
+	return c[key] ? c[key] : c[key] = context.measureText(text);
 };
 
 /* -------------------------------------------------------------------------- */
