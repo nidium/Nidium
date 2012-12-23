@@ -269,6 +269,10 @@ Native.elements = {
 			element.layer.context = element.layer.getContext("2D");
 		}
 
+		if (typeof(element.onReady) == "function"){
+			element.onReady.call(element);
+		}
+
 	}
 };
 
