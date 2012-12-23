@@ -198,14 +198,12 @@ DOMElement.prototype = {
 	show : function(){
 		if (!this.visible) {
 			this.visible = true;
-			Native.layout.refresh(this);
 		}
 	},
 
 	hide : function(){
 		if (this.visible) {
 			this.visible = false;
-			Native.layout.refresh(this);
 		}
 	},
 

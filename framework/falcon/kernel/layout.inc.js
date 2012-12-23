@@ -28,36 +28,89 @@
 
 var DOMElement = function(type, options, parent){
 	var o = this.options = options || {},
-		p = parent ? parent : null; // parent element
+		p = this.parent = parent ? parent : null; // parent element
 
 	this.parent = p;
 	this.nodes = {}; // children elements
-	this.type = OptionalString(type, "UIView");
 
-	this.name = OptionalString(o.name, "");
-	this.text = OptionalString(o.text, "");
-	this.label = OptionalString(o.label, "");
-
-	this._eventQueues = [];
-	this._mutex = [];
-
-	this._uid = "_obj_" + Native.layout.objID++;
+	/* Runtime changes does not impact the visual aspect of the element */
 	this.id = OptionalString(o.id, this._uid);
+	this.name = OptionalString(o.name, "");
 
-	// -- coordinate properties
-	this._x = OptionalNumber(o.left, 0);
-	this._y = OptionalNumber(o.top, 0);
-	this._w = o.width ? Number(o.width) : p ? p._w : window.width;
-	this._h = o.height ? Number(o.height) : p ? p._h : window.height;
+	this.isOnTop = false;
+	this.mouseOverPath = false;
 
-	this.refresh();
+	/* Read Only Properties */
+	DOMElement.defineReadOnlyProperties(this, {
+		type : OptionalString(type, "UIView")
+	});
+
+	/* Public Properties (visual impact on element, need redraw) */
+	DOMElement.definePublicProperties(this, {
+		text : OptionalString(o.text, ""),
+		label : OptionalString(o.label, ""),
+
+		left : OptionalNumber(o.left, 0),
+		top : OptionalNumber(o.top, 0),
+		width : o.width ? Number(o.width) : p ? p._width : window.width,
+		height : o.height ? Number(o.height) : p ? p._height : window.height,
+
+		offsetLeft : OptionalNumber(o.offsetLeft, 0),
+		offsetTop : OptionalNumber(o.offsetTop, 0),
+
+		// -- style properties
+		blur : OptionalNumber(o.blur, 0),
+		opacity : OptionalNumber(o.blur, 1),
+		shadowBlur : OptionalNumber(o.shadowBlur, 0),
+
+		background : OptionalValue(o.background, ''),
+		backgroundImage : OptionalValue(o.backgroundImage, ''),
+		color : OptionalValue(o.color, ''),
+
+		radius : OptionalNumber(o.radius, 0, 0),
+		lineWidth : OptionalNumber(o.lineWidth, 1),
+		lineHeight : OptionalNumber(o.lineHeight, 18),
+		fontSize : OptionalNumber(o.fontSize, 12),
+		fontType : OptionalString(o.fontType, "arial"),
+
+		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
+		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),
+
+		visible : OptionalBoolean(o.visible, true),
+		selected : OptionalBoolean(o.selected, false),
+		overflow : OptionalBoolean(o.overflow, true),
+		fixed : OptionalBoolean(o.fixed, false),
+
+		hover : false,
+		hasFocus : false
+	});
+
+	/* Internal Hidden Properties */
+	DOMElement.defineInternalProperties(this, {
+		_uid : "_obj_" + Native.layout.objID++,
+		_eventQueues : [],
+		_mutex : [],
+
+		_minx : 0,
+		_miny : 0,
+		_maxx : 0,
+		_maxy : 0,
+
+		_absx : 0,
+		_absy : 0,
+
+		_layerPadding : 15,
+		_cachedBackgroundImage : null,
+
+		_needRedraw : true
+	});
+
+	if (options == undefined) {
+		this.visible = false;
+	}
 };
 
-DOMElement.prototype = {
-	__noSuchMethod__ : function(id, args){
-		throw("Undefined method " + id);
-	},
-
+Native.proxy = {
 	add : function(type, options){
 		var element = new DOMElement(type, options, this);
 		this.addChild(element);
@@ -68,9 +121,28 @@ DOMElement.prototype = {
 		Native.layout.remove(this);
 	},
 
+	show : function(){
+		if (!this.visible) {
+			this.visible = true;
+		}
+	},
+
+	hide : function(){
+		if (this.visible) {
+			this.visible = false;
+		}
+	},
+
+	focus : function(){
+
+	},
+
 	addChild : function(element){
+		var w = Math.round(element._width + 2*element._layerPadding),
+			h = Math.round(element._height + 2*element._layerPadding);
+
 		element.parent = this;
-		element.layer = new Canvas(element._w, element._h);
+		element.layer = new Canvas(w, h);
 		element.layer.context = element.layer.getContext("2D");
 		this.layer.add(element.layer);
 
@@ -85,26 +157,37 @@ DOMElement.prototype = {
 		Native.layout.remove(element);
 	},
 
+	clear : function(){
+		this.layer.context.clearRect(
+			0, 
+			0, 
+			this.width + 2*this._layerPadding,
+			this.height + 2*this._layerPadding
+		);
+	},
+
 	refresh : function(){
-		var p = this.parent;
+		var p = this.parent,
+			x = this.left + this.offsetLeft,
+			y = this.top + this.offsetTop;
 
-		this._absx = p ? p._absx + this._x : this._x;
-		this._absy = p ? p._absy + this._y : this._y;
+		this._absx = p ? p._absx + x : x;
+		this._absy = p ? p._absy + y : y;
 
-		this.__minx = this._absx;
-		this.__miny = this._absy;
-		this.__maxx = this._absx + this._w;
-		this.__maxy = this._absy + this._h;
+		this._minx = this._absx;
+		this._miny = this._absy;
+		this._maxx = this._absx + this.width;
+		this._maxy = this._absy + this.height;
+		this._needRedraw = true;
 
-		this.__needRedraw = true;
+		this.layer.clear();
+		this.layer.visible = this.visible;
+		this.layer.context.globalAlpha = this.opacity;
+		this.layer.left = this.left - this._layerPadding;
+		this.layer.top = this.top - this._layerPadding;
 	},
 
 	beforeDraw : function(){
-		this.layer.left = this._x;
-		this.layer.top = this._y;
-	},
-
-	draw : function(){
 
 	},
 
@@ -113,44 +196,121 @@ DOMElement.prototype = {
 	},
 
 	isPointInside : function(mx, my){
-		var x1 = this.__minx,
-			y1 = this.__miny,
-			x2 = this.__maxx,
-			y2 = this.__maxy;
+		var x1 = this._minx,
+			y1 = this._miny,
+			x2 = this._maxx,
+			y2 = this._maxy;
 
 		return (mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
 
 	isVisible : function(){
-		return true;
+		return this.visible;
 	},
 
-	/* -- Getters And Setters ------------ */
-
-	get left() {
-  		return this._x;
-	},
-
-	set left(value) {
-		var dx = Number(value) - this._x;
-		if (dx==0) { return false; }
-		this._x += dx;
-		this._absx += dx;
-		this.refresh();
-	},
-
-	get top() {
-  		return this._y;
-	},
-
-	set top(value) {
-		var dy = Number(value) - this._y;
-		if (dy==0) { return false; }
-		this._y += dy;
-		this._absy += dy;
-		this.refresh();
+	getDrawingBounds : function(){
+		return {
+			x : 0 + this.offsetLeft + this._layerPadding,
+			y : 0 + this.offsetTop + this._layerPadding,
+			w : this.width,
+			h : this.height
+		};
 	}
+};
 
+DOMElement.prototype = {
+	__noSuchMethod__ : function(id, args){
+		throw("Undefined method " + id);
+	},
+
+	add : Native.proxy.add,
+	remove : Native.proxy.remove,
+	show : Native.proxy.show,
+	hide : Native.proxy.hide,
+	focus : Native.proxy.focus,
+
+	addChild : Native.proxy.addChild,
+	removeChild : Native.proxy.removeChild,
+
+	refresh : Native.proxy.refresh,
+	clear : Native.proxy.clear,
+	
+	beforeDraw : Native.proxy.beforeDraw,
+	afterDraw : Native.proxy.afterDraw,
+
+	isPointInside : Native.proxy.isPointInside,
+	isVisible : Native.proxy.isVisible,
+	getDrawingBounds : Native.proxy.getDrawingBounds,
+
+	update : function(context){},
+	draw : function(context){}
+};
+
+DOMElement.definePublicProperty = function(element, property, value){
+	
+	/* define mirror hidden properties */
+	Object.defineProperty(element, "_"+property, {
+		value : value,
+		enumerable : false,
+		writable : true,
+		configurable : true
+	});
+
+	/* define public accessor */
+	Object.defineProperty(element, property, {
+		get : function(){
+			return element["_"+property];
+		},
+
+		set : function(value){
+			if (element["_"+property] === value) return false;
+			Native.layout.onPropertyUpdate({
+				element : element,
+				property : property,
+				oldValue : element["_"+property],
+				newValue : value
+			});
+			element["_"+property] = value;
+		},
+
+		enumerable : true,
+		configurable : true
+	});
+
+};
+
+DOMElement.definePublicProperties = function(element, props){
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			this.definePublicProperty(element, key, props[key]);
+		}
+	}
+};
+
+DOMElement.defineReadOnlyProperties = function(element, props){
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			Object.defineProperty(element, key, {
+				value : props[key],
+				enumerable : true,
+				writable : false,
+				configurable : false
+			});
+		}
+	}
+};
+
+DOMElement.defineInternalProperties = function(element, props){
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			Object.defineProperty(element, key, {
+				value : props[key],
+				enumerable : false,
+				writable : true,
+				configurable : false
+			});
+		}
+	}
 };
 
 DOMElement.implement = function(props){
@@ -163,24 +323,27 @@ DOMElement.implement = function(props){
 
 var Application = function(options){
 	options = options || {};
-	options.x = 0;
-	options.y = 0;
-	options.w = window.width;
-	options.h = window.height;
+	options.left = 0;
+	options.top = 0;
+	options.width = window.width;
+	options.height = window.height;
 	options.background = OptionalValue(options.background, '#262722');
+	options.canReceiveFocus = true;
+	options.outlineOnFocus = false;
 
 	var element = new DOMElement("UIView", options, null);
-
+	element._layerPadding = 0;
 	element.layer = Native.canvas;
 	element.layer.context = Native.canvas.context;
 
 	Native.elements.init(element);
+	Native.layout.rootElement = element;
 	Native.layout.register(element);
 
 	window.requestAnimationFrame(function(){
-//		FPS.start();
+		FPS.start();
 		Native.layout.draw();
-// 		FPS.show();
+ 		FPS.show();
 	});
 
 	return element;

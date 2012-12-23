@@ -3,18 +3,17 @@
 /* -------------------------- */
 
 Native.elements.export("UIButton", {
-	init : function(){
-		var context = this.layer.context;
-		context.setFontSize(this.fontSize);
+	init : function(context){
+		var o = this.options,
+			context = this.layer.context;
 
-		this.w = 10 + Math.round(context.measureText(this.label)) + 10;
-		this.h = OptionalNumber(this.options.h, 22);
-		this.radius = OptionalNumber(this.options.radius, 2);
+		this.height = OptionalNumber(o.height, 22);
+		this.radius = OptionalNumber(o.radius, 2);
 
-		this.background = OptionalValue(this.options.background, "#2277E0");
+		this.background = OptionalValue(o.background, "#2277E0");
 		this.color = OptionalValue(this.options.color, "#ffffff");
 
-		this.flags._canReceiveFocus = true;
+		this.canReceiveFocus = true;
 
 		this.addEventListener("mousedown", function(e){
 			this.selected = true;
@@ -38,25 +37,18 @@ Native.elements.export("UIButton", {
 
 	},
 
-	draw : function(){
-		var context = this.layer.context;
-
+	update : function(context){
+		context.save();
 		context.setFontSize(this.fontSize);
-		this.textWidth = Math.round(context.measureText(this.label));
-		this.w = 10 + this.textWidth + 10;
-		
-		var params = {
-				x : this._x,
-				y : this._y,
-				w : this.w,
-				h : this.h
-			},
+		this.width = 10 + Math.round(context.measureText(this.label)) + 10;
+		context.restore();
+	},
 
-			label = this.label,
-			w = params.w,
-			h = params.h,
+	draw : function(context){
+		var	params = this.getDrawingBounds(),
+		
 			textOffsetX = 9,
-			textOffsetY = (h-this.lineHeight)/2 + 4 + this.lineHeight/2,
+			textOffsetY = (params.h-this.lineHeight)/2 + 4 + this.lineHeight/2,
 			textShadow = '#000000';
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
@@ -67,14 +59,13 @@ Native.elements.export("UIButton", {
 			}
 		}
 		context.roundbox(
-			params.x, params.y, 
-			w, h, 
+			params.x, params.y,
+			params.w, params.h, 
 			this.radius, this.background, false
 		);
 		if (__ENABLE_BUTTON_SHADOWS__){
 			context.setShadow(0, 0, 0);
 		}
-
 
 		if (this.selected){
 			textOffsetY++;
@@ -114,16 +105,17 @@ Native.elements.export("UIButton", {
 		
 			context.roundbox(
 				params.x, params.y, 
-				w, h, 
+				params.w, params.h, 
 				this.radius, gradient, false
 			);
 		}
 
-		//if (__TEXT_SHADOWS__) { context.setShadow(1, 1, 1, '#000000'); }
+		if (__ENABLE_TEXT_SHADOWS__) { context.setShadow(1, 1, 1, '#000000'); }
 		context.setColor(this.color);
-		context.fillText(label, params.x+textOffsetX, params.y+textOffsetY);
-		//if (__TEXT_SHADOWS__){ context.setShadow(0, 0, 0); }
-
-
+		context.fillText(
+			this.label, 
+			params.x+textOffsetX, params.y+textOffsetY
+		);
+		if (__ENABLE_TEXT_SHADOWS__) { context.setShadow(0, 0, 0); }
 	}
 });

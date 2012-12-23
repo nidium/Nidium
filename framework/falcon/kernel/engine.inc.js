@@ -78,23 +78,23 @@ Native.layout = {
 		var z = this.getElements();
 
 		for (var i=0; i<z.length; i++){
-			if (z[i].__needRedraw) {
-echo(z[i].beforeDraw)
+			if (z[i]._needRedraw) {
+				var context = z[i].layer.context;
+				
+				z[i].update(context);
+				z[i].refresh();
 
 				z[i].beforeDraw();
-				z[i].draw();
+				z[i].draw(context);
 				z[i].afterDraw();
-				z[i].__needRedraw = false;
+				z[i]._needRedraw = false;
 			}
 		}
 
-/*
 		if (this.ready===false){
 			this.ready = true;
 			this.rootElement.fireEvent("load");
 		}
-*/
-
 
 	},
 
@@ -110,12 +110,14 @@ echo(z[i].beforeDraw)
 
 		this.nbObj = n;
 
+		/*
 		this.elements = elements.sort(function(a, b){
 			return a._zIndex - b._zIndex;
 		});
 
 		this.higherzIndex = elements[elements.length-1] ?
 			elements[elements.length-1]._zIndex : 0;
+		*/
 
 		return elements;
 	},
@@ -149,6 +151,32 @@ echo(z[i].beforeDraw)
 			}
 		}
 		return len;
+	},
+
+	onPropertyUpdate : function(e){
+		var element = e.element,
+			old = e.oldValue,
+			value = e.newValue;
+
+		element.fireEvent("change", {
+			property : e.property,
+			oldValue : e.oldValue,
+			newValue : e.newValue
+		});
+
+		element.refresh();
+
+		switch (e.property) {
+			case "left" :
+				break;
+
+			case "top" :
+				break;
+
+			case "visible" :
+				break;
+		};
+
 	}
 
 };
@@ -170,17 +198,17 @@ Native.elements = {
 
 	init : function(element){
 		var self = this,
+			context = element.layer.context,
 			plugin = this[element.type];
 
 		if (plugin){
 
-			if (plugin.init) plugin.init.call(element);
-			if (plugin.draw) element.draw = plugin.draw;
-			if (plugin.isPointInside) {
-				element.isPointInside = plugin.isPointInside;
+			if (plugin.init) plugin.init.call(element, context);
+			if (plugin.update) {
+				element.update = plugin.update;
+				element.update.call(element, context);
 			}
-			if (plugin.__construct) element.__construct = plugin.__construct;
-
+			if (plugin.draw) element.draw = plugin.draw;
 			if (element.canReceiveFocus) {
 				element.addEventListener("mousedown", function(e){
 					this.focus();
@@ -189,9 +217,9 @@ Native.elements = {
 			}
 
 		} else {
-			element.beforeDraw = function(){};
-			element.draw = function(){};
-			element.afterDraw = function(){};
+			element.beforeDraw = function(context){};
+			element.draw = function(context){};
+			element.afterDraw = function(context){};
 		}
 	}
 };
@@ -212,13 +240,12 @@ Native.canvas.implement = function(props){
 
 Native.getLocalImage = function(element, url, callback){
 	var cb = OptionalCallback(callback, function(){});
-
-	if (element._backgroundImage) {
-		cb(element._backgroundImage);
+	if (element._cachedBackgroundImage) {
+		cb(element._cachedBackgroundImage);
 	} else {
 		var img = new Image();
 		img.onload = function(){
-			element._backgroundImage = img;
+			element._cachedBackgroundImage = img;
 			cb(img);
 		};
 		img.src = url;

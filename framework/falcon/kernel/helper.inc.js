@@ -12,33 +12,56 @@ var window = {
 
 /* -------------------------------------------------------------------------- */
 
+Canvas.prototype.clear = function(){
+	this.getContext("2D").clearRect(
+		0, 
+		0, 
+		this.width,
+		this.height
+	);
+};
+
+/* -------------------------------------------------------------------------- */
+
 Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(Number(min), this), Number(max));
 };
 
 /* -------------------------------------------------------------------------- */
 
+var toULong = function(x){
+	return x >>> 0; // Uint32
+};
+
+var toLong = function(x){
+	return x & 0xFFFFFFFF; // Int32
+};
+
+var toUShort = function(x){
+	return (x >>> 0) & 0xFFFF; // Uint32 >> truncate.
+};
+
 var OptionalString = function(x, def){
 	return x === null || x === undefined ? String(def) : String(x);
-}
+};
 
 var OptionalValue = function(x, def){
 	return x === null || x === undefined ? def : x;
-}
+};
 
 var OptionalNumber = function(x, def, min, max){
 	var p = x === null || x === undefined ? Number(def) : Number(x);
 	p = (min != undefined) ? Math.max(Number(min), p) : p;
 	return (max != undefined) ? Math.min(Number(max), p) : p;
-}
+};
 
 var OptionalBoolean = function(x, def){
 	return x === null || x === undefined ? Boolean(def) : Boolean(x);
-}
+};
 
 var OptionalCallback = function(x, def){
 	return typeof x === "function" ? x : def;
-}
+};
 
 /* -------------------------------------------------------------------------- */
 
@@ -177,6 +200,13 @@ var setTimer = function(fn, ms, loop, execFirst){
 
 /* -------------------------------------------------------------------------- */
 
+var __fpsLayer = new Canvas(50, 30),
+	__fpsLayerContext = __fpsLayer.getContext("2D");
+
+__fpsLayer.left = 0;
+__fpsLayer.top = window.height-40;
+Native.canvas.add(__fpsLayer);
+
 var FPS = {
 	date : 0,
 	count : 0,
@@ -187,7 +217,7 @@ var FPS = {
 	},
 
 	show : function(){
-		var context = Native.layer.context,
+		var context = __fpsLayerContext,
 			r = 0.1 + (+ new Date()) - this.date,
 			fps = 1000/r;
 
@@ -198,10 +228,9 @@ var FPS = {
 		} 				
 		
 		context.setColor("#000000");
-		context.fillRect(0, window.height-40, 60, 30);
-		//context.fillRect(0, 280, 50, 30);
+		context.fillRect(0, 0, 60, 30);
 		context.setColor("yellow");
-		context.fillText(this.old + " ms", 5, window.height-20);
+		context.fillText(this.old + " ms", 8, 20);
 		
 		return r;
 	}
