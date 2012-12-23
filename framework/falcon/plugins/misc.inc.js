@@ -11,6 +11,10 @@ Native.canvas.implement({
 		this.fontSize = fontSize;
 	},
 
+	setFontType : function(fontType){
+		this.fontType = fontType;
+	},
+
 	setShadow : function(x, y, b, c){
 		this.shadowOffsetX = x;
 		this.shadowOffsetY = y;

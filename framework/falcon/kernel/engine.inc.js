@@ -106,22 +106,12 @@ Native.layout = {
 		for (var i=0; i<z.length; i++){
 			if (z[i]._needRedraw) {
 				var context = z[i].layer.context;
-				
-				z[i].update(context);
-				z[i].refresh();
-
-				z[i].beforeDraw();
+				z[i].update(); // call element's custom refresh method
+				z[i].refresh(); // call generic refresh method
 				z[i].draw(context);
-				z[i].afterDraw();
 				z[i]._needRedraw = false;
 			}
 		}
-
-		if (this.ready===false){
-			this.ready = true;
-			this.rootElement.fireEvent("load");
-		}
-
 	},
 
 	find : function(property, value){
@@ -241,16 +231,21 @@ Native.elements = {
 	},
 
 	init : function(element){
-		var self = this,
-			context = element.layer.context,
-			plugin = this[element.type];
+		var plugin = this[element.type];
+
+		if (!element.parent){
+			element._layerPadding = 0;
+			element.layer = Native.canvas;
+			element.layer.context = Native.canvas.context;
+			Native.layout.register(element);
+		}
 
 		if (plugin){
 
-			if (plugin.init) plugin.init.call(element, context);
-			if (plugin.update) {
-				element.update = plugin.update;
-				element.update.call(element, context);
+			if (plugin.init) plugin.init.call(element);
+			if (plugin.refresh) {
+				element.update = plugin.refresh;
+				element.update();
 			}
 			if (plugin.draw) element.draw = plugin.draw;
 			if (element.canReceiveFocus) {
@@ -261,10 +256,19 @@ Native.elements = {
 			}
 
 		} else {
-			element.beforeDraw = function(context){};
+			element.beforeDraw = function(){};
 			element.draw = function(context){};
-			element.afterDraw = function(context){};
+			element.afterDraw = function(){};
 		}
+
+		if (element.parent) {
+			var w = Math.round(element._width + 2*element._layerPadding),
+				h = Math.round(element._height + 2*element._layerPadding);
+
+			element.layer = new Canvas(w, h);
+			element.layer.context = element.layer.getContext("2D");
+		}
+
 	}
 };
 
@@ -278,6 +282,20 @@ Native.canvas.implement = function(props){
 			CanvasRenderingContext2D.prototype[key] = props[key];
 		}
 	}
+};
+
+/* -------------------------------------------------------------------------- */
+
+Native._cachedMeasures = {};
+Native.getTextWidth = function(text, fontSize, fontType){
+	var c = Native._cachedMeasures,
+		canvas = new Canvas(1, 1),
+		context = canvas.getContext("2D");
+
+	context.fontSize = fontSize;
+	context.fontType = fontType;
+
+	return c[text] ? c[text] : c[text] = context.measureText(text);
 };
 
 /* -------------------------------------------------------------------------- */

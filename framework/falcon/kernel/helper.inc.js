@@ -19,6 +19,24 @@ Canvas.prototype.clear = function(){
 		this.width,
 		this.height
 	);
+
+	this.getContext("2D").fillStyle = "rgba(180, 180, 0, 0.05)";
+	this.getContext("2D").fillRect(
+		0, 
+		0, 
+		this.width,
+		this.height
+	);
+
+	this.getContext("2D").strokeStyle = "rgba(180, 180, 0, 0.3)";
+	this.getContext("2D").strokeRect(
+		0, 
+		0, 
+		this.width,
+		this.height
+	);
+
+
 };
 
 /* -------------------------------------------------------------------------- */

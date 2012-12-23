@@ -42,7 +42,8 @@ var DOMElement = function(type, options, parent){
 
 	/* Read Only Properties */
 	DOMElement.defineReadOnlyProperties(this, {
-		type : OptionalString(type, "UIView")
+		type : OptionalString(type, "UIView"),
+		root : p ? p.root : this
 	});
 
 	/* Public Properties (visual impact on element, need redraw) */
@@ -103,7 +104,7 @@ var DOMElement = function(type, options, parent){
 		_absx : 0,
 		_absy : 0,
 
-		_layerPadding : 15,
+		_layerPadding : 12,
 		_cachedBackgroundImage : null,
 
 		_needRedraw : true
@@ -112,6 +113,8 @@ var DOMElement = function(type, options, parent){
 	if (options == undefined) {
 		this.visible = false;
 	}
+
+	Native.elements.init(this);
 };
 
 Native.proxy = {
@@ -146,16 +149,9 @@ Native.proxy = {
 	},
 
 	addChild : function(element){
-		var w = Math.round(element._width + 2*element._layerPadding),
-			h = Math.round(element._height + 2*element._layerPadding);
-
-		element.layer = new Canvas(w, h);
-		element.layer.context = element.layer.getContext("2D");
+		this.nodes[element._uid] = element;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
-
-		Native.elements.init(element);
-		this.nodes[element._uid] = element;
 		Native.layout.update();
 	},
 
@@ -167,15 +163,6 @@ Native.proxy = {
 		Native.layout.update();
 	},
 
-	clear : function(){
-		this.layer.context.clearRect(
-			0, 
-			0, 
-			this.width + 2*this._layerPadding,
-			this.height + 2*this._layerPadding
-		);
-	},
-
 	refresh : function(){
 		var p = this.parent,
 			x = this.left + this.offsetLeft,
@@ -184,17 +171,32 @@ Native.proxy = {
 		this._absx = p ? p._absx + x : x;
 		this._absy = p ? p._absy + y : y;
 
+		this.__layerPadding = p ? p._layerPadding + this._layerPadding 
+								: this._layerPadding;
+
 		this._minx = this._absx;
 		this._miny = this._absy;
 		this._maxx = this._absx + this.width;
 		this._maxy = this._absy + this.height;
 		this._needRedraw = true;
 
-		this.layer.clear();
-		this.layer.visible = this.visible;
-		this.layer.context.globalAlpha = this.opacity;
-		this.layer.left = this.left - this._layerPadding;
-		this.layer.top = this.top - this._layerPadding;
+		if (this.layer){
+			this.layer.clear();
+			this.layer.visible = this.visible;
+			this.layer.context.globalAlpha = this.opacity;
+			this.layer.left = this.left - this._layerPadding;
+			this.layer.top = this.top - this._layerPadding;
+		}
+	},
+
+	getDrawingBounds : function(){
+		var p = this.parent;
+		return {
+			x : 0 + this.offsetLeft + this._layerPadding,
+			y : 0 + this.offsetTop + this._layerPadding,
+			w : this.width,
+			h : this.height
+		};
 	},
 
 	beforeDraw : function(){
@@ -206,25 +208,16 @@ Native.proxy = {
 	},
 
 	isPointInside : function(mx, my){
-		var x1 = this._minx,
-			y1 = this._miny,
-			x2 = this._maxx,
-			y2 = this._maxy;
+		var x1 = this._minx+1,
+			y1 = this._miny+2,
+			x2 = this._maxx+2,
+			y2 = this._maxy+3;
 
 		return (mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
 
 	isVisible : function(){
 		return this.visible;
-	},
-
-	getDrawingBounds : function(){
-		return {
-			x : 0 + this.offsetLeft + this._layerPadding,
-			y : 0 + this.offsetTop + this._layerPadding,
-			w : this.width,
-			h : this.height
-		};
 	},
 
 	hasClass : function(name){
@@ -265,7 +258,6 @@ DOMElement.prototype = {
 	removeChild : Native.proxy.removeChild,
 
 	refresh : Native.proxy.refresh,
-	clear : Native.proxy.clear,
 	
 	beforeDraw : Native.proxy.beforeDraw,
 	afterDraw : Native.proxy.afterDraw,
@@ -368,14 +360,8 @@ var Application = function(options){
 	options.outlineOnFocus = false;
 
 	var element = new DOMElement("UIView", options, null);
-	element._layerPadding = 0;
-	element.layer = Native.canvas;
-	element.layer.context = Native.canvas.context;
-
-	Native.elements.init(element);
-	Native.layout.rootElement = element;
-	Native.layout.register(element);
 	Native.layout.update();
+
 
 	window.requestAnimationFrame(function(){
 		FPS.start();

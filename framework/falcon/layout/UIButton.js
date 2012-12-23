@@ -3,9 +3,8 @@
 /* -------------------------- */
 
 Native.elements.export("UIButton", {
-	init : function(context){
-		var o = this.options,
-			context = this.layer.context;
+	init : function(){
+		var o = this.options;
 
 		this.height = OptionalNumber(o.height, 22);
 		this.radius = OptionalNumber(o.radius, 2);
@@ -37,23 +36,29 @@ Native.elements.export("UIButton", {
 
 	},
 
-	update : function(context){
-		context.save();
-		context.setFontSize(this.fontSize);
-		this.width = 10 + Math.round(context.measureText(this.label)) + 10;
-		context.restore();
+	refresh : function(){
+		var textWidth = Native.getTextWidth(
+			this.label,
+			this.fontSize,
+			this.fontType
+		);
+
+		this.width = 10 + Math.round(textWidth) + 10;
 	},
 
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
-		
+
 			textOffsetX = 9,
 			textOffsetY = (params.h-this.lineHeight)/2 + 4 + this.lineHeight/2,
 			textShadow = '#000000';
 
+		context.setFontSize(this.fontSize);
+		context.setFontType(this.fontType);
+
 		if (__ENABLE_BUTTON_SHADOWS__) {
 			if (this.selected){
-				context.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.05)");
+				context.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.06)");
 			} else {
 				context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
 			}
