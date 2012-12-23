@@ -233,8 +233,12 @@ Native.proxy = {
 
 	addClass : function(name){
 		if (!this.hasClass(name)){
-			this.className += (this.className ? ' ' : '') +name;
+			this.className += (this.className ? ' ' : '') + name;
 		}
+	},
+
+	setClass : function(name){
+		this.className = name;
 	},
 
 	removeClass : function(name){

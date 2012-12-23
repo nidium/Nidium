@@ -155,13 +155,22 @@ Native.layout = {
 	},
 
 	getElementsByClassName : function(name){
-		var pattern = new RegExp("(^|\\s)"+searchClass+"(\\s|$)"),
+		var pattern = new RegExp("(^|\\s)"+name+"(\\s|$)"),
 			z = this.elements,
 			elements = [];
 
 		for (var i=0; i<z.length; i++){
 			pattern.test(z[i].className) && elements.push(z[i]);
 		}
+
+		elements.each = function(cb){
+			for (var i in elements) {
+				if (elements.hasOwnProperty(i) && elements[i]._uid){
+					cb.call(elements[i]);
+				}
+			}
+		};
+
 		return elements;
 	},
 
