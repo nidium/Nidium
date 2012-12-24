@@ -4,14 +4,15 @@
 
 Native.elements.export("UIButton", {
 	refresh : function(){
-
+/*
 		var textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
+			this._label,
+			this._fontSize,
+			this._fontType
 		);
 
 		this._width = 10 + Math.round(textWidth) + 10;
+		*/
 	},
 
 	init : function(){

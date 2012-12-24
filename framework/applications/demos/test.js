@@ -17,7 +17,7 @@ var v = [],
 	x = y = 0;
 for (var i=0; i<512; i++){
 	v[i] = new UIButton(main, {
-		left : 10 + 40*x,
+		left : 10 + 34*x,
 		top : 48 + 22*y,
 		label : i<100 ? (i<10 ? '00'+i : '0'+i) : i,
 		width : 30,
