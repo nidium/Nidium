@@ -21,7 +21,9 @@ enum {
     CANVAS_PROP___VISIBLE,
     /* Absolute positions */
     CANVAS_PROP___TOP,
-    CANVAS_PROP___LEFT
+    CANVAS_PROP___LEFT,
+    /* conveniance getter for getContext("2D") */
+    CANVAS_PROP_CTX
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -47,6 +49,8 @@ static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
 static JSBool native_canvas_bringToFront(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
@@ -78,6 +82,8 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__left", CANVAS_PROP___LEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"ctx", CANVAS_PROP_CTX, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -89,6 +95,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("hide", native_canvas_hide, 0, 0),
     JS_FN("bringToFront", native_canvas_bringToFront, 0, 0),
     JS_FN("sendToBack", native_canvas_sendToBack, 0, 0),
+    JS_FN("getParent", native_canvas_getParent, 0, 0),
     JS_FS_END
 };
 
@@ -127,6 +134,13 @@ static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
 {
     HANDLER_FROM_CALLEE->sendToBack();
 
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    
     return JS_TRUE;
 }
 
@@ -288,6 +302,15 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         {
             handler->computeAbsolutePosition();
             vp.set(DOUBLE_TO_JSVAL(handler->a_left));
+            break;
+        }
+        case CANVAS_PROP_CTX:
+        {
+            if (handler->context == NULL) {
+                vp.set(JSVAL_NULL);
+                break;
+            }
+            vp.set(OBJECT_TO_JSVAL(handler->context->jsobj));
             break;
         }
         default:

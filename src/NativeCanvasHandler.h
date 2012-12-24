@@ -11,7 +11,10 @@ class NativeCanvas2DContext;
     Agnostic to any renderer.
     A NativeCanvasContext must be attached to it
 
-    TODO: NativeCanvasContext interface instead of NativeCanvas2DContext;
+    TODO:
+        * NativeCanvasContext interface instead of NativeCanvas2DContext;
+        * this->jsobj (JS_AddObjectRoot)
+        * ::destroy() (JS_RemoveObjectRoot)
 */
 
 class NativeCanvasHandler
