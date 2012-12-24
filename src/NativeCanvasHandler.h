@@ -37,6 +37,7 @@ class NativeCanvasHandler
         };
 
         NativeCanvas2DContext *context;
+        struct JSObject *jsobj;
 
         int width, height;
         /*
@@ -66,6 +67,7 @@ class NativeCanvasHandler
         bool isHidden();
         void setOpacity(double val);
         void removeFromParent();
+        NativeCanvasHandler *getParent();
         void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
         NativeCanvasHandler *parent;

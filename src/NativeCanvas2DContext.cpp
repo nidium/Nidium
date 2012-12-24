@@ -1029,7 +1029,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     skia = new NativeSkia();
     skia->bindOnScreen(width, height);
 
-    JS_SetPrivate(jsobj, this);    
+    JS_SetPrivate(jsobj, this);
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :

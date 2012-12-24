@@ -140,7 +140,15 @@ static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
 static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getParent();
+
+    if (parent == NULL) {
+        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        return JS_TRUE;
+    }
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+
     return JS_TRUE;
 }
 
@@ -334,7 +342,9 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     handler = new NativeCanvasHandler(width, height);
     handler->context = new NativeCanvas2DContext(cx, width, height);
+    handler->jsobj = ret;
 
+    JS_AddObjectRoot(cx, &handler->jsobj);
     /* Retain a ref to this, so that we are sure we can't get an undefined ctx */
     JS_AddObjectRoot(cx, &handler->context->jsobj);
     JS_SetPrivate(ret, handler);
@@ -370,8 +380,11 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 */
     handler = new NativeCanvasHandler(width, height);
     handler->context = new NativeCanvas2DContext(cx, width, height);
+    handler->jsobj = ret;
 
     JS_AddObjectRoot(cx, &handler->context->jsobj);
+    JS_AddObjectRoot(cx, &handler->jsobj);
+
     JS_SetPrivate(ret, handler);
 
     JS_DefineFunctions(cx, ret, canvas_funcs);

@@ -6,7 +6,7 @@
 #include <jsapi.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
+    context(NULL), jsobj(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     opacity(1.0),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), coordPosition(COORD_RELATIVE),
@@ -230,6 +230,11 @@ void NativeCanvasHandler::setOpacity(double val)
     }
 
     opacity = val;
+}
+
+NativeCanvasHandler *NativeCanvasHandler::getParent()
+{
+    return this->parent;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
