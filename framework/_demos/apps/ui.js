@@ -299,27 +299,6 @@ DBT(function(){
 
 /* ---------------------------------------------------------------------- */
 
-Native.canvas.apply = function(context){
-	var plugins = Native.canvas.plugins;
-
-	for (var i in plugins) {
-		var props = plugins[i];
-		for (var key in props){
-			if (props.hasOwnProperty(key)){
-				context[key] = props[key];
-			}
-		}
-	}
-};
-
-var layer02 = new Canvas(1024, 768);
-layer02.context = layer02.getContext("2D");
-Native.canvas.add(layer02);
-
-layer02.left = 150;
-
-
-
 
 var	docButton1 = main.add("UIButton", {x:10, y:100, h:30, lineHeight:14, label:"docButton1", background:"#222222", radius:3, fontSize:14, selected:false}),
 	docButton2 = main.add("UIButton", {x:10, y:140, label:"docButton2", background:"#4488CC", radius:3, fontSize:13, selected:false}),
