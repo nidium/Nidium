@@ -9,7 +9,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     opacity(1.0),
     parent(NULL), children(NULL), next(NULL),
-    prev(NULL), last(NULL), coordPosition(COORD_RELATIVE),
+    prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE)
 {
     this->width = width;
@@ -98,7 +98,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
     }
 
     insert->parent = this;
-
+    this->nchildren++;
 }
 
 void NativeCanvasHandler::removeFromParent()
@@ -122,6 +122,7 @@ void NativeCanvasHandler::removeFromParent()
         next->prev = prev;
     }
 
+    parent->nchildren--;
     parent = NULL;
     next = NULL;
     prev = NULL;
@@ -235,6 +236,20 @@ void NativeCanvasHandler::setOpacity(double val)
 NativeCanvasHandler *NativeCanvasHandler::getParent()
 {
     return this->parent;
+}
+
+void NativeCanvasHandler::getChildren(NativeCanvasHandler **out)
+{
+    NativeCanvasHandler *cur;
+    int i = 0;
+    for (cur = children; cur != NULL; cur = cur->next) {
+        out[i++] = cur;
+    }
+}
+
+int32_t NativeCanvasHandler::countChildren()
+{
+    return this->nchildren;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()

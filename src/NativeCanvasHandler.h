@@ -68,6 +68,8 @@ class NativeCanvasHandler
         void setOpacity(double val);
         void removeFromParent();
         NativeCanvasHandler *getParent();
+        void getChildren(NativeCanvasHandler **out);
+        int32_t countChildren();
         void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
         NativeCanvasHandler *parent;
@@ -75,6 +77,7 @@ class NativeCanvasHandler
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
+        int32_t nchildren;
 
         COORD_POSITION coordPosition;
         Visibility visibility;
