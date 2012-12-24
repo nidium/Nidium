@@ -41,14 +41,20 @@ class NativeCanvasHandler
             a_left and a_top are relative to the root layer
         */
         double left, top, a_left, a_top;
+
         double opacity;
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
 
+        void setWidth(int width);
+        void setHeight(int height);
         void setPosition(double left, double top);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
+        void computeAbsolutePosition();
 
+        void bringToFront();
+        void sendToBack();
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
 

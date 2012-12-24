@@ -6,7 +6,8 @@
 #include <jsapi.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), left(0.0), top(0.0), a_left(0), a_top(0), opacity(1.0),
+    context(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
+    opacity(1.0),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE)
@@ -24,6 +25,42 @@ void NativeCanvasHandler::setPosition(double left, double top)
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
 {
     coordPosition = mode;
+}
+
+void NativeCanvasHandler::setWidth(int width)
+{
+    this->width = width;
+
+    if (context) {
+        context->setSize(this->width, this->height);
+    }
+}
+
+void NativeCanvasHandler::setHeight(int height)
+{
+    this->height = height;
+
+    if (context) {
+        context->setSize(this->width, this->height);
+    }
+}
+
+void NativeCanvasHandler::bringToFront()
+{
+    if (!this->parent) {
+        return;
+    }
+
+    this->parent->addChild(this, POSITION_FRONT);
+}
+
+void NativeCanvasHandler::sendToBack()
+{
+    if (!this->parent) {
+        return;
+    }
+
+    this->parent->addChild(this, POSITION_BACK);
 }
 
 void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
@@ -146,6 +183,33 @@ bool NativeCanvasHandler::isDisplayed()
     }
 
     return (parent ? parent->isDisplayed() : true);
+}
+
+void NativeCanvasHandler::computeAbsolutePosition()
+{
+    if (this->coordPosition == COORD_ABSOLUTE) {
+        this->a_top = this->top;
+        this->a_left = this->left;
+        return;
+    }
+
+    double ctop = top, cleft = left;
+    NativeCanvasHandler *cparent = this->parent;
+
+    while (cparent != NULL) {
+        ctop += cparent->top;
+        cleft += cparent->left;
+
+        if (cparent->coordPosition != COORD_RELATIVE) {
+            break;
+        }
+
+        cparent = cparent->parent;
+    }
+
+    this->a_top = ctop;
+    this->a_left = cleft;
+
 }
 
 bool NativeCanvasHandler::isHidden()

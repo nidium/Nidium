@@ -481,7 +481,7 @@ NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
 
-    while(nstate) {
+    while (nstate) {
         struct _nativeState *tmp = nstate->next;
 
         delete nstate->paint;
