@@ -35,6 +35,7 @@ class NativeCanvas2DContext : public NativeJSExposer
         */
         void composeWith(NativeCanvas2DContext *layer, double left, double top);
         void flush();
+        void setSize(int width, int height);
 
         static void registerObject(JSContext *cx);
         NativeCanvas2DContext(int width, int height);

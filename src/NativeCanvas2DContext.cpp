@@ -998,6 +998,26 @@ void NativeCanvas2DContext::flush()
     skia->canvas->flush();
 }
 
+void NativeCanvas2DContext::setSize(int width, int height)
+{
+    SkDevice *ndev;
+    SkCanvas *ncanvas;
+
+    SkBitmap bt = skia->canvas->getDevice()->accessBitmap(false);
+ 
+    ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+                                width, height, false);
+
+    ncanvas = new SkCanvas(ndev);
+    ncanvas->drawBitmap(bt, 0, 0);
+
+    SkSafeUnref(ndev);
+
+    delete skia->canvas;
+    skia->canvas = ncanvas;
+
+}
+
 NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
@@ -1009,7 +1029,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     skia = new NativeSkia();
     skia->bindOnScreen(width, height);
 
-    JS_SetPrivate(jsobj, this);    
+    JS_SetPrivate(jsobj, this);
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :

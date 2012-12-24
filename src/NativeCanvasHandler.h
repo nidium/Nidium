@@ -11,7 +11,10 @@ class NativeCanvas2DContext;
     Agnostic to any renderer.
     A NativeCanvasContext must be attached to it
 
-    TODO: NativeCanvasContext interface instead of NativeCanvas2DContext;
+    TODO:
+        * NativeCanvasContext interface instead of NativeCanvas2DContext;
+        * this->jsobj (JS_AddObjectRoot)
+        * ::destroy() (JS_RemoveObjectRoot)
 */
 
 class NativeCanvasHandler
@@ -34,6 +37,7 @@ class NativeCanvasHandler
         };
 
         NativeCanvas2DContext *context;
+        struct JSObject *jsobj;
 
         int width, height;
         /*
@@ -41,14 +45,20 @@ class NativeCanvasHandler
             a_left and a_top are relative to the root layer
         */
         double left, top, a_left, a_top;
+
         double opacity;
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
 
+        void setWidth(int width);
+        void setHeight(int height);
         void setPosition(double left, double top);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
+        void computeAbsolutePosition();
 
+        void bringToFront();
+        void sendToBack();
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
@@ -57,6 +67,9 @@ class NativeCanvasHandler
         bool isHidden();
         void setOpacity(double val);
         void removeFromParent();
+        NativeCanvasHandler *getParent();
+        void getChildren(NativeCanvasHandler **out);
+        int32_t countChildren();
         void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
         NativeCanvasHandler *parent;
@@ -64,6 +77,7 @@ class NativeCanvasHandler
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
+        int32_t nchildren;
 
         COORD_POSITION coordPosition;
         Visibility visibility;

@@ -6,9 +6,10 @@
 #include <jsapi.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), left(0.0), top(0.0), a_left(0), a_top(0), opacity(1.0),
+    context(NULL), jsobj(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
+    opacity(1.0),
     parent(NULL), children(NULL), next(NULL),
-    prev(NULL), last(NULL), coordPosition(COORD_RELATIVE),
+    prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE)
 {
     this->width = width;
@@ -24,6 +25,43 @@ void NativeCanvasHandler::setPosition(double left, double top)
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
 {
     coordPosition = mode;
+    this->computeAbsolutePosition();
+}
+
+void NativeCanvasHandler::setWidth(int width)
+{
+    this->width = width;
+
+    if (context) {
+        context->setSize(this->width, this->height);
+    }
+}
+
+void NativeCanvasHandler::setHeight(int height)
+{
+    this->height = height;
+
+    if (context) {
+        context->setSize(this->width, this->height);
+    }
+}
+
+void NativeCanvasHandler::bringToFront()
+{
+    if (!this->parent) {
+        return;
+    }
+
+    this->parent->addChild(this, POSITION_FRONT);
+}
+
+void NativeCanvasHandler::sendToBack()
+{
+    if (!this->parent) {
+        return;
+    }
+
+    this->parent->addChild(this, POSITION_BACK);
 }
 
 void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
@@ -60,7 +98,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
     }
 
     insert->parent = this;
-
+    this->nchildren++;
 }
 
 void NativeCanvasHandler::removeFromParent()
@@ -84,6 +122,7 @@ void NativeCanvasHandler::removeFromParent()
         next->prev = prev;
     }
 
+    parent->nchildren--;
     parent = NULL;
     next = NULL;
     prev = NULL;
@@ -148,6 +187,33 @@ bool NativeCanvasHandler::isDisplayed()
     return (parent ? parent->isDisplayed() : true);
 }
 
+void NativeCanvasHandler::computeAbsolutePosition()
+{
+    if (this->coordPosition == COORD_ABSOLUTE) {
+        this->a_top = this->top;
+        this->a_left = this->left;
+        return;
+    }
+
+    double ctop = top, cleft = left;
+    NativeCanvasHandler *cparent = this->parent;
+
+    while (cparent != NULL) {
+        ctop += cparent->top;
+        cleft += cparent->left;
+
+        if (cparent->coordPosition != COORD_RELATIVE) {
+            break;
+        }
+
+        cparent = cparent->parent;
+    }
+
+    this->a_top = ctop;
+    this->a_left = cleft;
+
+}
+
 bool NativeCanvasHandler::isHidden()
 {
     return (visibility == CANVAS_VISIBILITY_HIDDEN);
@@ -165,6 +231,25 @@ void NativeCanvasHandler::setOpacity(double val)
     }
 
     opacity = val;
+}
+
+NativeCanvasHandler *NativeCanvasHandler::getParent()
+{
+    return this->parent;
+}
+
+void NativeCanvasHandler::getChildren(NativeCanvasHandler **out)
+{
+    NativeCanvasHandler *cur;
+    int i = 0;
+    for (cur = children; cur != NULL; cur = cur->next) {
+        out[i++] = cur;
+    }
+}
+
+int32_t NativeCanvasHandler::countChildren()
+{
+    return this->nchildren;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
