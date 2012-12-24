@@ -25,6 +25,7 @@ void NativeCanvasHandler::setPosition(double left, double top)
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
 {
     coordPosition = mode;
+    this->computeAbsolutePosition();
 }
 
 void NativeCanvasHandler::setWidth(int width)
