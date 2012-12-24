@@ -35,7 +35,7 @@ var	win = new UIView(main, {
 	top : 50,
 	width : 608,
 	height : 184,
-	background : "rgba(50, 50, 150, 0.7)",
+	background : "rgba(50, 50, 150, 0.4)",
 	radius : 12
 });
 
@@ -103,11 +103,11 @@ for (var t=0; t<48; t++){
 		lineHeight : 14,
 		radius : 6,
 		label : "Button " + (t<10 ? '0' : '') + t,
-		color : "rgba(0, 0, 0, 0.65)",
+		color : "rgba(255, 255, 255, 0.95)",
 		background : "rgb("
-			+Math.round(64+Math.random()*190)+", "
-			+Math.round(64+Math.random()*190)+", "
-			+Math.round(64+Math.random()*190)
+			+Math.round(10+Math.random()*100)+", "
+			+Math.round(10+Math.random()*80)+", "
+			+Math.round(10+Math.random()*50)
 		+")"
 	});
 

@@ -103,14 +103,40 @@ Native.layout = {
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i]._needRedraw) {
-				var context = z[i].layer.context;
-				z[i].update(); // call element's custom refresh method
-				z[i].refresh(); // call generic refresh method
-				z[i].draw(context);
-				z[i]._needRedraw = false;
+			if (z[i]._needRefresh) {
+				z[i].refresh();
 			}
 		}
+	},
+
+	onPropertyUpdate : function(e){
+		var element = e.element,
+			old = e.oldValue,
+			value = e.newValue;
+
+		element.fireEvent("change", {
+			property : e.property,
+			oldValue : e.oldValue,
+			newValue : e.newValue
+		});
+
+		switch (e.property) {
+			case "left" :
+			case "top" :
+				element._needPositionUpdate = true;
+				break;
+
+			case "opacity" :
+				element._needOpacityUpdate = true;
+				break;
+
+			default :
+				element._needRedraw = true;
+				break
+		};
+
+		element._needRefresh = true;
+
 	},
 
 	find : function(property, value){
@@ -184,34 +210,7 @@ Native.layout = {
 			}
 		}
 		return len;
-	},
-
-	onPropertyUpdate : function(e){
-		var element = e.element,
-			old = e.oldValue,
-			value = e.newValue;
-
-		element.fireEvent("change", {
-			property : e.property,
-			oldValue : e.oldValue,
-			newValue : e.newValue
-		});
-
-		element.refresh();
-
-		switch (e.property) {
-			case "left" :
-				break;
-
-			case "top" :
-				break;
-
-			case "visible" :
-				break;
-		};
-
 	}
-
 };
 
 /* -------------------------------------------------------------------------- */
@@ -290,17 +289,20 @@ Native.canvas.implement = function(props){
 
 /* -------------------------------------------------------------------------- */
 
-Native._cachedMeasures = {};
+Native._cachedTextWidth = {};
+Native.blankOrphanedCanvas = new Canvas(1, 1);
 Native.getTextWidth = function(text, fontSize, fontType){
-	var c = Native._cachedMeasures,
+	var c = Native._cachedTextWidth,
 		key = text + fontSize + fontType,
-		canvas = new Canvas(1, 1),
-		context = canvas.getContext("2D");
+		context = Native.blankOrphanedCanvas.getContext("2D");
 
-	context.fontSize = fontSize;
-	context.fontType = fontType;
+	if (!c[key]) {
+		context.fontSize = fontSize;
+		context.fontType = fontType;
+		c[key] = context.measureText(text);
+	}
 
-	return c[key] ? c[key] : c[key] = context.measureText(text);
+	return c[key];
 };
 
 /* -------------------------------------------------------------------------- */

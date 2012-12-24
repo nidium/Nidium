@@ -222,7 +222,7 @@ var __fpsLayer = new Canvas(50, 30),
 	__fpsLayerContext = __fpsLayer.getContext("2D");
 
 __fpsLayer.left = 0;
-__fpsLayer.top = window.height-40;
+__fpsLayer.top = window.height-30;
 Native.canvas.add(__fpsLayer);
 
 var FPS = {

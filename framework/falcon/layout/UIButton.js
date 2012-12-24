@@ -4,13 +4,14 @@
 
 Native.elements.export("UIButton", {
 	refresh : function(){
+
 		var textWidth = Native.getTextWidth(
 			this.label,
 			this.fontSize,
 			this.fontType
 		);
 
-		this.width = 10 + Math.round(textWidth) + 10;
+		this._width = 10 + Math.round(textWidth) + 10;
 	},
 
 	init : function(){
@@ -52,9 +53,6 @@ Native.elements.export("UIButton", {
 			textOffsetX = 9,
 			textOffsetY = (params.h-this.lineHeight)/2 + 4 + this.lineHeight/2,
 			textShadow = '#000000';
-
-		context.setFontSize(this.fontSize);
-		context.setFontType(this.fontType);
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
 			if (this.selected){
@@ -115,12 +113,15 @@ Native.elements.export("UIButton", {
 			);
 		}
 
-		if (__ENABLE_TEXT_SHADOWS__) { context.setShadow(1, 1, 1, '#000000'); }
-		context.setColor(this.color);
-		context.fillText(
-			this.label, 
-			params.x+textOffsetX, params.y+textOffsetY
+		context.setFontSize(this.fontSize);
+		context.setFontType(this.fontType);
+
+		context.setText(
+			this.label,
+			params.x+textOffsetX,
+			params.y+textOffsetY,
+			this.color,
+			"rgba(0, 0, 0, 0.4)"
 		);
-		if (__ENABLE_TEXT_SHADOWS__) { context.setShadow(0, 0, 0); }
 	}
 });

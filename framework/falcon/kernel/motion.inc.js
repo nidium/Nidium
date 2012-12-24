@@ -133,14 +133,19 @@ DOMElement.implement({
 		var q = this.getCurrentAnimations(property);
 
 		for (var i in q){
-			q[i].cancel();
+			if (q.hasOwnProperty(i)){
+				q[i].cancel();
+			}
 		}
 	}
 
 });
 
 Native.MotionFactory = {
-	queue : [],
+	queue : {},
+	uid : 0,
+	nb : 0,
+
 	timer : null,
 	slice : 10,
 
@@ -155,7 +160,7 @@ Native.MotionFactory = {
 
 		if (view && property) {
 			for (var i in q){
-				if (q[i].property == property){
+				if (q.hasOwnProperty(i) && q[i].property == property){
 					animations.push(q[i]);
 				}
 			}
@@ -180,6 +185,7 @@ Native.MotionFactory = {
 			*/
 
 			animation = {
+				uid : "_anim_" + this.uid,
 				view : o.view,
 				property : property,
 				start : Number(o.from),
@@ -195,10 +201,17 @@ Native.MotionFactory = {
 				}
 			};
 
-			this.queue.push(animation);
+			this.queue[animation.uid] = animation;
+			this.uid++;
+			this.nb++;
 		}
 		this.play();
 		return animation;
+	},
+
+	remove : function(animation){
+		delete(this.queue[animation.uid]);
+		this.nb--;
 	},
 
 	animate : function(animation){
@@ -230,15 +243,7 @@ Native.MotionFactory = {
 		view._mutex[property] = null;
 
 		if (animation.callback) animation.callback.call(view);
-
-/*
-		for (var i in q){
-			if (q[i] == animation){
-				q.splice(i, 1);
-				break;
-			}
-		}
-*/
+		this.remove(animation);
 
 		this.ended++;
 	},
@@ -254,12 +259,12 @@ Native.MotionFactory = {
 
 		this.timer = setTimer(function(){
 			for (var i in q){
-				if (!q[i].complete){
+				if (q.hasOwnProperty(i) && !q[i].complete){
 					self.animate(q[i]);
 				}
 			}
 
-			if (self.ended>=q.length){
+			if (self.nb == 0){
 				self.playing = false;
 				this.remove();
 			}
@@ -472,3 +477,4 @@ Math.physics = {
 		return Math.physics.bounceOut(x, t*2-d, 0, c, d) * .5 + c*.5 + b;
 	}
 };
+

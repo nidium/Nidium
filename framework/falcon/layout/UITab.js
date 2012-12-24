@@ -4,21 +4,21 @@
 
 Native.elements.export("UITab", {
 	refresh : function(){
-		this.height = 24;
-		this.fontSize = 11;
-		this.fontType = "arial";
+		this._height = 24;
+		this._fontSize = 11;
+		this._fontType = "arial";
 		//this.color = this.options.color ? this.options.color : "#aaaaaa";
 
 		var textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
+			this._label,
+			this._fontSize,
+			this._fontType
 		);
 
-		this.width = 14 + Math.round(textWidth) + 14;
+		this._width = 14 + Math.round(textWidth) + 14;
 
 		if (this.options.closable) {
-			this.width += 16;
+			this._width += 16;
 		}		
 	},
 
@@ -66,6 +66,7 @@ Native.elements.export("UITab", {
 				}, false);
 
 			}
+
 		}
 
 		var __startX = 0,
@@ -198,7 +199,7 @@ Native.elements.export("UITab", {
 			if (this.selected){
 				context.setShadow(0, 0, 2, this.background);
 			} else {
-				context.setShadow(3, -2, 3, "rgba(0, 0, 0, 0.4)");
+				context.setShadow(0, -2, 4, "rgba(0, 0, 0, 0.4)");
 			}
 		}
 
@@ -243,10 +244,8 @@ Native.elements.export("UITab", {
 			radius, gradient, false
 		);
 
-		delete(gradient);
-
 		context.setFontSize(this.fontSize);
-		context.fontType = this.fontType;
+		context.setFontType(this.fontType);
 
 		if (this.hasFocus && this.canReceiveFocus && this.outlineOnFocus) {
 			context.setColor("rgba(0, 0, 0, 1)");
@@ -259,18 +258,12 @@ Native.elements.export("UITab", {
 			context.setShadow(0, 0, 0);
 		}
 
-		context.setColor(textShadow);
-		context.fillText(
-			this.label, 
-			params.x+textOffsetX+1, 
-			params.y+textOffsetY+1
-		);
-
-		context.setColor(this.color);
-		context.fillText(
-			this.label, 
-			params.x+textOffsetX, 
-			params.y+textOffsetY
+		context.setText(
+			this.label,
+			params.x+textOffsetX+1,
+			params.y+textOffsetY+1,
+			this.color,
+			"rgba(0, 0, 0, 0.4)"
 		);
 
 	}

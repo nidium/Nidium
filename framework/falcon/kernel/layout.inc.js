@@ -107,7 +107,10 @@ var DOMElement = function(type, options, parent){
 		_layerPadding : 10,
 		_cachedBackgroundImage : null,
 
-		_needRedraw : true
+		_needRefresh : true,
+		_needRedraw : true,
+		_needPositionUpdate : true,
+		_needOpacityUpdate : true
 	});
 
 	if (options == undefined) {
@@ -164,9 +167,12 @@ Native.proxy = {
 	},
 
 	refresh : function(){
+
+		this.update(); // call element's custom refresh method
+
 		var p = this.parent,
-			x = this.left + this.offsetLeft,
-			y = this.top + this.offsetTop;
+			x = this._left + this.offsetLeft,
+			y = this._top + this.offsetTop;
 
 		this._absx = p ? p._absx + x : x;
 		this._absy = p ? p._absy + y : y;
@@ -176,17 +182,31 @@ Native.proxy = {
 
 		this._minx = this._absx;
 		this._miny = this._absy;
-		this._maxx = this._absx + this.width;
-		this._maxy = this._absy + this.height;
-		this._needRedraw = true;
+		this._maxx = this._absx + this._width;
+		this._maxy = this._absy + this._height;
 
-		if (this.layer){
-			this.layer.clear();
-			this.layer.visible = this.visible;
-			this.layer.context.globalAlpha = this.opacity;
-			this.layer.left = Math.round(this.left + this.__layerPadding);
-			this.layer.top = Math.round(this.top + this.__layerPadding);
+		if (this.layer) {
+
+			this.layer.visible = this._visible;
+			
+			if (this._needOpacityUpdate){
+				this.layer.context.globalAlpha = this.opacity;
+				this._needOpacityUpdate = false;
+			}
+
+			if (this._needPositionUpdate){
+				this.layer.left = Math.round(this._left + this.__layerPadding);
+				this.layer.top = Math.round(this._top + this.__layerPadding);
+				this._needPositionUpdate = false;
+			}
+
+			if (this._needRedraw) {
+				this.layer.clear();
+				this.draw(this.layer.context);
+				this._needRedraw = false;
+			}
 		}
+		this._needRefresh = false;
 	},
 
 	getDrawingBounds : function(){
@@ -292,12 +312,14 @@ DOMElement.definePublicProperty = function(element, property, value){
 
 		set : function(value){
 			if (element["_"+property] === value) return false;
-			Native.layout.onPropertyUpdate({
-				element : element,
-				property : property,
-				oldValue : element["_"+property],
-				newValue : value
-			});
+			if (element._needRefresh === false){
+				Native.layout.onPropertyUpdate({
+					element : element,
+					property : property,
+					oldValue : element["_"+property],
+					newValue : value
+				});
+			}
 			element["_"+property] = value;
 		},
 

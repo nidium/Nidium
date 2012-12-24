@@ -12,10 +12,10 @@ var ಠ_ಠ = '2.0',
 /* -------------------------------------------------------------------------- */
 
 /* Todo : add more performance flags */
-var	__ENABLE_TEXT_SHADOWS__ = false,
+var	__ENABLE_TEXT_SHADOWS__ = true,
 	__ENABLE_BUTTON_SHADOWS__ = true,
 	__ENABLE_GRADIENT_LAYERS__ = true,
-	__DEBUG_SHOW_LAYERS__ = true;
+	__DEBUG_SHOW_LAYERS__ = false;
 
 /* -------------------------------------------------------------------------- */
 

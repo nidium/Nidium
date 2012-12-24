@@ -17,43 +17,39 @@ var	myTabs = [
 	/* Tab 9 */ {label : "native.inc.js"}
 ];
 
-
 var	tabController = main.add("UITabController", {
 	name : "helloTabs",
 	tabs : myTabs,
 	background : "#191a18"
 });
 
-
-
-/*
 var removeButton = main.add("UIButton", {
-		x:20,
-		y:60,
+		left : 20,
+		top : 60,
 		label:"Remove",
 		background:"#4488EE",
 		fontSize:10.5
 	}),
 
 	nextButton = main.add("UIButton", {
-		x:82, 
-		y:60, 
+		left : 82, 
+		top : 60, 
 		label:"Next", 
 		background:"#882266", 
 		fontSize:10.5
 	}),
 
 	addButton = main.add("UIButton", {
-		x:130, 
-		y:85, 
+		left : 130, 
+		top : 85, 
 		label:"Add", 
 		background:"#668822", 
 		fontSize:10.5
 	}),
 
 	b3 = main.add("UIButton", {
-		x:20, 
-		y:85, 
+		left : 20, 
+		top : 85, 
 		label:"Tab 0, Position 0", 
 		background:"#000000", 
 		fontSize:10.5
@@ -81,6 +77,7 @@ nextButton.addEventListener("mousedown", function(){
 	tabController.selectNextTab();
 });
 
+/*
 
 tabController.addEventListener("tabselect", function(e){
 	b3.label = "Tab " + e.tab + ", Position " + e.position;
@@ -116,5 +113,6 @@ tabController.addEventListener("tabclose", function(e){
 	}
 	echo("");
 });
-
 */
+
+
