@@ -7,7 +7,6 @@ Native.elements.export("UITab", {
 		this._height = 24;
 		this._fontSize = 11;
 		this._fontType = "arial";
-		//this.color = this.options.color ? this.options.color : "#aaaaaa";
 
 		var textWidth = Native.getTextWidth(
 			this._label,
@@ -23,7 +22,25 @@ Native.elements.export("UITab", {
 	},
 
 	init : function(){
-		var self = this;
+		var self = this,
+			o = this.options;
+
+		this.height = OptionalNumber(o.height, 24);
+		this.fontSize = OptionalNumber(o.fontSize, 11);
+		this.fontType = OptionalString(o.fontType, "arial");
+		this.color = OptionalValue(o.color, "#aaaaaa");
+
+		var textWidth = Native.getTextWidth(
+			this.label,
+			this.fontSize,
+			this.fontType
+		);
+
+		this.width = 14 + Math.round(textWidth) + 14;
+
+		if (o.closable) {
+			this.width += 16;
+		}		
 
 		this.canReceiveFocus = true;
 
@@ -41,10 +58,10 @@ Native.elements.export("UITab", {
 		});
 
 		this.onReady = function(){
-			if (this.options.closable) {
+			if (self.options.closable) {
 
-				this.closeButton = this.add("UIButtonClose", {
-					left : this.width - 26,
+				self.closeButton = self.add("UIButtonClose", {
+					left : self.width - 26,
 					top : 6,
 					width : 12,
 					height : 12,
@@ -52,17 +69,23 @@ Native.elements.export("UITab", {
 					background : "rgba(0, 0, 0, 0.3)"
 				});
 
-				this.closeButton.addEventListener("mouseup", function(){
+				self.closeButton.addEventListener("mouseup", function(){
 					/*
-					this.parent.g = {
+					self.parent.g = {
 						x : 0,
-						y : this.parent.height/2
+						y : self.parent.height/2
 					};
-					this.parent.bounceScale(0, 120, function(){
-						self.parent._removeTab(this.tabnum);
-						//this.remove();
+					self.parent.bounceScale(0, 120, function(){
+						self.parent._removeTab(self.tabnum);
+						//self.remove();
 					});
 					*/
+
+					self.parent._removeTab(self.tabnum);
+					self.width = 0;
+					self.height = 0;
+					self.hide();
+
 				}, false);
 
 			}

@@ -29,6 +29,7 @@ Native.layout = {
 		if (element.parent){
 			delete(element.parent.nodes[element._uid]);
 			delete(this.nodes[element._uid]);
+			element.layer.removeFromParent();
 			element = null;
 		}
 	},
@@ -124,6 +125,11 @@ Native.layout = {
 			case "left" :
 			case "top" :
 				element._needPositionUpdate = true;
+				break;
+
+			case "width" :
+			case "height" :
+				element._needSizeUpdate = true;
 				break;
 
 			case "opacity" :
@@ -231,7 +237,13 @@ Native.elements = {
 	init : function(element){
 		var plugin = this[element.type];
 
-		if (!element.parent){
+		if (element.parent){
+			var w = element.getLayerPixelWidth(),
+				h = element.getLayerPixelHeight();
+
+			element.layer = new Canvas(w, h);
+			element.layer.context = element.layer.getContext("2D");
+		} else {
 			element._layerPadding = 0;
 			element._root = element;
 			element.layer = Native.canvas;
@@ -240,7 +252,6 @@ Native.elements = {
 		}
 
 		if (plugin){
-
 			if (plugin.refresh) {
 				element.update = plugin.refresh;
 				element.update();
@@ -258,14 +269,6 @@ Native.elements = {
 			element.beforeDraw = function(){};
 			element.draw = function(context){};
 			element.afterDraw = function(){};
-		}
-
-		if (element.parent) {
-			var w = Math.round(element._width + 2*element._layerPadding),
-				h = Math.round(element._height + 2*element._layerPadding);
-
-			element.layer = new Canvas(w, h);
-			element.layer.context = element.layer.getContext("2D");
 		}
 
 		if (typeof(element.onReady) == "function"){

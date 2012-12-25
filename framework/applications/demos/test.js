@@ -2,6 +2,8 @@
 /* Native (@) 2012 Stight.com */
 /* -------------------------- */
 
+__DEBUG_SHOW_LAYERS__ = true;
+
 
 var main = new Application({
 	backgroundImage : "falcon/assets/back.png",
@@ -90,3 +92,4 @@ function start(){
 		useNativeMotionFactory(element, 580+0.25*k++);
 	}
 }
+

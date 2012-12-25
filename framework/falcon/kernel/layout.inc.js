@@ -110,6 +110,7 @@ var DOMElement = function(type, options, parent){
 		_needRefresh : true,
 		_needRedraw : true,
 		_needPositionUpdate : true,
+		_needSizeUpdate : true,
 		_needOpacityUpdate : true
 	});
 
@@ -166,6 +167,14 @@ Native.proxy = {
 		Native.layout.update();
 	},
 
+	getLayerPixelWidth : function(){
+		return Math.round(this._width + 2*this._layerPadding);
+	},
+
+	getLayerPixelHeight : function(){
+		return Math.round(this._height + 2*this._layerPadding);
+	},
+
 	refresh : function(){
 
 		this.update(); // call element's custom refresh method
@@ -198,6 +207,14 @@ Native.proxy = {
 				this.layer.left = Math.round(this._left + this.__layerPadding);
 				this.layer.top = Math.round(this._top + this.__layerPadding);
 				this._needPositionUpdate = false;
+			}
+
+			if (this._needSizeUpdate){
+				var w = this.getLayerPixelWidth(),
+					h = this.getLayerPixelHeight();
+				this.layer.width = w;
+				this.layer.height = h;
+				this._needSizeUpdate = false;
 			}
 
 			if (this._needRedraw) {
@@ -289,6 +306,9 @@ DOMElement.prototype = {
 	hasClass : Native.proxy.hasClass,
 	addClass : Native.proxy.addClass,
 	removeClass : Native.proxy.removeClass,
+
+	getLayerPixelWidth : Native.proxy.getLayerPixelWidth,
+	getLayerPixelHeight : Native.proxy.getLayerPixelHeight,
 
 	update : function(context){},
 	draw : function(context){}

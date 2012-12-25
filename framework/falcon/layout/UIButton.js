@@ -4,15 +4,13 @@
 
 Native.elements.export("UIButton", {
 	refresh : function(){
-/*
 		var textWidth = Native.getTextWidth(
-			this._label,
-			this._fontSize,
-			this._fontType
+			this.label,
+			this.fontSize,
+			this.fontType
 		);
 
-		this._width = 10 + Math.round(textWidth) + 10;
-		*/
+		this.width = 10 + Math.round(textWidth) + 10;
 	},
 
 	init : function(){
@@ -23,6 +21,14 @@ Native.elements.export("UIButton", {
 
 		this.background = OptionalValue(o.background, "#2277E0");
 		this.color = OptionalValue(this.options.color, "#ffffff");
+
+		var textWidth = Native.getTextWidth(
+			this.label,
+			this.fontSize,
+			this.fontType
+		);
+
+		this.width = 10 + Math.round(textWidth) + 10;
 
 		this.canReceiveFocus = true;
 

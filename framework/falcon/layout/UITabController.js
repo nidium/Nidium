@@ -28,12 +28,11 @@ Native.elements.export("UITabController", {
 			for (var i=0; i<nbtabs; i++){
 				var t = self.taborder[i];
 				self.tabs[t].position = i;
-				self.tabs[t].zIndex = nbtabs-i-1;
-				self.tabs[t].closeButton.zIndex = 0;
 				self.tabs[t].selected = false;
+				self.tabs[t].layer.sendToBack();
 				if (animate) {
 					var _callback = (i==1 ? callback : null);
-					self.tabs[t].slideX(x, 26*j++, _callback);
+					self.tabs[t].slideX(x, 46*j++, _callback);
 				} else {
 					self.tabs[t].left = x;
 				}
@@ -42,7 +41,7 @@ Native.elements.export("UITabController", {
 
 			if (self.tabs[self.selection]) {
 				self.tabs[self.selection].selected = true;
-				self.tabs[self.selection].zIndex = nbtabs-1;
+				self.tabs[self.selection].layer.bringToFront();
 			}
 		};
 
@@ -50,6 +49,9 @@ Native.elements.export("UITabController", {
 			self.selection = Math.max(Math.min(tabnum, self.tabs.length-1), 0);
 			self.resetTabs();
 			self.position = self.getPosition(self.selection);
+
+			var element = self.tabs[self.selection];
+			element.layer.bringToFront();
 
 			self.fireEvent("tabselect", {
 				tab : self.selection,
@@ -206,16 +208,8 @@ Native.elements.export("UITabController", {
 
 
 		this._addTab = function(i, position, options, x){
-			var label = options.label ? options.label : "New tab",
-				selected = options.selected ? options.selected : false,
-				closable = options.closable===false ? false : true,
-				preventmove = options.preventmove===true ? true : false,
-
-				background = options.background ? 
-							 options.background : "#262722",
-
-				color = options.color ? options.color : "#abacaa",
-
+			var o = options,
+				selected = OptionalBoolean(o.self, false),
 				l = tabs.length;
 
 			if (selected) {
@@ -227,17 +221,17 @@ Native.elements.export("UITabController", {
 				left : x,
 				top : 8,
 				name : "tab_" + this.name,
-				label : label,
 				selected : selected,
-				background : background,
-				color : color,
-				closable : closable,
-				preventmove : preventmove
+
+				label : OptionalString(o.label, "New Tab"),
+				background : OptionalValue(o.background, "#262722"),
+				color : OptionalValue(o.color, "#abacaa"),
+				closable : OptionalBoolean(o.closable, true),
+				preventmove : OptionalBoolean(o.preventmove, false)
 			});
 
 			this.tabs[i].tabnum = i;
 			this.tabs[i].position = position;
-			this.tabs[i].zIndex = l-i-1;
 		};
 
 		var x = 0,
@@ -262,7 +256,6 @@ Native.elements.export("UITabController", {
 				self.taborder[i] = i;
 				x += self.tabs[i].width - self.overlap;
 			}
-
 			self.resetTabs();
 		};
 	},

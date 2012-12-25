@@ -2,12 +2,15 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
+__DEBUG_SHOW_LAYERS__ = true;
+
+
 var main = new Application({background:"#262722"});
 
 var	myTabs = [
-	/* Tab 0 */ {label : "main.js", selected : true},
+	/* Tab 0 */ {label : "main.js"},
 	/* Tab 1 */ {label : "core.js"},
-	/* Tab 2 */ {label : "hello.js"},
+	/* Tab 2 */ {label : "hello.js", selected : true},
 	/* Tab 3 */ {label : "foo.cpp"},
 	/* Tab 4 */ {label : "class.cpp"},
 	/* Tab 5 */ {label : "opengl.cpp", background : "#202a15", color : "#ffffff"},
@@ -55,7 +58,6 @@ var removeButton = main.add("UIButton", {
 		fontSize:10.5
 	});
 
-
 addButton.addEventListener("mouseclick", function(){
 	var p = tabController.position;
 
@@ -65,7 +67,6 @@ addButton.addEventListener("mouseclick", function(){
 		color : "#ffffff"
 	});
 });
-
 
 removeButton.addEventListener("mouseclick", function(){
 	var p = tabController.position;
