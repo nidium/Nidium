@@ -92,7 +92,8 @@ var DOMElement = function(type, options, parent){
 	/* Internal Hidden Properties */
 	DOMElement.defineInternalProperties(this, {
 		_root : p ? p._root : this,
-		_uid : "_obj_" + Native.layout.objID++,
+		_nid : Native.layout.objID++,
+		_uid : "_obj_" + Native.layout.objID,
 		_eventQueues : [],
 		_mutex : [],
 
@@ -134,6 +135,7 @@ Native.proxy = {
 
 	remove : function(){
 		Native.layout.remove(this);
+		Native.layout.update();
 	},
 
 	show : function(){
@@ -173,6 +175,57 @@ Native.proxy = {
 
 	getLayerPixelHeight : function(){
 		return Math.round(this._height + 2*this._layerPadding);
+	},
+
+	/*
+	 * Sort DOMElements to match with hardware physical layers order.
+	 */
+	resetNodes : function(){
+		if (!this.parent) return false;
+
+		var parent = this.parent, // parent of this virtual element
+			layers = parent.layer.getChildren(); // physical children
+
+		/* Reset parent's nodes */
+		parent.nodes = {};
+
+		/* reconstruct the nodes in the right order */
+		for (var i in layers){
+			// get the host element (that's it : the virtual element)
+			var element = layers[i].host;
+
+			// add the element in parent's nodes 
+			parent.nodes[element._uid] = element;
+		}
+
+		Native.layout.update();
+	},
+
+	bringToFront : function(){
+		this.layer.bringToFront();
+		this.resetNodes();
+
+		var z = Native.layout.getElements();
+		for (var i in z){
+			if (z[i].type == "UITab") {
+				echo(i, z[i].label, z[i]._nid);
+			}
+		}
+
+
+	},
+
+	sendToBack : function(){
+		this.layer.sendToBack();
+		this.resetNodes();
+		
+		var z = Native.layout.getElements();
+		for (var i in z){
+			if (z[i].type == "UITab") {
+				echo(i, z[i].label, z[i]._nid);
+			}
+		}
+
 	},
 
 	refresh : function(){
@@ -309,6 +362,10 @@ DOMElement.prototype = {
 
 	getLayerPixelWidth : Native.proxy.getLayerPixelWidth,
 	getLayerPixelHeight : Native.proxy.getLayerPixelHeight,
+
+	bringToFront : Native.proxy.bringToFront,
+	sendToBack : Native.proxy.sendToBack,
+	resetNodes : Native.proxy.resetNodes,
 
 	update : function(context){},
 	draw : function(context){}

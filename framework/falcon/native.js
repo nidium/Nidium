@@ -15,7 +15,9 @@ var ಠ_ಠ = '2.0',
 var	__ENABLE_TEXT_SHADOWS__ = true,
 	__ENABLE_BUTTON_SHADOWS__ = true,
 	__ENABLE_GRADIENT_LAYERS__ = true,
-	__DEBUG_SHOW_LAYERS__ = false;
+
+	__DEBUG_SHOW_LAYERS__ = false,
+	__DEBUG_SHOW_ORDER__ = false;
 
 /* -------------------------------------------------------------------------- */
 

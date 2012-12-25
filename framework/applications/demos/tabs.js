@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 __DEBUG_SHOW_LAYERS__ = true;
-
+__DEBUG_SHOW_ORDER__ = true;
 
 var main = new Application({background:"#262722"});
 

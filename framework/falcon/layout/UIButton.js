@@ -63,7 +63,7 @@ Native.elements.export("UIButton", {
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
 			if (this.selected){
-				context.setShadow(0, 2, 1, "rgba(255, 255, 255, 0.06)");
+				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
 			} else {
 				context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
 			}

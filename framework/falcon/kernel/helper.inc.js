@@ -13,7 +13,8 @@ var window = {
 /* -------------------------------------------------------------------------- */
 
 Canvas.prototype.clear = function(){
-	this.getContext("2D").clearRect(
+	var context = this.ctx;
+	context.clearRect(
 		0, 
 		0, 
 		this.width,
@@ -21,22 +22,49 @@ Canvas.prototype.clear = function(){
 	);
 
 	if (__DEBUG_SHOW_LAYERS__) {
-		this.getContext("2D").fillStyle = "rgba(180, 180, 0, 0.05)";
-		this.getContext("2D").fillRect(
+		if (this.host && this.host._hover){
+			context.fillStyle = "rgba(180, 180, 0, 0.05)";
+			context.strokeStyle = "rgba(180, 180, 0, 0.3)";
+		} else {
+			context.fillStyle = "rgba(180, 180, 0, 0.01)";
+			context.strokeStyle = "rgba(180, 180, 0, 0.05)";
+		}
+		context.fillRect(
 			0, 
 			0, 
 			this.width,
 			this.height
 		);
 
-		this.getContext("2D").strokeStyle = "rgba(180, 180, 0, 0.3)";
-		this.getContext("2D").strokeRect(
+		context.strokeRect(
 			0, 
 			0, 
 			this.width,
 			this.height
 		);
 	}
+
+	if (__DEBUG_SHOW_ORDER__ === true) {
+		context.fontSize = 9;
+		if (this.host && this.host._hover){
+			context.setText(
+				this.host._nid,
+				this.host._width + 7,
+				9,
+				"white",
+				"rgba(0, 0, 0, 0.7)"
+			);
+		} else {
+			context.setText(
+				this.host._nid,
+				this.host._width + 7,
+				9,
+				"rgba(200, 0, 0, 0.8)",
+				"rgba(0, 0, 0, 0.7)"
+			);
+		}
+	}
+
 };
 
 /* -------------------------------------------------------------------------- */

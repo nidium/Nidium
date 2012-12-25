@@ -4,10 +4,6 @@
 
 Native.elements.export("UITab", {
 	refresh : function(){
-		this._height = 24;
-		this._fontSize = 11;
-		this._fontType = "arial";
-
 		var textWidth = Native.getTextWidth(
 			this._label,
 			this._fontSize,
@@ -17,7 +13,7 @@ Native.elements.export("UITab", {
 		this._width = 14 + Math.round(textWidth) + 14;
 
 		if (this.options.closable) {
-			this._width += 16;
+			this._width += 22;
 		}		
 	},
 
@@ -39,7 +35,7 @@ Native.elements.export("UITab", {
 		this.width = 14 + Math.round(textWidth) + 14;
 
 		if (o.closable) {
-			this.width += 16;
+			this.width += 22;
 		}		
 
 		this.canReceiveFocus = true;
@@ -57,38 +53,34 @@ Native.elements.export("UITab", {
 			this.hover = false;
 		});
 
-		this.onReady = function(){
-			if (self.options.closable) {
+		if (this.options.closable) {
 
-				self.closeButton = self.add("UIButtonClose", {
-					left : self.width - 26,
-					top : 6,
-					width : 12,
-					height : 12,
-					color : '#000000',
-					background : "rgba(0, 0, 0, 0.3)"
+			this.closeButton = this.add("UIButtonClose", {
+				left : this.width - 26,
+				top : 6,
+				width : 12,
+				height : 12,
+				color : '#000000',
+				background : "rgba(0, 0, 0, 0.3)"
+			});
+
+			this.closeButton.addEventListener("mouseup", function(){
+				/*
+				this.parent.g = {
+					x : 0,
+					y : this.parent.height/2
+				};
+				this.parent.bounceScale(0, 120, function(){
+					this.parent._removeTab(this.tabnum);
 				});
+				*/
 
-				self.closeButton.addEventListener("mouseup", function(){
-					/*
-					self.parent.g = {
-						x : 0,
-						y : self.parent.height/2
-					};
-					self.parent.bounceScale(0, 120, function(){
-						self.parent._removeTab(self.tabnum);
-						//self.remove();
-					});
-					*/
+				this.parent.parent._removeTab(this.parent.tabnum);
+				this.parent.width = 0;
+				this.parent.height = 0;
+				this.parent.remove();
 
-					self.parent._removeTab(self.tabnum);
-					self.width = 0;
-					self.height = 0;
-					self.hide();
-
-				}, false);
-
-			}
+			}, false);
 
 		}
 
@@ -284,7 +276,7 @@ Native.elements.export("UITab", {
 		context.setText(
 			this.label,
 			params.x+textOffsetX+1,
-			params.y+textOffsetY+1,
+			params.y+textOffsetY,
 			this.color,
 			"rgba(0, 0, 0, 0.4)"
 		);

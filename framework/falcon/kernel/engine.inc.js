@@ -13,9 +13,7 @@ Native.layout = {
 	nbObj : 0, // Number of elements
 
 	nodes : {}, // May content several trees of elements
-	elements : [], // Flat representation of node trees (zIndex sorted elements)
-
-	higherzIndex : 0,
+	elements : [], // Flat representation of node trees
 
 	register : function(rootElement){
 		this.nodes[rootElement._uid] = rootElement;
@@ -91,11 +89,9 @@ Native.layout = {
 		this.nbObj = n;
 
 		this.elements = elements.sort(function(a, b){
-			return a._zIndex - b._zIndex;
+			return a._nid - b._nid;
 		});
 
-		this.higherzIndex = elements[elements.length-1] ?
-			elements[elements.length-1]._zIndex : 0;
 
 		this.elements = elements;
 	},
@@ -250,6 +246,8 @@ Native.elements = {
 			element.layer.context = Native.canvas.context;
 			Native.layout.register(element);
 		}
+
+		element.layer.host = element;
 
 		if (plugin){
 			if (plugin.refresh) {

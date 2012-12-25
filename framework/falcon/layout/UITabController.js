@@ -23,25 +23,26 @@ Native.elements.export("UITabController", {
 		this.resetTabs = function(animate, callback){
 			var x = 0,
 				j = 2,
-				nbtabs = self.taborder.length;
+				nbtabs = self.taborder.length,
+				selectedTab = self.tabs[self.selection];
 
 			for (var i=0; i<nbtabs; i++){
 				var t = self.taborder[i];
 				self.tabs[t].position = i;
 				self.tabs[t].selected = false;
-				self.tabs[t].layer.sendToBack();
+				self.tabs[t].sendToBack();
 				if (animate) {
 					var _callback = (i==1 ? callback : null);
-					self.tabs[t].slideX(x, 46*j++, _callback);
+					self.tabs[t].slideX(x, 26*j++, _callback);
 				} else {
 					self.tabs[t].left = x;
 				}
 				x += self.tabs[t].width-this.overlap;
 			}
 
-			if (self.tabs[self.selection]) {
-				self.tabs[self.selection].selected = true;
-				self.tabs[self.selection].layer.bringToFront();
+			if (selectedTab) {
+				selectedTab.selected = true;
+				selectedTab.bringToFront();
 			}
 		};
 
@@ -49,9 +50,6 @@ Native.elements.export("UITabController", {
 			self.selection = Math.max(Math.min(tabnum, self.tabs.length-1), 0);
 			self.resetTabs();
 			self.position = self.getPosition(self.selection);
-
-			var element = self.tabs[self.selection];
-			element.layer.bringToFront();
 
 			self.fireEvent("tabselect", {
 				tab : self.selection,
@@ -209,7 +207,7 @@ Native.elements.export("UITabController", {
 
 		this._addTab = function(i, position, options, x){
 			var o = options,
-				selected = OptionalBoolean(o.self, false),
+				selected = OptionalBoolean(o.selected, false),
 				l = tabs.length;
 
 			if (selected) {
@@ -250,14 +248,12 @@ Native.elements.export("UITabController", {
 			l = tabs.length;
 
 
-		this.onReady = function(){
-			for (var i=0; i<l; i++){
-				self._addTab(i, i, tabs[i], x);
-				self.taborder[i] = i;
-				x += self.tabs[i].width - self.overlap;
-			}
-			self.resetTabs();
-		};
+		for (var i=0; i<l; i++){
+			this._addTab(i, i, tabs[i], x);
+			this.taborder[i] = i;
+			x += this.tabs[i].width - this.overlap;
+		}
+		this.resetTabs();
 	},
 
 	draw : function(context){
