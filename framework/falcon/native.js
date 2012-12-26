@@ -29,6 +29,7 @@ load(__PATH_KERNEL__ + 'motion.inc.js');
 
 /* -- UI Elements -- */
 load(__PATH_LAYOUT__ + 'UIView.js');
+load(__PATH_LAYOUT__ + 'UILabel.js');
 load(__PATH_LAYOUT__ + 'UIButton.js');
 load(__PATH_LAYOUT__ + 'UIButtonClose.js');
 load(__PATH_LAYOUT__ + 'UITab.js');

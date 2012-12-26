@@ -3,7 +3,7 @@
 /* -------------------------- */
 
 __DEBUG_SHOW_LAYERS__ = true;
-__DEBUG_SHOW_ORDER__ = true;
+//__DEBUG_SHOW_ORDER__ = true;
 
 var main = new Application({background:"#262722"});
 
@@ -78,7 +78,6 @@ nextButton.addEventListener("mousedown", function(){
 	tabController.selectNextTab();
 });
 
-/*
 
 tabController.addEventListener("tabselect", function(e){
 	b3.label = "Tab " + e.tab + ", Position " + e.position;
@@ -91,7 +90,7 @@ tabController.addEventListener("tabswap", function(e){
 	b3.label = "Tab " + e.tab + ", Position " + e.position;
 });
 
-
+/*
 
 tabController.addEventListener("tabmove", function(e){
 	var tab = e.tab,
@@ -115,5 +114,95 @@ tabController.addEventListener("tabclose", function(e){
 	echo("");
 });
 */
+
+
+
+var NatBug = new Application({
+	id : "NatBug",
+	left : 0,
+	top : 500,
+	width : 1024,
+	height : 268,
+	background : "rgba(0, 0, 0, 0.20"
+});
+
+var lines = 0,
+	col = 0,
+	labels = {},
+	values = {},
+	attr = [
+		"type", "id", "label", "name", "left", "top", "width",
+		"height", "scale", "opacity", "selected", "fixed", "overflow",
+		"opacity", "_absx", "_absy", "radius", "hasFocus", "isOnTop", "background", "color",
+		"lineWidth", "lineHeight", "fontSize", "fontType", "textAlign",
+		"shadowBlur"
+	];
+
+for (var l = 0; l<attr.length; l++){
+	var a = attr[l],
+		b1 = "rgba(0, 0, 0, 0.4)",
+		b2 = "rgba(255, 255, 255, 0.05)";
+
+	if (lines>=10){
+		lines = 0;
+		col++;
+	}
+
+	if (lines%2 == 0) {
+		b1 = "rgba(0, 0, 0, 0.25)";
+		b2 = "rgba(255, 255, 255, 0.075)";
+	}
+
+	labels[a] = NatBug.add("UILabel", {
+		paddingLeft : 5,
+		left : 5 + 260*col,
+		top : 5 + 20*lines,
+		width : 70,
+		color : "#ffffff",
+		background : b1,
+		fontSize : 11,
+		label : attr[l]
+	});
+
+	values[a] = NatBug.add("UILabel", {
+		paddingLeft : 5,
+		left : 78 + 260*col,
+		top : 5 + 20*lines,
+		width : 160,
+		color : "#ffffff",
+		background : b2,
+		label : "",
+		fontSize : 11,
+		radius : 2
+	});
+
+	lines++;
+
+}
+
+window.onElementUnderPointer = function(e){
+	if (e.y<NatBug._absy){
+		for (var l = 0; l<attr.length; l++){
+			var a = attr[l];
+			values[a].label = this[a] + (this.parent ? " ("+this.parent[a]+")" : "");
+		}
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

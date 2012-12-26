@@ -128,7 +128,7 @@ Native.elements.export("UIButton", {
 			params.x+textOffsetX,
 			params.y+textOffsetY,
 			this.color,
-			"rgba(0, 0, 0, 0.4)"
+			textShadow
 		);
 	}
 });

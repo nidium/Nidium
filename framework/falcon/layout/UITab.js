@@ -19,6 +19,7 @@ Native.elements.export("UITab", {
 
 	init : function(){
 		var self = this,
+			controller = self.parent,
 			o = this.options;
 
 		this.height = OptionalNumber(o.height, 24);
@@ -41,7 +42,7 @@ Native.elements.export("UITab", {
 		this.canReceiveFocus = true;
 
 		this.addEventListener("mousedown", function(e){
-			this.parent.selectTab(this.tabnum);
+			controller.selectTab(this.tabnum);
 			e.stopPropagation();
 		}, false);
 
@@ -57,10 +58,10 @@ Native.elements.export("UITab", {
 
 			this.closeButton = this.add("UIButtonClose", {
 				left : this.width - 26,
-				top : 6,
+				top : (this.height-12)/2,
 				width : 12,
 				height : 12,
-				color : '#000000',
+				color : 'rgba(0, 0, 0, 0.75)',
 				background : "rgba(0, 0, 0, 0.3)"
 			});
 
@@ -75,16 +76,17 @@ Native.elements.export("UITab", {
 				});
 				*/
 
-				this.parent.parent._removeTab(this.parent.tabnum);
-				this.parent.width = 0;
-				this.parent.height = 0;
-				this.parent.remove();
+				controller._removeTab(self.tabnum);
+				self.width = 0;
+				self.height = 0;
+				self.remove();
 
 			}, false);
 
 		}
 
-		var __startX = 0,
+		var __fireEvent = false,
+			__startX = 0,
 			__endX = 0,
 			__currentDragingTabPosition = false;
 
@@ -92,85 +94,86 @@ Native.elements.export("UITab", {
 			__fireEvent = false;
 			__startX = this.left;
 			__endX = this.left + this.width;
-			__currentDragingTabPosition = self.parent.getPosition(this.tabnum);
+			__currentDragingTabPosition = controller.getPosition(this.tabnum);
 		}, false);
 
 		this._root.addEventListener("dragover", function(e){
 			if (__currentDragingTabPosition===false) { return false; }
 
 			var i = __currentDragingTabPosition,
-				c = self.parent.getTab(i),
-				n = self.parent.getTab(i+1),
-				p = self.parent.getTab(i-1);
+				curr = controller.getTab(i),
+				next = controller.getTab(i+1),
+				prev = controller.getTab(i-1);
 
-			if (c._absx + e.xrel < self.parent._absx) {
-				c.left = self.parent.left;
-			} else if (c._absx + c.width + e.xrel > self.parent._absx + self.parent.width) {
-				c.left = self.parent.w - c.w;
+			if (curr._absx + e.xrel < controller._absx) {
+				curr.left = controller.left;
+			} else if (curr._absx + curr.width + e.xrel > controller._absx + controller.width) {
+				curr.left = controller.width - curr.width;
 			} else {
-				c.left += e.xrel;
+				curr.left += e.xrel;
 			}
 
 			if (e.xrel>0) {
-				if (n) {
-					if (c._absx+c.width > (n._absx+n.width/2)) {
-						self.parent.position = __currentDragingTabPosition+1;
-						self.parent.fireEvent("tabswap", {
-							tab : self.parent.selection,
+				if (next) {
+					if (curr._absx+curr.width > (next._absx+next.width/2)) {
+						controller.position = __currentDragingTabPosition+1;
+						controller.fireEvent("tabswap", {
+							tab : controller.selection,
 							position : __currentDragingTabPosition+1
 						});
 
-						n.slideX(
+						next.slideX(
 							__startX, 
-							150, 
-							function(){}, 
+							180, 
+							null, 
 							Math.physics.cubicOut
 						);
 						
-						self.parent.swapTabs(i, i+1);
+						controller.swapTabs(i, i+1);
 						__fireEvent = true;
 
 						__currentDragingTabPosition++;
 
 						i = __currentDragingTabPosition;
-						c = self.parent.getTab(__currentDragingTabPosition);
-						n = self.parent.getTab(i+1);
-						p = self.parent.getTab(i-1);
+						curr = controller.getTab(i);
+						next = controller.getTab(i+1);
+						prev = controller.getTab(i-1);
 
-						__startX += p.width - self.parent.overlap;
-						__endX += p.width - self.parent.overlap;
+						__startX += prev.width - controller.overlap;
+						__endX += prev.width - controller.overlap;
 
 					}
 				} 
 			}
 
 			if (e.xrel<0) {
-				if (p) {
-					if (c._absx < (p._absx+p.width/2) ) {
-						self.parent.position = __currentDragingTabPosition-1;
-						self.parent.fireEvent("tabswap", {
-							tab : self.parent.selection,
+				if (prev) {
+					if (curr._absx < (prev._absx+prev.width/2) ) {
+						controller.position = __currentDragingTabPosition-1;
+						controller.fireEvent("tabswap", {
+							tab : controller.selection,
 							position : __currentDragingTabPosition-1
 						});
 
-						p.slideX(
-							__endX - p.width, 
-							150, 
-							function(){}, 
+						prev.slideX(
+							__endX - prev.width, 
+							180, 
+							null, 
 							Math.physics.cubicOut
 						);
 
-						self.parent.swapTabs(i, i-1);
+						controller.swapTabs(i, i-1);
 						__fireEvent = true;
 
 						__currentDragingTabPosition--;
-						c = self.parent.getTab(__currentDragingTabPosition);
-						i = __currentDragingTabPosition;
-						n = self.parent.getTab(i+1);
-						p = self.parent.getTab(i-1);
 
-						__startX -= n.width - self.parent.overlap;
-						__endX -= n.width - self.parent.overlap;
+						i = __currentDragingTabPosition;
+						curr = controller.getTab(i);
+						next = controller.getTab(i+1);
+						prev = controller.getTab(i-1);
+
+						__startX -= next.width - controller.overlap;
+						__endX -= next.width - controller.overlap;
 
 					}
 				}
@@ -182,7 +185,7 @@ Native.elements.export("UITab", {
 			if (__currentDragingTabPosition===false) { return false; }
 			
 			let i = __currentDragingTabPosition,
-				c = self.parent.getTab(i);
+				c = controller.getTab(i);
 
 			c.slideX(__startX, 200, function(){});
 
@@ -191,9 +194,9 @@ Native.elements.export("UITab", {
 			__endX = false;
 
 			if (__fireEvent){
-				self.parent.fireEvent("tabmove", {
+				controller.fireEvent("tabmove", {
 					tab : this.tabnum,
-					positions : self.parent.taborder
+					positions : controller.taborder
 				});
 			}
 			__fireEvent = false;
@@ -214,7 +217,7 @@ Native.elements.export("UITab", {
 			if (this.selected){
 				context.setShadow(0, 0, 2, this.background);
 			} else {
-				context.setShadow(0, -2, 4, "rgba(0, 0, 0, 0.4)");
+				context.setShadow(3, -2, 4, "rgba(0, 0, 0, 0.4)");
 			}
 		}
 
@@ -245,7 +248,7 @@ Native.elements.export("UITab", {
 
 			if (this.hover){
 				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.30)');
-				gradient.addColorStop(0.15, 'rgba(255, 255, 255, 0.15)');
+				gradient.addColorStop(0.25, 'rgba(255, 255, 255, 0.18)');
 			} else {
 				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.25)');
 				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.15)');

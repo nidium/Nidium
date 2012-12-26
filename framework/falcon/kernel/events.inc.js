@@ -65,6 +65,12 @@ Native.events = {
 		e.target = target;
 	},
 
+	hook : function(element, e){
+		if (typeof window.onElementUnderPointer == "function"){
+			window.onElementUnderPointer.call(element, e);
+		}
+	},
+
 	dispatch : function(name, e){
 		var x = e.x,
 			y = e.y,
@@ -84,6 +90,8 @@ Native.events = {
 			cancelEvent = false;
 		};
 
+		var __mostTopElementHooked = false;
+
 		for(var i=z.length-1 ; i>=0 ; i--) {
 			var element = z[i];
 			cancelEvent = false;
@@ -98,6 +106,11 @@ Native.events = {
 
 			if (element.isPointInside(x, y)){
 
+				if (__mostTopElementHooked === false){
+					Native.events.hook(element, e);
+					__mostTopElementHooked = true;
+				}
+
 				switch (name) {
 					case "mousewheel" :
 						//cancelBubble = true;
@@ -106,19 +119,12 @@ Native.events = {
 					case "mousemove" :
 						this.setSource(e, this.sourceElement, element);
 						cancelBubble = this.fireMouseOver(element, e);
-
-						if (typeof Native.mouseHook == "function"){
-							Native.mouseHook.call(element, e);
-						}
 						break;
 
 					case "drag" :
 						cancelEvent = true;
 						if (!e.source) {
 							this.stopDrag();
-						}
-						if (typeof Native.mouseHook == "function"){
-							Native.mouseHook.call(element, e);
 						}
 						break;
 
@@ -246,8 +252,8 @@ Native.events = {
 
 				let (ghost = this.cloneElement){
 					if (ghost) {
-						ghost.left = e.xrel + (ghost.x);
-						ghost.top = e.yrel + (ghost.y);
+						ghost.left += e.xrel;
+						ghost.top += e.yrel;
 					}
 				}
 
@@ -358,25 +364,15 @@ DOMElement.implement({
 			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
 
-		if (name == "motion") {
-			this.refresh();
-		}
-
 		if (typeof this["on"+name] == 'function'){
 			if (e !== undefined){
-				e.dx = e.xrel / this._scale;
-				e.dy = e.yrel / this._scale;
+				e.dx = e.xrel;
+				e.dy = e.yrel;
 				e.refuse = function(){
 					acceptedEvent = false;
 				};
 				listenerResponse = this["on"+name](e);
 				if (cb && acceptedEvent) cb.call(this);
-
-				if (name == "mousedown" && name == "mousewheel") {
-					if (typeof Native.mouseHook == "function"){
-						Native.mouseHook.call(this, e);
-					}
-				}
 
 				return OptionalBoolean(listenerResponse, true);
 			} else {

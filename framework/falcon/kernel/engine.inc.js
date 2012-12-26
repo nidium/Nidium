@@ -92,7 +92,6 @@ Native.layout = {
 			return a._nid - b._nid;
 		});
 
-
 		this.elements = elements;
 	},
 
@@ -111,11 +110,13 @@ Native.layout = {
 			old = e.oldValue,
 			value = e.newValue;
 
+/*
 		element.fireEvent("change", {
 			property : e.property,
 			oldValue : e.oldValue,
 			newValue : e.newValue
 		});
+*/
 
 		switch (e.property) {
 			case "left" :
@@ -242,8 +243,18 @@ Native.elements = {
 		} else {
 			element._layerPadding = 0;
 			element._root = element;
+/*
 			element.layer = Native.canvas;
 			element.layer.context = Native.canvas.context;
+*/
+
+			var w = element.getLayerPixelWidth(),
+				h = element.getLayerPixelHeight();
+
+			element.layer = new Canvas(w, h);
+			element.layer.context = element.layer.getContext("2D");
+			Native.canvas.add(element.layer);
+
 			Native.layout.register(element);
 		}
 

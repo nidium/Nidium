@@ -4,8 +4,6 @@
 
 Native.elements.export("UITabController", {
 	refresh : function(){
-		this.width = this.parent.width;
-		this.height = 32;
 	},
 
 	init : function(){
@@ -16,6 +14,9 @@ Native.elements.export("UITabController", {
 		this.overlap = OptionalNumber(this.options.overlap, 14);
 		this.selection = false;
 		this.position = false;
+
+		this.width = this.parent.width;
+		this.height = OptionalNumber(this.options.height, 32);
 
 		this.tabs = [];
 		this.taborder = [];
@@ -219,6 +220,7 @@ Native.elements.export("UITabController", {
 				left : x,
 				top : 8,
 				name : "tab_" + this.name,
+				height : this.height - 8,
 				selected : selected,
 
 				label : OptionalString(o.label, "New Tab"),

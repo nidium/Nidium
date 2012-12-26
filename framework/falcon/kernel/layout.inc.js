@@ -30,15 +30,12 @@ var DOMElement = function(type, options, parent){
 	var o = this.options = options || {},
 		p = this.parent = parent ? parent : null; // parent element
 
+	if (!Native.elements[type]) {
+		throw("Undefined element " + type);
+	}
+
 	this.parent = p;
 	this.nodes = {}; // children elements
-
-	/* Runtime changes does not impact the visual aspect of the element */
-	this.id = OptionalString(o.id, this._uid);
-	this.name = OptionalString(o.name, "");
-
-	this.isOnTop = false;
-	this.mouseOverPath = false;
 
 	/* Read Only Properties */
 	DOMElement.defineReadOnlyProperties(this, {
@@ -58,9 +55,14 @@ var DOMElement = function(type, options, parent){
 		offsetLeft : OptionalNumber(o.offsetLeft, 0),
 		offsetTop : OptionalNumber(o.offsetTop, 0),
 
+		paddingLeft : OptionalNumber(o.paddingLeft, 0),
+		paddingRight : OptionalNumber(o.paddingRight, 0),
+		paddingTop : OptionalNumber(o.paddingTop, 0),
+		paddingBottom : OptionalNumber(o.paddingBottom, 0),
+
 		// -- style properties
 		blur : OptionalNumber(o.blur, 0),
-		opacity : OptionalNumber(o.blur, 1),
+		opacity : OptionalNumber(o.opacity, 1),
 		shadowBlur : OptionalNumber(o.shadowBlur, 0),
 
 		background : OptionalValue(o.background, ''),
@@ -114,6 +116,13 @@ var DOMElement = function(type, options, parent){
 		_needSizeUpdate : true,
 		_needOpacityUpdate : true
 	});
+
+	/* Runtime changes does not impact the visual aspect of the element */
+	this.id = OptionalString(o.id, this._uid);
+	this.name = OptionalString(o.name, "");
+
+	this.isOnTop = false;
+	this.mouseOverPath = false;
 
 	if (options == undefined) {
 		this.visible = false;
@@ -204,28 +213,11 @@ Native.proxy = {
 	bringToFront : function(){
 		this.layer.bringToFront();
 		this.resetNodes();
-
-		var z = Native.layout.getElements();
-		for (var i in z){
-			if (z[i].type == "UITab") {
-				echo(i, z[i].label, z[i]._nid);
-			}
-		}
-
-
 	},
 
 	sendToBack : function(){
 		this.layer.sendToBack();
 		this.resetNodes();
-		
-		var z = Native.layout.getElements();
-		for (var i in z){
-			if (z[i].type == "UITab") {
-				echo(i, z[i].label, z[i]._nid);
-			}
-		}
-
 	},
 
 	refresh : function(){
@@ -233,19 +225,22 @@ Native.proxy = {
 		this.update(); // call element's custom refresh method
 
 		var p = this.parent,
-			x = this._left + this.offsetLeft,
-			y = this._top + this.offsetTop;
+			x = this._left + this._offsetLeft,
+			y = this._top + this._offsetTop;
 
+		/*
 		this._absx = p ? p._absx + x : x;
 		this._absy = p ? p._absy + y : y;
+		*/
 
 		this.__layerPadding = p ? p._layerPadding - this._layerPadding 
 								: this._layerPadding;
-
+		/*
 		this._minx = this._absx;
 		this._miny = this._absy;
 		this._maxx = this._absx + this._width;
 		this._maxy = this._absy + this._height;
+		*/
 
 		if (this.layer) {
 
@@ -298,11 +293,19 @@ Native.proxy = {
 	},
 
 	isPointInside : function(mx, my){
+		this._absx = Math.round(this.layer.__left + this._layerPadding);
+		this._absy = Math.round(this.layer.__top + this._layerPadding);
+
+		var x1 = this._absx+1,
+			y1 = this._absy+2,
+			x2 = x1 + this._width,
+			y2 = y1 + this._height;
+/*
 		var x1 = this._minx+1,
 			y1 = this._miny+2,
 			x2 = this._maxx+2,
 			y2 = this._maxy+3;
-
+*/
 		return (mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
 
@@ -450,10 +453,6 @@ DOMElement.implement = function(props){
 
 var Application = function(options){
 	options = options || {};
-	options.left = 0;
-	options.top = 0;
-	options.width = window.width;
-	options.height = window.height;
 	options.background = OptionalValue(options.background, '#262722');
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;
@@ -470,3 +469,14 @@ var Application = function(options){
 	return element;
 };
 
+var View = function(options){
+	options = options || {};
+	options.background = OptionalValue(options.background, '#262722');
+	options.canReceiveFocus = true;
+	options.outlineOnFocus = false;
+
+	var element = new DOMElement("UIView", options, null);
+	Native.layout.update();
+
+	return element;
+};
