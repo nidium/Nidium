@@ -16,7 +16,25 @@ Object.merge(window, {
 	height : Native.canvas.height,
 	mouseX : 0,
 	mouseY : 0,
-	requestAnimationFrame : Native.canvas.ctx.requestAnimationFrame
+	requestAnimationFrame : Native.canvas.ctx.requestAnimationFrame,
+
+	navigator : {
+		get appName() {
+			return "NATiVE";
+		},
+
+		get appVersion() {
+			return "1.0";
+		},
+
+		get platform() {
+			return "MacOSX";
+		},
+
+		get userAgent() {
+			return "Stight/1.0 (en-US; rv:1.0.2) Falcon "+ಠ_ಠ;
+		},
+	}
 });
 
 /* -------------------------------------------------------------------------- */
