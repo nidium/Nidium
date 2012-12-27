@@ -4,7 +4,6 @@
 
 __DEBUG_SHOW_LAYERS__ = true;
 
-
 var main = new Application({
 	backgroundImage : "falcon/assets/back.png",
 });

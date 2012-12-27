@@ -292,11 +292,7 @@ Native.elements = {
 Native.canvas.context = Native.canvas.getContext("2D");
 
 Native.canvas.implement = function(props){
-	for (var key in props){
-		if (props.hasOwnProperty(key)){
-			CanvasRenderingContext2D.prototype[key] = props[key];
-		}
-	}
+	Object.merge(CanvasRenderingContext2D.prototype, props);
 };
 
 /* -------------------------------------------------------------------------- */

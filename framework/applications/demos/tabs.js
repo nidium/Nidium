@@ -70,8 +70,7 @@ addButton.addEventListener("mouseclick", function(){
 
 removeButton.addEventListener("mouseclick", function(){
 	var p = tabController.position;
-
-	tabController.removeTab(p);
+	tabController.removeTabAtPosition(p);
 });
 
 nextButton.addEventListener("mousedown", function(){
@@ -80,20 +79,18 @@ nextButton.addEventListener("mousedown", function(){
 
 
 tabController.addEventListener("tabselect", function(e){
-	b3.label = "Tab " + e.tab + ", Position " + e.position;
-	main.background = tabController.tabs[e.tab].background;
+	b3.label = "Tab " + e.index + ", Position " + e.position;
+	main.background = tabController.tabs[e.index].background;
 });
 
 tabController.addEventListener("tabswap", function(e){
-	var tab = e.tab,
-		position = e.position;
-	b3.label = "Tab " + e.tab + ", Position " + e.position;
+	b3.label = "Tab " + e.index + ", Position " + e.position;
 });
 
 /*
 
 tabController.addEventListener("tabmove", function(e){
-	var tab = e.tab,
+	var tab = e.index,
 		positions = e.positions;
 
 	echo("-- tab", tab, "moved to position", this.position);
@@ -104,7 +101,7 @@ tabController.addEventListener("tabmove", function(e){
 });
 
 tabController.addEventListener("tabclose", function(e){
-	var tab = e.tab,
+	var tab = e.index,
 		positions = e.positions;
 	
 	echo("-- tab", tab, "closed and no longer exists.");

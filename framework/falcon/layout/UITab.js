@@ -1,5 +1,5 @@
 /* -------------------------- */
-/* Native (@) 2012 Stight.com */
+/* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
 Native.elements.export("UITab", {
@@ -42,7 +42,7 @@ Native.elements.export("UITab", {
 		this.canReceiveFocus = true;
 
 		this.addEventListener("mousedown", function(e){
-			controller.selectTab(this.tabnum);
+			controller.selectTab(this.index);
 			e.stopPropagation();
 		}, false);
 
@@ -55,7 +55,6 @@ Native.elements.export("UITab", {
 		});
 
 		if (this.options.closable) {
-
 			this.closeButton = this.add("UIButtonClose", {
 				left : this.width - 26,
 				top : (this.height-12)/2,
@@ -64,144 +63,7 @@ Native.elements.export("UITab", {
 				color : 'rgba(0, 0, 0, 0.75)',
 				background : "rgba(0, 0, 0, 0.3)"
 			});
-
-			this.closeButton.addEventListener("mouseup", function(){
-				/*
-				this.parent.g = {
-					x : 0,
-					y : this.parent.height/2
-				};
-				this.parent.bounceScale(0, 120, function(){
-					this.parent._removeTab(this.tabnum);
-				});
-				*/
-
-				controller._removeTab(self.tabnum);
-				self.width = 0;
-				self.height = 0;
-				self.remove();
-
-			}, false);
-
 		}
-
-		var __fireEvent = false,
-			__startX = 0,
-			__endX = 0,
-			__currentDragingTabPosition = false;
-
-		this.addEventListener("dragstart", function(e){
-			__fireEvent = false;
-			__startX = this.left;
-			__endX = this.left + this.width;
-			__currentDragingTabPosition = controller.getPosition(this.tabnum);
-		}, false);
-
-		this._root.addEventListener("dragover", function(e){
-			if (__currentDragingTabPosition===false) { return false; }
-
-			var i = __currentDragingTabPosition,
-				curr = controller.getTab(i),
-				next = controller.getTab(i+1),
-				prev = controller.getTab(i-1);
-
-			if (curr._absx + e.xrel < controller._absx) {
-				curr.left = controller.left;
-			} else if (curr._absx + curr.width + e.xrel > controller._absx + controller.width) {
-				curr.left = controller.width - curr.width;
-			} else {
-				curr.left += e.xrel;
-			}
-
-			if (e.xrel>0) {
-				if (next) {
-					if (curr._absx+curr.width > (next._absx+next.width/2)) {
-						controller.position = __currentDragingTabPosition+1;
-						controller.fireEvent("tabswap", {
-							tab : controller.selection,
-							position : __currentDragingTabPosition+1
-						});
-
-						next.slideX(
-							__startX, 
-							180, 
-							null, 
-							Math.physics.cubicOut
-						);
-						
-						controller.swapTabs(i, i+1);
-						__fireEvent = true;
-
-						__currentDragingTabPosition++;
-
-						i = __currentDragingTabPosition;
-						curr = controller.getTab(i);
-						next = controller.getTab(i+1);
-						prev = controller.getTab(i-1);
-
-						__startX += prev.width - controller.overlap;
-						__endX += prev.width - controller.overlap;
-
-					}
-				} 
-			}
-
-			if (e.xrel<0) {
-				if (prev) {
-					if (curr._absx < (prev._absx+prev.width/2) ) {
-						controller.position = __currentDragingTabPosition-1;
-						controller.fireEvent("tabswap", {
-							tab : controller.selection,
-							position : __currentDragingTabPosition-1
-						});
-
-						prev.slideX(
-							__endX - prev.width, 
-							180, 
-							null, 
-							Math.physics.cubicOut
-						);
-
-						controller.swapTabs(i, i-1);
-						__fireEvent = true;
-
-						__currentDragingTabPosition--;
-
-						i = __currentDragingTabPosition;
-						curr = controller.getTab(i);
-						next = controller.getTab(i+1);
-						prev = controller.getTab(i-1);
-
-						__startX -= next.width - controller.overlap;
-						__endX -= next.width - controller.overlap;
-
-					}
-				}
-			}
-
-		}, false);
-
-		this.addEventListener("dragend", function(e){
-			if (__currentDragingTabPosition===false) { return false; }
-			
-			let i = __currentDragingTabPosition,
-				c = controller.getTab(i);
-
-			c.slideX(__startX, 200, function(){});
-
-			__currentDragingTabPosition = false;
-			__startX = false;
-			__endX = false;
-
-			if (__fireEvent){
-				controller.fireEvent("tabmove", {
-					tab : this.tabnum,
-					positions : controller.taborder
-				});
-			}
-			__fireEvent = false;
-
-		}, false);
 
 	},
 

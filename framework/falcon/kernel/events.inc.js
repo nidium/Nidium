@@ -107,8 +107,10 @@ Native.events = {
 			if (element.isPointInside(x, y)){
 
 				if (__mostTopElementHooked === false){
-					Native.events.hook(element, e);
-					__mostTopElementHooked = true;
+					if (element.background != '') {
+						Native.events.hook(element, e);
+						__mostTopElementHooked = true;
+					}
 				}
 
 				switch (name) {

@@ -2,13 +2,22 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-var window = {
+Object.merge = function(obj, props){
+	obj = obj || {};
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			obj[key] = props[key];
+		}
+	}
+};
+
+Object.merge(window, {
 	width : Native.canvas.width,
 	height : Native.canvas.height,
 	mouseX : 0,
 	mouseY : 0,
-	requestAnimationFrame : Native.canvas.getContext("2D").requestAnimationFrame
-};
+	requestAnimationFrame : Native.canvas.ctx.requestAnimationFrame
+});
 
 /* -------------------------------------------------------------------------- */
 
@@ -73,6 +82,32 @@ Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(Number(min), this), Number(max));
 };
 
+// Syntax : "22".in([1, 23], 21, {"22":true}) equal true
+
+Object.in = function(...n){
+	var	match = false;
+	for (var i in n){
+		if (n[i].constructor == String){
+			if (this == n[i]) {
+				match = true;
+				break;
+			}
+		} else {
+			for (var j in n[i]){
+				if (this == n[i][j] || this == j) {
+					match = true;
+					break;
+				}
+			}
+		}
+
+	}
+	return match;
+};
+
+String.prototype.in = Object.in;
+Number.prototype.in = Object.in;
+
 /* -------------------------------------------------------------------------- */
 
 var toULong = function(x){
@@ -107,6 +142,12 @@ var OptionalBoolean = function(x, def){
 
 var OptionalCallback = function(x, def){
 	return typeof x === "function" ? x : def;
+};
+
+var OptionalAlign = function(x, def){
+	var list = ["left", "right", "justify", "center"];
+	return x && x.in(list) ? String(x) : 
+				def && def.in(list) ? String(def) : null;
 };
 
 /* -------------------------------------------------------------------------- */

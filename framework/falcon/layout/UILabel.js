@@ -1,5 +1,5 @@
 /* -------------------------- */
-/* Native (@) 2012 Stight.com */
+/* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
 Native.elements.export("UILabel", {
@@ -13,7 +13,7 @@ Native.elements.export("UILabel", {
 
 	init : function(){
 		var o = this.options;
-		
+
 		this._textWidth = Native.getTextWidth(
 			this.label,
 			this.fontSize,
@@ -44,7 +44,7 @@ Native.elements.export("UILabel", {
 			ty = params.y+textOffsetY;
 
 		if (this.textAlign == "right") {
-			tx = params.x + params.w - _textWidth - this.paddingRight;
+			tx = params.x + params.w - this._textWidth - this.paddingRight;
 		}
 
 		context.roundbox(

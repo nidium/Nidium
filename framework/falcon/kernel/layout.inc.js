@@ -65,15 +65,17 @@ var DOMElement = function(type, options, parent){
 		opacity : OptionalNumber(o.opacity, 1),
 		shadowBlur : OptionalNumber(o.shadowBlur, 0),
 
+		color : OptionalValue(o.color, ''),
 		background : OptionalValue(o.background, ''),
 		backgroundImage : OptionalValue(o.backgroundImage, ''),
-		color : OptionalValue(o.color, ''),
 
 		radius : OptionalNumber(o.radius, 0, 0),
 		lineWidth : OptionalNumber(o.lineWidth, 1),
 		lineHeight : OptionalNumber(o.lineHeight, 18),
+
 		fontSize : OptionalNumber(o.fontSize, 12),
 		fontType : OptionalString(o.fontType, "arial"),
+		textAlign : OptionalAlign(o.textAlign, "left"),
 
 		// class management
 		className : "",
@@ -444,16 +446,12 @@ DOMElement.defineInternalProperties = function(element, props){
 };
 
 DOMElement.implement = function(props){
-	for (var key in props){
-		if (props.hasOwnProperty(key)){
-			DOMElement.prototype[key] = props[key];
-		}
-	}
+	Object.merge(DOMElement.prototype, props);
 };
 
 var Application = function(options){
 	options = options || {};
-	options.background = OptionalValue(options.background, '#262722');
+	//options.background = OptionalValue(options.background, '#262722');
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;
 
@@ -465,18 +463,6 @@ var Application = function(options){
 		Native.layout.draw();
  		FPS.show();
 	});
-
-	return element;
-};
-
-var View = function(options){
-	options = options || {};
-	options.background = OptionalValue(options.background, '#262722');
-	options.canReceiveFocus = true;
-	options.outlineOnFocus = false;
-
-	var element = new DOMElement("UIView", options, null);
-	Native.layout.update();
 
 	return element;
 };
