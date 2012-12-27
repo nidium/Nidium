@@ -29,33 +29,33 @@ var	tabController = main.add("UITabController", {
 var removeButton = main.add("UIButton", {
 		left : 20,
 		top : 60,
-		label:"Remove",
-		background:"#4488EE",
-		fontSize:10.5
+		label : "Remove",
+		background : "#4488EE",
+		fontSize : 10.5
 	}),
 
 	nextButton = main.add("UIButton", {
 		left : 82, 
 		top : 60, 
-		label:"Next", 
-		background:"#882266", 
-		fontSize:10.5
+		label : "Next", 
+		background : "#882266", 
+		fontSize : 10.5
 	}),
 
 	addButton = main.add("UIButton", {
 		left : 130, 
 		top : 85, 
-		label:"Add", 
-		background:"#668822", 
-		fontSize:10.5
+		label : "Add", 
+		background : "#668822", 
+		fontSize : 10.5
 	}),
 
 	b3 = main.add("UIButton", {
 		left : 20, 
 		top : 85, 
-		label:"Tab 0, Position 0", 
-		background:"#000000", 
-		fontSize:10.5
+		label : "Tab 0, Position 0", 
+		background : "#000000", 
+		fontSize : 10.5
 	});
 
 addButton.addEventListener("mouseclick", function(){
@@ -69,14 +69,13 @@ addButton.addEventListener("mouseclick", function(){
 });
 
 removeButton.addEventListener("mouseclick", function(){
-	var p = tabController.position;
-	tabController.removeTabAtPosition(p);
+	var tab = tabController.getSelectedTab();
+	tabController.removeTab(tab);
 });
 
 nextButton.addEventListener("mousedown", function(){
 	tabController.selectNextTab();
 });
-
 
 tabController.addEventListener("tabselect", function(e){
 	b3.label = "Tab " + e.index + ", Position " + e.position;
@@ -86,6 +85,7 @@ tabController.addEventListener("tabselect", function(e){
 tabController.addEventListener("tabswap", function(e){
 	b3.label = "Tab " + e.index + ", Position " + e.position;
 });
+
 
 /*
 

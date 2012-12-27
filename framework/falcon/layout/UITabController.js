@@ -12,12 +12,12 @@ Native.elements.export("UITabController", {
 
 		this.background = OptionalValue(this.options.background, "");
 		this.name = OptionalString(this.options.name, "Default");
-		this.overlap = OptionalNumber(this.options.overlap, 14);
-		this.selection = false;
-		this.position = false;
-
 		this.width = OptionalNumber(this.options.width, this.parent.width);
 		this.height = OptionalNumber(this.options.height, 32);
+		this.overlap = OptionalNumber(this.options.overlap, 14);
+
+		this.selection = false;
+		this.position = false;
 
 		this.tabs = [];
 		this.taborder = [];
@@ -25,12 +25,12 @@ Native.elements.export("UITabController", {
 		this.resetTabs = function(animate, callback){
 			var x = 0,
 				j = 2,
-				nbtabs = self.taborder.length,
-				selectedTab = self.tabs[self.selection];
+				nbtabs = this.taborder.length,
+				selectedTab = this.getSelectedTab();
 
 			for (var i=0; i<nbtabs; i++){
-				var t = self.taborder[i],
-					tab = self.tabs[t];
+				var t = this.taborder[i],
+					tab = this.tabs[t];
 
 				tab.position = i;
 				tab.selected = false;
@@ -51,7 +51,7 @@ Native.elements.export("UITabController", {
 			}
 		};
 
-		this.selectTab = function(index){
+		this.selectTabAtIndex = function(index){
 			self.selection = Math.max(Math.min(index, self.tabs.length-1), 0);
 			self.resetTabs();
 			self.position = self.getPosition(self.selection);
@@ -60,48 +60,56 @@ Native.elements.export("UITabController", {
 				index : self.selection,
 				position : self.position
 			});
+			return this.getSelectedTab();
+		};
+
+		this.selectTabAtPosition = function(position){
+			var tab = this.getTabAtPosition(position);
+			if (!tab) return false;
+			return this.selectTabAtIndex(tab.index);
+		};
+
+		this.getSelectedTab = function(){
+			return self.tabs[self.selection];
+		};
+
+		this.selectTab = function(tab){
+			if (!tab) return false;
+			return this.selectTabAtIndex(tab.index);
 		};
 
 		this.selectNextTab = function(){
-			var p = self.position, // current selected tab position
+			var p = self.position, // current position of selected tab
 				
 				// next tab at position p+1
-				tab = self.getTab(p+1) ? 
-					  self.getTab(p+1) : self.getTab(p);
+				tab = self.getTabAtPosition(p+1) ? 
+					  self.getTabAtPosition(p+1) : self.getTabAtPosition(p);
 
-			self.selectTab(tab.index);
+			self.selectTab(tab);
 		};
 
 		this.selectPreviousTab = function(){
 			var p = self.position, // current selected tab position
 			
 				// previous tab at position p-1
-				tab = self.getTab(p-1) ? 
-					  self.getTab(p-1) : self.getTab(p);
+				tab = self.getTabAtPosition(p-1) ? 
+					  self.getTabAtPosition(p-1) : self.getTabAtPosition(p);
 
-			self.selectTab(tab.index);
+			self.selectTab(tab);
 		};
 
 		this.removeTabAtPosition = function(position){
-			var tab = self.getTab(position);
-			if (!tab) {
-				return false;
-			}
-
-			/*
-			tab.g = {
-				x : 0,
-				y : tab.h/2
-			};
-			tab.bounceScale(0, 120, function(){
-				self._removeTabElement(this);
-				//this.remove();
-			});
-			*/
+			var tab = self.getTabAtPosition(position);
 			self._removeTabElement(tab);
 		};
 
+		this.removeTab = function(tab){
+			this._removeTabElement(tab);
+		};
+
 		this._removeTabElement = function(tab){
+			if (!tab) return false;
+
 			var index = tab.index
 				to = self.taborder,
 				position = self.tabs[index].position,
@@ -137,7 +145,7 @@ Native.elements.export("UITabController", {
 		this.insertTab = function(position, options){
 			var to = self.taborder,
 				tb = self.tabs,
-				tab = self.getTab(position),
+				tab = self.getTabAtPosition(position),
 				index = tab ? tab.index : 0,
 				left = tab && tab.left ? tab.left : 0,
 				newtab;
@@ -185,12 +193,12 @@ Native.elements.export("UITabController", {
 			});
 		};
 
-		this.swapTabs = function(x, y){
+		this.swapTabs = function(pos1, pos2){
 			var A = self.taborder;
-			A[x]= A.splice(y, 1, A[x])[0];
+			A[pos1]= A.splice(pos2, 1, A[pos1])[0];
 
-			self.tabs[A[x]].position = x;
-			self.tabs[A[y]].position = y;
+			self.tabs[A[pos1]].position = pos1;
+			self.tabs[A[pos2]].position = pos2;
 		};
 
 		this.getPosition = function(index){
@@ -206,11 +214,11 @@ Native.elements.export("UITabController", {
 			return r;
 		};
 
-		this.getTab = function(position){
+		this.getTabAtPosition = function(position){
 			return self.tabs[ self.taborder[position] ];
 		};
 
-		this._addTab = function(i, position, options, x){
+		this._addTab = function(i, position, options, left){
 			var o = options,
 				selected = OptionalBoolean(o.selected, false),
 				l = tabs.length;
@@ -221,7 +229,7 @@ Native.elements.export("UITabController", {
 			}
 			
 			this.tabs[i] = this.add("UITab", {
-				left : x,
+				left : left,
 				top : 8,
 				name : "tab_" + this.name,
 				height : this.height - 8,
@@ -250,6 +258,11 @@ Native.elements.export("UITabController", {
 			__dragTabPosition = false;
 
 		this.attachListenersToTab = function(tab){
+			tab.addEventListener("mousedown", function(e){
+				controller.selectTab(this);
+				e.stopPropagation();
+			}, false);
+
 			tab.addEventListener("dragstart", function(e){
 				__fireEvent = false;
 				__startX = tab.left;
@@ -260,7 +273,7 @@ Native.elements.export("UITabController", {
 			tab.addEventListener("dragend", function(e){
 				if (__dragTabPosition===false) { return false; }
 				
-				var curr = controller.getTab(__dragTabPosition);
+				var curr = controller.getTabAtPosition(__dragTabPosition);
 
 				curr.slideX(__startX, 200, function(){}, Math.physics.cubicOut);
 
@@ -289,16 +302,15 @@ Native.elements.export("UITabController", {
 				*/
 				controller._removeTabElement(tab);
 			}, false);
-
 		};
 
 		this._root.addEventListener("dragover", function(e){
 			if (__dragTabPosition===false) { return false; }
 
 			var i = __dragTabPosition,
-				curr = controller.getTab(i),
-				next = controller.getTab(i+1),
-				prev = controller.getTab(i-1),
+				curr = controller.getTabAtPosition(i),
+				next = controller.getTabAtPosition(i+1),
+				prev = controller.getTabAtPosition(i-1),
 
 				cx = curr._absx,
 				cw = curr.width,
@@ -329,9 +341,9 @@ Native.elements.export("UITabController", {
 				__dragTabPosition++;
 
 				i = __dragTabPosition;
-				curr = controller.getTab(i);
-				next = controller.getTab(i+1);
-				prev = controller.getTab(i-1);
+				curr = controller.getTabAtPosition(i);
+				next = controller.getTabAtPosition(i+1);
+				prev = controller.getTabAtPosition(i-1);
 
 				__startX += prev.width - controller.overlap;
 				__endX += prev.width - controller.overlap;
@@ -352,9 +364,9 @@ Native.elements.export("UITabController", {
 				__dragTabPosition--;
 
 				i = __dragTabPosition;
-				curr = controller.getTab(i);
-				next = controller.getTab(i+1);
-				prev = controller.getTab(i-1);
+				curr = controller.getTabAtPosition(i);
+				next = controller.getTabAtPosition(i+1);
+				prev = controller.getTabAtPosition(i-1);
 
 				__startX -= next.width - controller.overlap;
 				__endX -= next.width - controller.overlap;

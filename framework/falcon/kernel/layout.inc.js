@@ -383,7 +383,7 @@ DOMElement.definePublicProperty = function(element, property, value){
 		value : value,
 		enumerable : false,
 		writable : true,
-		configurable : true
+		configurable : false
 	});
 
 	/* define public accessor */
@@ -406,7 +406,7 @@ DOMElement.definePublicProperty = function(element, property, value){
 		},
 
 		enumerable : true,
-		configurable : true
+		configurable : false
 	});
 
 };

@@ -41,11 +41,6 @@ Native.elements.export("UITab", {
 
 		this.canReceiveFocus = true;
 
-		this.addEventListener("mousedown", function(e){
-			controller.selectTab(this.index);
-			e.stopPropagation();
-		}, false);
-
 		this.addEventListener("mouseover", function(e){
 			this.hover = true;
 		});
