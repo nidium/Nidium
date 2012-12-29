@@ -8,41 +8,41 @@ class SkShader;
 
 struct _colorStop
 {
-	SkColor color;
-	SkScalar position;
+    SkColor color;
+    SkScalar position;
 };
 
 class NativeSkGradient
 {
   private:
 
-  	struct
-  	{
-  		double x;
-  		double y;
-      double radius;
-  	} startPoint;
+    struct
+    {
+        double x;
+        double y;
+        double radius;
+    } startPoint;
 
-  	struct 
-  	{
-  		double x;
-  		double y;
-      double radius;
-  	} endPoint;
+    struct 
+    {
+        double x;
+        double y;
+        double radius;
+    } endPoint;
 
-  	struct {
-  		uint32_t count;
-  		uint32_t allocated;
+    struct {
+        uint32_t count;
+        uint32_t allocated;
 
-  		struct _colorStop *items;
-  	} colorsStop;
+        struct _colorStop *items;
+    } colorsStop;
 
     int isRadial;
-  	int needUpdate;
-  	SkShader *currentShader;
+    int needUpdate;
+    SkShader *currentShader;
 
   public:
-  	~NativeSkGradient();
+    ~NativeSkGradient();
     NativeSkGradient(double x1, double y1, double x2, double y2);
     NativeSkGradient(double x0, double y0, double r0, double x1,
       double y1, double r1);
