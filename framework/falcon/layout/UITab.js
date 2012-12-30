@@ -3,43 +3,91 @@
 /* -------------------------- */
 
 Native.elements.export("UITab", {
-	refresh : function(){
-		var textWidth = Native.getTextWidth(
-			this._label,
-			this._fontSize,
-			this._fontType
-		);
+	public : {
+		label : {
+			set : function(value){
+				this.resizeElement();
+				this.refreshTabController();
+			}
+		},
 
-		this._width = 14 + Math.round(textWidth) + 14;
+		fontSize : {
+			set : function(value){
+				this.resizeElement();
+				this.refreshTabController();
+			}
+		},
 
-		if (this.options.closable) {
-			this._width += 22;
-		}		
+		fontType : {
+			set : function(value){
+				this.resizeElement();
+				this.refreshTabController();
+			}
+		},
+
+		width : {
+			set : function(value){
+				this.refreshTabController();
+			}
+		}
 	},
 
 	init : function(){
 		var self = this,
-			controller = self.parent,
 			o = this.options;
 
-		this.height = OptionalNumber(o.height, 24);
+		this.canReceiveFocus = true;
+		
+		this.label = OptionalString(o.label, "Default");
 		this.fontSize = OptionalNumber(o.fontSize, 11);
 		this.fontType = OptionalString(o.fontType, "arial");
+		this.height = OptionalNumber(o.height, 24);
 		this.color = OptionalValue(o.color, "#aaaaaa");
 
-		var textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
-		);
+		this.getState = function(){
+			return this.selected;
+		};
 
-		this.width = 14 + Math.round(textWidth) + 14;
+		this.setState = function(state){
+			if (state === true){
+				this.bringToFront();
+			} else {
+				this.sendToBack();
+			}
 
-		if (o.closable) {
-			this.width += 22;
-		}		
+			this.selected = state;
+		};
 
-		this.canReceiveFocus = true;
+		this.select = function(){
+			this.setState(true);
+		};
+
+		this.unselect = function(){
+			this.setState(false);
+		};
+
+		this.resizeElement = function(){
+			//echo("reize", this.label)
+			var textWidth = Native.getTextWidth(
+				this.label,
+				this.fontSize,
+				this.fontType
+			);
+
+			var width = 14 + Math.round(textWidth) + 14;
+
+			if (this.options.closable) {
+				width += 22;
+				this.closeButton.left = width - 26;
+			}
+			this.width = width;
+		};
+
+		this.refreshTabController = function(){
+			if (this.parent && this.parent.resetTabs){
+				this.parent.resetTabs();
+			}
+		};
 
 		this.addEventListener("mouseover", function(e){
 			this.hover = true;
@@ -60,6 +108,7 @@ Native.elements.export("UITab", {
 			});
 		}
 
+		this.resizeElement();
 	},
 
 	draw : function(context){

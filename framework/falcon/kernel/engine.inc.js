@@ -105,43 +105,6 @@ Native.layout = {
 		}
 	},
 
-	onPropertyUpdate : function(e){
-		var element = e.element,
-			old = e.oldValue,
-			value = e.newValue;
-
-/*
-		element.fireEvent("change", {
-			property : e.property,
-			oldValue : e.oldValue,
-			newValue : e.newValue
-		});
-*/
-
-		switch (e.property) {
-			case "left" :
-			case "top" :
-				element._needPositionUpdate = true;
-				break;
-
-			case "width" :
-			case "height" :
-				element._needSizeUpdate = true;
-				break;
-
-			case "opacity" :
-				element._needOpacityUpdate = true;
-				break;
-
-			default :
-				element._needRedraw = true;
-				break
-		};
-
-		element._needRefresh = true;
-
-	},
-
 	find : function(property, value){
 		var elements = [],
 			z = this.elements;
@@ -234,55 +197,58 @@ Native.elements = {
 	init : function(element){
 		var plugin = this[element.type];
 
+		element.__lock();
+
 		if (element.parent){
 			var w = element.getLayerPixelWidth(),
 				h = element.getLayerPixelHeight();
-
 			element.layer = new Canvas(w, h);
 			element.layer.context = element.layer.getContext("2D");
 		} else {
 			element._layerPadding = 0;
 			element._root = element;
-/*
-			element.layer = Native.canvas;
-			element.layer.context = Native.canvas.context;
-*/
 
 			var w = element.getLayerPixelWidth(),
 				h = element.getLayerPixelHeight();
-
 			element.layer = new Canvas(w, h);
 			element.layer.context = element.layer.getContext("2D");
-			Native.canvas.add(element.layer);
 
+			Native.canvas.add(element.layer);
 			Native.layout.register(element);
 		}
 
 		element.layer.host = element;
 
 		if (plugin){
-			if (plugin.refresh) {
-				element.update = plugin.refresh;
-				element.update();
-			}
-			if (plugin.init) plugin.init.call(element);
 			if (plugin.draw) element.draw = plugin.draw;
-			if (element.canReceiveFocus) {
-				element.addEventListener("mousedown", function(e){
-					this.focus();
-					e.stopPropagation();
-				}, false);
+			if (plugin.refresh) element.update = plugin.refresh;
+
+			if (plugin.public) {
+				DOMElement.defineDescriptors(element, plugin.public);
 			}
 
+			if (plugin.init) plugin.init.call(element);
+
 		} else {
-			element.beforeDraw = function(){};
 			element.draw = function(context){};
-			element.afterDraw = function(){};
 		}
+
+		if (element.canReceiveFocus) {
+			element.addEventListener("mousedown", function(e){
+				this.focus();
+				e.stopPropagation();
+			}, false);
+		}
+
+		DOMElement.defineReadOnlyProperties(element, {
+			loaded : true
+		});
 
 		if (typeof(element.onReady) == "function"){
 			element.onReady.call(element);
 		}
+
+		element.__unlock();
 
 	}
 };
@@ -307,7 +273,7 @@ Native.getTextWidth = function(text, fontSize, fontType){
 	if (!c[key]) {
 		context.fontSize = fontSize;
 		context.fontType = fontType;
-		c[key] = context.measureText(text);
+		c[key] = Math.round(context.measureText(text));
 	}
 
 	return c[key];

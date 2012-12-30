@@ -3,34 +3,67 @@
 /* -------------------------- */
 
 Native.elements.export("UIButton", {
-	refresh : function(){
-		var textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
-		);
+	public : {
+		label : {
+			set : function(value){
+				this.resizeElement();
+			}
+		},
 
-		this.width = 10 + Math.round(textWidth) + 10;
+		fontSize : {
+			set : function(value){
+				this.resizeElement();
+			}
+		},
+
+		fontType : {
+			set : function(value){
+				this.resizeElement();
+			}
+		},
+
+		paddingLeft : {
+			set : function(value){
+				this.resizeElement();
+			}
+		},
+		
+		paddingRight : {
+			set : function(value){
+				this.resizeElement();
+			}
+		}
 	},
 
 	init : function(){
 		var o = this.options;
 
-		this.height = OptionalNumber(o.height, 22);
-		this.radius = OptionalNumber(o.radius, 2);
+		this.setProperties({
+			canReceiveFocus	: true,
+			label			: OptionalString(o.label, "Button"),
+			fontSize  		: OptionalNumber(o.fontSize, 11),
+			fontType  		: OptionalNumber(o.fontType, "arial"),
 
-		this.background = OptionalValue(o.background, "#2277E0");
-		this.color = OptionalValue(this.options.color, "#ffffff");
+			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
+			paddingRight	: OptionalNumber(o.paddingLeft, 10),
 
-		var textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
-		);
+			height 			: OptionalNumber(o.height, 22),
+			radius 			: OptionalNumber(o.radius, 2),
+			background 		: OptionalValue(o.background, "#2277E0"),
+			color 			: OptionalValue(o.color, "#ffffff")
+		});
 
-		this.width = 10 + Math.round(textWidth) + 10;
+		this.resizeElement = function(){
+			var textWidth = Native.getTextWidth(
+				this.label,
+				this.fontSize,
+				this.fontType
+			);
 
-		this.canReceiveFocus = true;
+			this.width = this.paddingLeft + textWidth + this.paddingRight;
+		};
+
+		this.resizeElement();
 
 		this.addEventListener("mousedown", function(e){
 			this.selected = true;
@@ -57,7 +90,7 @@ Native.elements.export("UIButton", {
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
 
-			textOffsetX = 9,
+			textOffsetX = this.paddingLeft-1,
 			textOffsetY = (params.h-this.lineHeight)/2 + 4 + this.lineHeight/2,
 			textShadow = '#000000';
 
@@ -83,7 +116,6 @@ Native.elements.export("UIButton", {
 		} else {
 			textShadow = "rgba(0, 0, 0, 0.2)";
 		}
-
 
 		if (__ENABLE_GRADIENT_LAYERS__){
 			var gradient = context.createLinearGradient(

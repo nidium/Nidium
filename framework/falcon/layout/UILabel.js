@@ -3,36 +3,55 @@
 /* -------------------------- */
 
 Native.elements.export("UILabel", {
-	refresh : function(){
-		this._textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
-		);
+	public : {
+		label : {
+			set : function(value){
+				this.resizeElement();
+			}
+		},
+
+		fontSize : {
+			set : function(value){
+				this.resizeElement();
+			}
+		},
+
+		fontType : {
+			set : function(value){
+				this.resizeElement();
+			}
+		}
 	},
 
 	init : function(){
 		var o = this.options;
 
-		this._textWidth = Native.getTextWidth(
-			this.label,
-			this.fontSize,
-			this.fontType
-		);
+		this.setProperties({
+			canReceiveFocus	: false,
+			label			: OptionalString(o.label, ""),
+			fontSize  		: OptionalNumber(o.fontSize, 11),
+			fontType  		: OptionalNumber(o.fontType, "arial"),
+			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
-		this.paddingLeft = OptionalNumber(o.paddingLeft, 0);
-		this.paddingRight = OptionalNumber(o.paddingLeft, 0);
-		this.height = OptionalNumber(o.height, this.lineHeight);
-		this.radius = OptionalNumber(o.radius, 0);
-		this.background = OptionalValue(o.background, "");
-		this.color = OptionalValue(o.color, "#222222");
+			height 			: OptionalNumber(o.height, 18),
+			radius 			: OptionalNumber(o.radius, 0),
+			background 		: OptionalValue(o.background, ""),
+			color 			: OptionalValue(o.color, "#222222")
+		});
+
+		this.resizeElement = function(){
+			this._textWidth = Native.getTextWidth(
+				this.label,
+				this.fontSize,
+				this.fontType
+			);
+		};
+
+		this.resizeElement();
 
 		this.width = OptionalNumber(
-			o.width, 
-			this.paddingLeft + this._textWidth + this.paddingRight
+			o.width, this.paddingLeft + this._textWidth + this.paddingRight
 		);
-
-		this.canReceiveFocus = false;
 	},
 
 	draw : function(context){

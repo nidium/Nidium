@@ -11,12 +11,20 @@ Object.merge = function(obj, props){
 	}
 };
 
+Object.addProperties = function(obj, props){
+	obj = obj || {};
+	for (var key in props) {
+		var descriptor = Object.getOwnPropertyDescriptor(props, key);
+		Object.defineProperty(obj, key, descriptor);
+	}
+};
+
 Object.merge(window, {
 	width : Native.canvas.width,
 	height : Native.canvas.height,
 	mouseX : 0,
 	mouseY : 0,
-	requestAnimationFrame : Native.canvas.ctx.requestAnimationFrame,
+	requestAnimationFrame : Native.canvas.getContext("2D").requestAnimationFrame,
 
 	navigator : {
 		get appName() {
@@ -40,7 +48,7 @@ Object.merge(window, {
 /* -------------------------------------------------------------------------- */
 
 Canvas.prototype.clear = function(){
-	var context = this.ctx;
+	var context = this.getContext("2D");
 	context.clearRect(
 		0, 
 		0, 

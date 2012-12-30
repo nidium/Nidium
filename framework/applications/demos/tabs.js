@@ -63,7 +63,6 @@ addButton.addEventListener("mouseclick", function(){
 
 	tabController.insertTab(p, {
 		label : "Zombi Magic",
-		background : "#202a15",
 		color : "#ffffff"
 	});
 });
@@ -86,6 +85,20 @@ tabController.addEventListener("tabswap", function(e){
 	b3.label = "Tab " + e.index + ", Position " + e.position;
 });
 
+
+var tab = tabController.getSelectedTab();
+/*
+tab.addEventListener("change", function(e){
+	console.log(e);
+});
+*/
+
+tab.label = "New Name";
+tab.fontType = "monospace";
+tab.fontSize = 12;
+
+
+//animate("opacity", removeButton.opacity, 0.1, 500);
 
 /*
 

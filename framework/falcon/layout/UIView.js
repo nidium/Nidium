@@ -3,6 +3,14 @@
 /* -------------------------- */
 
 Native.elements.export("UIView", {
+	public : {
+		backgroundImage : {
+			value : function(){
+				return OptionalString(this.options.backgroundImage, null);
+			}
+		}
+	},
+
 	init : function(){
 		if (this.backgroundImage != '') {
 			Native.getLocalImage(this, this.backgroundImage);

@@ -3,18 +3,24 @@
 /* -------------------------- */
 
 Native.elements.export("UITabController", {
-	refresh : function(){
+	public : {
+		overlap : {
+			set : function(value){
+				this.resetTabs();
+			}
+		}
 	},
 
 	init : function(){
 		var self = this,
+			o = this.options,
 			controller = this;
 
-		this.background = OptionalValue(this.options.background, "");
-		this.name = OptionalString(this.options.name, "Default");
-		this.width = OptionalNumber(this.options.width, this.parent.width);
-		this.height = OptionalNumber(this.options.height, 32);
-		this.overlap = OptionalNumber(this.options.overlap, 14);
+		this.overlap = OptionalValue(o.overlap, 14);
+		this.background = OptionalValue(o.background, "");
+		this.name = OptionalString(o.name, "Default");
+		this.width = OptionalNumber(o.width, this.parent.width);
+		this.height = OptionalNumber(o.height, 32);
 
 		this.selection = false;
 		this.position = false;
@@ -26,47 +32,55 @@ Native.elements.export("UITabController", {
 			var x = 0,
 				j = 2,
 				nbtabs = this.taborder.length,
-				selectedTab = this.getSelectedTab();
+				selelectedTab = this.getSelectedTab();
 
 			for (var i=0; i<nbtabs; i++){
 				var t = this.taborder[i],
 					tab = this.tabs[t];
 
 				tab.position = i;
-				tab.selected = false;
-				tab.sendToBack();
+				tab.unselect();
 
 				if (animate) {
 					var _callback = (i==1 ? callback : null);
-					tab.slideX(x, 60*j++, _callback);
+					tab.slideX(x, 30*j++, _callback);
 				} else {
 					tab.left = x;
 				}
-				x += tab.width - this.overlap;
+				x += tab._width - this.overlap;
 			}
 
-			if (selectedTab) {
-				selectedTab.selected = true;
-				selectedTab.bringToFront();
+			if (selelectedTab) {
+				selelectedTab.select();
 			}
+
+			return selelectedTab;
 		};
 
 		this.selectTabAtIndex = function(index){
+			if (self.selection == index) return false;
 			self.selection = Math.max(Math.min(index, self.tabs.length-1), 0);
-			self.resetTabs();
 			self.position = self.getPosition(self.selection);
 
+			var selectedTab = this.resetTabs();
+			
 			self.fireEvent("tabselect", {
+				tab : selectedTab,
 				index : self.selection,
 				position : self.position
 			});
-			return this.getSelectedTab();
+			return selectedTab;
 		};
 
 		this.selectTabAtPosition = function(position){
 			var tab = this.getTabAtPosition(position);
-			if (!tab) return false;
-			return this.selectTabAtIndex(tab.index);
+			if (!tab) {
+				return false;
+			} else if (self.position == position) {
+				return tab;
+			} else {
+				return this.selectTabAtIndex(tab.index);
+			}
 		};
 
 		this.getSelectedTab = function(){
@@ -104,7 +118,10 @@ Native.elements.export("UITabController", {
 		};
 
 		this.removeTab = function(tab){
-			this._removeTabElement(tab);
+			if (!tab) return false;
+			tab.fadeOut(180, function(){
+				controller._removeTabElement(this);
+			});
 		};
 
 		this._removeTabElement = function(tab){
@@ -115,9 +132,11 @@ Native.elements.export("UITabController", {
 				position = self.tabs[index].position,
 				tb = self.tabs;
 
+			tab.__lock();
 			tab.width = 0;
 			tab.height = 0;
 			tab.remove();
+			tab.__unlock();
 
 			for (var i=0; i<to.length; i++){
 				if (to[i] > index){
@@ -159,16 +178,12 @@ Native.elements.export("UITabController", {
 			self._addTab(index, position, options);
 
 			newtab = tb[index];
-			newtab.left = left;
 
-			/*
-			newtab.g = {
-				x : 0,
-				y : newtab.h/2
-			};
-			newtab.scale = 0;
-			*/
-			newtab.hide();
+			newtab.__lock();
+			newtab.left = left;
+			newtab.opacity = 0;
+			newtab.closeButton.hide();
+			newtab.__unlock();
 
 			for (var i=0; i<to.length; i++){
 				if (to[i] >= index){
@@ -178,13 +193,9 @@ Native.elements.export("UITabController", {
 			to.splice(position, 0, index);
 			
 			self.resetTabs(true, function(){
-				/*
-				newtab.bounceScale(1, 80, function(){
-					//self._removeTabElement(this);
-					//this.remove();
+				newtab.fadeIn(150, function(){
+					newtab.closeButton.show();
 				});
-				*/
-				newtab.show();
 			});
 
 			self.fireEvent("tabinsert", {
@@ -291,16 +302,7 @@ Native.elements.export("UITabController", {
 			}, false);
 
 			tab.closeButton.addEventListener("mouseup", function(){
-				/*
-				this.parent.g = {
-					x : 0,
-					y : this.parent.height/2
-				};
-				this.parent.bounceScale(0, 120, function(){
-					this.parent._removeTab(this);
-				});
-				*/
-				controller._removeTabElement(tab);
+				controller.removeTab(tab);
 			}, false);
 		};
 
