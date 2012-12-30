@@ -30,7 +30,7 @@ Native.elements.export("UILabel", {
 			canReceiveFocus	: false,
 			label			: OptionalString(o.label, ""),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalNumber(o.fontType, "arial"),
+			fontType  		: OptionalString(o.fontType, "arial"),
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
 			height 			: OptionalNumber(o.height, 18),

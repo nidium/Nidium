@@ -79,6 +79,8 @@ Native.elements.export("UITab", {
 			if (this.options.closable) {
 				width += 22;
 				this.closeButton.left = width - 26;
+			} else {
+				width += 6;
 			}
 			this.width = width;
 		};

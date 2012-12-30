@@ -270,11 +270,11 @@ Native.getTextWidth = function(text, fontSize, fontType){
 		key = text + fontSize + fontType,
 		context = Native.blankOrphanedCanvas.getContext("2D");
 
-	if (!c[key]) {
+	//if (!c[key]) {
 		context.fontSize = fontSize;
 		context.fontType = fontType;
-		c[key] = Math.round(context.measureText(text));
-	}
+		c[key] = context.measureText(text);
+	//}
 
 	return c[key];
 };

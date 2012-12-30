@@ -249,6 +249,8 @@ Native.elements.export("UITabController", {
 				label : OptionalString(o.label, "New Tab"),
 				background : OptionalValue(o.background, "#262722"),
 				color : OptionalValue(o.color, "#abacaa"),
+				fontSize : OptionalNumber(o.fontSize, 11),
+				fontType : OptionalString(o.fontType, "arial"),
 				closable : OptionalBoolean(o.closable, true),
 				preventmove : OptionalBoolean(o.preventmove, false)
 			});
@@ -301,9 +303,11 @@ Native.elements.export("UITabController", {
 				}
 			}, false);
 
-			tab.closeButton.addEventListener("mouseup", function(){
-				controller.removeTab(tab);
-			}, false);
+			if (tab.closable){
+				tab.closeButton.addEventListener("mouseup", function(){
+					controller.removeTab(tab);
+				}, false);
+			}
 		};
 
 		this._root.addEventListener("dragover", function(e){

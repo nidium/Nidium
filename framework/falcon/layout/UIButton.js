@@ -42,7 +42,7 @@ Native.elements.export("UIButton", {
 			canReceiveFocus	: true,
 			label			: OptionalString(o.label, "Button"),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalNumber(o.fontType, "arial"),
+			fontType  		: OptionalString(o.fontType, "arial"),
 
 			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
 			paddingRight	: OptionalNumber(o.paddingLeft, 10),
@@ -59,8 +59,7 @@ Native.elements.export("UIButton", {
 				this.fontSize,
 				this.fontType
 			);
-
-			this.width = this.paddingLeft + textWidth + this.paddingRight;
+			this.width = this.paddingLeft + Math.round(textWidth) + this.paddingRight;
 		};
 
 		this.resizeElement();

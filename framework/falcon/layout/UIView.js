@@ -6,7 +6,7 @@ Native.elements.export("UIView", {
 	public : {
 		backgroundImage : {
 			value : function(){
-				return OptionalString(this.options.backgroundImage, null);
+				return OptionalString(this.options.backgroundImage, '');
 			}
 		}
 	},
@@ -21,7 +21,12 @@ Native.elements.export("UIView", {
 		var	params = this.getDrawingBounds();
 
 		if (this.shadowBlur != 0) {
-			context.setShadow(0, 0, this.shadowBlur, "rgba(0, 0, 0, 0.5)");
+			context.setShadow(
+				this.shadowOffsetX,
+				this.shadowOffsetY,
+				this.shadowBlur,
+				this.shadowColor
+			);
 			context.roundbox(
 				params.x, params.y,
 				params.w, params.h,
@@ -36,7 +41,7 @@ Native.elements.export("UIView", {
 			);
 		}
 
-		if (this._cachedBackgroundImage && this.backgroundImage != "") {
+		if (this._cachedBackgroundImage && this.backgroundImage != '') {
 			context.save();
 			context.roundbox(
 				params.x, params.y, 

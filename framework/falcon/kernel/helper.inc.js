@@ -11,14 +11,6 @@ Object.merge = function(obj, props){
 	}
 };
 
-Object.addProperties = function(obj, props){
-	obj = obj || {};
-	for (var key in props) {
-		var descriptor = Object.getOwnPropertyDescriptor(props, key);
-		Object.defineProperty(obj, key, descriptor);
-	}
-};
-
 Object.merge(window, {
 	width : Native.canvas.width,
 	height : Native.canvas.height,
@@ -41,7 +33,7 @@ Object.merge(window, {
 
 		get userAgent() {
 			return "Stight/1.0 (en-US; rv:1.0.2) Falcon "+ಠ_ಠ;
-		},
+		}
 	}
 });
 
@@ -56,14 +48,19 @@ Canvas.prototype.clear = function(){
 		this.height
 	);
 
+	if (Native.__debugger && this.host && this.host._root == Native.__debugger){
+		return false;
+	}
+	
 	if (__DEBUG_SHOW_LAYERS__) {
-		if (this.host && this.host._hover){
-			context.fillStyle = "rgba(180, 180, 0, 0.05)";
-			context.strokeStyle = "rgba(180, 180, 0, 0.3)";
+		if (this.host && this.host.hover){
+			context.fillStyle = "rgba(180, 180, 50, 0.1)";
+			context.strokeStyle = "rgba(180, 180, 255, 0.3)";
 		} else {
 			context.fillStyle = "rgba(180, 180, 0, 0.01)";
 			context.strokeStyle = "rgba(180, 180, 0, 0.05)";
 		}
+
 		context.fillRect(
 			0, 
 			0, 
@@ -313,25 +310,26 @@ var setTimer = function(fn, ms, loop, execFirst){
 
 /* -------------------------------------------------------------------------- */
 
-var __fpsLayer = new Canvas(50, 30),
-	__fpsLayerContext = __fpsLayer.getContext("2D");
-
-__fpsLayer.left = 0;
-__fpsLayer.top = window.height-30;
-Native.canvas.add(__fpsLayer);
-
-var FPS = {
+Native.FPS = {
 	date : 0,
 	count : 0,
 	old : 0,
+
+	init : function(){
+		this.canvas = new Canvas(50, 30);
+		this.context = this.canvas.getContext("2D");
+		this.canvas.left = 0;
+		this.canvas.top = window.height-30;
+		Native.canvas.add(this.canvas);
+		this.loaded = true;
+	},
 
 	start : function(){
 		this.date = + new Date();
 	},
 
 	show : function(){
-		var context = __fpsLayerContext,
-			r = 0.1 + (+ new Date()) - this.date,
+		var r = 0.1 + (+ new Date()) - this.date,
 			fps = 1000/r;
 
 		this.count++;
@@ -340,10 +338,12 @@ var FPS = {
 			this.old = Math.round((r-0.1)*10)/10;
 		} 				
 		
-		context.setColor("#000000");
-		context.fillRect(0, 0, 60, 30);
-		context.setColor("yellow");
-		context.fillText(this.old + " ms", 8, 20);
+		if (this.loaded) {
+			this.context.setColor("#000000");
+			this.context.fillRect(0, 0, 60, 30);
+			this.context.setColor("yellow");
+			this.context.fillText(this.old + " ms", 8, 20);
+		}
 		
 		return r;
 	}

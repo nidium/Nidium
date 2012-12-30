@@ -73,7 +73,7 @@ function useNativeSetInterval(element, duration){
 
 function useNativeMotionFactory(element, duration){
 	element.animate(
-		"left", 
+		"left",
 		element.left, element.left+250,
 		duration,
 		null,
@@ -87,8 +87,8 @@ function start(){
 		var element = v[i];
 		element.left = element.initialLeft;
 		
-		//useNativeSetInterval(element, 400+1*k++);
-		useNativeMotionFactory(element, 580+0.25*k++);
+		//useNativeSetInterval(element, 580+1.0*k++);
+		useNativeMotionFactory(element, 580+1.0*k++);
 	}
 }
 

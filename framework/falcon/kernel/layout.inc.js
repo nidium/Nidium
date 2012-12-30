@@ -66,7 +66,12 @@ var DOMElement = function(type, options, parent){
 		// -- misc properties
 		blur : OptionalNumber(o.blur, 0),
 		opacity : OptionalNumber(o.opacity, 1),
+
+		shadowOffsetX : OptionalNumber(o.shadowOffsetX, 0),
+		shadowOffsetY : OptionalNumber(o.shadowOffsetY, 0),
 		shadowBlur : OptionalNumber(o.shadowBlur, 0),
+		shadowColor : OptionalNumber(o.shadowColor, "rgba(0, 0, 0, 0.5)"),
+
 		color : OptionalValue(o.color, ''),
 		background : OptionalValue(o.background, ''),
 		backgroundImage : OptionalValue(o.backgroundImage, ''),
@@ -427,6 +432,11 @@ DOMElement.defineNativeProperty = function(descriptor){
 
 	if (!element || !property) return false;
 
+	/* if value is undefined, get the previous value */
+	if (value == undefined && element["_"+property] && element[property]) {
+		value = element["_"+property];
+	}
+
 	/* define mirror hidden properties */
 	Object.defineProperty(element, "_"+property, {
 		value : value,
@@ -460,6 +470,14 @@ DOMElement.defineNativeProperty = function(descriptor){
 				/* lock element */
 				element.__lock();
 
+				/* fire propertyupdate event if needed */
+				DOMElement.firePropertyUpdateEvent({
+					element : element,
+					property : property,
+					oldValue : oldValue,
+					newValue : newValue
+				});
+
 				/* optional user defined setter method */
 				if (setter){
 					var r = setter.call(element, newValue);
@@ -468,16 +486,6 @@ DOMElement.defineNativeProperty = function(descriptor){
 						element["_"+property] = oldValue;
 						return false;
 					}
-				}
-
-				/* fire propertyupdate event if needed */
-				if (element._needRefresh === false){
-					DOMElement.firePropertyUpdateEvent({
-						element : element,
-						property : property,
-						oldValue : oldValue,
-						newValue : newValue
-					});
 				}
 
 				/* unlock element */
@@ -580,11 +588,13 @@ var Application = function(options){
 	var element = new DOMElement("UIView", options, null);
 	Native.layout.update();
 
-	window.requestAnimationFrame(function(){
-		FPS.start();
-		Native.layout.draw();
- 		FPS.show();
-	});
-
 	return element;
 };
+
+window.requestAnimationFrame(function(){
+	Native.FPS.start();
+	Native.layout.draw();
+	Native.FPS.show();
+});
+
+
