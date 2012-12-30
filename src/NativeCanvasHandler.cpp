@@ -252,6 +252,12 @@ int32_t NativeCanvasHandler::countChildren()
     return this->nchildren;
 }
 
+bool NativeCanvasHandler::containsPoint(double x, double y)
+{
+    return (x >= a_left && x <= a_left+width &&
+            y >= a_top && y <= a_top+height);
+}
+
 NativeCanvasHandler::~NativeCanvasHandler()
 {
     NativeCanvasHandler *cur;

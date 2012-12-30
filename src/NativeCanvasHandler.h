@@ -13,7 +13,6 @@ class NativeCanvas2DContext;
 
     TODO:
         * NativeCanvasContext interface instead of NativeCanvas2DContext;
-        * this->jsobj (JS_AddObjectRoot)
         * ::destroy() (JS_RemoveObjectRoot)
 */
 
@@ -70,6 +69,7 @@ class NativeCanvasHandler
         NativeCanvasHandler *getParent();
         void getChildren(NativeCanvasHandler **out);
         int32_t countChildren();
+        bool containsPoint(double x, double y);
         void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
         NativeCanvasHandler *parent;
@@ -81,7 +81,6 @@ class NativeCanvasHandler
 
         COORD_POSITION coordPosition;
         Visibility visibility;
-
 };
 
 #endif

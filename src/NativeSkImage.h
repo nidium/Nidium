@@ -10,22 +10,22 @@ class SkCanvas;
 class SkBitmap;
 
 class NativeSkImage
-{	
+{   
   public:
-  	int isCanvas;
-  	SkCanvas *canvasRef;
-  	SkBitmap img;
+    int isCanvas;
+    SkCanvas *canvasRef;
+    SkBitmap img;
     SkImage *fixedImg;
-  	NativeSkImage(SkCanvas *canvas);
-  	NativeSkImage(const char *imgpath);
-  	NativeSkImage(void *data, size_t len);
+    NativeSkImage(SkCanvas *canvas);
+    NativeSkImage(const char *imgpath);
+    NativeSkImage(void *data, size_t len);
     static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
         bool flipY, bool premultiply);
 
-  	~NativeSkImage();
+    ~NativeSkImage();
 
-  	int getWidth();
-  	int getHeight();
+    int getWidth();
+    int getHeight();
 };
 
 #endif
