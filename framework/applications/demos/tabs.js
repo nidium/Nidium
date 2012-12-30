@@ -57,7 +57,7 @@ var removeButton = main.add("UIButton", {
 	});
 
 
-addButton.addEventListener("mouseclick", function(){
+addButton.addEventListener("mousedown", function(){
 	var p = tabController.position;
 
 	tabController.insertTab(p, {
@@ -66,7 +66,7 @@ addButton.addEventListener("mouseclick", function(){
 	});
 });
 
-removeButton.addEventListener("mouseclick", function(){
+removeButton.addEventListener("mousedown", function(){
 	var tab = tabController.getSelectedTab();
 	tabController.removeTab(tab);
 });
@@ -91,13 +91,6 @@ tab.addEventListener("change", function(e){
 	console.log(e);
 });
 */
-
-tab.label = "New Name";
-tab.fontType = "monospace";
-tab.fontSize = 12;
-
-
-//animate("opacity", removeButton.opacity, 0.1, 500);
 
 /*
 
@@ -153,22 +146,22 @@ var NatBug = {
 			top : y,
 			width : 484,
 			height : 328,
-			background : "rgba(0, 80, 0, 0.65)",
+			background : "rgba(0, 80, 0, 0.35)",
 			backgroundImage : "falcon/assets/back.png",
 			radius : 8,
 			opacity : 0.8
 		});
 
 		this.application.add("UILabel", {
-			left : 418,
-			top : 4,
+			left : 417,
+			top : 5,
 			paddingLeft : 8,
 			paddingRight : 8,
-			height : 30,
+			height : 28,
 			color : "#ffffff",
-			background : "rgba(255, 255, 255, 0.02)",
+			background : "rgba(255, 255, 255, 0.04)",
 			fontSize : 11,
-			radius : 6,
+			radius : 4,
 			label : "NATBUG"
 		});
 
@@ -176,16 +169,16 @@ var NatBug = {
 			{
 				label : "Properties",
 				selected : true,
-				background : "rgba(0, 0, 0, 0.0)",
-				color : "#666666",
+				background : "#882266",
+				color : "#ffffff",
 				fontSize : 13,
 				closable : false
 			},
 
 			{
 				label : "Network",
-				background : "rgba(0, 0, 0, 0.3)",
-				color : "#666666",
+				background : "#882266",
+				color : "#ffffff",
 				fontSize : 13,
 				closable : false
 			}
@@ -199,6 +192,7 @@ var NatBug = {
 			height : 34
 		});
 
+		var k = 0;
 		this.tabController.addEventListener("tabselect", function(e){
 			var labels = Native.layout.getElementsByClassName("natbug_pane01");
 			if (e.tab.label == "Properties") {

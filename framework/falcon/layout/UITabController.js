@@ -118,19 +118,25 @@ Native.elements.export("UITabController", {
 		};
 
 		this.removeTab = function(tab){
-			if (!tab) return false;
-			tab.fadeOut(180, function(){
+			if (!tab || this.__removing || this.__removeStarted) return false;
+			self.__removeStarted = true;
+			tab.fadeOut(120, function(){
+				self.__removeStarted = false;
 				controller._removeTabElement(this);
 			});
 		};
 
 		this._removeTabElement = function(tab){
-			if (!tab) return false;
+			if (!tab || this.__removing) return false;
 
-			var index = tab.index
+			var index = tab.index,
 				to = self.taborder,
-				position = self.tabs[index].position,
+				position = self.tabs[index] ? self.tabs[index].position : null,
 				tb = self.tabs;
+
+			if (position == null) return false;
+
+			this.__removing = true;
 
 			tab.__lock();
 			tab.width = 0;
@@ -159,6 +165,7 @@ Native.elements.export("UITabController", {
 				index : index,
 				positions : to
 			});
+			this.__removing = false;
 		};
 
 		this.insertTab = function(position, options){

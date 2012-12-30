@@ -51,7 +51,7 @@ Canvas.prototype.clear = function(){
 	if (Native.__debugger && this.host && this.host._root == Native.__debugger){
 		return false;
 	}
-	
+
 	if (__DEBUG_SHOW_LAYERS__) {
 		if (this.host && this.host.hover){
 			context.fillStyle = "rgba(180, 180, 50, 0.1)";
@@ -314,6 +314,7 @@ Native.FPS = {
 	date : 0,
 	count : 0,
 	old : 0,
+	loaded : false,
 
 	init : function(){
 		this.canvas = new Canvas(50, 30);
