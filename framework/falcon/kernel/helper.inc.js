@@ -168,8 +168,7 @@ var console = {
 			visited = [],
 			circular = false;
 
-		echo(this)
-		
+	
 		var	dmp = function(object, pad){
 			var	out = '',
 				idt = '\t';
