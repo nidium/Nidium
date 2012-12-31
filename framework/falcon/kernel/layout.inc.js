@@ -34,6 +34,10 @@ var DOMElement = function(type, options, parent){
 		throw("Undefined element " + type);
 	}
 
+	if (o && o.class) {
+		o.className = o.class;
+	}
+
 	this.parent = p;
 	this.nodes = {}; // children elements
 
@@ -78,7 +82,7 @@ var DOMElement = function(type, options, parent){
 		radius : OptionalNumber(o.radius, 0, 0),
 
 		// class management
-		className : "",
+		className : OptionalString(o.class, ""),
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
@@ -95,14 +99,13 @@ var DOMElement = function(type, options, parent){
 
 	/* Internal Hidden Properties */
 	DOMElement.defineInternalProperties(this, {
+		private : {},
 		_root : p ? p._root : this,
 		_nid : Native.layout.objID++,
 		_uid : "_obj_" + Native.layout.objID,
 		_eventQueues : [],
 		_mutex : [],
 		_locked : true,
-
-		private : {},
 
 		_absx : 0,
 		_absy : 0,
@@ -124,11 +127,11 @@ var DOMElement = function(type, options, parent){
 	this.isOnTop = false;
 	this.mouseOverPath = false;
 
-	if (options == undefined) {
-		this.visible = false;
-	}
-
 	Native.elements.init(this);
+
+	if (this.className != '') {
+		Native.StyleSheet.set(this);
+	}
 };
 
 Native.proxy = {
@@ -159,16 +162,18 @@ Native.proxy = {
 		if (!this.visible) {
 			this.visible = true;
 		}
+		return this;
 	},
 
 	hide : function(){
 		if (this.visible) {
 			this.visible = false;
 		}
+		return this;
 	},
 
 	focus : function(){
-
+		return this;
 	},
 
 	addChild : function(element){
@@ -195,7 +200,7 @@ Native.proxy = {
 	},
 
 	/*
-	 * Sort DOMElements to match with hardware physical layers order.
+	 * Sort DOMElements to match hardware physical layers order.
 	 */
 	resetNodes : function(){
 		if (!this.parent) return false;
@@ -221,11 +226,13 @@ Native.proxy = {
 	bringToFront : function(){
 		this.layer.bringToFront();
 		this.resetNodes();
+		return this;
 	},
 
 	sendToBack : function(){
 		this.layer.sendToBack();
 		this.resetNodes();
+		return this;
 	},
 
 	refresh : function(){
@@ -315,10 +322,12 @@ Native.proxy = {
 		if (!this.hasClass(name)){
 			this.className += (this.className ? ' ' : '') + name;
 		}
+		return this;
 	},
 
 	setClass : function(name){
 		this.className = name;
+		return this;
 	},
 
 	removeClass : function(name){
@@ -328,6 +337,7 @@ Native.proxy = {
 
 			this.className = k.replace(r,' ').replace(/^\s+|\s+$/g, '');
 		}
+		return this;
 	},
 
 	setProperties : function(options){
@@ -336,6 +346,7 @@ Native.proxy = {
 				this[key] = options[key];
 			}
 		}
+		return this;
 	}
 };
 
@@ -407,6 +418,11 @@ DOMElement.firePropertyUpdateEvent = function(e){
 
 		case "opacity" :
 			element._needOpacityUpdate = true;
+			element._needRedraw = true;
+			break;
+
+		case "className" :
+			Native.StyleSheet.set(element);
 			element._needRedraw = true;
 			break;
 

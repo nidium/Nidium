@@ -11,15 +11,6 @@ DOMElement.implement({
 		this.animate("opacity", this.opacity, 0, duration, callback, fx);
 	},
 
-	wipeIn : function(duration, callback, fx){
-		this.animate("height", this.height, 20, duration, callback, fx);
-	},
-
-	wipeOut : function(duration, callback, fx){
-		this.animate("width", this.width, -10, duration, callback, fx);
-		this.animate("height", this.height, -10, duration, callback, fx);
-	},
-
 	bounceScale : function(delta, duration, callback, fx){
 		this.animate("scale", this.scale, delta, duration, callback, fx);
 	},

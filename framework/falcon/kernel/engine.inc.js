@@ -135,6 +135,10 @@ Native.layout = {
 		return this.find("name", name);
 	},
 
+	getElementsByTagName : function(name){
+		return this.find("type", name);
+	},
+
 	getElementsByClassName : function(name){
 		var pattern = new RegExp("(^|\\s)"+name+"(\\s|$)"),
 			z = this.elements,
@@ -270,29 +274,27 @@ Native.getTextWidth = function(text, fontSize, fontType){
 		key = text + fontSize + fontType,
 		context = Native.blankOrphanedCanvas.getContext("2D");
 
-	//if (!c[key]) {
+	if (!c[key]) {
 		context.fontSize = fontSize;
 		context.fontType = fontType;
 		c[key] = context.measureText(text);
-	//}
+	}
 
 	return c[key];
 };
 
 /* -------------------------------------------------------------------------- */
 
-Native.getLocalImage = function(element, url, callback){
-	var cb = OptionalCallback(callback, function(){});
-	if (element._cachedBackgroundImage) {
-		cb(element._cachedBackgroundImage);
-	} else {
-		var img = new Image();
-		img.onload = function(){
-			element._cachedBackgroundImage = img;
+Native.loadImage = function(url, callback){
+	var cb = OptionalCallback(callback, function(){}),
+		img = new Image();
+
+	img.onload = function(){
+		//setTimeout(function(){
 			cb(img);
-		};
-		img.src = url;
-	}
+		//}, 2000);
+	};
+	img.src = url;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -311,11 +313,30 @@ Native.StyleSheet = {
 		}
 	},
 
+	set : function(element){
+		var k = element.className.split(" ");
+
+		for (var i in k){
+			var klass = k[i],
+				props = this.getProperties(klass);
+
+			for (var key in props){
+				if (props.hasOwnProperty(key)) {
+					element[key] = props[key];
+				}
+			}
+		}
+	},
+
 	mergeProperties : function(klass, properties){
 		var prop = this.document[klass];
 		for (var p in properties){
 			prop[p] = properties[p];
 		}
+	},
+
+	getProperties : function(klass){
+		return this.document[klass];
 	}
 };
 

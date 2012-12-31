@@ -7,14 +7,30 @@ Native.elements.export("UIView", {
 		backgroundImage : {
 			value : function(){
 				return OptionalString(this.options.backgroundImage, '');
+			},
+
+			set : function(value){
+				this.refreshBackgroundImage();
 			}
 		}
 	},
 
 	init : function(){
-		if (this.backgroundImage != '') {
-			Native.getLocalImage(this, this.backgroundImage);
-		}
+		var self = this;
+
+		this.refreshBackgroundImage = function(){
+			delete(self._cachedBackgroundImage);
+
+			if (this.backgroundImage != '' && this.backgroundImage != null) {
+				Native.loadImage(this.backgroundImage, function(img){
+					self._cachedBackgroundImage = img;
+					self._needRedraw = true;
+					self.refresh();
+				});
+			}
+		};
+
+		this.refreshBackgroundImage();
 	},
 
 	draw : function(context){
@@ -41,7 +57,7 @@ Native.elements.export("UIView", {
 			);
 		}
 
-		if (this._cachedBackgroundImage && this.backgroundImage != '') {
+		if (this._cachedBackgroundImage) {
 			context.save();
 			context.roundbox(
 				params.x, params.y, 

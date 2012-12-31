@@ -15,7 +15,7 @@ Native.StyleSheet.add({
 	},
 
 	blue : {
-		background : "#3366bb",
+		background : "#3366bb"
 	}
 });
 
