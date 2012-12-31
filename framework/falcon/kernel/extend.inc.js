@@ -186,6 +186,15 @@ DOMElement.definePublicProperties = function(element, props){
 	}
 };
 
+DOMElement.createProtectedObject = function(name, value){
+	Object.defineProperty(Native.scope, name, {
+		value : value,
+		enumerable : true,
+		writable : false,
+		configurable : false
+	});
+};
+
 DOMElement.defineReadOnlyProperties = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){

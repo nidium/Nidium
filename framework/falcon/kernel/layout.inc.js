@@ -183,7 +183,7 @@ Native.layout = {
 
 /* -------------------------------------------------------------------------- */
 
-var Application = function(options){
+DOMElement.createProtectedObject("Application", function(options){
 	options = options || {};
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;
@@ -192,28 +192,17 @@ var Application = function(options){
 	Native.layout.update();
 
 	return element;
-};
+});
 
-var document = new Application({
+DOMElement.createProtectedObject("document", new Application({
 	left : 0,
 	top : 0,
 	width : window.width,
 	height : window.height,
-	background : "#262722",
+	background : "#ff0000",
 	canReceiveFocus : true,
 	outlineOnFocus : false
-});
-
-
-
-/*
-Object.defineProperty(this, "document", {
-	value : document,
-	enumerable : true,
-	writable : false,
-	configurable : false
-});
-*/
+}));
 
 /* -------------------------------------------------------------------------- */
 

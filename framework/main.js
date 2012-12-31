@@ -6,14 +6,14 @@
 load("falcon/native.js");
 //load("applications/demos/hello.js");
 //load("applications/demos/motion.js");
-//load("applications/demos/tabs.js");
-load("applications/demos/style.js");
+load("applications/demos/tabs.js");
+//load("applications/demos/style.js");
 //load("applications/demos/test.js");
 
 
 /* -- Native Debugger ------------------ */
 
-//load("NatBug.nap");
+load("NatBug.nap");
 
 
 

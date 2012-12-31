@@ -317,7 +317,7 @@ Native.elements.export("UITabController", {
 			}
 		};
 
-		this._root.addEventListener("dragover", function(e){
+		document.addEventListener("dragover", function(e){
 			if (__dragTabPosition===false) { return false; }
 
 			var i = __dragTabPosition,

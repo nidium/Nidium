@@ -23,7 +23,6 @@ var	tabController = main.add("UITabController", {
 	background : "#191a18"
 });
 
-
 var removeButton = main.add("UIButton", {
 		left : 20,
 		top : 60,

@@ -216,7 +216,9 @@ var NatBug = {
 };
 
 Canvas.prototype.debug = function(){
-	if (!!this.host || this.host._root == Native.__debugger){
+	var context = this.getContext("2D");
+	
+	if (!this.host || this.host._root == Native.__debugger){
 		return false;
 	}
 
