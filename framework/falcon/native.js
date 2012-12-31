@@ -51,7 +51,6 @@ load(__PATH_KERNEL__ + 'object.inc.js');
 load(__PATH_KERNEL__ + 'extend.inc.js');
 load(__PATH_KERNEL__ + 'events.inc.js');
 load(__PATH_KERNEL__ + 'motion.inc.js');
-load(__PATH_KERNEL__ + 'layout.inc.js');
 
 /* -- UI Elements -- */
 load(__PATH_LAYOUT__ + 'UIView.js');
@@ -65,6 +64,9 @@ load(__PATH_LAYOUT__ + 'UITabController.js');
 load(__PATH_PLUGINS__ + 'misc.inc.js');
 load(__PATH_PLUGINS__ + 'roundbox.inc.js');
 load(__PATH_PLUGINS__ + 'tabbox.inc.js');
+
+/* -- Start Layout -- */
+load(__PATH_KERNEL__ + 'layout.inc.js');
 
 /* -------------------------------------------------------------------------- */
 

@@ -13,7 +13,6 @@ Native.StyleSheet.add(style);
 var body = new Application();
 body.className = "blue";
 
-
 var label = new UILabel(body, {
 	left : 10,
 	top : 10,

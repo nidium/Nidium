@@ -29,6 +29,10 @@ var DOMElement = function(type, options, parent){
 	/* Public Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
 	DOMElement.definePublicProperties(this, {
+		// -- class management
+		className : OptionalString(o.class, ""),
+
+		// -- layout properties
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
 		width : o.width ? Number(o.width) : p ? p._width : window.width,
@@ -40,14 +44,14 @@ var DOMElement = function(type, options, parent){
 		paddingLeft : OptionalNumber(o.paddingLeft, 0),
 		paddingRight : OptionalNumber(o.paddingLeft, 0),
 
-		/* text related properties */
+		// -- text related properties
 		label : OptionalString(o.label, ""),
 		fontSize : OptionalNumber(o.fontSize, 12),
 		fontType : OptionalString(o.fontType, "arial"),
 		textAlign : OptionalAlign(o.textAlign, "left"),
 		lineHeight : OptionalNumber(o.lineHeight, 18),
 
-		// -- misc properties
+		// -- style properties
 		blur : OptionalNumber(o.blur, 0),
 		opacity : OptionalNumber(o.opacity, 1),
 
@@ -60,9 +64,6 @@ var DOMElement = function(type, options, parent){
 		background : OptionalValue(o.background, ''),
 		backgroundImage : OptionalValue(o.backgroundImage, ''),
 		radius : OptionalNumber(o.radius, 0, 0),
-
-		// class management
-		className : OptionalString(o.class, ""),
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),

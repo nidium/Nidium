@@ -32,35 +32,34 @@ Native.object = {
 		this.__layerPadding = p ? p._layerPadding - this._layerPadding 
 								: this._layerPadding;
 
-		if (this.layer) {
-
-			this.layer.visible = this._visible;
-			
-			if (this._needOpacityUpdate){
-				this.layer.context.globalAlpha = this._opacity;
-				this._needOpacityUpdate = false;
-			}
-
-			if (this._needPositionUpdate){
-				this.layer.left = Math.round(this._left + this.__layerPadding);
-				this.layer.top = Math.round(this._top + this.__layerPadding);
-				this._needPositionUpdate = false;
-			}
-
-			if (this._needSizeUpdate){
-				var w = this.getLayerPixelWidth(),
-					h = this.getLayerPixelHeight();
-				this.layer.width = w;
-				this.layer.height = h;
-				this._needSizeUpdate = false;
-			}
-
-			if (this._needRedraw) {
-				this.layer.clear();
-				this.draw(this.layer.context);
-				this._needRedraw = false;
-			}
+		this.layer.visible = this._visible;
+		
+		if (this._needOpacityUpdate){
+			this.layer.context.globalAlpha = this._opacity;
+			this._needOpacityUpdate = false;
 		}
+
+		if (this._needPositionUpdate){
+			this.layer.left = Math.round(this._left + this.__layerPadding);
+			this.layer.top = Math.round(this._top + this.__layerPadding);
+			this._needPositionUpdate = false;
+		}
+
+		if (this._needSizeUpdate){
+			var w = this.getLayerPixelWidth(),
+				h = this.getLayerPixelHeight();
+			this.layer.width = w;
+			this.layer.height = h;
+			this._needSizeUpdate = false;
+		}
+
+		if (this._needRedraw) {
+			this.layer.clear();
+			if (this.layer.debug) this.layer.debug();
+			this.draw(this.layer.context);
+			this._needRedraw = false;
+		}
+
 		this._needRefresh = false;
 	},
 

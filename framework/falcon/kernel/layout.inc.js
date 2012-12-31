@@ -194,7 +194,6 @@ var Application = function(options){
 	return element;
 };
 
-/*
 var document = new Application({
 	left : 0,
 	top : 0,
@@ -204,7 +203,8 @@ var document = new Application({
 	canReceiveFocus : true,
 	outlineOnFocus : false
 });
-*/
+
+
 
 /*
 Object.defineProperty(this, "document", {

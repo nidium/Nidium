@@ -53,56 +53,6 @@ Canvas.prototype.clear = function(){
 		this.width,
 		this.height
 	);
-
-	if (Native.__debugger && this.host && this.host._root == Native.__debugger){
-		return false;
-	}
-
-	if (__DEBUG_SHOW_LAYERS__) {
-		if (this.host && this.host.hover){
-			context.fillStyle = "rgba(180, 180, 50, 0.1)";
-			context.strokeStyle = "rgba(180, 180, 255, 0.3)";
-		} else {
-			context.fillStyle = "rgba(180, 180, 0, 0.01)";
-			context.strokeStyle = "rgba(180, 180, 0, 0.05)";
-		}
-
-		context.fillRect(
-			0, 
-			0, 
-			this.width,
-			this.height
-		);
-
-		context.strokeRect(
-			0, 
-			0, 
-			this.width,
-			this.height
-		);
-	}
-
-	if (__DEBUG_SHOW_ORDER__ === true) {
-		context.fontSize = 9;
-		if (this.host && this.host._hover){
-			context.setText(
-				this.host._nid,
-				this.host._width + 7,
-				9,
-				"white",
-				"rgba(0, 0, 0, 0.7)"
-			);
-		} else {
-			context.setText(
-				this.host._nid,
-				this.host._width + 7,
-				9,
-				"rgba(200, 0, 0, 0.8)",
-				"rgba(0, 0, 0, 0.7)"
-			);
-		}
-	}
-
 };
 
 /* -------------------------------------------------------------------------- */
@@ -197,8 +147,120 @@ Math.factorial = (function(n){
 			for (var r=i=1; i<=n; i++){r *= i}
 			return c[n] = r;
 		};
-	for (var i=0; i<5000; i++) f(i);
+	for (var i=0; i<500; i++) f(i);
 	return f;
 }());
+
+/* -------------------------------------------------------------------------- */
+
+var console = {
+	iteration : 0,
+	maxIterations : 20,
+
+	log : function(...n){
+		for (var i in n){
+			echo.call(this, n[i]);
+		}
+	},
+
+	dump : function(object){
+		var self = this,
+			visited = [],
+			circular = false;
+
+		echo(this)
+		
+		var	dmp = function(object, pad){
+			var	out = '',
+				idt = '\t';
+
+			circular = false;
+
+			for (i = 0; i < visited.length; i++) {
+				if (object === visited[i]) {
+					circular = true;
+					break;
+				}
+			}
+
+			self.iteration++;
+			if (self.iteration>self.maxIterations){
+				return false;
+			}
+
+			pad = (pad === undefined) ? '' : pad;
+
+			if (circular) {
+				out = '[circular reference]';
+			} 
+
+			else if (object === null){
+				out = 'null';
+			} 
+
+			else if (object != null && object != undefined){
+				
+				if (object.constructor == Array){
+					out += '[';
+					if (object.length>0){
+						var arr = [];
+						out += '\n';
+						for (var i=0; i<object.length; i++){
+							arr.push(pad + idt + dmp(object[i], pad + idt));
+						}
+						out += arr.join(',' + '\n') + '\n';
+						out += pad;
+					}
+					out += ']';
+				} 
+
+				else if (object.constructor == Object){
+					out += '{\n';
+					visited.push(object);
+					for (var i in object){
+						out += pad + idt + i + ' : ' 
+							+ dmp(object[i], pad + idt) + '\n';
+					}
+					out += pad + '}';
+				} 
+
+				else if (typeof(object) == "string"){
+					out += '"' + object + '"';
+				} 
+
+				else if (typeof(object) == "number"){
+					out += object.toString();
+				} 
+
+				else if (object.constructor === Function){
+					visited.push(object);
+					var source = object.toString();
+					if (source.indexOf('[native code]') > -1) {
+						out += "function(){ [native code] }";
+					} else {
+						out += "function(){ ... }"; //source;
+					}
+
+				} 
+
+				else if (object.toString) {
+					try {
+						out += object;
+					} catch(e){
+						out += "function(){ [Native Code] }";
+					}
+				} else {
+					out += "null";
+				}
+			} else {
+				out += 'undefined';
+			}
+			return out;
+		};
+
+		self.iteration = 0;
+		return dmp(object);
+	}
+};
 
 /* -------------------------------------------------------------------------- */

@@ -179,6 +179,7 @@ DOMElement.definePublicProperties = function(element, props){
 				element : element,
 				property : key,
 				value : props[key],
+				enumerable : true,
 				configurable : true
 			});
 		}
