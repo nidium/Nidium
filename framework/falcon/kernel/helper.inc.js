@@ -2,6 +2,10 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
+"use strict";
+
+/* -------------------------------------------------------------------------- */
+
 Object.merge = function(obj, props){
 	obj = obj || {};
 	for (var key in props){
@@ -10,6 +14,8 @@ Object.merge = function(obj, props){
 		}
 	}
 };
+
+/* -------------------------------------------------------------------------- */
 
 Object.merge(window, {
 	width : Native.canvas.width,
@@ -105,6 +111,8 @@ Number.prototype.bound = function(min, max){
 	return Math.min(Math.max(Number(min), this), Number(max));
 };
 
+/* -------------------------------------------------------------------------- */
+
 // Syntax : "22".in([1, 23], 21, {"22":true}) equal true
 
 Object.in = function(...n){
@@ -171,183 +179,6 @@ var OptionalAlign = function(x, def){
 	var list = ["left", "right", "justify", "center"];
 	return x && x.in(list) ? String(x) : 
 				def && def.in(list) ? String(def) : null;
-};
-
-/* -------------------------------------------------------------------------- */
-
-var console = {
-	iteration : 0,
-	maxIterations : 20,
-
-	log : function(...n){
-		echo.apply(this, n.map(this.dump));
-	},
-
-	dump : function(object){
-		var self = this,
-			visited = [],
-			circular = false;
-		
-		var	dmp = function(object, pad){
-			var	out = '',
-				idt = '\t';
-
-			circular = false;
-
-			for (i = 0; i < visited.length; i++) {
-				if (object === visited[i]) {
-					circular = true;
-					break;
-				}
-			}
-
-			self.iteration++;
-			if (self.iteration>self.maxIterations){
-				return false;
-			}
-
-			pad = (pad === undefined) ? '' : pad;
-
-			if (circular) {
-				out = '[circular reference]';
-			} 
-
-			else if (object === null){
-				out = 'null';
-			} 
-
-			else if (object != null && object != undefined){
-				
-				if (object.constructor == Array){
-					out += '[';
-					if (object.length>0){
-						var arr = [];
-						out += '\n';
-						for (var i=0; i<object.length; i++){
-							arr.push(pad + idt + dmp(object[i], pad + idt));
-						}
-						out += arr.join(',' + '\n') + '\n';
-						out += pad;
-					}
-					out += ']';
-				} 
-
-				else if (object.constructor == Object){
-					out += '{\n';
-					visited.push(object);
-					for (var i in object){
-						out += pad + idt + i + ' : ' 
-							+ dmp(object[i], pad + idt) + '\n';
-					}
-					out += pad + '}';
-				} 
-
-				else if (typeof(object) == "string"){
-					out += '"' + object + '"';
-				} 
-
-				else if (typeof(object) == "number"){
-					out += object.toString();
-				} 
-
-				else if (object.constructor === Function){
-					visited.push(object);
-					var source = object.toString();
-					if (source.indexOf('[native code]') > -1) {
-						out += "function(){ [native code] }";
-					} else {
-						out += "function(){ ... }"; //source;
-					}
-
-				} 
-
-				else if (object.toString) {
-					try {
-						out += object;
-					} catch(e){
-						out += "function(){ [Native Code] }";
-					}
-				} else {
-					out += "null";
-				}
-			} else {
-				out += 'undefined';
-			}
-			return out;
-		}
-
-		self.iteration = 0;
-		return dmp(object);
-
-	}
-};
-
-/* -------------------------------------------------------------------------- */
-
-var setTimer = function(fn, ms, loop, execFirst){
-	var t = {
-		loop : loop,
-		tid : loop 
-			? setInterval(function(){fn.call(t);}, ms)
-			: setTimeout(function(){fn.call(t);}, ms),
-
-		remove : function(){
-			if (this.loop) {
-				clearInterval(this.tid);
-			} else {
-				clearTimeout(this.tid);
-			}
-			delete(this.tid);
-		}
-	};
-
-	if (execFirst) {
-		fn.call(t);
-	}
-	
-	return t;
-};
-
-/* -------------------------------------------------------------------------- */
-
-Native.FPS = {
-	date : 0,
-	count : 0,
-	old : 0,
-	loaded : false,
-
-	init : function(){
-		this.canvas = new Canvas(50, 30);
-		this.context = this.canvas.getContext("2D");
-		this.canvas.left = 0;
-		this.canvas.top = window.height-30;
-		Native.canvas.add(this.canvas);
-		this.loaded = true;
-	},
-
-	start : function(){
-		this.date = + new Date();
-	},
-
-	show : function(){
-		var r = 0.1 + (+ new Date()) - this.date,
-			fps = 1000/r;
-
-		this.count++;
-
-		if (this.count%30==0){
-			this.old = Math.round((r-0.1)*10)/10;
-		} 				
-		
-		if (this.loaded) {
-			this.context.setColor("#000000");
-			this.context.fillRect(0, 0, 60, 30);
-			this.context.setColor("yellow");
-			this.context.fillText(this.old + " ms", 8, 20);
-		}
-		
-		return r;
-	}
 };
 
 /* -------------------------------------------------------------------------- */

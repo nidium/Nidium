@@ -12,7 +12,7 @@ load("applications/demos/style.js");
 
 /* -- Native Debugger ------------------ */
 
-//load("NatBug.nap");
+load("NatBug.nap");
 
 
 

@@ -1,6 +1,10 @@
 /* -------------------------- */
-/* Native (@) 2012 Stight.com */
+/* Native (@) 2013 Stight.com */
 /* -------------------------- */
+
+"use strict";
+
+/* -------------------------------------------------------------------------- */
 
 DOMElement.implement({
 	fadeIn : function(duration, callback, fx){
@@ -53,7 +57,7 @@ DOMElement.implement({
 		}
 
 		/* Scroll to goal and slowdown velocity */
-		self.scroll.timer = setTimer(function(){
+		self.scroll.timer = Native.timer(function(){
 			var stop = false,
 				value = self.scroll.top;
 
@@ -257,7 +261,7 @@ Native.MotionFactory = {
 		this.playing = true;
 		this.ended = 0;
 
-		this.timer = setTimer(function(){
+		this.timer = Native.timer(function(){
 			for (var i in q){
 				if (q.hasOwnProperty(i) && !q[i].complete){
 					self.animate(q[i]);

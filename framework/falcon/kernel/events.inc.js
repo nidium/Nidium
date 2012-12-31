@@ -2,9 +2,15 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
+"use strict";
+
+/* -------------------------------------------------------------------------- */
+
 Native.system = {
 	doubleClickInterval : 250
 };
+
+/* -------------------------------------------------------------------------- */
 
 Native.events = {
 	options : {
@@ -310,7 +316,7 @@ Native.events = {
 			} else {
 
 				if (!this.timer) {
-					setTimer(function(){
+					Native.timer(function(){
 						if (!self.doubleclick) {
 							self.dispatch("mouseclick", e);
 						}
@@ -475,3 +481,4 @@ Native.ontextinput = function(e){
 	Native.events.textinputEvent(e);
 };
 
+/* -------------------------------------------------------------------------- */

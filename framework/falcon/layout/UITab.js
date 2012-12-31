@@ -67,7 +67,6 @@ Native.elements.export("UITab", {
 		};
 
 		this.resizeElement = function(){
-			//echo("reize", this.label)
 			var textWidth = Native.getTextWidth(
 				this.label,
 				this.fontSize,

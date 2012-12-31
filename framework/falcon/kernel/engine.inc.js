@@ -4,183 +4,14 @@
 
 "use strict";
 
-Native.scope = this;
-
 /* -------------------------------------------------------------------------- */
 
-Native.layout = {
-	objID : 0,
-	nbObj : 0, // Number of elements
-
-	nodes : {}, // May content several trees of elements
-	elements : [], // Flat representation of node trees
-
-	register : function(rootElement){
-		this.nodes[rootElement._uid] = rootElement;
-	},
-
-	unregister : function(rootElement){
-		delete(this.nodes[rootElement._uid]);
-	},
-
-	destroy : function(element){
-		if (element.parent){
-			delete(element.parent.nodes[element._uid]);
-			delete(this.nodes[element._uid]);
-			element.layer.removeFromParent();
-			element = null;
-		}
-	},
-
-	collectGarbage : function(elements){
-		for (var i=elements.length-1; i>0; i--){
-			elements[i].__garbageCollector && this.destroy(elements[i]);
-		}
-	},
-
-	remove : function(rootElement){
-		var self = this,
-			elements = [];
-
-		this.bubble(rootElement, function(){
-			elements.push(this);
-			this.__garbageCollector = true;
-		});
-
-		this.collectGarbage(elements);
-		this.destroy(rootElement);
-	},
-
-	/*
-	 * Apply Recursive Inference to rootElement and its children
-	 */
-	bubble : function(rootElement, inference){
-		var self = this,
-			fn = OptionalCallback(inference, null),
-			dx = function(z, parent){
-				for (var i in z){
-					fn.call(z[i]);
-					if (z[i] && self.count(z[i].nodes)>0) {
-						/* test z[i] as it may be destroyed by inference */
-						dx(z[i].nodes, z[i].parent);
-					}
-				}
-			};
-
-		if (rootElement && fn){
-			if (rootElement != this) fn.call(rootElement);
-			dx(rootElement.nodes);
-		}
-	},
-
-	/*
-	 * Recompute index on element insertion or removal
-	 */
-	update : function(){
-		var elements = [],
-			self = this,
-			n = 0;
-
-		this.bubble(this, function(){
-			this._nid = n++;
-			elements.push(this);
-		});
-
-		this.nbObj = n;
-
-		this.elements = elements.sort(function(a, b){
-			return a._nid - b._nid;
-		});
-
-		this.elements = elements;
-	},
-
-	draw : function(){
-		var z = this.elements;
-
-		for (var i=0; i<z.length; i++){
-			if (z[i]._needRefresh) {
-				z[i].refresh();
-			}
-		}
-	},
-
-	find : function(property, value){
-		var elements = [],
-			z = this.elements;
-
-		for (var i=0; i<z.length; i++){
-			let o = z[i];
-			if (o[property] && o[property] == value){
-				elements.push(o);
-			}
-		}
-
-		elements.each = function(cb){
-			for (var i in elements) {
-				if (elements.hasOwnProperty(i) && elements[i]._uid){
-					cb.call(elements[i]);
-				}
-			}
-		};
-
-		return elements;
-	},
-
-	getElements : function(){
-		return this.elements;
-	},
-
-	getElementsByName : function(name){
-		return this.find("name", name);
-	},
-
-	getElementsByTagName : function(name){
-		return this.find("type", name);
-	},
-
-	getElementsByClassName : function(name){
-		var pattern = new RegExp("(^|\\s)"+name+"(\\s|$)"),
-			z = this.elements,
-			elements = [];
-
-		for (var i=0; i<z.length; i++){
-			pattern.test(z[i].className) && elements.push(z[i]);
-		}
-
-		elements.each = function(cb){
-			for (var i in elements) {
-				if (elements.hasOwnProperty(i) && elements[i]._uid){
-					cb.call(elements[i]);
-				}
-			}
-		};
-
-		return elements;
-	},
-
-	getElementById : function(id){
-		var z = this.elements,
-			element = undefined;
-
-		for (var i=0; i<z.length; i++){
-			let o = z[i];
-			if (o.id && o.id == id){
-				element = z[i];
-			}
-		}
-		return element;
-	},
-
-	count : function(nodes){
-		var len = 0;
-		for (var i in nodes){
-			if (nodes.hasOwnProperty(i)){
-				len++;
-			}
-		}
-		return len;
-	}
+Native.scope = this;
+Native._cachedTextWidth = {};
+Native.blankOrphanedCanvas = new Canvas(1, 1);
+Native.canvas.context = Native.canvas.getContext("2D");
+Native.canvas.implement = function(props){
+	Object.merge(CanvasRenderingContext2D.prototype, props);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -198,24 +29,25 @@ Native.elements = {
 		};
 	},
 
+	createHardwareLayer : function(element){
+		var w = element.getLayerPixelWidth(),
+			h = element.getLayerPixelHeight();
+
+		element.layer = new Canvas(w, h);
+		element.layer.context = element.layer.getContext("2D");
+	},
+
 	init : function(element){
 		var plugin = this[element.type];
 
 		element.__lock();
 
 		if (element.parent){
-			var w = element.getLayerPixelWidth(),
-				h = element.getLayerPixelHeight();
-			element.layer = new Canvas(w, h);
-			element.layer.context = element.layer.getContext("2D");
+			this.createHardwareLayer(element);
 		} else {
 			element._layerPadding = 0;
 			element._root = element;
-
-			var w = element.getLayerPixelWidth(),
-				h = element.getLayerPixelHeight();
-			element.layer = new Canvas(w, h);
-			element.layer.context = element.layer.getContext("2D");
+			this.createHardwareLayer(element);
 
 			Native.canvas.add(element.layer);
 			Native.layout.register(element);
@@ -259,16 +91,6 @@ Native.elements = {
 
 /* -------------------------------------------------------------------------- */
 
-Native.canvas.context = Native.canvas.getContext("2D");
-
-Native.canvas.implement = function(props){
-	Object.merge(CanvasRenderingContext2D.prototype, props);
-};
-
-/* -------------------------------------------------------------------------- */
-
-Native._cachedTextWidth = {};
-Native.blankOrphanedCanvas = new Canvas(1, 1);
 Native.getTextWidth = function(text, fontSize, fontType){
 	var c = Native._cachedTextWidth,
 		key = text + fontSize + fontType,
@@ -290,55 +112,43 @@ Native.loadImage = function(url, callback){
 		img = new Image();
 
 	img.onload = function(){
-		//setTimeout(function(){
-			cb(img);
-		//}, 2000);
+		cb(img);
 	};
 	img.src = url;
 };
 
 /* -------------------------------------------------------------------------- */
 
-Native.StyleSheet = {
-	document : {},
-	add : function(sheet){
-		for (var k in sheet){
-			if (sheet.hasOwnProperty(k)){
-				if (this.document[k]){
-					this.mergeProperties(k, sheet[k]);
-				} else {
-					this.document[k] = sheet[k];
-				}
+Native.timer = function(fn, ms, loop, execFirst){
+	var t = {
+		loop : loop,
+		tid : loop 
+			? setInterval(function(){fn.call(t);}, ms)
+			: setTimeout(function(){fn.call(t);}, ms),
+
+		remove : function(){
+			if (this.loop) {
+				clearInterval(this.tid);
+			} else {
+				clearTimeout(this.tid);
 			}
+			delete(this.tid);
 		}
-	},
+	};
 
-	set : function(element){
-		var k = element.className.split(" ");
-
-		for (var i in k){
-			var klass = k[i],
-				props = this.getProperties(klass);
-
-			for (var key in props){
-				if (props.hasOwnProperty(key)) {
-					element[key] = props[key];
-				}
-			}
-		}
-	},
-
-	mergeProperties : function(klass, properties){
-		var prop = this.document[klass];
-		for (var p in properties){
-			prop[p] = properties[p];
-		}
-	},
-
-	getProperties : function(klass){
-		return this.document[klass];
+	if (execFirst) {
+		fn.call(t);
 	}
+	
+	return t;
 };
 
 /* -------------------------------------------------------------------------- */
 
+Native.FPS = {
+	init : function(){},
+	start : function(){},
+	show : function(){}
+};
+
+/* -------------------------------------------------------------------------- */

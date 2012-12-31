@@ -37,6 +37,12 @@ var style = {
 	},
 
 	label : {
+		paddingLeft : 8,
+		paddingRight : 8,
+		width : 150,
+		height : 28,
+		color : "#ffffff",
+		background : "rgba(255, 255, 255, 0.25)",
 		fontSize : 12,
 		radius : 4
 	},
