@@ -1,8 +1,10 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
-Native.canvas.implement({
+Canvas.implement({
 	tabbox : function(x, y, w, h, radius, fill, stroke, lineWidth) {
 		if (typeof fill == "undefined" ) {
 			fill = false;

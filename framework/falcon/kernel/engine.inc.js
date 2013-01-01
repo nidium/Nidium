@@ -1,6 +1,8 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 "use strict";
 
@@ -10,9 +12,6 @@ Native.scope = this;
 Native._cachedTextWidth = {};
 Native.blankOrphanedCanvas = new Canvas(1, 1);
 Native.canvas.context = Native.canvas.getContext("2D");
-Native.canvas.implement = function(props){
-	Object.merge(CanvasRenderingContext2D.prototype, props);
-};
 
 /* -------------------------------------------------------------------------- */
 

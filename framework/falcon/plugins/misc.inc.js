@@ -1,8 +1,10 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
-Native.canvas.implement({
+Canvas.implement({
 	setColor : function(color){
 		this.fillStyle = color;
 	},

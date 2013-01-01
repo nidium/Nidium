@@ -1,6 +1,8 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 "use strict";
 
@@ -72,18 +74,6 @@ Object.merge(window, {
 
 /* -------------------------------------------------------------------------- */
 
-Canvas.prototype.clear = function(){
-	var context = this.getContext("2D");
-	context.clearRect(
-		0, 
-		0, 
-		this.width,
-		this.height
-	);
-};
-
-/* -------------------------------------------------------------------------- */
-
 // Syntax : "22".in([1, 23], 21, {"22":true}) equal true
 
 Object.in = function(...n){
@@ -109,6 +99,22 @@ Object.in = function(...n){
 
 String.prototype.in = Object.in;
 Number.prototype.in = Object.in;
+
+/* -------------------------------------------------------------------------- */
+
+Canvas.prototype.clear = function(){
+	var context = this.getContext("2D");
+	context.clearRect(
+		0, 
+		0, 
+		this.width,
+		this.height
+	);
+};
+
+Canvas.implement = function(props){
+	Object.merge(CanvasRenderingContext2D.prototype, props);
+};
 
 /* -------------------------------------------------------------------------- */
 
