@@ -6,7 +6,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.firePropertyUpdateEvent = function(e){
+DOMElement.onPropertyUpdate = function(e){
 	var element = e.element,
 		old = e.oldValue,
 		value = e.newValue;
@@ -70,12 +70,7 @@ DOMElement.defineNativeProperty = function(descriptor){
 	}
 
 	/* define mirror hidden properties */
-	Object.defineProperty(element, "_"+property, {
-		value : value,
-		enumerable : false,
-		writable : true,
-		configurable : false
-	});
+	Object.createHiddenElement(element, "_"+property, value);
 
 	/* define public accessor */
 	Object.defineProperty(element, property, {
@@ -103,7 +98,7 @@ DOMElement.defineNativeProperty = function(descriptor){
 				element.__lock();
 
 				/* fire propertyupdate event if needed */
-				DOMElement.firePropertyUpdateEvent({
+				DOMElement.onPropertyUpdate({
 					element : element,
 					property : property,
 					oldValue : oldValue,
@@ -186,24 +181,10 @@ DOMElement.definePublicProperties = function(element, props){
 	}
 };
 
-DOMElement.createProtectedObject = function(name, value){
-	Object.defineProperty(Native.scope, name, {
-		value : value,
-		enumerable : true,
-		writable : false,
-		configurable : false
-	});
-};
-
 DOMElement.defineReadOnlyProperties = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
-			Object.defineProperty(element, key, {
-				value : props[key],
-				enumerable : true,
-				writable : false,
-				configurable : false
-			});
+			Object.createProtectedElement(element, key, props[key]);
 		}
 	}
 };
@@ -211,12 +192,7 @@ DOMElement.defineReadOnlyProperties = function(element, props){
 DOMElement.defineInternalProperties = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
-			Object.defineProperty(element, key, {
-				value : props[key],
-				enumerable : false,
-				writable : true,
-				configurable : false
-			});
+			Object.createHiddenElement(element, key, props[key]);
 		}
 	}
 };

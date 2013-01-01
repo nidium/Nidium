@@ -183,7 +183,7 @@ Native.layout = {
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.createProtectedObject("Application", function(options){
+Object.createProtectedElement(Native.scope, "Application", function(options){
 	options = options || {};
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;
@@ -194,7 +194,7 @@ DOMElement.createProtectedObject("Application", function(options){
 	return element;
 });
 
-DOMElement.createProtectedObject("document", new Application({
+Object.createProtectedElement(Native.scope, "document", new Application({
 	left : 0,
 	top : 0,
 	width : window.width,

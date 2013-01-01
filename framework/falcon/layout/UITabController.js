@@ -310,7 +310,7 @@ Native.elements.export("UITabController", {
 				}
 			}, false);
 
-			if (tab.closable){
+			if (tab.closeButton){
 				tab.closeButton.addEventListener("mouseup", function(){
 					controller.removeTab(tab);
 				}, false);

@@ -15,6 +15,33 @@ Object.merge = function(obj, props){
 	}
 };
 
+Object.createProtectedElement = function(scope, property, value){
+	Object.defineProperty(scope, property, {
+		value : value,
+		enumerable : true,
+		writable : false,
+		configurable : false
+	});
+};
+
+Object.createHiddenElement = function(scope, property, value){
+	Object.defineProperty(scope, property, {
+		value : value,
+		enumerable : false,
+		writable : true,
+		configurable : false
+	});
+};
+
+Object.createProtectedHiddenElement = function(scope, property, value){
+	Object.defineProperty(scope, property, {
+		value : value,
+		enumerable : false,
+		writable : false,
+		configurable : false
+	});
+};
+
 /* -------------------------------------------------------------------------- */
 
 Object.merge(window, {
@@ -53,12 +80,6 @@ Canvas.prototype.clear = function(){
 		this.width,
 		this.height
 	);
-};
-
-/* -------------------------------------------------------------------------- */
-
-Number.prototype.bound = function(min, max){
-	return Math.min(Math.max(Number(min), this), Number(max));
 };
 
 /* -------------------------------------------------------------------------- */
@@ -129,6 +150,12 @@ var OptionalAlign = function(x, def){
 	var list = ["left", "right", "justify", "center"];
 	return x && x.in(list) ? String(x) : 
 				def && def.in(list) ? String(def) : null;
+};
+
+/* -------------------------------------------------------------------------- */
+
+Number.prototype.bound = function(min, max){
+	return Math.min(Math.max(Number(min), this), Number(max));
 };
 
 /* -------------------------------------------------------------------------- */
