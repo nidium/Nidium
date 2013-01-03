@@ -178,7 +178,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
 }
 
 /* Compute whether or the canvas is going to be drawn */
-bool NativeCanvasHandler::isDisplayed()
+bool NativeCanvasHandler::isDisplayed() const
 {
     if (visibility == CANVAS_VISIBILITY_HIDDEN) {
         return false;
@@ -214,7 +214,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
 }
 
-bool NativeCanvasHandler::isHidden()
+bool NativeCanvasHandler::isHidden() const
 {
     return (visibility == CANVAS_VISIBILITY_HIDDEN);
 }
@@ -238,7 +238,7 @@ NativeCanvasHandler *NativeCanvasHandler::getParent()
     return this->parent;
 }
 
-void NativeCanvasHandler::getChildren(NativeCanvasHandler **out)
+void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
 {
     NativeCanvasHandler *cur;
     int i = 0;
@@ -247,12 +247,12 @@ void NativeCanvasHandler::getChildren(NativeCanvasHandler **out)
     }
 }
 
-int32_t NativeCanvasHandler::countChildren()
+int32_t NativeCanvasHandler::countChildren() const
 {
     return this->nchildren;
 }
 
-bool NativeCanvasHandler::containsPoint(double x, double y)
+bool NativeCanvasHandler::containsPoint(double x, double y) const
 {
     return (x >= a_left && x <= a_left+width &&
             y >= a_top && y <= a_top+height);

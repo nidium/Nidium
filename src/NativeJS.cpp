@@ -12,6 +12,7 @@
 #include "NativeFileIO.h"
 #include "NativeJSWebGL.h"
 #include "NativeJSCanvas.h"
+#include "NativeJSFileIO.h"
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
@@ -428,7 +429,7 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 
 static void gccb(JSRuntime *rt, JSGCStatus status)
 {
-    printf("Gc TH1 callback?\n");
+    //printf("Gc TH1 callback?\n");
 }
 
 NativeJS::NativeJS(int width, int height)
@@ -465,7 +466,7 @@ NativeJS::NativeJS(int width, int height)
         printf("Failed to init JS context\n");
         return;     
     }
-    //JS_BeginRequest(cx);
+    JS_BeginRequest(cx);
     //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
@@ -535,7 +536,7 @@ NativeJS::~NativeJS()
 
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-    //JS_EndRequest(cx);
+    JS_EndRequest(cx);
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
 
@@ -691,6 +692,8 @@ int NativeJS::LoadScript(const char *filename)
 
 void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
 {
+    /* File() object */
+    NativeJSFileIO::registerObject(cx);
     /* CanvasRenderingContext2D object */
     NativeCanvas2DContext::registerObject(cx);
     /* Canvas() object */
