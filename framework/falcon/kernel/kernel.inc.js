@@ -13,15 +13,15 @@ Native.object = {
 		throw("Undefined method " + id);
 	},
 
-	__lock : function(){
+	__lock : function __lock(){
 		this._locked = true;
 	},
 
-	__unlock : function(){
+	__unlock : function __unlock(){
 		this._locked = false;
 	},
 
-	refresh : function(){
+	refresh : function refresh(){
 		var p = this.parent,
 			x = this._left + this._offsetLeft,
 			y = this._top + this._offsetTop;
@@ -65,43 +65,43 @@ Native.object = {
 		this._needRefresh = false;
 	},
 
-	add : function(type, options){
+	add : function add(type, options){
 		var element = new DOMElement(type, options, this);
 		this.addChild(element);
 		return element;
 	},
 
-	remove : function(){
+	remove : function remove(){
 		Native.layout.remove(this);
 		Native.layout.update();
 	},
 
-	show : function(){
+	show : function show(){
 		if (!this.visible) {
 			this.visible = true;
 		}
 		return this;
 	},
 
-	hide : function(){
+	hide : function hide(){
 		if (this.visible) {
 			this.visible = false;
 		}
 		return this;
 	},
 
-	focus : function(){
+	focus : function focus(){
 		return this;
 	},
 
-	addChild : function(element){
+	addChild : function addChild(element){
 		this.nodes[element._uid] = element;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
 		Native.layout.update();
 	},
 
-	removeChild : function(element){
+	removeChild : function removeChild(element){
 		if (element.parent != this) {
 			throw("Unable to remove this element.");
 		}
@@ -109,18 +109,18 @@ Native.object = {
 		Native.layout.update();
 	},
 
-	getLayerPixelWidth : function(){
+	getLayerPixelWidth : function getLayerPixelWidth(){
 		return Math.round(this._width + 2*this._layerPadding);
 	},
 
-	getLayerPixelHeight : function(){
+	getLayerPixelHeight : function getLayerPixelHeight(){
 		return Math.round(this._height + 2*this._layerPadding);
 	},
 
 	/*
 	 * Sort DOMElements to match hardware physical layers order.
 	 */
-	resetNodes : function(){
+	resetNodes : function resetNodes(){
 		if (!this.parent) return false;
 
 		var parent = this.parent, // parent of this virtual element
@@ -141,19 +141,19 @@ Native.object = {
 		Native.layout.update();
 	},
 
-	bringToFront : function(){
+	bringToFront : function bringToFront(){
 		this.layer.bringToFront();
 		this.resetNodes();
 		return this;
 	},
 
-	sendToBack : function(){
+	sendToBack : function sendToBack(){
 		this.layer.sendToBack();
 		this.resetNodes();
 		return this;
 	},
 
-	getDrawingBounds : function(){
+	getDrawingBounds : function getDrawingBounds(){
 		var p = this.parent;
 		return {
 			x : 0 + this.offsetLeft + this._layerPadding,
@@ -163,15 +163,15 @@ Native.object = {
 		};
 	},
 
-	beforeDraw : function(){
+	beforeDraw : function beforeDraw(){
 
 	},
 
-	afterDraw : function(){
+	afterDraw : function afterDraw(){
 
 	},
 
-	isPointInside : function(mx, my){
+	isPointInside : function isPointInside(mx, my){
 		this._absx = Math.round(this.layer.__left + this._layerPadding);
 		this._absy = Math.round(this.layer.__top + this._layerPadding);
 
@@ -183,27 +183,27 @@ Native.object = {
 		return (mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
 
-	isVisible : function(){
+	isVisible : function isVisible(){
 		return this.visible;
 	},
 
-	hasClass : function(name){
+	hasClass : function hasClass(name){
 		return new RegExp('(\\s|^)'+name+'(\\s|$)').test(this.className);
 	},
 
-	addClass : function(name){
+	addClass : function addClass(name){
 		if (!this.hasClass(name)){
 			this.className += (this.className ? ' ' : '') + name;
 		}
 		return this;
 	},
 
-	setClass : function(name){
+	setClass : function setClass(name){
 		this.className = name;
 		return this;
 	},
 
-	removeClass : function(name){
+	removeClass : function removeClass(name){
 		if (this.hasClass(name)){
 			let r = new RegExp('(\\s|^)'+name+'(\\s|$)'),
 				k = this.className;
@@ -213,13 +213,17 @@ Native.object = {
 		return this;
 	},
 
-	setProperties : function(options){
+	setProperties : function setProperties(options){
 		for (var key in options){
 			if (options.hasOwnProperty(key)){
 				this[key] = options[key];
 			}
 		}
 		return this;
+	},
+
+	toString : function toString(){
+		return "Object Manager";
 	}
 };
 

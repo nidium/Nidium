@@ -1,0 +1,378 @@
+/* --------------------------------------------------------------------------- *
+ * Native Javascript Profiler                              (c) 2013 Stight.com * 
+ * --------------------------------------------------------------------------- * 
+ * Version: 	0.1                                                            *
+ * Author:		Vincent Fontaine                                               *
+ *                                                                             *
+ * Permission is hereby granted, free of charge, to any person obtaining a     *
+ * copy of this software and associated documentation files (the "Software"),  *
+ * to deal in the Software without restriction, including without limitation   *
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,    *
+ * and/or sellcopies of the Software, and to permit persons to whom the        *
+ * Software is furnished to do so, subject to the following conditions:        *
+ *                                                                             *
+ * The above copyright notice and this permission notice shall be included in  *
+ * all copies or substantial portions of the Software.                         *
+ *                                                                             *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR  *
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,    *
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE *
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER      *
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING     *
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER         *
+ * DEALINGS IN THE SOFTWARE.                                                   *
+ * --------------------------------------------------------------------------- * 
+ */
+
+/*
+
+-----------------
+* example usage *
+-----------------
+
+(1)	var clone = Native.profiler.init({
+		object : element, // object to inspect
+		duration : 4000, // run inspection for 4000 ms
+		verbose : {
+			set : true, // display set interceptions
+			get : false, // do not display get interceptions
+			delete : false // do not display delete interceptions
+		}
+	});
+
+(2)	Watch the console, see the magic ;-)
+
+*/
+
+Native.profiler = {
+	loaded : false,
+	running : false,
+
+	startDate : 0,
+	execTime : 0,
+
+	data : [],
+
+	getTrap : function(key){
+		this.lastKey = key;
+		if (this.verbose.get && this.running){
+			echo(".. intercepted get", key);
+		}
+	},
+
+	setTrap : function(key, val){
+		if (this.verbose.set && this.running){
+			echo(".. intercepted set", key, "=", val);
+		}
+	},
+
+	deleteTrap : function(key, val){
+		if (this.verbose.set){
+			echo(".. intercepted delete", key);
+		}
+	},
+
+	lastKey : "",
+
+	wrap : function(obj, duration){
+		var wrapper = this.init({
+			object : obj,
+			duration : duration || 2000
+		})
+		return wrapper;
+	},
+
+	handler : function(obj){
+		return {
+			/* -- Fundamental Traps ----------------------------------------- */
+
+			defineProperty : function(key, descriptor){
+				Object.defineProperty(obj, key, descriptor);
+			},
+
+			getOwnPropertyDescriptor : function(key){
+				var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+				if (descriptor !== undefined) descriptor.configurable = true;
+				return descriptor;
+			},
+
+			getPropertyDescriptor : function(key){
+				var descriptor = Object.getOwnPropertyDescriptor(obj, key);
+				if (descriptor !== undefined) descriptor.configurable = true;
+				return descriptor;
+			},
+
+			getOwnPropertyNames : function(){
+				return Object.getOwnPropertyNames(obj);
+			},
+
+			getPropertyNames : function(){
+				return Object.getOwnPropertyNames(obj);
+			},
+			
+			delete : function(key){
+				Native.profiler.deleteTrap(key);
+				return delete obj[key];
+			},
+
+			/* intercept function calls */
+			invoke : function(args){
+				var ___ = Native.profiler,
+					name = obj.name == "" ? 
+						   "Anonymous (assumed "+___.lastKey+")" : 
+						   obj.name;
+
+				//echo("-- handling call", name);
+
+				___.measureStart();
+				var r = obj.apply(this, args);
+				___.measureStop();
+
+				___.log(
+					"call",
+					obj,
+					name
+				);
+
+				return r;
+			},
+
+			/* intercept contructors */
+			construct : function(args){
+				var ___ = Native.profiler,
+					name = obj.name == "" ? 
+						   "Anonymous (assumed "+___.lastKey+")" : 
+						   obj.name;
+
+				//echo("-- handling contructor", name);
+
+				var Forward = function(args){
+					return obj.apply(this, args);
+				};
+
+				___.measureStart();
+				var r = new Forward(args);
+				___.measureStop();
+
+				___.log(
+					"construct", 
+					obj, 
+					name
+				);
+
+				return r;
+			},
+
+			fix : function(){
+				if (Object.isFrozen(obj)){
+					var result = {};
+					Object.getOwnPropertyNames(obj).forEach(function(key){
+						result[key] = Object.getOwnPropertyDescriptor(obj, key);
+					});
+					return result;
+				}
+				return undefined;
+			},
+
+			/* -- Derived Traps --------------------------------------------- */
+
+			get : function(receiver, key){
+				if (typeof obj != "function") Native.profiler.getTrap(key);
+				return obj[key];
+			},
+
+			set : function(receiver, key, val){
+				Native.profiler.setTrap(key, val);
+				obj[key] = val;
+				return true;
+			},
+
+			has : function(key){
+				return key in obj;
+			},
+
+			hasOwn : function(key){
+				return ({}).hasOwnProperty.call(obj, key);
+			},
+
+			keys : function(){
+				return Object.keys(obj);
+			},
+
+		 	enumerate : function(){
+				var props = [];
+				for (var key in obj){
+					props.push(key);
+				};
+				return props;
+			},
+
+			iterate : function(){
+				var idx = 0,
+					props = this.enumerate(),
+					size = +props.length;
+
+				return {
+					next : function nextIteration(){
+						if (idx === size) throw StopIteration;
+						return props[idx++];
+					}
+				};
+
+			}
+
+		};
+	},
+
+	init : function(options){
+		if (!options || !options.object || !options.duration || this.loaded){
+			return false;
+		}
+
+		var obj = options.object,
+			duration = options.duration,
+			self = this;
+
+		this.verbose = options.verbose || {};
+		this.duration = duration;
+
+		this.startTime = + new Date();
+		echo("---------------------------------- Native Profiler Start ----------------------------------");
+		this.loaded = true;
+		this.running = true;
+
+		setTimeout(function(){
+			self.stop();
+			self.stats();
+		}, duration);
+
+		this.membrane = Object.membrane(obj, this.handler);
+		return this.membrane.wrapper;
+	},
+
+	measureStart : function(){
+		this.startDate = + new Date();
+	},
+
+	measureStop : function(){
+		this.execTime = 0.1 + (+ new Date()) - this.startDate;
+	},
+
+	stop : function(){
+		if (!this.loaded || !this.running) return false;
+		this.endTime = + new Date();
+		this.totalExecTime = this.endTime - this.startTime;
+
+		echo("---------------------------------- Native Profiler Stop -----------------------------------");
+		this.running = false;
+	},
+
+	log : function(type, obj, name){
+		if (!this.loaded || !this.running) return false;
+		this.data.push({
+			type : type,
+			obj : obj,
+			name : name == "" ? "Anonymous" : name,
+			startDate : this.startDate,
+			execTime : this.execTime
+		});
+	},
+
+	show : function(){
+		for (var i=0; i<this.data.length; i++){
+			var line = this.data[i],
+				date = line.startDate - this.startTime;
+
+			echo(date + ":", line.type, line.name, line.execTime);
+		}
+		echo("---------------------------------- Native Profiler Show -----------------------------------");
+	},
+
+	stats : function(){
+		this.map = new Map();
+		this.result = [];
+
+		for (var i=0; i<this.data.length; i++){
+			var value,
+				exec = 0,
+				totalExecTime = 0,
+				line = this.data[i],
+				obj = line.obj;
+
+			if (this.map.has(obj)) {
+				value = this.map.get(obj);
+				exec = value.exec;
+				totalExecTime = value.totalExecTime;
+			}
+
+			var newTotalExecTime = totalExecTime + line.execTime,
+				percent = newTotalExecTime*100 / this.totalExecTime;
+
+			this.map.set(obj, {
+				name : line.name,
+				exec : exec + 1,
+				totalExecTime : newTotalExecTime,
+				percent : percent
+			});
+		}
+
+		var totalPercent = 0,
+			totalExecTimeAll = 0,
+			elements = [];
+
+		for (var o of this.map){
+			var obj = o[1];
+			totalPercent += obj.percent;
+			totalExecTimeAll += obj.totalExecTime;
+			elements.push({
+				name : obj.name,
+				exec : obj.exec,
+				totalExecTime : obj.totalExecTime,
+				percent : obj.percent
+			});
+		}
+
+		var totalTimeBase = this.totalExecTime<totalExecTimeAll ?
+					   totalExecTimeAll : this.totalExecTime;
+
+		elements.push({
+			name : "{IDLE}",
+			exec : 1,
+			totalExecTime : totalTimeBase - totalExecTimeAll,
+			percent : (totalPercent<=100) ? 100-totalPercent : 0,
+
+		});
+
+		this.result = elements.sort(function(a, b){
+			return b.percent - a.percent;
+		});
+
+		for (var i in this.result){
+			var line = this.result[i],
+				ms = line.totalExecTime;
+			
+			if (line.name == "{IDLE}") {
+				echo(
+					("Other/IDLE ").rightPad(50),
+					"".rightPad(14),
+					(" " + Math.round(ms*10)/10 + " ms").leftPad(12),
+					(" ("+Math.round(ms*10000/totalTimeBase)/100 + " %)").leftPad(12)
+				);
+			} else {
+				echo(
+					(line.name + " : ").rightPad(50),
+					(line.exec + " exec ").rightPad(14),
+					(" " + Math.round(ms*10)/10 + " ms").leftPad(12),
+					(" ("+Math.round(ms*10000/totalTimeBase)/100 + " %)").leftPad(12)
+				);
+			}
+		}
+
+		echo("-------------------------------------------------------------------------------------------");
+		echo("Total Benchmark Time : set to "+this.duration+" ms (real timer measure was "+this.totalExecTime+" ms)");
+		echo("-------------------------------------------------------------------------------------------");
+		echo("Total Time of Intercepted Code Execution :", Math.round(totalExecTimeAll), "ms");
+		echo("-------------------------------------------------------------------------------------------");
+
+	}
+};

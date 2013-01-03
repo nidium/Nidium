@@ -201,7 +201,7 @@ Object.createProtectedElement(Native.scope, "document", new Application({
 	top : 0,
 	width : window.width,
 	height : window.height,
-	background : "#ff0000",
+	background : "#262722",
 	canReceiveFocus : true,
 	outlineOnFocus : false
 }));
