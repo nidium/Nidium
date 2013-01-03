@@ -41,14 +41,14 @@ Native.layout = {
 			self = this,
 			n = 0;
 
-		this.bubble(this, function(){
+		this.bubble(this, function _update_bubbleCallback(){
 			this._nid = n++;
 			elements.push(this);
 		});
 
 		this.nbObj = n;
 
-		this.elements = elements.sort(function(a, b){
+		this.elements = elements.sort(function _update_sort(a, b){
 			return a._nid - b._nid;
 		});
 
@@ -182,6 +182,11 @@ Native.layout = {
 		this.destroy(rootElement);
 	}
 };
+
+/* ---------------------------------------------------------------------- */
+Native.layout = Native.profiler.wrap(Native.layout, 250);
+/* ---------------------------------------------------------------------- */
+
 
 /* -------------------------------------------------------------------------- */
 

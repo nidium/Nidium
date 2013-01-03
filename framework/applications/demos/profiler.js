@@ -4,10 +4,6 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
-load("NatProfiler.nap");
-/* ---------------------------------------------------------------------- */
-
 var main = new Application({background:"#262722"});
 
 /* add some dummy time consuming methods to our main object */

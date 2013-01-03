@@ -72,12 +72,28 @@ Native.profiler = {
 		}
 	},
 
+	enumerateTrap : function(key, val){
+		if (this.verbose.enumerate){
+			echo(".. intercepted enumerate");
+		}
+	},
+
+	iterateTrap : function(key, val){
+		if (this.verbose.iterate){
+			echo(".. intercepted interate");
+		}
+	},
+
 	lastKey : "",
 
 	wrap : function(obj, duration){
 		var wrapper = this.init({
 			object : obj,
-			duration : duration || 2000
+			duration : duration || 2000,
+			verbose : {
+				set : true,
+				iterate : true
+			}
 		})
 		return wrapper;
 	},
@@ -201,6 +217,7 @@ Native.profiler = {
 
 		 	enumerate : function(){
 				var props = [];
+				Native.profiler.enumerateTrap();
 				for (var key in obj){
 					props.push(key);
 				};
@@ -211,6 +228,8 @@ Native.profiler = {
 				var idx = 0,
 					props = this.enumerate(),
 					size = +props.length;
+
+				Native.profiler.iterateTrap();
 
 				return {
 					next : function nextIteration(){
