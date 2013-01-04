@@ -10,10 +10,12 @@ static JSClass File_class = {
 
 static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_getContents(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec File_funcs[] = {
     JS_FN("open", native_file_open, 1, 0),
     JS_FN("getContents", native_file_getContents, 1, 0),
+    JS_FN("read", native_file_read, 2, 0),
     JS_FS_END
 };
 
@@ -81,6 +83,43 @@ static JSBool native_file_getContents(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
+{
+    jsval callback;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    NativeJSFileIO *NJSFIO;
+    NativeFileIO *NFIO;
+    double read_size;
+
+    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return JS_TRUE;
+    }
+
+    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &read_size)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
+        return JS_TRUE;
+    }
+
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NFIO = NJSFIO->getNFIO();
+
+    if (NFIO->fd == NULL) {
+        JS_ReportError(cx, "NativeFileIO : use File.open() first.");
+        return JS_FALSE;
+    }
+
+    NJSFIO->callbacks.read = callback;
+
+    JS_AddValueRoot(cx, &NJSFIO->callbacks.read);
+
+    NFIO->read((uint64_t)read_size);  
+
+    return JS_TRUE;
+}
+
 static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
@@ -138,16 +177,18 @@ void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t
 
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
 
+    printf("build abuffer of %ld\n", len);
+
     JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
     uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
     memcpy(adata, data, len);
 
     jdata = OBJECT_TO_JSVAL(arrayBuffer);
 
-    JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.getContents,
+    JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.read,
         1, &jdata, &rval);
 
-    JS_RemoveValueRoot(cx, &NJSFIO->callbacks.getContents);
+    JS_RemoveValueRoot(cx, &NJSFIO->callbacks.read);
 
 }
 

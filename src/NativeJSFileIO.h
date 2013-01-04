@@ -21,6 +21,7 @@ class NativeJSFileIO : public NativeJSExposer, public NativeFileIODelegate
     struct {
         jsval open;
         jsval getContents;
+        jsval read;
     } callbacks;
 
     JSObject *jsobj;
