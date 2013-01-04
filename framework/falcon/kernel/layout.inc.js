@@ -184,13 +184,6 @@ Native.layout = {
 };
 
 /* ---------------------------------------------------------------------- */
-/*
-Native.layout = Native.profiler.wrap(Native.layout, 20, function(){
-//	this.stats();
-});
-*/
-/* ---------------------------------------------------------------------- */
-
 
 Object.createProtectedElement(Native.scope, "Application", function(options){
 	options = options || {};

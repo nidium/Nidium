@@ -62,14 +62,14 @@ class NativeCanvasHandler
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
         void setHidden(bool val);
-        bool isDisplayed();
-        bool isHidden();
+        bool isDisplayed() const;
+        bool isHidden() const;
         void setOpacity(double val);
         void removeFromParent();
         NativeCanvasHandler *getParent();
-        void getChildren(NativeCanvasHandler **out);
-        int32_t countChildren();
-        bool containsPoint(double x, double y);
+        void getChildren(NativeCanvasHandler **out) const;
+        int32_t countChildren() const;
+        bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
     private:
         NativeCanvasHandler *parent;

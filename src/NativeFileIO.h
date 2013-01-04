@@ -16,7 +16,7 @@ public:
     void open();
     void close();
     void getContents();
-    NativeFileIODelegate *getDelegate();
+    NativeFileIODelegate *getDelegate() const { return delegate; };
     char *filename;
     NativeSharedMessages *messages;
     FILE *fd;
@@ -34,6 +34,8 @@ class NativeFileIODelegate
     virtual void onNFIOOpen(NativeFileIO *)=0;
     virtual void onNFIOError(NativeFileIO *, int errno)=0;
     virtual void onNFIORead(NativeFileIO *, unsigned char *data, size_t len)=0;
+
+    NativeFileIO *NFIOref;
 };
 
 enum {

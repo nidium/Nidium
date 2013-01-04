@@ -68,11 +68,6 @@ static int Native_handle_file_messages(void *arg)
     return 1;
 }
 
-NativeFileIODelegate *NativeFileIO::getDelegate()
-{
-    return delegate;
-}
-
 void NativeFileIO::open()
 {
     pthread_create(&threadHandle, NULL, native_open_thread, this);

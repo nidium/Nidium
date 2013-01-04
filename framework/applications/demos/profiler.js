@@ -26,7 +26,9 @@ main.myNewDummy = function lisaDummy(){
 /* ---------------------------------------------------------------------- */
 /* overwrite main and wrap it using a secure identity-preserving membrane */
 /* ---------------------------------------------------------------------- */
-var main = Native.profiler.wrap(main, 5000); // .. and launch the profiler
+var main = Native.profiler.wrap(main, 5000, function(){
+	this.stats();
+});
 /* ---------------------------------------------------------------------- */
 
 /* run 200 times the dummy method */
