@@ -182,10 +182,6 @@ Uint8Array.prototype.toString = function(){
 	return String.fromCharCode.apply(null, new Uint8Array(this));
 };
 
-Uint16Array.prototype.toString = function(){
-	return String.fromCharCode.apply(null, new Uint16Array(this));
-};
-
 ArrayBuffer.prototype.toString = function(){
 	return String.fromCharCode.apply(null, new Uint8Array(this));
 };
