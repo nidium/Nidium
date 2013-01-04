@@ -267,6 +267,7 @@ Native.profiler = {
 
 		setTimeout(function(){
 			self.stop();
+			self.stats();
 		}, duration);
 
 		this.membrane = Object.membrane(obj, this.handler);
@@ -386,14 +387,12 @@ Native.profiler = {
 					(" ("+Math.round(ms*10000/totalTimeBase)/100 + " %)").leftPad(12)
 				);
 			} else {
-/*
 				echo(
 					(line.name + " : ").rightPad(50),
 					(line.exec + " exec ").rightPad(14),
 					(" " + Math.round(ms*10)/10 + " ms").leftPad(12),
 					(" ("+Math.round(ms*10000/totalTimeBase)/100 + " %)").leftPad(12)
 				);
-*/
 			}
 		}
 
