@@ -178,6 +178,42 @@ Number.prototype.bound = function(min, max){
 
 /* -------------------------------------------------------------------------- */
 
+Uint8Array.prototype.toString = function(){
+	return String.fromCharCode.apply(null, new Uint8Array(this));
+};
+
+Uint16Array.prototype.toString = function(){
+	return String.fromCharCode.apply(null, new Uint16Array(this));
+};
+
+ArrayBuffer.prototype.toString = function(){
+	return String.fromCharCode.apply(null, new Uint8Array(this));
+};
+
+String.prototype.toUint8Array = function(){
+	var size = this.length,
+		buffer = new ArrayBuffer(size),
+		view = new Uint8Array(buffer);
+
+	for (var i=0; i<size; i++) {
+		view[i] = this.charCodeAt(i);
+	}
+	return buffer;
+};
+
+String.prototype.toUint16Array = function(){
+	var size = this.length,
+		buffer = new ArrayBuffer(size*2),
+		view = new Uint16Array(buffer);
+
+	for (var i=0; i<size; i++) {
+		view[i] = this.charCodeAt(i);
+	}
+	return buffer;
+};
+
+/* -------------------------------------------------------------------------- */
+
 Math.distance = function(x1, y1, x2, y2){
 	var a = y2-y1, b = x2-x1;
 	return Math.sqrt(a*a+b*b);

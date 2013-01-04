@@ -151,3 +151,83 @@ Native.FPS = {
 };
 
 /* -------------------------------------------------------------------------- */
+
+Object.merge(File.prototype, {
+	offset : 0,
+
+	load : function(callback){
+		if (typeof callback != "function" && typeof this.onload != "function"){
+			throw "File read : callback parameter or onload method expected";
+		}
+
+		callback = callback ? callback : this.onload;
+
+		if (this.mutex) {
+			throw new Error("File locked until callback");
+			return false;
+		}
+
+		this.mutex = true;
+
+		this.open(function(){
+			this.getContents(function(buffer){
+				this.mutex = false;
+				this.size = buffer.byteLength;
+				this.buffer = buffer;
+				callback.call(this, {
+					success : true
+				});
+			});
+		});
+	},
+
+	get : function(...n){
+		var view = this.buffer,
+			offset = 0,
+			size = 0,
+			maxSize = 0;
+
+		if (!this.buffer) {
+			throw new Error("File read : can't access uninitialized file");
+		}
+
+		switch(n.length){
+			case 1 :
+				/* f.read(size) */
+				offset = this.offset;
+				size = OptionalNumber(n[0], null);
+				break;
+
+			case 2 :
+				/* f.read(offset, size) */
+				offset = OptionalNumber(n[0], 0);
+				size = OptionalNumber(n[1], null);
+			 	break;
+
+			 default :
+				throw "File read : missing parameters";
+			 	break;
+		}
+
+		if (size == null){
+			throw new Error("File read : expected size");
+		}
+
+		offset = offset.bound(0, this.size-1);
+		maxSize = this.size-offset;
+
+		size = size == null ? maxSize : size;
+		size = size.bound(1, maxSize);
+		
+		if (offset == 0 && size == this.size){
+			view = this.buffer;
+		} else {
+			view = new Uint8Array(this.buffer, offset, size);
+		}
+
+		this.offset = offset + size;
+		return view;
+	}
+});
+
+/* -------------------------------------------------------------------------- */
