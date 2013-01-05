@@ -191,7 +191,7 @@ Object.merge(File.prototype, {
 			throw new Error("File read : can't access uninitialized file");
 		}
 
-		switch(n.length){
+		switch (n.length){
 			case 1 :
 				/* f.read(size) */
 				offset = this.offset;
@@ -205,7 +205,7 @@ Object.merge(File.prototype, {
 			 	break;
 
 			 default :
-				throw "File read : missing parameters";
+				throw new Error("File read : missing parameters");
 			 	break;
 		}
 

@@ -102,8 +102,8 @@ Number.prototype.in = Object.in;
 
 /* -------------------------------------------------------------------------- */
 
-String.prototype.leftPad = function(len){
-	return Array(len + 1 - this.length).join(".") + this;
+String.prototype.leftPad = function(len, sep){
+	return Array(len + 1 - this.length).join(sep?sep:".") + this;
 };
 
 String.prototype.rightPad = function(len){
@@ -208,6 +208,42 @@ String.prototype.toUint16Array = function(){
 	return buffer;
 };
 
+Object.dumpTemplate = function(){
+	var	buffer = this,
+		size = buffer.byteLength,
+		bytes = Array.prototype.slice.call(new Uint8Array(buffer)),
+		ascii = "",
+		hex = "",
+		output = [],
+		items = 22,
+		offset = 0,
+		x = 0;
+
+	for (var i=0; i<size; i++){
+		x++;
+		hex += (bytes[i].toString(16)).leftPad(2, "0") + " ";
+		ascii += String.fromCharCode(bytes[i]).replace(/[\x00-\x1F]/g, ".");
+
+		if (x>=items) {
+			x = 0;
+			output.push((offset.toString()).leftPad(10, "0")+" : "+hex+"| "+ascii+"\n");
+			hex = "";
+			ascii = "";
+			offset += items;
+		}
+	}
+
+	if (x!=0){
+		for (var i=x; i<items; i++){
+			hex += '-- ';
+		}
+		output.push((offset.toString()).leftPad(10, "0")+" : "+hex+"| "+ascii);
+	}
+	echo(output.join(''));
+};
+
+ArrayBuffer.prototype.dump = Object.dumpTemplate;
+Uint8Array.prototype.dump = Object.dumpTemplate;
 /* -------------------------------------------------------------------------- */
 
 Math.distance = function(x1, y1, x2, y2){
