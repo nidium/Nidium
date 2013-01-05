@@ -2,6 +2,7 @@
 #define nativesharedmessages_h__
 
 #include <pthread.h>
+#include <stdint.h>
 
 typedef struct _native_shared_message
 {
@@ -20,7 +21,7 @@ class NativeSharedMessages
             : prev(NULL), type(type) {
                 msgdata.dataptr = ptr;
             }
-            Message(unsigned int dataint, int type)
+            Message(uint64_t dataint, int type)
             : prev(NULL), type(type) {
                 msgdata.dataint = dataint;
             }
@@ -31,7 +32,7 @@ class NativeSharedMessages
                 return msgdata.dataptr;
             }
 
-            unsigned int dataUInt() const {
+            uint64_t dataUInt() const {
                 return msgdata.dataint;
             }
 
@@ -43,7 +44,7 @@ class NativeSharedMessages
 
             union {
                 void *dataptr;
-                unsigned int dataint;
+                uint64_t dataint;
             } msgdata;
 
             int type;
