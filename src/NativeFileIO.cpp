@@ -24,10 +24,16 @@ static void *native_fileio_thread(void *arg)
 
         switch (NFIO->action.type) {
             case NativeFileIO::FILE_ACTION_OPEN:
-                NFIO->openAction();
+                NFIO->openAction((char *)NFIO->action.ptr);
+                free(NFIO->action.ptr);
                 break;
             case NativeFileIO::FILE_ACTION_READ:
                 NFIO->readAction(NFIO->action.u64);
+                break;
+            case NativeFileIO::FILE_ACTION_WRITE:
+                NFIO->writeAction((unsigned char *)NFIO->action.ptr,
+                                    NFIO->action.u64);
+                free(NFIO->action.ptr);
                 break;
             default:
                 printf("unknown action\n");
@@ -36,43 +42,6 @@ static void *native_fileio_thread(void *arg)
         NFIO->action.active = false;
         pthread_mutex_unlock(&NFIO->threadMutex);
     }
-    printf("end\n");
-    
-    return NULL;
-}
-
-static void *native_open_thread(void *arg)
-{
-    NativeFileIO *nfileio = (NativeFileIO *)arg;
-
-    if ((nfileio->fd = fopen(nfileio->filename, "r")) == NULL) {
-        nfileio->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
-        return NULL;
-    }
-    fseek(nfileio->fd, 0L, SEEK_END);
-    nfileio->filesize = ftell(nfileio->fd);
-    fseek(nfileio->fd, 0L, SEEK_SET);
-
-    nfileio->messages->postMessage(nfileio->fd, NATIVE_FILEOPEN_MESSAGE);
-
-    return NULL;
-}
-
-static void *native_read_thread(void *arg)
-{
-    NativeFileIO *nfileio = (NativeFileIO *)arg;
-    unsigned char *data = new unsigned char[nfileio->filesize];
-
-    if (fread(data, sizeof(char), nfileio->filesize,
-        nfileio->fd) != nfileio->filesize) {
-        nfileio->messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
-        delete data;
-        return NULL;
-    }
-
-    fseek(nfileio->fd, 0L, SEEK_SET);
-
-    nfileio->messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
 
     return NULL;
 }
@@ -93,12 +62,29 @@ static int Native_handle_file_messages(void *arg)
             case NATIVE_FILEREAD_MESSAGE:
                 nfileio->getDelegate()->onNFIORead(nfileio,
                     (unsigned char *)msg.dataPtr(), nfileio->action.u64);
-                    delete (unsigned char *)msg.dataPtr();
+
+                delete (unsigned char *)msg.dataPtr();
+                break;
+            case NATIVE_FILEWRITE_MESSAGE:
+                nfileio->getDelegate()->onNFIOWrite(nfileio, msg.dataUInt());
                 break;
             default:break;
         }
     }
     return 1;
+}
+
+void NativeFileIO::writeAction(unsigned char *data, uint64_t len)
+{
+    size_t ret;
+
+    if (this->fd == NULL) {
+        return;
+    }
+
+    ret = fwrite(data, sizeof(char), len, fd);
+
+    messages->postMessage(ret, NATIVE_FILEWRITE_MESSAGE);
 }
 
 void NativeFileIO::readAction(uint64_t len)
@@ -109,7 +95,7 @@ void NativeFileIO::readAction(uint64_t len)
     if (this->fd == NULL) {
         return;
     }
-    printf("Start reading %lld size instead of %lld\n", clamped_len, len);
+
     unsigned char *data = new unsigned char[clamped_len];
 
     if (fread(data, sizeof(char), clamped_len, fd) < 1) {
@@ -118,12 +104,14 @@ void NativeFileIO::readAction(uint64_t len)
         return;
     }
 
+    action.u64 = clamped_len;
+
     messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
 }
 
-void NativeFileIO::openAction()
+void NativeFileIO::openAction(char *modes)
 {
-    if ((this->fd = fopen(this->filename, "r")) == NULL) {
+    if ((this->fd = fopen(this->filename, modes)) == NULL) {
         this->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
         return;
     }
@@ -134,7 +122,7 @@ void NativeFileIO::openAction()
     this->messages->postMessage(this->fd, NATIVE_FILEOPEN_MESSAGE);    
 }
 
-void NativeFileIO::open()
+void NativeFileIO::open(const char *modes)
 {
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
@@ -142,6 +130,7 @@ void NativeFileIO::open()
     }
     action.active = true;
     action.type = FILE_ACTION_OPEN;
+    action.ptr  = strdup(modes);
     pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
 }
@@ -159,14 +148,35 @@ void NativeFileIO::read(uint64_t len)
     pthread_mutex_unlock(&threadMutex);    
 }
 
-void NativeFileIO::getContents()
+void NativeFileIO::write(unsigned char *data, uint64_t len)
 {
-    if (fd == NULL) {
+    pthread_mutex_lock(&threadMutex);
+    if (action.active) {
         return;
     }
-
-    pthread_create(&threadHandle, NULL, native_read_thread, this);
+    action.active = true;
+    action.type = FILE_ACTION_WRITE;
+    action.ptr  = data;
+    action.u64  = len;
+    pthread_cond_signal(&threadCond);
+    pthread_mutex_unlock(&threadMutex);    
 }
+
+void NativeFileIO::seek(uint64_t pos)
+{
+    pthread_mutex_lock(&threadMutex);
+    fseek(fd, pos, SEEK_SET);
+    pthread_mutex_unlock(&threadMutex);  
+}
+
+void NativeFileIO::close()
+{
+    pthread_mutex_lock(&threadMutex);
+    fclose(fd);
+    fd = NULL;
+    pthread_mutex_unlock(&threadMutex);  
+}
+
 
 NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     ape_global *net) :

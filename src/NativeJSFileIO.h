@@ -14,6 +14,7 @@ class NativeJSFileIO : public NativeJSExposer, public NativeFileIODelegate
     void onNFIOOpen(NativeFileIO *);
     void onNFIOError(NativeFileIO *, int errno);
     void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
+    void onNFIOWrite(NativeFileIO *, size_t written);
 
     NativeFileIO *getNFIO() const { return NFIO; }
     void setNFIO(NativeFileIO *nfio) { NFIO = nfio; }
@@ -22,6 +23,7 @@ class NativeJSFileIO : public NativeJSExposer, public NativeFileIODelegate
         jsval open;
         jsval getContents;
         jsval read;
+        jsval write;
     } callbacks;
 
     JSObject *jsobj;

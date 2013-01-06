@@ -123,7 +123,7 @@ class NativeSkia
         void clip();
         void rect(double x, double y, double width, double height);
         void arc(int, int, int, double, double, int);
-        void quadraticCurveTo(int cpx, int cpy, int x, int y);
+        void quadraticCurveTo(double cpx, double cpy, double x, double y);
         void bezierCurveTo(double cpx, double cpy, double cpx2,
             double cpy2, double x, double y);
         void rotate(double angle);
