@@ -1,3 +1,8 @@
+#ifdef __linux__
+   #define UINT32_MAX 4294967295u
+#endif
+
+
 #include <jsapi.h>
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
@@ -735,8 +740,11 @@ void NativeSkia::lineTo(double x, double y)
     if (!currentPath) {
         beginPath();
     }
-
-    currentPath->lineTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    if (!currentPath->countPoints()) {
+        currentPath->moveTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    } else {
+        currentPath->lineTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    }
 }
 
 void NativeSkia::fill()
@@ -832,14 +840,18 @@ void NativeSkia::arc(int x, int y, int r,
     }
 }
 
-void NativeSkia::quadraticCurveTo(int cpx, int cpy, int x, int y)
+void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
 {
     if (!currentPath) {
         return;
     }
 
-    currentPath->quadTo(SkIntToScalar(cpx), SkIntToScalar(cpy),
-        SkIntToScalar(x), SkIntToScalar(y));
+    if (!currentPath->countPoints()) {
+        currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
+    }
+
+    currentPath->quadTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
+        SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
@@ -847,6 +859,10 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
 {
     if (!currentPath) {
         return;
+    }
+    
+    if (!currentPath->countPoints()) {
+        currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
     }
 
     currentPath->cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),

@@ -366,8 +366,8 @@ static JSBool native_canvas2dctx_arc(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    int x, y, cpx, cpy;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &cpx, &cpy,
+    double x, y, cpx, cpy;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &cpx, &cpy,
         &x, &y)) {
         return JS_TRUE;
     }
