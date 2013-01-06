@@ -27,7 +27,7 @@ Native.layout = {
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i]._needRefresh) {
+			if (z[i].isVisible() && z[i]._needRefresh) {
 				z[i].refresh();
 			}
 		}
@@ -68,7 +68,7 @@ Native.layout = {
 
 		elements.each = function(cb){
 			for (var i in elements) {
-				if (elements.hasOwnProperty(i) && elements[i]._uid){
+				if (isDOMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -111,18 +111,19 @@ Native.layout = {
 		return this.find("type", name);
 	},
 
-	getElementsByClassName : function(name){
-		var pattern = new RegExp("(^|\\s)"+name+"(\\s|$)"),
+	getElementsByClassName : function(className){
+		var pattern = new RegExp("(^|\\s)"+className+"(\\s|$)"),
 			z = this.elements,
 			elements = [];
 
 		for (var i=0; i<z.length; i++){
-			pattern.test(z[i].className) && elements.push(z[i]);
+			pattern.test(z[i]._className) && elements.push(z[i]);
 		}
 
 		elements.each = function(cb){
+			if (typeof cb != "function") return false;
 			for (var i in elements) {
-				if (elements.hasOwnProperty(i) && elements[i]._uid){
+				if (isDOMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}

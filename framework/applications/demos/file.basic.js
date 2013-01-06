@@ -14,11 +14,10 @@ File.getText("main.js", function(text){
 	echo(text);
 });
 
-File.read("test.bin", function(buffer, size){
+File.read("main.js", function(buffer, size){
 	buffer.dump();
 });
 
 File.write("test.txt", "new content", function(){
 	echo("write successful");
 });
-

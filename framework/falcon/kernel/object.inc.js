@@ -25,7 +25,8 @@ var DOMElement = function(type, options, parent){
 
 	/* Read Only Properties */
 	DOMElement.defineReadOnlyProperties(this, {
-		type : type
+		type : type,
+		isDOMElement : true
 	});
 
 	/* Public Properties (visual impact on element, need redraw) */
@@ -112,7 +113,7 @@ var DOMElement = function(type, options, parent){
 	Native.elements.init(this);
 
 	if (this.className != '') {
-		Native.StyleSheet.set(this);
+		this.updateProperties();
 	}
 };
 
@@ -153,6 +154,7 @@ DOMElement.prototype = {
 	sendToBack : Native.object.sendToBack,
 	resetNodes : Native.object.resetNodes,
 
+	updateProperties : Native.object.updateProperties,
 	setProperties : Native.object.setProperties,
 
 	/* user customisable methods */
@@ -169,6 +171,10 @@ DOMElement.implement = function(props){
 			DOMElement.prototype[key] = Native.object[key];
 		}
 	}
+};
+
+var	isDOMElement = function(element){
+	return element && element.isDOMElement;
 };
 
 /* -------------------------------------------------------------------------- */

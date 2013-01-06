@@ -213,6 +213,16 @@ Native.object = {
 		return this;
 	},
 
+	updateProperties : function(){
+		var classNames = this.className.split(" ");
+
+		for (var i in classNames){
+			var props = Native.StyleSheet.getProperties(classNames[i]);
+
+			this.setProperties(props);
+		}
+	},
+
 	setProperties : function setProperties(options){
 		for (var key in options){
 			if (options.hasOwnProperty(key)){
@@ -231,6 +241,8 @@ Native.object = {
 
 Native.StyleSheet = {
 	document : {},
+
+	/* add to the existing stylesheet document */
 	add : function(sheet){
 		for (var k in sheet){
 			if (sheet.hasOwnProperty(k)){
@@ -239,39 +251,28 @@ Native.StyleSheet = {
 				} else {
 					this.document[k] = sheet[k];
 				}
+
+				Native.layout.getElementsByClassName(k).each(function(){
+					this.updateProperties();
+				});
 			}
 		}
 	},
 
-	set : function(element){
-		var k = element.className.split(" ");
-
-		for (var i in k){
-			var klass = k[i],
-				props = this.getProperties(klass);
-
-			for (var key in props){
-				if (props.hasOwnProperty(key)) {
-					element[key] = props[key];
-				}
-			}
-		}
-	},
-
-	setSheet : function(sheet){
+	/* replace the existing stylesheet document */
+	set : function(sheet){
+		this.document = {};
 		this.add(sheet);
-		/* Todo : setSheet is asynchronous, remember to refresh elements */
 	},
 
+	/* load a local or distant stylesheet (asynchronous) */
 	load : function(url){
-		var self = this,
-			nss = new File(url);
+		var self = this;
 
-		nss.load(function(buffer, size){
-			var content = buffer.toString(),
-				sheetText = self.parse(content);
+		File.getText(url, function(content){
+			var sheetText = self.parse(content);
 			try {
-				eval("self.setSheet(" + sheetText + ")");
+				eval("self.add(" + sheetText + ")");
 			} catch (e) {
 				throw ('Error parsing Native StyleSheet "'+url+'"');
 			}
@@ -281,7 +282,9 @@ Native.StyleSheet = {
 	mergeProperties : function(klass, properties){
 		var prop = this.document[klass];
 		for (var p in properties){
-			prop[p] = properties[p];
+			if (properties.hasOwnProperty(p)){
+				prop[p] = properties[p];
+			}
 		}
 	},
 

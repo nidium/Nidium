@@ -38,7 +38,7 @@ DOMElement.onPropertyUpdate = function(e){
 			break;
 
 		case "className" :
-			Native.StyleSheet.set(element);
+			element.updateProperties();
 			element._needRedraw = true;
 			break;
 
