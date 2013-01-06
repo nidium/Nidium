@@ -95,14 +95,16 @@ Native.object = {
 	},
 
 	addChild : function addChild(element){
+		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
 		this.nodes[element._uid] = element;
+		element._root = this._root;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
 		Native.layout.update();
 	},
 
 	removeChild : function removeChild(element){
-		if (element.parent != this) {
+		if (element.parent && element.parent != this){
 			throw("Unable to remove this element.");
 		}
 		Native.layout.remove(element);

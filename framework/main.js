@@ -21,7 +21,7 @@ load("applications/demos/style.js");
 
 /* -- Native Debugger ------------------ */
 
-//load("NatBug.nap");
+//load("applications/NatBug.nap");
 
 
 /* -- Old Native Framework Demos ------------------ */

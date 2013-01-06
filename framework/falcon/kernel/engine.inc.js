@@ -22,9 +22,49 @@ Native.elements = {
 		this.build(Native.scope, type);
 	},
 
+	/* Native Element Constructor */
 	build : function(scope, name){
-		scope[String(name)] = function(parent, options){
-			return parent.add(name, options);
+		scope[String(name)] = function(...n){
+			var element = null,
+				parent = null,
+				className = "",
+				options = {};
+
+			switch (n.length) {
+				// new Element(parent);
+				case 1 :
+					parent = n[0];
+					options = {};
+					break;
+					
+				// new Element(parent, options);
+				case 2 :
+					parent = isDOMElement(n[0]) ? n[0] : null;
+					options = n[1];
+
+				// new Element();
+				default :
+					break;					
+			}
+
+			if (typeof options == "string") {
+				className = options;
+				options = {
+					class : className
+				};
+			}
+
+			if (parent == null){
+				element = new DOMElement(name, options, null);
+			} else {
+				if (isDOMElement(parent)){
+					element = parent.add(name, options);
+				} else {
+					throw name + ": Native Element expected";
+				}
+			}
+
+			return element;
 		};
 	},
 

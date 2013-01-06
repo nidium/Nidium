@@ -10,7 +10,8 @@
 Native.StyleSheet.load("applications/demos/style.nss"); // not blocking
 /* ---------------------------------------------------------------------------*/
 
-//Native.ready(function(){
+
+//document.addEventListener("load", function(){
 
 	var body = new Application();
 	body.className = "blue";
@@ -22,9 +23,7 @@ Native.StyleSheet.load("applications/demos/style.nss"); // not blocking
 		class : "label"
 	});
 
-	var	bb = new UIButton(body, {
-		class : "button doit dark"
-	});
+	var	bb = new UIButton(body, "button doit dark");
 
 	var	b1 = new UIButton(body, {left:10, class:"button demo blue"}),
 		b2 = new UIButton(body, {left:62, class:"button demo blue"}),

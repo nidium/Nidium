@@ -31,6 +31,11 @@ Native.layout = {
 				z[i].refresh();
 			}
 		}
+
+		if (!document.ready){
+			document.ready = true;
+			document.fireEvent("load");
+		}
 	},
 
 	/*
