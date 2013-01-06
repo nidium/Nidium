@@ -1,10 +1,20 @@
 #include "NativeJSFileIO.h"
 #include <native_netlib.h>
 
+enum {
+    FILE_PROP_FILESIZE
+};
+
+#define NJSFIO_GETTER(obj) ((class NativeJSFileIO *)JS_GetPrivate(obj))
+
+static void File_Finalize(JSFreeOp *fop, JSObject *obj);
+static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp);
+
 static JSClass File_class = {
     "File", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, File_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -15,6 +25,13 @@ static JSBool native_file_rewind(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp);
 
+static JSPropertySpec File_props[] = {
+    {"filesize", FILE_PROP_FILESIZE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_file_prop_get),
+        JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
 static JSFunctionSpec File_funcs[] = {
     JS_FN("open", native_file_open, 2, 0),
     JS_FN("read", native_file_read, 2, 0),
@@ -24,6 +41,31 @@ static JSFunctionSpec File_funcs[] = {
     JS_FN("write", native_file_write, 2, 0),
     JS_FS_END
 };
+
+static void File_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeJSFileIO *NJSFIO = (NativeJSFileIO *)JS_GetPrivate(obj);
+    if (NJSFIO != NULL) {
+        NativeFileIO *NFIO = NJSFIO->getNFIO();
+        delete NFIO;
+    }
+}
+
+static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp)
+{
+    NativeFileIO *NFIO = NJSFIO_GETTER(obj.get())->getNFIO();
+
+    switch(JSID_TO_INT(id)) {
+        case FILE_PROP_FILESIZE:
+            vp.set(JS_NumberValue(NFIO->filesize));
+            break;
+        default:break;
+
+    }
+
+    return JS_TRUE;
+}
 
 static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -51,6 +93,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
     JS_DefineFunctions(cx, ret, File_funcs);
+    JS_DefineProperties(cx, ret, File_props);   
 
     JS_SetPrivate(ret, NJSFIO);
 

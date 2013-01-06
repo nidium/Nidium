@@ -47,6 +47,17 @@ struct _native_sm_timer
     ape_timer *timerng;
 };
 
+/* Assume that we can not use more than 5e5 bytes of C stack by default. */
+#if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
+/* Sun compiler uses larger stack space for js_Interpret() with debug
+   Use a bigger gMaxStackSize to make "make check" happy. */
+#define DEFAULT_MAX_STACK_SIZE 5000000
+#else
+#define DEFAULT_MAX_STACK_SIZE 500000
+#endif
+
+size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
+
 
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
@@ -460,7 +471,7 @@ NativeJS::NativeJS(int width, int height)
     JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
-    //JS_SetNativeStackQuota(rt, 500000);
+    JS_SetNativeStackQuota(rt, gMaxStackSize);
 
     if ((cx = JS_NewContext(rt, 8192)) == NULL) {
         printf("Failed to init JS context\n");
@@ -486,7 +497,7 @@ NativeJS::NativeJS(int width, int height)
     if (!JS_InitStandardClasses(cx, gbl))
         return;
 
-    JS_DefineProfilingFunctions(cx, gbl);
+    //JS_DefineProfilingFunctions(cx, gbl);
 
     JS_SetGCCallback(rt, gccb);
 
@@ -537,15 +548,19 @@ NativeJS::~NativeJS()
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     JS_EndRequest(cx);
+
+    rootHandler->unrootHierarchy();
+    delete rootHandler;
+
+    NativeSkia::glcontext = NULL;
+    NativeSkia::glsurface = NULL;
+
+    JS_SetContextPrivate(cx, NULL);
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
 
     JS_ShutDown();
 
-    delete rootHandler;
-
-    NativeSkia::glcontext = NULL;
-    NativeSkia::glsurface = NULL;
 
     delete messages;
     //delete nskia; /* TODO: why is that commented out? */

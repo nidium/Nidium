@@ -486,7 +486,7 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
-    printf("Finalized\n");
+
     if (nsocket != NULL) {
         printf("Finalize confirmed\n");
         delete nsocket;

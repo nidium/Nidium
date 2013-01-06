@@ -6,7 +6,7 @@
 #include <jsapi.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), jsobj(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
+    context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     opacity(1.0),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
@@ -258,6 +258,24 @@ bool NativeCanvasHandler::containsPoint(double x, double y) const
             y >= a_top && y <= a_top+height);
 }
 
+void NativeCanvasHandler::unrootHierarchy()
+{
+    NativeCanvasHandler *cur;
+
+    for (cur = children; cur != NULL; cur = cur->next) {
+        cur->unrootHierarchy();
+        if (cur->context && cur->context->jsobj && cur->context->jscx) {
+            JS_RemoveObjectRoot(cur->context->jscx, &cur->context->jsobj);
+        }
+        if (cur->jsobj) {
+            JS_RemoveObjectRoot(cur->jscx, &cur->jsobj);
+        }
+        cur->jsobj = NULL;
+        cur->context->jsobj = NULL;
+    }
+    children = NULL;
+}
+
 NativeCanvasHandler::~NativeCanvasHandler()
 {
     NativeCanvasHandler *cur;
@@ -268,9 +286,13 @@ NativeCanvasHandler::~NativeCanvasHandler()
     for (cur = children; cur != NULL; cur = cur->next) {
         printf("Warning: a canvas got orphaned (%p)\n", cur);
         cur->removeFromParent();
+
     }
     if (context && context->jsobj && context->jscx) {
         JS_RemoveObjectRoot(context->jscx, &context->jsobj);
+    }
+    if (jsobj) {
+        JS_RemoveObjectRoot(jscx, &jsobj);
     }
 
     /* Don't delete context, otherwise
