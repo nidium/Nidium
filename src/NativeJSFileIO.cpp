@@ -16,7 +16,7 @@ static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec File_funcs[] = {
-    JS_FN("open", native_file_open, 1, 0),
+    JS_FN("open", native_file_open, 2, 0),
     JS_FN("read", native_file_read, 2, 0),
     JS_FN("seek", native_file_seek, 1, 0),
     JS_FN("rewind", native_file_rewind, 0, 0),
@@ -64,6 +64,8 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
 
+    NATIVE_CHECK_ARGS("write", 2);
+
     if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
@@ -102,7 +104,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         }
         uint32_t len = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
-        uint8_t *cdata = new uint8_t[len];
+        uint8_t *cdata = (uint8_t *)malloc(sizeof(char) * len);
 
         printf("Got an arraybuffer of size : %d\n", len);
 
@@ -129,6 +131,8 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
     double read_size;
+
+    NATIVE_CHECK_ARGS("read", 2);
 
     if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
@@ -227,12 +231,19 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
+    JSString *modes;
+
+    NATIVE_CHECK_ARGS("open", 2);
 
     if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;
     }
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &modes)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
         return JS_TRUE;
     }
 
@@ -244,7 +255,9 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_AddValueRoot(cx, &NJSFIO->callbacks.open);
 
-    NFIO->open();
+    JSAutoByteString cmodes(cx, modes);
+
+    NFIO->open(cmodes.ptr());
 
     return JS_TRUE;
 }

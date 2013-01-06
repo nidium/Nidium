@@ -24,7 +24,8 @@ static void *native_fileio_thread(void *arg)
 
         switch (NFIO->action.type) {
             case NativeFileIO::FILE_ACTION_OPEN:
-                NFIO->openAction();
+                NFIO->openAction((char *)NFIO->action.ptr);
+                free(NFIO->action.ptr);
                 break;
             case NativeFileIO::FILE_ACTION_READ:
                 NFIO->readAction(NFIO->action.u64);
@@ -32,6 +33,7 @@ static void *native_fileio_thread(void *arg)
             case NativeFileIO::FILE_ACTION_WRITE:
                 NFIO->writeAction((unsigned char *)NFIO->action.ptr,
                                     NFIO->action.u64);
+                free(NFIO->action.ptr);
                 break;
             default:
                 printf("unknown action\n");
@@ -58,10 +60,10 @@ static int Native_handle_file_messages(void *arg)
                 nfileio->getDelegate()->onNFIOError(nfileio, msg.dataUInt());
                 break;
             case NATIVE_FILEREAD_MESSAGE:
-                printf("reactor : %lld\n", nfileio->action.u64);
                 nfileio->getDelegate()->onNFIORead(nfileio,
                     (unsigned char *)msg.dataPtr(), nfileio->action.u64);
-                    delete (unsigned char *)msg.dataPtr();
+
+                delete (unsigned char *)msg.dataPtr();
                 break;
             case NATIVE_FILEWRITE_MESSAGE:
                 nfileio->getDelegate()->onNFIOWrite(nfileio, msg.dataUInt());
@@ -94,8 +96,6 @@ void NativeFileIO::readAction(uint64_t len)
         return;
     }
 
-    printf("Clamped size : %lld\n", clamped_len);
-
     unsigned char *data = new unsigned char[clamped_len];
 
     if (fread(data, sizeof(char), clamped_len, fd) < 1) {
@@ -103,15 +103,15 @@ void NativeFileIO::readAction(uint64_t len)
         delete data;
         return;
     }
-    
+
     action.u64 = clamped_len;
 
     messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
 }
 
-void NativeFileIO::openAction()
+void NativeFileIO::openAction(char *modes)
 {
-    if ((this->fd = fopen(this->filename, "r+")) == NULL) {
+    if ((this->fd = fopen(this->filename, modes)) == NULL) {
         this->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
         return;
     }
@@ -122,7 +122,7 @@ void NativeFileIO::openAction()
     this->messages->postMessage(this->fd, NATIVE_FILEOPEN_MESSAGE);    
 }
 
-void NativeFileIO::open()
+void NativeFileIO::open(const char *modes)
 {
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
@@ -130,6 +130,7 @@ void NativeFileIO::open()
     }
     action.active = true;
     action.type = FILE_ACTION_OPEN;
+    action.ptr  = strdup(modes);
     pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
 }

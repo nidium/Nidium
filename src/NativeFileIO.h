@@ -21,8 +21,8 @@ public:
     NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
         struct _ape_global *net);
     ~NativeFileIO();
-    void open();
-    void openAction();
+    void open(const char *modes);
+    void openAction(char *modes);
     void read(uint64_t len);
     void readAction(uint64_t len);
     void write(unsigned char *data, uint64_t len);
