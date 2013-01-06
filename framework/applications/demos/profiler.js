@@ -4,6 +4,11 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+load("applications/NatProfiler.nap");
+/* -------------------------------------------------------------------------- */
+
+
 var main = new Application({background:"#262722"});
 
 /* add some dummy time consuming methods to our main object */
@@ -26,7 +31,7 @@ main.myNewDummy = function lisaDummy(){
 /* ---------------------------------------------------------------------- */
 /* overwrite main and wrap it using a secure identity-preserving membrane */
 /* ---------------------------------------------------------------------- */
-//var main = Native.profiler.wrap(main, 5000);
+var main = Native.profiler.wrap(main, 5000);
 /* ---------------------------------------------------------------------- */
 
 /* run 200 times the dummy method */

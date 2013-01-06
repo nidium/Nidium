@@ -258,6 +258,26 @@ Native.StyleSheet = {
 		}
 	},
 
+	setSheet : function(sheet){
+		this.add(sheet);
+		/* Todo : setSheet is asynchronous, remember to refresh elements */
+	},
+
+	load : function(url){
+		var self = this,
+			nss = new File(url);
+
+		nss.load(function(buffer, size){
+			var content = buffer.toString(),
+				sheetText = self.parse(content);
+			try {
+				eval("self.setSheet(" + sheetText + ")");
+			} catch (e) {
+				throw ('Error parsing Native StyleSheet "'+url+'"');
+			}
+		});
+	},
+
 	mergeProperties : function(klass, properties){
 		var prop = this.document[klass];
 		for (var p in properties){
@@ -267,6 +287,83 @@ Native.StyleSheet = {
 
 	getProperties : function(klass){
 		return this.document[klass];
+	},
+
+	/*
+	 * adapted from James Padolsey's work
+	 */
+	parse : function(text){
+		text = ('__' + text + '__').split('');
+
+		var mode = {
+			singleQuote : false,
+			doubleQuote : false,
+			regex : false,
+			blockComment : false,
+			lineComment : false
+		};
+
+		for (var i = 0, l = text.length; i < l; i++){
+			if (mode.regex){
+				if (text[i] === '/' && text[i-1] !== '\\'){
+					mode.regex = false;
+				}
+				continue;
+			}
+
+			if (mode.singleQuote){
+				if (text[i] === "'" && text[i-1] !== '\\'){
+					mode.singleQuote = false;
+				}
+				continue;
+			}
+
+			if (mode.doubleQuote){
+				if (text[i] === '"' && text[i-1] !== '\\'){
+					mode.doubleQuote = false;
+				}
+				continue;
+			}
+
+			if (mode.blockComment){
+				if (text[i] === '*' && text[i+1] === '/'){
+				text[i+1] = '';
+					mode.blockComment = false;
+				}
+				text[i] = '';
+				continue;
+			}
+
+			if (mode.lineComment){
+				if (text[i+1] === '\n' || text[i+1] === '\r'){
+					mode.lineComment = false;
+				}
+				text[i] = '';
+				continue;
+			}
+
+			mode.doubleQuote = text[i] === '"';
+			mode.singleQuote = text[i] === "'";
+
+			if (text[i] === '/'){
+				if (text[i+1] === '*'){
+					text[i] = '';
+					mode.blockComment = true;
+					continue;
+				}
+				if (text[i+1] === '/'){
+					text[i] = '';
+					mode.lineComment = true;
+					continue;
+				}
+				mode.regex = true;
+			}
+		}
+
+		return text.join('')
+				.slice(2, -2)
+				.replace(/[\n\r]/g, '')
+				.replace(/\s+/g, ' ');
 	}
 };
 

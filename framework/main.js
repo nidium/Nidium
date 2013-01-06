@@ -9,10 +9,14 @@ load("falcon/native.js");
 //load("applications/demos/hello.js");
 //load("applications/demos/motion.js");
 //load("applications/demos/tabs.js");
-load("applications/demos/file.js");
 //load("applications/demos/profiler.js");
 //load("applications/demos/style.js");
 //load("applications/demos/test.js");
+
+
+/* File API Test */
+load("applications/demos/file.basic.js");
+//load("applications/demos/file.advanced.js");
 
 
 /* -- Native Debugger ------------------ */

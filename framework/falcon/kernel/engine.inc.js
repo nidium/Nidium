@@ -170,13 +170,12 @@ Object.merge(File.prototype, {
 		this.mutex = true;
 
 		this.open(function(){
-			this.getContents(function(buffer){
+			this.read(5000000, function(buffer){
 				this.mutex = false;
+				this.offset = 0;
 				this.size = buffer.byteLength;
 				this.buffer = buffer;
-				callback.call(this, {
-					success : true
-				});
+				callback.call(this, this.buffer, this.size);
 			});
 		});
 	},
@@ -229,5 +228,38 @@ Object.merge(File.prototype, {
 		return view;
 	}
 });
+
+File.getText = function(url, callback){
+	var f = new File(url);
+	f.open(function(){
+		f.read(5000000, function(buffer){
+			this.size = buffer.byteLength;
+			this.buffer = buffer;
+			if (typeof callback == "function") callback.call(this, this.buffer.toString());
+		});
+	});
+};
+
+File.read = function(url, callback){
+	var f = new File(url);
+	f.open(function(){
+		f.read(5000000, function(buffer){
+			this.size = buffer.byteLength;
+			this.buffer = buffer;
+			if (typeof callback == "function") callback.call(this, this.buffer, this.size);
+		});
+	});
+};
+
+File.write = function(url, data, callback){
+	var f = new File(url);
+	f.open(function(){
+		f.write(data, function(){
+			this.close();
+			if (typeof callback == "function") callback.call(this);
+		});
+	});
+};
+
 
 /* -------------------------------------------------------------------------- */

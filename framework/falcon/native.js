@@ -43,8 +43,6 @@ var	__ENABLE_TEXT_SHADOWS__ = true,
 
 /* -------------------------------------------------------------------------- */
 
-load("NatProfiler.nap");
-
 load(__PATH_KERNEL__ + 'helper.inc.js');
 load(__PATH_KERNEL__ + 'engine.inc.js');
 load(__PATH_KERNEL__ + 'kernel.inc.js');
