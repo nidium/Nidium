@@ -53,6 +53,7 @@ Native.object = {
 			this.layer.width = w;
 			this.layer.height = h;
 			this._needSizeUpdate = false;
+			this._needRedraw = true;
 		}
 
 		if (this._needRedraw) {

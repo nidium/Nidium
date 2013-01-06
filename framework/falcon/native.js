@@ -59,6 +59,9 @@ load(__PATH_LAYOUT__ + 'UIButtonClose.js');
 load(__PATH_LAYOUT__ + 'UITab.js');
 load(__PATH_LAYOUT__ + 'UITabController.js');
 
+load(__PATH_LAYOUT__ + 'UIWindow.js');
+load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
+
 /* -- Canvas Plugins -- */
 load(__PATH_PLUGINS__ + 'misc.inc.js');
 load(__PATH_PLUGINS__ + 'roundbox.inc.js');

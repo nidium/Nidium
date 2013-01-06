@@ -94,7 +94,7 @@ var DOMElement = function(type, options, parent){
 		_absx : 0,
 		_absy : 0,
 
-		_layerPadding : 10,
+		_layerPadding : 20,
 		_cachedBackgroundImage : null,
 
 		_needRefresh : true,

@@ -90,7 +90,6 @@ Native.elements.export("UIButton", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
-
 			textOffsetX = this.paddingLeft-1,
 			textOffsetY = (params.h-this.lineHeight)/2 + 4 + this.lineHeight/2,
 			textShadow = '#000000';
