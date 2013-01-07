@@ -11,7 +11,6 @@ Native.showFPS(true);
 Native.StyleSheet.add({
 	button : {
 		lineHeight : 14,
-		background : "#222222",
 		radius : 3,
 		fontSize : 12
 	},

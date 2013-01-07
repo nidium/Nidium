@@ -1,22 +1,8 @@
 /* -------------------------- */
-/* Native (@) 2012 Stight.com */
+/* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
 Native.elements.export("UIWindowResizer", {
-	public : {
-		left : {
-			set : function(value){
-				//this.updateElement();
-			}
-		},
-
-		top : {
-			set : function(value){
-				//this.updateElement();
-			}
-		}
-	},
-
 	init : function(){
 		var o = this.options;
 
@@ -26,7 +12,7 @@ Native.elements.export("UIWindowResizer", {
 		});
 
 		this.updateElement = function(){
-			this.left = this.parent.width - this.width - 4
+			this.left = this.parent.width - this.width - 4;
 			this.top = this.parent.height - this.height - 4;
 		};
 

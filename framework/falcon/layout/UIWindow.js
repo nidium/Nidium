@@ -1,5 +1,5 @@
 /* -------------------------- */
-/* Native (@) 2012 Stight.com */
+/* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
 Native.elements.export("UIWindow", {

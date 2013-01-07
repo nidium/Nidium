@@ -270,9 +270,10 @@ Object.merge(File.prototype, {
 });
 
 File.getText = function(url, callback){
+	echo("dsfsd")
 	var f = new File(url);
-	f.open(function(){
-		f.read(5000000, function(buffer){
+	f.open("r", function(){
+		f.read(f.filesize, function(buffer){
 			this.size = buffer.byteLength;
 			this.buffer = buffer;
 			if (typeof callback == "function") callback.call(this, this.buffer.toString());
@@ -282,8 +283,8 @@ File.getText = function(url, callback){
 
 File.read = function(url, callback){
 	var f = new File(url);
-	f.open(function(){
-		f.read(5000000, function(buffer){
+	f.open("r", function(){
+		f.read(f.filesize, function(buffer){
 			this.size = buffer.byteLength;
 			this.buffer = buffer;
 			if (typeof callback == "function") callback.call(this, this.buffer, this.size);
@@ -293,13 +294,12 @@ File.read = function(url, callback){
 
 File.write = function(url, data, callback){
 	var f = new File(url);
-	f.open(function(){
+	f.open("w", function(){
 		f.write(data, function(){
 			this.close();
 			if (typeof callback == "function") callback.call(this);
 		});
 	});
 };
-
 
 /* -------------------------------------------------------------------------- */
