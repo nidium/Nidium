@@ -302,4 +302,14 @@ File.write = function(url, data, callback){
 	});
 };
 
+File.append = function(url, data, callback){
+	var f = new File(url);
+	f.open("a", function(){
+		f.write(data, function(){
+			this.close();
+			if (typeof callback == "function") callback.call(this);
+		});
+	});
+};
+
 /* -------------------------------------------------------------------------- */

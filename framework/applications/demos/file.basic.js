@@ -19,5 +19,7 @@ File.read("main.js", function(buffer, size){
 });
 
 File.write("test.txt", "new content", function(){
-	echo("write successful");
+	File.append("test.txt", " added to this file", function(){
+		echo("append successful");
+	});
 });

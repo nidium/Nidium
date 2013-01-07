@@ -16,8 +16,8 @@ load("falcon/native.js");
 
 
 /* File API Test */
-//load("applications/demos/file.basic.js");
-load("applications/demos/file.advanced.js");
+load("applications/demos/file.basic.js");
+//load("applications/demos/file.advanced.js");
 
 
 /* -- Native Debugger ------------------ */
