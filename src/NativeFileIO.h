@@ -44,6 +44,7 @@ public:
         void *ptr;
         enum ACTION_TYPE type;
         bool active;
+        bool stop;
         uint32_t u32;
         uint8_t  u8;
     } action;

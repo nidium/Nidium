@@ -371,6 +371,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     handler = new NativeCanvasHandler(width, height);
     handler->context = new NativeCanvas2DContext(cx, width, height);
     handler->jsobj = ret;
+    handler->jscx = cx;
 
     JS_AddObjectRoot(cx, &handler->jsobj);
     /* Retain a ref to this, so that we are sure we can't get an undefined ctx */
@@ -409,7 +410,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
     handler = new NativeCanvasHandler(width, height);
     handler->context = new NativeCanvas2DContext(cx, width, height);
     handler->jsobj = ret;
-
+    handler->jscx = cx;
+    
     JS_AddObjectRoot(cx, &handler->context->jsobj);
     JS_AddObjectRoot(cx, &handler->jsobj);
 

@@ -18,8 +18,12 @@ static void *native_fileio_thread(void *arg)
     while (1) {
         pthread_mutex_lock(&NFIO->threadMutex);
 
-        while (!NFIO->action.active) {
+        while (!NFIO->action.active && !NFIO->action.stop) {
             pthread_cond_wait(&NFIO->threadCond, &NFIO->threadMutex);
+        }
+        if (NFIO->action.stop) {
+            pthread_mutex_unlock(&NFIO->threadMutex);
+            return NULL;
         }
 
         switch (NFIO->action.type) {
@@ -126,6 +130,7 @@ void NativeFileIO::open(const char *modes)
 {
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
+        pthread_mutex_unlock(&threadMutex);
         return;
     }
     action.active = true;
@@ -139,6 +144,7 @@ void NativeFileIO::read(uint64_t len)
 {
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
+        pthread_mutex_unlock(&threadMutex);
         return;
     }
     action.active = true;
@@ -152,6 +158,7 @@ void NativeFileIO::write(unsigned char *data, uint64_t len)
 {
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
+        pthread_mutex_unlock(&threadMutex);
         return;
     }
     action.active = true;
@@ -171,6 +178,9 @@ void NativeFileIO::seek(uint64_t pos)
 
 void NativeFileIO::close()
 {
+    if (!fd) {
+        return;
+    }
     pthread_mutex_lock(&threadMutex);
     fclose(fd);
     fd = NULL;
@@ -186,8 +196,10 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     this->filename = strdup(filename);
     this->net = net;
     this->delegate = delegate;
+    this->filesize = 0;
 
-    this->action.active = 0;
+    this->action.active = false;
+    this->action.stop = false;
 
     timer = add_timer(&this->net->timersng, 1,
         Native_handle_file_messages, this);
@@ -204,11 +216,20 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
 NativeFileIO::~NativeFileIO()
 {
+    action.stop = true;
+
+    pthread_mutex_lock(&threadMutex);
+    pthread_cond_signal(&threadCond);
+    pthread_mutex_unlock(&threadMutex);
+
+    pthread_join(threadHandle, NULL);
+
     del_timer(&this->net->timersng, this->timer);
     delete messages;
     free(filename);
     if (fd != NULL) {
         fclose(fd);
     }
+
 }
 

@@ -37,6 +37,7 @@ class NativeCanvasHandler
 
         NativeCanvas2DContext *context;
         struct JSObject *jsobj;
+        struct JSContext *jscx;
 
         int width, height;
         /*
@@ -50,6 +51,7 @@ class NativeCanvasHandler
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
 
+        void unrootHierarchy();
         void setWidth(int width);
         void setHeight(int height);
         void setPosition(double left, double top);
