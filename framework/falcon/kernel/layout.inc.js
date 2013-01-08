@@ -60,6 +60,46 @@ Native.layout = {
 		this.elements = elements;
 	},
 
+	setContentSize : function(element){
+		var mx = 0,
+			my = 0;
+
+		/* The idea here is to compute contentWidth and contentHeigh
+		 * of element. To do that, we need to recursively parse all its
+		 * children to find the "farest" one from the left top corner of
+		 * our element.
+		 */
+
+//		var e = "";
+		this.bubble(element, function(){
+			//echo(e, this.id, this._absx, this._absy);
+			//e+="    ";
+			// exlude element itself
+			if (this == element) return false;
+
+			var	x1 = this._absx - element._absx,
+				y1 = this._absy - element._absy,
+				x2 = x1 + this._width,
+				y2 = y1 + this._height;
+
+			if (x2>mx) mx = x2;
+			if (y2>my) my = y2;
+		});
+
+		//element.__lock();
+		element.contentWidth = mx;
+		element.contentHeight = my;
+		//element.__unlock();
+	},
+
+	updateInnerContentTree : function(element){
+		if (!element.parent) return false;
+		while (element.parent){
+			this.setContentSize(element.parent);
+			element = element.parent;
+		}
+	},
+
 	find : function(property, value){
 		var elements = [],
 			z = this.elements;

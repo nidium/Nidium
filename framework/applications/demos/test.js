@@ -6,9 +6,7 @@
 
 __DEBUG_SHOW_LAYERS__ = true;
 
-var main = new Application({
-	backgroundImage : "falcon/assets/back.png",
-});
+var main = new Application({background:"dark", id:"main"});
 
 var	button = new UIButton(main, {
 	left : 966,
@@ -16,81 +14,68 @@ var	button = new UIButton(main, {
 	label : "Do It"
 });
 
-var v = [],
-	x = y = 0;
-for (var i=0; i<512; i++){
-	v[i] = new UIButton(main, {
-		left : 10 + 34*x,
-		top : 48 + 22*y,
-		label : i<100 ? (i<10 ? '00'+i : '0'+i) : i,
-		width : 30,
-		height : 20,
-		fontSize : 10,
-		background : "rgb("
-			+Math.round(Math.random()*180)+", "
-			+Math.round(Math.random()*180)+", "
-			+Math.round(Math.random()*180)
-		+")",
-		radius : 6
-	});
-	v[i].initialLeft = v[i].left;
-
-	x++;
-	if (x>15) {
-		x = 0;
-		y++;
-	}
-}
-
 button.addEventListener("mousedown", function(e){
-	start();
+	c0.animate(
+		"width", 	// property
+		c0.width, 	// start value
+		350, 		// end value
+		850, 		// duration 850ms
+		null,		// callback
+		Math.physics.expoOut // motion equation
+	);
 });
 
-var timers = [];
 
-function useNativeSetInterval(element, duration){
-	element.duration = duration;
-	element.time = 0;
-	element.start = element.left;
-	element.end = 250;
+var	view = new UIView(main, {
+	id : "blue 400x400",
+	left : 200,
+	top : 50,
+	width : 400,
+	height : 400,
+	background : "rgba(0, 0, 80, 0.5)"
+});
 
-	clearInterval(element.timer);
+var	c0 = new UIView(view, {
+	id : "green 40x40",
+	left : 10,
+	top : 10,
+	width : 40,
+	height : 40,
+	background : "#008800"
+});
 
-	element.timer = setInterval(function(){
-		
-		element.left = Math.round(
-			Math.physics.elasticOut(
-			0, element.time, element.start, element.end, element.duration
-		));
+/*
+var	c1 = new UIView(view, {
+	id : "red 100x100",
+	left : 100,
+	top : 100,
+	width : 100,
+	height : 100,
+	background : "rgba(80, 0, 0, 0.5)"
+});
 
-		element.time += 10;
+var	c3 = new UIView(c1, {
+	id : "inner blue 20x20",
+	left : 10,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "#0088DD"
+});
 
-		if (element.time > element.duration) {
-			clearInterval(element.timer);
-		}
+var	c4 = new UIView(view, {
+	id : "rose 20x20",
+	left : 280,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "#ff0088"
+});
+*/
 
-	}, 10);
-
-}
-
-function useNativeMotionFactory(element, duration){
-	element.animate(
-		"left",
-		element.left, element.left+250,
-		duration,
-		null,
-		Math.physics.elasticOut
-	);
-}
-
-function start(){
-	var k = 1;
-	for (var i in v){
-		var element = v[i];
-		element.left = element.initialLeft;
-		
-		//useNativeSetInterval(element, 580+1.0*k++);
-		useNativeMotionFactory(element, 580+1.0*k++);
-	}
-}
-
+Native.layout.getElementsByTagName("UIView").each(function(){
+	this.addEventListener("drag", function(e){
+		this.left += e.xrel;
+		this.top += e.yrel;
+	});
+});

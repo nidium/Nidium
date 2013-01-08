@@ -29,18 +29,21 @@ var NatBug = {
 	values : {},
 
 	props : [
-		"id", "type", "label", "name", "left", "top", "width",
-		"height", "paddingLeft", "paddingRight", "scale",
+		"id", "type", "label", "name", "left", "top", "width", "height",
+		"contentWidth", "contentHeight",
+		"paddingLeft", "paddingRight", "scale",
 		"selected", "hover", "opacity", "_absx", "_absy", "radius",
-		"hasFocus", "isOnTop", "background", "color",
+		"hasFocus", "hasChildren", "isOnTop", "background", "color",
 		"lineWidth", "lineHeight", "fontSize", "fontType", "textAlign",
 		"shadowBlur", "selection"
 	],
 
-	init : function(x=280, y=220){
+	init : function(x=80, y=480){
 		var self = this,
 			lines = 0,
 			col = 0;
+
+		Native.debugger
 
 		if (this.loaded) return false;
 
@@ -50,8 +53,8 @@ var NatBug = {
 			id : "NatBug",
 			left : x,
 			top : y,
-			width : 484,
-			height : 328,
+			width : 724,
+			height : 300,
 			background : "rgba(0, 80, 0, 0.35)",
 			backgroundImage : "falcon/assets/back.png",
 			radius : 8,
@@ -59,7 +62,7 @@ var NatBug = {
 		});
 
 		this.application.add("UILabel", {
-			left : 417,
+			left : this.application.width - 68,
 			top : 5,
 			paddingLeft : 8,
 			paddingRight : 8,
@@ -112,7 +115,6 @@ var NatBug = {
 			}
 		});
 
-
 		this.attachDragListener(this.tabController);
 		this.attachDragListener(this.application);
 
@@ -121,7 +123,7 @@ var NatBug = {
 				b1 = "rgba(0, 0, 0, 0.4)",
 				b2 = "rgba(255, 255, 255, 0.05)";
 
-			if (lines>=14){
+			if (lines>=12){
 				lines = 0;
 				col++;
 			}
@@ -244,6 +246,19 @@ Canvas.prototype.debug = function(){
 			this.width,
 			this.height
 		);
+
+		if (this.host) {
+			context.fillStyle = "rgba(250, 180, 180, 0.35)";
+			context.strokeStyle = "rgba(250, 180, 255, 0.9)";
+
+			context.fillRect(
+				this.host._layerPadding, 
+				this.host._layerPadding, 
+				this.host._contentWidth,
+				this.host._contentHeight
+			);
+		}
+
 	}
 
 	if (__DEBUG_SHOW_ORDER__ === true) {

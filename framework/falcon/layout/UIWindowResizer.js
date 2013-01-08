@@ -16,27 +16,7 @@ Native.elements.export("UIWindowResizer", {
 			this.top = this.parent.height - this.height - 4;
 		};
 
-		this.addEventListener("mousedown", function(e){
-			this.selected = true;
-		});
-
-		this.addEventListener("mouseup", function(e){
-			this.selected = false;
-			this.parent.scale = 1;
-		});
-
-		this.addEventListener("dragend", function(e){
-			this.selected = false;
-			this.parent.scale = 1;
-		});
-
-		this.addEventListener("mouseover", function(e){
-			this.hover = true;
-		});
-
-		this.addEventListener("mouseout", function(e){
-			this.hover = false;
-		});
+		DOMElement.listeners.addDefault(this);
 
 		this.addEventListener("drag", function(e){
 			var win = this.parent;

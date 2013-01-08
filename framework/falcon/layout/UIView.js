@@ -32,6 +32,8 @@ Native.elements.export("UIView", {
 			}
 		};
 
+		DOMElement.listeners.addDefault(this);
+
 		this.refreshBackgroundImage();
 	},
 
@@ -45,37 +47,25 @@ Native.elements.export("UIView", {
 				this.shadowBlur,
 				this.shadowColor
 			);
-			context.roundbox(
-				params.x, params.y,
-				params.w, params.h,
-				this.radius, this.background, false
-			);
+			DOMElement.draw.box(this, context, params);
 			context.setShadow(0, 0, 0);
 		} else {
-			context.roundbox(
-				params.x, params.y,
-				params.w, params.h,
-				this.radius, this.background, false
-			);
+			DOMElement.draw.box(this, context, params);
 		}
 
 		if (this._cachedBackgroundImage) {
 			context.save();
-			context.roundbox(
-				params.x, params.y, 
-				params.w, params.h, 
-				this.radius, this.background, false
-			);
-			context.clipbox(
-				params.x, params.y,
-				params.w, params.h,
-				this.radius
-			);
-			context.clip();
-			context.drawImage(
-				this._cachedBackgroundImage,
-				params.x, params.y
-			);
+				DOMElement.draw.box(this, context, params);
+				context.clipbox(
+					params.x, params.y,
+					params.w, params.h,
+					this.radius
+				);
+				context.clip();
+				context.drawImage(
+					this._cachedBackgroundImage,
+					params.x, params.y
+				);
 			context.restore();
 		}
 

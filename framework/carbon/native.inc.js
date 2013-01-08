@@ -210,7 +210,7 @@ Native.layout = {
 			//}
 		}
 
-		if (this.ready===false){
+		if (this.ready===false && this.rootElement){
 			this.ready = true;
 			this.rootElement.fireEvent("load");
 		}

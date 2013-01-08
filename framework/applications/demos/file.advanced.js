@@ -36,6 +36,7 @@ z.open("w+", function(){
 	});
 });
 
+
 /*
  * File Modes
  *  

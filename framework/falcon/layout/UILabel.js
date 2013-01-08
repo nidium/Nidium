@@ -42,48 +42,18 @@ Native.elements.export("UILabel", {
 		});
 
 		this.resizeElement = function(){
-			this._textWidth = Native.getTextWidth(
-				this.label,
-				this.fontSize,
-				this.fontType
-			);
+			this._innerTextWidth = DOMElement.draw.getInnerTextWidth(this);
 		};
 
 		this.resizeElement();
 
-		this.width = OptionalNumber(
-			o.width, this.paddingLeft + this._textWidth + this.paddingRight
-		);
+		this.width = OptionalNumber(o.width, this._innerTextWidth);
 	},
 
 	draw : function(context){
-		var	params = this.getDrawingBounds(),
-			textOffsetX = this.paddingLeft,
-			textOffsetY = (params.h-this.lineHeight)/2 + 4 + this.lineHeight/2;
+		var	params = this.getDrawingBounds();
 
-		var tx = params.x+textOffsetX,
-			ty = params.y+textOffsetY;
-
-		if (this.textAlign == "right") {
-			tx = params.x + params.w - this._textWidth - this.paddingRight;
-		}
-
-		context.roundbox(
-			params.x, params.y, 
-			params.w, params.h, 
-			this.radius, this.background, false
-		);
-
-		context.setFontSize(this.fontSize);
-		context.setFontType(this.fontType);
-
-		context.setText(
-			this.label,
-			params.x+textOffsetX,
-			params.y+textOffsetY,
-			this.color,
-			"rgba(0, 0, 0, 0.4)"
-		);
-
+		DOMElement.draw.box(this, context, params);
+		DOMElement.draw.label(this, context, params);
 	}
 });

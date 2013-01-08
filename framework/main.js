@@ -12,17 +12,19 @@ load("falcon/native.js");
 //load("applications/demos/profiler.js");
 //load("applications/demos/style.js");
 //load("applications/demos/windows.js");
-//load("applications/demos/test.js");
+//load("applications/demos/dropdown.js");
+//load("applications/demos/buttons.js");
+load("applications/demos/test.js");
 
 
 /* File API Test */
-load("applications/demos/file.basic.js");
+//load("applications/demos/file.basic.js");
 //load("applications/demos/file.advanced.js");
 
 
 /* -- Native Debugger ------------------ */
 
-//load("applications/NatBug.nap");
+load("applications/NatBug.nap");
 
 
 /* -- Old Native Framework Demos ------------------ */

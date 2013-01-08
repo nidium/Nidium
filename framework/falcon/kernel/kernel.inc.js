@@ -7,7 +7,7 @@
 "use strict";
 
 /* -------------------------------------------------------------------------- */
-
+var hhh =0;
 Native.object = {
 	__noSuchMethod__ : function(id, args){
 		throw("Undefined method " + id);
@@ -26,10 +26,8 @@ Native.object = {
 			x = this._left + this._offsetLeft,
 			y = this._top + this._offsetTop;
 
-		/*
 		this._absx = p ? p._absx + x : x;
 		this._absy = p ? p._absy + y : y;
-		*/
 
 		this.__layerPadding = p ? p._layerPadding - this._layerPadding 
 								: this._layerPadding;
@@ -42,9 +40,10 @@ Native.object = {
 		}
 
 		if (this._needPositionUpdate){
-			this.layer.left = Math.round(this._left + this.__layerPadding);
-			this.layer.top = Math.round(this._top + this.__layerPadding);
+			this.layer.left = this._left + this.__layerPadding;
+			this.layer.top = this._top + this.__layerPadding;
 			this._needPositionUpdate = false;
+			this._needContentSizeUpdate = true;
 		}
 
 		if (this._needSizeUpdate){
@@ -54,6 +53,14 @@ Native.object = {
 			this.layer.height = h;
 			this._needSizeUpdate = false;
 			this._needRedraw = true;
+			this._needContentSizeUpdate = true;
+		}
+
+		if (this._needContentSizeUpdate){
+			if (Native.__debugger && this._root!=Native.__debugger){
+				Native.layout.updateInnerContentTree(this);
+				this._needContentSizeUpdate = false;
+			}
 		}
 
 		if (this._needRedraw) {
@@ -162,7 +169,9 @@ Native.object = {
 			x : 0 + this.offsetLeft + this._layerPadding,
 			y : 0 + this.offsetTop + this._layerPadding,
 			w : this.width,
-			h : this.height
+			h : this.height,
+			textOffsetX : 0,
+			textOffsetY : 0
 		};
 	},
 

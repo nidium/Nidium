@@ -63,7 +63,6 @@ Native.elements = {
 					throw name + ": Native Element expected";
 				}
 			}
-
 			return element;
 		};
 	},
@@ -82,6 +81,7 @@ Native.elements = {
 		element.__lock();
 
 		if (element.parent){
+			element.parent.hasChildren = true;
 			this.createHardwareLayer(element);
 		} else {
 			element._layerPadding = 0;

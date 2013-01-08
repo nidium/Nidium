@@ -54,13 +54,19 @@ load(__PATH_KERNEL__ + 'motion.inc.js');
 /* -- UI Elements -- */
 load(__PATH_LAYOUT__ + 'UIView.js');
 load(__PATH_LAYOUT__ + 'UILabel.js');
+
 load(__PATH_LAYOUT__ + 'UIButton.js');
 load(__PATH_LAYOUT__ + 'UIButtonClose.js');
+load(__PATH_LAYOUT__ + 'UIButtonDown.js');
+
 load(__PATH_LAYOUT__ + 'UITab.js');
 load(__PATH_LAYOUT__ + 'UITabController.js');
 
 load(__PATH_LAYOUT__ + 'UIWindow.js');
 load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
+
+load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
+load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
 /* -- Canvas Plugins -- */
 load(__PATH_PLUGINS__ + 'misc.inc.js');

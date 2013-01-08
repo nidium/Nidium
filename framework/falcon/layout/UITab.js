@@ -38,14 +38,19 @@ Native.elements.export("UITab", {
 		var self = this,
 			o = this.options;
 
-		this.canReceiveFocus = true;
-		
-		this.label = OptionalString(o.label, "Default");
-		this.fontSize = OptionalNumber(o.fontSize, 11);
-		this.fontType = OptionalString(o.fontType, "arial");
-		this.height = OptionalNumber(o.height, 24);
-		this.color = OptionalValue(o.color, "#aaaaaa");
+		this.setProperties({
+			canReceiveFocus	: true,
+			label			: OptionalString(o.label, "Default"),
+			fontSize  		: OptionalNumber(o.fontSize, 11),
+			fontType  		: OptionalString(o.fontType, "arial"),
 
+			paddingLeft		: OptionalNumber(o.paddingLeft, 16),
+			paddingRight	: OptionalNumber(o.paddingLeft, 10),
+
+			height 			: OptionalNumber(o.height, 24),
+			color 			: OptionalValue(o.color, "#aaaaaa")
+		});
+		
 		this.getState = function(){
 			return this.selected;
 		};
@@ -69,13 +74,7 @@ Native.elements.export("UITab", {
 		};
 
 		this.resizeElement = function(){
-			var textWidth = Native.getTextWidth(
-				this.label,
-				this.fontSize,
-				this.fontType
-			);
-
-			var width = 14 + Math.round(textWidth) + 14;
+			var width = DOMElement.draw.getInnerTextWidth(this);
 
 			if (this.options.closable) {
 				width += 22;
@@ -92,13 +91,7 @@ Native.elements.export("UITab", {
 			}
 		};
 
-		this.addEventListener("mouseover", function(e){
-			this.hover = true;
-		});
-
-		this.addEventListener("mouseout", function(e){
-			this.hover = false;
-		});
+		DOMElement.listeners.addHovers(this);
 
 		if (this.options.closable) {
 			this.closeButton = this.add("UIButtonClose", {
@@ -116,11 +109,7 @@ Native.elements.export("UITab", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
-			radius = Math.max(3, this.radius),
-			textHeight = 10,
-			textOffsetX = 15,
-			textOffsetY = (params.h-textHeight)/2 + 9,
-			textShadow = '#000000';
+			radius = Math.max(3, this.radius);
 			
 		if (__ENABLE_BUTTON_SHADOWS__) {
 			if (this.selected){
@@ -140,30 +129,7 @@ Native.elements.export("UITab", {
 			context.setShadow(0, 0, 0);
 		}
 
-		var gradient = context.createLinearGradient(
-			params.x, params.y, 
-			params.x, params.y+params.h
-		);
-
-		if (this.selected){
-			textShadow = "rgba(255, 255, 255, 0.10)";
-
-			gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
-			gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
-			gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
-
-		} else {
-			textShadow = "rgba(0, 0, 0, 0.35)";
-
-			if (this.hover){
-				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.30)');
-				gradient.addColorStop(0.25, 'rgba(255, 255, 255, 0.18)');
-			} else {
-				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.25)');
-				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.15)');
-			}
-
-		}
+		var gradient = DOMElement.draw.getSoftGradient(this, context, params);
 
 		context.tabbox(
 			params.x, params.y, 
@@ -171,27 +137,6 @@ Native.elements.export("UITab", {
 			radius, gradient, false
 		);
 
-		context.setFontSize(this.fontSize);
-		context.setFontType(this.fontType);
-
-		if (this.hasFocus && this.canReceiveFocus && this.outlineOnFocus) {
-			context.setColor("rgba(0, 0, 0, 1)");
-			context.setShadow(0, 0, 3, "rgba(255, 255, 255, 0.4)");
-			context.fillText(
-				this.label, 
-				params.x+textOffsetX, 
-				params.y+textOffsetY
-			);
-			context.setShadow(0, 0, 0);
-		}
-
-		context.setText(
-			this.label,
-			params.x+textOffsetX+1,
-			params.y+textOffsetY,
-			this.color,
-			"rgba(0, 0, 0, 0.4)"
-		);
-
+		DOMElement.draw.label(this, context, params);
 	}
 });

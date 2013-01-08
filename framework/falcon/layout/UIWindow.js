@@ -153,28 +153,10 @@ Native.elements.export("UIWindow", {
 			radius = Math.max(4, this.radius);
 
 		context.setShadow(0, 8, this.shadowBlur, this.shadowColor);
-
-		context.roundbox(
-			params.x, params.y, 
-			params.w, params.h, 
-			radius, this.background, false
-		);
-
+		DOMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
-		var gradient = context.createLinearGradient(
-			params.x, params.y, 
-			params.x, params.y+24
-		);
-
-		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
-		gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
-		gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
-
-		context.roundbox(
-			params.x, params.y, 
-			params.w, params.h, 
-			radius, gradient, false
-		);
+		var gradient = DOMElement.draw.getCleanGradient(this, context, params);
+		DOMElement.draw.box(this, context, params, gradient);
 	}
 });
