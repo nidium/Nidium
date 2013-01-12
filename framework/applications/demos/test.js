@@ -4,58 +4,81 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-__DEBUG_SHOW_LAYERS__ = true;
+/* -------------------------------------------------------------------------- */
+load("libs/misc.lib.js");
+/* -------------------------------------------------------------------------- */
 
-var main = new Application({background:"dark", id:"main"});
+var main = new Application({
+	id : "main"
+});
 
 var	button = new UIButton(main, {
+	id : "button",
 	left : 966,
 	top : 8,
 	label : "Do It"
 });
 
+/*
 button.addEventListener("mousedown", function(e){
-	c0.animate(
-		"width", 	// property
-		c0.width, 	// start value
-		350, 		// end value
+	view.scrollTop = 0;
+
+	view.animate(
+		"scrollTop", 	// property
+		view.scrollTop, 	// start value
+		132, 		// end value
 		850, 		// duration 850ms
 		null,		// callback
 		Math.physics.expoOut // motion equation
 	);
 });
+*/
+/*
 
-
-var	view = new UIView(main, {
-	id : "blue 400x400",
-	left : 200,
-	top : 50,
-	width : 400,
+var	bigview = new UIView(main, {
+	id : "bigview",
+	left : 150,
+	top : 20,
+	width : 600,
 	height : 400,
-	background : "rgba(0, 0, 80, 0.5)"
+	background : "rgba(80, 250, 180, 0.5)",
+	backgroundImage : "applications/demos/images/spheres.jpeg",
+	overflow : false
 });
+
+var	view = new UIView(bigview, {
+	id : "view",
+	left : 30,
+	top : 30,
+	width : 400,
+	height : 250,
+	background : "rgba(0, 0, 80, 0.5)",
+	overflow : false
+});
+
 
 var	c0 = new UIView(view, {
-	id : "green 40x40",
-	left : 10,
-	top : 10,
+	id : "c0",
+	left : 128,
+	top : 400,
 	width : 40,
 	height : 40,
-	background : "#008800"
+	background : "#008800",
+	fixed : true
 });
 
-/*
 var	c1 = new UIView(view, {
-	id : "red 100x100",
+	id : "c1",
 	left : 100,
-	top : 100,
+	top : 50,
 	width : 100,
-	height : 100,
-	background : "rgba(80, 0, 0, 0.5)"
+	height : 200,
+	background : "rgba(255, 255, 255, 0.7)",
+	overflow : false
 });
 
-var	c3 = new UIView(c1, {
-	id : "inner blue 20x20",
+var	c2 = new UIView(c1, {
+	id : "c2",
 	left : 10,
 	top : 10,
 	width : 20,
@@ -63,19 +86,42 @@ var	c3 = new UIView(c1, {
 	background : "#0088DD"
 });
 
+var	c22 = new UIView(c1, {
+	id : "c22",
+	left : 50,
+	top : 50,
+	width : 20,
+	height : 20,
+	background : "#0088DD"
+});
+
+var	c3 = new UIButton(c1, {
+	id : "c3",
+	left : 30,
+	top : 310,
+	label : "button",
+	background : "#0088DD"
+});
+
 var	c4 = new UIView(view, {
-	id : "rose 20x20",
+	id : "c4",
 	left : 280,
 	top : 10,
 	width : 20,
 	height : 20,
 	background : "#ff0088"
 });
+
+view.scrollTop = 50;
+echo(view.contentHeight);
 */
 
+/*
 Native.layout.getElementsByTagName("UIView").each(function(){
 	this.addEventListener("drag", function(e){
 		this.left += e.xrel;
 		this.top += e.yrel;
 	});
 });
+*/
+

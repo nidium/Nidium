@@ -68,6 +68,9 @@ load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
 load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
 load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
+load(__PATH_LAYOUT__ + 'UIScrollBars.js');
+
+
 /* -- Canvas Plugins -- */
 load(__PATH_PLUGINS__ + 'misc.inc.js');
 load(__PATH_PLUGINS__ + 'roundbox.inc.js');

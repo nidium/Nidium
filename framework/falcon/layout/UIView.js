@@ -14,14 +14,66 @@ Native.elements.export("UIView", {
 			set : function(value){
 				this.refreshBackgroundImage();
 			}
+		},
+
+		contentWidth : {
+			set : function(value){
+				throw "contentWidth is read only (id:"+this.id+")";
+			},
+
+			get : function(){
+				//if (this._cachedContentWidth === null){
+					Native.layout.slowUpdateInnerContentSize(this);
+				//}
+				this.refreshScrollBars();
+				return this._cachedContentWidth;
+			}
+		},
+
+		contentHeight : {
+			set : function(value){
+				throw "contentHeight is read only (id:"+this.id+")";
+			},
+
+			get : function(){
+				//if (this._cachedContentHeight === null){
+					Native.layout.slowUpdateInnerContentSize(this);
+				//}
+				this.refreshScrollBars();
+				return this._cachedContentHeight;
+			}
+		},
+
+		scrollLeft : {
+			set : function(value){
+				this.refreshScrollBars();
+			},
+
+			get : function(){
+				return this._scrollLeft;
+			}
+		},
+		
+		scrollTop : {
+			set : function(value){
+				this.refreshScrollBars();
+			},
+
+			get : function(){
+				return this._scrollTop;
+			}
 		}
 	},
 
 	init : function(){
-		var self = this;
+		var self = this,
+			o = this.options;
+
+		this.scrollContentWidth = this._width;
+		this.scrollContentHeight = this._height;
 
 		this.refreshBackgroundImage = function(){
-			delete(self._cachedBackgroundImage);
+			self._cachedBackgroundImage = null;
 
 			if (this.backgroundImage != '' && this.backgroundImage != null) {
 				Native.loadImage(this.backgroundImage, function(img){
@@ -31,6 +83,88 @@ Native.elements.export("UIView", {
 				});
 			}
 		};
+
+		this.updateScrollTop = function(dy){
+			if (this.height / this.scrollContentHeight < 1) {
+				this.VScrollBar.cancelCurrentAnimations("opacity");
+				this._scrollYfading = false;
+				this.VScrollBar.opacity = 1;
+
+				/* TODO : Add canvas.opacity then remove */
+				this.VScrollBarHandle.show();
+				/* TODO : Add canvas.opacity then remove */
+	
+				this.scrollContentY(-dy * 4, function(){
+
+					if (!self._scrollYfading) {
+						self._scrollYfading = true;
+						clearTimeout(self._scrollYfadeScheduler);
+						self._scrollYfadeScheduler = setTimeout(function(){
+							self.VScrollBar.fadeOut(250, function(){
+								self._scrollYfading = false;
+								/* TODO : Add canvas.opacity then remove */
+								self.VScrollBarHandle.hide();
+								/* TODO : Add canvas.opacity then remove */
+							});
+						}, 350);
+					}
+
+				});
+			}
+		};
+
+		this.refreshScrollBars = function(){
+			if (!this.VScrollBar) return false;
+			print("refreshScrollBars", element);
+
+			var container = this.VScrollBar,
+				handle = this.VScrollBarHandle,
+				mx = this.contentWidth,
+				my = this.contentHeight,
+				
+				cw = container._width,
+				ch = container._height,
+
+				vw = this.scrollContentWidth = Math.max(mx, this._width),
+				vh = this.scrollContentHeight = Math.max(my, this._height);
+
+			if (handle._height == vh){
+				container.visible = false;
+				handle.visible = false;
+			} else {
+				container.visible = true;
+				handle.visible = true;
+			}
+
+			handle.top = (this._scrollTop * (ch / vh));
+			handle.height = (this._height / vh) * ch;
+
+			//Native.layout.refreshFirstChildrenPosition(this);
+		};
+
+		if (this.overflow === false){
+			this.VScrollBar = this.add("UIScrollBar", {
+				fixed : true,
+				width : 8,
+				height : this._height,
+				left : this._width - 8,
+				top : 0
+			});
+			
+			this.VScrollBarHandle = this.VScrollBar.add(
+				"UIScrollBarHandle", {
+					width : 8,
+					height : this.VScrollBar._height / 2
+				}
+			);
+
+			this.addEventListener("mousewheel", function(e){
+				this.updateScrollTop(e.yrel);
+				e.stopPropagation();
+			}, false);
+
+			this.refreshScrollBars();
+		}
 
 		DOMElement.listeners.addDefault(this);
 

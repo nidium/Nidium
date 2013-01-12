@@ -16,6 +16,48 @@ Native.canvas.context = Native.canvas.getContext("2D");
 /* -------------------------------------------------------------------------- */
 
 Native.elements = {
+	init : function(element){
+		print("Native.elements.init()", element);
+		var plugin = this[element.type];
+
+		element.__lock("init");
+
+		this.createHardwareLayer(element);
+
+		if (plugin){
+			if (plugin.draw) element.draw = plugin.draw;
+			if (plugin.refresh) element.update = plugin.refresh;
+
+			if (plugin.public){
+				DOMElement.defineDescriptors(element, plugin.public);
+			}
+
+			if (plugin.init){
+				print("plugin:init()", element);
+				plugin.init.call(element);
+			}
+		}
+
+		if (element.canReceiveFocus){
+			element.addEventListener("mousedown", function(e){
+				this.focus();
+				e.stopPropagation();
+			}, false);
+		}
+
+		DOMElement.defineReadOnlyProperties(element, {
+			loaded : true
+		});
+
+		if (typeof(element.onReady) == "function"){
+			element.onReady.call(element);
+		}
+
+		element.refresh();
+		element.__unlock("init");
+		print("-------------------------------------------------------------------------");
+	},
+
 	export : function(type, implement){
 		if (type=="export" || type=="build" || type=="init") return false;
 		this[type] = implement;
@@ -68,63 +110,13 @@ Native.elements = {
 	},
 
 	createHardwareLayer : function(element){
+		print("Native.elements.createHardwareLayer()", element);
 		var w = element.getLayerPixelWidth(),
 			h = element.getLayerPixelHeight();
 
 		element.layer = new Canvas(w, h);
 		element.layer.context = element.layer.getContext("2D");
-	},
-
-	init : function(element){
-		var plugin = this[element.type];
-
-		element.__lock();
-
-		if (element.parent){
-			element.parent.hasChildren = true;
-			this.createHardwareLayer(element);
-		} else {
-			element._layerPadding = 0;
-			element._root = element;
-			this.createHardwareLayer(element);
-
-			Native.canvas.add(element.layer);
-			Native.layout.register(element);
-		}
-
 		element.layer.host = element;
-
-		if (plugin){
-			if (plugin.draw) element.draw = plugin.draw;
-			if (plugin.refresh) element.update = plugin.refresh;
-
-			if (plugin.public) {
-				DOMElement.defineDescriptors(element, plugin.public);
-			}
-
-			if (plugin.init) plugin.init.call(element);
-
-		} else {
-			element.draw = function(context){};
-		}
-
-		if (element.canReceiveFocus) {
-			element.addEventListener("mousedown", function(e){
-				this.focus();
-				e.stopPropagation();
-			}, false);
-		}
-
-		DOMElement.defineReadOnlyProperties(element, {
-			loaded : true
-		});
-
-		if (typeof(element.onReady) == "function"){
-			element.onReady.call(element);
-		}
-
-		element.__unlock();
-
 	}
 };
 
@@ -180,6 +172,139 @@ Native.timer = function(fn, ms, loop, execFirst){
 	}
 	
 	return t;
+};
+
+/* -------------------------------------------------------------------------- */
+
+Native.StyleSheet = {
+	document : {},
+
+	/* add to the existing stylesheet document */
+	add : function(sheet){
+		for (var k in sheet){
+			if (sheet.hasOwnProperty(k)){
+				if (this.document[k]){
+					this.mergeProperties(k, sheet[k]);
+				} else {
+					this.document[k] = sheet[k];
+				}
+
+				Native.layout.getElementsByClassName(k).each(function(){
+					this.updateProperties();
+				});
+			}
+		}
+	},
+
+	/* replace the existing stylesheet document */
+	set : function(sheet){
+		this.document = {};
+		this.add(sheet);
+	},
+
+	/* load a local or distant stylesheet (asynchronous) */
+	load : function(url){
+		var self = this;
+
+		File.getText(url, function(content){
+			var sheetText = self.parse(content);
+			try {
+				eval("self.add(" + sheetText + ")");
+			} catch (e) {
+				throw ('Error parsing Native StyleSheet "'+url+'"');
+			}
+		});
+	},
+
+	mergeProperties : function(klass, properties){
+		var prop = this.document[klass];
+		for (var p in properties){
+			if (properties.hasOwnProperty(p)){
+				prop[p] = properties[p];
+			}
+		}
+	},
+
+	getProperties : function(klass){
+		return this.document[klass];
+	},
+
+	/*
+	 * adapted from James Padolsey's work
+	 */
+	parse : function(text){
+		text = ('__' + text + '__').split('');
+
+		var mode = {
+			singleQuote : false,
+			doubleQuote : false,
+			regex : false,
+			blockComment : false,
+			lineComment : false
+		};
+
+		for (var i = 0, l = text.length; i < l; i++){
+			if (mode.regex){
+				if (text[i] === '/' && text[i-1] !== '\\'){
+					mode.regex = false;
+				}
+				continue;
+			}
+
+			if (mode.singleQuote){
+				if (text[i] === "'" && text[i-1] !== '\\'){
+					mode.singleQuote = false;
+				}
+				continue;
+			}
+
+			if (mode.doubleQuote){
+				if (text[i] === '"' && text[i-1] !== '\\'){
+					mode.doubleQuote = false;
+				}
+				continue;
+			}
+
+			if (mode.blockComment){
+				if (text[i] === '*' && text[i+1] === '/'){
+				text[i+1] = '';
+					mode.blockComment = false;
+				}
+				text[i] = '';
+				continue;
+			}
+
+			if (mode.lineComment){
+				if (text[i+1] === '\n' || text[i+1] === '\r'){
+					mode.lineComment = false;
+				}
+				text[i] = '';
+				continue;
+			}
+
+			mode.doubleQuote = text[i] === '"';
+			mode.singleQuote = text[i] === "'";
+
+			if (text[i] === '/'){
+				if (text[i+1] === '*'){
+					text[i] = '';
+					mode.blockComment = true;
+					continue;
+				}
+				if (text[i+1] === '/'){
+					text[i] = '';
+					mode.lineComment = true;
+					continue;
+				}
+				mode.regex = true;
+			}
+		}
+
+		return text.join('')
+				.slice(2, -2)
+				.replace(/[\n\r]/g, '')
+				.replace(/\s+/g, ' ');
+	}
 };
 
 /* -------------------------------------------------------------------------- */
@@ -270,7 +395,6 @@ Object.merge(File.prototype, {
 });
 
 File.getText = function(url, callback){
-	echo("dsfsd")
 	var f = new File(url);
 	f.open("r", function(){
 		f.read(f.filesize, function(buffer){

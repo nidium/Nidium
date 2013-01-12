@@ -83,9 +83,6 @@ Native.elements.export("UIButton", {
 
 		if (this.selected){
 			params.textOffsetY = 1;
-			this.textShadowColor = "rgba(255, 255, 255, 0.15)";
-		} else {
-			this.textShadowColor = "rgba(0, 0, 0, 0.2)";
 		}
 
 		DOMElement.draw.glassLayer(this, context, params);

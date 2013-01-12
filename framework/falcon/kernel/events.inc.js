@@ -114,8 +114,10 @@ Native.events = {
 
 			if (element.isPointInside(x, y)){
 
+				print("catch event("+name+")", element);
+
 				if (__mostTopElementHooked === false){
-					if (element.background != '') {
+					if (element._background || element._backgroundImage){
 						Native.events.hook(element, e);
 						__mostTopElementHooked = true;
 					}
@@ -348,10 +350,12 @@ Native.events = {
 		if (e.keyCode == 9) {
 			Native.layout.focusNextElement();
 		}
+		window.keydown = e.keyCode;
 	},
 
 	keyupEvent : function(e){
 		this.dispatch("keyup", e);
+		window.keydown = null;
 	},
 
 	textinputEvent : function(e){
@@ -370,6 +374,7 @@ DOMElement.implement({
 	dragendFired : false,
 
 	fireEvent : function(name, e, successCallback){
+		print("fireEvent("+name+")", this);
 		var acceptedEvent = true,
 			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
@@ -395,6 +400,7 @@ DOMElement.implement({
 	},
 
 	addEventListener : function(name, callback, propagation){
+		print("addEventListener("+name+")", this);
 		var self = this;
 		self._eventQueues = self._eventQueues ? self._eventQueues : [];
 		var queue = self._eventQueues[name];

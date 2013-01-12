@@ -7,6 +7,7 @@
 "use strict";
 
 /* -------------------------------------------------------------------------- */
+var ttt = 0;
 
 Native.layout = {
 	objID : 0,
@@ -27,10 +28,12 @@ Native.layout = {
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i].isVisible() && z[i]._needRefresh) {
+			if (z[i].isVisible() && (z[i]._needRefresh || this._needRefresh)){
 				z[i].refresh();
 			}
 		}
+
+		this._needRefresh = false;
 
 		if (!document.ready){
 			document.ready = true;
@@ -60,44 +63,57 @@ Native.layout = {
 		this.elements = elements;
 	},
 
-	setContentSize : function(element){
+
+	refreshFirstChildrenPosition : function(element){
+		if (!element.hasChildren) return false;
+		this._needRefresh = true;
+
+		var dx = function(z){
+			for (var i in z){
+				z[i]._needRefresh = true;
+			}
+		};
+		//dx(element.nodes);
+	},
+
+	slowUpdateInnerContentSize : function(element){
+		if (!element.hasChildren || element.type != "UIView") return false;
+
 		var mx = 0,
 			my = 0;
 
-		/* The idea here is to compute contentWidth and contentHeigh
+		/* The idea here is to compute contentWidth and contentHeight
 		 * of element. To do that, we need to recursively parse all its
 		 * children to find the "farest" one from the left top corner of
 		 * our element.
 		 */
 
-//		var e = "";
-		this.bubble(element, function(){
-			//echo(e, this.id, this._absx, this._absy);
-			//e+="    ";
-			// exlude element itself
-			if (this == element) return false;
+		var self = this,
+			dx = function(z, parent){
+				for (var i in z){
+					if (z[i]._visible && !z[i].__fixed){
+						var	el = z[i],
+							x1 = el.__left - element.__left,
+							y1 = el.__top - element.__top,
+							x2 = x1 + el._width + element.__scrollLeft,
+							y2 = y1 + el._height + element.__scrollTop;
 
-			var	x1 = this._absx - element._absx,
-				y1 = this._absy - element._absy,
-				x2 = x1 + this._width,
-				y2 = y1 + this._height;
+						mx = x2>mx ? x2 : mx;
+						my = y2>my ? y2 : my;
 
-			if (x2>mx) mx = x2;
-			if (y2>my) my = y2;
-		});
+						if (self.count(z[i].nodes)>0){
+							dx(z[i].nodes, z[i].parent);
+						}
+					}
+				}
+			};
 
-		//element.__lock();
-		element.contentWidth = mx;
-		element.contentHeight = my;
-		//element.__unlock();
-	},
+		dx(element.nodes);
 
-	updateInnerContentTree : function(element){
-		if (!element.parent) return false;
-		while (element.parent){
-			this.setContentSize(element.parent);
-			element = element.parent;
-		}
+		element._contentWidth = mx;
+		element._contentHeight = my;
+		element._cachedContentWidth = mx;
+		element._cachedContentHeight = my;
 	},
 
 	find : function(property, value){
@@ -237,12 +253,16 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 	options.outlineOnFocus = false;
 
 	var element = new DOMElement("UIView", options, null);
+
+	Native.canvas.add(element.layer);
+	Native.layout.register(element);
 	Native.layout.update();
 
 	return element;
 });
 
 Object.createProtectedElement(Native.scope, "document", new Application({
+	id : "document",
 	left : 0,
 	top : 0,
 	width : window.width,

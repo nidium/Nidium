@@ -107,6 +107,65 @@ ArrayBuffer.prototype.toBase64 = Object.toBase64Template;
 
 /* -------------------------------------------------------------------------- */
 
+/* Based on php.js -- http://phpjs.org/functions/number_format:481 */
+Number.prototype.format = function(decimals, d, t){
+	var number = (this + '').replace(/[^0-9+\-Ee.]/g, ''),
+		n = !isFinite(+number) ? 0 : +number,
+		prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+		sep = t === undefined ? ',' : t,
+		dec = d === undefined ? '.' : d,
+		s = '',
+		toFixedFix = function (n, prec){
+			var k = Math.pow(10, prec);
+			return '' + Math.round(n * k) / k;
+		};
+
+	s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+	if (s[0].length > 3){
+		s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+	}
+	if ((s[1] || '').length < prec) {
+		s[1] = s[1] || '';
+		s[1] += new Array(prec - s[1].length + 1).join('0');
+	}
+	return s.join(dec);
+};
+
+/* -------------------------------------------------------------------------- */
+
+var BenchThis = function(name, iterations, fn){
+	var t = +new Date(),
+		exec = 0,
+		ips = 0,
+		ipf = 0;
+
+	for (var i = 0; i < iterations; i++){
+		fn(i);
+	}
+
+	exec = (+new Date()-t);
+	ips = Math.round(1000*iterations/exec);
+	ipf = 16*iterations/exec;
+
+	echo(name);
+
+	echo(
+		'  - '+iterations.format(0, '.', ' ')+' executions takes',
+		exec.format(0, '.', ' '),
+		"ms"
+	);
+
+	echo('  - Speed: '+ips.format(0, '.', ' ')+" exec/s");
+	echo(
+		'  - Oneshot ~ '+(exec/iterations).format(2, '.', ' ')+" ms", 
+		"(max "+ipf.format(0, '.', ' ')+" exec/frame)"
+	);
+
+	echo('');
+};
+
+/* -------------------------------------------------------------------------- */
+
 var console = {
 	iteration : 0,
 	maxIterations : 20,

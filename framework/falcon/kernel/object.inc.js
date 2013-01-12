@@ -29,9 +29,16 @@ var DOMElement = function(type, options, parent){
 		isDOMElement : true
 	});
 
-	/* Public Properties (visual impact on element, need redraw) */
+	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
 	DOMElement.definePublicProperties(this, {
+		/* ------------------------------------------------------------------ */
+		/* DO NOT NEED REDRAW PROPERTIES                                      */
+		/* ------------------------------------------------------------------
+		left, top, width, height,
+		percentLeft, percentTop, percentWidth, percentHeight
+		--------------------------------------------------------------------- */ 
+
 		// -- class management
 		className : OptionalString(o.class, ""),
 
@@ -43,6 +50,14 @@ var DOMElement = function(type, options, parent){
 
 		contentWidth : 0,
 		contentHeight : 0,
+
+		scrollLeft : OptionalNumber(o.scrollLeft, 0),
+		scrollTop : OptionalNumber(o.scrollTop, 0),
+
+		percentLeft : OptionalNumber(o.percentLeft, 0),
+		percentTop : OptionalNumber(o.percentTop, 0),
+		percentWidth : o.percentWidth ? Number(o.percentWidth) : 100,
+		percentHeight : o.percentHeight ? Number(o.percentHeight) : 100,
 
 		offsetLeft : OptionalNumber(o.offsetLeft, 0),
 		offsetTop : OptionalNumber(o.offsetTop, 0),
@@ -99,17 +114,27 @@ var DOMElement = function(type, options, parent){
 		_mutex : [],
 		_locked : true,
 
-		_absx : 0,
-		_absy : 0,
+		_cachedContentWidth : null,
+		_cachedContentHeight : null,
+		_cachedBackgroundImage : null,
 
 		_minx : this._left,
 		_miny : this._top,
 		_maxx : this._left + this._width,
 		_maxy : this._top + this._top,
 
-		_layerPadding : 20,
-		_cachedBackgroundImage : null,
+		_layerPadding : p ? 20 : 0,
 
+		/* absolute value (inherited) */
+		__left : 0,
+		__top : 0,
+		__opacity : this._opacity,
+		__scrollTop : this._scrollTop,
+		__overflow : this._overflow,
+		__fixed : this._fixed,
+		__layerPadding : 20,
+
+		/* refreshing flags */
 		_needRefresh : true,
 		_needRedraw : true,
 		_needPositionUpdate : true,
@@ -125,9 +150,14 @@ var DOMElement = function(type, options, parent){
 	this.hasChildren = false;
 	this.mouseOverPath = false;
 
+	if (p){
+		p.hasChildren = true;
+	}
+
+	print("DOMElement.constructor", this);
 	Native.elements.init(this);
 
-	if (this.className != '') {
+	if (this._className != '') {
 		this.updateProperties();
 	}
 };
@@ -139,6 +169,8 @@ DOMElement.prototype = {
 
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
+
+	updateInheritance : Native.object.updateInheritance,
 
 	add : Native.object.add,
 	remove : Native.object.remove,
@@ -172,9 +204,66 @@ DOMElement.prototype = {
 	updateProperties : Native.object.updateProperties,
 	setProperties : Native.object.setProperties,
 
+	redraw : Native.object.redraw,
+
+	updateLayerOpacity : Native.object.updateLayerOpacity,
+	updateLayerPosition : Native.object.updateLayerPosition,
+	updateLayerSize : Native.object.updateLayerSize,
+	updateAncestors : Native.object.updateAncestors,
+
 	/* user customisable methods */
 	update : function(context){},
 	draw : function(context){}
+};
+
+/* -------------------------------------------------------------------------- */
+
+DOMElement.onPropertyUpdate = function(e){
+	var element = e.element,
+		old = e.oldValue,
+		value = e.newValue;
+
+	print("DOMElement.onPropertyUpdate("+e.property+")", element);
+
+	element.__lock("DOM");
+
+	element.fireEvent("change", {
+		property : e.property,
+		oldValue : e.oldValue,
+		newValue : e.newValue
+	});
+
+	switch (e.property) {
+		case "left" :
+		case "top" :
+			element._needPositionUpdate = true;
+			element._needAncestorCacheClear = true;
+			break;
+
+		case "width" :
+		case "height" :
+			element._needSizeUpdate = true;
+			element._needAncestorCacheClear = true;
+			element._needRedraw = true;
+			break;
+
+		case "opacity" :
+			element._needOpacityUpdate = true;
+			element._needRedraw = true;
+			break;
+
+		case "className" :
+			element.updateProperties();
+			element._needRedraw = true;
+			break;
+
+		default :
+			element._needRedraw = true;
+			break
+	};
+
+	element._needRefresh = true;
+	element.__unlock("DOM");
 };
 
 /* -------------------------------------------------------------------------- */

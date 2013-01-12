@@ -32,36 +32,46 @@ var NatBug = {
 		"id", "type", "label", "name", "left", "top", "width", "height",
 		"contentWidth", "contentHeight",
 		"paddingLeft", "paddingRight", "scale",
-		"selected", "hover", "opacity", "_absx", "_absy", "radius",
-		"hasFocus", "hasChildren", "isOnTop", "background", "color",
+		"hover", "__opacity", "_layerPadding", "__left", "__top",
+		"radius", "selected",
+		"hasFocus", "hasChildren", "isOnTop", "background",
+
+		"scrollTop", "scrollLeft",
+		"__scrollTop", "__scrollLeft",
+
+		"overflow", "__overflow",
+		"fixed", "__fixed",
+
+		"hover", "color",
 		"lineWidth", "lineHeight", "fontSize", "fontType", "textAlign",
 		"shadowBlur", "selection"
 	],
 
-	init : function(x=80, y=480){
+	init : function(x=28, y=490){
 		var self = this,
 			lines = 0,
 			col = 0;
-
-		Native.debugger
 
 		if (this.loaded) return false;
 
 		this.loaded = true;
 
 		this.application = new Application({
-			id : "NatBug",
+			id : "NatBugWin",
 			left : x,
 			top : y,
-			width : 724,
-			height : 300,
+			width : 966,
+			height : 250,
 			background : "rgba(0, 80, 0, 0.35)",
 			backgroundImage : "falcon/assets/back.png",
 			radius : 8,
 			opacity : 0.8
 		});
 
+		Native.__debugger = this.application;
+
 		this.application.add("UILabel", {
+			id : "label",
 			left : this.application.width - 68,
 			top : 5,
 			paddingLeft : 8,
@@ -123,7 +133,7 @@ var NatBug = {
 				b1 = "rgba(0, 0, 0, 0.4)",
 				b2 = "rgba(255, 255, 255, 0.05)";
 
-			if (lines>=12){
+			if (lines>=10){
 				lines = 0;
 				col++;
 			}
@@ -141,13 +151,13 @@ var NatBug = {
 		this.show();
 		Native.showFPS(true);
 		Native.FPS.init();
-		Native.__debugger = this.application;
 		__DEBUG_SHOW_LAYERS__ = true;
 		//__DEBUG_SHOW_ORDER__ = true;
 	},
 
 	createLine : function(property, line, col, b1, b2){
 		this.labels[property] = this.application.add("UILabel", {
+			id : "label " + property,
 			paddingLeft : 5,
 			left : 5 + 240*col,
 			top : 44 + 20*line,
@@ -159,6 +169,7 @@ var NatBug = {
 		});
 
 		this.values[property] = this.application.add("UILabel", {
+			id : "value " + property,
 			paddingLeft : 5,
 			left : 88 + 240*col,
 			top : 44 + 20*line,
@@ -246,7 +257,7 @@ Canvas.prototype.debug = function(){
 			this.width,
 			this.height
 		);
-
+		/*
 		if (this.host) {
 			context.fillStyle = "rgba(250, 180, 180, 0.35)";
 			context.strokeStyle = "rgba(250, 180, 255, 0.9)";
@@ -254,10 +265,11 @@ Canvas.prototype.debug = function(){
 			context.fillRect(
 				this.host._layerPadding, 
 				this.host._layerPadding, 
-				this.host._contentWidth,
-				this.host._contentHeight
+				this.host.contentWidth,
+				this.host.contentHeight
 			);
 		}
+		*/
 
 	}
 

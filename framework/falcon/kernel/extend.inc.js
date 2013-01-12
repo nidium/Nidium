@@ -194,58 +194,12 @@ DOMElement.draw = {
 
 	getInnerTextWidth : function(element){
 		var w = Native.getTextWidth(
-			element.label,
-			element.fontSize,
-			element.fontType
+			element._label,
+			element._fontSize,
+			element._fontType
 		);
-		return element.paddingLeft + Math.round(w) + element.paddingRight;
+		return element._paddingLeft + Math.round(w) + element._paddingRight;
 	}
-};
-
-/* -------------------------------------------------------------------------- */
-
-DOMElement.onPropertyUpdate = function(e){
-	var element = e.element,
-		old = e.oldValue,
-		value = e.newValue;
-
-	element.__lock();
-
-	element.fireEvent("change", {
-		property : e.property,
-		oldValue : e.oldValue,
-		newValue : e.newValue
-	});
-
-	switch (e.property) {
-		case "left" :
-		case "top" :
-			element._needPositionUpdate = true;
-			break;
-
-		case "width" :
-		case "height" :
-			element._needSizeUpdate = true;
-			break;
-
-		case "opacity" :
-			element._needOpacityUpdate = true;
-			element._needRedraw = true;
-			break;
-
-		case "className" :
-			element.updateProperties();
-			element._needRedraw = true;
-			break;
-
-		default :
-			element._needRedraw = true;
-			break
-	};
-
-	element._needRefresh = true;
-	element.__unlock();
-
 };
 
 /* -------------------------------------------------------------------------- */
@@ -275,9 +229,12 @@ DOMElement.defineNativeProperty = function(descriptor){
 		get : function(){
 			var r = undefined;
 			if (element._locked === false) {
+				print("unlocked get("+property+")", element);
 				element.__lock();
 				r = getter ? getter.call(element) : undefined;
 				element.__unlock();
+			} else {
+				print("locked get "+property, element);
 			}
 			return r == undefined ? element["_"+property] : r;
 		},
@@ -292,8 +249,10 @@ DOMElement.defineNativeProperty = function(descriptor){
 			}
 
 			if (element.loaded && element._locked === false) {
+				print("set "+property+' = "'+newValue+'"', element);
+
 				/* lock element */
-				element.__lock();
+				element.__lock("plugin:"+property);
 
 				/* fire propertyupdate event if needed */
 				DOMElement.onPropertyUpdate({
@@ -305,6 +264,7 @@ DOMElement.defineNativeProperty = function(descriptor){
 
 				/* optional user defined setter method */
 				if (setter){
+					print("plugin:set("+property+"="+newValue+")", element);
 					var r = setter.call(element, newValue);
 					if (r === false) {
 						// handle readonly, restore old value
@@ -314,8 +274,7 @@ DOMElement.defineNativeProperty = function(descriptor){
 				}
 
 				/* unlock element */
-				element.__unlock();
-
+				element.__unlock("plugin:"+property);
 			}
 
 		},
@@ -328,10 +287,12 @@ DOMElement.defineNativeProperty = function(descriptor){
 /* -------------------------------------------------------------------------- */
 
 DOMElement.defineDescriptors = function(element, props){
+	print("DOMElement.defineDescriptors", element);
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
 			var descriptor = props[key],
-				value = undefined;
+				value = element["_"+key] != undefined ?
+						element["_"+key] : undefined;
 
 			if (descriptor.value){
 				if (typeof descriptor.value == "function"){

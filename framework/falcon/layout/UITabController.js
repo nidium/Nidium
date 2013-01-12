@@ -327,15 +327,15 @@ Native.elements.export("UITabController", {
 				next = controller.getTabAtPosition(i+1),
 				prev = controller.getTabAtPosition(i-1),
 
-				cx = curr._absx,
+				cx = curr.__left,
 				cw = curr.width,
 
-				nx = next ? next._absx : null,
-				px = prev ? prev._absx : null;
+				nx = next ? next.__left : null,
+				px = prev ? prev.__left : null;
 
-			if (cx + e.xrel < controller._absx) {
+			if (cx + e.xrel < controller.__left) {
 				curr.left = controller.left;
-			} else if (cx + cw + e.xrel > controller._absx + controller.width){
+			} else if (cx + cw + e.xrel > controller.__left + controller.width){
 				curr.left = controller.width - cw;
 			} else {
 				curr.left += e.xrel;

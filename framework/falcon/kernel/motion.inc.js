@@ -32,54 +32,54 @@ DOMElement.implement({
 	scrollContentY : function(deltaY, callback){
 		var self = this,
 			fn = OptionalCallback(callback),
-			maxY = self.content.height - self.h,
+			maxY = self.contentHeight - self._height,
 			slice = 10,
 			step = 5,
 			dec = 0.98;
 
-		if (!self.scroll.initied) {
-			self.scroll.initied = true;
-			self.scroll.goal = self.scroll.top + deltaY;
-			self.scroll.dy = 1
+		if (!self._scroll_initied) {
+			self._scroll_initied = true;
+			self._scroll_goal = self._scrollTop + deltaY;
+			self._scroll_dy = 1
 		} else {
 			/* set new goal */
-			//self.scroll.top = Math.round(self.scroll.goal*10)/10;
-			self.scroll.goal += deltaY;
+			//self._scrollTop = Math.round(self._scroll_goal*10)/10;
+			self._scroll_goal += deltaY;
 		}
 
 		/* Scroll Velocity Interpolation */
 		if (deltaY>0) {
-			self.scroll.dy = (self.scroll.goal - self.scroll.top)/step;
+			self._scroll_dy = (self._scroll_goal - self._scrollTop)/step;
 		} else {
-			self.scroll.dy = (self.scroll.top - self.scroll.goal)/step;
+			self._scroll_dy = (self._scrollTop - self._scroll_goal)/step;
 		}
 
-		if (self.scroll.timer) {
-			self.scroll.timer.remove();
+		if (self._scroll_timer) {
+			self._scroll_timer.remove();
 		}
 
 		/* Scroll to goal and slowdown velocity */
-		self.scroll.timer = Native.timer(function(){
+		self._scroll_timer = Native.timer(function(){
 			var stop = false,
-				value = self.scroll.top;
+				value = self._scrollTop;
 
 			if (deltaY>0) {
 
-				if (value < self.scroll.goal){
-					value += self.scroll.dy;
-					self.scroll.dy *= dec;
+				if (value < self._scroll_goal){
+					value += self._scroll_dy;
+					self._scroll_dy *= dec;
 				} else {
-					value = self.scroll.goal;
+					value = self._scroll_goal;
 					stop = true;
 				}
 
 			} else {
 
-				if (value > self.scroll.goal){
-					value += -self.scroll.dy;
-					self.scroll.dy *= dec;
+				if (value > self._scroll_goal){
+					value += -self._scroll_dy;
+					self._scroll_dy *= dec;
 				} else {
-					value = self.scroll.goal;
+					value = self._scroll_goal;
 					stop = true;
 				}
 
@@ -98,13 +98,13 @@ DOMElement.implement({
 			}
 
 			if (stop){
-				self.scroll.initied = false;
+				self._scroll_initied = false;
 				this.remove();
 				fn.call(self);
 			}
 
 			/* subpixel precision */
-			self.scroll.top = Math.round(value*10)/10;
+			self.scrollTop = Math.round(value*10)/10;
 
 		}, slice, true, true);
 

@@ -4,7 +4,7 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var main = new Application({background:"#262722"});
+var main = new Application({id:"main", background:"#262722"});
 
 var	myTabs = [
 	/* Tab 0 */ {label : "main.js"},
@@ -81,6 +81,7 @@ tabController.addEventListener("tabselect", function(e){
 tabController.addEventListener("tabswap", function(e){
 	b3.label = "Tab " + e.index + ", Position " + e.position;
 });
+
 
 /*
 
