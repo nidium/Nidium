@@ -225,7 +225,7 @@ DOMElement.onPropertyUpdate = function(e){
 
 	print("DOMElement.onPropertyUpdate("+e.property+")", element);
 
-	element.__lock("DOM");
+	element.__lock("onPropertyUpdate");
 
 	element.fireEvent("change", {
 		property : e.property,
@@ -263,7 +263,7 @@ DOMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
-	element.__unlock("DOM");
+	element.__unlock("onPropertyUpdate");
 };
 
 /* -------------------------------------------------------------------------- */

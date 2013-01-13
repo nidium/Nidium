@@ -230,9 +230,9 @@ DOMElement.defineNativeProperty = function(descriptor){
 			var r = undefined;
 			if (element._locked === false) {
 				print("unlocked get("+property+")", element);
-				element.__lock();
+				element.__lock("plugin:"+property);
 				r = getter ? getter.call(element) : undefined;
-				element.__unlock();
+				element.__unlock("plugin:"+property);
 			} else {
 				print("locked get "+property, element);
 			}

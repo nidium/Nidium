@@ -140,11 +140,11 @@ Native.elements.export("UITabController", {
 
 			this.__removing = true;
 
-			tab.__lock();
+			tab.__lock("_removeTabElement");
 			tab.width = 0;
 			tab.height = 0;
 			tab.remove();
-			tab.__unlock();
+			tab.__unlock("_removeTabElement");
 
 			for (var i=0; i<to.length; i++){
 				if (to[i] > index){
@@ -188,11 +188,11 @@ Native.elements.export("UITabController", {
 
 			newtab = tb[index];
 
-			newtab.__lock();
+			newtab.__lock("insertTab");
 			newtab.left = left;
 			newtab.opacity = 0;
 			newtab.closeButton.hide();
-			newtab.__unlock();
+			newtab.__unlock("insertTab");
 
 			for (var i=0; i<to.length; i++){
 				if (to[i] >= index){
@@ -293,7 +293,7 @@ Native.elements.export("UITabController", {
 			}, false);
 
 			tab.addEventListener("dragend", function(e){
-				if (__dragTabPosition===false) { return false; }
+				if (__dragTabPosition===false) return false;
 				
 				var curr = controller.getTabAtPosition(__dragTabPosition);
 
@@ -314,13 +314,15 @@ Native.elements.export("UITabController", {
 
 			if (tab.closeButton){
 				tab.closeButton.addEventListener("mouseup", function(){
-					controller.removeTab(tab);
+					if (this.hover){
+						controller.removeTab(tab);
+					}
 				}, false);
 			}
 		};
 
 		document.addEventListener("dragover", function(e){
-			if (__dragTabPosition===false) { return false; }
+			if (__dragTabPosition===false) return false;
 
 			var i = __dragTabPosition,
 				curr = controller.getTabAtPosition(i),

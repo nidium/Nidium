@@ -257,7 +257,7 @@ Canvas.prototype.debug = function(){
 			this.width,
 			this.height
 		);
-		/*
+
 		if (this.host) {
 			context.fillStyle = "rgba(250, 180, 180, 0.35)";
 			context.strokeStyle = "rgba(250, 180, 255, 0.9)";
@@ -269,7 +269,6 @@ Canvas.prototype.debug = function(){
 				this.host.contentHeight
 			);
 		}
-		*/
 
 	}
 

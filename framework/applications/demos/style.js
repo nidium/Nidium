@@ -11,7 +11,7 @@ Native.StyleSheet.load("applications/demos/style.nss"); // not blocking
 /* ---------------------------------------------------------------------------*/
 
 
-//document.addEventListener("load", function(){
+document.addEventListener("load", function(){
 
 	var body = new Application();
 	body.className = "blue";
@@ -45,5 +45,6 @@ Native.StyleSheet.load("applications/demos/style.nss"); // not blocking
 		}
 	});
 
-//});
+});
+
 

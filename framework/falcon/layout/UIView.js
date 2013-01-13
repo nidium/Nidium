@@ -22,9 +22,9 @@ Native.elements.export("UIView", {
 			},
 
 			get : function(){
-				//if (this._cachedContentWidth === null){
+				if (this._cachedContentWidth === null){
 					Native.layout.slowUpdateInnerContentSize(this);
-				//}
+				}
 				this.refreshScrollBars();
 				return this._cachedContentWidth;
 			}
@@ -36,9 +36,9 @@ Native.elements.export("UIView", {
 			},
 
 			get : function(){
-				//if (this._cachedContentHeight === null){
+				if (this._cachedContentHeight === null){
 					Native.layout.slowUpdateInnerContentSize(this);
-				//}
+				}
 				this.refreshScrollBars();
 				return this._cachedContentHeight;
 			}
@@ -47,20 +47,12 @@ Native.elements.export("UIView", {
 		scrollLeft : {
 			set : function(value){
 				this.refreshScrollBars();
-			},
-
-			get : function(){
-				return this._scrollLeft;
 			}
 		},
 		
 		scrollTop : {
 			set : function(value){
 				this.refreshScrollBars();
-			},
-
-			get : function(){
-				return this._scrollTop;
 			}
 		}
 	},
@@ -75,7 +67,7 @@ Native.elements.export("UIView", {
 		this.refreshBackgroundImage = function(){
 			self._cachedBackgroundImage = null;
 
-			if (this.backgroundImage != '' && this.backgroundImage != null) {
+			if (this.backgroundImage) {
 				Native.loadImage(this.backgroundImage, function(img){
 					self._cachedBackgroundImage = img;
 					self._needRedraw = true;
@@ -115,7 +107,7 @@ Native.elements.export("UIView", {
 
 		this.refreshScrollBars = function(){
 			if (!this.VScrollBar) return false;
-			print("refreshScrollBars", element);
+			print("refreshScrollBars", this);
 
 			var container = this.VScrollBar,
 				handle = this.VScrollBarHandle,
@@ -138,8 +130,6 @@ Native.elements.export("UIView", {
 
 			handle.top = (this._scrollTop * (ch / vh));
 			handle.height = (this._height / vh) * ch;
-
-			//Native.layout.refreshFirstChildrenPosition(this);
 		};
 
 		if (this.overflow === false){

@@ -18,7 +18,7 @@ var	button = new UIButton(main, {
 
 var v = [],
 	x = y = 0;
-for (var i=0; i<512; i++){
+for (var i=0; i<256; i++){
 	v[i] = new UIButton(main, {
 		left : 10 + 34*x,
 		top : 48 + 22*y,
@@ -89,8 +89,8 @@ function start(){
 		var element = v[i];
 		element.left = element.initialLeft;
 		k = 0;
-		//useNativeSetInterval(element, 580+1.0*k++);
-		useNativeMotionFactory(element, 580+1.0*k++);
+		//useNativeSetInterval(element, 580+0.0*k++);
+		useNativeMotionFactory(element, 580+0.0*k++);
 	}
 }
 

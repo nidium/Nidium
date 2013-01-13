@@ -244,7 +244,9 @@ var print = function(txt, element){
 
 	var __LOG_BEFORE_DOMREADY__ = false,
 
-		/* -- filters ---------- */
+		__KEYWORD__ = "ancestor",
+
+		/* -- displays ---------- */
 		__events__ = false,
 		__keys__ = false,
 		__mousemove__ = false,
@@ -252,16 +254,16 @@ var print = function(txt, element){
 		__add__ = false,
 		__init__ = false,
 		__draw__ = false,
-		__refresh__ = false,
-		__update__ = false,
+		__refresh__ = true,
+		__update__ = true,
 
 		__layer__ = false,
 
-		__getter__ = true,
-		__setter__ = true,
+		__getter__ = false,
+		__setter__ = false,
 		__plugin__ = false,
 
-		__locks__ = true,
+		__locks__ = false,
 		__DOMElement__ = false,
 
 		__other__ = false;
@@ -288,6 +290,9 @@ var print = function(txt, element){
 	if (!__layer__ && ___filter___(txt, "layer")) return false; else
 
 	if (!__DOMElement__ && ___filter___(txt, "domelement")) return false;
+
+
+	if (__KEYWORD__ && !___filter___(txt, __KEYWORD__)) return false;
 
 	if (element) {
 		echo(

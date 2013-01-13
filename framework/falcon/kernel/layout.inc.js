@@ -7,7 +7,6 @@
 "use strict";
 
 /* -------------------------------------------------------------------------- */
-var ttt = 0;
 
 Native.layout = {
 	objID : 0,
@@ -28,12 +27,12 @@ Native.layout = {
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i].isVisible() && (z[i]._needRefresh || this._needRefresh)){
+			if (z[i].isVisible() && z[i]._needRefresh){
 				z[i].refresh();
+			} else {
+				z[i].updateInheritance();
 			}
 		}
-
-		this._needRefresh = false;
 
 		if (!document.ready){
 			document.ready = true;
@@ -63,19 +62,6 @@ Native.layout = {
 		this.elements = elements;
 	},
 
-
-	refreshFirstChildrenPosition : function(element){
-		if (!element.hasChildren) return false;
-		this._needRefresh = true;
-
-		var dx = function(z){
-			for (var i in z){
-				z[i]._needRefresh = true;
-			}
-		};
-		//dx(element.nodes);
-	},
-
 	slowUpdateInnerContentSize : function(element){
 		if (!element.hasChildren || element.type != "UIView") return false;
 
@@ -89,7 +75,7 @@ Native.layout = {
 		 */
 
 		var self = this,
-			dx = function(z, parent){
+			dx = function(z){
 				for (var i in z){
 					if (z[i]._visible && !z[i].__fixed){
 						var	el = z[i],
@@ -102,7 +88,7 @@ Native.layout = {
 						my = y2>my ? y2 : my;
 
 						if (self.count(z[i].nodes)>0){
-							dx(z[i].nodes, z[i].parent);
+							dx(z[i].nodes);
 						}
 					}
 				}

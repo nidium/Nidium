@@ -14,22 +14,21 @@ Native.object = {
 	},
 
 	__lock : function __lock(method){
-		//print("__lock" + (method?'('+method+')':'()'), this);
+		print("__lock" + (method?'('+method+')':'()'), this);
 		this._locked = true;
 	},
 
 	__unlock : function __unlock(method){
-		//print("__unlock" + (method?'('+method+')':'()'), this);
+		print("__unlock" + (method?'('+method+')':'()'), this);
 		this._locked = false;
 	},
 
 	refresh : function refresh(){
 		print("refresh()", this);
 
+		this.layer.visible = this._visible;
 		this.updateInheritance();
 
-		this.layer.visible = this._visible;
-		
 		if (this._needOpacityUpdate) this.updateLayerOpacity();
 		if (this._needPositionUpdate) this.updateLayerPosition();
 		if (this._needSizeUpdate) this.updateLayerSize();
@@ -60,18 +59,18 @@ Native.object = {
 		this.__layerPadding = p ? p._layerPadding - this._layerPadding 
 								: this._layerPadding;
 
+		var	sx = (this.__fixed===false ?
+				 (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft),
 
-		this._scrollOffsetX = (this.__fixed===false ? this.__scrollLeft : 0);
-		this._scrollOffsetY = (this.__fixed===false ? this.__scrollTop : 0);
+			sy = (this.__fixed===false ?
+				 (p ? p._scrollTop : this._scrollTop) : this._scrollTop);
 
-		var	sx = (this.__fixed===false ? (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft),
-			sy = (this.__fixed===false ? (p ? p._scrollTop : this._scrollTop) : this._scrollTop);
-
-
-		//this.__left = this.layer.__left + this._layerPadding;
-		//this.__top = this.layer.__top + this._layerPadding;
 		this.__left = (p ? p.__left + x : x) - sx;
 		this.__top = (p ? p.__top + y : y) - sy;
+/*
+		this.__left = this.layer.__left + this._layerPadding;
+		this.__top = this.layer.__top + this._layerPadding;
+*/
 
 	},
 
@@ -119,9 +118,7 @@ Native.object = {
 		if (this.layer.debug) this.layer.debug();
 
 		this.beforeDraw(this.layer.context);
-		this.__lock("redraw");
 		this.draw(this.layer.context);
-		this.__unlock("redraw");
 		this.afterDraw(this.layer.context);
 
 		this._needRedraw = false;
@@ -231,10 +228,6 @@ Native.object = {
 
 	beforeDraw : function beforeDraw(){
 		print("beforeDraw()", this);
-/*		if (Native.__debugger && this._root!=Native.__debugger){
-			echo("draw", this.id);
-		}
-*/
 	},
 
 	afterDraw : function afterDraw(){
