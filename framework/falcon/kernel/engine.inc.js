@@ -38,7 +38,7 @@ Native.elements = {
 			}
 		}
 
-		if (element.canReceiveFocus){
+		if (element._canReceiveFocus){
 			element.addEventListener("mousedown", function(e){
 				this.focus();
 				e.stopPropagation();

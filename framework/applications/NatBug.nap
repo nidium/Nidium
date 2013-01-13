@@ -32,7 +32,7 @@ var NatBug = {
 		"id", "type", "label", "name", "left", "top", "width", "height",
 		"contentWidth", "contentHeight",
 		"paddingLeft", "paddingRight", "scale",
-		"hover", "__opacity", "_layerPadding", "__left", "__top",
+		"opacity", "__opacity", "_layerPadding", "__left", "__top",
 		"radius", "selected",
 		"hasFocus", "hasChildren", "isOnTop", "background",
 
@@ -60,8 +60,8 @@ var NatBug = {
 			id : "NatBugWin",
 			left : x,
 			top : y,
-			width : 966,
-			height : 250,
+			width : 844,
+			height : 244,
 			background : "rgba(0, 80, 0, 0.35)",
 			backgroundImage : "falcon/assets/back.png",
 			radius : 8,
@@ -133,7 +133,7 @@ var NatBug = {
 				b1 = "rgba(0, 0, 0, 0.4)",
 				b2 = "rgba(255, 255, 255, 0.05)";
 
-			if (lines>=10){
+			if (lines>=13){
 				lines = 0;
 				col++;
 			}
@@ -159,25 +159,27 @@ var NatBug = {
 		this.labels[property] = this.application.add("UILabel", {
 			id : "label " + property,
 			paddingLeft : 5,
-			left : 5 + 240*col,
-			top : 44 + 20*line,
+			left : 5 + 210*col,
+			top : 44 + 15*line,
 			width : 80,
+			height : 14,
 			color : "#66aa66",
 			background : b1,
-			fontSize : 11,
+			fontSize : 10,
 			label : property
 		});
 
 		this.values[property] = this.application.add("UILabel", {
 			id : "value " + property,
 			paddingLeft : 5,
-			left : 88 + 240*col,
-			top : 44 + 20*line,
-			width : 150,
+			left : 88 + 210*col,
+			top : 44 + 15*line,
+			width : 120,
+			height : 14,
 			color : "#66aa66",
 			background : b2,
 			label : "",
-			fontSize : 11,
+			fontSize : 10,
 			radius : 2
 		});
 
@@ -203,6 +205,7 @@ var NatBug = {
 
 		window.onElementUnderPointer = function(e){
 			if (!self.application.isPointInside(e.x, e.y)){
+				this.__lock("onElementUnderPointer");
 				for (var l = 0; l<self.props.length; l++){
 					var a = self.props[l];
 					if (this[a] == undefined) {
@@ -216,6 +219,7 @@ var NatBug = {
 					}
 					// + (this.parent ? " ("+this.parent[a]+")" : "");
 				}
+				this.__unlock("onElementUnderPointer");
 			}
 		};
 	},
@@ -240,8 +244,8 @@ Canvas.prototype.debug = function(){
 			context.fillStyle = "rgba(180, 180, 50, 0.1)";
 			context.strokeStyle = "rgba(180, 180, 255, 0.3)";
 		} else {
-			context.fillStyle = "rgba(180, 180, 0, 0.01)";
-			context.strokeStyle = "rgba(180, 180, 0, 0.05)";
+			context.fillStyle = "rgba(180, 180, 0, 0.04)";
+			context.strokeStyle = "rgba(180, 180, 0, 0.08)";
 		}
 
 		context.fillRect(

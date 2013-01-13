@@ -39,8 +39,6 @@ Native.object = {
 	},
 
 	updateInheritance : function updateInheritance(){
-		print("updateInheritance()", this);
-
 		var p = this.parent,
 			x = this._left + this._offsetLeft,
 			y = this._top + this._offsetTop;
@@ -104,11 +102,16 @@ Native.object = {
 
 		/* clean cache for all this element's parents (all ancestors) */
 		while (element.parent){
-			element.parent._cachedContentWidth = null;
-			element.parent._cachedContentHeight = null;
-			element = element.parent;
+			var p = element.parent;
+			p._cachedContentWidth = null;
+			p._cachedContentHeight = null;
+
+			/* refresh ancestor's scrollbars */
+			if (p.loaded && p.type=="UIView" && p.overflow===false)
+				p.refreshScrollBars();
+
+			element = p;
 		}
-		//Native.layout._needRefresh = true;
 		this._needAncestorCacheClear = false;
 	},
 

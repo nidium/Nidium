@@ -65,13 +65,14 @@ Native.layout = {
 	slowUpdateInnerContentSize : function(element){
 		if (!element.hasChildren || element.type != "UIView") return false;
 
+		print("slowUpdateInnerContentSize", element);
 		var mx = 0,
 			my = 0;
 
 		/* The idea here is to compute contentWidth and contentHeight
 		 * of element. To do that, we need to recursively parse all its
-		 * children to find the "farest" one from the left top corner of
-		 * our element.
+		 * non fixed children to find the "farest" child from the left top
+		 * corner of our element.
 		 */
 
 		var self = this,

@@ -12,27 +12,6 @@ var main = new Application({
 	id : "main"
 });
 
-var	myTabs = [
-	/* Tab 0 */ {label : "main.js"},
-	/* Tab 1 */ {label : "core.js"},
-	/* Tab 2 */ {label : "hello.js", selected : true},
-	/* Tab 3 */ {label : "foo.cpp"},
-	/* Tab 4 */ {label : "class.cpp"},
-	/* Tab 5 */ {label : "opengl.cpp", background : "#202a15", color : "#ffffff"},
-	/* Tab 6 */ {label : "2.js", background : "#442033", color : "#ffffff"},
-	/* Tab 7 */ {label : "rotation.js"},
-	/* Tab 8 */ {label : "scale.js"},
-	/* Tab 9 */ {label : "native.inc.js"}
-];
-
-var	tabController = main.add("UITabController", {
-	name : "helloTabs",
-	tabs : myTabs,
-	background : "#191a18"
-});
-
-
-
 var	button = new UIButton(main, {
 	id : "button",
 	left : 966,
@@ -62,8 +41,7 @@ var	bigview = new UIView(main, {
 	top : 58,
 	width : 600,
 	height : 400,
-	background : "rgba(80, 250, 180, 0.5)",
-	backgroundImage : "applications/demos/images/spheres.jpeg",
+	background : "rgba(240, 80, 180, 0.5)",
 	overflow : false
 });
 
@@ -76,7 +54,6 @@ var	view = new UIView(bigview, {
 	background : "rgba(0, 0, 80, 0.5)",
 	overflow : false
 });
-
 
 var	c0 = new UIView(view, {
 	id : "c0",
@@ -133,8 +110,10 @@ var	c4 = new UIView(view, {
 	background : "#ff0088"
 });
 
-//view.scrollTop = 50;
-//echo(view.contentHeight);
+document.addEventListener("load", function(){
+//	echo("#view.contentHeight:", view.contentHeight);
+//	view.scrollTop = 50;
+});
 
 Native.layout.getElementsByTagName("UIView").each(function(){
 	this.addEventListener("drag", function(e){

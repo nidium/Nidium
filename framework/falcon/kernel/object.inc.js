@@ -140,7 +140,7 @@ var DOMElement = function(type, options, parent){
 		_needPositionUpdate : true,
 		_needSizeUpdate : true,
 		_needOpacityUpdate : true,
-		_needContentSizeUpdate : true
+		_needAncestorCacheClear : true
 	});
 
 	/* Runtime changes does not impact the visual aspect of the element */
@@ -165,7 +165,7 @@ var DOMElement = function(type, options, parent){
 /* -------------------------------------------------------------------------- */
 
 DOMElement.prototype = {
-	__noSuchMethod__ : Native.object.__noSuchMethod__,
+//	__noSuchMethod__ : Native.object.__noSuchMethod__,
 
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
@@ -238,6 +238,11 @@ DOMElement.onPropertyUpdate = function(e){
 		case "top" :
 			element._needPositionUpdate = true;
 			element._needAncestorCacheClear = true;
+			break;
+
+		case "scrollLeft" :
+		case "scrollTop" :
+			element._needPositionUpdate = true;
 			break;
 
 		case "width" :

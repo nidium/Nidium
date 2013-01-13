@@ -244,23 +244,23 @@ var print = function(txt, element){
 
 	var __LOG_BEFORE_DOMREADY__ = false,
 
-		__KEYWORD__ = "ancestor",
+		__KEYWORD__ = "",
+		__ELEMENT_ID__ = "",
 
 		/* -- displays ---------- */
-		__events__ = false,
+		__events__ = true,
 		__keys__ = false,
 		__mousemove__ = false,
 
 		__add__ = false,
 		__init__ = false,
+
 		__draw__ = false,
 		__refresh__ = true,
 		__update__ = true,
 
-		__layer__ = false,
-
-		__getter__ = false,
-		__setter__ = false,
+		__getter__ = true,
+		__setter__ = true,
 		__plugin__ = false,
 
 		__locks__ = false,
@@ -280,21 +280,19 @@ var print = function(txt, element){
 	if (!__setter__ && ___filter___(txt, "set")) return false; else
 	if (!__plugin__ && ___filter___(txt, "plugin")) return false; else
 	if (!__locks__ && ___filter___(txt, "lock")) return false; else
-
 	if (!__add__ && ___filter___(txt, "add")) return false; else
 	if (!__init__ && ___filter___(txt, "init")) return false; else
 	if (!__draw__ && ___filter___(txt, "draw")) return false; else
 	if (!__update__ && ___filter___(txt, "update")) return false; else
 	if (!__refresh__ && ___filter___(txt, "refresh")) return false; else
-
-	if (!__layer__ && ___filter___(txt, "layer")) return false; else
-
 	if (!__DOMElement__ && ___filter___(txt, "domelement")) return false;
-
 
 	if (__KEYWORD__ && !___filter___(txt, __KEYWORD__)) return false;
 
 	if (element) {
+
+		if (__ELEMENT_ID__ && element.id != __ELEMENT_ID__) return false;
+
 		echo(
 			'#'+element._root.id + ':' + element.type,
 			element._uid, 

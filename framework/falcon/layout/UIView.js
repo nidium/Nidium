@@ -22,10 +22,11 @@ Native.elements.export("UIView", {
 			},
 
 			get : function(){
+				print("--------------get contentWidth", this);
 				if (this._cachedContentWidth === null){
 					Native.layout.slowUpdateInnerContentSize(this);
 				}
-				this.refreshScrollBars();
+				//this.refreshScrollBars();
 				return this._cachedContentWidth;
 			}
 		},
@@ -36,10 +37,11 @@ Native.elements.export("UIView", {
 			},
 
 			get : function(){
+				print("-------------- get contentHeight", this);
 				if (this._cachedContentHeight === null){
 					Native.layout.slowUpdateInnerContentSize(this);
 				}
-				this.refreshScrollBars();
+				//this.refreshScrollBars();
 				return this._cachedContentHeight;
 			}
 		},
@@ -156,7 +158,13 @@ Native.elements.export("UIView", {
 			this.refreshScrollBars();
 		}
 
-		DOMElement.listeners.addDefault(this);
+		this.addEventListener("mouseover", function(e){
+			this.refreshScrollBars();
+		});
+
+		this.addEventListener("mouseout", function(e){
+			this.refreshScrollBars();
+		});
 
 		this.refreshBackgroundImage();
 	},
