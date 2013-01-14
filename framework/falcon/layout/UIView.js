@@ -83,6 +83,7 @@ Native.elements.export("UIView", {
 				this.VScrollBar.cancelCurrentAnimations("opacity");
 				this._scrollYfading = false;
 				this.VScrollBar.opacity = 1;
+				//this.VScrollBarHandle.opacity = 1;
 
 				/* TODO : Add canvas.opacity then remove */
 				this.VScrollBarHandle.show();
@@ -98,6 +99,7 @@ Native.elements.export("UIView", {
 								self._scrollYfading = false;
 								/* TODO : Add canvas.opacity then remove */
 								self.VScrollBarHandle.hide();
+								//self.VScrollBarHandle.opacity = 0;
 								/* TODO : Add canvas.opacity then remove */
 							});
 						}, 350);
@@ -108,7 +110,7 @@ Native.elements.export("UIView", {
 		};
 
 		this.refreshScrollBars = function(){
-			if (!this.VScrollBar) return false;
+			if (!this.VScrollBar || !this.VScrollBarHandle) return false;
 			print("refreshScrollBars", this);
 
 			var container = this.VScrollBar,
@@ -134,7 +136,8 @@ Native.elements.export("UIView", {
 			handle.height = (this._height / vh) * ch;
 		};
 
-		if (this.overflow === false){
+		this.createVerticalScrollBar = function(){
+			if (this.VScrollBar) return false;
 			this.VScrollBar = this.add("UIScrollBar", {
 				fixed : true,
 				width : 8,
@@ -149,14 +152,21 @@ Native.elements.export("UIView", {
 					height : this.VScrollBar._height / 2
 				}
 			);
+		};
 
-			this.addEventListener("mousewheel", function(e){
+		if (this.scrollbars === true){
+			this.createVerticalScrollBar();
+			this.refreshScrollBars();
+//			this.VScrollBar.opacity = 0;
+//			this.VScrollBarHandle.opacity = 0;
+		}
+
+		this.addEventListener("mousewheel", function(e){
+			if (this.VScrollBar) {
 				this.updateScrollTop(e.yrel);
 				e.stopPropagation();
-			}, false);
-
-			this.refreshScrollBars();
-		}
+			}
+		}, false);
 
 		this.addEventListener("mouseover", function(e){
 			this.refreshScrollBars();

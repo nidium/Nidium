@@ -65,11 +65,16 @@ Native.object = {
 
 		this.__left = (p ? p.__left + x : x) - sx;
 		this.__top = (p ? p.__top + y : y) - sy;
+
+		/* ----- CHECK THIS ------ */
+		this.layer.left = this._left + this.__layerPadding - sx;
+		this.layer.top = this._top + this.__layerPadding - sy;
+		/* ----- CHECK THIS ------ */
+
 /*
 		this.__left = this.layer.__left + this._layerPadding;
 		this.__top = this.layer.__top + this._layerPadding;
 */
-
 	},
 
 	updateLayerOpacity : function updateLayerOpacity(){
@@ -80,8 +85,12 @@ Native.object = {
 
 	updateLayerPosition : function updateLayerPosition(){
 		var p = this.parent,
-			sx = (this.__fixed===false ? (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft),
-			sy = (this.__fixed===false ? (p ? p._scrollTop : this._scrollTop) : this._scrollTop);
+			
+			sx = this.__fixed===false ?
+				 (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft,
+
+			sy = this.__fixed===false ?
+				 (p ? p._scrollTop : this._scrollTop) : this._scrollTop;
 
 		print("updateLayerPosition()", this);
 		this.layer.left = this._left + this.__layerPadding - sx;
@@ -99,16 +108,15 @@ Native.object = {
 	updateAncestors : function updateAncestors(){
 		print("updateAncestors()", this);
 		var element = this;
-
+		if (this.type == "UIScrollBarHandle") return false;
 		/* clean cache for all this element's parents (all ancestors) */
 		while (element.parent){
 			var p = element.parent;
 			p._cachedContentWidth = null;
 			p._cachedContentHeight = null;
 
-			/* refresh ancestor's scrollbars */
-			if (p.loaded && p.type=="UIView" && p.overflow===false)
-				p.refreshScrollBars();
+			/* refresh ancestor's scrollbars if any */
+			if (p.scrollbars) p.refreshScrollBars();
 
 			element = p;
 		}

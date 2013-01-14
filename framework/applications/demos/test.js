@@ -19,8 +19,8 @@ var	button = new UIButton(main, {
 	label : "Do It"
 });
 
-/*
 button.addEventListener("mousedown", function(e){
+/*
 	view.scrollTop = 0;
 
 	view.animate(
@@ -31,9 +31,8 @@ button.addEventListener("mousedown", function(e){
 		null,		// callback
 		Math.physics.expoOut // motion equation
 	);
-});
 */
-
+});
 
 var	bigview = new UIView(main, {
 	id : "bigview",
@@ -42,7 +41,8 @@ var	bigview = new UIView(main, {
 	width : 600,
 	height : 400,
 	background : "rgba(240, 80, 180, 0.5)",
-	overflow : false
+	overflow : false,
+	scrollbars : true
 });
 
 var	view = new UIView(bigview, {
@@ -52,7 +52,8 @@ var	view = new UIView(bigview, {
 	width : 400,
 	height : 250,
 	background : "rgba(0, 0, 80, 0.5)",
-	overflow : false
+	overflow : true,
+	scrollbars : true
 });
 
 var	c0 = new UIView(view, {
@@ -72,7 +73,8 @@ var	c1 = new UIView(view, {
 	width : 100,
 	height : 150,
 	background : "rgba(255, 255, 255, 0.7)",
-	overflow : false
+	overflow : false,
+	scrollbars : true
 });
 
 var	c2 = new UIView(c1, {
@@ -96,7 +98,7 @@ var	c22 = new UIView(c1, {
 var	c3 = new UIButton(c1, {
 	id : "c3",
 	left : 30,
-	top : 310,
+	top : 260,
 	label : "button",
 	background : "#0088DD"
 });

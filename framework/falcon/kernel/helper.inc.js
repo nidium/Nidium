@@ -245,10 +245,10 @@ var print = function(txt, element){
 	var __LOG_BEFORE_DOMREADY__ = false,
 
 		__KEYWORD__ = "",
-		__ELEMENT_ID__ = "",
+		__ELEMENT_ID__ = "bigview",
 
 		/* -- displays ---------- */
-		__events__ = true,
+		__events__ = false,
 		__keys__ = false,
 		__mousemove__ = false,
 
@@ -261,10 +261,10 @@ var print = function(txt, element){
 
 		__getter__ = true,
 		__setter__ = true,
-		__plugin__ = false,
+		__plugin__ = true,
 
 		__locks__ = false,
-		__DOMElement__ = false,
+		__DOMElement__ = true,
 
 		__other__ = false;
 

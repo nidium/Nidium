@@ -32,14 +32,20 @@ var NatBug = {
 		"id", "type", "label", "name", "left", "top", "width", "height",
 		"contentWidth", "contentHeight",
 		"paddingLeft", "paddingRight", "scale",
-		"opacity", "__opacity", "_layerPadding", "__left", "__top",
+		
+		"overflow", "__overflow",
+		"opacity", "__opacity",
+
+		"_layerPadding",
+
+		"__left", "__top",
+		
 		"radius", "selected",
 		"hasFocus", "hasChildren", "isOnTop", "background",
 
 		"scrollTop", "scrollLeft",
 		"__scrollTop", "__scrollLeft",
 
-		"overflow", "__overflow",
 		"fixed", "__fixed",
 
 		"hover", "color",

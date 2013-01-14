@@ -27,7 +27,7 @@ Native.layout = {
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i].isVisible() && z[i]._needRefresh){
+			if (z[i]._needRefresh){
 				z[i].refresh();
 			} else {
 				z[i].updateInheritance();
@@ -63,7 +63,7 @@ Native.layout = {
 	},
 
 	slowUpdateInnerContentSize : function(element){
-		if (!element.hasChildren || element.type != "UIView") return false;
+		if (!element.hasChildren || !element.scrollbars) return false;
 
 		print("slowUpdateInnerContentSize", element);
 		var mx = 0,
@@ -97,8 +97,8 @@ Native.layout = {
 
 		dx(element.nodes);
 
-		element._contentWidth = mx;
-		element._contentHeight = my;
+		element.contentWidth = mx;
+		element.contentHeight = my;
 		element._cachedContentWidth = mx;
 		element._cachedContentHeight = my;
 	},
