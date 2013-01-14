@@ -11,6 +11,7 @@ Native.elements.export("UIWindow", {
 				this.handle.closeButton.left = this.handle.width - 19;
 				this.contentView.width = this.width - 6;
 				this.resizer.updateElement();
+				this.contentView.refreshScrollBars();
 			}
 		},
 
@@ -19,6 +20,7 @@ Native.elements.export("UIWindow", {
 				if (this.height<40) this.height = 40;
 				this.contentView.height = this.height - 27;
 				this.resizer.updateElement();
+				this.contentView.refreshScrollBars();
 			}
 		}
 	},
@@ -32,6 +34,7 @@ Native.elements.export("UIWindow", {
 		this.color = OptionalValue(o.color, "#ffffff");
 		this.label = OptionalString(o.label, "Default");
 		this.shadowBlur = OptionalNumber(o.shadowBlur, 8);
+		this.radius = Math.max(5, OptionalNumber(o.radius, 5));
 
 		this.shadowColor = OptionalValue(
 			o.shadowColor, 
@@ -139,7 +142,9 @@ Native.elements.export("UIWindow", {
 			height : self.height-27,
 			radius : 4,
 			background : "#ffffff",
-			color : "#333333"
+			color : "#333333",
+			overflow : false,
+			scrollbars : true
 		});
 
 		if (o.resizable) {
@@ -149,8 +154,7 @@ Native.elements.export("UIWindow", {
 	},
 
 	draw : function(context){
-		var	params = this.getDrawingBounds(),
-			radius = Math.max(4, this.radius);
+		var	params = this.getDrawingBounds();
 
 		context.setShadow(0, 8, this.shadowBlur, this.shadowColor);
 		DOMElement.draw.box(this, context, params);

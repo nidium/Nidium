@@ -397,10 +397,6 @@ DOMElement.implement({
 			if (cb) cb.call(this);
 			return true;
 		}
-
-		if (name == "change") {
-			Native.events.hook(this, e);
-		}
 	},
 
 	addEventListener : function(name, callback, propagation){

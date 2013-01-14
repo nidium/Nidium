@@ -83,11 +83,12 @@ Native.elements.export("UIView", {
 				this.VScrollBar.cancelCurrentAnimations("opacity");
 				this._scrollYfading = false;
 				this.VScrollBar.opacity = 1;
-				//this.VScrollBarHandle.opacity = 1;
+				this.VScrollBar.show();
 
-				/* TODO : Add canvas.opacity then remove */
+				/* TODO : remove when canvas.opacity available */
 				this.VScrollBarHandle.show();
-				/* TODO : Add canvas.opacity then remove */
+				this.VScrollBarHandle.opacity = 1;
+				/* TODO : remove when canvas.opacity available */
 	
 				this.scrollContentY(-dy * 4, function(){
 
@@ -95,23 +96,28 @@ Native.elements.export("UIView", {
 						self._scrollYfading = true;
 						clearTimeout(self._scrollYfadeScheduler);
 						self._scrollYfadeScheduler = setTimeout(function(){
-							self.VScrollBar.fadeOut(250, function(){
+							/*
+							self.VScrollBar.fadeOut(1650, function(){
 								self._scrollYfading = false;
-								/* TODO : Add canvas.opacity then remove */
-								self.VScrollBarHandle.hide();
-								//self.VScrollBarHandle.opacity = 0;
-								/* TODO : Add canvas.opacity then remove */
 							});
-						}, 350);
+							*/
+							/* TODO : remove when canvas.opacity available */
+							/*
+							self.VScrollBarHandle.fadeOut(1850, function(){
+								self._scrollYfading = false;
+							});
+							*/
+							/* TODO : remove when canvas.opacity available */
+						}, 650);
 					}
 
 				});
 			}
 		};
 
-		this.refreshScrollBars = function(){
+		this.refreshVerticalScrollBar = function(){
 			if (!this.VScrollBar || !this.VScrollBarHandle) return false;
-			print("refreshScrollBars", this);
+			print("refreshVerticalScrollBar", this);
 
 			var container = this.VScrollBar,
 				handle = this.VScrollBarHandle,
@@ -123,7 +129,7 @@ Native.elements.export("UIView", {
 
 				vw = this.scrollContentWidth = Math.max(mx, this._width),
 				vh = this.scrollContentHeight = Math.max(my, this._height);
-
+/*
 			if (handle._height == vh){
 				container.visible = false;
 				handle.visible = false;
@@ -131,9 +137,19 @@ Native.elements.export("UIView", {
 				container.visible = true;
 				handle.visible = true;
 			}
-
+*/
 			handle.top = (this._scrollTop * (ch / vh));
 			handle.height = (this._height / vh) * ch;
+		};
+
+		this.refreshScrollBars = function(){
+			if (!this.VScrollBar || !this.VScrollBarHandle) return false;
+			var vs = this.VScrollBar;
+
+			vs.left = this._width - 8;
+			vs.top = 0;
+			vs.height = this._height;
+			this.refreshVerticalScrollBar();
 		};
 
 		this.createVerticalScrollBar = function(){

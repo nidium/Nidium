@@ -6,6 +6,19 @@ var main = new Application({
 	backgroundImage : "applications/demos/images/tunnel.jpeg"
 });
 
+var	button = new UIButton(main, {
+	id : "button",
+	left : 966,
+	top : 8,
+	label : "Do It"
+});
+
+button.addEventListener("mousedown", function(e){
+	win.contentView.VScrollBar.show();
+});
+
+
+
 var	win = main.add("UIWindow", {
 	left : 60,
 	top : 60,
@@ -35,7 +48,7 @@ win.contentView.background = "rgba(255, 255, 255, 0.8)";
 
 var w = [];
 for (var i=0; i<4; i++){
-	w[i] = win.add("UIWindow", {
+	w[i] = win.contentView.add("UIWindow", {
 		left : i*160,
 		top : win.height+20,
 		width : 150,
