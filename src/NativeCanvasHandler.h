@@ -46,6 +46,14 @@ class NativeCanvasHandler
         */
         double left, top, a_left, a_top;
 
+        struct {
+            double top;
+            double bottom;
+            double left;
+            double right;
+            int global;
+        } padding;
+
         double opacity;
         
         NativeCanvasHandler(int width, int height);
@@ -54,6 +62,8 @@ class NativeCanvasHandler
         void unrootHierarchy();
         void setWidth(int width);
         void setHeight(int height);
+        void setSize(int width, int height);
+        void setPadding(int padding);
         void setPosition(double left, double top);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
         void computeAbsolutePosition();
@@ -72,7 +82,8 @@ class NativeCanvasHandler
         void getChildren(NativeCanvasHandler **out) const;
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
-        void layerize(NativeCanvasHandler *layer, double pleft, double ptop);
+        void layerize(NativeCanvasHandler *layer, double pleft,
+            double ptop, double aopacity);
     private:
         NativeCanvasHandler *parent;
         NativeCanvasHandler *children;

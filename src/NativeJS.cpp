@@ -544,7 +544,7 @@ NativeJS::~NativeJS()
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_RemoveValueRoot(cx, &gfunc);
-
+    printf("Deleting JS on thread : %ld\n", (unsigned long int)pthread_self());
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     JS_EndRequest(cx);
@@ -555,7 +555,6 @@ NativeJS::~NativeJS()
     NativeSkia::glcontext = NULL;
     NativeSkia::glsurface = NULL;
 
-    JS_SetContextPrivate(cx, NULL);
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
 

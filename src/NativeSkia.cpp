@@ -400,7 +400,7 @@ int NativeSkia::bindGL(int width, int height)
 
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
-    desc.fRenderTargetHandle = buffer;
+    desc.fRenderTargetHandle = 0;
 
     printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
@@ -505,7 +505,7 @@ NativeSkia::~NativeSkia()
 /* TODO: check if there is a best way to do this;
     context->clear() ?
 */
-void NativeSkia::clearRect(int x, int y, int width, int height)
+void NativeSkia::clearRect(double x, double y, double width, double height)
 {
 /*
     SkPaint paint;
@@ -514,14 +514,17 @@ void NativeSkia::clearRect(int x, int y, int width, int height)
 */
     //CANVAS_FLUSH();
     //glClear(GL_COLOR_BUFFER_BIT);
+    SkRect r;
     SkPaint clearPaint;
+
+    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+        SkDoubleToScalar(width), SkDoubleToScalar(height));
     
     clearPaint.setStyle(SkPaint::kFill_Style);
     clearPaint.setARGB(0,0,0,0);
     clearPaint.setXfermodeMode(SkXfermode::kClear_Mode);
 
-    canvas->drawRectCoords(SkIntToScalar(x), SkIntToScalar(y),
-        SkIntToScalar(width), SkIntToScalar(height), clearPaint);
+    canvas->drawRect(r, clearPaint);
 
     CANVAS_FLUSH();
 
