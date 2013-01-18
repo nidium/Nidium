@@ -440,7 +440,7 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 
 static void gccb(JSRuntime *rt, JSGCStatus status)
 {
-    printf("Gc TH1 callback?\n");
+    //printf("Gc TH1 callback?\n");
 }
 
 NativeJS::NativeJS(int width, int height)

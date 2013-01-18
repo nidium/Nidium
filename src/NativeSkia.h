@@ -101,7 +101,7 @@ class NativeSkia
         void setLineWidth(double size);
         void setGlobalAlpha(double value);
         void setGlobalComposite(const char *str);
-        void clearRect(int, int, int, int);
+        void clearRect(double, double, double, double);
         void drawImage(NativeSkImage *image, double x, double y);
         void drawImage(NativeSkImage *image, double x, double y,
             double width, double height);

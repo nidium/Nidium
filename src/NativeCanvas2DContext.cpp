@@ -230,7 +230,7 @@ static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval 
         NSKIA_NATIVE->drawRect(x, y, width, height,
             rx, (argc == 5 ? rx : ry), 1);
     } else {
-        NSKIA_NATIVE->drawRect(x, y, width+x, height+y, 1);
+        NSKIA_NATIVE->drawRect(x, y, width, height, 1);
     }
 
 
@@ -239,13 +239,13 @@ static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval 
 
 static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    int x, y, width, height;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y,
+    double x, y, width, height;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
         &width, &height)) {
         return JS_TRUE;
     }
 
-    NSKIA_NATIVE->clearRect(x, y, width+x, height+y);
+    NSKIA_NATIVE->clearRect(x, y, width, height);
 
     return JS_TRUE;
 }
@@ -1011,11 +1011,10 @@ void NativeCanvas2DContext::setSize(int width, int height)
                                 width, height, false);
 
     ncanvas = new SkCanvas(ndev);
-    
-    ncanvas->clipRegion(skia->canvas->getTotalClip());
-    ncanvas->setMatrix(skia->canvas->getTotalMatrix());
 
     ncanvas->drawBitmap(bt, 0, 0);
+    //ncanvas->clipRegion(skia->canvas->getTotalClip());
+    ncanvas->setMatrix(skia->canvas->getTotalMatrix());
 
     SkSafeUnref(ndev);
 

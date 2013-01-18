@@ -321,7 +321,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     }
     if (context && context->jsobj && context->jscx) {
-        JS_RemoveObjectRoot(context->jscx, &context->jsobj);
+        //JS_RemoveObjectRoot(context->jscx, &context->jsobj);
     }
     if (jsobj) {
         //JS_RemoveObjectRoot(jscx, &jsobj);

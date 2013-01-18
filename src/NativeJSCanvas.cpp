@@ -369,6 +369,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_PADDING:
             vp.set(INT_TO_JSVAL(handler->padding.global));
+            break;
         case CANVAS_PROP_LEFT:
             vp.set(DOUBLE_TO_JSVAL(handler->left));
             break;
