@@ -37,8 +37,6 @@ void NativeCanvasHandler::setWidth(int width)
     if (context) {
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
-
-        context->translate(this->padding.global, this->padding.global);
     }
 }
 
@@ -49,8 +47,6 @@ void NativeCanvasHandler::setHeight(int height)
     if (context) {
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
-
-        context->translate(this->padding.global, this->padding.global);
     }
 }
 
@@ -62,8 +58,6 @@ void NativeCanvasHandler::setSize(int width, int height)
     if (context) {
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
-
-        context->translate(this->padding.global, this->padding.global);
     }
 }
 
@@ -72,6 +66,8 @@ void NativeCanvasHandler::setPadding(int padding)
     if (!context) {
         return;
     }
+
+    context->translate(-this->padding.global, -this->padding.global);
 
     this->padding.global = padding;
  

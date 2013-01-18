@@ -1011,6 +1011,10 @@ void NativeCanvas2DContext::setSize(int width, int height)
                                 width, height, false);
 
     ncanvas = new SkCanvas(ndev);
+    
+    ncanvas->clipRegion(skia->canvas->getTotalClip());
+    ncanvas->setMatrix(skia->canvas->getTotalMatrix());
+
     ncanvas->drawBitmap(bt, 0, 0);
 
     SkSafeUnref(ndev);
