@@ -14,6 +14,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
 {
     this->width = width;
     this->height = height;
+
+    memset(&this->padding, 0, sizeof(this->padding));
 }
 
 void NativeCanvasHandler::setPosition(double left, double top)
@@ -33,7 +35,10 @@ void NativeCanvasHandler::setWidth(int width)
     this->width = width;
 
     if (context) {
-        context->setSize(this->width, this->height);
+        context->setSize(this->width + (this->padding.global * 2),
+            this->height + (this->padding.global * 2));
+
+        context->translate(this->padding.global, this->padding.global);
     }
 }
 
@@ -42,8 +47,38 @@ void NativeCanvasHandler::setHeight(int height)
     this->height = height;
 
     if (context) {
-        context->setSize(this->width, this->height);
+        context->setSize(this->width + (this->padding.global * 2),
+            this->height + (this->padding.global * 2));
+
+        context->translate(this->padding.global, this->padding.global);
     }
+}
+
+void NativeCanvasHandler::setSize(int width, int height)
+{
+    this->width = width;
+    this->height = height;
+
+    if (context) {
+        context->setSize(this->width + (this->padding.global * 2),
+            this->height + (this->padding.global * 2));
+
+        context->translate(this->padding.global, this->padding.global);
+    }
+}
+
+void NativeCanvasHandler::setPadding(int padding)
+{
+    if (!context) {
+        return;
+    }
+
+    this->padding.global = padding;
+ 
+    context->setSize(this->width + (this->padding.global * 2),
+        this->height + (this->padding.global * 2));
+
+    context->translate(this->padding.global, this->padding.global);
 }
 
 void NativeCanvasHandler::bringToFront()
@@ -132,7 +167,7 @@ void NativeCanvasHandler::removeFromParent()
     TODO: clipping/overflow
 */
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
-    double pleft, double ptop)
+    double pleft, double ptop, double aopacity)
 {
     NativeCanvasHandler *cur;
 
@@ -140,6 +175,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         return;
     }
 
+    double popacity = opacity * aopacity;
     /*
         Fill the root layer with white
         This is the base surface on top of the window frame buffer
@@ -165,14 +201,14 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             draw current context on top of the root layer
         */      
         layer->context->composeWith(context,
-            this->a_left, 
-            this->a_top);
+            this->a_left - this->padding.global, 
+            this->a_top - this->padding.global, popacity);
     }
 
     for (cur = children; cur != NULL; cur = cur->next) {
         cur->layerize(layer,
             this->left + pleft,
-            this->top + ptop);
+            this->top + ptop, popacity);
     }
 
 }
@@ -292,7 +328,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
         JS_RemoveObjectRoot(context->jscx, &context->jsobj);
     }
     if (jsobj) {
-        JS_RemoveObjectRoot(jscx, &jsobj);
+        //JS_RemoveObjectRoot(jscx, &jsobj);
     }
 
     /* Don't delete context, otherwise

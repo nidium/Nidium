@@ -400,7 +400,7 @@ int NativeSkia::bindGL(int width, int height)
 
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
-    desc.fRenderTargetHandle = buffer;
+    desc.fRenderTargetHandle = 0;
 
     printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  

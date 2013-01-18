@@ -23,7 +23,13 @@ enum {
     CANVAS_PROP___TOP,
     CANVAS_PROP___LEFT,
     /* conveniance getter for getContext("2D") */
-    CANVAS_PROP_CTX
+    CANVAS_PROP_CTX,
+    CANVAS_PROP_PADDING,
+    CANVAS_PROP_CLIENTLEFT,
+    CANVAS_PROP_CLIENTTOP,
+    CANVAS_PROP_CLIENTWIDTH,
+    CANVAS_PROP_CLIENTHEIGHT,
+    CANVAS_PROP_OPACITY
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -58,7 +64,25 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
+    {"opacity", CANVAS_PROP_OPACITY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},    
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"clientWidth", CANVAS_PROP_CLIENTWIDTH, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"clientHeight", CANVAS_PROP_CLIENTHEIGHT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"clientTop", CANVAS_PROP_CLIENTTOP, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"clientLeft", CANVAS_PROP_CLIENTLEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_NULLWRAPPER},
+    {"padding", CANVAS_PROP_PADDING, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
 
@@ -296,10 +320,28 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->setHidden(!JSVAL_TO_BOOLEAN(vp));
         }
         break;
+        case CANVAS_PROP_PADDING:
+        {
+            if (!JSVAL_IS_INT(vp)) {
+                return JS_TRUE;
+            }
+
+            handler->setPadding(JSVAL_TO_INT(vp));
+        }
+        break;
+        case CANVAS_PROP_OPACITY:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setOpacity(dval);      
+        }
+        break;
         default:
             break;
     }
-
 
     return JS_TRUE;
 }
@@ -310,17 +352,34 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     NativeCanvasHandler *handler = HANDLER_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
+        case CANVAS_PROP_OPACITY:
+            vp.set(DOUBLE_TO_JSVAL(handler->opacity));
+            break;
         case CANVAS_PROP_WIDTH:
             vp.set(INT_TO_JSVAL(handler->width));
+            break;
+        case CANVAS_PROP_CLIENTWIDTH:
+            vp.set(INT_TO_JSVAL(handler->width + (handler->padding.global * 2)));
             break;
         case CANVAS_PROP_HEIGHT:
             vp.set(INT_TO_JSVAL(handler->height));
             break;
+        case CANVAS_PROP_CLIENTHEIGHT:
+            vp.set(INT_TO_JSVAL(handler->height + (handler->padding.global * 2)));
+            break;
+        case CANVAS_PROP_PADDING:
+            vp.set(INT_TO_JSVAL(handler->padding.global));
         case CANVAS_PROP_LEFT:
             vp.set(DOUBLE_TO_JSVAL(handler->left));
             break;
+        case CANVAS_PROP_CLIENTLEFT:
+            vp.set(INT_TO_JSVAL(handler->left - handler->padding.global));
+            break;
         case CANVAS_PROP_TOP:
             vp.set(DOUBLE_TO_JSVAL(handler->top));
+            break;
+        case CANVAS_PROP_CLIENTTOP:
+            vp.set(INT_TO_JSVAL(handler->top - handler->padding.global));
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));

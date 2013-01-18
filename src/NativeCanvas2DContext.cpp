@@ -985,10 +985,12 @@ void NativeCanvas2DContext::clear(uint32_t color)
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
-    double left, double top)
+    double left, double top, double opacity)
 {
+    SkPaint pt;
+    pt.setAlpha(opacity * (double)255.);
     skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
-        left, top);
+        left, top, &pt);
 
     skia->canvas->flush();
 }
@@ -1016,6 +1018,11 @@ void NativeCanvas2DContext::setSize(int width, int height)
     delete skia->canvas;
     skia->canvas = ncanvas;
 
+}
+
+void NativeCanvas2DContext::translate(double x, double y)
+{
+    skia->canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height)

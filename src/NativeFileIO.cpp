@@ -15,7 +15,7 @@ static void *native_fileio_thread(void *arg)
 {
     NativeFileIO *NFIO = (NativeFileIO *)arg;
     
-    while (1) {
+    while (!NFIO->action.stop) {
         pthread_mutex_lock(&NFIO->threadMutex);
 
         while (!NFIO->action.active && !NFIO->action.stop) {
@@ -23,6 +23,7 @@ static void *native_fileio_thread(void *arg)
         }
         if (NFIO->action.stop) {
             pthread_mutex_unlock(&NFIO->threadMutex);
+            printf("Thread ended 1\n");
             return NULL;
         }
 
@@ -46,7 +47,7 @@ static void *native_fileio_thread(void *arg)
         NFIO->action.active = false;
         pthread_mutex_unlock(&NFIO->threadMutex);
     }
-
+    printf("Thread ended 2\n");
     return NULL;
 }
 
@@ -103,27 +104,34 @@ void NativeFileIO::readAction(uint64_t len)
     unsigned char *data = new unsigned char[clamped_len];
 
     if (fread(data, sizeof(char), clamped_len, fd) < 1) {
-        messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
+        if (!action.stop) {
+            messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
+        }
         delete data;
         return;
     }
 
     action.u64 = clamped_len;
-
-    messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
+    if (!action.stop) {
+        messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
+    }
 }
 
 void NativeFileIO::openAction(char *modes)
 {
     if ((this->fd = fopen(this->filename, modes)) == NULL) {
-        this->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
+        if (!action.stop) {
+            this->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
+        }
         return;
     }
     fseek(this->fd, 0L, SEEK_END);
     this->filesize = ftell(this->fd);
     fseek(this->fd, 0L, SEEK_SET);
 
-    this->messages->postMessage(this->fd, NATIVE_FILEOPEN_MESSAGE);    
+    if (!action.stop) {
+        this->messages->postMessage(this->fd, NATIVE_FILEOPEN_MESSAGE);
+    }
 }
 
 void NativeFileIO::open(const char *modes)
@@ -206,7 +214,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
     pthread_mutex_init(&threadMutex, NULL);
     pthread_cond_init(&threadCond, NULL);
-
+    printf("running thread\n");
     pthread_create(&threadHandle, NULL, native_fileio_thread, this);
 
     pthread_mutex_lock(&threadMutex);
@@ -217,6 +225,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 NativeFileIO::~NativeFileIO()
 {
     action.stop = true;
+    printf("Destroying file IO\n");
 
     pthread_mutex_lock(&threadMutex);
     pthread_cond_signal(&threadCond);
