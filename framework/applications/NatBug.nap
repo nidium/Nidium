@@ -250,24 +250,27 @@ Canvas.prototype.debug = function(){
 			context.fillStyle = "rgba(180, 180, 50, 0.1)";
 			context.strokeStyle = "rgba(180, 180, 255, 0.3)";
 		} else {
-			context.fillStyle = "rgba(180, 180, 0, 0.04)";
-			context.strokeStyle = "rgba(180, 180, 0, 0.08)";
+			context.fillStyle = "rgba(180, 180, 0, 0.4)";
+			context.strokeStyle = "rgba(180, 180, 0, 0.8)";
 		}
 
+		var padding = this.host.layer ? this.host.layer.padding : 0;
+
 		context.fillRect(
-			0, 
-			0, 
-			this.width,
-			this.height
+			-this.padding, 
+			-this.padding, 
+			this.clientWidth,
+			this.clientHeight
 		);
 
 		context.strokeRect(
-			0, 
-			0, 
-			this.width,
-			this.height
+			-this.padding, 
+			-this.padding, 
+			this.clientWidth,
+			this.clientHeight
 		);
 
+/*
 		if (this.host) {
 			context.fillStyle = "rgba(250, 180, 180, 0.35)";
 			context.strokeStyle = "rgba(250, 180, 255, 0.9)";
@@ -279,7 +282,7 @@ Canvas.prototype.debug = function(){
 				this.host.contentHeight
 			);
 		}
-
+*/
 	}
 
 	if (__DEBUG_SHOW_ORDER__ === true) {

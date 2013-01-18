@@ -111,10 +111,8 @@ Native.elements = {
 
 	createHardwareLayer : function(element){
 		print("Native.elements.createHardwareLayer()", element);
-		var w = element.getLayerPixelWidth(),
-			h = element.getLayerPixelHeight();
-
-		element.layer = new Canvas(w, h);
+		element.layer = new Canvas(element._width, element._height);
+		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");
 		element.layer.host = element;
 	}

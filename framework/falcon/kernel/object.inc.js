@@ -133,7 +133,6 @@ var DOMElement = function(type, options, parent){
 		__scrollTop : this._scrollTop,
 		__overflow : this._overflow,
 		__fixed : this._fixed,
-		__layerPadding : 20,
 
 		/* refreshing flags */
 		_needRefresh : true,
@@ -194,9 +193,6 @@ DOMElement.prototype = {
 	hasClass : Native.object.hasClass,
 	addClass : Native.object.addClass,
 	removeClass : Native.object.removeClass,
-
-	getLayerPixelWidth : Native.object.getLayerPixelWidth,
-	getLayerPixelHeight : Native.object.getLayerPixelHeight,
 
 	bringToFront : Native.object.bringToFront,
 	sendToBack : Native.object.sendToBack,

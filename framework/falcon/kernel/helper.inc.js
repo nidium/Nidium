@@ -151,10 +151,10 @@ String.prototype.toUint16Array = function(){
 Canvas.prototype.clear = function(){
 	var context = this.getContext("2D");
 	context.clearRect(
-		0, 
-		0, 
-		this.width,
-		this.height
+		-this.padding,
+		-this.padding, 
+		this.clientWidth,
+		this.clientHeight
 	);
 };
 

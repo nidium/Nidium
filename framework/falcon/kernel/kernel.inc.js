@@ -54,9 +54,6 @@ Native.object = {
 		this.__overflow = p ? p.__overflow && this._overflow : this._overflow;
 		this.__fixed = p ? p.__fixed || this._fixed : this._fixed;
 
-		this.__layerPadding = p ? p._layerPadding - this._layerPadding 
-								: this._layerPadding;
-
 		var	sx = (this.__fixed===false ?
 				 (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft),
 
@@ -67,13 +64,13 @@ Native.object = {
 		this.__top = (p ? p.__top + y : y) - sy;
 
 		/* ----- CHECK THIS ------ */
-		this.layer.left = this._left + this.__layerPadding - sx;
-		this.layer.top = this._top + this.__layerPadding - sy;
+		this.layer.left = this._left - sx;
+		this.layer.top = this._top - sy;
 		/* ----- CHECK THIS ------ */
 
 /*
-		this.__left = this.layer.__left + this._layerPadding;
-		this.__top = this.layer.__top + this._layerPadding;
+		this.__left = this.layer.__left;
+		this.__top = this.layer.__top;
 */
 	},
 
@@ -93,15 +90,15 @@ Native.object = {
 				 (p ? p._scrollTop : this._scrollTop) : this._scrollTop;
 
 		print("updateLayerPosition()", this);
-		this.layer.left = this._left + this.__layerPadding - sx;
-		this.layer.top = this._top + this.__layerPadding - sy;
+		this.layer.left = this._left - sx;
+		this.layer.top = this._top - sy;
 		this._needPositionUpdate = false;
 	},
 
 	updateLayerSize : function updateLayerSize(){
 		print("updateLayerSize()", this);
-		this.layer.width = this.getLayerPixelWidth();
-		this.layer.height = this.getLayerPixelHeight();
+		this.layer.width = this._width;
+		this.layer.height = this._height;
 		this._needSizeUpdate = false;
 	},
 
@@ -179,14 +176,6 @@ Native.object = {
 		Native.layout.update();
 	},
 
-	getLayerPixelWidth : function getLayerPixelWidth(){
-		return Math.round(this._width + 2*this._layerPadding);
-	},
-
-	getLayerPixelHeight : function getLayerPixelHeight(){
-		return Math.round(this._height + 2*this._layerPadding);
-	},
-
 	/*
 	 * Sort DOMElements to match hardware physical layers order.
 	 */
@@ -228,8 +217,8 @@ Native.object = {
 	getDrawingBounds : function getDrawingBounds(){
 		var p = this.parent;
 		return {
-			x : 0 + this._offsetLeft + this._layerPadding,
-			y : 0 + this._offsetTop + this._layerPadding,
+			x : 0 + this._offsetLeft,
+			y : 0 + this._offsetTop,
 			w : this._width,
 			h : this._height,
 			textOffsetX : 0,

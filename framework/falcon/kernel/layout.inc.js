@@ -66,8 +66,8 @@ Native.layout = {
 		if (!element.hasChildren || !element.scrollbars) return false;
 
 		print("slowUpdateInnerContentSize", element);
-		var mx = 0,
-			my = 0;
+		var sw = element._width,
+			sh = element._height;
 
 		/* The idea here is to compute contentWidth and contentHeight
 		 * of element. To do that, we need to recursively parse all its
@@ -85,10 +85,10 @@ Native.layout = {
 							x2 = x1 + el._width + element.__scrollLeft,
 							y2 = y1 + el._height + element.__scrollTop;
 
-						mx = x2>mx ? x2 : mx;
-						my = y2>my ? y2 : my;
+						sw = x2>sw ? x2 : sw;
+						sh = y2>sh ? y2 : sh;
 
-						if (self.count(z[i].nodes)>0){
+						if (self.count(z[i].nodes)>0 && !z[i].scrollbars){
 							dx(z[i].nodes);
 						}
 					}
@@ -97,10 +97,10 @@ Native.layout = {
 
 		dx(element.nodes);
 
-		element.contentWidth = mx;
-		element.contentHeight = my;
-		element._cachedContentWidth = mx;
-		element._cachedContentHeight = my;
+		element.contentWidth = sw;
+		element.contentHeight = sh;
+		element._cachedContentWidth = sw;
+		element._cachedContentHeight = sh;
 	},
 
 	find : function(property, value){
