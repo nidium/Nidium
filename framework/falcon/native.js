@@ -36,10 +36,7 @@ var ಠ_ಠ = '2.0',
 /* Todo : add more performance flags */
 var	__ENABLE_TEXT_SHADOWS__ = true,
 	__ENABLE_BUTTON_SHADOWS__ = true,
-	__ENABLE_GRADIENT_LAYERS__ = true,
-
-	__DEBUG_SHOW_LAYERS__ = false,
-	__DEBUG_SHOW_ORDER__ = false;
+	__ENABLE_GRADIENT_LAYERS__ = true;
 
 /* -------------------------------------------------------------------------- */
 
@@ -59,14 +56,17 @@ load(__PATH_LAYOUT__ + 'UIButton.js');
 load(__PATH_LAYOUT__ + 'UIButtonClose.js');
 load(__PATH_LAYOUT__ + 'UIButtonDown.js');
 
+load(__PATH_LAYOUT__ + 'UISliderKnob.js');
+load(__PATH_LAYOUT__ + 'UISliderController.js');
+
 load(__PATH_LAYOUT__ + 'UITab.js');
 load(__PATH_LAYOUT__ + 'UITabController.js');
 
 load(__PATH_LAYOUT__ + 'UIWindow.js');
 load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
 
-load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
-load(__PATH_LAYOUT__ + 'UIDropDownController.js');
+//load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
+//load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
 load(__PATH_LAYOUT__ + 'UIScrollBars.js');
 

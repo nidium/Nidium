@@ -25,14 +25,14 @@ Canvas.implement({
 	},
 
 	setText : function(label, x, y, color, shadowColor){
-		if (shadowColor && __ENABLE_TEXT_SHADOWS__) {
+		if (shadowColor && __ENABLE_TEXT_SHADOWS__){
 			this.setShadow(1, 1, 1, shadowColor);
 		}
 
 		this.setColor(color);
 		this.fillText(label, x, y);
 
-		if (shadowColor && __ENABLE_TEXT_SHADOWS__) {
+		if (shadowColor && __ENABLE_TEXT_SHADOWS__){
 			this.setShadow(0, 0, 0);
 		}
 	}

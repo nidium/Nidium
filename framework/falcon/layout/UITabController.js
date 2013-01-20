@@ -190,9 +190,9 @@ Native.elements.export("UITabController", {
 
 			newtab.__lock("insertTab");
 			newtab.left = left;
-			newtab.opacity = 0;
-			newtab.closeButton.hide();
 			newtab.__unlock("insertTab");
+
+			newtab.opacity = 0;
 
 			for (var i=0; i<to.length; i++){
 				if (to[i] >= index){
@@ -202,9 +202,7 @@ Native.elements.export("UITabController", {
 			to.splice(position, 0, index);
 			
 			self.resetTabs(true, function(){
-				newtab.fadeIn(150, function(){
-					newtab.closeButton.show();
-				});
+				newtab.fadeIn(150);
 			});
 
 			self.fireEvent("tabinsert", {
@@ -261,7 +259,8 @@ Native.elements.export("UITabController", {
 				fontSize : OptionalNumber(o.fontSize, 11),
 				fontType : OptionalString(o.fontType, "arial"),
 				closable : OptionalBoolean(o.closable, true),
-				preventmove : OptionalBoolean(o.preventmove, false)
+				preventmove : OptionalBoolean(o.preventmove, false),
+				target : OptionalValue(o.target, null)
 			});
 
 			this.tabs[i].index = i;

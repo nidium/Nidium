@@ -25,13 +25,147 @@
  */
 
 var NatBug = {
+	panes : [],
+
+	init : function(x=28, y=490){
+		if (!this.loaded){
+			this.loaded = true;
+
+			this.createApp(x, y);
+			this.createTabController();
+
+			Native.showFPS(true);
+			Native.FPS.init();
+		}
+	},
+
+	attachDragListener : function(element){
+		var self = this;
+		element.addEventListener("drag", function(e){
+			self.application.left += e.xrel;
+			self.application.top += e.yrel;
+		});
+	},
+
+	createApp : function(x, y){
+		this.application = new Application({
+			id : "NatBugWin",
+			left : x,
+			top : y,
+			width : 844,
+			height : 244,
+			background : "rgba(80, 80, 0, 0.35)",
+			backgroundImage : "falcon/assets/back.png",
+			radius : 8,
+			opacity : 0.94,
+			alpha : 0.9,
+			shadowBlur : 12,
+			shadowColor : "#000000",
+			shadowOffsetY : 10
+		});
+
+		Native.__debugger = this.application;
+
+		new UILabel(this.application, {
+			id : "NatBugLabel",
+			left : this.application.width - 68,
+			top : 5,
+			paddingLeft : 8,
+			paddingRight : 8,
+			height : 28,
+			color : "#ffffff",
+			background : "rgba(255, 255, 255, 0.04)",
+			fontSize : 11,
+			radius : 4,
+			label : "NATBUG"
+		});
+
+		this.attachDragListener(this.application);
+	},
+
+	createTabController : function(){
+		var	k = 0,
+			myTabs = [];
+
+		for (var i=0; i<this.panes.length; i++){
+			var pane = this.panes[i];
+			pane.init();
+			pane.tab.target = pane.view;
+			if (pane.tab.selected) pane.show();
+			myTabs.push(pane.tab);
+		}
+
+		this.tabController = new UITabController(this.application, {
+			name : "NatBugTabController",
+			tabs : myTabs,
+			left : 0,
+			top : 3,
+			height : 34
+		});
+
+		this.tabController.addEventListener("tabselect", function(e){
+			var panes = Native.layout.getElementsByClassName("natbug_pane");
+
+			panes.each(function(){
+				this.hide();
+			});
+
+			e.tab.target.show();
+		});
+
+		this.attachDragListener(this.tabController);
+	},
+
+	createPane : function(id){
+		return this.application.add("UIView", {
+			id : id,
+			left : 6,
+			top : 46,
+			width : this.application.width - 12,
+			height : this.application.height - 54,
+			scrollbars : false,
+			visible : false,
+			class : "natbug_pane"
+		})
+	},
+
+	show : function(){
+		if (this.loaded){
+			this.application.show();
+		}
+	},
+
+	hide : function(){
+		if (this.loaded){
+			this.application.hide();
+		}
+	}
+};
+
+/* properties pane */
+NatBug.panes.push({
 	labels : {},
 	values : {},
 
+	tab : {
+		id : "NatBugTab1",
+		label : "Properties",
+		selected : true,
+		background : "#882200",
+		color : "#ffffff",
+		fontSize : 11,
+		closable : false
+	},
+
 	props : [
-		"id", "type", "label", "name", "left", "top", "width", "height",
+		"id", "type", "label", "name",
+
+		"left", "top",
+		"width", "height",
 		"contentWidth", "contentHeight",
-		"paddingLeft", "paddingRight", "scale",
+		"paddingLeft", "paddingRight",
+
+		"scale",
 		
 		"overflow", "__overflow",
 		"opacity", "__opacity",
@@ -53,86 +187,11 @@ var NatBug = {
 		"shadowBlur", "selection"
 	],
 
-	init : function(x=28, y=490){
-		var self = this,
-			lines = 0,
+	init : function(){
+		var lines = 0,
 			col = 0;
 
-		if (this.loaded) return false;
-
-		this.loaded = true;
-
-		this.application = new Application({
-			id : "NatBugWin",
-			left : x,
-			top : y,
-			width : 844,
-			height : 244,
-			background : "rgba(0, 80, 0, 0.35)",
-			backgroundImage : "falcon/assets/back.png",
-			radius : 8,
-			opacity : 0.8
-		});
-
-		Native.__debugger = this.application;
-
-		this.application.add("UILabel", {
-			id : "label",
-			left : this.application.width - 68,
-			top : 5,
-			paddingLeft : 8,
-			paddingRight : 8,
-			height : 28,
-			color : "#ffffff",
-			background : "rgba(255, 255, 255, 0.04)",
-			fontSize : 11,
-			radius : 4,
-			label : "NATBUG"
-		});
-
-		var	myTabs = [
-			{
-				label : "Properties",
-				selected : true,
-				background : "#882266",
-				color : "#ffffff",
-				fontSize : 11,
-				closable : false
-			},
-
-			{
-				label : "Network",
-				background : "#882266",
-				color : "#ffffff",
-				fontSize : 11,
-				closable : false
-			}
-		];
-
-		this.tabController = this.application.add("UITabController", {
-			name : "NatBugController",
-			tabs : myTabs,
-			left : 0,
-			top : 3,
-			height : 34
-		});
-
-		var k = 0;
-		this.tabController.addEventListener("tabselect", function(e){
-			var labels = Native.layout.getElementsByClassName("natbug_pane01");
-			if (e.tab.label == "Properties") {
-				labels.each(function(){
-					this.fadeIn(150);
-				});
-			} else {
-				labels.each(function(){
-					this.fadeOut(150);
-				});
-			}
-		});
-
-		this.attachDragListener(this.tabController);
-		this.attachDragListener(this.application);
+		this.view = NatBug.createPane("natbug_pane_properties");
 
 		for (var l = 0; l<this.props.length; l++){
 			var property = this.props[l],
@@ -149,68 +208,21 @@ var NatBug = {
 				b2 = "rgba(255, 255, 255, 0.075)";
 			}
 
-			this.createLine(property, lines, col, b1, b2);
+			this.add(property, lines, col, b1, b2);
 			lines++;
 
 		}
 
-		this.show();
-		Native.showFPS(true);
-		Native.FPS.init();
-		__DEBUG_SHOW_LAYERS__ = true;
-		//__DEBUG_SHOW_ORDER__ = true;
-	},
-
-	createLine : function(property, line, col, b1, b2){
-		this.labels[property] = this.application.add("UILabel", {
-			id : "label " + property,
-			paddingLeft : 5,
-			left : 5 + 210*col,
-			top : 44 + 15*line,
-			width : 80,
-			height : 14,
-			color : "#66aa66",
-			background : b1,
-			fontSize : 10,
-			label : property
-		});
-
-		this.values[property] = this.application.add("UILabel", {
-			id : "value " + property,
-			paddingLeft : 5,
-			left : 88 + 210*col,
-			top : 44 + 15*line,
-			width : 120,
-			height : 14,
-			color : "#66aa66",
-			background : b2,
-			label : "",
-			fontSize : 10,
-			radius : 2
-		});
-
-		this.labels[property].addClass("natbug_pane01");
-		this.values[property].addClass("natbug_pane01");
-
-		this.attachDragListener(this.labels[property]);
-		this.attachDragListener(this.values[property]);
-	},
-
-	attachDragListener : function(element){
-		var self = this;
-		element.addEventListener("drag", function(e){
-			self.application.left += e.xrel;
-			self.application.top += e.yrel;
-		});
 	},
 
 	show : function(){
-		var self = this;
-		if (!this.loaded) return false;
-		this.application.show();
+		var self = this,
+			app = this.view.parent;
+
+		this.view.show();
 
 		window.onElementUnderPointer = function(e){
-			if (!self.application.isPointInside(e.x, e.y)){
+			if (!app.isPointInside(e.x, e.y)){
 				this.__lock("onElementUnderPointer");
 				for (var l = 0; l<self.props.length; l++){
 					var a = self.props[l];
@@ -223,7 +235,6 @@ var NatBug = {
 						self.values[a].color = "#ddffdd";
 						self.values[a].label = this[a];
 					}
-					// + (this.parent ? " ("+this.parent[a]+")" : "");
 				}
 				this.__unlock("onElementUnderPointer");
 			}
@@ -231,27 +242,85 @@ var NatBug = {
 	},
 
 	hide : function(){
-		if (!this.loaded) return false;
-		this.application.hide();
-		delete(window.onElementUnderPointer);
-	}
+		window.onElementUnderPointer = null;
+		this.view.hide();
+	},
 
-};
+	add : function(property, line, col, b1, b2){
+		this.labels[property] = this.view.add("UILabel", {
+			id : "natbug_label_" + property,
+			paddingLeft : 5,
+			left : 210*col,
+			top : 15*line,
+			width : 80,
+			height : 14,
+			color : "#66aa66",
+			background : b1,
+			fontSize : 10,
+			label : property
+		});
+
+		this.values[property] = this.view.add("UILabel", {
+			id : "natbug_value_" + property,
+			paddingLeft : 5,
+			left : 82 + 210*col,
+			top : 15*line,
+			width : 120,
+			height : 14,
+			color : "#66aa66",
+			background : b2,
+			label : "",
+			fontSize : 10,
+			radius : 2
+		});
+
+		NatBug.attachDragListener(this.labels[property]);
+		NatBug.attachDragListener(this.values[property]);
+	}
+});
+
+
+/* network pane */
+NatBug.panes.push({
+	tab : {
+		id : "NatBugTab2",
+		label : "Network",
+		background : "#882266",
+		color : "#ffffff",
+		fontSize : 11,
+		closable : false
+	},
+
+	init : function(){
+		this.view = NatBug.createPane("natbug_pane_network");
+	},
+
+	show : function(){
+		this.view.show();
+	},
+
+	hide : function(){
+		this.view.hide();
+	}
+});
+
 
 Canvas.prototype.debug = function(){
-	var context = this.getContext("2D");
+	var context = this.getContext("2D"),
+		__DEBUG_SHOW_LAYERS__ = false,
+		__DEBUG_SHOW_ORDER__ = false;
 
 	if (!this.host || this.host._root == Native.__debugger){
 		return false;
 	}
 
-	if (__DEBUG_SHOW_LAYERS__) {
+	if (__DEBUG_SHOW_LAYERS__){
 		if (this.host && this.host.hover){
-			context.fillStyle = "rgba(180, 180, 50, 0.1)";
-			context.strokeStyle = "rgba(180, 180, 255, 0.3)";
+			context.fillStyle = "rgba(180, 180, 50, 0.15)";
+			context.strokeStyle = "rgba(180, 180, 255, 0.45)";
 		} else {
-			context.fillStyle = "rgba(180, 180, 0, 0.4)";
-			context.strokeStyle = "rgba(180, 180, 0, 0.8)";
+			context.fillStyle = "rgba(180, 180, 0, 0.04)";
+			context.strokeStyle = "rgba(180, 180, 0, 0.08)";
 		}
 
 		var padding = this.host.layer ? this.host.layer.padding : 0;
@@ -269,23 +338,9 @@ Canvas.prototype.debug = function(){
 			this.clientWidth,
 			this.clientHeight
 		);
-
-/*
-		if (this.host) {
-			context.fillStyle = "rgba(250, 180, 180, 0.35)";
-			context.strokeStyle = "rgba(250, 180, 255, 0.9)";
-
-			context.fillRect(
-				this.host._layerPadding, 
-				this.host._layerPadding, 
-				this.host.contentWidth,
-				this.host.contentHeight
-			);
-		}
-*/
 	}
 
-	if (__DEBUG_SHOW_ORDER__ === true) {
+	if (__DEBUG_SHOW_ORDER__){
 		context.fontSize = 9;
 		if (this.host && this.host._hover){
 			context.setText(
@@ -305,7 +360,6 @@ Canvas.prototype.debug = function(){
 			);
 		}
 	}
-
 };
 
 Native.FPS = {

@@ -35,6 +35,8 @@ Native.object = {
 		if (this._needAncestorCacheClear) this.updateAncestors();
 		if (this._needRedraw) this.redraw();
 
+		this.layer.overflow = this.overflow;
+
 		this._needRefresh = false;
 	},
 
@@ -48,8 +50,6 @@ Native.object = {
 
 		this.__scrollTop = p ? p.__scrollTop + this._scrollTop 
 							 : this._scrollTop;
-
-		this.__opacity = p ? p.__opacity * this._opacity : this._opacity;
 
 		this.__overflow = p ? p.__overflow && this._overflow : this._overflow;
 		this.__fixed = p ? p.__fixed || this._fixed : this._fixed;
@@ -76,7 +76,7 @@ Native.object = {
 
 	updateLayerOpacity : function updateLayerOpacity(){
 		print("updateLayerOpacity()", this);
-		this.layer.context.globalAlpha = this.__opacity;
+		this.layer.opacity = this._opacity;
 		this._needOpacityUpdate = false;
 	},
 
@@ -89,23 +89,24 @@ Native.object = {
 			sy = this.__fixed===false ?
 				 (p ? p._scrollTop : this._scrollTop) : this._scrollTop;
 
-		print("updateLayerPosition()", this);
+		print("updateLayerPosition("+(this._left - sx)+", "+(this._top - sy)+")", this);
 		this.layer.left = this._left - sx;
 		this.layer.top = this._top - sy;
 		this._needPositionUpdate = false;
 	},
 
 	updateLayerSize : function updateLayerSize(){
-		print("updateLayerSize()", this);
-		this.layer.width = this._width;
-		this.layer.height = this._height;
+		print("updateLayerSize("+this._width+", "+this._height+")", this);
+		this.layer.width = Math.round(this._width);
+		this.layer.height = Math.round(this._height);
 		this._needSizeUpdate = false;
 	},
 
 	updateAncestors : function updateAncestors(){
-		print("updateAncestors()", this);
 		var element = this;
 		if (this.type == "UIScrollBarHandle") return false;
+		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
+		
 		/* clean cache for all this element's parents (all ancestors) */
 		while (element.parent){
 			var p = element.parent;
@@ -160,11 +161,12 @@ Native.object = {
 
 	addChild : function addChild(element){
 		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
-		print("addChild("+element._uid+")", this);
+		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
 		this.nodes[element._uid] = element;
-		element._root = this._root;
+//		element._root = this._root;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
+		element.updateAncestors();
 		Native.layout.update();
 	},
 
@@ -228,10 +230,16 @@ Native.object = {
 
 	beforeDraw : function beforeDraw(){
 		print("beforeDraw()", this);
+		var ctx = this.layer.context;
+
+		ctx.save();
+		ctx.globalAlpha = this._alpha;
 	},
 
 	afterDraw : function afterDraw(){
 		print("afterDraw()", this);
+		var ctx = this.layer.context;
+		ctx.restore();
 	},
 
 	isPointInside : function isPointInside(mx, my){

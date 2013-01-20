@@ -77,8 +77,9 @@ Native.elements.export("UIDropDownController", {
 				self.selection = i;
 			}
 
+			this.tabsContainer.__unlock();
 			this.tabs[i] = this.tabsContainer.add("UIDropDownOption", {
-				left : 40,
+				left : -40,
 				top : y,
 				height : this.height,
 				name : "option_" + this.name,
@@ -98,7 +99,8 @@ Native.elements.export("UIDropDownController", {
 			height : 250,
 			radius : 0,
 			background : '#FF2722',
-			shadowBlur : 10
+			shadowBlur : 10,
+			scrollbars : true
 		});
 
 		for (var i=0; i<l; i++){

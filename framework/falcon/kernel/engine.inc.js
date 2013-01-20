@@ -20,22 +20,22 @@ Native.elements = {
 		print("Native.elements.init()", element);
 		var plugin = this[element.type];
 
+		if (!plugin) return false;
+
 		element.__lock("init");
 
+
+		if (plugin.draw) element.draw = plugin.draw;
+		if (plugin.refresh) element.update = plugin.refresh;
+
+		if (plugin.public){
+			DOMElement.defineDescriptors(element, plugin.public);
+		}
+
 		this.createHardwareLayer(element);
-
-		if (plugin){
-			if (plugin.draw) element.draw = plugin.draw;
-			if (plugin.refresh) element.update = plugin.refresh;
-
-			if (plugin.public){
-				DOMElement.defineDescriptors(element, plugin.public);
-			}
-
-			if (plugin.init){
-				print("plugin:init()", element);
-				plugin.init.call(element);
-			}
+		if (plugin.init){
+			print("plugin:init()", element);
+			plugin.init.call(element);
 		}
 
 		if (element._canReceiveFocus){
@@ -110,7 +110,7 @@ Native.elements = {
 	},
 
 	createHardwareLayer : function(element){
-		print("Native.elements.createHardwareLayer()", element);
+		print("Native.elements.createHardwareLayer("+element._width+", "+element._height+")", element);
 		element.layer = new Canvas(element._width, element._height);
 		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");
@@ -130,7 +130,6 @@ Native.getTextWidth = function(text, fontSize, fontType){
 		context.fontType = fontType;
 		c[key] = context.measureText(text);
 	}
-
 	return c[key];
 };
 

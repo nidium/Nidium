@@ -242,26 +242,26 @@ var print = function(txt, element){
 	if (element && element._root == Native.__debugger) return false;
 	if (window.keydown != 1073742051) return false;
 
-	var __LOG_BEFORE_DOMREADY__ = false,
+	var __LOG_BEFORE_DOMREADY__ = true,
 
 		__KEYWORD__ = "",
-		__ELEMENT_ID__ = "bigview",
+		__ELEMENT_ID__ = "_obj_5, _obj_21, _obj_22, _obj_23",
 
 		/* -- displays ---------- */
 		__events__ = false,
 		__keys__ = false,
 		__mousemove__ = false,
 
-		__add__ = false,
+		__add__ = true,
 		__init__ = false,
 
 		__draw__ = false,
-		__refresh__ = true,
+		__refresh__ = false,
 		__update__ = true,
 
-		__getter__ = true,
+		__getter__ = false,
 		__setter__ = true,
-		__plugin__ = true,
+		__plugin__ = false,
 
 		__locks__ = false,
 		__DOMElement__ = true,
@@ -291,7 +291,23 @@ var print = function(txt, element){
 
 	if (element) {
 
-		if (__ELEMENT_ID__ && element.id != __ELEMENT_ID__) return false;
+		if (__ELEMENT_ID__) {
+			var arr = __ELEMENT_ID__.split(","),
+				go = true;
+
+			if (arr.length) {
+				go = false;
+				for (var i=0; i<arr.length; i++){
+					var id = arr[i].replace(" ", "");
+					if (element.id == id){
+						go = true;
+						break;
+					}
+				}
+			}
+
+			if (go === false) return false;
+		}
 
 		echo(
 			'#'+element._root.id + ':' + element.type,

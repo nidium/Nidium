@@ -9,7 +9,8 @@ load("libs/misc.lib.js");
 /* -------------------------------------------------------------------------- */
 
 var main = new Application({
-	id : "main"
+	id : "main",
+	background : "white"
 });
 
 var	button = new UIButton(main, {
@@ -20,8 +21,11 @@ var	button = new UIButton(main, {
 });
 
 button.addEventListener("mousedown", function(e){
+
+	view.scrollTop = 50;
+
+
 /*
-	view.scrollTop = 0;
 
 	view.animate(
 		"scrollTop", 	// property
@@ -42,7 +46,8 @@ var	bigview = new UIView(main, {
 	height : 400,
 	background : "rgba(240, 80, 180, 0.5)",
 	overflow : false,
-	scrollbars : true
+	scrollbars : true,
+	radius : 10
 });
 
 var	view = new UIView(bigview, {
@@ -52,7 +57,7 @@ var	view = new UIView(bigview, {
 	width : 400,
 	height : 250,
 	background : "rgba(0, 0, 80, 0.5)",
-	overflow : true,
+	overflow : false,
 	scrollbars : true
 });
 
@@ -73,9 +78,11 @@ var	c1 = new UIView(view, {
 	width : 100,
 	height : 150,
 	background : "rgba(255, 255, 255, 0.7)",
-	overflow : false,
+	overflow : true,
 	scrollbars : true
 });
+
+echo("contentHeight after c1", c1.contentHeight);
 
 var	c2 = new UIView(c1, {
 	id : "c2",
@@ -86,6 +93,8 @@ var	c2 = new UIView(c1, {
 	background : "#0088DD"
 });
 
+echo("contentHeight after c2", c1.contentHeight);
+
 var	c22 = new UIView(c1, {
 	id : "c22",
 	left : 50,
@@ -95,6 +104,8 @@ var	c22 = new UIView(c1, {
 	background : "#0088DD"
 });
 
+echo("contentHeight after c22", c1.contentHeight);
+
 var	c3 = new UIButton(c1, {
 	id : "c3",
 	left : 30,
@@ -102,6 +113,8 @@ var	c3 = new UIButton(c1, {
 	label : "button",
 	background : "#0088DD"
 });
+
+echo("contentHeight after c3", c1.contentHeight);
 
 var	c4 = new UIView(view, {
 	id : "c4",
@@ -111,6 +124,8 @@ var	c4 = new UIView(view, {
 	height : 20,
 	background : "#ff0088"
 });
+
+echo("contentHeight after c4", c1.contentHeight);
 
 document.addEventListener("load", function(){
 //	echo("#view.contentHeight:", view.contentHeight);

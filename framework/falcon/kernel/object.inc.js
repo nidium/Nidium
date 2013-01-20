@@ -32,13 +32,6 @@ var DOMElement = function(type, options, parent){
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
 	DOMElement.definePublicProperties(this, {
-		/* ------------------------------------------------------------------ */
-		/* DO NOT NEED REDRAW PROPERTIES                                      */
-		/* ------------------------------------------------------------------
-		left, top, width, height,
-		percentLeft, percentTop, percentWidth, percentHeight
-		--------------------------------------------------------------------- */ 
-
 		// -- class management
 		className : OptionalString(o.class, ""),
 
@@ -75,16 +68,17 @@ var DOMElement = function(type, options, parent){
 		// -- style properties
 		blur : OptionalNumber(o.blur, 0),
 		opacity : OptionalNumber(o.opacity, 1),
+		alpha : OptionalNumber(o.alpha, 1),
 
 		shadowOffsetX : OptionalNumber(o.shadowOffsetX, 0),
 		shadowOffsetY : OptionalNumber(o.shadowOffsetY, 0),
 		shadowBlur : OptionalNumber(o.shadowBlur, 0),
-		shadowColor : OptionalNumber(o.shadowColor, "rgba(0, 0, 0, 0.5)"),
+		shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)"),
 
 		textShadowOffsetX : OptionalNumber(o.textShadowOffsetX, 0),
 		textShadowOffsetY : OptionalNumber(o.textShadowOffsetY, 0),
 		textShadowBlur : OptionalNumber(o.textShadowBlur, 0),
-		textShadowColor : OptionalNumber(o.textShadowColor, "rgba(0, 0, 0, 0.4)"),
+		textShadowColor : OptionalValue(o.textShadowColor, "rgba(0, 0, 0, 0.4)"),
 
 		color : OptionalValue(o.color, ''),
 		background : OptionalValue(o.background, ''),
@@ -124,12 +118,11 @@ var DOMElement = function(type, options, parent){
 		_maxx : this._left + this._width,
 		_maxy : this._top + this._top,
 
-		_layerPadding : p ? 20 : 0,
+		_layerPadding : p ? 20 : 20,
 
 		/* absolute value (inherited) */
 		__left : 0,
 		__top : 0,
-		__opacity : this._opacity,
 		__scrollTop : this._scrollTop,
 		__overflow : this._overflow,
 		__fixed : this._fixed,
@@ -140,7 +133,7 @@ var DOMElement = function(type, options, parent){
 		_needPositionUpdate : true,
 		_needSizeUpdate : true,
 		_needOpacityUpdate : true,
-		_needAncestorCacheClear : true
+		_needAncestorCacheClear : false
 	});
 
 	/* Runtime changes does not impact the visual aspect of the element */
@@ -251,7 +244,6 @@ DOMElement.onPropertyUpdate = function(e){
 
 		case "opacity" :
 			element._needOpacityUpdate = true;
-			element._needRedraw = true;
 			break;
 
 		case "className" :

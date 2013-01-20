@@ -48,7 +48,8 @@ Native.elements.export("UITab", {
 			paddingRight	: OptionalNumber(o.paddingLeft, 10),
 
 			height 			: OptionalNumber(o.height, 24),
-			color 			: OptionalValue(o.color, "#aaaaaa")
+			color 			: OptionalValue(o.color, "#aaaaaa"),
+			target			: OptionalValue(o.target, null)
 		});
 		
 		this.getState = function(){

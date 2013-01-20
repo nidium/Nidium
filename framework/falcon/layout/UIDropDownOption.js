@@ -32,13 +32,6 @@ Native.elements.export("UIDropDownOption", {
 		this.updateElement = function(){
 			this.width = this.parent.width;
 			this.height = this.parent.parent.height;
-
-			this.clip = {
-				x : this.parent.left,
-				y : this.parent.top,
-				w : this.parent.width,
-				h : this.parent.height
-			};
 		};
 
 		this.updateElement();

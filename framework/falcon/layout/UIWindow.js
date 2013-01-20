@@ -128,7 +128,10 @@ Native.elements.export("UIWindow", {
 			});
 
 			this.handle.closeButton.addEventListener("mouseup", function(e){
-				self.set("scale", 0, 120, function(){});
+				//self.set("scale", 0, 120, function(){});
+				self.fadeOut(150, function(){
+					this.hide();
+				});
 				self.shadowBlur = 0;
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";
 				e.stopPropagation();

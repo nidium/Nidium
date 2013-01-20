@@ -84,9 +84,8 @@ tabController.addEventListener("tabswap", function(e){
 
 
 
-	var tab = tabController.getSelectedTab();
-
-	tab.label = "fsdfsdfsdffds"
+var tab = tabController.getSelectedTab();
+tab.label = "fsdfsdfsdffds"
 
 /*
 

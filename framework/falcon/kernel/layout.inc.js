@@ -32,6 +32,15 @@ Native.layout = {
 			} else {
 				z[i].updateInheritance();
 			}
+
+			/*
+			if (z[i].layer.debug) {
+				z[i].layer.clear();
+				z[i].layer.debug();
+				z[i].draw(z[i].layer.context);
+			}
+			*/
+
 		}
 
 		if (!document.ready){
@@ -97,10 +106,13 @@ Native.layout = {
 
 		dx(element.nodes);
 
-		element.contentWidth = sw;
-		element.contentHeight = sh;
-		element._cachedContentWidth = sw;
-		element._cachedContentHeight = sh;
+		var dx = element.__scrollLeft - element._scrollLeft,
+			dy = element.__scrollTop - element._scrollTop;
+
+		element.contentWidth = sw - dx;
+		element.contentHeight = sh - dy;
+		element._cachedContentWidth = sw - dx;
+		element._cachedContentHeight = sh - dy;
 	},
 
 	find : function(property, value){
