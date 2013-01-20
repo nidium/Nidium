@@ -211,18 +211,24 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             clip->fTop = this->a_top;
             clip->fRight = this->width + this->a_left;
             clip->fBottom = this->height + this->a_top;
-        } else {
-            if (!clip->intersect(this->a_left, this->a_top,
-                this->width + this->a_left, this->height + this->a_top)) {
-                return;
-            }
+        } else if (!clip->intersect(this->a_left, this->a_top,
+                    this->width + this->a_left, this->height + this->a_top)) {
+            /* don't need to draw children (out of bounds) */
+            return;
         }
+    }
+    NativeRect tmpClip;
+    if (clip != NULL) {
+        memcpy(&tmpClip, clip, sizeof(NativeRect));
     }
     for (cur = children; cur != NULL; cur = cur->next) {
 
         cur->layerize(layer,
             this->left + pleft,
             this->top + ptop, popacity, clip);
+            if (clip != NULL) {
+                memcpy(clip, &tmpClip, sizeof(NativeRect));
+            }
     }
 
 }
