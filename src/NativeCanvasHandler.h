@@ -16,6 +16,24 @@ class NativeCanvas2DContext;
         * ::destroy() (JS_RemoveObjectRoot)
 */
 
+struct NativeRect
+{
+    double fLeft, fTop, fBottom, fRight;
+    bool isEmpty() const { return fLeft >= fRight || fTop >= fBottom; }
+    bool intersect(double left, double top, double right, double bottom) {
+        if (left < right && top < bottom && !this->isEmpty() &&
+            fLeft < right && left < fRight && fTop < bottom && top < fBottom)
+        {
+            if (fLeft < left) fLeft = left;
+            if (fTop < top) fTop = top;
+            if (fRight > right) fRight = right;
+            if (fBottom > bottom) fBottom = bottom;
+            return true;
+        }
+        return false;
+    }
+};
+
 class NativeCanvasHandler
 {
     public:
@@ -55,6 +73,7 @@ class NativeCanvasHandler
         } padding;
 
         double opacity;
+        bool overflow;
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
@@ -83,7 +102,7 @@ class NativeCanvasHandler
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
-            double ptop, double aopacity);
+            double ptop, double aopacity, NativeRect *clip);
     private:
         NativeCanvasHandler *parent;
         NativeCanvasHandler *children;

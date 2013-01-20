@@ -985,13 +985,27 @@ void NativeCanvas2DContext::clear(uint32_t color)
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
-    double left, double top, double opacity)
+    double left, double top, double opacity, const NativeRect *rclip)
 {
     SkPaint pt;
     pt.setAlpha(opacity * (double)255.);
-    skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
-        left, top, &pt);
 
+    if (rclip != NULL) {
+        SkRect r;
+        r.set(SkDoubleToScalar(rclip->fLeft), SkDoubleToScalar(rclip->fTop),
+            SkDoubleToScalar(rclip->fRight), SkDoubleToScalar(rclip->fBottom));
+
+        skia->canvas->save(SkCanvas::kClip_SaveFlag);
+
+        skia->canvas->clipRect(r);
+        skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
+            left, top, &pt);
+
+        skia->canvas->restore();
+    } else {
+        skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
+            left, top, &pt);        
+    }
     skia->canvas->flush();
 }
 

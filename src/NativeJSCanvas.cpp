@@ -29,7 +29,8 @@ enum {
     CANVAS_PROP_CLIENTTOP,
     CANVAS_PROP_CLIENTWIDTH,
     CANVAS_PROP_CLIENTHEIGHT,
-    CANVAS_PROP_OPACITY
+    CANVAS_PROP_OPACITY,
+    CANVAS_PROP_OVERFLOW
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -66,7 +67,10 @@ static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 static JSPropertySpec canvas_props[] = {
     {"opacity", CANVAS_PROP_OPACITY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},    
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"overflow", CANVAS_PROP_OVERFLOW, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},  
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
@@ -275,20 +279,24 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_WIDTH:
         {
-            if (!JSVAL_IS_INT(vp)) {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
+            JS_ValueToNumber(cx, vp, &dval);
 
-            handler->setWidth(JSVAL_TO_INT(vp));
+            handler->setWidth((int)dval);
         }
         break;
         case CANVAS_PROP_HEIGHT:
         {
-            if (!JSVAL_IS_INT(vp)) {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
+            JS_ValueToNumber(cx, vp, &dval);
             
-            handler->setHeight(JSVAL_TO_INT(vp));
+            handler->setHeight((int)dval);
         }
         break;
         case CANVAS_PROP_LEFT:
@@ -320,13 +328,24 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->setHidden(!JSVAL_TO_BOOLEAN(vp));
         }
         break;
-        case CANVAS_PROP_PADDING:
+        case CANVAS_PROP_OVERFLOW:
         {
-            if (!JSVAL_IS_INT(vp)) {
+            if (!JSVAL_IS_BOOLEAN(vp)) {
                 return JS_TRUE;
             }
 
-            handler->setPadding(JSVAL_TO_INT(vp));
+            handler->overflow = JSVAL_TO_BOOLEAN(vp);
+        }
+        break;
+        case CANVAS_PROP_PADDING:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+
+            handler->setPadding((int)dval);
         }
         break;
         case CANVAS_PROP_OPACITY:
@@ -384,6 +403,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
+            break;
+        case CANVAS_PROP_OVERFLOW:
+            vp.set(BOOLEAN_TO_JSVAL(handler->overflow));
             break;
         case CANVAS_PROP___VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(handler->isDisplayed()));
