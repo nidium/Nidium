@@ -17,6 +17,7 @@
 */
 
 class NativeSkia;
+class NativeRect;
 
 class NativeCanvas2DContext : public NativeJSExposer
 {
@@ -34,7 +35,7 @@ class NativeCanvas2DContext : public NativeJSExposer
             draw layer on top of "this"
         */
         void composeWith(NativeCanvas2DContext *layer, double left,
-            double top, double opacity);
+            double top, double opacity, const NativeRect *clip);
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);

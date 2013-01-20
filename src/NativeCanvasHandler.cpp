@@ -7,7 +7,7 @@
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
-    opacity(1.0),
+    opacity(1.0), overflow(true),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE)
@@ -163,9 +163,10 @@ void NativeCanvasHandler::removeFromParent()
     TODO: clipping/overflow
 */
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
-    double pleft, double ptop, double aopacity)
+    double pleft, double ptop, double aopacity, NativeRect *clip)
 {
     NativeCanvasHandler *cur;
+    NativeRect nclip;
 
     if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
         return;
@@ -198,13 +199,30 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         */      
         layer->context->composeWith(context,
             this->a_left - this->padding.global, 
-            this->a_top - this->padding.global, popacity);
+            this->a_top - this->padding.global, popacity,
+            (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
     }
 
+    if (!this->overflow) {
+
+        if (clip == NULL) {
+            clip = &nclip;
+            clip->fLeft = this->a_left;
+            clip->fTop = this->a_top;
+            clip->fRight = this->width + this->a_left;
+            clip->fBottom = this->height + this->a_top;
+        } else {
+            if (!clip->intersect(this->a_left, this->a_top,
+                this->width + this->a_left, this->height + this->a_top)) {
+                return;
+            }
+        }
+    }
     for (cur = children; cur != NULL; cur = cur->next) {
+
         cur->layerize(layer,
             this->left + pleft,
-            this->top + ptop, popacity);
+            this->top + ptop, popacity, clip);
     }
 
 }
