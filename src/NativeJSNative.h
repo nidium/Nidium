@@ -3,6 +3,7 @@
 
 #include "NativeJSExposer.h"
 
+class NativeSkia;
 
 class NativeJSNative : public NativeJSExposer
 {

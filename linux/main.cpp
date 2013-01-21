@@ -4,6 +4,7 @@
 //#include <SDL2/SDL_opengl.h>
 #include <SDL_video.h>
 #include <pthread.h>
+#include <stdio.h>
 
 #include "NativeJS.h"
 #include "NativeSkia.h"
@@ -106,8 +107,8 @@ int NativeEvents(SDL_Window *win)
                         glClearColor(0, 0, 0, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
-                        NJS = new NativeJS();
-                        NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
+                        NJS = new NativeJS(kNativeWidth, kNativeHeight);
+                        //NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
                         NJS->bindNetObject(gnet);
                         NJS->LoadScript("./main.js");
                         //SDL_GL_SwapBuffers();
@@ -153,7 +154,8 @@ int NativeEvents(SDL_Window *win)
         glClear(GL_COLOR_BUFFER_BIT);*/
 
         NJS->callFrame();
-        NJS->nskia->flush();
+        NJS->rootHandler->layerize(NULL, 0, 0);
+        NJS->postDraw();
     
         /*for (int x = 0; x < 3000; x++) {
             glWindowPos2i(10+(x), 700);
@@ -250,7 +252,7 @@ int main(int argc, char **argv)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
     
-    NJS = new NativeJS();
+
     
     win = SDL_CreateWindow("Native - Running", 100, 100, kNativeWidth, kNativeHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 
@@ -263,8 +265,9 @@ int main(int argc, char **argv)
     resizeGLScene(kNativeWidth, kNativeHeight);
 
     initGL();
+    NJS = new NativeJS(kNativeWidth, kNativeHeight);
 
-    NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
+    //NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
 
     SDL_AddTimer(1000, NativeFPS, NULL);
     SDL_StartTextInput();

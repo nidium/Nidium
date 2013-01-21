@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "NativeCanvasHandler.h"
 
 class SkCanvas;
 class SkPaint;
@@ -50,13 +51,32 @@ class NativeSkia
         SkBitmap *screen;
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
+
+        void initPaints();
+        
     public:
+        enum BindMode {
+            BIND_NO,
+            BIND_GL,
+            BIND_OFFSCREEN,
+            BIND_ONSCREEN
+        } native_canvas_bind_mode;
+
+        friend class NativeCanvasHandler;
+        friend class NativeJSCanvas;
+
+        static SkCanvas *glcontext;
+        static NativeSkia *glsurface;
+
         SkCanvas *canvas;
         ~NativeSkia();
+        NativeSkia();
         int bindOffScreen(int width, int height);
+        int bindOnScreen(int width, int height);
         int bindGL(int width, int height);
         void resetGLContext();
         void flush();
+        void unlink();
         /* Basics */
         int readPixels(int top, int left, int width, int height,
             uint8_t *pixels);
