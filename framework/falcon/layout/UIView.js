@@ -59,7 +59,7 @@ Native.elements.export("UIView", {
 
 	init : function(){
 		var self = this,
-			scrollBarHideDelay = 4000,
+			scrollBarHideDelay = 400,
 			o = this.options;
 
 		this.refreshBackgroundImage = function(){

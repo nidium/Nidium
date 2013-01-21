@@ -65,8 +65,8 @@ load(__PATH_LAYOUT__ + 'UITabController.js');
 load(__PATH_LAYOUT__ + 'UIWindow.js');
 load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
 
-//load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
-//load(__PATH_LAYOUT__ + 'UIDropDownController.js');
+load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
+load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
 load(__PATH_LAYOUT__ + 'UIScrollBars.js');
 
