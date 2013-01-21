@@ -412,7 +412,7 @@ bool NativeAudioNodeCustom::process()
 }
 
 NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio) 
-    : NativeAudioNode(0, out, audio), opened(false), playing(false), stopped(false), 
+    : NativeAudioNode(0, out, audio), opened(false), playing(false), stopped(false), loop(false),
       container(NULL), avctx(NULL), frameConsumed(true), packetConsumed(true), audioStream(-1),
       sCvt(NULL), fCvt(NULL), eof(false)
 {
@@ -496,12 +496,19 @@ int64_t NativeAudioTrack::BufferReader::seek(void *opaque, int64_t offset, int w
     return pos;
 }
 
-
 int NativeAudioTrack::open(void *buffer, int size) 
 {
+#define RETURN_WITH_ERROR(err) \
+TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_ERROR, err, this->cbkCustom, false);\
+this->cbk(ev);\
+return err;
+
     unsigned int i;
     AVCodec *codec;
     PaSampleFormat inputFmt;
+
+    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_BUFFERING, 100, this->cbkCustom, true);
+    this->cbk(ev);
 
     // If a previous file has been opened, close it
     if (this->container != NULL) {
@@ -520,13 +527,13 @@ int NativeAudioTrack::open(void *buffer, int size)
 		char error[1024];
 		av_strerror(ret, error, 1024);
 		fprintf(stderr, "Couldn't open file : %s\n", error);
-        return -2;
+        RETURN_WITH_ERROR(ERR_INTERNAL);
 	}
 
 	// Retrieve stream information
 	if (avformat_find_stream_info(this->container, NULL) < 0) {
 		fprintf(stderr, "Couldn't find stream information\n");
-        return -3;
+        RETURN_WITH_ERROR(ERR_NO_INFORMATION);
 	}
 
 	// Dump information about file onto standard error
@@ -541,7 +548,7 @@ int NativeAudioTrack::open(void *buffer, int size)
 
 	if(this->audioStream == -1) {
 		fprintf(stderr, "Couldn't find audio stream\n");
-		return -4;
+		RETURN_WITH_ERROR(ERR_NO_AUDIO);
 	}
 
 	// Find the apropriate codec and open it
@@ -550,7 +557,7 @@ int NativeAudioTrack::open(void *buffer, int size)
 
 	if (!avcodec_open2(avctx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
-		return -5;
+		RETURN_WITH_ERROR(ERR_NO_CODEC);
 	}
 
     this->nbChannel = avctx->channels;
@@ -562,7 +569,7 @@ int NativeAudioTrack::open(void *buffer, int size)
 
         if (!(this->fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * avctx->channels * NativeAudio::FLOAT32))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
-            return -8;
+            RETURN_WITH_ERROR(ERR_OOM);
         }
 
         this->fCvt->inp_count = this->fCvt->inpsize() / 2 -1;
@@ -574,7 +581,7 @@ int NativeAudioTrack::open(void *buffer, int size)
 
     // Init output buffer
     if (!(this->rBufferOutData = calloc(sizeof(float), (sizeof(float) * NATIVE_AVDECODE_BUFFER_SAMPLES * avctx->channels)))) {
-        return -8;
+        RETURN_WITH_ERROR(ERR_OOM);
     }
 
     if (0 < PaUtil_InitializeRingBuffer((PaUtilRingBuffer*)this->rBufferOut, 
@@ -582,7 +589,7 @@ int NativeAudioTrack::open(void *buffer, int size)
             NATIVE_AVDECODE_BUFFER_SAMPLES,
             this->rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
-        return -8;
+        RETURN_WITH_ERROR(ERR_OOM);
     }
 
     // Init sample converter
@@ -610,7 +617,7 @@ int NativeAudioTrack::open(void *buffer, int size)
     if (inputFmt != paFloat32) {
         if (!(this->sCvt = PaUtil_SelectConverter(inputFmt, paFloat32, paNoFlag))) {
                 fprintf(stderr, "Failed to init sample resampling converter\n");
-                return -9;
+                RETURN_WITH_ERROR(ERR_NO_RESAMPLING_CONVERTER);
         }
     } 
 
@@ -628,6 +635,12 @@ int NativeAudioTrack::open(void *buffer, int size)
     printf("ALL DONE\n");
 
     return 0;
+}
+
+void NativeAudioTrack::setCallback(TrackCallback cbk, void *custom)
+{
+    this->cbk = cbk;
+    this->cbkCustom = custom;
 }
 
 int NativeAudioTrack::avail() {
@@ -701,12 +714,16 @@ bool NativeAudioTrack::work()
 }
 bool NativeAudioTrack::decode() 
 {
+#define RETURN_WITH_ERROR(err) \
+TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_ERROR, err, this->cbkCustom, true);\
+this->cbk(ev);\
+return false;
     // No data to read
     if (PaUtil_GetRingBufferReadAvailable(this->rBufferIn) < 1 && this->frameConsumed) {
         // Loading data from memory, try to get more
         if (this->br != NULL && !this->buffer()) {
             return false;
-        }
+        } 
     }
 
     // Not last packet, get a new one
@@ -722,15 +739,14 @@ bool NativeAudioTrack::decode()
 
         if (!(tmpFrame = avcodec_alloc_frame())) {
             printf("Failed to alloc frame\n");
-            return false;
+            RETURN_WITH_ERROR(ERR_OOM);
         }
 
         // Decode packet 
         len = avcodec_decode_audio4(avctx, tmpFrame, &gotFrame, this->tmpPacket);
 
         if (len < 0) {
-            fprintf(stderr, "Error while decoding\n");
-            // TODO : Better error handling (events?)
+            RETURN_WITH_ERROR(ERR_DECODING);
             return false;
         } else if (len < this->tmpPacket->size) {
             //printf("Read len = %lu/%d\n", len, pkt.size);
@@ -775,11 +791,7 @@ bool NativeAudioTrack::decode()
 
         this->samplesConsumed = 0;
         this->frameConsumed = false;
-
-        return true;
-    } else {
-        return true;
-    }
+    } 
 
     return true;
 }
@@ -880,6 +892,7 @@ bool NativeAudioTrack::process() {
 
     if (!this->playing) {
         SPAM(("Not playing\n"));
+        // TODO : use loop to reset all channels
         memset(this->frames[0], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
         memset(this->frames[1], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
         return false;
@@ -893,6 +906,16 @@ bool NativeAudioTrack::process() {
     // Make sure enought data is available
     if (this->audio->outputParameters->framesPerBuffer > PaUtil_GetRingBufferReadAvailable(this->rBufferOut)) {
         SPAM(("Not enought to read\n"));
+        // EOF reached, send message to NativeAudio
+        if (this->eof) {
+            if (this->loop) {
+                avformat_seek_file(this->container, this->audioStream, 0, 0, 0, 0);
+            } else {
+                this->stopped = true;
+            }
+            TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_EOF, 0, this->cbkCustom, true);
+            this->cbk(ev);
+        }
         return false;
     }
 
@@ -971,11 +994,15 @@ void NativeAudioTrack::play()
         
         this->stopped = false;
     }
+    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PLAY, 0, this->cbkCustom, false);
+    this->cbk(ev);
 }
 
 void NativeAudioTrack::pause() 
 {
     this->playing = false;
+    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PAUSE, 0, this->cbkCustom, false);
+    this->cbk(ev);
 }
 
 void NativeAudioTrack::stop() 
@@ -995,6 +1022,9 @@ void NativeAudioTrack::stop()
     this->samplesConsumed = 0;
     this->frameConsumed = true;
     this->packetConsumed = true;
+
+    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_STOP, 0, this->cbkCustom, false);
+    this->cbk(ev);
 }
 
 

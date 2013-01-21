@@ -5,6 +5,8 @@
 #include <NativeAudio.h>
 #include <NativeAudioNode.h>
 
+#define NATIVE_AUDIO_THREAD_MESSAGE_CALLBACK 0x100
+
 enum {
     NODE_EV_PROP_DATA, 
     NODE_EV_PROP_SIZE,
@@ -56,6 +58,18 @@ class NativeJSAudioNode: public NativeJSExposer
             } clone;
         };
 
+        struct MessageCallback {
+            JSObject *callee;
+            const char *prop;
+            int *value;
+
+            MessageCallback(JSObject *callee, const char *prop, int *value)
+                : callee(callee), prop(prop), value(value) {};
+            ~MessageCallback() {
+                delete value;
+            }
+        };
+
         // Common
         NativeJS *njs;
         NativeJSAudio *audio;
@@ -63,7 +77,7 @@ class NativeJSAudioNode: public NativeJSExposer
         JSObject *jsobj;
 
         // Custom node
-        static void cbk(const struct NodeEvent *ev);
+        static void customCbk(const struct NodeEvent *ev);
         static void ctxCallback(NativeAudioNode *node, void *custom);
         static void setPropCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
@@ -75,6 +89,7 @@ class NativeJSAudioNode: public NativeJSExposer
 
         // Source node
         jsval *arrayBuff;
+        static void sourceCbk(const struct TrackEvent *ev);
 
         static void registerObject(JSContext *cx);
 };

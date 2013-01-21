@@ -5,18 +5,17 @@
 #include <stdint.h>
 #include "NativeAudioParameters.h"
 
-
 #if 0
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
 #endif
 
-#define NATIVE_AVIO_BUFFER_SIZE 2048 
-#define NATIVE_AVDECODE_BUFFER_SAMPLES 16384 
+#define NATIVE_AVIO_BUFFER_SIZE         2048 
+#define NATIVE_AVDECODE_BUFFER_SAMPLES  16384 
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
 
-
+class NativeJS;
 class NativeAudioTrack;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
@@ -45,10 +44,12 @@ class NativeAudio
             SOURCE, GAIN, TARGET, CUSTOM
         };
 
+        NativeJS *njs;
+
         NativeAudioParameters *outputParameters;
         NativeAudioParameters *inputParameters;
 
-        // XXX : Use friend class instead of exposing those var
+        // TODO : Use friend class instead of exposing those var
         float *nullBuffer;
         NativeSharedMessages *sharedMsg;
         pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
