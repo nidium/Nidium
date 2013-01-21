@@ -107,6 +107,7 @@ class NativeCanvasHandler
         void setHidden(bool val);
         bool isDisplayed() const;
         bool isHidden() const;
+        bool hasAFixedAncestor() const;
         void setOpacity(double val);
         void removeFromParent();
         NativeCanvasHandler *getParent();

@@ -126,7 +126,7 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__left", CANVAS_PROP___LEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
@@ -461,7 +461,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(INT_TO_JSVAL(handler->content.scrollTop));
             break;
         case CANVAS_PROP___FIXED:
-            vp.set(JSVAL_NULL);
+            vp.set(BOOLEAN_TO_JSVAL(handler->hasAFixedAncestor()));
             break;
         case CANVAS_PROP___TOP:
         {

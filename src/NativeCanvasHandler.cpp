@@ -272,6 +272,15 @@ int NativeCanvasHandler::getContentHeight()
     return this->content.height;
 }
 
+/* TODO: optimize tail recursion? */
+bool NativeCanvasHandler::hasAFixedAncestor() const
+{
+    if (coordPosition == COORD_FIXED) {
+        return true;
+    }
+    return (parent ? parent->hasAFixedAncestor() : false);
+}
+
 /* Compute whether or the canvas is going to be drawn */
 bool NativeCanvasHandler::isDisplayed() const
 {
