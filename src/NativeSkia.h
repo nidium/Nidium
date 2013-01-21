@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "NativeCanvasHandler.h"
 
 class SkCanvas;
 class SkPaint;
@@ -50,13 +51,32 @@ class NativeSkia
         SkBitmap *screen;
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
+
+        void initPaints();
+        
     public:
+        enum BindMode {
+            BIND_NO,
+            BIND_GL,
+            BIND_OFFSCREEN,
+            BIND_ONSCREEN
+        } native_canvas_bind_mode;
+
+        friend class NativeCanvasHandler;
+        friend class NativeJSCanvas;
+
+        static SkCanvas *glcontext;
+        static NativeSkia *glsurface;
+
         SkCanvas *canvas;
         ~NativeSkia();
+        NativeSkia();
         int bindOffScreen(int width, int height);
+        int bindOnScreen(int width, int height);
         int bindGL(int width, int height);
         void resetGLContext();
         void flush();
+        void unlink();
         /* Basics */
         int readPixels(int top, int left, int width, int height,
             uint8_t *pixels);
@@ -81,7 +101,7 @@ class NativeSkia
         void setLineWidth(double size);
         void setGlobalAlpha(double value);
         void setGlobalComposite(const char *str);
-        void clearRect(int, int, int, int);
+        void clearRect(double, double, double, double);
         void drawImage(NativeSkImage *image, double x, double y);
         void drawImage(NativeSkImage *image, double x, double y,
             double width, double height);
@@ -103,7 +123,7 @@ class NativeSkia
         void clip();
         void rect(double x, double y, double width, double height);
         void arc(int, int, int, double, double, int);
-        void quadraticCurveTo(int cpx, int cpy, int x, int y);
+        void quadraticCurveTo(double cpx, double cpy, double x, double y);
         void bezierCurveTo(double cpx, double cpy, double cpx2,
             double cpy2, double x, double y);
         void rotate(double angle);

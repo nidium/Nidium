@@ -19,7 +19,7 @@ class NativeJSExposer
     { \
         JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &name ## _class, \
             native_ ## name ## _constructor, \
-            1, NULL, NULL, NULL, NULL); \
+            0, NULL, NULL, NULL, NULL); \
     }
 
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
@@ -29,6 +29,16 @@ class NativeJSExposer
         name ## Obj = JS_DefineObject(cx, JS_GetGlobalObject(cx), #name, \
             &name ## _class , NULL, 0); \
         JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
+    }
+
+#define NATIVE_CHECK_ARGS(fnname, minarg) \
+    if (argc < minarg) { \
+                         \
+        char numBuf[12];  \
+        snprintf(numBuf, sizeof numBuf, "%u", argc);  \
+        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_MORE_ARGS_NEEDED,  \
+                             fnname, numBuf, (argc > 1 ? "s" : ""));  \
+        return JS_FALSE;  \
     }
 
 #endif

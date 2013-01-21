@@ -180,6 +180,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
     jevent = OBJECT_TO_JSVAL(event);
 
+    /* TODO: "this" is not the caller? */
     JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
         1, &jevent, &rval);
 
