@@ -45,7 +45,8 @@ class NativeCanvasHandler
         };
         enum COORD_POSITION {
             COORD_RELATIVE,
-            COORD_ABSOLUTE
+            COORD_ABSOLUTE,
+            COORD_FIXED
         };
 
         enum Visibility {

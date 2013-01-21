@@ -203,7 +203,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     } else {
         double cleft = 0.0, ctop = 0.0;
 
-        if (coordPosition == COORD_RELATIVE) {
+        if (coordPosition != COORD_ABSOLUTE) {
             cleft = pleft;
             ctop = ptop;
         }
@@ -242,9 +242,14 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         memcpy(&tmpClip, clip, sizeof(NativeRect));
     }
     for (cur = children; cur != NULL; cur = cur->next) {
+        int offsetLeft = 0, offsetTop = 0;
+        if (cur->coordPosition == COORD_RELATIVE) {
+            offsetLeft = -this->content.scrollLeft;
+            offsetTop  = -this->content.scrollTop;
+        }
         cur->layerize(layer,
-                this->left + pleft - this->content.scrollLeft,
-                this->top + ptop - this->content.scrollTop, popacity, clip);
+                this->left + pleft + offsetLeft, this->top + ptop + offsetTop,
+                popacity, clip);
 
         if (clip != NULL) {
             memcpy(clip, &tmpClip, sizeof(NativeRect));
@@ -292,7 +297,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
         ctop += cparent->top - cparent->content.scrollTop;
         cleft += cparent->left - cparent->content.scrollLeft;
 
-        if (cparent->coordPosition != COORD_RELATIVE) {
+        if (cparent->coordPosition == COORD_ABSOLUTE) {
             break;
         }
 

@@ -34,7 +34,8 @@ enum {
     CANVAS_PROP_CONTENTWIDTH,
     CANVAS_PROP_CONTENTHEIGHT,
     CANVAS_PROP_SCROLLTOP,
-    CANVAS_PROP_SCROLLLEFT
+    CANVAS_PROP_SCROLLLEFT,
+    CANVAS_PROP___FIXED
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -124,6 +125,8 @@ static JSPropertySpec canvas_props[] = {
     {"__top", CANVAS_PROP___TOP, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__left", CANVAS_PROP___LEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
@@ -285,6 +288,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             JSAutoByteString mode(cx, JSVAL_TO_STRING(vp));
             if (strcasecmp(mode.ptr(), "absolute") == 0) {
                 handler->setPositioning(NativeCanvasHandler::COORD_ABSOLUTE);
+            } else if(strcasecmp(mode.ptr(), "fixed") == 0) {
+                handler->setPositioning(NativeCanvasHandler::COORD_FIXED);
             } else {
                 handler->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
             }
@@ -454,6 +459,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_SCROLLTOP:
             vp.set(INT_TO_JSVAL(handler->content.scrollTop));
+            break;
+        case CANVAS_PROP___FIXED:
+            vp.set(JSVAL_NULL);
             break;
         case CANVAS_PROP___TOP:
         {
