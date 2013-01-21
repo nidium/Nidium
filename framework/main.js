@@ -12,7 +12,7 @@ load("falcon/native.js");
 //load("applications/demos/profiler.js");
 //load("applications/demos/style.js");
 //load("applications/demos/windows.js");
-load("applications/demos/dropdown.js");
+//load("applications/demos/dropdown.js");
 //load("applications/demos/sliders.js");
 
 //load("applications/demos/buttons.js");
@@ -46,6 +46,7 @@ load("applications/demos/dropdown.js");
 //load('_demos/audio/basic.js');
 //load('_demos/audio/dsp.js');
 //load('_demos/audio/spectral.js');
+load("_demos/audio/audio.js");
 
 
 /* -- WebGL --------------------------- */
