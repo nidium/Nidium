@@ -6,10 +6,10 @@ var main = new Application();
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
-	/* Tab 1 */ {label : "Belgium", 		value : 7 },
-	/* Tab 2 */ {label : "Monaco", 			value : 9 },
+	/* Tab 1 */ {label : "Belgium", 		value : 7},
+	/* Tab 2 */ {label : "Monaco", 			value : 9},
 	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
-	/* Tab 4 */ {label : "Italy", 			value : 1 },
+	/* Tab 4 */ {label : "Italy", 			value : 1},
 	/* Tab 5 */ {label : "Spain", 			value : 3, background : "#202a15", color : "#ffffff"},
 	/* Tab 6 */ {label : "Bulgaria",		value : 2, background : "#442033", color : "#ffffff"},
 	/* Tab 7 */ {label : "Romania", 		value : 4},

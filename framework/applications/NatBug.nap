@@ -123,7 +123,8 @@ var NatBug = {
 			top : 46,
 			width : this.application.width - 12,
 			height : this.application.height - 54,
-			scrollbars : false,
+			scrollbars : true,
+			overflow : false,
 			visible : false,
 			class : "natbug_pane"
 		})
@@ -198,7 +199,7 @@ NatBug.panes.push({
 				b1 = "rgba(0, 0, 0, 0.4)",
 				b2 = "rgba(255, 255, 255, 0.05)";
 
-			if (lines>=13){
+			if (lines>=26){
 				lines = 0;
 				col++;
 			}
@@ -223,7 +224,7 @@ NatBug.panes.push({
 
 		window.onElementUnderPointer = function(e){
 			if (!app.isPointInside(e.x, e.y)){
-				this.__lock("onElementUnderPointer");
+//				this.__lock("onElementUnderPointer");
 				for (var l = 0; l<self.props.length; l++){
 					var a = self.props[l];
 					if (this[a] == undefined) {
@@ -236,7 +237,7 @@ NatBug.panes.push({
 						self.values[a].label = this[a];
 					}
 				}
-				this.__unlock("onElementUnderPointer");
+//				this.__unlock("onElementUnderPointer");
 			}
 		};
 	},

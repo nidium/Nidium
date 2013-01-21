@@ -27,9 +27,9 @@ Native.elements.export("UIScrollBarHandle", {
 		this.left = 0;
 		this.top = 0;
 		this.radius = 5;
-		this.background = OptionalValue(o.background, "rgba(20, 20, 20, 0.75)");
-		this.shadowBlur = 3;
-		this.shadowColor = "rgba(255, 255, 255, 0.25)";
+		this.background = OptionalValue(o.background, "rgba(18, 18, 18, 0.80)");
+		this.shadowBlur = 4;
+		this.shadowColor = "rgba(255, 255, 255, 0.15)";
 	},
 
 	draw : function(context){

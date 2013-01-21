@@ -22,6 +22,7 @@ Native.elements.export("UIDropDownController", {
 
 			width 			: OptionalNumber(o.width, 140),
 			height 			: OptionalNumber(o.height, 22),
+			maxHeight 		: OptionalNumber(o.maxHeight, null),
 			radius 			: OptionalNumber(o.radius, 2),
 			background 		: OptionalValue(o.background, "#2277E0"),
 			color 			: OptionalValue(o.color, "#ffffff"),
@@ -79,7 +80,7 @@ Native.elements.export("UIDropDownController", {
 
 			this.tabsContainer.__unlock();
 			this.tabs[i] = this.tabsContainer.add("UIDropDownOption", {
-				left : -40,
+				left : 0,
 				top : y,
 				height : this.height,
 				name : "option_" + this.name,
@@ -94,13 +95,14 @@ Native.elements.export("UIDropDownController", {
 
 		this.tabsContainer = this.add("UIView", {
 			left : 2,
-			top : this.height+2,
-			width : this.width-4,
-			height : 250,
+			top : this.height + 2,
+			width : this.width - 4,
+			height : 0,
 			radius : 0,
-			background : '#FF2722',
+			background : this.background,
 			shadowBlur : 10,
-			scrollbars : true
+			scrollbars : true,
+			overflow : false
 		});
 
 		for (var i=0; i<l; i++){
@@ -129,22 +131,28 @@ Native.elements.export("UIDropDownController", {
 		this.hideTabs = function(){
 			var l = tabs.length;
 			for (var i=0; i<l; i++){
-				self.tabs[i].visible = false;
+				self.tabs[i].hide();
 			}
 		};
 
 		this.openSelector = function(){
 			if (this.toggleState == true) { return false; }
 			var from = self.tabsContainer.height,
+				l = this.tabs.length,
 				delta = l*self.height;
 
 
+			if (this.maxHeight != 0){
+				delta = Math.min(this.maxHeight, delta);
+			}
+
 			this.toggleState = true;
+			this.tabsContainer.show();
 			
 			self.showTabs();
 
 			self.tabsContainer.animate("height", from, delta, 180, function(){
-				self.showTabs();
+				/* dummy */
 			}, Math.physics.cubicOut);
 
 		};
@@ -152,12 +160,15 @@ Native.elements.export("UIDropDownController", {
 		this.closeSelector = function(){
 			if (this.toggleState == false) { return false; }
 			var from = self.tabsContainer.height,
+				l = this.tabs.length,
 				delta = 0;
 
 			this.toggleState = false;
+			this.tabsContainer.show();
 			
-			self.tabsContainer.animate("height", from, delta, 150, function(){
+			self.tabsContainer.animate("height", from, delta, 100, function(){
 				self.hideTabs();
+				this.hide();
 			}, Math.physics.quintOut);
 
 		};
@@ -181,8 +192,9 @@ Native.elements.export("UIDropDownController", {
 
 		this.resetTabs();
 
-		//this.tabsContainer.height = 1;
-		//this.closeSelector();
+		this.tabsContainer.height = 0;
+		this.tabsContainer.hide();
+		this.toggleState = false;
 	},
 
 	draw : function(context){
