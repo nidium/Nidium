@@ -75,6 +75,8 @@ class NativeCanvasHandler
         struct {
             int width;
             int height;
+            int scrollTop;
+            int scrollLeft;
         } content;
 
         double opacity;
@@ -89,6 +91,8 @@ class NativeCanvasHandler
         void setSize(int width, int height);
         void setPadding(int padding);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
+        void setScrollTop(int value);
+        void setScrollLeft(int value);
         void computeAbsolutePosition();
         void computeContentSize(int *cWidth, int *cHeight);
 

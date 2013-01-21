@@ -32,7 +32,9 @@ enum {
     CANVAS_PROP_OPACITY,
     CANVAS_PROP_OVERFLOW,
     CANVAS_PROP_CONTENTWIDTH,
-    CANVAS_PROP_CONTENTHEIGHT
+    CANVAS_PROP_CONTENTHEIGHT,
+    CANVAS_PROP_SCROLLTOP,
+    CANVAS_PROP_SCROLLLEFT
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -73,6 +75,12 @@ static JSPropertySpec canvas_props[] = {
     {"overflow", CANVAS_PROP_OVERFLOW, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},  
+    {"scrollLeft", CANVAS_PROP_SCROLLLEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"scrollTop", CANVAS_PROP_SCROLLTOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
     {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
@@ -324,6 +332,26 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->top = dval;
         }
         break;
+        case CANVAS_PROP_SCROLLLEFT:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setScrollLeft((int)dval);
+        }
+        break;
+        case CANVAS_PROP_SCROLLTOP:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setScrollTop((int)dval);
+        }
+        break;
         case CANVAS_PROP_VISIBLE:
         {
             if (!JSVAL_IS_BOOLEAN(vp)) {
@@ -420,6 +448,12 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_CONTENTHEIGHT:
             vp.set(INT_TO_JSVAL(handler->getContentHeight()));
+            break;
+        case CANVAS_PROP_SCROLLLEFT:
+            vp.set(INT_TO_JSVAL(handler->content.scrollLeft));
+            break;
+        case CANVAS_PROP_SCROLLTOP:
+            vp.set(INT_TO_JSVAL(handler->content.scrollTop));
             break;
         case CANVAS_PROP___TOP:
         {

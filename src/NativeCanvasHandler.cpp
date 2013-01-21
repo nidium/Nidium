@@ -19,6 +19,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
 
     this->content.width = width;
     this->content.height = height;
+    this->content.scrollLeft = 0;
+    this->content.scrollTop = 0;
 }
 
 
@@ -30,6 +32,8 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
 
 void NativeCanvasHandler::setWidth(int width)
 {
+    if (width < 1) width = 1;
+
     this->width = width;
 
     if (context) {
@@ -40,6 +44,8 @@ void NativeCanvasHandler::setWidth(int width)
 
 void NativeCanvasHandler::setHeight(int height)
 {
+    if (height < 1) height = 1;
+
     this->height = height;
 
     if (context) {
@@ -65,6 +71,8 @@ void NativeCanvasHandler::setPadding(int padding)
         return;
     }
 
+    if (padding < 0) padding = 0;
+
     context->translate(-this->padding.global, -this->padding.global);
 
     this->padding.global = padding;
@@ -73,6 +81,20 @@ void NativeCanvasHandler::setPadding(int padding)
         this->height + (this->padding.global * 2));
 
     context->translate(this->padding.global, this->padding.global);
+}
+
+void NativeCanvasHandler::setScrollLeft(int value)
+{
+    if (value < 0) value = 0;
+
+    this->content.scrollLeft = value;
+}
+
+void NativeCanvasHandler::setScrollTop(int value)
+{
+    if (value < 0) value = 0;
+
+    this->content.scrollTop = value;
 }
 
 void NativeCanvasHandler::bringToFront()
@@ -221,8 +243,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     }
     for (cur = children; cur != NULL; cur = cur->next) {
         cur->layerize(layer,
-                this->left + pleft,
-                this->top + ptop, popacity, clip);
+                this->left + pleft - this->content.scrollLeft,
+                this->top + ptop - this->content.scrollTop, popacity, clip);
 
         if (clip != NULL) {
             memcpy(clip, &tmpClip, sizeof(NativeRect));
@@ -288,9 +310,17 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
     this->content.width = width;
     this->content.height = height;
 
+    /* don't go further if it doesn't overflow (and not the requested handler) */
+    if (!this->overflow && cWidth && cHeight) {
+        *cWidth = this->content.width;
+        *cHeight = this->content.height;
+        return;
+    }
+
     for (cur = children; cur != NULL; cur = cur->next) {
         if (cur->coordPosition == COORD_RELATIVE) {
             int retWidth, retHeight;
+
             cur->computeContentSize(&retWidth, &retHeight);
 
             if (retWidth + cur->left > this->content.width) {
