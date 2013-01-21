@@ -30,7 +30,9 @@ enum {
     CANVAS_PROP_CLIENTWIDTH,
     CANVAS_PROP_CLIENTHEIGHT,
     CANVAS_PROP_OPACITY,
-    CANVAS_PROP_OVERFLOW
+    CANVAS_PROP_OVERFLOW,
+    CANVAS_PROP_CONTENTWIDTH,
+    CANVAS_PROP_CONTENTHEIGHT
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -105,7 +107,10 @@ static JSPropertySpec canvas_props[] = {
 
     {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-
+    {"contentWidth", CANVAS_PROP_CONTENTWIDTH, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"contentHeight", CANVAS_PROP_CONTENTHEIGHT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__visible", CANVAS_PROP___VISIBLE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__top", CANVAS_PROP___TOP, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
@@ -409,6 +414,12 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP___VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(handler->isDisplayed()));
+            break;
+        case CANVAS_PROP_CONTENTWIDTH:
+            vp.set(INT_TO_JSVAL(handler->getContentWidth()));
+            break;
+        case CANVAS_PROP_CONTENTHEIGHT:
+            vp.set(INT_TO_JSVAL(handler->getContentHeight()));
             break;
         case CANVAS_PROP___TOP:
         {

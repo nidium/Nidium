@@ -16,13 +16,11 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     this->height = height;
 
     memset(&this->padding, 0, sizeof(this->padding));
+
+    this->content.width = width;
+    this->content.height = height;
 }
 
-void NativeCanvasHandler::setPosition(double left, double top)
-{
-    this->left = left;
-    this->top = top;
-}
 
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
 {
@@ -222,15 +220,29 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         memcpy(&tmpClip, clip, sizeof(NativeRect));
     }
     for (cur = children; cur != NULL; cur = cur->next) {
-
         cur->layerize(layer,
-            this->left + pleft,
-            this->top + ptop, popacity, clip);
-            if (clip != NULL) {
-                memcpy(clip, &tmpClip, sizeof(NativeRect));
-            }
+                this->left + pleft,
+                this->top + ptop, popacity, clip);
+
+        if (clip != NULL) {
+            memcpy(clip, &tmpClip, sizeof(NativeRect));
+        }
     }
 
+}
+
+int NativeCanvasHandler::getContentWidth()
+{
+    this->computeContentSize(NULL, NULL);
+
+    return this->content.width;
+}
+
+int NativeCanvasHandler::getContentHeight()
+{
+    this->computeContentSize(NULL, NULL);
+
+    return this->content.height;
 }
 
 /* Compute whether or the canvas is going to be drawn */
@@ -268,6 +280,29 @@ void NativeCanvasHandler::computeAbsolutePosition()
     this->a_top = ctop;
     this->a_left = cleft;
 
+}
+
+void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
+{
+    NativeCanvasHandler *cur;
+    this->content.width = width;
+    this->content.height = height;
+
+    for (cur = children; cur != NULL; cur = cur->next) {
+        if (cur->coordPosition == COORD_RELATIVE) {
+            int retWidth, retHeight;
+            cur->computeContentSize(&retWidth, &retHeight);
+
+            if (retWidth + cur->left > this->content.width) {
+                this->content.width = retWidth + cur->left;
+            }
+            if (retHeight + cur->top > this->content.height) {
+                this->content.height = retHeight + cur->top;
+            }
+        }
+    }
+    if (cWidth) *cWidth = this->content.width;
+    if (cHeight) *cHeight = this->content.height;
 }
 
 bool NativeCanvasHandler::isHidden() const
