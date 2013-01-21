@@ -30,10 +30,11 @@ var button = main.add("UIButton", {
 });
 
 var	dropDownController = main.add("UIDropDownController", {
-	left : 180,
-	top : 80,
+	left : 238,
+	top : 50,
+	maxHeight : 200,
 	name : "helloDrop",
-	radius : 4,
+	radius : 2,
 	elements : myElements,
 	background : "#191a18",
 	selectedBackground : "#4D90FE",

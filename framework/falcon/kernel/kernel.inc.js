@@ -185,10 +185,14 @@ Native.object = {
 
 	beforeDraw : function beforeDraw(){
 		print("beforeDraw()", this);
-		var ctx = this.layer.context;
+		var ctx = this.layer.context,
+			rad = this.angle * (Math.PI/180);
 
 		ctx.save();
 		ctx.globalAlpha = this._alpha;
+		ctx.translate(this._width/2, this._height/2);
+		ctx.rotate(rad);
+		ctx.translate(-this._width/2, -this._height/2);
 	},
 
 	afterDraw : function afterDraw(){
