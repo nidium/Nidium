@@ -10,7 +10,7 @@ load("libs/misc.lib.js");
 
 var main = new Application({
 	id : "main",
-	background : "white"
+	background : "#262722"
 });
 
 var	button = new UIButton(main, {
@@ -22,7 +22,19 @@ var	button = new UIButton(main, {
 
 button.addEventListener("mousedown", function(e){
 
-	view.scrollTop = 50;
+
+
+BenchThis("C++ contentWidth", 1000000, function(i){
+	var a = bigview.layer.contentWidth,
+		b = a+1;
+});
+
+BenchThis("JS with cache contentWidth", 1000000, function(i){
+	var a = bigview.contentWidth,
+		b = a+1;
+});
+
+
 
 
 /*
@@ -63,12 +75,12 @@ var	view = new UIView(bigview, {
 
 var	c0 = new UIView(view, {
 	id : "c0",
-	left : 128,
-	top : 400,
+	left : 250,
+	top : 100,
 	width : 40,
 	height : 40,
 	background : "#008800",
-	fixed : true
+	position : "fixed"
 });
 
 var	c1 = new UIView(view, {
@@ -78,7 +90,8 @@ var	c1 = new UIView(view, {
 	width : 100,
 	height : 150,
 	background : "rgba(255, 255, 255, 0.7)",
-	overflow : true,
+	shadowBlur : 8,
+	overflow : false,
 	scrollbars : true
 });
 
@@ -119,7 +132,7 @@ echo("contentHeight after c3", c1.contentHeight);
 var	c4 = new UIView(view, {
 	id : "c4",
 	left : 280,
-	top : 10,
+	top : 30,
 	width : 20,
 	height : 20,
 	background : "#ff0088"

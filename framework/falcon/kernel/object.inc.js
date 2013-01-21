@@ -93,7 +93,7 @@ var DOMElement = function(type, options, parent){
 		selected : OptionalBoolean(o.selected, false),
 		overflow : OptionalBoolean(o.overflow, true),
 		scrollbars : OptionalBoolean(o.scrollbars, false),
-		fixed : OptionalBoolean(o.fixed, false),
+		position : OptionalPosition(o.position, "relative"),
 
 		hover : false,
 		hasFocus : false
@@ -109,8 +109,6 @@ var DOMElement = function(type, options, parent){
 		_mutex : [],
 		_locked : true,
 
-		_cachedContentWidth : null,
-		_cachedContentHeight : null,
 		_cachedBackgroundImage : null,
 
 		_minx : this._left,
@@ -123,9 +121,6 @@ var DOMElement = function(type, options, parent){
 		/* absolute value (inherited) */
 		__left : 0,
 		__top : 0,
-		__scrollTop : this._scrollTop,
-		__overflow : this._overflow,
-		__fixed : this._fixed,
 
 		/* refreshing flags */
 		_needRefresh : true,
@@ -162,8 +157,6 @@ DOMElement.prototype = {
 
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
-
-	updateInheritance : Native.object.updateInheritance,
 
 	add : Native.object.add,
 	remove : Native.object.remove,

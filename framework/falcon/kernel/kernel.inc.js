@@ -26,52 +26,31 @@ Native.object = {
 	refresh : function refresh(){
 		print("refresh()", this);
 
-		this.layer.visible = this._visible;
-		this.updateInheritance();
-
 		if (this._needOpacityUpdate) this.updateLayerOpacity();
 		if (this._needPositionUpdate) this.updateLayerPosition();
 		if (this._needSizeUpdate) this.updateLayerSize();
 		if (this._needAncestorCacheClear) this.updateAncestors();
 		if (this._needRedraw) this.redraw();
 
-		this.layer.overflow = this.overflow;
+		this.layer.overflow = this._overflow;
+		this.layer.position = this._position;
+		this.layer.visible = this._visible;
 
 		this._needRefresh = false;
 	},
 
-	updateInheritance : function updateInheritance(){
-		var p = this.parent,
-			x = this._left + this._offsetLeft,
-			y = this._top + this._offsetTop;
+	updateAncestors : function updateAncestors(){
+		var element = this;
+		if (this.layer.__fixed) return false;
+		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
 
-		this.__scrollLeft = p ? p.__scrollLeft + this._scrollLeft 
-							 : this._scrollLeft;
-
-		this.__scrollTop = p ? p.__scrollTop + this._scrollTop 
-							 : this._scrollTop;
-
-		this.__overflow = p ? p.__overflow && this._overflow : this._overflow;
-		this.__fixed = p ? p.__fixed || this._fixed : this._fixed;
-
-		var	sx = (this.__fixed===false ?
-				 (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft),
-
-			sy = (this.__fixed===false ?
-				 (p ? p._scrollTop : this._scrollTop) : this._scrollTop);
-
-		this.__left = (p ? p.__left + x : x) - sx;
-		this.__top = (p ? p.__top + y : y) - sy;
-
-		/* ----- CHECK THIS ------ */
-		this.layer.left = this._left - sx;
-		this.layer.top = this._top - sy;
-		/* ----- CHECK THIS ------ */
-
-/*
-		this.__left = this.layer.__left;
-		this.__top = this.layer.__top;
-*/
+		/* clean cache for all this element's parents (all ancestors) */
+		while (element.parent){
+			var p = element.parent;
+			if (p.scrollbars) p.refreshScrollBars();
+			element = p;
+		}
+		this._needAncestorCacheClear = false;
 	},
 
 	updateLayerOpacity : function updateLayerOpacity(){
@@ -81,17 +60,13 @@ Native.object = {
 	},
 
 	updateLayerPosition : function updateLayerPosition(){
-		var p = this.parent,
-			
-			sx = this.__fixed===false ?
-				 (p ? p._scrollLeft : this._scrollLeft) : this._scrollLeft,
-
-			sy = this.__fixed===false ?
-				 (p ? p._scrollTop : this._scrollTop) : this._scrollTop;
-
-		print("updateLayerPosition("+(this._left - sx)+", "+(this._top - sy)+")", this);
-		this.layer.left = this._left - sx;
-		this.layer.top = this._top - sy;
+		print("updateLayerPosition("+(this._left)+", "+(this._top)+")", this);
+		this.layer.left = this._left;
+		this.layer.top = this._top;
+		this.layer.scrollTop = this._scrollTop;
+		this.layer.scrollLeft = this._scrollLeft;
+		this.__left = this.layer.__left;
+		this.__top = this.layer.__top;
 		this._needPositionUpdate = false;
 	},
 
@@ -100,25 +75,6 @@ Native.object = {
 		this.layer.width = Math.round(this._width);
 		this.layer.height = Math.round(this._height);
 		this._needSizeUpdate = false;
-	},
-
-	updateAncestors : function updateAncestors(){
-		var element = this;
-		if (this.type == "UIScrollBarHandle") return false;
-		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
-		
-		/* clean cache for all this element's parents (all ancestors) */
-		while (element.parent){
-			var p = element.parent;
-			p._cachedContentWidth = null;
-			p._cachedContentHeight = null;
-
-			/* refresh ancestor's scrollbars if any */
-			if (p.scrollbars) p.refreshScrollBars();
-
-			element = p;
-		}
-		this._needAncestorCacheClear = false;
 	},
 
 	redraw : function redraw(){
@@ -163,7 +119,6 @@ Native.object = {
 		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
 		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
 		this.nodes[element._uid] = element;
-//		element._root = this._root;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
 		element.updateAncestors();

@@ -165,12 +165,10 @@ NatBug.panes.push({
 		"contentWidth", "contentHeight",
 		"paddingLeft", "paddingRight",
 
-		"scale",
+		"opacity",
 		
-		"overflow", "__overflow",
-		"opacity", "__opacity",
-
-		"_layerPadding",
+		"overflow",
+		"position",
 
 		"__left", "__top",
 		
@@ -178,13 +176,15 @@ NatBug.panes.push({
 		"hasFocus", "hasChildren", "isOnTop", "background",
 
 		"scrollTop", "scrollLeft",
-		"__scrollTop", "__scrollLeft",
 
-		"fixed", "__fixed",
-
-		"hover", "color",
+		"hover", "color", "background", "backgroundImage",
 		"lineWidth", "lineHeight", "fontSize", "fontType", "textAlign",
-		"shadowBlur", "selection"
+		"shadowBlur", "shadowColor",
+		"shadowOffsetX", "shadowOffsetY",
+
+		"selection",
+
+		"_layerPadding",
 	],
 
 	init : function(){
@@ -307,7 +307,7 @@ NatBug.panes.push({
 
 Canvas.prototype.debug = function(){
 	var context = this.getContext("2D"),
-		__DEBUG_SHOW_LAYERS__ = false,
+		__DEBUG_SHOW_LAYERS__ = true,
 		__DEBUG_SHOW_ORDER__ = false;
 
 	if (!this.host || this.host._root == Native.__debugger){

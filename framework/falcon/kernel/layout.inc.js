@@ -30,17 +30,9 @@ Native.layout = {
 			if (z[i]._needRefresh){
 				z[i].refresh();
 			} else {
-				z[i].updateInheritance();
+				z[i].__left = z[i].layer.__left;
+				z[i].__top = z[i].layer.__top;
 			}
-
-			/*
-			if (z[i].layer.debug) {
-				z[i].layer.clear();
-				z[i].layer.debug();
-				z[i].draw(z[i].layer.context);
-			}
-			*/
-
 		}
 
 		if (!document.ready){
@@ -69,50 +61,6 @@ Native.layout = {
 		});
 
 		this.elements = elements;
-	},
-
-	slowUpdateInnerContentSize : function(element){
-		if (!element.hasChildren || !element.scrollbars) return false;
-
-		print("slowUpdateInnerContentSize", element);
-		var sw = element._width,
-			sh = element._height;
-
-		/* The idea here is to compute contentWidth and contentHeight
-		 * of element. To do that, we need to recursively parse all its
-		 * non fixed children to find the "farest" child from the left top
-		 * corner of our element.
-		 */
-
-		var self = this,
-			dx = function(z){
-				for (var i in z){
-					if (z[i]._visible && !z[i].__fixed){
-						var	el = z[i],
-							x1 = el.__left - element.__left,
-							y1 = el.__top - element.__top,
-							x2 = x1 + el._width + element.__scrollLeft,
-							y2 = y1 + el._height + element.__scrollTop;
-
-						sw = x2>sw ? x2 : sw;
-						sh = y2>sh ? y2 : sh;
-
-						if (self.count(z[i].nodes)>0 && !z[i].scrollbars){
-							dx(z[i].nodes);
-						}
-					}
-				}
-			};
-
-		dx(element.nodes);
-
-		var dx = element.__scrollLeft - element._scrollLeft,
-			dy = element.__scrollTop - element._scrollTop;
-
-		element.contentWidth = sw - dx;
-		element.contentHeight = sh - dy;
-		element._cachedContentWidth = sw - dx;
-		element._cachedContentHeight = sh - dy;
 	},
 
 	find : function(property, value){

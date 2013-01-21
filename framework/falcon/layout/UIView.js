@@ -22,10 +22,7 @@ Native.elements.export("UIView", {
 			},
 
 			get : function(){
-				if (this._cachedContentWidth === null){
-					Native.layout.slowUpdateInnerContentSize(this);
-				}
-				return this._cachedContentWidth;
+				return this.layer.contentWidth;
 			}
 		},
 
@@ -35,17 +32,14 @@ Native.elements.export("UIView", {
 			},
 
 			get : function(){
-				if (this._cachedContentHeight === null){
-					Native.layout.slowUpdateInnerContentSize(this);
-				}
-				return this._cachedContentHeight;
+				return this.layer.contentHeight;
 			}
 		},
 
 		scrollLeft : {
 			set : function(value){
 				var max = this.scrollbars ?
-								this._contentWidth - this._width : 0;
+								this.layer.contentWidth - this._width : 0;
 
 				this.scrollLeft = Math.min(value, max);
 				this.refreshScrollBars();
@@ -55,7 +49,7 @@ Native.elements.export("UIView", {
 		scrollTop : {
 			set : function(value){
 				var max = this.scrollbars ?
-								this._contentHeight - this._height : 0;
+								this.layer.contentHeight - this._height : 0;
 
 				this.scrollTop = Math.min(value, max);
 				this.refreshScrollBars();
@@ -65,6 +59,7 @@ Native.elements.export("UIView", {
 
 	init : function(){
 		var self = this,
+			scrollBarHideDelay = 4000,
 			o = this.options;
 
 		this.refreshBackgroundImage = function(){
@@ -82,20 +77,23 @@ Native.elements.export("UIView", {
 		this.updateScrollTop = function(dy){
 			if (this.height / this.contentHeight < 1) {
 				this.VScrollBar.cancelCurrentAnimations("opacity");
-				this._scrollYfading = false;
+				this.VScrollBar._fading = false;
 				this.VScrollBar.opacity = 1;
 				this.VScrollBar.show();
+				this.VScrollBar.bringToFront();
 	
 				this.scrollContentY(-dy * 4, function(){
 
-					if (!self._scrollYfading) {
-						self._scrollYfading = true;
+					if (!self.VScrollBar._fading) {
+						self.VScrollBar._fading = true;
 						clearTimeout(self._scrollYfadeScheduler);
 						self._scrollYfadeScheduler = setTimeout(function(){
 							self.VScrollBar.fadeOut(250, function(){
-								self._scrollYfading = false;
+								this.hide();
+								this.sendToBack();
+								self.VScrollBar._fading = false;
 							});
-						}, 100);
+						}, scrollBarHideDelay);
 					}
 
 				});
@@ -105,20 +103,23 @@ Native.elements.export("UIView", {
 		this.updateScrollLeft = function(dx){
 			if (this.width / this.contentWidth < 1) {
 				this.HScrollBar.cancelCurrentAnimations("opacity");
-				this._scrollXfading = false;
+				this.HScrollBar._fading = false;
 				this.HScrollBar.opacity = 1;
 				this.HScrollBar.show();
+				this.HScrollBar.bringToFront();
 	
 				this.scrollContentX(-dx * 4, function(){
 
-					if (!self._scrollXfading) {
-						self._scrollXfading = true;
+					if (!self.HScrollBar._fading) {
+						self.HScrollBar._fading = true;
 						clearTimeout(self._scrollXfadeScheduler);
 						self._scrollXfadeScheduler = setTimeout(function(){
 							self.HScrollBar.fadeOut(250, function(){
-								self._scrollXfading = false;
+								this.hide();
+								this.sendToBack();
+								self.HScrollBar._fading = false;
 							});
-						}, 100);
+						}, scrollBarHideDelay);
 					}
 				});
 			}
@@ -283,10 +284,14 @@ Native.elements.export("UIView", {
 				handle = this.VScrollBarHandle,
 				ch = container._height,
 				sh = this.contentHeight,
-
+				viewWidth = this._width,
+				viewHeight = this._height,
+				radius = this._radius,
 				scale = ch/sh,
-				maxScrollTop = Math.min(this._scrollTop, sh - this._height);
+				maxScrollTop = Math.min(this._scrollTop, sh - viewHeight),
+				offset = 0;
 
+/*
 			if (scale == 1){
 				container.visible = false;
 				handle.visible = false;
@@ -294,13 +299,20 @@ Native.elements.export("UIView", {
 				container.visible = true;
 				handle.visible = true;
 			}
+*/
 
-			if (this._scrollTop > (sh - this._height)){
-				this._scrollTop = Math.max(0, sh - this._height);
+			if (this._scrollTop > (sh - viewHeight)){
+				this._scrollTop = Math.max(0, sh - viewHeight);
 			}
 
+			offset = (this.HScrollBar && this.HScrollBar.visible) ? 8 : 0;
+
+			container.left = viewWidth - 8 - radius;
+			container.top = radius;
+			container.height = viewHeight - 2*radius - offset;
+
 			handle.top = Math.round(maxScrollTop * scale);
-			handle.height = Math.round(this._height * scale);
+			handle.height = Math.round(viewHeight * scale);
 		};
 
 		this.refreshHorizontalScrollBar = function(){
@@ -311,10 +323,14 @@ Native.elements.export("UIView", {
 				handle = this.HScrollBarHandle,
 				cw = container._width,
 				sw = this.contentWidth,
-
+				viewWidth = this._width,
+				viewHeight = this._height,
+				radius = this._radius,
 				scale = cw/sw,
-				maxScrollLeft = Math.min(this._scrollLeft, sw - this._width);
+				maxScrollLeft = Math.min(this._scrollLeft, sw - viewWidth),
+				offset = 0;
 
+/*
 			if (scale == 1){
 				container.visible = false;
 				handle.visible = false;
@@ -322,29 +338,22 @@ Native.elements.export("UIView", {
 				container.visible = true;
 				handle.visible = true;
 			}
+*/
+			offset = (this.VScrollBar && this.VScrollBar.visible) ? 8 : 0;
 
-			if (this._scrollLeft > (sw - this._width)){
-				this._scrollLeft = Math.max(0, sw - this._width);
+			if (this._scrollLeft > (sw - viewWidth)){
+				this._scrollLeft = Math.max(0, sw - viewWidth);
 			}
 
+			container.left = radius;
+			container.top = viewHeight - 8 - radius;
+			container.width = viewWidth - 2*radius - offset;
+
 			handle.left = Math.round(maxScrollLeft * scale);
-			handle.width = Math.round(this._width * scale);
+			handle.width = Math.round(viewWidth * scale);
 		};
 
 		this.refreshScrollBars = function(){
-			if (!this.VScrollBar || !this.VScrollBarHandle) return false;
-			if (!this.HScrollBar || !this.HScrollBarHandle) return false;
-			var vs = this.VScrollBar,
-				hs = this.HScrollBar;
-
-			vs.left = this._width - 8 - this._radius;
-			vs.top = this._radius;
-			vs.height = this._height - 2*this._radius - 8;
-
-			hs.left = this._radius;
-			hs.top = this._height - 8 - this._radius;
-			hs.width = this._width - 2*this._radius - 8;
-
 			this.refreshVerticalScrollBar();
 			this.refreshHorizontalScrollBar();
 		};
@@ -352,7 +361,7 @@ Native.elements.export("UIView", {
 		this.createVerticalScrollBar = function(){
 			if (this.VScrollBar) return false;
 			this.VScrollBar = this.add("UIScrollBar", {
-				fixed : true,
+				position : "fixed",
 				width : 8,
 				height : this._height,
 				left : this._width - 8,
@@ -370,7 +379,7 @@ Native.elements.export("UIView", {
 		this.createHorizontalScrollBar = function(){
 			if (this.HScrollBar) return false;
 			this.HScrollBar = this.add("UIScrollBar", {
-				fixed : true,
+				position : "fixed",
 				width : this._width,
 				height : 8,
 				left : 0,

@@ -206,6 +206,12 @@ var OptionalAlign = function(x, def){
 				def && def.in(list) ? String(def) : null;
 };
 
+var OptionalPosition = function(x, def){
+	var list = ["relative", "absolute", "fixed"];
+	return x && x.in(list) ? String(x) : 
+				def && def.in(list) ? String(def) : null;
+};
+
 /* -------------------------------------------------------------------------- */
 
 Number.prototype.bound = function(min, max){
