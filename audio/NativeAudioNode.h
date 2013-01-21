@@ -3,10 +3,19 @@
 
 #include "NativeAudio.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define NATIVE_AUDIONODE_ARGS_SIZE 32
-#define NATIVE_AUDIONODE_CHANNEL_SIZE 32
-#define NATIVE_AUDIONODE_WIRE_SIZE 32
+#define NATIVE_AUDIONODE_ARGS_SIZE      32
+#define NATIVE_AUDIONODE_WIRE_SIZE      32
+#define NATIVE_AUDIONODE_CHANNEL_SIZE   32
+
+#define TRACK_EVENT_PLAY      0x01
+#define TRACK_EVENT_PAUSE     0x02
+#define TRACK_EVENT_STOP      0x03
+#define TRACK_EVENT_EOF       0x04
+#define TRACK_EVENT_ERROR     0x05
+#define TRACK_EVENT_BUFFERING 0x06
 
 struct AVFormatContext;
 struct AVPacket;
@@ -49,9 +58,34 @@ struct NodeLink {
     };
 };
 
-// XXX : Normalize arguments
+struct TrackEvent {
+    int ev;
+    int *value;
+    NativeAudioTrack *track;
+    void *custom;
+    bool fromThread;
+    TrackEvent (NativeAudioTrack *track, int ev, int value, void *custom, bool fromThread)
+        : ev(ev), track(track), custom(custom), fromThread(fromThread) 
+    {
+        this->value = new int;
+        memcpy(this->value, (void *)&value, sizeof(int));
+    };
+};
+
+enum TrackError {
+    ERR_FAILED_OPEN,
+    ERR_NO_INFORMATION,
+    ERR_NO_AUDIO,
+    ERR_NO_CODEC,
+    ERR_OOM,
+    ERR_NO_RESAMPLING_CONVERTER,
+    ERR_DECODING,
+    ERR_INTERNAL
+};
+
 typedef void (*NodeCallback)(const struct NodeEvent *ev);
-typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom);
+typedef void (*TrackCallback)(const struct TrackEvent *ev);
+typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); /* TODO : Normalize args */
 
 class NativeAudioNode
 {
@@ -66,6 +100,7 @@ class NativeAudioNode
 
         ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
 
+        // XXX : Normalize callbacks ?
         struct Message {
             NativeAudioNode *node;
             void *source, *dest;
@@ -115,7 +150,7 @@ class NativeAudioNode
 
         virtual bool process() = 0;
 
-        ~NativeAudioNode();
+        virtual ~NativeAudioNode() = 0;
 
     private:
         void post(int msg, void *source, void *dest, unsigned long size);
@@ -248,7 +283,7 @@ class NativeAudioTrack : public NativeAudioNode
         bool opened;
         bool playing;
         bool stopped;
-        bool repeat;
+        bool loop;
         int nbChannel;
 
         int open(void *buffer, int size);
@@ -265,6 +300,12 @@ class NativeAudioTrack : public NativeAudioNode
         bool decode();
         int resample(float *dest, int destSamples);
         bool getFrame();
+
+        void setCallback(TrackCallback cbk, void *custom);
+
+        // XXX : Should be private, use friend class 
+        TrackCallback cbk;
+        void *cbkCustom;
 
         ~NativeAudioTrack();
 

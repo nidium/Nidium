@@ -14,7 +14,7 @@ NATIVEFLAGS=-DENABLE_TYPEDARRAY_MOVE -DENABLE_YARR_JIT=1 -DNO_NSPR_10_SUPPORT -D
 endif
 
 CXX=g++
-CPPFLAGS= $(NATIVEFLAGS) -c -g -O2 -Wall -I/home/efyx/dev/mozilla-central/js/src/dist/include/ \
+CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I../mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\

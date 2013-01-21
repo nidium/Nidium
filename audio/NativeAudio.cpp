@@ -96,6 +96,36 @@ void *NativeAudio::queueThread(void *args) {
     while (true && !audio->threadShutdown) {
         NativeSharedMessages::Message msg;
 
+        // Process input message
+        while (audio->sharedMsg->readMessage(&msg)) {
+            printf("reading message\n");
+            switch (msg.event()) {
+                case NATIVE_AUDIO_TRACK_CALLBACK : {
+                                                       printf("track cbk\n");
+                    TrackEvent *cbk = static_cast<TrackEvent *>(msg.dataPtr());
+                    cbk->track->cbk(cbk);
+                    delete cbk;
+                }
+                break;
+                case NATIVE_AUDIO_NODE_CALLBACK : {
+                    NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                    cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
+                    delete cbkMsg;
+                }
+                break;
+                case NATIVE_AUDIO_NODE_SET : {
+                    NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
+                    memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
+                    delete nodeMsg;
+                }
+                break;
+                case NATIVE_AUDIO_SHUTDOWN :
+                    SPAM(("shutdown received"));
+                    audio->threadShutdown = true;
+                break;
+            }
+        }
+
         if (cause == 0) {
             //if (!audio->haveData) {
                 SPAM(("Waiting for more data\n"));
@@ -104,28 +134,6 @@ void *NativeAudio::queueThread(void *args) {
         } else {
             SPAM(("Waiting for more space\n"));
             pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
-        }
-
-        // Process input message
-        while (audio->sharedMsg->readMessage(&msg)) {
-            switch (msg.event()) {
-                case NATIVE_AUDIO_NODE_CALLBACK : {
-                    NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
-                    cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
-                    delete cbkMsg;
-                }
-                    break;
-                case NATIVE_AUDIO_NODE_SET : {
-                    NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
-                    memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
-                    delete nodeMsg;
-                }
-                    break;
-                case NATIVE_AUDIO_SHUTDOWN :
-                    SPAM(("shutdown received"));
-                    audio->threadShutdown = true;
-                    break;
-            }
         }
 
         if (audio->output != NULL) {

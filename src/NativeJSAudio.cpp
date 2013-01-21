@@ -15,6 +15,7 @@ static void Audio_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_audiothread_print(JSContext *cx, unsigned argc, jsval *vp);
 
@@ -188,6 +189,10 @@ NativeJSAudio::~NativeJSAudio() {
     this->audio->shutdown();
     pthread_join(this->threadQueue, NULL);
     pthread_join(this->threadDecode, NULL);
+    if (this->tcx != NULL) {
+        JS_DestroyContext(this->tcx);
+        JS_DestroyRuntime(JS_GetRuntime(this->tcx));
+    }
     delete this->audio;
 }
 
@@ -229,7 +234,7 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
     delete msg;
 }
 
-void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
+void NativeJSAudioNode::customCbk(const struct NodeEvent *ev)
 {
     NativeJSAudioNode *thiz;
     JSContext *tcx;
@@ -322,6 +327,49 @@ void NativeJSAudioNode::cbk(const struct NodeEvent *ev)
     }
 }
 
+void NativeJSAudioNode::sourceCbk(const struct TrackEvent *cev)
+{
+    NativeJSAudioNode *thiz;
+    NativeJSAudioNode::MessageCallback *ev;
+    int *value;
+    const char *prop;
+
+    thiz = static_cast<NativeJSAudioNode *>(cev->custom);
+    value = cev->value;
+
+    switch (cev->ev) {
+        case TRACK_EVENT_PLAY:
+            prop= "onplay";
+        break;
+        case TRACK_EVENT_STOP:
+            prop = "onstop";
+        break;
+        case TRACK_EVENT_EOF:
+            prop = "onend";
+        break;
+        case TRACK_EVENT_ERROR:
+            prop = "onerror";
+        break;
+        case TRACK_EVENT_BUFFERING:
+            prop = "onbuffering";
+        break;
+        default:
+            delete cev->value;
+            delete cev;
+            return;
+        break;
+    }
+
+    // TODO : use cev->fromThread to avoid posting message 
+    // if message is comming from main thread
+
+    ev = new NativeJSAudioNode::MessageCallback(thiz->jsobj, prop, value);
+    
+    thiz->njs->messages->postMessage(ev, NATIVE_AUDIO_THREAD_MESSAGE_CALLBACK);
+
+    delete cev;
+}
+
 bool NativeJSAudioNode::createHashObj() 
 {
     this->hashObj = JS_NewObject(this->audio->tcx, NULL, NULL, NULL);
@@ -339,6 +387,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
     if (this->bufferObj != NULL) {
         JS_RemoveObjectRoot(this->audio->tcx, &this->bufferObj);
     }
+
     delete this->node;
 }
 
@@ -420,6 +469,8 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
 
     if (strcmp("source", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(naudio->createNode(NativeAudio::SOURCE, in, out));
+        NativeAudioTrack *source = static_cast<NativeAudioTrack *>(node->node);
+        source->setCallback(node->sourceCbk, node);
         JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
     } else if (strcmp("custom", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(naudio->createNode(NativeAudio::CUSTOM, in, out), audio);
@@ -476,7 +527,38 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
         (nlink1->type == OUTPUT && nlink2->type == INPUT)) {
         audio->connect(nlink1, nlink2);
     } else {
-        JS_ReportError(cx, "You must give one input and one output\n");
+        JS_ReportError(cx, "connect take one input and one output\n");
+        return JS_TRUE;
+    }
+
+    return JS_TRUE;
+}
+
+static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSObject *link1;
+    JSObject *link2;
+    NodeLink *nlink1;
+    NodeLink *nlink2;
+    NativeAudio *audio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp))->audio;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &link1, &link2)) {
+        return JS_TRUE;
+    }
+
+    nlink1 = (NodeLink *)JS_GetInstancePrivate(cx, link1, &AudioNodeLink_class, JS_ARGV(cx, vp));
+    nlink2 = (NodeLink *)JS_GetInstancePrivate(cx, link2, &AudioNodeLink_class, JS_ARGV(cx, vp));
+
+    if (nlink1 == NULL || nlink2 == NULL) {
+        JS_ReportError(cx, "Bad AudioNodeLink\n");
+        return JS_TRUE;
+    }
+
+    if ((nlink1->type == INPUT && nlink2->type == OUTPUT) ||
+        (nlink1->type == OUTPUT && nlink2->type == INPUT)) {
+        audio->disconnect(nlink1, nlink2);
+    } else {
+        JS_ReportError(cx, "disconnect take one input and one output\n");
         return JS_TRUE;
     }
 
@@ -750,6 +832,18 @@ static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc
     return JS_TRUE;
 }
 
+void load(const char *file, uint8_t *buffer, int bufferSize) {
+    FILE *f = fopen(file, "r");
+    int read = 0;
+    int pos = 0;
+    do {
+        if (pos + 2048 >= bufferSize) break;
+        read = fread(buffer + pos, 1, 2048, f);
+        pos += read;
+        uint8_t *cursor = buffer;
+    } while (read > 0);
+}
+
 
 static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *vp) 
 {
@@ -758,6 +852,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     JSObject *arrayBuff;
 
 
+    /*
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
         return JS_TRUE;
     }
@@ -779,6 +874,14 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
         return JS_TRUE;
     }
+    */
+
+    int bufferSize = sizeof(uint8_t)*4*1024*1024;
+    uint8_t *buffer;
+
+    buffer = (uint8_t *)malloc(bufferSize);
+    load("/tmp/foo.wav", buffer, bufferSize);
+    int ret = source->open(buffer, bufferSize);
 
     return JS_TRUE;
 }
@@ -832,7 +935,7 @@ static JSBool native_audionode_custom_prop_set(JSContext *cx, JSHandleObject obj
                 node->callback(NativeJSAudioNode::ctxCallback, jsNode);
             }
 
-            node->setCallback(jsNode->cbk, static_cast<void *>(jsNode));
+            node->setCallback(jsNode->customCbk, static_cast<void *>(jsNode));
         }
         break;
         default:
@@ -843,6 +946,7 @@ static JSBool native_audionode_custom_prop_set(JSContext *cx, JSHandleObject obj
 
 void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
 {
+    printf("Audio DESTRUCTOR\n");
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
     if (audio != NULL) {
         delete audio;
@@ -851,6 +955,7 @@ void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
 
 void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
+    printf("AudioNodeeeeeeeeeeeeeeeee DESTRUCTOR\n");
     NativeJSAudioNode *source = NATIVE_AUDIO_NODE_GETTER(obj);
     if (source != NULL) {
         delete source;

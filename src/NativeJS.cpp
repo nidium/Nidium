@@ -489,7 +489,7 @@ NativeJS::NativeJS(int width, int height)
         printf("Failed to init JS context\n");
         return;     
     }
-    JS_BeginRequest(cx);
+    //JS_BeginRequest(cx);
     //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
