@@ -289,8 +289,8 @@ void NativeCanvasHandler::computeAbsolutePosition()
     NativeCanvasHandler *cparent = this->parent;
 
     while (cparent != NULL) {
-        ctop += cparent->top;
-        cleft += cparent->left;
+        ctop += cparent->top - cparent->content.scrollTop;
+        cleft += cparent->left - cparent->content.scrollLeft;
 
         if (cparent->coordPosition != COORD_RELATIVE) {
             break;
