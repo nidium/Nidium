@@ -45,7 +45,8 @@ class NativeCanvasHandler
         };
         enum COORD_POSITION {
             COORD_RELATIVE,
-            COORD_ABSOLUTE
+            COORD_ABSOLUTE,
+            COORD_FIXED
         };
 
         enum Visibility {
@@ -72,6 +73,13 @@ class NativeCanvasHandler
             int global;
         } padding;
 
+        struct {
+            int width;
+            int height;
+            int scrollTop;
+            int scrollLeft;
+        } content;
+
         double opacity;
         bool overflow;
         
@@ -83,18 +91,23 @@ class NativeCanvasHandler
         void setHeight(int height);
         void setSize(int width, int height);
         void setPadding(int padding);
-        void setPosition(double left, double top);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
+        void setScrollTop(int value);
+        void setScrollLeft(int value);
         void computeAbsolutePosition();
+        void computeContentSize(int *cWidth, int *cHeight);
 
         void bringToFront();
         void sendToBack();
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
+        int getContentWidth();
+        int getContentHeight();
         void setHidden(bool val);
         bool isDisplayed() const;
         bool isHidden() const;
+        bool hasAFixedAncestor() const;
         void setOpacity(double val);
         void removeFromParent();
         NativeCanvasHandler *getParent();
