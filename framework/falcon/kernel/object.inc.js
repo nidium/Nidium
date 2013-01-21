@@ -85,6 +85,9 @@ var DOMElement = function(type, options, parent){
 		backgroundImage : OptionalValue(o.backgroundImage, ''),
 		radius : OptionalNumber(o.radius, 0, 0),
 
+		angle : OptionalNumber(o.angle, 0),
+		scale : OptionalNumber(o.scale, 1),
+
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
 		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),

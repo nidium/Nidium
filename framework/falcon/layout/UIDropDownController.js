@@ -36,7 +36,7 @@ Native.elements.export("UIDropDownController", {
 		this.selection = 0;
 		this.tabs = [];
 
-		this.resetTabs = function(){
+		this.reset = function(){
 			var l = this.tabs.length;
 			for (var i=0; i<l; i++){
 				this.tabs[i].selected = false;
@@ -44,29 +44,17 @@ Native.elements.export("UIDropDownController", {
 
 			if (this.tabs[this.selection]) {
 				this.tabs[this.selection].selected = true;
+				this.label = this.tabs[this.selection].label;
 			}
 		};
 
-		this.selectTab = function(tabnum){
-			this.selection = Math.max(Math.min(tabnum, this.tabs.length-1), 0);
-			this.label = this.tabs[this.selection].label;
-			this.resetTabs(this.selection);
+		this.selectIndex = function(index){
+			this.selection = Math.max(Math.min(index, this.tabs.length-1), 0);
+			this.reset(this.selection);
 			this.closeSelector();
 		};
 
-		this.selectNextTab = function(){
-		};
-
-		this.selectPreviousTab = function(){
-		};
-
-		this.removeTab = function(position){
-		};
-
-		this.insertTab = function(position, options){
-		};
-
-		this._addTab = function(i, options, y){
+		this._addElement = function(i, options, y){
 			var o = options,
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
@@ -78,8 +66,8 @@ Native.elements.export("UIDropDownController", {
 				self.selection = i;
 			}
 
-			this.tabsContainer.__unlock();
-			this.tabs[i] = this.tabsContainer.add("UIDropDownOption", {
+			this.selector.__unlock();
+			this.tabs[i] = this.selector.add("UIDropDownOption", {
 				left : 0,
 				top : y,
 				height : this.height,
@@ -90,10 +78,10 @@ Native.elements.export("UIDropDownController", {
 				color : color
 			});
 
-			this.tabs[i].tabnum = i;
+			this.tabs[i].index = i;
 		};
 
-		this.tabsContainer = this.add("UIView", {
+		this.selector = this.add("UIView", {
 			left : 2,
 			top : this.height + 2,
 			width : this.width - 4,
@@ -106,9 +94,8 @@ Native.elements.export("UIDropDownController", {
 		});
 
 		for (var i=0; i<l; i++){
-			self._addTab(i, tabs[i], y);
+			self._addElement(i, tabs[i], y);
 			y += this.tabs[i].height;
-			//this.tabs[i].visible = false;
 		}
 
 		this.downButton = this.add("UIButtonDown", {
@@ -120,15 +107,14 @@ Native.elements.export("UIDropDownController", {
 			color : "#ffffff"
 		});
 
-		this.showTabs = function(){
+		this._showElements = function(){
 			var l = tabs.length;
 			for (var i=0; i<l; i++){
-				self.tabs[i].visible = true;
-//				self.tabs[i].draw();
+				self.tabs[i].show();
 			}
 		};
 
-		this.hideTabs = function(){
+		this._hideElements = function(){
 			var l = tabs.length;
 			for (var i=0; i<l; i++){
 				self.tabs[i].hide();
@@ -136,40 +122,79 @@ Native.elements.export("UIDropDownController", {
 		};
 
 		this.openSelector = function(){
-			if (this.toggleState == true) { return false; }
-			var from = self.tabsContainer.height,
+			if (this.toggleState == true) return false;
+			var c = this.selector,
+				from = c.height,
 				l = this.tabs.length,
 				delta = l*self.height;
 
+
+			if (c._animating) return false;
 
 			if (this.maxHeight != 0){
 				delta = Math.min(this.maxHeight, delta);
 			}
 
 			this.toggleState = true;
-			this.tabsContainer.show();
+			c._animating = true;
+			c.show();
 			
-			self.showTabs();
+			self._showElements();
 
-			self.tabsContainer.animate("height", from, delta, 180, function(){
-				/* dummy */
+			c.cancelCurrentAnimations("opacity");
+			c.cancelCurrentAnimations("height");
+
+			this.downButton.animate(
+				"angle",
+				this.downButton.angle,
+				180,
+				200,
+				null,
+				Math.physics.quintOut
+			);
+
+			c.animate("opacity", 0, 1, 250, function(){
 			}, Math.physics.cubicOut);
+
+			c.animate("height", from, delta, 200, function(){
+				this._animating = false;
+			}, Math.physics.quintOut);
 
 		};
 
 		this.closeSelector = function(){
-			if (this.toggleState == false) { return false; }
-			var from = self.tabsContainer.height,
+			if (this.toggleState == false) return false;
+			var c = this.selector,
+				from = c.height,
 				l = this.tabs.length,
 				delta = 0;
 
+			if (c._animating) return false;
+
 			this.toggleState = false;
-			this.tabsContainer.show();
+			c._animating = true;
+			c.show();
+
+			c.cancelCurrentAnimations("opacity");
+			c.cancelCurrentAnimations("height");
+
+			this.downButton.animate(
+				"angle",
+				this.downButton.angle,
+				0,
+				200,
+				null,
+				Math.physics.quintIn
+			);
+
+			c.animate("opacity", 1, 0, 250, function(){
+			}, Math.physics.cubicIn);
 			
-			self.tabsContainer.animate("height", from, delta, 100, function(){
-				self.hideTabs();
+			c.animate("height", from, delta, 200, function(){
+				this._animating = false;
+				self._hideElements();
 				this.hide();
-			}, Math.physics.quintOut);
+			}, Math.physics.quintIn);
 
 		};
 
@@ -190,10 +215,9 @@ Native.elements.export("UIDropDownController", {
 			this.closeSelector();
 		}, false);
 
-		this.resetTabs();
-
-		this.tabsContainer.height = 0;
-		this.tabsContainer.hide();
+		this.reset();
+		this.selector.height = 0;
+		this.selector.hide();
 		this.toggleState = false;
 	},
 

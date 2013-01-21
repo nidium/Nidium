@@ -23,7 +23,7 @@ Native.elements.export("UIDropDownOption", {
 		});
 
 		this.addEventListener("mousedown", function(e){
-			controller.selectTab(this.tabnum);
+			controller.selectIndex(this.index);
 			e.stopPropagation();
 		}, false);
 
