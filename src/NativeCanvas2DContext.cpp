@@ -50,6 +50,13 @@ static JSClass canvasGradient_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass canvasPattern_class = {
+    "CanvasPattern", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -89,6 +96,8 @@ static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_clip(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_createImageData(JSContext *cx,
+    unsigned argc, jsval *vp);
+static JSBool native_canvas2dctx_createPattern(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_putImageData(JSContext *cx,
     unsigned argc, jsval *vp);
@@ -178,6 +187,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("createLinearGradient", native_canvas2dctx_createLinearGradient, 4, 0),
     JS_FN("createRadialGradient", native_canvas2dctx_createRadialGradient, 6, 0),
     JS_FN("createImageData", native_canvas2dctx_createImageData, 2, 0),
+    JS_FN("createPattern", native_canvas2dctx_createPattern, 2, 0),
     JS_FN("putImageData", native_canvas2dctx_putImageData, 3, 0),
     JS_FN("getImageData", native_canvas2dctx_getImageData, 4, 0),
     JS_FN("requestAnimationFrame", native_canvas2dctx_requestAnimationFrame, 1, 0),
@@ -592,6 +602,33 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     return JS_TRUE;
 }
 
+static JSBool native_canvas2dctx_createPattern(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JSObject *jsimage, *patternObject;
+    JSString *mode;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS",
+        &jsimage, &mode)) {
+        return JS_TRUE;
+    }
+
+    if (!NativeJSImage::JSObjectIs(cx, jsimage)) {
+        JS_ReportError(cx, "First parameter is not an Image");
+        return JS_FALSE;
+    }
+
+    patternObject = JS_NewObject(cx, &canvasPattern_class, NULL, NULL);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(patternObject));
+
+    JS_SetPrivate(patternObject,
+        new NativeCanvasPattern((NativeJSImage *)JS_GetPrivate(jsimage),
+        NativeCanvasPattern::PATTERN_REPEAT));
+
+    return JS_TRUE;
+}
+
 static JSBool native_canvas2dctx_createRadialGradient(JSContext *cx,
     unsigned argc, jsval *vp)
 {
@@ -849,6 +886,14 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 curSkia->setFillColor(gradient);
 
+            } else if (!JSVAL_IS_PRIMITIVE(vp) && 
+                JS_InstanceOf(cx, JSVAL_TO_OBJECT(vp),
+                    &canvasPattern_class, NULL)) {
+
+                NativeCanvasPattern *pattern = (class NativeCanvasPattern *)
+                                            JS_GetPrivate(JSVAL_TO_OBJECT(vp));
+
+                curSkia->setFillColor(pattern);
             } else {
                 vp.set(JSVAL_VOID);
 

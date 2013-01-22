@@ -14,6 +14,7 @@ class NativeSkImage;
 class SkBitmap;
 class NativeShadowLooper;
 class GrContext;
+class NativeCanvasPattern;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -96,6 +97,7 @@ class NativeSkia
             double height, double rx, double ry, int stroke);
         void setFillColor(const char *str);
         void setFillColor(NativeSkGradient *gradient);
+        void setFillColor(NativeCanvasPattern *pattern);
         void setStrokeColor(const char *str);
         void setStrokeColor(NativeSkGradient *gradient);
         void setLineWidth(double size);
