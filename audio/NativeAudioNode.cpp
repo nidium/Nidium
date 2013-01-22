@@ -635,6 +635,7 @@ return err;
     printf("ALL DONE\n");
 
     return 0;
+#undef RETURN_WITH_ERROR
 }
 
 void NativeAudioTrack::setCallback(TrackCallback cbk, void *custom)
@@ -794,6 +795,7 @@ return false;
     } 
 
     return true;
+#undef RETURN_WITH_ERROR
 }
 int NativeAudioTrack::resample(float *dest, int destSamples) {
     int channels = this->nbChannel;

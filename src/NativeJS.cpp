@@ -558,14 +558,16 @@ NativeJS::~NativeJS()
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_BeginRequest(cx);
+
     JS_RemoveValueRoot(cx, &gfunc);
     printf("Deleting JS on thread : %ld\n", (unsigned long int)pthread_self());
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-    JS_EndRequest(cx);
 
     rootHandler->unrootHierarchy();
     delete rootHandler;
+
+    JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
     NativeSkia::glsurface = NULL;
@@ -770,7 +772,6 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     NativeJSWebGLTexture::registerObject(cx);
     NativeJSWebGLUniformLocation::registerObject(cx);
     #endif
-
     /* Native() object */
     NativeJSNative::registerObject(cx);
     /* window() object */

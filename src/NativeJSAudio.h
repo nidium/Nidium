@@ -43,9 +43,9 @@ class NativeJSAudioNode: public NativeJSExposer
 {
     public :
         NativeJSAudioNode(NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayBuff(NULL) {}
+            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayContent(NULL) {}
         NativeJSAudioNode(NativeAudioNode *node) 
-            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayBuff(NULL) {}
+            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayContent(NULL) {}
 
         ~NativeJSAudioNode();
 
@@ -88,7 +88,7 @@ class NativeJSAudioNode: public NativeJSExposer
         JSObject *hashObj;
 
         // Source node
-        jsval *arrayBuff;
+        void *arrayContent;
         static void sourceCbk(const struct TrackEvent *ev);
 
         static void registerObject(JSContext *cx);

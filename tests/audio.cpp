@@ -10,6 +10,7 @@
 
 // Compile with : 
 // g++ audio.cpp -D__STDC_CONSTANT_MACROS  -I../audio/ -L../audio/ -lnativeaudio -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o && ./audio
+// g++ audio.cpp -D__STDC_CONSTANT_MACROS  -I../audio/ -L../audio/ -L../third-party/ffmpeg/libavformat/ -L../third-party/ffmpeg/libavcodec/ -L../third-party/ffmpeg/libavutil/ -lnativeaudio -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../third-party/portaudio/src/common/ ../third-party/portaudio/src/common/pa_ringbuffer.o ../third-party/portaudio/src/common/pa_converters.o ../third-party/portaudio/src/common/pa_dither.o ../src/NativeSharedMessages.o && ./audio
 static void *thread_io(void *arg) {
     NativeAudio *audio = (NativeAudio *)arg;
     printf("Hello thread io\n");
@@ -34,8 +35,11 @@ void load(const char *file, uint8_t *buffer, int bufferSize) {
     } while (read > 0);
 }
 
+static void trackcb(const struct TrackEvent *ev) {
+    printf("track cbk %d\n", ev->ev);
+}
 static void nodecb(const struct NodeEvent *ev) {
-    printf("node cbk\n");
+    //printf("node cbk\n");
     /*
     for (int i = 0; i < ev->size; i++) {
         ev->data[0][i] *= 0;
@@ -98,6 +102,7 @@ int main(int argc, char *argv[]) {
     NativeAudioNodeTarget *target= (NativeAudioNodeTarget *)audio->createNode(NativeAudio::TARGET, 2, 0);
 
     custom->setCallback(nodecb, NULL);
+    track1->setCallback(trackcb, NULL);
 
     //gain->gain = 1;
 

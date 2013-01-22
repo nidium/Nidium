@@ -378,9 +378,6 @@ bool NativeJSAudioNode::createHashObj()
 
 NativeJSAudioNode::~NativeJSAudioNode()
 {
-    if (this->arrayBuff != NULL) {
-        JS_RemoveValueRoot(this->cx, this->arrayBuff);
-    }
     if (this->nodeObj != NULL) {
         JS_RemoveObjectRoot(this->audio->tcx, &this->nodeObj);
     }
@@ -832,19 +829,6 @@ static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc
     return JS_TRUE;
 }
 
-void load(const char *file, uint8_t *buffer, int bufferSize) {
-    FILE *f = fopen(file, "r");
-    int read = 0;
-    int pos = 0;
-    do {
-        if (pos + 2048 >= bufferSize) break;
-        read = fread(buffer + pos, 1, 2048, f);
-        pos += read;
-        uint8_t *cursor = buffer;
-    } while (read > 0);
-}
-
-
 static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *vp) 
 {
     NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
@@ -852,7 +836,6 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     JSObject *arrayBuff;
 
 
-    /*
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
         return JS_TRUE;
     }
@@ -865,23 +848,27 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     }
 
     NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
-    node->arrayBuff = &JS_ARGV(cx, vp)[0];
-    JS_AddValueRoot(cx, node->arrayBuff);
+    int length;
+    uint8_t *data;
+
+    length = JS_GetArrayBufferByteLength(arrayBuff);
+    JS_StealArrayBufferContents(cx, arrayBuff, &node->arrayContent, &data);
 
     if (int ret = source->open(
-                JS_GetArrayBufferData(arrayBuff), 
-                JS_GetArrayBufferByteLength(arrayBuff)) < 0) {
+                data, 
+                length) < 0) {
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
         return JS_TRUE;
     }
-    */
 
+    /*
     int bufferSize = sizeof(uint8_t)*4*1024*1024;
     uint8_t *buffer;
 
     buffer = (uint8_t *)malloc(bufferSize);
     load("/tmp/foo.wav", buffer, bufferSize);
     int ret = source->open(buffer, bufferSize);
+    */
 
     return JS_TRUE;
 }
@@ -949,7 +936,10 @@ void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
     printf("Audio DESTRUCTOR\n");
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
     if (audio != NULL) {
+        printf("Audio is not null");
         delete audio;
+    } else {
+        printf("Audio IS null");
     }
 }
 
@@ -958,7 +948,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
     printf("AudioNodeeeeeeeeeeeeeeeee DESTRUCTOR\n");
     NativeJSAudioNode *source = NATIVE_AUDIO_NODE_GETTER(obj);
     if (source != NULL) {
-        delete source;
+//        delete source;
     } 
 }
 
