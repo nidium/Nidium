@@ -84,6 +84,8 @@ static void *native_thread(void *arg)
     nthread->jsRuntime = rt;
     nthread->jsCx      = tcx;
 
+    JS_BeginRequest(tcx);
+
     gbl = JS_NewGlobalObject(tcx, &global_Thread_class, NULL);
 
     JS_SetVersion(tcx, JSVERSION_LATEST);
@@ -91,8 +93,11 @@ static void *native_thread(void *arg)
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
-    if (!JS_InitStandardClasses(tcx, gbl))
+    if (!JS_InitStandardClasses(tcx, gbl)) {
+        JS_EndRequest(tcx);
+        // TODO : cleanup all vars and context
         return NULL;
+    }
     
     JS_SetErrorReporter(tcx, reportError);
 
@@ -125,6 +130,8 @@ static void *native_thread(void *arg)
     
     if (cf == NULL) {
         printf("Cant compile function\n");
+        // TODO : cleanup all vars and context
+        JS_EndRequest(tcx);
         return NULL;
     }
     
@@ -142,12 +149,17 @@ static void *native_thread(void *arg)
         printf("Got an error?\n"); /* or thread has ended */
     }
 
+    JS_EndRequest(tcx);
+
     free(nthread->params.argv);
     free(nthread->params.nbytes);
 
     delete arglst;
 
     printf("Thread has ended\n");
+
+    JS_DestroyContext(tcx);
+    JS_DestroyRuntime(rt);
 
     return NULL;
 }
@@ -247,11 +259,6 @@ NativeJSThread::~NativeJSThread()
     this->markedStop = true;
     if (this->jsRuntime) {
         JS_TriggerOperationCallback(this->jsRuntime);
-        pthread_join(this->threadHandle, NULL);
-        if (this->jsCx) {
-            JS_DestroyContext(this->jsCx);
-        }
-        JS_DestroyRuntime(this->jsRuntime);
     }
 }
 
