@@ -26,7 +26,7 @@ typedef struct _ape_global ape_global;
 class NativeJS
 {
     private:   
-        void LoadGlobalObjects(NativeSkia *);
+        void LoadGlobalObjects(NativeSkia *, int width, int height);
 
     public:
         struct JSContext *cx;

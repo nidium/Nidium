@@ -66,7 +66,7 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-void NativeJSNative::registerObject(JSContext *cx)
+void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 {
     JSObject *NativeObj;
     JSObject *canvas;
@@ -75,7 +75,7 @@ void NativeJSNative::registerObject(JSContext *cx)
     NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "Native",
         &Native_class , NULL, 0);
 
-    canvas = NativeJSCanvas::generateJSObject(cx, 1024, 768);
+    canvas = NativeJSCanvas::generateJSObject(cx, width, height);
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */
     NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
