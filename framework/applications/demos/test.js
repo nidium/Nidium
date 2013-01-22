@@ -21,22 +21,6 @@ var	button = new UIButton(main, {
 });
 
 button.addEventListener("mousedown", function(e){
-
-
-
-BenchThis("C++ contentWidth", 1000000, function(i){
-	var a = bigview.layer.contentWidth,
-		b = a+1;
-});
-
-BenchThis("JS with cache contentWidth", 1000000, function(i){
-	var a = bigview.contentWidth,
-		b = a+1;
-});
-
-
-
-
 /*
 
 	view.animate(
@@ -95,8 +79,6 @@ var	c1 = new UIView(view, {
 	scrollbars : true
 });
 
-echo("contentHeight after c1", c1.contentHeight);
-
 var	c2 = new UIView(c1, {
 	id : "c2",
 	left : 10,
@@ -105,8 +87,6 @@ var	c2 = new UIView(c1, {
 	height : 20,
 	background : "#0088DD"
 });
-
-echo("contentHeight after c2", c1.contentHeight);
 
 var	c22 = new UIView(c1, {
 	id : "c22",
@@ -117,8 +97,6 @@ var	c22 = new UIView(c1, {
 	background : "#0088DD"
 });
 
-echo("contentHeight after c22", c1.contentHeight);
-
 var	c3 = new UIButton(c1, {
 	id : "c3",
 	left : 30,
@@ -126,8 +104,6 @@ var	c3 = new UIButton(c1, {
 	label : "button",
 	background : "#0088DD"
 });
-
-echo("contentHeight after c3", c1.contentHeight);
 
 var	c4 = new UIView(view, {
 	id : "c4",
@@ -137,8 +113,6 @@ var	c4 = new UIView(view, {
 	height : 20,
 	background : "#ff0088"
 });
-
-echo("contentHeight after c4", c1.contentHeight);
 
 document.addEventListener("load", function(){
 //	echo("#view.contentHeight:", view.contentHeight);
@@ -151,4 +125,19 @@ Native.layout.getElementsByTagName("UIView").each(function(){
 		this.top += e.yrel;
 	});
 });
+
+
+var spinner = new UISpinner(c1).center();
+spinner.color = "#ffffff";
+spinner.speed = 40;
+
+setTimeout(function(){
+	spinner.pause();
+
+	setTimeout(function(){
+		spinner.play();
+	}, 2000);
+
+
+}, 2000);
 

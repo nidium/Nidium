@@ -190,6 +190,12 @@ DOMElement.prototype = {
 	updateProperties : Native.object.updateProperties,
 	setProperties : Native.object.setProperties,
 
+	center : Native.object.center,
+	centerLeft : Native.object.centerLeft,
+	centerTop : Native.object.centerTop,
+	move : Native.object.move,
+	fix : Native.object.fix,
+
 	redraw : Native.object.redraw,
 
 	updateLayerOpacity : Native.object.updateLayerOpacity,
@@ -245,6 +251,9 @@ DOMElement.onPropertyUpdate = function(e){
 		case "className" :
 			element.updateProperties();
 			element._needRedraw = true;
+			break;
+
+		case "position" :
 			break;
 
 		default :

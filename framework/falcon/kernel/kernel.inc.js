@@ -16,11 +16,13 @@ Native.object = {
 	__lock : function __lock(method){
 		print("__lock" + (method?'('+method+')':'()'), this);
 		this._locked = true;
+		return this;
 	},
 
 	__unlock : function __unlock(method){
 		print("__unlock" + (method?'('+method+')':'()'), this);
 		this._locked = false;
+		return this;
 	},
 
 	refresh : function refresh(){
@@ -37,6 +39,7 @@ Native.object = {
 		this.layer.visible = this._visible;
 
 		this._needRefresh = false;
+		return this;
 	},
 
 	updateAncestors : function updateAncestors(){
@@ -51,12 +54,14 @@ Native.object = {
 			element = p;
 		}
 		this._needAncestorCacheClear = false;
+		return this;
 	},
 
 	updateLayerOpacity : function updateLayerOpacity(){
 		print("updateLayerOpacity()", this);
 		this.layer.opacity = this._opacity;
 		this._needOpacityUpdate = false;
+		return this;
 	},
 
 	updateLayerPosition : function updateLayerPosition(){
@@ -68,6 +73,7 @@ Native.object = {
 		this.__left = this.layer.__left;
 		this.__top = this.layer.__top;
 		this._needPositionUpdate = false;
+		return this;
 	},
 
 	updateLayerSize : function updateLayerSize(){
@@ -75,18 +81,19 @@ Native.object = {
 		this.layer.width = Math.round(this._width);
 		this.layer.height = Math.round(this._height);
 		this._needSizeUpdate = false;
+		return this;
 	},
 
 	redraw : function redraw(){
-		print("redraw()", this)
+		print("redraw()", this);
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
-
 		this.beforeDraw(this.layer.context);
 		this.draw(this.layer.context);
 		this.afterDraw(this.layer.context);
 
 		this._needRedraw = false;
+		return this;
 	},
 
 	add : function add(type, options){
@@ -115,6 +122,35 @@ Native.object = {
 		return this;
 	},
 
+	centerLeft : function(){
+		var p = this.parent ? this.parent : document;
+		this.left = (p._width - this._width)/2;
+		return this;
+	},
+
+	centerTop : function(){
+		var p = this.parent ? this.parent : document;
+		this.top = (p._height - this._height)/2;
+		return this;
+	},
+
+	center : function(){
+		this.centerTop();
+		this.centerLeft();
+		return this;
+	},
+
+	move : function(x, y){
+		this.left = this._left + x;
+		this.top = this._top + y;
+		return this;
+	},
+
+	fix : function(){
+		this.position = "fixed";
+		return this;
+	},
+
 	addChild : function addChild(element){
 		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
 		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
@@ -123,6 +159,7 @@ Native.object = {
 		element.parent.layer.add(element.layer);
 		element.updateAncestors();
 		Native.layout.update();
+		return this;
 	},
 
 	removeChild : function removeChild(element){
@@ -131,6 +168,7 @@ Native.object = {
 		}
 		Native.layout.remove(element);
 		Native.layout.update();
+		return this;
 	},
 
 	/*

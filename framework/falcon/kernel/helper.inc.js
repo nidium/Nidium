@@ -222,7 +222,7 @@ Number.prototype.bound = function(min, max){
 
 Math.distance = function(x1, y1, x2, y2){
 	var a = y2-y1, b = x2-x1;
-	return Math.sqrt(a*a+b*b);
+	return Math.sqrt(a*a + b*b);
 };
 
 /* -- Precalc !n */
