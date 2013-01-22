@@ -3,6 +3,7 @@
 #import <NativeSkia.h>
 #import <SDL2/SDL.h>
 #import <SDL2/SDL_opengl.h>
+#import <SDL2/SDL_syswm.h>
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
@@ -99,7 +100,7 @@ int NativeEvents(NativeUIInterface *NUII)
         }
 
         NUII->NJS->callFrame();
-        NUII->NJS->rootHandler->layerize(NULL, 0, 0);
+        NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
 
         glFlush();
@@ -152,8 +153,6 @@ void NativeUIInterface::createWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-    NJS = new NativeJS(kNativeWidth, kNativeHeight);
-
     win = SDL_CreateWindow("Native - Running", 100, 100,
     	kNativeWidth, kNativeHeight,
     	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
@@ -162,6 +161,11 @@ void NativeUIInterface::createWindow()
     	printf("Cant create window (SDL)\n");
     	return;
     }
+
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+    SDL_GetWindowWMInfo(win, &info);
+    [(NSWindow *)info.info.cocoa.window setFrameAutosaveName:@"nativeMainWindow"];
 
     contexteOpenGL = SDL_GL_CreateContext(win);
     SDL_StartTextInput();
@@ -172,6 +176,7 @@ void NativeUIInterface::createWindow()
 
     glViewport(0, 0, kNativeWidth, kNativeHeight);
 
+    NJS = new NativeJS(kNativeWidth, kNativeHeight);
     gnet = native_netlib_init();
 
     /* Set ape_global private to the JSContext
@@ -179,6 +184,7 @@ void NativeUIInterface::createWindow()
 
     NJS->bindNetObject(gnet);
 
+    NJS->LoadScript("./main.js");
 
 }
 

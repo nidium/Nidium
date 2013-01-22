@@ -517,7 +517,7 @@ NativeJS::NativeJS(int width, int height)
     //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
 
-    LoadGlobalObjects(surface);
+    LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();
 
@@ -704,7 +704,7 @@ int NativeJS::LoadScript(const char *filename)
     return 1;
 }
 
-void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
+void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
 {
     /* File() object */
     NativeJSFileIO::registerObject(cx);
@@ -735,7 +735,7 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     #endif
 
     /* Native() object */
-    NativeJSNative::registerObject(cx);
+    NativeJSNative::registerObject(cx, width, height);
     /* window() object */
     NativeJSwindow::registerObject(cx);
 

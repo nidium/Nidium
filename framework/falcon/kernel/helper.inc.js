@@ -197,7 +197,7 @@ var OptionalBoolean = function(x, def){
 };
 
 var OptionalCallback = function(x, def){
-	return typeof x === "function" ? x : def;
+	return typeof x === "function" ? x : def || function(){};
 };
 
 var OptionalAlign = function(x, def){
