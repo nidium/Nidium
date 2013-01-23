@@ -7,6 +7,7 @@
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
+#include "NativeCanvas2DContext.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
@@ -563,6 +564,17 @@ void NativeSkia::system(const char *text, int x, int y)
         SkIntToScalar(x), SkIntToScalar(y), *paint_system);
 
     CANVAS_FLUSH();
+}
+
+void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
+{ 
+    SkShader *shader;
+
+    shader = SkShader::CreateBitmapShader(pattern->jsimg->img->img,
+        SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
+
+    PAINT->setColor(SK_ColorBLACK);
+    PAINT->setShader(shader);    
 }
 
 void NativeSkia::setFillColor(NativeSkGradient *gradient)
