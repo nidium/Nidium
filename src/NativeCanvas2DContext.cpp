@@ -32,6 +32,7 @@ enum {
 };
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
+void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj);
 void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj);
 
 extern JSClass Canvas_class;
@@ -51,9 +52,9 @@ static JSClass canvasGradient_class = {
 };
 
 static JSClass canvasPattern_class = {
-    "CanvasPattern", JSCLASS_HAS_PRIVATE,
+    "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasPattern_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -622,6 +623,10 @@ static JSBool native_canvas2dctx_createPattern(JSContext *cx,
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(patternObject));
 
+    NativeJSImage *img = (NativeJSImage *)JS_GetPrivate(jsimage);
+
+    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->jsobj));
+
     JS_SetPrivate(patternObject,
         new NativeCanvasPattern((NativeJSImage *)JS_GetPrivate(jsimage),
         NativeCanvasPattern::PATTERN_REPEAT));
@@ -1012,7 +1017,17 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
+        printf("Deleting gradient\n");
         delete gradient;
+    }
+}
+
+void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeCanvasPattern *pattern = (class NativeCanvasPattern *)JS_GetPrivate(obj);
+    if (pattern != NULL) {
+        printf("pattern finalized\n");
+        delete pattern;
     }
 }
 

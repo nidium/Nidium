@@ -248,7 +248,7 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
             1, jparams, &rval);
     }
 
-    //JS_RemoveObjectRoot(cx, (JSObject **)&socket_client->ctx);
+    JS_RemoveObjectRoot(cx, (JSObject **)&socket_client->ctx);
     
     JS_SetPrivate((JSObject *)socket_client->ctx, NULL);
     socket_client->ctx = NULL;

@@ -60,13 +60,8 @@ class NativeCanvasPattern
 
         NativeCanvasPattern(NativeJSImage *img, PATTERN_MODE repeat) :
             jsimg(img), mode(repeat) {
-
-            JS_AddObjectRoot(this->jsimg->cx, &this->jsimg->jsobj);
         };
 
-        ~NativeCanvasPattern() {
-            JS_RemoveObjectRoot(this->jsimg->cx, &this->jsimg->jsobj);
-        }
 };
 
 #endif

@@ -11,9 +11,10 @@
 #define kNativeHeight 760
 #define kNativeVSYNC 0
 
+uint32_t ttfps = 0;
+
 int NativeEvents(NativeUIInterface *NUII)
 {   
-
     SDL_Event event;
 
     //while(1) {
@@ -98,7 +99,9 @@ int NativeEvents(NativeUIInterface *NUII)
                 }
             }
         }
-
+        if (ttfps%20 == 0) {
+            NUII->NJS->gc();
+        }
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
@@ -106,7 +109,7 @@ int NativeEvents(NativeUIInterface *NUII)
         glFlush();
 
     //}
-
+    ttfps++;
     //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
     return 16;
 }
