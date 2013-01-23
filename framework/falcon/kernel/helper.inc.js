@@ -102,6 +102,23 @@ Number.prototype.in = Object.in;
 
 /* -------------------------------------------------------------------------- */
 
+Array.implement = function(props){
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			Object.createHiddenElement(Array.prototype, key, props[key]);
+		}
+	}
+};
+
+Array.implement({
+	scroll : function(d){
+		if (!d) return this;
+		return this.slice(d, this.length).concat(this.slice(0, d));
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+
 String.prototype.leftPad = function(len, sep){
 	return Array(len + 1 - this.length).join(sep?sep:" ") + this;
 };
@@ -239,6 +256,14 @@ Math.factorial = (function(n){
 }());
 
 /* -------------------------------------------------------------------------- */
+
+var log = function(txt){
+	if (Native.scope.NatBug && Native.scope.NatBug.console) {
+		NatBug.console.log(txt);
+	} else {
+		echo(txt);
+	}
+};
 
 var ___filter___ = function(txt, keyword){
 	return txt.toLowerCase().indexOf(keyword) != -1;

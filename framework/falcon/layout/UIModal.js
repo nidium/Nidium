@@ -25,7 +25,7 @@ Native.elements.export("UIModal", {
 
 		this.setProperties({
 			opacity : 0,
-			background 	: OptionalValue(o.background, "rgba(80, 80, 80, 0.40)")
+			background 	: OptionalValue(o.background, "rgba(25, 25, 25, 0.80)")
 		});
 
 		this.hide();
@@ -86,7 +86,6 @@ Native.elements.export("UIModal", {
 		this.contentView.addEventListener("mouseup", function(e){
 			e.stopPropagation();
 		}, false);
-
 
 		this.spinner = new UISpinner(this.contentView, {
 			width : 24,

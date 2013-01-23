@@ -256,6 +256,7 @@ Native.elements.export("UITabController", {
 				label : OptionalString(o.label, "New Tab"),
 				background : OptionalValue(o.background, "#262722"),
 				color : OptionalValue(o.color, "#abacaa"),
+				opacity : OptionalNumber(o.opacity, 1),
 				fontSize : OptionalNumber(o.fontSize, 11),
 				fontType : OptionalString(o.fontType, "arial"),
 				closable : OptionalBoolean(o.closable, true),

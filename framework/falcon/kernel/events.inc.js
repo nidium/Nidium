@@ -416,7 +416,7 @@ DOMElement.implement({
 		});
 
 		self["on"+name] = function(e){
-			for(var i in queue){
+			for(var i=0; i<queue.length; i++){
 				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
 					continue;
@@ -447,7 +447,7 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 	});
 
 	self["on"+name] = function(e){
-		for(var i in queue){
+		for(var i=0; i<queue.length; i++){
 			queue[i].response = queue[i].fn.call(self, e);
 			if (!queue[i].propagation){
 				continue;

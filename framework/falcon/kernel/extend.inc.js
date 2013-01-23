@@ -107,6 +107,9 @@ DOMElement.draw = {
 			params.x+textOffsetX+params.textOffsetX,
 			params.y+textOffsetY+params.textOffsetY,
 			color ? color : element.color,
+			element.textShadowOffsetX,
+			element.textShadowOffsetY,
+			element.textShadowBlur,
 			shadowColor ? shadowColor : element.textShadowColor
 		);
 

@@ -314,6 +314,10 @@ Native.FPS = {
 
 /* -------------------------------------------------------------------------- */
 
+if (!Native.scope.File){
+	var File = {};
+}
+
 Object.merge(File.prototype, {
 	offset : 0,
 

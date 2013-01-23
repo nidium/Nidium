@@ -35,6 +35,14 @@ Native.elements.export("UILabel", {
 			fontType  		: OptionalString(o.fontType, "arial"),
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
+			textShadowOffsetX	: OptionalNumber(o.textShadowOffsetX, 1),
+			textShadowOffsetY	: OptionalNumber(o.textShadowOffsetY, 1),
+			textShadowBlur		: OptionalNumber(o.textShadowBlur, 1),
+			textShadowColor 	: OptionalValue(
+									o.textShadowColor,
+									'rgba(0, 0, 0, 0.2)'
+								),
+
 			height 			: OptionalNumber(o.height, 18),
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, ""),

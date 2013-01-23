@@ -1,8 +1,8 @@
 /* --------------------------------------------------------------------------- *
  * Native Application Debugger                             (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version: 	0.13                                                           *
- * Author:		Vincent Fontaine                                               *
+ * Version:     0.30                                                           *
+ * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
  * copy of this software and associated documentation files (the "Software"),  *
@@ -26,6 +26,7 @@
 
 var NatBug = {
 	panes : [],
+	console : null,
 
 	init : function(x=28, y=490){
 		if (!this.loaded){
@@ -62,7 +63,7 @@ var NatBug = {
 			shadowBlur : 12,
 			shadowColor : "#000000",
 			shadowOffsetY : 10
-		});
+		}).centerLeft();
 
 		Native.__debugger = this.application;
 
@@ -95,6 +96,8 @@ var NatBug = {
 			myTabs.push(pane.tab);
 		}
 
+		this.console = Native.layout.getElementById("_ntbgp_elements").pane;
+
 		this.tabController = new UITabController(this.application, {
 			name : "NatBugTabController",
 			tabs : myTabs,
@@ -104,19 +107,20 @@ var NatBug = {
 		});
 
 		this.tabController.addEventListener("tabselect", function(e){
-			var panes = Native.layout.getElementsByClassName("natbug_pane");
+			var selectedView = e.tab.target,
+				views = Native.layout.getElementsByClassName("natbug_view");
 
-			panes.each(function(){
-				this.hide();
+			views.each(function(){
+				this.pane.hide();
 			});
 
-			e.tab.target.show();
+			selectedView.pane.show();
 		});
 
 		this.attachDragListener(this.tabController);
 	},
 
-	createPane : function(id){
+	createView : function(id){
 		return this.application.add("UIView", {
 			id : id,
 			left : 6,
@@ -126,7 +130,7 @@ var NatBug = {
 			scrollbars : true,
 			overflow : false,
 			visible : false,
-			class : "natbug_pane"
+			class : "natbug_view"
 		})
 	},
 
@@ -143,15 +147,104 @@ var NatBug = {
 	}
 };
 
-/* properties pane */
+/* Elements pane */
+NatBug.panes.push({
+	lines : [],
+	nb : 0,
+	space : 0,
+
+	tab : {
+		id : "NatBugTab1",
+		label : "Elements",
+		background : "#882266",
+		color : "#ffffff",
+		selected : true,
+		fontSize : 11,
+		closable : false
+	},
+
+	init : function(){
+		this.view = NatBug.createView("_ntbgp_elements");
+		this.view.pane = this;
+		this.view.scrollbars = false;
+
+		this.createSplitPanes();
+		this.inspect();
+	},
+
+	createSplitPanes : function(){
+		var self = this;
+		var createSplitPane = function(view, id){
+			return self.view.add("UIView", {
+				id : id,
+				left : 0,
+				top : 0,
+				scrollbars : true,
+				overflow : false,
+				radius : 3,
+				background : "#ffffff"
+			})
+		};
+
+		this.paneLeft = createSplitPane("_ntbgp_elements_left");
+		this.paneRight = createSplitPane("_ntbgp_elements_right");
+
+		this.paneLeft.width = this.view.width * 70/100;
+		this.paneRight.width = this.view.width * 30/100;
+
+		this.paneRight.left = this.view.width * 70/100;
+
+		this.paneLeft.move(-1, 0);
+		this.paneRight.move(1, 0);
+	},
+
+	inspect : function(){
+		var z = Native.scope;
+		for (var i in z){
+			if (isDOMElement(z[i]) && z[i].parent === null){
+				this.display(z[i], true);
+			}
+		}
+	},
+
+	log : function(text){
+		var l = this.paneLeft.add("UILabel", {
+			paddingLeft : 5,
+			left : 0 + this.space*40,
+			top : 18 * this.nb++,
+			height : 18,
+			color : "#000066",
+			label : text,
+			fontSize : 13
+		});
+
+		echo(l.left)
+
+		this.lines.push(l);
+	},
+
+	display : function(element){
+		this.log("<" + element.type + ">");
+	},
+
+	show : function(){
+		this.view.show();
+	},
+
+	hide : function(){
+		this.view.hide();
+	}
+});
+
+
+/* Properties pane */
 NatBug.panes.push({
 	labels : {},
 	values : {},
 
 	tab : {
-		id : "NatBugTab1",
+		id : "NatBugTab2",
 		label : "Properties",
-		selected : true,
 		background : "#882200",
 		color : "#ffffff",
 		fontSize : 11,
@@ -174,7 +267,7 @@ NatBug.panes.push({
 		"__left", "__top",
 		
 		"radius", "selected",
-		"hasFocus", "hasChildren", "isOnTop", "background",
+		"hasFocus", "hasChildren", "isOnTop",
 
 		"scrollTop", "scrollLeft",
 
@@ -192,14 +285,15 @@ NatBug.panes.push({
 		var lines = 0,
 			col = 0;
 
-		this.view = NatBug.createPane("natbug_pane_properties");
+		this.view = NatBug.createView("_ntbgp_properties");
+		this.view.pane = this;
 
 		for (var l = 0; l<this.props.length; l++){
 			var property = this.props[l],
 				b1 = "rgba(0, 0, 0, 0.4)",
 				b2 = "rgba(255, 255, 255, 0.05)";
 
-			if (lines>=26){
+			if (lines>=13){
 				lines = 0;
 				col++;
 			}
@@ -224,7 +318,7 @@ NatBug.panes.push({
 
 		window.onElementUnderPointer = function(e){
 			if (!app.isPointInside(e.x, e.y)){
-//				this.__lock("onElementUnderPointer");
+				// this.__lock("onElementUnderPointer");
 				for (var l = 0; l<self.props.length; l++){
 					var a = self.props[l];
 					if (this[a] == undefined) {
@@ -237,7 +331,7 @@ NatBug.panes.push({
 						self.values[a].label = this[a];
 					}
 				}
-//				this.__unlock("onElementUnderPointer");
+				// this.__unlock("onElementUnderPointer");
 			}
 		};
 	},
@@ -281,19 +375,55 @@ NatBug.panes.push({
 });
 
 
-/* network pane */
+/* Stats pane */
 NatBug.panes.push({
+	labels : {},
+	values : {},
+
 	tab : {
-		id : "NatBugTab2",
-		label : "Network",
-		background : "#882266",
+		id : "NatBugTab3",
+		label : "Stats",
+		background : "#668822",
 		color : "#ffffff",
 		fontSize : 11,
-		closable : false
+		closable : false,
+		opacity : 0.9
 	},
 
 	init : function(){
-		this.view = NatBug.createPane("natbug_pane_network");
+		var b1 = "rgba(0, 0, 0, 0.4)",
+			b2 = "rgba(255, 255, 255, 0.05)";
+
+		this.view = NatBug.createView("_ntbgp_stats");
+		this.view.pane = this;
+
+		this.labels.fps = this.view.add("UILabel", {
+			id : "natbug_label_fps",
+			paddingLeft : 5,
+			left : 0,
+			top : 0,
+			width : 80,
+			height : 20,
+			color : "#66aa66",
+			background : b1,
+			fontSize : 13,
+			label : "FPS"
+		});
+
+		this.values.fps = this.view.add("UILabel", {
+			id : "natbug_value_fps",
+			paddingLeft : 5,
+			left : 82,
+			top : 0,
+			width : 120,
+			height : 20,
+			color : "#66aa66",
+			background : b2,
+			label : "0 ms",
+			fontSize : 13,
+			radius : 2
+		});
+
 	},
 
 	show : function(){
@@ -308,7 +438,7 @@ NatBug.panes.push({
 
 Canvas.prototype.debug = function(){
 	var context = this.getContext("2D"),
-		__DEBUG_SHOW_LAYERS__ = true,
+		__DEBUG_SHOW_LAYERS__ = false,
 		__DEBUG_SHOW_ORDER__ = false;
 
 	if (!this.host || this.host._root == Native.__debugger){
@@ -393,10 +523,13 @@ Native.FPS = {
 		} 				
 		
 		if (this.loaded) {
+			Native.layout.getElementById("natbug_value_fps").label = this.old + " ms";
+			/*
 			this.context.setColor("#000000");
 			this.context.fillRect(0, 0, 60, 30);
 			this.context.setColor("yellow");
 			this.context.fillText(this.old + " ms", 8, 20);
+			*/
 		}
 		
 		return r;
@@ -404,3 +537,4 @@ Native.FPS = {
 };
 
 NatBug.init();
+

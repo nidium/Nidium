@@ -14,9 +14,11 @@ load("falcon/native.js");
 //load("applications/demos/windows.js");
 //load("applications/demos/dropdown.js");
 //load("applications/demos/sliders.js");
+//load("applications/demos/scrollbars.js");
+load("applications/demos/modal.js");
 
 //load("applications/demos/buttons.js");
-load("applications/demos/test.js");
+//load("applications/demos/test.js");
 
 //load("testLayer.js");
 
@@ -28,7 +30,7 @@ load("applications/demos/test.js");
 
 /* -- Native Debugger ------------------ */
 
-//load("applications/NatBug.nap");
+load("applications/NatBug.nap");
 
 
 /* -- Old Native Framework Demos ------------------ */

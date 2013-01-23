@@ -64,10 +64,10 @@ Native.elements.export("UIView", {
 
 		this.refreshBackgroundImage = function(){
 			self._cachedBackgroundImage = null;
-
 			if (this.backgroundImage) {
 				Native.loadImage(this.backgroundImage, function(img){
 					self._cachedBackgroundImage = img;
+					self._needRefresh = true;
 					self._needRedraw = true;
 					self.refresh();
 				});

@@ -89,7 +89,7 @@ Native.object = {
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
 		this.beforeDraw(this.layer.context);
-		this.draw(this.layer.context);
+		if (this._visible) this.draw(this.layer.context);
 		this.afterDraw(this.layer.context);
 
 		this._needRedraw = false;

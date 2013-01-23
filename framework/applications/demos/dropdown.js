@@ -26,7 +26,7 @@ var button = main.add("UIButton", {
 	top : 50,
 	label : "Button"
 }).addEventListener("mousedown", function(e){
-	dropDownController.tabsContainer.refreshScrollBars();
+	dropDownController.open();
 });
 
 var	dropDownController = main.add("UIDropDownController", {
