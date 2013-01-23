@@ -119,7 +119,7 @@ var DOMElement = function(type, options, parent){
 		_maxx : this._left + this._width,
 		_maxy : this._top + this._top,
 
-		_layerPadding : p ? 20 : 20,
+		_layerPadding : p ? Math.max(this.shadowBlur*2, 10) : 0,
 
 		/* absolute value (inherited) */
 		__left : 0,
@@ -217,13 +217,15 @@ DOMElement.onPropertyUpdate = function(e){
 
 	print("DOMElement.onPropertyUpdate("+e.property+")", element);
 
-	element.__lock("onPropertyUpdate");
-
+	element.__unlock();
+	
 	element.fireEvent("change", {
 		property : e.property,
 		oldValue : e.oldValue,
 		newValue : e.newValue
 	});
+
+	element.__lock("onPropertyUpdate");
 
 	switch (e.property) {
 		case "left" :

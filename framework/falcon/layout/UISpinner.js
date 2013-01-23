@@ -58,7 +58,7 @@ Native.elements.export("UISpinner", {
 
 			radius : OptionalNumber(o.radius, 2),
 			dashes : OptionalNumber(o.dashes, 14),
-			speed : OptionalNumber(o.speed, 20, 1, 100),
+			speed : OptionalNumber(o.speed, 30, 1, 100),
 			lineWidth : OptionalNumber(o.lineWidth, 2.5),
 			opacity : OptionalNumber(o.opacity, 0.95),
 
@@ -180,8 +180,8 @@ Native.elements.export("UISpinner", {
 			e.forcePropagation();
 		}, true);
 
-		this.refreshAnimation();
 		this.refreshLayout();
+		this.refreshAnimation();
 		this.play();
 	},
 

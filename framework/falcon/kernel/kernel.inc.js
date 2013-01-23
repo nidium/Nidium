@@ -124,13 +124,13 @@ Native.object = {
 
 	centerLeft : function(){
 		var p = this.parent ? this.parent : document;
-		this.left = (p._width - this._width)/2;
+		this.left = (p._width - this.width)/2;
 		return this;
 	},
 
 	centerTop : function(){
 		var p = this.parent ? this.parent : document;
-		this.top = (p._height - this._height)/2;
+		this.top = (p._height - this.height)/2;
 		return this;
 	},
 

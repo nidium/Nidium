@@ -20,19 +20,52 @@ var	button = new UIButton(main, {
 	label : "Do It"
 });
 
-button.addEventListener("mousedown", function(e){
-/*
-
-	view.animate(
-		"scrollTop", 	// property
-		view.scrollTop, 	// start value
-		132, 		// end value
-		850, 		// duration 850ms
-		null,		// callback
-		Math.physics.expoOut // motion equation
-	);
-*/
+button.addEventListener("mouseup", function(e){
+	modal.open();
 });
+
+var modal = new UIModal(main);
+
+var b = modal.contentView.add("UIButton", {label:"<  >", background:"black"}).move(10, 10);
+b.addEventListener("mouseup", function(e){
+	if (modal.toggle) {
+		modal.toggle = false;
+		modal.spinner.show();
+		modal.spinner.opacity = 0.5;
+		modal.spinner.fadeOut(500);
+
+		modal.contentView.animate(
+			"width", modal.contentView.width, 320,
+			400, null,
+			Math.physics.elasticOut
+		);
+
+		modal.contentView.animate(
+			"height", modal.contentView.height, 200,
+			300, null,
+			Math.physics.quadIn
+		);
+
+	} else {
+		modal.toggle = true;
+		modal.spinner.show();
+		modal.spinner.opacity = 0.5;
+		modal.spinner.fadeOut(500);
+
+		modal.contentView.animate(
+			"width", modal.contentView.width, 800,
+			600, null,
+			Math.physics.elasticOut
+		);
+
+		modal.contentView.animate(
+			"height", modal.contentView.height, 600,
+			500, null,
+			Math.physics.quadOut
+		);
+	}
+});
+
 
 var	bigview = new UIView(main, {
 	id : "bigview",
@@ -126,18 +159,4 @@ Native.layout.getElementsByTagName("UIView").each(function(){
 	});
 });
 
-
-var spinner = new UISpinner(c1).center();
-spinner.color = "#ffffff";
-spinner.speed = 40;
-
-setTimeout(function(){
-	spinner.pause();
-
-	setTimeout(function(){
-		spinner.play();
-	}, 2000);
-
-
-}, 2000);
 
