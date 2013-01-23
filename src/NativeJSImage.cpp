@@ -80,6 +80,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSImage *img = NATIVE_IMAGE_GETTER(obj);
     if (img != NULL) {
+        printf("Image finalized\n");
         delete img;
     }
 }
@@ -90,6 +91,8 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSImage *nimg;
 
     /* TODO: JS_IsConstructing() */
+
+    printf("new image\n");
 
     nimg = new NativeJSImage();
     nimg->cx = cx;
@@ -152,6 +155,8 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     nimg->cx    = cx;
 
     JS_SetPrivate(ret, nimg);
+
+    printf("Build image object\n");
 
     JS_DefineProperty(cx, ret, "width",
         INT_TO_JSVAL(image->getWidth()), NULL, NULL,

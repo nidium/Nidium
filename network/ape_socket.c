@@ -278,7 +278,12 @@ int APE_socket_connect(ape_socket *socket, uint16_t port,
 
 void APE_socket_shutdown(ape_socket *socket)
 {
-    //printf("Ask for shutdown\n");
+    if (socket->states.state == APE_SOCKET_ST_PROGRESS ||
+        socket->states.state == APE_SOCKET_ST_PENDING) {
+        close(APE_SOCKET_FD(socket));
+        return;
+    }
+    
     if (socket->states.state != APE_SOCKET_ST_ONLINE) {
         return;
     }
@@ -306,6 +311,11 @@ void APE_socket_shutdown_now(ape_socket *socket)
 
 static void ape_socket_shutdown_force(ape_socket *socket)
 {
+    if (socket->states.state == APE_SOCKET_ST_PROGRESS ||
+        socket->states.state == APE_SOCKET_ST_PENDING) {
+        close(APE_SOCKET_FD(socket));
+        return;
+    }
     if (socket->states.state != APE_SOCKET_ST_ONLINE) {
         printf("not online\n");
         return;

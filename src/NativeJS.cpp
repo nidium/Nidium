@@ -517,6 +517,7 @@ NativeJS::NativeJS(int width, int height)
     //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
 
+
     LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();
@@ -544,18 +545,20 @@ NativeJS::~NativeJS()
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_RemoveValueRoot(cx, &gfunc);
-    printf("Deleting JS on thread : %ld\n", (unsigned long int)pthread_self());
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-    JS_EndRequest(cx);
 
     rootHandler->unrootHierarchy();
+    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
+    JS_EndRequest(cx);
+    
     delete rootHandler;
 
     NativeSkia::glcontext = NULL;
     NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
+
     JS_DestroyRuntime(rt);
 
     JS_ShutDown();
