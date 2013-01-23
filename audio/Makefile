@@ -3,7 +3,7 @@ CXX=g++
 LIBAV=../../ffmpeg/
 PORTAUDIO=../../portaudio/
 LIBRESAMPLER=../../zita-resampler-1.3.0/
-CPPFLAGS=-I./ -I../src/ -I$(LIBAV) -I$(PORTAUDIO)/src/common/ -I$(LIBRESAMPLER) -c -O2 -g -Wall -D__STDC_CONSTANT_MACROS
+CPPFLAGS=-I./ -I../src/ -I$(LIBAV) -I$(PORTAUDIO)/src/common/ -I$(LIBRESAMPLER) -c -O2 -g -Wall -D__STDC_CONSTANT_MACROS -std=c++0x
 
 AR=ar
 ARFLAGS=rcs

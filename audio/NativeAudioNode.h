@@ -83,9 +83,10 @@ enum TrackError {
     ERR_INTERNAL
 };
 
-typedef void (*NodeCallback)(const struct NodeEvent *ev);
-typedef void (*TrackCallback)(const struct TrackEvent *ev);
-typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); /* TODO : Normalize args */
+// TODO : Cleanup callbacks
+typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread callback
+typedef void (*TrackCallback)(const struct TrackEvent *ev); // Used for event (play, pause, stop, error, ...)
+typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); // Message posting to thread TODO : Normalize args
 
 class NativeAudioNode
 {

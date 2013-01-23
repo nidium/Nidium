@@ -563,9 +563,12 @@ NativeJS::~NativeJS()
     printf("Deleting JS on thread : %ld\n", (unsigned long int)pthread_self());
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
+    NativeJSAudio::shutdown();
 
     rootHandler->unrootHierarchy();
     delete rootHandler;
+
+    JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx)); 
 
     JS_EndRequest(cx);
 

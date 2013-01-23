@@ -14,21 +14,35 @@ enum {
 };
 
 class NativeJS;
+class NativeJSAudioNode;
 
 class NativeJSAudio: public NativeJSExposer
 {
     public :
         NativeJSAudio(int size, int channels, int frequency);
 
-        bool createContext();
+        struct Nodes {
+            NativeJSAudioNode *curr;
 
-        ~NativeJSAudio();
+            Nodes *prev;
+            Nodes *next;
+
+            Nodes(NativeJSAudioNode *curr, Nodes *prev, Nodes *next) 
+                : curr(curr), prev(prev), next(next) {}
+            Nodes() 
+                : curr(NULL), prev(NULL), next(NULL) {}
+        };
 
         NativeAudio *audio;
+
+        Nodes *nodes;
 
         pthread_t threadIO;
         pthread_t threadDecode;
         pthread_t threadQueue;
+
+        pthread_cond_t shutdowned;
+        pthread_mutex_t shutdownLock;
 
         JSObject *jsobj;
 
@@ -36,16 +50,32 @@ class NativeJSAudio: public NativeJSExposer
         JSContext *tcx;
         const char *fun;
 
+        bool createContext();
+        static void shutdownCallback(NativeAudioNode *dummy, void *custom);
+        static void shutdown();
+
         static void registerObject(JSContext *cx);
+
+        ~NativeJSAudio();
+    private : 
+        static NativeJSAudio *instance;
 };
 
 class NativeJSAudioNode: public NativeJSExposer
 {
     public :
-        NativeJSAudioNode(NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayContent(NULL) {}
-        NativeJSAudioNode(NativeAudioNode *node) 
-            :  audio(audio), node(node), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), nodeObj(NULL), hashObj(NULL), arrayContent(NULL) {}
+        NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
+            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
+               nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
+        { 
+
+            if (type == NativeAudio::CUSTOM) {
+                pthread_cond_init(&this->shutdowned, NULL);
+                pthread_mutex_init(&this->shutdownLock, NULL);
+            }
+
+            this->node = audio->audio->createNode(type, in, out);
+        }
 
         ~NativeJSAudioNode();
 
@@ -75,17 +105,23 @@ class NativeJSAudioNode: public NativeJSExposer
         NativeJSAudio *audio;
         NativeAudioNode *node;
         JSObject *jsobj;
+        NativeAudio::Node type;
 
         // Custom node
         static void customCbk(const struct NodeEvent *ev);
         static void ctxCallback(NativeAudioNode *node, void *custom);
         static void setPropCallback(NativeAudioNode *node, void *custom);
+        static void shutdownCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
         JSFunction *bufferFn;
         JSObject *bufferObj;
         const char *bufferStr;
         JSObject *nodeObj;
         JSObject *hashObj;
+        bool finalized;
+
+        pthread_cond_t shutdowned;
+        pthread_mutex_t shutdownLock;
 
         // Source node
         void *arrayContent;

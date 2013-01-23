@@ -225,7 +225,8 @@ bool NativeAudioNode::recurseGetData()
 {
         SPAM(("in recurseGetData\n"));
 
-        SPAM(("node %p, in count is %d\n", this, this->inCount));
+        SPAM(("node %p, in count is %d\n", this, 5));
+        SPAM(("in count is %d\n", this->inCount));
         for (int i = 0; i < this->inCount; i++) {
             SPAM(("processing input #%d on %p\n", i, this));
             if (!this->nodeProcessed) {
@@ -948,6 +949,20 @@ bool NativeAudioTrack::process() {
 }
 
 void NativeAudioTrack::close(bool reset) {
+    if (this->opened) {
+        free(this->rBufferOutData);
+
+        av_free(this->container->pb);
+
+        if (!this->packetConsumed) {
+            av_free_packet(this->tmpPacket);
+        }
+
+        avformat_free_context(this->container);
+
+        delete this->br;
+    }
+
     if (reset) {
         this->playing = false;
         this->frameConsumed = true;
@@ -956,25 +971,12 @@ void NativeAudioTrack::close(bool reset) {
         this->audioStream = -1;
 
         PaUtil_FlushRingBuffer(this->rBufferIn);
-        PaUtil_FlushRingBuffer(this->rBufferOut);
-
         //memset(this->avioBuffer, 0, NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     } else {
         free(this->rBufferInData);
-        free(this->rBufferOutData);
 
         //av_free(this->avioBuffer);
     }
-
-    av_free(this->container->pb);
-
-    if (!this->packetConsumed) {
-        av_free_packet(this->tmpPacket);
-    }
-
-    avformat_free_context(this->container);
-
-    delete this->br;
 }
 
 void NativeAudioTrack::play() 
