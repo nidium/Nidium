@@ -45,6 +45,7 @@ class NativeJSAudio: public NativeJSExposer
         pthread_mutex_t shutdownLock;
 
         JSObject *jsobj;
+        JSObject *gbl;
 
         JSRuntime *rt;
         JSContext *tcx;
