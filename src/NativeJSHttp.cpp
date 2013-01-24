@@ -7,7 +7,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Http_class = {
-    "Http", JSCLASS_HAS_PRIVATE,
+    "Http", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Http_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -82,6 +82,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     jshttp = (NativeJSHttp *)nhttp->getPrivate();
     jshttp->request = callback;
+    JS_SetReservedSlot(caller, 0, callback);
 
     nhttp->request(jshttp);
 
@@ -112,7 +113,6 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     }
     
     SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
-
 
     switch(type) {
         case NativeHTTP::DATA_STRING:

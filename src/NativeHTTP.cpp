@@ -174,7 +174,7 @@ void NativeHTTP::requestEnded()
 {
 #define REQUEST_HEADER(header) ape_array_lookup(http.headers.list, \
     CONST_STR_LEN(header "\0"))
-    if (!http.ended) {
+    if (!http.ended && http.headers.list != NULL) {
         buffer *content_type;
         DataType type = DATA_NULL;
         http.ended = 1;
@@ -242,8 +242,8 @@ NativeHTTP::~NativeHTTP()
     free(path);
 
     if (currentSock != NULL) {
-        APE_socket_shutdown_now(currentSock);
         currentSock->ctx = NULL;
+        APE_socket_shutdown_now(currentSock);
     }
 
     if (!http.ended && http.data != NULL) {

@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "NativeJSExposer.h"
+#include "NativeJSImage.h"
 
 /*
     Create a new 2D context using NativeSkia.
@@ -45,7 +46,22 @@ class NativeCanvas2DContext : public NativeJSExposer
         NativeCanvas2DContext(struct JSContext *cx, int width, int height);
         ~NativeCanvas2DContext();
     private:
-        
+};
+
+class NativeCanvasPattern
+{
+    public:
+        NativeJSImage *jsimg;
+
+        enum PATTERN_MODE {
+            PATTERN_REPEAT,
+            PATTERN_NOREPEAT
+        } mode;
+
+        NativeCanvasPattern(NativeJSImage *img, PATTERN_MODE repeat) :
+            jsimg(img), mode(repeat) {
+        };
+
 };
 
 #endif

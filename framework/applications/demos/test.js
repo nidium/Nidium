@@ -20,35 +20,52 @@ var	button = new UIButton(main, {
 	label : "Do It"
 });
 
-button.addEventListener("mousedown", function(e){
-
-
-
-BenchThis("C++ contentWidth", 1000000, function(i){
-	var a = bigview.layer.contentWidth,
-		b = a+1;
+button.addEventListener("mouseup", function(e){
+	modal.open();
 });
 
-BenchThis("JS with cache contentWidth", 1000000, function(i){
-	var a = bigview.contentWidth,
-		b = a+1;
+var modal = new UIModal(main);
+
+var b = modal.contentView.add("UIButton", {label:"<  >", background:"black"}).move(10, 10);
+b.addEventListener("mouseup", function(e){
+	if (modal.toggle) {
+		modal.toggle = false;
+		modal.spinner.show();
+		modal.spinner.opacity = 0.5;
+		modal.spinner.fadeOut(500);
+
+		modal.contentView.animate(
+			"width", modal.contentView.width, 320,
+			400, null,
+			Math.physics.elasticOut
+		);
+
+		modal.contentView.animate(
+			"height", modal.contentView.height, 200,
+			300, null,
+			Math.physics.quadIn
+		);
+
+	} else {
+		modal.toggle = true;
+		modal.spinner.show();
+		modal.spinner.opacity = 0.5;
+		modal.spinner.fadeOut(500);
+
+		modal.contentView.animate(
+			"width", modal.contentView.width, 800,
+			600, null,
+			Math.physics.elasticOut
+		);
+
+		modal.contentView.animate(
+			"height", modal.contentView.height, 600,
+			500, null,
+			Math.physics.quadOut
+		);
+	}
 });
 
-
-
-
-/*
-
-	view.animate(
-		"scrollTop", 	// property
-		view.scrollTop, 	// start value
-		132, 		// end value
-		850, 		// duration 850ms
-		null,		// callback
-		Math.physics.expoOut // motion equation
-	);
-*/
-});
 
 var	bigview = new UIView(main, {
 	id : "bigview",
@@ -95,8 +112,6 @@ var	c1 = new UIView(view, {
 	scrollbars : true
 });
 
-echo("contentHeight after c1", c1.contentHeight);
-
 var	c2 = new UIView(c1, {
 	id : "c2",
 	left : 10,
@@ -105,8 +120,6 @@ var	c2 = new UIView(c1, {
 	height : 20,
 	background : "#0088DD"
 });
-
-echo("contentHeight after c2", c1.contentHeight);
 
 var	c22 = new UIView(c1, {
 	id : "c22",
@@ -117,8 +130,6 @@ var	c22 = new UIView(c1, {
 	background : "#0088DD"
 });
 
-echo("contentHeight after c22", c1.contentHeight);
-
 var	c3 = new UIButton(c1, {
 	id : "c3",
 	left : 30,
@@ -126,8 +137,6 @@ var	c3 = new UIButton(c1, {
 	label : "button",
 	background : "#0088DD"
 });
-
-echo("contentHeight after c3", c1.contentHeight);
 
 var	c4 = new UIView(view, {
 	id : "c4",
@@ -137,8 +146,6 @@ var	c4 = new UIView(view, {
 	height : 20,
 	background : "#ff0088"
 });
-
-echo("contentHeight after c4", c1.contentHeight);
 
 document.addEventListener("load", function(){
 //	echo("#view.contentHeight:", view.contentHeight);
@@ -151,4 +158,5 @@ Native.layout.getElementsByTagName("UIView").each(function(){
 		this.top += e.yrel;
 	});
 });
+
 

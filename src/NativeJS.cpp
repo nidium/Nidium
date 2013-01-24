@@ -531,7 +531,8 @@ NativeJS::NativeJS(int width, int height)
     //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
 
-    LoadGlobalObjects(surface);
+
+    LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();
 
@@ -560,15 +561,14 @@ NativeJS::~NativeJS()
     JS_BeginRequest(cx);
 
     JS_RemoveValueRoot(cx, &gfunc);
-    printf("Deleting JS on thread : %ld\n", (unsigned long int)pthread_self());
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     NativeJSAudio::shutdown();
 
     rootHandler->unrootHierarchy();
+    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
+    
     delete rootHandler;
-
-    JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx)); 
 
     JS_EndRequest(cx);
 
@@ -576,6 +576,7 @@ NativeJS::~NativeJS()
     NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
+
     JS_DestroyRuntime(rt);
 
     JS_ShutDown();
@@ -743,7 +744,7 @@ int NativeJS::LoadScript(const char *filename)
     return 1;
 }
 
-void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
+void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
 {
     /* File() object */
     NativeJSFileIO::registerObject(cx);
@@ -776,7 +777,7 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia)
     NativeJSWebGLUniformLocation::registerObject(cx);
     #endif
     /* Native() object */
-    NativeJSNative::registerObject(cx);
+    NativeJSNative::registerObject(cx, width, height);
     /* window() object */
     NativeJSwindow::registerObject(cx);
 

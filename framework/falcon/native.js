@@ -69,6 +69,8 @@ load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
 load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
 load(__PATH_LAYOUT__ + 'UIScrollBars.js');
+load(__PATH_LAYOUT__ + 'UISpinner.js');
+load(__PATH_LAYOUT__ + 'UIModal.js');
 
 
 /* -- Canvas Plugins -- */

@@ -9,7 +9,7 @@ class NativeJSNative : public NativeJSExposer
 {
   public:
     static bool showFPS;
-    static void registerObject(JSContext *cx);
+    static void registerObject(JSContext *cx, int width, int height);
 };
 
 #endif
