@@ -233,6 +233,8 @@ bool NativeAudioNode::recurseGetData()
                         if (!this->input[i]->wire[j]->node->recurseGetData()) {
                             SPAM(("FAILED\n"));
                             // TODO : Check side effect of returning false (two source?)
+                            // => After checking this block song for playing if one fail
+                            // now recurseGetData return always true (side effect?)
                             return false;
                         }
                     }
@@ -274,7 +276,12 @@ bool NativeAudioNode::recurseGetData()
 
             if (!this->process()) {
                 SPAM(("  => FAILED!\n"));
-                return false;
+                // XXX : Returning true here, because we don't want
+                // to stop the FX queue because one node cannot be processed
+                // Note : 
+                // - Only source return false
+                // - Need to check for side effect when a source doesn't have enought data to read. I think the last frame is going to play as long as no new data is available
+                return true;
             }
 
             for (int i = 0; i < this->outCount; i++) {
