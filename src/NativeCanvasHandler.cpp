@@ -157,6 +157,10 @@ void NativeCanvasHandler::removeFromParent()
     if (!parent) {
         return;
     }
+    if (this->jsobj && js::IsIncrementalBarrierNeeded(this->jscx)) {
+        printf("Reference barrier\n");
+        js::IncrementalReferenceBarrier(this->jsobj);
+    }
     
     if (parent->children == this) {
         parent->children = next;
@@ -177,6 +181,7 @@ void NativeCanvasHandler::removeFromParent()
     parent = NULL;
     next = NULL;
     prev = NULL;
+
 }
 
 /*
@@ -423,6 +428,5 @@ NativeCanvasHandler::~NativeCanvasHandler()
     for (cur = children; cur != NULL; cur = cur->next) {
         //printf("Warning: a canvas got orphaned (%p)\n", cur);
         cur->removeFromParent();
-
     }
 }

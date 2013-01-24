@@ -427,6 +427,11 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
     //printf("Gc TH1 callback?\n");
 }
 
+static void TraceBlack(JSTracer *trc, void *data)
+{
+    printf("Trace black?\n");
+}
+
 NativeJS::NativeJS(int width, int height)
 {
     JSRuntime *rt;
@@ -484,6 +489,7 @@ NativeJS::NativeJS(int width, int height)
     //JS_DefineProfilingFunctions(cx, gbl);
 
     JS_SetGCCallback(rt, gccb);
+    JS_SetExtraGCRootsTracer(rt, TraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
     //JS_InitCTypesClass(cx, gbl);
@@ -534,9 +540,10 @@ NativeJS::~NativeJS()
     
 #if 0
     rootHandler->unrootHierarchy();
-    JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
+    
     delete rootHandler;
 #endif
+    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
     JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;

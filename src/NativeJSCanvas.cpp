@@ -42,7 +42,7 @@ static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Trace(JSTracer *trc, JSRawObject obj);
 
 JSClass Canvas_class = {
-    "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
+    "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
     0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
@@ -526,8 +526,14 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER(obj);
     if (handler != NULL) {
+        printf("Canvas finalized\n");
         delete handler;
     }
+}
+
+static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
+{
+    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
 }
 
 static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
@@ -539,6 +545,9 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
 
         for (cur = handler->children; cur != NULL; cur = cur->next) {
             if (cur->jsobj) {
+                #ifdef DEBUG
+                    JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
+                #endif
                 JS_CallTracer(trc, cur->jsobj, JSTRACE_OBJECT);
             }
         }        
