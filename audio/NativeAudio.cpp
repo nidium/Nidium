@@ -15,7 +15,8 @@ extern "C" {
 // if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
 // should reset all parameters and buffers to fit last asked audio context
 NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
-    :output(NULL), inputStream(NULL), outputStream(NULL), tracks(NULL), tracksCount(0)
+    : output(NULL), inputStream(NULL), outputStream(NULL), tracks(NULL), tracksCount(0),
+      threadShutdown(false)
      //haveData(false), notEmpty(false)
 {
     pthread_cond_init(&this->bufferNotEmpty, NULL);
@@ -29,8 +30,6 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
 
     this->sharedMsg = new NativeSharedMessages();
     this->rBufferOut = new PaUtilRingBuffer();
-
-    this->threadShutdown.store(false);
 
     // Save output parameters
     this->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
@@ -179,7 +178,7 @@ void *NativeAudio::queueThread(void *args) {
             //audio->notEmpty = true;
         } 
 
-        if (!audio->threadShutdown.load()) {
+        if (!audio->threadShutdown) {
             if (cause == 0) {
                 //if (!audio->haveData) {
                     SPAM(("Waiting for more data\n"));
@@ -459,7 +458,7 @@ void NativeAudio::disconnect(NodeLink *input, NodeLink *output)
 
 void NativeAudio::shutdown()
 {
-    this->threadShutdown.store(true);
+    this->threadShutdown = true;
 
     pthread_cond_signal(&this->queueHaveSpace);
     pthread_cond_signal(&this->queueHaveData);

@@ -3,10 +3,9 @@
 
 #include <pthread.h>
 #include <stdint.h>
-#include <atomic>
 #include "NativeAudioParameters.h"
 
-#if 0
+#if 1
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -15,7 +14,7 @@
 #define NATIVE_AVIO_BUFFER_SIZE         2048 
 #define NATIVE_AVDECODE_BUFFER_SAMPLES  16384 
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
-#define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->threadShutdown.load()) {\
+#define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->threadShutdown) {\
     SPAM(("Exiting"));\
     return NULL;\
 }\
@@ -96,7 +95,7 @@ class NativeAudio
         pthread_mutex_t decodeLock, queueLock, shutdownLock;
 
         bool haveData, notEmpty;
-        std::atomic_bool threadShutdown;
+        bool threadShutdown;
 
         NativeAudioTracks *tracks;
         int tracksCount;
