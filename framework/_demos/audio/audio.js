@@ -11,10 +11,15 @@ var HTTPAudioRequest = function(url, cb) {
 }
 
 
-HTTPAudioRequest("http://f.z.nf/song.mp3", function(data) {
-    source.open(data);
+
+File.read("/tmp/foo.mp3", function(buffer, size){
+    source.open(buffer);
     source.play();
 });
+/*
+HTTPAudioRequest("http://f.z.nf/song.mp3", function(data) {
+});
+*/
 
 HTTPAudioRequest("http://labs.swelen.com/games/ztype4coders/media/music/endure.ogg", function(data) {
     source2.open(data);

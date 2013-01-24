@@ -312,6 +312,8 @@ void NativeJSFileIO::onNFIOOpen(NativeFileIO *NSFIO)
     jsval rval;
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
 
+    JSAutoRequest ar(cx);
+
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.open,
         0, NULL, &rval);
 
@@ -322,6 +324,8 @@ void NativeJSFileIO::onNFIOError(NativeFileIO *NSFIO, int errno)
 {
     jsval rval;
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
+
+    JSAutoRequest ar(cx);
 
     /*JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.open,
         0, NULL, &rval);*/
@@ -334,6 +338,8 @@ void NativeJSFileIO::onNFIOWrite(NativeFileIO *NSFIO, size_t written)
     jsval rval;
     jsval jdata;
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
+
+    JSAutoRequest ar(cx);
 
     jdata = DOUBLE_TO_JSVAL((double)written);
 
@@ -349,6 +355,8 @@ void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t
     jsval jdata;
 
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
+
+    JSAutoRequest ar(cx);
 
     JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
     uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
