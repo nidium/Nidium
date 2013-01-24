@@ -41,7 +41,7 @@ enum {
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 
 JSClass Canvas_class = {
-    "Canvas", JSCLASS_HAS_PRIVATE,
+    "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -508,9 +508,8 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    JS_AddObjectRoot(cx, &handler->jsobj);
-    /* Retain a ref to this, so that we are sure we can't get an undefined ctx */
-    JS_AddObjectRoot(cx, &handler->context->jsobj);
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
+
     JS_SetPrivate(ret, handler);
 
     JS_DefineFunctions(cx, ret, canvas_funcs);
@@ -538,17 +537,12 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
-/*
-    skia->obj = ret;
-    skia->cx = cx;
-*/
     handler = new NativeCanvasHandler(width, height);
     handler->context = new NativeCanvas2DContext(cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
     
-    JS_AddObjectRoot(cx, &handler->context->jsobj);
-    JS_AddObjectRoot(cx, &handler->jsobj);
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
 
     JS_SetPrivate(ret, handler);
 

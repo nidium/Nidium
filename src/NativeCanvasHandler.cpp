@@ -395,6 +395,7 @@ bool NativeCanvasHandler::containsPoint(double x, double y) const
 
 void NativeCanvasHandler::unrootHierarchy()
 {
+    #if 0
     NativeCanvasHandler *cur;
 
     for (cur = children; cur != NULL; cur = cur->next) {
@@ -409,6 +410,7 @@ void NativeCanvasHandler::unrootHierarchy()
         cur->context->jsobj = NULL;
     }
     children = NULL;
+    #endif
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
@@ -419,18 +421,8 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     /* all children got orphaned :( */
     for (cur = children; cur != NULL; cur = cur->next) {
-        printf("Warning: a canvas got orphaned (%p)\n", cur);
+        //printf("Warning: a canvas got orphaned (%p)\n", cur);
         cur->removeFromParent();
 
     }
-    if (context && context->jsobj && context->jscx) {
-        //JS_RemoveObjectRoot(context->jscx, &context->jsobj);
-    }
-    if (jsobj) {
-        //JS_RemoveObjectRoot(jscx, &jsobj);
-    }
-
-    /* Don't delete context, otherwise
-       context->jsobj's private would be undefined
-    */
 }

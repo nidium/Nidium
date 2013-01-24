@@ -1017,7 +1017,6 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
-        printf("Deleting gradient\n");
         delete gradient;
     }
 }
@@ -1026,7 +1025,6 @@ void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeCanvasPattern *pattern = (class NativeCanvasPattern *)JS_GetPrivate(obj);
     if (pattern != NULL) {
-        printf("pattern finalized\n");
         delete pattern;
     }
 }

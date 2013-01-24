@@ -271,7 +271,6 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     JSObject *event;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
     EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
@@ -288,9 +287,7 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 
         JS_CallFunctionValue(cx, event, onwheel, 1, &jevent, &rval);
     }
-
-
-    JS_RemoveObjectRoot(cx, &event);    
+   
 }
 
 void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
@@ -302,7 +299,6 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     jsval jevent, onkeyupdown, canvas, rval;
 
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
     EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
@@ -321,8 +317,6 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 
         JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::textInput(const char *data)
@@ -334,7 +328,6 @@ void NativeJS::textInput(const char *data)
     jsval jevent, ontextinput, canvas, rval;
 
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("val",
         STRING_TO_JSVAL(JS_NewStringCopyN(cx, data, strlen(data))));
@@ -349,8 +342,6 @@ void NativeJS::textInput(const char *data)
 
         JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::mouseClick(int x, int y, int state, int button)
@@ -364,7 +355,6 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     jsval canvas, onclick;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -383,9 +373,6 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
         JS_CallFunctionValue(cx, event, onclick, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
-
 }
 
 void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
@@ -397,7 +384,6 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     JSObject *event;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -417,8 +403,6 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
         JS_CallFunctionValue(cx, event, onmove, 1, &jevent, &rval);
     }
 
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
@@ -481,7 +465,7 @@ NativeJS::NativeJS(int width, int height)
     //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
     //ion::js_IonOptions.gvnIsOptimistic = true;
@@ -547,22 +531,20 @@ NativeJS::~NativeJS()
     JS_RemoveValueRoot(cx, &gfunc);
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-
-    rootHandler->unrootHierarchy();
-    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
-    JS_EndRequest(cx);
     
+#if 0
+    rootHandler->unrootHierarchy();
+    JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
     delete rootHandler;
+#endif
+    JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
     NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
-
     JS_DestroyRuntime(rt);
-
     JS_ShutDown();
-
 
     delete messages;
     //delete nskia; /* TODO: why is that commented out? */
@@ -618,13 +600,11 @@ static int Native_handle_messages(void *arg)
                 }
 
                 event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-                JS_AddObjectRoot(cx, &event);
 
                 EVENT_PROP("message", inval);
 
                 jevent = OBJECT_TO_JSVAL(event);
-                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
-                JS_RemoveObjectRoot(cx, &event);            
+                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);          
 
             }
             delete ptr;

@@ -147,7 +147,8 @@ NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
     http.headers.tval = NULL;
     http.headers.tkey = NULL;
     http.headers.list = NULL;
-    
+    http.ended = 1;
+
     http.parser.callback = native_http_callback;
 
     free(durl);
@@ -236,15 +237,15 @@ NativeHTTP::~NativeHTTP()
 
     if (currentSock != NULL) {
         currentSock->ctx = NULL;
+
         APE_socket_shutdown_now(currentSock);
     }
 
-    if (!http.ended && http.data != NULL) {
-        buffer_destroy(http.headers.tkey);
-        buffer_destroy(http.headers.tval);
+    if (!http.ended && http.data) {
+        if (http.headers.tkey) buffer_destroy(http.headers.tkey);
+        if (http.headers.tval) buffer_destroy(http.headers.tval);
+        if (http.headers.list) ape_array_destroy(http.headers.list);
         buffer_destroy(http.data);
-
-        ape_array_destroy(http.headers.list);
     }
 }
 
