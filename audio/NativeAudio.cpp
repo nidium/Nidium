@@ -15,8 +15,8 @@ extern "C" {
 // if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
 // should reset all parameters and buffers to fit last asked audio context
 NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
-    : output(NULL), inputStream(NULL), outputStream(NULL), tracks(NULL), tracksCount(0),
-      threadShutdown(false)
+    : output(NULL), inputStream(NULL), outputStream(NULL), threadShutdown(false),
+      tracks(NULL), tracksCount(0)
      //haveData(false), notEmpty(false)
 {
     pthread_cond_init(&this->bufferNotEmpty, NULL);
