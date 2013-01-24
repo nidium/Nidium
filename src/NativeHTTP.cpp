@@ -80,6 +80,8 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
 
     nhttp->http.parser.ctx[0] = nhttp;
 
+    printf("connected\n");
+
     SOCKET_WRITE_STATIC("GET ");
     SOCKET_WRITE_OWN(nhttp->path);
     SOCKET_WRITE_STATIC(" HTTP/1.0\nHost: ");
@@ -105,7 +107,7 @@ static void native_http_read(ape_socket *s, ape_global *ape)
     if (nhttp == NULL) return;
 
     for (i = 0; i < s->data_in.used; i++) {
-
+        //printf("parse...\n");
         if (!parse_http_char(&nhttp->http.parser,
             s->data_in.data[i])) {
             printf("Failed at %d %c\n", i, s->data_in.data[i]);

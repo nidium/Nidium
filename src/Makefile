@@ -12,7 +12,7 @@ NATIVEFLAGS=-DENABLE_TYPEDARRAY_MOVE -DENABLE_YARR_JIT=1 -DNO_NSPR_10_SUPPORT -D
 endif
 
 CXX=g++
-CPPFLAGS=-g $(NATIVEFLAGS) -c -g -Wall -I../mozilla/js/src/dist/include/ \
+CPPFLAGS=-O2 -g $(NATIVEFLAGS) -c -O2 -g -Wall -I../mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\
