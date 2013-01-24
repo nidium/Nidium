@@ -45,9 +45,7 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
     if (outCount > inCount || inCount == 0) {
         int s = inCount == 0 ? 0 : outCount - inCount;
         for (int i = 0; i < outCount; i++) {
-            printf("alloc buffer #%d\n", i);
             if (i >= s) {
-                printf("=>malloc\n");
                 this->frames[i] = (float *)calloc(sizeof(float), this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
             }
         }
@@ -445,8 +443,6 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio)
         printf("[NativeAudio] Failed to init input ringbuffer");
         return;
     }
-
-    printf("track init\n");
 }
 
 NativeAudioTrack::BufferReader::BufferReader(uint8_t *buffer, unsigned long bufferSize) 
