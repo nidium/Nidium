@@ -147,7 +147,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
             children = insert;
             break;
     }
-
+    
     insert->parent = this;
     this->nchildren++;
 }

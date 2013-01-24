@@ -116,12 +116,13 @@ class NativeCanvasHandler
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
             double ptop, double aopacity, NativeRect *clip);
-    private:
         NativeCanvasHandler *parent;
         NativeCanvasHandler *children;
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
+    private:
+
         int32_t nchildren;
 
         COORD_POSITION coordPosition;

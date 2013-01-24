@@ -39,12 +39,13 @@ enum {
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Canvas_Trace(JSTracer *trc, JSRawObject obj);
 
 JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
@@ -526,6 +527,21 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeCanvasHandler *handler = HANDLER_GETTER(obj);
     if (handler != NULL) {
         delete handler;
+    }
+}
+
+static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
+{
+    NativeCanvasHandler *handler = HANDLER_GETTER(obj);
+
+    if (handler != NULL) {
+        NativeCanvasHandler *cur;
+
+        for (cur = handler->children; cur != NULL; cur = cur->next) {
+            if (cur->jsobj) {
+                JS_CallTracer(trc, cur->jsobj, JSTRACE_OBJECT);
+            }
+        }        
     }
 }
 
