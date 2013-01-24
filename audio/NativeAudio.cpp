@@ -360,8 +360,8 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
         SPAM(("-----------------------------------NO DATA\n"));
         for (unsigned int i = 0; i < framesPerBuffer; i++)
         {
-            *out++ = 0;
-            *out++ = 0;
+            *out++ = 0.0f;
+            *out++ = 0.0f;
         }
     }
 
