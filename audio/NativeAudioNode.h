@@ -286,6 +286,7 @@ class NativeAudioTrack : public NativeAudioNode
         bool stopped;
         bool loop;
         int nbChannel;
+        bool nullFrames;
 
         int open(void *buffer, int size);
         void play();
@@ -297,6 +298,7 @@ class NativeAudioTrack : public NativeAudioNode
         int buffer(int n);
 
         virtual bool process();
+        void resetFrames();
         bool work();
         bool decode();
         int resample(float *dest, int destSamples);

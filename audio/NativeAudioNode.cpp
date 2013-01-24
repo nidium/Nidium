@@ -418,7 +418,8 @@ bool NativeAudioNodeCustom::process()
 }
 
 NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio) 
-    : NativeAudioNode(0, out, audio), opened(false), playing(false), stopped(false), loop(false),
+    : NativeAudioNode(0, out, audio), opened(false), playing(false), stopped(false), loop(false), 
+    nullFrames(true),
       container(NULL), avctx(NULL), frameConsumed(true), packetConsumed(true), audioStream(-1),
       sCvt(NULL), fCvt(NULL), eof(false)
 {
@@ -890,6 +891,15 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
     return 0;
 }
 
+void NativeAudioTrack::resetFrames() {
+    if (!this->nullFrames) {
+        for (int i = 0; i < this->inCount; i++) {
+            memset(this->frames[i], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+        }
+        this->nullFrames = true;
+    }
+}
+
 bool NativeAudioTrack::process() {
     if (!this->opened) {
         SPAM(("Not opened\n"));
@@ -898,9 +908,7 @@ bool NativeAudioTrack::process() {
 
     if (!this->playing) {
         SPAM(("Not playing\n"));
-        // TODO : use loop to reset all channels
-        memset(this->frames[0], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
-        memset(this->frames[1], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+        this->resetFrames();
         return false;
     }
 
@@ -921,7 +929,10 @@ bool NativeAudioTrack::process() {
             }
             TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_EOF, 0, this->cbkCustom, true);
             this->cbk(ev);
+        } else {
+            this->resetFrames();
         }
+
         return false;
     }
 
@@ -942,6 +953,8 @@ bool NativeAudioTrack::process() {
                 j++;
             }
         }
+
+        this->nullFrames = false;
 
         free(tmp);
     } else {
