@@ -9,12 +9,12 @@ NATIVEFLAGS=-DEXPORT_JS_API -DIMPL_MFBT -DUSE_SYSTEM_MALLOC=1 -DENABLE_ASSEMBLER
 endif
 
 ifeq ($(UNAME), Darwin)
-SKIA=/Users/anthonycatel/src/skia/trunk
-NATIVEFLAGS=-DENABLE_TYPEDARRAY_MOVE -DENABLE_YARR_JIT=1 -DNO_NSPR_10_SUPPORT -DIMPL_MFBT -DEXPORT_JS_API -Qunused-arguments -DMOZILLA_CLIENT -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_REDEFINE_ROOT2OVER2_TO_MAKE_ARCTOS_CONVEX -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_SUPPORT_GPU=1 -DSK_BUILD_FOR_MAC -DSK_USE_POSIX_THREADS -DGR_MAC_BUILD=1 -DSK_SUPPORT_PDF -DSK_RELEASE -DGR_RELEASE=1 -DTRACING -DJS_THREADSAFE -fvisibility=hidden -fvisibility-inlines-hidden -Wno-invalid-offsetof
+SKIA=../third-party/skia/
+NATIVEFLAGS=-DENABLE_TYPEDARRAY_MOVE -DENABLE_YARR_JIT=1 -DNO_NSPR_10_SUPPORT -DIMPL_MFBT -DEXPORT_JS_API -Qunused-arguments -DMOZILLA_CLIENT -DSK_GAMMA_SRGB -DSK_GAMMA_APPLY_TO_A8 -DSK_ALLOW_STATIC_GLOBAL_INITIALIZERS=1 -DSK_REDEFINE_ROOT2OVER2_TO_MAKE_ARCTOS_CONVEX -DSK_SCALAR_IS_FLOAT -DSK_CAN_USE_FLOAT -DSK_SUPPORT_GPU=1 -DSK_BUILD_FOR_MAC -DSK_USE_POSIX_THREADS -DGR_MAC_BUILD=1 -DSK_SUPPORT_PDF -DSK_RELEASE -DGR_RELEASE=1 -DTRACING -DJS_THREADSAFE -fvisibility=hidden -fvisibility-inlines-hidden -Wno-invalid-offsetof -DDEBUG -D_DEBUG
 endif
 
 CXX=g++
-CPPFLAGS= -O2 -std=c++0x $(NATIVEFLAGS) -c -g -O2 -Wall -I../third-party/mozilla/js/src/dist/include/ \
+CPPFLAGS= -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I../third-party/mozilla/js/src/dist/include/ \
 				-I$(SKIA)/include/core 		\
 				-I$(SKIA)/include/pipe 		\
 				-I$(SKIA)/include/gpu 		\
@@ -32,7 +32,7 @@ CPPFLAGS= -O2 -std=c++0x $(NATIVEFLAGS) -c -g -O2 -Wall -I../third-party/mozilla
 				-I../network \
 				-I../audio/ \
 				-I./ \
-				-I ../../portaudio/src/common/ 
+				-I ../third-party/portaudio/src/common/ 
 
 AR=ar
 ARFLAGS=rcs
@@ -54,7 +54,7 @@ SOURCES=NativeJS.cpp 				\
 		NativeJSCanvas.cpp 			\
 		NativeCanvasHandler.cpp 	\
 		NativeCanvas2DContext.cpp   \
-		NativeJSAudio.cpp ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o  \
+		NativeJSAudio.cpp ../third-party/portaudio/src/common/pa_ringbuffer.o ../third-party/portaudio/src/common/pa_converters.o ../third-party/portaudio/src/common/pa_dither.o  \
 		NativeJSFileIO.cpp
 
 ifeq ($(ENABLE_WEBGL), 1)
