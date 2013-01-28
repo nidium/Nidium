@@ -14,6 +14,8 @@ class NativeJSExposer
     JSContext *cx;
 };
 
+#define NativeJSObj(cx) ((NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
+
 #define NATIVE_OBJECT_EXPOSE(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
     { \

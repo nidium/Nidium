@@ -19,6 +19,8 @@
 
 #include "SkImageDecoder.h"
 
+#include <ape_hash.h>
+
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
@@ -427,9 +429,38 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
     //printf("Gc TH1 callback?\n");
 }
 
-static void TraceBlack(JSTracer *trc, void *data)
+static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
-    printf("Trace black?\n");
+    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
+}
+
+static void NativeTraceBlack(JSTracer *trc, void *data)
+{
+    class NativeJS *self = (class NativeJS *)data;
+
+    if (self->shutdown) {
+        return;
+    }
+    ape_htable_item_t *item ;
+
+    for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
+#ifdef DEBUG
+        JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
+#endif
+        JS_CallTracer(trc, item->addrs, JSTRACE_OBJECT);
+        printf("Tracing object at %p\n", item->addrs);
+    }
+}
+
+/* Use obj address as key */
+void NativeJS::rootObjectUntilShutdown(JSObject *obj)
+{
+    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+}
+
+void NativeJS::unrootObject(JSObject *obj)
+{
+    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
 NativeJS::NativeJS(int width, int height)
@@ -447,6 +478,9 @@ NativeJS::NativeJS(int width, int height)
     //printf("New JS runtime\n");
 
     currentFPS = 0;
+    shutdown = false;
+
+    rootedObj = hashtbl_init(APE_HASH_INT);
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_USE_HELPER_THREADS)) == NULL) {
@@ -489,7 +523,7 @@ NativeJS::NativeJS(int width, int height)
     //JS_DefineProfilingFunctions(cx, gbl);
 
     JS_SetGCCallback(rt, gccb);
-    JS_SetExtraGCRootsTracer(rt, TraceBlack, this);
+    JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
     //JS_InitCTypesClass(cx, gbl);
@@ -531,6 +565,7 @@ NativeJS::~NativeJS()
 {
     JSRuntime *rt;
     rt = JS_GetRuntime(cx);
+    shutdown = true;
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
@@ -554,6 +589,7 @@ NativeJS::~NativeJS()
     JS_ShutDown();
 
     delete messages;
+    hashtbl_free(rootedObj);
     //delete nskia; /* TODO: why is that commented out? */
     // is it covered by Canvas_Finalize()?
 }

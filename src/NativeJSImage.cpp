@@ -1,5 +1,6 @@
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
+#include "NativeJS.h"
 
 #include <string.h>
 
@@ -40,6 +41,8 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
 
                 if (strncasecmp(imgPath.ptr(), "http://", 7) == 0) {
+                    NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+                    
                     NativeHTTP *http = new NativeHTTP(imgPath.ptr(),
                         (ape_global *)JS_GetContextPrivate(cx));
                     http->request(NATIVE_IMAGE_GETTER(obj.get()));
@@ -138,6 +141,7 @@ void NativeJSImage::onRequest(NativeHTTP::HTTPData *h,
             JS_CallFunctionValue(cx, jsobj, onload_callback,
                 0, NULL, &rval);
         }
+        NativeJSObj(cx)->unrootObject(jsobj);
 
     } /* TODO : onError */
 }

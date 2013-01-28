@@ -581,6 +581,19 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
         return JS_TRUE;
     }
 
+    if (x == 0) {
+        x = 1;
+    }
+    if (y == 0) {
+        y = 1;
+    }
+    
+    arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
+    if (arrBuffer == NULL) {
+        JS_ReportOutOfMemory(cx);
+        return JS_TRUE;
+    }
+    
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), NULL, NULL,
@@ -589,11 +602,6 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), NULL, NULL,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
-    if (arrBuffer == NULL) {
-        JS_ReportOutOfMemory(cx);
-        return JS_TRUE;
-    }
 
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
         NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
