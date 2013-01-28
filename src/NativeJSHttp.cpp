@@ -2,7 +2,7 @@
 #include "ape_http_parser.h"
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
-
+#include "NativeJS.h"
 
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -23,6 +23,7 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeHTTP *nhttp = (NativeHTTP *)JS_GetPrivate(obj);
     if (nhttp != NULL) {
+        printf("Http finalized...\n");
         NativeJSHttp *jshttp = (NativeJSHttp *)nhttp->getPrivate();
         if (jshttp != NULL) {
             delete jshttp;
@@ -49,6 +50,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     jshttp = new NativeJSHttp();
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
+    jshttp->jsobj = ret;
 
     jshttp->cx = cx;
 
@@ -84,6 +86,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     jshttp = (NativeJSHttp *)nhttp->getPrivate();
     jshttp->request = callback;
     JS_SetReservedSlot(caller, 0, callback);
+
+    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
     nhttp->request(jshttp);
 
@@ -168,6 +172,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     /* TODO: "this" is not the caller? */
     JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
         1, &jevent, &rval);
+
+    NativeJSObj(cx)->unrootObject(this->jsobj);
 
 }
 

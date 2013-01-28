@@ -16,6 +16,7 @@ class NativeJSHttp : public NativeJSExposer, public NativeHTTPDelegate
 
     jsval request;
     NativeHTTP *refHttp;
+    JSObject *jsobj;
 
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     
