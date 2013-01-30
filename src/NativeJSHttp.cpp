@@ -115,6 +115,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     SET_PROP(event, "read", DOUBLE_TO_JSVAL(offset + len));
 
     switch(type) {
+        case NativeHTTP::DATA_JSON:
         case NativeHTTP::DATA_STRING:
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("string"))));
@@ -136,7 +137,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     }
     
     SET_PROP(event, "data", jdata);
-    
+
     jevent = OBJECT_TO_JSVAL(event);
 
     JS_CallFunctionValue(cx, jsobj, ondata_callback,
@@ -159,8 +160,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     headers = JS_NewObject(cx, NULL, NULL, NULL);
 
     APE_A_FOREACH(h->headers.list, k, v) {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)&v->data[1],
-            v->used-2);
+        JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
+            v->used-1);
         SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
     }
     

@@ -60,6 +60,10 @@ static int headers_complete_cb(http_parser *p)
     if (p->content_length > HTTP_MAX_CL) {
         return -1;
     }
+    
+    if (nhttp->http.headers.tval != NULL) {
+        buffer_append_char(nhttp->http.headers.tval, '\0');
+    }
 
     if (p->content_length) nhttp->http.data = buffer_new(p->content_length);
 
