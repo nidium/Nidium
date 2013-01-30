@@ -93,6 +93,58 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+void NativeJSHttp::onProgress(size_t offset, size_t len,
+    NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
+{
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+
+    JSObject *event;
+    jsval jdata, jevent, ondata_callback, rval;
+
+    if (!JS_GetProperty(cx, jsobj, "ondata", &ondata_callback) &&
+            JS_TypeOfValue(cx, ondata_callback) != JSTYPE_FUNCTION) {
+
+        return;
+    }
+
+    event = JS_NewObject(cx, NULL, NULL, NULL);
+
+    SET_PROP(event, "total", DOUBLE_TO_JSVAL(h->contentlength));
+    SET_PROP(event, "read", DOUBLE_TO_JSVAL(offset + len));
+
+    switch(type) {
+        case NativeHTTP::DATA_STRING:
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("string"))));
+            jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                (const char *)&h->data->data[offset], len));            
+            break;
+        default:
+        {
+            JSObject *arr = JS_NewArrayBuffer(cx, len);
+            uint8_t *data = JS_GetArrayBufferData(arr);
+
+            memcpy(data, &h->data->data[offset], len);
+            
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("binary"))));
+            jdata = OBJECT_TO_JSVAL(arr);
+            break;
+        }
+    }
+    
+    SET_PROP(event, "data", jdata);
+    
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_CallFunctionValue(cx, jsobj, ondata_callback,
+        1, &jevent, &rval);    
+
+#undef SET_PROP
+}
+
 void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 {
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
@@ -156,10 +208,17 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             break;
         }
         default:
+        {
+            JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
+            uint8_t *data = JS_GetArrayBufferData(arr);
+
+            memcpy(data, h->data->data, h->data->used);
+            
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("null"))));
-            jdata = JSVAL_NULL;
+                CONST_STR_LEN("binary"))));
+            jdata = OBJECT_TO_JSVAL(arr);
             break;
+        }
     }
 
     SET_PROP(event, "data", jdata);
@@ -171,7 +230,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         1, &jevent, &rval);
 
     NativeJSObj(cx)->unrootObject(this->jsobj);
-
+#undef SET_PROP
 }
 
 NativeJSHttp::NativeJSHttp()

@@ -28,7 +28,8 @@ class NativeJSImage : public NativeJSExposer, public NativeHTTPDelegate
     static JSObject *classe;
 
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
-
+    void onProgress(size_t offset, size_t len,
+        NativeHTTP::HTTPData *h, NativeHTTP::DataType) {}
 };
 
 #endif

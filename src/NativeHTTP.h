@@ -48,11 +48,14 @@ class NativeHTTP
         } headers;
         buffer *data;
         int ended;
+        uint64_t contentlength;
     } http;
 
     static int ParseURI(char *url, size_t url_len, char *host,
     u_short *port, char *file);
     void requestEnded();
+    void headerEnded();
+    void onData(size_t offset, size_t len);
     void setPrivate(void *ptr);
     void *getPrivate();
 
@@ -65,6 +68,8 @@ class NativeHTTPDelegate
 {
   public:
     virtual void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)=0;
+    virtual void onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
+        NativeHTTP::DataType)=0;
     NativeHTTP *httpref;
 };
 
