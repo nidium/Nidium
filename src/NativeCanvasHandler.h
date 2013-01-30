@@ -55,7 +55,7 @@ class NativeCanvasHandler
         };
 
         NativeCanvas2DContext *context;
-        struct JSObject *jsobj;
+        class JSObject *jsobj;
         struct JSContext *jscx;
 
         int width, height;

@@ -1,5 +1,5 @@
 #include "NativeJSHttp.h"
-#include "ape_http_parser.h"
+//#include "ape_http_parser.h"
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
 #include "NativeJS.h"
@@ -23,7 +23,6 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeHTTP *nhttp = (NativeHTTP *)JS_GetPrivate(obj);
     if (nhttp != NULL) {
-        printf("Http finalized...\n");
         NativeJSHttp *jshttp = (NativeJSHttp *)nhttp->getPrivate();
         if (jshttp != NULL) {
             delete jshttp;
@@ -96,8 +95,6 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
 void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 {
-#define REQUEST_HEADER(header) ape_array_lookup(h->headers.list, \
-    CONST_STR_LEN(header "\0"))
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)

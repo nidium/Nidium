@@ -3,7 +3,6 @@
 
 #include "NativeJSExposer.h"
 #include <native_netlib.h>
-#include "ape_http_parser.h"
 #include "ape_array.h"
 #include "NativeHTTP.h"
 

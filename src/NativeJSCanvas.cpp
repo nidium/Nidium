@@ -526,7 +526,6 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER(obj);
     if (handler != NULL) {
-        printf("Canvas finalized\n");
         delete handler;
     }
 }

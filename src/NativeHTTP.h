@@ -2,9 +2,11 @@
 #define nativehttp_h__
 
 #include <native_netlib.h>
-#include "ape_http_parser.h"
+//#include "ape_http_parser.h"
 #include "ape_array.h"
+#include <http_parser.h>
 
+#define HTTP_MAX_CL 1024L*1024L*20L
 
 class NativeHTTPDelegate;
 
@@ -22,6 +24,12 @@ class NativeHTTP
         DATA_END
     } native_http_data_type;
 
+    enum PrevState {
+        PSTATE_NOTHING,
+        PSTATE_FIELD,
+        PSTATE_VALUE
+    };
+
     ape_global *net;
     ape_socket *currentSock;
     char *host;
@@ -36,6 +44,7 @@ class NativeHTTP
             ape_array_t *list;
             buffer *tkey;
             buffer *tval;
+            PrevState prevstate;
         } headers;
         buffer *data;
         int ended;

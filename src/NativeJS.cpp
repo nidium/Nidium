@@ -448,7 +448,7 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
         JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
 #endif
         JS_CallTracer(trc, item->addrs, JSTRACE_OBJECT);
-        printf("Tracing object at %p\n", item->addrs);
+        //printf("Tracing object at %p\n", item->addrs);
     }
 }
 

@@ -1,5 +1,7 @@
 #include "NativeHTTP.h"
-#include "ape_http_parser.h"
+//#include "ape_http_parser.h"
+#include <http_parser.h>
+
 #include <stdio.h>
 #include <string.h>
 
@@ -25,6 +27,133 @@ static struct native_http_mime {
     {NULL,                      NativeHTTP::DATA_END}
 };
 
+static int message_begin_cb(http_parser *p);
+static int headers_complete_cb(http_parser *p);
+static int message_complete_cb(http_parser *p);
+static int header_field_cb(http_parser *p, const char *buf, size_t len);
+static int header_value_cb(http_parser *p, const char *buf, size_t len);
+static int request_url_cb(http_parser *p, const char *buf, size_t len);
+static int body_cb(http_parser *p, const char *buf, size_t len);
+
+
+static http_parser_settings settings =
+{
+.on_message_begin = message_begin_cb,
+.on_header_field = header_field_cb,
+.on_header_value = header_value_cb,
+.on_url = request_url_cb,
+.on_body = body_cb,
+.on_headers_complete = headers_complete_cb,
+.on_message_complete = message_complete_cb
+};
+
+static int message_begin_cb(http_parser *p)
+{
+    printf("Message begin\n");
+    return 0;
+}
+
+static int headers_complete_cb(http_parser *p)
+{
+    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    if (p->content_length > HTTP_MAX_CL) {
+        return -1;
+    }
+
+    if (p->content_length) nhttp->http.data = buffer_new(p->content_length);
+
+    return 0;
+}
+
+static int message_complete_cb(http_parser *p)
+{
+    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    nhttp->requestEnded();
+
+    return 0;
+}
+
+static int header_field_cb(http_parser *p, const char *buf, size_t len)
+{
+    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    switch (nhttp->http.headers.prevstate) {
+        case NativeHTTP::PSTATE_NOTHING:
+            nhttp->http.headers.list = ape_array_new(16);
+        case NativeHTTP::PSTATE_VALUE:
+            nhttp->http.headers.tkey = buffer_new(16);
+            if (nhttp->http.headers.tval != NULL) {
+                buffer_append_char(nhttp->http.headers.tval, '\0');
+            }
+            break;
+        default:
+            break;
+    }
+
+    nhttp->http.headers.prevstate = NativeHTTP::PSTATE_FIELD;
+
+    if (len != 0) {
+        buffer_append_data(nhttp->http.headers.tkey,
+            (const unsigned char *)buf, len);
+    }
+
+    return 0;
+}
+
+static int header_value_cb(http_parser *p, const char *buf, size_t len)
+{
+    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    switch (nhttp->http.headers.prevstate) {
+        case NativeHTTP::PSTATE_NOTHING:
+            return -1;
+        case NativeHTTP::PSTATE_FIELD:
+            nhttp->http.headers.tval = buffer_new(64);
+            buffer_append_char(nhttp->http.headers.tkey, '\0');
+            ape_array_add_b(nhttp->http.headers.list,
+                    nhttp->http.headers.tkey, nhttp->http.headers.tval);
+            break;
+        default:
+            break;
+    }
+
+    nhttp->http.headers.prevstate = NativeHTTP::PSTATE_VALUE;
+
+    if (len != 0) {
+        buffer_append_data(nhttp->http.headers.tval,
+            (const unsigned char *)buf, len);
+    }
+    return 0;
+}
+
+static int request_url_cb(http_parser *p, const char *buf, size_t len)
+{
+    printf("Request URL cb\n");
+    return 0;
+}
+
+static int body_cb(http_parser *p, const char *buf, size_t len)
+{
+    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    if (nhttp->http.data == NULL) {
+        nhttp->http.data = buffer_new(2048);
+    }
+
+    if (nhttp->http.data->used+len > HTTP_MAX_CL) {
+        return -1;
+    }
+
+    if (len != 0) {
+        buffer_append_data(nhttp->http.data,
+            (const unsigned char *)buf, len);
+    }
+    return 0;
+}
+
+#if 0
 static int native_http_callback(void **ctx, callback_type type,
         int value, uint32_t step)
 {
@@ -65,6 +194,7 @@ static int native_http_callback(void **ctx, callback_type type,
 
     return 1;
 }
+#endif
 
 static void native_http_connected(ape_socket *s, ape_global *ape)
 {
@@ -72,19 +202,19 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
 
     if (nhttp == NULL) return;
 
-    nhttp->http.headers.list = ape_array_new(16);
-    nhttp->http.headers.tkey = buffer_new(16);
-    nhttp->http.headers.tval = buffer_new(64);
+    nhttp->http.headers.list = NULL;
+    nhttp->http.headers.tkey = NULL;
+    nhttp->http.headers.tval = NULL;
     nhttp->http.data = NULL;
     nhttp->http.ended = 0;
+    nhttp->http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 
-    nhttp->http.parser.ctx[0] = nhttp;
-
-    printf("connected\n");
+    http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
+    nhttp->http.parser.data = nhttp;
 
     SOCKET_WRITE_STATIC("GET ");
     SOCKET_WRITE_OWN(nhttp->path);
-    SOCKET_WRITE_STATIC(" HTTP/1.0\nHost: ");
+    SOCKET_WRITE_STATIC(" HTTP/1.1\nHost: ");
     SOCKET_WRITE_OWN(nhttp->host);
     SOCKET_WRITE_STATIC("\nUser-Agent: Nativestudio/1.0\nConnection: close\n\n");
 }
@@ -95,21 +225,26 @@ static void native_http_disconnect(ape_socket *s, ape_global *ape)
 
     if (nhttp == NULL) return;
 
-    nhttp->requestEnded();
+    http_parser_execute(&nhttp->http.parser, &settings,
+        NULL, 0);
+
+    //nhttp->requestEnded();
     nhttp->currentSock = NULL;
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape)
 {
     unsigned int i;
+    size_t nparsed;
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
     if (nhttp == NULL) return;
 
+#if 0
     for (i = 0; i < s->data_in.used; i++) {
         //printf("parse...\n");
-        if (!parse_http_char(&nhttp->http.parser,
-            s->data_in.data[i])) {
+        if (http_parser_execute(&nhttp->http.parser, &settings,
+            (const char *)&s->data_in.data[i], 1) != 1) {
             printf("Failed at %d %c\n", i, s->data_in.data[i]);
             printf("next %s\n", &s->data_in.data[i]);
             // TODO : graceful shutdown
@@ -119,6 +254,16 @@ static void native_http_read(ape_socket *s, ape_global *ape)
 
     //printf("%c", socket_client->data_in.data[i]);
     }
+#endif
+    #if 1
+    nparsed = http_parser_execute(&nhttp->http.parser, &settings,
+        (const char *)s->data_in.data, (size_t)s->data_in.used);
+
+    if (nparsed != s->data_in.used) {
+        printf("Failed to parse http response\n");
+        shutdown(s->s.fd, 2);
+    }
+#endif
 }
 
 NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
@@ -143,15 +288,11 @@ NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
         port = 0;
     }
 
-    HTTP_PARSER_RESET(&http.parser);
-
     http.data = NULL;
     http.headers.tval = NULL;
     http.headers.tkey = NULL;
     http.headers.list = NULL;
     http.ended = 1;
-
-    http.parser.callback = native_http_callback;
 
     free(durl);
 }
@@ -178,10 +319,9 @@ void NativeHTTP::requestEnded()
         if ((content_type = REQUEST_HEADER("Content-Type")) != NULL &&
             content_type->used > 3) {
             int i;
-            char *ctype = (char *)&content_type->data[1];
 
             for (i = 0; native_mime[i].str != NULL; i++) {
-                if (strncasecmp(native_mime[i].str, ctype,
+                if (strncasecmp(native_mime[i].str, (const char *)content_type->data,
                     strlen(native_mime[i].str)) == 0) {
                     type = native_mime[i].data_type;
                     break;
@@ -190,10 +330,6 @@ void NativeHTTP::requestEnded()
         }
 
         delegate->onRequest(&http, type);
-
-        buffer_destroy(http.headers.tkey);
-        buffer_destroy(http.headers.tval);
-        buffer_destroy(http.data);
 
         ape_array_destroy(http.headers.list);
 
@@ -243,11 +379,9 @@ NativeHTTP::~NativeHTTP()
         APE_socket_shutdown_now(currentSock);
     }
 
-    if (!http.ended && http.data) {
-        if (http.headers.tkey) buffer_destroy(http.headers.tkey);
-        if (http.headers.tval) buffer_destroy(http.headers.tval);
+    if (!http.ended) {
         if (http.headers.list) ape_array_destroy(http.headers.list);
-        buffer_destroy(http.data);
+        if (http.data) buffer_destroy(http.data);
     }
 }
 

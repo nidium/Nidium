@@ -14,7 +14,7 @@ struct native_thread_msg
 {
     uint64_t *data;
     size_t nbytes;
-    struct JSObject *callee;
+    class JSObject *callee;
 };
 
 class NativeSharedMessages;
