@@ -5,6 +5,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
+
+#ifndef ULLONG_MAX
+# define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
+#endif
 
 #define HTTP_PREFIX "http://"
 #define SOCKET_WRITE_STATIC(data) APE_socket_write(s, \
@@ -61,12 +66,18 @@ static int headers_complete_cb(http_parser *p)
 {
     NativeHTTP *nhttp = (NativeHTTP *)p->data;
 
-    if (p->content_length > HTTP_MAX_CL) {
-        return -1;
-    }
-    
     if (nhttp->http.headers.tval != NULL) {
         buffer_append_char(nhttp->http.headers.tval, '\0');
+    }
+
+    if (p->content_length == ULLONG_MAX) {
+        nhttp->http.contentlength = 0;
+        nhttp->headerEnded();
+        return 0;
+    }
+
+    if (p->content_length > HTTP_MAX_CL) {
+        return -1;
     }
 
     if (p->content_length) nhttp->http.data = buffer_new(p->content_length);
@@ -80,6 +91,8 @@ static int headers_complete_cb(http_parser *p)
 static int message_complete_cb(http_parser *p)
 {
     NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    printf("Message complete\n");
 
     nhttp->requestEnded();
 
@@ -202,13 +215,11 @@ static void native_http_disconnect(ape_socket *s, ape_global *ape)
     http_parser_execute(&nhttp->http.parser, &settings,
         NULL, 0);
 
-    //nhttp->requestEnded();
     nhttp->currentSock = NULL;
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape)
 {
-    unsigned int i;
     size_t nparsed;
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
@@ -218,7 +229,8 @@ static void native_http_read(ape_socket *s, ape_global *ape)
         (const char *)s->data_in.data, (size_t)s->data_in.used);
 
     if (nparsed != s->data_in.used) {
-        printf("Failed to parse http response\n");
+        printf("Parser returned %ld with error %s\n", nparsed,
+            http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
         // TODO : graceful shutdown
         shutdown(s->s.fd, 2);
     }

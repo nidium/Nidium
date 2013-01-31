@@ -167,6 +167,21 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     
     SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
 
+    if (h->data == NULL) {
+        SET_PROP(event, "data", JSVAL_NULL);
+
+        jevent = OBJECT_TO_JSVAL(event);
+        SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            CONST_STR_LEN("null"))));
+        /* TODO: "this" is not the caller? */
+        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
+            1, &jevent, &rval);
+
+        NativeJSObj(cx)->unrootObject(this->jsobj);
+
+        return; 
+    }
+
     switch(type) {
         case NativeHTTP::DATA_STRING:
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
