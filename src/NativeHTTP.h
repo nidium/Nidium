@@ -7,6 +7,7 @@
 #include <http_parser.h>
 
 #define HTTP_MAX_CL 1024L*1024L*20L
+#define HTTP_DEFAULT_TIMEOUT 20000
 
 class NativeHTTPDelegate;
 
@@ -36,6 +37,9 @@ class NativeHTTP
     char *path;
     u_short port;
     int err;
+    int timeout;
+    int timeoutTimer;
+
     NativeHTTPDelegate *delegate;
 
     struct HTTPData {
@@ -55,6 +59,8 @@ class NativeHTTP
     u_short *port, char *file);
     void requestEnded();
     void headerEnded();
+    void stopRequest();
+    void clearTimeout();
     void onData(size_t offset, size_t len);
     void setPrivate(void *ptr);
     void *getPrivate();

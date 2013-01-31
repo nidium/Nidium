@@ -1,6 +1,7 @@
 #include "NativeHTTP.h"
 //#include "ape_http_parser.h"
 #include <http_parser.h>
+#include <native_netlib.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -49,7 +50,10 @@ static http_parser_settings settings =
 
 static int message_begin_cb(http_parser *p)
 {
-    printf("Message begin\n");
+    NativeHTTP *nhttp = (NativeHTTP *)p->data;
+
+    nhttp->clearTimeout();
+
     return 0;
 }
 
@@ -193,6 +197,8 @@ static void native_http_disconnect(ape_socket *s, ape_global *ape)
 
     if (nhttp == NULL) return;
 
+    nhttp->clearTimeout();
+
     http_parser_execute(&nhttp->http.parser, &settings,
         NULL, 0);
 
@@ -221,7 +227,7 @@ static void native_http_read(ape_socket *s, ape_global *ape)
 NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
     ptr(NULL), net(n), currentSock(NULL),
     host(NULL), path(NULL), port(0),
-    err(0), delegate(NULL)
+    err(0), timeout(HTTP_DEFAULT_TIMEOUT), timeoutTimer(0), delegate(NULL)
 {
     size_t url_len = strlen(url);
     char *durl = (char *)malloc(sizeof(char) * (url_len+1));
@@ -293,6 +299,24 @@ void NativeHTTP::headerEnded()
 #undef REQUEST_HEADER
 }
 
+void NativeHTTP::stopRequest()
+{
+    if (!http.ended) {
+        if (http.headers.list) {
+            ape_array_destroy(http.headers.list);
+        }
+
+        http.data = NULL;
+        http.headers.tval = NULL;
+        http.headers.tkey = NULL;
+        http.headers.list = NULL;
+
+        if (currentSock) {
+            APE_socket_shutdown_now(currentSock);
+        } 
+    }
+}
+
 void NativeHTTP::requestEnded()
 {
     if (!http.ended) {
@@ -313,6 +337,22 @@ void NativeHTTP::requestEnded()
     } 
 }
 
+static int NativeHTTP_handle_timeout(void *arg)
+{
+    printf("Request as timedout\n");
+    ((NativeHTTP *)arg)->stopRequest();
+
+    return 0;
+}
+
+void NativeHTTP::clearTimeout()
+{
+    if (this->timeoutTimer) {
+        clear_timer_by_id(&net->timersng, this->timeoutTimer, 1);
+        this->timeoutTimer = 0;
+    }
+}
+
 int NativeHTTP::request(NativeHTTPDelegate *delegate)
 {
     ape_socket *socket;
@@ -331,10 +371,20 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
     socket->callbacks.on_read = native_http_read;
     socket->callbacks.on_disconnect = native_http_disconnect;
 
+    http.ended = 0;
     socket->ctx = this;
     this->delegate = delegate;
     this->currentSock = socket;
     delegate->httpref = this;
+
+    if (timeout) {
+        ape_timer *ctimer;
+        ctimer = add_timer(&net->timersng, timeout,
+            NativeHTTP_handle_timeout, this);
+
+        ctimer->flags &= ~APE_TIMER_IS_PROTECTED;
+        timeoutTimer = ctimer->identifier;
+    }
 
     return 1;
 }
@@ -348,6 +398,10 @@ NativeHTTP::~NativeHTTP()
         currentSock->ctx = NULL;
 
         APE_socket_shutdown_now(currentSock);
+    }
+
+    if (timeoutTimer) {
+        this->clearTimeout();
     }
 
     if (!http.ended) {
