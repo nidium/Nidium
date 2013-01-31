@@ -112,8 +112,8 @@ class NativeCanvasHandler
         void removeFromParent();
         void getChildren(NativeCanvasHandler **out) const;
         NativeCanvasHandler *getParent() const { return this->parent; }
-        NativeCanvasHandler *getFirstChildren() const { return this->children; }
-        NativeCanvasHandler *getLastChildren() const { return this->last; }
+        NativeCanvasHandler *getFirstChild() const { return this->children; }
+        NativeCanvasHandler *getLastChild() const { return this->last; }
         NativeCanvasHandler *getNextSibling() const { return this->next; }
         NativeCanvasHandler *getPrevSibling() const { return this->prev; }
         int32_t countChildren() const;

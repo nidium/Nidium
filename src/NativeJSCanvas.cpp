@@ -66,9 +66,9 @@ static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_canvas_getFirstChildren(JSContext *cx, unsigned argc,
+static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_canvas_getLastChildren(JSContext *cx, unsigned argc,
+static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -152,8 +152,8 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("bringToFront", native_canvas_bringToFront, 0, 0),
     JS_FN("sendToBack", native_canvas_sendToBack, 0, 0),
     JS_FN("getParent", native_canvas_getParent, 0, 0),
-    JS_FN("getFirstChildren", native_canvas_getFirstChildren, 0, 0),
-    JS_FN("getLastChildren", native_canvas_getLastChildren, 0, 0),
+    JS_FN("getFirstChild", native_canvas_getFirstChild, 0, 0),
+    JS_FN("getLastChild", native_canvas_getLastChild, 0, 0),
     JS_FN("getNextSibling", native_canvas_getNextSibling, 0, 0),
     JS_FN("getPrevSibling", native_canvas_getPrevSibling, 0, 0),
     JS_FN("getChildren", native_canvas_getChildren, 0, 0),
@@ -203,42 +203,27 @@ static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
 {
     NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getParent();
 
-    if (parent == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return JS_TRUE;
 }
 
-static JSBool native_canvas_getFirstChildren(JSContext *cx, unsigned argc,
+static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getFirstChildren();
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getFirstChild();
 
-    if (parent == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return JS_TRUE;
 }
 
-static JSBool native_canvas_getLastChildren(JSContext *cx, unsigned argc,
+static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getLastChildren();
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getLastChild();
 
-    if (parent == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return JS_TRUE;
 }
@@ -248,12 +233,7 @@ static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
 {
     NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getNextSibling();
 
-    if (parent == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return JS_TRUE;
 }
@@ -263,12 +243,7 @@ static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
 {
     NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getPrevSibling();
 
-    if (parent == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return JS_TRUE;
 }
