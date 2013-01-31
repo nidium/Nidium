@@ -216,6 +216,10 @@ static void native_http_disconnect(ape_socket *s, ape_global *ape)
         NULL, 0);
 
     nhttp->currentSock = NULL;
+
+    if (!nhttp->http.ended) {
+        nhttp->delegate->onError(NativeHTTP::ERROR_DISCONNECTED);
+    }
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape)
@@ -231,8 +235,10 @@ static void native_http_read(ape_socket *s, ape_global *ape)
     if (nparsed != s->data_in.used) {
         printf("Parser returned %ld with error %s\n", nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
-        // TODO : graceful shutdown
-        shutdown(s->s.fd, 2);
+
+        nhttp->delegate->onError(NativeHTTP::ERROR_RESPONSE);
+
+        APE_socket_shutdown_now(s);
     }
 }
 
@@ -262,7 +268,7 @@ NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
     http.headers.tval = NULL;
     http.headers.tkey = NULL;
     http.headers.list = NULL;
-    http.ended = 1;
+    http.ended = 0;
     http.contentlength = 0;
 
     native_http_data_type = DATA_NULL;
@@ -313,6 +319,8 @@ void NativeHTTP::headerEnded()
 
 void NativeHTTP::stopRequest()
 {
+    this->clearTimeout();
+    
     if (!http.ended) {
         if (http.headers.list) {
             ape_array_destroy(http.headers.list);
@@ -325,7 +333,9 @@ void NativeHTTP::stopRequest()
 
         if (currentSock) {
             APE_socket_shutdown_now(currentSock);
-        } 
+        }
+
+        this->delegate->onError(ERROR_TIMEOUT);
     }
 }
 
@@ -345,13 +355,14 @@ void NativeHTTP::requestEnded()
         http.headers.tkey = NULL;
         http.headers.list = NULL;
 
-        APE_socket_shutdown(currentSock);
+        if (currentSock) {
+            APE_socket_shutdown(currentSock);
+        }
     } 
 }
 
 static int NativeHTTP_handle_timeout(void *arg)
 {
-    printf("Request as timedout\n");
     ((NativeHTTP *)arg)->stopRequest();
 
     return 0;
@@ -371,11 +382,13 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
 
     if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
         printf("[Socket] Cant load socket (new)\n");
+        this->delegate->onError(ERROR_SOCKET);
         return 0;
     }
 
     if (APE_socket_connect(socket, port, host) == -1) {
         printf("[Socket] Cant connect (0)\n");
+        this->delegate->onError(ERROR_SOCKET);
         return 0;
     }
 

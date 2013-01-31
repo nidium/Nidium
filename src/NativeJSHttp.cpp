@@ -4,6 +4,10 @@
 #include "NativeJSImage.h"
 #include "NativeJS.h"
 
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -93,19 +97,53 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+void NativeJSHttp::onError(NativeHTTP::HTTPError err)
+{
+    jsval onerror_callback, jevent, rval;
+    JSObject *event;
+
+    if (!JS_GetProperty(cx, jsobj, "onerror", &onerror_callback) ||
+            JS_TypeOfValue(cx, onerror_callback) != JSTYPE_FUNCTION) {
+
+        return;
+    }
+
+    event = JS_NewObject(cx, NULL, NULL, NULL);
+
+    switch(err) {
+        case NativeHTTP::ERROR_RESPONSE:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_invalid_response"))));            
+            break;
+        case NativeHTTP::ERROR_DISCONNECTED:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_server_disconnected"))));      
+            break;
+        case NativeHTTP::ERROR_SOCKET:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_connection_error"))));      
+            break;
+        case NativeHTTP::ERROR_TIMEOUT:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_timedout"))));      
+            break;
+    }
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_CallFunctionValue(cx, jsobj, onerror_callback,
+        1, &jevent, &rval);    
+
+}
+
 void NativeJSHttp::onProgress(size_t offset, size_t len,
     NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 {
-#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
-        JSPROP_ENUMERATE)
-
     JSObject *event;
     jsval jdata, jevent, ondata_callback, rval;
 
-    if (!JS_GetProperty(cx, jsobj, "ondata", &ondata_callback) &&
+    if (!JS_GetProperty(cx, jsobj, "ondata", &ondata_callback) ||
             JS_TypeOfValue(cx, ondata_callback) != JSTYPE_FUNCTION) {
-
         return;
     }
 
@@ -142,16 +180,10 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
 
     JS_CallFunctionValue(cx, jsobj, ondata_callback,
         1, &jevent, &rval);    
-
-#undef SET_PROP
 }
 
 void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 {
-#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
-        JSPROP_ENUMERATE)
-
     buffer *k, *v;
     JSObject *headers, *event;
     jsval rval, jevent, jdata = JSVAL_NULL;
@@ -246,7 +278,6 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         1, &jevent, &rval);
 
     NativeJSObj(cx)->unrootObject(this->jsobj);
-#undef SET_PROP
 }
 
 NativeJSHttp::NativeJSHttp()

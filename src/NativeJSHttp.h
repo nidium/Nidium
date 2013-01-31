@@ -20,6 +20,7 @@ class NativeJSHttp : public NativeJSExposer, public NativeHTTPDelegate
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onProgress(size_t offset, size_t len,
         NativeHTTP::HTTPData *h, NativeHTTP::DataType);
+    void onError(NativeHTTP::HTTPError err);
 };
 
 

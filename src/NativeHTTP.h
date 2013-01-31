@@ -25,6 +25,13 @@ class NativeHTTP
         DATA_END
     } native_http_data_type;
 
+    enum HTTPError {
+        ERROR_TIMEOUT,
+        ERROR_RESPONSE,
+        ERROR_DISCONNECTED,
+        ERROR_SOCKET
+    };
+
     enum PrevState {
         PSTATE_NOTHING,
         PSTATE_FIELD,
@@ -76,6 +83,7 @@ class NativeHTTPDelegate
     virtual void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)=0;
     virtual void onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
         NativeHTTP::DataType)=0;
+    virtual void onError(NativeHTTP::HTTPError err)=0;
     NativeHTTP *httpref;
 };
 
