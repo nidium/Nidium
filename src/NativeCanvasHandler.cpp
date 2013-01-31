@@ -373,11 +373,6 @@ void NativeCanvasHandler::setOpacity(double val)
     opacity = val;
 }
 
-NativeCanvasHandler *NativeCanvasHandler::getParent()
-{
-    return this->parent;
-}
-
 void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
 {
     NativeCanvasHandler *cur;

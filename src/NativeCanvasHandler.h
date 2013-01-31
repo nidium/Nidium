@@ -110,8 +110,12 @@ class NativeCanvasHandler
         bool hasAFixedAncestor() const;
         void setOpacity(double val);
         void removeFromParent();
-        NativeCanvasHandler *getParent();
         void getChildren(NativeCanvasHandler **out) const;
+        NativeCanvasHandler *getParent() const { return this->parent; }
+        NativeCanvasHandler *getFirstChildren() const { return this->children; }
+        NativeCanvasHandler *getLastChildren() const { return this->last; }
+        NativeCanvasHandler *getNextSibling() const { return this->next; }
+        NativeCanvasHandler *getPrevSibling() const { return this->prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
