@@ -9,7 +9,7 @@
 
 #define kNativeWidth 1024
 #define kNativeHeight 760
-#define kNativeVSYNC 0
+#define kNativeVSYNC 1
 
 uint32_t ttfps = 0;
 
@@ -139,6 +139,7 @@ NativeUIInterface::NativeUIInterface() :
 void NativeUIInterface::createWindow()
 {
 	SDL_GLContext contexteOpenGL;
+    NSWindow *window;
 
     if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1)
     {
@@ -168,7 +169,12 @@ void NativeUIInterface::createWindow()
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
     SDL_GetWindowWMInfo(win, &info);
+
+    window = (NSWindow *)info.info.cocoa.window;
+
     [(NSWindow *)info.info.cocoa.window setFrameAutosaveName:@"nativeMainWindow"];
+
+    //[window setStyleMask:NSTitledWindowMask|NSBorderlessWindowMask];
 
     contexteOpenGL = SDL_GL_CreateContext(win);
     SDL_StartTextInput();

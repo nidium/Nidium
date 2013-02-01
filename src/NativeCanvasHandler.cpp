@@ -147,7 +147,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
             children = insert;
             break;
     }
-
+    
     insert->parent = this;
     this->nchildren++;
 }
@@ -156,6 +156,10 @@ void NativeCanvasHandler::removeFromParent()
 {   
     if (!parent) {
         return;
+    }
+    if (this->jsobj && js::IsIncrementalBarrierNeeded(this->jscx)) {
+        printf("Reference barrier\n");
+        js::IncrementalReferenceBarrier(this->jsobj);
     }
     
     if (parent->children == this) {
@@ -177,6 +181,7 @@ void NativeCanvasHandler::removeFromParent()
     parent = NULL;
     next = NULL;
     prev = NULL;
+
 }
 
 /*
@@ -368,11 +373,6 @@ void NativeCanvasHandler::setOpacity(double val)
     opacity = val;
 }
 
-NativeCanvasHandler *NativeCanvasHandler::getParent()
-{
-    return this->parent;
-}
-
 void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
 {
     NativeCanvasHandler *cur;
@@ -395,6 +395,7 @@ bool NativeCanvasHandler::containsPoint(double x, double y) const
 
 void NativeCanvasHandler::unrootHierarchy()
 {
+    #if 0
     NativeCanvasHandler *cur;
 
     for (cur = children; cur != NULL; cur = cur->next) {
@@ -409,6 +410,7 @@ void NativeCanvasHandler::unrootHierarchy()
         cur->context->jsobj = NULL;
     }
     children = NULL;
+    #endif
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
@@ -419,18 +421,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     /* all children got orphaned :( */
     for (cur = children; cur != NULL; cur = cur->next) {
-        printf("Warning: a canvas got orphaned (%p)\n", cur);
+        //printf("Warning: a canvas got orphaned (%p)\n", cur);
         cur->removeFromParent();
-
     }
-    if (context && context->jsobj && context->jscx) {
-        //JS_RemoveObjectRoot(context->jscx, &context->jsobj);
-    }
-    if (jsobj) {
-        //JS_RemoveObjectRoot(jscx, &jsobj);
-    }
-
-    /* Don't delete context, otherwise
-       context->jsobj's private would be undefined
-    */
 }

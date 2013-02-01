@@ -14,12 +14,13 @@ struct native_thread_msg
 {
     uint64_t *data;
     size_t nbytes;
-    struct JSObject *callee;
+    class JSObject *callee;
 };
 
 class NativeSharedMessages;
 class NativeSkia;
 class NativeCanvasHandler;
+struct _ape_htable;
 
 typedef struct _ape_global ape_global;
 
@@ -33,12 +34,16 @@ class NativeJS
         NativeSharedMessages *messages;
         NativeSkia *surface;
         NativeCanvasHandler *rootHandler;
+        bool shutdown;
+        struct _ape_htable *rootedObj;
 
         NativeJS(int width, int height);
         ~NativeJS();
         
         int LoadScript(const char *filename);
         void callFrame();
+        void rootObjectUntilShutdown(JSObject *obj);
+        void unrootObject(JSObject *obj);
         void postDraw();
         void bufferSound(int16_t *data, int len);
         void mouseWheel(int xrel, int yrel, int x, int y);

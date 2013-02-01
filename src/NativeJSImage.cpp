@@ -1,5 +1,6 @@
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
+#include "NativeJS.h"
 
 #include <string.h>
 
@@ -40,6 +41,8 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
 
                 if (strncasecmp(imgPath.ptr(), "http://", 7) == 0) {
+                    NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+                    
                     NativeHTTP *http = new NativeHTTP(imgPath.ptr(),
                         (ape_global *)JS_GetContextPrivate(cx));
                     http->request(NATIVE_IMAGE_GETTER(obj.get()));
@@ -92,8 +95,6 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     /* TODO: JS_IsConstructing() */
 
-    printf("new image\n");
-
     nimg = new NativeJSImage();
     nimg->cx = cx;
     nimg->jsobj = ret;
@@ -140,6 +141,7 @@ void NativeJSImage::onRequest(NativeHTTP::HTTPData *h,
             JS_CallFunctionValue(cx, jsobj, onload_callback,
                 0, NULL, &rval);
         }
+        NativeJSObj(cx)->unrootObject(jsobj);
 
     } /* TODO : onError */
 }
@@ -155,8 +157,6 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     nimg->cx    = cx;
 
     JS_SetPrivate(ret, nimg);
-
-    printf("Build image object\n");
 
     JS_DefineProperty(cx, ret, "width",
         INT_TO_JSVAL(image->getWidth()), NULL, NULL,

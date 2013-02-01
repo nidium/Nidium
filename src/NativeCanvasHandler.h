@@ -55,7 +55,7 @@ class NativeCanvasHandler
         };
 
         NativeCanvas2DContext *context;
-        struct JSObject *jsobj;
+        class JSObject *jsobj;
         struct JSContext *jscx;
 
         int width, height;
@@ -110,18 +110,23 @@ class NativeCanvasHandler
         bool hasAFixedAncestor() const;
         void setOpacity(double val);
         void removeFromParent();
-        NativeCanvasHandler *getParent();
         void getChildren(NativeCanvasHandler **out) const;
+        NativeCanvasHandler *getParent() const { return this->parent; }
+        NativeCanvasHandler *getFirstChild() const { return this->children; }
+        NativeCanvasHandler *getLastChild() const { return this->last; }
+        NativeCanvasHandler *getNextSibling() const { return this->next; }
+        NativeCanvasHandler *getPrevSibling() const { return this->prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
             double ptop, double aopacity, NativeRect *clip);
-    private:
         NativeCanvasHandler *parent;
         NativeCanvasHandler *children;
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
+    private:
+
         int32_t nchildren;
 
         COORD_POSITION coordPosition;

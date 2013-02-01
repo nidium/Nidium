@@ -327,7 +327,6 @@ static void ape_socket_shutdown_force(ape_socket *socket)
 #endif
     printf("Closing socket %d\n", socket->s.fd);
     if (shutdown(socket->s.fd, 2) != 0) {
-        printf("Destroying now\n");
         APE_socket_destroy(socket);
     }
 }

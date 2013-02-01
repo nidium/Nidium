@@ -18,7 +18,7 @@
 */
 
 class NativeSkia;
-class NativeRect;
+struct NativeRect;
 
 class NativeCanvas2DContext : public NativeJSExposer
 {
@@ -26,7 +26,7 @@ class NativeCanvas2DContext : public NativeJSExposer
 
         friend class NativeJSCanvas;
 
-        struct JSObject *jsobj;
+        class JSObject *jsobj;
         struct JSContext *jscx;
         NativeSkia *skia;
 

@@ -315,8 +315,6 @@ void NativeSkia::initPaints()
 
 int NativeSkia::bindOnScreen(int width, int height)
 {
-    const GrGLInterface *interface =  GrGLCreateNativeInterface();
-
     if (NativeSkia::glcontext == NULL) {
         printf("Cant find GL context\n");
         return 0;

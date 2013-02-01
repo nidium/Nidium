@@ -1,8 +1,12 @@
 #include "NativeJSHttp.h"
-#include "ape_http_parser.h"
+//#include "ape_http_parser.h"
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
+#include "NativeJS.h"
 
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
 
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -49,6 +53,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     jshttp = new NativeJSHttp();
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
+    jshttp->jsobj = ret;
 
     jshttp->cx = cx;
 
@@ -85,19 +90,100 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     jshttp->request = callback;
     JS_SetReservedSlot(caller, 0, callback);
 
+    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
+
     nhttp->request(jshttp);
 
     return JS_TRUE;
 }
 
+void NativeJSHttp::onError(NativeHTTP::HTTPError err)
+{
+    jsval onerror_callback, jevent, rval;
+    JSObject *event;
+
+    if (!JS_GetProperty(cx, jsobj, "onerror", &onerror_callback) ||
+            JS_TypeOfValue(cx, onerror_callback) != JSTYPE_FUNCTION) {
+
+        return;
+    }
+
+    event = JS_NewObject(cx, NULL, NULL, NULL);
+
+    switch(err) {
+        case NativeHTTP::ERROR_RESPONSE:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_invalid_response"))));            
+            break;
+        case NativeHTTP::ERROR_DISCONNECTED:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_server_disconnected"))));      
+            break;
+        case NativeHTTP::ERROR_SOCKET:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_connection_error"))));      
+            break;
+        case NativeHTTP::ERROR_TIMEOUT:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_timedout"))));      
+            break;
+    }
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_CallFunctionValue(cx, jsobj, onerror_callback,
+        1, &jevent, &rval);    
+
+}
+
+void NativeJSHttp::onProgress(size_t offset, size_t len,
+    NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
+{
+    JSObject *event;
+    jsval jdata, jevent, ondata_callback, rval;
+
+    if (!JS_GetProperty(cx, jsobj, "ondata", &ondata_callback) ||
+            JS_TypeOfValue(cx, ondata_callback) != JSTYPE_FUNCTION) {
+        return;
+    }
+
+    event = JS_NewObject(cx, NULL, NULL, NULL);
+
+    SET_PROP(event, "total", DOUBLE_TO_JSVAL(h->contentlength));
+    SET_PROP(event, "read", DOUBLE_TO_JSVAL(offset + len));
+
+    switch(type) {
+        case NativeHTTP::DATA_JSON:
+        case NativeHTTP::DATA_STRING:
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("string"))));
+            jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                (const char *)&h->data->data[offset], len));            
+            break;
+        default:
+        {
+            JSObject *arr = JS_NewArrayBuffer(cx, len);
+            uint8_t *data = JS_GetArrayBufferData(arr);
+
+            memcpy(data, &h->data->data[offset], len);
+            
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("binary"))));
+            jdata = OBJECT_TO_JSVAL(arr);
+            break;
+        }
+    }
+    
+    SET_PROP(event, "data", jdata);
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    JS_CallFunctionValue(cx, jsobj, ondata_callback,
+        1, &jevent, &rval);    
+}
+
 void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 {
-#define REQUEST_HEADER(header) ape_array_lookup(h->headers.list, \
-    CONST_STR_LEN(header "\0"))
-#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
-        JSPROP_ENUMERATE)
-
     buffer *k, *v;
     JSObject *headers, *event;
     jsval rval, jevent, jdata = JSVAL_NULL;
@@ -106,12 +192,27 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     headers = JS_NewObject(cx, NULL, NULL, NULL);
 
     APE_A_FOREACH(h->headers.list, k, v) {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)&v->data[1],
-            v->used-2);
+        JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
+            v->used-1);
         SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
     }
     
     SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
+
+    if (h->data == NULL) {
+        SET_PROP(event, "data", JSVAL_NULL);
+
+        jevent = OBJECT_TO_JSVAL(event);
+        SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            CONST_STR_LEN("null"))));
+        /* TODO: "this" is not the caller? */
+        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
+            1, &jevent, &rval);
+
+        NativeJSObj(cx)->unrootObject(this->jsobj);
+
+        return; 
+    }
 
     switch(type) {
         case NativeHTTP::DATA_STRING:
@@ -155,10 +256,17 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             break;
         }
         default:
+        {
+            JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
+            uint8_t *data = JS_GetArrayBufferData(arr);
+
+            memcpy(data, h->data->data, h->data->used);
+            
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("null"))));
-            jdata = JSVAL_NULL;
+                CONST_STR_LEN("binary"))));
+            jdata = OBJECT_TO_JSVAL(arr);
             break;
+        }
     }
 
     SET_PROP(event, "data", jdata);
@@ -169,6 +277,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
         1, &jevent, &rval);
 
+    NativeJSObj(cx)->unrootObject(this->jsobj);
 }
 
 NativeJSHttp::NativeJSHttp()

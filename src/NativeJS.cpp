@@ -19,6 +19,8 @@
 
 #include "SkImageDecoder.h"
 
+#include <ape_hash.h>
+
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
@@ -271,7 +273,6 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     JSObject *event;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
     EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
@@ -288,9 +289,7 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 
         JS_CallFunctionValue(cx, event, onwheel, 1, &jevent, &rval);
     }
-
-
-    JS_RemoveObjectRoot(cx, &event);    
+   
 }
 
 void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
@@ -302,7 +301,6 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     jsval jevent, onkeyupdown, canvas, rval;
 
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
     EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
@@ -321,8 +319,6 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 
         JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::textInput(const char *data)
@@ -334,7 +330,6 @@ void NativeJS::textInput(const char *data)
     jsval jevent, ontextinput, canvas, rval;
 
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("val",
         STRING_TO_JSVAL(JS_NewStringCopyN(cx, data, strlen(data))));
@@ -349,8 +344,6 @@ void NativeJS::textInput(const char *data)
 
         JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::mouseClick(int x, int y, int state, int button)
@@ -364,7 +357,6 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     jsval canvas, onclick;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -383,9 +375,6 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
         JS_CallFunctionValue(cx, event, onclick, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
-
 }
 
 void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
@@ -397,7 +386,6 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     JSObject *event;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -417,8 +405,6 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
         JS_CallFunctionValue(cx, event, onmove, 1, &jevent, &rval);
     }
 
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
@@ -443,6 +429,40 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
     //printf("Gc TH1 callback?\n");
 }
 
+static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
+{
+    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
+}
+
+static void NativeTraceBlack(JSTracer *trc, void *data)
+{
+    class NativeJS *self = (class NativeJS *)data;
+
+    if (self->shutdown) {
+        return;
+    }
+    ape_htable_item_t *item ;
+
+    for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
+#ifdef DEBUG
+        JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
+#endif
+        JS_CallTracer(trc, item->addrs, JSTRACE_OBJECT);
+        //printf("Tracing object at %p\n", item->addrs);
+    }
+}
+
+/* Use obj address as key */
+void NativeJS::rootObjectUntilShutdown(JSObject *obj)
+{
+    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+}
+
+void NativeJS::unrootObject(JSObject *obj)
+{
+    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
+}
+
 NativeJS::NativeJS(int width, int height)
 {
     JSRuntime *rt;
@@ -458,6 +478,9 @@ NativeJS::NativeJS(int width, int height)
     //printf("New JS runtime\n");
 
     currentFPS = 0;
+    shutdown = false;
+
+    rootedObj = hashtbl_init(APE_HASH_INT);
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_USE_HELPER_THREADS)) == NULL) {
@@ -481,7 +504,7 @@ NativeJS::NativeJS(int width, int height)
     //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
     //ion::js_IonOptions.gvnIsOptimistic = true;
@@ -500,6 +523,7 @@ NativeJS::NativeJS(int width, int height)
     //JS_DefineProfilingFunctions(cx, gbl);
 
     JS_SetGCCallback(rt, gccb);
+    JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
     //JS_InitCTypesClass(cx, gbl);
@@ -541,30 +565,31 @@ NativeJS::~NativeJS()
 {
     JSRuntime *rt;
     rt = JS_GetRuntime(cx);
+    shutdown = true;
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_RemoveValueRoot(cx, &gfunc);
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-
+    
+#if 0
     rootHandler->unrootHierarchy();
-    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
-    JS_EndRequest(cx);
     
     delete rootHandler;
+#endif
+    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
+    JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
     NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
-
     JS_DestroyRuntime(rt);
-
     JS_ShutDown();
 
-
     delete messages;
+    hashtbl_free(rootedObj);
     //delete nskia; /* TODO: why is that commented out? */
     // is it covered by Canvas_Finalize()?
 }
@@ -618,13 +643,11 @@ static int Native_handle_messages(void *arg)
                 }
 
                 event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-                JS_AddObjectRoot(cx, &event);
 
                 EVENT_PROP("message", inval);
 
                 jevent = OBJECT_TO_JSVAL(event);
-                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
-                JS_RemoveObjectRoot(cx, &event);            
+                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);          
 
             }
             delete ptr;
