@@ -14,6 +14,9 @@ var HttpRequest = function(url, onloadCallback){
 
 	this.h.ondata = function(e){
 		if (typeof self.ondata == "function"){
+			var percent = Number(e.total) !=0 ? Number(e.read)*100/e.total : 0;
+			e.size = (e.type == "binary" ? e.data.byteLength : e.data.length);
+			e.percent = Math.round(percent*100)/100;
 			self.ondata.call(this, e);
 		}
 	};
