@@ -237,6 +237,17 @@ Number.prototype.bound = function(min, max){
 
 /* -------------------------------------------------------------------------- */
 
+Math.rotate = function(x, y, cx, cy, angle){
+	var cos = Math.cos(angle),
+		sin = Math.sin(angle),
+		ax = x - cx,
+		ay = y - cy;
+	return {
+		x : cx + ax*cos + ay*sin,
+		y : cy - ax*sin + ay*cos
+	};
+};
+
 Math.distance = function(x1, y1, x2, y2){
 	var a = y2-y1, b = x2-x1;
 	return Math.sqrt(a*a + b*b);
@@ -270,6 +281,8 @@ var ___filter___ = function(txt, keyword){
 };
 
 var print = function(txt, element){
+	return false;
+
 	if (element && element._root == Native.__debugger) return false;
 	if (window.keydown != 1073742051) return false;
 

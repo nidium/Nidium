@@ -44,7 +44,7 @@
 
 */
 
-load("libs/membrane.lib.js");
+require("libs/membrane.lib.js");
 
 Native.profiler = {
 	loaded : false,

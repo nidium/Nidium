@@ -1,8 +1,8 @@
 /* --------------------------------------------------------------------------- *
- * NSS : Native Style Sheet Draft                          (c) 2013 Stight.com * 
+ * NATiVE MIXER DEMO                                       (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version: 	1.0                                                           *
- * Author:		Vincent Fontaine                                               *
+ * Version:     1.0                                                            *
+ * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
  * copy of this software and associated documentation files (the "Software"),  *
@@ -23,52 +23,86 @@
  * DEALINGS IN THE SOFTWARE.                                                   *
  * --------------------------------------------------------------------------- * 
  */
+
 {
-	main : {
+	body : {
 		background : "#262722",
+		backgroundImage : "falcon/assets/back.png",
+		alpha : 0.4
 	},
 
-	button : {
-		background : "#559933",
-		color : "#ffffff",
-		fontSize : 10.5,
-		top : 48
-	},
-
-	label : {
-		paddingLeft : 8,
-		paddingRight : 8,
-		width : 150,
-		height : 28,
-		color : "#ffffff",
-		background : "rgba(255, 255, 255, 0.25)",
-		fontSize : 12,
+	mixer : {
+		id : "audioMixerContainer",
+		top : 400,
+		left : 10,
+		width : 1000,
+		height : 350,
+		background : "rgba(0, 0, 0, 0.25)",
 		radius : 4
 	},
 
-	doit : {
-		label : "Do It",
-		left : 970,
-		top : 10
+	mixerContainer : {
+		top : 4,
+		left : 4,
+		radius : 0
 	},
 
-	demo : {
-		label : "demo"
+	slide : {
+		top : 0,
+		background : "rgba(0, 0, 0, 0.30)",
+		radius : 3
 	},
 
-	dark : {
-		background : "#111111"
+	panLabel : {
+		color : "#888888"
 	},
 
-	green : {
-		background : "#668822"
+	panSlider : {
+		background : 'rgba(128, 128, 128, 0.2)',
+		radius : 2
 	},
 
-	blue : {
-		background : "#4488EE"
+	solobutton : {
+		top : 20,
+		left : 5,
+		height : 13,
+		label : "S",
+		color : "#cccccc",
+		background : "rgba(33, 0, 0, 0.6)",
+		paddingLeft : 3,
+		paddingRight : 3,
+		radius : 6,
+		fontSize : 8
 	},
 
-	rose : {
-		background : "#882266"
+	mutebutton : {
+		top : 20,
+		left : 42,
+		height : 13,
+		label : "M",
+		color : "#cccccc",
+		background : "rgba(33, 0, 0, 0.6)",
+		paddingLeft : 3,
+		paddingRight : 3,
+		radius : 6,
+		fontSize : 8
+	},
+
+	hintLabel : {
+		top : 315,
+		color : "rgba(255, 255, 255, 0.90)",
+		textShadowColor : "#000000",
+		fontSize : 9,
+		radius : 3,
+		paddingLeft : 4
 	}
+
 }
+
+
+
+
+
+
+
+

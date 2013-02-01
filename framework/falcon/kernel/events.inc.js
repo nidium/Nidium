@@ -395,8 +395,8 @@ DOMElement.implement({
 			}
 		} else {
 			if (cb) cb.call(this);
-			return true;
 		}
+		return this;
 	},
 
 	addEventListener : function(name, callback, propagation){
@@ -425,7 +425,7 @@ DOMElement.implement({
 			// uncomment to support return in listener (you should not)
 			//if (queue && queue[queue.length-1]) return queue[queue.length-1].response;
 		};
-
+		return this;
 	}
 });
 
@@ -454,7 +454,7 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 			}
 		}
 	};
-
+	return this;
 };
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */

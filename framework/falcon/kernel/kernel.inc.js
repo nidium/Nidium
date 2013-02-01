@@ -155,6 +155,8 @@ Native.object = {
 		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
 		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
 		this.nodes[element._uid] = element;
+		if (!this.firstChild) this.firstChild = element;
+		this.lastChild = element;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
 		element.updateAncestors();
@@ -180,6 +182,7 @@ Native.object = {
 		print("resetNodes()", this);
 
 		var parent = this.parent, // parent of this virtual element
+			element = null,
 			layers = parent.layer.getChildren(); // physical children
 
 		/* Reset parent's nodes */
@@ -188,11 +191,17 @@ Native.object = {
 		/* reconstruct the nodes in the right order */
 		for (var i in layers){
 			// get the host element (that's it : the virtual element)
-			var element = layers[i].host;
+			element = layers[i].host;
+
+			if (!parent.firstChild) {
+				parent.firstChild = element;
+			}
 
 			// add the element in parent's nodes 
 			parent.nodes[element._uid] = element;
 		}
+		parent.lastChild = element;
+
 
 		Native.layout.update();
 	},
@@ -209,6 +218,16 @@ Native.object = {
 		return this;
 	},
 
+	resizeLayer : function(){
+		/* layer rotation realtime padding update hack */
+		var b = this.getBoundingRect(),
+			w = b.x2 - b.x1,
+			h = b.y2 - b.y1;
+
+		this.layer.padding = h/2;
+		this.redraw();
+	},
+
 	getDrawingBounds : function getDrawingBounds(){
 		var p = this.parent;
 		return {
@@ -221,16 +240,57 @@ Native.object = {
 		};
 	},
 
+	getBoundingRect : function(){
+		var x1 = this.__left,
+			y1 = this.__top,
+			x2 = x1 + this.width,
+			y2 = y1 + this.height,
+
+			origin = {
+				x : this.__left + this._width/2,
+				y : this.__top + this._height/2
+			};
+
+
+		if (this.angle % 360 === 0){
+			return {
+				x1 : x1,
+				y1 : y1,
+				x2 : x2,
+				y2 : y2
+			}
+		}
+
+		var rad = this.angle * (Math.PI/180),
+			r = Math.rotate,
+			
+			tl = r(x1, y1, origin.x, origin.y, rad),
+			tr = r(x2, y1, origin.x, origin.y, rad),
+			br = r(x2, y2, origin.x, origin.y, rad),
+			bl = r(x1, y2, origin.x, origin.y, rad);
+
+		return {
+			x1 : Math.min(tl.x, tr.x, br.x, bl.x),
+			y1 : Math.min(tl.y, tr.y, br.y, bl.y),
+			x2 : Math.max(tl.x, tr.x, br.x, bl.x),
+			y2 : Math.max(tl.y, tr.y, br.y, bl.y)
+		}
+	},
+
 	beforeDraw : function beforeDraw(){
 		print("beforeDraw()", this);
 		var ctx = this.layer.context,
-			rad = this.angle * (Math.PI/180);
+			rad = this.angle * (Math.PI/180),
+			origin = {
+				x : this._width/2,
+				y : this._height/2
+			};
 
 		ctx.save();
 		ctx.globalAlpha = this._alpha;
-		ctx.translate(this._width/2, this._height/2);
+		ctx.translate(origin.x, origin.y);
 		ctx.rotate(rad);
-		ctx.translate(-this._width/2, -this._height/2);
+		ctx.translate(-origin.x, -origin.y);
 	},
 
 	afterDraw : function afterDraw(){
@@ -241,9 +301,21 @@ Native.object = {
 
 	isPointInside : function isPointInside(mx, my){
 		var x1 = this.__left+1,
-			y1 = this.__top+2,
+			y1 = this.__top,
 			x2 = x1 + this._width,
 			y2 = y1 + this._height;
+
+		if (this.angle != 0){
+			var rad = this.angle * (Math.PI/180),
+				origin = {
+					x : this.__left + this._width/2,
+					y : this.__top + this._height/2
+				},
+				mouse = Math.rotate(mx, my, origin.x, origin.y, rad);
+
+			mx = mouse.x;
+			my = mouse.y;
+		}
 
 		return (mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},

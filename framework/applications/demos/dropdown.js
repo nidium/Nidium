@@ -3,6 +3,7 @@
 /* -------------------------- */
 
 var main = new Application();
+main.className = "main";
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -22,15 +23,255 @@ var	myElements = [
 ];
 
 var button = main.add("UIButton", {
-	left : 180,
-	top : 50,
-	label : "Button"
+	left : 200,
+	top : 402,
+	label : "Button XXXXXXX",
+	class : "button"
 }).addEventListener("mousedown", function(e){
 	dropDownController.open();
 });
 
+var b = button.getBoundingRect();
+
+document.addEventListener("mousewheel", function(e){
+	button.angle += e.yrel;
+
+	var b = button.getBoundingRect();
+	
+	viewXXX.left = b.x1;
+	viewXXX.top = b.y1;
+	viewXXX.width = b.x2 - b.x1;
+	viewXXX.height = b.y2 - b.y1;
+});
+
+var b = button.getBoundingRect();
+var viewXXX = main.add("UIView", {
+	left : b.x1,
+	top : b.y1,
+	width : b.x2 - b.x1,
+	height : b.y2 - b.y1,
+	background : "rgba(80, 0, 0, 0.6)",
+	class : "bounds"
+});
+
+
+
+var k1 = button.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "red",
+	class : "k1"
+});
+
+var kk1 = k1.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "red",
+	class : "kk1"
+});
+
+var k2 = button.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "red",
+	class : "k2"
+});
+
+var k22 = k2.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "red",
+	class : "k22"
+});
+
+var k3 = button.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 20,
+	height : 20,
+	background : "red",
+	class : "k3"
+});
+
+
+
+
+
+
+
+
+var viewzzz = main.add("UIView", {
+	left : 253,
+	top : 413,
+	width : 2,
+	height : 2,
+	background : "white",
+	class : "centerPoint"
+});
+
+
+
+
+
+var viewzzfz = main.add("UIView", {
+	left : 253,
+	top : 413,
+	width : 2,
+	height : 2,
+	background : "white",
+	class : "centerPoint9"
+});
+
+
+
+var tgg = viewzzz.add("UIView", {
+	left : 50,
+	top : 50,
+	width : 30,
+	height : 30,
+	background : "green",
+	class : "greenChold"
+});
+
+var tgg2 = viewzzz.add("UIView", {
+	left : 150,
+	top : 150,
+	width : 30,
+	height : 30,
+	background : "green",
+	class : "greenKold"
+});
+
+
+var tgg3 = viewzzz.add("UIView", {
+	left : 250,
+	top : 250,
+	width : 30,
+	height : 30,
+	background : "green",
+	class : "greenFold"
+});
+
+var tggx = viewzzz.add("UIView", {
+	left : 250,
+	top : 250,
+	width : 30,
+	height : 30,
+	background : "green",
+	class : "greenzzz"
+});
+
+
+
+
+var lastlast = tgg.add("UIView", {
+	left : 100,
+	top : 100,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "last"
+});
+
+
+var lastlastlast = lastlast.add("UIView", {
+	left : 100,
+	top : 100,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "lastlastlast"
+});
+
+
+
+var kkkmrr = tgg2.add("UIView", {
+	left : 100,
+	top : 100,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "eep"
+});
+
+
+var tggr = viewzzz.add("UIView", {
+	left : 250,
+	top : 250,
+	width : 30,
+	height : 30,
+	background : "green",
+	class : "grerrrr"
+});
+
+
+
+
+
+var viewpre = main.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "prePoint"
+});
+
+
+
+
+var rt = viewzzz.add("UIView", {
+	left : 450,
+	top : 450,
+	width : 30,
+	height : 30,
+	background : "green",
+	class : "rt"
+});
+
+
+
+var viewprfe = viewpre.add("UIView", {
+	left : 10,
+	top : 10,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "prePoint2"
+});
+
+
+
+var kkkmr2 = tgg3.add("UIView", {
+	left : 100,
+	top : 100,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "eep2"
+});
+
+var kkkmr4 = tgg3.add("UIView", {
+	left : 100,
+	top : 100,
+	width : 30,
+	height : 20,
+	background : "white",
+	class : "eep3"
+});
+
+
+
 var	dropDownController = main.add("UIDropDownController", {
-	left : 238,
+	left : 538,
 	top : 50,
 	maxHeight : 200,
 	name : "helloDrop",
@@ -38,6 +279,8 @@ var	dropDownController = main.add("UIDropDownController", {
 	elements : myElements,
 	background : "#191a18",
 	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF"
+	selectedColor : "#FFFFFF",
+	class : "tabController"
 });
+
 

@@ -69,7 +69,9 @@ Native.elements.export("UIModal", {
 			radius : 3,
 			shadowBlur : 22,
 			shadowColor : "rgba(0, 0, 0, 0.80)",
-			shadowOffsetY : 10
+			shadowOffsetY : 10,
+			overflow : false,
+			scrollbars : true
 		}).fix().center().hide();
 
 		this.contentView.addEventListener("change", function(e){

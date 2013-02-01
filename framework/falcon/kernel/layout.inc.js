@@ -218,12 +218,14 @@ Object.createProtectedElement(Native.scope, "document", new Application({
 	canReceiveFocus : true,
 	outlineOnFocus : false
 }));
+document.__styleSheetLoaded = true;
 
 /* -------------------------------------------------------------------------- */
 
 window.requestAnimationFrame(function(){
 	Native.FPS.start();
 	Native.layout.draw();
+	if (Native.layout.drawHook) Native.layout.drawHook();
 	Native.FPS.show();
 });
 

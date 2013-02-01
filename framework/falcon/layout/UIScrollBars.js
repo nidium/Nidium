@@ -8,7 +8,7 @@ Native.elements.export("UIScrollBar", {
 	init : function(){
 		var o = this.options;
 		this.radius = 0;
-		this.background = OptionalValue(o.background, "rgba(80, 80, 80, 0.20)");
+		this.background = OptionalValue(o.background, "rgba(80, 80, 80, 0.0)");
 		this.radius = 5;
 		this.opacity = 0;
 		this.visible = false;

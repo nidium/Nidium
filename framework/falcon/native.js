@@ -1,8 +1,8 @@
 /* --------------------------------------------------------------------------- *
  * Native FrameWork                                        (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version: 	2.0 Falcon Build                                               *
- * Author:		Vincent Fontaine                                               *
+ * Version:     2.0 Falcon Build                                               *
+ * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
  * copy of this software and associated documentation files (the "Software"),  *
@@ -40,46 +40,52 @@ var	__ENABLE_TEXT_SHADOWS__ = true,
 
 /* -------------------------------------------------------------------------- */
 
-load(__PATH_KERNEL__ + 'helper.inc.js');
-load(__PATH_KERNEL__ + 'engine.inc.js');
-load(__PATH_KERNEL__ + 'kernel.inc.js');
-load(__PATH_KERNEL__ + 'object.inc.js');
-load(__PATH_KERNEL__ + 'extend.inc.js');
-load(__PATH_KERNEL__ + 'events.inc.js');
-load(__PATH_KERNEL__ + 'motion.inc.js');
+var require = load;
+
+
+require(__PATH_KERNEL__ + 'helper.inc.js');
+require(__PATH_KERNEL__ + 'engine.inc.js');
+require(__PATH_KERNEL__ + 'kernel.inc.js');
+require(__PATH_KERNEL__ + 'object.inc.js');
+require(__PATH_KERNEL__ + 'extend.inc.js');
+require(__PATH_KERNEL__ + 'events.inc.js');
+require(__PATH_KERNEL__ + 'motion.inc.js');
+require(__PATH_KERNEL__ + 'audio.inc.js');
 
 /* -- UI Elements -- */
-load(__PATH_LAYOUT__ + 'UIView.js');
-load(__PATH_LAYOUT__ + 'UILabel.js');
+require(__PATH_LAYOUT__ + 'UIView.js');
+require(__PATH_LAYOUT__ + 'UILabel.js');
 
-load(__PATH_LAYOUT__ + 'UIButton.js');
-load(__PATH_LAYOUT__ + 'UIButtonClose.js');
-load(__PATH_LAYOUT__ + 'UIButtonDown.js');
+require(__PATH_LAYOUT__ + 'UIButton.js');
+require(__PATH_LAYOUT__ + 'UIButtonClose.js');
+require(__PATH_LAYOUT__ + 'UIButtonDown.js');
 
-load(__PATH_LAYOUT__ + 'UISliderKnob.js');
-load(__PATH_LAYOUT__ + 'UISliderController.js');
+require(__PATH_LAYOUT__ + 'UISliderKnob.js');
+require(__PATH_LAYOUT__ + 'UISliderController.js');
 
-load(__PATH_LAYOUT__ + 'UITab.js');
-load(__PATH_LAYOUT__ + 'UITabController.js');
+require(__PATH_LAYOUT__ + 'UITab.js');
+require(__PATH_LAYOUT__ + 'UITabController.js');
 
-load(__PATH_LAYOUT__ + 'UIWindow.js');
-load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
+require(__PATH_LAYOUT__ + 'UIWindow.js');
+require(__PATH_LAYOUT__ + 'UIWindowResizer.js');
 
-load(__PATH_LAYOUT__ + 'UIDropDownOption.js');
-load(__PATH_LAYOUT__ + 'UIDropDownController.js');
+require(__PATH_LAYOUT__ + 'UIOption.js');
+require(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
-load(__PATH_LAYOUT__ + 'UIScrollBars.js');
-load(__PATH_LAYOUT__ + 'UISpinner.js');
-load(__PATH_LAYOUT__ + 'UIModal.js');
+require(__PATH_LAYOUT__ + 'UIScrollBars.js');
+require(__PATH_LAYOUT__ + 'UISpinner.js');
+require(__PATH_LAYOUT__ + 'UIModal.js');
+require(__PATH_LAYOUT__ + 'UILine.js');
 
 
 /* -- Canvas Plugins -- */
-load(__PATH_PLUGINS__ + 'misc.inc.js');
-load(__PATH_PLUGINS__ + 'roundbox.inc.js');
-load(__PATH_PLUGINS__ + 'tabbox.inc.js');
+require(__PATH_PLUGINS__ + 'misc.inc.js');
+require(__PATH_PLUGINS__ + 'roundbox.inc.js');
+require(__PATH_PLUGINS__ + 'tabbox.inc.js');
+require(__PATH_PLUGINS__ + 'spline.inc.js');
 
 /* -- Start Layout -- */
-load(__PATH_KERNEL__ + 'layout.inc.js');
+require(__PATH_KERNEL__ + 'layout.inc.js');
 
 /* -------------------------------------------------------------------------- */
 

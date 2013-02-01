@@ -67,7 +67,7 @@ Native.elements.export("UIDropDownController", {
 			}
 
 			this.selector.__unlock();
-			this.tabs[i] = this.selector.add("UIDropDownOption", {
+			this.tabs[i] = this.selector.add("UIOption", {
 				left : 0,
 				top : y,
 				height : this.height,
@@ -216,9 +216,9 @@ Native.elements.export("UIDropDownController", {
 		}, false);
 
 		this.reset();
-		this.selector.height = 0;
+		this.selector.height = 0.1;
 		this.selector.hide();
-		this.toggleState = false;
+		this.closeSelector();
 	},
 
 	draw : function(context){

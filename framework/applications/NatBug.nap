@@ -152,6 +152,10 @@ NatBug.panes.push({
 	lines : [],
 	nb : 0,
 	space : 0,
+	displayClosingTags : true,
+
+	fontSize : 10,
+	lineHeight : 13,
 
 	tab : {
 		id : "NatBugTab1",
@@ -199,32 +203,228 @@ NatBug.panes.push({
 	},
 
 	inspect : function(){
-		var z = Native.scope;
-		for (var i in z){
-			if (isDOMElement(z[i]) && z[i].parent === null){
-				this.display(z[i], true);
+		var self = this,
+			z = Native.scope;
+
+		var dx = function(z, p, container, pcontainer){
+			for (var i in z){
+				if (isDOMElement(z[i]) && z[i].parent == p){
+
+					z[i].__OPENING_TAG__ = self.insertOpeningTag(z[i], container);
+					z[i].__CONTAINER__ = container;
+
+					if (Native.layout.count(z[i].nodes)>0){
+						self.space++;
+	
+						container.childrenContainer = self.createContainer(container);
+
+						dx(z[i].nodes, z[i], container.childrenContainer, container);
+
+						if (self.displayClosingTags){
+							z[i].__CLOSING_TAG__ = self.insertClosingTag(z[i], container.childrenContainer);
+							container.k++;
+							container.pixelHeight += self.lineHeight;
+						}
+		
+						container.childrenContainer.width = container.childrenContainer.contentWidth;
+						container.childrenContainer.height = container.childrenContainer.contentHeight;
+					}
+
+				}
 			}
-		}
+
+			self.space--;
+
+			if (pcontainer) {
+				pcontainer.k += container.k;
+				pcontainer.pixelHeight += container.pixelHeight;
+			}
+		};
+
+		this.nb = 0;
+		this.paneLeft.k = 0;
+		this.paneLeft.linenum = 0;
+		this.paneLeft.pixelHeight = 0;
+		this.paneLeft.__CLOSED__ = false;
+		this.paneLeft.className = "__treePaneContainer__";
+		dx(z, null, this.paneLeft, null);
 	},
 
-	log : function(text){
-		var l = this.paneLeft.add("UILabel", {
-			paddingLeft : 5,
-			left : 0 + this.space*40,
-			top : 18 * this.nb++,
-			height : 18,
-			color : "#000066",
-			label : text,
-			fontSize : 13
+	refresh : function(){
+		var self = this,
+			z = Native.scope;
+
+		var dx = function(z, p, container, pcontainer){
+			for (var i in z){
+
+				if (isDOMElement(z[i]) && z[i].parent == p && z[i].__visible){
+					z[i].__OPENING_TAG__.top = self.lineHeight * container.k;
+					if (z[i].__CONTAINER__.__CLOSED__ === false) {
+						self._addLine(container, z[i].__OPENING_TAG__.height);
+					}
+
+					if (Native.layout.count(z[i].nodes)>0){
+
+						var aa = z[i].__CONTAINER__,
+							cc = aa.childrenContainer;
+
+						aa.arrow.top = self.lineHeight*aa.k - (self.lineHeight-1) - 2;
+
+						cc.top = container.pixelHeight;
+						self._resetContainer(cc);
+
+						dx(z[i].nodes, z[i], cc, container);
+
+						if (self.displayClosingTags){
+							if (container.__CLOSED__ === false) {
+								self._addLine(cc, z[i].__CLOSING_TAG__.height);
+								container.k++;
+								container.pixelHeight += self.lineHeight;
+							}
+						}
+		
+						if (container.__CLOSED__ === false) {
+							cc.width = cc.contentWidth;
+							cc.height = cc.contentHeight;
+						}
+					}
+
+				}
+			}
+
+			if (pcontainer) {
+				if (container.__CLOSED__ === false){
+					pcontainer.k += container.k;
+					pcontainer.pixelHeight += container.pixelHeight;
+				}
+			}
+		};
+
+		this.nb = 0;
+		this.paneLeft.k = 0;
+		this.paneLeft.linenum = 0;
+		this.paneLeft.pixelHeight = 0;
+		dx(z, null, this.paneLeft, null);
+	},
+
+	_addLine : function(container, pixelHeight){
+		this.nb++;
+		container.linenum++;
+		container.k++;
+		container.pixelHeight += pixelHeight;
+	},
+
+	_resetContainer : function(container){
+		container.k = 0;
+		container.linenum = 0;
+		container.pixelHeight = 0;
+	},
+
+	createContainer : function(parent){
+		var self = this;
+		var container = parent.add("UIView", {
+			left : this.lineHeight,
+			top : 0 + parent.pixelHeight, //this.lineHeight*parent.k,
+			width : 250,
+			height : this.lineHeight,
+			background : "rgba(" + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", 0.4)",
+			class : "__treePaneContainer__"
 		});
 
-		echo(l.left)
+		this._resetContainer(container);
+		container.__CLOSED__ = false;
 
-		this.lines.push(l);
+		parent.arrow = parent.add("UIButtonDown", {
+			left : 0,
+			top : 0 + this.lineHeight*parent.k - (this.lineHeight-1) - 2,
+			width : this.lineHeight+1,
+			height : this.lineHeight+1,
+			color : "rgba(0, 0, 0, 0.6)",
+			class : "__treePaneArrow__"
+		});
+
+		parent.arrow.contentView = container;
+
+		parent.arrow.addEventListener("mousedown", function(e){
+			var container = this.contentView,
+				node = container.firstChild.parent.previousSibling;
+
+//			container.background = "black";
+			//node.background = 'red';
+			//node.nextSibling.background = "green";
+
+			if (container.__CLOSED__ === true){
+				container.show();
+				container.__CLOSED__ = false;
+				this.animate("angle", -90, 0, 180);
+			} else {
+				container.hide();
+				container.__CLOSED__ = true;
+				this.animate("angle", 0, -90, 180);
+			}
+
+			self.refresh();
+		});
+
+		return container;
 	},
 
-	display : function(element){
-		this.log("<" + element.type + ">");
+	log : function(text, color, container, offset=0){
+		var l = container.add("UILabel", {
+			paddingLeft : 5,
+			left : this.lineHeight + offset,
+			top : this.lineHeight * container.k,
+			height : this.lineHeight,
+			color : color,
+			label : text,
+			textShadowBlur : 1,
+			textShadowColor : "rgba(0, 0, 0, 0.05)",
+			fontSize : this.fontSize
+		});
+
+		this._addLine(container, l.height);
+
+		return l;
+	},
+
+	insertOpeningTag : function(element, container){
+		var color = element.layer.__visible ? "#000066" : "#bbbbbb";
+		var attr = [],
+			tag = '<';
+
+		tag += element.type.replace('UI', '').toLowerCase();
+
+		if (element.id){
+			attr.push('id="'+element.id+'"');
+		}
+
+		if (element.className){
+			attr.push('class="'+element.className+'"');
+		}
+
+		tag += (attr.length>0 ? " "+attr.join(" ") : '') + '>';
+
+		if (element.text){
+			tag += element.text;
+		} else if(element.label){
+			tag += element.label;
+		}
+
+		if (!element.hasChildren && this.displayClosingTags){
+			tag += '</' + (element.type.replace("UI", '').toLowerCase()) + '>';
+		}
+
+		return this.log(tag, color, container);
+	},
+
+	insertClosingTag : function(element, container){
+		var color = element.layer.__visible ? "#000066" : "#bbbbbb";
+		return this.log(
+			'</' + (element.type.replace("UI", '').toLowerCase()) + '>',
+			color,
+			container,
+			-this.lineHeight
+		);
 	},
 
 	show : function(){
@@ -438,7 +638,7 @@ NatBug.panes.push({
 
 Canvas.prototype.debug = function(){
 	var context = this.getContext("2D"),
-		__DEBUG_SHOW_LAYERS__ = false,
+		__DEBUG_SHOW_LAYERS__ = true,
 		__DEBUG_SHOW_ORDER__ = false;
 
 	if (!this.host || this.host._root == Native.__debugger){
