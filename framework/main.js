@@ -17,7 +17,9 @@ load("falcon/native.js");
 //load("applications/demos/scrollbars.js");
 //load("applications/demos/modal.js");
 
-load("applications/demos/flickr.js");
+//load("applications/demos/flickr.js");
+load("applications/demos/http.js");
+
 
 //load("applications/demos/buttons.js");
 //load("applications/demos/test.js");

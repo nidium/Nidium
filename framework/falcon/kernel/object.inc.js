@@ -478,6 +478,18 @@ DOMElement.draw = {
 		return gradient;
 	},
 
+	getSmoothGradient : function(element, context, params){
+		var gradient = context.createLinearGradient(
+			params.x, params.y,
+			params.x, params.y+params.h
+		);
+
+		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.08)');
+		gradient.addColorStop(1.00, 'rgba(0, 0, 0, 0.25)');
+
+		return gradient;
+	},
+
 	getSoftGradient : function(element, context, params){
 		var gradient = context.createLinearGradient(
 			params.x, params.y, 

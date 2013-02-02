@@ -68,6 +68,7 @@ require(__PATH_LAYOUT__ + 'UITabController.js');
 
 require(__PATH_LAYOUT__ + 'UIWindow.js');
 require(__PATH_LAYOUT__ + 'UIWindowResizer.js');
+require(__PATH_LAYOUT__ + 'UIStatus.js');
 
 require(__PATH_LAYOUT__ + 'UIOption.js');
 require(__PATH_LAYOUT__ + 'UIDropDownController.js');

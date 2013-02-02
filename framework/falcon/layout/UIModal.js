@@ -25,7 +25,7 @@ Native.elements.export("UIModal", {
 
 		this.setProperties({
 			opacity : 0,
-			background 	: OptionalValue(o.background, "rgba(25, 25, 25, 0.80)")
+			background : OptionalValue(o.background, "rgba(25, 25, 25, 0.80)")
 		});
 
 		this.hide();
