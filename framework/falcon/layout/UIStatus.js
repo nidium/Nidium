@@ -43,7 +43,8 @@ Native.elements.export("UIStatus", {
 			dashes : 10,
 			color : this.color,
 			speed : 20,
-			opacity : 0.7
+			opacity : 0.7,
+			radius : 2
 		});
 
 		this.open = function(){

@@ -20,6 +20,12 @@ var HttpRequest = function(url, onloadCallback){
 			self.ondata.call(this, e);
 		}
 	};
+
+	this.h.onerror = function(e){
+		if (typeof self.onerror == "function"){
+			self.onerror.call(this, e);
+		}
+	};
 	
 	this.h.request(function(e){
 		if (typeof onloadCallback == "function"){

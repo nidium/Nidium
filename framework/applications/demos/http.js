@@ -29,3 +29,8 @@ h.ondata = function(e){
 	main.status.label = e.percent+"%";
 	main.status.value = e.percent;
 };
+
+h.onerror = function(e){
+	main.status.label = 'Error: ' + e.error;
+	main.status.value = 0;
+};
