@@ -206,6 +206,21 @@ Native.object = {
 		Native.layout.update();
 	},
 
+	getChildren : function(){
+		var self = this,
+			elements = [];
+
+		var dx = function(z){
+			for (var i in z){
+				if (isDOMElement(z[i])) elements.push(z[i]);
+				dx(z[i].nodes);
+			}
+		};
+
+		dx(this.nodes);
+		return elements;
+	},
+
 	bringToFront : function bringToFront(){
 		this.layer.bringToFront();
 		this.resetNodes();

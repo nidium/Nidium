@@ -169,6 +169,7 @@ DOMElement.prototype = {
 
 	addChild : Native.object.addChild,
 	removeChild : Native.object.removeChild,
+	getChildren : Native.object.getChildren,
 
 	refresh : Native.object.refresh,
 	
@@ -206,6 +207,10 @@ DOMElement.prototype = {
 	resizeLayer : Native.object.resizeLayer,
 
 	/* -- READ ONLY WRAPPERS -- */
+
+	get children() {
+		return this.getChildren();
+	},
 
 	get previousSibling() {
 		return this.layer.getPrevSibling().host;

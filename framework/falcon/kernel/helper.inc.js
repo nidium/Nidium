@@ -114,6 +114,12 @@ Array.implement({
 	scroll : function(d){
 		if (!d) return this;
 		return this.slice(d, this.length).concat(this.slice(0, d));
+	},
+
+	each : function(cb){
+		for (var i=0; i<this.length; i++) {
+			cb.call(this[i]);
+		}
 	}
 });
 

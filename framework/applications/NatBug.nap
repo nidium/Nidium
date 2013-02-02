@@ -256,10 +256,11 @@ NatBug.panes.push({
 
 		var dx = function(z, p, container, pcontainer){
 			for (var i in z){
+				if (isDOMElement(z[i]) && z[i].parent == p){
 
-				if (isDOMElement(z[i]) && z[i].parent == p && z[i].__visible){
 					z[i].__OPENING_TAG__.top = self.lineHeight * container.k;
-					if (z[i].__CONTAINER__.__CLOSED__ === false) {
+					
+					if (z[i].__OPENING_TAG__.__CLOSED__ !== true) {
 						self._addLine(container, z[i].__OPENING_TAG__.height);
 					}
 
@@ -276,14 +277,14 @@ NatBug.panes.push({
 						dx(z[i].nodes, z[i], cc, container);
 
 						if (self.displayClosingTags){
-							if (container.__CLOSED__ === false) {
-								self._addLine(cc, z[i].__CLOSING_TAG__.height);
+							self._addLine(cc, z[i].__CLOSING_TAG__.height);
+							if (z[i].__CLOSING_TAG__.__CLOSED__ !== true) {
 								container.k++;
 								container.pixelHeight += self.lineHeight;
 							}
 						}
 		
-						if (container.__CLOSED__ === false) {
+						if (z[i].__CLOSED__ !== true) {
 							cc.width = cc.contentWidth;
 							cc.height = cc.contentHeight;
 						}
@@ -293,10 +294,8 @@ NatBug.panes.push({
 			}
 
 			if (pcontainer) {
-				if (container.__CLOSED__ === false){
-					pcontainer.k += container.k;
-					pcontainer.pixelHeight += container.pixelHeight;
-				}
+				pcontainer.k += container.k;
+				pcontainer.pixelHeight += container.pixelHeight;
 			}
 		};
 
@@ -347,18 +346,25 @@ NatBug.panes.push({
 
 		parent.arrow.addEventListener("mousedown", function(e){
 			var container = this.contentView,
+				children = container.children,
 				node = container.firstChild.parent.previousSibling;
 
-//			container.background = "black";
 			//node.background = 'red';
 			//node.nextSibling.background = "green";
 
 			if (container.__CLOSED__ === true){
+				children.each(function(){
+					this.__CLOSED__ = false;
+				});
+
 				container.show();
 				container.__CLOSED__ = false;
 				this.animate("angle", -90, 0, 180);
 			} else {
 				container.hide();
+				children.each(function(){
+					this.__CLOSED__ = true;
+				});
 				container.__CLOSED__ = true;
 				this.animate("angle", 0, -90, 180);
 			}
