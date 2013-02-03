@@ -131,7 +131,16 @@ Array.implement({
 			pattern.test(z[i]._className) && elements.push(z[i]);
 		}
 		return elements;
+	},
+
+	max : function(){
+		return Math.max.apply(null, this);
+	},
+
+	min : function(){
+		return Math.min.apply(null, this)
 	}
+
 });
 
 /* -------------------------------------------------------------------------- */

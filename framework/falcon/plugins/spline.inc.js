@@ -30,7 +30,16 @@ Canvas.implement({
 			step = 0,
 			n = points.length-1,
 			mouseOnPath = false,
-			f = Math.factorial, pw = Math.pow;
+			f = Math.factorial, pw = Math.pow,
+			k = lineWidth/2,
+			bx = [],
+			by = [],
+			boundingRect = {
+				left : 0,
+				top : 0,
+				right : 0,
+				bottom : 0
+			};
 
 		var B = function(i, n, t){
 			return	f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
@@ -54,12 +63,20 @@ Canvas.implement({
 				r[0] += points[i][0] * B(i, n, t);
 				r[1] += points[i][1] * B(i, n, t);
 			}
-			
+
+			bx.push(r[0]);
+			by.push(r[1]);
 			mouseOnPath = (Math.distance(r[0], r[1], mx, my) <= lineWidth) ? true : mouseOnPath;
 
 			this.lineTo(r[0], r[1]);
 		}
 		this.stroke();
-		return mouseOnPath;
+
+		return {
+			left : Math.floor(1-k + bx.min()),
+			top : Math.floor(1-k + by.min()),
+			right : Math.floor(1+k + bx.max()),
+			bottom : Math.floor(1+k + by.max())
+		}
 	}
 });

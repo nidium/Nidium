@@ -60,7 +60,7 @@ Native.elements.export("UILine", {
 		};
 
 		this.addEventListener("update", function(e){
-			this.refreshElement();
+			//this.refreshElement();
 		}, false);
 
 		this.addEventListener("mousedown", function(e){
@@ -86,19 +86,19 @@ Native.elements.export("UILine", {
 		context.strokeStyle = this.color;
 		context.lineWidth = this.lineWidth;
 
-		this.mouseOverPath = context.spline(
+		var b = context.spline(
 			this.points,
 			window.mouseX, 
 			window.mouseY, 
 			this.lineWidth+8
 		);
 
-		var b = context.getPathBounds();
+		//var b = context.getPathBounds();
 		this.boundingRect = {
-			left : b.left - this.lineWidth/2,
-			top : b.top - this.lineWidth/2,
-			width : (b.right - b.left) + this.lineWidth,
-			height : (b.bottom - b.top) + this.lineWidth
+			left : b.left,
+			top : b.top,
+			width : (b.right - b.left),
+			height : (b.bottom - b.top)
 		};
 
 		/*		
@@ -194,6 +194,7 @@ Native.elements.export("UIControlPoint", {
 		this.refreshElement = function(){
 			this.x = this._left + this._width/2;
 			this.y = this._top + this._height/2;
+			if (this.parent.refreshElement) this.parent.refreshElement();
 			this.parent.fireEvent("update");
 		};
 
