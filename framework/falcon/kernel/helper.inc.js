@@ -120,6 +120,17 @@ Array.implement({
 		for (var i=0; i<this.length; i++) {
 			cb.call(this[i]);
 		}
+	},
+
+	find : function(className){
+		var pattern = new RegExp("(^|\\s)"+className+"(\\s|$)"),
+			z = this,
+			elements = [];
+
+		for (var i=0; i<z.length; i++){
+			pattern.test(z[i]._className) && elements.push(z[i]);
+		}
+		return elements;
 	}
 });
 

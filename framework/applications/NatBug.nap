@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------- *
  * Native Application Debugger                             (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version:     0.30                                                           *
+ * Version:     0.50                                                           *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
@@ -154,8 +154,8 @@ NatBug.panes.push({
 	space : 0,
 	displayClosingTags : true,
 
-	fontSize : 10,
-	lineHeight : 13,
+	fontSize : 13,
+	lineHeight : 18,
 
 	tab : {
 		id : "NatBugTab1",
@@ -211,17 +211,21 @@ NatBug.panes.push({
 				if (isDOMElement(z[i]) && z[i].parent == p){
 
 					z[i].__OPENING_TAG__ = self.insertOpeningTag(z[i], container);
+					z[i].__OPENING_TAG__.closed = false;
 					z[i].__CONTAINER__ = container;
+					z[i].__CONTAINER__.__CLOSED__ = false;
 
 					if (Native.layout.count(z[i].nodes)>0){
 						self.space++;
 	
 						container.childrenContainer = self.createContainer(container);
+						container.childrenContainer.__CLOSED__ = false;
 
 						dx(z[i].nodes, z[i], container.childrenContainer, container);
 
 						if (self.displayClosingTags){
 							z[i].__CLOSING_TAG__ = self.insertClosingTag(z[i], container.childrenContainer);
+							z[i].__CLOSING_TAG__.__CLOSED__ = false;
 							container.k++;
 							container.pixelHeight += self.lineHeight;
 						}
@@ -246,64 +250,70 @@ NatBug.panes.push({
 		this.paneLeft.linenum = 0;
 		this.paneLeft.pixelHeight = 0;
 		this.paneLeft.__CLOSED__ = false;
-		this.paneLeft.className = "__treePaneContainer__";
+		this.paneLeft.className = "__treePaneParent__";
 		dx(z, null, this.paneLeft, null);
+
+		/*
+		Native.layout.getElementsByClassName("__treePaneContainer__").each(function(){
+			this.open();
+		});
+		*/
+
 	},
 
-	refresh : function(){
-		var self = this,
-			z = Native.scope;
+	refresh : function(container){
+		var offset = 0;
 
-		var dx = function(z, p, container, pcontainer){
-			for (var i in z){
-				if (isDOMElement(z[i]) && z[i].parent == p){
+		if (container.__CLOSED__) {
+			offset = -container.height;
+		} else {
+			offset = container.height;
+		}
 
-					z[i].__OPENING_TAG__.top = self.lineHeight * container.k;
-					
-					if (z[i].__OPENING_TAG__.__CLOSED__ !== true) {
-						self._addLine(container, z[i].__OPENING_TAG__.height);
+		while (container.parent){
+			var parentContainer = container.parent,
+				under = false,
+				eligibleArrow = false,
+				elements = [];
+
+			var z = parentContainer.childNodes;
+
+			for (var i=0; i<z.length; i++){
+				if (under) {
+					if (eligibleArrow) {
+						elements.push(z[i]);
 					}
-
-					if (Native.layout.count(z[i].nodes)>0){
-
-						var aa = z[i].__CONTAINER__,
-							cc = aa.childrenContainer;
-
-						aa.arrow.top = self.lineHeight*aa.k - (self.lineHeight-1) - 2;
-
-						cc.top = container.pixelHeight;
-						self._resetContainer(cc);
-
-						dx(z[i].nodes, z[i], cc, container);
-
-						if (self.displayClosingTags){
-							self._addLine(cc, z[i].__CLOSING_TAG__.height);
-							if (z[i].__CLOSING_TAG__.__CLOSED__ !== true) {
-								container.k++;
-								container.pixelHeight += self.lineHeight;
-							}
-						}
-		
-						if (z[i].__CLOSED__ !== true) {
-							cc.width = cc.contentWidth;
-							cc.height = cc.contentHeight;
-						}
+					if (z[i].hasClass("__treePaneArrow__")){
+						eligibleArrow = true;
 					}
-
+				}
+				if (z[i] == container) {
+					under = true;
 				}
 			}
 
-			if (pcontainer) {
-				pcontainer.k += container.k;
-				pcontainer.pixelHeight += container.pixelHeight;
-			}
-		};
+			elements.each(function(){
+				this.top += offset;
+			});
 
-		this.nb = 0;
-		this.paneLeft.k = 0;
-		this.paneLeft.linenum = 0;
-		this.paneLeft.pixelHeight = 0;
-		dx(z, null, this.paneLeft, null);
+			if (parentContainer.hasClass("__treePaneContainer__")) {
+				parentContainer.height += offset;
+			}
+
+			container = parentContainer;
+
+		}
+
+		return offset;
+	},
+
+	clear : function(){
+		this.paneLeft.children.each(function(){
+			this.remove();
+		});
+
+		this.paneLeft.scrollLeft = 0;
+		this.paneLeft.scrollTop = 0;
 	},
 
 	_addLine : function(container, pixelHeight){
@@ -322,13 +332,61 @@ NatBug.panes.push({
 	createContainer : function(parent){
 		var self = this;
 		var container = parent.add("UIView", {
-			left : this.lineHeight,
+			left : 32,
 			top : 0 + parent.pixelHeight, //this.lineHeight*parent.k,
-			width : 250,
+			width : parent.width-32,
 			height : this.lineHeight,
-			background : "rgba(" + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", 0.4)",
+			//background : "rgba(" + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", 0.4)",
 			class : "__treePaneContainer__"
 		});
+
+		container.close = function(animate){
+			var offset = 0,
+				arrow = this.linkedArrow;
+
+			if (this.__CLOSED__ || arrow.closing) return false;
+		
+			this.hide();
+			this.__CLOSED__ = true;
+
+			offset = self.refresh(this);
+
+			if (animate){
+				arrow.closing = true;
+				arrow.animate("angle", 0, -90, 100, function(){
+					this.closing = false;
+				});
+			} else {
+				arrow.angle = -90;
+			}
+
+			/* ScrollTop Hack
+			 * avoid scrollTop to become higher than its max value
+			 */
+
+			var dy = self.paneLeft.scrollTop - offset,
+				max = self.paneLeft.getMaxScrollTop();
+
+			if (dy>max) {
+				self.paneLeft.scrollTop -= (dy-max);
+			}
+		};
+
+		container.open = function(animate){
+			var arrow = this.linkedArrow;
+			if (!this.__CLOSED__ || arrow.opening) return false;
+			this.show();
+			this.__CLOSED__ = false;
+			self.refresh(this);
+			if (animate){
+				arrow.opening = true;
+				arrow.animate("angle", -90, 0, 100, function(){
+					this.opening = false;
+				});
+			} else {
+				arrow.angle = 0;
+			}
+		};
 
 		this._resetContainer(container);
 		container.__CLOSED__ = false;
@@ -342,34 +400,18 @@ NatBug.panes.push({
 			class : "__treePaneArrow__"
 		});
 
-		parent.arrow.contentView = container;
+		parent.arrow.container = container;
+		container.linkedArrow = parent.arrow;
 
 		parent.arrow.addEventListener("mousedown", function(e){
-			var container = this.contentView,
-				children = container.children,
-				node = container.firstChild.parent.previousSibling;
+			var k = this.container,
+				node = k.firstChild.parent.previousSibling;
 
-			//node.background = 'red';
-			//node.nextSibling.background = "green";
-
-			if (container.__CLOSED__ === true){
-				children.each(function(){
-					this.__CLOSED__ = false;
-				});
-
-				container.show();
-				container.__CLOSED__ = false;
-				this.animate("angle", -90, 0, 180);
+			if (k.__CLOSED__ === true){
+				k.open(true);
 			} else {
-				container.hide();
-				children.each(function(){
-					this.__CLOSED__ = true;
-				});
-				container.__CLOSED__ = true;
-				this.animate("angle", 0, -90, 180);
+				k.close(true);
 			}
-
-			self.refresh();
 		});
 
 		return container;
@@ -377,15 +419,16 @@ NatBug.panes.push({
 
 	log : function(text, color, container, offset=0){
 		var l = container.add("UILabel", {
-			paddingLeft : 5,
+			paddingLeft : 0,
 			left : this.lineHeight + offset,
 			top : this.lineHeight * container.k,
 			height : this.lineHeight,
 			color : color,
 			label : text,
 			textShadowBlur : 1,
-			textShadowColor : "rgba(0, 0, 0, 0.05)",
-			fontSize : this.fontSize
+			textShadowColor : "rgba(0, 0, 0, 0.04)",
+			fontSize : this.fontSize,
+			class : "__treePaneLabel__"
 		});
 
 		this._addLine(container, l.height);
@@ -394,7 +437,7 @@ NatBug.panes.push({
 	},
 
 	insertOpeningTag : function(element, container){
-		var color = element.layer.__visible ? "#000066" : "#bbbbbb";
+		var color = element.layer.__visible ? "#000066" : "#888899";
 		var attr = [],
 			tag = '<';
 
@@ -424,12 +467,12 @@ NatBug.panes.push({
 	},
 
 	insertClosingTag : function(element, container){
-		var color = element.layer.__visible ? "#000066" : "#bbbbbb";
+		var color = element.layer.__visible ? "#000066" : "#888899";
 		return this.log(
 			'</' + (element.type.replace("UI", '').toLowerCase()) + '>',
 			color,
 			container,
-			-this.lineHeight
+			-32
 		);
 	},
 

@@ -31,8 +31,14 @@ Native.elements.export("UIButtonDown", {
 			x3 = x1+(x2-x1)/2,
 			y3 = params.y+params.h - m;
 
-		context.strokeStyle = this.hover ? "#ffffff" : this.color;
-		context.setColor(this.hover ? "#ffffff" : this.color);
+		if (this.hover) {
+			context.globalAlpha = 0.8;
+		}
+		context.strokeStyle = this.color;
+		context.setColor(this.color);
+		if (this.hover) {
+			context.globalAlpha = 1;
+		}
 
 		context.lineWidth = 0.5;
 		context.lineCap = "round"; // default : butt

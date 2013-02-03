@@ -78,6 +78,10 @@ Native.elements.export("UIView", {
 			self.refresh();
 		};
 
+		this.getMaxScrollTop = function(){
+			return this.scrollbars ? this.layer.contentHeight - this.height : 0;
+		};
+
 		this.updateScrollTop = function(dy){
 			if (this.height / this.contentHeight < 1) {
 				this.VScrollBar.cancelCurrentAnimations("opacity");
