@@ -33,13 +33,7 @@ Canvas.implement({
 			f = Math.factorial, pw = Math.pow,
 			k = lineWidth/2,
 			bx = [],
-			by = [],
-			boundingRect = {
-				left : 0,
-				top : 0,
-				right : 0,
-				bottom : 0
-			};
+			by = [];
 
 		var B = function(i, n, t){
 			return	f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
