@@ -22,16 +22,12 @@ var spline = new UILine(main, {
 	]
 });
 
-spline.addEventListener("update", function(){
-	setSplineBounds();
-});
-
 var setSplineBounds = function(){
 	var b = spline.boundingRect;
 	bounds.left = b.left;
 	bounds.top = b.top;
 	bounds.width = b.right - b.left;
-	bounds.left = b.bottom - b.top;
+	bounds.height = b.bottom - b.top;
 };
 
 var bounds = new UIElement(main, {
@@ -40,3 +36,8 @@ var bounds = new UIElement(main, {
 });
 
 setSplineBounds();
+
+spline.addEventListener("update", function(){
+	setSplineBounds();
+});
+
