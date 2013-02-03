@@ -47,6 +47,7 @@ Canvas.implement({
 
 		this.beginPath();
 		this.moveTo(points[0][0], points[0][1]);
+
 		for (var t=0; t<=1; t+=step){
 			var r = [0, 0];
 
@@ -54,11 +55,10 @@ Canvas.implement({
 				r[0] += points[i][0] * B(i, n, t);
 				r[1] += points[i][1] * B(i, n, t);
 			}
-			
 			mouseOnPath = (Math.distance(r[0], r[1], mx, my) <= lineWidth) ? true : mouseOnPath;
-
 			this.lineTo(r[0], r[1]);
 		}
+
 		this.stroke();
 		return mouseOnPath;
 	}

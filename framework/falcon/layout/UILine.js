@@ -67,6 +67,10 @@ Native.elements.export("UILine", {
 			this.focus();
 			e.stopPropagation();
 		}, false);
+
+		this.getBoundingRect = function(){
+		};
+
 	},
 
 	isPointInside : function(mx, my){
@@ -88,6 +92,8 @@ Native.elements.export("UILine", {
 			window.mouseY, 
 			this.lineWidth+8
 		);
+
+		this.boundingRect = context.getPathBounds();
 
 		/*		
 		if (nbpoints==2){
@@ -217,7 +223,7 @@ Native.elements.export("UIControlPoint", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		//if (this.parent.hasFocus && !this.hidden){
+		if (!this.hidden){
 			context.roundbox(
 				params.x+4, params.y+4, 
 				params.w-8, params.h-8, 
@@ -229,7 +235,7 @@ Native.elements.export("UIControlPoint", {
 				params.w, params.h,
 				this.radius, this.background, "rgba(128, 128, 128, 0.9)", this.lineWidth
 			);
-		//}
+		}
 	}
 });
 
