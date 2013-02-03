@@ -12,7 +12,7 @@ var spline = new UILine(main, {
 	height : 300,
 	background : "rgba(0, 200, 0, 0.1)",
 	color : "black",
-	lineWidth : 5,
+	lineWidth : 50,
 	displayControlPoints : true,
 	vertices : [
 		10, 30,
@@ -26,14 +26,15 @@ var setSplineBounds = function(){
 	var b = spline.boundingRect;
 	bounds.left = b.left;
 	bounds.top = b.top;
-	bounds.width = b.right - b.left;
-	bounds.height = b.bottom - b.top;
+	bounds.width = b.width;
+	bounds.height = b.height;
 };
 
-var bounds = new UIElement(main, {
+var bounds = new UIElement(spline, {
 	opacity : 0.5,
 	background : "red"
 });
+bounds.sendToBack();
 
 setSplineBounds();
 
