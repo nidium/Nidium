@@ -28,6 +28,7 @@ Canvas.implement({
 	spline : function(points, mx=0, my=0, lineWidth=2){
 		var len = 0,
 			step = 0,
+			n = points.length-1,
 			mouseOnPath = false,
 			f = Math.factorial, pw = Math.pow;
 
@@ -35,7 +36,7 @@ Canvas.implement({
 			return	f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
 		}
 
-		for (var i=0; i<points.length-1; i++) {
+		for (var i=0; i<n; i++) {
 			len += Math.distance(
 				points[i][0], points[i][1],
 				points[i + 1][0], points[i + 1][1]
@@ -47,8 +48,7 @@ Canvas.implement({
 		this.beginPath();
 		this.moveTo(points[0][0], points[0][1]);
 		for (var t=0; t<=1; t+=step){
-			var r = [0, 0],
-				n = points.length - 1;
+			var r = [0, 0];
 
 			for (var i=0; i<=n; i++) {
 				r[0] += points[i][0] * B(i, n, t);

@@ -22,6 +22,28 @@ var	myElements = [
 	/* Tab 9 */ {label : "Japan"}
 ];
 
+
+var spline = new UILine(main, {
+	class : "spline",
+	left : 100,
+	top : 100,
+	width : 300,
+	height : 300,
+	background : "rgba(0, 200, 0, 0.1)",
+	color : "black",
+	lineWidth : 5,
+	displayControlPoints : true,
+	vertices : [
+		10, 30,
+		120, 50,
+		150, 150,
+		10, 180
+	]
+});
+
+
+/*
+
 var button = main.add("UIButton", {
 	left : 200,
 	top : 402,
@@ -283,4 +305,5 @@ var	dropDownController = main.add("UIDropDownController", {
 	class : "tabController"
 });
 
+*/
 
