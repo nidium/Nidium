@@ -53,6 +53,7 @@ require(__PATH_KERNEL__ + 'motion.inc.js');
 require(__PATH_KERNEL__ + 'audio.inc.js');
 
 /* -- UI Elements -- */
+require(__PATH_LAYOUT__ + 'UIElement.js');
 require(__PATH_LAYOUT__ + 'UIView.js');
 require(__PATH_LAYOUT__ + 'UILabel.js');
 

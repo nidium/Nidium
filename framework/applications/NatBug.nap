@@ -336,7 +336,7 @@ NatBug.panes.push({
 			top : 0 + parent.pixelHeight, //this.lineHeight*parent.k,
 			width : parent.width-32,
 			height : this.lineHeight,
-			//background : "rgba(" + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", 0.4)",
+			background : "rgba(" + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", " + Math.round(255*Math.random()) + ", 0.4)",
 			class : "__treePaneContainer__"
 		});
 
