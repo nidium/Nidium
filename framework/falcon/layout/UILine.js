@@ -68,9 +68,6 @@ Native.elements.export("UILine", {
 			e.stopPropagation();
 		}, false);
 
-		this.getBoundingRect = function(){
-		};
-
 	},
 
 	isPointInside : function(mx, my){

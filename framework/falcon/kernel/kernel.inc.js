@@ -243,6 +243,20 @@ Native.object = {
 		this.redraw();
 	},
 
+	expand : function(width, height){
+		var dx = (width - this._width)/2,
+			dy = (height - this._height)/2;
+
+		this.width = width;
+		this.height = height;
+		this.left -= dx;
+		this.top -= dy;
+		this.childNodes.each(function(){
+			this.left += dx;
+			this.top += dy;
+		});
+	},
+
 	getDrawingBounds : function getDrawingBounds(){
 		var p = this.parent;
 		return {

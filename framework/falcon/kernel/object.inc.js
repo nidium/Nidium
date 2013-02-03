@@ -205,6 +205,7 @@ DOMElement.prototype = {
 	updateLayerSize : Native.object.updateLayerSize,
 	updateAncestors : Native.object.updateAncestors,
 	resizeLayer : Native.object.resizeLayer,
+	expand : Native.object.expand,
 
 	/* -- READ ONLY WRAPPERS -- */
 

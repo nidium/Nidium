@@ -9,7 +9,7 @@
 /* -------------------------------------------------------------------------- */
 
 Native.system = {
-	doubleClickInterval : 250
+	doubleClickInterval : 100
 };
 
 /* -------------------------------------------------------------------------- */
@@ -426,6 +426,12 @@ DOMElement.implement({
 			//if (queue && queue[queue.length-1]) return queue[queue.length-1].response;
 		};
 		return this;
+	},
+
+	click : function(cb){
+		this.addEventListener("mouseclick", function(e){
+			if (typeof cb == "function") cb.call(this, e);
+		}, false);
 	}
 });
 

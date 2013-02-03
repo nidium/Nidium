@@ -6,20 +6,20 @@ var main = new Application();
 
 var spline = new UILine(main, {
 	class : "spline",
-	left : 40,
-	top : 40,
-	width : 700,
-	height : 400,
+	left : 400,
+	top : 200,
+	width : 200,
+	height : 200,
 	background : "rgba(0, 200, 0, 0.1)",
 	color : "black",
 	lineWidth : 5,
 	displayControlPoints : true,
 	vertices : [
-		42, 305,
-		100, 40,
-		180, 20,
-		350, 150,
-		600, 380
+		42, 120,
+		10, 10,
+		150, 20,
+		130, 80,
+		70, 100
 	]
 });
 
@@ -31,8 +31,11 @@ var setSplineBounds = function(){
 	bounds.width = b.width;
 	bounds.height = b.height;
 
-	spline.width = b.left + b.width;
-	spline.height = b.top + b.height;
+	spline.expand(
+		Math.max(2*b.width, 200),
+		Math.max(2*b.height, 200)
+	);
+
 };
 
 var bounds = new UIElement(spline, {
