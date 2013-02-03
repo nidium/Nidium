@@ -69,8 +69,8 @@ Canvas.implement({
 		return {
 			left : Math.floor(1-k + bx.min()),
 			top : Math.floor(1-k + by.min()),
-			right : Math.floor(1+k + bx.max()),
-			bottom : Math.floor(1+k + by.max())
+			right : Math.floor(k + bx.max()),
+			bottom : Math.floor(k + by.max())
 		}
 	}
 });

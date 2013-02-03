@@ -30,10 +30,13 @@ var setSplineBounds = function(){
 	bounds.top = b.top;
 	bounds.width = b.width;
 	bounds.height = b.height;
+
+	spline.width = b.left + b.width;
+	spline.height = b.top + b.height;
 };
 
 var bounds = new UIElement(spline, {
-	opacity : 0.25,
+	opacity : 0.0,
 	background : "red"
 });
 bounds.sendToBack();
