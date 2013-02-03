@@ -95,10 +95,10 @@ Native.elements.export("UILine", {
 
 		var b = context.getPathBounds();
 		this.boundingRect = {
-			left : b.left,
-			top : b.top,
-			width : b.right - b.left,
-			height : b.bottom - b.top
+			left : b.left - this.lineWidth/2,
+			top : b.top - this.lineWidth/2,
+			width : (b.right - b.left) + this.lineWidth,
+			height : (b.bottom - b.top) + this.lineWidth
 		};
 
 		/*		

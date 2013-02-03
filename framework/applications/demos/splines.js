@@ -23,7 +23,9 @@ var spline = new UILine(main, {
 });
 
 var setSplineBounds = function(){
-	var b = spline.boundingRect;
+	var b = spline.boundingRect,
+		m = spline.lineWidth;
+
 	bounds.left = b.left;
 	bounds.top = b.top;
 	bounds.width = b.width;
