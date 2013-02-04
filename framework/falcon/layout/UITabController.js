@@ -59,12 +59,28 @@ Native.elements.export("UITabController", {
 			return selelectedTab;
 		};
 
+		this.hideTarget = function(){
+			var i = this.currentIndex;
+			if (!isDOMElement(this.tabs[i].target)) return false;
+			this.tabs[i].target.hide();
+		};
+
+		this.showTarget = function(){
+			var i = this.currentIndex;
+			if (!isDOMElement(this.tabs[i].target)) return false;
+			this.tabs[i].target.show();
+		};
+
 		this.selectTabAtIndex = function(index){
+			var selectedTab = false;
 			if (self.currentIndex == index) return false;
+
+			self.hideTarget();
 			self.currentIndex = Math.max(Math.min(index, self.tabs.length-1), 0);
 			self.currentPosition = self.getPosition(self.currentIndex);
 
-			var selectedTab = this.resetTabs();
+			selectedTab = this.resetTabs();
+			self.showTarget();
 			
 			self.fireEvent("tabselect", {
 				tab : selectedTab
