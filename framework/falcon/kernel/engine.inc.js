@@ -200,19 +200,25 @@ Native.StyleSheet = {
 	},
 
 	/* load a local or distant stylesheet (asynchronous) */
-	load : function(url){
+	load : function(url, sync=true){
 		var ____self____ = this;
 		document.__styleSheetLoaded = false;
 
-		File.getText(url, function(content){
-			var sheetText = ____self____.parse(content);
+		if (sync) {
+			var sheet = require(url, 'nss');
 			document.__styleSheetLoaded = true;
-			try {
-				eval("____self____.add(" + sheetText + ")");
-			} catch (e) {
-				throw ('Error parsing Native StyleSheet "'+url+'"');
-			}
-		});
+			this.add(sheet);
+		} else {
+			File.getText(url, function(content){
+				var sheetText = ____self____.parse(content);
+				document.__styleSheetLoaded = true;
+				try {
+					eval("____self____.add(" + sheetText + ")");
+				} catch (e) {
+					throw ('Error parsing Native StyleSheet "'+url+'"');
+				}
+			});
+		}
 	},
 
 	mergeProperties : function(klass, properties){
