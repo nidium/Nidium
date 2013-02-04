@@ -10,6 +10,7 @@
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
 #define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->skia)
+#define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
 
 extern jsval gfunc;
 
@@ -721,7 +722,7 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
     }
 
     if (JS_InstanceOf(cx, jsimage, &Canvas_class, NULL)) {
-        image = new NativeSkImage(NSKIA_NATIVE_GETTER(jsimage)->canvas);
+        image = new NativeSkImage(HANDLER_GETTER(jsimage)->context->skia->canvas);
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
