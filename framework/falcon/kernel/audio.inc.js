@@ -1,6 +1,6 @@
 /* --------------------------------------------------------------------------- *
- * NATiVE AUDIO API                                        (c) 2013 Stight.com * 
- * --------------------------------------------------------------------------- * 
+ * NATiVE AUDIO API                                        (c) 2013 Stight.com *
+ * --------------------------------------------------------------------------- *
  * Version:     1.0                                                            *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
@@ -21,7 +21,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING     *
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER         *
  * DEALINGS IN THE SOFTWARE.                                                   *
- * --------------------------------------------------------------------------- * 
+ * --------------------------------------------------------------------------- *
  */
 
 "use strict";
@@ -66,8 +66,8 @@ var AudioMixer = {
 		 
 		   	+--------+    L    +------+    L    +--------+
 		   	|        | ------> |      | ------> |        |
-		   	| SOURCE |         | GAIN |         | TARGET |  
-		   	|        | ------> |      | ------> |        | 
+		   	| SOURCE |         | GAIN |         | TARGET |
+		   	|        | ------> |      | ------> |        |
 		   	+--------+    R    +------+    R    +--------+
 		 
 		*/

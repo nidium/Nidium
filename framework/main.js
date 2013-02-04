@@ -20,7 +20,7 @@ load("falcon/native.js");
 //load("applications/demos/diagrams.js");
 
 //load("applications/demos/flickr.js");
-//load("applications/demos/http.js");
+load("applications/demos/http.js");
 
 
 //load("applications/demos/buttons.js");
@@ -29,7 +29,7 @@ load("falcon/native.js");
 //load("testLayer.js");
 
 //load("applications/audio/test.js");
-load("applications/audio/mixer.js");
+//load("applications/audio/mixer.js");
 //load("applications/audio/dsp.js");
 
 

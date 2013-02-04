@@ -56,7 +56,7 @@ var removeButton = main.add("UIButton", {
 	});
 
 addButton.addEventListener("mousedown", function(){
-	var p = tabController.position;
+	var p = tabController.currentPosition;
 
 	tabController.insertTab(p, {
 		label : "Zombi Magic",
@@ -74,12 +74,12 @@ nextButton.addEventListener("mousedown", function(){
 });
 
 tabController.addEventListener("tabselect", function(e){
-	b3.label = "Tab " + e.index + ", Position " + e.position;
+	b3.label = "Tab " + e.index + ", Position " + e.pos;
 	main.background = tabController.tabs[e.index].background;
 });
 
 tabController.addEventListener("tabswap", function(e){
-	b3.label = "Tab " + e.index + ", Position " + e.position;
+	b3.label = "Tab " + e.index + ", Position " + e.pos;
 });
 
 
@@ -91,22 +91,22 @@ tab.label = "fsdfsdfsdffds"
 
 tabController.addEventListener("tabmove", function(e){
 	var tab = e.index,
-		positions = e.positions;
+		elements = e.elements;
 
-	echo("-- tab", tab, "moved to position", this.position);
-	for (var i=0; i<positions.length; i++){
-		echo("pos"+i, " --> tab", positions[i], " tabs["+i+"].position = ", this.tabs[i].position);
+	echo("-- tab", tab, "moved to position", this.currentPosition);
+	for (var i=0; i<elements.length; i++){
+		echo("pos"+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
 	echo("");
 });
 
 tabController.addEventListener("tabclose", function(e){
 	var tab = e.index,
-		positions = e.positions;
+		elements = e.elements;
 	
 	echo("-- tab", tab, "closed and no longer exists.");
-	for (var i=0; i<positions.length; i++){
-		echo("pos"+i, " --> tab", positions[i], " tabs["+i+"].position = ", this.tabs[i].position);
+	for (var i=0; i<elements.length; i++){
+		echo("pos"+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
 	echo("");
 });
