@@ -777,7 +777,7 @@ void NativeSkia::stroke()
     }
 
     canvas->drawPath(*currentPath, *PAINT_STROKE);
-    CANVAS_FLUSH();   
+    CANVAS_FLUSH();
 }
 
 void NativeSkia::closePath()

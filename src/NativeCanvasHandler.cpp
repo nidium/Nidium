@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include <jsapi.h>
+#include <js/GCAPI.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
@@ -159,7 +160,7 @@ void NativeCanvasHandler::removeFromParent()
     }
     if (this->jsobj && js::IsIncrementalBarrierNeeded(this->jscx)) {
         printf("Reference barrier\n");
-        js::IncrementalReferenceBarrier(this->jsobj);
+        js::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
     
     if (parent->children == this) {

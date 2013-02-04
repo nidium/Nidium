@@ -9,7 +9,7 @@
 
 #define kNativeWidth 1024
 #define kNativeHeight 760
-#define kNativeVSYNC 1
+#define kNativeVSYNC 0
 
 uint32_t ttfps = 0;
 
