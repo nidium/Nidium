@@ -52,20 +52,6 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
     }
 }
 
-NativeAudioNode::Message::Message(NativeAudioNode *node, void *source, void *dest, unsigned long size)
-: node(node)
-{
-    this->source = malloc(size);
-    this->size = size;
-    this->dest = dest;
-
-    memcpy(this->source, source, size);
-}
-
-NativeAudioNode::Message::~Message() {
-    free(this->source);
-}
-
 void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom) 
 {
     this->audio->sharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
@@ -75,12 +61,35 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
 {
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
         if (this->args[i] != NULL && strcmp(name, this->args[i]->name) == 0) {
-            if (this->args[i]->type == type) {
-                this->post(NATIVE_AUDIO_NODE_SET, value, this->args[i]->ptr, size);
-                return true;
-            } /* else {
-                 return false;
-            } */
+            void *val;
+
+            // If posted type and expected type are different
+            // try to typecast the value (only few are supported)
+            if (this->args[i]->type != type) {
+
+                double doubleVal;
+
+                switch (type) {
+                    case DOUBLE:
+                        return false;
+                    break;
+                    case INT : {
+                        int *tmp = static_cast<int *>(value);
+                        doubleVal = static_cast<double>(*tmp);
+                        val = &doubleVal;
+                        size = sizeof(double);
+                    }
+                    break;
+                    default :
+                        return false;
+                    break;
+                }
+            } else {
+                val = value;
+            }
+
+            memcpy(this->args[i]->ptr, val, size);
+            return true;
         }
     }
 
@@ -125,7 +134,7 @@ void NativeAudioNode::updateWiresFrame(int channel, float *frame) {
     return;
 }
 
-// XXX : Use mutex?
+// TODO : Use mutex
 void NativeAudioNode::queue(NodeLink *in, NodeLink *out) 
 {
     SPAM(("connect in node %p; out node %p\n", in->node, out->node));
@@ -138,6 +147,7 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     }
 
     if (out->count == 0 && in->count == 0 && in->node != out->node) {
+        SPAM(("frame previously assigned\n"));
         // Frame was previously assigned, update next outputs 
         if (this->frames[out->channel] != NULL) {
             free(this->frames[out->channel]);
@@ -148,7 +158,12 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     } else if (out->count == 1 || in->count == 1 || in->node == out->node) {
         // Multiple input or output on same channel
         // need to use an internal buffer
+
         this->frames[out->channel] = (float *)calloc(sizeof(float), this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+
+        SPAM(("Update wires\n"));
+        this->updateWiresFrame(out->channel, this->frames[out->channel]);
+
         SPAM(("Using custom frames\n"));
     } 
 
@@ -158,7 +173,7 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     SPAM(("frame %p\n", in->node->frames[in->channel]));
     SPAM(("Assigning input on %p wire %d on channel %d to %p\n", this, tmp->count , out->channel, in->node));
 
-    // And update input node wires (this is informative)
+    // And update input node wires 
     tmp = in->node->output[in->channel];
     tmp->wire[tmp->count] = new NodeIO(out->node, out->node->frames[out->channel]);
 
@@ -173,7 +188,7 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     this->updateFeedback(out->node);
 }
 
-// TODO : Use mutex before dsconnecting node
+// TODO : Use mutex before dsconnecting node (do not disconnect while node are in recurseGetData)
 void NativeAudioNode::unqueue(NodeLink *input, NodeLink *output) 
 {
     NodeLink *wiresIn, *wiresOut;
@@ -223,8 +238,7 @@ bool NativeAudioNode::recurseGetData()
 {
         SPAM(("in recurseGetData\n"));
 
-        SPAM(("node %p, in count is %d\n", this, 5));
-        SPAM(("in count is %d\n", this->inCount));
+        SPAM(("node %p, in count is %d\n", this, this->inCount));
         for (int i = 0; i < this->inCount; i++) {
             SPAM(("processing input #%d on %p\n", i, this));
             if (!this->nodeProcessed) {
@@ -321,12 +335,6 @@ bool NativeAudioNode::recurseGetData()
         return true;
 }
 
-
-
-void NativeAudioNode::post(int msg, void *source, void *dest, unsigned long size) {
-    this->audio->sharedMsg->postMessage((void *)new Message(this, source, dest, size), msg);
-}
-
 NativeAudioNode::~NativeAudioNode() {
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
         if (this->args[i] != NULL) {
@@ -375,7 +383,6 @@ NativeAudioNodeGain::NativeAudioNodeGain(int inCount, int outCount, NativeAudio 
 {
     printf("gain init\n");
     this->args[0] = new ExportsArgs("gain", DOUBLE, &this->gain);
-    this->args[1] = new ExportsArgs("gain", INT, &this->gain);
 }
 
 bool NativeAudioNodeGain::process() 
@@ -893,7 +900,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
 
 void NativeAudioTrack::resetFrames() {
     if (!this->nullFrames) {
-        for (int i = 0; i < this->inCount; i++) {
+        for (int i = 0; i < this->outCount; i++) {
             memset(this->frames[i], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
         }
         this->nullFrames = true;
@@ -954,12 +961,12 @@ bool NativeAudioTrack::process() {
             }
         }
 
-        this->nullFrames = false;
-
         free(tmp);
     } else {
         PaUtil_ReadRingBuffer(this->rBufferOut, this->frames[0], this->audio->outputParameters->framesPerBuffer);
     }
+
+    this->nullFrames = false;
 
     return true;
 }
@@ -1029,6 +1036,7 @@ void NativeAudioTrack::stop()
 {
     this->playing = false;
     this->stopped = true;
+    SPAM(("Stoped\n"));
 
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
@@ -1042,6 +1050,8 @@ void NativeAudioTrack::stop()
     this->samplesConsumed = 0;
     this->frameConsumed = true;
     this->packetConsumed = true;
+
+    this->resetFrames();
 
     TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_STOP, 0, this->cbkCustom, false);
     this->cbk(ev);

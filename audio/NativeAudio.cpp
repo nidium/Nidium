@@ -112,12 +112,6 @@ void *NativeAudio::queueThread(void *args) {
                     delete cbkMsg;
                 }
                 break;
-                case NATIVE_AUDIO_NODE_SET : {
-                    NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
-                    memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
-                    delete nodeMsg;
-                }
-                break;
                 case NATIVE_AUDIO_SHUTDOWN :
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(NULL, cbkMsg->custom);
@@ -145,7 +139,7 @@ void *NativeAudio::queueThread(void *args) {
                     SPAM(("----------------------\n"));
 
                     if (wrote) {
-                        //SPAM(("output data is at %p and %p (node = %p)\n",audio->output->inQueue[0]->frame, audio->output->inQueue[1]->frame, audio->output->inQueue[0]->node));
+                        SPAM(("output data is at %p and %p \n",audio->output->frames[0], audio->output->frames[1]));
                         /*
                         for (int i = 0; i < 256; i++) {
                             SPAM(("write data = %f/%f\n", audio->output->frames[0][i], audio->output->frames[1][i]));
@@ -153,16 +147,16 @@ void *NativeAudio::queueThread(void *args) {
                         */
 
 
-                        /*
                         for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
                             SPAM(("frame data %f/%f\n", audio->output->frames[0][i], audio->output->frames[1][i]));
                         }
-                        */
 
                         for (int i = 0; i < audio->output->inCount; i++) {
                             if (audio->output->frames[i] != NULL) {
+                                SPAM(("Writing data\n"));
                                 PaUtil_WriteRingBuffer(audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
                             } else {
+                                SPAM(("Writing nullBuff cause frames is null\n"));
                                 PaUtil_WriteRingBuffer(audio->rBufferOut, audio->nullBuffer, audio->outputParameters->framesPerBuffer);
                             }
                         }

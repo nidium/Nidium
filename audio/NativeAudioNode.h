@@ -7,7 +7,7 @@
 #include <string.h>
 
 #define NATIVE_AUDIONODE_ARGS_SIZE      32
-#define NATIVE_AUDIONODE_WIRE_SIZE      32
+#define NATIVE_AUDIONODE_WIRE_SIZE      256
 #define NATIVE_AUDIONODE_CHANNEL_SIZE   32
 
 #define TRACK_EVENT_PLAY      0x01
@@ -46,13 +46,13 @@ struct NodeLink {
     int channel;
     bool haveFeedback;
     NativeAudioNode *node;
-    NodeIO *wire[32];
+    NodeIO *wire[NATIVE_AUDIONODE_WIRE_SIZE];
     TypeIO type;
 
     NodeLink (TypeIO type, int channel, NativeAudioNode *node) : 
         count(0), channel(channel), haveFeedback(false), node(node), type(type) 
     {
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
             wire[i] = NULL;
         }
     };
@@ -100,15 +100,6 @@ class NativeAudioNode
         };
 
         ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
-
-        // XXX : Normalize callbacks ?
-        struct Message {
-            NativeAudioNode *node;
-            void *source, *dest;
-            unsigned long size;
-            Message(NativeAudioNode *node, void *source, void *dest, unsigned long size);
-            ~Message();
-        };
 
         struct CallbackMessage {
             NodeMessageCallback cbk;

@@ -4,6 +4,14 @@
 #include "NativeJS.h"
 
 // TODO : Need to handle nodes GC, similar to https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
+// ✓ : Fix "background noise" sound when pausing
+// ✓ : Fix gain set to 0.0 not working
+// TODO : Stop desync track (wtf?)
+// TODO : When stop/pause/kill fade out sound
+// ✓ : Two sources is not playing in specific case
+// TODO : Fix node connect, input and output order can be set in any order
+// TODO : Seek API
+// TODO : Expose disconnnect
 
 #define NATIVE_AUDIO_GETTER(obj) ((class NativeJSAudio *)JS_GetPrivate(obj))
 #define NATIVE_AUDIO_NODE_GETTER(obj) ((class NativeJSAudioNode *)JS_GetPrivate(obj))
