@@ -25,6 +25,7 @@
 #include <jsapi.h>
 #include <jsprf.h>
 #include <stdint.h>
+#include <sys/stat.h>
 
 #ifdef __linux__
    #define UINT32_MAX 4294967295u
@@ -49,6 +50,7 @@ struct _native_sm_timer
     ape_timer *timerng;
 };
 
+
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
 /* Sun compiler uses larger stack space for js_Interpret() with debug
@@ -65,6 +67,9 @@ size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
 static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
+
+static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
+    const char *filename, jsval *ret);
 
 
 static JSClass global_class = {
@@ -119,7 +124,8 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
-    JS_FN("load", native_load, 1, 0),
+    JS_FN("load", native_load, 2, 0),
+    JS_FN("require", native_load, 2, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
@@ -409,17 +415,23 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *script;
+    JSString *script, *type = NULL;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S", &script, &type)) {
         return JS_TRUE;
     }
 
     JSAutoByteString scriptstr(cx, script);
+    jsval ret = JSVAL_NULL;
 
-    if (!NJS->LoadScript(scriptstr.ptr())) {
+    if (type == NULL && !NJS->LoadScript(scriptstr.ptr())) {
+        return JS_TRUE;
+    } else if (type != NULL &&
+        !NativeJS_NativeJSLoadScriptReturn(cx, scriptstr.ptr(), &ret)) {
         return JS_TRUE;
     }
+
+    JS_SET_RVAL(cx, vp, ret);
 
     return JS_TRUE;
 }
@@ -688,6 +700,129 @@ void NativeJS::bindNetObject(ape_global *net)
 
     //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
     //io->open();
+}
+
+typedef js::Vector<char, 8, js::TempAllocPolicy> FileContents;
+
+static bool
+ReadCompleteFile(JSContext *cx, FILE *fp, FileContents &buffer)
+{
+    /* Get the complete length of the file, if possible. */
+    struct stat st;
+    int ok = fstat(fileno(fp), &st);
+    if (ok != 0)
+        return false;
+    if (st.st_size > 0) {
+        if (!buffer.reserve(st.st_size))
+            return false;
+    }
+
+    // Read in the whole file. Note that we can't assume the data's length
+    // is actually st.st_size, because 1) some files lie about their size
+    // (/dev/zero and /dev/random), and 2) reading files in text mode on
+    // Windows collapses "\r\n" pairs to single \n characters.
+    for (;;) {
+        int c = getc(fp);
+        if (c == EOF)
+            break;
+        if (!buffer.append(c))
+            return false;
+    }
+
+    return true;
+}
+
+class AutoFile
+{
+    FILE *fp_;
+  public:
+    AutoFile()
+      : fp_(NULL)
+    {}
+    ~AutoFile()
+    {
+        if (fp_ && fp_ != stdin)
+            fclose(fp_);
+    }
+    FILE *fp() const { return fp_; }
+    bool open(JSContext *cx, const char *filename);
+    bool readAll(JSContext *cx, FileContents &buffer)
+    {
+        JS_ASSERT(fp_);
+        return ReadCompleteFile(cx, fp_, buffer);
+    }
+};
+
+/*
+ * Open a source file for reading. Supports "-" and NULL to mean stdin. The
+ * return value must be fclosed unless it is stdin.
+ */
+bool
+AutoFile::open(JSContext *cx, const char *filename)
+{
+    if (!filename || strcmp(filename, "-") == 0) {
+        fp_ = stdin;
+    } else {
+        fp_ = fopen(filename, "r");
+        if (!fp_) {
+            JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_CANT_OPEN,
+                                 filename, "No such file or directory");
+            return false;
+        }
+    }
+    return true;
+}
+
+static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
+    const char *filename, jsval *ret)
+{   
+    JSObject *gbl = JS_GetGlobalObject(cx);
+
+    AutoFile file;
+    if (!file.open(cx, filename))
+        return 0;
+    FileContents buffer(cx);
+    if (!ReadCompleteFile(cx, file.fp(), buffer))
+        return 0;
+
+    char *func = (char *)malloc(sizeof(char) * buffer.length() + 64);
+    memset(func, 0, sizeof(char) * buffer.length() + 64);
+    
+    strcat(func, "return (");
+    strncat(func, buffer.begin(), buffer.length());
+    strcat(func, ");");
+
+    JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
+        strlen(func), NULL, 0);
+
+    if (cf == NULL) {
+        printf("Cant load script %s\n", filename);
+        return 0;
+    }
+
+    if (JS_CallFunction(cx, gbl, cf, 0, NULL, ret) == JS_FALSE) {
+        printf("Got an error?\n"); /* or thread has ended */
+
+        return 0;
+    }
+
+    return 1;
+#if 0
+    JSScript *script = JS::Compile(cx, rgbl, options,
+        buffer.begin(), buffer.length());
+
+    JS_SetOptions(cx, oldopts);
+
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, ret)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
+        return 0;
+    }
+    return 1;
+#endif
 }
 
 int NativeJS::LoadScript(const char *filename)
