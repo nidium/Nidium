@@ -206,6 +206,7 @@ DOMElement.prototype = {
 	updateAncestors : Native.object.updateAncestors,
 	resizeLayer : Native.object.resizeLayer,
 	expand : Native.object.expand,
+	shrink : Native.object.shrink,
 
 	/* -- READ ONLY WRAPPERS -- */
 

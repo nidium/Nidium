@@ -255,6 +255,23 @@ Native.object = {
 			this.left += dx;
 			this.top += dy;
 		});
+		return this;
+	},
+
+	shrink : function(b){
+		var dx = b.left,
+			dy = b.top;
+
+		this.left += dx;
+		this.top += dy;
+
+		this.width = b.width;
+		this.height = b.height;
+		this.childNodes.each(function(){
+			this.left -= dx;
+			this.top -= dy;
+		});
+		return this;
 	},
 
 	getDrawingBounds : function getDrawingBounds(){

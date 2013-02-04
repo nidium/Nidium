@@ -59,7 +59,7 @@ Native.elements.export("UILine", {
 			this.controlPoints[i].top = vertex.y - 8;
 		};
 
-		this.addEventListener("update", function(e){
+		this.addEventListener("controlpointupdate", function(e){
 			//this.refreshElement();
 		}, false);
 
@@ -192,7 +192,7 @@ Native.elements.export("UIControlPoint", {
 			this.x = this._left + this._width/2;
 			this.y = this._top + this._height/2;
 			if (this.parent.refreshElement) this.parent.refreshElement();
-			this.parent.fireEvent("update");
+			this.parent.fireEvent("controlpointupdate");
 		};
 
 		this.addEventListener("mousedown", function(e){
@@ -219,6 +219,9 @@ Native.elements.export("UIControlPoint", {
 
 		this.addEventListener("dragend", function(e){
 			this.set("opacity", 0.50, 90);
+			this.parent.shrink(this.parent.boundingRect);
+			this.parent.alpha += 0.0001;
+			this.parent.fireEvent("controlpointupdate");
 		});
 
 		this.refreshElement();

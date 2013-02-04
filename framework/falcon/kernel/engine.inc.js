@@ -38,7 +38,7 @@ Native.elements = {
 			plugin.init.call(element);
 		}
 
-		if (element._canReceiveFocus){
+		if (element.canReceiveFocus){
 			element.addEventListener("mousedown", function(e){
 				this.focus();
 				e.stopPropagation();

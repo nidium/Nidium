@@ -16,22 +16,23 @@ Native.elements.export("UIDiagram", {
 
 		/* --------------------- */
 
-		this._canReceiveFocus = true;
+		this.setProperties({
+			canReceiveFocus : true,
+			color : OptionalValue(o.color, "#ffffff"),
+			shadowBlur : OptionalNumber(o.shadowBlur, 8),
+			shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)"),
+			radius : OptionalNumber(o.radius, 5),
+			fontSize : OptionalNumber(o.fontSize, 9),
 
-		this.color = OptionalValue(o.color, "#ffffff");
-		this.shadowBlur = OptionalNumber(o.shadowBlur, 8);
-		this.shadowColor = OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)");
-		this.radius = OptionalNumber(o.radius, 5);
-		this.fontSize = OptionalNumber(o.fontSize, 9);
+			pinLabelHeight : OptionalNumber(o.pinLabelHeight, 16),
+			pinFontSize : OptionalNumber(o.pinFontSize, 9),
 
-		this.pinLabelHeight = OptionalNumber(o.pinLabelHeight, 16);
-		this.pinFontSize = OptionalNumber(o.pinFontSize, 9);
+			movable : OptionalBoolean(o.movable, true),
+			resizable : OptionalBoolean(o.resizable, false),
+			closeable : OptionalBoolean(o.closable, true),
 
-		this.movable = OptionalBoolean(o.movable, true);
-		this.resizable = OptionalBoolean(o.resizable, false);
-		this.closeable = OptionalBoolean(o.closable, true);
-
-		this.background = OptionalValue(o.background, 'rgba(255, 0, 10, 0.4)');
+			background : OptionalValue(o.background, 'rgba(255, 0, 10, 0.4)')
+		});
 
 		this.width = 150;
 		this.height = OptionalNumber(o.height, 24 + nbpins*this.pinLabelHeight + 4);

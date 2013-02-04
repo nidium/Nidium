@@ -23,30 +23,34 @@ var spline = new UILine(main, {
 	]
 });
 
-var setSplineBounds = function(){
+var refreshBoundingElement = function(){
 	var b = spline.boundingRect;
-
 	bounds.left = b.left;
 	bounds.top = b.top;
 	bounds.width = b.width;
 	bounds.height = b.height;
-
-	spline.expand(
-		Math.max(2*b.width, 200),
-		Math.max(2*b.height, 200)
-	);
-
 };
+
+main.add("UIButton").move(10, 10).click(function(){
+	var b = spline.boundingRect;
+	spline.shrink(spline.boundingRect);
+	refreshBoundingElement();
+});
 
 var bounds = new UIElement(spline, {
 	opacity : 0.0,
 	background : "red"
 });
 bounds.sendToBack();
+refreshBoundingElement();
 
-setSplineBounds();
-
-spline.addEventListener("update", function(){
-	setSplineBounds();
+spline.addEventListener("controlpointupdate", function(){
+/*
+	var b = spline.boundingRect;
+	bounds.width = b.width;
+	bounds.height = b.height;
+	spline.expand(b.width, b.height);
+*/
+//	refreshBoundingElement();
 });
 
