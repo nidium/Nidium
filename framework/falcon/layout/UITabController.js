@@ -67,9 +67,7 @@ Native.elements.export("UITabController", {
 			var selectedTab = this.resetTabs();
 			
 			self.fireEvent("tabselect", {
-				tab : selectedTab,
-				index : self.currentIndex,
-				pos : self.currentPosition
+				tab : selectedTab
 			});
 			return selectedTab;
 		};
@@ -86,7 +84,8 @@ Native.elements.export("UITabController", {
 		};
 
 		this.getSelectedTab = function(){
-			return self.tabs[self.currentIndex];
+			var tab = self.tabs[self.currentIndex];
+			return tab ? tab : null;
 		};
 
 		this.selectTab = function(tab){
@@ -96,8 +95,6 @@ Native.elements.export("UITabController", {
 
 		this.selectNextTab = function(){
 			var p = self.currentPosition,
-				
-				// next tab at position p+1
 				tab = self.getTabAtPosition(p+1) ? 
 					  self.getTabAtPosition(p+1) : self.getTabAtPosition(p);
 
@@ -106,8 +103,6 @@ Native.elements.export("UITabController", {
 
 		this.selectPreviousTab = function(){
 			var p = self.currentPosition,
-			
-				// previous tab at position p-1
 				tab = self.getTabAtPosition(p-1) ? 
 					  self.getTabAtPosition(p-1) : self.getTabAtPosition(p);
 
@@ -121,10 +116,15 @@ Native.elements.export("UITabController", {
 
 		this.removeTab = function(tab){
 			if (!tab || this.__removing || this.__removeStarted) return false;
-			self.__removeStarted = true;
-			tab.fadeOut(120, function(){
-				self.__removeStarted = false;
-				controller._removeTabElement(this);
+
+			controller.fireEvent("tabbeforeclose", {
+				tab : tab
+			}, function(){
+				self.__removeStarted = true;
+				tab.fadeOut(120, function(){
+					self.__removeStarted = false;
+					self._removeTabElement(this);
+				});
 			});
 		};
 
@@ -164,7 +164,7 @@ Native.elements.export("UITabController", {
 			self.resetTabs(true);
 
 			self.fireEvent("tabclose", {
-				index : index,
+				tab : tab,
 				elements : to
 			});
 			this.__removing = false;
@@ -188,9 +188,9 @@ Native.elements.export("UITabController", {
 
 			newtab = tb[index];
 
-			newtab.__lock("insertTab");
+			//newtab.__lock("insertTab");
 			newtab.left = left;
-			newtab.__unlock("insertTab");
+			//newtab.__unlock("insertTab");
 
 			newtab.opacity = 0;
 
@@ -202,11 +202,11 @@ Native.elements.export("UITabController", {
 			to.splice(p, 0, index);
 			
 			self.resetTabs(true, function(){
-				newtab.fadeIn(150);
+				newtab.fadeIn(10);
 			});
 
 			self.fireEvent("tabinsert", {
-				index : index,
+				tab : newtab,
 				elements : to
 			});
 		};
@@ -305,6 +305,7 @@ Native.elements.export("UITabController", {
 
 				if (__fireEvent){
 					controller.fireEvent("tabmove", {
+						tab : curr,
 						index : tab.index,
 						elements : controller.taborder
 					});
@@ -346,7 +347,7 @@ Native.elements.export("UITabController", {
 			}
 
 			if (next && dx>0 && cx+cw > (nx+next.width/2)){
-				i = self.swapWithNext(next, i);
+				i = self.swapWithNext(curr, next, i);
 				curr = controller.getTabAtPosition(i);
 				next = controller.getTabAtPosition(i+1);
 				prev = controller.getTabAtPosition(i-1);
@@ -356,7 +357,7 @@ Native.elements.export("UITabController", {
 			}
 
 			if (prev && dx<0 && cx < (px+prev.width/2)){
-				i = self.swapWithPrev(prev, i);
+				i = self.swapWithPrev(curr, prev, i);
 				curr = controller.getTabAtPosition(i);
 				next = controller.getTabAtPosition(i+1);
 				prev = controller.getTabAtPosition(i-1);
@@ -366,32 +367,40 @@ Native.elements.export("UITabController", {
 			}
 		}, false);
 
-		this.swapWithNext = function(next, i){
+		this.swapWithNext = function(curr, next, i){
 			this.currentPosition = __dragTabPosition+1;
-
-			this.fireEvent("tabswap", {
-				index : this.currentIndex,
-				pos : __dragTabPosition+1
-			});
 
 			this._slideTab(next, __startX);
 			this.swapTabs(i, i+1);
-			__fireEvent = true;
-			return ++__dragTabPosition;
-		};
-
-		this.swapWithPrev = function(prev, i){
-			this.currentPosition = __dragTabPosition-1;
 
 			this.fireEvent("tabswap", {
-				index : this.currentIndex,
-				pos : __dragTabPosition-1
+				tab : curr,
+				from : i,
+				to : __dragTabPosition+1
 			});
+
+			__fireEvent = true;
+			__dragTabPosition++;
+
+			return __dragTabPosition;
+		};
+
+		this.swapWithPrev = function(curr, prev, i){
+			this.currentPosition = __dragTabPosition-1;
 
 			this._slideTab(prev, __endX - prev.width);
 			this.swapTabs(i, i-1);
+
+			this.fireEvent("tabswap", {
+				tab : curr,
+				from : i,
+				to : __dragTabPosition-1
+			});
+
 			__fireEvent = true;
-			return --__dragTabPosition;
+			__dragTabPosition--;
+
+			return __dragTabPosition;
 		};
 
 		var x = 0,

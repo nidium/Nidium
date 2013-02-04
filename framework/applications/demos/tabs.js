@@ -25,6 +25,10 @@ var	tabController = main.add("UITabController", {
 	background : "#191a18"
 });
 
+var tab = tabController.getSelectedTab();
+tab.label = "fsdfsdfsdffds";
+
+
 var removeButton = main.add("UIButton", {
 		left : 20,
 		top : 60,
@@ -55,65 +59,62 @@ var removeButton = main.add("UIButton", {
 		fontSize : 10.5
 	});
 
-addButton.addEventListener("mousedown", function(){
-	var p = tabController.currentPosition;
+addButton.click(function(){
+	var tab = tabController.getSelectedTab(),
+		position = tab ? tab.pos : 0;
 
-	tabController.insertTab(p, {
+	tabController.insertTab(position, {
 		label : "Zombi Magic",
 		color : "#ffffff"
 	});
 });
 
-removeButton.addEventListener("mousedown", function(){
+removeButton.click(function(){
 	var tab = tabController.getSelectedTab();
 	tabController.removeTab(tab);
 });
 
-nextButton.addEventListener("mousedown", function(){
+nextButton.click(function(){
 	tabController.selectNextTab();
 });
 
 tabController.addEventListener("tabselect", function(e){
-	b3.label = "Tab " + e.index + ", Position " + e.pos;
-	main.background = tabController.tabs[e.index].background;
+	var tab = e.tab;
+	b3.label = "Tab " + tab.index + ", Position " + tab.pos;
+	main.background = tab.background;
 });
 
 tabController.addEventListener("tabswap", function(e){
-	b3.label = "Tab " + e.index + ", Position " + e.pos;
+	var tab = e.tab;
+	b3.label = "Tab " + tab.index + ", Position " + tab.pos;
+	return false;
 });
 
-
-
-var tab = tabController.getSelectedTab();
-tab.label = "fsdfsdfsdffds"
-
-/*
-
 tabController.addEventListener("tabmove", function(e){
-	var tab = e.index,
+	var tab = e.tab,
 		elements = e.elements;
 
-	echo("-- tab", tab, "moved to position", this.currentPosition);
+	echo("-- tab", tab.index, "moved to position", this.currentPosition);
 	for (var i=0; i<elements.length; i++){
-		echo("pos"+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
+		echo("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
 	echo("");
+});
+
+tabController.addEventListener("tabbeforeclose", function(e){
+	echo("try to close tab ", e.tab.index);
 });
 
 tabController.addEventListener("tabclose", function(e){
-	var tab = e.index,
+	var tab = e.tab,
 		elements = e.elements;
 	
-	echo("-- tab", tab, "closed and no longer exists.");
+	echo("-- tab closed.");
 	for (var i=0; i<elements.length; i++){
-		echo("pos"+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
+		echo("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
 	echo("");
 });
-*/
-
-
-
 
 
 

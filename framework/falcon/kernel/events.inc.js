@@ -429,7 +429,7 @@ DOMElement.implement({
 	},
 
 	click : function(cb){
-		this.addEventListener("mouseclick", function(e){
+		return this.addEventListener("mouseclick", function(e){
 			if (typeof cb == "function") cb.call(this, e);
 		}, false);
 	}
