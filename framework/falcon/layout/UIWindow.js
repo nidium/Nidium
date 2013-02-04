@@ -67,7 +67,7 @@ Native.elements.export("UIWindow", {
 			e.stopPropagation();
 		}, false);
 
-		this.handle = this.add("UIView", {
+		this.handle = this.add("UIElement", {
 			left : 0,
 			top : 0,
 			width : self.width,
@@ -84,6 +84,10 @@ Native.elements.export("UIWindow", {
 			color : self.color,
 			label : self.label
 		});
+
+		this.labelElement.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
 
 		if (o.movable) {
 			this.handle.addEventListener("mousedown", function(e){

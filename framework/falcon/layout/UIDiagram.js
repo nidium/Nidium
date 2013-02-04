@@ -66,7 +66,7 @@ Native.elements.export("UIDiagram", {
 			e.stopPropagation();
 		}, false);
 
-		this.handle = this.add("UIView", {
+		this.handle = this.add("UIElement", {
 			left : 0,
 			top : 0,
 			width : self.width,
@@ -84,6 +84,10 @@ Native.elements.export("UIDiagram", {
 			label : self.label,
 			fontSize : 9
 		});
+
+		this.labelElement.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
 
 		if (this.movable) {
 			this.handle.addEventListener("mousedown", function(e){
