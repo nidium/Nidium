@@ -112,6 +112,12 @@ void *NativeAudio::queueThread(void *args) {
                     delete cbkMsg;
                 }
                 break;
+                case NATIVE_AUDIO_NODE_SET : {
+                    NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
+                    memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
+                    delete nodeMsg;
+                }
+                break;
                 case NATIVE_AUDIO_SHUTDOWN :
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(NULL, cbkMsg->custom);

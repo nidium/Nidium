@@ -101,6 +101,15 @@ class NativeAudioNode
 
         ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
 
+        // XXX : Normalize callbacks ?
+        struct Message {
+            NativeAudioNode *node;
+            void *source, *dest;
+            unsigned long size;
+            Message(NativeAudioNode *node, void *source, void *dest, unsigned long size);
+            ~Message();
+        };
+
         struct CallbackMessage {
             NodeMessageCallback cbk;
             NativeAudioNode *node;

@@ -52,6 +52,20 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
     }
 }
 
+NativeAudioNode::Message::Message(NativeAudioNode *node, void *source, void *dest, unsigned long size)
+: node(node)
+{
+    this->source = malloc(size);
+    this->size = size;
+    this->dest = dest;
+
+    memcpy(this->source, source, size);
+}
+
+NativeAudioNode::Message::~Message() {
+    free(this->source);
+}
+
 void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom) 
 {
     this->audio->sharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
@@ -88,7 +102,7 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
                 val = value;
             }
 
-            memcpy(this->args[i]->ptr, val, size);
+            this->post(NATIVE_AUDIO_NODE_SET, val, this->args[i]->ptr, size);
             return true;
         }
     }
@@ -333,6 +347,12 @@ bool NativeAudioNode::recurseGetData()
         }
 
         return true;
+}
+
+
+
+void NativeAudioNode::post(int msg, void *source, void *dest, unsigned long size) {
+    this->audio->sharedMsg->postMessage((void *)new Message(this, source, dest, size), msg);
 }
 
 NativeAudioNode::~NativeAudioNode() {
