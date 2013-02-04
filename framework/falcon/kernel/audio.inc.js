@@ -47,7 +47,7 @@ var AudioMixer = {
 			this.dsp.connect(this.master.output(0), this.target.input(0));
 			this.dsp.connect(this.master.output(1), this.target.input(1));
 
-			this.volume(1.001);
+			this.volume(1.0);
 
 			this.tracks = [];
 			this.nbtracks = 0;
@@ -78,8 +78,8 @@ var AudioMixer = {
 		this.dsp.connect(source.output(1), gain.input(1));
 
 		// ... GAIN ---> PROCESSOR ..........................
-		this.dsp.connect(gain.output(0), processor.input(0));
-		this.dsp.connect(gain.output(1), processor.input(1));
+//		this.dsp.connect(gain.output(0), processor.input(0));
+//		this.dsp.connect(gain.output(1), processor.input(1));
 
 		// ... GAIN ---> TARGET ...............................
 		this.dsp.connect(gain.output(0), this.target.input(0));
@@ -131,7 +131,7 @@ var AudioMixer = {
 				this.playing = false;
 				this.paused = false;
 
-				this.gain.set("gain", 0.001);
+				this.gain.set("gain", 0.0);
 				this.source.stop();
 				return this;
 			},
@@ -149,7 +149,7 @@ var AudioMixer = {
 				if (this.muted) return this;
 				this.muted = true;
 				this.soloed = false;
-				this.gain.set("gain", 0.001);
+				this.gain.set("gain", 0.0);
 				return this;
 			},
 

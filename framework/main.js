@@ -17,7 +17,7 @@ load("falcon/native.js");
 //load("applications/demos/sliders.js");
 //load("applications/demos/scrollbars.js");
 //load("applications/demos/modal.js");
-load("applications/demos/diagrams.js");
+//load("applications/demos/diagrams.js");
 
 //load("applications/demos/flickr.js");
 //load("applications/demos/http.js");
@@ -28,7 +28,8 @@ load("applications/demos/diagrams.js");
 
 //load("testLayer.js");
 
-//load("applications/audio/mixer.js");
+//load("applications/audio/test.js");
+load("applications/audio/mixer.js");
 //load("applications/audio/dsp.js");
 
 
@@ -39,7 +40,7 @@ load("applications/demos/diagrams.js");
 
 /* -- Native Debugger ------------------ */
 
-load("applications/NatBug.nap");
+//load("applications/NatBug.nap");
 
 
 /* -- Old Native Framework Demos ------------------ */

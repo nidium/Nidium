@@ -33,11 +33,12 @@ Native.StyleSheet.load("applications/audio/mixer.nss");
 var main = new Application();
 
 var mixer = null,
+	master = null,
 	tracks = [],
 	slides = [];
 
 var tx = [
-
+/*
 	{file : "applications/audio/media/drums.mp3",		label : "Drums"},
 	{file : "applications/audio/media/bass.mp3",		label : "Bass"},
 	{file : "applications/audio/media/guitar01.mp3",	label : "Guitar"},
@@ -56,14 +57,12 @@ var tx = [
 	{file : "",	label : "n/a"},
 	{file : "",	label : "n/a"},
 	{file : "",	label : "n/a"},
+*/
 
-
-
-/*
 	{file : "song.mp3",	label : "Depress"},
 	{file : "song.mp3",	label : "Depress"},
 	{file : "song.mp3",	label : "Depress"}
-*/
+
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -90,6 +89,7 @@ document.addEventListener("load", function(){
 	});
 
 	createMixer();
+	createMasterSlider();
 
 	for (var i=0; i<tx.length; i++){
 		createSlider(i, tx[i].label);
@@ -98,7 +98,7 @@ document.addEventListener("load", function(){
 			slides[k].levelSlider.progressBarColor = 'rgba(210, 255, 40, 1)';
 			this.volume(0.5);
 		}, i);
-
+/*
 		tracks[i].processor.onbuffer = function(ev, scope){
 			var channels = ev.data,
 				gain = this.get("gain");
@@ -110,14 +110,11 @@ document.addEventListener("load", function(){
 				}
 			}
 		};
-
+*/
 		tracks[i].processor.onmessage = function(e){
 			echo(e.message);
 		};
-
-
 	}
-
 });
 
 /* -------------------------------------------------------------------------- */
@@ -134,11 +131,75 @@ var createMixer = function(){
 	}).centerLeft();
 
 	mixer.contentView = new UIView(mixer, {
-		width : mixer.width-8,
+		width : mixer.width-64,
 		height : mixer.height-8,
 		overflow : false,
 		scrollbars : true
 	});
+
+	mixer.masterView = new UIView(mixer, {
+		left : mixer.width-60,
+		width : 60,
+		height : mixer.height,
+		background : 'rgba(100, 0, 0, 0.5)',
+		overflow : false,
+		radius : 4
+	});
+};
+
+var createMasterSlider = function(){
+	master = new UIView(mixer.masterView, {
+		id : "masterSlide",
+		width : 60,
+		height : 336,
+		left : 1,
+		class : "slide"
+	});
+
+	master.panLabel = master.add("UILabel", {
+		top : 0,
+		label : "L                 R",
+		fontSize : 9,
+		class : "panLabel"
+	}).centerLeft();
+
+	master.hintLabel = master.add("UILabel", {
+		width : 56,
+		label : "MASTER",
+		background : "rgba(0, 0, 0, 0.80)",
+		shadowBlur : 30,
+		class : "hintLabel"
+	}).centerLeft();
+
+	master.panSlider = master.add("UISliderController", {
+		top : 6,
+		width : 32,
+		height : 8,
+		color : "#440000",
+		min : -1,
+		max : 1,
+		value : 0
+	});
+	master.panSlider.className = "panSlider";
+	master.panSlider.centerLeft();
+
+	master.levelSlider = master.add("UISliderController", {
+		top : 50,
+		width : 22,
+		height : 250,
+		color : "black",
+		splitColor : 'rgba(140, 140, 140, 0.3)',
+		boxColor : 'rgba(255, 255, 255, 0.07)',
+		progressBarColor : 'rgba(20, 80, 250, 1)',
+		radius : 2,
+		vertical : true,
+		min : 0.0,
+		max : 2,
+		value : 0.5
+	}).centerLeft().addEventListener("change", function(ev){
+	   AudioMixer.volume(this.value);
+	}, false);
+
 };
 
 /* -------------------------------------------------------------------------- */
@@ -210,7 +271,7 @@ var createSlider = function(k, label){
 		progressBarColor : 'rgba(210, 255, 40, 1)',
 		radius : 2,
 		vertical : true,
-		min : 0.001,
+		min : 0.0,
 		max : 2,
 		value : 0.5
 	}).centerLeft().addEventListener("change", function(ev){
