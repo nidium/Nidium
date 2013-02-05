@@ -9,7 +9,7 @@
 // ✓ : Stop desync track (wtf?)
 // TODO : When stop/pause/kill fade out sound
 // ✓ : Two sources is not playing in specific case
-// TODO : Fix node connect, input and output order can be set in any order
+// ✓ : Fix node connect, input and output order can be set in any order
 // TODO : Seek API
 // TODO : Expose disconnnect
 
@@ -648,8 +648,9 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    if ((nlink1->type == INPUT && nlink2->type == OUTPUT) ||
-        (nlink1->type == OUTPUT && nlink2->type == INPUT)) {
+    if (nlink1->type == INPUT && nlink2->type == OUTPUT) {
+        audio->connect(nlink2, nlink1);
+    } else if (nlink1->type == OUTPUT && nlink2->type == INPUT) {
         audio->connect(nlink1, nlink2);
     } else {
         JS_ReportError(cx, "connect take one input and one output\n");
