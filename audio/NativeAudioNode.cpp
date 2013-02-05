@@ -947,6 +947,18 @@ void NativeAudioNode::resetFrame(int channel) {
     memset(this->frames[channel], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
 }
 
+bool NativeAudioTrack::seek(int64_t ts) {
+    int res;
+
+    res = avformat_seek_file(this->container, this->audioStream, ts, ts, ts, 0);
+
+    if (res >= 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 bool NativeAudioTrack::process() {
     if (!this->opened) {
         SPAM(("Not opened\n"));

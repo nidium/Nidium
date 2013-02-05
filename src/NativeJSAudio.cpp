@@ -45,6 +45,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_audionode_source_seek(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_audionode_custom_prop_set(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
@@ -133,6 +134,7 @@ static JSFunctionSpec AudioNodeSource_funcs[] = {
     JS_FN("play", native_audionode_source_play, 0, 0),
     JS_FN("pause", native_audionode_source_pause, 0, 0),
     JS_FN("stop", native_audionode_source_stop, 0, 0),
+    JS_FN("seek", native_audionode_source_seek, 1, 0),
     JS_FS_END
 };
 
@@ -1024,6 +1026,23 @@ static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
 
     source->stop();
+    return JS_TRUE;
+}
+
+static JSBool native_audionode_source_seek(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int ts;
+    NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &ts)) {
+        return JS_TRUE;
+    }
+
+    if (!source->seek(ts)) {
+        JS_ReportError(cx, "Failed to seek to timestamp %d", ts);
+        return JS_TRUE;
+    }
+
     return JS_TRUE;
 }
 

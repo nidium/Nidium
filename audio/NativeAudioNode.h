@@ -300,6 +300,7 @@ class NativeAudioTrack : public NativeAudioNode
         int buffer();
         int buffer(int n);
 
+        bool seek(int64_t ts);
         virtual bool process();
         bool work();
         bool decode();
