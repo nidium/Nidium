@@ -121,6 +121,7 @@ class NativeAudioNode
 
         float **frames;
 
+        bool nullFrames;
         int nodeProcessed;
         int totalProcess;
         NodeLink *input[32];
@@ -136,6 +137,9 @@ class NativeAudioNode
         NativeAudio *audio;
 
         NativeAudioNode(int inCount, int outCount, NativeAudio *audio);
+
+        void resetFrames();
+        void resetFrame(int channel);
 
         void callback(NodeMessageCallback cbk, void *custom);
         bool set(const char *name, ArgType type, void *value, unsigned long size);
@@ -286,7 +290,6 @@ class NativeAudioTrack : public NativeAudioNode
         bool stopped;
         bool loop;
         int nbChannel;
-        bool nullFrames;
 
         int open(void *buffer, int size);
         void play();
@@ -298,7 +301,6 @@ class NativeAudioTrack : public NativeAudioNode
         int buffer(int n);
 
         virtual bool process();
-        void resetFrames();
         bool work();
         bool decode();
         int resample(float *dest, int destSamples);

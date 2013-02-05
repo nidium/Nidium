@@ -11,7 +11,7 @@
 // ✓ : Two sources is not playing in specific case
 // ✓ : Fix node connect, input and output order can be set in any order
 // TODO : Seek API
-// TODO : Expose disconnnect
+// ✓ : Expose disconnnect
 
 #define NATIVE_AUDIO_GETTER(obj) ((class NativeJSAudio *)JS_GetPrivate(obj))
 #define NATIVE_AUDIO_NODE_GETTER(obj) ((class NativeJSAudioNode *)JS_GetPrivate(obj))
@@ -104,6 +104,7 @@ static JSPropertySpec AudioNodeCustom_props[] = {
 static JSFunctionSpec Audio_funcs[] = {
     JS_FN("createNode", native_audio_createnode, 3, 0),
     JS_FN("connect", native_audio_connect, 2, 0),
+    JS_FN("disconnect", native_audio_disconnect, 2, 0),
     JS_FS_END
 };
 
@@ -653,7 +654,7 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
     } else if (nlink1->type == OUTPUT && nlink2->type == INPUT) {
         audio->connect(nlink1, nlink2);
     } else {
-        JS_ReportError(cx, "connect take one input and one output\n");
+        JS_ReportError(cx, "connect() take one input and one output\n");
         return JS_TRUE;
     }
 
@@ -677,14 +678,16 @@ static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp)
 
     if (nlink1 == NULL || nlink2 == NULL) {
         JS_ReportError(cx, "Bad AudioNodeLink\n");
+        exit(1);
         return JS_TRUE;
     }
 
-    if ((nlink1->type == INPUT && nlink2->type == OUTPUT) ||
-        (nlink1->type == OUTPUT && nlink2->type == INPUT)) {
+    if (nlink1->type == INPUT && nlink2->type == OUTPUT) {
+        audio->disconnect(nlink2, nlink1);
+    } else if (nlink1->type == OUTPUT && nlink2->type == INPUT) {
         audio->disconnect(nlink1, nlink2);
     } else {
-        JS_ReportError(cx, "disconnect take one input and one output\n");
+        JS_ReportError(cx, "disconnect() take one input and one output\n");
         return JS_TRUE;
     }
 

@@ -10,7 +10,7 @@ extern "C" {
 }
 
 NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
-    : nodeProcessed(0), totalProcess(0), inQueueCount(0), inCount(inCount), outCount(outCount), audio(audio)
+    : nullFrames(true), nodeProcessed(0), totalProcess(0), inQueueCount(0), inCount(inCount), outCount(outCount), audio(audio)
 {
     SPAM(("NativeAudioNode init located at %p\n", this));
     int max;
@@ -183,6 +183,7 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
 
     // Then connect wires 
     NodeLink *tmp = this->input[out->channel];
+    // TODO FIXME : Do not rely on tmp->count. First try to find if a wire is NULL
     tmp->wire[tmp->count] = new NodeIO(in->node, in->node->frames[in->channel]);
     SPAM(("frame %p\n", in->node->frames[in->channel]));
     SPAM(("Assigning input on %p wire %d on channel %d to %p\n", this, tmp->count , out->channel, in->node));
@@ -213,36 +214,45 @@ void NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
     // Find connecting wires and delete them
     for (int i = 0; i < wiresIn->count; i++) 
     {
-        printf("checking %p/%p\n", wiresIn->wire[i]->node, input->node);
-        if (wiresIn->wire[i]->node == input->node) {
-            printf("deleted in node\n");
+        if (wiresIn->wire[i] != NULL && wiresIn->wire[i]->node == input->node) {
             delete wiresIn->wire[i];
             wiresIn->wire[i] = NULL;
-            wiresIn->count--;
+            // NOTE : This is commented because when a new wire will be connected, 
+            // it will override the last wire. Need to fix queue().
+            //wiresIn->count--; 
             break;
         }
     }
 
     for (int i = 0; i < wiresOut->count; i++) 
     {
-        if (wiresOut->wire[i]->node == output->node) {
-            printf("deleted out node\n");
+        if (wiresOut->wire[i] != NULL && wiresOut->wire[i]->node == output->node) {
             delete wiresOut->wire[i];
             wiresOut->wire[i] = NULL;
-            wiresOut->count--;
+            //wiresOut->count--;
             break;
         }
     }
 
-    // Updates frames 
-    if (this->input[output->channel]->count == 0) {
-        printf("count = 0\n");
-        if (this->frames[output->channel] == input->node->frames[input->channel]) {
-            printf("free\n");
-            this->frames[output->channel] = (float *)calloc(sizeof(float), this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
-        } else {
-            free(this->frames[output->channel]);
+    // Check if no remaning wire exist on the node channel
+    bool empty = true;
+    for (int i = 0; i < wiresIn->count; i++) {
+        if (wiresIn->wire[i] != NULL) {
+            empty = false;
         }
+    }
+
+    // Updates frames 
+    if (empty) {
+        SPAM(("count = 0\n"));
+        if (this->frames[output->channel] == input->node->frames[input->channel]) {
+            // Output node input channel is orpheline, 
+            // create a new frame for the node
+            this->frames[output->channel] = (float *)calloc(sizeof(float), this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+            this->updateWiresFrame(output->channel, this->frames[output->channel]);
+            this->resetFrame(output->channel);
+            wiresIn->count = 0;
+        } 
         input->node->totalProcess--;
     }
 
@@ -257,7 +267,7 @@ bool NativeAudioNode::recurseGetData()
             SPAM(("processing input #%d on %p\n", i, this));
             if (!this->nodeProcessed) {
                 for (int j = 0; j < this->input[i]->count; j++) {
-                    if (!this->input[i]->wire[j]->feedback) {
+                    if (this->input[i]->wire[j] != NULL && !this->input[i]->wire[j]->feedback) {
                         if (!this->input[i]->wire[j]->node->recurseGetData()) {
                             SPAM(("FAILED\n"));
                             // TODO : Check side effect of returning false (two source?)
@@ -446,7 +456,7 @@ bool NativeAudioNodeCustom::process()
 
 NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio) 
     : NativeAudioNode(0, out, audio), opened(false), playing(false), stopped(false), loop(false), 
-    nullFrames(true),
+      cbk(NULL), cbkCustom(NULL),
       container(NULL), avctx(NULL), frameConsumed(true), packetConsumed(true), audioStream(-1),
       sCvt(NULL), fCvt(NULL), eof(false)
 {
@@ -531,16 +541,20 @@ int64_t NativeAudioTrack::BufferReader::seek(void *opaque, int64_t offset, int w
 int NativeAudioTrack::open(void *buffer, int size) 
 {
 #define RETURN_WITH_ERROR(err) \
-TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_ERROR, err, this->cbkCustom, false);\
-this->cbk(ev);\
+if (this->cbk != NULL) { \
+    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_ERROR, err, this->cbkCustom, false);\
+    this->cbk(ev);\
+}\
 return err;
 
     unsigned int i;
     AVCodec *codec;
     PaSampleFormat inputFmt;
 
-    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_BUFFERING, 100, this->cbkCustom, true);
-    this->cbk(ev);
+    if (this->cbk != NULL) {
+        TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_BUFFERING, 100, this->cbkCustom, true);
+        this->cbk(ev);
+    }
 
     // If a previous file has been opened, close it
     if (this->container != NULL) {
@@ -748,8 +762,10 @@ bool NativeAudioTrack::work()
 bool NativeAudioTrack::decode() 
 {
 #define RETURN_WITH_ERROR(err) \
-TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_ERROR, err, this->cbkCustom, true);\
-this->cbk(ev);\
+if (this->cbk != NULL) { \
+    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_ERROR, err, this->cbkCustom, true);\
+    this->cbk(ev);\
+}\
 return false;
     // No data to read
     if (PaUtil_GetRingBufferReadAvailable(this->rBufferIn) < 1 && this->frameConsumed) {
@@ -918,13 +934,17 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
     return 0;
 }
 
-void NativeAudioTrack::resetFrames() {
+void NativeAudioNode::resetFrames() {
     if (!this->nullFrames) {
         for (int i = 0; i < this->outCount; i++) {
-            memset(this->frames[i], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
+            this->resetFrame(i);
         }
         this->nullFrames = true;
     }
+}
+
+void NativeAudioNode::resetFrame(int channel) {
+    memset(this->frames[channel], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
 }
 
 bool NativeAudioTrack::process() {
@@ -954,8 +974,10 @@ bool NativeAudioTrack::process() {
             } else {
                 this->stopped = true;
             }
-            TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_EOF, 0, this->cbkCustom, true);
-            this->cbk(ev);
+            if (this->cbk != NULL) {
+                TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_EOF, 0, this->cbkCustom, true);
+                this->cbk(ev);
+            }
         } else {
             this->resetFrames();
         }
@@ -1027,15 +1049,19 @@ void NativeAudioTrack::play()
     this->playing = true;
     this->stopped = false;
 
-    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PLAY, 0, this->cbkCustom, false);
-    this->cbk(ev);
+    if (this->cbk != NULL) {
+        TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PLAY, 0, this->cbkCustom, false);
+        this->cbk(ev);
+    }
 }
 
 void NativeAudioTrack::pause() 
 {
     this->playing = false;
-    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PAUSE, 0, this->cbkCustom, false);
-    this->cbk(ev);
+    if (this->cbk != NULL) {
+        TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PAUSE, 0, this->cbkCustom, false);
+        this->cbk(ev);
+    }
 }
 
 void NativeAudioTrack::stop() 
@@ -1059,8 +1085,10 @@ void NativeAudioTrack::stop()
 
     this->resetFrames();
 
-    TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_STOP, 0, this->cbkCustom, false);
-    this->cbk(ev);
+    if (this->cbk != NULL) {
+        TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_STOP, 0, this->cbkCustom, false);
+        this->cbk(ev);
+    }
 }
 
 
