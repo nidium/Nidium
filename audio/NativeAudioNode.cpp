@@ -1025,22 +1025,8 @@ void NativeAudioTrack::close(bool reset) {
 void NativeAudioTrack::play() 
 {
     this->playing = true;
-    if (this->stopped) {
+    this->stopped = false;
 
-        PaUtil_FlushRingBuffer(this->rBufferIn);
-        PaUtil_FlushRingBuffer(this->rBufferOut);
-
-        if (this->buffer() == 0) {
-            SPAM(("WTF\n"));
-            exit(1);
-        } else {
-            SPAM(("Sending buffer not empty\n"));
-            pthread_cond_signal(&this->audio->bufferNotEmpty);
-            pthread_cond_signal(&this->audio->queueHaveSpace);
-        }
-        
-        this->stopped = false;
-    }
     TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_PLAY, 0, this->cbkCustom, false);
     this->cbk(ev);
 }
