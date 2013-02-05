@@ -180,15 +180,7 @@ Native.StyleSheet = {
 	add : function(sheet){
 		for (var k in sheet){
 			if (sheet.hasOwnProperty(k)){
-				if (this.document[k]){
-					this.mergeProperties(k, sheet[k]);
-				} else {
-					this.document[k] = sheet[k];
-				}
-
-				Native.layout.getElementsByClassName(k).each(function(){
-					this.updateProperties();
-				});
+				this.mergeProperties(k, sheet[k]);
 			}
 		}
 	},
@@ -199,16 +191,18 @@ Native.StyleSheet = {
 		this.add(sheet);
 	},
 
-	/* load a local or distant stylesheet (asynchronous) */
+	/* load a local or distant stylesheet */
 	load : function(url, sync=true){
 		var ____self____ = this;
 		document.__styleSheetLoaded = false;
 
 		if (sync) {
+			/* the synchronous way uses built-in method require */
 			var sheet = require(url, 'nss');
 			document.__styleSheetLoaded = true;
 			this.add(sheet);
 		} else {
+			/* the asynchronous way */
 			File.getText(url, function(content){
 				var sheetText = ____self____.parse(content);
 				document.__styleSheetLoaded = true;
@@ -221,13 +215,31 @@ Native.StyleSheet = {
 		}
 	},
 
+	/* apply style to all elements with class "klass" */
+	updateElements : function(klass){
+		Native.layout.getElementsByClassName(klass).each(function(){
+			this.updateProperties();
+		});
+	},
+
+	/* merge properties in an existing class, or create new one */
 	mergeProperties : function(klass, properties){
 		var prop = this.document[klass];
-		for (var p in properties){
-			if (properties.hasOwnProperty(p)){
-				prop[p] = properties[p];
+		if (prop) {
+			for (var p in properties){
+				if (properties.hasOwnProperty(p)){
+					prop[p] = properties[p];
+				}
 			}
+		} else {
+			this.document[klass] = properties;
 		}
+		this.updateElements();
+	},
+
+	setProperties : function(klass, properties){
+		this.document[klass] = properties;
+		this.updateElements();
 	},
 
 	getProperties : function(klass){

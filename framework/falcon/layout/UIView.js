@@ -458,10 +458,17 @@ Native.elements.export("UIView", {
 					this.radius
 				);
 				context.clip();
+				var pattern = context.createPattern(
+					this._cachedBackgroundImage,
+					"repeat"
+				);
+				DOMElement.draw.box(this, context, params, pattern);
+				/*
 				context.drawImage(
 					this._cachedBackgroundImage,
 					params.x, params.y
 				);
+				*/
 			context.restore();
 		}
 
