@@ -795,6 +795,7 @@ static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
     JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
         strlen(func), NULL, 0);
 
+    free(func);
     if (cf == NULL) {
         printf("Cant load script %s\n", filename);
         return 0;
