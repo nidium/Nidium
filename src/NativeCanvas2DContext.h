@@ -29,6 +29,7 @@ class NativeCanvas2DContext : public NativeJSExposer
         class JSObject *jsobj;
         struct JSContext *jscx;
         NativeSkia *skia;
+        bool setterDisabled;
 
         void clear(uint32_t color);
 
