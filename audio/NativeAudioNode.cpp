@@ -804,10 +804,6 @@ return false;
         printf("------------------\n");
         */
 
-        if (gotFrame != 1) {
-            exit(1);
-        }
-
         if (len < 0) {
             RETURN_WITH_ERROR(ERR_DECODING);
             return false;
@@ -818,6 +814,12 @@ return false;
         } else {
             this->packetConsumed = true;
             av_free_packet(this->tmpPacket);
+        }
+
+        // Didn't got a frame let's try next time
+        if (gotFrame == 0) {
+            printf("============================== I DIDN'T GOT A FRAME ======================\n");
+            return true;
         }
 
         if (this->tmpFrame.nbSamples < tmpFrame->nb_samples) {
