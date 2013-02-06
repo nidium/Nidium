@@ -478,6 +478,7 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio)
     av_init_packet(this->tmpPacket);
     this->tmpFrame.size = 0;
     this->tmpFrame.data = NULL;
+    this->tmpFrame.nbSamples = 0;
 
     // I/O packet list ring buffer
     // XXX : Is it better to use a linked list + mutex instead?
@@ -794,6 +795,19 @@ return false;
         // Decode packet 
         len = avcodec_decode_audio4(avctx, tmpFrame, &gotFrame, this->tmpPacket);
 
+        //printf("sample_rate %d\n", tmpFrame->sample_rate);
+        /*
+        uint16_t *c = (uint16_t *)tmpFrame->data[0];
+        for (int i = 0; i < tmpFrame->nb_samples; i++) {
+            printf("read data %d/%d\n", *c++, *c++);
+        }
+        printf("------------------\n");
+        */
+
+        if (gotFrame != 1) {
+            exit(1);
+        }
+
         if (len < 0) {
             RETURN_WITH_ERROR(ERR_DECODING);
             return false;
@@ -806,29 +820,54 @@ return false;
             av_free_packet(this->tmpPacket);
         }
 
-        if (this->tmpFrame.size < tmpFrame->linesize[0]) {
+        if (this->tmpFrame.nbSamples < tmpFrame->nb_samples) {
             if (this->tmpFrame.size != 0) {
                 free(this->tmpFrame.data);
             }
             this->tmpFrame.size = tmpFrame->linesize[0];
+            printf("nb_samples %d\n", tmpFrame->nb_samples);
             this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * this->nbChannel);
+            if (this->tmpFrame.data == NULL) {
+                RETURN_WITH_ERROR(ERR_OOM);
+            }
         }
 
         this->tmpFrame.nbSamples = tmpFrame->nb_samples;
 
+        // Note : Since January 2013, ffmpeg decoding no longer gives interleaved audio by default
+        // so we need to convert planar audio to interleaved
+        int isPlanar = av_sample_fmt_is_planar((AVSampleFormat)tmpFrame->format);
+
         // Format resampling
         if (this->sCvt) {
-            (*this->sCvt)(this->tmpFrame.data, 1, tmpFrame->data[0], 1, tmpFrame->nb_samples * this->nbChannel, NULL);
+            if (isPlanar) {
+                for (int i = this->nbChannel-1; i > -1; i--){
+                    (*this->sCvt)(this->tmpFrame.data+i, this->nbChannel, tmpFrame->data[i], 1, tmpFrame->nb_samples, NULL);
+                }
+            } else {
+                    (*this->sCvt)(this->tmpFrame.data, this->nbChannel, tmpFrame->data[0], 1, tmpFrame->nb_samples * this->nbChannel, NULL);
+            }
+        } else {
+            if (isPlanar) {
+                int j = 0;
+                for (int i = 0; i < tmpFrame->nb_samples; i++) {
+                    for (int c = 0; c < this->nbChannel; c++) {
+                        float *ptr = (float *)tmpFrame->data[c];
+                        this->tmpFrame.data[c+j] = ptr[i];
+                    }
+                    j+=2;
+                }
+            } else {
+                memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
+            }
+        }
 
-            /*
+        /*
         float *c = (float *)this->tmpFrame.data;
-        for (int i = 0; i < this->tmpFrame.size/2; i++) {
-            SPAM(("read data %f/%f\n", *c++, *c++));
+        for (int i = 0; i < this->tmpFrame.nbSamples; i++) {
+            printf("f32 data %f/%f\n", *c++, *c++);
         }
         */
-        } else {
-            memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
-        }
 
         // Reset frequency converter input
         if (this->fCvt) {
