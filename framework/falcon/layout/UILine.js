@@ -15,34 +15,55 @@ Native.elements.export("UILine", {
 		this.vertices = OptionalValue(o.vertices, []);
 		this.displayControlPoints = OptionalBoolean(o.displayControlPoints, false);
 		this.lineWidth = OptionalNumber(o.lineWidth, 1);
-
-		this.points = []; // array of points
 		this.controlPoints = []; // array of UIControlPoint
 
-		nbparams = this.vertices.length;
+		this.setVertex = function(i, vertex){
+			this.controlPoints[i].left = vertex.x - 8;
+			this.controlPoints[i].top = vertex.y - 8;
+		};
 
-		if (nbparams%2 != 0 || nbparams < 4){
-			throw "UILine: Incorrect number of points in vertices " + nbparams;
-		}
+		this.getVertices = function(){
+			var vertices = [];
+			for (var i=0; i<this.points.length; i++){
+				vertices.push(this.points[i][0]);
+				vertices.push(this.points[i][1]);
+			}
+			return vertices;
+		};
 
-		nbpoints = nbparams/2;
+		this.setVertices = function(vertices){
+			var nbparams = vertices.length;
 
-		for (var i=0; i<nbpoints; i++){
-			var px = Number(this.vertices[2*i+0]),
-				py = Number(this.vertices[2*i+1]);
+			if (nbparams%2 != 0 || nbparams < 4){
+				throw "UILine: Incorrect number of points in vertices " + nbparams;
+			}
 
-			// coordinates of vertex i
-			this.points.push([px, py]);
+			this.points = []; // array of points
 
-			this.controlPoints[i] = this.add("UIControlPoint", {
-				left : px - 8,
-				top : py - 8,
-				color : this.color,
-				hidden : !this.displayControlPoints
-			});
-		}
+			for (var i=0; i<nbparams/2; i++){
+				var px = Number(vertices[2*i+0]),
+					py = Number(vertices[2*i+1]);
+				// coordinates of vertex i
+				this.points.push([px, py]);
 
-		this.nbpoints = this.points.length;
+				if (this.controlPoints[i]) {
+					this.setVertex(i, {
+						x : px,
+						y : py
+					});
+				} else {
+					this.controlPoints[i] = this.add("UIControlPoint", {
+						left : px - 8,
+						top : py - 8,
+						color : this.color,
+						hidden : !this.displayControlPoints
+					});
+				}
+			}
+
+			this.nbpoints = this.points.length;
+			this.pointStep = this.getNormalizedStepBetweenPoints();
+		};
 
 		this.refreshElement = function(){
 			for (var i=0; i<this.points.length; i++){
@@ -54,11 +75,6 @@ Native.elements.export("UILine", {
 			this._needRedraw = true;
 		};
 
-		this.setVertex = function(i, vertex){
-			this.controlPoints[i].left = vertex.x - 8;
-			this.controlPoints[i].top = vertex.y - 8;
-		};
-
 		this.addEventListener("controlpointupdate", function(e){
 			//this.refreshElement();
 		}, false);
@@ -67,6 +83,55 @@ Native.elements.export("UILine", {
 			this.focus();
 			e.stopPropagation();
 		}, false);
+
+		this.getNormalizedStepBetweenPoints = function(){
+			var n = this.points.length-1,
+				d = 0;
+
+			for (var i=0; i<n; i++) {
+				d += Math.distance(
+					this.points[i][0], this.points[i][1],
+					this.points[i+1][0], this.points[i+1][1]
+				);
+			}
+
+			return 1/d;
+		};
+
+		this.getSplinePoint = function(t){
+			var n = this.points.length-1,
+				B = Math.spline,
+				p = [0, 0];
+
+			for (var i=0; i<=n; i++){
+				p[0] += this.points[i][0] * B(i, n, t);
+				p[1] += this.points[i][1] * B(i, n, t);
+			}
+			return p;
+		};
+
+		this.getPathBounds = function(){
+			var bx = [],
+				by = [],
+				p = [0, 0],
+				k = this.lineWidth/2,
+				step = this.getNormalizedStepBetweenPoints();
+
+			for (var t=0; t<=1; t+=step){
+				p = this.getSplinePoint(t);
+				bx.push(p[0]);
+				by.push(p[1]);
+			}
+
+			return {
+				left : Math.floor(1-k + bx.min()),
+				top : Math.floor(1-k + by.min()),
+				right : Math.floor(k + bx.max()),
+				bottom : Math.floor(k + by.max())
+			}
+		};
+
+		this.setVertices(this.vertices);
 
 	},
 
@@ -90,7 +155,9 @@ Native.elements.export("UILine", {
 			this.lineWidth+8
 		);
 
+		//var b = this.getPathBounds();
 		//var b = context.getPathBounds();
+
 		this.boundingRect = {
 			left : b.left,
 			top : b.top,
@@ -98,7 +165,7 @@ Native.elements.export("UILine", {
 			height : (b.bottom - b.top)
 		};
 
-		/*		
+	/*		
 		if (nbpoints==2){
 			context.beginPath();
 			
@@ -155,7 +222,7 @@ Native.elements.export("UILine", {
 				window.mouseY
 			);
 		}
-		*/
+	*/
 	}
 });
 
@@ -164,12 +231,16 @@ Native.elements.export("UIControlPoint", {
 		left : {
 			set : function(value){
 				this.refreshElement();
+				if (this.parent.refreshElement) this.parent.refreshElement();
+				this.parent.fireEvent("controlpointupdate");
 			}
 		},
 		
 		top : {
 			set : function(value){
 				this.refreshElement();
+				if (this.parent.refreshElement) this.parent.refreshElement();
+				this.parent.fireEvent("controlpointupdate");
 			}
 		}
 	},
@@ -191,8 +262,6 @@ Native.elements.export("UIControlPoint", {
 		this.refreshElement = function(){
 			this.x = this._left + this._width/2;
 			this.y = this._top + this._height/2;
-			if (this.parent.refreshElement) this.parent.refreshElement();
-			this.parent.fireEvent("controlpointupdate");
 		};
 
 		this.addEventListener("mousedown", function(e){
@@ -214,14 +283,17 @@ Native.elements.export("UIControlPoint", {
 			this.left += e.dx;
 			this.top += e.dy;
 			this.opacity = 1.00;
+
+			//if (this.parent.boundingRect){
+				//this.parent.shrink(this.parent.boundingRect);
+				//this.parent.alpha += 0.0001;
+			//}
+
 			e.stopPropagation();
 		}, false);
 
 		this.addEventListener("dragend", function(e){
 			this.set("opacity", 0.50, 90);
-			this.parent.shrink(this.parent.boundingRect);
-			this.parent.alpha += 0.0001;
-			this.parent.fireEvent("controlpointupdate");
 		});
 
 		this.refreshElement();

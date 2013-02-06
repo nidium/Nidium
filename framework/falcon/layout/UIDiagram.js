@@ -196,11 +196,12 @@ Native.elements.export("UIDiagram", {
 						v.sx4, v.sy4
 					],
 					displayControlPoints : true,
+					//background : "rgba(88, 0, 0, 0.3)",
 					color : "#ff0000",
 					lineWidth : 3
 				});
 
-				pin.link.bringToFront();
+				//pin.link.bringToFront();
 				pin.link.controlPoints[4]._diagram = self;
 				pin.link.controlPoints[4]._pin = pin;
 

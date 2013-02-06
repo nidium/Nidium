@@ -2,6 +2,10 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
+/* -------------------------------------------------------------------------- */
+require("libs/misc.lib.js");
+/* -------------------------------------------------------------------------- */
+
 var main = new Application();
 
 var spline = new UILine(main, {
@@ -32,9 +36,25 @@ var refreshBoundingElement = function(){
 };
 
 main.add("UIButton").move(10, 10).click(function(){
+
+	var v = spline.getVertices();
+	for (var i=0; i<v.length; i+=2){
+		echo(v[i], v[i+1]);
+	}
+
 	var b = spline.boundingRect;
 	spline.shrink(spline.boundingRect);
 	refreshBoundingElement();
+
+
+
+	echo("---------");
+	var v = spline.getVertices();
+	for (var i=0; i<v.length; i+=2){
+		echo(v[i], v[i+1]);
+	}
+
+
 });
 
 var bounds = new UIElement(spline, {

@@ -279,6 +279,11 @@ Math.distance = function(x1, y1, x2, y2){
 	return Math.sqrt(a*a + b*b);
 };
 
+Math.spline = function(i, n, t){
+	var f = Math.factorial, pw = Math.pow;
+	return	f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
+};
+
 /* -- Precalc !n */
 Math.factorial = (function(n){
 	var c = [],

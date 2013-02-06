@@ -113,9 +113,11 @@ Native.elements.export("UIDiagramController", {
 					],
 					displayControlPoints : true,
 					color : color,
+					//background : "rgba(99, 0, 0, 0.3)",
 					lineWidth : lineWidth
 				});
-
+				//link.shrink(link.boundingRect);
+				link.sendToBack();
 				link.controlPoints[4]._diagram = sourcePin.getParentDiagram();
 				link.controlPoints[4]._pin = sourcePin;
 

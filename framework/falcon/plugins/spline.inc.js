@@ -25,6 +25,39 @@
  */
 
 Canvas.implement({
+	fastSpline : function(points, step, lineWidth=2){
+		var len = 0,
+			step = 0,
+			n = points.length-1,
+			k = lineWidth/2,
+			bx = [],
+			by = [];
+
+		this.beginPath();
+		this.moveTo(points[0][0], points[0][1]);
+		for (var t=0; t<=1; t+=step){
+			var r = [0, 0];
+
+			for (var i=0; i<=n; i++) {
+				r[0] += points[i][0] * Math.spline(i, n, t);
+				r[1] += points[i][1] * Math.spline(i, n, t);
+			}
+
+			bx.push(r[0]);
+			by.push(r[1]);
+
+			this.lineTo(r[0], r[1]);
+		}
+		this.stroke();
+
+		return {
+			left : Math.floor(1-k + bx.min()),
+			top : Math.floor(1-k + by.min()),
+			right : Math.floor(k + bx.max()),
+			bottom : Math.floor(k + by.max())
+		}
+	},
+
 	spline : function(points, mx=0, my=0, lineWidth=2){
 		var len = 0,
 			step = 0,

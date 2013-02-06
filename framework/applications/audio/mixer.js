@@ -27,7 +27,7 @@
  "use strict";
 
 /* ---------------------------------------------------------------------------*/
-Native.StyleSheet.load("applications/audio/mixer.nss");
+Native.StyleSheet.load("applications/audio/mixer.nss", false);
 /* ---------------------------------------------------------------------------*/
 
 var main = new Application();
@@ -38,7 +38,6 @@ var mixer = null,
 	slides = [];
 
 var tx = [
-/*
 	{file : "applications/audio/media/drums.mp3",		label : "Drums"},
 	{file : "applications/audio/media/bass.mp3",		label : "Bass"},
 	{file : "applications/audio/media/guitar01.mp3",	label : "Guitar"},
@@ -46,23 +45,24 @@ var tx = [
 	{file : "applications/audio/media/sequences.mp3",	label : "Seq"},
 	{file : "applications/audio/media/guitar02.mp3",	label : "Solo"},
 
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-*/
 
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+	{file : "",	label : "n/a"},
+
+/*
 	{file : "song.mp3",	label : "Depress"},
 	{file : "song.mp3",	label : "Depress"},
 	{file : "song.mp3",	label : "Depress"}
-
+*/
 ];
 
 /* -------------------------------------------------------------------------- */

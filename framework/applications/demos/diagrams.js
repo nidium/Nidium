@@ -6,8 +6,14 @@ var main = new Application({
 	backgroundImage : "applications/demos/images/tunnel.jpeg"
 });
 
-var myDiagram = main.add("UIDiagramController", {x:0, y:0});
+var myDiagram = main.add("UIDiagramController", {
+	background : "rgba(0, 0, 99, 0.5)"
+});
 
+myDiagram.addEventListener("drag", function(e){
+	this.left += e.xrel;
+	this.top += e.yrel;
+});
 
 var LFO = myDiagram.add("UIDiagram", {
 	left : 50, 
