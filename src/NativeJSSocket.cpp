@@ -223,8 +223,6 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     jsval ondisconnect, rval, jparams[1];
     NativeJSSocket *nsocket;
 
-    printf("Disconnecting event (client_disconnect)\n");
-
     ape_socket *socket_server = socket_client->parent;
     if (socket_server == NULL) { /* the server has disconnected */
         return;

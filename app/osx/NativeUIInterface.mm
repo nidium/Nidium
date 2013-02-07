@@ -186,6 +186,8 @@ void NativeUIInterface::createWindow()
     glViewport(0, 0, kNativeWidth, kNativeHeight);
 
     NJS = new NativeJS(kNativeWidth, kNativeHeight);
+    NJS->UI = this;
+    
     gnet = native_netlib_init();
 
     /* Set ape_global private to the JSContext

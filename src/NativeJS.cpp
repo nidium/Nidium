@@ -557,6 +557,8 @@ NativeJS::NativeJS(int width, int height)
 
     messages = new NativeSharedMessages();
 
+    this->UI = NULL;
+
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 

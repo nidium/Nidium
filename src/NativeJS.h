@@ -20,6 +20,7 @@ struct native_thread_msg
 class NativeSharedMessages;
 class NativeSkia;
 class NativeCanvasHandler;
+class NativeUIInterface;
 struct _ape_htable;
 
 typedef struct _ape_global ape_global;
@@ -34,6 +35,7 @@ class NativeJS
         NativeSharedMessages *messages;
         NativeSkia *surface;
         NativeCanvasHandler *rootHandler;
+        NativeUIInterface *UI;
         bool shutdown;
         struct _ape_htable *rootedObj;
 
