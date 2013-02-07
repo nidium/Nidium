@@ -445,7 +445,7 @@ static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(ctx, 0));
     JSObject *saved = JS_NewObject(cx, NULL, NULL, NULL);
     jsval outval;
-    printf("Saved called\n");
+
 #define CANVAS_2D_CTX_PROP_GET(prop)
 #define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, ctx, #prop, &outval); \
                                     JS_SetProperty(cx, saved, #prop, &outval);
@@ -775,8 +775,9 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     }
 
     JSAutoByteString ctext(cx, text);
+    NativeSkia *n = NSKIA_NATIVE;
 
-    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(NSKIA_NATIVE->measureText(ctext.ptr(),
+    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
         strlen(ctext.ptr()))));
 
     return JS_TRUE;
@@ -792,7 +793,9 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    vp->setBoolean(NSKIA_NATIVE->SkPathContainsPoint(x, y));
+    NativeSkia *n = NSKIA_NATIVE;
+
+    vp->setBoolean(n->SkPathContainsPoint(x, y));
 
     return JS_TRUE;
 }
@@ -1160,11 +1163,8 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
 
 static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    if (JS_IsConstructing(cx, vp)) {
-        JS_ReportError(cx, "Bad constructor");
-        return JS_FALSE;
-    }
-    return JS_TRUE;
+    JS_ReportError(cx, "Illegal constructor");
+    return JS_FALSE;
 }
 
 void NativeCanvas2DContext::registerObject(JSContext *cx)

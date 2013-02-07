@@ -93,7 +93,10 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *ret = JS_NewObjectForConstructor(cx, &Image_class, vp);
     NativeJSImage *nimg;
 
-    /* TODO: JS_IsConstructing() */
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
 
     nimg = new NativeJSImage();
     nimg->cx = cx;
@@ -143,7 +146,7 @@ void NativeJSImage::onRequest(NativeHTTP::HTTPData *h,
         }
         NativeJSObj(cx)->unrootObject(jsobj);
 
-    } /* TODO : onError */
+    } /* TODO : onError || onError is not defined by the spec. */
 }
 
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,

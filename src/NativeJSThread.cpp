@@ -148,6 +148,11 @@ static void *native_thread(void *arg)
     delete arglst;
 
     printf("Thread has ended\n");
+    JS_DestroyContext(tcx);
+    JS_DestroyRuntime(rt);
+
+    nthread->jsRuntime = NULL;
+    nthread->jsCx = NULL;
 
     return NULL;
 }
@@ -248,10 +253,6 @@ NativeJSThread::~NativeJSThread()
     if (this->jsRuntime) {
         JS_TriggerOperationCallback(this->jsRuntime);
         pthread_join(this->threadHandle, NULL);
-        if (this->jsCx) {
-            JS_DestroyContext(this->jsCx);
-        }
-        JS_DestroyRuntime(this->jsRuntime);
     }
 }
 

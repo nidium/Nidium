@@ -550,7 +550,6 @@ NativeJS::NativeJS(int width, int height)
 
     surface = rootHandler->context->skia;
 
-    //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
 
 
@@ -602,8 +601,6 @@ NativeJS::~NativeJS()
 
     delete messages;
     hashtbl_free(rootedObj);
-    //delete nskia; /* TODO: why is that commented out? */
-    // is it covered by Canvas_Finalize()?
 }
 
 void NativeJS::bufferSound(int16_t *data, int len)
@@ -1047,8 +1044,6 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         identifier, 0);
-
-    /* TODO: remove root / clear params */
 
     return JS_TRUE;    
 }
