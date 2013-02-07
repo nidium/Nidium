@@ -12,15 +12,17 @@ Native.layout = {
 	objID : 0,
 	nbObj : 0, // Number of elements
 
-	nodes : {}, // May content several trees of elements
+	nodes : [], // May content several trees of elements
 	elements : [], // Flat representation of node trees
 
 	register : function(rootElement){
-		this.nodes[rootElement._uid] = rootElement;
+		this.nodes.push(rootElement);
 	},
 
 	unregister : function(rootElement){
+		/* TODO
 		delete(this.nodes[rootElement._uid]);
+		*/
 	},
 
 	draw : function(){
@@ -92,9 +94,9 @@ Native.layout = {
 		var self = this,
 			fn = OptionalCallback(inference, null),
 			dx = function(z, parent){
-				for (var i in z){
+				for (var i=0; i<z.length; i++){
 					fn.call(z[i]);
-					if (z[i] && self.count(z[i].nodes)>0) {
+					if (z[i] && z[i].nodes.length>0) {
 						/* test z[i] as it may be destroyed by inference */
 						dx(z[i].nodes, z[i].parent);
 					}
@@ -153,42 +155,16 @@ Native.layout = {
 		return element;
 	},
 
-	count : function(nodes){
-		var len = 0;
-		for (var i in nodes){
-			if (nodes.hasOwnProperty(i)){
-				len++;
-			}
+	remove : function(element){
+		var parent = element.parent;
+		if (!parent) return false;
+
+		element.layer.removeFromParent();
+		element.resetNodes();
+
+		for (var p in element){
+			delete element[p];
 		}
-		return len;
-	},
-
-	destroy : function(element){
-		if (element.parent){
-			delete(element.parent.nodes[element._uid]);
-			delete(this.nodes[element._uid]);
-			element.layer.removeFromParent();
-			element = null;
-		}
-	},
-
-	collectGarbage : function(elements){
-		for (var i=elements.length-1; i>0; i--){
-			elements[i].__garbageCollector && this.destroy(elements[i]);
-		}
-	},
-
-	remove : function(rootElement){
-		var self = this,
-			elements = [];
-
-		this.bubble(rootElement, function(){
-			elements.push(this);
-			this.__garbageCollector = true;
-		});
-
-		this.collectGarbage(elements);
-		this.destroy(rootElement);
 	}
 };
 

@@ -21,7 +21,7 @@ var DOMElement = function(type, options, parent){
 	}
 
 	this.parent = p;
-	this.nodes = {}; // children elements
+	this.nodes = []; // children elements
 
 	/* Read Only Properties */
 	DOMElement.defineReadOnlyProperties(this, {
@@ -163,6 +163,7 @@ DOMElement.prototype = {
 
 	add : Native.object.add,
 	remove : Native.object.remove,
+	clear : Native.object.clear,
 	show : Native.object.show,
 	hide : Native.object.hide,
 	focus : Native.object.focus,
@@ -215,22 +216,20 @@ DOMElement.prototype = {
 	},
 
 	get previousSibling() {
-		return this.layer.getPrevSibling().host;
+		var layer = this.layer.getPrevSibling();
+		return layer ? layer.host : null;
 	},
 
 	get nextSibling() {
-		return this.layer.getNextSibling().host;
+		var layer = this.layer.getNextSibling();
+		return layer ? layer.host : null;
 	},
 
 	get childNodes() {
-		var nodes = [];
-		for (var i in this.nodes){
-			if (isDOMElement(this.nodes[i])) nodes.push(this.nodes[i]);
-		}
-		return nodes;
+		return this.nodes;
 	},
 
-	get parentNode(){
+	get parentNode() {
 		return this.parent ? this.parent : null;
 	},
 

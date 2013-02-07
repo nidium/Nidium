@@ -18,14 +18,14 @@ load("falcon/native.js");
 //load("applications/demos/modal.js");
 
 //load("applications/demos/splines.js");
-load("applications/demos/diagrams.js");
+//load("applications/demos/diagrams.js");
 
 //load("applications/demos/flickr.js");
 //load("applications/demos/http.js");
 
 
 //load("applications/demos/buttons.js");
-//load("applications/demos/test.js");
+load("applications/demos/test.js");
 
 //load("testLayer.js");
 

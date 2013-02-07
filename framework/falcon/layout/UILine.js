@@ -284,10 +284,10 @@ Native.elements.export("UIControlPoint", {
 			this.top += e.dy;
 			this.opacity = 1.00;
 
-			//if (this.parent.boundingRect){
-				//this.parent.shrink(this.parent.boundingRect);
-				//this.parent.alpha += 0.0001;
-			//}
+			if (this.parent.boundingRect){
+				this.parent.shrink(this.parent.boundingRect);
+				this.parent.alpha += 0.0001;
+			}
 
 			e.stopPropagation();
 		}, false);

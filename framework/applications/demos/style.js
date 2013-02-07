@@ -7,7 +7,7 @@
 "use strict";
 
 /* ---------------------------------------------------------------------------*/
-Native.StyleSheet.load("applications/demos/style.nss"); // blocking
+Native.StyleSheet.load("applications/demos/style.nss");
 /* ---------------------------------------------------------------------------*/
 
 var body = new Application();

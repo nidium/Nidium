@@ -152,9 +152,9 @@ Native.object = {
 	},
 
 	addChild : function addChild(element){
-		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
+		if (!isDOMElement(element)) return false;
 		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
-		this.nodes[element._uid] = element;
+		this.nodes.push(element);
 		if (!this.firstChild) this.firstChild = element;
 		this.lastChild = element;
 		element.parent = this;
@@ -173,6 +173,14 @@ Native.object = {
 		return this;
 	},
 
+	clear : function(){
+		var element = this;
+		while (element.firstChild) {
+			element.firstChild.remove();
+		}
+		Native.layout.update();
+	},
+
 	/*
 	 * Sort DOMElements to match hardware physical layers order.
 	 */
@@ -186,10 +194,11 @@ Native.object = {
 			layers = parent.layer.getChildren(); // physical children
 
 		/* Reset parent's nodes */
-		parent.nodes = {};
+		parent.nodes = [];
+		parent.firstChild = null;
 
 		/* reconstruct the nodes in the right order */
-		for (var i in layers){
+		for (var i=0; i<layers.length; i++){
 			// get the host element (that's it : the virtual element)
 			element = layers[i].host;
 
@@ -198,7 +207,7 @@ Native.object = {
 			}
 
 			// add the element in parent's nodes 
-			parent.nodes[element._uid] = element;
+			parent.nodes.push(element);
 		}
 		parent.lastChild = element;
 
@@ -211,7 +220,7 @@ Native.object = {
 			elements = [];
 
 		var dx = function(z){
-			for (var i in z){
+			for (var i=0; i<z.length; i++){
 				if (isDOMElement(z[i])) elements.push(z[i]);
 				dx(z[i].nodes);
 			}
