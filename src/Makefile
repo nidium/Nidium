@@ -27,6 +27,7 @@ CPPFLAGS=-O2 -g  -Wall $(NATIVEFLAGS) -c -O2 -g -I../mozilla/js/src/dist/include
 				-I$(SKIA)/src/core			\
 				-I$(SKIA)/include/effects	\
 				-I$(SKIA)/include/utils/mac \
+				-I../app 					\
 				-I../network 				\
 				-I../http-parser
 

@@ -672,7 +672,6 @@ void NativeSkia::setShadowColor(const char *str)
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
-
 void NativeSkia::setGlobalAlpha(double value)
 {
     if (value < 0) return;
@@ -681,7 +680,7 @@ void NativeSkia::setGlobalAlpha(double value)
     globalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
     SkColorFilter *filter = SkColorFilter::CreateModeFilter(
         SkColorSetARGB(globalAlpha, 255, 255, 255),
-        SkXfermode::kMultiply_Mode);
+        SkXfermode::kModulate_Mode);
 
     PAINT->setColorFilter(filter);
     PAINT_STROKE->setColorFilter(filter);

@@ -205,8 +205,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         jevent = OBJECT_TO_JSVAL(event);
         SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
             CONST_STR_LEN("null"))));
-        /* TODO: "this" is not the caller? */
-        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
+
+        JS_CallFunctionValue(cx, jsobj, request,
             1, &jevent, &rval);
 
         NativeJSObj(cx)->unrootObject(this->jsobj);
@@ -273,8 +273,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    /* TODO: "this" is not the caller? */
-    JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), request,
+    JS_CallFunctionValue(cx, jsobj, request,
         1, &jevent, &rval);
 
     NativeJSObj(cx)->unrootObject(this->jsobj);

@@ -31,6 +31,7 @@ class NativeJSExposer
         name ## Obj = JS_DefineObject(cx, JS_GetGlobalObject(cx), #name, \
             &name ## _class , NULL, 0); \
         JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
+        JS_DefineProperties(cx, name ## Obj, name ## _props); \
     }
 
 #define NATIVE_CHECK_ARGS(fnname, minarg) \

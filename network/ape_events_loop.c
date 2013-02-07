@@ -19,8 +19,6 @@ void events_loop(ape_global *ape)
     void *attach;
     //uint64_t start_monotonic = mach_absolute_time(), end_monotonic;
 
-    printf("Start socket loop\n");
-
     while(ape->is_running && ape_running) {
         int i;
 

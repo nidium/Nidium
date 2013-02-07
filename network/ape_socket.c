@@ -220,8 +220,6 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     ape_socket *socket = arg;
     struct sockaddr_in addr;
 
-	printf("Ready to connect...\n");
-
 #ifdef _HAS_ARES_SUPPORT
     if (status != ARES_SUCCESS) {
         APE_socket_destroy(socket);

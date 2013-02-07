@@ -445,6 +445,7 @@ static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(ctx, 0));
     JSObject *saved = JS_NewObject(cx, NULL, NULL, NULL);
     jsval outval;
+
 #define CANVAS_2D_CTX_PROP_GET(prop)
 #define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, ctx, #prop, &outval); \
                                     JS_SetProperty(cx, saved, #prop, &outval);
@@ -468,6 +469,7 @@ static JSBool native_canvas2dctx_restore(JSContext *cx, unsigned argc, jsval *vp
 {
     JSObject *ctx = JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)));
     JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(ctx, 0));
+    NativeCanvas2DContext *NativeCtx = (NativeCanvas2DContext *)JS_GetPrivate(ctx);
     NSKIA_NATIVE->restore();
 
     uint32_t arr_length = 0;
@@ -485,7 +487,9 @@ static JSBool native_canvas2dctx_restore(JSContext *cx, unsigned argc, jsval *vp
 #define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, savedObj, #prop, &outval); \
                                     JS_SetProperty(cx, ctx, #prop, &outval);
 
+    NativeCtx->setterDisabled = true;
 #include "NativeCanvas2DContextProperties.h"
+    NativeCtx->setterDisabled = false;
 
 #undef CANVAS_2D_CTX_PROP
 #undef CANVAS_2D_CTX_PROP_GET
@@ -771,8 +775,9 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     }
 
     JSAutoByteString ctext(cx, text);
+    NativeSkia *n = NSKIA_NATIVE;
 
-    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(NSKIA_NATIVE->measureText(ctext.ptr(),
+    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
         strlen(ctext.ptr()))));
 
     return JS_TRUE;
@@ -788,7 +793,9 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    vp->setBoolean(NSKIA_NATIVE->SkPathContainsPoint(x, y));
+    NativeSkia *n = NSKIA_NATIVE;
+
+    vp->setBoolean(n->SkPathContainsPoint(x, y));
 
     return JS_TRUE;
 }
@@ -819,6 +826,11 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
+
+    if (CANVASCTX_GETTER(obj.get())->setterDisabled) {
+        return JS_TRUE;
+    }
+
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
@@ -1120,7 +1132,8 @@ void NativeCanvas2DContext::translate(double x, double y)
     skia->canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height)
+NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height) :
+    setterDisabled(false)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
@@ -1150,11 +1163,8 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
 
 static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    if (JS_IsConstructing(cx, vp)) {
-        JS_ReportError(cx, "Bad constructor");
-        return JS_FALSE;
-    }
-    return JS_TRUE;
+    JS_ReportError(cx, "Illegal constructor");
+    return JS_FALSE;
 }
 
 void NativeCanvas2DContext::registerObject(JSContext *cx)

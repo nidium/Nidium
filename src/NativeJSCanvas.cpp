@@ -545,6 +545,11 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     int width, height;
     NativeCanvasHandler *handler;
 
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
+
     JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
@@ -564,7 +569,6 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);    
 
-    /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     return JS_TRUE;
@@ -578,10 +582,12 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
+#ifdef DEBUG
 static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
     snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
 }
+#endif
 
 static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
 {
@@ -592,9 +598,9 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
 
         for (cur = handler->children; cur != NULL; cur = cur->next) {
             if (cur->jsobj) {
-                #ifdef DEBUG
-                    JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
-                #endif
+#ifdef DEBUG
+                JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
+#endif
                 JS_CallTracer(trc, cur->jsobj, JSTRACE_OBJECT);
             }
         }
