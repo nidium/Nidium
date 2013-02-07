@@ -20,9 +20,12 @@ Native.layout = {
 	},
 
 	unregister : function(rootElement){
-		/* TODO
-		delete(this.nodes[rootElement._uid]);
-		*/
+		for (var i=0; i<this.nodes.length; i++){
+			if (this.nodes[i] == rootElement) {
+				this.nodes.splice(i, 1);
+				break;
+			}
+		}
 	},
 
 	draw : function(){
