@@ -221,6 +221,9 @@ NativeJSAudio::~NativeJSAudio() {
 
 void NativeJSAudio::shutdown() {
     NativeJSAudio *audio = NativeJSAudio::instance;
+
+    if (!audio) return;
+
     NativeJSAudio::Nodes *nodes = audio->nodes;
     JSRuntime *rt = JS_GetRuntime(audio->cx);
     void * priv = JS_GetRuntimePrivate(rt);
@@ -244,7 +247,7 @@ void NativeJSAudio::shutdown() {
 void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
 {
     NativeJSAudio *audio = static_cast<NativeJSAudio *>(custom);
-    if (audio->tcx) {
+    if (audio->tcx != NULL) {
         NativeJSAudio::Nodes *nodes = audio->nodes;
         NativeJSAudio::Nodes *next;
 
@@ -559,8 +562,6 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, naudio);
 
-    // FIXME : Uncomment me once rooted object 
-    // no longer block finalizing
     JS_AddObjectRoot(cx, &naudio->jsobj);
 
     JS_DefineFunctions(cx, ret, Audio_funcs);
