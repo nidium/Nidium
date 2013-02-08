@@ -54,6 +54,7 @@ SOURCES=NativeJS.cpp 				\
 		NativeJSCanvas.cpp 			\
 		NativeCanvasHandler.cpp 	\
 		NativeCanvas2DContext.cpp   \
+		NativeJSVideo.cpp 			\
 		NativeJSAudio.cpp ../third-party/portaudio/src/common/pa_ringbuffer.o ../third-party/portaudio/src/common/pa_converters.o ../third-party/portaudio/src/common/pa_dither.o  \
 		NativeJSFileIO.cpp
 

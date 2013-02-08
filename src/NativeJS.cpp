@@ -8,6 +8,7 @@
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
 #include "NativeJSAudio.h"
+#include "NativeJSVideo.h"
 #include "NativeJSNative.h"
 #include "NativeJSWindow.h"
 #include "NativeFileIO.h"
@@ -763,6 +764,7 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     /* Audio() object */
     NativeJSAudio::registerObject(cx);
     NativeJSAudioNode::registerObject(cx);
+    NativeJSVideo::registerObject(cx);
     /* WebGL*() object */
     #if WEBGL_ENABLED
     NativeJSNativeGL::registerObject(cx);
