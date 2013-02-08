@@ -265,5 +265,5 @@ NativeVideo::~NativeVideo() {
     pthread_cond_signal(&this->buffNotEmpty);
     pthread_join(this->threadDecode, NULL);
     free(this->tmpFrame);
-    free(this->rBuff);
+    delete this->rBuff;
 }
