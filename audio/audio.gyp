@@ -21,7 +21,6 @@
 					],
 					'OTHER_CFLAGS': [
 						'-v',
-                        '-std=c++11',
                         '-stdlib=libc++'
 					],
 				},
