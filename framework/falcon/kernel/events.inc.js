@@ -128,7 +128,6 @@ Native.events = {
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
 						Native.events.hook(element, e);
-						this.mostTopElementUnderMouse = element;
 						__mostTopElementHooked = true;
 					}
 				}
@@ -222,11 +221,13 @@ Native.events = {
 			element.mouseout = false;
 			if (this.dragging) {
 				element.fireEvent("dragenter", e);
+			} else {
+				element.fireEvent("mouseover", e);
 			}
-			element.fireEvent("mouseover", e);
 			return false;
 		}
-		window.cursor = this.mostTopElementUnderMouse.cursor;
+		var mostTopElement = Native.layout.getElementUnderPointer();
+		window.cursor = mostTopElement.cursor;
 	},
 
 	fireMouseOut : function(element, e){
@@ -234,11 +235,15 @@ Native.events = {
 			element.mouseover = false;
 			element.mouseout = true;
 			if (this.dragging) {
+				element.fireEvent("mouseout", e);
+				element.fireEvent("mouseleave", e);
 				element.fireEvent("dragleave", e);
+				return false;
+			} else {
+				element.fireEvent("mouseout", e);
+				element.fireEvent("mouseleave", e);
+				return true;
 			}
-			element.fireEvent("mouseout", e);
-			element.fireEvent("mouseleave", e);
-			return true;
 		}
 	},
 

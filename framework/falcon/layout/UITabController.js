@@ -54,6 +54,8 @@ Native.elements.export("UITabController", {
 				tab.unselect();
 
 				if (animate) {
+					//var _callback = (i==1 ? callback : null);
+					//tab.slideX(x, 30*j++, _callback);
 					tab.slideX(x, 30*j++, sync);
 				} else {
 					tab.left = x;
