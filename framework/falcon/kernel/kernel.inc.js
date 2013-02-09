@@ -157,6 +157,7 @@ Native.object = {
 		this.nodes.push(element);
 		if (!this.firstChild) this.firstChild = element;
 		this.lastChild = element;
+		element._root = this._root;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
 		element.updateAncestors();
@@ -377,6 +378,15 @@ Native.object = {
 
 	isVisible : function isVisible(){
 		return this._visible;
+	},
+
+	isAncestor : function(element){
+		if (!isDOMElement(element)) return false;
+		if (this.ownerDocument != element.ownerDocument) return false;
+		for (var e = element; e; e = e.parent) {
+			if (e === this) return true;
+		}
+		return false;
 	},
 
 	hasClass : function hasClass(name){

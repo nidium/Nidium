@@ -145,6 +145,21 @@ Native.layout = {
 		return elements;
 	},
 
+	getElementUnderPointer : function(){
+		var element = null,
+			x = window.mouseX,
+			y = window.mouseY,
+			z = this.elements;
+
+		for (var i=z.length-1 ; i>=0 ; i--) {
+			if (z[i].layer.__visible && z[i].isPointInside(x, y)) {
+				element = z[i];
+				break;
+			}
+		}
+		return element;
+	},
+
 	getElementById : function(id){
 		var z = this.elements,
 			element = undefined;

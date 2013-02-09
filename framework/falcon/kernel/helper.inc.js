@@ -51,6 +51,8 @@ Object.merge(window, {
 	height : Native.canvas.height,
 	mouseX : 0,
 	mouseY : 0,
+	cursor : "arrow",
+	
 	requestAnimationFrame : Native.canvas.getContext("2D").requestAnimationFrame,
 
 	navigator : {

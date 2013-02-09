@@ -33,8 +33,7 @@ div.add("UIButton");
 
 body.add("UIButton").click(function(){
 	window.title = Math.random() + "";
+	echo(body.isAncestor(div));
+	echo(div.isAncestor(body));
 });
-
-
-/* se mettre à la place de Google pour le référencement */
 

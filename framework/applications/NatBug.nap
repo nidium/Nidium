@@ -346,10 +346,15 @@ NatBug.panes.push({
 
 			if (this.__CLOSED__ || arrow.closing) return false;
 		
-			this.hide();
+			if (animate){
+				this.fadeOut(150, function(){
+					offset = self.refresh(this);
+				});
+			} else {
+				offset = self.refresh(this);
+			}
 			this.__CLOSED__ = true;
 
-			offset = self.refresh(this);
 
 			if (animate){
 				arrow.closing = true;
@@ -377,8 +382,11 @@ NatBug.panes.push({
 			if (!this.__CLOSED__ || arrow.opening) return false;
 			this.show();
 			this.__CLOSED__ = false;
+
 			self.refresh(this);
+
 			if (animate){
+				this.fadeIn(90);
 				arrow.opening = true;
 				arrow.animate("angle", -90, 0, 100, function(){
 					this.opening = false;
@@ -425,6 +433,7 @@ NatBug.panes.push({
 			height : this.lineHeight,
 			color : color,
 			label : text,
+			cursor : "pointer",
 			textShadowBlur : 1,
 			textShadowColor : "rgba(0, 0, 0, 0.04)",
 			fontSize : this.fontSize,
@@ -435,14 +444,12 @@ NatBug.panes.push({
 		l.hoverize(
 			function(){
 				this.background = "rgba(255, 0, 0, 0.1)";
-				this.cursor = "pointer";
-				window.cursor = "pointer";
+				//this.cursor = "pointer";
 			},
 
 			function(){
 				this.background = "";
-				this.cursor = "arrow";
-				window.cursor = "arrow";
+				//this.cursor = "arrow";
 			}
 		);
 

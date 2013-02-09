@@ -181,6 +181,8 @@ DOMElement.prototype = {
 
 	isPointInside : Native.object.isPointInside,
 	isVisible : Native.object.isVisible,
+	isAncestor : Native.object.isAncestor,
+
 	getDrawingBounds : Native.object.getDrawingBounds,
 	getBoundingRect : Native.object.getBoundingRect,
 
@@ -308,6 +310,11 @@ DOMElement.onPropertyUpdate = function(e){
 			break;
 
 		case "cursor" :
+			/*
+			if (element.isPointInside(window.mouseX, window.mouseY)){
+				window.cursor = value;
+			}
+			*/
 			break;
 
 		default :
@@ -359,13 +366,13 @@ DOMElement.listeners = {
 	addHovers : function(element){
 		element.addEventListener("mouseover", function(e){
 			this.hover = true;
-			this._oldcursor = window.cursor;
-			window.cursor = this.cursor;
+//			this._oldcursor = window.cursor;
+//			window.cursor = this.cursor;
 		});
 
 		element.addEventListener("mouseout", function(e){
 			this.hover = false;
-			if (this._oldcursor) window.cursor = this._oldcursor;
+//			if (this._oldcursor) window.cursor = this._oldcursor;
 		});
 	}
 };
