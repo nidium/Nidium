@@ -32,15 +32,15 @@ Native.elements.export("UITabController", {
 
 		this.resetTabs = function(animate, callback){
 			var that = this,
-				cbi = 0,
+				counter = 0,
 				x = 0,
 				j = 2,
 				nbtabs = this.taborder.length,
 				selelectedTab = this.getSelectedTab();
 
 			var sync = function(){
-				cbi++;
-				if (cbi == 1) {
+				counter++;
+				if (counter == 1) {
 					if (typeof callback == "function") callback.call(this);
 				}
 				Native.events.tick();

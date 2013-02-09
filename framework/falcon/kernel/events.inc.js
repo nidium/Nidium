@@ -80,7 +80,7 @@ Native.events = {
 	},
 
 	tick : function(){
-		this.dispatch("mousemove", {
+		this.dispatch("tick", {
 			x : window.mouseX,
 			y : window.mouseY,
 			xrel : 0,
@@ -135,6 +135,11 @@ Native.events = {
 				switch (name) {
 					case "mousewheel" :
 						//cancelBubble = true;
+						break;
+
+					case "tick" :
+						this.setSource(e, this.sourceElement, element);
+						cancelBubble = this.fireMouseOver(element, e);
 						break;
 
 					case "mousemove" :
