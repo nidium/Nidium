@@ -10,7 +10,7 @@ div.left = 250;
 div.top = 100;
 div.width = 300;
 div.height = 250;
-div.background = "white";
+div.background = "black";
 div.textContent = "the brown fox sugar";
 body.addChild(div);
 
@@ -25,14 +25,16 @@ span.background = "red";
 span.textContent = "lipsum natsu";
 div.addChild(span);
 
-var a = div.add("UIButton");
-var b = div.add("UIButton");
-var c = div.add("UIButton");
+var a = div.add("UIButton").move(0, 0);
+var b = div.add("UIButton").move(15, 15);
+var b = div.add("UIButton").move(30, 30);
+var c = new UIButton().move(-15, -15);
+c.background = "red";
 
 body.add("UIButton").click(function(){
 	window.title = Math.random() + "";
-	echo(body.isAncestor(div));
-	echo(div.isAncestor(body));
-	echo(k2.nodeIndex)
+	echo(c.parent);
+	div.insertChildAtIndex(c, 0);
+	echo(c.parent.id);
 });
 

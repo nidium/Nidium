@@ -171,7 +171,12 @@ DOMElement.prototype = {
 	focus : Native.object.focus,
 
 	addChild : Native.object.addChild,
+	appendChild : Native.object.addChild,
 	removeChild : Native.object.removeChild,
+	insertBefore : Native.object.insertBefore,
+	insertAfter : Native.object.insertAfter,
+	insertChildAtIndex : Native.object.insertChildAtIndex,
+
 	getChildren : Native.object.getChildren,
 
 	refresh : Native.object.refresh,
@@ -246,7 +251,7 @@ DOMElement.prototype = {
 	},
 
 	get nodeIndex() {
-		return this.parent ? this.parent.nodes.indexOf(this) : null;
+		return this.parent ? this.parent.nodes.indexOf(this) : -1;
 	},
 
 	get ownerDocument() {

@@ -154,7 +154,9 @@ Native.object = {
 	addChild : function addChild(element){
 		if (!isDOMElement(element)) return false;
 		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
+
 		this.nodes.push(element);
+
 		if (!this.firstChild) this.firstChild = element;
 		this.lastChild = element;
 		element._root = this._root;
@@ -172,6 +174,18 @@ Native.object = {
 		Native.layout.remove(element);
 		Native.layout.update();
 		return this;
+	},
+
+	insertChildAtIndex : function(element, index){
+
+	},
+
+	insertBefore : function(element, refElement){
+		
+	},
+
+	insertAfter : function(element, refElement){
+
 	},
 
 	clear : function(){

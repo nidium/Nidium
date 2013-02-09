@@ -710,7 +710,7 @@ NatBug.panes.push({
 Canvas.prototype.debug = function(){
 	var context = this.getContext("2D"),
 		__DEBUG_SHOW_LAYERS__ = true,
-		__DEBUG_SHOW_ORDER__ = false;
+		__DEBUG_SHOW_ORDER__ = true;
 
 	if (!this.host || this.host._root == Native.__debugger){
 		return false;
@@ -747,7 +747,7 @@ Canvas.prototype.debug = function(){
 		if (this.host && this.host._hover){
 			context.setText(
 				this.host._nid,
-				this.host._width + 7,
+				this.host._width + 5,
 				9,
 				"white",
 				"rgba(0, 0, 0, 0.7)"
@@ -755,7 +755,7 @@ Canvas.prototype.debug = function(){
 		} else {
 			context.setText(
 				this.host._nid,
-				this.host._width + 7,
+				this.host._width + 5,
 				9,
 				"rgba(200, 0, 0, 0.8)",
 				"rgba(0, 0, 0, 0.7)"
