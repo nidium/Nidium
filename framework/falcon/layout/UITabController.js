@@ -31,10 +31,20 @@ Native.elements.export("UITabController", {
 		this.taborder = [];
 
 		this.resetTabs = function(animate, callback){
-			var x = 0,
+			var that = this,
+				cbi = 0,
+				x = 0,
 				j = 2,
 				nbtabs = this.taborder.length,
 				selelectedTab = this.getSelectedTab();
+
+			var sync = function(){
+				cbi++;
+				if (cbi == 1) {
+					if (typeof callback == "function") callback.call(this);
+				}
+				Native.events.tick();
+			};
 
 			for (var i=0; i<nbtabs; i++){
 				var t = this.taborder[i],
@@ -44,8 +54,7 @@ Native.elements.export("UITabController", {
 				tab.unselect();
 
 				if (animate) {
-					var _callback = (i==1 ? callback : null);
-					tab.slideX(x, 30*j++, _callback);
+					tab.slideX(x, 30*j++, sync);
 				} else {
 					tab.left = x;
 				}
@@ -183,6 +192,7 @@ Native.elements.export("UITabController", {
 				tab : tab,
 				elements : to
 			});
+
 			this.__removing = false;
 		};
 

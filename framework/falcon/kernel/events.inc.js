@@ -79,6 +79,15 @@ Native.events = {
 		}
 	},
 
+	tick : function(){
+		this.dispatch("mousemove", {
+			x : window.mouseX,
+			y : window.mouseY,
+			xrel : 0,
+			yrel : 0
+		});
+	},
+
 	dispatch : function(name, e){
 		var x = e.x,
 			y = e.y,
