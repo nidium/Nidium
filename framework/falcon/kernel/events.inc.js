@@ -128,6 +128,7 @@ Native.events = {
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
 						Native.events.hook(element, e);
+						this.mostTopElementUnderMouse = element;
 						__mostTopElementHooked = true;
 					}
 				}
@@ -226,8 +227,7 @@ Native.events = {
 			}
 			return false;
 		}
-		var mostTopElement = Native.layout.getElementUnderPointer();
-		window.cursor = mostTopElement.cursor;
+		window.cursor = this.mostTopElementUnderMouse.cursor;
 	},
 
 	fireMouseOut : function(element, e){
