@@ -9,6 +9,7 @@ Native.elements.export("UIButtonClose", {
 		var o = this.options;
 		this.width = OptionalNumber(o.width, 10);
 		this.height = OptionalNumber(o.height, 10);
+		this.cursor = OptionalCursor(o.cursor, "pointer");
 
 		DOMElement.listeners.addDefault(this);
 	},

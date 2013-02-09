@@ -316,6 +316,8 @@ Native.elements.export("UITabController", {
 				__startX = tab.left;
 				__endX = tab.left + tab.width;
 				__dragTabPosition = controller.getPosition(tab.index);
+
+				controller._oldcursor = window.cursor;
 			}, false);
 
 			tab.addEventListener("dragend", function(e){
@@ -323,7 +325,7 @@ Native.elements.export("UITabController", {
 				
 				var curr = controller.getTabAtPosition(__dragTabPosition);
 
-				curr.cursor = "arrow";
+				if (controller._oldcursor) window.cursor = controller._oldcursor;
 
 				curr.slideX(__startX, 200, function(){}, Math.physics.cubicOut);
 
@@ -366,14 +368,13 @@ Native.elements.export("UITabController", {
 				nx = next ? next.__left : null,
 				px = prev ? prev.__left : null;
 
-			curr.cursor = "drag";
-
 			if (cx + dx < controller.__left) {
 				curr.left = controller.left;
 			} else if (cx + cw + dx > controller.__left + controller.width){
 				curr.left = controller.width - cw;
 			} else {
 				curr.left += dx;
+				window.cursor = "drag";
 			}
 
 			if (next && dx>0 && cx+cw > (nx+next.width/2)){

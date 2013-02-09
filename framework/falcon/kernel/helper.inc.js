@@ -255,6 +255,12 @@ var OptionalPosition = function(x, def){
 				def && def.in(list) ? String(def) : null;
 };
 
+var OptionalCursor = function(x, def){
+	var list = ["arrow", "beam", "pointer", "drag"];
+	return x && x.in(list) ? String(x) : 
+				def && def.in(list) ? String(def) : null;
+};
+
 /* -------------------------------------------------------------------------- */
 
 Number.prototype.bound = function(min, max){

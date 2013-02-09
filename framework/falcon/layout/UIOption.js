@@ -21,7 +21,8 @@ Native.elements.export("UIOption", {
 			height 			: OptionalNumber(o.height, 22),
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, "#262722"),
-			color 			: OptionalValue(o.color, "#abacaa")
+			color 			: OptionalValue(o.color, "#abacaa"),
+			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
 
 		this.addEventListener("mousedown", function(e){

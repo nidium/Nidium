@@ -99,7 +99,9 @@ var DOMElement = function(type, options, parent){
 		position : OptionalPosition(o.position, "relative"),
 
 		hover : false,
-		hasFocus : false
+		hasFocus : false,
+
+		cursor : OptionalCursor(o.cursor, "arrow")
 	});
 
 	/* Internal Hidden Properties */
@@ -209,14 +211,6 @@ DOMElement.prototype = {
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
 
-	get cursor(){
-		return window.cursor;
-	},
-
-	set cursor(value){
-		window.cursor = OptionalString(value, window.cursor);
-	},
-
 	/* -- READ ONLY WRAPPERS -- */
 
 	get children() {
@@ -313,6 +307,9 @@ DOMElement.onPropertyUpdate = function(e){
 			element.resizeLayer();
 			break;
 
+		case "cursor" :
+			break;
+
 		default :
 			element._needRedraw = true;
 			break
@@ -362,12 +359,13 @@ DOMElement.listeners = {
 	addHovers : function(element){
 		element.addEventListener("mouseover", function(e){
 			this.hover = true;
-			this.cursor = "pointer";
+			this._oldcursor = window.cursor;
+			window.cursor = this.cursor;
 		});
 
 		element.addEventListener("mouseout", function(e){
 			this.hover = false;
-			this.cursor = "arrow";
+			if (this._oldcursor) window.cursor = this._oldcursor;
 		});
 	}
 };
