@@ -41,7 +41,7 @@ load("applications/demos/tabs.js");
 
 /* -- Native Debugger ------------------ */
 
-//load("applications/NatBug.nap");
+load("applications/NatBug.nap");
 
 
 /* -- Old Native Framework Demos ------------------ */

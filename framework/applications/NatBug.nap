@@ -215,7 +215,7 @@ NatBug.panes.push({
 					z[i].__CONTAINER__ = container;
 					z[i].__CONTAINER__.__CLOSED__ = false;
 
-					if (Native.layout.count(z[i].nodes)>0){
+					if (z[i].nodes.length > 0){
 						self.space++;
 	
 						container.childrenContainer = self.createContainer(container);
