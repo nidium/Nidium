@@ -32,7 +32,9 @@ div.add("UIButton");
 
 
 body.add("UIButton").click(function(){
-	echo(div.childNodes.length);
-	span.clear();
-	echo(div.childNodes.length);
+	window.title = Math.random() + "";
 });
+
+
+/* se mettre à la place de Google pour le référencement */
+

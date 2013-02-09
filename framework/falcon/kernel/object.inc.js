@@ -209,6 +209,14 @@ DOMElement.prototype = {
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
 
+	get cursor(){
+		return window.cursor;
+	},
+
+	set cursor(value){
+		window.cursor = OptionalString(value, window.cursor);
+	},
+
 	/* -- READ ONLY WRAPPERS -- */
 
 	get children() {
@@ -354,10 +362,12 @@ DOMElement.listeners = {
 	addHovers : function(element){
 		element.addEventListener("mouseover", function(e){
 			this.hover = true;
+			this.cursor = "pointer";
 		});
 
 		element.addEventListener("mouseout", function(e){
 			this.hover = false;
+			this.cursor = "arrow";
 		});
 	}
 };
