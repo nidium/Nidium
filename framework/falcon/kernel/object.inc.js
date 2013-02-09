@@ -245,8 +245,16 @@ DOMElement.prototype = {
 		return this.name;
 	},
 
+	get nodeIndex() {
+		return this.parent ? this.parent.nodes.indexOf(this) : null;
+	},
+
 	get ownerDocument() {
 		return this._root;
+	},
+
+	get hasChildNodes() {
+		return this.nodes.length>0;
 	},
 
 	/* -- user customisable methods -- */

@@ -317,8 +317,7 @@ Native.elements.export("UITabController", {
 				__endX = tab.left + tab.width;
 				__dragTabPosition = controller.getPosition(tab.index);
 
-//				controller._oldcursor = window.cursor;
-				echo(window.cursor)
+				controller._oldcursor = window.cursor;
 			}, false);
 
 			tab.addEventListener("dragend", function(e){
@@ -375,7 +374,7 @@ Native.elements.export("UITabController", {
 				curr.left = controller.width - cw;
 			} else {
 				curr.left += dx;
-//				window.cursor = "drag";
+				window.cursor = "drag";
 			}
 
 			if (next && dx>0 && cx+cw > (nx+next.width/2)){
@@ -409,28 +408,20 @@ Native.elements.export("UITabController", {
 
 		this.swapWithNext = function(curr, next, i){
 			this.currentPosition = __dragTabPosition+1;
-
 			this._slideTab(next, __startX);
 			this.swapTabs(i, i+1);
 			this.fireTabSwapEvent(curr, i, __dragTabPosition+1);
-
 			__fireEvent = true;
-			__dragTabPosition++;
-
-			return __dragTabPosition;
+			return ++__dragTabPosition;
 		};
 
 		this.swapWithPrev = function(curr, prev, i){
 			this.currentPosition = __dragTabPosition-1;
-
 			this._slideTab(prev, __endX - prev.width);
 			this.swapTabs(i, i-1);
 			this.fireTabSwapEvent(curr, i, __dragTabPosition-1);
-
 			__fireEvent = true;
-			__dragTabPosition--;
-
-			return __dragTabPosition;
+			return --__dragTabPosition;
 		};
 
 		var x = 0,
