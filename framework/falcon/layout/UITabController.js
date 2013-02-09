@@ -313,6 +313,8 @@ Native.elements.export("UITabController", {
 				
 				var curr = controller.getTabAtPosition(__dragTabPosition);
 
+				curr.cursor = "arrow";
+
 				curr.slideX(__startX, 200, function(){}, Math.physics.cubicOut);
 
 				__dragTabPosition = false;
@@ -353,6 +355,8 @@ Native.elements.export("UITabController", {
 
 				nx = next ? next.__left : null,
 				px = prev ? prev.__left : null;
+
+			curr.cursor = "drag";
 
 			if (cx + dx < controller.__left) {
 				curr.left = controller.left;
