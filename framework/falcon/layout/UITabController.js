@@ -398,17 +398,20 @@ Native.elements.export("UITabController", {
 			}
 		}, false);
 
+		this.fireTabSwapEvent = function(tab, from, to){
+			this.fireEvent("tabswap", {
+				tab : tab,
+				from : from,
+				to : to
+			});
+		};
+
 		this.swapWithNext = function(curr, next, i){
 			this.currentPosition = __dragTabPosition+1;
 
 			this._slideTab(next, __startX);
 			this.swapTabs(i, i+1);
-
-			this.fireEvent("tabswap", {
-				tab : curr,
-				from : i,
-				to : __dragTabPosition+1
-			});
+			this.fireTabSwapEvent(curr, i, __dragTabPosition+1);
 
 			__fireEvent = true;
 			__dragTabPosition++;
@@ -421,13 +424,8 @@ Native.elements.export("UITabController", {
 
 			this._slideTab(prev, __endX - prev.width);
 			this.swapTabs(i, i-1);
-
-			this.fireEvent("tabswap", {
-				tab : curr,
-				from : i,
-				to : __dragTabPosition-1
-			});
-
+			this.fireTabSwapEvent(curr, i, __dragTabPosition-1);
+			
 			__fireEvent = true;
 			__dragTabPosition--;
 
