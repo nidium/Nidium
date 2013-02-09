@@ -36,6 +36,8 @@
 
 #include <math.h>
 
+#include "NativeJS_preload.h"
+
 struct _native_sm_timer
 {
     JSContext *cx;
@@ -559,6 +561,8 @@ NativeJS::NativeJS(int width, int height)
 
     this->UI = NULL;
 
+    this->LoadScriptContent(preload_js);
+
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 
@@ -823,6 +827,34 @@ static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
     }
     return 1;
 #endif
+}
+
+int NativeJS::LoadScriptContent(const char *data)
+{
+    uint32_t oldopts;
+    
+    JSObject *gbl = JS_GetGlobalObject(cx);
+    oldopts = JS_GetOptions(cx);
+
+    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
+    JS::CompileOptions options(cx);
+    options.setUTF8(true);
+
+    js::RootedObject rgbl(cx, gbl);
+    JSScript *script = JS::Compile(cx, rgbl, options, data, strlen(data));
+
+    JS_SetOptions(cx, oldopts);
+
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
+        return 0;
+    }
+    
+    return 1;
 }
 
 int NativeJS::LoadScript(const char *filename)

@@ -42,6 +42,7 @@ class NativeJS
         NativeJS(int width, int height);
         ~NativeJS();
         
+        int LoadScriptContent(const char *data);
         int LoadScript(const char *filename);
         void callFrame();
         void rootObjectUntilShutdown(JSObject *obj);

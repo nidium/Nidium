@@ -65,6 +65,7 @@ int NativeEvents(NativeUIInterface *NUII)
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
                         NUII->NJS = new NativeJS(kNativeWidth, kNativeHeight);
+                        NUII->NJS->UI = NUII;
                         NUII->NJS->bindNetObject(NUII->gnet);
                         NUII->NJS->LoadScript("./main.js");
                         //SDL_GL_SwapBuffers();
@@ -102,6 +103,28 @@ int NativeEvents(NativeUIInterface *NUII)
         if (ttfps%20 == 0) {
             NUII->NJS->gc();
         }
+        if (NUII->currentCursor != NativeUIInterface::NOCHANGE) {
+            switch(NUII->currentCursor) {
+                case NativeUIInterface::ARROW:
+                    [[NSCursor arrowCursor] set];
+                    break;
+                case NativeUIInterface::BEAM:
+                    [[NSCursor IBeamCursor] set];
+                    break;
+                case NativeUIInterface::CROSS:
+                    [[NSCursor crosshairCursor] set];
+                    break;
+                case NativeUIInterface::POINTING:
+                    [[NSCursor pointingHandCursor] set];
+                    break;
+                case NativeUIInterface::CLOSEDHAND:
+                    [[NSCursor closedHandCursor] set];
+                    break;
+                default:
+                    break;
+            }
+            NUII->currentCursor = NativeUIInterface::NOCHANGE;
+        }
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
@@ -122,9 +145,9 @@ static int NativeProcessUI(void *arg)
 
 
 NativeUIInterface::NativeUIInterface() :
-	NJS(NULL)
+    currentCursor(NOCHANGE), NJS(NULL)
 {
-	/* Set the current working directory relative to the .app */
+    /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
 
     CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
@@ -138,7 +161,7 @@ NativeUIInterface::NativeUIInterface() :
 
 void NativeUIInterface::createWindow()
 {
-	SDL_GLContext contexteOpenGL;
+    SDL_GLContext contexteOpenGL;
     NSWindow *window;
 
     if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1)
@@ -158,12 +181,12 @@ void NativeUIInterface::createWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
     win = SDL_CreateWindow("Native - Running", 100, 100,
-    	kNativeWidth, kNativeHeight,
-    	SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+        kNativeWidth, kNativeHeight,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 
     if (win == NULL) {
-    	printf("Cant create window (SDL)\n");
-    	return;
+        printf("Cant create window (SDL)\n");
+        return;
     }
 
     SDL_SysWMinfo info;
@@ -187,7 +210,7 @@ void NativeUIInterface::createWindow()
 
     NJS = new NativeJS(kNativeWidth, kNativeHeight);
     NJS->UI = this;
-    
+
     gnet = native_netlib_init();
 
     /* Set ape_global private to the JSContext
@@ -199,14 +222,19 @@ void NativeUIInterface::createWindow()
 
 }
 
+void NativeUIInterface::setCursor(CURSOR_TYPE type)
+{
+    this->currentCursor = type;
+}
+
 void NativeUIInterface::setWindowTitle(const char *name)
 {
-	SDL_SetWindowTitle(win, name);
+    SDL_SetWindowTitle(win, (*name == '\0' ? "-" : name));
 }
 
 void NativeUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
     
-    events_loop(gnet);	
+    events_loop(gnet);  
 }
