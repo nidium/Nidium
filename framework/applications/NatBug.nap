@@ -431,6 +431,21 @@ NatBug.panes.push({
 			class : "__treePaneLabel__"
 		});
 
+
+		l.hoverize(
+			function(){
+				this.background = "rgba(255, 0, 0, 0.1)";
+				this.cursor = "pointer";
+				window.cursor = "pointer";
+			},
+
+			function(){
+				this.background = "";
+				this.cursor = "arrow";
+				window.cursor = "arrow";
+			}
+		);
+
 		this._addLine(container, l.height);
 
 		return l;

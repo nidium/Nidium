@@ -443,10 +443,27 @@ DOMElement.implement({
 	},
 
 	click : function(cb){
-		return this.addEventListener("mouseclick", function(e){
-			if (typeof cb == "function") cb.call(this, e);
-		}, false);
+		if (typeof cb == "function") {
+			this.addEventListener("mouseclick", cb, false);
+		} else {
+			this.fireEvent("mouseclick", {
+				x : window.mouseX,
+				y : window.mouseY
+			});
+		}
+		return this;
+	},
+
+	hoverize : function(cbOver, cbOut){
+		if (typeof cbOver == "function") {
+			this.addEventListener("mouseover", cbOver, false);
+		}
+		if (typeof cbOut == "function") {
+			this.addEventListener("mouseout", cbOut, false);
+		}
+		return this;
 	}
+
 });
 
 /* -- THREAD EVENT LISTENER ------------------------------------------------- */
