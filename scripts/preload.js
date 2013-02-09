@@ -14,3 +14,4 @@ document.createElement = function(type) {
 Canvas.prototype.appendChild = function(node) {
     this.add(node);
 }
+

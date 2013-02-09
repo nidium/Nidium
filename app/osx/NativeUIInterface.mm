@@ -103,6 +103,28 @@ int NativeEvents(NativeUIInterface *NUII)
         if (ttfps%20 == 0) {
             NUII->NJS->gc();
         }
+        if (NUII->currentCursor != NativeUIInterface::NOCHANGE) {
+            switch(NUII->currentCursor) {
+                case NativeUIInterface::ARROW:
+                    [[NSCursor arrowCursor] set];
+                    break;
+                case NativeUIInterface::BEAM:
+                    [[NSCursor IBeamCursor] set];
+                    break;
+                case NativeUIInterface::CROSS:
+                    [[NSCursor crosshairCursor] set];
+                    break;
+                case NativeUIInterface::POINTING:
+                    [[NSCursor pointingHandCursor] set];
+                    break;
+                case NativeUIInterface::CLOSEDHAND:
+                    [[NSCursor closedHandCursor] set];
+                    break;
+                default:
+                    break;
+            }
+            NUII->currentCursor = NativeUIInterface::NOCHANGE;
+        }
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
@@ -123,7 +145,7 @@ static int NativeProcessUI(void *arg)
 
 
 NativeUIInterface::NativeUIInterface() :
-    NJS(NULL)
+    currentCursor(NOCHANGE), NJS(NULL)
 {
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
@@ -198,6 +220,11 @@ void NativeUIInterface::createWindow()
 
     NJS->LoadScript("./main.js");
 
+}
+
+void NativeUIInterface::setCursor(CURSOR_TYPE type)
+{
+    this->currentCursor = type;
 }
 
 void NativeUIInterface::setWindowTitle(const char *name)
