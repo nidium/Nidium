@@ -11,6 +11,7 @@
 Native.layout = {
 	objID : 0,
 	nbObj : 0, // Number of elements
+	focusID : 0,
 
 	nodes : [], // May content several trees of elements
 	elements : [], // Flat representation of node trees
@@ -171,6 +172,46 @@ Native.layout = {
 			}
 		}
 		return element;
+	},
+
+	focusNextElement : function(){
+		var self = this,
+			z = this.elements;
+
+		this.focusID++;
+		if (this.focusID > this.nbObj-2) {
+			this.focusID = 0;
+		}
+
+		for (var i=z.length-1; i>=0; i--){
+			var element = z[i];
+			if (this.focusID == element._nid){
+				if (element.canReceiveFocus){
+					this.focus(element);
+				} else {
+					this.focusNextElement();
+				}
+			}
+		}
+	},
+
+	focus : function(element){
+		if (element.hasFocus === true) {
+			return false;
+		}
+		if (element.canReceiveFocus) {
+			/* Fire blur event on last focused element */
+			if (this.currentFocusedElement) {
+				this.currentFocusedElement.fireEvent("blur", {});
+				this.currentFocusedElement.hasFocus = false;
+			}
+
+			/* set this element as the new focused element */
+			element.hasFocus = true;
+			element.fireEvent("focus", {});
+			this.currentFocusedElement = element;
+			this.focusID = element._nid;
+		}
 	},
 
 	remove : function(element){

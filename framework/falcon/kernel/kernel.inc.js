@@ -119,6 +119,7 @@ Native.object = {
 	},
 
 	focus : function focus(){
+		Native.layout.focus(this);
 		return this;
 	},
 

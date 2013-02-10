@@ -405,6 +405,7 @@ NatBug.panes.push({
 			width : this.lineHeight+1,
 			height : this.lineHeight+1,
 			color : "rgba(0, 0, 0, 0.6)",
+			cursor : "pointer",
 			class : "__treePaneArrow__"
 		});
 
