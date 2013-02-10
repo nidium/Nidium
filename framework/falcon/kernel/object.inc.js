@@ -262,6 +262,52 @@ DOMElement.prototype = {
 		return this.nodes.length>0;
 	},
 
+	/* -- Generic Events -- */
+	
+	onbeforecopy : null,
+	onbeforecut : null,
+	onbeforepaste : null,
+	oncopy : null,
+	oncut : null,
+	onpaste : null,
+	onselect : null,
+	onselectstart : null,
+
+	onblur : null, /* implemented */
+	onfocus : null, /* implemented */
+
+	onchange : null, /* implemented */
+	oncontextmenu : null,
+
+	ondrag : null, /* implemented */
+	ondragend : null, /* implemented */
+	ondragenter : null, /* implemented */
+	ondragleave : null, /* implemented */
+	ondragover : null, /* implemented */
+	ondragstart : null, /* implemented */
+	ondrop : null, /* implemented */
+
+	onkeydown : null, /* implemented */
+	onkeypress : null, /* implemented */
+	onkeyup : null, /* implemented */
+	ontextinput : null, /* implemented */
+	onload : null, /* implemented */
+
+	onmouseclick : null, /* implemented */
+	onmousedblclick : null, /* implemented */
+	onmousedown : null, /* implemented */
+	onmousemove : null, /* implemented */
+	onmouseout : null, /* implemented */
+	onmouseover : null, /* implemented */
+	onmouseup : null, /* implemented */
+	onmousewheel : null, /* implemented */
+
+	onreset : null,
+	onerror : null,
+	onsubmit : null,
+
+	onscroll : null,
+
 	/* -- user customisable methods -- */
 
 	update : function(context){},

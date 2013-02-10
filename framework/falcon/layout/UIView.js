@@ -449,26 +449,28 @@ Native.elements.export("UIView", {
 		context.setShadow(0, 0, 0);
 
 		if (this._cachedBackgroundImage) {
-			context.save();
-				DOMElement.draw.box(this, context, params);
-				context.clipbox(
-					params.x, params.y,
-					params.w, params.h,
-					this.radius
-				);
-				context.clip();
+			if (true === false){
+				context.save();
+					context.clipbox(
+						params.x, params.y,
+						params.w, params.h,
+						this.radius
+					);
+					context.clip();
+		
+					context.drawImage(
+						this._cachedBackgroundImage,
+						params.x, params.y
+					);
+					
+				context.restore();
+			} else {
 				var pattern = context.createPattern(
 					this._cachedBackgroundImage,
 					"repeat"
 				);
 				DOMElement.draw.box(this, context, params, pattern);
-				/*
-				context.drawImage(
-					this._cachedBackgroundImage,
-					params.x, params.y
-				);
-				*/
-			context.restore();
+			}
 		}
 
 	}
