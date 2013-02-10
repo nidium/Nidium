@@ -475,3 +475,23 @@ Native.elements.export("UIView", {
 
 	}
 });
+
+var TextNode = function(text){
+	var options = {
+		label : text,
+		color : "#888888"
+	};
+
+	var element = new DOMElement("UILabel", options, null);
+
+	DOMElement.defineReadOnlyProperties(element, {
+		isTextNode : function(){
+			return true;
+		}
+	});
+
+	echo(element.previousSibling)
+
+	return element;
+};
+

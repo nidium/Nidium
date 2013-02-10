@@ -437,13 +437,10 @@ DOMElement.listeners = {
 	addHovers : function(element){
 		element.addEventListener("mouseover", function(e){
 			this.hover = true;
-//			this._oldcursor = window.cursor;
-//			window.cursor = this.cursor;
 		});
 
 		element.addEventListener("mouseout", function(e){
 			this.hover = false;
-//			if (this._oldcursor) window.cursor = this._oldcursor;
 		});
 	}
 };
