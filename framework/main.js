@@ -26,7 +26,7 @@ load("falcon/native.js");
 
 
 //load("applications/demos/buttons.js");
-//load("applications/demos/test.js");
+load("applications/demos/test.js");
 
 //load("testLayer.js");
 

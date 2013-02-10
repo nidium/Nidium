@@ -2,6 +2,8 @@
 #include "NativeJS.h"
 #include "NativeUIInterface.h"
 
+#define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
+
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
@@ -67,7 +69,6 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     return JS_TRUE;
 }
 
-
 static JSClass window_class = {
     "Window", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -80,6 +81,19 @@ static JSFunctionSpec window_funcs[] = {
     JS_FS_END
 };
 
+void NativeJSwindow::registerObject(JSContext *cx)
+{
+    JSObject *windowObj;
+    windowObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "window",
+        &window_class , NULL, 0);
+    JS_DefineFunctions(cx, windowObj, window_funcs);
+    JS_DefineProperties(cx, windowObj, window_props);
 
-NATIVE_OBJECT_EXPOSE_NOT_INST(window)
+    jsval val = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("binary")));
+
+    if (JS_SetProperty(cx, windowObj, "title", &val) == JS_FALSE) {
+        printf("cant set\n");
+    }
+}
 

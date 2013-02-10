@@ -39,16 +39,16 @@ class NativeJS
         bool shutdown;
         struct _ape_htable *rootedObj;
 
-        NativeJS(int width, int height);
+        NativeJS(int width, int height, NativeUIInterface *inUI);
         ~NativeJS();
         
+        void Loaded();
         int LoadScriptContent(const char *data);
         int LoadScript(const char *filename);
         void callFrame();
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
         void postDraw();
-        void bufferSound(int16_t *data, int len);
         void mouseWheel(int xrel, int yrel, int x, int y);
         void mouseMove(int x, int y, int xrel, int yrel);
         void mouseClick(int x, int y, int state, int button);

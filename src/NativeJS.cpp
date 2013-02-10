@@ -289,9 +289,9 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_onmousewheel", &onwheel) &&
         !JSVAL_IS_PRIMITIVE(onwheel) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
 
@@ -318,10 +318,10 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
-        (state ? "onkeydown" : "onkeyup"), &onkeyupdown) &&
+        (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
         !JSVAL_IS_PRIMITIVE(onkeyupdown) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onkeyupdown))) {
 
@@ -344,9 +344,9 @@ void NativeJS::textInput(const char *data)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "ontextinput", &ontextinput) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_ontextinput", &ontextinput) &&
         !JSVAL_IS_PRIMITIVE(ontextinput) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ontextinput))) {
 
@@ -374,10 +374,10 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
-        (state ? "onmousedown" : "onmouseup"), &onclick) &&
+        (state ? "_onmousedown" : "_onmouseup"), &onclick) &&
         !JSVAL_IS_PRIMITIVE(onclick) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclick))) {
 
@@ -404,9 +404,9 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousemove", &onmove) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_onmousemove", &onmove) &&
         !JSVAL_IS_PRIMITIVE(onmove) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmove))) {
 
@@ -477,7 +477,22 @@ void NativeJS::unrootObject(JSObject *obj)
     hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
-NativeJS::NativeJS(int width, int height)
+void NativeJS::Loaded()
+{
+    jsval canvas, onready, rval;
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onready", &onready) &&
+        !JSVAL_IS_PRIMITIVE(onready) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onready))) {
+
+        JS_CallFunctionValue(cx, JSVAL_TO_OBJECT(canvas), onready, 0, NULL, &rval);
+    }
+
+}
+
+NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
 {
     JSRuntime *rt;
     JSObject *gbl;
@@ -536,7 +551,7 @@ NativeJS::NativeJS(int width, int height)
 
     //JS_DefineProfilingFunctions(cx, gbl);
 
-    JS_SetGCCallback(rt, gccb);
+    //JS_SetGCCallback(rt, gccb);
     JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
@@ -544,6 +559,8 @@ NativeJS::NativeJS(int width, int height)
 
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
+
+    this->UI = inUI;
 
     /* surface contains the window frame buffer */
 
@@ -554,14 +571,11 @@ NativeJS::NativeJS(int width, int height)
 
     JS_SetRuntimePrivate(rt, this);
 
-
     LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();
 
-    this->UI = NULL;
-
-    this->LoadScriptContent(preload_js);
+    //this->LoadScriptContent(preload_js);
 
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
@@ -607,18 +621,6 @@ NativeJS::~NativeJS()
 
     delete messages;
     hashtbl_free(rootedObj);
-}
-
-void NativeJS::bufferSound(int16_t *data, int len)
-{
-    jsval canvas, onwheel;
-
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
-        !JSVAL_IS_PRIMITIVE(onwheel) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
-
-       // JS_CallFunctionValue(cx, event, onwheel, 0, NULL, &rval);
-    }
 }
 
 static int Native_handle_messages(void *arg)

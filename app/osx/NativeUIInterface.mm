@@ -64,10 +64,10 @@ int NativeEvents(NativeUIInterface *NUII)
                         glClearColor(1, 1, 1, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
-                        NUII->NJS = new NativeJS(kNativeWidth, kNativeHeight);
-                        NUII->NJS->UI = NUII;
+                        NUII->NJS = new NativeJS(kNativeWidth, kNativeHeight, NUII);
                         NUII->NJS->bindNetObject(NUII->gnet);
                         NUII->NJS->LoadScript("./main.js");
+                        NUII->NJS->Loaded();
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -208,8 +208,7 @@ void NativeUIInterface::createWindow()
 
     glViewport(0, 0, kNativeWidth, kNativeHeight);
 
-    NJS = new NativeJS(kNativeWidth, kNativeHeight);
-    NJS->UI = this;
+    NJS = new NativeJS(kNativeWidth, kNativeHeight, this);
 
     gnet = native_netlib_init();
 
@@ -220,6 +219,7 @@ void NativeUIInterface::createWindow()
 
     NJS->LoadScript("./main.js");
 
+    NJS->Loaded();
 }
 
 void NativeUIInterface::setCursor(CURSOR_TYPE type)

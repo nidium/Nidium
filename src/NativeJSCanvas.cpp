@@ -346,24 +346,24 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_WIDTH:
         {
-            double dval;
+            uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            JS_ValueToECMAUint32(cx, vp, &dval);
 
-            handler->setWidth((int)dval);
+            handler->setWidth(dval);
         }
         break;
         case CANVAS_PROP_HEIGHT:
         {
-            double dval;
+            uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            JS_ValueToECMAUint32(cx, vp, &dval);
             
-            handler->setHeight((int)dval);
+            handler->setHeight(dval);
         }
         break;
         case CANVAS_PROP_LEFT:
@@ -388,22 +388,26 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_SCROLLLEFT:
         {
-            double dval;
+            int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
-            handler->setScrollLeft((int)dval);
+
+            JS_ValueToECMAInt32(cx, vp, &dval);
+
+            handler->setScrollLeft(dval);
         }
         break;
         case CANVAS_PROP_SCROLLTOP:
         {
-            double dval;
+            int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
-            handler->setScrollTop((int)dval);
+
+            JS_ValueToECMAInt32(cx, vp, &dval);
+
+            handler->setScrollTop(dval);
         }
         break;
         case CANVAS_PROP_VISIBLE:
@@ -426,13 +430,13 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_PADDING:
         {
-            double dval;
+            int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+             JS_ValueToECMAInt32(cx, vp, &dval);
 
-            handler->setPadding((int)dval);
+            handler->setPadding(dval);
         }
         break;
         case CANVAS_PROP_OPACITY:
