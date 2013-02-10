@@ -1,4 +1,4 @@
-#import "NativeUIInterface.h"
+#import "NativeCocoaUIInterface.h"
 #import <NativeJS.h>
 #import <NativeSkia.h>
 #import <SDL2/SDL.h>
@@ -7,13 +7,23 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
+
 #define kNativeWidth 1024
-#define kNativeHeight 760
+#define kNativeHeight 768
 #define kNativeVSYNC 0
 
 uint32_t ttfps = 0;
 
-int NativeEvents(NativeUIInterface *NUII)
+static NSWindow *NativeCocoaWindow(SDL_Window *win)
+{
+    SDL_SysWMinfo info;
+    SDL_VERSION(&info.version);
+    SDL_GetWindowWMInfo(win, &info);
+
+    return (NSWindow *)info.info.cocoa.window;
+}
+
+int NativeEvents(NativeCocoaUIInterface *NUII)
 {   
     SDL_Event event;
 
@@ -103,27 +113,27 @@ int NativeEvents(NativeUIInterface *NUII)
         if (ttfps%20 == 0) {
             NUII->NJS->gc();
         }
-        if (NUII->currentCursor != NativeUIInterface::NOCHANGE) {
+        if (NUII->currentCursor != NativeCocoaUIInterface::NOCHANGE) {
             switch(NUII->currentCursor) {
-                case NativeUIInterface::ARROW:
+                case NativeCocoaUIInterface::ARROW:
                     [[NSCursor arrowCursor] set];
                     break;
-                case NativeUIInterface::BEAM:
+                case NativeCocoaUIInterface::BEAM:
                     [[NSCursor IBeamCursor] set];
                     break;
-                case NativeUIInterface::CROSS:
+                case NativeCocoaUIInterface::CROSS:
                     [[NSCursor crosshairCursor] set];
                     break;
-                case NativeUIInterface::POINTING:
+                case NativeCocoaUIInterface::POINTING:
                     [[NSCursor pointingHandCursor] set];
                     break;
-                case NativeUIInterface::CLOSEDHAND:
+                case NativeCocoaUIInterface::CLOSEDHAND:
                     [[NSCursor closedHandCursor] set];
                     break;
                 default:
                     break;
             }
-            NUII->currentCursor = NativeUIInterface::NOCHANGE;
+            NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
@@ -140,15 +150,17 @@ int NativeEvents(NativeUIInterface *NUII)
 
 static int NativeProcessUI(void *arg)
 {
-    return NativeEvents((NativeUIInterface *)arg);
+    return NativeEvents((NativeCocoaUIInterface *)arg);
 }
 
 
-NativeUIInterface::NativeUIInterface() :
-    currentCursor(NOCHANGE), NJS(NULL)
+NativeCocoaUIInterface::NativeCocoaUIInterface()
 {
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
+
+    this->currentCursor = NOCHANGE;
+    this->NJS = NULL;
 
     CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
     CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
@@ -159,7 +171,7 @@ NativeUIInterface::NativeUIInterface() :
     CFRelease(url2);
 }
 
-void NativeUIInterface::createWindow()
+void NativeCocoaUIInterface::createWindow()
 {
     SDL_GLContext contexteOpenGL;
     NSWindow *window;
@@ -189,15 +201,23 @@ void NativeUIInterface::createWindow()
         return;
     }
 
-    SDL_SysWMinfo info;
-    SDL_VERSION(&info.version);
-    SDL_GetWindowWMInfo(win, &info);
+    window = NativeCocoaWindow(win);
 
-    window = (NSWindow *)info.info.cocoa.window;
+    [window setCollectionBehavior:
+             NSWindowCollectionBehaviorFullScreenPrimary];
 
-    [(NSWindow *)info.info.cocoa.window setFrameAutosaveName:@"nativeMainWindow"];
+    
+    initControls();
+
+    //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
+
+    //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
+
+    [window setFrameAutosaveName:@"nativeMainWindow"];
 
     //[window setStyleMask:NSTitledWindowMask|NSBorderlessWindowMask];
+    //[window setOpaque:NO]; // YES by default
+    //[window setAlphaValue:0.5];
 
     contexteOpenGL = SDL_GL_CreateContext(win);
     SDL_StartTextInput();
@@ -222,17 +242,86 @@ void NativeUIInterface::createWindow()
     NJS->Loaded();
 }
 
-void NativeUIInterface::setCursor(CURSOR_TYPE type)
+void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)
 {
     this->currentCursor = type;
 }
 
-void NativeUIInterface::setWindowTitle(const char *name)
+void NativeCocoaUIInterface::setWindowTitle(const char *name)
 {
     SDL_SetWindowTitle(win, (*name == '\0' ? "-" : name));
 }
 
-void NativeUIInterface::runLoop()
+void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
+    uint8_t b, uint8_t a)
+{
+    NSWindow *window = NativeCocoaWindow(win);
+    NSUInteger mask = [window styleMask];
+
+    if ((mask & NSTexturedBackgroundWindowMask) == 0) {
+        [window setStyleMask:mask|NSTexturedBackgroundWindowMask];
+        [window setMovableByWindowBackground:NO];
+        [window setOpaque:NO];
+    }
+
+    [window setBackgroundColor:[NSColor
+        colorWithSRGBRed:((double)r)/255.
+                   green:((double)g)/255.
+                    blue:((double)b)/255.
+                   alpha:((double)a)/255]];
+}
+
+void NativeCocoaUIInterface::initControls()
+{
+    NSWindow *window = NativeCocoaWindow(win);
+    NSButton *close = [window standardWindowButton:NSWindowCloseButton];
+    NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
+    NSButton *max = [window standardWindowButton:NSWindowZoomButton];
+
+    memset(&this->controls, 0, sizeof(CGRect));
+
+    if (close) {
+        this->controls.closeFrame = close.frame;
+    }
+    if (min) {
+        this->controls.minFrame = min.frame;
+    }
+    if (max) {
+        this->controls.zoomFrame = max.frame;
+    }
+}
+
+void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
+{
+    NSWindow *window = NativeCocoaWindow(win);
+    NSButton *close = [window standardWindowButton:NSWindowCloseButton];
+    NSButton *min = [window standardWindowButton:NSWindowMiniaturizeButton];
+    NSButton *max = [window standardWindowButton:NSWindowZoomButton];
+
+    if (close) {
+        [close setFrame:CGRectMake(
+            this->controls.closeFrame.origin.x+x,
+            this->controls.closeFrame.origin.y-y,
+            this->controls.closeFrame.size.width,
+            this->controls.closeFrame.size.height)];
+    }
+    if (min) {
+        [min setFrame:CGRectMake(
+            this->controls.minFrame.origin.x+x,
+            this->controls.minFrame.origin.y-y,
+            this->controls.minFrame.size.width,
+            this->controls.minFrame.size.height)];
+    }
+    if (max) {
+        [max setFrame:CGRectMake(
+            this->controls.zoomFrame.origin.x+x,
+            this->controls.zoomFrame.origin.y-y,
+            this->controls.zoomFrame.size.width,
+            this->controls.zoomFrame.size.height)];
+    }
+}
+
+void NativeCocoaUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
     
