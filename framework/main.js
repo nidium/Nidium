@@ -5,7 +5,7 @@
 /* -------------------------------------- */
 
 /* -- Falcon Framework ------------------ */
-load("preload.js");
+load("../scripts/preload.js");
 load("falcon/native.js");
 //load("applications/demos/hello.js");
 //load("applications/demos/motion.js");

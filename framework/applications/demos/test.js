@@ -2,8 +2,6 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-
-
 var body = new Application();
 body.className = "body";
 
@@ -33,7 +31,6 @@ body.add("UIButton").click(function(){
 	body.addChild(div);
 	echo(div.rooted);
 });
-
 
 window.onready = function(){
 	echo("OK, context is ready")

@@ -1,3 +1,7 @@
+/* ------------------------+------------- */
+/* Native Preloader 1.0    | Falcon Build */
+/* ------------------------+------------- */
+
 var document = {
     body: Native.canvas
 };
