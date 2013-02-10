@@ -188,6 +188,7 @@ Native.layout = {
 			if (this.focusID == element._nid){
 				if (element.canReceiveFocus){
 					this.focus(element);
+					break;
 				} else {
 					this.focusNextElement();
 				}

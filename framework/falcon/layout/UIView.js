@@ -82,53 +82,52 @@ Native.elements.export("UIView", {
 			return this.scrollbars ? this.layer.contentHeight - this.height : 0;
 		};
 
+		var showScrollBar = function(UIScrollBar){
+			UIScrollBar.cancelCurrentAnimations("opacity");
+			UIScrollBar._fading = false;
+			UIScrollBar.opacity = 1;
+			UIScrollBar.show();
+			UIScrollBar.bringToFront();
+		};
+
+		var hideScrollBar = function(UIScrollBar){
+			UIScrollBar.fadeOut(250, function(){
+				this.hide();
+				this.sendToBack();
+				this._fading = false;
+			});
+		};
+
+		var scheduler = function(timer, UIScrollBar){
+			if (UIScrollBar._fading) return false;
+
+			UIScrollBar._fading = true;
+			
+			clearTimeout(self[timer]);
+			
+			self[timer] = setTimeout(function(){
+				hideScrollBar(UIScrollBar);
+			}, scrollBarHideDelay);
+		};
+
 		this.updateScrollTop = function(dy){
+			var UIScrollBar = this.VScrollBar;
+
 			if (this.height / this.contentHeight < 1) {
-				this.VScrollBar.cancelCurrentAnimations("opacity");
-				this.VScrollBar._fading = false;
-				this.VScrollBar.opacity = 1;
-				this.VScrollBar.show();
-				this.VScrollBar.bringToFront();
-	
+				showScrollBar(UIScrollBar);
 				this.scrollContentY(-dy * 4, function(){
-
-					if (!self.VScrollBar._fading) {
-						self.VScrollBar._fading = true;
-						clearTimeout(self._scrollYfadeScheduler);
-						self._scrollYfadeScheduler = setTimeout(function(){
-							self.VScrollBar.fadeOut(250, function(){
-								this.hide();
-								this.sendToBack();
-								self.VScrollBar._fading = false;
-							});
-						}, scrollBarHideDelay);
-					}
-
+					scheduler("_scrollYfadeTimer", UIScrollBar);
 				});
 			}
 		};
 
 		this.updateScrollLeft = function(dx){
-			if (this.width / this.contentWidth < 1) {
-				this.HScrollBar.cancelCurrentAnimations("opacity");
-				this.HScrollBar._fading = false;
-				this.HScrollBar.opacity = 1;
-				this.HScrollBar.show();
-				this.HScrollBar.bringToFront();
-	
-				this.scrollContentX(-dx * 4, function(){
+			var UIScrollBar = this.HScrollBar;
 
-					if (!self.HScrollBar._fading) {
-						self.HScrollBar._fading = true;
-						clearTimeout(self._scrollXfadeScheduler);
-						self._scrollXfadeScheduler = setTimeout(function(){
-							self.HScrollBar.fadeOut(250, function(){
-								this.hide();
-								this.sendToBack();
-								self.HScrollBar._fading = false;
-							});
-						}, scrollBarHideDelay);
-					}
+			if (this.width / this.contentWidth < 1) {
+				showScrollBar(UIScrollBar);
+				this.scrollContentX(-dx * 4, function(){
+					scheduler("_scrollXfadeTimer", UIScrollBar);
 				});
 			}
 		};
