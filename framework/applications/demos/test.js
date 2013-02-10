@@ -15,8 +15,6 @@ div.textContent = "the brown fox sugar";
 body.addChild(div);
 
 
-http
-
 var t1 = new TextNode("The quick brown ");
 var t2 = new TextNode("fox");
 var t3 = new TextNode(" jumps over the lazy dog.");
@@ -33,7 +31,7 @@ body.add("UIButton").click(function(){
 });
 
 window.onready = function(){
-	echo("OK, context is ready")
+	echo("OK, context is ready");
 };
 
 

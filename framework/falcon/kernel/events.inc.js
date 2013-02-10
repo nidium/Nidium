@@ -498,33 +498,33 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 
-Native.onmousedown = function(e){
+window._onmousedown = function(e){
 	Native.events.mousedownEvent(e);
 };
 
-Native.onmousemove = function(e){
+window._onmousemove = function(e){
 	Native.events.mousemoveEvent(e);
 };
 
-Native.onmousewheel = function(e){
+window._onmousewheel = function(e){
 	Native.events.mousewheelEvent(e);
 };
 
-Native.onmouseup = function(e){
+window._onmouseup = function(e){
 	Native.events.mouseupEvent(e);
 };
 
 /* -- KEYBOARD EVENTS ------------------------------------------------------- */
 
-Native.onkeydown = function(e){
+window._onkeydown = function(e){
 	Native.events.keydownEvent(e);
 };
 
-Native.onkeyup = function(e){
+window._onkeyup = function(e){
 	Native.events.keyupEvent(e);
 };
 
-Native.ontextinput = function(e){
+window._ontextinput = function(e){
 	Native.events.textinputEvent(e);
 };
 
