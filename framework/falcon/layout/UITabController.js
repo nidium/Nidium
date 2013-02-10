@@ -71,15 +71,19 @@ Native.elements.export("UITabController", {
 		};
 
 		this.hideTarget = function(){
-			var i = this.currentIndex;
-			if (!isDOMElement(this.tabs[i].target)) return false;
-			this.tabs[i].target.hide();
+			var i = this.currentIndex,
+				target = this.tabs[i] ? this.tabs[i].target : null;
+
+			if (!target || !isDOMElement(target)) return false;
+			target.hide();
 		};
 
 		this.showTarget = function(){
-			var i = this.currentIndex;
-			if (!isDOMElement(this.tabs[i].target)) return false;
-			this.tabs[i].target.show();
+			var i = this.currentIndex,
+				target = this.tabs[i] ? this.tabs[i].target : null;
+
+			if (!target || !isDOMElement(target)) return false;
+			target.show();
 		};
 
 		this.selectTabAtIndex = function(index){
@@ -370,13 +374,14 @@ Native.elements.export("UITabController", {
 				nx = next ? next.__left : null,
 				px = prev ? prev.__left : null;
 
+			window.cursor = "drag";
+
 			if (cx + dx < controller.__left) {
 				curr.left = controller.left;
 			} else if (cx + cw + dx > controller.__left + controller.width){
 				curr.left = controller.width - cw;
 			} else {
 				curr.left += dx;
-				window.cursor = "drag";
 			}
 
 			if (next && dx>0 && cx+cw > (nx+next.width/2)){

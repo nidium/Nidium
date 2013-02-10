@@ -242,6 +242,7 @@ Native.events = {
 			} else {
 				element.fireEvent("mouseout", e);
 				element.fireEvent("mouseleave", e);
+				window.cursor = "arrow";
 				return true;
 			}
 		}
