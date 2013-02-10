@@ -107,7 +107,7 @@ var DOMElement = function(type, options, parent){
 	/* Internal Hidden Properties */
 	DOMElement.defineInternalProperties(this, {
 		private : {},
-		_root : p ? p._root : this,
+		_root : p ? p._root : null,
 		_nid : Native.layout.objID++,
 		_uid : "_obj_" + Native.layout.objID,
 		_eventQueues : [],
@@ -262,8 +262,20 @@ DOMElement.prototype = {
 		return this.nodes.length>0;
 	},
 
+	get hasOwnerDocument() {
+		return this._root !== null;
+	},
+
+	get orphaned() {
+		return this.parent === null && this._root === null;
+	},
+
+	get rooted() {
+		return !this.orphaned;
+	},
+
 	/* -- Generic Events -- */
-	
+
 	onbeforecopy : null,
 	onbeforecut : null,
 	onbeforepaste : null,

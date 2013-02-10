@@ -160,6 +160,7 @@ Native.object = {
 
 		if (!this.firstChild) this.firstChild = element;
 		this.lastChild = element;
+
 		element._root = this._root;
 		element.parent = this;
 		element.parent.layer.add(element.layer);

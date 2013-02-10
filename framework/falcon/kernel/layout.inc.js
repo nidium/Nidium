@@ -33,11 +33,14 @@ Native.layout = {
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i]._needRefresh){
-				z[i].refresh();
-			} else {
-				z[i].__left = z[i].layer.__left;
-				z[i].__top = z[i].layer.__top;
+			var element = z[i];
+			if (element.hasOwnerDocument){
+				if (element._needRefresh){
+					element.refresh();
+				} else {
+					element.__left = element.layer.__left;
+					element.__top = element.layer.__top;
+				}
 			}
 		}
 
@@ -236,6 +239,7 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 	options.outlineOnFocus = false;
 
 	var element = new DOMElement("UIView", options, null);
+	element._root = element;
 
 	Native.canvas.add(element.layer);
 	Native.layout.register(element);

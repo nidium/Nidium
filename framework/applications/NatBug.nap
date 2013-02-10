@@ -459,8 +459,14 @@ NatBug.panes.push({
 		return l;
 	},
 
-	insertOpeningTag : function(element, container){
+	getTagColor : function(element){
 		var color = element.layer.__visible ? "#000066" : "#888899";
+		color = !element.hasOwnerDocument ? "#ff8888" : color;
+		return color;
+	},
+
+	insertOpeningTag : function(element, container){
+		var color = this.getTagColor(element);
 		var attr = [],
 			tag = '<';
 
@@ -490,7 +496,7 @@ NatBug.panes.push({
 	},
 
 	insertClosingTag : function(element, container){
-		var color = element.layer.__visible ? "#000066" : "#888899";
+		var color = this.getTagColor(element);
 		return this.log(
 			'</' + (element.type.replace("UI", '').toLowerCase()) + '>',
 			color,
