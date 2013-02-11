@@ -568,11 +568,14 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 { 
     SkShader *shader;
 
-    shader = SkShader::CreateBitmapShader(pattern->jsimg->img->img,
-        SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
+    if (pattern->jsimg->img->fixedImg != NULL) {
 
-    PAINT->setColor(SK_ColorBLACK);
-    PAINT->setShader(shader);    
+        shader = pattern->jsimg->img->fixedImg->newShader(
+            SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
+
+        PAINT->setColor(SK_ColorBLACK);
+        PAINT->setShader(shader);
+    }
 }
 
 void NativeSkia::setFillColor(NativeSkGradient *gradient)
@@ -1062,7 +1065,6 @@ void NativeSkia::setLineJoin(const char *joinStyle)
     } else {
         PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
     }
-    
 }
 
 void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
@@ -1071,19 +1073,21 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
+        SkBitmap bitmapImage;
+
         image->canvasRef->readPixels(
             SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
-            &image->img);
+            &bitmapImage);
+        canvas->drawBitmap(bitmapImage, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            PAINT);
+
+    } else if (image->fixedImg != NULL) {
+        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            PAINT);     
     }
 
-    if (image->fixedImg != NULL) {
-        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);
-    } else {
-        canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);
-    }
     PAINT->setColor(old);
+    
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }
@@ -1099,15 +1103,12 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
+        SkBitmap bitmapImage;
         image->canvasRef->readPixels(SkIRect::MakeSize(
             image->canvasRef->getDeviceSize()),
-            &image->img);
+            &bitmapImage);
     }
 
-    if (!image->img.hasMipMap()) {
-        printf("build mipmap\n");
-        image->img.buildMipMap();
-    }
     canvas->drawBitmapRect(image->img, NULL, r, PAINT);
 
     PAINT->setColor(old);
