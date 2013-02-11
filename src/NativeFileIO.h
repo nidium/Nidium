@@ -1,6 +1,8 @@
 #ifndef nativefileio_h__
 #define nativefileio_h__
 
+#include "NativeIStreamer.h"
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -8,7 +10,7 @@
 class NativeSharedMessages;
 class NativeFileIODelegate;
 
-class NativeFileIO
+class NativeFileIO : public NativeIStreamer
 {
 public:
 

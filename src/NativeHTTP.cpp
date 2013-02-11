@@ -326,6 +326,8 @@ void NativeHTTP::stopRequest()
             ape_array_destroy(http.headers.list);
         }
 
+        if (http.data) buffer_destroy(http.data);
+
         http.data = NULL;
         http.headers.tval = NULL;
         http.headers.tkey = NULL;
@@ -350,6 +352,9 @@ void NativeHTTP::requestEnded()
             ape_array_destroy(http.headers.list);
         }
 
+        if (http.data) {
+            buffer_destroy(http.data);
+        }
         http.data = NULL;
         http.headers.tval = NULL;
         http.headers.tkey = NULL;

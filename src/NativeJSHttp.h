@@ -11,7 +11,7 @@ class NativeJSHttp : public NativeJSExposer, public NativeHTTPDelegate
   public:
     static void registerObject(JSContext *cx);
     NativeJSHttp();
-    ~NativeJSHttp();
+    virtual ~NativeJSHttp();
 
     jsval request;
     NativeHTTP *refHttp;

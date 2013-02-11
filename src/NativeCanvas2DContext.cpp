@@ -581,6 +581,7 @@ static JSBool native_canvas2dctx_putImageData(JSContext *cx,
     return JS_TRUE;
 }
 
+/* TODO: clamp max size */
 static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     unsigned argc, jsval *vp)
 {
