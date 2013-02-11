@@ -17,7 +17,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             INTERFACE_UNKNOWN
         } IInterface;
         NativeStream(ape_global *net, const char *location);
-        ~NativeStream();
+        virtual ~NativeStream();
         const char *getLocation() const { return this->location; }
 
         void getContent();

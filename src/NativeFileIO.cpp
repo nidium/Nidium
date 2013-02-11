@@ -214,7 +214,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
     pthread_mutex_init(&threadMutex, NULL);
     pthread_cond_init(&threadCond, NULL);
-    printf("running thread\n");
+
     pthread_create(&threadHandle, NULL, native_fileio_thread, this);
 
     pthread_mutex_lock(&threadMutex);
@@ -225,14 +225,12 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 NativeFileIO::~NativeFileIO()
 {
     action.stop = true;
-    printf("Destroying file IO\n");
 
     pthread_mutex_lock(&threadMutex);
     pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
 
     pthread_join(threadHandle, NULL);
-
     del_timer(&this->net->timersng, this->timer);
     delete messages;
     free(filename);

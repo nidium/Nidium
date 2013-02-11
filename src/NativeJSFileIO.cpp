@@ -320,7 +320,7 @@ void NativeJSFileIO::onNFIOOpen(NativeFileIO *NSFIO)
 
 void NativeJSFileIO::onNFIOError(NativeFileIO *NSFIO, int errno)
 {
-    jsval rval;
+    //jsval rval;
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
 
     /*JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.open,

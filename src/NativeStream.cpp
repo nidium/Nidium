@@ -39,7 +39,7 @@ NativeIStreamer *NativeStream::getInterface()
             return interface;
         }
     }
-    
+
     /* Default : use file */
     setInterface(INTERFACE_FILE);
 
@@ -97,10 +97,10 @@ void NativeStream::onNFIOError(NativeFileIO *NFIO, int errno)
 
 void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
 {
+    NFIO->close();
     if (this->delegate) {
         this->delegate->onGetContent((const char *)data, len);
     }
-    NFIO->close();
 }
 
 void NativeStream::onNFIOWrite(NativeFileIO *NFIO, size_t written)
@@ -133,4 +133,7 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 NativeStream::~NativeStream()
 {
     free(location);
+    if (this->interface) {
+        delete this->interface;
+    }
 }

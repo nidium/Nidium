@@ -42,6 +42,9 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                 NativeStream *stream = new NativeStream(
                         (ape_global *)JS_GetContextPrivate(cx),
                         imgPath.ptr());
+
+                nimg->stream = stream;
+
                 stream->setDelegate(nimg);
                 stream->getContent();
             
@@ -99,11 +102,21 @@ NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)
     return NATIVE_IMAGE_GETTER(obj)->img;
 }
 
+static int delete_stream(void *arg)
+{
+    NativeStream *stream = (NativeStream *)arg;
+
+    delete stream;
+
+    return 0;
+}
+
 void NativeJSImage::onGetContent(const char *data, size_t len)
 {
     jsval rval, onload_callback;
     NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
     img = ImageObject;
+    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_DefineProperty(cx, jsobj, "width",
         INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
@@ -119,7 +132,10 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         JS_CallFunctionValue(cx, jsobj, onload_callback,
             0, NULL, &rval);
     }
-    NativeJSObj(cx)->unrootObject(jsobj);    
+    NativeJSObj(cx)->unrootObject(jsobj);
+
+    timer_dispatch_async(delete_stream, stream);
+    stream = NULL;
 }
 
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
@@ -153,7 +169,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 NativeJSImage::NativeJSImage() :
     img(NULL), jsobj(NULL)
 {
-    //httpref = NULL;
+    stream = NULL;
 }
 
 NativeJSImage::~NativeJSImage()
@@ -161,9 +177,9 @@ NativeJSImage::~NativeJSImage()
     if (img != NULL) {
         delete img;
     }
-    /*if (httpref) {
-        delete httpref;
-    }*/
+    if (stream) {
+        delete stream;
+    }
 }
 
 NATIVE_OBJECT_EXPOSE(Image)

@@ -4,7 +4,8 @@
 
 class NativeIStreamer
 {
-    
+public:
+    virtual ~NativeIStreamer(){};
 };
 
 
