@@ -523,13 +523,13 @@ DOMElement.draw = {
 
 	},
 
-	box : function(element, context, params, backgroundColor){
+	box : function(element, context, params, backgroundColor, borderColor){
 		context.roundbox(
 			params.x, params.y, 
 			params.w, params.h, 
 			element.radius,
 			backgroundColor ? backgroundColor : element.background,
-			false
+			borderColor ? borderColor : element.border
 		);
 	},
 

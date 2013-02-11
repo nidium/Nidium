@@ -107,7 +107,7 @@ Native.elements.export("UIModal", {
 
 			this.animate(
 				"opacity", 0, 1,
-				350, null,
+				2350, null,
 				Math.physics.quadIn
 			);
 			this.contentView.fadeIn(150, function(){

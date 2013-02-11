@@ -17,6 +17,8 @@ load("falcon/native.js");
 //load("applications/demos/sliders.js");
 //load("applications/demos/scrollbars.js");
 //load("applications/demos/modal.js");
+//load("applications/demos/threads.js");
+load("applications/demos/tooltips.js");
 
 //load("applications/demos/splines.js");
 //load("applications/demos/diagrams.js");

@@ -116,7 +116,7 @@ Native.elements.export("UITab", {
 			if (this.selected){
 				context.setShadow(0, 0, 2, this.background);
 			} else {
-				context.setShadow(3, -2, 4, "rgba(0, 0, 0, 0.4)");
+				context.setShadow(3, -2, 4, "rgba(0, 0, 0, 0.25)");
 			}
 		}
 
