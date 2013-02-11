@@ -14,10 +14,10 @@ class NativeSkImage
   public:
     int isCanvas;
     SkCanvas *canvasRef;
+    SkBitmap *img;
 #if 0
-    SkBitmap img;
-#endif
     SkImage *fixedImg;
+#endif
     NativeSkImage(SkCanvas *canvas);
     NativeSkImage(void *data, size_t len);
     static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 

@@ -568,9 +568,9 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 { 
     SkShader *shader;
 
-    if (pattern->jsimg->img->fixedImg != NULL) {
+    if (pattern->jsimg->img->img != NULL) {
 
-        shader = pattern->jsimg->img->fixedImg->newShader(
+        shader = SkShader::CreateBitmapShader(*pattern->jsimg->img->img,
             SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
 
         PAINT->setColor(SK_ColorBLACK);
@@ -1081,7 +1081,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
         canvas->drawBitmap(bitmapImage, SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
 
-    } else if (image->fixedImg != NULL) {
+    } else if (image->img != NULL) {
         image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);     
     }
