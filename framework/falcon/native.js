@@ -77,6 +77,7 @@ require(__PATH_LAYOUT__ + 'UIScrollBars.js');
 require(__PATH_LAYOUT__ + 'UISpinner.js');
 require(__PATH_LAYOUT__ + 'UIModal.js');
 require(__PATH_LAYOUT__ + 'UILine.js');
+require(__PATH_LAYOUT__ + 'UIToolTip.js');
 
 require(__PATH_LAYOUT__ + 'UIDiagram.js');
 require(__PATH_LAYOUT__ + 'UIDiagramController.js');

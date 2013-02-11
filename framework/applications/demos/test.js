@@ -25,26 +25,12 @@ div.addChild(t2);
 div.addChild(t3);
 
 body.add("UIButton").click(function(){
-	echo(div.rooted);
-	body.addChild(div);
-	echo(div.rooted);
+	s.pause();
 });
+
+var s = new UISpinner();
+div.addChild(s);
 
 window.onready = function(){
 	echo("OK, context is ready");
 };
-
-
-/* PRE-REQUIS TO DO ------------------------
-
-1) move all Native events into window
-
-2) add these events : 
-	- window.onDOMReady
-	- window.onload
-
-3) add a method to createContext();
-
-4) add a method exec("applications/demos/test.js");
-
-*/

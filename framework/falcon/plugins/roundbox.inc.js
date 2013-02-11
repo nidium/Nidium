@@ -13,7 +13,7 @@ Canvas.implement({
 		radius = OptionalNumber(radius, 5);
 
 		if (lineWidth !== null && lineWidth !== undefined) {
-			this.lineWidth = OptionalNumber(lineWidth, 1);
+			this.lineWidth = OptionalNumber(lineWidth, 0);
 		}
 
 		if (fill) {

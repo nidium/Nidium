@@ -270,8 +270,7 @@ Native.elements.export("UITabController", {
 
 		this._addTab = function(i, p, options, left){
 			var o = options,
-				selected = OptionalBoolean(o.selected, false),
-				l = tabs.length;
+				selected = OptionalBoolean(o.selected, false);
 
 			if (selected) {
 				self.currentIndex = i;
@@ -309,6 +308,8 @@ Native.elements.export("UITabController", {
 		var __fireEvent = false,
 			__startX = 0,
 			__endX = 0,
+			__mouseX = 0,
+			__offsetX = 0,
 			__dragTabPosition = false;
 
 		this.attachListenersToTab = function(tab){
@@ -321,6 +322,8 @@ Native.elements.export("UITabController", {
 				__fireEvent = false;
 				__startX = tab.left;
 				__endX = tab.left + tab.width;
+				__mouseX = e.x;
+				__offsetX = e.x - tab.__left;
 				__dragTabPosition = controller.getPosition(tab.index);
 
 				controller._oldcursor = window.cursor;
@@ -362,7 +365,7 @@ Native.elements.export("UITabController", {
 			if (__dragTabPosition===false) return false;
 
 			var i = __dragTabPosition,
-				dx = e.xrel,
+				dx = e.x - __mouseX, //e.xrel,
 
 				curr = controller.getTabAtPosition(i),
 				next = controller.getTabAtPosition(i+1),
@@ -374,6 +377,15 @@ Native.elements.export("UITabController", {
 				nx = next ? next.__left : null,
 				px = prev ? prev.__left : null;
 
+			__mouseX = e.x;
+
+/*
+			if (e.xrel>0) {
+				echo(dx, __offsetX, e.x - curr.__left);
+			} else {
+				echo(dx, __offsetX, e.x - curr.__left);
+			}
+*/
 			window.cursor = "drag";
 
 			if (cx + dx < controller.__left) {
@@ -431,12 +443,11 @@ Native.elements.export("UITabController", {
 			return --__dragTabPosition;
 		};
 
-		var x = 0,
-			tabs = this.options.tabs ? this.options.tabs : [],
-			l = 0;
+		this.setTabs = function(tabsArray){
+			var x = 0;
 
 			/*
-			tabs.push({
+			tabsArray.push({
 				label : "+",
 				closable : false,
 				preventmove : true,
@@ -444,15 +455,21 @@ Native.elements.export("UITabController", {
 			});
 			*/
 
-			l = tabs.length;
+			this.clear();
 
+			for (var i=0; i<tabsArray.length; i++){
+				this._addTab(i, i, tabsArray[i], x);
+				this.taborder[i] = i;
+				x += this.tabs[i].width - this.overlap;
+			}
 
-		for (var i=0; i<l; i++){
-			this._addTab(i, i, tabs[i], x);
-			this.taborder[i] = i;
-			x += this.tabs[i].width - this.overlap;
+			this.resetTabs();
+		};
+
+		if (this.options.tabs) {
+			this.setTabs(this.options.tabs);
 		}
-		this.resetTabs();
+
 	},
 
 	draw : function(context){
