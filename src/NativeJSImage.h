@@ -2,7 +2,7 @@
 #define nativejsimage_h__
 
 #include "NativeJSExposer.h"
-#include "NativeHTTP.h"
+#include "NativeStream.h"
 
 enum {
     IMAGE_PROP_SRC
@@ -10,7 +10,7 @@ enum {
 
 class NativeSkImage;
 
-class NativeJSImage : public NativeJSExposer, public NativeHTTPDelegate
+class NativeJSImage : public NativeJSExposer, public NativeStreamDelegate
 {
   public:
 
@@ -27,10 +27,12 @@ class NativeJSImage : public NativeJSExposer, public NativeHTTPDelegate
     	const char name[] = NULL);
     static JSObject *classe;
 
+    void onGetContent(const char *data, size_t len);
+    /*
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onProgress(size_t offset, size_t len,
         NativeHTTP::HTTPData *h, NativeHTTP::DataType) {};
-    void onError(NativeHTTP::HTTPError err) {};
+    void onError(NativeHTTP::HTTPError err) {};*/
 };
 
 #endif

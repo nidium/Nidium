@@ -6,12 +6,15 @@
 #include "ape_array.h"
 #include <http_parser.h>
 
+
 #define HTTP_MAX_CL 1024L*1024L*20L
 #define HTTP_DEFAULT_TIMEOUT 20000
 
+#include "NativeIStreamer.h"
+
 class NativeHTTPDelegate;
 
-class NativeHTTP
+class NativeHTTP : public NativeIStreamer
 {
   private:
     void *ptr;

@@ -35,38 +35,16 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
         case IMAGE_PROP_SRC:
         {
             if (JSVAL_IS_STRING(vp)) {
-                NativeSkImage *ImageObject;
-                jsval rval, onload_callback;
-
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
 
-                if (strncasecmp(imgPath.ptr(), "http://", 7) == 0) {
-                    NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
-                    
-                    NativeHTTP *http = new NativeHTTP(imgPath.ptr(),
-                        (ape_global *)JS_GetContextPrivate(cx));
-                    http->request(NATIVE_IMAGE_GETTER(obj.get()));
-                } else {
-
-                    ImageObject = new NativeSkImage(imgPath.ptr());
-
-                    nimg->img = ImageObject;
-
-                    JS_DefineProperty(cx, obj, "width",
-                        INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
-                        JSPROP_PERMANENT | JSPROP_READONLY);
-
-                    JS_DefineProperty(cx, obj, "height",
-                        INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
-                        JSPROP_PERMANENT | JSPROP_READONLY);
-
-                    if (JS_GetProperty(cx, obj, "onload", &onload_callback) &&
-                        JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
-
-                        JS_CallFunctionValue(cx, obj, onload_callback,
-                            0, NULL, &rval);
-                    }
-                }
+                NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+                
+                NativeStream *stream = new NativeStream(
+                        (ape_global *)JS_GetContextPrivate(cx),
+                        imgPath.ptr());
+                stream->setDelegate(nimg);
+                stream->getContent();
+            
             } else {
                 vp.set(JSVAL_VOID);
                 return JS_TRUE;
@@ -121,32 +99,27 @@ NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)
     return NATIVE_IMAGE_GETTER(obj)->img;
 }
 
-void NativeJSImage::onRequest(NativeHTTP::HTTPData *h,
-    NativeHTTP::DataType type)
+void NativeJSImage::onGetContent(const char *data, size_t len)
 {
-    if (type == NativeHTTP::DATA_IMAGE) {
-        jsval rval, onload_callback;
-        NativeSkImage *ImageObject = new NativeSkImage(h->data->data,
-                                            h->data->used);
-        img = ImageObject;
+    jsval rval, onload_callback;
+    NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
+    img = ImageObject;
 
-        JS_DefineProperty(cx, jsobj, "width",
-            INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
-            JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, jsobj, "width",
+        INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
 
-        JS_DefineProperty(cx, jsobj, "height",
-            INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
-            JSPROP_PERMANENT | JSPROP_READONLY);
+    JS_DefineProperty(cx, jsobj, "height",
+        INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
 
-        if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
-            JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
+    if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
+        JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
 
-            JS_CallFunctionValue(cx, jsobj, onload_callback,
-                0, NULL, &rval);
-        }
-        NativeJSObj(cx)->unrootObject(jsobj);
-
-    } /* TODO : onError || onError is not defined by the spec. */
+        JS_CallFunctionValue(cx, jsobj, onload_callback,
+            0, NULL, &rval);
+    }
+    NativeJSObj(cx)->unrootObject(jsobj);    
 }
 
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
@@ -180,7 +153,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 NativeJSImage::NativeJSImage() :
     img(NULL), jsobj(NULL)
 {
-    httpref = NULL;
+    //httpref = NULL;
 }
 
 NativeJSImage::~NativeJSImage()
@@ -188,9 +161,9 @@ NativeJSImage::~NativeJSImage()
     if (img != NULL) {
         delete img;
     }
-    if (httpref) {
+    /*if (httpref) {
         delete httpref;
-    }
+    }*/
 }
 
 NATIVE_OBJECT_EXPOSE(Image)

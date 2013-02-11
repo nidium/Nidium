@@ -19,3 +19,6 @@ Canvas.prototype.appendChild = function(node) {
     this.add(node);
 }
 
+
+var oldRequire = require;
+
