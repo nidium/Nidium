@@ -35,6 +35,7 @@ var ಠ_ಠ = '2.0',
 /* Todo : add more performance flags */
 var	__ENABLE_TEXT_SHADOWS__ = true,
 	__ENABLE_BUTTON_SHADOWS__ = true,
+	__ENABLE_IMAGE_INTERPOLATION__ = true,
 	__ENABLE_GRADIENT_LAYERS__ = true;
 
 /* -------------------------------------------------------------------------- */
