@@ -16,6 +16,9 @@
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeUIInterface.h"
+
+#include "NativeApp.h"
 
 #include "SkImageDecoder.h"
 
@@ -576,7 +579,11 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     messages = new NativeSharedMessages();
 
     //this->LoadScriptContent(preload_js);
-
+    NativeApp *app = new NativeApp("./demo.zip");
+    if (app->open(this)) {
+        this->UI->setWindowTitle(app->getTitle());
+    }
+    
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 

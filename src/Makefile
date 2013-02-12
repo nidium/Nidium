@@ -29,7 +29,8 @@ CPPFLAGS=-O2 -g  -Wall $(NATIVEFLAGS) -c -O2 -g -I../mozilla/js/src/dist/include
 				-I$(SKIA)/include/utils/mac \
 				-I../app 					\
 				-I../network 				\
-				-I../http-parser
+				-I../http-parser 			\
+				-I../libzip/lib
 
 AR=ar
 ARFLAGS=rcs
@@ -52,7 +53,8 @@ SOURCES=NativeJS.cpp 				\
 		NativeCanvasHandler.cpp 	\
 		NativeCanvas2DContext.cpp   \
 		NativeJSFileIO.cpp 			\
-		NativeStream.cpp
+		NativeStream.cpp 			\
+		NativeApp.cpp
 
 ifeq ($(ENABLE_WEBGL), 1)
 	CPPFLAGS += -I../third-party/angle/include
