@@ -1075,6 +1075,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     if (image->isCanvas) {
         SkBitmap bitmapImage;
 
+        bitmapImage.setIsVolatile(true);
+
         image->canvasRef->readPixels(
             SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
             &bitmapImage);
@@ -1082,8 +1084,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
             PAINT);
 
     } else if (image->img != NULL) {
-        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);     
+        canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            PAINT);    
     }
 
     PAINT->setColor(old);
@@ -1104,12 +1106,17 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
 
     if (image->isCanvas) {
         SkBitmap bitmapImage;
+
+        bitmapImage.setIsVolatile(true);
+
         image->canvasRef->readPixels(SkIRect::MakeSize(
             image->canvasRef->getDeviceSize()),
             &bitmapImage);
-    }
 
-    canvas->drawBitmapRect(image->img, NULL, r, PAINT);
+        canvas->drawBitmapRect(bitmapImage, NULL, r, PAINT);
+    } else if (image->img != NULL) {
+        canvas->drawBitmapRect(*image->img, NULL, r, PAINT);
+    }
 
     PAINT->setColor(old);
 
@@ -1129,19 +1136,22 @@ void NativeSkia::drawImage(NativeSkImage *image,
     /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
     src.setXYWH(sx, sy, swidth, sheight);
 
-    if (image->isCanvas) {
-        image->canvasRef->readPixels(src, &image->img);
-    }
-
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
         SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
-    if (!image->img.hasMipMap()) {
-        image->img.buildMipMap();
-    }
+    if (image->isCanvas) {
+        SkBitmap bitmapImage;
 
-    canvas->drawBitmapRect(image->img,
-        (image->isCanvas ? NULL : &src), dst, PAINT);
+        bitmapImage.setIsVolatile(true);
+
+        image->canvasRef->readPixels(src, &bitmapImage);
+
+        canvas->drawBitmapRect(bitmapImage,
+            NULL, dst, PAINT);        
+    } else if (image->img != NULL) {
+        canvas->drawBitmapRect(*image->img,
+            &src, dst, PAINT);
+    }
 
     PAINT->setColor(old);
 
