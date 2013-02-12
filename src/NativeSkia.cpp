@@ -287,7 +287,7 @@ void NativeSkia::initPaints()
     PAINT->setAntiAlias(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    PAINT->setFilterBitmap(true);
+    //PAINT->setFilterBitmap(false);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -1073,14 +1073,9 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        SkBitmap bitmapImage;
 
-        bitmapImage.setIsVolatile(true);
-
-        image->canvasRef->readPixels(
-            SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
-            &bitmapImage);
-        canvas->drawBitmap(bitmapImage, SkDoubleToScalar(x), SkDoubleToScalar(y),
+        canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
+            SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
 
     } else if (image->img != NULL) {
@@ -1105,15 +1100,8 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        SkBitmap bitmapImage;
-
-        bitmapImage.setIsVolatile(true);
-
-        image->canvasRef->readPixels(SkIRect::MakeSize(
-            image->canvasRef->getDeviceSize()),
-            &bitmapImage);
-
-        canvas->drawBitmapRect(bitmapImage, NULL, r, PAINT);
+        canvas->drawBitmapRect(image->canvasRef->getDevice()->accessBitmap(false),
+            NULL, r, PAINT);
     } else if (image->img != NULL) {
         canvas->drawBitmapRect(*image->img, NULL, r, PAINT);
     }
@@ -1133,7 +1121,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
     SkColor old = PAINT->getColor();
     /* DrawImage must not takes the paint alpha */
     PAINT->setColor(SK_ColorBLACK);
-    /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
+    /* TODO: ->readPixels : switch to accessBitmap; */
     src.setXYWH(sx, sy, swidth, sheight);
 
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
@@ -1142,7 +1130,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
     if (image->isCanvas) {
         SkBitmap bitmapImage;
 
-        bitmapImage.setIsVolatile(true);
+        //bitmapImage.setIsVolatile(true);
 
         image->canvasRef->readPixels(src, &bitmapImage);
 

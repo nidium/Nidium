@@ -53,6 +53,7 @@ NativeSkImage::NativeSkImage(void *data, size_t len) :
 
     if (!SkImageDecoder::DecodeMemory(data, len, img)) {
         printf("failed to decode Image\n");
+        free(img);
         img = NULL;
     }
 }
