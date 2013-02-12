@@ -72,7 +72,7 @@ Native.elements.export("UISliderController", {
 
 				property = v ? "top" : "left";
 
-			k.cancelCurrentAnimations(property);
+			k.finishCurrentAnimations(property);
 			k.animate(property, start, delta, 200,
 				function(){
 					self.fireEvent("complete", self.value);
@@ -173,7 +173,7 @@ Native.elements.export("UISliderController", {
 
 			if (this.moving == true) {
 				this.moving = false;
-				this.knob.cancelCurrentAnimations(property);
+				this.knob.finishCurrentAnimations(property);
 				this.setKnobPosition(end);
 			} else {
 				this.moving = true;
