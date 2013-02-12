@@ -533,26 +533,16 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
         return;     
     }
     JS_BeginRequest(cx);
-    //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
-
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
-
-    //ion::js_IonOptions.gvnIsOptimistic = true;
-
     JS_SetErrorReporter(cx, reportError);
 
-    gbl = JS_NewGlobalObject(cx, &global_class, NULL);
-    if (gbl == NULL) {
-        printf("Cant create global object\n");
+    if ((gbl = JS_NewGlobalObject(cx, &global_class, NULL)) == NULL ||
+        !JS_InitStandardClasses(cx, gbl)) {
+
         return;
     }
-
-    if (!JS_InitStandardClasses(cx, gbl))
-        return;
-
-    //JS_DefineProfilingFunctions(cx, gbl);
 
     //JS_SetGCCallback(rt, gccb);
     JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
@@ -565,15 +555,12 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
 
     this->UI = inUI;
 
-    /* surface contains the window frame buffer */
-
+    /* surface containing the window frame buffer */
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->context = new NativeCanvas2DContext(width, height);
-
     surface = rootHandler->context->skia;
 
     JS_SetRuntimePrivate(rt, this);
-
     LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();

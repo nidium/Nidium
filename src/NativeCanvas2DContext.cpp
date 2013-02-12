@@ -835,6 +835,17 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
+        case CTX_PROP(imageSmoothingEnabled):
+        {
+            if (!JSVAL_IS_BOOLEAN(vp)) {
+                vp.set(JSVAL_FALSE);
+
+                return JS_TRUE;
+            }
+
+            curSkia->setSmooth(vp.toBoolean());
+            break;
+        }
         case CTX_PROP(shadowOffsetX):
         {
             double ret;

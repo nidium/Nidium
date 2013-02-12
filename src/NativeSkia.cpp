@@ -287,7 +287,7 @@ void NativeSkia::initPaints()
     PAINT->setAntiAlias(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    //PAINT->setFilterBitmap(false);
+    PAINT->setFilterBitmap(false);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -673,6 +673,11 @@ void NativeSkia::setShadowColor(const char *str)
     currentShadow.color = color;
 
     SkSafeUnref(PAINT->setLooper(buildShadow()));
+}
+
+void NativeSkia::setSmooth(bool val)
+{
+    PAINT->setFilterBitmap(val);
 }
 
 void NativeSkia::setGlobalAlpha(double value)
