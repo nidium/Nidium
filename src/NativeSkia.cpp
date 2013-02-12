@@ -287,7 +287,7 @@ void NativeSkia::initPaints()
     PAINT->setAntiAlias(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    PAINT->setFilterBitmap(true);
+    PAINT->setFilterBitmap(false);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -568,9 +568,9 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 { 
     SkShader *shader;
 
-    if (pattern->jsimg->img->fixedImg != NULL) {
+    if (pattern->jsimg->img->img != NULL) {
 
-        shader = pattern->jsimg->img->fixedImg->newShader(
+        shader = SkShader::CreateBitmapShader(*pattern->jsimg->img->img,
             SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
 
         PAINT->setColor(SK_ColorBLACK);
@@ -673,6 +673,11 @@ void NativeSkia::setShadowColor(const char *str)
     currentShadow.color = color;
 
     SkSafeUnref(PAINT->setLooper(buildShadow()));
+}
+
+void NativeSkia::setSmooth(bool val)
+{
+    PAINT->setFilterBitmap(val);
 }
 
 void NativeSkia::setGlobalAlpha(double value)
@@ -1073,17 +1078,14 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        SkBitmap bitmapImage;
 
-        image->canvasRef->readPixels(
-            SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
-            &bitmapImage);
-        canvas->drawBitmap(bitmapImage, SkDoubleToScalar(x), SkDoubleToScalar(y),
+        canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
+            SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
 
-    } else if (image->fixedImg != NULL) {
-        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);     
+    } else if (image->img != NULL) {
+        canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            PAINT);    
     }
 
     PAINT->setColor(old);
@@ -1103,13 +1105,11 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        SkBitmap bitmapImage;
-        image->canvasRef->readPixels(SkIRect::MakeSize(
-            image->canvasRef->getDeviceSize()),
-            &bitmapImage);
+        canvas->drawBitmapRect(image->canvasRef->getDevice()->accessBitmap(false),
+            NULL, r, PAINT);
+    } else if (image->img != NULL) {
+        canvas->drawBitmapRect(*image->img, NULL, r, PAINT);
     }
-
-    canvas->drawBitmapRect(image->img, NULL, r, PAINT);
 
     PAINT->setColor(old);
 
@@ -1126,22 +1126,25 @@ void NativeSkia::drawImage(NativeSkImage *image,
     SkColor old = PAINT->getColor();
     /* DrawImage must not takes the paint alpha */
     PAINT->setColor(SK_ColorBLACK);
-    /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
+    /* TODO: ->readPixels : switch to accessBitmap; */
     src.setXYWH(sx, sy, swidth, sheight);
-
-    if (image->isCanvas) {
-        image->canvasRef->readPixels(src, &image->img);
-    }
 
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
         SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
-    if (!image->img.hasMipMap()) {
-        image->img.buildMipMap();
-    }
+    if (image->isCanvas) {
+        SkBitmap bitmapImage;
 
-    canvas->drawBitmapRect(image->img,
-        (image->isCanvas ? NULL : &src), dst, PAINT);
+        //bitmapImage.setIsVolatile(true);
+
+        image->canvasRef->readPixels(src, &bitmapImage);
+
+        canvas->drawBitmapRect(bitmapImage,
+            NULL, dst, PAINT);        
+    } else if (image->img != NULL) {
+        canvas->drawBitmapRect(*image->img,
+            &src, dst, PAINT);
+    }
 
     PAINT->setColor(old);
 

@@ -41,41 +41,39 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 	isCanvas = 1;
 	canvasRef = canvas;
 	canvas->ref();
-	fixedImg = NULL;
+	img = NULL;
 	
 }
 
 NativeSkImage::NativeSkImage(void *data, size_t len) :
 	canvasRef(NULL)
 {
-	fixedImg = NULL;
+	img = new SkBitmap();
 	isCanvas = 0;
-    SkAutoDataUnref datas(dataToData(data, len));
 
-    fixedImg = SkImage::NewEncodedData(datas);
-
-    if (fixedImg == NULL) {
-    	printf("Fixed is nulll\n");
+    if (!SkImageDecoder::DecodeMemory(data, len, img)) {
+        printf("failed to decode Image\n");
+        free(img);
+        img = NULL;
     }
-
 }
 
 NativeSkImage::~NativeSkImage()
 {
 	if (canvasRef) canvasRef->unref();
-	if (fixedImg) {
-        fixedImg->unref();
+	if (img) {
+        delete img;
     }
 }
 
 int NativeSkImage::getWidth()
 {
-	return fixedImg->width();
+	return img->width();
 }
 
 int NativeSkImage::getHeight()
 {
-	return fixedImg->height();
+	return img->height();
 }
 
 #if 0

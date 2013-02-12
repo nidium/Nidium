@@ -86,7 +86,7 @@ class NativeSkia
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);
         void setShadowColor(const char *str);
-        void setShadow();
+        void setSmooth(bool val);
         void setFontSize(double size);
         void setFontType(const char *str);
         void drawText(const char *text, int x, int y);
