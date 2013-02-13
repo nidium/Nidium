@@ -110,6 +110,10 @@ NativeVideo::NativeVideo(ape_global *n, char *file)
 
     this->rBuff = new PaUtilRingBuffer();
     this->buff = (uint8_t*) malloc(buffSampleSize * 8);
+    if (this->buff == NULL) {
+        printf("Failed to alloc buffer\n");
+        exit(1);
+    }
     printf("Alloc of %d\n", buffSampleSize*8);
 
     if (0 < PaUtil_InitializeRingBuffer(this->rBuff, 
