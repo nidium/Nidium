@@ -643,7 +643,7 @@ static int Native_handle_messages(void *arg)
                 !JSVAL_IS_PRIMITIVE(onmessage) && 
                 JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-                jsval inval;
+                jsval inval = JSVAL_NULL;
 
                 if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
                     JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
@@ -655,7 +655,7 @@ static int Native_handle_messages(void *arg)
 
                 event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
 
-                EVENT_PROP("message", inval);
+                EVENT_PROP("data", inval);
 
                 jevent = OBJECT_TO_JSVAL(event);
                 JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);          
@@ -669,7 +669,21 @@ static int Native_handle_messages(void *arg)
                 !JSVAL_IS_PRIMITIVE(onmessage) && 
                 JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-                JS_CallFunctionValue(cx, ptr->callee, onmessage, 0, NULL, &rval);          
+                jsval inval = JSVAL_NULL;
+
+                if (ptr->nbytes && !JS_ReadStructuredClone(cx,
+                        ptr->data, ptr->nbytes,
+                        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+
+                    continue;
+
+                }
+
+                event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+                EVENT_PROP("data", inval);
+                jevent = OBJECT_TO_JSVAL(event);
+
+                JS_CallFunctionValue(cx, ptr->callee, onmessage, 1, &jevent, &rval);          
             }            
             delete ptr;
             break;

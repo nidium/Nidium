@@ -13,7 +13,7 @@ class NativeJSThread : public NativeJSExposer
     NativeJSThread();
     ~NativeJSThread();
     static void registerObject(JSContext *cx);
-    void onComplete();
+    void onComplete(jsval *vp);
 
     JSString *jsFunction;
     JSRuntime *jsRuntime;

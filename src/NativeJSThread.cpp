@@ -39,7 +39,6 @@ static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeJSThread *nthread = (NativeJSThread *)JS_GetPrivate(obj);
 
     if (nthread != NULL) {
-        printf("Thread is out of scope\n");
         delete nthread;
     }
 }
@@ -61,7 +60,7 @@ static void *native_thread(void *arg)
 
     JSRuntime *rt;
     JSContext *tcx;
-    jsval rval;
+    jsval rval = JSVAL_VOID;
     JSObject *gbl;
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
@@ -113,7 +112,7 @@ static void *native_thread(void *arg)
             }).apply(this, Array.prototype.slice.apply(arguments));
         };    
     */
-    sprintf(scoped, "%c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
+    sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
 
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
@@ -147,7 +146,7 @@ static void *native_thread(void *arg)
 
     delete arglst;
 
-    nthread->onComplete();
+    nthread->onComplete(&rval);
 
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
@@ -220,11 +219,17 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-void NativeJSThread::onComplete()
+void NativeJSThread::onComplete(jsval *vp)
 {
     struct native_thread_msg *msg = new struct native_thread_msg;
-    msg->data = NULL;
-    msg->nbytes = 0;
+
+    if (!JS_WriteStructuredClone(jsCx, *vp, &msg->data, &msg->nbytes,
+        NULL, NULL, JSVAL_VOID)) {
+
+        msg->data = NULL;
+        msg->nbytes = 0;
+    }
+
     msg->callee = jsObject;
 
     njs->messages->postMessage(msg, NATIVE_THREAD_COMPLETE);
