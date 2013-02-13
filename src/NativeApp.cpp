@@ -1,7 +1,7 @@
 #include "NativeApp.h"
 #include "NativeJS.h"
-#include <jsapi.h>
 
+#include <json/json.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -14,7 +14,7 @@ NativeApp::NativeApp(const char *path) :
     this->path = strdup(path);
 }
 
-int NativeApp::open(NativeJS *njs)
+int NativeApp::open()
 {
     int err = 0;
     fZip = zip_open(path, ZIP_CHECKCONS, &err);
@@ -37,22 +37,20 @@ int NativeApp::open(NativeJS *njs)
         printf("File : %s\n", zip_get_name(fZip, i, ZIP_FL_UNCHANGED));
     }
 
-    return this->loadManifest(njs);
+    return this->loadManifest();
 }
 
-int NativeApp::loadManifest(NativeJS *njs)
+int NativeApp::loadManifest()
 {
-#define MPROP(str, obj, type) \
-if (JS_GetProperty(njs->cx, obj, str, &dval) == JS_FALSE || \
-    JSVAL_IS_VOID(dval) || !dval.is ## type()) { \
-    njs->unrootObject(obj); \
-    printf("Manifest error : " str " property not found or wrong type\n"); \
+#define MPROP(root, str, type, out) \
+Json::Value out; \
+if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
+    printf("Manifest error : " str " property not found or wrong type (required : " #type ")\n"); \
     return 0; \
 }
     if (fZip == NULL) return 0;
 
     int index;
-    jsval dval;
     char *content;
     struct zip_file *manifest;
     struct zip_stat stat;
@@ -84,50 +82,23 @@ if (JS_GetProperty(njs->cx, obj, str, &dval) == JS_FALSE || \
         return 0;
     }
 
-    size_t len = 0;
-    if (JS_DecodeBytes(njs->cx, content, r, 0, &len) == JS_FALSE) {
-        free(content);
-        return 0;
-    }
+    Json::Value root;
 
-    jschar *res = (jschar *)malloc(sizeof(jschar) * len);
-
-    if (JS_DecodeBytes(njs->cx, content, r, res, &len) == JS_FALSE) {
-        free(content);
-        free(res);
-        return 0;
-    }
-
-    jsval objManifest;
-    if (JS_ParseJSON(njs->cx, res, len, &objManifest) == JS_FALSE) {
+    if (!reader.parse(content, content+stat.size, root)) {
         printf("Cant parse JSON\n");
-        free(content);
-        free(res);
-        return 0;
     }
 
-    free(content);
+    MPROP(root, "info", Object, info);
+    MPROP(info, "title", String, title);
+    MPROP(info, "uid", String, uid);
 
-    this->manifestObj = JSVAL_TO_OBJECT(objManifest);
-
-    njs->rootObjectUntilShutdown(this->manifestObj);
-
-    MPROP("info", this->manifestObj, Object);
-    MPROP("title", JSVAL_TO_OBJECT(dval), String);
-    JSAutoByteString title(njs->cx, JSVAL_TO_STRING(dval));
-    this->appInfos.title = strdup(title.ptr());
-
-    MPROP("info", this->manifestObj, Object);
-    MPROP("uid", JSVAL_TO_OBJECT(dval), String);
-    JSAutoByteString uid(njs->cx, JSVAL_TO_STRING(dval));
-    this->appInfos.udid = strdup(uid.ptr());
+    this->appInfos.title = title;
+    this->appInfos.udid = uid;
 
     return 1;
 }
 
 NativeApp::~NativeApp()
 {
-    free(this->appInfos.title);
-    free(this->appInfos.udid);
     free(path);
 }

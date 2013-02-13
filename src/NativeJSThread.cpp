@@ -272,7 +272,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSThread::~NativeJSThread()
 {
-    if (jsFunction) {
+    if (jsFunction && this->cx) {
         JS_RemoveStringRoot(this->cx, &jsFunction);
     }
     this->markedStop = true;

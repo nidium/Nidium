@@ -567,7 +567,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
 
     //this->LoadScriptContent(preload_js);
     NativeApp *app = new NativeApp("./demo.zip");
-    if (app->open(this)) {
+    if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
     }
     
