@@ -663,6 +663,16 @@ static int Native_handle_messages(void *arg)
             }
             delete ptr;
             break;
+            case NATIVE_THREAD_COMPLETE:
+            ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
+            if (JS_GetProperty(cx, ptr->callee, "oncomplete", &onmessage) &&
+                !JSVAL_IS_PRIMITIVE(onmessage) && 
+                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+
+                JS_CallFunctionValue(cx, ptr->callee, onmessage, 0, NULL, &rval);          
+            }            
+            delete ptr;
+            break;
             default:break;
         }
     }

@@ -147,7 +147,8 @@ static void *native_thread(void *arg)
 
     delete arglst;
 
-    printf("Thread has ended\n");
+    nthread->onComplete();
+
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
 
@@ -187,6 +188,7 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
     pthread_create(&nthread->threadHandle, NULL,
                             native_thread, nthread);
 
+    nthread->njs->rootObjectUntilShutdown(caller);
 
     return JS_TRUE;
 }
@@ -207,6 +209,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     nthread->jsObject 	= ret;
     nthread->njs 		= NJS;
 
+    JS_AddStringRoot(cx, &nthread->jsFunction);
+
     JS_SetPrivate(ret, nthread);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -214,6 +218,18 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, Thread_funcs);
 
     return JS_TRUE;
+}
+
+void NativeJSThread::onComplete()
+{
+    struct native_thread_msg *msg = new struct native_thread_msg;
+    msg->data = NULL;
+    msg->nbytes = 0;
+    msg->callee = jsObject;
+
+    njs->messages->postMessage(msg, NATIVE_THREAD_COMPLETE);
+
+    njs->unrootObject(jsObject);
 }
 
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
@@ -249,6 +265,9 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSThread::~NativeJSThread()
 {
+    if (jsFunction) {
+        JS_RemoveStringRoot(jsCx, &jsFunction);
+    }
     this->markedStop = true;
     if (this->jsRuntime) {
         JS_TriggerOperationCallback(this->jsRuntime);
