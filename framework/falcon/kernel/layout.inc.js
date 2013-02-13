@@ -37,9 +37,6 @@ Native.layout = {
 			if (element.hasOwnerDocument){
 				if (element._needRefresh){
 					element.refresh();
-				} else {
-					element.__left = element.layer.__left;
-					element.__top = element.layer.__top;
 				}
 			}
 		}
@@ -247,6 +244,7 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 
 	return element;
 });
+/* -------------------------------------------------------------------------- */
 
 Object.createProtectedElement(Native.scope, "document", new Application({
 	id : "document",
@@ -259,14 +257,5 @@ Object.createProtectedElement(Native.scope, "document", new Application({
 	outlineOnFocus : false
 }));
 document.__styleSheetLoaded = true;
-
-/* -------------------------------------------------------------------------- */
-
-window.requestAnimationFrame(function(){
-	Native.FPS.start();
-	Native.layout.draw();
-	if (Native.layout.drawHook) Native.layout.drawHook();
-	Native.FPS.show();
-});
 
 /* -------------------------------------------------------------------------- */

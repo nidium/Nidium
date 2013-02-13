@@ -123,10 +123,6 @@ var DOMElement = function(type, options, parent){
 
 		_layerPadding : p ? Math.max(this.shadowBlur*4, 20) : Math.max(this.shadowBlur*4, 10),
 
-		/* absolute value (inherited) */
-		__left : 0,
-		__top : 0,
-
 		/* refreshing flags */
 		_needRefresh : true,
 		_needRedraw : true,
@@ -218,7 +214,27 @@ DOMElement.prototype = {
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
 
+	set fastLeft(value) {
+		this._left = value;
+		this.layer.left = value;
+//		this.layer.scrollLeft = this._scrollLeft;
+	},
+
+	set fastTop(value) {
+		this._top = value;
+		this.layer.top = value;
+//		this.layer.scrollTop = this._scrollTop;
+	},
+
 	/* -- READ ONLY WRAPPERS -- */
+
+	get __left() {
+		return this.layer.__left;
+	},
+
+	get __top() {
+		return this.layer.__top;
+	},
 
 	get children() {
 		return this.getChildren();

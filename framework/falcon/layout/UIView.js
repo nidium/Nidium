@@ -12,7 +12,7 @@ Native.elements.export("UIView", {
 			},
 
 			set : function(value){
-				this.refreshBackgroundImage();
+				this.setBackgroundURL(value);
 			}
 		},
 
@@ -62,10 +62,11 @@ Native.elements.export("UIView", {
 			scrollBarHideDelay = 400,
 			o = this.options;
 
-		this.refreshBackgroundImage = function(){
-			self._cachedBackgroundImage = null;
-			if (this.backgroundImage) {
-				Native.loadImage(this.backgroundImage, function(img){
+		this.setBackgroundURL = function(url){
+			if (url) {
+				self._cachedBackgroundImage = null;
+				this._backgroundImage = url;
+				Native.loadImage(url, function(img){
 					self.setBackgroundImage(img);
 				});
 			}
@@ -430,7 +431,7 @@ Native.elements.export("UIView", {
 			this.refreshScrollBars();
 		});
 
-		this.refreshBackgroundImage();
+		this.setBackgroundURL();
 	},
 
 	draw : function(context){

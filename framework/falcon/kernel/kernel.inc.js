@@ -70,8 +70,6 @@ Native.object = {
 		this.layer.top = this._top;
 		this.layer.scrollTop = this._scrollTop;
 		this.layer.scrollLeft = this._scrollLeft;
-		this.__left = this.layer.__left;
-		this.__top = this.layer.__top;
 		this._needPositionUpdate = false;
 		return this;
 	},

@@ -4,25 +4,27 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var t = new Thread(function(){
+var t = Thread(...n){
 	var p = 0;
-	for (var i=0; i<500000; i++){
-		if (i%10 == 0) this.send(i);
+	this.send(n);
+	for (var i=0; i<5000000; i++){
+		if (i%100 == 0) this.send(i);
 		p++;
 	}
-	return p;
-});
+	return n;
+};
 
 t.onmessage = function(e){
-	echo("new message", e.message);
+	var i = e.data;
+	document.status.label = i;
+	document.status.value = i*100/5000000;
 };
 
 t.oncomplete = function(e){
-	echo("i'm done with", e.data);
+	if (e.data){
+		echo("i'm done with", e.data);
+	}
 };
 
-t.start();
-
-
-/* ---------------- */
+t.start(5, 6, 6, 9);
 

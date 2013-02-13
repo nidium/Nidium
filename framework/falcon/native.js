@@ -40,7 +40,7 @@ var	__ENABLE_TEXT_SHADOWS__ = true,
 
 /* -------------------------------------------------------------------------- */
 
-var require = load;
+kkk = 10;
 
 
 require(__PATH_KERNEL__ + 'helper.inc.js');
@@ -79,6 +79,7 @@ require(__PATH_LAYOUT__ + 'UISpinner.js');
 require(__PATH_LAYOUT__ + 'UIModal.js');
 require(__PATH_LAYOUT__ + 'UILine.js');
 require(__PATH_LAYOUT__ + 'UIToolTip.js');
+//require(__PATH_LAYOUT__ + 'UIParticle.js');
 
 require(__PATH_LAYOUT__ + 'UIDiagram.js');
 require(__PATH_LAYOUT__ + 'UIDiagramController.js');
@@ -95,3 +96,29 @@ require(__PATH_KERNEL__ + 'layout.inc.js');
 
 /* -------------------------------------------------------------------------- */
 
+Native.core = {
+	init : function(){
+		this.setRenderingLoop();
+		this.addStatusBar();
+	},
+
+	setRenderingLoop : function(){
+		window.requestAnimationFrame(function(){
+			Native.FPS.start();
+			Native.layout.draw();
+			if (Native.layout.drawHook) Native.layout.drawHook();
+			Native.FPS.show();
+		});
+	},
+
+	addStatusBar : function(){
+		/*
+		document.status = new UIStatus(document);
+		document.status.open();
+		document.status.progressBarColor = "rgba(210, 255, 60, 1)";
+		*/
+	}
+};
+
+
+Native.core.init();
