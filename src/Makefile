@@ -30,7 +30,8 @@ CPPFLAGS=-O2 -g  -Wall $(NATIVEFLAGS) -c -O2 -g -I../mozilla/js/src/dist/include
 				-I../app 					\
 				-I../network 				\
 				-I../http-parser 			\
-				-I../libzip/lib
+				-I../libzip/lib 			\
+				-I../libjson/include
 
 AR=ar
 ARFLAGS=rcs

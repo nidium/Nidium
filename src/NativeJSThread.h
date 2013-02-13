@@ -13,6 +13,7 @@ class NativeJSThread : public NativeJSExposer
     NativeJSThread();
     ~NativeJSThread();
     static void registerObject(JSContext *cx);
+    void onComplete(jsval *vp);
 
     JSString *jsFunction;
     JSRuntime *jsRuntime;
@@ -30,7 +31,8 @@ class NativeJSThread : public NativeJSExposer
 };
 
 enum {
-    NATIVE_THREAD_MESSAGE
+    NATIVE_THREAD_MESSAGE,
+    NATIVE_THREAD_COMPLETE
 };
 
 #endif

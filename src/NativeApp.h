@@ -2,6 +2,7 @@
 #define nativeapp_h__
 
 #include "zip.h"
+#include <json/json.h>
 
 class NativeJS;
 class JSObject;
@@ -12,26 +13,27 @@ public:
     char *path;
     
     NativeApp(const char *path);
-    int open(NativeJS *njs);
+    int open();
     ~NativeApp();
 
     const char *getTitle() const {
-        return this->appInfos.title;
+        return this->appInfos.title.asCString();
     }
     const char *getUDID() const {
-        return this->appInfos.udid;
+        return this->appInfos.udid.asCString();
     }
 
 private:
     struct zip *fZip;
+    Json::Reader reader;
     int numFiles;
     JSObject *manifestObj;
 
-    int loadManifest(NativeJS *njs);
+    int loadManifest();
 
     struct {
-        char *title;
-        char *udid;
+        Json::Value title;
+        Json::Value udid;
     } appInfos;
 };
 
