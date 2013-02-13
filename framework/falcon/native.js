@@ -40,9 +40,6 @@ var	__ENABLE_TEXT_SHADOWS__ = true,
 
 /* -------------------------------------------------------------------------- */
 
-kkk = 10;
-
-
 require(__PATH_KERNEL__ + 'helper.inc.js');
 require(__PATH_KERNEL__ + 'engine.inc.js');
 require(__PATH_KERNEL__ + 'kernel.inc.js');
