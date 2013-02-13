@@ -114,6 +114,7 @@ Native.elements = {
 		element.layer = new Canvas(element._width, element._height);
 		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");
+		element.layer.context.imageSmoothingEnabled = __ENABLE_IMAGE_INTERPOLATION__;
 		element.layer.host = element;
 	}
 };

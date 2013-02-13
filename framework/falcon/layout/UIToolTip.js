@@ -26,7 +26,8 @@ Native.elements.export("UIToolTip", {
 	},
 
 	init : function(){
-		var o = this.options;
+		var self = this,
+			o = this.options;
 
 		this.setProperties({
 			canReceiveFocus	: false,
@@ -62,20 +63,104 @@ Native.elements.export("UIToolTip", {
 		if (this.parent){
 			this.left = this.parent.width + 18;
 			this.top = (this.parent.height - this.height) / 2;
+
+			this.parent.hoverize(
+				function(e){
+					if (self.enabled) self.open();
+				},
+				function(e){
+					if (self.enabled) self.close();
+				}
+			);
 		}
 
 		this.resizeElement = function(){
 			this._innerTextWidth = DOMElement.draw.getInnerTextWidth(this);
 		};
 
+		this.enable = function(){
+			this.enabled = true;
+		};
+
+		this.disable = function(){
+			this.enabled = false;
+			this.close();
+		};
+
+		this.open = function(){
+			if (this.opened) return false;
+
+			var parent = this.parent,
+				duration = 80;
+
+			if (self.hinting) return false;
+			self.hinting = true;
+
+			self.show();
+
+			if (self.unhinting) {
+				self.unhinting = false;
+				self.destroyCurrentAnimations("opacity");
+				self.destroyCurrentAnimations("left");
+				duration = 80;
+			} else {
+				self.left = parent.width;
+				self.opacity = 0;
+				duration = 200;
+			}
+
+			self.fadeIn(duration, function(){
+				self.hinting = false;
+				self.closed = false;
+				self.opened = true;
+			});
+
+			self.slideX(
+				parent.width+18, 
+				duration, 
+				null, 
+				Math.physics.quadOut
+			);
+		};
+
+		this.close = function(){
+			if (this.closed) return false;
+
+			var parent = this.parent;
+
+			if (self.hinting) {
+				self.destroyCurrentAnimations("opacity");
+				self.destroyCurrentAnimations("left");
+				self.hide();
+				self.hinting = false;
+				self.unhinting = false;
+			} else {
+				self.unhinting = true;
+				self.fadeOut(200, function(){
+					self.hinting = false;
+					self.unhinting = false;
+					self.closed = true;
+					self.opened = false;
+					self.hide();
+				});
+				
+				self.slideX(
+					parent.width, 
+					200, 
+					null, 
+					Math.physics.quadOut
+				);
+			}
+		};
+
 		this.resizeElement();
 
 		this.width = OptionalNumber(o.width, this._innerTextWidth);
+		this.hide();
 	},
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
-
 
 		context.setShadow(
 			this.shadowOffsetX,

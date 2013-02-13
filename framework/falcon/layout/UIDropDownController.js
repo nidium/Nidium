@@ -143,8 +143,8 @@ Native.elements.export("UIDropDownController", {
 			
 			self._showElements();
 
-			c.cancelCurrentAnimations("opacity");
-			c.cancelCurrentAnimations("height");
+			c.finishCurrentAnimations("opacity");
+			c.finishCurrentAnimations("height");
 
 			this.downButton.animate(
 				"angle",
@@ -177,8 +177,8 @@ Native.elements.export("UIDropDownController", {
 			c._animating = true;
 			c.show();
 
-			c.cancelCurrentAnimations("opacity");
-			c.cancelCurrentAnimations("height");
+			c.finishCurrentAnimations("opacity");
+			c.finishCurrentAnimations("height");
 
 			this.downButton.animate(
 				"angle",

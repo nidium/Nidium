@@ -83,7 +83,7 @@ Native.elements.export("UIView", {
 		};
 
 		var showScrollBar = function(UIScrollBar){
-			UIScrollBar.cancelCurrentAnimations("opacity");
+			UIScrollBar.finishCurrentAnimations("opacity");
 			UIScrollBar._fading = false;
 			UIScrollBar.opacity = 1;
 			UIScrollBar.show();

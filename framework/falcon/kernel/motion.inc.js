@@ -53,16 +53,25 @@ DOMElement.implement({
 		});
 	},
 
-	cancelCurrentAnimations : function(property){
+	finishCurrentAnimations : function(property){
 		var q = this.getCurrentAnimations(property);
 
 		for (var i in q){
 			if (q.hasOwnProperty(i)){
-				q[i].cancel();
+				q[i].finish();
+			}
+		}
+	},
+
+	destroyCurrentAnimations : function(property){
+		var q = this.getCurrentAnimations(property);
+
+		for (var i in q){
+			if (q.hasOwnProperty(i)){
+				q[i].destroy();
 			}
 		}
 	}
-
 });
 
 Native.MotionFactory = {
@@ -120,8 +129,11 @@ Native.MotionFactory = {
 				fx : OptionalCallback(o.fx, Math.physics.quadInOut),
 				time : 0,
 				complete : false,
-				cancel : function(){
+				finish : function(){
 					self.finish(this);
+				},
+				destroy : function(){
+					self.finish(this, false);
 				}
 			};
 
@@ -158,7 +170,7 @@ Native.MotionFactory = {
 		}
 	},
 
-	finish : function(animation){
+	finish : function(animation, callback=true){
 		var	q = this.queue,
 			view = animation.view,
 			property = animation.property;
@@ -166,7 +178,7 @@ Native.MotionFactory = {
 		animation.complete = true;
 		view._mutex[property] = null;
 
-		if (animation.callback) animation.callback.call(view);
+		if (callback && animation.callback) animation.callback.call(view);
 		this.remove(animation);
 
 		this.ended++;
