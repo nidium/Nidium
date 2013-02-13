@@ -199,6 +199,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSThread *nthread = new NativeJSThread();
     JSFunction *nfn;
 
+    nthread->cx = cx;
+
     if ((nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0])) == NULL ||
     	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
     	printf("Failed to read Threaded function\n");
@@ -271,7 +273,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 NativeJSThread::~NativeJSThread()
 {
     if (jsFunction) {
-        JS_RemoveStringRoot(jsCx, &jsFunction);
+        JS_RemoveStringRoot(this->cx, &jsFunction);
     }
     this->markedStop = true;
     if (this->jsRuntime) {
