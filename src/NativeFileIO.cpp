@@ -53,10 +53,12 @@ static void *native_fileio_thread(void *arg)
 
 static int Native_handle_file_messages(void *arg)
 {
+#define MAX_MSG_IN_ROW 32
     NativeFileIO *nfileio = (NativeFileIO *)arg;
     NativeSharedMessages::Message msg;
+    int nread = 0;
 
-    while (nfileio->messages->readMessage(&msg)) {
+    while (++nread < MAX_MSG_IN_ROW && nfileio->messages->readMessage(&msg)) {
         switch (msg.event()) {
             case NATIVE_FILEOPEN_MESSAGE:
                 nfileio->getDelegate()->onNFIOOpen(nfileio);
@@ -77,6 +79,7 @@ static int Native_handle_file_messages(void *arg)
         }
     }
     return 1;
+#undef MAX_MSG_IN_ROW
 }
 
 void NativeFileIO::writeAction(unsigned char *data, uint64_t len)

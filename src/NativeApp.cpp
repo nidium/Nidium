@@ -36,24 +36,24 @@ static void *native_appworker_thread(void *arg)
         switch (app->action.type) {
             case NativeApp::APP_ACTION_EXTRACT:
             {
-                #define APP_READ_SIZE 4096
+#define APP_READ_SIZE (1024L*1024L)
                 struct zip_file *zfile;
                 char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
 
                 zfile = zip_fopen_index(app->fZip, app->action.u32,
                     ZIP_FL_UNCHANGED);
 
+                size_t total = 0;
                 int r = 0;
-                while ((r = zip_fread(zfile, content, APP_READ_SIZE)) != -1) {
-                    app->actionExtractRead(content, r, app->action.u64);
+                while ((r = zip_fread(zfile, content, APP_READ_SIZE)) >= 0) {
+                    total += r;
+                    app->actionExtractRead(content, r, total, app->action.u64);
                     if (r != APP_READ_SIZE) {
                         break;
                     }
                 }
                 free(content);
-
-                printf("Request extracting file : %s at index %d (read : %d)\n", app->action.ptr, app->action.u32, r);
-
+#undef APP_READ_SIZE
                 break;
             }
             default:
@@ -69,16 +69,18 @@ static void *native_appworker_thread(void *arg)
 
 static int Native_handle_app_messages(void *arg)
 {
+#define MAX_MSG_IN_ROW 32
     NativeApp *app = (NativeApp *)arg;
     struct NativeApp::native_app_msg *ptr;
+    int nread = 0;
 
     NativeSharedMessages::Message msg;
 
-    while (app->messages->readMessage(&msg)) {
+    while (++nread < MAX_MSG_IN_ROW && app->messages->readMessage(&msg)) {
         switch (msg.event()) {
             case NativeApp::APP_MESSAGE_READ:
                 ptr = static_cast<struct NativeApp::native_app_msg *>(msg.dataPtr());
-                ptr->cb(ptr->data, ptr->len, ptr->total);
+                ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total);
                 free(ptr->data);
                 delete ptr;
                 break;
@@ -87,14 +89,17 @@ static int Native_handle_app_messages(void *arg)
     }
 
     return 1;
+#undef MAX_MSG_IN_ROW
 }
 
-void NativeApp::actionExtractRead(const char *buf, int len, size_t total)
+void NativeApp::actionExtractRead(const char *buf, int len,
+    size_t offset, size_t total)
 {
     struct native_app_msg *msg = new struct native_app_msg;
     msg->data = (char *)malloc(len);
     msg->len  = len;
     msg->total = total;
+    msg->offset = offset;
     msg->cb = (NativeAppExtractCallback)action.user;
 
     memcpy(msg->data, buf, len);
@@ -163,6 +168,7 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
     struct zip_file *zfile;
     struct zip_stat stat;
 
+    printf("step 1\n");
     if ((index = zip_name_locate(fZip, file, ZIP_FL_NODIR)) == -1 ||
         strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
         (zfile = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
@@ -171,6 +177,7 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
         return 0;
     }
 
+    printf("step 2\n");
     zip_stat_init(&stat);
 
     if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
@@ -179,6 +186,7 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
         return 0;
     }
 
+    printf("step 3\n");
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
         pthread_mutex_unlock(&threadMutex);

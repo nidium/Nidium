@@ -572,9 +572,10 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 
-static bool test_extracting(const char *buf, size_t len, size_t total)
+static bool test_extracting(const char *buf, int len,
+    size_t offset, size_t total)
 {
-    
+    printf("Got a packet of size %ld out of %ld\n", offset, total);
     return true;
 }
 
@@ -584,11 +585,11 @@ int NativeJS::LoadApplication(const char *path)
         printf("LoadApplication: bind a net object first\n");
         return 0;
     }
-    NativeApp *app = new NativeApp("./demo.zip");
+    NativeApp *app = new NativeApp("./demo2.zip");
     if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
         app->runWorker(this->net);
-        size_t size = app->extractFile("main.js", test_extracting);
+        size_t size = app->extractFile("[Impel-Down]_One_Piece_583_VOSTFR_[720p]_[F92968F7].mp4", test_extracting);
         if (size == 0) {
             printf("Cant exctract file\n");
         } else {
@@ -717,6 +718,7 @@ static int Native_handle_messages(void *arg)
     }
 
     return 1;
+#undef MAX_MSG_IN_ROW
 }
 
 #if 0

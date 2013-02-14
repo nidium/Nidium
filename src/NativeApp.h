@@ -9,7 +9,7 @@ class NativeSharedMessages;
 class NativeJS;
 
 typedef bool (* NativeAppExtractCallback)(const char * buf,
-    size_t len, size_t total);
+    int len, size_t offset, size_t total);
 
 class NativeApp
 {
@@ -51,14 +51,16 @@ public:
     NativeSharedMessages *messages;
     struct zip *fZip;
 
-    void actionExtractRead(const char *buf, int len, size_t total);
+    void actionExtractRead(const char *buf, int len,
+        size_t offset, size_t total);
 
     struct native_app_msg
     {
-        char *data;
-        int len;
         size_t total;
+        size_t offset;
+        char *data;
         NativeAppExtractCallback cb;
+        int len;
     };
 
     enum APP_MESSAGE {
