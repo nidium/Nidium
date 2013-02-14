@@ -512,6 +512,8 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     currentFPS = 0;
     shutdown = false;
 
+    this->net = NULL;
+
     rootedObj = hashtbl_init(APE_HASH_INT);
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
@@ -534,7 +536,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     }
     JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
     JS_SetErrorReporter(cx, reportError);
 
@@ -566,12 +568,24 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     messages = new NativeSharedMessages();
 
     //this->LoadScriptContent(preload_js);
+    
+    //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+}
+
+int NativeJS::LoadApplication(const char *path)
+{
+    if (this->net == NULL) {
+        printf("LoadApplication: bind a net object first\n");
+        return 0;
+    }
     NativeApp *app = new NativeApp("./demo.zip");
     if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
+        app->runWorker(this->net);
+        app->extractFile("main.js");
     }
-    
-    //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+
+    return 0;
 }
 
 void NativeJS::forceLinking()
@@ -715,6 +729,7 @@ void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
+    this->net = net;
 
     ape_timer *timer = add_timer(&net->timersng, 1,
         Native_handle_messages, this);

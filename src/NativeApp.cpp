@@ -1,17 +1,91 @@
-#include "NativeApp.h"
-#include "NativeJS.h"
-
 #include <json/json.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <native_netlib.h>
+
+#include "NativeApp.h"
+#include "NativeJS.h"
+#include "NativeSharedMessages.h"
 
 #define NATIVE_MANIFEST "manifest.json"
 
 NativeApp::NativeApp(const char *path) :
-    fZip(NULL), numFiles(0)
+    messages(NULL), fZip(NULL), numFiles(0), workerIsRunning(false)
 {
     this->path = strdup(path);
+}
+
+static void *native_appworker_thread(void *arg)
+{
+    NativeApp *app = (NativeApp *)arg;
+
+    printf("Starting NativeApp worker...\n");
+    
+    while (!app->action.stop) {
+        pthread_mutex_lock(&app->threadMutex);
+
+        while (!app->action.active && !app->action.stop) {
+            pthread_cond_wait(&app->threadCond, &app->threadMutex);
+        }
+        if (app->action.stop) {
+            pthread_mutex_unlock(&app->threadMutex);
+            return NULL;
+        }
+
+        switch (app->action.type) {
+            case NativeApp::APP_ACTION_EXTRACT:
+                printf("Request extracting file : %s at index %d\n", app->action.ptr, app->action.u32);
+                break;
+            default:
+                printf("unknown action\n");
+                break;
+        }
+        app->action.active = false;
+        pthread_mutex_unlock(&app->threadMutex);
+    }
+    printf("Thread ended 2\n");
+    return NULL;
+}
+
+static int Native_handle_app_messages(void *arg)
+{
+    NativeApp *app = (NativeApp *)arg;
+
+    NativeSharedMessages::Message msg;
+
+    while (app->messages->readMessage(&msg)) {
+        switch (msg.event()) {
+
+            default:break;
+        }
+    }
+
+    return 1;
+}
+
+void NativeApp::runWorker(ape_global *net)
+{
+    messages = new NativeSharedMessages();
+
+    this->net = net;
+
+    this->action.active = false;
+    this->action.stop = false;
+
+    timer = add_timer(&net->timersng, 1,
+        Native_handle_app_messages, this);
+
+    pthread_mutex_init(&threadMutex, NULL);
+    pthread_cond_init(&threadCond, NULL);
+
+    this->workerIsRunning = true;
+
+    pthread_create(&threadHandle, NULL, native_appworker_thread, this);
+
+    pthread_mutex_lock(&threadMutex);
+        pthread_cond_signal(&threadCond);
+    pthread_mutex_unlock(&threadMutex);    
 }
 
 int NativeApp::open()
@@ -40,6 +114,49 @@ int NativeApp::open()
     return this->loadManifest();
 }
 
+uint64_t NativeApp::extractFile(const char *file)
+{
+    if (fZip == NULL || !workerIsRunning) {
+        printf("extractFile : you need to call open() and runWorker() before\n");
+        return 0;
+    }
+
+    int index;
+    struct zip_file *zfile;
+    struct zip_stat stat;
+
+    if ((index = zip_name_locate(fZip, file, ZIP_FL_NODIR)) == -1 ||
+        strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
+        (zfile = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
+
+        printf("extractFile: Failed to open %s\n", file);
+        return 0;
+    }
+
+    zip_stat_init(&stat);
+
+    if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
+       !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
+        return 0;
+    }
+
+    pthread_mutex_lock(&threadMutex);
+    if (action.active) {
+        pthread_mutex_unlock(&threadMutex);
+        printf("extractFile: Worker already working...\n");
+        return 0;
+    }
+
+    action.active = true;
+    action.type = APP_ACTION_EXTRACT;
+    action.ptr  = strdup(file);
+    action.u32  = index;
+    pthread_cond_signal(&threadCond);
+    pthread_mutex_unlock(&threadMutex);
+
+    return stat.size;
+}
+
 int NativeApp::loadManifest()
 {
 #define MPROP(root, str, type, out) \
@@ -59,7 +176,7 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
         strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), NATIVE_MANIFEST) != 0 ||
         (manifest = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
-        printf("manifest.json not found\n");
+        printf(NATIVE_MANIFEST " not found\n");
         return 0;
     }
 
@@ -86,6 +203,8 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
     if (!reader.parse(content, content+stat.size, root)) {
         printf("Cant parse JSON\n");
+
+        return 0;
     }
 
     MPROP(root, "info", Object, info);
@@ -100,5 +219,16 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
 NativeApp::~NativeApp()
 {
+    if (workerIsRunning) {
+        action.stop = true;
+
+        pthread_mutex_lock(&threadMutex);
+        pthread_cond_signal(&threadCond);
+        pthread_mutex_unlock(&threadMutex);
+
+        pthread_join(threadHandle, NULL);
+        del_timer(&this->net->timersng, this->timer);
+    }
+
     free(path);
 }

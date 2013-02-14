@@ -647,6 +647,7 @@ void NativeSkia::setShadowOffsetX(double x)
 {
     if (currentShadow.x == x) return;
     currentShadow.x = x;
+    printf("Shadow set on %p\n", PAINT);
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 

@@ -238,6 +238,7 @@ void NativeCocoaUIInterface::createWindow()
     NJS->bindNetObject(gnet);
 
     NJS->LoadScript("./main.js");
+    NJS->LoadApplication("./demo.zip");
 
     NJS->Loaded();
 }
