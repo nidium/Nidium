@@ -20,4 +20,9 @@ class NativeCocoaUIInterface : public NativeUIInterface
             CGRect minFrame;
         } controls;
         
+        struct {
+            char *buf;
+            size_t len;
+            size_t offset;
+        } mainjs;
 };

@@ -79,8 +79,13 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                             NUII->getHeight(), NUII);
 
                         NUII->NJS->bindNetObject(NUII->gnet);
-                        NUII->NJS->LoadScript("./main.js");
-                        NUII->NJS->Loaded();
+                        if (NUII->NJS->LoadScript("./main.js")) {
+                            NUII->NJS->Loaded();
+                        }
+                        if (NUII->NJS->LoadScriptContent(NUII->mainjs.buf,
+                            NUII->mainjs.len, "main.js")) {
+                            NUII->NJS->Loaded();
+                        }
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -155,11 +160,47 @@ static int NativeProcessUI(void *arg)
     return NativeEvents((NativeCocoaUIInterface *)arg);
 }
 
+
+static bool NativeExtractMain(const char *buf, int len,
+    size_t offset, size_t total, void *user)
+{
+    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)user;
+
+    memcpy(UI->mainjs.buf+UI->mainjs.offset, buf, len);
+    UI->mainjs.offset += len;
+
+    if (offset == total) {
+        if (UI->NJS->LoadScriptContent(UI->mainjs.buf, total, "main.js")) {
+            UI->NJS->Loaded();
+        }
+    }
+
+    return true;
+}
+
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
     NativeApp *app = new NativeApp(path);
     if (app->open()) {
-        return this->createWindow(app->getWidth(), app->getHeight());
+        size_t fsize;
+        if (!this->createWindow(app->getWidth(), app->getHeight())) {
+            return false;
+        }
+        this->setWindowTitle(app->getTitle());
+
+        app->runWorker(this->gnet);
+        if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
+            fsize > 1024L*1024L*5) {
+
+            return false;
+        }
+
+        this->mainjs.buf = (char *)malloc(fsize);
+        this->mainjs.len = fsize;
+        this->mainjs.offset = 0;
+
+        printf("Start looking for main.js of size : %ld\n", fsize);
+        return true;
     }
 
     return false;
@@ -182,17 +223,6 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     }
     CFRelease(url);
     CFRelease(url2);
-}
-
-bool NativeExtractMain(const char *buf, int len,
-    size_t offset, size_t total, void *user)
-{
-    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)user;
-    if (offset == total) {
-
-    }
-
-    return true;
 }
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
@@ -264,10 +294,10 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     NJS->bindNetObject(gnet);
 
-    NJS->LoadScript("./main.js");
+    if (NJS->LoadScript("./main.js")) {
+        NJS->Loaded();
+    }
     //NJS->LoadApplication("./demo.npa");
-
-    NJS->Loaded();
 
     return true;
 }

@@ -879,7 +879,8 @@ static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
 #endif
 }
 
-int NativeJS::LoadScriptContent(const char *data)
+int NativeJS::LoadScriptContent(const char *data, size_t len,
+    const char *filename)
 {
     uint32_t oldopts;
     
@@ -888,10 +889,11 @@ int NativeJS::LoadScriptContent(const char *data)
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
     JS::CompileOptions options(cx);
-    options.setUTF8(true);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1);
 
     js::RootedObject rgbl(cx, gbl);
-    JSScript *script = JS::Compile(cx, rgbl, options, data, strlen(data));
+    JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
     JS_SetOptions(cx, oldopts);
 
