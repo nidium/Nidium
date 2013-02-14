@@ -35,8 +35,27 @@ static void *native_appworker_thread(void *arg)
 
         switch (app->action.type) {
             case NativeApp::APP_ACTION_EXTRACT:
-                printf("Request extracting file : %s at index %d\n", app->action.ptr, app->action.u32);
+            {
+                #define APP_READ_SIZE 4096
+                struct zip_file *zfile;
+                char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
+
+                zfile = zip_fopen_index(app->fZip, app->action.u32,
+                    ZIP_FL_UNCHANGED);
+
+                int r = 0;
+                while ((r = zip_fread(zfile, content, APP_READ_SIZE)) != -1) {
+                    app->actionExtractRead(content, r, app->action.u64);
+                    if (r != APP_READ_SIZE) {
+                        break;
+                    }
+                }
+                free(content);
+
+                printf("Request extracting file : %s at index %d (read : %d)\n", app->action.ptr, app->action.u32, r);
+
                 break;
+            }
             default:
                 printf("unknown action\n");
                 break;
@@ -51,17 +70,36 @@ static void *native_appworker_thread(void *arg)
 static int Native_handle_app_messages(void *arg)
 {
     NativeApp *app = (NativeApp *)arg;
+    struct NativeApp::native_app_msg *ptr;
 
     NativeSharedMessages::Message msg;
 
     while (app->messages->readMessage(&msg)) {
         switch (msg.event()) {
-
+            case NativeApp::APP_MESSAGE_READ:
+                ptr = static_cast<struct NativeApp::native_app_msg *>(msg.dataPtr());
+                ptr->cb(ptr->data, ptr->len, ptr->total);
+                free(ptr->data);
+                delete ptr;
+                break;
             default:break;
         }
     }
 
     return 1;
+}
+
+void NativeApp::actionExtractRead(const char *buf, int len, size_t total)
+{
+    struct native_app_msg *msg = new struct native_app_msg;
+    msg->data = (char *)malloc(len);
+    msg->len  = len;
+    msg->total = total;
+    msg->cb = (NativeAppExtractCallback)action.user;
+
+    memcpy(msg->data, buf, len);
+
+    messages->postMessage(msg, APP_MESSAGE_READ);
 }
 
 void NativeApp::runWorker(ape_global *net)
@@ -114,7 +152,7 @@ int NativeApp::open()
     return this->loadManifest();
 }
 
-uint64_t NativeApp::extractFile(const char *file)
+uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
 {
     if (fZip == NULL || !workerIsRunning) {
         printf("extractFile : you need to call open() and runWorker() before\n");
@@ -137,6 +175,7 @@ uint64_t NativeApp::extractFile(const char *file)
 
     if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
        !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
+        zip_fclose(zfile);
         return 0;
     }
 
@@ -144,6 +183,7 @@ uint64_t NativeApp::extractFile(const char *file)
     if (action.active) {
         pthread_mutex_unlock(&threadMutex);
         printf("extractFile: Worker already working...\n");
+        zip_fclose(zfile);
         return 0;
     }
 
@@ -151,8 +191,11 @@ uint64_t NativeApp::extractFile(const char *file)
     action.type = APP_ACTION_EXTRACT;
     action.ptr  = strdup(file);
     action.u32  = index;
+    action.u64  = stat.size;
+    action.user = (void *)cb;
     pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
+    zip_fclose(zfile);
 
     return stat.size;
 }
@@ -184,20 +227,24 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
     if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
        !(stat.valid & (ZIP_STAT_SIZE|ZIP_STAT_COMP_SIZE))) {
+        zip_fclose(manifest);
         return 0;
     }
 
     if (stat.size > (1024L * 1024L)) {
         printf("Manifest file too big\n");
+        zip_fclose(manifest);
         return 0;
     }
 
     content = (char *)malloc(sizeof(char) * stat.size);
     int r = 0;
     if ((r = zip_fread(manifest, content, stat.size)) == -1) {
+        zip_fclose(manifest);
         free(content);
         return 0;
     }
+    zip_fclose(manifest);
 
     Json::Value root;
 

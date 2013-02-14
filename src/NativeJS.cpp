@@ -572,6 +572,12 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 }
 
+static bool test_extracting(const char *buf, size_t len, size_t total)
+{
+    
+    return true;
+}
+
 int NativeJS::LoadApplication(const char *path)
 {
     if (this->net == NULL) {
@@ -582,7 +588,12 @@ int NativeJS::LoadApplication(const char *path)
     if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
         app->runWorker(this->net);
-        app->extractFile("main.js");
+        size_t size = app->extractFile("main.js", test_extracting);
+        if (size == 0) {
+            printf("Cant exctract file\n");
+        } else {
+            printf("size : %ld\n", size);
+        }
     }
 
     return 0;

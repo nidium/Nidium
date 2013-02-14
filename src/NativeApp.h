@@ -8,6 +8,9 @@
 class NativeSharedMessages;
 class NativeJS;
 
+typedef bool (* NativeAppExtractCallback)(const char * buf,
+    size_t len, size_t total);
+
 class NativeApp
 {
 public:
@@ -16,7 +19,7 @@ public:
     NativeApp(const char *path);
     int open();
     void runWorker(struct _ape_global *net);
-    uint64_t extractFile(const char *path);
+    uint64_t extractFile(const char *path, NativeAppExtractCallback cb);
     ~NativeApp();
 
     const char *getTitle() const {
@@ -33,6 +36,7 @@ public:
     struct {
         uint64_t u64;
         void *ptr;
+        void *user;
         enum ACTION_TYPE type;
         bool active;
         bool stop;
@@ -45,9 +49,23 @@ public:
     pthread_cond_t threadCond;
 
     NativeSharedMessages *messages;
+    struct zip *fZip;
+
+    void actionExtractRead(const char *buf, int len, size_t total);
+
+    struct native_app_msg
+    {
+        char *data;
+        int len;
+        size_t total;
+        NativeAppExtractCallback cb;
+    };
+
+    enum APP_MESSAGE {
+        APP_MESSAGE_READ
+    };
 private:
 
-    struct zip *fZip;
     Json::Reader reader;
     int numFiles;
     bool workerIsRunning;
