@@ -36,13 +36,16 @@ static void *native_appworker_thread(void *arg)
         switch (app->action.type) {
             case NativeApp::APP_ACTION_EXTRACT:
             {
-#define APP_READ_SIZE (1024L*1024L)
+#define APP_READ_SIZE (1024L*1024L*2)
                 struct zip_file *zfile;
                 char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
 
                 zfile = zip_fopen_index(app->fZip, app->action.u32,
                     ZIP_FL_UNCHANGED);
 
+                if (zfile == NULL) {
+                    break;
+                }
                 size_t total = 0;
                 int r = 0;
                 while ((r = zip_fread(zfile, content, APP_READ_SIZE)) >= 0) {
@@ -52,6 +55,7 @@ static void *native_appworker_thread(void *arg)
                         break;
                     }
                 }
+                zip_fclose(zfile);
                 free(content);
 #undef APP_READ_SIZE
                 break;
@@ -80,7 +84,7 @@ static int Native_handle_app_messages(void *arg)
         switch (msg.event()) {
             case NativeApp::APP_MESSAGE_READ:
                 ptr = static_cast<struct NativeApp::native_app_msg *>(msg.dataPtr());
-                ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total);
+                ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total, ptr->user);
                 free(ptr->data);
                 delete ptr;
                 break;
@@ -100,7 +104,8 @@ void NativeApp::actionExtractRead(const char *buf, int len,
     msg->len  = len;
     msg->total = total;
     msg->offset = offset;
-    msg->cb = (NativeAppExtractCallback)action.user;
+    msg->cb = (NativeAppExtractCallback)action.cb;
+    msg->user = action.user;
 
     memcpy(msg->data, buf, len);
 
@@ -157,7 +162,7 @@ int NativeApp::open()
     return this->loadManifest();
 }
 
-uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
+uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, void *user)
 {
     if (fZip == NULL || !workerIsRunning) {
         printf("extractFile : you need to call open() and runWorker() before\n");
@@ -168,7 +173,6 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
     struct zip_file *zfile;
     struct zip_stat stat;
 
-    printf("step 1\n");
     if ((index = zip_name_locate(fZip, file, ZIP_FL_NODIR)) == -1 ||
         strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
         (zfile = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
@@ -177,7 +181,6 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
         return 0;
     }
 
-    printf("step 2\n");
     zip_stat_init(&stat);
 
     if (zip_stat_index(fZip, index, ZIP_FL_UNCHANGED, &stat) == -1 ||
@@ -186,7 +189,6 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
         return 0;
     }
 
-    printf("step 3\n");
     pthread_mutex_lock(&threadMutex);
     if (action.active) {
         pthread_mutex_unlock(&threadMutex);
@@ -200,7 +202,8 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb)
     action.ptr  = strdup(file);
     action.u32  = index;
     action.u64  = stat.size;
-    action.user = (void *)cb;
+    action.cb = (void *)cb;
+    action.user = user;
     pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
     zip_fclose(zfile);
@@ -265,9 +268,13 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
     MPROP(root, "info", Object, info);
     MPROP(info, "title", String, title);
     MPROP(info, "uid", String, uid);
+    MPROP(info, "width", Int, width);
+    MPROP(info, "height", Int, height);
 
     this->appInfos.title = title;
     this->appInfos.udid = uid;
+    this->appInfos.width = width.asInt();
+    this->appInfos.height = height.asInt();
 
     return 1;
 }

@@ -9,7 +9,7 @@ class NativeSharedMessages;
 class NativeJS;
 
 typedef bool (* NativeAppExtractCallback)(const char * buf,
-    int len, size_t offset, size_t total);
+    int len, size_t offset, size_t total, void *user);
 
 class NativeApp
 {
@@ -19,7 +19,7 @@ public:
     NativeApp(const char *path);
     int open();
     void runWorker(struct _ape_global *net);
-    uint64_t extractFile(const char *path, NativeAppExtractCallback cb);
+    uint64_t extractFile(const char *path, NativeAppExtractCallback cb, void *user);
     ~NativeApp();
 
     const char *getTitle() const {
@@ -28,7 +28,12 @@ public:
     const char *getUDID() const {
         return this->appInfos.udid.asCString();
     }
-
+    int getWidth() const {
+        return this->appInfos.width;
+    }
+    int getHeight() const {
+        return this->appInfos.height;
+    }
     enum ACTION_TYPE {
         APP_ACTION_EXTRACT
     };
@@ -36,6 +41,7 @@ public:
     struct {
         uint64_t u64;
         void *ptr;
+        void *cb;
         void *user;
         enum ACTION_TYPE type;
         bool active;
@@ -60,6 +66,7 @@ public:
         size_t offset;
         char *data;
         NativeAppExtractCallback cb;
+        void *user;
         int len;
     };
 
@@ -78,6 +85,9 @@ private:
     struct {
         Json::Value title;
         Json::Value udid;
+        
+        int width;
+        int height;
     } appInfos;
 
     struct _ape_timer *timer;

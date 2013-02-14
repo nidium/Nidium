@@ -338,7 +338,9 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
     }
 
     for (cur = children; cur != NULL; cur = cur->next) {
-        if (cur->coordPosition == COORD_RELATIVE) {
+        if (cur->coordPosition == COORD_RELATIVE &&
+            cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
+            
             int retWidth, retHeight;
 
             cur->computeContentSize(&retWidth, &retHeight);
