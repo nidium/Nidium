@@ -475,17 +475,3 @@ Native.elements.export("UIView", {
 		}
 	}
 });
-
-var TextNode = function(text){
-	var options = {
-		label : text,
-		color : "#ffffff",
-		background : "rgba(255, 0, 0, 0.4)"
-	};
-
-	var element = new DOMElement("UILabel", options, null);
-	element.flags |= FLAG_TEXT_NODE | FLAG_FLOATING_NODE;
-
-	return element;
-};
-

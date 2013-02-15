@@ -84,6 +84,7 @@ Native.object = {
 
 	redraw : function redraw(){
 		print("redraw()", this);
+//		if (this.orphaned) return false;
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
 		this.beforeDraw(this.layer.context);

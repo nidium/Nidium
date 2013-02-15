@@ -32,7 +32,7 @@ div.addChild(t2);
 div.addChild(t3);
 div.addChild(t4);
 div.addChild(t5);
-div.addChild(t6);
+//div.addChild(t6);
 
 
 var t41 = new TextNode(" jumps over the lazy ");

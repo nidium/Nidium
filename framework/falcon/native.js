@@ -80,6 +80,7 @@ require(__PATH_LAYOUT__ + 'UISpinner.js');
 require(__PATH_LAYOUT__ + 'UIModal.js');
 require(__PATH_LAYOUT__ + 'UILine.js');
 require(__PATH_LAYOUT__ + 'UIToolTip.js');
+require(__PATH_LAYOUT__ + 'UITextNode.js');
 //require(__PATH_LAYOUT__ + 'UIParticle.js');
 
 require(__PATH_LAYOUT__ + 'UIDiagram.js');

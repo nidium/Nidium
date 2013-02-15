@@ -104,7 +104,10 @@ var DOMElement = function(type, options, parent){
 	/* Internal Hidden Properties */
 	DOMElement.defineInternalProperties(this, {
 		private : {},
+
 		flags : 0,
+		lineIndex : 0,
+
 		_root : p ? p._root : null,
 		_nid : Native.layout.objID++,
 		_uid : "_obj_" + Native.layout.objID,
@@ -967,121 +970,27 @@ DOMElement.nodes = {
 		}
 
 		if (element.flags & FLAG_TEXT_NODE) {
+			if (element.left > p.textMaxWidth-6) {
+				element.top += p.lineHeight;
+				p.lineIndex++;
+			}
 			if (element.left + element.width > p.textMaxWidth) {
-				this.splitTextNode(element);
+				this.parseTextNode(element);
 			}
 		}
 
 	},
 
-	splitTextNode : function(element){
+	parseTextNode : function(element){
 		var p = element.parent ? element.parent : document,
 			pixelOverflow = p.textMaxWidth - element.left;
 
 		element.text = element.label;
 		element.offsetLeft = [];
 		element.offsetRight = [];
-		element._textMatrix = getTextMatrixLines(element);
 	}
 
 };
 
 /* -------------------------------------------------------------------------- */
 
-
-function getTextMatrixLines(element){
-	var	paragraphe = element.text.split(/\r\n|\r|\n/),
-
-		lineHeight = element.lineHeight,
-		fitWidth = element.w,
-		textAlign = element.textAlign,
-		fontSize = element.fontSize,
-		offsetLeft = element.offsetLeft,
-		offsetRight = element.offsetRight,
-
-		matrix = [],
-		wordsArray = [],
-
-		k = 0,
-		currentLine = 0,
-		context = element.layer.context;
-
-
-	context.setFontSize(fontSize);
-
-	for (var i = 0; i < paragraphe.length; i++) {
-		var words = paragraphe[i].split(' '),
-			idx = 1;
-
-		while (words.length > 0 && idx <= words.length) {
-			var str = words.slice(0, idx).join(' '),
-				w = context.measureText(str);
-
-			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
-				offRght = offsetRight[k] ? offsetRight[k] : 0,
-
-				currentFitWidth = fitWidth - offRght - offLeft;
-
-			if (w > currentFitWidth) {
-				idx = (idx == 1) ? 2 : idx;
-
-				wordsArray = words.slice(0, idx - 1);
-
-				matrix[currentLine++] = {
-					text : wordsArray.join(' '),
-					align : textAlign,
-					words : wordsArray,
-					letters : getLineLetters(
-								context,
-								wordsArray, textAlign, 
-								offLeft,
-								currentFitWidth,
-								fontSize
-							  )
-				};
-
-				k++;
-				
-				words = words.splice(idx - 1);
-				idx = 1;
-
-			} else {
-				idx++;
-			}
-
-		}
-
-		// last line
-		if (idx > 0) {
-
-			var align = (textAlign=="justify") ? "left" : textAlign,
-
-				offLeft = offsetLeft[currentLine] ?
-									offsetLeft[currentLine] : 0,
-
-				offRght = offsetRight[currentLine] ?
-									offsetRight[currentLine] : 0,
-
-				currentFitWidth = fitWidth - offRght - offLeft;
-
-			matrix[currentLine] = {
-				text : words.join(' '),
-				align : align,
-				words : words,
-				letters : getLineLetters(
-							context,
-							words, align, 
-							offLeft,
-							currentFitWidth,
-							fontSize
-						  )
-			};
-
-		}
-
-		currentLine++;
-	}
-
-	return matrix;
-
-};
