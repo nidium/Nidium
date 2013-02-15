@@ -74,7 +74,11 @@ Native.elements.export("UITextNode", {
 		/* ------------------------------------------------------------------ */
 
 		this.refreshElement = function(){
-			this.width = DOMElement.draw.getInnerTextWidth(this);
+			this.width = Native.getTextWidth(
+				this._label,
+				this._fontSize,
+				this._fontType
+			);
 			this._textMatrix = getTextMatrixLines(this);
 		};
 
@@ -85,6 +89,7 @@ Native.elements.export("UITextNode", {
 		};
 
 		this.refreshElement();
+		echo("width:", this.width);
 
 	},
 
@@ -101,6 +106,11 @@ Native.elements.export("UITextNode", {
 			h = params.h - this.paddingTop - this.paddingBottom,
 
 			vOffset = (this.lineHeight/2)+5;
+
+			echo(this._label, this._fontSize, this._fontType);
+
+
+		echo("width:", this.id, this.width);
 
 		DOMElement.draw.box(this, context, params);
 

@@ -568,7 +568,9 @@ DOMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
-	if (element.orphaned) element.refresh();
+	if (element.orphaned) {
+		element.refresh();
+	}
 	element.__unlock("onPropertyUpdate");
 };
 
