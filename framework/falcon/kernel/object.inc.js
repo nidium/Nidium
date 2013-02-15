@@ -41,9 +41,6 @@ var DOMElement = function(type, options, parent){
 		width : o.width ? Number(o.width) : p ? p._width : window.width,
 		height : o.height ? Number(o.height) : p ? p._height : window.height,
 
-		contentWidth : 0,
-		contentHeight : 0,
-
 		scrollLeft : OptionalNumber(o.scrollLeft, 0),
 		scrollTop : OptionalNumber(o.scrollTop, 0),
 
@@ -107,6 +104,7 @@ var DOMElement = function(type, options, parent){
 	/* Internal Hidden Properties */
 	DOMElement.defineInternalProperties(this, {
 		private : {},
+		flags : 0,
 		_root : p ? p._root : null,
 		_nid : Native.layout.objID++,
 		_uid : "_obj_" + Native.layout.objID,
@@ -217,13 +215,11 @@ DOMElement.prototype = {
 	set fastLeft(value) {
 		this._left = value;
 		this.layer.left = value;
-//		this.layer.scrollLeft = this._scrollLeft;
 	},
 
 	set fastTop(value) {
 		this._top = value;
 		this.layer.top = value;
-//		this.layer.scrollTop = this._scrollTop;
 	},
 
 	/* -- READ ONLY WRAPPERS -- */
@@ -234,6 +230,14 @@ DOMElement.prototype = {
 
 	get __top() {
 		return this.layer.__top;
+	},
+
+	get contentWidth() {
+		return this.layer ? this.layer.contentWidth : this.width;
+	},
+
+	get contentHeight() {
+		return this.layer ? this.layer.contentHeight : this.height;
 	},
 
 	get children() {
@@ -336,6 +340,157 @@ DOMElement.prototype = {
 
 	onscroll : null,
 
+	/* -- NSS Properties (to be implemented) -- */
+
+	/*
+	backgroundColor : "",
+	backgroundImage : "",
+	backgroundPositionX : "",
+	backgroundPositionY : "",
+	backgroundRepeat : "",
+
+	border : "",
+	borderBottom : "",
+	borderBottomColor : "",
+	borderBottomLeftRadius : "",
+	borderBottomRightRadius : "",
+	borderBottomStyle : "",
+	borderBottomWidth : "",
+	borderCollapse : "",
+	borderColor : "",
+	borderImage : "",
+	borderImageOutset : "",
+	borderImageRepeat : "",
+	borderImageSlice : "",
+	borderImageSource : "",
+	borderImageWidth : "",
+	borderLeft : "",
+	borderLeftColor : "",
+	borderLeftStyle : "",
+	borderLeftWidth : "",
+	borderRadius : "",
+	borderRight : "",
+	borderRightColor : "",
+	borderRightStyle : "",
+	borderRightWidth : "",
+	borderSpacing : "",
+	borderStyle : "",
+	borderTop : "",
+	borderTopColor : "",
+	borderTopLeftRadius : "",
+	borderTopRightRadius : "",
+	borderTopStyle : "",
+	borderTopWidth : "",
+	borderWidth : "",
+
+	clipPath : "",
+	clipRule : "",
+
+	colorInterpolation : "",
+	colorInterpolationFilters : "",
+	colorRendering : "",
+
+	direction : "",
+	display : "",
+
+	fill : "",
+	fillOpacity : "",
+	fillRule : "",
+
+	filter : "",
+	float : "",
+
+	floodColor : "",
+	floodOpacity : "",
+
+	font : "",
+	fontFamily : "",
+	fontSize : "",
+	fontStretch : "",
+	fontStyle : "",
+	fontVariant : "",
+	fontWeight : "",
+
+	imageSmoothingEnabled : "",
+
+	kerning : "",
+	letterSpacing : "",
+	lightingColor : "",
+	lineHeight : "",
+
+	listStyle : "",
+	listStyleImage : "",
+	listStylePosition : "",
+	listStyleType : "",
+
+	margin : "",
+	marginBottom : "",
+	marginLeft : "",
+	marginRight : "",
+	marginTop : "",
+
+	maxHeight : "",
+	maxWidth : "",
+	minHeight : "",
+	minWidth : "",
+
+	outline : "",
+	outlineColor : "",
+	outlineOffset : "",
+	outlineStyle : "",
+	outlineWidth : "",
+
+	overflow : "",
+	overflowWrap : "",
+	overflowX : "",
+	overflowY : "",
+
+	padding : "",
+	paddingBottom : "",
+	paddingLeft : "",
+	paddingRight : "",
+	paddingTop : "",
+
+	strokeDasharray : "",
+	strokeDashoffset : "",
+	strokeLinecap : "",
+	strokeLinejoin : "",
+	strokeMiterlimit : "",
+	strokeOpacity : "",
+	strokeWidth : "",
+
+	tabSize : "",
+
+	textAlign : "",
+	textAnchor : "",
+	textDecoration : "",
+	textIndent : "",
+	textLineThrough : "",
+	textLineThroughColor : "",
+	textLineThroughMode : "",
+	textLineThroughStyle : "",
+	textLineThroughWidth : "",
+	textOverflow : "",
+	textOverline : "",
+	textOverlineColor : "",
+	textOverlineMode : "",
+	textOverlineStyle : "",
+	textOverlineWidth : "",
+	textRendering : "",
+	textShadow : "",
+	textTransform : "",
+	textUnderline : "",
+	textUnderlineColor : "",
+	textUnderlineMode : "",
+	textUnderlineStyle : "",
+	textUnderlineWidth : "",
+
+	verticalAlign : "",
+	visibility : "",
+	whiteSpace : "",
+	zIndex : "",
+	zoom : "",
+	*/
 	/* -- user customisable methods -- */
 
 	update : function(context){},
@@ -410,6 +565,7 @@ DOMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
+	if (element.orphaned) element.refresh();
 	element.__unlock("onPropertyUpdate");
 };
 
@@ -796,3 +952,138 @@ DOMElement.defineInternalProperties = function(element, props){
 };
 
 /* -------------------------------------------------------------------------- */
+
+DOMElement.nodes = {
+	floatPosition : function(element){
+		var p = element.parent ? element.parent : document,
+			previous = element.previousSibling;
+
+		p.textMaxWidth = p.textMaxWidth ? p.textMaxWidth : p.contentWidth;
+
+		echo(p.className, p.width, p.contentWidth);
+
+		if (previous) {
+			element.left = previous.left + previous.width;
+		}
+
+		if (element.flags & FLAG_TEXT_NODE) {
+			if (element.left + element.width > p.textMaxWidth) {
+				this.splitTextNode(element);
+			}
+		}
+
+	},
+
+	splitTextNode : function(element){
+		var p = element.parent ? element.parent : document,
+			pixelOverflow = p.textMaxWidth - element.left;
+			
+		echo(pixelOverflow);
+		return false;
+		element.text = element.label;
+		element._textMatrix = getTextMatrixLines(element);
+	}
+
+};
+
+/* -------------------------------------------------------------------------- */
+
+
+function getTextMatrixLines(element){
+	var	paragraphe = element.text.split(/\r\n|\r|\n/),
+
+		lineHeight = element.lineHeight,
+		fitWidth = element.w,
+		textAlign = element.textAlign,
+		fontSize = element.fontSize,
+		offsetLeft = element.offsetLeft,
+		offsetRight = element.offsetRight,
+
+		matrix = [],
+		wordsArray = [],
+
+		k = 0,
+		currentLine = 0,
+		context = element.layer.context;
+
+
+	context.setFontSize(fontSize);
+
+	for (var i = 0; i < paragraphe.length; i++) {
+		var words = paragraphe[i].split(' '),
+			idx = 1;
+
+		while (words.length > 0 && idx <= words.length) {
+			var str = words.slice(0, idx).join(' '),
+				w = context.measureText(str);
+
+			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
+				offRght = offsetRight[k] ? offsetRight[k] : 0,
+
+				currentFitWidth = fitWidth - offRght - offLeft;
+
+			if (w > currentFitWidth) {
+				idx = (idx == 1) ? 2 : idx;
+
+				wordsArray = words.slice(0, idx - 1);
+
+				matrix[currentLine++] = {
+					text : wordsArray.join(' '),
+					align : textAlign,
+					words : wordsArray,
+					letters : getLineLetters(
+								context,
+								wordsArray, textAlign, 
+								offLeft,
+								currentFitWidth,
+								fontSize
+							  )
+				};
+
+				k++;
+				
+				words = words.splice(idx - 1);
+				idx = 1;
+
+			} else {
+				idx++;
+			}
+
+		}
+
+		// last line
+		if (idx > 0) {
+
+			var align = (textAlign=="justify") ? "left" : textAlign,
+
+				offLeft = offsetLeft[currentLine] ?
+									offsetLeft[currentLine] : 0,
+
+				offRght = offsetRight[currentLine] ?
+									offsetRight[currentLine] : 0,
+
+				currentFitWidth = fitWidth - offRght - offLeft;
+
+			matrix[currentLine] = {
+				text : words.join(' '),
+				align : align,
+				words : words,
+				letters : getLineLetters(
+							context,
+							words, align, 
+							offLeft,
+							currentFitWidth,
+							fontSize
+						  )
+			};
+
+		}
+
+		currentLine++;
+	}
+
+	//UIView.content.height = currentLine*lineHeight;
+
+	return matrix;
+
+};

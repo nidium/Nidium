@@ -23,6 +23,10 @@
  * DEALINGS IN THE SOFTWARE.                                                   *
  * --------------------------------------------------------------------------- * 
  */
+
+const	FLAG_TEXT_NODE = 1 << 0,
+		FLAG_FLOATING_NODE = 1 << 1;
+
 var ಠ_ಠ = '2.0',
 	
 	__PATH_ROOT__ = 'falcon/',

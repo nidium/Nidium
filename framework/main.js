@@ -9,7 +9,7 @@ require("../scripts/preload.js");
 require("falcon/native.js");
 //require("applications/demos/hello.js");
 //require("applications/demos/motion.js");
-require("applications/demos/tabs.js");
+//require("applications/demos/tabs.js");
 //require("applications/demos/profiler.js");
 //require("applications/demos/style.js");
 //require("applications/demos/windows.js");
@@ -31,7 +31,7 @@ require("applications/demos/tabs.js");
 
 
 //require("applications/demos/buttons.js");
-//require("applications/demos/test.js");
+require("applications/demos/test.js");
 
 //require("testLayer.js");
 

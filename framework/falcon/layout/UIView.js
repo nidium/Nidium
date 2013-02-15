@@ -473,25 +473,18 @@ Native.elements.export("UIView", {
 				DOMElement.draw.box(this, context, params, pattern);
 			}
 		}
-
 	}
 });
 
 var TextNode = function(text){
 	var options = {
 		label : text,
-		color : "#888888"
+		color : "#ffffff",
+		background : "rgba(255, 0, 0, 0.4)"
 	};
 
 	var element = new DOMElement("UILabel", options, null);
-
-	DOMElement.defineReadOnlyProperties(element, {
-		isTextNode : function(){
-			return true;
-		}
-	});
-
-	echo(element.previousSibling)
+	element.flags |= FLAG_TEXT_NODE | FLAG_FLOATING_NODE;
 
 	return element;
 };

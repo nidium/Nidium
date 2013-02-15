@@ -110,7 +110,6 @@ Native.MotionFactory = {
 			
 			/*
 			if (o.view._mutex[property] === true) {
-				echo("mutex on", property);
 				return false;
 			}
 

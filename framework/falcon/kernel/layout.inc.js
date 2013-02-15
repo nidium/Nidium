@@ -221,10 +221,11 @@ Native.layout = {
 
 		element.layer.removeFromParent();
 		element.resetNodes();
-
+		/*
 		for (var p in element){
 			delete element[p];
 		}
+		*/
 	}
 };
 

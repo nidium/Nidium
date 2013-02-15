@@ -88,15 +88,14 @@ Native.elements.export("UIToolTip", {
 		};
 
 		this.open = function(){
-			if (this.opened) return false;
+			if (this.opened || self.hinting) return false;
 
 			var parent = this.parent,
 				duration = 80;
 
-			if (self.hinting) return false;
 			self.hinting = true;
-
 			self.show();
+			self.bringToFront();
 
 			if (self.unhinting) {
 				self.unhinting = false;

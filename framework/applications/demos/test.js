@@ -12,25 +12,54 @@ div.width = 300;
 div.height = 250;
 div.background = "black";
 div.textContent = "the brown fox sugar";
+div.className = "div";
 body.addChild(div);
+
+echo(div.layer.width, "contentWidth", div.contentWidth);
+
+
 
 
 var t1 = new TextNode("The quick brown ");
 var t2 = new TextNode("fox");
-var t3 = new TextNode(" jumps over the lazy dog.");
-var t4 = new TextNode("The earliest known appearance of the phrase is from The Michigan School Moderator, a journal that provided teachers with education-related news and suggestions for lessons. In an article titled \"Interesting Notes\" in the March 14, 1885 issue, the phrase is given as a suggestion for writing practice: \"The following sentence makes a good copy for practice, as it contains every letter of the alphabet: A quick brown fox jumps over the lazy dog.\" Note that the phrase in this case begins with the word \"A\" rather than \"The\". Several other early sources also use this variation.");
+var t3 = new TextNode(" jumps over the lazy ");
+var t4 = new TextNode("dog");
+var t5 = new TextNode(".     ");
+var t6 = new TextNode("The earliest known appearance of the phrase is from The Michigan School Moderator.");
 
 div.addChild(t1);
 div.addChild(t2);
 div.addChild(t3);
+div.addChild(t4);
+div.addChild(t5);
+div.addChild(t6);
+
+
+var t41 = new TextNode(" jumps over the lazy ");
 
 body.add("UIButton").click(function(){
-	s.pause();
+	echo(div.contentWidth);
+//	t4.remove();
 });
 
-var s = new UISpinner();
-div.addChild(s);
+t2.color = "red";
+t4.color = "#ffdd88";
 
-window.onready = function(){
-	echo("OK, context is ready");
-};
+t4.cursor = "pointer";
+t4.addEventListener("mouseover", function(e){
+	this.hover = true;
+});
+
+t4.addEventListener("mouseout", function(e){
+	this.hover = false;
+});
+
+/*
+var h = new UIToolTip(t4, {
+	label : "Click here to see the Quick Brown Fox"
+});
+h.enable();
+h.show();
+h.visible = false;
+*/
+
