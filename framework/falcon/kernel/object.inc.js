@@ -977,10 +977,10 @@ DOMElement.nodes = {
 	splitTextNode : function(element){
 		var p = element.parent ? element.parent : document,
 			pixelOverflow = p.textMaxWidth - element.left;
-			
-		echo(pixelOverflow);
-		return false;
+
 		element.text = element.label;
+		element.offsetLeft = [];
+		element.offsetRight = [];
 		element._textMatrix = getTextMatrixLines(element);
 	}
 
@@ -1081,8 +1081,6 @@ function getTextMatrixLines(element){
 
 		currentLine++;
 	}
-
-	//UIView.content.height = currentLine*lineHeight;
 
 	return matrix;
 
