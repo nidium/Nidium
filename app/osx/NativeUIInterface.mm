@@ -172,6 +172,7 @@ static bool NativeExtractMain(const char *buf, int len,
     if (offset == total) {
         if (UI->NJS->LoadScriptContent(UI->mainjs.buf, total, "main.js")) {
             UI->NJS->Loaded();
+
         }
     }
 
@@ -182,24 +183,26 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
 {
     NativeApp *app = new NativeApp(path);
     if (app->open()) {
-        size_t fsize;
+        size_t fsize = 0;
         if (!this->createWindow(app->getWidth(), app->getHeight())) {
             return false;
         }
         this->setWindowTitle(app->getTitle());
 
         app->runWorker(this->gnet);
-        if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
+        /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
             fsize > 1024L*1024L*5) {
 
             return false;
-        }
+        }*/
 
-        this->mainjs.buf = (char *)malloc(fsize);
+        app->extractApp("cache");
+
+        /*this->mainjs.buf = (char *)malloc(fsize);
         this->mainjs.len = fsize;
         this->mainjs.offset = 0;
 
-        printf("Start looking for main.js of size : %ld\n", fsize);
+        printf("Start looking for main.js of size : %ld\n", fsize);*/
         return true;
     }
 

@@ -20,6 +20,7 @@ public:
     int open();
     void runWorker(struct _ape_global *net);
     uint64_t extractFile(const char *path, NativeAppExtractCallback cb, void *user);
+    int extractApp(const char *path);
     ~NativeApp();
 
     const char *getTitle() const {
@@ -73,14 +74,13 @@ public:
     enum APP_MESSAGE {
         APP_MESSAGE_READ
     };
+    int numFiles;
 private:
 
     Json::Reader reader;
-    int numFiles;
     bool workerIsRunning;
 
     int loadManifest();
-    
 
     struct {
         Json::Value title;

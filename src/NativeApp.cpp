@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <native_netlib.h>
+#include <sys/stat.h>
 
 #include "NativeApp.h"
 #include "NativeJS.h"
@@ -162,6 +163,108 @@ int NativeApp::open()
     return this->loadManifest();
 }
 
+struct NativeExtractor_s
+{
+    NativeApp *app;
+    uint64_t curIndex;
+    const char *fName;
+    const char *fDir;
+    struct {
+        size_t len;
+        size_t offset;
+        FILE *fp;
+    } data;
+};
+
+static bool NativeExtractor(const char * buf,
+    int len, size_t offset, size_t total, void *user)
+{
+    struct NativeExtractor_s *arg = (struct NativeExtractor_s *)user;
+
+    if (arg->data.offset == 0) {
+
+        char *fpath = (char *)malloc(sizeof(char) *
+                        (strlen(arg->fDir) + strlen(arg->fName) + 1));
+
+        sprintf(fpath, "%s%s", arg->fDir, arg->fName);
+
+        if ((arg->data.fp = fopen(fpath, "w")) == NULL) {
+            free(fpath);
+            return false;
+        }
+
+        free(fpath);
+    }
+
+    fwrite(buf, 1, len, arg->data.fp);
+    arg->data.offset += len;
+
+    if (offset == total) {
+        if (arg->data.fp) {
+            fclose(arg->data.fp);
+        }
+
+        if (arg->curIndex < (arg->app->numFiles-1)) {
+            arg->data.offset = 0;
+            arg->data.fp = NULL;
+
+            while (++arg->curIndex) {
+                arg->fName = zip_get_name(arg->app->fZip,
+                    arg->curIndex, ZIP_FL_UNCHANGED);
+
+                if (arg->fName[strlen(arg->fName)-1] != '/') {
+                    break;
+                }           
+            }
+            arg->data.len = arg->app->extractFile(arg->fName,
+                                NativeExtractor, arg);
+        }
+    }
+
+    return true;
+} 
+
+int NativeApp::extractApp(const char *path)
+{
+    if (fZip == NULL || !workerIsRunning) {
+        printf("extractFile : you need to call open() and runWorker() before\n");
+        return 0;
+    }
+#define NATIVE_CACHE_DIR "./cache/"
+    if (mkdir(NATIVE_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
+        printf("Cant create cache directory\n");
+        return 0;
+    }
+    int i, first = -1;
+    for (i = 0; i < numFiles; i++) {
+        const char *fname = zip_get_name(fZip, i, ZIP_FL_UNCHANGED);
+
+        if (fname[strlen(fname)-1] == '/') {
+            char *create = (char *)malloc(sizeof(char) *
+                (strlen(NATIVE_CACHE_DIR) + strlen(fname) + 8));
+            sprintf(create, NATIVE_CACHE_DIR "%s", fname);
+
+            mkdir(create, 0777);
+            free(create);
+            continue;
+        }
+        if (first == -1) {
+            first = i;
+        }
+    }
+    struct NativeExtractor_s *arg = new NativeExtractor_s;
+    arg->app = this;
+    arg->curIndex = first;
+    arg->fName = zip_get_name(fZip, first, ZIP_FL_UNCHANGED);
+    arg->data.offset = 0;
+    arg->data.fp = NULL;
+    arg->fDir = NATIVE_CACHE_DIR;
+    arg->data.len = this->extractFile(arg->fName, NativeExtractor, arg);
+
+    return (arg->data.len != 0);
+#undef NATIVE_CACHE_DIR
+}
+
 uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, void *user)
 {
     if (fZip == NULL || !workerIsRunning) {
@@ -169,11 +272,11 @@ uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, v
         return 0;
     }
 
-    int index;
+    uint64_t index;
     struct zip_file *zfile;
     struct zip_stat stat;
 
-    if ((index = zip_name_locate(fZip, file, ZIP_FL_NODIR)) == -1 ||
+    if ((index = zip_name_locate(fZip, file, 0)) == -1 ||
         strcmp(zip_get_name(fZip, index, ZIP_FL_UNCHANGED), file) != 0 ||
         (zfile = zip_fopen_index(fZip, index, ZIP_FL_UNCHANGED)) == NULL) {
 
@@ -290,6 +393,9 @@ NativeApp::~NativeApp()
 
         pthread_join(threadHandle, NULL);
         del_timer(&this->net->timersng, this->timer);
+    }
+    if (fZip) {
+        zip_close(this->fZip);
     }
 
     free(path);
