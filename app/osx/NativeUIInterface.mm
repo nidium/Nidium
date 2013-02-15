@@ -1,6 +1,7 @@
 #import "NativeCocoaUIInterface.h"
 #import <NativeJS.h>
 #import <NativeSkia.h>
+#import <NativeApp.h>
 #import <SDL2/SDL.h>
 #import <SDL2/SDL_opengl.h>
 #import <SDL2/SDL_syswm.h>
@@ -74,10 +75,17 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         glClearColor(1, 1, 1, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
-                        NUII->NJS = new NativeJS(kNativeWidth, kNativeHeight, NUII);
+                        NUII->NJS = new NativeJS(NUII->getWidth(),
+                            NUII->getHeight(), NUII);
+
                         NUII->NJS->bindNetObject(NUII->gnet);
-                        NUII->NJS->LoadScript("./main.js");
-                        NUII->NJS->Loaded();
+                        if (NUII->NJS->LoadScript("./main.js")) {
+                            NUII->NJS->Loaded();
+                        }
+                        if (NUII->NJS->LoadScriptContent(NUII->mainjs.buf,
+                            NUII->mainjs.len, "main.js")) {
+                            NUII->NJS->Loaded();
+                        }
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -147,15 +155,64 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
     return 16;
 }
 
-
 static int NativeProcessUI(void *arg)
 {
     return NativeEvents((NativeCocoaUIInterface *)arg);
 }
 
 
+static bool NativeExtractMain(const char *buf, int len,
+    size_t offset, size_t total, void *user)
+{
+    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)user;
+
+    memcpy(UI->mainjs.buf+UI->mainjs.offset, buf, len);
+    UI->mainjs.offset += len;
+
+    if (offset == total) {
+        if (UI->NJS->LoadScriptContent(UI->mainjs.buf, total, "main.js")) {
+            UI->NJS->Loaded();
+
+        }
+    }
+
+    return true;
+}
+
+bool NativeCocoaUIInterface::runApplication(const char *path)
+{
+    NativeApp *app = new NativeApp(path);
+    if (app->open()) {
+        size_t fsize = 0;
+        if (!this->createWindow(app->getWidth(), app->getHeight())) {
+            return false;
+        }
+        this->setWindowTitle(app->getTitle());
+
+        app->runWorker(this->gnet);
+        /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
+            fsize > 1024L*1024L*5) {
+
+            return false;
+        }*/
+
+        app->extractApp("cache");
+
+        /*this->mainjs.buf = (char *)malloc(fsize);
+        this->mainjs.len = fsize;
+        this->mainjs.offset = 0;
+
+        printf("Start looking for main.js of size : %ld\n", fsize);*/
+        return true;
+    }
+
+    return false;
+}
+
 NativeCocoaUIInterface::NativeCocoaUIInterface()
 {
+    this->width = 0;
+    this->height = 0;
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
 
@@ -171,7 +228,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     CFRelease(url2);
 }
 
-void NativeCocoaUIInterface::createWindow()
+bool NativeCocoaUIInterface::createWindow(int width, int height)
 {
     SDL_GLContext contexteOpenGL;
     NSWindow *window;
@@ -179,7 +236,7 @@ void NativeCocoaUIInterface::createWindow()
     if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1)
     {
         printf( "Can't init SDL:  %s\n", SDL_GetError( ));
-        return;
+        return false;
     }
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
@@ -193,13 +250,16 @@ void NativeCocoaUIInterface::createWindow()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
     win = SDL_CreateWindow("Native - Running", 100, 100,
-        kNativeWidth, kNativeHeight,
+        width, height,
         SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 
     if (win == NULL) {
         printf("Cant create window (SDL)\n");
-        return;
+        return false;
     }
+
+    this->width = width;
+    this->height = height;
 
     window = NativeCocoaWindow(win);
 
@@ -226,9 +286,9 @@ void NativeCocoaUIInterface::createWindow()
         printf("Cant vsync\n");
     }
 
-    glViewport(0, 0, kNativeWidth, kNativeHeight);
+    glViewport(0, 0, width, height);
 
-    NJS = new NativeJS(kNativeWidth, kNativeHeight, this);
+    NJS = new NativeJS(width, height, this);
 
     gnet = native_netlib_init();
 
@@ -237,9 +297,12 @@ void NativeCocoaUIInterface::createWindow()
 
     NJS->bindNetObject(gnet);
 
-    NJS->LoadScript("./main.js");
+    if (NJS->LoadScript("./main.js")) {
+        NJS->Loaded();
+    }
+    //NJS->LoadApplication("./demo.npa");
 
-    NJS->Loaded();
+    return true;
 }
 
 void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)

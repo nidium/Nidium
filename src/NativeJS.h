@@ -38,12 +38,15 @@ class NativeJS
         NativeUIInterface *UI;
         bool shutdown;
         struct _ape_htable *rootedObj;
+        struct _ape_global *net;
 
         NativeJS(int width, int height, NativeUIInterface *inUI);
         ~NativeJS();
         
+        int LoadApplication(const char *path);
         void Loaded();
-        int LoadScriptContent(const char *data);
+        int LoadScriptContent(const char *data, size_t len,
+            const char *filename);
         int LoadScript(const char *filename);
         void callFrame();
         void rootObjectUntilShutdown(JSObject *obj);

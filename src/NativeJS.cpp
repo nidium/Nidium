@@ -512,6 +512,8 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     currentFPS = 0;
     shutdown = false;
 
+    this->net = NULL;
+
     rootedObj = hashtbl_init(APE_HASH_INT);
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
@@ -534,7 +536,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     }
     JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
     JS_SetErrorReporter(cx, reportError);
 
@@ -566,12 +568,38 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     messages = new NativeSharedMessages();
 
     //this->LoadScriptContent(preload_js);
+    
+    //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+}
+
+static bool test_extracting(const char *buf, int len,
+    size_t offset, size_t total, void *user)
+{
+    NativeJS *njs = (NativeJS *)user;
+
+    printf("Got a packet of size %ld out of %ld\n", offset, total);
+    return true;
+}
+
+int NativeJS::LoadApplication(const char *path)
+{
+    if (this->net == NULL) {
+        printf("LoadApplication: bind a net object first\n");
+        return 0;
+    }
     NativeApp *app = new NativeApp("./demo.zip");
     if (app->open()) {
         this->UI->setWindowTitle(app->getTitle());
+        app->runWorker(this->net);
+        size_t size = app->extractFile("main.js", test_extracting, this);
+        if (size == 0) {
+            printf("Cant exctract file\n");
+        } else {
+            printf("size : %ld\n", size);
+        }
     }
-    
-    //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+
+    return 0;
 }
 
 void NativeJS::forceLinking()
@@ -692,6 +720,7 @@ static int Native_handle_messages(void *arg)
     }
 
     return 1;
+#undef MAX_MSG_IN_ROW
 }
 
 #if 0
@@ -715,6 +744,7 @@ void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
+    this->net = net;
 
     ape_timer *timer = add_timer(&net->timersng, 1,
         Native_handle_messages, this);
@@ -849,7 +879,8 @@ static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
 #endif
 }
 
-int NativeJS::LoadScriptContent(const char *data)
+int NativeJS::LoadScriptContent(const char *data, size_t len,
+    const char *filename)
 {
     uint32_t oldopts;
     
@@ -858,10 +889,11 @@ int NativeJS::LoadScriptContent(const char *data)
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
     JS::CompileOptions options(cx);
-    options.setUTF8(true);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1);
 
     js::RootedObject rgbl(cx, gbl);
-    JSScript *script = JS::Compile(cx, rgbl, options, data, strlen(data));
+    JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
     JS_SetOptions(cx, oldopts);
 
