@@ -57,14 +57,15 @@ Native.elements.export("UITextNode", {
 									'rgba(0, 0, 0, 0.1)'
 								),
 
-			height 			: OptionalNumber(o.height, 18),
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, ""),
 			color 			: OptionalValue(o.color, "#222222")
 		});
 
-		this.offsetLeft = OptionalValue(o.offsetLeft, []);
-		this.offsetRight = OptionalValue(o.offsetRight, []);
+		this.height = OptionalNumber(o.lineHeight, 18);
+
+		this.contentOffsetLeft = OptionalValue(o.contentOffsetLeft, []);
+		this.contentOffsetRight = OptionalValue(o.contentOffsetRight, []);
 
 		this.paddingLeft = 0;
 		this.paddingRight = 0;
@@ -74,22 +75,35 @@ Native.elements.export("UITextNode", {
 		/* ------------------------------------------------------------------ */
 
 		this.refreshElement = function(){
-			this.width = Native.getTextWidth(
+			var vOffset = (this.lineHeight/2)+5;
+
+			this.textPixelWidth = Math.round(Native.getTextWidth(
 				this._label,
 				this._fontSize,
 				this._fontType
-			);
+			));
 			this._textMatrix = getTextMatrixLines(this);
+			
+			var nblines = this._textMatrix.length;
+
+			if (nblines<=1) {
+				this.width = this.textPixelWidth;
+				this.height = nblines * this.lineHeight;
+			} else {
+				this.width = this.parent ? 
+								this.parent.width : this.textPixelWidth;
+
+				this.height = nblines * this.lineHeight + vOffset;
+			}
+
 		};
 
-		this.setLayout = function(offsetLeft, offsetRight){
-			this.offsetLeft = OptionalValue(offsetLeft, []);
-			this.offsetRight = OptionalValue(offsetRight, []);
-			this.setText(this.label);
+		this.setLayout = function(contentOffsetLeft, contentOffsetRight){
+			this.contentOffsetLeft = OptionalValue(contentOffsetLeft, []);
+			this.contentOffsetRight = OptionalValue(contentOffsetRight, []);
 		};
 
 		this.refreshElement();
-		echo("width:", this.width);
 
 	},
 
@@ -106,11 +120,6 @@ Native.elements.export("UITextNode", {
 			h = params.h - this.paddingTop - this.paddingBottom,
 
 			vOffset = (this.lineHeight/2)+5;
-
-			echo(this._label, this._fontSize, this._fontType);
-
-
-		echo("width:", this.id, this.width);
 
 		DOMElement.draw.box(this, context, params);
 
@@ -134,33 +143,7 @@ Native.elements.export("UITextNode", {
 
 /* -------------------------------------------------------------------------- */
 
-Canvas.implement({
-	highlightLetters : function(letters, x, y, lineHeight){
-		var c, nush, cx, cy, cw;
-		for (var i=0; i<letters.length; i++){
-			c = letters[i];
-	 		nush = letters[i+1] ? 
-	 						letters[i+1].position - c.position - c.width : 0;
-
-		 	cx = x + c.position;
- 			cy = y;
- 			cw = c.width + nush + 0.25;
- 			if (c.selected){
-				this.fillRect(cx, cy, cw, lineHeight);
-			}
-		}
-	},
-
-	drawLetters : function(letters, x, y){
-		var c;
-		for (var i=0; i<letters.length; i++){
-			c = letters[i];
-			this.fillText(c.char, x + c.position, y);
-		}
-	}
-});
-
-function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
+function getLineLetters(context, wordsArray, textAlign, contentOffsetLeft, fitWidth, fontSize){
 	var widthOf = context.measureText,
 		textLine = wordsArray.join(' '),
 		
@@ -225,7 +208,7 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 		letters[i] = {
 			char : char,
-			position : offsetLeft + offset + position + offgap,
+			position : contentOffsetLeft + offset + position + offgap,
 			width : letterWidth,
 			linegap : linegap,
 			selected : false
@@ -235,17 +218,18 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 	}
 
 	// last letter Position Approximation Corrector
+	
 	if (letters[textLine.length-1]) {
 		var last = letters[textLine.length-1],
 			delta = fitWidth - (last.position + last.width);
 
-		if ((0.05 + last.position + last.width) > fitWidth+offsetLeft) {
-			last.position = Math.floor(last.position - delta - 0.5) - offsetLeft;
+		if ((0.05 + last.position + last.width) > fitWidth+contentOffsetLeft) {
+			last.position = Math.floor(last.position - delta - 0.5) - contentOffsetLeft;
 		}
 
 		letters[i] = {
 			char : " ",
-			position : offsetLeft + offset + position + offgap,
+			position : contentOffsetLeft + offset + position + offgap,
 			width : 10,
 			linegap : linegap,
 			selected : false
@@ -258,11 +242,12 @@ function getTextMatrixLines(element){
 	var	paragraphe = element.label.split(/\r\n|\r|\n/),
 
 		lineHeight = element.lineHeight,
-		fitWidth = element.w,
+		fitWidth = element.width,
 		textAlign = element.textAlign,
 		fontSize = element.fontSize,
-		offsetLeft = element.offsetLeft,
-		offsetRight = element.offsetRight,
+		fontType = element.fontType,
+		contentOffsetLeft = element.contentOffsetLeft,
+		contentOffsetRight = element.contentOffsetRight,
 
 		matrix = [],
 		wordsArray = [],
@@ -273,17 +258,18 @@ function getTextMatrixLines(element){
 
 
 	context.setFontSize(fontSize);
+	context.fontType = fontType;
 
 	for (var i = 0; i < paragraphe.length; i++) {
 		var words = paragraphe[i].split(' '),
 			idx = 1;
 
-		while (words.length > 0 && idx <= words.length) {
+		while (words.length>0 && idx <= words.length) {
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
 
-			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
-				offRght = offsetRight[k] ? offsetRight[k] : 0,
+			var offLeft = contentOffsetLeft[k] ? contentOffsetLeft[k] : 0,
+				offRght = contentOffsetRight[k] ? contentOffsetRight[k] : 0,
 
 				currentFitWidth = fitWidth - offRght - offLeft;
 
@@ -321,11 +307,11 @@ function getTextMatrixLines(element){
 
 			var align = (textAlign=="justify") ? "left" : textAlign,
 
-				offLeft = offsetLeft[currentLine] ?
-									offsetLeft[currentLine] : 0,
+				offLeft = contentOffsetLeft[currentLine] ?
+									contentOffsetLeft[currentLine] : 0,
 
-				offRght = offsetRight[currentLine] ?
-									offsetRight[currentLine] : 0,
+				offRght = contentOffsetRight[currentLine] ?
+									contentOffsetRight[currentLine] : 0,
 
 				currentFitWidth = fitWidth - offRght - offLeft;
 
@@ -383,6 +369,32 @@ function printTextMatrix(context, textMatrix, caret, x, y, vOffset, viewportWidt
 		}
 	}
 }
+
+Canvas.implement({
+	highlightLetters : function(letters, x, y, lineHeight){
+		var c, nush, cx, cy, cw;
+		for (var i=0; i<letters.length; i++){
+			c = letters[i];
+	 		nush = letters[i+1] ? 
+	 						letters[i+1].position - c.position - c.width : 0;
+
+		 	cx = x + c.position;
+ 			cy = y;
+ 			cw = c.width + nush + 0.25;
+ 			if (c.selected){
+				this.fillRect(cx, cy, cw, lineHeight);
+			}
+		}
+	},
+
+	drawLetters : function(letters, x, y){
+		var c;
+		for (var i=0; i<letters.length; i++){
+			c = letters[i];
+			this.fillText(c.char, x + c.position, y);
+		}
+	}
+});
 
 
 

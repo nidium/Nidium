@@ -104,8 +104,9 @@ Native.elements.export("UISpinner", {
 					self.previousFrame();
 				}
 
-				self._needRefresh = true;
-				self._needRedraw = true;
+				//self._needRefresh = true;
+				//self._needRedraw = true;
+				self.redraw();
 			}, ms, true, true);
 		};
 

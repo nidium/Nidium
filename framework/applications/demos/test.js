@@ -17,16 +17,16 @@ body.addChild(div);
 
 
 var t1 = new TextNode("The quick brown ");
-echo(t1.width);
-/*
 var t2 = new TextNode("fox");
 var t3 = new TextNode(" jumps over the lazy ");
 var t4 = new TextNode("dog");
-var t5 = new TextNode(".     ");
+var t5 = new TextNode(". ");
 var t6 = new TextNode("The earliest known appearance of the phrase is from The Michigan School Moderator.");
+var t7 = new TextNode("I finally fucked you TextNode.");
 
 t2.color = "red";
 t4.color = "#ffdd88";
+t6.textAlign = "justify";
 
 t4.cursor = "pointer";
 t4.addEventListener("mouseover", function(e){
@@ -37,9 +37,19 @@ t4.addEventListener("mouseout", function(e){
 	this.hover = false;
 });
 
-*/
+
+div.addChild(t1);
+div.addChild(t2);
+div.addChild(t3);
+div.addChild(t4);
+div.addChild(t5);
+div.addChild(t6);
+//div.addChild(t7);
 
 
+echo(div.contentWidth);
+
+/*
 var label = new UILabel(div, {
 	label : "The quick brown ",
 	left : 0,
@@ -47,16 +57,7 @@ var label = new UILabel(div, {
 	color : "#ffffff",
 	background : "red"
 });
-
-echo(label.width);
-
-div.addChild(t1);
-//div.addChild(t2);
-//div.addChild(t3);
-//div.addChild(t4);
-//div.addChild(t5);
-//div.addChild(t6);
-
+*/
 
 body.add("UIButton").click(function(){
 	echo(div.contentWidth);

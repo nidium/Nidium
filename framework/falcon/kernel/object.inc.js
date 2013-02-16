@@ -522,6 +522,8 @@ DOMElement.onPropertyUpdate = function(e){
 	switch (e.property) {
 		case "left" :
 		case "top" :
+		case "offsetLeft" :
+		case "offsetTop" :
 			element._needPositionUpdate = true;
 			element._needAncestorCacheClear = true;
 			break;
@@ -568,9 +570,7 @@ DOMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
-	if (element.orphaned) {
-		element.refresh();
-	}
+	element.refresh();
 	element.__unlock("onPropertyUpdate");
 };
 
@@ -961,25 +961,35 @@ DOMElement.defineInternalProperties = function(element, props){
 DOMElement.nodes = {
 	floatPosition : function(element){
 		var p = element.parent ? element.parent : document,
+			isTextNode = element.flags & FLAG_TEXT_NODE,
 			previous = element.previousSibling;
 
-		p.textMaxWidth = p.textMaxWidth ? p.textMaxWidth : p.contentWidth;
+		echo(element.left, element.width, p.contentWidth);
 
-		echo(p.className, p.width, p.contentWidth);
+		if (p.nextElementLeft == undefined) p.nextElementLeft = 0;
 
 		if (previous) {
-			element.left = previous.left + previous.width;
+			element.left = p.nextElementLeft;
+			if (isTextNode) {
+
+			}
 		}
 
-		if (element.flags & FLAG_TEXT_NODE) {
-			if (element.left > p.textMaxWidth-6) {
-				element.top += p.lineHeight;
-				p.lineIndex++;
-			}
-			if (element.left + element.width > p.textMaxWidth) {
-				this.parseTextNode(element);
+		p.nextElementLeft += Math.ceil(element.width);
+
+		p.textMaxWidth = p.contentWidth;
+		//echo(p.textMaxWidth);
+
+
+		if (isTextNode) {
+			if (element.left + element.textPixelWidth > p.textMaxWidth) {
+				//echo(element.textPixelWidth, p.contentWidth);
+				//this.parseTextNode(element);
 			}
 		}
+
+		echo(element.left, element.width, p.contentWidth);
+		echo("");
 
 	},
 
@@ -987,11 +997,21 @@ DOMElement.nodes = {
 		var p = element.parent ? element.parent : document,
 			pixelOverflow = p.textMaxWidth - element.left;
 
-		element.text = element.label;
-		element.offsetLeft = [];
-		element.offsetRight = [];
-	}
+		echo(element.textPixelWidth, p.contentWidth);
+		element.label = "The earliest ";
+		element.width = pixelOverflow;
+/*
+		element.left = 0;
+		element.width = p.width;
 
+		element.contentOffsetLeft = [240];
+		element.contentOffsetRight = [];
+		element.refreshElement();
+		element._needRefresh = true;
+		element._needRedraw = true;
+		element.redraw();
+*/
+	}
 };
 
 /* -------------------------------------------------------------------------- */

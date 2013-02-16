@@ -15,7 +15,8 @@ Native.elements.export("UIView", {
 				this.setBackgroundURL(value);
 			}
 		},
-
+		
+		/*
 		contentWidth : {
 			set : function(value){
 				throw "contentWidth is read only (id:"+this.id+")";
@@ -35,6 +36,7 @@ Native.elements.export("UIView", {
 				return this.layer.contentHeight;
 			}
 		},
+		*/
 
 		scrollLeft : {
 			set : function(value){
