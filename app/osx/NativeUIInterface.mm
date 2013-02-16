@@ -82,10 +82,6 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         if (NUII->NJS->LoadScript("./main.js")) {
                             NUII->NJS->Loaded();
                         }
-                        if (NUII->NJS->LoadScriptContent(NUII->mainjs.buf,
-                            NUII->mainjs.len, "main.js")) {
-                            NUII->NJS->Loaded();
-                        }
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -179,6 +175,18 @@ static bool NativeExtractMain(const char *buf, int len,
     return true;
 }
 
+static void NativeDoneExtracting(void *closure, const char *fpath)
+{
+    NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
+    chdir(fpath);
+    printf("Changing directory to : %s\n", fpath);
+    if (ui->NJS->LoadScript("./main.js")) {
+        printf("Running main?\n");
+        ui->NJS->Loaded();
+    }    
+
+}
+
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
     NativeApp *app = new NativeApp(path);
@@ -196,8 +204,12 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             return false;
         }*/
 
-        app->extractApp("cache");
-
+        char *uidpath = (char *)malloc(sizeof(char) *
+                            (strlen(app->getUDID()) + 16));
+        sprintf(uidpath, "%s.content/", app->getUDID());
+        
+        app->extractApp(uidpath, NativeDoneExtracting, this);
+        free(uidpath);
         /*this->mainjs.buf = (char *)malloc(fsize);
         this->mainjs.len = fsize;
         this->mainjs.offset = 0;
@@ -297,9 +309,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     NJS->bindNetObject(gnet);
 
-    if (NJS->LoadScript("./main.js")) {
-        NJS->Loaded();
-    }
     //NJS->LoadApplication("./demo.npa");
 
     return true;
