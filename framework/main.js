@@ -30,8 +30,8 @@ require("falcon/native.js");
 //require("applications/demos/http.js");
 
 
-//require("applications/demos/buttons.js");
-require("applications/demos/test.js");
+require("applications/demos/buttons.js");
+//require("applications/demos/test.js");
 
 //require("testLayer.js");
 
@@ -47,7 +47,7 @@ require("applications/demos/test.js");
 
 /* -- Native Debugger ------------------ */
 
-require("applications/NatBug.nap");
+//require("applications/NatBug.nap");
 
 
 /* -- Old Native Framework Demos ------------------ */

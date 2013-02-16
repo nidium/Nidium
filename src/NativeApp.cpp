@@ -149,15 +149,13 @@ int NativeApp::open()
         return 0;
     }
 
-    if ((numFiles = zip_get_num_entries(fZip, ZIP_FL_UNCHANGED)) == -1) {
+    if ((numFiles = zip_get_num_entries(fZip, ZIP_FL_UNCHANGED)) == -1 ||
+        numFiles == 0) {
+        
         zip_close(fZip);
         fZip = NULL;
 
         return 0;
-    }
-
-    for (int i = 0; i < numFiles; i++) {
-        printf("File : %s\n", zip_get_name(fZip, i, ZIP_FL_UNCHANGED));
     }
 
     return this->loadManifest();
@@ -168,7 +166,9 @@ struct NativeExtractor_s
     NativeApp *app;
     uint64_t curIndex;
     const char *fName;
-    const char *fDir;
+    char *fDir;
+    void (*done)(void *, const char *path);
+    void *closure;
     struct {
         size_t len;
         size_t offset;
@@ -181,6 +181,7 @@ static bool NativeExtractor(const char * buf,
 {
     struct NativeExtractor_s *arg = (struct NativeExtractor_s *)user;
 
+    /* First call (open the file) */
     if (arg->data.offset == 0) {
 
         char *fpath = (char *)malloc(sizeof(char) *
@@ -196,9 +197,12 @@ static bool NativeExtractor(const char * buf,
         free(fpath);
     }
 
-    fwrite(buf, 1, len, arg->data.fp);
+    if (fwrite(buf, 1, len, arg->data.fp) != len) {
+        /* TODO: handle error */
+    }
     arg->data.offset += len;
 
+    /* File extracting finished */
     if (offset == total) {
         if (arg->data.fp) {
             fclose(arg->data.fp);
@@ -208,26 +212,48 @@ static bool NativeExtractor(const char * buf,
             arg->data.offset = 0;
             arg->data.fp = NULL;
 
+            /* skip directories */
             while (++arg->curIndex) {
                 arg->fName = zip_get_name(arg->app->fZip,
                     arg->curIndex, ZIP_FL_UNCHANGED);
 
                 if (arg->fName[strlen(arg->fName)-1] != '/') {
                     break;
-                }           
+                }
             }
+
+            /* Extract next file */
             arg->data.len = arg->app->extractFile(arg->fName,
                                 NativeExtractor, arg);
+
+            return true;
         }
+
+        if (arg->done != NULL) {
+            arg->done(arg->closure, arg->fDir);
+        }
+        /* Complete extracting finished */
+        free(arg->fDir);
+        delete arg;
+
+        return false;
     }
 
     return true;
 } 
 
-int NativeApp::extractApp(const char *path)
+int NativeApp::extractApp(const char *path,
+        void (*done)(void *, const char *), void *closure)
 {
+    char *fullpath;
+
+    if (path[strlen(path)-1] != '/') {
+        printf("extractApp : invalid path (non / terminated)\n");
+        return 0;
+    }
+
     if (fZip == NULL || !workerIsRunning) {
-        printf("extractFile : you need to call open() and runWorker() before\n");
+        printf("extractApp : you need to call open() and runWorker() before\n");
         return 0;
     }
 #define NATIVE_CACHE_DIR "./cache/"
@@ -235,22 +261,46 @@ int NativeApp::extractApp(const char *path)
         printf("Cant create cache directory\n");
         return 0;
     }
+    fullpath = (char *)malloc(sizeof(char) *
+                (strlen(path) + sizeof(NATIVE_CACHE_DIR) + 16));
+
+    sprintf(fullpath, NATIVE_CACHE_DIR "%s", path);
+
+#undef NATIVE_CACHE_DIR
+    int ret = 0;
+    if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
+        printf("Cant create Application directory\n");
+        free(fullpath);
+        return 0;
+    } else if (ret == -1 && errno == EEXIST) {
+        printf("cache for this app already exists\n");
+        done(closure, fullpath);
+        free(fullpath);
+        return 0;
+    }
+
     int i, first = -1;
+
+    /* Create all directories first */
     for (i = 0; i < numFiles; i++) {
         const char *fname = zip_get_name(fZip, i, ZIP_FL_UNCHANGED);
 
         if (fname[strlen(fname)-1] == '/') {
             char *create = (char *)malloc(sizeof(char) *
-                (strlen(NATIVE_CACHE_DIR) + strlen(fname) + 8));
-            sprintf(create, NATIVE_CACHE_DIR "%s", fname);
+                (strlen(fullpath) + strlen(fname) + 8));
+            sprintf(create, "%s%s", fullpath, fname);
 
             mkdir(create, 0777);
             free(create);
             continue;
         }
+        /* extractFile doesnt accept directory -- check for the first file */
         if (first == -1) {
             first = i;
         }
+    }
+    if (first == -1) {
+        return 0;
     }
     struct NativeExtractor_s *arg = new NativeExtractor_s;
     arg->app = this;
@@ -258,11 +308,12 @@ int NativeApp::extractApp(const char *path)
     arg->fName = zip_get_name(fZip, first, ZIP_FL_UNCHANGED);
     arg->data.offset = 0;
     arg->data.fp = NULL;
-    arg->fDir = NATIVE_CACHE_DIR;
+    arg->fDir = fullpath;
+    arg->done = done;
+    arg->closure = closure;
     arg->data.len = this->extractFile(arg->fName, NativeExtractor, arg);
 
     return (arg->data.len != 0);
-#undef NATIVE_CACHE_DIR
 }
 
 uint64_t NativeApp::extractFile(const char *file, NativeAppExtractCallback cb, void *user)

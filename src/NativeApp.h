@@ -20,7 +20,7 @@ public:
     int open();
     void runWorker(struct _ape_global *net);
     uint64_t extractFile(const char *path, NativeAppExtractCallback cb, void *user);
-    int extractApp(const char *path);
+    int extractApp(const char *path, void (*done)(void *, const char *), void *closure);
     ~NativeApp();
 
     const char *getTitle() const {
