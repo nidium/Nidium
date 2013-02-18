@@ -78,8 +78,27 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
     }
 }
 
+static int NativeStream_data_getContent(void *arg)
+{
+    NativeStream *stream = (NativeStream *)arg;
+    const char *data = strchr(stream->location, ',');
+    if (data != NULL && data[1] != '\0') {
+        int len = strlen(&data[1]);
+        unsigned char *out = (unsigned char *)malloc(sizeof(char) * (len + 1));
+        int res = base64_decode(out, &data[1], len + 1);
+        if (res > 0 && stream->delegate) {
+            printf("Decoded : %d %d\n", res, len);
+            stream->delegate->onGetContent((const char *)out, res);
+        }
+        free(out);
+    }
+    return 0;
+}
+
 void NativeStream::getContent()
 {
+    ape_global *ape = this->net;
+
     switch(IInterface) {
         case INTERFACE_HTTP:
         {
@@ -96,17 +115,7 @@ void NativeStream::getContent()
         }
         case INTERFACE_DATA:
         {
-            const char *data = strchr(this->location, ',');
-            if (data != NULL && data[1] != '\0') {
-                int len = strlen(&data[1]);
-                unsigned char *out = (unsigned char *)malloc(sizeof(char) * (len + 1));
-                int res = base64_decode(out, &data[1], len + 1);
-                if (res > 0 && this->delegate) {
-                    printf("Decoded : %d %d\n", res, len);
-                    this->delegate->onGetContent((const char *)out, res);
-                }
-                free(out);
-            }
+            timer_dispatch_async(NativeStream_data_getContent, this);
             break;
         }
         default:
