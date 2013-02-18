@@ -17,6 +17,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     this->height = height;
 
     memset(&this->padding, 0, sizeof(this->padding));
+    memset(&this->translate_s, 0, sizeof(this->translate_s));
 
     this->content.width = width;
     this->content.height = height;
@@ -29,6 +30,14 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
 {
     coordPosition = mode;
     this->computeAbsolutePosition();
+}
+
+void NativeCanvasHandler::translate(double x, double y)
+{
+    this->translate_s.x += x;
+    this->translate_s.y += y;
+
+    this->context->translate(x, y);
 }
 
 void NativeCanvasHandler::setWidth(int width)
@@ -185,9 +194,7 @@ void NativeCanvasHandler::removeFromParent()
 
 }
 
-/*
-    TODO: clipping/overflow
-*/
+
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     double pleft, double ptop, double aopacity, NativeRect *clip)
 {
@@ -254,7 +261,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             offsetTop  = -this->content.scrollTop;
         }
         cur->layerize(layer,
-                this->left + pleft + offsetLeft, this->top + ptop + offsetTop,
+                this->left + pleft + offsetLeft + this->translate_s.x,
+                this->top + ptop + offsetTop + this->translate_s.y,
                 popacity, clip);
 
         if (clip != NULL) {

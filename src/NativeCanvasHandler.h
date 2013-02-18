@@ -74,6 +74,11 @@ class NativeCanvasHandler
         } padding;
 
         struct {
+            double x;
+            double y;
+        } translate_s;
+
+        struct {
             int width;
             int height;
             int scrollTop;
@@ -96,6 +101,7 @@ class NativeCanvasHandler
         void setScrollLeft(int value);
         void computeAbsolutePosition();
         void computeContentSize(int *cWidth, int *cHeight);
+        void translate(double x, double y);
 
         void bringToFront();
         void sendToBack();

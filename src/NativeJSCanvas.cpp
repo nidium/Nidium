@@ -78,6 +78,8 @@ static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
+    jsval *vp);
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 
@@ -160,6 +162,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getPrevSibling", native_canvas_getPrevSibling, 0, 0),
     JS_FN("getChildren", native_canvas_getChildren, 0, 0),
     JS_FN("setCoordinates", native_canvas_setCoordinates, 2, 0),
+    JS_FN("translate", native_canvas_translate, 2, 0),
     JS_FS_END
 };
 
@@ -288,6 +291,21 @@ static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
 
     HANDLER_FROM_CALLEE->left = left;
     HANDLER_FROM_CALLEE->top = top;
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double left, top;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd",
+        &left, &top)) {
+        return JS_TRUE;
+    }
+
+    HANDLER_FROM_CALLEE->translate(left, top);
 
     return JS_TRUE;
 }

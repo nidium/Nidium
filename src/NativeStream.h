@@ -14,6 +14,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         enum StreamInterfaces {
             INTERFACE_HTTP,
             INTERFACE_FILE,
+            INTERFACE_FRAMEWORK,
+            INTERFACE_DATA,
             INTERFACE_UNKNOWN
         } IInterface;
         NativeStream(ape_global *net, const char *location);
@@ -44,7 +46,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         char *location;
         NativeIStreamer *interface;
         NativeIStreamer *getInterface();
-        void setInterface(StreamInterfaces interface);
+        void setInterface(StreamInterfaces interface, int path_offset);
         ape_global *net;
 
 };

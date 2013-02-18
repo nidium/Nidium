@@ -115,6 +115,9 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 {
     jsval rval, onload_callback;
     NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
+    if (ImageObject->img == NULL) {
+        return;
+    }
     img = ImageObject;
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 

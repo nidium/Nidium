@@ -444,7 +444,7 @@ void NativeSkia::drawRect(double x, double y, double width,
     double height, int stroke)
 {
     SkRect r;
-
+    
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 #if 0

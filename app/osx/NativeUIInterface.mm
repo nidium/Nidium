@@ -183,41 +183,53 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     if (ui->NJS->LoadScript("./main.js")) {
         printf("Running main?\n");
         ui->NJS->Loaded();
-    }    
-
+    }
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    NativeApp *app = new NativeApp(path);
-    if (app->open()) {
-        size_t fsize = 0;
-        if (!this->createWindow(app->getWidth(), app->getHeight())) {
+    FILE *main = fopen("main.js", "r");
+    if (main != NULL) {
+        fclose(main);
+        if (!this->createWindow(kNativeWidth, kNativeHeight)) {
             return false;
+        }        
+        if (this->NJS->LoadScript("./main.js")) {
+
+            this->NJS->Loaded();
+            return true;
         }
-        this->setWindowTitle(app->getTitle());
+        return false;
+    } else {
+        NativeApp *app = new NativeApp(path);
+        if (app->open()) {
+            size_t fsize = 0;
+            if (!this->createWindow(app->getWidth(), app->getHeight())) {
+                return false;
+            }
+            this->setWindowTitle(app->getTitle());
 
-        app->runWorker(this->gnet);
-        /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
-            fsize > 1024L*1024L*5) {
+            app->runWorker(this->gnet);
+            /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
+                fsize > 1024L*1024L*5) {
 
-            return false;
-        }*/
+                return false;
+            }*/
 
-        char *uidpath = (char *)malloc(sizeof(char) *
-                            (strlen(app->getUDID()) + 16));
-        sprintf(uidpath, "%s.content/", app->getUDID());
-        
-        app->extractApp(uidpath, NativeDoneExtracting, this);
-        free(uidpath);
-        /*this->mainjs.buf = (char *)malloc(fsize);
-        this->mainjs.len = fsize;
-        this->mainjs.offset = 0;
+            char *uidpath = (char *)malloc(sizeof(char) *
+                                (strlen(app->getUDID()) + 16));
+            sprintf(uidpath, "%s.content/", app->getUDID());
+            
+            app->extractApp(uidpath, NativeDoneExtracting, this);
+            free(uidpath);
+            /*this->mainjs.buf = (char *)malloc(fsize);
+            this->mainjs.len = fsize;
+            this->mainjs.offset = 0;
 
-        printf("Start looking for main.js of size : %ld\n", fsize);*/
-        return true;
+            printf("Start looking for main.js of size : %ld\n", fsize);*/
+            return true;
+        }
     }
-
     return false;
 }
 
@@ -287,7 +299,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     [window setFrameAutosaveName:@"nativeMainWindow"];
 
-    //[window setStyleMask:NSTitledWindowMask|NSBorderlessWindowMask];
+    //[window setStyleMask:NSTexturedBackgroundWindowMask];
+    //[window setMovableByWindowBackground:NO];
     //[window setOpaque:NO]; // YES by default
     //[window setAlphaValue:0.5];
 
@@ -329,6 +342,8 @@ void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
 {
     NSWindow *window = NativeCocoaWindow(win);
     NSUInteger mask = [window styleMask];
+
+    printf("setting titlebar color\n");
 
     if ((mask & NSTexturedBackgroundWindowMask) == 0) {
         [window setStyleMask:mask|NSTexturedBackgroundWindowMask];
