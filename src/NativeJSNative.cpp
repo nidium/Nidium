@@ -78,12 +78,12 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
         &Native_class , NULL, 0);
 
     canvas = NativeJSCanvas::generateJSObject(cx, width, height);
-    titleBar = NativeJSCanvas::generateJSObject(cx, width, 35);
+    //titleBar = NativeJSCanvas::generateJSObject(cx, width, 35);
 
-    ((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
+    //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */
-    NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
+    //NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
     NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);

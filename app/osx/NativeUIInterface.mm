@@ -12,7 +12,7 @@
 #define kNativeWidth 1024
 #define kNativeHeight 768
 
-#define kNativeTitleBarHeight 35
+#define kNativeTitleBarHeight 0
 
 #define kNativeVSYNC 0
 
@@ -142,6 +142,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
+        NUII->getConsole()->flush();
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
@@ -203,7 +204,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             this->NJS->Loaded();
             return true;
         }
-        return false;
+        return true;
     } else {
         NativeApp *app = new NativeApp(path);
         if (app->open()) {
@@ -301,8 +302,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
 
     [window setFrameAutosaveName:@"nativeMainWindow"];
-
-    [window setStyleMask:NSTexturedBackgroundWindowMask];
+    if (kNativeTitleBarHeight != 0) {
+        [window setStyleMask:NSTexturedBackgroundWindowMask];
+    }
     //[window setMovableByWindowBackground:NO];
     //[window setOpaque:NO]; // YES by default
     //[window setAlphaValue:0.5];

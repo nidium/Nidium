@@ -39,6 +39,8 @@
     [textview setVerticallyResizable:YES];
     
     [textview setHorizontallyResizable:NO];
+    [[textview layoutManager] setBackgroundLayoutEnabled:YES];
+    [[textview layoutManager] setAllowsNonContiguousLayout:YES];
     
     [textview setAutoresizingMask:NSViewWidthSizable];
  
@@ -61,7 +63,7 @@
     [textview insertText:@"Console ready.\n"];
     
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
-    
+    [[textview textStorage] beginEditing];
     return self;
 }
 
@@ -69,7 +71,6 @@
 {
     //[textview insertText:str];
     [[[textview textStorage] mutableString] appendString: str];
-    [textview scrollRangeToVisible: NSMakeRange ([[textview string] length], 0)];
 }
 
 - (void) clear
@@ -110,25 +111,45 @@
 NativeUICocoaConsole::NativeUICocoaConsole()
 {
     this->window = [[NativeConsole alloc] init];
+    [this->window attachToStdout];
+    this->hide();
 }
 
 void NativeUICocoaConsole::clear()
-{
+{    
     [this->window clear];
+}
+
+void NativeUICocoaConsole::flush()
+{
+    [[[this->window textview] textStorage] endEditing];
+    [[this->window textview] scrollRangeToVisible: NSMakeRange ([[this->window.textview string] length], 0)];
+    [[[this->window textview] textStorage] beginEditing];
 }
 
 void NativeUICocoaConsole::hide()
 {
+    if (this->isHidden) {
+        return;
+    }
     [this->window.window orderOut:nil];
+    this->isHidden = true;
 }
 
 void NativeUICocoaConsole::show()
 {
+    if (!this->isHidden) {
+        return;
+    }
     [this->window.window orderFront:nil];
+    this->isHidden = false;
 }
 
 void NativeUICocoaConsole::log(const char *str)
 {
+    if (this->isHidden) {
+        return;
+    }
     NSString *nstr = [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
     [this->window log:nstr];
 }

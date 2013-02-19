@@ -259,6 +259,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             memcpy(&tmpClip, clip, sizeof(NativeRect));
         }
         /* Occlusion culling */
+#if 0
         NativeCanvasHandler **culling = (NativeCanvasHandler **)malloc(
                                         sizeof(NativeCanvasHandler *)
                                         * nchildren);
@@ -267,7 +268,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         for (cur = last; cur != NULL; cur = cur->prev) {
             
         }
-
+#endif
         for (cur = children; cur != NULL; cur = cur->next) {
             int offsetLeft = 0, offsetTop = 0;
             if (cur->coordPosition == COORD_RELATIVE) {
