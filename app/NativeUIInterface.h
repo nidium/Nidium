@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdio.h>
 
 class NativeJS;
 
@@ -30,10 +31,21 @@ class NativeUIInterface
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a){};
         virtual void setWindowControlsOffset(double x, double y){};
-
+        
+        
         int getWidth() const { return this->width; }
         int getHeight() const { return this->height; }
+        class NativeUIConsole
+        {
+            public:
+            virtual void log(const char *str)=0;
+            virtual void show()=0;
+            virtual void hide()=0;
+            virtual void clear()=0;
+        };
+        virtual NativeUIConsole *getConsole() const =0;
     protected:
         int width;
         int height;
+        NativeUIConsole *console;
 };

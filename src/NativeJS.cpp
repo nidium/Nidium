@@ -13,6 +13,7 @@
 #include "NativeJSWebGL.h"
 #include "NativeJSCanvas.h"
 #include "NativeJSFileIO.h"
+#include "NativeJSConsole.h"
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
@@ -239,12 +240,14 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
         bytes = JS_EncodeString(cx, str);
         if (!bytes)
             return false;
-        fprintf(file, "%s%s", i ? " " : "", bytes);
+        NJS->UI->getConsole()->log(bytes);
+        if (i) {
+           NJS->UI->getConsole()->log(" "); 
+        }
+
         JS_free(cx, bytes);
     }
-
-    fputc('\n', file);
-    fflush(file);
+    NJS->UI->getConsole()->log("\n"); 
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
@@ -395,6 +398,11 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     
     jsval rval, jevent, canvas, onmove;
     JSObject *event;
+
+    rootHandler->mousePosition.x = x;
+    rootHandler->mousePosition.y = y;
+    rootHandler->mousePosition.xrel += xrel;
+    rootHandler->mousePosition.yrel += yrel;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
@@ -983,6 +991,8 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     NativeJSNative::registerObject(cx, width, height);
     /* window() object */
     NativeJSwindow::registerObject(cx);
+    /* console() object */
+    NativeJSconsole::registerObject(cx);
 
     //NativeJSDebug::registerObject(cx);
 

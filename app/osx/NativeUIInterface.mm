@@ -1,4 +1,5 @@
 #import "NativeCocoaUIInterface.h"
+#import "NativeUIConsole.h"
 #import <NativeJS.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
@@ -8,9 +9,11 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
-
 #define kNativeWidth 1024
 #define kNativeHeight 768
+
+#define kNativeTitleBarHeight 35
+
 #define kNativeVSYNC 0
 
 uint32_t ttfps = 0;
@@ -44,19 +47,19 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     [[NSApplication sharedApplication] terminate:nil];
                     break;
                 case SDL_MOUSEMOTION:
-                    NUII->NJS->mouseMove(event.motion.x, event.motion.y,
+                    NUII->NJS->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
                                    event.motion.xrel, event.motion.yrel);
                     break;
                 case SDL_MOUSEWHEEL:
                 {
                     int cx, cy;
                     SDL_GetMouseState(&cx, &cy);
-                    NUII->NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy);
+                    NUII->NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                    NUII->NJS->mouseClick(event.button.x, event.button.y,
+                    NUII->NJS->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
                                     event.button.state, event.button.button);
                 break;
                 case SDL_KEYDOWN:
@@ -156,7 +159,7 @@ static int NativeProcessUI(void *arg)
     return NativeEvents((NativeCocoaUIInterface *)arg);
 }
 
-
+#if 0
 static bool NativeExtractMain(const char *buf, int len,
     size_t offset, size_t total, void *user)
 {
@@ -174,6 +177,7 @@ static bool NativeExtractMain(const char *buf, int len,
 
     return true;
 }
+#endif
 
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
@@ -191,7 +195,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
     FILE *main = fopen("main.js", "r");
     if (main != NULL) {
         fclose(main);
-        if (!this->createWindow(kNativeWidth, kNativeHeight)) {
+        if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }        
         if (this->NJS->LoadScript("./main.js")) {
@@ -203,8 +207,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
     } else {
         NativeApp *app = new NativeApp(path);
         if (app->open()) {
-            size_t fsize = 0;
-            if (!this->createWindow(app->getWidth(), app->getHeight())) {
+            if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
                 return false;
             }
             this->setWindowTitle(app->getTitle());
@@ -299,7 +302,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     [window setFrameAutosaveName:@"nativeMainWindow"];
 
-    //[window setStyleMask:NSTexturedBackgroundWindowMask];
+    [window setStyleMask:NSTexturedBackgroundWindowMask];
     //[window setMovableByWindowBackground:NO];
     //[window setOpaque:NO]; // YES by default
     //[window setAlphaValue:0.5];
@@ -321,6 +324,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     and start listening for thread messages */
 
     NJS->bindNetObject(gnet);
+
+    console = new NativeUICocoaConsole();
 
     //NJS->LoadApplication("./demo.npa");
 

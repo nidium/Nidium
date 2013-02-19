@@ -7,7 +7,7 @@ VPATH = ./osx/
 
 AR=ar
 ARFLAGS=rcs
-SOURCES=NativeUIInterface.mm
+SOURCES=NativeUIInterface.mm NativeUIConsole.mm
 
 OBJECTS=$(SOURCES:.mm=.o)
 EXECUTABLE=libnativeinterface.a

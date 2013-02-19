@@ -14,7 +14,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         enum StreamInterfaces {
             INTERFACE_HTTP,
             INTERFACE_FILE,
-            INTERFACE_FRAMEWORK,
+            INTERFACE_PRIVATE,
             INTERFACE_DATA,
             INTERFACE_UNKNOWN
         } IInterface;

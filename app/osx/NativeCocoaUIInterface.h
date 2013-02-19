@@ -1,5 +1,8 @@
 #include "NativeUIInterface.h"
+#include "NativeUIConsole.h"
 #import <Cocoa/Cocoa.h>
+
+class NativeUICocoaConsole;
 
 class NativeCocoaUIInterface : public NativeUIInterface
 {
@@ -13,7 +16,9 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setWindowControlsOffset(double x, double y);
         void initControls();
         bool runApplication(const char *path);
-
+        NativeUICocoaConsole *getConsole() const {
+            return this->console;
+        }
         struct {
             CGRect closeFrame;
             CGRect zoomFrame;
@@ -25,4 +30,6 @@ class NativeCocoaUIInterface : public NativeUIInterface
             size_t len;
             size_t offset;
         } mainjs;
+    private:
+        NativeUICocoaConsole *console;
 };

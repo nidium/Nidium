@@ -70,18 +70,26 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 {
     JSObject *NativeObj;
     JSObject *canvas;
+    JSObject *titleBar;
+
     NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
 
     NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "Native",
         &Native_class , NULL, 0);
 
     canvas = NativeJSCanvas::generateJSObject(cx, width, height);
+    titleBar = NativeJSCanvas::generateJSObject(cx, width, 35);
+
+    ((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */
+    NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
     NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_DefineProperty(cx, NativeObj, "canvas",
         OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
+    JS_DefineProperty(cx, NativeObj, "titleBar",
+        OBJECT_TO_JSVAL(titleBar), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
 }
 

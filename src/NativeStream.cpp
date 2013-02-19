@@ -11,7 +11,7 @@ static struct _native_stream_interfaces {
 } native_stream_interfaces[] = {
     {"http://",      NativeStream::INTERFACE_HTTP},
     {"file://",      NativeStream::INTERFACE_FILE},
-    {"framework://", NativeStream::INTERFACE_FRAMEWORK},
+    {"private://",   NativeStream::INTERFACE_PRIVATE},
     {"data:",        NativeStream::INTERFACE_DATA},
     {NULL,           NativeStream::INTERFACE_UNKNOWN}
 };
@@ -58,9 +58,9 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
         case INTERFACE_HTTP:
             this->interface = new NativeHTTP(this->location, this->net);
             break;
-        case INTERFACE_FRAMEWORK:
+        case INTERFACE_PRIVATE:
         {
-#define FRAMEWORK_LOCATION "./framework/"
+#define FRAMEWORK_LOCATION "./falcon/"
             char *flocation = (char *)malloc(sizeof(char) *
                     (strlen(&this->location[path_offset]) + sizeof(FRAMEWORK_LOCATION) + 1));
             sprintf(flocation, FRAMEWORK_LOCATION "%s", &this->location[path_offset]);
@@ -87,7 +87,6 @@ static int NativeStream_data_getContent(void *arg)
         unsigned char *out = (unsigned char *)malloc(sizeof(char) * (len + 1));
         int res = base64_decode(out, &data[1], len + 1);
         if (res > 0 && stream->delegate) {
-            printf("Decoded : %d %d\n", res, len);
             stream->delegate->onGetContent((const char *)out, res);
         }
         free(out);
@@ -107,7 +106,7 @@ void NativeStream::getContent()
             break;
         }
         case INTERFACE_FILE:
-        case INTERFACE_FRAMEWORK:
+        case INTERFACE_PRIVATE:
         {
             NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
             file->open("r");
@@ -115,6 +114,8 @@ void NativeStream::getContent()
         }
         case INTERFACE_DATA:
         {
+            /* async dispatch so that onload callback
+            can be triggered even if declared after reading */
             timer_dispatch_async(NativeStream_data_getContent, this);
             break;
         }
