@@ -212,7 +212,6 @@ static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval 
         NSKIA_NATIVE->drawRect(x, y, width, height, 1);
     }
 
-
     return JS_TRUE;
 }
 
@@ -1133,8 +1132,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
     ncanvas->setMatrix(skia->canvas->getTotalMatrix());
 
     SkSafeUnref(ndev);
-
-    delete skia->canvas;
+    skia->canvas->unref();
     skia->canvas = ncanvas;
 
 }

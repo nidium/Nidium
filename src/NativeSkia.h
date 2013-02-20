@@ -66,7 +66,6 @@ class NativeSkia
         friend class NativeJSCanvas;
 
         static SkCanvas *glcontext;
-        static NativeSkia *glsurface;
 
         SkCanvas *canvas;
         ~NativeSkia();

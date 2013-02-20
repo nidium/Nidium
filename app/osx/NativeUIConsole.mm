@@ -3,11 +3,13 @@
 
 @implementation NativeConsole
 
-@synthesize window, textview;
+@synthesize window, textview, isHidden;
 
 - (id) init
 {
     if (!(self = [super init])) return nil;
+
+    self.isHidden = NO;
     
     self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 640, 500) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
     
@@ -69,8 +71,9 @@
 
 - (void) log:(NSString *)str
 {
-
-    [[[textview textStorage] mutableString] appendString: str];
+    if (!self.isHidden) {
+        [[[textview textStorage] mutableString] appendString: str];
+    }
 }
 
 - (void) clear
@@ -136,6 +139,7 @@ void NativeUICocoaConsole::hide()
     }
     [this->window.window orderOut:nil];
     this->isHidden = true;
+    [this->window setIsHidden:YES];
 }
 
 void NativeUICocoaConsole::show()
@@ -145,6 +149,7 @@ void NativeUICocoaConsole::show()
     }
     [this->window.window orderFront:nil];
     this->isHidden = false;
+    [this->window setIsHidden:NO];
 }
 
 void NativeUICocoaConsole::log(const char *str)

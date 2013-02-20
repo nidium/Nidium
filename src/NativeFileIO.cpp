@@ -23,7 +23,7 @@ static void *native_fileio_thread(void *arg)
         }
         if (NFIO->action.stop) {
             pthread_mutex_unlock(&NFIO->threadMutex);
-            printf("Thread ended 1\n");
+            //printf("Thread ended 1\n");
             return NULL;
         }
 
@@ -47,7 +47,7 @@ static void *native_fileio_thread(void *arg)
         NFIO->action.active = false;
         pthread_mutex_unlock(&NFIO->threadMutex);
     }
-    printf("Thread ended 2\n");
+    //printf("Thread ended 2\n");
     return NULL;
 }
 

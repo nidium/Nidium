@@ -6,12 +6,14 @@
 {
     NSWindow *window;
     NSTextView *textview;
+    BOOL isHidden;
 }
 
 - (void) log:(NSString *)str;
 - (void) attachToStdout;
 - (void) clear;
 
+@property (assign, nonatomic) BOOL isHidden;
 @property (retain, nonatomic) NSWindow *window;
 @property (retain, nonatomic) NSTextView *textview;
 @end

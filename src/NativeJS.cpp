@@ -647,7 +647,6 @@ NativeJS::~NativeJS()
     JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
-    NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);

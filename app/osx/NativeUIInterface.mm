@@ -30,7 +30,7 @@ static NSWindow *NativeCocoaWindow(SDL_Window *win)
 int NativeEvents(NativeCocoaUIInterface *NUII)
 {   
     SDL_Event event;
-
+    int nrefresh = 0;
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
@@ -72,10 +72,13 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
                         event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
-                        printf("Refresh...\n");
+                        if (++nrefresh > 1) {
+                            break;
+                        }
+                        //printf("\n\n=======Refresh...=======\n");
                         //[console clear];
                         delete NUII->NJS;
-                        
+                        //printf("\n\n=======Restarting...=====\n");
                         glClearColor(1, 1, 1, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         

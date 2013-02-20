@@ -140,6 +140,7 @@ void NativeStream::onNFIOError(NativeFileIO *NFIO, int errno)
 void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
 {
     NFIO->close();
+
     if (this->delegate) {
         this->delegate->onGetContent((const char *)data, len);
     }
