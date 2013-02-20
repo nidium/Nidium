@@ -10,7 +10,7 @@
 #import <native_netlib.h>
 
 #define kNativeWidth 1024
-#define kNativeHeight 768
+#define kNativeHeight 740
 
 #define kNativeTitleBarHeight 0
 
@@ -43,6 +43,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     break;
                 case SDL_QUIT:
                     NSLog(@"Quit?");
+                    delete NUII->NJS;
                     SDL_Quit();
                     [[NSApplication sharedApplication] terminate:nil];
                     break;
@@ -79,9 +80,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
                         NUII->NJS = new NativeJS(NUII->getWidth(),
-                            NUII->getHeight(), NUII);
+                            NUII->getHeight(), NUII, NUII->gnet);
 
-                        NUII->NJS->bindNetObject(NUII->gnet);
                         if (NUII->NJS->LoadScript("./main.js")) {
                             NUII->NJS->Loaded();
                         }
@@ -142,11 +142,12 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
-        NUII->getConsole()->flush();
+
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
 
+        NUII->getConsole()->flush();
         glFlush();
 
     //}
@@ -198,7 +199,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         fclose(main);
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
-        }        
+        }
         if (this->NJS->LoadScript("./main.js")) {
 
             this->NJS->Loaded();
@@ -294,7 +295,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     [window setCollectionBehavior:
              NSWindowCollectionBehaviorFullScreenPrimary];
 
-    
     initControls();
 
     //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
@@ -303,7 +303,10 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     [window setFrameAutosaveName:@"nativeMainWindow"];
     if (kNativeTitleBarHeight != 0) {
-        [window setStyleMask:NSTexturedBackgroundWindowMask];
+        [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
+
+        //[window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
+        //[window setOpaque:NO];
     }
     //[window setMovableByWindowBackground:NO];
     //[window setOpaque:NO]; // YES by default
@@ -318,14 +321,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     glViewport(0, 0, width, height);
 
-    NJS = new NativeJS(width, height, this);
-
     gnet = native_netlib_init();
-
-    /* Set ape_global private to the JSContext
-    and start listening for thread messages */
-
-    NJS->bindNetObject(gnet);
+    NJS = new NativeJS(width, height, this, gnet);
 
     console = new NativeUICocoaConsole();
 

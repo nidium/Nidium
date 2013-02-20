@@ -69,10 +69,10 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         bytes = JS_EncodeString(cx, str);
         if (!bytes)
             return false;
-        NJS->UI->getConsole()->log(bytes);
         if (i) {
            NJS->UI->getConsole()->log(" "); 
         }
+        NJS->UI->getConsole()->log(bytes);
 
         JS_free(cx, bytes);
     }

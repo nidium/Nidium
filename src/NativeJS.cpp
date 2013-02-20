@@ -240,10 +240,10 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
         bytes = JS_EncodeString(cx, str);
         if (!bytes)
             return false;
-        NJS->UI->getConsole()->log(bytes);
         if (i) {
            NJS->UI->getConsole()->log(" "); 
         }
+        NJS->UI->getConsole()->log(bytes);
 
         JS_free(cx, bytes);
     }
@@ -503,7 +503,7 @@ void NativeJS::Loaded()
 
 }
 
-NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
+NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net)
 {
     JSRuntime *rt;
     JSObject *gbl;
@@ -564,6 +564,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
     this->UI = inUI;
+    this->bindNetObject(net);
 
     /* surface containing the window frame buffer */
     rootHandler = new NativeCanvasHandler(width, height);
@@ -575,6 +576,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
 
     messages = new NativeSharedMessages();
 
+    this->LoadScriptContent(preload_js, strlen(preload_js), "__native.js");
     //this->LoadScriptContent(preload_js);
     
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
@@ -634,6 +636,8 @@ NativeJS::~NativeJS()
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     
+    delete rootHandler->context;
+    delete rootHandler;
 #if 0
     rootHandler->unrootHierarchy();
     

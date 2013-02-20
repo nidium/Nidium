@@ -63,19 +63,18 @@
     [textview insertText:@"Console ready.\n"];
     
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
-    [[textview textStorage] beginEditing];
+
     return self;
 }
 
 - (void) log:(NSString *)str
 {
-    //[textview insertText:str];
+
     [[[textview textStorage] mutableString] appendString: str];
 }
 
 - (void) clear
 {
-    
     [textview setString:@""];
     [textview insertText:@"Console ready.\n"];
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
@@ -111,6 +110,7 @@
 NativeUICocoaConsole::NativeUICocoaConsole()
 {
     this->window = [[NativeConsole alloc] init];
+    this->needFlush = false;
     [this->window attachToStdout];
     this->hide();
 }
@@ -122,9 +122,11 @@ void NativeUICocoaConsole::clear()
 
 void NativeUICocoaConsole::flush()
 {
-    [[[this->window textview] textStorage] endEditing];
-    [[this->window textview] scrollRangeToVisible: NSMakeRange ([[this->window.textview string] length], 0)];
-    [[[this->window textview] textStorage] beginEditing];
+    if (needFlush) {
+        [[[this->window textview] textStorage] endEditing];
+        [[this->window textview] scrollRangeToVisible: NSMakeRange ([[this->window.textview string] length], 0)];
+        needFlush = false;
+    }
 }
 
 void NativeUICocoaConsole::hide()
@@ -147,6 +149,10 @@ void NativeUICocoaConsole::show()
 
 void NativeUICocoaConsole::log(const char *str)
 {
+    if (!needFlush) {
+        [[[this->window textview] textStorage] beginEditing];
+        needFlush = true;
+    }
     if (this->isHidden) {
         return;
     }

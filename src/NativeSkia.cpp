@@ -378,7 +378,7 @@ int NativeSkia::bindGL(int width, int height)
         printf("Cant get interface\n");
         return 0;
     }
-    
+
     context = GrContext::Create(kOpenGL_Shaders_GrEngine,
         (GrPlatform3DContext)interface);
 
@@ -478,6 +478,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 NativeSkia::NativeSkia()
 {
+    context = NULL;
     this->native_canvas_bind_mode = NativeSkia::BIND_NO;
 }
 
@@ -494,11 +495,13 @@ NativeSkia::~NativeSkia()
         nstate = tmp;
     }
     delete paint_system;
-    
+
     if (currentPath) delete currentPath;
+    canvas->unref();
 
-    delete canvas;
-
+    if (context) {
+        context->unref();
+    }
 }
 
 /* TODO: check if there is a best way to do this;
@@ -1085,7 +1088,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
 
     } else if (image->img != NULL) {
         canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);    
+            PAINT);
     }
 
     PAINT->setColor(old);

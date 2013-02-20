@@ -30,4 +30,5 @@ class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
     private:
         NativeConsole *window;
         bool isHidden;
+        bool needFlush;
 };
