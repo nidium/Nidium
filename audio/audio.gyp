@@ -4,6 +4,7 @@
         'type': 'static_library',
         'include_dirs': [
             '../src/',
+            '../network/',
             '../third-party/portaudio/src/common/',
             '../third-party/portaudio/include/',
             '../third-party/zita-resampler/libs/',
@@ -30,6 +31,7 @@
         'sources': [
             'NativeAudioNode.cpp',
             'NativeAudio.cpp',
+            'NativeVideo.cpp',
         ],
     }],
 }
