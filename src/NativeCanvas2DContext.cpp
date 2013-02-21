@@ -113,6 +113,8 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
@@ -164,6 +166,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("measureText", native_canvas2dctx_measureText, 1, 0),
     JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas2dctx_getPathBounds, 0, 0),
+    JS_FN("light", native_canvas2dctx_light, 3, 0),
     JS_FS_END
 };
 
@@ -819,6 +822,19 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
 
     vp->setObject(*obj);
 
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double x, y, z;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ddd", &x, &y, &z)) {
+        return JS_TRUE;
+    }
+
+    NSKIA_NATIVE->light(x, y, z);
     return JS_TRUE;
 }
 

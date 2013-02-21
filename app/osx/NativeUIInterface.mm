@@ -9,12 +9,12 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
-#define kNativeWidth 1024
-#define kNativeHeight 740
+#define kNativeWidth 1280
+#define kNativeHeight 600
 
 #define kNativeTitleBarHeight 0
 
-#define kNativeVSYNC 0
+#define kNativeVSYNC 1
 
 uint32_t ttfps = 0;
 
@@ -283,7 +283,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     win = SDL_CreateWindow("Native - Running", 100, 100,
         width, height,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
     if (win == NULL) {
         printf("Cant create window (SDL)\n");
