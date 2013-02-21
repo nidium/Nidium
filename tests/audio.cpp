@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     pthread_t threadQueue;
     NativeAudio *audio;
 
-    audio = new NativeAudio(128, 2, 44100);
+    audio = new NativeAudio(256, 2, 48000);
 
     // 1) Create thread for I/O
 //    pthread_create(&threadIO, NULL, thread_io, audio);
@@ -86,23 +86,23 @@ int main(int argc, char *argv[]) {
     buffer1 = (uint8_t *)malloc(bufferSize);
     buffer2 = (uint8_t *)malloc(bufferSize);
 
-    load("/tmp/foo.mp3", buffer1, bufferSize);
+    load("/tmp/foo.wav", buffer1, bufferSize);
     //load("/tmp/foo.mp3", buffer2, bufferSize);
 
 
     NativeAudioTrack *track1 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
-    NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
+    //NativeAudioNodeGain *gain = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
 //    NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode(NativeAudio::GAIN, 2, 2);
     //NativeAudioTrack *track2 = (NativeAudioTrack *)audio->createNode(NativeAudio::SOURCE, 0, 2);
     /*
     NativeAudioNodeMixer *mixer = (NativeAudioNodeMixer*)audio->createNode("mixer", 4, 2);
     NativeAudioNodeGain *gain2 = (NativeAudioNodeGain *)audio->createNode("gain", 2, 2);
     */
-    NativeAudioNodeCustom *custom = (NativeAudioNodeCustom *)audio->createNode(NativeAudio::CUSTOM, 2, 2);
+    //NativeAudioNodeCustom *custom = (NativeAudioNodeCustom *)audio->createNode(NativeAudio::CUSTOM, 2, 2);
     NativeAudioNodeTarget *target= (NativeAudioNodeTarget *)audio->createNode(NativeAudio::TARGET, 2, 0);
 
-    custom->setCallback(nodecb, NULL);
-    track1->setCallback(trackcb, NULL);
+    //custom->setCallback(nodecb, NULL);
+    //track1->setCallback(trackcb, NULL);
 
     //gain->gain = 1;
 
@@ -113,16 +113,16 @@ int main(int argc, char *argv[]) {
     //audio->connect(track2->output[1], target->input[1]);
 
 
-    double gainValue = 1;
-    double gainValue2 = 0.80;
-    gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
+    //double gainValue = 1;
+    //double gainValue2 = 0.80;
+    //gain->set("gain", DOUBLE, (void *)&gainValue, sizeof(double));
     //gain2->set("gain", DOUBLE, (void *)&gainValue2, sizeof(double));
 
     audio->connect(track1->output[0], target->input[0]);
     audio->connect(track1->output[1], target->input[1]);
 
-    audio->connect(custom->output[0], target->input[0]);
-    audio->connect(custom->output[1], target->input[1]);
+//    audio->connect(custom->output[0], target->input[0]);
+    //audio->connect(custom->output[1], target->input[1]);
 
 
  //   audio->connect(gain->output[0], target->input[0]);

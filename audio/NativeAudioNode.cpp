@@ -1,12 +1,14 @@
 #include "pa_dither.h"
 #include "pa_ringbuffer.h"
 #include "pa_converters.h"
+#include "NativeAudio.h"
 #include "NativeAudioNode.h"
 #include "zita-resampler/resampler.h"
 #include <NativeSharedMessages.h>
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
+#include "libswresample/swresample.h"
 }
 
 NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
@@ -454,89 +456,31 @@ bool NativeAudioNodeCustom::process()
     return true;
 }
 
-NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio) 
-    : NativeAudioNode(0, out, audio), opened(false), playing(false), stopped(false), loop(false), 
+NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external) 
+    : NativeAudioNode(0, out, audio), externallyManaged(external), 
+      opened(false), playing(false), stopped(false), loop(false), 
       cbk(NULL), cbkCustom(NULL),
-      container(NULL), avctx(NULL), frameConsumed(true), packetConsumed(true), audioStream(-1),
-      sCvt(NULL), fCvt(NULL), eof(false)
+      container(NULL), avctx(NULL), tmpPacket(NULL), 
+      frameConsumed(true), packetConsumed(true), audioStream(-1),
+      swrCtx(NULL), fCvt(NULL), eof(false)
 {
     // TODO : Throw exception instead of return
 
-    // Alloc buffers memory
-    if (!(this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {// XXX : Pick better buffer size?
-        return;
+    if (!external) {
+        // Alloc buffers memory
+        if (!(this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {// XXX : Pick better buffer size?
+            return;
+        }
+
+        this->tmpPacket = new AVPacket();
+        av_init_packet(this->tmpPacket);
     }
 
-    if (!(this->rBufferInData = malloc((sizeof(AVPacket) * this->audio->outputParameters->framesPerBuffer) * 8))) {
-        return;
-    }
-
-    this->tmpPacket = new AVPacket();
-    this->rBufferIn = new PaUtilRingBuffer();
     this->rBufferOut = new PaUtilRingBuffer();
     
-    av_init_packet(this->tmpPacket);
     this->tmpFrame.size = 0;
     this->tmpFrame.data = NULL;
     this->tmpFrame.nbSamples = 0;
-
-    // I/O packet list ring buffer
-    // XXX : Is it better to use a linked list + mutex instead?
-    if (0 < PaUtil_InitializeRingBuffer(this->rBufferIn, 
-            sizeof(AVPacket), 
-            this->audio->outputParameters->framesPerBuffer * 8,
-            this->rBufferInData)) {
-        printf("[NativeAudio] Failed to init input ringbuffer");
-        return;
-    }
-}
-
-NativeAudioTrack::BufferReader::BufferReader(uint8_t *buffer, unsigned long bufferSize) 
-    : buffer(buffer), bufferSize(bufferSize), pos(0) {}
-
-int NativeAudioTrack::BufferReader::read(void *opaque, uint8_t *buffer, int size) 
-{
-    BufferReader *reader = (BufferReader *)opaque;
-
-    if (reader->pos + size > reader->bufferSize) {
-        size = reader->bufferSize - reader->pos;
-    }
-
-    if (size > 0) {
-        memcpy(buffer, reader->buffer + reader->pos, size);
-        reader->pos += size;
-    }
-
-    return size;
-}
-
-int64_t NativeAudioTrack::BufferReader::seek(void *opaque, int64_t offset, int whence) 
-{
-    BufferReader *reader = (BufferReader *)opaque;
-    int64_t pos = 0;
-
-    switch(whence)
-    {
-        case AVSEEK_SIZE:
-            return reader->bufferSize;
-        case SEEK_SET:
-            pos = offset;
-            break;
-        case SEEK_CUR:
-            pos = reader->pos + offset;
-        case SEEK_END:
-            pos = reader->bufferSize - offset;
-        default:
-            return -1;
-    }
-
-    if( pos < 0 || pos > reader->bufferSize) {
-        return -1;
-    }
-
-    reader->pos = pos;
-
-    return pos;
 }
 
 int NativeAudioTrack::open(void *buffer, int size) 
@@ -547,10 +491,6 @@ if (this->cbk != NULL) { \
     this->cbk(ev);\
 }\
 return err;
-
-    unsigned int i;
-    AVCodec *codec;
-    PaSampleFormat inputFmt;
 
     if (this->cbk != NULL) {
         TrackEvent *ev = new TrackEvent(this, TRACK_EVENT_BUFFERING, 100, this->cbkCustom, true);
@@ -563,7 +503,7 @@ return err;
     }
 
     // Setup libav context
-    this->br = new BufferReader((uint8_t *)buffer, size);
+    this->br = new NativeAVBufferReader((uint8_t *)buffer, size);
     this->container = avformat_alloc_context();
     this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->br, this->br->read, NULL, this->br->seek);
 
@@ -584,37 +524,59 @@ return err;
 	}
 
 	// Dump information about file onto standard error
-	av_dump_format(container, 0, "Memory input", 0);
+	av_dump_format(this->container, 0, "Memory input", 0);
 
 	// Find first audio stream
-	for (i = 0; i < this->container->nb_streams; i++) {
-		if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO && this->audioStream < 0) {
+	for (unsigned int i = 0; i < this->container->nb_streams; i++) {
+		if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
 			this->audioStream = i;
+            break;
 		}
 	}
 
-	if(this->audioStream == -1) {
+	if (this->audioStream == -1) {
 		fprintf(stderr, "Couldn't find audio stream\n");
 		RETURN_WITH_ERROR(ERR_NO_AUDIO);
 	}
+    
+    this->openInit();
+
+    // As Loading from memory, immediately buffer data
+    if (!this->buffer()) {
+        SPAM(("WTF\n"));
+        exit(1);
+    } else {
+        SPAM(("Sending buffer not empty\n"));
+        pthread_cond_signal(&this->audio->bufferNotEmpty);
+    }
+    
+    printf("ALL DONE\n");
+
+
+    return 0;
+}
+
+int NativeAudioTrack::openInit() 
+{
+    AVCodec *codec;
 
 	// Find the apropriate codec and open it
-	avctx = container->streams[audioStream]->codec;
-	codec = avcodec_find_decoder(avctx->codec_id);
+	this->avctx = this->container->streams[this->audioStream]->codec;
+	codec = avcodec_find_decoder(this->avctx->codec_id);
 
-	if (!avcodec_open2(avctx, codec, NULL) < 0) {
+	if (!avcodec_open2(this->avctx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
 		RETURN_WITH_ERROR(ERR_NO_CODEC);
 	}
 
-    this->nbChannel = avctx->channels;
+    this->nbChannel = this->outCount;
 
     // Frequency resampling
-    if (avctx->sample_rate != this->audio->outputParameters->sampleRate) {
+    if (this->avctx->sample_rate != this->audio->outputParameters->sampleRate) {
         this->fCvt = new Resampler();
-        this->fCvt->setup(avctx->sample_rate, this->audio->outputParameters->sampleRate, avctx->channels, 32);
+        this->fCvt->setup(this->avctx->sample_rate, this->audio->outputParameters->sampleRate, this->outCount, 32);
 
-        if (!(this->fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * avctx->channels * NativeAudio::FLOAT32))) {
+        if (!(this->fBufferOutData = (float *)malloc(NATIVE_RESAMPLER_BUFFER_SAMPLES * this->outCount * NativeAudio::FLOAT32))) {
             fprintf(stderr, "Failed to init frequency resampler buffers");
             RETURN_WITH_ERROR(ERR_OOM);
         }
@@ -627,62 +589,36 @@ return err;
     }
 
     // Init output buffer
-    if (!(this->rBufferOutData = calloc(sizeof(float), (sizeof(float) * NATIVE_AVDECODE_BUFFER_SAMPLES * avctx->channels)))) {
+    if (!(this->rBufferOutData = calloc(sizeof(float), (NativeAudio::FLOAT32 * NATIVE_AVDECODE_BUFFER_SAMPLES * this->outCount)))) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    if (0 < PaUtil_InitializeRingBuffer((PaUtilRingBuffer*)this->rBufferOut, 
-            (NativeAudio::FLOAT32 * avctx->channels),
+    if (0 > PaUtil_InitializeRingBuffer((PaUtilRingBuffer*)this->rBufferOut, 
+            (NativeAudio::FLOAT32 * this->outCount),
             NATIVE_AVDECODE_BUFFER_SAMPLES,
             this->rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    // Init sample converter
-    switch (avctx->sample_fmt) {
-        case AV_SAMPLE_FMT_U8 :
-            inputFmt = paUInt8;
-            break;
-        case AV_SAMPLE_FMT_S16 :
-            inputFmt = paInt16;
-            break;
-        case AV_SAMPLE_FMT_S32 :
-            inputFmt = paInt32;
-            break;
-        case AV_SAMPLE_FMT_FLT :
-            inputFmt = paFloat32;
-            break;
-        case AV_SAMPLE_FMT_NONE : /* Thoses cases will most likely fail */
-        case AV_SAMPLE_FMT_DBL :
-            inputFmt = paInt16;
-            break;
-        default :
-            inputFmt = paInt16;
-    }
-
-    if (inputFmt != paFloat32) {
-        if (!(this->sCvt = PaUtil_SelectConverter(inputFmt, paFloat32, paNoFlag))) {
-                fprintf(stderr, "Failed to init sample resampling converter\n");
-                RETURN_WITH_ERROR(ERR_NO_RESAMPLING_CONVERTER);
+    if (this->avctx->sample_fmt != AV_SAMPLE_FMT_S32 ||
+        this->avctx->channel_layout != AV_CH_LAYOUT_STEREO
+        ) {
+        this->swrCtx = swr_alloc_set_opts(NULL,
+                AV_CH_LAYOUT_STEREO_DOWNMIX, AV_SAMPLE_FMT_FLT, this->avctx->sample_rate, 
+                this->avctx->channel_layout, this->avctx->sample_fmt, this->avctx->sample_rate,
+                0, NULL
+            );
+        if (!this->swrCtx || swr_init(this->swrCtx) < 0) {
+            fprintf(stderr, "Failed to init sample resampling converter\n");
+            RETURN_WITH_ERROR(ERR_NO_RESAMPLING_CONVERTER);
         }
     } 
 
     this->opened = true;
 
-    // As Loading from memory, immediately buffer data
-    if (this->buffer() == 0) {
-        SPAM(("WTF\n"));
-        exit(1);
-    } else {
-        SPAM(("Sending buffer not empty\n"));
-        pthread_cond_signal(&this->audio->bufferNotEmpty);
-    }
-    
-    printf("ALL DONE\n");
-
     return 0;
-#undef RETURN_WITH_ERROR
+    #undef RETURN_WITH_ERROR
 }
 
 void NativeAudioTrack::setCallback(TrackCallback cbk, void *custom)
@@ -694,71 +630,59 @@ void NativeAudioTrack::setCallback(TrackCallback cbk, void *custom)
 int NativeAudioTrack::avail() {
     return (int) PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
 }
-int NativeAudioTrack::buffer() {
-    int n = PaUtil_GetRingBufferWriteAvailable(this->rBufferIn);
-    if (n > 0) {
-        return this->buffer(n);
-    } else {
-        return 0;
-    }
-}
-
-int NativeAudioTrack::buffer(int n) {
-    int i;
-
-    i = 0;
-
-    if (n > 0) {
-        AVPacket pkt;
-
-        av_init_packet(&pkt);
-
-        for (i = 0; i < n; i++) 
-        {
-            int ret = av_read_frame(this->container, &pkt);
+bool NativeAudioTrack::buffer() {
+    for (;;) 
+    {
+        int ret = av_read_frame(this->container, this->tmpPacket);
+        if (this->tmpPacket->stream_index == this->audioStream) {
             if (ret < 0) {
                 if (ret == AVERROR(EOF) || (this->container->pb && this->container->pb->eof_reached)) {
                     this->eof = true;
-                    break;
+                    return false;
                 } else if (ret != AVERROR(EAGAIN)) {
-                    break;
+                    return false;
                 }
             } else {
-                av_dup_packet(&pkt);
-                if (0 == PaUtil_WriteRingBuffer(this->rBufferIn, &pkt, 1)) {
-                    return i;
-                }
+                return true;
             }
+        } else {
+            av_free_packet(this->tmpPacket);
         }
     }
+}
 
-    return i;
+void NativeAudioTrack::buffer(AVPacket *pkt) {
+    this->tmpPacket = pkt;
+    this->packetConsumed = false;
+
 }
 
 bool NativeAudioTrack::work() 
 {
+    ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
+
+    if (avail < 256) {
+        return false;
+    }
+
     if (this->stopped || !this->decode()) {
         return false;
     }
 
     // XXX : Refactor this inside resample()
-    if (ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut) > 256) {
-        int write;
-        float *out;
+    int write;
+    float *out;
 
-        write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
-        out = (float *)malloc(write * this->nbChannel * NativeAudio::FLOAT32);
+    write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
+    out = (float *)malloc(write * this->nbChannel * NativeAudio::FLOAT32);
 
-        write = this->resample((float *)out, write);
+    write = this->resample((float *)out, write);
 
-        PaUtil_WriteRingBuffer(this->rBufferOut, out, write);
+    PaUtil_WriteRingBuffer(this->rBufferOut, out, write);
 
-        free(out);
+    free(out);
 
-        return true;
-    }
-
-    return false;
+    return true;
 }
 bool NativeAudioTrack::decode() 
 {
@@ -768,18 +692,23 @@ if (this->cbk != NULL) { \
     this->cbk(ev);\
 }\
 return false;
-    // No data to read
-    if (PaUtil_GetRingBufferReadAvailable(this->rBufferIn) < 1 && this->frameConsumed) {
-        // Loading data from memory, try to get more
-        if (this->br != NULL && !this->buffer()) {
+
+    // No last packet, get a new one
+    if (this->packetConsumed) {
+        if (this->externallyManaged) {
             return false;
-        } 
+        } else {
+            if (this->buffer()) {
+                this->packetConsumed = false;
+            } else {
+                // XXX : Return with error for eof?
+                return false;
+            }
+        }
     }
 
-    // Not last packet, get a new one
-    if (this->packetConsumed) {
-        PaUtil_ReadRingBuffer(this->rBufferIn, (void *)this->tmpPacket, 1);
-        this->packetConsumed = false;
+    if (this->tmpPacket->pts != AV_NOPTS_VALUE) {
+        this->clock = av_q2d(this->container->streams[this->audioStream]->time_base) * this->tmpPacket->pts;
     }
 
     // No last frame, get a new one
@@ -793,7 +722,7 @@ return false;
         }
 
         // Decode packet 
-        len = avcodec_decode_audio4(avctx, tmpFrame, &gotFrame, this->tmpPacket);
+        len = avcodec_decode_audio4(this->avctx, tmpFrame, &gotFrame, this->tmpPacket);
 
         //printf("sample_rate %d\n", tmpFrame->sample_rate);
         /*
@@ -816,10 +745,15 @@ return false;
             av_free_packet(this->tmpPacket);
         }
 
+        /*
+        int dataSize = av_samples_get_buffer_size(NULL, this->avctx->channels, tmpFrame->nb_samples, this->avctx->sample_fmt, 1);
+        this->clock += (double)dataSize / (double( 2 * this->avctx->channels * this->avctx->sample_rate));
+        */
+
         // Didn't got a frame let's try next time
         if (gotFrame == 0) {
             printf("============================== I DIDN'T GOT A FRAME ======================\n");
-            return true;
+            return false;
         }
 
         if (this->tmpFrame.nbSamples < tmpFrame->nb_samples) {
@@ -827,42 +761,25 @@ return false;
                 free(this->tmpFrame.data);
             }
             this->tmpFrame.size = tmpFrame->linesize[0];
-            printf("nb_samples %d\n", tmpFrame->nb_samples);
-            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * this->nbChannel);
+            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);// Right now, source output is always stereo
             if (this->tmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
             }
         }
 
-        this->tmpFrame.nbSamples = tmpFrame->nb_samples;
+        if (this->swrCtx) {
+            uint8_t *out[1];
+            out[0] = (uint8_t *)this->tmpFrame.data;
 
-        // Note : Since January 2013, ffmpeg decoding no longer gives interleaved audio by default
-        // so we need to convert planar audio to interleaved
-        int isPlanar = av_sample_fmt_is_planar((AVSampleFormat)tmpFrame->format);
+            const uint8_t **in = (const uint8_t **)tmpFrame->data;
 
-        // Format resampling
-        if (this->sCvt) {
-            if (isPlanar) {
-                for (int i = this->nbChannel-1; i > -1; i--){
-                    (*this->sCvt)(this->tmpFrame.data+i, this->nbChannel, tmpFrame->data[i], 1, tmpFrame->nb_samples, NULL);
-                }
-            } else {
-                    (*this->sCvt)(this->tmpFrame.data, this->nbChannel, tmpFrame->data[0], 1, tmpFrame->nb_samples * this->nbChannel, NULL);
-            }
+            int len = swr_convert(this->swrCtx, out, tmpFrame->nb_samples, in, tmpFrame->nb_samples);
+            this->tmpFrame.nbSamples = len;
         } else {
-            if (isPlanar) {
-                int j = 0;
-                for (int i = 0; i < tmpFrame->nb_samples; i++) {
-                    for (int c = 0; c < this->nbChannel; c++) {
-                        float *ptr = (float *)tmpFrame->data[c];
-                        this->tmpFrame.data[c+j] = ptr[i];
-                    }
-                    j+=2;
-                }
-            } else {
-                memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
-            }
+            memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
+            this->tmpFrame.nbSamples = tmpFrame->nb_samples;
         }
+
 
         /*
         float *c = (float *)this->tmpFrame.data;
@@ -890,12 +807,13 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
     int channels = this->nbChannel;
 
     if (this->fCvt) {
+        int copied = 0;
         for (;;) {
-            int sampleSize, copied;
+            int sampleSize;
 
-            copied = 0;
             sampleSize = channels * NativeAudio::FLOAT32;
 
+            // Output is empty
             if (this->fCvt->out_count == NATIVE_RESAMPLER_BUFFER_SAMPLES) {
                 this->samplesConsumed = 0;
                 this->fCvt->out_data = this->fBufferOutData;
@@ -933,9 +851,15 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
 
             if (this->fCvt->inp_count == 0) {
                 this->frameConsumed = true;
+                return copied;
+                /* 
+                 * No, do not try to decode more, because
+                 * we might decode more than destSamples
+                 *
                 if (!this->decode()) {
                     return copied;
                 }
+                */
             } 
         }
     } else {
@@ -967,12 +891,30 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
             if (copied == destSamples) {
                 return copied;
             } else if (this->frameConsumed) {
-                this->decode();
+                if (!this->decode()) {
+                    return copied;
+                }
             }
         }
     }
 
     return 0;
+}
+
+double NativeAudioTrack::getClock() {
+    ring_buffer_size_t queuedTrack = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
+    ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(this->audio->rBufferOut);
+
+    double coef = this->audio->outputParameters->sampleRate * av_get_bytes_per_sample(AV_SAMPLE_FMT_S32);
+
+    double delay = (queuedTrack * NativeAudio::FLOAT32 * this->outCount) / (this->outCount * coef);
+    delay += (queuedAudio * NativeAudio::FLOAT32 * this->audio->outputParameters->channels) / (this->audio->outputParameters->channels * coef);
+    delay -= 0.3;// Not sure why?
+
+    // TODO : Can be more accurate by :
+    // - by checking samplesConsumed and tmpFrame.nbSamples
+    // - Add queueFX delay
+    return this->clock - delay;
 }
 
 void NativeAudioNode::resetFrames() {
@@ -1088,11 +1030,8 @@ void NativeAudioTrack::close(bool reset) {
         this->opened = false;
         this->audioStream = -1;
 
-        PaUtil_FlushRingBuffer(this->rBufferIn);
         //memset(this->avioBuffer, 0, NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     } else {
-        free(this->rBufferInData);
-
         //av_free(this->avioBuffer);
     }
 }
@@ -1129,7 +1068,6 @@ void NativeAudioTrack::stop()
 
     avformat_seek_file(this->container, this->audioStream, 0, 0, 0, 0);
 
-    PaUtil_FlushRingBuffer(this->rBufferIn);
     PaUtil_FlushRingBuffer(this->rBufferOut);
 
     this->samplesConsumed = 0;

@@ -7,8 +7,7 @@
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
-#include "NativeJSAudio.h"
-#include "NativeJSVideo.h"
+#include "NativeJSAV.h"
 #include "NativeJSNative.h"
 #include "NativeJSWindow.h"
 #include "NativeFileIO.h"
@@ -494,8 +493,8 @@ NativeJS::NativeJS(int width, int height)
     //JSAutoRequest ar(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
 
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX  | JSOPTION_METHODJIT |
-        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX
+        );
 
     //ion::js_IonOptions.gvnIsOptimistic = true;
 

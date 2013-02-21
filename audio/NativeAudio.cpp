@@ -53,7 +53,7 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
         return;
     }
 
-    if (0 < PaUtil_InitializeRingBuffer(this->rBufferOut, 
+    if (0 > PaUtil_InitializeRingBuffer(this->rBufferOut, 
             (NativeAudio::FLOAT32),
             NATIVE_AVDECODE_BUFFER_SAMPLES,
             this->rBufferOutData)) {
@@ -98,6 +98,7 @@ void *NativeAudio::queueThread(void *args) {
         NativeSharedMessages::Message msg;
 
         // Process input message
+        // TODO : Limit message reading
         while (audio->sharedMsg->readMessage(&msg)) {
             switch (msg.event()) {
                 case NATIVE_AUDIO_TRACK_CALLBACK : {
@@ -153,9 +154,11 @@ void *NativeAudio::queueThread(void *args) {
                         */
 
 
+                        /*
                         for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
                             SPAM(("frame data %f/%f\n", audio->output->frames[0][i], audio->output->frames[1][i]));
                         }
+                        */
 
                         for (int i = 0; i < audio->output->inCount; i++) {
                             if (audio->output->frames[i] != NULL) {
@@ -174,7 +177,10 @@ void *NativeAudio::queueThread(void *args) {
                 }
             }
             SPAM(("Finished FX queue\n"));
-            pthread_cond_signal(&audio->bufferNotEmpty);
+
+            if (audio->tracksCount > 0) {
+                pthread_cond_signal(&audio->bufferNotEmpty);
+            }
             //audio->notEmpty = true;
         } 
 
@@ -403,7 +409,7 @@ int NativeAudio::getSampleSize(int sampleFormat) {
 NativeAudioTrack *NativeAudio::addTrack(int out) {
     NativeAudioTracks *tracks = new NativeAudioTracks();
 
-    tracks->curr = new NativeAudioTrack(out, this);
+tracks->curr = new NativeAudioTrack(out, this, false);
 
     tracks->prev = NULL;
     tracks->next = this->tracks;

@@ -1,6 +1,7 @@
 #ifndef nativeaudionode_h__
 #define nativeaudionode_h__
 
+#include "NativeAV.h"
 #include "NativeAudio.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,7 @@
 struct AVFormatContext;
 struct AVPacket;
 struct AVCodecContext;
+struct SwrContext;
 typedef void PaUtilConverter(void*, int, void*, int, unsigned int, struct PaUtilTriangularDitherGenerator*);
 
 class Resampler;
@@ -70,17 +72,6 @@ struct TrackEvent {
         this->value = new int;
         memcpy(this->value, (void *)&value, sizeof(int));
     };
-};
-
-enum TrackError {
-    ERR_FAILED_OPEN,
-    ERR_NO_INFORMATION,
-    ERR_NO_AUDIO,
-    ERR_NO_CODEC,
-    ERR_OOM,
-    ERR_NO_RESAMPLING_CONVERTER,
-    ERR_DECODING,
-    ERR_INTERNAL
 };
 
 // TODO : Cleanup callbacks
@@ -276,15 +267,17 @@ class NativeAudioNodeMixer : public NativeAudioNode
 class NativeAudioTrack : public NativeAudioNode
 {
     public:
-        NativeAudioTrack(int out, NativeAudio *audio);
+        NativeAudioTrack(int out, NativeAudio *audio, bool external);
+
+        friend class NativeVideo;
 
         NativeAudioParameters *outputParameters;
 
         pthread_cond_t *bufferNotEmpty;
 
-        PaUtilRingBuffer *rBufferIn;
         PaUtilRingBuffer *rBufferOut;
 
+        bool externallyManaged;
         bool opened;
         bool playing;
         bool stopped;
@@ -292,13 +285,14 @@ class NativeAudioTrack : public NativeAudioNode
         int nbChannel;
 
         int open(void *buffer, int size);
+        int openInit();
         void play();
         void pause();
         void stop();
 
         int avail();
-        int buffer();
-        int buffer(int n);
+        bool buffer();
+        void buffer(AVPacket *pkt);
 
         bool seek(int64_t ts);
         virtual bool process();
@@ -306,6 +300,7 @@ class NativeAudioTrack : public NativeAudioNode
         bool decode();
         int resample(float *dest, int destSamples);
         bool getFrame();
+        double getClock();
 
         void setCallback(TrackCallback cbk, void *custom);
 
@@ -316,24 +311,9 @@ class NativeAudioTrack : public NativeAudioNode
         ~NativeAudioTrack();
 
     private:
-        class BufferReader
-        {
-            public:
-                BufferReader(uint8_t *buffer, unsigned long bufferSize);
-
-                static int read(void *opaque, uint8_t *buffer, int size);
-                static int64_t seek(void *opaque, int64_t offset, int whence);
-
-                ~BufferReader() {};
-            private:
-                uint8_t *buffer;
-                unsigned long bufferSize;
-                unsigned long pos;
-        };
-
 	    AVFormatContext *container;
         AVCodecContext *avctx;
-        BufferReader *br;
+        NativeAVBufferReader *br;
 
         struct TmpFrame {
             int size;
@@ -342,17 +322,19 @@ class NativeAudioTrack : public NativeAudioNode
         } tmpFrame;
         AVPacket *tmpPacket;
 
+        double clock;
         bool frameConsumed;
         bool packetConsumed;
         int samplesConsumed;
         int audioStream;
 
+        SwrContext *swrCtx;
         PaUtilConverter *sCvt;
         Resampler *fCvt;
 
         unsigned char *avioBuffer;
         float *fBufferInData, *fBufferOutData;
-        void *rBufferOutData, *rBufferInData;
+        void *rBufferOutData;
 
         bool eof;
 

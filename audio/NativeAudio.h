@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 #include <stdint.h>
-#include "NativeAudioParameters.h"
+#include "NativeAV.h"
 
 #if 0
   #define SPAM(a) printf a
@@ -11,7 +11,6 @@
   #define SPAM(a) (void)0
 #endif
 
-#define NATIVE_AVIO_BUFFER_SIZE         2048 
 #define NATIVE_AVDECODE_BUFFER_SAMPLES  16384 
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
 #define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->threadShutdown) {\
@@ -47,8 +46,6 @@ class NativeAudio
         enum Node {
             SOURCE, GAIN, TARGET, CUSTOM
         };
-
-        NativeJS *njs;
 
         NativeAudioParameters *outputParameters;
         NativeAudioParameters *inputParameters;

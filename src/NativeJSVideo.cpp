@@ -1,35 +1,12 @@
-#include "NativeJSVideo.h"
-#include "NativeJS.h"
-#include "NativeCanvasHandler.h"
-#include "NativeCanvas2DContext.h"
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
-
-static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp);
-
-static void Video_Finalize(JSFreeOp *fop, JSObject *obj);
-
-static JSFunctionSpec Video_funcs[] = {
-    JS_FN("play", native_video_play, 0, 0),
-    JS_FS_END
-};
-
-static JSClass Video_class = {
-    "Video", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Video_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-
-void frameCallback(int width, int height, uint8_t *data, void *custom);
-
-NativeJSVideo::NativeJSVideo(char *file, NativeSkia *nskia, JSContext *cx) : cx(cx), nskia(nskia) {
-    this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx), file);
-    this->video->setCallback(frameCallback, this);
+NativeJSVideo::NativeJSVideo(NativeAudio *audio, NativeSkia *nskia, JSContext *cx) 
+    : cx(cx), nskia(nskia) 
+{
+    this->video = new NativeVideo(audio, (ape_global *)JS_GetContextPrivate(cx));
+    this->video->setCallback(NativeJSVideo::frameCallback, this);
 }
 
-void frameCallback(int width, int height, uint8_t *data, void *custom)
+void NativeJSVideo::frameCallback(int width, int height, uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
@@ -60,9 +37,48 @@ void frameCallback(int width, int height, uint8_t *data, void *custom)
 
 static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(JS_THIS_OBJECT(cx, vp));
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
 
     v->video->play();
+
+    return JS_TRUE;
+}
+
+static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+    JSObject *arrayBuff;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
+        return JS_TRUE;
+    }
+
+    if (!JS_IsArrayBufferObject(arrayBuff)) {
+        JS_ReportError(cx, "Data is not an ArrayBuffer\n");
+        return JS_TRUE;
+    }
+
+    int length;
+    uint8_t *data;
+
+    length = JS_GetArrayBufferByteLength(arrayBuff);
+    JS_StealArrayBufferContents(cx, arrayBuff, &v->arrayContent, &data);
+
+    if (int ret = v->video->open(
+                data, 
+                length) < 0) {
+        JS_ReportError(cx, "Failed to open stream %d\n", ret);
+        return JS_TRUE;
+    }
+
+    return JS_TRUE;
+}
+
+static JSBool native_video_get_audio(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+
+    NativeAudioTrack *track = v->video->getAudio();
 
     return JS_TRUE;
 }
@@ -71,19 +87,18 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &Video_class, vp);
     JSObject *canvas;
-    JSString *file;
+    JSObject *audio;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "So", &file, &canvas)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &audio, &canvas)) {
         return JS_TRUE;
     }
 
-    JSAutoByteString cfile(cx, file);
-
     //NJS->rootUntilShutdown(ret);
 
-    NativeSkia *nskia= ((class NativeCanvasHandler *)JS_GetPrivate(canvas))->context->skia;
+    NativeSkia *nskia = ((class NativeCanvasHandler *)JS_GetPrivate(canvas))->context->skia;
+    NativeAudio *naudio = (class NativeAudio *)JS_GetPrivate(audio);
 
-    NativeJSVideo *v = new NativeJSVideo(cfile.ptr(), nskia, cx);
+    NativeJSVideo *v = new NativeJSVideo(naudio, nskia, cx);
 
     JS_DefineFunctions(cx, ret, Video_funcs);
 
