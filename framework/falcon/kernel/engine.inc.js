@@ -8,14 +8,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.scope = this;
-Native._cachedTextWidth = {};
-Native.blankOrphanedCanvas = new Canvas(1, 1);
 Native.canvas.context = Native.canvas.getContext("2D");
+Native.scope = this;
 
-/* -------------------------------------------------------------------------- */
+Object.definePrivateProperties(Native, {
+	scope : this,
+	elements : {},
+	_cachedTextWidth : {},
+	blankOrphanedCanvas : new Canvas(1, 1)
+});
 
-Native.elements = {
+Object.definePrivateProperties(Native.elements, {
 	init : function(element){
 		print("Native.elements.init()", element);
 		var plugin = this[element.type];
@@ -24,9 +27,9 @@ Native.elements = {
 
 		element.__lock("init");
 
-
 		if (plugin.draw) element.draw = plugin.draw;
 		if (plugin.refresh) element.update = plugin.refresh;
+		if (plugin.onAdoption) element.onAdoption = plugin.onAdoption;
 
 		if (plugin.public){
 			DOMElement.defineDescriptors(element, plugin.public);
@@ -46,7 +49,7 @@ Native.elements = {
 		}
 
 		DOMElement.defineReadOnlyProperties(element, {
-			loaded : true
+			initialized : true
 		});
 
 		if (typeof(element.onReady) == "function"){
@@ -117,7 +120,7 @@ Native.elements = {
 		element.layer.context.imageSmoothingEnabled = __ENABLE_IMAGE_INTERPOLATION__;
 		element.layer.host = element;
 	}
-};
+});
 
 /* -------------------------------------------------------------------------- */
 

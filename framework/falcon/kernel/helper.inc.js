@@ -44,6 +44,14 @@ Object.createProtectedHiddenElement = function(scope, property, value){
 	});
 };
 
+Object.definePrivateProperties = function(element, props){
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			Object.createProtectedHiddenElement(element, key, props[key]);
+		}
+	}
+};
+
 /* -------------------------------------------------------------------------- */
 
 Object.merge(window, {
@@ -69,7 +77,7 @@ Object.merge(window, {
 		},
 
 		get userAgent() {
-			return "Stight/1.0 (en-US; rv:1.0.3) Falcon "+ಠ_ಠ;
+			return "Stight/1.0 (en-US; rv:1.0.3) NATiVE Falcon "+ಠ_ಠ;
 		}
 	}
 });
@@ -253,6 +261,12 @@ var OptionalAlign = function(x, def){
 
 var OptionalPosition = function(x, def){
 	var list = ["relative", "absolute", "fixed"];
+	return x && x.in(list) ? String(x) : 
+				def && def.in(list) ? String(def) : null;
+};
+
+var OptionalWeight = function(x, def){
+	var list = ["normal", "bold", "bolder"];
 	return x && x.in(list) ? String(x) : 
 				def && def.in(list) ? String(def) : null;
 };

@@ -2,33 +2,43 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-var body = new Application();
-body.className = "body";
 
-var div = new UIView();
-div.left = 250;
-div.top = 100;
-div.width = 300;
-div.height = 250;
-div.background = "black";
-div.textContent = "the brown fox sugar";
-div.className = "div";
-body.addChild(div);
+var body = new Application({
+	backgroundImage : "falcon/assets/black.png",
+	class : "body"
+});
 
+var div = new UIView(body, {
+	left : 250,
+	top : 100,
+	width : 300,
+	height : 250,
+	innerWidth : 370,
+	fontSize : 13,
+	background : "rgba(255, 255, 255, 0.1)",
+	textAlign : "justify",
+	overflow : false,
+	scrollbars : true,
+	class : "div"
+});
+
+var extenser = div.add("UIElement", {
+	top : 180,
+	left : 0,
+	width : 380,
+	height : 10,
+	background : "white",
+	opacity : 0
+});
 
 var t1 = new TextNode("The quick brown ");
 var t2 = new TextNode("fox");
 var t3 = new TextNode(" jumps over the lazy ");
 var t4 = new TextNode("dog");
 var t5 = new TextNode(". ");
-var t6 = new TextNode("The earliest known appearance of the phrase is from The Michigan School Moderator.");
-var t7 = new TextNode("I finally fucked you TextNode.");
+var t6 = new TextNode("The earliest known appearance of the phrase");
+var t7 = new TextNode(" is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. The earliest known appearance of the phrase is from The Michigan School Moderator. ");
 
-t2.color = "red";
-t4.color = "#ffdd88";
-t6.textAlign = "justify";
-
-t4.cursor = "pointer";
 t4.addEventListener("mouseover", function(e){
 	this.hover = true;
 });
@@ -44,23 +54,40 @@ div.addChild(t3);
 div.addChild(t4);
 div.addChild(t5);
 div.addChild(t6);
-//div.addChild(t7);
+div.addChild(t7);
 
 
-echo(div.contentWidth);
+t2.color = "red";
+t4.color = "#ffdd88";
+t4.cursor = "pointer";
+
+t4.animate("angle", 0, 720*10, 5000);
+
+t6.fontWeight = "bolder";
+t6.color = "grey";
+t7.color = "rgba(0, 0, 0, 0.5)";
 
 /*
-var label = new UILabel(div, {
-	label : "The quick brown ",
-	left : 0,
-	top : 18,
-	color : "#ffffff",
-	background : "red"
-});
+div.addChild(t7);
+div.addChild(t7);
+div.addChild(t7);
+div.addChild(t7);
+div.addChild(t7);
 */
 
+
+var label = new UILabel(body, {
+	label : "The quick brown ",
+	left : 250,
+	top : 80,
+	color : "#ffffff",
+	fontSize : 11,
+	fontType : "arial"
+});
+
+
 body.add("UIButton").click(function(){
-	echo(div.contentWidth);
+	console.clear();
 //	t4.remove();
 });
 

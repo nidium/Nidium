@@ -161,12 +161,10 @@ Native.object = {
 
 		element._root = this._root;
 		element.parent = this;
-		element.parent.layer.add(element.layer);
 
-		if (element.flags & FLAG_FLOATING_NODE){
-			DOMElement.nodes.floatPosition(element);
-		}
+		Native.layout.init(element);
 
+		element.onAdoption.call(element, this);
 		element.updateAncestors();
 		Native.layout.update();
 

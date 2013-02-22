@@ -41,6 +41,9 @@ var DOMElement = function(type, options, parent){
 		width : o.width ? Number(o.width) : p ? p._width : window.width,
 		height : o.height ? Number(o.height) : p ? p._height : window.height,
 
+		innerWidth : o.innerWidth ? Number(o.innerWidth) : -1,
+		innerHeight : o.innerHeight ? Number(o.innerHeight) : -1,
+
 		scrollLeft : OptionalNumber(o.scrollLeft, 0),
 		scrollTop : OptionalNumber(o.scrollTop, 0),
 
@@ -54,32 +57,37 @@ var DOMElement = function(type, options, parent){
 
 		paddingLeft : OptionalNumber(o.paddingLeft, 0),
 		paddingRight : OptionalNumber(o.paddingLeft, 0),
+		paddingTop : OptionalNumber(o.paddingTop, 0),
+		paddingBottom : OptionalNumber(o.paddingBottom, 0),
 
 		// -- text related properties
+		text : OptionalString(o.text, ""),
 		label : OptionalString(o.label, ""),
 		fontSize : OptionalNumber(o.fontSize, 12),
 		fontType : OptionalString(o.fontType, "arial"),
 		textAlign : OptionalAlign(o.textAlign, "left"),
 		lineHeight : OptionalNumber(o.lineHeight, 18),
+		fontWeight : OptionalWeight(o.fontWeight, "normal"),
 
 		// -- style properties
 		blur : OptionalNumber(o.blur, 0),
 		opacity : OptionalNumber(o.opacity, 1),
 		alpha : OptionalNumber(o.alpha, 1),
 
-		shadowOffsetX : OptionalNumber(o.shadowOffsetX, 0),
-		shadowOffsetY : OptionalNumber(o.shadowOffsetY, 0),
 		shadowBlur : OptionalNumber(o.shadowBlur, 0),
 		shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)"),
+		shadowOffsetX : OptionalNumber(o.shadowOffsetX, 0),
+		shadowOffsetY : OptionalNumber(o.shadowOffsetY, 0),
 
-		textShadowOffsetX : OptionalNumber(o.textShadowOffsetX, 0),
-		textShadowOffsetY : OptionalNumber(o.textShadowOffsetY, 0),
 		textShadowBlur : OptionalNumber(o.textShadowBlur, 0),
 		textShadowColor : OptionalValue(o.textShadowColor, ''),
+		textShadowOffsetX : OptionalNumber(o.textShadowOffsetX, 0),
+		textShadowOffsetY : OptionalNumber(o.textShadowOffsetY, 0),
 
 		color : OptionalValue(o.color, ''),
 		background : OptionalValue(o.background, ''),
 		backgroundImage : OptionalValue(o.backgroundImage, ''),
+		backgroundRepeat : OptionalBoolean(o.backgroundRepeat, true),
 		radius : OptionalNumber(o.radius, 0, 0),
 
 		angle : OptionalNumber(o.angle, 0),
@@ -145,11 +153,6 @@ var DOMElement = function(type, options, parent){
 	}
 
 	print("DOMElement.constructor", this);
-	Native.elements.init(this);
-
-	if (this._className != '') {
-		this.updateProperties();
-	}
 };
 
 /* -------------------------------------------------------------------------- */
@@ -494,8 +497,10 @@ DOMElement.prototype = {
 	zIndex : "",
 	zoom : "",
 	*/
+
 	/* -- user customisable methods -- */
 
+	onAdoption : function(parent){},
 	update : function(context){},
 	draw : function(context){}
 };
@@ -522,8 +527,6 @@ DOMElement.onPropertyUpdate = function(e){
 	switch (e.property) {
 		case "left" :
 		case "top" :
-		case "offsetLeft" :
-		case "offsetTop" :
 			element._needPositionUpdate = true;
 			element._needAncestorCacheClear = true;
 			break;
@@ -848,7 +851,7 @@ DOMElement.defineNativeProperty = function(descriptor){
 				element["_"+property] = newValue;
 			}
 
-			if (element.loaded && element._locked === false) {
+			if (element.initialized && element._locked === false) {
 				print("set "+property+' = "'+newValue+'"', element);
 
 				/* lock element */
@@ -953,64 +956,6 @@ DOMElement.defineInternalProperties = function(element, props){
 		if (props.hasOwnProperty(key)){
 			Object.createHiddenElement(element, key, props[key]);
 		}
-	}
-};
-
-/* -------------------------------------------------------------------------- */
-
-DOMElement.nodes = {
-	floatPosition : function(element){
-		var p = element.parent ? element.parent : document,
-			isTextNode = element.flags & FLAG_TEXT_NODE,
-			previous = element.previousSibling;
-
-		echo(element.left, element.width, p.contentWidth);
-
-		if (p.nextElementLeft == undefined) p.nextElementLeft = 0;
-
-		if (previous) {
-			element.left = p.nextElementLeft;
-			if (isTextNode) {
-
-			}
-		}
-
-		p.nextElementLeft += Math.ceil(element.width);
-
-		p.textMaxWidth = p.contentWidth;
-		//echo(p.textMaxWidth);
-
-
-		if (isTextNode) {
-			if (element.left + element.textPixelWidth > p.textMaxWidth) {
-				//echo(element.textPixelWidth, p.contentWidth);
-				//this.parseTextNode(element);
-			}
-		}
-
-		echo(element.left, element.width, p.contentWidth);
-		echo("");
-
-	},
-
-	parseTextNode : function(element){
-		var p = element.parent ? element.parent : document,
-			pixelOverflow = p.textMaxWidth - element.left;
-
-		echo(element.textPixelWidth, p.contentWidth);
-		element.label = "The earliest ";
-		element.width = pixelOverflow;
-/*
-		element.left = 0;
-		element.width = p.width;
-
-		element.contentOffsetLeft = [240];
-		element.contentOffsetRight = [];
-		element.refreshElement();
-		element._needRefresh = true;
-		element._needRedraw = true;
-		element.redraw();
-*/
 	}
 };
 

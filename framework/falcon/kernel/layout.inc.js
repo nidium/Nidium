@@ -16,6 +16,21 @@ Native.layout = {
 	nodes : [], // May content several trees of elements
 	elements : [], // Flat representation of node trees
 
+	init : function(element){
+		Native.elements.init(element);
+
+		if (element._className != '') {
+			element.updateProperties();
+		}
+
+		if (element.parent) {
+			element.parent.layer.add(element.layer);
+		} else {
+			Native.canvas.add(element.layer);
+		}
+
+	},
+
 	register : function(rootElement){
 		this.nodes.push(rootElement);
 	},
@@ -239,7 +254,7 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 	var element = new DOMElement("UIView", options, null);
 	element._root = element;
 
-	Native.canvas.add(element.layer);
+	Native.layout.init(element, null);
 	Native.layout.register(element);
 	Native.layout.update();
 

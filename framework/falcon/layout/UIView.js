@@ -12,32 +12,12 @@ Native.elements.export("UIView", {
 			},
 
 			set : function(value){
-				this.setBackgroundURL(value);
+				if (value) {
+					this.setBackgroundURL(value);
+				}
 			}
 		},
 		
-		/*
-		contentWidth : {
-			set : function(value){
-				throw "contentWidth is read only (id:"+this.id+")";
-			},
-
-			get : function(){
-				return this.layer.contentWidth;
-			}
-		},
-
-		contentHeight : {
-			set : function(value){
-				throw "contentHeight is read only (id:"+this.id+")";
-			},
-
-			get : function(){
-				return this.layer.contentHeight;
-			}
-		},
-		*/
-
 		scrollLeft : {
 			set : function(value){
 				var max = this.scrollbars ?
@@ -79,6 +59,7 @@ Native.elements.export("UIView", {
 			self._needRefresh = true;
 			self._needRedraw = true;
 			self.refresh();
+			//self.redraw();
 		};
 
 		this.getMaxScrollTop = function(){
@@ -301,15 +282,6 @@ Native.elements.export("UIView", {
 				maxScrollTop = Math.min(this._scrollTop, sh - viewHeight),
 				offset = 0;
 
-/*
-			if (scale == 1){
-				container.visible = false;
-				handle.visible = false;
-			} else {
-				container.visible = true;
-				handle.visible = true;
-			}
-*/
 
 			if (this._scrollTop > (sh - viewHeight)){
 				this._scrollTop = Math.max(0, sh - viewHeight);
@@ -340,15 +312,6 @@ Native.elements.export("UIView", {
 				maxScrollLeft = Math.min(this._scrollLeft, sw - viewWidth),
 				offset = 0;
 
-/*
-			if (scale == 1){
-				container.visible = false;
-				handle.visible = false;
-			} else {
-				container.visible = true;
-				handle.visible = true;
-			}
-*/
 			offset = (this.VScrollBar && this.VScrollBar.visible) ? 8 : 0;
 
 			if (this._scrollLeft > (sw - viewWidth)){
@@ -433,7 +396,7 @@ Native.elements.export("UIView", {
 			this.refreshScrollBars();
 		});
 
-		this.setBackgroundURL();
+		this.setBackgroundURL(this.backgroundImage);
 	},
 
 	draw : function(context){
@@ -452,7 +415,7 @@ Native.elements.export("UIView", {
 		context.setShadow(0, 0, 0);
 
 		if (this._cachedBackgroundImage) {
-			if (true === false){
+			if (this._backgroundRepeat === false){
 				context.save();
 					context.clipbox(
 						params.x, params.y,

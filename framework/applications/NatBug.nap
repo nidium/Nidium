@@ -460,8 +460,8 @@ NatBug.panes.push({
 	},
 
 	getTagColor : function(element){
-		var color = element.layer.__visible ? "#000066" : "#888899";
-		color = !element.hasOwnerDocument ? "#ff8888" : color;
+		var color = element.layer && element.layer.__visible ? "#333366" : "#888899";
+		color = !element.hasOwnerDocument ? "#dd9999" : color;
 		return color;
 	},
 

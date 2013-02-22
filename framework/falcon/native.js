@@ -80,7 +80,11 @@ require(__PATH_LAYOUT__ + 'UISpinner.js');
 require(__PATH_LAYOUT__ + 'UIModal.js');
 require(__PATH_LAYOUT__ + 'UILine.js');
 require(__PATH_LAYOUT__ + 'UIToolTip.js');
+
 require(__PATH_LAYOUT__ + 'UITextNode.js');
+require(__PATH_LAYOUT__ + 'UITextController.js');
+require(__PATH_LAYOUT__ + 'UITextMatrix.js');
+
 //require(__PATH_LAYOUT__ + 'UIParticle.js');
 
 require(__PATH_LAYOUT__ + 'UIDiagram.js');
@@ -100,13 +104,23 @@ require(__PATH_KERNEL__ + 'layout.inc.js');
 
 Native.core = {
 	init : function(){
+		if ("console" in Native.scope) {
+			console.show();
+			console.clear();
+		} else {
+			Native.scope.console = {
+				show : function(){},
+				hide : function(){},
+				clear : function(){},
+				log : echo
+			};
+		}
 		this.setRenderingLoop();
 		this.addStatusBar();
 	},
 
 	setRenderingLoop : function(){
 		Native.layout.draw();
-
 		/*
 		window.requestAnimationFrame(function(){
 			Native.FPS.start();

@@ -26,6 +26,7 @@ var h = new HttpRequest(url, function(e){
 });
 
 h.ondata = function(e){
+//	main.status.top = 748;
 	main.status.label = e.percent+"%";
 	main.status.value = e.percent;
 };
