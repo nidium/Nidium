@@ -3,6 +3,7 @@
 /* -------------------------- */
 
 var main = new Application();
+main.className = "main";
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -21,16 +22,8 @@ var	myElements = [
 	/* Tab 9 */ {label : "Japan"}
 ];
 
-var button = main.add("UIButton", {
-	left : 180,
-	top : 50,
-	label : "Button"
-}).addEventListener("mousedown", function(e){
-	dropDownController.tabsContainer.refreshScrollBars();
-});
-
 var	dropDownController = main.add("UIDropDownController", {
-	left : 238,
+	left : 538,
 	top : 50,
 	maxHeight : 200,
 	name : "helloDrop",
@@ -38,6 +31,8 @@ var	dropDownController = main.add("UIDropDownController", {
 	elements : myElements,
 	background : "#191a18",
 	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF"
+	selectedColor : "#FFFFFF",
+	class : "tabController"
 });
+
 

@@ -14,16 +14,23 @@
 #include "NativeJSWebGL.h"
 #include "NativeJSCanvas.h"
 #include "NativeJSFileIO.h"
+#include "NativeJSConsole.h"
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeUIInterface.h"
+
+#include "NativeApp.h"
 
 #include "SkImageDecoder.h"
+
+#include <ape_hash.h>
 
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
 #include <stdint.h>
+#include <sys/stat.h>
 
 #ifdef __linux__
    #define UINT32_MAX 4294967295u
@@ -33,6 +40,8 @@
 #include <jsdbgapi.h>
 
 #include <math.h>
+
+#include "NativeJS_preload.h"
 
 struct _native_sm_timer
 {
@@ -47,6 +56,7 @@ struct _native_sm_timer
     struct _ticks_callback *timer;
     ape_timer *timerng;
 };
+
 
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
@@ -64,6 +74,9 @@ size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
 static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
+
+static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
+    const char *filename, jsval *ret);
 
 
 static JSClass global_class = {
@@ -118,7 +131,8 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSFunctionSpec glob_funcs[] = {
     
     JS_FN("echo", Print, 0, 0),
-    JS_FN("load", native_load, 1, 0),
+    JS_FN("load", native_load, 2, 0),
+    JS_FN("require", native_load, 2, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
@@ -227,12 +241,14 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
         bytes = JS_EncodeString(cx, str);
         if (!bytes)
             return false;
-        fprintf(file, "%s%s", i ? " " : "", bytes);
+        if (i) {
+           NJS->UI->getConsole()->log(" "); 
+        }
+        NJS->UI->getConsole()->log(bytes);
+
         JS_free(cx, bytes);
     }
-
-    fputc('\n', file);
-    fflush(file);
+    NJS->UI->getConsole()->log("\n"); 
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
@@ -275,7 +291,6 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
     EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
@@ -284,17 +299,15 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_onmousewheel", &onwheel) &&
         !JSVAL_IS_PRIMITIVE(onwheel) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
 
         JS_CallFunctionValue(cx, event, onwheel, 1, &jevent, &rval);
     }
-
-
-    JS_RemoveObjectRoot(cx, &event);    
+   
 }
 
 void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
@@ -308,7 +321,6 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
     EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
@@ -318,17 +330,15 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
-        (state ? "onkeydown" : "onkeyup"), &onkeyupdown) &&
+        (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
         !JSVAL_IS_PRIMITIVE(onkeyupdown) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onkeyupdown))) {
 
         JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::textInput(const char *data)
@@ -342,23 +352,20 @@ void NativeJS::textInput(const char *data)
     JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("val",
         STRING_TO_JSVAL(JS_NewStringCopyN(cx, data, strlen(data))));
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "ontextinput", &ontextinput) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_ontextinput", &ontextinput) &&
         !JSVAL_IS_PRIMITIVE(ontextinput) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ontextinput))) {
 
         JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 void NativeJS::mouseClick(int x, int y, int state, int button)
@@ -374,7 +381,6 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -384,18 +390,15 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
-        (state ? "onmousedown" : "onmouseup"), &onclick) &&
+        (state ? "_onmousedown" : "_onmouseup"), &onclick) &&
         !JSVAL_IS_PRIMITIVE(onclick) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclick))) {
 
         JS_CallFunctionValue(cx, event, onclick, 1, &jevent, &rval);
     }
-
-    JS_RemoveObjectRoot(cx, &event);
-
 }
 
 void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
@@ -406,10 +409,12 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     jsval rval, jevent, canvas, onmove;
     JSObject *event;
 
-    JSAutoRequest ar(cx);
+    rootHandler->mousePosition.x = x;
+    rootHandler->mousePosition.y = y;
+    rootHandler->mousePosition.xrel += xrel;
+    rootHandler->mousePosition.yrel += yrel;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
-    JS_AddObjectRoot(cx, &event);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -420,32 +425,36 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "Native", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousemove", &onmove) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_onmousemove", &onmove) &&
         !JSVAL_IS_PRIMITIVE(onmove) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmove))) {
 
         JS_CallFunctionValue(cx, event, onmove, 1, &jevent, &rval);
     }
 
-
-    JS_RemoveObjectRoot(cx, &event);
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *script;
+    JSString *script, *type = NULL;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S", &script, &type)) {
         return JS_TRUE;
     }
 
     JSAutoByteString scriptstr(cx, script);
+    jsval ret = JSVAL_NULL;
 
-    if (!NJS->LoadScript(scriptstr.ptr())) {
+    if (type == NULL && !NJS->LoadScript(scriptstr.ptr())) {
+        return JS_TRUE;
+    } else if (type != NULL &&
+        !NativeJS_NativeJSLoadScriptReturn(cx, scriptstr.ptr(), &ret)) {
         return JS_TRUE;
     }
+
+    JS_SET_RVAL(cx, vp, ret);
 
     return JS_TRUE;
 }
@@ -455,7 +464,56 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
     //printf("Gc TH1 callback?\n");
 }
 
-NativeJS::NativeJS(int width, int height)
+static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
+{
+    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
+}
+
+static void NativeTraceBlack(JSTracer *trc, void *data)
+{
+    class NativeJS *self = (class NativeJS *)data;
+
+    if (self->shutdown) {
+        return;
+    }
+    ape_htable_item_t *item ;
+
+    for (item = self->rootedObj->first; item != NULL; item = item->lnext) {
+#ifdef DEBUG
+        JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
+#endif
+        JS_CallTracer(trc, item->addrs, JSTRACE_OBJECT);
+        //printf("Tracing object at %p\n", item->addrs);
+    }
+}
+
+/* Use obj address as key */
+void NativeJS::rootObjectUntilShutdown(JSObject *obj)
+{
+    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+}
+
+void NativeJS::unrootObject(JSObject *obj)
+{
+    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
+}
+
+void NativeJS::Loaded()
+{
+    jsval canvas, onready, rval;
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onready", &onready) &&
+        !JSVAL_IS_PRIMITIVE(onready) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onready))) {
+
+        JS_CallFunctionValue(cx, JSVAL_TO_OBJECT(canvas), onready, 0, NULL, &rval);
+    }
+
+}
+
+NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net)
 {
     JSRuntime *rt;
     JSObject *gbl;
@@ -470,6 +528,11 @@ NativeJS::NativeJS(int width, int height)
     //printf("New JS runtime\n");
 
     currentFPS = 0;
+    shutdown = false;
+
+    this->net = NULL;
+
+    rootedObj = hashtbl_init(APE_HASH_INT);
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_USE_HELPER_THREADS)) == NULL) {
@@ -489,31 +552,20 @@ NativeJS::NativeJS(int width, int height)
         printf("Failed to init JS context\n");
         return;     
     }
-    //JS_BeginRequest(cx);
-    //JSAutoRequest ar(cx);
+    JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
-
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX
-        );
-
-    //ion::js_IonOptions.gvnIsOptimistic = true;
-
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
     JS_SetErrorReporter(cx, reportError);
 
-    JSAutoRequest ar(cx);
+    if ((gbl = JS_NewGlobalObject(cx, &global_class, NULL)) == NULL ||
+        !JS_InitStandardClasses(cx, gbl)) {
 
-    gbl = JS_NewGlobalObject(cx, &global_class, NULL);
-    if (gbl == NULL) {
-        printf("Cant create global object\n");
         return;
     }
 
-    if (!JS_InitStandardClasses(cx, gbl))
-        return;
-
-    //JS_DefineProfilingFunctions(cx, gbl);
-
-    JS_SetGCCallback(rt, gccb);
+    //JS_SetGCCallback(rt, gccb);
+    JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
     //JS_InitCTypesClass(cx, gbl);
@@ -521,22 +573,53 @@ NativeJS::NativeJS(int width, int height)
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
-    /* surface contains the window frame buffer */
+    this->UI = inUI;
+    this->bindNetObject(net);
 
+    /* surface containing the window frame buffer */
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->context = new NativeCanvas2DContext(width, height);
-
     surface = rootHandler->context->skia;
 
-    //JS_SetContextPrivate(cx, nskia);
     JS_SetRuntimePrivate(rt, this);
-
-
     LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();
 
+    this->LoadScriptContent(preload_js, strlen(preload_js), "__native.js");
+    //this->LoadScriptContent(preload_js);
+    
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+}
+
+static bool test_extracting(const char *buf, int len,
+    size_t offset, size_t total, void *user)
+{
+    NativeJS *njs = (NativeJS *)user;
+
+    printf("Got a packet of size %ld out of %ld\n", offset, total);
+    return true;
+}
+
+int NativeJS::LoadApplication(const char *path)
+{
+    if (this->net == NULL) {
+        printf("LoadApplication: bind a net object first\n");
+        return 0;
+    }
+    NativeApp *app = new NativeApp("./demo.zip");
+    if (app->open()) {
+        this->UI->setWindowTitle(app->getTitle());
+        app->runWorker(this->net);
+        size_t size = app->extractFile("main.js", test_extracting, this);
+        if (size == 0) {
+            printf("Cant exctract file\n");
+        } else {
+            printf("size : %ld\n", size);
+        }
+    }
+
+    return 0;
 }
 
 void NativeJS::forceLinking()
@@ -555,6 +638,7 @@ NativeJS::~NativeJS()
 {
     JSRuntime *rt;
     rt = JS_GetRuntime(cx);
+    shutdown = true;
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
@@ -563,40 +647,28 @@ NativeJS::~NativeJS()
     JS_RemoveValueRoot(cx, &gfunc);
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-    NativeJSAudio::shutdown();
-
+    
+    delete rootHandler->context;
+    delete rootHandler;
+#if 0
     rootHandler->unrootHierarchy();
-    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
     
     delete rootHandler;
+#endif
+    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
+    JS_EndRequest(cx);
 
     JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
-    NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
 
     JS_DestroyRuntime(rt);
-
     JS_ShutDown();
 
-
     delete messages;
-    //delete nskia; /* TODO: why is that commented out? */
-    // is it covered by Canvas_Finalize()?
-}
-
-void NativeJS::bufferSound(int16_t *data, int len)
-{
-    jsval canvas, onwheel;
-
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onmousewheel", &onwheel) &&
-        !JSVAL_IS_PRIMITIVE(onwheel) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
-
-       // JS_CallFunctionValue(cx, event, onwheel, 0, NULL, &rval);
-    }
+    hashtbl_free(rootedObj);
 }
 
 static int Native_handle_messages(void *arg)
@@ -626,7 +698,7 @@ static int Native_handle_messages(void *arg)
                 !JSVAL_IS_PRIMITIVE(onmessage) && 
                 JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-                jsval inval;
+                jsval inval = JSVAL_NULL;
 
                 if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
                     JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
@@ -637,38 +709,45 @@ static int Native_handle_messages(void *arg)
                 }
 
                 event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-                JS_AddObjectRoot(cx, &event);
 
-                EVENT_PROP("message", inval);
+                EVENT_PROP("data", inval);
 
                 jevent = OBJECT_TO_JSVAL(event);
-                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);
-                JS_RemoveObjectRoot(cx, &event);            
+                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);          
 
             }
             delete ptr;
             break;
-            case NATIVE_AUDIO_THREAD_MESSAGE_CALLBACK: {
-            NativeJSAudioNode::MessageCallback *cmsg = static_cast<struct NativeJSAudioNode::MessageCallback *>(msg.dataPtr());
-            if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
+            case NATIVE_THREAD_COMPLETE:
+            ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
+            if (JS_GetProperty(cx, ptr->callee, "oncomplete", &onmessage) &&
                 !JSVAL_IS_PRIMITIVE(onmessage) && 
                 JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-                if (cmsg->value != NULL) {
-                    jevent = INT_TO_JSVAL(*cmsg->value);
-                } else {
-                    jevent = JSVAL_NULL;
+                jsval inval = JSVAL_NULL;
+
+                if (ptr->nbytes && !JS_ReadStructuredClone(cx,
+                        ptr->data, ptr->nbytes,
+                        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+
+                    continue;
+
                 }
-                JS_CallFunctionValue(cx, cmsg->callee, onmessage, 1, &jevent, &rval);
-            }
-            delete cmsg; 
+
+                event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+                EVENT_PROP("data", inval);
+                jevent = OBJECT_TO_JSVAL(event);
+
+                JS_CallFunctionValue(cx, ptr->callee, onmessage, 1, &jevent, &rval);          
+            }            
+            delete ptr;
             break;
-            }
             default:break;
         }
     }
 
     return 1;
+#undef MAX_MSG_IN_ROW
 }
 
 #if 0
@@ -692,6 +771,7 @@ void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
 void NativeJS::bindNetObject(ape_global *net)
 {
     JS_SetContextPrivate(cx, net);
+    this->net = net;
 
     ape_timer *timer = add_timer(&net->timersng, 1,
         Native_handle_messages, this);
@@ -700,6 +780,160 @@ void NativeJS::bindNetObject(ape_global *net)
 
     //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
     //io->open();
+}
+
+typedef js::Vector<char, 8, js::TempAllocPolicy> FileContents;
+
+static bool
+ReadCompleteFile(JSContext *cx, FILE *fp, FileContents &buffer)
+{
+    /* Get the complete length of the file, if possible. */
+    struct stat st;
+    int ok = fstat(fileno(fp), &st);
+    if (ok != 0)
+        return false;
+    if (st.st_size > 0) {
+        if (!buffer.reserve(st.st_size))
+            return false;
+    }
+
+    // Read in the whole file. Note that we can't assume the data's length
+    // is actually st.st_size, because 1) some files lie about their size
+    // (/dev/zero and /dev/random), and 2) reading files in text mode on
+    // Windows collapses "\r\n" pairs to single \n characters.
+    for (;;) {
+        int c = getc(fp);
+        if (c == EOF)
+            break;
+        if (!buffer.append(c))
+            return false;
+    }
+
+    return true;
+}
+
+class AutoFile
+{
+    FILE *fp_;
+  public:
+    AutoFile()
+      : fp_(NULL)
+    {}
+    ~AutoFile()
+    {
+        if (fp_ && fp_ != stdin)
+            fclose(fp_);
+    }
+    FILE *fp() const { return fp_; }
+    bool open(JSContext *cx, const char *filename);
+    bool readAll(JSContext *cx, FileContents &buffer)
+    {
+        JS_ASSERT(fp_);
+        return ReadCompleteFile(cx, fp_, buffer);
+    }
+};
+
+/*
+ * Open a source file for reading. Supports "-" and NULL to mean stdin. The
+ * return value must be fclosed unless it is stdin.
+ */
+bool
+AutoFile::open(JSContext *cx, const char *filename)
+{
+    if (!filename || strcmp(filename, "-") == 0) {
+        fp_ = stdin;
+    } else {
+        fp_ = fopen(filename, "r");
+        if (!fp_) {
+            JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_CANT_OPEN,
+                                 filename, "No such file or directory");
+            return false;
+        }
+    }
+    return true;
+}
+
+static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
+    const char *filename, jsval *ret)
+{   
+    JSObject *gbl = JS_GetGlobalObject(cx);
+
+    AutoFile file;
+    if (!file.open(cx, filename))
+        return 0;
+    FileContents buffer(cx);
+    if (!ReadCompleteFile(cx, file.fp(), buffer))
+        return 0;
+
+    char *func = (char *)malloc(sizeof(char) * buffer.length() + 64);
+    memset(func, 0, sizeof(char) * buffer.length() + 64);
+    
+    strcat(func, "return (");
+    strncat(func, buffer.begin(), buffer.length());
+    strcat(func, ");");
+
+    JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
+        strlen(func), NULL, 0);
+
+    free(func);
+    if (cf == NULL) {
+        printf("Cant load script %s\n", filename);
+        return 0;
+    }
+
+    if (JS_CallFunction(cx, gbl, cf, 0, NULL, ret) == JS_FALSE) {
+        printf("Got an error?\n"); /* or thread has ended */
+
+        return 0;
+    }
+
+    return 1;
+#if 0
+    JSScript *script = JS::Compile(cx, rgbl, options,
+        buffer.begin(), buffer.length());
+
+    JS_SetOptions(cx, oldopts);
+
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, ret)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
+        return 0;
+    }
+    return 1;
+#endif
+}
+
+int NativeJS::LoadScriptContent(const char *data, size_t len,
+    const char *filename)
+{
+    uint32_t oldopts;
+    
+    JSObject *gbl = JS_GetGlobalObject(cx);
+    oldopts = JS_GetOptions(cx);
+
+    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
+    JS::CompileOptions options(cx);
+    options.setUTF8(true)
+           .setFileAndLine(filename, 1);
+
+    js::RootedObject rgbl(cx, gbl);
+    JSScript *script = JS::Compile(cx, rgbl, options, data, len);
+
+    JS_SetOptions(cx, oldopts);
+
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
+        return 0;
+    }
+    
+    return 1;
 }
 
 int NativeJS::LoadScript(const char *filename)
@@ -781,6 +1015,8 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     NativeJSNative::registerObject(cx, width, height);
     /* window() object */
     NativeJSwindow::registerObject(cx);
+    /* console() object */
+    NativeJSconsole::registerObject(cx);
 
     //NativeJSDebug::registerObject(cx);
 
@@ -930,8 +1166,6 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         identifier, 0);
-
-    /* TODO: remove root / clear params */
 
     return JS_TRUE;    
 }

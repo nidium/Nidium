@@ -52,7 +52,8 @@ Native.elements.export("UIButton", {
 			height 			: OptionalNumber(o.height, 22),
 			radius 			: OptionalNumber(o.radius, 2),
 			background 		: OptionalValue(o.background, "#2277E0"),
-			color 			: OptionalValue(o.color, "#ffffff")
+			color 			: OptionalValue(o.color, "#ffffff"),
+			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
 
 		this.resizeElement = function(){

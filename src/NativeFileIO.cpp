@@ -23,7 +23,7 @@ static void *native_fileio_thread(void *arg)
         }
         if (NFIO->action.stop) {
             pthread_mutex_unlock(&NFIO->threadMutex);
-            printf("Thread ended 1\n");
+            //printf("Thread ended 1\n");
             return NULL;
         }
 
@@ -47,16 +47,18 @@ static void *native_fileio_thread(void *arg)
         NFIO->action.active = false;
         pthread_mutex_unlock(&NFIO->threadMutex);
     }
-    printf("Thread ended 2\n");
+    //printf("Thread ended 2\n");
     return NULL;
 }
 
 static int Native_handle_file_messages(void *arg)
 {
+#define MAX_MSG_IN_ROW 32
     NativeFileIO *nfileio = (NativeFileIO *)arg;
     NativeSharedMessages::Message msg;
+    int nread = 0;
 
-    while (nfileio->messages->readMessage(&msg)) {
+    while (++nread < MAX_MSG_IN_ROW && nfileio->messages->readMessage(&msg)) {
         switch (msg.event()) {
             case NATIVE_FILEOPEN_MESSAGE:
                 nfileio->getDelegate()->onNFIOOpen(nfileio);
@@ -68,7 +70,7 @@ static int Native_handle_file_messages(void *arg)
                 nfileio->getDelegate()->onNFIORead(nfileio,
                     (unsigned char *)msg.dataPtr(), nfileio->action.u64);
 
-                delete (unsigned char *)msg.dataPtr();
+                delete[] (unsigned char *)msg.dataPtr();
                 break;
             case NATIVE_FILEWRITE_MESSAGE:
                 nfileio->getDelegate()->onNFIOWrite(nfileio, msg.dataUInt());
@@ -77,6 +79,7 @@ static int Native_handle_file_messages(void *arg)
         }
     }
     return 1;
+#undef MAX_MSG_IN_ROW
 }
 
 void NativeFileIO::writeAction(unsigned char *data, uint64_t len)
@@ -107,7 +110,7 @@ void NativeFileIO::readAction(uint64_t len)
         if (!action.stop) {
             messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
         }
-        delete data;
+        delete[] data;
         return;
     }
 
@@ -214,7 +217,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
     pthread_mutex_init(&threadMutex, NULL);
     pthread_cond_init(&threadCond, NULL);
-    printf("running thread\n");
+
     pthread_create(&threadHandle, NULL, native_fileio_thread, this);
 
     pthread_mutex_lock(&threadMutex);
@@ -225,14 +228,12 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 NativeFileIO::~NativeFileIO()
 {
     action.stop = true;
-    printf("Destroying file IO\n");
 
     pthread_mutex_lock(&threadMutex);
     pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
 
     pthread_join(threadHandle, NULL);
-
     del_timer(&this->net->timersng, this->timer);
     delete messages;
     free(filename);

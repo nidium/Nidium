@@ -1,8 +1,10 @@
-/* -------------------------- */
-/* Native (@) 2012 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
-Native.elements.export("UIDropDownOption", {
+Native.elements.export("UIOption", {
 	init : function(){
 		var self = this,
 			o = this.options,
@@ -19,7 +21,8 @@ Native.elements.export("UIDropDownOption", {
 			height 			: OptionalNumber(o.height, 22),
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, "#262722"),
-			color 			: OptionalValue(o.color, "#abacaa")
+			color 			: OptionalValue(o.color, "#abacaa"),
+			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
 
 		this.addEventListener("mousedown", function(e){

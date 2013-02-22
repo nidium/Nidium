@@ -35,9 +35,9 @@
 #include "NativeShadowLooper.h"
 #include "SkBlurMaskFilter.h"
 #include "SkBlurImageFilter.h"
+#include "SkLightingImageFilter.h"
 
 SkCanvas *NativeSkia::glcontext = NULL;
-NativeSkia *NativeSkia::glsurface = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -279,7 +279,10 @@ uint32_t NativeSkia::parseColor(const char *str)
 void NativeSkia::initPaints()
 {
     PAINT = new SkPaint;
-
+    /*
+        TODO : setHintingScaleFactor(m_hintingScaleFactor);
+        http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/PlatformContextSkia.cpp#363
+    */
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
     currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
 
@@ -287,7 +290,7 @@ void NativeSkia::initPaints()
     PAINT->setAntiAlias(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    PAINT->setFilterBitmap(true);
+    PAINT->setFilterBitmap(false);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -315,8 +318,6 @@ void NativeSkia::initPaints()
 
 int NativeSkia::bindOnScreen(int width, int height)
 {
-    const GrGLInterface *interface =  GrGLCreateNativeInterface();
-
     if (NativeSkia::glcontext == NULL) {
         printf("Cant find GL context\n");
         return 0;
@@ -380,21 +381,22 @@ int NativeSkia::bindGL(int width, int height)
         printf("Cant get interface\n");
         return 0;
     }
-    
-    context = GrContext::Create(kOpenGL_Shaders_GrEngine,
-        (GrPlatform3DContext)interface);
+
+    context = GrContext::Create(kOpenGL_GrBackend,
+        (GrBackendContext)interface);
 
     if (context == NULL) {
         printf("Cant get context\n");
     }
     
-    GrPlatformRenderTargetDesc desc;
+    GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
     
     desc.fWidth = SkScalarRound(width);
     desc.fHeight = SkScalarRound(height);
 
-    desc.fConfig = kSkia8888_PM_GrPixelConfig;
+    desc.fConfig = kSkia8888_GrPixelConfig;
+    desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
 
     GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
     GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
@@ -405,7 +407,7 @@ int NativeSkia::bindGL(int width, int height)
 
     printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
-    GrRenderTarget * target = context->createPlatformRenderTarget(desc);
+    GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {
         printf("Failed to init Skia\n");
@@ -425,9 +427,6 @@ int NativeSkia::bindGL(int width, int height)
     if (NativeSkia::glcontext == NULL) {
         NativeSkia::glcontext = canvas;
     }
-    if (NativeSkia::glsurface == NULL) {
-        NativeSkia::glsurface = this;
-    }
     
     SkSafeUnref(dev);
     globalAlpha = 255;
@@ -446,7 +445,7 @@ void NativeSkia::drawRect(double x, double y, double width,
     double height, int stroke)
 {
     SkRect r;
-
+    
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 #if 0
@@ -480,6 +479,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 NativeSkia::NativeSkia()
 {
+    context = NULL;
     this->native_canvas_bind_mode = NativeSkia::BIND_NO;
 }
 
@@ -489,18 +489,20 @@ NativeSkia::~NativeSkia()
 
     while (nstate) {
         struct _nativeState *tmp = nstate->next;
-
         delete nstate->paint;
         delete nstate->paint_stroke;
         delete nstate;
         nstate = tmp;
     }
     delete paint_system;
-    
+
     if (currentPath) delete currentPath;
 
-    delete canvas;
+    canvas->unref();
 
+    if (context) {
+        context->unref();
+    }
 }
 
 /* TODO: check if there is a best way to do this;
@@ -570,11 +572,14 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 { 
     SkShader *shader;
 
-    shader = SkShader::CreateBitmapShader(pattern->jsimg->img->img,
-        SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
+    if (pattern->jsimg->img->img != NULL) {
 
-    PAINT->setColor(SK_ColorBLACK);
-    PAINT->setShader(shader);    
+        shader = SkShader::CreateBitmapShader(*pattern->jsimg->img->img,
+            SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
+
+        PAINT->setColor(SK_ColorBLACK);
+        PAINT->setShader(shader);
+    }
 }
 
 void NativeSkia::setFillColor(NativeSkGradient *gradient)
@@ -639,7 +644,7 @@ NativeShadowLooper *NativeSkia::buildShadow()
                                 SkDoubleToScalar(currentShadow.y),
                                 currentShadow.color,
                                 SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
-                                SkBlurDrawLooper::kHighQuality_BlurFlag );
+                                SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
 
 void NativeSkia::setShadowOffsetX(double x)
@@ -674,6 +679,10 @@ void NativeSkia::setShadowColor(const char *str)
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
+void NativeSkia::setSmooth(bool val)
+{
+    PAINT->setFilterBitmap(val);
+}
 
 void NativeSkia::setGlobalAlpha(double value)
 {
@@ -683,7 +692,7 @@ void NativeSkia::setGlobalAlpha(double value)
     globalAlpha = SkMinScalar(SkDoubleToScalar(value) * maxuint, maxuint);
     SkColorFilter *filter = SkColorFilter::CreateModeFilter(
         SkColorSetARGB(globalAlpha, 255, 255, 255),
-        SkXfermode::kMultiply_Mode);
+        SkXfermode::kModulate_Mode);
 
     PAINT->setColorFilter(filter);
     PAINT_STROKE->setColorFilter(filter);
@@ -779,7 +788,7 @@ void NativeSkia::stroke()
     }
 
     canvas->drawPath(*currentPath, *PAINT_STROKE);
-    CANVAS_FLUSH();   
+    CANVAS_FLUSH();
 }
 
 void NativeSkia::closePath()
@@ -883,6 +892,17 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
     currentPath->cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
         SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2),
         SkDoubleToScalar(x), SkDoubleToScalar(y));
+}
+
+void NativeSkia::light(double x, double y, double z)
+{
+    SkPoint3 pt(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(z));
+
+    SkColor white(0xAAFFFFFF);
+    PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(pt, white,
+        SkIntToScalar(1), SkIntToScalar(2)));
+
+    printf("Light created\n");
 }
 
 void NativeSkia::rotate(double angle)
@@ -1065,7 +1085,6 @@ void NativeSkia::setLineJoin(const char *joinStyle)
     } else {
         PAINT_STROKE->setStrokeJoin(SkPaint::kMiter_Join);
     }
-    
 }
 
 void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
@@ -1074,19 +1093,18 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        image->canvasRef->readPixels(
-            SkIRect::MakeSize(image->canvasRef->getDeviceSize()),
-            &image->img);
+
+        canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
+            SkDoubleToScalar(x), SkDoubleToScalar(y),
+            PAINT);
+
+    } else if (image->img != NULL) {
+        canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+            PAINT);
     }
 
-    if (image->fixedImg != NULL) {
-        image->fixedImg->draw(canvas, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);
-    } else {
-        canvas->drawBitmap(image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);
-    }
     PAINT->setColor(old);
+    
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }
@@ -1102,16 +1120,11 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        image->canvasRef->readPixels(SkIRect::MakeSize(
-            image->canvasRef->getDeviceSize()),
-            &image->img);
+        canvas->drawBitmapRect(image->canvasRef->getDevice()->accessBitmap(false),
+            NULL, r, PAINT);
+    } else if (image->img != NULL) {
+        canvas->drawBitmapRect(*image->img, NULL, r, PAINT);
     }
-
-    if (!image->img.hasMipMap()) {
-        printf("build mipmap\n");
-        image->img.buildMipMap();
-    }
-    canvas->drawBitmapRect(image->img, NULL, r, PAINT);
 
     PAINT->setColor(old);
 
@@ -1128,22 +1141,24 @@ void NativeSkia::drawImage(NativeSkImage *image,
     SkColor old = PAINT->getColor();
     /* DrawImage must not takes the paint alpha */
     PAINT->setColor(SK_ColorBLACK);
-    /* TODO: ->readPixels : switch to readPixels(bitmap, x, y); */
+    /* TODO: ->readPixels : switch to accessBitmap; */
     src.setXYWH(sx, sy, swidth, sheight);
-
-    if (image->isCanvas) {
-        image->canvasRef->readPixels(src, &image->img);
-    }
 
     dst.setXYWH(SkDoubleToScalar(dx), SkDoubleToScalar(dy),
         SkDoubleToScalar(dwidth), SkDoubleToScalar(dheight));
 
-    if (!image->img.hasMipMap()) {
-        image->img.buildMipMap();
-    }
+    if (image->isCanvas) {
+        SkBitmap bitmapImage;
 
-    canvas->drawBitmapRect(image->img,
-        (image->isCanvas ? NULL : &src), dst, PAINT);
+        image->canvasRef->readPixels(src, &bitmapImage);
+        bitmapImage.setIsVolatile(true);
+
+        canvas->drawBitmapRect(bitmapImage,
+            NULL, dst, PAINT);        
+    } else if (image->img != NULL) {
+        canvas->drawBitmapRect(*image->img,
+            &src, dst, PAINT);
+    }
 
     PAINT->setColor(old);
 

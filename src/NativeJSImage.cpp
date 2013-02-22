@@ -1,5 +1,6 @@
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
+#include "NativeJS.h"
 
 #include <string.h>
 
@@ -34,36 +35,19 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
         case IMAGE_PROP_SRC:
         {
             if (JSVAL_IS_STRING(vp)) {
-                NativeSkImage *ImageObject;
-                jsval rval, onload_callback;
-
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
 
-                if (strncasecmp(imgPath.ptr(), "http://", 7) == 0) {
-                    NativeHTTP *http = new NativeHTTP(imgPath.ptr(),
-                        (ape_global *)JS_GetContextPrivate(cx));
-                    http->request(NATIVE_IMAGE_GETTER(obj.get()));
-                } else {
+                NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+                
+                NativeStream *stream = new NativeStream(
+                        (ape_global *)JS_GetContextPrivate(cx),
+                        imgPath.ptr());
 
-                    ImageObject = new NativeSkImage(imgPath.ptr());
+                nimg->stream = stream;
 
-                    nimg->img = ImageObject;
-
-                    JS_DefineProperty(cx, obj, "width",
-                        INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
-                        JSPROP_PERMANENT | JSPROP_READONLY);
-
-                    JS_DefineProperty(cx, obj, "height",
-                        INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
-                        JSPROP_PERMANENT | JSPROP_READONLY);
-
-                    if (JS_GetProperty(cx, obj, "onload", &onload_callback) &&
-                        JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
-
-                        JS_CallFunctionValue(cx, obj, onload_callback,
-                            0, NULL, &rval);
-                    }
-                }
+                stream->setDelegate(nimg);
+                stream->getContent();
+            
             } else {
                 vp.set(JSVAL_VOID);
                 return JS_TRUE;
@@ -80,7 +64,10 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSImage *img = NATIVE_IMAGE_GETTER(obj);
     if (img != NULL) {
-        printf("Image finalized\n");
+        if (img->stream) {
+            img->stream->setDelegate(NULL);
+        }
+
         delete img;
     }
 }
@@ -90,7 +77,10 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *ret = JS_NewObjectForConstructor(cx, &Image_class, vp);
     NativeJSImage *nimg;
 
-    /* TODO: JS_IsConstructing() */
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
 
     printf("new image\n");
 
@@ -117,31 +107,45 @@ NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)
     return NATIVE_IMAGE_GETTER(obj)->img;
 }
 
-void NativeJSImage::onRequest(NativeHTTP::HTTPData *h,
-    NativeHTTP::DataType type)
+static int delete_stream(void *arg)
 {
-    if (type == NativeHTTP::DATA_IMAGE) {
-        jsval rval, onload_callback;
-        NativeSkImage *ImageObject = new NativeSkImage(h->data->data,
-                                            h->data->used);
-        img = ImageObject;
+    NativeStream *stream = (NativeStream *)arg;
 
-        JS_DefineProperty(cx, jsobj, "width",
-            INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
-            JSPROP_PERMANENT | JSPROP_READONLY);
+    delete stream;
 
-        JS_DefineProperty(cx, jsobj, "height",
-            INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
-            JSPROP_PERMANENT | JSPROP_READONLY);
+    return 0;
+}
 
-        if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
-            JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
+void NativeJSImage::onGetContent(const char *data, size_t len)
+{
+    jsval rval, onload_callback;
+    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
-            JS_CallFunctionValue(cx, jsobj, onload_callback,
-                0, NULL, &rval);
-        }
+    NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
+    if (ImageObject->img == NULL) {
+        timer_dispatch_async(delete_stream, stream);
+        stream = NULL;
+        return;
+    }
+    img = ImageObject;
 
-    } /* TODO : onError */
+    JS_DefineProperty(cx, jsobj, "width",
+        INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, jsobj, "height",
+        INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
+        JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, jsobj, onload_callback,
+            0, NULL, &rval);
+    }
+    NativeJSObj(cx)->unrootObject(jsobj);
+    timer_dispatch_async(delete_stream, stream);
+    stream = NULL;
 }
 
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
@@ -177,7 +181,7 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 NativeJSImage::NativeJSImage() :
     img(NULL), jsobj(NULL)
 {
-    httpref = NULL;
+    stream = NULL;
 }
 
 NativeJSImage::~NativeJSImage()
@@ -185,8 +189,8 @@ NativeJSImage::~NativeJSImage()
     if (img != NULL) {
         delete img;
     }
-    if (httpref) {
-        delete httpref;
+    if (stream) {
+        delete stream;
     }
 }
 

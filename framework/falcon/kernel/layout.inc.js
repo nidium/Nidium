@@ -11,27 +11,33 @@
 Native.layout = {
 	objID : 0,
 	nbObj : 0, // Number of elements
+	focusID : 0,
 
-	nodes : {}, // May content several trees of elements
+	nodes : [], // May content several trees of elements
 	elements : [], // Flat representation of node trees
 
 	register : function(rootElement){
-		this.nodes[rootElement._uid] = rootElement;
+		this.nodes.push(rootElement);
 	},
 
 	unregister : function(rootElement){
-		delete(this.nodes[rootElement._uid]);
+		for (var i=0; i<this.nodes.length; i++){
+			if (this.nodes[i] == rootElement) {
+				this.nodes.splice(i, 1);
+				break;
+			}
+		}
 	},
 
 	draw : function(){
 		var z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			if (z[i]._needRefresh){
-				z[i].refresh();
-			} else {
-				z[i].__left = z[i].layer.__left;
-				z[i].__top = z[i].layer.__top;
+			var element = z[i];
+			if (element.hasOwnerDocument){
+				if (element._needRefresh){
+					element.refresh();
+				}
 			}
 		}
 
@@ -92,9 +98,9 @@ Native.layout = {
 		var self = this,
 			fn = OptionalCallback(inference, null),
 			dx = function(z, parent){
-				for (var i in z){
+				for (var i=0; i<z.length; i++){
 					fn.call(z[i]);
-					if (z[i] && self.count(z[i].nodes)>0) {
+					if (z[i] && z[i].nodes.length>0) {
 						/* test z[i] as it may be destroyed by inference */
 						dx(z[i].nodes, z[i].parent);
 					}
@@ -140,6 +146,21 @@ Native.layout = {
 		return elements;
 	},
 
+	getElementUnderPointer : function(){
+		var element = null,
+			x = window.mouseX,
+			y = window.mouseY,
+			z = this.elements;
+
+		for (var i=z.length-1 ; i>=0 ; i--) {
+			if (z[i].layer.__visible && z[i].isPointInside(x, y)) {
+				element = z[i];
+				break;
+			}
+		}
+		return element;
+	},
+
 	getElementById : function(id){
 		var z = this.elements,
 			element = undefined;
@@ -153,42 +174,58 @@ Native.layout = {
 		return element;
 	},
 
-	count : function(nodes){
-		var len = 0;
-		for (var i in nodes){
-			if (nodes.hasOwnProperty(i)){
-				len++;
+	focusNextElement : function(){
+		var self = this,
+			z = this.elements;
+
+		this.focusID++;
+		if (this.focusID > this.nbObj-2) {
+			this.focusID = 0;
+		}
+
+		for (var i=z.length-1; i>=0; i--){
+			var element = z[i];
+			if (this.focusID == element._nid){
+				if (element.canReceiveFocus){
+					this.focus(element);
+					break;
+				} else {
+					this.focusNextElement();
+				}
 			}
 		}
-		return len;
 	},
 
-	destroy : function(element){
-		if (element.parent){
-			delete(element.parent.nodes[element._uid]);
-			delete(this.nodes[element._uid]);
-			element.layer.removeFromParent();
-			element = null;
+	focus : function(element){
+		if (element.hasFocus === true) {
+			return false;
+		}
+		if (element.canReceiveFocus) {
+			/* Fire blur event on last focused element */
+			if (this.currentFocusedElement) {
+				this.currentFocusedElement.fireEvent("blur", {});
+				this.currentFocusedElement.hasFocus = false;
+			}
+
+			/* set this element as the new focused element */
+			element.hasFocus = true;
+			element.fireEvent("focus", {});
+			this.currentFocusedElement = element;
+			this.focusID = element._nid;
 		}
 	},
 
-	collectGarbage : function(elements){
-		for (var i=elements.length-1; i>0; i--){
-			elements[i].__garbageCollector && this.destroy(elements[i]);
+	remove : function(element){
+		var parent = element.parent;
+		if (!parent) return false;
+
+		element.layer.removeFromParent();
+		element.resetNodes();
+		/*
+		for (var p in element){
+			delete element[p];
 		}
-	},
-
-	remove : function(rootElement){
-		var self = this,
-			elements = [];
-
-		this.bubble(rootElement, function(){
-			elements.push(this);
-			this.__garbageCollector = true;
-		});
-
-		this.collectGarbage(elements);
-		this.destroy(rootElement);
+		*/
 	}
 };
 
@@ -200,6 +237,7 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 	options.outlineOnFocus = false;
 
 	var element = new DOMElement("UIView", options, null);
+	element._root = element;
 
 	Native.canvas.add(element.layer);
 	Native.layout.register(element);
@@ -207,6 +245,7 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 
 	return element;
 });
+/* -------------------------------------------------------------------------- */
 
 Object.createProtectedElement(Native.scope, "document", new Application({
 	id : "document",
@@ -218,13 +257,6 @@ Object.createProtectedElement(Native.scope, "document", new Application({
 	canReceiveFocus : true,
 	outlineOnFocus : false
 }));
-
-/* -------------------------------------------------------------------------- */
-
-window.requestAnimationFrame(function(){
-	Native.FPS.start();
-	Native.layout.draw();
-	Native.FPS.show();
-});
+document.__styleSheetLoaded = true;
 
 /* -------------------------------------------------------------------------- */

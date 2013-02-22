@@ -298,7 +298,7 @@ int NativeVideo::display(void *custom) {
     if (actualDelay > 0.010) {
         v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
     } else {
-        v->scheduleDisplay(0.01);
+        v->scheduleDisplay(1);
         SPAM(("SKIPING FRAME\n"));
         /*
         // Read frame from ring buffer

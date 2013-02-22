@@ -74,6 +74,7 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
             paint->setColor(fBlurColor);
             paint->setAlpha(SkAlphaMul(paint->getAlpha(), SkAlpha255To256(a)));
 
+            paint->setShader(NULL);
             paint->setMaskFilter(fBlur);
 
             canvas->save(SkCanvas::kMatrix_SaveFlag);

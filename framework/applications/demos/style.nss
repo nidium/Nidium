@@ -23,7 +23,6 @@
  * DEALINGS IN THE SOFTWARE.                                                   *
  * --------------------------------------------------------------------------- * 
  */
-
 {
 	main : {
 		background : "#262722",
@@ -33,7 +32,7 @@
 		background : "#559933",
 		color : "#ffffff",
 		fontSize : 10.5,
-		top : 48
+		top : 48,
 	},
 
 	label : {

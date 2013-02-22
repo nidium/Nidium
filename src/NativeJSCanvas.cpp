@@ -24,6 +24,7 @@ enum {
     CANVAS_PROP___LEFT,
     /* conveniance getter for getContext("2D") */
     CANVAS_PROP_CTX,
+
     CANVAS_PROP_PADDING,
     CANVAS_PROP_CLIENTLEFT,
     CANVAS_PROP_CLIENTTOP,
@@ -39,12 +40,13 @@ enum {
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Canvas_Trace(JSTracer *trc, JSRawObject obj);
 
 JSClass Canvas_class = {
-    "Canvas", JSCLASS_HAS_PRIVATE,
+    "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
@@ -64,7 +66,19 @@ static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
+    jsval *vp);
 static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
@@ -142,7 +156,13 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("bringToFront", native_canvas_bringToFront, 0, 0),
     JS_FN("sendToBack", native_canvas_sendToBack, 0, 0),
     JS_FN("getParent", native_canvas_getParent, 0, 0),
+    JS_FN("getFirstChild", native_canvas_getFirstChild, 0, 0),
+    JS_FN("getLastChild", native_canvas_getLastChild, 0, 0),
+    JS_FN("getNextSibling", native_canvas_getNextSibling, 0, 0),
+    JS_FN("getPrevSibling", native_canvas_getPrevSibling, 0, 0),
     JS_FN("getChildren", native_canvas_getChildren, 0, 0),
+    JS_FN("setCoordinates", native_canvas_setCoordinates, 2, 0),
+    JS_FN("translate", native_canvas_translate, 2, 0),
     JS_FS_END
 };
 
@@ -189,12 +209,47 @@ static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
 {
     NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getParent();
 
-    if (parent == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(parent->jsobj));
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getFirstChild();
+
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getLastChild();
+
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getNextSibling();
+
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getPrevSibling();
+
+    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return JS_TRUE;
 }
@@ -221,6 +276,37 @@ static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(JS_NewArrayObject(cx, count, jlist)));
 
     free(jlist);
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double left, top;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd",
+        &left, &top)) {
+        return JS_TRUE;
+    }
+
+    HANDLER_FROM_CALLEE->left = left;
+    HANDLER_FROM_CALLEE->top = top;
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double left, top;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd",
+        &left, &top)) {
+        return JS_TRUE;
+    }
+
+    HANDLER_FROM_CALLEE->translate(left, top);
+
     return JS_TRUE;
 }
 
@@ -297,24 +383,24 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_WIDTH:
         {
-            double dval;
+            uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            JS_ValueToECMAUint32(cx, vp, &dval);
 
-            handler->setWidth((int)dval);
+            handler->setWidth(dval);
         }
         break;
         case CANVAS_PROP_HEIGHT:
         {
-            double dval;
+            uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            JS_ValueToECMAUint32(cx, vp, &dval);
             
-            handler->setHeight((int)dval);
+            handler->setHeight(dval);
         }
         break;
         case CANVAS_PROP_LEFT:
@@ -339,22 +425,26 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_SCROLLLEFT:
         {
-            double dval;
+            int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
-            handler->setScrollLeft((int)dval);
+
+            JS_ValueToECMAInt32(cx, vp, &dval);
+
+            handler->setScrollLeft(dval);
         }
         break;
         case CANVAS_PROP_SCROLLTOP:
         {
-            double dval;
+            int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
-            handler->setScrollTop((int)dval);
+
+            JS_ValueToECMAInt32(cx, vp, &dval);
+
+            handler->setScrollTop(dval);
         }
         break;
         case CANVAS_PROP_VISIBLE:
@@ -377,13 +467,13 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_PADDING:
         {
-            double dval;
+            int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+             JS_ValueToECMAInt32(cx, vp, &dval);
 
-            handler->setPadding((int)dval);
+            handler->setPadding(dval);
         }
         break;
         case CANVAS_PROP_OPACITY:
@@ -496,6 +586,11 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     int width, height;
     NativeCanvasHandler *handler;
 
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
+
     JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
@@ -508,15 +603,13 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    JS_AddObjectRoot(cx, &handler->jsobj);
-    /* Retain a ref to this, so that we are sure we can't get an undefined ctx */
-    JS_AddObjectRoot(cx, &handler->context->jsobj);
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
+
     JS_SetPrivate(ret, handler);
 
     JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);    
 
-    /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     return JS_TRUE;
@@ -530,7 +623,31 @@ void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-/* TODO: nuke this */
+#ifdef DEBUG
+static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
+{
+    snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
+}
+#endif
+
+static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
+{
+    NativeCanvasHandler *handler = HANDLER_GETTER(obj);
+
+    if (handler != NULL) {
+        NativeCanvasHandler *cur;
+
+        for (cur = handler->children; cur != NULL; cur = cur->next) {
+            if (cur->jsobj) {
+#ifdef DEBUG
+                JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
+#endif
+                JS_CallTracer(trc, cur->jsobj, JSTRACE_OBJECT);
+            }
+        }
+    }
+}
+
 JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 {
     JSObject *ret;
@@ -538,25 +655,17 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
-/*
-    skia->obj = ret;
-    skia->cx = cx;
-*/
     handler = new NativeCanvasHandler(width, height);
     handler->context = new NativeCanvas2DContext(cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
     
-    JS_AddObjectRoot(cx, &handler->context->jsobj);
-    JS_AddObjectRoot(cx, &handler->jsobj);
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
 
     JS_SetPrivate(ret, handler);
 
     JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
-
-    /* Removed in NativeSkia destructor */
-    //JS_AddObjectRoot(cx, &skia->obj);
 
     return ret;
 }

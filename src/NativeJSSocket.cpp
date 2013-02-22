@@ -1,4 +1,5 @@
 #include "NativeJSSocket.h"
+#include "NativeJS.h"
 
 /* only use on connected clients */
 #define NATIVE_SOCKET_JSOBJECT(socket) ((JSObject *)socket->ctx)
@@ -117,12 +118,11 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     jclient = JS_NewObject(cx, &socket_client_class, NULL, NULL);
     socket_client->ctx = jclient;
 
-    JS_AddObjectRoot(cx, (JSObject **)&socket_client->ctx);
-#if 1
+    NativeJSObj(cx)->rootObjectUntilShutdown(jclient);
+
     JS_SetPrivate(jclient, socket_client);
 
     JS_DefineFunctions(cx, jclient, socket_client_funcs);
-    
 
     arg = OBJECT_TO_JSVAL(jclient);
 
@@ -132,7 +132,6 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
         JS_CallFunctionValue(cx, nsocket->jsobject, onaccept,
             1, &arg, &rval);
     }
-    #endif
 }
 
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
@@ -224,8 +223,6 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     jsval ondisconnect, rval, jparams[1];
     NativeJSSocket *nsocket;
 
-    printf("Disconnecting event (client_disconnect)\n");
-
     ape_socket *socket_server = socket_client->parent;
     if (socket_server == NULL) { /* the server has disconnected */
         return;
@@ -248,7 +245,7 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
             1, jparams, &rval);
     }
 
-    JS_RemoveObjectRoot(cx, (JSObject **)&socket_client->ctx);
+    NativeJSObj(cx)->unrootObject((JSObject *)socket_client->ctx);
     
     JS_SetPrivate((JSObject *)socket_client->ctx, NULL);
     socket_client->ctx = NULL;
@@ -276,13 +273,17 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
     }
 }
 
-
 static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *host;
     unsigned int port;
     NativeJSSocket *nsocket;
     jsval isBinary = JSVAL_FALSE;
+
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return JS_FALSE;
+    }
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Socket_class, vp);
 
@@ -295,7 +296,6 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, nsocket);
 
-    /* TODO: JS_IsConstructing() */
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineFunctions(cx, ret, socket_funcs);
@@ -323,11 +323,9 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
-        printf("[Socket] Cant load socket (new)\n");
-        /* TODO: add exception */
-        return JS_TRUE;
+        JS_ReportError(cx, "Failed to create socket");
+        return JS_FALSE;
     }
-
 
     socket->callbacks.on_connect    = native_socket_wrapper_onaccept;
     socket->callbacks.on_read       = native_socket_wrapper_client_read;
@@ -340,9 +338,13 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     nsocket->jsobject   = caller;
 
     if (APE_socket_listen(socket, nsocket->port, nsocket->host) == -1) {
-        printf("[Socket] Cant listen (0)\n");
-        return JS_TRUE;
+        JS_ReportError(cx, "Can't listen on socket (%s:%d)", nsocket->host,
+            nsocket->port);
+        /* TODO: close() leak */
+        return JS_FALSE;
     }
+
+    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
@@ -366,11 +368,9 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
-        printf("[Socket] Cant load socket (new)\n");
-        /* TODO: add exception */
-        return JS_TRUE;
+        JS_ReportError(cx, "Failed to create socket");
+        return JS_FALSE;
     }
-
 
     socket->callbacks.on_connected  = native_socket_wrapper_onconnected;
     socket->callbacks.on_read       = native_socket_wrapper_read;
@@ -382,9 +382,12 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     nsocket->jsobject = caller;
 
     if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
-        printf("[Socket] Cant connect (0)\n");
-        return JS_TRUE;
+        JS_ReportError(cx, "Can't listen on socket (%s:%d)", nsocket->host,
+            nsocket->port);
+        return JS_FALSE;
     }
+
+    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
@@ -425,6 +428,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
     if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        printf("Bad caller\n");
         return JS_TRUE;
     }
 

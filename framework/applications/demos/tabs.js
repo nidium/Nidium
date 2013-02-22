@@ -4,30 +4,55 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var main = new Application({id:"main", background:"#262722"});
+var main = new Application({id:"main"});
+
+main.status = new UIStatus(main);
+main.status.open();
+main.status.progressBarColor = "rgba(210, 255, 60, 1)";
 
 var	myTabs = [
-	/* Tab 0 */ {label : "main.js"},
-	/* Tab 1 */ {label : "core.js"},
-	/* Tab 2 */ {label : "hello.js", selected : true},
-	/* Tab 3 */ {label : "foo.cpp"},
-	/* Tab 4 */ {label : "class.cpp"},
-	/* Tab 5 */ {label : "opengl.cpp", background : "#202a15", color : "#ffffff"},
-	/* Tab 6 */ {label : "2.js", background : "#442033", color : "#ffffff"},
-	/* Tab 7 */ {label : "rotation.js"},
-	/* Tab 8 */ {label : "scale.js"},
-	/* Tab 9 */ {label : "native.inc.js"}
+	/* Tab 0 */ {label : "main.js", class : "tab"},
+	/* Tab 1 */ {label : "core.js", class : "tab"},
+	/* Tab 2 */ {label : "hello.js", selected : true, class : "tab"},
+	/* Tab 3 */ {label : "foo.cpp", class : "tab"},
+	/* Tab 4 */ {label : "class.cpp", class : "tab"},
+	/* Tab 5 */ {label : "opengl.cpp", class : "tab"},
+	/* Tab 6 */ {label : "2.js", class : "tab"},
+	/* Tab 7 */ {label : "rotation.js", class : "tab"},
+	/* Tab 8 */ {label : "scale.js", class : "tab"},
+	/* Tab 9 */ {label : "native.inc.js", class : "tab"}
 ];
 
 var	tabController = main.add("UITabController", {
+	top : -2,
 	name : "helloTabs",
-	tabs : myTabs,
-	background : "#191a18"
+	tabs : null,
+	background : "rgba(25, 26, 24, 1)"
 });
+
+tabController.setTabs(myTabs);
+
+var params = tabController.getDrawingBounds(),
+	gradient = tabController.layer.context.createLinearGradient(
+		params.x, params.y,
+		params.x, params.y+params.h
+	);
+
+gradient.addColorStop(0.00, 'rgba(35, 36, 34, 1)');
+gradient.addColorStop(0.95, 'rgba(27, 28, 26, 1)');
+gradient.addColorStop(0.95, 'rgba(0, 0, 0, 1)');
+gradient.addColorStop(0.98, 'rgba(0, 0, 0, 1)');
+gradient.addColorStop(1.00, 'rgba(200, 200, 200, 0.1)');
+
+tabController.background = gradient;
+
+
+var tab = tabController.getSelectedTab();
+tab.label = "fsdfsdfsdffds";
 
 var removeButton = main.add("UIButton", {
 		left : 20,
-		top : 60,
+		top : 160,
 		label : "Remove",
 		background : "#4488EE",
 		fontSize : 10.5
@@ -35,7 +60,7 @@ var removeButton = main.add("UIButton", {
 
 	nextButton = main.add("UIButton", {
 		left : 82, 
-		top : 60, 
+		top : 160, 
 		label : "Next", 
 		background : "#882266", 
 		fontSize : 10.5
@@ -43,77 +68,75 @@ var removeButton = main.add("UIButton", {
 
 	addButton = main.add("UIButton", {
 		left : 140, 
-		top : 85, 
+		top : 185, 
 		label : "Add"
 	}),
 
 	b3 = main.add("UIButton", {
 		left : 20, 
-		top : 85,
+		top : 185,
 		label : "Tab 0, Position 0", 
 		background : "#000000", 
 		fontSize : 10.5
 	});
 
-addButton.addEventListener("mousedown", function(){
-	var p = tabController.position;
 
-	tabController.insertTab(p, {
+addButton.click(function(){
+	var tab = tabController.getSelectedTab(),
+		position = tab ? tab.pos : 0;
+
+	tabController.insertTab(position, {
 		label : "Zombi Magic",
 		color : "#ffffff"
 	});
 });
 
-removeButton.addEventListener("mousedown", function(){
+removeButton.click(function(){
 	var tab = tabController.getSelectedTab();
 	tabController.removeTab(tab);
 });
 
-nextButton.addEventListener("mousedown", function(){
+nextButton.click(function(){
 	tabController.selectNextTab();
 });
 
 tabController.addEventListener("tabselect", function(e){
-	b3.label = "Tab " + e.index + ", Position " + e.position;
-	main.background = tabController.tabs[e.index].background;
+	var tab = e.tab;
+	b3.label = "Tab " + tab.index + ", Position " + tab.pos;
+	main.background = tab.background;
 });
 
 tabController.addEventListener("tabswap", function(e){
-	b3.label = "Tab " + e.index + ", Position " + e.position;
+	var tab = e.tab;
+	b3.label = "Tab " + tab.index + ", Position " + tab.pos;
+	return false;
 });
 
-
-
-var tab = tabController.getSelectedTab();
-tab.label = "fsdfsdfsdffds"
-
-/*
-
 tabController.addEventListener("tabmove", function(e){
-	var tab = e.index,
-		positions = e.positions;
+	var tab = e.tab,
+		elements = e.elements;
 
-	echo("-- tab", tab, "moved to position", this.position);
-	for (var i=0; i<positions.length; i++){
-		echo("pos"+i, " --> tab", positions[i], " tabs["+i+"].position = ", this.tabs[i].position);
+	echo("-- tab", tab.index, "moved to position", this.currentPosition);
+	for (var i=0; i<elements.length; i++){
+		echo("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
 	echo("");
+});
+
+tabController.addEventListener("tabbeforeclose", function(e){
+	echo("try to close tab ", e.tab.index);
 });
 
 tabController.addEventListener("tabclose", function(e){
-	var tab = e.index,
-		positions = e.positions;
+	var tab = e.tab,
+		elements = e.elements;
 	
-	echo("-- tab", tab, "closed and no longer exists.");
-	for (var i=0; i<positions.length; i++){
-		echo("pos"+i, " --> tab", positions[i], " tabs["+i+"].position = ", this.tabs[i].position);
+	echo("-- tab closed.");
+	for (var i=0; i<elements.length; i++){
+		echo("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
 	echo("");
 });
-*/
-
-
-
 
 
 

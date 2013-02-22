@@ -11,6 +11,7 @@
 #include "SkUnPreMultiply.h"
 
 
+#if 0
 static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
                         SkBitmap::Config pref, const char name[] = NULL)
 {
@@ -26,21 +27,11 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
         return false;
     }
 }
-
-static SkData* fileToData(const char path[]) {
-    SkFILEStream stream(path);
-    if (!stream.isValid()) {
-        return SkData::NewEmpty();
-    }
-    size_t size = stream.getLength();
-    void* mem = sk_malloc_throw(size);
-    stream.read(mem, size);
-    return SkData::NewFromMalloc(mem, size);
-}
+#endif
 
 static SkData* dataToData(void *data, size_t size) {
 
-    return SkData::NewWithCopy(data, size);
+    return SkData::NewWithProc(data, size, NULL, NULL);
 }
 
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
@@ -50,89 +41,42 @@ NativeSkImage::NativeSkImage(SkCanvas *canvas)
 	isCanvas = 1;
 	canvasRef = canvas;
 	canvas->ref();
-	fixedImg = NULL;
+	img = NULL;
 	
 }
 
 NativeSkImage::NativeSkImage(void *data, size_t len) :
 	canvasRef(NULL)
 {
-	static int ramAllocated = 0;
-	fixedImg = NULL;
-
-	if (!ramAllocated) {
-		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
-		ramAllocated = 1;
-	}
-
+	img = new SkBitmap();
 	isCanvas = 0;
-	
-	SkMemoryStream *stream = new SkMemoryStream();
 
-    SkAutoDataUnref datas(dataToData(data, len));
-    fixedImg = SkImage::NewEncodedData(datas);
-
-    stream->setData(datas);
-
-	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, NULL)) {
-		printf("Failed to decode image\n");
-	}
-
-    if (fixedImg == NULL) {
-    	printf("Fixed is nulll\n");
+    if (!SkImageDecoder::DecodeMemory(data, len, img)) {
+        printf("failed to decode Image\n");
+        delete img;
+        img = NULL;
     }
-
-	stream->unref();
-
-}
-
-NativeSkImage::NativeSkImage(const char *imgPath) :
-	canvasRef(NULL)
-{
-	static int ramAllocated = 0;
-	fixedImg = NULL;
-
-	if (!ramAllocated) {
-		SkImageRef_GlobalPool::SetRAMBudget(32 * 1024);
-		ramAllocated = 1;
-	}
-
-	isCanvas = 0;
-	
-	SkMemoryStream *stream = new SkMemoryStream();
-
-    SkAutoDataUnref datas(fileToData(imgPath));
-    fixedImg = SkImage::NewEncodedData(datas);
-
-    stream->setData(datas);
-
-	if (!SetImageRef(&img, stream, SkBitmap::kNo_Config, NULL)) {
-		printf("Failed to decode image\n");
-	}
-
-    if (fixedImg == NULL) {
-    	printf("Fixed is nulll\n");
-    }
-
-	stream->unref();
 }
 
 NativeSkImage::~NativeSkImage()
 {
 	if (canvasRef) canvasRef->unref();
-	if (fixedImg) fixedImg->unref();
+	if (img) {
+        delete img;
+    }
 }
 
 int NativeSkImage::getWidth()
 {
-	return img.width();
+	return img->width();
 }
 
 int NativeSkImage::getHeight()
 {
-	return img.height();
+	return img->height();
 }
 
+#if 0
 bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
         bool flipY, bool premultiply) 
 {
@@ -178,3 +122,4 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
     }
     return true;
 }
+#endif

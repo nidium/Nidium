@@ -1,6 +1,8 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 Native.elements.export("UIWindow", {
 	public : {
@@ -34,12 +36,12 @@ Native.elements.export("UIWindow", {
 		this.color = OptionalValue(o.color, "#ffffff");
 		this.label = OptionalString(o.label, "Default");
 		this.shadowBlur = OptionalNumber(o.shadowBlur, 8);
+		this.shadowColor = OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)");
 		this.radius = Math.max(5, OptionalNumber(o.radius, 5));
 
-		this.shadowColor = OptionalValue(
-			o.shadowColor, 
-			"rgba(0, 0, 0, 0.5)"
-		);
+		this.movable = OptionalBoolean(o.movable, true);
+		this.resizable = OptionalBoolean(o.resizable, true);
+		this.closeable = OptionalBoolean(o.closable, true);
 
 		this.unselect = function(){
 			/*
@@ -65,7 +67,7 @@ Native.elements.export("UIWindow", {
 			e.stopPropagation();
 		}, false);
 
-		this.handle = this.add("UIView", {
+		this.handle = this.add("UIElement", {
 			left : 0,
 			top : 0,
 			width : self.width,
@@ -83,22 +85,13 @@ Native.elements.export("UIWindow", {
 			label : self.label
 		});
 
-		if (o.movable) {
+		this.labelElement.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
 
+		if (o.movable) {
 			this.handle.addEventListener("mousedown", function(e){
 				self._mdownhandleStarted = true;
-				/*
-				self.transformOrigin = {
-					x : e.x,
-					y : e.y
-				};
-				self.set("scale", 1.10, 60);
-				self.set("shadowBlur", 25, 70);
-				self.shadowColor = "rgba(0, 0, 0, 0.98)";
-				*/
-			}, false);
-
-			this.handle.addEventListener("dragstart", function(e){
 			}, false);
 
 			this.handle.addEventListener("drag", function(e){
@@ -159,7 +152,10 @@ Native.elements.export("UIWindow", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		context.setShadow(0, 8, this.shadowBlur, this.shadowColor);
+		context.setShadow(
+			this.shadowOffsetX, this.shadowOffsetY,
+			this.shadowBlur, this.shadowColor
+		);
 		DOMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 

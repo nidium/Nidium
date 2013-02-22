@@ -1,6 +1,8 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 Native.elements.export("UIWindowResizer", {
 	init : function(){
@@ -8,7 +10,8 @@ Native.elements.export("UIWindowResizer", {
 
 		this.setProperties({
 			width 	: OptionalNumber(o.width, 8),
-			height 	: OptionalNumber(o.height, 8)
+			height 	: OptionalNumber(o.height, 8),
+			cursor	: OptionalCursor(o.cursor, "resize")
 		});
 
 		this.updateElement = function(){

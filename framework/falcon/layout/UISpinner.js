@@ -46,11 +46,7 @@ Native.elements.export("UISpinner", {
 
 	init : function(){
 		var self = this,
-			o = this.options,
-
-			pyth = function(a, b){
-				return Math.sqrt(a*a + b*b);
-			};
+			o = this.options;
 
 		this.setProperties({
 			width : OptionalNumber(o.width, 20),
@@ -71,11 +67,6 @@ Native.elements.export("UISpinner", {
 		this.playing = false;
 		this.paused = false;
 		this.forward = true;
-
-		this.arrayScroll = function(array, d){
-			if (!d) return array;
-			return array.slice(d, array.length).concat(array.slice(0, d));
-		};
 
 		this.getOpacityArray = function(){
 			var array = [],
@@ -113,13 +104,14 @@ Native.elements.export("UISpinner", {
 					self.previousFrame();
 				}
 
-				self._needRefresh = true;
-				self._needRedraw = true;
+				//self._needRefresh = true;
+				//self._needRedraw = true;
+				self.redraw();
 			}, ms, true, true);
 		};
 
 		this.play = function(){
-			if (this.playing) return false;
+			if (this.playing) return this;
 			if (!this.paused) {
 				this.refreshAnimation();
 			}
@@ -128,7 +120,7 @@ Native.elements.export("UISpinner", {
 		};
 
 		this.pause = function(){
-			if (!this.playing || this.paused) return false;
+			if (!this.playing || this.paused) return this;
 			this.playing = false;
 			this.paused = true;
 		};
@@ -138,6 +130,12 @@ Native.elements.export("UISpinner", {
 			this.playing = false;
 			this.paused = false;
 			if (this.timer) this.timer.remove();
+			return this;
+		};
+
+		this.destroy = function(){
+			this.stop();
+			this.remove();
 		};
 
 		this.nextFrame = function(){
@@ -148,6 +146,7 @@ Native.elements.export("UISpinner", {
 					this.stop();
 				}
 			}
+			return this;
 		};
 
 		this.previousFrame = function(){
@@ -158,6 +157,7 @@ Native.elements.export("UISpinner", {
 					this.stop();
 				}
 			}
+			return this;
 		};
 
 		this.addEventListener("mouseover", function(e){
@@ -188,30 +188,35 @@ Native.elements.export("UISpinner", {
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
 			layout = this.layout,
+
+			scroll = function(array, d){
+				if (!d) return array;
+				return array.slice(d, array.length).concat(array.slice(0, d));
+			},
 		
 			radian = function(degrees){
 				return (degrees*Math.PI) / 180;
-			};
+			},
 
-		context.roundbox(
-			params.x, params.y, 
-			params.w, params.h, 
-			4,
-			this.background,
-			false
-		);
-
-		var opacities = this.arrayScroll(layout.opacities, this.frame * -1),
+			opacities = layout.opacities.scroll(-this.frame),
 			rotation  = radian(360 / this.dashes);
+
+		if (this.background){
+			context.roundbox(
+				params.x, params.y, 
+				params.w, params.h, 
+				4,
+				this.background,
+				false
+			);
+		}
 
 		context.save();
 		context.setColor(this.color);
-
 		context.translate(this.width/2, this.height/2);
 
 		for (var i=0; i < this.dashes; i++) {
 			context.globalAlpha = opacities[i];
-			
 			context.fillRect(
 				layout.left,
 				layout.top,
@@ -219,11 +224,9 @@ Native.elements.export("UISpinner", {
 				layout.height,
 				layout.radius
 			);
-
 			context.rotate(rotation);
-
 		}
-		context.restore();
 
+		context.restore();
 	}
 });

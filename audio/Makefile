@@ -1,5 +1,5 @@
 CXX=~/.vim/bin/cc_args.py g++
-##CXX=g++
+CXX=clang++
 LIBAV=../third-party/ffmpeg/
 PORTAUDIO=../../portaudio/
 LIBRESAMPLER=../../zita-resampler-1.3.0/

@@ -12,10 +12,11 @@ Native.elements.export("UIView", {
 			},
 
 			set : function(value){
-				this.refreshBackgroundImage();
+				this.setBackgroundURL(value);
 			}
 		},
-
+		
+		/*
 		contentWidth : {
 			set : function(value){
 				throw "contentWidth is read only (id:"+this.id+")";
@@ -35,6 +36,7 @@ Native.elements.export("UIView", {
 				return this.layer.contentHeight;
 			}
 		},
+		*/
 
 		scrollLeft : {
 			set : function(value){
@@ -62,65 +64,73 @@ Native.elements.export("UIView", {
 			scrollBarHideDelay = 400,
 			o = this.options;
 
-		this.refreshBackgroundImage = function(){
-			self._cachedBackgroundImage = null;
-
-			if (this.backgroundImage) {
-				Native.loadImage(this.backgroundImage, function(img){
-					self._cachedBackgroundImage = img;
-					self._needRedraw = true;
-					self.refresh();
+		this.setBackgroundURL = function(url){
+			if (url) {
+				self._cachedBackgroundImage = null;
+				this._backgroundImage = url;
+				Native.loadImage(url, function(img){
+					self.setBackgroundImage(img);
 				});
 			}
 		};
 
+		this.setBackgroundImage = function(img){
+			self._cachedBackgroundImage = img;
+			self._needRefresh = true;
+			self._needRedraw = true;
+			self.refresh();
+		};
+
+		this.getMaxScrollTop = function(){
+			return this.scrollbars ? this.layer.contentHeight - this.height : 0;
+		};
+
+		var showScrollBar = function(UIScrollBar){
+			UIScrollBar.finishCurrentAnimations("opacity");
+			UIScrollBar._fading = false;
+			UIScrollBar.opacity = 1;
+			UIScrollBar.show();
+			UIScrollBar.bringToFront();
+		};
+
+		var hideScrollBar = function(UIScrollBar){
+			UIScrollBar.fadeOut(250, function(){
+				this.hide();
+				this.sendToBack();
+				this._fading = false;
+			});
+		};
+
+		var scheduler = function(timer, UIScrollBar){
+			if (UIScrollBar._fading) return false;
+
+			UIScrollBar._fading = true;
+			
+			clearTimeout(self[timer]);
+			
+			self[timer] = setTimeout(function(){
+				hideScrollBar(UIScrollBar);
+			}, scrollBarHideDelay);
+		};
+
 		this.updateScrollTop = function(dy){
+			var UIScrollBar = this.VScrollBar;
+
 			if (this.height / this.contentHeight < 1) {
-				this.VScrollBar.cancelCurrentAnimations("opacity");
-				this.VScrollBar._fading = false;
-				this.VScrollBar.opacity = 1;
-				this.VScrollBar.show();
-				this.VScrollBar.bringToFront();
-	
+				showScrollBar(UIScrollBar);
 				this.scrollContentY(-dy * 4, function(){
-
-					if (!self.VScrollBar._fading) {
-						self.VScrollBar._fading = true;
-						clearTimeout(self._scrollYfadeScheduler);
-						self._scrollYfadeScheduler = setTimeout(function(){
-							self.VScrollBar.fadeOut(250, function(){
-								this.hide();
-								this.sendToBack();
-								self.VScrollBar._fading = false;
-							});
-						}, scrollBarHideDelay);
-					}
-
+					scheduler("_scrollYfadeTimer", UIScrollBar);
 				});
 			}
 		};
 
 		this.updateScrollLeft = function(dx){
-			if (this.width / this.contentWidth < 1) {
-				this.HScrollBar.cancelCurrentAnimations("opacity");
-				this.HScrollBar._fading = false;
-				this.HScrollBar.opacity = 1;
-				this.HScrollBar.show();
-				this.HScrollBar.bringToFront();
-	
-				this.scrollContentX(-dx * 4, function(){
+			var UIScrollBar = this.HScrollBar;
 
-					if (!self.HScrollBar._fading) {
-						self.HScrollBar._fading = true;
-						clearTimeout(self._scrollXfadeScheduler);
-						self._scrollXfadeScheduler = setTimeout(function(){
-							self.HScrollBar.fadeOut(250, function(){
-								this.hide();
-								this.sendToBack();
-								self.HScrollBar._fading = false;
-							});
-						}, scrollBarHideDelay);
-					}
+			if (this.width / this.contentWidth < 1) {
+				showScrollBar(UIScrollBar);
+				this.scrollContentX(-dx * 4, function(){
+					scheduler("_scrollXfadeTimer", UIScrollBar);
 				});
 			}
 		};
@@ -423,7 +433,7 @@ Native.elements.export("UIView", {
 			this.refreshScrollBars();
 		});
 
-		this.refreshBackgroundImage();
+		this.setBackgroundURL();
 	},
 
 	draw : function(context){
@@ -442,20 +452,28 @@ Native.elements.export("UIView", {
 		context.setShadow(0, 0, 0);
 
 		if (this._cachedBackgroundImage) {
-			context.save();
-				DOMElement.draw.box(this, context, params);
-				context.clipbox(
-					params.x, params.y,
-					params.w, params.h,
-					this.radius
-				);
-				context.clip();
-				context.drawImage(
+			if (true === false){
+				context.save();
+					context.clipbox(
+						params.x, params.y,
+						params.w, params.h,
+						this.radius
+					);
+					context.clip();
+		
+					context.drawImage(
+						this._cachedBackgroundImage,
+						params.x, params.y
+					);
+					
+				context.restore();
+			} else {
+				var pattern = context.createPattern(
 					this._cachedBackgroundImage,
-					params.x, params.y
+					"repeat"
 				);
-			context.restore();
+				DOMElement.draw.box(this, context, params, pattern);
+			}
 		}
-
 	}
 });

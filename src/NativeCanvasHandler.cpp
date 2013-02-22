@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include <jsapi.h>
+#include <js/GCAPI.h>
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
@@ -16,6 +17,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     this->height = height;
 
     memset(&this->padding, 0, sizeof(this->padding));
+    memset(&this->translate_s, 0, sizeof(this->translate_s));
+    memset(&this->mousePosition, 0, sizeof(this->mousePosition));
 
     this->content.width = width;
     this->content.height = height;
@@ -28,6 +31,12 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
 {
     coordPosition = mode;
     this->computeAbsolutePosition();
+}
+
+void NativeCanvasHandler::translate(double x, double y)
+{
+    this->translate_s.x += x;
+    this->translate_s.y += y;
 }
 
 void NativeCanvasHandler::setWidth(int width)
@@ -147,7 +156,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
             children = insert;
             break;
     }
-
+    
     insert->parent = this;
     this->nchildren++;
 }
@@ -156,6 +165,10 @@ void NativeCanvasHandler::removeFromParent()
 {   
     if (!parent) {
         return;
+    }
+    if (this->jsobj && js::IsIncrementalBarrierNeeded(this->jscx)) {
+        printf("Reference barrier\n");
+        js::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
     
     if (parent->children == this) {
@@ -177,11 +190,10 @@ void NativeCanvasHandler::removeFromParent()
     parent = NULL;
     next = NULL;
     prev = NULL;
+
 }
 
-/*
-    TODO: clipping/overflow
-*/
+
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     double pleft, double ptop, double aopacity, NativeRect *clip)
 {
@@ -211,8 +223,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         /*
             Set the absolute position
         */
-        this->a_left = cleft + this->left;
-        this->a_top = ctop + this->top;
+        this->a_left = cleft + this->left + this->translate_s.x;
+        this->a_top = ctop + this->top + this->translate_s.y;
 
         /*
             draw current context on top of the root layer
@@ -231,31 +243,49 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             clip->fTop = this->a_top;
             clip->fRight = this->width + this->a_left;
             clip->fBottom = this->height + this->a_top;
+            /* if clip is not null, reduce it to intersect the current rect */
         } else if (!clip->intersect(this->a_left, this->a_top,
                     this->width + this->a_left, this->height + this->a_top)) {
             /* don't need to draw children (out of bounds) */
             return;
         }
     }
-    NativeRect tmpClip;
-    if (clip != NULL) {
-        memcpy(&tmpClip, clip, sizeof(NativeRect));
-    }
-    for (cur = children; cur != NULL; cur = cur->next) {
-        int offsetLeft = 0, offsetTop = 0;
-        if (cur->coordPosition == COORD_RELATIVE) {
-            offsetLeft = -this->content.scrollLeft;
-            offsetTop  = -this->content.scrollTop;
-        }
-        cur->layerize(layer,
-                this->left + pleft + offsetLeft, this->top + ptop + offsetTop,
-                popacity, clip);
 
+    if (nchildren) {
+        NativeRect tmpClip;
+
+        /* Save the clip */
         if (clip != NULL) {
-            memcpy(clip, &tmpClip, sizeof(NativeRect));
+            memcpy(&tmpClip, clip, sizeof(NativeRect));
+        }
+        /* Occlusion culling */
+#if 0
+        NativeCanvasHandler **culling = (NativeCanvasHandler **)malloc(
+                                        sizeof(NativeCanvasHandler *)
+                                        * nchildren);
+
+        NativeRect culRect;
+        for (cur = last; cur != NULL; cur = cur->prev) {
+            
+        }
+#endif
+        for (cur = children; cur != NULL; cur = cur->next) {
+            int offsetLeft = 0, offsetTop = 0;
+            if (cur->coordPosition == COORD_RELATIVE) {
+                offsetLeft = -this->content.scrollLeft;
+                offsetTop  = -this->content.scrollTop;
+            }
+            cur->layerize(layer,
+                    this->left + this->translate_s.x + pleft + offsetLeft,
+                    this->top + this->translate_s.y + ptop + offsetTop,
+                    popacity, clip);
+
+            /* restore the old clip (layerize could have altered it) */
+            if (clip != NULL) {
+                memcpy(clip, &tmpClip, sizeof(NativeRect));
+            }
         }
     }
-
 }
 
 int NativeCanvasHandler::getContentWidth()
@@ -332,7 +362,9 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
     }
 
     for (cur = children; cur != NULL; cur = cur->next) {
-        if (cur->coordPosition == COORD_RELATIVE) {
+        if (cur->coordPosition == COORD_RELATIVE &&
+            cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
+            
             int retWidth, retHeight;
 
             cur->computeContentSize(&retWidth, &retHeight);
@@ -368,11 +400,6 @@ void NativeCanvasHandler::setOpacity(double val)
     opacity = val;
 }
 
-NativeCanvasHandler *NativeCanvasHandler::getParent()
-{
-    return this->parent;
-}
-
 void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
 {
     NativeCanvasHandler *cur;
@@ -395,6 +422,7 @@ bool NativeCanvasHandler::containsPoint(double x, double y) const
 
 void NativeCanvasHandler::unrootHierarchy()
 {
+    #if 0
     NativeCanvasHandler *cur;
 
     for (cur = children; cur != NULL; cur = cur->next) {
@@ -409,6 +437,7 @@ void NativeCanvasHandler::unrootHierarchy()
         cur->context->jsobj = NULL;
     }
     children = NULL;
+    #endif
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
@@ -419,18 +448,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
 
     /* all children got orphaned :( */
     for (cur = children; cur != NULL; cur = cur->next) {
-        printf("Warning: a canvas got orphaned (%p)\n", cur);
+        //printf("Warning: a canvas got orphaned (%p)\n", cur);
         cur->removeFromParent();
-
     }
-    if (context && context->jsobj && context->jscx) {
-        //JS_RemoveObjectRoot(context->jscx, &context->jsobj);
-    }
-    if (jsobj) {
-        //JS_RemoveObjectRoot(jscx, &jsobj);
-    }
-
-    /* Don't delete context, otherwise
-       context->jsobj's private would be undefined
-    */
 }

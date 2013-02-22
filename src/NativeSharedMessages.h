@@ -4,6 +4,11 @@
 #include <pthread.h>
 #include <stdint.h>
 
+/*
+    TODO: Add "max messages in queue" to guard memory congestion in case of allocation
+         (i.e. NativeApp extractor)
+*/
+
 typedef struct _native_shared_message
 {
     void *ptr;

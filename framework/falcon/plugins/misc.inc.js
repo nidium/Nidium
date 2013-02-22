@@ -17,23 +17,20 @@ Canvas.implement({
 		this.fontType = fontType;
 	},
 
-	setShadow : function(x, y, b, c){
-		this.shadowOffsetX = x;
-		this.shadowOffsetY = y;
-		this.shadowColor = c;
-		this.shadowBlur = b;
+	setShadow : function(sx, sy, sb, sc){
+		this.shadowOffsetX = sx;
+		this.shadowOffsetY = sy;
+		this.shadowColor = sc;
+		this.shadowBlur = sb;
 	},
 
-	setText : function(label, x, y, color, shadowColor){
-		if (shadowColor && __ENABLE_TEXT_SHADOWS__){
-			this.setShadow(1, 1, 1, shadowColor);
+	setText : function(label, x, y, color, sx, sy, sb, sc){
+		if (sb){
+			this.setShadow(sx, sy, sb, sc);
 		}
 
 		this.setColor(color);
 		this.fillText(label, x, y);
-
-		if (shadowColor && __ENABLE_TEXT_SHADOWS__){
-			this.setShadow(0, 0, 0);
-		}
+		this.setShadow(0, 0, 0);
 	}
 });

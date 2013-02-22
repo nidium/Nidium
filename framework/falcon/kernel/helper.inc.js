@@ -51,6 +51,8 @@ Object.merge(window, {
 	height : Native.canvas.height,
 	mouseX : 0,
 	mouseY : 0,
+	cursor : "arrow",
+	
 	requestAnimationFrame : Native.canvas.getContext("2D").requestAnimationFrame,
 
 	navigator : {
@@ -99,6 +101,49 @@ Object.in = function(...n){
 
 String.prototype.in = Object.in;
 Number.prototype.in = Object.in;
+
+/* -------------------------------------------------------------------------- */
+
+Array.implement = function(props){
+	for (var key in props){
+		if (props.hasOwnProperty(key)){
+			Object.createHiddenElement(Array.prototype, key, props[key]);
+		}
+	}
+};
+
+Array.implement({
+	scroll : function(d){
+		if (!d) return this;
+		return this.slice(d, this.length).concat(this.slice(0, d));
+	},
+
+	each : function(cb){
+		for (var i=0; i<this.length; i++) {
+			cb.call(this[i]);
+		}
+	},
+
+	find : function(className){
+		var pattern = new RegExp("(^|\\s)"+className+"(\\s|$)"),
+			z = this,
+			elements = [];
+
+		for (var i=0; i<z.length; i++){
+			pattern.test(z[i]._className) && elements.push(z[i]);
+		}
+		return elements;
+	},
+
+	max : function(){
+		return Math.max.apply(null, this);
+	},
+
+	min : function(){
+		return Math.min.apply(null, this)
+	}
+
+});
 
 /* -------------------------------------------------------------------------- */
 
@@ -212,6 +257,12 @@ var OptionalPosition = function(x, def){
 				def && def.in(list) ? String(def) : null;
 };
 
+var OptionalCursor = function(x, def){
+	var list = ["arrow", "beam", "pointer", "drag"];
+	return x && x.in(list) ? String(x) : 
+				def && def.in(list) ? String(def) : null;
+};
+
 /* -------------------------------------------------------------------------- */
 
 Number.prototype.bound = function(min, max){
@@ -220,9 +271,25 @@ Number.prototype.bound = function(min, max){
 
 /* -------------------------------------------------------------------------- */
 
+Math.rotate = function(x, y, cx, cy, angle){
+	var cos = Math.cos(angle),
+		sin = Math.sin(angle),
+		ax = x - cx,
+		ay = y - cy;
+	return {
+		x : cx + ax*cos + ay*sin,
+		y : cy - ax*sin + ay*cos
+	};
+};
+
 Math.distance = function(x1, y1, x2, y2){
 	var a = y2-y1, b = x2-x1;
 	return Math.sqrt(a*a + b*b);
+};
+
+Math.spline = function(i, n, t){
+	var f = Math.factorial, pw = Math.pow;
+	return f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
 };
 
 /* -- Precalc !n */
@@ -240,11 +307,21 @@ Math.factorial = (function(n){
 
 /* -------------------------------------------------------------------------- */
 
+var log = function(txt){
+	if (Native.scope.NatBug && Native.scope.NatBug.console) {
+		NatBug.console.log(txt);
+	} else {
+		echo(txt);
+	}
+};
+
 var ___filter___ = function(txt, keyword){
 	return txt.toLowerCase().indexOf(keyword) != -1;
 };
 
 var print = function(txt, element){
+	return false;
+
 	if (element && element._root == Native.__debugger) return false;
 	if (window.keydown != 1073742051) return false;
 

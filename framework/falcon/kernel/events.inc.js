@@ -9,7 +9,7 @@
 /* -------------------------------------------------------------------------- */
 
 Native.system = {
-	doubleClickInterval : 250
+	doubleClickInterval : 100
 };
 
 /* -------------------------------------------------------------------------- */
@@ -79,6 +79,15 @@ Native.events = {
 		}
 	},
 
+	tick : function(){
+		this.dispatch("tick", {
+			x : window.mouseX,
+			y : window.mouseY,
+			xrel : 0,
+			yrel : 0
+		});
+	},
+
 	dispatch : function(name, e){
 		var x = e.x,
 			y = e.y,
@@ -104,7 +113,7 @@ Native.events = {
 			var element = z[i];
 			cancelEvent = false;
 
-			if (!element.isVisible()) {
+			if (!element.layer.__visible) {
 				continue;
 			}
 
@@ -119,6 +128,7 @@ Native.events = {
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
 						Native.events.hook(element, e);
+						this.mostTopElementUnderMouse = element;
 						__mostTopElementHooked = true;
 					}
 				}
@@ -126,6 +136,11 @@ Native.events = {
 				switch (name) {
 					case "mousewheel" :
 						//cancelBubble = true;
+						break;
+
+					case "tick" :
+						this.setSource(e, this.sourceElement, element);
+						cancelBubble = this.fireMouseOver(element, e);
 						break;
 
 					case "mousemove" :
@@ -212,6 +227,7 @@ Native.events = {
 			}
 			return false;
 		}
+		window.cursor = this.mostTopElementUnderMouse.cursor;
 	},
 
 	fireMouseOut : function(element, e){
@@ -395,8 +411,8 @@ DOMElement.implement({
 			}
 		} else {
 			if (cb) cb.call(this);
-			return true;
 		}
+		return this;
 	},
 
 	addEventListener : function(name, callback, propagation){
@@ -416,7 +432,7 @@ DOMElement.implement({
 		});
 
 		self["on"+name] = function(e){
-			for(var i in queue){
+			for(var i=0; i<queue.length; i++){
 				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
 					continue;
@@ -425,8 +441,31 @@ DOMElement.implement({
 			// uncomment to support return in listener (you should not)
 			//if (queue && queue[queue.length-1]) return queue[queue.length-1].response;
 		};
+		return this;
+	},
 
+	click : function(cb){
+		if (typeof cb == "function") {
+			this.addEventListener("mouseclick", cb, false);
+		} else {
+			this.fireEvent("mouseclick", {
+				x : window.mouseX,
+				y : window.mouseY
+			});
+		}
+		return this;
+	},
+
+	hoverize : function(cbOver, cbOut){
+		if (typeof cbOver == "function") {
+			this.addEventListener("mouseover", cbOver, false);
+		}
+		if (typeof cbOut == "function") {
+			this.addEventListener("mouseout", cbOut, false);
+		}
+		return this;
 	}
+
 });
 
 /* -- THREAD EVENT LISTENER ------------------------------------------------- */
@@ -447,45 +486,45 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 	});
 
 	self["on"+name] = function(e){
-		for(var i in queue){
+		for(var i=0; i<queue.length; i++){
 			queue[i].response = queue[i].fn.call(self, e);
 			if (!queue[i].propagation){
 				continue;
 			}
 		}
 	};
-
+	return this;
 };
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 
-Native.onmousedown = function(e){
+window._onmousedown = function(e){
 	Native.events.mousedownEvent(e);
 };
 
-Native.onmousemove = function(e){
+window._onmousemove = function(e){
 	Native.events.mousemoveEvent(e);
 };
 
-Native.onmousewheel = function(e){
+window._onmousewheel = function(e){
 	Native.events.mousewheelEvent(e);
 };
 
-Native.onmouseup = function(e){
+window._onmouseup = function(e){
 	Native.events.mouseupEvent(e);
 };
 
 /* -- KEYBOARD EVENTS ------------------------------------------------------- */
 
-Native.onkeydown = function(e){
+window._onkeydown = function(e){
 	Native.events.keydownEvent(e);
 };
 
-Native.onkeyup = function(e){
+window._onkeyup = function(e){
 	Native.events.keyupEvent(e);
 };
 
-Native.ontextinput = function(e){
+window._ontextinput = function(e){
 	Native.events.textinputEvent(e);
 };
 

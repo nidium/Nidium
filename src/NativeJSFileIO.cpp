@@ -44,10 +44,8 @@ static JSFunctionSpec File_funcs[] = {
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    printf("FInalize\n");
     NativeJSFileIO *NJSFIO = (NativeJSFileIO *)JS_GetPrivate(obj);
     if (NJSFIO != NULL) {
-        printf("Deleting NFIO\n");
         NativeFileIO *NFIO = NJSFIO->getNFIO();
         delete NFIO;
     }
@@ -322,7 +320,7 @@ void NativeJSFileIO::onNFIOOpen(NativeFileIO *NSFIO)
 
 void NativeJSFileIO::onNFIOError(NativeFileIO *NSFIO, int errno)
 {
-    jsval rval;
+    //jsval rval;
     NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
 
     JSAutoRequest ar(cx);

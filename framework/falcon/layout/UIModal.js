@@ -25,7 +25,7 @@ Native.elements.export("UIModal", {
 
 		this.setProperties({
 			opacity : 0,
-			background 	: OptionalValue(o.background, "rgba(80, 80, 80, 0.40)")
+			background : OptionalValue(o.background, "rgba(25, 25, 25, 0.80)")
 		});
 
 		this.hide();
@@ -69,7 +69,9 @@ Native.elements.export("UIModal", {
 			radius : 3,
 			shadowBlur : 22,
 			shadowColor : "rgba(0, 0, 0, 0.80)",
-			shadowOffsetY : 10
+			shadowOffsetY : 10,
+			overflow : false,
+			scrollbars : true
 		}).fix().center().hide();
 
 		this.contentView.addEventListener("change", function(e){
@@ -86,7 +88,6 @@ Native.elements.export("UIModal", {
 		this.contentView.addEventListener("mouseup", function(e){
 			e.stopPropagation();
 		}, false);
-
 
 		this.spinner = new UISpinner(this.contentView, {
 			width : 24,
@@ -106,7 +107,7 @@ Native.elements.export("UIModal", {
 
 			this.animate(
 				"opacity", 0, 1,
-				350, null,
+				2350, null,
 				Math.physics.quadIn
 			);
 			this.contentView.fadeIn(150, function(){

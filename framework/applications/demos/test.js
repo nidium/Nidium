@@ -1,162 +1,76 @@
-/* ------------------------+------------- */
-/* Native Framework 2.0    | Falcon Build */
-/* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
-/* -------------------------------------- */
+/* -------------------------- */
+/* Native (@) 2013 Stight.com */
+/* -------------------------- */
 
-/* -------------------------------------------------------------------------- */
-load("libs/misc.lib.js");
-/* -------------------------------------------------------------------------- */
+var body = new Application();
+body.className = "body";
 
-var main = new Application({
-	id : "main",
-	background : "#262722"
+var div = new UIView();
+div.left = 250;
+div.top = 100;
+div.width = 300;
+div.height = 250;
+div.background = "black";
+div.textContent = "the brown fox sugar";
+div.className = "div";
+body.addChild(div);
+
+
+var t1 = new TextNode("The quick brown ");
+var t2 = new TextNode("fox");
+var t3 = new TextNode(" jumps over the lazy ");
+var t4 = new TextNode("dog");
+var t5 = new TextNode(". ");
+var t6 = new TextNode("The earliest known appearance of the phrase is from The Michigan School Moderator.");
+var t7 = new TextNode("I finally fucked you TextNode.");
+
+t2.color = "red";
+t4.color = "#ffdd88";
+t6.textAlign = "justify";
+
+t4.cursor = "pointer";
+t4.addEventListener("mouseover", function(e){
+	this.hover = true;
 });
 
-var	button = new UIButton(main, {
-	id : "button",
-	left : 966,
-	top : 8,
-	label : "Do It"
-});
-
-button.addEventListener("mouseup", function(e){
-	modal.open();
-});
-
-var modal = new UIModal(main);
-
-var b = modal.contentView.add("UIButton", {label:"<  >", background:"black"}).move(10, 10);
-b.addEventListener("mouseup", function(e){
-	if (modal.toggle) {
-		modal.toggle = false;
-		modal.spinner.show();
-		modal.spinner.opacity = 0.5;
-		modal.spinner.fadeOut(500);
-
-		modal.contentView.animate(
-			"width", modal.contentView.width, 320,
-			400, null,
-			Math.physics.elasticOut
-		);
-
-		modal.contentView.animate(
-			"height", modal.contentView.height, 200,
-			300, null,
-			Math.physics.quadIn
-		);
-
-	} else {
-		modal.toggle = true;
-		modal.spinner.show();
-		modal.spinner.opacity = 0.5;
-		modal.spinner.fadeOut(500);
-
-		modal.contentView.animate(
-			"width", modal.contentView.width, 800,
-			600, null,
-			Math.physics.elasticOut
-		);
-
-		modal.contentView.animate(
-			"height", modal.contentView.height, 600,
-			500, null,
-			Math.physics.quadOut
-		);
-	}
+t4.addEventListener("mouseout", function(e){
+	this.hover = false;
 });
 
 
-var	bigview = new UIView(main, {
-	id : "bigview",
-	left : 150,
-	top : 58,
-	width : 600,
-	height : 400,
-	background : "rgba(240, 80, 180, 0.5)",
-	overflow : false,
-	scrollbars : true,
-	radius : 10
+div.addChild(t1);
+div.addChild(t2);
+div.addChild(t3);
+div.addChild(t4);
+div.addChild(t5);
+div.addChild(t6);
+//div.addChild(t7);
+
+
+echo(div.contentWidth);
+
+/*
+var label = new UILabel(div, {
+	label : "The quick brown ",
+	left : 0,
+	top : 18,
+	color : "#ffffff",
+	background : "red"
+});
+*/
+
+body.add("UIButton").click(function(){
+	echo(div.contentWidth);
+//	t4.remove();
 });
 
-var	view = new UIView(bigview, {
-	id : "view",
-	left : 30,
-	top : 30,
-	width : 400,
-	height : 250,
-	background : "rgba(0, 0, 80, 0.5)",
-	overflow : false,
-	scrollbars : true
-});
 
-var	c0 = new UIView(view, {
-	id : "c0",
-	left : 250,
-	top : 100,
-	width : 40,
-	height : 40,
-	background : "#008800",
-	position : "fixed"
+/*
+var h = new UIToolTip(t4, {
+	label : "Click here to see the Quick Brown Fox"
 });
-
-var	c1 = new UIView(view, {
-	id : "c1",
-	left : 100,
-	top : 50,
-	width : 100,
-	height : 150,
-	background : "rgba(255, 255, 255, 0.7)",
-	shadowBlur : 8,
-	overflow : false,
-	scrollbars : true
-});
-
-var	c2 = new UIView(c1, {
-	id : "c2",
-	left : 10,
-	top : 10,
-	width : 20,
-	height : 20,
-	background : "#0088DD"
-});
-
-var	c22 = new UIView(c1, {
-	id : "c22",
-	left : 50,
-	top : 50,
-	width : 20,
-	height : 20,
-	background : "#0088DD"
-});
-
-var	c3 = new UIButton(c1, {
-	id : "c3",
-	left : 30,
-	top : 260,
-	label : "button",
-	background : "#0088DD"
-});
-
-var	c4 = new UIView(view, {
-	id : "c4",
-	left : 280,
-	top : 30,
-	width : 20,
-	height : 20,
-	background : "#ff0088"
-});
-
-document.addEventListener("load", function(){
-//	echo("#view.contentHeight:", view.contentHeight);
-//	view.scrollTop = 50;
-});
-
-Native.layout.getElementsByTagName("UIView").each(function(){
-	this.addEventListener("drag", function(e){
-		this.left += e.xrel;
-		this.top += e.yrel;
-	});
-});
-
+h.enable();
+h.show();
+h.visible = false;
+*/
 

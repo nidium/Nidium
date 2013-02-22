@@ -5,34 +5,33 @@
 /* -------------------------------------- */
 
 Native.elements.export("UISliderController", {
+	public : {
+		vertical : {
+			value : function(){
+				return OptionalBoolean(this.options.vertical, false);
+			},
+
+			set : function(value){
+				this.changeOrientation(value);
+			}
+		}
+	},
+
 	init : function(){
 		var self = this,
 			o = this.options;
 
-		this.canReceiveFocus = true;
-
-		this.color = OptionalValue(o.color, "#3388dd");
-
 		DOMElement.definePublicProperties(this, {
+			canReceiveFocus : true,
+			color : OptionalValue(o.color, "#3388dd"),
 			value : OptionalNumber(o.value, 0),
 			min : OptionalNumber(o.min, 0),
 			max : OptionalNumber(o.max, 100),
 
 			boxColor : OptionalValue(o.boxColor, false),
 			progressBarColor : OptionalValue(o.progressBarColor, false),
-			splitColor : OptionalValue(o.splitColor, false),
-
-			labelBackground : OptionalValue(o.labelBackground, false),
-			labelColor : OptionalValue(o.labelColor, false),
-			labelOffset : -24,
-			labelWidth : OptionalNumber(o.labelWidth, 36)
+			splitColor : OptionalValue(o.splitColor, false)
 		});
-
-		this.displayLabel = OptionalBoolean(o.displayLabel, false);
-		this.labelPrefix = OptionalString(o.labelPrefix, '');
-		this.labelSuffix = OptionalString(o.labelSuffix, '');
-
-		this.vertical = OptionalBoolean(o.vertical, false);
 
 		if (this.vertical){
 			this.width = OptionalNumber(o.width, 12);
@@ -41,6 +40,19 @@ Native.elements.export("UISliderController", {
 			this.width = OptionalNumber(o.width, 100);
 			this.height = OptionalNumber(o.height, 12);
 		}
+
+		this.changeOrientation = function(vertical){
+			var tmpWidth = this._width;
+			this.width = this._height;
+			this.height = tmpWidth;
+
+			if (vertical){
+				this.knob.left = 0;
+			} else {
+				this.knob.top = 0;
+			}
+			this.setValue(this.value);
+		};
 
 		this.knob = this.add("UISliderKnob", {
 			left : this.vertical ? 0 : -this.height/2,
@@ -60,6 +72,7 @@ Native.elements.export("UISliderController", {
 
 				property = v ? "top" : "left";
 
+			k.finishCurrentAnimations(property);
 			k.animate(property, start, delta, 200,
 				function(){
 					self.fireEvent("complete", self.value);
@@ -111,12 +124,26 @@ Native.elements.export("UISliderController", {
 
 		this.addEventListener("mousewheel", function(e){
 			var k = this.knob,
-				d = e.yrel !=0 ? e.yrel : e.xrel !=0 ? e.xrel : 0,
-				delta = 1 + (-d-1),
-				pixelValue = self.vertical ? k.top + delta : k.left + delta;
+				d = 0,
+				delta = 0,
+				pixelValue = 0;
 
+			if (this.vertical){
+				d = e.yrel != 0 ? e.yrel : 0;
+				delta = 1 + (-d-1);
+				pixelValue = k.top + delta;
+			} else {
+				d = e.xrel != 0 ? e.xrel : 0;
+				delta = 1 + (-d-1);
+				pixelValue = k.left + delta;
+			}
 			self.setKnobPosition(pixelValue);
-			e.forcePropagation();
+
+			if (this.vertical && e.xrel!=0 || !this.vertical && e.yrel!=0) {
+				e.forcePropagation();
+			} else {
+				e.stopPropagation();
+			}
 		}, true);
 
 		this.setKnobPosition = function(pixelValue){
@@ -140,62 +167,60 @@ Native.elements.export("UISliderController", {
 			this.fireEvent("update", this.value);
 		};
 
+		this.animateKnob = function(property, start, end, duration, callback){
+			var ease = this.options.ease ? this.options.ease 
+										 : Math.physics.expoIn;
+
+			if (this.moving == true) {
+				this.moving = false;
+				this.knob.finishCurrentAnimations(property);
+				this.setKnobPosition(end);
+			} else {
+				this.moving = true;
+
+				this.knob.animate(property, start, end, duration,
+					function(){
+						self.moving = false;
+						if (typeof(callback) == "function"){
+							callback.call(self, self.value);
+						}
+					},
+
+					ease,
+
+					function(k){
+						self.setKnobPosition(k);
+					}
+				);
+			}
+		};
+
 		this.setValue = function(value, duration, callback){
 			var oldValue = this.value,
-				d = this.max - this.min;
+				k = this.knob,
+				d = this.max - this.min,
+				h = this.height,
+				w = this.width,
+				kh = k.height/2,
+				kw = k.width/2;
 
 			if (this.draggingSlider) return false;
 
 			this.value = Math.max(Math.min(this.max, value), this.min);
-			this.moving = true;
 
 			if (this.vertical){
-				this.pixelValue = (this.max - this.value)*this.height/d - this.knob.height/2;
+				var pxv = (this.max - this._value)*h/d - kh; // pixelview
 				if (duration && duration>0) {
-					var start = this.knob.top,
-						y = this.pixelValue;
-
-					this.knob.animate("top", start, y, duration,
-						function(){
-							self.moving = false;
-							if (typeof(callback)=="function"){
-								callback.call(self, self.value);
-							}
-						},
-
-						self.options.ease ? self.options.ease 
-										  : Math.physics.expoIn,
-
-						function(ky){
-							self.setKnobPosition(ky);
-						}
-					);
+					this.animateKnob("top", k.top, pxv, duration, callback);
 				} else {
-					this.setKnobPosition(this.pixelValue);
+					this.setKnobPosition(pxv);
 				}
 			} else {
-				this.pixelValue = (this.value - this.min)*this.width/d - this.knob.width/2;
+				var pxv = (this._value - this.min)*w/d - kw;
 				if (duration && duration>0) {
-					var start = this.knob.left,
-						x = this.pixelValue;
-
-					this.knob.animate("left", start, x, duration,
-						function(){
-							self.moving = false;
-							if (typeof(callback)=="function"){
-								callback.call(self, self.value);
-							}
-						},
-
-						self.options.ease ? self.options.ease 
-										  : Math.physics.expoIn,
-
-						function(kx){
-							self.setKnobPosition(kx);
-						}
-					);
+					this.animateKnob("left", k.left, pxv, duration, callback);
 				} else {
-					this.setKnobPosition(this.pixelValue);
+					this.setKnobPosition(pxv);
 				}
 			}
 
@@ -230,40 +255,6 @@ Native.elements.export("UISliderController", {
 			y = Math.floor(params.y + h);
 		}
 
-		if (!this.vertical && this.displayLabel){
-			var kx = this.knob.__left,
-				ky = this.knob.__top,
-				kw = this.knob._width,
-				kh = this.knob._height,
-				vOffset = 2+this.lineHeight/2,
-				tx = mx = 0,
-				textWidth = 0,
-
-				value = this.labelPrefix + 
-						Math.round(this.value*10)/10 + 
-						this.labelSuffix;
-
-
-			context.setFontSize(this.fontSize);
-			textWidth = context.measureText(value);
-
-			tx = Math.round(kx + kw/2 - this.labelWidth/2);
-			mx = (this.labelWidth - textWidth)/2;
-
-			if (this.labelBackground){
-				context.roundbox(
-					tx, ky+this.labelOffset, 
-					this.labelWidth, this.lineHeight, 
-					8, this.labelBackground, false
-				);
-			}
-
-			if (this.labelColor){
-				context.setColor(this.labelColor);
-				context.fillText(value, tx+mx, ky - vOffset);
-			}
-		}
-
 		context.setShadow(0, 1, 1, "rgba(255, 255, 255, 0.10)");
 		context.roundbox(x, y, w, h, this.radius, this.background, false);
 		context.setShadow(0, 0, 0);
@@ -284,13 +275,13 @@ Native.elements.export("UISliderController", {
 			if (this.vertical){
 				context.roundbox(
 					x, y + this.pixelValue, 
-					w, h-this.pixelValue, 
+					w, h - this.pixelValue, 
 					this.radius, this.progressBarColor, false
 				);
 			} else {
 				context.roundbox(
 					x, y, 
-					this.pixelValue, h, 
+					this.pixelValue, h,
 					this.radius, this.progressBarColor, false
 				);
 			}
@@ -301,12 +292,12 @@ Native.elements.export("UISliderController", {
 			context.strokeStyle = this.splitColor;
 			context.beginPath();
 			if (this.vertical){
-				for (var i=0; i<h; i+=4){
+				for (var i=1; i<h-1; i+=4){
 					context.moveTo(x, y+i);
 					context.lineTo(x+w, y+i);
 				}
 			} else {
-				for (var i=0; i<w; i+=4){
+				for (var i=1; i<w-1; i+=4){
 					context.moveTo(x+i, y);
 					context.lineTo(x+i, y+h);
 				}

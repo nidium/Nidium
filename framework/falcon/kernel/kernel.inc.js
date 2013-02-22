@@ -70,8 +70,6 @@ Native.object = {
 		this.layer.top = this._top;
 		this.layer.scrollTop = this._scrollTop;
 		this.layer.scrollLeft = this._scrollLeft;
-		this.__left = this.layer.__left;
-		this.__top = this.layer.__top;
 		this._needPositionUpdate = false;
 		return this;
 	},
@@ -89,7 +87,7 @@ Native.object = {
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
 		this.beforeDraw(this.layer.context);
-		this.draw(this.layer.context);
+		if (this._visible) this.draw(this.layer.context);
 		this.afterDraw(this.layer.context);
 
 		this._needRedraw = false;
@@ -119,6 +117,7 @@ Native.object = {
 	},
 
 	focus : function focus(){
+		Native.layout.focus(this);
 		return this;
 	},
 
@@ -152,13 +151,25 @@ Native.object = {
 	},
 
 	addChild : function addChild(element){
-		if (this.nodes[element._uid] || !isDOMElement(element)) return false;
+		if (!isDOMElement(element)) return false;
 		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
-		this.nodes[element._uid] = element;
+
+		this.nodes.push(element);
+
+		if (!this.firstChild) this.firstChild = element;
+		this.lastChild = element;
+
+		element._root = this._root;
 		element.parent = this;
 		element.parent.layer.add(element.layer);
+
+		if (element.flags & FLAG_FLOATING_NODE){
+			DOMElement.nodes.floatPosition(element);
+		}
+
 		element.updateAncestors();
 		Native.layout.update();
+
 		return this;
 	},
 
@@ -171,6 +182,26 @@ Native.object = {
 		return this;
 	},
 
+	insertChildAtIndex : function(element, index){
+
+	},
+
+	insertBefore : function(element, refElement){
+		
+	},
+
+	insertAfter : function(element, refElement){
+
+	},
+
+	clear : function(){
+		var element = this;
+		while (element.firstChild) {
+			element.firstChild.remove();
+		}
+		Native.layout.update();
+	},
+
 	/*
 	 * Sort DOMElements to match hardware physical layers order.
 	 */
@@ -180,21 +211,44 @@ Native.object = {
 		print("resetNodes()", this);
 
 		var parent = this.parent, // parent of this virtual element
+			element = null,
 			layers = parent.layer.getChildren(); // physical children
 
 		/* Reset parent's nodes */
-		parent.nodes = {};
+		parent.nodes = [];
+		parent.firstChild = null;
 
 		/* reconstruct the nodes in the right order */
-		for (var i in layers){
+		for (var i=0; i<layers.length; i++){
 			// get the host element (that's it : the virtual element)
-			var element = layers[i].host;
+			element = layers[i].host;
+
+			if (!parent.firstChild) {
+				parent.firstChild = element;
+			}
 
 			// add the element in parent's nodes 
-			parent.nodes[element._uid] = element;
+			parent.nodes.push(element);
 		}
+		parent.lastChild = element;
+
 
 		Native.layout.update();
+	},
+
+	getChildren : function(){
+		var self = this,
+			elements = [];
+
+		var dx = function(z){
+			for (var i=0; i<z.length; i++){
+				if (isDOMElement(z[i])) elements.push(z[i]);
+				dx(z[i].nodes);
+			}
+		};
+
+		dx(this.nodes);
+		return elements;
 	},
 
 	bringToFront : function bringToFront(){
@@ -206,6 +260,47 @@ Native.object = {
 	sendToBack : function sendToBack(){
 		this.layer.sendToBack();
 		this.resetNodes();
+		return this;
+	},
+
+	resizeLayer : function(){
+		/* layer rotation realtime padding update hack */
+		var b = this.getBoundingRect(),
+			w = b.x2 - b.x1,
+			h = b.y2 - b.y1;
+
+		this.layer.padding = h/2;
+		this.redraw();
+	},
+
+	expand : function(width, height){
+		var dx = (width - this._width)/2,
+			dy = (height - this._height)/2;
+
+		this.width = width;
+		this.height = height;
+		this.left -= dx;
+		this.top -= dy;
+		this.childNodes.each(function(){
+			this.left += dx;
+			this.top += dy;
+		});
+		return this;
+	},
+
+	shrink : function(b){
+		var dx = b.left,
+			dy = b.top;
+
+		this.left += dx;
+		this.top += dy;
+
+		this.width = b.width;
+		this.height = b.height;
+		this.childNodes.each(function(){
+			this.left -= dx;
+			this.top -= dy;
+		});
 		return this;
 	},
 
@@ -221,16 +316,57 @@ Native.object = {
 		};
 	},
 
+	getBoundingRect : function(){
+		var x1 = this.__left,
+			y1 = this.__top,
+			x2 = x1 + this.width,
+			y2 = y1 + this.height,
+
+			origin = {
+				x : this.__left + this._width/2,
+				y : this.__top + this._height/2
+			};
+
+
+		if (this.angle % 360 === 0){
+			return {
+				x1 : x1,
+				y1 : y1,
+				x2 : x2,
+				y2 : y2
+			}
+		}
+
+		var rad = this.angle * (Math.PI/180),
+			r = Math.rotate,
+			
+			tl = r(x1, y1, origin.x, origin.y, rad),
+			tr = r(x2, y1, origin.x, origin.y, rad),
+			br = r(x2, y2, origin.x, origin.y, rad),
+			bl = r(x1, y2, origin.x, origin.y, rad);
+
+		return {
+			x1 : Math.min(tl.x, tr.x, br.x, bl.x),
+			y1 : Math.min(tl.y, tr.y, br.y, bl.y),
+			x2 : Math.max(tl.x, tr.x, br.x, bl.x),
+			y2 : Math.max(tl.y, tr.y, br.y, bl.y)
+		}
+	},
+
 	beforeDraw : function beforeDraw(){
 		print("beforeDraw()", this);
 		var ctx = this.layer.context,
-			rad = this.angle * (Math.PI/180);
+			rad = this.angle * (Math.PI/180),
+			origin = {
+				x : this._width/2,
+				y : this._height/2
+			};
 
 		ctx.save();
 		ctx.globalAlpha = this._alpha;
-		ctx.translate(this._width/2, this._height/2);
+		ctx.translate(origin.x, origin.y);
 		ctx.rotate(rad);
-		ctx.translate(-this._width/2, -this._height/2);
+		ctx.translate(-origin.x, -origin.y);
 	},
 
 	afterDraw : function afterDraw(){
@@ -241,15 +377,36 @@ Native.object = {
 
 	isPointInside : function isPointInside(mx, my){
 		var x1 = this.__left+1,
-			y1 = this.__top+2,
+			y1 = this.__top,
 			x2 = x1 + this._width,
 			y2 = y1 + this._height;
+
+		if (this.angle != 0){
+			var rad = this.angle * (Math.PI/180),
+				origin = {
+					x : this.__left + this._width/2,
+					y : this.__top + this._height/2
+				},
+				mouse = Math.rotate(mx, my, origin.x, origin.y, rad);
+
+			mx = mouse.x;
+			my = mouse.y;
+		}
 
 		return (mx>=x1 && mx<x2 && my>=y1 && my<y2) ? true : false;
 	},
 
 	isVisible : function isVisible(){
 		return this._visible;
+	},
+
+	isAncestor : function(element){
+		if (!isDOMElement(element)) return false;
+		if (this.ownerDocument != element.ownerDocument) return false;
+		for (var e = element; e; e = e.parent) {
+			if (e === this) return true;
+		}
+		return false;
 	},
 
 	hasClass : function hasClass(name){

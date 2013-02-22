@@ -13,7 +13,6 @@ class NativeCanvas2DContext;
 
     TODO:
         * NativeCanvasContext interface instead of NativeCanvas2DContext;
-        * ::destroy() (JS_RemoveObjectRoot)
 */
 
 struct NativeRect
@@ -31,6 +30,11 @@ struct NativeRect
             return true;
         }
         return false;
+    }
+    bool contains(double x, double y) const {
+        return !this->isEmpty() &&
+               fLeft <= x && x < fRight &&
+               fTop <= y && y < fBottom;
     }
 };
 
@@ -55,7 +59,7 @@ class NativeCanvasHandler
         };
 
         NativeCanvas2DContext *context;
-        struct JSObject *jsobj;
+        class JSObject *jsobj;
         struct JSContext *jscx;
 
         int width, height;
@@ -74,11 +78,20 @@ class NativeCanvasHandler
         } padding;
 
         struct {
+            double x;
+            double y;
+        } translate_s;
+
+        struct {
             int width;
             int height;
             int scrollTop;
             int scrollLeft;
         } content;
+
+        struct {
+            int x, y, xrel, yrel;
+        } mousePosition;
 
         double opacity;
         bool overflow;
@@ -96,6 +109,7 @@ class NativeCanvasHandler
         void setScrollLeft(int value);
         void computeAbsolutePosition();
         void computeContentSize(int *cWidth, int *cHeight);
+        void translate(double x, double y);
 
         void bringToFront();
         void sendToBack();
@@ -110,18 +124,23 @@ class NativeCanvasHandler
         bool hasAFixedAncestor() const;
         void setOpacity(double val);
         void removeFromParent();
-        NativeCanvasHandler *getParent();
         void getChildren(NativeCanvasHandler **out) const;
+        NativeCanvasHandler *getParent() const { return this->parent; }
+        NativeCanvasHandler *getFirstChild() const { return this->children; }
+        NativeCanvasHandler *getLastChild() const { return this->last; }
+        NativeCanvasHandler *getNextSibling() const { return this->next; }
+        NativeCanvasHandler *getPrevSibling() const { return this->prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
             double ptop, double aopacity, NativeRect *clip);
-    private:
         NativeCanvasHandler *parent;
         NativeCanvasHandler *children;
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
+    private:
+
         int32_t nchildren;
 
         COORD_POSITION coordPosition;

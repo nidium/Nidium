@@ -1,6 +1,8 @@
-/* -------------------------- */
-/* Native (@) 2012 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 Stight.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 Native.elements.export("UIDropDownController", {
 	init : function(){
@@ -67,7 +69,7 @@ Native.elements.export("UIDropDownController", {
 			}
 
 			this.selector.__unlock();
-			this.tabs[i] = this.selector.add("UIDropDownOption", {
+			this.tabs[i] = this.selector.add("UIOption", {
 				left : 0,
 				top : y,
 				height : this.height,
@@ -141,8 +143,8 @@ Native.elements.export("UIDropDownController", {
 			
 			self._showElements();
 
-			c.cancelCurrentAnimations("opacity");
-			c.cancelCurrentAnimations("height");
+			c.finishCurrentAnimations("opacity");
+			c.finishCurrentAnimations("height");
 
 			this.downButton.animate(
 				"angle",
@@ -175,8 +177,8 @@ Native.elements.export("UIDropDownController", {
 			c._animating = true;
 			c.show();
 
-			c.cancelCurrentAnimations("opacity");
-			c.cancelCurrentAnimations("height");
+			c.finishCurrentAnimations("opacity");
+			c.finishCurrentAnimations("height");
 
 			this.downButton.animate(
 				"angle",
@@ -216,9 +218,9 @@ Native.elements.export("UIDropDownController", {
 		}, false);
 
 		this.reset();
-		this.selector.height = 0;
+		this.selector.height = 0.1;
 		this.selector.hide();
-		this.toggleState = false;
+		this.closeSelector();
 	},
 
 	draw : function(context){

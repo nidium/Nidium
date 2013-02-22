@@ -53,16 +53,25 @@ DOMElement.implement({
 		});
 	},
 
-	cancelCurrentAnimations : function(property){
+	finishCurrentAnimations : function(property){
 		var q = this.getCurrentAnimations(property);
 
 		for (var i in q){
 			if (q.hasOwnProperty(i)){
-				q[i].cancel();
+				q[i].finish();
+			}
+		}
+	},
+
+	destroyCurrentAnimations : function(property){
+		var q = this.getCurrentAnimations(property);
+
+		for (var i in q){
+			if (q.hasOwnProperty(i)){
+				q[i].destroy();
 			}
 		}
 	}
-
 });
 
 Native.MotionFactory = {
@@ -101,7 +110,6 @@ Native.MotionFactory = {
 			
 			/*
 			if (o.view._mutex[property] === true) {
-				echo("mutex on", property);
 				return false;
 			}
 
@@ -120,8 +128,11 @@ Native.MotionFactory = {
 				fx : OptionalCallback(o.fx, Math.physics.quadInOut),
 				time : 0,
 				complete : false,
-				cancel : function(){
+				finish : function(){
 					self.finish(this);
+				},
+				destroy : function(){
+					self.finish(this, false);
 				}
 			};
 
@@ -158,7 +169,7 @@ Native.MotionFactory = {
 		}
 	},
 
-	finish : function(animation){
+	finish : function(animation, callback=true){
 		var	q = this.queue,
 			view = animation.view,
 			property = animation.property;
@@ -166,7 +177,7 @@ Native.MotionFactory = {
 		animation.complete = true;
 		view._mutex[property] = null;
 
-		if (animation.callback) animation.callback.call(view);
+		if (callback && animation.callback) animation.callback.call(view);
 		this.remove(animation);
 
 		this.ended++;
@@ -360,6 +371,16 @@ Math.physics = {
 		else var s = p/(2*Math.PI) * Math.asin (c/a);
 		if (t < 1) return -.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
 		return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*.5 + c + b;
+	},
+
+	fluidOut: function (x, t, b, c, d) {
+		var s=0.10158;var p=0, a=c;
+		if (t==0) return b;
+		if ((t/=d)==1) return b+c;
+		if (!p) p=d*.6;
+		if (a < Math.abs(c)) { a=c; var s=p/4; }
+		else var s = p/(2*Math.PI) * Math.asin (c/a);
+		return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
 	},
 	
 	/* -- Back */

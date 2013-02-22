@@ -10,25 +10,17 @@
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
 #define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->skia)
+#define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
 
 extern jsval gfunc;
 
 enum {
-    CTX_PROP_FILLSTYLE = 1,
-    CTX_PROP_STROKESTYLE,
-    CTX_PROP_LINEWIDTH,
-    CTX_PROP_GLOBALALPHA,
-    CTX_PROP_LINECAP,
-    CTX_PROP_LINEJOIN,
-    CTX_PROP_WIDTH,
-    CTX_PROP_HEIGHT,
-    CTX_PROP_GLOBALCOMPOSITEOPERATION,
-    CTX_PROP_FONTSIZE,
-    CTX_PROP_FONTTYPE,
-    CTX_PROP_SHADOWOFFSETX,
-    CTX_PROP_SHADOWOFFSETY,
-    CTX_PROP_SHADOWBLUR,
-    CTX_PROP_SHADOWCOLOR
+#define CANVAS_2D_CTX_PROP(prop) CTX_PROP_ ## prop,
+#define CANVAS_2D_CTX_PROP_GET(prop) CTX_PROP_ ## prop,
+  #include "NativeCanvas2DContextProperties.h"
+  CTX_PROP__NPROP
+#undef CANVAS_2D_CTX_PROP
+#undef CANVAS_2D_CTX_PROP_GET
 };
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -38,7 +30,7 @@ void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj);
 extern JSClass Canvas_class;
 
 static JSClass Canvas2DContext_class = {
-    "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE,
+    "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -121,43 +113,21 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
-    {"fillStyle", CTX_PROP_FILLSTYLE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
+#define CANVAS_2D_CTX_PROP(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
+        JSPROP_ENUMERATE, JSOP_NULLWRAPPER, \
         JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"strokeStyle", CTX_PROP_STROKESTYLE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"lineWidth", CTX_PROP_LINEWIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"globalAlpha", CTX_PROP_GLOBALALPHA, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"globalCompositeOperation", CTX_PROP_GLOBALCOMPOSITEOPERATION,
-    JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"fontSize", CTX_PROP_FONTSIZE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-    JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"fontType", CTX_PROP_FONTTYPE, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-    JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"lineCap", CTX_PROP_LINECAP, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"lineJoin", CTX_PROP_LINEJOIN, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowOffsetX", CTX_PROP_SHADOWOFFSETX, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowOffsetY", CTX_PROP_SHADOWOFFSETY, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowBlur", CTX_PROP_SHADOWBLUR, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    {"shadowColor", CTX_PROP_SHADOWCOLOR, JSPROP_PERMANENT | JSPROP_ENUMERATE, JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_canvas2dctx_prop_set)},
-    /* TODO : cache (see https://bugzilla.mozilla.org/show_bug.cgi?id=786126) */
-    {"width", CTX_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_canvas2dctx_prop_get),
+#define CANVAS_2D_CTX_PROP_GET(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
+        JSPROP_ENUMERATE, JSOP_WRAPPER(native_canvas2dctx_prop_get), \
         JSOP_NULLWRAPPER},
-    {"height", CTX_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_canvas2dctx_prop_get),
-        JSOP_NULLWRAPPER},
+
+  #include "NativeCanvas2DContextProperties.h"
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+#undef CANVAS_2D_CTX_PROP
+#undef CANVAS_2D_CTX_PROP_GET
 };
 
 static JSFunctionSpec canvas2dctx_funcs[] = {
@@ -196,6 +166,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("measureText", native_canvas2dctx_measureText, 1, 0),
     JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas2dctx_getPathBounds, 0, 0),
+    JS_FN("light", native_canvas2dctx_light, 3, 0),
     JS_FS_END
 };
 
@@ -243,7 +214,6 @@ static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval 
     } else {
         NSKIA_NATIVE->drawRect(x, y, width, height, 1);
     }
-
 
     return JS_TRUE;
 }
@@ -473,6 +443,25 @@ static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, jsva
 
 static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JSObject *ctx = JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)));
+    JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(ctx, 0));
+    JSObject *saved = JS_NewObject(cx, NULL, NULL, NULL);
+    jsval outval;
+
+#define CANVAS_2D_CTX_PROP_GET(prop)
+#define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, ctx, #prop, &outval); \
+                                    JS_SetProperty(cx, saved, #prop, &outval);
+
+#include "NativeCanvas2DContextProperties.h"
+
+#undef CANVAS_2D_CTX_PROP
+#undef CANVAS_2D_CTX_PROP_GET
+    uint32_t arr_length;
+    jsval savedVal = OBJECT_TO_JSVAL(saved);
+
+    JS_GetArrayLength(cx, savedArray, &arr_length);
+    JS_SetElement(cx, savedArray, arr_length, &savedVal);
+
     NSKIA_NATIVE->save();
 
     return JS_TRUE;
@@ -480,8 +469,33 @@ static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_restore(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JSObject *ctx = JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)));
+    JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(ctx, 0));
+    NativeCanvas2DContext *NativeCtx = (NativeCanvas2DContext *)JS_GetPrivate(ctx);
     NSKIA_NATIVE->restore();
 
+    uint32_t arr_length = 0;
+    jsval saved, outval;
+    if (JS_GetArrayLength(cx, savedArray, &arr_length) == JS_FALSE) {
+        return JS_TRUE;
+    }
+    if (arr_length == 0) {
+        return JS_TRUE;
+    }
+    JS_GetElement(cx, savedArray, arr_length-1, &saved);
+    JSObject *savedObj = JSVAL_TO_OBJECT(saved);
+
+#define CANVAS_2D_CTX_PROP_GET(prop)
+#define CANVAS_2D_CTX_PROP(prop)    JS_GetProperty(cx, savedObj, #prop, &outval); \
+                                    JS_SetProperty(cx, ctx, #prop, &outval);
+
+    NativeCtx->setterDisabled = true;
+#include "NativeCanvas2DContextProperties.h"
+    NativeCtx->setterDisabled = false;
+
+#undef CANVAS_2D_CTX_PROP
+#undef CANVAS_2D_CTX_PROP_GET
+    JS_SetArrayLength(cx, savedArray, arr_length-1);
     return JS_TRUE;
 }
 
@@ -569,6 +583,7 @@ static JSBool native_canvas2dctx_putImageData(JSContext *cx,
     return JS_TRUE;
 }
 
+/* TODO: clamp max size */
 static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     unsigned argc, jsval *vp)
 {
@@ -581,6 +596,19 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
         return JS_TRUE;
     }
 
+    if (x == 0) {
+        x = 1;
+    }
+    if (y == 0) {
+        y = 1;
+    }
+    
+    arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
+    if (arrBuffer == NULL) {
+        JS_ReportOutOfMemory(cx);
+        return JS_TRUE;
+    }
+    
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), NULL, NULL,
@@ -589,11 +617,6 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), NULL, NULL,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
-    if (arrBuffer == NULL) {
-        JS_ReportOutOfMemory(cx);
-        return JS_TRUE;
-    }
 
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
         NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -713,7 +736,7 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
     }
 
     if (JS_InstanceOf(cx, jsimage, &Canvas_class, NULL)) {
-        image = new NativeSkImage(NSKIA_NATIVE_GETTER(jsimage)->canvas);
+        image = new NativeSkImage(HANDLER_GETTER(jsimage)->context->skia->canvas);
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
@@ -755,8 +778,9 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     }
 
     JSAutoByteString ctext(cx, text);
+    NativeSkia *n = NSKIA_NATIVE;
 
-    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(NSKIA_NATIVE->measureText(ctext.ptr(),
+    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
         strlen(ctext.ptr()))));
 
     return JS_TRUE;
@@ -772,7 +796,9 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
         return JS_TRUE;
     }
 
-    vp->setBoolean(NSKIA_NATIVE->SkPathContainsPoint(x, y));
+    NativeSkia *n = NSKIA_NATIVE;
+
+    vp->setBoolean(n->SkPathContainsPoint(x, y));
 
     return JS_TRUE;
 }
@@ -799,13 +825,43 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    double x, y, z;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ddd", &x, &y, &z)) {
+        return JS_TRUE;
+    }
+
+    NSKIA_NATIVE->light(x, y, z);
+    return JS_TRUE;
+}
+
 static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
+#define CTX_PROP(prop) CTX_PROP_ ## prop
+
+    if (CANVASCTX_GETTER(obj.get())->setterDisabled) {
+        return JS_TRUE;
+    }
+
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
-        case CTX_PROP_SHADOWOFFSETX:
+        case CTX_PROP(imageSmoothingEnabled):
+        {
+            if (!JSVAL_IS_BOOLEAN(vp)) {
+                vp.set(JSVAL_FALSE);
+
+                return JS_TRUE;
+            }
+
+            curSkia->setSmooth(vp.toBoolean());
+            break;
+        }
+        case CTX_PROP(shadowOffsetX):
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -818,7 +874,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setShadowOffsetX(ret);  
         }
         break;
-        case CTX_PROP_SHADOWOFFSETY:
+        case CTX_PROP(shadowOffsetY):
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -830,7 +886,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setShadowOffsetY(ret);  
         }
         break;
-        case CTX_PROP_SHADOWBLUR:
+        case CTX_PROP(shadowBlur):
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -842,7 +898,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setShadowBlur(ret);  
         }
         break;
-        case CTX_PROP_SHADOWCOLOR:
+        case CTX_PROP(shadowColor):
         {
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);
@@ -853,7 +909,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setShadowColor(color.ptr());          
         }
         break;
-        case CTX_PROP_FONTSIZE:
+        case CTX_PROP(fontSize):
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -865,7 +921,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
         }
         break;
-        case CTX_PROP_FONTTYPE:
+        case CTX_PROP(fontType):
         {
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);
@@ -876,8 +932,9 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setFontType(font.ptr());          
         }
         break;
-        case CTX_PROP_FILLSTYLE:
+        case CTX_PROP(fillStyle):
         {
+            //printf("Fillstyle changed\n");
             if (JSVAL_IS_STRING(vp)) {
 
                 JSAutoByteString colorName(cx, JSVAL_TO_STRING(vp));
@@ -906,7 +963,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             }
         }
         break;
-        case CTX_PROP_STROKESTYLE:
+        case CTX_PROP(strokeStyle):
         {
             if (JSVAL_IS_STRING(vp)) {
                 JSAutoByteString colorName(cx, JSVAL_TO_STRING(vp));
@@ -927,7 +984,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             }    
         }
         break;
-        case CTX_PROP_LINEWIDTH:
+        case CTX_PROP(lineWidth):
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -938,7 +995,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setLineWidth(ret);
         }
         break;
-        case CTX_PROP_GLOBALALPHA:
+        case CTX_PROP(globalAlpha):
         {
             double ret;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -949,7 +1006,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setGlobalAlpha(ret);
         }
         break;
-        case CTX_PROP_GLOBALCOMPOSITEOPERATION:
+        case CTX_PROP(globalCompositeOperation):
         {
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);
@@ -960,7 +1017,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setGlobalComposite(composite.ptr());            
         }
         break;
-        case CTX_PROP_LINECAP:
+        case CTX_PROP(lineCap):
         {
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);
@@ -971,7 +1028,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setLineCap(lineCap.ptr());                
         }
         break;
-        case CTX_PROP_LINEJOIN:
+        case CTX_PROP(lineJoin):
         {
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);
@@ -986,22 +1043,23 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             break;
     }
 
-
     return JS_TRUE;
+#undef CTX_PROP
 }
 
 static JSBool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
+#define CTX_PROP(prop) CTX_PROP_ ## prop
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj.get());
 
     switch(JSID_TO_INT(id)) {
-        case CTX_PROP_WIDTH:
+        case CTX_PROP(width):
         {
             vp.set(INT_TO_JSVAL(curSkia->getWidth()));
         }
         break;
-        case CTX_PROP_HEIGHT:
+        case CTX_PROP(height):
         {
             vp.set(INT_TO_JSVAL(curSkia->getHeight()));
         }
@@ -1011,6 +1069,7 @@ static JSBool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
     }
 
     return JS_TRUE;
+#undef CTX_PROP
 }
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -1026,7 +1085,6 @@ void CanvasPattern_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeCanvasPattern *pattern = (class NativeCanvasPattern *)JS_GetPrivate(obj);
     if (pattern != NULL) {
-        printf("pattern finalized\n");
         delete pattern;
     }
 }
@@ -1091,8 +1149,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
     ncanvas->setMatrix(skia->canvas->getTotalMatrix());
 
     SkSafeUnref(ndev);
-
-    delete skia->canvas;
+    skia->canvas->unref();
     skia->canvas = ncanvas;
 
 }
@@ -1102,13 +1159,16 @@ void NativeCanvas2DContext::translate(double x, double y)
     skia->canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height)
+NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height) :
+    setterDisabled(false)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
 
     JS_DefineFunctions(cx, jsobj, canvas2dctx_funcs);
     JS_DefineProperties(cx, jsobj, canvas2dctx_props);
+    JSObject *saved = JS_NewArrayObject(cx, 0, NULL);
+    JS_SetReservedSlot(jsobj, 0, OBJECT_TO_JSVAL(saved));
 
     skia = new NativeSkia();
     skia->bindOnScreen(width, height);
@@ -1130,11 +1190,8 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
 
 static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    if (JS_IsConstructing(cx, vp)) {
-        JS_ReportError(cx, "Bad constructor");
-        return JS_FALSE;
-    }
-    return JS_TRUE;
+    JS_ReportError(cx, "Illegal constructor");
+    return JS_FALSE;
 }
 
 void NativeCanvas2DContext::registerObject(JSContext *cx)

@@ -39,7 +39,6 @@ static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeJSThread *nthread = (NativeJSThread *)JS_GetPrivate(obj);
 
     if (nthread != NULL) {
-        printf("Thread is out of scope\n");
         delete nthread;
     }
 }
@@ -61,7 +60,7 @@ static void *native_thread(void *arg)
 
     JSRuntime *rt;
     JSContext *tcx;
-    jsval rval;
+    jsval rval = JSVAL_VOID;
     JSObject *gbl;
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
@@ -93,11 +92,8 @@ static void *native_thread(void *arg)
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
-    if (!JS_InitStandardClasses(tcx, gbl)) {
-        JS_EndRequest(tcx);
-        // TODO : cleanup all vars and context
+    if (!JS_InitStandardClasses(tcx, gbl))
         return NULL;
-    }
     
     JS_SetErrorReporter(tcx, reportError);
 
@@ -118,7 +114,7 @@ static void *native_thread(void *arg)
             }).apply(this, Array.prototype.slice.apply(arguments));
         };    
     */
-    sprintf(scoped, "%c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
+    sprintf(scoped, "return %c%s%s", '(', str.ptr(), ").apply(this, Array.prototype.slice.apply(arguments));");
 
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
@@ -130,7 +126,6 @@ static void *native_thread(void *arg)
     
     if (cf == NULL) {
         printf("Cant compile function\n");
-        // TODO : cleanup all vars and context
         JS_EndRequest(tcx);
         return NULL;
     }
@@ -156,10 +151,13 @@ static void *native_thread(void *arg)
 
     delete arglst;
 
-    printf("Thread has ended\n");
+    nthread->onComplete(&rval);
 
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
+
+    nthread->jsRuntime = NULL;
+    nthread->jsCx = NULL;
 
     return NULL;
 }
@@ -194,6 +192,7 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
     pthread_create(&nthread->threadHandle, NULL,
                             native_thread, nthread);
 
+    nthread->njs->rootObjectUntilShutdown(caller);
 
     return JS_TRUE;
 }
@@ -205,6 +204,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSThread *nthread = new NativeJSThread();
     JSFunction *nfn;
 
+    nthread->cx = cx;
+
     if ((nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0])) == NULL ||
     	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
     	printf("Failed to read Threaded function\n");
@@ -214,6 +215,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     nthread->jsObject 	= ret;
     nthread->njs 		= NJS;
 
+    JS_AddStringRoot(cx, &nthread->jsFunction);
+
     JS_SetPrivate(ret, nthread);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -221,6 +224,24 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, Thread_funcs);
 
     return JS_TRUE;
+}
+
+void NativeJSThread::onComplete(jsval *vp)
+{
+    struct native_thread_msg *msg = new struct native_thread_msg;
+
+    if (!JS_WriteStructuredClone(jsCx, *vp, &msg->data, &msg->nbytes,
+        NULL, NULL, JSVAL_VOID)) {
+
+        msg->data = NULL;
+        msg->nbytes = 0;
+    }
+
+    msg->callee = jsObject;
+
+    njs->messages->postMessage(msg, NATIVE_THREAD_COMPLETE);
+
+    njs->unrootObject(jsObject);
 }
 
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
@@ -256,9 +277,13 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSThread::~NativeJSThread()
 {
+    if (jsFunction && this->cx) {
+        JS_RemoveStringRoot(this->cx, &jsFunction);
+    }
     this->markedStop = true;
     if (this->jsRuntime) {
         JS_TriggerOperationCallback(this->jsRuntime);
+        pthread_join(this->threadHandle, NULL);
     }
 }
 
