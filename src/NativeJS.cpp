@@ -13,6 +13,7 @@
 #include "NativeJSWebGL.h"
 #include "NativeJSCanvas.h"
 #include "NativeJSFileIO.h"
+#include "NativeJSConsole.h"
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
@@ -239,12 +240,14 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
         bytes = JS_EncodeString(cx, str);
         if (!bytes)
             return false;
-        fprintf(file, "%s%s", i ? " " : "", bytes);
+        if (i) {
+           NJS->UI->getConsole()->log(" "); 
+        }
+        NJS->UI->getConsole()->log(bytes);
+
         JS_free(cx, bytes);
     }
-
-    fputc('\n', file);
-    fflush(file);
+    NJS->UI->getConsole()->log("\n"); 
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
@@ -396,6 +399,11 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     jsval rval, jevent, canvas, onmove;
     JSObject *event;
 
+    rootHandler->mousePosition.x = x;
+    rootHandler->mousePosition.y = y;
+    rootHandler->mousePosition.xrel += xrel;
+    rootHandler->mousePosition.yrel += yrel;
+
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
@@ -495,7 +503,7 @@ void NativeJS::Loaded()
 
 }
 
-NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
+NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net)
 {
     JSRuntime *rt;
     JSObject *gbl;
@@ -556,6 +564,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
     this->UI = inUI;
+    this->bindNetObject(net);
 
     /* surface containing the window frame buffer */
     rootHandler = new NativeCanvasHandler(width, height);
@@ -567,6 +576,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI)
 
     messages = new NativeSharedMessages();
 
+    this->LoadScriptContent(preload_js, strlen(preload_js), "__native.js");
     //this->LoadScriptContent(preload_js);
     
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
@@ -626,6 +636,8 @@ NativeJS::~NativeJS()
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     
+    delete rootHandler->context;
+    delete rootHandler;
 #if 0
     rootHandler->unrootHierarchy();
     
@@ -635,7 +647,6 @@ NativeJS::~NativeJS()
     JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
-    NativeSkia::glsurface = NULL;
 
     JS_DestroyContext(cx);
     JS_DestroyRuntime(rt);
@@ -983,6 +994,8 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     NativeJSNative::registerObject(cx, width, height);
     /* window() object */
     NativeJSwindow::registerObject(cx);
+    /* console() object */
+    NativeJSconsole::registerObject(cx);
 
     //NativeJSDebug::registerObject(cx);
 

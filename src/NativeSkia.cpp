@@ -35,9 +35,9 @@
 #include "NativeShadowLooper.h"
 #include "SkBlurMaskFilter.h"
 #include "SkBlurImageFilter.h"
+#include "SkLightingImageFilter.h"
 
 SkCanvas *NativeSkia::glcontext = NULL;
-NativeSkia *NativeSkia::glsurface = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
 #define CANVAS_FLUSH()
@@ -279,7 +279,10 @@ uint32_t NativeSkia::parseColor(const char *str)
 void NativeSkia::initPaints()
 {
     PAINT = new SkPaint;
-
+    /*
+        TODO : setHintingScaleFactor(m_hintingScaleFactor);
+        http://code.google.com/p/webkit-mirror/source/browse/Source/WebCore/platform/graphics/skia/PlatformContextSkia.cpp#363
+    */
     memset(&currentShadow, 0, sizeof(NativeShadow_t));
     currentShadow.color = SkColorSetARGB(255, 0, 0, 0);
 
@@ -378,21 +381,22 @@ int NativeSkia::bindGL(int width, int height)
         printf("Cant get interface\n");
         return 0;
     }
-    
-    context = GrContext::Create(kOpenGL_Shaders_GrEngine,
-        (GrPlatform3DContext)interface);
+
+    context = GrContext::Create(kOpenGL_GrBackend,
+        (GrBackendContext)interface);
 
     if (context == NULL) {
         printf("Cant get context\n");
     }
     
-    GrPlatformRenderTargetDesc desc;
+    GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
     
     desc.fWidth = SkScalarRound(width);
     desc.fHeight = SkScalarRound(height);
 
-    desc.fConfig = kSkia8888_PM_GrPixelConfig;
+    desc.fConfig = kSkia8888_GrPixelConfig;
+    desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
 
     GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
     GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
@@ -403,7 +407,7 @@ int NativeSkia::bindGL(int width, int height)
 
     printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
-    GrRenderTarget * target = context->createPlatformRenderTarget(desc);
+    GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {
         printf("Failed to init Skia\n");
@@ -423,9 +427,6 @@ int NativeSkia::bindGL(int width, int height)
     if (NativeSkia::glcontext == NULL) {
         NativeSkia::glcontext = canvas;
     }
-    if (NativeSkia::glsurface == NULL) {
-        NativeSkia::glsurface = this;
-    }
     
     SkSafeUnref(dev);
     globalAlpha = 255;
@@ -444,7 +445,7 @@ void NativeSkia::drawRect(double x, double y, double width,
     double height, int stroke)
 {
     SkRect r;
-
+    
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 #if 0
@@ -478,6 +479,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 NativeSkia::NativeSkia()
 {
+    context = NULL;
     this->native_canvas_bind_mode = NativeSkia::BIND_NO;
 }
 
@@ -487,18 +489,20 @@ NativeSkia::~NativeSkia()
 
     while (nstate) {
         struct _nativeState *tmp = nstate->next;
-
         delete nstate->paint;
         delete nstate->paint_stroke;
         delete nstate;
         nstate = tmp;
     }
     delete paint_system;
-    
+
     if (currentPath) delete currentPath;
 
-    delete canvas;
+    canvas->unref();
 
+    if (context) {
+        context->unref();
+    }
 }
 
 /* TODO: check if there is a best way to do this;
@@ -640,7 +644,7 @@ NativeShadowLooper *NativeSkia::buildShadow()
                                 SkDoubleToScalar(currentShadow.y),
                                 currentShadow.color,
                                 SkBlurDrawLooper::kIgnoreTransform_BlurFlag |
-                                SkBlurDrawLooper::kHighQuality_BlurFlag );
+                                SkBlurDrawLooper::kHighQuality_BlurFlag);
 }
 
 void NativeSkia::setShadowOffsetX(double x)
@@ -890,6 +894,17 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
         SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
+void NativeSkia::light(double x, double y, double z)
+{
+    SkPoint3 pt(SkDoubleToScalar(x), SkDoubleToScalar(y), SkDoubleToScalar(z));
+
+    SkColor white(0xAAFFFFFF);
+    PAINT->setImageFilter(SkLightingImageFilter::CreatePointLitDiffuse(pt, white,
+        SkIntToScalar(1), SkIntToScalar(2)));
+
+    printf("Light created\n");
+}
+
 void NativeSkia::rotate(double angle)
 {
     canvas->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));
@@ -1085,7 +1100,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
 
     } else if (image->img != NULL) {
         canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
-            PAINT);    
+            PAINT);
     }
 
     PAINT->setColor(old);
@@ -1135,9 +1150,8 @@ void NativeSkia::drawImage(NativeSkImage *image,
     if (image->isCanvas) {
         SkBitmap bitmapImage;
 
-        //bitmapImage.setIsVolatile(true);
-
         image->canvasRef->readPixels(src, &bitmapImage);
+        bitmapImage.setIsVolatile(true);
 
         canvas->drawBitmapRect(bitmapImage,
             NULL, dst, PAINT);        

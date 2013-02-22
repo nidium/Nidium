@@ -1,4 +1,5 @@
 #import "NativeCocoaUIInterface.h"
+#import "NativeUIConsole.h"
 #import <NativeJS.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
@@ -8,10 +9,12 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
+#define kNativeWidth 1280
+#define kNativeHeight 600
 
-#define kNativeWidth 1024
-#define kNativeHeight 768
-#define kNativeVSYNC 0
+#define kNativeTitleBarHeight 0
+
+#define kNativeVSYNC 1
 
 uint32_t ttfps = 0;
 
@@ -27,7 +30,7 @@ static NSWindow *NativeCocoaWindow(SDL_Window *win)
 int NativeEvents(NativeCocoaUIInterface *NUII)
 {   
     SDL_Event event;
-
+    int nrefresh = 0;
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
@@ -40,23 +43,24 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     break;
                 case SDL_QUIT:
                     NSLog(@"Quit?");
+                    delete NUII->NJS;
                     SDL_Quit();
                     [[NSApplication sharedApplication] terminate:nil];
                     break;
                 case SDL_MOUSEMOTION:
-                    NUII->NJS->mouseMove(event.motion.x, event.motion.y,
+                    NUII->NJS->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
                                    event.motion.xrel, event.motion.yrel);
                     break;
                 case SDL_MOUSEWHEEL:
                 {
                     int cx, cy;
                     SDL_GetMouseState(&cx, &cy);
-                    NUII->NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy);
+                    NUII->NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                    NUII->NJS->mouseClick(event.button.x, event.button.y,
+                    NUII->NJS->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
                                     event.button.state, event.button.button);
                 break;
                 case SDL_KEYDOWN:
@@ -68,17 +72,19 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
                         event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
-                        printf("Refresh...\n");
+                        if (++nrefresh > 1) {
+                            break;
+                        }
+                        //printf("\n\n=======Refresh...=======\n");
                         //[console clear];
                         delete NUII->NJS;
-                        
+                        //printf("\n\n=======Restarting...=====\n");
                         glClearColor(1, 1, 1, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                         
                         NUII->NJS = new NativeJS(NUII->getWidth(),
-                            NUII->getHeight(), NUII);
+                            NUII->getHeight(), NUII, NUII->gnet);
 
-                        NUII->NJS->bindNetObject(NUII->gnet);
                         if (NUII->NJS->LoadScript("./main.js")) {
                             NUII->NJS->Loaded();
                         }
@@ -139,10 +145,12 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
+
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
 
+        NUII->getConsole()->flush();
         glFlush();
 
     //}
@@ -156,7 +164,7 @@ static int NativeProcessUI(void *arg)
     return NativeEvents((NativeCocoaUIInterface *)arg);
 }
 
-
+#if 0
 static bool NativeExtractMain(const char *buf, int len,
     size_t offset, size_t total, void *user)
 {
@@ -174,6 +182,7 @@ static bool NativeExtractMain(const char *buf, int len,
 
     return true;
 }
+#endif
 
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
@@ -183,41 +192,52 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     if (ui->NJS->LoadScript("./main.js")) {
         printf("Running main?\n");
         ui->NJS->Loaded();
-    }    
-
+    }
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    NativeApp *app = new NativeApp(path);
-    if (app->open()) {
-        size_t fsize = 0;
-        if (!this->createWindow(app->getWidth(), app->getHeight())) {
+    FILE *main = fopen("main.js", "r");
+    if (main != NULL) {
+        fclose(main);
+        if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
-        this->setWindowTitle(app->getTitle());
+        if (this->NJS->LoadScript("./main.js")) {
 
-        app->runWorker(this->gnet);
-        /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
-            fsize > 1024L*1024L*5) {
-
-            return false;
-        }*/
-
-        char *uidpath = (char *)malloc(sizeof(char) *
-                            (strlen(app->getUDID()) + 16));
-        sprintf(uidpath, "%s.content/", app->getUDID());
-        
-        app->extractApp(uidpath, NativeDoneExtracting, this);
-        free(uidpath);
-        /*this->mainjs.buf = (char *)malloc(fsize);
-        this->mainjs.len = fsize;
-        this->mainjs.offset = 0;
-
-        printf("Start looking for main.js of size : %ld\n", fsize);*/
+            this->NJS->Loaded();
+            return true;
+        }
         return true;
-    }
+    } else {
+        NativeApp *app = new NativeApp(path);
+        if (app->open()) {
+            if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
+                return false;
+            }
+            this->setWindowTitle(app->getTitle());
 
+            app->runWorker(this->gnet);
+            /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
+                fsize > 1024L*1024L*5) {
+
+                return false;
+            }*/
+
+            char *uidpath = (char *)malloc(sizeof(char) *
+                                (strlen(app->getUDID()) + 16));
+            sprintf(uidpath, "%s.content/", app->getUDID());
+            
+            app->extractApp(uidpath, NativeDoneExtracting, this);
+            free(uidpath);
+            /*this->mainjs.buf = (char *)malloc(fsize);
+            this->mainjs.len = fsize;
+            this->mainjs.offset = 0;
+
+            printf("Start looking for main.js of size : %ld\n", fsize);*/
+            return true;
+        }
+    }
     return false;
 }
 
@@ -263,7 +283,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     win = SDL_CreateWindow("Native - Running", 100, 100,
         width, height,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
     if (win == NULL) {
         printf("Cant create window (SDL)\n");
@@ -278,7 +298,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     [window setCollectionBehavior:
              NSWindowCollectionBehaviorFullScreenPrimary];
 
-    
     initControls();
 
     //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
@@ -286,8 +305,13 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
 
     [window setFrameAutosaveName:@"nativeMainWindow"];
+    if (kNativeTitleBarHeight != 0) {
+        [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
 
-    //[window setStyleMask:NSTitledWindowMask|NSBorderlessWindowMask];
+        //[window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
+        //[window setOpaque:NO];
+    }
+    //[window setMovableByWindowBackground:NO];
     //[window setOpaque:NO]; // YES by default
     //[window setAlphaValue:0.5];
 
@@ -300,14 +324,10 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     glViewport(0, 0, width, height);
 
-    NJS = new NativeJS(width, height, this);
-
     gnet = native_netlib_init();
+    NJS = new NativeJS(width, height, this, gnet);
 
-    /* Set ape_global private to the JSContext
-    and start listening for thread messages */
-
-    NJS->bindNetObject(gnet);
+    console = new NativeUICocoaConsole();
 
     //NJS->LoadApplication("./demo.npa");
 
@@ -329,6 +349,8 @@ void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
 {
     NSWindow *window = NativeCocoaWindow(win);
     NSUInteger mask = [window styleMask];
+
+    printf("setting titlebar color\n");
 
     if ((mask & NSTexturedBackgroundWindowMask) == 0) {
         [window setStyleMask:mask|NSTexturedBackgroundWindowMask];

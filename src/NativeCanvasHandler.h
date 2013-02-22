@@ -13,7 +13,6 @@ class NativeCanvas2DContext;
 
     TODO:
         * NativeCanvasContext interface instead of NativeCanvas2DContext;
-        * ::destroy() (JS_RemoveObjectRoot)
 */
 
 struct NativeRect
@@ -31,6 +30,11 @@ struct NativeRect
             return true;
         }
         return false;
+    }
+    bool contains(double x, double y) const {
+        return !this->isEmpty() &&
+               fLeft <= x && x < fRight &&
+               fTop <= y && y < fBottom;
     }
 };
 
@@ -74,11 +78,20 @@ class NativeCanvasHandler
         } padding;
 
         struct {
+            double x;
+            double y;
+        } translate_s;
+
+        struct {
             int width;
             int height;
             int scrollTop;
             int scrollLeft;
         } content;
+
+        struct {
+            int x, y, xrel, yrel;
+        } mousePosition;
 
         double opacity;
         bool overflow;
@@ -96,6 +109,7 @@ class NativeCanvasHandler
         void setScrollLeft(int value);
         void computeAbsolutePosition();
         void computeContentSize(int *cWidth, int *cHeight);
+        void translate(double x, double y);
 
         void bringToFront();
         void sendToBack();

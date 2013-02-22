@@ -44,10 +44,8 @@ static JSFunctionSpec File_funcs[] = {
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    printf("FInalize\n");
     NativeJSFileIO *NJSFIO = (NativeJSFileIO *)JS_GetPrivate(obj);
     if (NJSFIO != NULL) {
-        printf("Deleting NFIO\n");
         NativeFileIO *NFIO = NJSFIO->getNFIO();
         delete NFIO;
     }

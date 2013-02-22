@@ -40,7 +40,7 @@ class NativeJS
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
-        NativeJS(int width, int height, NativeUIInterface *inUI);
+        NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net);
         ~NativeJS();
         
         int LoadApplication(const char *path);

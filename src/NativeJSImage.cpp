@@ -64,7 +64,10 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSImage *img = NATIVE_IMAGE_GETTER(obj);
     if (img != NULL) {
-        printf("Image finalized\n");
+        if (img->stream) {
+            img->stream->setDelegate(NULL);
+        }
+
         delete img;
     }
 }
@@ -114,9 +117,15 @@ static int delete_stream(void *arg)
 void NativeJSImage::onGetContent(const char *data, size_t len)
 {
     jsval rval, onload_callback;
-    NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
-    img = ImageObject;
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
+
+    NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
+    if (ImageObject->img == NULL) {
+        timer_dispatch_async(delete_stream, stream);
+        stream = NULL;
+        return;
+    }
+    img = ImageObject;
 
     JS_DefineProperty(cx, jsobj, "width",
         INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
@@ -133,7 +142,6 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
             0, NULL, &rval);
     }
     NativeJSObj(cx)->unrootObject(jsobj);
-
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }

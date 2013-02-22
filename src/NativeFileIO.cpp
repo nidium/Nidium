@@ -23,7 +23,7 @@ static void *native_fileio_thread(void *arg)
         }
         if (NFIO->action.stop) {
             pthread_mutex_unlock(&NFIO->threadMutex);
-            printf("Thread ended 1\n");
+            //printf("Thread ended 1\n");
             return NULL;
         }
 
@@ -47,7 +47,7 @@ static void *native_fileio_thread(void *arg)
         NFIO->action.active = false;
         pthread_mutex_unlock(&NFIO->threadMutex);
     }
-    printf("Thread ended 2\n");
+    //printf("Thread ended 2\n");
     return NULL;
 }
 
@@ -70,7 +70,7 @@ static int Native_handle_file_messages(void *arg)
                 nfileio->getDelegate()->onNFIORead(nfileio,
                     (unsigned char *)msg.dataPtr(), nfileio->action.u64);
 
-                delete (unsigned char *)msg.dataPtr();
+                delete[] (unsigned char *)msg.dataPtr();
                 break;
             case NATIVE_FILEWRITE_MESSAGE:
                 nfileio->getDelegate()->onNFIOWrite(nfileio, msg.dataUInt());
@@ -110,7 +110,7 @@ void NativeFileIO::readAction(uint64_t len)
         if (!action.stop) {
             messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
         }
-        delete data;
+        delete[] data;
         return;
     }
 
