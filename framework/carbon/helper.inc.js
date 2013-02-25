@@ -679,7 +679,7 @@ var CStruct = function(){
 			"short" : {m:Int16Array, l:2},
 			"unsigned short" : {m:Uint16Array, l:2},
 
-			"int" : {m:"Int32Array", l:4},
+			"int" : {m:Int32Array, l:4},
 			"unsigned int" : {m:Uint32Array, l:4},
 			"unsigned long" : {m:Uint32Array, l:4},
 

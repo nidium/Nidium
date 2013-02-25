@@ -4,20 +4,6 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-function setTextContext(element){
-	var context = element.layer.context;
-	context.fontSize = element.fontSize;
-	context.fontType = element.fontType;
-}
-
-function getTextPixelWidth(element, text){
-	return element.layer.context.measureText(text)
-}
-
-function getLastLineTextAlign(element){
-	return element.textAlign == "justify" ? "left" : element.textAlign;
-}
-
 function getLetters(element, line, words, textAlign, offLeft, fitWidth){
 	var context = element.layer.context,
 		fontSize = element.fontSize,
@@ -172,7 +158,6 @@ function getLetters(element, line, words, textAlign, offLeft, fitWidth){
 	return letters;
 }
 
-
 function updateMatrix(element, line, words, textAlign, fitWidth){
 	element._tmpMatrix[line] = {
 		text : words.join(' '),
@@ -180,6 +165,20 @@ function updateMatrix(element, line, words, textAlign, fitWidth){
 		words : words,
 		letters : getLetters(element, line, words, textAlign, 0, fitWidth)
 	};
+}
+
+function setTextContext(element){
+	var context = element.layer.context;
+	context.fontSize = element.fontSize;
+	context.fontType = element.fontType;
+}
+
+function getTextPixelWidth(element, text){
+	return element.layer.context.measureText(text)
+}
+
+function getLastLineTextAlign(element){
+	return element.textAlign == "justify" ? "left" : element.textAlign;
 }
 
 function getParagrapheMatrix(element, paragraphe){
@@ -196,6 +195,8 @@ function getParagrapheMatrix(element, paragraphe){
 	while (words.length>0 && idx <= words.length) {
 		var str = words.slice(0, idx).join(' '),
 			linePixelWidth = getTextPixelWidth(element, str);
+
+		//echo(linePixelWidth);
 
 		if (linePixelWidth > fitWidth) {
 			idx = (idx == 1) ? 2 : idx;

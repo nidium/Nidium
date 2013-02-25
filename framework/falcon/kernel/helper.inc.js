@@ -17,6 +17,15 @@ Object.merge = function(obj, props){
 	}
 };
 
+Object.createFrozenProperty = function(scope, property, value){
+	Object.defineProperty(scope, property, {
+		value : value,
+		enumerable : true,
+		writable : true,
+		configurable : false
+	});
+};
+
 Object.createProtectedElement = function(scope, property, value){
 	Object.defineProperty(scope, property, {
 		value : value,
