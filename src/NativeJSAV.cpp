@@ -97,6 +97,10 @@ static JSClass AudioNode_threaded_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSPropertySpec AudioNode_props[] = {
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
 static JSPropertySpec AudioNodeEvent_props[] = {
     {"data", NODE_EV_PROP_DATA, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
     {"size", NODE_EV_PROP_SIZE, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
@@ -152,12 +156,19 @@ static JSFunctionSpec glob_funcs_threaded[] = {
 
 static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_pause(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_stop(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
+
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSFunctionSpec Video_funcs[] = {
     JS_FN("play", native_video_play, 0, 0),
+    JS_FN("pause", native_video_pause, 0, 0),
+    JS_FN("stop", native_video_stop, 0, 0),
     JS_FN("open", native_video_open, 1, 0),
     JS_FN("getAudioNode", native_video_get_audionode, 0, 0),
     JS_FS_END
@@ -168,6 +179,12 @@ static JSClass Video_class = {
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Video_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSPropertySpec Video_props[] = {
+    {"width", VIDEO_PROP_WIDTH, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT, JSOP_WRAPPER(native_video_prop_getter), JSOP_NULLWRAPPER},
+    {"height", VIDEO_PROP_HEIGHT, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT, JSOP_WRAPPER(native_video_prop_getter), JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 NativeJSAudio::NativeJSAudio(int size, int channels, int frequency) 
@@ -230,23 +247,46 @@ bool NativeJSAudio::createContext()
 
 NativeJSAudio::~NativeJSAudio() {
 
+    // First unroot all js audio nodes
+    this->unroot();
+
+    // Unroot custom nodes objets and clear threaded js context
     this->audio->sharedMsg->postMessage(
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::shutdownCallback, NULL, this), 
             NATIVE_AUDIO_SHUTDOWN);
 
-    this->audio->shutdown();
+    if (this->audio->tracksCount == 0) {
+        // If audio doesn't have any tracks, the queue thread might sleep
+        // So we need to wake it up to deliver the message 
+        pthread_cond_signal(&this->audio->queueHaveData);
+    }
 
     pthread_cond_wait(&this->shutdowned, &this->shutdownLock);
+
+    // Delete all ndoes
+    NativeJSAudio::Nodes *nodes = this->nodes;
+    NativeJSAudio::Nodes *next = NULL;
+    while (nodes != NULL) {
+        next = nodes->next;
+        // Node destructor will remove the node 
+        // from the nodes linked list
+        delete nodes->curr;
+        nodes = next;
+    }
+
+    // Shutdown the audio
+    this->audio->shutdown();
 
     pthread_join(this->threadQueue, NULL);
     pthread_join(this->threadDecode, NULL);
 
+    // And delete it
     delete this->audio;
 
     this->audio = NULL;
 }
 
-void NativeJSAudio::shutdown() {
+void NativeJSAudio::unroot() {
     NativeJSAudio *audio = NativeJSAudio::instance;
 
     if (!audio) return;
@@ -267,30 +307,23 @@ void NativeJSAudio::shutdown() {
         JS_RemoveObjectRoot(njs->cx, &nodes->curr->jsobj);
         nodes = nodes->next;
     }
-
-    delete audio;
-
 }
 void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
 {
     NativeJSAudio *audio = static_cast<NativeJSAudio *>(custom);
-    if (audio->tcx != NULL) {
-        NativeJSAudio::Nodes *nodes = audio->nodes;
-        NativeJSAudio::Nodes *next;
+    NativeJSAudio::Nodes *nodes = audio->nodes;
 
-        // Let's shutdown all nodes
-        while (nodes != NULL) {
-            next = nodes->next;
+    // Let's shutdown and destroy all nodes
+    while (nodes != NULL) {
 
-            if (nodes->curr->type == NativeAudio::CUSTOM) {
-                nodes->curr->shutdownCallback(nodes->curr->node, nodes->curr);
-            }
-
-            delete nodes->curr;
-
-            nodes = next;
+        if (nodes->curr->type == NativeAudio::CUSTOM) {
+            nodes->curr->shutdownCallback(nodes->curr->node, nodes->curr);
         }
 
+        nodes = nodes->next;
+    }
+
+    if (audio->tcx != NULL) {
         JSRuntime *rt = JS_GetRuntime(audio->tcx);
         JS_DestroyContext(audio->tcx);
         JS_DestroyRuntime(rt);
@@ -299,6 +332,16 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
     pthread_cond_signal(&audio->shutdowned);
 }
 
+void NativeJSAudioNode::add() 
+{
+    NativeJSAudio::Nodes *nodes = new NativeJSAudio::Nodes(this, NULL, this->audio->nodes);
+
+    if (this->audio->nodes != NULL) {
+        this->audio->nodes->prev = nodes;
+    }
+
+    this->audio->nodes = nodes;
+}
 void NativeJSAudioNode::ctxCallback(NativeAudioNode *node, void *custom)
 {
     NativeJSAudioNode *jsNode = static_cast<NativeJSAudioNode *>(custom);
@@ -430,45 +473,58 @@ void NativeJSAudioNode::customCbk(const struct NodeEvent *ev)
     }
 }
 
-void NativeJSAudioNode::sourceCbk(const struct TrackEvent *cev)
+const char *NativeJSAVEventRead(int ev)
+{
+    switch (ev) {
+        case SOURCE_EVENT_PAUSE:
+            return "onpause";
+        break;
+        case SOURCE_EVENT_PLAY:
+            return "onplay";
+        break;
+        case SOURCE_EVENT_STOP:
+            return "onstop";
+        break;
+        case SOURCE_EVENT_EOF:
+            return "onend";
+        break;
+        case SOURCE_EVENT_ERROR:
+            return "onerror";
+        break;
+        case SOURCE_EVENT_BUFFERING:
+            return "onbuffering";
+        break;
+        case SOURCE_EVENT_BUFFERED:
+            return "onbuffered";
+        break;
+        default:
+            return NULL;
+        break;
+    }
+}
+
+void NativeJSAudioNode::eventCbk(const struct NativeAVSourceEvent *cev) 
 {
     NativeJSAudioNode *thiz;
-    NativeJSAudioNode::MessageCallback *ev;
+    NativeJSAVMessageCallback *ev;
     int *value;
     const char *prop;
 
     thiz = static_cast<NativeJSAudioNode *>(cev->custom);
     value = cev->value;
+    prop = NativeJSAVEventRead(cev->ev);
 
-    switch (cev->ev) {
-        case TRACK_EVENT_PLAY:
-            prop= "onplay";
-        break;
-        case TRACK_EVENT_STOP:
-            prop = "onstop";
-        break;
-        case TRACK_EVENT_EOF:
-            prop = "onend";
-        break;
-        case TRACK_EVENT_ERROR:
-            prop = "onerror";
-        break;
-        case TRACK_EVENT_BUFFERING:
-            prop = "onbuffering";
-        break;
-        default:
-            delete cev->value;
-            delete cev;
-            return;
-        break;
+    if (!prop) {
+        delete cev->value;
+        delete cev;
     }
 
     // TODO : use cev->fromThread to avoid posting message 
     // if message is comming from main thread
 
-    ev = new NativeJSAudioNode::MessageCallback(thiz->jsobj, prop, value);
+    ev = new NativeJSAVMessageCallback(thiz->jsobj, prop, value);
     
-    thiz->njs->messages->postMessage(ev, NATIVE_AUDIO_THREAD_MESSAGE_CALLBACK);
+    thiz->njs->messages->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
 
     delete cev;
 }
@@ -526,7 +582,8 @@ NativeJSAudioNode::~NativeJSAudioNode()
     }
 
     // Custom node must be finalized (in his own thread)
-    // XXX : Would be better to check if current thred == audio thread
+    // XXX : Might be better to check if current thred == audio thread, 
+    // instead of always posting a message
     if (this->type == NativeAudio::CUSTOM && !this->finalized) {
         this->node->callback(
                 NativeJSAudioNode::shutdownCallback, 
@@ -535,7 +592,9 @@ NativeJSAudioNode::~NativeJSAudioNode()
         pthread_cond_wait(&this->shutdowned, &this->shutdownLock);
     } 
 
-    free(this->arrayContent);
+    if (this->arrayContent != NULL) {
+        free(this->arrayContent);
+    }
 
     delete this->node;
 
@@ -591,7 +650,9 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, naudio);
 
-    JS_AddObjectRoot(cx, &naudio->jsobj);
+    //JS_AddObjectRoot(cx, &naudio->jsobj);
+
+    NJS->rootObjectUntilShutdown(naudio->jsobj);
 
     JS_DefineFunctions(cx, ret, Audio_funcs);
 
@@ -621,7 +682,7 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     if (strcmp("source", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(NativeAudio::SOURCE, in, out, audio);
         NativeAudioTrack *source = static_cast<NativeAudioTrack *>(node->node);
-        source->setCallback(node->sourceCbk, node);
+        source->eventCallback(NativeJSAudioNode::eventCbk, node);
         JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
     } else if (strcmp("custom", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(NativeAudio::CUSTOM, in, out, audio);
@@ -647,13 +708,8 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     node->jsobj = ret;
     node->cx = cx;
 
-    NativeJSAudio::Nodes *nodes = new NativeJSAudio::Nodes(node, NULL, audio->nodes);
-    if (audio->nodes != NULL) {
-        audio->nodes->prev = nodes;
-    }
-    audio->nodes = nodes;
-
-    JS_AddObjectRoot(cx, &node->jsobj);
+    //JS_AddObjectRoot(cx, &node->jsobj);
+    NJS->rootObjectUntilShutdown(node->jsobj);
     JS_SetPrivate(ret, node);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -1111,40 +1167,81 @@ static JSBool native_audionode_custom_prop_set(JSContext *cx, JSHandleObject obj
     return JS_TRUE;
 }
 
+static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(obj);
+
+    switch(JSID_TO_INT(id)) {
+        case VIDEO_PROP_WIDTH:
+            vp.set(INT_TO_JSVAL(v->video->width));
+        break;
+        case VIDEO_PROP_HEIGHT:
+            vp.set(INT_TO_JSVAL(v->video->height));
+        break;
+        default:
+            break;
+    }
+
+    return JS_TRUE;
+}
+
 void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    // Hum, nothing.
-    /*
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
     if (audio != NULL) {
-
-        printf("Audio DESTRUCTOR\n");
         delete audio;
-        printf("Finished.\n");
     }
-    */
 }
 
 void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSAudioNode *source = NATIVE_AUDIO_NODE_GETTER(obj);
-    if (source != NULL) {
-        delete source;
+    NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(obj);
+    if (node != NULL) {
+        delete node;
     } 
 }
 
 NativeJSVideo::NativeJSVideo(NativeJSAudio *jaudio, NativeSkia *nskia, JSContext *cx) 
-    : cx(cx), jaudio(jaudio), nskia(nskia) 
+    : video(NULL), jaudio(jaudio), audioNode(NULL), arrayContent(NULL), nskia(nskia), cx(cx)
 {
     this->video = new NativeVideo(jaudio->audio, (ape_global *)JS_GetContextPrivate(cx));
-    this->video->setCallback(NativeJSVideo::frameCallback, this);
+    this->video->frameCallback(NativeJSVideo::frameCallback, this);
+    this->video->eventCallback(NativeJSVideo::eventCbk, this);
 }
 
-void NativeJSVideo::frameCallback(int width, int height, uint8_t *data, void *custom)
+void NativeJSVideo::eventCbk(const struct NativeAVSourceEvent *cev) 
+{
+    NativeJSVideo *thiz;
+    NativeJSAVMessageCallback *ev;
+    int *value;
+    const char *prop;
+    NativeJS *njs;
+
+    thiz = static_cast<NativeJSVideo *>(cev->custom);
+    njs = ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(thiz->cx)));
+    value = cev->value;
+    prop = NativeJSAVEventRead(cev->ev);
+
+    if (!prop) {
+        delete cev->value;
+        delete cev;
+    }
+
+    // TODO : use cev->fromThread to avoid posting message 
+    // if message is comming from main thread
+
+    ev = new NativeJSAVMessageCallback(thiz->jsobj, prop, value);
+    
+    njs->messages->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
+
+    delete cev;
+}
+
+void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
-    v->nskia->drawPixels(data, width, height, 0, 0);
+    v->nskia->drawPixels(data, v->video->width, v->video->height, 0, 0);
 
     /*
     jsval rval, params[3];
@@ -1168,12 +1265,29 @@ void NativeJSVideo::frameCallback(int width, int height, uint8_t *data, void *cu
     */
 }
 
-
 static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
 
     v->video->play();
+
+    return JS_TRUE;
+}
+
+static JSBool native_video_pause(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+
+    v->video->pause();
+
+    return JS_TRUE;
+}
+
+static JSBool native_video_stop(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+
+    v->video->stop();
 
     return JS_TRUE;
 }
@@ -1198,14 +1312,12 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
     length = JS_GetArrayBufferByteLength(arrayBuff);
     JS_StealArrayBufferContents(cx, arrayBuff, &v->arrayContent, &data);
 
-    if (int ret = v->video->open(
-                data, 
-                length) < 0) {
-        JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    if (v->video->open(data, length) < 0) {
+        JS_SET_RVAL(cx, vp, JSVAL_FALSE);
         return JS_TRUE;
     }
 
-    JS_SET_RVAL(cx, vp, JSVAL_FALSE);
+    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
 
     return JS_TRUE;
 }
@@ -1217,17 +1329,21 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
     NativeAudioTrack *track = v->video->getAudio();
 
     if (track != NULL) {
-        NativeJSAudioNode *node = new NativeJSAudioNode(NativeAudio::SOURCE, static_cast<class NativeAudioNode *>(track), v->jaudio);
-        JSObject *ret = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
+        if (v->audioNode == NULL) {
+            NativeJSAudioNode *node = new NativeJSAudioNode(NativeAudio::SOURCE, static_cast<class NativeAudioNode *>(track), v->jaudio);
 
-        node->njs = NJS;
-        node->jsobj = ret;
-        node->cx = cx;
+            v->audioNode = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
 
-        JS_AddObjectRoot(cx, &node->jsobj);
-        JS_SetPrivate(ret, node);
+            node->njs = NJS;
+            node->jsobj = v->audioNode;
+            node->cx = cx;
 
-        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+            //JS_AddObjectRoot(cx, &node->jsobj);
+            NJS->rootObjectUntilShutdown(v->audioNode);
+            JS_SetPrivate(v->audioNode, node);
+
+        }
+        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(v->audioNode));
     } else {
         JS_SET_RVAL(cx, vp, JSVAL_NULL);
     }
@@ -1245,7 +1361,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    //NJS->rootUntilShutdown(ret);
+    NJS->rootObjectUntilShutdown(ret);
 
     NativeSkia *nskia = ((class NativeCanvasHandler *)JS_GetPrivate(canvas))->context->skia;
     NativeJSAudio *jaudio = (class NativeJSAudio *)JS_GetInstancePrivate(cx, audio, &Audio_class, JS_ARGV(cx, vp));
@@ -1253,6 +1369,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSVideo *v = new NativeJSVideo(jaudio, nskia, cx);
 
     JS_DefineFunctions(cx, ret, Video_funcs);
+    JS_DefineProperties(cx, ret, Video_props);
 
     JS_SetPrivate(ret, v);
     v->jsobj = ret;
@@ -1263,11 +1380,22 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 NativeJSVideo::~NativeJSVideo() {
+    if (this->audioNode != NULL) {
+        NJS->unrootObject(this->audioNode);
+    } else if (this->video->getAudio() != NULL) {
+        delete this->video->getAudio();
+    }
+
+    if (this->arrayContent != NULL) {
+        free(this->arrayContent);
+    }
+
     delete this->video;
 }
 
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
+
     if (v != NULL) {
         delete v;
     }

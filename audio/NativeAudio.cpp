@@ -15,8 +15,8 @@ extern "C" {
 // if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
 // should reset all parameters and buffers to fit last asked audio context
 NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
-    : output(NULL), inputStream(NULL), outputStream(NULL), threadShutdown(false),
-      tracks(NULL), tracksCount(0)
+    : output(NULL), tracksCount(0), inputStream(NULL), outputStream(NULL), threadShutdown(false),
+      tracks(NULL)
      //haveData(false), notEmpty(false)
 {
     pthread_cond_init(&this->bufferNotEmpty, NULL);
@@ -25,6 +25,7 @@ NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
     pthread_cond_init(&this->queueHaveData, NULL);
     pthread_cond_init(&this->queueHaveSpace, NULL);
     pthread_mutex_init(&this->queueLock, NULL);
+    pthread_mutex_init(&this->recurseLock, NULL);
 
     pthread_mutex_init(&this->shutdownLock, NULL);
 
@@ -101,12 +102,6 @@ void *NativeAudio::queueThread(void *args) {
         // TODO : Limit message reading
         while (audio->sharedMsg->readMessage(&msg)) {
             switch (msg.event()) {
-                case NATIVE_AUDIO_TRACK_CALLBACK : {
-                    TrackEvent *cbk = static_cast<TrackEvent *>(msg.dataPtr());
-                    cbk->track->cbk(cbk);
-                    delete cbk;
-                }
-                break;
                 case NATIVE_AUDIO_NODE_CALLBACK : {
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
@@ -129,9 +124,11 @@ void *NativeAudio::queueThread(void *args) {
         }
 
         if (audio->output != NULL) {
+            pthread_mutex_lock(&audio->recurseLock);
             for (;;) {
                 if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
                     SPAM(("Write avail %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
+
                     if (!audio->output->recurseGetData()) {
                         SPAM(("break cause of false\n"));
                         //audio->haveData = false;
@@ -176,6 +173,7 @@ void *NativeAudio::queueThread(void *args) {
                     break;
                 }
             }
+            pthread_mutex_unlock(&audio->recurseLock);
             SPAM(("Finished FX queue\n"));
 
             if (audio->tracksCount > 0) {
@@ -210,7 +208,7 @@ void *NativeAudio::queueThread(void *args) {
     return NULL;
 }
 
-// TODO : Better locking/unlocking
+// TODO : Better locking/unlocking for tracks list
 void *NativeAudio::decodeThread(void *args) {
     NativeAudio *audio = (NativeAudio *)args;
 
@@ -363,7 +361,7 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
         // need to process more data
         pthread_cond_signal(&this->queueHaveSpace);
     } else {
-        SPAM(("-----------------------------------NO DATA\n"));
+        //SPAM(("-----------------------------------NO DATA\n"));
         for (unsigned int i = 0; i < framesPerBuffer; i++)
         {
             *out++ = 0.0f;
@@ -473,33 +471,23 @@ void NativeAudio::shutdown()
 
 NativeAudio::~NativeAudio() {
     if (this->outputStream != NULL) {
-        SPAM(("stopStream\n"));
         Pa_StopStream(this->outputStream); 
+        Pa_CloseStream(this->outputStream);
     }
 
     if (this->inputStream != NULL) {
         Pa_StopStream(this->inputStream);
+        Pa_CloseStream(this->inputStream);
     }
 
     Pa_Terminate(); 
 
-    /*
-    while (tracks != NULL) 
-    {
-        if (tracks->curr != NULL) {
-            delete tracks->curr;
-
-            tracks = tracks->next;
-        }
-    }
-
-    this->tracks = NULL;
-
-    // TODO : recursivily delete all nodes
-    delete this->output;
-    */
     free(this->nullBuffer);
     free(this->cbkBuffer);
+    free(this->rBufferOutData);
 
+    delete this->outputParameters;
+    delete this->rBufferOut;
+    delete this->sharedMsg;
 }
 

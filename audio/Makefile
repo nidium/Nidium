@@ -1,4 +1,4 @@
-CXX=~/.vim/bin/cc_args.py g++
+#CXX=~/.vim/bin/cc_args.py g++
 CXX=clang++
 LIBAV=../third-party/ffmpeg/
 PORTAUDIO=../../portaudio/

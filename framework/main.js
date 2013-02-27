@@ -5,7 +5,7 @@
 /* -------------------------------------- */
 
 /* -- Falcon Framework ------------------ */
-require("../scripts/preload.js");
+//require("../scripts/preload.js");
 require("falcon/native.js");
 //require("applications/demos/hello.js");
 //require("applications/demos/motion.js");
@@ -22,6 +22,7 @@ require("falcon/native.js");
 //require("applications/demos/animation.js");
 
 
+//require("applications/demos/irc.js");
 
 //require("applications/demos/splines.js");
 //require("applications/demos/diagrams.js");
@@ -30,7 +31,7 @@ require("falcon/native.js");
 //require("applications/demos/http.js");
 
 
-require("applications/demos/buttons.js");
+//require("applications/demos/buttons.js");
 //require("applications/demos/test.js");
 
 //require("testLayer.js");
@@ -65,6 +66,7 @@ require("applications/demos/buttons.js");
 //require('_demos/audio/basic.js');
 //require('_demos/audio/dsp.js');
 //require('_demos/audio/spectral.js');
+require('_demos/audio/video.js');
 
 
 /* -- WebGL --------------------------- */

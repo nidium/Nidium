@@ -6,20 +6,23 @@
 #include <native_netlib.h>
 #include "NativeAudio.h"
 
+extern "C" {
+#include "libavcodec/avcodec.h"
+}
+
 #define NATIVE_VIDEO_BUFFER_SAMPLES 16
 #define NATIVE_VIDEO_SYNC_THRESHOLD 0.01 
 #define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
 
-typedef void (*VideoCallback)(int width, int height, uint8_t *data, void *custom);
+typedef void (*VideoCallback)(uint8_t *data, void *custom);
 struct PaUtilRingBuffer;
 
 struct SwsContext;
 struct AVFormatContext;
 struct AVCodecContext;
 struct AVFrame;
-struct AVPacketList;
 
-class NativeVideo
+class NativeVideo : public NativeAVSource
 {
     public :
         NativeVideo(NativeAudio *audio, ape_global *n);
@@ -27,14 +30,23 @@ class NativeVideo
         struct TimerItem {
             int id;
             int delay;
+            int64_t time;
             TimerItem() : id(-1), delay(-1) {};
         };
 
-        struct AudioQueue {
-            AVPacketList *head, *tail;
-            int count;
-            int size;
-            AudioQueue() : head(NULL), tail(NULL), count(0), size(0) {};
+        struct AudioPacket {
+            AVPacket curr;
+            AudioPacket *prev;
+            AudioPacket *next;
+            
+            AudioPacket() 
+                : prev(NULL), next(NULL) {}
+        };
+
+        struct AudioPacketQueue {
+            AudioPacket *head;
+            AudioPacket *tail;
+            AudioPacketQueue() : head(NULL), tail(NULL) {}
         };
 
         struct Frame {
@@ -44,7 +56,8 @@ class NativeVideo
         };
 
         TimerItem *timers[NATIVE_VIDEO_BUFFER_SAMPLES];
-        AudioQueue *audioQueue;
+        AudioPacketQueue *audioQueue;
+        AudioPacket *freePacket;
         int timerIdx;
         int lastTimer;
         int timersDelay;
@@ -52,8 +65,9 @@ class NativeVideo
         ape_global *net;
         NativeAudio *audio;
         NativeAudioTrack *track;
-        VideoCallback cbk;
-        void *cbkArg;
+
+        VideoCallback frameCbk;
+        void *frameCbkArg;
 
         bool shutdown;
         bool eof;
@@ -71,6 +85,9 @@ class NativeVideo
         bool playing;
         bool stoped;
 
+        int width;
+        int height;
+
         SwsContext *swsCtx;
 	    AVFormatContext *container;
         AVCodecContext *codecCtx;
@@ -83,20 +100,24 @@ class NativeVideo
         AVFrame *convertedFrame;
 
         pthread_t threadDecode;
-        pthread_mutex_t buffLock;
-        pthread_cond_t buffNotEmpty;
+        pthread_mutex_t buffLock, waitLock;
+        pthread_cond_t buffNotEmpty, wait;
 
         int open(void *buffer, int size);
-        void setCallback(VideoCallback cbk, void *arg);
+        void frameCallback(VideoCallback cbk, void *arg);
         void play();
         void pause();
+        void stop();
         NativeAudioTrack *getAudio();
         static void* decode(void *args);
         static int display(void *custom);
 
         ~NativeVideo();
     private :
+        bool opened;
         NativeAVBufferReader *br;
+
+        void close(bool reset);
 
         double syncVideo(double pts);
         double getClock();

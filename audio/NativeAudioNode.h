@@ -11,13 +11,6 @@
 #define NATIVE_AUDIONODE_WIRE_SIZE      256
 #define NATIVE_AUDIONODE_CHANNEL_SIZE   32
 
-#define TRACK_EVENT_PLAY      0x01
-#define TRACK_EVENT_PAUSE     0x02
-#define TRACK_EVENT_STOP      0x03
-#define TRACK_EVENT_EOF       0x04
-#define TRACK_EVENT_ERROR     0x05
-#define TRACK_EVENT_BUFFERING 0x06
-
 struct AVFormatContext;
 struct AVPacket;
 struct AVCodecContext;
@@ -60,23 +53,8 @@ struct NodeLink {
     };
 };
 
-struct TrackEvent {
-    int ev;
-    int *value;
-    NativeAudioTrack *track;
-    void *custom;
-    bool fromThread;
-    TrackEvent (NativeAudioTrack *track, int ev, int value, void *custom, bool fromThread)
-        : ev(ev), track(track), custom(custom), fromThread(fromThread) 
-    {
-        this->value = new int;
-        memcpy(this->value, (void *)&value, sizeof(int));
-    };
-};
-
 // TODO : Cleanup callbacks
 typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread callback
-typedef void (*TrackCallback)(const struct TrackEvent *ev); // Used for event (play, pause, stop, error, ...)
 typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); // Message posting to thread TODO : Normalize args
 
 class NativeAudioNode
@@ -264,7 +242,7 @@ class NativeAudioNodeMixer : public NativeAudioNode
 };
 #endif
 
-class NativeAudioTrack : public NativeAudioNode
+class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
 {
     public:
         NativeAudioTrack(int out, NativeAudio *audio, bool external);
@@ -301,12 +279,6 @@ class NativeAudioTrack : public NativeAudioNode
         int resample(float *dest, int destSamples);
         bool getFrame();
         double getClock();
-
-        void setCallback(TrackCallback cbk, void *custom);
-
-        // XXX : Should be private, use friend class 
-        TrackCallback cbk;
-        void *cbkCustom;
 
         ~NativeAudioTrack();
 

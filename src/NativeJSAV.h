@@ -8,16 +8,32 @@
 #include "NativeVideo.h"
 #include "NativeSkia.h"
 
-#define NATIVE_AUDIO_THREAD_MESSAGE_CALLBACK 0x100
+#define NATIVE_AV_THREAD_MESSAGE_CALLBACK 0x100
 
 enum {
     NODE_EV_PROP_DATA, 
     NODE_EV_PROP_SIZE,
-    NODE_CUSTOM_PROP_BUFFER
+    NODE_CUSTOM_PROP_BUFFER,
+    VIDEO_PROP_WIDTH,
+    VIDEO_PROP_HEIGHT
 };
 
 class NativeJS;
 class NativeJSAudioNode;
+
+struct NativeJSAVMessageCallback {
+    JSObject *callee;
+    const char *prop;
+    int *value;
+
+    NativeJSAVMessageCallback(JSObject *callee, const char *prop, int *value)
+        : callee(callee), prop(prop), value(value) {};
+    ~NativeJSAVMessageCallback() {
+        delete value;
+    }
+};
+
+static void NativeJSAVEventCbk(const struct NativeAVSourceEvent *ev);
 
 class NativeJSAudio: public NativeJSExposer
 {
@@ -56,7 +72,7 @@ class NativeJSAudio: public NativeJSExposer
 
         bool createContext();
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
-        static void shutdown();
+        static void unroot();
 
         static void registerObject(JSContext *cx);
 
@@ -79,12 +95,15 @@ class NativeJSAudioNode: public NativeJSExposer
             }
 
             this->node = audio->audio->createNode(type, in, out);
+
+            this->add();
         }
 
         NativeJSAudioNode(NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
             :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
+            this->add();
         }
 
         ~NativeJSAudioNode();
@@ -96,18 +115,6 @@ class NativeJSAudioNode: public NativeJSExposer
                 uint64_t *datap;
                 size_t nbytes;
             } clone;
-        };
-
-        struct MessageCallback {
-            JSObject *callee;
-            const char *prop;
-            int *value;
-
-            MessageCallback(JSObject *callee, const char *prop, int *value)
-                : callee(callee), prop(prop), value(value) {};
-            ~MessageCallback() {
-                delete value;
-            }
         };
 
         // Common
@@ -135,9 +142,11 @@ class NativeJSAudioNode: public NativeJSExposer
 
         // Source node
         void *arrayContent;
-        static void sourceCbk(const struct TrackEvent *ev);
+        static void eventCbk(const struct NativeAVSourceEvent *cev);
 
         static void registerObject(JSContext *cx);
+    private : 
+        void add();
 };
 
 class NativeJSVideo : public NativeJSExposer
@@ -145,17 +154,25 @@ class NativeJSVideo : public NativeJSExposer
     public :
         NativeJSVideo(NativeJSAudio *audio, NativeSkia *nskia, JSContext *cx);
 
-        NativeVideo *video;
         JSObject *jsobj;
-        JSContext *cx;
+
+        NativeVideo *video;
         NativeJSAudio *jaudio;
-        NativeSkia *nskia;
+
+        JSObject *audioNode;
         void *arrayContent;
 
+        int width;
+        int height;
+
         static void registerObject(JSContext *cx);
-        static void frameCallback(int width, int height, uint8_t *data, void *custom);
+        static void frameCallback(uint8_t *data, void *custom);
+        static void eventCbk(const struct NativeAVSourceEvent *cev);
         
         ~NativeJSVideo();
+    private :
+        NativeSkia *nskia;
+        JSContext *cx;
 };
 
 #endif

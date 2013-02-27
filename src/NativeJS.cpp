@@ -656,7 +656,6 @@ NativeJS::~NativeJS()
     delete rootHandler;
 #endif
     //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
-    JS_EndRequest(cx);
 
     JS_EndRequest(cx);
 
@@ -742,6 +741,22 @@ static int Native_handle_messages(void *arg)
             }            
             delete ptr;
             break;
+            case NATIVE_AV_THREAD_MESSAGE_CALLBACK: {
+            NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg.dataPtr());
+            if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
+                !JSVAL_IS_PRIMITIVE(onmessage) &&
+                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+
+                if (cmsg->value != NULL) {
+                    jevent = INT_TO_JSVAL(*cmsg->value);
+                } else {
+                    jevent = JSVAL_NULL;
+                }
+                JS_CallFunctionValue(cx, cmsg->callee, onmessage, 1, &jevent, &rval);
+            }
+            delete cmsg;
+            break;
+            }
             default:break;
         }
     }
@@ -812,14 +827,14 @@ ReadCompleteFile(JSContext *cx, FILE *fp, FileContents &buffer)
     return true;
 }
 
-class AutoFile
+class NativeAutoFile
 {
     FILE *fp_;
   public:
-    AutoFile()
+    NativeAutoFile()
       : fp_(NULL)
     {}
-    ~AutoFile()
+    ~NativeAutoFile()
     {
         if (fp_ && fp_ != stdin)
             fclose(fp_);
@@ -838,7 +853,7 @@ class AutoFile
  * return value must be fclosed unless it is stdin.
  */
 bool
-AutoFile::open(JSContext *cx, const char *filename)
+NativeAutoFile::open(JSContext *cx, const char *filename)
 {
     if (!filename || strcmp(filename, "-") == 0) {
         fp_ = stdin;
@@ -858,7 +873,7 @@ static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
 {   
     JSObject *gbl = JS_GetGlobalObject(cx);
 
-    AutoFile file;
+    NativeAutoFile file;
     if (!file.open(cx, filename))
         return 0;
     FileContents buffer(cx);

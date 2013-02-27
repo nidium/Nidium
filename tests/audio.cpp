@@ -11,17 +11,6 @@
 // Compile with : 
 // g++ audio.cpp -D__STDC_CONSTANT_MACROS  -I../audio/ -L../audio/ -lnativeaudio -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../../portaudio/src/common/ ../../portaudio/src/common/pa_ringbuffer.o ../../portaudio/src/common/pa_converters.o ../../portaudio/src/common/pa_dither.o && ./audio
 // g++ audio.cpp -D__STDC_CONSTANT_MACROS  -I../audio/ -L../audio/ -L../third-party/ffmpeg/libavformat/ -L../third-party/ffmpeg/libavcodec/ -L../third-party/ffmpeg/libavutil/ -lnativeaudio -lavformat -lavcodec -lavutil -lz -lportaudio -lzita-resampler -o audio -I ../third-party/portaudio/src/common/ ../third-party/portaudio/src/common/pa_ringbuffer.o ../third-party/portaudio/src/common/pa_converters.o ../third-party/portaudio/src/common/pa_dither.o ../src/NativeSharedMessages.o && ./audio
-static void *thread_io(void *arg) {
-    NativeAudio *audio = (NativeAudio *)arg;
-    printf("Hello thread io\n");
-
-    // Using while / usleep to demonstrate purpose
-    // in Native, event system will be used
-    while (true) {
-        audio->bufferData();
-        usleep(100);
-    }
-}
 
 void load(const char *file, uint8_t *buffer, int bufferSize) {
     FILE *f = fopen(file, "r");

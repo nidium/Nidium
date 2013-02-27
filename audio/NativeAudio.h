@@ -54,6 +54,7 @@ class NativeAudio
         float *nullBuffer;
         NativeSharedMessages *sharedMsg;
         pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
+        pthread_mutex_t recurseLock;
         PaUtilRingBuffer *rBufferOut;
 
         static void *queueThread(void *args);
@@ -64,6 +65,7 @@ class NativeAudio
         int openInput();
 
         NativeAudioNodeTarget *output;
+        int tracksCount;
 
         NativeAudioTrack *addTrack(int out);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
@@ -95,7 +97,6 @@ class NativeAudio
         bool threadShutdown;
 
         NativeAudioTracks *tracks;
-        int tracksCount;
         int queueCount;
 
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,

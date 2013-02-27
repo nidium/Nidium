@@ -29,6 +29,7 @@ CPPFLAGS=-O2 -g  -Wall $(NATIVEFLAGS) -c -O2 -g -I../third-party/mozilla/js/src/
 				-I$(SKIA)/src/core			\
 				-I$(SKIA)/include/effects	\
 				-I$(SKIA)/include/utils/mac \
+				-I$(SKIA)/include/lazy 		\
 				-I../app 					\
 				-I../network 				\
 				-I../http-parser 			\
@@ -60,6 +61,7 @@ SOURCES=NativeJS.cpp 				\
 		NativeJSFileIO.cpp 			\
 		NativeStream.cpp 			\
 		NativeApp.cpp 				\
+		NativeJSAV.cpp 	../third-party/portaudio/src/common/pa_ringbuffer.o ../third-party/portaudio/src/common/pa_converters.o ../third-party/portaudio/src/common/pa_dither.o  \
 		NativeJSConsole.cpp
 
 ifeq ($(ENABLE_WEBGL), 1)
