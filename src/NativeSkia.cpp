@@ -394,7 +394,6 @@ int NativeSkia::bindGL(int width, int height)
     
     desc.fWidth = SkScalarRound(width);
     desc.fHeight = SkScalarRound(height);
-
     desc.fConfig = kSkia8888_GrPixelConfig;
     desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
 

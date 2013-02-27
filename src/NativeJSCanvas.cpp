@@ -5,6 +5,8 @@
 
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
 #define HANDLER_FROM_CALLEE ((class NativeCanvasHandler *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
+#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
 extern jsval gfunc;
 
@@ -36,7 +38,8 @@ enum {
     CANVAS_PROP_CONTENTHEIGHT,
     CANVAS_PROP_SCROLLTOP,
     CANVAS_PROP_SCROLLLEFT,
-    CANVAS_PROP___FIXED
+    CANVAS_PROP___FIXED,
+    CANVAS_PROP___OUTOFBOUND
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -75,6 +78,8 @@ static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
 static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -142,6 +147,8 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"__outofbound", CANVAS_PROP___OUTOFBOUND, JSPROP_PERMANENT | JSPROP_READONLY,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
@@ -163,6 +170,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getChildren", native_canvas_getChildren, 0, 0),
     JS_FN("setCoordinates", native_canvas_setCoordinates, 2, 0),
     JS_FN("translate", native_canvas_translate, 2, 0),
+    JS_FN("getVisibleRect", native_canvas_getVisibleRect, 0, 0),
     JS_FS_END
 };
 
@@ -276,6 +284,29 @@ static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(JS_NewArrayObject(cx, count, jlist)));
 
     free(jlist);
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeRect rect = HANDLER_FROM_CALLEE->getVisibleRect();
+    JSObject *ret;
+
+    ret = JS_NewObject(cx, NULL, NULL, NULL);
+
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+    
+    SET_PROP(ret, "left", DOUBLE_TO_JSVAL(rect.fLeft));
+    SET_PROP(ret, "top", DOUBLE_TO_JSVAL(rect.fTop));
+    SET_PROP(ret, "width", DOUBLE_TO_JSVAL(native_max(0, rect.fRight-rect.fLeft)));
+    SET_PROP(ret, "height", DOUBLE_TO_JSVAL(native_max(0, rect.fBottom-rect.fTop)));
+#undef SET_PROP
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
     return JS_TRUE;
 }
 
@@ -572,6 +603,11 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
                 break;
             }
             vp.set(OBJECT_TO_JSVAL(handler->context->jsobj));
+            break;
+        }
+        case CANVAS_PROP___OUTOFBOUND:
+        {
+            vp.set(BOOLEAN_TO_JSVAL(handler->isOutOfBound()));
             break;
         }
         default:

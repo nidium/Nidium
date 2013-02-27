@@ -110,6 +110,9 @@ class NativeCanvasHandler
         void computeAbsolutePosition();
         void computeContentSize(int *cWidth, int *cHeight);
         void translate(double x, double y);
+        bool isOutOfBound();
+        NativeRect getViewport();
+        NativeRect getVisibleRect();
 
         void bringToFront();
         void sendToBack();

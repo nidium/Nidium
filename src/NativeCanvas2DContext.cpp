@@ -1141,6 +1141,11 @@ void NativeCanvas2DContext::setSize(int width, int height)
     ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                 width, height, false);
 
+    if (ndev == NULL) {
+        printf("Cant create canvas\n");
+        return;
+    }
+
     ncanvas = new SkCanvas(ndev);
 
     ncanvas->drawBitmap(bt, 0, 0);

@@ -9,8 +9,8 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
-#define kNativeWidth 1280
-#define kNativeHeight 600
+#define kNativeWidth 1024
+#define kNativeHeight 700
 
 #define kNativeTitleBarHeight 0
 

@@ -6,6 +6,9 @@
 #include <jsapi.h>
 #include <js/GCAPI.h>
 
+#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
+#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
+
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     opacity(1.0), overflow(true),
@@ -25,7 +28,6 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     this->content.scrollLeft = 0;
     this->content.scrollTop = 0;
 }
-
 
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
 {
@@ -346,6 +348,63 @@ void NativeCanvasHandler::computeAbsolutePosition()
     this->a_top = ctop;
     this->a_left = cleft;
 
+}
+
+bool NativeCanvasHandler::isOutOfBound()
+{
+    if (!this->parent) {
+        return false;
+    }
+
+    NativeCanvasHandler *cur;
+
+    for (cur = this->parent; cur != NULL; cur = cur->parent) {
+        if (!cur->overflow) {
+            
+            cur->computeAbsolutePosition();
+            this->computeAbsolutePosition();
+
+            return (this->a_left+this->width <= cur->a_left ||
+                this->a_top+this->height <= cur->a_top
+                || this->a_left >= cur->a_left + cur->width ||
+                this->a_top >= cur->a_top + cur->height);
+        }
+    }
+
+    return false;
+}
+
+NativeRect NativeCanvasHandler::getViewport()
+{
+    NativeCanvasHandler *cur;
+
+    for (cur = this->parent; cur != NULL; cur = cur->parent) {
+        if (!cur->parent) break;
+
+        if (!cur->overflow) {
+            
+            cur->computeAbsolutePosition();
+
+            return {cur->a_left, cur->a_top,
+                cur->a_top+cur->height, cur->a_left+cur->width};
+        }
+    }
+    if (!cur) cur = this;
+
+    return {cur->left, cur->top, cur->top+cur->height, cur->left+cur->width};
+}
+
+NativeRect NativeCanvasHandler::getVisibleRect()
+{
+    NativeRect vp = this->getViewport();
+    this->computeAbsolutePosition();
+
+    return {
+        .fLeft   = native_min(native_max(this->a_left, vp.fLeft), vp.fRight),
+        .fTop    = native_min(native_max(this->a_top, vp.fTop), vp.fBottom),
+        .fBottom = native_min(this->a_top+this->height, vp.fBottom),
+        .fRight  = native_min(this->a_left+this->width, vp.fRight)
+    };
 }
 
 void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
