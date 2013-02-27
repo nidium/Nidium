@@ -549,16 +549,16 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(INT_TO_JSVAL(handler->padding.global));
             break;
         case CANVAS_PROP_LEFT:
-            vp.set(DOUBLE_TO_JSVAL(handler->left));
+            vp.set(DOUBLE_TO_JSVAL(handler->getLeft()));
             break;
         case CANVAS_PROP_CLIENTLEFT:
-            vp.set(INT_TO_JSVAL(handler->left - handler->padding.global));
+            vp.set(INT_TO_JSVAL(handler->getLeft() - handler->padding.global));
             break;
         case CANVAS_PROP_TOP:
-            vp.set(DOUBLE_TO_JSVAL(handler->top));
+            vp.set(DOUBLE_TO_JSVAL(handler->getTop()));
             break;
         case CANVAS_PROP_CLIENTTOP:
-            vp.set(INT_TO_JSVAL(handler->top - handler->padding.global));
+            vp.set(INT_TO_JSVAL(handler->getTop() - handler->padding.global));
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
@@ -587,13 +587,13 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP___TOP:
         {
             handler->computeAbsolutePosition();
-            vp.set(DOUBLE_TO_JSVAL(handler->a_top));
+            vp.set(DOUBLE_TO_JSVAL(handler->getTop(true)));
             break;
         }
         case CANVAS_PROP___LEFT:
         {
             handler->computeAbsolutePosition();
-            vp.set(DOUBLE_TO_JSVAL(handler->a_left));
+            vp.set(DOUBLE_TO_JSVAL(handler->getLeft(true)));
             break;
         }
         case CANVAS_PROP_CTX:

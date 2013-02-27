@@ -270,7 +270,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         printf( "Can't init SDL:  %s\n", SDL_GetError( ));
         return false;
     }
-
+    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, true );
+    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 4 );
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );

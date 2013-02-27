@@ -11,6 +11,7 @@
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
+    right(0.0), bottom(0.0),
     opacity(1.0), overflow(true),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
@@ -225,8 +226,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         /*
             Set the absolute position
         */
-        this->a_left = cleft + this->left + this->translate_s.x;
-        this->a_top = ctop + this->top + this->translate_s.y;
+        this->a_left = cleft + this->getLeft() + this->translate_s.x;
+        this->a_top = ctop + this->getTop() + this->translate_s.y;
 
         /*
             draw current context on top of the root layer
@@ -278,8 +279,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
                 offsetTop  = -this->content.scrollTop;
             }
             cur->layerize(layer,
-                    this->left + this->translate_s.x + pleft + offsetLeft,
-                    this->top + this->translate_s.y + ptop + offsetTop,
+                    this->getLeft() + this->translate_s.x + pleft + offsetLeft,
+                    this->getTop() + this->translate_s.y + ptop + offsetTop,
                     popacity, clip);
 
             /* restore the old clip (layerize could have altered it) */
@@ -326,17 +327,17 @@ bool NativeCanvasHandler::isDisplayed() const
 void NativeCanvasHandler::computeAbsolutePosition()
 {
     if (this->coordPosition == COORD_ABSOLUTE) {
-        this->a_top = this->top;
-        this->a_left = this->left;
+        this->a_top = this->getTop();
+        this->a_left = this->getLeft();
         return;
     }
 
-    double ctop = top, cleft = left;
+    double ctop = this->getTop(), cleft = this->getLeft();
     NativeCanvasHandler *cparent = this->parent;
 
     while (cparent != NULL) {
-        ctop += cparent->top - cparent->content.scrollTop;
-        cleft += cparent->left - cparent->content.scrollLeft;
+        ctop += cparent->getTop() - cparent->content.scrollTop;
+        cleft += cparent->getLeft() - cparent->content.scrollLeft;
 
         if (cparent->coordPosition == COORD_ABSOLUTE) {
             break;
@@ -364,10 +365,10 @@ bool NativeCanvasHandler::isOutOfBound()
             cur->computeAbsolutePosition();
             this->computeAbsolutePosition();
 
-            return (this->a_left+this->width <= cur->a_left ||
-                this->a_top+this->height <= cur->a_top
-                || this->a_left >= cur->a_left + cur->width ||
-                this->a_top >= cur->a_top + cur->height);
+            return (this->getLeft(true)+this->width <= cur->getLeft(true) ||
+                this->getTop(true)+this->height <= cur->getTop(true)
+                || this->getLeft(true) >= cur->getLeft(true) + cur->width ||
+                this->getTop(true) >= cur->getTop(true) + cur->height);
         }
     }
 
@@ -385,13 +386,14 @@ NativeRect NativeCanvasHandler::getViewport()
             
             cur->computeAbsolutePosition();
 
-            return {cur->a_left, cur->a_top,
-                cur->a_top+cur->height, cur->a_left+cur->width};
+            return {cur->getLeft(true), cur->getTop(true),
+                cur->getTop(true)+cur->height, cur->getLeft(true)+cur->width};
         }
     }
     if (!cur) cur = this;
 
-    return {cur->left, cur->top, cur->top+cur->height, cur->left+cur->width};
+    return {cur->getLeft(), cur->getTop(),
+        cur->getTop()+cur->height, cur->getLeft()+cur->width};
 }
 
 NativeRect NativeCanvasHandler::getVisibleRect()
@@ -400,10 +402,10 @@ NativeRect NativeCanvasHandler::getVisibleRect()
     this->computeAbsolutePosition();
 
     return {
-        .fLeft   = native_min(native_max(this->a_left, vp.fLeft), vp.fRight),
-        .fTop    = native_min(native_max(this->a_top, vp.fTop), vp.fBottom),
-        .fBottom = native_min(this->a_top+this->height, vp.fBottom),
-        .fRight  = native_min(this->a_left+this->width, vp.fRight)
+        .fLeft   = native_min(native_max(this->getLeft(true), vp.fLeft), vp.fRight),
+        .fTop    = native_min(native_max(this->getTop(true), vp.fTop), vp.fBottom),
+        .fBottom = native_min(this->getTop(true)+this->height, vp.fBottom),
+        .fRight  = native_min(this->getLeft(true)+this->width, vp.fRight)
     };
 }
 
@@ -428,11 +430,11 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
 
             cur->computeContentSize(&retWidth, &retHeight);
 
-            if (retWidth + cur->left > this->content.width) {
-                this->content.width = retWidth + cur->left;
+            if (retWidth + cur->getLeft() > this->content.width) {
+                this->content.width = retWidth + cur->getLeft();
             }
-            if (retHeight + cur->top > this->content.height) {
-                this->content.height = retHeight + cur->top;
+            if (retHeight + cur->getTop() > this->content.height) {
+                this->content.height = retHeight + cur->getTop();
             }
         }
     }
@@ -475,8 +477,8 @@ int32_t NativeCanvasHandler::countChildren() const
 
 bool NativeCanvasHandler::containsPoint(double x, double y) const
 {
-    return (x >= a_left && x <= a_left+width &&
-            y >= a_top && y <= a_top+height);
+    return (x >= getLeft(true) && x <= getLeft(true)+width &&
+            y >= getTop(true) && y <= getTop(true)+height);
 }
 
 void NativeCanvasHandler::unrootHierarchy()

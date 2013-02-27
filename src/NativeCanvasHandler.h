@@ -67,7 +67,7 @@ class NativeCanvasHandler
             left and top are relative to parent
             a_left and a_top are relative to the root layer
         */
-        double left, top, a_left, a_top;
+        double left, top, a_left, a_top, right, bottom;
 
         struct {
             double top;
@@ -95,6 +95,22 @@ class NativeCanvasHandler
 
         double opacity;
         bool overflow;
+
+        double getLeft(bool absolute = false) const {
+            return (absolute ? this->a_left : this->left);
+        }
+        double getTop(bool absolute = false) const {
+            return (absolute ? this->a_top : this->top);
+        }
+        double getRight() const {
+            return this->right;
+        }
+        double getWidth() const {
+            return this->width;
+        }
+        double getHeight() const {
+            return this->height;
+        }
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();

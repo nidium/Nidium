@@ -288,12 +288,15 @@ void NativeSkia::initPaints()
 
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
+    PAINT->setDither(true);
+    PAINT->setLCDRenderText(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
     PAINT->setFilterBitmap(false);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
+    PAINT->setHinting(SkPaint::kFull_Hinting);
 
     paint_system = new SkPaint;
 
