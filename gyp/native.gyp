@@ -89,6 +89,7 @@
                     'GR_RELEASE=1',
                     'DEBUG',
                     '_DEBUG',
+                    '__STDC_CONSTANT_MACROS'
                 ],
                 'cflags': [
                     '-fvisibility=hidden',
