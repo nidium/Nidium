@@ -1142,7 +1142,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
                                 width, height, false);
 
     if (ndev == NULL) {
-        printf("Cant create canvas\n");
+        printf("Cant create canvas of size %dx%d\n", width, height);
         return;
     }
 

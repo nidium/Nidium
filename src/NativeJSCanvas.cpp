@@ -17,6 +17,8 @@ enum {
     /* relative positions */
     CANVAS_PROP_TOP,
     CANVAS_PROP_LEFT,
+    CANVAS_PROP_RIGHT,
+    CANVAS_PROP_BOTTOM,
     /* .show()/.hide() */
     CANVAS_PROP_VISIBLE,
     /* Element is going to be drawn */
@@ -131,6 +133,12 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"right", CANVAS_PROP_RIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"bottom", CANVAS_PROP_BOTTOM, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
@@ -437,21 +445,57 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_LEFT:
         {
             double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetLeft();
+                return JS_TRUE;
+            }
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, vp, &dval);
-            handler->left = dval;
+            handler->setLeft(dval);
+        }
+        break;
+        case CANVAS_PROP_RIGHT:
+        {
+            double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetRight();
+                return JS_TRUE;
+            }
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setRight(dval);
         }
         break;
         case CANVAS_PROP_TOP:
         {
             double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetTop();
+                return JS_TRUE;
+            }
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, vp, &dval);
-            handler->top = dval;
+            handler->setTop(dval);
+        }
+        break;
+        case CANVAS_PROP_BOTTOM:
+        {
+            double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetBottom();
+                return JS_TRUE;
+            }
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setBottom(dval);
         }
         break;
         case CANVAS_PROP_SCROLLLEFT:
@@ -534,22 +578,28 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(DOUBLE_TO_JSVAL(handler->opacity));
             break;
         case CANVAS_PROP_WIDTH:
-            vp.set(INT_TO_JSVAL(handler->width));
+            vp.set(INT_TO_JSVAL(handler->getWidth()));
             break;
         case CANVAS_PROP_CLIENTWIDTH:
-            vp.set(INT_TO_JSVAL(handler->width + (handler->padding.global * 2)));
+            vp.set(INT_TO_JSVAL(handler->getWidth() + (handler->padding.global * 2)));
             break;
         case CANVAS_PROP_HEIGHT:
-            vp.set(INT_TO_JSVAL(handler->height));
+            vp.set(INT_TO_JSVAL(handler->getHeight()));
             break;
         case CANVAS_PROP_CLIENTHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->height + (handler->padding.global * 2)));
+            vp.set(INT_TO_JSVAL(handler->getHeight() + (handler->padding.global * 2)));
             break;
         case CANVAS_PROP_PADDING:
             vp.set(INT_TO_JSVAL(handler->padding.global));
             break;
         case CANVAS_PROP_LEFT:
             vp.set(DOUBLE_TO_JSVAL(handler->getLeft()));
+            break;
+        case CANVAS_PROP_RIGHT:
+            vp.set(DOUBLE_TO_JSVAL(handler->getRight()));
+            break;
+        case CANVAS_PROP_BOTTOM:
+            vp.set(DOUBLE_TO_JSVAL(handler->getBottom()));
             break;
         case CANVAS_PROP_CLIENTLEFT:
             vp.set(INT_TO_JSVAL(handler->getLeft() - handler->padding.global));

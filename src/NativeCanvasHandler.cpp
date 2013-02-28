@@ -15,7 +15,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     opacity(1.0), overflow(true),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
-    visibility(CANVAS_VISIBILITY_VISIBLE)
+    visibility(CANVAS_VISIBILITY_VISIBLE),
+    coordMode(kLeft_Coord | kTop_Coord)
 {
     this->width = width;
     this->height = height;
@@ -28,6 +29,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     this->content.height = height;
     this->content.scrollLeft = 0;
     this->content.scrollTop = 0;
+
+    this->coordMode = kLeft_Coord | kTop_Coord;
 }
 
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
@@ -51,6 +54,8 @@ void NativeCanvasHandler::setWidth(int width)
     if (context) {
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
+
+        updateChildrenSize();
     }
 }
 
@@ -63,6 +68,8 @@ void NativeCanvasHandler::setHeight(int height)
     if (context) {
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
+
+        updateChildrenSize();
     }
 }
 
@@ -74,6 +81,17 @@ void NativeCanvasHandler::setSize(int width, int height)
     if (context) {
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
+
+        updateChildrenSize();
+    }
+}
+
+void NativeCanvasHandler::updateChildrenSize()
+{
+    NativeCanvasHandler *cur;
+
+    for (cur = children; cur != NULL; cur = cur->next) {
+        cur->setSize(cur->getWidth(), cur->getHeight());
     }
 }
 
@@ -195,7 +213,6 @@ void NativeCanvasHandler::removeFromParent()
     prev = NULL;
 
 }
-
 
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     double pleft, double ptop, double aopacity, NativeRect *clip)
@@ -412,8 +429,8 @@ NativeRect NativeCanvasHandler::getVisibleRect()
 void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
 {
     NativeCanvasHandler *cur;
-    this->content.width = width;
-    this->content.height = height;
+    this->content.width = this->getWidth();
+    this->content.height = this->getHeight();
 
     /* don't go further if it doesn't overflow (and not the requested handler) */
     if (!this->overflow && cWidth && cHeight) {

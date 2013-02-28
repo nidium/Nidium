@@ -2,6 +2,8 @@
 #define nativecanvashandler_h__
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 class NativeSkia;
 class NativeCanvas2DContext;
@@ -42,6 +44,13 @@ class NativeCanvasHandler
 {
     public:
         friend class NativeSkia;
+
+        enum COORD_MODE {
+            kLeft_Coord   = 1 << 0,
+            kRight_Coord  = 1 << 1,
+            kTop_Coord    = 1 << 2,
+            kBottom_Coord = 1 << 3
+        };
 
         enum Position {
             POSITION_FRONT,
@@ -97,26 +106,120 @@ class NativeCanvasHandler
         bool overflow;
 
         double getLeft(bool absolute = false) const {
-            return (absolute ? this->a_left : this->left);
+            if (absolute) return a_left;
+
+            if (!(coordMode & kLeft_Coord)) {
+                return this->parent->getWidth() - (this->width + this->right);
+            }
+
+            return this->left;
         }
         double getTop(bool absolute = false) const {
-            return (absolute ? this->a_top : this->top);
+            if (absolute) return a_top;
+
+            if (!(coordMode & kTop_Coord)) {
+                return this->parent->getHeight() - (this->height + this->bottom);
+            }
+
+            return this->top;
         }
         double getRight() const {
             return this->right;
         }
-        double getWidth() const {
-            return this->width;
+        double getBottom() const {
+            return this->bottom;
         }
+
+        double getWidth() const {
+            if (hasFixedWidth()) {
+                return this->width;
+            }
+            if (parent == NULL) return 0.;
+
+            double pwidth = parent->getWidth();
+
+            if (pwidth == 0) return 0.;
+
+            return pwidth - this->getLeft() - this->getRight();
+        }
+
         double getHeight() const {
-            return this->height;
+            if (hasFixedHeight()) {
+                return this->height;
+            }
+            if (parent == NULL) return 0.;
+
+            double pheight = parent->getHeight();
+
+            if (pheight == 0) return 0.;
+
+            return pheight - this->getTop() - this->getBottom();
+        }
+
+        bool hasFixedWidth() const {
+            return !((coordMode & (kLeft_Coord | kRight_Coord))
+                    == (kLeft_Coord|kRight_Coord));
+        }
+
+        bool hasFixedHeight() const {
+            return !((coordMode & (kTop_Coord | kBottom_Coord))
+                    == (kTop_Coord|kBottom_Coord));
+        }        
+
+        void unsetLeft() {
+            coordMode &= ~kLeft_Coord;
+        }
+
+        void unsetRight() {
+            coordMode &= ~kRight_Coord;
+        }
+
+        void unsetTop() {
+            coordMode &= ~kTop_Coord;
+        }
+
+        void unsetBottom() {
+            coordMode &= ~kBottom_Coord;
+        }
+
+        void setLeft(double val) {
+            coordMode |= kLeft_Coord;
+            this->left = val;
+            if (!hasFixedWidth()) {
+                setSize(this->getWidth(), this->height);
+            }
+        }
+        void setRight(double val) {
+            coordMode |= kRight_Coord;
+            this->right = val; 
+            if (!hasFixedWidth()) {
+                setSize(this->getWidth(), this->height);
+            }          
+        }
+
+        void setTop(double val) {
+            coordMode |= kTop_Coord;
+            this->top = val;
+            if (!hasFixedHeight()) {
+                setSize(this->width, this->getHeight());
+            }            
+        }
+
+        void setBottom(double val) {
+            coordMode |= kBottom_Coord;
+            this->bottom = val;
+            if (!hasFixedHeight()) {
+                setSize(this->width, this->getHeight());
+            }            
         }
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
 
         void unrootHierarchy();
+
         void setWidth(int width);
+        void updateChildrenSize();
         void setHeight(int height);
         void setSize(int width, int height);
         void setPadding(int padding);
@@ -164,6 +267,7 @@ class NativeCanvasHandler
 
         COORD_POSITION coordPosition;
         Visibility visibility;
+        unsigned coordMode : 16;
 };
 
 #endif
