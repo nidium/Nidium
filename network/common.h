@@ -16,7 +16,7 @@
 #ifdef _MSC_VER
   #include <ares.h>
 #else
-  #include "../c-ares/ares.h"
+  #include "ares.h"
 #endif
 #define APE_BASEMEM 4096
 
