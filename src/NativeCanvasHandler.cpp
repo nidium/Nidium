@@ -45,9 +45,13 @@ void NativeCanvasHandler::translate(double x, double y)
     this->translate_s.y += y;
 }
 
-void NativeCanvasHandler::setWidth(int width)
+bool NativeCanvasHandler::setWidth(int width)
 {
     if (width < 1) width = 1;
+
+    if (!this->hasFixedWidth()) {
+        return false;
+    }
 
     this->width = width;
 
@@ -55,13 +59,19 @@ void NativeCanvasHandler::setWidth(int width)
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
 
-        updateChildrenSize();
+        updateChildrenSize(true, false);
     }
+
+    return true;
 }
 
-void NativeCanvasHandler::setHeight(int height)
+bool NativeCanvasHandler::setHeight(int height)
 {
     if (height < 1) height = 1;
+
+    if (!this->hasFixedHeight()) {
+        return false;
+    }
 
     this->height = height;
 
@@ -69,8 +79,10 @@ void NativeCanvasHandler::setHeight(int height)
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
 
-        updateChildrenSize();
+        updateChildrenSize(false, true);
     }
+
+    return true;
 }
 
 void NativeCanvasHandler::setSize(int width, int height)
@@ -82,16 +94,30 @@ void NativeCanvasHandler::setSize(int width, int height)
         context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
 
-        updateChildrenSize();
+        updateChildrenSize(true, true);
     }
 }
 
-void NativeCanvasHandler::updateChildrenSize()
+void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 {
     NativeCanvasHandler *cur;
 
     for (cur = children; cur != NULL; cur = cur->next) {
-        cur->setSize(cur->getWidth(), cur->getHeight());
+        bool updateWidth = false, updateHeight = false;
+
+        if (width && !cur->hasFixedWidth()) {
+            updateWidth = true;
+        }
+        if (height && !cur->hasFixedHeight()) {
+            updateHeight = true;
+        }
+
+        if (!updateHeight && !updateWidth) {
+            continue;
+        }
+
+        cur->setSize(updateWidth ? cur->getWidth() : cur->width,
+            updateHeight ? cur->getHeight() : cur->height);
     }
 }
 
@@ -229,6 +255,9 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         Fill the root layer with white
         This is the base surface on top of the window frame buffer
     */
+    int tmpLeft = this->getLeft();
+    int tmpTop = this->getTop();
+
     if (layer == NULL) {
         layer = this;
         context->clear(0xFFFFFFFF);
@@ -243,8 +272,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         /*
             Set the absolute position
         */
-        this->a_left = cleft + this->getLeft() + this->translate_s.x;
-        this->a_top = ctop + this->getTop() + this->translate_s.y;
+        this->a_left = cleft + tmpLeft + this->translate_s.x;
+        this->a_top = ctop + tmpTop + this->translate_s.y;
 
         /*
             draw current context on top of the root layer
@@ -296,8 +325,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
                 offsetTop  = -this->content.scrollTop;
             }
             cur->layerize(layer,
-                    this->getLeft() + this->translate_s.x + pleft + offsetLeft,
-                    this->getTop() + this->translate_s.y + ptop + offsetTop,
+                    tmpLeft + this->translate_s.x + pleft + offsetLeft,
+                    tmpTop + this->translate_s.y + ptop + offsetTop,
                     popacity, clip);
 
             /* restore the old clip (layerize could have altered it) */

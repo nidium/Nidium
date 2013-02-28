@@ -428,7 +428,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
-            handler->setWidth(dval);
+            if (!handler->setWidth(dval)) {
+                JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
+                return JS_FALSE;
+            }
         }
         break;
         case CANVAS_PROP_HEIGHT:
@@ -439,7 +442,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
             
-            handler->setHeight(dval);
+            if (!handler->setHeight(dval)) {
+                JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
+                return JS_FALSE;
+            }
         }
         break;
         case CANVAS_PROP_LEFT:

@@ -194,7 +194,7 @@ class NativeCanvasHandler
             this->right = val; 
             if (!hasFixedWidth()) {
                 setSize(this->getWidth(), this->height);
-            }          
+            }
         }
 
         void setTop(double val) {
@@ -218,9 +218,9 @@ class NativeCanvasHandler
 
         void unrootHierarchy();
 
-        void setWidth(int width);
-        void updateChildrenSize();
-        void setHeight(int height);
+        bool setWidth(int width);
+        bool setHeight(int height);
+        void updateChildrenSize(bool width, bool height);
         void setSize(int width, int height);
         void setPadding(int padding);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
