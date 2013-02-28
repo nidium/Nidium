@@ -3,9 +3,9 @@
 #import <NativeJS.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
-#import <SDL2/SDL.h>
-#import <SDL2/SDL_opengl.h>
-#import <SDL2/SDL_syswm.h>
+#import <SDL.h>
+#import <SDL_opengl.h>
+#import <SDL_syswm.h>
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
@@ -324,7 +324,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     glViewport(0, 0, width, height);
 
-    NJS = new NativeJS(kNativeWidth, kNativeHeight);
     gnet = native_netlib_init();
     NJS = new NativeJS(width, height, this, gnet);
 
