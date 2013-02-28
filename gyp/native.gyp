@@ -27,6 +27,7 @@
             '<(third_party_path)/libzip/lib',
             #-I../third-party/portaudio/src/common/
             '<(third_party_path)/jsoncpp/include',
+            '<(third_party_path)/ffmpeg/',
         ],
         'conditions': [
             ['OS=="mac"', {
@@ -50,6 +51,8 @@
                     'GR_RELEASE=1',
                     'TRACING',
                     'JS_THREADSAFE',
+                    'DEBUG',
+                    '_DEBUG',
                 ],
 				'xcode_settings': {
 					'OTHER_CFLAGS': [

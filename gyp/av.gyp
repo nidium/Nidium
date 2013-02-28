@@ -13,21 +13,6 @@
         'defines': [
             '__STDC_CONSTANT_MACROS'
         ],
-        'conditions': [
-            [ 
-			'OS=="mac"', {
-				'xcode_settings': {
-					'ARCHS': [
-						'x86_64',
-					],
-					'OTHER_CFLAGS': [
-						'-v',
-                        '-stdlib=libc++'
-					],
-				},
-			}
-            ],
-        ],
         'sources': [
             '<(native_av_path)NativeAV.cpp',
             '<(native_av_path)NativeAudioNode.cpp',

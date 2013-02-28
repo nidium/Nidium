@@ -10,10 +10,20 @@
                     '-v',
                     '-stdlib=libc++'
                 ],
+                'MACOSX_DEPLOYMENT_TARGET': [
+                    '10.7'
+                ],
+                'SDKROOT': [
+                    'macosx10.7'
+                ]
             },
         }],
     ],
     'target_defaults': {
+        
+        'include_dirs': [
+            '<(third_party_path)/c-ares/',
+        ],
         'default_configuration': 'Release',
             'configurations': {
                 'Debug': {

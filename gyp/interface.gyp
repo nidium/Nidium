@@ -7,6 +7,8 @@
             '../network/',
             '../third-party/jsoncpp/include/',
             '../third-party/libzip/lib/',
+            '<(third_party_path)/SDL/include/',
+            '<(third_party_path)/c-ares/',
             '<(native_interface_path)/',
         ],
         'conditions': [
@@ -22,7 +24,6 @@
                 ],
                 'include_dirs': [
                     '<(native_interface_path)/linux/',
-                    '../third-party/SDL/include/',
                 ],
                 'cflags': [
                     '-fvisibility=hidden',
