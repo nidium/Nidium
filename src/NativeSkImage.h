@@ -27,6 +27,7 @@ class NativeSkImage
 
     int getWidth();
     int getHeight();
+    void shiftHue(int val);
 };
 
 #endif

@@ -10,6 +10,8 @@
 #include "SkColorPriv.h"
 #include "SkUnPreMultiply.h"
 
+#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
+#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
 #if 0
 static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
@@ -74,6 +76,27 @@ int NativeSkImage::getWidth()
 int NativeSkImage::getHeight()
 {
 	return img->height();
+}
+
+void NativeSkImage::shiftHue(int val)
+{
+    if (!img) return;
+
+    size_t size = img->getSize() >> img->shiftPerPixel();
+
+    SkColor *pixels = (SkColor *)img->getPixels();
+
+    for (int i = 0; i < size; i++) {
+        SkColor pixel = pixels[i];
+        SkScalar hsv[3];
+        SkColorToHSV(pixel, hsv);
+
+        hsv[0] += native_min(native_max(SkIntToScalar(val), 0), 360);
+
+        pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
+    }
+
+    img->notifyPixelsChanged();
 }
 
 #if 0

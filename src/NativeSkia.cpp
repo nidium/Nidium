@@ -1222,10 +1222,11 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     bt.setPixels(PMPixels);
     r.setXYWH(x, y, width, height);
 
+    pt.setFilterBitmap(PAINT->isFilterBitmap());
     canvas->saveLayer(NULL, NULL);
         canvas->clipRect(r, SkRegion::kReplace_Op);
         canvas->drawColor(SK_ColorWHITE);
-        canvas->drawBitmap(bt, x, y);
+        canvas->drawBitmap(bt, x, y, &pt);
     canvas->restore();
 }
 

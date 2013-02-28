@@ -7,8 +7,10 @@
 JSObject *NativeJSImage::classe = NULL;
 
 #define NATIVE_IMAGE_GETTER(obj) ((class NativeJSImage *)JS_GetPrivate(obj))
+#define IMAGE_FROM_CALLEE ((class NativeJSImage *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
+static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -25,6 +27,26 @@ static JSPropertySpec Image_props[] = {
     	JSOP_WRAPPER(native_image_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
+
+static JSFunctionSpec Image_funcs[] = {
+    JS_FN("shiftHue", native_image_shiftHue, 1, 0),
+    JS_FS_END
+};
+
+static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSImage *nimg = IMAGE_FROM_CALLEE;
+    int val;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &val)) {
+        return JS_TRUE;
+    }
+    if (nimg->img) {
+        nimg->img->shiftHue(val);
+    }
+    return JS_TRUE;
+}
+
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
@@ -91,6 +113,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
+    JS_DefineFunctions(cx, ret, Image_funcs);
 
     return JS_TRUE;
 }
@@ -141,6 +164,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         JS_CallFunctionValue(cx, jsobj, onload_callback,
             0, NULL, &rval);
     }
+
     NativeJSObj(cx)->unrootObject(jsobj);
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
