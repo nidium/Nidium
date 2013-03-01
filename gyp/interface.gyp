@@ -5,9 +5,9 @@
         'include_dirs': [
             '../src/',
             '../network/',
-            '../third-party/jsoncpp/include/',
-            '../third-party/libzip/lib/',
-            '<(third_party_path)/SDL/include/',
+            '<(third_party_path)/jsoncpp/include/',
+            '<(third_party_path)/libzip/lib/',
+            '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/c-ares/',
             '<(native_interface_path)/',
         ],

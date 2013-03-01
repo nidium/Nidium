@@ -1,5 +1,9 @@
 #!/bin/bash -e
 
+
+# Invocation example
+#./deps.sh --os=linux --autoconf=/usr/bin/autoconf2.13  --output=../out/ --build=release
+
 #Process the arguments
 for i in "$@"
 do
@@ -22,6 +26,24 @@ case $i in
 esac
 done
 
+if [[ ! $OS ]]; then
+    echo "You must specify --os"
+    exit
+fi
+if [[ ! $AUTOCONF ]]; then
+    echo "You must specify --autoconf"
+    exit
+fi
+if [[ ! $OUTPUT ]]; then
+    echo "You must specify --ouput"
+    exit
+fi
+if [[ ! $BUILD ]]; then
+    echo "You must specify --build"
+    exit
+fi
+
+
 LIBS_DIR=$OUTPUT/third-party-libs/.libs/
 OUTPUT_DIR=$OUTPUT/third-party-libs/$BUILD/
 
@@ -41,7 +63,8 @@ else
     NBCPU=`sysctl -n hw.ncpu`
 fi
 
-AUTOCONF=/usr/bin/autoconf2.13
+
+DEPS_URL="http://deps.nativejs.org/"
 
 # Download everything
 
@@ -49,7 +72,7 @@ if [ -d "mozilla-central" ]; then
     echo "mozilla-central already downloaded"
 else 
     echo "Downloading mozilla central..."
-    curl http://hg.mozilla.org/mozilla-central/archive/tip.tar.bz2 | tar xj
+    curl $DEPS_URL/mozilla-central.bz2 | tar xj
     mv `ls |grep mozilla-*` mozilla-central
 fi
 
@@ -57,7 +80,7 @@ if [ -d "SDL2" ]; then
     echo "SDL2 already downloaded"
 else 
     echo "Downloading SDL2 ... "
-    curl http://www.libsdl.org/tmp/SDL-2.0.tar.gz | tar zx
+    curl $DEPS_URL/SDL-2.0.tar.gz | tar zx
     mv `ls |grep SDL-2*` SDL2
 fi
 
@@ -65,50 +88,52 @@ if [ -d "skia" ]; then
     echo "Skia already downloaded..."
 else
     echo "Downloading skia..."
-    svn checkout http://skia.googlecode.com/svn/trunk skia
+    curl $DEPS_URL/skia.tar.gz | tar zx
 fi
 
 if [ -d "jsoncpp" ]; then
     echo "jsoncpp already downloaded"
 else
     echo "Downloading jsoncpp... "
-    curl "http://switch.dl.sourceforge.net/project/jsoncpp/jsoncpp/0.5.0/jsoncpp-src-0.5.0.tar.gz" |tar zx
+    curl $DEPS_URL/jsoncpp-src-0.5.0.tar.gz |tar zx
     mv `ls |grep jsoncpp-src*` jsoncpp
+    echo "Downloading scons... "
+    curl $DEPS_URL/2.2.0/scons-local-2.2.0.tar.gz | tar zx
 fi
 
 if [ -d "c-ares" ]; then
     echo "c-ares already downloaded"
 else
     echo "Download c-ares..."
-    curl http://c-ares.haxx.se/download/c-ares-1.9.1.tar.gz | tar zx && mv c-ares-1.9.1 c-ares
+    curl $DEPS_URL/c-ares-1.9.1.tar.gz | tar zx && mv c-ares-1.9.1 c-ares
 fi
 
 if [ -d "libzip" ]; then
     echo "libzip already downloaded"
 else
     echo "Downloading libzip..."
-    curl http://www.nih.at/libzip/libzip-0.10.1.tar.bz2 | tar xj && mv libzip-0.10.1 libzip
+    curl $DEPS_URL/libzip-0.10.1.tar.bz2 | tar xj && mv libzip-0.10.1 libzip
 fi
 
 if [ -d "ffmpeg" ]; then
     echo "ffmpeg already downloaded"
 else
     echo "Downloading ffmpeg..."
-    curl http://www.ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 | tar xj 
+    curl $DEPS_URL/ffmpeg-snapshot.tar.bz2 | tar xj 
 fi
 
 if [ -d "portaudio" ]; then
     echo "portaudio already downloaded"
 else
     echo "Downloading portaudio..."
-    curl http://www.portaudio.com/archives/pa_stable_v19_20111121.tgz |tar zx
+    curl $DEPS_URL/pa_stable_v19_20111121.tgz |tar zx
 fi
 
 if [ -d "zita-resampler" ]; then
     echo "zita-resampler already downloaded"
 else
     echo "Downloading zita-resampler..."
-    curl http://kokkinizita.linuxaudio.org/linuxaudio/downloads/zita-resampler-1.3.0.tar.bz2 |tar xj && mv zita-resampler-1.3.0 zita-resampler
+    curl $DEPS_URL/zita-resampler-1.3.0.tar.bz2 |tar xj && mv zita-resampler-1.3.0 zita-resampler
     echo "Patching zita-resampler Makefile..."
     patch -p0 < zita.patch
 fi
@@ -154,14 +179,14 @@ else
     make tests BUILDTYPE=Release -j$NBCPU
 fi
 
-if [ -e $LIBS_DIR/libjson_linux-gcc-4.6_libmt.a ]; then
+if [ -e $LIBS_DIR/libjsoncpp.a ]; then
     echo "jsoncpp already build"
 else
     cd jsoncpp/
-    echo "Downloading scons... "
-    curl "http://freefr.dl.sourceforge.net/project/scons/scons-local/2.2.0/scons-local-2.2.0.tar.gz" | tar zx
     echo "Running scons and building jsoncpp..."
     python scons.py platform=linux-gcc
+    JSONCPP_DIR=libs/`ls -1 libs/ |grep linux-gcc`
+    JSONCPP_LIB=`ls -1 $JSONCPP_DIR/libjson_linux-gcc-*_libmt.a`
     cd ../
 fi
 
@@ -222,59 +247,140 @@ else
 fi
 
 echo "Copying library to output dir"
-cp ./ffmpeg/libavcodec/libavcodec.a $LIBS_DIR 
-cp ./ffmpeg/libswresample/libswresample.a $LIBS_DIR 
-cp ./ffmpeg/libavutil/libavutil.a $LIBS_DIR 
-cp ./ffmpeg/libavformat/libavformat.a $LIBS_DIR 
-cp ./ffmpeg/libswscale/libswscale.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_pdf.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_ports.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_skgr.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_gr.a $LIBS_DIR 
-cp ./skia/out/Release/libcityhash.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_utils.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_effects.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_core.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_sfnt.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_images.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_opts_ssse3.a $LIBS_DIR 
-cp ./skia/out/Release/libskia_opts.a $LIBS_DIR 
-cp ./SDL2/build/build/.libs/libSDL2.a $LIBS_DIR 
-cp ./c-ares/.libs/libcares.a $LIBS_DIR 
-cp ./zita-resampler/libs/libzita-resampler.a $LIBS_DIR 
-cp ./libzip/lib/.libs/libzip.a $LIBS_DIR 
-cp ./portaudio/lib/.libs/libportaudio.a $LIBS_DIR 
-#cp ./mozilla-central/js/src/ctypes/libffi/.libs/libffi.a $LIBS_DIR 
-#cp ./mozilla-central/js/src/ctypes/libffi/.libs/libffi_convenience.a $LIBS_DIR 
-cp ./mozilla-central/nsprpub/dist/lib/libnspr4.a $LIBS_DIR 
-cp ./jsoncpp/libs/linux-gcc-4.6/libjson_linux-gcc-4.6_libmt.a $LIBS_DIR 
-cp ./http-parser/libhttp_parser.a $LIBS_DIR
-cp ./mozilla-central/js/src/libjs_static.a $OUTPUT_DIR
 
-ln -s $LIBS_DIR/libavcodec.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libswresample.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libavutil.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libavformat.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libswscale.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_pdf.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_ports.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_skgr.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_gr.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libcityhash.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_utils.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_effects.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_core.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_sfnt.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_images.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_opts_ssse3.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libskia_opts.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libSDL2.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libcares.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libzita-resampler.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libzip.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libportaudio.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libnspr4.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libhttp_parser.a $OUTPUT_DIR 
-ln -s $LIBS_DIR/libjson_linux-gcc-4.6_libmt.a $OUTPUT_DIR 
+if [ ! -e $LIBS_DIR/libavcodec.a ]; then 
+    cp -v ./ffmpeg/libavcodec/libavcodec.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libswresample.a ]; then 
+    cp -v ./ffmpeg/libswresample/libswresample.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libavutil.a ]; then 
+    cp -v ./ffmpeg/libavutil/libavutil.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libavformat.a ]; then 
+    cp -v ./ffmpeg/libavformat/libavformat.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libswscale.a ]; then 
+    cp -v ./ffmpeg/libswscale/libswscale.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_pdf.a ]; then 
+    cp -v ./skia/out/Release/libskia_pdf.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_ports.a ]; then 
+    cp -v ./skia/out/Release/libskia_ports.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_skgr.a ]; then 
+    cp -v ./skia/out/Release/libskia_skgr.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_gr.a ]; then 
+    cp -v ./skia/out/Release/libskia_gr.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libcityhash.a ]; then 
+    cp -v ./skia/out/Release/libcityhash.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_utils.a ]; then 
+    cp -v ./skia/out/Release/libskia_utils.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_effects.a ]; then 
+    cp -v ./skia/out/Release/libskia_effects.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_core.a ]; then 
+    cp -v ./skia/out/Release/libskia_core.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_sfnt.a ]; then 
+    cp -v ./skia/out/Release/libskia_sfnt.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_images.a ]; then 
+    cp -v ./skia/out/Release/libskia_images.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_opts_ssse3.a ]; then 
+    cp -v ./skia/out/Release/libskia_opts_ssse3.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libskia_opts.a ]; then 
+    cp -v ./skia/out/Release/libskia_opts.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libSDL2.a ]; then 
+    cp -v ./SDL2/build/build/.libs/libSDL2.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libcares.a ]; then 
+    cp -v ./c-ares/.libs/libcares.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libzita-resampler.a ]; then 
+    cp -v ./zita-resampler/libs/libzita-resampler.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libzip.a ]; then 
+    cp -v ./libzip/lib/.libs/libzip.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libportaudio.a ]; then 
+    cp -v ./portaudio/lib/.libs/libportaudio.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libnspr4.a ]; then 
+    cp -v ./mozilla-central/nsprpub/dist/lib/libnspr4.a $LIBS_DIR 
+fi
+
+if [ ! -e $LIBS_DIR/libjsoncpp.a ]; then
+    cp -v jsoncpp/$JSONCPP_LIB $LIBS_DIR/libjsoncpp.a
+fi
+
+if [ ! -e $LIBS_DIR/libhttp_parser.a ]; then
+    cp -v ./http-parser/libhttp_parser.a $LIBS_DIR
+fi
+
+if [ ! -e $OUTPUT_DIR/libjs_static.a ]; then
+    cp -v ./mozilla-central/js/src/libjs_static.a $OUTPUT_DIR
+fi
+
+echo "symlinking library to output dir"
+
+CURRENT_DIR=`pwd`
+cd $OUTPUT_DIR
+ln -sfv ../.libs/libavcodec.a  
+ln -sfv ../.libs/libswresample.a  
+ln -sfv ../.libs/libavutil.a  
+ln -sfv ../.libs/libavformat.a  
+ln -sfv ../.libs/libswscale.a  
+ln -sfv ../.libs/libskia_pdf.a  
+ln -sfv ../.libs/libskia_ports.a  
+ln -sfv ../.libs/libskia_skgr.a  
+ln -sfv ../.libs/libskia_gr.a  
+ln -sfv ../.libs/libcityhash.a  
+ln -sfv ../.libs/libskia_utils.a  
+ln -sfv ../.libs/libskia_effects.a  
+ln -sfv ../.libs/libskia_core.a  
+ln -sfv ../.libs/libskia_sfnt.a  
+ln -sfv ../.libs/libskia_images.a  
+ln -sfv ../.libs/libskia_opts_ssse3.a  
+ln -sfv ../.libs/libskia_opts.a  
+ln -sfv ../.libs/libSDL2.a  
+ln -sfv ../.libs/libcares.a  
+ln -sfv ../.libs/libzita-resampler.a  
+ln -sfv ../.libs/libzip.a  
+ln -sfv ../.libs/libportaudio.a  
+ln -sfv ../.libs/libnspr4.a  
+ln -sfv ../.libs/libhttp_parser.a  
+ln -sfv ../.libs/libjsoncpp.a  
+cd $CURRENT_DIR;
 
 echo "All done!" 

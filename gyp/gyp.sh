@@ -1,2 +1,4 @@
 #!/bin/sh
-gyp --include=common.gypi --include=config.gypi --depth ./ all.gyp
+export CXX=/usr/bin/clang++
+export GYP_DEFINES="clang=1"
+gyp -d all --include=config.gypi --include=common.gypi --depth ./ all.gyp

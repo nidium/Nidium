@@ -1,8 +1,9 @@
 {
     'targets': [{
-        'target_name': 'nativeapp',
+        'target_name': '<(native_exec_name)',
         'type': 'executable',
 		'mac_bundle': 1,
+        'product_dir': '../framework/',
         'dependencies': [
             'network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
@@ -14,8 +15,8 @@
             '<(native_src_path)',
             '<(native_network_path)',
             '<(native_interface_path)',
-            '<(third_party_path)/SDL/include/',
-            '<(third_party_path)/mozilla/js/src/dist/include/',
+            '<(third_party_path)/SDL2/include/',
+            '<(third_party_path)/mozilla-central/js/src/dist/include/',
         ],
         'conditions': [
             ['OS=="linux"', {
@@ -27,22 +28,6 @@
                     '-DTRIMMED',
                     '-freorder-blocks',
                     '-fomit-frame-pointer'
-                ],
-                'ldflags': [
-                    '-L<(third_party_path)/SDL/build/build/.libs/',
-                    '-L<(third_party_path)/skia/out/Release/obj.target/gyp/',
-                    '-L<(third_party_path)/mozilla/js/src/',
-                    '-L<(third_party_path)/http-parser/',
-                    '-L<(third_party_path)/portaudio/lib/.libs/',
-                    '-L<(third_party_path)/ffmpeg/libavformat/',
-                    '-L<(third_party_path)/ffmpeg/libavcodec/',
-                    '-L<(third_party_path)/ffmpeg/libavutil/',
-                    '-L<(third_party_path)/ffmpeg/libswscale/',
-                    '-L<(third_party_path)/ffmpeg/libswresample/',
-                    '-L<(third_party_path)/c-ares/.libs/',
-                    '-L<(third_party_path)/libzip/lib/.libs/',
-                    '-L<(third_party_path)/zita-resampler/libs/',
-                    #-L ../../third-party/angle/out/Debug/obj.target/src/ \
                 ],
                 'libraries': [
 #'-ltranslator_glsl',
@@ -74,13 +59,11 @@
                     '-lavformat',
                     '-lavcodec',
                     '-lavutil',
-                    '-lskia_sfnt',
-                    '-lzlib',
                     '-ljpeg',
+                    '-lskia_sfnt',
                     '-lskia_opts_ssse3',
                     '-lskia_opts',
                     '-lskia_utils',
-                    '-lpicture_utils',
                     '-lskia_ports',
                     '-lskia_images',
                     '-lskia_skgr',
@@ -96,7 +79,13 @@
                 'sources': [
                     '<(native_app_path)/linux/main.cpp',
                     '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
-                ]
+                ],
+                #'actions': [{
+                #    'action_name': 'strip',
+                #    'inputs': '$(PRODUCT_DIR)/<(native_exec_name)',
+                #    'outputs': '$(PRODUCT_DIR)/<(native_exec_name)',
+                #    'action': ['strip', '$(PRODUCT_DIR)/<(native_exec_name)']
+                #}]
             }],
             ['OS=="mac"', {
                 "link_settings": {
@@ -107,46 +96,38 @@
                         '$(SDKROOT)/System/Library/Frameworks/CoreAudioKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
                         '$(SDKROOT)/System/Library/Frameworks/AudioUnit.framework',
-                        '<(third_party_path)/SDL/Xcode/SDL/out/SDL2.framework',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_sfnt.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_opts_ssse3.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_opts.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_utils.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_ports.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_core.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_effects.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_gr.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_images.a',
-                        '<(third_party_path)/skia/xcodebuild/Release/libskia_skgr.a',
-                        '<(third_party_path)/mozilla/js/src/libjs_static.a',
-                        '<(third_party_path)/portaudio/lib/.libs/libportaudio.a',
-                        '<(third_party_path)/zita-resampler/libs/libzita-resampler.a',
-                        '<(third_party_path)/ffmpeg/libavcodec/libavcodec.a',
-                        '<(third_party_path)/ffmpeg/libavformat/libavformat.a',
-                        '<(third_party_path)/ffmpeg/libavutil/libavutil.a',
-                        '<(third_party_path)/ffmpeg/libswscale/libswscale.a',
-                        '<(third_party_path)/ffmpeg/libswresample/libswresample.a',
-                        '<(third_party_path)/http-parser/libhttp_parser.a',
+                        'SDL2.framework',
+                        'libskia_sfnt.a',
+                        'libskia_opts_ssse3.a',
+                        'libskia_opts.a',
+                        'libskia_utils.a',
+                        'libskia_ports.a',
+                        'libskia_core.a',
+                        'libskia_effects.a',
+                        'libskia_gr.a',
+                        'libskia_images.a',
+                        'libskia_skgr.a',
+                        'libjs_static.a',
+                        'libportaudio.a',
+                        'libzita-resampler.a',
+                        'libavcodec.a',
+                        'libavformat.a',
+                        'libavutil.a',
+                        'libswscale.a',
+                        'libswresample.a',
+                        'libhttp_parser.a',
+                        'libjsoncpp.a',
+                        'libzip.a',
+                        'libnspr4.a',
+                        'libcares.a',
                         #'..//third-party/angle/libpreprocessor.a',
                         #'..//third-party/angle/libtranslator_common.a',
                         #'..//third-party/angle/libtranslator_glsl.a',
-                        '/usr/local/Cellar/nspr/4.9.3/lib/libnspr4.a',
-                        '/usr/local/Cellar/c-ares/1.9.1/lib/libcares.a',
                         '/usr/lib/libbz2.dylib',
-                        '/usr/lib/libz.dylib',
-                        'libjson_linux-gcc-4.2.1_libmt.a',
-                        'libzip.a',
-                    ],
-                    'library_dirs': [
-                        '<(third_party_path)/libzip/lib/.libs/',
+                        '/usr/lib/libz.dylib'
                     ],
                 },
                 "xcode_settings": {
-                    "OTHER_LDFLAGS": [
-                        '-L<(third_party_path)/libzip/lib/.libs/',
-                        '-L<(third_party_path)/jsoncpp/libs/linux-gcc-4.2.1/',
-                        '-F<(third_party_path)/SDL/Xcode/SDL/out',
-                    ],
                     'LD_RUNPATH_SEARCH_PATHS': [
                         '@loader_path/../Frameworks'
                     ],

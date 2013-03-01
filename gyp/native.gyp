@@ -3,7 +3,7 @@
         'target_name': 'nativestudio',
         'type': 'static_library',
         'include_dirs': [
-            '<(third_party_path)/mozilla/js/src/dist/include/',
+            '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/skia/',
             '<(third_party_path)/skia/include/core',
             '<(third_party_path)/skia/include/pipe',
@@ -51,8 +51,6 @@
                     'GR_RELEASE=1',
                     'TRACING',
                     'JS_THREADSAFE',
-                    'DEBUG',
-                    '_DEBUG',
                 ],
 				'xcode_settings': {
 					'OTHER_CFLAGS': [
@@ -87,8 +85,6 @@
                     'GR_LINUX_BUILD=1',
                     'SK_RELEASE',
                     'GR_RELEASE=1',
-                    'DEBUG',
-                    '_DEBUG',
                     '__STDC_CONSTANT_MACROS'
                 ],
                 'cflags': [

@@ -554,8 +554,12 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     }
     JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
+    #ifdef NATIVE_DEBUG
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX);
+    #else
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
+    #endif
     JS_SetErrorReporter(cx, reportError);
 
     if ((gbl = JS_NewGlobalObject(cx, &global_class, NULL)) == NULL ||
@@ -1010,11 +1014,13 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     /* Image() object */
     NativeJSImage::registerObject(cx);
     /* Audio() object */
+    #ifdef NATIVE_AUDIO_ENABLED
     NativeJSAudio::registerObject(cx);
     NativeJSAudioNode::registerObject(cx);
     NativeJSVideo::registerObject(cx);
+    #endif
     /* WebGL*() object */
-    #if WEBGL_ENABLED
+    #ifdef NATIVE_WEBGL_ENABLED
     NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLObject::registerObject(cx);
