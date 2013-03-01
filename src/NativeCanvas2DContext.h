@@ -41,6 +41,10 @@ class NativeCanvas2DContext : public NativeJSExposer
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);
+        
+        uint32_t setupFBO(uint32_t textureID);
+        uint32_t createProgram(const char *data);
+        uint32_t compileShader(const char *data, int type);
 
         static void registerObject(JSContext *cx);
         NativeCanvas2DContext(int width, int height);

@@ -4,8 +4,11 @@
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
+#include "SkDevice.h"
+#include "SkGpuDevice.h"
 
 #include <SkDevice.h>
+#include <OpenGL/gl.h>
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
@@ -1101,6 +1104,100 @@ void NativeCanvas2DContext::clear(uint32_t color)
     skia->canvas->clear(color);
 }
 
+uint32_t NativeCanvas2DContext::createProgram(const char *data)
+{
+    uint32_t fragment = this->compileShader(data, GL_FRAGMENT_SHADER);
+
+    if (fragment == 0) {
+        return 0;
+    }
+
+    GLuint programHandle = glCreateProgram();
+    GLint linkSuccess;
+
+    glAttachShader(programHandle, fragment);
+    glLinkProgram(programHandle);
+
+    glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
+    if (linkSuccess == GL_FALSE) {
+        GLchar messages[256];
+        glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
+        printf("createProgram error : %s\n", messages);
+        return 0;
+    }
+
+    return programHandle;
+
+}
+
+uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
+{
+    GLuint shaderHandle = glCreateShader(type);
+    int len = strlen(data);
+    glShaderSource(shaderHandle, 1, &data, &len);
+    glCompileShader(shaderHandle);
+
+    GLint compileSuccess = GL_TRUE;
+
+    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
+
+    if (compileSuccess == GL_FALSE) {
+        GLchar messages[512];
+        int len;
+        glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
+        if (glGetError() != GL_NO_ERROR) {
+            return 0;
+        }
+        printf("Shader error %d : %s\n", len, messages);
+        return 0;
+    }
+    
+    return shaderHandle;
+} 
+
+uint32_t NativeCanvas2DContext::setupFBO(uint32_t textureID)
+{
+    uint32_t fbo;
+    glEnable(GL_TEXTURE_2D);
+    glGenFramebuffers(1, &fbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            128, 128,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            NULL
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+    GLenum status;
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            printf("fbo complete %d\n", fbo);
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            break;
+        default:
+            printf("fbo fatal error\n");
+        break;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_TEXTURE_2D);
+
+    return fbo;
+}
+
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     double left, double top, double opacity, const NativeRect *rclip)
 {
@@ -1115,11 +1212,17 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->save(SkCanvas::kClip_SaveFlag);
 
         skia->canvas->clipRect(r);
+
         skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
             left, top, &pt);
 
         skia->canvas->restore();
-    } else {
+    } else {    
+#if 1
+        layer->skia->canvas->flush();
+        GrRenderTarget* backingTarget = (GrRenderTarget*)layer->skia->canvas->getDevice()->accessRenderTarget();
+        GLuint textureID = backingTarget->asTexture()->getTextureHandle();
+#endif
         skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
             left, top, &pt);        
     }
@@ -1178,6 +1281,17 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     skia->bindOnScreen(width, height);
 
     JS_SetPrivate(jsobj, this);
+#if 1
+    const char *fragment = "//varying lowp vec2 TexCoordOut;\n"
+    "//uniform sampler2D Texture;\n"
+    "\n"
+    "void main(void) {\n"
+    " //gl_FragColor = texture2D(Texture, TexCoordOut);\n"
+    " gl_FragColor = vec4(1., 0., 0., 1.);\n"
+    "}";
+    int res = this->createProgram(fragment);
+    glUseProgram(res);
+#endif
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
