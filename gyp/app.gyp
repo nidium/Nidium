@@ -148,22 +148,6 @@
                 ],
                 'postbuilds': [
                     {
-                        'variables': {
-                            'install_name_path': './osx/plugin_fix_install_names.sh',
-                        },
-                        'postbuild_name': 'Fix Framework Paths',
-                        'action': [
-                            '/usr/bin/install_name_tool',
-                            '-change',
-                            '@rpath/SDL2.framework/Versions/A/SDL2',
-                            '@loader_path/../Frameworks/SDL2.framework/Versions/A/SDL2',
-                            '../framework/${EXECUTABLE_PATH}'
-                        ]
-                    },
-                    {
-                        'variables': {
-                            'copy_frameworks_path': './osx/plugin_copy_framworks.sh',
-                        },
                         'postbuild_name': 'Copy Frameworks',
                         'action': [
                             'ditto',
