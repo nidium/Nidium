@@ -148,6 +148,13 @@ else
     patch -p0 < zita.patch
 fi
 
+if [ -d "gyp" ]; then
+    echo "gyp already downloaded"
+else 
+    echo "Downloading gyp central..."
+    curl $DEPS_URL/gyp.tar.gz| tar zx
+fi
+
 #Build phase
 echo "Everything download. Lets build!" 
 
@@ -334,12 +341,15 @@ fi
 if [ -e $LIBS_DIR/libzita-resampler.a ]; then
     echo "zita-resampler already build"
 else
+    OLD_CXX=$CXX
+    CXX=/usr/bin/clang++
     echo "Building zita-resampler..."
     cd zita-resampler/libs/ && make -j$NBCPU
     cd ../../
 
     cp -v ./zita-resampler/libs/libzita-resampler.a $LIBS_DIR 
     lnlibs libzita-resampler.a
+    CXX=$OLD_CXX
 fi
 
 echo "All done!" 
