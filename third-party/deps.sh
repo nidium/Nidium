@@ -342,14 +342,14 @@ if [ -e $LIBS_DIR/libzita-resampler.a ]; then
     echo "zita-resampler already build"
 else
     OLD_CXX=$CXX
-    CXX=/usr/bin/clang++
+    export CXX=/usr/bin/clang++
     echo "Building zita-resampler..."
     cd zita-resampler/libs/ && make -j$NBCPU
     cd ../../
 
     cp -v ./zita-resampler/libs/libzita-resampler.a $LIBS_DIR 
     lnlibs libzita-resampler.a
-    CXX=$OLD_CXX
+    export CXX=$OLD_CXX
 fi
 
 echo "All done!" 
