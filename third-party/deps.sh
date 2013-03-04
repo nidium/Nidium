@@ -106,7 +106,9 @@ else
     curl $DEPS_URL/jsoncpp-src-0.5.0.tar.gz |tar zx
     mv `ls |grep jsoncpp-src*` jsoncpp
     echo "Downloading scons... "
+    cd jsoncpp/
     curl $DEPS_URL/scons-local-2.2.0.tar.gz | tar zx
+    cd ../
 fi
 
 if [ -d "c-ares" ]; then
