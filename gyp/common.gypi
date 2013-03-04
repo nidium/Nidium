@@ -1,31 +1,4 @@
 {
-    'conditions': [
-        ['OS=="mac"', {
-            'xcode_settings': {
-                'ARCHS': [
-                    'x86_64',
-                ],
-                'OTHER_CFLAGS': [
-                    '-v',
-                    '-stdlib=libc++'
-                ],
-                'MACOSX_DEPLOYMENT_TARGET': [
-                    '10.7'
-                ],
-                'SDKROOT': [
-                    'macosx10.7'
-                ]
-            },
-        }],
-    ],
-    'conditions': [
-        ['native_audio=="1"', {
-            'defines': [ 'NATIVE_AUDIO_ENABLED' ],
-        }],
-        ['native_webgl=="1"', {
-            'defines': [ 'NATIVE_WEBGL_ENABLED' ],
-        }]
-    ],
     'target_defaults': {
         'include_dirs': [
             '<(third_party_path)/c-ares/',
@@ -55,6 +28,15 @@
                         '-L<(native_output)/third-party-libs/debug/',
                         '-F<(native_output)/third-party-libs/debug/',
                     ],
+                    'ARCHS': [
+                        'x86_64',
+                    ],
+                    'MACOSX_DEPLOYMENT_TARGET': [
+                        '10.7'
+                    ],
+                    'SDKROOT': [
+                        'macosx10.7'
+                    ]
                 },
                 'ldflags': [
                     '-L<(native_output)/third-party-libs/debug/',
@@ -89,6 +71,15 @@
                         '-L<(native_output)/third-party-libs/release/',
                         '-F<(native_output)/third-party-libs/release/',
                     ],
+                    'ARCHS': [
+                        'x86_64',
+                    ],
+                    'MACOSX_DEPLOYMENT_TARGET': [
+                        '10.7'
+                    ],
+                    'SDKROOT': [
+                        'macosx10.7'
+                    ]
                 },
                 'ldflags': [
                     '-L<(native_output)/third-party-libs/release/',

@@ -25,7 +25,6 @@
             '<(third_party_path)/http-parser',
             '<(native_av_path)',
             '<(third_party_path)/libzip/lib',
-            #-I../third-party/portaudio/src/common/
             '<(third_party_path)/jsoncpp/include',
             '<(third_party_path)/ffmpeg/',
         ],
@@ -94,7 +93,13 @@
                     '-Wno-unused-function',
                     '-Wno-invalid-offsetof'
                 ],
-            }]
+            }],
+            ['native_audio==1', {
+                'sources': [
+                    '<(native_src_path)/NativeJSAV.cpp',
+                 ],
+                 'defines': [ 'NATIVE_AUDIO_ENABLED' ],
+            }],
         ],
         'sources': [
             '<(native_src_path)/NativeJS.cpp',

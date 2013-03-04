@@ -7,10 +7,10 @@
         'dependencies': [
             'network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
-            'av.gyp:nativeav',
             'native.gyp:nativestudio',
             #'<(third_party_path)/skia/skia.gyp:alltargets',
         ],
+
         'include_dirs': [
             '<(native_src_path)',
             '<(native_network_path)',
@@ -124,7 +124,8 @@
                         #'..//third-party/angle/libtranslator_common.a',
                         #'..//third-party/angle/libtranslator_glsl.a',
                         '/usr/lib/libbz2.dylib',
-                        '/usr/lib/libz.dylib'
+                        '/usr/lib/libz.dylib',
+                        'libiconv.dylib'
                     ],
                 },
                 "xcode_settings": {
@@ -151,7 +152,13 @@
                             'install_name_path': './osx/plugin_fix_install_names.sh',
                         },
                         'postbuild_name': 'Fix Framework Paths',
-                        'action': ['<(install_name_path)'],
+                        'action': [
+                            '/usr/bin/install_name_tool',
+                            '-change',
+                            '@rpath/SDL2.framework/Versions/A/SDL2',
+                            '@loader_path/../Frameworks/SDL2.framework/Versions/A/SDL2',
+                            '../framework/${EXECUTABLE_PATH}'
+                        ]
                     },
                     {
                         'variables': {
@@ -160,11 +167,16 @@
                         'postbuild_name': 'Copy Frameworks',
                         'action': [
                             'ditto',
-                            '<(third_party_path)/SDL/Xcode/SDL/out/SDL2.framework',
-                            '${BUILT_PRODUCTS_DIR}/nativeapp.app/Contents/Frameworks/SDL2.framework'
+                            '<(native_output)/third-party-libs/.libs/SDL2.framework/',
+                            '../framework/nativeapp.app/Contents/Frameworks/SDL2.framework'
                         ]
                     }
                 ]
+            }],
+            ['native_audio==1', {
+                'dependencies': [
+                    'av.gyp:nativeav'
+                 ]
             }]
         ]
     }]

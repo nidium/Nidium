@@ -15,7 +15,7 @@
         'third_party_path%': '../tmp/',
         'native_output%': '../out/',
 
-        #thoses settings are not working
+        # thoses settings are not working
         'native_third_party_build': 'debug',
         'native_autoconf_path%': '/usr/bin/autoconf2.13',
 

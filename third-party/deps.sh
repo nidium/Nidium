@@ -43,6 +43,14 @@ if [[ ! $BUILD ]]; then
     exit
 fi
 
+function lnlibs {
+    CURRENT_DIR=`pwd`
+    cd $OUTPUT_DIR
+    echo "Making symlink for $1"
+    ln -sf ../.libs/$1
+    cd $CURRENT_DIR
+}
+
 
 LIBS_DIR=$OUTPUT/third-party-libs/.libs/
 OUTPUT_DIR=$OUTPUT/third-party-libs/$BUILD/
@@ -98,7 +106,7 @@ else
     curl $DEPS_URL/jsoncpp-src-0.5.0.tar.gz |tar zx
     mv `ls |grep jsoncpp-src*` jsoncpp
     echo "Downloading scons... "
-    curl $DEPS_URL/2.2.0/scons-local-2.2.0.tar.gz | tar zx
+    curl $DEPS_URL/jsoncpp/scons-local-2.2.0.tar.gz | tar zx
 fi
 
 if [ -d "c-ares" ]; then
@@ -126,7 +134,7 @@ if [ -d "portaudio" ]; then
     echo "portaudio already downloaded"
 else
     echo "Downloading portaudio..."
-    curl $DEPS_URL/pa_stable_v19_20111121.tgz |tar zx
+    curl $DEPS_URL/pa_snapshot.tgz |tar zx
 fi
 
 if [ -d "zita-resampler" ]; then
@@ -146,7 +154,12 @@ if [ -e $OUTPUT_DIR/libjs_static.a ]; then
 else
     echo "Building nspr from mozilla central..."
     cd mozilla-central/nsprpub/
-    ./configure && make -j$NBCPU
+    if [[ $OSX ]]; then
+        ./configure --enable-64bit 
+    else
+        ./configure 
+    fi
+    make -j$NBCPU
     NSPRDIR=`pwd`
     cd ../js/src/
     echo "Building spidermonkey from mozilla central..."
@@ -158,15 +171,33 @@ else
     fi
     make -j$NBCPU
     cd ../../../
+
+    cp -v ./mozilla-central/js/src/libjs_static.a $OUTPUT_DIR
+    cp -v ./mozilla-central/nsprpub/dist/lib/libnspr4.a $LIBS_DIR 
+
+    lnlibs libnspr4.a
 fi
 
-if [ -e $LIBS_DIR/libSDL2.a ]; then
-    echo "SDL2 already build"
+if [[ $OSX ]]; then
+    if [ ! -d $LIBS_DIR/SDL2.framework ]; then 
+        cd SDL2/
+        cd Xcode/SDL/
+        xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'
+        cd ../../../
+
+        cp -rv ./SDL2/Xcode/SDL/out/SDL2.framework $LIBS_DIR 
+        lnlibs SDL2.framework
+    fi
 else
-    cd SDL2/
-    mkdir -p build/ && cd build/
-    ../configure && make -j$NBCPU
-    cd ../../
+    if [ ! -e $LIBS_DIR/libSDL2.a ]; then 
+        cd SDL2/
+        mkdir -p build/ && cd build/
+        ../configure && make -j$NBCPU
+        cd ../../
+
+        cp -v ./SDL2/build/build/.libs/libSDL2.a $LIBS_DIR 
+        lnlibs libSDL2.a
+    fi
 fi
 
 if [ -e $LIBS_DIR/libskia_core.a ]; then
@@ -174,9 +205,41 @@ if [ -e $LIBS_DIR/libskia_core.a ]; then
 else
     echo "Building skia..."
     cd skia 
-    export GYP_DEFINES='skia_arch_width=32'
+    if [[ $OSX ]]; then
+        export GYP_DEFINES='skia_arch_width=64'
+    else
+        export GYP_DEFINES='skia_arch_width=32'
+    fi
     ./gyp_skia
     make tests BUILDTYPE=Release -j$NBCPU
+
+    cd ../
+
+    cp -v ./skia/out/Release/libskia_pdf.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_ports.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_skgr.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_gr.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libcityhash.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_utils.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_effects.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_core.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_sfnt.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_images.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_opts_ssse3.a $LIBS_DIR 
+    cp -v ./skia/out/Release/libskia_opts.a $LIBS_DIR 
+
+    lnlibs libskia_pdf.a
+    lnlibs libskia_ports.a  
+    lnlibs libskia_skgr.a  
+    lnlibs libskia_gr.a  
+    lnlibs libcityhash.a  
+    lnlibs libskia_utils.a  
+    lnlibs libskia_effects.a  
+    lnlibs libskia_core.a  
+    lnlibs libskia_sfnt.a  
+    lnlibs libskia_images.a  
+    lnlibs libskia_opts_ssse3.a  
+    lnlibs libskia_opts.a  
 fi
 
 if [ -e $LIBS_DIR/libjsoncpp.a ]; then
@@ -184,10 +247,13 @@ if [ -e $LIBS_DIR/libjsoncpp.a ]; then
 else
     cd jsoncpp/
     echo "Running scons and building jsoncpp..."
-    python scons.py platform=linux-gcc
+    python scons.py platform=linux-gcc CC="clang" CXX="clang++" CXXFLAGS='-stdlib=libc++' LIBS='-lc++'
     JSONCPP_DIR=libs/`ls -1 libs/ |grep linux-gcc`
     JSONCPP_LIB=`ls -1 $JSONCPP_DIR/libjson_linux-gcc-*_libmt.a`
     cd ../
+
+    cp -v jsoncpp/$JSONCPP_LIB $LIBS_DIR/libjsoncpp.a
+    lnlibs libjsoncpp.a
 fi
 
 if [ -e $LIBS_DIR/libcares.a ]; then
@@ -196,6 +262,9 @@ else
     echo "Building c-ares..."
     cd c-ares && ./configure && make -j$NBCPU
     cd ../
+
+    cp -v ./c-ares/.libs/libcares.a $LIBS_DIR 
+    lnlibs libcares.a
 fi
 
 if [ -e $LIBS_DIR/libzip.a ]; then
@@ -204,6 +273,9 @@ else
     echo "Building libzip...."
     cd libzip && ./configure && make -j$NBCPU
     cd ../
+
+    cp -v ./libzip/lib/.libs/libzip.a $LIBS_DIR 
+    lnlibs libzip.a
 fi
 
 if [ -e $LIBS_DIR/libhttp_parser.a ]; then
@@ -214,6 +286,9 @@ else
     make
     make package
     cd ../
+
+    cp -v ./http-parser/libhttp_parser.a $LIBS_DIR
+    lnlibs libhttp_parser.a
 fi
 
 if [ -e $LIBS_DIR/libavcodec.a ]; then
@@ -223,11 +298,24 @@ echo "Building ffmpeg...."
     cd ffmpeg 
     ./configure \
         --disable-avdevice --disable-postproc --disable-avfilter --disable-programs --disable-ffplay --disable-ffserver --disable-ffprobe --disable-everything \
-        --enable-decoder=mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8 \
-        --enable-parser=vorbis,mpegaudio \
-        --enable-demuxer=mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8 \
+        --enable-decoder=aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video\
+        --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac \
+        --enable-demuxer=mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac
     make -j$NBCPU
+
     cd ../
+
+    cp -v ./ffmpeg/libavcodec/libavcodec.a $LIBS_DIR 
+    cp -v ./ffmpeg/libswresample/libswresample.a $LIBS_DIR 
+    cp -v ./ffmpeg/libavutil/libavutil.a $LIBS_DIR 
+    cp -v ./ffmpeg/libavformat/libavformat.a $LIBS_DIR 
+    cp -v ./ffmpeg/libswscale/libswscale.a $LIBS_DIR 
+
+    lnlibs libavcodec.a  
+    lnlibs libswresample.a  
+    lnlibs libavutil.a  
+    lnlibs libavformat.a  
+    lnlibs /libswscale.a  
 fi
 
 if [ -e $LIBS_DIR/libportaudio.a ]; then
@@ -236,6 +324,9 @@ else
     echo "Building portaudio..."
     cd portaudio && ./configure && make -j$NBCPU
     cd ../
+
+    cp -v ./portaudio/lib/.libs/libportaudio.a $LIBS_DIR 
+    lnlibs libportaudio.a
 fi
 
 if [ -e $LIBS_DIR/libzita-resampler.a ]; then
@@ -243,144 +334,10 @@ if [ -e $LIBS_DIR/libzita-resampler.a ]; then
 else
     echo "Building zita-resampler..."
     cd zita-resampler/libs/ && make -j$NBCPU
-    cd ../
-fi
+    cd ../../
 
-echo "Copying library to output dir"
-
-if [ ! -e $LIBS_DIR/libavcodec.a ]; then 
-    cp -v ./ffmpeg/libavcodec/libavcodec.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libswresample.a ]; then 
-    cp -v ./ffmpeg/libswresample/libswresample.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libavutil.a ]; then 
-    cp -v ./ffmpeg/libavutil/libavutil.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libavformat.a ]; then 
-    cp -v ./ffmpeg/libavformat/libavformat.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libswscale.a ]; then 
-    cp -v ./ffmpeg/libswscale/libswscale.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_pdf.a ]; then 
-    cp -v ./skia/out/Release/libskia_pdf.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_ports.a ]; then 
-    cp -v ./skia/out/Release/libskia_ports.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_skgr.a ]; then 
-    cp -v ./skia/out/Release/libskia_skgr.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_gr.a ]; then 
-    cp -v ./skia/out/Release/libskia_gr.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libcityhash.a ]; then 
-    cp -v ./skia/out/Release/libcityhash.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_utils.a ]; then 
-    cp -v ./skia/out/Release/libskia_utils.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_effects.a ]; then 
-    cp -v ./skia/out/Release/libskia_effects.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_core.a ]; then 
-    cp -v ./skia/out/Release/libskia_core.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_sfnt.a ]; then 
-    cp -v ./skia/out/Release/libskia_sfnt.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_images.a ]; then 
-    cp -v ./skia/out/Release/libskia_images.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_opts_ssse3.a ]; then 
-    cp -v ./skia/out/Release/libskia_opts_ssse3.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libskia_opts.a ]; then 
-    cp -v ./skia/out/Release/libskia_opts.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libSDL2.a ]; then 
-    cp -v ./SDL2/build/build/.libs/libSDL2.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libcares.a ]; then 
-    cp -v ./c-ares/.libs/libcares.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libzita-resampler.a ]; then 
     cp -v ./zita-resampler/libs/libzita-resampler.a $LIBS_DIR 
+    lnlibs libzita-resampler.a
 fi
-
-if [ ! -e $LIBS_DIR/libzip.a ]; then 
-    cp -v ./libzip/lib/.libs/libzip.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libportaudio.a ]; then 
-    cp -v ./portaudio/lib/.libs/libportaudio.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libnspr4.a ]; then 
-    cp -v ./mozilla-central/nsprpub/dist/lib/libnspr4.a $LIBS_DIR 
-fi
-
-if [ ! -e $LIBS_DIR/libjsoncpp.a ]; then
-    cp -v jsoncpp/$JSONCPP_LIB $LIBS_DIR/libjsoncpp.a
-fi
-
-if [ ! -e $LIBS_DIR/libhttp_parser.a ]; then
-    cp -v ./http-parser/libhttp_parser.a $LIBS_DIR
-fi
-
-if [ ! -e $OUTPUT_DIR/libjs_static.a ]; then
-    cp -v ./mozilla-central/js/src/libjs_static.a $OUTPUT_DIR
-fi
-
-echo "symlinking library to output dir"
-
-CURRENT_DIR=`pwd`
-cd $OUTPUT_DIR
-ln -sfv ../.libs/libavcodec.a  
-ln -sfv ../.libs/libswresample.a  
-ln -sfv ../.libs/libavutil.a  
-ln -sfv ../.libs/libavformat.a  
-ln -sfv ../.libs/libswscale.a  
-ln -sfv ../.libs/libskia_pdf.a  
-ln -sfv ../.libs/libskia_ports.a  
-ln -sfv ../.libs/libskia_skgr.a  
-ln -sfv ../.libs/libskia_gr.a  
-ln -sfv ../.libs/libcityhash.a  
-ln -sfv ../.libs/libskia_utils.a  
-ln -sfv ../.libs/libskia_effects.a  
-ln -sfv ../.libs/libskia_core.a  
-ln -sfv ../.libs/libskia_sfnt.a  
-ln -sfv ../.libs/libskia_images.a  
-ln -sfv ../.libs/libskia_opts_ssse3.a  
-ln -sfv ../.libs/libskia_opts.a  
-ln -sfv ../.libs/libSDL2.a  
-ln -sfv ../.libs/libcares.a  
-ln -sfv ../.libs/libzita-resampler.a  
-ln -sfv ../.libs/libzip.a  
-ln -sfv ../.libs/libportaudio.a  
-ln -sfv ../.libs/libnspr4.a  
-ln -sfv ../.libs/libhttp_parser.a  
-ln -sfv ../.libs/libjsoncpp.a  
-cd $CURRENT_DIR;
 
 echo "All done!" 
