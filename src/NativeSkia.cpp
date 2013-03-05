@@ -1249,7 +1249,7 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
 }
 
 SkScalar NativeSkia::breakText(const char *str, size_t len,
-    struct _NativeLine lines[], double maxWidth)
+    struct _NativeLine lines[], double maxWidth, int *length)
 {
 #define MAX_TEXT_LEN (1024L*1024L*8)
     struct {
@@ -1296,7 +1296,6 @@ SkScalar NativeSkia::breakText(const char *str, size_t len,
         curState.curLineWidth += widths[i];
 
         if (curState.curLineWidth > maxWidth) {
-            printf("Jump line\n");
             lines[curState.curLine].len = curState.ptr - lines[curState.curLine].line;
             curState.curLine++;
 
@@ -1307,7 +1306,9 @@ SkScalar NativeSkia::breakText(const char *str, size_t len,
     }
 
     lines[curState.curLine].len = &str[i] - lines[curState.curLine].line;
-    printf("Curline : %d\n", curState.curLine);
+    if (length) {
+        *length = curState.curLine+1;
+    }
     return (curState.curLine+1)*PAINT->getFontSpacing();
 }
 

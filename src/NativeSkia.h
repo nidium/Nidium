@@ -77,7 +77,8 @@ class NativeSkia
         SkCanvas *canvas;
         ~NativeSkia();
         NativeSkia();
-        SkScalar breakText(const char *str, size_t len, struct _NativeLine lines[], double maxWidth);
+        SkScalar breakText(const char *str, size_t len,
+            struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
         int bindGL(int width, int height);

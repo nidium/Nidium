@@ -239,36 +239,45 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
 static JSBool native_canvas2dctx_breakText(JSContext *cx,
     unsigned argc, jsval *vp)
 {
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
     JSString *str;
     double maxWidth;
-    JSObject *output = NULL;
+    JSObject *res = NULL;
+    int length = 0;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sdo", &str, &maxWidth,
-        &output)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sd", &str, &maxWidth)) {
         return JS_TRUE;
     }
 
-    if (output == NULL || !JS_IsArrayObject(cx, output)) {
-        JS_ReportError(cx, "Last parameter must be an array");
-        return JS_FALSE;
-    }
+    res = JS_NewObject(cx, NULL, NULL, NULL);
 
     JSAutoByteString text(cx, str);
     size_t len = text.length();
-    struct _NativeLine lines[len];
+
+    struct _NativeLine *lines = new struct _NativeLine[len];
     memset(lines, 0, len * sizeof(struct _NativeLine));
 
-    SkScalar ret = NSKIA_NATIVE->breakText(text.ptr(), len, lines, maxWidth);
+    SkScalar ret = NSKIA_NATIVE->breakText(text.ptr(), len,
+                    lines, maxWidth, &length);
+    JSObject *alines = JS_NewArrayObject(cx, length, NULL);
 
-    for (int i = 0; lines[i].line != NULL && i < len; i++) {
+    for (int i = 0; i < len && i < length; i++) {
         jsval val = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
             lines[i].line, lines[i].len));
-        JS_SetElement(cx, output, i, &val);
+        JS_SetElement(cx, alines, i, &val);
     }
 
-    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
+    SET_PROP(res, "height", DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
+    SET_PROP(res, "lines", OBJECT_TO_JSVAL(alines));
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(res));
+
+    delete[] lines;
 
     return JS_TRUE;
+#undef SET_PROP
 }
 
 static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *vp)
