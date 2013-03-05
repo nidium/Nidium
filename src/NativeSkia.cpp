@@ -556,20 +556,8 @@ void NativeSkia::setFontType(const char *str)
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
-    struct _NativeLine lines[256];
-    memset(lines, 0, sizeof(lines));
-
     canvas->drawText(text, strlen(text),
         SkIntToScalar(x), SkIntToScalar(y), *PAINT);
-
-    SkScalar ret = this->breakText(text, strlen(text), lines, 64);
-    printf("Ret : %f\n", ret);
-
-    for (int i = 0; lines[i].line != NULL; i++) {
-        printf("Lines : %d (%ld) ", i, lines[i].len);
-        fwrite(lines[i].line, 1, lines[i].len, stdout);
-        printf("\n");
-    }
 
     CANVAS_FLUSH();
 }
