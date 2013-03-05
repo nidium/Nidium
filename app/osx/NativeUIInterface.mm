@@ -145,7 +145,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
-
+        //glUseProgram(0);
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();

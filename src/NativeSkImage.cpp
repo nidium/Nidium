@@ -78,7 +78,7 @@ int NativeSkImage::getHeight()
 	return img->height();
 }
 
-void NativeSkImage::shiftHue(int val)
+void NativeSkImage::shiftHue(int val, U8CPU alpha)
 {
     if (!img) return;
 
@@ -87,11 +87,75 @@ void NativeSkImage::shiftHue(int val)
     SkColor *pixels = (SkColor *)img->getPixels();
 
     for (int i = 0; i < size; i++) {
+
         SkColor pixel = pixels[i];
+
+        /* Skip alpha pixel and not matching color */
+        if (SkColorGetA(pixel) == 0 || SkColorGetA(pixel) != alpha) {
+            continue;
+        }
+
         SkScalar hsv[3];
         SkColorToHSV(pixel, hsv);
 
-        hsv[0] += native_min(native_max(SkIntToScalar(val), 0), 360);
+        hsv[0] = native_min(native_max( SkIntToScalar(val), 0), 360);
+
+        pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
+    }
+
+    img->notifyPixelsChanged();
+}
+
+void NativeSkImage::markColorsInAlpha()
+{
+    if (!img) return;
+
+    size_t size = img->getSize() >> img->shiftPerPixel();
+
+    SkColor *pixels = (SkColor *)img->getPixels();
+    for (int i = 0; i < size; i++) {
+        U8CPU alpha;
+
+        SkColor pixel = pixels[i];
+
+        /* Skip alpha */
+        if (SkColorGetA(pixel) != 255) {
+            continue;
+        }
+        if ((pixel & 0xFFFF00FF) == pixel) {
+            alpha = 254;
+        } else if ((pixel & 0xFFFFFF00) == pixel) {
+            alpha = 253;
+        } else if ((pixel & 0xFF00FFFF) == pixel) {
+            alpha = 252;
+        }
+
+        pixels[i] = SkColorSetA(pixels[i], alpha);
+    }
+
+    img->notifyPixelsChanged();
+
+}
+
+void NativeSkImage::desaturate()
+{
+    if (!img) return;
+
+    size_t size = img->getSize() >> img->shiftPerPixel();
+
+    SkColor *pixels = (SkColor *)img->getPixels();
+    for (int i = 0; i < size; i++) {
+        U8CPU alpha;
+
+        SkColor pixel = pixels[i];
+
+        /* Skip alpha */
+        if (SkColorGetA(pixel) == 0) {
+            continue;
+        }
+        SkScalar hsv[3];
+        SkColorToHSV(pixel, hsv);
+        hsv[1] = SkDoubleToScalar(0);
 
         pixels[i] = SkHSVToColor(SkColorGetA(pixel), hsv);
     }

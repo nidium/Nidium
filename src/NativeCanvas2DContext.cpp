@@ -65,6 +65,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
+static JSBool native_canvas2dctx_breakText(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_shadow(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -134,6 +135,7 @@ static JSPropertySpec canvas2dctx_props[] = {
 };
 
 static JSFunctionSpec canvas2dctx_funcs[] = {
+    JS_FN("breakText", native_canvas2dctx_breakText, 2, 0),
     JS_FN("shadow", native_canvas2dctx_shadow, 0, 0),
     JS_FN("onerror", native_canvas2dctx_stub, 0, 0),
     JS_FN("fillRect", native_canvas2dctx_fillRect, 4, 0),
@@ -230,6 +232,41 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
     }
 
     NSKIA_NATIVE->clearRect(x, y, width, height);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctx_breakText(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JSString *str;
+    double maxWidth;
+    JSObject *output = NULL;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sdo", &str, &maxWidth,
+        &output)) {
+        return JS_TRUE;
+    }
+
+    if (output == NULL || !JS_IsArrayObject(cx, output)) {
+        JS_ReportError(cx, "Last parameter must be an array");
+        return JS_FALSE;
+    }
+
+    JSAutoByteString text(cx, str);
+    size_t len = text.length();
+    struct _NativeLine lines[len];
+    memset(lines, 0, len * sizeof(struct _NativeLine));
+
+    SkScalar ret = NSKIA_NATIVE->breakText(text.ptr(), len, lines, maxWidth);
+
+    for (int i = 0; lines[i].line != NULL && i < len; i++) {
+        jsval val = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            lines[i].line, lines[i].len));
+        JS_SetElement(cx, output, i, &val);
+    }
+
+    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
 
     return JS_TRUE;
 }

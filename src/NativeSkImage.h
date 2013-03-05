@@ -27,7 +27,9 @@ class NativeSkImage
 
     int getWidth();
     int getHeight();
-    void shiftHue(int val);
+    void shiftHue(int val, U8CPU alpha);
+    void markColorsInAlpha();
+    void desaturate();
 };
 
 #endif

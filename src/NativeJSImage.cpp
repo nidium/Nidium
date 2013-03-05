@@ -1,6 +1,7 @@
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
 #include "NativeJS.h"
+#include "NativeSkia.h"
 
 #include <string.h>
 
@@ -11,6 +12,8 @@ JSObject *NativeJSImage::classe = NULL;
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_image_markColorInAlpha(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_image_desaturate(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -29,7 +32,9 @@ static JSPropertySpec Image_props[] = {
 };
 
 static JSFunctionSpec Image_funcs[] = {
-    JS_FN("shiftHue", native_image_shiftHue, 1, 0),
+    JS_FN("shiftHue", native_image_shiftHue, 2, 0),
+    JS_FN("markColorInAlpha", native_image_markColorInAlpha, 0, 0),
+    JS_FN("desaturate", native_image_desaturate, 0, 0),
     JS_FS_END
 };
 
@@ -37,16 +42,39 @@ static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSImage *nimg = IMAGE_FROM_CALLEE;
     int val;
+    int color;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &val)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &val, &color)) {
         return JS_TRUE;
     }
+
     if (nimg->img) {
-        nimg->img->shiftHue(val);
+        nimg->img->shiftHue(val, color);
     }
     return JS_TRUE;
 }
 
+static JSBool native_image_markColorInAlpha(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    NativeJSImage *nimg = IMAGE_FROM_CALLEE;
+    if (nimg->img) {
+        nimg->img->markColorsInAlpha();
+    }
+
+    return JS_TRUE;
+}
+
+static JSBool native_image_desaturate(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    NativeJSImage *nimg = IMAGE_FROM_CALLEE;
+    if (nimg->img) {
+        nimg->img->desaturate();
+    }
+
+    return JS_TRUE;
+}
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)

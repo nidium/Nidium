@@ -556,8 +556,20 @@ void NativeSkia::setFontType(const char *str)
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
+    struct _NativeLine lines[256];
+    memset(lines, 0, sizeof(lines));
+
     canvas->drawText(text, strlen(text),
         SkIntToScalar(x), SkIntToScalar(y), *PAINT);
+
+    SkScalar ret = this->breakText(text, strlen(text), lines, 64);
+    printf("Ret : %f\n", ret);
+
+    for (int i = 0; lines[i].line != NULL; i++) {
+        printf("Lines : %d (%ld) ", i, lines[i].len);
+        fwrite(lines[i].line, 1, lines[i].len, stdout);
+        printf("\n");
+    }
 
     CANVAS_FLUSH();
 }
@@ -1246,6 +1258,69 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     }
 
     return 1;
+}
+
+SkScalar NativeSkia::breakText(const char *str, size_t len,
+    struct _NativeLine lines[], double maxWidth)
+{
+#define MAX_TEXT_LEN (1024L*1024L*8)
+    struct {
+        SkScalar curWordWidth;
+        SkScalar curLineWidth;
+        size_t curWordLen;
+        const char *ptr;
+        int curLine;
+    } curState;
+
+    int i;
+    if (len > MAX_TEXT_LEN) {
+        return 0;
+    }
+#undef MAX_TEXT_LEN
+    SkScalar widths[len];
+
+    PAINT->getTextWidths(str, len, widths);
+    curState.ptr = str;
+    curState.curWordWidth = SkIntToScalar(0);
+    curState.curLineWidth = SkIntToScalar(0);
+    curState.curWordLen   = 0;
+    curState.curLine = 0;
+
+    lines[0].line = str;
+    lines[0].len  = 0;
+
+    for (i = 0; i < len; i++) {
+
+        lines[curState.curLine].len++;
+
+        if (str[i] == ' ') {
+            curState.ptr = &str[i+1];
+            curState.curWordWidth = SkIntToScalar(0);
+            curState.curWordLen   = 0;
+            if (curState.ptr == NULL) {
+                break;
+            }
+        } else {
+            curState.curWordWidth += widths[i];
+            curState.curWordLen++;
+        }
+
+        curState.curLineWidth += widths[i];
+
+        if (curState.curLineWidth > maxWidth) {
+            printf("Jump line\n");
+            lines[curState.curLine].len = curState.ptr - lines[curState.curLine].line;
+            curState.curLine++;
+
+            lines[curState.curLine].line = curState.ptr;
+            lines[curState.curLine].len = 0;
+            curState.curLineWidth = curState.curWordWidth;
+        }
+    }
+
+    lines[curState.curLine].len = &str[i] - lines[curState.curLine].line;
+    printf("Curline : %d\n", curState.curLine);
+    return (curState.curLine+1)*PAINT->getFontSpacing();
 }
 
 /*
