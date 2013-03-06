@@ -289,7 +289,7 @@ void NativeSkia::initPaints()
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
     PAINT->setDither(true);
-    PAINT->setLCDRenderText(true);
+    //PAINT->setLCDRenderText(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
     PAINT->setFilterBitmap(false);
@@ -718,6 +718,7 @@ static struct _native_xfer_mode {
     {"darker",             SkXfermode::kDarken_Mode},
     {"copy",               SkXfermode::kSrc_Mode},
     {"xor",                SkXfermode::kXor_Mode},
+    {"lighten",            SkXfermode::kColorDodge_Mode},
     {NULL,                 SkXfermode::kSrcOver_Mode}
 };
 
@@ -725,8 +726,10 @@ void NativeSkia::setGlobalComposite(const char *str)
 {
     for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
         if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
-            PAINT->setXfermodeMode(native_xfer_mode[i].mode);
-            PAINT_STROKE->setXfermodeMode(native_xfer_mode[i].mode);
+            SkXfermode *mode = SkXfermode::Create(native_xfer_mode[i].mode);
+            PAINT->setXfermode(mode);
+            PAINT_STROKE->setXfermode(mode);
+            SkSafeUnref(mode);
             break;
         }
     }
@@ -1095,7 +1098,6 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-
         canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
             SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
@@ -1248,10 +1250,14 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     return 1;
 }
 
+static inline bool isBreakable(const unsigned char c)
+{
+    return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
+}
+
 SkScalar NativeSkia::breakText(const char *str, size_t len,
     struct _NativeLine lines[], double maxWidth, int *length)
 {
-#define MAX_TEXT_LEN (1024L*1024L*8)
     struct {
         SkScalar curWordWidth;
         SkScalar curLineWidth;
@@ -1261,10 +1267,7 @@ SkScalar NativeSkia::breakText(const char *str, size_t len,
     } curState;
 
     int i;
-    if (len > MAX_TEXT_LEN) {
-        return 0;
-    }
-#undef MAX_TEXT_LEN
+
     SkScalar widths[len];
 
     PAINT->getTextWidths(str, len, widths);
@@ -1281,7 +1284,7 @@ SkScalar NativeSkia::breakText(const char *str, size_t len,
 
         lines[curState.curLine].len++;
 
-        if (str[i] == ' ') {
+        if (isBreakable((unsigned char)str[i])) {
             curState.ptr = &str[i+1];
             curState.curWordWidth = SkIntToScalar(0);
             curState.curWordLen   = 0;

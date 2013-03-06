@@ -257,6 +257,12 @@ static JSBool native_canvas2dctx_breakText(JSContext *cx,
     size_t len = text.length();
 
     struct _NativeLine *lines = new struct _NativeLine[len];
+
+    if (!len) {
+        JS_ReportOutOfMemory(cx);
+        return JS_FALSE;
+    }
+
     memset(lines, 0, len * sizeof(struct _NativeLine));
 
     SkScalar ret = NSKIA_NATIVE->breakText(text.ptr(), len,
@@ -1203,31 +1209,49 @@ uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
 
 uint32_t NativeCanvas2DContext::setupFBO(uint32_t textureID)
 {
-    uint32_t fbo;
+    uint32_t fbo, tex;
+    GLint textureWidth, textureHeight;
+    //glDisable(GL_ALPHA_TEST);
+    glClearColor(0, 0, 0, 0);
     glEnable(GL_TEXTURE_2D);
+    
     glGenFramebuffers(1, &fbo);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glGenTextures(1, &tex);
+    
+    /* Get skia texture size */
     glBindTexture(GL_TEXTURE_2D, textureID);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &textureWidth);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &textureHeight);
+
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  
+    /* Allocate memory for the nex texture */
     glTexImage2D(
             GL_TEXTURE_2D,
             0,
             GL_RGBA,
-            128, 128,
+            textureWidth, textureHeight,
             0,
             GL_RGBA,
             GL_UNSIGNED_BYTE,
             NULL
     );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    /* Use the new FBO */
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    /* Set the FBO backing store using the newly allocated texture */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+
     GLenum status;
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
     switch(status) {
         case GL_FRAMEBUFFER_COMPLETE:
-            printf("fbo complete %d\n", fbo);
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
             printf("fbo unsupported\n");
@@ -1237,9 +1261,61 @@ uint32_t NativeCanvas2DContext::setupFBO(uint32_t textureID)
         break;
     }
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+    /* clear the FBO */
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    /* use the newly created texture and draw it as textured quad */
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glBegin(GL_QUADS);
+
+        glTexCoord3i(0, 1, 1);
+          glVertex3f(-1.0f, -1.0f, 1.0f);
+
+        glTexCoord3i(0, 0, 1);
+          glVertex3f(-1.0f, 1.0f, 1.0f);
+
+        glTexCoord3i(1, 0, 1);
+          glVertex3f( 1.0f, 1.0f, 1.0f);
+
+        glTexCoord3i(1, 1, 1);
+          glVertex3f( 1.0f, -1.0f, 1.0f);
+    glEnd();
+
+    /* Set the skia texture as backing store */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
+
+    /* delete skia texture content */
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    /* use the newly created texture and draw it as textured quad */
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin( GL_QUADS );
+        /*
+            (-1, 1)...........(1, 1)
+                .               .
+                .               .
+                .               .
+            (-1, -1)...........(1, -1)
+        */
+        glTexCoord3i(0, 1, 1);
+          glVertex3f(-1.0f, -1.0f, 1.0f);
+
+        glTexCoord3i(0, 0, 1);
+          glVertex3f(-1.0f, 1.0f, 1.0f);
+
+        glTexCoord3i(1, 0, 1);
+          glVertex3f( 1.0f, 1.0f, 1.0f);
+
+        glTexCoord3i(1, 1, 1);
+          glVertex3f( 1.0f, -1.0f, 1.0f);
+    glEnd();    
+
+    /* reset the context */
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+
+    glDeleteTextures(1, &tex);
 
     return fbo;
 }
@@ -1268,6 +1344,21 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         layer->skia->canvas->flush();
         GrRenderTarget* backingTarget = (GrRenderTarget*)layer->skia->canvas->getDevice()->accessRenderTarget();
         GLuint textureID = backingTarget->asTexture()->getTextureHandle();
+#if 0
+        const char *fragment = "//varying lowp vec2 TexCoordOut;\n"
+        "//uniform sampler2D Texture;\n"
+        "\n"
+        "void main(void) {\n"
+        " //gl_FragColor = texture2D(Texture, TexCoordOut);\n"
+        " gl_FragColor = vec4(0., 1., 0., 1.);\n"
+        "}";
+        int res = this->createProgram(fragment);
+#endif
+        glUseProgram(0);
+
+        //glUseProgram(res);
+        setupFBO(textureID);
+        backingTarget->getContext()->resetContext();
 #endif
         skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
             left, top, &pt);        
@@ -1328,15 +1419,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
 
     JS_SetPrivate(jsobj, this);
 #if 1
-    const char *fragment = "//varying lowp vec2 TexCoordOut;\n"
-    "//uniform sampler2D Texture;\n"
-    "\n"
-    "void main(void) {\n"
-    " //gl_FragColor = texture2D(Texture, TexCoordOut);\n"
-    " gl_FragColor = vec4(1., 0., 0., 1.);\n"
-    "}";
-    int res = this->createProgram(fragment);
-    glUseProgram(res);
+
 #endif
 }
 
