@@ -31,18 +31,33 @@ class NativeCanvas2DContext : public NativeJSExposer
         NativeSkia *skia;
         bool setterDisabled;
 
+        struct {
+            uint32_t program;
+            uint32_t texture;
+            uint32_t fbo;
+        } gl;
+
         void clear(uint32_t color);
 
         /*
             draw layer on top of "this"
         */
+
+        void resetGLContext();
         void composeWith(NativeCanvas2DContext *layer, double left,
             double top, double opacity, const NativeRect *clip);
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);
         
-        uint32_t setupFBO(uint32_t textureID);
+        bool attachShader(const char *string);
+        bool hasShader() const {
+            return (gl.program != 0);
+        }
+        uint32_t getProgram() const {
+            return gl.program;
+        }
+
         uint32_t createProgram(const char *data);
         uint32_t compileShader(const char *data, int type);
 
@@ -51,6 +66,11 @@ class NativeCanvas2DContext : public NativeJSExposer
         NativeCanvas2DContext(struct JSContext *cx, int width, int height);
         ~NativeCanvas2DContext();
     private:
+        void initFBO();
+        void drawTexToFBO(uint32_t textureID);
+        void drawFBOToTex(uint32_t textureID);
+        uint32_t getSkiaTextureID();
+        void initTex(int width, int height);
 };
 
 class NativeCanvasPattern
