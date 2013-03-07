@@ -13,6 +13,7 @@
 
 struct AVFormatContext;
 struct AVPacket;
+struct AVDictionary;
 struct AVCodecContext;
 struct SwrContext;
 typedef void PaUtilConverter(void*, int, void*, int, unsigned int, struct PaUtilTriangularDitherGenerator*);
@@ -256,36 +257,36 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         PaUtilRingBuffer *rBufferOut;
 
         bool externallyManaged;
-        bool opened;
         bool playing;
         bool stopped;
         bool loop;
         int nbChannel;
 
-        int open(void *buffer, int size);
-        int openInit();
         void play();
         void pause();
         void stop();
+        int open(void *buffer, int size);
+        int openInit();
+        void seek(double time);
 
         int avail();
         bool buffer();
         void buffer(AVPacket *pkt);
 
-        bool seek(int64_t ts);
         virtual bool process();
         bool work();
         bool decode();
         int resample(float *dest, int destSamples);
         bool getFrame();
         double getClock();
+        void sync(double ts);
 
         ~NativeAudioTrack();
 
     private:
-	    AVFormatContext *container;
-        AVCodecContext *avctx;
+        AVCodecContext *codecCtx;
         NativeAVBufferReader *br;
+        int64_t queued;
 
         struct TmpFrame {
             int size;
@@ -293,6 +294,14 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
             float *data;
         } tmpFrame;
         AVPacket *tmpPacket;
+
+        struct SeekInfos {
+            double time;
+            SeekInfos(double time) : time(time) {}
+        };
+
+        static void seekCallback(NativeAudioNode *node, void *custom);
+        void seekMethod(double time);
 
         double clock;
         bool frameConsumed;

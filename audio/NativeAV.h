@@ -13,7 +13,10 @@
 #define SOURCE_EVENT_EOF       0x04
 #define SOURCE_EVENT_ERROR     0x05
 #define SOURCE_EVENT_BUFFERING 0x06
-#define SOURCE_EVENT_BUFFERED  0x07
+#define SOURCE_EVENT_READY     0x07
+
+struct AVDictionary;
+struct AVFormatContext;
 
 class NativeAVBufferReader
 {
@@ -60,6 +63,7 @@ enum {
     ERR_NO_VIDEO_CONVERTER,
     ERR_INIT_VIDEO_AUDIO,
     ERR_DECODING,
+    ERR_SEEKING,
     ERR_INTERNAL
 };
 
@@ -84,25 +88,30 @@ struct NativeAVSourceEvent {
 class NativeAVSource 
 {
     public :
-        NativeAVSource() : eventCbk(NULL), eventCbkCustom(NULL) 
-        {
-        }
-        void eventCallback(NativeAVSourceEventCallback cbk, void *custom) 
-        {
-            this->eventCbk = cbk;
-            this->eventCbkCustom = custom;
-        }
+        NativeAVSource();
 
-        void sendEvent(int ev, int value, bool fromThread) {
-            if (this->eventCbk != NULL) {
-                NativeAVSourceEvent *event = new NativeAVSourceEvent(this, ev, value, this->eventCbkCustom, fromThread);
-                this->eventCbk(event);
-            }
-        }
-        
+        friend class NativeVideo;
+        friend class NativeAudio;
+
         NativeAVSourceEventCallback eventCbk;
         void *eventCbkCustom;
 
+        void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
+        void sendEvent(int ev, int value, bool fromThread);
+
+        virtual void play() = 0;
+        virtual void pause() = 0;
+        virtual void stop() = 0;
+        virtual int open(void *buffer, int size) = 0;
+        
+        virtual double getClock() = 0;
+        virtual void seek(double time) = 0;
+        double getDuration();
+        AVDictionary *getMetadata() ;
+
+    protected:
+        bool opened;
+	    AVFormatContext *container;
 };
 
 #endif

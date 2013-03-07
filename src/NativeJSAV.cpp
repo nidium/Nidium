@@ -6,7 +6,10 @@
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 
-
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavutil/dict.h>
+}
 
 // TODO : Need to handle nodes GC, similar to https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
 // ✓ : Fix "background noise" sound when pausing
@@ -51,9 +54,10 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_audionode_source_seek(JSContext *cx, unsigned argc, jsval *vp);
 
-static JSBool native_audionode_custom_prop_set(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+static JSBool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
 
 static JSClass Audio_class = {
     "Audio", JSCLASS_HAS_PRIVATE,
@@ -108,7 +112,7 @@ static JSPropertySpec AudioNodeEvent_props[] = {
 };
 
 static JSPropertySpec AudioNodeCustom_props[] = {
-    {"onbuffer", NODE_CUSTOM_PROP_BUFFER, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_set)},
+    {"onbuffer", NODE_CUSTOM_PROP_BUFFER, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -144,8 +148,23 @@ static JSFunctionSpec AudioNodeSource_funcs[] = {
     JS_FN("play", native_audionode_source_play, 0, 0),
     JS_FN("pause", native_audionode_source_pause, 0, 0),
     JS_FN("stop", native_audionode_source_stop, 0, 0),
-    JS_FN("seek", native_audionode_source_seek, 1, 0),
     JS_FS_END
+};
+
+static JSPropertySpec AudioNodeSource_props[] = {
+    {"position", SOURCE_PROP_POSITION, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT, 
+        JSOP_WRAPPER(native_audionode_source_prop_getter), 
+        JSOP_WRAPPER(native_audionode_source_prop_setter)},
+    {"duration", SOURCE_PROP_DURATION, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_audionode_source_prop_getter), 
+        JSOP_NULLWRAPPER},
+    {"metadata", SOURCE_PROP_METADATA, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_audionode_source_prop_getter), 
+        JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSFunctionSpec glob_funcs_threaded[] = {
@@ -162,6 +181,7 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
+static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -182,8 +202,26 @@ static JSClass Video_class = {
 };
 
 static JSPropertySpec Video_props[] = {
-    {"width", VIDEO_PROP_WIDTH, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT, JSOP_WRAPPER(native_video_prop_getter), JSOP_NULLWRAPPER},
-    {"height", VIDEO_PROP_HEIGHT, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT, JSOP_WRAPPER(native_video_prop_getter), JSOP_NULLWRAPPER},
+    {"width", VIDEO_PROP_WIDTH, 
+        JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT, 
+        JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_NULLWRAPPER},
+    {"height", VIDEO_PROP_HEIGHT, 
+        JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT, 
+        JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_NULLWRAPPER},
+    {"position", SOURCE_PROP_POSITION, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT, 
+        JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_WRAPPER(native_video_prop_setter)},
+    {"duration", SOURCE_PROP_DURATION, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_NULLWRAPPER},
+    {"metadata", SOURCE_PROP_METADATA, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -255,11 +293,9 @@ NativeJSAudio::~NativeJSAudio() {
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::shutdownCallback, NULL, this), 
             NATIVE_AUDIO_SHUTDOWN);
 
-    if (this->audio->tracksCount == 0) {
-        // If audio doesn't have any tracks, the queue thread might sleep
-        // So we need to wake it up to deliver the message 
-        pthread_cond_signal(&this->audio->queueHaveData);
-    }
+    // If audio doesn't have any tracks playing, the queue thread might sleep
+    // So we need to wake it up to deliver the message 
+    pthread_cond_signal(&this->audio->queueHaveData);
 
     pthread_cond_wait(&this->shutdowned, &this->shutdownLock);
 
@@ -494,8 +530,8 @@ const char *NativeJSAVEventRead(int ev)
         case SOURCE_EVENT_BUFFERING:
             return "onbuffering";
         break;
-        case SOURCE_EVENT_BUFFERED:
-            return "onbuffered";
+        case SOURCE_EVENT_READY:
+            return "onready";
         break;
         default:
             return NULL;
@@ -684,6 +720,7 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         NativeAudioTrack *source = static_cast<NativeAudioTrack *>(node->node);
         source->eventCallback(NativeJSAudioNode::eventCbk, node);
         JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
+        JS_DefineProperties(cx, ret, AudioNodeSource_props);
     } else if (strcmp("custom", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(NativeAudio::CUSTOM, in, out, audio);
         JS_DefineProperties(cx, ret, AudioNodeCustom_props);
@@ -1115,24 +1152,25 @@ static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *
     return JS_TRUE;
 }
 
-static JSBool native_audionode_source_seek(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
 {
-    int ts;
-    NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp))->node;
+    NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(obj)->node;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &ts)) {
-        return JS_TRUE;
-    }
-
-    if (!source->seek(ts)) {
-        JS_ReportError(cx, "Failed to seek to timestamp %d", ts);
-        return JS_TRUE;
-    }
+    NativeJSAVSource::propGetter(source, cx, JSID_TO_INT(id), vp);
 
     return JS_TRUE;
 }
 
-static JSBool native_audionode_custom_prop_set(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+{
+    NativeAudioTrack *source = (NativeAudioTrack *) NATIVE_AUDIO_NODE_GETTER(obj)->node;
+
+    NativeJSAVSource::propSetter(source, JSID_TO_INT(id), vp);
+
+    return JS_TRUE;
+}
+
+static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
     NativeJSAudioNode *jsNode = NATIVE_AUDIO_NODE_GETTER(obj);
 
@@ -1179,9 +1217,19 @@ static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHand
             vp.set(INT_TO_JSVAL(v->video->height));
         break;
         default:
+            NativeJSAVSource::propGetter(v->video, cx, JSID_TO_INT(id), vp);
             break;
     }
 
+    return JS_TRUE;
+}
+
+static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(obj);
+
+    NativeJSAVSource::propSetter(v->video, JSID_TO_INT(id), vp);
+    
     return JS_TRUE;
 }
 
@@ -1398,6 +1446,52 @@ static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
 
     if (v != NULL) {
         delete v;
+    }
+}
+
+void NativeJSAVSource::propSetter(NativeAVSource *source, int id, JSMutableHandleValue vp) 
+{
+    switch(id) {
+        case SOURCE_PROP_POSITION:
+            source->seek(vp.toDouble());
+        break;
+        default:
+            break;
+    }
+}
+
+void NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, int id, JSMutableHandleValue vp)
+{
+    switch(id) {
+        case SOURCE_PROP_POSITION:
+            vp.setDouble(source->getClock());
+        break;
+        case SOURCE_PROP_DURATION:
+            vp.setDouble(source->getDuration());
+        break;
+        case SOURCE_PROP_METADATA:
+        {
+            AVDictionaryEntry *tag = NULL;
+            AVDictionary *cmetadata = source->getMetadata();
+
+            if (cmetadata != NULL) {
+                JSObject *metadata = JS_NewObject(cx, NULL, NULL, NULL);
+
+                while ((tag = av_dict_get(cmetadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
+                    JSString *val = JS_NewStringCopyN(cx, tag->value, strlen(tag->value));
+
+                    JS_DefineProperty(cx, metadata, tag->key, STRING_TO_JSVAL(val), NULL, NULL, 
+                            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+                }
+
+                vp.setObject(*metadata);
+            } else {
+                vp.setUndefined();
+            }
+        }
+        break;
+        default:
+            break;
     }
 }
 

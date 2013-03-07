@@ -746,21 +746,21 @@ static int Native_handle_messages(void *arg)
             delete ptr;
             break;
             case NATIVE_AV_THREAD_MESSAGE_CALLBACK: {
-            NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg.dataPtr());
-            if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
-                !JSVAL_IS_PRIMITIVE(onmessage) &&
-                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+                NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg.dataPtr());
+                if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
+                    !JSVAL_IS_PRIMITIVE(onmessage) &&
+                    JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
 
-                if (cmsg->value != NULL) {
-                    jevent = INT_TO_JSVAL(*cmsg->value);
-                } else {
-                    jevent = JSVAL_NULL;
+                    if (cmsg->value != NULL) {
+                        jevent = INT_TO_JSVAL(*cmsg->value);
+                    } else {
+                        jevent = JSVAL_NULL;
+                    }
+                    JS_CallFunctionValue(cx, cmsg->callee, onmessage, 1, &jevent, &rval);
                 }
-                JS_CallFunctionValue(cx, cmsg->callee, onmessage, 1, &jevent, &rval);
+                delete cmsg;
             }
-            delete cmsg;
             break;
-            }
             default:break;
         }
     }

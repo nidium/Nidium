@@ -11,7 +11,7 @@
   #define SPAM(a) (void)0
 #endif
 
-#define NATIVE_AVDECODE_BUFFER_SAMPLES  16384 
+#define NATIVE_AVDECODE_BUFFER_SAMPLES  16384
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
 #define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->threadShutdown) {\
     SPAM(("Exiting"));\
@@ -35,6 +35,8 @@ class NativeAudio
 {
     public:
         NativeAudio(int bufferSize, int channels, int sampleRate);
+
+        friend class NativeVideo;
 
         enum SampleFormat {
             FLOAT32 = sizeof(float), 
@@ -73,6 +75,7 @@ class NativeAudio
         void disconnect(NodeLink *input, NodeLink *output);
 
         static inline int getSampleSize(int sampleFmt);
+        double getLatency();
 
         void shutdown();
 

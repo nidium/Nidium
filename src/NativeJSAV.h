@@ -15,7 +15,10 @@ enum {
     NODE_EV_PROP_SIZE,
     NODE_CUSTOM_PROP_BUFFER,
     VIDEO_PROP_WIDTH,
-    VIDEO_PROP_HEIGHT
+    VIDEO_PROP_HEIGHT,
+    SOURCE_PROP_POSITION,
+    SOURCE_PROP_DURATION,
+    SOURCE_PROP_METADATA
 };
 
 class NativeJS;
@@ -31,6 +34,18 @@ struct NativeJSAVMessageCallback {
     ~NativeJSAVMessageCallback() {
         delete value;
     }
+};
+
+class NativeJSAVSource
+{
+    public:
+        static inline int open(NativeAVSource *source, JSContext *cx, unsigned argc, jsval *vp);
+        static inline int play();
+        static inline int pause();
+        static inline int stop();
+
+        static inline void propSetter(NativeAVSource *source, int id, JSMutableHandleValue vp);
+        static inline void propGetter(NativeAVSource *source, JSContext *ctx, int id, JSMutableHandleValue vp);
 };
 
 static void NativeJSAVEventCbk(const struct NativeAVSourceEvent *ev);

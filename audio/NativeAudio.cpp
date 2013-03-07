@@ -126,6 +126,12 @@ void *NativeAudio::queueThread(void *args) {
         if (audio->output != NULL) {
             pthread_mutex_lock(&audio->recurseLock);
             for (;;) {
+/*
+                if (PaUtil_GetRingBufferReadAvailable(audio->rBufferOut) >= (audio->outputParameters->framesPerBuffer * audio->outputParameters->channels)*32) {
+                    printf("Output have enought data\n");
+                    break;
+                }
+*/
                 if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
                     SPAM(("Write avail %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
 
@@ -193,6 +199,7 @@ void *NativeAudio::queueThread(void *args) {
                 pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
             }
         }
+        SPAM(("Queue thead is now working\n"));
 
         /*
         pthread_mutex_lock(&audio->shutdownLock);
@@ -257,6 +264,7 @@ void *NativeAudio::decodeThread(void *args) {
         // FIXME : find out why when playing multiple song, 
         // the commented expression bellow fail to work
         if (audio->tracksCount > 0 /*&& haveEnought == tracksCount*/) {
+printf("Read avail rBufferOut %lu\n", PaUtil_GetRingBufferReadAvailable(audio->rBufferOut));
             if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) > 0) {
                 SPAM(("Have data\n"));
                 pthread_cond_signal(&audio->queueHaveData);
@@ -360,8 +368,10 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
         // Data was read from ring buffer
         // need to process more data
         pthread_cond_signal(&this->queueHaveSpace);
+        // TODO : The queueHaveSpace signal is sent even if all tracks are stopped
+        // thus the thread is working for nothing. Need to fix this
     } else {
-        //SPAM(("-----------------------------------NO DATA\n"));
+        SPAM(("-----------------------------------NO DATA\n"));
         for (unsigned int i = 0; i < framesPerBuffer; i++)
         {
             *out++ = 0.0f;
@@ -404,10 +414,16 @@ int NativeAudio::getSampleSize(int sampleFormat) {
     }
 }
 
+double NativeAudio::getLatency() {
+    ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
+    NativeAudioParameters *params = this->outputParameters;
+    return ((double)queuedAudio * NativeAudio::FLOAT32 * params->channels) / (params->sampleRate * NativeAudio::FLOAT32 * params->channels);
+}
+
 NativeAudioTrack *NativeAudio::addTrack(int out) {
     NativeAudioTracks *tracks = new NativeAudioTracks();
 
-tracks->curr = new NativeAudioTrack(out, this, false);
+    tracks->curr = new NativeAudioTrack(out, this, false);
 
     tracks->prev = NULL;
     tracks->next = this->tracks;
