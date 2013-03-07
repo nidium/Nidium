@@ -23,6 +23,9 @@
                         #]
                     }          
                 },
+                'cflags': [
+                    '-g',
+                ],
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/debug/',
@@ -89,7 +92,8 @@
                     '-L<(third_party_path)/skia/out/Release/obj.target/gyp/',
                 ],
                 'cflags': [
-                    '-O2'
+                    '-O2',
+                    '-g',
                 ],
                 'conditions': [
                     ['native_strip_exec==1', {
