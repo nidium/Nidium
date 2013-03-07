@@ -47,6 +47,13 @@ static JSClass canvasGradient_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass canvasGLProgram_class = {
+    "CanvasGLProgram", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSClass canvasPattern_class = {
     "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -123,6 +130,12 @@ static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp);
 
+static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
+    jsval *vp);
+
+static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
+    jsval *vp);
+
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
         JSPROP_ENUMERATE, JSOP_NULLWRAPPER, \
@@ -183,6 +196,13 @@ static JSFunctionSpec gradient_funcs[] = {
     
     JS_FN("addColorStop", native_canvas2dctxGradient_addColorStop, 2, 0),
 
+    JS_FS_END
+};
+
+static JSFunctionSpec glprogram_funcs[] = {
+    
+    JS_FN("getUniformLocation", native_canvas2dctxGLProgram_getUniformLocation, 1, 0),
+    JS_FN("uniform1i", native_canvas2dctxGLProgram_uniform1i, 2, 0),
     JS_FS_END
 };
 
@@ -889,6 +909,7 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
 {
     JSString *glsl;
     NativeCanvas2DContext *nctx = NCTX_NATIVE;
+    size_t program;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
         &glsl)) {
@@ -897,10 +918,65 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
 
     JSAutoByteString cglsl(cx, glsl);
 
-    if (!nctx->attachShader(cglsl.ptr())) {
+    if ((program = nctx->attachShader(cglsl.ptr())) == 0) {
         JS_ReportError(cx, "Failed to compile GLSL shader");
         return JS_FALSE;
     }
+    JSObject *canvasProgram = JS_NewObject(cx, &canvasGLProgram_class, NULL, NULL);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(canvasProgram));
+
+    JS_DefineFunctions(cx, canvasProgram, glprogram_funcs);
+
+    JS_SetPrivate(canvasProgram, (void *)program);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    JSString *location;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    uint32_t program;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
+        &location)) {
+        return JS_TRUE;
+    }
+
+    JSAutoByteString clocation(cx, location);
+
+    program = (size_t)JS_GetPrivate(caller);
+
+    int ret = glGetUniformLocation(program, clocation.ptr());
+
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(ret));
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    int location, val;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    uint32_t program;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
+        &location, &val)) {
+        return JS_TRUE;
+    }
+
+    if (location == -1) {
+        return JS_TRUE;
+    }
+    program = (size_t)JS_GetPrivate(caller);
+    int32_t tmpProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
+    glUseProgram(program);
+    glUniform1i(location, val);
+    glUseProgram(tmpProgram);
 
     return JS_TRUE;
 }
@@ -1398,11 +1474,11 @@ void NativeCanvas2DContext::initTex(int width, int height)
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-bool NativeCanvas2DContext::attachShader(const char *string)
+uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
     gl.program = this->createProgram(string);
 
-    return (gl.program != 0);
+    return gl.program;
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,

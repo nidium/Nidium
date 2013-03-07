@@ -50,7 +50,7 @@ class NativeCanvas2DContext : public NativeJSExposer
         void setSize(int width, int height);
         void translate(double x, double y);
         
-        bool attachShader(const char *string);
+        uint32_t attachShader(const char *string);
         bool hasShader() const {
             return (gl.program != 0);
         }
