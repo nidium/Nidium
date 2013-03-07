@@ -19,6 +19,7 @@
 
 class NativeSkia;
 struct NativeRect;
+class SkCanvas;
 
 class NativeCanvas2DContext : public NativeJSExposer
 {
@@ -35,6 +36,7 @@ class NativeCanvas2DContext : public NativeJSExposer
             uint32_t program;
             uint32_t texture;
             uint32_t fbo;
+            SkCanvas *copy;
         } gl;
 
         void clear(uint32_t color);
@@ -66,11 +68,9 @@ class NativeCanvas2DContext : public NativeJSExposer
         NativeCanvas2DContext(struct JSContext *cx, int width, int height);
         ~NativeCanvas2DContext();
     private:
-        void initFBO();
+        void initCopyTex(uint32_t textureID);
         void drawTexToFBO(uint32_t textureID);
-        void drawFBOToTex(uint32_t textureID);
         uint32_t getSkiaTextureID();
-        void initTex(int width, int height);
 };
 
 class NativeCanvasPattern

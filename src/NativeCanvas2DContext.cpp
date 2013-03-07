@@ -1308,9 +1308,25 @@ uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
     return shaderHandle;
 }
 
-void NativeCanvas2DContext::initFBO()
+void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
 {
-    glGenFramebuffers(1, &gl.fbo);
+    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+                                        getDevice()->accessRenderTarget();
+
+    int width = backingTarget->asTexture()->width();
+    int height =  backingTarget->asTexture()->height();
+
+    SkDevice *dev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+        width, height, false);
+
+    gl.copy = new SkCanvas(dev);
+    gl.texture = ((GrRenderTarget*)dev->accessRenderTarget())
+                    ->asTexture()->getTextureHandle();
+
+    gl.fbo = static_cast<GLuint>(((GrRenderTarget*)dev->accessRenderTarget())->
+                    asTexture()->asRenderTarget()->getRenderTargetHandle());
+
+    dev->unref();
 }
 
 void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
@@ -1320,16 +1336,7 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
     glClearColor(0, 0, 0, 0);
 
     if (!gl.fbo) {
-        this->initFBO();
-    }
-
-    if (!gl.texture) {
-        int width, height;
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-
-        this->initTex(width, height);        
+        this->initCopyTex(textureID);
     }
 
     /* Use the current FBO */
@@ -1367,16 +1374,16 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
                 .               .
             (-1, -1)...........(1, -1)
         */
-        glTexCoord3i(0, 1, 1);
+        glTexCoord3i(0, 0, 1);
           glVertex3f(-1.0f, -1.0f, 1.0f);
 
-        glTexCoord3i(0, 0, 1);
+        glTexCoord3i(0, 1, 1);
           glVertex3f(-1.0f, 1.0f, 1.0f);
 
-        glTexCoord3i(1, 0, 1);
+        glTexCoord3i(1, 1, 1);
           glVertex3f( 1.0f, 1.0f, 1.0f);
 
-        glTexCoord3i(1, 1, 1);
+        glTexCoord3i(1, 0, 1);
           glVertex3f( 1.0f, -1.0f, 1.0f);
     glEnd();
 
@@ -1385,50 +1392,6 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
     glDisable(GL_TEXTURE_2D); 
 }
 
-void NativeCanvas2DContext::drawFBOToTex(uint32_t textureID)
-{
-    if (!gl.fbo || !gl.texture) {
-        return;
-    }
-
-    glEnable(GL_TEXTURE_2D);
-    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
-
-    /* Set the textureID as backing store */
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureID, 0);
-
-    /* delete skia texture content */
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    /* use the newly created texture and draw it as textured quad */
-    glBindTexture(GL_TEXTURE_2D, gl.texture);
-    glBegin( GL_QUADS );
-        /*
-            (-1, 1)...........(1, 1)
-                .               .
-                .               .
-                .               .
-            (-1, -1)...........(1, -1)
-        */
-        glTexCoord3i(0, 1, 1);
-          glVertex3f(-1.0f, -1.0f, 1.0f);
-
-        glTexCoord3i(0, 0, 1);
-          glVertex3f(-1.0f, 1.0f, 1.0f);
-
-        glTexCoord3i(1, 0, 1);
-          glVertex3f( 1.0f, 1.0f, 1.0f);
-
-        glTexCoord3i(1, 1, 1);
-          glVertex3f( 1.0f, -1.0f, 1.0f);
-    glEnd();    
-
-    /* reset the context */
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);    
-
-}
 
 uint32_t NativeCanvas2DContext::getSkiaTextureID()
 {
@@ -1445,33 +1408,6 @@ void NativeCanvas2DContext::resetGLContext()
                                         getDevice()->accessRenderTarget();
 
     backingTarget->getContext()->resetContext();
-}
-
-void NativeCanvas2DContext::initTex(int width, int height)
-{
-    if (gl.texture) {
-        glDeleteTextures(1, &gl.texture);
-    }
-
-    glGenTextures(1, &gl.texture);
-    glBindTexture(GL_TEXTURE_2D, gl.texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    /* Allocate memory for the new texture */
-    glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA,
-            width, height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            NULL
-    );
-
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
@@ -1500,18 +1436,19 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             left, top, &pt);
 
         skia->canvas->restore();
-    } else {    
+    } else {
+        SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
+
         if (layer->hasShader()) {
             layer->skia->canvas->flush();
             uint32_t textureID = layer->getSkiaTextureID();
-            glUseProgram(0);
-            layer->drawTexToFBO(textureID);
             glUseProgram(layer->getProgram());
-            layer->drawFBOToTex(textureID);
+            layer->drawTexToFBO(textureID);
             layer->resetGLContext();
+            bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
         }
-        skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
-            left, top, &pt);        
+        skia->canvas->drawBitmap(bitmapLayer,
+            left, top, &pt);
     }
     skia->canvas->flush();
 }
@@ -1572,6 +1509,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     gl.program = 0;
     gl.texture = 0;
     gl.fbo = 0;
+    gl.copy = NULL;
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
@@ -1583,6 +1521,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
     gl.program = 0;
     gl.texture = 0;
     gl.fbo = 0;
+    gl.copy = NULL;
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()
