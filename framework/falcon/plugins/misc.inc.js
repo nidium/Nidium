@@ -36,17 +36,17 @@ Canvas.implement({
 
 	highlightLetters : function(letters, x, y, lineHeight){
 		var c, nush, cx, cy, cw;
-		for (var i=0; i<letters.length-1; i++){
+		for (var i=0; i<letters.length; i++){
 			c = letters[i];
 	 		nush = letters[i+1] ? 
 	 						letters[i+1].position - c.position - c.width : 0;
 
 		 	cx = x + c.position;
  			cy = y;
- 			cw = c.width + nush + 0.25;
- 			if (c.selected){
+ 			cw = c.width + nush;
+ 			//if (c.selected){
 				this.fillRect(cx, cy, cw, lineHeight);
-			}
+			//}
 		}
 	},
 

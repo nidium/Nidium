@@ -47,7 +47,7 @@ Native.object = {
 		if (this.layer.__fixed) return false;
 		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
 
-		/* clean cache for all this element's parents (all ancestors) */
+		/* Refresh ancestors' scrollbars */
 		while (element.parent){
 			var p = element.parent;
 			if (p.scrollbars) p.refreshScrollBars();
@@ -86,6 +86,7 @@ Native.object = {
 		print("redraw()", this);
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
+
 		this.beforeDraw(this.layer.context);
 		if (this._visible) this.draw(this.layer.context);
 		this.afterDraw(this.layer.context);

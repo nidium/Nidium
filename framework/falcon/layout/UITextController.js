@@ -12,12 +12,12 @@ DOMElement.nodes = {
 		node.textLines = [];
 
 		for (var i=0; i<text.length; i++){
-			parent.charElements.push(node);
+			parent.nodeAtIndex.push(node);
 		}
 	},
 
 	updateTextNodes : function(children){
-		for (var i=0; i<children.length; i++){
+		for (var i = children.length-1; i>0; --i){
 			var node = children[i];
 
 			if (node.flags & FLAG_TEXT_NODE){
@@ -30,15 +30,37 @@ DOMElement.nodes = {
 	setWholeTextRenderingMatrix : function(element){
 		var	paragraphes = element.wholeText.split(/\r\n|\r|\n/);
 
+//	echo("-------------------------------------------------------------");
+
 		element.matrix = [];
 		element.textLength = 0;
-
-		setTextContext(element);
+		element.linenum = 0;
 
 		for (var i = 0; i < paragraphes.length; i++) {
-			var matrix = getParagrapheMatrix(element, paragraphes[i]);
+			//echo("********** paragraphe", i);
+			var matrix = getParagrapheMatrix(i, element, paragraphes[i]);
 			element.matrix.push(matrix);
 		}
+
+	},
+
+	refresh : function(p){
+		var children = p.childNodes;
+		
+		p._currentNode = null;
+		p.maxWidth = p.maxWidth ? p.maxWidth : p.contentWidth;
+
+		for (var i=0; i<children.length; i++){
+			var node = children[i];
+
+			if (node.flags & FLAG_TEXT_NODE){
+				node.linenum = 0;
+				node.textLines = [];
+			}
+		}
+
+		this.setWholeTextRenderingMatrix(p);
+		this.updateTextNodes(children);
 	},
 
 	resetTextNodes : function(p){
@@ -46,9 +68,7 @@ DOMElement.nodes = {
 			txt = [];
 
 		p.wholeText = "";
-		p.charElements = [];
-		p.maxWidth = p.maxWidth ? p.maxWidth : p.contentWidth;
-		p._currentNode = null;
+		p.nodeAtIndex = [];
 
 		for (var i=0; i<children.length; i++){
 			var node = children[i];
@@ -60,8 +80,6 @@ DOMElement.nodes = {
 		}
 
 		p.wholeText = txt.join('');
-
-		this.setWholeTextRenderingMatrix(p);
-		this.updateTextNodes(children);
+		this.refresh(p);
 	}
 };

@@ -5,8 +5,10 @@
 /* -------------------------------------- */
 
 /* -- Falcon Framework ------------------ */
+
 require("../scripts/preload.js");
 require("falcon/native.js");
+
 //require("applications/demos/hello.js");
 //require("applications/demos/motion.js");
 //require("applications/demos/tabs.js");
@@ -20,6 +22,7 @@ require("falcon/native.js");
 //require("applications/demos/threads.js");
 //require("applications/demos/tooltips.js");
 //require("applications/demos/animation.js");
+require("applications/demos/shader.js");
 
 
 
@@ -30,7 +33,40 @@ require("falcon/native.js");
 //require("applications/demos/http.js");
 
 //require("applications/demos/buttons.js");
-require("applications/demos/test.js");
+//require("applications/demos/test.js");
+
+
+
+/*
+
+console.show();
+
+Native.canvas.ctx.fillStyle = "#666666";
+Native.canvas.ctx.fillRect(0, 0, 1024, 768);
+
+Native.canvas.ctx.fillStyle = "#ffffff";
+Native.canvas.ctx.fontType = "monospace";
+
+var msg = "Hello world",
+	letters = msg.split('');
+
+echo(letters.length);
+
+
+for (let i = 10; i < 40; i += 4) {
+	Native.canvas.ctx.fontSize = i;
+
+	for (var l=0; l<letters.length; l++){
+		var chr = letters[l];
+		var w = Native.canvas.ctx.measureText(chr)/1.25;
+		Native.canvas.ctx.fillText(chr, 10+w*l, i*22-150);
+	}
+
+	Native.canvas.ctx.fillText(msg, 10, i*22+i+5-150);
+}
+
+*/
+
 
 //require("testLayer.js");
 
@@ -89,10 +125,6 @@ require("applications/demos/test.js");
 
 //require('_demos/demo.threads.js');
 //require('_demos/demo.tasks.js');
-
-/* -- Misc Demos --------------------- */
-
-//require('_demo/misc/flickr.js');
 
 
 /* -- StandAlone Demos ------------------ */

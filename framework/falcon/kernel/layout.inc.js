@@ -76,7 +76,7 @@ Native.layout = {
 		});
 
 		this.nbObj = n;
-
+		
 		this.elements = elements.sort(function _update_sort(a, b){
 			return a._nid - b._nid;
 		});
@@ -268,7 +268,7 @@ Object.createProtectedElement(Native.scope, "document", new Application({
 	top : 0,
 	width : window.width,
 	height : window.height,
-	background : "#262722",
+	background : "#272822",
 	canReceiveFocus : true,
 	outlineOnFocus : false
 }));

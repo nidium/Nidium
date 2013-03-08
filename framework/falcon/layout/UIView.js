@@ -438,5 +438,35 @@ Native.elements.export("UIView", {
 				DOMElement.draw.box(this, context, params, pattern);
 			}
 		}
+		/*
+		if (this.matrix){
+			var x = params.x + this.paddingLeft,
+				y = params.y + this.paddingTop,
+				w = params.w - this.paddingRight - this.paddingLeft,
+				h = params.h - this.paddingTop - this.paddingBottom,
+
+				vOffset = (this.lineHeight/2)+5;
+
+			this.color = "#555555";
+			context.setFontSize(this.fontSize);
+			context.setFontType(this.fontType);
+
+			printTextMatrix(
+				context,
+				this._tmpMatrix,
+				null,
+				x, y - this.parent ? this.parent.scrollTop : 0, 
+				vOffset, 
+				w, h, 
+				params.y, 
+				this.lineHeight,
+				this.fontSize,
+				this.fontType,
+				this.color, 
+				this.caretOpacity
+			);
+		}
+		*/
+
 	}
 });
