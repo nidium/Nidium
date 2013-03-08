@@ -1498,6 +1498,7 @@ uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
 
 void NativeCanvas2DContext::initCopyTex()
 {
+    glEnable(GL_TEXTURE_2D);
     GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
                                         getDevice()->accessRenderTarget();
 
@@ -1550,6 +1551,7 @@ void NativeCanvas2DContext::initCopyTex()
 
     gl.textureWidth = width;
     gl.textureHeight = height;
+    glDisable(GL_TEXTURE_2D);
 }
 #if 0
 void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
@@ -1724,6 +1726,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             left, top, &pt);
 
         skia->canvas->restore();
+
+        printf("cliped?\n");
     } else {
         SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
 
@@ -1735,13 +1739,13 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             uint32_t textureID = layer->getSkiaTextureID();
 
             /* Use our custom shader */
-            glUseProgram(layer->getProgram());
+            glUseProgram(0);
 
             /* draw layer into a temporary FBO (in layer->gl.fbo/.texture) */
             layer->drawTexToFBO(textureID);
 
             /* draw layer->gl.texture in skia->canvas (getMainFBO) */
-            glUseProgram(0);
+            glUseProgram(layer->getProgram());
 
             drawTexIDToFBO(layer->gl.texture, layer->gl.textureWidth,
                 layer->gl.textureHeight, left, top, getMainFBO());
