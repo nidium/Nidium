@@ -4,13 +4,17 @@
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
 #include "NativeJSImage.h"
+#include "SkDevice.h"
+#include "SkGpuDevice.h"
 
 #include <SkDevice.h>
+#include <OpenGL/gl.h>
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
 #define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->skia)
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
+#define NCTX_NATIVE (class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp))))
 
 extern jsval gfunc;
 
@@ -43,6 +47,13 @@ static JSClass canvasGradient_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass canvasGLProgram_class = {
+    "CanvasGLProgram", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSClass canvasPattern_class = {
     "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -62,6 +73,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
+static JSBool native_canvas2dctx_breakText(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_shadow(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
@@ -115,6 +127,14 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
+    jsval *vp);
+
+static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
+    jsval *vp);
+
+static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
@@ -131,6 +151,7 @@ static JSPropertySpec canvas2dctx_props[] = {
 };
 
 static JSFunctionSpec canvas2dctx_funcs[] = {
+    JS_FN("breakText", native_canvas2dctx_breakText, 2, 0),
     JS_FN("shadow", native_canvas2dctx_shadow, 0, 0),
     JS_FN("onerror", native_canvas2dctx_stub, 0, 0),
     JS_FN("fillRect", native_canvas2dctx_fillRect, 4, 0),
@@ -167,6 +188,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas2dctx_getPathBounds, 0, 0),
     JS_FN("light", native_canvas2dctx_light, 3, 0),
+    JS_FN("attachGLSLFragment", native_canvas2dctx_attachGLSLFragment, 1, 0),
     JS_FS_END
 };
 
@@ -174,6 +196,13 @@ static JSFunctionSpec gradient_funcs[] = {
     
     JS_FN("addColorStop", native_canvas2dctxGradient_addColorStop, 2, 0),
 
+    JS_FS_END
+};
+
+static JSFunctionSpec glprogram_funcs[] = {
+    
+    JS_FN("getUniformLocation", native_canvas2dctxGLProgram_getUniformLocation, 1, 0),
+    JS_FN("uniform1i", native_canvas2dctxGLProgram_uniform1i, 2, 0),
     JS_FS_END
 };
 
@@ -229,6 +258,56 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
     NSKIA_NATIVE->clearRect(x, y, width, height);
 
     return JS_TRUE;
+}
+
+static JSBool native_canvas2dctx_breakText(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+    JSString *str;
+    double maxWidth;
+    JSObject *res = NULL;
+    int length = 0;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sd", &str, &maxWidth)) {
+        return JS_TRUE;
+    }
+
+    res = JS_NewObject(cx, NULL, NULL, NULL);
+
+    JSAutoByteString text(cx, str);
+    size_t len = text.length();
+
+    struct _NativeLine *lines = new struct _NativeLine[len];
+
+    if (!len) {
+        JS_ReportOutOfMemory(cx);
+        return JS_FALSE;
+    }
+
+    memset(lines, 0, len * sizeof(struct _NativeLine));
+
+    SkScalar ret = NSKIA_NATIVE->breakText(text.ptr(), len,
+                    lines, maxWidth, &length);
+    JSObject *alines = JS_NewArrayObject(cx, length, NULL);
+
+    for (int i = 0; i < len && i < length; i++) {
+        jsval val = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            lines[i].line, lines[i].len));
+        JS_SetElement(cx, alines, i, &val);
+    }
+
+    SET_PROP(res, "height", DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
+    SET_PROP(res, "lines", OBJECT_TO_JSVAL(alines));
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(res));
+
+    delete[] lines;
+
+    return JS_TRUE;
+#undef SET_PROP
 }
 
 static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *vp)
@@ -825,6 +904,83 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    JSString *glsl;
+    NativeCanvas2DContext *nctx = NCTX_NATIVE;
+    size_t program;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
+        &glsl)) {
+        return JS_TRUE;
+    }
+
+    JSAutoByteString cglsl(cx, glsl);
+
+    if ((program = nctx->attachShader(cglsl.ptr())) == 0) {
+        JS_ReportError(cx, "Failed to compile GLSL shader");
+        return JS_FALSE;
+    }
+    JSObject *canvasProgram = JS_NewObject(cx, &canvasGLProgram_class, NULL, NULL);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(canvasProgram));
+
+    JS_DefineFunctions(cx, canvasProgram, glprogram_funcs);
+
+    JS_SetPrivate(canvasProgram, (void *)program);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    JSString *location;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    uint32_t program;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
+        &location)) {
+        return JS_TRUE;
+    }
+
+    JSAutoByteString clocation(cx, location);
+
+    program = (size_t)JS_GetPrivate(caller);
+
+    int ret = glGetUniformLocation(program, clocation.ptr());
+
+    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(ret));
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    int location, val;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    uint32_t program;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
+        &location, &val)) {
+        return JS_TRUE;
+    }
+
+    if (location == -1) {
+        return JS_TRUE;
+    }
+    program = (size_t)JS_GetPrivate(caller);
+    int32_t tmpProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
+    glUseProgram(program);
+    glUniform1i(location, val);
+    glUseProgram(tmpProgram);
+
+    return JS_TRUE;
+}
+
 static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     jsval *vp)
 {
@@ -1101,6 +1257,166 @@ void NativeCanvas2DContext::clear(uint32_t color)
     skia->canvas->clear(color);
 }
 
+uint32_t NativeCanvas2DContext::createProgram(const char *data)
+{
+    uint32_t fragment = this->compileShader(data, GL_FRAGMENT_SHADER);
+
+    if (fragment == 0) {
+        return 0;
+    }
+
+    GLuint programHandle = glCreateProgram();
+    GLint linkSuccess;
+
+    glAttachShader(programHandle, fragment);
+    glLinkProgram(programHandle);
+
+    glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
+    if (linkSuccess == GL_FALSE) {
+        GLchar messages[256];
+        glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
+        printf("createProgram error : %s\n", messages);
+        return 0;
+    }
+
+    return programHandle;
+
+}
+
+uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
+{
+    GLuint shaderHandle = glCreateShader(type);
+    int len = strlen(data);
+    glShaderSource(shaderHandle, 1, &data, &len);
+    glCompileShader(shaderHandle);
+
+    GLint compileSuccess = GL_TRUE;
+
+    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
+
+    if (compileSuccess == GL_FALSE) {
+        GLchar messages[512];
+        int len;
+        glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
+        if (glGetError() != GL_NO_ERROR) {
+            return 0;
+        }
+        printf("Shader error %d : %s\n", len, messages);
+        return 0;
+    }
+    
+    return shaderHandle;
+}
+
+void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
+{
+    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+                                        getDevice()->accessRenderTarget();
+
+    int width = backingTarget->asTexture()->width();
+    int height =  backingTarget->asTexture()->height();
+
+    SkDevice *dev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+        width, height, false);
+
+    gl.copy = new SkCanvas(dev);
+    gl.texture = ((GrRenderTarget*)dev->accessRenderTarget())
+                    ->asTexture()->getTextureHandle();
+
+    gl.fbo = static_cast<GLuint>(((GrRenderTarget*)dev->accessRenderTarget())->
+                    asTexture()->asRenderTarget()->getRenderTargetHandle());
+
+    dev->unref();
+}
+
+void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
+{
+    /* Create a new texture width the same size than textureID */
+    glEnable(GL_TEXTURE_2D);
+    glClearColor(0, 0, 0, 0);
+
+    if (!gl.fbo) {
+        this->initCopyTex(textureID);
+    }
+
+    /* Use the current FBO */
+    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
+
+    /* Set the FBO backing store using the current texture */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D, gl.texture, 0);
+
+    GLenum status;
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            return;
+        default:
+            printf("fbo fatal error\n");
+            return;
+    }
+
+    /* clear the FBO */
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    /* draw a textured quad on the new texture using textureID */
+    glBegin(GL_QUADS);
+        /*
+            (-1, 1)...........(1, 1)
+                .               .
+                .               .
+                .               .
+            (-1, -1)...........(1, -1)
+        */
+        glTexCoord3i(0, 0, 1);
+          glVertex3f(-1.0f, -1.0f, 1.0f);
+
+        glTexCoord3i(0, 1, 1);
+          glVertex3f(-1.0f, 1.0f, 1.0f);
+
+        glTexCoord3i(1, 1, 1);
+          glVertex3f( 1.0f, 1.0f, 1.0f);
+
+        glTexCoord3i(1, 0, 1);
+          glVertex3f( 1.0f, -1.0f, 1.0f);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_TEXTURE_2D); 
+}
+
+
+uint32_t NativeCanvas2DContext::getSkiaTextureID()
+{
+    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+                                        getDevice()->accessRenderTarget();
+
+    return backingTarget->asTexture()->getTextureHandle();
+}
+
+/* tell skia that OpenGL state was altered (and thus restore it) */
+void NativeCanvas2DContext::resetGLContext()
+{
+    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+                                        getDevice()->accessRenderTarget();
+
+    backingTarget->getContext()->resetContext();
+}
+
+uint32_t NativeCanvas2DContext::attachShader(const char *string)
+{
+    gl.program = this->createProgram(string);
+
+    return gl.program;
+}
+
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     double left, double top, double opacity, const NativeRect *rclip)
 {
@@ -1115,13 +1431,24 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->save(SkCanvas::kClip_SaveFlag);
 
         skia->canvas->clipRect(r);
+
         skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
             left, top, &pt);
 
         skia->canvas->restore();
     } else {
-        skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
-            left, top, &pt);        
+        SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
+
+        if (layer->hasShader()) {
+            layer->skia->canvas->flush();
+            uint32_t textureID = layer->getSkiaTextureID();
+            glUseProgram(layer->getProgram());
+            layer->drawTexToFBO(textureID);
+            layer->resetGLContext();
+            bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
+        }
+        skia->canvas->drawBitmap(bitmapLayer,
+            left, top, &pt);
     }
     skia->canvas->flush();
 }
@@ -1140,6 +1467,11 @@ void NativeCanvas2DContext::setSize(int width, int height)
  
     ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                 width, height, false);
+
+    if (ndev == NULL) {
+        printf("Cant create canvas of size %dx%d\n", width, height);
+        return;
+    }
 
     ncanvas = new SkCanvas(ndev);
 
@@ -1173,6 +1505,11 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     skia->bindOnScreen(width, height);
 
     JS_SetPrivate(jsobj, this);
+
+    gl.program = 0;
+    gl.texture = 0;
+    gl.fbo = 0;
+    gl.copy = NULL;
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
@@ -1180,6 +1517,11 @@ NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
 {
     skia = new NativeSkia();
     skia->bindGL(width, height);
+
+    gl.program = 0;
+    gl.texture = 0;
+    gl.fbo = 0;
+    gl.copy = NULL;
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()

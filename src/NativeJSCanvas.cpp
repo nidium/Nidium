@@ -5,6 +5,8 @@
 
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
 #define HANDLER_FROM_CALLEE ((class NativeCanvasHandler *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
+#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
 extern jsval gfunc;
 
@@ -15,6 +17,8 @@ enum {
     /* relative positions */
     CANVAS_PROP_TOP,
     CANVAS_PROP_LEFT,
+    CANVAS_PROP_RIGHT,
+    CANVAS_PROP_BOTTOM,
     /* .show()/.hide() */
     CANVAS_PROP_VISIBLE,
     /* Element is going to be drawn */
@@ -36,7 +40,8 @@ enum {
     CANVAS_PROP_CONTENTHEIGHT,
     CANVAS_PROP_SCROLLTOP,
     CANVAS_PROP_SCROLLLEFT,
-    CANVAS_PROP___FIXED
+    CANVAS_PROP___FIXED,
+    CANVAS_PROP___OUTOFBOUND
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -75,6 +80,8 @@ static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
 static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -128,6 +135,12 @@ static JSPropertySpec canvas_props[] = {
     {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
+    {"right", CANVAS_PROP_RIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"bottom", CANVAS_PROP_BOTTOM, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
     {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"contentWidth", CANVAS_PROP_CONTENTWIDTH, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
@@ -141,6 +154,8 @@ static JSPropertySpec canvas_props[] = {
     {"__left", CANVAS_PROP___LEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"__outofbound", CANVAS_PROP___OUTOFBOUND, JSPROP_PERMANENT | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
@@ -163,6 +178,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getChildren", native_canvas_getChildren, 0, 0),
     JS_FN("setCoordinates", native_canvas_setCoordinates, 2, 0),
     JS_FN("translate", native_canvas_translate, 2, 0),
+    JS_FN("getVisibleRect", native_canvas_getVisibleRect, 0, 0),
     JS_FS_END
 };
 
@@ -279,6 +295,29 @@ static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeRect rect = HANDLER_FROM_CALLEE->getVisibleRect();
+    JSObject *ret;
+
+    ret = JS_NewObject(cx, NULL, NULL, NULL);
+
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+    
+    SET_PROP(ret, "left", DOUBLE_TO_JSVAL(rect.fLeft));
+    SET_PROP(ret, "top", DOUBLE_TO_JSVAL(rect.fTop));
+    SET_PROP(ret, "width", DOUBLE_TO_JSVAL(native_max(0, rect.fRight-rect.fLeft)));
+    SET_PROP(ret, "height", DOUBLE_TO_JSVAL(native_max(0, rect.fBottom-rect.fTop)));
+#undef SET_PROP
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    return JS_TRUE;
+}
+
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
     jsval *vp)
 {
@@ -389,7 +428,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
-            handler->setWidth(dval);
+            if (!handler->setWidth(dval)) {
+                JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
+                return JS_FALSE;
+            }
         }
         break;
         case CANVAS_PROP_HEIGHT:
@@ -400,27 +442,66 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
             
-            handler->setHeight(dval);
+            if (!handler->setHeight(dval)) {
+                JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
+                return JS_FALSE;
+            }
         }
         break;
         case CANVAS_PROP_LEFT:
         {
             double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetLeft();
+                return JS_TRUE;
+            }
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, vp, &dval);
-            handler->left = dval;
+            handler->setLeft(dval);
+        }
+        break;
+        case CANVAS_PROP_RIGHT:
+        {
+            double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetRight();
+                return JS_TRUE;
+            }
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setRight(dval);
         }
         break;
         case CANVAS_PROP_TOP:
         {
             double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetTop();
+                return JS_TRUE;
+            }
             if (!JSVAL_IS_NUMBER(vp)) {
                 return JS_TRUE;
             }
             JS_ValueToNumber(cx, vp, &dval);
-            handler->top = dval;
+            handler->setTop(dval);
+        }
+        break;
+        case CANVAS_PROP_BOTTOM:
+        {
+            double dval;
+            if (JSVAL_IS_NULL(vp)) {
+                handler->unsetBottom();
+                return JS_TRUE;
+            }
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setBottom(dval);
         }
         break;
         case CANVAS_PROP_SCROLLLEFT:
@@ -503,31 +584,37 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(DOUBLE_TO_JSVAL(handler->opacity));
             break;
         case CANVAS_PROP_WIDTH:
-            vp.set(INT_TO_JSVAL(handler->width));
+            vp.set(INT_TO_JSVAL(handler->getWidth()));
             break;
         case CANVAS_PROP_CLIENTWIDTH:
-            vp.set(INT_TO_JSVAL(handler->width + (handler->padding.global * 2)));
+            vp.set(INT_TO_JSVAL(handler->getWidth() + (handler->padding.global * 2)));
             break;
         case CANVAS_PROP_HEIGHT:
-            vp.set(INT_TO_JSVAL(handler->height));
+            vp.set(INT_TO_JSVAL(handler->getHeight()));
             break;
         case CANVAS_PROP_CLIENTHEIGHT:
-            vp.set(INT_TO_JSVAL(handler->height + (handler->padding.global * 2)));
+            vp.set(INT_TO_JSVAL(handler->getHeight() + (handler->padding.global * 2)));
             break;
         case CANVAS_PROP_PADDING:
             vp.set(INT_TO_JSVAL(handler->padding.global));
             break;
         case CANVAS_PROP_LEFT:
-            vp.set(DOUBLE_TO_JSVAL(handler->left));
+            vp.set(DOUBLE_TO_JSVAL(handler->getLeft()));
+            break;
+        case CANVAS_PROP_RIGHT:
+            vp.set(DOUBLE_TO_JSVAL(handler->getRight()));
+            break;
+        case CANVAS_PROP_BOTTOM:
+            vp.set(DOUBLE_TO_JSVAL(handler->getBottom()));
             break;
         case CANVAS_PROP_CLIENTLEFT:
-            vp.set(INT_TO_JSVAL(handler->left - handler->padding.global));
+            vp.set(INT_TO_JSVAL(handler->getLeft() - handler->padding.global));
             break;
         case CANVAS_PROP_TOP:
-            vp.set(DOUBLE_TO_JSVAL(handler->top));
+            vp.set(DOUBLE_TO_JSVAL(handler->getTop()));
             break;
         case CANVAS_PROP_CLIENTTOP:
-            vp.set(INT_TO_JSVAL(handler->top - handler->padding.global));
+            vp.set(INT_TO_JSVAL(handler->getTop() - handler->padding.global));
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
@@ -556,13 +643,13 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP___TOP:
         {
             handler->computeAbsolutePosition();
-            vp.set(DOUBLE_TO_JSVAL(handler->a_top));
+            vp.set(DOUBLE_TO_JSVAL(handler->getTop(true)));
             break;
         }
         case CANVAS_PROP___LEFT:
         {
             handler->computeAbsolutePosition();
-            vp.set(DOUBLE_TO_JSVAL(handler->a_left));
+            vp.set(DOUBLE_TO_JSVAL(handler->getLeft(true)));
             break;
         }
         case CANVAS_PROP_CTX:
@@ -572,6 +659,11 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
                 break;
             }
             vp.set(OBJECT_TO_JSVAL(handler->context->jsobj));
+            break;
+        }
+        case CANVAS_PROP___OUTOFBOUND:
+        {
+            vp.set(BOOLEAN_TO_JSVAL(handler->isOutOfBound()));
             break;
         }
         default:

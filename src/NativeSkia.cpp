@@ -288,12 +288,15 @@ void NativeSkia::initPaints()
 
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
+    PAINT->setDither(true);
+    //PAINT->setLCDRenderText(true);
 
     PAINT->setStyle(SkPaint::kFill_Style);
     PAINT->setFilterBitmap(false);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
+    PAINT->setHinting(SkPaint::kFull_Hinting);
 
     paint_system = new SkPaint;
 
@@ -394,7 +397,6 @@ int NativeSkia::bindGL(int width, int height)
     
     desc.fWidth = SkScalarRound(width);
     desc.fHeight = SkScalarRound(height);
-
     desc.fConfig = kSkia8888_GrPixelConfig;
     desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
 
@@ -716,6 +718,7 @@ static struct _native_xfer_mode {
     {"darker",             SkXfermode::kDarken_Mode},
     {"copy",               SkXfermode::kSrc_Mode},
     {"xor",                SkXfermode::kXor_Mode},
+    {"lighten",            SkXfermode::kColorDodge_Mode},
     {NULL,                 SkXfermode::kSrcOver_Mode}
 };
 
@@ -723,8 +726,10 @@ void NativeSkia::setGlobalComposite(const char *str)
 {
     for (int i = 0; native_xfer_mode[i].str != NULL; i++) {
         if (strcasecmp(native_xfer_mode[i].str, str) == 0) {
-            PAINT->setXfermodeMode(native_xfer_mode[i].mode);
-            PAINT_STROKE->setXfermodeMode(native_xfer_mode[i].mode);
+            SkXfermode *mode = SkXfermode::Create(native_xfer_mode[i].mode);
+            PAINT->setXfermode(mode);
+            PAINT_STROKE->setXfermode(mode);
+            SkSafeUnref(mode);
             break;
         }
     }
@@ -1093,7 +1098,6 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-
         canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
             SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
@@ -1220,10 +1224,11 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     bt.setPixels(PMPixels);
     r.setXYWH(x, y, width, height);
 
+    pt.setFilterBitmap(PAINT->isFilterBitmap());
     canvas->saveLayer(NULL, NULL);
         canvas->clipRect(r, SkRegion::kReplace_Op);
         canvas->drawColor(SK_ColorWHITE);
-        canvas->drawBitmap(bt, x, y);
+        canvas->drawBitmap(bt, x, y, &pt);
     canvas->restore();
 }
 
@@ -1243,6 +1248,71 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     }
 
     return 1;
+}
+
+static inline bool isBreakable(const unsigned char c)
+{
+    return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
+}
+
+SkScalar NativeSkia::breakText(const char *str, size_t len,
+    struct _NativeLine lines[], double maxWidth, int *length)
+{
+    struct {
+        SkScalar curWordWidth;
+        SkScalar curLineWidth;
+        size_t curWordLen;
+        const char *ptr;
+        int curLine;
+    } curState;
+
+    int i;
+
+    SkScalar widths[len];
+
+    PAINT->getTextWidths(str, len, widths);
+    curState.ptr = str;
+    curState.curWordWidth = SkIntToScalar(0);
+    curState.curLineWidth = SkIntToScalar(0);
+    curState.curWordLen   = 0;
+    curState.curLine = 0;
+
+    lines[0].line = str;
+    lines[0].len  = 0;
+
+    for (i = 0; i < len; i++) {
+
+        lines[curState.curLine].len++;
+
+        if (isBreakable((unsigned char)str[i])) {
+            curState.ptr = &str[i+1];
+            curState.curWordWidth = SkIntToScalar(0);
+            curState.curWordLen   = 0;
+            if (curState.ptr == NULL) {
+                break;
+            }
+        } else {
+            curState.curWordWidth += widths[i];
+            curState.curWordLen++;
+        }
+
+        curState.curLineWidth += widths[i];
+
+        if (curState.curLineWidth > maxWidth) {
+            lines[curState.curLine].len = curState.ptr - lines[curState.curLine].line;
+            curState.curLine++;
+
+            lines[curState.curLine].line = curState.ptr;
+            lines[curState.curLine].len = 0;
+            curState.curLineWidth = curState.curWordWidth;
+        }
+    }
+
+    lines[curState.curLine].len = &str[i] - lines[curState.curLine].line;
+    if (length) {
+        *length = curState.curLine+1;
+    }
+    return (curState.curLine+1)*PAINT->getFontSpacing();
 }
 
 /*

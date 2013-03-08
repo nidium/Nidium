@@ -9,8 +9,8 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
-#define kNativeWidth 1280
-#define kNativeHeight 600
+#define kNativeWidth 1024
+#define kNativeHeight 700
 
 #define kNativeTitleBarHeight 0
 
@@ -145,7 +145,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
-
+        //glUseProgram(0);
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
@@ -270,7 +270,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         printf( "Can't init SDL:  %s\n", SDL_GetError( ));
         return false;
     }
-
+    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, true );
+    //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 4 );
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );

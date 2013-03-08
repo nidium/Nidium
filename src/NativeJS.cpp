@@ -281,7 +281,7 @@ void NativeJS::callFrame()
 void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
     jsval rval, jevent, canvas, onwheel;
     JSObject *event;
@@ -309,7 +309,7 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
     JSObject *event;
     jsval jevent, onkeyupdown, canvas, rval;
@@ -338,7 +338,7 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 void NativeJS::textInput(const char *data)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     JSObject *event;
     jsval jevent, ontextinput, canvas, rval;
@@ -363,7 +363,7 @@ void NativeJS::textInput(const char *data)
 void NativeJS::mouseClick(int x, int y, int state, int button)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     jsval rval, jevent;
     JSObject *event;
@@ -394,7 +394,7 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
     jsval rval, jevent, canvas, onmove;
     JSObject *event;
@@ -558,7 +558,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
-    //JS_InitCTypesClass(cx, gbl);
+    JS_InitCTypesClass(cx, gbl);
 
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
@@ -661,7 +661,7 @@ static int Native_handle_messages(void *arg)
 #define MAX_MSG_IN_ROW 20
 
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     NativeJS *njs = (NativeJS *)arg;
     JSContext *cx = njs->cx;

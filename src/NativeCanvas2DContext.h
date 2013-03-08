@@ -19,6 +19,7 @@
 
 class NativeSkia;
 struct NativeRect;
+class SkCanvas;
 
 class NativeCanvas2DContext : public NativeJSExposer
 {
@@ -31,22 +32,45 @@ class NativeCanvas2DContext : public NativeJSExposer
         NativeSkia *skia;
         bool setterDisabled;
 
+        struct {
+            uint32_t program;
+            uint32_t texture;
+            uint32_t fbo;
+            SkCanvas *copy;
+        } gl;
+
         void clear(uint32_t color);
 
         /*
             draw layer on top of "this"
         */
+
+        void resetGLContext();
         void composeWith(NativeCanvas2DContext *layer, double left,
             double top, double opacity, const NativeRect *clip);
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);
+        
+        uint32_t attachShader(const char *string);
+        bool hasShader() const {
+            return (gl.program != 0);
+        }
+        uint32_t getProgram() const {
+            return gl.program;
+        }
+
+        uint32_t createProgram(const char *data);
+        uint32_t compileShader(const char *data, int type);
 
         static void registerObject(JSContext *cx);
         NativeCanvas2DContext(int width, int height);
         NativeCanvas2DContext(struct JSContext *cx, int width, int height);
         ~NativeCanvas2DContext();
     private:
+        void initCopyTex(uint32_t textureID);
+        void drawTexToFBO(uint32_t textureID);
+        uint32_t getSkiaTextureID();
 };
 
 class NativeCanvasPattern
