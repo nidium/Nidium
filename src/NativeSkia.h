@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "NativeCanvasHandler.h"
-#include "SkScalar.h"
+
 
 class SkCanvas;
 class SkPaint;
@@ -77,7 +77,7 @@ class NativeSkia
         SkCanvas *canvas;
         ~NativeSkia();
         NativeSkia();
-        SkScalar breakText(const char *str, size_t len,
+        double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
