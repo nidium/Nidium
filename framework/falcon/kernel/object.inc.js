@@ -218,6 +218,23 @@ DOMElement.prototype = {
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
 
+	set maxWidth(value) {
+		var w = value == null || value == '' ? null : Number(value);
+
+		if (w === null) {
+			w = this.contentWidth;
+			this.width = w;
+		} else {
+			this.width = Math.min(this._width, w);
+		}
+
+		this._maxWidth = w;
+	},
+
+	get maxWidth() {
+		return this._maxWidth;
+	},
+
 	set fastLeft(value) {
 		this._left = value;
 		this.layer.left = value;

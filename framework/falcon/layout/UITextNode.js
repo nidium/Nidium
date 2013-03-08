@@ -4,10 +4,14 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var TextNode = function(text){
+var TextNode = function(text, className){
+	text = String(text.replace(/\r\n/g, "\n"));
+	if (text == '') return false;
+
 	var options = {
 		text : text,
 		color : "#ffffff",
+		class : String(className)
 		//background : "rgba(255, 0, 0, 0.4)"
 	};
 
@@ -84,18 +88,22 @@ Native.elements.export("UITextNode", {
 		this.inheritFromParent = function(){
 			var p = this.parent;
 
-			this._fontSize = this.fontSize || p.fontSize;
+			this._fontType = p.fontType;
+			this._fontSize = p.fontSize;
+			this._lineHeight = p.lineHeight;
+			//this._color = p.color;
 			this._textShadowOffsetX = p.textShadowOffsetX;
 			this._textShadowOffsetY = p.textShadowOffsetY;
 			this._textShadowBlur = p.textShadowBlur;
 			this.textShadowColor = p.textShadowColor;
 		};
 
-		this.setNodePosition = function(nb_lines, firstChar, lastChar){
+		this.setDimensions = function(nb_lines, firstChar, lastChar){
 			var fcpos = firstChar.position, // first char position
 				fctop = firstChar.line; // absolute linenum in wholeText
 
 			this.top = fctop * this.lineHeight;
+			this.height = nb_lines * this.lineHeight;
 
 			if (nb_lines && nb_lines <= 1) {
 
@@ -118,14 +126,10 @@ Native.elements.export("UITextNode", {
 
 				firstLine = lines[0],
 				firstChar = firstLine[0],
-				lastChar = firstLine[nb_chars-1];
+				lastChar = nb_chars>0 ? firstLine[nb_chars-1] : firstChar;
 
-
-			this.height = nb_lines * this.lineHeight;
-
-			this.setNodePosition(nb_lines, firstChar, lastChar);
-
-			//this.inheritFromParent();
+			this.inheritFromParent();
+			this.setDimensions(nb_lines, firstChar, lastChar);
 		};
 
 
@@ -180,18 +184,56 @@ DOMElement.draw.printMatrix = function(element, context, params){
 			tx = params.x - element._left,
 			ty = params.y + i * element.lineHeight + vOffset;
 
+		context.setColor("rgba(150, 150, 250, 0.25)");
+		context.highlightLetters(letters, tx, ty - vOffset, element.lineHeight);
+
+		context.setColor(element.color);
 		context.drawLetters(letters, tx, ty);
+
 		if (element.fontWeight == "bold") {
 			context.globalAlpha = 0.6;
 			context.drawLetters(letters, tx, ty);
 		} else if (element.fontWeight == "bolder") {
-			context.globalAlpha = 0.8;
+			context.globalAlpha = 0.4;
 			context.drawLetters(letters, tx, ty);
-			context.globalAlpha = 0.5;
+			context.globalAlpha = 0.4;
 			context.drawLetters(letters, tx, ty);
 		}
 	}
 
+}
+
+function printTextMatrix(context, textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
+	var letters = [];
+	var start = -Math.ceil((y - viewportTop)/lineHeight),
+		
+		end = Math.min(
+			textMatrix.length, 
+			start + Math.ceil(viewportHeight/lineHeight)
+		);
+
+	context.setFontSize(fontSize);
+	context.fontType = fontType;
+
+	if (start-1 >= 0) start--;
+	if (end+1 <= textMatrix.length) end++;
+
+	for (var line=start; line<end; line++){
+		var tx = x,
+			ty = y + vOffset + lineHeight * line;
+
+		// only draw visible lines
+		if ( ty < (viewportTop + viewportHeight + lineHeight) && ty >= viewportTop) {
+			letters = textMatrix[line].letters;
+
+			context.setColor("rgba(180, 180, 255, 0.60)");
+			context.highlightLetters(letters, tx, ty - vOffset, lineHeight);
+	
+			context.setColor(color);
+			context.drawLetters(letters, tx, ty);
+
+		}
+	}
 }
 
 /* -------------------------------------------------------------------------- */

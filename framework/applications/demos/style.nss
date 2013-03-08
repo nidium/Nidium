@@ -46,6 +46,11 @@
 		radius : 4
 	},
 
+	method : {color : "#A6E22E"},
+	operand : {color : "#F92672"},
+	number : {color : "#AE81FF"},
+	reserved : {color : "#66D9EF"},
+
 	doit : {
 		label : "Do It",
 		left : 970,
