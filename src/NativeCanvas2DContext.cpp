@@ -136,6 +136,24 @@ static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsi
 static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     jsval *vp);
 
+static JSBool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
+    jsval *vp);
+
+static JSBool native_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
+    jsval *vp);
+
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
         JSPROP_ENUMERATE, JSOP_NULLWRAPPER, \
@@ -203,6 +221,15 @@ static JSFunctionSpec glprogram_funcs[] = {
     
     JS_FN("getUniformLocation", native_canvas2dctxGLProgram_getUniformLocation, 1, 0),
     JS_FN("uniform1i", native_canvas2dctxGLProgram_uniform1i, 2, 0),
+    JS_FN("uniform1iv", native_canvas2dctxGLProgram_uniform1iv, 2, 0),
+    JS_FN("uniform2iv", native_canvas2dctxGLProgram_uniform2iv, 2, 0),
+    JS_FN("uniform3iv", native_canvas2dctxGLProgram_uniform3iv, 2, 0),
+    JS_FN("uniform4iv", native_canvas2dctxGLProgram_uniform4iv, 2, 0),
+
+    JS_FN("uniform1fv", native_canvas2dctxGLProgram_uniform1fv, 2, 0),
+    JS_FN("uniform2fv", native_canvas2dctxGLProgram_uniform2fv, 2, 0),
+    JS_FN("uniform3fv", native_canvas2dctxGLProgram_uniform3fv, 2, 0),
+    JS_FN("uniform4fv", native_canvas2dctxGLProgram_uniform4fv, 2, 0),
     JS_FS_END
 };
 
@@ -981,6 +1008,166 @@ static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc
     return JS_TRUE;
 }
 
+static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+{
+    GLsizei length;
+    GLint *carray;
+    JSObject *tmp;
+    JSObject *array;
+    int location;
+    uint32_t program;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    program = (size_t)JS_GetPrivate(caller);
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "io", &location, &array)) {
+        return JS_TRUE;
+    }
+
+    if (location == -1) {
+        return JS_TRUE;
+    }
+
+    if (JS_IsInt32Array(array)) {
+        carray = (GLint *)JS_GetInt32ArrayData(array);
+        length = (GLsizei)JS_GetTypedArrayLength(array);
+    } else if (JS_IsArrayObject(cx, array)) {
+        tmp = JS_NewInt32ArrayFromArray(cx, array); 
+        carray = (GLint *)JS_GetInt32ArrayData(tmp);
+        length = (GLsizei)JS_GetTypedArrayLength(tmp);
+    } else {
+        JS_ReportError(cx, "Array is not a Int32 array");
+        return JS_FALSE;
+    }
+    int32_t tmpProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
+
+    glUseProgram(program);
+
+    switch (nb) {
+        case 1:
+            glUniform1iv(location, length, carray);
+            break;
+        case 2:
+            glUniform2iv(location, length/2, carray);
+            break;
+        case 3:
+            glUniform3iv(location, length/3, carray);
+            break;
+        case 4:
+            glUniform4iv(location, length/4, carray);
+            break;
+        default:
+            break;
+    }
+
+    glUseProgram(tmpProgram);
+    
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+{
+    GLsizei length;
+    GLfloat *carray;
+    JSObject *array;
+    int location;
+    uint32_t program;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    program = (size_t)JS_GetPrivate(caller);
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "io", &location, &array)) {
+        return JS_TRUE;
+    }
+
+    if (location == -1) {
+        return JS_TRUE;
+    }
+
+    if (JS_IsFloat32Array(array)) {
+        carray = (GLfloat *)JS_GetFloat32ArrayData(array);
+        length = (GLsizei)JS_GetTypedArrayLength(array);
+    } else if (JS_IsArrayObject(cx, array)) {
+        JSObject *tmp;
+        tmp = JS_NewFloat32ArrayFromArray(cx, array); 
+        carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
+        length = (GLsizei)JS_GetTypedArrayLength(tmp);
+    } else {
+        JS_ReportError(cx, "Array is not a Float32 array");
+        return JS_FALSE;
+    }
+    int32_t tmpProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
+
+    glUseProgram(program);
+
+    switch (nb) {
+        case 1:
+            glUniform1fv(location, length, carray);
+            break;
+        case 2:
+            glUniform2fv(location, length/2, carray);
+            break;
+        case 3:
+            glUniform3fv(location, length/3, carray);
+            break;
+        case 4:
+            glUniform4fv(location, length/4, carray);
+            break;
+    }
+
+    glUseProgram(tmpProgram);
+    
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 1);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 2);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 3);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 4);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 1);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 2);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 3);
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
+    jsval *vp)
+{   
+    return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 4);
+}
+
 static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     jsval *vp)
 {
@@ -1308,6 +1495,65 @@ uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
     return shaderHandle;
 }
 
+
+void NativeCanvas2DContext::initCopyTex()
+{
+    glEnable(GL_TEXTURE_2D);
+    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+                                        getDevice()->accessRenderTarget();
+
+    int width = backingTarget->asTexture()->width();
+    int height =  backingTarget->asTexture()->height();
+
+    glGenTextures(1, &gl.texture);
+    glBindTexture(GL_TEXTURE_2D, gl.texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    /* Allocate memory for the new texture */
+    glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            width, height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            NULL
+    );
+
+    glBindTexture(GL_TEXTURE_2D, 0);        
+
+    /* Generate the FBO */
+    glGenFramebuffers(1, &gl.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
+
+    /* Set the FBO backing store using the new texture */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D, gl.texture, 0);
+
+    GLenum status;
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            return;
+        default:
+            printf("fbo fatal error\n");
+            return;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    gl.textureWidth = width;
+    gl.textureHeight = height;
+    glDisable(GL_TEXTURE_2D);
+}
+#if 0
 void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
@@ -1326,39 +1572,82 @@ void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
     gl.fbo = static_cast<GLuint>(((GrRenderTarget*)dev->accessRenderTarget())->
                     asTexture()->asRenderTarget()->getRenderTargetHandle());
 
+    gl.textureWidth = width;
+    gl.textureHeight = height;
+
     dev->unref();
+}
+#endif
+
+uint32_t NativeCanvas2DContext::getMainFBO()
+{
+    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+                                        getDevice()->accessRenderTarget();
+
+    return (uint32_t)backingTarget->getRenderTargetHandle();
+}
+
+void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
+    uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
+{
+    SkISize size = skia->canvas->getDeviceSize();
+
+    float pwidth = 2./(float)size.fWidth;
+    float pheight =  2./(float)size.fHeight;
+
+    float normalWidth = (width*pwidth)-1;
+    float normalHeight = 1-(height*pheight);
+
+    float normalLeft = left*pwidth;
+    float normalTop = top*pheight;
+
+    glEnable(GL_TEXTURE_2D);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glBegin(GL_QUADS);
+        /*
+            (-1, 1)...........(1, 1)
+                .               .
+                .               .
+                .               .
+            (-1, -1)...........(1, -1)
+        */
+        glTexCoord3i(0, 0, 1);
+          glVertex3f(-1+normalLeft, normalHeight-normalTop, 1.0f);
+
+        glTexCoord3i(0, 1, 1);
+          glVertex3f(-1+normalLeft, 1-normalTop, 1.0f);
+
+        glTexCoord3i(1, 1, 1);
+          glVertex3f( normalWidth+normalLeft, 1-normalTop, 1.0f);
+
+        glTexCoord3i(1, 0, 1);
+          glVertex3f( normalWidth+normalLeft, normalHeight-normalTop, 1.0f);
+    glEnd();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_TEXTURE_2D);
 }
 
 void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 {
-    /* Create a new texture width the same size than textureID */
     glEnable(GL_TEXTURE_2D);
     glClearColor(0, 0, 0, 0);
 
     if (!gl.fbo) {
-        this->initCopyTex(textureID);
+        this->initCopyTex();
     }
 
     /* Use the current FBO */
     glBindFramebuffer(GL_FRAMEBUFFER, gl.fbo);
 
-    /* Set the FBO backing store using the current texture */
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        GL_TEXTURE_2D, gl.texture, 0);
+    /* save the old viewport size */
+    glPushAttrib(GL_VIEWPORT_BIT);
 
-    GLenum status;
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-
-    switch(status) {
-        case GL_FRAMEBUFFER_COMPLETE:
-            break;
-        case GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
-            return;
-        default:
-            printf("fbo fatal error\n");
-            return;
-    }
+    /* set the viewport with the texture size */
+    glViewport(0, 0, gl.textureWidth, gl.textureHeight);
 
     /* clear the FBO */
     glClear(GL_COLOR_BUFFER_BIT);
@@ -1389,7 +1678,8 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_TEXTURE_2D); 
+    glDisable(GL_TEXTURE_2D);
+    glPopAttrib();
 }
 
 
@@ -1436,16 +1726,37 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             left, top, &pt);
 
         skia->canvas->restore();
+
+        printf("cliped?\n");
     } else {
         SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
 
         if (layer->hasShader()) {
+            skia->canvas->flush();
             layer->skia->canvas->flush();
+
+            /* get the layer's Texture ID */
             uint32_t textureID = layer->getSkiaTextureID();
-            glUseProgram(layer->getProgram());
+
+            /* Use our custom shader */
+            glUseProgram(0);
+
+            /* draw layer into a temporary FBO (in layer->gl.fbo/.texture) */
             layer->drawTexToFBO(textureID);
+
+            /* draw layer->gl.texture in skia->canvas (getMainFBO) */
+            glUseProgram(layer->getProgram());
+
+            drawTexIDToFBO(layer->gl.texture, layer->gl.textureWidth,
+                layer->gl.textureHeight, left, top, getMainFBO());
+
+            /* Reset skia GL context */
             layer->resetGLContext();
-            bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
+
+            return;
+
+            /* Draw the temporary FBO into main canvas (root) */
+            // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
         }
         skia->canvas->drawBitmap(bitmapLayer,
             left, top, &pt);
@@ -1509,7 +1820,8 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     gl.program = 0;
     gl.texture = 0;
     gl.fbo = 0;
-    gl.copy = NULL;
+    gl.textureWidth = 0;
+    gl.textureHeight = 0;
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
@@ -1521,11 +1833,21 @@ NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
     gl.program = 0;
     gl.texture = 0;
     gl.fbo = 0;
-    gl.copy = NULL;
+    gl.textureWidth = 0;
+    gl.textureHeight = 0;
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
+    if (gl.fbo) {
+        glDeleteFramebuffers(1, &gl.fbo);
+    }
+    if (gl.texture) {
+        glDeleteTextures(1, &gl.texture);
+    }
+    if (gl.program) {
+        glDeleteProgram(gl.program);
+    }
     delete skia;
 }
 

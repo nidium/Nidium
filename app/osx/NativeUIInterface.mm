@@ -332,6 +332,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
     //NJS->LoadApplication("./demo.npa");
 
+    printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
+
     return true;
 }
 

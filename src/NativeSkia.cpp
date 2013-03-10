@@ -1255,7 +1255,7 @@ static inline bool isBreakable(const unsigned char c)
     return (c == ' ' || c == '.' || c == ',' || c == '-' /*|| c == 0xAD*/);
 }
 
-SkScalar NativeSkia::breakText(const char *str, size_t len,
+double NativeSkia::breakText(const char *str, size_t len,
     struct _NativeLine lines[], double maxWidth, int *length)
 {
     struct {
