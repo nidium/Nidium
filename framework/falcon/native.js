@@ -52,6 +52,7 @@ require(__PATH_KERNEL__ + 'object.inc.js');
 require(__PATH_KERNEL__ + 'extend.inc.js');
 require(__PATH_KERNEL__ + 'events.inc.js');
 require(__PATH_KERNEL__ + 'motion.inc.js');
+require(__PATH_KERNEL__ + 'opengl.inc.js');
 require(__PATH_KERNEL__ + 'audio.inc.js');
 
 /* -- UI Elements -- */
