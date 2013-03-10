@@ -29,6 +29,16 @@ DOMElement.implement({
 						name : "data",
 						location : program.getUniformLocation("data"),
 						type : "integer"
+					},
+					{
+						name : "param",
+						location : program.getUniformLocation("param"),
+						type : "integer"
+					},
+					{
+						name : "zoom",
+						location : program.getUniformLocation("zoom"),
+						type : "integer"
 					}
 				];
 			};
@@ -46,7 +56,7 @@ DOMElement.implement({
 				Object.defineProperty(uniforms, name, {
 					configurable : false,
 					get : function(){
-						return uniform.value;
+						return uniform.value ? uniform.value : 0;
 					},
 
 					set : function(value){
