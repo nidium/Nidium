@@ -1183,18 +1183,10 @@ static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsig
     uint32_t program;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
     program = (size_t)JS_GetPrivate(caller);
-    int32_t tmpProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
 
-    glUseProgram(program);
     int nactives = 0;
 
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &nactives);
-
-    if (nactives == 0) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
-    }
 
     JSObject *arr = JS_NewArrayObject(cx, nactives, NULL);
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(arr));
@@ -1208,14 +1200,11 @@ static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsig
 
         glGetActiveUniform(program, i, sizeof(name)-1, &length, &size, &type, name);
         name[length] = '\0';
-
         SET_PROP(in, "name", STRING_TO_JSVAL(JS_NewStringCopyN(cx, name, length)));
         SET_PROP(in, "location", INT_TO_JSVAL(glGetUniformLocation(program, name)));
         jsval inval = OBJECT_TO_JSVAL(in);
         JS_SetElement(cx, arr, i, &inval);
     }
-
-    glUseProgram(tmpProgram);    
 
     return JS_TRUE;
 #undef SET_PROP
