@@ -22,7 +22,10 @@ require("falcon/native.js");
 //require("applications/demos/threads.js");
 //require("applications/demos/tooltips.js");
 //require("applications/demos/animation.js");
-require("applications/demos/shader.js");
+
+//require("applications/demos/shader.js");
+require("applications/demos/shader.basic.js");
+//require("applications/demos/shader.advanced.js");
 
 
 

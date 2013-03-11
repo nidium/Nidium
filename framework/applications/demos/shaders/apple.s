@@ -1,5 +1,8 @@
 /* -------------------------------------- */
-/* Dangerous Apple                        */
+/* Dangerous Apple Shader                 */
+/* -------------------------------------- */
+/* Origin : Raymarched Procedural Apple   */
+/* Native Port from Iñigo Quílez's work   */
 /* -------------------------------------- */
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
@@ -12,7 +15,6 @@ uniform int itime;
 uniform int data;
 uniform int param;
 uniform int zoom;
-
 
 vec2 resolution = vec2(1024, 768);
 float time = float(itime)/10.;
