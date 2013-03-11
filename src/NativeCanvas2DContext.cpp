@@ -130,6 +130,8 @@ static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp);
 
+
+/* GLSL related */
 static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
     jsval *vp);
 
@@ -152,6 +154,8 @@ static JSBool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned arg
 static JSBool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
     jsval *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
@@ -220,6 +224,7 @@ static JSFunctionSpec gradient_funcs[] = {
 static JSFunctionSpec glprogram_funcs[] = {
     
     JS_FN("getUniformLocation", native_canvas2dctxGLProgram_getUniformLocation, 1, 0),
+    JS_FN("getActiveUniforms", native_canvas2dctxGLProgram_getActiveUniforms, 0, 0),
     JS_FN("uniform1i", native_canvas2dctxGLProgram_uniform1i, 2, 0),
     JS_FN("uniform1iv", native_canvas2dctxGLProgram_uniform1iv, 2, 0),
     JS_FN("uniform2iv", native_canvas2dctxGLProgram_uniform2iv, 2, 0),
@@ -1168,6 +1173,54 @@ static JSBool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned arg
     return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 4);
 }
 
+
+static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+    uint32_t program;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    program = (size_t)JS_GetPrivate(caller);
+    int32_t tmpProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
+
+    glUseProgram(program);
+    int nactives = 0;
+
+    glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &nactives);
+
+    if (nactives == 0) {
+        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        return JS_TRUE;
+    }
+
+    JSObject *arr = JS_NewArrayObject(cx, nactives, NULL);
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(arr));
+
+    char name[512];
+    for (int i = 0; i < nactives; i++) {
+        int length = 0, size = 0;
+        GLenum type = GL_ZERO;
+
+        JSObject *in = JS_NewObject(cx, NULL, NULL, NULL);
+
+        glGetActiveUniform(program, i, sizeof(name)-1, &length, &size, &type, name);
+        name[length] = '\0';
+
+        SET_PROP(in, "name", STRING_TO_JSVAL(JS_NewStringCopyN(cx, name, length)));
+        SET_PROP(in, "location", INT_TO_JSVAL(glGetUniformLocation(program, name)));
+        jsval inval = OBJECT_TO_JSVAL(in);
+        JS_SetElement(cx, arr, i, &inval);
+    }
+
+    glUseProgram(tmpProgram);    
+
+    return JS_TRUE;
+#undef SET_PROP
+}
+
 static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     jsval *vp)
 {
@@ -1683,10 +1736,17 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 }
 
 
-uint32_t NativeCanvas2DContext::getSkiaTextureID()
+uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
                                         getDevice()->accessRenderTarget();
+
+    if (width != NULL && height != NULL) {
+        SkISize size = skia->canvas->getDeviceSize();
+
+        *width = size.fWidth;
+        *height = size.fHeight;
+    }
 
     return backingTarget->asTexture()->getTextureHandle();
 }
@@ -1730,25 +1790,26 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         printf("cliped?\n");
     } else {
         SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
-
+        /* TODO: disable alpha testing? */
         if (layer->hasShader()) {
             skia->canvas->flush();
             layer->skia->canvas->flush();
+            int width, height;
 
             /* get the layer's Texture ID */
-            uint32_t textureID = layer->getSkiaTextureID();
+            uint32_t textureID = layer->getSkiaTextureID(&width, &height);
 
             /* Use our custom shader */
-            glUseProgram(0);
+            //glUseProgram(0);
 
             /* draw layer into a temporary FBO (in layer->gl.fbo/.texture) */
-            layer->drawTexToFBO(textureID);
+            //layer->drawTexToFBO(textureID);
 
             /* draw layer->gl.texture in skia->canvas (getMainFBO) */
             glUseProgram(layer->getProgram());
+            glDisable(GL_ALPHA_TEST);
 
-            drawTexIDToFBO(layer->gl.texture, layer->gl.textureWidth,
-                layer->gl.textureHeight, left, top, getMainFBO());
+            drawTexIDToFBO(textureID, width, height, left, top, getMainFBO());
 
             /* Reset skia GL context */
             layer->resetGLContext();
