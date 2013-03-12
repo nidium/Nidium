@@ -12,16 +12,13 @@ Canvas.implement({
 		stroke = OptionalValue(stroke, '');
 		radius = OptionalNumber(radius, 5);
 
-		if (lineWidth !== null && lineWidth !== undefined) {
-			this.lineWidth = OptionalNumber(lineWidth, 0);
-		}
-
 		if (fill) {
 			this.setColor(fill);
 			this.fillRect(x, y, width, height, radius);
 		}
 
-		if (stroke) {
+		if (stroke && lineWidth) {
+			this.lineWidth = OptionalNumber(lineWidth, 0);
 			this.strokeStyle = stroke;
 			this.strokeRect(x, y, width, height, radius);
 		} 

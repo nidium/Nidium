@@ -89,6 +89,8 @@ var DOMElement = function(type, options, parent){
 		backgroundImage : OptionalValue(o.backgroundImage, ''),
 		backgroundRepeat : OptionalBoolean(o.backgroundRepeat, true),
 		radius : OptionalNumber(o.radius, 0, 0),
+		borderWidth : OptionalNumber(o.borderWidth, 0),
+		borderColor : OptionalValue(o.borderColor, ''),
 
 		angle : OptionalNumber(o.angle, 0),
 		scale : OptionalNumber(o.scale, 1),
@@ -726,7 +728,8 @@ DOMElement.draw = {
 			params.w, params.h, 
 			element.radius,
 			backgroundColor ? backgroundColor : element.background,
-			borderColor ? borderColor : element.border
+			borderColor ? borderColor : element.borderColor,
+			element.borderWidth
 		);
 	},
 
