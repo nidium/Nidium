@@ -110,7 +110,11 @@ class NativeVideo : public NativeAVSource
         void play();
         void pause();
         void stop();
+        int open(const char *src);
         int open(void *buffer, int size);
+        int openInit();
+        int openInitInternal();
+        static void openInitCoro(void *arg);
         double getClock();
         void seek(double time);
 
@@ -122,11 +126,18 @@ class NativeVideo : public NativeAVSource
 
         ~NativeVideo();
     private :
-        NativeAVBufferReader *br;
+        NativeAVReader *reader;
+        int error;
+        bool bufferPending;
 
         void close(bool reset);
-        void seekMethod(double time);
-        
+        static void seekCoro(void *arg);
+        void seekInternal(double time);
+
+        void buffer();
+        static void bufferCoro(void *arg);
+        void bufferInternal();
+
         bool processAudio();
         bool processVideo();
 

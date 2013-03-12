@@ -53,7 +53,7 @@ static void NativeJSAVEventCbk(const struct NativeAVSourceEvent *ev);
 class NativeJSAudio: public NativeJSExposer
 {
     public :
-        NativeJSAudio(int size, int channels, int frequency);
+        NativeJSAudio(ape_global *net, int size, int channels, int frequency);
 
         struct Nodes {
             NativeJSAudioNode *curr;

@@ -1,11 +1,12 @@
 #ifndef nativeaudionode_h__
 #define nativeaudionode_h__
 
-#include "NativeAV.h"
-#include "NativeAudio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "NativeAV.h"
+#include "NativeAudio.h"
+#include "NativeFileIO.h"
 
 #define NATIVE_AUDIONODE_ARGS_SIZE      32
 #define NATIVE_AUDIONODE_WIRE_SIZE      256
@@ -265,13 +266,19 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         void play();
         void pause();
         void stop();
+        int open(const char *src);
         int open(void *buffer, int size);
         int openInit();
+        static void openInitCoro(void *arg);
+        int initStream();
+        int initInternal();
         void seek(double time);
 
         int avail();
         bool buffer();
         void buffer(AVPacket *pkt);
+        static void bufferCoro(void *arg);
+        bool bufferInternal();
 
         virtual bool process();
         bool work();
@@ -281,12 +288,12 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         double getClock();
         void sync(double ts);
 
+        NativeAVReader *reader;
+
         ~NativeAudioTrack();
 
     private:
         AVCodecContext *codecCtx;
-        NativeAVBufferReader *br;
-        int64_t queued;
 
         struct TmpFrame {
             int size;
@@ -294,14 +301,9 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
             float *data;
         } tmpFrame;
         AVPacket *tmpPacket;
-
-        struct SeekInfos {
-            double time;
-            SeekInfos(double time) : time(time) {}
-        };
-
-        static void seekCallback(NativeAudioNode *node, void *custom);
-        void seekMethod(double time);
+  
+        static void seekCoro(void *arg);
+        void seekInternal(double time);
 
         double clock;
         bool frameConsumed;

@@ -52,6 +52,7 @@
                     '-lportaudio',
                     '-lzita-resampler',
                     '-lnspr4',
+                    '-lcoroutine',
                     '-Wl,-Bdynamic',
 
                     '-lswresample',

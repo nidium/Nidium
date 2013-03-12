@@ -6,17 +6,15 @@
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
 #include <NativeSharedMessages.h>
+#include "Coro.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 }
 
-// TODO : use Singleton
-// if multiple NativeAudio is asked with different bufferSize/channels/sampleRate
-// should reset all parameters and buffers to fit last asked audio context
-NativeAudio::NativeAudio(int bufferSize, int channels, int sampleRate)
-    : output(NULL), tracksCount(0), inputStream(NULL), outputStream(NULL), threadShutdown(false),
-      tracks(NULL)
+NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
+    : net(n), output(NULL), tracksCount(0), inputStream(NULL), outputStream(NULL), 
+      threadShutdown(false), tracks(NULL)
      //haveData(false), notEmpty(false)
 {
     pthread_cond_init(&this->bufferNotEmpty, NULL);
@@ -215,7 +213,7 @@ void *NativeAudio::queueThread(void *args) {
     return NULL;
 }
 
-// TODO : Better locking/unlocking for tracks list
+// TODO : Locking/unlocking for tracks list
 void *NativeAudio::decodeThread(void *args) {
     NativeAudio *audio = (NativeAudio *)args;
 
@@ -264,7 +262,6 @@ void *NativeAudio::decodeThread(void *args) {
         // FIXME : find out why when playing multiple song, 
         // the commented expression bellow fail to work
         if (audio->tracksCount > 0 /*&& haveEnought == tracksCount*/) {
-printf("Read avail rBufferOut %lu\n", PaUtil_GetRingBufferReadAvailable(audio->rBufferOut));
             if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) > 0) {
                 SPAM(("Have data\n"));
                 pthread_cond_signal(&audio->queueHaveData);
@@ -301,7 +298,7 @@ int NativeAudio::openOutput() {
     
     // TODO : Device should be defined by user
     device = Pa_GetDefaultOutputDevice();
-    if (device == paNoDevice) {// An error was encoutered
+    if (device == paNoDevice) {
         return 1;
     }
     infos = Pa_GetDeviceInfo(device);
@@ -371,7 +368,7 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
         // TODO : The queueHaveSpace signal is sent even if all tracks are stopped
         // thus the thread is working for nothing. Need to fix this
     } else {
-        SPAM(("-----------------------------------NO DATA\n"));
+        //SPAM(("-----------------------------------NO DATA\n"));
         for (unsigned int i = 0; i < framesPerBuffer; i++)
         {
             *out++ = 0.0f;

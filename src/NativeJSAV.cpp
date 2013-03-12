@@ -225,10 +225,10 @@ static JSPropertySpec Video_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-NativeJSAudio::NativeJSAudio(int size, int channels, int frequency) 
+NativeJSAudio::NativeJSAudio(ape_global *net, int size, int channels, int frequency) 
     : nodes(NULL), jsobj(NULL), gbl(NULL), rt(NULL), tcx(NULL)
 {
-    this->audio = new NativeAudio(size, channels, frequency);
+    this->audio = new NativeAudio(net, size, channels, frequency);
 
     this->instance = this;
 
@@ -672,7 +672,7 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    naudio = new NativeJSAudio(size, channels, frequency);
+    naudio = new NativeJSAudio((ape_global *)JS_GetContextPrivate(cx), size, channels, frequency);
     naudio->cx = cx;
     naudio->jsobj = ret;
 
@@ -1091,28 +1091,33 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 {
     NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
     NativeAudioTrack *source = (NativeAudioTrack *)jnode->node;
-    JSObject *arrayBuff;
 
+    JS::Value src = JS_ARGV(cx, vp)[0];
+    int ret;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
-        return JS_TRUE;
+    if (src.isString()) {
+        JSAutoByteString csrc(cx, src.toString());
+        ret = source->open(csrc.ptr());
+    } else if (src.isObject()) {
+        JSObject *arrayBuff = src.toObjectOrNull();
+
+        if (!JS_IsArrayBufferObject(arrayBuff)) {
+            JS_ReportError(cx, "Data is not an ArrayBuffer\n");
+            return JS_TRUE;
+        }
+
+        NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
+        int length;
+        uint8_t *data;
+
+        length = JS_GetArrayBufferByteLength(arrayBuff);
+        JS_StealArrayBufferContents(cx, arrayBuff, &node->arrayContent, &data);
+
+        ret = source->open(data, length);
     }
 
-    if (!JS_IsArrayBufferObject(arrayBuff)) {
-        JS_ReportError(cx, "Data is not an ArrayBuffer\n");
-        return JS_TRUE;
-    }
-
-    NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
-    int length;
-    uint8_t *data;
-
-    length = JS_GetArrayBufferByteLength(arrayBuff);
-    JS_StealArrayBufferContents(cx, arrayBuff, &node->arrayContent, &data);
-
-    if (int ret = source->open(
-                data, 
-                length) < 0) {
+    
+    if (ret < 0) {
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
         return JS_TRUE;
     }
@@ -1343,26 +1348,31 @@ static JSBool native_video_stop(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
-    JSObject *arrayBuff;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &arrayBuff)) {
-        return JS_TRUE;
-    }
+    JS::Value src = JS_ARGV(cx, vp)[0];
+    int ret;
 
-    if (!JS_IsArrayBufferObject(arrayBuff)) {
-        JS_ReportError(cx, "Data is not an ArrayBuffer\n");
-        return JS_TRUE;
-    }
+    if (src.isString()) {
+        JSAutoByteString csrc(cx, src.toString());
+        ret = v->video->open(csrc.ptr());
+    } else if (src.isObject()) {
+        JSObject *arrayBuff = src.toObjectOrNull();
 
-    int length;
-    uint8_t *data;
+        if (!JS_IsArrayBufferObject(arrayBuff)) {
+            JS_ReportError(cx, "Data is not an ArrayBuffer\n");
+            return JS_TRUE;
+        }
 
-    length = JS_GetArrayBufferByteLength(arrayBuff);
-    JS_StealArrayBufferContents(cx, arrayBuff, &v->arrayContent, &data);
+        int length;
+        uint8_t *data;
 
-    if (v->video->open(data, length) < 0) {
-        JS_SET_RVAL(cx, vp, JSVAL_FALSE);
-        return JS_TRUE;
+        length = JS_GetArrayBufferByteLength(arrayBuff);
+        JS_StealArrayBufferContents(cx, arrayBuff, &v->arrayContent, &data);
+
+        if (v->video->open(data, length) < 0) {
+            JS_SET_RVAL(cx, vp, JSVAL_FALSE);
+            return JS_TRUE;
+        }
     }
 
     JS_SET_RVAL(cx, vp, JSVAL_TRUE);

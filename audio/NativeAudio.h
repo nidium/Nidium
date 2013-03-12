@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include "NativeAV.h"
+#include "native_netlib.h"
 
 #if 0
   #define SPAM(a) printf a
@@ -23,6 +24,7 @@ class NativeAudioTrack;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
 struct NodeLink;
+struct Coro;
 
 class NativeSharedMessages;
 
@@ -34,7 +36,7 @@ typedef unsigned long PaStreamCallbackFlags;
 class NativeAudio
 {
     public:
-        NativeAudio(int bufferSize, int channels, int sampleRate);
+        NativeAudio(ape_global *net, int bufferSize, int channels, int sampleRate);
 
         friend class NativeVideo;
 
@@ -48,6 +50,8 @@ class NativeAudio
         enum Node {
             SOURCE, GAIN, TARGET, CUSTOM
         };
+
+        ape_global *net;
 
         NativeAudioParameters *outputParameters;
         NativeAudioParameters *inputParameters;
@@ -78,6 +82,8 @@ class NativeAudio
         double getLatency();
 
         void shutdown();
+
+        Coro *mainCoro;
 
         ~NativeAudio();
     private:

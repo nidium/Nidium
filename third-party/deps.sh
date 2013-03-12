@@ -132,6 +132,31 @@ else
     curl $DEPS_URL/ffmpeg-snapshot.tar.bz2 | tar xj 
 fi
 
+if [ -d "basekit" ]; then
+    echo "libbasekit already downloaded"
+else
+    echo "Downloading libbasekit..."
+    curl -O $DEPS_URL/libbasekit.zip 
+    unzip libbasekit.zip
+    rm libbasekit.zip
+    mv `ls |grep stevedekorte-basekit` basekit
+fi
+
+if [ -d "libcoroutine" ]; then
+    echo "libcoroutine already downloaded"
+else
+    echo "Downloading libcoroutine..."
+    curl -O $DEPS_URL/libcoroutine.zip 
+    unzip libcoroutine.zip
+    rm libcoroutine.zip
+    mv `ls |grep stevedekorte-coroutine` libcoroutine 
+    echo "Patching libcoroutine Makefile..."
+    if [[ $BUILD == "debug" ]]; then
+        patch -p0 < libcoroutine.debug.patch
+    fi
+    patch -p0 < libcoroutine.patch
+fi
+
 if [ -d "portaudio" ]; then
     echo "portaudio already downloaded"
 else
@@ -325,6 +350,21 @@ echo "Building ffmpeg...."
     lnlibs libavutil.a  
     lnlibs libavformat.a  
     lnlibs /libswscale.a  
+fi
+
+if [ -e $OUTPUT_DIR/libcoroutine.a ]; then
+    echo "libcoroutine already build"
+else
+echo "Building libcoroutine...."
+    cd basekit
+    make -j$NBCPU
+    cd ../
+
+    cd libcoroutine
+    make -j$NBCPU
+    cd ../
+
+    cp -v ./libcoroutine/_build/lib/liblibcoroutine.a $OUTPUT_DIR/libcoroutine.a
 fi
 
 if [ -e $LIBS_DIR/libportaudio.a ]; then

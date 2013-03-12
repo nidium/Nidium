@@ -3,6 +3,7 @@
         'target_name': 'nativestudio',
         'type': 'static_library',
         'include_dirs': [
+            '<(native_src_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/skia/',
             '<(third_party_path)/skia/include/core',
@@ -27,6 +28,8 @@
             '<(third_party_path)/libzip/lib',
             '<(third_party_path)/jsoncpp/include',
             '<(third_party_path)/ffmpeg/',
+            '<(third_party_path)/libcoroutine/source/',
+            '<(third_party_path)/basekit/source/',
         ],
         'conditions': [
             ['OS=="mac"', {
