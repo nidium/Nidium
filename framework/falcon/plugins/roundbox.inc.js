@@ -20,7 +20,14 @@ Canvas.implement({
 		if (stroke && lineWidth) {
 			this.lineWidth = OptionalNumber(lineWidth, 0);
 			this.strokeStyle = stroke;
-			this.strokeRect(x, y, width, height, radius);
+
+			this.strokeRect(
+				x-lineWidth/2,
+				y-lineWidth/2,
+				width + lineWidth,
+				height + lineWidth,
+				radius
+			);
 		} 
 
 	},

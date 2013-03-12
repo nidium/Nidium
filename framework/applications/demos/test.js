@@ -13,7 +13,7 @@ var body = new Application({
 });
 
 var div = new UIView(body, {
-	left : 250,
+	left : 251,
 	top : 100,
 	width : 300,
 	height : 250,
@@ -24,7 +24,7 @@ var div = new UIView(body, {
 	background : "rgba(255, 255, 255, 0.02)",
 	color : "#F8F8F2",
 	textAlign : "left",
-	borderWidth : 1,
+	borderWidth : 5,
 	borderColor : "#ff0000",
 	overflow : false,
 	scrollbars : true,
