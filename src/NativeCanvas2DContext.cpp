@@ -1634,6 +1634,8 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 {
     SkISize size = skia->canvas->getDeviceSize();
 
+    /* TODO : set view port (so that gl_FragCoord is relative to the current canvas) */
+
     float pwidth = 2./(float)size.fWidth;
     float pheight =  2./(float)size.fHeight;
 
@@ -1646,6 +1648,8 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
     glBegin(GL_QUADS);
         /*
@@ -1776,7 +1780,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
         skia->canvas->restore();
 
-        printf("cliped?\n");
     } else {
         SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
@@ -1787,17 +1790,17 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             /* get the layer's Texture ID */
             uint32_t textureID = layer->getSkiaTextureID(&width, &height);
-
+#if 0
             /* Use our custom shader */
-            //glUseProgram(0);
+            glUseProgram(0);
 
             /* draw layer into a temporary FBO (in layer->gl.fbo/.texture) */
-            //layer->drawTexToFBO(textureID);
-
-            /* draw layer->gl.texture in skia->canvas (getMainFBO) */
+            layer->drawTexToFBO(textureID);
+#endif
+            /* Use our custom shader */
             glUseProgram(layer->getProgram());
-            glDisable(GL_ALPHA_TEST);
-
+            //glDisable(GL_ALPHA_TEST);
+            /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             drawTexIDToFBO(textureID, width, height, left, top, getMainFBO());
 
             /* Reset skia GL context */
