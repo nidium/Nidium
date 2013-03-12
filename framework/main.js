@@ -23,11 +23,10 @@ require("falcon/native.js");
 //require("applications/demos/tooltips.js");
 //require("applications/demos/animation.js");
 
+/* Shaders Demos */
 //require("applications/demos/shader.js");
-require("applications/demos/shader.basic.js");
+//require("applications/demos/shader.basic.js");
 //require("applications/demos/shader.advanced.js");
-
-
 
 //require("applications/demos/splines.js");
 //require("applications/demos/diagrams.js");
@@ -36,7 +35,7 @@ require("applications/demos/shader.basic.js");
 //require("applications/demos/http.js");
 
 //require("applications/demos/buttons.js");
-//require("applications/demos/test.js");
+require("applications/demos/test.js");
 
 
 //require("testLayer.js");

@@ -12,7 +12,6 @@ var main = new Application({
 
 main.shader("applications/demos/shaders/radialblur.s", function(program, uniforms){
 	var t = 0;
-
 	setInterval(function(){
 		uniforms.itime = t++;
 	}, 16);

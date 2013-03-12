@@ -18,12 +18,12 @@ var div = new UIView(body, {
 	width : 300,
 	height : 250,
 	innerWidth : 300,
-	fontSize : 11,
+	fontSize : 14,
 	fontType : "menlo",
-	lineHeight : 18,
+	lineHeight : 17,
 	background : "rgba(255, 255, 255, 0.02)",
 	color : "#F8F8F2",
-	textAlign : "justify",
+	textAlign : "left",
 	overflow : false,
 	scrollbars : true,
 	class : "div"
@@ -39,6 +39,8 @@ var extenser = div.add("UIElement", {
 });
 
 //var t0 = new TextNode("The quick brown fox jumps over the lazy dog. The");
+
+/*
 
 var t1 = new TextNode("The quick brown ");
 var t2 = new TextNode("fox");
@@ -76,7 +78,7 @@ t7.color = "rgba(0, 0, 0, 0.5)";
 t8.color = "#4488EE";
 t9.color = "grey";
 
-
+*/
 
 
 
@@ -114,13 +116,13 @@ var t106b = new TextNode("{\n");
 
 var t107 = new TextNode("			x : this.__left");
 var t107a = new TextNode(" + ", "operand");
-var t107b = new TextNode("this._width/");
+var t107b = new TextNode("this._width / ");
 var t107c = new TextNode("2", "number");
 var t107d = new TextNode(",\n");
 
 var t108 = new TextNode("			y : this.__top");
 var t108a = new TextNode(" + ", "operand");
-var t108b = new TextNode("this._height/");
+var t108b = new TextNode("this._height / ");
 var t108c = new TextNode("2\n", "number");
 
 var t109 = new TextNode("		};\n");
@@ -153,7 +155,7 @@ var t121 = new TextNode("};");
 
 
 
-/*
+
 
 var dat = +new Date();
 
@@ -201,7 +203,6 @@ div.addChild(t121);
 var dur = (+new Date()) - dat;
 echo(dur, "ms");
 
-*/
 
 
 /*

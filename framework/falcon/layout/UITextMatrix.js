@@ -21,8 +21,8 @@ function mapLetter(node, index, char, line, pos, letterWidth, linegap){
 	node.textLines[node.linenum][index] = {
 		char : char,
 		line : line,
-		position : Math.round(pos),
-		width : Math.round(letterWidth),
+		position : Math.floor(pos),
+		width : Math.ceil(letterWidth),
 		lineHeight : node.lineHeight,
 		linegap : linegap
 	};
@@ -33,7 +33,6 @@ var setNextNode = function(element, node){
 	element._currentIndex = 0;
 	node.linenum = 0;
 	node.textLines[0] = [];
-	node.textLines[node.linenum] = [];
 };
 
 function getLetters(element, line, words, textAlign, offLeft, fitWidth){
@@ -49,7 +48,7 @@ function getLetters(element, line, words, textAlign, offLeft, fitWidth){
 		nb_letters = nb_chars - nb_spaces,
 
 		spacewidth = getTextPixelWidth(element, " "),
-		spacing = (textAlign == "justify") ? fontSize/3 : fontSize/10,
+		spacing = (textAlign == "justify") ? fontSize/10 : fontSize/10,
 
 		i = 0,
 		linegap = 0,
@@ -66,7 +65,7 @@ function getLetters(element, line, words, textAlign, offLeft, fitWidth){
 /* ---------------------------------- */
 /* ---------------------------------- */
 /* ---------------------------------- */
-var debug = false;
+var debug = true;
 /* ---------------------------------- */
 /* ---------------------------------- */
 /* ---------------------------------- */
@@ -94,6 +93,7 @@ var debug = false;
 	if (debug)
 	echo(
 		"line", line,
+		"fitWidth", fitWidth,
 		"nb_words:", nb_words,
 		"nb_spaces:", nb_spaces,
 		"nb_chars:", nb_chars,
@@ -127,19 +127,20 @@ var debug = false;
 		return false;
 	}
 
-
 	for (i=0; i<nb_chars; i++){
 		var char = textLine[i],
 			index = element.textLength,
-			letterWidth = Math.round(getTextPixelWidth(element, char));
+			letterWidth = 0;
 
 		node = element.nodeAtIndex[index];
+		letterWidth = (getTextPixelWidth(element, char))
+
 
 		if (textAlign=="justify"){
 			if (char == " "){
 				letterWidth += spacing;
 			} else {
-				//letterWidth -= spacing*nb_spaces/nb_letters;
+				letterWidth -= spacing*nb_spaces/nb_letters;
 			}
 		} else {
 			if (char == "\t"){
@@ -150,6 +151,7 @@ var debug = false;
 		var pos = offLeft + offset + position + offgap;
 
 		if (element._currentNode !== node) {
+			echo("--- new node", node.id);
 			setNextNode(element, node);
 		}
 
@@ -169,6 +171,7 @@ var debug = false;
 		element.textLength++;
 		element._currentIndex++;
 	}
+	echo("**************** PPP=",position);
 
 	// last letter Position Approximation Corrector
 
@@ -230,15 +233,12 @@ function updateMatrix(element, line, words, textAlign, fitWidth){
 	};
 }
 
-function setTextContext(element){
-	var context = element.layer.context;
-	context.fontSize = element.fontSize;
-	context.fontType = element.fontType;
-}
-
 function getTextPixelWidth(element, text){
-	setTextContext(element);
-	return element.layer.context.measureText(text);
+	return Native.getTextWidth(
+		text,
+		element._fontSize,
+		element._fontType
+	);
 }
 
 function getLastLineTextAlign(element){
@@ -262,13 +262,10 @@ function getParagrapheMatrix(p, element, paragraphe){
 
 	while (words.length>0 && idx <= words.length) {
 		var str = words.slice(0, idx).join(' '),
-			linePixelWidth = Math.round(getTextPixelWidth(element, str)),
+			linePixelWidth = Math.round(getTextPixelWidth(element, str)+40),
 			lastWord = words[idx-1];
 
 		lastWordWidth = Math.round(linePixelWidth - lastLinePixelWidth);
-
-//		echo(element.linenum, idx, linePixelWidth, str, "("+lastWordWidth+")");
-
 		lastLinePixelWidth = Math.round(linePixelWidth);
 
 		if (linePixelWidth > fitWidth) {
@@ -279,6 +276,7 @@ function getParagrapheMatrix(p, element, paragraphe){
 				wordsArray = words.slice(0, idx-1);
 				element.lineBreakSeparator = " ";
 	
+				//echo(element.linenum, idx, wordsArray.join(' '));
 				updateMatrix(element, element.linenum++, wordsArray, textAlign, fitWidth);
 
 				words = words.splice(idx-1);
@@ -303,6 +301,8 @@ function getParagrapheMatrix(p, element, paragraphe){
 	if (idx > 0) {
 		textAlign = getLastLineTextAlign(element);
 		element.lineBreakSeparator = "\n";
+
+		//echo(element.linenum, idx, words.join(' '));
 		updateMatrix(element, element.linenum, words, textAlign, fitWidth);
 	}
 
