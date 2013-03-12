@@ -17,33 +17,6 @@ DOMElement.implement({
 				ctx = self.layer.context,
 				program = ctx.attachGLSLFragment(source);
 
-			/* TO BE REMOVED ONCE AVAILABLE ------ */
-			program.getUniforms = function(){
-				return [
-					{
-						name : "itime",
-						location : program.getUniformLocation("itime"),
-						type : "integer"
-					},
-					{
-						name : "data",
-						location : program.getUniformLocation("data"),
-						type : "integer"
-					},
-					{
-						name : "param",
-						location : program.getUniformLocation("param"),
-						type : "integer"
-					},
-					{
-						name : "zoom",
-						location : program.getUniformLocation("zoom"),
-						type : "integer"
-					}
-				];
-			};
-			/* TO BE REMOVED ONCE AVAILABLE ------ */
-
 			var setUniformValue = function(location, value){
 				program.uniform1i(location, value);
 			};
@@ -66,7 +39,7 @@ DOMElement.implement({
 				});
 			};
 
-			var uniformArray = program.getUniforms();
+			var uniformArray = program.getActiveUniforms();
 
 			for (var i=0; i<uniformArray.length; i++){
 				createUniformBinding(uniformArray[i]);
@@ -80,3 +53,5 @@ DOMElement.implement({
 
 	}
 });
+
+/* -------------------------------------------------------------------------- */

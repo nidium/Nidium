@@ -30,13 +30,13 @@ DOMElement.nodes = {
 	setWholeTextRenderingMatrix : function(element){
 		var	paragraphes = element.wholeText.split(/\r\n|\r|\n/);
 
-//	echo("-------------------------------------------------------------");
+		echo("-------------------------------------------------------------");
 
 		element.matrix = [];
 		element.textLength = 0;
 		element.linenum = 0;
 
-		for (var i = 0; i < paragraphes.length; i++) {
+		for (var i=0; i<paragraphes.length; i++) {
 			//echo("********** paragraphe", i);
 			var matrix = getParagrapheMatrix(i, element, paragraphes[i]);
 			element.matrix.push(matrix);
@@ -69,6 +69,7 @@ DOMElement.nodes = {
 
 		p.wholeText = "";
 		p.nodeAtIndex = [];
+		p.maxWidth = p.maxWidth ? p.maxWidth : p.contentWidth;
 
 		for (var i=0; i<children.length; i++){
 			var node = children[i];
