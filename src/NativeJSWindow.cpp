@@ -162,6 +162,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
 
 }
 
+/* TODO: leak if the user click "cancel" */
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *types;
