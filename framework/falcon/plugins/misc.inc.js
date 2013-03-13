@@ -45,7 +45,7 @@ Canvas.implement({
  			cy = y;
  			cw = c.width + nush;
  			//if (c.selected){
-				this.fillRect(cx, cy, cw, lineHeight-1);
+				this.fillRect(cx, cy, cw, lineHeight);
 			//}
 		}
 	},

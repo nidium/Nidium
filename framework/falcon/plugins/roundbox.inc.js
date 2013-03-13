@@ -5,22 +5,29 @@
 /* -------------------------------------- */
 
 Canvas.implement({
-	roundbox : function(x, y, width, height, radius, fill, stroke, lineWidth) {
+	roundbox : function(x, y, width, height, radius, fill, stroke, lineWidth){
 		if (!stroke && !fill) return false;
 
 		fill = OptionalValue(fill, '');
 		stroke = OptionalValue(stroke, '');
 		radius = OptionalNumber(radius, 5);
 
-		if (fill) {
+		if (fill){
 			this.setColor(fill);
 			this.fillRect(x, y, width, height, radius);
 		}
 
-		if (stroke && lineWidth) {
+		if (stroke && lineWidth){
 			this.lineWidth = OptionalNumber(lineWidth, 0);
 			this.strokeStyle = stroke;
-			this.strokeRect(x, y, width, height, radius);
+
+			this.strokeRect(
+				x-lineWidth/2,
+				y-lineWidth/2,
+				width + lineWidth,
+				height + lineWidth,
+				radius + lineWidth/2
+			);
 		} 
 
 	},

@@ -184,8 +184,8 @@ DOMElement.draw.printMatrix = function(element, context, params){
 			tx = params.x - element._left,
 			ty = params.y + i * element.lineHeight + vOffset;
 
-		context.setColor("rgba(150, 150, 250, 0.25)");
-		context.highlightLetters(letters, tx, ty - vOffset, element.lineHeight);
+		//context.setColor("rgba(150, 150, 250, 0.25)");
+		//context.highlightLetters(letters, tx, ty - vOffset, element.lineHeight);
 
 		context.setColor(element.color);
 		context.drawLetters(letters, tx, ty);
