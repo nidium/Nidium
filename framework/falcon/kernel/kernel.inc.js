@@ -316,11 +316,12 @@ Native.object = {
 	},
 
 	getBoundingRect : function(){
-		var x1 = this.__left,
-			y1 = this.__top,
-			x2 = x1 + this.width,
-			y2 = y1 + this.height,
-
+		var r = this.layer.getVisibleRect(),
+			x1 = r.left + 1,
+			y1 = r.top + 1,
+			x2 = x1 + r.width,
+			y2 = y1 + r.height;
+			
 			origin = {
 				x : this.__left + this._width/2,
 				y : this.__top + this._height/2
@@ -375,10 +376,11 @@ Native.object = {
 	},
 
 	isPointInside : function isPointInside(mx, my){
-		var x1 = this.__left+1,
-			y1 = this.__top,
-			x2 = x1 + this._width,
-			y2 = y1 + this._height;
+		var r = this.layer.getVisibleRect(),
+			x1 = r.left + 1,
+			y1 = r.top + 1,
+			x2 = x1 + r.width,
+			y2 = y1 + r.height;
 
 		if (this.angle != 0){
 			var rad = this.angle * (Math.PI/180),
