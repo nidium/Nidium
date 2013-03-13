@@ -105,8 +105,9 @@ void NativeFileIO::readAction(uint64_t len)
     }
 
     unsigned char *data = new unsigned char[clamped_len];
+    size_t readsize = 0;
 
-    if (fread(data, sizeof(char), clamped_len, fd) < 1) {
+    if ((readsize = fread(data, sizeof(char), clamped_len, fd)) < 1) {
         if (!action.stop) {
             messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
         }
@@ -114,7 +115,7 @@ void NativeFileIO::readAction(uint64_t len)
         return;
     }
 
-    action.u64 = clamped_len;
+    action.u64 = readsize;
     if (!action.stop) {
         messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
     }
