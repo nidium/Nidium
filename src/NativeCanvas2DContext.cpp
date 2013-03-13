@@ -137,6 +137,8 @@ static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsi
 
 static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 static JSBool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -226,6 +228,7 @@ static JSFunctionSpec glprogram_funcs[] = {
     JS_FN("getUniformLocation", native_canvas2dctxGLProgram_getUniformLocation, 1, 0),
     JS_FN("getActiveUniforms", native_canvas2dctxGLProgram_getActiveUniforms, 0, 0),
     JS_FN("uniform1i", native_canvas2dctxGLProgram_uniform1i, 2, 0),
+    JS_FN("uniform1f", native_canvas2dctxGLProgram_uniform1f, 2, 0),
     JS_FN("uniform1iv", native_canvas2dctxGLProgram_uniform1iv, 2, 0),
     JS_FN("uniform2iv", native_canvas2dctxGLProgram_uniform2iv, 2, 0),
     JS_FN("uniform3iv", native_canvas2dctxGLProgram_uniform3iv, 2, 0),
@@ -1008,6 +1011,33 @@ static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc
     glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
     glUseProgram(program);
     glUniform1i(location, val);
+    glUseProgram(tmpProgram);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    int location;
+    double val;
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    uint32_t program;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "id",
+        &location, &val)) {
+        return JS_TRUE;
+    }
+
+    if (location == -1) {
+        return JS_TRUE;
+    }
+
+    program = (size_t)JS_GetPrivate(caller);
+    int32_t tmpProgram;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
+    glUseProgram(program);
+    glUniform1f(location, (float)val);
     glUseProgram(tmpProgram);
 
     return JS_TRUE;
