@@ -1647,9 +1647,11 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_NOTEQUAL, 0.0f);
 
     glBegin(GL_QUADS);
         /*
@@ -1663,14 +1665,16 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
           glVertex3f(-1+normalLeft, normalHeight-normalTop, 1.0f);
 
         glTexCoord3i(0, 1, 1);
-          glVertex3f(-1+normalLeft, 1-normalTop, 1.0f);
+          glVertex3f(-1.+normalLeft, 1.-normalTop, 1.0f);
 
         glTexCoord3i(1, 1, 1);
-          glVertex3f( normalWidth+normalLeft, 1-normalTop, 1.0f);
+          glVertex3f( normalWidth+normalLeft, 1.-normalTop, 1.0f);
 
         glTexCoord3i(1, 0, 1);
           glVertex3f( normalWidth+normalLeft, normalHeight-normalTop, 1.0f);
     glEnd();
+
+    glDisable(GL_ALPHA_TEST);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1755,9 +1759,26 @@ void NativeCanvas2DContext::resetGLContext()
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
-    gl.program = this->createProgram(string);
+    if ((gl.program = this->createProgram(string))) {
+        shader.uniformOpacity = glGetUniformLocation(gl.program,
+                                    "NativeCanvasOpacity");
+        shader.uniformResolution = glGetUniformLocation(gl.program,
+                                    "NativeCanvasResolution");
+    }
 
     return gl.program;
+}
+
+void NativeCanvas2DContext::setupShader(float opacity)
+{
+    uint32_t program = getProgram();
+    glUseProgram(program);
+
+    if (program > 0) {
+        if (shader.uniformOpacity != -1) {
+            glUniform1f(shader.uniformOpacity, opacity);
+        }
+    }
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
@@ -1798,7 +1819,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             layer->drawTexToFBO(textureID);
 #endif
             /* Use our custom shader */
-            glUseProgram(layer->getProgram());
+            layer->setupShader((float)opacity);
+
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             drawTexIDToFBO(textureID, width, height, left, top, getMainFBO());
@@ -1870,11 +1892,8 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
 
     JS_SetPrivate(jsobj, this);
 
-    gl.program = 0;
-    gl.texture = 0;
-    gl.fbo = 0;
-    gl.textureWidth = 0;
-    gl.textureHeight = 0;
+    memset(&this->gl, 0, sizeof(this->gl));
+    memset(&this->shader, 0, sizeof(this->shader));
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
@@ -1883,11 +1902,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
     skia = new NativeSkia();
     skia->bindGL(width, height);
 
-    gl.program = 0;
-    gl.texture = 0;
-    gl.fbo = 0;
-    gl.textureWidth = 0;
-    gl.textureHeight = 0;
+    memset(&this->shader, 0, sizeof(this->shader));
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()

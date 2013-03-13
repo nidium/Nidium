@@ -40,6 +40,11 @@ class NativeCanvas2DContext : public NativeJSExposer
             uint32_t textureHeight;
         } gl;
 
+        struct {
+            uint32_t uniformOpacity;
+            uint32_t uniformResolution;
+        } shader;
+
         void clear(uint32_t color);
 
         /*
@@ -75,6 +80,7 @@ class NativeCanvas2DContext : public NativeJSExposer
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
+        void setupShader(float opacity);
 };
 
 class NativeCanvasPattern
