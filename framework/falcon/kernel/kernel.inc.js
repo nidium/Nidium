@@ -320,7 +320,7 @@ Native.object = {
 			x1 = r.left + 1,
 			y1 = r.top + 1,
 			x2 = x1 + r.width,
-			y2 = y1 + r.height;
+			y2 = y1 + r.height,
 			
 			origin = {
 				x : this.__left + this._width/2,
@@ -376,7 +376,12 @@ Native.object = {
 	},
 
 	isPointInside : function isPointInside(mx, my){
-		var r = this.layer.getVisibleRect(),
+		var r = this.layer.getVisibleRect ? this.layer.getVisibleRect() : {
+			left : this.__left + 1,
+			top : this.__top,
+			width : this._width,
+			height : this._height	
+		},
 			x1 = r.left + 1,
 			y1 = r.top + 1,
 			x2 = x1 + r.width,

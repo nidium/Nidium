@@ -9,6 +9,7 @@ Native.elements.export("UISliderKnob", {
 		var o = this.options;
 		this.width = OptionalNumber(o.width, 10);
 		this.height = OptionalNumber(o.height, 10);
+		this.cursor = OptionalCursor(o.cursor, "pointer");
 
 		DOMElement.listeners.addDefault(this);
 	},
@@ -34,7 +35,7 @@ Native.elements.export("UISliderKnob", {
 			}
 
 	        context.lineWidth = 1;
-			context.setShadow(-1, 1, 3, "rgba(0, 0, 0, 0.70)");
+			context.setShadow(-1, 2, 3, "rgba(0, 0, 0, 0.70)");
 
 	        context.setColor(this.background);
 	        context.beginPath();
