@@ -43,6 +43,10 @@
                 },
                 'ldflags': [
                     '-L<(native_output)/third-party-libs/debug/',
+                    # Skia need to be linked with his own libjpeg
+                    # since libjpeg.a require .o files that are in a relative path 
+                    # we must include skia gyp ouput directory
+                    '-L<(third_party_path)/skia/out/Release/obj.target/gyp/',
                 ],
             },
             'Release': {

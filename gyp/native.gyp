@@ -66,7 +66,7 @@
 				},
 			}],
             ['OS=="linux"', {
-                'defines': [
+                'defines+': [
                     'EXPORT_JS_API',
                     'IMPL_MFBT',
                     'USE_SYSTEM_MALLOC=1',
@@ -89,7 +89,7 @@
                     'GR_RELEASE=1',
                     '__STDC_CONSTANT_MACROS'
                 ],
-                'cflags': [
+                'cflags+': [
                     '-fvisibility=hidden',
                     '-fvisibility-inlines-hidden',
                     '-Wno-c++0x-extensions',
@@ -101,7 +101,7 @@
                 'sources': [
                     '<(native_src_path)/NativeJSAV.cpp',
                  ],
-                 'defines': [ 'NATIVE_AUDIO_ENABLED' ],
+                 'defines+': [ 'NATIVE_AUDIO_ENABLED' ],
             }],
         ],
         'sources': [
