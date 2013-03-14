@@ -104,8 +104,8 @@ class NativeVideo : public NativeAVSource
         AVFrame *convertedFrame;
 
         pthread_t threadDecode;
-        pthread_mutex_t buffLock, resetWaitLock, seekLock;
-        pthread_cond_t buffNotEmpty, resetWait, seekCond;
+        pthread_mutex_t buffLock, resetWaitLock, seekLock, bufferLock;
+        pthread_cond_t buffNotEmpty, resetWait, seekCond, bufferCond;
 
         void play();
         void pause();
@@ -128,6 +128,7 @@ class NativeVideo : public NativeAVSource
     private :
         NativeAVReader *reader;
         int error;
+        int pendingCount;
         bool bufferPending;
 
         void close(bool reset);

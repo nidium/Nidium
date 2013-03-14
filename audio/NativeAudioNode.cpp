@@ -1051,7 +1051,7 @@ double NativeAudioTrack::getClock() {
 
     // TODO : This can be more accurate by calculating how much data is in NativeAudio buffer
     // but i couldn't figure how to do it right (yet)
-    return this->clock - delay + 0.20;
+    return this->clock - delay + 0.28;
 }
 
 void NativeAudioTrack::sync(double ts) 
@@ -1081,7 +1081,7 @@ void NativeAudioNode::resetFrame(int channel)
 
 void NativeAudioTrack::seek(double time) 
 {
-    if (!this->opened) {
+    if (!this->opened || this->doSeek) {
         return;
     }
 
@@ -1110,20 +1110,15 @@ void NativeAudioTrack::seekInternal(double time)
 
         target = time * AV_TIME_BASE;
 
-        if (time < 0) {
-            time = 0;
-            target = 0;
-        } else if (target > this->container->duration) {
-            target = this->container->duration;
-        }
-
         target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->audioStream]->time_base);
 
         if (av_seek_frame(this->container, this->audioStream, target, flags) >= 0) {
             avcodec_flush_buffers(this->codecCtx);
             PaUtil_FlushRingBuffer(this->rBufferOut);
             this->resetFrames();
-            this->eof = false;
+            if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
+                this->eof = false;
+            }
         } else {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
         }
@@ -1162,9 +1157,7 @@ bool NativeAudioTrack::process() {
             SPAM(("     => EOF\n"));
             if (this->loop) {
                 this->seek(0);
-            } /*else { // TODO : Check me
-                this->stop();
-            }*/
+            } 
             this->sendEvent(SOURCE_EVENT_EOF, 0, true);
         } 
         return false;

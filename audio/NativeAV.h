@@ -9,7 +9,7 @@
 
 #define NATIVE_AVIO_BUFFER_SIZE 32768 
 #define NATIVE_AV_CO_STACK_SIZE 4096
-#define CORO_STACK_SIZE         NATIVE_AV_CO_STACK_SIZE*4
+#define CORO_STACK_SIZE         NATIVE_AV_CO_STACK_SIZE*16
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
 
 #define SOURCE_EVENT_PLAY      0x01
@@ -30,10 +30,11 @@ struct Coro;
 class NativeAVReader
 {
     public:
-        NativeAVReader() : pending(false), async(false) {};
+        NativeAVReader() : pending(false), async(false), seekAction(false) {};
 
         bool pending;
         bool async;
+        bool seekAction;
 
         virtual ~NativeAVReader() {};
 };
@@ -73,10 +74,12 @@ class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
         int dataSize;
         uint8_t *buffer;
 
+        bool switched;
+        bool nfioRead;
         int64_t totalRead;
         int error;
 
-        int checkCoro();
+        inline int checkCoro();
 };
 
 
@@ -164,6 +167,7 @@ class NativeAVSource
 	    AVFormatContext *container;
        
         Coro *coro;
+        Coro *seekCoroo;
         Coro *mainCoro;
 
         bool doSeek;

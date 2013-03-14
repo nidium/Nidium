@@ -58,7 +58,7 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 
 
 NativeAVFileReader::NativeAVFileReader(const char *src, NativeAVSource *source, ape_global *net) 
-: source(source), totalRead(0), error(0) 
+: source(source), switched(false), nfioRead(false), totalRead(0), error(0) 
 {
     this->async = true;
     this->nfio = new NativeFileIO(src, this, net);
@@ -67,6 +67,7 @@ NativeAVFileReader::NativeAVFileReader(const char *src, NativeAVSource *source, 
 
 int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size) 
 {
+    printf("========= read called\n");
     NativeAVFileReader *thiz = static_cast<NativeAVFileReader *>(opaque);
     
     thiz->pending = true;
@@ -74,19 +75,35 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
 
     thiz->nfio->read(size);
 
-    int ret = thiz->checkCoro();
+    int ret;
+    if (!thiz->nfioRead) {
+        ret = thiz->checkCoro();
+    } else {
+        ret = thiz->error ? thiz->error : thiz->dataSize;
+    }
 
-    thiz->pending = false;
+
+    thiz->nfioRead = false;
     thiz->error = 0;
+    printf("============ pending false.....");
+    thiz->pending = false;
+    printf("============ OK\n");
  
+    printf("============ returning %d\n", ret);
     return ret;
 }
 
 int NativeAVFileReader::checkCoro()
 {
-    Coro_switchTo_(this->source->coro, this->source->mainCoro);
-
-
+    printf("============ Coro switch\n");
+    this->switched = true;
+    if (this->source->doSeek) {
+        Coro_switchTo_(this->source->seekCoroo, this->source->mainCoro);
+    } else {
+        Coro_switchTo_(this->source->coro, this->source->mainCoro);
+    }
+    this->switched = false;
+    printf("============ Coro waked up\n");
     return this->error ? this->error : this->dataSize;
 }
 
@@ -110,12 +127,17 @@ int64_t NativeAVFileReader::seek(void *opaque, int64_t offset, int whence)
             return -1;
     }
 
+    printf("seeking to %lld filesize=%d\n", pos, thiz->nfio->filesize);
+
+    thiz->totalRead = pos;
+
     if( pos < 0 || pos > thiz->nfio->filesize) {
-        return -1;
+        printf("Yeah seek failed\n");
+        thiz->error = AVERROR_EOF;
+        return AVERROR_EOF;
     }
 
     thiz->nfio->seek(pos);
-    thiz->totalRead = pos;
 
     return pos;
 }
@@ -129,7 +151,12 @@ void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
         this->error = AVERROR(err);
     }
 
-    Coro_switchTo_(this->source->mainCoro, this->source->coro);
+    this->nfioRead = true;
+
+    printf("NFIO ERROR\n");
+    if (this->switched) {
+        Coro_switchTo_(this->source->mainCoro, this->source->coro);
+    }
 }
 
 void NativeAVFileReader::onNFIOOpen(NativeFileIO *) 
@@ -142,13 +169,20 @@ void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t 
 
     this->dataSize = len;
     this->totalRead += len;
+    printf("===== NFIORead %d\n", len);
     if (this->totalRead > this->nfio->filesize) {
+        printf("Oh shit, read after EOF\n");
         exit(1);
     }
 
     memcpy(this->buffer, data, len);
-    Coro_switchTo_(this->source->mainCoro, this->source->coro);
-};
+    this->error = 0;
+    this->nfioRead = true;
+    printf("===== Wake coro\n");
+    if (this->switched) {
+        Coro_switchTo_(this->source->mainCoro, this->source->coro);
+    }
+}
 
 void NativeAVFileReader::onNFIOWrite(NativeFileIO *, size_t written) 
 {

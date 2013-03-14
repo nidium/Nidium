@@ -13,7 +13,7 @@ extern "C" {
 }
 
 #undef SPAM
-#if 0
+#if 1
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -31,10 +31,12 @@ NativeVideo::NativeVideo(NativeAudio *audio, ape_global *n)
     pthread_cond_init(&this->buffNotEmpty, NULL);
     pthread_cond_init(&this->resetWait, NULL);
     pthread_cond_init(&this->seekCond, NULL);
+    pthread_cond_init(&this->bufferCond, NULL);
 
     pthread_mutex_init(&this->buffLock, NULL);
     pthread_mutex_init(&this->resetWaitLock, NULL);
     pthread_mutex_init(&this->seekLock, NULL);
+    pthread_mutex_init(&this->bufferLock, NULL);
 
     this->audioQueue = new PacketQueue();
     this->videoQueue = new PacketQueue();
@@ -89,6 +91,7 @@ int NativeVideo::openInit()
 {
     if (this->reader->async) {
         this->coro = Coro_new();
+        this->seekCoroo = Coro_new();
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
     } else {
         return this->openInitInternal();
@@ -221,9 +224,9 @@ int NativeVideo::openInitInternal()
         }
     }
 
-    this->opened = true;
-
     pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
+
+    this->opened = true;
 
     this->sendEvent(SOURCE_EVENT_READY, 0, false);
 
@@ -265,16 +268,10 @@ void NativeVideo::play() {
 void NativeVideo::pause() {
     this->playing = false;
 
+    this->clearTimers(true);
+
     if (this->track != NULL) {
         this->track->pause();
-
-        for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-            if (this->timers[i]->id != -1) {
-                clear_timer_by_id(&this->net->timersng, this->timers[i]->id, 1);
-                this->timers[i]->id = -1;
-                this->timers[i]->delay = -1;
-            }
-        }
     }
 
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
@@ -288,20 +285,12 @@ void NativeVideo::stop() {
 
     if (this->track != NULL) {
         this->track->stop();
-        avformat_seek_file(this->container, this->track->audioStream, 0, 0, 0, 0);
     }
 
-    avformat_seek_file(this->container, this->videoStream, 0, 0, 0, 0);
+    this->seek(0);
 
     this->flushBuffers();
-
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        if (this->timers[i]->id != -1 && this->timers[i]->delay != -1) {
-            clear_timer_by_id(&this->net->timersng, this->timers[i]->id, 1);
-        }
-        this->timers[i]->id = -1;
-        this->timers[i]->delay = -1;
-    }
+    this->clearTimers(true);
 
     pthread_cond_signal(&this->resetWait);
     pthread_cond_signal(&this->buffNotEmpty);
@@ -314,22 +303,25 @@ double NativeVideo::getClock()
 
 void NativeVideo::seek(double time)
 {
+    SPAM(("Seek called\n"));
+    if (!this->opened || this->doSeek) {
+        SPAM(("not seeking cause already seeking\n"));
+        return;
+    }
+
     this->doSeekTime = time;
     this->doSeek = true;
 
+    printf("clear timer\n");
+    this->clearTimers(true);
+    this->flushBuffers();
+    printf("timer flushed\n");
+
     pthread_cond_signal(&this->buffNotEmpty);
-    if (this->eof) {
+    if (this->eof || this->error != 0) {
         pthread_cond_signal(&this->resetWait);
     }
 
-    // Thread might have already seeked
-/*
-    if (this->doSeek == true) {
-        pthread_cond_wait(&this->seekCond, &this->seekLock);
-    }
-*/
-    
-    this->clearTimers(true);
     this->scheduleDisplay(1, true);
 }
 
@@ -337,6 +329,7 @@ void NativeVideo::seekCoro(void *arg)
 {
     NativeVideo *source = static_cast<NativeVideo *>(arg);
     source->seekInternal(source->doSeekTime);
+    Coro_switchTo_(source->seekCoroo, source->mainCoro);
 }
 
 void NativeVideo::seekInternal(double time) 
@@ -349,25 +342,27 @@ void NativeVideo::seekInternal(double time)
 
     target = time * AV_TIME_BASE;
 
-    if (time < 0) {
-        time = 0;
-        target = 0;
-    } else if (target > this->container->duration) {
-        target = this->container->duration;
-    }
-
     target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->videoStream]->time_base);
 
-    if (av_seek_frame(this->container, this->videoStream, target, flags) >= 0) {
+    int ret = av_seek_frame(this->container, this->videoStream, target, flags);
+
+    if (ret >= 0) {
         this->clearAudioQueue();
         this->clearVideoQueue();
 
         avcodec_flush_buffers(this->codecCtx);
-        this->flushBuffers();
 
-        this->lastPts = 0;
+        // FFMPEG can success seeking even if seek is after the end
+        // (but decoder/demuxer fail). So fix that.
+        if (this->doSeekTime > this->getDuration()) {
+            this->lastPts = this->getDuration();
+        } else {
+            this->lastPts = this->doSeekTime;
+        }
 
-        this->eof = false;
+        if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
+            this->eof = false;
+        }
         this->error = 0;
 
         if (this->track != NULL) {
@@ -381,15 +376,10 @@ void NativeVideo::seekInternal(double time)
         this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
     }
 
+    this->frameTimer = (av_gettime() / 1000000.0);
     this->doSeek = false;
     
     pthread_cond_signal(&this->seekCond);
-
-    this->frameTimer = (av_gettime() / 1000000.0);
-
-    if (this->reader->async) {
-        Coro_switchTo_(this->coro, this->mainCoro);
-    } 
 }
 
 NativeAudioTrack *NativeVideo::getAudio() {
@@ -398,6 +388,7 @@ NativeAudioTrack *NativeVideo::getAudio() {
 
 int NativeVideo::display(void *custom) {
     NativeVideo *v = (NativeVideo *)custom;
+    printf("in display\n");
 
     // Reset timer from queue
     v->timers[v->lastTimer]->id = -1;
@@ -408,6 +399,7 @@ int NativeVideo::display(void *custom) {
         v->lastTimer = 0;
     }
 
+    printf("avail=%lu\n", PaUtil_GetRingBufferReadAvailable(v->rBuff));
     // Read frame from ring buffer
     if (PaUtil_GetRingBufferReadAvailable(v->rBuff) < 1) {
         pthread_cond_signal(&v->buffNotEmpty);
@@ -470,10 +462,15 @@ int NativeVideo::display(void *custom) {
     if (actualDelay > 0.010 || !v->playing) {
         // If not playing, we can be here because user seeked 
         // while the video is paused, so send the frame anyway
-        v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
+
         // Call the frame callback
         if (v->frameCbk != NULL) {
+            printf("frame callback\n");
             v->frameCbk(frame->data, v->frameCbkArg);
+        }
+
+        if (v->playing) {
+            v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
         }
     } else {
         ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(v->rBuff);
@@ -489,7 +486,9 @@ int NativeVideo::display(void *custom) {
 
     // Wakup decode thread
     //if (!v->eof && PaUtil_GetRingBufferWriteAvailable(v->rBuff) > NATIVE_VIDEO_BUFFER_SAMPLES/2) {
+    if (v->playing) {
         pthread_cond_signal(&v->buffNotEmpty);
+    }
     //}
 
     return 0;
@@ -497,12 +496,19 @@ int NativeVideo::display(void *custom) {
 
 void NativeVideo::buffer()
 {
+    if (!this->opened) {
+        // decode thread is created while the track is still opening
+        SPAM(("Not opened\n"));
+        return;
+    }
     if (this->reader->async) {
         if (this->bufferPending) {
+            SPAM(("=> PENDING\n"));
             // Reader already trying to get data
             return;
         }
         this->bufferPending = true;
+        SPAM(("buffer coro start\n"));
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::bufferCoro);
     } else {
         this->bufferInternal();
@@ -511,11 +517,20 @@ void NativeVideo::buffer()
 
 void NativeVideo::bufferCoro(void *arg) 
 {
-   (static_cast<NativeVideo*>(arg))->bufferInternal();
+   NativeVideo *v = static_cast<NativeVideo*>(arg);
+   v->bufferInternal();
+   /*
+    SPAM(("Sending bufferCond signal\n"));
+    pthread_cond_signal(&v->bufferCond);
+    */
+    v->bufferPending = false;
+   printf("bufferCoro finished\n");
+   Coro_switchTo_(v->coro, v->mainCoro);
 }
 
 void NativeVideo::bufferInternal()
 {
+    SPAM(("hello buffer internal\n"));
     AVPacket packet;
 
     bool loopCond = false;
@@ -538,7 +553,9 @@ void NativeVideo::bufferInternal()
     }
 
     do {
+        SPAM(("    => buffernig loop\n"));
         int ret = av_read_frame(this->container, &packet);
+        SPAM(("    -> post read frame\n"));
 
         if (packet.stream_index == this->videoStream) {
             if (ret < 0) {
@@ -577,12 +594,6 @@ void NativeVideo::bufferInternal()
         }
     } while (loopCond);
 
-    if (this->reader->async) {
-        pthread_cond_signal(&this->buffNotEmpty);
-        this->bufferPending = false;
-        Coro_switchTo_(this->coro, this->mainCoro);
-    } 
-    return;
 }
 
 void *NativeVideo::decode(void *args) 
@@ -590,38 +601,56 @@ void *NativeVideo::decode(void *args)
 
     NativeVideo *v = static_cast<NativeVideo *>(args);
 
+    v->mainCoro = Coro_new();
+    Coro_initializeMainCoro(v->mainCoro);
+
     for (;;) {
+        if (v->doSeek == true && ! v->bufferPending) {
+            SPAM(("seeking\n"));
+            if (!v->reader->async) {
+                v->seekInternal(v->doSeekTime);
+            } else {
+                SPAM(("    running seek coro\n"));
+                Coro_startCoro_(v->mainCoro, v->seekCoroo, v, NativeVideo::seekCoro);
+            } 
+            if (v->doSeek == true) {
+                SPAM(("Waiting for seekCond\n"));
+                pthread_cond_wait(&v->seekCond, &v->seekLock);
+                SPAM(("seekCond go\n"));
+            }
+            SPAM(("done seeking\n"));
+        }
+
+        SPAM(("buffering\n"));
+        SPAM(("Coro space main=%d coro=%d\n", Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro)));
         v->buffer();
 
         if (v->error != 0) {
             if (v->shutdown) break;
-            pthread_cond_wait(&v->resetWait, &v->resetWaitLock);
+            SPAM(("Waiting for reset cause of error\n"));
+            if (!v->doSeek) {
+                pthread_cond_wait(&v->resetWait, &v->resetWaitLock);
+            }
+            SPAM(("reset go\n"));
             if (v->shutdown) break;
         }
 
+        SPAM(("processing\n"));
         bool audioFailed = !v->processAudio();
         bool videoFailed = !v->processVideo();
+        SPAM(("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed));
 
         if (audioFailed && videoFailed) {
             if (v->shutdown) break;
-            if (!v->doSeek) {
+            //if (!v->doSeek) {
+                SPAM(("Waiting for buffNotEmpty cause of audio and video failed\n"));
                 pthread_cond_wait(&v->buffNotEmpty, &v->buffLock);
-            } 
+                SPAM(("buffNotEmpty go\n"));
+            //} 
         }
 
         if (v->shutdown) break;
 
-
-        if (v->doSeek == true && !v->bufferPending) {
-            if (!v->reader->async) {
-                v->seekInternal(v->doSeekTime);
-            } else {
-                Coro_startCoro_(v->mainCoro, v->coro, v, NativeVideo::seekCoro);
-            } 
-            if (v->doSeek == true) {
-                pthread_cond_wait(&v->seekCond, &v->seekLock);
-            }
-        }
     }
 
     return NULL;
@@ -678,6 +707,7 @@ bool NativeVideo::processVideo()
         if (PaUtil_GetRingBufferWriteAvailable(this->rBuff) < 1) {
             return false;
         } else {
+            printf("writting a frame to ring buffer\n");
             PaUtil_WriteRingBuffer(this->rBuff, pendingFrame, 1);
             delete pendingFrame;
             this->pendingFrame = NULL;
@@ -763,6 +793,7 @@ void NativeVideo::scheduleDisplay(int delay, bool force) {
     this->timers[this->timerIdx]->id = -1;
 
     if (this->playing || force) {
+        printf("scheduleDisplay in %d\n", delay);
         this->timers[this->timerIdx]->id = this->addTimer(delay);
     }
 
@@ -871,6 +902,7 @@ void NativeVideo::clearVideoQueue()
 
 void NativeVideo::flushBuffers() 
 {
+    printf("flusshing ring buff\n");
     Frame *frame = new Frame();
 
     while (PaUtil_ReadRingBuffer(this->rBuff, frame, 1) > 0) {
@@ -880,6 +912,7 @@ void NativeVideo::flushBuffers()
     delete frame;
 
     PaUtil_FlushRingBuffer(this->rBuff);
+    printf("done flusshing ring buff\n");
 }
 
 #if 0
@@ -901,17 +934,23 @@ void NativeVideo::close(bool reset) {
         this->shutdown = true;
         pthread_cond_signal(&this->buffNotEmpty);
         pthread_cond_signal(&this->resetWait);
+        pthread_cond_signal(&this->seekCond);
+        pthread_cond_signal(&this->bufferCond);
         pthread_join(this->threadDecode, NULL);
     }
+
+    this->clearTimers(reset);
+    this->flushBuffers();
 
     this->clearAudioQueue();
     this->clearVideoQueue();
 
     if (!reset) {
         delete this->audioQueue;
+        delete this->videoQueue;
     }
 
-    this->clearTimers(reset);
+    Coro_free(this->coro);
 
     // TODO : instead of checking for opened
     // check for non NULL variables and free them
