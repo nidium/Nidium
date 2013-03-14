@@ -9,6 +9,7 @@ var body = new Application({
 	class : "body"
 });
 
+
 var video = new UIVideo(body, {
 	width : 640,
 	height : 360
@@ -25,3 +26,5 @@ video.player.onplay = function(){
 video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
+
+

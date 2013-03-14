@@ -69,7 +69,9 @@ var DOMElement = function(type, options, parent){
 		lineHeight : OptionalNumber(o.lineHeight, 18),
 		fontWeight : OptionalWeight(o.fontWeight, "normal"),
 
+		// -- icon related properties
 		shape : OptionalString(o.shape, ""),
+		variation : OptionalNumber(o.variation, 0),
 
 		// -- style properties
 		blur : OptionalNumber(o.blur, 0),

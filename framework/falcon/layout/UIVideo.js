@@ -48,7 +48,7 @@ Native.elements.export("UIVideo", {
 
 		this.status = new UIStatus(this, {
 			progressBarColor : "rgba(210, 255, 60, 1)",
-			progressBarLeft : 94,
+			progressBarLeft : 124,
 			progressBarRight : 30,
 			label : "",
 			value : 0
@@ -74,8 +74,16 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
+		this.status.speaker = new Icon(this.status, {
+			left : 26,
+			top : 0,
+			color : "rgba(0, 0, 0, 0.55)",
+			shape : "speaker",
+			variation : 1
+		});
+
 		this.volume = new UISliderController(this.status, {
-			left : 32,
+			left : 50,
 			top : 6,
 			width : 48,
 			height : 9,
@@ -91,6 +99,7 @@ Native.elements.export("UIVideo", {
 		this.volume.addEventListener("update", function(value){
 			if (!self.player) return false;
 			self.player.volume = value;
+			self.status.speaker.variation = Math.round(2*value/1.5);
 		}, false);
 
 		this.spinner.show();
