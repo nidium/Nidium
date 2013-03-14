@@ -45,8 +45,10 @@ fi
 
 function lnlibs {
     CURRENT_DIR=`pwd`
-    cd $OUTPUT_DIR
     echo "Making symlink for $1"
+    cd $OUTPUT/third-party-libs/release/
+    ln -sf ../.libs/$1
+    cd ../debug/
     ln -sf ../.libs/$1
     cd $CURRENT_DIR
 }
