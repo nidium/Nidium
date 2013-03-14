@@ -31,7 +31,8 @@ class NativeUIInterface
         virtual void runLoop()=0;
         virtual void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a){};
         virtual void setWindowControlsOffset(double x, double y){};
-        
+        virtual void openFileDialog(const char const *files[],
+            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
         
         int getWidth() const { return this->width; }
         int getHeight() const { return this->height; }

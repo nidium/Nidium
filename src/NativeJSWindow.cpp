@@ -8,6 +8,8 @@
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
+static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
+
 enum {
     WINDOW_PROP_TITLE,
     WINDOW_PROP_CURSOR,
@@ -132,6 +134,88 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     return JS_TRUE;
 }
 
+struct _nativeopenfile
+{
+    JSContext *cx;
+    jsval cb;
+};
+
+static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len)
+{
+    struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
+    jsval rval;
+
+    jsval cb = nof->cb;
+    JSObject *arr = JS_NewArrayObject(nof->cx, len, NULL);
+
+    for (int i = 0; i < len; i++) {
+        jsval val = STRING_TO_JSVAL(JS_NewStringCopyZ(nof->cx, lst[i]));
+        JS_SetElement(nof->cx, arr, i, &val);        
+    }
+
+    jsval jarr = OBJECT_TO_JSVAL(arr);
+
+    JS_CallFunctionValue(nof->cx, JS_GetGlobalObject(nof->cx), cb, 1, &jarr, &rval);
+
+    JS_RemoveValueRoot(nof->cx, &nof->cb);
+    free(nof);
+
+}
+
+/* TODO: leak if the user click "cancel" */
+static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSObject *types;
+    jsval callback;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ov", &types, &callback)) {
+        return JS_TRUE;
+    }
+
+    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types)) && !JS_IsArrayObject(cx, types)) {
+        JS_ReportError(cx, "First parameter must be an array or null");
+        return JS_FALSE;
+    }
+    uint32_t len = 0;
+
+    char **ctypes = NULL;
+
+    if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types))) {
+        JS_GetArrayLength(cx, types, &len);
+
+        ctypes = (char **)malloc(sizeof(char *) * (len+1));
+        memset(ctypes, 0, sizeof(char *) * (len+1));
+        int j = 0;
+        for (int i = 0; i < len; i++) {
+            jsval val;
+            JS_GetElement(cx, types, i, &val);
+
+            if (JSVAL_IS_STRING(val)) {
+                JSString *str = JSVAL_TO_STRING(val);
+                ctypes[j] = JS_EncodeString(cx, str);
+                j++;
+            }
+        }
+        ctypes[j] = NULL;
+    }
+
+    struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
+    nof->cb = callback;
+    nof->cx = cx;
+
+    JS_AddValueRoot(cx, &nof->cb);
+
+    NativeJSObj(cx)->UI->openFileDialog((const char **)ctypes, native_window_openfilecb, nof);
+
+    if (ctypes) {
+        for (int i = 0; i < len; i++) {
+            JS_free(cx, ctypes[i]);
+        }
+        free(ctypes);
+    }
+    return JS_TRUE;
+}
+
 static JSClass window_class = {
     "Window", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -140,7 +224,7 @@ static JSClass window_class = {
 };
 
 static JSFunctionSpec window_funcs[] = {
-    
+    JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
     JS_FS_END
 };
 

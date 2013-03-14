@@ -16,6 +16,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setWindowControlsOffset(double x, double y);
         void initControls();
         bool runApplication(const char *path);
+        void openFileDialog(const char const *files[],
+            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
         NativeUICocoaConsole *getConsole() const {
             return this->console;
         }

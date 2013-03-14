@@ -418,6 +418,42 @@ void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
     }
 }
 
+void NativeCocoaUIInterface::openFileDialog(const char const *files[],
+    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
+{
+    NSOpenPanel* openDlg = [NSOpenPanel openPanel];
+
+    if (files != NULL) {
+        NSMutableArray *fileTypesArray = [NSMutableArray arrayWithCapacity:0];
+
+        for (int i = 0; files[i] != NULL; i++) {
+            [fileTypesArray addObject:[NSString stringWithCString:files[i] encoding:NSASCIIStringEncoding]];
+        }
+        [openDlg setAllowedFileTypes:fileTypesArray];
+    }
+    [openDlg setCanChooseFiles:YES];
+    [openDlg setCanChooseDirectories:NO];
+    [openDlg setAllowsMultipleSelection:YES];
+
+    [openDlg beginSheetModalForWindow:NativeCocoaWindow(win) completionHandler:^(NSInteger result) {
+        if (result == NSFileHandlingPanelOKButton) {
+            uint32_t len = [openDlg.URLs count];
+            const char **lst = (const char **)malloc(sizeof(char **) * len);
+
+            int i = 0;
+            for (NSURL *url in openDlg.URLs) {
+                lst[i] = [[url relativePath] cStringUsingEncoding:NSASCIIStringEncoding];
+                i++;
+            }
+
+            cb(arg, lst, i);
+
+            free(lst);
+        }
+    }];
+
+}
+
 void NativeCocoaUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
