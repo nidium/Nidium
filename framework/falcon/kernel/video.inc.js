@@ -38,7 +38,6 @@ var VideoLayer = function(layer, url, callback){
 	this.audioGain = this.dsp.createNode("gain", 2, 2);
 	this.audioTarget = this.dsp.createNode("target", 2, 0);
 
-	this.layer.padding = 0;
 	this.layer.ctx.imageSmoothingEnabled = true;
 
 	this.video = new Video(this.dsp, this.layer);

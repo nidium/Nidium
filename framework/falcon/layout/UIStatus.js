@@ -16,8 +16,8 @@ Native.elements.export("UIStatus", {
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
 			progressBarColor : OptionalValue(o.progressBarColor, false),
-			progressBarSize : OptionalNumber(o.progressBarSize, 0.9),
-			progressBarOffsetX : OptionalNumber(o.progressBarOffsetX, 0),
+			progressBarLeft : OptionalNumber(o.progressBarLeft, 40),
+			progressBarRight : OptionalNumber(o.progressBarRight, 40),
 
 			textShadowOffsetX	: OptionalNumber(o.textShadowOffsetX, 1),
 			textShadowOffsetY	: OptionalNumber(o.textShadowOffsetY, 1),
@@ -120,10 +120,9 @@ Native.elements.export("UIStatus", {
 		DOMElement.draw.box(this, context, params, gradient);
 
 		if (this.progressBarColor && this.value!=0) {
-			var mw = params.w * this.progressBarSize,
+			var mw = params.w - this.progressBarRight  - this.progressBarLeft,
 				mh = 2.5,
-				fullWidth = this.parent ? this.parent.width : window.width,
-				mx = this.progressBarOffsetX + (fullWidth-mw) / 2,
+				mx = this.progressBarLeft,
 				my = params.h/2;
 
 			var ga = context.globalAlpha,

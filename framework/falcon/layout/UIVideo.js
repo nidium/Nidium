@@ -48,8 +48,8 @@ Native.elements.export("UIVideo", {
 
 		this.status = new UIStatus(this, {
 			progressBarColor : "rgba(210, 255, 60, 1)",
-			progressBarSize : 0.80,
-			progressBarOffsetX : 30,
+			progressBarLeft : 94,
+			progressBarRight : 30,
 			label : "",
 			value : 0
 		});
@@ -80,8 +80,8 @@ Native.elements.export("UIVideo", {
 			width : 48,
 			height : 9,
 			background : '#161712',
-			color : 'rgba(0, 20, 180, 1)',
-			splitColor : 'rgba(0, 0, 0, 0.5)',
+			color : 'rgba(0, 0, 0, 1)',
+			splitColor : 'rgba(80, 80, 80, 0.5)',
 			boxColor : 'rgba(255, 255, 255, 0.02)',
 			min : 0,
 			max : 1.5,
