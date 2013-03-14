@@ -1294,6 +1294,7 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
+    printf("Drawing pixels\n");
     v->nskia->drawPixels(data, v->video->width, v->video->height, 0, 0);
 
     /*
@@ -1463,8 +1464,10 @@ void NativeJSAVSource::propSetter(NativeAVSource *source, int id, JSMutableHandl
 {
     switch(id) {
         case SOURCE_PROP_POSITION:
-            source->seek(vp.toDouble());
-        break;
+            if (vp.isNumber()) {
+                source->seek(vp.toNumber());
+            } 
+            break;
         default:
             break;
     }
