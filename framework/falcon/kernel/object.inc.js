@@ -69,6 +69,10 @@ var DOMElement = function(type, options, parent){
 		lineHeight : OptionalNumber(o.lineHeight, 18),
 		fontWeight : OptionalWeight(o.fontWeight, "normal"),
 
+		// -- icon related properties
+		shape : OptionalString(o.shape, ""),
+		variation : OptionalNumber(o.variation, 0),
+
 		// -- style properties
 		blur : OptionalNumber(o.blur, 0),
 		opacity : OptionalNumber(o.opacity, 1),
@@ -132,7 +136,7 @@ var DOMElement = function(type, options, parent){
 		_maxx : this._left + this._width,
 		_maxy : this._top + this._top,
 
-		_layerPadding : p ? Math.max(this.shadowBlur*4, 20) : Math.max(this.shadowBlur*4, 10),
+		_layerPadding : p ? Math.max(this.shadowBlur*5, 20) : Math.max(this.shadowBlur*5, 10),
 
 		/* refreshing flags */
 		_needRefresh : true,

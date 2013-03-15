@@ -16,6 +16,8 @@ Native.elements.export("UIStatus", {
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
 			progressBarColor : OptionalValue(o.progressBarColor, false),
+			progressBarLeft : OptionalNumber(o.progressBarLeft, 40),
+			progressBarRight : OptionalNumber(o.progressBarRight, 40),
 
 			textShadowOffsetX	: OptionalNumber(o.textShadowOffsetX, 1),
 			textShadowOffsetY	: OptionalNumber(o.textShadowOffsetY, 1),
@@ -47,7 +49,7 @@ Native.elements.export("UIStatus", {
 			radius : 2
 		});
 
-		this.open = function(){
+		this.open = function(duration=600){
 			if (this.closed === false || this.opening) return false;
 			this.visible = true;
 			this.spinner.opacity = 0.7;
@@ -59,7 +61,7 @@ Native.elements.export("UIStatus", {
 				"top",
 				this.parent.height,
 				this.parent.height - this.height,
-				600,
+				duration,
 				function(){
 					this.opening = false;
 					this.visible = true;
@@ -70,7 +72,7 @@ Native.elements.export("UIStatus", {
 			return this;
 		},
 
-		this.close = function(){
+		this.close = function(duration=200){
 			var that = this;
 			if (this.closed || this.closing) return false;
 			this.visible = true;
@@ -82,7 +84,7 @@ Native.elements.export("UIStatus", {
 					"top",
 					that.parent.height - that.height,
 					that.parent.height,
-					200,
+					duration,
 					function(){
 						that.closing = false;
 						that.visible = false;
@@ -91,7 +93,7 @@ Native.elements.export("UIStatus", {
 					Math.physics.quintIn
 				);
 
-				that.fadeOut(300);
+				that.fadeOut(duration*1.2);
 
 			});
 			return this;
@@ -117,10 +119,10 @@ Native.elements.export("UIStatus", {
 		var gradient = DOMElement.draw.getSmoothGradient(this, context, params);
 		DOMElement.draw.box(this, context, params, gradient);
 
-		if (this.progressBarColor	&& this.value!=0) {
-			var mw = params.w * 0.90,
+		if (this.progressBarColor && this.value!=0) {
+			var mw = params.w - this.progressBarRight  - this.progressBarLeft,
 				mh = 2.5,
-				mx = (1024-mw) / 2,
+				mx = this.progressBarLeft,
 				my = params.h/2;
 
 			var ga = context.globalAlpha,

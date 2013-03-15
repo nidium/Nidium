@@ -28,6 +28,16 @@
 
 /* -------------------------------------------------------------------------- */
 
+Native.getAudioDSP = function() {
+	// Init NATiVE DSP
+	// 512 bytes buffer, 2 channels, 44100Hz
+	if (!Native.scope.Audio) return false;
+	if (!Native.defaultAudioDSP) {
+		Native.defaultAudioDSP = new Audio(512, 2, 44100);
+	}
+	return Native.defaultAudioDSP;
+};
+
 var AudioMixer = {
 	loaded : false,
 
@@ -37,10 +47,7 @@ var AudioMixer = {
 		var self = this;
 		
 		if (!this.loaded){
-		
-			// Init NATiVE DSP
-			// 512 bytes buffer, 2 channels, 44100Hz
-			this.dsp = new Audio(512, 2, 44100);
+			this.dsp = Native.getAudioDSP();
 			this.master = this.dsp.createNode("gain", 2, 2);
 			this.target = this.dsp.createNode("target", 2, 0);
 

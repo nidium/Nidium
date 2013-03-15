@@ -24,7 +24,8 @@ var	c0 = new UIView(view, {
 	width : 40,
 	height : 40,
 	background : "#ff0000",
-	cursor : "pointer"
+	cursor : "pointer",
+	position : "fixed"
 });
 
 var	c1 = new UIView(view, {
@@ -35,4 +36,20 @@ var	c1 = new UIView(view, {
 	height : 40,
 	background : "#008800",
 	cursor : "pointer"
+});
+
+c0.click(function(){
+
+	window.openFileDialog(["png", "jpg", "jpeg"], function(res){
+		for (var i=0; i<res.length; i++){
+			echo(res[i])
+		}
+		var img = new Image();
+		img.src = res[0];
+		img.onload = function(){
+			view.setBackgroundImage(img);
+			view.angle = 15;
+		}
+	});
+
 });
