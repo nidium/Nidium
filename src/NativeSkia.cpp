@@ -467,6 +467,12 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 }
 
+void NativeSkia::drawLine(double x1, double y1, double x2, double y2)
+{
+    canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
+        SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT);
+}
+
 void NativeSkia::drawRect(double x, double y, double width,
     double height, double rx, double ry, int stroke)
 {
@@ -562,6 +568,19 @@ void NativeSkia::drawText(const char *text, int x, int y)
     CANVAS_FLUSH();
 }
 
+void NativeSkia::drawTextf(int x, int y, const char text[], ...)
+{
+    static const size_t BUFFER_SIZE = 4096;
+
+    char    buffer[BUFFER_SIZE];
+    va_list args;
+    va_start(args, text);
+    vsnprintf(buffer, BUFFER_SIZE, text, args);
+    va_end(args);
+
+    drawText(buffer, x, y);
+}
+
 void NativeSkia::system(const char *text, int x, int y)
 {
     canvas->drawText(text, strlen(text),
@@ -601,6 +620,17 @@ void NativeSkia::setFillColor(const char *str)
 {   
     SkColor color = parseColor(str);
 
+    SkShader *shader = PAINT->getShader();
+
+    if (shader) {
+        PAINT->setShader(NULL);
+    }
+
+    PAINT->setColor(color);
+}
+
+void NativeSkia::setFillColor(uint32_t color)
+{   
     SkShader *shader = PAINT->getShader();
 
     if (shader) {

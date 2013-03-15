@@ -146,15 +146,18 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
         //glUseProgram(0);
+        
         NUII->NJS->callFrame();
-        NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         NUII->NJS->postDraw();
+        NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
 
         NUII->getConsole()->flush();
+
         glFlush();
 
     //}
     ttfps++;
+
     //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
     return 16;
 }
