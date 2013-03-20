@@ -6,7 +6,8 @@
 
 Native.elements.export("UIStatus", {
 	init : function(){
-		var o = this.options;
+		var self = this,
+			o = this.options;
 
 		this.setProperties({
 			canReceiveFocus	: false,
@@ -53,7 +54,8 @@ Native.elements.export("UIStatus", {
 			});
 		}
 
-		this.open = function(duration=600){
+		this.open = function(duration=600, callback=null){
+			var cb = OptionalCallback(callback, null);
 			if (this.closed === false || this.opening) return false;
 			this.visible = true;
 
@@ -74,14 +76,17 @@ Native.elements.export("UIStatus", {
 					this.opening = false;
 					this.visible = true;
 					this.closed = false;
+					if (cb) cb.call(self);
 				},
 				Math.physics.quintOut
 			);
 			return this;
 		},
 
-		this.close = function(duration=200){
-			var that = this;
+		this.close = function(duration=200, callback=null){
+			var that = this,
+				cb = OptionalCallback(callback, null);
+
 			if (this.closed || this.closing) return false;
 			this.visible = true;
 			this.closing = true;			
@@ -96,6 +101,7 @@ Native.elements.export("UIStatus", {
 						that.closing = false;
 						that.visible = false;
 						that.closed = true;
+						if (cb) cb.call(self);
 					},
 					Math.physics.quintIn
 				);
@@ -106,10 +112,10 @@ Native.elements.export("UIStatus", {
 			if (this.spinner === true) {
 				this.spinnerElement.fadeOut(400, function(){
 					this.stop();
-					that.doit();
+					doit();
 				});
 			} else {
-				that.doit();
+				doit();
 			}
 			return this;
 		},
