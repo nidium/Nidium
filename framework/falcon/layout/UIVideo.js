@@ -15,7 +15,7 @@ Native.elements.export("UIVideo", {
 			shadowBlur : OptionalNumber(o.shadowBlur, 12),
 			shadowOffsetY : OptionalNumber(o.shadowOffsetY, 4),
 			shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 1)"),
-			overflow		: false
+			overflow	: false
 		});
 
 		this.spinner = new UISpinner(this, {
@@ -29,58 +29,16 @@ Native.elements.export("UIVideo", {
 			radius : 20
 		}).center().move(0, -12).hide();
 
-		this.addEventListener("mouseover", function(e){
-			if (this.volume.draggingSlider) return false;
-			if (!this.player || !this.player.ready) return false;
-			
-			this.mouseIsOver = true;
-
-			if (this.status.closing) {
-				this.status.destroyCurrentAnimations("opacity");
-				this.status.destroyCurrentAnimations("top");
-				this.status.closing = false;
-				this.status.closed = true;
-				this.status.open(10);
-			} else {
-				this.status.open(150);
-			}
-		});
-
-		this.addEventListener("mouseout", function(e){
-			var that = this;
-			if (this.volume.draggingSlider) return false;
-			if (!this.player || !this.player.ready) return false;
-
-			this.mouseIsOver = false;
-
-			clearTimeout(this.closingTimer);
-			this.status.mouseOutEngaged = false;
-			this.closingTimer = setTimeout(function(){
-				if (that.mouseIsOver) {
-					that.status.destroyCurrentAnimations("opacity");
-					that.status.destroyCurrentAnimations("top");
-					that.status.closing = false;
-					that.status.closed = true;
-					that.status.open(10);
-				} else {
-					that.status.close(400);
-				}
-			}, 800);
-		});
-
-		this.addEventListener("drag", function(e){
-			this.left += e.xrel;
-			this.top += e.yrel;
-		});
-
 		this.status = new UIStatus(this, {
 			progressBarColor : "rgba(210, 255, 60, 1)",
 			progressBarLeft : 124,
-			progressBarRight : 60,
+			progressBarRight : 62,
 			label : "",
 			spinner : false,
 			value : 0
 		});
+
+		this.status.hideDelay = 1000;
 
 		this.status.icon = new Icon(this.status, {
 			left : 0,
@@ -131,6 +89,55 @@ Native.elements.export("UIVideo", {
 			min : 0,
 			max : 1.5,
 			value : 0.8
+		});
+
+		this.addEventListener("mouseover", function(e){
+			if (this.volume.draggingSlider) return false;
+			if (!this.player || !this.player.ready) return false;
+
+			this.mouseIsOver = true;
+			this.mouseIsOut = false;
+
+			clearTimeout(this.closingTimer);
+
+			if (this.status.closing) {
+				this.status.destroyCurrentAnimations("opacity");
+				this.status.destroyCurrentAnimations("top");
+				this.status.closing = false;
+				this.status.closed = true;
+				this.status.open(10);
+			} else {
+				this.status.open(150);
+			}
+		});
+
+		this.addEventListener("mouseout", function(e){
+			var that = this;
+			if (this.volume.draggingSlider) return false;
+			if (!this.player || !this.player.ready) return false;
+
+			this.mouseIsOver = false;
+			this.mouseIsOut = true;
+
+			clearTimeout(this.closingTimer);
+
+			this.closingTimer = setTimeout(function(){
+				that.status.timering = false;
+				if (that.mouseIsOver) {
+					that.status.destroyCurrentAnimations("opacity");
+					that.status.destroyCurrentAnimations("top");
+					that.status.closing = false;
+					that.status.closed = true;
+					that.status.open(2000);
+				} else {
+					that.status.close(400);
+				}
+			}, this.status.hideDelay);
+		});
+
+		this.addEventListener("drag", function(e){
+			this.left += e.xrel;
+			this.top += e.yrel;
 		});
 
 		this.volume.addEventListener("update", function(value){
