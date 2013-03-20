@@ -1933,12 +1933,17 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     memset(&this->shader, 0, sizeof(this->shader));
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(int width, int height) :
+NativeCanvas2DContext::NativeCanvas2DContext(int width, int height, bool isGL) :
     jsobj(NULL), jscx(NULL)
 {
     skia = new NativeSkia();
-    skia->bindGL(width, height);
-
+    if (isGL) {
+        skia->bindGL(width, height);
+    } else {
+        printf("New onscreen of size : %dx%d\n", width, height);
+        skia->bindOnScreen(width, height);
+    }
+    memset(&this->gl, 0, sizeof(this->gl));
     memset(&this->shader, 0, sizeof(this->shader));
 }
 

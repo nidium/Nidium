@@ -70,7 +70,7 @@ class NativeCanvas2DContext : public NativeJSExposer
         uint32_t compileShader(const char *data, int type);
 
         static void registerObject(JSContext *cx);
-        NativeCanvas2DContext(int width, int height);
+        NativeCanvas2DContext(int width, int height, bool isGL = true);
         NativeCanvas2DContext(struct JSContext *cx, int width, int height);
         ~NativeCanvas2DContext();
     private:

@@ -35,6 +35,7 @@ class NativeJS
         NativeSharedMessages *messages;
         NativeSkia *surface;
         NativeCanvasHandler *rootHandler;
+        NativeCanvasHandler *debugHandler;
         NativeUIInterface *UI;
         bool shutdown;
         struct _ape_htable *rootedObj;
@@ -49,6 +50,8 @@ class NativeJS
             const char *filename);
         int LoadScript(const char *filename);
         void callFrame();
+
+        void createDebugCanvas();
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
         void postDraw();
@@ -61,6 +64,16 @@ class NativeJS
         void bindNetObject(ape_global *net);
         void forceLinking();
         uint32_t currentFPS;
+
+        struct {
+            uint64_t nframe;
+            uint64_t starttime;
+            uint64_t lastmeasuredtime;
+            uint64_t lastdifftime;
+            uint32_t cumulframe;
+            uint32_t cumumtimems;
+            float fps;
+        } stats;
 
 };
 

@@ -28,6 +28,11 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeJSNative::showFPS = (show == JS_TRUE) ? true : false;
+    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+
+    if (show) {
+        NJS->createDebugCanvas();
+    }
 
     return JS_TRUE;
 }

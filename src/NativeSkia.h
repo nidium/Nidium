@@ -98,13 +98,17 @@ class NativeSkia
         void setFontSize(double size);
         void setFontType(const char *str);
         void drawText(const char *text, int x, int y);
+        void drawTextf(int x, int y, const char *text, ...);
         void system(const char *text, int x, int y);
-        void drawRect(double, double, double, double, int);
+        void drawRect(double x, double y, double width, 
+            double height, int stroke);
         void drawRect(double x, double y, double width,
             double height, double rx, double ry, int stroke);
+        void drawLine(double x1, double y1, double x2, double y2);
         void setFillColor(const char *str);
         void setFillColor(NativeSkGradient *gradient);
         void setFillColor(NativeCanvasPattern *pattern);
+        void setFillColor(uint32_t color);
         void setStrokeColor(const char *str);
         void setStrokeColor(NativeSkGradient *gradient);
         void setLineWidth(double size);

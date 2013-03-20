@@ -41,6 +41,7 @@
 #include <math.h>
 
 #include "NativeJS_preload.h"
+#include "NativeUtils.h"
 
 struct _native_sm_timer
 {
@@ -259,19 +260,60 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
+void NativeJS::createDebugCanvas()
+{
+    static const int DEBUG_HEIGHT = 60;
+    debugHandler = new NativeCanvasHandler(surface->getWidth(), DEBUG_HEIGHT);
+    debugHandler->context = new NativeCanvas2DContext(surface->getWidth(), DEBUG_HEIGHT, false);
+
+    rootHandler->addChild(debugHandler);
+    debugHandler->setRight(0);
+    debugHandler->setOpacity(0.7);
+}
+
 void NativeJS::postDraw()
 {
+    extern int _nativebuild;
     char fps[16];
-    if (NativeJSNative::showFPS) {
-        sprintf(fps, "%d fps", currentFPS);
-        surface->system(fps, 5, 300);
-        surface->flush();
+    if (NativeJSNative::showFPS && debugHandler) {
+
+        NativeSkia *s = debugHandler->context->skia;
+        debugHandler->bringToFront();
+
+        s->setFillColor(0xFF000000u);
+        s->drawRect(0, 0, debugHandler->getWidth(), debugHandler->getHeight(), 0);
+        s->setFillColor(0xFFEEEEEEu);
+        s->setFontType("monospace");
+        s->drawTextf(5, 12, "NATiVE build %d - %s %s", _nativebuild, __DATE__, __TIME__);
+        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", this->stats.nframe, stats.lastdifftime/1000000LL);
+        s->drawTextf(5, 38, "Time : %lldns\n", stats.lastmeasuredtime-stats.starttime);
+        s->drawTextf(5, 51, "FPS  : %.2f", stats.fps);
+        
+        //s->drawLine(10, 25, 40, 35);
+        //s->translate(10, 10);
+        //sprintf(fps, "%d fps", currentFPS);
+        //s->system(fps, 5, 10);
+        s->flush();
     }
 }
 
 void NativeJS::callFrame()
 {
     jsval rval;
+    uint64_t tmptime = NativeUtils::getTick();
+    stats.nframe++;
+
+    stats.lastdifftime = tmptime - stats.lastmeasuredtime;
+    stats.lastmeasuredtime = tmptime;
+
+    stats.cumumtimems += stats.lastdifftime / 1000000LL;
+    stats.cumulframe++;
+
+    if (stats.cumumtimems >= 1000) {
+        stats.fps = 1000.f/(float)((float)stats.cumumtimems/(float)stats.cumulframe);
+        stats.cumulframe = 0;
+        stats.cumumtimems = 0;
+    }
 
     if (gfunc != JSVAL_VOID) {
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
@@ -520,7 +562,17 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     currentFPS = 0;
     shutdown = false;
 
+    debugHandler = NULL;
+
     this->net = NULL;
+
+    this->stats.nframe = 0;
+    this->stats.starttime = NativeUtils::getTick();
+    this->stats.lastmeasuredtime = this->stats.starttime;
+    this->stats.lastdifftime = 0;
+    this->stats.cumulframe = 0;
+    this->stats.cumumtimems = 0;
+    this->stats.fps = 0.f;
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
