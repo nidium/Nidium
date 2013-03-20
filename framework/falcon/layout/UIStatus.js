@@ -10,6 +10,8 @@ Native.elements.export("UIStatus", {
 
 		this.setProperties({
 			canReceiveFocus	: false,
+			spinner			: OptionalBoolean(o.spinner, true),
+
 			label			: OptionalString(o.label, "Ready"),
 			fontSize  		: OptionalNumber(o.fontSize, 10),
 			fontType  		: OptionalString(o.fontType, "arial"),
@@ -36,24 +38,30 @@ Native.elements.export("UIStatus", {
 			opacity			: 1.0
 		});
 
-		this.spinner = new UISpinner(this, {
-			height : this.height-6,
-			width : this.height-6,
-			left : this.width-(this.height-6)-3,
-			top : 3,
+		if (this.spinner === true) {
+			this.spinnerElement = new UISpinner(this, {
+				height : this.height-6,
+				width : this.height-6,
+				left : this.width-(this.height-6)-3,
+				top : 3,
 
-			dashes : 10,
-			color : this.color,
-			speed : 20,
-			opacity : 0.7,
-			radius : 2
-		});
+				dashes : 10,
+				color : this.color,
+				speed : 20,
+				opacity : 0.7,
+				radius : 2
+			});
+		}
 
 		this.open = function(duration=600){
 			if (this.closed === false || this.opening) return false;
 			this.visible = true;
-			this.spinner.opacity = 0.7;
-			this.spinner.play();
+
+			if (this.spinner === true) {
+				this.spinnerElement.opacity = 0.7;
+				this.spinnerElement.play();
+			}
+
 			this.fadeIn(80);
 			
 			this.opening = true;
@@ -77,9 +85,8 @@ Native.elements.export("UIStatus", {
 			if (this.closed || this.closing) return false;
 			this.visible = true;
 			this.closing = true;			
-			this.spinner.fadeOut(400, function(){
-				this.stop();
 
+			var doit = function(){
 				that.animate(
 					"top",
 					that.parent.height - that.height,
@@ -94,8 +101,16 @@ Native.elements.export("UIStatus", {
 				);
 
 				that.fadeOut(duration*1.2);
+			};
 
-			});
+			if (this.spinner === true) {
+				this.spinnerElement.fadeOut(400, function(){
+					this.stop();
+					that.doit();
+				});
+			} else {
+				that.doit();
+			}
 			return this;
 		},
 
@@ -106,8 +121,11 @@ Native.elements.export("UIStatus", {
 		this.opacity = 0;
 		this.closed = true;
 		this.visible = false;
-		this.spinner.stop();
-		this.spinner.opacity = 0;
+
+		if (this.spinner === true) {
+			this.spinnerElement.stop();
+			this.spinnerElement.opacity = 0;
+		}
 	},
 
 	draw : function(context){

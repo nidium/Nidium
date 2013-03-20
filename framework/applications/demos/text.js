@@ -18,9 +18,9 @@ var div = new UIView(body, {
 	width : 300,
 	height : 250,
 	innerWidth : 300,
-	fontSize : 11,
+	fontSize : 14,
 	fontType : "menlo",
-	lineHeight : 17,
+	lineHeight : 22,
 	background : "rgba(255, 255, 255, 0.04)",
 	color : "#F8F8F2",
 	textAlign : "justify",
@@ -72,7 +72,7 @@ t2.color = "red";
 t4.color = "#ffdd88";
 t4.cursor = "pointer";
 
-//t4.animate("angle", 0, 720*10, 5000);
+t2.animate("angle", 0, 720*10, 5000);
 //t8.animate("angle", 0, 720*10, 5000);
 
 t6.fontWeight = "bolder";

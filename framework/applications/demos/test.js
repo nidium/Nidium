@@ -28,6 +28,21 @@ var	c0 = new UIView(view, {
 	position : "fixed"
 });
 
+var	kevin = new UIView(c0, {
+	id : "c0",
+	left : 20,
+	top : 20,
+	width : 40,
+	height : 40,
+	background : "blue",
+	cursor : "pointer"
+});
+
+kevin.drag(function(e){
+	this.left += e.xrel;
+	this.top += e.yrel;
+});
+
 var	c1 = new UIView(view, {
 	id : "c1",
 	left : 450,

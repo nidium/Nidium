@@ -5,8 +5,8 @@
 /* -------------------------------------- */
 
 var main = new Application({
-	width : 640,
-	height : 400
+	width : 1004,
+	height : 680
 }).center();
 		
 var ShaderDemo = {
