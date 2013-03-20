@@ -170,6 +170,8 @@ void NativeStream::onProgress(size_t offset, size_t len,
 void NativeStream::onError(NativeHTTP::HTTPError err)
 {
     if (!this->delegate) return;
+
+    this->delegate->onGetContent(NULL, 0);
 }
 /**********/
 

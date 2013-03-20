@@ -265,7 +265,6 @@ int APE_socket_connect(ape_socket *socket, uint16_t port,
 
     socket->remote_port = port;
 #ifdef _HAS_ARES_SUPPORT
-    printf("Connecting...\n");
     ape_gethostbyname(remote_ip_host, ape_socket_connect_ready_to_connect,
             socket, socket->ape);
 #else
@@ -323,7 +322,6 @@ static void ape_socket_shutdown_force(ape_socket *socket)
         ape_ssl_shutdown(socket->SSL.ssl);
     }
 #endif
-    printf("Closing socket %d\n", socket->s.fd);
     if (shutdown(socket->s.fd, 2) != 0) {
         APE_socket_destroy(socket);
     }
@@ -366,7 +364,6 @@ int APE_socket_destroy(ape_socket *socket)
 #ifdef __WIN32
     closesocket(APE_SOCKET_FD(socket));
 #else
-    printf("Closing() socket %d\n", APE_SOCKET_FD(socket));
     close(APE_SOCKET_FD(socket));
 #endif
     timer_dispatch_async(ape_socket_free, socket);
@@ -728,8 +725,6 @@ static int ape_socket_queue_data(ape_socket *socket,
     ape_socket_jobs_t *job;
     ape_socket_packet_t *packets;
     ape_pool_list_t *list;
-    
-    printf("data pushed to queue\n");
     
     /* if the data is a local scoped data, copy it */
     data_type = (data_type == APE_DATA_STATIC ? APE_DATA_COPY : data_type);

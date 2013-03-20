@@ -217,6 +217,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
 
             this->NJS->Loaded();
             NativeNML *nml = new NativeNML(this->gnet);
+            nml->setNJS(this->NJS);
             nml->loadFile("index.nml");
             return true;
         }
