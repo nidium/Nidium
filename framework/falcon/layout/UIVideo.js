@@ -32,13 +32,40 @@ Native.elements.export("UIVideo", {
 		this.addEventListener("mouseover", function(e){
 			if (this.volume.draggingSlider) return false;
 			if (!this.player || !this.player.ready) return false;
-			this.status.open(200);
+			
+			this.mouseIsOver = true;
+
+			if (this.status.closing) {
+				this.status.destroyCurrentAnimations("opacity");
+				this.status.destroyCurrentAnimations("top");
+				this.status.closing = false;
+				this.status.closed = true;
+				this.status.open(10);
+			} else {
+				this.status.open(150);
+			}
 		});
 
 		this.addEventListener("mouseout", function(e){
+			var that = this;
 			if (this.volume.draggingSlider) return false;
 			if (!this.player || !this.player.ready) return false;
-			this.status.close(600);
+
+			this.mouseIsOver = false;
+
+			clearTimeout(this.closingTimer);
+			this.status.mouseOutEngaged = false;
+			this.closingTimer = setTimeout(function(){
+				if (that.mouseIsOver) {
+					that.status.destroyCurrentAnimations("opacity");
+					that.status.destroyCurrentAnimations("top");
+					that.status.closing = false;
+					that.status.closed = true;
+					that.status.open(10);
+				} else {
+					that.status.close(400);
+				}
+			}, 800);
 		});
 
 		this.addEventListener("drag", function(e){
@@ -49,7 +76,7 @@ Native.elements.export("UIVideo", {
 		this.status = new UIStatus(this, {
 			progressBarColor : "rgba(210, 255, 60, 1)",
 			progressBarLeft : 124,
-			progressBarRight : 56,
+			progressBarRight : 60,
 			label : "",
 			spinner : false,
 			value : 0
@@ -84,11 +111,12 @@ Native.elements.export("UIVideo", {
 		});
 
 		this.timecode = new UILabel(this.status, {
-			left : this.width - 40,
+			left : this.width - 48,
 			fontSize : 9,
-			top : 1,
+			fontType : "time",
+			top : 0,
 			label : "00:00:00",
-			color : 'rgba(255, 255, 255, 0.7)',
+			color : 'rgba(255, 255, 255, 0.3)',
 		});
 
 		this.volume = new UISliderController(this.status, {
