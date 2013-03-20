@@ -15,14 +15,13 @@ NativeNML::~NativeNML()
 
 void NativeNML::loadFile(const char *file)
 {
-    printf("Loading file\n");
     NFIO = new NativeFileIO(file, this, this->net);
     NFIO->open("r");
 }
 
 void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
 {
-
+    printf("Got item ready : %s\n", item->getName());
 }
 
 static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
@@ -45,14 +44,18 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
         NativeAssets::Item *item = NULL;
 
         if ((src = child->first_attribute("src"))) {
+            xml_attribute<> *id = child->first_attribute("id");
             item = new NativeAssets::Item(src->value(), net);
-            item->download();
+
+            item->setName(id != NULL ? id->value() : src->value());
+
+            assets->addToPendingList(item);
         }
         
         if (!strncasecmp(child->name(), "script", 6)) {
-            printf("got a script tag\n");
+            //printf("got a script tag\n");
         }
-        printf("Node : %s\n", child->name());
+        //printf("Node : %s\n", child->name());
     }
 }
 

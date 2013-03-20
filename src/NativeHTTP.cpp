@@ -92,8 +92,6 @@ static int message_complete_cb(http_parser *p)
 {
     NativeHTTP *nhttp = (NativeHTTP *)p->data;
 
-    printf("Message complete\n");
-
     nhttp->requestEnded();
 
     return 0;
