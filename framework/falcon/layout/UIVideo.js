@@ -49,8 +49,9 @@ Native.elements.export("UIVideo", {
 		this.status = new UIStatus(this, {
 			progressBarColor : "rgba(210, 255, 60, 1)",
 			progressBarLeft : 124,
-			progressBarRight : 30,
+			progressBarRight : 56,
 			label : "",
+			spinner : false,
 			value : 0
 		});
 
@@ -82,10 +83,18 @@ Native.elements.export("UIVideo", {
 			variation : 1
 		});
 
+		this.timecode = new UILabel(this.status, {
+			left : this.width - 40,
+			fontSize : 9,
+			top : 1,
+			label : "00:00:00",
+			color : 'rgba(80, 80, 80, 0.5)',
+		});
+
 		this.volume = new UISliderController(this.status, {
-			left : 50,
+			left : 54,
 			top : 6,
-			width : 48,
+			width : 54,
 			height : 9,
 			background : '#161712',
 			color : 'rgba(0, 0, 0, 1)',
@@ -104,6 +113,18 @@ Native.elements.export("UIVideo", {
 
 		this.spinner.show();
 
+		var toTimeCode = function(d){
+			var f = Math.floor;
+			d = Number(d)
+			var h = f(d / 3600);
+			var m = f(d % 3600 / 60);
+			var s = f(d % 3600 % 60);
+
+			return (h < 10 ? "0"+h : h) + ':' +
+				   (m < 10 ? "0"+m : m) + ':' +
+				   (s < 10 ? "0"+s : s);
+		};
+
 		this.load = function(url, callback){
 			var cb = OptionalCallback(callback, null);
 
@@ -121,6 +142,7 @@ Native.elements.export("UIVideo", {
 			this.player.onplaying = function(e) {
 				self.status.value = e.percent;
 				self.status.redraw();
+				self.timecode.label = toTimeCode(e.position);
 			}
 
 

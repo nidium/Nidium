@@ -9,7 +9,6 @@ var body = new Application({
 	class : "body"
 });
 
-
 var video = new UIVideo(body, {
 	width : 640,
 	height : 360

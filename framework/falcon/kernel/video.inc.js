@@ -36,6 +36,7 @@ var VideoLayer = function(layer, url, callback){
 	this.dsp = Native.getAudioDSP();
 	if (!this.dsp) throw("Unsupported Native Audio DSP");
 	this.audioGain = this.dsp.createNode("gain", 2, 2);
+	this.reverbNode = this.dsp.createNode("custom", 2, 2);
 	this.audioTarget = this.dsp.createNode("target", 2, 0);
 
 	this.layer.ctx.imageSmoothingEnabled = true;

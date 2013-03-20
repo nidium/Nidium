@@ -464,8 +464,14 @@ DOMElement.implement({
 			this.addEventListener("mouseout", cbOut, false);
 		}
 		return this;
-	}
+	},
 
+	drag : function(cb){
+		if (typeof cb == "function") {
+			this.addEventListener("drag", cb, false);
+		}
+		return this;
+	}
 });
 
 /* -- THREAD EVENT LISTENER ------------------------------------------------- */
