@@ -378,12 +378,14 @@ void NativeCanvasHandler::computeAbsolutePosition()
         return;
     }
 
-    double ctop = this->getTop(), cleft = this->getLeft();
+    double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
+
     NativeCanvasHandler *cparent = this->parent;
 
     while (cparent != NULL) {
-        ctop += cparent->getTop() - cparent->content.scrollTop;
-        cleft += cparent->getLeft() - cparent->content.scrollLeft;
+
+        ctop += cparent->getTopScrolled();
+        cleft += cparent->getLeftScrolled();
 
         if (cparent->coordPosition == COORD_ABSOLUTE) {
             break;

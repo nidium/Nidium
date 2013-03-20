@@ -41,7 +41,7 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 {
     JSObject *NativeObj;
     JSObject *canvas;
-    JSObject *titleBar;
+    //JSObject *titleBar;
 
     NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
 

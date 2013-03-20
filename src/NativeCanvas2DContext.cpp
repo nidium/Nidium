@@ -1023,7 +1023,7 @@ static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc
     double val;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
     uint32_t program;
-
+    
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "id",
         &location, &val)) {
         return JS_TRUE;
@@ -1940,7 +1940,6 @@ NativeCanvas2DContext::NativeCanvas2DContext(int width, int height, bool isGL) :
     if (isGL) {
         skia->bindGL(width, height);
     } else {
-        printf("New onscreen of size : %dx%d\n", width, height);
         skia->bindOnScreen(width, height);
     }
     memset(&this->gl, 0, sizeof(this->gl));

@@ -123,6 +123,24 @@ class NativeCanvasHandler
 
             return this->top;
         }
+
+        double getTopScrolled() const {
+            double top = getTop();
+            if (coordPosition == COORD_RELATIVE && parent != NULL) {
+                top -= parent->content.scrollTop;
+            }
+
+            return top;
+        }
+
+        double getLeftScrolled() const {
+            double left = getLeft();
+            if (coordPosition == COORD_RELATIVE && parent != NULL) {
+                left -= parent->content.scrollLeft;
+            }
+            return left;
+        }
+
         double getRight() const {
             return this->right;
         }

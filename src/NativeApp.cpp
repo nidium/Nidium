@@ -418,7 +418,6 @@ if (!root.isMember(str) || !(out = root[str]) || !out.is ## type()) { \
 
         return 0;
     }
-
     MPROP(root, "info", Object, info);
     MPROP(info, "title", String, title);
     MPROP(info, "uid", String, uid);

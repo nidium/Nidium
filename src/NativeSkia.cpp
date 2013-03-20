@@ -313,6 +313,11 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setAntiAlias(true);
     //PAINT_STROKE->setLCDRenderText(true);
     PAINT_STROKE->setStyle(SkPaint::kStroke_Style);
+    PAINT_STROKE->setSubpixelText(true);
+    PAINT_STROKE->setAutohinted(true);
+    PAINT_STROKE->setHinting(SkPaint::kFull_Hinting);
+    PAINT_STROKE->setDither(true);
+    PAINT_STROKE->setFilterBitmap(false);
     
     this->setLineWidth(1);
 
@@ -470,7 +475,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 void NativeSkia::drawLine(double x1, double y1, double x2, double y2)
 {
     canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
-        SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT);
+        SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT_STROKE);
 }
 
 void NativeSkia::drawRect(double x, double y, double width,
@@ -664,6 +669,19 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
     PAINT_STROKE->setColor(SK_ColorBLACK);
     PAINT_STROKE->setShader(shader);
 }
+
+
+void NativeSkia::setStrokeColor(uint32_t color)
+{   
+    SkShader *shader = PAINT_STROKE->getShader();
+
+    if (shader) {
+        PAINT_STROKE->setShader(NULL);
+    }
+
+    PAINT_STROKE->setColor(color);
+}
+
 
 NativeShadowLooper *NativeSkia::buildShadow()
 {

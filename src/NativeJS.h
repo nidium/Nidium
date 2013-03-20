@@ -71,8 +71,11 @@ class NativeJS
             uint64_t lastmeasuredtime;
             uint64_t lastdifftime;
             uint32_t cumulframe;
-            uint32_t cumumtimems;
+            float cumultimems;
+            float samples[60];
             float fps;
+            float minfps;
+            float sampleminfps;
         } stats;
 
 };

@@ -1,7 +1,7 @@
 NATIVEFLAGS=-fvisibility=hidden -fvisibility-inlines-hidden -Wno-invalid-offsetof
 
 CXX = clang
-CPPFLAGS = -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I../src/ -I./ -I../network/ -I../libjson/include -I../libzip/lib
+CPPFLAGS = -O2 $(NATIVEFLAGS) -c -g -O2 -Wall -I../src/ -I./ -I../network/ -I../http-parser -I../libjson/include -I../libzip/lib
 
 VPATH = ./osx/
 

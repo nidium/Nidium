@@ -9,6 +9,8 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
+#import <NativeNML.h>
+
 #define kNativeWidth 1024
 #define kNativeHeight 700
 
@@ -149,17 +151,20 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         
         NUII->NJS->callFrame();
         NUII->NJS->postDraw();
+        int s = SDL_GetTicks();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
-
+        
         NUII->getConsole()->flush();
+        
+        SDL_GL_SwapWindow(NUII->win);
 
-        glFlush();
+        //NSLog(@"Swap : %d\n", SDL_GetTicks()-s);
 
     //}
     ttfps++;
 
     //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
-    return 16;
+    return 1;
 }
 
 static int NativeProcessUI(void *arg)
@@ -201,14 +206,18 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
     FILE *main = fopen("main.js", "r");
+
     if (main != NULL) {
         fclose(main);
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
+        NSLog(@"Loading main");
         if (this->NJS->LoadScript("./main.js")) {
 
             this->NJS->Loaded();
+            NativeNML *nml = new NativeNML(this->gnet);
+            nml->loadFile("index.nml");
             return true;
         }
         return true;
@@ -280,7 +289,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 0 );
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
     
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);

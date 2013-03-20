@@ -268,13 +268,11 @@ void NativeJS::createDebugCanvas()
 
     rootHandler->addChild(debugHandler);
     debugHandler->setRight(0);
-    debugHandler->setOpacity(0.7);
+    debugHandler->setOpacity(0.6);
 }
 
 void NativeJS::postDraw()
 {
-    extern int _nativebuild;
-    char fps[16];
     if (NativeJSNative::showFPS && debugHandler) {
 
         NativeSkia *s = debugHandler->context->skia;
@@ -283,19 +281,30 @@ void NativeJS::postDraw()
         s->setFillColor(0xFF000000u);
         s->drawRect(0, 0, debugHandler->getWidth(), debugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
+
         s->setFontType("monospace");
-        s->drawTextf(5, 12, "NATiVE build %d - %s %s", _nativebuild, __DATE__, __TIME__);
+        s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", this->stats.nframe, stats.lastdifftime/1000000LL);
         s->drawTextf(5, 38, "Time : %lldns\n", stats.lastmeasuredtime-stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f", stats.fps);
+        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", stats.fps, stats.sampleminfps);
+
+        s->setLineWidth(0.0);
+        for (int i = 0; i < sizeof(stats.samples)/sizeof(float); i++) {
+            //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*stats.samples[i]);
+            s->setStrokeColor(0xFF004400u);
+            s->drawLine(debugHandler->getWidth()-20-i*3, 55, debugHandler->getWidth()-20-i*3, 20.f);
+            s->setStrokeColor(0xFF00BB00u);   
+            s->drawLine(debugHandler->getWidth()-20-i*3, 55, debugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)stats.samples[i]), 55));
+        }
+        //s->setLineWidth(1.0);
         
-        //s->drawLine(10, 25, 40, 35);
         //s->translate(10, 10);
         //sprintf(fps, "%d fps", currentFPS);
         //s->system(fps, 5, 10);
         s->flush();
     }
 }
+
 
 void NativeJS::callFrame()
 {
@@ -306,13 +315,26 @@ void NativeJS::callFrame()
     stats.lastdifftime = tmptime - stats.lastmeasuredtime;
     stats.lastmeasuredtime = tmptime;
 
-    stats.cumumtimems += stats.lastdifftime / 1000000LL;
+    /* convert to ms */
+    stats.cumultimems += (float)stats.lastdifftime / 1000000.f;
     stats.cumulframe++;
 
-    if (stats.cumumtimems >= 1000) {
-        stats.fps = 1000.f/(float)((float)stats.cumumtimems/(float)stats.cumulframe);
+    stats.minfps = native_min(stats.minfps, 1000.f/(stats.lastdifftime/1000000.f));
+    //printf("FPS : %f\n", 1000.f/(stats.lastdifftime/1000000.f));
+
+    //printf("Last diff : %f\n", (float)(stats.lastdifftime/1000000.f));
+
+    /* Sample every 1000ms */
+    if (stats.cumultimems >= 1000.f) {
+        stats.fps = 1000.f/(float)(stats.cumultimems/(float)stats.cumulframe);
         stats.cumulframe = 0;
-        stats.cumumtimems = 0;
+        stats.cumultimems = 0.f;
+        stats.sampleminfps = stats.minfps;
+        stats.minfps = UINT32_MAX;
+
+        memmove(&stats.samples[1], stats.samples, sizeof(stats.samples)-sizeof(float));
+
+        stats.samples[0] = stats.fps;
     }
 
     if (gfunc != JSVAL_VOID) {
@@ -571,13 +593,17 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     this->stats.lastmeasuredtime = this->stats.starttime;
     this->stats.lastdifftime = 0;
     this->stats.cumulframe = 0;
-    this->stats.cumumtimems = 0;
+    this->stats.cumultimems = 0.f;
     this->stats.fps = 0.f;
+    this->stats.minfps = UINT32_MAX;
+    this->stats.sampleminfps = 0.f;
+
+    memset(this->stats.samples, 0, sizeof(this->stats.samples));
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
-        JS_USE_HELPER_THREADS)) == NULL) {
+        JS_NO_HELPER_THREADS)) == NULL) {
         
         printf("Failed to init JS runtime\n");
         return;
@@ -637,7 +663,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
 static bool test_extracting(const char *buf, int len,
     size_t offset, size_t total, void *user)
 {
-    NativeJS *njs = (NativeJS *)user;
+    //NativeJS *njs = (NativeJS *)user;
 
     printf("Got a packet of size %ld out of %ld\n", offset, total);
     return true;

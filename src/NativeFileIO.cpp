@@ -104,7 +104,7 @@ void NativeFileIO::readAction(uint64_t len)
         return;
     }
 
-    unsigned char *data = new unsigned char[clamped_len];
+    unsigned char *data = new unsigned char[clamped_len + 1];
     size_t readsize = 0;
 
     if ((readsize = fread(data, sizeof(char), clamped_len, fd)) < 1) {
@@ -114,6 +114,9 @@ void NativeFileIO::readAction(uint64_t len)
         delete[] data;
         return;
     }
+
+    /* Always null-terminate the returned data (don't impact returned size) */
+    data[readsize] = '\0';
 
     action.u64 = readsize;
     if (!action.stop) {
