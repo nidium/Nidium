@@ -195,7 +195,7 @@ static JSFunctionSpec Video_funcs[] = {
 };
 
 static JSClass Video_class = {
-    "Video", JSCLASS_HAS_PRIVATE,
+    "Video", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Video_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -234,14 +234,10 @@ NativeJSAudio::NativeJSAudio(ape_global *net, int size, int channels, int freque
 
     pthread_cond_init(&this->shutdowned, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);
-
-    pthread_create(&threadDecode, NULL, NativeAudio::decodeThread, audio);
-    pthread_create(&threadQueue, NULL, NativeAudio::queueThread, audio);
 }
 
 bool NativeJSAudio::createContext() 
 {
-
     if (this->rt == NULL) {
         if ((this->rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
             printf("Failed to init JS runtime\n");
@@ -283,8 +279,8 @@ bool NativeJSAudio::createContext()
     
 }
 
-NativeJSAudio::~NativeJSAudio() {
-
+NativeJSAudio::~NativeJSAudio() 
+{
     // First unroot all js audio nodes
     this->unroot();
 
@@ -313,30 +309,24 @@ NativeJSAudio::~NativeJSAudio() {
     // Shutdown the audio
     this->audio->shutdown();
 
-    pthread_join(this->threadQueue, NULL);
-    pthread_join(this->threadDecode, NULL);
-
     // And delete it
     delete this->audio;
 
     this->audio = NULL;
 }
 
-void NativeJSAudio::unroot() {
-    NativeJSAudio *audio = NativeJSAudio::instance;
-
-    if (!audio) return;
-
-    NativeJSAudio::Nodes *nodes = audio->nodes;
-    JSRuntime *rt = JS_GetRuntime(audio->cx);
+void NativeJSAudio::unroot() 
+{
+    NativeJSAudio::Nodes *nodes = this->nodes;
+    JSRuntime *rt = JS_GetRuntime(this->cx);
     void * priv = JS_GetRuntimePrivate(rt);
     NativeJS *njs = static_cast<NativeJS *>(priv);
 
-    if (audio->jsobj != NULL) {
-        JS_RemoveObjectRoot(njs->cx, &audio->jsobj);
+    if (this->jsobj != NULL) {
+        JS_RemoveObjectRoot(njs->cx, &this->jsobj);
     }
-    if (audio->gbl != NULL) {
-        JS_RemoveObjectRoot(njs->cx, &audio->gbl);
+    if (this->gbl != NULL) {
+        JS_RemoveObjectRoot(njs->cx, &this->gbl);
     }
 
     while (nodes != NULL) {
@@ -344,6 +334,7 @@ void NativeJSAudio::unroot() {
         nodes = nodes->next;
     }
 }
+
 void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
 {
     NativeJSAudio *audio = static_cast<NativeJSAudio *>(custom);
@@ -351,7 +342,6 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
 
     // Let's shutdown and destroy all nodes
     while (nodes != NULL) {
-
         if (nodes->curr->type == NativeAudio::CUSTOM) {
             nodes->curr->shutdownCallback(nodes->curr->node, nodes->curr);
         }
@@ -675,7 +665,6 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
     naudio = new NativeJSAudio((ape_global *)JS_GetContextPrivate(cx), size, channels, frequency);
     naudio->cx = cx;
     naudio->jsobj = ret;
-
 
     if (naudio->audio == NULL) {
         delete naudio;
@@ -1294,7 +1283,6 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
-    printf("Drawing pixels\n");
     v->nskia->drawPixels(data, v->video->width, v->video->height, 0, 0);
 
     /*
@@ -1426,6 +1414,8 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSAudio *jaudio = (class NativeJSAudio *)JS_GetInstancePrivate(cx, audio, &Audio_class, JS_ARGV(cx, vp));
 
     NativeJSVideo *v = new NativeJSVideo(jaudio, nskia, cx);
+
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(jaudio->jsobj));
 
     JS_DefineFunctions(cx, ret, Video_funcs);
     JS_DefineProperties(cx, ret, Video_props);

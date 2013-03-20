@@ -122,11 +122,13 @@ class NativeAudioNode
         void queue(NodeLink *in, NodeLink *out);
         void unqueue(NodeLink *in, NodeLink *out);
 
-        bool recurseGetData();
+        bool recurseGetData(int *sourceFailed);
 
         virtual bool process() = 0;
 
         virtual ~NativeAudioNode() = 0;
+    protected:
+        bool doNotProcess;
 
     private:
         void post(int msg, void *source, void *dest, unsigned long size);
@@ -135,18 +137,9 @@ class NativeAudioNode
 class NativeAudioNodeTarget : public NativeAudioNode
 {
     public :
-        NativeAudioNodeTarget(int inCount, int outCount, NativeAudio *audio) 
-            : NativeAudioNode(inCount, outCount, audio)
-        { 
-            SPAM(("Target init\n"));
+        NativeAudioNodeTarget(int inCount, int outCount, NativeAudio *audio);
 
-        }
-
-        virtual bool process()
-        {
-            SPAM(("process called on target\n"));
-            return true;
-        }
+        virtual bool process();
 };
 
 #if 0
@@ -320,6 +313,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         void *rBufferOutData;
 
         bool eof;
+        bool buffering;
 
         void close(bool reset);
 };

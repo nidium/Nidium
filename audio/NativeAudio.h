@@ -6,7 +6,7 @@
 #include "NativeAV.h"
 #include "native_netlib.h"
 
-#if 0
+#if 1
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -101,6 +101,8 @@ class NativeAudio
         float *cbkBuffer;
 
         pthread_mutex_t decodeLock, queueLock, shutdownLock;
+        pthread_t threadDecode;
+        pthread_t threadQueue;
 
         bool haveData, notEmpty;
         bool threadShutdown;

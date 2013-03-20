@@ -57,8 +57,8 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 }
 
 
-NativeAVFileReader::NativeAVFileReader(const char *src, NativeAVSource *source, ape_global *net) 
-: source(source), switched(false), nfioRead(false), totalRead(0), error(0) 
+NativeAVFileReader::NativeAVFileReader(const char *src, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
+: source(source), totalRead(0), bufferCond(bufferCond), error(0)
 {
     this->async = true;
     this->nfio = new NativeFileIO(src, this, net);
@@ -75,19 +75,11 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
 
     thiz->nfio->read(size);
 
-    int ret;
-    if (!thiz->nfioRead) {
-        ret = thiz->checkCoro();
-    } else {
-        ret = thiz->error ? thiz->error : thiz->dataSize;
-    }
+    int ret = thiz->checkCoro();
 
-
-    thiz->nfioRead = false;
+    thiz->needWakup = false;
     thiz->error = 0;
-    printf("============ pending false.....");
     thiz->pending = false;
-    printf("============ OK\n");
  
     printf("============ returning %d\n", ret);
     return ret;
@@ -96,13 +88,7 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
 int NativeAVFileReader::checkCoro()
 {
     printf("============ Coro switch\n");
-    this->switched = true;
-    if (this->source->doSeek) {
-        Coro_switchTo_(this->source->seekCoroo, this->source->mainCoro);
-    } else {
-        Coro_switchTo_(this->source->coro, this->source->mainCoro);
-    }
-    this->switched = false;
+    Coro_switchTo_(this->source->coro, this->source->mainCoro);
     printf("============ Coro waked up\n");
     return this->error ? this->error : this->dataSize;
 }
@@ -151,12 +137,11 @@ void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
         this->error = AVERROR(err);
     }
 
-    this->nfioRead = true;
+    this->needWakup = true;
 
     printf("NFIO ERROR\n");
-    if (this->switched) {
-        Coro_switchTo_(this->source->mainCoro, this->source->coro);
-    }
+
+    pthread_cond_signal(this->bufferCond);
 }
 
 void NativeAVFileReader::onNFIOOpen(NativeFileIO *) 
@@ -166,22 +151,24 @@ void NativeAVFileReader::onNFIOOpen(NativeFileIO *)
 
 void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t len) 
 {
-
     this->dataSize = len;
+    printf("===== NFIORead %lld/%u\n", this->totalRead, len);
     this->totalRead += len;
-    printf("===== NFIORead %d\n", len);
     if (this->totalRead > this->nfio->filesize) {
         printf("Oh shit, read after EOF\n");
-        exit(1);
+//        exit(1);
     }
 
     memcpy(this->buffer, data, len);
+
     this->error = 0;
-    this->nfioRead = true;
-    printf("===== Wake coro\n");
-    if (this->switched) {
-        Coro_switchTo_(this->source->mainCoro, this->source->coro);
-    }
+    this->needWakup = true;
+
+    /*
+    NativeAudioTrack *track = static_cast<NativeAudioTrack*>(this->source);
+    pthread_cond_signal(&track->audio->bufferNotEmpty);
+    */
+    pthread_cond_signal(this->bufferCond);
 }
 
 void NativeAVFileReader::onNFIOWrite(NativeFileIO *, size_t written) 
@@ -194,7 +181,7 @@ NativeAVFileReader::~NativeAVFileReader()
 
 NativeAVSource::NativeAVSource()
     : eventCbk(NULL), eventCbkCustom(NULL),
-      opened(false), container(NULL), doSeek(false)
+      opened(false), container(NULL), doSeek(false), seeking(false)
 {
     this->mainCoro = Coro_new();
     Coro_initializeMainCoro(this->mainCoro);

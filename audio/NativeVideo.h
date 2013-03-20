@@ -13,7 +13,6 @@ extern "C" {
 #define NATIVE_VIDEO_BUFFER_SAMPLES 8
 #define NATIVE_VIDEO_SYNC_THRESHOLD 0.01 
 #define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
-#define NATIVE_VIDEO_PAQUET_QUEUE_SIZE 16
 
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 struct PaUtilRingBuffer;
@@ -60,7 +59,6 @@ class NativeVideo : public NativeAVSource
         PacketQueue *audioQueue;
         PacketQueue *videoQueue;
         Packet *freePacket;
-        Frame *pendingFrame;
         int timerIdx;
         int lastTimer;
         int timersDelay;
@@ -79,7 +77,6 @@ class NativeVideo : public NativeAVSource
         uint8_t *frameBuffer;
         int frameSize;
         double lastPts;
-        static uint64_t pktPts;
         double videoClock;
         double audioClock;
         double frameTimer;
@@ -104,8 +101,8 @@ class NativeVideo : public NativeAVSource
         AVFrame *convertedFrame;
 
         pthread_t threadDecode;
-        pthread_mutex_t buffLock, resetWaitLock, seekLock, bufferLock;
-        pthread_cond_t buffNotEmpty, resetWait, seekCond, bufferCond;
+        pthread_mutex_t bufferLock;
+        pthread_cond_t bufferCond;
 
         void play();
         void pause();
@@ -128,8 +125,8 @@ class NativeVideo : public NativeAVSource
     private :
         NativeAVReader *reader;
         int error;
-        int pendingCount;
-        bool bufferPending;
+        bool buffering;
+        bool seeking;
 
         void close(bool reset);
         static void seekCoro(void *arg);

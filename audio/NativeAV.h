@@ -30,11 +30,11 @@ struct Coro;
 class NativeAVReader
 {
     public:
-        NativeAVReader() : pending(false), async(false), seekAction(false) {};
+        NativeAVReader() : pending(false), async(false), needWakup(false) {};
 
         bool pending;
+        bool needWakup;
         bool async;
-        bool seekAction;
 
         virtual ~NativeAVReader() {};
 };
@@ -56,7 +56,7 @@ class NativeAVBufferReader : public NativeAVReader
 class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
 {
     public:
-        NativeAVFileReader(const char *src, NativeAVSource *source, ape_global *net);
+        NativeAVFileReader(const char *src, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
 
@@ -67,15 +67,17 @@ class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
         void onNFIOOpen(NativeFileIO *);
         void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
         void onNFIOWrite(NativeFileIO *, size_t written);
+
+        bool nfioRead;
         
         ~NativeAVFileReader();
     private:
         NativeFileIO *nfio;
+        pthread_cond_t *bufferCond;
+
         int dataSize;
         uint8_t *buffer;
 
-        bool switched;
-        bool nfioRead;
         int64_t totalRead;
         int error;
 
@@ -167,9 +169,10 @@ class NativeAVSource
 	    AVFormatContext *container;
        
         Coro *coro;
-        Coro *seekCoroo;
         Coro *mainCoro;
 
+        char *doOpen;
+        bool seeking;
         bool doSeek;
         double doSeekTime;
 

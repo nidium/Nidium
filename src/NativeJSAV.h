@@ -72,8 +72,6 @@ class NativeJSAudio: public NativeJSExposer
         Nodes *nodes;
 
         pthread_t threadIO;
-        pthread_t threadDecode;
-        pthread_t threadQueue;
 
         pthread_cond_t shutdowned;
         pthread_mutex_t shutdownLock;
@@ -87,7 +85,7 @@ class NativeJSAudio: public NativeJSExposer
 
         bool createContext();
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
-        static void unroot();
+        void unroot();
 
         static void registerObject(JSContext *cx);
 
