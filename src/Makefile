@@ -58,7 +58,9 @@ SOURCES=NativeJS.cpp 				\
 		NativeStream.cpp 			\
 		NativeApp.cpp 				\
 		NativeJSConsole.cpp 		\
-		NativeUtils.cpp
+		NativeUtils.cpp 			\
+		NativeNML.cpp 				\
+		NativeAssets.cpp
 
 ifeq ($(ENABLE_WEBGL), 1)
 	CPPFLAGS += -I../third-party/angle/include
