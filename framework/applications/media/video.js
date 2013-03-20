@@ -25,5 +25,3 @@ video.player.onplay = function(){
 video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
-
-

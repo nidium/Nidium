@@ -88,7 +88,7 @@ Native.elements.export("UIVideo", {
 			fontSize : 9,
 			top : 1,
 			label : "00:00:00",
-			color : 'rgba(80, 80, 80, 0.5)',
+			color : 'rgba(255, 255, 255, 0.7)',
 		});
 
 		this.volume = new UISliderController(this.status, {

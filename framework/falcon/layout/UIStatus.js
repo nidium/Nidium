@@ -106,10 +106,10 @@ Native.elements.export("UIStatus", {
 			if (this.spinner === true) {
 				this.spinnerElement.fadeOut(400, function(){
 					this.stop();
-					that.doit();
+					doit();
 				});
 			} else {
-				that.doit();
+				doit();
 			}
 			return this;
 		},
