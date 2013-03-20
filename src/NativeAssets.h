@@ -16,10 +16,30 @@ class NativeAssets
         {
             friend class NativeAssets;
             public:
-                Item(const char *url, ape_global *net);
+                enum FileType {
+                    ITEM_UNKNOWN,
+                    ITEM_SCRIPT,
+                    ITEM_NSS,
+                    ITEM_IMG
+                } fileType;
+
+                Item(const char *url, FileType t, ape_global *net);
                 ~Item();
                 void download();
-                const unsigned char get(size_t *size);
+                const unsigned char *get(size_t *size) {
+                    if (size != NULL) {
+                        *size = this->data.len;
+                    }
+                    return this->data.data;
+                }
+
+                void setContent(const char *data, size_t len) {
+                    this->state = ITEM_LOADED;
+
+                    this->data.data = (unsigned char *)malloc(len);
+                    memcpy(this->data.data, data, len);
+                    this->data.len  = len;                    
+                }
 
                 enum {
                     ITEM_LOADING,
@@ -40,6 +60,11 @@ class NativeAssets
                 void onGetContent(const char *data, size_t len);
                 NativeAssets *assets;
                 char *name;
+
+                struct {
+                    unsigned char *data;
+                    size_t len;
+                } data;
         };
 
 

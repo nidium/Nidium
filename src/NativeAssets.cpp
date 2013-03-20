@@ -7,16 +7,21 @@ NativeAssets::NativeAssets(readyItem cb, void *arg) :
     pending_list.foot = NULL;
 }
 
-NativeAssets::Item::Item(const char *url, ape_global *net) :
-    state(ITEM_LOADING), url(url), net(net), assets(NULL), name(NULL)
+NativeAssets::Item::Item(const char *url, FileType t, ape_global *net) :
+    fileType(t), state(ITEM_LOADING),
+    url(url), net(net), assets(NULL), name(NULL)
 {
-
+    data.data = NULL;
+    data.len = 0;
 }
 
 NativeAssets::Item::~Item()
 {
     if (name) {
         free(name);
+    }
+    if (this->data.data) {
+        free(this->data.data);
     }
 }
 
@@ -30,7 +35,7 @@ void NativeAssets::Item::download()
 
 void NativeAssets::Item::onGetContent(const char *data, size_t len)
 {
-    this->state = ITEM_LOADED;
+    this->setContent(data, len);
 
     if (assets) {
         assets->pendingListUpdate();
@@ -56,7 +61,9 @@ void NativeAssets::addToPendingList(Item *item)
 
     pending_list.foot = il;
 
-    item->download();
+    if (item->url != NULL) {
+        item->download();
+    }
 }
 
 void NativeAssets::pendingListUpdate()

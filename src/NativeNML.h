@@ -7,6 +7,7 @@
 #include "external/rapidxml.hpp"
 
 class NativeNML;
+class NativeJS;
 
 typedef void (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
 
@@ -26,6 +27,10 @@ class NativeNML : public NativeFileIODelegate
     void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
     void onNFIOWrite(NativeFileIO *, size_t written){};
 
+    void setNJS(NativeJS *js) {
+        this->njs = js;
+    }
+
     private:
         ape_global *net;
         NativeFileIO *NFIO;
@@ -39,6 +44,8 @@ class NativeNML : public NativeFileIODelegate
             {"assets",   &NativeNML::loadAssets},
             {NULL,       NULL}
         };
+
+        NativeJS *njs;
 };
 
 #endif
