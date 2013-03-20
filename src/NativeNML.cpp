@@ -68,7 +68,7 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
             
             item->setName("inline");
             assets->addToPendingList(item);
-            item->setContent(child->value(), child->value_size());
+            item->setContent(child->value(), child->value_size(), true);
         }
         
         if (!strncasecmp(child->name(), "script", 6)) {

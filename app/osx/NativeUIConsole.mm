@@ -114,7 +114,7 @@ NativeUICocoaConsole::NativeUICocoaConsole()
 {
     this->window = [[NativeConsole alloc] init];
     this->needFlush = false;
-    [this->window attachToStdout];
+    //[this->window attachToStdout];
     this->hide();
 }
 

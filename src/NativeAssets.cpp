@@ -1,4 +1,5 @@
 #include "NativeAssets.h"
+#include <native_netlib.h>
 
 NativeAssets::NativeAssets(readyItem cb, void *arg) :
     itemReady(cb), readyArg(arg)
@@ -33,13 +34,34 @@ void NativeAssets::Item::download()
     stream->getContent();
 }
 
+static int NativeAssets_pendingListUpdate(void *arg)
+{
+    NativeAssets *assets = (NativeAssets *)arg;
+
+    assets->pendingListUpdate();
+
+    return 0;
+}
+
+void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
+    this->state = ITEM_LOADED;
+
+    this->data.data = (unsigned char *)malloc(len);
+    memcpy(this->data.data, data, len);
+    this->data.len  = len;           
+    if (assets) {
+        if (async) {
+            ape_global *ape = this->net;
+            timer_dispatch_async(NativeAssets_pendingListUpdate, assets);
+        } else {
+            assets->pendingListUpdate();
+        }
+    }
+}
+
 void NativeAssets::Item::onGetContent(const char *data, size_t len)
 {
     this->setContent(data, len);
-
-    if (assets) {
-        assets->pendingListUpdate();
-    }
 }
 
 void NativeAssets::addToPendingList(Item *item)

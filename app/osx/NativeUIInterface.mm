@@ -87,9 +87,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         NUII->NJS = new NativeJS(NUII->getWidth(),
                             NUII->getHeight(), NUII, NUII->gnet);
 
-                        if (NUII->NJS->LoadScript("./main.js")) {
-                            NUII->NJS->Loaded();
-                        }
+                        NativeNML *nml = new NativeNML(NUII->gnet);
+                        nml->setNJS(NUII->NJS);
+                        nml->loadFile("index.nml");
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -205,22 +205,18 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    FILE *main = fopen("main.js", "r");
+    FILE *main = fopen("index.nml", "r");
 
     if (main != NULL) {
         fclose(main);
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
-        NSLog(@"Loading main");
-        if (this->NJS->LoadScript("./main.js")) {
 
-            this->NJS->Loaded();
-            NativeNML *nml = new NativeNML(this->gnet);
-            nml->setNJS(this->NJS);
-            nml->loadFile("index.nml");
-            return true;
-        }
+        NativeNML *nml = new NativeNML(this->gnet);
+        nml->setNJS(this->NJS);
+        nml->loadFile("index.nml");
+
         return true;
     } else {
         NativeApp *app = new NativeApp(path);
