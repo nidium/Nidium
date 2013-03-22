@@ -43,9 +43,16 @@ class NativeAssets
                 const char *getName() const {
                     return this->name;
                 }
+                const char *getTagName() const {
+                    return this->tagname;
+                }
 
                 void setName(const char *name) {
                     this->name = strdup(name);
+                }
+
+                void setTagName(const char *name) {
+                    this->tagname = strdup(name);
                 }
 
             private:
@@ -54,6 +61,7 @@ class NativeAssets
                 void onGetContent(const char *data, size_t len);
                 NativeAssets *assets;
                 char *name;
+                char *tagname;
 
                 struct {
                     unsigned char *data;

@@ -2,6 +2,7 @@
 #include "NativeJS.h"
 
 #include <string.h>
+#include "NativeHash.h"
 
 NativeNML::NativeNML(ape_global *net) :
     net(net), NFIO(NULL), njs(NULL)
@@ -22,6 +23,19 @@ void NativeNML::loadFile(const char *file)
 
 void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
 {
+    NMLTag tag;
+    memset(&tag, 0, sizeof(NMLTag));
+    size_t len = 0;
+    const unsigned char *data = item->get(&len);
+
+    tag.tag = item->getTagName();
+    tag.id = item->getName();
+    tag.content.data = data;
+    tag.content.len = len;
+    tag.content.isBinary = false;
+
+    printf("Got a tag : %s\n", item->getTagName());
+
     switch(item->fileType) {
         case NativeAssets::Item::ITEM_SCRIPT:
         {
@@ -29,9 +43,13 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
             const unsigned char *data = item->get(&len);
             njs->LoadScriptContent((const char *)data, len, item->getName());
 
-            break; 
+            break;
         }
+        case NativeAssets::Item::ITEM_NSS:
+            
+            break;
         default:
+            njs->assetReady(tag);
             break;
     }
 }
@@ -70,10 +88,13 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
             assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
         }
+
+        item->setTagName(child->name());
         
         if (!strncasecmp(child->name(), "script", 6)) {
             item->fileType = NativeAssets::Item::ITEM_SCRIPT;
-            //printf("got a script tag\n");
+        } else if (!strncasecmp(child->name(), "style", 6)) {
+            item->fileType = NativeAssets::Item::ITEM_NSS;
         }
         //printf("Node : %s\n", child->name());
     }

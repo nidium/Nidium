@@ -94,6 +94,13 @@ static JSClass mouseEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass NMLEvent_class = {
+    "NMLEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSClass messageEvent_class = {
     "MessageEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -347,7 +354,7 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
-    jsval rval, jevent, canvas, onwheel;
+    jsval rval, jevent, window, onwheel;
     JSObject *event;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
@@ -359,9 +366,9 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_onmousewheel", &onwheel) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window), "_onmousewheel", &onwheel) &&
         !JSVAL_IS_PRIMITIVE(onwheel) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
 
@@ -376,7 +383,7 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
     JSObject *event;
-    jsval jevent, onkeyupdown, canvas, rval;
+    jsval jevent, onkeyupdown, window, rval;
 
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
 
@@ -388,9 +395,9 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window),
         (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
         !JSVAL_IS_PRIMITIVE(onkeyupdown) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onkeyupdown))) {
@@ -405,7 +412,7 @@ void NativeJS::textInput(const char *data)
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     JSObject *event;
-    jsval jevent, ontextinput, canvas, rval;
+    jsval jevent, ontextinput, window, rval;
 
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
 
@@ -414,9 +421,9 @@ void NativeJS::textInput(const char *data)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_ontextinput", &ontextinput) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window), "_ontextinput", &ontextinput) &&
         !JSVAL_IS_PRIMITIVE(ontextinput) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ontextinput))) {
 
@@ -432,7 +439,7 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     jsval rval, jevent;
     JSObject *event;
 
-    jsval canvas, onclick;
+    jsval window, onclick;
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
@@ -444,9 +451,9 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas),
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window),
         (state ? "_onmousedown" : "_onmouseup"), &onclick) &&
         !JSVAL_IS_PRIMITIVE(onclick) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclick))) {
@@ -460,7 +467,7 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
-    jsval rval, jevent, canvas, onmove;
+    jsval rval, jevent, window, onmove;
     JSObject *event;
 
     rootHandler->mousePosition.x = x;
@@ -479,13 +486,40 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "_onmousemove", &onmove) &&
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window), "_onmousemove", &onmove) &&
         !JSVAL_IS_PRIMITIVE(onmove) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmove))) {
 
         JS_CallFunctionValue(cx, event, onmove, 1, &jevent, &rval);
+    }
+
+}
+
+void NativeJS::assetReady(const NMLTag &tag)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+        val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+
+    jsval window, onassetready, rval, jevent;
+    JSObject *event;
+
+    event = JS_NewObject(cx, &NMLEvent_class, NULL, NULL);
+    jevent = OBJECT_TO_JSVAL(event);
+
+    EVENT_PROP("data", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+        (const char *)tag.content.data, tag.content.len)));
+    EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
+    EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window), "onassetready", &onassetready) &&
+        !JSVAL_IS_PRIMITIVE(onassetready) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onassetready))) {
+
+        JS_CallFunctionValue(cx, event, onassetready, 1, &jevent, &rval);
     }
 
 }

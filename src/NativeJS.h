@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "NativeTypes.h"
 
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
@@ -58,6 +59,7 @@ class NativeJS
         void mouseWheel(int xrel, int yrel, int x, int y);
         void mouseMove(int x, int y, int xrel, int yrel);
         void mouseClick(int x, int y, int state, int button);
+        void assetReady(const NMLTag &tag);
         void textInput(const char *data);
         void keyupdown(int keycode, int mod, int state, int repeat);
         void gc();

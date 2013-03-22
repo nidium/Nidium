@@ -10,7 +10,7 @@ NativeAssets::NativeAssets(readyItem cb, void *arg) :
 
 NativeAssets::Item::Item(const char *url, FileType t, ape_global *net) :
     fileType(t), state(ITEM_LOADING),
-    url(url), net(net), assets(NULL), name(NULL)
+    url(url), net(net), assets(NULL), name(NULL), tagname(NULL)
 {
     data.data = NULL;
     data.len = 0;
@@ -20,6 +20,9 @@ NativeAssets::Item::~Item()
 {
     if (name) {
         free(name);
+    }
+    if (tagname) {
+        free(tagname);
     }
     if (this->data.data) {
         free(this->data.data);
