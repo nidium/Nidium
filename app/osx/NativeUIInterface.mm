@@ -239,7 +239,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
 
             const char *cachePath = this->getCacheDirectory();
             char *uidpath = (char *)malloc(sizeof(char) *
-                                (strlen(app->getUDID() + strlen(cachePath)) + 16));
+                                (strlen(app->getUDID()) + strlen(cachePath) + 16));
             sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
             
             app->extractApp(uidpath, NativeDoneExtracting, this);
