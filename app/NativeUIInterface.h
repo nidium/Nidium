@@ -33,7 +33,7 @@ class NativeUIInterface
         virtual void setWindowControlsOffset(double x, double y){};
         virtual void openFileDialog(const char const *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
-        virtual const char *getCacheDirectory() const;
+        virtual const char *getCacheDirectory() const=0;
         
         int getWidth() const { return this->width; }
         int getHeight() const { return this->height; }

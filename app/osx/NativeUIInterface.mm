@@ -196,7 +196,10 @@ static bool NativeExtractMain(const char *buf, int len,
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
-    chdir(fpath);
+    if (chdir(fpath) != 0) {
+        printf("Cant enter cache directory (%d)\n", errno);
+        return;
+    }
     printf("Changing directory to : %s\n", fpath);
 
     NativeNML *nml = new NativeNML(ui->gnet);
