@@ -10,6 +10,7 @@
 #import <native_netlib.h>
 
 #import <NativeNML.h>
+#import <sys/stat.h>
 
 #define kNativeWidth 1024
 #define kNativeHeight 700
@@ -197,10 +198,10 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
     chdir(fpath);
     printf("Changing directory to : %s\n", fpath);
-    if (ui->NJS->LoadScript("./main.js")) {
-        printf("Running main?\n");
-        ui->NJS->Loaded();
-    }
+
+    NativeNML *nml = new NativeNML(ui->gnet);
+    nml->setNJS(ui->NJS);
+    nml->loadFile("./index.nml");
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
@@ -233,9 +234,10 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
                 return false;
             }*/
 
+            const char *cachePath = this->getCacheDirectory();
             char *uidpath = (char *)malloc(sizeof(char) *
-                                (strlen(app->getUDID()) + 16));
-            sprintf(uidpath, "%s.content/", app->getUDID());
+                                (strlen(app->getUDID() + strlen(cachePath)) + 16));
+            sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
             
             app->extractApp(uidpath, NativeDoneExtracting, this);
             free(uidpath);
@@ -344,6 +346,23 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
 
     return true;
+}
+
+const char *NativeCocoaUIInterface::getCacheDirectory() const
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString* cacheDir = [paths objectAtIndex:0];
+
+    if (cacheDir) {
+        NSString *path = [NSString stringWithFormat:@"%@/NATiVE/",cacheDir];
+        const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
+        if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
+            printf("Cant create cache directory %s\n", cpath);
+            return NULL;
+        }  
+        return cpath;
+    }
+    return NULL;
 }
 
 void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)

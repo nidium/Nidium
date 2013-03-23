@@ -245,7 +245,7 @@ static bool NativeExtractor(const char * buf,
 int NativeApp::extractApp(const char *path,
         void (*done)(void *, const char *), void *closure)
 {
-    char *fullpath;
+    char *fullpath = strdup(path);
 
     if (path[strlen(path)-1] != '/') {
         printf("extractApp : invalid path (non / terminated)\n");
@@ -256,6 +256,7 @@ int NativeApp::extractApp(const char *path,
         printf("extractApp : you need to call open() and runWorker() before\n");
         return 0;
     }
+#if 0
 #define NATIVE_CACHE_DIR "./cache/"
     if (mkdir(NATIVE_CACHE_DIR, 0777) == -1 && errno != EEXIST) {
         printf("Cant create cache directory\n");
@@ -267,6 +268,7 @@ int NativeApp::extractApp(const char *path,
     sprintf(fullpath, NATIVE_CACHE_DIR "%s", path);
 
 #undef NATIVE_CACHE_DIR
+#endif
     int ret = 0;
     if ((ret = mkdir(fullpath, 0777)) == -1 && errno != EEXIST) {
         printf("Cant create Application directory\n");
