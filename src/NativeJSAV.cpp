@@ -12,21 +12,21 @@ extern "C" {
 }
 
 // TODO : Need to handle nodes GC, similar to https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
+// TODO : When stop/pause/kill fade out sound
 // ✓ : Fix "background noise" sound when pausing
 // ✓ : Fix gain set to 0.0 not working
 // ✓ : Stop desync track (wtf?)
-// TODO : When stop/pause/kill fade out sound
 // ✓ : Two sources is not playing in specific case
 // ✓ : Fix node connect, input and output order can be set in any order
-// TODO : Seek API
+// ✓ : Seek API
 // ✓ : Expose disconnnect
+
+NativeJSAudio *NativeJSAudio::instance = NULL;
 
 #define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 #define NATIVE_AUDIO_GETTER(obj) ((class NativeJSAudio *)JS_GetPrivate(obj))
 #define NATIVE_AUDIO_NODE_GETTER(obj) ((class NativeJSAudioNode *)JS_GetPrivate(obj))
 #define NATIVE_VIDEO_GETTER(obj) ((class NativeJSVideo *)JS_GetPrivate(obj));
-
-NativeJSAudio *NativeJSAudio::instance = NULL;
 
 extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
@@ -60,7 +60,7 @@ static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject 
 static JSBool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
 
 static JSClass Audio_class = {
-    "Audio", JSCLASS_HAS_PRIVATE,
+    "Audio", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Audio_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -228,9 +228,13 @@ static JSPropertySpec Video_props[] = {
 NativeJSAudio::NativeJSAudio(ape_global *net, int size, int channels, int frequency) 
     : nodes(NULL), jsobj(NULL), gbl(NULL), rt(NULL), tcx(NULL)
 {
-    this->audio = new NativeAudio(net, size, channels, frequency);
-
+    this->audio = NativeAudio::getInstance(net, size, channels, frequency);
     this->instance = this;
+
+    if (this->audio == NULL) {
+        // TODO : Throw exception
+        return;
+    }
 
     pthread_cond_init(&this->shutdowned, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);
@@ -285,16 +289,21 @@ NativeJSAudio::~NativeJSAudio()
     this->unroot();
 
     // Unroot custom nodes objets and clear threaded js context
+printf("unroot nodeS\n");
     this->audio->sharedMsg->postMessage(
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::shutdownCallback, NULL, this), 
             NATIVE_AUDIO_SHUTDOWN);
 
+
     // If audio doesn't have any tracks playing, the queue thread might sleep
     // So we need to wake it up to deliver the message 
     pthread_cond_signal(&this->audio->queueHaveData);
+    pthread_cond_signal(&this->audio->queueHaveSpace);
 
+printf("wait shutdown lock\n");
     pthread_cond_wait(&this->shutdowned, &this->shutdownLock);
 
+printf("delete notes\n");
     // Delete all ndoes
     NativeJSAudio::Nodes *nodes = this->nodes;
     NativeJSAudio::Nodes *next = NULL;
@@ -306,11 +315,14 @@ NativeJSAudio::~NativeJSAudio()
         nodes = next;
     }
 
+printf("audio shutdowN\n");
     // Shutdown the audio
     this->audio->shutdown();
 
+printf("audio deletE\n");
     // And delete it
     delete this->audio;
+printf("audio deleted\n");
 
     this->audio = NULL;
 }
@@ -663,8 +675,10 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     naudio = new NativeJSAudio((ape_global *)JS_GetContextPrivate(cx), size, channels, frequency);
+    // XXX : Move this inside NativeJSAudio constructor?
     naudio->cx = cx;
     naudio->jsobj = ret;
+printf("audio construct at %p\n", ret);
 
     if (naudio->audio == NULL) {
         delete naudio;
@@ -675,11 +689,10 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, naudio);
 
-    //JS_AddObjectRoot(cx, &naudio->jsobj);
-
     NJS->rootObjectUntilShutdown(naudio->jsobj);
 
     JS_DefineFunctions(cx, ret, Audio_funcs);
+    JS_SetReservedSlot(ret, 0, JSVAL_NULL);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
@@ -1230,15 +1243,23 @@ static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHand
 void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
+    printf("==================================Audio finalizer\n");
     if (audio != NULL) {
-        delete audio;
+        JS::Value s = JS_GetReservedSlot(obj, 0);
+        JSObject *obj = s.toObjectOrNull();
+        if (obj == NULL) {
+            printf("Audio finalizer do it\n");
+            delete audio;
+        }
     }
 }
 
 void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
+printf("==================================AudioNode finalizer\n");
     NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(obj);
     if (node != NULL) {
+printf("AudioNode finalizer do it\n");
         delete node;
     } 
 }
@@ -1246,7 +1267,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 NativeJSVideo::NativeJSVideo(NativeJSAudio *jaudio, NativeSkia *nskia, JSContext *cx) 
     : video(NULL), jaudio(jaudio), audioNode(NULL), arrayContent(NULL), nskia(nskia), cx(cx)
 {
-    this->video = new NativeVideo(jaudio->audio, (ape_global *)JS_GetContextPrivate(cx));
+    this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx));
     this->video->frameCallback(NativeJSVideo::frameCallback, this);
     this->video->eventCallback(NativeJSVideo::eventCbk, this);
 }
@@ -1387,6 +1408,7 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
 
             //JS_AddObjectRoot(cx, &node->jsobj);
             NJS->rootObjectUntilShutdown(v->audioNode);
+            JS_SetReservedSlot(v->jaudio->jsobj, 0, OBJECT_TO_JSVAL(v->jsobj));
             JS_SetPrivate(v->audioNode, node);
 
         }
@@ -1402,20 +1424,17 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &Video_class, vp);
     JSObject *canvas;
-    JSObject *audio;
+    NativeJSAudio *jaudio = NativeJSAudio::getInstance();
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &audio, &canvas)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &canvas)) {
         return JS_TRUE;
     }
 
     NJS->rootObjectUntilShutdown(ret);
 
     NativeSkia *nskia = ((class NativeCanvasHandler *)JS_GetPrivate(canvas))->context->skia;
-    NativeJSAudio *jaudio = (class NativeJSAudio *)JS_GetInstancePrivate(cx, audio, &Audio_class, JS_ARGV(cx, vp));
 
     NativeJSVideo *v = new NativeJSVideo(jaudio, nskia, cx);
-
-    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(jaudio->jsobj));
 
     JS_DefineFunctions(cx, ret, Video_funcs);
     JS_DefineProperties(cx, ret, Video_props);
@@ -1423,12 +1442,19 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SetPrivate(ret, v);
     v->jsobj = ret;
 
+    if (jaudio != NULL) {
+        JS_SetReservedSlot(jaudio->jsobj, 0, OBJECT_TO_JSVAL(ret));
+    }
+
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    //NJS->unrootObject(jaudio->jsobj);
 
     return JS_TRUE;
 }
 
 NativeJSVideo::~NativeJSVideo() {
+
     if (this->audioNode != NULL) {
         NJS->unrootObject(this->audioNode);
     } else if (this->video->getAudio() != NULL) {
@@ -1439,10 +1465,26 @@ NativeJSVideo::~NativeJSVideo() {
         free(this->arrayContent);
     }
 
+    printf("destruct video\n");
     delete this->video;
+
+    // Special case, for refresh/shutdown, we need do destroy audio after video
+    JSContext *cx = this->cx;
+    if (NJS->shutdown && this->jaudio != NULL) {
+        JS::Value s = JS_GetReservedSlot(this->jaudio->jsobj, 0);
+        JSObject *audio = s.toObjectOrNull();
+        if (audio != NULL) {
+            printf("destruct audiO\n");
+            JS_SetReservedSlot(this->jaudio->jsobj, 0, JSVAL_NULL);
+            delete this->jaudio;
+printf("audio destructed\n");
+        }
+    }
+
 }
 
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
+printf("================================== Video finalizer\n");
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
 
     if (v != NULL) {

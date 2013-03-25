@@ -171,7 +171,6 @@ class NativeAVSource
         Coro *coro;
         Coro *mainCoro;
 
-        char *doOpen;
         bool seeking;
         bool doSeek;
         double doSeekTime;

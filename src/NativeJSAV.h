@@ -83,6 +83,9 @@ class NativeJSAudio: public NativeJSExposer
         JSContext *tcx;
         const char *fun;
 
+        static NativeJSAudio *getInstance() {
+            return NativeJSAudio::instance;
+        }
         bool createContext();
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
         void unroot();

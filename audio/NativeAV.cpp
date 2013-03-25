@@ -67,7 +67,6 @@ NativeAVFileReader::NativeAVFileReader(const char *src, pthread_cond_t *bufferCo
 
 int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size) 
 {
-    printf("========= read called\n");
     NativeAVFileReader *thiz = static_cast<NativeAVFileReader *>(opaque);
     
     thiz->pending = true;
@@ -81,15 +80,12 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
     thiz->error = 0;
     thiz->pending = false;
  
-    printf("============ returning %d\n", ret);
     return ret;
 }
 
 int NativeAVFileReader::checkCoro()
 {
-    printf("============ Coro switch\n");
     Coro_switchTo_(this->source->coro, this->source->mainCoro);
-    printf("============ Coro waked up\n");
     return this->error ? this->error : this->dataSize;
 }
 
@@ -113,12 +109,9 @@ int64_t NativeAVFileReader::seek(void *opaque, int64_t offset, int whence)
             return -1;
     }
 
-    printf("seeking to %lld filesize=%d\n", pos, thiz->nfio->filesize);
-
     thiz->totalRead = pos;
 
     if( pos < 0 || pos > thiz->nfio->filesize) {
-        printf("Yeah seek failed\n");
         thiz->error = AVERROR_EOF;
         return AVERROR_EOF;
     }
@@ -139,8 +132,6 @@ void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
 
     this->needWakup = true;
 
-    printf("NFIO ERROR\n");
-
     pthread_cond_signal(this->bufferCond);
 }
 
@@ -152,7 +143,6 @@ void NativeAVFileReader::onNFIOOpen(NativeFileIO *)
 void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t len) 
 {
     this->dataSize = len;
-    printf("===== NFIORead %lld/%u\n", this->totalRead, len);
     this->totalRead += len;
     if (this->totalRead > this->nfio->filesize) {
         printf("Oh shit, read after EOF\n");
@@ -181,17 +171,9 @@ NativeAVFileReader::~NativeAVFileReader()
 
 NativeAVSource::NativeAVSource()
     : eventCbk(NULL), eventCbkCustom(NULL),
-      opened(false), container(NULL), doSeek(false), seeking(false)
+      opened(false), container(NULL), coro(NULL), mainCoro(NULL),
+      doSeek(false), seeking(false)
 {
-    this->mainCoro = Coro_new();
-    Coro_initializeMainCoro(this->mainCoro);
-
-    /* XXX : Not sure if i should free main coro inside destructor
-     *  libcoroutine docs : 
-     *       "Note that you can't free the currently 
-     *        running coroutine as this would free 
-     *        the current C stack."
-     */
 }
 
 void NativeAVSource::eventCallback(NativeAVSourceEventCallback cbk, void *custom) 

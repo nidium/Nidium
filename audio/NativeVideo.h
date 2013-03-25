@@ -25,7 +25,7 @@ struct AVFrame;
 class NativeVideo : public NativeAVSource
 {
     public :
-        NativeVideo(NativeAudio *audio, ape_global *n);
+        NativeVideo(ape_global *n);
 
         struct TimerItem {
             int id;
@@ -64,7 +64,6 @@ class NativeVideo : public NativeAVSource
         int timersDelay;
 
         ape_global *net;
-        NativeAudio *audio;
         NativeAudioTrack *track;
 
         VideoCallback frameCbk;

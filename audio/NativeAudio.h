@@ -6,7 +6,7 @@
 #include "NativeAV.h"
 #include "native_netlib.h"
 
-#if 1
+#if 0
   #define SPAM(a) printf a
 #else
   #define SPAM(a) (void)0
@@ -36,12 +36,15 @@ typedef unsigned long PaStreamCallbackFlags;
 class NativeAudio
 {
     public:
-        NativeAudio(ape_global *net, int bufferSize, int channels, int sampleRate);
+        static NativeAudio *getInstance();
+        static NativeAudio *getInstance(ape_global *net, int bufferSize, int channels, int sampleRate);
 
         friend class NativeVideo;
 
         enum SampleFormat {
             FLOAT32 = sizeof(float), 
+            DOUBLE = sizeof(double), 
+            INT32 = sizeof(int32_t),
             INT24 = sizeof(int), 
             INT16 = sizeof(int16_t), 
             UINT8 = sizeof(uint8_t)
@@ -73,7 +76,7 @@ class NativeAudio
         NativeAudioNodeTarget *output;
         int tracksCount;
 
-        NativeAudioTrack *addTrack(int out);
+        NativeAudioTrack *addTrack(int out, bool external);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         void connect(NodeLink *input, NodeLink *output);
         void disconnect(NodeLink *input, NodeLink *output);
@@ -87,6 +90,10 @@ class NativeAudio
 
         ~NativeAudio();
     private:
+        NativeAudio();
+
+        static NativeAudio *instance;
+
         struct NativeAudioTracks {
             NativeAudioTrack *curr;
 
@@ -110,6 +117,7 @@ class NativeAudio
         NativeAudioTracks *tracks;
         int queueCount;
 
+        inline bool haveSourceActive(bool excludeExternal);
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,
             const PaStreamCallbackTimeInfo* timeInfo,
