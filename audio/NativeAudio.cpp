@@ -41,6 +41,7 @@ NativeAudio *NativeAudio::getInstance(ape_global *n, int bufferSize, int channel
         }
 
         audio = new NativeAudio();
+        audio->net = n;
         
         pthread_cond_init(&audio->bufferNotEmpty, NULL);
         pthread_cond_init(&audio->queueHaveData, NULL);
@@ -399,6 +400,7 @@ int NativeAudio::paOutputCallback( const void *inputBuffer, void *outputBuffer,
 }
 
 bool NativeAudio::haveSourceActive(bool excludeExternal) {
+    return true;
     NativeAudioTracks *tracks = this->tracks;
     while (tracks != NULL) 
     {
@@ -482,14 +484,14 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
     return NULL;
 }
 
-void NativeAudio::connect(NodeLink *input, NodeLink *output) 
+bool NativeAudio::connect(NodeLink *input, NodeLink *output) 
 {
-    output->node->queue(input, output);
+    return output->node->queue(input, output);
 }
 
-void NativeAudio::disconnect(NodeLink *input, NodeLink *output) 
+bool NativeAudio::disconnect(NodeLink *input, NodeLink *output) 
 {
-    output->node->unqueue(input, output);
+    return output->node->unqueue(input, output);
 }
 
 void NativeAudio::shutdown()

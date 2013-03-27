@@ -119,8 +119,8 @@ class NativeAudioNode
         void updateFeedback(NativeAudioNode *nOut);
         void updateWiresFrame(int channel, float *frame);
 
-        void queue(NodeLink *in, NodeLink *out);
-        void unqueue(NodeLink *in, NodeLink *out);
+        bool queue(NodeLink *in, NodeLink *out);
+        bool unqueue(NodeLink *in, NodeLink *out);
 
         bool recurseGetData(int *sourceFailed);
 
@@ -132,6 +132,15 @@ class NativeAudioNode
 
     private:
         void post(int msg, void *source, void *dest, unsigned long size);
+        NodeIO **getWire(NodeLink *link) 
+        {
+            for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
+                if (link->wire[i] == NULL) {
+                    return &link->wire[i];
+                }
+            }
+            return NULL;
+        }
 };
 
 class NativeAudioNodeTarget : public NativeAudioNode

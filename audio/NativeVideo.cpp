@@ -671,12 +671,12 @@ bool NativeVideo::processAudio()
     bool wakup = false;
     NativeAudio *audio = NativeAudio::getInstance();
 
-    /* This is a bit dirty, (TODO : Use magic pointer?)
+    /* This is a bit dirty, 
      * Audio can be destroyed, but the track pointer is not updated, 
      * so we must make sure the audio is running otherwise update track pointer to NULL 
      */
     if (!audio) {
-        printf("processAudio set track ot null\n");
+        printf("processAudio set track to null\n");
         this->track = NULL;
         return false;
     }

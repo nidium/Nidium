@@ -13,13 +13,6 @@ extern "C" {
 
 // TODO : Need to handle nodes GC, similar to https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#lifetime-AudioNode
 // TODO : When stop/pause/kill fade out sound
-// ✓ : Fix "background noise" sound when pausing
-// ✓ : Fix gain set to 0.0 not working
-// ✓ : Stop desync track (wtf?)
-// ✓ : Two sources is not playing in specific case
-// ✓ : Fix node connect, input and output order can be set in any order
-// ✓ : Seek API
-// ✓ : Expose disconnnect
 
 NativeJSAudio *NativeJSAudio::instance = NULL;
 
@@ -678,7 +671,6 @@ static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp)
     // XXX : Move this inside NativeJSAudio constructor?
     naudio->cx = cx;
     naudio->jsobj = ret;
-printf("audio construct at %p\n", ret);
 
     if (naudio->audio == NULL) {
         delete naudio;
@@ -777,9 +769,13 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (nlink1->type == INPUT && nlink2->type == OUTPUT) {
-        audio->connect(nlink2, nlink1);
+        if (!audio->connect(nlink2, nlink1)) {
+            JS_ReportError(cx, "connect() failed (max connection reached)\n");
+        }
     } else if (nlink1->type == OUTPUT && nlink2->type == INPUT) {
-        audio->connect(nlink1, nlink2);
+        if (!audio->connect(nlink1, nlink2)) {
+            JS_ReportError(cx, "connect() failed (max connection reached)\n");
+        }
     } else {
         JS_ReportError(cx, "connect() take one input and one output\n");
         return JS_TRUE;

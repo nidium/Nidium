@@ -151,12 +151,22 @@ void NativeAudioNode::updateWiresFrame(int channel, float *frame) {
     return;
 }
 
-void NativeAudioNode::queue(NodeLink *in, NodeLink *out) 
+bool NativeAudioNode::queue(NodeLink *in, NodeLink *out) 
 {
     SPAM(("connect in node %p; out node %p\n", in->node, out->node));
+    NodeIO **inLink;
+    NodeIO **outLink;
+
+    // First, make sure we have enought space to connect wire
+    inLink = this->getWire(this->input[out->channel]);
+    outLink = this->getWire(in->node->output[in->channel]);
+
+    if (inLink == NULL || outLink == NULL) {
+        return false;
+    }
 
     pthread_mutex_lock(&this->audio->recurseLock);
-    // First connect blocks frames
+    // Connect blocks frames
     if (in->node->frames[in->channel] == NULL) {
         SPAM(("Malloc frame\n"));
         in->node->frames[in->channel] = (float *)calloc(sizeof(float), this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
@@ -185,15 +195,10 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     } 
 
     // Then connect wires 
-    NodeLink *tmp = this->input[out->channel];
-    // TODO FIXME : Do not rely on tmp->count. First try to find if a wire is NULL
-    tmp->wire[tmp->count] = new NodeIO(in->node, in->node->frames[in->channel]);
-    SPAM(("frame %p\n", in->node->frames[in->channel]));
-    SPAM(("Assigning input on %p wire %d on channel %d to %p\n", this, tmp->count , out->channel, in->node));
+    *inLink = new NodeIO(in->node, in->node->frames[in->channel]);
 
     // And update input node wires 
-    tmp = in->node->output[in->channel];
-    tmp->wire[tmp->count] = new NodeIO(out->node, out->node->frames[out->channel]);
+    *outLink = new NodeIO(out->node, out->node->frames[out->channel]);
 
     in->count++;
     out->count++;
@@ -206,9 +211,11 @@ void NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     this->updateFeedback(out->node);
 
     pthread_mutex_unlock(&this->audio->recurseLock);
+
+    return true;
 }
 
-void NativeAudioNode::unqueue(NodeLink *input, NodeLink *output) 
+bool NativeAudioNode::unqueue(NodeLink *input, NodeLink *output) 
 {
     pthread_mutex_lock(&this->audio->recurseLock);
     NodeLink *wiresIn, *wiresOut;
@@ -222,9 +229,7 @@ void NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
         if (wiresIn->wire[i] != NULL && wiresIn->wire[i]->node == input->node) {
             delete wiresIn->wire[i];
             wiresIn->wire[i] = NULL;
-            // NOTE : This is commented because when a new wire will be connected, 
-            // it will override the last wire. Need to fix queue().
-            //wiresIn->count--; 
+            wiresIn->count--; 
             break;
         }
     }
@@ -234,7 +239,7 @@ void NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
         if (wiresOut->wire[i] != NULL && wiresOut->wire[i]->node == output->node) {
             delete wiresOut->wire[i];
             wiresOut->wire[i] = NULL;
-            //wiresOut->count--;
+            wiresOut->count--;
             break;
         }
     }
@@ -269,6 +274,7 @@ void NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
     }
 
     pthread_mutex_unlock(&this->audio->recurseLock);
+    return true;
 }
 
 bool NativeAudioNode::recurseGetData(int *sourceFailed)

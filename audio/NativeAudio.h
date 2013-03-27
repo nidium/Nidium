@@ -78,8 +78,8 @@ class NativeAudio
 
         NativeAudioTrack *addTrack(int out, bool external);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
-        void connect(NodeLink *input, NodeLink *output);
-        void disconnect(NodeLink *input, NodeLink *output);
+        bool connect(NodeLink *input, NodeLink *output);
+        bool disconnect(NodeLink *input, NodeLink *output);
 
         static inline int getSampleSize(int sampleFmt);
         double getLatency();
