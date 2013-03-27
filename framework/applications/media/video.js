@@ -14,7 +14,7 @@ var video = new UIVideo(body, {
 	height : 360
 }).center();
 
-video.load("media/native.mov", function(e){
+video.load("applications/media/native.mov", function(e){
 	this.player.play();
 });
 

@@ -495,6 +495,12 @@ bool NativeAudio::disconnect(NodeLink *input, NodeLink *output)
     return output->node->unqueue(input, output);
 }
 
+void NativeAudio::wakeup() 
+{
+    pthread_cond_signal(&this->queueHaveData);
+    pthread_cond_signal(&this->queueHaveSpace);
+}
+
 void NativeAudio::shutdown()
 {
     this->threadShutdown = true;

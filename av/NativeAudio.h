@@ -84,6 +84,7 @@ class NativeAudio
         static inline int getSampleSize(int sampleFmt);
         double getLatency();
 
+        void wakeup();
         void shutdown();
 
         Coro *mainCoro;

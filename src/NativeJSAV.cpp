@@ -289,8 +289,7 @@ NativeJSAudio::~NativeJSAudio()
 
     // If audio doesn't have any tracks playing, the queue thread might sleep
     // So we need to wake it up to deliver the message 
-    pthread_cond_signal(&this->audio->queueHaveData);
-    pthread_cond_signal(&this->audio->queueHaveSpace);
+    this->audio->wakeup();
 
     if (!this->shutdowned) {
         pthread_cond_wait(&this->shutdownCond, &this->shutdownLock);
@@ -569,8 +568,6 @@ void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
 {
     NativeJSAudioNode *node = static_cast<NativeJSAudioNode *>(custom);
 
-    JSAutoRequest ar(node->audio->tcx);
-
     if (node->nodeObj != NULL) {
         JS_RemoveObjectRoot(node->audio->tcx, &node->nodeObj);
     }
@@ -617,6 +614,8 @@ NativeJSAudioNode::~NativeJSAudioNode()
         this->node->callback(
                 NativeJSAudioNode::shutdownCallback, 
                 this);
+
+        this->audio->audio->wakeup();
 
         if (!this->finalized) {
             pthread_cond_wait(&this->shutdownCond, &this->shutdownLock);
