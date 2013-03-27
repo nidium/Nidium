@@ -6,7 +6,7 @@
         'native_strip_exec%': 1,
 
         'native_src_path%': '../src/',
-        'native_av_path%': '../audio/',
+        'native_av_path%': '../av/',
         'native_app_path%': '../app/',
         'native_interface_path%': '../interface/',
         'native_network_path%': '../network/',
