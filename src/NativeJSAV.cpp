@@ -219,7 +219,7 @@ static JSPropertySpec Video_props[] = {
 };
 
 NativeJSAudio::NativeJSAudio(ape_global *net, int size, int channels, int frequency) 
-    : nodes(NULL), jsobj(NULL), gbl(NULL), rt(NULL), tcx(NULL)
+    : nodes(NULL), shutdowned(false), jsobj(NULL), gbl(NULL), rt(NULL), tcx(NULL)
 {
     this->audio = NativeAudio::getInstance(net, size, channels, frequency);
     this->instance = this;
@@ -229,7 +229,7 @@ NativeJSAudio::NativeJSAudio(ape_global *net, int size, int channels, int freque
         return;
     }
 
-    pthread_cond_init(&this->shutdowned, NULL);
+    pthread_cond_init(&this->shutdownCond, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);
 }
 
@@ -282,7 +282,6 @@ NativeJSAudio::~NativeJSAudio()
     this->unroot();
 
     // Unroot custom nodes objets and clear threaded js context
-printf("unroot nodeS\n");
     this->audio->sharedMsg->postMessage(
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::shutdownCallback, NULL, this), 
             NATIVE_AUDIO_SHUTDOWN);
@@ -293,10 +292,10 @@ printf("unroot nodeS\n");
     pthread_cond_signal(&this->audio->queueHaveData);
     pthread_cond_signal(&this->audio->queueHaveSpace);
 
-printf("wait shutdown lock\n");
-    pthread_cond_wait(&this->shutdowned, &this->shutdownLock);
+    if (!this->shutdowned) {
+        pthread_cond_wait(&this->shutdownCond, &this->shutdownLock);
+    }
 
-printf("delete notes\n");
     // Delete all ndoes
     NativeJSAudio::Nodes *nodes = this->nodes;
     NativeJSAudio::Nodes *next = NULL;
@@ -308,14 +307,11 @@ printf("delete notes\n");
         nodes = next;
     }
 
-printf("audio shutdowN\n");
     // Shutdown the audio
     this->audio->shutdown();
 
-printf("audio deletE\n");
     // And delete it
     delete this->audio;
-printf("audio deleted\n");
 
     this->audio = NULL;
 }
@@ -358,9 +354,11 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
         JSRuntime *rt = JS_GetRuntime(audio->tcx);
         JS_DestroyContext(audio->tcx);
         JS_DestroyRuntime(rt);
+        audio->tcx = NULL;
     }
 
-    pthread_cond_signal(&audio->shutdowned);
+    audio->shutdowned = true;
+    pthread_cond_signal(&audio->shutdownCond);
 }
 
 void NativeJSAudioNode::add() 
@@ -585,7 +583,7 @@ void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
 
     node->finalized = true;
 
-    pthread_cond_signal(&node->shutdowned);
+    pthread_cond_signal(&node->shutdownCond);
 }
 
 NativeJSAudioNode::~NativeJSAudioNode()
@@ -620,7 +618,9 @@ NativeJSAudioNode::~NativeJSAudioNode()
                 NativeJSAudioNode::shutdownCallback, 
                 this);
 
-        pthread_cond_wait(&this->shutdowned, &this->shutdownLock);
+        if (!this->finalized) {
+            pthread_cond_wait(&this->shutdownCond, &this->shutdownLock);
+        }
     } 
 
     if (this->arrayContent != NULL) {

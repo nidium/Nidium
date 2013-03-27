@@ -73,8 +73,9 @@ class NativeJSAudio: public NativeJSExposer
 
         pthread_t threadIO;
 
-        pthread_cond_t shutdowned;
+        pthread_cond_t shutdownCond;
         pthread_mutex_t shutdownLock;
+        bool shutdowned;
 
         JSObject *jsobj;
         JSObject *gbl;
@@ -106,7 +107,7 @@ class NativeJSAudioNode: public NativeJSExposer
         { 
 
             if (type == NativeAudio::CUSTOM) {
-                pthread_cond_init(&this->shutdowned, NULL);
+                pthread_cond_init(&this->shutdownCond, NULL);
                 pthread_mutex_init(&this->shutdownLock, NULL);
             }
 
@@ -153,7 +154,7 @@ class NativeJSAudioNode: public NativeJSExposer
         JSObject *hashObj;
         bool finalized;
 
-        pthread_cond_t shutdowned;
+        pthread_cond_t shutdownCond;
         pthread_mutex_t shutdownLock;
 
         // Source node
