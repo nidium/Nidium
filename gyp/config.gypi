@@ -12,7 +12,7 @@
         'native_network_path%': '../network/',
         'native_exec_name%': 'nativeapp',
 
-        'third_party_path%': '../tmp/',
+        'third_party_path%': '../third-party/',
         'native_output%': '../out/',
 
         # thoses settings are not working
