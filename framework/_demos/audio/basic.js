@@ -8,7 +8,7 @@
  * Version: 0.1                                                    *
  * ----------------------------------------------------------------- 
  */
-
+/*
 var t = new AudioThread(function(){
 	var self = this,
 
@@ -90,6 +90,7 @@ var t = new AudioThread(function(){
 	};
 
 });
+*/
 
 /* receive messages from audio thread */
 t.onmessage = function(e){

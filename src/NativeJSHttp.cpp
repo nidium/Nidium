@@ -188,6 +188,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JSObject *headers, *event;
     jsval rval, jevent, jdata = JSVAL_NULL;
 
+    JSAutoRequest ar(cx);
+
     event = JS_NewObject(cx, NULL, NULL, NULL);
     headers = JS_NewObject(cx, NULL, NULL, NULL);
 
@@ -229,6 +231,20 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             nimg = new NativeSkImage(h->data->data, h->data->used);
             jdata = OBJECT_TO_JSVAL(NativeJSImage::buildImageObject(cx, nimg));
+
+            break;
+        }
+        case NativeHTTP::DATA_AUDIO:
+        {
+            JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
+            uint8_t *data = JS_GetArrayBufferData(arr);
+
+            memcpy(data, h->data->data, h->data->used);
+
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("audio"))));
+
+            jdata = OBJECT_TO_JSVAL(arr);
 
             break;
         }

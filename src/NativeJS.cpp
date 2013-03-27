@@ -7,6 +7,7 @@
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
 #include "NativeJSImage.h"
+#include "NativeJSAV.h"
 #include "NativeJSNative.h"
 #include "NativeJSWindow.h"
 #include "NativeFileIO.h"
@@ -345,6 +346,7 @@ void NativeJS::callFrame()
     }
 
     if (gfunc != JSVAL_VOID) {
+        JSAutoRequest ar(cx);
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
 }
@@ -356,6 +358,8 @@ void NativeJS::mouseWheel(int xrel, int yrel, int x, int y)
     
     jsval rval, jevent, window, onwheel;
     JSObject *event;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
@@ -384,6 +388,8 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     
     JSObject *event;
     jsval jevent, onkeyupdown, window, rval;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
 
@@ -414,6 +420,8 @@ void NativeJS::textInput(const char *data)
     JSObject *event;
     jsval jevent, ontextinput, window, rval;
 
+    JSAutoRequest ar(cx);
+
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
 
     EVENT_PROP("val",
@@ -440,6 +448,8 @@ void NativeJS::mouseClick(int x, int y, int state, int button)
     JSObject *event;
 
     jsval window, onclick;
+
+    JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
@@ -656,8 +666,12 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     }
     JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
+    #ifdef NATIVE_DEBUG
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX);
+    #else
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
+    #endif
     JS_SetErrorReporter(cx, reportError);
 
     if ((gbl = JS_NewGlobalObject(cx, &global_class, NULL)) == NULL ||
@@ -744,6 +758,8 @@ NativeJS::~NativeJS()
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
+    JS_BeginRequest(cx);
+
     JS_RemoveValueRoot(cx, &gfunc);
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
@@ -756,11 +772,13 @@ NativeJS::~NativeJS()
     delete rootHandler;
 #endif
     //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
+
     JS_EndRequest(cx);
 
     NativeSkia::glcontext = NULL;
 
     JS_DestroyContext(cx);
+
     JS_DestroyRuntime(rt);
     JS_ShutDown();
 
@@ -784,6 +802,7 @@ static int Native_handle_messages(void *arg)
     JSObject *event;
 
     NativeSharedMessages::Message msg;
+    JSAutoRequest ar(cx);
 
     while (++nread < MAX_MSG_IN_ROW && njs->messages->readMessage(&msg)) {
         switch (msg.event()) {
@@ -837,6 +856,22 @@ static int Native_handle_messages(void *arg)
                 JS_CallFunctionValue(cx, ptr->callee, onmessage, 1, &jevent, &rval);          
             }            
             delete ptr;
+            break;
+            case NATIVE_AV_THREAD_MESSAGE_CALLBACK: {
+                NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg.dataPtr());
+                if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
+                    !JSVAL_IS_PRIMITIVE(onmessage) &&
+                    JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+
+                    if (cmsg->value != NULL) {
+                        jevent = INT_TO_JSVAL(*cmsg->value);
+                    } else {
+                        jevent = JSVAL_NULL;
+                    }
+                    JS_CallFunctionValue(cx, cmsg->callee, onmessage, 1, &jevent, &rval);
+                }
+                delete cmsg;
+            }
             break;
             default:break;
         }
@@ -908,14 +943,14 @@ ReadCompleteFile(JSContext *cx, FILE *fp, FileContents &buffer)
     return true;
 }
 
-class AutoFile
+class NativeAutoFile
 {
     FILE *fp_;
   public:
-    AutoFile()
+    NativeAutoFile()
       : fp_(NULL)
     {}
-    ~AutoFile()
+    ~NativeAutoFile()
     {
         if (fp_ && fp_ != stdin)
             fclose(fp_);
@@ -934,7 +969,7 @@ class AutoFile
  * return value must be fclosed unless it is stdin.
  */
 bool
-AutoFile::open(JSContext *cx, const char *filename)
+NativeAutoFile::open(JSContext *cx, const char *filename)
 {
     if (!filename || strcmp(filename, "-") == 0) {
         fp_ = stdin;
@@ -954,7 +989,7 @@ static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
 {   
     JSObject *gbl = JS_GetGlobalObject(cx);
 
-    AutoFile file;
+    NativeAutoFile file;
     if (!file.open(cx, filename))
         return 0;
     FileContents buffer(cx);
@@ -1035,7 +1070,9 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
 int NativeJS::LoadScript(const char *filename)
 {
     uint32_t oldopts;
-    
+
+    JSAutoRequest ar(cx);
+
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
 
@@ -1088,8 +1125,14 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     NativeJSHttp::registerObject(cx);
     /* Image() object */
     NativeJSImage::registerObject(cx);
+    /* Audio() object */
+    #ifdef NATIVE_AUDIO_ENABLED
+    NativeJSAudio::registerObject(cx);
+    NativeJSAudioNode::registerObject(cx);
+    NativeJSVideo::registerObject(cx);
+    #endif
     /* WebGL*() object */
-    #if WEBGL_ENABLED
+    #ifdef NATIVE_WEBGL_ENABLED
     NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLObject::registerObject(cx);
@@ -1101,7 +1144,6 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     NativeJSWebGLTexture::registerObject(cx);
     NativeJSWebGLUniformLocation::registerObject(cx);
     #endif
-
     /* Native() object */
     NativeJSNative::registerObject(cx, width, height);
     /* window() object */
@@ -1122,6 +1164,8 @@ void NativeJS::gc()
 static int native_timer_deleted(void *arg)
 {
     struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    JSAutoRequest ar(params->cx);
 
     if (params == NULL) {
         return 0;
@@ -1263,6 +1307,8 @@ static int native_timerng_wrapper(void *arg)
 {
     jsval rval;
     struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+
+    JSAutoRequest ar(params->cx);
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);

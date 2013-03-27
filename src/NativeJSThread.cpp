@@ -83,6 +83,8 @@ static void *native_thread(void *arg)
     nthread->jsRuntime = rt;
     nthread->jsCx      = tcx;
 
+    JS_BeginRequest(tcx);
+
     gbl = JS_NewGlobalObject(tcx, &global_Thread_class, NULL);
 
     JS_SetVersion(tcx, JSVERSION_LATEST);
@@ -124,6 +126,7 @@ static void *native_thread(void *arg)
     
     if (cf == NULL) {
         printf("Cant compile function\n");
+        JS_EndRequest(tcx);
         return NULL;
     }
     
@@ -140,6 +143,8 @@ static void *native_thread(void *arg)
         arglst, &rval) == JS_FALSE) {
         printf("Got an error?\n"); /* or thread has ended */
     }
+
+    JS_EndRequest(tcx);
 
     free(nthread->params.argv);
     free(nthread->params.nbytes);
