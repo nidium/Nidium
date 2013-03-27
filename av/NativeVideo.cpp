@@ -668,7 +668,7 @@ void *NativeVideo::decode(void *args)
 bool NativeVideo::processAudio() 
 {
     bool audioFailed = false;
-    bool wakup = false;
+    bool wakeup = false;
     NativeAudio *audio = NativeAudio::getInstance();
 
     /* This is a bit dirty, 
@@ -710,7 +710,7 @@ bool NativeVideo::processAudio()
                     break;
                 }
             } else {
-                wakup = true;
+                wakeup = true;
             }
         }
     } else {
@@ -718,7 +718,7 @@ bool NativeVideo::processAudio()
         audioFailed = true;
     }
 
-    if (wakup) {
+    if (wakeup) {
         pthread_cond_signal(&audio->queueHaveData);
     }
 
