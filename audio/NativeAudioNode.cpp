@@ -514,7 +514,7 @@ bool NativeAudioNodeCustom::process()
 
 NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external) 
     : NativeAudioNode(0, out, audio), externallyManaged(external), 
-      playing(false), stopped(false), loop(false),
+      playing(false), stopped(false), loop(false), reader(NULL),
       codecCtx(NULL), tmpPacket(NULL), 
       frameConsumed(true), packetConsumed(true), audioStream(-1),
       swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
@@ -802,6 +802,11 @@ void NativeAudioTrack::buffer(AVPacket *pkt) {
 
 bool NativeAudioTrack::work() 
 {
+    // Track havn't been initialized
+    if (!this->reader) {
+        return false;
+    }
+
     if (!this->externallyManaged && this->reader->needWakup) {
         Coro_switchTo_(this->mainCoro, this->coro);
         if (this->reader->pending) {

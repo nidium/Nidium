@@ -34,12 +34,13 @@ NativeAudio *NativeAudio::getInstance(ape_global *n, int bufferSize, int channel
         }
     }
 
-    if (audio == NULL || paramsChanged) {
-        if (paramsChanged) {
-            audio->shutdown();
-            delete audio;
-        }
+    if (paramsChanged) {
+        audio->shutdown();
+        delete audio;
+        audio = NULL;
+    }
 
+    if (audio == NULL) {
         audio = new NativeAudio();
         audio->net = n;
         

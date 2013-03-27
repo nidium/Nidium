@@ -154,10 +154,6 @@ void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t 
     this->error = 0;
     this->needWakup = true;
 
-    /*
-    NativeAudioTrack *track = static_cast<NativeAudioTrack*>(this->source);
-    pthread_cond_signal(&track->audio->bufferNotEmpty);
-    */
     pthread_cond_signal(this->bufferCond);
 }
 
