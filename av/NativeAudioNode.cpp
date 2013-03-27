@@ -379,7 +379,6 @@ void NativeAudioNode::post(int msg, void *source, void *dest, unsigned long size
 }
 
 NativeAudioNode::~NativeAudioNode() {
-    printf("Destroying node %p\n", this);
     // Let's disconnect the node
     for (int i = 0; i < this->inCount; i++) {
         int count = this->input[i]->count;
@@ -802,17 +801,18 @@ void NativeAudioTrack::buffer(AVPacket *pkt) {
 
 bool NativeAudioTrack::work() 
 {
-    // Track havn't been initialized
-    if (!this->reader) {
-        return false;
-    }
-
-    if (!this->externallyManaged && this->reader->needWakup) {
-        Coro_switchTo_(this->mainCoro, this->coro);
-        if (this->reader->pending) {
+    if (!this->externallyManaged) {
+        if (!this->reader) {
             return false;
-        } else {
-            this->buffering = false;
+        }
+
+        if (this->reader->needWakup) {
+            Coro_switchTo_(this->mainCoro, this->coro);
+            if (this->reader->pending) {
+                return false;
+            } else {
+                this->buffering = false;
+            }
         }
     }
 
