@@ -53,7 +53,8 @@ static void NativeJSAVEventCbk(const struct NativeAVSourceEvent *ev);
 class NativeJSAudio: public NativeJSExposer
 {
     public :
-        NativeJSAudio(ape_global *net, int size, int channels, int frequency);
+        static NativeJSAudio *getContext(JSContext *cx, JSObject *obj, int bufferSize, int channels, int sampleRate);
+        static NativeJSAudio *getContext();
 
         struct Nodes {
             NativeJSAudioNode *curr;
@@ -84,9 +85,6 @@ class NativeJSAudio: public NativeJSExposer
         JSContext *tcx;
         const char *fun;
 
-        static NativeJSAudio *getInstance() {
-            return NativeJSAudio::instance;
-        }
         bool createContext();
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
         void unroot();
@@ -95,6 +93,7 @@ class NativeJSAudio: public NativeJSExposer
 
         ~NativeJSAudio();
     private : 
+        NativeJSAudio();
         static NativeJSAudio *instance;
 };
 
@@ -169,18 +168,19 @@ class NativeJSAudioNode: public NativeJSExposer
 class NativeJSVideo : public NativeJSExposer
 {
     public :
-        NativeJSVideo(NativeJSAudio *audio, NativeSkia *nskia, JSContext *cx);
+        NativeJSVideo(NativeSkia *nskia, JSContext *cx);
 
         JSObject *jsobj;
 
         NativeVideo *video;
-        NativeJSAudio *jaudio;
 
         JSObject *audioNode;
         void *arrayContent;
 
         int width;
         int height;
+
+        void stopAudio();
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);

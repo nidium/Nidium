@@ -92,6 +92,7 @@ class NativeVideo : public NativeAVSource
         SwsContext *swsCtx;
         AVCodecContext *codecCtx;
         int videoStream;
+        int audioStream;
 
         PaUtilRingBuffer *rBuff;
         uint8_t *buff;
@@ -116,16 +117,19 @@ class NativeVideo : public NativeAVSource
 
         void frameCallback(VideoCallback cbk, void *arg);
 
-        NativeAudioTrack *getAudio();
+        NativeAudioTrack *getAudioNode(NativeAudio *audio);
         static void* decode(void *args);
         static int display(void *custom);
+        void stopAudio();
 
         ~NativeVideo();
     private :
         NativeAVReader *reader;
+        NativeAudio *audio;
         int error;
         bool buffering;
         bool seeking;
+        pthread_mutex_t audioLock;
 
         void close(bool reset);
         static void seekCoro(void *arg);

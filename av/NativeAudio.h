@@ -36,8 +36,7 @@ typedef unsigned long PaStreamCallbackFlags;
 class NativeAudio
 {
     public:
-        static NativeAudio *getInstance();
-        static NativeAudio *getInstance(ape_global *net, int bufferSize, int channels, int sampleRate);
+        NativeAudio(ape_global *net, int bufferSize, int channels, int sampleRate);
 
         friend class NativeVideo;
 
@@ -77,6 +76,7 @@ class NativeAudio
         int tracksCount;
 
         NativeAudioTrack *addTrack(int out, bool external);
+        void removeTrack(NativeAudioTrack *track);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
@@ -91,10 +91,6 @@ class NativeAudio
 
         ~NativeAudio();
     private:
-        NativeAudio();
-
-        static NativeAudio *instance;
-
         struct NativeAudioTracks {
             NativeAudioTrack *curr;
 
