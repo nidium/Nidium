@@ -8,7 +8,12 @@
 #include "SkGpuDevice.h"
 
 #include <SkDevice.h>
+#define GL_GLEXT_PROTOTYPES
+#if __APPLE__
 #include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
@@ -1491,6 +1496,7 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
+        printf("Deleting gradient\n");
         delete gradient;
     }
 }

@@ -132,6 +132,8 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_FALSE;
     }
 
+    printf("new image\n");
+
     nimg = new NativeJSImage();
     nimg->cx = cx;
     nimg->jsobj = ret;
@@ -209,6 +211,8 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     nimg->cx    = cx;
 
     JS_SetPrivate(ret, nimg);
+
+    printf("Build image object\n");
 
     JS_DefineProperty(cx, ret, "width",
         INT_TO_JSVAL(image->getWidth()), NULL, NULL,

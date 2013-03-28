@@ -65,6 +65,13 @@ void *hashtbl_seek64(ape_htable_t *htbl, uint64_t key);
 void hashtbl_erase64(ape_htable_t *htbl, uint64_t key);
 void hashtbl_append64(ape_htable_t *htbl, uint64_t key, void *structaddr);
 
+uint32_t ape_hash_str(const void *key, int len);
+unsigned int MurmurHash2 ( const void * key, int len, unsigned int seed );
+void hashtbl_append(ape_htable_t *htbl, const char *key, int key_len,
+        void *structaddr);
+void hashtbl_erase(ape_htable_t *htbl, const char *key, int key_len);
+void *hashtbl_seek(ape_htable_t *htbl, const char *key, int key_len);
+
 #ifdef __cplusplus
 }
 #endif

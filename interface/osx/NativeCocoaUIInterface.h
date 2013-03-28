@@ -18,6 +18,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         bool runApplication(const char *path);
         void openFileDialog(const char const *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
+        const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole() const {
             return this->console;
         }

@@ -23,6 +23,7 @@ class NativeHTTP : public NativeIStreamer
         DATA_STRING = 1,
         DATA_BINARY,
         DATA_IMAGE,
+        DATA_AUDIO,
         DATA_JSON,
         DATA_NULL,
         DATA_END

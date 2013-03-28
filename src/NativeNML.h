@@ -5,6 +5,7 @@
 #include <native_netlib.h>
 #include "NativeAssets.h"
 #include "external/rapidxml.hpp"
+#include "NativeTypes.h"
 
 class NativeNML;
 class NativeJS;

@@ -4,7 +4,7 @@
 
 Native.showFPS(true);
 
-var tag = "cat";
+var tag = "boobs";
 
 var ilist = new Set();
 

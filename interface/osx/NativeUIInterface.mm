@@ -3,13 +3,14 @@
 #import <NativeJS.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
-#import <SDL2/SDL.h>
-#import <SDL2/SDL_opengl.h>
-#import <SDL2/SDL_syswm.h>
+#import <SDL.h>
+#import <SDL_opengl.h>
+#import <SDL_syswm.h>
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 
 #import <NativeNML.h>
+#import <sys/stat.h>
 
 #define kNativeWidth 1024
 #define kNativeHeight 700
@@ -87,9 +88,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         NUII->NJS = new NativeJS(NUII->getWidth(),
                             NUII->getHeight(), NUII, NUII->gnet);
 
-                        if (NUII->NJS->LoadScript("./main.js")) {
-                            NUII->NJS->Loaded();
-                        }
+                        NativeNML *nml = new NativeNML(NUII->gnet);
+                        nml->setNJS(NUII->NJS);
+                        nml->loadFile("index.nml");
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -195,32 +196,31 @@ static bool NativeExtractMain(const char *buf, int len,
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
     NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)closure;
-    chdir(fpath);
-    printf("Changing directory to : %s\n", fpath);
-    if (ui->NJS->LoadScript("./main.js")) {
-        printf("Running main?\n");
-        ui->NJS->Loaded();
+    if (chdir(fpath) != 0) {
+        printf("Cant enter cache directory (%d)\n", errno);
+        return;
     }
+    printf("Changing directory to : %s\n", fpath);
+
+    NativeNML *nml = new NativeNML(ui->gnet);
+    nml->setNJS(ui->NJS);
+    nml->loadFile("./index.nml");
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
-    FILE *main = fopen("main.js", "r");
+    FILE *main = fopen("index.nml", "r");
 
     if (main != NULL) {
         fclose(main);
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
-        NSLog(@"Loading main");
-        if (this->NJS->LoadScript("./main.js")) {
 
-            this->NJS->Loaded();
-            NativeNML *nml = new NativeNML(this->gnet);
-            nml->setNJS(this->NJS);
-            nml->loadFile("index.nml");
-            return true;
-        }
+        NativeNML *nml = new NativeNML(this->gnet);
+        nml->setNJS(this->NJS);
+        nml->loadFile("index.nml");
+
         return true;
     } else {
         NativeApp *app = new NativeApp(path);
@@ -237,9 +237,10 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
                 return false;
             }*/
 
+            const char *cachePath = this->getCacheDirectory();
             char *uidpath = (char *)malloc(sizeof(char) *
-                                (strlen(app->getUDID()) + 16));
-            sprintf(uidpath, "%s.content/", app->getUDID());
+                                (strlen(app->getUDID()) + strlen(cachePath) + 16));
+            sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
             
             app->extractApp(uidpath, NativeDoneExtracting, this);
             free(uidpath);
@@ -348,6 +349,23 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
 
     return true;
+}
+
+const char *NativeCocoaUIInterface::getCacheDirectory() const
+{
+    NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString* cacheDir = [paths objectAtIndex:0];
+
+    if (cacheDir) {
+        NSString *path = [NSString stringWithFormat:@"%@/NATiVE/",cacheDir];
+        const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
+        if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
+            printf("Cant create cache directory %s\n", cpath);
+            return NULL;
+        }  
+        return cpath;
+    }
+    return NULL;
 }
 
 void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)

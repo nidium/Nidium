@@ -3,7 +3,7 @@
   #include <WinSock2.h>
   #include <io.h>
 #else
-  #include "../c-ares/ares.h"
+  #include "ares.h"
   #include <netdb.h>
   #include <unistd.h>
   #include <arpa/inet.h>

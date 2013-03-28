@@ -33,13 +33,7 @@ class NativeAssets
                     return this->data.data;
                 }
 
-                void setContent(const char *data, size_t len) {
-                    this->state = ITEM_LOADED;
-
-                    this->data.data = (unsigned char *)malloc(len);
-                    memcpy(this->data.data, data, len);
-                    this->data.len  = len;                    
-                }
+                void setContent(const char *data, size_t len, bool async = false);
 
                 enum {
                     ITEM_LOADING,
@@ -49,9 +43,16 @@ class NativeAssets
                 const char *getName() const {
                     return this->name;
                 }
+                const char *getTagName() const {
+                    return this->tagname;
+                }
 
                 void setName(const char *name) {
                     this->name = strdup(name);
+                }
+
+                void setTagName(const char *name) {
+                    this->tagname = strdup(name);
                 }
 
             private:
@@ -60,6 +61,7 @@ class NativeAssets
                 void onGetContent(const char *data, size_t len);
                 NativeAssets *assets;
                 char *name;
+                char *tagname;
 
                 struct {
                     unsigned char *data;
@@ -77,7 +79,7 @@ class NativeAssets
 
         readyItem itemReady;
         void *readyArg;
-
+        void pendingListUpdate();
     private:
         struct item_list {
             Item *item;
@@ -89,8 +91,6 @@ class NativeAssets
             struct item_list *head;
             struct item_list *foot;
         } pending_list;
-
-        void pendingListUpdate();
 };
 
 
