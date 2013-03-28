@@ -357,7 +357,9 @@ fi
 if [ -e $OUTPUT_DIR/libcoroutine.a ]; then
     echo "libcoroutine already build"
 else
-echo "Building libcoroutine...."
+    echo "Building libcoroutine...."
+    OLD_CXX=$CXX
+    export CC=/usr/bin/gcc
     cd basekit
     make -j$NBCPU
     cd ../
@@ -365,6 +367,7 @@ echo "Building libcoroutine...."
     cd libcoroutine
     make -j$NBCPU
     cd ../
+    export CC=$OLD_CXX
 
     cp -v ./libcoroutine/_build/lib/liblibcoroutine.a $OUTPUT_DIR/libcoroutine.a
 fi
