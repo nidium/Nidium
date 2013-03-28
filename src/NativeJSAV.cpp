@@ -737,7 +737,7 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
 
     if (paramsChanged) {
         JS_SetPrivate(jaudio->jsobj, NULL);
-        jaudio->audio->shutdown();
+        NJS->unrootObject(jaudio->jsobj);
         delete jaudio;
     } 
 
