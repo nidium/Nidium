@@ -121,6 +121,7 @@
                         'libzip.a',
                         'libnspr4.a',
                         'libcares.a',
+                        'libcoroutine.a',
                         #'..//third-party/angle/libpreprocessor.a',
                         #'..//third-party/angle/libtranslator_common.a',
                         #'..//third-party/angle/libtranslator_glsl.a',
