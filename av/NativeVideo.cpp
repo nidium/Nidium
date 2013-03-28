@@ -26,11 +26,12 @@ NativeVideo::NativeVideo(ape_global *n)
     : freePacket(NULL), timerIdx(0), lastTimer(0),
       net(n), track(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
       eof(false), lastPts(0), playing(false), stoped(false), width(-1), height(-1),
-      swsCtx(NULL), videoStream(-1), rBuff(NULL),
+      swsCtx(NULL), videoStream(-1), audioStream(-1), rBuff(NULL),
       reader(NULL), error(0), buffering(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
     pthread_mutex_init(&this->bufferLock, NULL);
+    pthread_mutex_init(&this->audioLock, NULL);
 
     this->audioQueue = new PacketQueue();
     this->videoQueue = new PacketQueue();
@@ -114,7 +115,6 @@ int NativeVideo::openInitInternal()
 {
     // FFmpeg stuff
     AVCodec *codec;
-    NativeAudio *audio = NativeAudio::getInstance();
 
     av_register_all();
 
@@ -134,12 +134,11 @@ int NativeVideo::openInitInternal()
 
 	av_dump_format(this->container, 0, "Memory input", 0);
 
-    int audioStream = -1;
 	for (unsigned int i = 0; i < this->container->nb_streams; i++) {
 		if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO && this->videoStream == -1) {
 			this->videoStream = i;
-		} else if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO && audioStream == -1) {
-            audioStream = i;
+		} else if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO && this->audioStream == -1) {
+            this->audioStream = i;
         }
 	}
 
@@ -217,16 +216,6 @@ int NativeVideo::openInitInternal()
             this->buff)) {
         fprintf(stderr, "Failed to init ringbuffer\n");
         RETURN_WITH_ERROR(ERR_OOM);
-    }
-
-    if (audioStream != -1 && audio) {
-        this->track = audio->addTrack(2, true);
-        this->track->audioStream = audioStream;
-        this->track->container = this->container;
-        this->track->eventCallback(NULL, NULL);
-        if (0 != this->track->initInternal()) {
-            RETURN_WITH_ERROR(ERR_INIT_VIDEO_AUDIO);
-        }
     }
 
     //pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
@@ -391,7 +380,26 @@ void NativeVideo::seekInternal(double time)
     pthread_cond_signal(&this->bufferCond);
 }
 
-NativeAudioTrack *NativeVideo::getAudio() {
+NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio) 
+{
+
+    if (this->track) {
+        return this->track;
+    }
+
+    this->audio = audio;
+
+    if (this->audioStream != -1 && audio) {
+        this->track = audio->addTrack(2, true);
+        this->track->audioStream = this->audioStream;
+        this->track->container = this->container;
+        this->track->eventCallback(NULL, NULL);
+        if (0 != this->track->initInternal()) {
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
+            audio->removeTrack(track);
+            this->track = NULL;
+        }
+    }
     return this->track;
 }
 
@@ -665,23 +673,28 @@ void *NativeVideo::decode(void *args)
 #undef WAIT_FOR_RESET
 }
 
+void NativeVideo::stopAudio()
+{
+    pthread_mutex_lock(&this->audioLock);
+
+    if (this->track != NULL) {
+        this->clearAudioQueue();
+    }
+    this->audio = NULL;
+    this->track = NULL; 
+
+    pthread_mutex_unlock(&this->audioLock);
+}
+
 bool NativeVideo::processAudio() 
 {
     bool audioFailed = false;
     bool wakeup = false;
-    NativeAudio *audio = NativeAudio::getInstance();
 
-    /* This is a bit dirty, 
-     * Audio can be destroyed, but the track pointer is not updated, 
-     * so we must make sure the audio is running otherwise update track pointer to NULL 
-     */
-    if (!audio) {
-        printf("processAudio set track to null\n");
-        this->track = NULL;
-        return false;
-    }
+    pthread_mutex_lock(&this->audioLock);
 
     if (this->track == NULL || (this->track != NULL && !this->track->isConnected())) {
+        pthread_mutex_unlock(&this->audioLock);
         return false;
     }
 
@@ -718,8 +731,10 @@ bool NativeVideo::processAudio()
         audioFailed = true;
     }
 
+    pthread_mutex_unlock(&this->audioLock);
+
     if (wakeup) {
-        pthread_cond_signal(&audio->queueHaveData);
+        //pthread_cond_signal(&this->audio->queueHaveData);
     }
 
     return !audioFailed;
@@ -961,6 +976,7 @@ void NativeVideo::close(bool reset) {
         pthread_join(this->threadDecode, NULL);
     }
 
+    
     this->clearTimers(reset);
     this->flushBuffers();
 
@@ -992,8 +1008,12 @@ void NativeVideo::close(bool reset) {
         free(this->tmpFrame);
         free(this->frameBuffer);
 
-        if (this->track != NULL && reset) {
-            this->track->close(true);
+        if (this->track != NULL) {
+            if (reset) {
+                this->track->close(true);
+            } else {
+                delete this->track;
+            }
         }
     }
 }

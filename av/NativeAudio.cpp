@@ -12,91 +12,58 @@ extern "C" {
 #include "libavformat/avformat.h"
 }
 
-NativeAudio *NativeAudio::instance = NULL;
-
-NativeAudio *NativeAudio::getInstance()
-{
-    NativeAudio *audio = NativeAudio::instance;
-    return audio ? audio : NULL;
-}
-
-NativeAudio *NativeAudio::getInstance(ape_global *n, int bufferSize, int channels, int sampleRate)
-{
-    bool paramsChanged = false;
-    NativeAudio *audio = NativeAudio::instance;
-
-    if (audio) {
-        NativeAudioParameters *params = audio->outputParameters;
-        if (params->bufferSize != bufferSize ||
-            params->channels != channels ||
-            params->sampleRate != sampleRate) {
-            paramsChanged = true;
-        }
-    }
-
-    if (paramsChanged) {
-        audio->shutdown();
-        delete audio;
-        audio = NULL;
-    }
-
-    if (audio == NULL) {
-        audio = new NativeAudio();
-        audio->net = n;
-        
-        pthread_cond_init(&audio->bufferNotEmpty, NULL);
-        pthread_cond_init(&audio->queueHaveData, NULL);
-        pthread_cond_init(&audio->queueHaveSpace, NULL);
-
-        pthread_mutex_init(&audio->decodeLock, NULL);
-        pthread_mutex_init(&audio->queueLock, NULL);
-        pthread_mutex_init(&audio->shutdownLock, NULL);
-        pthread_mutex_init(&audio->recurseLock, NULL);
-
-        audio->sharedMsg = new NativeSharedMessages();
-
-        av_register_all();
-
-        audio->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
-
-        audio->rBufferOut = new PaUtilRingBuffer();
-
-        if (!(audio->rBufferOutData = (float *)calloc(NativeAudio::FLOAT32, NATIVE_AVDECODE_BUFFER_SAMPLES * NativeAudio::FLOAT32))) {
-            printf("Failed to init ouput ringbuffer\n");
-            return NULL;
-        }
-
-        if (!(audio->nullBuffer = (float *)calloc(NativeAudio::FLOAT32, bufferSize/channels))) {
-            printf("Failed to init nullBuffer\n");
-            return NULL;
-        }
-
-        if (!(audio->cbkBuffer = (float *)calloc(NativeAudio::FLOAT32, bufferSize))) {
-            printf("Failed to init cbkBUffer\n");
-            return NULL;
-        }
-
-        if (0 > PaUtil_InitializeRingBuffer(audio->rBufferOut, 
-                (NativeAudio::FLOAT32),
-                NATIVE_AVDECODE_BUFFER_SAMPLES,
-                audio->rBufferOutData)) {
-            fprintf(stderr, "Failed to init output ringbuffer\n");
-            return NULL;
-        }
-
-        pthread_create(&audio->threadDecode, NULL, NativeAudio::decodeThread, audio);
-        pthread_create(&audio->threadQueue, NULL, NativeAudio::queueThread, audio);
-    }
-
-    return audio;
-}
-
-NativeAudio::NativeAudio() 
-    : net(NULL), output(NULL), tracksCount(0), 
+NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
+    : net(n), output(NULL), tracksCount(0), 
       inputStream(NULL), outputStream(NULL), 
       threadShutdown(false), tracks(NULL)
 {
-    NativeAudio::instance = this;
+    pthread_cond_init(&this->bufferNotEmpty, NULL);
+    pthread_cond_init(&this->queueHaveData, NULL);
+    pthread_cond_init(&this->queueHaveSpace, NULL);
+
+    pthread_mutex_init(&this->decodeLock, NULL);
+    pthread_mutex_init(&this->queueLock, NULL);
+    pthread_mutex_init(&this->shutdownLock, NULL);
+    pthread_mutex_init(&this->recurseLock, NULL);
+
+    this->sharedMsg = new NativeSharedMessages();
+
+    av_register_all();
+
+    this->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
+
+    this->rBufferOut = new PaUtilRingBuffer();
+
+    if (!(this->rBufferOutData = (float *)calloc(NativeAudio::FLOAT32, NATIVE_AVDECODE_BUFFER_SAMPLES * NativeAudio::FLOAT32))) {
+        printf("Failed to init ouput ringbuffer\n");
+        throw;
+    }
+
+    if (!(this->nullBuffer = (float *)calloc(NativeAudio::FLOAT32, bufferSize/channels))) {
+        printf("Failed to init nullBuffer\n");
+        free(this->rBufferOutData);
+        throw;
+    }
+
+    if (!(this->cbkBuffer = (float *)calloc(NativeAudio::FLOAT32, bufferSize))) {
+        printf("Failed to init cbkBUffer\n");
+        free(this->rBufferOutData);
+        free(this->cbkBuffer);
+        throw;
+    }
+
+    if (0 > PaUtil_InitializeRingBuffer(this->rBufferOut, 
+            (NativeAudio::FLOAT32),
+            NATIVE_AVDECODE_BUFFER_SAMPLES,
+            this->rBufferOutData)) {
+        fprintf(stderr, "Failed to init output ringbuffer\n");
+        free(this->rBufferOutData);
+        free(this->cbkBuffer);
+        throw;
+    }
+
+    pthread_create(&this->threadDecode, NULL, NativeAudio::decodeThread, this);
+    pthread_create(&this->threadQueue, NULL, NativeAudio::queueThread, this);
 }
 
 #if 0
@@ -459,6 +426,21 @@ NativeAudioTrack *NativeAudio::addTrack(int out, bool external) {
     return tracks->curr;
 }
 
+void NativeAudio::removeTrack(NativeAudioTrack *track) 
+{
+    NativeAudioTracks *tracks = this->tracks;
+    while (tracks != NULL) 
+    {
+        if (tracks->curr != NULL && tracks->curr == track) {
+            if (tracks->prev != NULL) {
+                tracks->prev->next = tracks->next;
+            }
+            return;
+        }
+        tracks = tracks->next;
+    }
+}
+
 NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output) 
 {
     switch (node) {
@@ -529,8 +511,6 @@ NativeAudio::~NativeAudio() {
     free(this->nullBuffer);
     free(this->cbkBuffer);
     free(this->rBufferOutData);
-
-    NativeAudio::instance = NULL;
 
     delete this->outputParameters;
     delete this->rBufferOut;
