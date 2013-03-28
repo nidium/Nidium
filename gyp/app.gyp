@@ -156,7 +156,15 @@
                             '<(native_output)/third-party-libs/.libs/SDL2.framework/',
                             '../framework/nativeapp.app/Contents/Frameworks/SDL2.framework'
                         ]
-                    }
+                    },
+					{
+						'postbuild_name': 'Copy resources',
+						'action': [
+							'ditto',
+							'<(native_output)/../resources/',
+							'../framework/nativeapp.app/Contents/Resources/'
+						]
+					}
                 ]
             }],
             ['native_audio==1', {

@@ -128,7 +128,9 @@
             '<(native_src_path)/NativeStream.cpp',
             '<(native_src_path)/NativeApp.cpp',
             '<(native_src_path)/NativeJSAV.cpp',
-		    '<(native_src_path)/NativeJSConsole.cpp'
+		    '<(native_src_path)/NativeJSConsole.cpp',
+			'<(native_src_path)/NativeNML.cpp',
+			'<(native_src_path)/NativeAssets.cpp'
         ],
     }],
 }
