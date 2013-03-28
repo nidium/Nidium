@@ -41,7 +41,7 @@ var VideoLayer = function(layer, url, callback){
 
 	this.layer.ctx.imageSmoothingEnabled = true;
 
-	this.video = new Video(this.dsp, this.layer);
+	this.video = new Video(this.layer);
 	this.video.onerror = this.onerror;
 
 	File.read(url, function(data, size) {
@@ -145,6 +145,7 @@ VideoLayer.prototype = {
 	},
 
 	set position(position){
+		echo(position)
 		this.video.position = position;
 	}
 };

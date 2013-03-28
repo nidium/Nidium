@@ -6,7 +6,6 @@
 Native.StyleSheet.load("applications/demos/style.nss");
 /* ---------------------------------------------------------------------------*/
 
-
 var body = new Application({
 	backgroundImage : "falcon/assets/black.png",
 	class : "body"

@@ -203,37 +203,4 @@ DOMElement.draw.printMatrix = function(element, context, params){
 
 }
 
-function printTextMatrix(context, textMatrix, caret, x, y, vOffset, viewportWidth, viewportHeight, viewportTop, lineHeight, fontSize, fontType, color, caretOpacity){
-	var letters = [];
-	var start = -Math.ceil((y - viewportTop)/lineHeight),
-		
-		end = Math.min(
-			textMatrix.length, 
-			start + Math.ceil(viewportHeight/lineHeight)
-		);
-
-	context.setFontSize(fontSize);
-	context.fontType = fontType;
-
-	if (start-1 >= 0) start--;
-	if (end+1 <= textMatrix.length) end++;
-
-	for (var line=start; line<end; line++){
-		var tx = x,
-			ty = y + vOffset + lineHeight * line;
-
-		// only draw visible lines
-		if ( ty < (viewportTop + viewportHeight + lineHeight) && ty >= viewportTop) {
-			letters = textMatrix[line].letters;
-
-			context.setColor("rgba(180, 180, 255, 0.60)");
-			context.highlightLetters(letters, tx, ty - vOffset, lineHeight);
-	
-			context.setColor(color);
-			context.drawLetters(letters, tx, ty);
-
-		}
-	}
-}
-
 /* -------------------------------------------------------------------------- */

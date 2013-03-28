@@ -91,6 +91,19 @@ Native.elements.export("UIVideo", {
 			value : 0.8
 		});
 
+		this.status.addEventListener("mousedown", function(e){
+			var s1 = this.__left + 124,
+				s2 = this.__left + this.width - 62,
+				max = s2 - s1,
+				x = (e.x - s1),
+				position = x/max * self.player.duration;
+
+			if (e.x >= s1 && e.x<= s2) {
+				self.seek(position);
+				e.stopPropagation();
+			}
+		});
+
 		this.addEventListener("mouseover", function(e){
 			if (this.volume.draggingSlider) return false;
 			if (!this.player || !this.player.ready) return false;
@@ -160,12 +173,21 @@ Native.elements.export("UIVideo", {
 				   (s < 10 ? "0"+s : s);
 		};
 
+		this.seek = function(position){
+			var dx = position - this.player.position;
+			this.player.position += dx;
+			this.status.value = Math.round(position*10000 / this.duration)/100;
+			this.status.redraw();
+			this.timecode.label = toTimeCode(position);
+		};
+
 		this.load = function(url, callback){
 			var cb = OptionalCallback(callback, null);
 
 			this.status.open();
 
 			this.player = new VideoLayer(this.layer, url, function(e){
+				self.duration = e.duration;
 				cb.call(self, e);
 
 				setTimeout(function(){

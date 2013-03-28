@@ -88,6 +88,7 @@ require(__PATH_LAYOUT__ + 'UIToolTip.js');
 
 require(__PATH_LAYOUT__ + 'UIVideo.js');
 
+require(__PATH_LAYOUT__ + 'UITextInput.js');
 require(__PATH_LAYOUT__ + 'UITextNode.js');
 require(__PATH_LAYOUT__ + 'UITextController.js');
 require(__PATH_LAYOUT__ + 'UITextMatrix.js');

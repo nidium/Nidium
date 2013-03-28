@@ -44,9 +44,24 @@ Canvas.implement({
 		 	cx = x + c.position;
  			cy = y;
  			cw = c.width + nush;
- 			//if (c.selected){
+ 			if (c.selected){
 				this.fillRect(cx, cy, cw, lineHeight);
-			//}
+			}
+		}
+	},
+
+	drawLettersWithCaret : function(letters, x, y, lineHeight, vOffset, caretPosition, caretOpacity){
+		var c, cx;
+		for (var i=0; i<letters.length; i++){
+			c = letters[i];
+			cx = x + c.position;
+			if (i == caretPosition){
+				this.save();
+				this.globalAlpha = caretOpacity;
+				this.fillRect(Math.floor(cx), y - vOffset+1, 1, lineHeight-2);
+				this.restore();
+			}
+			this.fillText(c.char, cx, y);
 		}
 	},
 

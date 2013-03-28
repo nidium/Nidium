@@ -176,6 +176,15 @@ String.prototype.clean = function(){
 	return this.replace(/([^\/"']+|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\/\*(?:[^*]|\*+[^*\/])*\*+\/|\/\/.*/, '');
 };
 
+String.prototype.splice = function(offset, size, insert){
+	return (
+		this.slice(0,offset) + 
+		OptionalString(insert, '') + 
+		this.slice(offset + Math.abs(size))
+	);
+};
+
+
 /* -------------------------------------------------------------------------- */
 
 Uint8Array.prototype.toString = function(){
