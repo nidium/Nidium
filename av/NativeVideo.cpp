@@ -478,8 +478,7 @@ int NativeVideo::display(void *custom) {
             }
             SPAM((" | after  %f\n", delay));
         }
-    }
-
+    } 
     v->frameTimer += delay;
     actualDelay = v->frameTimer - (av_gettime() / 1000000.0);
 
@@ -496,12 +495,19 @@ int NativeVideo::display(void *custom) {
         }
     }
 
-    if (v->playing) {
-        v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
-    }
-
     free(frame->data);
     delete frame;
+
+    if (v->playing) {
+        if (actualDelay <= 0.010) {
+            int ret = v->display(v);
+            if (ret != 0) {
+                return ret;
+            }
+        } else {
+            v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
+        }
+    }
 
     // Wakup decode thread
     //if (!v->eof && PaUtil_GetRingBufferWriteAvailable(v->rBuff) > NATIVE_VIDEO_BUFFER_SAMPLES/2) {
