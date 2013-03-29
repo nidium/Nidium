@@ -463,7 +463,7 @@ int NativeVideo::display(void *custom) {
             // Diff is too big an will be noticed
             // Let's drop some audio sample
             SPAM(("Dropping audio\n"));
-            v->track->drop(pts);
+            v->track->drop(diff);
         } else {
             syncThreshold = (delay > NATIVE_VIDEO_SYNC_THRESHOLD) ? delay : NATIVE_VIDEO_SYNC_THRESHOLD;
 
@@ -490,10 +490,9 @@ int NativeVideo::display(void *custom) {
 
         // Call the frame callback
         if (v->frameCbk != NULL) {
-            //printf("frame callback\n");
             v->frameCbk(frame->data, v->frameCbkArg);
         }
-    }
+    } 
 
     free(frame->data);
     delete frame;
@@ -521,6 +520,13 @@ int NativeVideo::display(void *custom) {
 
 void NativeVideo::buffer()
 {
+    if (!this->playing) {
+        // XXX : Don't buffer if video is not playing
+        // because, right after opening the video file audio migt not 
+        // be connect and thus, the audio packet will not be buffered
+        return;
+    }
+
     if (this->error != 0) {
         SPAM(("=> Not buffering cause of error\n"));
         return;
@@ -594,22 +600,18 @@ void NativeVideo::bufferInternal()
                 this->error = AVERROR_EOF;
             } else {
                 this->addPacket(this->videoQueue, &packet);
+                needVideo--;
             }
-            needVideo--;
-        } else if (this->track != NULL && this->track->isConnected() && packet.stream_index == this->track->audioStream) {
-            if (ret < 0) {
-                // No more audio data, let's output silence
-                //this->track->resetFrames();
-            } else {
-                //printf("decoding audio, packet pts is at %f\n", packet.pts * av_q2d(this->container->streams[this->track->audioStream]->time_base));
+        } else if (packet.stream_index == this->audioStream && this->track != NULL && this->track->isConnected()) {
+            if (ret >= 0) {
                 this->addPacket(this->audioQueue, &packet);
+                needAudio--;
             }
-            needAudio--;
         } else {
             av_free_packet(&packet);
         }
 
-        if (needVideo <= 0 && needAudio <= 0) {
+        if (needVideo <= 0 && needAudio <= 0 && this->error == 0) {
             loopCond = false;
         }
         

@@ -288,7 +288,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         int resample(float *dest, int destSamples);
         bool getFrame();
         double getClock();
-        void drop(double ts);
+        void drop(double ms);
         bool isConnected();
 
         NativeAVReader *reader;

@@ -102,7 +102,7 @@ int64_t NativeAVFileReader::seek(void *opaque, int64_t offset, int whence)
             pos = offset;
             break;
         case SEEK_CUR:
-            pos = (thiz->nfio->filesize - thiz->totalRead) + offset;
+            pos = (thiz->totalRead) + offset;
         case SEEK_END:
             pos = thiz->nfio->filesize - offset;
         default:
@@ -129,6 +129,7 @@ void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
     } else {
         this->error = AVERROR(err);
     }
+    printf("NFIOERROR %d\n", err);
 
     this->needWakup = true;
 
