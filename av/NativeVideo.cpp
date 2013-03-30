@@ -26,7 +26,9 @@ NativeVideo::NativeVideo(ape_global *n)
     : freePacket(NULL), timerIdx(0), lastTimer(0),
       net(n), track(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
       eof(false), lastPts(0), playing(false), stoped(false), width(-1), height(-1),
-      swsCtx(NULL), videoStream(-1), audioStream(-1), rBuff(NULL),
+      swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
+      rBuff(NULL), buff(NULL), avioBuffer(NULL),
+      decodedFrame(NULL), convertedFrame(NULL),
       reader(NULL), error(0), buffering(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
@@ -73,7 +75,7 @@ int NativeVideo::open(void *buffer, int size)
 
 int NativeVideo::open(const char *src) 
 {
-    if (this->opened) {
+    if (this->avioBuffer != NULL) {
         this->close(true);
     } 
 
@@ -459,11 +461,10 @@ int NativeVideo::display(void *custom) {
 
         SPAM(("Clocks audio=%f / video=%f / diff = %f\n", v->track->getClock(), pts, diff));
 
-        if (diff > 0.05 && v->track->avail() > 0) {
+        if (diff > NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD && v->track->avail() > 0) {
             // Diff is too big an will be noticed
             // Let's drop some audio sample
-            SPAM(("Dropping audio\n"));
-            v->track->drop(pts);
+            v->track->drop(diff);
         } else {
             syncThreshold = (delay > NATIVE_VIDEO_SYNC_THRESHOLD) ? delay : NATIVE_VIDEO_SYNC_THRESHOLD;
 
@@ -479,48 +480,48 @@ int NativeVideo::display(void *custom) {
             SPAM((" | after  %f\n", delay));
         }
     } 
+
     v->frameTimer += delay;
     actualDelay = v->frameTimer - (av_gettime() / 1000000.0);
 
     SPAM(("Using delay %f\n", actualDelay));
 
-    if (actualDelay > 0.010 || !v->playing) {
+    if (actualDelay > NATIVE_VIDEO_SYNC_THRESHOLD || diff > 0 || !v->playing) {
         // If not playing, we can be here because user seeked 
         // while the video is paused, so send the frame anyway
 
         // Call the frame callback
         if (v->frameCbk != NULL) {
-            //printf("frame callback\n");
             v->frameCbk(frame->data, v->frameCbkArg);
         }
-    }
+    } 
 
     free(frame->data);
     delete frame;
 
     if (v->playing) {
-        if (actualDelay <= 0.010) {
-            int ret = v->display(v);
-            if (ret != 0) {
+        if (actualDelay <= NATIVE_VIDEO_SYNC_THRESHOLD && diff <= 0) {
+            if (int ret = v->display(v) != 0) {
                 return ret;
             }
         } else {
             v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
         }
-    }
-
-    // Wakup decode thread
-    //if (!v->eof && PaUtil_GetRingBufferWriteAvailable(v->rBuff) > NATIVE_VIDEO_BUFFER_SAMPLES/2) {
-    if (v->playing) {
         pthread_cond_signal(&v->bufferCond);
     }
-    //}
 
     return 0;
 }
 
 void NativeVideo::buffer()
 {
+    if (!this->playing) {
+        // XXX : Don't buffer if video is not playing
+        // because, right after opening the video file audio migt not 
+        // be connect and thus, the audio packet will not be buffered
+        return;
+    }
+
     if (this->error != 0) {
         SPAM(("=> Not buffering cause of error\n"));
         return;
@@ -562,14 +563,11 @@ void NativeVideo::bufferInternal()
     int needVideo = 0;
 
     if (this->track != NULL && this->track->isConnected()) {
-        if (this->audioQueue->count < 2) {
-            needAudio = 2;
-        }
+        needAudio = NATIVE_VIDEO_PACKET_BUFFER - this->audioQueue->count;
     }
 
-    if (this->videoQueue->count < 2) {
-        needVideo = 2;
-    }
+    needVideo = NATIVE_VIDEO_PACKET_BUFFER - this->videoQueue->count;
+
 
     if (needAudio > 0 || needVideo > 0) {
         loopCond = true;
@@ -594,26 +592,18 @@ void NativeVideo::bufferInternal()
                 this->error = AVERROR_EOF;
             } else {
                 this->addPacket(this->videoQueue, &packet);
+                needVideo--;
             }
-            needVideo--;
-        } else if (this->track != NULL && this->track->isConnected() && packet.stream_index == this->track->audioStream) {
-            if (ret < 0) {
-                // No more audio data, let's output silence
-                //this->track->resetFrames();
-            } else {
-                //printf("decoding audio, packet pts is at %f\n", packet.pts * av_q2d(this->container->streams[this->track->audioStream]->time_base));
+        } else if (packet.stream_index == this->audioStream && this->track != NULL && this->track->isConnected()) {
+            if (ret >= 0) {
                 this->addPacket(this->audioQueue, &packet);
+                needAudio--;
             }
-            needAudio--;
         } else {
             av_free_packet(&packet);
         }
 
-        if (needVideo <= 0 && needAudio <= 0) {
-            loopCond = false;
-        }
-        
-        if (this->error) {
+        if ((needVideo <= 0 && needAudio <= 0) || this->error != 0) {
             loopCond = false;
         }
     } while (loopCond);
@@ -867,10 +857,6 @@ int NativeVideo::addTimer(int delay)
 
 bool NativeVideo::addPacket(PacketQueue *queue, AVPacket *packet) 
 {
-    /*if (queue->count == NATIVE_VIDEO_PAQUET_QUEUE_SIZE) {
-        return false;
-    }*/
-
     av_dup_packet(packet);
 
     Packet *pkt = new Packet();
@@ -993,10 +979,11 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 #endif
 
 void NativeVideo::close(bool reset) {
-    if (this->opened) {
+    if (this->reader != NULL) {
         this->shutdown = true;
         pthread_cond_signal(&this->bufferCond);
         pthread_join(this->threadDecode, NULL);
+        this->shutdown = false;
     }
 
     
@@ -1009,34 +996,61 @@ void NativeVideo::close(bool reset) {
     if (!reset) {
         delete this->audioQueue;
         delete this->videoQueue;
+
+        this->audioQueue = NULL;
+        this->videoQueue = NULL;
     }
 
     if (this->coro != NULL) {
         Coro_free(this->coro);
+
+        this->coro = NULL;
     }
 
-    // TODO : instead of checking for opened
-    // check for non NULL variables and free them
     if (this->opened) {
-        av_free(this->convertedFrame);
-        av_free(this->decodedFrame);
+        delete this->rBuff;
+
         avcodec_close(this->codecCtx);
         avformat_close_input(&(this->container));
+
+        av_free(this->convertedFrame);
+        av_free(this->decodedFrame);
+        av_free(this->frameBuffer);
+
         sws_freeContext(this->swsCtx);
-
-        delete this->rBuff;
-        delete this->reader;
-
+        
         free(this->buff);
         free(this->tmpFrame);
-        free(this->frameBuffer);
 
-        if (this->track != NULL) {
-            if (reset) {
-                this->track->close(true);
-            } else {
-                delete this->track;
-            }
+        this->rBuff = NULL;
+        this->codecCtx = NULL;
+        this->convertedFrame = NULL;
+        this->decodedFrame = NULL;
+        this->swsCtx = NULL;
+        this->frameBuffer = NULL;
+        this->buff = NULL;
+        this->tmpFrame = NULL;
+    }
+
+    if (this->avioBuffer != NULL) {
+        if (!this->opened) {// FIXME : I think that avformat_close_input free's it
+            av_free(this->container->pb);
+            avformat_free_context(this->container);
+            av_free(this->avioBuffer);
+        }
+
+        delete this->reader;
+
+        this->container = NULL;
+        this->reader = NULL;
+        this->avioBuffer = NULL;
+    }
+
+    if (this->track != NULL) {
+        if (reset) {
+            this->track->close(true);
+        } else {
+            delete this->track;
         }
     }
 }

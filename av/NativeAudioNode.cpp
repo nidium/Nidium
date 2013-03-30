@@ -929,6 +929,7 @@ return false;
             return true;
         }
 
+
         if (this->tmpPacket->pts != AV_NOPTS_VALUE) {
             this->clock = av_q2d(this->container->streams[this->audioStream]->time_base) * this->tmpPacket->pts;
         }
@@ -1099,11 +1100,9 @@ double NativeAudioTrack::getClock() {
     return this->clock - delay + 0.28;
 }
 
-void NativeAudioTrack::drop(double ts) 
+void NativeAudioTrack::drop(double ms) 
 {
-    double diff = ts - this->getClock();
-
-    ring_buffer_size_t del = (diff * (this->audio->outputParameters->sampleRate * NativeAudio::FLOAT32) * this->outCount / (NativeAudio::FLOAT32 * this->outCount));
+    ring_buffer_size_t del = (ms * (this->audio->outputParameters->sampleRate * NativeAudio::FLOAT32) * this->outCount / (NativeAudio::FLOAT32 * this->outCount));
     ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
     PaUtil_AdvanceRingBufferReadIndex(this->rBufferOut, del > avail ? avail : del);
 }
