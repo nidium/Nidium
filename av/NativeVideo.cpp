@@ -331,14 +331,24 @@ void NativeVideo::seekInternal(double time)
     int flags = 0;
     double clock = this->lastPts;
 
+    /*
+    if (time > this->getDuration()) {
+        printf("fixing seek time\n");
+        time = this->getDuration();
+        time -= 1;
+        printf("time = %f\n", time);
+    }
+    */
+
     flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
 
     target = time * AV_TIME_BASE;
 
     target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->videoStream]->time_base);
 
+
     SPAM(("av_seek_frame\n"));
-    int ret = av_seek_frame(this->container, this->videoStream, target, flags);
+    int ret = av_seek_frame(this->container, this->videoStream, target, flags/*|AVSEEK_FLAG_ANY*/);
     SPAM(("av_seek_frame done ret=%d\n", ret));
 
     if (ret >= 0) {
@@ -355,11 +365,6 @@ void NativeVideo::seekInternal(double time)
             this->lastPts = this->doSeekTime;
         }
 
-        if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
-            this->eof = false;
-        }
-        this->error = 0;
-
         if (this->track != NULL) {
             avcodec_flush_buffers(this->track->codecCtx);
             PaUtil_FlushRingBuffer(this->track->rBufferOut);
@@ -369,6 +374,11 @@ void NativeVideo::seekInternal(double time)
                 this->track->eof = false;
             }
         }
+
+        if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
+            this->eof = false;
+        }
+        this->error = 0;
     } else {
         this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
     }
@@ -468,8 +478,7 @@ int NativeVideo::display(void *custom) {
             }
             SPAM((" | after  %f\n", delay));
         }
-    }
-
+    } 
     v->frameTimer += delay;
     actualDelay = v->frameTimer - (av_gettime() / 1000000.0);
 
@@ -486,12 +495,19 @@ int NativeVideo::display(void *custom) {
         }
     }
 
-    if (v->playing) {
-        v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
-    }
-
     free(frame->data);
     delete frame;
+
+    if (v->playing) {
+        if (actualDelay <= 0.010) {
+            int ret = v->display(v);
+            if (ret != 0) {
+                return ret;
+            }
+        } else {
+            v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
+        }
+    }
 
     // Wakup decode thread
     //if (!v->eof && PaUtil_GetRingBufferWriteAvailable(v->rBuff) > NATIVE_VIDEO_BUFFER_SAMPLES/2) {
@@ -569,7 +585,8 @@ void NativeVideo::bufferInternal()
                 if (ret == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
                     this->eof = true;
                     if (this->track != NULL) {
-                        this->track->eof = true;
+                        //this->track->eof = true; 
+                        // XXX : Need to find out why when setting EOF, track sometimes fail to play when seeking backward
                     }
                 } else if (ret != AVERROR(EAGAIN)) {
                     this->sendEvent(SOURCE_EVENT_ERROR, ERR_DECODING, true);
@@ -619,7 +636,6 @@ void *NativeVideo::decode(void *args)
                         SPAM(("    running seek coro\n"));
                         Coro_startCoro_(v->mainCoro, v->coro, v, NativeVideo::seekCoro);
                     } 
-                    // Make sure seek is not already finished before waiting
                     if (v->doSeek == true) { 
                         SPAM(("     Waiting for seekCond\n"));
                         pthread_cond_wait(&v->bufferCond, &v->bufferLock);
@@ -643,18 +659,23 @@ void *NativeVideo::decode(void *args)
                 if (v->shutdown) break;
             }
 
-            SPAM(("processing\n"));
-            bool audioFailed = !v->processAudio();
-            bool videoFailed = !v->processVideo();
-            SPAM(("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed));
+            SPAM(("doSeek=%d needWakup=%d seeking=%d\n", v->doSeek, v->reader->needWakup, v->seeking));
+            if (!v->seeking) {
+                SPAM(("processing\n"));
+                bool audioFailed = !v->processAudio();
+                bool videoFailed = !v->processVideo();
+                SPAM(("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed));
 
-            if (audioFailed && videoFailed) {
-                if (v->shutdown) break;
-                if (!v->doSeek && !v->reader->needWakup) {
-                    SPAM(("Waiting for buffNotEmpty cause of audio and video failed\n"));
-                    pthread_cond_wait(&v->bufferCond, &v->bufferLock);
-                    SPAM(("buffNotEmpty go\n"));
-                } 
+                if (audioFailed && videoFailed) {
+                    if (v->shutdown) break;
+                    if ((!v->doSeek && !v->reader->needWakup)) {
+                        SPAM(("Waiting for buffNotEmpty cause of audio and video failed\n"));
+                        pthread_cond_wait(&v->bufferCond, &v->bufferLock);
+                        SPAM(("buffNotEmpty go\n"));
+                    } 
+                }
+            } else {
+                pthread_cond_wait(&v->bufferCond, &v->bufferLock);
             }
         }
 
@@ -905,10 +926,12 @@ void NativeVideo::clearTimers(bool reset)
 
 void NativeVideo::clearAudioQueue() 
 {
+    if (this->track == NULL) return;
+
     if (this->freePacket != NULL) {
-        delete this->freePacket;
         this->track->packetConsumed = true;
         av_free_packet(this->track->tmpPacket);
+        delete this->freePacket;
         this->freePacket = NULL;
     }
 

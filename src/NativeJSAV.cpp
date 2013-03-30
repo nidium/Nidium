@@ -637,6 +637,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
                 // Set audioNode to null, because we are going to destroy it bellow
                 // and we don't want stopAudio() to try to destroy it too
                 video->audioNode = NULL; 
+                JS_SetReservedSlot(this->jsobj, 0, JSVAL_NULL);
                 video->stopAudio();
             }
         }
@@ -821,9 +822,11 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *link2;
     NodeLink *nlink1;
     NodeLink *nlink2;
-    NativeAudio *audio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp))->audio;
+    NativeJSAudio *jaudio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp));
 
-    CHECK_INVALID_CTX(audio);
+    CHECK_INVALID_CTX(jaudio);
+
+    NativeAudio *audio = jaudio->audio;;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &link1, &link2)) {
         return JS_TRUE;
@@ -859,9 +862,11 @@ static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *link2;
     NodeLink *nlink1;
     NodeLink *nlink2;
-    NativeAudio *audio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp))->audio;
+    NativeJSAudio *jaudio = NATIVE_AUDIO_GETTER(JS_THIS_OBJECT(cx, vp));
 
-    CHECK_INVALID_CTX(audio);
+    CHECK_INVALID_CTX(jaudio);
+
+    NativeAudio *audio = jaudio->audio;;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &link1, &link2)) {
         return JS_TRUE;
@@ -1341,16 +1346,20 @@ static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHand
 
 void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
 {
+    printf("========================= Audio finalizer\n");
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
     if (audio != NULL) {
+        printf("------------------------- Audio finalizer do it\n");
         delete audio;
     }
 }
 
 void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
+    printf("========================= AudioNode finalizer\n");
     NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(obj);
     if (node != NULL) {
+        printf("------------------------- AudioNode finalizer do it\n");
         delete node;
     } 
 }
@@ -1590,7 +1599,9 @@ NativeJSVideo::~NativeJSVideo()
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
 
+    printf("========================= Video finalizer\n");
     if (v != NULL) {
+        printf(" ------------------------- Video do it\n");
         delete v;
     }
 }

@@ -145,7 +145,7 @@ void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t 
     this->dataSize = len;
     this->totalRead += len;
     if (this->totalRead > this->nfio->filesize) {
-        printf("Oh shit, read after EOF\n");
+          printf("Oh shit, read after EOF\n");
 //        exit(1);
     }
 
