@@ -67,7 +67,7 @@ Native.elements.export("UIRadio", {
 
 		this.resizeElement();
 
-		this.width = OptionalNumber(o.width, this._innerTextWidth) + this.paddingLeft;
+		this.width = OptionalNumber(o.width, this._innerTextWidth) + this.height + this.paddingLeft;
 
 
 	},
