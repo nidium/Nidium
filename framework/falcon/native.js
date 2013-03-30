@@ -67,6 +67,8 @@ require(__PATH_LAYOUT__ + 'UIButton.js');
 require(__PATH_LAYOUT__ + 'UIButtonClose.js');
 require(__PATH_LAYOUT__ + 'UIButtonDown.js');
 
+require(__PATH_LAYOUT__ + 'UIRadio.js');
+
 require(__PATH_LAYOUT__ + 'UISliderKnob.js');
 require(__PATH_LAYOUT__ + 'UISliderController.js');
 

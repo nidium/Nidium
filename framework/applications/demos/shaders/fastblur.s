@@ -14,7 +14,7 @@ float h = 1. - float(param)/500.;
 
 vec2 amount = vec2(fdata, fdata);
 
-void main() {
+void main(){
 	vec4 c = vec4(0.0);
 	float total = 0.0;
 

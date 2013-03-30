@@ -15,7 +15,7 @@ require("falcon/native.js");
 //require("applications/demos/profiler.js");
 //require("applications/demos/style.js");
 //require("applications/demos/windows.js");
-//require("applications/demos/dropdown.js");
+require("applications/demos/dropdown.js");
 //require("applications/demos/sliders.js");
 //require("applications/demos/scrollbars.js");
 //require("applications/demos/modal.js");
@@ -24,7 +24,7 @@ require("falcon/native.js");
 //require("applications/demos/animation.js");
 
 /* media demos */
-require("applications/media/video.js");
+//require("applications/media/video.js");
 
 
 /* Shaders Demos */

@@ -36,3 +36,24 @@ var	dropDownController = main.add("UIDropDownController", {
 });
 
 
+var	radio1 = main.add("UIRadio", {
+	left : 200,
+	top : 36,
+	name : "choice",
+	fontType : "menlo",
+	label : "Select this",
+	textShadowColor : "#000000",
+	color : "#ffffff",
+	selected : true
+});
+
+var radio2 = main.add("UIRadio", {
+	left : 200,
+	top : 56,
+	name : "choice",
+	fontType : "menlo",
+	label : "... or this",
+	textShadowColor : "#000000",
+	color : "#ffffff"
+});
+
