@@ -129,6 +129,7 @@ void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
     } else {
         this->error = AVERROR(err);
     }
+
     printf("NFIOERROR %d\n", err);
 
     this->needWakup = true;
@@ -164,6 +165,8 @@ void NativeAVFileReader::onNFIOWrite(NativeFileIO *, size_t written)
 
 NativeAVFileReader::~NativeAVFileReader() 
 {
+    this->nfio->close();
+    delete this->nfio;
 }
 
 NativeAVSource::NativeAVSource()
