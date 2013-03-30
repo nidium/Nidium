@@ -1346,20 +1346,16 @@ static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHand
 
 void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    printf("========================= Audio finalizer\n");
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
     if (audio != NULL) {
-        printf("------------------------- Audio finalizer do it\n");
         delete audio;
     }
 }
 
 void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    printf("========================= AudioNode finalizer\n");
     NativeJSAudioNode *node = NATIVE_AUDIO_NODE_GETTER(obj);
     if (node != NULL) {
-        printf("------------------------- AudioNode finalizer do it\n");
         delete node;
     } 
 }
@@ -1599,9 +1595,7 @@ NativeJSVideo::~NativeJSVideo()
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj) {
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
 
-    printf("========================= Video finalizer\n");
     if (v != NULL) {
-        printf(" ------------------------- Video do it\n");
         delete v;
     }
 }

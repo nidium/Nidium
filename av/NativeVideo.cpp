@@ -26,7 +26,9 @@ NativeVideo::NativeVideo(ape_global *n)
     : freePacket(NULL), timerIdx(0), lastTimer(0),
       net(n), track(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
       eof(false), lastPts(0), playing(false), stoped(false), width(-1), height(-1),
-      swsCtx(NULL), videoStream(-1), audioStream(-1), rBuff(NULL),
+      swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
+      rBuff(NULL), buff(NULL), avioBuffer(NULL),
+      decodedFrame(NULL), convertedFrame(NULL),
       reader(NULL), error(0), buffering(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
@@ -73,7 +75,7 @@ int NativeVideo::open(void *buffer, int size)
 
 int NativeVideo::open(const char *src) 
 {
-    if (this->opened) {
+    if (this->avioBuffer != NULL) {
         this->close(true);
     } 
 
@@ -977,10 +979,11 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 #endif
 
 void NativeVideo::close(bool reset) {
-    if (this->opened) {
+    if (this->reader != NULL) {
         this->shutdown = true;
         pthread_cond_signal(&this->bufferCond);
         pthread_join(this->threadDecode, NULL);
+        this->shutdown = false;
     }
 
     
@@ -993,34 +996,61 @@ void NativeVideo::close(bool reset) {
     if (!reset) {
         delete this->audioQueue;
         delete this->videoQueue;
+
+        this->audioQueue = NULL;
+        this->videoQueue = NULL;
     }
 
     if (this->coro != NULL) {
         Coro_free(this->coro);
+
+        this->coro = NULL;
     }
 
-    // TODO : instead of checking for opened
-    // check for non NULL variables and free them
     if (this->opened) {
-        av_free(this->convertedFrame);
-        av_free(this->decodedFrame);
+        delete this->rBuff;
+
         avcodec_close(this->codecCtx);
         avformat_close_input(&(this->container));
+
+        av_free(this->convertedFrame);
+        av_free(this->decodedFrame);
+        av_free(this->frameBuffer);
+
         sws_freeContext(this->swsCtx);
-
-        delete this->rBuff;
-        delete this->reader;
-
+        
         free(this->buff);
         free(this->tmpFrame);
-        free(this->frameBuffer);
 
-        if (this->track != NULL) {
-            if (reset) {
-                this->track->close(true);
-            } else {
-                delete this->track;
-            }
+        this->rBuff = NULL;
+        this->codecCtx = NULL;
+        this->convertedFrame = NULL;
+        this->decodedFrame = NULL;
+        this->swsCtx = NULL;
+        this->frameBuffer = NULL;
+        this->buff = NULL;
+        this->tmpFrame = NULL;
+    }
+
+    if (this->avioBuffer != NULL) {
+        if (!this->opened) {// FIXME : I think that avformat_close_input free's it
+            av_free(this->container->pb);
+            avformat_free_context(this->container);
+            av_free(this->avioBuffer);
+        }
+
+        delete this->reader;
+
+        this->container = NULL;
+        this->reader = NULL;
+        this->avioBuffer = NULL;
+    }
+
+    if (this->track != NULL) {
+        if (reset) {
+            this->track->close(true);
+        } else {
+            delete this->track;
         }
     }
 }
