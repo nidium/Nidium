@@ -44,9 +44,9 @@ Native.elements.export("UIRadio", {
 								),
 
 			name  			: OptionalString(o.name, "default"),
-			paddingLeft 	: OptionalNumber(o.paddingLeft, 4),
+			paddingLeft 	: OptionalNumber(o.paddingLeft, 2),
 
-			height 			: OptionalNumber(o.height, 18),
+			height 			: OptionalNumber(o.height, 22),
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, ""),
 			color 			: OptionalValue(o.color, "#222222"),
@@ -74,12 +74,22 @@ Native.elements.export("UIRadio", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
-			radius = this.height/2,
-
-			textColor = "rgba(255, 255, 255, 0.8)",
-			textShadow = "rgba(0, 0, 0, 0.15)";
+			radius = this.height/2.5;
 
 		context.setFontSize(this.fontSize);
+
+		echo(this.shadowBlur)
+		if (this.shadowBlur != 0) {
+			context.setShadow(
+				this.shadowOffsetX,
+				this.shadowOffsetY,
+				this.shadowBlur,
+				this.shadowColor
+			);
+		}
+
+		DOMElement.draw.box(this, context, params);
+		context.setShadow(0, 0, 0);
 
 		var gradient = context.createRadialGradient(
 			params.x+radius, 
@@ -96,7 +106,7 @@ Native.elements.export("UIRadio", {
 		context.beginPath();
 
 		context.arc(
-			params.x+radius, 
+			params.x+radius+this.radius*0.25, 
 			params.y+params.h*0.5, 
 			radius, 0, 6.2831852, false
 		);
@@ -108,16 +118,16 @@ Native.elements.export("UIRadio", {
 		context.stroke();
 
 		if (this.selected){
-			var r = 4;
+			var r = 4.5;
 			context.beginPath();
 
 			context.arc(
-			params.x+radius, 
+			params.x+radius+this.radius*0.25,
 			params.y+params.h*0.5, 
 			radius-r, 0, 6.2831852, false
 			);
 
-			context.setColor("rgba(60, 80, 200, 0.5)");
+			context.setColor("rgba(20, 20, 30, 0.8)");
 			context.fill();
 			context.lineWidth = 1;
 			context.strokeStyle = "rgba(0, 0, 180, 0.1)";
