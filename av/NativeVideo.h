@@ -11,9 +11,10 @@ extern "C" {
 }
 
 #define NATIVE_VIDEO_BUFFER_SAMPLES 8
+#define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.05 
 #define NATIVE_VIDEO_SYNC_THRESHOLD 0.01 
 #define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
-
+#define NATIVE_VIDEO_PACKET_BUFFER 256
 typedef void (*VideoCallback)(uint8_t *data, void *custom);
 struct PaUtilRingBuffer;
 
