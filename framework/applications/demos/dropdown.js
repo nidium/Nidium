@@ -35,4 +35,44 @@ var	dropDownController = main.add("UIDropDownController", {
 	class : "tabController"
 });
 
+Native.StyleSheet.add({
+	radio : {
+		left : 700,
+		width : 140,
+		name : "choice",
+		fontType : "menlo",
+		textShadowColor : "#000000",
+		color : "#ffffff",
+		background : "rgba(0, 0, 0, 0.2)",
+		borderColor : "rgba(0, 0, 0, 0.7)",
+		borderWidth : 1,
+		radius : 10,
+		shadowBlur : 6,
+		shadowColor : "black",
+		shadowOffsetY : 6
+	}
+});
+
+
+var	button = new UIButton(main, {
+	left : 490,
+	top : 50,
+	label : "Do It"
+});
+
+var	radio1 = main.add("UIRadio", {
+	top : 50,
+	label : "Select this",
+	value : "option1",
+	selected : true,
+	shadowBlur : 4,
+	class : "radio"
+});
+
+var radio2 = main.add("UIRadio", {
+	top : 78,
+	value : "option2",
+	label : "... or this",
+	class : "radio"
+});
 
