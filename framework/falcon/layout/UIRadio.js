@@ -78,7 +78,6 @@ Native.elements.export("UIRadio", {
 
 		context.setFontSize(this.fontSize);
 
-		echo(this.shadowBlur)
 		if (this.shadowBlur != 0) {
 			context.setShadow(
 				this.shadowOffsetX,
