@@ -150,7 +150,7 @@ Native.elements.export("UIRadio", {
 
 			context.fill();
 
-			context.setColor("rgba(20, 20, 20, 0.7)");
+			context.setColor("rgba(20, 20, 20, 0.4)");
 			context.strokeStyle = "rgba(0, 0, 0, 0.4)";
 		} else {
 			r = 3;

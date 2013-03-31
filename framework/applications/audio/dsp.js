@@ -39,7 +39,7 @@ var app = {
 	},
 
 	createNodes : function(){
-		this.dsp = new Audio(4096, 2, 44100);
+		this.dsp = Audio.getContext(4096, 2, 44100);
 		this.source = this.dsp.createNode("source", 0, 2);
 		this.gain = this.dsp.createNode("gain", 2, 2);
 		this.processor = this.dsp.createNode("custom", 2, 2);
@@ -76,7 +76,7 @@ var app = {
 		}
 
 		this.processor.onmessage = function(e){
-			self.iqDFT(e.message.bufferL, e.message.bufferR);
+			self.iqDFT(e.data.bufferL, e.data.bufferR);
 		}
 
 		this.processor.set("gain", 0.5);
