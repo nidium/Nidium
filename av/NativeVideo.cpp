@@ -556,11 +556,13 @@ NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio)
             this->track = NULL;
         }
 
-        /*
+        if (this->playing) {
+            this->track->play();
+        }
+
         if (this->getClock() > 0) {
             this->clearAudioQueue();
         }
-        */
     }
     return this->track;
 }
@@ -883,7 +885,7 @@ bool NativeVideo::processAudio()
     pthread_mutex_unlock(&this->audioLock);
 
     if (wakeup) {
-        //pthread_cond_signal(&this->audio->queueHaveData);
+        pthread_cond_signal(&this->audio->queueHaveData);
     }
 
     return !audioFailed;
