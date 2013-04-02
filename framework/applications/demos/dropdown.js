@@ -38,18 +38,38 @@ var	dropDownController = main.add("UIDropDownController", {
 Native.StyleSheet.add({
 	radio : {
 		left : 700,
-		width : 140,
+		width : 200,
 		name : "choice",
 		fontType : "menlo",
-		textShadowColor : "#000000",
-		color : "#ffffff",
+		fontSize : 11,
+		textShadowColor : "rgba(0, 0, 0, 0.4)",
+		color : "#d0d0ff",
+		lineWidth : 1,
 		background : "rgba(0, 0, 0, 0.2)",
 		borderColor : "rgba(0, 0, 0, 0.7)",
 		borderWidth : 1,
 		radius : 10,
 		shadowBlur : 6,
-		shadowColor : "black",
-		shadowOffsetY : 6
+		shadowColor : "rgba(0, 0, 0, 0.4)",
+		shadowOffsetY : 3
+	},
+
+	red : {
+		color : "red",
+	},
+
+	green : {
+		color : "#e0ff60"
+	},
+
+	white : {
+		color : "white"
+	},
+
+	black : {
+		color : "black",
+		background : "white",
+		borderColor : null
 	}
 });
 
@@ -73,6 +93,27 @@ var radio2 = main.add("UIRadio", {
 	top : 78,
 	value : "option2",
 	label : "... or this",
-	class : "radio"
+	class : "radio red"
+});
+
+var radio3 = main.add("UIRadio", {
+	top : 106,
+	value : "option3",
+	label : "... or this",
+	class : "radio green"
+});
+
+var radio4 = main.add("UIRadio", {
+	top : 134,
+	value : "option4",
+	label : "... or this",
+	class : "radio white"
+});
+
+var radio5 = main.add("UIRadio", {
+	top : 162,
+	value : "option5",
+	label : "... or this",
+	class : "radio black"
 });
 

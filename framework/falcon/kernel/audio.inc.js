@@ -45,7 +45,7 @@ var AudioMixer = {
 
 	load : function(url, callback, rel){
 		var self = this;
-		
+
 		if (!this.loaded){
 			this.dsp = Native.getAudioDSP();
 			this.master = this.dsp.createNode("gain", 2, 2);
