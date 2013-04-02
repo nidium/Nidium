@@ -1270,6 +1270,8 @@ bool NativeAudioTrack::process() {
 
 void NativeAudioTrack::close(bool reset) 
 {
+    pthread_mutex_lock(&this->audio->recurseLock);
+
     if (this->opened) {
         avcodec_close(this->codecCtx);
         swr_free(&this->swrCtx);
@@ -1321,6 +1323,8 @@ void NativeAudioTrack::close(bool reset)
     } else {
         delete this->rBufferOut;
     }
+
+    pthread_mutex_unlock(&this->audio->recurseLock);
 }
 
 void NativeAudioTrack::play() 
