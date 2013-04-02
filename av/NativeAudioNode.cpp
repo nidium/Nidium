@@ -13,10 +13,10 @@ extern "C" {
 }
 
 #define NODE_IO_FOR(i, io) int I = 0;\
-while (i < io->count) { \
-if (io->wire[I] != NULL) {\
-i++;
-#define NODE_IO_FOR_END }I++;}
+while (I < io->count) { \
+if (io->wire[i] != NULL) {\
+I++;
+#define NODE_IO_FOR_END(i) }i++;}
 
 NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
     : nullFrames(true), nodeProcessed(0), totalProcess(0), inQueueCount(0), inCount(inCount), outCount(outCount), audio(audio), doNotProcess(false)
@@ -295,7 +295,7 @@ bool NativeAudioNode::recurseGetData(int *sourceFailed)
                         return false;
                     }
                 }
-            NODE_IO_FOR_END
+            NODE_IO_FOR_END(j)
         } 
     }
 
@@ -324,7 +324,7 @@ bool NativeAudioNode::recurseGetData(int *sourceFailed)
                             this->frames[i][k] += this->input[i]->wire[j]->frame[k];
                         }
                     }
-                NODE_IO_FOR_END
+                NODE_IO_FOR_END(j)
             }  /*else if (this->input[i]->count == 0) {
                 // This point should not be reached 
                 if (this->frames[i] == NULL) {
@@ -362,7 +362,7 @@ bool NativeAudioNode::recurseGetData(int *sourceFailed)
                             this->output[i]->wire[j]->frame[k] = this->frames[i][k];
                         }
                     }
-                NODE_IO_FOR_END
+                NODE_IO_FOR_END(j)
             } 
         }
 
@@ -424,6 +424,7 @@ NativeAudioNode::~NativeAudioNode() {
             }
         }
     }
+
     pthread_mutex_lock(&this->audio->recurseLock);
 
     // Free all frames
