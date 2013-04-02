@@ -25,11 +25,11 @@ extern "C" {
 NativeVideo::NativeVideo(ape_global *n) 
     : freePacket(NULL), timerIdx(0), lastTimer(0),
       net(n), track(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
-      eof(false), lastPts(0), playing(false), stoped(false), width(-1), height(-1),
+      lastPts(0), playing(false), stoped(false), width(-1), height(-1),
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
       rBuff(NULL), buff(NULL), avioBuffer(NULL),
       decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), error(0), buffering(false)
+      reader(NULL), buffering(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
     pthread_mutex_init(&this->bufferLock, NULL);
@@ -326,38 +326,13 @@ void NativeVideo::seekCoro(void *arg)
     Coro_switchTo_(source->coro, source->mainCoro);
 }
 
-void NativeVideo::seekInternal(double time) 
+bool NativeVideo::seekMethod(int64_t target, int flags)
 {
-    SPAM(("SeekInternal\n"));
-    int64_t target = 0;
-    int flags = 0;
-    double clock = this->lastPts;
-
-    /*
-    if (time > this->getDuration()) {
-        printf("fixing seek time\n");
-        time = this->getDuration();
-        time -= 1;
-        printf("time = %f\n", time);
-    }
-    */
-
-    flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
-
-    target = time * AV_TIME_BASE;
-
-    target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->videoStream]->time_base);
-
-
     SPAM(("av_seek_frame\n"));
-    int ret = av_seek_frame(this->container, this->videoStream, target, flags/*|AVSEEK_FLAG_ANY*/);
+    int ret = av_seek_frame(this->container, this->videoStream, target, flags|AVSEEK_FLAG_ANY);
     SPAM(("av_seek_frame done ret=%d\n", ret));
-
     if (ret >= 0) {
-        this->clearAudioQueue();
-        this->clearVideoQueue();
-
-        avcodec_flush_buffers(this->codecCtx);
+        this->error = 0;
 
         // FFMPEG can success seeking even if seek is after the end
         // (but decoder/demuxer fail). So fix that.
@@ -367,30 +342,199 @@ void NativeVideo::seekInternal(double time)
             this->lastPts = this->doSeekTime;
         }
 
+        return true;
+    } else {
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+        return false;
+    }
+}
+
+int64_t NativeVideo::seekTarget(double time, int *flags)
+{
+    double clock = this->lastPts;
+    int64_t target = 0;
+
+    *flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
+    target = time * AV_TIME_BASE;
+
+    return av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->videoStream]->time_base);
+}
+
+#define SEEK_THRESHOLD 2
+#define SEEK_BUFFER_PACKET 16
+#define SEEK_STEP 2
+void NativeVideo::seekInternal(double time) 
+{
+    double start = av_gettime()/1000;
+    double startFrame = 0;
+    int flags;
+    int64_t target;
+    double seekTime;
+    double diff;
+
+    int gotFrame = 0;
+    double pts = 0;
+    bool keyframe = false;
+    bool frame = false;
+    Packet *p = NULL;
+    AVPacket packet;
+
+    SPAM(("SeekInternal\n"));
+
+    if (time > this->getDuration()) {
+        time = this->getDuration();
+        time -= 0.1;
+    }
+
+    seekTime = time;
+    diff = time - this->getClock();
+    target = this->seekTarget(time, &flags);
+
+    SPAM(("[SEEK] diff = %f\n", diff));
+    if (diff > SEEK_THRESHOLD || diff < 0) {
+        // Flush all buffers
+        this->clearAudioQueue();
+        this->clearVideoQueue();
+
+        avcodec_flush_buffers(this->codecCtx);
+
         if (this->track != NULL) {
             avcodec_flush_buffers(this->track->codecCtx);
             PaUtil_FlushRingBuffer(this->track->rBufferOut);
-            //PaUtil_FlushRingBuffer(this->track->audio->rBufferOut);
             this->track->resetFrames();
-            if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
-                this->track->eof = false;
-            }
         }
 
-        if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
-            this->eof = false;
+        // Seek to desired TS
+        if (!this->seekMethod(target, flags)) {
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+            return;
         }
-        this->error = 0;
     } else {
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+        keyframe = true;
+        if (track != NULL) {
+            double tmp;
+            // "in memory" seeking, we need to drop audio packet
+            for (;;) {
+                p = this->getPacket(this->audioQueue);
+
+                if (p == NULL) {
+                    break;
+                }
+
+                tmp = av_q2d(this->container->streams[this->audioStream]->time_base) * p->curr.pts;
+                SPAM(("[SEEK] Dropping audio packet @ %f\n", tmp));
+
+                av_free_packet(&p->curr);
+                delete p;
+
+                if (tmp >= time) {
+                    break;
+                }
+            }
+        }
+    }
+
+    if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
+        this->eof = false;
+        if (this->track != NULL) {
+            this->track->eof = false;
+        }
+    }
+
+    flags = 0;
+
+    for (;;) {
+        SPAM(("[SEEK] loop gotFrame=%d pts=%f seekTime=%f\n", gotFrame, pts, seekTime));
+        if (((!frame && pts > seekTime) || (frame && pts > time)) && !keyframe) {
+            seekTime = seekTime - 2;
+            if (seekTime < 0) seekTime = 0;
+            target = this->seekTarget(seekTime, &flags);
+            this->seekMethod(target, flags);
+            keyframe = false;
+            frame = false;
+            pts = 0;
+            this->clearVideoQueue();
+        }
+
+        if (this->videoQueue->count == 0) {
+            SPAM(("[SEEK] av_read_frame\n"));
+            int count = 0;
+            while (count < SEEK_BUFFER_PACKET) {
+                if (int err = av_read_frame(this->container, &packet) < 0) {
+                    av_free_packet(&packet);
+                    if (this->readError(err) < 0) {
+                        return;
+                    }
+                }
+                if (packet.stream_index == this->videoStream) {
+                    this->addPacket(this->videoQueue, &packet);
+                    count++;
+                } else {
+                    av_free_packet(&packet);
+                }
+            }
+            p = this->getPacket(this->videoQueue);
+            packet = p->curr;
+        } else {
+            SPAM(("[SEEK] getPacket\n"));
+            p = this->getPacket(this->videoQueue);
+            packet = p->curr;
+        }
+
+        SPAM(("[SEEK] reading packet stream=%d, pts=%lld/%lld\n", packet.stream_index, packet.pts, packet.dts));
+
+        if (packet.stream_index == this->videoStream) {
+            if (packet.pts != AV_NOPTS_VALUE) {
+                pts = packet.pts;
+            } else if (packet.dts != AV_NOPTS_VALUE) {
+                pts = packet.dts;
+            } else {
+                pts = 0;
+            }
+
+            pts = this->syncVideo(pts) * av_q2d(this->container->streams[this->videoStream]->time_base);
+            frame = true;
+
+            if (packet.flags & AV_PKT_FLAG_KEY || keyframe) {
+                if (pts >= time) {
+                    break;
+                }
+            }
+
+            SPAM(("[SEEK] got video frame at=%f flags=%d\n", pts, packet.flags));
+
+            if (packet.flags & AV_PKT_FLAG_KEY || keyframe) {
+                SPAM(("[SEEK]  its a keyframe\n"));
+                avcodec_decode_video2(this->codecCtx, this->decodedFrame, &gotFrame, &packet);
+                if (!keyframe) {
+                    startFrame = av_gettime()/1000;
+                }
+                keyframe = true;
+                if (gotFrame) {
+                    SPAM(("[SEEK]  ==========gotFrame %f/%f\n", pts, time));
+                    if (pts >= time) {
+                        // We have our frame
+                        break;
+                    } 
+                }
+            }
+        } 
+        av_free_packet(&packet);
+        if (p != NULL) {
+            delete p;
+            p = NULL;
+        }
     }
 
     this->frameTimer = (av_gettime() / 1000000.0);
     this->doSeek = false;
     
+    double end = av_gettime()/1000;
+    SPAM(("[SEEK] seek took %f / firstFrame to end = %f \n", end-start, end-startFrame));
     SPAM(("Sending seekCond signal\n"));
     pthread_cond_signal(&this->bufferCond);
 }
+#undef SEEK_THRESHOLD
 
 NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio) 
 {
@@ -405,12 +549,18 @@ NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio)
         this->track = audio->addTrack(2, true);
         this->track->audioStream = this->audioStream;
         this->track->container = this->container;
-        this->track->eventCallback(NULL, NULL);
+        this->track->eventCallback(NULL, NULL); //Disable events callbacks
         if (0 != this->track->initInternal()) {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
             audio->removeTrack(track);
             this->track = NULL;
         }
+
+        /*
+        if (this->getClock() > 0) {
+            this->clearAudioQueue();
+        }
+        */
     }
     return this->track;
 }
@@ -426,10 +576,11 @@ int NativeVideo::display(void *custom) {
     if (v->lastTimer > NATIVE_VIDEO_BUFFER_SAMPLES-1) {
         v->lastTimer = 0;
     }
-
     // Read frame from ring buffer
     if (PaUtil_GetRingBufferReadAvailable(v->rBuff) < 1) {
-        pthread_cond_signal(&v->bufferCond);
+        if (!v->buffering && !v->seeking) {
+            pthread_cond_signal(&v->bufferCond);
+        } 
         if (v->eof) {
             SPAM(("No frame, eof reached\n"));
             v->sendEvent(SOURCE_EVENT_EOF, 0, false);
@@ -441,7 +592,7 @@ int NativeVideo::display(void *custom) {
     }
 
     Frame *frame = new Frame();
-    ring_buffer_size_t read = PaUtil_ReadRingBuffer(v->rBuff, (void *)frame, 1);
+    PaUtil_ReadRingBuffer(v->rBuff, (void *)frame, 1);
 
     double pts = frame->pts;
     double delay, actualDelay, diff, syncThreshold;
@@ -515,13 +666,6 @@ int NativeVideo::display(void *custom) {
 
 void NativeVideo::buffer()
 {
-    if (!this->playing) {
-        // XXX : Don't buffer if video is not playing
-        // because, right after opening the video file audio migt not 
-        // be connect and thus, the audio packet will not be buffered
-        return;
-    }
-
     if (this->error != 0) {
         SPAM(("=> Not buffering cause of error\n"));
         return;
@@ -549,7 +693,9 @@ void NativeVideo::bufferCoro(void *arg)
         v->buffering = false;
     }
 
-   Coro_switchTo_(v->coro, v->mainCoro);
+    Coro_switchTo_(v->coro, v->mainCoro);
+
+    return;
 }
 
 void NativeVideo::bufferInternal()
@@ -578,27 +724,20 @@ void NativeVideo::bufferInternal()
         int ret = av_read_frame(this->container, &packet);
         SPAM(("    -> post read frame\n"));
 
+        if (ret < 0) {
+            av_free_packet(&packet);
+            if (this->readError(ret) != 0) {
+                printf("got error %d/%d\n", this->eof, this->error);
+                return;
+            }
+        }
+
         if (packet.stream_index == this->videoStream) {
-            if (ret < 0) {
-                if (ret == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
-                    this->eof = true;
-                    if (this->track != NULL) {
-                        //this->track->eof = true; 
-                        // XXX : Need to find out why when setting EOF, track sometimes fail to play when seeking backward
-                    }
-                } else if (ret != AVERROR(EAGAIN)) {
-                    this->sendEvent(SOURCE_EVENT_ERROR, ERR_DECODING, true);
-                }
-                this->error = AVERROR_EOF;
-            } else {
-                this->addPacket(this->videoQueue, &packet);
-                needVideo--;
-            }
-        } else if (packet.stream_index == this->audioStream && this->track != NULL && this->track->isConnected()) {
-            if (ret >= 0) {
-                this->addPacket(this->audioQueue, &packet);
-                needAudio--;
-            }
+            this->addPacket(this->videoQueue, &packet);
+            needVideo--;
+        } else if (packet.stream_index == this->audioStream && ((this->track != NULL && this->track->isConnected()) || this->getClock() == 0)) {
+            this->addPacket(this->audioQueue, &packet);
+            needAudio--;
         } else {
             av_free_packet(&packet);
         }
@@ -613,7 +752,6 @@ void NativeVideo::bufferInternal()
 void *NativeVideo::decode(void *args) 
 {
     NativeVideo *v = static_cast<NativeVideo *>(args);
-    bool condWait = false;
 
     for (;;) {
         if (v->opened) {
@@ -664,7 +802,7 @@ void *NativeVideo::decode(void *args)
                         SPAM(("buffNotEmpty go\n"));
                     } 
                 }
-            } else {
+            } else if (!v->reader->needWakup) {
                 pthread_cond_wait(&v->bufferCond, &v->bufferLock);
             }
         }
@@ -754,6 +892,7 @@ bool NativeVideo::processAudio()
 bool NativeVideo::processVideo()
 {
     if (PaUtil_GetRingBufferWriteAvailable(this->rBuff) < 1) {
+        SPAM(("processVideo not enought space to write data\n"));
         return false;
     }
 
@@ -761,6 +900,10 @@ bool NativeVideo::processVideo()
     Packet *p = this->getPacket(this->videoQueue);
 
     if (p == NULL) {
+        SPAM(("processVideo no more packet\n"));
+        if (this->error == AVERROR_EOF) {
+            this->eof = true;
+        }
         return false;
     }
 

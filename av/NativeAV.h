@@ -30,7 +30,7 @@ struct Coro;
 class NativeAVReader
 {
     public:
-        NativeAVReader() : pending(false), async(false), needWakup(false) {};
+        NativeAVReader() : pending(false), needWakup(false), async(false)  {};
 
         bool pending;
         bool needWakup;
@@ -106,7 +106,7 @@ enum {
 
 enum {
     ERR_FAILED_OPEN,
-    ERR_FAILED_READING,
+    ERR_READING,
     ERR_NO_INFORMATION,
     ERR_NO_AUDIO,
     ERR_NO_VIDEO,
@@ -147,6 +147,8 @@ class NativeAVSource
 
         NativeAVSourceEventCallback eventCbk;
         void *eventCbkCustom;
+        bool opened;
+        bool eof;
 
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
         void sendEvent(int ev, int value, bool fromThread);
@@ -162,9 +164,6 @@ class NativeAVSource
         virtual void seek(double time) = 0;
         double getDuration();
         AVDictionary *getMetadata() ;
-
-        bool opened;
-
     protected:
 	    AVFormatContext *container;
        
@@ -174,7 +173,9 @@ class NativeAVSource
         bool seeking;
         bool doSeek;
         double doSeekTime;
+        int error;
 
+        int readError(int err);
 };
 
 #endif

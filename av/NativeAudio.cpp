@@ -21,6 +21,7 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     pthread_cond_init(&this->queueHaveData, NULL);
     pthread_cond_init(&this->queueHaveSpace, NULL);
 
+
     pthread_mutex_init(&this->decodeLock, NULL);
     pthread_mutex_init(&this->queueLock, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);

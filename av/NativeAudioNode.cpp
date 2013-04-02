@@ -769,29 +769,28 @@ bool NativeAudioTrack::bufferInternal()
         int ret = av_read_frame(this->container, this->tmpPacket);
         if (this->tmpPacket->stream_index == this->audioStream) {
             if (ret < 0) {
-                if (ret == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
-                    this->eof = true;
-                } else if (ret != AVERROR(EAGAIN)) {
-                    this->eof = true;
-                    this->sendEvent(SOURCE_EVENT_ERROR, ERR_FAILED_READING, true);
+                av_free_packet(this->tmpPacket);
+                if (this->readError(ret) < 0) {
+                    return false;
                 }
             } else {
                 this->packetConsumed = false;
             }
 
-            if (this->reader->async) {
-                Coro_switchTo_(this->coro, this->mainCoro);
-            } else {
-                return ret >= 0;
-            }
+            return ret >= 0;
         } else {
             av_free_packet(this->tmpPacket);
         }
     }
+
+    return true;
 }
 
 void NativeAudioTrack::bufferCoro(void *arg) {
-   (static_cast<NativeAudioTrack*>(arg))->bufferInternal();
+    NativeAudioTrack *t = static_cast<NativeAudioTrack*>(arg);
+    t->bufferInternal();
+
+    Coro_switchTo_(t->coro, t->mainCoro);
 }
 
 void NativeAudioTrack::buffer(AVPacket *pkt) {
@@ -869,20 +868,18 @@ bool NativeAudioTrack::decode()
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, true);\
 return false;
-
-
     // No last packet, get a new one
     if (this->packetConsumed) {
         if (this->externallyManaged) {
+            SPAM(("decode() no packet avail\n"));
             return false;
         } else {
             if (!this->buffer()) {
+                SPAM(("decode() buffer call failed\n"));
                 return false;
             }
         }
     }
-
-
 
     // No last frame, get a new one
     if (this->frameConsumed) {
@@ -1219,7 +1216,8 @@ bool NativeAudioTrack::process() {
         this->resetFrames();
         //SPAM(("Not enought to read\n"));
         // EOF reached, send message to NativeAudio
-        if (this->eof) {
+        if (this->error == AVERROR_EOF) {
+            this->eof = true;
             SPAM(("     => EOF\n"));
             if (this->loop) {
                 this->seek(0);

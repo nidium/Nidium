@@ -27,11 +27,11 @@ int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
     return size;
 }
 
+
 int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence) 
 {
     NativeAVBufferReader *reader = static_cast<NativeAVBufferReader *>(opaque);
     int64_t pos = 0;
-
     switch(whence)
     {
         case AVSEEK_SIZE:
@@ -58,7 +58,7 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 
 
 NativeAVFileReader::NativeAVFileReader(const char *src, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
-: source(source), totalRead(0), bufferCond(bufferCond), error(0)
+: source(source), bufferCond(bufferCond), totalRead(0), error(0)
 {
     this->async = true;
     this->nfio = new NativeFileIO(src, this, net);
@@ -71,6 +71,7 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
     
     thiz->pending = true;
     thiz->buffer = buffer;
+    //printf("==== read called %d\n", size);
 
     thiz->nfio->read(size);
 
@@ -130,7 +131,7 @@ void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
         this->error = AVERROR(err);
     }
 
-    printf("NFIOERROR %d\n", err);
+    //printf("NFIOERROR %d\n", err);
 
     this->needWakup = true;
 
@@ -156,6 +157,7 @@ void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t 
     this->error = 0;
     this->needWakup = true;
 
+    //printf("onNFIORead\n");
     pthread_cond_signal(this->bufferCond);
 }
 
@@ -171,8 +173,8 @@ NativeAVFileReader::~NativeAVFileReader()
 
 NativeAVSource::NativeAVSource()
     : eventCbk(NULL), eventCbkCustom(NULL),
-      opened(false), container(NULL), coro(NULL), mainCoro(NULL),
-      doSeek(false), seeking(false)
+      opened(false), eof(false), container(NULL), coro(NULL), mainCoro(NULL),
+      seeking(false), doSeek(false),  error(0)
 {
 }
 
@@ -206,5 +208,25 @@ double NativeAVSource::getDuration()
     }
 
     return this->container->duration/AV_TIME_BASE;
+}
+
+int NativeAVSource::readError(int err)
+{
+    if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
+        //this->eof = true;
+        this->error = AVERROR_EOF;
+        //if (this->track != NULL) {
+            //this->track->eof = true; 
+            // FIXME : Need to find out why when setting EOF, 
+            // track sometimes fail to play when seeking backward
+        //}
+        return 1;
+    } else if (err != AVERROR(EAGAIN)) {
+        this->error = AVERROR(err);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, true);
+        return -1;
+    }
+
+    return 0;
 }
 

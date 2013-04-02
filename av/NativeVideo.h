@@ -71,7 +71,6 @@ class NativeVideo : public NativeAVSource
         void *frameCbkArg;
 
         bool shutdown;
-        bool eof;
 
         uint8_t *tmpFrame;
         uint8_t *frameBuffer;
@@ -127,13 +126,14 @@ class NativeVideo : public NativeAVSource
     private :
         NativeAVReader *reader;
         NativeAudio *audio;
-        int error;
         bool buffering;
         bool seeking;
         pthread_mutex_t audioLock;
 
         void close(bool reset);
         static void seekCoro(void *arg);
+        int64_t seekTarget(double time, int *flags);
+        bool seekMethod(int64_t target, int flags);
         void seekInternal(double time);
 
         void buffer();
