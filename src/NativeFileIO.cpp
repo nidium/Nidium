@@ -239,7 +239,15 @@ NativeFileIO::~NativeFileIO()
 
     pthread_join(threadHandle, NULL);
     del_timer(&this->net->timersng, this->timer);
+
+    NativeSharedMessages::Message msg;
+    while (messages->readMessage(&msg)) {
+        if (msg.event() == NATIVE_FILEREAD_MESSAGE) {
+                delete[] (unsigned char *)msg.dataPtr();
+        }
+    }
     delete messages;
+
     free(filename);
     if (fd != NULL) {
         fclose(fd);
