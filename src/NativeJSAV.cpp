@@ -183,6 +183,9 @@ static JSBool native_video_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_stop(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_nextframe(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_prevframe(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_frameat(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
 static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -195,6 +198,9 @@ static JSFunctionSpec Video_funcs[] = {
     JS_FN("stop", native_video_stop, 0, 0),
     JS_FN("open", native_video_open, 1, 0),
     JS_FN("getAudioNode", native_video_get_audionode, 0, 0),
+    JS_FN("nextFrame", native_video_nextframe, 0, 0),
+    JS_FN("prevFrame", native_video_prevframe, 0, 0),
+    JS_FN("frameAt", native_video_frameat, 1, 0),
     JS_FS_END
 };
 
@@ -225,6 +231,10 @@ static JSPropertySpec Video_props[] = {
     {"metadata", SOURCE_PROP_METADATA, 
         JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
         JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_NULLWRAPPER},
+    {"onframe", VIDEO_PROP_ONFRAME, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT, 
+        JSOP_NULLWRAPPER, 
         JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
@@ -810,6 +820,7 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     //JS_AddObjectRoot(cx, &node->jsobj);
     NJS->rootObjectUntilShutdown(node->jsobj);
     JS_SetPrivate(ret, node);
+    JS_SetReservedSlot(node->jsobj, 0, JSVAL_NULL);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
@@ -1540,6 +1551,35 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
     return JS_TRUE;
 }
 
+static JSBool native_video_nextframe(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+    v->video->nextFrame();
+    return JS_TRUE;
+}
+
+static JSBool native_video_prevframe(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+    v->video->prevFrame();
+    return JS_TRUE;
+}
+
+static JSBool native_video_frameat(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+    double time;
+    JSBool keyframe;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "db", &time, &keyframe)) {
+        return JS_TRUE;
+    }
+
+    v->video->frameAt(time, keyframe == JS_TRUE ? true : false);
+
+    return JS_TRUE;
+}
+
 static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &Video_class, vp);
@@ -1569,8 +1609,6 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
     v->jsobj = ret;
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    //NJS->unrootObject(jaudio->jsobj);
 
     return JS_TRUE;
 }

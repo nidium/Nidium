@@ -173,6 +173,7 @@ class NativeAVSource
         bool seeking;
         bool doSeek;
         double doSeekTime;
+        int seekFlags;
         int error;
 
         int readError(int err);

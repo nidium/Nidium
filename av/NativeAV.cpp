@@ -71,7 +71,7 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
     
     thiz->pending = true;
     thiz->buffer = buffer;
-    //printf("==== read called %d\n", size);
+    //printf("==== read called %d from %lld\n", size, thiz->totalRead);
 
     thiz->nfio->read(size);
 
@@ -125,7 +125,7 @@ int64_t NativeAVFileReader::seek(void *opaque, int64_t offset, int whence)
 
 void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
 {
-    if (this->totalRead >= this->nfio->filesize) {
+    if (this->totalRead >= this->nfio->filesize || err == EOF) {
         this->error = AVERROR_EOF;
     } else {
         this->error = AVERROR(err);
@@ -212,6 +212,7 @@ double NativeAVSource::getDuration()
 
 int NativeAVSource::readError(int err)
 {
+    //printf("readError Got error %d/%d/%d\n", err, AVERROR(err), AVERROR_EOF);
     if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
         //this->eof = true;
         this->error = AVERROR_EOF;
@@ -220,7 +221,7 @@ int NativeAVSource::readError(int err)
             // FIXME : Need to find out why when setting EOF, 
             // track sometimes fail to play when seeking backward
         //}
-        return 1;
+        return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
         this->error = AVERROR(err);
         this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, true);
