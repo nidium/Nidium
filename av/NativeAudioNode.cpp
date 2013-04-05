@@ -1287,14 +1287,16 @@ void NativeAudioTrack::close(bool reset)
             av_free(this->container->pb);
             avformat_free_context(this->container);
 
-            delete this->reader;
-
-            this->reader = NULL;
             this->container = NULL;
         }
         if (!reset) {
             av_free(this->avioBuffer);
         }
+    }
+
+    if (this->reader != NULL) {
+        delete this->reader;
+        this->reader = NULL;
     }
 
     if (!this->packetConsumed) {
