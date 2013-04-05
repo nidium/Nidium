@@ -39,6 +39,9 @@
                     ],
                     'SDKROOT': [
                         'macosx10.7'
+                    ],
+                    'OTHER_CFLAGS': [ 
+                        '-g'
                     ]
                 },
                 'ldflags': [
@@ -86,6 +89,10 @@
                     ],
                     'SDKROOT': [
                         'macosx10.7'
+                    ],
+                    'OTHER_CFLAGS': [ 
+                        '-g',
+                        '-O2'
                     ]
                 },
                 'ldflags': [
