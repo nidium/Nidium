@@ -440,7 +440,7 @@ void NativeAudio::removeTrack(NativeAudioTrack *track)
                 this->tracks = tracks->next;
             }
             if (tracks->next != NULL) {
-                tracks->next->next = tracks->prev;
+                tracks->next->prev = tracks->prev;
             }
             delete tracks;
             return;
