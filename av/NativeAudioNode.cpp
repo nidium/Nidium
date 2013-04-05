@@ -527,7 +527,7 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external)
     : NativeAudioNode(0, out, audio), externallyManaged(external), 
       playing(false), stopped(false), loop(false), reader(NULL),
       codecCtx(NULL), tmpPacket(NULL), 
-      frameConsumed(true), packetConsumed(true), audioStream(-1),
+      frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1),
       swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
 {
     // TODO : Throw exception instead of return
