@@ -48,6 +48,7 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
     if (NJSFIO != NULL) {
         NativeFileIO *NFIO = NJSFIO->getNFIO();
         delete NFIO;
+        delete NJSFIO;
     }
 }
 

@@ -400,7 +400,7 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
 
     jevent = OBJECT_TO_JSVAL(event);
-
+    
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window),
@@ -580,7 +580,7 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 #ifdef DEBUG
         JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
 #endif
-        JS_CallTracer(trc, item->addrs, JSTRACE_OBJECT);
+        JS_CallObjectTracer(trc, (JSObject *)item->addrs, NULL);
         //printf("Tracing object at %p\n", item->addrs);
     }
 }
@@ -670,7 +670,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     JS_SetOptions(cx, JSOPTION_VAROBJFIX);
     #else
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
-        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
     #endif
     JS_SetErrorReporter(cx, reportError);
 

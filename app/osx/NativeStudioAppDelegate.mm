@@ -10,6 +10,8 @@
 
 
 int ape_running = 1;
+int _nativebuild = 1002;
+unsigned long _ape_seed;
 
 @implementation NativeStudioAppDelegate
 
@@ -40,6 +42,7 @@ int ape_running = 1;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     [self setupWorkingDirectory:YES];
+    _ape_seed = time(NULL) ^ (getpid() << 16);
     //NativeConsole *console = [[NativeConsole alloc] init];
     //[console attachToStdout];
     NativeCocoaUIInterface UI;

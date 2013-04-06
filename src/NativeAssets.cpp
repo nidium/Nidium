@@ -93,9 +93,8 @@ void NativeAssets::addToPendingList(Item *item)
 
 void NativeAssets::pendingListUpdate()
 {
-    for (struct item_list *il = pending_list.head; il != NULL &&
-        il->item->state == NativeAssets::Item::ITEM_LOADED; il = il->next) {
-
+    struct item_list *il = pending_list.head, *ilnext;
+    while (il != NULL && il->item->state == NativeAssets::Item::ITEM_LOADED) {
         itemReady(il->item, readyArg);
 
         pending_list.head = il->next;
@@ -104,6 +103,9 @@ void NativeAssets::pendingListUpdate()
             pending_list.foot = NULL;
         }
 
+        ilnext = il->next;
         free(il);
+
+        il = ilnext;
     }
 }

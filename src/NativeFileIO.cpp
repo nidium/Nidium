@@ -240,6 +240,8 @@ NativeFileIO::~NativeFileIO()
     pthread_join(threadHandle, NULL);
     del_timer(&this->net->timersng, this->timer);
 
+    printf("Deleted!\n");
+
     NativeSharedMessages::Message msg;
     while (messages->readMessage(&msg)) {
         if (msg.event() == NATIVE_FILEREAD_MESSAGE) {

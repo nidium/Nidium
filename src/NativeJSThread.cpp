@@ -90,7 +90,7 @@ static void *native_thread(void *arg)
     JS_SetVersion(tcx, JSVERSION_LATEST);
 
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
-        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION/* | JSOPTION_ASMJS*/);
 
     if (!JS_InitStandardClasses(tcx, gbl))
         return NULL;

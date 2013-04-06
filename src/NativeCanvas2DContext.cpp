@@ -1496,7 +1496,6 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
-        printf("Deleting gradient\n");
         delete gradient;
     }
 }
