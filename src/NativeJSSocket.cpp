@@ -90,8 +90,6 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape)
 
     cx = nsocket->cx;
 
-    nsocket->socket = s;
-
     if (JS_GetProperty(cx, nsocket->jsobject, "onconnect", &onconnect) &&
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
 
@@ -378,6 +376,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 
     socket->ctx = nsocket;
 
+    nsocket->socket   = socket;
     nsocket->cx       = cx;
     nsocket->jsobject = caller;
 
