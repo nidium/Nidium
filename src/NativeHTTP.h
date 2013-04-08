@@ -26,6 +26,9 @@ class NativeHTTPRequest
 
         ~NativeHTTPRequest(){
             ape_array_destroy(this->headers);
+            if (data != NULL && datafree != NULL) {
+                datafree(data);
+            }
         };
 
         void setHeader(const char *key, const char *val)
@@ -51,10 +54,29 @@ class NativeHTTPRequest
             return this->headers;
         }
 
+        void setData(char *data, size_t len) {
+            this->data = data;
+            this->datalen = len;
+        }
+
+        const char *getData() const {
+            return this->data;
+        }
+
+        size_t getDataLength() const {
+            return this->datalen;
+        }
+
+        void setDataReleaser(void (*datafree)(void *))
+        {
+            this->datafree = datafree;
+        }
     private:
         char *host;
         char *path;
         char *data;
+        size_t datalen;
+        void (*datafree)(void *);
         u_short port;
 
         ape_array_t *headers;

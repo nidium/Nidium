@@ -142,10 +142,13 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     GET_OPT("data") {
         JSString *data = JS_ValueToString(cx, curopt);
         if (data != NULL) {
-            JSAutoByteString cdata(cx, data);
+            char *hdata = JS_EncodeString(cx, data);
+            req->setData(hdata, strlen(hdata));
+            req->setDataReleaser(js_free);
+
             req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
             char num[16];
-            sprintf(num, "%ld", cdata.length());
+            sprintf(num, "%ld", req->getDataLength());
             req->setHeader("Content-Length", num);
         }
     }

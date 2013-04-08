@@ -206,6 +206,12 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
 
     APE_socket_write(s, data->data, data->used, APE_DATA_COPY);
 
+    if (nhttp->getRequest()->getData() != NULL &&
+        nhttp->getRequest()->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
+        
+        APE_socket_write(s, (unsigned char *)nhttp->getRequest()->getData(),
+            nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
+    }
     buffer_destroy(data);
 }
 
@@ -476,7 +482,7 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
 }
 
 NativeHTTPRequest::NativeHTTPRequest(const char *url) :
-    data(NULL)
+    data(NULL), datalen(0), datafree(free), headers(ape_array_new(8))
 {
     size_t url_len = strlen(url);
     char *durl = (char *)malloc(sizeof(char) * (url_len+1));
@@ -498,7 +504,6 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
 
     free(durl);
 
-    this->headers = ape_array_new(8);
 }
 
 buffer *NativeHTTPRequest::getHeadersData() const
