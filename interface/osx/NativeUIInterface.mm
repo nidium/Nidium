@@ -46,6 +46,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     break;
                 case SDL_QUIT:
                     NSLog(@"Quit?");
+                    if (NUII->nml) delete NUII->nml;
                     delete NUII->NJS;
                     SDL_Quit();
                     [[NSApplication sharedApplication] terminate:nil];
@@ -80,6 +81,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         }
                         //printf("\n\n=======Refresh...=======\n");
                         //[console clear];
+                        if (NUII->nml) delete NUII->nml;
                         delete NUII->NJS;
                         //printf("\n\n=======Restarting...=====\n");
                         glClearColor(1, 1, 1, 0);
@@ -88,9 +90,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         NUII->NJS = new NativeJS(NUII->getWidth(),
                             NUII->getHeight(), NUII, NUII->gnet);
 
-                        NativeNML *nml = new NativeNML(NUII->gnet);
-                        nml->setNJS(NUII->NJS);
-                        nml->loadFile("index.nml");
+                        NUII->nml = new NativeNML(NUII->gnet);
+                        NUII->nml->setNJS(NUII->NJS);
+                        NUII->nml->loadFile("index.nml");
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -202,9 +204,9 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     }
     printf("Changing directory to : %s\n", fpath);
 
-    NativeNML *nml = new NativeNML(ui->gnet);
-    nml->setNJS(ui->NJS);
-    nml->loadFile("./index.nml");
+    ui->nml = new NativeNML(ui->gnet);
+    ui->nml->setNJS(ui->NJS);
+    ui->nml->loadFile("./index.nml");
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
@@ -217,9 +219,9 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             return false;
         }
 
-        NativeNML *nml = new NativeNML(this->gnet);
-        nml->setNJS(this->NJS);
-        nml->loadFile("index.nml");
+        this->nml = new NativeNML(this->gnet);
+        this->nml->setNJS(this->NJS);
+        this->nml->loadFile("index.nml");
 
         return true;
     } else {
@@ -259,6 +261,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
 {
     this->width = 0;
     this->height = 0;
+    this->nml = NULL;
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
 

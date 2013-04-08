@@ -33,6 +33,8 @@ class NativeNML : public NativeFileIODelegate
     }
 
     private:
+
+        void addAsset(NativeAssets *);
         ape_global *net;
         NativeFileIO *NFIO;
 
@@ -47,6 +49,12 @@ class NativeNML : public NativeFileIODelegate
         };
 
         NativeJS *njs;
+
+        struct {
+            NativeAssets **list;
+            uint32_t allocated;
+            uint32_t size;
+        } assetsList;
 };
 
 #endif

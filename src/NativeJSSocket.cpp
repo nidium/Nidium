@@ -351,10 +351,7 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
     NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
     jsval ondisconnect, rval;
 
-    printf("Disconnected\n");
-
     if (nsocket == NULL || !nsocket->isJSCallable()) {
-        printf("Not callable\n");
         return;
     }
 
@@ -590,7 +587,6 @@ static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
 
     if (nsocket != NULL) {
-        printf("Finalizing socket\n");
         delete nsocket;
     }
 }

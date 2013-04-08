@@ -680,6 +680,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
         return;
     }
 
+    //js::frontend::ion::js_IonOptions.gvnIsOptimistic = true;
     //JS_SetGCCallback(rt, gccb);
     JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 

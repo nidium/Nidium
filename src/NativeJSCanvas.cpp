@@ -438,8 +438,12 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
+                printf("Not a number dafuk\n");
                 return JS_TRUE;
             }
+            double fval;
+            JS_ValueToNumber(cx, vp, &fval);
+            printf("Val : %f\n", fval);
             JS_ValueToECMAUint32(cx, vp, &dval);
             
             if (!handler->setHeight(dval)) {

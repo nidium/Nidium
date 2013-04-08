@@ -7,12 +7,21 @@
 NativeNML::NativeNML(ape_global *net) :
     net(net), NFIO(NULL), njs(NULL)
 {
+    assetsList.size = 0;
+    assetsList.allocated = 4;
 
+    assetsList.list = (NativeAssets **)malloc(sizeof(NativeAssets *) * assetsList.allocated);
 }
 
 NativeNML::~NativeNML()
 {
-
+    if (NFIO) {
+        delete NFIO;
+    }
+    for (int i = 0; i < assetsList.size; i++) {
+        delete assetsList.list[i];
+    }
+    free(assetsList.list);
 }
 
 void NativeNML::loadFile(const char *file)
@@ -61,11 +70,25 @@ static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
     nml->onAssetsItemReady(item);
 }
 
+void NativeNML::addAsset(NativeAssets *asset)
+{
+    if (assetsList.size == assetsList.allocated) {
+        assetsList.allocated *= 2;
+        assetsList.list = (NativeAssets **)realloc(assetsList.list, sizeof(NativeAssets *) * assetsList.allocated);
+    }
+
+    assetsList.list[assetsList.size] = asset;
+
+    assetsList.size++;
+}
+
 void NativeNML::loadAssets(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
 
     NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead, this);
+
+    this->addAsset(assets);
 
     for (xml_node<> *child = node.first_node(); child != NULL;
         child = child->next_sibling())
@@ -82,8 +105,7 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
 
             assets->addToPendingList(item);
         } else {
-            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, net);            
-            
+            item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, net);
             item->setName("inline");
             assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
