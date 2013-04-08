@@ -49,6 +49,8 @@ static JSFunctionSpec socket_funcs[] = {
 static JSPropertySpec Socket_props[] = {
     {"binary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_socket_prop_set)},
+    {"readline", SOCKET_PROP_READLINE, 0, JSOP_NULLWRAPPER,
+    JSOP_WRAPPER(native_socket_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -72,6 +74,29 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
             }
         }
         break;
+        case SOCKET_PROP_READLINE:
+        {
+            NativeJSSocket *nsocket;
+            if (JSVAL_IS_BOOLEAN(vp) &&
+                (nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get())) != NULL) {
+
+                nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
+                    nsocket->flags | NATIVE_SOCKET_READLINE :
+                    nsocket->flags & ~NATIVE_SOCKET_READLINE);
+
+                if (JSVAL_TO_BOOLEAN(vp) == JS_TRUE &&
+                    nsocket->lineBuffer.data == NULL) {
+
+                    nsocket->lineBuffer.data = (char *)malloc(sizeof(char)
+                        * SOCKET_LINEBUFFER_MAX);
+                    nsocket->lineBuffer.pos = 0;
+                }
+            } else {
+                vp.set(JSVAL_FALSE);
+                return JS_TRUE;
+            }
+        }
+        break;        
         default:
             break;
     }
@@ -132,6 +157,31 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     }
 }
 
+inline static void native_socket_readcb(NativeJSSocket *nsocket, char *data, size_t len)
+{
+    jsval onread, rval, jdata;
+    JSContext *cx = nsocket->cx;
+    JSString *tstr = JS_NewStringCopyN(cx, data, len);
+    JSString *jstr = tstr;
+
+    if (nsocket->lineBuffer.pos && nsocket->flags & NATIVE_SOCKET_READLINE) {
+        JSString *left = JS_NewStringCopyN(cx, nsocket->lineBuffer.data,
+            nsocket->lineBuffer.pos);
+
+        jstr = JS_ConcatStrings(cx, left, tstr);
+        nsocket->lineBuffer.pos = 0;
+    }
+
+    jdata = STRING_TO_JSVAL(jstr);
+
+    if (JS_GetProperty(cx, nsocket->jsobject, "onread", &onread) &&
+        JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, nsocket->jsobject, onread,
+            1, &jdata, &rval);
+    }    
+}
+
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
     ape_global *ape)
 {
@@ -154,6 +204,29 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
         memcpy(data, socket_client->data_in.data, socket_client->data_in.used);
 
         jparams[1] = OBJECT_TO_JSVAL(arrayBuffer);
+
+    } else if (nsocket->flags & NATIVE_SOCKET_READLINE) {
+        char *pBuf = (char *)socket_client->data_in.data;
+        size_t len = socket_client->data_in.used;
+        char *eol;
+
+        while (len > 0 && (eol = (char *)memchr(pBuf, '\n', len)) != NULL) {
+            size_t pLen = eol - pBuf;
+            len -= pLen;
+            if (len-- > 0) {
+                native_socket_readcb(nsocket, pBuf, pLen);
+                pBuf = eol+1;
+            }
+        }
+
+        if (len && len+nsocket->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+            memcpy(nsocket->lineBuffer.data+nsocket->lineBuffer.pos, pBuf, len);
+            nsocket->lineBuffer.pos += len;
+        } else if (len) {
+            nsocket->lineBuffer.pos = 0;
+        }
+
+        return;
 
     } else {
         JSString *jstr = JS_NewStringCopyN(cx, (char *)socket_client->data_in.data,
@@ -194,6 +267,29 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
         memcpy(data, s->data_in.data, s->data_in.used);
 
         jdata = OBJECT_TO_JSVAL(arrayBuffer);
+
+    } else if (nsocket->flags & NATIVE_SOCKET_READLINE) {
+        char *pBuf = (char *)s->data_in.data;
+        size_t len = s->data_in.used;
+        char *eol;
+
+        while (len > 0 && (eol = (char *)memchr(pBuf, '\n', len)) != NULL) {
+            size_t pLen = eol - pBuf;
+            len -= pLen;
+            if (len-- > 0) {
+                native_socket_readcb(nsocket, pBuf, pLen);
+                pBuf = eol+1;
+            }
+        }
+
+        if (len && len+nsocket->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+            memcpy(nsocket->lineBuffer.data+nsocket->lineBuffer.pos, pBuf, len);
+            nsocket->lineBuffer.pos += len;
+        } else if (len) {
+            nsocket->lineBuffer.pos = 0;
+        }
+
+        return;
 
     } else {
         JSString *jstr = JS_NewStringCopyN(cx, (char *)s->data_in.data,
@@ -491,7 +587,6 @@ static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
 
     if (nsocket != NULL) {
-        printf("Finalize confirmed\n");
         delete nsocket;
     }
 }
@@ -499,9 +594,8 @@ static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
-    printf("Finalized client\n");
+
     if (nsocket != NULL) {
-        printf("Finalize client confirmed\n");
         delete nsocket;
     }
 }
@@ -513,16 +607,21 @@ NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
 
     this->host = strdup(host);
     this->port = port;
+
+    lineBuffer.pos = 0;
+    lineBuffer.data = NULL;
 }
 
 NativeJSSocket::~NativeJSSocket()
 {
     if (isAttached()) {
         socket->ctx = NULL;
-        printf("destructor called\n");
         this->disconnect();
     }
     free(host);
+    if (lineBuffer.data) {
+        free(lineBuffer.data);
+    }
 }
 
 bool NativeJSSocket::isAttached()
