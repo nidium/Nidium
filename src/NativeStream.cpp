@@ -56,7 +56,8 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
 
     switch(interface) {
         case INTERFACE_HTTP:
-            this->interface = new NativeHTTP(this->location, this->net);
+            this->interface = new NativeHTTP(
+                new NativeHTTPRequest(this->location), this->net);
             break;
         case INTERFACE_PRIVATE:
         {

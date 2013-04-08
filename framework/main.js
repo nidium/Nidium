@@ -15,7 +15,7 @@ require("falcon/native.js");
 //require("applications/demos/profiler.js");
 //require("applications/demos/style.js");
 //require("applications/demos/windows.js");
-require("applications/demos/dropdown.js");
+//require("applications/demos/dropdown.js");
 //require("applications/demos/sliders.js");
 //require("applications/demos/scrollbars.js");
 //require("applications/demos/modal.js");
@@ -58,3 +58,12 @@ require("applications/demos/dropdown.js");
 
 //require("applications/NatBug.nap");
 
+var h = new Http("http://google.fr").request({
+    headers: {
+        'foo':'bar',
+        'yo': "hey"
+    },
+    data: "gros tat"
+}, function(e) {
+
+});

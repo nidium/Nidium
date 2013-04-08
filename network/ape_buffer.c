@@ -101,7 +101,7 @@ void buffer_append_string_n(buffer *b, const char *string, size_t length)
     buffer_prepare(b, length + 1);
 
     memcpy(b->data + b->used, string, length + 1);
-    b->used = length;
+    b->used += length;
 }
 
 /* taken from PHP 5.3 */
