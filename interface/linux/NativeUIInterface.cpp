@@ -7,6 +7,8 @@
 #include <SDL_opengl.h>
 #include <SDL_syswm.h>
 #include <native_netlib.h>
+#include <NativeNML.h>
+
 #include <X11/Xlib.h>
 
 #define kNativeWidth 1280
@@ -85,9 +87,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         NUII->NJS = new NativeJS(NUII->getWidth(),
                             NUII->getHeight(), NUII, NUII->gnet);
 
-                        if (NUII->NJS->LoadScript("./main.js")) {
-                            NUII->NJS->Loaded();
-                        }
+                        NativeNML *nml = new NativeNML(NUII->gnet);
+                        nml->setNJS(NUII->NJS);
+                        nml->loadFile("index.nml");
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -191,10 +193,9 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
     chdir(fpath);
     printf("Changing directory to : %s\n", fpath);
-    if (ui->NJS->LoadScript("./main.js")) {
-        printf("Running main?\n");
-        ui->NJS->Loaded();
-    }
+    NativeNML *nml = new NativeNML(ui->gnet);
+    nml->setNJS(ui->NJS);
+    nml->loadFile("./index.nml");
 }
 
 bool NativeX11UIInterface::runApplication(const char *path)
@@ -205,11 +206,11 @@ bool NativeX11UIInterface::runApplication(const char *path)
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
-        if (this->NJS->LoadScript("./main.js")) {
 
-            this->NJS->Loaded();
-            return true;
-        }
+        NativeNML *nml = new NativeNML(this->gnet);
+        nml->setNJS(this->NJS);
+        nml->loadFile("index.nml");
+
         return true;
     } else {
         NativeApp *app = new NativeApp(path);
