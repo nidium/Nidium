@@ -568,10 +568,7 @@ void NativeVideo::seekInternal(double time)
                     SPAM(("[SEEK] got seek frame at=%f\n", pts));
                     Packet *tmp = this->videoQueue->head;
                     this->videoQueue->head = p;
-                    p->prev = NULL;
-                    if (tmp != NULL) {
-                        tmp->prev = p;
-                    } else {
+                    if (tmp == NULL) {
                         this->videoQueue->tail = p;
                     }
                     p->next = tmp;

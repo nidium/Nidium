@@ -93,12 +93,9 @@ class NativeAudioNode
         float **frames;
 
         bool nullFrames;
-        int nodeProcessed;
-        int totalProcess;
+        bool processed;
         NodeLink *input[32];
         NodeLink *output[32];
-
-        int inQueueCount;
 
         int inCount;
         int outCount;
@@ -123,15 +120,23 @@ class NativeAudioNode
         bool unqueue(NodeLink *in, NodeLink *out);
 
         bool recurseGetData(int *sourceFailed);
+        void processQueue();
+        bool isConnected();
 
         virtual bool process() = 0;
 
         virtual ~NativeAudioNode() = 0;
     protected:
         bool doNotProcess;
+        float *newFrame();
 
     private:
         void post(int msg, void *source, void *dest, unsigned long size);
+        bool isFrameOwner(float *frame)
+        {
+            void *tmp = (void *)*((ptrdiff_t *)&(frame[this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels]));
+            return tmp == (void*)this;
+        }
         NodeIO **getWire(NodeLink *link) 
         {
             for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
@@ -289,7 +294,6 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool getFrame();
         double getClock();
         void drop(double ms);
-        bool isConnected();
 
         NativeAVReader *reader;
 

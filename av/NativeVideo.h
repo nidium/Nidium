@@ -40,11 +40,10 @@ class NativeVideo : public NativeAVSource
 
         struct Packet {
             AVPacket curr;
-            Packet *prev;
             Packet *next;
             
             Packet() 
-                : prev(NULL), next(NULL) {}
+                : next(NULL) {}
         };
 
         struct PacketQueue {
