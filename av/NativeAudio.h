@@ -114,6 +114,7 @@ class NativeAudio
         NativeAudioTracks *tracks;
         int queueCount;
 
+        void processQueue();
         inline bool haveSourceActive(bool excludeExternal);
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,

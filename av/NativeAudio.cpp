@@ -21,7 +21,6 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     pthread_cond_init(&this->queueHaveData, NULL);
     pthread_cond_init(&this->queueHaveSpace, NULL);
 
-
     pthread_mutex_init(&this->decodeLock, NULL);
     pthread_mutex_init(&this->queueLock, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);
@@ -140,17 +139,17 @@ void *NativeAudio::queueThread(void *args) {
                 }
 */
                 if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
+                    audio->processQueue();
 
-                    if (!audio->output->recurseGetData(&sourceFailed)) {
+                    if (!audio->output->processed) {
                         break;
-                    } else {
-                        wrote = true;
-                    }
+                    } 
 
-                    audio->output->nodeProcessed = 0;
+                    wrote = true;
+                    audio->output->processed = false;
                     cause = 0;
 
-                    // Copy output's frame data to output ring buffer
+                    // Copy output frame data to output ring buffer
                     for (int i = 0; i < audio->output->inCount; i++) {
                         if (audio->output->frames[i] != NULL) {
                             PaUtil_WriteRingBuffer(audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
@@ -162,7 +161,6 @@ void *NativeAudio::queueThread(void *args) {
                     cause = 1;
                     break;
                 }
-
             }
 
             pthread_mutex_unlock(&audio->recurseLock);
@@ -188,6 +186,21 @@ void *NativeAudio::queueThread(void *args) {
 
     return NULL;
 #undef MAX_MSG_IN_ROW
+}
+
+void NativeAudio::processQueue()
+{
+    SPAM(("process queue\n"));
+    NativeAudioTracks *tracks = this->tracks;
+
+    while (tracks != NULL) 
+    {
+        if (tracks->curr != NULL && tracks->curr->isConnected()) {
+            tracks->curr->processQueue();
+        }
+        tracks = tracks->next;
+    }
+    SPAM(("-------------------------------- finished\n"));
 }
 
 // TODO : Locking/unlocking for tracks list
