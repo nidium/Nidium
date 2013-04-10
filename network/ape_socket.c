@@ -243,6 +243,7 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
                 sizeof(struct sockaddr)) == 0 ||
                 (errno != EWOULDBLOCK && errno != EINPROGRESS)) {
         APE_socket_destroy(socket);
+        printf("Socket error (connect() failed)\n");
         return -1;
     }
 
@@ -268,7 +269,7 @@ int APE_socket_connect(ape_socket *socket, uint16_t port,
     ape_gethostbyname(remote_ip_host, ape_socket_connect_ready_to_connect,
             socket, socket->ape);
 #else
-    ape_socket_connect_ready_to_connect(remote_ip_host, socket, 0);
+    return ape_socket_connect_ready_to_connect(remote_ip_host, socket, 0);
 #endif
     return 0;
 }

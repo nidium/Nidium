@@ -103,6 +103,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
             req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
+        } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
+            req->method = NativeHTTPRequest::NATIVE_HTTP_HEAD;
         } else {
             req->method = NativeHTTPRequest::NATIVE_HTTP_GET;
         }

@@ -11,8 +11,8 @@
 #import "native_netlib.h"
 #import "ape_timers.h"
 
-#define kNativeWidth 1024
-#define kNativeHeight 768
+#define kNativeWidth 300
+#define kNativeHeight 300
 #define kFPS 100
 
 

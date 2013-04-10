@@ -89,6 +89,7 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"opacity", CANVAS_PROP_OPACITY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
@@ -179,6 +180,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setCoordinates", native_canvas_setCoordinates, 2, 0),
     JS_FN("translate", native_canvas_translate, 2, 0),
     JS_FN("getVisibleRect", native_canvas_getVisibleRect, 0, 0),
+    JS_FN("setSize", native_canvas_setSize, 2, 0),
     JS_FS_END
 };
 
@@ -192,6 +194,20 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
 {
     HANDLER_FROM_CALLEE->setHidden(true);
+    
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp)
+{
+    int width, height;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
+        &width, &height)) {
+        return JS_TRUE;
+    }
+
+    HANDLER_FROM_CALLEE->setSize(width, height);
     
     return JS_TRUE;
 }
@@ -691,7 +707,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     handler = new NativeCanvasHandler(width, height);
-    handler->context = new NativeCanvas2DContext(cx, width, height);
+    handler->context = new NativeCanvas2DContext(handler, cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
 
@@ -748,7 +764,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
     handler = new NativeCanvasHandler(width, height);
-    handler->context = new NativeCanvas2DContext(cx, width, height);
+    handler->context = new NativeCanvas2DContext(handler, cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
     

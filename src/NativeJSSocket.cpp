@@ -477,7 +477,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     nsocket->jsobject = caller;
 
     if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
-        JS_ReportError(cx, "Can't listen on socket (%s:%d)", nsocket->host,
+        JS_ReportError(cx, "Can't connect on socket (%s:%d)", nsocket->host,
             nsocket->port);
         return JS_FALSE;
     }

@@ -19,7 +19,8 @@ class NativeHTTPRequest
     public:
         enum {
             NATIVE_HTTP_GET,
-            NATIVE_HTTP_POST
+            NATIVE_HTTP_POST,
+            NATIVE_HTTP_HEAD
         } method;
 
         NativeHTTPRequest(const char *url);

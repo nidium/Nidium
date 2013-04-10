@@ -272,7 +272,7 @@ void NativeJS::createDebugCanvas()
 {
     static const int DEBUG_HEIGHT = 60;
     debugHandler = new NativeCanvasHandler(surface->getWidth(), DEBUG_HEIGHT);
-    debugHandler->context = new NativeCanvas2DContext(surface->getWidth(), DEBUG_HEIGHT, false);
+    debugHandler->context = new NativeCanvas2DContext(debugHandler, surface->getWidth(), DEBUG_HEIGHT, false);
 
     rootHandler->addChild(debugHandler);
     debugHandler->setRight(0);
@@ -695,7 +695,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
 
     /* surface containing the window frame buffer */
     rootHandler = new NativeCanvasHandler(width, height);
-    rootHandler->context = new NativeCanvas2DContext(width, height);
+    rootHandler->context = new NativeCanvas2DContext(rootHandler, width, height);
     surface = rootHandler->context->skia;
 
     JS_SetRuntimePrivate(rt, this);

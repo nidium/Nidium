@@ -208,7 +208,7 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
 
     if (nhttp->getRequest()->getData() != NULL &&
         nhttp->getRequest()->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
-        
+
         APE_socket_write(s, (unsigned char *)nhttp->getRequest()->getData(),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
     }
@@ -513,6 +513,9 @@ buffer *NativeHTTPRequest::getHeadersData() const
     switch (this->method) {
         case NATIVE_HTTP_GET:
             buffer_append_string_n(ret, CONST_STR_LEN("GET "));
+            break;
+        case NATIVE_HTTP_HEAD:
+            buffer_append_string_n(ret, CONST_STR_LEN("HEAD "));
             break;
         case NATIVE_HTTP_POST:
             buffer_append_string_n(ret, CONST_STR_LEN("POST "));
