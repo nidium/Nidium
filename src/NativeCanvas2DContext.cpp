@@ -294,7 +294,7 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
         &width, &height)) {
         return JS_TRUE;
     }
-
+    
     NSKIA_NATIVE->clearRect(x, y, width, height);
 
     return JS_TRUE;

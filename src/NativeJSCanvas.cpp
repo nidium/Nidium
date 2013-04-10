@@ -90,6 +90,7 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSPropertySpec canvas_props[] = {
     {"opacity", CANVAS_PROP_OPACITY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
@@ -181,6 +182,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("translate", native_canvas_translate, 2, 0),
     JS_FN("getVisibleRect", native_canvas_getVisibleRect, 0, 0),
     JS_FN("setSize", native_canvas_setSize, 2, 0),
+    JS_FN("clear", native_canvas_clear, 0, 0),
     JS_FS_END
 };
 
@@ -194,6 +196,14 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
 {
     HANDLER_FROM_CALLEE->setHidden(true);
+    
+    return JS_TRUE;
+}
+
+static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
+{
+
+    HANDLER_FROM_CALLEE->context->clear(0x00000000);
     
     return JS_TRUE;
 }
