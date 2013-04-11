@@ -57,6 +57,8 @@ private:
     struct _ape_timer *timer;
     struct _ape_global *net;
 
+    bool autoClose;
+
 };
 
 class NativeFileIODelegate

@@ -532,15 +532,19 @@ static JSBool native_canvas2dctx_translate(JSContext *cx, unsigned argc, jsval *
 
 static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *vp)
 {
-    double scalex, skewx, skewy, scaley, translatex, translatey;
+    double scalex, skewx, skewy, scaley, translatex, translatey, rotate;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
-        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd/d",
+        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey, &rotate)) {
         return JS_TRUE;
     }
 
     NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
         translatex, translatey, 0);
+
+    if (argc == 7) {
+        NSKIA_NATIVE->rotate(rotate);
+    }
 
     return JS_TRUE;
 }

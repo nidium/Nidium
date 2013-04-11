@@ -4,6 +4,10 @@
 #include "NativeHTTP.h"
 #include "NativeFileIO.h"
 #include <ape_base64.h>
+#include "NativeUtils.h"
+
+#include <fcntl.h>
+#include <sys/mman.h>
 
 static struct _native_stream_interfaces {
     const char *str;
@@ -16,13 +20,21 @@ static struct _native_stream_interfaces {
     {NULL,           NativeStream::INTERFACE_UNKNOWN}
 };
 
-NativeStream::NativeStream(ape_global *net, const char *location)
+NativeStream::NativeStream(ape_global *net, const char *location) :
+    packets(0), needToSendUpdate(false)
 {
     this->interface = NULL;
     this->location  = strdup(location);
     this->net = net;
     this->IInterface = INTERFACE_UNKNOWN;
     this->delegate  = NULL;
+
+    dataBuffer.current = NULL;
+    dataBuffer.next = NULL;
+    dataBuffer.alreadyRead = false;
+
+    mapped.addr = NULL;
+    mapped.fd   = 0;
 
     this->getInterface();
 }
@@ -95,6 +107,79 @@ static int NativeStream_data_getContent(void *arg)
     return 0;
 }
 
+void NativeStream::start(size_t packets)
+{
+    this->packets = packets;
+    if (dataBuffer.current == NULL) {
+        dataBuffer.current = buffer_new(packets);
+        dataBuffer.next    = buffer_new(packets);
+        printf("Creating buffers...\n");
+    }
+
+    needToSendUpdate = true;
+
+    switch(IInterface) {
+        case INTERFACE_FILE:
+        {
+            printf("Opening file...\n");
+            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            file->open("r");
+            break;
+        }
+        case INTERFACE_HTTP:
+        {
+            mapped.fd = open("/tmp/nativesstream.data",
+                O_RDWR | O_CREAT | O_TRUNC, S_IRUSR| S_IWUSR);
+            if (mapped.fd == 0) {
+                return;
+            }
+            mapped.addr = mmap(NULL, packets,
+                PROT_READ|PROT_WRITE, MAP_SHARED, mapped.fd, 0);
+            
+            NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
+            http->request(this);            
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+/* Sync read in memory the current packet and start grabbing the next one
+   data remains readable until the next getNextPacket().
+*/
+const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
+{
+    needToSendUpdate = true;
+
+    if (dataBuffer.alreadyRead) {
+        *len = 0;
+        *err = STREAM_EAGAIN;
+        return NULL;
+    }
+    *err = 0;
+    *len = native_min(dataBuffer.current->used, this->getPacketSize());
+    unsigned char *data = dataBuffer.current->data;
+    
+    buffer *tmp = dataBuffer.current;
+    dataBuffer.current = dataBuffer.next;
+    dataBuffer.next = tmp;
+    dataBuffer.alreadyRead = true;
+
+    switch(IInterface) {
+        case INTERFACE_FILE:
+        {
+            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            file->read(this->getPacketSize());
+            break;
+        }
+        default:
+            break;
+    }
+
+    return data;
+}
+
 void NativeStream::getContent()
 {
     ape_global *ape = this->net;
@@ -129,7 +214,8 @@ void NativeStream::getContent()
 void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
 {
     if (this->delegate) {
-        NFIO->read(NFIO->filesize);
+        size_t packetSize = this->getPacketSize();
+        NFIO->read(packetSize == 0 ? NFIO->filesize : packetSize);
     }
 }
 
@@ -140,10 +226,14 @@ void NativeStream::onNFIOError(NativeFileIO *NFIO, int errno)
 
 void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
 {
-    NFIO->close();
-
     if (this->delegate) {
         this->delegate->onGetContent((const char *)data, len);
+        if (needToSendUpdate) {
+            dataBuffer.alreadyRead = false;
+            needToSendUpdate = false;
+            buffer_append_data(dataBuffer.current, data, len);
+            this->delegate->onAvailableData(len);
+        }
     }
 }
 
@@ -179,6 +269,10 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 NativeStream::~NativeStream()
 {
     free(location);
+
+    buffer_destroy(dataBuffer.current);
+    buffer_destroy(dataBuffer.next);
+
     if (this->interface) {
         delete this->interface;
     }

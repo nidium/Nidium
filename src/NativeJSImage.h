@@ -29,6 +29,7 @@ class NativeJSImage : public NativeJSExposer, public NativeStreamDelegate
     static JSObject *classe;
 
     void onGetContent(const char *data, size_t len);
+    void onAvailableData(size_t len){};
     /*
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onProgress(size_t offset, size_t len,

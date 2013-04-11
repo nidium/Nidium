@@ -43,8 +43,6 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     tag.content.len = len;
     tag.content.isBinary = false;
 
-    printf("Got a tag : %s\n", item->getTagName());
-
     switch(item->fileType) {
         case NativeAssets::Item::ITEM_SCRIPT:
         {
@@ -129,8 +127,6 @@ void NativeNML::loadData(char *data, size_t len)
 
     xml_document<> doc;
 
-    printf("Loading data\n");
-
     try {
         doc.parse<0>(data);
     } catch(rapidxml::parse_error &err) {
@@ -151,8 +147,6 @@ void NativeNML::loadData(char *data, size_t len)
         for (int i = 0; nml_tags[i].str != NULL; i++) {
             if (!strncasecmp(nml_tags[i].str, child->name(),
                 child->name_size())) {
-
-                printf("Found tag : %s\n", child->name());
 
                 (this->*nml_tags[i].cb)(*child);
             }

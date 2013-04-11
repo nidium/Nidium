@@ -23,7 +23,6 @@ static void *native_fileio_thread(void *arg)
         }
         if (NFIO->action.stop) {
             pthread_mutex_unlock(&NFIO->threadMutex);
-            //printf("Thread ended 1\n");
             return NULL;
         }
 
@@ -41,7 +40,6 @@ static void *native_fileio_thread(void *arg)
                 free(NFIO->action.ptr);
                 break;
             default:
-                printf("unknown action\n");
                 break;
         }
         NFIO->action.active = false;
@@ -113,6 +111,11 @@ void NativeFileIO::readAction(uint64_t len)
         }
         delete[] data;
         return;
+    }
+    if (feof(fd) && autoClose) {
+        printf("End of file reached\n");
+        fclose(fd);
+        fd = NULL;
     }
 
     /* Always null-terminate the returned data (don't impact returned size) */
@@ -205,7 +208,7 @@ void NativeFileIO::close()
 
 NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     ape_global *net) :
-    fd(NULL)
+    fd(NULL), autoClose(true)
 {
     messages = new NativeSharedMessages();
     this->filename = strdup(filename);
@@ -243,7 +246,7 @@ NativeFileIO::~NativeFileIO()
     NativeSharedMessages::Message msg;
     while (messages->readMessage(&msg)) {
         if (msg.event() == NATIVE_FILEREAD_MESSAGE) {
-                delete[] (unsigned char *)msg.dataPtr();
+            delete[] (unsigned char *)msg.dataPtr();
         }
     }
     delete messages;
@@ -252,6 +255,5 @@ NativeFileIO::~NativeFileIO()
     if (fd != NULL) {
         fclose(fd);
     }
-
 }
 

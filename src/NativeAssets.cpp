@@ -106,6 +106,15 @@ void NativeAssets::addToPendingList(Item *item)
     }
 }
 
+static int NativeAssets_deleteItem(void *arg)
+{
+    NativeAssets::Item *item = (NativeAssets::Item *)arg;
+
+    delete item;
+
+    return 0;
+}
+
 void NativeAssets::pendingListUpdate()
 {
     struct item_list *il = pending_list.head, *ilnext;
@@ -119,6 +128,8 @@ void NativeAssets::pendingListUpdate()
         }
 
         ilnext = il->next;
+        ape_global *ape = il->item->net;
+        timer_dispatch_async_unprotected(NativeAssets_deleteItem, il->item);
         free(il);
 
         il = ilnext;

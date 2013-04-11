@@ -63,6 +63,7 @@ class NativeAssets
                 const char *url;
                 ape_global *net;
                 void onGetContent(const char *data, size_t len);
+                void onAvailableData(size_t len) {};
                 NativeAssets *assets;
                 char *name;
                 char *tagname;
