@@ -381,9 +381,9 @@ void NativeAudioNode::processQueue()
     SPAM(("----- processQueue on node %p finished\n", this));
 }
 
-#define FRAME_SIZE this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels
 float *NativeAudioNode::newFrame()
 {
+#define FRAME_SIZE this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels
     float *ret = (float *)malloc(sizeof(float) * FRAME_SIZE + sizeof(void *));
     if (ret != NULL) {
         // Store at the end of the frame array
@@ -394,8 +394,8 @@ float *NativeAudioNode::newFrame()
         memcpy(tmp, &p, sizeof(void *));
     }
     return ret;
-}
 #undef FRAME_SIZE
+}
 
 void NativeAudioNode::post(int msg, void *source, void *dest, unsigned long size) {
     this->audio->sharedMsg->postMessage((void *)new Message(this, source, dest, size), msg);
@@ -404,9 +404,11 @@ void NativeAudioNode::post(int msg, void *source, void *dest, unsigned long size
 NativeAudioNode::~NativeAudioNode() {
     // Let's disconnect the node
     SPAM(("NativeAudioNode destructor %p\n", this));
+    pthread_mutex_lock(&this->audio->recurseLock);
 
     // Disconnect algorithm : 
     //  Follow each input and output wire to connected node
+    //  Free frame owned by the node
     //  From that node, delete all wire connected to this node
     //  Then delete the wire that drived us to that node
 
@@ -415,6 +417,12 @@ NativeAudioNode::~NativeAudioNode() {
     for (int i = 0; i < this->inCount; i++) {
         int count = this->input[i]->count;
         SPAM(("    node have %d input\n", count));
+        if (i > this->outCount) {
+            if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
+                free(this->frames[i]);
+                this->frames[i] = NULL;
+            } 
+        }
         for (int j = 0; j < count; j++) {
             if (this->input[i]->wire[j] != NULL) { // Got a wire to a node
                 NativeAudioNode *outNode = this->input[i]->wire[j]->node;
@@ -448,7 +456,13 @@ NativeAudioNode::~NativeAudioNode() {
     SPAM(("--- Disconnect ouputs\n"));
     for (int i = 0; i < this->outCount; i++) {
         int count = this->output[i]->count;
-        SPAM(("    node have %d output\n", count));
+        SPAM(("    node have %d output on channel %d/%d\n", count, this->output[i]->channel, i));
+        if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
+            float *frame = this->frames[i];
+            this->frames[i] = NULL;
+            this->updateWiresFrame(i, this->frames[i]);
+            free(frame);
+        } 
         for (int j = 0; j < count; j++) {
             if (this->output[i]->wire[j] != NULL) {
                 NativeAudioNode *inNode = this->output[i]->wire[j]->node;
@@ -477,15 +491,7 @@ NativeAudioNode::~NativeAudioNode() {
         }
     }
 
-    pthread_mutex_lock(&this->audio->recurseLock);
-
-    // Free all frames
-    int m = this->outCount > this->inCount ? this->outCount : this->inCount;
-    for (int i = 0; i < m; i++) {
-        if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
-            free(this->frames[i]);
-        } 
-    }
+    // Free frames array
     free(this->frames);
 
     // And free all NodeLink
@@ -573,22 +579,9 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external)
       frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1),
       swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
 {
-    // TODO : Throw exception instead of return
     this->doSeek = false;
-    this->seeking = false;
+    this->seeking = false; 
 
-    if (!external) {
-        // Alloc buffers memory
-        if (!(this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {// XXX : Pick better buffer size?
-            return;
-        }
-
-        this->tmpPacket = new AVPacket();
-        av_init_packet(this->tmpPacket);
-    }
-
-    this->rBufferOut = new PaUtilRingBuffer();
-  
     this->tmpFrame.size = 0;
     this->tmpFrame.data = NULL;
     this->tmpFrame.nbSamples = 0;
@@ -596,32 +589,42 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external)
 
 int NativeAudioTrack::open(const char *src) 
 {
+#define RETURN_WITH_ERROR(err) \
+this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
+this->close(true); \
+return err;
     // If a previous file has been opened, close it
     if (this->container != NULL) {
         this->close(true);
     }
 
+    this->coro = Coro_new();
     this->mainCoro = Coro_new();
     Coro_initializeMainCoro(this->mainCoro);
 
-    /* XXX : Not sure if i should free main coro inside close(); 
-     *  libcoroutine docs : 
-     *       "Note that you can't free the currently 
-     *        running coroutine as this would free 
-     *        the current C stack."
-     */
+    this->reader = new NativeAVFileReader(src, &this->audio->readFlag, &this->audio->bufferNotEmpty, this, this->audio->net);
 
-    this->reader = new NativeAVFileReader(src, &this->audio->bufferNotEmpty, this, this->audio->net);
+    this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    if (!this->avioBuffer) {
+        RETURN_WITH_ERROR(ERR_OOM);
+    }
 
     this->container = avformat_alloc_context();
+    if (!this->container) {
+        RETURN_WITH_ERROR(ERR_OOM);
+    }
+
     this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVFileReader::read, NULL, NativeAVFileReader::seek);
+    if (!this->container) {
+        RETURN_WITH_ERROR(ERR_OOM);
+    }
 
     return 0;
+#undef RETURN_WITH_ERROR
 }
 
 int NativeAudioTrack::openInit() 
 {
-    this->coro = Coro_new();
     Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioTrack::openInitCoro);
     return 0;
 }
@@ -655,16 +658,27 @@ this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->close(true); \
 return err;
 
-    this->sendEvent(SOURCE_EVENT_BUFFERING, 100, false);
-
     // If a previous file has been opened, close it
     if (this->container != NULL) {
         this->close(true);
     }
 
     this->reader = new NativeAVBufferReader((uint8_t *)buffer, size);
+
+    this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
+    if (!this->avioBuffer) {
+        RETURN_WITH_ERROR(ERR_OOM);
+    }
+
     this->container = avformat_alloc_context();
+    if (!this->container) {
+        RETURN_WITH_ERROR(ERR_OOM);
+    }
+
     this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
+    if (!this->container->pb) {
+        RETURN_WITH_ERROR(ERR_OOM);
+    }
 
     int ret;
     if ((ret = this->initStream()) != 0) {
@@ -723,6 +737,9 @@ int NativeAudioTrack::initInternal()
 
     this->nbChannel = this->outCount;
 
+    this->tmpPacket = new AVPacket();
+    av_init_packet(this->tmpPacket);
+
 	// Find the apropriate codec and open it
 	this->codecCtx = this->container->streams[this->audioStream]->codec;
 	codec = avcodec_find_decoder(this->codecCtx->codec_id);
@@ -750,6 +767,7 @@ int NativeAudioTrack::initInternal()
     }
 
     // Init output buffer
+    this->rBufferOut = new PaUtilRingBuffer();
     if (!(this->rBufferOutData = calloc(sizeof(float), (NativeAudio::FLOAT32 * NATIVE_AVDECODE_BUFFER_SAMPLES * this->outCount)))) {
         return ERR_OOM;
     }
@@ -794,7 +812,7 @@ int NativeAudioTrack::initInternal()
 
 int NativeAudioTrack::avail() 
 {
-    return (int) PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
+    return this->opened ? (int) PaUtil_GetRingBufferReadAvailable(this->rBufferOut) : 0;
 }
 
 bool NativeAudioTrack::buffer() 
@@ -884,7 +902,7 @@ bool NativeAudioTrack::work()
         } 
     }
 
-    if (this->doNotProcess) {
+    if (this->doNotProcess || !this->opened) {
         return false;
     }
 
@@ -1240,6 +1258,9 @@ void NativeAudioTrack::seekInternal(double time)
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
     }
+    delete this->tmpPacket;
+    this->tmpPacket = NULL;
+
     this->packetConsumed = true;
     this->frameConsumed = true;
 
@@ -1311,6 +1332,7 @@ bool NativeAudioTrack::process() {
 void NativeAudioTrack::close(bool reset) 
 {
     pthread_mutex_lock(&this->audio->recurseLock);
+    pthread_mutex_lock(&this->audio->tracksLock);
 
     if (this->opened) {
         avcodec_close(this->codecCtx);
@@ -1329,9 +1351,6 @@ void NativeAudioTrack::close(bool reset)
 
             this->container = NULL;
         }
-        if (!reset) {
-            av_free(this->avioBuffer);
-        }
     }
 
     if (this->reader != NULL) {
@@ -1347,8 +1366,6 @@ void NativeAudioTrack::close(bool reset)
         free(this->tmpFrame.data);
         this->tmpFrame.data = NULL;
     }
-    this->tmpFrame.size = 0;
-    this->tmpFrame.nbSamples = 0;
 
     if (this->fCvt != NULL) {
         delete this->fCvt;
@@ -1356,16 +1373,16 @@ void NativeAudioTrack::close(bool reset)
         this->fCvt = NULL;
     }
 
-    if (reset) {
-        this->playing = false;
-        this->frameConsumed = true;
-        this->packetConsumed = true;
-        this->opened = false;
-        this->audioStream = -1;
-    } else {
-        delete this->rBufferOut;
-    }
+    delete this->rBufferOut;
+    this->rBufferOut = NULL;
 
+    this->playing = false;
+    this->frameConsumed = true;
+    this->packetConsumed = true;
+    this->opened = false;
+    this->audioStream = -1;
+
+    pthread_mutex_unlock(&this->audio->tracksLock);
     pthread_mutex_unlock(&this->audio->recurseLock);
 }
 
@@ -1426,5 +1443,6 @@ void NativeAudioTrack::stop()
 
 
 NativeAudioTrack::~NativeAudioTrack() {
+    this->audio->removeTrack(this);
     this->close(false);
 }

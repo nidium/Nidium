@@ -663,8 +663,6 @@ NativeJSAudioNode::~NativeJSAudioNode()
     NativeJSAudio::Nodes *nodes = this->audio->nodes;
 
     if (this->type == NativeAudio::SOURCE) {
-        this->audio->audio->removeTrack(static_cast<NativeAudioTrack *>(this->node));
-
         // Only source from NativeVideo has reserved slot
         JS::Value s = JS_GetReservedSlot(this->jsobj, 0);
         JSObject *obj = s.toObjectOrNull();
