@@ -29,7 +29,7 @@ NativeVideo::NativeVideo(ape_global *n)
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
       rBuff(NULL), buff(NULL), avioBuffer(NULL),
       decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), buffering(false)
+      reader(NULL), buffering(false), readFlag(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
     pthread_mutex_init(&this->bufferLock, NULL);
@@ -92,7 +92,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->reader = new NativeAVFileReader(src, &this->bufferCond, this, this->net);
+    this->reader = new NativeAVFileReader(src, &this->readFlag, &this->bufferCond, this, this->net);
     this->container = avformat_alloc_context();
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -100,11 +100,6 @@ int NativeVideo::open(const char *src)
 
     this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVFileReader::read, NULL, NativeAVFileReader::seek);
     if (!this->container->pb) {
-        RETURN_WITH_ERROR(ERR_OOM);
-    }
-
-    if (!this->container->pb) {
-        this->close(false);
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -652,7 +647,7 @@ NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio)
         this->track->eventCallback(NULL, NULL); //Disable events callbacks
         if (0 != this->track->initInternal()) {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
-            audio->removeTrack(track);
+            delete this->track;
             this->track = NULL;
         }
 
@@ -697,7 +692,8 @@ int NativeVideo::display(void *custom) {
     PaUtil_ReadRingBuffer(v->rBuff, (void *)frame, 1);
 
     double pts = frame->pts;
-    double delay, actualDelay, diff, syncThreshold;
+    double diff = 0;
+    double delay, actualDelay, syncThreshold;
 
 
     delay = pts - v->lastPts;
@@ -829,11 +825,13 @@ void NativeVideo::bufferInternal()
         int ret = av_read_frame(this->container, &packet);
         SPAM(("    -> post read frame\n"));
 
+        // If a seek is asked while buffering. Return.
         if (this->doSeek) {
             av_free_packet(&packet);
             break;
         }
 
+        // Got a read error. Return.
         if (ret < 0) {
             av_free_packet(&packet);
             if (this->readError(ret) != 0) {
@@ -892,14 +890,14 @@ void *NativeVideo::decode(void *args)
             if (v->error != 0) {
                 if (v->shutdown) break;
                 SPAM(("Waiting for reset cause of error %d\n", v->reader->pending));
-                if (!v->doSeek && !v->reader->needWakup) {
+                if (!v->doSeek && !v->readFlag) {
                     pthread_cond_wait(&v->bufferCond, &v->bufferLock);
                 }
                 SPAM(("reset go\n"));
                 if (v->shutdown) break;
             }
 
-            SPAM(("doSeek=%d needWakup=%d seeking=%d\n", v->doSeek, v->reader->needWakup, v->seeking));
+            SPAM(("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking));
             if (!v->doSeek) {
                 SPAM(("processing\n"));
                 bool audioFailed = !v->processAudio();
@@ -908,20 +906,20 @@ void *NativeVideo::decode(void *args)
 
                 if (audioFailed && videoFailed) {
                     if (v->shutdown) break;
-                    if (!v->doSeek && !v->reader->needWakup) {
+                    if (!v->doSeek && !v->readFlag) {
                         SPAM(("Waiting for buffNotEmpty cause of audio and video failed\n"));
                         pthread_cond_wait(&v->bufferCond, &v->bufferLock);
                         SPAM(("buffNotEmpty go\n"));
                     } 
                 }
-            } else if (!v->reader->needWakup) {
+            } else if (!v->readFlag) {
                 pthread_cond_wait(&v->bufferCond, &v->bufferLock);
             }
         }
 
         if (v->shutdown) break;
 
-        if (v->reader->needWakup) {
+        if (v->readFlag) {
             Coro_switchTo_(v->mainCoro, v->coro);
             // Make sure another read call havn't been made
             if (!v->reader->pending) {
@@ -1322,12 +1320,20 @@ void NativeVideo::close(bool reset) {
     }
 
     if (this->track != NULL) {
+        if (this->track->packetConsumed && this->freePacket != NULL) {
+            delete this->freePacket;
+            this->freePacket = NULL;
+            // Note : av_free_packet is called by the track
+        }
         if (reset) {
             this->track->close(true);
         } else {
             delete this->track;
+            this->track = NULL;
         }
     }
+
+    this->opened = false;
 }
 
 NativeVideo::~NativeVideo() {

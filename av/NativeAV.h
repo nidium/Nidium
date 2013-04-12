@@ -8,8 +8,7 @@
 #include "native_netlib.h"
 
 #define NATIVE_AVIO_BUFFER_SIZE 32768 
-#define NATIVE_AV_CO_STACK_SIZE 4096
-#define CORO_STACK_SIZE         NATIVE_AV_CO_STACK_SIZE*16
+#define CORO_STACK_SIZE         4096*4
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
 
 #define SOURCE_EVENT_PLAY      0x01
@@ -56,7 +55,7 @@ class NativeAVBufferReader : public NativeAVReader
 class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
 {
     public:
-        NativeAVFileReader(const char *src, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
+        NativeAVFileReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
 
@@ -73,6 +72,7 @@ class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
         ~NativeAVFileReader();
     private:
         NativeFileIO *nfio;
+        bool *readFlag;
         pthread_cond_t *bufferCond;
 
         int dataSize;

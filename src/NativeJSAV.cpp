@@ -24,7 +24,7 @@ extern JSClass Canvas_class;
 #define NATIVE_VIDEO_GETTER(obj) ((class NativeJSVideo *)JS_GetPrivate(obj));
 #define CHECK_INVALID_CTX(obj) if (!obj) {\
 JS_ReportError(cx, "Invalid NativeAudio context");\
-return JS_TRUE;\
+return JS_FALSE;\
 }
 
 extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
@@ -423,6 +423,8 @@ void NativeJSAudioNode::customCtxCallback(NativeAudioNode *node, void *custom)
 
     if (!jsNode->audio->createContext()) {
         printf("Failed to create audio thread context\n");
+        //JS_ReportError(jsNode->audio->cx, "Failed to create audio thread context\n");
+        // XXX : Can't report error from another thread?
     }
 }
 
@@ -522,7 +524,8 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
                 JS_DefineElement(tcx, frames, i, OBJECT_TO_JSVAL(arr), 
                     NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT);
             } else {
-                JS_ReportError(tcx, "OOM");
+                JS_ReportOutOfMemory(tcx);
+                return;
             }
         }
 
@@ -663,8 +666,6 @@ NativeJSAudioNode::~NativeJSAudioNode()
     NativeJSAudio::Nodes *nodes = this->audio->nodes;
 
     if (this->type == NativeAudio::SOURCE) {
-        this->audio->audio->removeTrack(static_cast<NativeAudioTrack *>(this->node));
-
         // Only source from NativeVideo has reserved slot
         JS::Value s = JS_GetReservedSlot(this->jsobj, 0);
         JSObject *obj = s.toObjectOrNull();
@@ -744,18 +745,18 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
             break;
         default :
             JS_ReportError(cx, "Unsuported buffer size %d. Supported values are : 128, 256, 512, 1024, 2048, 4096\n", bufferSize);
-            return JS_TRUE;
+            return JS_FALSE;
             break;
     }
 
     if (channels < 1 || channels > 32) {
         JS_ReportError(cx, "Unsuported channels number %d. Channels must be between 1 and 32\n", channels);
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (sampleRate < 22050 || sampleRate> 96000) {
         JS_ReportError(cx, "Unsuported sample rate %dKHz. Sample rate must be between 22050 and 96000\n", sampleRate);
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     bool paramsChanged = false;
@@ -786,9 +787,8 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
 
     if (naudio == NULL) {
         delete naudio;
-        // XXX : How should I free ret?
         JS_ReportError(cx, "Failed to initialize audio context\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -833,20 +833,18 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         node->type = NativeAudio::TARGET;
     } else {
         JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (node == NULL) {
-        // TODO : Free ret
         JS_ReportError(cx, "Error while creating node : %s\n", cname.ptr());
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     node->njs = NJS;
     node->jsobj = ret;
     node->cx = cx;
 
-    //JS_AddObjectRoot(cx, &node->jsobj);
     NJS->rootObjectUntilShutdown(node->jsobj);
     JS_SetPrivate(ret, node);
     JS_SetReservedSlot(node->jsobj, 0, JSVAL_NULL);
@@ -877,20 +875,22 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
 
     if (nlink1 == NULL || nlink2 == NULL) {
         JS_ReportError(cx, "Bad AudioNodeLink\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (nlink1->type == INPUT && nlink2->type == OUTPUT) {
         if (!audio->connect(nlink2, nlink1)) {
             JS_ReportError(cx, "connect() failed (max connection reached)\n");
+            return JS_FALSE;
         }
     } else if (nlink1->type == OUTPUT && nlink2->type == INPUT) {
         if (!audio->connect(nlink1, nlink2)) {
             JS_ReportError(cx, "connect() failed (max connection reached)\n");
+            return JS_FALSE;
         }
     } else {
         JS_ReportError(cx, "connect() take one input and one output\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     return JS_TRUE;
@@ -917,8 +917,7 @@ static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp)
 
     if (nlink1 == NULL || nlink2 == NULL) {
         JS_ReportError(cx, "Bad AudioNodeLink\n");
-        exit(1);
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (nlink1->type == INPUT && nlink2->type == OUTPUT) {
@@ -927,7 +926,7 @@ static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp)
         audio->disconnect(nlink1, nlink2);
     } else {
         JS_ReportError(cx, "disconnect() take one input and one output\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     return JS_TRUE;
@@ -972,7 +971,7 @@ static JSBool native_audionode_input(JSContext *cx, unsigned argc, jsval *vp)
 
     if (channel < 0 || channel >= node->inCount) {
         JS_ReportError(cx, "Wrong input channel\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     JS_SetPrivate(ret, node->input[channel]);
@@ -999,7 +998,7 @@ static JSBool native_audionode_output(JSContext *cx, unsigned argc, jsval *vp)
 
     if (channel < 0 || channel > node->outCount) {
         JS_ReportError(cx, "Wrong output channel\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     JS_SetPrivate(ret, node->output[channel]);
@@ -1042,12 +1041,12 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
         value = &doubleVal;
     } else {
         JS_ReportError(cx, "Unsuported value\n");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (!node->set(cname.ptr(), type, value, size)) {
         JS_ReportError(cx, "Unknown argument name %s\n", cname.ptr());
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     return JS_TRUE;
@@ -1069,7 +1068,7 @@ static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *v
 
     if (argc != 2) {
         JS_ReportError(cx, "set() require two arguments");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
@@ -1087,7 +1086,7 @@ static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *v
             NULL, NULL, JSVAL_VOID)) {
         JS_ReportError(cx, "Failed to write structured clone");
         delete msg;
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     if (!jnode->audio->tcx) {
@@ -1142,7 +1141,6 @@ static JSBool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc,
 
     if (argc != 2) {
         JS_ReportError(cx, "set() require two arguments\n");
-        return JS_TRUE;
     }
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
@@ -1195,7 +1193,7 @@ static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc
     if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
         NULL, NULL, JSVAL_VOID)) {
         JS_ReportError(cx, "Failed to write structured clone");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     msg = new struct native_thread_msg;
@@ -1228,7 +1226,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 
         if (!JS_IsArrayBufferObject(arrayBuff)) {
             JS_ReportError(cx, "Data is not an ArrayBuffer\n");
-            return JS_TRUE;
+            return JS_FALSE;
         }
 
         int length;
@@ -1243,7 +1241,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     
     if (ret < 0) {
         JS_ReportError(cx, "Failed to open stream %d\n", ret);
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     /*
@@ -1336,7 +1334,7 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
                 (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
                 JS_ReportError(cx, "Failed to read custom node onbuffer callback function\n");
                 vp.set(JSVAL_VOID);
-                return JS_TRUE;
+                return JS_FALSE;
             } 
 
             jnode->bufferStr = JS_EncodeString(cx, fn);
@@ -1359,7 +1357,7 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
                 (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
                 JS_ReportError(cx, "Failed to read custom node oninit callback function\n");
                 vp.set(JSVAL_VOID);
-                return JS_TRUE;
+                return JS_FALSE;
             } 
 
             jnode->initStr = JS_EncodeString(cx, fn);
@@ -1545,7 +1543,7 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
 
         if (!JS_IsArrayBufferObject(arrayBuff)) {
             JS_ReportError(cx, "Data is not an ArrayBuffer\n");
-            return JS_TRUE;
+            return JS_FALSE;
         }
 
         int length;
@@ -1573,7 +1571,7 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
     if (!jaudio) {
         JS_ReportError(cx, "No NativeAudio context");
         JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     NativeAudioTrack *track = v->video->getAudioNode(jaudio->audio);
@@ -1643,7 +1641,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!handler) {
         JS_ReportError(cx, "Video constructor argument must be Canvas");
-        return JS_TRUE;
+        return JS_FALSE;
     }
 
     NJS->rootObjectUntilShutdown(ret);
