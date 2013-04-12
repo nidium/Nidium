@@ -307,8 +307,9 @@ void NativeHTTP::headerEnded()
                 }
             }
         }
-
     }
+
+    this->delegate->onHeader();
 #undef REQUEST_HEADER
 }
 

@@ -248,6 +248,7 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
     jsval *argv;
     unsigned i;
     JSString *str;
+
     char *bytes;
 
     argv = JS_ARGV(cx, vp);

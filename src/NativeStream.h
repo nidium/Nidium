@@ -21,7 +21,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
 
         enum StreamDataStatus {
             STREAM_EAGAIN = -1,
-            STREAM_EOF = -2
+            STREAM_EOF = -2,
+            STREAM_ERROR
         };
 
         NativeStream(ape_global *net, const char *location);
@@ -50,6 +51,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void onProgress(size_t offset, size_t len,
             NativeHTTP::HTTPData *h, NativeHTTP::DataType);
         void onError(NativeHTTP::HTTPError err);
+        void onHeader();
 
         /* File */
         void onNFIOOpen(NativeFileIO *);
@@ -69,17 +71,21 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         ape_global *net;
         size_t packets;
         struct {
-            buffer *current;
-            buffer *next;
+            buffer *back;
+            buffer *front;
             bool alreadyRead;
+            bool fresh;
         } dataBuffer;
 
         struct {
             int fd;
             void *addr;
+            size_t size;
         } mapped;
-        
+
         bool needToSendUpdate;
+
+        void swapBuffer();
 };
 
 class NativeStreamDelegate
