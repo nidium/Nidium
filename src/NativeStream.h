@@ -75,6 +75,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             buffer *front;
             bool alreadyRead;
             bool fresh;
+            bool ended;
         } dataBuffer;
 
         struct {

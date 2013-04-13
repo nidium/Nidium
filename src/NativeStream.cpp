@@ -205,7 +205,7 @@ void NativeStream::swapBuffer()
         dataBuffer.back->size = dataBuffer.back->used;
         dataBuffer.fresh = false;
 
-        if (dataBuffer.back->used > this->getPacketSize()) {
+        if (dataBuffer.back->used >= this->getPacketSize()) {
             dataBuffer.alreadyRead = false;
         }
     }
@@ -281,6 +281,10 @@ void NativeStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
     if (this->delegate) {
         this->delegate->onGetContent((const char *)h->data->data,
             h->data->used);
+
+        if (mapped.addr) {
+            
+        }
         printf("Request ended\n");
     }
 }
@@ -324,7 +328,6 @@ void NativeStream::onProgress(size_t offset, size_t len,
 
             this->delegate->onAvailableData(this->getPacketSize());
         }
-
         //printf("char : %c\n", ((char *)mapped.addr)[32]);
     }
 }
@@ -353,8 +356,17 @@ NativeStream::~NativeStream()
 {
     free(location);
 
-    buffer_destroy(dataBuffer.back);
-    buffer_destroy(dataBuffer.front);
+    if (mapped.addr) {
+        munmap(mapped.addr, this->getPacketSize());
+        free(dataBuffer.back);
+        free(dataBuffer.front);
+    } else {
+        buffer_destroy(dataBuffer.back);
+        buffer_destroy(dataBuffer.front);
+    }
+    if (mapped.fd) {
+        close(mapped.fd);
+    }
 
     if (this->interface) {
         delete this->interface;
