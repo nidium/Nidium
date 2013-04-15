@@ -30,6 +30,7 @@ public:
     void write(unsigned char *data, uint64_t len);
     void writeAction(unsigned char *data, uint64_t len);
     void close();
+    void setAutoClose(bool close) { autoClose = close; }
     void seek(uint64_t pos);
     NativeFileIODelegate *getDelegate() const { return delegate; };
     char *filename;
