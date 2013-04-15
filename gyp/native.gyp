@@ -131,7 +131,6 @@
 		    '<(native_src_path)/NativeJSConsole.cpp',
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',
-            '<(native_src_path)/NativeStreamTest.cpp'
         ],
     }],
 }

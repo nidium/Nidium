@@ -43,7 +43,6 @@
 
 #include "NativeJS_preload.h"
 #include "NativeUtils.h"
-#include "NativeStreamTest.h"
 
 struct _native_sm_timer
 {
@@ -126,8 +125,6 @@ static JSClass keyEvent_class = {
 
 jsval gfunc  = JSVAL_VOID;
 
-NativeStreamTest *streamTest;
-
 /******** Natives ********/
 static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
@@ -140,7 +137,6 @@ static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 
 
 static JSFunctionSpec glob_funcs[] = {
-    
     JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 2, 0),
     JS_FN("require", native_load, 2, 0),
@@ -148,15 +144,8 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
-    JS_FN("readData", native_readData, 0, 0),
     JS_FS_END
 };
-
-static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp)
-{
-    streamTest->read();
-    return JS_TRUE;
-}
 
 void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
@@ -717,9 +706,6 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     //this->LoadScriptContent(preload_js);
     
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
-
-    streamTest = new NativeStreamTest(net);
-
 }
 
 static bool test_extracting(const char *buf, int len,
