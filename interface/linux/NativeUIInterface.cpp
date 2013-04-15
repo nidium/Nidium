@@ -1,13 +1,24 @@
+
 #include "NativeX11UIInterface.h"
 #include <NativeJS.h>
 #include <NativeSkia.h>
 #include <NativeApp.h>
+#ifdef NATIVE_USE_GTK
+#include <gtk/gtk.h>
+#endif
+#ifdef NATIVE_USE_QT
+#include <QtGui>
+#include <QFileDialog>
+#include <QString>
+#endif
 #include <../build/include/SDL_config.h> 
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_syswm.h>
 #include <native_netlib.h>
 #include <NativeNML.h>
+#include <string.h>
+#include <stdio.h>
 
 #include <X11/Xlib.h>
 
@@ -47,6 +58,11 @@ int NativeEvents(NativeX11UIInterface *NUII)
                 case SDL_QUIT:
                     delete NUII->NJS;
                     SDL_Quit();
+#ifdef NATIVE_USE_GTK
+                    while (gtk_events_pending ()) {
+                        gtk_main_iteration();
+                    }
+#endif
                     exit(1);
                     break;
                 case SDL_MOUSEMOTION:
@@ -80,6 +96,11 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         printf("\n\n=======Refresh...=======\n");
                         //[console clear];
                         delete NUII->NJS;
+#ifdef NATIVE_USE_GTK
+                        while (gtk_events_pending ()) {
+                            gtk_main_iteration();
+                        }
+#endif
                         //printf("\n\n=======Restarting...=====\n");
                         glClearColor(1, 1, 1, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -317,6 +338,10 @@ bool NativeX11UIInterface::createWindow(int width, int height)
 
     glViewport(0, 0, width, height);
 
+#ifdef NATIVE_USE_GTK
+    gtk_init(0, NULL);
+#endif
+
     //NJS = new NativeJS(kNativeWidth, kNativeHeight);
     console = new NativeUIX11Console();
     gnet = native_netlib_init();
@@ -335,6 +360,85 @@ void NativeX11UIInterface::setCursor(CURSOR_TYPE type)
 void NativeX11UIInterface::setWindowTitle(const char *name)
 {
     SDL_SetWindowTitle(win, (*name == '\0' ? "-" : name));
+}
+
+void NativeX11UIInterface::openFileDialog(const char const *files[],
+    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
+{
+#ifdef NATIVE_USE_GTK
+    GtkWidget *dialog;
+
+    dialog = gtk_file_chooser_dialog_new ("Open File",
+            (GtkWindow *)NULL,
+            GTK_FILE_CHOOSER_ACTION_OPEN,
+            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+            GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+            (gchar *)NULL);
+
+    if (files != NULL) {
+        GtkFileFilter *filter;
+        char name[256];
+        memset(name, 0, 256);
+        int nameLength = 0;
+        filter = gtk_file_filter_new();
+        for (int i = 0; files[i] != NULL; i++) {
+            gtk_file_filter_add_pattern(filter, files[i]);
+            nameLength += strlen(files[i])+1;
+            if (nameLength < 256) {
+                strcat(name, files[i]);
+                strcat(name, " ");
+            }
+        }
+        if (nameLength > 0) {
+            gtk_file_filter_set_name(GTK_FILE_FILTER(filter), (const gchar *)name); 
+        }
+
+        gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), GTK_FILE_FILTER(filter));
+    }
+
+    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), TRUE);
+
+    if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    {
+        GSList *filenames, *list;
+        filenames = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(dialog));      
+        guint len = g_slist_length(filenames);
+
+        const char **lst = (const char **)malloc(sizeof(char **) * len);
+
+        if (!lst) {
+            return;
+        }
+
+        list = filenames;
+        int i = 0;
+        while (list) {
+            if (list->data) {
+                lst[i] = strdup((const char *)list->data);
+                g_free (list->data);
+                i++;
+            } 
+            list = list->next;
+        }
+
+        g_slist_free(filenames);
+
+        gtk_widget_destroy(dialog);
+
+        while (gtk_events_pending ()) {
+            gtk_main_iteration();
+        }
+
+        cb(arg, lst, i);
+
+        free(lst);
+    }
+#endif
+#ifdef NATIVE_USE_QT
+    QApplication app(0, NULL);
+    QString fileName = QFileDialog::getOpenFileName(NULL,
+               "Open file", NULL, "Image Files (*.png *.jpg *.bmp)");
+#endif
 }
 
 void NativeX11UIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
