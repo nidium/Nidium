@@ -7,7 +7,7 @@
 #include <http_parser.h>
 
 
-#define HTTP_MAX_CL 1024L*1024L*20L
+#define HTTP_MAX_CL 1024L*1024L*1024L*16L
 #define HTTP_DEFAULT_TIMEOUT 20000
 
 #include "NativeIStreamer.h"
@@ -143,6 +143,10 @@ class NativeHTTP : public NativeIStreamer
     void setPrivate(void *ptr);
     void *getPrivate();
 
+    void resetData() {
+        http.data->used = 0;
+    }
+
     NativeHTTPRequest *getRequest() const {
         return req;
     }
@@ -161,6 +165,7 @@ class NativeHTTPDelegate
     virtual void onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
         NativeHTTP::DataType)=0;
     virtual void onError(NativeHTTP::HTTPError err)=0;
+    virtual void onHeader()=0;
     NativeHTTP *httpref;
 };
 

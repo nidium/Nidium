@@ -8,6 +8,8 @@
 
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <unistd.h>
+#include <errno.h>
 
 static struct _native_stream_interfaces {
     const char *str;
@@ -29,12 +31,14 @@ NativeStream::NativeStream(ape_global *net, const char *location) :
     this->IInterface = INTERFACE_UNKNOWN;
     this->delegate  = NULL;
 
-    dataBuffer.current = NULL;
-    dataBuffer.next = NULL;
-    dataBuffer.alreadyRead = false;
+    dataBuffer.back = NULL;
+    dataBuffer.front = NULL;
+    dataBuffer.alreadyRead = true;
+    dataBuffer.fresh = true;
 
     mapped.addr = NULL;
     mapped.fd   = 0;
+    mapped.size = 0;
 
     this->getInterface();
 }
@@ -110,32 +114,32 @@ static int NativeStream_data_getContent(void *arg)
 void NativeStream::start(size_t packets)
 {
     this->packets = packets;
-    if (dataBuffer.current == NULL) {
-        dataBuffer.current = buffer_new(packets);
-        dataBuffer.next    = buffer_new(packets);
-        printf("Creating buffers...\n");
-    }
 
     needToSendUpdate = true;
 
     switch(IInterface) {
         case INTERFACE_FILE:
         {
-            printf("Opening file...\n");
+            if (dataBuffer.back == NULL) {
+                dataBuffer.back = buffer_new(packets);
+                dataBuffer.front    = buffer_new(packets);
+            }
             NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
             file->open("r");
             break;
         }
         case INTERFACE_HTTP:
         {
+            if (dataBuffer.back == NULL) {
+                dataBuffer.back     = buffer_new(0);
+                dataBuffer.front    = buffer_new(0);
+            }
             mapped.fd = open("/tmp/nativesstream.data",
                 O_RDWR | O_CREAT | O_TRUNC, S_IRUSR| S_IWUSR);
             if (mapped.fd == 0) {
                 return;
             }
-            mapped.addr = mmap(NULL, packets,
-                PROT_READ|PROT_WRITE, MAP_SHARED, mapped.fd, 0);
-            
+
             NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
             http->request(this);            
             break;
@@ -150,20 +154,28 @@ void NativeStream::start(size_t packets)
 */
 const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
 {
+    unsigned char *data;
+
+    if (dataBuffer.back == NULL) {
+        *len = 0;
+        *err = STREAM_ERROR;
+        return NULL;
+    }
     needToSendUpdate = true;
 
-    if (dataBuffer.alreadyRead) {
+    if (!this->hasDataAvailable()) {
         *len = 0;
         *err = STREAM_EAGAIN;
         return NULL;
     }
+
+    data = dataBuffer.back->data;
+
     *err = 0;
-    *len = native_min(dataBuffer.current->used, this->getPacketSize());
-    unsigned char *data = dataBuffer.current->data;
+    *len = native_min(dataBuffer.back->used, this->getPacketSize());
     
-    buffer *tmp = dataBuffer.current;
-    dataBuffer.current = dataBuffer.next;
-    dataBuffer.next = tmp;
+    this->swapBuffer();
+
     dataBuffer.alreadyRead = true;
 
     switch(IInterface) {
@@ -178,6 +190,25 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
     }
 
     return data;
+}
+
+void NativeStream::swapBuffer()
+{
+    buffer *tmp = dataBuffer.back;
+    dataBuffer.back = dataBuffer.front;
+    dataBuffer.front = tmp;
+    dataBuffer.fresh = true;
+
+    if (dataBuffer.front->used > this->getPacketSize()) {
+        dataBuffer.back->data = &dataBuffer.front->data[this->getPacketSize()];
+        dataBuffer.back->used = dataBuffer.front->used - this->getPacketSize();
+        dataBuffer.back->size = dataBuffer.back->used;
+        dataBuffer.fresh = false;
+
+        if (dataBuffer.back->used >= this->getPacketSize()) {
+            dataBuffer.alreadyRead = false;
+        }
+    }
 }
 
 void NativeStream::getContent()
@@ -219,7 +250,7 @@ void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
     }
 }
 
-void NativeStream::onNFIOError(NativeFileIO *NFIO, int errno)
+void NativeStream::onNFIOError(NativeFileIO *NFIO, int err)
 {
 
 }
@@ -231,7 +262,8 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
         if (needToSendUpdate) {
             dataBuffer.alreadyRead = false;
             needToSendUpdate = false;
-            buffer_append_data(dataBuffer.current, data, len);
+            dataBuffer.back->used = 0;
+            buffer_append_data(dataBuffer.back, data, len);
             this->delegate->onAvailableData(len);
         }
     }
@@ -249,6 +281,11 @@ void NativeStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
     if (this->delegate) {
         this->delegate->onGetContent((const char *)h->data->data,
             h->data->used);
+
+        if (mapped.addr) {
+            
+        }
+        printf("Request ended\n");
     }
 }
 
@@ -256,6 +293,43 @@ void NativeStream::onProgress(size_t offset, size_t len,
     NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
     if (!this->delegate) return;
+
+    if (mapped.fd) {
+        NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
+        ssize_t written = 0;
+        retry:
+        if ((written = write(mapped.fd, &h->data->data[offset], len)) < 0) {
+            if (errno == EINTR) {
+                goto retry;
+            }
+            http->resetData();
+            printf("NativeStream Error : Failed to write streamed content (%d)\n", errno);
+            return;
+        }
+
+        /* Reset the data buffer, so that data doesnt grow in memory */
+        http->resetData();
+
+        if (dataBuffer.fresh) {
+            printf("Current buffer updated (%ld)\n", len);
+            dataBuffer.back->data = &((unsigned char *)mapped.addr)[mapped.size];
+            dataBuffer.back->size = 0;
+            dataBuffer.fresh = false;
+        }
+
+        dataBuffer.back->size += written;
+        dataBuffer.back->used = dataBuffer.back->size;
+
+        mapped.size += written;
+
+        if (dataBuffer.back->used >= this->getPacketSize() && needToSendUpdate) {
+            dataBuffer.alreadyRead = false;
+            needToSendUpdate = false;
+
+            this->delegate->onAvailableData(this->getPacketSize());
+        }
+        //printf("char : %c\n", ((char *)mapped.addr)[32]);
+    }
 }
 
 void NativeStream::onError(NativeHTTP::HTTPError err)
@@ -264,14 +338,35 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 
     this->delegate->onGetContent(NULL, 0);
 }
+
+void NativeStream::onHeader()
+{
+    NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
+    if (this->mapped.fd && http->http.contentlength) {
+        mapped.addr = mmap(NULL, http->http.contentlength,
+            PROT_READ, MAP_SHARED, mapped.fd, 0);
+        printf("Got a header of size : %lld\n", http->http.contentlength);
+        printf("File mapped at address : %p\n", mapped.addr);
+    }
+}
+
 /**********/
 
 NativeStream::~NativeStream()
 {
     free(location);
 
-    buffer_destroy(dataBuffer.current);
-    buffer_destroy(dataBuffer.next);
+    if (mapped.addr) {
+        munmap(mapped.addr, this->getPacketSize());
+        free(dataBuffer.back);
+        free(dataBuffer.front);
+    } else {
+        buffer_destroy(dataBuffer.back);
+        buffer_destroy(dataBuffer.front);
+    }
+    if (mapped.fd) {
+        close(mapped.fd);
+    }
 
     if (this->interface) {
         delete this->interface;

@@ -32,6 +32,8 @@ dans le vague, il faut les ramener dans la réalité des faits : la pratique les
 tue.
 */
 
+var _GLOBAL = this;
+
 var document = {
     body: Native.canvas
 };
