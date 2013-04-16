@@ -88,6 +88,9 @@ class NativeJSAudio: public NativeJSExposer
         const char *fun;
 
         bool createContext();
+        bool run(char *str);
+        static void ctxCallback(NativeAudioNode *node, void *custom);
+        static void runCallback(NativeAudioNode *node, void *custom);
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
         void unroot();
 
@@ -145,7 +148,6 @@ class NativeJSAudioNode: public NativeJSExposer
         // Custom node
         static void customCallback(const struct NodeEvent *ev);
         static void customInitCallback(NativeAudioNode *node, void *custom);
-        static void customCtxCallback(NativeAudioNode *node, void *custom);
         static void setPropCallback(NativeAudioNode *node, void *custom);
         static void shutdownCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
