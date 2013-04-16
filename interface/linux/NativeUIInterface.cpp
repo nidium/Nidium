@@ -21,6 +21,7 @@
 #include <stdio.h>
 
 #include <X11/Xlib.h>
+#include <X11/cursorfont.h>
 
 #define kNativeWidth 1280
 #define kNativeHeight 600
@@ -143,33 +144,49 @@ int NativeEvents(NativeX11UIInterface *NUII)
                 }
             }
         }
+
         if (ttfps%20 == 0) {
             NUII->NJS->gc();
         }
-        /*
+
         if (NUII->currentCursor != NativeX11UIInterface::NOCHANGE) {
+            int cursor;
+            SDL_SysWMinfo info;
+
             switch(NUII->currentCursor) {
                 case NativeX11UIInterface::ARROW:
-                    [[NSCursor arrowCursor] set];
+                    cursor = XC_left_ptr;
                     break;
                 case NativeX11UIInterface::BEAM:
-                    [[NSCursor IBeamCursor] set];
+                    cursor = XC_xterm;
                     break;
                 case NativeX11UIInterface::CROSS:
-                    [[NSCursor crosshairCursor] set];
+                    cursor = XC_crosshair;
                     break;
                 case NativeX11UIInterface::POINTING:
-                    [[NSCursor pointingHandCursor] set];
+                    cursor = XC_hand2;
                     break;
                 case NativeX11UIInterface::CLOSEDHAND:
-                    [[NSCursor closedHandCursor] set];
+                    cursor = XC_hand1;
                     break;
                 default:
+                    cursor = XC_left_ptr;
                     break;
             }
+
+            SDL_VERSION(&info.version);
+
+            if (SDL_GetWindowWMInfo(NUII->win, &info)) {
+                Cursor c = XCreateFontCursor(info.info.x11.display, cursor); 
+                Display *d = info.info.x11.display;
+
+                XDefineCursor(d, info.info.x11.window, c);
+                XFlush(d);
+                XFreeCursor(d, c);
+            }
+
             NUII->currentCursor = NativeX11UIInterface::NOCHANGE;
         }
-        */
 
         NUII->NJS->callFrame();
         NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
@@ -277,7 +294,6 @@ NativeX11UIInterface::NativeX11UIInterface()
 bool NativeX11UIInterface::createWindow(int width, int height)
 {
     SDL_GLContext contexteOpenGL;
-    Window *window;
 
     if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER) == -1)
     {
@@ -295,11 +311,11 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-    win = SDL_CreateWindow("Native - Running", 100, 100,
+    this->win = SDL_CreateWindow("Native - Running", 100, 100,
         width, height,
         SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
-    if (win == NULL) {
+    if (this->win == NULL) {
         printf("Cant create window (SDL)\n");
         return false;
     }
@@ -307,7 +323,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     this->width = width;
     this->height = height;
 
-    window = NativeX11Window(win);
+    //window = NativeX11Window(win);
 
     /*[window setCollectionBehavior:
              NSWindowCollectionBehaviorFullScreenPrimary];*/
