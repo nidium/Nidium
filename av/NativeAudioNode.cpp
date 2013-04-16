@@ -574,8 +574,8 @@ bool NativeAudioNodeCustom::process()
 
 NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external) 
     : NativeAudioNode(0, out, audio), externallyManaged(external), 
-      playing(false), stopped(false), loop(false), reader(NULL),
-      codecCtx(NULL), tmpPacket(NULL), 
+      playing(false), stopped(false), loop(false), nbChannel(0), doClose(false), rBufferOut(NULL), reader(NULL),
+      codecCtx(NULL), tmpPacket(NULL), clock(0), 
       frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1),
       swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
 {
@@ -633,7 +633,7 @@ void NativeAudioTrack::openInitCoro(void *arg)
 {
 #define RETURN_WITH_ERROR(err) \
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-thiz->close(true); \
+thiz->doClose = true; \
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
 
     NativeAudioTrack *thiz = static_cast<NativeAudioTrack *>(arg);
@@ -743,6 +743,9 @@ int NativeAudioTrack::initInternal()
 	// Find the apropriate codec and open it
 	this->codecCtx = this->container->streams[this->audioStream]->codec;
 	codec = avcodec_find_decoder(this->codecCtx->codec_id);
+    if (!codec) {
+        return ERR_NO_CODEC;
+    }
 
 	if (!avcodec_open2(this->codecCtx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
@@ -1353,10 +1356,8 @@ void NativeAudioTrack::close(bool reset)
         }
     }
 
-    if (this->reader != NULL) {
-        delete this->reader;
-        this->reader = NULL;
-    }
+    delete this->reader;
+    this->reader = NULL;
 
     if (this->coro != NULL) {
         Coro_free(this->coro);
@@ -1390,6 +1391,9 @@ void NativeAudioTrack::close(bool reset)
     this->packetConsumed = true;
     this->opened = false;
     this->audioStream = -1;
+    this->container = NULL;
+    this->avioBuffer = NULL;
+    this->doClose = false;
 
     pthread_mutex_unlock(&this->audio->tracksLock);
     pthread_mutex_unlock(&this->audio->recurseLock);

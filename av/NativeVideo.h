@@ -139,6 +139,7 @@ class NativeVideo : public NativeAVSource
         bool buffering;
         bool seeking;
         bool readFlag;
+        bool doClose;
         pthread_mutex_t audioLock;
 
         void close(bool reset);

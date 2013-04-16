@@ -25,7 +25,12 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     pthread_mutex_init(&this->queueLock, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);
     pthread_mutex_init(&this->recurseLock, NULL);
-    pthread_mutex_init(&this->tracksLock, NULL);
+    pthread_mutex_t mutext = PTHREAD_MUTEX_INITIALIZER;
+
+    pthread_mutexattr_t mta;
+    pthread_mutexattr_init(&mta);
+    pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&this->tracksLock, &mta);
 
     this->sharedMsg = new NativeSharedMessages();
 
@@ -115,11 +120,10 @@ void *NativeAudio::queueThread(void *args) {
                     delete nodeMsg;
                 }
                 break;
-                case NATIVE_AUDIO_SHUTDOWN :
+                case NATIVE_AUDIO_CALLBACK :
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(NULL, cbkMsg->custom);
                     delete cbkMsg;
-                    return NULL;
                 break;
             }
         }
@@ -182,6 +186,8 @@ void *NativeAudio::queueThread(void *args) {
                 } while (!audio->haveSourceActive(false));
 
             }
+        } else {
+            break;
         }
         SPAM(("Queue thead is now working\n"));
     }
@@ -235,7 +241,13 @@ void *NativeAudio::decodeThread(void *args) {
                 for (;;)
                 {
                     SPAM(("Buffering\n"));
-                    if (!track->work()) {
+                    bool ret = track->work();
+                    if (track->doClose) {
+                        track->close(true);
+                        break;
+                    }
+
+                    if (!ret) {
                         // No data to process, exit. 
                         break;
                     }  

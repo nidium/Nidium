@@ -25,11 +25,12 @@ extern "C" {
 NativeVideo::NativeVideo(ape_global *n) 
     : freePacket(NULL), timerIdx(0), lastTimer(0),
       net(n), track(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
+      tmpFrame(NULL), frameBuffer(NULL),
       lastPts(0), playing(false), stoped(false), width(-1), height(-1),
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
       rBuff(NULL), buff(NULL), avioBuffer(NULL),
       decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), buffering(false), readFlag(false)
+      reader(NULL), buffering(false), readFlag(false), doClose(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
     pthread_mutex_init(&this->bufferLock, NULL);
@@ -48,7 +49,7 @@ NativeVideo::NativeVideo(ape_global *n)
 
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-this->close(true);\
+this->doClose = true;\
 return err;
 
 int NativeVideo::open(void *buffer, int size) 
@@ -86,6 +87,7 @@ int NativeVideo::open(const char *src)
     } 
 
     this->mainCoro = Coro_new();
+    this->coro = Coro_new();
     Coro_initializeMainCoro(this->mainCoro);
 
     if (!(this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
@@ -111,7 +113,6 @@ int NativeVideo::open(const char *src)
 int NativeVideo::openInit() 
 {
     if (this->reader->async) {
-        this->coro = Coro_new();
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
     } else {
         return this->openInitInternal();
@@ -167,6 +168,9 @@ int NativeVideo::openInitInternal()
     //this->codecCtx->release_buffer = NativeVideo::releaseBuffer;
 
     codec = avcodec_find_decoder(this->codecCtx->codec_id);
+    if (!codec) {
+		RETURN_WITH_ERROR(ERR_NO_CODEC);
+    }
 
     if (avcodec_open2(this->codecCtx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
@@ -926,8 +930,15 @@ void *NativeVideo::decode(void *args)
                 v->buffering = false;
             }
         }
+
+        if (v->doClose) {
+            v->close(true);
+        }
+
+        if (v->shutdown) break;
     }
 
+    v->shutdown = false;
     return NULL;
 #undef WAIT_FOR_RESET
 }
@@ -1244,13 +1255,13 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 #endif
 
 void NativeVideo::close(bool reset) {
-    if (this->reader != NULL) {
+    if (this->reader && this->container && this->container->pb) {
         this->shutdown = true;
-        pthread_cond_signal(&this->bufferCond);
-        pthread_join(this->threadDecode, NULL);
-        this->shutdown = false;
+        if (!this->doClose) {
+            pthread_cond_signal(&this->bufferCond);
+            pthread_join(this->threadDecode, NULL);
+        }
     }
-
     
     this->clearTimers(reset);
     this->flushBuffers();
@@ -1268,55 +1279,44 @@ void NativeVideo::close(bool reset) {
 
     if (this->mainCoro != NULL) {
         Coro_free(this->mainCoro);
-
-        this->mainCoro = NULL;
-    }
-
-    if (this->coro != NULL) {
         Coro_free(this->coro);
-
+        this->mainCoro = NULL;
         this->coro = NULL;
     }
 
-    if (this->opened) {
-        delete this->rBuff;
+    delete this->rBuff;
+    delete this->reader;
 
-        avcodec_close(this->codecCtx);
-        avformat_close_input(&this->container);
+    avcodec_close(this->codecCtx);
+    avformat_close_input(&this->container);
 
-        av_free(this->convertedFrame);
-        av_free(this->decodedFrame);
-        av_free(this->frameBuffer);
+    av_free(this->convertedFrame);
+    av_free(this->decodedFrame);
+    av_free(this->frameBuffer);
 
-        sws_freeContext(this->swsCtx);
-        
-        free(this->buff);
-        free(this->tmpFrame);
+    sws_freeContext(this->swsCtx);
+    
+    free(this->buff);
+    free(this->tmpFrame);
 
-        this->rBuff = NULL;
-        this->codecCtx = NULL;
-        this->convertedFrame = NULL;
-        this->decodedFrame = NULL;
-        this->swsCtx = NULL;
-        this->frameBuffer = NULL;
-        this->buff = NULL;
-        this->tmpFrame = NULL;
-    }
+    this->rBuff = NULL;
+    this->codecCtx = NULL;
+    this->convertedFrame = NULL;
+    this->decodedFrame = NULL;
+    this->swsCtx = NULL;
+    this->frameBuffer = NULL;
+    this->buff = NULL;
+    this->tmpFrame = NULL;
+    this->container = NULL;
+    this->reader = NULL;
+    this->avioBuffer = NULL;
 
     if (this->avioBuffer != NULL) {
-        if (!this->opened) {
-            if (this->container->pb != NULL) {
-                av_free(this->container->pb);
-            }
+        if (!this->opened && this->container != NULL) {
+            av_free(this->container->pb);
             avformat_free_context(this->container);
-            av_free(this->avioBuffer);
+            //av_free(this->avioBuffer); //freed by avformat_free_context
         }
-
-        delete this->reader;
-
-        this->container = NULL;
-        this->reader = NULL;
-        this->avioBuffer = NULL;
     }
 
     if (this->track != NULL) {
@@ -1325,15 +1325,12 @@ void NativeVideo::close(bool reset) {
             this->freePacket = NULL;
             // Note : av_free_packet is called by the track
         }
-        if (reset) {
-            this->track->close(true);
-        } else {
-            delete this->track;
-            this->track = NULL;
-        }
+        delete this->track;
+        this->track = NULL;
     }
 
     this->opened = false;
+    this->doClose = false;
 }
 
 NativeVideo::~NativeVideo() {

@@ -264,12 +264,14 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         pthread_cond_t *bufferNotEmpty;
 
         PaUtilRingBuffer *rBufferOut;
+        NativeAVReader *reader;
 
         bool externallyManaged;
         bool playing;
         bool stopped;
         bool loop;
         int nbChannel;
+        bool doClose;
 
         void play();
         void pause();
@@ -296,8 +298,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         double getClock();
         void drop(double ms);
 
-        NativeAVReader *reader;
-
+        void close(bool reset);
         ~NativeAudioTrack();
 
     private:
@@ -329,7 +330,5 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
 
         bool eof;
         bool buffering;
-
-        void close(bool reset);
 };
 #endif
