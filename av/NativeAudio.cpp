@@ -15,6 +15,7 @@ extern "C" {
 NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
     : net(n), output(NULL), tracksCount(0), readFlag(false),
       inputStream(NULL), outputStream(NULL), 
+      rBufferOutData(NULL), cbkBuffer(NULL), volume(1),
       threadShutdown(false), tracks(NULL)
 {
     pthread_cond_init(&this->bufferNotEmpty, NULL);
@@ -156,11 +157,13 @@ void *NativeAudio::queueThread(void *args) {
 
                     // Copy output frame data to output ring buffer
                     for (int i = 0; i < audio->output->inCount; i++) {
-                        if (audio->output->frames[i] != NULL) {
-                            PaUtil_WriteRingBuffer(audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
-                        } else {
-                            PaUtil_WriteRingBuffer(audio->rBufferOut, audio->nullBuffer, audio->outputParameters->framesPerBuffer);
+                        if (audio->volume != 1) {
+                            int frameSize = audio->outputParameters->bufferSize/audio->outputParameters->channels;
+                            for (int j = 0; j < frameSize; j++) {
+                                audio->output->frames[i][j] *= audio->volume;
+                            }
                         }
+                        PaUtil_WriteRingBuffer(audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
                     }
                 } else {
                     cause = 1;
@@ -532,6 +535,11 @@ bool NativeAudio::connect(NodeLink *input, NodeLink *output)
 bool NativeAudio::disconnect(NodeLink *input, NodeLink *output) 
 {
     return output->node->unqueue(input, output);
+}
+
+void NativeAudio::setVolume(float volume)
+{
+    this->volume = volume;
 }
 
 void NativeAudio::wakeup() 

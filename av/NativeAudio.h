@@ -81,6 +81,7 @@ class NativeAudio
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
+        void setVolume(float volume);
 
         static inline int getSampleSize(int sampleFmt);
         double getLatency();
@@ -102,6 +103,7 @@ class NativeAudio
 
         float *rBufferOutData;
         float *cbkBuffer;
+        float volume;
 
         pthread_mutex_t decodeLock, queueLock, shutdownLock;
         pthread_t threadDecode;
