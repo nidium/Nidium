@@ -1358,6 +1358,13 @@ void NativeAudioTrack::close(bool reset)
         this->reader = NULL;
     }
 
+    if (this->coro != NULL) {
+        Coro_free(this->coro);
+        Coro_free(this->mainCoro);
+        this->coro = NULL;
+        this->mainCoro = NULL;
+    }
+
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
     }
@@ -1366,6 +1373,8 @@ void NativeAudioTrack::close(bool reset)
         free(this->tmpFrame.data);
         this->tmpFrame.data = NULL;
     }
+    this->tmpFrame.size = 0;
+    this->tmpFrame.nbSamples = 0;
 
     if (this->fCvt != NULL) {
         delete this->fCvt;
