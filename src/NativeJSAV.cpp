@@ -56,6 +56,7 @@ static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *
 static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp);
 
+static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
@@ -103,6 +104,7 @@ static JSClass AudioNode_threaded_class = {
 };
 
 static JSPropertySpec Audio_props[] = {
+    {"volume", AUDIO_PROP_VOLUME, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audio_prop_setter)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -268,6 +270,7 @@ NativeJSAudio *NativeJSAudio::getContext(JSContext *cx, JSObject *obj, int buffe
     NJS->rootObjectUntilShutdown(obj);
 
     JS_DefineFunctions(cx, obj, Audio_funcs);
+    JS_DefineProperties(cx, obj, Audio_props);
 
     pthread_cond_init(&jaudio->shutdownCond, NULL);
     pthread_mutex_init(&jaudio->shutdownLock, NULL);
@@ -659,10 +662,11 @@ bool NativeJSAudioNode::createHashObj()
 void NativeJSAudio::runCallback(NativeAudioNode *node, void *custom)
 {
     NativeJSAudio *audio = NativeJSAudio::getContext();
+
+    if (!audio) return;// This should not happend
+
     char *str = static_cast<char *>(custom);
-
     audio->run(str);
-
     JS_free(audio->cx, custom);
 }
 
@@ -840,6 +844,8 @@ static JSBool native_audio_run(JSContext *cx, unsigned argc, jsval *vp)
     JSFunction *nfn;
     jsval *argv = JS_ARGV(cx, vp);
     NativeJSAudio *audio = NativeJSAudio::getContext();
+
+    CHECK_INVALID_CTX(audio);
 
     if ((nfn = JS_ValueToFunction(cx, argv[0])) == NULL ||
         (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
@@ -1024,6 +1030,19 @@ static JSBool native_audiothread_print(JSContext *cx, unsigned argc, jsval *vp)
     printf("%s\n", bytes);
 
     JS_free(cx, bytes);
+
+    return JS_TRUE;
+}
+
+static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+{
+    NativeJSAudio *jaudio = NativeJSAudio::getContext();
+
+    CHECK_INVALID_CTX(jaudio);
+
+    if (vp.isNumber()) {
+        jaudio->audio->setVolume((float)vp.toNumber());
+    } 
 
     return JS_TRUE;
 }
