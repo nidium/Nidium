@@ -58,6 +58,7 @@ struct NodeLink {
 
 // TODO : Cleanup callbacks
 typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread callback
+typedef void (*ArgCallback)(NativeAudioNode *node, int id, void *val, int size); // Callback for node arguments
 typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); // Message posting to thread TODO : Normalize args
 
 class NativeAudioNode
@@ -67,8 +68,11 @@ class NativeAudioNode
             const char *name;
             ArgType type;
             void *ptr;
+            ArgCallback cbk;
+            int id;
 
             ExportsArgs(const char *name, ArgType type, void *ptr) : name(name), type(type), ptr(ptr) {};
+            ExportsArgs(const char *name, ArgType type, int id, ArgCallback cbk) : name(name), type(type), ptr(NULL), cbk(cbk), id(id)  {};
         };
 
         ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
@@ -76,9 +80,10 @@ class NativeAudioNode
         // XXX : Normalize callbacks ?
         struct Message {
             NativeAudioNode *node;
-            void *source, *dest;
+            ExportsArgs *arg;
             unsigned long size;
-            Message(NativeAudioNode *node, void *source, void *dest, unsigned long size);
+            void *val;
+            Message(NativeAudioNode *node, ExportsArgs *arg, void *val, unsigned long size);
             ~Message();
         };
 
@@ -132,7 +137,7 @@ class NativeAudioNode
         float *newFrame();
 
     private:
-        void post(int msg, void *source, void *dest, unsigned long size);
+        void post(int msg, ExportsArgs *arg, void *val, unsigned long size);
         bool isFrameOwner(float *frame)
         {
             void *tmp = (void *)*((ptrdiff_t *)&(frame[this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels]));
@@ -207,6 +212,38 @@ class NativeAudioNodeCustom : public NativeAudioNode
     private : 
         NodeCallback cbk;
         void *custom;
+};
+
+class NativeAudioNodeDelay : public NativeAudioNode
+{
+    public :
+        NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
+        
+        enum Args {
+            DELAY, WET, DRY 
+        };
+
+        double delay;
+        double wet;
+        double dry;
+        float **buffers;
+
+        virtual bool process();
+        static void argCallback(NativeAudioNode *node, int id, void *val, int size);
+    
+        ~NativeAudioNodeDelay();
+    private : 
+        int idx;
+};
+
+class NativeAudioNodeReverb : public NativeAudioNode
+{
+    public :
+        NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio);
+
+        double delay;
+
+        virtual bool process();
 };
 
 #if 0

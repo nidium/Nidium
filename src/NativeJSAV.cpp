@@ -372,6 +372,9 @@ NativeJSAudio::~NativeJSAudio()
     }
 
     // Delete all ndoes
+    pthread_mutex_lock(&this->audio->recurseLock);
+    pthread_mutex_lock(&this->audio->tracksLock);
+
     NativeJSAudio::Nodes *nodes = this->nodes;
     NativeJSAudio::Nodes *next = NULL;
     while (nodes != NULL) {
@@ -381,6 +384,9 @@ NativeJSAudio::~NativeJSAudio()
         delete nodes->curr;
         nodes = next;
     }
+
+    pthread_mutex_unlock(&this->audio->recurseLock);
+    pthread_mutex_unlock(&this->audio->tracksLock);
 
     // Shutdown the audio
     this->audio->shutdown();
@@ -905,17 +911,20 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         node = new NativeJSAudioNode(NativeAudio::CUSTOM, in, out, audio);
         JS_DefineProperties(cx, ret, AudioNodeCustom_props);
         JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
+    } else if (strcmp("reverb", cname.ptr()) == 0) {
+        node = new NativeJSAudioNode(NativeAudio::REVERB, in, out, audio);
+    } else if (strcmp("delay", cname.ptr()) == 0) {
+        node = new NativeJSAudioNode(NativeAudio::DELAY, in, out, audio);
     } else if (strcmp("gain", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(NativeAudio::GAIN, in, out, audio);
     } else if (strcmp("target", cname.ptr()) == 0) {                      
         node = new NativeJSAudioNode(NativeAudio::TARGET, in, out, audio);
-        node->type = NativeAudio::TARGET;
     } else {
         JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
         return JS_FALSE;
     }
 
-    if (node == NULL) {
+    if (node == NULL || node->node == NULL) {
         JS_ReportError(cx, "Error while creating node : %s\n", cname.ptr());
         return JS_FALSE;
     }

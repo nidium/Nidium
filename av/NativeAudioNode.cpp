@@ -62,18 +62,15 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
     }
 }
 
-NativeAudioNode::Message::Message(NativeAudioNode *node, void *source, void *dest, unsigned long size)
-: node(node)
+NativeAudioNode::Message::Message(NativeAudioNode *node, ExportsArgs *arg, void *val, unsigned long size)
+: node(node), arg(arg), size(size)
 {
-    this->source = malloc(size);
-    this->size = size;
-    this->dest = dest;
-
-    memcpy(this->source, source, size);
+    this->val = malloc(size);
+    memcpy(this->val, val, size);
 }
 
 NativeAudioNode::Message::~Message() {
-    free(this->source);
+    free(this->val);
 }
 
 void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom) 
@@ -112,7 +109,7 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
                 val = value;
             }
 
-            this->post(NATIVE_AUDIO_NODE_SET, val, this->args[i]->ptr, size);
+            this->post(NATIVE_AUDIO_NODE_SET, this->args[i], val, size);
             return true;
         }
     }
@@ -285,6 +282,7 @@ bool NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
 void NativeAudioNode::processQueue()
 {
     SPAM(("process queue on %p\n", this));
+
     // Let's go for a new round.
     // First mark all output as unprocessed
     for (int i = 0; i < this->outCount ; i++) {
@@ -340,10 +338,14 @@ void NativeAudioNode::processQueue()
         }  
     }
 
-    if (!this->process()) {
-        SPAM(("Failed to process node at %p\n", this));
-        this->processed = true;
-        return; // XXX : This need to be double checked
+    if (!this->doNotProcess) {
+        if (!this->process()) {
+            SPAM(("Failed to process node at %p\n", this));
+            this->processed = true;
+            return; // XXX : This need to be double checked
+        }
+    } else {
+        SPAM(("Node marked as doNotProcess\n"));
     }
 
     for (int i = 0; i < this->outCount; i++) {
@@ -397,8 +399,8 @@ float *NativeAudioNode::newFrame()
 #undef FRAME_SIZE
 }
 
-void NativeAudioNode::post(int msg, void *source, void *dest, unsigned long size) {
-    this->audio->sharedMsg->postMessage((void *)new Message(this, source, dest, size), msg);
+void NativeAudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size) {
+    this->audio->sharedMsg->postMessage((void *)new Message(this, arg, val, size), msg);
 }
 
 NativeAudioNode::~NativeAudioNode() {
@@ -545,6 +547,113 @@ bool NativeAudioNodeGain::process()
     }
     return true;
 }
+NativeAudioNodeReverb::NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio)
+    : NativeAudioNode(inCount, outCount, audio), delay(500)
+{
+    this->args[0] = new ExportsArgs("delay", DOUBLE, &this->delay);
+}
+
+bool NativeAudioNodeReverb::process()
+{
+#if 0
+    int delayMilliseconds = 3; // half a second
+    int delaySamples = (int)((float)delayMilliseconds * 44.1f); // assumes 44100 Hz sample rate
+    float decay = 0.5f;
+    int length = this->audio->outputParameters->framesPerBuffer;
+
+    for (int j = 0; j < this->inCount; j++) {
+        for (int i = 0; i < length - delaySamples; i++)
+        {
+            // WARNING: overflow potential
+            this->frames[j][i + delaySamples] += (short)((float)this->frames[j][i] * decay);
+        }
+    }
+#endif
+    return true;
+}
+
+NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
+    : NativeAudioNode(inCount, outCount, audio), delay(500), wet(1), dry(1), idx(0)
+{
+    this->args[0] = new ExportsArgs("delay", DOUBLE, DELAY, NativeAudioNodeDelay::argCallback);
+    this->args[1] = new ExportsArgs("wet", DOUBLE, WET, NativeAudioNodeDelay::argCallback);
+    this->args[2] = new ExportsArgs("dry", DOUBLE, DRY, NativeAudioNodeDelay::argCallback);
+
+    int max = inCount > outCount ? inCount : outCount;
+    this->buffers = (float **)malloc(max * sizeof(void *));
+    for (int i = 0; i < max; i++) {
+        this->buffers[i] = (float *)calloc(NativeAudio::FLOAT32, audio->outputParameters->sampleRate * (delay/1000));
+        if (!this->buffers[i]) {
+            this->doNotProcess = true;
+        }
+    }
+}
+
+bool NativeAudioNodeDelay::process()
+{
+    for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
+        if (this->idx >= audio->outputParameters->sampleRate * (this->delay/1000)) {
+            this->idx = 0;
+        }
+        for (int j = 0; j < this->inCount; j++) {
+            float tmp = this->frames[this->input[j]->channel][i];
+            this->frames[this->input[j]->channel][i] = (tmp  * this->dry) + (this->wet * this->buffers[this->input[j]->channel][this->idx]);
+            this->buffers[this->input[j]->channel][this->idx] = tmp;
+        }
+        this->idx++;
+    }
+
+    return true;
+}
+
+void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp, int size)
+{
+    NativeAudioNodeDelay *thiz = static_cast<NativeAudioNodeDelay *>(node);
+    double val = *((double *)tmp);
+    switch (id) {
+        case DELAY: {
+            if (val < 0 || val > 60000) {
+                printf("Sanity check failed for delay argment of NativeAudioNodeDelay (value < 0 or value > 60000)\n");
+                return;
+            }
+            if (val > thiz->delay) {
+                int max = thiz->inCount > thiz->outCount ? thiz->inCount : thiz->outCount;
+                for (int i = 0; i < max; i++) {
+                    int size = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (val/1000);
+                    thiz->buffers[i] = (float *)realloc(thiz->buffers[i], size);
+                    if (!thiz->buffers[i]) {
+                        thiz->doNotProcess = true;
+                    } else { 
+                        memset(&thiz->buffers[i][thiz->idx], 0, 
+                            (size / NativeAudio::FLOAT32 - thiz->idx) * NativeAudio::FLOAT32);
+                        thiz->doNotProcess = false;
+                    }
+                }
+            }
+            thiz->delay = val;
+        }
+        break;
+        case WET:
+            if (val > 1) val = 1;
+            if (val < 0) val = 0;
+            thiz->wet = val;
+        break;
+        case DRY:
+            if (val > 1) val = 1;
+            if (val < 0) val = 0;
+            thiz->dry = val;
+        break;
+    }
+}
+
+NativeAudioNodeDelay::~NativeAudioNodeDelay()
+{
+    int max = this->inCount > this->outCount ? this->inCount : this->outCount;
+    for (int i = 0; i < max; i++) {
+        free(this->buffers[i]);
+    }
+    free(this->buffers);
+}
 
 NativeAudioNodeCustom::NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio) 
     : NativeAudioNode(inCount, outCount, audio), cbk(NULL)
@@ -573,8 +682,8 @@ bool NativeAudioNodeCustom::process()
 }
 
 NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external) 
-    : NativeAudioNode(0, out, audio), externallyManaged(external), 
-      playing(false), stopped(false), loop(false), nbChannel(0), doClose(false), rBufferOut(NULL), reader(NULL),
+    : NativeAudioNode(0, out, audio), rBufferOut(NULL), reader(NULL), externallyManaged(external), 
+      playing(false), stopped(false), loop(false), nbChannel(0), doClose(false),
       codecCtx(NULL), tmpPacket(NULL), clock(0), 
       frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1),
       swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
@@ -1062,6 +1171,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
 
     if (this->fCvt) {
         int copied = 0;
+        int passCopied = 0;
         for (;;) {
             int sampleSize;
 
@@ -1069,8 +1179,9 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
 
             // Output is empty
             if (this->fCvt->out_count == NATIVE_RESAMPLER_BUFFER_SAMPLES) {
-                this->samplesConsumed = 0;
                 this->fCvt->out_data = this->fBufferOutData;
+                this->samplesConsumed = 0;
+                passCopied= 0;
 
                 // Resample as much data as possible
                 while (this->fCvt->out_count > 0 && this->fCvt->inp_count > 0) {
@@ -1081,12 +1192,12 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
                 }
             } 
 
-            if (this->fCvt->out_count <= NATIVE_RESAMPLER_BUFFER_SAMPLES) {
+            if (this->fCvt->out_count < NATIVE_RESAMPLER_BUFFER_SAMPLES) {
                 int write, avail;
                 
                 avail = NATIVE_RESAMPLER_BUFFER_SAMPLES - this->fCvt->out_count;
                 write = destSamples > avail ? avail : destSamples;
-                write -= copied;
+                write -= passCopied;
 
                 memcpy(
                         dest + copied * channels, 
@@ -1097,6 +1208,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
                 this->samplesConsumed += write;
                 this->fCvt->out_count += write;
                 copied += write;
+                passCopied += write;
 
                 if (copied == destSamples) {
                     return copied;

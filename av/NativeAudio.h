@@ -49,7 +49,7 @@ class NativeAudio
         };
 
         enum Node {
-            SOURCE, GAIN, TARGET, CUSTOM
+            SOURCE, GAIN, TARGET, CUSTOM, REVERB, DELAY
         };
 
         ape_global *net;

@@ -25,13 +25,13 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     pthread_mutex_init(&this->decodeLock, NULL);
     pthread_mutex_init(&this->queueLock, NULL);
     pthread_mutex_init(&this->shutdownLock, NULL);
-    pthread_mutex_init(&this->recurseLock, NULL);
-    pthread_mutex_t mutext = PTHREAD_MUTEX_INITIALIZER;
 
     pthread_mutexattr_t mta;
     pthread_mutexattr_init(&mta);
     pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
+
     pthread_mutex_init(&this->tracksLock, &mta);
+    pthread_mutex_init(&this->recurseLock, &mta);
 
     this->sharedMsg = new NativeSharedMessages();
 
@@ -108,6 +108,7 @@ void *NativeAudio::queueThread(void *args) {
         nread = 0;
 
         while (++nread < MAX_MSG_IN_ROW && audio->sharedMsg->readMessage(&msg)) {
+            // FIXME : Here is a possible crash, if node have been deleted 
             switch (msg.event()) {
                 case NATIVE_AUDIO_NODE_CALLBACK : {
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
@@ -117,7 +118,11 @@ void *NativeAudio::queueThread(void *args) {
                 break;
                 case NATIVE_AUDIO_NODE_SET : {
                     NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
-                    memcpy(nodeMsg->dest, nodeMsg->source, nodeMsg->size);
+                    if (nodeMsg->arg->ptr == NULL) {
+                        nodeMsg->arg->cbk(nodeMsg->node, nodeMsg->arg->id, nodeMsg->val, nodeMsg->size);
+                    } else {
+                        memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
+                    }
                     delete nodeMsg;
                 }
                 break;
@@ -177,7 +182,6 @@ void *NativeAudio::queueThread(void *args) {
                 pthread_cond_signal(&audio->bufferNotEmpty);
             }
         } 
-
         if (!audio->threadShutdown) {
             if (cause == 0) {
                 SPAM(("Waiting for more data\n"));
@@ -216,7 +220,6 @@ void NativeAudio::processQueue()
     SPAM(("-------------------------------- finished\n"));
 }
 
-// TODO : Locking/unlocking for tracks list
 void *NativeAudio::decodeThread(void *args) {
     NativeAudio *audio = static_cast<NativeAudio *>(args);
 
@@ -226,12 +229,13 @@ void *NativeAudio::decodeThread(void *args) {
 
     for(;;)
     {
+        // Go through all the tracks that need data to be decoded
+        pthread_mutex_lock(&audio->tracksLock);
+
         tracks = audio->tracks;
         haveEnought = 0;
         tracksCount = audio->tracksCount;
 
-        // Go through all the tracks that need data to be decoded
-        pthread_mutex_lock(&audio->tracksLock);
         while (tracks != NULL) 
         {
             haveEnought = 0;
@@ -512,6 +516,12 @@ NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int 
             break;
         case CUSTOM:
                 return new NativeAudioNodeCustom(input, output, this);
+            break;
+        case REVERB:
+                return new NativeAudioNodeReverb(input, output, this);
+            break;
+        case DELAY:
+                return new NativeAudioNodeDelay(input, output, this);
             break;
         case TARGET:
                 if (this->output == NULL) {
