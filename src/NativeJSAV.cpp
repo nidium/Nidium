@@ -583,7 +583,7 @@ void NativeJSAudioNode::customInitCallback(NativeAudioNode *node, void *custom)
     thiz = static_cast<NativeJSAudioNode *>(custom);
     tcx = thiz->audio->tcx;
 
-    if (!tcx || !thiz->cx || !thiz->jsobj) {
+    if (!tcx || !thiz->cx || !thiz->jsobj || !thiz->initStr) {
         return;
     }
 
@@ -595,6 +595,7 @@ void NativeJSAudioNode::customInitCallback(NativeAudioNode *node, void *custom)
     JSFunction *fn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_oninit", 2, args, thiz->initStr, strlen(thiz->initStr), "FILENAME (TODO)", 0);
 
     JS_free(tcx, (void *)thiz->initStr);
+    thiz->initStr = NULL;
 
     JS_DefineFunctions(tcx, obj, AudioNodeCustom_threaded_funcs);
 

@@ -107,7 +107,7 @@ class NativeJSAudioNode: public NativeJSExposer
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
+            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), initStr(NULL),
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
 
@@ -122,7 +122,7 @@ class NativeJSAudioNode: public NativeJSExposer
         }
 
         NativeJSAudioNode(NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
+            :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), initStr(NULL),
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
             this->add();
