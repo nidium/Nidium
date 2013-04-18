@@ -26,11 +26,20 @@
                 'include_dirs': [
                     '<(native_interface_path)/linux/',
                 ],
-                'cflags': [
-                    '-fvisibility=hidden',
-                    '-fvisibility-inlines-hidden',
-                    '-Wno-invalid-offsetof'
-                ],
+                'conditions': [
+                    ['native_use_gtk==1', {
+                        'defines': ['NATIVE_USE_GTK'],
+                        'cflags': [
+                            '<!@(pkg-config --cflags gtk+-2.0)',
+                        ],
+                    }],
+                    ['native_use_qt==1', {
+                        'defines': ['NATIVE_USE_QT'],
+                        'cflags': [
+                            '<!@(pkg-config --cflags QtCore QtGui)'
+                        ],
+                    }]
+                ]
             }],
         ],
     }],

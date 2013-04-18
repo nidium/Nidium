@@ -33,6 +33,8 @@ static void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Audio_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_audio_run(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_audio_load(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp);
@@ -54,6 +56,7 @@ static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *
 static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp);
 
+static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
@@ -101,6 +104,7 @@ static JSClass AudioNode_threaded_class = {
 };
 
 static JSPropertySpec Audio_props[] = {
+    {"volume", AUDIO_PROP_VOLUME, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audio_prop_setter)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -122,6 +126,8 @@ static JSPropertySpec AudioNodeCustom_props[] = {
 
 static JSFunctionSpec Audio_funcs[] = {
     JS_FN("getContext", native_audio_getcontext, 3, 0),
+    JS_FN("run", native_audio_run, 1, 0),
+    JS_FN("load", native_audio_load, 1, 0),
     JS_FN("createNode", native_audio_createnode, 3, 0),
     JS_FN("connect", native_audio_connect, 2, 0),
     JS_FN("disconnect", native_audio_disconnect, 2, 0),
@@ -264,6 +270,7 @@ NativeJSAudio *NativeJSAudio::getContext(JSContext *cx, JSObject *obj, int buffe
     NJS->rootObjectUntilShutdown(obj);
 
     JS_DefineFunctions(cx, obj, Audio_funcs);
+    JS_DefineProperties(cx, obj, Audio_props);
 
     pthread_cond_init(&jaudio->shutdownCond, NULL);
     pthread_mutex_init(&jaudio->shutdownLock, NULL);
@@ -324,6 +331,28 @@ bool NativeJSAudio::createContext()
     
 }
 
+bool NativeJSAudio::run(char *str)
+{
+    jsval rval;
+    JSFunction *fun;
+
+    if (!this->tcx) {
+        printf("No JS context for audio thread\n");
+        return false;
+    }
+
+    fun = JS_CompileFunction(this->tcx, JS_GetGlobalObject(this->tcx), "Audio_run", 0, NULL, str, strlen(str), "FILENAME (TODO)", 0);
+
+    if (!fun) {
+        JS_ReportError(this->tcx, "Failed to execute script on audio thread\n");
+        return false;
+    }
+
+    JS_CallFunction(this->tcx, JS_GetGlobalObject(this->tcx), fun, 0, NULL, &rval);
+
+    return true;
+}
+
 NativeJSAudio::~NativeJSAudio() 
 {
     // Unroot all js audio nodes
@@ -332,7 +361,7 @@ NativeJSAudio::~NativeJSAudio()
     // Unroot custom nodes objets and clear threaded js context
     this->audio->sharedMsg->postMessage(
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::shutdownCallback, NULL, this), 
-            NATIVE_AUDIO_SHUTDOWN);
+            NATIVE_AUDIO_CALLBACK);
 
     // If audio doesn't have any tracks playing, the queue thread might sleep
     // So we need to wake it up to deliver the message 
@@ -343,6 +372,9 @@ NativeJSAudio::~NativeJSAudio()
     }
 
     // Delete all ndoes
+    pthread_mutex_lock(&this->audio->recurseLock);
+    pthread_mutex_lock(&this->audio->tracksLock);
+
     NativeJSAudio::Nodes *nodes = this->nodes;
     NativeJSAudio::Nodes *next = NULL;
     while (nodes != NULL) {
@@ -352,6 +384,9 @@ NativeJSAudio::~NativeJSAudio()
         delete nodes->curr;
         nodes = next;
     }
+
+    pthread_mutex_unlock(&this->audio->recurseLock);
+    pthread_mutex_unlock(&this->audio->tracksLock);
 
     // Shutdown the audio
     this->audio->shutdown();
@@ -381,7 +416,7 @@ void NativeJSAudio::unroot()
     }
 }
 
-void NativeJSAudio::shutdownCallback(NativeAudioNode *node, void *custom)
+void NativeJSAudio::shutdownCallback(NativeAudioNode *dummy, void *custom)
 {
     NativeJSAudio *audio = static_cast<NativeJSAudio *>(custom);
     NativeJSAudio::Nodes *nodes = audio->nodes;
@@ -415,17 +450,6 @@ void NativeJSAudioNode::add()
     }
 
     this->audio->nodes = nodes;
-}
-
-void NativeJSAudioNode::customCtxCallback(NativeAudioNode *node, void *custom)
-{
-    NativeJSAudioNode *jsNode = static_cast<NativeJSAudioNode *>(custom);
-
-    if (!jsNode->audio->createContext()) {
-        printf("Failed to create audio thread context\n");
-        //JS_ReportError(jsNode->audio->cx, "Failed to create audio thread context\n");
-        // XXX : Can't report error from another thread?
-    }
 }
 
 void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
@@ -559,7 +583,7 @@ void NativeJSAudioNode::customInitCallback(NativeAudioNode *node, void *custom)
     thiz = static_cast<NativeJSAudioNode *>(custom);
     tcx = thiz->audio->tcx;
 
-    if (!tcx || !thiz->cx || !thiz->jsobj) {
+    if (!tcx || !thiz->cx || !thiz->jsobj || !thiz->initStr) {
         return;
     }
 
@@ -571,6 +595,7 @@ void NativeJSAudioNode::customInitCallback(NativeAudioNode *node, void *custom)
     JSFunction *fn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_oninit", 2, args, thiz->initStr, strlen(thiz->initStr), "FILENAME (TODO)", 0);
 
     JS_free(tcx, (void *)thiz->initStr);
+    thiz->initStr = NULL;
 
     JS_DefineFunctions(tcx, obj, AudioNodeCustom_threaded_funcs);
 
@@ -640,6 +665,30 @@ bool NativeJSAudioNode::createHashObj()
     JS_AddObjectRoot(this->audio->tcx, &this->hashObj);
     return true;
 }
+
+void NativeJSAudio::runCallback(NativeAudioNode *node, void *custom)
+{
+    NativeJSAudio *audio = NativeJSAudio::getContext();
+
+    if (!audio) return;// This should not happend
+
+    char *str = static_cast<char *>(custom);
+    audio->run(str);
+    JS_free(audio->cx, custom);
+}
+
+
+void NativeJSAudio::ctxCallback(NativeAudioNode *dummy, void *custom)
+{
+    NativeJSAudio *audio = static_cast<NativeJSAudio*>(custom);
+
+    if (!audio->createContext()) {
+        printf("Failed to create audio thread context\n");
+        //JS_ReportError(jsNode->audio->cx, "Failed to create audio thread context\n");
+        // XXX : Can't report error from another thread?
+    }
+}
+
 
 void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
 {
@@ -796,6 +845,43 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_audio_run(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *fn;
+    JSFunction *nfn;
+    jsval *argv = JS_ARGV(cx, vp);
+    NativeJSAudio *audio = NativeJSAudio::getContext();
+
+    CHECK_INVALID_CTX(audio);
+
+    if ((nfn = JS_ValueToFunction(cx, argv[0])) == NULL ||
+        (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
+        JS_ReportError(cx, "Failed to read callback function\n");
+        return JS_FALSE;
+    } 
+
+    char *funStr = JS_EncodeString(cx, fn);
+
+    if (!audio->tcx) {
+        audio->audio->sharedMsg->postMessage(
+                (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::ctxCallback, NULL, static_cast<void *>(audio)), 
+                NATIVE_AUDIO_NODE_CALLBACK);
+    }
+
+    audio->audio->sharedMsg->postMessage(
+            (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::runCallback, NULL, static_cast<void *>(funStr)), 
+            NATIVE_AUDIO_CALLBACK);
+
+
+    return JS_TRUE;
+}
+
+static JSBool native_audio_load(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS_ReportError(cx, "Not implemented");
+    return JS_TRUE;
+}
+
 static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
 {
     int in, out;
@@ -826,17 +912,20 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         node = new NativeJSAudioNode(NativeAudio::CUSTOM, in, out, audio);
         JS_DefineProperties(cx, ret, AudioNodeCustom_props);
         JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
+    } else if (strcmp("reverb", cname.ptr()) == 0) {
+        node = new NativeJSAudioNode(NativeAudio::REVERB, in, out, audio);
+    } else if (strcmp("delay", cname.ptr()) == 0) {
+        node = new NativeJSAudioNode(NativeAudio::DELAY, in, out, audio);
     } else if (strcmp("gain", cname.ptr()) == 0) {
         node = new NativeJSAudioNode(NativeAudio::GAIN, in, out, audio);
     } else if (strcmp("target", cname.ptr()) == 0) {                      
         node = new NativeJSAudioNode(NativeAudio::TARGET, in, out, audio);
-        node->type = NativeAudio::TARGET;
     } else {
         JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
         return JS_FALSE;
     }
 
-    if (node == NULL) {
+    if (node == NULL || node->node == NULL) {
         JS_ReportError(cx, "Error while creating node : %s\n", cname.ptr());
         return JS_FALSE;
     }
@@ -951,6 +1040,19 @@ static JSBool native_audiothread_print(JSContext *cx, unsigned argc, jsval *vp)
     printf("%s\n", bytes);
 
     JS_free(cx, bytes);
+
+    return JS_TRUE;
+}
+
+static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+{
+    NativeJSAudio *jaudio = NativeJSAudio::getContext();
+
+    CHECK_INVALID_CTX(jaudio);
+
+    if (vp.isNumber()) {
+        jaudio->audio->setVolume((float)vp.toNumber());
+    } 
 
     return JS_TRUE;
 }
@@ -1090,7 +1192,7 @@ static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *v
     }
 
     if (!jnode->audio->tcx) {
-        node->callback(NativeJSAudioNode::customCtxCallback, jnode);
+        node->callback(NativeJSAudio::ctxCallback, jnode->audio);
     }
 
     node->callback(NativeJSAudioNode::setPropCallback, msg);
@@ -1341,7 +1443,7 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
             node = static_cast<NativeAudioNodeCustom *>(jnode->node);
 
             if (!jnode->audio->tcx) {
-                node->callback(NativeJSAudioNode::customCtxCallback, jnode);
+                node->callback(NativeJSAudio::ctxCallback, jnode->audio);
             }
 
             node->setCallback(NativeJSAudioNode::customCallback, static_cast<void *>(jnode));
@@ -1364,7 +1466,7 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
             node = static_cast<NativeAudioNodeCustom *>(jnode->node);
 
             if (!jnode->audio->tcx) {
-                node->callback(NativeJSAudioNode::customCtxCallback, jnode);
+                node->callback(NativeJSAudio::ctxCallback, jnode->audio);
             }
 
             node->callback(NativeJSAudioNode::customInitCallback, static_cast<void *>(jnode));

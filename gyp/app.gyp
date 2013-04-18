@@ -20,6 +20,18 @@
         ],
         'conditions': [
             ['OS=="linux"', {
+                'conditions': [
+                    ['native_use_gtk==1', {
+                            'libraries': [
+                                '<!@(pkg-config --libs gtk+-2.0)',
+                            ]
+                    }],
+                    ['native_use_qt==1', {
+                        'libraries': [
+                            '<!@(pkg-config --libs QtCore QtGui)'
+                        ]
+                    }]
+                ],
                 'cflags': [
                     '-fno-rtti',
                     '-ffunction-sections',
@@ -29,51 +41,53 @@
                     '-freorder-blocks',
                     '-fomit-frame-pointer'
                 ],
-                'libraries': [
+                'link_settings': {
+                    'libraries': [
 #'-ltranslator_glsl',
 #'-ltranslator_common',
 #'-lpreprocessor',
-                    '-Wl,--start-group',
-                    '-lGL',
-                    '-lasound',
-                    '-lpthread',
-                    '-lpng',
-                    '-lfreetype',
-                    '-lrt',
-                    '-lz',
-                    '-ldl',
+                        '-Wl,--start-group',
+                        '-lGL',
+                        '-lasound',
+                        '-lpthread',
+                        '-lpng',
+                        '-lfreetype',
+                        '-lrt',
+                        '-lz',
+                        '-ldl',
 
-                    '-Wl,-Bstatic '
-                    '-lSDL2',
-                    '-lzip',
-                    '-lcares',
-                    '-lhttp_parser',
-                    '-ljsoncpp',
-                    '-lportaudio',
-                    '-lzita-resampler',
-                    '-lnspr4',
-                    '-lcoroutine',
-                    '-Wl,-Bdynamic',
+                        '-Wl,-Bstatic '
+                        '-lSDL2',
+                        '-lzip',
+                        '-lcares',
+                        '-lhttp_parser',
+                        '-ljsoncpp',
+                        '-lportaudio',
+                        '-lzita-resampler',
+                        '-lnspr4',
+                        '-lcoroutine',
+                        '-Wl,-Bdynamic',
 
-                    '-lswresample',
-                    '-lswscale',
-                    '-lavformat',
-                    '-lavcodec',
-                    '-lavutil',
-                    '-ljpeg',
-                    '-lskia_sfnt',
-                    '-lskia_opts_ssse3',
-                    '-lskia_opts',
-                    '-lskia_utils',
-                    '-lskia_ports',
-                    '-lskia_images',
-                    '-lskia_skgr',
-                    '-lskia_gr',
-                    '-lskia_effects',
-                    '-lskia_core',
-                    '-ljs_static',
-                    '-Wl,--end-group'
-                ],
+                        '-lswresample',
+                        '-lswscale',
+                        '-lavformat',
+                        '-lavcodec',
+                        '-lavutil',
+                        '-ljpeg',
+                        '-lskia_sfnt',
+                        '-lskia_opts_ssse3',
+                        '-lskia_opts',
+                        '-lskia_utils',
+                        '-lskia_ports',
+                        '-lskia_images',
+                        '-lskia_skgr',
+                        '-lskia_gr',
+                        '-lskia_effects',
+                        '-lskia_core',
+                        '-ljs_static',
+                        '-Wl,--end-group'
+                    ],
+                },
                 'include_dirs': [
                     '<(native_interface_path)/linux/',
                 ],

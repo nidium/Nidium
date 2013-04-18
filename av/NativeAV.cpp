@@ -62,6 +62,7 @@ NativeAVFileReader::NativeAVFileReader(const char *src, bool *readFlag, pthread_
 {
     this->async = true;
     this->nfio = new NativeFileIO(src, this, net);
+    this->nfio->setAutoClose(false);
     this->nfio->open("r");
 }
 

@@ -15,6 +15,7 @@ enum {
     NODE_EV_PROP_SIZE,
     NODE_CUSTOM_PROP_BUFFER,
     NODE_CUSTOM_PROP_INIT,
+    AUDIO_PROP_VOLUME,
     VIDEO_PROP_WIDTH,
     VIDEO_PROP_HEIGHT,
     VIDEO_PROP_ONFRAME,
@@ -88,6 +89,9 @@ class NativeJSAudio: public NativeJSExposer
         const char *fun;
 
         bool createContext();
+        bool run(char *str);
+        static void ctxCallback(NativeAudioNode *node, void *custom);
+        static void runCallback(NativeAudioNode *node, void *custom);
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
         void unroot();
 
@@ -103,7 +107,7 @@ class NativeJSAudioNode: public NativeJSExposer
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
+            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), initStr(NULL),
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
 
@@ -118,7 +122,7 @@ class NativeJSAudioNode: public NativeJSExposer
         }
 
         NativeJSAudioNode(NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
+            :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), initStr(NULL),
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
             this->add();
@@ -145,7 +149,6 @@ class NativeJSAudioNode: public NativeJSExposer
         // Custom node
         static void customCallback(const struct NodeEvent *ev);
         static void customInitCallback(NativeAudioNode *node, void *custom);
-        static void customCtxCallback(NativeAudioNode *node, void *custom);
         static void setPropCallback(NativeAudioNode *node, void *custom);
         static void shutdownCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
