@@ -33,7 +33,11 @@ Native.getAudioDSP = function(){
 	// 512 bytes buffer, 2 channels, 44100Hz
 	if (!Native.scope.Audio) return false;
 	if (!Native.defaultAudioDSP) {
-		Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);
+		if (Audio.getContext) {
+			Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);
+		} else {
+			Native.defaultAudioDSP = new Audio(512, 2, 44100);
+		}
 	}
 	return Native.defaultAudioDSP;
 };
@@ -78,7 +82,6 @@ var AudioMixer = {
 		   	+--------+    R    +------+    R    +--------+
 		 
 		*/
-
 
 		// ... SOURCE ---> GAIN ..........................
 		this.dsp.connect(source.output(0), gain.input(0));

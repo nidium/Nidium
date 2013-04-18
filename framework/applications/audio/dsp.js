@@ -24,16 +24,17 @@
  * --------------------------------------------------------------------------- * 
  */
 
+//Native.showFPS(true);
+
 var main = new Application();
 var	k2PI = 2.0 * Math.PI;
 
 var app = {
 	dftBuffer : new Float64Array(256),
 
-	start : function(url){
+	init : function(){
 		this.createNodes();
 		this.connectNodes();
-		this.load(url);
 		this.setProcessor();
 		this.attachListeners();
 	},
@@ -43,6 +44,7 @@ var app = {
 		this.source = this.dsp.createNode("source", 0, 2);
 		this.gain = this.dsp.createNode("gain", 2, 2);
 		this.processor = this.dsp.createNode("custom", 2, 2);
+		this.delay = this.dsp.createNode("delay", 2, 2);
 		this.target = this.dsp.createNode("target", 2, 0);
 	},
 
@@ -57,30 +59,147 @@ var app = {
 	setProcessor : function(){
 		var self = this;
 
+		this.processor.oninit = function(scope){
+			scope.ResonantFilter = function(type, sampleRate){
+				this.type = type;
+				this.sampleRate = sampleRate;
+
+				this.f = new Float32Array(4);
+				this.f[0] = 0.0; // lp
+				this.f[1] = 0.0; // hp
+				this.f[2] = 0.0; // bp
+				this.f[3] = 0.0; // br
+			};
+
+			scope.ResonantFilter.prototype.update = function(cutoff, resonance){
+				this.cutoff = cutoff;
+				this.resonance = resonance;
+				
+				this.freq = 2 * Math.sin(
+					Math.PI * Math.min(0.25, cutoff/(this.sampleRate*2))
+				);
+
+				this.damp = Math.min(
+					2 * (1 - Math.pow(resonance, 0.25)),
+					Math.min(2, 2/this.freq - this.freq * 0.5)
+				);
+			};
+
+			scope.ResonantFilter.prototype.process = function(input){
+				var output = 0,
+					f = this.f;
+
+				// first pass
+				f[3] = input - this.damp * f[2];
+				f[0] = f[0] + this.freq * f[2];
+				f[1] = f[3] - f[0];
+				f[2] = this.freq * f[1] + f[2];
+				output = 0.5 * f[this.type];
+
+				// second pass
+				f[3] = input - this.damp * f[2];
+				f[0] = f[0] + this.freq * f[2];
+				f[1] = f[3] - f[0];
+				f[2] = this.freq * f[1] + f[2];
+				output += 0.5 * f[this.type];
+
+				return input;
+			};
+
+			scope.MoogFilter = function(){
+				this.in1 = 0.0;
+				this.in2 = 0.0;
+				this.in3 = 0.0;
+				this.in4 = 0.0;
+
+				this.out1 = 0.0;
+				this.out2 = 0.0;
+				this.out3 = 0.0;
+				this.out4 = 0.0;
+			};
+
+			scope.MoogFilter.prototype.update = function(cutoff, resonance){
+				this.cutoff = cutoff;
+				this.resonance = resonance;
+			};
+
+			scope.MoogFilter.prototype.process = function(input){
+				var f = this.cutoff * 1.16,
+					ff = f * f;
+
+				var fb = this.resonance * (1.0 - 0.15 * ff);
+
+				input -= this.out4 * fb;
+				input *= 0.35013 * (ff*ff);
+
+				this.out1 = input + 0.3 * this.in1 + (1 - f) * this.out1; // Pole 1
+				this.in1  = input;
+
+				this.out2 = this.out1 + 0.3 * this.in2 + (1 - f) * this.out2;  // Pole 2
+				this.in2  = this.out1;
+
+				this.out3 = this.out2 + 0.3 * this.in3 + (1 - f) * this.out3;  // Pole 3
+				this.in3  = this.out2;
+
+				this.out4 = this.out3 + 0.3 * this.in4 + (1 - f) * this.out4;  // Pole 4
+				this.in4  = this.out3;
+
+				return this.out4;
+			};
+
+			scope.moogFilterL = new scope.MoogFilter();
+			scope.moogFilterR = new scope.MoogFilter();
+			scope.LPF = new scope.ResonantFilter(0, 44100);
+		};
+
 		/* Threaded Audio Processor */
 		this.processor.onbuffer = function(ev, scope){
-			var bufferL = ev.data[0],
+			var processor = this,
+				bufferL = ev.data[0],
 				bufferR = ev.data[1],
 				size = bufferL.length,
-				gain = this.get("gain");
+				gain = this.get("gain"),
+				cutoff = this.get("cutoff"),
+				resonance = this.get("resonance");
+
+			var echo = function(txt){
+				processor.send(txt);
+			};
+
+			scope.moogFilterL.update(cutoff, resonance);
+			scope.moogFilterR.update(cutoff, resonance);
+
+			/*
+			for (var i=0; i<size; i++) {
+				bufferL[i] = gain * FX.process(bufferL[i]);
+				bufferR[i] = gain * FX.process(bufferR[i]);
+			}
+			*/
+
+			for (var i=0; i<size; i++) {
+				bufferL[i] = gain * scope.moogFilterL.process(bufferL[i]);
+				bufferR[i] = gain * scope.moogFilterR.process(bufferR[i]);
+			}
 
 			this.send({
 				bufferL : bufferL,
 				bufferR : bufferR
 			});
-
-			for (var i=0; i<size; i++){
-				bufferL[i] *= gain;
-				bufferR[i] *= gain;
-			}
-		}
+		};
 
 		this.processor.onmessage = function(e){
-			self.iqDFT(e.data.bufferL, e.data.bufferR);
-		}
+			if (typeof e.data == "string" || typeof e.data == "number") {
+				echo(e.data);
+			} else {
+				self.iqDFT(e.data.bufferL, e.data.bufferR);
+			}
+		};
 
 		this.processor.set("gain", 0.5);
+		this.processor.set("cutoff", 0.04);
+		this.processor.set("resonance", 0.0);
 	},
+
 
 	/*
 	 * UltraFast Magic DFT by Iñigo Quílez
@@ -89,12 +208,12 @@ var app = {
 	 */
 	iqDFT : function(bufferL, bufferR){
 		var bufferSize = bufferL.length, //256
-			len = bufferSize >> 1, // 128
+			len = bufferSize, // 128
 			angularNormalisation = k2PI/(len); // len
 
 		// len = 128 for 2048 Audio Bytes Buffer
 
-		for(var i=0; i<len>>1; i++){
+		for(var i=0; i<len; i++){
 			var wi = i * angularNormalisation,
 				sii = Math.sin(wi),	coi = Math.cos(wi),
 				co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
@@ -106,7 +225,7 @@ var app = {
 				acco += co*f; co = co*coi -  si*sii;
 				acsi += si*f; si = si*coi + oco*sii;
 			}
-			this.dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/64;
+			this.dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/128;
 		}
 		Spectral.ondata();
 	},
@@ -118,8 +237,15 @@ var app = {
 		this.dsp.connect(this.gain.output(0), this.processor.input(0));
 		this.dsp.connect(this.gain.output(1), this.processor.input(1));
 
-		this.dsp.connect(this.processor.output(0), this.target.input(0));
-		this.dsp.connect(this.processor.output(1), this.target.input(1));
+		this.dsp.connect(this.processor.output(0), this.delay.input(0));
+		this.dsp.connect(this.processor.output(1), this.delay.input(1));
+
+		this.dsp.connect(this.delay.output(0), this.target.input(0));
+		this.dsp.connect(this.delay.output(1), this.target.input(1));
+
+		this.delay.set("dry", 0.9); // float 0 ... 1
+		this.delay.set("wet", 0.0); // float 0 ... 1
+		this.delay.set("delay", 500); // delay in ms
 	},
 
 	attachListeners : function(){
@@ -148,11 +274,11 @@ var Spectral = {
  	UIBars : [],
  	bars : [],
 
- 	nbars : 64,
-	barSize : 200,
+ 	nbars : 128,
+	barSize : 230,
 
-	cw : 1000,
-	ch : 200,
+	cw : 640,
+	ch : 230,
 
 	barW : 0,
 	barY : 0,
@@ -170,15 +296,16 @@ var Spectral = {
 			height : this.ch,
 			background : "black",
 			shadowBlur : 12,
-			opacity : 0.9
-		});
+			opacity : 0.9,
+			overflow : false
+		}).center();
 
 		this.spectrum.addEventListener("drag", function(e){
 			this.left += e.xrel;
 			this.top += e.yrel;
 		});
 
-		this.spectrum.slider = this.spectrum.add("UISliderController", {
+		this.spectrum.volumeSlider = this.spectrum.add("UISliderController", {
 			left : 16,
 			top : 10,
 			width : 224,
@@ -194,13 +321,103 @@ var Spectral = {
 			radius : 2,
 			min : 0.001,
 			max : 5,
+			value : 0.5
+		});
+
+		this.spectrum.cutoffSlider = this.spectrum.add("UISliderController", {
+			left : 16,
+			top : 30,
+			width : 224,
+			height : 16,
+
+			fontSize : 10,
+			lineHeight : 18,
+			color : "black",
+
+			splitColor : 'rgba(0, 0, 0, 0.5)',
+			boxColor : 'rgba(255, 255, 255, 0.02)',
+
+			radius : 2,
+			min : 0.04,
+			max : 0.8,
+			value : 0.04
+		});
+
+		this.spectrum.rezoSlider = this.spectrum.add("UISliderController", {
+			left : 16,
+			top : 50,
+			width : 224,
+			height : 16,
+
+			fontSize : 10,
+			lineHeight : 18,
+			color : "black",
+
+			splitColor : 'rgba(0, 0, 0, 0.5)',
+			boxColor : 'rgba(255, 255, 255, 0.02)',
+
+			radius : 2,
+			min : 0,
+			max : 0.9,
 			value : 0
 		});
 
-		this.spectrum.slider.addEventListener("change", function(e){
+
+		this.spectrum.delayTime = this.spectrum.add("UISliderController", {
+			left : 400,
+			top : 10,
+			width : 80,
+			height : 12,
+
+			fontSize : 10,
+			lineHeight : 18,
+			color : "red",
+			splitColor : 'rgba(0, 0, 0, 0.5)',
+			boxColor : 'rgba(255, 255, 255, 0.02)',
+
+			radius : 2,
+			min : 0.0,
+			max : 1500,
+			value : 500
+		});
+		this.spectrum.delayTime.addEventListener("change", function(e){
+			app.delay.set("delay", this.value);
+		}, false);
+
+		this.spectrum.delayWet = this.spectrum.add("UISliderController", {
+			left : 400,
+			top : 30,
+			width : 80,
+			height : 12,
+
+			fontSize : 10,
+			lineHeight : 18,
+			color : "red",
+			splitColor : 'rgba(0, 0, 0, 0.5)',
+			boxColor : 'rgba(255, 255, 255, 0.02)',
+
+			radius : 2,
+			min : 0.0,
+			max : 1.0,
+			value : 0.0
+		});
+		this.spectrum.delayWet.addEventListener("change", function(e){
+			app.delay.set("wet", this.value);
+		}, false);
+
+
+
+		this.spectrum.volumeSlider.addEventListener("change", function(e){
 			app.processor.set("gain", this.value);
 		}, false);
 
+		this.spectrum.cutoffSlider.addEventListener("change", function(e){
+			app.processor.set("cutoff", this.value);
+		}, false);
+
+		this.spectrum.rezoSlider.addEventListener("change", function(e){
+			app.processor.set("resonance", this.value);
+		}, false);
 
 		this.barW = this.cw / this.nbars;
 		this.barY = this.ch - this.barSize;
@@ -223,7 +440,7 @@ var Spectral = {
 		for (var i=0 ; i<this.nbars ; i++){
 			this.UIBars[i] = this.spectrum.add("UIView", {
 				left : 1 + i * this.barW,
-				top : this.barY,
+				top : this.barSize-1,
 				width : this.barW - 2,
 				height : this.barSize,
 				background : this.gdSpectrum
@@ -235,6 +452,20 @@ var Spectral = {
 		Native.layout.drawHook = function(){
 			self.draw();
 		};
+
+		var	fileselector = new UIButton(main, {
+			left : window.width-58,
+			top : 8,
+			label : "Select"
+		});
+
+		fileselector.click(function(){
+			window.openFileDialog(["mp3", "wav", "mov", "aiff"], function(res){
+				app.load(res[0]);
+			});
+		});
+
+		app.init();
 
 	},
 
@@ -249,8 +480,8 @@ var Spectral = {
 			var value = app.dftBuffer[i],
 				pixelSize = value*this.barSize;
 
-			this.UIBars[i].height = pixelSize;
-			this.UIBars[i].top = this.ch-pixelSize;
+			this.UIBars[i]._height = pixelSize;
+			this.UIBars[i].layer.top = this.ch-pixelSize;
 		}
 	},
 
@@ -368,9 +599,6 @@ var Spectral = {
 };
 
 Spectral.init();
-app.start("dire.mp3");
-
-
 
 
 

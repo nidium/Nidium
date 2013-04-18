@@ -27,10 +27,12 @@
  "use strict";
 
 /* ---------------------------------------------------------------------------*/
-Native.StyleSheet.load("applications/audio/mixer.nss", false);
+Native.StyleSheet.load("applications/audio/mixer.nss");
 /* ---------------------------------------------------------------------------*/
 
-var main = new Application();
+var main = new Application({
+	backgroundImage : "falcon/assets/back.png"
+});
 
 var mixer = null,
 	master = null,
@@ -43,20 +45,7 @@ var tx = [
 	{file : "applications/audio/media/guitar01.mp3",	label : "Guitar"},
 	{file : "applications/audio/media/vocals.mp3",		label : "Vocals"},
 	{file : "applications/audio/media/sequences.mp3",	label : "Seq"},
-	{file : "applications/audio/media/guitar02.mp3",	label : "Solo"},
-
-
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
-	{file : "",	label : "n/a"},
+	{file : "applications/audio/media/guitar02.mp3",	label : "Solo"}
 
 /*
 	{file : "song.mp3",	label : "Depress"},
@@ -67,62 +56,10 @@ var tx = [
 
 /* -------------------------------------------------------------------------- */
 
-document.addEventListener("load", function(){
-	main.className = "body";
-
-	var play = main.add("UIButton", {
-		label : "Play"
-	}).move(10, 8).addEventListener("mousedown", function(e){
-		AudioMixer.play();
-	});
-
-	var pause = new UIButton(main, {
-		label : "Pause"
-	}).move(60, 8).addEventListener("mousedown", function(e){
-		AudioMixer.pause();
-	});
-
-	var stop = main.add("UIButton", {
-		label : "Stop"
-	}).move(120, 8).addEventListener("mousedown", function(e){
-		AudioMixer.stop();
-	});
-
-	createMixer();
-	createMasterSlider();
-
-	for (var i=0; i<tx.length; i++){
-		createSlider(i, tx[i].label);
-
-		tracks[i] = AudioMixer.load(tx[i].file, function(data, k){
-			slides[k].levelSlider.progressBarColor = 'rgba(210, 255, 40, 1)';
-			this.volume(0.5);
-		}, i);
-/*
-		tracks[i].processor.onbuffer = function(ev, scope){
-			var channels = ev.data,
-				gain = this.get("gain");
-
-			for (var n=0; n<channels.length; n++){
-				var buffer = channels[n];
-				for (var i=0; i<buffer.length; i++){
-					buffer[i] *= gain;
-				}
-			}
-		};
-*/
-		tracks[i].processor.onmessage = function(e){
-			echo(e.message);
-		};
-	}
-});
-
-/* -------------------------------------------------------------------------- */
-
 var createMixer = function(){
 	mixer = new UIView(main, {
 		id : "audioMixerContainer",
-		top : 400,
+		top : 300,
 		left : 10,
 		width : 1000,
 		height : 350,
@@ -224,16 +161,14 @@ var createSlider = function(k, label){
 		class : "panLabel"
 	}).centerLeft();
 
-	slides[k].soloButton = new UIButton(slides[k]);
+	slides[k].soloButton = new UIButton(slides[k], "solobutton");
 	slides[k].soloButton.rel = k;
-	slides[k].soloButton.className = "solobutton";
 	slides[k].soloButton.addEventListener("mouseup", function(e){
 		soloTrack(this);
 	});
 
-	slides[k].muteButton = new UIButton(slides[k]);
+	slides[k].muteButton = new UIButton(slides[k], "mutebutton");
 	slides[k].muteButton.rel = k;
-	slides[k].muteButton.className = "mutebutton";
 	slides[k].muteButton.addEventListener("mouseup", function(e){
 		muteTrack(this);
 	});
@@ -347,3 +282,53 @@ var _grey = function(obj){
 };
 
 /* -------------------------------------------------------------------------- */
+
+
+main.className = "body";
+
+var play = main.add("UIButton", {
+	label : "Play"
+}).move(10, 8).addEventListener("mousedown", function(e){
+	AudioMixer.play();
+});
+
+var pause = new UIButton(main, {
+	label : "Pause"
+}).move(60, 8).addEventListener("mousedown", function(e){
+	AudioMixer.pause();
+});
+
+var stop = main.add("UIButton", {
+	label : "Stop"
+}).move(120, 8).addEventListener("mousedown", function(e){
+	AudioMixer.stop();
+});
+
+createMixer();
+createMasterSlider();
+
+for (var i=0; i<tx.length; i++){
+	createSlider(i, tx[i].label);
+
+	tracks[i] = AudioMixer.load(tx[i].file, function(data, k){
+		slides[k].levelSlider.progressBarColor = 'rgba(210, 255, 40, 1)';
+		this.volume(0.5);
+	}, i);
+/*
+	tracks[i].processor.onbuffer = function(ev, scope){
+		var channels = ev.data,
+			gain = this.get("gain");
+
+		for (var n=0; n<channels.length; n++){
+			var buffer = channels[n];
+			for (var i=0; i<buffer.length; i++){
+				buffer[i] *= gain;
+			}
+		}
+	};
+*/
+	tracks[i].processor.onmessage = function(e){
+		echo(e.message);
+	};
+}
+

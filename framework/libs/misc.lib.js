@@ -168,7 +168,7 @@ var BenchThis = function(name, iterations, fn){
 
 var console = {
 	iteration : 0,
-	maxIterations : 20,
+	maxIterations : 5000,
 
 	log : function(...n){
 		for (var i in n){

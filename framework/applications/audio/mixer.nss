@@ -28,7 +28,7 @@
 	body : {
 		background : "#262722",
 		backgroundImage : "falcon/assets/back.png",
-		alpha : 0.4
+		alpha : 0.8
 	},
 
 	mixer : {
@@ -66,32 +66,34 @@
 		top : 20,
 		left : 5,
 		height : 13,
+		width : 12,
 		label : "S",
 		color : "#cccccc",
 		background : "rgba(33, 0, 0, 0.6)",
-		paddingLeft : 3,
+		paddingLeft : 2,
 		paddingRight : 3,
 		radius : 6,
-		fontSize : 8
+		fontSize : 9
 	},
 
 	mutebutton : {
 		top : 20,
 		left : 42,
 		height : 13,
+		width : 12,
 		label : "M",
 		color : "#cccccc",
 		background : "rgba(33, 0, 0, 0.6)",
-		paddingLeft : 3,
+		paddingLeft : 2,
 		paddingRight : 3,
 		radius : 6,
-		fontSize : 8
+		fontSize : 9
 	},
 
 	hintLabel : {
 		top : 315,
 		color : "rgba(255, 255, 255, 0.90)",
-		textShadowColor : "#000000",
+		textShadowColor : "rgba(0, 0, 0, 0.4)",
 		fontSize : 9,
 		radius : 3,
 		paddingLeft : 4
