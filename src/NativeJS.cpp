@@ -696,6 +696,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
 
     /* TODO: HAS_CTYPE in clang */
     JS_InitCTypesClass(cx, gbl);
+    JS_InitReflect(cx, gbl);
 
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
