@@ -22,7 +22,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         enum StreamDataStatus {
             STREAM_EAGAIN = -1,
             STREAM_EOF = -2,
-            STREAM_ERROR
+            STREAM_ERROR = -3
         };
 
         NativeStream(ape_global *net, const char *location);

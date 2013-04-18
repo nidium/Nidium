@@ -173,10 +173,9 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
 
     *err = 0;
     *len = native_min(dataBuffer.back->used, this->getPacketSize());
-    
-    this->swapBuffer();
 
-    dataBuffer.alreadyRead = true;
+    dataBuffer.alreadyRead = true;    
+    this->swapBuffer();
 
     switch(IInterface) {
         case INTERFACE_FILE:
@@ -357,6 +356,7 @@ NativeStream::~NativeStream()
     free(location);
 
     if (mapped.addr) {
+        /* TODO: wrong size */
         munmap(mapped.addr, this->getPacketSize());
         free(dataBuffer.back);
         free(dataBuffer.front);

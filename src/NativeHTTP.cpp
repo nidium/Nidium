@@ -257,7 +257,6 @@ NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
     ptr(NULL), net(n), currentSock(NULL),
     err(0), timeout(HTTP_DEFAULT_TIMEOUT), timeoutTimer(0), delegate(NULL)
 {
-
     this->req = req;
 
     http.data = NULL;
@@ -485,6 +484,8 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
 NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     data(NULL), datalen(0), datafree(free), headers(ape_array_new(8))
 {
+    this->method = NATIVE_HTTP_GET;
+    
     size_t url_len = strlen(url);
     char *durl = (char *)malloc(sizeof(char) * (url_len+1));
 
