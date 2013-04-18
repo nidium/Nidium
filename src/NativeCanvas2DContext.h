@@ -20,6 +20,7 @@
 class NativeSkia;
 struct NativeRect;
 class SkCanvas;
+class NativeCanvasHandler;
 
 class NativeCanvas2DContext : public NativeJSExposer
 {
@@ -66,12 +67,16 @@ class NativeCanvas2DContext : public NativeJSExposer
             return gl.program;
         }
 
+        NativeCanvasHandler *getHandler() const {
+            return handler;
+        }
+
         uint32_t createProgram(const char *data);
         uint32_t compileShader(const char *data, int type);
 
         static void registerObject(JSContext *cx);
-        NativeCanvas2DContext(int width, int height, bool isGL = true);
-        NativeCanvas2DContext(struct JSContext *cx, int width, int height);
+        NativeCanvas2DContext(NativeCanvasHandler *handler, int width, int height, bool isGL = true);
+        NativeCanvas2DContext(NativeCanvasHandler *handler, struct JSContext *cx, int width, int height);
         ~NativeCanvas2DContext();
     private:
         void initCopyTex();
@@ -81,6 +86,7 @@ class NativeCanvas2DContext : public NativeJSExposer
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
         void setupShader(float opacity);
+        NativeCanvasHandler *handler;
 };
 
 class NativeCanvasPattern

@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 class NativeJS;
+class NativeNML;
 
 class NativeUIInterface
 {
@@ -22,6 +23,7 @@ class NativeUIInterface
             NOCHANGE
         } currentCursor;
         NativeJS *NJS;
+        NativeNML *nml;
         struct SDL_Window *win;
         struct _ape_global *gnet;
         virtual bool runApplication(const char *path)=0;

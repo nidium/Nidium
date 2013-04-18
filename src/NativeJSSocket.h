@@ -5,13 +5,16 @@
 #include <native_netlib.h>
 
 enum {
-    NATIVE_SOCKET_ISBINARY = 1 << 0
+    NATIVE_SOCKET_ISBINARY = 1 << 0,
+    NATIVE_SOCKET_READLINE = 1 << 1
 };
 
 enum {
-    SOCKET_PROP_BINARY
+    SOCKET_PROP_BINARY,
+    SOCKET_PROP_READLINE
 };
 
+#define SOCKET_LINEBUFFER_MAX 8192
 
 class NativeJSSocket : public NativeJSExposer
 {
@@ -36,6 +39,11 @@ class NativeJSSocket : public NativeJSExposer
     unsigned short port;
     ape_socket *socket;
     int flags;
+
+    struct {
+        char *data;
+        size_t pos;
+    } lineBuffer;
 };
 
 #endif

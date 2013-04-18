@@ -39,6 +39,9 @@
                     ],
                     'SDKROOT': [
                         'macosx10.7'
+                    ],
+                    'OTHER_CFLAGS': [ 
+                        '-g'
                     ]
                 },
                 'ldflags': [
@@ -86,6 +89,10 @@
                     ],
                     'SDKROOT': [
                         'macosx10.7'
+                    ],
+                    'OTHER_CFLAGS': [ 
+                        '-g',
+                        '-O0'
                     ]
                 },
                 'ldflags': [
@@ -96,15 +103,15 @@
                     '-L<(third_party_path)/skia/out/Release/obj.target/gyp/',
                 ],
                 'cflags': [
-                    '-O2',
+                    '-O0',
                     '-g',
                 ],
                 'conditions': [
                     ['native_strip_exec==1', {
                         'xcode_settings': {
-                            'DEAD_CODE_STRIPPING': 'YES',
-                            'DEPLOYMENT_POSTPROCESSING': 'YES',
-                            'STRIP_INSTALLED_PRODUCT': 'YES'
+                            'DEAD_CODE_STRIPPING': 'NO',
+                            'DEPLOYMENT_POSTPROCESSING': 'NO',
+                            'STRIP_INSTALLED_PRODUCT': 'NO'
                         },
                     }],
                 ],

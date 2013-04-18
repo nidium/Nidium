@@ -57,6 +57,7 @@ void del_timers_unprotected(ape_timers *timers);
 #endif
 
 #define timer_dispatch_async(callback, params) add_timer(&ape->timersng, 1, callback, params)
+#define timer_dispatch_async_unprotected(callback, params) add_timer(&ape->timersng, 1, callback, params)->flags &= ~APE_TIMER_IS_PROTECTED
 
 
 #endif

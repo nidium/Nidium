@@ -27,11 +27,11 @@ int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
     return size;
 }
 
+
 int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence) 
 {
     NativeAVBufferReader *reader = static_cast<NativeAVBufferReader *>(opaque);
     int64_t pos = 0;
-
     switch(whence)
     {
         case AVSEEK_SIZE:
@@ -57,11 +57,12 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 }
 
 
-NativeAVFileReader::NativeAVFileReader(const char *src, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
-: source(source), totalRead(0), bufferCond(bufferCond), error(0)
+NativeAVFileReader::NativeAVFileReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
+: source(source), readFlag(readFlag), bufferCond(bufferCond), totalRead(0), error(0)
 {
     this->async = true;
     this->nfio = new NativeFileIO(src, this, net);
+    this->nfio->setAutoClose(false);
     this->nfio->open("r");
 }
 
@@ -71,12 +72,15 @@ int NativeAVFileReader::read(void *opaque, uint8_t *buffer, int size)
     
     thiz->pending = true;
     thiz->buffer = buffer;
+    //printf("==== read called %d from %lld / nfio=%p / buffer=%p this=%p\n", size, thiz->totalRead, thiz->nfio, buffer, thiz);
 
     thiz->nfio->read(size);
 
     int ret = thiz->checkCoro();
 
     thiz->needWakup = false;
+    *thiz->readFlag = false;
+
     thiz->error = 0;
     thiz->pending = false;
  
@@ -124,15 +128,16 @@ int64_t NativeAVFileReader::seek(void *opaque, int64_t offset, int whence)
 
 void NativeAVFileReader::onNFIOError(NativeFileIO * io, int err)
 {
-    if (this->totalRead >= this->nfio->filesize) {
+    if (this->totalRead >= this->nfio->filesize || err == EOF) {
         this->error = AVERROR_EOF;
     } else {
         this->error = AVERROR(err);
     }
 
-    printf("NFIOERROR %d\n", err);
+    //printf("NFIOERROR %d\n", err);
 
     this->needWakup = true;
+    *this->readFlag = true;
 
     pthread_cond_signal(this->bufferCond);
 }
@@ -142,7 +147,7 @@ void NativeAVFileReader::onNFIOOpen(NativeFileIO *)
     this->source->openInit();
 }
 
-void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t len) 
+void NativeAVFileReader::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len) 
 {
     this->dataSize = len;
     this->totalRead += len;
@@ -151,10 +156,12 @@ void NativeAVFileReader::onNFIORead(NativeFileIO *, unsigned char *data, size_t 
 //        exit(1);
     }
 
+    //printf("onNFIORead %p == %p/%p/%p\n", this->nfio, nfio, this, this->buffer);
     memcpy(this->buffer, data, len);
 
     this->error = 0;
     this->needWakup = true;
+    *this->readFlag = true;
 
     pthread_cond_signal(this->bufferCond);
 }
@@ -171,8 +178,8 @@ NativeAVFileReader::~NativeAVFileReader()
 
 NativeAVSource::NativeAVSource()
     : eventCbk(NULL), eventCbkCustom(NULL),
-      opened(false), container(NULL), coro(NULL), mainCoro(NULL),
-      doSeek(false), seeking(false)
+      opened(false), eof(false), container(NULL), coro(NULL), mainCoro(NULL),
+      seeking(false), doSeek(false),  error(0)
 {
 }
 
@@ -206,5 +213,26 @@ double NativeAVSource::getDuration()
     }
 
     return this->container->duration/AV_TIME_BASE;
+}
+
+int NativeAVSource::readError(int err)
+{
+    printf("readError Got error %d\n", err);
+    if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
+        //this->eof = true;
+        this->error = AVERROR_EOF;
+        //if (this->track != NULL) {
+            //this->track->eof = true; 
+            // FIXME : Need to find out why when setting EOF, 
+            // track sometimes fail to play when seeking backward
+        //}
+        return AVERROR_EOF;
+    } else if (err != AVERROR(EAGAIN)) {
+        this->error = AVERROR(err);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, true);
+        return -1;
+    }
+
+    return 0;
 }
 

@@ -24,7 +24,6 @@ class NativeAudioTrack;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
 struct NodeLink;
-struct Coro;
 
 class NativeSharedMessages;
 
@@ -50,7 +49,7 @@ class NativeAudio
         };
 
         enum Node {
-            SOURCE, GAIN, TARGET, CUSTOM
+            SOURCE, GAIN, TARGET, CUSTOM, REVERB, DELAY
         };
 
         ape_global *net;
@@ -63,7 +62,10 @@ class NativeAudio
         NativeSharedMessages *sharedMsg;
         pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
         pthread_mutex_t recurseLock;
+        pthread_mutex_t tracksLock;
         PaUtilRingBuffer *rBufferOut;
+        int tracksCount;
+        bool readFlag;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
@@ -73,21 +75,19 @@ class NativeAudio
         int openInput();
 
         NativeAudioNodeTarget *output;
-        int tracksCount;
 
         NativeAudioTrack *addTrack(int out, bool external);
         void removeTrack(NativeAudioTrack *track);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
+        void setVolume(float volume);
 
         static inline int getSampleSize(int sampleFmt);
         double getLatency();
 
         void wakeup();
         void shutdown();
-
-        Coro *mainCoro;
 
         ~NativeAudio();
     private:
@@ -103,6 +103,7 @@ class NativeAudio
 
         float *rBufferOutData;
         float *cbkBuffer;
+        float volume;
 
         pthread_mutex_t decodeLock, queueLock, shutdownLock;
         pthread_t threadDecode;
@@ -114,6 +115,7 @@ class NativeAudio
         NativeAudioTracks *tracks;
         int queueCount;
 
+        void processQueue();
         inline bool haveSourceActive(bool excludeExternal);
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,

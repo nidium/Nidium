@@ -213,9 +213,10 @@ void NativeCanvasHandler::removeFromParent()
     if (!parent) {
         return;
     }
-    if (this->jsobj && js::IsIncrementalBarrierNeeded(this->jscx)) {
+
+    if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
         printf("Reference barrier\n");
-        js::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
+        JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
     
     if (parent->children == this) {
@@ -551,13 +552,15 @@ void NativeCanvasHandler::unrootHierarchy()
 
 NativeCanvasHandler::~NativeCanvasHandler()
 {
-    NativeCanvasHandler *cur;
+    NativeCanvasHandler *cur = children, *cnext;
 
     removeFromParent();
 
     /* all children got orphaned :( */
-    for (cur = children; cur != NULL; cur = cur->next) {
+    while(cur != NULL) {
         //printf("Warning: a canvas got orphaned (%p)\n", cur);
+        cnext = cur->next;
         cur->removeFromParent();
+        cur = cnext;
     }
 }

@@ -15,6 +15,10 @@
         'third_party_path%': '../third-party/',
         'native_output%': '../out/',
 
+        # Linux build only
+        'native_use_gtk': 1,
+        'native_use_qt': 0,
+
         # thoses settings are not working
         'native_third_party_build': 'debug',
         'native_autoconf_path%': '/usr/bin/autoconf2.13',

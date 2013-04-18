@@ -8,6 +8,16 @@
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
+#define NATIVE_PROLOGUE(ofclass) \
+    JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    if (!thisobj) return false; \
+    if (JS_GetClass(thisobj) != NativeLocalClass) { \
+        args.rval().setUndefined(); \
+        return true; \
+    } \
+    ofclass *NativeObject = (ofclass *)JS_GetPrivate(thisobj)
+
 extern jsval gfunc;
 
 enum {
@@ -54,6 +64,8 @@ JSClass Canvas_class = {
     0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
+static JSClass *NativeLocalClass = &Canvas_class;
+
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
@@ -89,75 +101,79 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp);
+
+#define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
 
 static JSPropertySpec canvas_props[] = {
-    {"opacity", CANVAS_PROP_OPACITY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"opacity", CANVAS_PROP_OPACITY, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-    {"overflow", CANVAS_PROP_OVERFLOW, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"overflow", CANVAS_PROP_OVERFLOW, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},  
-    {"scrollLeft", CANVAS_PROP_SCROLLLEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"scrollLeft", CANVAS_PROP_SCROLLLEFT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-    {"scrollTop", CANVAS_PROP_SCROLLTOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"scrollTop", CANVAS_PROP_SCROLLTOP, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-    {"width", CANVAS_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"width", CANVAS_PROP_WIDTH, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
-    {"clientWidth", CANVAS_PROP_CLIENTWIDTH, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"clientWidth", CANVAS_PROP_CLIENTWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"clientHeight", CANVAS_PROP_CLIENTHEIGHT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"clientHeight", CANVAS_PROP_CLIENTHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"clientTop", CANVAS_PROP_CLIENTTOP, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"clientTop", CANVAS_PROP_CLIENTTOP, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"clientLeft", CANVAS_PROP_CLIENTLEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"clientLeft", CANVAS_PROP_CLIENTLEFT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"padding", CANVAS_PROP_PADDING, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"padding", CANVAS_PROP_PADDING, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"height", CANVAS_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"height", CANVAS_PROP_HEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"position", CANVAS_PROP_POSITION, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"position", CANVAS_PROP_POSITION, NATIVE_JS_PROP,
         JSOP_NULLWRAPPER, JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"top", CANVAS_PROP_TOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"top", CANVAS_PROP_TOP, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"left", CANVAS_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"left", CANVAS_PROP_LEFT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"right", CANVAS_PROP_RIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"right", CANVAS_PROP_RIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"bottom", CANVAS_PROP_BOTTOM, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"bottom", CANVAS_PROP_BOTTOM, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
-    {"visible", CANVAS_PROP_VISIBLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"visible", CANVAS_PROP_VISIBLE, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
-    {"contentWidth", CANVAS_PROP_CONTENTWIDTH, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"contentWidth", CANVAS_PROP_CONTENTWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"contentHeight", CANVAS_PROP_CONTENTHEIGHT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"contentHeight", CANVAS_PROP_CONTENTHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__visible", CANVAS_PROP___VISIBLE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"__visible", CANVAS_PROP___VISIBLE, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__top", CANVAS_PROP___TOP, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"__top", CANVAS_PROP___TOP, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__left", CANVAS_PROP___LEFT, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"__left", CANVAS_PROP___LEFT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__outofbound", CANVAS_PROP___OUTOFBOUND, JSPROP_PERMANENT | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"ctx", CANVAS_PROP_CTX, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+    {"ctx", CANVAS_PROP_CTX, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
@@ -179,126 +195,178 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setCoordinates", native_canvas_setCoordinates, 2, 0),
     JS_FN("translate", native_canvas_translate, 2, 0),
     JS_FN("getVisibleRect", native_canvas_getVisibleRect, 0, 0),
+    JS_FN("setSize", native_canvas_setSize, 2, 0),
+    JS_FN("clear", native_canvas_clear, 0, 0),
     JS_FS_END
 };
 
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
 {
-    HANDLER_FROM_CALLEE->setHidden(false);
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    return JS_TRUE;
+    NativeObject->setHidden(false);
+
+    return true;
 }
 
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
 {
-    HANDLER_FROM_CALLEE->setHidden(true);
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    NativeObject->setHidden(true);
     
-    return JS_TRUE;
+    return true;
+}
+
+static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    NativeObject->context->clear(0x00000000);
+    
+    return true;
+}
+
+static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    int width, height;
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii",
+        &width, &height)) {
+        return true;
+    }
+
+    NativeObject->setSize(width, height);
+    
+    return true;
 }
 
 static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    HANDLER_FROM_CALLEE->removeFromParent();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    NativeObject->removeFromParent();
     
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_canvas_bringToFront(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    HANDLER_FROM_CALLEE->bringToFront();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    return JS_TRUE;
+    NativeObject->bringToFront();
+
+    return true;
 }
 
 static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    HANDLER_FROM_CALLEE->sendToBack();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    return JS_TRUE;
+    NativeObject->sendToBack();
+
+    return true;
 }
 
 static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getParent();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    NativeCanvasHandler *parent = NativeObject->getParent();
 
-    return JS_TRUE;
+    args.rval().set(parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+
+    return true;
 }
 
 static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getFirstChild();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    NativeCanvasHandler *val = NativeObject->getFirstChild();
 
-    return JS_TRUE;
+    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+
+    return true;
 }
 
 static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getLastChild();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    NativeCanvasHandler *val = NativeObject->getLastChild();
 
-    return JS_TRUE;
+    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+
+    return true;
 }
 
 static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getNextSibling();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    NativeCanvasHandler *val = NativeObject->getNextSibling();
 
-    return JS_TRUE;
+    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+
+    return true;
 }
 
 static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvasHandler *parent = HANDLER_FROM_CALLEE->getPrevSibling();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JS_SET_RVAL(cx, vp, parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    NativeCanvasHandler *val = NativeObject->getPrevSibling();
 
-    return JS_TRUE;
+    args.rval().set(val ? OBJECT_TO_JSVAL(val->jsobj) : JSVAL_NULL);
+
+    return true;
 }
 
 static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    int32_t count = HANDLER_FROM_CALLEE->countChildren();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    int32_t count = NativeObject->countChildren();
 
     if (!count) {
-        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, NULL)));
-        return JS_TRUE;
+        args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, NULL)));
+        return true;
     }
 
     NativeCanvasHandler *list[count];
     jsval *jlist = (jsval *)malloc(sizeof(jsval) * count);
 
-    HANDLER_FROM_CALLEE->getChildren(list);
+    NativeObject->getChildren(list);
 
     for (int i = 0; i < count; i++) {
         jlist[i] = OBJECT_TO_JSVAL(list[i]->jsobj);
     }
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(JS_NewArrayObject(cx, count, jlist)));
+    args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, count, jlist)));
 
     free(jlist);
-    return JS_TRUE;
+
+    return true;
 }
 
 static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeRect rect = HANDLER_FROM_CALLEE->getVisibleRect();
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    NativeRect rect = NativeObject->getVisibleRect();
     JSObject *ret;
 
     ret = JS_NewObject(cx, NULL, NULL, NULL);
@@ -313,86 +381,96 @@ static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     SET_PROP(ret, "height", DOUBLE_TO_JSVAL(native_max(0, rect.fBottom-rect.fTop)));
 #undef SET_PROP
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
     double left, top;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
         &left, &top)) {
-        return JS_TRUE;
+        return true;
     }
 
-    HANDLER_FROM_CALLEE->left = left;
-    HANDLER_FROM_CALLEE->top = top;
+    NativeObject->left = left;
+    NativeObject->top = top;
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
     double left, top;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
         &left, &top)) {
-        return JS_TRUE;
+        return true;
     }
 
-    HANDLER_FROM_CALLEE->translate(left, top);
+    NativeObject->translate(left, top);
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
     JSObject *sub;
     NativeCanvasHandler *handler;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &sub)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub)) {
+        return true;
     }
 
     if (!JS_InstanceOf(cx, sub, &Canvas_class, NULL)) {
-        return JS_TRUE;
+        JS_ReportError(cx, "Not a Canvas Object");
+        return false;
     }
 
     handler = (NativeCanvasHandler *)JS_GetPrivate(sub);
 
     if (handler == NULL) {
-        return JS_TRUE;
+        return true;
     }
 
-    if (HANDLER_FROM_CALLEE == handler) {
+    if (NativeObject == handler) {
+        JS_ReportError(cx, "Canvas: can't add to itself");
         printf("Cant add canvas to itself\n");
-        return JS_TRUE;
+        return false;
     }
 
-    HANDLER_FROM_CALLEE->addChild(handler);
+    NativeObject->addChild(handler);
 
-    return JS_TRUE;
+    return true;
 }
 
 
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvas2DContext *canvasctx = HANDLER_FROM_CALLEE->context;
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    NativeCanvas2DContext *canvasctx = NativeObject->context;
 
     if (canvasctx == NULL) {
         printf("Cant get context\n");
-        return JS_TRUE;
+        return true;
     }
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(canvasctx->jsobj));
+    args.rval().set(OBJECT_TO_JSVAL(canvasctx->jsobj));
 
-    return JS_TRUE;
+    return true;
 }
 
 /* TODO: do not change the value when a wrong type is set */
@@ -691,7 +769,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     handler = new NativeCanvasHandler(width, height);
-    handler->context = new NativeCanvas2DContext(cx, width, height);
+    handler->context = new NativeCanvas2DContext(handler, cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
 
@@ -699,7 +777,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, handler);
 
-    JS_DefineFunctions(cx, ret, canvas_funcs);
+    //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);    
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
@@ -734,7 +812,7 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
 #ifdef DEBUG
                 JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
 #endif
-                JS_CallTracer(trc, cur->jsobj, JSTRACE_OBJECT);
+                JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, NULL);
             }
         }
     }
@@ -748,7 +826,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
     handler = new NativeCanvasHandler(width, height);
-    handler->context = new NativeCanvas2DContext(cx, width, height);
+    handler->context = new NativeCanvas2DContext(handler, cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
     
@@ -756,7 +834,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 
     JS_SetPrivate(ret, handler);
 
-    JS_DefineFunctions(cx, ret, canvas_funcs);
+    //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
 
     return ret;
@@ -766,6 +844,6 @@ void NativeJSCanvas::registerObject(JSContext *cx)
 {
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas_class,
         native_Canvas_constructor,
-        2, NULL, NULL, NULL, NULL);
+        2, NULL, canvas_funcs, NULL, NULL);
 }
 

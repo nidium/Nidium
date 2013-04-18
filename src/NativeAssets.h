@@ -8,6 +8,8 @@
 #include <native_netlib.h>
 #include "NativeStream.h"
 
+class NativeStream;
+
 class NativeAssets
 {
     public:
@@ -55,10 +57,13 @@ class NativeAssets
                     this->tagname = strdup(name);
                 }
 
+                NativeStream *stream;
+
             private:
                 const char *url;
                 ape_global *net;
                 void onGetContent(const char *data, size_t len);
+                void onAvailableData(size_t len) {};
                 NativeAssets *assets;
                 char *name;
                 char *tagname;
@@ -75,7 +80,7 @@ class NativeAssets
         void addToPendingList(Item *item);
         
         NativeAssets(readyItem cb, void *arg);
-        ~NativeAssets(){};
+        ~NativeAssets();
 
         readyItem itemReady;
         void *readyArg;

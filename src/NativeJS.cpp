@@ -132,12 +132,11 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
-
+static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 
 
 static JSFunctionSpec glob_funcs[] = {
-    
     JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 2, 0),
     JS_FN("require", native_load, 2, 0),
@@ -147,7 +146,6 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
     JS_FS_END
 };
-
 
 void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
@@ -239,6 +237,7 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
     jsval *argv;
     unsigned i;
     JSString *str;
+
     char *bytes;
 
     argv = JS_ARGV(cx, vp);
@@ -272,7 +271,7 @@ void NativeJS::createDebugCanvas()
 {
     static const int DEBUG_HEIGHT = 60;
     debugHandler = new NativeCanvasHandler(surface->getWidth(), DEBUG_HEIGHT);
-    debugHandler->context = new NativeCanvas2DContext(surface->getWidth(), DEBUG_HEIGHT, false);
+    debugHandler->context = new NativeCanvas2DContext(debugHandler, surface->getWidth(), DEBUG_HEIGHT, false);
 
     rootHandler->addChild(debugHandler);
     debugHandler->setRight(0);
@@ -400,7 +399,7 @@ void NativeJS::keyupdown(int keycode, int mod, int state, int repeat)
     EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
 
     jevent = OBJECT_TO_JSVAL(event);
-
+    
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
 
     if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window),
@@ -580,7 +579,7 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 #ifdef DEBUG
         JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
 #endif
-        JS_CallTracer(trc, item->addrs, JSTRACE_OBJECT);
+        JS_CallObjectTracer(trc, (JSObject *)item->addrs, NULL);
         //printf("Tracing object at %p\n", item->addrs);
     }
 }
@@ -670,7 +669,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     JS_SetOptions(cx, JSOPTION_VAROBJFIX);
     #else
     JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
-        JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
+        JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
     #endif
     JS_SetErrorReporter(cx, reportError);
 
@@ -680,11 +679,13 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
         return;
     }
 
+    //js::frontend::ion::js_IonOptions.gvnIsOptimistic = true;
     //JS_SetGCCallback(rt, gccb);
     JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     /* TODO: HAS_CTYPE in clang */
     JS_InitCTypesClass(cx, gbl);
+    JS_InitReflect(cx, gbl);
 
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
@@ -694,7 +695,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
 
     /* surface containing the window frame buffer */
     rootHandler = new NativeCanvasHandler(width, height);
-    rootHandler->context = new NativeCanvas2DContext(width, height);
+    rootHandler->context = new NativeCanvas2DContext(rootHandler, width, height);
     surface = rootHandler->context->skia;
 
     JS_SetRuntimePrivate(rt, this);

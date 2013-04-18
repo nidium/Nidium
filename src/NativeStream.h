@@ -18,13 +18,28 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             INTERFACE_DATA,
             INTERFACE_UNKNOWN
         } IInterface;
+
+        enum StreamDataStatus {
+            STREAM_EAGAIN = -1,
+            STREAM_EOF = -2,
+            STREAM_ERROR = -3
+        };
+
         NativeStream(ape_global *net, const char *location);
         virtual ~NativeStream();
         const char *getLocation() const { return this->location; }
 
         void getContent();
         void getFileSize();
+        void seek(size_t pos);
+        void start(size_t packets = 4096);
 
+        bool hasDataAvailable() const {
+            return !dataBuffer.alreadyRead;
+        }
+        const unsigned char *getNextPacket(size_t *len, int *err);
+
+        /*****************************/
         NativeStreamDelegate *delegate;
 
         void setDelegate(NativeStreamDelegate *delegate) {
@@ -36,6 +51,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void onProgress(size_t offset, size_t len,
             NativeHTTP::HTTPData *h, NativeHTTP::DataType);
         void onError(NativeHTTP::HTTPError err);
+        void onHeader();
 
         /* File */
         void onNFIOOpen(NativeFileIO *);
@@ -44,19 +60,42 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void onNFIOWrite(NativeFileIO *, size_t written);
 
         char *location;
+
+        size_t getPacketSize() const {
+            return this->packets;
+        }
     private:
         NativeIStreamer *interface;
         NativeIStreamer *getInterface();
         void setInterface(StreamInterfaces interface, int path_offset);
         ape_global *net;
+        size_t packets;
+        struct {
+            buffer *back;
+            buffer *front;
+            bool alreadyRead;
+            bool fresh;
+            bool ended;
+        } dataBuffer;
 
+        struct {
+            int fd;
+            void *addr;
+            size_t size;
+        } mapped;
+
+        bool needToSendUpdate;
+
+        void swapBuffer();
 };
 
 class NativeStreamDelegate
 {
     public:
         virtual void onGetContent(const char *data, size_t len)=0;
+        //virtual void onStreamRead()=0;
+        //virtual void onStreamEnd()=0;
+        virtual void onAvailableData(size_t len)=0;
 };
-
 
 #endif

@@ -7,12 +7,81 @@
 #include <http_parser.h>
 
 
-#define HTTP_MAX_CL 1024L*1024L*20L
+#define HTTP_MAX_CL 1024L*1024L*1024L*16L
 #define HTTP_DEFAULT_TIMEOUT 20000
 
 #include "NativeIStreamer.h"
 
 class NativeHTTPDelegate;
+
+class NativeHTTPRequest
+{
+    public:
+        enum {
+            NATIVE_HTTP_GET,
+            NATIVE_HTTP_POST,
+            NATIVE_HTTP_HEAD
+        } method;
+
+        NativeHTTPRequest(const char *url);
+
+        ~NativeHTTPRequest(){
+            ape_array_destroy(this->headers);
+            if (data != NULL && datafree != NULL) {
+                datafree(data);
+            }
+        };
+
+        void setHeader(const char *key, const char *val)
+        {
+            ape_array_add(this->headers, key, val);
+        }
+
+        buffer *getHeadersData() const;
+
+        const char *getHost() const {
+            return this->host;
+        }
+
+        const char *getPath() const {
+            return this->path;
+        }
+
+        u_short getPort() const {
+            return this->port;
+        }
+
+        ape_array_t *getHeaders() const {
+            return this->headers;
+        }
+
+        void setData(char *data, size_t len) {
+            this->data = data;
+            this->datalen = len;
+        }
+
+        const char *getData() const {
+            return this->data;
+        }
+
+        size_t getDataLength() const {
+            return this->datalen;
+        }
+
+        void setDataReleaser(void (*datafree)(void *))
+        {
+            this->datafree = datafree;
+        }
+    private:
+        char *host;
+        char *path;
+        char *data;
+        size_t datalen;
+        void (*datafree)(void *);
+        u_short port;
+
+        ape_array_t *headers;
+};
 
 class NativeHTTP : public NativeIStreamer
 {
@@ -44,11 +113,9 @@ class NativeHTTP : public NativeIStreamer
 
     ape_global *net;
     ape_socket *currentSock;
-    char *host;
-    char *path;
-    u_short port;
+
     int err;
-    int timeout;
+    uint32_t timeout;
     int timeoutTimer;
 
     NativeHTTPDelegate *delegate;
@@ -76,9 +143,19 @@ class NativeHTTP : public NativeIStreamer
     void setPrivate(void *ptr);
     void *getPrivate();
 
-    NativeHTTP(const char *url, ape_global *n);
+    void resetData() {
+        http.data->used = 0;
+    }
+
+    NativeHTTPRequest *getRequest() const {
+        return req;
+    }
+
+    NativeHTTP(NativeHTTPRequest *req, ape_global *n);
     int request(NativeHTTPDelegate *delegate);
     ~NativeHTTP();
+    private:
+        NativeHTTPRequest *req;
 };
 
 class NativeHTTPDelegate
@@ -88,6 +165,7 @@ class NativeHTTPDelegate
     virtual void onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
         NativeHTTP::DataType)=0;
     virtual void onError(NativeHTTP::HTTPError err)=0;
+    virtual void onHeader()=0;
     NativeHTTP *httpref;
 };
 

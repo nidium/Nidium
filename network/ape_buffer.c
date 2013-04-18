@@ -41,10 +41,12 @@ void buffer_delete(buffer *b)
 
 void buffer_destroy(buffer *b)
 {
-    if (b != NULL && b->data != NULL) {
-        free(b->data);
+    if (b != NULL) {
+        if (b->data != NULL) {
+            free(b->data);
+        }
+        free(b);
     }
-    free(b);
 }
 
 void buffer_prepare(buffer *b, size_t size)
@@ -101,7 +103,7 @@ void buffer_append_string_n(buffer *b, const char *string, size_t length)
     buffer_prepare(b, length + 1);
 
     memcpy(b->data + b->used, string, length + 1);
-    b->used = length;
+    b->used += length;
 }
 
 /* taken from PHP 5.3 */

@@ -202,11 +202,17 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
     nhttp->http.parser.data = nhttp;
 
-    SOCKET_WRITE_STATIC("GET ");
-    SOCKET_WRITE_OWN(nhttp->path);
-    SOCKET_WRITE_STATIC(" HTTP/1.1\nHost: ");
-    SOCKET_WRITE_OWN(nhttp->host);
-    SOCKET_WRITE_STATIC("\nUser-Agent: Nativestudio/1.0\nConnection: close\n\n");
+    buffer *data = nhttp->getRequest()->getHeadersData();
+
+    APE_socket_write(s, data->data, data->used, APE_DATA_COPY);
+
+    if (nhttp->getRequest()->getData() != NULL &&
+        nhttp->getRequest()->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
+
+        APE_socket_write(s, (unsigned char *)nhttp->getRequest()->getData(),
+            nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
+    }
+    buffer_destroy(data);
 }
 
 static void native_http_disconnect(ape_socket *s, ape_global *ape)
@@ -247,27 +253,11 @@ static void native_http_read(ape_socket *s, ape_global *ape)
     }
 }
 
-NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
+NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
     ptr(NULL), net(n), currentSock(NULL),
-    host(NULL), path(NULL), port(0),
     err(0), timeout(HTTP_DEFAULT_TIMEOUT), timeoutTimer(0), delegate(NULL)
 {
-    size_t url_len = strlen(url);
-    char *durl = (char *)malloc(sizeof(char) * (url_len+1));
-
-    memcpy(durl, url, url_len+1);
-
-    host = (char *)malloc(url_len+1);
-    path = (char *)malloc(url_len+1);
-    memset(host, 0, url_len+1);
-    memset(path, 0, url_len+1);
-
-    if (ParseURI(durl, url_len, host, &port, path) == -1) {
-        err = 1;
-        memset(host, 0, url_len+1);
-        memset(path, 0, url_len+1);
-        port = 0;
-    }
+    this->req = req;
 
     http.data = NULL;
     http.headers.tval = NULL;
@@ -278,7 +268,6 @@ NativeHTTP::NativeHTTP(const char *url, ape_global *n) :
 
     native_http_data_type = DATA_NULL;
 
-    free(durl);
 }
 
 void NativeHTTP::setPrivate(void *ptr)
@@ -317,8 +306,9 @@ void NativeHTTP::headerEnded()
                 }
             }
         }
-
     }
+
+    this->delegate->onHeader();
 #undef REQUEST_HEADER
 }
 
@@ -396,7 +386,7 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
         return 0;
     }
 
-    if (APE_socket_connect(socket, port, host) == -1) {
+    if (APE_socket_connect(socket, this->req->getPort(), this->req->getHost()) == -1) {
         printf("[Socket] Cant connect (0)\n");
         this->delegate->onError(ERROR_SOCKET);
         return 0;
@@ -426,8 +416,9 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
 
 NativeHTTP::~NativeHTTP()
 {
-    free(host);
-    free(path);
+    if (req) {
+        delete req;
+    }
 
     if (currentSock != NULL) {
         currentSock->ctx = NULL;
@@ -488,4 +479,66 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
         *port = 80;
 
     return 0;
+}
+
+NativeHTTPRequest::NativeHTTPRequest(const char *url) :
+    data(NULL), datalen(0), datafree(free), headers(ape_array_new(8))
+{
+    this->method = NATIVE_HTTP_GET;
+    
+    size_t url_len = strlen(url);
+    char *durl = (char *)malloc(sizeof(char) * (url_len+1));
+
+    memcpy(durl, url, url_len+1);
+
+    this->host = (char *)malloc(url_len+1);
+    this->path = (char *)malloc(url_len+1);
+    memset(this->host, 0, url_len+1);
+    memset(this->path, 0, url_len+1);
+
+    if (NativeHTTP::ParseURI(durl, url_len, this->host,
+        &this->port, this->path) == -1) {
+
+        memset(host, 0, url_len+1);
+        memset(path, 0, url_len+1);
+        port = 0;
+    }
+
+    free(durl);
+
+}
+
+buffer *NativeHTTPRequest::getHeadersData() const
+{
+    buffer *ret = buffer_new(1024);
+
+    switch (this->method) {
+        case NATIVE_HTTP_GET:
+            buffer_append_string_n(ret, CONST_STR_LEN("GET "));
+            break;
+        case NATIVE_HTTP_HEAD:
+            buffer_append_string_n(ret, CONST_STR_LEN("HEAD "));
+            break;
+        case NATIVE_HTTP_POST:
+            buffer_append_string_n(ret, CONST_STR_LEN("POST "));
+            break;
+    }
+
+    buffer_append_string(ret, this->path);
+    buffer_append_string_n(ret, CONST_STR_LEN(" HTTP/1.1\n"));
+    buffer_append_string_n(ret, CONST_STR_LEN("Host: "));
+    buffer_append_string(ret, this->host);
+    buffer_append_string_n(ret, CONST_STR_LEN("\n"));
+
+    buffer *k, *v;
+    APE_A_FOREACH(this->getHeaders(), k, v) {
+        buffer_append_string_n(ret, (char *)k->data, k->used);
+        buffer_append_string_n(ret, ": ", 2);
+        buffer_append_string_n(ret, (char *)v->data, v->used);
+        buffer_append_string_n(ret, "\n", 1);
+    }
+
+    buffer_append_string_n(ret, "\n", 1);
+
+    return ret;
 }

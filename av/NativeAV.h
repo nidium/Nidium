@@ -8,8 +8,7 @@
 #include "native_netlib.h"
 
 #define NATIVE_AVIO_BUFFER_SIZE 32768 
-#define NATIVE_AV_CO_STACK_SIZE 4096
-#define CORO_STACK_SIZE         NATIVE_AV_CO_STACK_SIZE*16
+#define CORO_STACK_SIZE         4096*4
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
 
 #define SOURCE_EVENT_PLAY      0x01
@@ -30,7 +29,7 @@ struct Coro;
 class NativeAVReader
 {
     public:
-        NativeAVReader() : pending(false), async(false), needWakup(false) {};
+        NativeAVReader() : pending(false), needWakup(false), async(false)  {};
 
         bool pending;
         bool needWakup;
@@ -56,7 +55,7 @@ class NativeAVBufferReader : public NativeAVReader
 class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
 {
     public:
-        NativeAVFileReader(const char *src, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
+        NativeAVFileReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
 
@@ -73,6 +72,7 @@ class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
         ~NativeAVFileReader();
     private:
         NativeFileIO *nfio;
+        bool *readFlag;
         pthread_cond_t *bufferCond;
 
         int dataSize;
@@ -101,12 +101,12 @@ enum {
     NATIVE_AUDIO_NODE_SET,
     NATIVE_AUDIO_NODE_CALLBACK,
     NATIVE_AUDIO_SOURCE_CALLBACK,
-    NATIVE_AUDIO_SHUTDOWN
+    NATIVE_AUDIO_CALLBACK,
 };
 
 enum {
     ERR_FAILED_OPEN,
-    ERR_FAILED_READING,
+    ERR_READING,
     ERR_NO_INFORMATION,
     ERR_NO_AUDIO,
     ERR_NO_VIDEO,
@@ -147,6 +147,8 @@ class NativeAVSource
 
         NativeAVSourceEventCallback eventCbk;
         void *eventCbkCustom;
+        bool opened;
+        bool eof;
 
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
         void sendEvent(int ev, int value, bool fromThread);
@@ -162,9 +164,6 @@ class NativeAVSource
         virtual void seek(double time) = 0;
         double getDuration();
         AVDictionary *getMetadata() ;
-
-        bool opened;
-
     protected:
 	    AVFormatContext *container;
        
@@ -174,7 +173,10 @@ class NativeAVSource
         bool seeking;
         bool doSeek;
         double doSeekTime;
+        int seekFlags;
+        int error;
 
+        int readError(int err);
 };
 
 #endif

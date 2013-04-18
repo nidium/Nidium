@@ -132,8 +132,6 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_FALSE;
     }
 
-    printf("new image\n");
-
     nimg = new NativeJSImage();
     nimg->cx = cx;
     nimg->jsobj = ret;

@@ -19,7 +19,7 @@
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
 #define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->skia)
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
-#define NCTX_NATIVE (class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp))))
+#define NCTX_NATIVE ((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
 extern jsval gfunc;
 
@@ -294,7 +294,7 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
         &width, &height)) {
         return JS_TRUE;
     }
-
+    
     NSKIA_NATIVE->clearRect(x, y, width, height);
 
     return JS_TRUE;
@@ -532,15 +532,19 @@ static JSBool native_canvas2dctx_translate(JSContext *cx, unsigned argc, jsval *
 
 static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *vp)
 {
-    double scalex, skewx, skewy, scaley, translatex, translatey;
+    double scalex, skewx, skewy, scaley, translatex, translatey, rotate;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
-        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd/d",
+        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey, &rotate)) {
         return JS_TRUE;
     }
 
     NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
         translatex, translatey, 0);
+
+    if (argc == 7) {
+        NSKIA_NATIVE->rotate(rotate);
+    }
 
     return JS_TRUE;
 }
@@ -549,13 +553,15 @@ static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, jsva
 {
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
+    NativeCanvasHandler *handler = NCTX_NATIVE->getHandler();
+
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
         &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
         return JS_TRUE;
     }
 
     NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
-        translatex, translatey, 1);
+        translatex+handler->padding.global, translatey+handler->padding.global, 1);
 
     return JS_TRUE;
 }
@@ -949,6 +955,7 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
 {
     JSString *glsl;
     NativeCanvas2DContext *nctx = NCTX_NATIVE;
+
     size_t program;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
@@ -1496,7 +1503,6 @@ void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeSkGradient *gradient = (class NativeSkGradient *)JS_GetPrivate(obj);
     if (gradient != NULL) {
-        printf("Deleting gradient\n");
         delete gradient;
     }
 }
@@ -1919,8 +1925,9 @@ void NativeCanvas2DContext::translate(double x, double y)
     skia->canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int height) :
-    setterDisabled(false)
+NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
+    JSContext *cx, int width, int height) :
+    setterDisabled(false), handler(handler)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
@@ -1939,8 +1946,9 @@ NativeCanvas2DContext::NativeCanvas2DContext(JSContext *cx, int width, int heigh
     memset(&this->shader, 0, sizeof(this->shader));
 }
 
-NativeCanvas2DContext::NativeCanvas2DContext(int width, int height, bool isGL) :
-    jsobj(NULL), jscx(NULL)
+NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
+    int width, int height, bool isGL) :
+    jsobj(NULL), jscx(NULL), handler(handler)
 {
     skia = new NativeSkia();
     if (isGL) {

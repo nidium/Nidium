@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include "NativeAV.h"
 #include "NativeAudio.h"
 #include "NativeFileIO.h"
@@ -57,6 +58,7 @@ struct NodeLink {
 
 // TODO : Cleanup callbacks
 typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread callback
+typedef void (*ArgCallback)(NativeAudioNode *node, int id, void *val, int size); // Callback for node arguments
 typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); // Message posting to thread TODO : Normalize args
 
 class NativeAudioNode
@@ -66,8 +68,11 @@ class NativeAudioNode
             const char *name;
             ArgType type;
             void *ptr;
+            ArgCallback cbk;
+            int id;
 
             ExportsArgs(const char *name, ArgType type, void *ptr) : name(name), type(type), ptr(ptr) {};
+            ExportsArgs(const char *name, ArgType type, int id, ArgCallback cbk) : name(name), type(type), ptr(NULL), cbk(cbk), id(id)  {};
         };
 
         ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
@@ -75,9 +80,10 @@ class NativeAudioNode
         // XXX : Normalize callbacks ?
         struct Message {
             NativeAudioNode *node;
-            void *source, *dest;
+            ExportsArgs *arg;
             unsigned long size;
-            Message(NativeAudioNode *node, void *source, void *dest, unsigned long size);
+            void *val;
+            Message(NativeAudioNode *node, ExportsArgs *arg, void *val, unsigned long size);
             ~Message();
         };
 
@@ -93,12 +99,9 @@ class NativeAudioNode
         float **frames;
 
         bool nullFrames;
-        int nodeProcessed;
-        int totalProcess;
+        bool processed;
         NodeLink *input[32];
         NodeLink *output[32];
-
-        int inQueueCount;
 
         int inCount;
         int outCount;
@@ -123,15 +126,23 @@ class NativeAudioNode
         bool unqueue(NodeLink *in, NodeLink *out);
 
         bool recurseGetData(int *sourceFailed);
+        void processQueue();
+        bool isConnected();
 
         virtual bool process() = 0;
 
         virtual ~NativeAudioNode() = 0;
     protected:
         bool doNotProcess;
+        float *newFrame();
 
     private:
-        void post(int msg, void *source, void *dest, unsigned long size);
+        void post(int msg, ExportsArgs *arg, void *val, unsigned long size);
+        bool isFrameOwner(float *frame)
+        {
+            void *tmp = (void *)*((ptrdiff_t *)&(frame[this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels]));
+            return tmp == (void*)this;
+        }
         NodeIO **getWire(NodeLink *link) 
         {
             for (int i = 0; i < NATIVE_AUDIONODE_WIRE_SIZE; i++) {
@@ -203,6 +214,38 @@ class NativeAudioNodeCustom : public NativeAudioNode
         void *custom;
 };
 
+class NativeAudioNodeDelay : public NativeAudioNode
+{
+    public :
+        NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
+        
+        enum Args {
+            DELAY, WET, DRY 
+        };
+
+        double delay;
+        double wet;
+        double dry;
+        float **buffers;
+
+        virtual bool process();
+        static void argCallback(NativeAudioNode *node, int id, void *val, int size);
+    
+        ~NativeAudioNodeDelay();
+    private : 
+        int idx;
+};
+
+class NativeAudioNodeReverb : public NativeAudioNode
+{
+    public :
+        NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio);
+
+        double delay;
+
+        virtual bool process();
+};
+
 #if 0
 class NativeAudioNodeMixer : public NativeAudioNode
 {
@@ -258,12 +301,14 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         pthread_cond_t *bufferNotEmpty;
 
         PaUtilRingBuffer *rBufferOut;
+        NativeAVReader *reader;
 
         bool externallyManaged;
         bool playing;
         bool stopped;
         bool loop;
         int nbChannel;
+        bool doClose;
 
         void play();
         void pause();
@@ -289,10 +334,8 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool getFrame();
         double getClock();
         void drop(double ms);
-        bool isConnected();
 
-        NativeAVReader *reader;
-
+        void close(bool reset);
         ~NativeAudioTrack();
 
     private:
@@ -324,7 +367,5 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
 
         bool eof;
         bool buffering;
-
-        void close(bool reset);
 };
 #endif
