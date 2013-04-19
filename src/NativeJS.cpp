@@ -579,13 +579,7 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 #ifdef DEBUG
         JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
 #endif
-
-// FIXME : When building SM in debug mode, the following assert in throw
-// Assertion failure: trc->debugPrinter || trc->debugPrintArg, at /home/efyx/dev/NativeStudio/NativeStudio/third-party/mozilla-central/js/src/gc/Marking.cpp:117
-// So disable the call to JS_CallObjectTracer while this issue is not resolved
-#ifndef NATIVE_DEBUG
-        JS_CallObjectTracer(trc, (JSObject *)item->addrs, NULL);
-#endif
+        JS_CallObjectTracer(trc, (JSObject *)item->addrs, "nativeroot");
         //printf("Tracing object at %p\n", item->addrs);
     }
 }

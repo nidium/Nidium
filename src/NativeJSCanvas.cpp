@@ -61,11 +61,7 @@ JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
-#ifndef NATIVE_DEBUG //FIXME See Canvas_Trace
     0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
-#else
-    JSCLASS_NO_OPTIONAL_MEMBERS
-#endif
 };
 
 static JSClass *NativeLocalClass = &Canvas_class;
@@ -817,9 +813,7 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
                 JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
 #endif
 
-#ifndef NATIVE_DEBUG // FIXME, SM Assert issue (see JS_CallObjectTracer in NativeJS.cpp)
-                JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, NULL);
-#endif
+                JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, "nativecanvasroot");
             }
         }
     }
