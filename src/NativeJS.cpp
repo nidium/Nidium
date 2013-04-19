@@ -863,13 +863,19 @@ static int Native_handle_messages(void *arg)
                 if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
                     !JSVAL_IS_PRIMITIVE(onmessage) &&
                     JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
+                    jsval event[2];
 
                     if (cmsg->value != NULL) {
-                        jevent = INT_TO_JSVAL(*cmsg->value);
+                        // Only errors have value
+                        const char *errorStr = NativeAVErrorsStr[*cmsg->value];
+                        event[0] = INT_TO_JSVAL(*cmsg->value);
+                        event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
                     } else {
-                        jevent = JSVAL_NULL;
+                        event[0] = JSVAL_NULL;
+                        event[1] = JSVAL_NULL;
                     }
-                    JS_CallFunctionValue(cx, cmsg->callee, onmessage, 1, &jevent, &rval);
+                    
+                    JS_CallFunctionValue(cx, cmsg->callee, onmessage, 2, event, &rval);
                 }
                 delete cmsg;
             }
