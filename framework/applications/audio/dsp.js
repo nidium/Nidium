@@ -83,6 +83,7 @@ var app = {
 					2 * (1 - Math.pow(resonance, 0.25)),
 					Math.min(2, 2/this.freq - this.freq * 0.5)
 				);
+
 			};
 
 			scope.ResonantFilter.prototype.process = function(input){
@@ -91,19 +92,19 @@ var app = {
 
 				// first pass
 				f[3] = input - this.damp * f[2];
-				f[0] = f[0] + this.freq * f[2];
+				f[0] = f[0] + this.cutoff * f[2];
 				f[1] = f[3] - f[0];
-				f[2] = this.freq * f[1] + f[2];
+				f[2] = this.cutoff * f[1] + f[2];
 				output = 0.5 * f[this.type];
 
 				// second pass
 				f[3] = input - this.damp * f[2];
-				f[0] = f[0] + this.freq * f[2];
+				f[0] = f[0] + this.cutoff * f[2];
 				f[1] = f[3] - f[0];
-				f[2] = this.freq * f[1] + f[2];
+				f[2] = this.cutoff * f[1] + f[2];
 				output += 0.5 * f[this.type];
 
-				return input;
+				return output;
 			};
 
 			scope.MoogFilter = function(){
@@ -147,9 +148,27 @@ var app = {
 				return this.out4;
 			};
 
+			scope.StereoWidth = function(){
+				this.width = 0;
+			};
+
+			scope.StereoWidth.prototype.update = function(width){
+				this.width = width;
+			};
+
+			scope.StereoWidth.prototype.process = function(inL, inR){
+				var scale = this.width * 0.5,
+					m = (inL + inR) * 0.5,
+					s = (inR - inL) * scale;
+
+				return [m-s, m+s];
+			};
+
 			scope.moogFilterL = new scope.MoogFilter();
 			scope.moogFilterR = new scope.MoogFilter();
-			scope.LPF = new scope.ResonantFilter(0, 44100);
+			scope.enhancer = new scope.StereoWidth();
+			scope.resonantL = new scope.ResonantFilter(0, 44100);
+			scope.resonantR = new scope.ResonantFilter(0, 44100);
 		};
 
 		/* Threaded Audio Processor */
@@ -158,27 +177,28 @@ var app = {
 				bufferL = ev.data[0],
 				bufferR = ev.data[1],
 				size = bufferL.length,
+
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
-				resonance = this.get("resonance");
+				resonance = this.get("resonance"),
+				width = this.get("width");
 
 			var echo = function(txt){
 				processor.send(txt);
 			};
 
-			scope.moogFilterL.update(cutoff, resonance);
-			scope.moogFilterR.update(cutoff, resonance);
-
-			/*
-			for (var i=0; i<size; i++) {
-				bufferL[i] = gain * FX.process(bufferL[i]);
-				bufferR[i] = gain * FX.process(bufferR[i]);
-			}
-			*/
+			scope.resonantL.update(cutoff, resonance);
+			scope.resonantR.update(cutoff, resonance);
+			scope.enhancer.update(width);
 
 			for (var i=0; i<size; i++) {
-				bufferL[i] = gain * scope.moogFilterL.process(bufferL[i]);
-				bufferR[i] = gain * scope.moogFilterR.process(bufferR[i]);
+				var L = gain * scope.resonantL.process(bufferL[i]);
+				var R = gain * scope.resonantR.process(bufferR[i]);
+
+				var eh = scope.enhancer.process(L, R);
+
+				bufferL[i] = eh[0];
+				bufferR[i] = eh[1];
 			}
 
 			this.send({
@@ -198,6 +218,7 @@ var app = {
 		this.processor.set("gain", 0.5);
 		this.processor.set("cutoff", 0.04);
 		this.processor.set("resonance", 0.0);
+		this.processor.set("width", 1.00);
 	},
 
 
@@ -320,7 +341,7 @@ var Spectral = {
 
 			radius : 2,
 			min : 0.001,
-			max : 5,
+			max : 3,
 			value : 0.5
 		});
 
@@ -338,9 +359,9 @@ var Spectral = {
 			boxColor : 'rgba(255, 255, 255, 0.02)',
 
 			radius : 2,
-			min : 0.04,
-			max : 0.8,
-			value : 0.04
+			min : 0.02,
+			max : 0.4,
+			value : 0.08
 		});
 
 		this.spectrum.rezoSlider = this.spectrum.add("UISliderController", {
@@ -358,7 +379,7 @@ var Spectral = {
 
 			radius : 2,
 			min : 0,
-			max : 0.9,
+			max : 0.8,
 			value : 0
 		});
 
@@ -366,7 +387,7 @@ var Spectral = {
 		this.spectrum.delayTime = this.spectrum.add("UISliderController", {
 			left : 400,
 			top : 10,
-			width : 80,
+			width : 120,
 			height : 12,
 
 			fontSize : 10,
@@ -387,7 +408,7 @@ var Spectral = {
 		this.spectrum.delayWet = this.spectrum.add("UISliderController", {
 			left : 400,
 			top : 30,
-			width : 80,
+			width : 120,
 			height : 12,
 
 			fontSize : 10,
@@ -405,6 +426,27 @@ var Spectral = {
 			app.delay.set("wet", this.value);
 		}, false);
 
+
+		this.spectrum.stereoSlider = this.spectrum.add("UISliderController", {
+			left : 400,
+			top : 50,
+			width : 120,
+			height : 12,
+
+			fontSize : 10,
+			lineHeight : 18,
+			color : "blue",
+			splitColor : 'rgba(0, 0, 0, 0.5)',
+			boxColor : 'rgba(255, 255, 255, 0.02)',
+
+			radius : 2,
+			min : 0.0,
+			max : 3.0,
+			value : 1.0
+		});
+		this.spectrum.stereoSlider.addEventListener("change", function(e){
+			app.processor.set("width", this.value);
+		}, false);
 
 
 		this.spectrum.volumeSlider.addEventListener("change", function(e){
@@ -476,12 +518,17 @@ var Spectral = {
 	},
 
 	ondata : function(){
-		for (var i=0 ; i<this.nbars ; i++){
-			var value = app.dftBuffer[i],
-				pixelSize = value*this.barSize;
+		var i = 0,
+			value = 0,
+			pixelSize = 0;
 
-			this.UIBars[i]._height = pixelSize;
+		for (i=0; i<this.nbars; i++){
+			value = app.dftBuffer[i],
+			pixelSize = value*this.barSize;
+
+			this.UIBars[i].layer.height = pixelSize;
 			this.UIBars[i].layer.top = this.ch-pixelSize;
+			this.UIBars[i].draw(this.UIBars[i].layer.context);
 		}
 	},
 
