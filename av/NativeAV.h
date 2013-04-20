@@ -117,8 +117,25 @@ enum {
     ERR_INIT_VIDEO_AUDIO,
     ERR_DECODING,
     ERR_SEEKING,
-    ERR_INTERNAL
+    ERR_INTERNAL,
+    ERR_MAX
 };
+
+static const char *NativeAVErrorsStr[ERR_MAX] = {
+    "Failed to open media file",
+    "Failed to read media file",
+    "Failed to find stream information",
+    "No audio stream",
+    "No video stream",
+    "No codec available to decode stream",
+    "Out of memory",
+    "No resampling converter available",
+    "No video converter available",
+    "Failed to init audio stream from video",
+    "Failed to decode stream",
+    "Failed to seek",
+    "Internal error"
+}; 
 
 // Used for event (play, pause, stop, error, buffered...)
 typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*ev); 
