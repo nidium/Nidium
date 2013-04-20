@@ -524,11 +524,17 @@ var Spectral = {
 
 		for (i=0; i<this.nbars; i++){
 			value = app.dftBuffer[i],
-			pixelSize = value*this.barSize;
+			pixelSize = value*this.barSize>>0;
 
+			/*
 			this.UIBars[i].layer.height = pixelSize;
 			this.UIBars[i].layer.top = this.ch-pixelSize;
 			this.UIBars[i].draw(this.UIBars[i].layer.context);
+			*/
+
+			//this.UIBars[i].height = pixelSize;
+			this.UIBars[i].top = this.ch-pixelSize;
+
 		}
 	},
 
