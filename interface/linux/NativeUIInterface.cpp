@@ -57,6 +57,8 @@ int NativeEvents(NativeX11UIInterface *NUII)
                 case SDL_USEREVENT:
                     break;
                 case SDL_QUIT:
+
+                    if (NUII->nml) delete NUII->nml;
                     delete NUII->NJS;
                     SDL_Quit();
 #ifdef NATIVE_USE_GTK
@@ -96,6 +98,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         }
                         printf("\n\n=======Refresh...=======\n");
                         //[console clear];
+                        if (NUII->nml) delete NUII->nml;
                         delete NUII->NJS;
 #ifdef NATIVE_USE_GTK
                         while (gtk_events_pending ()) {
@@ -109,9 +112,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         NUII->NJS = new NativeJS(NUII->getWidth(),
                             NUII->getHeight(), NUII, NUII->gnet);
 
-                        NativeNML *nml = new NativeNML(NUII->gnet);
-                        nml->setNJS(NUII->NJS);
-                        nml->loadFile("index.nml");
+                        NUII->nml = new NativeNML(NUII->gnet);
+                        NUII->nml->setNJS(NUII->NJS);
+                        NUII->nml->loadFile("index.nml");
                         //SDL_GL_SwapBuffers();
                         break;
                     }
@@ -231,9 +234,9 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     NativeX11UIInterface *ui = (NativeX11UIInterface *)closure;
     chdir(fpath);
     printf("Changing directory to : %s\n", fpath);
-    NativeNML *nml = new NativeNML(ui->gnet);
-    nml->setNJS(ui->NJS);
-    nml->loadFile("./index.nml");
+    ui->nml = new NativeNML(ui->gnet);
+    ui->nml->setNJS(ui->NJS);
+    ui->nml->loadFile("./index.nml");
 }
 
 bool NativeX11UIInterface::runApplication(const char *path)
@@ -245,9 +248,9 @@ bool NativeX11UIInterface::runApplication(const char *path)
             return false;
         }
 
-        NativeNML *nml = new NativeNML(this->gnet);
-        nml->setNJS(this->NJS);
-        nml->loadFile("index.nml");
+        this->nml = new NativeNML(this->gnet);
+        this->nml->setNJS(this->NJS);
+        this->nml->loadFile("index.nml");
 
         return true;
     } else {
@@ -286,6 +289,7 @@ NativeX11UIInterface::NativeX11UIInterface()
 {
     this->width = 0;
     this->height = 0;
+    this->nml = NULL;
 
     this->currentCursor = NOCHANGE;
     this->NJS = NULL;
@@ -354,10 +358,6 @@ bool NativeX11UIInterface::createWindow(int width, int height)
 
     glViewport(0, 0, width, height);
 
-#ifdef NATIVE_USE_GTK
-    gtk_init(0, NULL);
-#endif
-
     //NJS = new NativeJS(kNativeWidth, kNativeHeight);
     console = new NativeUIX11Console();
     gnet = native_netlib_init();
@@ -393,41 +393,54 @@ void NativeX11UIInterface::openFileDialog(const char const *files[],
 
     if (files != NULL) {
         GtkFileFilter *filter;
-        char name[256];
-        memset(name, 0, 256);
+        char names[256];
+        memset(names, 0, 256);
         int nameLength = 0;
+
         filter = gtk_file_filter_new();
+
         for (int i = 0; files[i] != NULL; i++) {
-            gtk_file_filter_add_pattern(filter, files[i]);
-            nameLength += strlen(files[i])+1;
+            char *name = (char *)calloc(sizeof(char), strlen(files[i]) + 3);
+            if (!name) continue;
+
+            strcat(name, "*.");
+            strcat(name, files[i]);
+
+            gtk_file_filter_add_pattern(filter, name);
+
+            nameLength += strlen(files[i])+4;
+
             if (nameLength < 256) {
-                strcat(name, files[i]);
-                strcat(name, " ");
+                strcat(names, name);
+                strcat(names, " ");
             }
+
+            free(name);
         }
+
         if (nameLength > 0) {
-            gtk_file_filter_set_name(GTK_FILE_FILTER(filter), (const gchar *)name); 
+            gtk_file_filter_set_name(GTK_FILE_FILTER(filter), (const gchar *)names); 
         }
 
         gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), GTK_FILE_FILTER(filter));
     }
 
     gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), TRUE);
-
+    const char **lst = NULL;
+    int i = 0;
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     {
         GSList *filenames, *list;
         filenames = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(dialog));      
         guint len = g_slist_length(filenames);
 
-        const char **lst = (const char **)malloc(sizeof(char **) * len);
-
+        lst = (const char **)malloc(sizeof(char *) * len);
         if (!lst) {
             return;
         }
 
         list = filenames;
-        int i = 0;
+
         while (list) {
             if (list->data) {
                 lst[i] = strdup((const char *)list->data);
@@ -438,17 +451,24 @@ void NativeX11UIInterface::openFileDialog(const char const *files[],
         }
 
         g_slist_free(filenames);
+    }
 
-        gtk_widget_destroy(dialog);
 
-        while (gtk_events_pending ()) {
-            gtk_main_iteration();
-        }
+    gtk_widget_destroy(dialog);
 
+    while (gtk_events_pending ()) {
+        gtk_main_iteration();
+    }
+
+    if (i > 0) {
         cb(arg, lst, i);
 
-        free(lst);
+        for (int j = 0; j < i; j++) {
+            free((void *)lst[j]);
+        }
     }
+
+    free(lst);
 #endif
 #ifdef NATIVE_USE_QT
     QApplication app(0, NULL);
@@ -536,6 +556,10 @@ void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 
 void NativeX11UIInterface::runLoop()
 {
+
+#ifdef NATIVE_USE_GTK
+    gtk_init(0, NULL);
+#endif
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
     
     events_loop(gnet);  
