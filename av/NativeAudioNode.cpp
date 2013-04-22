@@ -1030,23 +1030,9 @@ bool NativeAudioTrack::work()
         return false;
     }
 
-    // XXX : Refactor this inside resample()
-    int write;
-    float *out;
+    int write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
 
-    write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
-    // TODO : Do not alloc a frame each time
-    out = (float *)malloc(write * this->nbChannel * NativeAudio::FLOAT32);
-    if (!out) {
-        printf("malloc failed %d", write * this->nbChannel * NativeAudio::FLOAT32);
-        exit(1);
-    }
-
-    write = this->resample(out, write);
-
-    PaUtil_WriteRingBuffer(this->rBufferOut, out, write);
-
-    free(out);
+    this->resample(out, write);
 
     return true;
 }
@@ -1199,11 +1185,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
                 write = destSamples > avail ? avail : destSamples;
                 write -= passCopied;
 
-                memcpy(
-                        dest + copied * channels, 
-                        this->fBufferOutData + this->samplesConsumed * channels, 
-                        write * sampleSize
-                    );
+                PaUtil_WriteRingBuffer(this->rBufferOut, this->fBufferOutData + this->samplesConsumed * channels, write);
 
                 this->samplesConsumed += write;
                 this->fCvt->out_count += write;
@@ -1241,11 +1223,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
             write = destSamples > avail ? avail : destSamples;
             write -= copied;
 
-            memcpy(
-                    dest + copied * channels, 
-                    this->tmpFrame.data + this->samplesConsumed * channels, 
-                    write * sampleSize
-                );
+            PaUtil_WriteRingBuffer(this->rBufferOut, this->tmpFrame.data + this->samplesConsumed * channels, write);
 
             copied += write;
             this->samplesConsumed += write;
