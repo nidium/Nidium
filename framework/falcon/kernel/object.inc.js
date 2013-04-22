@@ -535,7 +535,7 @@ DOMElement.onPropertyUpdate = function(e){
 		old = e.oldValue,
 		value = e.newValue;
 
-	print("DOMElement.onPropertyUpdate("+e.property+")", element);
+	//print("DOMElement.onPropertyUpdate("+e.property+")", element);
 
 	element.__unlock();
 
