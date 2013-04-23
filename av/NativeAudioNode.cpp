@@ -1032,7 +1032,7 @@ bool NativeAudioTrack::work()
 
     int write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
 
-    this->resample(out, write);
+    this->resample(write);
 
     return true;
 }
@@ -1152,7 +1152,7 @@ return false;
     return true;
 #undef RETURN_WITH_ERROR
 }
-int NativeAudioTrack::resample(float *dest, int destSamples) {
+int NativeAudioTrack::resample(int destSamples) {
     int channels = this->nbChannel;
 
     if (this->fCvt) {

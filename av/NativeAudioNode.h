@@ -330,7 +330,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         virtual bool process();
         bool work();
         bool decode();
-        int resample(float *dest, int destSamples);
+        int resample(int destSamples);
         bool getFrame();
         double getClock();
         void drop(double ms);
