@@ -243,6 +243,10 @@ static JSPropertySpec Video_props[] = {
         JSPROP_ENUMERATE|JSPROP_PERMANENT, 
         JSOP_NULLWRAPPER, 
         JSOP_NULLWRAPPER},
+    {"canvas", VIDEO_PROP_CANVAS, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT, 
+        JSOP_NULLWRAPPER, 
+        JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -1581,26 +1585,17 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 
     v->nskia->drawPixels(data, v->video->width, v->video->height, 0, 0);
 
-    /*
-    jsval rval, params[3];
+    jsval onframe;
+    if (JS_GetProperty(v->cx, v->jsobj, "onframe", &onframe) &&
+        !JSVAL_IS_PRIMITIVE(onframe) &&
+        JS_ObjectIsCallable(v->cx, JSVAL_TO_OBJECT(onframe))) {
+        jsval params, rval;
 
-    JSObject *arrBuff, *arr;
-    arrBuff = JS_NewArrayBuffer(video->cx, width*height*4);
-    uint8_t *arrData = JS_GetArrayBufferData(arrBuff);
+        params = OBJECT_TO_JSVAL(v->jsobj);
 
-    memcpy(arrData, data, width*height*4);
-
-    arr = JS_NewUint8ArrayWithBuffer(video->cx, arrBuff, 0, -1);
-
-
-    params[0] = OBJECT_TO_JSVAL(arr);
-    params[1] = INT_TO_JSVAL(width);
-    params[2] = INT_TO_JSVAL(height);
-
-
-    JSAutoRequest ar(video->cx);
-    JS_CallFunctionName(video->cx, video->jsobj, "onframe", 3, params, &rval);
-    */
+        JSAutoRequest ar(v->cx);
+        JS_CallFunctionValue(v->cx, v->jsobj, onframe, 1, &params, &rval);
+    }
 }
 
 static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp)
@@ -1757,6 +1752,8 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, v);
     v->jsobj = ret;
+
+    JS_SetProperty(cx, ret, "canvas", &(JS_ARGV(cx, vp)[0]));
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
