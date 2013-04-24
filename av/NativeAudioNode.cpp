@@ -521,7 +521,7 @@ NativeAudioNodeTarget::NativeAudioNodeTarget(int inCount, int outCount, NativeAu
     : NativeAudioNode(inCount, outCount, audio)
 { 
     if (audio->openOutput() != 0) {
-        // TODO : Throw exception
+        throw new NativeAudioNodeException("Failed to open audio output");
     }
 }
 
