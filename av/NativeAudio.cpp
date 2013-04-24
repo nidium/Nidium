@@ -507,31 +507,38 @@ void NativeAudio::removeTrack(NativeAudioTrack *track)
 
 NativeAudioNode *NativeAudio::createNode(NativeAudio::Node node, int input, int output) 
 {
-    switch (node) {
-        case SOURCE:
-                return this->addTrack(output, false);
-            break;
-        case GAIN:
-                return new NativeAudioNodeGain(input, output, this);
-            break;
-        case CUSTOM:
-                return new NativeAudioNodeCustom(input, output, this);
-            break;
-        case REVERB:
-                return new NativeAudioNodeReverb(input, output, this);
-            break;
-        case DELAY:
-                return new NativeAudioNodeDelay(input, output, this);
-            break;
-        case TARGET:
-                if (this->output == NULL) {
-                    this->output = new NativeAudioNodeTarget(input, output, this);
-                    return this->output;
-                } 
-                return NULL;
-            break;
-        default :
-            break;
+    try {
+        switch (node) {
+            case SOURCE:
+                    return this->addTrack(output, false);
+                break;
+            case GAIN:
+                    return new NativeAudioNodeGain(input, output, this);
+                break;
+            case CUSTOM:
+                    return new NativeAudioNodeCustom(input, output, this);
+                break;
+            case REVERB:
+                    return new NativeAudioNodeReverb(input, output, this);
+                break;
+            case DELAY:
+                    return new NativeAudioNodeDelay(input, output, this);
+                break;
+            case STEREO_ENHANCER:
+                    return new NativeAudioNodeStereoEnhancer(input, output, this);
+                break;
+            case TARGET:
+                    if (this->output == NULL) {
+                        this->output = new NativeAudioNodeTarget(input, output, this);
+                        return this->output;
+                    } 
+                    return NULL;
+                break;
+            default :
+                break;
+        }
+    } catch (NativeAudioNodeException *e) {
+        throw;
     }
 
     return NULL;

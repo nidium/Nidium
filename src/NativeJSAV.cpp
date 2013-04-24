@@ -905,31 +905,41 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
 
     JSAutoByteString cname(cx, name);
     ret = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
+    JS_SetReservedSlot(ret, 0, JSVAL_NULL);
 
-    if (strcmp("source", cname.ptr()) == 0) {
-        node = new NativeJSAudioNode(NativeAudio::SOURCE, in, out, audio);
-        NativeAudioTrack *source = static_cast<NativeAudioTrack *>(node->node);
-        source->eventCallback(NativeJSAudioNode::eventCbk, node);
-        JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
-        JS_DefineProperties(cx, ret, AudioNodeSource_props);
-    } else if (strcmp("custom", cname.ptr()) == 0) {
-        node = new NativeJSAudioNode(NativeAudio::CUSTOM, in, out, audio);
-        JS_DefineProperties(cx, ret, AudioNodeCustom_props);
-        JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
-    } else if (strcmp("reverb", cname.ptr()) == 0) {
-        node = new NativeJSAudioNode(NativeAudio::REVERB, in, out, audio);
-    } else if (strcmp("delay", cname.ptr()) == 0) {
-        node = new NativeJSAudioNode(NativeAudio::DELAY, in, out, audio);
-    } else if (strcmp("gain", cname.ptr()) == 0) {
-        node = new NativeJSAudioNode(NativeAudio::GAIN, in, out, audio);
-    } else if (strcmp("target", cname.ptr()) == 0) {                      
-        node = new NativeJSAudioNode(NativeAudio::TARGET, in, out, audio);
-    } else {
-        JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
+    try {
+        if (strcmp("source", cname.ptr()) == 0) {
+            node = new NativeJSAudioNode(NativeAudio::SOURCE, in, out, audio);
+            NativeAudioTrack *source = static_cast<NativeAudioTrack *>(node->node);
+            source->eventCallback(NativeJSAudioNode::eventCbk, node);
+            JS_DefineFunctions(cx, ret, AudioNodeSource_funcs);
+            JS_DefineProperties(cx, ret, AudioNodeSource_props);
+        } else if (strcmp("custom", cname.ptr()) == 0) {
+            node = new NativeJSAudioNode(NativeAudio::CUSTOM, in, out, audio);
+            JS_DefineProperties(cx, ret, AudioNodeCustom_props);
+            JS_DefineFunctions(cx, ret, AudioNodeCustom_funcs);
+        } else if (strcmp("reverb", cname.ptr()) == 0) {
+            node = new NativeJSAudioNode(NativeAudio::REVERB, in, out, audio);
+        } else if (strcmp("delay", cname.ptr()) == 0) {
+            node = new NativeJSAudioNode(NativeAudio::DELAY, in, out, audio);
+        } else if (strcmp("gain", cname.ptr()) == 0) {
+            node = new NativeJSAudioNode(NativeAudio::GAIN, in, out, audio);
+        } else if (strcmp("target", cname.ptr()) == 0) {                      
+            node = new NativeJSAudioNode(NativeAudio::TARGET, in, out, audio);
+        } else if (strcmp("stereo-enhancer", cname.ptr()) == 0) {
+            node = new NativeJSAudioNode(NativeAudio::STEREO_ENHANCER, in, out, audio);
+        } else {
+            JS_ReportError(cx, "Unknown node name : %s\n", cname.ptr());
+            return JS_FALSE;
+        }
+    } catch (NativeAudioNodeException *e) {
+        delete node;
+        JS_ReportError(cx, "Error while creating node : %s\n", e->what());
         return JS_FALSE;
     }
 
     if (node == NULL || node->node == NULL) {
+        delete node;
         JS_ReportError(cx, "Error while creating node : %s\n", cname.ptr());
         return JS_FALSE;
     }
@@ -940,7 +950,6 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
 
     NJS->rootObjectUntilShutdown(node->jsobj);
     JS_SetPrivate(ret, node);
-    JS_SetReservedSlot(node->jsobj, 0, JSVAL_NULL);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 

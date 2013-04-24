@@ -112,12 +112,17 @@ class NativeJSAudioNode: public NativeJSExposer
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
 
+            try {
+                this->node = audio->audio->createNode(type, in, out);
+            } catch (NativeAudioNodeException *e) {
+                throw;
+            }
+
             if (type == NativeAudio::CUSTOM) {
                 pthread_cond_init(&this->shutdownCond, NULL);
                 pthread_mutex_init(&this->shutdownLock, NULL);
             }
 
-            this->node = audio->audio->createNode(type, in, out);
 
             this->add();
         }

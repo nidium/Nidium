@@ -547,6 +547,7 @@ bool NativeAudioNodeGain::process()
     }
     return true;
 }
+
 NativeAudioNodeReverb::NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNode(inCount, outCount, audio), delay(500)
 {
@@ -653,6 +654,33 @@ NativeAudioNodeDelay::~NativeAudioNodeDelay()
         free(this->buffers[i]);
     }
     free(this->buffers);
+}
+
+NativeAudioNodeStereoEnhancer::NativeAudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio)
+    : NativeAudioNode(inCount, outCount, audio), width(0)
+{
+    this->args[0] = new ExportsArgs("width", DOUBLE, &this->width);
+    if (inCount != 2 || outCount != 2) {
+        throw new NativeAudioNodeException("Stereo enhancer must have 2 input and 2 output");
+    }
+}
+
+bool NativeAudioNodeStereoEnhancer::process()
+{
+    double scale = this->width * 0.5;
+
+    for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
+        float l = this->frames[0][i];
+        float r = this->frames[1][i];
+
+        double m = (l + r) * 0.5;
+        double s = (r - l) * scale;
+
+        this->frames[0][i] = m-s;
+        this->frames[1][i] = m+s;
+    }
+
+    return true;
 }
 
 NativeAudioNodeCustom::NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio) 
@@ -1429,6 +1457,8 @@ void NativeAudioTrack::close(bool reset)
 
     if (this->opened) {
         avcodec_close(this->codecCtx);
+        avformat_close_input(&this->container);
+
         swr_free(&this->swrCtx);
 
         PaUtil_FlushRingBuffer(this->rBufferOut);
@@ -1458,6 +1488,9 @@ void NativeAudioTrack::close(bool reset)
 
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
+        if (!reset) {
+            delete this->tmpPacket;
+        }
     }
 
     if (this->tmpFrame.data != NULL) {
