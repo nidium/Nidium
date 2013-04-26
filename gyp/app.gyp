@@ -22,9 +22,9 @@
             ['OS=="linux"', {
                 'conditions': [
                     ['native_use_gtk==1', {
-                            'libraries': [
-                                '<!@(pkg-config --libs gtk+-2.0)',
-                            ]
+                        'libraries': [
+                            '<!@(pkg-config --libs gtk+-2.0)',
+                        ]
                     }],
                     ['native_use_qt==1', {
                         'libraries': [
@@ -43,9 +43,6 @@
                 ],
                 'link_settings': {
                     'libraries': [
-#'-ltranslator_glsl',
-#'-ltranslator_common',
-#'-lpreprocessor',
                         '-Wl,--start-group',
                         '-lGL',
                         '-lasound',
@@ -181,11 +178,6 @@
 					}
                 ]
             }],
-            ['native_audio==1', {
-                'dependencies': [
-                    'av.gyp:nativeav'
-                 ]
-            }]
-        ]
+        ],
     }]
 }
