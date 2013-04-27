@@ -49,7 +49,8 @@ class NativeAudio
         };
 
         enum Node {
-            SOURCE, GAIN, TARGET, CUSTOM, REVERB, DELAY
+            SOURCE, GAIN, TARGET, CUSTOM, REVERB, DELAY,
+            STEREO_ENHANCER
         };
 
         ape_global *net;

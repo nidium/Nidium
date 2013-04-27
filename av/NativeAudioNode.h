@@ -8,6 +8,7 @@
 #include "NativeAV.h"
 #include "NativeAudio.h"
 #include "NativeFileIO.h"
+#include <exception>
 
 #define NATIVE_AUDIONODE_ARGS_SIZE      32
 #define NATIVE_AUDIONODE_WIRE_SIZE      256
@@ -236,6 +237,16 @@ class NativeAudioNodeDelay : public NativeAudioNode
         int idx;
 };
 
+class NativeAudioNodeStereoEnhancer : public NativeAudioNode
+{
+    public :
+        NativeAudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio);
+        
+        double width;
+
+        virtual bool process();
+};
+
 class NativeAudioNodeReverb : public NativeAudioNode
 {
     public :
@@ -330,7 +341,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         virtual bool process();
         bool work();
         bool decode();
-        int resample(float *dest, int destSamples);
+        int resample(int destSamples);
         bool getFrame();
         double getClock();
         void drop(double ms);
@@ -367,5 +378,23 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
 
         bool eof;
         bool buffering;
+};
+
+class NativeAudioNodeException : public std::exception
+{
+    public:
+        NativeAudioNodeException (const char *err)
+            : err(err)
+        {
+        }
+
+        virtual const char *what() const throw() 
+        {
+            return err;
+        }
+
+        virtual ~NativeAudioNodeException() throw () {}
+    private:
+        const char *err;
 };
 #endif

@@ -521,7 +521,7 @@ NativeAudioNodeTarget::NativeAudioNodeTarget(int inCount, int outCount, NativeAu
     : NativeAudioNode(inCount, outCount, audio)
 { 
     if (audio->openOutput() != 0) {
-        // TODO : Throw exception
+        throw new NativeAudioNodeException("Failed to open audio output");
     }
 }
 
@@ -547,6 +547,7 @@ bool NativeAudioNodeGain::process()
     }
     return true;
 }
+
 NativeAudioNodeReverb::NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNode(inCount, outCount, audio), delay(500)
 {
@@ -653,6 +654,33 @@ NativeAudioNodeDelay::~NativeAudioNodeDelay()
         free(this->buffers[i]);
     }
     free(this->buffers);
+}
+
+NativeAudioNodeStereoEnhancer::NativeAudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio)
+    : NativeAudioNode(inCount, outCount, audio), width(0)
+{
+    this->args[0] = new ExportsArgs("width", DOUBLE, &this->width);
+    if (inCount != 2 || outCount != 2) {
+        throw new NativeAudioNodeException("Stereo enhancer must have 2 input and 2 output");
+    }
+}
+
+bool NativeAudioNodeStereoEnhancer::process()
+{
+    double scale = this->width * 0.5;
+
+    for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
+        float l = this->frames[0][i];
+        float r = this->frames[1][i];
+
+        double m = (l + r) * 0.5;
+        double s = (r - l) * scale;
+
+        this->frames[0][i] = m-s;
+        this->frames[1][i] = m+s;
+    }
+
+    return true;
 }
 
 NativeAudioNodeCustom::NativeAudioNodeCustom(int inCount, int outCount, NativeAudio *audio) 
@@ -1030,23 +1058,9 @@ bool NativeAudioTrack::work()
         return false;
     }
 
-    // XXX : Refactor this inside resample()
-    int write;
-    float *out;
+    int write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
 
-    write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
-    // TODO : Do not alloc a frame each time
-    out = (float *)malloc(write * this->nbChannel * NativeAudio::FLOAT32);
-    if (!out) {
-        printf("malloc failed %d", write * this->nbChannel * NativeAudio::FLOAT32);
-        exit(1);
-    }
-
-    write = this->resample(out, write);
-
-    PaUtil_WriteRingBuffer(this->rBufferOut, out, write);
-
-    free(out);
+    this->resample(write);
 
     return true;
 }
@@ -1166,7 +1180,7 @@ return false;
     return true;
 #undef RETURN_WITH_ERROR
 }
-int NativeAudioTrack::resample(float *dest, int destSamples) {
+int NativeAudioTrack::resample(int destSamples) {
     int channels = this->nbChannel;
 
     if (this->fCvt) {
@@ -1199,11 +1213,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
                 write = destSamples > avail ? avail : destSamples;
                 write -= passCopied;
 
-                memcpy(
-                        dest + copied * channels, 
-                        this->fBufferOutData + this->samplesConsumed * channels, 
-                        write * sampleSize
-                    );
+                PaUtil_WriteRingBuffer(this->rBufferOut, this->fBufferOutData + this->samplesConsumed * channels, write);
 
                 this->samplesConsumed += write;
                 this->fCvt->out_count += write;
@@ -1241,11 +1251,7 @@ int NativeAudioTrack::resample(float *dest, int destSamples) {
             write = destSamples > avail ? avail : destSamples;
             write -= copied;
 
-            memcpy(
-                    dest + copied * channels, 
-                    this->tmpFrame.data + this->samplesConsumed * channels, 
-                    write * sampleSize
-                );
+            PaUtil_WriteRingBuffer(this->rBufferOut, this->tmpFrame.data + this->samplesConsumed * channels, write);
 
             copied += write;
             this->samplesConsumed += write;
@@ -1451,6 +1457,8 @@ void NativeAudioTrack::close(bool reset)
 
     if (this->opened) {
         avcodec_close(this->codecCtx);
+        avformat_close_input(&this->container);
+
         swr_free(&this->swrCtx);
 
         PaUtil_FlushRingBuffer(this->rBufferOut);
@@ -1480,6 +1488,9 @@ void NativeAudioTrack::close(bool reset)
 
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
+        if (!reset) {
+            delete this->tmpPacket;
+        }
     }
 
     if (this->tmpFrame.data != NULL) {

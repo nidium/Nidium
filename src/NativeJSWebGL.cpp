@@ -1123,7 +1123,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 
     ShBuiltInResources resources; 
     ShHandle compiler = 0;
-    int len = 0;
+    size_t len = 0;
     char *str;
 
     ShInitBuiltInResources(&resources);
@@ -1150,7 +1150,8 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     ShGetObjectCode(compiler, str);
     const char *foo = (const char *)str;
 
-    glShaderSource(cshader->shader, 1, &foo, &len);
+    GLint shaderLen;
+    glShaderSource(cshader->shader, 1, &foo, &shaderLen);
 
     glCompileShader(cshader->shader);
 
@@ -2099,13 +2100,16 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         width = nimg->img->getWidth();
         height = nimg->img->getHeight();
         
-        rgbaPixels = (unsigned char*)malloc(nimg->img->img.getSize());
+        rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
 
+        /*
+        // TODO : Uncoment me once ConvertToRGBA is back in NativeSkImage
         if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, ngl->unpackFlipY, 
                 ngl->unpackPremultiplyAlpha)) {
             JS_ReportError(cx, "Failed to read image data");
             return JS_TRUE;
         }
+        */
 
         glTexImage2D(target, level, internalFormat, width, height, 0, format, type, rgbaPixels);
 

@@ -812,7 +812,8 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
 #ifdef DEBUG
                 JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
 #endif
-                JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, NULL);
+
+                JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, "nativecanvasroot");
             }
         }
     }
