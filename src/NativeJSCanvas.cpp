@@ -844,6 +844,6 @@ void NativeJSCanvas::registerObject(JSContext *cx)
 {
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas_class,
         native_Canvas_constructor,
-        2, NULL, canvas_funcs, NULL, NULL);
+        2, NULL, canvas_funcs, canvas_props, NULL);
 }
 

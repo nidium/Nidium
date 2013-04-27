@@ -289,7 +289,7 @@ void NativeSkia::initPaints()
     PAINT->setARGB(255, 0, 0, 0);
     PAINT->setAntiAlias(true);
     PAINT->setDither(true);
-    //PAINT->setLCDRenderText(true);
+    PAINT->setLCDRenderText(false);
 
     PAINT->setStyle(SkPaint::kFill_Style);
     PAINT->setFilterBitmap(false);
@@ -573,6 +573,24 @@ void NativeSkia::drawText(const char *text, int x, int y)
     CANVAS_FLUSH();
 }
 
+void NativeSkia::textAlign(const char *mode)
+{
+    if (strcasecmp("left", mode) == 0) {
+        PAINT->setTextAlign(SkPaint::kLeft_Align);
+        PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
+        printf("Align of left\n");
+
+    } else if (strcasecmp("center", mode) == 0) {
+        PAINT->setTextAlign(SkPaint::kCenter_Align);
+        PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
+
+    } else if (strcasecmp("right", mode) == 0) {
+        PAINT->setTextAlign(SkPaint::kRight_Align);
+        PAINT_STROKE->setTextAlign(SkPaint::kRight_Align);
+        printf("Align on right\n");
+    }
+}
+
 void NativeSkia::drawTextf(int x, int y, const char text[], ...)
 {
     static const size_t BUFFER_SIZE = 4096;
@@ -807,8 +825,14 @@ void NativeSkia::moveTo(double x, double y)
     if (!currentPath) {
         beginPath();
     }
+    const SkMatrix &m = canvas->getTotalMatrix();
+    SkPoint pt = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
-    currentPath->moveTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    SkMatrix::MapPtsProc proc = m.getMapPtsProc();
+
+    proc(m, &pt, &pt, 1);
+
+    currentPath->moveTo(pt);
 }
 
 void NativeSkia::lineTo(double x, double y)
@@ -817,10 +841,18 @@ void NativeSkia::lineTo(double x, double y)
     if (!currentPath) {
         beginPath();
     }
+
+    const SkMatrix &m = canvas->getTotalMatrix();
+    SkPoint pt = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
+
+    SkMatrix::MapPtsProc proc = m.getMapPtsProc();
+
+    proc(m, &pt, &pt, 1);
+
     if (!currentPath->countPoints()) {
-        currentPath->moveTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
+        currentPath->moveTo(pt);
     } else {
-        currentPath->lineTo(SkDoubleToScalar(x), SkDoubleToScalar(y));
+        currentPath->lineTo(pt);
     }
 }
 
@@ -830,7 +862,11 @@ void NativeSkia::fill()
         return;
     }
 
+    /* The matrix was already applied point by point */
+    canvas->save(SkCanvas::kMatrix_SaveFlag);
+    canvas->resetMatrix();
     canvas->drawPath(*currentPath, *PAINT);
+    canvas->restore();
     CANVAS_FLUSH();
 }
 
@@ -840,7 +876,11 @@ void NativeSkia::stroke()
         return;
     }
 
+    /* The matrix was already applied point by point */
+    canvas->save(SkCanvas::kMatrix_SaveFlag);
+    canvas->resetMatrix();
     canvas->drawPath(*currentPath, *PAINT_STROKE);
+    canvas->restore();
     CANVAS_FLUSH();
 }
 
@@ -864,18 +904,60 @@ void NativeSkia::clip()
     CANVAS_FLUSH();
 }
 
+/*
+void SkPath::addPath(const SkPath& path, const SkMatrix& matrix) {
+    SkPathRef::Editor(&fPathRef, path.countVerbs(), path.countPoints());
+
+    fIsOval = false;
+
+    RawIter iter(path);
+    SkPoint pts[4];
+    Verb    verb;
+
+    SkMatrix::MapPtsProc proc = matrix.getMapPtsProc();
+
+    while ((verb = iter.next(pts)) != kDone_Verb) {
+        switch (verb) {
+            case kMove_Verb:
+                proc(matrix, &pts[0], &pts[0], 1);
+                this->moveTo(pts[0]);
+                break;
+            case kLine_Verb:
+                proc(matrix, &pts[1], &pts[1], 1);
+                this->lineTo(pts[1]);
+                break;
+            case kQuad_Verb:
+                proc(matrix, &pts[1], &pts[1], 2);
+                this->quadTo(pts[1], pts[2]);
+                break;
+            case kCubic_Verb:
+                proc(matrix, &pts[1], &pts[1], 3);
+                this->cubicTo(pts[1], pts[2], pts[3]);
+                break;
+            case kClose_Verb:
+                this->close();
+                break;
+            default:
+                SkDEBUGFAIL("unknown verb");
+        }
+    }
+}
+
+*/
+
 void NativeSkia::rect(double x, double y, double width, double height)
 {
     if (!currentPath) {
         beginPath();
     }
 
-    SkRect r;
-
-    r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
+    SkRect r = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
     
-    currentPath->addRect(r);
+    SkPath tmpPath;
+
+    tmpPath.addRect(r);
+    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), false);
 }
 
 
@@ -899,13 +981,15 @@ void NativeSkia::arc(int x, int y, int r,
 
     rect.set(cx-radius, cy-radius, cx+radius, cy+radius);
 
+    SkPath tmpPath;
+
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
-        currentPath->arcTo(rect, start, 0, false);
+        tmpPath.arcTo(rect, start, 0, false);
         // Draw the circle.
-        currentPath->addOval(rect);
+        tmpPath.addOval(rect);
         // Force a moveTo the end position.
-        currentPath->arcTo(rect, start + end, 0, true);        
+        tmpPath.arcTo(rect, start + end, 0, true);        
     } else {
         if (CCW && end > 0) {
             end -= s360;
@@ -913,8 +997,10 @@ void NativeSkia::arc(int x, int y, int r,
             end += s360;
         }
 
-        currentPath->arcTo(rect, start, end, false);        
+        tmpPath.arcTo(rect, start, end, false);        
     }
+
+    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), false);
 }
 
 void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
@@ -927,8 +1013,12 @@ void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
         currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
     }
 
-    currentPath->quadTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
+    SkPath tmpPath;
+
+    tmpPath.quadTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
         SkDoubleToScalar(x), SkDoubleToScalar(y));
+
+    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), true);
 }
 
 void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
@@ -942,9 +1032,13 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
         currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
     }
 
-    currentPath->cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
+    SkPath tmpPath;
+
+    tmpPath.cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
         SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2),
         SkDoubleToScalar(x), SkDoubleToScalar(y));
+
+    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), true);
 }
 
 void NativeSkia::light(double x, double y, double z)
@@ -1092,6 +1186,23 @@ bool NativeSkia::SkPathContainsPoint(double x, double y)
     return contains;
 }
 
+void NativeSkia::itransform(double scalex, double skewy, double skewx,
+            double scaley, double translatex, double translatey)
+{
+    SkMatrix m;
+
+    m.setAll(SkDoubleToScalar(scalex), SkDoubleToScalar(skewx),
+        SkDoubleToScalar(translatex), SkDoubleToScalar(skewy),
+        SkDoubleToScalar(scaley), SkDoubleToScalar(translatey), 0, 0, 0);
+    
+    SkMatrix im;
+    if (m.invert(&im)) {
+        printf("transformed\n");
+        canvas->concat(im);
+    } else {
+        printf("Cant revert Matrix\n");
+    }
+}
 
 void NativeSkia::transform(double scalex, double skewy, double skewx,
             double scaley, double translatex, double translatey, int set)
