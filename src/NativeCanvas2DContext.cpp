@@ -102,6 +102,7 @@ static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_restore(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_translate(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_clip(JSContext *cx, unsigned argc, jsval *vp);
@@ -204,6 +205,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("restore", native_canvas2dctx_restore, 0, 0),
     JS_FN("translate", native_canvas2dctx_translate, 2, 0),
     JS_FN("transform", native_canvas2dctx_transform, 6, 0),
+    JS_FN("iTransform", native_canvas2dctx_iTransform, 0, 0),
     JS_FN("setTransform", native_canvas2dctx_setTransform, 6, 0),
     JS_FN("createLinearGradient", native_canvas2dctx_createLinearGradient, 4, 0),
     JS_FN("createRadialGradient", native_canvas2dctx_createRadialGradient, 6, 0),
@@ -320,9 +322,14 @@ static JSBool native_canvas2dctx_breakText(JSContext *cx,
     JSAutoByteString text(cx, str);
     size_t len = text.length();
 
+    if (len == 0) {
+        vp->setNull();
+        return JS_TRUE;
+    }
+
     struct _NativeLine *lines = new struct _NativeLine[len];
 
-    if (!len) {
+    if (!lines) {
         JS_ReportOutOfMemory(cx);
         return JS_FALSE;
     }
@@ -545,6 +552,21 @@ static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *
     if (argc == 7) {
         NSKIA_NATIVE->rotate(rotate);
     }
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double scalex, skewx, skewy, scaley, translatex, translatey;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
+        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+        return JS_TRUE;
+    }
+
+    NSKIA_NATIVE->itransform(scalex, skewx, skewy, scaley,
+        translatex, translatey);
 
     return JS_TRUE;
 }
@@ -1348,6 +1370,18 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
         }
         break;
+        case CTX_PROP(textAlign):
+        {
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
+
+                return JS_TRUE;
+            }
+
+            JSAutoByteString font(cx, JSVAL_TO_STRING(vp));
+            curSkia->textAlign(font.ptr());
+        }
+        break;
         case CTX_PROP(fontType):
         {
             if (!JSVAL_IS_STRING(vp)) {
@@ -1701,7 +1735,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     glEnable(GL_ALPHA_TEST);
     glAlphaFunc(GL_NOTEQUAL, 0.0f);
-
+#if 1
     glBegin(GL_QUADS);
         /*
             (-1, 1)...........(1, 1)
@@ -1722,7 +1756,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
         glTexCoord3i(1, 0, 1);
           glVertex3f( normalWidth+normalLeft, normalHeight-normalTop, 1.0f);
     glEnd();
-
+#endif
     glDisable(GL_ALPHA_TEST);
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1851,7 +1885,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->restore();
 
     } else {
-        SkBitmap bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
+        const SkBitmap &bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
         if (layer->hasShader()) {
             skia->canvas->flush();
@@ -1882,10 +1916,24 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             /* Draw the temporary FBO into main canvas (root) */
             // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
         }
-        skia->canvas->drawBitmap(bitmapLayer,
-            left, top, &pt);
+
+        if (layer->commonDraw) {
+            skia->canvas->drawBitmap(bitmapLayer,
+                left, top, &pt);
+            skia->canvas->flush();
+        } else {
+            int width, height;
+            skia->canvas->flush();
+            layer->skia->canvas->flush();
+            /* get the layer's Texture ID */
+            uint32_t textureID = layer->getSkiaTextureID(&width, &height);
+            //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
+            glUseProgram(0);
+            drawTexIDToFBO(textureID, width, height, left, top, getMainFBO());
+            layer->resetGLContext();            
+        }
     }
-    skia->canvas->flush();
+    
 }
 
 void NativeCanvas2DContext::flush()
@@ -1898,7 +1946,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
     SkDevice *ndev;
     SkCanvas *ncanvas;
 
-    SkBitmap bt = skia->canvas->getDevice()->accessBitmap(false);
+    const SkBitmap &bt = skia->canvas->getDevice()->accessBitmap(false);
  
     ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                 width, height, false);
@@ -1927,7 +1975,7 @@ void NativeCanvas2DContext::translate(double x, double y)
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height) :
-    setterDisabled(false), handler(handler)
+    setterDisabled(false), handler(handler), commonDraw(true)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
@@ -1944,11 +1992,17 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
     memset(&this->gl, 0, sizeof(this->gl));
     memset(&this->shader, 0, sizeof(this->shader));
+    uint32_t glBuffers[2];
+
+    glGenBuffers(2, glBuffers);
+
+    gl.vertexBuffer = glBuffers[0];
+    gl.indexBuffer  = glBuffers[1];
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    jsobj(NULL), jscx(NULL), handler(handler)
+    jsobj(NULL), jscx(NULL), handler(handler), commonDraw(true)
 {
     skia = new NativeSkia();
     if (isGL) {

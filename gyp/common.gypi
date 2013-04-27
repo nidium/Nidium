@@ -92,7 +92,7 @@
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g',
-                        '-O0'
+                        '-O2'
                     ]
                 },
                 'ldflags': [
@@ -103,7 +103,7 @@
                     '-L<(third_party_path)/skia/out/Release/obj.target/gyp/',
                 ],
                 'cflags': [
-                    '-O0',
+                    '-O2',
                     '-g',
                 ],
                 'conditions': [

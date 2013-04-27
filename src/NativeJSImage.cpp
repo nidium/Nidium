@@ -14,6 +14,7 @@ static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_image_markColorInAlpha(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_image_desaturate(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -35,8 +36,15 @@ static JSFunctionSpec Image_funcs[] = {
     JS_FN("shiftHue", native_image_shiftHue, 2, 0),
     JS_FN("markColorInAlpha", native_image_markColorInAlpha, 0, 0),
     JS_FN("desaturate", native_image_desaturate, 0, 0),
+    JS_FN("print", native_image_print, 0, 0),
     JS_FS_END
 };
+
+static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp)
+{
+    printf("hello\n");
+    return JS_TRUE;
+}
 
 static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -141,7 +149,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
-    JS_DefineFunctions(cx, ret, Image_funcs);
+    //JS_DefineFunctions(cx, ret, Image_funcs);
 
     return JS_TRUE;
 }
@@ -244,4 +252,11 @@ NativeJSImage::~NativeJSImage()
     }
 }
 
-NATIVE_OBJECT_EXPOSE(Image)
+void NativeJSImage::registerObject(JSContext *cx)
+{
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Image_class, 
+        native_Image_constructor,
+        0, NULL, Image_funcs, NULL, NULL);
+}
+
+//NATIVE_OBJECT_EXPOSE(Image)

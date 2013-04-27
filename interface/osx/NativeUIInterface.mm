@@ -12,8 +12,8 @@
 #import <NativeNML.h>
 #import <sys/stat.h>
 
-#define kNativeWidth 800
-#define kNativeHeight 600
+#define kNativeWidth 1024
+#define kNativeHeight 700
 
 #define kNativeTitleBarHeight 0
 
@@ -167,7 +167,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
     ttfps++;
 
     //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
-    return 1;
+    return 16;
 }
 
 static int NativeProcessUI(void *arg)
