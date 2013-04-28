@@ -182,6 +182,13 @@ else
     curl $DEPS_URL/gyp.tar.gz| tar zx
 fi
 
+if [ -d "angle" ]; then
+    echo "ANGLE already downloaded"
+else 
+    echo "Downloading ANGLE..."
+    curl $DEPS_URL/angle.tar.gz | tar zx
+fi
+
 #Build phase
 echo "Everything download. Lets build!" 
 

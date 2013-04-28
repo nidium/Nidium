@@ -278,7 +278,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
 
         /*
             draw current context on top of the root layer
-        */      
+        */
         layer->context->composeWith(context,
             this->a_left - this->padding.global, 
             this->a_top - this->padding.global, popacity,

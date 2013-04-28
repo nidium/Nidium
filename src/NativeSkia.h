@@ -150,10 +150,13 @@ class NativeSkia
         void save();
         void restore();
         void redrawScreen();
+        void itransform(double scalex, double skewy, double skewx,
+            double scaley, double translatex, double translatey);
         double measureText(const char *str, size_t length);
         bool SkPathContainsPoint(double x, double y);
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
+        void textAlign(const char *mode);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0

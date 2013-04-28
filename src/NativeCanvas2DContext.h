@@ -32,6 +32,7 @@ class NativeCanvas2DContext : public NativeJSExposer
         struct JSContext *jscx;
         NativeSkia *skia;
         bool setterDisabled;
+        bool commonDraw;
 
         struct {
             uint32_t program;
@@ -39,6 +40,8 @@ class NativeCanvas2DContext : public NativeJSExposer
             uint32_t fbo;
             uint32_t textureWidth;
             uint32_t textureHeight;
+            uint32_t vertexBuffer;
+            uint32_t indexBuffer;
         } gl;
 
         struct {

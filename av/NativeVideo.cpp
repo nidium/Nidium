@@ -1287,8 +1287,15 @@ void NativeVideo::close(bool reset) {
     delete this->rBuff;
     delete this->reader;
 
-    avcodec_close(this->codecCtx);
-    avformat_close_input(&this->container);
+    if (this->opened) {
+        avcodec_close(this->codecCtx);
+        avformat_close_input(&this->container);
+    } else {
+        if (this->container) {
+            av_free(this->container->pb);
+            avformat_free_context(this->container);
+        }
+    }
 
     av_free(this->convertedFrame);
     av_free(this->decodedFrame);

@@ -102,6 +102,18 @@
                     '<(native_src_path)/NativeJSAV.cpp',
                  ],
                  'defines+': [ 'NATIVE_AUDIO_ENABLED' ],
+                 'dependencies': [
+                    'av.gyp:nativeav'
+                 ]
+            }],
+            ['native_webgl==1', {
+                'sources': [
+                    '<(native_src_path)/NativeJSWebGL.cpp',
+                 ],
+                 'defines+': [ 'NATIVE_WEBGL_ENABLED' ],
+                 'dependencies': [
+                    'angle.gyp:*'
+                 ]
             }],
         ],
         'sources': [

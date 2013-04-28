@@ -272,7 +272,7 @@ void NativeJS::createDebugCanvas()
     static const int DEBUG_HEIGHT = 60;
     debugHandler = new NativeCanvasHandler(surface->getWidth(), DEBUG_HEIGHT);
     debugHandler->context = new NativeCanvas2DContext(debugHandler, surface->getWidth(), DEBUG_HEIGHT, false);
-
+    debugHandler->context->commonDraw = true;
     rootHandler->addChild(debugHandler);
     debugHandler->setRight(0);
     debugHandler->setOpacity(0.6);

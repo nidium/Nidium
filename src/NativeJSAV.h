@@ -19,6 +19,7 @@ enum {
     VIDEO_PROP_WIDTH,
     VIDEO_PROP_HEIGHT,
     VIDEO_PROP_ONFRAME,
+    VIDEO_PROP_CANVAS,
     SOURCE_PROP_POSITION,
     SOURCE_PROP_DURATION,
     SOURCE_PROP_METADATA
@@ -111,12 +112,17 @@ class NativeJSAudioNode: public NativeJSExposer
                nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
 
+            try {
+                this->node = audio->audio->createNode(type, in, out);
+            } catch (NativeAudioNodeException *e) {
+                throw;
+            }
+
             if (type == NativeAudio::CUSTOM) {
                 pthread_cond_init(&this->shutdownCond, NULL);
                 pthread_mutex_init(&this->shutdownLock, NULL);
             }
 
-            this->node = audio->audio->createNode(type, in, out);
 
             this->add();
         }
