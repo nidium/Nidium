@@ -146,6 +146,12 @@ Native.object = {
 		return this;
 	},
 
+	place : function(left, top){
+		this.left = left;
+		this.top = top;
+		return this;
+	},
+
 	fix : function(){
 		this.position = "fixed";
 		return this;

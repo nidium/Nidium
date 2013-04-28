@@ -21,10 +21,24 @@ require("falcon/native.js");
 //require("applications/demos/modal.js");
 //require("applications/demos/threads.js");
 //require("applications/demos/tooltips.js");
-//require("applications/demos/animation.js");
+//require("applications/demos/animation.js"); // FAIL TO RUN
 
 /* media demos */
 //require("applications/media/video.js");
+
+//require("applications/audio/test.js");
+//require("applications/audio/mixer.js");
+//require("applications/audio/dsp.js");
+
+
+/* charts demos */
+//require("applications/charts/line.js");
+//require("applications/charts/pie.js");
+//require("applications/charts/polar.js");
+//require("applications/charts/donut.js");
+//require("applications/charts/radar.js");
+//require("applications/charts/bar.js");
+require("applications/charts/demo.js");
 
 
 /* Shaders Demos */
@@ -44,10 +58,6 @@ require("falcon/native.js");
 
 //require("testLayer.js");
 
-//require("applications/audio/test.js");
-//require("applications/audio/mixer.js");
-require("applications/audio/dsp.js");
-
 
 /* File API Test */
 //require("applications/demos/file.basic.js");
@@ -57,6 +67,8 @@ require("applications/audio/dsp.js");
 /* -- Native Debugger ------------------ */
 
 //require("applications/NatBug.nap");
+
+/*
 
 var h = new Http("http://p.nf/post.php").request({
     headers: {
@@ -69,3 +81,5 @@ var h = new Http("http://p.nf/post.php").request({
 }, function(e) {
     echo(e.data);
 });
+
+*/

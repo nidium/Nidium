@@ -243,6 +243,10 @@ Native.MotionFactory = {
 
 Math.physics = {
 	def: 'quadOut',
+
+	linear: function (x, t, b, c, d) {
+		return c*(t/=d) + b;
+	},
 	
 	swing: function (x, t, b, c, d) {
 		return Math.physics[Math.physics.def](x, t, b, c, d);

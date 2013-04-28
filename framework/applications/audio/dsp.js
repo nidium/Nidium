@@ -24,13 +24,14 @@
  * --------------------------------------------------------------------------- * 
  */
 
-//Native.showFPS(true);
-
 var main = new Application();
 var	k2PI = 2.0 * Math.PI;
 
 var app = {
-	dftBuffer : new Float64Array(256),
+	audioBuffer : 4096,
+
+	dftSize : 128,
+	dftBuffer : new Float64Array(128),
 
 	init : function(){
 		this.createNodes();
@@ -40,7 +41,7 @@ var app = {
 	},
 
 	createNodes : function(){
-		this.dsp = Audio.getContext(4096, 2, 44100);
+		this.dsp = Audio.getContext(this.audioBuffer, 2, 44100);
 		this.source = this.dsp.createNode("source", 0, 2);
 		this.gain = this.dsp.createNode("gain", 2, 2);
 		this.processor = this.dsp.createNode("custom", 2, 2);
@@ -164,6 +165,7 @@ var app = {
 				return [m-s, m+s];
 			};
 
+			scope.step = 0;
 			scope.moogFilterL = new scope.MoogFilter();
 			scope.moogFilterR = new scope.MoogFilter();
 			scope.enhancer = new scope.StereoWidth();
@@ -201,10 +203,12 @@ var app = {
 				bufferR[i] = eh[1];
 			}
 
-			this.send({
-				bufferL : bufferL,
-				bufferR : bufferR
-			});
+			if ((scope.step++) % 3 == 0) {
+				this.send({
+					bufferL : bufferL,
+					bufferR : bufferR
+				});
+			}
 		};
 
 		this.processor.onmessage = function(e){
@@ -229,18 +233,16 @@ var app = {
 	 */
 	iqDFT : function(bufferL, bufferR){
 		var bufferSize = bufferL.length, //256
-			len = bufferSize, // 128
+			len = bufferSize, // 256
 			angularNormalisation = k2PI/(len); // len
 
-		// len = 128 for 2048 Audio Bytes Buffer
-
-		for(var i=0; i<len; i++){
+		for(var i=0; i<this.dftSize; i++){
 			var wi = i * angularNormalisation,
 				sii = Math.sin(wi),	coi = Math.cos(wi),
 				co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
 
-			for(var j=0; j<len; j++){
-				var f = bufferL[j],
+			for(var j=0; j<bufferSize; j++){
+				var f = bufferL[j] + bufferR[j],
 					oco = co;
 
 				acco += co*f; co = co*coi -  si*sii;
@@ -291,15 +293,16 @@ var app = {
 
 var Spectral = {
  	loga : false,
+ 	step : 0,
 
  	UIBars : [],
  	bars : [],
 
- 	nbars : 128,
-	barSize : 230,
+ 	nbars : app.dftSize,
+	barSize : 200,
 
-	cw : 640,
-	ch : 230,
+	cw : 768,
+	ch : 250,
 
 	barW : 0,
 	barY : 0,
@@ -480,12 +483,15 @@ var Spectral = {
 		this.clearBuffer();
 
 		for (var i=0 ; i<this.nbars ; i++){
-			this.UIBars[i] = this.spectrum.add("UIView", {
+			this.UIBars[i] = this.spectrum.add("UIElement", {
 				left : 1 + i * this.barW,
-				top : this.barSize-1,
+				top : this.ch-1,
 				width : this.barW - 2,
 				height : this.barSize,
-				background : this.gdSpectrum
+				background : this.gdSpectrum,
+				shadowBlur : 6,
+				shadowOffsetY : 4,
+				shadowColor : 'rgba(255, 100, 100, 0.8)'
 			});
 		}
 
@@ -518,24 +524,17 @@ var Spectral = {
 	},
 
 	ondata : function(){
-		var i = 0,
-			value = 0,
+		var value = 0,
 			pixelSize = 0;
 
-		for (i=0; i<this.nbars; i++){
+		/*
+		for (var i=0; i<this.nbars; i++){
 			value = app.dftBuffer[i],
 			pixelSize = value*this.barSize>>0;
 
-			/*
-			this.UIBars[i].layer.height = pixelSize;
-			this.UIBars[i].layer.top = this.ch-pixelSize;
-			this.UIBars[i].draw(this.UIBars[i].layer.context);
-			*/
-
-			//this.UIBars[i].height = pixelSize;
 			this.UIBars[i].top = this.ch-pixelSize;
-
 		}
+		*/
 	},
 
 	makeBars : function(){
@@ -604,8 +603,8 @@ var Spectral = {
 
 			this.bars[i].y = height-pixelSize;
 
-			//context.fillRect(this.bars[i].x, this.bars[i].y, this.bars[i].w, this.bars[i].h);
-			context.lineTo(this.bars[i].x, this.bars[i].y);
+			context.fillRect(this.bars[i].x, this.bars[i].y, this.bars[i].w, this.bars[i].h);
+			//context.lineTo(this.bars[i].x, this.bars[i].y);
 		}
 		context.lineTo(width, height);
 		/*
@@ -652,10 +651,4 @@ var Spectral = {
 };
 
 Spectral.init();
-
-
-
-
-
-
 

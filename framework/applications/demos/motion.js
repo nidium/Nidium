@@ -28,7 +28,7 @@ button.addEventListener("mousedown", function(e){
 		700, 		// end value
 		850, 		// duration 850ms
 		null,		// callback
-		Math.physics.expoOut // motion equation
+		Math.physics.bounceOut // motion equation
 	);
 });
 

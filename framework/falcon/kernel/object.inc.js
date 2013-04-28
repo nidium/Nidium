@@ -212,6 +212,7 @@ DOMElement.prototype = {
 	centerLeft : Native.object.centerLeft,
 	centerTop : Native.object.centerTop,
 	move : Native.object.move,
+	place : Native.object.place,
 	fix : Native.object.fix,
 
 	redraw : Native.object.redraw,
