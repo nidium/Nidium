@@ -6,6 +6,33 @@ var body = new Application({
 	backgroundImage : "falcon/assets/back.png"
 });
 
+var k = new Animation({
+	"#view.left" : 50,
+	"#view.top" : 50,
+	"#c0.top" : 80,
+
+	"#bar.width, .view.top, .c0.left" : {
+		from : 20,
+		to : 80,
+		time : 500,
+		loop : true,
+		reverse : true,
+		ease : Math.physics.bounceOut
+	},
+
+	"#sphere" : {
+		time : 250,
+		path : myCustomTrajectoryPointsArray
+	}
+});
+
+//UIElement.follow(path);
+
+for (var p in k){
+	echo(p);
+}
+
+
 var text = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
 
 var textView = body.add("UIView", {
@@ -47,7 +74,6 @@ var	c0 = new UIView(view, {
 	height : 40,
 	background : "#ff0000",
 	cursor : "pointer",
-	position : "fixed"
 });
 
 var	kevin = new UIView(c0, {

@@ -95,7 +95,7 @@ require(__PATH_LAYOUT__ + 'UITextNode.js');
 require(__PATH_LAYOUT__ + 'UITextController.js');
 require(__PATH_LAYOUT__ + 'UITextMatrix.js');
 
-//require(__PATH_LAYOUT__ + 'UIParticle.js');
+require(__PATH_LAYOUT__ + 'UIParticle.js');
 
 require(__PATH_LAYOUT__ + 'UIDiagram.js');
 require(__PATH_LAYOUT__ + 'UIDiagramController.js');

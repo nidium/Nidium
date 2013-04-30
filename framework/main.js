@@ -21,7 +21,7 @@ require("falcon/native.js");
 //require("applications/demos/modal.js");
 //require("applications/demos/threads.js");
 //require("applications/demos/tooltips.js");
-//require("applications/demos/animation.js"); // FAIL TO RUN
+require("applications/demos/animation.js"); // FAIL TO RUN
 
 /* media demos */
 //require("applications/media/video.js");
@@ -38,7 +38,7 @@ require("falcon/native.js");
 //require("applications/charts/donut.js");
 //require("applications/charts/radar.js");
 //require("applications/charts/bar.js");
-require("applications/charts/demo.js");
+//require("applications/charts/demo.js");
 
 
 /* Shaders Demos */
