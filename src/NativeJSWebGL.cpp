@@ -12,11 +12,6 @@
 #include <GL/glext.h>
 #endif
 
-typedef union {
-    GLuint buffer;
-    void *dummy;
-} GLuint_s;
-
 #define NATIVE_GL_GETTER(obj) ((class NativeJSNativeGL *)JS_GetPrivate(obj))
 
 #define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
