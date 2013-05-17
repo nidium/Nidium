@@ -99,6 +99,11 @@ if [ -d "skia" ]; then
 else
     echo "Downloading skia..."
     curl $DEPS_URL/skia.tar.gz | tar zx
+
+    echo "Patching Skia addPath-new-arg"
+    cd skia
+    patch -p1 < ../skia-addPath-new-arg.patch
+    cd ../
 fi
 
 if [ -d "jsoncpp" ]; then
