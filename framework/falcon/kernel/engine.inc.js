@@ -202,7 +202,7 @@ Native.StyleSheet = {
 
 		if (sync) {
 			/* the synchronous way uses built-in method require */
-			var sheet = require(url, 'nss');
+			var sheet = include(url, 'nss');
 			document.__styleSheetLoaded = true;
 			this.add(sheet);
 		} else {
