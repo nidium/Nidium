@@ -86,6 +86,7 @@
                     'SK_SUPPORT_PDF',
                     'GR_LINUX_BUILD=1',
                     'SK_RELEASE',
+                    'UINT32_MAX=4294967295u',
                     'GR_RELEASE=1',
                     '__STDC_CONSTANT_MACROS'
                 ],
@@ -143,6 +144,7 @@
 		    '<(native_src_path)/NativeJSConsole.cpp',
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',
+			'<(native_src_path)/NativeJSModules.cpp',
         ],
     }],
 }
