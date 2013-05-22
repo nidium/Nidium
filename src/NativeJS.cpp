@@ -136,7 +136,7 @@ static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec glob_funcs[] = {
     JS_FN("echo", Print, 0, 0),
-    JS_FN("include", native_load, 2, 0),
+    JS_FN("load", native_load, 2, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),

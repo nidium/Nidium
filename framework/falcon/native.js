@@ -45,70 +45,70 @@ var	__ENABLE_TEXT_SHADOWS__ = true,
 
 /* -------------------------------------------------------------------------- */
 
-include(__PATH_KERNEL__ + 'helper.inc.js');
-include(__PATH_KERNEL__ + 'engine.inc.js');
-include(__PATH_KERNEL__ + 'kernel.inc.js');
-include(__PATH_KERNEL__ + 'object.inc.js');
-include(__PATH_KERNEL__ + 'extend.inc.js');
-include(__PATH_KERNEL__ + 'events.inc.js');
-include(__PATH_KERNEL__ + 'motion.inc.js');
-include(__PATH_KERNEL__ + 'opengl.inc.js');
-include(__PATH_KERNEL__ + 'audio.inc.js');
-include(__PATH_KERNEL__ + 'video.inc.js');
+load(__PATH_KERNEL__ + 'helper.inc.js');
+load(__PATH_KERNEL__ + 'engine.inc.js');
+load(__PATH_KERNEL__ + 'kernel.inc.js');
+load(__PATH_KERNEL__ + 'object.inc.js');
+load(__PATH_KERNEL__ + 'extend.inc.js');
+load(__PATH_KERNEL__ + 'events.inc.js');
+load(__PATH_KERNEL__ + 'motion.inc.js');
+load(__PATH_KERNEL__ + 'opengl.inc.js');
+load(__PATH_KERNEL__ + 'audio.inc.js');
+load(__PATH_KERNEL__ + 'video.inc.js');
 
 /* -- UI Elements -- */
-include(__PATH_LAYOUT__ + 'UIElement.js');
-include(__PATH_LAYOUT__ + 'UIView.js');
-include(__PATH_LAYOUT__ + 'UILabel.js');
+load(__PATH_LAYOUT__ + 'UIElement.js');
+load(__PATH_LAYOUT__ + 'UIView.js');
+load(__PATH_LAYOUT__ + 'UILabel.js');
 
-include(__PATH_LAYOUT__ + 'Icon.js');
+load(__PATH_LAYOUT__ + 'Icon.js');
 
-include(__PATH_LAYOUT__ + 'UIButton.js');
-include(__PATH_LAYOUT__ + 'UIButtonClose.js');
-include(__PATH_LAYOUT__ + 'UIButtonDown.js');
+load(__PATH_LAYOUT__ + 'UIButton.js');
+load(__PATH_LAYOUT__ + 'UIButtonClose.js');
+load(__PATH_LAYOUT__ + 'UIButtonDown.js');
 
-include(__PATH_LAYOUT__ + 'UIRadio.js');
+load(__PATH_LAYOUT__ + 'UIRadio.js');
 
-include(__PATH_LAYOUT__ + 'UISliderKnob.js');
-include(__PATH_LAYOUT__ + 'UISliderController.js');
+load(__PATH_LAYOUT__ + 'UISliderKnob.js');
+load(__PATH_LAYOUT__ + 'UISliderController.js');
 
-include(__PATH_LAYOUT__ + 'UITab.js');
-include(__PATH_LAYOUT__ + 'UITabController.js');
+load(__PATH_LAYOUT__ + 'UITab.js');
+load(__PATH_LAYOUT__ + 'UITabController.js');
 
-include(__PATH_LAYOUT__ + 'UIWindow.js');
-include(__PATH_LAYOUT__ + 'UIWindowResizer.js');
-include(__PATH_LAYOUT__ + 'UIStatus.js');
+load(__PATH_LAYOUT__ + 'UIWindow.js');
+load(__PATH_LAYOUT__ + 'UIWindowResizer.js');
+load(__PATH_LAYOUT__ + 'UIStatus.js');
 
-include(__PATH_LAYOUT__ + 'UIOption.js');
-include(__PATH_LAYOUT__ + 'UIDropDownController.js');
+load(__PATH_LAYOUT__ + 'UIOption.js');
+load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
-include(__PATH_LAYOUT__ + 'UIScrollBars.js');
-include(__PATH_LAYOUT__ + 'UISpinner.js');
-include(__PATH_LAYOUT__ + 'UIModal.js');
-include(__PATH_LAYOUT__ + 'UILine.js');
-include(__PATH_LAYOUT__ + 'UIToolTip.js');
+load(__PATH_LAYOUT__ + 'UIScrollBars.js');
+load(__PATH_LAYOUT__ + 'UISpinner.js');
+load(__PATH_LAYOUT__ + 'UIModal.js');
+load(__PATH_LAYOUT__ + 'UILine.js');
+load(__PATH_LAYOUT__ + 'UIToolTip.js');
 
-include(__PATH_LAYOUT__ + 'UIVideo.js');
+load(__PATH_LAYOUT__ + 'UIVideo.js');
 
-include(__PATH_LAYOUT__ + 'UITextInput.js');
-include(__PATH_LAYOUT__ + 'UITextNode.js');
-include(__PATH_LAYOUT__ + 'UITextController.js');
-include(__PATH_LAYOUT__ + 'UITextMatrix.js');
+load(__PATH_LAYOUT__ + 'UITextInput.js');
+load(__PATH_LAYOUT__ + 'UITextNode.js');
+load(__PATH_LAYOUT__ + 'UITextController.js');
+load(__PATH_LAYOUT__ + 'UITextMatrix.js');
 
-include(__PATH_LAYOUT__ + 'UIParticle.js');
+load(__PATH_LAYOUT__ + 'UIParticle.js');
 
-include(__PATH_LAYOUT__ + 'UIDiagram.js');
-include(__PATH_LAYOUT__ + 'UIDiagramController.js');
+load(__PATH_LAYOUT__ + 'UIDiagram.js');
+load(__PATH_LAYOUT__ + 'UIDiagramController.js');
 
 
 /* -- Canvas Plugins -- */
-include(__PATH_PLUGINS__ + 'misc.inc.js');
-include(__PATH_PLUGINS__ + 'roundbox.inc.js');
-include(__PATH_PLUGINS__ + 'tabbox.inc.js');
-include(__PATH_PLUGINS__ + 'spline.inc.js');
+load(__PATH_PLUGINS__ + 'misc.inc.js');
+load(__PATH_PLUGINS__ + 'roundbox.inc.js');
+load(__PATH_PLUGINS__ + 'tabbox.inc.js');
+load(__PATH_PLUGINS__ + 'spline.inc.js');
 
 /* -- Start Layout -- */
-include(__PATH_KERNEL__ + 'layout.inc.js');
+load(__PATH_KERNEL__ + 'layout.inc.js');
 
 /* -------------------------------------------------------------------------- */
 

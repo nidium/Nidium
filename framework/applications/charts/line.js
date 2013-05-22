@@ -9,7 +9,7 @@
  */
 
 /* -------------------------------------------------------------------------- */
-include("libs/chart.lib.js");
+load("libs/chart.lib.js");
 /* -------------------------------------------------------------------------- */
 
 var body = new Application({
@@ -44,4 +44,3 @@ var lineChartData = {
 };
 
 var myLine = new Chart(view).Line(lineChartData);
-
