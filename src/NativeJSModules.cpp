@@ -78,9 +78,9 @@ char *NativeJSModules::normalizeName(const char *name)
     return ret;
 }
 
-NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *main, NativeJSModule *parent, const char *name) 
+NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
     : dir(NULL), absoluteDir(NULL), filePath(NULL), fileName(NULL), name(strdup(name)), exports(NULL),
-      cx(cx), main(main), parent(parent)
+      cx(cx), modules(modules), parent(parent)
 {
 }
 
@@ -88,7 +88,7 @@ bool NativeJSModule::init()
 {
     if (!this->name || strlen(this->name) == 0) return false;
 
-    this->fileName = this->main->normalizeName(this->name);
+    this->fileName = NativeJSModules::normalizeName(this->name);
     if (!this->fileName) {
         return false;
     }
@@ -96,7 +96,7 @@ bool NativeJSModule::init()
     if (this->parent) {
         this->filePath = this->parent->findModulePath(this);
     } else {
-        this->filePath = strdup(this->fileName);
+        this->filePath = realpath(this->fileName, NULL);
     }
     if (!this->filePath) {
         return false;
@@ -160,13 +160,19 @@ JSObject *NativeJSModules::init(JSObject *scope, const char *name)
     NativeJSModule *cmodule = NULL;
     // Top level scope, we need to create a module for it
     if (scope == JS_GetGlobalObject(cx)) {
-        cmodule = new NativeJSModule(this->cx, this, NULL, name);
-        if (!cmodule || !cmodule->init()) {
-            return NULL;
-        }
+        if (!this->main) {
+            cmodule = new NativeJSModule(this->cx, this, NULL, name);
+            if (!cmodule || !cmodule->init()) {
+                return NULL;
+            }
 
-        if (!this->init(cmodule)) {
-            return NULL;
+            if (!this->init(cmodule)) {
+                return NULL;
+            }
+
+            this->main = cmodule;
+        } else {
+            cmodule = this->main;
         }
     }
 
@@ -179,7 +185,11 @@ bool NativeJSModules::init(NativeJSModule *module)
         return false;
     }
 
-    this->add(module);
+    // Main "module" is not a real module
+    // so we don't want have it in cache
+    if (module != this->main) {
+        this->add(module);
+    }
 
     return true;
 }
@@ -254,13 +264,12 @@ char *NativeJSModule::findModulePath(NativeJSModule *module)
 
     memset(paths, 0, sizeof(char*) * PATHS_COUNT);
 
-    // Relative module, only look in current script directory
     if (module->name[0] == '.') {
-        paths[0] = this->dir;// FIXME
-        //if (!paths[0]) paths[0] = (char *)"."; 
+        // Relative module, only look in current script directory
+        paths[0] = this->dir;
     } else {
-        paths[0] = (char *)".";                         // Native root
-        paths[1] = this->absoluteDir;                   // Search path of the module
+        paths[0] = this->absoluteDir;                   // Module search path
+        paths[1] = (char *)".";                         // Native root
         paths[PATHS_COUNT-2] = (char *)"node_modules";  // Compatibility with NodeJS npm
         paths[PATHS_COUNT-1] = (char *)"modules";       // Root modules directory
     }
@@ -308,9 +317,39 @@ JS::Value NativeJSModule::require(char *name)
 
     ret.setNull();
 
-    //printf("[NativeJSModule] Module %s ", this->name);
+    // require() have been called from the main module
+    if (this == this->modules->main) {
+        /*
+         * This little hack is need to conform CommonJS : 
+         *  - Cyclic deps
+         *  - Finding module
+         * 
+         * Since all files included with NativeJS::LoadScript();
+         * share the same module we need to be aware of the real caller.
+         * So here we set the filename and path of the caller 
+         * 
+         * XXX : Another way to handle this case would be to make
+         * load() aware of his context by using the same trick 
+         * require do.
+         */
+        JSScript *script;
+        unsigned lineno;
+        const char *filename;
 
-    NativeJSModule *tmp = new NativeJSModule(cx, this->main, this, name);
+        JS_DescribeScriptedCaller(this->cx, &script, &lineno);
+
+        free(this->filePath);
+        free(this->absoluteDir);
+
+        // filePath is needed for cyclic deps check
+        this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
+        // absoluteDir is needed for findModulePath
+        this->absoluteDir = dirname(strdup(this->filePath));
+    }
+
+    //printf("[NativeJSModule] Module %s require(%s)\n", this->name, name);
+
+    NativeJSModule *tmp = new NativeJSModule(cx, this->modules, this, name);
     if (!tmp->init()) {
         JS_ReportError(cx, "Module %s not found\n", name);
         delete tmp;
@@ -318,7 +357,7 @@ JS::Value NativeJSModule::require(char *name)
     }
 
     // First let's see if the module is in the cache
-    NativeJSModule *cached = this->main->find(tmp);
+    NativeJSModule *cached = this->modules->find(tmp);
     if (!cached) {
         cmodule = tmp;
     } else {
@@ -328,7 +367,7 @@ JS::Value NativeJSModule::require(char *name)
 
     // Is there is a cyclic dependency
     for (NativeJSModule *m = cmodule->parent;;) {
-        if (!m || !m->parent) break;
+        if (!m) break;
 
         // Found a cyclic dependency
         if (strcmp(cmodule->filePath, m->filePath) == 0) {
@@ -346,7 +385,7 @@ JS::Value NativeJSModule::require(char *name)
 
     if (!cached) {
         // Create all objects/methods on the module 
-        if (!this->main->init(cmodule)) {
+        if (!this->modules->init(cmodule)) {
             JS_ReportError(cx, "Failed to initialize module %s\n", cmodule->name);
             return ret;
         }
@@ -366,7 +405,7 @@ JS::Value NativeJSModule::require(char *name)
 NativeJSModule::~NativeJSModule()
 {
     if (this->filePath) {
-        this->main->remove(this);
+        this->modules->remove(this);
     }
 
     free(this->name);

@@ -27,7 +27,7 @@ class NativeJSModule
         ~NativeJSModule();
     private:
         JSContext *cx;
-        NativeJSModules *main;
+        NativeJSModules *modules;
 
         void setScriptDir();
         char *findModulePath(NativeJSModule *module);
@@ -36,15 +36,18 @@ class NativeJSModule
 class NativeJSModules
 {
     public:
-        NativeJSModules(JSContext *cx) : cx(cx)
+        NativeJSModules(JSContext *cx) : cx(cx), main(NULL)
         {
             tree.setCompare(NativeJSModules::compare); 
-        };
+        }
 
-        static bool compare(NativeJSModule *first, NativeJSModule *second)
+        NativeJSModule *main;
+
+        static int compare(NativeJSModule *first, NativeJSModule *second)
         {
-            bool ret = strcmp(first->filePath, second->filePath) != 0;
-            return ret;
+            int ret;
+            ret = strcmp(first->filePath, second->filePath);
+            return ret < 0;
         }
 
         void add(NativeJSModule *module)
@@ -68,7 +71,7 @@ class NativeJSModules
             return node->key;
         }
 
-        char *normalizeName(const char *name);
+        static char *normalizeName(const char *name);
         JSObject *init(JSObject *scope, const char *name);
         bool init(NativeJSModule *module);
     private:
