@@ -13,8 +13,8 @@ class NativeJSModule
         char *dir;
         char *absoluteDir;
         char *filePath;
-        char *fileName;
         char *name;
+        bool native;
 
         JSObject *exports;
 
@@ -22,6 +22,7 @@ class NativeJSModule
 
         bool init();
         bool initJS();
+        bool initNative();
         JS::Value require(char *name);
 
         ~NativeJSModule();
@@ -71,7 +72,6 @@ class NativeJSModules
             return node->key;
         }
 
-        static char *normalizeName(const char *name);
         JSObject *init(JSObject *scope, const char *name);
         bool init(NativeJSModule *module);
     private:

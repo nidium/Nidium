@@ -53,6 +53,7 @@
                     'GR_RELEASE=1',
                     'TRACING',
                     'JS_THREADSAFE',
+                    'DSO_EXTENSION=.so'
                 ],
 				'xcode_settings': {
 					'OTHER_CFLAGS': [
@@ -88,7 +89,8 @@
                     'SK_RELEASE',
                     'UINT32_MAX=4294967295u',
                     'GR_RELEASE=1',
-                    '__STDC_CONSTANT_MACROS'
+                    '__STDC_CONSTANT_MACROS',
+                    'DSO_EXTENSION=".so"'
                 ],
                 'cflags+': [
                     '-fvisibility=hidden',
@@ -140,7 +142,6 @@
             '<(native_src_path)/NativeJSFileIO.cpp',
             '<(native_src_path)/NativeStream.cpp',
             '<(native_src_path)/NativeApp.cpp',
-            '<(native_src_path)/NativeJSAV.cpp',
 		    '<(native_src_path)/NativeJSConsole.cpp',
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',

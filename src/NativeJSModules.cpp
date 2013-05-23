@@ -4,7 +4,9 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <errno.h> 
+#include <dlfcn.h> 
 
+#include <NativeJSExposer.h>
 #include <NativeJSModules.h>
 #include <NativeJS.h>
 
@@ -44,42 +46,8 @@ static JSPropertySpec native_modules_props[] = {
 
 static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
 
-char *NativeJSModules::normalizeName(const char *name)
-{
-    char *ret;
-    // test if module name ends with .js extension
-    // otherwise add it
-    size_t len = strlen(name);
-    const char *ext = ".js";
-    bool found = true;
-    if (len > 3) {
-        for (int i = 3; i > -1; i--) {
-            if (name[len-i] != ext[3 - i]) {
-                found = false;
-                break;
-            }
-        }
-    } else {
-        found = false;
-    }
-
-    if (!found) { 
-        ret = (char *)calloc(sizeof(char), len + 4);
-        if (!ret) {
-            return NULL;
-        }
-
-        strcat(ret, name);
-        strcat(ret, ".js");
-    } else {
-        ret = strdup(name);
-    }
-
-    return ret;
-}
-
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
-    : dir(NULL), absoluteDir(NULL), filePath(NULL), fileName(NULL), name(strdup(name)), exports(NULL),
+    : dir(NULL), absoluteDir(NULL), filePath(NULL), name(strdup(name)), native(false), exports(NULL),
       cx(cx), modules(modules), parent(parent)
 {
 }
@@ -88,15 +56,10 @@ bool NativeJSModule::init()
 {
     if (!this->name || strlen(this->name) == 0) return false;
 
-    this->fileName = NativeJSModules::normalizeName(this->name);
-    if (!this->fileName) {
-        return false;
-    }
-
     if (this->parent) {
         this->filePath = this->parent->findModulePath(this);
     } else {
-        this->filePath = realpath(this->fileName, NULL);
+        this->filePath = realpath(this->name, NULL);
     }
     if (!this->filePath) {
         return false;
@@ -109,10 +72,10 @@ bool NativeJSModule::init()
 
     // For absolute module, if the module name contain directories ("/") 
     // we must remove them for the absoluteDir
-    if (this->fileName[0] != '.') {
+    if (this->name[0] != '.') {
         int count = 0;
-        for (int i = 0; this->fileName[i]; i++) {
-            count += this->fileName[i] == '/';
+        for (int i = 0; this->name[i]; i++) {
+            count += this->name[i] == '/';
         }
 
         // module name contains a "/"
@@ -181,8 +144,14 @@ JSObject *NativeJSModules::init(JSObject *scope, const char *name)
 
 bool NativeJSModules::init(NativeJSModule *module)
 {
-    if (!module->initJS()) {
-        return false;
+    if (module->native) {
+        if (!module->initNative()) {
+            return false;
+        }
+    } else {
+        if (!module->initJS()) {
+            return false;
+        }
     }
 
     // Main "module" is not a real module
@@ -190,6 +159,33 @@ bool NativeJSModules::init(NativeJSModule *module)
     if (module != this->main) {
         this->add(module);
     }
+
+    return true;
+}
+
+bool NativeJSModule::initNative()
+{
+    JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
+    if (!exports) {
+        return false;
+    }
+
+    void *module = dlopen(this->filePath, RTLD_LAZY);
+    if (!module) {
+        return false;
+    }
+
+    register_module_t registerModuleObject = (register_module_t)dlsym(module, "__NativeRegisterModuleObject");
+    if (registerModuleObject) {
+        registerModuleObject(this->cx, exports);
+    }
+
+    register_module_t registerModule = (register_module_t)dlsym(module, "__NativeRegisterModule");
+    if (registerModule) {
+        registerModule(this->cx, exports);
+    }
+
+    this->exports = exports;
 
     return true;
 }
@@ -258,12 +254,16 @@ bool NativeJSModule::initJS()
 char *NativeJSModule::findModulePath(NativeJSModule *module)
 {
 #define PATHS_COUNT 4
+#define MAX_EXT_SIZE 4
     // Setup search paths
     char *modulePath = NULL;
     char *paths[PATHS_COUNT];
+    const char *extensions[] = {DSO_EXTENSION, ".js", NULL};
 
     memset(paths, 0, sizeof(char*) * PATHS_COUNT);
 
+    // TODO : Path handling will need to be updated to 
+    // support CommonJS "path" specification
     if (module->name[0] == '.') {
         // Relative module, only look in current script directory
         paths[0] = this->dir;
@@ -274,27 +274,46 @@ char *NativeJSModule::findModulePath(NativeJSModule *module)
         paths[PATHS_COUNT-1] = (char *)"modules";       // Root modules directory
     }
 
-    // Check if we can find the module in paths array
-    for (int i = 0; i < PATHS_COUNT; i++) {
+    // Check for existence of each module extensions in each paths
+    bool found = false;
+    for (int i = 0; i < PATHS_COUNT && !found; i++) {
         if (!paths[i]) continue;
 
-        char *tmp = (char *)calloc(sizeof(char), strlen(paths[i]) + strlen(module->fileName) + 2);
+        char *tmp = (char *)calloc(sizeof(char), strlen(paths[i]) + strlen(module->name) + MAX_EXT_SIZE + 3);
         if (!tmp) {
             JS_ReportOutOfMemory(cx);
             return NULL;
         }
+
         strcat(tmp, paths[i]);
         strcat(tmp, "/");
-        strcat(tmp, module->fileName);
-        //printf("    [NativeJSModule] Looking for %s\n", tmp);
+        strcat(tmp, module->name);
 
-        if (access(tmp, F_OK) == 0) {
+        size_t end = strlen(tmp);
+        for (int j = 0; j < 3; j++) {
+            if (extensions[j]) {
+                const char *c = &extensions[j][0];
+                for (int k = 0; k < MAX_EXT_SIZE && *c != '\0'; k++) {
+                    tmp[end + k] = *c++;
+                }
+            }
 
-            //printf("    [NativeJSModule] FOUND IT\n");
-            modulePath = tmp;
-            break;
+            //printf("    [NativeJSModule] Looking for %s\n", tmp);
+
+            if (access(tmp, F_OK) == 0) {
+                //printf("    [NativeJSModule] FOUND IT\n");
+                if (j == 0) {
+                    module->native = true;
+                }
+                modulePath = tmp;
+                found = true;
+                break;
+            }
         }
-        free(tmp);
+
+        if (!found) {
+            free(tmp);
+        }
     }
 
     if (!modulePath) {
@@ -308,6 +327,7 @@ char *NativeJSModule::findModulePath(NativeJSModule *module)
 
     return rpath;
 #undef PATHS_COUNT
+#undef MAX_EXT_SIZE 
 }
 
 JS::Value NativeJSModule::require(char *name)
@@ -356,7 +376,7 @@ JS::Value NativeJSModule::require(char *name)
         return ret;
     }
 
-    // First let's see if the module is in the cache
+    // Let's see if the module is in the cache
     NativeJSModule *cached = this->modules->find(tmp);
     if (!cached) {
         cmodule = tmp;
@@ -384,21 +404,25 @@ JS::Value NativeJSModule::require(char *name)
 
 
     if (!cached) {
-        // Create all objects/methods on the module 
+        // Create all objects/methods on the module scope
         if (!this->modules->init(cmodule)) {
             JS_ReportError(cx, "Failed to initialize module %s\n", cmodule->name);
             return ret;
         }
-        if (!NJS->LoadScript(cmodule->filePath, cmodule->exports)) {
-            return ret;
-        } 
-    }
 
-    // And return module.exports
-    JS::Value module;
-    JS_GetProperty(cx, cmodule->exports, "module", &module);
-    JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
-    
+        if (cmodule->native) {
+            ret = OBJECT_TO_JSVAL(cmodule->exports);
+        } else {
+            if (!NJS->LoadScript(cmodule->filePath, cmodule->exports)) {
+                return ret;
+            } 
+
+            JS::Value module;
+            JS_GetProperty(cx, cmodule->exports, "module", &module);
+            JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
+        }
+    }
+ 
     return ret;
 }
 
@@ -410,7 +434,6 @@ NativeJSModule::~NativeJSModule()
 
     free(this->name);
     free(this->absoluteDir);
-    free(this->fileName);
     free(this->filePath);
 
 }

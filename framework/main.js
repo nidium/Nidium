@@ -38,7 +38,7 @@ load("falcon/native.js");
 //load("applications/charts/radar.js");
 //load("applications/charts/bar.js");
 //load("applications/charts/demo.js");
-load("applications/charts/line.js");
+//load("applications/charts/line.js");
 
 
 /* Shaders Demos */
@@ -63,8 +63,15 @@ load("applications/charts/line.js");
 //load("applications/demos/file.basic.js");
 //load("applications/demos/file.advanced.js");
 
-/* CommonJS tests */
+/* CommonJS */
+// CommonJS Tests
 //load("commonjs/run.js");
+// Native module test
+/*
+var foo = require("testmodule");
+console.log("Bar property : " + foo.bar);
+foo.hello();
+*/
 
 
 /* -- Native Debugger ------------------ */
