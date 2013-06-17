@@ -16,7 +16,7 @@ button.addEventListener("mouseup", function(e){
 	var keyword = "flower",
 		url = "http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=94772f188a7f918c9d3116cae17d43b8&tags="+encodeURIComponent(keyword)+"&format=json&nojsoncallback=1&per_page=5";
 
-	var h = new HttpRequest(url, function(e){
+	var h = new HttpRequest('GET', url, null, function(e){
 		if (e.type == "json"){
 			processFlickr(e.data.photos.photo);
 		} else {

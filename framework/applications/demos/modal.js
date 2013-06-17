@@ -19,7 +19,8 @@ var	button = new UIButton(main, {
 button.addEventListener("mouseup", function(e){
 	modal.open();
 
-	var h = new HttpRequest(url, function(e){
+	var h = new HttpRequest('GET', url, null, function(e){
+		console.log(e);
 		log("flickr " + e.data.photos.pages);
 		if (e.type == "json"){
 			log("display images... " + e.data.photos.length);
@@ -146,7 +147,7 @@ var processFlickr = function(pictures){
 /*
 
 var url = "http://195.122.253.112/public/mp3/Symphony%20X/Symphony%20X%20'A%20Fool's%20Paradise'.mp3";
-var h = new HttpRequest(url, function(e){
+var h = new HttpRequest('GET', url, null, function(e){
 	for (var h in e.headers){
 		echo(h, e.headers[h]);
 	}

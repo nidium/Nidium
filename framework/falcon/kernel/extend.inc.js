@@ -8,7 +8,17 @@
 
 /* -------------------------------------------------------------------------- */
 
-var HttpRequest = function(url, onloadCallback){
+
+var h = new Http("http://p.nf/post.php").request({
+    data: "gros=data&foo=bar",
+    timeout: 10000
+}, function( e ) {
+    echo(e.data);
+});
+
+
+
+var HttpRequest = function(method, url, data, onloadCallback){
 	var self = this;
 	this.h = new Http(url);
 
@@ -27,7 +37,13 @@ var HttpRequest = function(url, onloadCallback){
 		}
 	};
 	
-	this.h.request(function(e){
+	this.h.request({
+		headers: {
+			"User-Agent": window.navigator.userAgent,
+		},
+		method : method,
+		data : data
+	}, function(e){
 		if (typeof onloadCallback == "function"){
 			onloadCallback.call(this, e);
 		}
