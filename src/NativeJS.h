@@ -22,6 +22,7 @@ class NativeSharedMessages;
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
+class NativeJSModules;
 struct _ape_htable;
 
 typedef struct _ape_global ape_global;
@@ -30,6 +31,7 @@ class NativeJS
 {
     private:   
         void LoadGlobalObjects(NativeSkia *, int width, int height);
+        NativeJSModules *modules;
 
     public:
         struct JSContext *cx;
@@ -47,9 +49,11 @@ class NativeJS
         
         int LoadApplication(const char *path);
         void Loaded();
+
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
         int LoadScript(const char *filename);
+        int LoadScript(const char *filename, JSObject *gbl);
         void callFrame();
 
         void createDebugCanvas();

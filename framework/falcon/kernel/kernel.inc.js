@@ -152,6 +152,18 @@ Native.object = {
 		return this;
 	},
 
+	/*
+	 *	setCoordinates() is much faster than place()
+	 *  as it does not use our internal setter chain
+	 */
+	setCoordinates : function(x, y){
+		this._left = x;
+		this._top = y;
+		this.layer.left = x;
+		this.layer.top = y;
+		return this;
+	},
+
 	fix : function(){
 		this.position = "fixed";
 		return this;

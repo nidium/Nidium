@@ -5,68 +5,78 @@
 /* -------------------------------------- */
 
 /* -- Falcon Framework ------------------ */
+load("../scripts/preload.js");
+load("falcon/native.js");
 
-require("../scripts/preload.js");
-require("falcon/native.js");
-
-//require("applications/demos/hello.js");
-//require("applications/demos/motion.js");
-//require("applications/demos/tabs.js");
-//require("applications/demos/profiler.js");
-//require("applications/demos/style.js");
-//require("applications/demos/windows.js");
-//require("applications/demos/dropdown.js");
-//require("applications/demos/sliders.js");
-//require("applications/demos/scrollbars.js");
-//require("applications/demos/modal.js");
-//require("applications/demos/threads.js");
-//require("applications/demos/tooltips.js");
-//require("applications/demos/animation.js"); // FAIL TO RUN
+//load("applications/demos/hello.js");
+//load("applications/demos/motion.js");
+//load("applications/demos/tabs.js");
+//load("applications/demos/profiler.js");
+//load("applications/demos/style.js");
+//load("applications/demos/windows.js");
+//load("applications/demos/dropdown.js");
+//load("applications/demos/sliders.js");
+//load("applications/demos/scrollbars.js");
+//load("applications/demos/modal.js");
+//load("applications/demos/threads.js");
+//load("applications/demos/tooltips.js");
+//load("applications/demos/animation.js"); // FAIL TO RUN
 
 /* media demos */
-//require("applications/media/video.js");
+//load("applications/media/video.js");
 
-//require("applications/audio/test.js");
-//require("applications/audio/mixer.js");
-//require("applications/audio/dsp.js");
+//load("applications/audio/test.js");
+//load("applications/audio/mixer.js");
+//load("applications/audio/dsp.js");
 
 
 /* charts demos */
-//require("applications/charts/line.js");
-//require("applications/charts/pie.js");
-//require("applications/charts/polar.js");
-//require("applications/charts/donut.js");
-//require("applications/charts/radar.js");
-//require("applications/charts/bar.js");
-require("applications/charts/demo.js");
+//load("applications/charts/line.js");
+//load("applications/charts/pie.js");
+//load("applications/charts/polar.js");
+//load("applications/charts/donut.js");
+//load("applications/charts/radar.js");
+//load("applications/charts/bar.js");
+//load("applications/charts/demo.js");
+//load("applications/charts/line.js");
 
 
 /* Shaders Demos */
-//require("applications/demos/shader.js");
-//require("applications/demos/shader.basic.js");
-//require("applications/demos/shader.advanced.js");
+//load("applications/demos/shader.js");
+//load("applications/demos/shader.basic.js");
+//load("applications/demos/shader.advanced.js");
 
-//require("applications/demos/splines.js");
-//require("applications/demos/diagrams.js");
+//load("applications/demos/splines.js");
+//load("applications/demos/diagrams.js");
 
-//require("applications/demos/flickr.js");
-//require("applications/demos/http.js");
+//load("applications/demos/flickr.js");
+//load("applications/demos/http.js");
 
-//require("applications/demos/buttons.js");
-//require("applications/demos/text.js");
-//require("applications/demos/test.js");
+//load("applications/demos/buttons.js");
+//load("applications/demos/text.js");
+//load("applications/demos/test.js");
 
-//require("testLayer.js");
+//load("testLayer.js");
 
 
 /* File API Test */
-//require("applications/demos/file.basic.js");
-//require("applications/demos/file.advanced.js");
+//load("applications/demos/file.basic.js");
+//load("applications/demos/file.advanced.js");
+
+/* CommonJS */
+// CommonJS Tests
+//load("commonjs/run.js");
+// Native module test
+/*
+var foo = require("testmodule");
+console.log("Bar property : " + foo.bar);
+foo.hello();
+*/
 
 
 /* -- Native Debugger ------------------ */
 
-//require("applications/NatBug.nap");
+//load("applications/NatBug.nap");
 
 /*
 
