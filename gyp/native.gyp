@@ -5,6 +5,8 @@
         'include_dirs': [
             '<(native_src_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
+            '<(third_party_path)/mozilla-central/js/src/',
+            '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
             '<(third_party_path)/skia/',
             '<(third_party_path)/skia/include/core',
             '<(third_party_path)/skia/include/pipe',
@@ -53,6 +55,7 @@
                     'GR_RELEASE=1',
                     'TRACING',
                     'JS_THREADSAFE',
+                    'DSO_EXTENSION=.so'
                 ],
 				'xcode_settings': {
 					'OTHER_CFLAGS': [
@@ -86,8 +89,10 @@
                     'SK_SUPPORT_PDF',
                     'GR_LINUX_BUILD=1',
                     'SK_RELEASE',
+                    'UINT32_MAX=4294967295u',
                     'GR_RELEASE=1',
-                    '__STDC_CONSTANT_MACROS'
+                    '__STDC_CONSTANT_MACROS',
+                    'DSO_EXTENSION=".so"'
                 ],
                 'cflags+': [
                     '-fvisibility=hidden',
@@ -139,10 +144,10 @@
             '<(native_src_path)/NativeJSFileIO.cpp',
             '<(native_src_path)/NativeStream.cpp',
             '<(native_src_path)/NativeApp.cpp',
-            '<(native_src_path)/NativeJSAV.cpp',
 		    '<(native_src_path)/NativeJSConsole.cpp',
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',
+			'<(native_src_path)/NativeJSModules.cpp',
         ],
     }],
 }

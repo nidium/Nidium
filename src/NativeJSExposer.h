@@ -14,6 +14,8 @@ class NativeJSExposer
     JSContext *cx;
 };
 
+typedef void (*register_module_t)(JSContext *cx, JSObject *exports);
+
 #define NativeJSObj(cx) ((NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 #define NATIVE_OBJECT_EXPOSE(name) \
@@ -32,6 +34,12 @@ class NativeJSExposer
             &name ## _class , NULL, 0); \
         JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
         JS_DefineProperties(cx, name ## Obj, name ## _props); \
+    }
+
+#define NATIVE_REGISTER_MODULE(constructor) \
+    extern "C" void __NativeRegisterModule(JSContext *cx, JSObject *exports) \
+    { \
+        constructor(cx, exports); \
     }
 
 #define NATIVE_CHECK_ARGS(fnname, minarg) \

@@ -15,6 +15,7 @@
 #include "NativeJSCanvas.h"
 #include "NativeJSFileIO.h"
 #include "NativeJSConsole.h"
+#include "NativeJSModules.h"
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
@@ -31,10 +32,8 @@
 #include <jsprf.h>
 #include <stdint.h>
 #include <sys/stat.h>
-
-#ifdef __linux__
-   #define UINT32_MAX 4294967295u
-#endif
+#include <unistd.h>
+#include <libgen.h>
 
 #include <jsfriendapi.h>
 #include <jsdbgapi.h>
@@ -87,7 +86,6 @@ static JSClass global_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -139,7 +137,6 @@ static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 static JSFunctionSpec glob_funcs[] = {
     JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 2, 0),
-    JS_FN("require", native_load, 2, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
@@ -784,6 +781,7 @@ NativeJS::~NativeJS()
     JS_ShutDown();
 
     delete messages;
+    delete modules;
     hashtbl_free(rootedObj);
 }
 
@@ -1057,12 +1055,17 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
-    js::RootedObject rgbl(cx, gbl);
+    JSObject *mgbl = modules->init(gbl, filename);
+    if (!mgbl) {
+        return 1;
+    }
+    js::RootedObject rgbl(cx, mgbl);
+
     JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
     JS_SetOptions(cx, oldopts);
 
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, mgbl, script, NULL)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -1076,18 +1079,32 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
 
 int NativeJS::LoadScript(const char *filename)
 {
+    return this->LoadScript(filename, NULL);
+}
+
+int NativeJS::LoadScript(const char *filename, JSObject *gbl)
+{
     uint32_t oldopts;
 
     JSAutoRequest ar(cx);
 
-    JSObject *gbl = JS_GetGlobalObject(cx);
+    if (gbl == NULL) {
+        gbl = JS_GetGlobalObject(cx);
+    }
+
     oldopts = JS_GetOptions(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
     JS::CompileOptions options(cx);
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
-    js::RootedObject rgbl(cx, gbl);
+
+    JSObject *mgbl = modules->init(gbl, filename);
+    if (!mgbl) {
+        return 1;
+    }
+    js::RootedObject rgbl(cx, mgbl);
+
     JSScript *script = JS::Compile(cx, rgbl, options, filename);
 
 #if 0
@@ -1104,7 +1121,7 @@ int NativeJS::LoadScript(const char *filename)
 #endif
     JS_SetOptions(cx, oldopts);
 
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, mgbl, script, NULL)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -1160,6 +1177,11 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
 
     //NativeJSDebug::registerObject(cx);
 
+    modules = new NativeJSModules(cx);
+    if (!modules) {
+        JS_ReportOutOfMemory(cx);
+        return;
+    }
 }
 
 void NativeJS::gc()

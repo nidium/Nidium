@@ -3,10 +3,10 @@ Native.canvas.add(c);
 //c.ctx.imageSmoothingEnabled = true;
 //c.ctx.scale(1.5, 1.5);
 
-var a = new Audio(1024, 2, 44100);
+var a = Audio.getContext(1024, 2, 44100);
 var target = a.createNode("target", 2, 0);
 
-var v = new Video(a, c);
+var v = new Video(c);
 v.onplay = function() {
     console.log("playing");
 }
@@ -14,8 +14,8 @@ v.onbuffered = function() {
     console.log("Buffered " + v.width + " / " + v.height);
     
 }
-v.onerror = function(err) {
-    console.log("NativeViode error " + err);
+v.onerror = function(err, errStr) {
+    console.log("NativeViode error " + err + "/" + errStr);
 }
 var va;
 //File.read("/mnt/stockage/dev/android/android/frameworks/base/media/tests/contents/media_api/videoeditor/MPEG4_SP_640x480_15fps_1200kbps_AACLC_48khz_64kbps_m_1_17.mp4", function(data, size) {
@@ -23,14 +23,13 @@ var va;
 //File.read("/mnt/stockage/public/chuck/Chuck.S04E15.HDTV.XviD-LOL.avi", function(data, size) {
 //File.read("/tmp/foo-1.mp4", function(data, size) {
 //File.read("/mnt/stockage/tmp/foo.mp4", function(data, size) {
-File.read("/mnt/stockage/tmp/new.avi", function(data, size) {
+//File.read("/tmp/foobar.mov", function(data, size) {
 //File.read("/home/efyx/projet/meelyaV2/rapport_1/cd/site/movies/ace.flv", function(data, size) {
 //File.read("/home/efyx/.titanium/appcelerator-titanium_mobile-878906d/demos/KitchenSink/Resources/movie.mp4", function(data, size) {
 //File.read("/tmp/song.mp3", function(data, size) {
     //v.setSize(624, 352);
-    echo("Opening");
-    v.open(data);
-    echo("Opened");
+v.open("/home/efyx/dizzy.mp4");
+v.onready = function() {
 
     va = v.getAudioNode();
     if (va != null) {
@@ -44,7 +43,11 @@ File.read("/mnt/stockage/tmp/new.avi", function(data, size) {
     setInterval(function() {
         console.log("Position is at " + v.position);
     }, 500);
-});
+}
+v.onframe = function() {
+    console.log("on frame");
+}
+console.log(v.canvas);
 
 var paused = false;
 window._onkeydown = function(ev) { 

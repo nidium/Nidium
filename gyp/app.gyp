@@ -43,6 +43,7 @@
                 ],
                 'link_settings': {
                     'libraries': [
+                        '-rdynamic',
                         '-Wl,--start-group',
                         '-lGL',
                         '-lasound',
