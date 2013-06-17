@@ -2,6 +2,9 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
+console.show();
+console.clear();
+
 var main = new Application();
 main.className = "main";
 
@@ -21,6 +24,29 @@ var	myElements = [
 	/* Tab 8 */ {label : "Switzerland", 	value : 12},
 	/* Tab 9 */ {label : "Japan"}
 ];
+
+
+var text = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
+
+var textView = main.add("UIView", {
+	left : 200,
+	top : 80,
+	width : 200,
+	height : 200,
+	background : "white",
+	overflow : true,
+	scrollbars : true
+});
+
+var textInput = textView.add("UITextInput", {
+	left : 0,
+	top : 0, 
+	fontSize : 12,
+	lineHeight : 18,
+	text : text,
+	textAlign : "justify",
+	editable : true
+});
 
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,

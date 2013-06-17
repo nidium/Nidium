@@ -21,14 +21,19 @@ require("falcon/native.js");
 //require("applications/demos/modal.js");
 //require("applications/demos/threads.js");
 //require("applications/demos/tooltips.js");
-require("applications/demos/animation.js"); // FAIL TO RUN
+//require("applications/demos/animation.js");
+//require("applications/demos/buttons.js");
+//require("applications/demos/text.js");
+
+//require("applications/demos/test.js");
+
 
 /* media demos */
 //require("applications/media/video.js");
 
 //require("applications/audio/test.js");
 //require("applications/audio/mixer.js");
-//require("applications/audio/dsp.js");
+require("applications/audio/dsp.js");
 
 
 /* charts demos */
@@ -51,10 +56,6 @@ require("applications/demos/animation.js"); // FAIL TO RUN
 
 //require("applications/demos/flickr.js");
 //require("applications/demos/http.js");
-
-//require("applications/demos/buttons.js");
-//require("applications/demos/text.js");
-//require("applications/demos/test.js");
 
 //require("testLayer.js");
 
