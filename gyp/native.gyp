@@ -5,6 +5,8 @@
         'include_dirs': [
             '<(native_src_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
+            '<(third_party_path)/mozilla-central/js/src/',
+            '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
             '<(third_party_path)/skia/',
             '<(third_party_path)/skia/include/core',
             '<(third_party_path)/skia/include/pipe',

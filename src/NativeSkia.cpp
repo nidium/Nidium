@@ -578,7 +578,6 @@ void NativeSkia::textAlign(const char *mode)
     if (strcasecmp("left", mode) == 0) {
         PAINT->setTextAlign(SkPaint::kLeft_Align);
         PAINT_STROKE->setTextAlign(SkPaint::kLeft_Align);
-        printf("Align of left\n");
 
     } else if (strcasecmp("center", mode) == 0) {
         PAINT->setTextAlign(SkPaint::kCenter_Align);
@@ -587,7 +586,6 @@ void NativeSkia::textAlign(const char *mode)
     } else if (strcasecmp("right", mode) == 0) {
         PAINT->setTextAlign(SkPaint::kRight_Align);
         PAINT_STROKE->setTextAlign(SkPaint::kRight_Align);
-        printf("Align on right\n");
     }
 }
 
@@ -983,6 +981,8 @@ void NativeSkia::arc(int x, int y, int r,
 
     SkPath tmpPath;
 
+    //tmpPath.moveTo(1, 1);
+
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
         tmpPath.arcTo(rect, start, 0, false);
@@ -1000,7 +1000,7 @@ void NativeSkia::arc(int x, int y, int r,
         tmpPath.arcTo(rect, start, end, false);        
     }
 
-    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), false);
+    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), true);
 }
 
 void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
