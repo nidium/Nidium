@@ -35,6 +35,7 @@ NativeStream::NativeStream(ape_global *net, const char *location) :
     dataBuffer.front = NULL;
     dataBuffer.alreadyRead = true;
     dataBuffer.fresh = true;
+    dataBuffer.ended = false;
 
     mapped.addr = NULL;
     mapped.fd   = 0;
@@ -161,11 +162,11 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
         *err = STREAM_ERROR;
         return NULL;
     }
-    needToSendUpdate = true;
-
+    
     if (!this->hasDataAvailable()) {
+        needToSendUpdate = !dataBuffer.ended;
         *len = 0;
-        *err = STREAM_EAGAIN;
+        *err = (dataBuffer.ended && dataBuffer.alreadyRead ? STREAM_END : STREAM_EAGAIN);
         return NULL;
     }
 
@@ -198,6 +199,14 @@ void NativeStream::swapBuffer()
     dataBuffer.front = tmp;
     dataBuffer.fresh = true;
 
+    /*  If we have remaining data in our old backbuffer
+        we place it in our new backbuffer.
+
+        If after that, our new backbuffer contains enough data to be read,
+        the user can read a next packet (alreadyRead == false)
+
+        Further reading are queued to the new backbuffer
+    */
     if (dataBuffer.front->used > this->getPacketSize()) {
         dataBuffer.back->data = &dataBuffer.front->data[this->getPacketSize()];
         dataBuffer.back->used = dataBuffer.front->used - this->getPacketSize();
@@ -207,6 +216,8 @@ void NativeStream::swapBuffer()
         if (dataBuffer.back->used >= this->getPacketSize()) {
             dataBuffer.alreadyRead = false;
         }
+    } else if (dataBuffer.ended) {
+        dataBuffer.back->used = 0;
     }
 }
 
@@ -258,13 +269,14 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
 {
     if (this->delegate) {
         this->delegate->onGetContent((const char *)data, len);
-        if (needToSendUpdate) {
+
             dataBuffer.alreadyRead = false;
-            needToSendUpdate = false;
             dataBuffer.back->used = 0;
             buffer_append_data(dataBuffer.back, data, len);
-            this->delegate->onAvailableData(len);
-        }
+            if (needToSendUpdate) {
+                needToSendUpdate = false;
+                this->delegate->onAvailableData(len);
+            }
     }
 }
 
@@ -275,8 +287,12 @@ void NativeStream::onNFIOWrite(NativeFileIO *NFIO, size_t written)
 /****************/
 
 /* HTTP methods */
+
+/* On data end */
 void NativeStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
+    this->dataBuffer.ended = true;
+
     if (this->delegate) {
         this->delegate->onGetContent((const char *)h->data->data,
             h->data->used);
@@ -284,7 +300,12 @@ void NativeStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
         if (mapped.addr) {
             
         }
-        printf("Request ended\n");
+        //printf("HTTP ended... with %d %ld\n", needToSendUpdate, dataBuffer.back->used);
+        if (needToSendUpdate && dataBuffer.back->used) {
+            needToSendUpdate = false;
+            dataBuffer.alreadyRead = false;
+            this->delegate->onAvailableData(dataBuffer.back->used);            
+        }
     }
 }
 
@@ -321,11 +342,17 @@ void NativeStream::onProgress(size_t offset, size_t len,
 
         mapped.size += written;
 
-        if (dataBuffer.back->used >= this->getPacketSize() && needToSendUpdate) {
+        /*
+            If our backbuffer contains enough data,
+            the user is ready for a next packet
+        */
+        if (dataBuffer.back->used >= this->getPacketSize()) {
             dataBuffer.alreadyRead = false;
-            needToSendUpdate = false;
-
-            this->delegate->onAvailableData(this->getPacketSize());
+ 
+            if (needToSendUpdate) {
+                needToSendUpdate = false;
+                this->delegate->onAvailableData(this->getPacketSize());
+            }
         }
         //printf("char : %c\n", ((char *)mapped.addr)[32]);
     }
