@@ -112,7 +112,7 @@ static int NativeStream_data_getContent(void *arg)
     return 0;
 }
 
-void NativeStream::start(size_t packets)
+void NativeStream::start(size_t packets, size_t seek)
 {
     this->packets = packets;
 
@@ -127,6 +127,9 @@ void NativeStream::start(size_t packets)
             }
             NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
             file->open("r");
+            if (seek != 0) {
+                file->seek(seek);
+            }
             break;
         }
         case INTERFACE_HTTP:
@@ -142,12 +145,24 @@ void NativeStream::start(size_t packets)
             }
 
             NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
+
+            if (seek != 0) {
+                NativeHTTPRequest *req = http->getRequest();
+                char seekstr[512];
+                sprintf(seekstr, "bytes=%ld-", seek);
+                req->setHeader("Range", seekstr);
+            }
             http->request(this);            
             break;
         }
         default:
             break;
     }
+}
+
+void NativeStream::seek(size_t pos)
+{
+
 }
 
 /* Sync read in memory the current packet and start grabbing the next one

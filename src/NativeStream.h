@@ -33,7 +33,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void getContent();
         void getFileSize();
         void seek(size_t pos);
-        void start(size_t packets = 4096);
+        void start(size_t packets = 4096, size_t seek=0);
 
         bool hasDataAvailable() const {
             return !dataBuffer.alreadyRead || (dataBuffer.ended && dataBuffer.back->used);
