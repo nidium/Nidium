@@ -14,6 +14,7 @@
 
         'third_party_path%': '../third-party/',
         'native_output%': '../out/',
+        #'native_interface': 'terminal', 
 
         # Linux build only
         'native_use_gtk': 1,

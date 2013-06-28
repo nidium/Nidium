@@ -13,6 +13,14 @@
             '<(native_interface_path)/',
         ],
         'conditions': [
+            ['native_interface=="terminal"', {
+                'sources': [
+                    '<(native_interface_path)/terminal/NativeTerminalUIInterface.cpp',
+                ],
+                'include_dirs': [
+                    '<(native_interface_path)/terminal/',
+                ],
+            }],
             ['OS=="mac"', {
                 'sources': [
                     '<(native_interface_path)/osx/NativeUIInterface.mm',
