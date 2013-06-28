@@ -258,7 +258,11 @@ char *NativeJSModule::findModulePath(NativeJSModule *module)
     // Setup search paths
     char *modulePath = NULL;
     char *paths[PATHS_COUNT];
-    const char *extensions[] = {DSO_EXTENSION, ".js", NULL};
+    #define _MTOSTR(s) #s
+    #define MTOSTR(s) _MTOSTR(s)
+    const char *extensions[] = { MTOSTR(DSO_EXTENSION), ".js", NULL};
+    #undef MTOSTR
+    #undef _MTROSTR
 
     memset(paths, 0, sizeof(char*) * PATHS_COUNT);
 

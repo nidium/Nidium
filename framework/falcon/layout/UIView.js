@@ -428,7 +428,6 @@ Native.elements.export("UIView", {
 						this._cachedBackgroundImage,
 						params.x, params.y
 					);
-					
 				context.restore();
 			} else {
 				var pattern = context.createPattern(

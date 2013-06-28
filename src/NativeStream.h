@@ -22,7 +22,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         enum StreamDataStatus {
             STREAM_EAGAIN = -1,
             STREAM_EOF = -2,
-            STREAM_ERROR = -3
+            STREAM_ERROR = -3,
+            STREAM_END = -4
         };
 
         NativeStream(ape_global *net, const char *location);
@@ -32,10 +33,10 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void getContent();
         void getFileSize();
         void seek(size_t pos);
-        void start(size_t packets = 4096);
+        void start(size_t packets = 4096, size_t seek=0);
 
         bool hasDataAvailable() const {
-            return !dataBuffer.alreadyRead;
+            return !dataBuffer.alreadyRead || (dataBuffer.ended && dataBuffer.back->used);
         }
         const unsigned char *getNextPacket(size_t *len, int *err);
 

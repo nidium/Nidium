@@ -10,17 +10,17 @@ load("falcon/native.js");
 
 //load("applications/demos/hello.js");
 //load("applications/demos/motion.js");
-//load("applications/demos/tabs.js");
-//load("applications/demos/profiler.js");
+//load("applications/demos/tabs.js"); // KO ---> arc KO
+//load("applications/demos/profiler.js"); // KO
 //load("applications/demos/style.js");
 //load("applications/demos/windows.js");
 //load("applications/demos/dropdown.js");
 //load("applications/demos/sliders.js");
-//load("applications/demos/scrollbars.js");
-//load("applications/demos/modal.js");
+//load("applications/demos/scrollbars.js"); // KO : children down
+//load("applications/demos/modal.js"); // DOWN
 //load("applications/demos/threads.js");
 //load("applications/demos/tooltips.js");
-//load("applications/demos/animation.js"); // FAIL TO RUN
+//load("applications/demos/animation.js");
 
 /* media demos */
 //load("applications/media/video.js");
@@ -29,16 +29,14 @@ load("falcon/native.js");
 //load("applications/audio/mixer.js");
 //load("applications/audio/dsp.js");
 
-
 /* charts demos */
-//load("applications/charts/line.js");
-//load("applications/charts/pie.js");
-//load("applications/charts/polar.js");
-//load("applications/charts/donut.js");
-//load("applications/charts/radar.js");
-//load("applications/charts/bar.js");
+//load("applications/charts/line.js"); // OK
+//load("applications/charts/pie.js"); // KO (pb avec arc)
+//load("applications/charts/polar.js"); // KO (pb avec arc)
+//load("applications/charts/donut.js"); // KO (pb avec arc)
+//load("applications/charts/radar.js"); // OK
+//load("applications/charts/bar.js"); // OK
 //load("applications/charts/demo.js");
-//load("applications/charts/line.js");
 
 
 /* Shaders Demos */
@@ -46,7 +44,7 @@ load("falcon/native.js");
 //load("applications/demos/shader.basic.js");
 //load("applications/demos/shader.advanced.js");
 
-//load("applications/demos/splines.js");
+//load("applications/demos/splines.js"); // LENTEUR ABOMINABLE
 //load("applications/demos/diagrams.js");
 
 //load("applications/demos/flickr.js");
@@ -56,7 +54,7 @@ load("falcon/native.js");
 //load("applications/demos/text.js");
 //load("applications/demos/test.js");
 
-//load("testLayer.js");
+//load("testLayer.js"); // KO
 
 
 /* File API Test */
