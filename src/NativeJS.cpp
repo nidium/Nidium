@@ -153,10 +153,11 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
     char *prefix, *tmp;
     const char *ctmp;
 
+    prefix = NULL;
+
     if (!report) {
         fprintf(stdout, "%s\n", message);
-        fflush(stdout);
-        return;
+        goto out;
     }
 
     /* Conditionally ignore reported warnings. */
@@ -228,6 +229,28 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
         }*/
     }
     JS_free(cx, prefix);
+
+    // Dump the stack trace
+    char *buf;
+    buf = JS::FormatStackDump(cx, NULL, true, false, false);
+    printf("%s\n", buf);
+#if 0
+    JS::StackDescription *stack = JS::DescribeStack(cx, 10);
+    for (int f = 0; f < stack->nframes; f++) {
+        JS::FrameDescription frame = stack->frames[f];
+        char *cname = NULL;
+        
+        if (frame.fun) {
+            JSString *funName = JS_GetFunctionDisplayId(frame.fun);
+            cname = JS_EncodeString(cx, funName);
+        }
+
+        printf("%s (%s:%d)\n", cname ? cname : "<NativeFunction>", JS_GetScriptFilename(cx, frame.script), frame.lineno);
+
+        JS_free(cx, cname);
+    }
+    JS::FreeStackDescription(cx, stack);
+#endif
 }
 
 static JSBool

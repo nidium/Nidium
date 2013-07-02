@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h> 
 #include <dlfcn.h> 
+#include <sys/stat.h>
 
 #include <NativeJSExposer.h>
 #include <NativeJSModules.h>
@@ -55,13 +56,16 @@ NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJS
 bool NativeJSModule::init()
 {
     if (!this->name || strlen(this->name) == 0) return false;
+    //printf("name = %s\n", this->name);
 
     if (this->parent) {
-        this->filePath = this->parent->findModulePath(this);
+        this->filePath = NativeJSModules::findModulePath(this->parent, this);
     } else {
         this->filePath = realpath(this->name, NULL);
     }
+
     if (!this->filePath) {
+        // Module not found
         return false;
     }
 
@@ -69,14 +73,18 @@ bool NativeJSModule::init()
     if (!this->dir) {
         return false;
     }
+    //printf("filepath = %s\n", this->filePath);
+    //printf("dir = %s\n", this->dir);
+    //printf("name = %s\n", this->name);
 
     // For absolute module, if the module name contain directories ("/") 
     // we must remove them for the absoluteDir
-    if (this->name[0] != '.') {
+    if (this->name[0] != '.' && this->name[0] != '/') {
         int count = 0;
         for (int i = 0; this->name[i]; i++) {
             count += this->name[i] == '/';
         }
+        //printf("count = %d\n", count);
 
         // module name contains a "/"
         if (count > 0) {
@@ -113,6 +121,12 @@ bool NativeJSModule::init()
         if (!this->absoluteDir) {
             return false;
         }
+    }
+
+    //printf("absolute dir for %s\n", this->absoluteDir);
+    if (strlen(this->absoluteDir) == 0) {
+        //printf("absolute dir is 0");
+        exit(0);
     }
 
     return true;
@@ -172,18 +186,17 @@ bool NativeJSModule::initNative()
 
     void *module = dlopen(this->filePath, RTLD_LAZY);
     if (!module) {
+        printf("Failed to open module : %s\n", dlerror());
         return false;
     }
 
-    register_module_t registerModuleObject = (register_module_t)dlsym(module, "__NativeRegisterModuleObject");
-    if (registerModuleObject) {
-        registerModuleObject(this->cx, exports);
+    register_module_t registerModule = (register_module_t)dlsym(module, "__NativeRegisterModule");
+    if (registerModule && !registerModule(this->cx, exports)) {
+        printf("Failed to register module\n");
+        return false;
     }
 
-    register_module_t registerModule = (register_module_t)dlsym(module, "__NativeRegisterModule");
-    if (registerModule) {
-        registerModule(this->cx, exports);
-    }
+    NJS->rootObjectUntilShutdown(exports);
 
     this->exports = exports;
 
@@ -201,6 +214,38 @@ bool NativeJSModule::initJS()
         return false;
     }
 
+    JS::Value id;
+    JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
+    if (!idstr) {
+        return false;
+    }
+    id.setString(idstr);
+
+    jsval exportsVal = OBJECT_TO_JSVAL(exports);
+    jsval moduleVal  = OBJECT_TO_JSVAL(module);
+
+    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal));
+
+    TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
+
+    //// XXX : This has nothing to do here
+    char *tmp = strdup(this->filePath);
+    char *cfilename = basename(tmp);
+    JSString *filename = JS_NewStringCopyN(cx, cfilename, strlen(cfilename));
+    JSString *dirname = JS_NewStringCopyN(cx, this->dir, strlen(this->dir));
+
+    free(tmp);
+
+    TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__filename", STRING_TO_JSVAL(filename), 
+            NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
+    TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__dirname", STRING_TO_JSVAL(dirname), 
+            NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
+    ////
+
     JS_SetPrivate(gbl, this);
 
     JSObject *funObj;
@@ -215,17 +260,8 @@ bool NativeJSModule::initJS()
 
     //JSCompartment *ca = JS_EnterCompartment(cx, gbl);
     //JS_WrapObject(cx, gbl)
-    jsval exportsVal = OBJECT_TO_JSVAL(exports);
-    jsval moduleVal  = OBJECT_TO_JSVAL(module);
 
-    JS::Value id;
-    JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
-    if (!idstr) {
-        return false;
-    }
-    id.setString(idstr);
-
-    // Root the global and
+    // Root the global
     NJS->rootObjectUntilShutdown(gbl);
 
     // And add all objects to require reserved slot so they won't be GC
@@ -237,91 +273,82 @@ bool NativeJSModule::initJS()
     JSObject *rootsObj = JS_NewArrayObject(cx, 2, roots);
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
-    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal));
-
-    TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
-    TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
-    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
-
     this->exports = gbl;
 
     return true;
 #undef TRY_OR_DIE
 }
 
-char *NativeJSModule::findModulePath(NativeJSModule *module)
+char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
 {
-#define PATHS_COUNT 4
-#define MAX_EXT_SIZE 4
-    // Setup search paths
+#define MAX_EXT_SIZE 9
+#define PATHS_COUNT 2
     char *modulePath = NULL;
-    char *paths[PATHS_COUNT];
-    #define _MTOSTR(s) #s
-    #define MTOSTR(s) _MTOSTR(s)
-    const char *extensions[] = { MTOSTR(DSO_EXTENSION), ".js", NULL};
-    #undef MTOSTR
-    #undef _MTROSTR
 
-    memset(paths, 0, sizeof(char*) * PATHS_COUNT);
-
-    // TODO : Path handling will need to be updated to 
-    // support CommonJS "path" specification
     if (module->name[0] == '.') {
         // Relative module, only look in current script directory
-        paths[0] = this->dir;
-    } else {
-        paths[0] = this->absoluteDir;                   // Module search path
-        paths[1] = (char *)".";                         // Native root
-        paths[PATHS_COUNT-2] = (char *)"node_modules";  // Compatibility with NodeJS npm
-        paths[PATHS_COUNT-1] = (char *)"modules";       // Root modules directory
-    }
+        modulePath = NativeJSModules::findModuleInPath(module, parent->dir);
+    }  else if (module->name[0] == '/') {
+        modulePath = NativeJSModules::findModuleInPath(module, "");
+    }  else {
+        //printf("absolute module\n");
+        // TODO : Paths handling will need to be updated for supporting
+        // CommonJS "paths" specification
+        int end = strlen(parent->absoluteDir);
+        char *cwd = realpath(".", NULL);
+        char *paths[PATHS_COUNT];
+        memset(paths, 0, sizeof(char*) * PATHS_COUNT);
 
-    // Check for existence of each module extensions in each paths
-    bool found = false;
-    for (int i = 0; i < PATHS_COUNT && !found; i++) {
-        if (!paths[i]) continue;
+        // Setup search paths
+        paths[0] = (char *)"/";                 // Current working directory
+        paths[1] = (char *)"/node_modules";    // Root modules directory
 
-        char *tmp = (char *)calloc(sizeof(char), strlen(paths[i]) + strlen(module->name) + MAX_EXT_SIZE + 3);
-        if (!tmp) {
-            JS_ReportOutOfMemory(cx);
+        //printf("nativeRoot %s\n", cwd);
+        // NodeJS compatibility : we need to look for module in all
+        // parent directory until current working directory is reached
+        char *path = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("/node_modules") + 1);
+        if (!path) {
             return NULL;
         }
+        memcpy(path, parent->absoluteDir, (end + 1) * sizeof(char));
 
-        strcat(tmp, paths[i]);
-        strcat(tmp, "/");
-        strcat(tmp, module->name);
+        //printf("absolute dir is %s\n", parent->absoluteDir);
+        //printf("path is %s\n", path);
 
-        size_t end = strlen(tmp);
-        for (int j = 0; j < 3; j++) {
-            if (extensions[j]) {
-                const char *c = &extensions[j][0];
-                for (int k = 0; k < MAX_EXT_SIZE && *c != '\0'; k++) {
-                    tmp[end + k] = *c++;
-                }
+        bool stop = false;
+        do {
+            for (int i = 0; i < PATHS_COUNT && !modulePath; i++) {
+                path[end] = '\0'; // Reset
+                strcat(path, paths[i]);
+                //printf("path looking %s\n", path);
+                modulePath = NativeJSModules::findModuleInPath(module, path);
+                //printf("module path is %s\n", modulePath);
             }
-
-            //printf("    [NativeJSModule] Looking for %s\n", tmp);
-
-            if (access(tmp, F_OK) == 0) {
-                //printf("    [NativeJSModule] FOUND IT\n");
-                if (j == 0) {
-                    module->native = true;
-                }
-                modulePath = tmp;
-                found = true;
-                break;
+            // Go to parent directory
+            path[end] = '\0';
+            stop = (strcmp(cwd, path) == 0);
+            if (!stop) {
+                //printf("asking real path for %s\n", path);
+                path = dirname(path);
+                end = strlen(path);
+                //printf("new path is %s\n", path);
+                if (!path) break;
             }
+        } while (!modulePath && !stop);
+
+        // XXX : temp hack for looking inside modules directory. 
+        // Remove me once CommonJS paths argument is supported
+        if (!modulePath) {
+            path[0] = '\0';
+            strcat(path, (char *)"modules");
+            modulePath = NativeJSModules::findModuleInPath(module, path);
         }
 
-        if (!found) {
-            free(tmp);
-        }
+        free(path);
+        free(cwd);
     }
 
     if (!modulePath) {
-        JS_ReportError(this->cx, "No module named %s", module->name);
         return NULL;
     }
 
@@ -331,8 +358,73 @@ char *NativeJSModule::findModulePath(NativeJSModule *module)
 
     return rpath;
 #undef PATHS_COUNT
-#undef MAX_EXT_SIZE 
 }
+
+char *NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
+{
+    // FIXME : NodeJS compatibility, instead of looking for index.js 
+    // we should look for package.json, read it and find the main package file
+    #define _MTOSTR(s) #s
+    #define MTOSTR(s) _MTOSTR(s)
+    const char *extensions[] = { MTOSTR(DSO_EXTENSION), ".js", "/index.js", NULL};
+    #undef MTOSTR
+    #undef _MTROSTR
+
+    size_t len = strlen(module->name);
+    char *tmp = (char *)calloc(sizeof(char), strlen(path) + len + (len > MAX_EXT_SIZE  ? len + 1 : MAX_EXT_SIZE) + 2);
+    if (!tmp) {
+        return NULL;
+    }
+
+    //printf("path : %s\n", path);
+    //printf("module->name: %s\n", module->name);
+    strcat(tmp, path);
+    strcat(tmp, "/");
+    strcat(tmp, module->name);
+
+    size_t end = strlen(tmp);
+    //printf("tmp is %s\n", tmp);
+
+    for (int j = 0; j < 4; j++) {
+        if (extensions[j]) {
+            const char *c = &extensions[j][0];
+            for (int k = 0; k < MAX_EXT_SIZE && *c != '\0'; k++) {
+                tmp[end + k] = *c++;
+            }
+        } else {
+            tmp[end] = '\0';
+        }
+
+        //printf("    [NativeJSModule] Looking for %s\n", tmp);
+
+        if (access(tmp, F_OK) == 0) {
+            struct stat sb;
+            if (stat(tmp, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+                // Extra check for NodeJS compatibility : 
+                // If the module name is a directory, let's check if the module name
+                // exist in that directory
+                //printf("it's a directory, extra check : ");
+                strcat(tmp, "/");
+                strcat(tmp, module->name);
+                //printf("%s\n", tmp);
+                if (access(tmp, F_OK) != 0) {
+                    continue;
+                }
+            }
+            //printf("    [NativeJSModule] FOUND IT\n");
+            if (j == 0) {
+                module->native = true;
+            }
+            return tmp;
+        }
+    }
+
+    free(tmp);
+    return NULL;
+}
+
+#undef MAX_EXT_SIZE 
+
 
 JS::Value NativeJSModule::require(char *name)
 {
@@ -385,6 +477,7 @@ JS::Value NativeJSModule::require(char *name)
     if (!cached) {
         cmodule = tmp;
     } else {
+        //printf("Module is cached\n");
         cmodule = cached;
         delete tmp;
     }
@@ -414,19 +507,21 @@ JS::Value NativeJSModule::require(char *name)
             return ret;
         }
 
-        if (cmodule->native) {
-            ret = OBJECT_TO_JSVAL(cmodule->exports);
-        } else {
+        if (!cmodule->native) {
             if (!NJS->LoadScript(cmodule->filePath, cmodule->exports)) {
                 return ret;
             } 
-
-            JS::Value module;
-            JS_GetProperty(cx, cmodule->exports, "module", &module);
-            JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
         }
+    } 
+
+    if (cmodule->native) {
+        ret = OBJECT_TO_JSVAL(cmodule->exports);
+    } else {
+        JS::Value module;
+        JS_GetProperty(cx, cmodule->exports, "module", &module);
+        JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
     }
- 
+
     return ret;
 }
 

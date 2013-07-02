@@ -1,10 +1,6 @@
 #ifndef nativejsexposer_h__
 #define nativejsexposer_h__
 
-#ifdef __linux__
-  #define UINT32_MAX 4294967295u
-#endif
-
 #include <jsapi.h>
 #include <jsfriendapi.h>
 
@@ -14,7 +10,7 @@ class NativeJSExposer
     JSContext *cx;
 };
 
-typedef void (*register_module_t)(JSContext *cx, JSObject *exports);
+typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define NativeJSObj(cx) ((NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
@@ -37,9 +33,9 @@ typedef void (*register_module_t)(JSContext *cx, JSObject *exports);
     }
 
 #define NATIVE_REGISTER_MODULE(constructor) \
-    extern "C" void __NativeRegisterModule(JSContext *cx, JSObject *exports) \
+    extern "C" bool __NativeRegisterModule(JSContext *cx, JSObject *exports) \
     { \
-        constructor(cx, exports); \
+        return constructor(cx, exports); \
     }
 
 #define NATIVE_CHECK_ARGS(fnname, minarg) \
