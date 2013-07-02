@@ -43,6 +43,8 @@
 #include "NativeJS_preload.h"
 #include "NativeUtils.h"
 
+#include "NativeStreamTest.h"
+
 struct _native_sm_timer
 {
     JSContext *cx;
@@ -481,6 +483,8 @@ void NativeJS::mouseMove(int x, int y, int xrel, int yrel)
     rootHandler->mousePosition.xrel += xrel;
     rootHandler->mousePosition.yrel += yrel;
 
+    rootHandler->mousePosition.consumed = false;
+    
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
@@ -704,6 +708,8 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     //this->LoadScriptContent(preload_js);
     
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
+
+    NativeStreamTest *st = new NativeStreamTest(net);
 }
 
 static bool test_extracting(const char *buf, int len,

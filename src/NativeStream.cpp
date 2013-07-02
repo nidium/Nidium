@@ -148,7 +148,7 @@ void NativeStream::start(size_t packets, size_t seek)
 
             if (seek != 0) {
                 NativeHTTPRequest *req = http->getRequest();
-                char seekstr[512];
+                char seekstr[64];
                 sprintf(seekstr, "bytes=%ld-", seek);
                 req->setHeader("Range", seekstr);
             }
@@ -286,8 +286,10 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
         this->delegate->onGetContent((const char *)data, len);
 
             dataBuffer.alreadyRead = false;
-            dataBuffer.back->used = 0;
-            buffer_append_data(dataBuffer.back, data, len);
+            if (dataBuffer.back != NULL) {
+                dataBuffer.back->used = 0;
+                buffer_append_data(dataBuffer.back, data, len);
+            }
             if (needToSendUpdate) {
                 needToSendUpdate = false;
                 this->delegate->onAvailableData(len);

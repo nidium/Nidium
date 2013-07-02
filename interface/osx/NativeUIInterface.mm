@@ -96,6 +96,19 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         //SDL_GL_SwapBuffers();
                         break;
                     }
+                    if (
+                        (&event.key)->keysym.sym == SDLK_d &&
+                        event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
+
+                        NativeUICocoaConsole *console = NUII->getConsole();
+
+                        if (console->isHidden) {
+                            console->show();
+                        } else {
+                            console->hide();
+                        }
+
+                    }
                     if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
                         keyCode = event.key.keysym.sym - 32;
                     } else {
