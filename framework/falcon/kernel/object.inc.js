@@ -104,6 +104,7 @@ var DOMElement = function(type, options, parent){
 		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),
 
 		visible : OptionalBoolean(o.visible, true),
+		hidden : OptionalBoolean(o.hidden, false),
 		selected : OptionalBoolean(o.selected, false),
 		overflow : OptionalBoolean(o.overflow, true),
 		scrollable : OptionalBoolean(o.scrollable, false),

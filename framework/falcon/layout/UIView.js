@@ -44,6 +44,12 @@ Native.elements.export("UIView", {
 			scrollBarHideDelay = 400,
 			o = this.options;
 
+		if (o.scrollable === true) {
+			this.scrollBarX = o.scrollBarX === false ? false : true;
+			this.scrollBarY = o.scrollBarY === false ? false : true;
+		}
+
+
 		this.setBackgroundURL = function(url){
 			if (url) {
 				self._cachedBackgroundImage = null;
@@ -344,7 +350,7 @@ Native.elements.export("UIView", {
 				height : this._height,
 				left : this._width - 8,
 				top : 0,
-				hidden : false
+				hidden : !this.scrollBarY
 			});
 			
 			this.VScrollBarHandle = this.VScrollBar.add(
@@ -363,7 +369,7 @@ Native.elements.export("UIView", {
 				height : 8,
 				left : 0,
 				top : this._height - 8,
-				hidden : false
+				hidden : !this.scrollBarX
 			});
 			
 			this.HScrollBarHandle = this.HScrollBar.add(
