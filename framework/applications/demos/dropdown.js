@@ -55,6 +55,17 @@ var textInput = textView.add("UITextInput", {
 	multiline : false
 });
 
+
+var	button = new UIButton(main, {
+	left : 490,
+	top : 50,
+	label : "Do It"
+}).click(function(){
+	textView.updateScrollLeft(-1);
+});
+
+
+
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
@@ -101,13 +112,6 @@ Native.StyleSheet.add({
 		background : "white",
 		borderColor : null
 	}
-});
-
-
-var	button = new UIButton(main, {
-	left : 490,
-	top : 50,
-	label : "Do It"
 });
 
 var	radio1 = main.add("UIRadio", {

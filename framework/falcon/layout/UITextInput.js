@@ -54,7 +54,8 @@ Native.elements.export("UITextInput", {
 			this._innerTextWidth = 
 				this._paddingLeft + 
 				Math.round(w) + 
-				this._paddingRight
+				this._paddingRight +
+				3
 			;
 
 			this.width = this._innerTextWidth;
@@ -225,7 +226,9 @@ Native.elements.export("UITextInput", {
 						} 
 						break;
 
-					case 1073741903 : // left
+					case 1073741903 : // right
+						var maxLength = self.text.length-1;
+
 						if (e.shiftKey){
 							self.setCaret(
 								++self.selection.offset, 
@@ -233,25 +236,37 @@ Native.elements.export("UITextInput", {
 							);
 						} else {
 							self.resetStartPoint();
-							self.setCaret(
-								++self.selection.offset, 
-								0
-							);
+
+							if (self.selection.offset<maxLength) {
+								self.selection.offset++;
+								console.log(self.selection.offset);
+								self.setCaret(
+									self.selection.offset, 
+									0
+								);
+							}
 						}
 						break;
 
-					case 1073741904 : // right
+					case 1073741904 : // left
 						if (e.shiftKey){
-							self.setCaret(
-								--self.selection.offset, 
-								++self.selection.size
-							);
+							if (self.selection.offset>0) {
+								self.setCaret(
+									--self.selection.offset, 
+									++self.selection.size
+								);
+							}
 						} else {
 							self.resetStartPoint();
-							self.setCaret(
-								--self.selection.offset, 
-								0
-							);
+
+							if (self.selection.offset>0) {
+								self.selection.offset--;
+								echo(self.selection.offset)
+								self.setCaret(
+									self.selection.offset, 
+									0
+								);
+							}
 						}
 						break;
 
@@ -522,6 +537,7 @@ Native.elements.export("UITextInput", {
 
 		this.setCaret = function(offset, size){
 			/* 3 times faster than setSelectionFromMatricialCaret */
+
 			offset = Math.max(
 				0,
 				(typeof(offset)!=undefined ? parseInt(offset, 10) : 0)
@@ -575,12 +591,14 @@ Native.elements.export("UITextInput", {
 				}
 
 			this.caret = c;
-
+			
 			this.selection = {
 		 		text : this.text.substr(offset, size),
 		 		offset : offset,
 		 		size : size
 		 	}
+
+		 	console.log(this.selection.size);
 
 			this.caretCounter = 0;
 			this.updateOverlay();
