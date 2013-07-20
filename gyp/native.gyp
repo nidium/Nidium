@@ -148,6 +148,7 @@
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',
 			'<(native_src_path)/NativeJSModules.cpp',
+            '<(native_src_path)/NativeStreamTest.cpp'
         ],
     }],
 }

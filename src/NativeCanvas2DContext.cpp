@@ -1883,7 +1883,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             left, top, &pt);
 
         skia->canvas->restore();
-
+        skia->canvas->flush();
     } else {
         const SkBitmap &bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */

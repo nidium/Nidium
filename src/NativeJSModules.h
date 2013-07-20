@@ -31,7 +31,6 @@ class NativeJSModule
         NativeJSModules *modules;
 
         void setScriptDir();
-        char *findModulePath(NativeJSModule *module);
 };
 
 class NativeJSModules
@@ -74,6 +73,8 @@ class NativeJSModules
 
         JSObject *init(JSObject *scope, const char *name);
         bool init(NativeJSModule *module);
+        static char *findModulePath(NativeJSModule *parent, NativeJSModule *module);
+        static char *findModuleInPath(NativeJSModule *module, const char *path);
     private:
         SplayTree<NativeJSModule *> tree;
         JSContext *cx;

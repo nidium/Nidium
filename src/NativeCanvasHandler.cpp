@@ -25,6 +25,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     memset(&this->translate_s, 0, sizeof(this->translate_s));
     memset(&this->mousePosition, 0, sizeof(this->mousePosition));
 
+    this->mousePosition.consumed = true;
+
     this->content.width = width;
     this->content.height = height;
     this->content.scrollLeft = 0;
@@ -241,6 +243,13 @@ void NativeCanvasHandler::removeFromParent()
 
 }
 
+void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
+{
+    if (!layer->mousePosition.consumed) {
+        printf("Mouse event : %dx%d\n", layer->mousePosition.x, layer->mousePosition.y);
+    }
+}
+
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     double pleft, double ptop, double aopacity, NativeRect *clip)
 {
@@ -276,10 +285,18 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         this->a_left = cleft + tmpLeft + this->translate_s.x;
         this->a_top = ctop + tmpTop + this->translate_s.y;
 
+
+        /*
+            Dispatch current mouse position.
+        */
+
+        this->dispatchMouseEvents(layer);
+
         /*
             draw current context on top of the root layer
         */
-        layer->context->composeWith(context,
+
+        layer->context->composeWith(this->context,
             this->a_left - this->padding.global, 
             this->a_top - this->padding.global, popacity,
             (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
@@ -335,6 +352,10 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
                 memcpy(clip, &tmpClip, sizeof(NativeRect));
             }
         }
+    }
+
+    if (layer == this) {
+        this->mousePosition.consumed = true;
     }
 }
 

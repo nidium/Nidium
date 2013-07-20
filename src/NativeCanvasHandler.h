@@ -100,6 +100,7 @@ class NativeCanvasHandler
 
         struct {
             int x, y, xrel, yrel;
+            bool consumed;
         } mousePosition;
 
         double opacity;
@@ -282,7 +283,7 @@ class NativeCanvasHandler
     private:
 
         int32_t nchildren;
-
+        void dispatchMouseEvents(NativeCanvasHandler *layer);
         COORD_POSITION coordPosition;
         Visibility visibility;
         unsigned coordMode : 16;
