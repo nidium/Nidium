@@ -31,7 +31,7 @@ for (var i=0; i<256; i++){
 			+Math.round(Math.random()*180)+", "
 			+Math.round(Math.random()*180)
 		+")",
-		radius : 6
+		radius : 3
 	});
 	v[i].initialLeft = v[i].left;
 

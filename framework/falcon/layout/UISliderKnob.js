@@ -41,7 +41,7 @@ Native.elements.export("UISliderKnob", {
 	        context.beginPath();
 	        context.arc(
 	        	params.x+radius, params.y+params.h*0.5, 
-	        	radius, 0, 6.2831852, false
+	        	radius, 0, 6.283185307179586, false
 	        );
 	        context.fill();
 
@@ -51,7 +51,7 @@ Native.elements.export("UISliderKnob", {
 	        context.beginPath();
 	        context.arc(
 	        	params.x+radius, params.y+params.h*0.5, 
-	        	radius, 0, 6.2831852, false
+	        	radius, 0, 6.283185307179586, false
 	        );
 	        context.fill();
 		}

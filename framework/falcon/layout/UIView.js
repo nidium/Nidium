@@ -20,7 +20,7 @@ Native.elements.export("UIView", {
 		
 		scrollLeft : {
 			set : function(value){
-				var max = this.scrollbars ?
+				var max = this.scrollable ?
 								this.layer.contentWidth - this._width : 0;
 
 				this.scrollLeft = Math.min(value, max);
@@ -30,7 +30,7 @@ Native.elements.export("UIView", {
 		
 		scrollTop : {
 			set : function(value){
-				var max = this.scrollbars ?
+				var max = this.scrollable ?
 								this.layer.contentHeight - this._height : 0;
 
 				this.scrollTop = Math.min(value, max);
@@ -43,6 +43,12 @@ Native.elements.export("UIView", {
 		var self = this,
 			scrollBarHideDelay = 400,
 			o = this.options;
+
+		if (o.scrollable === true) {
+			this.scrollBarX = o.scrollBarX === false ? false : true;
+			this.scrollBarY = o.scrollBarY === false ? false : true;
+		}
+
 
 		this.setBackgroundURL = function(url){
 			if (url) {
@@ -63,7 +69,7 @@ Native.elements.export("UIView", {
 		};
 
 		this.getMaxScrollTop = function(){
-			return this.scrollbars ? this.layer.contentHeight - this.height : 0;
+			return this.scrollable ? this.layer.contentHeight - this.height : 0;
 		};
 
 		var showScrollBar = function(UIScrollBar){
@@ -287,14 +293,17 @@ Native.elements.export("UIView", {
 				this._scrollTop = Math.max(0, sh - viewHeight);
 			}
 
-			offset = (this.HScrollBar && this.HScrollBar.visible) ? 8 : 0;
 
-			container.left = viewWidth - 8 - radius;
-			container.top = radius;
-			container.height = viewHeight - 2*radius - offset;
+			if (container.hidden === false) {
+				offset = (this.HScrollBar && this.HScrollBar.visible) ? 8 : 0;
 
-			handle.top = Math.round(maxScrollTop * scale);
-			handle.height = Math.round(viewHeight * scale);
+				container.left = viewWidth - 8 - radius;
+				container.top = radius;
+				container.height = viewHeight - 2*radius - offset;
+
+				handle.top = Math.round(maxScrollTop * scale);
+				handle.height = Math.round(viewHeight * scale);
+			}
 		};
 
 		this.refreshHorizontalScrollBar = function(){
@@ -312,18 +321,20 @@ Native.elements.export("UIView", {
 				maxScrollLeft = Math.min(this._scrollLeft, sw - viewWidth),
 				offset = 0;
 
-			offset = (this.VScrollBar && this.VScrollBar.visible) ? 8 : 0;
-
 			if (this._scrollLeft > (sw - viewWidth)){
 				this._scrollLeft = Math.max(0, sw - viewWidth);
 			}
 
-			container.left = radius;
-			container.top = viewHeight - 8 - radius;
-			container.width = viewWidth - 2*radius - offset;
+			if (container.hidden === false) {
+				offset = (this.VScrollBar && this.VScrollBar.visible) ? 8 : 0;
 
-			handle.left = Math.round(maxScrollLeft * scale);
-			handle.width = Math.round(viewWidth * scale);
+				container.left = radius;
+				container.top = viewHeight - 8 - radius;
+				container.width = viewWidth - 2*radius - offset;
+
+				handle.left = Math.round(maxScrollLeft * scale);
+				handle.width = Math.round(viewWidth * scale);
+			}
 		};
 
 		this.refreshScrollBars = function(){
@@ -338,7 +349,8 @@ Native.elements.export("UIView", {
 				width : 8,
 				height : this._height,
 				left : this._width - 8,
-				top : 0
+				top : 0,
+				hidden : !this.scrollBarY
 			});
 			
 			this.VScrollBarHandle = this.VScrollBar.add(
@@ -356,7 +368,8 @@ Native.elements.export("UIView", {
 				width : this._width,
 				height : 8,
 				left : 0,
-				top : this._height - 8
+				top : this._height - 8,
+				hidden : !this.scrollBarX
 			});
 			
 			this.HScrollBarHandle = this.HScrollBar.add(
@@ -367,7 +380,7 @@ Native.elements.export("UIView", {
 			);
 		};
 
-		if (this.scrollbars === true){
+		if (this.scrollable === true){
 			this.createVerticalScrollBar();
 			this.createHorizontalScrollBar();
 			this.refreshScrollBars();

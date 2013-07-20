@@ -38,7 +38,7 @@ Native.elements.export("UIParticle", {
 		context.beginPath();
 		context.arc(
 			params.x+this.radius, params.y+params.h*0.5, 
-			this.radius/2, 0, 6.2831852, false
+			this.radius/2, 0, 6.283185307179586, false
 		);
 		context.setColor(this.background);
 		context.fill();
@@ -46,7 +46,7 @@ Native.elements.export("UIParticle", {
 		context.beginPath();
 		context.arc(
 			params.x+this.radius, params.y+params.h*0.5, 
-			this.radius/4, 0, 6.2831852, false
+			this.radius/4, 0, 6.283185307179586, false
 		);
 		context.setColor("#ffffff");
 		context.fill();
@@ -68,7 +68,7 @@ Native.elements.export("UIParticle", {
 		context.beginPath();
 		context.arc(
 			params.x+this.radius, params.y+params.h*0.5, 
-			this.radius, 0, 6.2831852, false
+			this.radius, 0, 6.283185307179586, false
 		);
 		context.setColor(gradient);
 		context.fill();
@@ -81,7 +81,7 @@ Native.elements.export("UIParticle", {
 		context.strokeStyle = "rgba(255, 255, 255, 0.02";
 		context.arc(
 			params.x+this.radius, params.y+params.h*0.5, 
-			this.radius*3, 0, 6.2831852, false
+			this.radius*3, 0, 6.283185307179586, false
 		);
 		context.stroke();
 
@@ -91,7 +91,7 @@ Native.elements.export("UIParticle", {
 		context.strokeStyle = "rgba(255, 255, 255, 0.05";
 		context.arc(
 			params.x+this.radius, params.y+params.h*0.5, 
-			this.radius*3, 0, 6.2831852, false
+			this.radius*3, 0, 6.283185307179586, false
 		);
 		context.fill();
 

@@ -47,10 +47,10 @@ Native.object = {
 		if (this.layer.__fixed) return false;
 		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
 
-		/* Refresh ancestors' scrollbars */
+		/* Refresh ancestors' ScrollBars */
 		while (element.parent){
 			var p = element.parent;
-			if (p.scrollbars) p.refreshScrollBars();
+			if (p.scrollable) p.refreshScrollBars();
 			element = p;
 		}
 		this._needAncestorCacheClear = false;
@@ -122,31 +122,31 @@ Native.object = {
 		return this;
 	},
 
-	centerLeft : function(){
+	centerLeft : function centerLeft(){
 		var p = this.parent ? this.parent : document;
 		this.left = (p._width - this.width)/2;
 		return this;
 	},
 
-	centerTop : function(){
+	centerTop : function centerTop(){
 		var p = this.parent ? this.parent : document;
 		this.top = (p._height - this.height)/2;
 		return this;
 	},
 
-	center : function(){
+	center : function center(){
 		this.centerTop();
 		this.centerLeft();
 		return this;
 	},
 
-	move : function(x, y){
+	move : function move(x, y){
 		this.left = this._left + x;
 		this.top = this._top + y;
 		return this;
 	},
 
-	place : function(left, top){
+	place : function place(left, top){
 		this.left = left;
 		this.top = top;
 		return this;
@@ -156,7 +156,7 @@ Native.object = {
 	 *	setCoordinates() is much faster than place()
 	 *  as it does not use our internal setter chain
 	 */
-	setCoordinates : function(x, y){
+	setCoordinates : function setCoordinates(x, y){
 		this._left = x;
 		this._top = y;
 		this.layer.left = x;
@@ -164,7 +164,7 @@ Native.object = {
 		return this;
 	},
 
-	fix : function(){
+	fix : function fix(){
 		this.position = "fixed";
 		return this;
 	},
@@ -199,19 +199,19 @@ Native.object = {
 		return this;
 	},
 
-	insertChildAtIndex : function(element, index){
+	insertChildAtIndex : function insertChildAtIndex(element, index){
 
 	},
 
-	insertBefore : function(element, refElement){
+	insertBefore : function insertBefore(element, refElement){
 		
 	},
 
-	insertAfter : function(element, refElement){
+	insertAfter : function insertAfter(element, refElement){
 
 	},
 
-	clear : function(){
+	clear : function clear(){
 		var element = this;
 		while (element.firstChild) {
 			element.firstChild.remove();
@@ -253,7 +253,7 @@ Native.object = {
 		Native.layout.update();
 	},
 
-	getChildren : function(){
+	getChildren : function getChildren(){
 		var self = this,
 			elements = [];
 
@@ -280,7 +280,7 @@ Native.object = {
 		return this;
 	},
 
-	resizeLayer : function(){
+	resizeLayer : function resizeLayer(){
 		/* layer rotation realtime padding update hack */
 		var b = this.getBoundingRect(),
 			w = b.x2 - b.x1,
@@ -290,7 +290,7 @@ Native.object = {
 		this.redraw();
 	},
 
-	expand : function(width, height){
+	expand : function expand(width, height){
 		var dx = (width - this._width)/2,
 			dy = (height - this._height)/2;
 
@@ -305,7 +305,7 @@ Native.object = {
 		return this;
 	},
 
-	shrink : function(b){
+	shrink : function shrink(b){
 		var dx = b.left,
 			dy = b.top;
 
@@ -333,7 +333,7 @@ Native.object = {
 		};
 	},
 
-	getBoundingRect : function(){
+	getBoundingRect : function getBoundingRect(){
 		var r = this.layer.getVisibleRect(),
 			x1 = r.left + 1,
 			y1 = r.top + 1,
@@ -424,7 +424,7 @@ Native.object = {
 		return this._visible;
 	},
 
-	isAncestor : function(element){
+	isAncestor : function isAncestor(element){
 		if (!isDOMElement(element)) return false;
 		if (this.ownerDocument != element.ownerDocument) return false;
 		for (var e = element; e; e = e.parent) {

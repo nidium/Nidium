@@ -57,9 +57,12 @@ load(__PATH_KERNEL__ + 'audio.inc.js');
 load(__PATH_KERNEL__ + 'video.inc.js');
 
 /* -- UI Elements -- */
+
 load(__PATH_LAYOUT__ + 'UIElement.js');
 load(__PATH_LAYOUT__ + 'UIView.js');
+load(__PATH_LAYOUT__ + 'UIPath.js');
 load(__PATH_LAYOUT__ + 'UILabel.js');
+
 
 load(__PATH_LAYOUT__ + 'Icon.js');
 
@@ -106,6 +109,7 @@ load(__PATH_PLUGINS__ + 'misc.inc.js');
 load(__PATH_PLUGINS__ + 'roundbox.inc.js');
 load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'spline.inc.js');
+load(__PATH_PLUGINS__ + 'path.inc.js');
 
 /* -- Start Layout -- */
 load(__PATH_KERNEL__ + 'layout.inc.js');
@@ -115,8 +119,7 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		if ("console" in Native.scope) {
-			console.show();
-			console.clear();
+			/* dummy */
 		} else {
 			Native.scope.console = {
 				show : function(){},

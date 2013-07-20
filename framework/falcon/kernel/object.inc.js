@@ -104,9 +104,12 @@ var DOMElement = function(type, options, parent){
 		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),
 
 		visible : OptionalBoolean(o.visible, true),
+		hidden : OptionalBoolean(o.hidden, false),
 		selected : OptionalBoolean(o.selected, false),
 		overflow : OptionalBoolean(o.overflow, true),
-		scrollbars : OptionalBoolean(o.scrollbars, false),
+		scrollable : OptionalBoolean(o.scrollable, false),
+		scrollBarX : OptionalBoolean(o.scrollBarX, false),
+		scrollBarY : OptionalBoolean(o.scrollBarY, false),
 		position : OptionalPosition(o.position, "relative"),
 
 		hover : false,
@@ -674,7 +677,7 @@ DOMElement.draw = {
 		context.beginPath();
 		context.arc(
 			params.x+radius, params.y+params.h*0.5, 
-			radius, 0, 6.2831852, false
+			radius, 0, 6.283185307179586, false
 		);
 		context.setColor(element.background);
 		context.fill();
@@ -683,7 +686,7 @@ DOMElement.draw = {
 		context.beginPath();
 		context.arc(
 			params.x+radius, params.y+params.h*0.5, 
-			radius, 0, 6.2831852, false
+			radius, 0, 6.283185307179586, false
 		);
 		context.setColor(gradient);
 		context.fill();
@@ -693,7 +696,7 @@ DOMElement.draw = {
 			context.beginPath();
 			context.arc(
 				params.x+radius, params.y+params.h*0.5, 
-				radius, 0, 6.2831852, false
+				radius, 0, 6.283185307179586, false
 			);
 			context.setColor(element.background);
 			context.fill();
@@ -757,14 +760,14 @@ DOMElement.draw = {
 		} else {
 			if (element.hover){
 				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.7)');
-				gradient.addColorStop(0.50, 'rgba(255, 255, 255, 0.3)');
+				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.3)');
 				gradient.addColorStop(0.50, 'rgba(255, 255, 255, 0.1)');
 				gradient.addColorStop(0.80, 'rgba(0, 0, 0, 0.1)');
 				gradient.addColorStop(1.00, 'rgba(0, 0, 0, 0.3)');
 			} else {
-				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.4)');
-				gradient.addColorStop(0.50, 'rgba(255, 255, 255, 0.1)');
-				gradient.addColorStop(0.50, 'rgba(255, 255, 255, 0.0)');
+				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.50)');
+				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.20)');
+				gradient.addColorStop(0.40, 'rgba(255, 255, 255, 0.00)');
 				gradient.addColorStop(0.50, 'rgba(0, 0, 0, 0.0)');
 				gradient.addColorStop(0.80, 'rgba(0, 0, 0, 0.1)');
 				gradient.addColorStop(1.00, 'rgba(0, 0, 0, 0.3)');
@@ -804,7 +807,6 @@ DOMElement.draw = {
 				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.25)');
 				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.15)');
 			}
-
 		}
 		return gradient;
 	},

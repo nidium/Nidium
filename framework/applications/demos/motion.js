@@ -59,6 +59,7 @@ var k = new Animation({
 			ease : Math.physics.bounceOut
 		}
 	},
+	
 	"#c0.top" : 80,
 
 	"#bar.width, .view.top, .c0.left" : ,

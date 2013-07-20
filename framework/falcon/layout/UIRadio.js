@@ -43,6 +43,14 @@ Native.elements.export("UIRadio", {
 									'rgba(0, 0, 0, 0.2)'
 								),
 
+			shadowOffsetX	: OptionalNumber(o.shadowOffsetX, 0),
+			shadowOffsetY	: OptionalNumber(o.shadowOffsetY, 2),
+			shadowBlur		: OptionalNumber(o.shadowBlur, 4),
+			shadowColor 	: OptionalValue(
+									o.shadowColor,
+									'rgba(0, 0, 0, 0.15)'
+								),
+
 			name  			: OptionalString(o.name, "default"),
 			paddingLeft 	: OptionalNumber(o.paddingLeft, 2),
 
@@ -110,7 +118,7 @@ Native.elements.export("UIRadio", {
 		context.arc(
 			params.x+radius+this.radius*0.25, 
 			params.y+params.h*0.5, 
-			radius, 0, 6.2831852, false
+			radius, 0, 6.283185307179586, false
 		);
 		context.globalAlpha = 0.9;
 		context.setColor(this.color);
@@ -119,13 +127,13 @@ Native.elements.export("UIRadio", {
 		context.stroke();
 		context.restore();
 
-		context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
+		context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.15)");
 		context.strokeStyle = "rgba(0, 0, 0, 0.3)";
 		context.beginPath();
 		context.arc(
 			params.x+radius+this.radius*0.25, 
 			params.y+params.h*0.5, 
-			radius, 0, 6.2831852, false
+			radius, 0, 6.283185307179586, false
 		);
 		context.setColor(gradient);
 		context.fill();
@@ -145,7 +153,7 @@ Native.elements.export("UIRadio", {
 			context.arc(
 				params.x+radius+this.radius*0.25,
 				params.y+params.h*0.5, 
-				radius-r, 0, 6.2831852, false
+				radius-r, 0, 6.283185307179586, false
 			);
 
 			context.fill();
@@ -162,7 +170,7 @@ Native.elements.export("UIRadio", {
 		context.arc(
 			params.x+radius+this.radius*0.25,
 			params.y+params.h*0.5, 
-			radius-r, 0, 6.2831852, false
+			radius-r, 0, 6.283185307179586, false
 		);
 		context.fill();
 		context.stroke();
