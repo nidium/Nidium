@@ -13,7 +13,7 @@ load("../scripts/preload.js");
 //load("applications/demos/profiler.js");
 //load("applications/demos/style.js");
 //load("applications/demos/windows.js");
-//load("applications/demos/dropdown.js");
+load("applications/demos/dropdown.js");
 //load("applications/demos/buttons.js");
 //load("applications/demos/sliders.js"); // radial gradient issue
 //load("applications/demos/scrollbars.js");

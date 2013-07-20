@@ -338,7 +338,8 @@ Native.elements.export("UIView", {
 				width : 8,
 				height : this._height,
 				left : this._width - 8,
-				top : 0
+				top : 0,
+				hidden : false
 			});
 			
 			this.VScrollBarHandle = this.VScrollBar.add(
@@ -356,7 +357,8 @@ Native.elements.export("UIView", {
 				width : this._width,
 				height : 8,
 				left : 0,
-				top : this._height - 8
+				top : this._height - 8,
+				hidden : false
 			});
 			
 			this.HScrollBarHandle = this.HScrollBar.add(
@@ -367,7 +369,7 @@ Native.elements.export("UIView", {
 			);
 		};
 
-		if (this.scrollbars === true){
+		if (this.scrollbars !== false){
 			this.createVerticalScrollBar();
 			this.createHorizontalScrollBar();
 			this.refreshScrollBars();
