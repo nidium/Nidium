@@ -12,14 +12,31 @@
     self.isHidden = NO;
     
     self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 640, 500) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
-    
+
     [self.window setFrameAutosaveName:@"nativeConsole"];
-    
+    CGRect frame = [[self.window contentView] frame];
+    NSButton *btn = [[NSButton alloc] initWithFrame:NSMakeRect(10, 3, 100, 25)];
+    [btn setButtonType:NSMomentaryLightButton]; //Set what type button You want
+    [btn setBezelStyle:NSRegularSquareBezelStyle]; //Set what style You want
+    btn.title = @"Clear";
+    [btn setTarget:self];
+    [btn setAction:@selector(clearPressed)];
+
+    frame.origin.y = 32;
+    frame.size.height -= 32;
+
+    NSView *mview = [[NSView alloc] initWithFrame:frame];
+    [mview setWantsLayer:YES];
+
     NSScrollView *scrollview = [[NSScrollView alloc]
                                 
-                                initWithFrame:[[self.window contentView] frame]];
+                                initWithFrame:frame];
+
+    [mview addSubview:scrollview];
     
     NSSize contentSize = [scrollview contentSize];
+
+    [mview addSubview:btn];
     
     [scrollview setBorderType:NSNoBorder];
     
@@ -27,7 +44,7 @@
     
     [scrollview setHasHorizontalScroller:NO];
     
-    [scrollview setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
+    [scrollview setAutoresizingMask:NSViewWidthSizable];
     
     self.textview = [[NSTextView alloc] initWithFrame:NSMakeRect(0,
                                                                  0,  
@@ -52,13 +69,13 @@
 
     [scrollview setDocumentView:textview];
     
-    [window setContentView:scrollview];
+    [window setContentView:mview];
     
     [window makeKeyAndOrderFront:nil];
     
     [window makeFirstResponder:textview];
 
-    
+    [self.window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
     [self.window release];
     [self.textview release];
     
@@ -67,6 +84,10 @@
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
 
     return self;
+}
+
+-(void)clearPressed {
+    [self clear];
 }
 
 - (void) log:(NSString *)str

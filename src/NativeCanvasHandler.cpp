@@ -246,7 +246,7 @@ void NativeCanvasHandler::removeFromParent()
 void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
 {
     if (!layer->mousePosition.consumed) {
-        printf("Mouse event : %dx%d\n", layer->mousePosition.x, layer->mousePosition.y);
+        //printf("Mouse event : %dx%d\n", layer->mousePosition.x, layer->mousePosition.y);
     }
 }
 

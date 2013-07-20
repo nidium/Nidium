@@ -127,7 +127,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (JSVAL_IS_STRING(JS_ARGV(cx, vp)[0])) {
-        printf("got a string to write\n");
+        //printf("got a string to write\n");
         JSString *str = JS_ValueToString(cx, JS_ARGV(cx, vp)[0]);
         JSAutoByteString cstr(cx, str);
         size_t len = strlen(cstr.ptr());
@@ -150,7 +150,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         uint8_t *data = JS_GetArrayBufferData(jsobj);
         uint8_t *cdata = (uint8_t *)malloc(sizeof(char) * len);
 
-        printf("Got an arraybuffer of size : %d\n", len);
+        //printf("Got an arraybuffer of size : %d\n", len);
 
         memcpy(cdata, data, len);
 
