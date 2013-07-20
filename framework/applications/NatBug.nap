@@ -127,7 +127,7 @@ var NatBug = {
 			top : 46,
 			width : this.application.width - 12,
 			height : this.application.height - 54,
-			scrollbars : true,
+			scrollable : true,
 			overflow : false,
 			visible : false,
 			class : "natbug_view"
@@ -170,7 +170,7 @@ NatBug.panes.push({
 	init : function(){
 		this.view = NatBug.createView("_ntbgp_elements");
 		this.view.pane = this;
-		this.view.scrollbars = false;
+		this.view.scrollable = false;
 
 		this.createSplitPanes();
 		this.inspect();
@@ -183,7 +183,7 @@ NatBug.panes.push({
 				id : id,
 				left : 0,
 				top : 0,
-				scrollbars : true,
+				scrollable : true,
 				overflow : false,
 				radius : 3,
 				background : "#ffffff"

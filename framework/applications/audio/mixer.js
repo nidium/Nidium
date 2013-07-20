@@ -71,7 +71,7 @@ var createMixer = function(){
 		width : mixer.width-64,
 		height : mixer.height-8,
 		overflow : false,
-		scrollbars : true
+		scrollable : true
 	});
 
 	mixer.masterView = new UIView(mixer, {

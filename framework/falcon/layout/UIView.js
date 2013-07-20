@@ -20,7 +20,7 @@ Native.elements.export("UIView", {
 		
 		scrollLeft : {
 			set : function(value){
-				var max = this.scrollbars ?
+				var max = this.scrollable ?
 								this.layer.contentWidth - this._width : 0;
 
 				this.scrollLeft = Math.min(value, max);
@@ -30,7 +30,7 @@ Native.elements.export("UIView", {
 		
 		scrollTop : {
 			set : function(value){
-				var max = this.scrollbars ?
+				var max = this.scrollable ?
 								this.layer.contentHeight - this._height : 0;
 
 				this.scrollTop = Math.min(value, max);
@@ -63,7 +63,7 @@ Native.elements.export("UIView", {
 		};
 
 		this.getMaxScrollTop = function(){
-			return this.scrollbars ? this.layer.contentHeight - this.height : 0;
+			return this.scrollable ? this.layer.contentHeight - this.height : 0;
 		};
 
 		var showScrollBar = function(UIScrollBar){
@@ -287,9 +287,10 @@ Native.elements.export("UIView", {
 				this._scrollTop = Math.max(0, sh - viewHeight);
 			}
 
-			offset = (this.HScrollBar && this.HScrollBar.visible) ? 8 : 0;
 
 			if (container.hidden === false) {
+				offset = (this.HScrollBar && this.HScrollBar.visible) ? 8 : 0;
+
 				container.left = viewWidth - 8 - radius;
 				container.top = radius;
 				container.height = viewHeight - 2*radius - offset;
@@ -314,13 +315,13 @@ Native.elements.export("UIView", {
 				maxScrollLeft = Math.min(this._scrollLeft, sw - viewWidth),
 				offset = 0;
 
-			offset = (this.VScrollBar && this.VScrollBar.visible) ? 8 : 0;
-
 			if (this._scrollLeft > (sw - viewWidth)){
 				this._scrollLeft = Math.max(0, sw - viewWidth);
 			}
 
 			if (container.hidden === false) {
+				offset = (this.VScrollBar && this.VScrollBar.visible) ? 8 : 0;
+
 				container.left = radius;
 				container.top = viewHeight - 8 - radius;
 				container.width = viewWidth - 2*radius - offset;
@@ -373,7 +374,7 @@ Native.elements.export("UIView", {
 			);
 		};
 
-		if (this.scrollbars !== false){
+		if (this.scrollable === true){
 			this.createVerticalScrollBar();
 			this.createHorizontalScrollBar();
 			this.refreshScrollBars();

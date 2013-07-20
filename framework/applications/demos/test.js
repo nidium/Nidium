@@ -17,7 +17,7 @@ var textView = body.add("UIView", {
 	height : 200,
 	background : "white",
 	overflow : false,
-	scrollbars : true
+	scrollable : true
 });
 
 var textInput = textView.add("UITextInput", {
@@ -38,7 +38,7 @@ var	view = new UIView(body, {
 	height : 250,
 	background : "rgba(0, 0, 80, 0.5)",
 	overflow : false,
-	scrollbars : true
+	scrollable : true
 });
 
 var	c0 = new UIView(view, {

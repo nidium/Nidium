@@ -27,7 +27,7 @@ var div = new UIView(body, {
 	radius : 7,
 	borderColor : "rgba(0, 0, 0, 1)",
 	overflow : false,
-	scrollbars : true,
+	scrollable : true,
 	class : "div"
 });
 

@@ -38,8 +38,10 @@ var textView = main.add("UIView", {
 	shadowColor : "rgba(0, 0, 0, 0.10)",
 	shadowOffsetY : 2,
 	overflow : false,
-	scrollbars : true
+	scrollable : true
 });
+
+textView.scrollable = true;
 
 
 var textInput = textView.add("UITextInput", {

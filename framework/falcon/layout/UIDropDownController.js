@@ -95,7 +95,7 @@ Native.elements.export("UIDropDownController", {
 			shadowBlur : 4,
 			shadowOffsetY : 2,
 			shadowColor : "rgba(0, 0, 0, 0.15)",
-			scrollbars : true,
+			scrollable : true,
 			overflow : false
 		});
 

@@ -106,7 +106,9 @@ var DOMElement = function(type, options, parent){
 		visible : OptionalBoolean(o.visible, true),
 		selected : OptionalBoolean(o.selected, false),
 		overflow : OptionalBoolean(o.overflow, true),
-		scrollbars : OptionalBoolean(o.scrollbars, false),
+		scrollable : OptionalBoolean(o.scrollable, false),
+		scrollBarX : OptionalBoolean(o.scrollBarX, false),
+		scrollBarY : OptionalBoolean(o.scrollBarY, false),
 		position : OptionalPosition(o.position, "relative"),
 
 		hover : false,

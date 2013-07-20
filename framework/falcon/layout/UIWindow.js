@@ -140,7 +140,7 @@ Native.elements.export("UIWindow", {
 			background : "#ffffff",
 			color : "#333333",
 			overflow : false,
-			scrollbars : true
+			scrollable : true
 		});
 
 		if (o.resizable) {

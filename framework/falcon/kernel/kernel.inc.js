@@ -47,10 +47,10 @@ Native.object = {
 		if (this.layer.__fixed) return false;
 		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
 
-		/* Refresh ancestors' scrollbars */
+		/* Refresh ancestors' ScrollBars */
 		while (element.parent){
 			var p = element.parent;
-			if (p.scrollbars) p.refreshScrollBars();
+			if (p.scrollable) p.refreshScrollBars();
 			element = p;
 		}
 		this._needAncestorCacheClear = false;
