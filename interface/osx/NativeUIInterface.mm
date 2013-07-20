@@ -75,6 +75,16 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     int mod = 0;
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
+                        event.key.keysym.mod & KMOD_GUI && event.key.keysym.mod & KMOD_SHIFT && event.type == SDL_KEYDOWN) {
+
+                        NativeUICocoaConsole *console = NUII->getConsole();
+
+                        if (!console->isHidden) {
+                            console->clear();
+                        }
+                    }
+                    else if (
+                        (&event.key)->keysym.sym == SDLK_r &&
                         event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
                         if (++nrefresh > 1) {
                             break;
@@ -96,7 +106,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         //SDL_GL_SwapBuffers();
                         break;
                     }
-                    if (
+                    else if (
                         (&event.key)->keysym.sym == SDLK_d &&
                         event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
 
@@ -109,6 +119,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         }
 
                     }
+
                     if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
                         keyCode = event.key.keysym.sym - 32;
                     } else {
@@ -222,6 +233,11 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     ui->nml->loadFile("./index.nml");
 }
 
+bool NativeCocoaUIInterface::stopApplication()
+{
+
+}
+
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
     FILE *main = fopen("index.nml", "r");
@@ -265,6 +281,8 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
 
             printf("Start looking for main.js of size : %ld\n", fsize);*/
             return true;
+        } else {
+            delete app;
         }
     }
     return false;

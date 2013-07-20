@@ -57,6 +57,7 @@ unsigned long _ape_seed;
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
+
     NSLog(@"drop : %@", filename);
     
     return true;

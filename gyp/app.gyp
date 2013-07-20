@@ -162,6 +162,10 @@
                 ],
                 'postbuilds': [
                     {
+                        'postbuild_name': 'Increment build number',
+                        'action': ['./osx/incbuild.sh']
+                    },
+                    {
                         'postbuild_name': 'Copy Frameworks',
                         'action': [
                             'ditto',

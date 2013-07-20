@@ -967,8 +967,8 @@ void NativeSkia::arc(int x, int y, int r,
     }
 
     double sweep = endAngle - startAngle;
+    SkMatrix m = canvas->getTotalMatrix();
 
-    SkRect rect;
     SkScalar cx = SkIntToScalar(x);
     SkScalar cy = SkIntToScalar(y);
     SkScalar s360 = SkIntToScalar(360);
@@ -977,19 +977,18 @@ void NativeSkia::arc(int x, int y, int r,
     SkScalar start = SkDoubleToScalar(180 * startAngle / SK_ScalarPI);
     SkScalar end = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
 
-    rect.set(cx-radius, cy-radius, cx+radius, cy+radius);
+    SkRect rect;
+    m.mapRect(&rect, SkRect::MakeLTRB(cx-radius, cy-radius, cx+radius, cy+radius));
 
-    SkPath tmpPath;
 
-    //tmpPath.moveTo(1, 1);
 
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
-        tmpPath.arcTo(rect, start, 0, false);
+        currentPath->arcTo(rect, start, 0, false);
         // Draw the circle.
-        tmpPath.addOval(rect);
+        currentPath->addOval(rect);
         // Force a moveTo the end position.
-        tmpPath.arcTo(rect, start + end, 0, true);        
+        currentPath->arcTo(rect, start + end, 0, true);        
     } else {
         if (CCW && end > 0) {
             end -= s360;
@@ -997,10 +996,8 @@ void NativeSkia::arc(int x, int y, int r,
             end += s360;
         }
 
-        tmpPath.arcTo(rect, start, end, false);        
+        currentPath->arcTo(rect, start, end, false);        
     }
-
-    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), true);
 }
 
 void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
