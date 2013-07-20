@@ -20,7 +20,7 @@ Native.elements.export("UIOption", {
 
 			height 			: OptionalNumber(o.height, 22),
 			radius 			: OptionalNumber(o.radius, 0),
-			background 		: OptionalValue(o.background, "#262722"),
+			background 		: OptionalValue(o.background, "rgba(0, 0, 0, 0.4)"),
 			color 			: OptionalValue(o.color, "#abacaa"),
 			cursor			: OptionalCursor(o.cursor, "pointer")
 		});

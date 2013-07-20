@@ -2,10 +2,7 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-console.show();
-console.clear();
-
-var main = new Application();
+var main = new Application({background:"#ffffff"});
 main.className = "main";
 
 var	myElements = [
@@ -14,8 +11,8 @@ var	myElements = [
 	/* Tab 2 */ {label : "Monaco", 			value : 9},
 	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
 	/* Tab 4 */ {label : "Italy", 			value : 1},
-	/* Tab 5 */ {label : "Spain", 			value : 3, background : "#202a15", color : "#ffffff"},
-	/* Tab 6 */ {label : "Bulgaria",		value : 2, background : "#442033", color : "#ffffff"},
+	/* Tab 5 */ {label : "Spain", 			value : 3, background : "#202a15", color : "#000000"},
+	/* Tab 6 */ {label : "Bulgaria",		value : 2, background : "#442033", color : "#000000"},
 	/* Tab 7 */ {label : "Romania", 		value : 4},
 	/* Tab 8 */ {label : "Sweden", 			value : 6},
 	/* Tab 8 */ {label : "China", 			value : 8},
@@ -26,26 +23,35 @@ var	myElements = [
 ];
 
 
-var text = "In olden times when wishing still helped one, there lived a king whose daughters were all beautiful; and the youngest was so beautiful that the sun itself, which has seen so much, was astonished whenever it shone in her face. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. Close by the king's castle lay a great dark forest, and under an old lime-tree in the forest was a well, and when the day was very warm, the king's child went out to the forest and sat down by the fountain; and when she was bored she took a golden ball, and threw it up on high and caught it; and this ball was her favorite plaything. [ɣ] s'écrit g. Quốc ngữ văn bản bằng tiếng Việt.";
+var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
 
 var textView = main.add("UIView", {
-	left : 200,
-	top : 80,
+	left : 280,
+	top : 50,
 	width : 200,
-	height : 200,
+	height : 22,
 	background : "white",
-	overflow : true,
+	radius : 3,
+	borderWidth : 1,
+	borderColor : "rgba(0, 0, 0, 0.09)",
+	shadowBlur : 4,
+	shadowColor : "rgba(0, 0, 0, 0.10)",
+	shadowOffsetY : 2,
+	overflow : false,
 	scrollbars : true
 });
 
+
 var textInput = textView.add("UITextInput", {
-	left : 0,
-	top : 0, 
+	left : 3,
+	top : 0,
+	height : 46,
 	fontSize : 12,
-	lineHeight : 18,
+	lineHeight : 22,
 	text : text,
-	textAlign : "justify",
-	editable : true
+	textAlign : "left",
+	editable : true,
+	multiline : false
 });
 
 var	dropDownController = main.add("UIDropDownController", {
@@ -55,7 +61,7 @@ var	dropDownController = main.add("UIDropDownController", {
 	name : "helloDrop",
 	radius : 2,
 	elements : myElements,
-	background : "#191a18",
+	background : '#333333',
 	selectedBackground : "#4D90FE",
 	selectedColor : "#FFFFFF",
 	class : "tabController"
@@ -68,16 +74,13 @@ Native.StyleSheet.add({
 		name : "choice",
 		fontType : "menlo",
 		fontSize : 11,
-		textShadowColor : "rgba(0, 0, 0, 0.4)",
+		textShadowColor : "rgba(0, 0, 0, 0.05)",
 		color : "#d0d0ff",
 		lineWidth : 1,
-		background : "rgba(0, 0, 0, 0.2)",
-		borderColor : "rgba(0, 0, 0, 0.7)",
+		background : "rgba(0, 0, 0, 0.01)",
+		borderColor : "rgba(0, 0, 0, 0.09)",
 		borderWidth : 1,
-		radius : 10,
-		shadowBlur : 6,
-		shadowColor : "rgba(0, 0, 0, 0.4)",
-		shadowOffsetY : 3
+		radius : 10
 	},
 
 	red : {
@@ -89,7 +92,7 @@ Native.StyleSheet.add({
 	},
 
 	white : {
-		color : "white"
+		color : "#e0e0e0"
 	},
 
 	black : {

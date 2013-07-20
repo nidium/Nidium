@@ -31,7 +31,7 @@
 Native.getAudioDSP = function(){
 	// Init NATiVE DSP
 	// 512 bytes buffer, 2 channels, 44100Hz
-	if (!Native.scope.Audio) return false;
+	if (!Audio) return false;
 	if (!Native.defaultAudioDSP) {
 		if (Audio.getContext) {
 			Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);

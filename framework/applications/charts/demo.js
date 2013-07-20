@@ -14,8 +14,6 @@ load("libs/chart.lib.js");
 Native.StyleSheet.load("applications/charts/demo.nss");
 /* ---------------------------------------------------------------------------*/
 
-console.show();
-
 var body = new Application({
 	background : "rgba(255, 255, 255, 0.3)"
 });

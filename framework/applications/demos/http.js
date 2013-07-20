@@ -6,7 +6,7 @@
 
 var main = new Application({
 	background : "rgba(38, 39, 34, 1)",
-	//backgroundImage : "falcon/assets/back.png"
+	backgroundImage : "falcon/assets/back.png"
 });
 
 main.status = new UIStatus(main);

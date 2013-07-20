@@ -8,16 +8,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-
-var h = new Http("http://p.nf/post.php").request({
-    data: "gros=data&foo=bar",
-    timeout: 10000
-}, function( e ) {
-    echo(e.data);
-});
-
-
-
 var HttpRequest = function(method, url, data, onloadCallback){
 	var self = this;
 	this.h = new Http(url);

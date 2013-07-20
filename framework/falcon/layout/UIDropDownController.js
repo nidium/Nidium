@@ -60,8 +60,8 @@ Native.elements.export("UIDropDownController", {
 			var o = options,
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
-				background = OptionalValue(o.background, "#262722"),
-				color = OptionalValue(o.color, "#abacaa"),
+				background = OptionalValue(o.background, "rgba(255, 255, 255, 1)"),
+				color = OptionalValue(o.color, "#888888"),
 				selected = OptionalBoolean(o.selected, false);
 
 			if (selected) {
@@ -90,7 +90,11 @@ Native.elements.export("UIDropDownController", {
 			height : 0,
 			radius : 0,
 			background : this.background,
-			shadowBlur : 10,
+			borderWidth : 1,
+			borderColor : "rgba(0, 0, 0, 0.05)",
+			shadowBlur : 4,
+			shadowOffsetY : 2,
+			shadowColor : "rgba(0, 0, 0, 0.15)",
 			scrollbars : true,
 			overflow : false
 		});
@@ -230,7 +234,7 @@ Native.elements.export("UIDropDownController", {
 			if (this.selected){
 				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
 			} else {
-				context.setShadow(0, 2, 3, "rgba(0, 0, 0, 0.5)");
+				context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
 			}
 		}
 		
