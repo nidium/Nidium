@@ -227,21 +227,18 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741903 : // right
-						var maxLength = self.text.length-1;
+						var maxLength = self.text.length-1,
+							x1 = self.selection.offset,
+							x2 = self.selection.offset + self.selection.size;
 
 						if (e.shiftKey){
-							console.log(
-								self._StartCaret.x,
-								self.selection.offset,
-								self.selection.offset + self.selection.size
-							);
-							if (self.selection.offset < self._StartCaret.x) {
-								if (self.selection.offset<maxLength) {
+							if (x1 < self._StartCaret.x) {
+								if (x1 < maxLength) {
 									self.selection.offset++;
 									self.selection.size--;
 								}
 							} else {
-								if (self.selection.offset + self.selection.size < maxLength) {
+								if (x2 < maxLength) {
 									self.selection.size++;
 								}
 							}
@@ -263,16 +260,14 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741904 : // left
+						var x1 = self.selection.offset,
+							x2 = self.selection.offset + self.selection.size;
+
 						if (e.shiftKey){
-							console.log(
-								self._StartCaret.x,
-								self.selection.offset,
-								self.selection.offset + self.selection.size
-							);
-							if (self.selection.offset + self.selection.size > self._StartCaret.x) {
-									self.selection.size--;
+							if (x2 > self._StartCaret.x) {
+								self.selection.size--;
 							} else {
-								if (self.selection.offset>0) {
+								if (x1 > 0) {
 									self.selection.offset--; 
 									self.selection.size++;
 								}  
