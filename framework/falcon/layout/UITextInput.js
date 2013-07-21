@@ -236,24 +236,41 @@ Native.elements.export("UITextInput", {
 								if (x1 < maxLength) {
 									self.selection.offset++;
 									self.selection.size--;
+
+									self.setCaret(
+										self.selection.offset, 
+										self.selection.size
+									);
 								}
 							} else {
 								if (x2 < maxLength) {
 									self.selection.size++;
+
+									self.setCaret(
+										self.selection.offset, 
+										self.selection.size
+									);
+
+									self.scrollCheck(
+										self.caret.x2,
+										self.caret.y2	
+									);
 								}
 							}
-							self.setCaret(
-								self.selection.offset, 
-								self.selection.size
-							);
 						} else {
 							self.setStartPoint();
 
 							if (self.selection.offset<maxLength) {
 								self.selection.offset++;
+
 								self.setCaret(
 									self.selection.offset, 
 									0
+								);
+
+								self.scrollCheck(
+									self.caret.x1,
+									self.caret.y1	
 								);
 							}
 						}
@@ -266,25 +283,41 @@ Native.elements.export("UITextInput", {
 						if (e.shiftKey){
 							if (x2 > self._StartCaret.x) {
 								self.selection.size--;
+
+								self.setCaret(
+									self.selection.offset, 
+									self.selection.size
+								);
 							} else {
 								if (x1 > 0) {
 									self.selection.offset--; 
 									self.selection.size++;
+
+									self.setCaret(
+										self.selection.offset, 
+										self.selection.size
+									);
+
+									self.scrollCheck(
+										self.caret.x1,
+										self.caret.y1	
+									);
 								}  
 							}  
-							self.setCaret(
-								self.selection.offset, 
-								self.selection.size
-							);
 						} else {
 							self.setStartPoint();
 
 							if (self.selection.offset>0) {
 								self.selection.offset--;
-								echo(self.selection.offset)
+
 								self.setCaret(
 									self.selection.offset, 
 									0
+								);
+
+								self.scrollCheck(
+									self.caret.x1,
+									self.caret.y1	
 								);
 							}
 						}
@@ -346,7 +379,6 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.setStartPoint = function(){
-			console.log("set start point", this.caret.x1);
 			this._StartCaret = {
 				x : this.caret.x1,
 				y : this.caret.y1
@@ -354,7 +386,6 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.resetStartPoint = function(){
-			console.log("reset start point");
 			delete(this._StartCaret);
 		};
 
@@ -417,6 +448,26 @@ Native.elements.export("UITextInput", {
 		};
 
 		/* ------------------------------------------------------------------ */
+
+		this.scrollCheck = function(cx, cy){
+			var x = this.matricialToPixel(cx, cy)[0],
+				minx = this.parent.left,
+				maxx = this.parent.left + this.parent.width - 8,
+
+				tx = x + this.parent.left - this.parent.scrollLeft;
+
+			if (tx > maxx) this.parent.updateScrollLeft((maxx-tx)*4);
+			if (tx < minx) this.parent.updateScrollLeft((minx-tx)*4);
+
+		};
+
+		this.matricialToPixel = function(cx, cy){
+			var line = this._textMatrix[cy],
+				vOffset = (this.lineHeight/2)+5,
+				x = line && line.letters[cx] ? line.letters[cx].position : 0,
+				y = vOffset + cy * this.lineHeight;
+			return [x, y];
+		};
 
 		this.setMatricialCaretFromRelativeMouseSelection = function(r){
 			var m = this._textMatrix;
