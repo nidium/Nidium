@@ -230,16 +230,30 @@ Native.elements.export("UITextInput", {
 						var maxLength = self.text.length-1;
 
 						if (e.shiftKey){
+							console.log(
+								self._StartCaret.x,
+								self.selection.offset,
+								self.selection.offset + self.selection.size
+							);
+							if (self.selection.offset < self._StartCaret.x) {
+								if (self.selection.offset<maxLength) {
+									self.selection.offset++;
+									self.selection.size--;
+								}
+							} else {
+								if (self.selection.offset + self.selection.size < maxLength) {
+									self.selection.size++;
+								}
+							}
 							self.setCaret(
-								++self.selection.offset, 
-								--self.selection.size
+								self.selection.offset, 
+								self.selection.size
 							);
 						} else {
-							self.resetStartPoint();
+							self.setStartPoint();
 
 							if (self.selection.offset<maxLength) {
 								self.selection.offset++;
-								console.log(self.selection.offset);
 								self.setCaret(
 									self.selection.offset, 
 									0
@@ -250,14 +264,25 @@ Native.elements.export("UITextInput", {
 
 					case 1073741904 : // left
 						if (e.shiftKey){
-							if (self.selection.offset>0) {
-								self.setCaret(
-									--self.selection.offset, 
-									++self.selection.size
-								);
-							}
+							console.log(
+								self._StartCaret.x,
+								self.selection.offset,
+								self.selection.offset + self.selection.size
+							);
+							if (self.selection.offset + self.selection.size > self._StartCaret.x) {
+									self.selection.size--;
+							} else {
+								if (self.selection.offset>0) {
+									self.selection.offset--; 
+									self.selection.size++;
+								}  
+							}  
+							self.setCaret(
+								self.selection.offset, 
+								self.selection.size
+							);
 						} else {
-							self.resetStartPoint();
+							self.setStartPoint();
 
 							if (self.selection.offset>0) {
 								self.selection.offset--;
@@ -326,6 +351,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.setStartPoint = function(){
+			console.log("set start point", this.caret.x1);
 			this._StartCaret = {
 				x : this.caret.x1,
 				y : this.caret.y1
@@ -333,6 +359,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.resetStartPoint = function(){
+			console.log("reset start point");
 			delete(this._StartCaret);
 		};
 
@@ -341,6 +368,7 @@ Native.elements.export("UITextInput", {
 			this.__startTextSelectionProcessing = true;
 			this.__startx = e.x;
 			this.__starty = e.y;
+			console.log(e.x, e.y);
 		};
 
 		this._endMouseSelection = function(e){
@@ -598,8 +626,6 @@ Native.elements.export("UITextInput", {
 		 		size : size
 		 	}
 
-		 	console.log(this.selection.size);
-
 			this.caretCounter = 0;
 			this.updateOverlay();
 
@@ -684,11 +710,11 @@ Native.elements.export("UITextInput", {
 				h, 
 				params.y
 			);
-			//console.log("update")
 		};
 
 		this.setText(this.text);
 		this.resizeElement();
+		this.setStartPoint();
 	},
 
 	/* ---------------------------------------------------------------------- */
@@ -874,8 +900,6 @@ function getTextMatrixLines(element){
 		while (words.length > 0 && idx <= words.length) {
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
-
-				console.log(w);
 
 			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
 				offRght = offsetRight[k] ? offsetRight[k] : 0,
