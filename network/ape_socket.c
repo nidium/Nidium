@@ -192,6 +192,7 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
         closesocket(socket->s.fd);
 #else
         close(socket->s.fd);
+        printf("Close : %d\n", socket->s.fd);
 #endif
         printf("cant bind\n");
         return -1;
@@ -242,11 +243,10 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
     if (connect(socket->s.fd, (struct sockaddr *)&addr,
                 sizeof(struct sockaddr)) == 0 ||
                 (errno != EWOULDBLOCK && errno != EINPROGRESS)) {
+        printf("Socket error (fd : %d) (connect() failed) %s\n", socket->s.fd, strerror(errno));
         APE_socket_destroy(socket);
-        printf("Socket error (connect() failed)\n");
         return -1;
     }
-
     socket->states.type = APE_SOCKET_TP_CLIENT;
     socket->states.state = APE_SOCKET_ST_PROGRESS;
 
@@ -279,6 +279,7 @@ void APE_socket_shutdown(ape_socket *socket)
     if (socket->states.state == APE_SOCKET_ST_PROGRESS ||
         socket->states.state == APE_SOCKET_ST_PENDING) {
         close(APE_SOCKET_FD(socket));
+        printf("Close : %d\n", APE_SOCKET_FD(socket));
         return;
     }
     
@@ -312,6 +313,7 @@ static void ape_socket_shutdown_force(ape_socket *socket)
     if (socket->states.state == APE_SOCKET_ST_PROGRESS ||
         socket->states.state == APE_SOCKET_ST_PENDING) {
         close(APE_SOCKET_FD(socket));
+        printf("Close : %d\n", APE_SOCKET_FD(socket));
         return;
     }
     if (socket->states.state != APE_SOCKET_ST_ONLINE) {
@@ -366,6 +368,7 @@ int APE_socket_destroy(ape_socket *socket)
     closesocket(APE_SOCKET_FD(socket));
 #else
     close(APE_SOCKET_FD(socket));
+    printf("Close : %d\n", APE_SOCKET_FD(socket));
 #endif
     timer_dispatch_async(ape_socket_free, socket);
     
@@ -423,6 +426,7 @@ int APE_sendfile(ape_socket *socket, const char *file)
     } else {
         //printf("File sent...\n");
         close(fd);
+        printf("Close : %d\n", fd);
     }
     
     return 1;
@@ -543,9 +547,6 @@ int APE_socket_write(ape_socket *socket, unsigned char *data,
     
     return 0;
 }
-
-
-
 
 int ape_socket_do_jobs(ape_socket *socket)
 {

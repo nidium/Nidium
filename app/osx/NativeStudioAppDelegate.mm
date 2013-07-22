@@ -7,7 +7,9 @@
 #import <pthread.h>
 
 #import "NativeCocoaUIInterface.h"
+#import "NativeSystem.h"
 
+NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
 
 int ape_running = 1;
 int _nativebuild = 1002;

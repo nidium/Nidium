@@ -2,6 +2,9 @@
 #include "NativeSkia.h"
 #include "NativeJSCanvas.h"
 #include "NativeJS.h"
+#include "NativeUIInterface.h"
+#include "NativeSystemInterface.h"
+#include <jsstr.h>
 
 bool NativeJSNative::showFPS = false;
 
@@ -13,11 +16,65 @@ static JSClass Native_class = {
 };
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec Native_funcs[] = {
     JS_FN("showFPS", native_showfps, 1, 0),
+    JS_FN("setPasteBuffer", native_setPasteBuffer, 1, 0),
+    JS_FN("getPasteBuffer", native_getPasteBuffer, 0, 0),
     JS_FS_END
 };
+
+static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
+        &str)) {
+        return JS_TRUE;
+    }
+
+    char *text = JS_EncodeStringToUTF8(cx, str);
+
+    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+
+    NJS->UI->setClipboardText(text);
+
+    js_free(text);
+
+    return JS_TRUE;
+}
+
+static JSBool native_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
+{
+    using namespace js;
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+
+    char *text = NJS->UI->getClipboardText();
+
+    if (text == NULL) {
+        args.rval().setNull();
+        return true;
+    }
+
+    size_t len = strlen(text)*2;
+    jschar *jsc = new jschar[len];
+    js:InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
+
+    JSString *jret = JS_NewUCStringCopyN(cx, jsc, len);
+
+    args.rval().set(STRING_TO_JSVAL(jret));
+
+    free(text);
+    delete[] jsc;
+
+    return true;
+}
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
 {
