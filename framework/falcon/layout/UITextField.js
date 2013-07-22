@@ -22,7 +22,8 @@ Native.elements.export("UITextField", {
 	},
 
 	init : function(){
-		var o = this.options;
+		var self = this;
+			o = this.options;
 
 		this.setProperties({
 			fontSize  		: OptionalNumber(o.fontSize, 11),
@@ -79,6 +80,35 @@ Native.elements.export("UITextField", {
 			editable : true,
 			multiline : this.multiline
 		});
+
+		this.input.overlay.addEventListener("keyup", function(e){
+			if (!self.input.hasFocus) return false;
+
+			switch (e.keyCode) {
+				case 13 : // enter
+					console.log(self.input.text);
+					self.fireEvent("submit", {
+						value : self.input.text
+					});
+					break;
+			};
+		});
+
+
+
+		this.input.overlay.addEventListener("keydown", function(e){
+			if (!self.input.hasFocus) return false;
+
+			switch (e.keyCode) {
+				case 13 : // enter
+					console.log(self.input.text);
+					self.fireEvent("submit", {
+						value : self.input.text
+					});
+					break;
+			};
+		});
+
 	},
 
 	draw : function(context){}

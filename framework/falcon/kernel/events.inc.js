@@ -117,7 +117,22 @@ Native.events = {
 				continue;
 			}
 
+			if (name=='keydown'){
+				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
+					element.underCMDMode = true;
+				}
+			}
+
+			if (name=='keyup'){
+				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
+					element.underCMDMode = false;
+				}
+			}
+
 			if (name=='keydown' || name=='keyup' || name=='textinput'){
+				e.cmdKey = element.underCMDMode == undefined ?
+								false : element.underCMDMode;
+
 				element.fireEvent(name, e);
 			}
 

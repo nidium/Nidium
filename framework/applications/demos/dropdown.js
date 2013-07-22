@@ -23,7 +23,7 @@ var	myElements = [
 ];
 
 
-var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
+var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
 
 var field = main.add("UITextField", {
 	left : 10,
@@ -34,12 +34,16 @@ var field = main.add("UITextField", {
 
 field.value = text;
 
+field.input.addEventListener("submit", function(e){
+	console.log("submit", e.value);
+});
+
 var	button = new UIButton(main, {
 	left : 980,
 	top : 10,
 	label : "Go"
 }).click(function(){
-	console.log(field.value);
+	field.view.updateScrollLeft(-10);
 });
 
 var	dropDownController = main.add("UIDropDownController", {

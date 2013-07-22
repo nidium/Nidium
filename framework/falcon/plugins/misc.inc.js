@@ -86,6 +86,7 @@ Canvas.implement({
 
 		this.save();
 		this.globalAlpha = caretOpacity;
+		this.fillStyle = "#888888";
 		this.fillRect(cx, cy, 1, lineHeight - 2);
 		this.restore();
 	},

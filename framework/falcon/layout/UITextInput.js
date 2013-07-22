@@ -81,7 +81,6 @@ Native.elements.export("UITextInput", {
 				this.text = text.substr(0, 2048);
 				this._textMatrix = getTextLine(this);
 				this.resizeElement();
-				echo(this.text.length, this.width);
 			} else {
 				this._textMatrix = getTextMatrixLines(this);
 			}
@@ -160,7 +159,7 @@ Native.elements.export("UITextInput", {
 		this.overlay.addEventListener("keydown", function(e){
 			if (!self.hasFocus) return false;
 
-			if (e.ctrlKey) {
+			if (e.ctrlKey || e.cmdKey) {
 				switch (e.keyCode) {
 					case 65 : // CTRL-A
 						self.select();
@@ -200,12 +199,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 13 : // enter
-						self.parent.fireEvent("submit", {
-							value : self.text
-						});
 						break;
-
-
 
 					case 127 : // delete
 						self._insert(
@@ -487,6 +481,9 @@ Native.elements.export("UITextInput", {
 				} else {
 					self.setSelectionFromSingleLineCaret(self.caret);
 				}
+
+				self.scrollCheckSelection(e.x, e.y);
+
 			}
 		};
 
@@ -499,13 +496,22 @@ Native.elements.export("UITextInput", {
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
 
-			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/8);
-			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/8);
+			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/16);
+			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/16);
+		};
+
+		this.scrollCheckSelection = function(x, y){
+			var minx = this.parent.left + 10,
+				maxx = this.parent.left + this.parent.width;
+
+			if (x > maxx) {
+				this.parent.layer.scrollLeft += 5;
+			}
+			if (x < minx) { this.parent.updateScrollLeft(1); }
 		};
 
 		this.scrollToLineStart = function(){
 			var pos = this.parent.scrollLeft;
-			echo(pos);
 			this.parent.updateScrollLeft(pos);
 		};
 
