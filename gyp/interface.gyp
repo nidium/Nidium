@@ -25,6 +25,7 @@
                 'sources': [
                     '<(native_interface_path)/osx/NativeUIInterface.mm',
                     '<(native_interface_path)/osx/NativeUIConsole.mm',
+                    '<(native_interface_path)/osx/NativeSystem.mm',
                 ],
 			}],
             ['OS=="linux"', {

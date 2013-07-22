@@ -135,7 +135,7 @@ NativeUICocoaConsole::NativeUICocoaConsole()
 {
     this->window = [[NativeConsole alloc] init];
     this->needFlush = false;
-    [this->window attachToStdout];
+    //[this->window attachToStdout];
     this->hide();
 }
 
@@ -182,7 +182,7 @@ void NativeUICocoaConsole::log(const char *str)
     if (this->isHidden) {
         return;
     }
-    NSString *nstr = [NSString stringWithCString:str encoding:NSASCIIStringEncoding];
+    NSString *nstr = [NSString stringWithCString:str encoding:NSUTF8StringEncoding];
     [this->window log:nstr];
 }
 

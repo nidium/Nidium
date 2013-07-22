@@ -69,7 +69,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         str = JS_ValueToString(cx, argv[i]);
         if (!str)
             return false;
-        bytes = JS_EncodeString(cx, str);
+        bytes = JS_EncodeStringToUTF8(cx, str);
         if (!bytes)
             return false;
         if (i) {

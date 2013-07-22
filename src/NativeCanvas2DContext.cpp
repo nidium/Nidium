@@ -6,6 +6,7 @@
 #include "NativeJSImage.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
+#include "NativeSystemInterface.h"
 
 #include <SkDevice.h>
 #define GL_GLEXT_PROTOTYPES
@@ -1946,13 +1947,15 @@ void NativeCanvas2DContext::setSize(int width, int height)
     SkDevice *ndev;
     SkCanvas *ncanvas;
 
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
     const SkBitmap &bt = skia->canvas->getDevice()->accessBitmap(false);
  
     ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-                                width, height, false);
+                                width*ratio, height*ratio, false);
 
     if (ndev == NULL) {
-        printf("Cant create canvas of size %dx%d\n", width, height);
+        printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);
         return;
     }
 

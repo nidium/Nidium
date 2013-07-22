@@ -13,7 +13,7 @@
 #import <sys/stat.h>
 
 #define kNativeWidth 1024
-#define kNativeHeight 700
+#define kNativeHeight 768
 
 #define kNativeTitleBarHeight 0
 
@@ -233,10 +233,10 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     ui->nml->loadFile("./index.nml");
 }
 
-bool NativeCocoaUIInterface::stopApplication()
+/*bool NativeCocoaUIInterface::stopApplication()
 {
 
-}
+}*/
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
@@ -363,7 +363,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     //[window setMovableByWindowBackground:NO];
     //[window setOpaque:NO]; // YES by default
     //[window setAlphaValue:0.5];
-
+    NSView *openglview = [window contentView];
+    [openglview setWantsBestResolutionOpenGLSurface:YES];
+    NSLog(@"Scale : %f\n", [[NSScreen mainScreen] backingScaleFactor]);
     contexteOpenGL = SDL_GL_CreateContext(win);
     SDL_StartTextInput();
 
@@ -523,5 +525,15 @@ void NativeCocoaUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
     
-    events_loop(gnet);  
+    events_loop(gnet);
+}
+
+void NativeCocoaUIInterface::setClipboardText(const char *text)
+{
+    SDL_SetClipboardText(text);
+}
+
+char *NativeCocoaUIInterface::getClipboardText()
+{
+    return SDL_GetClipboardText();
 }

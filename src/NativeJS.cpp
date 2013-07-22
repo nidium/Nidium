@@ -19,7 +19,9 @@
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+
 #include "NativeUIInterface.h"
+#include "NativeSystemInterface.h"
 
 #include "NativeApp.h"
 

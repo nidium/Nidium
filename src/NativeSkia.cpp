@@ -8,6 +8,7 @@
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeSystemInterface.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
@@ -330,15 +331,18 @@ int NativeSkia::bindOnScreen(int width, int height)
         printf("Cant find GL context\n");
         return 0;
     }
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
     SkDevice *dev = NativeSkia::glcontext
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-                            width, height, false);
+                            width*ratio, height*ratio, false);
 
     if (dev == NULL) {
         printf("Failed to create onscreen canvas");
         return 0;
     }
     canvas = new SkCanvas(dev);
+    canvas->scale(SkFloatToScalar(ratio), SkFloatToScalar(ratio));
 
     SkSafeUnref(dev);
 
@@ -361,10 +365,13 @@ int NativeSkia::bindOffScreen(int width, int height)
 {
     SkBitmap bitmap;
 
-    bitmap.setConfig(SkBitmap::kARGB_8888_Config, width, height);
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    bitmap.setConfig(SkBitmap::kARGB_8888_Config, width*ratio, height*ratio);
     bitmap.allocPixels();
 
     canvas = new SkCanvas(bitmap);
+    canvas->scale(SkFloatToScalar(ratio), SkFloatToScalar(ratio));
 
     /* TODO: Move the following in a common methode (init) */
     globalAlpha = 255;
@@ -396,12 +403,14 @@ int NativeSkia::bindGL(int width, int height)
     if (context == NULL) {
         printf("Cant get context\n");
     }
+
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
     
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
     
-    desc.fWidth = SkScalarRound(width);
-    desc.fHeight = SkScalarRound(height);
+    desc.fWidth = SkScalarRound(width*ratio);
+    desc.fHeight = SkScalarRound(height*ratio);
     desc.fConfig = kSkia8888_GrPixelConfig;
     desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
 
@@ -430,6 +439,7 @@ int NativeSkia::bindGL(int width, int height)
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
     canvas = new SkCanvas(dev);
+    canvas->scale(SkFloatToScalar(ratio), SkFloatToScalar(ratio));
 
     if (NativeSkia::glcontext == NULL) {
         NativeSkia::glcontext = canvas;
@@ -1206,11 +1216,13 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
 {
     SkMatrix m;
 
-    m.setScaleX(SkDoubleToScalar(scalex));
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    m.setScaleX(SkDoubleToScalar(scalex*ratio));
     m.setSkewX(SkDoubleToScalar(skewx));
     m.setTranslateX(SkDoubleToScalar(translatex));
 
-    m.setScaleY(SkDoubleToScalar(scaley));
+    m.setScaleY(SkDoubleToScalar(scaley*ratio));
     m.setSkewY(SkDoubleToScalar(skewy));
     m.setTranslateY(SkDoubleToScalar(translatey));
 
