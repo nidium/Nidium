@@ -84,7 +84,8 @@ Native.elements.export("UITextInput", {
 
 		this.overlay = new UIElement(this, {
 			width : this.width,
-			heigh : this.height
+			heigh : this.height,
+			background : 'red'
 		});
 
 		/* ------------------------------------------------------------------ */
@@ -658,6 +659,7 @@ Native.elements.export("UITextInput", {
 					y2 : false
 				};
 
+			/* manage caret when multiline = false */
 
 			if (this.multiline === false) {
 				this.caret = {
@@ -673,6 +675,7 @@ Native.elements.export("UITextInput", {
 			 		size : size
 			 	}
 
+				/* select letters between (x1, 0) and (x2, 0) */
 				for (x=0, chars = m[0].letters; x<chars.length; x++){
 					chars[x].selected = false;
 					if (x >= this.caret.x1 && x < this.caret.x2) {
@@ -686,6 +689,9 @@ Native.elements.export("UITextInput", {
 			 	return this.selection;
 			}
 
+			/* manage caret when multiline = true */
+
+			/* select letters between (x1, y1) and (x2, y2) */
 			for (y=0; y<m.length; y++)
 				for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
 					chars[x].selected = false;
@@ -799,15 +805,19 @@ Native.elements.export("UITextInput", {
 
 				vOffset = (this.lineHeight/2)+5;
 
-			printTextOverlay(
-				this,
-				x,
-				y,
-				vOffset, 
-				w,
-				h, 
-				params.y
-			);
+			if (this.multiline) {
+				printTextOverlay(
+					this,
+					x,
+					y,
+					vOffset, 
+					w,
+					h, 
+					params.y
+				);
+			} else {
+				printLineOverlay(this, x, y, vOffset);
+			}
 		};
 
 		this.setText(this.text);
@@ -1125,6 +1135,33 @@ function printTextMatrix(element, x, y, vOffset, viewportWidth, viewportHeight, 
 		}
 	}
 }
+
+
+function printLineOverlay(element, x, y, vOffset){
+	var	context = element.overlay.layer.context,
+		textMatrix = element._textMatrix,
+		letters = textMatrix[0].letters,
+		caret = element.caret,
+		lineHeight = element.lineHeight,
+		caretOpacity = element.caretOpacity;
+
+	var tx = parseFloat(x),
+		ty = parseFloat(y + vOffset);
+
+	element.overlay.layer.clear();
+	context.setColor("rgba(180, 180, 255, 0.40)");
+	context.highlightLetters(letters, tx, ty - vOffset, lineHeight);
+
+	if (caretOpacity >= 0.10) {
+		context.setColor("rgba(0, 0, 0, 0.90)");
+		context.drawCaret(
+			letters, 
+			tx, ty, 
+			lineHeight, vOffset, caret.x1, caretOpacity
+		);
+	}
+}
+
 
 function printTextOverlay(element, x, y, vOffset, viewportWidth, viewportHeight, viewportTop){
 	var letters = [],
