@@ -199,6 +199,14 @@ Native.elements.export("UITextInput", {
 						);
 						break;
 
+					case 13 : // enter
+						self.parent.fireEvent("submit", {
+							value : self.text
+						});
+						break;
+
+
+
 					case 127 : // delete
 						self._insert(
 							'', 
@@ -207,6 +215,23 @@ Native.elements.export("UITextInput", {
 							self.selection.offset, 
 							0
 						);
+						break;
+
+					case 1073741898 : // LineStart
+						if (this.multiline) return false;
+						self.selection.offset = 0;
+						self.selection.size = 0;
+						self.setCaret(0, 0);
+						self.scrollToLineStart();
+						break;
+
+					case 1073741901 : // LineEnd
+						var maxLength = self.text.length; // after last char
+						if (this.multiline) return false;
+						self.selection.offset = maxLength;
+						self.selection.size = 0;
+						self.setCaret(maxLength, 0);
+						self.scrollToLineEnd();
 						break;
 
 					case 1073741906 : // up
@@ -476,6 +501,17 @@ Native.elements.export("UITextInput", {
 
 			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/8);
 			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/8);
+		};
+
+		this.scrollToLineStart = function(){
+			var pos = this.parent.scrollLeft;
+			echo(pos);
+			this.parent.updateScrollLeft(pos);
+		};
+
+		this.scrollToLineEnd = function(){
+			var pos = this.parent.left + this.parent.width - 20;
+			this.parent.updateScrollLeft(-pos);
 		};
 
 		this.matricialToPixel = function(cx, cy){
