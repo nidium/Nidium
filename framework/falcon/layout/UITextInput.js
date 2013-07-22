@@ -6,19 +6,19 @@ Native.elements.export("UITextInput", {
 	public : {
 		label : {
 			set : function(value){
-				this.resizeElement();
+				if (this.multiline === false) this.resizeElement();
 			}
 		},
 
 		fontSize : {
 			set : function(value){
-				this.resizeElement();
+				if (this.multiline === false) this.resizeElement();
 			}
 		},
 
 		fontType : {
 			set : function(value){
-				this.resizeElement();
+				if (this.multiline === false) this.resizeElement();
 			}
 		}
 	},
@@ -45,20 +45,17 @@ Native.elements.export("UITextInput", {
 		});
 
 		this.resizeElement = function(){
-			var w = Native.getTextWidth(
-				this._text,
-				this._fontSize,
-				this._fontType
-			);
+			var line = this._textMatrix ? this._textMatrix[0] : false,
+				letters = line ? line.letters : false,
+				nb_letters = letters ? letters.length : 0,
+				width = nb_letters ? letters[nb_letters-1].position + letters[nb_letters-1].width*2 : 0;
 
-			this._innerTextWidth = 
-				this._paddingLeft + 
-				Math.round(w) + 
-				this._paddingRight
-			;
+			this._innerTextWidth = width;
 
-			this.width = this._innerTextWidth;
-			this.overlay.width = this._innerTextWidth;
+			var minWidth = Math.max(this._innerTextWidth, this.parent.width);
+
+			this.width = Math.min(minWidth, 16364);
+			this.overlay.width = Math.min(minWidth, 16364);
 		};
 
 		this.padding = {
@@ -69,8 +66,8 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.overlay = new UIElement(this, {
-			width : this.width,
-			heigh : this.height
+			width : this.parent.width,
+			heigh : this.height,
 		});
 
 		/* ------------------------------------------------------------------ */
@@ -79,8 +76,12 @@ Native.elements.export("UITextInput", {
 			this.text = text;
 
 			if (this.multiline === false) {
-				this.resizeElement();
+				/* TODO : Fix Layer Issue (width is limited to 16384) */
+				/* so we limit nb chars to 2048 for inline input field */
+				this.text = text.substr(0, 2048);
 				this._textMatrix = getTextLine(this);
+				this.resizeElement();
+				echo(this.text.length, this.width);
 			} else {
 				this._textMatrix = getTextMatrixLines(this);
 			}
@@ -125,6 +126,7 @@ Native.elements.export("UITextInput", {
 			self._startMouseSelection(e);
 			self._doMouseSelection(e);
 			self._endMouseSelection();
+
 			self.setCaret(self.selection.offset, 0);
 			self.setStartPoint();
 			self.caretCounter = -20;
@@ -133,6 +135,11 @@ Native.elements.export("UITextInput", {
 		}, false);
 
 		/* ------------------------------------------------------------------ */
+
+		this.overlay.addEventListener("mousedblclick", function(e){
+			self.resetStartPoint();
+			self.select();
+		}, false);
 
 		this.overlay.addEventListener("dragstart", function(e){
 			self._startMouseSelection(e);
@@ -199,7 +206,8 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741906 : // up
-						if (self.caret.y1 >=1 && self.caret.y2 >= 1){
+						if (this.multiline) return false;
+						if (self.caret.y1 >= 1 && self.caret.y2 >= 1){
 							if (e.shiftKey){
 								self.caret.y1--;
 							} else {
@@ -212,6 +220,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741905 : // down
+						if (this.multiline) return false;
 						var nblines = self._textMatrix.length-1;
 						if (self.caret.y1 < nblines && self.caret.y2 < nblines){
 							if (e.shiftKey){
@@ -225,33 +234,100 @@ Native.elements.export("UITextInput", {
 						} 
 						break;
 
-					case 1073741903 : // left
+					case 1073741903 : // right
+						var maxLength = self.text.length-1,
+							x1 = self.selection.offset,
+							x2 = self.selection.offset + self.selection.size;
+
 						if (e.shiftKey){
-							self.setCaret(
-								++self.selection.offset, 
-								--self.selection.size
-							);
+							if (x1 < self._StartCaret.x) {
+								if (x1 <= maxLength) {
+									self.selection.offset++;
+									self.selection.size--;
+
+									self.setCaret(
+										self.selection.offset, 
+										self.selection.size
+									);
+								}
+							} else {
+								if (x2 <= maxLength) {
+									self.selection.size++;
+
+									self.setCaret(
+										self.selection.offset, 
+										self.selection.size
+									);
+
+									self.scrollCheck(
+										self.caret.x2,
+										self.caret.y2	
+									);
+								}
+							}
 						} else {
-							self.resetStartPoint();
-							self.setCaret(
-								++self.selection.offset, 
-								0
-							);
+							if (self.selection.offset <= maxLength) {
+								self.selection.offset++;
+
+								self.setCaret(
+									self.selection.offset, 
+									0
+								);
+
+								self.setStartPoint();
+
+								self.scrollCheck(
+									self.caret.x1,
+									self.caret.y1	
+								);
+							}
 						}
 						break;
 
-					case 1073741904 : // right
+					case 1073741904 : // left
+						var x1 = self.selection.offset,
+							x2 = self.selection.offset + self.selection.size;
+
 						if (e.shiftKey){
-							self.setCaret(
-								--self.selection.offset, 
-								++self.selection.size
-							);
+							if (x2 > self._StartCaret.x) {
+								self.selection.size--;
+
+								self.setCaret(
+									self.selection.offset, 
+									self.selection.size
+								);
+							} else {
+								if (x1 > 0) {
+									self.selection.offset--; 
+									self.selection.size++;
+
+									self.setCaret(
+										self.selection.offset, 
+										self.selection.size
+									);
+
+									self.scrollCheck(
+										self.caret.x1,
+										self.caret.y1	
+									);
+								}  
+							}  
 						} else {
-							self.resetStartPoint();
-							self.setCaret(
-								--self.selection.offset, 
-								0
-							);
+							if (self.selection.offset > 0) {
+								self.selection.offset--;
+
+								self.setCaret(
+									self.selection.offset, 
+									0
+								);
+
+								self.setStartPoint();
+
+								self.scrollCheck(
+									self.caret.x1,
+									self.caret.y1	
+								);
+							}
 						}
 						break;
 
@@ -318,7 +394,10 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.resetStartPoint = function(){
-			delete(this._StartCaret);
+			this._StartCaret = {
+				x : 0,
+				y : 0
+			};
 		};
 
 
@@ -334,6 +413,7 @@ Native.elements.export("UITextInput", {
 
 		this._doMouseSelection = function(e){
 			if (self.__startTextSelectionProcessing) {
+
 				self.mouseSelectionArea = {
 					x1 : self.__startx,
 					y1 : self.__starty,
@@ -373,12 +453,39 @@ Native.elements.export("UITextInput", {
 				r.y2 = isNaN(r.y2) ? 0 : r.y2;
 
 				self.setMatricialCaretFromRelativeMouseSelection(r);
-				self.setSelectionFromMatricialCaret(self.caret);
-
+				if (self.multiline) {
+					self.setSelectionFromMatricialCaret(self.caret);
+				} else {
+					self.setSelectionFromSingleLineCaret(self.caret);
+				}
 			}
 		};
 
 		/* ------------------------------------------------------------------ */
+
+		this.scrollCheck = function(cx, cy){
+			var x = this.matricialToPixel(cx, cy)[0],
+				minx = this.parent.left,
+				maxx = this.parent.left + this.parent.width - 20,
+
+				tx = x + this.parent.left - this.parent.scrollLeft;
+
+			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/8);
+			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/8);
+		};
+
+		this.matricialToPixel = function(cx, cy){
+			var line = this._textMatrix[cy],
+				vOffset = (this.lineHeight/2) + 5,
+
+				x = line && line.letters[cx] ?
+					line.letters[cx].position :
+					line.letters[cx-1].position + line.letters[cx-1].width,
+
+				y = vOffset + cy * this.lineHeight;
+
+			return [x, y];
+		};
 
 		this.setMatricialCaretFromRelativeMouseSelection = function(r){
 			var m = this._textMatrix;
@@ -457,6 +564,7 @@ Native.elements.export("UITextInput", {
 		this._insert = function(text, offset, size, newoffset, newsize){
 			this.setText(this.text.splice(offset, size, text));
 			this.setCaret(newoffset, newsize);
+			this.scrollCheck(this.caret.x2, this.caret.y2);			
 		};
 
 		this.replace = function(text){
@@ -496,15 +604,16 @@ Native.elements.export("UITextInput", {
 
 		this.copy = function(){
 			if (this.selection.size>0) {
-				Native.pasteBuffer = this.selection.text;
+				Native.setPasteBuffer(this.selection.text);
 			} else {
-				Native.pasteBuffer = '';
+				Native.clearPasteBuffer();
 			}
 		};
 
 		this.paste = function(){
-			if (Native.pasteBuffer != '') {
-				this.replace(Native.pasteBuffer);
+			var pasteBuffer = Native.getPasteBuffer();
+			if (pasteBuffer) {
+				this.replace(pasteBuffer);
 			}
 		};
 
@@ -522,6 +631,7 @@ Native.elements.export("UITextInput", {
 
 		this.setCaret = function(offset, size){
 			/* 3 times faster than setSelectionFromMatricialCaret */
+
 			offset = Math.max(
 				0,
 				(typeof(offset)!=undefined ? parseInt(offset, 10) : 0)
@@ -544,6 +654,39 @@ Native.elements.export("UITextInput", {
 					y2 : false
 				};
 
+			/* manage caret when multiline = false */
+
+			if (this.multiline === false) {
+				this.caret = {
+					x1 : offset,
+					y1 : 0,
+					x2 : offset + size,
+					y2 : 0
+				};
+				
+				this.selection = {
+			 		text : this.text.substr(offset, size),
+			 		offset : offset,
+			 		size : size
+			 	}
+
+				/* select letters between (x1, 0) and (x2, 0) */
+				for (x=0, chars = m[0].letters; x<chars.length; x++){
+					chars[x].selected = false;
+					if (x >= this.caret.x1 && x < this.caret.x2) {
+						chars[x].selected = true;
+					}
+				}
+
+				this.caretCounter = 0;
+				this.updateOverlay();
+
+			 	return this.selection;
+			}
+
+			/* manage caret when multiline = true */
+
+			/* select letters between (x1, y1) and (x2, y2) */
 			for (y=0; y<m.length; y++)
 				for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
 					chars[x].selected = false;
@@ -575,7 +718,7 @@ Native.elements.export("UITextInput", {
 				}
 
 			this.caret = c;
-
+			
 			this.selection = {
 		 		text : this.text.substr(offset, size),
 		 		offset : offset,
@@ -586,6 +729,13 @@ Native.elements.export("UITextInput", {
 			this.updateOverlay();
 
 		 	return this.selection;
+		};
+
+		this.setSelectionFromSingleLineCaret = function(c){
+		 	var offset = c.x1,
+		 		size = c.x2 - c.x1;
+
+		 	this.setCaret(offset, size);
 		};
 
 		this.setSelectionFromMatricialCaret = function(c){
@@ -608,7 +758,7 @@ Native.elements.export("UITextInput", {
 		 			nush = m[line].letters[char+1] ? m[line].letters[char+1].position - letter.position - letter.width : 0;
 
 		 		letter.selected = true;
-		 		letter.fullWidth = letter.width + nush + 0.25
+		 		letter.fullWidth = letter.width + nush + 0.25;
 		 		selection.push(letter.char);
 		 		size++;
 		 	};
@@ -657,20 +807,23 @@ Native.elements.export("UITextInput", {
 
 				vOffset = (this.lineHeight/2)+5;
 
-			printTextOverlay(
-				this,
-				x,
-				y,
-				vOffset, 
-				w,
-				h, 
-				params.y
-			);
-			//console.log("update")
+			if (this.multiline) {
+				printTextOverlay(
+					this,
+					x,
+					y,
+					vOffset, 
+					w,
+					h, 
+					params.y
+				);
+			} else {
+				printLineOverlay(this, x, y, vOffset);
+			}
 		};
 
 		this.setText(this.text);
-		this.resizeElement();
+		this.resetStartPoint();
 	},
 
 	/* ---------------------------------------------------------------------- */
@@ -702,6 +855,37 @@ Native.elements.export("UITextInput", {
 
 	}
 });
+
+function getUnilineLetters(context, wordsArray, fontSize){
+	var widthOf = context.measureText,
+		textLine = wordsArray.join(' '),
+		__cache = [],
+		position = 0,
+		letters = [];
+
+	// cache width of letters
+	var cachedLetterWidth = function(char){
+		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char);
+	}
+
+	context.setFontSize(fontSize);
+
+	for (var i=0; i<textLine.length; i++){
+		var char = textLine[i],
+			letterWidth = Math.floor(cachedLetterWidth(char));
+
+		letters[i] = {
+			char : char,
+			position : position,
+			width : letterWidth,
+			linegap : 0,
+			selected : false
+		};
+		position += letterWidth;
+	}
+
+	return letters;
+}
 
 function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 	var widthOf = context.measureText,
@@ -756,9 +940,7 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 	for (var i=0; i<textLine.length; i++){
 		var char = textLine[i],
-			letterWidth = cachedLetterWidth(char);
-
-		letterWidth *= 0.899;
+			letterWidth = Math.floor(cachedLetterWidth(char));
 
 		if (textAlign=="justify"){
 			if (char == " "){
@@ -775,7 +957,7 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 		letters[i] = {
 			char : char,
-			position : Math.round(offsetLeft + offset + position + offgap),
+			position : (offsetLeft + offset + position + offgap),
 			width : letterWidth,
 			linegap : linegap,
 			selected : false
@@ -806,8 +988,6 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 function getTextLine(element){
 	var	text = element.text,
-		fontSize = element.fontSize,
-		fitWidth = element.parent ? element.parent.width : element.width,
 		matrix = [],
 		wordsArray = text.split(' '),
 		context = element.layer.context;
@@ -816,13 +996,10 @@ function getTextLine(element){
 		text : text,
 		align : "left",
 		words : wordsArray,
-		letters : getLineLetters(
+		letters : getUnilineLetters(
 			context,
 			wordsArray,
-			"left",
-			0,
-			fitWidth,
-			fontSize
+			element.fontSize
 		)
 	};
 
@@ -856,8 +1033,6 @@ function getTextMatrixLines(element){
 		while (words.length > 0 && idx <= words.length) {
 			var str = words.slice(0, idx).join(' '),
 				w = context.measureText(str);
-
-				console.log(w);
 
 			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
 				offRght = offsetRight[k] ? offsetRight[k] : 0,
@@ -962,6 +1137,33 @@ function printTextMatrix(element, x, y, vOffset, viewportWidth, viewportHeight, 
 		}
 	}
 }
+
+
+function printLineOverlay(element, x, y, vOffset){
+	var	context = element.overlay.layer.context,
+		textMatrix = element._textMatrix,
+		letters = textMatrix[0].letters,
+		caret = element.caret,
+		lineHeight = element.lineHeight,
+		caretOpacity = element.caretOpacity;
+
+	var tx = parseFloat(x),
+		ty = parseFloat(y + vOffset);
+
+	element.overlay.layer.clear();
+	context.setColor("rgba(180, 180, 255, 0.40)");
+	context.highlightLetters(letters, tx, ty - vOffset, lineHeight);
+
+	if (caretOpacity >= 0.10) {
+		context.setColor("rgba(0, 0, 0, 0.90)");
+		context.drawCaret(
+			letters, 
+			tx, ty, 
+			lineHeight, vOffset, caret.x1, caretOpacity
+		);
+	}
+}
+
 
 function printTextOverlay(element, x, y, vOffset, viewportWidth, viewportHeight, viewportTop){
 	var letters = [],

@@ -6,6 +6,7 @@
 
 /* -- Falcon Framework ------------------ */
 load("../scripts/preload.js");
+load("falcon/native.js");
 
 //load("applications/demos/hello.js");
 //load("applications/demos/motion.js");
@@ -32,6 +33,7 @@ load("applications/demos/dropdown.js");
 
 	//load("testLayer.js");
 	//load("testArc.js");
+	//load("testRetina.js");
 
 
 /* MEDIA API */

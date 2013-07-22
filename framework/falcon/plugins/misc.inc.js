@@ -66,17 +66,26 @@ Canvas.implement({
 	},
 
 	drawCaret : function(letters, x, y, lineHeight, vOffset, caretPosition, caretOpacity){
-		var c, cx;
-		for (var i=0; i<letters.length; i++){
-			c = letters[i];
-			cx = x + c.position;
-			if (i == caretPosition){
-				this.save();
-				this.globalAlpha = caretOpacity;
-				this.fillRect(Math.floor(cx), y - vOffset+1, 1, lineHeight-2);
-				this.restore();
-			}
+		x = parseFloat(x);
+		y = parseFloat(y);
+		vOffset = parseFloat(vOffset);
+
+		var i = caretPosition,
+			cx = 0,
+			cy = y - vOffset + 1;
+
+
+		if (caretPosition < letters.length) {
+			cx = Math.floor(x + letters[i].position);
+		} else {
+			/* caret after last char */
+			cx = Math.floor(x + letters[i-1].position + letters[i-1].width);
 		}
+
+		this.save();
+		this.globalAlpha = caretOpacity;
+		this.fillRect(cx, cy, 1, lineHeight - 2);
+		this.restore();
 	},
 
 	drawLetters : function(letters, x, y){
