@@ -6,6 +6,7 @@
 
 /* -- Falcon Framework ------------------ */
 load("../scripts/preload.js");
+load("falcon/native.js");
 
 //load("applications/demos/hello.js");
 //load("applications/demos/motion.js");
@@ -24,6 +25,24 @@ load("applications/demos/dropdown.js");
 //load("applications/demos/flickr.js");
 //load("applications/demos/http.js");
 //load("applications/demos/zip.js");
+
+/*
+var m = new Canvas(512, 384);
+m.padding = 20;
+Native.canvas.add(m);
+
+m.ctx.fillStyle = "red";
+m.ctx.fillRect(0, 0, 1024, 768);
+
+
+var z = new Canvas(200, 200);
+z.padding = 20;
+z.left = 0;
+z.top = 0;
+z.ctx.fillStyle = "blue";
+z.ctx.fillRect(0, 0, 200, 200);
+m.add(z);
+*/
 
 //load("applications/demos/text.js");
 //load("applications/demos/test.js");

@@ -94,6 +94,7 @@ load(__PATH_LAYOUT__ + 'UIToolTip.js');
 load(__PATH_LAYOUT__ + 'UIVideo.js');
 
 load(__PATH_LAYOUT__ + 'UITextInput.js');
+load(__PATH_LAYOUT__ + 'UITextField.js');
 load(__PATH_LAYOUT__ + 'UITextNode.js');
 load(__PATH_LAYOUT__ + 'UITextController.js');
 load(__PATH_LAYOUT__ + 'UITextMatrix.js');

@@ -45,6 +45,7 @@ Native.elements.export("UITextInput", {
 		});
 
 		this.resizeElement = function(){
+			/*
 			var w = Native.getTextWidth(
 				this._text,
 				this._fontSize,
@@ -55,10 +56,18 @@ Native.elements.export("UITextInput", {
 				this._paddingLeft + 
 				Math.round(w) + 
 				this._paddingRight +
-				3
+				4
 			;
+			*/
 
-			this.width = this._innerTextWidth;
+			var line = this._textMatrix ? this._textMatrix[0] : false,
+				letters = line ? line.letters : false,
+				nb_letters = letters ? letters.length : 0,
+				width = nb_letters ? letters[nb_letters-1].position + letters[nb_letters-1].width : 0;
+
+			this._innerTextWidth = width;
+
+			this.width = Math.min(this._innerTextWidth, this.parent.width);
 			this.overlay.width = this._innerTextWidth;
 		};
 
@@ -135,6 +144,11 @@ Native.elements.export("UITextInput", {
 
 		/* ------------------------------------------------------------------ */
 
+		this.overlay.addEventListener("mousedblclick", function(e){
+			self.resetStartPoint();
+			self.select();
+		}, false);
+
 		this.overlay.addEventListener("dragstart", function(e){
 			self._startMouseSelection(e);
 		}, false);
@@ -200,7 +214,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741906 : // up
-						if (self.caret.y1 >=1 && self.caret.y2 >= 1){
+						if (self.caret.y1 >= 1 && self.caret.y2 >= 1){
 							if (e.shiftKey){
 								self.caret.y1--;
 							} else {
@@ -233,7 +247,7 @@ Native.elements.export("UITextInput", {
 
 						if (e.shiftKey){
 							if (x1 < self._StartCaret.x) {
-								if (x1 < maxLength) {
+								if (x1 <= maxLength) {
 									self.selection.offset++;
 									self.selection.size--;
 
@@ -243,7 +257,7 @@ Native.elements.export("UITextInput", {
 									);
 								}
 							} else {
-								if (x2 < maxLength) {
+								if (x2 <= maxLength) {
 									self.selection.size++;
 
 									self.setCaret(
@@ -258,15 +272,15 @@ Native.elements.export("UITextInput", {
 								}
 							}
 						} else {
-							self.setStartPoint();
-
-							if (self.selection.offset<maxLength) {
+							if (self.selection.offset <= maxLength) {
 								self.selection.offset++;
 
 								self.setCaret(
 									self.selection.offset, 
 									0
 								);
+
+								self.setStartPoint();
 
 								self.scrollCheck(
 									self.caret.x1,
@@ -305,15 +319,16 @@ Native.elements.export("UITextInput", {
 								}  
 							}  
 						} else {
-							self.setStartPoint();
-
-							if (self.selection.offset>0) {
+							if (self.selection.offset > 0) {
 								self.selection.offset--;
 
 								self.setCaret(
 									self.selection.offset, 
 									0
 								);
+
+								self.setStartPoint();
+								console.log(self._StartCaret.x)
 
 								self.scrollCheck(
 									self.caret.x1,
@@ -383,10 +398,15 @@ Native.elements.export("UITextInput", {
 				x : this.caret.x1,
 				y : this.caret.y1
 			};
+			console.log("setstart", this.caret.x1, this.caret.y1);
 		};
 
 		this.resetStartPoint = function(){
-			delete(this._StartCaret);
+			this._StartCaret = {
+				x : 0,
+				y : 0
+			};
+			console.log("reset start caret")
 		};
 
 
@@ -452,12 +472,12 @@ Native.elements.export("UITextInput", {
 		this.scrollCheck = function(cx, cy){
 			var x = this.matricialToPixel(cx, cy)[0],
 				minx = this.parent.left,
-				maxx = this.parent.left + this.parent.width - 8,
+				maxx = this.parent.left + this.parent.width - 20,
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
 
-			if (tx > maxx) this.parent.updateScrollLeft((maxx-tx)*4);
-			if (tx < minx) this.parent.updateScrollLeft((minx-tx)*4);
+			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/8);
+			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/8);
 
 		};
 
@@ -546,6 +566,7 @@ Native.elements.export("UITextInput", {
 		this._insert = function(text, offset, size, newoffset, newsize){
 			this.setText(this.text.splice(offset, size, text));
 			this.setCaret(newoffset, newsize);
+			this.scrollCheck(this.caret.x2, this.caret.y2);			
 		};
 
 		this.replace = function(text){
@@ -585,15 +606,16 @@ Native.elements.export("UITextInput", {
 
 		this.copy = function(){
 			if (this.selection.size>0) {
-				Native.pasteBuffer = this.selection.text;
+				Native.setPasteBuffer(this.selection.text);
 			} else {
-				Native.pasteBuffer = '';
+				Native.clearPasteBuffer();
 			}
 		};
 
 		this.paste = function(){
-			if (Native.pasteBuffer != '') {
-				this.replace(Native.pasteBuffer);
+			var pasteBuffer = Native.getPasteBuffer();
+			if (pasteBuffer) {
+				this.replace(pasteBuffer);
 			}
 		};
 
@@ -760,7 +782,7 @@ Native.elements.export("UITextInput", {
 
 		this.setText(this.text);
 		this.resizeElement();
-		this.setStartPoint();
+		this.resetStartPoint();
 	},
 
 	/* ---------------------------------------------------------------------- */
@@ -846,9 +868,7 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 	for (var i=0; i<textLine.length; i++){
 		var char = textLine[i],
-			letterWidth = cachedLetterWidth(char);
-
-		letterWidth *= 0.899;
+			letterWidth = Math.floor(cachedLetterWidth(char));
 
 		if (textAlign=="justify"){
 			if (char == " "){
@@ -865,7 +885,7 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 		letters[i] = {
 			char : char,
-			position : Math.round(offsetLeft + offset + position + offgap),
+			position : (offsetLeft + offset + position + offgap),
 			width : letterWidth,
 			linegap : linegap,
 			selected : false

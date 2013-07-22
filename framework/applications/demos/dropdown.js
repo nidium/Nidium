@@ -2,7 +2,7 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-var main = new Application({background:"#ffffff"});
+var main = new Application({background:"#e0e0e0"});
 main.className = "main";
 
 var	myElements = [
@@ -25,46 +25,22 @@ var	myElements = [
 
 var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
 
-var textView = main.add("UIView", {
-	left : 280,
-	top : 50,
-	width : 200,
-	height : 22,
-	background : "white",
-	radius : 3,
-	borderWidth : 1,
-	borderColor : "rgba(0, 0, 0, 0.09)",
-	shadowBlur : 4,
-	shadowColor : "rgba(0, 0, 0, 0.10)",
-	shadowOffsetY : 2,
-	overflow : false,
-	scrollable : true,
-	scrollBarX : false,
-	scrollBarY : false
+var field = main.add("UITextField", {
+	left : 10,
+	top : 10,
+	width : 960,
+	fontSize : 12
 });
 
-var textInput = textView.add("UITextInput", {
-	left : 3,
-	top : 0,
-	height : 46,
-	fontSize : 12,
-	lineHeight : 22,
-	text : text,
-	textAlign : "left",
-	editable : true,
-	multiline : false
-});
-
+field.value = "http://www.google.com/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w";
 
 var	button = new UIButton(main, {
-	left : 490,
-	top : 50,
-	label : "Do It"
+	left : 980,
+	top : 10,
+	label : "Go"
 }).click(function(){
-	textView.updateScrollLeft(-1);
+	console.log(field.value);
 });
-
-
 
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,

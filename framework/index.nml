@@ -8,7 +8,6 @@
 		<robots>index, follow</robots>
 	</meta>
 	<assets>
-		<script type="native/javascript" src="falcon/native.js"></script>
 		<script type="native/javascript" src="main.js"></script>
 	</assets>
 </application>
