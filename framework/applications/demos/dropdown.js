@@ -28,11 +28,11 @@ var text = "In olden times when wishing still helped one when wishing still help
 var field = main.add("UITextField", {
 	left : 10,
 	top : 10,
-	width : 960,
+	width : 400,
 	fontSize : 12
 });
 
-field.value = "http://www.google.com/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w/w";
+field.value = "XXXXXXX";
 
 var	button = new UIButton(main, {
 	left : 980,

@@ -6,19 +6,19 @@ Native.elements.export("UITextInput", {
 	public : {
 		label : {
 			set : function(value){
-				this.resizeElement();
+				if (this.multiline === false) this.resizeElement();
 			}
 		},
 
 		fontSize : {
 			set : function(value){
-				this.resizeElement();
+				if (this.multiline === false) this.resizeElement();
 			}
 		},
 
 		fontType : {
 			set : function(value){
-				this.resizeElement();
+				if (this.multiline === false) this.resizeElement();
 			}
 		}
 	},
@@ -63,12 +63,16 @@ Native.elements.export("UITextInput", {
 			var line = this._textMatrix ? this._textMatrix[0] : false,
 				letters = line ? line.letters : false,
 				nb_letters = letters ? letters.length : 0,
-				width = nb_letters ? letters[nb_letters-1].position + letters[nb_letters-1].width : 0;
+				width = nb_letters ? letters[nb_letters-1].position + letters[nb_letters-1].width*2 : 0;
 
 			this._innerTextWidth = width;
 
-			this.width = Math.min(this._innerTextWidth, this.parent.width);
+			this.width = Math.max(this._innerTextWidth, this.parent.width);
 			this.overlay.width = this._innerTextWidth;
+
+			echo(this.width, this.overlay.width);
+
+
 		};
 
 		this.padding = {
@@ -89,8 +93,8 @@ Native.elements.export("UITextInput", {
 			this.text = text;
 
 			if (this.multiline === false) {
-				this.resizeElement();
 				this._textMatrix = getTextLine(this);
+				this.resizeElement();
 			} else {
 				this._textMatrix = getTextMatrixLines(this);
 			}
@@ -328,7 +332,6 @@ Native.elements.export("UITextInput", {
 								);
 
 								self.setStartPoint();
-								console.log(self._StartCaret.x)
 
 								self.scrollCheck(
 									self.caret.x1,
@@ -398,7 +401,6 @@ Native.elements.export("UITextInput", {
 				x : this.caret.x1,
 				y : this.caret.y1
 			};
-			console.log("setstart", this.caret.x1, this.caret.y1);
 		};
 
 		this.resetStartPoint = function(){
@@ -406,7 +408,6 @@ Native.elements.export("UITextInput", {
 				x : 0,
 				y : 0
 			};
-			console.log("reset start caret")
 		};
 
 
@@ -414,7 +415,6 @@ Native.elements.export("UITextInput", {
 			this.__startTextSelectionProcessing = true;
 			this.__startx = e.x;
 			this.__starty = e.y;
-			console.log(e.x, e.y);
 		};
 
 		this._endMouseSelection = function(e){
@@ -475,6 +475,8 @@ Native.elements.export("UITextInput", {
 				maxx = this.parent.left + this.parent.width - 20,
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
+
+			console.log(x, this.parent.left, maxx, tx, this.parent.scrollLeft);
 
 			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/8);
 			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/8);
@@ -656,6 +658,34 @@ Native.elements.export("UITextInput", {
 					y2 : false
 				};
 
+
+			if (this.multiline === false) {
+				this.caret = {
+					x1 : offset,
+					y1 : 0,
+					x2 : offset + size,
+					y2 : 0
+				};
+				
+				this.selection = {
+			 		text : this.text.substr(offset, size),
+			 		offset : offset,
+			 		size : size
+			 	}
+
+				for (x=0, chars = m[0].letters; x<chars.length; x++){
+					chars[x].selected = false;
+					if (x >= this.caret.x1 && x < this.caret.x2) {
+						chars[x].selected = true;
+					}
+				}
+
+				this.caretCounter = 0;
+				this.updateOverlay();
+
+			 	return this.selection;
+			}
+
 			for (y=0; y<m.length; y++)
 				for (x=0, chars = m[y].letters; x<chars.length && s>-1; x++){
 					chars[x].selected = false;
@@ -781,7 +811,6 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.setText(this.text);
-		this.resizeElement();
 		this.resetStartPoint();
 	},
 
@@ -814,6 +843,37 @@ Native.elements.export("UITextInput", {
 
 	}
 });
+
+function getUnilineLetters(context, wordsArray, fontSize){
+	var widthOf = context.measureText,
+		textLine = wordsArray.join(' '),
+		__cache = [],
+		position = 0,
+		letters = [];
+
+	// cache width of letters
+	var cachedLetterWidth = function(char){
+		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char);
+	}
+
+	context.setFontSize(fontSize);
+
+	for (var i=0; i<textLine.length; i++){
+		var char = textLine[i],
+			letterWidth = Math.floor(cachedLetterWidth(char));
+
+		letters[i] = {
+			char : char,
+			position : position,
+			width : letterWidth,
+			linegap : 0,
+			selected : false
+		};
+		position += letterWidth;
+	}
+
+	return letters;
+}
 
 function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fontSize){
 	var widthOf = context.measureText,
@@ -916,8 +976,6 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 function getTextLine(element){
 	var	text = element.text,
-		fontSize = element.fontSize,
-		fitWidth = element.parent ? element.parent.width : element.width,
 		matrix = [],
 		wordsArray = text.split(' '),
 		context = element.layer.context;
@@ -926,13 +984,10 @@ function getTextLine(element){
 		text : text,
 		align : "left",
 		words : wordsArray,
-		letters : getLineLetters(
+		letters : getUnilineLetters(
 			context,
 			wordsArray,
-			"left",
-			0,
-			fitWidth,
-			fontSize
+			element.fontSize
 		)
 	};
 
