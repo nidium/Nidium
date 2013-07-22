@@ -162,6 +162,10 @@ Native.elements.export("UITextInput", {
 
 			if (e.ctrlKey) {
 				switch (e.keyCode) {
+					case 65 : // CTRL-A
+						self.select();
+						break;
+
 					case 88 : // CTRL-X
 						self.cut();
 						break;
