@@ -26,24 +26,6 @@ load("applications/demos/dropdown.js");
 //load("applications/demos/http.js");
 //load("applications/demos/zip.js");
 
-/*
-var m = new Canvas(512, 384);
-m.padding = 20;
-Native.canvas.add(m);
-
-m.ctx.fillStyle = "red";
-m.ctx.fillRect(0, 0, 1024, 768);
-
-
-var z = new Canvas(200, 200);
-z.padding = 20;
-z.left = 0;
-z.top = 0;
-z.ctx.fillStyle = "blue";
-z.ctx.fillRect(0, 0, 200, 200);
-m.add(z);
-*/
-
 //load("applications/demos/text.js");
 //load("applications/demos/test.js");
 
@@ -51,6 +33,7 @@ m.add(z);
 
 	//load("testLayer.js");
 	//load("testArc.js");
+	//load("testRetina.js");
 
 
 /* MEDIA API */

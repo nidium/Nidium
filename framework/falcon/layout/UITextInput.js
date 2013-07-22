@@ -45,21 +45,6 @@ Native.elements.export("UITextInput", {
 		});
 
 		this.resizeElement = function(){
-			/*
-			var w = Native.getTextWidth(
-				this._text,
-				this._fontSize,
-				this._fontType
-			);
-
-			this._innerTextWidth = 
-				this._paddingLeft + 
-				Math.round(w) + 
-				this._paddingRight +
-				4
-			;
-			*/
-
 			var line = this._textMatrix ? this._textMatrix[0] : false,
 				letters = line ? line.letters : false,
 				nb_letters = letters ? letters.length : 0,
@@ -67,12 +52,10 @@ Native.elements.export("UITextInput", {
 
 			this._innerTextWidth = width;
 
-			this.width = Math.max(this._innerTextWidth, this.parent.width);
-			this.overlay.width = this._innerTextWidth;
+			var minWidth = Math.max(this._innerTextWidth, this.parent.width);
 
-			echo(this.width, this.overlay.width);
-
-
+			this.width = Math.min(minWidth, 16364);
+			this.overlay.width = Math.min(minWidth, 16364);
 		};
 
 		this.padding = {
@@ -83,9 +66,8 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.overlay = new UIElement(this, {
-			width : this.width,
+			width : this.parent.width,
 			heigh : this.height,
-			background : 'red'
 		});
 
 		/* ------------------------------------------------------------------ */
@@ -94,8 +76,12 @@ Native.elements.export("UITextInput", {
 			this.text = text;
 
 			if (this.multiline === false) {
+				/* TODO : Fix Layer Issue (width is limited to 16384) */
+				/* so we limit nb chars to 2048 for inline input field */
+				this.text = text.substr(0, 2048);
 				this._textMatrix = getTextLine(this);
 				this.resizeElement();
+				echo(this.text.length, this.width);
 			} else {
 				this._textMatrix = getTextMatrixLines(this);
 			}
@@ -140,6 +126,7 @@ Native.elements.export("UITextInput", {
 			self._startMouseSelection(e);
 			self._doMouseSelection(e);
 			self._endMouseSelection();
+
 			self.setCaret(self.selection.offset, 0);
 			self.setStartPoint();
 			self.caretCounter = -20;
@@ -219,6 +206,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741906 : // up
+						if (this.multiline) return false;
 						if (self.caret.y1 >= 1 && self.caret.y2 >= 1){
 							if (e.shiftKey){
 								self.caret.y1--;
@@ -232,6 +220,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741905 : // down
+						if (this.multiline) return false;
 						var nblines = self._textMatrix.length-1;
 						if (self.caret.y1 < nblines && self.caret.y2 < nblines){
 							if (e.shiftKey){
@@ -424,6 +413,7 @@ Native.elements.export("UITextInput", {
 
 		this._doMouseSelection = function(e){
 			if (self.__startTextSelectionProcessing) {
+
 				self.mouseSelectionArea = {
 					x1 : self.__startx,
 					y1 : self.__starty,
@@ -463,8 +453,11 @@ Native.elements.export("UITextInput", {
 				r.y2 = isNaN(r.y2) ? 0 : r.y2;
 
 				self.setMatricialCaretFromRelativeMouseSelection(r);
-				self.setSelectionFromMatricialCaret(self.caret);
-
+				if (self.multiline) {
+					self.setSelectionFromMatricialCaret(self.caret);
+				} else {
+					self.setSelectionFromSingleLineCaret(self.caret);
+				}
 			}
 		};
 
@@ -477,18 +470,20 @@ Native.elements.export("UITextInput", {
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
 
-			console.log(x, this.parent.left, maxx, tx, this.parent.scrollLeft);
-
 			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/8);
 			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/8);
-
 		};
 
 		this.matricialToPixel = function(cx, cy){
 			var line = this._textMatrix[cy],
-				vOffset = (this.lineHeight/2)+5,
-				x = line && line.letters[cx] ? line.letters[cx].position : 0,
+				vOffset = (this.lineHeight/2) + 5,
+
+				x = line && line.letters[cx] ?
+					line.letters[cx].position :
+					line.letters[cx-1].position + line.letters[cx-1].width,
+
 				y = vOffset + cy * this.lineHeight;
+
 			return [x, y];
 		};
 
@@ -736,6 +731,13 @@ Native.elements.export("UITextInput", {
 		 	return this.selection;
 		};
 
+		this.setSelectionFromSingleLineCaret = function(c){
+		 	var offset = c.x1,
+		 		size = c.x2 - c.x1;
+
+		 	this.setCaret(offset, size);
+		};
+
 		this.setSelectionFromMatricialCaret = function(c){
 			/* 10 times faster than the old method */
 			var m = this._textMatrix,
@@ -756,7 +758,7 @@ Native.elements.export("UITextInput", {
 		 			nush = m[line].letters[char+1] ? m[line].letters[char+1].position - letter.position - letter.width : 0;
 
 		 		letter.selected = true;
-		 		letter.fullWidth = letter.width + nush + 0.25
+		 		letter.fullWidth = letter.width + nush + 0.25;
 		 		selection.push(letter.char);
 		 		size++;
 		 	};

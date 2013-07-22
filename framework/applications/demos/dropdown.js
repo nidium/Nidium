@@ -32,7 +32,7 @@ var field = main.add("UITextField", {
 	fontSize : 12
 });
 
-field.value = "XXXXXXX";
+field.value = "XXXXXXX.";
 
 var	button = new UIButton(main, {
 	left : 980,
