@@ -74,8 +74,10 @@ Canvas.implement({
 			cx = 0,
 			cy = y - vOffset + 1;
 
-
-		if (caretPosition < letters.length) {
+		if (caretPosition == 0 && letters.length == 0) {
+			/* empty text : caret to the begining of the line */
+			cx = Math.floor(x);
+		} else if (caretPosition < letters.length) {
 			cx = Math.floor(x + letters[i].position);
 		} else {
 			/* caret after last char */

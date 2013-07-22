@@ -510,7 +510,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.scrollToLineEnd = function(){
-			var pos = this.parent.left + this.parent.width - 20;
+			var pos = this.width;
 			this.parent.updateScrollLeft(-pos);
 		};
 
