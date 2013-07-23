@@ -31,6 +31,7 @@
             ['OS=="linux"', {
                 'sources': [
                     '<(native_interface_path)/linux/NativeUIInterface.cpp',
+                    '<(native_interface_path)/linux/NativeSystem.cpp',
                 ],
                 'include_dirs': [
                     '<(native_interface_path)/linux/',

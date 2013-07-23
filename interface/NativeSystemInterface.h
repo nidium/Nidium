@@ -7,19 +7,19 @@ class NativeSystem;
 
 class NativeSystemInterface
 {
-	public:
-		static NativeSystemInterface *_interface;
+    public:
+        static NativeSystemInterface *_interface;
 
-		virtual float backingStorePixelRatio()=0;
+        virtual float backingStorePixelRatio()=0;
 
         static NativeSystemInterface* getInstance()
         {
-        	return NativeSystemInterface::_interface;
+            return NativeSystemInterface::_interface;
         }
-  	private:
-		void operator=(NativeSystem const&);
-	protected:
-		float fbackingStorePixelRatio;
+    private:
+        void operator=(NativeSystem const&);
+    protected:
+        float fbackingStorePixelRatio;
 };
 
 

@@ -34,6 +34,8 @@ class NativeX11UIInterface : public NativeUIInterface
         const char *getCacheDirectory() const {
             return "/tmp/";
         };
+        void setClipboardText(const char *text);
+        char *getClipboardText();
         void initControls();
         bool runApplication(const char *path);
         NativeUIX11Console *getConsole() const {

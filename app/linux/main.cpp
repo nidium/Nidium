@@ -8,6 +8,9 @@
 #include <unistd.h>
 
 #include "NativeX11UIInterface.h"
+#include "NativeSystem.h"
+
+NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
 
 int ape_running = 1;
 int _nativebuild = 1002;
