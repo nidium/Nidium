@@ -18,7 +18,7 @@ unsigned long _ape_seed;
 @implementation NativeStudioAppDelegate
 
 @synthesize window = _window;
-@synthesize position;
+@synthesize position, appfile;
 
 - (void)dealloc
 {
@@ -47,20 +47,40 @@ unsigned long _ape_seed;
     _ape_seed = time(NULL) ^ (getpid() << 16);
     //NativeConsole *console = [[NativeConsole alloc] init];
     //[console attachToStdout];
-    NativeCocoaUIInterface UI;
+    NativeCocoaUIInterface nUI;
     [self.window close];
-    if (!UI.runApplication("native.npa")) {
+
+    self->UI = &nUI;
+    self->isRunning = YES;
+
+    const char *filename;
+    
+    if (self.appfile == nil) {
+        filename = "index.nml";
+    } else {
+        filename = [self.appfile UTF8String];
+    }
+    NSLog(@"Launching... %s\n", filename);
+
+    if (!nUI.runApplication(filename)) {
         [[NSApplication sharedApplication] terminate:nil];
         return;
     }
     
-    UI.runLoop();
+    nUI.runLoop();
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
 
+    NSLog(@"Running? %d", self->isRunning);
     NSLog(@"drop : %@", filename);
+
+    self.appfile = filename;
+
+    if (self->isRunning) {
+        self->UI->restartApplication([filename UTF8String]);
+    }
     
     return true;
 }

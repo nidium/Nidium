@@ -27,6 +27,8 @@ class NativeUIInterface
         struct SDL_Window *win;
         struct _ape_global *gnet;
 
+        virtual void stopApplication()=0;
+        virtual void restartApplication(const char *path=NULL)=0;
         virtual bool runApplication(const char *path)=0;
         virtual bool createWindow(int width, int height)=0;
         virtual void setWindowTitle(const char *)=0;
@@ -54,5 +56,7 @@ class NativeUIInterface
     protected:
         int width;
         int height;
+        char *filePath;
+        bool initialized;
         NativeUIConsole *console;
 };
