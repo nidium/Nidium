@@ -175,6 +175,7 @@ Native.elements.export("UITextInput", {
 
 					case 86 : // CTRL-V
 						self.paste();
+						self.setStartPoint();
 						break;
 				}
 			} else {
@@ -364,6 +365,7 @@ Native.elements.export("UITextInput", {
 		this.overlay.addEventListener("textinput", function(e){
 			if (!self.hasFocus) return false;
 			self.insert(e.text);
+			self.setStartPoint();
 		}, false);
 
 		this.addEventListener("focus", function(e){
