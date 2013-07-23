@@ -183,7 +183,6 @@ Native.elements.export("UITextInput", {
 				if (self._autoScrollLeft) {
 					self.parent.scrollLeft -= self._autoScrollLeft;
 
-					var k = self.parent.scrollLeft - self._autoScrollLeft;
 					if (self.parent.scrollLeft < 0) {
 						self.parent.scrollLeft = 0;
 					}
