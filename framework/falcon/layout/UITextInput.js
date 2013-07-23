@@ -142,17 +142,64 @@ Native.elements.export("UITextInput", {
 
 		this.overlay.addEventListener("dragstart", function(e){
 			self._startMouseSelection(e);
+			self.startDragTimer();
 		}, false);
 
 		document.addEventListener("dragover", function(e){
 			if (!self.__startTextSelectionProcessing) return false;
 			self._doMouseSelection(e);
+
+			var minx = self.parent.__left,
+				maxx = minx + self.parent._width;
+
+			if (self._autoScrollLeft && self.isPointInside(e.x, e.y)) {
+				self._autoScrollLeft = false;
+			} else {
+				self._autoScrollLeft = false;
+
+				if (e.x > maxx){
+					self._autoScrollLeft = -(e.x - maxx)/2;
+				}
+				if (e.x < minx){
+					self._autoScrollLeft = (minx - e.x)/2;
+				}
+			}
+
 		}, false);
 
 		this.overlay.addEventListener("dragend", function(e){
 			self._endMouseSelection();
+			self._autoScrollLeft = false;
+			self.stopDragTimer();
 			self.fireEvent("textselect", self.selection);
 		}, false);
+
+		/* ------------------------------------------------------------------ */
+
+		this.startDragTimer = function(){
+			clearInterval(this.dragTimer);
+			this.dragTimerPixelCount = 0;
+			this.dragTimer = setInterval(function(){
+				var m = self.text.length;
+				if (self._autoScrollLeft) {
+					if (self.parent.scrollLeft < 0) {
+						self.stopDragTimer();
+						self.parent.scrollLeft = 0;
+						return;
+					}
+
+					self.parent.scrollLeft -= self._autoScrollLeft;
+					self._doMouseSelection({
+						x : window.mouseX,
+						y : window.mouseY
+					});
+				}
+			}, 16);
+		};
+
+		this.stopDragTimer = function(){
+			clearInterval(this.dragTimer);
+		};
 
 		/* ------------------------------------------------------------------ */
 
@@ -176,6 +223,11 @@ Native.elements.export("UITextInput", {
 					case 86 : // CTRL-V
 						self.paste();
 						self.setStartPoint();
+						break;
+
+					case 70 : // CTRL-F
+						//self.scrollToCaretCenter(self.caret.x1, self.caret.y1);
+						self.scrollToSelectionEnd();
 						break;
 				}
 			} else {
@@ -451,10 +503,9 @@ Native.elements.export("UITextInput", {
 			};
 		};
 
-
 		this._startMouseSelection = function(e){
 			this.__startTextSelectionProcessing = true;
-			this.__startx = e.x;
+			this.__startx = e.x + self.parent.scrollLeft;
 			this.__starty = e.y;
 		};
 
@@ -466,18 +517,13 @@ Native.elements.export("UITextInput", {
 			if (self.__startTextSelectionProcessing) {
 
 				self.mouseSelectionArea = {
-					x1 : self.__startx + self.parent.scrollLeft,
-					y1 : self.__starty + self.parent.scrollTop,
+					x1 : self.__startx,
+					y1 : self.__starty,
 					x2 : e.x + self.parent.scrollLeft,
-					y2 : e.y + self.parent.scrollTop
+					y2 : e.y
 				};
 
 				var area = self.mouseSelectionArea;
-
-				console.log(
-					area.x1, area.y1,
-					area.x2, area.y2
-				);
 
 				if (area.y2 <= self.__starty) {
 					var x1 = area.x2,
@@ -493,14 +539,15 @@ Native.elements.export("UITextInput", {
 					};
 				}
 
-				var x = self.__left + self.padding.left,
+				var x = self.__left + self.padding.left + self.parent.scrollLeft,
 					y = self.__top + self.padding.top,
+					lh = self.lineHeight,
 
 					r = {
 						x1 : (area.x1 - x),
-						y1 : Math.floor((area.y1 - y) / self.lineHeight) * self.lineHeight,
+						y1 : Math.floor((area.y1 - y) / lh) * lh,
 						x2 : (area.x2 - x),
-						y2 : Math.ceil((area.y2 - y) / self.lineHeight) * self.lineHeight
+						y2 : Math.ceil((area.y2 - y) / lh) * lh
 					};
 
 				r.x1 = isNaN(r.x1) ? 0 : r.x1;
@@ -514,9 +561,6 @@ Native.elements.export("UITextInput", {
 				} else {
 					self.setSelectionFromSingleLineCaret(self.caret);
 				}
-
-				self.scrollCheckSelection(e.x, e.y);
-
 			}
 		};
 
@@ -532,6 +576,27 @@ Native.elements.export("UITextInput", {
 			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/16);
 			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/16);
 		};
+
+		this.scrollToCaretCenter = function(cx, cy){
+			var x = this.matricialToPixel(cx, cy)[0];
+			this.parent.scrollLeft = x - this.parent.width/2;
+		};
+
+		this.scrollToSelectionStart = function(){
+			var cx = this.caret.x1,
+				cy = this.caret.y1,
+				x = this.matricialToPixel(cx, cy)[0];
+			this.parent.scrollLeft = x
+		};
+
+		this.scrollToSelectionEnd = function(){
+			var cx = this.caret.x2,
+				cy = this.caret.y2,
+				x = this.matricialToPixel(cx, cy)[0];
+
+			this.parent.scrollLeft = x - this.parent.width + 10;
+		};
+
 
 		this.scrollCheckSelection = function(x, y){
 			var minx = this.parent.left + 10,
@@ -941,6 +1006,14 @@ Native.elements.export("UITextInput", {
 
 		context.fontSize = this.fontSize;
 		context.fontType = this.fontType;
+
+		if (this.__startTextSelectionProcessing && this._autoScrollTop && this._autoScrollTop !== false) {
+			this.parent.updateScrollLeft(this._autoScrollTop);
+			this._doMouseSelection({
+				x : window.mouseX,
+				y : window.mouseY
+			});
+		}
 
 		printTextMatrix(
 			this,

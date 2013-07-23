@@ -25,9 +25,9 @@ var	myElements = [
 var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
 
 var field = main.add("UITextField", {
-	left : 10,
-	top : 10,
-	width : 960,
+	left : 100,
+	top : 50,
+	width : 400,
 	fontSize : 13,
 	fontType : "console"
 });
@@ -43,7 +43,7 @@ var	button = new UIButton(main, {
 	top : 10,
 	label : "Go"
 }).click(function(){
-	echo(field.value);
+
 });
 
 var	dropDownController = main.add("UIDropDownController", {
