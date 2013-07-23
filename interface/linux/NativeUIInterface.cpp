@@ -595,6 +595,16 @@ void NativeUIX11Console::flush()
 {
 }
 
+void NativeCocoaUIInterface::setClipboardText(const char *text)
+{
+    SDL_SetClipboardText(text);
+}
+
+char *NativeCocoaUIInterface::getClipboardText()
+{
+    return SDL_GetClipboardText();
+}
+
 NativeUIX11Console::~NativeUIX11Console() 
 {
 }
