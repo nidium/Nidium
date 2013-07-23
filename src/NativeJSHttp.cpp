@@ -277,6 +277,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     }
     
     SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
+    SET_PROP(event, "statusCode", INT_TO_JSVAL(h->parser.status_code));
 
     if (h->data == NULL) {
         SET_PROP(event, "data", JSVAL_NULL);
