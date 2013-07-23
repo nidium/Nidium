@@ -213,6 +213,7 @@ Native.elements.export("UITextInput", {
 
 					case 1073741898 : // LineStart
 						if (this.multiline) return false;
+						self.selection.text = "";
 						self.selection.offset = 0;
 						self.selection.size = 0;
 						self.setCaret(0, 0);
@@ -222,6 +223,7 @@ Native.elements.export("UITextInput", {
 					case 1073741901 : // LineEnd
 						var maxLength = self.text.length; // after last char
 						if (this.multiline) return false;
+						self.selection.text = "";
 						self.selection.offset = maxLength;
 						self.selection.size = 0;
 						self.setCaret(maxLength, 0);
@@ -522,11 +524,14 @@ Native.elements.export("UITextInput", {
 
 		this.matricialToPixel = function(cx, cy){
 			var line = this._textMatrix[cy],
+				letters = line ? line.letters : [],
 				vOffset = (this.lineHeight/2) + 5,
 
-				x = line && line.letters[cx] ?
-					line.letters[cx].position :
-					line.letters[cx-1].position + line.letters[cx-1].width,
+				x = letters[cx] ? letters[cx].position : (
+					letters[cx-1] ?
+					letters[cx-1].position + letters[cx-1].width :
+					0
+				),
 
 				y = vOffset + cy * this.lineHeight;
 
@@ -576,8 +581,25 @@ Native.elements.export("UITextInput", {
 
 		/* ------------------------------------------------------------------ */
 
+		this._uniselect = function(state){
+			var state = (typeof(state) == "undefined") ? 
+								true : state ? true : false;
+
+			if (state) {
+				/* Select All */
+				this.setCaret(0, this.text.length);
+			} else {
+				/* Set Caret, no selection */
+				this.setCaret(this.selection.offset, 0);
+			}
+		}
+
 		this.select = function(state){
 			/* 2 times faster than the old while loop method */
+			if (this.multiline === false) {
+				this._uniselect(state);
+				return this;
+			}
 			var m = this._textMatrix,
 				chars, x = y = 0,
 				offset = this.selection.offset,
@@ -649,10 +671,10 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.copy = function(){
-			if (this.selection.size>0) {
+			if (this.selection.size > 0) {
 				Native.setPasteBuffer(this.selection.text);
 			} else {
-				Native.clearPasteBuffer();
+				Native.setPasteBuffer("");
 			}
 		};
 
