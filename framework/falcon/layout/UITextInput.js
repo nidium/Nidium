@@ -153,15 +153,16 @@ Native.elements.export("UITextInput", {
 				maxx = minx + self.parent._width;
 
 			if (self._autoScrollLeft && self.isPointInside(e.x, e.y)) {
+				/* mouse inside UITextInput */
 				self._autoScrollLeft = false;
 			} else {
-				self._autoScrollLeft = false;
-
+				/* mouse outside UITextInput, time to scroll ;-) */
+				self._autoScrollLeft = 0;
 				if (e.x > maxx){
-					self._autoScrollLeft = -(e.x - maxx)/2;
+					self._autoScrollLeft = -Math.round((e.x - maxx)/2);
 				}
-				if (e.x < minx){
-					self._autoScrollLeft = (minx - e.x)/2;
+				if (e.x <= minx){
+					self._autoScrollLeft = Math.round((minx - e.x)/2);
 				}
 			}
 
@@ -178,17 +179,15 @@ Native.elements.export("UITextInput", {
 
 		this.startDragTimer = function(){
 			clearInterval(this.dragTimer);
-			this.dragTimerPixelCount = 0;
 			this.dragTimer = setInterval(function(){
-				var m = self.text.length;
 				if (self._autoScrollLeft) {
+					self.parent.scrollLeft -= self._autoScrollLeft;
+
+					var k = self.parent.scrollLeft - self._autoScrollLeft;
 					if (self.parent.scrollLeft < 0) {
-						self.stopDragTimer();
 						self.parent.scrollLeft = 0;
-						return;
 					}
 
-					self.parent.scrollLeft -= self._autoScrollLeft;
 					self._doMouseSelection({
 						x : window.mouseX,
 						y : window.mouseY
@@ -226,8 +225,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 70 : // CTRL-F
-						//self.scrollToCaretCenter(self.caret.x1, self.caret.y1);
-						self.scrollToSelectionEnd();
+						self.scrollToCaretCenter(self.caret.x1, self.caret.y1);
 						break;
 				}
 			} else {
