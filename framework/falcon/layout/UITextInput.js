@@ -181,7 +181,7 @@ Native.elements.export("UITextInput", {
 			} else {
 				switch (e.keyCode) {
 					case 8 : // backspace
-						if (self.selection.offset-1 < 0) return false;
+						if (self.multiline && self.selection.offset-1 < 0) return false;
 						self._insert(
 							'', 
 							self.selection.offset, 
