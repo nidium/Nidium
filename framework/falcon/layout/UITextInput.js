@@ -292,7 +292,19 @@ Native.elements.export("UITextInput", {
 								}
 							}
 						} else {
-							if (self.selection.offset <= maxLength) {
+							if (self.selection.size>0) {
+								self.setCaret(
+									self.selection.offset + self.selection.size, 
+									0
+								);
+
+								self.setStartPoint();
+
+								self.scrollCheck(
+									self.caret.x2,
+									self.caret.y2	
+								);
+							} else if (self.selection.offset <= maxLength) {
 								self.selection.offset++;
 
 								self.setCaret(
@@ -339,7 +351,19 @@ Native.elements.export("UITextInput", {
 								}  
 							}  
 						} else {
-							if (self.selection.offset > 0) {
+							if (self.selection.size>0) {
+								self.setCaret(
+									self.selection.offset, 
+									0
+								);
+
+								self.setStartPoint();
+
+								self.scrollCheck(
+									self.caret.x1,
+									self.caret.y1	
+								);
+							} else if (self.selection.offset > 0) {
 								self.selection.offset--;
 
 								self.setCaret(
