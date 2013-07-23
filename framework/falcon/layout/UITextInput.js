@@ -442,13 +442,18 @@ Native.elements.export("UITextInput", {
 			if (self.__startTextSelectionProcessing) {
 
 				self.mouseSelectionArea = {
-					x1 : self.__startx,
-					y1 : self.__starty,
-					x2 : e.x,
-					y2 : e.y
+					x1 : self.__startx + self.parent.scrollLeft,
+					y1 : self.__starty + self.parent.scrollTop,
+					x2 : e.x + self.parent.scrollLeft,
+					y2 : e.y + self.parent.scrollTop
 				};
 
 				var area = self.mouseSelectionArea;
+
+				console.log(
+					area.x1, area.y1,
+					area.x2, area.y2
+				);
 
 				if (area.y2 <= self.__starty) {
 					var x1 = area.x2,
@@ -462,6 +467,7 @@ Native.elements.export("UITextInput", {
 						x2 : x2,
 						y2 : y2
 					};
+
 				}
 
 				var x = self.__left + self.padding.left,
