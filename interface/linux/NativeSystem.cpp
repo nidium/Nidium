@@ -2,10 +2,10 @@
 
 NativeSystem::NativeSystem()
 {
-	fbackingStorePixelRatio = 1.0;
+    fbackingStorePixelRatio = 1.0;
 }
 
 float NativeSystem::backingStorePixelRatio()
 {
-	return fbackingStorePixelRatio;
+    return fbackingStorePixelRatio;
 }

@@ -5,10 +5,10 @@
 
 class NativeSystem : public NativeSystemInterface
 {
-	public:
-		NativeSystem();
-		~NativeSystem(){};
-		float backingStorePixelRatio();		
+    public:
+        NativeSystem();
+        ~NativeSystem(){};
+        float backingStorePixelRatio();     
 };
 
 #endif
