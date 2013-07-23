@@ -126,6 +126,7 @@ typedef struct _ape_socket_jobs_t {
 	off_t offset;
 } ape_socket_jobs_t;
 
+
 struct _ape_socket {
     ape_fds s;
 	
@@ -139,6 +140,8 @@ struct _ape_socket {
     ape_socket *parent; /* server socket in case of client */
 
     ape_socket_callbacks    callbacks;
+
+    struct _ape_dns_cb_argv *dns_state;
 
     struct {
         uint8_t flags;

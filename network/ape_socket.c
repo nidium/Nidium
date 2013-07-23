@@ -138,6 +138,7 @@ ape_socket *APE_socket_new(uint8_t pt, int from, ape_global *ape)
     ret->states.proto   = pt;
     ret->ctx            = NULL;
     ret->parent         = NULL;
+    ret->dns_state      = NULL;
 
 #ifdef _HAVE_SSL_SUPPORT
     ret->SSL.issecure   = (pt == APE_SOCKET_PT_SSL);
@@ -192,7 +193,6 @@ int APE_socket_listen(ape_socket *socket, uint16_t port,
         closesocket(socket->s.fd);
 #else
         close(socket->s.fd);
-        printf("Close : %d\n", socket->s.fd);
 #endif
         printf("cant bind\n");
         return -1;
@@ -220,6 +220,8 @@ static int ape_socket_connect_ready_to_connect(const char *remote_ip,
 {
     ape_socket *socket = arg;
     struct sockaddr_in addr;
+
+    socket->dns_state = NULL;
 
 #ifdef _HAS_ARES_SUPPORT
     if (status != ARES_SUCCESS) {
@@ -266,7 +268,9 @@ int APE_socket_connect(ape_socket *socket, uint16_t port,
 
     socket->remote_port = port;
 #ifdef _HAS_ARES_SUPPORT
-    ape_gethostbyname(remote_ip_host, ape_socket_connect_ready_to_connect,
+
+    socket->dns_state = ape_gethostbyname(remote_ip_host,
+            ape_socket_connect_ready_to_connect,
             socket, socket->ape);
 #else
     return ape_socket_connect_ready_to_connect(remote_ip_host, socket, 0);
@@ -278,8 +282,8 @@ void APE_socket_shutdown(ape_socket *socket)
 {
     if (socket->states.state == APE_SOCKET_ST_PROGRESS ||
         socket->states.state == APE_SOCKET_ST_PENDING) {
+        ape_dns_invalidate(socket->dns_state);
         close(APE_SOCKET_FD(socket));
-        printf("Close : %d\n", APE_SOCKET_FD(socket));
         return;
     }
     
@@ -312,8 +316,8 @@ static void ape_socket_shutdown_force(ape_socket *socket)
 {
     if (socket->states.state == APE_SOCKET_ST_PROGRESS ||
         socket->states.state == APE_SOCKET_ST_PENDING) {
+        ape_dns_invalidate(socket->dns_state);
         close(APE_SOCKET_FD(socket));
-        printf("Close : %d\n", APE_SOCKET_FD(socket));
         return;
     }
     if (socket->states.state != APE_SOCKET_ST_ONLINE) {
@@ -358,6 +362,7 @@ int APE_socket_destroy(ape_socket *socket)
 
     /* Set disconnect flag before callback in case of recursion */
     socket->states.state = APE_SOCKET_ST_OFFLINE;
+    ape_dns_invalidate(socket->dns_state);
     
     if (socket->callbacks.on_disconnect != NULL) {
         socket->callbacks.on_disconnect(socket, ape);
@@ -368,10 +373,9 @@ int APE_socket_destroy(ape_socket *socket)
     closesocket(APE_SOCKET_FD(socket));
 #else
     close(APE_SOCKET_FD(socket));
-    printf("Close : %d\n", APE_SOCKET_FD(socket));
 #endif
     timer_dispatch_async(ape_socket_free, socket);
-    
+
     /* TODO: Free any pending job !!! */
 
     return 0;
@@ -426,7 +430,6 @@ int APE_sendfile(ape_socket *socket, const char *file)
     } else {
         //printf("File sent...\n");
         close(fd);
-        printf("Close : %d\n", fd);
     }
     
     return 1;

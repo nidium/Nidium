@@ -25,7 +25,7 @@ static __inline int setnonblocking(int fd)
 {
     int  ret = 1;
 #ifdef _MSC_VER
-	return ioctlsocket(fd, FIONBIO, &ret);
+    return ioctlsocket(fd, FIONBIO, &ret);
     #define close _close
 #else
     return ioctl(fd, FIONBIO, &ret);
@@ -34,13 +34,6 @@ static __inline int setnonblocking(int fd)
 #else
 #define setnonblocking(fd) fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
 #endif
-
-struct _ape_dns_cb_argv {
-    ape_global *ape;
-    ape_gethostbyname_callback callback;
-    const char *origin;
-    void *arg;
-};
 
 static void ares_io(int fd, int ev, ape_global *ape)
 {
@@ -105,9 +98,15 @@ void ares_gethostbyname_cb(void *arg, int status,
     struct _ape_dns_cb_argv *params = arg;
     char ret[46];
 
+    if (params->invalidate) {
+        free(params);
+        return;
+    }
+
     if (status == ARES_SUCCESS) {
         /* only return the first h_addr_list element */
         inet_ntop(host->h_addrtype, *host->h_addr_list, ret, sizeof(ret));
+
         params->callback(ret, params->arg, status);
     } else {
         params->callback(NULL, params->arg, status);
@@ -116,23 +115,35 @@ void ares_gethostbyname_cb(void *arg, int status,
     free(params);
 }
 
-void ape_gethostbyname(const char *host, ape_gethostbyname_callback callback,
+ape_dns_state *ape_gethostbyname(const char *host, ape_gethostbyname_callback callback,
         void *arg, ape_global *ape)
 {
     struct in_addr addr4;
 
     if (inet_pton(AF_INET, host, &addr4) == 1) {
         callback(host, arg, ARES_SUCCESS);
+
+        return NULL;
     } else {
         struct _ape_dns_cb_argv *cb     = malloc(sizeof(*cb));
+
         cb->ape             = ape;
-        cb->callback            = callback;
+        cb->callback        = callback;
         cb->origin          = host;
         cb->arg             = arg;
+        cb->invalidate      = 0;
 
         ares_gethostbyname(ape->dns.channel, host,
                 AF_INET, ares_gethostbyname_cb, cb);
 
+        return cb;
+    }
+}
+
+void ape_dns_invalidate(ape_dns_state *state)
+{
+    if (state != NULL) {
+        state->invalidate = 1;
     }
 }
 
