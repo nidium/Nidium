@@ -33,6 +33,9 @@ Native.elements.export("UITextInput", {
 
 		this.setProperties({
 			canReceiveFocus	: true,
+
+			pattern  		: OptionalString(o.pattern, ""),
+
 			fontSize  		: OptionalNumber(o.fontSize, 11),
 			fontType  		: OptionalString(o.fontType, "arial"),
 
@@ -750,10 +753,18 @@ Native.elements.export("UITextInput", {
 			}
 		};
 
+		this.checkPattern = function(pattern){
+			if (!pattern) return true;
+			var regex = new RegExp(pattern);
+			return regex.test(this.text);
+		};
+
 		this._insert = function(text, offset, size, newoffset, newsize){
 			this.setText(this.text.splice(offset, size, text));
 			this.setCaret(newoffset, newsize);
-			this.scrollCheck(this.caret.x2, this.caret.y2);			
+			this.scrollCheck(this.caret.x2, this.caret.y2);
+
+			this.checkPattern(this.pattern);
 		};
 
 		this.replace = function(text){

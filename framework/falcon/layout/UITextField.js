@@ -26,8 +26,8 @@ Native.elements.export("UITextField", {
 			o = this.options;
 
 		this.setProperties({
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontSize  		: OptionalNumber(o.fontSize, 12),
+			fontType  		: OptionalString(o.fontType, "console"),
 
 			multiline 		: OptionalBoolean(o.multiline, false),
 			lineHeight 		: OptionalNumber(o.lineHeight, 22),
@@ -46,6 +46,9 @@ Native.elements.export("UITextField", {
 			shadowBlur 		: OptionalNumber(o.shadowBlur, 4),
 			shadowColor 	: OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.10)"),
 			shadowOffsetY	: OptionalNumber(o.shadowOffsetY, 2),
+
+			value  			: OptionalString(o.value, ""),
+			pattern  		: OptionalString(o.pattern, ""),
 
 			overflow		: true
 		});
@@ -76,6 +79,7 @@ Native.elements.export("UITextField", {
 			fontType : this.fontType,
 			lineHeight : this.lineHeight,
 			text : this.value,
+			pattern : this.pattern,
 			textAlign : "left",
 			editable : true,
 			multiline : this.multiline
