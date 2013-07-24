@@ -30,6 +30,7 @@ Native.elements.export("UITextInput", {
 		this.caretOpacity = 1;
 		this.caretCounter = 0;
 		this.shiftKeyDown = false;
+		this.placeholderActive = false;
 
 		this.setProperties({
 			canReceiveFocus	: true,
@@ -44,7 +45,8 @@ Native.elements.export("UITextInput", {
 
 			multiline 		: OptionalBoolean(o.multiline, true),
 
-			background 		: OptionalValue(o.background, '#ffffff'),
+			placeholder 	: OptionalValue(o.placeholder, ""),
+			background 		: OptionalValue(o.background, "#ffffff"),
 			color 			: OptionalValue(o.color, "#000000")
 		});
 
@@ -126,6 +128,8 @@ Native.elements.export("UITextInput", {
 				self.mouseSelectionArea = null;
 			}
 
+			self.hidePlaceHolder();
+
 			self._startMouseSelection(e);
 			self._doMouseSelection(e);
 			self._endMouseSelection();
@@ -155,7 +159,6 @@ Native.elements.export("UITextInput", {
 				self.setCaret(self.selection.offset, self.selection.size);
 				self.__clickOnce = false;
 			}
-
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -196,7 +199,6 @@ Native.elements.export("UITextInput", {
 					self._autoScrollLeft = Math.round((minx - e.x)/2);
 				}
 			}
-
 		}, false);
 
 		this.overlay.addEventListener("dragend", function(e){
@@ -474,10 +476,12 @@ Native.elements.export("UITextInput", {
 
 		this.addEventListener("focus", function(e){
 			this.showCaret();
+			this.hidePlaceHolder();
 		}, false);
 
 		this.addEventListener("blur", function(e){
 			this.hideCaret();
+			this.showPlaceHolder();
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -753,6 +757,26 @@ Native.elements.export("UITextInput", {
 			}
 		};
 
+		this.setPlaceHolder = function(value){
+			if (this.multiline) return false;
+			this.placeholder = value;
+			if (value != "") this.showPlaceHolder();
+		};
+
+		this.showPlaceHolder = function(){
+			if (this.placeholderActive) return false;
+			if (this.text == "") {
+				this.placeholderActive = true;
+				this.setText(this.placeholder);
+			}
+		};
+
+		this.hidePlaceHolder = function(){
+			if (this.placeholderActive === false) return false;
+			this.placeholderActive = false;
+			this.setText("");
+		};
+
 		this.checkPattern = function(pattern){
 			if (!pattern) return true;
 			var regex = new RegExp(pattern);
@@ -1024,6 +1048,7 @@ Native.elements.export("UITextInput", {
 
 		this.setText(this.text);
 		this.resetStartPoint();
+		this.setPlaceHolder(this.placeholder);
 	},
 
 	/* ---------------------------------------------------------------------- */
@@ -1042,14 +1067,6 @@ Native.elements.export("UITextInput", {
 
 		context.fontSize = this.fontSize;
 		context.fontType = this.fontType;
-
-		if (this.__startTextSelectionProcessing && this._autoScrollTop && this._autoScrollTop !== false) {
-			this.parent.updateScrollLeft(this._autoScrollTop);
-			this._doMouseSelection({
-				x : window.mouseX,
-				y : window.mouseY
-			});
-		}
 
 		printTextMatrix(
 			this,
@@ -1322,7 +1339,12 @@ function printTextMatrix(element, x, y, vOffset, viewportWidth, viewportHeight, 
 
 	context.fontSize = fontSize;
 	context.fontType = fontType;
-	context.setColor(color);
+
+	if (element.placeholderActive) {
+		context.setColor("rgba(0, 0, 0, 0.4)");
+	} else {
+		context.setColor(color);
+	}
 
 	var start = -Math.ceil((y - viewportTop)/lineHeight),
 		

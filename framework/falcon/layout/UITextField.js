@@ -18,6 +18,12 @@ Native.elements.export("UITextField", {
 			get : function(){
 				return this.input.text;
 			}
+		},
+		
+		placeholder : {
+			set : function(value){
+				this.setPlaceHolder(value);
+			}
 		}
 	},
 
@@ -47,6 +53,7 @@ Native.elements.export("UITextField", {
 			shadowColor 	: OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.10)"),
 			shadowOffsetY	: OptionalNumber(o.shadowOffsetY, 2),
 
+			placeholder  	: OptionalString(o.placeholder, ""),
 			value  			: OptionalString(o.value, ""),
 			pattern  		: OptionalString(o.pattern, ""),
 
@@ -79,11 +86,16 @@ Native.elements.export("UITextField", {
 			fontType : this.fontType,
 			lineHeight : this.lineHeight,
 			text : this.value,
+			placeholder : this.placeholder,
 			pattern : this.pattern,
 			textAlign : "left",
 			editable : true,
 			multiline : this.multiline
 		});
+
+		this.setPlaceHolder = function(value){
+			this.input.setPlaceHolder(value);
+		};
 
 		this.input.overlay.addEventListener("keydown", function(e){
 			if (!self.input.hasFocus) return false;

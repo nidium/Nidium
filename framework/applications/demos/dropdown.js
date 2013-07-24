@@ -36,10 +36,12 @@ var dateField = main.add("UITextField", {
 	left : 100,
 	top : 80,
 	width : 80,
-	value : "dd/mm/yyyy",
 	placeholder : "dd/mm/yyyy",
 	pattern : "(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}"
 });
+
+
+//dateField.placeholder = "dd/mm/yyyy";
 
 
 field.addEventListener("submit", function(e){
