@@ -108,6 +108,8 @@ var DOMElement = function(type, options, parent){
 		selected : OptionalBoolean(o.selected, false),
 		overflow : OptionalBoolean(o.overflow, true),
 		multiline : OptionalBoolean(o.multiline, false),
+		editable : OptionalBoolean(o.editable, false),
+		
 		scrollable : OptionalBoolean(o.scrollable, false),
 		scrollBarX : OptionalBoolean(o.scrollBarX, false),
 		scrollBarY : OptionalBoolean(o.scrollBarY, false),

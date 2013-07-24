@@ -19,7 +19,7 @@ Native.elements.export("UITextField", {
 				return this.input.text;
 			}
 		},
-		
+
 		placeholder : {
 			set : function(value){
 				this.input.placeholder = value;
@@ -36,6 +36,8 @@ Native.elements.export("UITextField", {
 			fontType  		: OptionalString(o.fontType, "console"),
 
 			multiline 		: OptionalBoolean(o.multiline, false),
+			editable 		: OptionalBoolean(o.editable, true),
+
 			lineHeight 		: OptionalNumber(o.lineHeight, 22),
 
 			width 			: OptionalNumber(o.width, 120),
@@ -59,7 +61,6 @@ Native.elements.export("UITextField", {
 
 			overflow		: true
 		});
-
 
 		this.view = this.add("UIView", {
 			left : 0,
@@ -90,7 +91,7 @@ Native.elements.export("UITextField", {
 			placeholder : this.placeholder,
 			pattern : this.pattern,
 			textAlign : "left",
-			editable : true,
+			editable : this.editable,
 			multiline : this.multiline
 		});
 

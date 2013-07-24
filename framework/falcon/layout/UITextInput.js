@@ -50,6 +50,7 @@ Native.elements.export("UITextInput", {
 			offsetRight		: OptionalValue(o.offsetRight, []),
 
 			multiline 		: OptionalBoolean(o.multiline, true),
+			editable 		: OptionalBoolean(o.editable, true),
 
 			background 		: OptionalValue(o.background, "#ffffff"),
 			color 			: OptionalValue(o.color, "#000000")
@@ -797,11 +798,12 @@ Native.elements.export("UITextInput", {
 		};
 
 		this._insert = function(text, offset, size, newoffset, newsize){
-			this.setText(this.text.splice(offset, size, text));
-			this.setCaret(newoffset, newsize);
-			this.scrollCheck(this.caret.x2, this.caret.y2);
-
-			this.checkPattern(this.pattern);
+			if (this.editable) {
+				this.setText(this.text.splice(offset, size, text));
+				this.setCaret(newoffset, newsize);
+				this.scrollCheck(this.caret.x2, this.caret.y2);
+				this.checkPattern(this.pattern);
+			}
 		};
 
 		this.replace = function(text){
