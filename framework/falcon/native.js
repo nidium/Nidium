@@ -41,7 +41,9 @@ var ಠ_ಠ = '2.0',
 var	__ENABLE_TEXT_SHADOWS__ = true,
 	__ENABLE_BUTTON_SHADOWS__ = true,
 	__ENABLE_IMAGE_INTERPOLATION__ = true,
-	__ENABLE_GRADIENT_LAYERS__ = true;
+
+	__MAX_INPUT_LENGTH__ = 2048,
+	__MAX_LAYER_WIDTH__ = 16364;
 
 /* -------------------------------------------------------------------------- */
 

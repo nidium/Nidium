@@ -4,21 +4,15 @@
 
 Native.elements.export("UITextInput", {
 	public : {
-		label : {
-			set : function(value){
-				if (this.multiline === false) this.resizeElement();
-			}
-		},
-
 		fontSize : {
 			set : function(value){
-				if (this.multiline === false) this.resizeElement();
+				this.setText(this.text);
 			}
 		},
 
 		fontType : {
 			set : function(value){
-				if (this.multiline === false) this.resizeElement();
+				this.setText(this.text);
 			}
 		},
 
@@ -68,8 +62,8 @@ Native.elements.export("UITextInput", {
 
 			var minWidth = Math.max(this._innerTextWidth, this.parent.width);
 
-			this.width = Math.min(minWidth, 16364);
-			this.overlay.width = Math.min(minWidth, 16364);
+			this.width = Math.min(minWidth, __MAX_LAYER_WIDTH__);
+			this.overlay.width = Math.min(minWidth, __MAX_LAYER_WIDTH__);
 		};
 
 		this.padding = {
@@ -90,9 +84,9 @@ Native.elements.export("UITextInput", {
 			this.text = text;
 
 			if (this.multiline === false) {
-				/* TODO : Fix Layer Issue (width is limited to 16384) */
+				/* TODO : Fix Layer Issue (width is limited to 16364) */
 				/* so we limit nb chars to 2048 for inline input field */
-				this.text = text.substr(0, 2048);
+				this.text = text.substr(0, __MAX_INPUT_LENGTH__);
 				this._textMatrix = getTextLine(this);
 				this.resizeElement();
 			} else {
@@ -144,7 +138,7 @@ Native.elements.export("UITextInput", {
 
 			if (e.shiftKeyDown === false) {
 				self.setCaret(self.selection.offset, 0);
-				self.setStartPoint();
+				self.setCaretStartPoint();
 				self.caretCounter = -20;
 				self.select(false);
 
@@ -167,7 +161,7 @@ Native.elements.export("UITextInput", {
 		/* ------------------------------------------------------------------ */
 
 		this.overlay.addEventListener("mousedblclick", function(e){
-			self.resetStartPoint();
+			self.resetCaretStartPoint();
 			self.select();
 		}, false);
 
@@ -256,7 +250,7 @@ Native.elements.export("UITextInput", {
 
 					case 86 : // CTRL-V
 						self.paste();
-						self.setStartPoint();
+						self.setCaretStartPoint();
 						break;
 
 					case 70 : // CTRL-F
@@ -299,9 +293,6 @@ Native.elements.export("UITextInput", {
 
 					case 1073741898 : // LineStart
 						if (this.multiline) return false;
-						self.selection.text = "";
-						self.selection.offset = 0;
-						self.selection.size = 0;
 						self.setCaret(0, 0);
 						self.scrollToLineStart();
 						break;
@@ -309,9 +300,6 @@ Native.elements.export("UITextInput", {
 					case 1073741901 : // LineEnd
 						var maxLength = self.text.length; // after last char
 						if (this.multiline) return false;
-						self.selection.text = "";
-						self.selection.offset = maxLength;
-						self.selection.size = 0;
 						self.setCaret(maxLength, 0);
 						self.scrollToLineEnd();
 						break;
@@ -322,7 +310,7 @@ Native.elements.export("UITextInput", {
 							if (e.shiftKey){
 								self.caret.y1--;
 							} else {
-								self.resetStartPoint();
+								self.resetCaretStartPoint();
 								self.caret.y1--;
 								self.caret.y2--;
 							}
@@ -337,7 +325,7 @@ Native.elements.export("UITextInput", {
 							if (e.shiftKey){
 								self.caret.y1++;
 							} else {
-								self.resetStartPoint();
+								self.resetCaretStartPoint();
 								self.caret.y1++;
 								self.caret.y2++;
 							}
@@ -383,7 +371,7 @@ Native.elements.export("UITextInput", {
 									0
 								);
 
-								self.setStartPoint();
+								self.setCaretStartPoint();
 
 								self.scrollCheck(
 									self.caret.x2,
@@ -397,7 +385,7 @@ Native.elements.export("UITextInput", {
 									0
 								);
 
-								self.setStartPoint();
+								self.setCaretStartPoint();
 
 								self.scrollCheck(
 									self.caret.x1,
@@ -442,7 +430,7 @@ Native.elements.export("UITextInput", {
 									0
 								);
 
-								self.setStartPoint();
+								self.setCaretStartPoint();
 
 								self.scrollCheck(
 									self.caret.x1,
@@ -456,7 +444,7 @@ Native.elements.export("UITextInput", {
 									0
 								);
 
-								self.setStartPoint();
+								self.setCaretStartPoint();
 
 								self.scrollCheck(
 									self.caret.x1,
@@ -474,7 +462,7 @@ Native.elements.export("UITextInput", {
 		this.overlay.addEventListener("textinput", function(e){
 			if (!self.hasFocus) return false;
 			self.insert(e.text);
-			self.setStartPoint();
+			self.setCaretStartPoint();
 		}, false);
 
 		this.addEventListener("focus", function(e){
@@ -524,14 +512,14 @@ Native.elements.export("UITextInput", {
 			this.updateOverlay();
 		};
 
-		this.setStartPoint = function(){
+		this.setCaretStartPoint = function(){
 			this._StartCaret = {
 				x : this.caret.x1,
 				y : this.caret.y1
 			};
 		};
 
-		this.resetStartPoint = function(){
+		this.resetCaretStartPoint = function(){
 			this._StartCaret = {
 				x : 0,
 				y : 0
@@ -653,6 +641,8 @@ Native.elements.export("UITextInput", {
 			this.parent.updateScrollLeft(-pos);
 		};
 
+		/* ------------------------------------------------------------------ */
+
 		this.matricialToPixel = function(cx, cy){
 			var line = this._textMatrix[cy],
 				letters = line ? line.letters : [],
@@ -712,6 +702,46 @@ Native.elements.export("UITextInput", {
 
 		/* ------------------------------------------------------------------ */
 
+		this.isPlaceHolderVisible = function(){
+			return	this.text != "" && 
+					this.placeholder != "" &&
+					this.placeholderActive;
+		};
+
+		this.setPlaceHolder = function(value){
+			if (this.multiline) return false;
+
+			if (this.isPlaceHolderVisible()) {
+				this.setText(this.placeholder);
+			} else {
+				this.placeholder = value;
+				if (value != "") this.showPlaceHolder();
+			}
+		};
+
+		this.showPlaceHolder = function(){
+			if (this.placeholderActive) return false;
+			if (this.text == "") {
+				this.placeholderActive = true;
+				this.setText(this.placeholder);
+			}
+		};
+
+		this.hidePlaceHolder = function(){
+			if (this.placeholderActive === false) return false;
+			this.placeholderActive = false;
+			this.setText("");
+		};
+
+		this.checkPattern = function(pattern){
+			if (!pattern) return true;
+			var regex = new RegExp(pattern);
+			return regex.test(this.text);
+		};
+
+
+		/* ------------------------------------------------------------------ */
+
 		this._uniselect = function(state){
 			var state = (typeof(state) == "undefined") ? 
 								true : state ? true : false;
@@ -760,47 +790,19 @@ Native.elements.export("UITextInput", {
 			}
 		};
 
-		this.isPlaceHolderVisible = function(){
-			return	this.text != "" && 
-					this.placeholder != "" &&
-					this.placeholderActive;
-		};
-
-		this.setPlaceHolder = function(value){
-			if (this.multiline) return false;
-
-			if (this.isPlaceHolderVisible()) {
-				this.setText(this.placeholder);
-			} else {
-				this.placeholder = value;
-				if (value != "") this.showPlaceHolder();
-			}
-		};
-
-		this.showPlaceHolder = function(){
-			if (this.placeholderActive) return false;
-			if (this.text == "") {
-				this.placeholderActive = true;
-				this.setText(this.placeholder);
-			}
-		};
-
-		this.hidePlaceHolder = function(){
-			if (this.placeholderActive === false) return false;
-			this.placeholderActive = false;
-			this.setText("");
-		};
-
-		this.checkPattern = function(pattern){
-			if (!pattern) return true;
-			var regex = new RegExp(pattern);
-			return regex.test(this.text);
-		};
-
 		this._insert = function(text, offset, size, newoffset, newsize){
 			if (this.editable) {
-				this.setText(this.text.splice(offset, size, text));
+				var newtext = this.text.splice(offset, size, text);
+
+				if (this.multiline === false && newtext.length > __MAX_INPUT_LENGTH__) {
+					newtext = newtext.substr(0, __MAX_INPUT_LENGTH__);
+					newoffset = this.caret.x1;
+					newsize = 0;
+				}
+
+				this.setText(newtext);
 				this.setCaret(newoffset, newsize);
+
 				this.scrollCheck(this.caret.x2, this.caret.y2);
 				this.checkPattern(this.pattern);
 			}
@@ -1062,7 +1064,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.setText(this.text);
-		this.resetStartPoint();
+		this.resetCaretStartPoint();
 		this.setPlaceHolder(this.placeholder);
 	},
 

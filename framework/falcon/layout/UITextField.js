@@ -10,8 +10,7 @@ Native.elements.export("UITextField", {
 			set : function(value){
 				if (this.input.setText){
 					this.input.setText(value);
-					this.input.resizeElement();
-					this.input.setStartPoint();
+					this.input.scrollToLineStart();
 				}
 			},
 
