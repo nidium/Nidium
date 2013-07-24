@@ -168,6 +168,7 @@ Native.elements.export("UITextInput", {
 
 		this.addEventListener("mouseout", function(e){
 			this.hover = false;
+			window.cursor = "arrow";
 		});
 
 
