@@ -28,7 +28,7 @@ var field = main.add("UITextField", {
 	left : 100,
 	top : 50,
 	width : 400,
-	fontSize : 13,
+	fontSize : 12,
 	fontType : "console"
 });
 
@@ -43,7 +43,7 @@ var	button = new UIButton(main, {
 	top : 10,
 	label : "Go"
 }).click(function(){
-
+	echo(field.input.__startx, field.input.__starty);
 });
 
 var	dropDownController = main.add("UIDropDownController", {

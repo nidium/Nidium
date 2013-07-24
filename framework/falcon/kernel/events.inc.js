@@ -119,19 +119,29 @@ Native.events = {
 
 			if (name=='keydown'){
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
-					element.underCMDMode = true;
+					element.cmdKeyDown = true;
+				}
+				if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
+					element.shiftKeyDown = true;
 				}
 			}
 
 			if (name=='keyup'){
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
-					element.underCMDMode = false;
+					element.cmdKeyDown = false;
+				}
+				if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
+					element.shiftKeyDown = false;
 				}
 			}
 
+			e.shiftKeyDown = element.shiftKeyDown == undefined ?
+							false : element.shiftKeyDown;
+
+			e.cmdKeyDown = element.cmdKeyDown == undefined ?
+							false : element.cmdKeyDown;
+
 			if (name=='keydown' || name=='keyup' || name=='textinput'){
-				e.cmdKey = element.underCMDMode == undefined ?
-								false : element.underCMDMode;
 
 				element.fireEvent(name, e);
 			}

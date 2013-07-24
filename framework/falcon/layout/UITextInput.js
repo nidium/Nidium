@@ -29,6 +29,7 @@ Native.elements.export("UITextInput", {
 
 		this.caretOpacity = 1;
 		this.caretCounter = 0;
+		this.shiftKeyDown = false;
 
 		this.setProperties({
 			canReceiveFocus	: true,
@@ -126,11 +127,32 @@ Native.elements.export("UITextInput", {
 			self._doMouseSelection(e);
 			self._endMouseSelection();
 
-			self.setCaret(self.selection.offset, 0);
-			self.setStartPoint();
-			self.caretCounter = -20;
+			if (e.shiftKeyDown === false) {
+				self.setCaret(self.selection.offset, 0);
+				self.setStartPoint();
+				self.caretCounter = -20;
+				self.select(false);
 
-			self.select(false);
+				self.__oldstartx = self.__startx;
+				self.__oldstarty = self.__starty;
+				self.__clickOnce = true;
+
+			} else {
+				/* shift pressed */
+				if (self.__clickOnce === false)
+				console.log(self.caret.x2, self._StartCaret.x)
+				if (self.caret.x2 > self._StartCaret.x){
+					self.selection.offset = self._StartCaret.x;
+					self.selection.size = self.caret.x2 - self._StartCaret.x;
+				} else {
+					self.selection.offset = self.caret.x1;
+					self.selection.size = self._StartCaret.x - self.caret.x1;
+				}
+
+				self.setCaret(self.selection.offset, self.selection.size);
+				self.__clickOnce = false;
+			}
+
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -141,7 +163,13 @@ Native.elements.export("UITextInput", {
 		}, false);
 
 		this.overlay.addEventListener("dragstart", function(e){
-			self._startMouseSelection(e);
+			if (e.shiftKeyDown) {
+				self.__startTextSelectionProcessing = true;
+				self.__startx = self.__oldstartx;
+				self.__starty = self.__oldstarty;
+			} else {
+				self._startMouseSelection(e);
+			}
 			self.startDragTimer();
 		}, false);
 
@@ -204,7 +232,7 @@ Native.elements.export("UITextInput", {
 		this.overlay.addEventListener("keydown", function(e){
 			if (!self.hasFocus) return false;
 
-			if (e.ctrlKey || e.cmdKey) {
+			if (e.ctrlKey || e.cmdKeyDown) {
 				switch (e.keyCode) {
 					case 65 : // CTRL-A
 						self.select();
@@ -503,7 +531,7 @@ Native.elements.export("UITextInput", {
 		this._startMouseSelection = function(e){
 			this.__startTextSelectionProcessing = true;
 			this.__startx = e.x + self.parent.scrollLeft;
-			this.__starty = e.y;
+			this.__starty = e.y + self.parent.scrollTop;
 		};
 
 		this._endMouseSelection = function(e){
@@ -517,7 +545,7 @@ Native.elements.export("UITextInput", {
 					x1 : self.__startx,
 					y1 : self.__starty,
 					x2 : e.x + self.parent.scrollLeft,
-					y2 : e.y
+					y2 : e.y + self.parent.scrollTop
 				};
 
 				var area = self.mouseSelectionArea;
@@ -537,7 +565,7 @@ Native.elements.export("UITextInput", {
 				}
 
 				var x = self.__left + self.padding.left + self.parent.scrollLeft,
-					y = self.__top + self.padding.top,
+					y = self.__top + self.padding.top + self.parent.scrollTop,
 					lh = self.lineHeight,
 
 					r = {
