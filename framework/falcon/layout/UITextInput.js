@@ -51,6 +51,8 @@ Native.elements.export("UITextInput", {
 		});
 
 		this.placeholder = OptionalValue(o.placeholder, "");
+		this.cursor = OptionalCursor(o.cursor, "beam");
+
 
 		this.resizeElement = function(){
 			var line = this._textMatrix ? this._textMatrix[0] : false,
@@ -159,6 +161,16 @@ Native.elements.export("UITextInput", {
 		}, false);
 
 		/* ------------------------------------------------------------------ */
+
+		this.addEventListener("mouseover", function(e){
+			this.hover = true;
+		});
+
+		this.addEventListener("mouseout", function(e){
+			this.hover = false;
+		});
+
+
 
 		this.overlay.addEventListener("mousedblclick", function(e){
 			self.resetCaretStartPoint();
