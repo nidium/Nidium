@@ -20,6 +20,12 @@ Native.elements.export("UITextInput", {
 			set : function(value){
 				if (this.multiline === false) this.resizeElement();
 			}
+		},
+
+		placeholder : {
+			set : function(value){
+				this.setPlaceHolder(value);
+			}
 		}
 	},
 
@@ -45,10 +51,11 @@ Native.elements.export("UITextInput", {
 
 			multiline 		: OptionalBoolean(o.multiline, true),
 
-			placeholder 	: OptionalValue(o.placeholder, ""),
 			background 		: OptionalValue(o.background, "#ffffff"),
 			color 			: OptionalValue(o.color, "#000000")
 		});
+
+		this.placeholder = OptionalValue(o.placeholder, "");
 
 		this.resizeElement = function(){
 			var line = this._textMatrix ? this._textMatrix[0] : false,
@@ -142,12 +149,8 @@ Native.elements.export("UITextInput", {
 
 				self.__oldstartx = self.__startx;
 				self.__oldstarty = self.__starty;
-				self.__clickOnce = true;
-
 			} else {
 				/* shift pressed */
-				if (self.__clickOnce === false)
-				console.log(self.caret.x2, self._StartCaret.x)
 				if (self.caret.x2 > self._StartCaret.x){
 					self.selection.offset = self._StartCaret.x;
 					self.selection.size = self.caret.x2 - self._StartCaret.x;
@@ -157,7 +160,6 @@ Native.elements.export("UITextInput", {
 				}
 
 				self.setCaret(self.selection.offset, self.selection.size);
-				self.__clickOnce = false;
 			}
 		}, false);
 
@@ -757,10 +759,21 @@ Native.elements.export("UITextInput", {
 			}
 		};
 
+		this.isPlaceHolderVisible = function(){
+			return	this.text != "" && 
+					this.placeholder != "" &&
+					this.placeholderActive;
+		};
+
 		this.setPlaceHolder = function(value){
 			if (this.multiline) return false;
-			this.placeholder = value;
-			if (value != "") this.showPlaceHolder();
+
+			if (this.isPlaceHolderVisible()) {
+				this.setText(this.placeholder);
+			} else {
+				this.placeholder = value;
+				if (value != "") this.showPlaceHolder();
+			}
 		};
 
 		this.showPlaceHolder = function(){
@@ -1340,7 +1353,7 @@ function printTextMatrix(element, x, y, vOffset, viewportWidth, viewportHeight, 
 	context.fontSize = fontSize;
 	context.fontType = fontType;
 
-	if (element.placeholderActive) {
+	if (element.isPlaceHolderVisible()) {
 		context.setColor("rgba(0, 0, 0, 0.4)");
 	} else {
 		context.setColor(color);

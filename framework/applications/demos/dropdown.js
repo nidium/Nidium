@@ -41,9 +41,6 @@ var dateField = main.add("UITextField", {
 });
 
 
-//dateField.placeholder = "dd/mm/yyyy";
-
-
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
 });
