@@ -43,12 +43,20 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *ret = JS_NewObjectForConstructor(cx, &Http_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
-        return JS_TRUE;
+        return true;
     }
 
     JSAutoByteString curl(cx, url);
 
-    nhttp = new NativeHTTP(new NativeHTTPRequest(curl.ptr()),
+    NativeHTTPRequest *req = new NativeHTTPRequest(curl.ptr());
+
+    if (!req->isValid()) {
+        JS_ReportError(cx, "Invalid URL");
+        delete req;
+        return false;
+    }
+
+    nhttp = new NativeHTTP(req,
         (ape_global *)JS_GetContextPrivate(cx));
 
     jshttp = new NativeJSHttp();
@@ -64,7 +72,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
     JS_DefineFunctions(cx, ret, http_funcs);
 
-    return JS_TRUE;
+    return true;
 }
 
 
@@ -77,6 +85,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSHttp *jshttp;
     JSObject *options = NULL;
     jsval curopt;
+
+    NATIVE_CHECK_ARGS("request", 2);
 
     if (JS_InstanceOf(cx, caller, &Http_class, JS_ARGV(cx, vp)) == JS_FALSE) {
         return JS_TRUE;

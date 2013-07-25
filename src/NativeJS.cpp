@@ -1415,7 +1415,7 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     unsigned int identifier;
 
-    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "i", &identifier)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &identifier)) {
         return JS_TRUE;
     }
 

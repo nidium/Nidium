@@ -39,6 +39,10 @@ class NativeHTTPRequest
 
         buffer *getHeadersData() const;
 
+        const bool isValid() const {
+            return (this->host[0] != 0);
+        }
+
         const char *getHost() const {
             return this->host;
         }
