@@ -4,29 +4,33 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-/* -- Falcon Framework ------------------ */
-load("../scripts/preload.js");
+//load("applications/_tests/timers.js");
+//load("applications/_tests/arc.js");
+//load("applications/_tests/sockets.client.js");
+//load("applications/_tests/sockets.server.js");
+//load("applications/_tests/tasks.js");
 
-//load("applications/demos/hello.js");
-//load("applications/demos/motion.js");
-//load("applications/demos/tabs.js");
-//load("applications/demos/profiler.js");
-//load("applications/demos/style.js");
-//load("applications/demos/windows.js");
-load("applications/demos/dropdown.js");
-//load("applications/demos/buttons.js");
-//load("applications/demos/sliders.js"); // radial gradient issue
-//load("applications/demos/scrollbars.js");
-//load("applications/demos/modal.js");
-//load("applications/demos/threads.js");
-//load("applications/demos/tooltips.js");
-//load("applications/demos/animation.js");
-//load("applications/demos/flickr.js");
-//load("applications/demos/http.js");
-//load("applications/demos/zip.js");
 
-//load("applications/demos/text.js");
-//load("applications/demos/test.js");
+//load("applications/components/hello.js");
+//load("applications/components/motion.js");
+//load("applications/components/tabs.js");
+//load("applications/components/profiler.js");
+//load("applications/components/style.js");
+//load("applications/components/windows.js");
+load("applications/components/dropdown.js");
+//load("applications/components/buttons.js");
+//load("applications/components/sliders.js"); // radial gradient issue
+//load("applications/components/scrollbars.js");
+//load("applications/components/modal.js");
+//load("applications/components/threads.js"); // crash
+//load("applications/components/tooltips.js");
+//load("applications/components/animation.js");
+//load("applications/components/flickr.js");
+//load("applications/components/http.js");
+//load("applications/components/zip.js");
+
+//load("applications/components/text.js");
+//load("applications/components/test.js");
 
 /* UNIT TESTS */
 
@@ -44,15 +48,15 @@ load("applications/demos/dropdown.js");
 
 /* FILE API */
 
-	//load("applications/demos/file.basic.js");
-	//load("applications/demos/file.advanced.js");
+	//load("applications/components/file.basic.js");
+	//load("applications/components/file.advanced.js");
 
 
 /* SHADERS */
 
-	//load("applications/demos/shader.js");
-	//load("applications/demos/shader.basic.js");
-	//load("applications/demos/shader.advanced.js");
+	//load("applications/components/shader.js");
+	//load("applications/components/shader.basic.js");
+	//load("applications/components/shader.advanced.js");
 
 /* TUTORIALS */
 
@@ -74,8 +78,8 @@ load("applications/demos/dropdown.js");
 
 /* Unfinished */
 
-	//load("applications/demos/splines.js"); // LENTEUR ABOMINABLE
-	//load("applications/demos/diagrams.js");
+	//load("applications/components/splines.js"); // LENTEUR ABOMINABLE
+	//load("applications/components/diagrams.js");
 
 
 

@@ -13,7 +13,7 @@ load("libs/chart.lib.js");
 /* -------------------------------------------------------------------------- */
 
 var body = new Application({
-	backgroundImage : "falcon/assets/back.png"
+	backgroundImage : "private://assets/back.png"
 });
 
 var	view = new UIElement(body, {

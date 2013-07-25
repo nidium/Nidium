@@ -15,7 +15,7 @@ load("libs/chart.lib.js");
 document.background = "white";
 
 var body = new Application({
-	backgroundImage : "falcon/assets/back.png",
+	backgroundImage : "private://assets/back.png",
 	alpha : 0.75
 });
 

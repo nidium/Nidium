@@ -31,7 +31,7 @@ Native.StyleSheet.load("applications/audio/mixer.nss");
 /* ---------------------------------------------------------------------------*/
 
 var main = new Application({
-	backgroundImage : "falcon/assets/back.png"
+	backgroundImage : "private://assets/back.png"
 });
 
 var mixer = null,

@@ -56,7 +56,7 @@ var NatBug = {
 			width : 844,
 			height : 244,
 			background : "rgba(80, 80, 0, 0.35)",
-			backgroundImage : "falcon/assets/back.png",
+			backgroundImage : "private://assets/back.png",
 			radius : 8,
 			opacity : 0.94,
 			alpha : 0.9,

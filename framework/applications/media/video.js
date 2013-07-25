@@ -5,7 +5,7 @@
 /* -------------------------------------- */
 
 var body = new Application({
-	backgroundImage : "falcon/assets/back.png",
+	backgroundImage : "private://assets/back.png",
 	class : "body"
 });
 
@@ -14,7 +14,7 @@ var video = new UIVideo(body, {
 	height : 360
 }).center();
 
-video.load("media/native.mov", function(e){
+video.load("../media/native.mov", function(e){
 	this.player.play();
 });
 
@@ -27,7 +27,7 @@ video.player.onstop = function(){};
 video.player.onerror = function(e){};
 
 /*
-video.shader("applications/demos/shaders/radialblur.s", function(program, uniforms){
+video.shader("../applications/demos/shaders/radialblur.s", function(program, uniforms){
 	var t = 0;
 	setInterval(function(){
 		uniforms.itime = t++;

@@ -25,7 +25,7 @@ var	v4 = new UIElement(body, "views").place(10, 280);
 var	v5 = new UIElement(body, "views").place(350, 280);
 var	v6 = new UIView(body, "views").place(690, 280);
 
-v6.backgroundImage = "falcon/assets/grey.png";
+v6.backgroundImage = "private://assets/grey.png";
 
 var lineChartData = {
 	labels : ["January","February","March","April","May","June","July"],

@@ -24,87 +24,40 @@
  * --------------------------------------------------------------------------- * 
  */
 
-{
-	body : {
-		background : "#262722",
-		backgroundImage : "private://assets/back.png",
-		alpha : 0.8
-	},
+ "use strict";
 
-	mixer : {
-		id : "audioMixerContainer",
-		top : 400,
-		left : 10,
-		width : 1000,
-		height : 350,
-		background : "rgba(0, 0, 0, 0.25)",
-		radius : 4
-	},
+var main = new Application();
 
-	mixerContainer : {
-		top : 4,
-		left : 4,
-		radius : 0
-	},
+var mixer = null,
+	tracks = [];
 
-	slide : {
-		top : 0,
-		background : "rgba(0, 0, 0, 0.30)",
-		radius : 3
-	},
+var tx = [
+	{file : "song.mp3",	label : "Depress"},
+	{file : "song.mp3",	label : "Depress"},
+	{file : "song.mp3",	label : "Depress"}
+];
 
-	panLabel : {
-		color : "#888888"
-	},
+for (var i=0; i<tx.length; i++){
+	tracks[i] = AudioMixer.load(tx[i].file, function(data, k){
+		this.volume(0.5);
+		this.play();
+	}, i);
 
-	panSlider : {
-		background : 'rgba(128, 128, 128, 0.2)',
-		radius : 2
-	},
 
-	solobutton : {
-		top : 20,
-		left : 5,
-		height : 13,
-		width : 12,
-		label : "S",
-		color : "#cccccc",
-		background : "rgba(33, 0, 0, 0.6)",
-		paddingLeft : 2,
-		paddingRight : 3,
-		radius : 6,
-		fontSize : 9
-	},
+	tracks[i].processor.onbuffer = function(ev, scope){
+		var channels = ev.data,
+			gain = this.get("gain");
 
-	mutebutton : {
-		top : 20,
-		left : 42,
-		height : 13,
-		width : 12,
-		label : "M",
-		color : "#cccccc",
-		background : "rgba(33, 0, 0, 0.6)",
-		paddingLeft : 2,
-		paddingRight : 3,
-		radius : 6,
-		fontSize : 9
-	},
+		for (var n=0; n<channels.length; n++){
+			var buffer = channels[n];
+			for (var i=0; i<buffer.length; i++){
+				buffer[i] *= gain;
+			}
+		}
+	};
 
-	hintLabel : {
-		top : 315,
-		color : "rgba(255, 255, 255, 0.90)",
-		textShadowColor : "rgba(0, 0, 0, 0.4)",
-		fontSize : 9,
-		radius : 3,
-		paddingLeft : 4
-	}
+	tracks[i].processor.onmessage = function(e){
+		echo(e.data);
+	};
 
 }
-
-
-
-
-
-
-
-
