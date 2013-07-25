@@ -57,16 +57,12 @@ Native.elements.export("UITextInput", {
 		this.cursor = OptionalCursor(o.cursor, "beam");
 
 		this.resetUndo = function(){
-			console.log("-------------------------------------------");
-			console.log("init state");
 			this.undoQueue = [];
 			this.undoIndex = 0;
 			this.saveState(0);
 		};
 
 		this.saveState = function(num){
-			console.log("save state", num);
-			console.log("current index =", this.undoIndex);
 			this.undoQueue[num] = {
 				text : this.text,
 				
@@ -82,7 +78,6 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.restoreState = function(num){
-			echo("restore state", num);
 			num = Math.min(Math.max(num, 0), this.undoQueue.length-1);
 			var s = this.undoQueue[num];
 
@@ -97,16 +92,13 @@ Native.elements.export("UITextInput", {
 				this.parent.scrollLeft = s.scrollLeft;
 				this.parent.scrollTop = s.scrollTop;
 			}
-			console.log("restore", num);
 		};
 
 		this.pushState = function(){
 			this.saveState(++this.undoIndex);
-			console.log("current index =", this.undoIndex);
 		};
 
 		this.undo = function(){
-			console.log("try undo", this.undoIndex);
 			if (this.undoIndex > 0) {
 				this.restoreState(--this.undoIndex)
 			}
