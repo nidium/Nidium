@@ -50,6 +50,9 @@ class NativeAssets
                 }
 
                 void setName(const char *name) {
+                    if (this->name != NULL && this->name != name) {
+                        free(this->name);
+                    }
                     this->name = strdup(name);
                 }
 

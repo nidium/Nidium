@@ -342,7 +342,7 @@ int NativeSkia::bindOnScreen(int width, int height)
         return 0;
     }
     canvas = new SkCanvas(dev);
-    canvas->scale(SkFloatToScalar(ratio), SkFloatToScalar(ratio));
+    this->scale(ratio, ratio);
 
     SkSafeUnref(dev);
 
@@ -371,7 +371,7 @@ int NativeSkia::bindOffScreen(int width, int height)
     bitmap.allocPixels();
 
     canvas = new SkCanvas(bitmap);
-    canvas->scale(SkFloatToScalar(ratio), SkFloatToScalar(ratio));
+    this->scale(ratio, ratio);
 
     /* TODO: Move the following in a common methode (init) */
     globalAlpha = 255;
@@ -439,7 +439,6 @@ int NativeSkia::bindGL(int width, int height)
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
     canvas = new SkCanvas(dev);
-    canvas->scale(SkFloatToScalar(ratio), SkFloatToScalar(ratio));
 
     if (NativeSkia::glcontext == NULL) {
         NativeSkia::glcontext = canvas;

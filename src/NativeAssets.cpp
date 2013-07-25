@@ -50,6 +50,9 @@ void NativeAssets::Item::download()
 {
     this->stream = new NativeStream(net, url, this->prefixPath);
 
+    /* Reset the name with the new location forged by NativeStream */
+    this->setName(this->stream->getLocation());
+
     stream->setDelegate(this);
     stream->getContent();
 }

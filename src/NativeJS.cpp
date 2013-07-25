@@ -796,8 +796,6 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
     //NativeStreamTest *st = new NativeStreamTest(net);
-
-    printf("Test 1 : %s\n", NativeStream::resolvePath("/home/foo/bar/", NativeStream::STREAM_RESOLVE_PATH));
 }
 
 static bool test_extracting(const char *buf, int len,
