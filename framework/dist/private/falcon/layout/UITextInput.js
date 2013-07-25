@@ -124,13 +124,6 @@ Native.elements.export("UITextInput", {
 			this.overlay.width = Math.min(minWidth, __MAX_LAYER_WIDTH__);
 		};
 
-		this.padding = {
-			left : 0,
-			right : 0,
-			top : 0,
-			bottom : 0
-		};
-
 		this.overlay = new UIElement(this, {
 			width : this.parent.width,
 			heigh : this.height,
@@ -646,8 +639,8 @@ Native.elements.export("UITextInput", {
 					};
 				}
 
-				var x = self.__left + self.padding.left + self.parent.scrollLeft,
-					y = self.__top + self.padding.top + self.parent.scrollTop,
+				var x = self.__left + self.parent.scrollLeft,
+					y = self.__top + self.parent.scrollTop,
 					lh = self.lineHeight,
 
 					r = {
@@ -1127,12 +1120,12 @@ Native.elements.export("UITextInput", {
 		
 		this.updateOverlay = function(){
 			var	params = this.getDrawingBounds(),
-				x = params.x + this.padding.left,
-				y = params.y + this.padding.top,
-				w = params.w - this.padding.right - this.padding.left,
-				h = params.h - this.padding.top - this.padding.bottom,
+				x = params.x,
+				y = params.y,
+				w = params.w,
+				h = params.h,
 
-				vOffset = (this.lineHeight/2)+5;
+				vOffset = (this.lineHeight/2) + 5;
 
 			if (this.multiline) {
 				printTextOverlay(
@@ -1162,12 +1155,12 @@ Native.elements.export("UITextInput", {
 	draw : function(context){
 		var params = this.getDrawingBounds(),
 
-			x = params.x + this.padding.left,
-			y = params.y + this.padding.top,
-			w = params.w - this.padding.right - this.padding.left,
-			h = params.h - this.padding.top - this.padding.bottom,
+			x = params.x,
+			y = params.y,
+			w = params.w,
+			h = params.h,
 
-			vOffset = (this.lineHeight/2)+5;
+			vOffset = (this.lineHeight/2) + 5;
 
 		context.fontSize = this.fontSize;
 		context.fontType = this.fontType;

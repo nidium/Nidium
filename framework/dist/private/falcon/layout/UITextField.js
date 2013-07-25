@@ -43,6 +43,11 @@ Native.elements.export("UITextField", {
 			width 			: OptionalNumber(o.width, 120),
 			height 			: OptionalNumber(o.height, 22),
 
+			paddingLeft		: OptionalNumber(o.paddingLeft, 3),
+			paddingRight	: OptionalNumber(o.paddingLeft, 3),
+			paddingTop		: OptionalNumber(o.paddingTop, 3),
+			paddingBottom	: OptionalNumber(o.paddingBottom, 3),
+
 			background 		: OptionalValue(o.background, '#ffffff'),
 			color 			: OptionalValue(o.color, "#000000"),
 
@@ -63,17 +68,11 @@ Native.elements.export("UITextField", {
 		});
 
 		this.view = this.add("UIView", {
-			left : 0,
-			top : 0,
-			width : this.width,
-			height : this.height,
-			background : this.background,
+			left : this.paddingLeft,
+			top : this.paddingTop,
+			width : this.width - this.paddingLeft - this.paddingRight,
+			height : this.height - this.paddingTop - this.paddingBottom,
 			radius : this.radius,
-			borderWidth : this.borderWidth,
-			borderColor : this.borderColor,
-			shadowBlur : this.shadowBlur,
-			shadowColor : this.shadowColor,
-			shadowOffsetY : this.shadowOffsetY,
 			overflow : false,
 			scrollable : true,
 			scrollBarX : false,
@@ -81,12 +80,12 @@ Native.elements.export("UITextField", {
 		});
 
 		this.input = this.view.add("UITextInput", {
-			left : 3,
+			left : 0,
 			top : 0,
-			height : this.height - 4,
+			height : this.height - this.paddingTop - this.paddingBottom,
 			fontSize : this.fontSize,
 			fontType : this.fontType,
-			lineHeight : this.lineHeight,
+			lineHeight : this.lineHeight - this.paddingTop - this.paddingBottom,
 			text : this.value,
 			placeholder : this.placeholder,
 			pattern : this.pattern,
@@ -108,5 +107,19 @@ Native.elements.export("UITextField", {
 		});
 	},
 
-	draw : function(context){}
+	draw : function(context){
+		var	params = this.getDrawingBounds();
+
+		if (this.shadowBlur != 0) {
+			context.setShadow(
+				this.shadowOffsetX,
+				this.shadowOffsetY,
+				this.shadowBlur,
+				this.shadowColor
+			);
+		}
+
+		DOMElement.draw.box(this, context, params);
+		context.setShadow(0, 0, 0);
+	}
 });
