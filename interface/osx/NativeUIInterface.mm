@@ -39,6 +39,20 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         while(SDL_PollEvent(&event)) {
             nevents++;
             switch(event.type) {
+                case SDL_WINDOWEVENT:
+                    if (NUII->NJS) {
+                        switch (event.window.event) {
+                            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                                NUII->NJS->windowFocus();
+                                break;
+                            case SDL_WINDOWEVENT_FOCUS_LOST:
+                                NUII->NJS->windowBlur();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    break;
                 case SDL_TEXTINPUT:
                     if (NUII->NJS) {
                         NUII->NJS->textInput(event.text.text);
@@ -309,6 +323,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         }
         this->nml = new NativeNML(this->gnet);
         this->nml->setNJS(this->NJS);
+        printf("Load NML : %s\n", path);
         this->nml->loadFile(path);
 
         return true;

@@ -16,6 +16,7 @@
 #include "NativeJSFileIO.h"
 #include "NativeJSConsole.h"
 #include "NativeJSModules.h"
+#include "NativeStream.h"
 
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
@@ -32,6 +33,7 @@
 #include <stdio.h>
 #include <jsapi.h>
 #include <jsprf.h>
+
 #include <stdint.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -92,6 +94,13 @@ static JSClass global_class = {
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass windowEvent_class = {
+    "WindowEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -462,6 +471,40 @@ void NativeJS::textInput(const char *data)
     }
 }
 
+void NativeJS::windowFocus()
+{
+    jsval rval;
+
+    jsval window, onfocus;
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window),
+        "_onfocus", &onfocus) &&
+        !JSVAL_IS_PRIMITIVE(onfocus) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onfocus))) {
+
+        JS_CallFunctionValue(cx, NULL, onfocus, 0, NULL, &rval);
+    }    
+}
+
+void NativeJS::windowBlur()
+{
+    jsval rval;
+
+    jsval window, onblur;
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
+
+    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window),
+        "_onblur", &onblur) &&
+        !JSVAL_IS_PRIMITIVE(onblur) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onblur))) {
+
+        JS_CallFunctionValue(cx, NULL, onblur, 0, NULL, &rval);
+    }   
+}
+
 void NativeJS::mouseClick(int x, int y, int state, int button)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
@@ -562,21 +605,39 @@ void NativeJS::assetReady(const NMLTag &tag)
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *script, *type = NULL;
+    JSScript *parent;
+    const char *filename_parent;
+    unsigned lineno;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S", &script, &type)) {
         return JS_TRUE;
     }
 
+    JS_DescribeScriptedCaller(cx, &parent, &lineno);
+    filename_parent = JS_GetScriptFilename(cx, parent);
+
     JSAutoByteString scriptstr(cx, script);
+    char *basepath = NativeStream::resolvePath(filename_parent, NativeStream::STREAM_RESOLVE_PATH);
+
+    char *finalfile = (char *)malloc(sizeof(char) *
+        (1 + strlen(basepath) + strlen(scriptstr.ptr())));
+
+    sprintf(finalfile, "%s%s", basepath, scriptstr.ptr());
+
     jsval ret = JSVAL_NULL;
 
-    if (type == NULL && !NJS->LoadScript(scriptstr.ptr())) {
+    if (type == NULL && !NJS->LoadScript(finalfile)) {
+        free(finalfile);
+        free(basepath);
         return JS_TRUE;
     } else if (type != NULL &&
-        !NativeJS_NativeJSLoadScriptReturn(cx, scriptstr.ptr(), &ret)) {
+        !NativeJS_NativeJSLoadScriptReturn(cx, finalfile, &ret)) {
+        free(finalfile);
+        free(basepath);
         return JS_TRUE;
     }
-
+    free(finalfile);
+    free(basepath);
     JS_SET_RVAL(cx, vp, ret);
 
     return JS_TRUE;
@@ -735,6 +796,8 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
     //NativeStreamTest *st = new NativeStreamTest(net);
+
+    printf("Test 1 : %s\n", NativeStream::resolvePath("/home/foo/bar/", NativeStream::STREAM_RESOLVE_PATH));
 }
 
 static bool test_extracting(const char *buf, int len,
@@ -1077,7 +1140,6 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     const char *filename)
 {
     uint32_t oldopts;
-    
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
 
@@ -1088,15 +1150,16 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
 
     JSObject *mgbl = modules->init(gbl, filename);
     if (!mgbl) {
-        return 1;
+        //printf("No module %s\n", filename);
+        //return 1;
     }
-    js::RootedObject rgbl(cx, mgbl);
+    js::RootedObject rgbl(cx, gbl);
 
     JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
     JS_SetOptions(cx, oldopts);
 
-    if (script == NULL || !JS_ExecuteScript(cx, mgbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -1104,7 +1167,6 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
         }
         return 0;
     }
-    
     return 1;
 }
 
@@ -1134,7 +1196,7 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
     if (!mgbl) {
         return 1;
     }
-    js::RootedObject rgbl(cx, mgbl);
+    js::RootedObject rgbl(cx, gbl);
 
     JSScript *script = JS::Compile(cx, rgbl, options, filename);
 
@@ -1152,7 +1214,7 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
 #endif
     JS_SetOptions(cx, oldopts);
 
-    if (script == NULL || !JS_ExecuteScript(cx, mgbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);

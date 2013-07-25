@@ -25,7 +25,7 @@ class NativeAssets
                     ITEM_IMG
                 } fileType;
 
-                Item(const char *url, FileType t, ape_global *net);
+                Item(const char *url, FileType t, ape_global *net, char *prefixPath = NULL);
                 ~Item();
                 void download();
                 const unsigned char *get(size_t *size) {
@@ -60,6 +60,7 @@ class NativeAssets
                 NativeStream *stream;
 
             private:
+                char *prefixPath;
                 const char *url;
                 ape_global *net;
                 void onGetContent(const char *data, size_t len);

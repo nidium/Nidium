@@ -19,8 +19,9 @@ NativeAssets::~NativeAssets()
     }
 }
 
-NativeAssets::Item::Item(const char *url, FileType t, ape_global *net) :
-    fileType(t), state(ITEM_LOADING), stream(NULL),
+NativeAssets::Item::Item(const char *url, FileType t,
+    ape_global *net, char *prefixPath) :
+    fileType(t), state(ITEM_LOADING), stream(NULL), prefixPath(prefixPath),
     url(url), net(net), assets(NULL), name(NULL), tagname(NULL)
 {
     data.data = NULL;
@@ -32,6 +33,7 @@ NativeAssets::Item::~Item()
     if (name) {
         free(name);
     }
+
     if (tagname) {
         free(tagname);
     }
@@ -46,7 +48,7 @@ NativeAssets::Item::~Item()
 
 void NativeAssets::Item::download()
 {
-    this->stream = new NativeStream(net, url);
+    this->stream = new NativeStream(net, url, this->prefixPath);
 
     stream->setDelegate(this);
     stream->getContent();

@@ -26,10 +26,19 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             STREAM_END = -4
         };
 
-        NativeStream(ape_global *net, const char *location);
+        enum StreamResolveMode {
+            STREAM_RESOLVE_FILE,
+            STREAM_RESOLVE_PATH,
+            STREAM_RESOLVE_ROOT
+        };
+
+        NativeStream(ape_global *net, const char *location,
+            const char *prefix = NULL);
         virtual ~NativeStream();
         const char *getLocation() const { return this->location; }
 
+
+        static char *resolvePath(const char *url, StreamResolveMode mode = STREAM_RESOLVE_PATH);
         void getContent();
         void getFileSize();
         void seek(size_t pos);
@@ -65,9 +74,11 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         size_t getPacketSize() const {
             return this->packets;
         }
+
+        static NativeStream::StreamInterfaces typeInterface(const char *url, int *len);
     private:
         NativeIStreamer *interface;
-        NativeIStreamer *getInterface();
+        NativeIStreamer *getInterface(bool refresh = false);
         void setInterface(StreamInterfaces interface, int path_offset);
         ape_global *net;
         size_t packets;
