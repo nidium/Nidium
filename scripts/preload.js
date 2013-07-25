@@ -32,30 +32,25 @@ dans le vague, il faut les ramener dans la réalité des faits : la pratique les
 tue.
 */
 
-var _GLOBAL = this;
+document.body = Native.canvas;
 
-var document = {
-	body : Native.canvas
-};
-
-document.createElement = function(type) {
-	switch(type) {
+document.createElement = function(type){
+	switch (type){
 		case "canvas":
-		return new Canvas(32, 32);
-		default:
-		break;
+			return new Canvas(32, 32);
+			default:
+			break;
 	}
-}
+};
 
 Canvas.prototype.appendChild = function(node) {
 	this.add(node);
-}
-
+};
 
 /*
 
 if ("titleBarColor" in window) {
-	window.titleBarColor = "rgba(255, 255, 255, 0.80)";
+	window.titleBarColor = "rgba(255, 255, 255, 0.1)";
 }
 
 if ("opacity" in window) {

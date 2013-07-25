@@ -11,6 +11,7 @@ Native.elements.export("UITextField", {
 				if (this.input.setText){
 					this.input.setText(value);
 					this.input.scrollToLineStart();
+					this.input.resetUndo();
 				}
 			},
 

@@ -32,6 +32,9 @@ Native.elements.export("UITextInput", {
 		this.shiftKeyDown = false;
 		this.placeholderActive = false;
 
+		this.undoQueue = [];
+		this.undoIndex = 0;
+
 		this.setProperties({
 			canReceiveFocus	: true,
 
@@ -53,6 +56,67 @@ Native.elements.export("UITextInput", {
 		this.placeholder = OptionalValue(o.placeholder, "");
 		this.cursor = OptionalCursor(o.cursor, "beam");
 
+		this.resetUndo = function(){
+			console.log("-------------------------------------------");
+			console.log("init state");
+			this.undoQueue = [];
+			this.undoIndex = 0;
+			this.saveState(0);
+		};
+
+		this.saveState = function(num){
+			console.log("save state", num);
+			console.log("current index =", this.undoIndex);
+			this.undoQueue[num] = {
+				text : this.text,
+				
+				selection : {
+					text : this.selection.text,
+					offset : this.selection.offset,
+					size : this.selection.size
+				},
+
+				scrollTop : this.parent ? this.parent.scrollTop : 0,
+				scrollLeft : this.parent ? this.parent.scrollLeft : 0
+			};
+		};
+
+		this.restoreState = function(num){
+			echo("restore state", num);
+			num = Math.min(Math.max(num, 0), this.undoQueue.length-1);
+			var s = this.undoQueue[num];
+
+			this.setText(s.text);
+
+			this.setCaret(
+				s.selection.offset,
+				s.selection.size
+			);
+
+			if (this.parent) {
+				this.parent.scrollLeft = s.scrollLeft;
+				this.parent.scrollTop = s.scrollTop;
+			}
+			console.log("restore", num);
+		};
+
+		this.pushState = function(){
+			this.saveState(++this.undoIndex);
+			console.log("current index =", this.undoIndex);
+		};
+
+		this.undo = function(){
+			console.log("try undo", this.undoIndex);
+			if (this.undoIndex > 0) {
+				this.restoreState(--this.undoIndex)
+			}
+		};
+
+		this.redo = function(){
+			if (this.undoIndex < this.undoQueue.length-1) {
+				this.restoreState(++this.undoIndex)
+			}
+		};
 
 		this.resizeElement = function(){
 			var line = this._textMatrix ? this._textMatrix[0] : false,
@@ -158,6 +222,9 @@ Native.elements.export("UITextInput", {
 
 				self.setCaret(self.selection.offset, self.selection.size);
 			}
+
+			self.saveState(self.undoIndex);
+
 		}, false);
 
 		/* ------------------------------------------------------------------ */
@@ -213,6 +280,7 @@ Native.elements.export("UITextInput", {
 
 		this.overlay.addEventListener("dragend", function(e){
 			self._endMouseSelection();
+			self.saveState(self.undoIndex);
 			self._autoScrollLeft = false;
 			self.stopDragTimer();
 			self.fireEvent("textselect", self.selection);
@@ -267,7 +335,18 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 70 : // CTRL-F
-						self.scrollToCaretCenter(self.caret.x1, self.caret.y1);
+						self.scrollToCaretCenter(
+							self.caret.x1,
+							self.caret.y1
+						);
+						break;
+
+					case 90 : // CTRL-Z
+						self.undo();
+						break;
+
+					case 89 : // CTRL-Y
+						self.redo();
 						break;
 				}
 			} else {
@@ -818,6 +897,8 @@ Native.elements.export("UITextInput", {
 
 				this.scrollCheck(this.caret.x2, this.caret.y2);
 				this.checkPattern(this.pattern);
+
+				this.pushState();
 			}
 		};
 
@@ -1079,6 +1160,7 @@ Native.elements.export("UITextInput", {
 		this.setText(this.text);
 		this.resetCaretStartPoint();
 		this.setPlaceHolder(this.placeholder);
+		this.resetUndo();
 	},
 
 	/* ---------------------------------------------------------------------- */
