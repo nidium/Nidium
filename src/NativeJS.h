@@ -60,6 +60,8 @@ class NativeJS
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
         void postDraw();
+        void windowFocus();
+        void windowBlur();
         void mouseWheel(int xrel, int yrel, int x, int y);
         void mouseMove(int x, int y, int xrel, int yrel);
         void mouseClick(int x, int y, int state, int button);

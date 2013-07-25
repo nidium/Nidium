@@ -33,6 +33,16 @@ struct NativeRect
         }
         return false;
     }
+    NativeRect scaled(float scale) const {
+        NativeRect r = {
+            this->fLeft*scale,
+            this->fTop*scale,
+            this->fBottom*scale,
+            this->fRight*scale
+        };
+
+        return r;
+    }
     bool contains(double x, double y) const {
         return !this->isEmpty() &&
                fLeft <= x && x < fRight &&

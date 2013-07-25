@@ -1870,18 +1870,21 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 {
     SkPaint pt;
     pt.setAlpha(opacity * (double)255.);
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (rclip != NULL) {
         SkRect r;
-        r.set(SkDoubleToScalar(rclip->fLeft), SkDoubleToScalar(rclip->fTop),
-            SkDoubleToScalar(rclip->fRight), SkDoubleToScalar(rclip->fBottom));
+        r.set(SkDoubleToScalar(rclip->fLeft*(double)ratio),
+            SkDoubleToScalar(rclip->fTop*(double)ratio),
+            SkDoubleToScalar(rclip->fRight*(double)ratio),
+            SkDoubleToScalar(rclip->fBottom*(double)ratio));
 
         skia->canvas->save(SkCanvas::kClip_SaveFlag);
 
         skia->canvas->clipRect(r);
 
         skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
-            left, top, &pt);
+            left*ratio, top*ratio, &pt);
 
         skia->canvas->restore();
         skia->canvas->flush();
@@ -1920,7 +1923,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
         if (layer->commonDraw) {
             skia->canvas->drawBitmap(bitmapLayer,
-                left, top, &pt);
+                left*ratio, top*ratio, &pt);
             skia->canvas->flush();
         } else {
             int width, height;
@@ -1930,7 +1933,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             uint32_t textureID = layer->getSkiaTextureID(&width, &height);
             //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
             glUseProgram(0);
-            drawTexIDToFBO(textureID, width, height, left, top, getMainFBO());
+            drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, getMainFBO());
             layer->resetGLContext();            
         }
     }

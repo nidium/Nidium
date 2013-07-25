@@ -34,27 +34,28 @@ class NativeNML : public NativeFileIODelegate
 
     private:
 
-        void addAsset(NativeAssets *);
-        ape_global *net;
-        NativeFileIO *NFIO;
+    void addAsset(NativeAssets *);
+    ape_global *net;
+    NativeFileIO *NFIO;
+    char *relativePath;
 
-        /* Define callbacks for tags in <application> */
-        struct _nml_tags {
-            const char *str;
-            /* Call : (this->*cb)() */
-            tag_callback cb;
-        } nml_tags[2] = {
-            {"assets",   &NativeNML::loadAssets},
-            {NULL,       NULL}
-        };
+    /* Define callbacks for tags in <application> */
+    struct _nml_tags {
+        const char *str;
+        /* Call : (this->*cb)() */
+        tag_callback cb;
+    } nml_tags[2] = {
+        {"assets",   &NativeNML::loadAssets},
+        {NULL,       NULL}
+    };
 
-        NativeJS *njs;
+    NativeJS *njs;
 
-        struct {
-            NativeAssets **list;
-            uint32_t allocated;
-            uint32_t size;
-        } assetsList;
+    struct {
+        NativeAssets **list;
+        uint32_t allocated;
+        uint32_t size;
+    } assetsList;
 };
 
 #endif

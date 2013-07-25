@@ -3,9 +3,10 @@
 
 #include <string.h>
 #include "NativeHash.h"
+#include "NativeStream.h"
 
 NativeNML::NativeNML(ape_global *net) :
-    net(net), NFIO(NULL), njs(NULL)
+    net(net), NFIO(NULL), relativePath(NULL), njs(NULL)
 {
     assetsList.size = 0;
     assetsList.allocated = 4;
@@ -15,6 +16,9 @@ NativeNML::NativeNML(ape_global *net) :
 
 NativeNML::~NativeNML()
 {
+    if (relativePath) {
+        free(relativePath);
+    }
     if (NFIO) {
         delete NFIO;
     }
@@ -26,6 +30,8 @@ NativeNML::~NativeNML()
 
 void NativeNML::loadFile(const char *file)
 {
+    this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
+
     NFIO = new NativeFileIO(file, this, this->net);
     NFIO->open("r");
 }
@@ -97,7 +103,7 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
         if ((src = child->first_attribute("src"))) {
             xml_attribute<> *id = child->first_attribute("id");
             item = new NativeAssets::Item(src->value(),
-                NativeAssets::Item::ITEM_UNKNOWN, net);
+                NativeAssets::Item::ITEM_UNKNOWN, net, this->relativePath);
 
             item->setName(id != NULL ? id->value() : src->value());
 

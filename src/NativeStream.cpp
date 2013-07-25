@@ -22,11 +22,23 @@ static struct _native_stream_interfaces {
     {NULL,           NativeStream::INTERFACE_UNKNOWN}
 };
 
-NativeStream::NativeStream(ape_global *net, const char *location) :
+NativeStream::NativeStream(ape_global *net,
+    const char *location, const char *prefix) :
     packets(0), needToSendUpdate(false)
 {
     this->interface = NULL;
-    this->location  = strdup(location);
+    int len = 0;
+    if (prefix == NULL ||
+        NativeStream::typeInterface(location, &len) != INTERFACE_UNKNOWN) {
+
+        this->location  = strdup(location);
+    } else {
+        this->location = (char *)malloc(sizeof(char) *
+            (strlen(location) + strlen(prefix) + 1));
+
+        memcpy(this->location, prefix, strlen(prefix)+1);
+        strcat(this->location, location);
+    }
     this->net = net;
     this->IInterface = INTERFACE_UNKNOWN;
     this->delegate  = NULL;
@@ -42,11 +54,149 @@ NativeStream::NativeStream(ape_global *net, const char *location) :
     mapped.size = 0;
 
     this->getInterface();
+
 }
 
-NativeIStreamer *NativeStream::getInterface()
+char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
 {
-    if (interface) {
+#define FRAMEWORK_LOCATION "./private/"
+#define INDEX_FILE "index.nml"
+
+    int len = 0;
+    NativeStream::StreamInterfaces interface = NativeStream::typeInterface(url, &len);
+    
+    switch(interface) {
+        case INTERFACE_HTTP:
+        {
+            const char *url_wo_http = &url[len];
+            const char *end = strrchr(url_wo_http, '/');
+            const char *start = strchr(url_wo_http, '/');
+            size_t url_len = strlen(url);
+
+            if (mode == STREAM_RESOLVE_PATH) {
+
+                if (end == NULL) {
+                    char *ret = (char *)malloc(sizeof(char) * (url_len + 2));
+                    memcpy(ret, url, url_len+1);
+                    strcat(ret, "/");
+
+                    return ret;
+                } else {
+                    char *ret = (char *)malloc(sizeof(char) * (url_len + 1));
+
+                    memcpy(ret, url, (end - url)+1);
+                    ret[(end - url)+1] = '\0';
+
+                    return ret;
+                }
+            } else if (mode == STREAM_RESOLVE_ROOT) {
+                char *ret = (char *)malloc(sizeof(char) * (url_len + 2));
+                if (start == NULL) {
+                    memcpy(ret, url, url_len+1);
+                    strcat(ret, "/");
+
+                    return ret;
+                } else {
+                    char *ret = (char *)malloc(sizeof(char) * (url_len + 1));
+                    memcpy(ret, url, (start - url)+1);
+                    ret[(start - url)+1] = '\0';
+
+                    return ret;
+                }
+            } else if (mode == STREAM_RESOLVE_FILE) {
+                if (end == NULL) {
+                    char *ret = (char *)malloc(sizeof(char) * (url_len + 2 + sizeof(INDEX_FILE)));
+                    memcpy(ret, url, url_len+1);
+                    strcat(ret, "/");
+                    strcat(ret, INDEX_FILE);
+
+                    return ret;
+                } else if (url[url_len-1] == '/') {
+                    char *ret = (char *)malloc(sizeof(char) * (url_len + 2 + sizeof(INDEX_FILE)));
+                    memcpy(ret, url, url_len+1);
+                    strcat(ret, INDEX_FILE);
+
+                    return ret;
+                } else {
+                    return strdup(url);
+                }
+            }
+        }
+        case INTERFACE_FILE:
+        case INTERFACE_UNKNOWN:
+        {
+            const char *url_wo_prefix = &url[len];
+            const char *end = strrchr(url_wo_prefix, '/');
+            const char *start = strchr(url_wo_prefix, '/');
+            size_t url_len = strlen(url);
+
+            if (mode == STREAM_RESOLVE_ROOT) {
+                if (url_wo_prefix[0] == '/') {
+                    return strdup("/");
+                } else {
+                    return strdup("./");
+                }
+            } else if (mode == STREAM_RESOLVE_FILE) {
+                return strdup(url);
+            } else if (mode == STREAM_RESOLVE_PATH) {
+                if (end == NULL) {
+                    return strdup("./");
+                } else {
+                    char *ret = (char *)malloc(sizeof(char) * (url_len + 1));
+
+                    memcpy(ret, url, (end - url)+1);
+                    ret[(end - url)+1] = '\0';
+
+                    return ret;                    
+                }
+            }
+        }
+        case INTERFACE_DATA:
+            return strdup("./");
+        case INTERFACE_PRIVATE:
+        {
+            char *flocation = (char *)malloc(sizeof(char) *
+                    (strlen(&url[len]) + sizeof(FRAMEWORK_LOCATION) + 1));
+
+            sprintf(flocation, FRAMEWORK_LOCATION "%s", &url[len]);
+
+            /* TODO : force interface type to avoid looping (private://private://) */
+            char *ret = NativeStream::resolvePath(flocation, mode);
+            free(flocation);
+            
+            return ret;
+        }
+        default:
+            return strdup("./");
+    }
+
+    return strdup("./");
+#undef FRAMEWORK_LOCATION
+#undef INDEX_FILE
+}
+
+NativeStream::StreamInterfaces NativeStream::typeInterface(const char *url, int *len)
+{
+    NativeStream::StreamInterfaces interface = NativeStream::INTERFACE_UNKNOWN;
+    *len = 0;
+
+    for (int i = 0; native_stream_interfaces[i].str != NULL; i++) {
+        *len = strlen(native_stream_interfaces[i].str);
+        if (strncasecmp(native_stream_interfaces[i].str, url,
+                        *len) == 0) {
+            interface = native_stream_interfaces[i].interface_type;
+
+            break;
+        }
+    }
+
+    return interface;
+
+}
+
+NativeIStreamer *NativeStream::getInterface(bool refresh)
+{
+    if (interface && !refresh) {
         return interface;
     }
 
@@ -78,14 +228,12 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
             break;
         case INTERFACE_PRIVATE:
         {
-#define FRAMEWORK_LOCATION "./falcon/"
-            char *flocation = (char *)malloc(sizeof(char) *
-                    (strlen(&this->location[path_offset]) + sizeof(FRAMEWORK_LOCATION) + 1));
-            sprintf(flocation, FRAMEWORK_LOCATION "%s", &this->location[path_offset]);
-            this->interface = new NativeFileIO(&flocation[path_offset],
+            char *flocation = NativeStream::resolvePath(this->location, STREAM_RESOLVE_FILE);
+            this->interface = new NativeFileIO(flocation,
                                 this, this->net);
+            free(flocation);
             break;
-#undef FRAMEWORK_LOCATION
+
         }
         case INTERFACE_FILE:
             this->interface = new NativeFileIO(&this->location[path_offset],
@@ -181,7 +329,8 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
     if (!this->hasDataAvailable()) {
         needToSendUpdate = !dataBuffer.ended;
         *len = 0;
-        *err = (dataBuffer.ended && dataBuffer.alreadyRead ? STREAM_END : STREAM_EAGAIN);
+        *err = (dataBuffer.ended && dataBuffer.alreadyRead ?
+            STREAM_END : STREAM_EAGAIN);
         return NULL;
     }
 
