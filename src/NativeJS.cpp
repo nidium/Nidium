@@ -1090,11 +1090,10 @@ void NativeJS::CopyProperties(JSContext *cx, JSObject *source, JSObject *into)
         JSString *prop = JSID_TO_STRING(id);
         JSAutoByteString cprop(cx, prop);
 
-
         if (!JS_GetPropertyById(cx, source, id, &val)) {
             break;
         }
-
+        /* TODO : has own property */
         switch(JS_TypeOfValue(cx, val)) {
             case JSTYPE_OBJECT:
             {
@@ -1111,11 +1110,6 @@ void NativeJS::CopyProperties(JSContext *cx, JSObject *source, JSObject *into)
                 JS_SetPropertyById(cx, into, id, &val);
                 break;
         }
-
-        /*if (!JS_SetPropertyById(cx, into, id, &val)) {
-            printf("Cant set property\n");
-            break;
-        }*/
     }
 }
 
@@ -1304,7 +1298,7 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     /* console() object */
     NativeJSconsole::registerObject(cx);
     /* document() object */
-    this->jsobjdocument = NativeJSdocument::registerObject(cx);
+    NativeJSdocument::registerObject(cx);
 
     //NativeJSDebug::registerObject(cx);
 

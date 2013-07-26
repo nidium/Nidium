@@ -34,7 +34,6 @@ class NativeJS
     private:   
         void LoadGlobalObjects(NativeSkia *, int width, int height);
         NativeJSModules *modules;
-        JSObject *jsobjdocument;
     public:
         JSContext *cx;
         NativeSharedMessages *messages;
