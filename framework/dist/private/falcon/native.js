@@ -120,18 +120,28 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 
 Native.core = {
 	init : function(){
-		if ("console" in Native.scope) {
-			/* dummy */
-		} else {
-			Native.scope.console = {
-				show : function(){},
-				hide : function(){},
-				clear : function(){},
-				log : echo
-			};
-		}
+		this.createDocument();
 		this.setRenderingLoop();
 		this.addStatusBar();
+		delete(this.init);
+	},
+
+	createDocument : function(){
+		var doc = new Application({
+			id : "document",
+			left : 0,
+			top : 0,
+			width : window.width,
+			height : window.height,
+			background : "#272822",
+			canReceiveFocus : true,
+			outlineOnFocus : false
+		});
+
+		doc.stylesheet = document.stylesheet;
+
+		Object.createProtectedElement(Native.scope, "document", doc);
+		document.__styleSheetLoaded = true;
 	},
 
 	setRenderingLoop : function(){
@@ -149,6 +159,5 @@ Native.core = {
 		*/
 	}
 };
-
 
 Native.core.init();

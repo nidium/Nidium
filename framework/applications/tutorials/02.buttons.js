@@ -8,7 +8,7 @@ b1.label = "test";
 b1.center();
 
 // attach another button to document
-var	b2 = document.add("UIButton", {
+var	b2 = screen.add("UIButton", {
 	top : 30,
 	left : 100,
 	label : "a red one",
@@ -17,7 +17,7 @@ var	b2 = document.add("UIButton", {
 });
 
 // you can use the following syntax too
-var	b3 = new UIButton(document, {
+var	b3 = new UIButton(document.body, {
 	top : 60,
 	left : 200,
 	height : 40,

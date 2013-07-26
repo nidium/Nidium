@@ -259,18 +259,5 @@ Object.createProtectedElement(Native.scope, "Application", function(options){
 
 	return element;
 });
-/* -------------------------------------------------------------------------- */
-
-Object.createProtectedElement(Native.scope, "document", new Application({
-	id : "document",
-	left : 0,
-	top : 0,
-	width : window.width,
-	height : window.height,
-	background : "#272822",
-	canReceiveFocus : true,
-	outlineOnFocus : false
-}));
-document.__styleSheetLoaded = true;
 
 /* -------------------------------------------------------------------------- */
