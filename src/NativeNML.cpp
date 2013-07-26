@@ -4,6 +4,9 @@
 #include <string.h>
 #include "NativeHash.h"
 #include "NativeStream.h"
+#include "NativeJS.h"
+#include "NativeJSDocument.h"
+#include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
     net(net), NFIO(NULL), relativePath(NULL), njs(NULL)
@@ -59,8 +62,15 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
             break;
         }
         case NativeAssets::Item::ITEM_NSS:
-            
+        {
+            NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(njs->cx);
+            if (jdoc == NULL) {
+                printf("Cant get jdoc\n");
+                return;
+            }
+            jdoc->populateStyle(njs->cx, item->getName());
             break;
+        }
         default:
             njs->assetReady(tag);
             break;
@@ -105,6 +115,7 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
             item = new NativeAssets::Item(src->value(),
                 NativeAssets::Item::ITEM_UNKNOWN, net, this->relativePath);
 
+            /* Name could be automatically changed afterward */
             item->setName(id != NULL ? id->value() : src->value());
 
             assets->addToPendingList(item);

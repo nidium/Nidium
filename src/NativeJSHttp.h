@@ -6,7 +6,7 @@
 #include "ape_array.h"
 #include "NativeHTTP.h"
 
-class NativeJSHttp : public NativeJSExposer, public NativeHTTPDelegate
+class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDelegate
 {
   public:
     static void registerObject(JSContext *cx);

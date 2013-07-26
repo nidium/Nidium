@@ -7,7 +7,7 @@
 class NativeJS;
 
 
-class NativeJSThread : public NativeJSExposer
+class NativeJSThread : public NativeJSExposer<NativeJSThread>
 {
   public:
     NativeJSThread();

@@ -5,6 +5,7 @@
         'include_dirs': [
             '../src/',
             '../network/',
+            '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/jsoncpp/include/',
             '<(third_party_path)/libzip/lib/',
             '<(third_party_path)/SDL2/include/',

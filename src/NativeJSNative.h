@@ -5,7 +5,7 @@
 
 class NativeSkia;
 
-class NativeJSNative : public NativeJSExposer
+class NativeJSNative : public NativeJSExposer<NativeJSNative>
 {
   public:
     static bool showFPS;

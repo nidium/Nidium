@@ -10,7 +10,7 @@ enum {
 
 class NativeSkImage;
 
-class NativeJSImage : public NativeJSExposer, public NativeStreamDelegate
+class NativeJSImage : public NativeJSExposer<NativeJSImage>, public NativeStreamDelegate
 {
   public:
 

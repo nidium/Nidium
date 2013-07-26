@@ -138,6 +138,7 @@
             '<(native_src_path)/NativeJSNative.cpp',
             '<(native_src_path)/NativeFileIO.cpp',
             '<(native_src_path)/NativeJSWindow.cpp',
+            '<(native_src_path)/NativeJSDocument.cpp',
             '<(native_src_path)/NativeJSCanvas.cpp',
             '<(native_src_path)/NativeCanvasHandler.cpp',
             '<(native_src_path)/NativeCanvas2DContext.cpp',
