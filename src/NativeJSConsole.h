@@ -4,7 +4,7 @@
 #include "NativeJSExposer.h"
 
 
-class NativeJSconsole : public NativeJSExposer
+class NativeJSconsole : public NativeJSExposer<NativeJSconsole>
 {
   public:
     static void registerObject(JSContext *cx);

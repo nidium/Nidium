@@ -7,7 +7,7 @@ typedef unsigned int GLenum;
 typedef unsigned int GLuint;
 
 #define NEW_CLASS(name)\
-class NativeJS ## name: public NativeJSExposer\
+class NativeJS ## name: public NativeJSExposer<NativeJS ## name>\
 {\
     public :\
         NativeJS ## name ();\
@@ -16,7 +16,7 @@ class NativeJS ## name: public NativeJSExposer\
         static void registerObject(JSContext *cx);\
 };
 
-class NativeJSNativeGL: public NativeJSExposer
+class NativeJSNativeGL: public NativeJSExposer<NativeJSNativeGL>
 {
     public :
         NativeJSNativeGL(); 

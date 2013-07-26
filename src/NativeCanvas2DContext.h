@@ -22,7 +22,7 @@ struct NativeRect;
 class SkCanvas;
 class NativeCanvasHandler;
 
-class NativeCanvas2DContext : public NativeJSExposer
+class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
 {
     public:
 

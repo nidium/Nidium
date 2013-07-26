@@ -16,7 +16,7 @@ enum {
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
-class NativeJSSocket : public NativeJSExposer
+class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
 {
   public:
     static void registerObject(JSContext *cx);
@@ -34,7 +34,6 @@ class NativeJSSocket : public NativeJSExposer
 
     bool isJSCallable();
 
-    JSObject *jsobject;
     char *host;
     unsigned short port;
     ape_socket *socket;

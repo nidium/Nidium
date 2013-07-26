@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "NativeTypes.h"
+#include <jspubtd.h>
+
 
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
@@ -32,9 +34,9 @@ class NativeJS
     private:   
         void LoadGlobalObjects(NativeSkia *, int width, int height);
         NativeJSModules *modules;
-
+        JSObject *jsobjdocument;
     public:
-        struct JSContext *cx;
+        JSContext *cx;
         NativeSharedMessages *messages;
         NativeSkia *surface;
         NativeCanvasHandler *rootHandler;
@@ -49,7 +51,9 @@ class NativeJS
         
         int LoadApplication(const char *path);
         void Loaded();
-
+        static void CopyProperties(JSContext *cx, JSObject *source, JSObject *into);
+        static int LoadScriptReturn(JSContext *cx,
+            const char *filename, JS::Value *ret);
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
         int LoadScript(const char *filename);

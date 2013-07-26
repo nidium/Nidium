@@ -54,7 +54,7 @@ class NativeJSAVSource
 
 static void NativeJSAVEventCbk(const struct NativeAVSourceEvent *ev);
 
-class NativeJSAudio: public NativeJSExposer
+class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 {
     public :
         static NativeJSAudio *getContext(JSContext *cx, JSObject *obj, int bufferSize, int channels, int sampleRate);
@@ -104,7 +104,7 @@ class NativeJSAudio: public NativeJSExposer
         static NativeJSAudio *instance;
 };
 
-class NativeJSAudioNode: public NativeJSExposer
+class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
@@ -178,12 +178,10 @@ class NativeJSAudioNode: public NativeJSExposer
         void add();
 };
 
-class NativeJSVideo : public NativeJSExposer
+class NativeJSVideo : public NativeJSExposer<NativeJSVideo>
 {
     public :
         NativeJSVideo(NativeSkia *nskia, JSContext *cx);
-
-        JSObject *jsobj;
 
         NativeVideo *video;
 

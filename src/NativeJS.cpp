@@ -16,6 +16,7 @@
 #include "NativeJSFileIO.h"
 #include "NativeJSConsole.h"
 #include "NativeJSModules.h"
+#include "NativeJSDocument.h"
 #include "NativeStream.h"
 
 #include "NativeCanvasHandler.h"
@@ -63,6 +64,7 @@ struct _native_sm_timer
     ape_timer *timerng;
 };
 
+#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
@@ -76,13 +78,8 @@ struct _native_sm_timer
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
-
 static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
-
-static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
-    const char *filename, jsval *ret);
 
 
 static JSClass global_class = {
@@ -631,7 +628,7 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
         free(basepath);
         return JS_TRUE;
     } else if (type != NULL &&
-        !NativeJS_NativeJSLoadScriptReturn(cx, finalfile, &ret)) {
+        !NativeJS::LoadScriptReturn(cx, finalfile, &ret)) {
         free(finalfile);
         free(basepath);
         return JS_TRUE;
@@ -1081,7 +1078,48 @@ NativeAutoFile::open(JSContext *cx, const char *filename)
     return true;
 }
 
-static int NativeJS_NativeJSLoadScriptReturn(JSContext *cx,
+void NativeJS::CopyProperties(JSContext *cx, JSObject *source, JSObject *into)
+{
+
+    js::AutoIdArray ida(cx, JS_Enumerate(cx, source));
+
+    for (size_t i = 0; i < ida.length(); i++) {
+        js::Rooted<jsid> id(cx, ida[i]);
+        jsval val;
+
+        JSString *prop = JSID_TO_STRING(id);
+        JSAutoByteString cprop(cx, prop);
+
+
+        if (!JS_GetPropertyById(cx, source, id, &val)) {
+            break;
+        }
+
+        switch(JS_TypeOfValue(cx, val)) {
+            case JSTYPE_OBJECT:
+            {
+                jsval oldval;
+                if (!JS_GetPropertyById(cx, into, id, &oldval) ||
+                    JSVAL_IS_VOID(oldval) || JSVAL_IS_PRIMITIVE(oldval)) {
+                    JS_SetPropertyById(cx, into, id, &val);
+                } else {
+                    NativeJS::CopyProperties(cx, JSVAL_TO_OBJECT(val), JSVAL_TO_OBJECT(oldval));
+                }
+                break;
+            }
+            default:
+                JS_SetPropertyById(cx, into, id, &val);
+                break;
+        }
+
+        /*if (!JS_SetPropertyById(cx, into, id, &val)) {
+            printf("Cant set property\n");
+            break;
+        }*/
+    }
+}
+
+int NativeJS::LoadScriptReturn(JSContext *cx,
     const char *filename, jsval *ret)
 {   
     JSObject *gbl = JS_GetGlobalObject(cx);
@@ -1265,6 +1303,8 @@ void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
     NativeJSwindow::registerObject(cx);
     /* console() object */
     NativeJSconsole::registerObject(cx);
+    /* document() object */
+    this->jsobjdocument = NativeJSdocument::registerObject(cx);
 
     //NativeJSDebug::registerObject(cx);
 

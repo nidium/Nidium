@@ -2008,8 +2008,9 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    jsobj(NULL), jscx(NULL), handler(handler), commonDraw(true)
+    jscx(NULL), handler(handler), commonDraw(true)
 {
+    this->jsobj = NULL;
     skia = new NativeSkia();
     if (isGL) {
         skia->bindGL(width, height);

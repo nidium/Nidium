@@ -4,7 +4,7 @@
 #include "NativeJSExposer.h"
 
 
-class NativeJSwindow : public NativeJSExposer
+class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
   public:
     static void registerObject(JSContext *cx);

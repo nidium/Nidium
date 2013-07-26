@@ -4,10 +4,42 @@
 #include <jsapi.h>
 #include <jsfriendapi.h>
 
+template <typename T>
 class NativeJSExposer
 {
   public:
     JSContext *cx;
+    JSObject *getJSObject() const {
+        return this->jsobj;
+    }
+    JSObject *jsobj;
+    T *getObject() const {
+        if (jsobj == NULL) {
+            return NULL;
+        }
+        return (T *)JS_GetPrivate(jsobj);
+    }
+
+    static const char *getJSObjectName() { return NULL; };
+
+    static JSObject *getJSGlobalObject(JSContext *cx) {
+        jsval obj;
+        const char *name = T::getJSObjectName();
+        if (name == NULL || !JS_GetProperty(cx, JS_GetGlobalObject(cx),
+            name, &obj) || obj == JSVAL_VOID || obj == JSVAL_NULL) {
+            return NULL;
+        }
+
+        return JSVAL_TO_OBJECT(obj);
+    }
+
+    static T* getNativeClass(JSContext *cx) {
+        JSObject *obj = T::getJSGlobalObject(cx);
+        if (obj == NULL) {
+            return NULL;
+        }
+        return (T *)JS_GetPrivate(obj);
+    } 
 };
 
 typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);

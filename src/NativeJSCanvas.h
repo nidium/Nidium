@@ -4,7 +4,7 @@
 #include "NativeJSExposer.h"
 
 
-class NativeJSCanvas: public NativeJSExposer
+class NativeJSCanvas: public NativeJSExposer<NativeJSCanvas>
 {
   public:
     static void registerObject(JSContext *cx);

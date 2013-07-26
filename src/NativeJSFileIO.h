@@ -4,7 +4,7 @@
 #include "NativeJSExposer.h"
 #include "NativeFileIO.h"
 
-class NativeJSFileIO : public NativeJSExposer, public NativeFileIODelegate
+class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFileIODelegate
 {
   public:
     static void registerObject(JSContext *cx);
