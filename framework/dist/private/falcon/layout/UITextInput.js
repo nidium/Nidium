@@ -723,7 +723,7 @@ Native.elements.export("UITextInput", {
 		this.matricialToPixel = function(cx, cy){
 			var line = this._textMatrix[cy],
 				letters = line ? line.letters : [],
-				vOffset = (this.lineHeight/2) + 5,
+				vOffset = this.getVerticalAlignOffset(),
 
 				x = letters[cx] ? letters[cx].position : (
 					letters[cx-1] ?
@@ -1117,6 +1117,11 @@ Native.elements.export("UITextInput", {
 		};
 
 		/* ------------------------------------------------------------------ */
+
+		this.getVerticalAlignOffset = function(){
+			return  (this.fontSize - this.fontSize * 15/100) + 
+					(this.lineHeight - this.fontSize)/2 + 1;
+		};
 		
 		this.updateOverlay = function(){
 			var	params = this.getDrawingBounds(),
@@ -1125,7 +1130,7 @@ Native.elements.export("UITextInput", {
 				w = params.w,
 				h = params.h,
 
-				vOffset = (this.lineHeight/2) + 5;
+				vOffset = this.getVerticalAlignOffset();
 
 			if (this.multiline) {
 				printTextOverlay(
@@ -1160,7 +1165,7 @@ Native.elements.export("UITextInput", {
 			w = params.w,
 			h = params.h,
 
-			vOffset = (this.lineHeight/2) + 5;
+			vOffset = this.getVerticalAlignOffset();
 
 		context.fontSize = this.fontSize;
 		context.fontType = this.fontType;

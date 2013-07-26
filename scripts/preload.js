@@ -34,6 +34,12 @@ tue.
 
 document.body = Native.canvas;
 
+document.stylesheets = [];
+
+document.onStyleSheetLoaded = function(sheet){
+	document.stylesheets.push(sheet);
+};
+
 document.createElement = function(type){
 	switch (type){
 		case "canvas":
