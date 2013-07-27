@@ -6,10 +6,6 @@
 
 "use strict";
 
-/* ---------------------------------------------------------------------------*/
-Native.StyleSheet.load("applications/demos/style.nss");
-/* ---------------------------------------------------------------------------*/
-
 var body = new Application();
 body.className = "blue";
 

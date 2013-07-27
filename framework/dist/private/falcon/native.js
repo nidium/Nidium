@@ -161,3 +161,7 @@ Native.core = {
 };
 
 Native.core.init();
+
+window._onready = function(){
+	console.log("fssddsf");	
+};

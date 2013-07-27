@@ -3,7 +3,6 @@
 /* -------------------------- */
 
 var main = new Application({background:"#e0e0e0"});
-main.className = "main";
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},

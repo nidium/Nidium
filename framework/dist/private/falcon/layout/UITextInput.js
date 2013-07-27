@@ -265,8 +265,8 @@ Native.elements.export("UITextInput", {
 
 		this.overlay.addEventListener("dragend", function(e){
 			self._endMouseSelection();
-			self.saveState(self.undoIndex);
 			self._autoScrollLeft = false;
+			self.saveState(self.undoIndex);
 			self.stopDragTimer();
 			self.fireEvent("textselect", self.selection);
 		}, false);
@@ -337,7 +337,11 @@ Native.elements.export("UITextInput", {
 			} else {
 				switch (e.keyCode) {
 					case 8 : // backspace
-						if (self.multiline && self.selection.offset-1 < 0) return false;
+						if (self.multiline === false) {
+							/* CTRL A then Backspace */
+							if (self.caret.x2 < 1) return false;
+						}
+
 						self._insert(
 							'', 
 							self.selection.offset, 
@@ -388,13 +392,12 @@ Native.elements.export("UITextInput", {
 							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
 						);
 
-
-
 						break;
 
 					case 1073741898 : // LineStart
 						if (this.multiline) return false;
 						self.setCaret(0, 0);
+						self.setCaretStartPoint();
 						self.scrollToLineStart();
 						break;
 
@@ -402,6 +405,7 @@ Native.elements.export("UITextInput", {
 						var maxLength = self.text.length; // after last char
 						if (this.multiline) return false;
 						self.setCaret(maxLength, 0);
+						self.setCaretStartPoint();
 						self.scrollToLineEnd();
 						break;
 
