@@ -342,6 +342,8 @@ Native.elements.export("UITextInput", {
 							if (self.caret.x2 < 1) return false;
 						}
 
+						self.scrollCheck(self.caret.x1, self.caret.y1);
+
 						self._insert(
 							'', 
 							self.selection.offset, 
@@ -358,15 +360,12 @@ Native.elements.export("UITextInput", {
 							0
 						);
 
+						self.setCaretStartPoint();
+
 						break;
 
 					case 127 : // delete
-						echo(
-							self.width,
-							self.parent.scrollLeft,
-							self.caret.x1,
-							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
-						);
+						self.scrollCheck(self.caret.x1, self.caret.y1);
 
 						self._insert(
 							'', 
@@ -376,21 +375,7 @@ Native.elements.export("UITextInput", {
 							0
 						);
 
-						echo(
-							self.width,
-							self.parent.scrollLeft,
-							self.caret.x1,
-							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
-						);
-
-						//self.parent.scrollLeft = self.matricialToPixel(self.caret.x1, self.caret.y1)[0];
-
-						echo(
-							self.width,
-							self.parent.scrollLeft,
-							self.caret.x1,
-							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
-						);
+						self.setCaretStartPoint();
 
 						break;
 
@@ -697,12 +682,12 @@ Native.elements.export("UITextInput", {
 		this.scrollCheck = function(cx, cy){
 			var x = this.matricialToPixel(cx, cy)[0],
 				minx = this.parent.left,
-				maxx = this.parent.left + this.parent.width - 20,
+				maxx = this.parent.left + this.parent.width - 1,
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
 
-			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/16);
-			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/16);
+			if (tx > maxx) this.parent.scrollLeft += (tx-maxx);
+			if (tx < minx) this.parent.scrollLeft -= (minx-tx);
 		};
 
 		this.scrollToCaretCenter = function(cx, cy){
