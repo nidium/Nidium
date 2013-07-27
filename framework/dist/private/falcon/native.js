@@ -141,7 +141,6 @@ Native.core = {
 		doc.stylesheet = document.stylesheet;
 
 		Object.createProtectedElement(Native.scope, "document", doc);
-		document.__styleSheetLoaded = true;
 	},
 
 	setRenderingLoop : function(){

@@ -734,6 +734,23 @@ DOMElement.draw = {
 
 	},
 
+	outline : function(element, context, params, borderColor){
+		context.setShadow(
+			0, 0, 4,
+			borderColor ? borderColor : "rgba(0, 0, 255, 0.4)"
+		);
+
+		context.roundbox(
+			params.x, params.y, 
+			params.w, params.h, 
+			element.radius,
+			"rgba(0, 0, 0, 0.6)",
+			null,
+			element.borderWidth
+		);
+		context.setShadow(0, 0, 0);
+	},
+
 	box : function(element, context, params, backgroundColor, borderColor){
 		context.roundbox(
 			params.x, params.y, 

@@ -43,8 +43,8 @@ Native.elements.export("UITextField", {
 			width 			: OptionalNumber(o.width, 120),
 			height 			: OptionalNumber(o.height, 22),
 
-			paddingLeft		: OptionalNumber(o.paddingLeft, 3),
-			paddingRight	: OptionalNumber(o.paddingLeft, 3),
+			paddingLeft		: OptionalNumber(o.paddingLeft, 4),
+			paddingRight	: OptionalNumber(o.paddingLeft, 4),
 			paddingTop		: OptionalNumber(o.paddingTop, 3),
 			paddingBottom	: OptionalNumber(o.paddingBottom, 3),
 
@@ -109,6 +109,9 @@ Native.elements.export("UITextField", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
+
+		DOMElement.draw.outline(this, context, params, "green");
+		DOMElement.draw.outline(this, context, params, "green");
 
 		if (this.shadowBlur != 0) {
 			context.setShadow(
