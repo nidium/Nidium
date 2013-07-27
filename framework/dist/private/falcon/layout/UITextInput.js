@@ -819,12 +819,27 @@ Native.elements.export("UITextInput", {
 			this.setText("");
 		};
 
+		this.showOutline = function(){
+			var color = "blue",
+				host = this.outlineHost;
+
+			if (host && this.pattern && this.text) {
+				color = this.match ? "green" : "red";
+			}
+
+			if (this.hasFocus) {
+				host.outlineColor = color;
+			}
+		}
+
 		this.checkPattern = function(pattern){
+			this.match = true;
 			if (!pattern) return true;
 			var regex = new RegExp(pattern);
-			return regex.test(this.text);
+			this.match = regex.test(this.text);
+			this.showOutline();
+			return this.match;
 		};
-
 
 		/* ------------------------------------------------------------------ */
 

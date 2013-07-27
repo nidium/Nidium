@@ -96,10 +96,12 @@ Native.elements.export("UITextField", {
 			editable : this.editable,
 			multiline : this.multiline
 		});
+		this.input.outlineHost = self;
 
 		this.input.addEventListener("focus", function(e){
+			var color = "blue";
 			if (self.outlineOnFocus === false) return;
-			self.outlineColor = "blue";
+			self.input.showOutline();
 		}, false);
 
 		this.input.addEventListener("blur", function(e){
