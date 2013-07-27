@@ -558,11 +558,13 @@ Native.elements.export("UITextInput", {
 		this.addEventListener("focus", function(e){
 			this.showCaret();
 			this.hidePlaceHolder();
+			this.parent.outlineColor = "blue";
 		}, false);
 
 		this.addEventListener("blur", function(e){
 			this.hideCaret();
 			this.showPlaceHolder();
+			this.parent.outlineColor = null;
 		}, false);
 
 		/* ------------------------------------------------------------------ */

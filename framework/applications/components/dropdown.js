@@ -39,7 +39,6 @@ var dateField = main.add("UITextField", {
 	pattern : "(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}"
 });
 
-
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
 });

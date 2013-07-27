@@ -50,6 +50,7 @@ Native.elements.export("UITextField", {
 
 			background 		: OptionalValue(o.background, '#ffffff'),
 			color 			: OptionalValue(o.color, "#000000"),
+			outlineColor	: OptionalValue(o.outlineColor, ''),
 
 			radius 			: OptionalNumber(o.radius, 3),
 
@@ -110,8 +111,12 @@ Native.elements.export("UITextField", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		DOMElement.draw.outline(this, context, params, "green");
-		DOMElement.draw.outline(this, context, params, "green");
+		if (this.outlineColor) {
+			DOMElement.draw.outline(this, context, params, this.outlineColor);
+			DOMElement.draw.outline(this, context, params, this.outlineColor);
+			DOMElement.draw.outline(this, context, params, "rgba(255, 255, 255, 0.8)");
+			DOMElement.draw.outline(this, context, params, "rgba(255, 255, 255, 1)");
+		}
 
 		if (this.shadowBlur != 0) {
 			context.setShadow(

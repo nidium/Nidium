@@ -95,6 +95,7 @@ var DOMElement = function(type, options, parent){
 		radius : OptionalNumber(o.radius, 0, 0),
 		borderWidth : OptionalNumber(o.borderWidth, 0),
 		borderColor : OptionalValue(o.borderColor, ''),
+		outlineColor : OptionalValue(o.outlineColor, ''),
 
 		angle : OptionalNumber(o.angle, 0),
 		scale : OptionalNumber(o.scale, 1),
