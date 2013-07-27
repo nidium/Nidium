@@ -685,9 +685,16 @@ Native.elements.export("UITextInput", {
 				maxx = this.parent.left + this.parent.width - 1,
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
-
-			if (tx > maxx) this.parent.scrollLeft += (tx-maxx);
-			if (tx < minx) this.parent.scrollLeft -= (minx-tx);
+				
+			if (tx > maxx) {
+				this.parent.scrollLeft += (tx-maxx);
+			} else if (tx < minx) {
+				this.parent.scrollLeft -= (minx-tx);
+			} else {
+				/* force scrollLeft */
+				this.parent.scrollLeft++;
+				this.parent.scrollLeft--;
+			}
 		};
 
 		this.scrollToCaretCenter = function(cx, cy){
