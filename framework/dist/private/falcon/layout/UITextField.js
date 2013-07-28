@@ -19,6 +19,12 @@ Native.elements.export("UITextField", {
 			}
 		},
 
+		color : {
+			set : function(value){
+				this.input.color = value;
+			}
+		},
+
 		width : {
 			set : function(value){
 				this.input.reset();
