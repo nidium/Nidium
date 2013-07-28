@@ -754,10 +754,10 @@ DOMElement.draw = {
 		);
 
 		context.roundbox(
-			params.x, params.y, 
-			params.w, params.h, 
-			element.radius+1,
-			"rgba(0, 0, 0, 0.9)",
+			params.x-2, params.y-2, 
+			params.w+4, params.h+4, 
+			element.radius+2,
+			"rgba(255, 255, 255, 0.6)",
 			null,
 			element.borderWidth
 		);

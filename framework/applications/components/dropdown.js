@@ -2,7 +2,7 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-var main = new Application({background:"#e0e0e0"});
+var main = new Application({background:"#222"});
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
