@@ -2,7 +2,6 @@
 #include "NativeJS.h"
 #include "NativeUIInterface.h"
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -35,7 +34,7 @@ static JSFunctionSpec console_funcs[] = {
 static JSBool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NJS->UI->getConsole()->hide();
+    NativeJS::getNativeClass(cx)->UI->getConsole()->hide();
 
     return JS_TRUE;
 }
@@ -43,7 +42,7 @@ static JSBool native_console_hide(JSContext *cx, unsigned argc,
 static JSBool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NJS->UI->getConsole()->show();
+    NativeJS::getNativeClass(cx)->UI->getConsole()->show();
 
     return JS_TRUE;
 }
@@ -51,7 +50,7 @@ static JSBool native_console_show(JSContext *cx, unsigned argc,
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NJS->UI->getConsole()->clear();
+    NativeJS::getNativeClass(cx)->UI->getConsole()->clear();
 
     return JS_TRUE;
 }
@@ -63,6 +62,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     unsigned i;
     JSString *str;
     char *bytes;
+    NativeJS *NJS = NativeJS::getNativeClass(cx);
 
     argv = JS_ARGV(cx, vp);
     for (i = 0; i < argc; i++) {

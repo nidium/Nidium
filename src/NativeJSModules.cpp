@@ -11,8 +11,6 @@
 #include <NativeJSModules.h>
 #include <NativeJS.h>
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
-
 static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass native_modules_exports_class = {
@@ -196,7 +194,7 @@ bool NativeJSModule::initNative()
         return false;
     }
 
-    NJS->rootObjectUntilShutdown(exports);
+    NativeJS::getNativeClass(this->cx)->rootObjectUntilShutdown(exports);
 
     this->exports = exports;
 
@@ -262,7 +260,7 @@ bool NativeJSModule::initJS()
     //JS_WrapObject(cx, gbl)
 
     // Root the global
-    NJS->rootObjectUntilShutdown(gbl);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(gbl);
 
     // And add all objects to require reserved slot so they won't be GC
     JS::Value roots[2];
@@ -508,7 +506,8 @@ JS::Value NativeJSModule::require(char *name)
         }
 
         if (!cmodule->native) {
-            if (!NJS->LoadScript(cmodule->filePath, cmodule->exports)) {
+            if (!NativeJS::getNativeClass(cx)->LoadScript(cmodule->filePath,
+                cmodule->exports)) {
                 return ret;
             } 
         }

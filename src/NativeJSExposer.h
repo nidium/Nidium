@@ -5,8 +5,6 @@
 #include <jsfriendapi.h>
 #include "NativeJS.h"
 
-#define NATIVEJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
-
 template <typename T>
 class NativeJSExposer
 {
@@ -29,7 +27,7 @@ class NativeJSExposer
         JSObject *jobj;
         const char *name = T::getJSObjectName();
 
-        if ((jobj = NATIVEJS->jsobjects.get(name)) == NULL) {
+        if ((jobj = NativeJS::getNativeClass(cx)->jsobjects.get(name)) == NULL) {
             return NULL;
         }
 

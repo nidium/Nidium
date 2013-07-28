@@ -47,6 +47,8 @@ class NativeJS
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
+        static NativeJS *getNativeClass(JSContext *cx);
+
         NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net);
         ~NativeJS();
         

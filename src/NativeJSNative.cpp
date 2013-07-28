@@ -38,7 +38,7 @@ static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 
     char *text = JS_EncodeStringToUTF8(cx, str);
 
-    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+    NativeJS *NJS = NativeJS::getNativeClass(cx);
 
     NJS->UI->setClipboardText(text);
 
@@ -53,7 +53,7 @@ static JSBool native_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
     JSString *str;
     JS::CallArgs args = CallArgsFromVp(argc, vp);
 
-    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+    NativeJS *NJS = NativeJS::getNativeClass(cx);
 
     char *text = NJS->UI->getClipboardText();
 
@@ -85,7 +85,7 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeJSNative::showFPS = (show == JS_TRUE) ? true : false;
-    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+    NativeJS *NJS = NativeJS::getNativeClass(cx);
 
     if (show) {
         NJS->createDebugCanvas();
@@ -100,7 +100,7 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
     JSObject *canvas;
     //JSObject *titleBar;
 
-    NativeJS *NJS = (NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx));
+    NativeJS *NJS = NativeJS::getNativeClass(cx);
 
     NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "Native",
         &Native_class , NULL, 0);
