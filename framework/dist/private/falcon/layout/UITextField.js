@@ -8,15 +8,24 @@ Native.elements.export("UITextField", {
 	public : {
 		value : {
 			set : function(value){
-				if (this.input.setText){
-					this.input.setText(value);
-					this.input.scrollToLineStart();
-					this.input.resetUndo();
-				}
+				var text = OptionalString(value, "");
+				this.input.setText(text);
+				this.input.scrollToLineStart();
+				this.input.resetUndo();
 			},
 
 			get : function(){
 				return this.input.text;
+			}
+		},
+
+		editable : {
+			set : function(value){
+				this.input.editable = OptionalBoolean(value, true);
+			},
+
+			get : function(){
+				return this.input.editable;
 			}
 		},
 
