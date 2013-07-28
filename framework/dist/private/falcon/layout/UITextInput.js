@@ -223,8 +223,6 @@ Native.elements.export("UITextInput", {
 			window.cursor = "arrow";
 		});
 
-
-
 		this.overlay.addEventListener("mousedblclick", function(e){
 			self.resetCaretStartPoint();
 			self.select();
@@ -561,6 +559,7 @@ Native.elements.export("UITextInput", {
 		}, false);
 
 		this.addEventListener("blur", function(e){
+			this.unselect();
 			this.hideCaret();
 			this.showPlaceHolder();
 		}, false);
@@ -855,6 +854,10 @@ Native.elements.export("UITextInput", {
 				this.setCaret(this.selection.offset, 0);
 			}
 		}
+
+		this.unselect = function(){
+			this.setCaret(this.selection.offset, 0);
+		};
 
 		this.select = function(state){
 			/* 2 times faster than the old while loop method */

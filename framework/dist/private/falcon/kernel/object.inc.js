@@ -102,7 +102,7 @@ var DOMElement = function(type, options, parent){
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
-		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),
+		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, true),
 
 		visible : OptionalBoolean(o.visible, true),
 		hidden : OptionalBoolean(o.hidden, false),
@@ -735,7 +735,16 @@ DOMElement.draw = {
 
 	},
 
-	outline : function(element, context, params, borderColor){
+	outline : function(element, color){
+		var params = element.getDrawingBounds(),
+			context = element.layer.context;
+
+		DOMElement.draw.outlineBox(element, context, params, color);
+		DOMElement.draw.outlineBox(element, context, params, color);
+		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 1)");
+	},
+
+	outlineBox : function(element, context, params, borderColor){
 		context.setShadow(
 			0, 0, 4,
 			borderColor ? borderColor : "rgba(0, 0, 255, 0.4)"
