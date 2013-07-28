@@ -15,6 +15,12 @@ Native.elements.export("UIDropDownController", {
 
 		this.setProperties({
 			canReceiveFocus	: true,
+
+			canReceiveKeyboardEvents : OptionalBoolean(
+				o.canReceiveKeyboardEvents,
+				true
+			),
+
 			label			: OptionalString(o.label, "Choose"),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
 			fontType  		: OptionalString(o.fontType, "arial"),
@@ -37,18 +43,6 @@ Native.elements.export("UIDropDownController", {
 
 		this.selection = 0;
 		this.tabs = [];
-
-		this.reset = function(){
-			var l = this.tabs.length;
-			for (var i=0; i<l; i++){
-				this.tabs[i].selected = false;
-			}
-
-			if (this.tabs[this.selection]) {
-				this.tabs[this.selection].selected = true;
-				this.label = this.tabs[this.selection].label;
-			}
-		};
 
 		this.selectIndex = function(index){
 			this.selection = Math.max(Math.min(index, this.tabs.length-1), 0);
@@ -125,6 +119,23 @@ Native.elements.export("UIDropDownController", {
 			for (var i=0; i<l; i++){
 				self.tabs[i].hide();
 			}
+		};
+
+		this.reset = function(){
+			for (var i=0; i<this.tabs.length; i++){
+				this.tabs[i].selected = false;
+			}
+
+			if (this.tabs[this.selection]) {
+				this.tabs[this.selection].selected = true;
+				this.label = this.tabs[this.selection].label;
+			}
+
+			this.selector.hide();
+			this.selector._animating = false;
+			this.selector.opacity = 0;
+			this.selector.height = 0;
+			this.toggleState = false;
 		};
 
 		this.openSelector = function(){
@@ -221,8 +232,25 @@ Native.elements.export("UIDropDownController", {
 			this.closeSelector();
 		}, false);
 
+		this.addEventListener("keydown", function(e){
+			if (!self.hasFocus) return false;
+			switch (e.keyCode) {
+				case 27 : // ESC
+					self.closeSelector();
+					break;
+
+				case 1073741906 : // up
+					break;
+
+				case 1073741905 : // down
+					break;
+
+				default : break;
+			}
+		}, false);
+
+
 		this.reset();
-		this.selector.hide();
 	},
 
 	draw : function(context){

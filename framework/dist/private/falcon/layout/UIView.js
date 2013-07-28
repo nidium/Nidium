@@ -49,7 +49,6 @@ Native.elements.export("UIView", {
 			this.scrollBarY = o.scrollBarY === false ? false : true;
 		}
 
-
 		this.setBackgroundURL = function(url){
 			if (url) {
 				self._cachedBackgroundImage = null;

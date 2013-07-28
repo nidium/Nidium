@@ -102,6 +102,7 @@ var DOMElement = function(type, options, parent){
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
+		canReceiveKeyboardEvents : OptionalBoolean(o.canReceiveKeyboardEvents, false),
 		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, true),
 
 		visible : OptionalBoolean(o.visible, true),

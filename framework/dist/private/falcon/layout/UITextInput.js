@@ -128,6 +128,7 @@ Native.elements.export("UITextInput", {
 		this.overlay = new UIElement(this, {
 			width : this.parent.width,
 			heigh : this.height,
+			canReceiveKeyboardEvents : true
 		});
 
 		/* ------------------------------------------------------------------ */

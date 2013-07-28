@@ -31,7 +31,6 @@ var field = main.add("UITextField", {
 
 field.value = "https://www.google.fr/search?q=mac+osx+enlever+le+zoom&oq=mac+osx+enlever+le+zoom&aqs=chrome.0.69i57j0.5019j0&sourceid=chrome&ie=UTF-8#sclient=psy-ab&q=KMOD_GUI+sdl&oq=KMOD_GUI+sdl&gs_l=serp.3...45123.47082.2.47371.8.8.0.0.0.0.88.626.8.8.0....0.0..1c.1.20.psy-ab.inHNMKRk2vc&pbx=1&bav=on.2,or.r_cp.r_qf.&bvm=bv.49478099%2Cd.d2k%2Cpv.xjs.s.en_US.c75bKy5EQ0A.O&fp=d81ade728c71813c&biw=1512&bih=983";
 field.outlineColor = "red";
-field.editable = false;
 
 var dateField = main.add("UITextField", {
 	left : 100,
@@ -49,16 +48,6 @@ dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
 
-
-
-var	button = new UIButton(main, {
-	left : 980,
-	top : 10,
-	label : "Go"
-}).click(function(){
-	echo(field.input.__startx, field.input.__starty);
-});
-
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
@@ -71,6 +60,17 @@ var	dropDownController = main.add("UIDropDownController", {
 	selectedColor : "#FFFFFF",
 	class : "tabController"
 });
+
+/*
+
+var	button = new UIButton(main, {
+	left : 980,
+	top : 10,
+	label : "Go"
+}).click(function(){
+	echo(field.input.__startx, field.input.__starty);
+});
+
 
 Native.StyleSheet.add({
 	radio : {
@@ -106,6 +106,7 @@ Native.StyleSheet.add({
 		borderColor : null
 	}
 });
+
 
 var	radio1 = main.add("UIRadio", {
 	top : 50,
@@ -143,4 +144,4 @@ var radio5 = main.add("UIRadio", {
 	label : "... or this",
 	class : "radio black"
 });
-
+*/

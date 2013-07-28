@@ -6,6 +6,14 @@
 
 Native.elements.export("UIElement", {
 	init : function(){
+		var o = this.options;
+
+		this.setProperties({
+			canReceiveKeyboardEvents : OptionalBoolean(
+				o.canReceiveKeyboardEvents,
+				false
+			)
+		});
 	},
 
 	draw : function(context){

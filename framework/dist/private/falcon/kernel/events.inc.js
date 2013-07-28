@@ -117,33 +117,37 @@ Native.events = {
 				continue;
 			}
 
-			if (name=='keydown'){
-				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
-					element.cmdKeyDown = true;
+			if (element.canReceiveKeyboardEvents) {
+				if (name=='keydown'){
+					if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
+						element.cmdKeyDown = true;
+					}
+					if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
+						element.shiftKeyDown = true;
+					}
 				}
-				if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
-					element.shiftKeyDown = true;
+
+				if (name=='keyup'){
+					if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
+						element.cmdKeyDown = false;
+					}
+					if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
+						element.shiftKeyDown = false;
+					}
 				}
-			}
 
-			if (name=='keyup'){
-				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
-					element.cmdKeyDown = false;
+				e.shiftKeyDown = element.shiftKeyDown == undefined ?
+								false : element.shiftKeyDown;
+
+				e.cmdKeyDown = element.cmdKeyDown == undefined ?
+								false : element.cmdKeyDown;
+
+				if (name=='keydown' || name=='keyup' || name=='textinput'){
+					element.fireEvent(name, e);
+					if (name == "keydown") echo("--->", element.type, name);
 				}
-				if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
-					element.shiftKeyDown = false;
-				}
-			}
-
-			e.shiftKeyDown = element.shiftKeyDown == undefined ?
-							false : element.shiftKeyDown;
-
-			e.cmdKeyDown = element.cmdKeyDown == undefined ?
-							false : element.cmdKeyDown;
-
-			if (name=='keydown' || name=='keyup' || name=='textinput'){
-
-				element.fireEvent(name, e);
+			} else {
+				if (name == "keydown") echo(element.type, name)
 			}
 
 			if (element.isPointInside(x, y)){
@@ -213,6 +217,7 @@ Native.events = {
 						}
 						break;
 
+					default : break;
 				}
 				
 				if (cancelEvent===false){
@@ -226,7 +231,6 @@ Native.events = {
 			}
 
 			if (cancelBubble) break;
-
 		}
 
 		if (name=="drag"){
@@ -235,8 +239,6 @@ Native.events = {
 				e.source.fireEvent("drag", e);
 			}
 		}
-
-
 	},
 
 	/* -- VIRTUAL EVENTS PROCESSING ----------------------------------------- */
