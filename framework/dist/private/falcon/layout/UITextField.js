@@ -19,6 +19,14 @@ Native.elements.export("UITextField", {
 			}
 		},
 
+		paddingLeft : { set : function(value){
+			this.resizeElement(); }
+		},
+
+		paddingRight : { set : function(value){
+			this.resizeElement(); }
+		},
+
 		color : {
 			set : function(value){
 				this.input.color = value;
@@ -27,14 +35,12 @@ Native.elements.export("UITextField", {
 
 		width : {
 			set : function(value){
-				this.input.reset();
 				this.resizeElement();
 			}
 		},
 
 		height : {
 			set : function(value){
-				this.input.reset();
 				this.resizeElement();
 			}
 		},
@@ -125,6 +131,7 @@ Native.elements.export("UITextField", {
 		this.input.outlineHost = self;
 
 		this.resizeElement = function(){
+			this.view.left = this.paddingLeft;
 			this.view.width = this.width - this.paddingLeft - this.paddingRight;
 			this.view.height = this.height - this.paddingTop - this.paddingBottom;
 		};

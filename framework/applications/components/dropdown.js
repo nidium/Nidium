@@ -35,6 +35,8 @@ field.outlineColor = "red";
 field.background = "rgba(255, 0, 0, 0.1)";
 field.color = "#550000";
 field.width = 280;
+field.paddingLeft = 30;
+field.paddingRight = 30;
 
 var dateField = main.add("UITextField", {
 	left : 100,
