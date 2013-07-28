@@ -144,15 +144,10 @@ Native.events = {
 
 				if (name=='keydown' || name=='keyup' || name=='textinput'){
 					element.fireEvent(name, e);
-					if (name == "keydown") echo("--->", element.type, name);
 				}
-			} else {
-				if (name == "keydown") echo(element.type, name)
 			}
 
 			if (element.isPointInside(x, y)){
-
-				print("catch event("+name+")", element);
 
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){

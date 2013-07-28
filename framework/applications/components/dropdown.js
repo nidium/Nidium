@@ -21,6 +21,7 @@ var	myElements = [
 	/* Tab 9 */ {label : "Japan"}
 ];
 
+
 var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
 
 var field = main.add("UITextField", {

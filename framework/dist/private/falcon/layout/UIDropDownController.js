@@ -249,7 +249,6 @@ Native.elements.export("UIDropDownController", {
 			}
 		}, false);
 
-
 		this.reset();
 	},
 
