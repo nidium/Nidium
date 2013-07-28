@@ -236,6 +236,7 @@ Native.elements.export("UITextInput", {
 				self.__startx = self.__oldstartx;
 				self.__starty = self.__oldstarty;
 			} else {
+				self.fireEvent("selectstart", self.selection);
 				self._startMouseSelection(e);
 			}
 			self.startDragTimer();
@@ -268,7 +269,7 @@ Native.elements.export("UITextInput", {
 			self._autoScrollLeft = false;
 			self.saveState(self.undoIndex);
 			self.stopDragTimer();
-			self.fireEvent("textselect", self.selection);
+			self.fireEvent("select", self.selection);
 		}, false);
 
 		/* ------------------------------------------------------------------ */
