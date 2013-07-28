@@ -213,7 +213,6 @@ Native.elements.export("UIDropDownController", {
 			} else {
 				this.openSelector();
 			}
-			//this.bringToTop();
 			e.stopPropagation();
 		}, false);
 
@@ -223,9 +222,7 @@ Native.elements.export("UIDropDownController", {
 		}, false);
 
 		this.reset();
-		this.selector.height = 0.001;
 		this.selector.hide();
-		this.closeSelector();
 	},
 
 	draw : function(context){
