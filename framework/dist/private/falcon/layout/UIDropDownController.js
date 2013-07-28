@@ -200,6 +200,7 @@ Native.elements.export("UIDropDownController", {
 				this._animating = false;
 				self._hideElements();
 				this.hide();
+				Native.events.tick();
 			}, Math.physics.quintIn);
 
 		};
@@ -222,7 +223,7 @@ Native.elements.export("UIDropDownController", {
 		}, false);
 
 		this.reset();
-		this.selector.height = 0.1;
+		this.selector.height = 0.001;
 		this.selector.hide();
 		this.closeSelector();
 	},
