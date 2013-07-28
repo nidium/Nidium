@@ -122,7 +122,8 @@ Native.elements.export("UITextField", {
 			switch (e.keyCode) {
 				case 13 : // enter
 					self.fireEvent("submit", {
-						value : self.input.text
+						value : self.input.text,
+						match : self.input.match
 					});
 					break;
 			};
