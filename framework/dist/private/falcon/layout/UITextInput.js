@@ -958,6 +958,7 @@ Native.elements.export("UITextInput", {
 			} else {
 				Native.setPasteBuffer("");
 			}
+			self.fireEvent("copy", self.selection);
 		};
 
 		this.paste = function(){
