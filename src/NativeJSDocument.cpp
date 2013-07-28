@@ -17,6 +17,8 @@ static JSClass document_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+JSClass *NativeJSdocument::jsclass = &document_class;
+
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(obj);
@@ -43,26 +45,22 @@ void NativeJSdocument::registerObject(JSContext *cx)
 {
     JSObject *documentObj;
     NativeJSdocument *jdoc = new NativeJSdocument();
+    NativeJS *njs = NativeJS::getNativeClass(cx);
 
     documentObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
         jdoc->getJSObjectName(),
         &document_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE);
 
-    /* We have to root it since the user can replace the document object */
-    NATIVEJS->rootObjectUntilShutdown(documentObj);
-    NATIVEJS->jsobjects.set(jdoc->getJSObjectName(), documentObj);
-
+    JS_SetPrivate(documentObj, jdoc);
     jdoc->jsobj = documentObj;
 
+    /* We have to root it since the user can replace the document object */
+    njs->rootObjectUntilShutdown(documentObj);
+    njs->jsobjects.set(jdoc->getJSObjectName(), documentObj);
+
     jdoc->stylesheet = JS_NewObject(cx, NULL, NULL, NULL);
-
     jsval obj = OBJECT_TO_JSVAL(jdoc->stylesheet);
-
     JS_SetProperty(cx, documentObj, "stylesheet", &obj);
-
-
-    JS_SetPrivate(documentObj, jdoc);
-
     //JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
 }

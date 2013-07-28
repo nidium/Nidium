@@ -64,8 +64,6 @@ struct _native_sm_timer
     ape_timer *timerng;
 };
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
-
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
 /* Sun compiler uses larger stack space for js_Interpret() with debug
@@ -269,6 +267,7 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
     JSString *str;
 
     char *bytes;
+    NativeJS *njs = NativeJS::getNativeClass(cx);
 
     argv = JS_ARGV(cx, vp);
     for (i = 0; i < argc; i++) {
@@ -279,13 +278,13 @@ PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
         if (!bytes)
             return false;
         if (i) {
-           NJS->UI->getConsole()->log(" "); 
+           njs->UI->getConsole()->log(" "); 
         }
-        NJS->UI->getConsole()->log(bytes);
+        njs->UI->getConsole()->log(bytes);
 
         JS_free(cx, bytes);
     }
-    NJS->UI->getConsole()->log("\n"); 
+    njs->UI->getConsole()->log("\n"); 
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
@@ -623,7 +622,7 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 
     jsval ret = JSVAL_NULL;
 
-    if (type == NULL && !NJS->LoadScript(finalfile)) {
+    if (type == NULL && !NativeJS::getNativeClass(cx)->LoadScript(finalfile)) {
         free(finalfile);
         free(basepath);
         return JS_TRUE;
@@ -692,6 +691,11 @@ void NativeJS::Loaded()
         JS_CallFunctionValue(cx, JSVAL_TO_OBJECT(canvas), onready, 0, NULL, &rval);
     }
 
+}
+
+NativeJS *NativeJS::getNativeClass(JSContext *cx)
+{
+    return ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
 NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net)
