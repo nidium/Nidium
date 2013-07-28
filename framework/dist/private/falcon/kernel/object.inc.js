@@ -342,8 +342,8 @@ DOMElement.prototype = {
 	oncopy : null, /* implemented */
 	oncut : null, /* implemented */
 	onpaste : null, /* implemented */
-	onselect : null,
-	onselectstart : null,
+	onselect : null, /* implemented */
+	onselectstart : null, /* implemented */
 
 	onblur : null, /* implemented */
 	onfocus : null, /* implemented */
@@ -375,8 +375,8 @@ DOMElement.prototype = {
 	onmousewheel : null, /* implemented */
 
 	onreset : null,
-	onerror : null,
-	onsubmit : null,
+	onerror : null, /* implemented */
+	onsubmit : null, /* implemented */
 
 	onscroll : null,
 

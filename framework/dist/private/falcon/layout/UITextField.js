@@ -117,11 +117,22 @@ Native.elements.export("UITextField", {
 		}, false);
 
 		this.submit = function(){
-			this.fireEvent("submit", {
-				value : self.input.text,
-				pattern : self.input.pattern,
-				match : self.input.match
-			});
+			if (self.input.pattern && self.input.match === false) {
+				this.fireEvent("error", {
+					value : self.input.text,
+					pattern : self.input.pattern,
+					error : {
+						code : 3,
+						message : "User input does not match defined pattern"
+					}
+				});
+			} else {
+				this.fireEvent("submit", {
+					value : self.input.text,
+					pattern : self.input.pattern,
+					match : true
+				});
+			}
 		};
 
 		this.input.overlay.addEventListener("keydown", function(e){
