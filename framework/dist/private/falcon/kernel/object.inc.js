@@ -336,11 +336,11 @@ DOMElement.prototype = {
 
 	/* -- Generic Events -- */
 
-	onbeforecopy : null,
-	onbeforecut : null,
+	onbeforecopy : null, /* implemented */
+	onbeforecut : null, /* implemented */
 	onbeforepaste : null,
-	oncopy : null,
-	oncut : null,
+	oncopy : null, /* implemented */
+	oncut : null, /* implemented */
 	onpaste : null,
 	onselect : null,
 	onselectstart : null,

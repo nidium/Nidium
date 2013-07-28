@@ -950,6 +950,7 @@ Native.elements.export("UITextInput", {
 				this.selection.offset, 
 				0
 			);
+			self.fireEvent("cut", self.selection);
 		};
 
 		this.copy = function(){
