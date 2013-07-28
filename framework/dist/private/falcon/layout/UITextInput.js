@@ -941,6 +941,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.cut = function(){
+			self.fireEvent("beforecut", self.selection);
 			this.copy();
 			this._insert(
 				'', 
