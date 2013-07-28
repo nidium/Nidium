@@ -964,10 +964,12 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.paste = function(){
+			self.fireEvent("beforepaste", self.selection);
 			var pasteBuffer = Native.getPasteBuffer();
 			if (pasteBuffer) {
 				this.replace(pasteBuffer);
 			}
+			self.fireEvent("paste", self.selection);
 		};
 
 		/* ------------------------------------------------------------------ */

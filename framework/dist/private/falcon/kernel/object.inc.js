@@ -338,7 +338,7 @@ DOMElement.prototype = {
 
 	onbeforecopy : null, /* implemented */
 	onbeforecut : null, /* implemented */
-	onbeforepaste : null,
+	onbeforepaste : null, /* implemented */
 	oncopy : null, /* implemented */
 	oncut : null, /* implemented */
 	onpaste : null, /* implemented */
