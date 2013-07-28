@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "NativeTypes.h"
+#include "NativeHash.h"
 #include <jspubtd.h>
 
 
@@ -41,6 +42,7 @@ class NativeJS
         NativeCanvasHandler *rootHandler;
         NativeCanvasHandler *debugHandler;
         NativeUIInterface *UI;
+        NativeHash<JSObject *> jsobjects;
         bool shutdown;
         struct _ape_htable *rootedObj;
         struct _ape_global *net;

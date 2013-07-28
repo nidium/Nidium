@@ -3,6 +3,9 @@
 
 #include <jsapi.h>
 #include <jsfriendapi.h>
+#include "NativeJS.h"
+
+#define NATIVEJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
 
 template <typename T>
 class NativeJSExposer
@@ -23,16 +26,21 @@ class NativeJSExposer
     static const char *getJSObjectName() { return NULL; };
 
     static JSObject *getJSGlobalObject(JSContext *cx) {
-        jsval obj;
+        JSObject *jobj;
         const char *name = T::getJSObjectName();
-        if (name == NULL || !JS_GetProperty(cx, JS_GetGlobalObject(cx),
-            name, &obj) || obj == JSVAL_VOID || obj == JSVAL_NULL) {
+
+        if ((jobj = NATIVEJS->jsobjects.get(name)) == NULL) {
             return NULL;
         }
 
-        return JSVAL_TO_OBJECT(obj);
+        return jobj;
     }
 
+    static T* getNativeClass(JSObject *obj)
+    {
+        return (T *)JS_GetPrivate(obj);
+    }
+    
     static T* getNativeClass(JSContext *cx) {
         JSObject *obj = T::getJSGlobalObject(cx);
         if (obj == NULL) {
