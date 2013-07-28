@@ -17,6 +17,8 @@ static JSClass document_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+JSClass *NativeJSdocument::jsclass = &document_class;
+
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(obj);

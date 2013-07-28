@@ -23,7 +23,7 @@ class NativeJSExposer
         return (T *)JS_GetPrivate(jsobj);
     }
 
-    static const char *getJSObjectName() { return NULL; };
+    static const char *getJSObjectName() { return NULL; }
 
     static JSObject *getJSGlobalObject(JSContext *cx) {
         JSObject *jobj;
@@ -36,18 +36,21 @@ class NativeJSExposer
         return jobj;
     }
 
-    static T* getNativeClass(JSObject *obj)
+    static T* getNativeClass(JSObject *obj, JSContext *cx = NULL)
     {
+        if (cx != NULL) {
+            return (T *)JS_GetInstancePrivate(cx, obj, T::jsclass, NULL);
+        }
         return (T *)JS_GetPrivate(obj);
     }
-    
+
     static T* getNativeClass(JSContext *cx) {
         JSObject *obj = T::getJSGlobalObject(cx);
         if (obj == NULL) {
             return NULL;
         }
         return (T *)JS_GetPrivate(obj);
-    } 
+    }
 };
 
 typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);

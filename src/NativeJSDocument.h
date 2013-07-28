@@ -14,6 +14,9 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
     static const char *getJSObjectName() {
         return "document";
     }
+
+    static JSClass *jsclass;
+
     JSObject *stylesheet;
 };
 
