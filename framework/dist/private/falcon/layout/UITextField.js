@@ -143,7 +143,7 @@ Native.elements.export("UITextField", {
 		var	params = this.getDrawingBounds();
 
 		if (this.outlineColor && this.outline) {
-			DOMElement.draw.outline(this, this.outlineColor);
+			DOMElement.draw.outline(this);
 		}
 
 		if (this.shadowBlur != 0) {

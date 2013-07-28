@@ -217,12 +217,18 @@ Native.layout = {
 		if (element.canReceiveFocus) {
 			/* Fire blur event on last focused element */
 			if (this.currentFocusedElement) {
+				if (this.currentFocusedElement.outlineOnFocus) {
+					this.currentFocusedElement.outline = false;
+				}
 				this.currentFocusedElement.fireEvent("blur", {});
 				this.currentFocusedElement.hasFocus = false;
 			}
 
 			/* set this element as the new focused element */
 			element.hasFocus = true;
+			if (element.outlineOnFocus) {
+				element.outline = true;
+			}
 			element.fireEvent("focus", {});
 			this.currentFocusedElement = element;
 			this.focusID = element._nid;

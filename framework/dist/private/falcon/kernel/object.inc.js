@@ -738,10 +738,13 @@ DOMElement.draw = {
 
 	outline : function(element, color){
 		var params = element.getDrawingBounds(),
-			context = element.layer.context;
+			context = element.layer.context,
+			outlineColor = color ? color : element.outlineColor;
 
-		DOMElement.draw.outlineBox(element, context, params, color);
-		DOMElement.draw.outlineBox(element, context, params, color);
+		DOMElement.draw.outlineBox(element, context, params, outlineColor);
+		DOMElement.draw.outlineBox(element, context, params, outlineColor);
+		DOMElement.draw.outlineBox(element, context, params, outlineColor);
+		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 0.8)");
 		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 1)");
 	},
 

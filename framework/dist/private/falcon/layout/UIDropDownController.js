@@ -29,9 +29,6 @@ Native.elements.export("UIDropDownController", {
 			background 		: OptionalValue(o.background, "#2277E0"),
 			color 			: OptionalValue(o.color, "#ffffff"),
 
-			outlineOnFocus	: OptionalBoolean(o.outlineOnFocus, true),
-			outlineColor	: OptionalValue(o.outlineColor, ''),
-
 			selectedBackground : OptionalValue(o.selectedBackground, "#4D90FE"),
 			selectedColor : OptionalValue(o.selectedColor, "#ffffff"),
 
@@ -233,8 +230,8 @@ Native.elements.export("UIDropDownController", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		if (this.outlineColor && this.outlineOnFocus) {
-			DOMElement.draw.outline(this, this.outlineColor);
+ 		if (this.outlineColor && this.outline) {
+			DOMElement.draw.outline(this);
 		}
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
