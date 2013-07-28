@@ -1183,10 +1183,15 @@ Native.elements.export("UITextInput", {
 			}
 		};
 
-		this.setText(this.text);
-		this.resetCaretStartPoint();
-		this.setPlaceHolder(this.placeholder);
-		this.resetUndo();
+		this.reset = function(){
+			this.setText(this.text);
+			this.resetCaretStartPoint();
+			this.setPlaceHolder(this.placeholder);
+			this.resetUndo();
+		};
+
+		this.reset();
+
 	},
 
 	/* ---------------------------------------------------------------------- */

@@ -19,6 +19,12 @@ Native.elements.export("UITextField", {
 			}
 		},
 
+		width : {
+			set : function(value){
+				this.input.reset();
+			}
+		},
+
 		editable : {
 			set : function(value){
 				this.input.editable = OptionalBoolean(value, true);
