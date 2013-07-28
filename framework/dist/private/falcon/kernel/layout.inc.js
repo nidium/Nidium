@@ -193,7 +193,7 @@ Native.layout = {
 			z = this.elements;
 
 		this.focusID++;
-		if (this.focusID > this.nbObj-2) {
+		if (this.focusID > this.nbObj-1) {
 			this.focusID = 0;
 		}
 
