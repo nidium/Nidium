@@ -27,21 +27,25 @@ Native.elements.export("UITextField", {
 			this.resizeElement(); }
 		},
 
+		paddingTop : { set : function(value){
+			this.resizeElement(); }
+		},
+
+		paddingBottom : { set : function(value){
+			this.resizeElement(); }
+		},
+
+		width : { set : function(value){
+			this.resizeElement(); }
+		},
+
+		height : { set : function(value){
+			this.resizeElement(); }
+		},
+
 		color : {
 			set : function(value){
 				this.input.color = value;
-			}
-		},
-
-		width : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-
-		height : {
-			set : function(value){
-				this.resizeElement();
 			}
 		},
 
@@ -132,8 +136,12 @@ Native.elements.export("UITextField", {
 
 		this.resizeElement = function(){
 			this.view.left = this.paddingLeft;
+			this.view.top = this.paddingTop;
 			this.view.width = this.width - this.paddingLeft - this.paddingRight;
 			this.view.height = this.height - this.paddingTop - this.paddingBottom;
+
+			this.input.height = this.height - this.paddingTop - this.paddingBottom;
+			this.input.lineHeight = this.lineHeight - this.paddingTop - this.paddingBottom;
 		};
 
 		this.input.addEventListener("focus", function(e){
