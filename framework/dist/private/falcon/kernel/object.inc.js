@@ -743,7 +743,6 @@ DOMElement.draw = {
 
 		DOMElement.draw.outlineBox(element, context, params, outlineColor);
 		DOMElement.draw.outlineBox(element, context, params, outlineColor);
-		DOMElement.draw.outlineBox(element, context, params, outlineColor);
 		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 0.8)");
 		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 1)");
 	},
@@ -757,8 +756,8 @@ DOMElement.draw = {
 		context.roundbox(
 			params.x, params.y, 
 			params.w, params.h, 
-			element.radius,
-			"rgba(0, 0, 0, 0.6)",
+			element.radius+1,
+			"rgba(0, 0, 0, 0.9)",
 			null,
 			element.borderWidth
 		);

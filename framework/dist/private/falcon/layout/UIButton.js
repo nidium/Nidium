@@ -56,6 +56,8 @@ Native.elements.export("UIButton", {
 			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
 
+		this.outlineColor = this.background;
+
 		this.resizeElement = function(){
 			this.width = DOMElement.draw.getInnerTextWidth(this);
 		};
@@ -67,6 +69,10 @@ Native.elements.export("UIButton", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
+
+ 		if (this.outlineColor && this.outline) {
+			DOMElement.draw.outline(this);
+		}
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
 			if (this.selected){
