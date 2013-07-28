@@ -2,8 +2,7 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-var main = new Application({background:"#e0e0e0"});
-main.className = "main";
+var main = new Application({background:"#222"});
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -31,20 +30,25 @@ var field = main.add("UITextField", {
 });
 
 field.value = "https://www.google.fr/search?q=mac+osx+enlever+le+zoom&oq=mac+osx+enlever+le+zoom&aqs=chrome.0.69i57j0.5019j0&sourceid=chrome&ie=UTF-8#sclient=psy-ab&q=KMOD_GUI+sdl&oq=KMOD_GUI+sdl&gs_l=serp.3...45123.47082.2.47371.8.8.0.0.0.0.88.626.8.8.0....0.0..1c.1.20.psy-ab.inHNMKRk2vc&pbx=1&bav=on.2,or.r_cp.r_qf.&bvm=bv.49478099%2Cd.d2k%2Cpv.xjs.s.en_US.c75bKy5EQ0A.O&fp=d81ade728c71813c&biw=1512&bih=983";
-
+field.outlineColor = "red";
+field.editable = false;
 
 var dateField = main.add("UITextField", {
 	left : 100,
 	top : 80,
-	width : 80,
+	width : 84,
 	placeholder : "dd/mm/yyyy",
 	pattern : "(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}"
 });
 
-
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
 });
+
+dateField.addEventListener("submit", function(e){
+	console.log("submit", e.match);
+});
+
 
 
 var	button = new UIButton(main, {

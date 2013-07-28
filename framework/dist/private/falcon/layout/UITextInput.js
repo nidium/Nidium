@@ -50,11 +50,12 @@ Native.elements.export("UITextInput", {
 			editable 		: OptionalBoolean(o.editable, true),
 
 			background 		: OptionalValue(o.background, "#ffffff"),
-			color 			: OptionalValue(o.color, "#000000")
+			color 			: OptionalValue(o.color, "#000000"),
+
+			cursor 			: OptionalCursor(o.cursor, "beam")
 		});
 
 		this.placeholder = OptionalValue(o.placeholder, "");
-		this.cursor = OptionalCursor(o.cursor, "beam");
 
 		this.resetUndo = function(){
 			this.undoQueue = [];
@@ -223,8 +224,6 @@ Native.elements.export("UITextInput", {
 			window.cursor = "arrow";
 		});
 
-
-
 		this.overlay.addEventListener("mousedblclick", function(e){
 			self.resetCaretStartPoint();
 			self.select();
@@ -265,8 +264,8 @@ Native.elements.export("UITextInput", {
 
 		this.overlay.addEventListener("dragend", function(e){
 			self._endMouseSelection();
-			self.saveState(self.undoIndex);
 			self._autoScrollLeft = false;
+			self.saveState(self.undoIndex);
 			self.stopDragTimer();
 			self.fireEvent("textselect", self.selection);
 		}, false);
@@ -337,7 +336,13 @@ Native.elements.export("UITextInput", {
 			} else {
 				switch (e.keyCode) {
 					case 8 : // backspace
-						if (self.multiline && self.selection.offset-1 < 0) return false;
+						if (self.multiline === false) {
+							/* CTRL A then Backspace */
+							if (self.caret.x2 < 1) return false;
+						}
+
+						self.scrollCheck(self.caret.x1, self.caret.y1);
+
 						self._insert(
 							'', 
 							self.selection.offset, 
@@ -354,15 +359,12 @@ Native.elements.export("UITextInput", {
 							0
 						);
 
+						self.setCaretStartPoint();
+
 						break;
 
 					case 127 : // delete
-						echo(
-							self.width,
-							self.parent.scrollLeft,
-							self.caret.x1,
-							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
-						);
+						self.scrollCheck(self.caret.x1, self.caret.y1);
 
 						self._insert(
 							'', 
@@ -372,29 +374,14 @@ Native.elements.export("UITextInput", {
 							0
 						);
 
-						echo(
-							self.width,
-							self.parent.scrollLeft,
-							self.caret.x1,
-							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
-						);
-
-						//self.parent.scrollLeft = self.matricialToPixel(self.caret.x1, self.caret.y1)[0];
-
-						echo(
-							self.width,
-							self.parent.scrollLeft,
-							self.caret.x1,
-							self.matricialToPixel(self.caret.x1, self.caret.y1)[0]
-						);
-
-
+						self.setCaretStartPoint();
 
 						break;
 
 					case 1073741898 : // LineStart
 						if (this.multiline) return false;
 						self.setCaret(0, 0);
+						self.setCaretStartPoint();
 						self.scrollToLineStart();
 						break;
 
@@ -402,6 +389,7 @@ Native.elements.export("UITextInput", {
 						var maxLength = self.text.length; // after last char
 						if (this.multiline) return false;
 						self.setCaret(maxLength, 0);
+						self.setCaretStartPoint();
 						self.scrollToLineEnd();
 						break;
 
@@ -572,6 +560,7 @@ Native.elements.export("UITextInput", {
 		}, false);
 
 		this.addEventListener("blur", function(e){
+			this.unselect();
 			this.hideCaret();
 			this.showPlaceHolder();
 		}, false);
@@ -693,12 +682,19 @@ Native.elements.export("UITextInput", {
 		this.scrollCheck = function(cx, cy){
 			var x = this.matricialToPixel(cx, cy)[0],
 				minx = this.parent.left,
-				maxx = this.parent.left + this.parent.width - 20,
+				maxx = this.parent.left + this.parent.width - 1,
 
 				tx = x + this.parent.left - this.parent.scrollLeft;
-
-			if (tx > maxx) this.parent.updateScrollLeft(-this.parent.width/16);
-			if (tx < minx) this.parent.updateScrollLeft(this.parent.width/16);
+				
+			if (tx > maxx) {
+				this.parent.scrollLeft += (tx-maxx);
+			} else if (tx < minx) {
+				this.parent.scrollLeft -= (minx-tx);
+			} else {
+				/* force scrollLeft */
+				this.parent.scrollLeft++;
+				this.parent.scrollLeft--;
+			}
 		};
 
 		this.scrollToCaretCenter = function(cx, cy){
@@ -823,12 +819,27 @@ Native.elements.export("UITextInput", {
 			this.setText("");
 		};
 
+		this.showOutline = function(){
+			var host = this.outlineHost,
+				color = host.outlineColor;
+
+			if (host && this.pattern && this.text) {
+				color = this.match ? "green" : "red";
+			}
+
+			if (this.hasFocus) {
+				host.outlineColor = color;
+			}
+		}
+
 		this.checkPattern = function(pattern){
+			this.match = true;
 			if (!pattern) return true;
 			var regex = new RegExp(pattern);
-			return regex.test(this.text);
+			this.match = regex.test(this.text);
+			this.showOutline();
+			return this.match;
 		};
-
 
 		/* ------------------------------------------------------------------ */
 
@@ -844,6 +855,10 @@ Native.elements.export("UITextInput", {
 				this.setCaret(this.selection.offset, 0);
 			}
 		}
+
+		this.unselect = function(){
+			this.setCaret(this.selection.offset, 0);
+		};
 
 		this.select = function(state){
 			/* 2 times faster than the old while loop method */

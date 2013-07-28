@@ -95,13 +95,14 @@ var DOMElement = function(type, options, parent){
 		radius : OptionalNumber(o.radius, 0, 0),
 		borderWidth : OptionalNumber(o.borderWidth, 0),
 		borderColor : OptionalValue(o.borderColor, ''),
+		outlineColor : OptionalValue(o.outlineColor, 'blue'),
 
 		angle : OptionalNumber(o.angle, 0),
 		scale : OptionalNumber(o.scale, 1),
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
-		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, false),
+		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, true),
 
 		visible : OptionalBoolean(o.visible, true),
 		hidden : OptionalBoolean(o.hidden, false),
@@ -109,6 +110,7 @@ var DOMElement = function(type, options, parent){
 		overflow : OptionalBoolean(o.overflow, true),
 		multiline : OptionalBoolean(o.multiline, false),
 		editable : OptionalBoolean(o.editable, false),
+		outline : OptionalBoolean(o.outline, false),
 		
 		scrollable : OptionalBoolean(o.scrollable, false),
 		scrollBarX : OptionalBoolean(o.scrollBarX, false),
@@ -381,12 +383,12 @@ DOMElement.prototype = {
 
 	/*
 	backgroundColor : "",
-	backgroundImage : "",
+	backgroundImage : "",      ** implemented **
 	backgroundPositionX : "",
 	backgroundPositionY : "",
 	backgroundRepeat : "",
 
-	border : "",
+	border : "",      ** implemented **
 	borderBottom : "",
 	borderBottomColor : "",
 	borderBottomLeftRadius : "",
@@ -394,7 +396,7 @@ DOMElement.prototype = {
 	borderBottomStyle : "",
 	borderBottomWidth : "",
 	borderCollapse : "",
-	borderColor : "",
+	borderColor : "",      ** implemented **
 	borderImage : "",
 	borderImageOutset : "",
 	borderImageRepeat : "",
@@ -418,7 +420,7 @@ DOMElement.prototype = {
 	borderTopRightRadius : "",
 	borderTopStyle : "",
 	borderTopWidth : "",
-	borderWidth : "",
+	borderWidth : "",       ** implemented **
 
 	clipPath : "",
 	clipRule : "",
@@ -442,7 +444,7 @@ DOMElement.prototype = {
 
 	font : "",
 	fontFamily : "",
-	fontSize : "",
+	fontSize : "",      ** implemented **
 	fontStretch : "",
 	fontStyle : "",
 	fontVariant : "",
@@ -453,7 +455,7 @@ DOMElement.prototype = {
 	kerning : "",
 	letterSpacing : "",
 	lightingColor : "",
-	lineHeight : "",
+	lineHeight : "",      ** implemented **
 
 	listStyle : "",
 	listStyleImage : "",
@@ -471,8 +473,8 @@ DOMElement.prototype = {
 	minHeight : "",
 	minWidth : "",
 
-	outline : "",
-	outlineColor : "",
+	outline : "",      ** implemented **
+	outlineColor : "",      ** implemented **
 	outlineOffset : "",
 	outlineStyle : "",
 	outlineWidth : "",
@@ -514,7 +516,7 @@ DOMElement.prototype = {
 	textOverlineStyle : "",
 	textOverlineWidth : "",
 	textRendering : "",
-	textShadow : "",
+	textShadow : "",      ** implemented **
 	textTransform : "",
 	textUnderline : "",
 	textUnderlineColor : "",
@@ -732,6 +734,34 @@ DOMElement.draw = {
 			shadowColor ? shadowColor : element.textShadowColor
 		);
 
+	},
+
+	outline : function(element, color){
+		var params = element.getDrawingBounds(),
+			context = element.layer.context,
+			outlineColor = color ? color : element.outlineColor;
+
+		DOMElement.draw.outlineBox(element, context, params, outlineColor);
+		DOMElement.draw.outlineBox(element, context, params, outlineColor);
+		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 0.8)");
+		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 1)");
+	},
+
+	outlineBox : function(element, context, params, borderColor){
+		context.setShadow(
+			0, 0, 4,
+			borderColor ? borderColor : "rgba(0, 0, 255, 0.4)"
+		);
+
+		context.roundbox(
+			params.x-2, params.y-2, 
+			params.w+4, params.h+4, 
+			element.radius+2,
+			"rgba(255, 255, 255, 0.6)",
+			null,
+			element.borderWidth
+		);
+		context.setShadow(0, 0, 0);
 	},
 
 	box : function(element, context, params, backgroundColor, borderColor){

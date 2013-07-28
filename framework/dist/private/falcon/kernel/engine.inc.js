@@ -179,7 +179,6 @@ Native.timer = function(fn, ms, loop, execFirst){
 /* -------------------------------------------------------------------------- */
 
 Native.StyleSheet = {
-	document : {},
 
 	/* add to the existing stylesheet document */
 	add : function(sheet){
@@ -192,25 +191,23 @@ Native.StyleSheet = {
 
 	/* replace the existing stylesheet document */
 	set : function(sheet){
-		this.document = {};
+		document.stylesheet = {};
 		this.add(sheet);
 	},
 
 	/* load a local or distant stylesheet */
 	load : function(url, sync=true){
-		var ____self____ = this;
-		document.__styleSheetLoaded = false;
+		var ____self____ = this,
+			sheet = {};
 
 		if (sync) {
 			/* the synchronous way uses built-in method load */
-			var sheet = load(url, 'nss');
-			document.__styleSheetLoaded = true;
+			sheet = load(url, 'nss');
 			this.add(sheet);
 		} else {
 			/* the asynchronous way */
 			File.getText(url, function(content){
 				var sheetText = ____self____.parse(content);
-				document.__styleSheetLoaded = true;
 				try {
 					eval("____self____.add(" + sheetText + ")");
 				} catch (e) {
@@ -229,7 +226,7 @@ Native.StyleSheet = {
 
 	/* merge properties in an existing class, or create new one */
 	mergeProperties : function(klass, properties){
-		var prop = this.document[klass];
+		var prop = document.stylesheet[klass];
 		if (prop) {
 			for (var p in properties){
 				if (properties.hasOwnProperty(p)){
@@ -237,22 +234,22 @@ Native.StyleSheet = {
 				}
 			}
 		} else {
-			this.document[klass] = properties;
+			document.stylesheet[klass] = properties;
 		}
 		this.updateElements();
 	},
 
 	setProperties : function(klass, properties){
-		this.document[klass] = properties;
+		document.stylesheet[klass] = properties;
 		this.updateElements();
 	},
 
 	getProperties : function(klass){
-		return this.document[klass];
+		return document.stylesheet[klass];
 	},
 
 	/*
-	 * adapted from James Padolsey's work
+	 * Native NSS Parser, adapted from James Padolsey's work
 	 */
 	parse : function(text){
 		text = ('__' + text + '__').split('');

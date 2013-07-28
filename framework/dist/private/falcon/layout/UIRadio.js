@@ -47,9 +47,9 @@ Native.elements.export("UIRadio", {
 			shadowOffsetY	: OptionalNumber(o.shadowOffsetY, 2),
 			shadowBlur		: OptionalNumber(o.shadowBlur, 4),
 			shadowColor 	: OptionalValue(
-									o.shadowColor,
-									'rgba(0, 0, 0, 0.15)'
-								),
+								o.shadowColor,
+								'rgba(0, 0, 0, 0.15)'
+							),
 
 			name  			: OptionalString(o.name, "default"),
 			paddingLeft 	: OptionalNumber(o.paddingLeft, 2),
@@ -78,7 +78,6 @@ Native.elements.export("UIRadio", {
 
 		this.width = OptionalNumber(o.width, this._innerTextWidth) + this.height + this.paddingLeft;
 
-
 	},
 
 	draw : function(context){
@@ -98,6 +97,10 @@ Native.elements.export("UIRadio", {
 
 		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.4)');
 		gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.9)');
+
+ 		if (this.outlineColor && this.outline) {
+			DOMElement.draw.outline(this);
+		}
 
 		if (this.shadowBlur != 0) {
 			context.setShadow(
@@ -174,8 +177,6 @@ Native.elements.export("UIRadio", {
 		);
 		context.fill();
 		context.stroke();
-
-
 
 		params.x += params.h + this.paddingLeft;
 

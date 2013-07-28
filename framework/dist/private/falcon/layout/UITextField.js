@@ -8,15 +8,24 @@ Native.elements.export("UITextField", {
 	public : {
 		value : {
 			set : function(value){
-				if (this.input.setText){
-					this.input.setText(value);
-					this.input.scrollToLineStart();
-					this.input.resetUndo();
-				}
+				var text = OptionalString(value, "");
+				this.input.setText(text);
+				this.input.scrollToLineStart();
+				this.input.resetUndo();
 			},
 
 			get : function(){
 				return this.input.text;
+			}
+		},
+
+		editable : {
+			set : function(value){
+				this.input.editable = OptionalBoolean(value, true);
+			},
+
+			get : function(){
+				return this.input.editable;
 			}
 		},
 
@@ -43,8 +52,8 @@ Native.elements.export("UITextField", {
 			width 			: OptionalNumber(o.width, 120),
 			height 			: OptionalNumber(o.height, 22),
 
-			paddingLeft		: OptionalNumber(o.paddingLeft, 3),
-			paddingRight	: OptionalNumber(o.paddingLeft, 3),
+			paddingLeft		: OptionalNumber(o.paddingLeft, 4),
+			paddingRight	: OptionalNumber(o.paddingLeft, 4),
 			paddingTop		: OptionalNumber(o.paddingTop, 3),
 			paddingBottom	: OptionalNumber(o.paddingBottom, 3),
 
@@ -93,15 +102,38 @@ Native.elements.export("UITextField", {
 			editable : this.editable,
 			multiline : this.multiline
 		});
+		this.input.outlineHost = self;
+
+		this.input.addEventListener("focus", function(e){
+			var color = "blue";
+			if (self.outlineOnFocus === false) return;
+			self.outline = true;
+			self.input.showOutline();
+		}, false);
+
+		this.input.addEventListener("blur", function(e){
+			if (self.outlineOnFocus === false) return;
+			self.outline = false;
+		}, false);
+
+		this.submit = function(){
+			this.fireEvent("submit", {
+				value : self.input.text,
+				pattern : self.input.pattern,
+				match : self.input.match
+			});
+		};
 
 		this.input.overlay.addEventListener("keydown", function(e){
 			if (!self.input.hasFocus) return false;
 
 			switch (e.keyCode) {
 				case 13 : // enter
-					self.fireEvent("submit", {
-						value : self.input.text
-					});
+					self.submit();
+					break;
+
+				case 1073741912 : // Pad Enter
+					self.submit();
 					break;
 			};
 		});
@@ -109,6 +141,10 @@ Native.elements.export("UITextField", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
+
+		if (this.outlineColor && this.outline) {
+			DOMElement.draw.outline(this);
+		}
 
 		if (this.shadowBlur != 0) {
 			context.setShadow(

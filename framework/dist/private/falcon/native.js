@@ -141,7 +141,6 @@ Native.core = {
 		doc.stylesheet = document.stylesheet;
 
 		Object.createProtectedElement(Native.scope, "document", doc);
-		document.__styleSheetLoaded = true;
 	},
 
 	setRenderingLoop : function(){
@@ -161,3 +160,7 @@ Native.core = {
 };
 
 Native.core.init();
+
+window._onready = function(){
+	console.log("fssddsf");	
+};

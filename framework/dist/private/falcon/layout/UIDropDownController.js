@@ -230,6 +230,10 @@ Native.elements.export("UIDropDownController", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
+ 		if (this.outlineColor && this.outline) {
+			DOMElement.draw.outline(this);
+		}
+
 		if (__ENABLE_BUTTON_SHADOWS__) {
 			if (this.selected){
 				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
