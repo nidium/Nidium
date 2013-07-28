@@ -25,7 +25,7 @@ class NativeHash
         }
 
         T get(const char *key) const {
-            return hashtbl_seek(this->table, key, strlen(key));
+            return (T)hashtbl_seek(this->table, key, strlen(key));
         }
 
         void erase(const char *key) {
