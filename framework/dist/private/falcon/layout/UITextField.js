@@ -116,15 +116,24 @@ Native.elements.export("UITextField", {
 			self.outline = false;
 		}, false);
 
+		this.submit = function(){
+			this.fireEvent("submit", {
+				value : self.input.text,
+				pattern : self.input.pattern,
+				match : self.input.match
+			});
+		};
+
 		this.input.overlay.addEventListener("keydown", function(e){
 			if (!self.input.hasFocus) return false;
 
 			switch (e.keyCode) {
 				case 13 : // enter
-					self.fireEvent("submit", {
-						value : self.input.text,
-						match : self.input.match
-					});
+					self.submit();
+					break;
+
+				case 1073741912 : // Pad Enter
+					self.submit();
 					break;
 			};
 		});
