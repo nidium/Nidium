@@ -51,9 +51,6 @@ Native.elements.export("UITextField", {
 			background 		: OptionalValue(o.background, '#ffffff'),
 			color 			: OptionalValue(o.color, "#000000"),
 
-			outlineOnFocus	: OptionalBoolean(o.outlineOnFocus, true),
-			outlineColor	: OptionalValue(o.outlineColor, ''),
-
 			radius 			: OptionalNumber(o.radius, 3),
 
 			borderWidth 	: OptionalNumber(o.borderWidth, 1),
@@ -101,12 +98,13 @@ Native.elements.export("UITextField", {
 		this.input.addEventListener("focus", function(e){
 			var color = "blue";
 			if (self.outlineOnFocus === false) return;
+			self.outline = true;
 			self.input.showOutline();
 		}, false);
 
 		this.input.addEventListener("blur", function(e){
 			if (self.outlineOnFocus === false) return;
-			self.outlineColor = "";
+			self.outline = false;
 		}, false);
 
 		this.input.overlay.addEventListener("keydown", function(e){
@@ -125,7 +123,7 @@ Native.elements.export("UITextField", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		if (this.outlineColor) {
+		if (this.outlineColor && this.outline) {
 			DOMElement.draw.outline(this, this.outlineColor);
 		}
 

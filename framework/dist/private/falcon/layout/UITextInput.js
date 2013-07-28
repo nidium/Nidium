@@ -50,11 +50,12 @@ Native.elements.export("UITextInput", {
 			editable 		: OptionalBoolean(o.editable, true),
 
 			background 		: OptionalValue(o.background, "#ffffff"),
-			color 			: OptionalValue(o.color, "#000000")
+			color 			: OptionalValue(o.color, "#000000"),
+
+			cursor 			: OptionalCursor(o.cursor, "beam")
 		});
 
 		this.placeholder = OptionalValue(o.placeholder, "");
-		this.cursor = OptionalCursor(o.cursor, "beam");
 
 		this.resetUndo = function(){
 			this.undoQueue = [];
@@ -819,8 +820,8 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.showOutline = function(){
-			var color = "blue",
-				host = this.outlineHost;
+			var host = this.outlineHost,
+				color = host.outlineColor;
 
 			if (host && this.pattern && this.text) {
 				color = this.match ? "green" : "red";

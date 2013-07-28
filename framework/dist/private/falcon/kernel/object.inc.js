@@ -95,7 +95,7 @@ var DOMElement = function(type, options, parent){
 		radius : OptionalNumber(o.radius, 0, 0),
 		borderWidth : OptionalNumber(o.borderWidth, 0),
 		borderColor : OptionalValue(o.borderColor, ''),
-		outlineColor : OptionalValue(o.outlineColor, ''),
+		outlineColor : OptionalValue(o.outlineColor, 'blue'),
 
 		angle : OptionalNumber(o.angle, 0),
 		scale : OptionalNumber(o.scale, 1),
@@ -110,6 +110,7 @@ var DOMElement = function(type, options, parent){
 		overflow : OptionalBoolean(o.overflow, true),
 		multiline : OptionalBoolean(o.multiline, false),
 		editable : OptionalBoolean(o.editable, false),
+		outline : OptionalBoolean(o.outline, false),
 		
 		scrollable : OptionalBoolean(o.scrollable, false),
 		scrollBarX : OptionalBoolean(o.scrollBarX, false),
@@ -382,12 +383,12 @@ DOMElement.prototype = {
 
 	/*
 	backgroundColor : "",
-	backgroundImage : "",
+	backgroundImage : "",      ** implemented **
 	backgroundPositionX : "",
 	backgroundPositionY : "",
 	backgroundRepeat : "",
 
-	border : "",
+	border : "",      ** implemented **
 	borderBottom : "",
 	borderBottomColor : "",
 	borderBottomLeftRadius : "",
@@ -395,7 +396,7 @@ DOMElement.prototype = {
 	borderBottomStyle : "",
 	borderBottomWidth : "",
 	borderCollapse : "",
-	borderColor : "",
+	borderColor : "",      ** implemented **
 	borderImage : "",
 	borderImageOutset : "",
 	borderImageRepeat : "",
@@ -419,7 +420,7 @@ DOMElement.prototype = {
 	borderTopRightRadius : "",
 	borderTopStyle : "",
 	borderTopWidth : "",
-	borderWidth : "",
+	borderWidth : "",       ** implemented **
 
 	clipPath : "",
 	clipRule : "",
@@ -443,7 +444,7 @@ DOMElement.prototype = {
 
 	font : "",
 	fontFamily : "",
-	fontSize : "",
+	fontSize : "",      ** implemented **
 	fontStretch : "",
 	fontStyle : "",
 	fontVariant : "",
@@ -454,7 +455,7 @@ DOMElement.prototype = {
 	kerning : "",
 	letterSpacing : "",
 	lightingColor : "",
-	lineHeight : "",
+	lineHeight : "",      ** implemented **
 
 	listStyle : "",
 	listStyleImage : "",
@@ -472,8 +473,8 @@ DOMElement.prototype = {
 	minHeight : "",
 	minWidth : "",
 
-	outline : "",
-	outlineColor : "",
+	outline : "",      ** implemented **
+	outlineColor : "",      ** implemented **
 	outlineOffset : "",
 	outlineStyle : "",
 	outlineWidth : "",
@@ -515,7 +516,7 @@ DOMElement.prototype = {
 	textOverlineStyle : "",
 	textOverlineWidth : "",
 	textRendering : "",
-	textShadow : "",
+	textShadow : "",      ** implemented **
 	textTransform : "",
 	textUnderline : "",
 	textUnderlineColor : "",
