@@ -121,9 +121,13 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		this.createDocument();
+		delete(this.init);
+	},
+
+	onready : function(){
 		this.setRenderingLoop();
 		this.addStatusBar();
-		delete(this.init);
+		delete(this.onready);
 	},
 
 	createDocument : function(){
@@ -133,7 +137,8 @@ Native.core = {
 			top : 0,
 			width : window.width,
 			height : window.height,
-			background : "#272822",
+			background : "#ffffff",
+			cursor : "arrow",
 			canReceiveFocus : true,
 			outlineOnFocus : false
 		});
@@ -162,5 +167,10 @@ Native.core = {
 Native.core.init();
 
 window._onready = function(){
-	console.log("fssddsf");	
+	Native.core.onready();
 };
+
+window._onassetready = function(e){
+//	console.log("asset read", e.tag, e.id);
+};
+
