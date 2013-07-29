@@ -36,7 +36,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *filename)
     }
     JSObject *jret = ret.toObjectOrNull();
 
-    NativeJS::CopyProperties(cx, jret, this->stylesheet);
+    NativeJS::copyProperties(cx, jret, this->stylesheet);
 
     return true;
 }
@@ -48,7 +48,7 @@ void NativeJSdocument::registerObject(JSContext *cx)
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
     documentObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        jdoc->getJSObjectName(),
+        NativeJSdocument::getJSObjectName(),
         &document_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE);
 
     JS_SetPrivate(documentObj, jdoc);
@@ -56,7 +56,7 @@ void NativeJSdocument::registerObject(JSContext *cx)
 
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);
-    njs->jsobjects.set(jdoc->getJSObjectName(), documentObj);
+    njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
     jdoc->stylesheet = JS_NewObject(cx, NULL, NULL, NULL);
     jsval obj = OBJECT_TO_JSVAL(jdoc->stylesheet);
