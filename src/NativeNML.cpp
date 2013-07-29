@@ -5,11 +5,12 @@
 #include "NativeHash.h"
 #include "NativeStream.h"
 #include "NativeJS.h"
+#include "NativeJSwindow.h"
 #include "NativeJSDocument.h"
 #include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
-    net(net), NFIO(NULL), relativePath(NULL), njs(NULL)
+    net(net), NFIO(NULL), relativePath(NULL), nassets(0), njs(NULL)
 {
     assetsList.size = 0;
     assetsList.allocated = 4;
@@ -72,9 +73,11 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
             break;
         }
         default:
-            njs->assetReady(tag);
             break;
     }
+    /* TODO: allow the callback to change content ? */
+
+    NativeJSwindow::getNativeClass(njs)->assetReady(tag);
 }
 
 static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
@@ -84,8 +87,25 @@ static void NativeNML_onAssetsItemRead(NativeAssets::Item *item, void *arg)
     nml->onAssetsItemReady(item);
 }
 
+void NativeNML::onAssetsBlockReady(NativeAssets *asset)
+{
+    this->nassets--;
+
+    if (this->nassets == 0) {
+        NativeJSwindow::getNativeClass(njs)->onReady();
+    }
+}
+
+static void NativeNML_onAssetsReady(NativeAssets *assets, void *arg)
+{
+    class NativeNML *nml = (class NativeNML *)arg;
+
+    nml->onAssetsBlockReady(assets);
+}
+
 void NativeNML::addAsset(NativeAssets *asset)
 {
+    this->nassets++;
     if (assetsList.size == assetsList.allocated) {
         assetsList.allocated *= 2;
         assetsList.list = (NativeAssets **)realloc(assetsList.list, sizeof(NativeAssets *) * assetsList.allocated);
@@ -100,7 +120,8 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
 
-    NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead, this);
+    NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead,
+        NativeNML_onAssetsReady, this);
 
     this->addAsset(assets);
 
@@ -116,12 +137,12 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
                 NativeAssets::Item::ITEM_UNKNOWN, net, this->relativePath);
 
             /* Name could be automatically changed afterward */
-            item->setName(id != NULL ? id->value() : src->value());
+            item->setName(src->value());
 
             assets->addToPendingList(item);
         } else {
             item = new NativeAssets::Item(NULL, NativeAssets::Item::ITEM_UNKNOWN, net);
-            item->setName("inline");
+            item->setName("inline"); /* TODO: NML name */
             assets->addToPendingList(item);
             item->setContent(child->value(), child->value_size(), true);
         }
@@ -135,6 +156,8 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
         }
         //printf("Node : %s\n", child->name());
     }
+
+    assets->endListUpdate(net);
 }
 
 

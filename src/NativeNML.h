@@ -22,6 +22,7 @@ class NativeNML : public NativeFileIODelegate
     void loadData(char *data, size_t len);
     void loadAssets(rapidxml::xml_node<> &node);
     void onAssetsItemReady(NativeAssets::Item *item);
+    void onAssetsBlockReady(NativeAssets *asset);
 
     void onNFIOOpen(NativeFileIO *);
     void onNFIOError(NativeFileIO *, int errno){};
@@ -42,12 +43,14 @@ class NativeNML : public NativeFileIODelegate
     /* Define callbacks for tags in <application> */
     struct _nml_tags {
         const char *str;
-        /* Call : (this->*cb)() */
-        tag_callback cb;
+        tag_callback cb; // Call : (this->*cb)()
+        bool unique;
     } nml_tags[2] = {
-        {"assets",   &NativeNML::loadAssets},
-        {NULL,       NULL}
+        {"assets",   &NativeNML::loadAssets, false},
+        {NULL,       NULL, false}
     };
+
+    uint32_t nassets;
 
     NativeJS *njs;
 

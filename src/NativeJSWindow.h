@@ -2,6 +2,7 @@
 #define nativejswindow_h__
 
 #include "NativeJSExposer.h"
+#include "NativeTypes.h"
 
 class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
@@ -9,6 +10,8 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     NativeJSwindow(){};
     ~NativeJSwindow(){};
 
+    void onReady();
+    void assetReady(const NMLTag &tag);
     void windowFocus();
     void windowBlur();
     void mouseWheel(int xrel, int yrel, int x, int y);

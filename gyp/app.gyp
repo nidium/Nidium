@@ -3,7 +3,7 @@
         'target_name': '<(native_exec_name)',
         'type': 'executable',
 		'mac_bundle': 1,
-        'product_dir': '../framework/',
+        'product_dir': '../framework/dist/',
         'dependencies': [
             'network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
@@ -170,7 +170,7 @@
                         'action': [
                             'ditto',
                             '<(native_output)/third-party-libs/.libs/SDL2.framework/',
-                            '../framework/nativeapp.app/Contents/Frameworks/SDL2.framework'
+                            '../framework/dist/nativeapp.app/Contents/Frameworks/SDL2.framework'
                         ]
                     },
 					{
@@ -178,7 +178,7 @@
 						'action': [
 							'ditto',
 							'<(native_output)/../resources/',
-							'../framework/nativeapp.app/Contents/Resources/'
+							'../framework/dist/nativeapp.app/Contents/Resources/'
 						]
 					}
                 ]

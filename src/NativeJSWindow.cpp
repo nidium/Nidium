@@ -54,6 +54,49 @@ static JSClass keyEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass NMLEvent_class = {
+    "NMLEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+void NativeJSwindow::onReady()
+{
+    jsval onready, rval;
+
+    if (JS_GetProperty(cx, this->jsobj, "_onready", &onready) &&
+        !JSVAL_IS_PRIMITIVE(onready) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onready))) {
+
+        JS_CallFunctionValue(cx, this->jsobj, onready, 0, NULL, &rval);
+    }
+}
+
+void NativeJSwindow::assetReady(const NMLTag &tag)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+        val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+
+    jsval onassetready, rval, jevent;
+    JSObject *event;
+
+    event = JS_NewObject(cx, &NMLEvent_class, NULL, NULL);
+    jevent = OBJECT_TO_JSVAL(event);
+
+    EVENT_PROP("data", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+        (const char *)tag.content.data, tag.content.len)));
+    EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
+    EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
+
+    if (JS_GetProperty(cx, this->jsobj, "_onassetready", &onassetready) &&
+        !JSVAL_IS_PRIMITIVE(onassetready) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onassetready))) {
+
+        JS_CallFunctionValue(cx, event, onassetready, 1, &jevent, &rval);
+    }
+}
+
 void NativeJSwindow::windowFocus()
 {
     jsval rval, onfocus;
@@ -444,7 +487,7 @@ static JSFunctionSpec window_funcs[] = {
 void NativeJSwindow::registerObject(JSContext *cx)
 {
     NativeJSwindow *jwin = new NativeJSwindow();
-
+    
     JSObject *windowObj;
     windowObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSwindow::getJSObjectName(),
@@ -453,7 +496,7 @@ void NativeJSwindow::registerObject(JSContext *cx)
 
     jwin->jsobj = windowObj;
     jwin->cx = cx;
-    JS_SetPrivate(windowObj, jwin->jsobj);
+    JS_SetPrivate(windowObj, jwin);
 
     NativeJS::getNativeClass(cx)->jsobjects.set(NativeJSwindow::getJSObjectName(), windowObj);
 
