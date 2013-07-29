@@ -64,7 +64,14 @@ var	dropDownController = main.add("UIDropDownController", {
 	class : "tabController"
 });
 
-dropDownController.value = 4;
+//dropDownController.value = 4;
+
+
+dropDownController.addEventListener("change", function(e){
+	console.log("dropdown", e.value);
+});
+
+
 
 /*
 

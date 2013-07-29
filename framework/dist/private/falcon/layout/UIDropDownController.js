@@ -12,7 +12,7 @@ Native.elements.export("UIDropDownController", {
 			},
 
 			get : function(){
-				return this.input.text;
+				return this.tabs[this.selection].value;
 			}
 		}
 	},
@@ -59,6 +59,9 @@ Native.elements.export("UIDropDownController", {
 		this.selectIndex = function(index){
 			this.selection = Math.max(Math.min(index, this.tabs.length-1), 0);
 			this.reset(this.selection);
+			this.fireEvent("change", {
+				value : this.tabs[this.selection].value
+			});
 			this.closeSelector();
 		};
 

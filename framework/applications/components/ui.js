@@ -363,8 +363,8 @@ var	slider = main.add("UISliderController", {
 	value : 14
 });
 
-slider.addEventListener("change", function(value){
-	mainTabController.overlap = value;
+slider.addEventListener("change", function(e){
+	mainTabController.overlap = e.value;
 	mainTabController.resetTabs();
 }, false);
 

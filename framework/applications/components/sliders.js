@@ -98,13 +98,13 @@ master.addEventListener("complete", function(value){
 
 
 // Big Blue Slider controls the small sliders
-slider3.addEventListener("update", function(value){
+slider3.addEventListener("change", function(e){
 	var g1 = slider1.value,
 		g2 = slider2.value;
 
-	slider1.setValue(g1+value*20);
-	slider2.setValue(g2+value*20);
-	frequency = (value)/10;
+	slider1.setValue(g1+e.value*20);
+	slider2.setValue(g2+e.value*20);
+	frequency = (e.value)/10;
 }, false);
 
 

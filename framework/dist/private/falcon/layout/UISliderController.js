@@ -164,7 +164,9 @@ Native.elements.export("UISliderController", {
 				this.pixelValue = k.left + kw;
 				this.value = this.pixelValue * d/w + this.min;
 			}
-			this.fireEvent("update", this.value);
+			this.fireEvent("change", {
+				value : this.value
+			});
 		};
 
 		this.animateKnob = function(property, start, end, duration, callback){

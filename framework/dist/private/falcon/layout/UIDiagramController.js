@@ -126,7 +126,8 @@ Native.elements.export("UIDiagramController", {
 				
 				self.links.add(link);
 
-				link.addEventListener("change", function(e){
+				/* TODO : event was change before propertyupdate */
+				link.addEventListener("propertyupdate", function(e){
 					var absStartPoint = self.getPinConnectionPoint(sourcePin),
 						absEndPoint = {
 							x : e.x,

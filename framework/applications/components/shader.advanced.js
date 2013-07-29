@@ -73,16 +73,16 @@ var ShaderDemo = {
 			value : 0
 		});
 
-		this.slider1.addEventListener("update", function(value){
-			uniforms.data = value;
+		this.slider1.addEventListener("change", function(e){
+			uniforms.data = e.value;
 		}, false);
 
-		this.slider2.addEventListener("update", function(value){
-			uniforms.param = value;
+		this.slider2.addEventListener("change", function(e){
+			uniforms.param = e.value;
 		}, false);
 
-		this.slider3.addEventListener("update", function(value){
-			uniforms.zoom = value;
+		this.slider3.addEventListener("change", function(e){
+			uniforms.zoom = e.value;
 		}, false);
 
 		document.addEventListener("mousewheel", function(e){

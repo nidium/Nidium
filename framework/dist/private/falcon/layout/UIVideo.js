@@ -153,10 +153,10 @@ Native.elements.export("UIVideo", {
 			this.top += e.yrel;
 		});
 
-		this.volume.addEventListener("update", function(value){
+		this.volume.addEventListener("change", function(e){
 			if (!self.player) return false;
-			self.player.volume = value;
-			self.status.speaker.variation = Math.round(2*value/1.5);
+			self.player.volume = e.value;
+			self.status.speaker.variation = Math.round(2*e.value/1.5);
 		}, false);
 
 		this.spinner.show();
