@@ -52,6 +52,8 @@ class NativeJS
         
         int LoadApplication(const char *path);
         static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
+        static int LoadScriptReturn(JSContext *cx, const char *data,
+            size_t len, const char *filename, JS::Value *ret);
         static int LoadScriptReturn(JSContext *cx,
             const char *filename, JS::Value *ret);
         int LoadScriptContent(const char *data, size_t len,

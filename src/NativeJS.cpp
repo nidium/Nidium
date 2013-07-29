@@ -126,7 +126,7 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
     const char *ctmp;
 
     prefix = NULL;
-
+    
     if (!report) {
         fprintf(stdout, "%s\n", message);
         goto out;
@@ -852,27 +852,20 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
     }
 }
 
-int NativeJS::LoadScriptReturn(JSContext *cx,
-    const char *filename, jsval *ret)
-{   
+int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
+    size_t len, const char *filename, JS::Value *ret)
+{
     JSObject *gbl = JS_GetGlobalObject(cx);
 
-    NativeAutoFile file;
-    if (!file.open(cx, filename))
-        return 0;
-    FileContents buffer(cx);
-    if (!ReadCompleteFile(cx, file.fp(), buffer))
-        return 0;
-
-    char *func = (char *)malloc(sizeof(char) * buffer.length() + 64);
-    memset(func, 0, sizeof(char) * buffer.length() + 64);
+    char *func = (char *)malloc(sizeof(char) * (len + 64));
+    memset(func, 0, sizeof(char) * (len + 64));
     
     strcat(func, "return (");
-    strncat(func, buffer.begin(), buffer.length());
+    strncat(func, data, len);
     strcat(func, ");");
 
     JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
-        strlen(func), NULL, 0);
+        strlen(func), filename, 1);
 
     free(func);
     if (cf == NULL) {
@@ -886,23 +879,23 @@ int NativeJS::LoadScriptReturn(JSContext *cx,
         return 0;
     }
 
-    return 1;
-#if 0
-    JSScript *script = JS::Compile(cx, rgbl, options,
-        buffer.begin(), buffer.length());
+    return 1;    
+}
 
-    JS_SetOptions(cx, oldopts);
+int NativeJS::LoadScriptReturn(JSContext *cx,
+    const char *filename, jsval *ret)
+{   
+    JSObject *gbl = JS_GetGlobalObject(cx);
 
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, ret)) {
-        if (JS_IsExceptionPending(cx)) {
-            if (!JS_ReportPendingException(cx)) {
-                JS_ClearPendingException(cx);
-            }
-        }
+    NativeAutoFile file;
+    if (!file.open(cx, filename))
         return 0;
-    }
-    return 1;
-#endif
+    FileContents buffer(cx);
+    if (!ReadCompleteFile(cx, file.fp(), buffer))
+        return 0;
+
+    return NativeJS::LoadScriptReturn(cx, buffer.begin(),
+        buffer.length(), filename, ret);
 }
 
 int NativeJS::LoadScriptContent(const char *data, size_t len,

@@ -28,10 +28,11 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-bool NativeJSdocument::populateStyle(JSContext *cx, const char *filename)
+bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
+    size_t len, const char *filename)
 {
     JS::Value ret;
-    if (!NativeJS::LoadScriptReturn(cx, filename, &ret)) {
+    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
     JSObject *jret = ret.toObjectOrNull();

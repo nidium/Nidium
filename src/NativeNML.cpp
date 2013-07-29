@@ -66,10 +66,10 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
         {
             NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(njs->cx);
             if (jdoc == NULL) {
-                printf("Cant get jdoc\n");
                 return;
             }
-            jdoc->populateStyle(njs->cx, item->getName());
+            jdoc->populateStyle(njs->cx, (const char *)data,
+                len, item->getName());
             break;
         }
         default:
