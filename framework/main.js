@@ -44,7 +44,7 @@ load("applications/components/dropdown.js");
 	//load("applications/audio/test.js");
 	//load("applications/audio/mixer.js");
 	//load("applications/audio/dsp.js"); // crash
-	//load("applications/media/video.js"); // instable
+	//load("applications/media/video.js"); // crash on refresh (and video end)
 
 /* FILE API */
 

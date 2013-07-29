@@ -57,12 +57,13 @@ Native.elements.export("UIDropDownController", {
 		this.tabs = [];
 
 		this.selectIndex = function(index){
-			this.selection = Math.max(Math.min(index, this.tabs.length-1), 0);
-			this.reset(this.selection);
-			this.fireEvent("change", {
-				value : this.tabs[this.selection].value
-			});
-			this.closeSelector();
+			if (this.selection != index){
+				this.selection = Math.max(Math.min(index, this.tabs.length-1), 0);
+				this.reset(this.selection);
+				this.fireEvent("change", {
+					value : this.tabs[this.selection].value
+				});
+			}
 		};
 
 		this.setValue = function(value){
