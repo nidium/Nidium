@@ -249,7 +249,8 @@ Native.events = {
 			}
 			return false;
 		}
-		window.cursor = this.mostTopElementUnderMouse.cursor;
+		window.cursor = this.mostTopElementUnderMouse ?
+				this.mostTopElementUnderMouse.cursor : document.cursor;
 	},
 
 	fireMouseOut : function(element, e){
