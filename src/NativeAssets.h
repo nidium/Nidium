@@ -80,16 +80,20 @@ class NativeAssets
 
 
         typedef void (*readyItem)(NativeAssets::Item *item, void *arg);
+        typedef void (*readyAssets)(NativeAssets *assets, void *arg);
 
         void addToPendingList(Item *item);
         
-        NativeAssets(readyItem cb, void *arg);
+        NativeAssets(readyItem cb, readyAssets rcb, void *arg);
         ~NativeAssets();
 
         readyItem itemReady;
+        readyAssets assetsReady;
         void *readyArg;
         void pendingListUpdate();
+        void endListUpdate(ape_global *net);
     private:
+        uint32_t nitems;
         struct item_list {
             Item *item;
 

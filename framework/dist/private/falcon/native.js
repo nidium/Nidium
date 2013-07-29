@@ -142,7 +142,7 @@ Native.core = {
 			canReceiveFocus : true,
 			outlineOnFocus : false
 		});
-
+		
 		doc.stylesheet = document.stylesheet;
 
 		Object.createProtectedElement(Native.scope, "document", doc);

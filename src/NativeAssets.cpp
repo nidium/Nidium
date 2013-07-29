@@ -1,8 +1,8 @@
 #include "NativeAssets.h"
 #include <native_netlib.h>
 
-NativeAssets::NativeAssets(readyItem cb, void *arg) :
-    itemReady(cb), readyArg(arg)
+NativeAssets::NativeAssets(readyItem cb, readyAssets rcb, void *arg) :
+    itemReady(cb), assetsReady(rcb), readyArg(arg), nitems(0)
 {
     pending_list.head = NULL;
     pending_list.foot = NULL;
@@ -91,6 +91,8 @@ void NativeAssets::addToPendingList(Item *item)
 {
     struct item_list *il = (struct item_list *)malloc(sizeof(*il));
 
+    this->nitems++;
+
     il->item = item;
     il->next = NULL;
     item->state = NativeAssets::Item::ITEM_LOADING;
@@ -120,10 +122,18 @@ static int NativeAssets_deleteItem(void *arg)
     return 0;
 }
 
+void NativeAssets::endListUpdate(ape_global *ape)
+{
+    if (this->nitems == 0) {
+        timer_dispatch_async_unprotected(NativeAssets_pendingListUpdate, this);
+    }
+}
+
 void NativeAssets::pendingListUpdate()
 {
     struct item_list *il = pending_list.head, *ilnext;
     while (il != NULL && il->item->state == NativeAssets::Item::ITEM_LOADED) {
+        this->nitems--;
         itemReady(il->item, readyArg);
 
         pending_list.head = il->next;
@@ -138,5 +148,9 @@ void NativeAssets::pendingListUpdate()
         free(il);
 
         il = ilnext;
+    }
+
+    if (this->nitems == 0) {
+        assetsReady(this, readyArg);
     }
 }

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "NativeTypes.h"
 #include "NativeHash.h"
 #include <jspubtd.h>
 
@@ -52,8 +51,9 @@ class NativeJS
         ~NativeJS();
         
         int LoadApplication(const char *path);
-        void Loaded();
         static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
+        static int LoadScriptReturn(JSContext *cx, const char *data,
+            size_t len, const char *filename, JS::Value *ret);
         static int LoadScriptReturn(JSContext *cx,
             const char *filename, JS::Value *ret);
         int LoadScriptContent(const char *data, size_t len,
@@ -66,7 +66,6 @@ class NativeJS
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
         void postDraw();
-        void assetReady(const NMLTag &tag);
         void gc();
         void bindNetObject(ape_global *net);
         void forceLinking();

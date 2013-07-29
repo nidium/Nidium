@@ -87,14 +87,6 @@ static JSClass global_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-
-static JSClass NMLEvent_class = {
-    "NMLEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-
 static JSClass messageEvent_class = {
     "MessageEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -134,7 +126,7 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
     const char *ctmp;
 
     prefix = NULL;
-
+    
     if (!report) {
         fprintf(stdout, "%s\n", message);
         goto out;
@@ -270,6 +262,7 @@ Print(JSContext *cx, unsigned argc, jsval *vp)
     return PrintInternal(cx, argc, vp, stdout);
 }
 
+/* TODO, move out */
 void NativeJS::createDebugCanvas()
 {
     static const int DEBUG_HEIGHT = 60;
@@ -281,6 +274,7 @@ void NativeJS::createDebugCanvas()
     debugHandler->setOpacity(0.6);
 }
 
+/* TODO, move out */
 void NativeJS::postDraw()
 {
     if (NativeJSNative::showFPS && debugHandler) {
@@ -315,7 +309,7 @@ void NativeJS::postDraw()
     }
 }
 
-
+/* TODO, move out */
 void NativeJS::callFrame()
 {
     jsval rval;
@@ -351,33 +345,6 @@ void NativeJS::callFrame()
         JSAutoRequest ar(cx);
         JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
     }
-}
-
-void NativeJS::assetReady(const NMLTag &tag)
-{
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-        val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-
-    jsval window, onassetready, rval, jevent;
-    JSObject *event;
-
-    event = JS_NewObject(cx, &NMLEvent_class, NULL, NULL);
-    jevent = OBJECT_TO_JSVAL(event);
-
-    EVENT_PROP("data", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-        (const char *)tag.content.data, tag.content.len)));
-    EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
-    EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
-
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &window);
-
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(window), "onassetready", &onassetready) &&
-        !JSVAL_IS_PRIMITIVE(onassetready) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onassetready))) {
-
-        JS_CallFunctionValue(cx, event, onassetready, 1, &jevent, &rval);
-    }
-
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
@@ -458,21 +425,6 @@ void NativeJS::rootObjectUntilShutdown(JSObject *obj)
 void NativeJS::unrootObject(JSObject *obj)
 {
     hashtbl_erase64(this->rootedObj, (uint64_t)obj);
-}
-
-void NativeJS::Loaded()
-{
-    jsval canvas, onready, rval;
-
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "window", &canvas);
-
-    if (JS_GetProperty(cx, JSVAL_TO_OBJECT(canvas), "onready", &onready) &&
-        !JSVAL_IS_PRIMITIVE(onready) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onready))) {
-
-        JS_CallFunctionValue(cx, JSVAL_TO_OBJECT(canvas), onready, 0, NULL, &rval);
-    }
-
 }
 
 NativeJS *NativeJS::getNativeClass(JSContext *cx)
@@ -611,6 +563,7 @@ int NativeJS::LoadApplication(const char *path)
     return 0;
 }
 
+/* TODO, move out */
 void NativeJS::forceLinking()
 {
 #ifdef __linux__
@@ -899,27 +852,20 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
     }
 }
 
-int NativeJS::LoadScriptReturn(JSContext *cx,
-    const char *filename, jsval *ret)
-{   
+int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
+    size_t len, const char *filename, JS::Value *ret)
+{
     JSObject *gbl = JS_GetGlobalObject(cx);
 
-    NativeAutoFile file;
-    if (!file.open(cx, filename))
-        return 0;
-    FileContents buffer(cx);
-    if (!ReadCompleteFile(cx, file.fp(), buffer))
-        return 0;
-
-    char *func = (char *)malloc(sizeof(char) * buffer.length() + 64);
-    memset(func, 0, sizeof(char) * buffer.length() + 64);
+    char *func = (char *)malloc(sizeof(char) * (len + 64));
+    memset(func, 0, sizeof(char) * (len + 64));
     
     strcat(func, "return (");
-    strncat(func, buffer.begin(), buffer.length());
+    strncat(func, data, len);
     strcat(func, ");");
 
     JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
-        strlen(func), NULL, 0);
+        strlen(func), filename, 1);
 
     free(func);
     if (cf == NULL) {
@@ -933,23 +879,23 @@ int NativeJS::LoadScriptReturn(JSContext *cx,
         return 0;
     }
 
-    return 1;
-#if 0
-    JSScript *script = JS::Compile(cx, rgbl, options,
-        buffer.begin(), buffer.length());
+    return 1;    
+}
 
-    JS_SetOptions(cx, oldopts);
+int NativeJS::LoadScriptReturn(JSContext *cx,
+    const char *filename, jsval *ret)
+{   
+    JSObject *gbl = JS_GetGlobalObject(cx);
 
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, ret)) {
-        if (JS_IsExceptionPending(cx)) {
-            if (!JS_ReportPendingException(cx)) {
-                JS_ClearPendingException(cx);
-            }
-        }
+    NativeAutoFile file;
+    if (!file.open(cx, filename))
         return 0;
-    }
-    return 1;
-#endif
+    FileContents buffer(cx);
+    if (!ReadCompleteFile(cx, file.fp(), buffer))
+        return 0;
+
+    return NativeJS::LoadScriptReturn(cx, buffer.begin(),
+        buffer.length(), filename, ret);
 }
 
 int NativeJS::LoadScriptContent(const char *data, size_t len,
