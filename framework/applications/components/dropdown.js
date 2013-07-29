@@ -64,6 +64,8 @@ var	dropDownController = main.add("UIDropDownController", {
 	class : "tabController"
 });
 
+dropDownController.value = 4;
+
 /*
 
 var	button = new UIButton(main, {

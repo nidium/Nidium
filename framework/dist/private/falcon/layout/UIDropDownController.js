@@ -5,6 +5,18 @@
 /* -------------------------------------- */
 
 Native.elements.export("UIDropDownController", {
+	public : {
+		value : {
+			set : function(value){
+				this.setValue(value);
+			},
+
+			get : function(){
+				return this.input.text;
+			}
+		}
+	},
+
 	init : function(){
 		var self = this,
 			o = this.options;
@@ -50,11 +62,21 @@ Native.elements.export("UIDropDownController", {
 			this.closeSelector();
 		};
 
+		this.setValue = function(value){
+			for (var i=0; i<this.tabs.length; i++){
+				if (this.tabs[i].value == value) {
+					this.selectIndex(i);
+					continue;
+				}
+			}
+		};
+
 		this._addElement = function(i, options, y){
 			var o = options,
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
 				background = OptionalValue(o.background, "rgba(255, 255, 255, 1)"),
+				value = OptionalValue(o.value, ""),
 				color = OptionalValue(o.color, "#888888"),
 				selected = OptionalBoolean(o.selected, false);
 
@@ -71,7 +93,8 @@ Native.elements.export("UIDropDownController", {
 				label : label,
 				selected : selected,
 				background : background,
-				color : color
+				color : color,
+				value : value
 			});
 
 			this.tabs[i].index = i;

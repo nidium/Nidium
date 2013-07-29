@@ -22,6 +22,9 @@ Native.elements.export("UIOption", {
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, "rgba(0, 0, 0, 0.4)"),
 			color 			: OptionalValue(o.color, "#abacaa"),
+
+			value 			: OptionalValue(o.value, ""),
+
 			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
 
