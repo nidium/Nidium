@@ -7,7 +7,6 @@
 #include "NativeHash.h"
 #include <jspubtd.h>
 
-
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
     NATIVE_KEY_ALT = 1 << 1,
@@ -54,7 +53,7 @@ class NativeJS
         
         int LoadApplication(const char *path);
         void Loaded();
-        static void CopyProperties(JSContext *cx, JSObject *source, JSObject *into);
+        static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
         static int LoadScriptReturn(JSContext *cx,
             const char *filename, JS::Value *ret);
         int LoadScriptContent(const char *data, size_t len,
@@ -67,14 +66,7 @@ class NativeJS
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
         void postDraw();
-        void windowFocus();
-        void windowBlur();
-        void mouseWheel(int xrel, int yrel, int x, int y);
-        void mouseMove(int x, int y, int xrel, int yrel);
-        void mouseClick(int x, int y, int state, int button);
         void assetReady(const NMLTag &tag);
-        void textInput(const char *data);
-        void keyupdown(int keycode, int mod, int state, int repeat);
         void gc();
         void bindNetObject(ape_global *net);
         void forceLinking();

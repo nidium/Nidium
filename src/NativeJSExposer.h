@@ -14,24 +14,22 @@ class NativeJSExposer
         return this->jsobj;
     }
     JSObject *jsobj;
-    T *getObject() const {
-        if (jsobj == NULL) {
-            return NULL;
-        }
-        return (T *)JS_GetPrivate(jsobj);
-    }
 
     static const char *getJSObjectName() { return NULL; }
 
-    static JSObject *getJSGlobalObject(JSContext *cx) {
+    static JSObject *getJSGlobalObject(NativeJS *njs) {
         JSObject *jobj;
         const char *name = T::getJSObjectName();
 
-        if ((jobj = NativeJS::getNativeClass(cx)->jsobjects.get(name)) == NULL) {
+        if ((jobj = njs->jsobjects.get(name)) == NULL) {
             return NULL;
         }
 
         return jobj;
+    }
+
+    static JSObject *getJSGlobalObject(JSContext *cx) {
+        return T::getJSGlobalObject(NativeJS::getNativeClass(cx));
     }
 
     static T* getNativeClass(JSObject *obj, JSContext *cx = NULL)
@@ -42,18 +40,22 @@ class NativeJSExposer
         return (T *)JS_GetPrivate(obj);
     }
 
-    static T* getNativeClass(JSContext *cx) {
-        JSObject *obj = T::getJSGlobalObject(cx);
+    static T* getNativeClass(NativeJS *njs) {
+        JSObject *obj = T::getJSGlobalObject(njs);
         if (obj == NULL) {
             return NULL;
         }
         return (T *)JS_GetPrivate(obj);
     }
+
+    static T* getNativeClass(JSContext *cx) {
+        return T::getNativeClass(NativeJS::getNativeClass(cx));
+    }
 };
 
 typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
-#define NativeJSObj(cx) ((NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
+#define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
 
 #define NATIVE_OBJECT_EXPOSE(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \

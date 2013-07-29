@@ -3,6 +3,7 @@
 #import <NativeJS.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
+#import <NativeJSWindow.h> 
 #import <SDL.h>
 #import <SDL_opengl.h>
 #import <SDL_syswm.h>
@@ -43,10 +44,10 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (NUII->NJS) {
                         switch (event.window.event) {
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
-                                NUII->NJS->windowFocus();
+                                NativeJSwindow::getNativeClass(NUII->NJS)->windowFocus();
                                 break;
                             case SDL_WINDOWEVENT_FOCUS_LOST:
-                                NUII->NJS->windowBlur();
+                                NativeJSwindow::getNativeClass(NUII->NJS)->windowBlur();
                                 break;
                             default:
                                 break;
@@ -55,7 +56,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     break;
                 case SDL_TEXTINPUT:
                     if (NUII->NJS) {
-                        NUII->NJS->textInput(event.text.text);
+                        NativeJSwindow::getNativeClass(NUII->NJS)->textInput(event.text.text);
                     }
                     break;
                 case SDL_USEREVENT:
@@ -68,7 +69,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     break;
                 case SDL_MOUSEMOTION:
                     if (NUII->NJS) {
-                        NUII->NJS->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
+                        NativeJSwindow::getNativeClass(NUII->NJS)->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
                                    event.motion.xrel, event.motion.yrel);
                     }
                     break;
@@ -77,14 +78,14 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     int cx, cy;
                     SDL_GetMouseState(&cx, &cy);
                     if (NUII->NJS) {
-                        NUII->NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
+                        NativeJSwindow::getNativeClass(NUII->NJS)->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
                     }
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
                     if (NUII->NJS) {
-                        NUII->NJS->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
+                        NativeJSwindow::getNativeClass(NUII->NJS)->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
                                     event.button.state, event.button.button);
                     }
                 break;
@@ -150,7 +151,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         mod |= NATIVE_KEY_CTRL;
                     }
                     if (NUII->NJS) {
-                        NUII->NJS->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
+                        NativeJSwindow::getNativeClass(NUII->NJS)->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
                     }
                     /*printf("Mapped to %d\n", keyCode);
                     printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
