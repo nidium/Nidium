@@ -314,11 +314,6 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         }        
 
     } else if (strncasecmp(ext, ".nml", 4) == 0) {
-        FILE *main = fopen(path, "r");
-        if (main == NULL) {
-            return false;
-        }
-        fclose(main);
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
@@ -390,6 +385,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         this->height = height;
 
         window = NativeCocoaWindow(win);
+
+        NSLog(@"window %@", window);
 
         [window setCollectionBehavior:
                  NSWindowCollectionBehaviorFullScreenPrimary];

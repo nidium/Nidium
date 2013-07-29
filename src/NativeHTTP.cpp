@@ -87,6 +87,7 @@ static int headers_complete_cb(http_parser *p)
         return -1;
     }
 
+    /* /!\ TODO: what happend if there is no content-length? */
     if (p->content_length) nhttp->http.data = buffer_new(p->content_length);
 
     nhttp->http.contentlength = p->content_length;

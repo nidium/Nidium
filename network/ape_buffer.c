@@ -81,8 +81,9 @@ static void buffer_prepare_for(buffer *b, size_t size, size_t forsize)
 
 void buffer_append_data(buffer *b, const unsigned char *data, size_t size)
 {
-    buffer_prepare(b, size);
+    buffer_prepare(b, size+1);
     memcpy(b->data + b->used, data, size);
+    b->data[b->used+size] = '\0';
     b->used += size;
 }
 

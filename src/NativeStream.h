@@ -1,7 +1,6 @@
 #ifndef nativestream_h__
 #define nativestream_h__
 
-#include <native_netlib.h>
 #include "NativeHTTP.h"
 #include "NativeFileIO.h"
 #include "NativeIStreamer.h"
@@ -36,7 +35,6 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             const char *prefix = NULL);
         virtual ~NativeStream();
         const char *getLocation() const { return this->location; }
-
 
         static char *resolvePath(const char *url, StreamResolveMode mode = STREAM_RESOLVE_PATH);
         void getContent();

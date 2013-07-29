@@ -17,6 +17,7 @@
             '<(native_interface_path)',
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
+            '<(third_party_path)/http-parser/',
         ],
         'conditions': [
             ['OS=="linux"', {

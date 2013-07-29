@@ -8,6 +8,8 @@
 
 #import "NativeCocoaUIInterface.h"
 #import "NativeSystem.h"
+#import <dispatch/dispatch.h>
+
 
 NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
 
@@ -25,6 +27,20 @@ unsigned long _ape_seed;
     [super dealloc];
 }
 
+- (id) init
+{
+    self = [super init];
+
+    if (self) {
+
+        [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
+
+        CFStringRef bundleID = (CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
+        OSStatus nativeResult = LSSetDefaultHandlerForURLScheme(CFSTR("native"), bundleID);
+    }
+    return self;
+}
+
 - (void) setupWorkingDirectory:(BOOL)shouldChdir
 {
     if (shouldChdir)
@@ -40,34 +56,50 @@ unsigned long _ape_seed;
     }
 }
 
+- (void)handleURLEvent:(NSAppleEventDescriptor*)event withReplyEvent:(NSAppleEventDescriptor*)replyEvent
+{
+    NSString* filename = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
+    
+    NSString *f = [[[NSString alloc] initWithFormat:@"http%@", [filename substringFromIndex:sizeof("native")-1]] autorelease];
+
+    self.appfile = f;
+
+    if (self->isRunning) {
+        self->UI->restartApplication([f UTF8String]);
+    }
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+
     [self setupWorkingDirectory:YES];
     _ape_seed = time(NULL) ^ (getpid() << 16);
     //NativeConsole *console = [[NativeConsole alloc] init];
     //[console attachToStdout];
-    NativeCocoaUIInterface nUI;
+    NativeCocoaUIInterface *nUI = new NativeCocoaUIInterface;
     [self.window close];
 
-    self->UI = &nUI;
+    self->UI = nUI;
     self->isRunning = YES;
 
-    const char *filename;
-    
-    if (self.appfile == nil) {
-        filename = "index.nml";
-    } else {
-        filename = [self.appfile UTF8String];
-    }
-    NSLog(@"Launching... %s\n", filename);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        const char *filename;
+        
+        if (self.appfile == nil) {
+            filename = "index.nml";
+        } else {
+            filename = [self.appfile UTF8String];
+        }
 
-    if (!nUI.runApplication(filename)) {
-        [[NSApplication sharedApplication] terminate:nil];
-        return;
-    }
-    
-    nUI.runLoop();
+        NSLog(@"Launching... %s\n", filename);
+        if (!nUI->runApplication(filename)) {
+            [[NSApplication sharedApplication] terminate:nil];
+            return;
+        }
+
+        nUI->runLoop();
+    });
+
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename

@@ -37,6 +37,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
             size_t len;
             size_t offset;
         } mainjs;
+
     private:
         NativeUICocoaConsole *console;
 };
