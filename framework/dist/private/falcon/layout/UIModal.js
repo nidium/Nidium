@@ -74,7 +74,7 @@ Native.elements.export("UIModal", {
 			scrollable : true
 		}).fix().center().hide();
 
-		this.contentView.addEventListener("onpropertyupdate", function(e){
+		this.contentView.addEventListener("propertyupdate", function(e){
 			if (e.property.in("width", "height")){
 				this.center();
 				modal.spinner.center();

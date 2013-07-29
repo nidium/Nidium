@@ -550,7 +550,7 @@ DOMElement.onPropertyUpdate = function(e){
 
 	element.__unlock();
 
-	element.fireEvent("onpropertyupdate", {
+	element.fireEvent("propertyupdate", {
 		property : e.property,
 		oldValue : e.oldValue,
 		newValue : e.newValue
