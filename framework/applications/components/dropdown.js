@@ -2,7 +2,7 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-var main = new Application({background:"#fff"});
+var main = new Application({background:"#333"});
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -31,7 +31,7 @@ var field = main.add("UITextField", {
 
 field.value = "https://www.google.fr/search?q=mac+osx+enlever+le+zoom&oq=mac+osx+enlever+le+zoom&aqs=chrome.0.69i57j0.5019j0&sourceid=chrome&ie=UTF-8#sclient=psy-ab&q=KMOD_GUI+sdl&oq=KMOD_GUI+sdl&gs_l=serp.3...45123.47082.2.47371.8.8.0.0.0.0.88.626.8.8.0....0.0..1c.1.20.psy-ab.inHNMKRk2vc&pbx=1&bav=on.2,or.r_cp.r_qf.&bvm=bv.49478099%2Cd.d2k%2Cpv.xjs.s.en_US.c75bKy5EQ0A.O&fp=d81ade728c71813c&biw=1512&bih=983";
 field.outlineColor = "red";
-field.background = "rgba(255, 0, 0, 0.02)";
+field.background = "rgba(255, 240, 240, 0.8)";
 field.color = "#660000";
 field.width = 430;
 
