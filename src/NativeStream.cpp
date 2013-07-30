@@ -25,7 +25,7 @@ static struct _native_stream_interfaces {
 
 NativeStream::NativeStream(ape_global *net,
     const char *location, const char *prefix) :
-    packets(0), needToSendUpdate(false)
+    packets(0), needToSendUpdate(false), autoClose(true)
 {
     this->interface = NULL;
     int len = 0;
@@ -230,16 +230,27 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
         case INTERFACE_PRIVATE:
         {
             char *flocation = NativeStream::resolvePath(this->location, STREAM_RESOLVE_FILE);
-            this->interface = new NativeFileIO(flocation,
-                                this, this->net);
+            NativeFileIO *nfio = new NativeFileIO(flocation, this, this->net);
+            this->interface = nfio;
+            if (this->autoClose) {
+                nfio->setAutoClose(true);
+            }
             free(flocation);
             break;
 
         }
         case INTERFACE_FILE:
-            this->interface = new NativeFileIO(&this->location[path_offset],
+        {
+            NativeFileIO *nfio = new NativeFileIO(&this->location[path_offset],
                                 this, this->net);
+            
+            this->interface = nfio;
+            if (this->autoClose) {
+                nfio->setAutoClose(true);
+            }
+
             break;
+        }
         default:
             break;
     }

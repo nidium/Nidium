@@ -34,6 +34,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         NativeStream(ape_global *net, const char *location,
             const char *prefix = NULL);
         virtual ~NativeStream();
+
+        void setAutoClose(bool close) { autoClose = close; }
         const char *getLocation() const { return this->location; }
 
         static char *resolvePath(const char *url, StreamResolveMode mode = STREAM_RESOLVE_PATH);
@@ -95,7 +97,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         } mapped;
 
         bool needToSendUpdate;
-
+        bool autoClose;
         void swapBuffer();
 };
 
