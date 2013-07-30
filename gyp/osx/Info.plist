@@ -16,7 +16,7 @@
 			<key>CFBundleTypeName</key>
 			<string>Native Portable Application</string>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>Viewer</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 		</dict>
@@ -30,7 +30,7 @@
 			<key>CFBundleTypeName</key>
 			<string>Native Markup Language</string>
 			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
+			<string>Viewer</string>
 			<key>LSHandlerRank</key>
 			<string>Owner</string>
 		</dict>
@@ -54,6 +54,8 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
 			<key>CFBundleURLIconFile</key>
 			<string>nativebrown.icns</string>
 			<key>CFBundleURLName</key>
@@ -65,7 +67,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1305</string>
+	<string>1320</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>NSHumanReadableCopyright</key>

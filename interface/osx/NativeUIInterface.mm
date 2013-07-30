@@ -101,7 +101,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
 
                         NativeUICocoaConsole *console = NUII->getConsole();
 
-                        if (!console->isHidden) {
+                        if (console && !console->isHidden) {
                             console->clear();
                         }
                     }
@@ -119,14 +119,16 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         (&event.key)->keysym.sym == SDLK_d &&
                         event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
 
-                        NativeUICocoaConsole *console = NUII->getConsole();
+                        bool created;
+                        NativeUICocoaConsole *console = NUII->getConsole(true, &created);
 
-                        if (console->isHidden) {
-                            console->show();
-                        } else {
-                            console->hide();
+                        if (!created) {
+                            if (console->isHidden) {
+                                console->show();
+                            } else {
+                                console->hide();
+                            }
                         }
-
                     }
                     else if (
                         (&event.key)->keysym.sym == SDLK_u &&
@@ -197,8 +199,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             int s = SDL_GetTicks();
             NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
         }
-        NUII->getConsole()->flush();
-        
+        if (NUII->getConsole()) {
+            NUII->getConsole()->flush();
+        }
         SDL_GL_SwapWindow(NUII->win);
 
         //NSLog(@"Swap : %d\n", SDL_GetTicks()-s);
@@ -311,8 +314,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             return true;
         } else {
             delete app;
-        }        
-
+        }
     } else if (strncasecmp(ext, ".nml", 4) == 0) {
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
@@ -334,6 +336,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     this->initialized = false;
     this->nml = NULL;
     this->filePath = NULL;
+    this->console = NULL;
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
 
@@ -347,6 +350,15 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     }
     CFRelease(url);
     CFRelease(url2);
+}
+
+NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
+    if (created) *created = false;
+    if (this->console == NULL && create) {
+        this->console = new NativeUICocoaConsole;
+        if (created) *created = true;
+    }
+    return this->console;
 }
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
@@ -421,7 +433,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         glViewport(0, 0, width, height);
 
         gnet = native_netlib_init();
-        console = new NativeUICocoaConsole();
         printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     }
     NJS = new NativeJS(width, height, this, gnet);

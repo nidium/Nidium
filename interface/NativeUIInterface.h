@@ -52,7 +52,7 @@ class NativeUIInterface
             virtual void hide()=0;
             virtual void clear()=0;
         };
-        virtual NativeUIConsole *getConsole() const =0;
+        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
     protected:
         int width;
         int height;

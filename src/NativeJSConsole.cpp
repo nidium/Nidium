@@ -34,15 +34,16 @@ static JSFunctionSpec console_funcs[] = {
 static JSBool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeJS::getNativeClass(cx)->UI->getConsole()->hide();
-
+    if (NativeJS::getNativeClass(cx)->UI->getConsole()) {
+        NativeJS::getNativeClass(cx)->UI->getConsole()->hide();
+    }
     return JS_TRUE;
 }
 
 static JSBool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeJS::getNativeClass(cx)->UI->getConsole()->show();
+    NativeJS::getNativeClass(cx)->UI->getConsole(true)->show();
 
     return JS_TRUE;
 }
@@ -50,7 +51,9 @@ static JSBool native_console_show(JSContext *cx, unsigned argc,
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeJS::getNativeClass(cx)->UI->getConsole()->clear();
+    if (NativeJS::getNativeClass(cx)->UI->getConsole()) {
+        NativeJS::getNativeClass(cx)->UI->getConsole()->clear();
+    }
 
     return JS_TRUE;
 }
@@ -63,6 +66,11 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     JSString *str;
     char *bytes;
     NativeJS *NJS = NativeJS::getNativeClass(cx);
+    NativeUIInterface::NativeUIConsole *console = NJS->UI->getConsole();
+
+    if (console == NULL) {
+        return true;
+    }
 
     argv = JS_ARGV(cx, vp);
     for (i = 0; i < argc; i++) {

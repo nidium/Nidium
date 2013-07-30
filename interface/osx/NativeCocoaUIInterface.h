@@ -23,9 +23,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void openFileDialog(const char const *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
         const char *getCacheDirectory() const;
-        NativeUICocoaConsole *getConsole() const {
-            return this->console;
-        }
+        NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
         struct {
             CGRect closeFrame;
             CGRect zoomFrame;

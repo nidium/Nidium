@@ -1,9 +1,4 @@
 #import "NativeStudioAppDelegate.h"
-#import <OpenGL/gl.h>
-#import <SDL.h>
-#import <SDL_opengl.h>
-#import <SDL_video.h>
-#import <SDL_syswm.h>
 #import <pthread.h>
 
 #import "NativeCocoaUIInterface.h"
@@ -19,7 +14,6 @@ unsigned long _ape_seed;
 
 @implementation NativeStudioAppDelegate
 
-@synthesize window = _window;
 @synthesize position, appfile;
 
 - (void)dealloc
@@ -32,7 +26,6 @@ unsigned long _ape_seed;
     self = [super init];
 
     if (self) {
-
         [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
         CFStringRef bundleID = (CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
@@ -77,8 +70,6 @@ unsigned long _ape_seed;
     //NativeConsole *console = [[NativeConsole alloc] init];
     //[console attachToStdout];
     NativeCocoaUIInterface *nUI = new NativeCocoaUIInterface;
-    [self.window close];
-
     self->UI = nUI;
     self->isRunning = YES;
 
