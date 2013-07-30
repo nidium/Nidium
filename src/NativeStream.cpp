@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "NativeStream.h"
 #include "NativeHTTP.h"
 #include "NativeFileIO.h"
@@ -286,11 +287,12 @@ void NativeStream::start(size_t packets, size_t seek)
                 dataBuffer.back     = buffer_new(0);
                 dataBuffer.front    = buffer_new(0);
             }
-            mapped.fd = open("/tmp/nativesstream.data",
-                O_RDWR | O_CREAT | O_TRUNC, S_IRUSR| S_IWUSR);
-            if (mapped.fd == 0) {
+            char tmpfname[] = "/tmp/nativetmp.XXXXXXXX";
+            mapped.fd = mkstemp(tmpfname);
+            if (mapped.fd == -1) {
                 return;
             }
+            unlink(tmpfname);
 
             NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
 
@@ -426,7 +428,7 @@ void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
 
 void NativeStream::onNFIOError(NativeFileIO *NFIO, int err)
 {
-
+    // TODO
 }
 
 void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
@@ -434,15 +436,15 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
     if (this->delegate) {
         this->delegate->onGetContent((const char *)data, len);
 
-            dataBuffer.alreadyRead = false;
-            if (dataBuffer.back != NULL) {
-                dataBuffer.back->used = 0;
-                buffer_append_data(dataBuffer.back, data, len);
-            }
-            if (needToSendUpdate) {
-                needToSendUpdate = false;
-                this->delegate->onAvailableData(len);
-            }
+        dataBuffer.alreadyRead = false;
+        if (dataBuffer.back != NULL) {
+            dataBuffer.back->used = 0;
+            buffer_append_data(dataBuffer.back, data, len);
+        }
+        if (needToSendUpdate) {
+            needToSendUpdate = false;
+            this->delegate->onAvailableData(len);
+        }
     }
 }
 
