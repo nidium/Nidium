@@ -243,7 +243,7 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
         {
             NativeFileIO *nfio = new NativeFileIO(&this->location[path_offset],
                                 this, this->net);
-            
+
             this->interface = nfio;
             if (this->autoClose) {
                 nfio->setAutoClose(true);
@@ -298,12 +298,15 @@ void NativeStream::start(size_t packets, size_t seek)
                 dataBuffer.back     = buffer_new(0);
                 dataBuffer.front    = buffer_new(0);
             }
+            /* TODO: Windows */
             char tmpfname[] = "/tmp/nativetmp.XXXXXXXX";
             mapped.fd = mkstemp(tmpfname);
             if (mapped.fd == -1) {
                 return;
             }
-            unlink(tmpfname);
+            printf("Created temp file for streaming : %s\n", tmpfname);
+            if (unlink(tmpfname) == -1) {
+            }
 
             NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
 
@@ -321,8 +324,16 @@ void NativeStream::start(size_t packets, size_t seek)
     }
 }
 
+void NativeStream::stop()
+{
+    switch(IInterface) {
+        
+    }
+}
+
 void NativeStream::seek(size_t pos)
 {
+    this->stop();
 
 }
 
@@ -571,6 +582,7 @@ NativeStream::~NativeStream()
         buffer_destroy(dataBuffer.front);
     }
     if (mapped.fd) {
+        printf("Stream closed\n");
         close(mapped.fd);
     }
 

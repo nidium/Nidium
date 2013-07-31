@@ -1,7 +1,7 @@
 #include "NativeJSConsole.h"
 #include "NativeJS.h"
 #include "NativeUIInterface.h"
-
+#include "NativeContext.h"
 
 static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -34,8 +34,8 @@ static JSFunctionSpec console_funcs[] = {
 static JSBool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    if (NativeJS::getNativeClass(cx)->UI->getConsole()) {
-        NativeJS::getNativeClass(cx)->UI->getConsole()->hide();
+    if (NativeContext::getNativeClass(cx)->getUI()->getConsole()) {
+        NativeContext::getNativeClass(cx)->getUI()->getConsole()->hide();
     }
     return JS_TRUE;
 }
@@ -43,7 +43,7 @@ static JSBool native_console_hide(JSContext *cx, unsigned argc,
 static JSBool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeJS::getNativeClass(cx)->UI->getConsole(true)->show();
+    NativeContext::getNativeClass(cx)->getUI()->getConsole(true)->show();
 
     return JS_TRUE;
 }
@@ -51,8 +51,8 @@ static JSBool native_console_show(JSContext *cx, unsigned argc,
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    if (NativeJS::getNativeClass(cx)->UI->getConsole()) {
-        NativeJS::getNativeClass(cx)->UI->getConsole()->clear();
+    if (NativeContext::getNativeClass(cx)->getUI()->getConsole()) {
+        NativeContext::getNativeClass(cx)->getUI()->getConsole()->clear();
     }
 
     return JS_TRUE;
@@ -65,8 +65,8 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     unsigned i;
     JSString *str;
     char *bytes;
-    NativeJS *NJS = NativeJS::getNativeClass(cx);
-    NativeUIInterface::NativeUIConsole *console = NJS->UI->getConsole();
+    
+    NativeUIInterface::NativeUIConsole *console = NativeContext::getNativeClass(cx)->getUI()->getConsole();
 
     if (console == NULL) {
         return true;
@@ -81,13 +81,13 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         if (!bytes)
             return false;
         if (i) {
-           NJS->UI->getConsole()->log(" "); 
+           console->log(" "); 
         }
-        NJS->UI->getConsole()->log(bytes);
+        console->log(bytes);
 
         JS_free(cx, bytes);
     }
-    NJS->UI->getConsole()->log("\n"); 
+    console->log("\n"); 
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;

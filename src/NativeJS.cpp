@@ -1,54 +1,30 @@
 #include "NativeJS.h"
-#include "NativeSkia.h"
-#include "NativeSkGradient.h"
-#include "NativeSkImage.h"
+
 #include "NativeSharedMessages.h"
+
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
-#include "NativeJSImage.h"
 #include "NativeJSAV.h"
-#include "NativeJSNative.h"
-#include "NativeJSWindow.h"
-#include "NativeFileIO.h"
-#include "NativeJSWebGL.h"
-#include "NativeJSCanvas.h"
 #include "NativeJSFileIO.h"
 #include "NativeJSConsole.h"
 #include "NativeJSModules.h"
-#include "NativeJSDocument.h"
+
 #include "NativeStream.h"
-
-#include "NativeCanvasHandler.h"
-#include "NativeCanvas2DContext.h"
-
-#include "NativeUIInterface.h"
-#include "NativeSystemInterface.h"
-
-#include "NativeApp.h"
-
-#include "SkImageDecoder.h"
+#include "NativeStreamTest.h"
 
 #include <ape_hash.h>
 
-#include <stdio.h>
 #include <jsapi.h>
+#include <jsfriendapi.h>
+#include <jsdbgapi.h>
 #include <jsprf.h>
 
+#include <stdio.h>
 #include <stdint.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <libgen.h>
-
-#include <jsfriendapi.h>
-#include <jsdbgapi.h>
-
-#include <math.h>
-
-#include "NativeJS_preload.h"
-#include "NativeUtils.h"
-
-#include "NativeStreamTest.h"
 
 struct _native_sm_timer
 {
@@ -94,11 +70,7 @@ static JSClass messageEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-
-jsval gfunc  = JSVAL_VOID;
-
 /******** Natives ********/
-static JSBool Print(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
@@ -109,7 +81,6 @@ static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 
 
 static JSFunctionSpec glob_funcs[] = {
-    JS_FN("echo", Print, 0, 0),
     JS_FN("load", native_load, 2, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
@@ -225,128 +196,6 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
 #endif
 }
 
-static JSBool
-PrintInternal(JSContext *cx, unsigned argc, jsval *vp, FILE *file)
-{
-    jsval *argv;
-    unsigned i;
-    JSString *str;
-
-    char *bytes;
-    NativeJS *njs = NativeJS::getNativeClass(cx);
-
-    argv = JS_ARGV(cx, vp);
-    for (i = 0; i < argc; i++) {
-        str = JS_ValueToString(cx, argv[i]);
-        if (!str)
-            return false;
-        bytes = JS_EncodeString(cx, str);
-        if (!bytes)
-            return false;
-        if (i) {
-           njs->UI->getConsole()->log(" "); 
-        }
-        njs->UI->getConsole()->log(bytes);
-
-        JS_free(cx, bytes);
-    }
-    njs->UI->getConsole()->log("\n"); 
-
-    JS_SET_RVAL(cx, vp, JSVAL_VOID);
-    return true;
-}
-
-static JSBool
-Print(JSContext *cx, unsigned argc, jsval *vp)
-{
-    return PrintInternal(cx, argc, vp, stdout);
-}
-
-/* TODO, move out */
-void NativeJS::createDebugCanvas()
-{
-    static const int DEBUG_HEIGHT = 60;
-    debugHandler = new NativeCanvasHandler(surface->getWidth(), DEBUG_HEIGHT);
-    debugHandler->context = new NativeCanvas2DContext(debugHandler, surface->getWidth(), DEBUG_HEIGHT, false);
-    debugHandler->context->commonDraw = true;
-    rootHandler->addChild(debugHandler);
-    debugHandler->setRight(0);
-    debugHandler->setOpacity(0.6);
-}
-
-/* TODO, move out */
-void NativeJS::postDraw()
-{
-    if (NativeJSNative::showFPS && debugHandler) {
-
-        NativeSkia *s = debugHandler->context->skia;
-        debugHandler->bringToFront();
-
-        s->setFillColor(0xFF000000u);
-        s->drawRect(0, 0, debugHandler->getWidth(), debugHandler->getHeight(), 0);
-        s->setFillColor(0xFFEEEEEEu);
-
-        s->setFontType("monospace");
-        s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
-        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", this->stats.nframe, stats.lastdifftime/1000000LL);
-        s->drawTextf(5, 38, "Time : %lldns\n", stats.lastmeasuredtime-stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", stats.fps, stats.sampleminfps);
-
-        s->setLineWidth(0.0);
-        for (int i = 0; i < sizeof(stats.samples)/sizeof(float); i++) {
-            //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*stats.samples[i]);
-            s->setStrokeColor(0xFF004400u);
-            s->drawLine(debugHandler->getWidth()-20-i*3, 55, debugHandler->getWidth()-20-i*3, 20.f);
-            s->setStrokeColor(0xFF00BB00u);   
-            s->drawLine(debugHandler->getWidth()-20-i*3, 55, debugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)stats.samples[i]), 55));
-        }
-        //s->setLineWidth(1.0);
-        
-        //s->translate(10, 10);
-        //sprintf(fps, "%d fps", currentFPS);
-        //s->system(fps, 5, 10);
-        s->flush();
-    }
-}
-
-/* TODO, move out */
-void NativeJS::callFrame()
-{
-    jsval rval;
-    uint64_t tmptime = NativeUtils::getTick();
-    stats.nframe++;
-
-    stats.lastdifftime = tmptime - stats.lastmeasuredtime;
-    stats.lastmeasuredtime = tmptime;
-
-    /* convert to ms */
-    stats.cumultimems += (float)stats.lastdifftime / 1000000.f;
-    stats.cumulframe++;
-
-    stats.minfps = native_min(stats.minfps, 1000.f/(stats.lastdifftime/1000000.f));
-    //printf("FPS : %f\n", 1000.f/(stats.lastdifftime/1000000.f));
-
-    //printf("Last diff : %f\n", (float)(stats.lastdifftime/1000000.f));
-
-    /* Sample every 1000ms */
-    if (stats.cumultimems >= 1000.f) {
-        stats.fps = 1000.f/(float)(stats.cumultimems/(float)stats.cumulframe);
-        stats.cumulframe = 0;
-        stats.cumultimems = 0.f;
-        stats.sampleminfps = stats.minfps;
-        stats.minfps = UINT32_MAX;
-
-        memmove(&stats.samples[1], stats.samples, sizeof(stats.samples)-sizeof(float));
-
-        stats.samples[0] = stats.fps;
-    }
-
-    if (gfunc != JSVAL_VOID) {
-        JSAutoRequest ar(cx);
-        JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), gfunc, 0, NULL, &rval);
-    }
-}
-
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *script, *type = NULL;
@@ -432,13 +281,14 @@ NativeJS *NativeJS::getNativeClass(JSContext *cx)
     return ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
-NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net)
+NativeJS::NativeJS(ape_global *net)
 {
     JSRuntime *rt;
     JSObject *gbl;
+    this->privateslot = NULL;
 
     static int isUTF8 = 0;
-    gfunc = JSVAL_VOID;
+    
     /* TODO: BUG */
     if (!isUTF8) {
         //JS_SetCStringsAreUTF8();
@@ -449,21 +299,7 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     currentFPS = 0;
     shutdown = false;
 
-    debugHandler = NULL;
-
     this->net = NULL;
-
-    this->stats.nframe = 0;
-    this->stats.starttime = NativeUtils::getTick();
-    this->stats.lastmeasuredtime = this->stats.starttime;
-    this->stats.lastdifftime = 0;
-    this->stats.cumulframe = 0;
-    this->stats.cumultimems = 0.f;
-    this->stats.fps = 0.f;
-    this->stats.minfps = UINT32_MAX;
-    this->stats.sampleminfps = 0.f;
-
-    memset(this->stats.samples, 0, sizeof(this->stats.samples));
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
@@ -512,25 +348,15 @@ NativeJS::NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *n
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
 
-    this->UI = inUI;
     this->bindNetObject(net);
 
-    /* surface containing the window frame buffer */
-    rootHandler = new NativeCanvasHandler(width, height);
-    rootHandler->context = new NativeCanvas2DContext(rootHandler, width, height);
-    surface = rootHandler->context->skia;
-
     JS_SetRuntimePrivate(rt, this);
-    LoadGlobalObjects(surface, width, height);
 
     messages = new NativeSharedMessages();
 
-    this->LoadScriptContent(preload_js, strlen(preload_js), "__native.js");
-    //this->LoadScriptContent(preload_js);
-    
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
-    //NativeStreamTest *st = new NativeStreamTest(net);
+    NativeStreamTest *st = new NativeStreamTest(net);
 }
 
 static bool test_extracting(const char *buf, int len,
@@ -542,6 +368,7 @@ static bool test_extracting(const char *buf, int len,
     return true;
 }
 
+#if 0
 int NativeJS::LoadApplication(const char *path)
 {
     if (this->net == NULL) {
@@ -562,6 +389,7 @@ int NativeJS::LoadApplication(const char *path)
 
     return 0;
 }
+#endif
 
 /* TODO, move out */
 void NativeJS::forceLinking()
@@ -585,13 +413,9 @@ NativeJS::~NativeJS()
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_BeginRequest(cx);
-
-    JS_RemoveValueRoot(cx, &gfunc);
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     
-    delete rootHandler->context;
-    delete rootHandler;
 #if 0
     rootHandler->unrootHierarchy();
     
@@ -988,51 +812,16 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
     return 1;
 }
 
-void NativeJS::LoadGlobalObjects(NativeSkia *currentSkia, int width, int height)
+void NativeJS::loadGlobalObjects()
 {
     /* File() object */
     NativeJSFileIO::registerObject(cx);
-    /* CanvasRenderingContext2D object */
-    NativeCanvas2DContext::registerObject(cx);
-    /* Canvas() object */
-    NativeJSCanvas::registerObject(cx);
     /* Socket() object */
     NativeJSSocket::registerObject(cx);
     /* Thread() object */
     NativeJSThread::registerObject(cx);
     /* Http() object */
     NativeJSHttp::registerObject(cx);
-    /* Image() object */
-    NativeJSImage::registerObject(cx);
-    /* Audio() object */
-    #ifdef NATIVE_AUDIO_ENABLED
-    NativeJSAudio::registerObject(cx);
-    NativeJSAudioNode::registerObject(cx);
-    NativeJSVideo::registerObject(cx);
-    #endif
-    /* WebGL*() object */
-    #ifdef NATIVE_WEBGL_ENABLED
-    NativeJSNativeGL::registerObject(cx);
-    NativeJSWebGLRenderingContext::registerObject(cx);
-    NativeJSWebGLObject::registerObject(cx);
-    NativeJSWebGLBuffer::registerObject(cx);
-    NativeJSWebGLFrameBuffer::registerObject(cx);
-    NativeJSWebGLProgram::registerObject(cx);
-    NativeJSWebGLRenderbuffer::registerObject(cx);
-    NativeJSWebGLShader::registerObject(cx);
-    NativeJSWebGLTexture::registerObject(cx);
-    NativeJSWebGLUniformLocation::registerObject(cx);
-    #endif
-    /* Native() object */
-    NativeJSNative::registerObject(cx, width, height);
-    /* window() object */
-    NativeJSwindow::registerObject(cx);
-    /* console() object */
-    NativeJSconsole::registerObject(cx);
-    /* document() object */
-    NativeJSdocument::registerObject(cx);
-
-    //NativeJSDebug::registerObject(cx);
 
     modules = new NativeJSModules(cx);
     if (!modules) {

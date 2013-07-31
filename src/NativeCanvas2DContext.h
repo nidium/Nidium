@@ -71,7 +71,11 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         }
 
         NativeCanvasHandler *getHandler() const {
-            return handler;
+            return this->handler;
+        }
+
+        NativeSkia *getSurface() const {
+            return this->skia;
         }
 
         uint32_t createProgram(const char *data);

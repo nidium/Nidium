@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-class NativeJS;
+class NativeContext;
 class NativeNML;
 
 class NativeUIInterface
@@ -22,7 +22,7 @@ class NativeUIInterface
             RESIZEUPDOWN,
             NOCHANGE
         } currentCursor;
-        NativeJS *NJS;
+        NativeContext *NativeCtx;
         NativeNML *nml;
         struct SDL_Window *win;
         struct _ape_global *gnet;

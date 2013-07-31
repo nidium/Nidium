@@ -3,6 +3,7 @@
 #include "NativeUIInterface.h"
 #include "NativeSkia.h"
 #include "NativeUtils.h"
+#include "NativeContext.h"
 
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -243,14 +244,15 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
     
     jsval rval, jevent, onmove;
     JSObject *event;
-    NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
-    njs->rootHandler->mousePosition.x = x;
-    njs->rootHandler->mousePosition.y = y;
-    njs->rootHandler->mousePosition.xrel += xrel;
-    njs->rootHandler->mousePosition.yrel += yrel;
+    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(this->cx)->getRootHandler();
 
-    njs->rootHandler->mousePosition.consumed = false;
+    rootHandler->mousePosition.x = x;
+    rootHandler->mousePosition.y = y;
+    rootHandler->mousePosition.xrel += xrel;
+    rootHandler->mousePosition.yrel += yrel;
+
+    rootHandler->mousePosition.consumed = false;
     
     event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
 
@@ -314,6 +316,7 @@ static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
         case WINDOW_PROP_TITLE:
         {
@@ -321,7 +324,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString title(cx, JSVAL_TO_STRING(vp));      
-            NativeJSObj(cx)->UI->setWindowTitle(title.ptr());
+            NUI->setWindowTitle(title.ptr());
             break;      
         }
         case WINDOW_PROP_CURSOR:
@@ -334,7 +337,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             for (int i = 0; native_cursors_list[i].str != NULL; i++) {
                 if (strncasecmp(native_cursors_list[i].str, type.ptr(),
                     strlen(native_cursors_list[i].str)) == 0) {
-                    NativeJSObj(cx)->UI->setCursor(native_cursors_list[i].type);
+                    NUI->setCursor(native_cursors_list[i].type);
                     break;
                 }
             }
@@ -349,7 +352,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             JSAutoByteString color(cx, JSVAL_TO_STRING(vp));
             uint32_t icolor = NativeSkia::parseColor(color.ptr());
 
-            NativeJSObj(cx)->UI->setTitleBarRGBAColor(
+            NUI->setTitleBarRGBAColor(
                 (icolor & 0x00FF0000) >> 16,
                 (icolor & 0x0000FF00) >> 8,
                  icolor & 0x000000FF,
@@ -372,7 +375,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
 
             JS_ValueToNumber(cx, offsety, &oval);
 
-            NativeJSObj(cx)->UI->setWindowControlsOffset(dval, oval);
+            NUI->setWindowControlsOffset(dval, oval);
             break;
         }
         case WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY:
@@ -388,7 +391,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JS_ValueToNumber(cx, offsetx, &oval);
 
-            NativeJSObj(cx)->UI->setWindowControlsOffset(oval, dval);
+            NUI->setWindowControlsOffset(oval, dval);
             break;
         }
         default:
@@ -468,7 +471,7 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
 
     JS_AddValueRoot(cx, &nof->cb);
 
-    NativeJSObj(cx)->UI->openFileDialog((const char **)ctypes, native_window_openfilecb, nof);
+    NativeContext::getNativeClass(cx)->getUI()->openFileDialog((const char **)ctypes, native_window_openfilecb, nof);
 
     if (ctypes) {
         for (int i = 0; i < len; i++) {

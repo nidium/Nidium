@@ -2032,6 +2032,7 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
     if (gl.program) {
         glDeleteProgram(gl.program);
     }
+    printf("Context deleted\n");
     delete skia;
 }
 

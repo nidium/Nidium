@@ -37,17 +37,46 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
 
         void setAutoClose(bool close) { autoClose = close; }
         const char *getLocation() const { return this->location; }
+        static char *resolvePath(const char *url,
+            StreamResolveMode mode = STREAM_RESOLVE_PATH);
 
-        static char *resolvePath(const char *url, StreamResolveMode mode = STREAM_RESOLVE_PATH);
+        /*
+            One shot (get the entire file)
+        */
         void getContent();
+
+        /*
+            TODO: Need to be implemented
+        */
         void getFileSize();
+
+        /*
+            Move at pos on file
+        */
         void seek(size_t pos);
+
+        /*
+            Start streaming the file
+            Each packet returned by getNextPacket is of size "packets". (could be smaller at EOF)
+        */
         void start(size_t packets = 4096, size_t seek=0);
 
+        /*
+            Stop the current request (e.g. stop the background HTTP request)
+        */
+        void stop();
+
+        /*
+            Get the next packet available
+        */
+        const unsigned char *getNextPacket(size_t *len, int *err);
+
+        /*
+            Determine if getNextPacket is going to return some data
+        */
         bool hasDataAvailable() const {
             return !dataBuffer.alreadyRead || (dataBuffer.ended && dataBuffer.back->used);
         }
-        const unsigned char *getNextPacket(size_t *len, int *err);
 
         /*****************************/
         NativeStreamDelegate *delegate;

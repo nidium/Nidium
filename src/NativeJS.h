@@ -31,15 +31,12 @@ typedef struct _ape_global ape_global;
 class NativeJS
 {
     private:   
-        void LoadGlobalObjects(NativeSkia *, int width, int height);
         NativeJSModules *modules;
+        void *privateslot;
     public:
         JSContext *cx;
         NativeSharedMessages *messages;
-        NativeSkia *surface;
-        NativeCanvasHandler *rootHandler;
-        NativeCanvasHandler *debugHandler;
-        NativeUIInterface *UI;
+
         NativeHash<JSObject *> jsobjects;
         bool shutdown;
         struct _ape_htable *rootedObj;
@@ -47,10 +44,18 @@ class NativeJS
 
         static NativeJS *getNativeClass(JSContext *cx);
 
-        NativeJS(int width, int height, NativeUIInterface *inUI, ape_global *net);
+        NativeJS(ape_global *net);
         ~NativeJS();
-        
-        int LoadApplication(const char *path);
+
+        void setPrivate(void *arg) {
+            this->privateslot = arg;
+        }
+        void *getPrivate() const {
+            return this->privateslot;
+        }
+
+        void loadGlobalObjects();
+        //int LoadApplication(const char *path);
         static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
             size_t len, const char *filename, JS::Value *ret);
@@ -60,12 +65,9 @@ class NativeJS
             const char *filename);
         int LoadScript(const char *filename);
         int LoadScript(const char *filename, JSObject *gbl);
-        void callFrame();
 
-        void createDebugCanvas();
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
-        void postDraw();
         void gc();
         void bindNetObject(ape_global *net);
         void forceLinking();

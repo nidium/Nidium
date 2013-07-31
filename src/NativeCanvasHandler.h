@@ -116,6 +116,10 @@ class NativeCanvasHandler
         double opacity;
         bool overflow;
 
+        NativeCanvas2DContext *getContext() const {
+            return this->context;
+        }
+
         double getLeft(bool absolute = false) const {
             if (absolute) return a_left;
 
