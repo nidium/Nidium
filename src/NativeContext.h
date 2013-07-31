@@ -63,7 +63,8 @@ class NativeContext
         float minfps;
         float sampleminfps;
     } stats;
-
+    
+    void forceLinking();
     void loadNativeObjects(int width, int height);
 };
 

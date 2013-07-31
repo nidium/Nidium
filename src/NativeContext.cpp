@@ -22,6 +22,8 @@ NativeContext::NativeContext(NativeUIInterface *nui,
 {
     gfunc = JSVAL_VOID;
 
+    currentFPS = 0;
+    
     this->stats.nframe = 0;
     this->stats.starttime = NativeUtils::getTick();
     this->stats.lastmeasuredtime = this->stats.starttime;
@@ -38,7 +40,7 @@ NativeContext::NativeContext(NativeUIInterface *nui,
 
     this->njs = new NativeJS(net);
     this->njs->setPrivate(this);
-    
+
     this->njs->loadGlobalObjects();
     this->loadNativeObjects(width, height);
 
@@ -87,7 +89,6 @@ void NativeContext::loadNativeObjects(int width, int height)
     //NativeJSDebug::registerObject(cx);    
 }
 
-/* TODO, move out */
 void NativeContext::createDebugCanvas()
 {
     static const int DEBUG_HEIGHT = 60;
@@ -99,7 +100,6 @@ void NativeContext::createDebugCanvas()
     debugHandler->setOpacity(0.6);
 }
 
-/* TODO, move out */
 void NativeContext::postDraw()
 {
     if (NativeJSNative::showFPS && debugHandler) {
@@ -182,10 +182,24 @@ NativeContext::~NativeContext()
         delete rootHandler->getContext();
         delete rootHandler;
     }
+
+    NativeSkia::glcontext = NULL;
 }
 
 void NativeContext::initHandlers(int width, int height)
 {
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->context = new NativeCanvas2DContext(rootHandler, width, height);
+}
+
+void NativeContext::forceLinking()
+{
+#ifdef __linux__
+    CreateJPEGImageDecoder();
+    CreatePNGImageDecoder();
+    //CreateGIFImageDecoder();
+    CreateBMPImageDecoder();
+    CreateICOImageDecoder();
+    CreateWBMPImageDecoder();
+#endif
 }

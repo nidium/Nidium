@@ -30,22 +30,19 @@ typedef struct _ape_global ape_global;
 
 class NativeJS
 {
-    private:   
-        NativeJSModules *modules;
-        void *privateslot;
     public:
+        NativeJS(ape_global *net);
+        ~NativeJS();
+
         JSContext *cx;
         NativeSharedMessages *messages;
 
         NativeHash<JSObject *> jsobjects;
-        bool shutdown;
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
         static NativeJS *getNativeClass(JSContext *cx);
 
-        NativeJS(ape_global *net);
-        ~NativeJS();
 
         void setPrivate(void *arg) {
             this->privateslot = arg;
@@ -53,9 +50,12 @@ class NativeJS
         void *getPrivate() const {
             return this->privateslot;
         }
+        bool isShuttingDown() const {
+            return this->shutdown;
+        }
 
         void loadGlobalObjects();
-        //int LoadApplication(const char *path);
+        
         static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
             size_t len, const char *filename, JS::Value *ret);
@@ -70,22 +70,10 @@ class NativeJS
         void unrootObject(JSObject *obj);
         void gc();
         void bindNetObject(ape_global *net);
-        void forceLinking();
-        uint32_t currentFPS;
-
-        struct {
-            uint64_t nframe;
-            uint64_t starttime;
-            uint64_t lastmeasuredtime;
-            uint64_t lastdifftime;
-            uint32_t cumulframe;
-            float cumultimems;
-            float samples[60];
-            float fps;
-            float minfps;
-            float sampleminfps;
-        } stats;
-
+    private:   
+        NativeJSModules *modules;
+        void *privateslot;
+        bool shutdown;
 };
 
 #endif

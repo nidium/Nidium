@@ -5,7 +5,6 @@
 #include "NativeJSSocket.h"
 #include "NativeJSThread.h"
 #include "NativeJSHttp.h"
-#include "NativeJSAV.h"
 #include "NativeJSFileIO.h"
 #include "NativeJSConsole.h"
 #include "NativeJSModules.h"
@@ -26,20 +25,6 @@
 #include <unistd.h>
 #include <libgen.h>
 
-struct _native_sm_timer
-{
-    JSContext *cx;
-    JSObject *global;
-    jsval func;
-
-    unsigned argc;
-    jsval *argv;
-    int ms;
-    int cleared;
-    struct _ticks_callback *timer;
-    ape_timer *timerng;
-};
-
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
 /* Sun compiler uses larger stack space for js_Interpret() with debug
@@ -51,10 +36,20 @@ struct _native_sm_timer
 
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
+struct _native_sm_timer
+{
+    JSContext *cx;
+    JSObject *global;
+    ape_timer *timerng;
+    jsval *argv;
+    jsval func;
 
-static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
-static int native_timerng_wrapper(void *arg);
-
+    unsigned argc;
+    int ms;
+    int cleared;
+    struct _ticks_callback *timer;
+    
+};
 
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
@@ -72,13 +67,13 @@ static JSClass messageEvent_class = {
 
 /******** Natives ********/
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
-
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
-
+static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
+static int native_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
     JS_FN("load", native_load, 2, 0),
@@ -251,7 +246,7 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 {
     class NativeJS *self = (class NativeJS *)data;
 
-    if (self->shutdown) {
+    if (self->isShuttingDown()) {
         return;
     }
     ape_htable_item_t *item ;
@@ -296,7 +291,6 @@ NativeJS::NativeJS(ape_global *net)
     }
     //printf("New JS runtime\n");
 
-    currentFPS = 0;
     shutdown = false;
 
     this->net = NULL;
@@ -356,9 +350,10 @@ NativeJS::NativeJS(ape_global *net)
 
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
-    NativeStreamTest *st = new NativeStreamTest(net);
+    //NativeStreamTest *st = new NativeStreamTest(net);
 }
 
+#if 0
 static bool test_extracting(const char *buf, int len,
     size_t offset, size_t total, void *user)
 {
@@ -368,7 +363,7 @@ static bool test_extracting(const char *buf, int len,
     return true;
 }
 
-#if 0
+
 int NativeJS::LoadApplication(const char *path)
 {
     if (this->net == NULL) {
@@ -391,18 +386,6 @@ int NativeJS::LoadApplication(const char *path)
 }
 #endif
 
-/* TODO, move out */
-void NativeJS::forceLinking()
-{
-#ifdef __linux__
-    CreateJPEGImageDecoder();
-    CreatePNGImageDecoder();
-    //CreateGIFImageDecoder();
-    CreateBMPImageDecoder();
-    CreateICOImageDecoder();
-    CreateWBMPImageDecoder();
-#endif
-}
 
 NativeJS::~NativeJS()
 {
@@ -424,8 +407,6 @@ NativeJS::~NativeJS()
     //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
 
     JS_EndRequest(cx);
-
-    NativeSkia::glcontext = NULL;
 
     JS_DestroyContext(cx);
 
@@ -508,6 +489,7 @@ static int Native_handle_messages(void *arg)
             }            
             delete ptr;
             break;
+            #if 0
             case NATIVE_AV_THREAD_MESSAGE_CALLBACK: {
                 NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg.dataPtr());
                 if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
@@ -530,6 +512,7 @@ static int Native_handle_messages(void *arg)
                 delete cmsg;
             }
             break;
+            #endif
             default:break;
         }
     }
@@ -987,7 +970,6 @@ static int native_timerng_wrapper(void *arg)
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
         params->argc, params->argv, &rval);
-
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 
