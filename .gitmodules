@@ -1,0 +1,3 @@
+[submodule "nativejscore"]
+	path = nativejscore
+	url = git@github.com:paraboul/NativeJSCore.git

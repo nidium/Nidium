@@ -11,6 +11,7 @@
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/c-ares/',
 			'<(third_party_path)/http-parser/',
+            '<(native_nativejscore_path)/',
             '<(native_interface_path)/',
         ],
         'conditions': [

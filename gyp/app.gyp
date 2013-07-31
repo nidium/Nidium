@@ -8,6 +8,7 @@
             'network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
+            'nativejscore.gyp:nativejscore',
             #'<(third_party_path)/skia/skia.gyp:alltargets',
         ],
 
