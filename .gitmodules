@@ -1,6 +1,6 @@
 [submodule "nativejscore"]
 	path = nativejscore
-	url = git@github.com:paraboul/NativeJSCore.git
+	url = git@github.com:SwelenFrance/NativeJSCore.git
 [submodule "network"]
 	path = network
 	url = git@github.com:SwelenFrance/libapenetwork.git
