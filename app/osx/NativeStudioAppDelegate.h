@@ -18,8 +18,6 @@ class NativeCocoaUIInterface;
     NativeCocoaUIInterface *UI;
     BOOL isRunning;
 }
-
-@property (assign) IBOutlet NSWindow *window;
 @property (retain, nonatomic) NSArray *position;
 @property (retain, nonatomic) NSString *appfile;
 

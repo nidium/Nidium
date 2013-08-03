@@ -461,7 +461,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    NativeCanvas2DContext *canvasctx = NativeObject->context;
+    NativeCanvas2DContext *canvasctx = NativeObject->getContext();
 
     if (canvasctx == NULL) {
         printf("Cant get context\n");

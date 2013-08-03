@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-class NativeJS;
+class NativeContext;
 class NativeNML;
 
 class NativeUIInterface
@@ -22,7 +22,7 @@ class NativeUIInterface
             RESIZEUPDOWN,
             NOCHANGE
         } currentCursor;
-        NativeJS *NJS;
+        NativeContext *NativeCtx;
         NativeNML *nml;
         struct SDL_Window *win;
         struct _ape_global *gnet;
@@ -52,7 +52,7 @@ class NativeUIInterface
             virtual void hide()=0;
             virtual void clear()=0;
         };
-        virtual NativeUIConsole *getConsole() const =0;
+        virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
     protected:
         int width;
         int height;

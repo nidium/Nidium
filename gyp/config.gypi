@@ -10,6 +10,7 @@
         'native_app_path%': '../app/',
         'native_interface_path%': '../interface/',
         'native_network_path%': '../network/',
+        'native_nativejscore_path%': '../nativejscore/',
         'native_exec_name%': 'nativeapp',
 
         'third_party_path%': '../third-party/',

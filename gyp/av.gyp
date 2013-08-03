@@ -5,6 +5,7 @@
         'include_dirs': [
             '<(native_src_path)',
             '<(native_network_path)',
+            '<(native_nativejscore_path)',
             '<(third_party_path)/portaudio/src/common/',
             '<(third_party_path)/portaudio/include/',
             '<(third_party_path)/zita-resampler/libs/',

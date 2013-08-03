@@ -1,7 +1,8 @@
 #include "NativeJSNative.h"
-#include "NativeSkia.h"
 #include "NativeJSCanvas.h"
 #include "NativeJS.h"
+#include "NativeCanvasHandler.h"
+#include "NativeContext.h"
 #include "NativeUIInterface.h"
 #include "NativeSystemInterface.h"
 #include <jsstr.h>
@@ -38,9 +39,7 @@ static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 
     char *text = JS_EncodeStringToUTF8(cx, str);
 
-    NativeJS *NJS = NativeJS::getNativeClass(cx);
-
-    NJS->UI->setClipboardText(text);
+    NativeContext::getNativeClass(cx)->getUI()->setClipboardText(text);
 
     js_free(text);
 
@@ -53,9 +52,7 @@ static JSBool native_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
     JSString *str;
     JS::CallArgs args = CallArgsFromVp(argc, vp);
 
-    NativeJS *NJS = NativeJS::getNativeClass(cx);
-
-    char *text = NJS->UI->getClipboardText();
+    char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
 
     if (text == NULL) {
         args.rval().setNull();
@@ -85,10 +82,9 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeJSNative::showFPS = (show == JS_TRUE) ? true : false;
-    NativeJS *NJS = NativeJS::getNativeClass(cx);
 
     if (show) {
-        NJS->createDebugCanvas();
+        NativeContext::getNativeClass(cx)->createDebugCanvas();
     }
 
     return JS_TRUE;
@@ -100,8 +96,6 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
     JSObject *canvas;
     //JSObject *titleBar;
 
-    NativeJS *NJS = NativeJS::getNativeClass(cx);
-
     NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "Native",
         &Native_class , NULL, 0);
 
@@ -112,7 +106,7 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */
     //NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
-    NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
+    NativeContext::getNativeClass(cx)->getRootHandler()->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_DefineProperty(cx, NativeObj, "canvas",

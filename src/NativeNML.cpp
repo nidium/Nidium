@@ -10,7 +10,7 @@
 #include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
-    net(net), NFIO(NULL), relativePath(NULL), nassets(0), njs(NULL)
+    net(net), stream(NULL), relativePath(NULL), nassets(0), njs(NULL)
 {
     assetsList.size = 0;
     assetsList.allocated = 4;
@@ -23,8 +23,8 @@ NativeNML::~NativeNML()
     if (relativePath) {
         free(relativePath);
     }
-    if (NFIO) {
-        delete NFIO;
+    if (stream) {
+        delete stream;
     }
     for (int i = 0; i < assetsList.size; i++) {
         delete assetsList.list[i];
@@ -34,10 +34,12 @@ NativeNML::~NativeNML()
 
 void NativeNML::loadFile(const char *file)
 {
+    printf("Loading NML : %s\n", file);
     this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
 
-    NFIO = new NativeFileIO(file, this, this->net);
-    NFIO->open("r");
+    stream = new NativeStream(this->net, file);
+    stream->setDelegate(this);
+    stream->getContent();
 }
 
 void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
@@ -195,12 +197,7 @@ void NativeNML::loadData(char *data, size_t len)
 
 }
 
-void NativeNML::onNFIOOpen(NativeFileIO *NFIO)
-{
-    NFIO->read(NFIO->filesize);
-}
-
-void NativeNML::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
+void NativeNML::onGetContent(const char *data, size_t len)
 {
     this->loadData((char *)data, len);
 }

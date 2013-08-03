@@ -8,6 +8,7 @@
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
             'app.gyp:nativeapp',
+            'nativejscore.gyp:nativejscore'
         ],
         'conditions': [
             ['native_audio==1', {

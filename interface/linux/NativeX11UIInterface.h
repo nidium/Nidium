@@ -38,7 +38,7 @@ class NativeX11UIInterface : public NativeUIInterface
         char *getClipboardText();
         void initControls();
         bool runApplication(const char *path);
-        NativeUIX11Console *getConsole() const {
+        NativeUIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return this->console;
         }
         /*

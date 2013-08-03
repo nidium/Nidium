@@ -18,7 +18,7 @@ extern "C" {
 NativeJSAudio *NativeJSAudio::instance = NULL;
 extern JSClass Canvas_class;
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
+#define NJS (NativeJS::getNativeClass(cx))
 #define NATIVE_AUDIO_GETTER(obj) ((class NativeJSAudio *)JS_GetPrivate(obj))
 #define NATIVE_AUDIO_NODE_GETTER(obj) ((class NativeJSAudioNode *)JS_GetPrivate(obj))
 #define NATIVE_VIDEO_GETTER(obj) ((class NativeJSVideo *)JS_GetPrivate(obj));
@@ -403,9 +403,8 @@ NativeJSAudio::~NativeJSAudio()
 void NativeJSAudio::unroot() 
 {
     NativeJSAudio::Nodes *nodes = this->nodes;
-    JSRuntime *rt = JS_GetRuntime(this->cx);
-    void * priv = JS_GetRuntimePrivate(rt);
-    NativeJS *njs = static_cast<NativeJS *>(priv);
+
+    NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
     if (this->jsobj != NULL) {
         JS_RemoveObjectRoot(njs->cx, &this->jsobj);
@@ -1566,10 +1565,9 @@ void NativeJSVideo::eventCbk(const struct NativeAVSourceEvent *cev)
     NativeJSAVMessageCallback *ev;
     int *value;
     const char *prop;
-    NativeJS *njs;
-
     thiz = static_cast<NativeJSVideo *>(cev->custom);
-    njs = ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(thiz->cx)));
+
+    NativeJS *njs = NativeJS::getNativeClass(thiz->cx);
     value = cev->value;
     prop = NativeJSAVEventRead(cev->ev);
 

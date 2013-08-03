@@ -1,6 +1,7 @@
 #import "NativeCocoaUIInterface.h"
 #import "NativeUIConsole.h"
 #import <NativeJS.h>
+#import <NativeContext.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
 #import <NativeJSWindow.h> 
@@ -38,16 +39,20 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
+            NativeJSwindow *window = NULL;
+            if (NUII->NativeCtx) {
+                window = NativeJSwindow::getNativeClass(NUII->NativeCtx->getNJS());
+            }
             nevents++;
             switch(event.type) {
                 case SDL_WINDOWEVENT:
-                    if (NUII->NJS) {
+                    if (window) {
                         switch (event.window.event) {
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
-                                NativeJSwindow::getNativeClass(NUII->NJS)->windowFocus();
+                                window->windowFocus();
                                 break;
                             case SDL_WINDOWEVENT_FOCUS_LOST:
-                                NativeJSwindow::getNativeClass(NUII->NJS)->windowBlur();
+                                window->windowBlur();
                                 break;
                             default:
                                 break;
@@ -55,8 +60,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     }
                     break;
                 case SDL_TEXTINPUT:
-                    if (NUII->NJS) {
-                        NativeJSwindow::getNativeClass(NUII->NJS)->textInput(event.text.text);
+                    if (window) {
+                        window->textInput(event.text.text);
                     }
                     break;
                 case SDL_USEREVENT:
@@ -68,8 +73,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     [[NSApplication sharedApplication] terminate:nil];
                     break;
                 case SDL_MOUSEMOTION:
-                    if (NUII->NJS) {
-                        NativeJSwindow::getNativeClass(NUII->NJS)->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
+                    if (window) {
+                        window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
                                    event.motion.xrel, event.motion.yrel);
                     }
                     break;
@@ -77,15 +82,15 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 {
                     int cx, cy;
                     SDL_GetMouseState(&cx, &cy);
-                    if (NUII->NJS) {
-                        NativeJSwindow::getNativeClass(NUII->NJS)->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
+                    if (window) {
+                        window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
                     }
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                    if (NUII->NJS) {
-                        NativeJSwindow::getNativeClass(NUII->NJS)->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
+                    if (window) {
+                        window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
                                     event.button.state, event.button.button);
                     }
                 break;
@@ -101,7 +106,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
 
                         NativeUICocoaConsole *console = NUII->getConsole();
 
-                        if (!console->isHidden) {
+                        if (console && !console->isHidden) {
                             console->clear();
                         }
                     }
@@ -119,14 +124,16 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         (&event.key)->keysym.sym == SDLK_d &&
                         event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
 
-                        NativeUICocoaConsole *console = NUII->getConsole();
+                        bool created;
+                        NativeUICocoaConsole *console = NUII->getConsole(true, &created);
 
-                        if (console->isHidden) {
-                            console->show();
-                        } else {
-                            console->hide();
+                        if (!created) {
+                            if (console->isHidden) {
+                                console->show();
+                            } else {
+                                console->hide();
+                            }
                         }
-
                     }
                     else if (
                         (&event.key)->keysym.sym == SDLK_u &&
@@ -150,8 +157,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (event.key.keysym.mod & KMOD_CTRL) {
                         mod |= NATIVE_KEY_CTRL;
                     }
-                    if (NUII->NJS) {
-                        NativeJSwindow::getNativeClass(NUII->NJS)->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
+                    if (window) {
+                        window->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
                     }
                     /*printf("Mapped to %d\n", keyCode);
                     printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
@@ -165,8 +172,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 }
             }
         }
-        if (ttfps%20 == 0 && NUII->NJS != NULL) {
-            NUII->NJS->gc();
+        if (ttfps%20 == 0 && NUII->NativeCtx != NULL) {
+            NUII->NativeCtx->getNJS()->gc();
         }
         if (NUII->currentCursor != NativeCocoaUIInterface::NOCHANGE) {
             switch(NUII->currentCursor) {
@@ -191,14 +198,15 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
         //glUseProgram(0);
-        if (NUII->NJS) {
-            NUII->NJS->callFrame();
-            NUII->NJS->postDraw();
+        if (NUII->NativeCtx) {
+            NUII->NativeCtx->callFrame();
+            NUII->NativeCtx->postDraw();
             int s = SDL_GetTicks();
-            NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
+            NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0, NULL);
         }
-        NUII->getConsole()->flush();
-        
+        if (NUII->getConsole()) {
+            NUII->getConsole()->flush();
+        }
         SDL_GL_SwapWindow(NUII->win);
 
         //NSLog(@"Swap : %d\n", SDL_GetTicks()-s);
@@ -245,15 +253,15 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     printf("Changing directory to : %s\n", fpath);
 
     ui->nml = new NativeNML(ui->gnet);
-    ui->nml->setNJS(ui->NJS);
+    ui->nml->setNJS(ui->NativeCtx->getNJS());
     ui->nml->loadFile("./index.nml");
 }
 
 void NativeCocoaUIInterface::stopApplication()
 {
     if (this->nml) delete this->nml;
-    if (this->NJS) delete this->NJS;
-    this->NJS = NULL;
+    if (this->NativeCtx) delete this->NativeCtx;
+    this->NativeCtx = NULL;
     this->nml = NULL;
     glClearColor(1, 1, 1, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -311,19 +319,13 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             return true;
         } else {
             delete app;
-        }        
-
-    } else if (strncasecmp(ext, ".nml", 4) == 0) {
-        FILE *main = fopen(path, "r");
-        if (main == NULL) {
-            return false;
         }
-        fclose(main);
+    } else if (strncasecmp(ext, ".nml", 4) == 0) {
         if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
             return false;
         }
         this->nml = new NativeNML(this->gnet);
-        this->nml->setNJS(this->NJS);
+        this->nml->setNJS(this->NativeCtx->getNJS());
         printf("Load NML : %s\n", path);
         this->nml->loadFile(path);
 
@@ -339,11 +341,12 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     this->initialized = false;
     this->nml = NULL;
     this->filePath = NULL;
+    this->console = NULL;
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
 
     this->currentCursor = NOCHANGE;
-    this->NJS = NULL;
+    this->NativeCtx = NULL;
 
     CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
     CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
@@ -352,6 +355,15 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     }
     CFRelease(url);
     CFRelease(url2);
+}
+
+NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
+    if (created) *created = false;
+    if (this->console == NULL && create) {
+        this->console = new NativeUICocoaConsole;
+        if (created) *created = true;
+    }
+    return this->console;
 }
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
@@ -391,6 +403,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         window = NativeCocoaWindow(win);
 
+        NSLog(@"window %@", window);
+
         [window setCollectionBehavior:
                  NSWindowCollectionBehaviorFullScreenPrimary];
 
@@ -424,10 +438,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         glViewport(0, 0, width, height);
 
         gnet = native_netlib_init();
-        console = new NativeUICocoaConsole();
         printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     }
-    NJS = new NativeJS(width, height, this, gnet);
+    NativeCtx = new NativeContext(this, width, height, gnet);
 
     return true;
 }
