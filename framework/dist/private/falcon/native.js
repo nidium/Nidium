@@ -121,12 +121,33 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		this.createDocument();
+		this.createSpinner();
+		this.setRenderingLoop();
+		this.addStatusBar();
 		delete(this.init);
 	},
 
+	createSpinner : function(){
+		document.spinner = new UISpinner("document", {
+
+		});
+
+		document.spinner = new UISpinner(document, {
+			height : 40,
+			width : 40,
+			dashes : 12,
+			lineWidth : 8,
+			color : "rgba(128, 128, 128, 0.5)",
+			speed : 32,
+			opacity : 0.3,
+			radius : 2
+		}).center();
+	},
+
 	onready : function(){
-		this.setRenderingLoop();
-		this.addStatusBar();
+		document.spinner.fadeOut(250, function(){
+			this.stop().hide();
+		});
 		delete(this.onready);
 	},
 
@@ -137,12 +158,12 @@ Native.core = {
 			top : 0,
 			width : window.width,
 			height : window.height,
-			background : "#ffffff",
+			background : "#ffffff", // "#272822"
 			cursor : "arrow",
 			canReceiveFocus : true,
 			outlineOnFocus : false
 		});
-		
+
 		doc.stylesheet = document.stylesheet;
 
 		Object.createProtectedElement(Native.scope, "document", doc);
@@ -165,7 +186,6 @@ Native.core = {
 };
 
 Native.core.init();
-
 window._onready = function(){
 	Native.core.onready();
 };
