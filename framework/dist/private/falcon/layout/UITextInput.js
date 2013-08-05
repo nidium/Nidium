@@ -384,11 +384,15 @@ Native.elements.export("UITextInput", {
 						if (self.multiline) return false;
 	
 						if (e.shiftKey) {
+							self.setCaret(
+								0,
+								self._StartCaret.x
+							);
 						} else {
 							self.setCaret(0, 0);
 							self.setCaretStartPoint();
-							self.scrollToLineStart();
 						}
+						self.scrollToLineStart();
 						break;
 
 					case 1073741901 : // LineEnd
@@ -396,11 +400,15 @@ Native.elements.export("UITextInput", {
 						if (self.multiline) return false;
 
 						if (e.shiftKey) {
+							self.setCaret(
+								self._StartCaret.x,
+								maxLength-self._StartCaret.x
+							);
 						} else {
 							self.setCaret(maxLength, 0);
 							self.setCaretStartPoint();
-							self.scrollToLineEnd();
 						}
+						self.scrollToLineEnd();
 						break;
 
 					case 1073741906 : // up
