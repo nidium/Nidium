@@ -103,7 +103,8 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     return JS_TRUE;
 }
 
-static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape)
+static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
+    void *socket_arg)
 {
     JSContext *cx;
     jsval onconnect, rval;
@@ -125,7 +126,7 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape)
 
 
 static void native_socket_wrapper_onaccept(ape_socket *socket_server,
-    ape_socket *socket_client, ape_global *ape)
+    ape_socket *socket_client, ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
     JSObject *jclient;
@@ -183,7 +184,7 @@ inline static void native_socket_readcb(NativeJSSocket *nsocket, char *data, siz
 }
 
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
-    ape_global *ape)
+    ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
     jsval onread, rval, jparams[2];
@@ -248,7 +249,8 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
 
 }
 
-static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
+static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
+    void *socket_arg)
 {
     JSContext *cx;
     jsval onread, rval, jdata;
@@ -311,7 +313,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape)
 }
 
 static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
-    ape_global *ape)
+    ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
     jsval ondisconnect, rval, jparams[1];
@@ -345,7 +347,8 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     socket_client->ctx = NULL;
 }
 
-static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape)
+static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
+    void *socket_arg)
 {
     JSContext *cx;
     NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
