@@ -361,7 +361,7 @@ Native.events = {
 				if (!this.timer) {
 					Native.timer(function(){
 						if (!self.doubleclick) {
-							self.dispatch("mouseclick", e);
+//							self.dispatch("mouseclick", e);
 						}
 						self.timer = false;
 						self.doubleclick = false;
@@ -374,6 +374,7 @@ Native.events = {
 					this.timer = false;
 				}
 
+				this.dispatch("mouseclick", e);
 			}
 
 		}
@@ -523,6 +524,34 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 		}
 	};
 	return this;
+};
+
+Object.attachEventListener = function(obj){
+	obj.addEventListener = function(name, callback, propagation){
+		var self = this;
+		self._eventQueues = self._eventQueues ? self._eventQueues : [];
+		var queue = self._eventQueues[name];
+
+		queue = !queue ? self._eventQueues[name] = [] : 
+						 self._eventQueues[name];
+
+		queue.push({
+			name : OptionalString(name, "error"),
+			fn : OptionalCallback(callback, function(){}),
+			propagation : OptionalBoolean(propagation, true),
+			response : null
+		});
+
+		self["on"+name] = function(e){
+			for(var i=0; i<queue.length; i++){
+				queue[i].response = queue[i].fn.call(self, e);
+				if (!queue[i].propagation){
+					continue;
+				}
+			}
+		};
+		return this;
+	}
 };
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
