@@ -381,22 +381,30 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741898 : // LineStart
-						if (this.multiline) return false;
-						self.setCaret(0, 0);
-						self.setCaretStartPoint();
-						self.scrollToLineStart();
+						if (self.multiline) return false;
+	
+						if (e.shiftKey) {
+						} else {
+							self.setCaret(0, 0);
+							self.setCaretStartPoint();
+							self.scrollToLineStart();
+						}
 						break;
 
 					case 1073741901 : // LineEnd
 						var maxLength = self.text.length; // after last char
-						if (this.multiline) return false;
-						self.setCaret(maxLength, 0);
-						self.setCaretStartPoint();
-						self.scrollToLineEnd();
+						if (self.multiline) return false;
+
+						if (e.shiftKey) {
+						} else {
+							self.setCaret(maxLength, 0);
+							self.setCaretStartPoint();
+							self.scrollToLineEnd();
+						}
 						break;
 
 					case 1073741906 : // up
-						if (this.multiline) return false;
+						if (self.multiline) return false;
 						if (self.caret.y1 >= 1 && self.caret.y2 >= 1){
 							if (e.shiftKey){
 								self.caret.y1--;
@@ -410,7 +418,7 @@ Native.elements.export("UITextInput", {
 						break;
 
 					case 1073741905 : // down
-						if (this.multiline) return false;
+						if (self.multiline) return false;
 						var nblines = self._textMatrix.length-1;
 						if (self.caret.y1 < nblines && self.caret.y2 < nblines){
 							if (e.shiftKey){
