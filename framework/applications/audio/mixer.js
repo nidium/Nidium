@@ -26,10 +26,6 @@
 
  "use strict";
 
-/* ---------------------------------------------------------------------------*/
-Native.StyleSheet.load("applications/audio/mixer.nss");
-/* ---------------------------------------------------------------------------*/
-
 var main = new Application({
 	backgroundImage : "private://assets/back.png"
 });
@@ -40,12 +36,12 @@ var mixer = null,
 	slides = [];
 
 var tx = [
-	{file : "applications/audio/media/drums.mp3",		label : "Drums"},
-	{file : "applications/audio/media/bass.mp3",		label : "Bass"},
-	{file : "applications/audio/media/guitar01.mp3",	label : "Guitar"},
-	{file : "applications/audio/media/vocals.mp3",		label : "Vocals"},
-	{file : "applications/audio/media/sequences.mp3",	label : "Seq"},
-	{file : "applications/audio/media/guitar02.mp3",	label : "Solo"}
+	{file : "../applications/audio/media/drums.mp3",		label : "Drums"},
+	{file : "../applications/audio/media/bass.mp3",			label : "Bass"},
+	{file : "../applications/audio/media/guitar01.mp3",		label : "Guitar"},
+	{file : "../applications/audio/media/vocals.mp3",		label : "Vocals"},
+	{file : "../applications/audio/media/sequences.mp3",	label : "Seq"},
+	{file : "../applications/audio/media/guitar02.mp3",		label : "Solo"}
 
 /*
 	{file : "song.mp3",	label : "Depress"},

@@ -32,9 +32,9 @@ var mixer = null,
 	tracks = [];
 
 var tx = [
-	{file : "song.mp3",	label : "Depress"},
-	{file : "song.mp3",	label : "Depress"},
-	{file : "song.mp3",	label : "Depress"}
+	{file : "../media/song.mp3",	label : "Depress"},
+	{file : "../media/song.mp3",	label : "Depress"},
+	{file : "../media/song.mp3",	label : "Depress"}
 ];
 
 for (var i=0; i<tx.length; i++){
@@ -57,7 +57,7 @@ for (var i=0; i<tx.length; i++){
 	};
 
 	tracks[i].processor.onmessage = function(e){
-		echo(e.data);
+		//echo(e.data);
 	};
 
 }

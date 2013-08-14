@@ -13,7 +13,7 @@ var ShaderDemo = {
 	init : function(){
 		var self = this;
 
-		main.shader("applications/demos/shaders/apple.s", function(p, u){
+		main.shader("../applications/components/shaders/apple.s", function(p, u){
 			self.start(p, u);
 		});
 	},

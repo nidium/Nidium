@@ -7,7 +7,7 @@
 var main = new Application({
 	width : 640,
 	height : 400,
-	backgroundImage : "applications/demos/images/rocks.jpg",
+	backgroundImage : "../applications/components/images/rocks.jpg",
 }).center();
 
 var source = [

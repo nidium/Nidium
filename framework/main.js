@@ -4,7 +4,7 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-document.background = "#272822";
+document.background = "#ffffff";
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -31,7 +31,7 @@ load("applications/components/dropdown.js");
 //load("applications/components/http.js");
 //load("applications/components/zip.js");
 
-//load("applications/components/text.js");
+//load("applications/components/text.js"); // FAIL
 //load("applications/components/test.js");
 
 /* UNIT TESTS */
@@ -43,8 +43,8 @@ load("applications/components/dropdown.js");
 
 /* MEDIA API */
 
-	//load("applications/audio/test.js");
-	//load("applications/audio/mixer.js");
+	//load("applications/audio/test.js"); // CRASH au refresh + BRUIT DE BETE
+	//load("applications/audio/mixer.js"); // FAIL TOTAL + BRUIT DE BETE
 	//load("applications/audio/dsp.js"); // crash
 	//load("applications/media/video.js"); // crash on refresh (and video end)
 
@@ -56,9 +56,9 @@ load("applications/components/dropdown.js");
 
 /* SHADERS */
 
-	//load("applications/components/shader.js");
-	//load("applications/components/shader.basic.js");
-	//load("applications/components/shader.advanced.js");
+	//load("applications/components/shader.js"); // OK
+	//load("applications/components/shader.basic.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 /* TUTORIALS */
 
