@@ -26,9 +26,7 @@
 
  "use strict";
 
-var main = new Application({
-	backgroundImage : "private://assets/back.png"
-});
+var main = new Application();
 
 var mixer = null,
 	master = null,

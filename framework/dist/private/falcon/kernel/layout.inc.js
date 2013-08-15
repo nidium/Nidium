@@ -19,8 +19,12 @@ Native.layout = {
 	init : function(element){
 		Native.elements.init(element);
 
+		/* Set Default Element Properties if any */
+		var props = Native.StyleSheet.getProperties(element.type);
+		element.setProperties(props);
+
 		if (element._className != '') {
-			element.updateProperties();
+			element.updateClassProperties();
 		}
 
 		if (element.parent) {

@@ -25,13 +25,7 @@
  */
 
 {
-	body : {
-		background : "#262722",
-		backgroundImage : "private://assets/back.png",
-		alpha : 0.8
-	},
-
-	mixer : {
+	".mixer" : {
 		id : "audioMixerContainer",
 		top : 400,
 		left : 10,
@@ -41,28 +35,28 @@
 		radius : 4
 	},
 
-	mixerContainer : {
+	".mixerContainer" : {
 		top : 4,
 		left : 4,
 		radius : 0
 	},
 
-	slide : {
+	".slide" : {
 		top : 0,
 		background : "rgba(0, 0, 0, 0.30)",
 		radius : 3
 	},
 
-	panLabel : {
+	".panLabel" : {
 		color : "#888888"
 	},
 
-	panSlider : {
+	".panSlider" : {
 		background : 'rgba(128, 128, 128, 0.2)',
 		radius : 2
 	},
 
-	solobutton : {
+	".solobutton" : {
 		top : 20,
 		left : 5,
 		height : 13,
@@ -76,7 +70,7 @@
 		fontSize : 9
 	},
 
-	mutebutton : {
+	".mutebutton" : {
 		top : 20,
 		left : 42,
 		height : 13,
@@ -90,7 +84,7 @@
 		fontSize : 9
 	},
 
-	hintLabel : {
+	".hintLabel" : {
 		top : 315,
 		color : "rgba(255, 255, 255, 0.90)",
 		textShadowColor : "rgba(0, 0, 0, 0.4)",

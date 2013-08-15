@@ -46,6 +46,8 @@
 		shadowOffsetY : 2
 	},
 
+	/* Element Definitions */
+
 	"UIToolTip" : {
 		color : "red"
 	},
@@ -53,10 +55,16 @@
 	"UILabel" : {
 		paddingLeft : 8,
 		paddingRight : 8,
-		color : "#ffffff",
-		background : "rgba(255, 255, 255, 0.25)",
 		fontSize : 12,
 		radius : 4
+	},
+
+	/* Class Definitions */
+
+	".body" : {
+		background : "#262722",
+		backgroundImage : "private://assets/back.png",
+		alpha : 0.8
 	},
 
 	".red" : {

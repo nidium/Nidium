@@ -219,14 +219,12 @@ Native.StyleSheet = {
 
 	/* apply style to existing elements */
 	updateElements : function(selector){
-		// "@default" class provides static properties, so we quit here.
-		if (selector == "@default") return false;
-
 		var l = selector.length,
 			s = selector.substr(0, 1),
 			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
 
 		switch (s) {
+			case "@" : /* static property container, do nothing */ break;
 			case "#" : this.updateElementWithId(k); break;
 			case "." : this.updateAllElementsWithClassName(k); break;
 			default  : this.updateAllElementsWithTagName(k); break;

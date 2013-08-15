@@ -145,7 +145,6 @@ VideoLayer.prototype = {
 	},
 
 	set position(position){
-		echo(position)
 		this.video.position = position;
 	}
 };

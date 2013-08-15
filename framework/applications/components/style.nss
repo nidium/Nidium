@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------- *
  * NSS : Native Style Sheet Draft                          (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version:     0.2                                                            *
+ * Version:     0.5                                                            *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
@@ -23,19 +23,20 @@
  * DEALINGS IN THE SOFTWARE.                                                   *
  * --------------------------------------------------------------------------- * 
  */
+
 {
-	main : {
+	".main" : {
 		background : "#262722",
 	},
 
-	button : {
+	".button" : {
 		background : "#559933",
 		color : "#ffffff",
 		fontSize : 10.5,
 		top : 48,
 	},
 
-	label : {
+	".label" : {
 		paddingLeft : 8,
 		paddingRight : 8,
 		width : 150,
@@ -46,34 +47,34 @@
 		radius : 4
 	},
 
-	method : {color : "#A6E22E"},
-	operand : {color : "#F92672"},
-	number : {color : "#AE81FF"},
-	reserved : {color : "#66D9EF"},
+	".method" : {color : "#A6E22E"},
+	".operand" : {color : "#F92672"},
+	".number" : {color : "#AE81FF"},
+	".reserved" : {color : "#66D9EF"},
 
-	doit : {
+	".doit" : {
 		label : "Do It",
 		left : 970,
 		top : 10
 	},
 
-	demo : {
+	".demo" : {
 		label : "demo"
 	},
 
-	dark : {
+	".dark" : {
 		background : "#111111"
 	},
 
-	green : {
+	".green" : {
 		background : "#668822"
 	},
 
-	blue : {
+	".blue" : {
 		background : "#4488EE"
 	},
 
-	rose : {
+	".rose" : {
 		background : "#882266"
 	}
 }

@@ -472,10 +472,10 @@ Native.object = {
 		this.setProperties(props);
 	},
 
-	setProperties : function setProperties(options){
-		for (var key in options){
-			if (options.hasOwnProperty(key)){
-				this[key] = options[key];
+	setProperties : function setProperties(properties){
+		for (var k in properties){
+			if (properties.hasOwnProperty(k)){
+				this[k] = properties[k];
 			}
 		}
 		return this;

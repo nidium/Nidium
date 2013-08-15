@@ -2,6 +2,21 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
+Native.StyleSheet.add({
+	"UITextField" : {
+		background : "white"
+	},
+
+	"#foobar" : {
+		background : "red"
+	},
+
+	".selected" : {
+		background : "green"
+	}
+});
+
+
 var main = new Application();
 
 var	myElements = [
@@ -42,21 +57,6 @@ var dateField = main.add("UITextField", {
 	pattern : "(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}"
 });
 
-
-Native.StyleSheet.add({
-	"UITextField" : {
-		background : "black"
-	},
-
-	"#foobar" : {
-		background : "red"
-	},
-
-	".selected" : {
-		background : "green"
-	}
-});
-
 dateField.addClass("selected");
 dateField.id = "foobar";
 
@@ -74,6 +74,9 @@ field.addEventListener("submit", function(e){
 dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
+
+
+
 
 /*
 
