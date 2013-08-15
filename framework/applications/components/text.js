@@ -210,7 +210,7 @@ echo(dur, "ms");
 /*
 div.childNodes.each(function(){
 	echo(this.id, this.className)
-	this.updateProperties();
+	this.updateClassProperties();
 	this.redraw();
 });
 */

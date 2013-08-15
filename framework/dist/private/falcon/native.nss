@@ -25,7 +25,7 @@
  * --------------------------------------------------------------------------- * 
  */
 {
-	"{default}" : {
+	"@default" : {
 		backgroundColor : "#262722",
 
 		textColor : "#333333",
@@ -46,11 +46,11 @@
 		shadowOffsetY : 2
 	},
 
-	"(UIToolTip)" : {
+	"UIToolTip" : {
 		color : "red"
 	},
 
-	"(UILabel)" : {
+	"UILabel" : {
 		paddingLeft : 8,
 		paddingRight : 8,
 		color : "#ffffff",
@@ -59,7 +59,7 @@
 		radius : 4
 	},
 
-	"red" : {
+	".red" : {
 		background : "red"
 	}
 }

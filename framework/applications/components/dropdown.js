@@ -43,20 +43,29 @@ var dateField = main.add("UITextField", {
 });
 
 
-var h = new UIToolTip(dateField, {
-	label : "please enter a valid date",
-	class : "foobar"
-});
-
-h.enable();
-
-
 Native.StyleSheet.add({
-	foobar : {
+	"UITextField" : {
+		background : "black"
+	},
+
+	"#foobar" : {
 		background : "red"
+	},
+
+	".selected" : {
+		background : "green"
 	}
 });
 
+dateField.addClass("selected");
+dateField.id = "foobar";
+
+
+var h = new UIToolTip(dateField, {
+	label : "please enter a valid date"
+});
+
+h.enable();
 
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
@@ -66,16 +75,7 @@ dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
 
-
-
-
-
-
-
-
-
-
-
+/*
 
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
@@ -97,6 +97,7 @@ dropDownController.addEventListener("change", function(e){
 	console.log("dropdown", e.value);
 });
 
+*/
 
 
 /*

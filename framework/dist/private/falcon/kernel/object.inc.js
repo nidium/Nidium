@@ -33,6 +33,7 @@ var DOMElement = function(type, options, parent){
 	/* Common to all elements */
 	DOMElement.definePublicProperties(this, {
 		// -- class management
+		id : null,
 		className : OptionalString(o.class, ""),
 
 		// -- layout properties
@@ -159,8 +160,10 @@ var DOMElement = function(type, options, parent){
 		_needAncestorCacheClear : false
 	});
 
-	/* Runtime changes does not impact the visual aspect of the element */
+	/* runtime change of id leads to nss class check */
 	this.id = OptionalString(o.id, this._uid);
+
+	/* Runtime changes does not impact the visual aspect of the element */
 	this.name = OptionalString(o.name, "");
 	this.isOnTop = false;
 	this.hasChildren = false;
@@ -217,7 +220,8 @@ DOMElement.prototype = {
 	sendToBack : Native.object.sendToBack,
 	resetNodes : Native.object.resetNodes,
 
-	updateProperties : Native.object.updateProperties,
+	updateClassProperties : Native.object.updateClassProperties,
+	updateIdProperties : Native.object.updateIdProperties,
 	setProperties : Native.object.setProperties,
 
 	center : Native.object.center,
@@ -584,8 +588,13 @@ DOMElement.onPropertyUpdate = function(e){
 			element._needOpacityUpdate = true;
 			break;
 
+		case "id" :
+			element.updateIdProperties();
+			element._needRedraw = true;
+			break;
+
 		case "className" :
-			element.updateProperties();
+			element.updateClassProperties();
 			element._needRedraw = true;
 			break;
 

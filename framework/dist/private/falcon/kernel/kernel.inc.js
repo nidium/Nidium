@@ -459,13 +459,17 @@ Native.object = {
 		return this;
 	},
 
-	updateProperties : function updateProperties(){
+	updateClassProperties : function updateClassProperties(){
 		var classNames = this.className.split(" ");
-
 		for (var i in classNames){
-			var props = Native.StyleSheet.getProperties(classNames[i]);
+			var props = Native.StyleSheet.getProperties("."+classNames[i]);
 			this.setProperties(props);
 		}
+	},
+
+	updateIdProperties : function updateIdProperties(){
+		var props = Native.StyleSheet.getProperties("#"+this.id);
+		this.setProperties(props);
 	},
 
 	setProperties : function setProperties(options){

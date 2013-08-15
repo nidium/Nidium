@@ -182,14 +182,14 @@ Native.StyleSheet = {
 
 	/* add to the existing stylesheet document */
 	add : function(sheet){
-		for (var k in sheet){
-			if (sheet.hasOwnProperty(k)){
-				this.mergeProperties(k, sheet[k]);
+		for (var selector in sheet){
+			if (sheet.hasOwnProperty(selector)){
+				this.mergeProperties(selector, sheet[selector]);
 			}
 		}
 	},
 
-	/* replace the existing stylesheet document */
+	/* replace the existing stylesheet document with a new one */
 	set : function(sheet){
 		document.stylesheet = {};
 		this.add(sheet);
@@ -217,29 +217,48 @@ Native.StyleSheet = {
 		}
 	},
 
-	/* apply style to all elements with class "klass" */
-	updateElements : function(klass){
-		this.updateAllElementsWithClassName(klass);
+	/* apply style to existing elements */
+	updateElements : function(selector){
+		// "@default" class provides static properties, so we quit here.
+		if (selector == "@default") return false;
+
+		var l = selector.length,
+			s = selector.substr(0, 1),
+			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
+
+		switch (s) {
+			case "#" : this.updateElementWithId(k); break;
+			case "." : this.updateAllElementsWithClassName(k); break;
+			default  : this.updateAllElementsWithTagName(k); break;
+		};
+	},
+
+	/* apply style to element with id "id" */
+	updateElementWithId : function(id){
+		var properties = document.stylesheet["#"+id];
+		var element = Native.layout.getElementById(id);
+		if (!isDOMElement(element)) return false;
+		element.setProperties(properties);
 	},
 
 	/* apply style to all elements with class "klass" */
 	updateAllElementsWithClassName : function(klass){
 		Native.layout.getElementsByClassName(klass).each(function(){
-			this.updateProperties();
+			this.updateClassProperties();
 		});
 	},
 	
 	/* apply style to all elements with type "type" */
 	updateAllElementsWithTagName : function(type){
+		var properties = document.stylesheet[type];
 		Native.layout.getElementsByTagName(type).each(function(){
-			this.updateProperties();
+			this.setProperties(properties);
 		});
 	},
 
-	/* merge properties in an existing class, or create new one */
-	mergeProperties : function(klass, properties){
-		console.log("mergeProperties")
-		var prop = document.stylesheet[klass];
+	/* merge properties in an existing selector, or create new one */
+	mergeProperties : function(selector, properties){
+		var prop = document.stylesheet[selector];
 		if (prop) {
 			for (var p in properties){
 				if (properties.hasOwnProperty(p)){
@@ -247,19 +266,18 @@ Native.StyleSheet = {
 				}
 			}
 		} else {
-			document.stylesheet[klass] = properties;
+			document.stylesheet[selector] = properties;
 		}
-		this.updateElements(klass);
+		this.updateElements(selector);
 	},
 
-	setProperties : function(klass, properties){
-		console.log("setProperties")
-		document.stylesheet[klass] = properties;
-		this.updateElements(klass);
+	setProperties : function(selector, properties){
+		document.stylesheet[selector] = properties;
+		this.updateElements(selector);
 	},
 
-	getProperties : function(klass){
-		return document.stylesheet[klass];
+	getProperties : function(selector){
+		return document.stylesheet[selector];
 	},
 
 	/*
