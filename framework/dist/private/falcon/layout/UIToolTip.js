@@ -27,7 +27,11 @@ Native.elements.export("UIToolTip", {
 
 	init : function(){
 		var self = this,
-			o = this.options;
+			o = this.options,
+			def = document.stylesheet["{default}"] || {},
+			ext = document.stylesheet["("+this.type+")"] || {};
+
+		echo(o.color || ext.color || def.textColor);
 
 		this.setProperties({
 			canReceiveFocus	: false,
@@ -42,7 +46,7 @@ Native.elements.export("UIToolTip", {
 			height			: OptionalNumber(o.height, 30),
 
 			shadowBlur 		: OptionalNumber(o.shadowBlur, 4),
-			shadowColor 	: OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.20"),
+			shadowColor 	: OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.10"),
 			shadowOffsetX	: OptionalNumber(o.shadowOffsetY, 0),
 			shadowOffsetY	: OptionalNumber(o.shadowOffsetY, 2),
 

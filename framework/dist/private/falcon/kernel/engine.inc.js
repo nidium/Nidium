@@ -219,13 +219,26 @@ Native.StyleSheet = {
 
 	/* apply style to all elements with class "klass" */
 	updateElements : function(klass){
+		this.updateAllElementsWithClassName(klass);
+	},
+
+	/* apply style to all elements with class "klass" */
+	updateAllElementsWithClassName : function(klass){
 		Native.layout.getElementsByClassName(klass).each(function(){
+			this.updateProperties();
+		});
+	},
+	
+	/* apply style to all elements with type "type" */
+	updateAllElementsWithTagName : function(type){
+		Native.layout.getElementsByTagName(type).each(function(){
 			this.updateProperties();
 		});
 	},
 
 	/* merge properties in an existing class, or create new one */
 	mergeProperties : function(klass, properties){
+		console.log("mergeProperties")
 		var prop = document.stylesheet[klass];
 		if (prop) {
 			for (var p in properties){
@@ -236,12 +249,13 @@ Native.StyleSheet = {
 		} else {
 			document.stylesheet[klass] = properties;
 		}
-		this.updateElements();
+		this.updateElements(klass);
 	},
 
 	setProperties : function(klass, properties){
+		console.log("setProperties")
 		document.stylesheet[klass] = properties;
-		this.updateElements();
+		this.updateElements(klass);
 	},
 
 	getProperties : function(klass){

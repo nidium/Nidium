@@ -460,12 +460,10 @@ Native.object = {
 	},
 
 	updateProperties : function updateProperties(){
-		print("updateProperties()", this);
 		var classNames = this.className.split(" ");
 
 		for (var i in classNames){
 			var props = Native.StyleSheet.getProperties(classNames[i]);
-
 			this.setProperties(props);
 		}
 	},

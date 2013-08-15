@@ -37,12 +37,12 @@ var ಠ_ಠ = '2.5',
 /* -------------------------------------------------------------------------- */
 
 /* Todo : add more performance flags */
-var	__ENABLE_TEXT_SHADOWS__ = true,
-	__ENABLE_BUTTON_SHADOWS__ = true,
-	__ENABLE_IMAGE_INTERPOLATION__ = true,
+const	__ENABLE_TEXT_SHADOWS__ = true,
+		__ENABLE_BUTTON_SHADOWS__ = true,
+		__ENABLE_IMAGE_INTERPOLATION__ = true,
 
-	__MAX_INPUT_LENGTH__ = 2048,
-	__MAX_LAYER_WIDTH__ = 16364;
+		__MAX_INPUT_LENGTH__ = 2048,
+		__MAX_LAYER_WIDTH__ = 16364;
 
 /* -------------------------------------------------------------------------- */
 

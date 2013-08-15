@@ -42,6 +42,22 @@ var dateField = main.add("UITextField", {
 	pattern : "(0[1-9]|1[0-9]|2[0-9]|3[01])/(0[1-9]|1[012])/[0-9]{4}"
 });
 
+
+var h = new UIToolTip(dateField, {
+	label : "please enter a valid date",
+	class : "foobar"
+});
+
+h.enable();
+
+
+Native.StyleSheet.add({
+	foobar : {
+		background : "red"
+	}
+});
+
+
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
 });
@@ -49,6 +65,17 @@ field.addEventListener("submit", function(e){
 dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
+
+
+
+
+
+
+
+
+
+
+
 
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,

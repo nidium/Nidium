@@ -102,7 +102,10 @@ var DOMElement = function(type, options, parent){
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
-		canReceiveKeyboardEvents : OptionalBoolean(o.canReceiveKeyboardEvents, false),
+		canReceiveKeyboardEvents : OptionalBoolean(
+			o.canReceiveKeyboardEvents,
+			false
+		),
 		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, true),
 
 		visible : OptionalBoolean(o.visible, true),
@@ -173,7 +176,7 @@ var DOMElement = function(type, options, parent){
 /* -------------------------------------------------------------------------- */
 
 DOMElement.prototype = {
-//	__noSuchMethod__ : Native.object.__noSuchMethod__,
+	__noSuchMethod__ : Native.object.__noSuchMethod__,
 
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
