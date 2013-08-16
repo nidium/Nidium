@@ -356,7 +356,7 @@ DOMElement.prototype = {
 	onfocus : null, /* implemented */
 
 	onchange : null, /* implemented */
-	oncontextmenu : null,
+	oncontextmenu : null, /* implemented */
 
 	ondrag : null, /* implemented */
 	ondragend : null, /* implemented */

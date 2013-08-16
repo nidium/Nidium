@@ -28,10 +28,10 @@ Native.elements.export("UIToolTip", {
 	init : function(){
 		var self = this,
 			o = this.options,
-			def = document.stylesheet["{default}"] || {},
-			ext = document.stylesheet["("+this.type+")"] || {};
+			def = document.stylesheet["@default"] || {},
+			style = document.stylesheet[this.type] || {};
 
-//		echo(o.color || ext.color || def.textColor);
+		echo(o.color || style.color || def.textColor);
 
 		this.setProperties({
 			canReceiveFocus	: false,

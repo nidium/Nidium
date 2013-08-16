@@ -3,16 +3,16 @@
 /* -------------------------- */
 
 Native.StyleSheet.add({
-	"UITextField" : {
-		background : "white"
-	},
-
 	"#foobar" : {
 		background : "red"
 	},
 
 	".selected" : {
 		background : "green"
+	},
+
+	"UITextField" : {
+		background : "white"
 	}
 });
 
@@ -67,6 +67,12 @@ var h = new UIToolTip(dateField, {
 
 h.enable();
 
+
+dateField.addEventListener("contextmenu", function(e){
+	console.log("context");
+	e.preventMouseEvents();
+});
+
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
 });
@@ -78,7 +84,7 @@ dateField.addEventListener("submit", function(e){
 
 
 
-/*
+
 
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
@@ -100,7 +106,7 @@ dropDownController.addEventListener("change", function(e){
 	console.log("dropdown", e.value);
 });
 
-*/
+
 
 
 /*

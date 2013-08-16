@@ -23,6 +23,7 @@ Native.events = {
 
 	mousedown : false,
 	doubleclick : false,
+	preventmouseclick : false,
 
 	dragging : false,
 	dragstarted : false,
@@ -89,13 +90,18 @@ Native.events = {
 	},
 
 	dispatch : function(name, e){
-		var x = e.x,
+		var self = this,
+			x = e.x,
 			y = e.y,
 
 			cancelBubble = false,
 			cancelEvent = false,
 
 			z = Native.layout.getElements();
+
+		e.preventMouseEvents = function(){
+			self.preventmouseclick = true;
+		};
 
 		e.stopPropagation = function(){
 			cancelBubble = true;
@@ -108,6 +114,13 @@ Native.events = {
 		};
 
 		var __mostTopElementHooked = false;
+
+		if (name == "mousedown" || name == "mouseup") {
+			if (this.preventmouseclick) {
+				this.preventmouseclick = false;
+				return;
+			}
+		}
 
 		for(var i=z.length-1 ; i>=0 ; i--) {
 			var element = z[i];
@@ -273,6 +286,10 @@ Native.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		if (e.which == 3) {
+			this.preventmouseclick = false;
+			this.dispatch("contextmenu", e);
+		}
 		this.mousedown = true;
 		this.dragstarted = false;
 
@@ -286,7 +303,6 @@ Native.events = {
 
 		this.last = e;
 		this.dispatch("mousedown", e);
-
 	},
 
 	mousemoveEvent : function(e){
@@ -414,7 +430,6 @@ DOMElement.implement({
 	dragendFired : false,
 
 	fireEvent : function(name, e, successCallback){
-		print("fireEvent("+name+")", this);
 		var acceptedEvent = true,
 			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
@@ -440,7 +455,6 @@ DOMElement.implement({
 	},
 
 	addEventListener : function(name, callback, propagation){
-		print("addEventListener("+name+")", this);
 		var self = this;
 		self._eventQueues = self._eventQueues ? self._eventQueues : [];
 		var queue = self._eventQueues[name];
@@ -456,7 +470,7 @@ DOMElement.implement({
 		});
 
 		self["on"+name] = function(e){
-			for(var i=0; i<queue.length; i++){
+			for(var i=queue.length-1; i>=0; i--){
 				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
 					continue;
@@ -516,7 +530,7 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 	});
 
 	self["on"+name] = function(e){
-		for(var i=0; i<queue.length; i++){
+		for(var i=queue.length; i>=0; i--){
 			queue[i].response = queue[i].fn.call(self, e);
 			if (!queue[i].propagation){
 				continue;
@@ -543,7 +557,7 @@ Object.attachEventListener = function(obj){
 		});
 
 		self["on"+name] = function(e){
-			for(var i=0; i<queue.length; i++){
+			for(var i=queue.length-1; i>=0; i--){
 				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
 					continue;
