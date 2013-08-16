@@ -130,37 +130,35 @@ Native.events = {
 				continue;
 			}
 
-			if (element.canReceiveKeyboardEvents) {
-				if (name=='keydown'){
-					if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
-						element.cmdKeyDown = true;
-					}
-					if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
-						element.shiftKeyDown = true;
-					}
+			if (name=='keydown'){
+				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
+					element.cmdKeyDown = true;
 				}
-
-				if (name=='keyup'){
-					if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
-						element.cmdKeyDown = false;
-					}
-					if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
-						element.shiftKeyDown = false;
-					}
-				}
-
-				e.shiftKeyDown = element.shiftKeyDown == undefined ?
-								false : element.shiftKeyDown;
-
-				e.cmdKeyDown = element.cmdKeyDown == undefined ?
-								false : element.cmdKeyDown;
-
-				if (name=='keydown' || name=='keyup' || name=='textinput'){
-					element.fireEvent(name, e);
+				if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
+					element.shiftKeyDown = true;
 				}
 			}
 
-			if (element.isPointInside(x, y)){
+			if (name=='keyup'){
+				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
+					element.cmdKeyDown = false;
+				}
+				if (e.keyCode == 1073742049 || e.keyCode == 1073742053) {
+					element.shiftKeyDown = false;
+				}
+			}
+
+			e.shiftKeyDown = element.shiftKeyDown == undefined ?
+							false : element.shiftKeyDown;
+
+			e.cmdKeyDown = element.cmdKeyDown == undefined ?
+							false : element.cmdKeyDown;
+
+			if (name=='keydown' || name=='keyup' || name=='textinput'){
+				if (element.canReceiveKeyboardEvents){
+					element.fireEvent(name, e);
+				}
+			} else if (element.isPointInside(x, y)){
 
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
