@@ -103,7 +103,7 @@ dropDownController.value = 4;
 
 
 dropDownController.addEventListener("change", function(e){
-	console.log("dropdown", e.value);
+//	console.log("dropdown", e.value);
 });
 
 

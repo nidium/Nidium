@@ -158,6 +158,10 @@ Native.elements.export("UIDropDownController", {
 				this.label = this.tabs[this.selection].label;
 			}
 
+			this.closeSelector();
+		};
+
+		this.initSelector = function(){
 			this.selector.hide();
 			this.selector._animating = false;
 			this.selector.opacity = 0;
@@ -206,7 +210,7 @@ Native.elements.export("UIDropDownController", {
 
 		};
 
-		this.closeSelector = function(){
+		this.closeSelector = function(init){
 			if (this.toggleState == false) return false;
 			var c = this.selector,
 				from = c.height,
@@ -276,6 +280,7 @@ Native.elements.export("UIDropDownController", {
 			}
 		}, false);
 
+		this.initSelector();
 		this.reset();
 	},
 
