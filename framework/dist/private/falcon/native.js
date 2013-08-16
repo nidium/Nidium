@@ -166,6 +166,20 @@ Native.core = {
 
 		doc.stylesheet = document.stylesheet;
 
+		doc.style = {
+			get : function(selector){
+				return document.stylesheet[selector];
+			},
+
+			set : function(selector, properties){
+				Native.StyleSheet.setProperties(selector, properties);
+			},
+
+			add : function(selector, properties){
+				Native.StyleSheet.mergeProperties(selector, properties);
+			}
+		};
+
 		Object.createProtectedElement(Native.scope, "document", doc);
 	},
 

@@ -28,7 +28,7 @@ Native.elements.export("UIToolTip", {
 	init : function(){
 		var self = this,
 			o = this.options,
-			def = document.stylesheet["@default"] || {},
+			def = document.style.get("@default") || {},
 			style = document.stylesheet[this.type] || {};
 
 		echo(o.color || style.color || def.textColor);

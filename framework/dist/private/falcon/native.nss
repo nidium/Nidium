@@ -25,37 +25,42 @@
  * --------------------------------------------------------------------------- * 
  */
 {
+	/* Static Containers */
+	
 	"@default" : {
-		backgroundColor : "#262722",
+		darkBackgroundColor : "#262722",
+		liteBackgroundColor : "#ffffff",
+		textBackgroundColor : "#ffffff",
 
 		textColor : "#333333",
 		textSelectionColor : "rgba(0, 0, 128, 0.2)",
-		textBackgroundColor : "#ffffff",
+
+		fontSize : 12,
+		fontType : "arial",
 
 		textShadowColor : "rgba(0, 0, 0, 0.15)",
 		textShadowOffsetX : 1,
 		textShadowOffsetY : 1,
 		textShadowBlur : 1,
 
-		fontSize : 12,
-		fontType : "arial",
-
-		shadowBlur : 4,
 		shadowColor : "rgba(0, 0, 0, 0.10",
 		shadowOffsetX : 0,
-		shadowOffsetY : 2
+		shadowOffsetY : 2,
+		shadowBlur : 4,
+
+		radius : 4
 	},
 
 	/* Element Definitions */
 
 	"UIToolTip" : {
+		lineheight : 30,
+		height : 30
 	},
 
 	"UILabel" : {
 		paddingLeft : 8,
-		paddingRight : 8,
-		fontSize : 12,
-		radius : 4
+		paddingRight : 8
 	},
 
 	/* Class Definitions */
@@ -64,9 +69,5 @@
 		background : "#262722",
 		backgroundImage : "private://assets/back.png",
 		alpha : 0.8
-	},
-
-	".red" : {
-		background : "red"
 	}
 }

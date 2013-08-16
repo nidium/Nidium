@@ -56,8 +56,54 @@ Native.elements.export("UIDropDownController", {
 		this.selection = 0;
 		this.tabs = [];
 
+		this.getSelectorHeight = function(){
+			var	l = this.tabs.length,
+				h = l*this.height;
+
+			return this.maxHeight || h;
+		};
+
+		this.centerToSelection = function(){
+			if (!this.tabs[this.selection]) return this;
+			var tab = this.tabs[this.selection];
+				y = tab.top,
+				h = tab.height,
+				sh = this.getSelectorHeight(),
+				min = this.selector.scrollTop,
+				max = min + sh,
+
+				pos = y - sh/2 + h/2;
+
+
+			this.selector.animate("scrollTop", min, pos, 300, function(){
+			}, Math.physics.quintOut);
+	
+			return this;
+		};
+
+
+		this.scrollToSelection = function(){
+			if (!this.tabs[this.selection]) return this;
+			var tab = this.tabs[this.selection];
+				y = tab.top,
+				h = tab.height,
+				sh = this.getSelectorHeight(),
+				min = this.selector.scrollTop,
+				max = min + sh;
+
+			if (y < min) {
+				this.selector.scrollTop = y;
+			}
+
+			if (y+h >= max) {
+				this.selector.scrollTop = y + h - (max-min);
+			}
+	
+			return this;
+		};
+
 		this.selectIndex = function(index){
-			index = Math.max(Math.min(index, this.tabs.length-13), 0);
+			index = Math.max(Math.min(index, this.tabs.length-1), 0);
 			if (this.selection != index){
 				this.selection = index;
 				this.reset(this.selection);
@@ -66,6 +112,7 @@ Native.elements.export("UIDropDownController", {
 					value : this.tabs[this.selection].value
 				});
 			}
+			return this;
 		};
 
 		this.setValue = function(value){
@@ -75,6 +122,7 @@ Native.elements.export("UIDropDownController", {
 					continue;
 				}
 			}
+			return this;
 		};
 
 		this._addElement = function(i, options, y){
@@ -159,6 +207,7 @@ Native.elements.export("UIDropDownController", {
 				this.tabs[this.selection].selected = true;
 				this.label = this.tabs[this.selection].label;
 			}
+			return this;
 		};
 
 		this.initSelector = function(){
@@ -206,8 +255,10 @@ Native.elements.export("UIDropDownController", {
 
 			c.animate("height", from, delta, 200, function(){
 				this._animating = false;
+				self.centerToSelection();
 			}, Math.physics.quintOut);
 
+			return this;
 		};
 
 		this.closeSelector = function(init){
@@ -245,6 +296,7 @@ Native.elements.export("UIDropDownController", {
 				Native.events.tick();
 			}, Math.physics.quintIn);
 
+			return this;
 		};
 
 		DOMElement.listeners.addHovers(this);
@@ -279,10 +331,12 @@ Native.elements.export("UIDropDownController", {
 
 				case 1073741906 : // up
 					self.selectIndex(self.selection-1);
+					self.scrollToSelection();
 					break;
 
 				case 1073741905 : // down
 					self.selectIndex(self.selection+1);
+					self.scrollToSelection();
 					break;
 
 				default : break;

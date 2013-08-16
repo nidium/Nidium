@@ -16,7 +16,6 @@ Native.StyleSheet.add({
 	}
 });
 
-
 var main = new Application();
 
 var	myElements = [
@@ -28,6 +27,56 @@ var	myElements = [
 	/* Tab 5 */ {label : "Spain", 			value : 3, background : "#202a15", color : "#000000"},
 	/* Tab 6 */ {label : "Bulgaria",		value : 2, background : "#442033", color : "#000000"},
 	/* Tab 7 */ {label : "Romania", 		value : 4},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 499},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
 	/* Tab 8 */ {label : "Sweden", 			value : 6},
 	/* Tab 8 */ {label : "China", 			value : 8},
 	/* Tab 8 */ {label : "Korea", 			value : 10},
@@ -98,11 +147,11 @@ var	dropDownController = main.add("UIDropDownController", {
 	class : "tabController"
 });
 
-dropDownController.value = 4;
+dropDownController.value = 499;
 
 
 dropDownController.addEventListener("change", function(e){
-	console.log("dropdown", e.value);
+//	console.log("dropdown", e.value);
 });
 
 
