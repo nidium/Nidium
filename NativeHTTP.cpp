@@ -207,7 +207,8 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 }
 
 
-static void native_http_connected(ape_socket *s, ape_global *ape)
+static void native_http_connected(ape_socket *s,
+    ape_global *ape, void *socket_arg)
 {
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
@@ -236,7 +237,8 @@ static void native_http_connected(ape_socket *s, ape_global *ape)
     buffer_destroy(data);
 }
 
-static void native_http_disconnect(ape_socket *s, ape_global *ape)
+static void native_http_disconnect(ape_socket *s,
+    ape_global *ape, void *socket_arg)
 {
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
@@ -254,7 +256,8 @@ static void native_http_disconnect(ape_socket *s, ape_global *ape)
     }
 }
 
-static void native_http_read(ape_socket *s, ape_global *ape)
+static void native_http_read(ape_socket *s, ape_global *ape,
+    void *socket_arg)
 {
     size_t nparsed;
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
