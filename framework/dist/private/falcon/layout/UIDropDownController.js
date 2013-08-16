@@ -57,10 +57,12 @@ Native.elements.export("UIDropDownController", {
 		this.tabs = [];
 
 		this.selectIndex = function(index){
+			index = Math.max(Math.min(index, this.tabs.length-13), 0);
 			if (this.selection != index){
-				this.selection = Math.max(Math.min(index, this.tabs.length-1), 0);
+				this.selection = index;
 				this.reset(this.selection);
 				this.fireEvent("change", {
+					index : this.selection,
 					value : this.tabs[this.selection].value
 				});
 			}
@@ -157,8 +159,6 @@ Native.elements.export("UIDropDownController", {
 				this.tabs[this.selection].selected = true;
 				this.label = this.tabs[this.selection].label;
 			}
-
-			this.closeSelector();
 		};
 
 		this.initSelector = function(){
@@ -270,10 +270,19 @@ Native.elements.export("UIDropDownController", {
 					self.closeSelector();
 					break;
 
+				case 13 : // ENTER
+				case 32 : // SPACE
+				case 1073741912 : // SMALL ENTER
+					self.closeSelector();
+					break;
+
+
 				case 1073741906 : // up
+					self.selectIndex(self.selection-1);
 					break;
 
 				case 1073741905 : // down
+					self.selectIndex(self.selection+1);
 					break;
 
 				default : break;

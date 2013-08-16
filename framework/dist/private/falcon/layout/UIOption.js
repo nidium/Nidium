@@ -30,6 +30,7 @@ Native.elements.export("UIOption", {
 
 		this.addEventListener("mousedown", function(e){
 			controller.selectIndex(this.index);
+			controller.closeSelector();
 			e.stopPropagation();
 		}, false);
 

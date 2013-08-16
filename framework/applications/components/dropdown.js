@@ -4,7 +4,7 @@
 
 Native.StyleSheet.add({
 	"#foobar" : {
-		background : "red"
+		background : "rgba(255, 0, 0, 0.2)"
 	},
 
 	".selected" : {
@@ -33,7 +33,7 @@ var	myElements = [
 	/* Tab 8 */ {label : "Korea", 			value : 10},
 	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
 	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 9 */ {label : "Japan"}
+	/* Tab 9 */ {label : "Japan", 			value : 13}
 ];
 
 
@@ -45,7 +45,6 @@ var field = main.add("UITextField", {
 });
 
 field.value = "https://www.google.fr/search?q=mac+osx+enlever+le+zoom&oq=mac+osx+enlever+le+zoom&aqs=chrome.0.69i57j0.5019j0&sourceid=chrome&ie=UTF-8#sclient=psy-ab&q=KMOD_GUI+sdl&oq=KMOD_GUI+sdl&gs_l=serp.3...45123.47082.2.47371.8.8.0.0.0.0.88.626.8.8.0....0.0..1c.1.20.psy-ab.inHNMKRk2vc&pbx=1&bav=on.2,or.r_cp.r_qf.&bvm=bv.49478099%2Cd.d2k%2Cpv.xjs.s.en_US.c75bKy5EQ0A.O&fp=d81ade728c71813c&biw=1512&bih=983";
-field.outlineColor = "red";
 field.color = "#660000";
 field.width = 430;
 
@@ -103,7 +102,7 @@ dropDownController.value = 4;
 
 
 dropDownController.addEventListener("change", function(e){
-//	console.log("dropdown", e.value);
+	console.log("dropdown", e.value);
 });
 
 

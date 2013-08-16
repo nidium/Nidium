@@ -49,7 +49,6 @@
 	/* Element Definitions */
 
 	"UIToolTip" : {
-		color : "red"
 	},
 
 	"UILabel" : {
