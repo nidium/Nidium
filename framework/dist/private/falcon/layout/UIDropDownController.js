@@ -63,21 +63,25 @@ Native.elements.export("UIDropDownController", {
 			return this.maxHeight || h;
 		};
 
-		this.centerToSelection = function(){
+		this.centerToSelection = function(duration){
 			if (!this.tabs[this.selection]) return this;
 			var tab = this.tabs[this.selection];
 				y = tab.top,
 				h = tab.height,
 				sh = this.getSelectorHeight(),
-				min = this.selector.scrollTop,
-				max = min + sh,
+				min = this.selector.scrollTop;
 
 				pos = y - sh/2 + h/2;
 
-
-			this.selector.animate("scrollTop", min, pos, 300, function(){
-			}, Math.physics.quintOut);
-	
+			if (duration) {
+				this.selector.animate(
+					"scrollTop", min, pos, duration, function(){
+					}, Math.physics.quintOut
+				);
+			} else {
+				this.selector.scrollTop = pos;
+			}
+			
 			return this;
 		};
 
@@ -253,9 +257,10 @@ Native.elements.export("UIDropDownController", {
 			c.animate("opacity", 0, 1, 250, function(){
 			}, Math.physics.cubicOut);
 
+			this.centerToSelection(200);
+
 			c.animate("height", from, delta, 200, function(){
 				this._animating = false;
-				self.centerToSelection();
 			}, Math.physics.quintOut);
 
 			return this;
