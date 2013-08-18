@@ -11,6 +11,11 @@ Native.StyleSheet.add({
 		background : "green"
 	},
 
+	".greenland" : {
+		background : "green",
+		color : "#ffffff"
+	},
+
 	"UITextField" : {
 		background : "white"
 	}
@@ -24,59 +29,9 @@ var	myElements = [
 	/* Tab 2 */ {label : "Monaco", 			value : 9},
 	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
 	/* Tab 4 */ {label : "Italy", 			value : 1},
-	/* Tab 5 */ {label : "Spain", 			value : 3, background : "#202a15", color : "#000000"},
-	/* Tab 6 */ {label : "Bulgaria",		value : 2, background : "#442033", color : "#000000"},
+	/* Tab 5 */ {label : "Spain", 			value : 3, class : "greenland"},
+	/* Tab 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
 	/* Tab 7 */ {label : "Romania", 		value : 4},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 499},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
 	/* Tab 8 */ {label : "Sweden", 			value : 6},
 	/* Tab 8 */ {label : "China", 			value : 8},
 	/* Tab 8 */ {label : "Korea", 			value : 10},
@@ -143,11 +98,10 @@ var	dropDownController = main.add("UIDropDownController", {
 	elements : myElements,
 	background : '#333333',
 	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF",
-	class : "tabController"
+	selectedColor : "#FFFFFF"
 });
 
-dropDownController.value = 499;
+dropDownController.value = 4;
 
 
 dropDownController.addEventListener("change", function(e){

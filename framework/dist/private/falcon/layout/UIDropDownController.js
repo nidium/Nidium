@@ -81,7 +81,7 @@ Native.elements.export("UIDropDownController", {
 			} else {
 				this.selector.scrollTop = pos;
 			}
-			
+
 			return this;
 		};
 
@@ -134,6 +134,7 @@ Native.elements.export("UIDropDownController", {
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
 				background = OptionalValue(o.background, "rgba(255, 255, 255, 1)"),
+				className = OptionalString(o.class, ""),
 				value = OptionalValue(o.value, ""),
 				color = OptionalValue(o.color, "#888888"),
 				selected = OptionalBoolean(o.selected, false);
@@ -149,6 +150,7 @@ Native.elements.export("UIDropDownController", {
 				height : this.height,
 				name : "option_" + this.name,
 				label : label,
+				class : className,
 				selected : selected,
 				background : background,
 				color : color,
@@ -254,14 +256,21 @@ Native.elements.export("UIDropDownController", {
 				Math.physics.quintOut
 			);
 
-			c.animate("opacity", 0, 1, 250, function(){
-			}, Math.physics.cubicOut);
+			c.animate(
+				"opacity", 0, 1, 250,
+				function(){},
+				Math.physics.cubicOut
+			);
 
-			this.centerToSelection(200);
+			this.centerToSelection(400);
 
-			c.animate("height", from, delta, 200, function(){
-				this._animating = false;
-			}, Math.physics.quintOut);
+			c.animate(
+				"height", from, delta, 200,
+				function(){
+					this._animating = false;
+				},
+				Math.physics.quintOut
+			);
 
 			return this;
 		};
