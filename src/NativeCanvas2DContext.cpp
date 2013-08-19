@@ -1866,7 +1866,8 @@ void NativeCanvas2DContext::setupShader(float opacity)
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
-    double left, double top, double opacity, const NativeRect *rclip)
+    double left, double top, double opacity,
+    double zoom, const NativeRect *rclip)
 {
     SkPaint pt;
     pt.setAlpha(opacity * (double)255.);
@@ -1883,8 +1884,11 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
         skia->canvas->clipRect(r);
 
+        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
         skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
             left*ratio, top*ratio, &pt);
+        /* TODO : save/restore */
+        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
 
         skia->canvas->restore();
         skia->canvas->flush();
@@ -1922,8 +1926,10 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         }
 
         if (layer->commonDraw) {
+            skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
             skia->canvas->drawBitmap(bitmapLayer,
                 left*ratio, top*ratio, &pt);
+            skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
             skia->canvas->flush();
         } else {
             int width, height;

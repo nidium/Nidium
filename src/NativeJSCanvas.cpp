@@ -103,6 +103,7 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp);
 
 #define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
 
@@ -197,6 +198,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getVisibleRect", native_canvas_getVisibleRect, 0, 0),
     JS_FN("setSize", native_canvas_setSize, 2, 0),
     JS_FN("clear", native_canvas_clear, 0, 0),
+    JS_FN("setZoom", native_canvas_setZoom, 1, 0),
     JS_FS_END
 };
 
@@ -223,6 +225,22 @@ static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeObject->context->clear(0x00000000);
+    
+    return true;
+}
+
+static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    double zoom;
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "d",
+        &zoom)) {
+        return true;
+    }
+
+    NativeObject->setZoom(zoom);
     
     return true;
 }
@@ -644,7 +662,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             JS_ValueToNumber(cx, vp, &dval);
             handler->setOpacity(dval);      
         }
-        break;
+        break;     
         default:
             break;
     }
@@ -659,7 +677,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_OPACITY:
-            vp.set(DOUBLE_TO_JSVAL(handler->opacity));
+            vp.set(DOUBLE_TO_JSVAL(handler->getOpacity()));
             break;
         case CANVAS_PROP_WIDTH:
             vp.set(INT_TO_JSVAL(handler->getWidth()));

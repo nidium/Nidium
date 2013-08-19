@@ -57,7 +57,9 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
 
         void resetGLContext();
         void composeWith(NativeCanvas2DContext *layer, double left,
-            double top, double opacity, const NativeRect *clip);
+            double top, double opacity, double zoom,
+            const NativeRect *clip);
+
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);

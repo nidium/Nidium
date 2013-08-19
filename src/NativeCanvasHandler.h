@@ -113,11 +113,18 @@ class NativeCanvasHandler
             bool consumed;
         } mousePosition;
 
-        double opacity;
         bool overflow;
 
         NativeCanvas2DContext *getContext() const {
             return this->context;
+        }
+
+        double getOpacity() const {
+            return this->opacity;
+        }
+
+        double getZoom() const {
+            return this->zoom;
         }
 
         double getLeft(bool absolute = false) const {
@@ -278,6 +285,7 @@ class NativeCanvasHandler
         bool isHidden() const;
         bool hasAFixedAncestor() const;
         void setOpacity(double val);
+        void setZoom(double val);
         void removeFromParent();
         void getChildren(NativeCanvasHandler **out) const;
         NativeCanvasHandler *getParent() const { return this->parent; }
@@ -288,19 +296,20 @@ class NativeCanvasHandler
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
-            double ptop, double aopacity, NativeRect *clip);
+            double ptop, double aopacity, double zoom, NativeRect *clip);
         NativeCanvasHandler *parent;
         NativeCanvasHandler *children;
         NativeCanvasHandler *next;
         NativeCanvasHandler *prev;
         NativeCanvasHandler *last;
     private:
-
         int32_t nchildren;
         void dispatchMouseEvents(NativeCanvasHandler *layer);
         COORD_POSITION coordPosition;
         Visibility visibility;
         unsigned coordMode : 16;
+        double opacity;
+        double zoom;
 };
 
 #endif
