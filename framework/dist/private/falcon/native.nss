@@ -55,7 +55,9 @@
 
 	"UIToolTip" : {
 		lineheight : 30,
-		height : 30
+		height : 30,
+		borderWidth : 1,
+		borderColor : "rgba(0, 0, 0, 0.04)"
 	},
 
 	"UILabel" : {

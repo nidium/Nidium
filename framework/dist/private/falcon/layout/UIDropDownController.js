@@ -137,7 +137,8 @@ Native.elements.export("UIDropDownController", {
 				className = OptionalString(o.class, ""),
 				value = OptionalValue(o.value, ""),
 				color = OptionalValue(o.color, "#888888"),
-				selected = OptionalBoolean(o.selected, false);
+				selected = OptionalBoolean(o.selected, false),
+				disabled = OptionalBoolean(o.disabled, false);
 
 			if (selected) {
 				self.selection = i;
@@ -152,6 +153,7 @@ Native.elements.export("UIDropDownController", {
 				label : label,
 				class : className,
 				selected : selected,
+				disabled : disabled,
 				background : background,
 				color : color,
 				value : value
@@ -276,13 +278,33 @@ Native.elements.export("UIDropDownController", {
 		};
 
 		this.closeSelector = function(init){
-			if (this.toggleState == false) return false;
 			var c = this.selector,
 				from = c.height,
 				l = this.tabs.length,
 				delta = 0;
 
-			if (c._animating) return false;
+			if (c._animating) {
+				this.toggleState = false;
+				c.finishCurrentAnimations("opacity");
+				c.finishCurrentAnimations("height");
+				c.opacity = 0;
+				c.height = 0;
+				c._animating = false;
+				c.hide();
+
+				this.downButton.animate(
+					"angle",
+					this.downButton.angle,
+					0,
+					150,
+					null,
+					Math.physics.quintOut
+				);
+
+				this._hideElements();
+				Native.events.tick();
+				return false;
+			}
 
 			this.toggleState = false;
 			c._animating = true;

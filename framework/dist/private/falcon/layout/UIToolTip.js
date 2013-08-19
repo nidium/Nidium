@@ -31,8 +31,6 @@ Native.elements.export("UIToolTip", {
 			def = document.style.get("@default") || {},
 			style = document.stylesheet[this.type] || {};
 
-		echo(o.color || style.color || def.textColor);
-
 		this.setProperties({
 			canReceiveFocus	: false,
 			label			: OptionalString(o.label, ""),
@@ -60,7 +58,7 @@ Native.elements.export("UIToolTip", {
 
 			radius 			: OptionalNumber(o.radius, 3),
 			background 		: OptionalValue(o.background, "#ffffff"),
-			border 			: OptionalValue(o.border, "rgba(0, 0, 0, 0.1)"),
+			borderColor 	: OptionalValue(o.borderColor, "rgba(0, 0, 0, 0.1)"),
 			color 			: OptionalValue(o.color, "#444444")
 		});
 
@@ -172,7 +170,7 @@ Native.elements.export("UIToolTip", {
 			this.shadowColor
 		);
 
-		var ox = params.x-2,
+		var ox = params.x-2-this.borderWidth,
 			oy = params.y+7,
 			w = 16,
 			h = 16,
@@ -189,13 +187,16 @@ Native.elements.export("UIToolTip", {
 			ox, oy, 
 			w, h,
 			0,
-			this.background,
-			this.border
+			this.borderWidth>0 ? this.borderColor : this.background,
+			null
 		);
 		context.restore();
 
 		DOMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
+
+		ox += this.borderWidth+0.5;
+		cx = ox + w/2;
 
 		context.save();
 		context.translate(cx, cy);

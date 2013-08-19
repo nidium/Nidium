@@ -4,7 +4,7 @@
 
 Native.StyleSheet.add({
 	"#foobar" : {
-		background : "rgba(255, 0, 0, 0.2)"
+		background : "white"
 	},
 
 	".selected" : {
@@ -22,6 +22,7 @@ Native.StyleSheet.add({
 });
 
 var main = new Application();
+main.className = "body";
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -35,11 +36,10 @@ var	myElements = [
 	/* Tab 8 */ {label : "Sweden", 			value : 6},
 	/* Tab 8 */ {label : "China", 			value : 8},
 	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
 	/* Tab 8 */ {label : "Switzerland", 	value : 12},
 	/* Tab 9 */ {label : "Japan", 			value : 13}
 ];
-
 
 var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
 
@@ -92,7 +92,7 @@ dateField.addEventListener("submit", function(e){
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
-	maxHeight : 200,
+	maxHeight : 198,
 	name : "helloDrop",
 	radius : 2,
 	elements : myElements,
