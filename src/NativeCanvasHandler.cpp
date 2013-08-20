@@ -12,11 +12,13 @@
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     right(0.0), bottom(0.0),
-    opacity(1.0), overflow(true),
+    overflow(true),
     parent(NULL), children(NULL), next(NULL),
     prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE),
-    coordMode(kLeft_Coord | kTop_Coord)
+    coordMode(kLeft_Coord | kTop_Coord),
+    opacity(1.0),
+    zoom(1.0)
 {
     this->width = width;
     this->height = height;
@@ -251,7 +253,7 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
 }
 
 void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
-    double pleft, double ptop, double aopacity, NativeRect *clip)
+    double pleft, double ptop, double aopacity, double azoom, NativeRect *clip)
 {
     NativeCanvasHandler *cur;
     NativeRect nclip;
@@ -260,7 +262,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         return;
     }
 
-    double popacity = opacity * aopacity;
+    double pzoom = this->zoom * azoom;
+    double popacity = this->opacity * aopacity;
     /*
         Fill the root layer with white
         This is the base surface on top of the window frame buffer
@@ -298,7 +301,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
 
         layer->context->composeWith(this->context,
             this->a_left - this->padding.global, 
-            this->a_top - this->padding.global, popacity,
+            this->a_top - this->padding.global, popacity, zoom,
             (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
     }
 
@@ -345,7 +348,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             cur->layerize(layer,
                     tmpLeft + this->translate_s.x + pleft + offsetLeft,
                     tmpTop + this->translate_s.y + ptop + offsetTop,
-                    popacity, clip);
+                    popacity, zoom, clip);
 
             /* restore the old clip (layerize could have altered it) */
             if (clip != NULL) {
@@ -529,6 +532,11 @@ void NativeCanvasHandler::setOpacity(double val)
     }
 
     opacity = val;
+}
+
+void NativeCanvasHandler::setZoom(double zoom)
+{
+    this->zoom = zoom;
 }
 
 void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
