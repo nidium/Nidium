@@ -101,6 +101,7 @@ var	dropDownController = main.add("UIDropDownController", {
 	selectedColor : "#FFFFFF"
 });
 
+
 dropDownController.value = 4;
 
 
@@ -108,6 +109,27 @@ dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);
 });
 
+
+
+
+		var	myMenu = [
+			/* Tab 0 */ {label : "Copy", 		value : 0},
+			/* Tab 1 */ {label : "Cut", 		value : 1},
+			/* Tab 2 */ {label : "Paste", 		value : 2},
+			/* Tab 3 */ {label : "Show Source Code",	value : 10}
+		];
+
+		var	z = main.add("UIDropDownController", {
+			left : 538,
+			top : 250,
+			maxHeight : 198,
+			name : "documentContextMenu",
+			radius : 2,
+			elements : myMenu,
+			background : '#333333',
+			selectedBackground : "#4D90FE",
+			selectedColor : "#FFFFFF"
+		});
 
 
 

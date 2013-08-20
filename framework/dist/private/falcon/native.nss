@@ -70,6 +70,6 @@
 	".body" : {
 		background : "#262722",
 		backgroundImage : "private://assets/back.png",
-		alpha : 0.8
+		alpha : 0.9
 	}
 }

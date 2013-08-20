@@ -121,6 +121,7 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		this.createDocument();
+		this.createContextMenu();
 		this.createSpinner();
 		this.setRenderingLoop();
 		this.addStatusBar();
@@ -181,6 +182,20 @@ Native.core = {
 		};
 
 		Object.createProtectedElement(Native.scope, "document", doc);
+	},
+
+	createContextMenu : function(){
+/*
+		this.contextMenu.selector.top = 0;
+		this.downButton.hide();
+
+		document.addEventListener("contextmenu", function(){
+			this.contextMenu.show().place(
+				window.mouseX,
+				window.mouseY
+			);
+		});
+*/
 	},
 
 	setRenderingLoop : function(){

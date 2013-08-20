@@ -60,11 +60,11 @@ Native.elements.export("UIOption", {
 			gradient = this.parent.parent.selectedBackground;
 		} else {
 			if (this.hover){
-				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.25)');
-				gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.15)');
+				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.25)');
+				gradient.addColorStop(1.00, 'rgba(128, 128, 128, 0.15)');
 			} else {
-				gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.10)');
-				gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
+				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.10)');
+				gradient.addColorStop(0.10, 'rgba(128, 128, 128, 0.05)');
 			}
 		}
 
