@@ -121,7 +121,7 @@ dropDownController.addEventListener("change", function(e){
 
 		var	z = main.add("UIDropDownController", {
 			left : 538,
-			top : 250,
+			top : 80,
 			maxHeight : 198,
 			name : "documentContextMenu",
 			radius : 2,

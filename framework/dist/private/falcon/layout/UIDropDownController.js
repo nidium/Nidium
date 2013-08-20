@@ -242,7 +242,7 @@ Native.elements.export("UIDropDownController", {
 
 			this.toggleState = true;
 			c._animating = true;
-			c.show();
+			c.bringToFront().show();
 			
 			self._showElements();
 
