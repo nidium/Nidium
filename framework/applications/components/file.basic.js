@@ -11,7 +11,7 @@ load("libs/misc.lib.js");
 /* -- High Level Asynchronous File Access -- */
 
 File.getText("main.js", function(text){
-	echo(text);
+	console.log(text);
 });
 
 File.read("main.js", function(buffer, size){
@@ -20,6 +20,6 @@ File.read("main.js", function(buffer, size){
 
 File.write("test.txt", "new content", function(){
 	File.append("test.txt", " added to this file", function(){
-		echo("append successful");
+		console.log("append successful");
 	});
 });

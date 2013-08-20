@@ -2,16 +2,16 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-echo("I'm executed first.");
+console.log("I'm executed first.");
 
 var h1 = new Http("http://www.google.fr").request(function(e){
-	echo("request 1 loaded");
+	console.log("request 1 loaded");
 });
 
 window.onready = function(){
-	echo("document is ready ...");
+	console.log("document is ready ...");
 }
 
 window.onload = function(){
-	echo("Every request loaded ...");
+	console.log("Every request loaded ...");
 };

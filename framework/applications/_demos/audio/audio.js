@@ -5,7 +5,7 @@ var HTTPAudioRequest = function(url, cb) {
         if (e.type == "audio") {
             cb(e.data);
         } else {
-            echo("DATA IS NOT AUDIO");
+            console.log("DATA IS NOT AUDIO");
         }
     });
 }
@@ -64,22 +64,22 @@ custom2.onbuffer = function(ev, scope) {
 }
 
 custom.onmessage = function(ev) {
-    echo(ev.message);
+    console.log(ev.message);
 }
 
 source.onplay = function() {
-    echo("Playing");
+    console.log("Playing");
 }
 
 source.onstop = function() {
-    echo("Stopped");
+    console.log("Stopped");
 }
 
 source.onerror = function(err) {
-    echo("Error : " + err);
+    console.log("Error : " + err);
 }
 source.onbuffering = function(value) {
-    echo("Buffering : " + value);
+    console.log("Buffering : " + value);
 }
 
 custom.set("gain", 0.5);

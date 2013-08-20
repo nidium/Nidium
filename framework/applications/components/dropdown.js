@@ -140,7 +140,7 @@ var	button = new UIButton(main, {
 	top : 10,
 	label : "Go"
 }).click(function(){
-	echo(field.input.__startx, field.input.__starty);
+	console.log(field.input.__startx, field.input.__starty);
 });
 
 

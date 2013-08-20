@@ -4,19 +4,19 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-echo("-- client");
+console.log("-- client");
 
 var client = new Socket("127.0.0.1", 1053).connect();
 client.onconnect = function(){
-	echo("-- connected");
+	console.log("-- connected");
 };
 
 client.onread = function(data){
-	echo("data", data);
+	console.log("data", data);
 };
 
 client.ondisconnect = function(){
-	echo("-- disconnected");
+	console.log("-- disconnected");
 };
 
 window._onmousemove = function(e){

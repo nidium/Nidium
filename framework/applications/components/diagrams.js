@@ -177,7 +177,7 @@ myDiagram.addEventListener("pinDrop", function(e){
 }, false);
 
 myDiagram.addEventListener("alreadyconnected", function(e){
-	echo("already connected:", e.source.pin.label+ "-" + e.target.pin.label);
+	console.log("already connected:", e.source.pin.label+ "-" + e.target.pin.label);
 }, false);
 
 
@@ -186,11 +186,11 @@ myDiagram.addEventListener("alreadyconnected", function(e){
 myDiagram.addEventListener("connect", function(e){
 	var s = e.source,
 		t = e.target;
-	echo("Connection : [" + s.label + "] " + s.pin.label + "-" + t.pin.label + " [" + t.label + "]");
+	console.log("Connection : [" + s.label + "] " + s.pin.label + "-" + t.pin.label + " [" + t.label + "]");
 }, false);
 
 myDiagram.addEventListener("disconnect", function(e){
-	echo("disconnect:", e.source.pin.label+ "-" + e.target.pin.label);
+	console.log("disconnect:", e.source.pin.label+ "-" + e.target.pin.label);
 //	e.refuse();
 }, false);
 

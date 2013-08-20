@@ -20,15 +20,15 @@ var t = new Thread(job);
 
 /* add some listeners */
 t.addEventListener("message", function(e){
-	echo(e.message);
+	console.log(e.message);
 });
 
 t.addEventListener("complete", function(e){
-	echo("task complete");
+	console.log("task complete");
 });
 
 t.addEventListener("error", function(e){
-	echo("error", e.message);
+	console.log("error", e.message);
 });
 
 /* start the task */

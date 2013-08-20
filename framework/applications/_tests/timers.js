@@ -7,8 +7,8 @@
 var past = +new Date();
 
 setInterval(function(){
-    var now = +new Date();
-    echo("Timer", now-past);
-    past = now;
+	var now = +new Date();
+	console.log("Timer", now-past);
+	past = now;
 }, 100);
 

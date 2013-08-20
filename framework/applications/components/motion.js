@@ -35,7 +35,7 @@ button.addEventListener("mousedown", function(e){
 
 var Animation = function(na){
 	for (var k in na){
-		echo(k);
+		console.log(k);
 	}
 };
 

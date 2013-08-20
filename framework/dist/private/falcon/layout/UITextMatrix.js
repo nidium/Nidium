@@ -91,7 +91,7 @@ var debug = true;
 	}
 
 	if (debug)
-	echo(
+	console.log(
 		"line", line,
 		"fitWidth", fitWidth,
 		"nb_words:", nb_words,
@@ -111,7 +111,7 @@ var debug = true;
 		if (node && element.wholeText.charAt(idx) == "\n") {
 			setNextNode(element, node);
 			if (debug)
-			echo(
+			console.log(
 				"KKKK", i+","+idx, ":",
 				node.id+".textLines["+node.linenum+"]["+element._currentIndex+"] = "+"[LINEBREAK]"
 			);
@@ -119,7 +119,7 @@ var debug = true;
 			setLetter(letters, 0, idx, node, "\n", 0, fitWidth, fitWidth);
 			mapLetter(node, 0, "\n", line, 0, fitWidth, fitWidth);
 
-		//	echo(">>>>>>>>>>>", node.id, node.textLines[0][0].char);
+		//	console.log(">>>>>>>>>>>", node.id, node.textLines[0][0].char);
 
 			element.textLength++;
 			node.linenum++;
@@ -151,12 +151,12 @@ var debug = true;
 		var pos = offLeft + offset + position + offgap;
 
 		if (element._currentNode !== node) {
-			echo("--- new node", node.id);
+			console.log("--- new node", node.id);
 			setNextNode(element, node);
 		}
 
 		if (debug)
-		echo(
+		console.log(
 			i+","+index, ":",
 			node.id+".textLines["+node.linenum+"]["+element._currentIndex+"] = "+char
 		);
@@ -171,7 +171,7 @@ var debug = true;
 		element.textLength++;
 		element._currentIndex++;
 	}
-	echo("**************** PPP=",position);
+	console.log("**************** PPP=",position);
 
 	// last letter Position Approximation Corrector
 
@@ -190,7 +190,7 @@ var debug = true;
 		var pos = offLeft + offset + position + offgap;
 
 		if (debug)
-		echo(
+		console.log(
 			i+","+index, ":",
 			node.id+".textLines["+node.linenum+"]["+element._currentIndex+"] = "+ (element.lineBreakSeparator == " " ? '[SPACE]' : '[LINEBREAK]')
 		);
@@ -209,7 +209,7 @@ var debug = true;
 		node = element._currentNode;
 
 		if (debug)
-		echo(
+		console.log(
 			'BREAK', i, line,
 			node.id+".textLines["+node.linenum+"]["+element._currentIndex+"] = "+ '[LINEBREAK]'
 		);
@@ -258,7 +258,7 @@ function getParagrapheMatrix(p, element, paragraphe){
 
 	element._tmpMatrix = [];
 
-//	echo("-------------------------------------------------------------");
+//	console.log("-------------------------------------------------------------");
 
 	while (words.length>0 && idx <= words.length) {
 		var str = words.slice(0, idx).join(' '),
@@ -276,7 +276,7 @@ function getParagrapheMatrix(p, element, paragraphe){
 				wordsArray = words.slice(0, idx-1);
 				element.lineBreakSeparator = " ";
 	
-				//echo(element.linenum, idx, wordsArray.join(' '));
+				//console.log(element.linenum, idx, wordsArray.join(' '));
 				updateMatrix(element, element.linenum++, wordsArray, textAlign, fitWidth);
 
 				words = words.splice(idx-1);
@@ -287,8 +287,8 @@ function getParagrapheMatrix(p, element, paragraphe){
 				// TODO : handle large unsplitable words
 				//lastWord = lastWord.split('').join(String.fromCharCode('8203'));
 				//split(/\r\n|\r|\n/);
-				echo(lastWord);
-				echo("*** word overflow", lastWordWidth - fitWidth);
+				console.log(lastWord);
+				console.log("*** word overflow", lastWordWidth - fitWidth);
 			}
 
 		} else {
@@ -302,7 +302,7 @@ function getParagrapheMatrix(p, element, paragraphe){
 		textAlign = getLastLineTextAlign(element);
 		element.lineBreakSeparator = "\n";
 
-		//echo(element.linenum, idx, words.join(' '));
+		//console.log(element.linenum, idx, words.join(' '));
 		updateMatrix(element, element.linenum, words, textAlign, fitWidth);
 	}
 

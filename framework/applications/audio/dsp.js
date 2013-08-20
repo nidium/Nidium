@@ -213,7 +213,7 @@ var app = {
 
 		this.processor.onmessage = function(e){
 			if (typeof e.data == "string" || typeof e.data == "number") {
-				echo(e.data);
+				console.log(e.data);
 			} else {
 				self.iqDFT(e.data.bufferL, e.data.bufferR);
 			}
@@ -273,19 +273,19 @@ var app = {
 
 	attachListeners : function(){
 		this.source.onplay = function(){
-			echo("Playing");
+			console.log("Playing");
 		};
 
 		this.source.onstop = function(){
-			echo("Stopped");
+			console.log("Stopped");
 		};
 
 		this.source.onerror = function(err){
-			echo("Error : " + err);
+			console.log("Error : " + err);
 		};
 
 		this.source.onbuffering = function(value){
-			echo("Buffering : " + value);
+			console.log("Buffering : " + value);
 		};
 	}
 };

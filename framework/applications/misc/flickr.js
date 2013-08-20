@@ -12,7 +12,7 @@ var h = new Http("http://api.flickr.com/services/rest/?method=flickr.photos.sear
 h.request(function(ev) {
 
 if (ev.type == "json") {
-	echo("loading images...", ev.data.photos.photo.length);
+	console.log("loading images...", ev.data.photos.photo.length);
 	for (let i = 0; i < ev.data.photos.photo.length; i++) {
 		let item = ev.data.photos.photo[i];
 		let iurl = 'http://farm' + item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '_n.jpg';
@@ -24,7 +24,7 @@ if (ev.type == "json") {
 		}
 	}
 } else {
-	echo("failed");
+	console.log("failed");
 }
 		
 })

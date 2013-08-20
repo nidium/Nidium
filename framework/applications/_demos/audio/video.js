@@ -33,7 +33,7 @@ v.onready = function() {
 
     va = v.getAudioNode();
     if (va != null) {
-        echo("Audio is not null");
+        console.log("Audio is not null");
         a.connect(va.output(0), target.input(0));
         a.connect(va.output(1), target.input(1));
     } 

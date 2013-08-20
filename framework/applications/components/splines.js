@@ -39,7 +39,7 @@ main.add("UIButton").move(10, 10).click(function(){
 
 	var v = spline.getVertices();
 	for (var i=0; i<v.length; i+=2){
-		echo(v[i], v[i+1]);
+		console.log(v[i], v[i+1]);
 	}
 
 	var b = spline.boundingRect;
@@ -48,10 +48,10 @@ main.add("UIButton").move(10, 10).click(function(){
 
 
 
-	echo("---------");
+	console.log("---------");
 	var v = spline.getVertices();
 	for (var i=0; i<v.length; i+=2){
-		echo(v[i], v[i+1]);
+		console.log(v[i], v[i+1]);
 	}
 
 

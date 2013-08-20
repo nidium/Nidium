@@ -95,7 +95,7 @@ var t = new AudioThread(function(){
 /* receive messages from audio thread */
 t.onmessage = function(e){
 	if (e.name == 'start') {
-		echo("DSP started")
+		console.log("DSP started")
 	}
 };
 

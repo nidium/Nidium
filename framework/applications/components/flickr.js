@@ -20,7 +20,7 @@ button.addEventListener("mouseup", function(e){
 		if (e.type == "json"){
 			processFlickr(e.data.photos.photo);
 		} else {
-			echo("failed");
+			console.log("failed");
 		}
 	});
 

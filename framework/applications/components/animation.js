@@ -54,7 +54,7 @@ setInterval(function(){
 			p[i].dy = -p[i].dy;
 		}
 	}
-	//echo((+new Date()) - t);
+	//console.log((+new Date()) - t);
 
 }, 16);
 

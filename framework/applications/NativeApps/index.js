@@ -2,4 +2,4 @@
 /* Native (@) 2013 Stight.com */
 /* -------------------------- */
 
-echo("npa loaded");
+console.log("npa loaded");

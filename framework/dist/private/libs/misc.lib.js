@@ -39,7 +39,7 @@ Object.dumpTemplate = function(){
 		}
 		output.push((offset.toString()).leftPad(10, "0")+" : "+hex+"| "+ascii);
 	}
-	echo(output.join(''));
+	console.log(output.join(''));
 };
 
 ArrayBuffer.prototype.dump = Object.dumpTemplate;
@@ -147,21 +147,21 @@ var BenchThis = function(name, iterations, fn){
 	ips = Math.round(1000*iterations/exec);
 	ipf = 16*iterations/exec;
 
-	echo(name);
+	console.log(name);
 
-	echo(
+	console.log(
 		'  - '+iterations.format(0, '.', ' ')+' executions takes',
 		exec.format(0, '.', ' '),
 		"ms"
 	);
 
-	echo('  - Speed: '+ips.format(0, '.', ' ')+" exec/s");
-	echo(
+	console.log('  - Speed: '+ips.format(0, '.', ' ')+" exec/s");
+	console.log(
 		'  - Oneshot ~ '+(exec/iterations).format(2, '.', ' ')+" ms", 
 		"(max "+ipf.format(0, '.', ' ')+" exec/frame)"
 	);
 
-	echo('');
+	console.log('');
 };
 
 /* -------------------------------------------------------------------------- */
@@ -172,7 +172,7 @@ var console = {
 
 	log : function(...n){
 		for (var i in n){
-			echo.call(this, this.dump(n[i]));
+			console.log.call(this, this.dump(n[i]));
 		}
 	},
 

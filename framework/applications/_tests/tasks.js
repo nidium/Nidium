@@ -60,7 +60,7 @@ function print(m, where){
 	if (where) {
 		where.append(m + "\n");
 	} else {
-		echo(m);
+		console.log(m);
 	}
 };
 
@@ -122,7 +122,7 @@ Native.scheduler.resume();
 /* Task Events */
 
 task0.oncomplete = function(e){
-	echo("***************** Task 0 Complete (Task Event)");
+	console.log("***************** Task 0 Complete (Task Event)");
 };
 
 task3.onerror = function(e){
@@ -149,7 +149,7 @@ Native.scheduler.oncomplete = function(task){
 
 var k = 0;
 setInterval(function(){
-	echo("----------------- Generic Scope Timer", k++);
+	console.log("----------------- Generic Scope Timer", k++);
 }, 500)
 
 */

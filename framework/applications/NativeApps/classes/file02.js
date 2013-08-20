@@ -3,13 +3,13 @@
 /* -------------------------- */
 
 var h2 = new Http("http://www.google.fr").request(function(e){
-	echo("request 2 loaded");
+	console.log("request 2 loaded");
 });
 
 var m = new Image();
 m.src = "assets/bg.png";
 m.onload = function(){
-	echo("image loaded");
+	console.log("image loaded");
 };
 
-echo("Hello, I'm file02.js");
+console.log("Hello, I'm file02.js");
