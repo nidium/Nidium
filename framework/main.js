@@ -15,11 +15,11 @@ document.background = "#ffffff";
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-load("applications/components/tabs.js");
+//load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
 //load("applications/components/style.js");
 //load("applications/components/windows.js");
-//load("applications/components/dropdown.js");
+load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/scrollbars.js");

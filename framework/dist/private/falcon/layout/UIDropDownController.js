@@ -351,6 +351,10 @@ Native.elements.export("UIDropDownController", {
 			this.closeSelector();
 		}, false);
 
+		this.addEventListener("focus", function(e){
+			this.bringToFront();
+		}, false);
+
 		this.addEventListener("keydown", function(e){
 			if (!self.hasFocus) return false;
 			switch (e.keyCode) {
