@@ -32,7 +32,7 @@
 		liteBackgroundColor : "#ffffff",
 		textBackgroundColor : "#ffffff",
 
-		textColor : "#333333",
+		textColor : "#FF3333",
 		textSelectionColor : "rgba(0, 0, 128, 0.2)",
 
 		fontSize : 12,
@@ -57,7 +57,7 @@
 		lineheight : 30,
 		height : 30,
 		borderWidth : 1,
-		borderColor : "rgba(0, 0, 0, 0.04)"
+		borderColor : "rgba(0, 0, 0, 0.04)",
 	},
 
 	"UILabel" : {
@@ -70,6 +70,6 @@
 	".body" : {
 		background : "#262722",
 		backgroundImage : "private://assets/back.png",
-		alpha : 0.9
+		alpha : 0.1
 	}
 }

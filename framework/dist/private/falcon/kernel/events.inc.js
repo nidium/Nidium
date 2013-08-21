@@ -24,6 +24,7 @@ Native.events = {
 	mousedown : false,
 	doubleclick : false,
 	preventmouseclick : false,
+	preventdefault : false,
 
 	dragging : false,
 	dragstarted : false,
@@ -99,8 +100,16 @@ Native.events = {
 
 			z = Native.layout.getElements();
 
+		e.preventDefault = function(){
+			self.preventdefault = true;
+		};
+
 		e.preventMouseEvents = function(){
 			self.preventmouseclick = true;
+		};
+
+		e.cancelBubble = function(){
+			cancelBubble = true;
 		};
 
 		e.stopPropagation = function(){
@@ -122,11 +131,18 @@ Native.events = {
 			}
 		}
 
+		Native.layout.topElement = false;
+
 		for(var i=z.length-1 ; i>=0 ; i--) {
 			var element = z[i];
 			cancelEvent = false;
 
 			if (!element.layer.__visible) {
+				continue;
+			}
+
+			if (this.preventdefault && element == document) {
+				this.preventdefault = false;
 				continue;
 			}
 
@@ -160,6 +176,10 @@ Native.events = {
 				}
 			} else if (element.isPointInside(x, y)){
 
+				if (Native.layout.topElement === false) {
+					Native.layout.topElement = element;
+				}
+
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
 						Native.events.hook(element, e);
@@ -169,6 +189,10 @@ Native.events = {
 				}
 
 				switch (name) {
+					case "contextmenu" :
+						e.element = Native.layout.topElement;
+						break;
+
 					case "mousewheel" :
 						//cancelBubble = true;
 						break;

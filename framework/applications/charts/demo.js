@@ -9,11 +9,11 @@
  */
 
 Native.StyleSheet.add({
-	main : {
+	".main" : {
 		background : "#262722",
 	},
 
-	views : {
+	".views" : {
 		width : 320,
 		height : 250,
 		background : "rgba(255, 255, 255, 1.0)",
@@ -22,6 +22,7 @@ Native.StyleSheet.add({
 		radius : 6
 	}
 });
+
 /* ---------------------------------------------------------------------------*/
 
 var body = new Application({

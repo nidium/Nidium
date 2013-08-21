@@ -29,7 +29,7 @@ Native.elements.export("UIToolTip", {
 		var self = this,
 			o = this.options,
 			def = document.style.get("@default") || {},
-			style = document.stylesheet[this.type] || {};
+			style = document.style.get(this.type) || {};
 
 		this.setProperties({
 			canReceiveFocus	: false,

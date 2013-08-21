@@ -22,8 +22,7 @@ Native.elements.export("UIDropDownController", {
 			o = this.options;
 
 		var y = 0,
-			tabs = o.elements ? o.elements : [],
-			l = tabs.length;
+			tabs = o.elements ? o.elements : [];
 
 		this.setProperties({
 			canReceiveFocus	: true,
@@ -55,6 +54,9 @@ Native.elements.export("UIDropDownController", {
 
 		this.selection = 0;
 		this.tabs = [];
+		this.hideSelector = OptionalBoolean(o.hideSelector, false);
+		this.hideToggleButton = OptionalBoolean(o.hideToggleButton, false);
+
 
 		this.getSelectorHeight = function(){
 			var	l = this.tabs.length,
@@ -108,14 +110,22 @@ Native.elements.export("UIDropDownController", {
 
 		this.selectIndex = function(index){
 			index = Math.max(Math.min(index, this.tabs.length-1), 0);
+
+			this.selection = index;
+			this.reset(this.selection);
+
 			if (this.selection != index){
-				this.selection = index;
-				this.reset(this.selection);
 				this.fireEvent("change", {
 					index : this.selection,
 					value : this.tabs[this.selection].value
 				});
 			}
+
+			this.fireEvent("select", {
+				index : this.selection,
+				value : this.tabs[this.selection].value
+			});
+
 			return this;
 		};
 
@@ -163,9 +173,9 @@ Native.elements.export("UIDropDownController", {
 		};
 
 		this.selector = this.add("UIView", {
-			left : 2,
-			top : this.height + 2,
-			width : this.width - 4,
+			left : this.hideSelector ? 0 : 2,
+			top : this.hideSelector ? 0 : this.height + 2,
+			width : this.hideSelector ? this.width : this.width - 4,
 			height : 0,
 			radius : 0,
 			background : this.background,
@@ -178,7 +188,7 @@ Native.elements.export("UIDropDownController", {
 			overflow : false
 		});
 
-		for (var i=0; i<l; i++){
+		for (var i=0; i<tabs.length; i++){
 			self._addElement(i, tabs[i], y);
 			y += this.tabs[i].height;
 		}
@@ -191,6 +201,7 @@ Native.elements.export("UIDropDownController", {
 			background : "rgba(0, 0, 0, 0.45)",
 			color : "#ffffff"
 		});
+		if (this.hideToggleButton) this.downButton.hide();
 
 		this._showElements = function(){
 			var l = tabs.length;
@@ -206,11 +217,15 @@ Native.elements.export("UIDropDownController", {
 			}
 		};
 
-		this.reset = function(){
+		this.unselect = function(){
 			for (var i=0; i<this.tabs.length; i++){
 				this.tabs[i].selected = false;
 			}
+			return this;
+		};
 
+		this.reset = function(){
+			this.unselect();
 			if (this.tabs[this.selection]) {
 				this.tabs[this.selection].selected = true;
 				this.label = this.tabs[this.selection].label;
@@ -226,7 +241,7 @@ Native.elements.export("UIDropDownController", {
 			this.toggleState = false;
 		};
 
-		this.openSelector = function(){
+		this.openSelector = function(duration=400){
 			if (this.toggleState == true) return false;
 			var c = this.selector,
 				from = c.height,
@@ -249,35 +264,46 @@ Native.elements.export("UIDropDownController", {
 			c.finishCurrentAnimations("opacity");
 			c.finishCurrentAnimations("height");
 
-			this.downButton.animate(
-				"angle",
-				this.downButton.angle,
-				180,
-				200,
-				null,
-				Math.physics.quintOut
-			);
+			if (this.hideToggleButton === false) {
+				this.downButton.animate(
+					"angle",
+					this.downButton.angle,
+					180,
+					duration>>1,
+					null,
+					Math.physics.quintOut
+				);
+			}
 
-			c.animate(
-				"opacity", 0, 1, 250,
-				function(){},
-				Math.physics.cubicOut
-			);
+			if (duration) {
+				c.animate(
+					"opacity", 0, 1, 50+duration>>1,
+					function(){},
+					Math.physics.cubicOut
+				);
+			} else {
+				c.opacity = 1;
+			}
 
-			this.centerToSelection(400);
+			this.centerToSelection(duration);
 
-			c.animate(
-				"height", from, delta, 200,
-				function(){
-					this._animating = false;
-				},
-				Math.physics.quintOut
-			);
+			if (duration) {
+				c.animate(
+					"height", from, delta, duration>>1,
+					function(){
+						this._animating = false;
+					},
+					Math.physics.quintOut
+				);
+			} else {
+				c.height = delta;
+				c._animating = false;
+			}
 
 			return this;
 		};
 
-		this.closeSelector = function(init){
+		this.closeSelector = function(){
 			var c = this.selector,
 				from = c.height,
 				l = this.tabs.length,
@@ -292,14 +318,16 @@ Native.elements.export("UIDropDownController", {
 				c._animating = false;
 				c.hide();
 
-				this.downButton.animate(
-					"angle",
-					this.downButton.angle,
-					0,
-					150,
-					null,
-					Math.physics.quintOut
-				);
+				if (this.hideToggleButton === false) {
+					this.downButton.animate(
+						"angle",
+						this.downButton.angle,
+						0,
+						150,
+						null,
+						Math.physics.quintOut
+					);
+				}
 
 				this._hideElements();
 				Native.events.tick();
@@ -313,14 +341,16 @@ Native.elements.export("UIDropDownController", {
 			c.finishCurrentAnimations("opacity");
 			c.finishCurrentAnimations("height");
 
-			this.downButton.animate(
-				"angle",
-				this.downButton.angle,
-				0,
-				200,
-				null,
-				Math.physics.quintIn
-			);
+			if (this.hideToggleButton === false) {
+				this.downButton.animate(
+					"angle",
+					this.downButton.angle,
+					0,
+					200,
+					null,
+					Math.physics.quintIn
+				);
+			}
 
 			c.animate("opacity", 1, 0, 250, function(){
 			}, Math.physics.cubicIn);
@@ -336,6 +366,10 @@ Native.elements.export("UIDropDownController", {
 		};
 
 		DOMElement.listeners.addHovers(this);
+
+		this.addEventListener("contextmenu", function(e){
+			e.preventDefault();
+		}, false);
 
 		this.addEventListener("mousedown", function(e){
 			if (this.toggleState) {
@@ -389,6 +423,8 @@ Native.elements.export("UIDropDownController", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
+
+ 		if (this.hideSelector) return;
 
  		if (this.outlineColor && this.outline) {
 			DOMElement.draw.outline(this);

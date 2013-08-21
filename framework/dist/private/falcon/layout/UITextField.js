@@ -188,6 +188,11 @@ Native.elements.export("UITextField", {
 					break;
 			};
 		});
+
+		this.addEventListener("contextmenu", function(e){
+			e.preventMouseEvents();
+		});
+
 	},
 
 	draw : function(context){
