@@ -24,8 +24,6 @@ Native.StyleSheet.add({
 var main = new Application();
 main.className = "body";
 
-console.log(main.type);
-
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
 	/* Tab 1 */ {label : "Belgium", 		value : 7},

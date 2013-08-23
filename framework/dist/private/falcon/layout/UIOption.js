@@ -34,6 +34,10 @@ Native.elements.export("UIOption", {
 			e.stopPropagation();
 		}, false);
 
+		this.addEventListener("contextmenu", function(e){
+			e.preventDefault();
+		}, false);
+
 		DOMElement.listeners.addHovers(this);
 
 		this.updateElement = function(){
