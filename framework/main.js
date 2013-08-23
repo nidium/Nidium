@@ -19,7 +19,7 @@ document.background = "#272822";
 //load("applications/components/profiler.js");
 //load("applications/components/style.js");
 //load("applications/components/windows.js");
-//load("applications/components/dropdown.js");
+load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/scrollbars.js");
@@ -64,7 +64,7 @@ document.background = "#272822";
 
 	//load("applications/tutorials/01.hello.js");
 	//load("applications/tutorials/02.buttons.js");
-	load("applications/tutorials/03.events.js");
+	//load("applications/tutorials/03.events.js");
 	//load("applications/tutorials/04.motion.js");
 	//load("applications/tutorials/11.post.js");
 
