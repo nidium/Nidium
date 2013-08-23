@@ -321,6 +321,7 @@ Native.events = {
 
 		if (this.last){
 			e.duration = e.time - this.last.time;
+			console.log(e.duration);
 		}
 
 		this.last = e;
