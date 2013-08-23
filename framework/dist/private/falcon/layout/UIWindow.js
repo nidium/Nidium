@@ -112,16 +112,16 @@ Native.elements.export("UIWindow", {
 			}, false);
 		}
 
-		if (o.closeable) {
-			this.handle.closeButton = this.add("UIButtonClose", {
-				left : this.width-19,
-				top : 4,
-				width : 16,
-				height : 16,
-				background : "rgba(0, 0, 0, 0.75)",
-				color : "#888888"
-			});
+		this.handle.closeButton = this.add("UIButtonClose", {
+			left : this.width-19,
+			top : 4,
+			width : 16,
+			height : 16,
+			background : "rgba(0, 0, 0, 0.75)",
+			color : "#888888"
+		});
 
+		if (o.closeable) {
 			this.handle.closeButton.addEventListener("mouseup", function(e){
 				//self.set("scale", 0, 120, function(){});
 				self.fadeOut(150, function(){
@@ -131,6 +131,8 @@ Native.elements.export("UIWindow", {
 				self.shadowColor = "rgba(0, 0, 0, 0.20)";
 				e.stopPropagation();
 			}, false);
+		} else {
+			this.handle.closeButton.hide();
 		}
 
 		this.contentView = this.add("UIView", {

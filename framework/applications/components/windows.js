@@ -22,7 +22,7 @@ var	win = main.add("UIWindow", {
 	background : "rgba(0, 0, 0, 0.4)",
 	color : '#ffdddd',
 	resizable : true,
-	closeable : true,
+	closeable : false,
 	movable : true
 });
 
