@@ -29,8 +29,6 @@ Native.events = {
 	dragging : false,
 	dragstarted : false,
 
-	timer : false,
-
 	cloneElement : null,	
 	sourceElement : null,
 
@@ -308,6 +306,9 @@ Native.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		var o = this.last || {x:0, y:0},
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
+
 		if (e.which == 3) {
 			this.preventmouseclick = false;
 			this.dispatch("contextmenu", e);
@@ -321,7 +322,13 @@ Native.events = {
 
 		if (this.last){
 			e.duration = e.time - this.last.time;
-			console.log(e.duration);
+
+			if (dist<3 && e.duration <= Native.system.doubleClickInterval) {
+				this.dispatch("mousedblclick", e);
+				this.doubleclick = true;
+				this.last = e;
+				return false;
+			}
 		}
 
 		this.last = e;
@@ -384,38 +391,19 @@ Native.events = {
 		this.dragstarted = false;
 		this.sourceElement = null;
 
-		//if (!this.timer) {
-			this.dispatch("mouseup", e);
-		//}
+		if (this.doubleclick){
+			this.doubleclick = false;
+			return false;
+		}
 
 		if (o && dist<3) {
-
 			if (elapsed > this.options.pointerHoldTime) {
 				this.doubleclick = false;
 				this.timer = false;
-				//this.dispatch("mousehold", e);
-				this.dispatch("mouseclick", e);
+				this.dispatch("mouseholdup", e);
 			} else {
-
-				if (!this.timer) {
-					Native.timer(function(){
-						if (!self.doubleclick) {
-//							self.dispatch("mouseclick", e);
-						}
-						self.timer = false;
-						self.doubleclick = false;
-					}, Native.system.doubleClickInterval);
-
-					this.timer = true;
-				} else {
-					this.dispatch("mousedblclick", e);
-					this.doubleclick = true;
-					this.timer = false;
-				}
-
 				this.dispatch("mouseclick", e);
 			}
-
 		}
 	},
 

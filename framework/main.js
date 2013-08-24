@@ -4,6 +4,20 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/*
+
+------
+TODO :
+------
+	- scale
+	- document.location.href = "fdsf/view.nml";
+	- internal file relative to app : no!
+	- radial gradient : fail
+	- window.resize
+	- nml : <viewport>1024x768</viewport>
+
+*/
+
 document.background = "#272822";
 
 //load("applications/_tests/timers.js");

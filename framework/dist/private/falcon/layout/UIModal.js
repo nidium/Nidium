@@ -28,6 +28,11 @@ Native.elements.export("UIModal", {
 			background : OptionalValue(o.background, "rgba(25, 25, 25, 0.80)")
 		});
 
+		this.left -= 10;
+		this.top -= 10;
+		this.width += 20;
+		this.height += 20;
+
 		this.hide();
 		this.closable = false;
 
