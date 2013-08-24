@@ -391,16 +391,14 @@ Native.events = {
 		this.dragstarted = false;
 		this.sourceElement = null;
 
-		if (this.doubleclick){
-			this.doubleclick = false;
-			return false;
-		}
+		this.dispatch("mouseup", e);
 
 		if (o && dist<3) {
 			if (elapsed > this.options.pointerHoldTime) {
 				this.doubleclick = false;
 				this.timer = false;
 				this.dispatch("mouseholdup", e);
+				this.dispatch("mouseclick", e);
 			} else {
 				this.dispatch("mouseclick", e);
 			}
