@@ -18,7 +18,9 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     visibility(CANVAS_VISIBILITY_VISIBLE),
     coordMode(kLeft_Coord | kTop_Coord),
     opacity(1.0),
-    zoom(1.0)
+    zoom(1.0),
+    scaleX(1.0),
+    scaleY(1.0)
 {
     this->width = width;
     this->height = height;
@@ -217,12 +219,12 @@ void NativeCanvasHandler::removeFromParent()
     if (!parent) {
         return;
     }
-
+#if 0
     if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
         printf("Reference barrier\n");
         JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
-    
+#endif
     if (parent->children == this) {
         parent->children = next;
     }
@@ -545,6 +547,25 @@ void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
     int i = 0;
     for (cur = children; cur != NULL; cur = cur->next) {
         out[i++] = cur;
+    }
+}
+
+void NativeCanvasHandler::setScale(double x, double y)
+{
+    this->recursiveScale(x, y, this->scaleX, this->scaleY);
+    this->scaleX = x;
+    this->scaleY = y;
+}
+
+void NativeCanvasHandler::recursiveScale(double x, double y,
+    double oldX, double oldY)
+{
+    NativeCanvasHandler *cur = this;
+
+    cur->context->setScale(x, y, oldX, oldY);
+
+    for (cur = children; cur != NULL; cur = cur->next) {
+        cur->recursiveScale(x, y, oldX, oldY);
     }
 }
 

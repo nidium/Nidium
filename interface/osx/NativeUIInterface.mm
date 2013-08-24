@@ -203,7 +203,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             NUII->NativeCtx->postDraw();
             int s = SDL_GetTicks();
             NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
-                1.0, 1.0, NULL);
+                1.0, NULL);
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();
@@ -544,7 +544,7 @@ void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
     }
 }
 
-void NativeCocoaUIInterface::openFileDialog(const char const *files[],
+void NativeCocoaUIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
 {
     NSOpenPanel* openDlg = [NSOpenPanel openPanel];

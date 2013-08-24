@@ -80,6 +80,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
             return this->skia;
         }
 
+        void setScale(double x, double y, double px=1, double py=1);
+
         uint32_t createProgram(const char *data);
         uint32_t compileShader(const char *data, int type);
 

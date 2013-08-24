@@ -20,7 +20,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void stopApplication();
         void restartApplication(const char *path=NULL);
         bool runApplication(const char *path);
-        void openFileDialog(const char const *files[],
+        void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
         const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
