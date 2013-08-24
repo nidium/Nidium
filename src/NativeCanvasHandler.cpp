@@ -219,12 +219,12 @@ void NativeCanvasHandler::removeFromParent()
     if (!parent) {
         return;
     }
-#if 0
+
     if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
         printf("Reference barrier\n");
         JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
-#endif
+    
     if (parent->children == this) {
         parent->children = next;
     }
