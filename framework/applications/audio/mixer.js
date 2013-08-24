@@ -322,7 +322,7 @@ for (var i=0; i<tx.length; i++){
 	};
 */
 	tracks[i].processor.onmessage = function(e){
-		echo(e.message);
+		console.log(e.message);
 	};
 }
 

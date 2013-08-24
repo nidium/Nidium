@@ -30,14 +30,14 @@ DOMElement.nodes = {
 	setWholeTextRenderingMatrix : function(element){
 		var	paragraphes = element.wholeText.split(/\r\n|\r|\n/);
 
-		echo("-------------------------------------------------------------");
+		console.log("-------------------------------------------------------------");
 
 		element.matrix = [];
 		element.textLength = 0;
 		element.linenum = 0;
 
 		for (var i=0; i<paragraphes.length; i++) {
-			//echo("********** paragraphe", i);
+			//console.log("********** paragraphe", i);
 			var matrix = getParagrapheMatrix(i, element, paragraphes[i]);
 			element.matrix.push(matrix);
 		}

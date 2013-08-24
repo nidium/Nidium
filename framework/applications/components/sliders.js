@@ -92,7 +92,7 @@ master = main.add("UISliderController", {
 
 
 master.addEventListener("complete", function(value){
-	echo(value);
+	console.log(value);
 }, false);
 
 

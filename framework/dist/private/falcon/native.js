@@ -64,7 +64,6 @@ load(__PATH_LAYOUT__ + 'UIView.js');
 load(__PATH_LAYOUT__ + 'UIPath.js');
 load(__PATH_LAYOUT__ + 'UILabel.js');
 
-
 load(__PATH_LAYOUT__ + 'Icon.js');
 
 load(__PATH_LAYOUT__ + 'UIButton.js');
@@ -121,6 +120,7 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		this.createDocument();
+		this.createContextMenu();
 		this.createSpinner();
 		this.setRenderingLoop();
 		this.addStatusBar();
@@ -181,6 +181,75 @@ Native.core = {
 		};
 
 		Object.createProtectedElement(Native.scope, "document", doc);
+	},
+
+	createContextMenu : function(){
+		document.addEventListener("contextmenu", function(e){
+			var root = e.element._root;
+
+			if (document.overlayView) document.overlayView.remove();
+
+			document.overlayView = root.add("UIElement", {
+				background : "rgba(0, 0, 0, 0.7)"
+			});
+
+			document.contextMode = false;
+
+			document.overlayView.addEventListener("mousedown", function(e){
+				if (document.contextMode === false) return;
+				if (document.contextMenu) {
+					document.contextMenu.selector.hide();
+					document.contextMenu.remove();
+					this.remove();
+				}
+			});
+
+			var	myMenu = [
+				/* Tab 0 */ {label : "Copy", 		value : 0},
+				/* Tab 1 */ {label : "Cut", 		value : 1},
+				/* Tab 2 */ {label : "Paste", 		value : 2},
+				/* Tab 3 */ {label : "View Source",	value : 10}
+			];
+
+			if (this.contextMenu) {
+				this.contextMenu.selector.hide();
+				this.contextMenu.remove();
+			}
+
+			this.contextMenu = document.overlayView.add("UIDropDownController", {
+				left : 588,
+				top : 80,
+				maxHeight : 198,
+				hideSelector : true,
+				hideToggleButton : true,
+				name : "documentContextMenu",
+				radius : 2,
+				elements : myMenu,
+				background : '#333333',
+				selectedBackground : "#4D90FE",
+				selectedColor : "#FFFFFF"
+			});
+
+			this.contextMenu.addEventListener("blur", function(){
+				this.fireEvent("tick", {})
+				this.remove();
+			});
+
+			this.contextMenu.place(
+				window.mouseX,
+				window.mouseY
+			).unselect().openSelector(0);
+
+			this.contextMenu.addEventListener("select", function(){
+				document.contextMenu.selector.hide();
+				document.contextMenu.remove();
+				document.overlayView.remove();
+			});
+
+			setTimeout(function(){
+				document.contextMode = true;
+			}, 5);
+		});
 	},
 
 	setRenderingLoop : function(){

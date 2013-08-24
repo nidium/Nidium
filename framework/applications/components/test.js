@@ -81,7 +81,7 @@ c0.click(function(){
 
 	window.openFileDialog(["png", "jpg", "jpeg"], function(res){
 		for (var i=0; i<res.length; i++){
-			echo(res[i])
+			console.log(res[i])
 		}
 		var img = new Image();
 		img.src = res[0];

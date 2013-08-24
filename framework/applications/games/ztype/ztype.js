@@ -170,7 +170,7 @@ canvas.style = {};
 		},
 		
 		_loadScript: function(name, requiredFrom) {
-			echo("_loadScript");
+			console.log("_loadScript");
 
 			ig.modules[name] = {
 				name: name,
@@ -239,7 +239,7 @@ canvas.style = {};
 		},
 		
 		_DOMReady: function() {
-			echo("_DOMReady");
+			console.log("_DOMReady");
 
 			if (!ig.modules['dom.ready'].loaded) {
 				ig.modules['dom.ready'].loaded = true;
@@ -395,7 +395,7 @@ ig.module('impact.image').defines(function() {
 				this.data.onload = this.onload.bind(this);
 				this.data.onerror = this.onerror.bind(this);
 				this.data.src = this.path; // + ig.nocache;
-				//echo(this.path); // TODO: + ig.nocache);
+				//console.log(this.path); // TODO: + ig.nocache);
 			} else {
 				ig.addResource(this);
 			}
@@ -424,7 +424,7 @@ ig.module('impact.image').defines(function() {
 		},
 		
 		onerror: function(event) {
-			echo("error image"); // TODO
+			console.log("error image"); // TODO
 			this.failed = true;
 			if (this.loadCallback) {
 				this.loadCallback(this.path, false);
@@ -3265,7 +3265,7 @@ ig.module('game.main').requires('impact.game', 'impact.font', 'game.menus', 'gam
 				[1]
 			], this.grid);
 
-			echo("-- game init();");
+			console.log("-- game init();");
 
 			bgmap.repeat = true;
 			this.backgroundMaps.push(bgmap);

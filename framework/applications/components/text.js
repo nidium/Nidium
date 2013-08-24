@@ -164,7 +164,7 @@ var dat = +new Date();
 div.addChild(t100);
 
 var dur = (+new Date()) - dat;
-echo(dur, "ms");
+console.log(dur, "ms");
 
 
 div.addChild(t100a);div.addChild(t100b);div.addChild(t100c);
@@ -203,13 +203,13 @@ div.addChild(t120);
 div.addChild(t121);
 
 var dur = (+new Date()) - dat;
-echo(dur, "ms");
+console.log(dur, "ms");
 
 
 
 /*
 div.childNodes.each(function(){
-	echo(this.id, this.className)
+	console.log(this.id, this.className)
 	this.updateClassProperties();
 	this.redraw();
 });
@@ -273,7 +273,7 @@ var dat = +new Date();
 	DOMElement.nodes.refresh(div);
 
 var dur = (+new Date()) - dat;
-echo(dur, "ms");
+console.log(dur, "ms");
 
 });
 

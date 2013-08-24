@@ -4,7 +4,7 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var main = new Application({id:"main"});
+var main = new Application();
 
 main.status = new UIStatus(main);
 main.status.open();
@@ -116,28 +116,27 @@ tabController.addEventListener("tabmove", function(e){
 	var tab = e.tab,
 		elements = e.elements;
 
-	echo("-- tab", tab.index, "moved to position", this.currentPosition);
+	console.log("-- tab", tab.index, "moved to position", this.currentPosition);
 	for (var i=0; i<elements.length; i++){
-		echo("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
+		console.log("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
-	echo("");
+	console.log("");
 });
 
 tabController.addEventListener("tabbeforeclose", function(e){
-	echo("try to close tab ", e.tab.index);
+	console.log("try to close tab ", e.tab.index);
 });
 
 tabController.addEventListener("tabclose", function(e){
 	var tab = e.tab,
 		elements = e.elements;
 	
-	echo("-- tab closed.");
+	console.log("-- tab closed.");
 	for (var i=0; i<elements.length; i++){
-		echo("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
+		console.log("position "+i, " --> tab", elements[i], " tabs["+i+"].pos = ", this.tabs[i].pos);
 	}
-	echo("");
+	console.log("");
 });
-
 
 
 

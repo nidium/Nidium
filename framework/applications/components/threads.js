@@ -16,7 +16,7 @@ var t = new Thread(function(...n){
 
 t.onmessage = function(e){
 	var i = e.data;
-	echo(e);
+	console.log(e);
 	/*
 	document.status.label = i;
 	document.status.value = i*100/5000000;

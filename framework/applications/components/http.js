@@ -18,7 +18,7 @@ var url = "http://195.122.253.112/public/mp3/Symphony%20X/Symphony%20X%20'A%20Fo
 
 var h = new HttpRequest('GET', url, null, function(e){
 	for (var h in e.headers){
-		echo(h, e.headers[h]);
+		console.log(h, e.headers[h]);
 	}
 	main.status.label = "Complete";
 	main.status.value = 0;

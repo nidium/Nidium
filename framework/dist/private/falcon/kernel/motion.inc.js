@@ -58,7 +58,7 @@ DOMElement.implement({
 
 		for (var i in q){
 			if (q.hasOwnProperty(i)){
-				q[i].finish();
+				if (q[i].view == this) q[i].finish();
 			}
 		}
 	},
@@ -179,6 +179,7 @@ Native.MotionFactory = {
 
 		if (callback && animation.callback) animation.callback.call(view);
 		this.remove(animation);
+		Native.events.tick();
 
 		this.ended++;
 	},

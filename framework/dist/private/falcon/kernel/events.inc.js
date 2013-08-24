@@ -24,11 +24,10 @@ Native.events = {
 	mousedown : false,
 	doubleclick : false,
 	preventmouseclick : false,
+	preventdefault : false,
 
 	dragging : false,
 	dragstarted : false,
-
-	timer : false,
 
 	cloneElement : null,	
 	sourceElement : null,
@@ -99,8 +98,16 @@ Native.events = {
 
 			z = Native.layout.getElements();
 
+		e.preventDefault = function(){
+			self.preventdefault = true;
+		};
+
 		e.preventMouseEvents = function(){
 			self.preventmouseclick = true;
+		};
+
+		e.cancelBubble = function(){
+			cancelBubble = true;
 		};
 
 		e.stopPropagation = function(){
@@ -122,11 +129,18 @@ Native.events = {
 			}
 		}
 
+		Native.layout.topElement = false;
+
 		for(var i=z.length-1 ; i>=0 ; i--) {
 			var element = z[i];
 			cancelEvent = false;
 
 			if (!element.layer.__visible) {
+				continue;
+			}
+
+			if (this.preventdefault && element == document) {
+				this.preventdefault = false;
 				continue;
 			}
 
@@ -160,6 +174,10 @@ Native.events = {
 				}
 			} else if (element.isPointInside(x, y)){
 
+				if (Native.layout.topElement === false) {
+					Native.layout.topElement = element;
+				}
+
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
 						Native.events.hook(element, e);
@@ -169,6 +187,10 @@ Native.events = {
 				}
 
 				switch (name) {
+					case "contextmenu" :
+						e.element = Native.layout.topElement;
+						break;
+
 					case "mousewheel" :
 						//cancelBubble = true;
 						break;
@@ -284,6 +306,9 @@ Native.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		var o = this.last || {x:0, y:0},
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
+
 		if (e.which == 3) {
 			this.preventmouseclick = false;
 			this.dispatch("contextmenu", e);
@@ -297,6 +322,13 @@ Native.events = {
 
 		if (this.last){
 			e.duration = e.time - this.last.time;
+
+			if (dist<3 && e.duration <= Native.system.doubleClickInterval) {
+				this.dispatch("mousedblclick", e);
+				this.doubleclick = true;
+				this.last = e;
+				return false;
+			}
 		}
 
 		this.last = e;
@@ -359,38 +391,17 @@ Native.events = {
 		this.dragstarted = false;
 		this.sourceElement = null;
 
-		//if (!this.timer) {
-			this.dispatch("mouseup", e);
-		//}
+		this.dispatch("mouseup", e);
 
 		if (o && dist<3) {
-
 			if (elapsed > this.options.pointerHoldTime) {
 				this.doubleclick = false;
 				this.timer = false;
-				//this.dispatch("mousehold", e);
+				this.dispatch("mouseholdup", e);
 				this.dispatch("mouseclick", e);
 			} else {
-
-				if (!this.timer) {
-					Native.timer(function(){
-						if (!self.doubleclick) {
-//							self.dispatch("mouseclick", e);
-						}
-						self.timer = false;
-						self.doubleclick = false;
-					}, Native.system.doubleClickInterval);
-
-					this.timer = true;
-				} else {
-					this.dispatch("mousedblclick", e);
-					this.doubleclick = true;
-					this.timer = false;
-				}
-
 				this.dispatch("mouseclick", e);
 			}
-
 		}
 	},
 

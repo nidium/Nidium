@@ -4,7 +4,21 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-document.background = "#ffffff";
+/*
+
+------
+TODO :
+------
+	- scale
+	- document.location.href = "fdsf/view.nml";
+	- internal file relative to app : no!
+	- radial gradient : fail
+	- window.resize
+	- nml : <viewport>1024x768</viewport>
+
+*/
+
+document.background = "#272822";
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -19,7 +33,7 @@ document.background = "#ffffff";
 //load("applications/components/profiler.js");
 //load("applications/components/style.js");
 //load("applications/components/windows.js");
-load("applications/components/dropdown.js");
+//load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/scrollbars.js");

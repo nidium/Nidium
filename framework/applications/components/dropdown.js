@@ -41,15 +41,12 @@ var	myElements = [
 	/* Tab 9 */ {label : "Japan", 			value : 13}
 ];
 
-var text = "In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X. In olden times when wishing still helped one when wishing still helped one, there lived a king X.";
-
 var field = main.add("UITextField", {
 	left : 100,
 	top : 50
 });
 
-field.value = "https://www.google.fr/search?q=mac+osx+enlever+le+zoom&oq=mac+osx+enlever+le+zoom&aqs=chrome.0.69i57j0.5019j0&sourceid=chrome&ie=UTF-8#sclient=psy-ab&q=KMOD_GUI+sdl&oq=KMOD_GUI+sdl&gs_l=serp.3...45123.47082.2.47371.8.8.0.0.0.0.88.626.8.8.0....0.0..1c.1.20.psy-ab.inHNMKRk2vc&pbx=1&bav=on.2,or.r_cp.r_qf.&bvm=bv.49478099%2Cd.d2k%2Cpv.xjs.s.en_US.c75bKy5EQ0A.O&fp=d81ade728c71813c&biw=1512&bih=983";
-field.color = "#660000";
+field.value = "https://www.google.com/";
 field.width = 430;
 
 var dateField = main.add("UITextField", {
@@ -63,18 +60,11 @@ var dateField = main.add("UITextField", {
 dateField.addClass("selected");
 dateField.id = "foobar";
 
-
 var h = new UIToolTip(dateField, {
 	label : "please enter a valid date"
 });
 
 h.enable();
-
-
-dateField.addEventListener("contextmenu", function(e){
-	console.log("context");
-	e.preventMouseEvents();
-});
 
 field.addEventListener("submit", function(e){
 	console.log("submit", e.value);
@@ -83,11 +73,6 @@ field.addEventListener("submit", function(e){
 dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
-
-
-
-
-
 
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
@@ -101,13 +86,13 @@ var	dropDownController = main.add("UIDropDownController", {
 	selectedColor : "#FFFFFF"
 });
 
+
 dropDownController.value = 4;
 
 
 dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);
 });
-
 
 
 
@@ -118,7 +103,7 @@ var	button = new UIButton(main, {
 	top : 10,
 	label : "Go"
 }).click(function(){
-	echo(field.input.__startx, field.input.__starty);
+	console.log(field.input.__startx, field.input.__starty);
 });
 
 

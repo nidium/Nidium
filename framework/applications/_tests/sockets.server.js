@@ -4,14 +4,14 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-echo("-- server init");
+console.log("-- server init");
 
 var server = new Socket("127.0.0.1", 1053).listen(),
 	mx = 1024/2,
 	my = 768/2;
 
 server.onaccept = function(client){
-	echo(client);
+	console.log(client);
 };
 
 server.onread = function(client, data){
@@ -22,7 +22,7 @@ server.onread = function(client, data){
 };
 
 server.ondisconnect = function(client){
-	echo("-- disconnected");
+	console.log("-- disconnected");
 };
 
 Native.canvas.ctx.fillStyle = "#ffffff";

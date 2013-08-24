@@ -424,7 +424,7 @@ var print = function(txt, element){
 			if (go === false) return false;
 		}
 
-		echo(
+		console.log(
 			'#'+element._root.id + ':' + element.type,
 			element._uid, 
 			(element.id!=element._uid?'"#'+element.id+'"':''),
@@ -433,7 +433,7 @@ var print = function(txt, element){
 			': ' + txt
 		);
 	} else {
-		if (__other__) echo(txt);
+		if (__other__) console.log(txt);
 	}
 };
 

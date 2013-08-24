@@ -381,9 +381,9 @@ Native.elements.export("UITabController", {
 
 /*
 			if (e.xrel>0) {
-				echo(dx, __offsetX, e.x - curr.__left);
+				console.log(dx, __offsetX, e.x - curr.__left);
 			} else {
-				echo(dx, __offsetX, e.x - curr.__left);
+				console.log(dx, __offsetX, e.x - curr.__left);
 			}
 */
 			window.cursor = "drag";

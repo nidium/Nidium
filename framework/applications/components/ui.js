@@ -29,7 +29,7 @@ var	mainTabController = main.add("UITabController", {
 
 
 main.addEventListener("mousedblclick", function(){
-	echo("dbl");
+	console.log("dbl");
 });
 
 
@@ -380,15 +380,15 @@ var s = textView.setCaret(0, 540);
 
 textView.addEventListener("textselect", function(s){
 	//console.log(s);
-	//echo('"' + textView.text.substr(s.offset, s.size) + '"');
+	//console.log('"' + textView.text.substr(s.offset, s.size) + '"');
 	//this.select(false);
 	//this.setCaret(s.offset, s.size);
 	//this.getTextSelectionFromCaret(this.caret);
 });
 
 getTextButton.addEventListener("mousedown", function(e){
-	echo(">>" + textView.getTextSelection() + "<<");
-	echo("");
+	console.log(">>" + textView.getTextSelection() + "<<");
+	console.log("");
 });
 
 cutButton.addEventListener("mousedown", function(e){

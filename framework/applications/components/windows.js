@@ -13,12 +13,6 @@ var	button = new UIButton(main, {
 	label : "Do It"
 });
 
-button.addEventListener("mousedown", function(e){
-	win.contentView.VScrollBar.show();
-});
-
-
-
 var	win = main.add("UIWindow", {
 	left : 60,
 	top : 60,
@@ -28,7 +22,7 @@ var	win = main.add("UIWindow", {
 	background : "rgba(0, 0, 0, 0.4)",
 	color : '#ffdddd',
 	resizable : true,
-	closeable : true,
+	closeable : false,
 	movable : true
 });
 

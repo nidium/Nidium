@@ -149,7 +149,7 @@ Object.membrane = function(wetTarget, getForwardingHandler = Object.Handler){
 						if ("in" in Object){
 							arg = key.in("get", "set") ? n[1] : "";
 						}
-						echo("Exception: not allowed", key, arg);
+						console.log("Exception: not allowed", key, arg);
 						throw wrap(e);
 					}
 				};

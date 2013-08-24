@@ -156,7 +156,7 @@ const Color = new StructType({
 
 var p = new Point2D(7, 8);
 
-echo(p.x, p.y);
+console.log(p.x, p.y);
 
 
 var z = [7, 8];
@@ -173,7 +173,7 @@ for (var i=0; i<150000; i++){
 	p.x += 1;
 	p.y += 1;
 }
-echo( (+new Date())-u  );
+console.log( (+new Date())-u  );
 
 
 
@@ -182,7 +182,7 @@ for (var i=0; i<150000; i++){
 	q.x += 1;
 	q.y += 1;
 }
-echo( (+new Date())-u  );
+console.log( (+new Date())-u  );
 
 
 var u = +new Date();
@@ -190,7 +190,7 @@ for (var i=0; i<150000; i++){
 	p.__views[0] += 1;
 	p.__views[1] += 1;
 }
-echo( (+new Date())-u  );
+console.log( (+new Date())-u  );
 
 
 var u = +new Date();
@@ -198,7 +198,7 @@ for (var i=0; i<150000; i++){
 	z[0] += 1;
 	z[1] += 1;
 }
-echo( (+new Date())-u  );
+console.log( (+new Date())-u  );
 
 
 

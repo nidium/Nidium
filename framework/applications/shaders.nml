@@ -1,14 +1,6 @@
 <application version="1.0">
-	<meta>
-		<title>NATiVE Application</title>
-		<description>This is a native description of the page</description>
-		<viewport>1024x768</viewport>
-		<version>2.5</version>
-		<date>2012-03-15</date>
-		<robots>index, follow</robots>
-	</meta>
 	<assets>
-		<script type="native/javascript" src="falcon/native.js"></script>
-		<script type="native/javascript" src="applications/demos/shader.basic.js"></script>
+		<script type="native/javascript" src="private://falcon/native.js"></script>
+		<script type="native/javascript" src="components/shader.basic.js"></script>
 	</assets>
 </application>

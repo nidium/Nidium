@@ -21,14 +21,14 @@ var w = {
 
 var h = new o.ctx();
 
-echo(h.zz);
+console.log(h.zz);
 w.revoke();
-echo(h.zz);
+console.log(h.zz);
 
 */
 
 function assertEquals(a, b){
-	if (a === b) echo(a, "===", b);
+	if (a === b) console.log(a, "===", b);
 }
 
 /*
@@ -65,7 +65,7 @@ function assertEquals(a, b){
         function test2() {
             if (++i == 100) {
                 var endTime = Date.now();
-                echo("100 iterations of setTimeout(0) took " +
+                console.log("100 iterations of setTimeout(0) took " +
                             (endTime - startTime) + " milliseconds.");
             } else {
                 setTimeout(test2, 0);
@@ -103,7 +103,7 @@ var l = {
 	x : 5,
 	y : 7,
 	z : function(){
-		echo("fdsf");
+		console.log("fdsf");
 	}
 };
 
@@ -117,7 +117,7 @@ l.parent = {
 		k : 9,
 		p : null,
 		u : undefined,
-		a : [5, 8, {k:5, cc:function(){echo("fdf");}}, 9, 8],
+		a : [5, 8, {k:5, cc:function(){console.log("fdf");}}, 9, 8],
 		b : true,
 		mm : false,
 

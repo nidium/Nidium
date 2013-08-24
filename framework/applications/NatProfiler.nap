@@ -58,31 +58,31 @@ Native.profiler = {
 	getTrap : function(key){
 		this.lastKey = key;
 		if (this.verbose.get && this.running){
-			echo(".. intercepted get", key);
+			console.log(".. intercepted get", key);
 		}
 	},
 
 	setTrap : function(key, val){
 		if (this.verbose.set && this.running){
-			echo(".. intercepted set", key, "=", val);
+			console.log(".. intercepted set", key, "=", val);
 		}
 	},
 
 	deleteTrap : function(key, val){
 		if (this.verbose.set){
-			echo(".. intercepted delete", key);
+			console.log(".. intercepted delete", key);
 		}
 	},
 
 	enumerateTrap : function(key, val){
 		if (this.verbose.enumerate){
-			echo(".. intercepted enumerate");
+			console.log(".. intercepted enumerate");
 		}
 	},
 
 	iterateTrap : function(key, val){
 		if (this.verbose.iterate){
-			echo(".. intercepted interate");
+			console.log(".. intercepted interate");
 		}
 	},
 
@@ -143,7 +143,7 @@ Native.profiler = {
 						   "Anonymous (assumed "+___.lastKey+")" : 
 						   obj.name;
 
-				//echo("-- handling call", name);
+				//console.log("-- handling call", name);
 
 				___.measureStart();
 				var r = obj.apply(this, args);
@@ -165,7 +165,7 @@ Native.profiler = {
 						   "Anonymous (assumed "+___.lastKey+")" : 
 						   obj.name;
 
-				//echo("-- handling contructor", name);
+				//console.log("-- handling contructor", name);
 
 				var Forward = function(args){
 					return obj.apply(this, args);
@@ -263,7 +263,7 @@ Native.profiler = {
 		this.duration = duration;
 
 		this.startTime = + new Date();
-		echo("---------------------------------- Native Profiler Start ----------------------------------");
+		console.log("---------------------------------- Native Profiler Start ----------------------------------");
 		this.loaded = true;
 		this.running = true;
 
@@ -290,7 +290,7 @@ Native.profiler = {
 		this.totalExecTime = this.endTime - this.startTime;
 		this.running = false;
 
-		echo("---------------------------------- Native Profiler Stop -----------------------------------");
+		console.log("---------------------------------- Native Profiler Stop -----------------------------------");
 
 		if (this.callback) {
 			this.callback.call(this);
@@ -313,9 +313,9 @@ Native.profiler = {
 			var line = this.data[i],
 				date = line.startDate - this.startTime;
 
-			echo(date + ":", line.type, line.name, line.execTime);
+			console.log(date + ":", line.type, line.name, line.execTime);
 		}
-		echo("---------------------------------- Native Profiler Show -----------------------------------");
+		console.log("---------------------------------- Native Profiler Show -----------------------------------");
 	},
 
 	stats : function(){
@@ -382,14 +382,14 @@ Native.profiler = {
 				ms = line.totalExecTime;
 			
 			if (line.name == "{IDLE}") {
-				echo(
+				console.log(
 					("Other/IDLE ").rightPad(50),
 					"".rightPad(14),
 					(" " + Math.round(ms*10)/10 + " ms").leftPad(12),
 					(" ("+Math.round(ms*10000/totalTimeBase)/100 + " %)").leftPad(12)
 				);
 			} else {
-				echo(
+				console.log(
 					(line.name + " : ").rightPad(50),
 					(line.exec + " exec ").rightPad(14),
 					(" " + Math.round(ms*10)/10 + " ms").leftPad(12),
@@ -398,11 +398,11 @@ Native.profiler = {
 			}
 		}
 
-		echo("-------------------------------------------------------------------------------------------");
-		echo("Total Benchmark Time : set to "+this.duration+" ms (real timer measure was "+this.totalExecTime+" ms)");
-		echo("-------------------------------------------------------------------------------------------");
-		echo("Total Time of Intercepted Code Execution :", Math.round(totalExecTimeAll), "ms");
-		echo("-------------------------------------------------------------------------------------------");
+		console.log("-------------------------------------------------------------------------------------------");
+		console.log("Total Benchmark Time : set to "+this.duration+" ms (real timer measure was "+this.totalExecTime+" ms)");
+		console.log("-------------------------------------------------------------------------------------------");
+		console.log("Total Time of Intercepted Code Execution :", Math.round(totalExecTimeAll), "ms");
+		console.log("-------------------------------------------------------------------------------------------");
 
 	}
 };
