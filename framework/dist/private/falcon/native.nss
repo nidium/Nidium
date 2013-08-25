@@ -69,7 +69,7 @@
 
 	".body" : {
 		background : "#262722",
-		backgroundImage : "private://assets/back.png",
-		alpha : 0.1
+		backgroundImage : "private://assets/noisy.png",
+		alpha : 1.9
 	}
 }

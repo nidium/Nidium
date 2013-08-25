@@ -8,25 +8,9 @@
  * --------------------------------------------------------------------------- * 
  */
 
-Native.StyleSheet.add({
-	".main" : {
-		background : "#262722",
-	},
-
-	".views" : {
-		width : 320,
-		height : 250,
-		background : "rgba(255, 255, 255, 1.0)",
-		shadowBlur : 10,
-		shadowColor : "black",
-		radius : 6
-	}
-});
-
-/* ---------------------------------------------------------------------------*/
-
 var body = new Application({
-	background : "rgba(255, 255, 255, 0.3)"
+	background : "rgba(255, 255, 255, 0.3)",
+	class : "body"
 });
 
 var	v1 = new UIElement(body, "views").place(10, 10);
