@@ -9,11 +9,11 @@
 ------
 TODO :
 ------
-	- scale
 	- document.location.href = "fdsf/view.nml"; (DONE)
-	- contextmenu window.mouseX, window.mouseY
-	- internal file relative to app : no!
+	- contextmenu window.mouseX, window.mouseY (DONE)
 	- radial gradient : fail
+	- internal file relative to app : no!
+	- scale
 	- window.resize
 	- nml : <viewport>1024x768</viewport>
 	- outline
@@ -52,7 +52,7 @@ load("applications/components/dropdown.js");
 
 /* UNIT TESTS */
 
-	//load("testLayer.js");
+	//load("applications/_tests/arc.js");
 	//load("testArc.js");
 	//load("testRetina.js");
 

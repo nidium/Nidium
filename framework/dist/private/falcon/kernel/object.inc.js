@@ -689,8 +689,8 @@ DOMElement.draw = {
 			gradient.addColorStop(0.00, 'rgba(0, 0, 0, 0.01)');
 			gradient.addColorStop(1.00, 'rgba(0, 0, 0, 0.1)');
 		} else {
-			gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.01)');
-			gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.1)');
+			gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.1)');
+			gradient.addColorStop(1.00, 'rgba(255, 255, 255, 1)');
 		}
 
 		context.beginPath();

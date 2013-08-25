@@ -224,12 +224,20 @@ Native.StyleSheet = {
 	refreshDynamicProperties : function(selector){
 		var prop = this.getProperties(selector);
 
-		for (var k in prop) {
-			if (prop.hasOwnProperty(k) && typeof prop[k] == "function") {
-				var e = this.getPropertyHandler(selector, k),
-					value = prop[k].call(document.style, e);
+		if (typeof prop == "function") {
+			setTimeout(function(){
+				document.getElementsByClassName("button").each(function(){
+					prop.call(this);
+				});
+			}, 0);
+		} else {
+			for (var k in prop) {
+				if (prop.hasOwnProperty(k) && typeof prop[k] == "function") {
+					var e = this.getPropertyHandler(selector, k),
+						value = prop[k].call(document.style, e);
 
-				this.setDynamicProperty(selector, k, value);
+					this.setDynamicProperty(selector, k, value);
+				}
 			}
 		}
 	},
@@ -243,9 +251,11 @@ Native.StyleSheet = {
 			case "@" : /* static property container, do nothing */ break;
 
 			case "#" : 
-				var element = document.getElementById(k);
-				if (!isDOMElement(element)) return false;
-				element[property] = value;
+				setTimeout(function(){
+					var element = document.getElementById(k);
+					if (!isDOMElement(element)) return false;
+					element[property] = value;
+				}, 0);
 				break;
 
 			case "." :
@@ -257,9 +267,11 @@ Native.StyleSheet = {
 				break;
 
 			default :
-				document.getElementsByTagName(k).each(function(){
-					this[property] = value;
-				});
+				setTimeout(function(){
+					document.getElementsByTagName(k).each(function(){
+						this[property] = value;
+					});
+				}, 0);
 				break;
 		};
 	},

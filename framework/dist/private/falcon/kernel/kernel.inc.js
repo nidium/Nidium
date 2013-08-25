@@ -462,13 +462,13 @@ Native.object = {
 	updateClassProperties : function updateClassProperties(){
 		var classNames = this.className.split(" ");
 		for (var i in classNames){
-			var props = Native.StyleSheet.getProperties("."+classNames[i]);
+			var props = document.style.get("."+classNames[i]);
 			this.setProperties(props);
 		}
 	},
 
 	updateIdProperties : function updateIdProperties(){
-		var props = Native.StyleSheet.getProperties("#"+this.id);
+		var props = document.style.get("#"+this.id);
 		this.setProperties(props);
 	},
 

@@ -142,6 +142,7 @@ Native.elements.export("UITextField", {
 
 			this.input.height = this.height - this.paddingTop - this.paddingBottom;
 			this.input.lineHeight = this.lineHeight - this.paddingTop - this.paddingBottom;
+			this.input.resizeElement();
 		};
 
 		this.input.addEventListener("focus", function(e){

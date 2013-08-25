@@ -306,6 +306,8 @@ Native.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		window.mouseX = e.x;
+		window.mouseY = e.y;
 		var o = this.last || {x:0, y:0},
 			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
 

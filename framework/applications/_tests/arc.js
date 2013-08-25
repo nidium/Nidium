@@ -19,16 +19,34 @@ var context = bigview.getContext("2d"),
 	y = 40,
 	w = 100,
 	h = 100,
-	radius = 10;
+	radius = 60;
 
-	context.beginPath();
-
-	context.arc(
-		x+radius, y+h*0.5, 
-		radius, 0, 6.2831852, false
+	var gradient = context.createRadialGradient(
+		x+radius,
+		y+radius, 
+		radius,
+		x+radius,
+		y+radius,
+		radius/4
 	);
 
-	context.setColor('#ff0000');
+	gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.01)');
+	gradient.addColorStop(1.00, 'rgba(255, 255, 255, 1)');
+
+	context.beginPath();
+	context.arc(
+		x+radius, y+h*0.5, 
+		radius, 0, 6.283185307179586, false
+	);
+	context.setColor("red");
 	context.fill();
+	context.lineWidth = 1;
 
-
+	context.beginPath();
+	context.arc(
+		x+radius, y+h*0.5, 
+		radius, 0, 6.283185307179586, false
+	);
+	context.setColor(gradient);
+	context.fill();
+	context.lineWidth = 1;

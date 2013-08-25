@@ -185,24 +185,13 @@ Native.core = {
 			}
 		};
 
-		document.spinner = new UISpinner(document, {
-			height : 40,
-			width : 40,
-			dashes : 12,
-			lineWidth : 8,
-			color : "rgba(128, 128, 128, 0.5)",
-			speed : 32,
-			opacity : 0.3,
-			radius : 2
-		}).center();
-
 		document.addEventListener("contextmenu", function(e){
 			var root = e.element._root;
 
 			if (document.overlayView) document.overlayView.remove();
 
 			document.overlayView = root.add("UIElement", {
-				background : "rgba(0, 0, 0, 0.7)"
+				background : "rgba(255, 255, 255, 0.1)"
 			});
 
 			document.contextMode = false;
@@ -252,16 +241,31 @@ Native.core = {
 				window.mouseY
 			).unselect().openSelector(0);
 
-			this.contextMenu.addEventListener("select", function(){
+			this.contextMenu.addEventListener("select", function(e){
 				document.contextMenu.selector.hide();
 				document.contextMenu.remove();
 				document.overlayView.remove();
+				console.log(e.value);
 			});
 
 			setTimeout(function(){
 				document.contextMode = true;
 			}, 5);
 		});
+
+		document.spinner = new UISpinner(document, {
+			height : 40,
+			width : 40,
+			dashes : 12,
+			lineWidth : 8,
+			color : "rgba(128, 128, 128, 0.5)",
+			speed : 32,
+			opacity : 0.3,
+			radius : 2
+		}).center();
+
+
+
 	},
 
 	setRenderingLoop : function(){

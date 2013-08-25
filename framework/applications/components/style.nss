@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------- *
  * NSS : Native Style Sheet Draft                          (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version:     0.5                                                            *
+ * Version:     0.6                                                            *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
@@ -28,11 +28,18 @@
 		background : "#262722"
 	},
 
-	".button" : {
-		background : "#559933",
-		color : "#ffffff",
-		fontSize : 10.5,
-		top : 48,
+	".button" : function(){
+		this.color = "#ffffff";
+		this.fontSize = 10.5;
+		this.top = 48;
+
+		this.background = "#559933";
+
+		this.animate(
+			"top", this.top, this.top+190,
+			800, null,
+			Math.physics.elasticOut
+		);
 	},
 
 	".label" : {
@@ -70,9 +77,7 @@
 	},
 
 	".blue" : {
-		background : function(self){
-			return "#4488EE";
-		}
+		background : function() "#4488EE"
 	},
 
 	"UIButton" : {
