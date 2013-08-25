@@ -46,13 +46,13 @@ var p = new UIPath(body, {
 
 bb.addEventListener("mousedown", function(e){
 	if (bb.toggle) {
-		Native.layout.getElementsByClassName("rose").each(function(){
+		document.getElementsByClassName("rose").each(function(){
 			this.removeClass("rose");
 			this.addClass("blue");
 		});
 		bb.toggle = false;
 	} else {
-		Native.layout.getElementsByClassName("blue").each(function(){
+		document.getElementsByClassName("blue").each(function(){
 			this.removeClass("blue");
 			this.addClass("rose");
 		});

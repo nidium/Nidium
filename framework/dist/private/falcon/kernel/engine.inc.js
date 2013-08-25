@@ -243,21 +243,21 @@ Native.StyleSheet = {
 			case "@" : /* static property container, do nothing */ break;
 
 			case "#" : 
-				var element = Native.layout.getElementById(k);
+				var element = document.getElementById(k);
 				if (!isDOMElement(element)) return false;
 				element[property] = value;
 				break;
 
 			case "." :
 				setTimeout(function(){
-					Native.layout.getElementsByClassName(k).each(function(){
+					document.getElementsByClassName(k).each(function(){
 						this[property] = value;
 					});
 				}, 0);
 				break;
 
 			default :
-				Native.layout.getElementsByTagName(k).each(function(){
+				document.getElementsByTagName(k).each(function(){
 					this[property] = value;
 				});
 				break;
@@ -313,14 +313,14 @@ Native.StyleSheet = {
 	/* apply style to element with id "id" */
 	updateElementWithId : function(id){
 		var properties = document.stylesheet["#"+id];
-		var element = Native.layout.getElementById(id);
+		var element = document.getElementById(id);
 		if (!isDOMElement(element)) return false;
 		element.setProperties(properties);
 	},
 
 	/* apply style to all elements with class "klass" */
 	updateAllElementsWithClassName : function(klass){
-		Native.layout.getElementsByClassName(klass).each(function(){
+		document.getElementsByClassName(klass).each(function(){
 			this.updateClassProperties();
 		});
 	},
@@ -328,7 +328,7 @@ Native.StyleSheet = {
 	/* apply style to all elements with type "type" */
 	updateAllElementsWithTagName : function(type){
 		var properties = document.stylesheet[type];
-		Native.layout.getElementsByTagName(type).each(function(){
+		document.getElementsByTagName(type).each(function(){
 			this.setProperties(properties);
 		});
 	},

@@ -46,7 +46,7 @@ win.addEventListener("drag", function(e){
 });
 
 toggle.addEventListener("mousedown", function(e){
-	var elements = Native.layout.getElementsByClassName("button");
+	var elements = document.getElementsByClassName("button");
 	elements.each(function(){
 		if (this.hasClass("blue")){
 			this.background = "rgb("
