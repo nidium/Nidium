@@ -121,6 +121,7 @@ Native.core = {
 	init : function(){
 		this.createDocument();
 		this.createContextMenu();
+		this.attachSelectors();
 		this.createSpinner();
 		this.setRenderingLoop();
 		this.addStatusBar();
@@ -182,6 +183,22 @@ Native.core = {
 		};
 
 		Object.createProtectedElement(Native.scope, "document", doc);
+	},
+
+	attachSelectors : function(){
+		var proxy = Native.layout;
+
+		document.getElementById = function(id){
+			return proxy.getElementById(id);
+		};
+		
+		document.getElementsByClassName = function(id){
+			return proxy.getElementsByClassName(id);
+		};
+
+		document.getElementsByTagName = function(id){
+			return proxy.getElementsByTagName(id);
+		};
 	},
 
 	createContextMenu : function(){
