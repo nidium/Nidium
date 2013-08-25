@@ -104,6 +104,7 @@ static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp);
 
 #define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
 
@@ -199,6 +200,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setSize", native_canvas_setSize, 2, 0),
     JS_FN("clear", native_canvas_clear, 0, 0),
     JS_FN("setZoom", native_canvas_setZoom, 1, 0),
+    JS_FN("setScale", native_canvas_setScale, 2, 0),
     JS_FS_END
 };
 
@@ -241,6 +243,22 @@ static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeObject->setZoom(zoom);
+    
+    return true;
+}
+
+static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    double x, y;
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
+        &x, &y)) {
+        return true;
+    }
+
+    NativeObject->setScale(x, y);
     
     return true;
 }

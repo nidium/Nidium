@@ -43,6 +43,12 @@ document.createElement = function(type){
 	}
 };
 
+document.location = {
+	set href(val) {
+		document.run(val);
+	}
+}
+
 Canvas.prototype.appendChild = function(node) {
 	this.add(node);
 };

@@ -2027,6 +2027,14 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     memset(&this->shader, 0, sizeof(this->shader));
 }
 
+void NativeCanvas2DContext::setScale(double x, double y,
+    double px, double py)
+{
+    this->skia->scale(1./px, 1./py);
+
+    this->skia->scale(x, y);
+}
+
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
     if (gl.fbo) {
@@ -2038,7 +2046,7 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
     if (gl.program) {
         glDeleteProgram(gl.program);
     }
-    printf("Context deleted\n");
+
     delete skia;
 }
 

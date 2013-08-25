@@ -252,6 +252,16 @@ class NativeCanvasHandler
                 setSize(this->width, this->getHeight());
             }            
         }
+
+        void setScale(double x, double y);
+
+        double getScaleX() const {
+            return this->scaleX;
+        }
+
+        double getScaleY() const {
+            return this->scaleY;
+        }
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
@@ -310,6 +320,10 @@ class NativeCanvasHandler
         unsigned coordMode : 16;
         double opacity;
         double zoom;
+
+        double scaleX, scaleY;
+
+        void recursiveScale(double x, double y, double oldX, double oldY);
 };
 
 #endif
