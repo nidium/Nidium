@@ -32,8 +32,6 @@ dans le vague, il faut les ramener dans la réalité des faits : la pratique les
 tue.
 */
 
-window.cursor = "arrow";
-
 document.body = Native.canvas;
 
 document.createElement = function(type){

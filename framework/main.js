@@ -11,12 +11,13 @@ TODO :
 ------
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
-	- radial gradient : fail
+	- radial gradient : fail (DONE)
+	- button down rotation : fail
 	- internal file relative to app : no!
-	- scale
 	- window.resize
 	- nml : <viewport>1024x768</viewport>
 	- outline
+	- scale
 
 */
 

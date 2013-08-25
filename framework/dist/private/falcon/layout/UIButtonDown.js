@@ -19,6 +19,7 @@ Native.elements.export("UIButtonDown", {
 			radius = this.width/2;
 
 		if (this.background!='') {
+			console.log(this.background);
 			DOMElement.draw.circleBackground(this, context, params, radius);
 		}
 
