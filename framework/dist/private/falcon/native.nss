@@ -61,15 +61,13 @@
 	},
 
 	"UILabel" : {
-		paddingLeft : 8,
-		paddingRight : 8
 	},
 
 	/* Class Definitions */
 
 	".body" : {
 		background : "#262722",
-		backgroundImage : "private://assets/noisy.png",
-		alpha : 1.9
+		backgroundImage : "private://assets/patterns/noisy.png",
+		alpha : 1.0
 	}
 }

@@ -24,13 +24,17 @@ Native.elements.export("UIOption", {
 			color 			: OptionalValue(o.color, "#abacaa"),
 
 			value 			: OptionalValue(o.value, ""),
+			disabled		: OptionalBoolean(o.disabled, false),
 
 			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
 
 		this.addEventListener("mousedown", function(e){
-			controller.selectIndex(this.index);
-			controller.closeSelector();
+			if (this.disabled) {
+			} else {
+				controller.selectIndex(this.index);
+				controller.closeSelector();
+			}
 			e.stopPropagation();
 		}, false);
 
@@ -41,6 +45,7 @@ Native.elements.export("UIOption", {
 		DOMElement.listeners.addHovers(this);
 
 		this.updateElement = function(){
+			if (this.disabled) this.color = "#aaaaaa";
 			this.width = this.parent.width;
 			this.height = this.parent.parent.height;
 		};
@@ -66,6 +71,9 @@ Native.elements.export("UIOption", {
 			if (this.hover){
 				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.25)');
 				gradient.addColorStop(1.00, 'rgba(128, 128, 128, 0.15)');
+			} if (this.disabled) {
+				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.35)');
+				gradient.addColorStop(1.00, 'rgba(128, 128, 128, 0.35)');
 			} else {
 				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.10)');
 				gradient.addColorStop(0.10, 'rgba(128, 128, 128, 0.05)');

@@ -12,7 +12,7 @@ TODO :
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
 	- radial gradient : fail (DONE)
-	- button down rotation : fail
+	- button down rotation : fail (DONE)
 	- internal file relative to app : no!
 	- window.resize
 	- nml : <viewport>1024x768</viewport>
@@ -38,7 +38,7 @@ document.background = "#272822";
 //load("applications/components/profiler.js");
 //load("applications/components/style.js");
 //load("applications/components/windows.js");
-//load("applications/components/dropdown.js");
+load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/scrollbars.js");

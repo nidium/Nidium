@@ -282,8 +282,11 @@ Native.events = {
 			}
 			return false;
 		}
-		window.cursor = this.mostTopElementUnderMouse ?
-				this.mostTopElementUnderMouse.cursor : document.cursor;
+		
+		if (this.mostTopElementUnderMouse) {
+			window.cursor = this.mostTopElementUnderMouse.disabled ?
+					"arrow" : this.mostTopElementUnderMouse.cursor;
+		}
 	},
 
 	fireMouseOut : function(element, e){
@@ -322,19 +325,18 @@ Native.events = {
 		e.duration = null;
 		e.dataTransfer = this.__dataTransfer;
 
+		this.dispatch("mousedown", e);
+
 		if (this.last){
 			e.duration = e.time - this.last.time;
 
 			if (dist<3 && e.duration <= Native.system.doubleClickInterval) {
 				this.dispatch("mousedblclick", e);
 				this.doubleclick = true;
-				this.last = e;
-				return false;
 			}
 		}
 
 		this.last = e;
-		this.dispatch("mousedown", e);
 	},
 
 	mousemoveEvent : function(e){
