@@ -1020,24 +1020,35 @@ void NativeSkia::arc(int x, int y, int r,
     SkScalar start = SkDoubleToScalar(180 * startAngle / SK_ScalarPI);
     SkScalar end = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
 
-    SkRect rect;
+    SkRect rect, nrect;
+
+    SkPoint pt;
+    m.mapXY(cx, cy, &pt);
+
+    if (!currentPath->isEmpty()) {
+        currentPath->lineTo(pt);
+    }
+
     m.mapRect(&rect, SkRect::MakeLTRB(cx-radius, cy-radius, cx+radius, cy+radius));
+
+    /* Compute the new bounding rect using the transformed rect with the old size */
+    nrect = SkRect::MakeLTRB(rect.centerX()-radius, rect.centerY()-radius,
+        rect.centerX()+radius, rect.centerY()+radius);
 
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
-        currentPath->arcTo(rect, start, 0, false);
+        currentPath->arcTo(nrect, start, 0, false);
         // Draw the circle.
-        currentPath->addOval(rect);
+        currentPath->addOval(nrect);
         // Force a moveTo the end position.
-        currentPath->arcTo(rect, start + end, 0, true);        
+        currentPath->arcTo(nrect, start + end, 0, true);        
     } else {
         if (CCW && end > 0) {
             end -= s360;
         } else if (!CCW && end < 0) {
             end += s360;
         }
-
-        currentPath->arcTo(rect, start, end, false);        
+        currentPath->arcTo(nrect, start, end, false);        
     }
 }
 
