@@ -387,6 +387,58 @@ int NativeSkia::bindOffScreen(int width, int height)
     return 1;
 }
 
+SkCanvas *NativeSkia::createGLCanvas(int width, int height)
+{
+    const GrGLInterface *interface =  GrGLCreateNativeInterface();
+    
+    if (interface == NULL) {
+        printf("Cant get interface\n");
+        return NULL;
+    }    
+    
+    GrContext *context = GrContext::Create(kOpenGL_GrBackend,
+        (GrBackendContext)interface);
+
+    if (context == NULL) {
+        return NULL;
+    }
+
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    
+    GrBackendRenderTargetDesc desc;
+    //GrGLRenderTarget *t = new GrGLRenderTarget();
+    
+    desc.fWidth = SkScalarRound(width*ratio);
+    desc.fHeight = SkScalarRound(height*ratio);
+    desc.fConfig = kSkia8888_GrPixelConfig;
+    desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
+
+    GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
+    GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
+
+    GrGLint buffer = 0;
+    GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
+    desc.fRenderTargetHandle = 0;
+    GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
+
+    if (target == NULL) {
+        printf("Failed to init Skia\n");
+        return NULL;
+    }
+    SkGpuDevice *dev = new SkGpuDevice(context, target);
+
+    if (dev == NULL) {
+        printf("Failed to init Skia (2)\n");
+        return NULL;
+    }
+    SkCanvas *ret;
+    ret = new SkCanvas(dev);
+
+    SkSafeUnref(dev);
+
+    return ret;
+
+}
 
 int NativeSkia::bindGL(int width, int height)
 {

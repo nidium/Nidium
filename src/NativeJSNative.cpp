@@ -9,12 +9,16 @@
 
 bool NativeJSNative::showFPS = false;
 
+static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
+
 static JSClass Native_class = {
     "Native", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Native_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+JSClass *NativeJSNative::jsclass = &Native_class;
 
 static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
@@ -26,6 +30,15 @@ static JSFunctionSpec Native_funcs[] = {
     JS_FN("getPasteBuffer", native_getPasteBuffer, 0, 0),
     JS_FS_END
 };
+
+void Native_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeJSNative *jnative = NativeJSNative::getNativeClass(obj);
+
+    if (jnative != NULL) {
+        delete jnative;
+    }    
+}
 
 static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -94,19 +107,34 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 {
     JSObject *NativeObj;
     JSObject *canvas;
+
+    NativeJSNative *jnative = new NativeJSNative();
+
     //JSObject *titleBar;
 
-    NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "Native",
+    NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
+        NativeJSNative::getJSObjectName(),
         &Native_class , NULL, 0);
 
+    jnative->jsobj = NativeObj;
+    jnative->cx = cx;
+
+    JS_SetPrivate(NativeObj, jnative);
+
     canvas = NativeJSCanvas::generateJSObject(cx, width, height);
+
+    jnative->handler = (NativeCanvasHandler *)JS_GetPrivate(canvas);
+
+    NativeJS::getNativeClass(cx)->jsobjects.set(
+        NativeJSNative::getJSObjectName(), NativeObj);
 
     //titleBar = NativeJSCanvas::generateJSObject(cx, width, 35);
     //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */
     //NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
-    NativeContext::getNativeClass(cx)->getRootHandler()->addChild((NativeCanvasHandler *)JS_GetPrivate(canvas));
+    NativeContext::getNativeClass(cx)->getRootHandler(
+        )->addChild(jnative->handler);
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     JS_DefineProperty(cx, NativeObj, "canvas",

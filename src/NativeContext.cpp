@@ -11,6 +11,7 @@
 #include "NativeJSWindow.h"
 #include "NativeJSConsole.h"
 #include "NativeJS_preload.h"
+#include "NativeUIInterface.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -87,6 +88,15 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSdocument::registerObject(cx);
 
     //NativeJSDebug::registerObject(cx);    
+}
+
+void NativeContext::setWindowSize(int w, int h)
+{
+    NativeJSNative *jsnative = NativeJSNative::getNativeClass(this->getNJS());
+
+    this->getUI()->setWindowSize((int)w, (int)h);
+    jsnative->getCanvasHandler()->setSize((int)w, (int)h);
+    this->getRootHandler()->setSize((int)w, (int)h);   
 }
 
 void NativeContext::createDebugCanvas()
