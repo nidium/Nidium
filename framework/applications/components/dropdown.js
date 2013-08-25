@@ -67,7 +67,7 @@ var h = new UIToolTip(dateField, {
 h.enable();
 
 field.addEventListener("submit", function(e){
-	console.log("submit", e.value);
+	document.run(e.value);
 });
 
 dateField.addEventListener("submit", function(e){

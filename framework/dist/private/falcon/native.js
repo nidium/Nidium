@@ -165,6 +165,7 @@ Native.core = {
 		});
 
 		doc.stylesheet = document.stylesheet;
+		doc.run = document.run;
 
 		doc.style = {
 			get : function(selector){
@@ -231,7 +232,7 @@ Native.core = {
 			});
 
 			this.contextMenu.addEventListener("blur", function(){
-				this.fireEvent("tick", {})
+				this.fireEvent("tick", {});
 				this.remove();
 			});
 
@@ -269,11 +270,3 @@ Native.core = {
 };
 
 Native.core.init();
-window._onready = function(){
-	Native.core.onready();
-};
-
-window._onassetready = function(e){
-//	console.log("asset read", e.tag, e.id);
-};
-

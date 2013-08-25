@@ -195,6 +195,10 @@ Native.StyleSheet = {
 		this.add(sheet);
 	},
 
+	refresh : function(){
+		this.add(document.stylesheet);
+	},
+
 	/* load a local or distant stylesheet */
 	load : function(url, sync=true){
 		var ____self____ = this,

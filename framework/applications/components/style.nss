@@ -70,7 +70,9 @@
 	},
 
 	".blue" : {
-		background : "#4488EE"
+		background : function(){
+			return "#4488EE";
+		}
 	},
 
 	".rose" : {

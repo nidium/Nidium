@@ -475,7 +475,11 @@ Native.object = {
 	setProperties : function setProperties(properties){
 		for (var k in properties){
 			if (properties.hasOwnProperty(k)){
-				this[k] = properties[k];
+				if (typeof properties[k] == "function") {
+					this[k] = properties[k].call();
+				} else {
+					this[k] = properties[k];
+				}
 			}
 		}
 		return this;

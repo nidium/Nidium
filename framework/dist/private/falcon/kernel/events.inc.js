@@ -609,6 +609,8 @@ window._ontextinput = function(e){
 	Native.events.textinputEvent(e);
 };
 
+/* -- WINDOW EVENTS --------------------------------------------------------- */
+
 window._onfocus = function(e){
 	
 };
@@ -617,4 +619,18 @@ window._onblur = function(e){
 	
 };
 
-/* -------------------------------------------------------------------------- */
+/* -- LOAD EVENTS ----------------------------------------------------------- */
+
+window._onready = function(){
+	Native.core.onready();
+};
+
+window._onassetready = function(e){
+	switch (e.tag) {
+		case "style" :
+			Native.StyleSheet.refresh();
+			break;
+		default : break
+	}
+};
+
