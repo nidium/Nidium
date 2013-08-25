@@ -67,7 +67,9 @@
 		paddingLeft : 2,
 		paddingRight : 3,
 		radius : 6,
-		fontSize : 9
+		fontSize : 9,
+		fontType : "console",
+		outlineColor : ""
 	},
 
 	".mutebutton" : {
@@ -81,7 +83,9 @@
 		paddingLeft : 2,
 		paddingRight : 3,
 		radius : 6,
-		fontSize : 9
+		fontSize : 9,
+		fontType : "console",
+		outlineColor : ""
 	},
 
 	".hintLabel" : {

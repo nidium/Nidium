@@ -7,7 +7,7 @@
 __DEBUG_SHOW_LAYERS__ = true;
 
 var main = new Application({
-	backgroundImage : "private://assets/back.png"
+	backgroundImage : "private://assets/patterns/retina_wood.png"
 });
 
 var	button = new UIButton(main, {
@@ -20,18 +20,19 @@ var v = [],
 	x = y = 0;
 for (var i=0; i<256; i++){
 	v[i] = new UIButton(main, {
-		left : 10 + 34*x,
-		top : 48 + 22*y,
+		left : 10 + 38*x,
+		top : 48 + 42*y,
 		label : i<100 ? (i<10 ? '00'+i : '0'+i) : i,
 		width : 30,
-		height : 20,
+		height : 38,
 		fontSize : 10,
 		background : "rgb("
 			+Math.round(Math.random()*180)+", "
 			+Math.round(Math.random()*180)+", "
 			+Math.round(Math.random()*180)
 		+")",
-		radius : 3
+		opacity : 0.9,
+		radius : 18
 	});
 	v[i].initialLeft = v[i].left;
 
@@ -88,9 +89,8 @@ function start(){
 	for (var i in v){
 		var element = v[i];
 		element.left = element.initialLeft;
-		k = 0;
-		//useNativeSetInterval(element, 580+0.0*k++);
-		useNativeMotionFactory(element, 580+0.0*k++);
+		useNativeSetInterval(element, 580+2.91*k++);
+		//useNativeMotionFactory(element, 580+0.0*k++);
 	}
 }
 

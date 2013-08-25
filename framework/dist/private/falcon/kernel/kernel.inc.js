@@ -372,7 +372,6 @@ Native.object = {
 	},
 
 	beforeDraw : function beforeDraw(){
-		print("beforeDraw()", this);
 		var ctx = this.layer.context,
 			rad = this.angle * (Math.PI/180),
 			origin = {
@@ -388,7 +387,6 @@ Native.object = {
 	},
 
 	afterDraw : function afterDraw(){
-		print("afterDraw()", this);
 		var ctx = this.layer.context;
 		ctx.restore();
 	},

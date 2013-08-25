@@ -24,9 +24,10 @@
  * --------------------------------------------------------------------------- * 
  */
 
- "use strict";
+"use strict";
 
 var main = new Application();
+main.className = "body";
 
 var mixer = null,
 	master = null,
