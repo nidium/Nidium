@@ -869,11 +869,28 @@ void NativeSkia::fill()
         return;
     }
 
+    SkShader *shader = PAINT->getShader();
+    const SkMatrix *m = NULL;
+
+    if (shader != NULL) {
+        if (shader->hasLocalMatrix()) {
+            m = &shader->getLocalMatrix();
+        }
+
+        shader->setLocalMatrix(canvas->getTotalMatrix());
+    }
     /* The matrix was already applied point by point */
     canvas->save(SkCanvas::kMatrix_SaveFlag);
     canvas->resetMatrix();
     canvas->drawPath(*currentPath, *PAINT);
     canvas->restore();
+
+    if (shader != NULL && m != NULL) {
+        shader->setLocalMatrix(*m);
+    } else if (shader != NULL) {
+        shader->resetLocalMatrix();
+    }
+
     CANVAS_FLUSH();
 }
 
@@ -882,12 +899,29 @@ void NativeSkia::stroke()
     if (!currentPath) {
         return;
     }
+    SkShader *shader = PAINT_STROKE->getShader();
+    const SkMatrix *m = NULL;
+
+    if (shader != NULL) {
+        if (shader->hasLocalMatrix()) {
+            m = &shader->getLocalMatrix();
+        }
+
+        shader->setLocalMatrix(canvas->getTotalMatrix());
+    }
 
     /* The matrix was already applied point by point */
     canvas->save(SkCanvas::kMatrix_SaveFlag);
     canvas->resetMatrix();
     canvas->drawPath(*currentPath, *PAINT_STROKE);
     canvas->restore();
+
+    if (shader != NULL && m != NULL) {
+        shader->setLocalMatrix(*m);
+    } else if (shader != NULL) {
+        shader->resetLocalMatrix();
+    }
+
     CANVAS_FLUSH();
 }
 
@@ -988,8 +1022,6 @@ void NativeSkia::arc(int x, int y, int r,
 
     SkRect rect;
     m.mapRect(&rect, SkRect::MakeLTRB(cx-radius, cy-radius, cx+radius, cy+radius));
-
-
 
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
