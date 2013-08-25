@@ -11,6 +11,7 @@ TODO :
 ------
 	- scale
 	- document.location.href = "fdsf/view.nml"; (DONE)
+	- contextmenu window.mouseX, window.mouseY
 	- internal file relative to app : no!
 	- radial gradient : fail
 	- window.resize

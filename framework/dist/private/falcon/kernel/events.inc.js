@@ -96,7 +96,7 @@ Native.events = {
 			cancelBubble = false,
 			cancelEvent = false,
 
-			z = Native.layout.getElements();
+			z = document.getElements();
 
 		e.preventDefault = function(){
 			self.preventdefault = true;

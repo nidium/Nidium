@@ -120,29 +120,10 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		this.createDocument();
-		this.createContextMenu();
-		this.attachSelectors();
-		this.createSpinner();
+		this.extendDocument();
 		this.setRenderingLoop();
 		this.addStatusBar();
 		delete(this.init);
-	},
-
-	createSpinner : function(){
-		document.spinner = new UISpinner("document", {
-
-		});
-
-		document.spinner = new UISpinner(document, {
-			height : 40,
-			width : 40,
-			dashes : 12,
-			lineWidth : 8,
-			color : "rgba(128, 128, 128, 0.5)",
-			speed : 32,
-			opacity : 0.3,
-			radius : 2
-		}).center();
 	},
 
 	onready : function(){
@@ -168,7 +149,29 @@ Native.core = {
 		doc.stylesheet = document.stylesheet;
 		doc.run = document.run;
 
-		doc.style = {
+		Object.createProtectedElement(Native.scope, "document", doc);
+	},
+
+	extendDocument : function(){
+		var proxy = Native.layout;
+
+		document.getElements = function(){
+			return proxy.getElements();
+		};
+
+		document.getElementById = function(id){
+			return proxy.getElementById(id);
+		};
+		
+		document.getElementsByClassName = function(id){
+			return proxy.getElementsByClassName(id);
+		};
+
+		document.getElementsByTagName = function(id){
+			return proxy.getElementsByTagName(id);
+		};
+
+		document.style = {
 			get : function(selector){
 				return document.stylesheet[selector];
 			},
@@ -182,26 +185,17 @@ Native.core = {
 			}
 		};
 
-		Object.createProtectedElement(Native.scope, "document", doc);
-	},
+		document.spinner = new UISpinner(document, {
+			height : 40,
+			width : 40,
+			dashes : 12,
+			lineWidth : 8,
+			color : "rgba(128, 128, 128, 0.5)",
+			speed : 32,
+			opacity : 0.3,
+			radius : 2
+		}).center();
 
-	attachSelectors : function(){
-		var proxy = Native.layout;
-
-		document.getElementById = function(id){
-			return proxy.getElementById(id);
-		};
-		
-		document.getElementsByClassName = function(id){
-			return proxy.getElementsByClassName(id);
-		};
-
-		document.getElementsByTagName = function(id){
-			return proxy.getElementsByTagName(id);
-		};
-	},
-
-	createContextMenu : function(){
 		document.addEventListener("contextmenu", function(e){
 			var root = e.element._root;
 
