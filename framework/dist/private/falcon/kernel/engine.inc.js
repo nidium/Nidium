@@ -221,11 +221,86 @@ Native.StyleSheet = {
 		}
 	},
 
-	/* apply style to existing elements */
-	updateElements : function(selector){
+	refreshDynamicProperties : function(selector){
+		var prop = this.getProperties(selector);
+
+		for (var k in prop) {
+			if (prop.hasOwnProperty(k) && typeof prop[k] == "function") {
+				var e = this.getPropertyHandler(selector, k),
+					value = prop[k].call(document.style, e);
+
+				this.setDynamicProperty(selector, k, value);
+			}
+		}
+	},
+
+	setDynamicProperty : function(selector, property, value){
+		var i = this.getSelectorIdentifier(selector),
+			s = i.identifier,
+			k = i.name;
+
+		switch (s) {
+			case "@" : /* static property container, do nothing */ break;
+
+			case "#" : 
+				var element = Native.layout.getElementById(k);
+				if (!isDOMElement(element)) return false;
+				element[property] = value;
+				break;
+
+			case "." :
+				setTimeout(function(){
+					Native.layout.getElementsByClassName(k).each(function(){
+						this[property] = value;
+					});
+				}, 0);
+				break;
+
+			default :
+				Native.layout.getElementsByTagName(k).each(function(){
+					this[property] = value;
+				});
+				break;
+		};
+	},
+
+	getPropertyHandler : function(selector, property){
+		var that = this;
+
+		var setter = function(value){
+			that.setDynamicProperty(selector, property, value);
+		};
+
+		return {
+			set value(value) {
+				this._value = value;
+				setter(value);
+			},
+
+			get value() {
+				return this._value;
+			},
+		};
+	},
+
+	getSelectorIdentifier : function(selector){
 		var l = selector.length,
 			s = selector.substr(0, 1),
 			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
+
+		return {
+			identifier : s,
+			name : k
+		}
+	},
+
+	/* apply style to existing elements */
+	updateElements : function(selector){
+		var i = this.getSelectorIdentifier(selector),
+			s = i.identifier,
+			k = i.name;
+
+		this.refreshDynamicProperties(selector);
 
 		switch (s) {
 			case "@" : /* static property container, do nothing */ break;

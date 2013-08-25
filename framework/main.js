@@ -10,11 +10,12 @@
 TODO :
 ------
 	- scale
-	- document.location.href = "fdsf/view.nml";
+	- document.location.href = "fdsf/view.nml"; (DONE)
 	- internal file relative to app : no!
 	- radial gradient : fail
 	- window.resize
 	- nml : <viewport>1024x768</viewport>
+	- outline
 
 */
 

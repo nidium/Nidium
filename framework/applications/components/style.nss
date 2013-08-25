@@ -70,8 +70,16 @@
 	},
 
 	".blue" : {
-		background : function(){
+		background : function(self){
 			return "#4488EE";
+		}
+	},
+
+	"UIButton" : {
+		background : function(self){
+			setTimeout(function(){
+				self.value = "red";
+			}, 2000);
 		}
 	},
 
