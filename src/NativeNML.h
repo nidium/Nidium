@@ -11,6 +11,7 @@ class NativeNML;
 class NativeJS;
 
 typedef void (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
+typedef void (*NMLLoadedCallback)(void *arg);
 
 class NativeNML : public NativeStreamDelegate
 {
@@ -18,15 +19,18 @@ class NativeNML : public NativeStreamDelegate
 
     NativeNML(ape_global *net);
     ~NativeNML();
-    void loadFile(const char *filename);
-    void loadData(char *data, size_t len);
+    void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
+
     void loadAssets(rapidxml::xml_node<> &node);
+    void loadMeta(rapidxml::xml_node<> &node);
     void onAssetsItemReady(NativeAssets::Item *item);
     void onAssetsBlockReady(NativeAssets *asset);
-
-    
     void onGetContent(const char *data, size_t len);
     void onAvailableData(size_t len){};
+
+    const char *getMetaTitle() const {
+        return this->meta.title;
+    }
     /*
     void onNFIOOpen(NativeFileIO *);
     void onNFIOError(NativeFileIO *, int errno){};
@@ -38,7 +42,7 @@ class NativeNML : public NativeStreamDelegate
     }
 
     private:
-
+    bool loadData(char *data, size_t len);
     void addAsset(NativeAssets *);
     ape_global *net;
     NativeStream *stream;
@@ -49,8 +53,9 @@ class NativeNML : public NativeStreamDelegate
         const char *str;
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
-    } nml_tags[2] = {
+    } nml_tags[3] = {
         {"assets",   &NativeNML::loadAssets, false},
+        {"meta", &NativeNML::loadMeta, true},
         {NULL,       NULL, false}
     };
 
@@ -59,10 +64,16 @@ class NativeNML : public NativeStreamDelegate
     NativeJS *njs;
 
     struct {
+        char *title;
+    } meta;
+
+    struct {
         NativeAssets **list;
         uint32_t allocated;
         uint32_t size;
     } assetsList;
+    NMLLoadedCallback loaded;
+    void *loaded_arg;
 };
 
 #endif

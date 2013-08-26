@@ -1371,6 +1371,17 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
         }
         break;
+        case CTX_PROP(textBaseline):
+        {
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
+
+                return JS_TRUE;
+            }
+            JSAutoByteString baseline(cx, JSVAL_TO_STRING(vp));
+            curSkia->textBaseline(baseline.ptr());
+        }
+        break;
         case CTX_PROP(textAlign):
         {
             if (!JSVAL_IS_STRING(vp)) {
@@ -1964,7 +1975,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
         ncanvas = NativeSkia::createGLCanvas(width, height);
         NativeSkia::glcontext = ncanvas;
     } else {
-        ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+        ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                     width*ratio, height*ratio, false);
 
         if (ndev == NULL) {

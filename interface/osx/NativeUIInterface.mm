@@ -15,13 +15,18 @@
 #import <sys/stat.h>
 
 #define kNativeWidth 1024
-#define kNativeHeight 768
+#define kNativeHeight 700
 
 #define kNativeTitleBarHeight 0
 
 #define kNativeVSYNC 1
 
 uint32_t ttfps = 0;
+
+static __inline__ void ConvertNSRect(NSRect *r)
+{
+    r->origin.y = CGDisplayPixelsHigh(kCGDirectMainDisplay) - r->origin.y - r->size.height;
+}
 
 static NSWindow *NativeCocoaWindow(SDL_Window *win)
 {
@@ -48,6 +53,10 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case SDL_WINDOWEVENT:
                     if (window) {
                         switch (event.window.event) {
+                            case SDL_WINDOWEVENT_RESIZED:
+                                printf("Resized\n");
+                                window->resized(event.window.data1, event.window.data2);
+                                break;
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
                                 window->windowFocus();
                                 break;
@@ -214,7 +223,6 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
 
     //}
     ttfps++;
-
     //NSLog(@"ret : %d for %d events", (tend - tstart), nevents);
     return 16;
 }
@@ -222,6 +230,13 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
 static int NativeProcessUI(void *arg)
 {
     return NativeEvents((NativeCocoaUIInterface *)arg);
+}
+
+
+void NativeCocoaUIInterface_onNMLLoaded(void *arg)
+{
+    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)arg;
+    UI->onNMLLoaded();
 }
 
 #if 0
@@ -255,7 +270,12 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 
     ui->nml = new NativeNML(ui->gnet);
     ui->nml->setNJS(ui->NativeCtx->getNJS());
-    ui->nml->loadFile("./index.nml");
+    ui->nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
+}
+
+void NativeCocoaUIInterface::onNMLLoaded()
+{
+    this->setWindowTitle(this->nml->getMetaTitle());
 }
 
 void NativeCocoaUIInterface::stopApplication()
@@ -328,8 +348,8 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         this->nml = new NativeNML(this->gnet);
         this->nml->setNJS(this->NativeCtx->getNJS());
         printf("Load NML : %s\n", path);
-        this->nml->loadFile(path);
-
+        this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
+        this->setWindowTitle(this->nml->getMetaTitle());
         return true;
     }
     return false;
@@ -369,10 +389,10 @@ NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *crea
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
 {
+    NSWindow *window;
     if (!this->initialized) {
         SDL_GLContext contexteOpenGL;
-        NSWindow *window;
-
+        
         if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1)
         {
             printf( "Can't init SDL:  %s\n", SDL_GetError( ));
@@ -404,7 +424,31 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         window = NativeCocoaWindow(win);
 
-        NSLog(@"window %@", window);
+        //[center addObserver:self selector:@selector(windowBeingResized) name:NSWindowWillStartLiveResizeNotification object window];
+/*
+    NSNotificationCenter *center;
+    NSWindow *window = data->nswindow;
+    NSView *view = [window contentView];
+
+    _data = data;
+    observingVisible = YES;
+    wasVisible = [window isVisible];
+
+    center = [NSNotificationCenter defaultCenter];
+
+    if ([window delegate] != nil) {
+        [center addObserver:self selector:@selector(windowDidExpose:) name:NSWindowDidExposeNotification object:window];
+        [center addObserver:self selector:@selector(windowDidMove:) name:NSWindowDidMoveNotification object:window];
+        [center addObserver:self selector:@selector(windowDidResize:) name:NSWindowDidResizeNotification object:window];
+        [center addObserver:self selector:@selector(windowDidMiniaturize:) name:NSWindowDidMiniaturizeNotification object:window];
+        [center addObserver:self selector:@selector(windowDidDeminiaturize:) name:NSWindowDidDeminiaturizeNotification object:window];
+        [center addObserver:self selector:@selector(windowDidBecomeKey:) name:NSWindowDidBecomeKeyNotification object:window];
+        [center addObserver:self selector:@selector(windowDidResignKey:) name:NSWindowDidResignKeyNotification object:window];
+    } else {
+        [window setDelegate:self];
+    }
+*/
+        NSLog(@"window %@ %@", window, window.delegate);
 
         [window setCollectionBehavior:
                  NSWindowCollectionBehaviorFullScreenPrimary];
@@ -442,7 +486,18 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     }
     NativeCtx = new NativeContext(this, width, height, gnet);
+    window = NativeCocoaWindow(win);
 
+    id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *notif){
+        NSRect rect = [window contentRectForFrameRect:[window frame]];
+        int x, y, w, h;
+        ConvertNSRect(&rect);
+        x = (int)rect.origin.x;
+        y = (int)rect.origin.y;
+        w = (int)rect.size.width;
+        h = (int)rect.size.height;
+        NativeJSwindow::getNativeClass(NativeCtx->getNJS())->resized(w, h);
+    }];
     return true;
 }
 
@@ -470,7 +525,7 @@ void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)
 
 void NativeCocoaUIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(win, (*name == '\0' ? "-" : name));
+    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "NATiVE" : name));
 }
 
 void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,

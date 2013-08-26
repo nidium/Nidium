@@ -279,6 +279,8 @@ uint32_t NativeSkia::parseColor(const char *str)
 
 void NativeSkia::initPaints()
 {
+    state->baseline = BASELINE_ALPHABETIC;
+
     PAINT = new SkPaint;
     /*
         TODO : setHintingScaleFactor(m_hintingScaleFactor);
@@ -435,6 +437,8 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     ret = new SkCanvas(dev);
 
     SkSafeUnref(dev);
+
+    ret->clear(0xFFFFFFFF);
 
     return ret;
 
@@ -628,10 +632,46 @@ void NativeSkia::setFontType(const char *str)
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
+    SkPaint::FontMetrics metrics;
+    PAINT->getFontMetrics(&metrics);
+
+    SkScalar sx = SkIntToScalar(x), sy = SkIntToScalar(y);
+
+    switch(state->baseline) {
+        case BASELINE_TOP:
+            sy -= metrics.fTop;
+            break;
+        case BASELINE_BOTTOM:
+            sy -= metrics.fBottom;
+            break;
+        case BASELINE_MIDDLE:
+            sy += (metrics.fXHeight)/2;
+            break;
+        default:
+            break;
+    }
+
     canvas->drawText(text, strlen(text),
-        SkIntToScalar(x), SkIntToScalar(y), *PAINT);
+        sx, sy, *PAINT);
 
     CANVAS_FLUSH();
+}
+
+void NativeSkia::textBaseline(const char *mode)
+{
+    if (strcasecmp("top", mode) == 0) {
+        state->baseline = BASELINE_TOP;
+    } else if (strcasecmp("hanging", mode) == 0) {
+        state->baseline = BASELINE_ALPHABETIC;
+    } else if (strcasecmp("middle", mode) == 0) {
+        state->baseline = BASELINE_MIDDLE;
+    } else if (strcasecmp("ideographic", mode) == 0) {
+        state->baseline = BASELINE_ALPHABETIC;
+    } else if (strcasecmp("bottom", mode) == 0) {
+        state->baseline = BASELINE_BOTTOM;
+    } else {
+        state->baseline = BASELINE_ALPHABETIC;
+    }
 }
 
 void NativeSkia::textAlign(const char *mode)
@@ -1175,6 +1215,7 @@ void NativeSkia::save()
     nstate->paint = new SkPaint(*PAINT);
     nstate->paint_stroke = new SkPaint(*PAINT_STROKE);
     nstate->next = state;
+    nstate->baseline = BASELINE_ALPHABETIC;
 
     state = nstate;
 

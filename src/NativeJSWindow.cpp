@@ -245,6 +245,11 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
     }
 }
 
+void NativeJSwindow::resized(int width, int height)
+{
+    NativeContext::getNativeClass(cx)->sizeChanged(width, height);
+}
+
 void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \

@@ -92,11 +92,22 @@ void NativeContext::loadNativeObjects(int width, int height)
 
 void NativeContext::setWindowSize(int w, int h)
 {
+    /* OS window */
+    this->getUI()->setWindowSize((int)w, (int)h);
+
+    this->sizeChanged(w, h);
+}
+
+void NativeContext::sizeChanged(int w, int h)
+{
     NativeJSNative *jsnative = NativeJSNative::getNativeClass(this->getNJS());
 
-    this->getUI()->setWindowSize((int)w, (int)h);
+    printf("Window size changed %d %d\n", w, h);
+    /* Skia GL */
+    this->getRootHandler()->setSize((int)w, (int)h);
+
+    /* Native Canvas */
     jsnative->getCanvasHandler()->setSize((int)w, (int)h);
-    this->getRootHandler()->setSize((int)w, (int)h);   
 }
 
 void NativeContext::createDebugCanvas()

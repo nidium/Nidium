@@ -37,6 +37,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
             size_t offset;
         } mainjs;
 
+        void onNMLLoaded();
     private:
         NativeUICocoaConsole *console;
 };
