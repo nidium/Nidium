@@ -31,6 +31,9 @@ var t = new UIElement(body, {
 	color : '#ffffff'
 });
 
+b1.disabled = true;
+b1.applyStyleSheet();
+
 var p = new UIPath(body, {
 	left : 250,
 	top : 200,

@@ -235,7 +235,7 @@ Native.StyleSheet = {
 			for (var k in prop) {
 				if (prop.hasOwnProperty(k) && typeof prop[k] == "function") {
 					var e = this.getPropertyHandler(selector, k),
-						value = prop[k].call(document.style, e);
+						value = prop[k].call(e);
 
 					this.setDynamicProperty(selector, k, value);
 				}

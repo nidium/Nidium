@@ -80,11 +80,12 @@
 		background : function() "#4488EE"
 	},
 
-	"UIButton" : {
-		background : function(self){
+	"UIButton:disabled" : {
+		background : function(){
+			var self = this;
 			setTimeout(function(){
 				self.value = "red";
-			}, 2000);
+			}, 500);
 		}
 	},
 
