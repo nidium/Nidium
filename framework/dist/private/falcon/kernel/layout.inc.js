@@ -92,7 +92,7 @@ Native.layout = {
 			z = this.elements;
 
 		for (var i=0; i<z.length; i++){
-			let o = z[i];
+			var o = z[i];
 			if (o[property] && o[property] == value){
 				elements.push(o);
 			}

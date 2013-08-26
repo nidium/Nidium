@@ -64,7 +64,7 @@
 		background : "#ffffff"
 	},
 
-	"UIOption:hover+selected+disabled" : {
+	"UIOption:hover" : {
 		background : "red"
 	},
 

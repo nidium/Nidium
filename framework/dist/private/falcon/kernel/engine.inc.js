@@ -243,37 +243,11 @@ Native.StyleSheet = {
 	},
 
 	setDynamicProperty : function(selector, property, value){
-		var i = this.getSelectorIdentifier(selector),
-			s = i.identifier,
-			k = i.name;
-
-		switch (s) {
-			case "@" : /* static property container, do nothing */ break;
-
-			case "#" : 
-				setTimeout(function(){
-					var element = document.getElementById(k);
-					if (!isDOMElement(element)) return false;
-					element[property] = value;
-				}, 0);
-				break;
-
-			case "." :
-				setTimeout(function(){
-					document.getElementsByClassName(k).each(function(){
-						this[property] = value;
-					});
-				}, 0);
-				break;
-
-			default :
-				setTimeout(function(){
-					document.getElementsByTagName(k).each(function(){
-						this[property] = value;
-					});
-				}, 0);
-				break;
-		};
+		setTimeout(function(){
+			document.getElementsBySelector(selector).each(function(){
+				this[property] = value;
+			});
+		}, 0);
 	},
 
 	getPropertyHandler : function(selector, property){
