@@ -349,7 +349,6 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         this->nml->setNJS(this->NativeCtx->getNJS());
         printf("Load NML : %s\n", path);
         this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
-        this->setWindowTitle(this->nml->getMetaTitle());
         return true;
     }
     return false;
@@ -526,6 +525,11 @@ void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)
 void NativeCocoaUIInterface::setWindowTitle(const char *name)
 {
     SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "NATiVE" : name));
+}
+
+const char *NativeCocoaUIInterface::getWindowTitle() const
+{
+    return SDL_GetWindowTitle(win);
 }
 
 void NativeCocoaUIInterface::setTitleBarRGBAColor(uint8_t r, uint8_t g,
