@@ -164,6 +164,31 @@ Native.layout = {
 		return elements;
 	},
 
+	getElementsBySelector : function(selector){
+		var elements = [],
+			l = selector.length,
+			s = selector.substr(0, 1),
+			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
+
+		switch (s) {
+			case "@" : /* static property container, do nothing */ break;
+			case "#" : elements[0] = this.getElementById(k); break;
+			case "." : elements = this.getElementsByClassName(k); break;
+			default  : elements = this.getElementsByTagName(k); break;
+		};
+
+		elements.each = function(cb){
+			if (typeof cb != "function") return false;
+			for (var i in elements) {
+				if (isDOMElement(elements[i])){
+					cb.call(elements[i]);
+				}
+			}
+		};
+
+		return elements;
+	},
+
 	getElementUnderPointer : function(){
 		var element = null,
 			x = window.mouseX,
@@ -184,7 +209,7 @@ Native.layout = {
 			element = undefined;
 
 		for (var i=0; i<z.length; i++){
-			let o = z[i];
+			var o = z[i];
 			if (o.id && o.id == id){
 				element = z[i];
 			}

@@ -109,6 +109,7 @@ Native.elements.export("UIDropDownController", {
 		};
 
 		this.selectIndex = function(index){
+			var old = this.selection;
 			index = Math.max(Math.min(index, this.tabs.length-1), 0);
 
 			this.selection = index;
@@ -146,7 +147,7 @@ Native.elements.export("UIDropDownController", {
 				background = OptionalValue(o.background, "rgba(255, 255, 255, 1)"),
 				className = OptionalString(o.class, ""),
 				value = OptionalValue(o.value, ""),
-				color = OptionalValue(o.color, "#888888"),
+				color = OptionalValue(o.color, "#555555"),
 				selected = OptionalBoolean(o.selected, false),
 				disabled = OptionalBoolean(o.disabled, false);
 

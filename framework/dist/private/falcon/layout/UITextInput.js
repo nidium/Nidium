@@ -131,6 +131,8 @@ Native.elements.export("UITextInput", {
 			canReceiveKeyboardEvents : true
 		});
 
+		this.overlay.isTextZone = true;
+
 		/* ------------------------------------------------------------------ */
 
 		this.setText = function(text){

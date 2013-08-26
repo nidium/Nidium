@@ -4,7 +4,7 @@
 
 Native.StyleSheet.add({
 	"#foobar" : {
-		background : "white"
+		background : "red"
 	},
 
 	".selected" : {
@@ -17,7 +17,7 @@ Native.StyleSheet.add({
 	},
 
 	"UITextField" : {
-		background : "white"
+		background : "green"
 	}
 });
 

@@ -32,7 +32,7 @@
 		liteBackgroundColor : "#ffffff",
 		textBackgroundColor : "#ffffff",
 
-		textColor : "#FF3333",
+		textColor : "#333333",
 		textSelectionColor : "rgba(0, 0, 128, 0.2)",
 
 		fontSize : 12,
@@ -60,7 +60,12 @@
 		borderColor : "rgba(0, 0, 0, 0.04)",
 	},
 
-	"UILabel" : {
+	"UIOption" : {
+		background : "#ffffff"
+	},
+
+	"UIOption:hover+selected+disabled" : {
+		background : "red"
 	},
 
 	/* Class Definitions */

@@ -306,41 +306,13 @@ Native.StyleSheet = {
 		}
 	},
 
-	/* apply style to existing elements */
+	/* apply style to elements that match selector */
 	updateElements : function(selector){
-		var i = this.getSelectorIdentifier(selector),
-			s = i.identifier,
-			k = i.name;
+		var properties = document.style.get(selector);
 
 		this.refreshDynamicProperties(selector);
 
-		switch (s) {
-			case "@" : /* static property container, do nothing */ break;
-			case "#" : this.updateElementWithId(k); break;
-			case "." : this.updateAllElementsWithClassName(k); break;
-			default  : this.updateAllElementsWithTagName(k); break;
-		};
-	},
-
-	/* apply style to element with id "id" */
-	updateElementWithId : function(id){
-		var properties = document.stylesheet["#"+id];
-		var element = document.getElementById(id);
-		if (!isDOMElement(element)) return false;
-		element.setProperties(properties);
-	},
-
-	/* apply style to all elements with class "klass" */
-	updateAllElementsWithClassName : function(klass){
-		document.getElementsByClassName(klass).each(function(){
-			this.updateClassProperties();
-		});
-	},
-	
-	/* apply style to all elements with type "type" */
-	updateAllElementsWithTagName : function(type){
-		var properties = document.stylesheet[type];
-		document.getElementsByTagName(type).each(function(){
+		document.getElementsBySelector(selector).each(function(){
 			this.setProperties(properties);
 		});
 	},
