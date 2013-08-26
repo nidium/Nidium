@@ -245,6 +245,11 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
     }
 }
 
+void NativeJSwindow::resized(int width, int height)
+{
+    NativeContext::getNativeClass(cx)->sizeChanged(width, height);
+}
+
 void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
@@ -301,7 +306,7 @@ static JSPropertySpec window_props[] = {
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
     {"title", WINDOW_PROP_TITLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
     {"cursor", WINDOW_PROP_CURSOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER,
@@ -339,6 +344,12 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
         case WINDOW_PROP_HEIGHT:
             vp.set(INT_TO_JSVAL(NUI->getHeight()));
             break;
+        case WINDOW_PROP_TITLE:
+        {
+            JSString *str = JS_NewStringCopyZ(cx, NUI->getWindowTitle());
+            vp.set(STRING_TO_JSVAL(str));
+        }
+        break;
     }
 
     return true;
@@ -577,10 +588,7 @@ void NativeJSwindow::registerObject(JSContext *cx)
     JS_DefineFunctions(cx, windowObj, window_funcs);
     JS_DefineProperties(cx, windowObj, window_props);
 
-    jsval val = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("Native")));
-
-    JS_SetProperty(cx, windowObj, "title", &val);
+    jsval val;
 
     val = DOUBLE_TO_JSVAL(0);
     JS_SetProperty(cx, windowObj, "titleBarControlsOffsetX", &val);

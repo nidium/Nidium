@@ -10,6 +10,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         NativeCocoaUIInterface();
         bool createWindow(int width, int height);
         void setWindowTitle(const char *);
+        const char *getWindowTitle() const;
         void setCursor(CURSOR_TYPE);
         void runLoop();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
@@ -37,6 +38,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
             size_t offset;
         } mainjs;
 
+        void onNMLLoaded();
     private:
         NativeUICocoaConsole *console;
 };
