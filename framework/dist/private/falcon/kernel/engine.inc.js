@@ -221,12 +221,13 @@ Native.StyleSheet = {
 		}
 	},
 
-	refreshDynamicProperties : function(selector){
-		var prop = this.getProperties(selector);
-
+	/* apply style to elements that match selector */
+	updateElements : function(selector){
+		var prop = document.style.get(selector);
+			
 		if (typeof prop == "function") {
 			setTimeout(function(){
-				document.getElementsByClassName("button").each(function(){
+				document.getElementsBySelector(selector).each(function(){
 					prop.call(this);
 				});
 			}, 0);
@@ -240,6 +241,10 @@ Native.StyleSheet = {
 				}
 			}
 		}
+
+		document.getElementsBySelector(selector).each(function(){
+			this.setProperties(prop);
+		});
 	},
 
 	setDynamicProperty : function(selector, property, value){
@@ -267,28 +272,6 @@ Native.StyleSheet = {
 				return this._value;
 			},
 		};
-	},
-
-	getSelectorIdentifier : function(selector){
-		var l = selector.length,
-			s = selector.substr(0, 1),
-			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
-
-		return {
-			identifier : s,
-			name : k
-		}
-	},
-
-	/* apply style to elements that match selector */
-	updateElements : function(selector){
-		var properties = document.style.get(selector);
-
-		this.refreshDynamicProperties(selector);
-
-		document.getElementsBySelector(selector).each(function(){
-			this.setProperties(properties);
-		});
 	},
 
 	/* merge properties in an existing selector, or create new one */
@@ -391,14 +374,6 @@ Native.StyleSheet = {
 				.replace(/[\n\r]/g, '')
 				.replace(/\s+/g, ' ');
 	}
-};
-
-/* -------------------------------------------------------------------------- */
-
-Native.FPS = {
-	init : function(){},
-	start : function(){},
-	show : function(){}
 };
 
 /* -------------------------------------------------------------------------- */

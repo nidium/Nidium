@@ -297,7 +297,6 @@ Native.core = {
 	}
 };
 
-window.title = "NATiVE";
 /*
 window.width = 640;
 window.height = 480;

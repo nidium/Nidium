@@ -42,15 +42,15 @@
 		);
 	},
 
-	".label" : {
-		paddingLeft : 8,
-		paddingRight : 8,
-		width : 150,
-		height : 28,
-		color : "#ffffff",
-		background : "rgba(255, 255, 255, 0.25)",
-		fontSize : 12,
-		radius : 4
+	".label" : function(){
+		this.paddingLeft = 8;
+		this.paddingRight = 8;
+		this.width = 150;
+		this.height = 28;
+		this.color = "#ffffff";
+		this.background = "rgba(255, 255, 255, 0.25)";
+		this.fontSize = 12;
+		this.radius = 4;
 	},
 
 	".method" : {color : "#A6E22E"},
