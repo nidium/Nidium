@@ -163,12 +163,16 @@ Native.core = {
 			return proxy.getElementById(id);
 		};
 		
-		document.getElementsByClassName = function(id){
-			return proxy.getElementsByClassName(id);
+		document.getElementsByClassName = function(klass){
+			return proxy.getElementsByClassName(klass);
 		};
 
-		document.getElementsByTagName = function(id){
-			return proxy.getElementsByTagName(id);
+		document.getElementsByTagName = function(type){
+			return proxy.getElementsByTagName(type);
+		};
+
+		document.getElementsBySelector = function(selector){
+			return proxy.getElementsBySelector(selector);
 		};
 
 		document.style = {
@@ -188,7 +192,12 @@ Native.core = {
 		document.addEventListener("contextmenu", function(e){
 			var root = e.element._root;
 
-			if (document.overlayView) document.overlayView.remove();
+			if (document.overlayView) {
+				console.log("remove")
+				document.overlayView.remove();
+				document.overlayView = null;
+				return false;
+			}
 
 			document.overlayView = root.add("UIElement", {
 				background : "rgba(255, 255, 255, 0.1)"
@@ -201,14 +210,17 @@ Native.core = {
 				if (document.contextMenu) {
 					document.contextMenu.selector.hide();
 					document.contextMenu.remove();
-					this.remove();
+					document.overlayView.remove();
+					document.overlayView = null;
 				}
 			});
 
+			var disabled = !(e.element.isTextZone);
+
 			var	myMenu = [
-				/* Tab 0 */ {label : "Copy", 		value : 0},
-				/* Tab 1 */ {label : "Cut", 		value : 1},
-				/* Tab 2 */ {label : "Paste", 		value : 2},
+				/* Tab 0 */ {label : "Copy", 		value : 0, disabled:disabled},
+				/* Tab 1 */ {label : "Cut", 		value : 1, disabled:disabled},
+				/* Tab 2 */ {label : "Paste", 		value : 2, disabled:disabled},
 				/* Tab 3 */ {label : "View Source",	value : 10}
 			];
 
@@ -245,6 +257,7 @@ Native.core = {
 				document.contextMenu.selector.hide();
 				document.contextMenu.remove();
 				document.overlayView.remove();
+				document.overlayView = null;
 				console.log(e.value);
 			});
 
@@ -283,5 +296,11 @@ Native.core = {
 		*/
 	}
 };
+
+window.title = "NATiVE";
+/*
+window.width = 640;
+window.height = 480;
+*/
 
 Native.core.init();

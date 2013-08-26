@@ -21,7 +21,7 @@ Native.elements.export("UIOption", {
 			height 			: OptionalNumber(o.height, 22),
 			radius 			: OptionalNumber(o.radius, 0),
 			background 		: OptionalValue(o.background, "rgba(0, 0, 0, 0.4)"),
-			color 			: OptionalValue(o.color, "#abacaa"),
+			color 			: OptionalValue(o.color, "#666666"),
 
 			value 			: OptionalValue(o.value, ""),
 			disabled		: OptionalBoolean(o.disabled, false),
@@ -45,7 +45,7 @@ Native.elements.export("UIOption", {
 		DOMElement.listeners.addHovers(this);
 
 		this.updateElement = function(){
-			if (this.disabled) this.color = "#aaaaaa";
+			if (this.disabled) this.color = "#bbbbbb";
 			this.width = this.parent.width;
 			this.height = this.parent.parent.height;
 		};
@@ -65,16 +65,16 @@ Native.elements.export("UIOption", {
 			params.x, params.y+params.h
 		);
 
-		if (this.selected){
-			gradient = this.parent.parent.selectedBackground;
+		if (this.selected || this.hover) {
+			if (!this.disabled) {
+				gradient = this.parent.parent.selectedBackground;
+			}
 		} else {
 			if (this.hover){
 				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.25)');
 				gradient.addColorStop(1.00, 'rgba(128, 128, 128, 0.15)');
+				color = "#ffffff";
 			} if (this.disabled) {
-				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.35)');
-				gradient.addColorStop(1.00, 'rgba(128, 128, 128, 0.35)');
-			} else {
 				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.10)');
 				gradient.addColorStop(0.10, 'rgba(128, 128, 128, 0.05)');
 			}
