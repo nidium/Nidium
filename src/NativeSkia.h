@@ -81,6 +81,7 @@ class NativeSkia
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
+        static SkCanvas *createGLCanvas(int width, int height);
         int bindGL(int width, int height);
         void resetGLContext();
         void flush();

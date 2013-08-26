@@ -18,6 +18,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setClipboardText(const char *text);
         char *getClipboardText();
         void stopApplication();
+        void setWindowSize(int w, int h);
         void restartApplication(const char *path=NULL);
         bool runApplication(const char *path);
         void openFileDialog(const char *files[],

@@ -4,14 +4,20 @@
 #include "NativeSkia.h"
 #include "NativeUtils.h"
 #include "NativeContext.h"
+#include "NativeJSNative.h"
 
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp);
 
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
+    WINDOW_PROP_WIDTH,
+    WINDOW_PROP_HEIGHT,
     WINDOW_PROP_TITLE,
     WINDOW_PROP_CURSOR,
     WINDOW_PROP_TITLEBAR_COLOR,
@@ -25,6 +31,8 @@ static JSClass window_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+JSClass *NativeJSwindow::jsclass = &window_class;
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
@@ -286,6 +294,12 @@ static struct native_cursors {
 };
 
 static JSPropertySpec window_props[] = {
+    {"width", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"height", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
     {"title", WINDOW_PROP_TITLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_window_prop_set)},
@@ -313,11 +327,54 @@ static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
+static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp)
+{
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+
+    switch(JSID_TO_INT(id)) {
+        case WINDOW_PROP_WIDTH:
+            vp.set(INT_TO_JSVAL(NUI->getWidth()));
+            break;
+        case WINDOW_PROP_HEIGHT:
+            vp.set(INT_TO_JSVAL(NUI->getHeight()));
+            break;
+    }
+
+    return true;
+}
+
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
+        case WINDOW_PROP_WIDTH:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return true;
+            }
+
+            JS_ValueToNumber(cx, vp, &dval);
+
+            NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
+
+            break;
+        }
+        case WINDOW_PROP_HEIGHT:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return true;
+            }
+
+            JS_ValueToNumber(cx, vp, &dval);
+
+            NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
+
+            break;
+        }
         case WINDOW_PROP_TITLE:
         {
             if (!JSVAL_IS_STRING(vp)) {
@@ -428,6 +485,19 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
 
 }
 
+static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
+{
+    double w, h;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &w, &h)) {
+        return JS_TRUE;
+    }
+
+    NativeContext::getNativeClass(cx)->setWindowSize(w, h);
+
+    return true;
+}
+
 /* TODO: leak if the user click "cancel" */
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -484,6 +554,7 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
 
 static JSFunctionSpec window_funcs[] = {
     JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
+    JS_FN("setSize", native_window_setSize, 2, 0),
     JS_FS_END
 };
 

@@ -596,3 +596,10 @@ char *NativeCocoaUIInterface::getClipboardText()
 {
     return SDL_GetClipboardText();
 }
+
+void NativeCocoaUIInterface::setWindowSize(int w, int h)
+{
+    SDL_SetWindowSize(win, w, h);
+    this->width = w;
+    this->height = h;
+}

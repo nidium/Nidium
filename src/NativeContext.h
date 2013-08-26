@@ -42,6 +42,8 @@ class NativeContext
     void createDebugCanvas();
     void postDraw();
 
+    void setWindowSize(int width, int height);
+
     private:
     NativeJS *njs;
     NativeSkia *surface;

@@ -1953,23 +1953,28 @@ void NativeCanvas2DContext::flush()
 
 void NativeCanvas2DContext::setSize(int width, int height)
 {
-    SkDevice *ndev;
+    SkDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     const SkBitmap &bt = skia->canvas->getDevice()->accessBitmap(false);
- 
-    ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-                                width*ratio, height*ratio, false);
 
-    if (ndev == NULL) {
-        printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);
-        return;
+    if (skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
+        ncanvas = NativeSkia::createGLCanvas(width, height);
+        NativeSkia::glcontext = ncanvas;
+    } else {
+        ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+                                    width*ratio, height*ratio, false);
+
+        if (ndev == NULL) {
+            printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);
+            return;
+        }
+
+        ncanvas = new SkCanvas(ndev);
     }
-
-    ncanvas = new SkCanvas(ndev);
-
+    
     ncanvas->drawBitmap(bt, 0, 0);
     //ncanvas->clipRegion(skia->canvas->getTotalClip());
     ncanvas->setMatrix(skia->canvas->getTotalMatrix());
