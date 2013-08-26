@@ -18,8 +18,14 @@ Native.StyleSheet.add({
 
 	"UITextField" : {
 		background : "green"
+	},
+
+	"UITextField:hover" : {
+		background : "#5599FF"
 	}
 });
+
+// text.fireStream("boom", 750);
 
 var main = new Application();
 main.className = "body";

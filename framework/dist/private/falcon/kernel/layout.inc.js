@@ -168,7 +168,10 @@ Native.layout = {
 		var elements = [],
 			l = selector.length,
 			s = selector.substr(0, 1),
-			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
+			p = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector,
+			m = p.split(":"),
+			k = m[0],
+			states = m[1];
 
 		switch (s) {
 			case "@" : /* static property container, do nothing */ break;
@@ -176,6 +179,25 @@ Native.layout = {
 			case "." : elements = this.getElementsByClassName(k); break;
 			default  : elements = this.getElementsByTagName(k); break;
 		};
+
+		if (states) {
+			var temp = [],
+				st = states.split('+');  // UITextField:hover+disabled
+
+			if (st.length>0) {
+				for (var i=0; i<elements.length; i++) {
+					var checked = 0;
+					for (var j=0; j<st.length; j++) {
+						var z = elements[i],
+							state = st[j];
+
+						if (z[state]) checked++;
+					}
+					if (checked == st.length) temp.push(elements[i]);
+				}
+			}
+			elements = temp;
+		}
 
 		elements.each = function(cb){
 			if (typeof cb != "function") return false;

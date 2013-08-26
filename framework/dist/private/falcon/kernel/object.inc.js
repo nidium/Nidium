@@ -161,6 +161,10 @@ var DOMElement = function(type, options, parent){
 		_needAncestorCacheClear : false
 	});
 
+	Object.createProtectedHiddenElement(this, "static", {
+		default : {}
+	});
+
 	/* runtime change of id leads to nss class check */
 	this.id = OptionalString(o.id, this._uid);
 

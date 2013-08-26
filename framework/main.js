@@ -13,13 +13,14 @@ TODO :
 	- contextmenu window.mouseX, window.mouseY (DONE)
 	- radial gradient : fail (DONE)
 	- button down rotation : fail (DONE)
+
 	- internal file relative to app : no!
-	- window.resize
-	- nml : <viewport>1024x768</viewport>
 	- outline
 	- scale
 	- textAlign vertical
-	- subtlepatterns.com
+	- subtlepatterns.com (rajouter Crédit)
+	- window.resize
+	- nml : <viewport>1024x768</viewport>
 
 */
 
