@@ -5,7 +5,7 @@
 #include "NativeHash.h"
 #include "NativeStream.h"
 #include "NativeJS.h"
-#include "NativeJSwindow.h"
+#include "NativeJSWindow.h"
 #include "NativeJSDocument.h"
 #include <jsapi.h>
 
