@@ -32,7 +32,7 @@ var t = new UIElement(body, {
 });
 
 b1.disabled = true;
-b1.applyStyleSheet();
+//b1.applyStyleSheet();
 
 var p = new UIPath(body, {
 	left : 250,
@@ -62,5 +62,3 @@ bb.addEventListener("mousedown", function(e){
 		bb.toggle = true;
 	}
 });
-
-

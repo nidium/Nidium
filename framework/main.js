@@ -15,6 +15,8 @@ TODO :
 	- button down rotation : fail (DONE)
 	- textAlign vertical (ALMOST DONE)
 
+	- nss can not be empty and must have minimum {} in it
+
 	- internal file relative to app : no!
 	- outline
 	- scale
@@ -39,9 +41,9 @@ document.background = "#272822";
 //load("applications/components/profiler.js");
 //load("applications/components/style.js");
 //load("applications/components/windows.js");
-load("applications/components/dropdown.js");
+//load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-//load("applications/components/sliders.js"); // radial gradient issue
+load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash
