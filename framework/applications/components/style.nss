@@ -32,14 +32,12 @@
 		this.color = "#ffffff";
 		this.fontSize = 10.5;
 		this.top = 48;
-
 		this.background = "#559933";
+		this.outlineColor = "";
+	},
 
-		this.animate(
-			"top", this.top, this.top+190,
-			800, null,
-			Math.physics.elasticOut
-		);
+	".button:hover" : function(){
+		this.background = "black";
 	},
 
 	".label" : function(){
@@ -77,19 +75,19 @@
 	},
 
 	".blue" : {
-		background : function() "#4488EE"
-	},
-
-	"UIButton:disabled" : {
-		background : function(){
-			var self = this;
-			setTimeout(function(){
-				self.value = "red";
-			}, 500);
-		}
+		background : "#4488EE"
 	},
 
 	".rose" : {
 		background : "#882266"
+	},
+
+	"UIButton:disabled+hover" : {
+		color : function(){
+			this.value = "#888888";
+		},
+		background : function(){
+			this.value = "#aaaaaa";
+		}
 	}
 }

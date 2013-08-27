@@ -598,13 +598,14 @@ DOMElement.onPropertyUpdate = function(e){
 			element._needOpacityUpdate = true;
 			break;
 
-		case "id" :
-			element.updateIdProperties();
-			element._needRedraw = true;
-			break;
 
+		case "id" :
+		case "disabled" :
+		case "hover" :
+		case "selected" :
 		case "className" :
-			element.updateClassProperties();
+			//element.updateClassProperties();
+			element.applyStyleSheet();
 			element._needRedraw = true;
 			break;
 

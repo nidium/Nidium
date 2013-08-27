@@ -223,55 +223,9 @@ Native.StyleSheet = {
 
 	/* apply style to elements that match selector */
 	updateElements : function(selector){
-		var prop = document.style.get(selector);
-			
-		if (typeof prop == "function") {
-			setTimeout(function(){
-				document.getElementsBySelector(selector).each(function(){
-					prop.call(this);
-				});
-			}, 0);
-		} else {
-			for (var k in prop) {
-				if (prop.hasOwnProperty(k) && typeof prop[k] == "function") {
-					var e = this.getPropertyHandler(selector, k),
-						value = prop[k].call(e);
-
-					this.setDynamicProperty(selector, k, value);
-				}
-			}
-		}
-
 		document.getElementsBySelector(selector).each(function(){
-			this.setProperties(prop);
+			this.applyStyleSheet();
 		});
-	},
-
-	setDynamicProperty : function(selector, property, value){
-		setTimeout(function(){
-			document.getElementsBySelector(selector).each(function(){
-				this[property] = value;
-			});
-		}, 0);
-	},
-
-	getPropertyHandler : function(selector, property){
-		var that = this;
-
-		var setter = function(value){
-			that.setDynamicProperty(selector, property, value);
-		};
-
-		return {
-			set value(value) {
-				this._value = value;
-				setter(value);
-			},
-
-			get value() {
-				return this._value;
-			},
-		};
 	},
 
 	/* merge properties in an existing selector, or create new one */

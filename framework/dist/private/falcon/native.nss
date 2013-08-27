@@ -43,7 +43,7 @@
 		textShadowOffsetY : 1,
 		textShadowBlur : 1,
 
-		shadowColor : "rgba(0, 0, 0, 0.10",
+		shadowColor : "rgba(0, 0, 0, 0.10)",
 		shadowOffsetX : 0,
 		shadowOffsetY : 2,
 		shadowBlur : 4,
@@ -64,7 +64,7 @@
 		background : "#ffffff"
 	},
 
-	"UIOption:hover" : {
+	"UIOption:disabled" : {
 		background : "red"
 	},
 

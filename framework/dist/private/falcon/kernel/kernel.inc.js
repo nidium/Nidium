@@ -515,18 +515,13 @@ Native.object = {
 	getPropertyHandler : function(selector, property){
 		var that = this;
 
-		var setter = function(value){
-			that[property] = value;
-		};
-
 		return {
 			set value(value) {
-				this._value = value;
-				setter(value);
+				that[property] = value;
 			},
 
 			get value() {
-				return this._value;
+				return that[property];
 			},
 		};
 	},
@@ -546,7 +541,8 @@ Native.object = {
 					if (typeof value == "function") {
 						/* handle function assigned to property */
 						var e = this.getPropertyHandler(selector, k);
-						this[k] = value.call(e);
+						var ret = value.call(e);
+						if (ret != undefined) this[k] = ret;
 					} else {
 						/* handle normal assignation */
 						this[k] = value;

@@ -20,7 +20,7 @@ Native.StyleSheet.add({
 		background : "green"
 	},
 
-	"UITextField:hover" : {
+	"UITextField:disabled" : {
 		background : "#5599FF"
 	}
 });
