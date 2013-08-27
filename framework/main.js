@@ -4,7 +4,27 @@
 /* (c) 2013 Stight.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-document.background = "#ffffff";
+/*
+
+------
+TODO :
+------
+	- document.location.href = "fdsf/view.nml"; (DONE)
+	- contextmenu window.mouseX, window.mouseY (DONE)
+	- radial gradient : fail (DONE)
+	- button down rotation : fail (DONE)
+	- textAlign vertical (ALMOST DONE)
+
+	- internal file relative to app : no!
+	- outline
+	- scale
+	- subtlepatterns.com (rajouter Crédit)
+	- window.resize
+	- nml : <viewport>1024x768</viewport>
+
+*/
+
+document.background = "#272822";
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -36,7 +56,7 @@ load("applications/components/dropdown.js");
 
 /* UNIT TESTS */
 
-	//load("testLayer.js");
+	//load("applications/_tests/arc.js");
 	//load("testArc.js");
 	//load("testRetina.js");
 

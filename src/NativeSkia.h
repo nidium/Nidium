@@ -36,9 +36,20 @@ struct _NativeLine
     size_t len;
 };
 
+enum _NativeBaseline
+{
+    BASELINE_ALPHABETIC,
+    BASELINE_TOP,
+    BASELINE_HANGING,
+    BASELINE_MIDDLE,
+    BASELINE_IDEOGRAPHIC,
+    BASELINE_BOTTOM
+};
+
 struct _nativeState {
     SkPaint *paint;
     SkPaint *paint_stroke;
+    enum _NativeBaseline baseline;
 
     struct _nativeState *next;    
 };
@@ -81,6 +92,7 @@ class NativeSkia
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
+        static SkCanvas *createGLCanvas(int width, int height);
         int bindGL(int width, int height);
         void resetGLContext();
         void flush();
@@ -157,6 +169,7 @@ class NativeSkia
         void getPathBounds(double *left, double *right,
             double *top, double *bottom);
         void textAlign(const char *mode);
+        void textBaseline(const char *mode);
         static uint32_t parseColor(const char *str);
         static SkPMColor HSLToSKColor(U8CPU alpha, float hsl[3]);
 #if 0

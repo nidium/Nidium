@@ -179,6 +179,7 @@ Native.MotionFactory = {
 
 		if (callback && animation.callback) animation.callback.call(view);
 		this.remove(animation);
+		Native.events.tick();
 
 		this.ended++;
 	},

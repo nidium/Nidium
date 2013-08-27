@@ -16,6 +16,8 @@ NativeNML::NativeNML(ape_global *net) :
     assetsList.allocated = 4;
 
     assetsList.list = (NativeAssets **)malloc(sizeof(NativeAssets *) * assetsList.allocated);
+
+    this->meta.title = NULL;
 }
 
 NativeNML::~NativeNML()
@@ -30,11 +32,16 @@ NativeNML::~NativeNML()
         delete assetsList.list[i];
     }
     free(assetsList.list);
+    if (this->meta.title) {
+        free(this->meta.title);
+    }
 }
 
-void NativeNML::loadFile(const char *file)
+void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 {
-    printf("Loading NML : %s\n", file);
+    this->loaded = cb;
+    this->loaded_arg = arg;
+
     this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
 
     stream = new NativeStream(this->net, file);
@@ -118,6 +125,22 @@ void NativeNML::addAsset(NativeAssets *asset)
     assetsList.size++;
 }
 
+void NativeNML::loadMeta(rapidxml::xml_node<> &node)
+{
+    using namespace rapidxml;
+    for (xml_node<> *child = node.first_node(); child != NULL;
+        child = child->next_sibling())
+    {
+        if (strncasecmp(child->name(), "title", 5) == 0) {
+            if (this->meta.title) free(this->meta.title);
+            this->meta.title = (char *)malloc(sizeof(char) * (child->value_size() + 1));
+            memcpy(this->meta.title, child->value(), child->value_size());
+            this->meta.title[child->value_size()] = '\0';
+        }
+        printf("Parsed : %s\n", child->name());
+    }    
+}
+
 void NativeNML::loadAssets(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
@@ -163,7 +186,7 @@ void NativeNML::loadAssets(rapidxml::xml_node<> &node)
 }
 
 
-void NativeNML::loadData(char *data, size_t len)
+bool NativeNML::loadData(char *data, size_t len)
 {
     using namespace rapidxml;
 
@@ -174,13 +197,13 @@ void NativeNML::loadData(char *data, size_t len)
     } catch(rapidxml::parse_error &err) {
         printf("XML error : %s\n", err.what());
 
-        return;
+        return false;
     }
 
     xml_node<> *node = doc.first_node("application");
     if (node == NULL) {
         printf("XML : <application> node not found\n");
-        return;
+        return false;
     }
 
     for (xml_node<> *child = node->first_node(); child != NULL;
@@ -195,9 +218,12 @@ void NativeNML::loadData(char *data, size_t len)
         }
     }
 
+    return true;
 }
 
 void NativeNML::onGetContent(const char *data, size_t len)
 {
-    this->loadData((char *)data, len);
+    if (this->loadData((char *)data, len)) {
+        this->loaded(this->loaded_arg);
+    }
 }

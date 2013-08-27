@@ -1371,6 +1371,17 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
         }
         break;
+        case CTX_PROP(textBaseline):
+        {
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
+
+                return JS_TRUE;
+            }
+            JSAutoByteString baseline(cx, JSVAL_TO_STRING(vp));
+            curSkia->textBaseline(baseline.ptr());
+        }
+        break;
         case CTX_PROP(textAlign):
         {
             if (!JSVAL_IS_STRING(vp)) {
@@ -1953,23 +1964,28 @@ void NativeCanvas2DContext::flush()
 
 void NativeCanvas2DContext::setSize(int width, int height)
 {
-    SkDevice *ndev;
+    SkDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     const SkBitmap &bt = skia->canvas->getDevice()->accessBitmap(false);
- 
-    ndev = skia->canvas->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
-                                width*ratio, height*ratio, false);
 
-    if (ndev == NULL) {
-        printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);
-        return;
+    if (skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
+        ncanvas = NativeSkia::createGLCanvas(width, height);
+        NativeSkia::glcontext = ncanvas;
+    } else {
+        ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
+                                    width*ratio, height*ratio, false);
+
+        if (ndev == NULL) {
+            printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);
+            return;
+        }
+
+        ncanvas = new SkCanvas(ndev);
     }
-
-    ncanvas = new SkCanvas(ndev);
-
+    
     ncanvas->drawBitmap(bt, 0, 0);
     //ncanvas->clipRegion(skia->canvas->getTotalClip());
     ncanvas->setMatrix(skia->canvas->getTotalMatrix());
@@ -2027,6 +2043,14 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     memset(&this->shader, 0, sizeof(this->shader));
 }
 
+void NativeCanvas2DContext::setScale(double x, double y,
+    double px, double py)
+{
+    this->skia->scale(1./px, 1./py);
+
+    this->skia->scale(x, y);
+}
+
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
     if (gl.fbo) {
@@ -2038,7 +2062,7 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
     if (gl.program) {
         glDeleteProgram(gl.program);
     }
-    printf("Context deleted\n");
+
     delete skia;
 }
 

@@ -10,6 +10,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         NativeCocoaUIInterface();
         bool createWindow(int width, int height);
         void setWindowTitle(const char *);
+        const char *getWindowTitle() const;
         void setCursor(CURSOR_TYPE);
         void runLoop();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
@@ -18,9 +19,10 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setClipboardText(const char *text);
         char *getClipboardText();
         void stopApplication();
+        void setWindowSize(int w, int h);
         void restartApplication(const char *path=NULL);
         bool runApplication(const char *path);
-        void openFileDialog(const char const *files[],
+        void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
         const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
@@ -36,6 +38,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
             size_t offset;
         } mainjs;
 
+        void onNMLLoaded();
     private:
         NativeUICocoaConsole *console;
 };

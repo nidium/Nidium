@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------- *
  * NSS : Native Style Sheet Draft                          (c) 2013 Stight.com * 
  * --------------------------------------------------------------------------- * 
- * Version:     0.5                                                            *
+ * Version:     0.6                                                            *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
@@ -23,28 +23,34 @@
  * DEALINGS IN THE SOFTWARE.                                                   *
  * --------------------------------------------------------------------------- * 
  */
-
 {
 	".main" : {
-		background : "#262722",
+		background : "#262722"
 	},
 
-	".button" : {
-		background : "#559933",
-		color : "#ffffff",
-		fontSize : 10.5,
-		top : 48,
+	".button" : function(){
+		this.color = "#ffffff";
+		this.fontSize = 10.5;
+		this.top = 48;
+
+		this.background = "#559933";
+
+		this.animate(
+			"top", this.top, this.top+190,
+			800, null,
+			Math.physics.elasticOut
+		);
 	},
 
-	".label" : {
-		paddingLeft : 8,
-		paddingRight : 8,
-		width : 150,
-		height : 28,
-		color : "#ffffff",
-		background : "rgba(255, 255, 255, 0.25)",
-		fontSize : 12,
-		radius : 4
+	".label" : function(){
+		this.paddingLeft = 8;
+		this.paddingRight = 8;
+		this.width = 150;
+		this.height = 28;
+		this.color = "#ffffff";
+		this.background = "rgba(255, 255, 255, 0.25)";
+		this.fontSize = 12;
+		this.radius = 4;
 	},
 
 	".method" : {color : "#A6E22E"},
@@ -71,7 +77,16 @@
 	},
 
 	".blue" : {
-		background : "#4488EE"
+		background : function() "#4488EE"
+	},
+
+	"UIButton:disabled" : {
+		background : function(){
+			var self = this;
+			setTimeout(function(){
+				self.value = "red";
+			}, 500);
+		}
 	},
 
 	".rose" : {

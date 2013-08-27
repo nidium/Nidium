@@ -372,7 +372,6 @@ Native.object = {
 	},
 
 	beforeDraw : function beforeDraw(){
-		print("beforeDraw()", this);
 		var ctx = this.layer.context,
 			rad = this.angle * (Math.PI/180),
 			origin = {
@@ -388,7 +387,6 @@ Native.object = {
 	},
 
 	afterDraw : function afterDraw(){
-		print("afterDraw()", this);
 		var ctx = this.layer.context;
 		ctx.restore();
 	},
@@ -462,13 +460,13 @@ Native.object = {
 	updateClassProperties : function updateClassProperties(){
 		var classNames = this.className.split(" ");
 		for (var i in classNames){
-			var props = Native.StyleSheet.getProperties("."+classNames[i]);
+			var props = document.style.get("."+classNames[i]);
 			this.setProperties(props);
 		}
 	},
 
 	updateIdProperties : function updateIdProperties(){
-		var props = Native.StyleSheet.getProperties("#"+this.id);
+		var props = document.style.get("#"+this.id);
 		this.setProperties(props);
 	},
 
@@ -479,6 +477,95 @@ Native.object = {
 			}
 		}
 		return this;
+	},
+
+	isBoundBySelector : function(selector){
+		var result = false,
+			l = selector.length,
+			s = selector.substr(0, 1),
+			p = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector,
+			m = p.split(":"),
+			k = m[0],
+			states = m[1];
+
+		switch (s) {
+			case "@" : /* static property container, do nothing */ break;
+			case "#" : if (this.id == k) result = true; break;
+			case "." : if (this.hasClass(k)) result = true; break;
+			default  : if (this.type == k) result = true; break;
+		};
+
+		if (result && states) {
+			var temp = [],
+				st = states.split('+');  // UITextField:hover+disabled
+
+			if (st.length>0) {
+				var checked = 0;
+				for (var j=0; j<st.length; j++) {
+					var state = st[j];
+
+					if (this[state]) checked++;
+				}
+				result = (checked == st.length) ? true : false;
+			}
+		}
+		return result;
+	},
+
+	getPropertyHandler : function(selector, property){
+		var that = this;
+
+		var setter = function(value){
+			that[property] = value;
+		};
+
+		return {
+			set value(value) {
+				this._value = value;
+				setter(value);
+			},
+
+			get value() {
+				return this._value;
+			},
+		};
+	},
+
+	applySelectorProperties : function(selector, properties){
+		if (this.isBoundBySelector(selector) === false) return this;
+
+		if (typeof properties == "function") {
+			/* handle function assigned to selector */
+			properties.call(this);
+		} else {
+			/* handle property object assigned to selector */
+			for (var k in properties) {
+				if (properties.hasOwnProperty(k)) {
+					var value = properties[k];
+
+					if (typeof value == "function") {
+						/* handle function assigned to property */
+						var e = this.getPropertyHandler(selector, k);
+						this[k] = value.call(e);
+					} else {
+						/* handle normal assignation */
+						this[k] = value;
+					}
+				}
+			}
+		}
+
+		return this;
+	},
+
+	applyStyleSheet : function applyStyleSheet(){
+		var selectors = document.stylesheet;
+
+		for (var k in selectors){
+			if (selectors.hasOwnProperty(k)){
+				this.applySelectorProperties(k, selectors[k]);
+			}
+		}
 	},
 
 	toString : function toString(){

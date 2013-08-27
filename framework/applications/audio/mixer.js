@@ -24,9 +24,10 @@
  * --------------------------------------------------------------------------- * 
  */
 
- "use strict";
+"use strict";
 
 var main = new Application();
+main.className = "body";
 
 var mixer = null,
 	master = null,
@@ -229,8 +230,8 @@ var soloTrack = function(obj){
 	var k = obj.rel,
 		thisMuteButton = null,
 
-		muteButtons = Native.layout.getElementsByClassName("mutebutton"),
-		soloButtons = Native.layout.getElementsByClassName("solobutton");
+		muteButtons = document.getElementsByClassName("mutebutton"),
+		soloButtons = document.getElementsByClassName("solobutton");
 
 	if (obj.soloed) {
 		obj.soloed = false;

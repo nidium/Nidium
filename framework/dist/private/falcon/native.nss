@@ -32,7 +32,7 @@
 		liteBackgroundColor : "#ffffff",
 		textBackgroundColor : "#ffffff",
 
-		textColor : "#FF3333",
+		textColor : "#333333",
 		textSelectionColor : "rgba(0, 0, 128, 0.2)",
 
 		fontSize : 12,
@@ -57,19 +57,22 @@
 		lineheight : 30,
 		height : 30,
 		borderWidth : 1,
-		borderColor : "rgba(0, 0, 0, 0.04)",
+		borderColor : "rgba(0, 0, 0, 0.04)"
 	},
 
-	"UILabel" : {
-		paddingLeft : 8,
-		paddingRight : 8
+	"UIOption" : {
+		background : "#ffffff"
+	},
+
+	"UIOption:hover" : {
+		background : "red"
 	},
 
 	/* Class Definitions */
 
 	".body" : {
 		background : "#262722",
-		backgroundImage : "private://assets/back.png",
-		alpha : 0.1
+		backgroundImage : "private://assets/patterns/noisy.png",
+		alpha : 1.0
 	}
 }

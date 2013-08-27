@@ -161,6 +161,10 @@ var DOMElement = function(type, options, parent){
 		_needAncestorCacheClear : false
 	});
 
+	Object.createProtectedHiddenElement(this, "static", {
+		default : {}
+	});
+
 	/* runtime change of id leads to nss class check */
 	this.id = OptionalString(o.id, this._uid);
 
@@ -209,6 +213,7 @@ DOMElement.prototype = {
 	isPointInside : Native.object.isPointInside,
 	isVisible : Native.object.isVisible,
 	isAncestor : Native.object.isAncestor,
+	isBoundBySelector : Native.object.isBoundBySelector,
 
 	getDrawingBounds : Native.object.getDrawingBounds,
 	getBoundingRect : Native.object.getBoundingRect,
@@ -216,6 +221,10 @@ DOMElement.prototype = {
 	hasClass : Native.object.hasClass,
 	addClass : Native.object.addClass,
 	removeClass : Native.object.removeClass,
+
+	getPropertyHandler : Native.object.getPropertyHandler,
+	applySelectorProperties : Native.object.applySelectorProperties,
+	applyStyleSheet : Native.object.applyStyleSheet,
 
 	bringToFront : Native.object.bringToFront,
 	sendToBack : Native.object.sendToBack,

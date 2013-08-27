@@ -29,8 +29,6 @@ Native.events = {
 	dragging : false,
 	dragstarted : false,
 
-	timer : false,
-
 	cloneElement : null,	
 	sourceElement : null,
 
@@ -98,7 +96,7 @@ Native.events = {
 			cancelBubble = false,
 			cancelEvent = false,
 
-			z = Native.layout.getElements();
+			z = document.getElements();
 
 		e.preventDefault = function(){
 			self.preventdefault = true;
@@ -284,8 +282,11 @@ Native.events = {
 			}
 			return false;
 		}
-		window.cursor = this.mostTopElementUnderMouse ?
-				this.mostTopElementUnderMouse.cursor : document.cursor;
+		
+		if (this.mostTopElementUnderMouse) {
+			window.cursor = this.mostTopElementUnderMouse.disabled ?
+					"arrow" : this.mostTopElementUnderMouse.cursor;
+		}
 	},
 
 	fireMouseOut : function(element, e){
@@ -308,6 +309,11 @@ Native.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		window.mouseX = e.x;
+		window.mouseY = e.y;
+		var o = this.last || {x:0, y:0},
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
+
 		if (e.which == 3) {
 			this.preventmouseclick = false;
 			this.dispatch("contextmenu", e);
@@ -319,12 +325,18 @@ Native.events = {
 		e.duration = null;
 		e.dataTransfer = this.__dataTransfer;
 
+		this.dispatch("mousedown", e);
+
 		if (this.last){
 			e.duration = e.time - this.last.time;
+
+			if (dist<3 && e.duration <= Native.system.doubleClickInterval) {
+				this.dispatch("mousedblclick", e);
+				this.doubleclick = true;
+			}
 		}
 
 		this.last = e;
-		this.dispatch("mousedown", e);
 	},
 
 	mousemoveEvent : function(e){
@@ -383,38 +395,17 @@ Native.events = {
 		this.dragstarted = false;
 		this.sourceElement = null;
 
-		//if (!this.timer) {
-			this.dispatch("mouseup", e);
-		//}
+		this.dispatch("mouseup", e);
 
 		if (o && dist<3) {
-
 			if (elapsed > this.options.pointerHoldTime) {
 				this.doubleclick = false;
 				this.timer = false;
-				//this.dispatch("mousehold", e);
+				this.dispatch("mouseholdup", e);
 				this.dispatch("mouseclick", e);
 			} else {
-
-				if (!this.timer) {
-					Native.timer(function(){
-						if (!self.doubleclick) {
-//							self.dispatch("mouseclick", e);
-						}
-						self.timer = false;
-						self.doubleclick = false;
-					}, Native.system.doubleClickInterval);
-
-					this.timer = true;
-				} else {
-					this.dispatch("mousedblclick", e);
-					this.doubleclick = true;
-					this.timer = false;
-				}
-
 				this.dispatch("mouseclick", e);
 			}
-
 		}
 	},
 
@@ -622,6 +613,8 @@ window._ontextinput = function(e){
 	Native.events.textinputEvent(e);
 };
 
+/* -- WINDOW EVENTS --------------------------------------------------------- */
+
 window._onfocus = function(e){
 	
 };
@@ -630,4 +623,18 @@ window._onblur = function(e){
 	
 };
 
-/* -------------------------------------------------------------------------- */
+/* -- LOAD EVENTS ----------------------------------------------------------- */
+
+window._onready = function(){
+	Native.core.onready();
+};
+
+window._onassetready = function(e){
+	switch (e.tag) {
+		case "style" :
+			Native.StyleSheet.refresh();
+			break;
+		default : break
+	}
+};
+

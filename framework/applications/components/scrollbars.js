@@ -99,7 +99,7 @@ var	c4 = new UIView(view, {
 	background : "#ff0088"
 });
 
-Native.layout.getElementsByTagName("UIView").each(function(){
+document.getElementsByTagName("UIView").each(function(){
 	this.addEventListener("drag", function(e){
 		this.left += e.xrel;
 		this.top += e.yrel;

@@ -90,8 +90,8 @@ if [ -d "SDL2" ]; then
     echo "SDL2 already downloaded"
 else 
     echo "Downloading SDL2 ... "
-    curl $DEPS_URL/SDL-2.0.tar.gz | tar zx
-    mv `ls |grep SDL-2*` SDL2
+    curl $DEPS_URL/SDL2-2.0.0.tar.gz | tar zx
+    mv `ls |grep SDL2-*` SDL2
 fi
 
 if [ -d "skia" ]; then
@@ -227,7 +227,7 @@ else
 fi
 
 if [[ $OSX ]]; then
-    if [ ! -d $LIBS_DIR/SDL2.framework ]; then 
+    if [ ! -d $LIBS_DIR/SDL2.framework ] || true; then 
         cd SDL2/
         cd Xcode/SDL/
         xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'

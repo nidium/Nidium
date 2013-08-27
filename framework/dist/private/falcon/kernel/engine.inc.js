@@ -195,6 +195,10 @@ Native.StyleSheet = {
 		this.add(sheet);
 	},
 
+	refresh : function(){
+		this.add(document.stylesheet);
+	},
+
 	/* load a local or distant stylesheet */
 	load : function(url, sync=true){
 		var ____self____ = this,
@@ -217,41 +221,57 @@ Native.StyleSheet = {
 		}
 	},
 
-	/* apply style to existing elements */
+	/* apply style to elements that match selector */
 	updateElements : function(selector){
-		var l = selector.length,
-			s = selector.substr(0, 1),
-			k = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector;
+		var prop = document.style.get(selector);
+			
+		if (typeof prop == "function") {
+			setTimeout(function(){
+				document.getElementsBySelector(selector).each(function(){
+					prop.call(this);
+				});
+			}, 0);
+		} else {
+			for (var k in prop) {
+				if (prop.hasOwnProperty(k) && typeof prop[k] == "function") {
+					var e = this.getPropertyHandler(selector, k),
+						value = prop[k].call(e);
 
-		switch (s) {
-			case "@" : /* static property container, do nothing */ break;
-			case "#" : this.updateElementWithId(k); break;
-			case "." : this.updateAllElementsWithClassName(k); break;
-			default  : this.updateAllElementsWithTagName(k); break;
+					this.setDynamicProperty(selector, k, value);
+				}
+			}
+		}
+
+		document.getElementsBySelector(selector).each(function(){
+			this.setProperties(prop);
+		});
+	},
+
+	setDynamicProperty : function(selector, property, value){
+		setTimeout(function(){
+			document.getElementsBySelector(selector).each(function(){
+				this[property] = value;
+			});
+		}, 0);
+	},
+
+	getPropertyHandler : function(selector, property){
+		var that = this;
+
+		var setter = function(value){
+			that.setDynamicProperty(selector, property, value);
 		};
-	},
 
-	/* apply style to element with id "id" */
-	updateElementWithId : function(id){
-		var properties = document.stylesheet["#"+id];
-		var element = Native.layout.getElementById(id);
-		if (!isDOMElement(element)) return false;
-		element.setProperties(properties);
-	},
+		return {
+			set value(value) {
+				this._value = value;
+				setter(value);
+			},
 
-	/* apply style to all elements with class "klass" */
-	updateAllElementsWithClassName : function(klass){
-		Native.layout.getElementsByClassName(klass).each(function(){
-			this.updateClassProperties();
-		});
-	},
-	
-	/* apply style to all elements with type "type" */
-	updateAllElementsWithTagName : function(type){
-		var properties = document.stylesheet[type];
-		Native.layout.getElementsByTagName(type).each(function(){
-			this.setProperties(properties);
-		});
+			get value() {
+				return this._value;
+			},
+		};
 	},
 
 	/* merge properties in an existing selector, or create new one */
@@ -354,14 +374,6 @@ Native.StyleSheet = {
 				.replace(/[\n\r]/g, '')
 				.replace(/\s+/g, ' ');
 	}
-};
-
-/* -------------------------------------------------------------------------- */
-
-Native.FPS = {
-	init : function(){},
-	start : function(){},
-	show : function(){}
 };
 
 /* -------------------------------------------------------------------------- */

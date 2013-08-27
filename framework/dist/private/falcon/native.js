@@ -120,28 +120,10 @@ load(__PATH_KERNEL__ + 'layout.inc.js');
 Native.core = {
 	init : function(){
 		this.createDocument();
-		this.createContextMenu();
-		this.createSpinner();
+		this.extendDocument();
 		this.setRenderingLoop();
 		this.addStatusBar();
 		delete(this.init);
-	},
-
-	createSpinner : function(){
-		document.spinner = new UISpinner("document", {
-
-		});
-
-		document.spinner = new UISpinner(document, {
-			height : 40,
-			width : 40,
-			dashes : 12,
-			lineWidth : 8,
-			color : "rgba(128, 128, 128, 0.5)",
-			speed : 32,
-			opacity : 0.3,
-			radius : 2
-		}).center();
 	},
 
 	onready : function(){
@@ -165,8 +147,35 @@ Native.core = {
 		});
 
 		doc.stylesheet = document.stylesheet;
+		doc.run = document.run;
 
-		doc.style = {
+		Object.createProtectedElement(Native.scope, "document", doc);
+	},
+
+	extendDocument : function(){
+		var proxy = Native.layout;
+
+		document.getElements = function(){
+			return proxy.getElements();
+		};
+
+		document.getElementById = function(id){
+			return proxy.getElementById(id);
+		};
+		
+		document.getElementsByClassName = function(klass){
+			return proxy.getElementsByClassName(klass);
+		};
+
+		document.getElementsByTagName = function(type){
+			return proxy.getElementsByTagName(type);
+		};
+
+		document.getElementsBySelector = function(selector){
+			return proxy.getElementsBySelector(selector);
+		};
+
+		document.style = {
 			get : function(selector){
 				return document.stylesheet[selector];
 			},
@@ -180,17 +189,18 @@ Native.core = {
 			}
 		};
 
-		Object.createProtectedElement(Native.scope, "document", doc);
-	},
-
-	createContextMenu : function(){
 		document.addEventListener("contextmenu", function(e){
 			var root = e.element._root;
 
-			if (document.overlayView) document.overlayView.remove();
+			if (document.overlayView) {
+				console.log("remove")
+				document.overlayView.remove();
+				document.overlayView = null;
+				return false;
+			}
 
 			document.overlayView = root.add("UIElement", {
-				background : "rgba(0, 0, 0, 0.7)"
+				background : "rgba(255, 255, 255, 0.1)"
 			});
 
 			document.contextMode = false;
@@ -200,16 +210,18 @@ Native.core = {
 				if (document.contextMenu) {
 					document.contextMenu.selector.hide();
 					document.contextMenu.remove();
-					this.remove();
+					document.overlayView.remove();
+					document.overlayView = null;
 				}
 			});
 
+			var disabled = !(e.element.isTextZone);
 
 			var	myMenu = [
-				/* Tab 0 */ {label : "Copy", 		value : 0},
-				/* Tab 1 */ {label : "Cut", 		value : 1},
-				/* Tab 2 */ {label : "Paste", 		value : 2},
-				/* Tab 3 */ {label : "Show Source Code",	value : 10}
+				/* Tab 0 */ {label : "Copy", 		value : 0, disabled:disabled},
+				/* Tab 1 */ {label : "Cut", 		value : 1, disabled:disabled},
+				/* Tab 2 */ {label : "Paste", 		value : 2, disabled:disabled},
+				/* Tab 3 */ {label : "View Source",	value : 10}
 			];
 
 			if (this.contextMenu) {
@@ -232,7 +244,7 @@ Native.core = {
 			});
 
 			this.contextMenu.addEventListener("blur", function(){
-				this.fireEvent("tick", {})
+				this.fireEvent("tick", {});
 				this.remove();
 			});
 
@@ -241,16 +253,32 @@ Native.core = {
 				window.mouseY
 			).unselect().openSelector(0);
 
-			this.contextMenu.addEventListener("select", function(){
+			this.contextMenu.addEventListener("select", function(e){
 				document.contextMenu.selector.hide();
 				document.contextMenu.remove();
 				document.overlayView.remove();
+				document.overlayView = null;
+				console.log(e.value);
 			});
 
 			setTimeout(function(){
 				document.contextMode = true;
 			}, 5);
 		});
+
+		document.spinner = new UISpinner(document, {
+			height : 40,
+			width : 40,
+			dashes : 12,
+			lineWidth : 8,
+			color : "rgba(128, 128, 128, 0.5)",
+			speed : 32,
+			opacity : 0.3,
+			radius : 2
+		}).center();
+
+
+
 	},
 
 	setRenderingLoop : function(){
@@ -269,12 +297,9 @@ Native.core = {
 	}
 };
 
+/*
+window.width = 640;
+window.height = 480;
+*/
+
 Native.core.init();
-window._onready = function(){
-	Native.core.onready();
-};
-
-window._onassetready = function(e){
-//	console.log("asset read", e.tag, e.id);
-};
-

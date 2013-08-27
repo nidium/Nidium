@@ -5,9 +5,6 @@
 /* -------------------------------------- */
 
 var bigview = new Canvas(500, 500);
-bigview.padding = 0;
-bigview.left = 20;
-bigview.top = 20;
 bigview.ctx.fillStyle = 'black';
 bigview.ctx.fillRect(0, 0, 500, 500);
 Native.canvas.add(bigview);
@@ -19,16 +16,31 @@ var context = bigview.getContext("2d"),
 	y = 40,
 	w = 100,
 	h = 100,
-	radius = 10;
+	radius = 50,
+	angle = 45;
+
+	var rad = angle * (Math.PI/180),
+		origin = {
+			x : x + w/2,
+			y : y + h/2
+		};
+
+	context.save();
+	context.translate(origin.x, origin.y);
+	context.rotate(rad);
+	context.translate(-origin.x, -origin.y);
 
 	context.beginPath();
 
 	context.arc(
 		x+radius, y+h*0.5, 
-		radius, 0, 6.2831852, false
+		radius, 0, Math.PI*2, false
 	);
-
-	context.setColor('#ff0000');
+	context.fillStyle = "#ff0000";
 	context.fill();
 
+	context.fillStyle = "#ffffff";
+	context.fillRect(x+w/2, y, 1, h/2);
+
+	context.restore();
 

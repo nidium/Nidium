@@ -96,7 +96,7 @@ var NatBug = {
 			myTabs.push(pane.tab);
 		}
 
-		this.console = Native.layout.getElementById("_ntbgp_elements").pane;
+		this.console = document.getElementById("_ntbgp_elements").pane;
 
 		this.tabController = new UITabController(this.application, {
 			name : "NatBugTabController",
@@ -108,7 +108,7 @@ var NatBug = {
 
 		this.tabController.addEventListener("tabselect", function(e){
 			var selectedView = e.tab.target,
-				views = Native.layout.getElementsByClassName("natbug_view");
+				views = document.getElementsByClassName("natbug_view");
 
 			views.each(function(){
 				this.pane.hide();
@@ -254,7 +254,7 @@ NatBug.panes.push({
 		dx(z, null, this.paneLeft, null);
 
 		/*
-		Native.layout.getElementsByClassName("__treePaneContainer__").each(function(){
+		document.getElementsByClassName("__treePaneContainer__").each(function(){
 			this.open();
 		});
 		*/
@@ -801,7 +801,7 @@ Native.FPS = {
 		} 				
 		
 		if (this.loaded) {
-			Native.layout.getElementById("natbug_value_fps").label = this.old + " ms";
+			document.getElementById("natbug_value_fps").label = this.old + " ms";
 			/*
 			this.context.setColor("#000000");
 			this.context.fillRect(0, 0, 60, 30);

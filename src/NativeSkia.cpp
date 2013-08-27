@@ -279,6 +279,8 @@ uint32_t NativeSkia::parseColor(const char *str)
 
 void NativeSkia::initPaints()
 {
+    state->baseline = BASELINE_ALPHABETIC;
+
     PAINT = new SkPaint;
     /*
         TODO : setHintingScaleFactor(m_hintingScaleFactor);
@@ -387,6 +389,60 @@ int NativeSkia::bindOffScreen(int width, int height)
     return 1;
 }
 
+SkCanvas *NativeSkia::createGLCanvas(int width, int height)
+{
+    const GrGLInterface *interface =  GrGLCreateNativeInterface();
+    
+    if (interface == NULL) {
+        printf("Cant get interface\n");
+        return NULL;
+    }    
+    
+    GrContext *context = GrContext::Create(kOpenGL_GrBackend,
+        (GrBackendContext)interface);
+
+    if (context == NULL) {
+        return NULL;
+    }
+
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    
+    GrBackendRenderTargetDesc desc;
+    //GrGLRenderTarget *t = new GrGLRenderTarget();
+    
+    desc.fWidth = SkScalarRound(width*ratio);
+    desc.fHeight = SkScalarRound(height*ratio);
+    desc.fConfig = kSkia8888_GrPixelConfig;
+    desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
+
+    GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
+    GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
+
+    GrGLint buffer = 0;
+    GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
+    desc.fRenderTargetHandle = 0;
+    GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
+
+    if (target == NULL) {
+        printf("Failed to init Skia\n");
+        return NULL;
+    }
+    SkGpuDevice *dev = new SkGpuDevice(context, target);
+
+    if (dev == NULL) {
+        printf("Failed to init Skia (2)\n");
+        return NULL;
+    }
+    SkCanvas *ret;
+    ret = new SkCanvas(dev);
+
+    SkSafeUnref(dev);
+
+    ret->clear(0xFFFFFFFF);
+
+    return ret;
+
+}
 
 int NativeSkia::bindGL(int width, int height)
 {
@@ -576,10 +632,46 @@ void NativeSkia::setFontType(const char *str)
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
+    SkPaint::FontMetrics metrics;
+    PAINT->getFontMetrics(&metrics);
+
+    SkScalar sx = SkIntToScalar(x), sy = SkIntToScalar(y);
+
+    switch(state->baseline) {
+        case BASELINE_TOP:
+            sy -= metrics.fTop;
+            break;
+        case BASELINE_BOTTOM:
+            sy -= metrics.fBottom;
+            break;
+        case BASELINE_MIDDLE:
+            sy += (metrics.fXHeight)/2;
+            break;
+        default:
+            break;
+    }
+
     canvas->drawText(text, strlen(text),
-        SkIntToScalar(x), SkIntToScalar(y), *PAINT);
+        sx, sy, *PAINT);
 
     CANVAS_FLUSH();
+}
+
+void NativeSkia::textBaseline(const char *mode)
+{
+    if (strcasecmp("top", mode) == 0) {
+        state->baseline = BASELINE_TOP;
+    } else if (strcasecmp("hanging", mode) == 0) {
+        state->baseline = BASELINE_ALPHABETIC;
+    } else if (strcasecmp("middle", mode) == 0) {
+        state->baseline = BASELINE_MIDDLE;
+    } else if (strcasecmp("ideographic", mode) == 0) {
+        state->baseline = BASELINE_ALPHABETIC;
+    } else if (strcasecmp("bottom", mode) == 0) {
+        state->baseline = BASELINE_BOTTOM;
+    } else {
+        state->baseline = BASELINE_ALPHABETIC;
+    }
 }
 
 void NativeSkia::textAlign(const char *mode)
@@ -869,11 +961,28 @@ void NativeSkia::fill()
         return;
     }
 
+    SkShader *shader = PAINT->getShader();
+    const SkMatrix *m = NULL;
+
+    if (shader != NULL) {
+        if (shader->hasLocalMatrix()) {
+            m = &shader->getLocalMatrix();
+        }
+
+        shader->setLocalMatrix(canvas->getTotalMatrix());
+    }
     /* The matrix was already applied point by point */
     canvas->save(SkCanvas::kMatrix_SaveFlag);
     canvas->resetMatrix();
     canvas->drawPath(*currentPath, *PAINT);
     canvas->restore();
+
+    if (shader != NULL && m != NULL) {
+        shader->setLocalMatrix(*m);
+    } else if (shader != NULL) {
+        shader->resetLocalMatrix();
+    }
+
     CANVAS_FLUSH();
 }
 
@@ -882,12 +991,29 @@ void NativeSkia::stroke()
     if (!currentPath) {
         return;
     }
+    SkShader *shader = PAINT_STROKE->getShader();
+    const SkMatrix *m = NULL;
+
+    if (shader != NULL) {
+        if (shader->hasLocalMatrix()) {
+            m = &shader->getLocalMatrix();
+        }
+
+        shader->setLocalMatrix(canvas->getTotalMatrix());
+    }
 
     /* The matrix was already applied point by point */
     canvas->save(SkCanvas::kMatrix_SaveFlag);
     canvas->resetMatrix();
     canvas->drawPath(*currentPath, *PAINT_STROKE);
     canvas->restore();
+
+    if (shader != NULL && m != NULL) {
+        shader->setLocalMatrix(*m);
+    } else if (shader != NULL) {
+        shader->resetLocalMatrix();
+    }
+
     CANVAS_FLUSH();
 }
 
@@ -986,26 +1112,35 @@ void NativeSkia::arc(int x, int y, int r,
     SkScalar start = SkDoubleToScalar(180 * startAngle / SK_ScalarPI);
     SkScalar end = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
 
-    SkRect rect;
+    SkRect rect, nrect;
+
+    SkPoint pt;
+    m.mapXY(cx, cy, &pt);
+
+    if (!currentPath->isEmpty()) {
+        currentPath->lineTo(pt);
+    }
+
     m.mapRect(&rect, SkRect::MakeLTRB(cx-radius, cy-radius, cx+radius, cy+radius));
 
-
+    /* Compute the new bounding rect using the transformed rect with the old size */
+    nrect = SkRect::MakeLTRB(rect.centerX()-radius, rect.centerY()-radius,
+        rect.centerX()+radius, rect.centerY()+radius);
 
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
-        currentPath->arcTo(rect, start, 0, false);
+        currentPath->arcTo(nrect, start, 0, false);
         // Draw the circle.
-        currentPath->addOval(rect);
+        currentPath->addOval(nrect);
         // Force a moveTo the end position.
-        currentPath->arcTo(rect, start + end, 0, true);        
+        currentPath->arcTo(nrect, start + end, 0, true);        
     } else {
         if (CCW && end > 0) {
             end -= s360;
         } else if (!CCW && end < 0) {
             end += s360;
         }
-
-        currentPath->arcTo(rect, start, end, false);        
+        currentPath->arcTo(nrect, start, end, false);        
     }
 }
 
@@ -1080,6 +1215,7 @@ void NativeSkia::save()
     nstate->paint = new SkPaint(*PAINT);
     nstate->paint_stroke = new SkPaint(*PAINT_STROKE);
     nstate->next = state;
+    nstate->baseline = BASELINE_ALPHABETIC;
 
     state = nstate;
 

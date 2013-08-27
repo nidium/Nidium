@@ -1,9 +1,13 @@
 #include "NativeJSDocument.h"
 #include "NativeJS.h"
+#include "NativeContext.h"
+#include "NativeUIInterface.h"
+#include <native_netlib.h>
 #include <jsapi.h>
 
 #define NJSDOC_GETTER(obj) ((class NativeJSdocument *)JS_GetPrivate(obj))
 
+static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSPropertySpec document_props[] = {
@@ -18,6 +22,51 @@ static JSClass document_class = {
 };
 
 JSClass *NativeJSdocument::jsclass = &document_class;
+
+static JSFunctionSpec document_funcs[] = {
+    JS_FN("run", native_document_run, 1, 0),
+    JS_FS_END
+};
+
+struct _native_document_restart_async
+{
+    NativeUIInterface *ui;
+    char *location;
+};
+
+static int native_document_restart(void *param)
+{
+    struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)param;
+
+    ndra->ui->restartApplication(ndra->location);
+
+    free(ndra->location);
+    free(ndra);
+
+    return 0;
+}
+
+static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *location;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &location)) {
+        return JS_TRUE;
+    }
+
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    JSAutoByteString locationstr(cx, location);
+
+    struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)malloc(sizeof(*ndra));
+
+    ndra->location = strdup(locationstr.ptr());
+    ndra->ui = NUI;
+    ape_global *ape = NativeJS::getNativeClass(cx)->net;
+
+    timer_dispatch_async(native_document_restart, ndra);
+
+    return true;
+}
 
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -62,7 +111,7 @@ void NativeJSdocument::registerObject(JSContext *cx)
     jdoc->stylesheet = JS_NewObject(cx, NULL, NULL, NULL);
     jsval obj = OBJECT_TO_JSVAL(jdoc->stylesheet);
     JS_SetProperty(cx, documentObj, "stylesheet", &obj);
-    //JS_DefineFunctions(cx, documentObj, document_funcs);
+    JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
 }
 
