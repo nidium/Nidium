@@ -3,4 +3,4 @@
 	url = git@github.com:SwelenFrance/NativeJSCore.git
 [submodule "network"]
 	path = network
-	url = git@github.com:SwelenFrance/libapenetwork.git
+	url = https://github.com/SwelenFrance/libapenetwork.git
