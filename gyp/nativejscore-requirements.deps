@@ -1,0 +1,5 @@
+mozilla-central
+c-ares
+http-parser
+gyp
+../network/gyp/libapenetwork-requirements.deps
