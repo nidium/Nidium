@@ -1,0 +1,4 @@
+[submodule "network"]
+	path = network
+	url = https://github.com/SwelenFrance/libapenetwork.git
+	branch = master
