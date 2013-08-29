@@ -13,14 +13,14 @@ def makePreload():
     os.chdir("scripts")
 
     inFile = open("preload.js", "r")
-    outFile = open("preload.h", "w")
+    outFile = open("../src/NativeJS_preload.h", "w")
 
     data = inFile.read()
 
     data = re.sub('"', '\\"', data, flags=re.MULTILINE)
     data = re.sub('^', '"', data, flags=re.MULTILINE)
     data = re.sub('$', '\\\\n"', data, flags=re.MULTILINE)
-    data = "const char *preload_js = " + data
+    data = "const char *preload_js = " + data + ";"
 
     outFile.write(data)
 
