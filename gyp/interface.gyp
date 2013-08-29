@@ -4,7 +4,7 @@
         'type': 'static_library',
         'include_dirs': [
             '../src/',
-            '../network/',
+            '<(native_network_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/jsoncpp/include/',
             '<(third_party_path)/libzip/lib/',

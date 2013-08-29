@@ -4,12 +4,12 @@
         'type': 'executable',
 		'mac_bundle': 1,
         'product_dir': '../framework/dist/',
-        'dependencies': [
-            'network.gyp:nativenetwork',
+'dependencies': [
+            '<(native_network_path)/gyp/network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
-            'nativejscore.gyp:nativejscore',
-            #'<(third_party_path)/skia/skia.gyp:alltargets',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+#            #'<(third_party_path)/skia/skia.gyp:alltargets',
         ],
 
         'include_dirs': [

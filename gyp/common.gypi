@@ -7,7 +7,7 @@
         'configurations': {
             'Debug': {
                 'product_dir': '<(native_output)/debug/',
-                'defines': [ 'NATIVE_DEBUG', 'DEBUG', '_DEBUG' ],
+                'defines': [ 'NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'UINT32_MAX=4294967295u' ],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 1, 
@@ -54,7 +54,7 @@
             },
             'Release': {
                 'product_dir': '<(native_output)/release/',
-                'defines': [ 'NDEBUG' ],
+                'defines': [ 'NDEBUG','UINT32_MAX=4294967295u' ],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 0,

@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     NativeX11UIInterface UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
-    if (!UI.runApplication("native.npa")) {
+    if (!UI.runApplication("../index.nml")) {
         return 0;
     }
     
