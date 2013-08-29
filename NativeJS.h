@@ -48,6 +48,7 @@ struct _ape_htable;
 
 typedef struct _ape_global ape_global;
 
+
 class NativeJS
 {
     public:
@@ -75,6 +76,7 @@ class NativeJS
 
         void loadGlobalObjects();
         
+        static char *buildRelativePath(JSContext *cx, const char *file = NULL);
         static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
             size_t len, const char *filename, JS::Value *ret);

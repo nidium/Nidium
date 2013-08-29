@@ -209,6 +209,30 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
 #endif
 }
 
+char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
+{
+    JSScript *parent;
+    const char *filename_parent;
+    unsigned lineno;
+
+    JS_DescribeScriptedCaller(cx, &parent, &lineno);
+    filename_parent = JS_GetScriptFilename(cx, parent);
+
+    char *basepath = NativeStream::resolvePath(filename_parent, NativeStream::STREAM_RESOLVE_PATH);
+
+    if (file == NULL) {
+        return basepath;
+    }
+    char *finalfile = (char *)malloc(sizeof(char) *
+        (1 + strlen(basepath) + strlen(file)));
+
+    sprintf(finalfile, "%s%s", basepath, file);
+
+    free(basepath);
+    return finalfile;
+
+}
+
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *script, *type = NULL;
