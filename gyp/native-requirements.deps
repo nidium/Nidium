@@ -9,7 +9,8 @@ basekit
 libcoroutine
 portaudio
 zita-resampler
-gyp
 http-parser
+gyp
+preload
 native-requirements.py
 ../nativejscore/gyp/nativejscore-requirements.deps

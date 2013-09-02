@@ -3,9 +3,35 @@ from functools import partial
 import sys, os
 import deps
 
+def makePreload():
+    import re
+
+    cwd = os.getcwd()
+    os.chdir(deps.CWD)
+
+    deps.logd("Building preload.h")
+    os.chdir("scripts")
+
+    inFile = open("preload.js", "r")
+    outFile = open("../src/NativeJS_preload.h", "w")
+
+    data = inFile.read()
+
+    data = re.sub('"', '\\"', data, flags=re.MULTILINE)
+    data = re.sub('^', '"', data, flags=re.MULTILINE)
+    data = re.sub('$', '\\\\n"', data, flags=re.MULTILINE)
+    data = "const char *preload_js = " + data + ";"
+
+    outFile.write(data)
+
+    inFile.close()
+    outFile.close()
+
+    os.chdir(cwd)
+
 def buildSDL2():
     if deps.system == "Darwin":
-        deps.buildDep("SDL2.framework", "SDL2/Xcode/SDL", "xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'")
+        deps.buildDep("SDL2.framework", "SDL2/Xcode/SDL", ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], outlibs=["SDL2/Xcode/SDL/out/SDL2.framework"])
     else:
         deps.mkdir_p("SDL2/build/")
         deps.buildDep("libSDL2", "SDL2/build/", ["../configure", "make"], outlibs=["SDL2/build/build/.libs/libSDL2"])
@@ -109,3 +135,7 @@ def registerDeps():
     deps.registerDep("jsoncpp", 
         downloadJSONCPP, 
         buildJSONCPP)
+
+    deps.registerDep("preload", 
+         None,
+         makePreload)
