@@ -31,7 +31,7 @@ def makePreload():
 
 def buildSDL2():
     if deps.system == "Darwin":
-        deps.buildDep("SDL2.framework", "SDL2/Xcode/SDL", "xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'")
+        deps.buildDep("SDL2.framework", "SDL2/Xcode/SDL", ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], outlibs=["SDL2/Xcode/SDL/out/SDL2.framework"])
     else:
         deps.mkdir_p("SDL2/build/")
         deps.buildDep("libSDL2", "SDL2/build/", ["../configure", "make"], outlibs=["SDL2/build/build/.libs/libSDL2"])
