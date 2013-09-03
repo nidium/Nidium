@@ -3,6 +3,8 @@
 #include <NativeJS.h>
 #include <NativeSkia.h>
 #include <NativeApp.h>
+#include <NativeJSWindow.h> 
+#include <NativeContext.h>
 #ifdef NATIVE_USE_GTK
 #include <gtk/gtk.h>
 #endif
@@ -19,6 +21,7 @@
 #include <NativeNML.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
@@ -42,6 +45,12 @@ static Window *NativeX11Window(SDL_Window *win)
     return (Window*)info.info.x11.window;
 }
 
+void NativeX11UIInterface_onNMLLoaded(void *arg)
+{
+    NativeX11UIInterface *UI = (NativeX11UIInterface *)arg;
+    UI->onNMLLoaded();
+}
+
 int NativeEvents(NativeX11UIInterface *NUII)
 {   
     SDL_Event event;
@@ -49,17 +58,21 @@ int NativeEvents(NativeX11UIInterface *NUII)
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
+            NativeJSwindow *window = NULL;
+            if (NUII->NativeCtx) {
+                window = NativeJSwindow::getNativeClass(NUII->NativeCtx->getNJS());
+            }
             nevents++;
             switch(event.type) {
                 case SDL_TEXTINPUT:
-                    NUII->NJS->textInput(event.text.text);
+                    if (window) {
+                        window->textInput(event.text.text);
+                    }
                     break;
                 case SDL_USEREVENT:
                     break;
                 case SDL_QUIT:
-
-                    if (NUII->nml) delete NUII->nml;
-                    delete NUII->NJS;
+                    NUII->stopApplication();
                     SDL_Quit();
 #ifdef NATIVE_USE_GTK
                     while (gtk_events_pending ()) {
@@ -69,20 +82,25 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     exit(1);
                     break;
                 case SDL_MOUSEMOTION:
-                    NUII->NJS->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
+                    if (window) {
+                        window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
                                    event.motion.xrel, event.motion.yrel);
-                    break;
+                    }
                 case SDL_MOUSEWHEEL:
                 {
                     int cx, cy;
                     SDL_GetMouseState(&cx, &cy);
-                    NUII->NJS->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
+                    if (window) {
+                        window->mouseWheel(event.wheel.x, event.wheel.y, cx, cy - kNativeTitleBarHeight);
+                    }
                     break;
                 }
                 case SDL_MOUSEBUTTONUP:
                 case SDL_MOUSEBUTTONDOWN:
-                    NUII->NJS->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
+                    if (window) {
+                        window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
                                     event.button.state, event.button.button);
+                    }
                 break;
                 case SDL_KEYDOWN:
                 case SDL_KEYUP:
@@ -98,24 +116,13 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         }
                         printf("\n\n=======Refresh...=======\n");
                         //[console clear];
-                        if (NUII->nml) delete NUII->nml;
-                        delete NUII->NJS;
 #ifdef NATIVE_USE_GTK
                         while (gtk_events_pending ()) {
                             gtk_main_iteration();
                         }
 #endif
                         //printf("\n\n=======Restarting...=====\n");
-                        glClearColor(1, 1, 1, 0);
-                        glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-                        
-                        NUII->NJS = new NativeJS(NUII->getWidth(),
-                            NUII->getHeight(), NUII, NUII->gnet);
-
-                        NUII->nml = new NativeNML(NUII->gnet);
-                        NUII->nml->setNJS(NUII->NJS);
-                        NUII->nml->loadFile("index.nml");
-                        //SDL_GL_SwapBuffers();
+                        NUII->restartApplication();
                         break;
                     }
                     if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
@@ -134,7 +141,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         mod |= NATIVE_KEY_CTRL;
                     }
                     
-                    NUII->NJS->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
+                    if (window) {
+                        window->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
+                    }
                     /*printf("Mapped to %d\n", keyCode);
                     printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
                            event.key.repeat,
@@ -148,8 +157,8 @@ int NativeEvents(NativeX11UIInterface *NUII)
             }
         }
 
-        if (ttfps%20 == 0) {
-            NUII->NJS->gc();
+        if (ttfps%20 == 0 && NUII->NativeCtx != NULL) {
+            NUII->NativeCtx->getNJS()->gc();
         }
 
         if (NUII->currentCursor != NativeX11UIInterface::NOCHANGE) {
@@ -191,9 +200,13 @@ int NativeEvents(NativeX11UIInterface *NUII)
             NUII->currentCursor = NativeX11UIInterface::NOCHANGE;
         }
 
-        NUII->NJS->callFrame();
-        NUII->NJS->rootHandler->layerize(NULL, 0, 0, 1.0, NULL);
-        NUII->NJS->postDraw();
+        if (NUII->NativeCtx) {
+            NUII->NativeCtx->callFrame();
+            NUII->NativeCtx->postDraw();
+            int s = SDL_GetTicks();
+            NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
+                1.0, NULL);
+        }
 
         //NUII->getConsole()->flush();
         SDL_GL_SwapWindow(NUII->win);
@@ -227,7 +240,6 @@ static bool NativeExtractMain(const char *buf, int len,
 
     return true;
 }
-#endif
 
 static void NativeDoneExtracting(void *closure, const char *fpath)
 {
@@ -238,61 +250,32 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     ui->nml->setNJS(ui->NJS);
     ui->nml->loadFile("./index.nml");
 }
-
-bool NativeX11UIInterface::runApplication(const char *path)
+#endif
+static void NativeDoneExtracting(void *closure, const char *fpath)
 {
-    FILE *main = fopen("main.js", "r");
-    if (main != NULL) {
-        fclose(main);
-        if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
-            return false;
-        }
-
-        this->nml = new NativeNML(this->gnet);
-        this->nml->setNJS(this->NJS);
-        this->nml->loadFile("index.nml");
-
-        return true;
-    } else {
-        NativeApp *app = new NativeApp(path);
-        if (app->open()) {
-            if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
-                return false;
-            }
-            this->setWindowTitle(app->getTitle());
-
-            app->runWorker(this->gnet);
-            /*if (!(fsize = app->extractFile("main.js", NativeExtractMain, this)) ||
-                fsize > 1024L*1024L*5) {
-
-                return false;
-            }*/
-
-            char *uidpath = (char *)malloc(sizeof(char) *
-                                (strlen(app->getUDID()) + 16));
-            sprintf(uidpath, "%s.content/", app->getUDID());
-            
-            app->extractApp(uidpath, NativeDoneExtracting, this);
-            free(uidpath);
-            /*this->mainjs.buf = (char *)malloc(fsize);
-            this->mainjs.len = fsize;
-            this->mainjs.offset = 0;
-
-            printf("Start looking for main.js of size : %ld\n", fsize);*/
-            return true;
-        }
+    NativeX11UIInterface *ui = (NativeX11UIInterface*)closure;
+    if (chdir(fpath) != 0) {
+        printf("Cant enter cache directory (%d)\n", errno);
+        return;
     }
-    return false;
+    printf("Changing directory to : %s\n", fpath);
+
+    ui->nml = new NativeNML(ui->gnet);
+    ui->nml->setNJS(ui->NativeCtx->getNJS());
+    ui->nml->loadFile("./index.nml", NativeX11UIInterface_onNMLLoaded, ui);
 }
 
 NativeX11UIInterface::NativeX11UIInterface()
 {
     this->width = 0;
     this->height = 0;
+    this->initialized = false;
     this->nml = NULL;
+    this->filePath = NULL;
+    this->console = NULL;
 
     this->currentCursor = NOCHANGE;
-    this->NJS = NULL;
+    this->NativeCtx = NULL;
 }
 
 bool NativeX11UIInterface::createWindow(int width, int height)
@@ -361,7 +344,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     //NJS = new NativeJS(kNativeWidth, kNativeHeight);
     console = new NativeUIX11Console();
     gnet = native_netlib_init();
-    NJS = new NativeJS(width, height, this, gnet);
+    NativeCtx = new NativeContext(this, width, height, gnet);
 
     //NJS->LoadApplication("./demo.npa");
 
@@ -375,7 +358,11 @@ void NativeX11UIInterface::setCursor(CURSOR_TYPE type)
 
 void NativeX11UIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(win, (*name == '\0' ? "-" : name));
+    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "NATiVE" : name));
+}
+const char *NativeX11UIInterface::getWindowTitle() const
+{
+    return SDL_GetWindowTitle(win);
 }
 
 void NativeX11UIInterface::openFileDialog(const char const *files[],
@@ -595,16 +582,104 @@ void NativeUIX11Console::flush()
 {
 }
 
-void NativeCocoaUIInterface::setClipboardText(const char *text)
+void NativeX11UIInterface::setClipboardText(const char *text)
 {
     SDL_SetClipboardText(text);
 }
 
-char *NativeCocoaUIInterface::getClipboardText()
+char *NativeX11UIInterface::getClipboardText()
 {
     return SDL_GetClipboardText();
 }
 
 NativeUIX11Console::~NativeUIX11Console() 
 {
+}
+
+void NativeX11UIInterface::restartApplication(const char *path)
+{
+    this->stopApplication();
+    this->runApplication(path == NULL ? this->filePath : path);
+}
+
+bool NativeX11UIInterface::runApplication(const char *path)
+{
+    if (path != this->filePath) {
+        if (this->filePath) {
+            free(this->filePath);
+        }
+        this->filePath = strdup(path);
+    }
+    if (strlen(path) < 5) {
+        return false;
+    }
+    //    FILE *main = fopen("index.nml", "r");
+    const char *ext = &path[strlen(path)-4];
+
+    if (strncasecmp(ext, ".npa", 4) == 0) {
+        FILE *main = fopen(path, "r");
+        if (main == NULL) {
+            return false;
+        }
+        NativeApp *app = new NativeApp(path);
+        if (app->open()) {
+            if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
+                return false;
+            }
+            this->setWindowTitle(app->getTitle());
+
+            app->runWorker(this->gnet);
+
+            const char *cachePath = this->getCacheDirectory();
+            char *uidpath = (char *)malloc(sizeof(char) *
+                                (strlen(app->getUDID()) + strlen(cachePath) + 16));
+            sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
+            
+            app->extractApp(uidpath, NativeDoneExtracting, this);
+            free(uidpath);
+            /*this->mainjs.buf = (char *)malloc(fsize);
+            this->mainjs.len = fsize;
+            this->mainjs.offset = 0;
+
+            printf("Start looking for main.js of size : %ld\n", fsize);*/
+            return true;
+        } else {
+            delete app;
+        }
+    } else if (strncasecmp(ext, ".nml", 4) == 0) {
+        if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
+            return false;
+        }
+        this->nml = new NativeNML(this->gnet);
+        this->nml->setNJS(this->NativeCtx->getNJS());
+        printf("Load NML : %s\n", path);
+        this->nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
+        return true;
+    }
+    return false;
+}
+
+void NativeX11UIInterface::stopApplication()
+{
+    if (this->nml) delete this->nml;
+    if (this->NativeCtx) delete this->NativeCtx;
+    this->NativeCtx = NULL;
+    this->nml = NULL;
+    glClearColor(1, 1, 1, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    /* Also clear the front buffer */
+    SDL_GL_SwapWindow(this->win);
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);  
+}
+
+void NativeX11UIInterface::onNMLLoaded()
+{
+    this->setWindowTitle(this->nml->getMetaTitle());
+}
+
+void NativeX11UIInterface::setWindowSize(int w, int h)
+{
+    SDL_SetWindowSize(win, w, h);
+    this->width = w;
+    this->height = h;
 }

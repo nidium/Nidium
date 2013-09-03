@@ -12,6 +12,9 @@
 #include "NativeJSConsole.h"
 #include "NativeJS_preload.h"
 #include "NativeUIInterface.h"
+#ifdef __linux__
+#include "SkImageDecoder.h"
+#endif
 #include <stdlib.h>
 #include <string.h>
 

@@ -9,7 +9,7 @@
         'native_av_path%': '../av/',
         'native_app_path%': '../app/',
         'native_interface_path%': '../interface/',
-        'native_network_path%': '../network/',
+        'native_network_path%': '../nativejscore/network/',
         'native_nativejscore_path%': '../nativejscore/',
         'native_exec_name%': 'nativeapp',
 

@@ -1,0 +1,16 @@
+mozilla-central
+c-ares
+skia
+SDL2
+jsoncpp
+libzip
+ffmpeg
+basekit
+libcoroutine
+portaudio
+zita-resampler
+http-parser
+gyp
+preload
+native-requirements.py
+../nativejscore/gyp/nativejscore-requirements.deps

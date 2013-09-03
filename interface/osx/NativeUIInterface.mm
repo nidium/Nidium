@@ -15,7 +15,7 @@
 #import <sys/stat.h>
 
 #define kNativeWidth 1024
-#define kNativeHeight 700
+#define kNativeHeight 768
 
 #define kNativeTitleBarHeight 0
 
@@ -53,9 +53,13 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case SDL_WINDOWEVENT:
                     if (window) {
                         switch (event.window.event) {
+                            case SDL_WINDOWEVENT_SIZE_CHANGED:
+                                printf("Size changed ??? %d %d\n", event.window.data1, event.window.data2);
+                                //window->resized(event.window.data1, event.window.data2);
+                                break;
                             case SDL_WINDOWEVENT_RESIZED:
                                 printf("Resized\n");
-                                window->resized(event.window.data1, event.window.data2);
+                                //window->resized(event.window.data1, event.window.data2);
                                 break;
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
                                 window->windowFocus();
@@ -347,7 +351,6 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         }
         this->nml = new NativeNML(this->gnet);
         this->nml->setNJS(this->NativeCtx->getNJS());
-        printf("Load NML : %s\n", path);
         this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
         return true;
     }
@@ -486,7 +489,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     }
     NativeCtx = new NativeContext(this, width, height, gnet);
     window = NativeCocoaWindow(win);
-
+#if 0
     id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *notif){
         NSRect rect = [window contentRectForFrameRect:[window frame]];
         int x, y, w, h;
@@ -497,6 +500,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         h = (int)rect.size.height;
         NativeJSwindow::getNativeClass(NativeCtx->getNJS())->resized(w, h);
     }];
+#endif
     return true;
 }
 
@@ -658,6 +662,8 @@ char *NativeCocoaUIInterface::getClipboardText()
 
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
+    NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
+    printf("Calling changing size to SDL\n");
     SDL_SetWindowSize(win, w, h);
     this->width = w;
     this->height = h;

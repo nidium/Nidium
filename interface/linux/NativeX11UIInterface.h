@@ -25,6 +25,7 @@ class NativeX11UIInterface : public NativeUIInterface
         NativeX11UIInterface();
         bool createWindow(int width, int height);
         void setWindowTitle(const char *);
+        const char *getWindowTitle() const;
         void setCursor(CURSOR_TYPE);
         void runLoop();
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
@@ -34,13 +35,18 @@ class NativeX11UIInterface : public NativeUIInterface
         const char *getCacheDirectory() const {
             return "/tmp/";
         };
-        void setClipboardText(const char *text);
-        char *getClipboardText();
         void initControls();
-        bool runApplication(const char *path);
         NativeUIX11Console *getConsole(bool create=false, bool *created=NULL) {
             return this->console;
         }
+
+        void setClipboardText(const char *text);
+        char *getClipboardText();
+        void stopApplication();
+        void restartApplication(const char *path=NULL);
+        bool runApplication(const char *path);
+        void onNMLLoaded();
+        void setWindowSize(int w, int h);
         /*
         struct {
             CGRect closeFrame;

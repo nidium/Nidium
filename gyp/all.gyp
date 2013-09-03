@@ -4,11 +4,11 @@
         'type': 'none',
         'dependencies': [
             #'third-party.gyp:third-party',
-            'network.gyp:nativenetwork',
+            #'network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
             'app.gyp:nativeapp',
-            'nativejscore.gyp:nativejscore'
+            '../nativejscore/gyp/nativejscore.gyp:nativejscore'
         ],
         'conditions': [
             ['native_audio==1', {
