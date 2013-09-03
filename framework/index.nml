@@ -1,7 +1,7 @@
 <application version="1.0">
 	<meta>
-		<title>NATiVE Application</title>
-		<description>This is a native description of the page</description>
+		<title>Nidium Application</title>
+		<description>This is the description of the page</description>
 		<viewport>1024x768</viewport>
 		<version>2.5</version>
 		<date>2012-03-15</date>

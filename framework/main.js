@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 /*
@@ -34,23 +34,21 @@ document.background = "#272822";
 //load("applications/_tests/sockets.server.js");
 //load("applications/_tests/tasks.js");
 
-
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
 //load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
-//load("applications/components/style.js");
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-load("applications/components/sliders.js"); // radial gradient issue
+//load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
-//load("applications/components/http.js");
+load("applications/components/http.js");
 //load("applications/components/zip.js");
 
 //load("applications/components/text.js"); // FAIL

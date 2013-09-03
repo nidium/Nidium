@@ -1,7 +1,7 @@
 /* -------------------------------------- */
 /* High Level Shader API (basic demo)     */
 /* -------------------------------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 var main = new Application({

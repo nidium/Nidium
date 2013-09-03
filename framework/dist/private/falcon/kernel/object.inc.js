@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 "use strict";
@@ -177,8 +177,6 @@ var DOMElement = function(type, options, parent){
 	if (p){
 		p.hasChildren = true;
 	}
-
-	print("DOMElement.constructor", this);
 };
 
 /* -------------------------------------------------------------------------- */

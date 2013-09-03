@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * Native FrameWork                                        (c) 2013 Stight.com * 
+ * Native FrameWork                                        (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Version:     2.0 Falcon Build                                               *
  * Author:      Vincent Fontaine                                               *
@@ -61,6 +61,7 @@ load(__PATH_KERNEL__ + 'video.inc.js');
 
 load(__PATH_LAYOUT__ + 'UIElement.js');
 load(__PATH_LAYOUT__ + 'UIView.js');
+load(__PATH_LAYOUT__ + 'UIListView.js');
 load(__PATH_LAYOUT__ + 'UIPath.js');
 load(__PATH_LAYOUT__ + 'UILabel.js');
 

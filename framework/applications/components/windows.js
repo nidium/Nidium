@@ -1,9 +1,11 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 nidium.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 var main = new Application({
-	backgroundImage : "applications/demos/images/tunnel.jpeg"
+	backgroundImage : "images/tunnel.jpeg"
 });
 
 var	button = new UIButton(main, {
@@ -35,8 +37,6 @@ win.handle.background = "rgba(255, 0, 0, 0.1)";
 win.handle.closeButton.background = "rgba(255, 255, 255, 0.8)";
 win.handle.closeButton.color = "rgba(0, 0, 0, 0.7)";
 win.contentView.background = "rgba(255, 255, 255, 0.8)";
-
-
 
 /* Add 4 children windows to main window */
 

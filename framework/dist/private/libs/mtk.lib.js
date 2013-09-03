@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * Native Multitask Kernel                                 (c) 2013 Stight.com * 
+ * Native Multitask Kernel                                 (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Version:     0.1 Pre Alpha                                                  *
  * Author:      Vincent Fontaine                                               *

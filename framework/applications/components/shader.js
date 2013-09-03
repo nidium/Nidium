@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Low Level Shader Demo   | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 var main = new Application({

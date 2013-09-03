@@ -1,7 +1,3 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
-
 var h = new Http("http://p.nf/post.php").request({
 	headers : {
 		"User-Agent" : "firefox",

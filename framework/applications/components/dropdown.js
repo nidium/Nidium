@@ -1,6 +1,8 @@
-/* -------------------------- */
-/* Native (@) 2013 Stight.com */
-/* -------------------------- */
+/* ------------------------+------------- */
+/* Native Framework 2.0    | Falcon Build */
+/* ------------------------+------------- */
+/* (c) 2013 nidium.com - Vincent Fontaine */
+/* -------------------------------------- */
 
 Native.StyleSheet.add({
 	"#foobar" : {
@@ -13,12 +15,12 @@ Native.StyleSheet.add({
 
 	".greenland" : {
 		background : "green",
-		color : "#ffffff"
+		color : "#ffffff",
 	},
 
 	"UITextField" : {
 		background : "green"
-	},
+	}, 
 
 	"UITextField:disabled" : {
 		background : "#5599FF"
@@ -54,6 +56,48 @@ var field = main.add("UITextField", {
 
 field.value = "https://www.google.com/";
 field.width = 430;
+
+
+
+
+var	listItems = [
+	/* Tab 0 */ {label : "France", 			value : 5},
+	/* Tab 1 */ {label : "Belgium", 		value : 7},
+	/* Tab 2 */ {label : "Monaco", 			value : 9},
+	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
+	/* Tab 4 */ {label : "Italy", 			value : 1},
+	/* Tab 5 */ {label : "Spain", 			value : 3, class : "greenland"},
+	/* Tab 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
+	/* Tab 7 */ {label : "Romania", 		value : 4},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 9 */ {label : "Japan", 			value : 13}
+];
+
+
+var	lv = new UIListView(main, {
+	left : 200,
+	top : 100,
+	width : 150,
+	maxHeight : 198,
+	radius : 2,
+	elements : listItems
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 var dateField = main.add("UITextField", {
 	left : 100,
@@ -185,3 +229,4 @@ var radio5 = main.add("UIRadio", {
 	class : "radio black"
 });
 */
+

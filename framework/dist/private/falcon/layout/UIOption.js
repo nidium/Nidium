@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 Native.elements.export("UIOption", {
@@ -28,15 +28,6 @@ Native.elements.export("UIOption", {
 
 			cursor			: OptionalCursor(o.cursor, "pointer")
 		});
-
-		this.addEventListener("mousedown", function(e){
-			if (this.disabled) {
-			} else {
-				controller.selectIndex(this.index);
-				controller.closeSelector();
-			}
-			e.stopPropagation();
-		}, false);
 
 		this.addEventListener("contextmenu", function(e){
 			e.preventDefault();

@@ -1,7 +1,7 @@
 /* --------------------------------------------------------------------------- *
- * NSS : Native Style Sheet                                (c) 2013 Stight.com * 
+ * NSS : Native Style Sheet                                (c) 2013 Nidium.com * 
  * --------------------------------------------------------------------------- * 
- * Version:     0.2                                                            *
+ * Version:     0.5                                                            *
  * Template:    Native Default                                                 *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
@@ -61,11 +61,29 @@
 	},
 
 	"UIOption" : {
-		background : "#ffffff"
+		background : "#ffffff",
+		color : "#666666",
+		height : 22
+	},
+
+	"UIOption:hover" : {
+		background : "#444444",
+		color : "#ffffff"
+	},
+
+	"UIOption:selected" : {
+		background : "#4D90FE",
+		color : "#ffffff"
 	},
 
 	"UIOption:disabled" : {
-		background : "red"
+		background : "#cccccc",
+		color : "#999999"
+	},
+
+	"UIOption:disabled+hover" : {
+		background : "#882222",
+		color : "#ffffff"
 	},
 
 	/* Class Definitions */

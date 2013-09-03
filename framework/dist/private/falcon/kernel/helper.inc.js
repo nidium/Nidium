@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 "use strict";
@@ -64,8 +64,6 @@ Object.definePrivateProperties = function(element, props){
 /* -------------------------------------------------------------------------- */
 
 Object.merge(window, {
-	width : Native.canvas.width,
-	height : Native.canvas.height,
 	mouseX : 0,
 	mouseY : 0,
 	cursor : "arrow",
@@ -74,7 +72,7 @@ Object.merge(window, {
 
 	navigator : {
 		get appName() {
-			return "NATiVE";
+			return "nidium";
 		},
 
 		get appVersion() {
@@ -86,7 +84,7 @@ Object.merge(window, {
 		},
 
 		get userAgent() {
-			return "Stight/1.0 (en-US; rv:1.0.3) NATiVE Falcon "+ಠ_ಠ;
+			return "nidium/0.1 (en-US; rv:1.0.3) Falcon "+ಠ_ಠ;
 		}
 	}
 });
