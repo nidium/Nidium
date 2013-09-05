@@ -123,12 +123,11 @@ Native.core = {
 		this.createDocument();
 		this.extendDocument();
 		this.setRenderingLoop();
-		this.addStatusBar();
 		delete(this.init);
 	},
 
 	onready : function(){
-		document.spinner.fadeOut(250, function(){
+		document.spinnerElement.fadeOut(250, function(){
 			this.stop().hide();
 		});
 		delete(this.onready);
@@ -267,7 +266,7 @@ Native.core = {
 			}, 5);
 		});
 
-		document.spinner = new UISpinner(document, {
+		document.spinnerElement = new UISpinner(document, {
 			height : 40,
 			width : 40,
 			dashes : 12,
@@ -278,8 +277,9 @@ Native.core = {
 			radius : 2
 		}).center();
 
-
-
+		document.status = new UIStatus(document);
+		document.status.progressBarColor = "rgba(210, 255, 60, 1)";
+		document.status.progressBarLeft = 70;
 	},
 
 	setRenderingLoop : function(){
@@ -287,14 +287,6 @@ Native.core = {
 		window.requestAnimationFrame(function(){
 			if (Native.layout.drawHook) Native.layout.drawHook();
 		});
-	},
-
-	addStatusBar : function(){
-		/*
-		document.status = new UIStatus(document);
-		document.status.open();
-		document.status.progressBarColor = "rgba(210, 255, 60, 1)";
-		*/
 	}
 };
 
