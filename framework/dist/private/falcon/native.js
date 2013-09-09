@@ -140,7 +140,7 @@ Native.core = {
 			top : 0,
 			width : window.width,
 			height : window.height,
-			background : "#ffffff", // "#272822"
+			background : "#000000", // "#272822"
 			cursor : "arrow",
 			canReceiveFocus : true,
 			outlineOnFocus : false
