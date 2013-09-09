@@ -119,9 +119,8 @@
                         'libskia_ports.a',
                         'libskia_core.a',
                         'libskia_effects.a',
-                        'libskia_gr.a',
                         'libskia_images.a',
-                        'libskia_skgr.a',
+                        'libskia_skgpu.a',
                         'libjs_static.a',
                         'libportaudio.a',
                         'libzita-resampler.a',
@@ -172,7 +171,7 @@
                         'action': [
                             'ditto',
                             '<(native_output)/third-party-libs/.libs/SDL2.framework/',
-                            '../framework/dist/nativeapp.app/Contents/Frameworks/SDL2.framework'
+                            '../framework/dist/nidium.app/Contents/Frameworks/SDL2.framework'
                         ]
                     },
 					{
@@ -180,7 +179,7 @@
 						'action': [
 							'ditto',
 							'<(native_output)/../resources/',
-							'../framework/dist/nativeapp.app/Contents/Resources/'
+							'../framework/dist/nidium.app/Contents/Resources/'
 						]
 					}
                 ]

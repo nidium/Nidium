@@ -335,7 +335,7 @@ int NativeSkia::bindOnScreen(int width, int height)
     }
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    SkDevice *dev = NativeSkia::glcontext
+    SkBaseDevice *dev = NativeSkia::glcontext
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);
 
@@ -476,8 +476,8 @@ int NativeSkia::bindGL(int width, int height)
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
     desc.fRenderTargetHandle = 0;
-
-    printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
+    // TODO : check sample
+    //printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
  
     GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
@@ -1083,6 +1083,7 @@ void NativeSkia::rect(double x, double y, double width, double height)
     if (!currentPath) {
         beginPath();
     }
+    SkMatrix m = canvas->getTotalMatrix();
 
     SkRect r = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
@@ -1090,7 +1091,8 @@ void NativeSkia::rect(double x, double y, double width, double height)
     SkPath tmpPath;
 
     tmpPath.addRect(r);
-    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), false);
+    tmpPath.transform(m);
+    currentPath->addPath(tmpPath);
 }
 
 
@@ -1150,16 +1152,18 @@ void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
         return;
     }
 
+    SkMatrix m = canvas->getTotalMatrix();
+
     if (!currentPath->countPoints()) {
         currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
     }
 
-    SkPath tmpPath;
+    SkPoint cp, p;
 
-    tmpPath.quadTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
-        SkDoubleToScalar(x), SkDoubleToScalar(y));
+    m.mapXY(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy), &cp);
+    m.mapXY(SkDoubleToScalar(x), SkDoubleToScalar(y), &p);
 
-    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), true);
+    currentPath->quadTo(cp, p);
 }
 
 void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
@@ -1179,7 +1183,7 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
         SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2),
         SkDoubleToScalar(x), SkDoubleToScalar(y));
 
-    currentPath->addPath(tmpPath, canvas->getTotalMatrix(), true);
+    currentPath->addPath(tmpPath, canvas->getTotalMatrix());
 }
 
 void NativeSkia::light(double x, double y, double z)

@@ -12,9 +12,9 @@
 				<string>npa</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>nativebrown.icns</string>
+			<string>nidium.icns</string>
 			<key>CFBundleTypeName</key>
-			<string>Native Portable Application</string>
+			<string>Nidium Portable Application</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
@@ -26,9 +26,9 @@
 				<string>nml</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>nativebrown.icns</string>
+			<string>nidium.icns</string>
 			<key>CFBundleTypeName</key>
-			<string>Native Markup Language</string>
+			<string>Nidium Markup Language</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
@@ -38,13 +38,13 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIconFile</key>
-	<string>nativebrown</string>
+	<string>nidium.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.nativebrowser.www</string>
+	<string>com.nidium.www</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>NATiVE</string>
+	<string>Nidium</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -57,21 +57,21 @@
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLIconFile</key>
-			<string>nativebrown.icns</string>
+			<string>nidium.icns</string>
 			<key>CFBundleURLName</key>
-			<string>NATiVE Application</string>
+			<string>nidium Application</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>native</string>
+				<string>nidium</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1524</string>
+	<string>1595</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2013 NATiVE Team. All rights reserved.</string>
+	<string>Copyright © 2013 nidium.com - All rights reserved.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

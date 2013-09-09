@@ -1964,7 +1964,7 @@ void NativeCanvas2DContext::flush()
 
 void NativeCanvas2DContext::setSize(int width, int height)
 {
-    SkDevice *ndev = NULL;
+    SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();

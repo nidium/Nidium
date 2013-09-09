@@ -48,7 +48,7 @@ document.background = "#272822";
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
-load("applications/components/http.js");
+//load("applications/components/http.js");
 //load("applications/components/zip.js");
 
 //load("applications/components/text.js"); // FAIL
