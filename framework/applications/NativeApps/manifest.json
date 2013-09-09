@@ -29,7 +29,7 @@
 	"info" : {
 		"title" : "Demo Application",
 		"uid" : "com.demo.app",
-		"build" : 1.0,
+		"build" : 2.5,
 		"company" : "Enterprise Inc.",
 		"copyright" : "(c) 2013 Enterprise Inc.",
 		"width" : 1024,

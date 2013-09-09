@@ -208,7 +208,7 @@ Native.elements.export("UIDropDownController", {
 			top : 3,
 			width : this.height-6,
 			height : this.height-6,
-			background : "rgba(0, 0, 0, 0.45)",
+			background : "rgba(0, 0, 0, 0.25)",
 			color : "#ffffff"
 		});
 		if (this.hideToggleButton) this.downButton.hide();

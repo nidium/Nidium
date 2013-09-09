@@ -283,7 +283,7 @@ var video = new UIVideo(main, {
 	height : 360
 }).center();
 
-video.load("../media/native.mov", function(e){
+video.load("../media/bunny.mp4", function(e){
 	this.player.play();
 });
 

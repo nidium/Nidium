@@ -1,14 +1,15 @@
-<application version="1.0">
+<application version="0.1">
 	<meta>
-		<title>NATiVE Application</title>
-		<description>This is a native description of the page</description>
+		<title>Nidium Application</title>
+		<description>This is a description of the page</description>
 		<viewport>1024x768</viewport>
 		<version>2.5</version>
-		<date>2012-03-15</date>
+		<date>2013-03-15</date>
 		<robots>index, follow</robots>
 	</meta>
 	<assets>
-		<script type="text/javascript" src="falcon/native.js"></script>
-		<script type="text/javascript" src="main.js"></script>
+		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
+		<script type="native/javascript" src="private://falcon/native.js"></script>
+		<script type="text/javascript" src="index.js"></script>
 	</assets>
 </application>

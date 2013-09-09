@@ -9,20 +9,35 @@
 ------
 TODO :
 ------
+	URGENT :
+	- internal file relative to app : no!
+	- nml : <viewport>1024x768</viewport>
+
+
+	Session Catel :
+	- NML basics + include
+	- measureText.width
+	- outline
+	- scale
+
+	CRASH :
+	- thread crash
+	- showFPS crash
+
+	DIVERS
+	- nss can not be empty and must have minimum {} in it
+
+	- subtlepatterns.com (contacter et rajouter crédit)
+	- window.resize
+
+------
+DONE :
+------
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
 	- radial gradient : fail (DONE)
 	- button down rotation : fail (DONE)
 	- textAlign vertical (ALMOST DONE)
-
-	- nss can not be empty and must have minimum {} in it
-
-	- internal file relative to app : no!
-	- outline
-	- scale
-	- subtlepatterns.com (rajouter Crédit)
-	- window.resize
-	- nml : <viewport>1024x768</viewport>
 
 */
 
@@ -30,6 +45,7 @@ document.background = "#272822";
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
+//load("applications/_tests/canvas.js");
 //load("applications/_tests/sockets.client.js");
 //load("applications/_tests/sockets.server.js");
 //load("applications/_tests/tasks.js");
@@ -41,18 +57,18 @@ document.background = "#272822";
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-//load("applications/components/sliders.js"); // radial gradient issue
+//load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
-load("applications/components/http.js");
+//load("applications/components/http.js");
 //load("applications/components/zip.js");
 
 //load("applications/components/text.js"); // FAIL
-//load("applications/components/test.js");
+//load("applications/components/__zzz.js");
 
 /* UNIT TESTS */
 
