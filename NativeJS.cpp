@@ -759,12 +759,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
-    JSObject *mgbl = modules->init(gbl, filename);
-    if (!mgbl) {
-        //printf("No module %s\n", filename);
-        //return 1;
-    }
-    js::RootedObject rgbl(cx, gbl);
+    js::RootedObject rgbl(cx, modules->globalScope);
 
     JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
@@ -793,7 +788,7 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
     JSAutoRequest ar(cx);
 
     if (gbl == NULL) {
-        gbl = JS_GetGlobalObject(cx);
+        gbl = modules->globalScope;
     }
 
     oldopts = JS_GetOptions(cx);
@@ -803,10 +798,6 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
-    JSObject *mgbl = modules->init(gbl, filename);
-    if (!mgbl) {
-        return 1;
-    }
     js::RootedObject rgbl(cx, gbl);
 
     JSScript *script = JS::Compile(cx, rgbl, options, filename);
