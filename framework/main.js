@@ -16,9 +16,23 @@ TODO :
 
 	Session Catel :
 	- NML basics + include
-	- measureText.width
 	- outline
 	- scale
+
+	CANVAS :
+	- measureText.width
+	- renommer ctx.fontType en ctx.fontFamily
+	- renommer Native.canvas en window.canvas (main canvas)
+
+	- renommer ctx en context (pas d'abbreviation dans l'api, ça fait amateur)
+	- requestAnimationFrame a enlever du context
+	- rester compliant avec plutot window.requestAnimationFrame = function(){};
+
+	SHADER :
+	- shader ne suit pas le coin haut gauche du layer
+
+	DEMO VIDEO :
+	- shader non relatif au layer
 
 	CRASH :
 	- thread crash
@@ -69,6 +83,21 @@ document.background = "#272822";
 
 //load("applications/components/text.js"); // FAIL
 //load("applications/components/__zzz.js");
+
+/* CANVAS TESTS */
+
+//load("applications/canvas/water.js"); // fail
+//load("applications/canvas/sand.js");
+//load("applications/canvas/bluewheel.js"); // fail
+//load("applications/canvas/cube.js"); // chute de perf VS premières versions 
+//load("applications/canvas/cubewall.js"); // RAS
+//load("applications/canvas/flamme.js"); // OK
+//load("applications/canvas/particles.js"); // slow
+//load("applications/canvas/text.js"); // OK
+//load("applications/canvas/shader.js"); // OK
+
+//load("applications/components/flickr.js");
+
 
 /* UNIT TESTS */
 

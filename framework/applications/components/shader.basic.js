@@ -7,7 +7,7 @@
 var main = new Application({
 	width : 800,
 	height : 600,
-	backgroundImage : "../applications/components/images/rocks.jpg",
+	backgroundImage : "../../../applications/components/images/rocks.jpg",
 }).center();
 
 main.shader("../applications/components/shaders/radialblur.s", function(program, uniforms){

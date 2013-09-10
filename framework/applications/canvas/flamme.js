@@ -18,6 +18,7 @@ cast imageData width and heigt to int
 
 */
 
+var ctx = Native.canvas.getContext("2d");
 
 var BurningWords = function() {
 	this.palette = null;
@@ -30,8 +31,7 @@ var BurningWords = function() {
 	
 	this.show = function(text, font_size){
 		var bg_color = "000000",
-			bg_alpha = 0,
-			dc = canvas;
+			bg_alpha = 0;
 
 		this.stop();
 
@@ -56,36 +56,36 @@ var BurningWords = function() {
 
 		this.canvas = {};
 
-		dc.fontType = "times";
-		dc.fontSize = font_size;
-		this.text_size = dc.measureText(text);
+		ctx.fontType = "times";
+		ctx.fontSize = font_size;
+		this.text_size = ctx.measureText(text);
 
 		this.canvas.width = Math.round(this.text_size + 10);
 		this.canvas.height = Math.floor(font_size*1.1 + 20);
 
 		this.fire_decay = Math.floor(3 + Math.exp(3.6 - font_size / 7));
 
-		this.image = dc.createImageData(this.canvas.width, this.canvas.height);
+		this.image = ctx.createImageData(this.canvas.width, this.canvas.height);
 
-		dc.fillStyle = "#000000";
-		dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		this.image_flame = dc.getImageData(0, 0, this.canvas.width, this.canvas.height);
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		this.image_flame = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
 		// drawing code here
-		dc.fillStyle = "#000000";
-		dc.fillRect(0, 0, this.canvas.width, this.canvas.height);
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-		dc.fillStyle = "#ffffff";
-		dc.fontSize = font_size;
-		dc.fillText(text, 5, this.canvas.height/1.3);
-		this.image_src = dc.getImageData(0, 0, this.canvas.width, this.canvas.height);
+		ctx.fillStyle = "#ffffff";
+		ctx.fontSize = font_size;
+		ctx.fillText(text, 5, this.canvas.height/1.3);
+		this.image_src = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
-		dc.putImageData(this.image, 0, 0);
+		ctx.putImageData(this.image, 0, 0);
 
 		var that = this;
-		dc.globalAlpha = 0.9;
+		ctx.globalAlpha = 0.9;
 
-		canvas.requestAnimationFrame(function(){
+		ctx.requestAnimationFrame(function(){
 			that.burn();
 		});
 
@@ -93,8 +93,6 @@ var BurningWords = function() {
 
 	
 	this.burn = function() {
-		var dc = canvas;
-
 		var image_data_len = this.canvas.width * this.canvas.height * 4;
 		for (var pos = 0; pos < image_data_len; pos += 4) {
 			if (this.image_src.data[pos] == 255) {
@@ -150,18 +148,18 @@ var BurningWords = function() {
 			}
 		}
 
-		dc.fillStyle = "#ffffff";
-		dc.fillRect(0, 0, 1024, 768);
+		ctx.fillStyle = "#000000";
+		ctx.fillRect(0, 0, 1024, 768);
 
-		dc.putImageData(this.image, 80, 0);
+		ctx.putImageData(this.image, 80, 0);
 
-		dc.fillStyle = this.text_color_string;
-		dc.fillText(this.text, 80+5, this.canvas.height/1.3-1);
+		ctx.fillStyle = this.text_color_string;
+		ctx.fillText(this.text, 80+5, this.canvas.height/1.3-1);
 	}
 };
 
 var b = new BurningWords();
-b.show("p.nf:{NATiVE}", 128);
+b.show("nidium", 90);
 
 
 

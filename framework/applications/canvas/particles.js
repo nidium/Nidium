@@ -3,13 +3,14 @@
  * http://js1k.com/2010-first/demo/753
  */
 
-var text = "N A T i V E",
+var text = "N i D I U M",
 	image, 	point, a = b = c = i = 0,
 
 	cw = 1024,
 	ch = 900,
 
-	v = canvas.createRadialGradient(cw/2, ch*2/3, 0, cw/2, ch+ch/8, ch/1.5),
+	ctx = Native.canvas.getContext("2d"),
+	v = ctx.createRadialGradient(cw/2, ch*2/3, 0, cw/2, ch+ch/8, ch/1.5),
 
 	M = Math,
 
@@ -31,13 +32,13 @@ var text = "N A T i V E",
 	tx, ty;
 
 
-canvas.fontSize = 13;
-canvas.fillText(text, 0, 20);
+ctx.fontSize = 13;
+ctx.fillText(text, 0, 20);
 
-tx = M.round(canvas.measureText(text)),
+tx = M.round(ctx.measureText(text)),
 ty = 25;
 
-image = canvas.getImageData(0, 0, tx, ty);
+image = ctx.getImageData(0, 0, tx, ty);
 v.addColorStop(0, "#343");
 v.addColorStop(1, "#000");
 
@@ -68,14 +69,14 @@ function n(i) {
 	return (w[i] - point[i]) * m*m*m*m*m + point[i];
 }
 
-canvas.requestAnimationFrame(function(){
+ctx.requestAnimationFrame(function(){
 	g = new Date % time / time * 8;
 	t = g * pi2;
 	sin = M.cos(t);
 	cos = M.sin(t);
 
-	canvas.fillStyle = v;
-	canvas.fillRect(0, 0, cw, ch);
+	ctx.fillStyle = v;
+	ctx.fillRect(0, 0, cw, ch);
 
 	for (i=0; i<nb_particles; i++) {
 		point = TEXT3D[i];
@@ -92,17 +93,17 @@ canvas.requestAnimationFrame(function(){
 			(cw + c*(sin*l + cos*d)) * 0.5,
 			(ch + (i%2 ? c*(-h-2)*0.6 : c*h)) * 0.5
 		];
-		canvas.fillStyle = i % 2 ? "#373" : "rgba("+M.round(c)+", "+M.round(255-d*0.5)+", "+M.round(l)+", 0.8)";
-		canvas.fillRect(a[0] | 0, a[1] | 0, 0.6, 0.6);
+		ctx.fillStyle = i % 2 ? "#373" : "rgba("+M.round(c)+", "+M.round(255-d*0.5)+", "+M.round(l)+", 0.8)";
+		ctx.fillRect(a[0] | 0, a[1] | 0, 0.6, 0.6);
 	}
-	canvas.globalAlpha = 0.4;
+	ctx.globalAlpha = 0.4;
 });
 
-canvas.onmousewheel = function(e){
+window._onmousewheel = function(e){
 	zoom = zoom * (1+e.yrel*0.01);
 };
 
-canvas.onmousemove = function(e){
+window._onmousemove = function(e){
 	dx = e.x - cw/2;
 	dy = e.y - ch/2;
 };

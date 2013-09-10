@@ -1,8 +1,7 @@
 /* --------------------------------------------------------------------------- *
- * NSS : Native Style Sheet                                (c) 2013 Nidium.com * 
+ * NSS : Native Style Sheet Draft                          (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
- * Version:     0.5                                                            *
- * Template:    Native Default                                                 *
+ * Version:     0.6                                                            *
  * Author:      Vincent Fontaine                                               *
  *                                                                             *
  * Permission is hereby granted, free of charge, to any person obtaining a     *
@@ -25,72 +24,70 @@
  * --------------------------------------------------------------------------- * 
  */
 {
-	/* Static Containers */
-	
-	"@default" : {
-		darkBackgroundColor : "#262722",
-		liteBackgroundColor : "#ffffff",
-		textBackgroundColor : "#ffffff",
-
-		textColor : "#333333",
-		textSelectionColor : "rgba(0, 0, 128, 0.2)",
-
-		fontSize : 12,
-		fontType : "arial",
-
-		textShadowColor : "rgba(0, 0, 0, 0.15)",
-		textShadowOffsetX : 1,
-		textShadowOffsetY : 1,
-		textShadowBlur : 1,
-
-		shadowColor : "rgba(0, 0, 0, 0.10)",
-		shadowOffsetX : 0,
-		shadowOffsetY : 2,
-		shadowBlur : 4,
-
-		radius : 4
+	".main" : {
+		background : "#262722"
 	},
 
-	/* Element Definitions */
-
-	"UIToolTip" : {
-		lineheight : 30,
-		height : 30,
-		borderWidth : 1,
-		borderColor : "rgba(0, 0, 0, 0.04)"
+	".button" : function(){
+		this.color = "#ffffff";
+		this.fontSize = 10.5;
+		this.top = 48;
+		this.background = "#559933";
+		this.outlineColor = "";
 	},
 
-	"UIOption" : {
-		background : "#ffffff",
-		color : "#666666",
-		height : 22
+	".button:hover" : function(){
+		this.background = "black";
 	},
 
-	"UIOption:hover" : {
-		background : "#444444",
-		color : "#ffffff"
+	".label" : function(){
+		this.paddingLeft = 8;
+		this.paddingRight = 8;
+		this.width = 150;
+		this.height = 28;
+		this.color = "#ffffff";
+		this.background = "rgba(255, 255, 255, 0.25)";
+		this.fontSize = 12;
+		this.radius = 4;
 	},
 
-	"UIOption:selected" : {
-		background : "#4D90FE",
-		color : "#ffffff"
+	".method" : {color : "#A6E22E"},
+	".operand" : {color : "#F92672"},
+	".number" : {color : "#AE81FF"},
+	".reserved" : {color : "#66D9EF"},
+
+	".doit" : {
+		label : "Do It",
+		left : 970,
+		top : 10
 	},
 
-	"UIOption:disabled" : {
-		background : "#cccccc",
-		color : "#999999"
+	".demo" : {
+		label : "demo"
 	},
 
-	"UIOption:disabled+hover" : {
-		background : "#882222",
-		color : "#ffffff"
+	".dark" : {
+		background : "#111111"
 	},
 
-	/* Class Definitions */
+	".green" : {
+		background : "#668822"
+	},
 
-	".body" : {
-		background : "#262722",
-		backgroundImage : "private://assets/patterns/noisy.png",
-		alpha : 0.25
+	".blue" : {
+		background : "#4488EE"
+	},
+
+	".rose" : {
+		background : "#882266"
+	},
+
+	"UIButton:disabled" : {
+		color : function(){
+			this.value = "#888888";
+		},
+		background : function(){
+			this.value = "#aaaaaa";
+		}
 	}
 }

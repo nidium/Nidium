@@ -1,13 +1,5 @@
-/* 
- * RealTime JavaScript Raytracer DEMO
- * Forked from Jonas Wagner's work
- * http://29a.ch/sandbox/2010/water/
- */
-
-
 w = 63;
 b = 255;
-G = canvas;
 M = Math;
 Q = M.max;
 V = 12;
@@ -41,25 +33,28 @@ function D(l, m, n, o, p, q) {
 	L(X[0], Y[0], X[1], Y[1])
 }
 
-canvas.scale(1.5, 1.5);
+var canvas = Native.canvas,
+	ctx = canvas.getContext("2d");
+
+ctx.scale(1.5, 1.5);
 
 var zoom = 180;
 
-canvas.onmousewheel = function(e){
+window._onmousewheel = function(e){
 	zoom = Math.min(500, Math.max(140, zoom * (1+e.yrel*0.01)));
 };
 
-canvas.requestAnimationFrame(function(){
+ctx.requestAnimationFrame(function(){
 	H = M.sin(s += .06);
 	O = M.cos(s);
 
-	canvas.fillStyle = "#000000";
-	canvas.fillRect(0, 0, 1024, 768);
+	ctx.fillStyle = "#000000";
+	ctx.fillRect(0, 0, 1024, 768);
 
 	for (y = 0; y < 88; y++) for (x = 0; x < w; x++) {
 		f[x][y] = ((f[(x-1) & w][y+1] + f[x][y+1] + f[x+1][y+1] + f[x][(y+2) & w]) << 5) / zoom;
-		G.fillStyle = "rgba(" + c[ Math.min(f[x][y] & b, 190) ];
-		G.fillRect(150+x*6, 0+y*6, 5, 5)
+		ctx.fillStyle = "rgba(" + c[ Math.min(f[x][y] & b, 190) ];
+		ctx.fillRect(150+x*6, 0+y*6, 5, 5)
 	}
 
 	for (y = 0; y < 72;) eval("D(" + "vvvVvvVvvVVvVVvvVvvVvvvvvvVVvVVvVVVVVVVvVVvVVvvVvvVvvvVvVVvvVVVVVvvVVvVv".substring(y, y += 6).split("") + ")")

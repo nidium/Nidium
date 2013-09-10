@@ -4,7 +4,7 @@
  */
 
 var floor = Math.floor,
-	ctx = canvas,
+	ctx = Native.canvas.getContext("2d"),
 	cw = 450,
 	ch = 338,
 	width = cw,
@@ -50,6 +50,7 @@ function process() {
 			buffer0[i] = (buffer0[i] + buffer0[i + 1] + buffer0[i - 1] + buffer0[i - width] + buffer0[i + width]) / 5;
 		}
 	}
+
 	for (i = width + 1; i < size - width - 1; i += 2) {
 		for (x = 1; x < width - 1; x++, i++) {
 
@@ -90,14 +91,14 @@ for (i = 0; i < size; i++) {
 	buffer1.push(0);
 }
 
-
-loadImage("demos/demo.water450x338.jpeg", function(img){
+loadImage("images/water450x338.jpg", function(img){
 	texture = getDataFromImage(img);
-	canvas.requestAnimationFrame(function(){
+
+	ctx.requestAnimationFrame(function(){
 		process();
 	});
 
-	canvas.onmousemove = function(e){
+	window._onmousemove = function(e){
 		disturb(
 			Math.floor(e.x),
 			Math.floor(e.y),
