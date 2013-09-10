@@ -412,7 +412,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-        win = SDL_CreateWindow("Native - Running", 100, 100,
+        win = SDL_CreateWindow("nidium", 100, 100,
             width, height,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
 
@@ -528,7 +528,7 @@ void NativeCocoaUIInterface::setCursor(CURSOR_TYPE type)
 
 void NativeCocoaUIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "NATiVE" : name));
+    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "nidium" : name));
 }
 
 const char *NativeCocoaUIInterface::getWindowTitle() const

@@ -11,7 +11,7 @@
         'native_interface_path%': '../interface/',
         'native_network_path%': '../nativejscore/network/',
         'native_nativejscore_path%': '../nativejscore/',
-        'native_exec_name%': 'nativeapp',
+        'native_exec_name%': 'nidium',
 
         'third_party_path%': '../third-party/',
         'native_output%': '../out/',

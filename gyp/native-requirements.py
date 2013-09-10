@@ -1,4 +1,3 @@
-from pprint import pprint
 from functools import partial
 import sys, os
 import deps
@@ -37,7 +36,7 @@ def buildSDL2():
         deps.buildDep("libSDL2", "SDL2/build/", ["../configure", "make"], outlibs=["SDL2/build/build/.libs/libSDL2"])
 
 def buildSkia():
-    deps.patchDep("skia", "skia-addPath-new-arg.patch")
+    #deps.patchDep("skia", "skia-addPath-new-arg.patch")
 
     exports = "GYP_DEFINES='skia_arch_width=32'"
 
@@ -47,9 +46,7 @@ def buildSkia():
     deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
         "skia/out/Release/libskia_pdf",
         "skia/out/Release/libskia_ports",
-        "skia/out/Release/libskia_skgr",
-        "skia/out/Release/libskia_gr",
-        "skia/out/Release/libcityhash",
+        "skia/out/Release/libskia_skgpu",
         "skia/out/Release/libskia_utils",
         "skia/out/Release/libskia_effects",
         "skia/out/Release/libskia_core",

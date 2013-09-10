@@ -7,7 +7,7 @@
             #'network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
-            'app.gyp:nativeapp',
+            'app.gyp:nidium',
             '../nativejscore/gyp/nativejscore.gyp:nativejscore'
         ],
         'conditions': [

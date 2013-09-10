@@ -77,7 +77,7 @@ SkShader *NativeSkGradient::build()
     if (colorsStop.count < 2) {
         currentShader = NULL;
         needUpdate = 0;
-        printf("Bad color count\n");
+        printf("Building gradient with invalid number of (addColorStop) : %d\n", colorsStop.count);
         return NULL;
     }
 
