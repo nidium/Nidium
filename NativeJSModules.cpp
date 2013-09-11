@@ -212,12 +212,15 @@ bool NativeJSModule::initJS()
         return false;
     }
 
-    NativeJS::getNativeClass(this->cx)->rootObjectUntilShutdown(gbl);
+    NativeJS *njs = NativeJS::getNativeClass(this->cx);
+
+    njs->rootObjectUntilShutdown(gbl);
     JS_SetPrivate(gbl, this);
 
     JSObject *funObj;
     JSFunction *fun = js::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
     if (!fun) {
+        njs->unrootObject(gbl);
         return false;
     }
 
@@ -231,12 +234,14 @@ bool NativeJSModule::initJS()
         JSObject *module = JS_NewObject(this->cx, &native_modules_class, NULL, NULL);
 
         if (!exports || !module) {
+            njs->unrootObject(gbl);
             return false;
         }
 
         JS::Value id;
         JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
         if (!idstr) {
+            njs->unrootObject(gbl);
             return false;
         }
         id.setString(idstr);
