@@ -76,13 +76,6 @@ static JSClass global_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSClass messageEvent_class = {
-    "MessageEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-
 /******** Natives ********/
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
@@ -389,6 +382,12 @@ NativeJS::NativeJS(ape_global *net)
     JS_SetRuntimePrivate(rt, this);
 
     messages = new NativeSharedMessages();
+    registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
+    registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
+    registeredMessagesSize = 16;
+
+    this->registerMessage(native_thread_message, NATIVE_THREAD_MESSAGE);
+    this->registerMessage(native_thread_message, NATIVE_THREAD_COMPLETE);
 
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
@@ -457,7 +456,9 @@ NativeJS::~NativeJS()
 
     delete messages;
     delete modules;
+
     hashtbl_free(rootedObj);
+    free(registeredMessages);
 }
 
 static int Native_handle_messages(void *arg)
@@ -469,8 +470,6 @@ static int Native_handle_messages(void *arg)
 
     NativeJS *njs = (NativeJS *)arg;
     JSContext *cx = njs->cx;
-    struct native_thread_msg *ptr;
-    jsval onmessage, jevent, rval;
     int nread = 0;
 
     JSObject *event;
@@ -479,6 +478,12 @@ static int Native_handle_messages(void *arg)
     JSAutoRequest ar(cx);
 
     while (++nread < MAX_MSG_IN_ROW && njs->messages->readMessage(&msg)) {
+        int ev = msg.event();
+        if (ev < 0 || ev > njs->registeredMessagesSize) {
+            continue;
+        }
+        njs->registeredMessages[ev](cx, &msg);
+#if 0
         switch (msg.event()) {
             case NATIVE_THREAD_MESSAGE:
             ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
@@ -557,6 +562,7 @@ static int Native_handle_messages(void *arg)
             #endif
             default:break;
         }
+#endif
     }
 
     return 1;
@@ -849,6 +855,45 @@ void NativeJS::loadGlobalObjects()
 void NativeJS::gc()
 {
     JS_GC(JS_GetRuntime(cx));
+}
+
+int NativeJS::registerMessage(native_thread_message_t cbk)
+{
+    if (registeredMessagesIdx >= registeredMessagesSize) {
+        void *ptr = realloc(registeredMessages, (registeredMessagesSize + 16) * sizeof(native_thread_message_t));
+        if (ptr == NULL) {
+            return -1;
+        }
+
+        registeredMessages = (native_thread_message_t *)ptr;
+        registeredMessagesSize += 16;
+    }
+
+    registeredMessagesIdx++;
+
+    registeredMessages[registeredMessagesIdx] = cbk;
+
+    return registeredMessagesIdx;
+}
+
+void NativeJS::registerMessage(native_thread_message_t cbk, int id)
+{
+    if (id > 8) {
+        printf("ERROR : You can't register a message with idx > 8.\n");
+        return;
+    }
+
+    if (registeredMessages[id] != NULL) {
+        printf("ERROR : Trying to register a shared message at idx %d but slot is already reserved\n", id);
+        return;
+    }
+
+    registeredMessages[id] = cbk;
+}
+
+void NativeJS::postMessage(void *dataPtr, int ev)
+{
+    this->messages->postMessage(dataPtr, ev);
 }
 
 

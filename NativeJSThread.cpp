@@ -44,6 +44,13 @@ static JSClass Thread_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass messageEvent_class = {
+    "MessageEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 static JSFunctionSpec glob_funcs_threaded[] = {
     JS_FN("send", native_post_message, 1, 0),
     JS_FS_END
@@ -215,6 +222,53 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
     nthread->njs->rootObjectUntilShutdown(caller);
 
     return JS_TRUE;
+}
+
+void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+    struct native_thread_msg *ptr;
+    int ev;
+    char prop[10];
+
+    jsval jscbk, jevent, rval;
+    JSObject *event;
+
+    ptr = static_cast<struct native_thread_msg *>(msg->dataPtr());
+    ev = msg->event();
+
+    if (ev == NATIVE_THREAD_MESSAGE) {
+        strcpy(prop, "onmessage");
+    } else if (ev == NATIVE_THREAD_COMPLETE) {
+        strcpy(prop, "oncomplete");
+    }
+
+    if (JS_GetProperty(cx, ptr->callee, prop, &jscbk) &&
+        !JSVAL_IS_PRIMITIVE(jscbk) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
+
+        jsval inval = JSVAL_NULL;
+
+        if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+            JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+
+            printf("Failed to read input data (readMessage)\n");
+
+            delete ptr;
+            return;
+        }
+
+        event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+
+        EVENT_PROP("data", inval);
+
+        jevent = OBJECT_TO_JSVAL(event);
+        JS_CallFunctionValue(cx, event, jscbk, 1, &jevent, &rval);          
+    }
+
+    delete ptr;
+#undef EVENT_PROP
 }
 
 static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
