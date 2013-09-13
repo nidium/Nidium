@@ -152,7 +152,7 @@ void *NativeAudio::queueThread(void *args) {
                 if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) >= audio->outputParameters->framesPerBuffer * audio->outputParameters->channels) {
                     audio->processQueue();
 
-                    if (!audio->output->processed) {
+                    if (!audio->output || !audio->output->processed) {
                         break;
                     } 
 
