@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "NativeFileIO.h"
+#include "NativeStream.h"
 #include "native_netlib.h"
 
 #define NATIVE_AVIO_BUFFER_SIZE 32768 
@@ -52,36 +52,30 @@ class NativeAVBufferReader : public NativeAVReader
         unsigned long pos;
 };
 
-class NativeAVFileReader : public NativeAVReader, public NativeFileIODelegate
+class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate 
 {
     public:
-        NativeAVFileReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
+        NativeAVStreamReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
 
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
         
-        void onNFIOError(NativeFileIO *, int err);
-        void onNFIOOpen(NativeFileIO *);
-        void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
-        void onNFIOWrite(NativeFileIO *, size_t written);
+        void onGetContent(const char *data, size_t len);
+        void onAvailableData(size_t len);
 
-        bool nfioRead;
-        
-        ~NativeAVFileReader();
+        ~NativeAVStreamReader();
     private:
-        NativeFileIO *nfio;
+        NativeStream *stream;
         bool *readFlag;
+        bool opened;
         pthread_cond_t *bufferCond;
 
-        int dataSize;
-        uint8_t *buffer;
-
         int64_t totalRead;
+        size_t streamRead;
+        unsigned const char* streamBuffer;
         int error;
-
-        inline int checkCoro();
 };
 
 
@@ -160,7 +154,7 @@ class NativeAVSource
         NativeAVSource();
 
         friend class NativeAVSource;
-        friend class NativeAVFileReader;
+        friend class NativeAVStreamReader;
 
         NativeAVSourceEventCallback eventCbk;
         void *eventCbkCustom;

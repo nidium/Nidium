@@ -94,13 +94,13 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->reader = new NativeAVFileReader(src, &this->readFlag, &this->bufferCond, this, this->net);
+    this->reader = new NativeAVStreamReader(src, &this->readFlag, &this->bufferCond, this, this->net);
     this->container = avformat_alloc_context();
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVFileReader::read, NULL, NativeAVFileReader::seek);
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NULL);
     if (!this->container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -159,7 +159,6 @@ int NativeVideo::openInitInternal()
 	}
 
     if (this->videoStream == -1) {
-        fprintf(stderr, "No video stream");
 		RETURN_WITH_ERROR(ERR_NO_VIDEO);
     }
 
@@ -185,7 +184,6 @@ int NativeVideo::openInitInternal()
                                   SWS_BICUBIC, NULL, NULL, NULL);
 
     if (!this->swsCtx) {
-        fprintf(stderr, "Failed to init video converter!\n");
 		RETURN_WITH_ERROR(ERR_NO_VIDEO_CONVERTER);
     }
 

@@ -739,7 +739,7 @@ return err;
     this->mainCoro = Coro_new();
     Coro_initializeMainCoro(this->mainCoro);
 
-    this->reader = new NativeAVFileReader(src, &this->audio->readFlag, &this->audio->bufferNotEmpty, this, this->audio->net);
+    this->reader = new NativeAVStreamReader(src, &this->audio->readFlag, &this->audio->bufferNotEmpty, this, this->audio->net);
 
     this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!this->avioBuffer) {
@@ -751,7 +751,7 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVFileReader::read, NULL, NativeAVFileReader::seek);
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NULL);
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -772,7 +772,6 @@ void NativeAudioTrack::openInitCoro(void *arg)
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 thiz->doClose = true; \
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
-
     NativeAudioTrack *thiz = static_cast<NativeAudioTrack *>(arg);
 
     int ret;
@@ -861,7 +860,6 @@ int NativeAudioTrack::initStream()
 	}
 
 	if (this->audioStream == -1) {
-		fprintf(stderr, "Couldn't find audio stream\n");
 		return ERR_NO_AUDIO;
 	}
 
@@ -963,6 +961,7 @@ bool NativeAudioTrack::buffer()
             // or we need to seek, so don't buffer
             return false;
         }
+
         this->buffering = true;
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioTrack::bufferCoro);
 
@@ -1457,7 +1456,10 @@ void NativeAudioTrack::close(bool reset)
 
     if (this->opened) {
         avcodec_close(this->codecCtx);
-        avformat_close_input(&this->container);
+
+        if (!this->externallyManaged) {
+            avformat_close_input(&this->container);
+        }
 
         swr_free(&this->swrCtx);
 
