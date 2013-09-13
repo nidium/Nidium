@@ -8,7 +8,7 @@
 #include "NativeVideo.h"
 #include "NativeSkia.h"
 
-#define NATIVE_AV_THREAD_MESSAGE_CALLBACK 0x100
+static int NATIVE_AV_THREAD_MESSAGE_CALLBACK = -1;
 
 enum {
     NODE_EV_PROP_DATA, 

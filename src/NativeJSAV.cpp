@@ -657,7 +657,7 @@ void NativeJSAudioNode::eventCbk(const struct NativeAVSourceEvent *cev)
     // if message is comming from main thread
     ev = new NativeJSAVMessageCallback(thiz->jsobj, prop, value);
     
-    thiz->njs->messages->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
+    thiz->njs->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
 
     delete cev;
 }
@@ -1316,7 +1316,7 @@ static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc
     msg->nbytes = nbytes;
     msg->callee = jnode->jsobj;
 
-    jnode->njs->messages->postMessage(msg, NATIVE_THREAD_MESSAGE);
+    jnode->njs->postMessage(msg, NATIVE_THREAD_MESSAGE);
 
     return JS_TRUE;
 }
@@ -1581,7 +1581,7 @@ void NativeJSVideo::eventCbk(const struct NativeAVSourceEvent *cev)
 
     ev = new NativeJSAVMessageCallback(thiz->jsobj, prop, value);
     
-    njs->messages->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
+    njs->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
 
     delete cev;
 }
@@ -1840,6 +1840,42 @@ void NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, int id,
     }
 }
 
+void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
+{
+    jsval jscbk, rval;
+
+    NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg->dataPtr());
+    if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &jscbk) &&
+        !JSVAL_IS_PRIMITIVE(jscbk) &&
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
+        jsval event[2];
+
+        if (cmsg->value != NULL) {
+            // Only errors have value
+            const char *errorStr = NativeAVErrorsStr[*cmsg->value];
+            event[0] = INT_TO_JSVAL(*cmsg->value);
+            event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
+        } else {
+            event[0] = JSVAL_NULL;
+            event[1] = JSVAL_NULL;
+        }
+        
+        JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
+    }
+    delete cmsg;
+}
+
+void NativeJSAudioNode::registerObject(JSContext *cx)
+{
+    JSObject *AudioNodeObj;
+    AudioNodeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "AudioNode",
+        &AudioNode_class , NULL, 0);
+    JS_DefineFunctions(cx, AudioNodeObj, AudioNode_funcs);
+    JS_DefineProperties(cx, AudioNodeObj, AudioNode_props);
+
+    NATIVE_AV_THREAD_MESSAGE_CALLBACK = NativeJSObj(cx)->registerMessage(native_av_thread_message);
+}
+
 NATIVE_OBJECT_EXPOSE(Video);
 NATIVE_OBJECT_EXPOSE_NOT_INST(Audio)
-NATIVE_OBJECT_EXPOSE_NOT_INST(AudioNode)
+//NATIVE_OBJECT_EXPOSE_NOT_INST(AudioNode)
