@@ -1722,6 +1722,10 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 {
     SkISize size = skia->canvas->getDeviceSize();
 
+    GLenum err;
+    if ((err = glGetError()) != GL_NO_ERROR) {
+        printf("got a gl error %d\n", err);
+    }
     /* TODO : set view port (so that gl_FragCoord is relative to the current canvas) */
 
     float pwidth = 2./(float)size.fWidth;
@@ -1774,6 +1778,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_TEXTURE_2D);
+
 }
 
 void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
@@ -1849,7 +1854,7 @@ void NativeCanvas2DContext::resetGLContext()
     GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
                                         getDevice()->accessRenderTarget();
 
-    backingTarget->getContext()->resetContext();
+    backingTarget->getContext()->resetContext(kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState);
 }
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
