@@ -282,68 +282,73 @@ bool NativeX11UIInterface::createWindow(int width, int height)
 {
     SDL_GLContext contexteOpenGL;
 
-    if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER) == -1)
-    {
-        printf( "Can't init SDL:  %s\n", SDL_GetError( ));
-        return false;
+    if (!this->initialized) {
+        if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER) == -1)
+        {
+            printf( "Can't init SDL:  %s\n", SDL_GetError( ));
+            return false;
+        }
+
+        SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
+        SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
+        SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
+        SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
+        
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+        this->win = SDL_CreateWindow("Native - Running", 100, 100,
+            width, height,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
+
+        if (this->win == NULL) {
+            printf("Cant create window (SDL)\n");
+            return false;
+        }
+
+        this->width = width;
+        this->height = height;
+
+        //window = NativeX11Window(win);
+
+        /*[window setCollectionBehavior:
+                 NSWindowCollectionBehaviorFullScreenPrimary];*/
+
+        initControls();
+
+        //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
+
+        //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
+
+        //[window setFrameAutosaveName:@"nativeMainWindow"];
+        if (kNativeTitleBarHeight != 0) {
+            //[window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
+
+            //[window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
+            //[window setOpaque:NO];
+        }
+        //[window setMovableByWindowBackground:NO];
+        //[window setOpaque:NO]; // YES by default
+        //[window setAlphaValue:0.5];
+
+        contexteOpenGL = SDL_GL_CreateContext(win);
+        SDL_StartTextInput();
+
+        if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
+            printf("Cant vsync\n");
+        }
+
+        glViewport(0, 0, width, height);
+
+        console = new NativeUIX11Console();
+        gnet = native_netlib_init();
+
+        this->initialized = true;
     }
-
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
-    
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-
-    this->win = SDL_CreateWindow("Native - Running", 100, 100,
-        width, height,
-        SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
-
-    if (this->win == NULL) {
-        printf("Cant create window (SDL)\n");
-        return false;
-    }
-
-    this->width = width;
-    this->height = height;
-
-    //window = NativeX11Window(win);
-
-    /*[window setCollectionBehavior:
-             NSWindowCollectionBehaviorFullScreenPrimary];*/
-
-    initControls();
-
-    //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
-
-    //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
-
-    //[window setFrameAutosaveName:@"nativeMainWindow"];
-    if (kNativeTitleBarHeight != 0) {
-        //[window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
-
-        //[window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
-        //[window setOpaque:NO];
-    }
-    //[window setMovableByWindowBackground:NO];
-    //[window setOpaque:NO]; // YES by default
-    //[window setAlphaValue:0.5];
-
-    contexteOpenGL = SDL_GL_CreateContext(win);
-    SDL_StartTextInput();
-
-    if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
-        printf("Cant vsync\n");
-    }
-
-    glViewport(0, 0, width, height);
 
     //NJS = new NativeJS(kNativeWidth, kNativeHeight);
-    console = new NativeUIX11Console();
-    gnet = native_netlib_init();
     NativeCtx = new NativeContext(this, width, height, gnet);
 
     //NJS->LoadApplication("./demo.npa");
@@ -652,7 +657,6 @@ bool NativeX11UIInterface::runApplication(const char *path)
         }
         this->nml = new NativeNML(this->gnet);
         this->nml->setNJS(this->NativeCtx->getNJS());
-        printf("Load NML : %s\n", path);
         this->nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
         return true;
     }
@@ -662,7 +666,9 @@ bool NativeX11UIInterface::runApplication(const char *path)
 void NativeX11UIInterface::stopApplication()
 {
     if (this->nml) delete this->nml;
-    if (this->NativeCtx) delete this->NativeCtx;
+    if (this->NativeCtx) {
+        delete this->NativeCtx;
+    }
     this->NativeCtx = NULL;
     this->nml = NULL;
     glClearColor(1, 1, 1, 0);
