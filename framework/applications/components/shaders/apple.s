@@ -2,9 +2,7 @@
 /* Dangerous Apple Shader                 */
 /* -------------------------------------- */
 /* Origin : Raymarched Procedural Apple   */
-/* Native Port from Iñigo Quílez's work   */
-/* -------------------------------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* Port from Iñigo Quílez's work          */
 /* -------------------------------------- */
 
 #ifdef GL_ES

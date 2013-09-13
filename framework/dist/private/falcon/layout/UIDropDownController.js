@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 Native.elements.export("UIDropDownController", {
@@ -171,6 +171,15 @@ Native.elements.export("UIDropDownController", {
 			});
 
 			this.tabs[i].index = i;
+
+			this.tabs[i].addEventListener("mousedown", function(e){
+				if (this.disabled) {
+				} else {
+					self.selectIndex(this.index);
+					self.closeSelector();
+				}
+				e.stopPropagation();
+			}, false);
 		};
 
 		this.selector = this.add("UIView", {
@@ -199,7 +208,7 @@ Native.elements.export("UIDropDownController", {
 			top : 3,
 			width : this.height-6,
 			height : this.height-6,
-			background : "rgba(0, 0, 0, 0.45)",
+			background : "rgba(0, 0, 0, 0.25)",
 			color : "#ffffff"
 		});
 		if (this.hideToggleButton) this.downButton.hide();

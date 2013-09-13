@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 "use strict";
@@ -21,7 +21,6 @@ Object.definePrivateProperties(Native, {
 
 Object.definePrivateProperties(Native.elements, {
 	init : function(element){
-		print("Native.elements.init()", element);
 		var plugin = this[element.type];
 
 		if (!plugin) return false;
@@ -37,8 +36,8 @@ Object.definePrivateProperties(Native.elements, {
 		}
 
 		this.createHardwareLayer(element);
+
 		if (plugin.init){
-			print("plugin:init()", element);
 			plugin.init.call(element);
 		}
 
@@ -59,11 +58,13 @@ Object.definePrivateProperties(Native.elements, {
 
 		element.refresh();
 		element.__unlock("init");
-		print("-------------------------------------------------------------------------");
 	},
 
 	export : function(type, implement){
-		if (type=="export" || type=="build" || type=="init") return false;
+		if (type.in("export", "build", "init", "createHardwareLayer")){
+			return false;
+		}
+
 		this[type] = implement;
 		this.build(Native.scope, type);
 	},
@@ -114,7 +115,6 @@ Object.definePrivateProperties(Native.elements, {
 	},
 
 	createHardwareLayer : function(element){
-		print("Native.elements.createHardwareLayer("+element._width+", "+element._height+")", element);
 		element.layer = new Canvas(element._width, element._height);
 		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");

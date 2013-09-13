@@ -2,13 +2,13 @@
  * Port of Markus Persson's demo (http://jsfiddle.net/uzMPU/)
  */
 
-var ctx;
+var ctx = Native.canvas.getContext("2d");
 var pixels;
 
 var w = 256;
 var h = 192;
 
-canvas.scale(4, 4);
+ctx.scale(4, 4);
 
 var k = 16,
 	kk = 32;
@@ -89,8 +89,6 @@ function init() {
 			}
 		}
 	}
-
-    ctx = canvas;
 
 	for ( var x = 0; x < 64; x++) {
 		for ( var y = 0; y < 64; y++) {
@@ -230,9 +228,7 @@ function renderMinecraft() {
 
 init();
 
-Native.showFPS(true);
-
-canvas.requestAnimationFrame(function(){
+ctx.requestAnimationFrame(function(){
 	clock();    	
 });
 

@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 /*
@@ -9,20 +9,49 @@
 ------
 TODO :
 ------
+	URGENT :
+	- internal file relative to app : no!
+	- nml : <viewport>1024x768</viewport>
+
+
+	Session Catel :
+	- NML basics + include
+	- outline
+	- scale
+
+	CANVAS :
+	- measureText.width
+	- renommer ctx.fontType en ctx.fontFamily
+	- renommer Native.canvas en window.canvas (main canvas)
+
+	- renommer ctx en context (pas d'abbreviation dans l'api, ça fait amateur)
+	- requestAnimationFrame a enlever du context
+	- rester compliant avec plutot window.requestAnimationFrame = function(){};
+
+	SHADER :
+	- shader ne suit pas le coin haut gauche du layer
+
+	DEMO VIDEO :
+	- shader non relatif au layer
+
+	CRASH :
+	- thread crash
+	- showFPS crash
+
+	DIVERS
+	- nss can not be empty and must have minimum {} in it
+
+	- subtlepatterns.com (contacter et rajouter crédit)
+	- window.resize
+
+------
+DONE :
+------
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
 	- radial gradient : fail (DONE)
 	- button down rotation : fail (DONE)
 	- textAlign vertical (ALMOST DONE)
-
-	- nss can not be empty and must have minimum {} in it
-
-	- internal file relative to app : no!
-	- outline
-	- scale
-	- subtlepatterns.com (rajouter Crédit)
-	- window.resize
-	- nml : <viewport>1024x768</viewport>
 
 */
 
@@ -30,20 +59,19 @@ document.background = "#272822";
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
+//load("applications/_tests/canvas.js");
 //load("applications/_tests/sockets.client.js");
 //load("applications/_tests/sockets.server.js");
 //load("applications/_tests/tasks.js");
-
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
 //load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
-//load("applications/components/style.js");
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-load("applications/components/sliders.js"); // radial gradient issue
+//load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash
@@ -54,7 +82,22 @@ load("applications/components/sliders.js"); // radial gradient issue
 //load("applications/components/zip.js");
 
 //load("applications/components/text.js"); // FAIL
-//load("applications/components/test.js");
+//load("applications/components/__zzz.js");
+
+/* CANVAS TESTS */
+
+//load("applications/canvas/water.js"); // fail
+//load("applications/canvas/sand.js");
+//load("applications/canvas/bluewheel.js"); // fail
+//load("applications/canvas/cube.js"); // chute de perf VS premières versions 
+//load("applications/canvas/cubewall.js"); // RAS
+//load("applications/canvas/flamme.js"); // OK
+//load("applications/canvas/particles.js"); // slow
+//load("applications/canvas/text.js"); // OK
+//load("applications/canvas/shader.js"); // OK
+
+//load("applications/components/flickr.js");
+
 
 /* UNIT TESTS */
 

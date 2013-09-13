@@ -1,7 +1,7 @@
 /* super inefficient right now, could be improved */
 
-var c = canvas,
-	ctx = canvas,
+var c = Native.canvas,
+	ctx = c.getContext("2d"),
 	cw = c.width,
 	ch = c.height,
 	
@@ -118,6 +118,7 @@ var c = canvas,
 			});
 		}
 	},
+
 	updateParticles = function() {
 		var i = particles.length;
 		while (i--) {
@@ -155,7 +156,6 @@ var c = canvas,
 	},
 
 	loop = function() {
-
 		clear();
 		updateCircle();
 		renderCircle();
@@ -165,7 +165,6 @@ var c = canvas,
 		createParticles();
 		updateParticles();
 		renderParticles();
-
 	};
 
 
@@ -173,7 +172,7 @@ var c = canvas,
 /* Set Constant Properties */
 ctx.shadowBlur = circle.blur;
 ctx.shadowColor = 'hsla('+circle.hue+', 80, 60, 1)';
-ctx.lineCap = 'round'
+ctx.lineCap = 'round';
   
 var gradient1 = ctx.createLinearGradient(0, -circle.radius, 0, circle.radius);
 gradient1.addColorStop(0, 'hsla('+circle.hue+', 60, 50, .25)');
@@ -185,6 +184,5 @@ gradient2.addColorStop(.1, 'hsla('+circle.hue+', 100, 100, .7)');
 gradient2.addColorStop(1, 'hsla('+circle.hue+', 100, 50, 0)');
 
 /* Loop It, Loop It Good */
-canvas.requestAnimationFrame(loop);
-Native.showFPS(true);
+ctx.requestAnimationFrame(loop);
 

@@ -1,7 +1,7 @@
 /* ------------------------+------------- */
 /* Native Framework 2.0    | Falcon Build */
 /* ------------------------+------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 Native.elements.export("UIStatus", {
@@ -52,6 +52,8 @@ Native.elements.export("UIStatus", {
 				opacity : 0.7,
 				radius : 2
 			});
+			this.spinnerElement.stop();
+			this.spinnerElement.opacity = 0;
 		}
 
 		this.open = function(duration=600, callback=null){
@@ -67,6 +69,8 @@ Native.elements.export("UIStatus", {
 			this.fadeIn(80);
 			
 			this.opening = true;
+			this.closing = false;
+
 			this.animate(
 				"top",
 				this.parent.height,
@@ -87,9 +91,19 @@ Native.elements.export("UIStatus", {
 			var that = this,
 				cb = OptionalCallback(callback, null);
 
-			if (this.closed || this.closing) return false;
+			if (this.opening) {
+				setTimeout(function(){
+					that.close();
+				}, 600);
+			}
+
+			if (this.closed || this.closing) {
+				return false;
+			}
+
 			this.visible = true;
 			this.closing = true;			
+			this.opening = false;			
 
 			var doit = function(){
 				that.animate(
@@ -127,11 +141,6 @@ Native.elements.export("UIStatus", {
 		this.opacity = 0;
 		this.closed = true;
 		this.visible = false;
-
-		if (this.spinner === true) {
-			this.spinnerElement.stop();
-			this.spinnerElement.opacity = 0;
-		}
 	},
 
 	draw : function(context){

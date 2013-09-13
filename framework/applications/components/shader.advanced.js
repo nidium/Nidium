@@ -1,7 +1,7 @@
 /* -------------------------------------- */
 /* High Level Shader API (advanced demo)  */
 /* -------------------------------------- */
-/* (c) 2013 Stight.com - Vincent Fontaine */
+/* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
 var main = new Application({
@@ -278,14 +278,12 @@ var processFlickr = function(pictures){
 	}
 };
 
-
-
 var video = new UIVideo(main, {
 	width : 640,
 	height : 360
 }).center();
 
-video.load("../media/native.mov", function(e){
+video.load("../media/bunny.mp4", function(e){
 	this.player.play();
 });
 
@@ -299,3 +297,11 @@ video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
 
+
+
+video.shader("../applications/components/shaders/oldscreen.s", function(program, uniforms){
+	var t = 0;
+	setInterval(function(){
+		uniforms.itime = t++;
+	}, 16);
+});

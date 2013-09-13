@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * CHARTJS DEMO                                            (c) 2013 Stight.com * 
+ * CHARTJS DEMO                                            (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Original:    http://chartjs.org/                                            *
  * --------------------------------------------------------------------------- * 
@@ -9,7 +9,7 @@
  */
 
 var body = new Application({
-	background : "white"
+	backgroundImage : "../assets/water1024x768.jpg"
 });
 
 var	view = new UIElement(body, {

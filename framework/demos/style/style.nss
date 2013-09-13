@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * NSS : Native Style Sheet Draft                          (c) 2013 Stight.com * 
+ * NSS : Native Style Sheet Draft                          (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Version:     0.6                                                            *
  * Author:      Vincent Fontaine                                               *
@@ -82,7 +82,7 @@
 		background : "#882266"
 	},
 
-	"UIButton:disabled+hover" : {
+	"UIButton:disabled" : {
 		color : function(){
 			this.value = "#888888";
 		},

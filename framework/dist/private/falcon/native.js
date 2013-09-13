@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * Native FrameWork                                        (c) 2013 Stight.com * 
+ * Native FrameWork                                        (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Version:     2.0 Falcon Build                                               *
  * Author:      Vincent Fontaine                                               *
@@ -61,6 +61,7 @@ load(__PATH_KERNEL__ + 'video.inc.js');
 
 load(__PATH_LAYOUT__ + 'UIElement.js');
 load(__PATH_LAYOUT__ + 'UIView.js');
+load(__PATH_LAYOUT__ + 'UIListView.js');
 load(__PATH_LAYOUT__ + 'UIPath.js');
 load(__PATH_LAYOUT__ + 'UILabel.js');
 
@@ -122,12 +123,11 @@ Native.core = {
 		this.createDocument();
 		this.extendDocument();
 		this.setRenderingLoop();
-		this.addStatusBar();
 		delete(this.init);
 	},
 
 	onready : function(){
-		document.spinner.fadeOut(250, function(){
+		document.spinnerElement.fadeOut(250, function(){
 			this.stop().hide();
 		});
 		delete(this.onready);
@@ -140,7 +140,7 @@ Native.core = {
 			top : 0,
 			width : window.width,
 			height : window.height,
-			background : "#ffffff", // "#272822"
+			background : "#000000", // "#272822"
 			cursor : "arrow",
 			canReceiveFocus : true,
 			outlineOnFocus : false
@@ -266,7 +266,7 @@ Native.core = {
 			}, 5);
 		});
 
-		document.spinner = new UISpinner(document, {
+		document.spinnerElement = new UISpinner(document, {
 			height : 40,
 			width : 40,
 			dashes : 12,
@@ -277,8 +277,9 @@ Native.core = {
 			radius : 2
 		}).center();
 
-
-
+		document.status = new UIStatus(document);
+		document.status.progressBarColor = "rgba(210, 255, 60, 1)";
+		document.status.progressBarLeft = 70;
 	},
 
 	setRenderingLoop : function(){
@@ -286,14 +287,6 @@ Native.core = {
 		window.requestAnimationFrame(function(){
 			if (Native.layout.drawHook) Native.layout.drawHook();
 		});
-	},
-
-	addStatusBar : function(){
-		/*
-		document.status = new UIStatus(document);
-		document.status.open();
-		document.status.progressBarColor = "rgba(210, 255, 60, 1)";
-		*/
 	}
 };
 

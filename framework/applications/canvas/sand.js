@@ -1,6 +1,7 @@
 var width = 1024,
 	height = 768,
-	screen = canvas.createImageData(width, height);
+	ctx = Native.canvas.getContext("2d"),
+	screen = ctx.createImageData(width, height);
 
 var max_particles = 140000,
 	particles = [],
@@ -52,15 +53,15 @@ function draw(i){
 	}
 }
 
-canvas.fillStyle = "#000000";
-canvas.globalAlpha = 0.8;
-canvas.requestAnimationFrame(function(){
+ctx.fillStyle = "#000000";
+ctx.globalAlpha = 0.8;
+ctx.requestAnimationFrame(function(){
 
 	for (i=0; i<max_particles; i++){
 		erase(i);
 		update(i);
 		draw(i);
 	}
-	canvas.putImageData(screen, 0, 0);
-	canvas.fillRect(0, 0, width, height);
+	ctx.putImageData(screen, 0, 0);
+	ctx.fillRect(0, 0, width, height);
 });

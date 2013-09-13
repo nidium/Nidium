@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * CHARTJS DEMO                                            (c) 2013 Stight.com * 
+ * CHARTJS DEMO                                            (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Original:    http://chartjs.org/                                            *
  * --------------------------------------------------------------------------- * 
@@ -8,34 +8,32 @@
  * --------------------------------------------------------------------------- * 
  */
 
-var body = new Application({
-	backgroundImage : "private://assets/back.png"
-});
-
-var	view = new UIElement(body, {
+var	view = document.add("UIElement", {
 	width : 650,
-	height : 530,
-	background : "white",
-	shadowBlur : 10,
-	shadowColor : "white",
-	radius : 16
+	height : 530
 }).center();
 
-var pieData = [
+var doughnutData = [
 	{
 		value: 30,
-		color:"#F38630"
+		color:"#F7464A"
 	},
 	{
 		value : 50,
-		color : "#E0E4CC"
+		color : "#46BFBD"
 	},
 	{
 		value : 100,
-		color : "#69D2E7"
+		color : "#FDB45C"
+	},
+	{
+		value : 40,
+		color : "#949FB1"
+	},
+	{
+		value : 120,
+		color : "#4D5360"
 	}
-
 ];
 
-var myLine = new Chart(view).Pie(pieData);
-
+var myDoughnut = new Chart(view).Doughnut(doughnutData);

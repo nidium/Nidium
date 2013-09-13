@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * Native Portable Application                             (c) 2013 Stight.com * 
+ * Native Portable Application                             (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  *   mime:     native/application                                              *
  *   ext:      npa                                                             *
@@ -29,7 +29,7 @@
 	"info" : {
 		"title" : "Demo Application",
 		"uid" : "com.demo.app",
-		"build" : 1.0,
+		"build" : 2.5,
 		"company" : "Enterprise Inc.",
 		"copyright" : "(c) 2013 Enterprise Inc.",
 		"width" : 1024,

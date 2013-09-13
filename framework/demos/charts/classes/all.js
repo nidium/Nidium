@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * CHARTJS DEMO - NATiVE PORT                              (c) 2013 Stight.com * 
+ * CHARTJS DEMO - NATiVE PORT                              (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Original:    http://chartjs.org/                                            *
  * --------------------------------------------------------------------------- * 
@@ -9,9 +9,11 @@
  */
 
 var body = new Application({
-	background : "rgba(255, 255, 255, 0.3)",
 	class : "body"
 });
+
+
+console.dump(document.stylesheet);
 
 var	v1 = new UIElement(body, "views").place(10, 10);
 var	v2 = new UIElement(body, "views").place(350, 10);
@@ -20,7 +22,7 @@ var	v4 = new UIElement(body, "views").place(10, 280);
 var	v5 = new UIElement(body, "views").place(350, 280);
 var	v6 = new UIView(body, "views").place(690, 280);
 
-v6.backgroundImage = "private://assets/grey.png";
+v6.backgroundImage = "../assets/water1024x768.jpg";
 
 var lineChartData = {
 	labels : ["January","February","March","April","May","June","July"],

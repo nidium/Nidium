@@ -1,6 +1,7 @@
 {
-	"body" : {
-		backgroundImage : "private://assets/back.png"
+	".body" : {
+		backgroundImage : "private://assets/back.png",
+		alpha : 1.0
 	},
 
 	".main" : {

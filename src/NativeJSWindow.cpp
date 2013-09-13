@@ -366,10 +366,10 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-
+            
             JS_ValueToNumber(cx, vp, &dval);
-
-            NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
+            printf("Width changed : %f\n", dval);
+            //NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
         }
@@ -381,8 +381,8 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             JS_ValueToNumber(cx, vp, &dval);
-
-            NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
+            printf("height changed : %f\n", dval);
+            //NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
         }
@@ -504,6 +504,7 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
+    printf("Calling set size ?\n");
     NativeContext::getNativeClass(cx)->setWindowSize(w, h);
 
     return true;
