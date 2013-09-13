@@ -760,7 +760,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
 
-    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
+    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL | JSOPTION_VAROBJFIX);
     JS::CompileOptions options(cx);
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
@@ -793,11 +793,18 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
 
     JSAutoRequest ar(cx);
 
+    oldopts = JS_GetOptions(cx);
+
     if (gbl == NULL) {
         gbl = modules->globalScope;
+    } else {
+        // Specific options for modules
+        // We don't want that modules define all of their global
+        // on the global scope, but instead on the global object
+        // for the script
+        // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetOptions
+        oldopts &= ~JSOPTION_VAROBJFIX;
     }
-
-    oldopts = JS_GetOptions(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
     JS::CompileOptions options(cx);
