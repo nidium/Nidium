@@ -14,8 +14,8 @@
 #import <NativeNML.h>
 #import <sys/stat.h>
 
-#define kNativeWidth 300
-#define kNativeHeight 250
+#define kNativeWidth 1024
+#define kNativeHeight 700
 
 #define kNativeTitleBarHeight 0
 

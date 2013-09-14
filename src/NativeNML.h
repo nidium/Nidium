@@ -31,6 +31,12 @@ class NativeNML : public NativeStreamDelegate
     const char *getMetaTitle() const {
         return this->meta.title;
     }
+    int getMetaWidth() const {
+        return this->meta.size.width;
+    }
+    int getMetaHeight() const {
+        return this->meta.size.height;
+    }
     const char *getPath() const {
         return this->relativePath;
     }
@@ -68,6 +74,10 @@ class NativeNML : public NativeStreamDelegate
 
     struct {
         char *title;
+        struct {
+            int width;
+            int height;
+        } size;
     } meta;
 
     struct {

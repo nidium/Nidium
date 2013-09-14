@@ -18,6 +18,8 @@ NativeNML::NativeNML(ape_global *net) :
     assetsList.list = (NativeAssets **)malloc(sizeof(NativeAssets *) * assetsList.allocated);
 
     this->meta.title = NULL;
+    this->meta.size.width = 0;
+    this->meta.size.height = 0;
 }
 
 NativeNML::~NativeNML()
