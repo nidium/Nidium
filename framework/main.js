@@ -38,7 +38,6 @@ TODO :
 		- renommer ctx en context (pas d'abbreviation dans l'api, ça fait amateur)
 
 	COMPLIANCY :
-		- measureText.width
 		- window.requestAnimationFrame = function(){};
 		- corriger textAlign vertical (center)
 
@@ -54,7 +53,6 @@ TODO :
 
 	COMPLEXE
 		- Gestion du cache
-		- nml : <viewport>1024x768</viewport>
 		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
 		- NML basics + include
 		- outline
@@ -69,6 +67,9 @@ TODO :
 ------
 DONE :
 ------
+	- measureText.width (DONE)
+	- nml : <viewport>1024x768</viewport> (DONE)
+
 	- Image() et File() file relative to nml : (DONE)
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
@@ -79,7 +80,7 @@ DONE :
 */
 
 document.background = "#272822";
-load("sample.js");
+//load("sample.js");
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -90,7 +91,7 @@ load("sample.js");
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-//load("applications/components/tabs.js");
+load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");

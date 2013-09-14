@@ -7,8 +7,11 @@ var mixer = null,
 	tracks = [];
 
 var tx = [
+	{file : "media/endure.ogg",	label : "Depress"},
+	{file : "media/endure.ogg",	label : "Depress"},
 	{file : "media/endure.ogg",	label : "Depress"}
 ];
+
 
 for (var i=0; i<tx.length; i++){
 	tracks[i] = AudioMixer.load(tx[i].file, function(data, k){

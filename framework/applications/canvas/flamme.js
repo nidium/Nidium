@@ -58,7 +58,7 @@ var BurningWords = function() {
 
 		ctx.fontType = "times";
 		ctx.fontSize = font_size;
-		this.text_size = ctx.measureText(text);
+		this.text_size = ctx.measureText(text).width;
 
 		this.canvas.width = Math.round(this.text_size + 10);
 		this.canvas.height = Math.floor(font_size*1.1 + 20);

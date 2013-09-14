@@ -1253,7 +1253,7 @@ function getUnilineLetters(context, wordsArray, fontSize){
 
 	// cache width of letters
 	var cachedLetterWidth = function(char){
-		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char);
+		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char).width;
 	}
 
 	context.setFontSize(fontSize);
@@ -1298,13 +1298,13 @@ function getLineLetters(context, wordsArray, textAlign, offsetLeft, fitWidth, fo
 
 	// cache width of letters
 	var cachedLetterWidth = function(char){
-		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char);
+		return __cache[char] ? __cache[char] : __cache[char] = widthOf(char).width;
 	}
 
 	context.setFontSize(fontSize);
 
-	spacewidth = widthOf(" ");
-	linegap = fitWidth - widthOf(textLine);
+	spacewidth = widthOf(" ").width;
+	linegap = fitWidth - widthOf(textLine).width;
 
 	switch (textAlign){
 		case "justify" :
@@ -1420,7 +1420,7 @@ function getTextMatrixLines(element){
 
 		while (words.length > 0 && idx <= words.length) {
 			var str = words.slice(0, idx).join(' '),
-				w = context.measureText(str);
+				w = context.measureText(str).width;
 
 			var offLeft = offsetLeft[k] ? offsetLeft[k] : 0,
 				offRght = offsetRight[k] ? offsetRight[k] : 0,

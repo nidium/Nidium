@@ -1,10 +1,9 @@
 /*!
- * NATiVE Port of Chart.js
+ * Nidium Port of Chart.js
  * - Minor code refactoring
  * - Use of Math.physics
  * - RequestAnimationFrame modified
- * - measureText(...).width not handled by NATiVE --> measureText(...) instead
- * - NATiVE UIElement
+ * - Nidium UIElement
  * - Nick : avoiding text context changes in loops !!!
  *
  * Original Works : http://chartjs.org/
@@ -289,7 +288,7 @@ var Chart = function(UIElement){
  					var label =  calculatedScale.labels[i];
 					//If the backdrop object is within the font object
 					if (config.scaleShowLabelBackdrop){
-						var textWidth = ctx.measureText(label);
+						var textWidth = ctx.measureText(label).width;
 						ctx.fillStyle = config.scaleBackdropColor;
 						ctx.beginPath();
 						ctx.rect(
@@ -504,7 +503,7 @@ var Chart = function(UIElement){
 				
 				if (config.scaleShowLabels){				
 					if (config.scaleShowLabelBackdrop){
-						var textWidth = ctx.measureText(calculatedScale.labels[i]);
+						var textWidth = ctx.measureText(calculatedScale.labels[i]).width;
 						ctx.fillStyle = config.scaleBackdropColor;
 						ctx.beginPath();
 						ctx.rect(
@@ -558,7 +557,7 @@ var Chart = function(UIElement){
 			ctx.fontType = config.pointLabelFontFamily;
 			ctx.fontSize = config.pointLabelFontSize;
 			for (var i=0; i<data.labels.length; i++){
-				var textMeasurement = ctx.measureText(data.labels[i]);
+				var textMeasurement = ctx.measureText(data.labels[i]).width;
 				if(textMeasurement>labelLength) labelLength = textMeasurement;
 			}
 			
@@ -867,7 +866,7 @@ var Chart = function(UIElement){
 				ctx.fontSize = config.scaleFontSize;
 
 				for (var i=0; i<calculatedScale.labels.length; i++){
-					var measuredText = ctx.measureText(calculatedScale.labels[i]);
+					var measuredText = ctx.measureText(calculatedScale.labels[i]).width;
 					longestText = (measuredText > longestText)? measuredText : longestText;
 				}
 				longestText += 10;
@@ -890,7 +889,7 @@ var Chart = function(UIElement){
 
 			widestXLabel = 1;
 			for (var i=0; i<data.labels.length; i++){
-				var textLength = ctx.measureText(data.labels[i]);
+				var textLength = ctx.measureText(data.labels[i]).width;
 				//If the text length is longer - make that equal to longest text!
 				widestXLabel = (textLength > widestXLabel)? textLength : widestXLabel;
 			}
@@ -1078,7 +1077,7 @@ var Chart = function(UIElement){
 				ctx.fontSize = config.scaleFontSize;
 
 				for (var i=0; i<calculatedScale.labels.length; i++){
-					var measuredText = ctx.measureText(calculatedScale.labels[i]);
+					var measuredText = ctx.measureText(calculatedScale.labels[i]).width;
 					longestText = (measuredText > longestText)? measuredText : longestText;
 				}
 				//Add a little extra padding from the y axis

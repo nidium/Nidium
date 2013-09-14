@@ -557,7 +557,7 @@ ig.module('impact.font').requires('impact.image').defines(function() {
 		},
 
 		_drawCharPatch: function(letter, c, targetX, targetY) {
-			var w = ig.system.context.measureText(letter);
+			var w = ig.system.context.measureText(letter).width;
 			ig.system.context.fillText(letter, targetX, targetY+12);
 
 			this.widthMap[c] = Math.round(w);

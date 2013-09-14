@@ -35,7 +35,7 @@ var text = "N i D I U M",
 ctx.fontSize = 13;
 ctx.fillText(text, 0, 20);
 
-tx = M.round(ctx.measureText(text)),
+tx = M.round(ctx.measureText(text).width),
 ty = 25;
 
 image = ctx.getImageData(0, 0, tx, ty);

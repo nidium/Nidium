@@ -133,7 +133,7 @@ Native.getTextWidth = function(text, fontSize, fontType){
 	if (!c[key]) {
 		context.fontSize = fontSize;
 		context.fontType = fontType;
-		c[key] = context.measureText(text);
+		c[key] = context.measureText(text).width;
 	}
 	return c[key];
 };
