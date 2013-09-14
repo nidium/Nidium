@@ -37,7 +37,7 @@ def buildSDL2():
 
 def downloadSkia():
     if deps.needDownload("skia", "skia"):
-        deps.runCommand("Downloading skia", "depot_tools/gclient sync --gclientfile=skia_gclient")
+        deps.runCommand("Downloading skia", "depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
     #deps.patchDep("skia", "skia-addPath-new-arg.patch")
