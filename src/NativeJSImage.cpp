@@ -2,7 +2,7 @@
 #include "NativeSkImage.h"
 #include "NativeJS.h"
 #include "NativeSkia.h"
-
+#include "NativeNML.h"
 #include <string.h>
 
 JSObject *NativeJSImage::classe = NULL;
@@ -96,19 +96,15 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
-
-                char *imgrelpath = NativeJS::buildRelativePath(cx);
                 
                 NativeStream *stream = new NativeStream(
                         (ape_global *)JS_GetContextPrivate(cx),
-                        imgPath.ptr(), imgrelpath);
+                        imgPath.ptr(), NativeJS::getNativeClass(cx)->getPath());
 
                 nimg->stream = stream;
 
                 stream->setDelegate(nimg);
                 stream->getContent();
-                free(imgrelpath);
-            
             } else {
                 vp.set(JSVAL_VOID);
                 return JS_TRUE;

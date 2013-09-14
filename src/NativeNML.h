@@ -31,6 +31,9 @@ class NativeNML : public NativeStreamDelegate
     const char *getMetaTitle() const {
         return this->meta.title;
     }
+    const char *getPath() const {
+        return this->relativePath;
+    }
     /*
     void onNFIOOpen(NativeFileIO *);
     void onNFIOError(NativeFileIO *, int errno){};

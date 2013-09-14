@@ -14,8 +14,8 @@
 #import <NativeNML.h>
 #import <sys/stat.h>
 
-#define kNativeWidth 1024
-#define kNativeHeight 768
+#define kNativeWidth 300
+#define kNativeHeight 250
 
 #define kNativeTitleBarHeight 0
 
@@ -284,7 +284,9 @@ void NativeCocoaUIInterface::onNMLLoaded()
 
 void NativeCocoaUIInterface::stopApplication()
 {
-    if (this->nml) delete this->nml;
+    if (this->nml) {
+        delete this->nml;
+    }
     if (this->NativeCtx) delete this->NativeCtx;
     this->NativeCtx = NULL;
     this->nml = NULL;
@@ -352,6 +354,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         this->nml = new NativeNML(this->gnet);
         this->nml->setNJS(this->NativeCtx->getNJS());
         this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
+
         return true;
     }
     return false;
