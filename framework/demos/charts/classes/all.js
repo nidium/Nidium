@@ -13,8 +13,6 @@ var body = new Application({
 });
 
 
-console.dump(document.stylesheet);
-
 var	v1 = new UIElement(body, "views").place(10, 10);
 var	v2 = new UIElement(body, "views").place(350, 10);
 var	v3 = new UIElement(body, "views").place(690, 10);
@@ -22,7 +20,7 @@ var	v4 = new UIElement(body, "views").place(10, 280);
 var	v5 = new UIElement(body, "views").place(350, 280);
 var	v6 = new UIView(body, "views").place(690, 280);
 
-v6.backgroundImage = "../assets/water1024x768.jpg";
+v6.backgroundImage = "assets/grey.png";
 
 var lineChartData = {
 	labels : ["January","February","March","April","May","June","July"],

