@@ -919,19 +919,27 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     JSString *text;
+#define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
+    
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
         &text)) {
-        return JS_TRUE;
+        return true;
     }
+
+    JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
 
     JSAutoByteString ctext(cx, text);
     NativeSkia *n = NSKIA_NATIVE;
-
-    JS_SET_RVAL(cx, vp, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
+    
+    OBJ_PROP("width", DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
         strlen(ctext.ptr()))));
 
-    return JS_TRUE;
+    args.rval().setObjectOrNull(obj);
+
+    return true;
 }
 
 static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
@@ -1078,7 +1086,8 @@ static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc
     return JS_TRUE;
 }
 
-static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
+    unsigned int argc, jsval *vp, int nb) 
 {
     GLsizei length;
     GLint *carray;
@@ -1135,7 +1144,8 @@ static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx, unsigned int
     return JS_TRUE;
 }
 
-static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
+    unsigned int argc, jsval *vp, int nb) 
 {
     GLsizei length;
     GLfloat *carray;
@@ -2071,7 +2081,8 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
     delete skia;
 }
 
-static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_Canvas2DContext_constructor(JSContext *cx,
+    unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return JS_FALSE;

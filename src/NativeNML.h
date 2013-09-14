@@ -10,19 +10,32 @@
 class NativeNML;
 class NativeJS;
 
-typedef void (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
+#define XML_VP_MAX_WIDTH 8000
+#define XML_VP_MAX_HEIGHT 8000
+
+#define XML_VP_DEFAULT_WIDTH 980
+#define XML_VP_DEFAULT_HEIGHT 700
+
 typedef void (*NMLLoadedCallback)(void *arg);
 
 class NativeNML : public NativeStreamDelegate
 {
     public:
 
+    typedef enum {
+        NIDIUM_XML_OK,
+        NIDIUM_XML_ERR_VIEWPORT_SIZE
+    } nidium_xml_ret_t;
+
+    typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
+
     NativeNML(ape_global *net);
     ~NativeNML();
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
-    void loadAssets(rapidxml::xml_node<> &node);
-    void loadMeta(rapidxml::xml_node<> &node);
+    nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
+    nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
+
     void onAssetsItemReady(NativeAssets::Item *item);
     void onAssetsBlockReady(NativeAssets *asset);
     void onGetContent(const char *data, size_t len);
@@ -30,6 +43,12 @@ class NativeNML : public NativeStreamDelegate
 
     const char *getMetaTitle() const {
         return this->meta.title;
+    }
+    int getMetaWidth() const {
+        return this->meta.size.width;
+    }
+    int getMetaHeight() const {
+        return this->meta.size.height;
     }
     const char *getPath() const {
         return this->relativePath;
@@ -68,6 +87,10 @@ class NativeNML : public NativeStreamDelegate
 
     struct {
         char *title;
+        struct {
+            int width;
+            int height;
+        } size;
     } meta;
 
     struct {
@@ -78,5 +101,6 @@ class NativeNML : public NativeStreamDelegate
     NMLLoadedCallback loaded;
     void *loaded_arg;
 };
+
 
 #endif

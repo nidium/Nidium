@@ -7,8 +7,15 @@
 class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
   public:
-    NativeJSwindow(){};
-    ~NativeJSwindow(){};
+    NativeJSwindow() : 
+        m_RequestedFrame(NULL)
+    {
+
+    };
+
+    ~NativeJSwindow(){
+        this->callFrameCallbacks(true);
+    };
 
     void onReady();
     void assetReady(const NMLTag &tag);
@@ -20,6 +27,8 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void mouseClick(int x, int y, int state, int button);
     void textInput(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat);
+    void addFrameCallback(jsval &cb);
+    void callFrameCallbacks(double ts, bool garbage = false);
 
     static void registerObject(JSContext *cx);
     static const char *getJSObjectName() {
@@ -27,6 +36,12 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     }
 
     static JSClass *jsclass;
+
+  private:
+    struct _requestedFrame {
+        jsval cb;
+        struct _requestedFrame *next;
+    } *m_RequestedFrame;
 };
 
 #endif

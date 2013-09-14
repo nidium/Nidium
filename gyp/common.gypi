@@ -35,7 +35,7 @@
                         'x86_64',
                     ],
                     'MACOSX_DEPLOYMENT_TARGET': [
-                        '10.7'
+                        '10.8'
                     ],
                     'SDKROOT': [
                         'macosx10.8'
