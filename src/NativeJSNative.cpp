@@ -12,7 +12,7 @@ bool NativeJSNative::showFPS = false;
 static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Native_class = {
-    "Native", 0,
+    "Native", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Native_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS

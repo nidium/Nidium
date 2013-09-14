@@ -12,6 +12,7 @@
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
+            '<(third_party_path)/http-parser/',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'

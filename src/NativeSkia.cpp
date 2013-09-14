@@ -3,6 +3,14 @@
 #endif
 
 
+
+#define GL_GLEXT_PROTOTYPES
+#if __APPLE__
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 #include <jsapi.h>
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
@@ -335,6 +343,7 @@ int NativeSkia::bindOnScreen(int width, int height)
     }
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
+    printf("Create new object\n");
     SkBaseDevice *dev = NativeSkia::glcontext
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);
@@ -1177,13 +1186,16 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
         currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
     }
 
-    SkPath tmpPath;
 
-    tmpPath.cubicTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy),
-        SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2),
-        SkDoubleToScalar(x), SkDoubleToScalar(y));
+    SkMatrix m = canvas->getTotalMatrix();
+    SkPoint pt, p1, p2, p3;
 
-    currentPath->addPath(tmpPath, canvas->getTotalMatrix());
+    m.mapXY(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy), &p1);
+    m.mapXY(SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2), &p2);
+    m.mapXY(SkDoubleToScalar(x), SkDoubleToScalar(y), &p3);
+
+    currentPath->cubicTo(p1, p2, p3);
+
 }
 
 void NativeSkia::light(double x, double y, double z)

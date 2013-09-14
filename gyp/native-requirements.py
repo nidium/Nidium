@@ -35,13 +35,17 @@ def buildSDL2():
         deps.mkdir_p("SDL2/build/")
         deps.buildDep("libSDL2", "SDL2/build/", ["../configure", "make"], outlibs=["SDL2/build/build/.libs/libSDL2"])
 
+def downloadSkia():
+    if deps.needDownload("skia", "skia"):
+        deps.runCommand("Downloading skia", "depot_tools/gclient sync --gclientfile=gclient_skia")
+
 def buildSkia():
     #deps.patchDep("skia", "skia-addPath-new-arg.patch")
 
-    exports = "GYP_DEFINES='skia_arch_width=32'"
-
     if deps.is64bits:
         exports = "GYP_DEFINES='skia_arch_width=64'"
+    else:
+        exports = "GYP_DEFINES='skia_arch_width=32'"
 
     deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
         "skia/out/Release/libskia_pdf",
@@ -88,6 +92,10 @@ def buildLibCoroutine():
     deps.buildDep("libcoroutine", "libcoroutine", ["make"], outlibs=[["libcoroutine/_build/lib/liblibcoroutine", "libcoroutine"]])
 
 def registerDeps():
+    deps.registerDep("depot_tools",
+        partial(deps.downloadDep, "depot_tools", deps.depsURL + "/depot_tools.tar.gz"),
+        None)
+
     deps.registerDep("ffmpeg",
         partial(deps.downloadDep, "ffmpeg", deps.depsURL + "/ffmpeg-snapshot.tar.bz2"),
         partial(deps.buildDep, "libavcodec", "ffmpeg", ["./configure \
@@ -122,7 +130,7 @@ def registerDeps():
         buildSDL2)
 
     deps.registerDep("skia", 
-        partial(deps.downloadDep, "skia", deps.depsURL + "/skia.tar.gz"),
+        downloadSkia,
         buildSkia)
 
     deps.registerDep("libzip",

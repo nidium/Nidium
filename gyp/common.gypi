@@ -38,7 +38,7 @@
                         '10.7'
                     ],
                     'SDKROOT': [
-                        'macosx10.7'
+                        'macosx10.8'
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g'
@@ -88,7 +88,7 @@
                         '10.7'
                     ],
                     'SDKROOT': [
-                        'macosx10.7'
+                        'macosx10.8'
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g',

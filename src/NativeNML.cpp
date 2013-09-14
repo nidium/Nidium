@@ -23,6 +23,9 @@ NativeNML::NativeNML(ape_global *net) :
 NativeNML::~NativeNML()
 {
     if (relativePath) {
+        if (this->njs) {
+            this->njs->setPath(NULL);
+        }
         free(relativePath);
     }
     if (stream) {
@@ -43,6 +46,10 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     this->loaded_arg = arg;
 
     this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
+
+    if (this->njs) {
+        this->njs->setPath(this->relativePath);
+    }
 
     stream = new NativeStream(this->net, file);
     stream->setDelegate(this);
