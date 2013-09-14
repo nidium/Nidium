@@ -65,7 +65,7 @@ var ShaderDemo = {
 	init : function(){
 		var self = this;
 
-		main.shader("../applications/components/shaders/apple.s", function(p, u){
+		main.shader("applications/components/shaders/apple.s", function(p, u){
 			self.start(p, u);
 		});
 	},
@@ -283,7 +283,7 @@ var video = new UIVideo(main, {
 	height : 360
 }).center();
 
-video.load("../media/bunny.mp4", function(e){
+video.load("media/bunny.mp4", function(e){
 	this.player.play();
 });
 
@@ -297,11 +297,13 @@ video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
 
+/*
 
-
-video.shader("../applications/components/shaders/oldscreen.s", function(program, uniforms){
+video.shader("applications/components/shaders/oldscreen.s", function(program, uniforms){
 	var t = 0;
 	setInterval(function(){
 		uniforms.itime = t++;
 	}, 16);
 });
+
+*/

@@ -4,6 +4,7 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/*
 Native.StyleSheet.add({
 	"#foobar" : {
 		background : "red"
@@ -26,6 +27,7 @@ Native.StyleSheet.add({
 		background : "#5599FF"
 	}
 });
+*/
 
 // text.fireStream("boom", 750);
 
@@ -77,6 +79,7 @@ var	listItems = [
 	/* Tab 9 */ {label : "Japan", 			value : 13}
 ];
 
+/*
 
 var	lv = new UIListView(main, {
 	left : 200,
@@ -87,7 +90,7 @@ var	lv = new UIListView(main, {
 	elements : listItems
 });
 
-
+*/
 
 
 

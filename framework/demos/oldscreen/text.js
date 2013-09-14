@@ -125,7 +125,7 @@ var timer = setInterval(function() {
 var c = new Canvas(100, 100);
 
 
-url = "../demos/oldscreen/oldscreen.s";
+url = "oldscreen.s";
 
 Uint8Array.prototype.toString = function(){
 	return String.fromCharCode.apply(null, new Uint8Array(this));

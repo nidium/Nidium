@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * NATiVE AUDIO API                                        (c) 2013 nidium.com *
+ * Native Audio Mixer API                                  (c) 2013 nidium.com *
  * --------------------------------------------------------------------------- *
  * Version:     1.0                                                            *
  * Author:      Vincent Fontaine                                               *
@@ -32,12 +32,8 @@ Native.getAudioDSP = function(){
 	// Init NATiVE DSP
 	// 512 bytes buffer, 2 channels, 44100Hz
 	if (!Audio) return false;
-	if (!Native.defaultAudioDSP) {
-		if (Audio.getContext) {
-			Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);
-		} else {
-			Native.defaultAudioDSP = new Audio(512, 2, 44100);
-		}
+	if (!Native.defaultAudioDSP && "getContext" in Audio) {
+		Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);
 	}
 	return Native.defaultAudioDSP;
 };

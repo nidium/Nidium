@@ -32,7 +32,7 @@ for (var i=0; i<256; i++){
 			+Math.round(Math.random()*180)
 		+")",
 		opacity : 0.9,
-		radius : 18
+		radius : 8
 	});
 	v[i].initialLeft = v[i].left;
 
