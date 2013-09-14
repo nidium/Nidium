@@ -93,7 +93,7 @@ def buildLibCoroutine():
 
 def registerDeps():
     deps.registerDep("depot_tools",
-        partial(deps.downloadDep, "depot_tools", deps.depsURL + "depot_tools.tar.gz"),
+        partial(deps.downloadDep, "depot_tools", deps.depsURL + "/depot_tools.tar.gz"),
         None)
 
     deps.registerDep("ffmpeg",
