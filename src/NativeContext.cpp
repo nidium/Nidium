@@ -63,13 +63,13 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* Image() object */
     NativeJSImage::registerObject(cx);
     /* Audio() object */
-    #ifdef NATIVE_AUDIO_ENABLED
+#ifdef NATIVE_AUDIO_ENABLED
     NativeJSAudio::registerObject(cx);
     NativeJSAudioNode::registerObject(cx);
     NativeJSVideo::registerObject(cx);
-    #endif
+#endif
     /* WebGL*() object */
-    #ifdef NATIVE_WEBGL_ENABLED
+#ifdef NATIVE_WEBGL_ENABLED
     NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLObject::registerObject(cx);
@@ -80,7 +80,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSWebGLShader::registerObject(cx);
     NativeJSWebGLTexture::registerObject(cx);
     NativeJSWebGLUniformLocation::registerObject(cx);
-    #endif
+#endif
     /* Native() object */
     NativeJSNative::registerObject(cx, width, height);
     /* window() object */

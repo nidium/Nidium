@@ -279,6 +279,13 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
 
 void NativeCocoaUIInterface::onNMLLoaded()
 {
+    if (!this->createWindow(
+        this->nml->getMetaWidth(),
+        this->nml->getMetaHeight()+kNativeTitleBarHeight)) {
+
+        return;
+    }
+    this->nml->setNJS(this->NativeCtx->getNJS());
     this->setWindowTitle(this->nml->getMetaTitle());
 }
 
@@ -348,11 +355,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             delete app;
         }
     } else if (strncasecmp(ext, ".nml", 4) == 0) {
-        if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
-            return false;
-        }
         this->nml = new NativeNML(this->gnet);
-        this->nml->setNJS(this->NativeCtx->getNJS());
         this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
 
         return true;
@@ -381,6 +384,8 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     }
     CFRelease(url);
     CFRelease(url2);
+
+    gnet = native_netlib_init();
 }
 
 NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *created) {
@@ -487,7 +492,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         this->initialized = true;
         glViewport(0, 0, width, height);
 
-        gnet = native_netlib_init();
         printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     }
     NativeCtx = new NativeContext(this, width, height, gnet);
