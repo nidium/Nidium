@@ -190,12 +190,12 @@ void NativeContext::callFrame()
         stats.samples[0] = stats.fps;
     }
 
+    NativeJSwindow::getNativeClass(this->getNJS())->callFrameCallbacks(tmptime);
+
     if (gfunc != JSVAL_VOID) {
         JSAutoRequest ar(njs->cx);
         JS_CallFunctionValue(njs->cx, JS_GetGlobalObject(njs->cx), gfunc, 0, NULL, &rval);
     }
-
-    NativeJSwindow::getNativeClass(this->getNJS())->callFrameCallbacks();
 }
 
 NativeContext::~NativeContext()

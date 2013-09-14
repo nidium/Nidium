@@ -598,18 +598,20 @@ void NativeJSwindow::addFrameCallback(jsval &cb)
     JS_AddValueRoot(this->cx, &frame->cb);
 }
 
-void NativeJSwindow::callFrameCallbacks(bool garbage)
+void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
 {
-    jsval rval;
+    jsval rval, arg[1];
     struct _requestedFrame *frame = m_RequestedFrame;
 
     /* Set to NULL so that callbacks can "fork" the new chain */
     m_RequestedFrame = NULL;
 
+    arg[0] = JS_NumberValue(ts/1000000L);
+
     while (frame != NULL) {
         if (!garbage) {
             JS_CallFunctionValue(this->cx, JS_GetGlobalObject(this->cx),
-                frame->cb, 0, NULL, &rval);
+                frame->cb, 1, arg, &rval);
         }
 
         JS_RemoveValueRoot(this->cx, &frame->cb);
