@@ -86,8 +86,13 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         uint32_t compileShader(const char *data, int type);
 
         static void registerObject(JSContext *cx);
-        NativeCanvas2DContext(NativeCanvasHandler *handler, int width, int height, bool isGL = true);
-        NativeCanvas2DContext(NativeCanvasHandler *handler, struct JSContext *cx, int width, int height);
+
+        NativeCanvas2DContext(NativeCanvasHandler *handler,
+            int width, int height, bool isGL = true);
+
+        NativeCanvas2DContext(NativeCanvasHandler *handler,
+            struct JSContext *cx, int width, int height);
+        
         ~NativeCanvas2DContext();
     private:
         void initCopyTex();

@@ -30,7 +30,6 @@ class NativeUIInterface
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
         virtual bool runApplication(const char *path)=0;
-        virtual bool createWindow(int width, int height)=0;
         virtual void setWindowTitle(const char *)=0;
         virtual const char *getWindowTitle() const=0;
         virtual void setCursor(CURSOR_TYPE)=0;

@@ -1078,7 +1078,8 @@ static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc
     return JS_TRUE;
 }
 
-static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
+    unsigned int argc, jsval *vp, int nb) 
 {
     GLsizei length;
     GLint *carray;
@@ -1135,7 +1136,8 @@ static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx, unsigned int
     return JS_TRUE;
 }
 
-static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
+    unsigned int argc, jsval *vp, int nb) 
 {
     GLsizei length;
     GLfloat *carray;
@@ -2071,7 +2073,8 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
     delete skia;
 }
 
-static JSBool native_Canvas2DContext_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_Canvas2DContext_constructor(JSContext *cx,
+    unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return JS_FALSE;

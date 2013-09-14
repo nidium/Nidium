@@ -14,8 +14,8 @@
 #import <NativeNML.h>
 #import <sys/stat.h>
 
-#define kNativeWidth 300
-#define kNativeHeight 250
+#define kNativeWidth 1024
+#define kNativeHeight 768
 
 #define kNativeTitleBarHeight 0
 
@@ -493,7 +493,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     NativeCtx = new NativeContext(this, width, height, gnet);
     window = NativeCocoaWindow(win);
 #if 0
-    id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification object:window queue:nil usingBlock:^(NSNotification *notif){
+    id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification
+    object:window queue:nil usingBlock:^(NSNotification *notif){
         NSRect rect = [window contentRectForFrameRect:[window frame]];
         int x, y, w, h;
         ConvertNSRect(&rect);

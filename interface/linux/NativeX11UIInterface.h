@@ -23,7 +23,6 @@ class NativeX11UIInterface : public NativeUIInterface
 {
     public:
         NativeX11UIInterface();
-        bool createWindow(int width, int height);
         void setWindowTitle(const char *);
         const char *getWindowTitle() const;
         void setCursor(CURSOR_TYPE);
@@ -61,6 +60,7 @@ class NativeX11UIInterface : public NativeUIInterface
             size_t offset;
         } mainjs;
     private:
+        bool createWindow(int width, int height);
         NativeUIX11Console *console;
 };
 

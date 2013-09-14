@@ -8,7 +8,6 @@ class NativeCocoaUIInterface : public NativeUIInterface
 {
     public:
         NativeCocoaUIInterface();
-        bool createWindow(int width, int height);
         void setWindowTitle(const char *);
         const char *getWindowTitle() const;
         void setCursor(CURSOR_TYPE);
@@ -40,5 +39,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
 
         void onNMLLoaded();
     private:
+        bool initContext();
+        bool createWindow(int width, int height);
         NativeUICocoaConsole *console;
 };
