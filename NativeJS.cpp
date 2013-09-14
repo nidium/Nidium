@@ -84,6 +84,7 @@ static JSClass messageEvent_class = {
 };
 
 /******** Natives ********/
+static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
@@ -95,6 +96,7 @@ static int native_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
     JS_FN("load", native_load, 2, 0),
+    JS_FN("pwd", native_pwd, 0, 0),
     JS_FN("setTimeout", native_set_timeout, 2, 0),
     JS_FN("setInterval", native_set_interval, 2, 0),
     JS_FN("clearTimeout", native_clear_timeout, 1, 0),
@@ -214,10 +216,8 @@ char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
     JSScript *parent;
     const char *filename_parent;
     unsigned lineno;
-
     JS_DescribeScriptedCaller(cx, &parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
-
     char *basepath = NativeStream::resolvePath(filename_parent, NativeStream::STREAM_RESOLVE_PATH);
 
     if (file == NULL) {
@@ -231,6 +231,16 @@ char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
     free(basepath);
     return finalfile;
 
+}
+
+static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JSString *res = JS_NewStringCopyZ(cx, NativeJS::buildRelativePath(cx));
+
+    args.rval().setString(res);
+
+    return true;
 }
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
@@ -323,6 +333,7 @@ NativeJS::NativeJS(ape_global *net)
     JSRuntime *rt;
     JSObject *gbl;
     this->privateslot = NULL;
+    this->relPath = NULL;
 
     static int isUTF8 = 0;
     

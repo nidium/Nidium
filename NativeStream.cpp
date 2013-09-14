@@ -60,6 +60,7 @@ NativeStream::NativeStream(ape_global *net,
         memcpy(this->location, prefix, strlen(prefix)+1);
         strcat(this->location, location);
     }
+
     this->net = net;
     this->IInterface = INTERFACE_UNKNOWN;
     this->delegate  = NULL;
