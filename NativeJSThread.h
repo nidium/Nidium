@@ -22,6 +22,7 @@
 #define nativejsthread_h__
 
 #include "NativeJSExposer.h"
+#include "NativeSharedMessages.h"
 #include <pthread.h>
 
 class NativeJS;
@@ -51,8 +52,10 @@ class NativeJSThread : public NativeJSExposer<NativeJSThread>
 };
 
 enum {
-    NATIVE_THREAD_MESSAGE,
-    NATIVE_THREAD_COMPLETE
+    NATIVE_THREAD_MESSAGE = 0,
+    NATIVE_THREAD_COMPLETE = 1
 };
+
+void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg);
 
 #endif

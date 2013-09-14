@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "NativeHash.h"
+#include "NativeSharedMessages.h"
 #include <jspubtd.h>
 
 enum {
@@ -47,7 +48,7 @@ class NativeJSModules;
 struct _ape_htable;
 
 typedef struct _ape_global ape_global;
-
+typedef void (*native_thread_message_t)(JSContext *cx, NativeSharedMessages::Message *msg);
 
 class NativeJS
 {
@@ -61,6 +62,10 @@ class NativeJS
         NativeHash<JSObject *> jsobjects;
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
+
+        native_thread_message_t *registeredMessages;
+        int registeredMessagesIdx;
+        int registeredMessagesSize;
 
         static NativeJS *getNativeClass(JSContext *cx);
 
@@ -98,6 +103,10 @@ class NativeJS
         void unrootObject(JSObject *obj);
         void gc();
         void bindNetObject(ape_global *net);
+
+        int registerMessage(native_thread_message_t cbk);
+        void registerMessage(native_thread_message_t cbk, int id);
+        void postMessage(void *dataPtr, int ev);
     private:   
         NativeJSModules *modules;
         void *privateslot;
