@@ -36,7 +36,7 @@
 		textSelectionColor : "rgba(0, 0, 128, 0.2)",
 
 		fontSize : 12,
-		fontType : "arial",
+		fontFamily : "arial",
 
 		textShadowColor : "rgba(0, 0, 0, 0.15)",
 		textShadowOffsetX : 1,

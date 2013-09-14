@@ -550,7 +550,7 @@ NatBug.panes.push({
 		"scrollTop", "scrollLeft",
 
 		"hover", "color", "background", "backgroundImage",
-		"lineWidth", "lineHeight", "fontSize", "fontType", "textAlign",
+		"lineWidth", "lineHeight", "fontSize", "fontFamily", "textAlign",
 		"shadowBlur", "shadowColor",
 		"shadowOffsetX", "shadowOffsetY",
 

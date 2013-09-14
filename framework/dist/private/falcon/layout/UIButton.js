@@ -18,7 +18,7 @@ Native.elements.export("UIButton", {
 			}
 		},
 
-		fontType : {
+		fontFamily : {
 			set : function(value){
 				this.resizeElement();
 			}
@@ -44,7 +44,7 @@ Native.elements.export("UIButton", {
 			canReceiveFocus	: true,
 			label			: OptionalString(o.label, "Button"),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 
 			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
 			paddingRight	: OptionalNumber(o.paddingLeft, 10),

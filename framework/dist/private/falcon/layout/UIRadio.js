@@ -18,7 +18,7 @@ Native.elements.export("UIRadio", {
 			}
 		},
 
-		fontType : {
+		fontFamily : {
 			set : function(value){
 				this.resizeElement();
 			}
@@ -32,7 +32,7 @@ Native.elements.export("UIRadio", {
 			canReceiveFocus	: true,
 			label			: OptionalString(o.label, ""),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
 			textShadowOffsetX	: OptionalNumber(o.textShadowOffsetX, 1),

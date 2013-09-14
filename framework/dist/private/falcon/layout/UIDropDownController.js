@@ -34,7 +34,7 @@ Native.elements.export("UIDropDownController", {
 
 			label			: OptionalString(o.label, "Choose"),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 
 			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
 			paddingRight	: OptionalNumber(o.paddingLeft, 10),

@@ -38,7 +38,7 @@ var setNextNode = function(element, node){
 function getLetters(element, line, words, textAlign, offLeft, fitWidth){
 	var context = element.layer.context,
 		fontSize = element.fontSize,
-		fontType = element.fontType,
+		fontFamily = element.fontFamily,
 
 		textLine = words.join(' '),
 		
@@ -237,7 +237,7 @@ function getTextPixelWidth(element, text){
 	return Native.getTextWidth(
 		text,
 		element._fontSize,
-		element._fontType
+		element._fontFamily
 	);
 }
 

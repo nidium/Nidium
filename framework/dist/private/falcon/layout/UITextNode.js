@@ -32,7 +32,7 @@ Native.elements.export("UITextNode", {
 			}
 		},
 
-		fontType : {
+		fontFamily : {
 			set : function(value){
 				this.refreshElement();
 			}
@@ -47,7 +47,7 @@ Native.elements.export("UITextNode", {
 			canReceiveFocus	: false,
 			text			: OptionalString(o.text, ""),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
 			textShadowOffsetX	: OptionalNumber(o.textShadowOffsetX, 1),
@@ -88,7 +88,7 @@ Native.elements.export("UITextNode", {
 		this.inheritFromParent = function(){
 			var p = this.parent;
 
-			this._fontType = p.fontType;
+			this._fontFamily = p.fontFamily;
 			this._fontSize = p.fontSize;
 			this._lineHeight = p.lineHeight;
 			//this._color = p.color;
@@ -155,8 +155,8 @@ Native.elements.export("UITextNode", {
 		DOMElement.draw.box(this, context, params);
 
 		context.setColor(this.color);
-		context.setFontSize(this.fontSize);
-		context.setFontType(this.fontType);
+		context.fontSize = this.fontSize;
+		context.fontFamily = this.fontFamily;
 
 		context.setShadow(
 			this.textShadowOffsetX,

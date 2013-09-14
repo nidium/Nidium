@@ -72,7 +72,7 @@ Native.elements.export("UITextField", {
 
 		this.setProperties({
 			fontSize  		: OptionalNumber(o.fontSize, 12),
-			fontType  		: OptionalString(o.fontType, "console"),
+			fontFamily  	: OptionalString(o.fontFamily, "console"),
 
 			multiline 		: OptionalBoolean(o.multiline, false),
 			editable 		: OptionalBoolean(o.editable, true),
@@ -123,7 +123,7 @@ Native.elements.export("UITextField", {
 			top : 0,
 			height : this.height - this.paddingTop - this.paddingBottom,
 			fontSize : this.fontSize,
-			fontType : this.fontType,
+			fontFamily : this.fontFamily,
 			lineHeight : this.lineHeight - this.paddingTop - this.paddingBottom,
 			text : this.value,
 			placeholder : this.placeholder,

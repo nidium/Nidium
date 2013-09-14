@@ -271,7 +271,7 @@ var Chart = function(UIElement){
 		function drawScale(){
 			//ctx.font = config.scaleFontStyle + " " + config.scaleFontSize + "px " + config.scaleFontFamily;
 			ctx.textAlign = "center";
-			ctx.fontType = config.scaleFontFamily;
+			ctx.fontFamily = config.scaleFontFamily;
 			ctx.fontSize = config.scaleFontSize;
 
 			for (var i=0; i<calculatedScale.steps; i++){
@@ -479,7 +479,7 @@ var Chart = function(UIElement){
 
 //			ctx.font = config.scaleFontStyle + " " + config.scaleFontSize+"px " + config.scaleFontFamily;
 			ctx.textAlign = 'center';
-			ctx.fontType = config.scaleFontFamily;
+			ctx.fontFamily = config.scaleFontFamily;
 			ctx.fontSize = config.scaleFontSize;
 			ctx.textBaseline = "middle";
 
@@ -522,7 +522,7 @@ var Chart = function(UIElement){
 	
 			// VF : bad, bad, bad, avoid state changes in loop !!!!
 //			ctx.font = config.pointLabelFontStyle + " " + config.pointLabelFontSize+"px " + config.pointLabelFontFamily;
-			ctx.fontType = config.pointLabelFontFamily;
+			ctx.fontFamily = config.pointLabelFontFamily;
 			ctx.fontSize = config.pointLabelFontSize;
 			ctx.fillStyle = config.pointLabelFontColor;
 
@@ -554,7 +554,7 @@ var Chart = function(UIElement){
 			var labelLength = 0;
 
 //			ctx.font = config.pointLabelFontStyle + " " + config.pointLabelFontSize+"px " + config.pointLabelFontFamily;
-			ctx.fontType = config.pointLabelFontFamily;
+			ctx.fontFamily = config.pointLabelFontFamily;
 			ctx.fontSize = config.pointLabelFontSize;
 			for (var i=0; i<data.labels.length; i++){
 				var textMeasurement = ctx.measureText(data.labels[i]).width;
@@ -862,7 +862,7 @@ var Chart = function(UIElement){
 
 			if (config.scaleShowLabels){
 //				ctx.font = config.scaleFontStyle + " " + config.scaleFontSize+"px " + config.scaleFontFamily;
-				ctx.fontType = config.scaleFontFamily;
+				ctx.fontFamily = config.scaleFontFamily;
 				ctx.fontSize = config.scaleFontSize;
 
 				for (var i=0; i<calculatedScale.labels.length; i++){
@@ -884,7 +884,7 @@ var Chart = function(UIElement){
 
 			//Need to check the X axis first - measure the length of each text metric, and figure out if we need to rotate by 45 degrees.
 //			ctx.font = config.scaleFontStyle + " " + config.scaleFontSize+"px " + config.scaleFontFamily;
-			ctx.fontType = config.scaleFontFamily;
+			ctx.fontFamily = config.scaleFontFamily;
 			ctx.fontSize = config.scaleFontSize;
 
 			widestXLabel = 1;
@@ -1073,7 +1073,7 @@ var Chart = function(UIElement){
 
 			if (config.scaleShowLabels){
 //				ctx.font = config.scaleFontStyle + " " + config.scaleFontSize+"px " + config.scaleFontFamily;
-				ctx.fontType = config.scaleFontFamily;
+				ctx.fontFamily = config.scaleFontFamily;
 				ctx.fontSize = config.scaleFontSize;
 
 				for (var i=0; i<calculatedScale.labels.length; i++){
@@ -1097,7 +1097,7 @@ var Chart = function(UIElement){
 
 			//Need to check the X axis first - measure the length of each text metric, and figure out if we need to rotate by 45 degrees.
 //			ctx.font = config.scaleFontStyle + " " + config.scaleFontSize+"px " + config.scaleFontFamily;
-			ctx.fontType = config.scaleFontFamily;
+			ctx.fontFamily = config.scaleFontFamily;
 			ctx.fontSize = config.scaleFontSize;
 
 			widestXLabel = 1;

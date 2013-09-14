@@ -44,7 +44,8 @@ window._onmousewheel = function(e){
 	zoom = Math.min(500, Math.max(140, zoom * (1+e.yrel*0.01)));
 };
 
-ctx.requestAnimationFrame(function(){
+var loop = function(){
+	window.requestAnimationFrame(loop);
 	H = M.sin(s += .06);
 	O = M.cos(s);
 
@@ -58,4 +59,7 @@ ctx.requestAnimationFrame(function(){
 	}
 
 	for (y = 0; y < 72;) eval("D(" + "vvvVvvVvvVVvVVvvVvvVvvvvvvVVvVVvVVVVVVVvVVvVVvvVvvVvvvVvVVvvVVVVVvvVVvVv".substring(y, y += 6).split("") + ")")
-});
+};
+
+loop();
+

@@ -497,10 +497,6 @@ var Spectral = {
 
 		this.makeBars();
 
-		Native.layout.drawHook = function(){
-			self.draw();
-		};
-
 		var	fileselector = new UIButton(main, {
 			left : window.width-58,
 			top : 8,
@@ -574,6 +570,8 @@ var Spectral = {
 	},
 
 	draw : function(){
+		window.requestAnimationFrame(this.draw);
+
 		var	width = this.cw,
 			height = this.ch,
 			params = this.spectrum.getDrawingBounds(),
@@ -644,7 +642,6 @@ var Spectral = {
 			context.moveTo(t7, height-4);context.lineTo(t7, height);
 			context.stroke();
 		}
-
 	}
 
 

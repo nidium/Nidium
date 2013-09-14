@@ -13,7 +13,7 @@ Native.elements.export("UIOption", {
 		this.setProperties({
 			label			: OptionalString(o.label, "Default"),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 
 			paddingLeft		: OptionalNumber(o.paddingLeft, 8),
 			paddingRight	: OptionalNumber(o.paddingLeft, 8),

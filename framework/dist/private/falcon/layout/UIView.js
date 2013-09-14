@@ -459,8 +459,8 @@ Native.elements.export("UIView", {
 				vOffset = (this.lineHeight/2)+5;
 
 			this.color = "#555555";
-			context.setFontSize(this.fontSize);
-			context.setFontType(this.fontType);
+			context.fontSize = this.fontSize;
+			context.fontFamily = this.fontFamily;
 
 			printTextMatrix(
 				context,
@@ -472,7 +472,7 @@ Native.elements.export("UIView", {
 				params.y, 
 				this.lineHeight,
 				this.fontSize,
-				this.fontType,
+				this.fontFamily,
 				this.color, 
 				this.caretOpacity
 			);

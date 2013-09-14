@@ -20,7 +20,7 @@ Native.elements.export("UITab", {
 			}
 		},
 
-		fontType : {
+		fontFamily : {
 			set : function(value){
 				this.resizeElement();
 				this.refreshTabController();
@@ -42,7 +42,7 @@ Native.elements.export("UITab", {
 			canReceiveFocus	: true,
 			label			: OptionalString(o.label, "Default"),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 
 			paddingLeft		: OptionalNumber(o.paddingLeft, 16),
 			paddingRight	: OptionalNumber(o.paddingLeft, 10),

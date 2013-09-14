@@ -15,7 +15,7 @@ Native.elements.export("UIStatus", {
 
 			label			: OptionalString(o.label, "Ready"),
 			fontSize  		: OptionalNumber(o.fontSize, 10),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 
 			progressBarColor : OptionalValue(o.progressBarColor, false),

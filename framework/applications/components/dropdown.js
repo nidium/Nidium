@@ -164,7 +164,7 @@ Native.StyleSheet.add({
 		left : 700,
 		width : 200,
 		name : "choice",
-		fontType : "menlo",
+		fontFamily : "menlo",
 		fontSize : 11,
 		textShadowColor : "rgba(0, 0, 0, 0.05)",
 		color : "#d0d0ff",

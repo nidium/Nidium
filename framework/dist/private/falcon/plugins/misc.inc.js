@@ -13,8 +13,8 @@ Canvas.implement({
 		this.fontSize = fontSize;
 	},
 
-	setFontType : function(fontType){
-		this.fontType = fontType;
+	setFontFamily : function(fontFamily){
+		this.fontFamily = fontFamily;
 	},
 
 	setShadow : function(sx, sy, sb, sc){

@@ -16,8 +16,8 @@ TODO :
 	- 19H detente, resto
 	- after : selon humeur et fatigue
 
-	STREAM API :
-		- finir l'api stream
+	COMPLIANCY :
+		- renommer Native.canvas en window.canvas (main canvas)
 
 	SECURITY DESIGN :
 		- créer base de donnée local
@@ -33,18 +33,12 @@ TODO :
 	
 	CANVAS :
 		- import des fontes
-		- renommer ctx.fontType en ctx.fontFamily
-		- renommer Native.canvas en window.canvas (main canvas)
-		- renommer ctx en context (pas d'abbreviation dans l'api, ça fait amateur)
-
-	COMPLIANCY :
-		- window.requestAnimationFrame = function(){};
-		- corriger textAlign vertical (center)
 
 	SHADER :
 		- shader ne suit pas le coin haut gauche du layer
 
 	CRASH :
+		- bug des gradients (crash)
 		- thread crash
 		- showFPS(true) crash au refresh
 
@@ -52,6 +46,7 @@ TODO :
 		- subtlepatterns.com (contacter et rajouter crédit)
 
 	COMPLEXE
+		- finir l'api stream
 		- Gestion du cache
 		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
 		- NML basics + include
@@ -67,6 +62,9 @@ TODO :
 ------
 DONE :
 ------
+	- corriger textAlign vertical (center) (DONE)
+	- renommer ctx.fontType en ctx.fontFamily (DONE)
+	- window.requestAnimationFrame; (DONE)
 	- measureText.width (DONE)
 	- nml : <viewport>1024x768</viewport> (DONE)
 

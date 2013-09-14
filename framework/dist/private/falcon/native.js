@@ -122,7 +122,7 @@ Native.core = {
 	init : function(){
 		this.createDocument();
 		this.extendDocument();
-		this.setRenderingLoop();
+		this.drawLayout();
 		delete(this.init);
 	},
 
@@ -282,11 +282,8 @@ Native.core = {
 		document.status.progressBarLeft = 70;
 	},
 
-	setRenderingLoop : function(){
+	drawLayout : function(){
 		Native.layout.draw();
-		window.requestAnimationFrame(function(){
-			if (Native.layout.drawHook) Native.layout.drawHook();
-		});
 	}
 };
 

@@ -68,7 +68,7 @@
 		paddingRight : 3,
 		radius : 6,
 		fontSize : 9,
-		fontType : "console",
+		fontFamily : "console",
 		outlineColor : ""
 	},
 
@@ -84,7 +84,7 @@
 		paddingRight : 3,
 		radius : 6,
 		fontSize : 9,
-		fontType : "console",
+		fontFamily : "console",
 		outlineColor : ""
 	},
 

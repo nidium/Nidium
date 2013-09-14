@@ -179,7 +179,7 @@ function onWindowResize() {
 
 function animate() {
 
-    canvas.requestAnimationFrame( animate );
+    window.requestAnimationFrame( animate );
 
     render();
 

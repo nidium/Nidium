@@ -18,7 +18,7 @@ Native.elements.export("UIToolTip", {
 			}
 		},
 
-		fontType : {
+		fontFamily : {
 			set : function(value){
 				this.resizeElement();
 			}
@@ -35,7 +35,7 @@ Native.elements.export("UIToolTip", {
 			canReceiveFocus	: false,
 			label			: OptionalString(o.label, ""),
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 			textAlign 		: OptionalAlign(o.textAlign, "left"),
 			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
 			paddingRight	: OptionalNumber(o.paddingRight, 10),

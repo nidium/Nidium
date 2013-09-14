@@ -60,7 +60,7 @@ var	textView = win.contentView.add("UIText", {
 	offsetRight : [0, 154, 154, 154, 154, , , 230, 230, 230, 230, 230],
 	lineHeight : 18,
 	fontSize : 13,
-	fontType : "arial",
+	fontFamily : "arial",
 	textAlign : "justify",
 	background : "rgba(255, 255, 255, 1)",
 	color : "#000000",
@@ -213,7 +213,7 @@ var lines = 0,
 	attr = [
 		"type", "id", "label", "name", "x", "y", "w", "h", "scale", "opacity",
 		"selected", "fixed", "overflow", "opacity", "__x", "__y", "__w", "__h", "zIndex", "radius",
-		"hasFocus", "isOnTop", "background", "color", "lineWidth", "lineHeight", "fontSize", "fontType", "textAlign", "shadowBlur",
+		"hasFocus", "isOnTop", "background", "color", "lineWidth", "lineHeight", "fontSize", "fontFamily", "textAlign", "shadowBlur",
 		"overflow", "_overflow"
 	];
 for (var l = 0; l<attr.length; l++){

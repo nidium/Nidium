@@ -71,7 +71,7 @@ Native.elements.export("UIVideo", {
 		this.timecode = new UILabel(this.status, {
 			left : this.width - 48,
 			fontSize : 9,
-			fontType : "time",
+			fontFamily : "time",
 			top : 0,
 			label : "00:00:00",
 			color : 'rgba(255, 255, 255, 0.3)',

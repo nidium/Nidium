@@ -20,7 +20,7 @@ var div = new UIView(body, {
 	height : 250,
 	innerWidth : 300,
 	fontSize : 14,
-	fontType : "menlo",
+	fontFamily : "menlo",
 	lineHeight : 22,
 	background : "rgba(255, 255, 255, 0.04)",
 	color : "#F8F8F2",
@@ -261,7 +261,7 @@ var label = new UILabel(body, {
 	top : 80,
 	color : "#ffffff",
 	fontSize : 11,
-	fontType : "arial"
+	fontFamily : "arial"
 });
 */
 

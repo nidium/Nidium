@@ -125,14 +125,14 @@ Object.definePrivateProperties(Native.elements, {
 
 /* -------------------------------------------------------------------------- */
 
-Native.getTextWidth = function(text, fontSize, fontType){
+Native.getTextWidth = function(text, fontSize, fontFamily){
 	var c = Native._cachedTextWidth,
-		key = text + fontSize + fontType,
+		key = text + fontSize + fontFamily,
 		context = Native.blankOrphanedCanvas.getContext("2D");
 
 	if (!c[key]) {
 		context.fontSize = fontSize;
-		context.fontType = fontType;
+		context.fontFamily = fontFamily;
 		c[key] = context.measureText(text).width;
 	}
 	return c[key];

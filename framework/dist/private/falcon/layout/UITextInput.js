@@ -12,7 +12,7 @@ Native.elements.export("UITextInput", {
 			}
 		},
 
-		fontType : {
+		fontFamily : {
 			set : function(value){
 				this.setText(this.text);
 			}
@@ -43,7 +43,7 @@ Native.elements.export("UITextInput", {
 			pattern  		: OptionalString(o.pattern, ""),
 
 			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontType  		: OptionalString(o.fontType, "arial"),
+			fontFamily  	: OptionalString(o.fontFamily, "arial"),
 
 			offsetLeft 		: OptionalValue(o.offsetLeft, []),
 			offsetRight		: OptionalValue(o.offsetRight, []),
@@ -1229,7 +1229,7 @@ Native.elements.export("UITextInput", {
 			vOffset = this.getVerticalAlignOffset();
 
 		context.fontSize = this.fontSize;
-		context.fontType = this.fontType;
+		context.fontFamily = this.fontFamily;
 
 		printTextMatrix(
 			this,
@@ -1497,11 +1497,11 @@ function printTextMatrix(element, x, y, vOffset, viewportWidth, viewportHeight, 
 		textMatrix = element._textMatrix,
 		lineHeight = element.lineHeight,
 		fontSize = element.fontSize,
-		fontType = element.fontType,
+		fontFamily = element.fontFamily,
 		color = element.color;
 
 	context.fontSize = fontSize;
-	context.fontType = fontType;
+	context.fontFamily = fontFamily;
 
 	if (element.isPlaceHolderVisible()) {
 		context.setColor("rgba(0, 0, 0, 0.4)");

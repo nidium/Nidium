@@ -65,7 +65,7 @@ var DOMElement = function(type, options, parent){
 		text : OptionalString(o.text, ""),
 		label : OptionalString(o.label, ""),
 		fontSize : OptionalNumber(o.fontSize, 12),
-		fontType : OptionalString(o.fontType, "arial"),
+		fontFamily : OptionalString(o.fontFamily, "arial"),
 		textAlign : OptionalAlign(o.textAlign, "left"),
 		lineHeight : OptionalNumber(o.lineHeight, 18),
 		fontWeight : OptionalWeight(o.fontWeight, "normal"),
@@ -742,8 +742,8 @@ DOMElement.draw = {
 			tx = params.x + params.w - element._textWidth - element.paddingRight;
 		}
 
-		context.setFontSize(element.fontSize);
-		context.setFontType(element.fontType);
+		context.fontSize = element.fontSize;
+		context.fontFamily = element.fontFamily;
 
 		context.setText(
 			element.label,
@@ -882,7 +882,7 @@ DOMElement.draw = {
 		var w = Native.getTextWidth(
 			element._label,
 			element._fontSize,
-			element._fontType
+			element._fontFamily
 		);
 		return element._paddingLeft + Math.round(w) + element._paddingRight;
 	}

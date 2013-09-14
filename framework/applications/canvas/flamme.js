@@ -56,7 +56,7 @@ var BurningWords = function() {
 
 		this.canvas = {};
 
-		ctx.fontType = "times";
+		ctx.fontFamily = "times";
 		ctx.fontSize = font_size;
 		this.text_size = ctx.measureText(text).width;
 
