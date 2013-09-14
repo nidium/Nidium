@@ -72,7 +72,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     tag.content.isBinary = false;
 
     if (njs == NULL) {
-        
+
     }
 
     switch(item->fileType) {
@@ -177,6 +177,13 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
             }
             this->meta.size.height = height;
         }
+    }
+
+    if (this->getMetaWidth() == 0) {
+        this->meta.size.width = XML_VP_DEFAULT_WIDTH;
+    }
+    if (this->getMetaHeight() == 0) {
+        this->meta.size.height = XML_VP_DEFAULT_HEIGHT;
     }
 
     return NIDIUM_XML_OK;

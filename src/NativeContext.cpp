@@ -194,6 +194,8 @@ void NativeContext::callFrame()
         JSAutoRequest ar(njs->cx);
         JS_CallFunctionValue(njs->cx, JS_GetGlobalObject(njs->cx), gfunc, 0, NULL, &rval);
     }
+
+    NativeJSwindow::getNativeClass(this->getNJS())->callFrameCallbacks();
 }
 
 NativeContext::~NativeContext()

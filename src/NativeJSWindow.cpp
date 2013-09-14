@@ -13,6 +13,7 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
 
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp);
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
@@ -389,7 +390,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
         case WINDOW_PROP_TITLE:
         {
             if (!JSVAL_IS_STRING(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JSAutoByteString title(cx, JSVAL_TO_STRING(vp));      
             NUI->setWindowTitle(title.ptr());
@@ -398,7 +399,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
         case WINDOW_PROP_CURSOR:
         {
             if (!JSVAL_IS_STRING(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JSAutoByteString type(cx, JSVAL_TO_STRING(vp));
 
@@ -415,7 +416,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
         case WINDOW_PROP_TITLEBAR_COLOR:
         {
             if (!JSVAL_IS_STRING(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JSAutoByteString color(cx, JSVAL_TO_STRING(vp));
             uint32_t icolor = NativeSkia::parseColor(color.ptr());
@@ -432,12 +433,12 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval, oval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             jsval offsety;
 
-            if (JS_GetProperty(cx, obj.get(), "titleBarControlsOffsetY", &offsety) == JS_FALSE) {
+            if (JS_GetProperty(cx, obj.get(), "titleBarControlsOffsetY", &offsety) == false) {
                 offsety = DOUBLE_TO_JSVAL(0);
             }
 
@@ -450,11 +451,11 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval, oval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             jsval offsetx;
-            if (JS_GetProperty(cx, obj.get(), "titleBarControlsOffsetX", &offsetx) == JS_FALSE) {
+            if (JS_GetProperty(cx, obj.get(), "titleBarControlsOffsetX", &offsetx) == false) {
                 offsetx = DOUBLE_TO_JSVAL(0);
             }
             JS_ValueToNumber(cx, offsetx, &oval);
@@ -465,7 +466,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
         default:
             break;
     }
-    return JS_TRUE;
+    return true;
 }
 
 struct _nativeopenfile
@@ -501,7 +502,7 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
     double w, h;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &w, &h)) {
-        return JS_TRUE;
+        return true;
     }
 
     printf("Calling set size ?\n");
@@ -517,12 +518,12 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
     jsval callback;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ov", &types, &callback)) {
-        return JS_TRUE;
+        return true;
     }
 
     if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types)) && !JS_IsArrayObject(cx, types)) {
         JS_ReportError(cx, "First parameter must be an array or null");
-        return JS_FALSE;
+        return false;
     }
     uint32_t len = 0;
 
@@ -561,14 +562,63 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
         }
         free(ctypes);
     }
-    return JS_TRUE;
+    return true;
+}
+
+static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_CHECK_ARGS("requestAnimationFrame", 1);
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    jsval cb;
+
+    if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &cb)) {
+        return true;
+    }
+
+    NativeJSwindow::getNativeClass(cx)->addFrameCallback(cb);
+
+    return true;
 }
 
 static JSFunctionSpec window_funcs[] = {
     JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
     JS_FN("setSize", native_window_setSize, 2, 0),
+    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, 0),
     JS_FS_END
 };
+
+void NativeJSwindow::addFrameCallback(jsval &cb)
+{
+    struct _requestedFrame *frame = new struct _requestedFrame;
+    frame->next = this->m_RequestedFrame;
+    frame->cb = cb;
+
+    m_RequestedFrame = frame;
+
+    JS_AddValueRoot(this->cx, &frame->cb);
+}
+
+void NativeJSwindow::callFrameCallbacks(bool garbage)
+{
+    jsval rval;
+    struct _requestedFrame *frame = m_RequestedFrame;
+
+    /* Set to NULL so that callbacks can "fork" the new chain */
+    m_RequestedFrame = NULL;
+
+    while (frame != NULL) {
+        if (!garbage) {
+            JS_CallFunctionValue(this->cx, JS_GetGlobalObject(this->cx),
+                frame->cb, 0, NULL, &rval);
+        }
+
+        JS_RemoveValueRoot(this->cx, &frame->cb);
+
+        struct _requestedFrame *tmp = frame->next;
+        delete frame;
+        frame = tmp;
+    }
+}
 
 void NativeJSwindow::registerObject(JSContext *cx)
 {

@@ -13,6 +13,9 @@ class NativeJS;
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
 
+#define XML_VP_DEFAULT_WIDTH 980
+#define XML_VP_DEFAULT_HEIGHT 700
+
 typedef void (*NMLLoadedCallback)(void *arg);
 
 class NativeNML : public NativeStreamDelegate
