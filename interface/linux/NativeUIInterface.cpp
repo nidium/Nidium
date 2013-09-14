@@ -86,6 +86,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                         window->mouseMove(event.motion.x, event.motion.y - kNativeTitleBarHeight,
                                    event.motion.xrel, event.motion.yrel);
                     }
+                    break;
                 case SDL_MOUSEWHEEL:
                 {
                     int cx, cy;
