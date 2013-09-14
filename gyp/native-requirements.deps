@@ -1,4 +1,5 @@
 mozilla-central
+depot_tools
 c-ares
 skia
 SDL2
