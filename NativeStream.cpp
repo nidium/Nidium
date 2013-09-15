@@ -337,7 +337,7 @@ void NativeStream::start(size_t packets, size_t seek)
                 sprintf(seekstr, "bytes=%ld-", seek);
                 req->setHeader("Range", seekstr);
             }
-            http->request(this);            
+            http->request(this);
             break;
         }
         default:
@@ -349,8 +349,12 @@ void NativeStream::stop()
 {
     switch(IInterface) {
         case INTERFACE_HTTP:
-
+        {
+            NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
+            http->stopRequest();
+            
             break;
+        }
         default:
             break;
     }
@@ -359,7 +363,7 @@ void NativeStream::stop()
 void NativeStream::seek(size_t pos)
 {
     this->stop();
-
+    this->start(this->getPacketSize(), pos);
 }
 
 /* Sync read in memory the current packet and start grabbing the next one

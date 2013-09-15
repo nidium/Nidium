@@ -22,7 +22,9 @@
 #include "NativeJS.h"
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
+static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass Stream_class = {
@@ -33,7 +35,9 @@ static JSClass Stream_class = {
 };
 
 static JSFunctionSpec Stream_funcs[] = {
+    JS_FN("seek", native_stream_seek, 1, 0),
     JS_FN("start", native_stream_start, 1, 0),
+    JS_FN("stop", native_stream_stop, 0, 0),
     JS_FN("getNextPacket", native_stream_getNextPacket, 0, 0),
     JS_FS_END
 };
@@ -45,6 +49,39 @@ static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
     if (nstream != NULL) {
         delete nstream;
     }
+}
+
+static JSBool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+    if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
+        return true;
+    }
+
+    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->stop();
+
+    return true;
+}
+
+static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    uint32_t pos;
+
+    if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
+        return true;
+    }
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &pos)) {
+        return true;
+    }
+
+    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->seek(pos);
+
+    return true;
 }
 
 static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
@@ -87,7 +124,6 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
                 return false;
             case NativeStream::STREAM_ERROR:
                 JS_ReportError(cx, "Stream error (unknown)");
-
                 return false;
             case NativeStream::STREAM_EAGAIN:
                 args.rval().setNull();
@@ -95,6 +131,7 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
         }
     }
 
+    printf("Len : %ld\n", len);
     JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
     uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
     memcpy(data, ret, len);
@@ -135,7 +172,6 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     return true;
 }
-
 
 NativeJSStream::NativeJSStream(ape_global *net, const char *url)
 {

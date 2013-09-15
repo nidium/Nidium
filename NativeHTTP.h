@@ -160,7 +160,7 @@ class NativeHTTP : public NativeIStreamer
     u_short *port, char *file);
     void requestEnded();
     void headerEnded();
-    void stopRequest();
+    void stopRequest(bool timeout=false);
     void clearTimeout();
     void onData(size_t offset, size_t len);
     void setPrivate(void *ptr);

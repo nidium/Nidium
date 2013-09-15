@@ -336,7 +336,7 @@ void NativeHTTP::headerEnded()
 #undef REQUEST_HEADER
 }
 
-void NativeHTTP::stopRequest()
+void NativeHTTP::stopRequest(bool timeout)
 {
     this->clearTimeout();
     
@@ -355,8 +355,10 @@ void NativeHTTP::stopRequest()
         if (currentSock) {
             APE_socket_shutdown_now(currentSock);
         }
-
-        this->delegate->onError(ERROR_TIMEOUT);
+        printf("HTTP stoped\n");
+        if (timeout) {
+            this->delegate->onError(ERROR_TIMEOUT);
+        }
     }
 }
 
@@ -387,7 +389,7 @@ void NativeHTTP::requestEnded()
 
 static int NativeHTTP_handle_timeout(void *arg)
 {
-    ((NativeHTTP *)arg)->stopRequest();
+    ((NativeHTTP *)arg)->stopRequest(true);
 
     return 0;
 }
