@@ -75,6 +75,13 @@ class NativeJS
         void *getPrivate() const {
             return this->privateslot;
         }
+        const char *getPath() const {
+            return this->relPath;
+        }
+        void setPath(const char *path) {
+            this->relPath = path;
+        }
+
         bool isShuttingDown() const {
             return this->shutdown;
         }
@@ -104,6 +111,7 @@ class NativeJS
         NativeJSModules *modules;
         void *privateslot;
         bool shutdown;
+        const char *relPath;
 };
 
 #endif

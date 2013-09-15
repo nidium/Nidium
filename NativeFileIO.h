@@ -41,7 +41,7 @@ public:
     };
 
     NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
-        struct _ape_global *net);
+        struct _ape_global *net, const char *prefix = NULL);
     ~NativeFileIO();
     void open(const char *modes);
     void openAction(char *modes);

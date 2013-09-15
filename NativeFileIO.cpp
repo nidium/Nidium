@@ -228,11 +228,19 @@ void NativeFileIO::close()
 
 
 NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
-    ape_global *net) :
+    ape_global *net, const char *prefix) :
     fd(NULL), autoClose(true)
 {
     messages = new NativeSharedMessages();
-    this->filename = strdup(filename);
+    if (prefix) {
+        this->filename = (char *)malloc(sizeof(char) *
+            (strlen(filename) + strlen(prefix) + 1));
+
+        memcpy(this->filename, prefix, strlen(prefix)+1);
+        strcat(this->filename, filename);
+    } else {
+        this->filename = strdup(filename);
+    }
     this->net = net;
     this->delegate = delegate;
     this->filesize = 0;

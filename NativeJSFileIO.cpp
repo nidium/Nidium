@@ -20,6 +20,7 @@
 
 #include "NativeJSFileIO.h"
 #include <native_netlib.h>
+#include "NativeStream.h"
 
 enum {
     FILE_PROP_FILESIZE
@@ -102,10 +103,16 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSAutoByteString curl(cx, url);
 
+    int flen = 0;
+
+    if (NativeStream::typeInterface(curl.ptr(), &flen) != NativeStream::INTERFACE_UNKNOWN) {
+        JS_ReportError(cx, "NativeFileIO : Invalid file path");
+        return false;
+    }
+
     NJSFIO = new NativeJSFileIO();
     NFIO = new NativeFileIO(curl.ptr(), NJSFIO,
-        (ape_global *)JS_GetContextPrivate(cx));
-
+        (ape_global *)JS_GetContextPrivate(cx), NativeJS::getNativeClass(cx)->getPath());
 
     NJSFIO->jsobj = ret;
     NJSFIO->cx = cx;
