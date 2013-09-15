@@ -103,7 +103,7 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-void NativeJSNative::registerObject(JSContext *cx, int width, int height)
+void NativeJSNative::registerObject(JSContext *cx)
 {
     JSObject *NativeObj;
     JSObject *canvas;
@@ -121,10 +121,6 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 
     JS_SetPrivate(NativeObj, jnative);
 
-    canvas = NativeJSCanvas::generateJSObject(cx, width, height);
-
-    jnative->handler = (NativeCanvasHandler *)JS_GetPrivate(canvas);
-
     NativeJS::getNativeClass(cx)->jsobjects.set(
         NativeJSNative::getJSObjectName(), NativeObj);
 
@@ -133,12 +129,8 @@ void NativeJSNative::registerObject(JSContext *cx, int width, int height)
 
     /* Set the newly generated CanvasHandler as first child of rootHandler */
     //NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
-    NativeContext::getNativeClass(cx)->getRootHandler(
-        )->addChild(jnative->handler);
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
-    JS_DefineProperty(cx, NativeObj, "canvas",
-        OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
     /*JS_DefineProperty(cx, NativeObj, "titleBar",
         OBJECT_TO_JSVAL(titleBar), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);*/
 }

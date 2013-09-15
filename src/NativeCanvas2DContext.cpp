@@ -1404,7 +1404,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->textAlign(font.ptr());
         }
         break;
-        case CTX_PROP(fontType):
+        case CTX_PROP(fontFamily):
         {
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);

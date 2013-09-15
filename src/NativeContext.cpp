@@ -82,9 +82,9 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSWebGLUniformLocation::registerObject(cx);
 #endif
     /* Native() object */
-    NativeJSNative::registerObject(cx, width, height);
+    NativeJSNative::registerObject(cx);
     /* window() object */
-    NativeJSwindow::registerObject(cx);
+    NativeJSwindow::registerObject(cx, width, height);
     /* console() object */
     NativeJSconsole::registerObject(cx);
     /* document() object */
@@ -103,14 +103,14 @@ void NativeContext::setWindowSize(int w, int h)
 
 void NativeContext::sizeChanged(int w, int h)
 {
-    NativeJSNative *jsnative = NativeJSNative::getNativeClass(this->getNJS());
+    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(this->getNJS());
 
     printf("Window size changed %d %d\n", w, h);
     /* Skia GL */
     this->getRootHandler()->setSize((int)w, (int)h);
 
     /* Native Canvas */
-    jsnative->getCanvasHandler()->setSize((int)w, (int)h);
+    jswindow->getCanvasHandler()->setSize((int)w, (int)h);
 }
 
 void NativeContext::createDebugCanvas()

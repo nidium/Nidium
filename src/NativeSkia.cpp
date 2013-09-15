@@ -654,7 +654,8 @@ void NativeSkia::drawText(const char *text, int x, int y)
             sy -= metrics.fBottom;
             break;
         case BASELINE_MIDDLE:
-            sy += (metrics.fXHeight)/2;
+        /* TODO: remove hack */
+            sy += ((metrics.fXHeight)/2) + ((metrics.fXHeight)/2)*13./100.;
             break;
         default:
             break;

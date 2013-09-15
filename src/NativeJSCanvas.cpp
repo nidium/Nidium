@@ -855,7 +855,8 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
     }
 }
 
-JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
+JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, 
+    int height, NativeCanvasHandler **out)
 {
     JSObject *ret;
     NativeCanvasHandler *handler;
@@ -873,6 +874,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, int height)
 
     //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
+
+    *out = handler;
 
     return ret;
 }
