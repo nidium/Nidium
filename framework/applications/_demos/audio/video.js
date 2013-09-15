@@ -1,5 +1,5 @@
 var c = new Canvas(1024, 768);
-Native.canvas.add(c);
+window.canvas.add(c);
 //c.ctx.imageSmoothingEnabled = true;
 //c.ctx.scale(1.5, 1.5);
 

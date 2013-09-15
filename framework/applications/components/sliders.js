@@ -123,7 +123,7 @@ var sliders = [],
 	sliderTop = 12,
 	sliderLeft = 16,
 	sliderWidth = 140,
-	gdSpectrum = Native.canvas.ctx.createLinearGradient(0, 0, sliderWidth, 0);
+	gdSpectrum = window.canvas.ctx.createLinearGradient(0, 0, sliderWidth, 0);
 
 gdSpectrum.addColorStop(0.00,'#002200');
 gdSpectrum.addColorStop(0.25,'#00ff00');

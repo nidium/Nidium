@@ -67,9 +67,8 @@ Object.merge(window, {
 	mouseX : 0,
 	mouseY : 0,
 	cursor : "arrow",
+	scope : this,
 	
-	requestAnimationFrame : Native.canvas.getContext("2D").requestAnimationFrame,
-
 	navigator : {
 		get appName() {
 			return "nidium";
@@ -88,6 +87,8 @@ Object.merge(window, {
 		}
 	}
 });
+
+window.canvas.context = window.canvas.getContext("2D");
 
 /* -------------------------------------------------------------------------- */
 

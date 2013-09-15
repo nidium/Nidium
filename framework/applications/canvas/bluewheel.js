@@ -1,6 +1,6 @@
 /* super inefficient right now, could be improved */
 
-var c = Native.canvas,
+var c = window.canvas,
 	ctx = c.getContext("2d"),
 	cw = c.width,
 	ch = c.height,

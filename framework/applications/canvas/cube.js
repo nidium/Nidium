@@ -33,7 +33,7 @@ function D(l, m, n, o, p, q) {
 	L(X[0], Y[0], X[1], Y[1])
 }
 
-var canvas = Native.canvas,
+var canvas = window.canvas,
 	ctx = canvas.getContext("2d");
 
 ctx.scale(1.5, 1.5);

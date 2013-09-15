@@ -28,7 +28,7 @@ Native.layout = {
 		if (element.parent) {
 			element.parent.layer.add(element.layer);
 		} else {
-			Native.canvas.add(element.layer);
+			window.canvas.add(element.layer);
 		}
 
 	},

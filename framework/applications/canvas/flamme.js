@@ -18,7 +18,7 @@ cast imageData width and heigt to int
 
 */
 
-var ctx = Native.canvas.getContext("2d");
+var ctx = window.canvas.getContext("2d");
 
 var BurningWords = function() {
 	this.palette = null;
