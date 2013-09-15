@@ -39,6 +39,7 @@
             '../NativeSharedMessages.cpp',
             '../NativeStream.cpp',
             '../NativeUtils.cpp',
+            '../NativeJSStream.cpp',
         ],
     }],
 }

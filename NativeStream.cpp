@@ -319,7 +319,7 @@ void NativeStream::start(size_t packets, size_t seek)
                 dataBuffer.front    = buffer_new(0);
             }
             /* TODO: Windows */
-            char tmpfname[] = "/tmp/nativetmp.XXXXXXXX";
+            char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
             mapped.fd = mkstemp(tmpfname);
             if (mapped.fd == -1) {
                 return;
@@ -347,7 +347,11 @@ void NativeStream::start(size_t packets, size_t seek)
 void NativeStream::stop()
 {
     switch(IInterface) {
-        
+        case INTERFACE_HTTP:
+
+            break;
+        default:
+            break;
     }
 }
 
@@ -369,7 +373,7 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
         *err = STREAM_ERROR;
         return NULL;
     }
-    
+
     if (!this->hasDataAvailable()) {
         needToSendUpdate = !dataBuffer.ended;
         *len = 0;

@@ -27,6 +27,7 @@
 #include "NativeJSHttp.h"
 #include "NativeJSFileIO.h"
 #include "NativeJSModules.h"
+#include "NativeJSStream.h"
 
 #include "NativeStream.h"
 
@@ -851,6 +852,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSThread::registerObject(cx);
     /* Http() object */
     NativeJSHttp::registerObject(cx);
+    /* Stream() object */
+    NativeJSStream::registerObject(cx);
 
     modules = new NativeJSModules(cx);
     if (!modules) {
