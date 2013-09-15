@@ -2,7 +2,7 @@
  * Port of Markus Persson's demo (http://jsfiddle.net/uzMPU/)
  */
 
-var ctx = Native.canvas.getContext("2d");
+var ctx = window.canvas.getContext("2d");
 var pixels;
 
 var w = 256;

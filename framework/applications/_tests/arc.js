@@ -7,7 +7,7 @@
 var bigview = new Canvas(500, 500);
 bigview.ctx.fillStyle = 'black';
 bigview.ctx.fillRect(0, 0, 500, 500);
-Native.canvas.add(bigview);
+window.canvas.add(bigview);
 
 /* --------------- */
 

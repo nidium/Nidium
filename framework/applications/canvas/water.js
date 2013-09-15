@@ -4,7 +4,7 @@
  */
 
 var floor = Math.floor,
-	ctx = Native.canvas.getContext("2d"),
+	ctx = window.canvas.getContext("2d"),
 	cw = 450,
 	ch = 338,
 	width = cw,

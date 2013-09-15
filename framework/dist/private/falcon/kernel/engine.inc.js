@@ -8,7 +8,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.canvas.context = Native.canvas.getContext("2D");
 Native.scope = this;
 Native.scope.ttx = 5;
 

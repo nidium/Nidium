@@ -782,7 +782,7 @@ Native.FPS = {
 		this.context = this.canvas.getContext("2D");
 		this.canvas.left = 0;
 		this.canvas.top = window.height-30;
-		Native.canvas.add(this.canvas);
+		window.canvas.add(this.canvas);
 		this.loaded = true;
 	},
 

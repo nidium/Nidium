@@ -9,7 +9,7 @@ var text = "N i D I U M",
 	cw = 1024,
 	ch = 900,
 
-	ctx = Native.canvas.getContext("2d"),
+	ctx = window.canvas.getContext("2d"),
 	v = ctx.createRadialGradient(cw/2, ch*2/3, 0, cw/2, ch+ch/8, ch/1.5),
 
 	M = Math,

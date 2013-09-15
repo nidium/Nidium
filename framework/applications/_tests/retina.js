@@ -6,7 +6,7 @@
 
 var m = new Canvas(512, 384);
 m.padding = 20;
-Native.canvas.add(m);
+window.canvas.add(m);
 
 m.ctx.fillStyle = "red";
 m.ctx.fillRect(0, 0, 1024, 768);

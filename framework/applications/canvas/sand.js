@@ -1,6 +1,6 @@
 var width = 1024,
 	height = 768,
-	ctx = Native.canvas.getContext("2d"),
+	ctx = window.canvas.getContext("2d"),
 	screen = ctx.createImageData(width, height);
 
 var max_particles = 140000,

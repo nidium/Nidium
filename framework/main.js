@@ -16,9 +16,6 @@ TODO :
 	- 19H detente, resto
 	- after : selon humeur et fatigue
 
-	COMPLIANCY :
-		- renommer Native.canvas en window.canvas (main canvas)
-
 	SECURITY DESIGN :
 		- créer base de donnée local
 		- dedans, créer une clé de config nommée localFileAccess : "/shared/"
@@ -62,6 +59,12 @@ TODO :
 ------
 DONE :
 ------
+
+	DAY 2
+	- renommer Native.canvas en window.canvas (main canvas)
+
+
+	DAY 1
 	- corriger textAlign vertical (center) (DONE)
 	- renommer ctx.fontType en ctx.fontFamily (DONE)
 	- window.requestAnimationFrame; (DONE)
