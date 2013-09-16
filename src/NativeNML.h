@@ -59,9 +59,7 @@ class NativeNML : public NativeStreamDelegate
     void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
     void onNFIOWrite(NativeFileIO *, size_t written){};*/
 
-    void setNJS(NativeJS *js) {
-        this->njs = js;
-    }
+    void setNJS(NativeJS *js);
 
     private:
     bool loadData(char *data, size_t len);
