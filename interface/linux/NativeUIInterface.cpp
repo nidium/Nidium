@@ -653,12 +653,9 @@ bool NativeX11UIInterface::runApplication(const char *path)
             delete app;
         }
     } else if (strncasecmp(ext, ".nml", 4) == 0) {
-        if (!this->createWindow(kNativeWidth, kNativeHeight+kNativeTitleBarHeight)) {
-            return false;
-        }
         this->nml = new NativeNML(this->gnet);
-        this->nml->setNJS(this->NativeCtx->getNJS());
         this->nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
+
         return true;
     }
     return false;
@@ -681,6 +678,13 @@ void NativeX11UIInterface::stopApplication()
 
 void NativeX11UIInterface::onNMLLoaded()
 {
+    if (!this->createWindow(
+        this->nml->getMetaWidth(),
+        this->nml->getMetaHeight()+kNativeTitleBarHeight)) {
+
+        return;
+    }
+    this->nml->setNJS(this->NativeCtx->getNJS());
     this->setWindowTitle(this->nml->getMetaTitle());
 }
 
