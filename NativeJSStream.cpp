@@ -131,7 +131,6 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
         }
     }
 
-    printf("Len : %ld\n", len);
     JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
     uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
     memcpy(data, ret, len);

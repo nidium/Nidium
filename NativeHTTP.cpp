@@ -355,7 +355,7 @@ void NativeHTTP::stopRequest(bool timeout)
         if (currentSock) {
             APE_socket_shutdown_now(currentSock);
         }
-        printf("HTTP stoped\n");
+
         if (timeout) {
             this->delegate->onError(ERROR_TIMEOUT);
         }

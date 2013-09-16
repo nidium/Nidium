@@ -129,6 +129,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         NativeIStreamer *interface;
         NativeIStreamer *getInterface(bool refresh = false);
         void setInterface(StreamInterfaces interface, int path_offset);
+        void clean();
         ape_global *net;
         size_t packets;
         struct {

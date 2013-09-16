@@ -79,6 +79,32 @@ NativeStream::NativeStream(ape_global *net,
 
 }
 
+void NativeStream::clean()
+{
+    dataBuffer.alreadyRead = true;
+    dataBuffer.fresh = true;
+    dataBuffer.ended = false;
+
+    if (mapped.addr) {
+        /* TODO: wrong size */
+        munmap(mapped.addr, this->getPacketSize());
+        free(dataBuffer.back);
+        free(dataBuffer.front);
+    } else if (dataBuffer.back) {
+        buffer_destroy(dataBuffer.back);
+        buffer_destroy(dataBuffer.front);
+    }
+    if (mapped.fd) {
+        printf("Stream closed\n");
+        close(mapped.fd);
+    }
+    mapped.addr = NULL;
+    mapped.fd   = 0;
+    mapped.size = 0;
+    dataBuffer.back = NULL;
+    dataBuffer.front = NULL;
+}
+
 char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
 {
 #define FRAMEWORK_LOCATION "./private/"
@@ -352,7 +378,7 @@ void NativeStream::stop()
         {
             NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
             http->stopRequest();
-            
+
             break;
         }
         default:
@@ -363,6 +389,7 @@ void NativeStream::stop()
 void NativeStream::seek(size_t pos)
 {
     this->stop();
+    this->clean();
     this->start(this->getPacketSize(), pos);
 }
 
@@ -586,6 +613,7 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 
 void NativeStream::onHeader()
 {
+    printf("Header from HTTP...\n");
     NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
     if (this->mapped.fd && http->http.contentlength) {
         mapped.addr = mmap(NULL, http->http.contentlength,
@@ -601,19 +629,7 @@ NativeStream::~NativeStream()
 {
     free(location);
 
-    if (mapped.addr) {
-        /* TODO: wrong size */
-        munmap(mapped.addr, this->getPacketSize());
-        free(dataBuffer.back);
-        free(dataBuffer.front);
-    } else {
-        buffer_destroy(dataBuffer.back);
-        buffer_destroy(dataBuffer.front);
-    }
-    if (mapped.fd) {
-        printf("Stream closed\n");
-        close(mapped.fd);
-    }
+    this->clean();
 
     if (this->interface) {
         delete this->interface;
