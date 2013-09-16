@@ -12,12 +12,12 @@ Canvas.implement({
 		stroke = OptionalValue(stroke, '');
 		radius = OptionalNumber(radius, 5);
 
-		if (fill){
+		if (fill) {
 			this.setColor(fill);
 			this.fillRect(x, y, width, height, radius);
 		}
 
-		if (stroke && lineWidth){
+		if (stroke && lineWidth) {
 			this.lineWidth = OptionalNumber(lineWidth, 0);
 			this.strokeStyle = stroke;
 
@@ -29,7 +29,6 @@ Canvas.implement({
 				radius + lineWidth/2
 			);
 		} 
-
 	},
 
 	clipbox : function(x, y, width, height, radius){
@@ -53,5 +52,4 @@ Canvas.implement({
 
 		this.closePath();
 	}
-
 });

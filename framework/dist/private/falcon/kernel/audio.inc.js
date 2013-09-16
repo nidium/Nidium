@@ -28,7 +28,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.getAudioDSP = function(){
+window.getAudioContext = function(){
 	// Init NATiVE DSP
 	// 512 bytes buffer, 2 channels, 44100Hz
 	if (!Audio) return false;
@@ -47,7 +47,7 @@ var AudioMixer = {
 		var self = this;
 
 		if (!this.loaded){
-			this.dsp = Native.getAudioDSP();
+			this.dsp = window.getAudioContext();
 			this.master = this.dsp.createNode("gain", 2, 2);
 			this.target = this.dsp.createNode("target", 2, 0);
 

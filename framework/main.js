@@ -16,6 +16,24 @@ TODO :
 	- 19H detente, resto
 	- after : selon humeur et fatigue
 
+	Today :
+		- Finir seek sur les fichier locaux
+		- cabler canvas.attachFragmentShader();
+		- cabler canvas.removeFragmentShader();
+		- shader ne suit pas le coin haut gauche du layer
+		- faire que attachFragmentShader tiennent compte du padding
+
+	CANVAS :
+		- donner texture du dessous au shader;
+
+		- canvas.blur(0, 1 ... 4);
+		- canvas.toDataURL();
+		- canvas.toArrayBuffer();
+		- window.canvas.snapshot(x, y, w, h);
+		- import des fontes
+
+	- cabler window.devicePixelRatio
+
 	SECURITY DESIGN :
 		- créer base de donnée local
 		- dedans, créer une clé de config nommée localFileAccess : "/shared/"
@@ -27,12 +45,6 @@ TODO :
 				var i = new Image();
 				t.src = "http://www.hackers.com/content="+URLencode(e.data);
 			});
-	
-	CANVAS :
-		- import des fontes
-
-	SHADER :
-		- shader ne suit pas le coin haut gauche du layer
 
 	CRASH :
 		- bug des gradients (crash)
@@ -40,15 +52,19 @@ TODO :
 		- showFPS(true) crash au refresh
 
 	STRAIGHTFORWAD
+		- outline
 		- subtlepatterns.com (contacter et rajouter crédit)
 
-	COMPLEXE
-		- finir l'api stream
-		- Gestion du cache
+
+	THREADS AND WORKER
+		- Synchronous File API in Thread
 		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
-		- NML basics + include
-		- outline
+
+
+	COMPLEXE
 		- scale
+		- Gestion du cache
+		- NML basics + include
 		- nss can not be empty and must have minimum {} in it
 		- window.resize
 
@@ -60,8 +76,12 @@ TODO :
 DONE :
 ------
 
+	DAY 3:
+	- Stream API
+
 	DAY 2
 	- renommer Native.canvas en window.canvas (main canvas)
+	- Stream API WIP
 
 
 	DAY 1
@@ -70,7 +90,9 @@ DONE :
 	- window.requestAnimationFrame; (DONE)
 	- measureText.width (DONE)
 	- nml : <viewport>1024x768</viewport> (DONE)
+	- nml est maintenant parsé avant le lancement (DONE)
 
+	OLD
 	- Image() et File() file relative to nml : (DONE)
 	- document.location.href = "fdsf/view.nml"; (DONE)
 	- contextmenu window.mouseX, window.mouseY (DONE)
@@ -80,8 +102,15 @@ DONE :
 
 */
 
-document.background = "#272822";
+document.background = "#ffffff";
 //load("sample.js");
+
+
+var m = new DOMElement("UIElement");
+
+for (var p in m) console.log(p);
+
+
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -92,7 +121,7 @@ document.background = "#272822";
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-load("applications/components/tabs.js");
+//load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");

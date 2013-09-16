@@ -389,7 +389,7 @@ DOMElement.prototype = {
 	onmouseup : null, /* implemented */
 	onmousewheel : null, /* implemented */
 
-	onreset : null,
+	onreset : null, /* implemented */
 	onerror : null, /* implemented */
 	onsubmit : null, /* implemented */
 

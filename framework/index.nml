@@ -2,7 +2,7 @@
 	<meta>
 		<title>Nidium Application</title>
 		<description>This is the description of the page</description>
-		<viewport>980x700</viewport>
+		<viewport>1024x768</viewport>
 		<version>2.5</version>
 		<date>2012-03-15</date>
 		<robots>index, follow</robots>
