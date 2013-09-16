@@ -42,16 +42,18 @@ NativeNML::~NativeNML()
     }
 }
 
+void NativeNML::setNJS(NativeJS *js)
+{
+    this->njs = js;
+    this->njs->setPath(this->relativePath);
+}
+
 void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 {
     this->loaded = cb;
     this->loaded_arg = arg;
 
     this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
-
-    if (this->njs) {
-        this->njs->setPath(this->relativePath);
-    }
 
     stream = new NativeStream(this->net, file);
     stream->setDelegate(this);

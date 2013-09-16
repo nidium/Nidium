@@ -5,6 +5,7 @@
 #include "NativeUtils.h"
 #include "NativeContext.h"
 #include "NativeJSNative.h"
+#include "NativeJSCanvas.h"
 
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -622,7 +623,20 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
     }
 }
 
-void NativeJSwindow::registerObject(JSContext *cx)
+void NativeJSwindow::createMainCanvas(int width, int height)
+{
+    JSObject *canvas;
+
+    canvas = NativeJSCanvas::generateJSObject(this->cx, width,
+        height, &m_handler);
+
+    NativeContext::getNativeClass(cx)->getRootHandler()->addChild(m_handler);
+
+    JS_DefineProperty(this->cx, this->jsobj, "canvas",
+        OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
+}
+
+void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
 {
     NativeJSwindow *jwin = new NativeJSwindow();
     
@@ -636,7 +650,10 @@ void NativeJSwindow::registerObject(JSContext *cx)
     jwin->cx = cx;
     JS_SetPrivate(windowObj, jwin);
 
-    NativeJS::getNativeClass(cx)->jsobjects.set(NativeJSwindow::getJSObjectName(), windowObj);
+    jwin->createMainCanvas(width, height);
+
+    NativeJS::getNativeClass(cx)->jsobjects.set(
+        NativeJSwindow::getJSObjectName(), windowObj);
 
     JS_DefineFunctions(cx, windowObj, window_funcs);
     JS_DefineProperties(cx, windowObj, window_props);

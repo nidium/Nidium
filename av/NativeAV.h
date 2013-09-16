@@ -64,6 +64,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         
         void onGetContent(const char *data, size_t len);
         void onAvailableData(size_t len);
+        void onError(NativeStream::StreamError err){};
 
         ~NativeAVStreamReader();
     private:

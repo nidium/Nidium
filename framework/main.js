@@ -1,21 +1,4 @@
-/* ------------------------+------------- */
-/* Native Framework 2.0    | Falcon Build */
-/* ------------------------+------------- */
-/* (c) 2013 nidium.com - Vincent Fontaine */
-/* -------------------------------------- */
-
 /*
-
-------
-TODO :
-------
-
-	- reveil à 9H00
-	- ready to work à 10H
-	- 10H -> 19H
-	- 19H detente, resto
-	- after : selon humeur et fatigue
-
 	Today :
 		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
 		- shader ne suit pas le coin haut gauche du layer
@@ -105,13 +88,6 @@ DONE :
 
 document.background = "#ffffff";
 //load("sample.js");
-
-
-var m = new DOMElement("UIElement");
-
-for (var p in m) console.log(p);
-
-
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -209,3 +185,4 @@ for (var p in m) console.log(p);
 /* -- Native Debugger ------------------ */
 
 //load("applications/NatBug.nap");
+

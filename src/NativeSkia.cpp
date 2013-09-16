@@ -529,19 +529,9 @@ void NativeSkia::drawRect(double x, double y, double width,
     
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
-#if 0
-    if (asComposite) {
-        canvas->saveLayer(&r, NULL, SkCanvas::kARGB_ClipLayer_SaveFlag);
-        //PAINT->setXfermodeMode(SkXfermode::kDstOver_Mode);
-        //canvas->drawColor(SK_ColorGRAY);
-    }
-#endif
+
     canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
-#if 0
-    if (asComposite) {
-        canvas->restore();
-    }
-#endif
+
     CANVAS_FLUSH();
 
 }
@@ -654,7 +644,8 @@ void NativeSkia::drawText(const char *text, int x, int y)
             sy -= metrics.fBottom;
             break;
         case BASELINE_MIDDLE:
-            sy += (metrics.fXHeight)/2;
+        /* TODO: remove hack */
+            sy += ((metrics.fXHeight)/2) + ((metrics.fXHeight)/2)*13./100.;
             break;
         default:
             break;

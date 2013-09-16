@@ -4,11 +4,13 @@
 #include "NativeJSExposer.h"
 #include "NativeTypes.h"
 
+class NativeCanvasHandler;
+
 class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
   public:
     NativeJSwindow() : 
-        m_RequestedFrame(NULL)
+        m_RequestedFrame(NULL), m_handler(NULL)
     {
 
     };
@@ -30,7 +32,12 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void addFrameCallback(jsval &cb);
     void callFrameCallbacks(double ts, bool garbage = false);
 
-    static void registerObject(JSContext *cx);
+
+    NativeCanvasHandler *getCanvasHandler() const {
+        return m_handler;
+    }
+
+    static void registerObject(JSContext *cx, int width, int height);
     static const char *getJSObjectName() {
         return "window";
     }
@@ -38,10 +45,15 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     static JSClass *jsclass;
 
   private:
+
+    void createMainCanvas(int width, int height);
+
     struct _requestedFrame {
         jsval cb;
         struct _requestedFrame *next;
     } *m_RequestedFrame;
+
+    NativeCanvasHandler *m_handler;
 };
 
 #endif
