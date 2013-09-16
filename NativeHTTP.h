@@ -170,6 +170,10 @@ class NativeHTTP : public NativeIStreamer
         http.data->used = 0;
     }
 
+    uint64_t getFileSize() const {
+        return m_FileSize;
+    }
+
     NativeHTTPRequest *getRequest() const {
         return req;
     }
@@ -179,6 +183,7 @@ class NativeHTTP : public NativeIStreamer
     ~NativeHTTP();
     private:
         NativeHTTPRequest *req;
+        uint64_t m_FileSize;
 };
 
 class NativeHTTPDelegate

@@ -68,7 +68,11 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         /*
             TODO: Need to be implemented
         */
-        void getFileSize();
+        size_t getFileSize() const {
+            if (!m_knownSize) return 0;
+            
+            return m_fileSize;
+        }
 
         /*
             Move at pos on file
@@ -97,6 +101,11 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         bool hasDataAvailable() const {
             return !dataBuffer.alreadyRead || (dataBuffer.ended && dataBuffer.back->used);
         }
+
+        bool hasFileSize() const {
+            return m_knownSize;
+        }
+
 
         /*****************************/
         NativeStreamDelegate *delegate;
@@ -149,6 +158,9 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         bool needToSendUpdate;
         bool autoClose;
         void swapBuffer();
+
+        size_t m_fileSize;
+        bool m_knownSize;
 };
 
 class NativeStreamDelegate

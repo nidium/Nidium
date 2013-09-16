@@ -22,6 +22,13 @@
 #include "NativeJS.h"
 #include "NativeUtils.h"
 
+enum {
+    STREAM_PROP_FILESIZE
+};
+
+static JSBool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp);
+
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp);
@@ -43,6 +50,13 @@ static JSFunctionSpec Stream_funcs[] = {
     JS_FS_END
 };
 
+static JSPropertySpec Stream_props[] = {
+    {"fileSize", STREAM_PROP_FILESIZE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_stream_prop_get),
+        JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSStream *nstream = (NativeJSStream *)JS_GetPrivate(obj);
@@ -50,6 +64,21 @@ static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
     if (nstream != NULL) {
         delete nstream;
     }
+}
+
+static JSBool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp)
+{
+
+    NativeJSStream *stream = (NativeJSStream *)JS_GetPrivate(obj.get());    
+
+    switch(JSID_TO_INT(id)) {
+        case STREAM_PROP_FILESIZE:
+            vp.setInt32(stream->getStream()->getFileSize());
+            break;
+        default:break;
+    }
+    return true;
 }
 
 static JSBool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
@@ -175,6 +204,7 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
     jstream->jsobj = ret;
 
     JS_DefineFunctions(cx, ret, Stream_funcs);
+    JS_DefineProperties(cx, ret, Stream_props);
 
     args.rval().setObject(*ret);
 
@@ -185,7 +215,7 @@ NativeJSStream::NativeJSStream(JSContext *cx, ape_global *net, const char *url)
 {
     m_stream = new NativeStream(net, url,
         NativeJS::getNativeClass(cx)->getPath());
-    
+
     m_stream->setDelegate(this);
 }
 

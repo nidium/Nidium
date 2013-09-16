@@ -242,7 +242,11 @@ static void native_http_disconnect(ape_socket *s,
 {
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
-    if (nhttp == NULL) return;
+    if (nhttp == NULL ||
+        (nhttp->currentSock != NULL && s != nhttp->currentSock)) {
+
+        return;
+    }
 
     nhttp->clearTimeout();
 
@@ -268,7 +272,7 @@ static void native_http_read(ape_socket *s, ape_global *ape,
         (const char *)s->data_in.data, (size_t)s->data_in.used);
 
     if (nparsed != s->data_in.used) {
-        printf("Parser returned %ld with error %s\n", nparsed,
+        printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
         nhttp->delegate->onError(NativeHTTP::ERROR_RESPONSE);
@@ -279,7 +283,8 @@ static void native_http_read(ape_socket *s, ape_global *ape,
 
 NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
     ptr(NULL), net(n), currentSock(NULL),
-    err(0), timeout(HTTP_DEFAULT_TIMEOUT), timeoutTimer(0), delegate(NULL)
+    err(0), timeout(HTTP_DEFAULT_TIMEOUT),
+    timeoutTimer(0), delegate(NULL), m_FileSize(0)
 {
     this->req = req;
 
@@ -316,7 +321,7 @@ void NativeHTTP::headerEnded()
     CONST_STR_LEN(header "\0"))
 
     if (http.headers.list != NULL) {
-        buffer *content_type;
+        buffer *content_type, *content_range;
 
         if ((content_type = REQUEST_HEADER("Content-Type")) != NULL &&
             content_type->used > 3) {
@@ -329,6 +334,20 @@ void NativeHTTP::headerEnded()
                     break;
                 }
             }
+        }
+
+        if ((content_range = REQUEST_HEADER("Content-Range")) != NULL) {
+            char *ptr = (char *)memchr(content_range->data,
+                '/', content_range->used);
+
+            if (ptr != NULL) {
+                m_FileSize = atoll(&ptr[1]);
+                if (m_FileSize >= ULLONG_MAX) {
+                    m_FileSize = 0;
+                }
+            }
+        } else {
+            m_FileSize = http.contentlength;
         }
     }
 

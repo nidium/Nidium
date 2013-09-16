@@ -45,7 +45,8 @@ static struct _native_stream_interfaces {
 
 NativeStream::NativeStream(ape_global *net,
     const char *location, const char *prefix) :
-    packets(0), needToSendUpdate(false), autoClose(true)
+    packets(0), needToSendUpdate(false), autoClose(true),
+    m_fileSize(0), m_knownSize(false)
 {
     this->interface = NULL;
     int len = 0;
@@ -640,6 +641,9 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 void NativeStream::onHeader()
 {
     NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
+    this->m_knownSize = true;
+    this->m_fileSize = http->getFileSize();
+    
     if (this->mapped.fd && http->http.contentlength) {
         mapped.addr = mmap(NULL, http->http.contentlength,
             PROT_READ, MAP_SHARED, mapped.fd, 0);
