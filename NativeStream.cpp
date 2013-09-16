@@ -522,6 +522,9 @@ void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
 {
     if (this->delegate) {
         size_t packetSize = this->getPacketSize();
+        this->m_fileSize = NFIO->filesize;
+        this->m_knownSize = true;
+        
         NFIO->read(packetSize == 0 ? NFIO->filesize : packetSize);
     }
 }
@@ -643,7 +646,7 @@ void NativeStream::onHeader()
     NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
     this->m_knownSize = true;
     this->m_fileSize = http->getFileSize();
-    
+
     if (this->mapped.fd && http->http.contentlength) {
         mapped.addr = mmap(NULL, http->http.contentlength,
             PROT_READ, MAP_SHARED, mapped.fd, 0);

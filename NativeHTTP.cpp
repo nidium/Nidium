@@ -97,7 +97,7 @@ static int headers_complete_cb(http_parser *p)
         buffer_append_char(nhttp->http.headers.tval, '\0');
     }
 
-    if (p->content_length == ULLONG_MAX) {
+    if (p->content_length >= LLONG_MAX) {
         nhttp->http.contentlength = 0;
         nhttp->headerEnded();
         return 0;
@@ -342,7 +342,7 @@ void NativeHTTP::headerEnded()
 
             if (ptr != NULL) {
                 m_FileSize = atoll(&ptr[1]);
-                if (m_FileSize >= ULLONG_MAX) {
+                if (m_FileSize >= LLONG_MAX) {
                     m_FileSize = 0;
                 }
             }
