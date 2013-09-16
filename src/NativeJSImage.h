@@ -30,6 +30,7 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>, public NativeStream
 
     void onGetContent(const char *data, size_t len);
     void onAvailableData(size_t len){};
+    void onError(NativeStream::StreamError err){};
     /*
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onProgress(size_t offset, size_t len,

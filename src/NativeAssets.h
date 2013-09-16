@@ -68,6 +68,7 @@ class NativeAssets
                 ape_global *net;
                 void onGetContent(const char *data, size_t len);
                 void onAvailableData(size_t len) {};
+                void onError(NativeStream::StreamError err){};
                 NativeAssets *assets;
                 char *name;
                 char *tagname;

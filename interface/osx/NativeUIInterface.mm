@@ -419,6 +419,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         win = SDL_CreateWindow("nidium", 100, 100,
             width, height,
@@ -483,6 +484,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         [openglview setWantsBestResolutionOpenGLSurface:YES];
         NSLog(@"Scale : %f\n", [[NSScreen mainScreen] backingScaleFactor]);
         contexteOpenGL = SDL_GL_CreateContext(win);
+        if (contexteOpenGL == NULL) {
+            printf("Failed to create OpenGL context : %s\n", SDL_GetError());
+        }
         SDL_StartTextInput();
 
         if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
