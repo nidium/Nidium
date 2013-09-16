@@ -277,6 +277,8 @@ NativeX11UIInterface::NativeX11UIInterface()
 
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
+
+    gnet = native_netlib_init();
 }
 
 bool NativeX11UIInterface::createWindow(int width, int height)
@@ -344,7 +346,6 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         glViewport(0, 0, width, height);
 
         console = new NativeUIX11Console();
-        gnet = native_netlib_init();
 
         this->initialized = true;
     }
