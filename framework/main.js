@@ -17,9 +17,7 @@ TODO :
 	- after : selon humeur et fatigue
 
 	Today :
-		- Finir seek sur les fichier locaux
-		- cabler canvas.attachFragmentShader();
-		- cabler canvas.removeFragmentShader();
+		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
 		- shader ne suit pas le coin haut gauche du layer
 		- faire que attachFragmentShader tiennent compte du padding
 
@@ -77,12 +75,15 @@ DONE :
 ------
 
 	DAY 3:
-	- Stream API
+	- Stream API: getFileSize (distant + locaux)
+	- Stream API: seek (distant + locaux)
+	- Stream API: Implémenter NativeStream::stop()
+	- cabler canvas.attachFragmentShader();
+	- cabler canvas.detachFragmentShader();
 
 	DAY 2
 	- renommer Native.canvas en window.canvas (main canvas)
 	- Stream API WIP
-
 
 	DAY 1
 	- corriger textAlign vertical (center) (DONE)

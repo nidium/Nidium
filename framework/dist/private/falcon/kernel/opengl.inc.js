@@ -15,7 +15,7 @@ DOMElement.implement({
 		File.getText(url, function(source){
 			var	uniforms = {},
 				ctx = self.layer.context,
-				program = ctx.attachGLSLFragment(source);
+				program = ctx.attachFragmentShader(source);
 
 			var setUniformValue = function(location, value){
 				program.uniform1i(location, value);
