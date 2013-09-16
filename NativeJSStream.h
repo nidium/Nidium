@@ -30,7 +30,7 @@ class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSStream(ape_global *net, const char *url);
+    NativeJSStream(JSContext *cx, ape_global *net, const char *url);
     ~NativeJSStream();
     NativeStream *getStream() const {
         return m_stream;

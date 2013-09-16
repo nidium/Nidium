@@ -52,6 +52,9 @@ public:
     void close();
     void setAutoClose(bool close) { autoClose = close; }
     void seek(uint64_t pos);
+    bool eof() const {
+        return m_eof;
+    }
     NativeFileIODelegate *getDelegate() const { return delegate; };
     char *filename;
     NativeSharedMessages *messages;
@@ -79,6 +82,7 @@ private:
     struct _ape_global *net;
 
     bool autoClose;
+    bool m_eof;
 
 };
 

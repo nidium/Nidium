@@ -381,6 +381,12 @@ void NativeStream::stop()
 
             break;
         }
+        case INTERFACE_FILE:
+        {
+            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+
+            break;
+        }
         default:
             break;
     }
@@ -388,9 +394,24 @@ void NativeStream::stop()
 
 void NativeStream::seek(size_t pos)
 {
-    this->stop();
-    this->clean();
-    this->start(this->getPacketSize(), pos);
+    switch(IInterface) {
+        case INTERFACE_HTTP:
+        {
+            this->stop();
+            this->clean();
+            this->start(this->getPacketSize(), pos);
+            break;
+        }
+        case INTERFACE_FILE:
+        {
+            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            file->seek(pos);
+            file->read(this->getPacketSize());
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 /* Sync read in memory the current packet and start grabbing the next one
@@ -512,6 +533,11 @@ void NativeStream::onNFIOError(NativeFileIO *NFIO, int err)
 void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
 {
     if (this->delegate) {
+
+        if (NFIO->eof()) {
+            this->dataBuffer.ended = true;
+        }
+
         this->delegate->onGetContent((const char *)data, len);
 
         dataBuffer.alreadyRead = false;
@@ -613,7 +639,6 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 
 void NativeStream::onHeader()
 {
-    printf("Header from HTTP...\n");
     NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
     if (this->mapped.fd && http->http.contentlength) {
         mapped.addr = mmap(NULL, http->http.contentlength,

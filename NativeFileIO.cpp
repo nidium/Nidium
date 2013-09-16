@@ -134,11 +134,12 @@ void NativeFileIO::readAction(uint64_t len)
     }
     if (feof(fd) && autoClose) {
         printf("End of file reached\n");
+        this->m_eof = true;
         fclose(fd);
         fd = NULL;
     }
 
-    /* Always null-terminate the returned data (don't impact returned size) */
+    /* Always null-terminate the returned data (doesn't impact returned size) */
     data[readsize] = '\0';
 
     action.u64 = readsize;
@@ -223,13 +224,13 @@ void NativeFileIO::close()
     pthread_mutex_lock(&threadMutex);
     fclose(fd);
     fd = NULL;
-    pthread_mutex_unlock(&threadMutex);  
+    pthread_mutex_unlock(&threadMutex);
 }
 
 
 NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     ape_global *net, const char *prefix) :
-    fd(NULL), autoClose(true)
+    fd(NULL), autoClose(true), m_eof(false)
 {
     messages = new NativeSharedMessages();
     if (prefix) {

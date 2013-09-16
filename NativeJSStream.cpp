@@ -20,6 +20,7 @@
 
 #include "NativeJSStream.h"
 #include "NativeJS.h"
+#include "NativeUtils.h"
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
@@ -36,7 +37,7 @@ static JSClass Stream_class = {
 
 static JSFunctionSpec Stream_funcs[] = {
     JS_FN("seek", native_stream_seek, 1, 0),
-    JS_FN("start", native_stream_start, 1, 0),
+    JS_FN("start", native_stream_start, 0, 0),
     JS_FN("stop", native_stream_stop, 0, 0),
     JS_FN("getNextPacket", native_stream_getNextPacket, 0, 0),
     JS_FS_END
@@ -88,12 +89,20 @@ static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    size_t packetlen = 4096;
 
     if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
         return true;
     }
+    if (args.length() > 0 && args[0].isInt32()) {
+        packetlen = args[0].toInt32();
+        if (packetlen < 1) {
+            JS_ReportError(cx, "Invalid packet size (must be greater than zero)");
+            return false;
+        }
+    }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->start();
+    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->start(packetlen);
 
     NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
@@ -158,7 +167,7 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSAutoByteString curl(cx, url);
 
-    NativeJSStream *jstream = new NativeJSStream(
+    NativeJSStream *jstream = new NativeJSStream(cx,
         (ape_global *)JS_GetContextPrivate(cx), curl.ptr());
 
     JS_SetPrivate(ret, jstream);
@@ -172,9 +181,11 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-NativeJSStream::NativeJSStream(ape_global *net, const char *url)
+NativeJSStream::NativeJSStream(JSContext *cx, ape_global *net, const char *url)
 {
-    m_stream = new NativeStream(net, url);
+    m_stream = new NativeStream(net, url,
+        NativeJS::getNativeClass(cx)->getPath());
+    
     m_stream->setDelegate(this);
 }
 
