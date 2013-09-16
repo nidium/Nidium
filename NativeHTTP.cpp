@@ -351,7 +351,16 @@ void NativeHTTP::headerEnded()
         }
     }
 
-    this->delegate->onHeader();
+    switch (http.parser.status_code) {
+        case 200:
+            this->delegate->onHeader();
+            break;
+        case 404:
+        default:
+            this->delegate->onError(ERROR_HTTPCODE);
+            break;
+    }
+    
 #undef REQUEST_HEADER
 }
 

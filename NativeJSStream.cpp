@@ -237,4 +237,9 @@ void NativeJSStream::onAvailableData(size_t len)
     }
 }
 
+void NativeJSStream::onError(NativeStream::StreamError err)
+{
+    printf("[Stream] file doesnt exist?\n");
+}
+
 NATIVE_OBJECT_EXPOSE(Stream)

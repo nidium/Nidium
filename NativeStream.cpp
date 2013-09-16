@@ -524,7 +524,7 @@ void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
         size_t packetSize = this->getPacketSize();
         this->m_fileSize = NFIO->filesize;
         this->m_knownSize = true;
-        
+
         NFIO->read(packetSize == 0 ? NFIO->filesize : packetSize);
     }
 }
@@ -638,6 +638,8 @@ void NativeStream::onError(NativeHTTP::HTTPError err)
 {
     if (!this->delegate) return;
 
+    printf("Got a stream error?\n");
+    this->delegate->onError(NativeStream::STREAM_ERROR_OPEN);
     this->delegate->onGetContent(NULL, 0);
 }
 

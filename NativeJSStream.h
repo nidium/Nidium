@@ -38,6 +38,7 @@ class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
 
     void onGetContent(const char *data, size_t len){};
     void onAvailableData(size_t len);
+    void onError(NativeStream::StreamError err);
   private:
     NativeStream *m_stream;
 };

@@ -51,6 +51,10 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             STREAM_RESOLVE_ROOT
         };
 
+        enum StreamError {
+            STREAM_ERROR_OPEN
+        };
+
         NativeStream(ape_global *net, const char *location,
             const char *prefix = NULL);
         virtual ~NativeStream();
@@ -70,7 +74,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         */
         size_t getFileSize() const {
             if (!m_knownSize) return 0;
-            
+
             return m_fileSize;
         }
 
@@ -167,6 +171,7 @@ class NativeStreamDelegate
 {
     public:
         virtual void onGetContent(const char *data, size_t len)=0;
+        virtual void onError(NativeStream::StreamError err)=0;
         //virtual void onStreamRead()=0;
         //virtual void onStreamEnd()=0;
         virtual void onAvailableData(size_t len)=0;

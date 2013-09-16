@@ -125,7 +125,8 @@ class NativeHTTP : public NativeIStreamer
         ERROR_TIMEOUT,
         ERROR_RESPONSE,
         ERROR_DISCONNECTED,
-        ERROR_SOCKET
+        ERROR_SOCKET,
+        ERROR_HTTPCODE
     };
 
     enum PrevState {
