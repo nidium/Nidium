@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * NATiVE VIDEO API                                        (c) 2013 nidium.com *
+ * NIDIUM VIDEO API                                        (c) 2013 nidium.com *
  * --------------------------------------------------------------------------- *
  * Version:     1.0                                                            *
  * Author:      Vincent Fontaine                                               *
@@ -33,10 +33,9 @@ var VideoLayer = function(layer, url, callback){
 		cb = OptionalCallback(callback, null);
 
 	this.layer = layer;
-	this.dsp = Native.getAudioDSP();
-	if (!this.dsp) throw("Unsupported Native Audio DSP");
+	this.dsp = window.getAudioContext();
+	if (!this.dsp) throw("Unsupported Audio DSP");
 	this.audioGain = this.dsp.createNode("gain", 2, 2);
-	this.reverbNode = this.dsp.createNode("custom", 2, 2);
 	this.audioTarget = this.dsp.createNode("target", 2, 0);
 
 	this.layer.ctx.imageSmoothingEnabled = true;
@@ -121,7 +120,7 @@ VideoLayer.prototype = {
 	onpause : function(){},
 	onstop : function(){},
 	onplaying : function(e){},
-	onbufferred : function(){},
+	onbuffered : function(){},
 	onerror : function(){},
 
 	get volume(){

@@ -149,28 +149,29 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
 
 int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence) 
 {
-#if 0
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     int64_t pos = 0;
 
     switch(whence)
     {
         case AVSEEK_SIZE:
-            return thiz->stream->filesize;
+            return 1024;
+            //return thiz->stream->filesize;
         case SEEK_SET:
             pos = offset;
             break;
         case SEEK_CUR:
             pos = (thiz->totalRead) + offset;
         case SEEK_END:
-            pos = thiz->stream->filesize - offset;
+            //pos = thiz->stream->filesize - offset;
+            pos = 1024 - offset;
         default:
             return -1;
     }
 
     thiz->totalRead = pos;
 
-    if( pos < 0 || pos > thiz->stream->filesize) {
+    if( pos < 0 /*|| pos > thiz->stream->filesize*/) {
         thiz->error = AVERROR_EOF;
         return AVERROR_EOF;
     }
@@ -178,8 +179,6 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
     thiz->stream->seek(pos);
 
     return pos;
-#endif
-    return 0;
 }
 
 void NativeAVStreamReader::onGetContent(const char *data, size_t len) {}

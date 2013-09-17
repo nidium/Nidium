@@ -11,7 +11,6 @@ var HTTPAudioRequest = function(url, cb) {
 }
 
 
-
 File.read("/tmp/foo.mp3", function(buffer, size){
 	source.open(buffer);
 	source.play();

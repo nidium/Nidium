@@ -617,7 +617,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
         }
         this->filePath = strdup(path);
     }
-    if (strlen(path) < 5) {
+    if (path == NULL || strlen(path) < 5) {
         return false;
     }
     //    FILE *main = fopen("index.nml", "r");

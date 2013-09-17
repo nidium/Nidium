@@ -104,6 +104,37 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
+		this.status.addEventListener("dragstart", function(e){
+			var p = self.player;
+			if (!p) return false;
+			if (p.playing) {
+				p.pause();
+				this.wasPaused = true;
+			}
+		});
+
+		this.status.addEventListener("dragend", function(e){
+			var p = self.player;
+			if (!p) return false;
+			if (this.wasPaused) {
+				p.play();
+				this.wasPaused = false;
+			}
+		});
+
+		this.status.addEventListener("drag", function(e){
+			var s1 = this.__left + 124,
+				s2 = this.__left + this.width - 62,
+				max = s2 - s1,
+				x = (e.x - s1),
+				position = x/max * self.player.duration;
+
+			if (e.x >= s1 && e.x<= s2) {
+				self.seek(position);
+				e.stopPropagation();
+			}
+		});
+
 		this.addEventListener("mouseover", function(e){
 			if (this.volume.draggingSlider) return false;
 			if (!this.player || !this.player.ready) return false;
