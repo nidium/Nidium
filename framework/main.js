@@ -1,7 +1,6 @@
 /*
 	Today :
 		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
-		- shader ne suit pas le coin haut gauche du layer
 		- faire que attachFragmentShader tiennent compte du padding
 
 	CANVAS :
@@ -57,6 +56,10 @@
 DONE :
 ------
 
+	DAY 4:
+	- Work with Nico : crash au start sur linux (maybe font / skia)
+	- shader ne suit pas le coin haut gauche du layer
+
 	DAY 3:
 	- Stream API: getFileSize (distant + locaux)
 	- Stream API: seek (distant + locaux)
@@ -86,7 +89,7 @@ DONE :
 
 */
 
-document.background = "#ffffff";
+document.background = "#000000";
 //load("sample.js");
 
 //load("applications/_tests/timers.js");
@@ -155,7 +158,7 @@ document.background = "#ffffff";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 /* TUTORIALS */
 

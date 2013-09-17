@@ -68,6 +68,13 @@ var ShaderDemo = {
 		main.shader("applications/components/shaders/apple.s", function(p, u){
 			self.start(p, u);
 		});
+
+		/*
+		setTimeout(function(){
+			main.layer.ctx.detachFragmentShader();
+		}, 3000);
+		*/
+
 	},
 
 	start : function(program, uniforms){
@@ -297,13 +304,9 @@ video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
 
-/*
-
 video.shader("applications/components/shaders/oldscreen.s", function(program, uniforms){
 	var t = 0;
 	setInterval(function(){
 		uniforms.itime = t++;
 	}, 16);
 });
-
-*/
