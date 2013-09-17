@@ -47,6 +47,7 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         struct {
             uint32_t uniformOpacity;
             uint32_t uniformResolution;
+            uint32_t uniformPosition;
         } shader;
 
         void clear(uint32_t color);
@@ -65,6 +66,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         void translate(double x, double y);
         
         uint32_t attachShader(const char *string);
+        void detachShader();
+
         bool hasShader() const {
             return (gl.program != 0);
         }
@@ -101,7 +104,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
-        void setupShader(float opacity);
+        void setupShader(float opacity, int width, int height,
+            int left, int top, int wWidth, int wHeight);
         NativeCanvasHandler *handler;
 };
 

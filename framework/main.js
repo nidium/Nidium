@@ -188,4 +188,3 @@ document.background = "#000000";
 /* -- Native Debugger ------------------ */
 
 //load("applications/NatBug.nap");
-

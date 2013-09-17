@@ -631,10 +631,8 @@ void NativeSkia::setFontType(const char *str)
 
     PAINT->setTypeface(tf);
     PAINT_STROKE->setTypeface(tf);
-    printf("tf2=%p\n", tf);
 
     tf->unref();
-    printf("tf3=%p\n", tf);
 }
 
 /* TODO: bug with alpha */
