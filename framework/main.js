@@ -1,6 +1,5 @@
 /*
 	Today :
-		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
 		- faire que attachFragmentShader tiennent compte du padding
 
 	CANVAS :
@@ -26,20 +25,24 @@
 				t.src = "http://www.hackers.com/content="+URLencode(e.data);
 			});
 
+	IMPACT SIGNIFICATIF SUR LE FRAMEWORK :
+		- outline
+
+
+	API FILE :
+		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
+
 	CRASH :
 		- bug des gradients (crash)
 		- thread crash
 		- showFPS(true) crash au refresh
 
 	STRAIGHTFORWAD
-		- outline
 		- subtlepatterns.com (contacter et rajouter crédit)
-
 
 	THREADS AND WORKER
 		- Synchronous File API in Thread
 		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
-
 
 	COMPLEXE
 		- scale

@@ -302,9 +302,11 @@ video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
 
+/*
 video.shader("applications/components/shaders/oldscreen.s", function(program, uniforms){
 	var t = 0;
 	setInterval(function(){
 		uniforms.itime = t++;
 	}, 16);
 });
+*/

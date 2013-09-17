@@ -10,7 +10,7 @@ uniform sampler2D text;
 
 vec2 resolution = n_Resolution;
 vec2 FragCoord = vec2(gl_FragCoord.x-n_Position.x, gl_FragCoord.y-n_Position.y);
-vec2 screen = vec2(320, 280);
+vec2 screen = vec2(320, 200);
 
 
 #define TEX2D(c) pow(texture2D(text, (c)), vec4(inputGamma))
