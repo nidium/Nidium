@@ -104,7 +104,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
-        void setupShader(float opacity, int width, int height, int left, int top);
+        void setupShader(float opacity, int width, int height,
+            int left, int top, int wWidth, int wHeight);
         NativeCanvasHandler *handler;
 };
 

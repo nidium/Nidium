@@ -1746,23 +1746,12 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
         printf("got a gl error %d\n", err);
     }
 
-    /* TODO : set view port (so that gl_FragCoord is relative to the current canvas) */
-
-    float pwidth = 2./(float)size.fWidth;
-    float pheight =  2./(float)size.fHeight;
-
-    float normalWidth = (width*pwidth)-1;
-    float normalHeight = 1-(height*pheight);
-
-    float normalLeft = left*pwidth;
-    float normalTop = top*pheight;
-
     //glViewport(0, 0, gl.textureWidth, gl.textureHeight);
     /* save the old viewport size */
     glPushAttrib(GL_VIEWPORT_BIT);
 
     /* set the viewport with the texture size */
-    glViewport(left, (top*-1.)+(float)size.fHeight-height, width, height);
+    glViewport(left, (float)size.fHeight-(height+top), width, height);
 
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1907,7 +1896,7 @@ void NativeCanvas2DContext::detachShader()
 }
 
 void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
-    int left, int top)
+    int left, int top, int wWidth, int wHeight)
 {
     uint32_t program = getProgram();
     glUseProgram(program);
@@ -1917,7 +1906,7 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
             glUniform1f(shader.uniformOpacity, opacity);
         }
         glUniform2f(shader.uniformResolution, width, height);
-        glUniform2f(shader.uniformPosition, left, top);
+        glUniform2f(shader.uniformPosition, left, wHeight - (height+top));
     }
 }
 
@@ -1967,7 +1956,10 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 #endif
             /* Use our custom shader */
 
-            layer->setupShader((float)opacity, width, height, left, top);
+            layer->setupShader((float)opacity, width, height,
+                left, top,
+                (int)this->getHandler()->getWidth(),
+                (int)this->getHandler()->getHeight());
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */

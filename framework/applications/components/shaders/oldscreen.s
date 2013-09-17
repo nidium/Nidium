@@ -2,9 +2,16 @@
 precision mediump float;
 #endif
 
+uniform vec2 n_Resolution;
+uniform vec2 n_Position;
+uniform float n_Opacity;
+
 uniform sampler2D text;
-vec2 resolution = vec2(1024, 768);
-vec2 screen = vec2(320, 240);
+
+vec2 resolution = n_Resolution;
+vec2 FragCoord = vec2(gl_FragCoord.x-n_Position.x, gl_FragCoord.y-n_Position.y);
+vec2 screen = vec2(320, 280);
+
 
 #define TEX2D(c) pow(texture2D(text, (c)), vec4(inputGamma))
 #define FIX(c)   max(abs(c), 1e-6);
@@ -29,7 +36,7 @@ vec4 scanlineWeights(float distance, vec4 color) {
 }
 		
 void main() {
-	vec2 p = gl_FragCoord.xy / resolution.xy;
+	vec2 p = FragCoord.xy / resolution.xy;
 	vec2 one = 1.0 / screen;
 
 	vec2 xy = radialDistortion(p.xy);
@@ -64,5 +71,5 @@ void main() {
 
 	mul_res = pow(mul_res, vec3(1.0 / (2.0 * inputGamma - outputGamma)));
 	
-	gl_FragColor = vec4(mul_res, 0.9)*1.0;
+	gl_FragColor = vec4(mul_res, 0.9)*n_Opacity;
 }

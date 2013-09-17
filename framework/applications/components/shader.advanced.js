@@ -65,7 +65,7 @@ var ShaderDemo = {
 	init : function(){
 		var self = this;
 
-		main.shader("applications/components/shaders/apple.s", function(p, u){
+		main.shader("applications/components/shaders/flamme.s", function(p, u){
 			self.start(p, u);
 		});
 	},
@@ -149,8 +149,6 @@ var ShaderDemo = {
 };
 
 ShaderDemo.init();
-
-
 
 
 
@@ -297,7 +295,7 @@ video.player.onpause = function(){};
 video.player.onstop = function(){};
 video.player.onerror = function(e){};
 
-/*
+
 
 video.shader("applications/components/shaders/oldscreen.s", function(program, uniforms){
 	var t = 0;
@@ -305,5 +303,3 @@ video.shader("applications/components/shaders/oldscreen.s", function(program, un
 		uniforms.itime = t++;
 	}, 16);
 });
-
-*/
