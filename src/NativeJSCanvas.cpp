@@ -794,14 +794,14 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
-        return JS_FALSE;
+        return false;
     }
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
         &width, &height)) {
-        return JS_TRUE;
+        return false;
     }
 
     handler = new NativeCanvasHandler(width, height);

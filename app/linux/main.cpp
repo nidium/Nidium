@@ -21,10 +21,19 @@ int main(int argc, char **argv)
     NativeX11UIInterface UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
-    if (!UI.runApplication(argc > 1 ? argv[1] : "../index.nml")) {
+    char *nml = NULL;
+    if (argc > 1) {
+        nml = realpath(argv[1], NULL);
+    } else {
+        nml = realpath("../index.nml", NULL);
+    }
+
+    if (!UI.runApplication(nml)) {
         return 0;
     }
 
+    free(nml);
+    
     UI.runLoop();
 
     return 0;
