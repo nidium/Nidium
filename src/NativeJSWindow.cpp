@@ -25,6 +25,7 @@ enum {
     WINDOW_PROP_TITLEBAR_COLOR,
     WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX,
     WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY,
+    WINDOW_PROP_DEVICE_PIXELRATIO
 };
 
 static JSClass window_class = {
@@ -301,6 +302,9 @@ static struct native_cursors {
 };
 
 static JSPropertySpec window_props[] = {
+    {"devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_NULLWRAPPER},
     {"width", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
@@ -340,6 +344,10 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
     switch(JSID_TO_INT(id)) {
+        case WINDOW_PROP_DEVICE_PIXELRATIO:
+            /* TODO: Actual value */
+            vp.setInt32(1);
+            break;
         case WINDOW_PROP_WIDTH:
             vp.set(INT_TO_JSVAL(NUI->getWidth()));
             break;

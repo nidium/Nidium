@@ -92,7 +92,7 @@ DONE :
 
 */
 
-document.background = "#000000";
+//document.background = "#000000";
 //load("sample.js");
 
 //load("applications/_tests/timers.js");
@@ -128,7 +128,7 @@ document.background = "#000000";
 //load("applications/canvas/sand.js");
 //load("applications/canvas/bluewheel.js"); // fail
 //load("applications/canvas/cube.js"); // chute de perf VS premières versions 
-//load("applications/canvas/cubewall.js"); // RAS
+load("applications/canvas/cubewall.js"); // RAS
 //load("applications/canvas/flamme.js"); // OK
 //load("applications/canvas/particles.js"); // slow
 //load("applications/canvas/text.js"); // OK
@@ -161,7 +161,7 @@ document.background = "#000000";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 /* TUTORIALS */
 
