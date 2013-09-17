@@ -136,7 +136,8 @@ static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp);
-
+static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 /* GLSL related */
 static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
@@ -220,7 +221,8 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, 0),
     JS_FN("getPathBounds", native_canvas2dctx_getPathBounds, 0, 0),
     JS_FN("light", native_canvas2dctx_light, 3, 0),
-    JS_FN("attachGLSLFragment", native_canvas2dctx_attachGLSLFragment, 1, 0),
+    JS_FN("attachFragmentShader", native_canvas2dctx_attachGLSLFragment, 1, 0),
+    JS_FN("detachFragmentShader", native_canvas2dctx_detachGLSLFragment, 0, 0),
     JS_FS_END
 };
 
@@ -981,6 +983,14 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     return JS_TRUE;
 }
 
+static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NCTX_NATIVE->detachShader();
+
+    return true;
+}
+
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp)
 {
@@ -1607,7 +1617,6 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     }
 
     return programHandle;
-
 }
 
 uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
@@ -1736,6 +1745,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     if ((err = glGetError()) != GL_NO_ERROR) {
         printf("got a gl error %d\n", err);
     }
+
     /* TODO : set view port (so that gl_FragCoord is relative to the current canvas) */
 
     float pwidth = 2./(float)size.fWidth;
@@ -1746,6 +1756,13 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     float normalLeft = left*pwidth;
     float normalTop = top*pheight;
+
+    //glViewport(0, 0, gl.textureWidth, gl.textureHeight);
+    /* save the old viewport size */
+    glPushAttrib(GL_VIEWPORT_BIT);
+
+    /* set the viewport with the texture size */
+    glViewport(left, (top*-1.)+(float)size.fHeight-height, width, height);
 
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1771,16 +1788,16 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
             (-1, -1)...........(1, -1)
         */
         glTexCoord3i(0, 0, 1);
-          glVertex3f(-1+normalLeft, normalHeight-normalTop, 1.0f);
+          glVertex3f(-1., -1., 1.0f);
 
         glTexCoord3i(0, 1, 1);
-          glVertex3f(-1.+normalLeft, 1.-normalTop, 1.0f);
+          glVertex3f(-1, 1, 1.0f);
 
         glTexCoord3i(1, 1, 1);
-          glVertex3f( normalWidth+normalLeft, 1.-normalTop, 1.0f);
+          glVertex3f(1, 1, 1.0f);
 
         glTexCoord3i(1, 0, 1);
-          glVertex3f( normalWidth+normalLeft, normalHeight-normalTop, 1.0f);
+          glVertex3f(1, -1, 1.0f);
     glEnd();
 #endif
     glDisable(GL_ALPHA_TEST);
@@ -1788,6 +1805,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_TEXTURE_2D);
+    glPopAttrib();
 
 }
 
@@ -1871,15 +1889,25 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
     if ((gl.program = this->createProgram(string))) {
         shader.uniformOpacity = glGetUniformLocation(gl.program,
-                                    "NativeCanvasOpacity");
+                                    "n_Opacity");
         shader.uniformResolution = glGetUniformLocation(gl.program,
-                                    "NativeCanvasResolution");
+                                    "n_Resolution");
+        shader.uniformPosition = glGetUniformLocation(gl.program,
+                                    "n_Position");
     }
 
     return gl.program;
 }
 
-void NativeCanvas2DContext::setupShader(float opacity)
+void NativeCanvas2DContext::detachShader()
+{
+    /* TODO : shaders must be deleted */
+    glDeleteProgram(gl.program);
+    gl.program = 0;
+}
+
+void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
+    int left, int top)
 {
     uint32_t program = getProgram();
     glUseProgram(program);
@@ -1888,6 +1916,8 @@ void NativeCanvas2DContext::setupShader(float opacity)
         if (shader.uniformOpacity != -1) {
             glUniform1f(shader.uniformOpacity, opacity);
         }
+        glUniform2f(shader.uniformResolution, width, height);
+        glUniform2f(shader.uniformPosition, left, top);
     }
 }
 
@@ -1936,7 +1966,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             layer->drawTexToFBO(textureID);
 #endif
             /* Use our custom shader */
-            layer->setupShader((float)opacity);
+
+            layer->setupShader((float)opacity, width, height, left, top);
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
