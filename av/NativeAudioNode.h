@@ -122,6 +122,7 @@ class NativeAudioNode
 
         void updateFeedback(NativeAudioNode *nOut);
         void updateWiresFrame(int channel, float *frame);
+        void updateWiresFrame(int channel, float *frame, float *discardFrame);
 
         bool queue(NodeLink *in, NodeLink *out);
         bool unqueue(NodeLink *in, NodeLink *out);

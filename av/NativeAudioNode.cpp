@@ -144,7 +144,15 @@ void NativeAudioNode::updateFeedback(NativeAudioNode *nOut)
 }
 
 void NativeAudioNode::updateWiresFrame(int channel, float *frame) {
-    if (this->frames[channel] != NULL && this->isFrameOwner(this->frames[channel])) {
+    this->updateWiresFrame(channel, frame, NULL);
+}
+void NativeAudioNode::updateWiresFrame(int channel, float *frame, float *discardFrame) {
+    // Stop updating wire when a framed owned by the node is met
+    // Note : If the frame owned is the one that need to be updated
+    // (dicardFrame) do not stop and update it
+    if (this->frames[channel] != NULL && 
+            this->frames[channel] != discardFrame &&
+            this->isFrameOwner(this->frames[channel])) {
         return;
     }
 
@@ -157,7 +165,7 @@ void NativeAudioNode::updateWiresFrame(int channel, float *frame) {
     int count = this->output[channel]->count;
     for (int i = 0; i < count; i++) 
     {
-        this->output[channel]->wire[i]->node->updateWiresFrame(channel, frame);
+        this->output[channel]->wire[i]->node->updateWiresFrame(channel, frame, discardFrame);
     }
 
     return;
@@ -189,10 +197,15 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
         SPAM(("frame previously assigned\n"));
         // Frame was previously assigned, update next outputs 
         if (this->frames[out->channel] != NULL) {
-            free(this->frames[out->channel]);
+            float *discard = this->frames[out->channel];
+            this->frames[out->channel] = NULL;
+
             SPAM(("Update wires\n"));
-            this->updateWiresFrame(out->channel, in->node->frames[in->channel]);
-        }
+            this->updateWiresFrame(out->channel, in->node->frames[in->channel], discard);
+
+            SPAM(("Freeing frame @ %p\n", discard));
+            free(discard);
+        } 
         this->frames[out->channel] = in->node->frames[in->channel];
     } else if (out->count == 1 || in->count == 1 || in->node == out->node) {
         // Multiple input or output on same channel
@@ -386,7 +399,7 @@ void NativeAudioNode::processQueue()
 float *NativeAudioNode::newFrame()
 {
 #define FRAME_SIZE this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels
-    float *ret = (float *)malloc(sizeof(float) * FRAME_SIZE + sizeof(void *));
+    float *ret = (float *)calloc(sizeof(float), FRAME_SIZE + sizeof(void *));
     if (ret != NULL) {
         // Store at the end of the frame array
         // a pointer to the frame owner
@@ -614,7 +627,7 @@ void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp,
     switch (id) {
         case DELAY: {
             if (val < 0 || val > 60000) {
-                printf("Sanity check failed for delay argment of NativeAudioNodeDelay (value < 0 or value > 60000)\n");
+                printf("NativeAudioNodeDelay delay must be between 0 and 60000\n");
                 return;
             }
             if (val > thiz->delay) {
