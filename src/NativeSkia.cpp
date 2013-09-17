@@ -621,11 +621,20 @@ void NativeSkia::setFontType(const char *str)
 {
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
+    // Workarround for skia bug #1648
+    // https://code.google.com/p/skia/issues/detail?id=1648
+    if (tf == NULL) {
+        tf = SkTypeface::CreateFromName(NULL, 
+                SkTypeface::kNormal);
+        if (tf == NULL) return;
+    }
 
     PAINT->setTypeface(tf);
     PAINT_STROKE->setTypeface(tf);
+    printf("tf2=%p\n", tf);
 
     tf->unref();
+    printf("tf3=%p\n", tf);
 }
 
 /* TODO: bug with alpha */
