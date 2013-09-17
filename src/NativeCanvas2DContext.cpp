@@ -1594,9 +1594,26 @@ void NativeCanvas2DContext::clear(uint32_t color)
     skia->canvas->clear(color);
 }
 
+char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
+{
+    const char *prologue =
+        "vec4 ___gl_FragCoord;\n"
+        "#define main ___main\n"
+        "#define gl_FragCoord ___gl_FragCoord\n";
+
+    char *ret;
+
+    asprintf(&ret, "%s%s", prologue, data);
+
+    return ret;
+}
+
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
-    uint32_t fragment = this->compileShader(data, GL_FRAGMENT_SHADER);
+    char *nshader = this->genModifiedFragmentShader(data);
+    uint32_t fragment = this->compileShader(nshader, GL_FRAGMENT_SHADER);
+    uint32_t coop = this->compileCoopFragmentShader();
+    free(nshader);
 
     if (fragment == 0) {
         return 0;
@@ -1605,7 +1622,9 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     GLuint programHandle = glCreateProgram();
     GLint linkSuccess;
 
+    glAttachShader(programHandle, coop);
     glAttachShader(programHandle, fragment);
+    
     glLinkProgram(programHandle);
 
     glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
@@ -1617,6 +1636,32 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     }
 
     return programHandle;
+}
+
+uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
+{
+    const char *coop =
+        "void ___main(void);\n"
+        "uniform sampler2D Texture;\n"
+        "uniform vec2 n_Position;\n"
+        "uniform vec2 n_Resolution;\n"
+        "uniform float n_Opacity;\n"
+        "uniform float n_Padding;\n"
+        "vec4 ___gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
+
+        "void main(void) {\n"
+        "if (___gl_FragCoord.x+n_Padding < n_Padding ||\n"
+        "    ___gl_FragCoord.x > n_Resolution.x ||\n"
+        "    ___gl_FragCoord.y+n_Padding < n_Padding ||\n"
+        "    ___gl_FragCoord.y > n_Resolution.y) {\n"
+        "    gl_FragColor = texture2D(Texture, gl_TexCoord[0].xy);\n"
+        "} else {\n"
+        "___main();\n"
+        "}\n"
+        "gl_FragColor = gl_FragColor * n_Opacity;"
+        "}\n";
+    
+    return this->compileShader(coop, GL_FRAGMENT_SHADER);
 }
 
 uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
@@ -1748,10 +1793,12 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     //glViewport(0, 0, gl.textureWidth, gl.textureHeight);
     /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT);
+    glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
 
     /* set the viewport with the texture size */
     glViewport(left, (float)size.fHeight-(height+top), width, height);
+    //glEnable(GL_SCISSOR_TEST);
+    //glScissor(left, (float)size.fHeight-(height+top), width, height);
 
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1793,6 +1840,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glDisable(GL_SCISSOR_TEST);
     glDisable(GL_TEXTURE_2D);
     glPopAttrib();
 
@@ -1883,6 +1931,8 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
                                     "n_Resolution");
         shader.uniformPosition = glGetUniformLocation(gl.program,
                                     "n_Position");
+        shader.uniformPadding = glGetUniformLocation(gl.program,
+                                    "n_Padding");
     }
 
     return gl.program;
@@ -1905,8 +1955,11 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
         if (shader.uniformOpacity != -1) {
             glUniform1f(shader.uniformOpacity, opacity);
         }
-        glUniform2f(shader.uniformResolution, width, height);
+        float padding = this->getHandler()->padding.global;
+
+        glUniform2f(shader.uniformResolution, width-(padding*2), height-(padding*2));
         glUniform2f(shader.uniformPosition, left, wHeight - (height+top));
+        glUniform1f(shader.uniformPadding, padding);
     }
 }
 
