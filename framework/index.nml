@@ -6,8 +6,12 @@
 		<version>2.5</version>
 		<date>2012-03-15</date>
 		<robots>index, follow</robots>
+		<identifier>com.nidium.mainapp</identifier>
 	</meta>
 	<assets>
+		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
+		<script type="native/javascript" src="private://falcon/native.js"></script>
 		<script type="native/javascript" src="main.js"></script>
 	</assets>
 </application>
+

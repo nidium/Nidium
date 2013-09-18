@@ -24,7 +24,8 @@ class NativeNML : public NativeStreamDelegate
 
     typedef enum {
         NIDIUM_XML_OK,
-        NIDIUM_XML_ERR_VIEWPORT_SIZE
+        NIDIUM_XML_ERR_VIEWPORT_SIZE,
+        NIDIUM_XML_ERR_IDENTIFIER_TOOLONG
     } nidium_xml_ret_t;
 
     typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
@@ -45,12 +46,16 @@ class NativeNML : public NativeStreamDelegate
     const char *getMetaTitle() const {
         return this->meta.title;
     }
+    const char *getIdentifier() const {
+        return this->meta.identifier;
+    }
     int getMetaWidth() const {
         return this->meta.size.width;
     }
     int getMetaHeight() const {
         return this->meta.size.height;
     }
+
     const char *getPath() const {
         return this->relativePath;
     }
@@ -85,6 +90,7 @@ class NativeNML : public NativeStreamDelegate
     NativeJS *njs;
 
     struct {
+        char *identifier;
         char *title;
         struct {
             int width;

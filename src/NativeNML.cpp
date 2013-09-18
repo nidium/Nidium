@@ -20,6 +20,7 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.title = NULL;
     this->meta.size.width = 0;
     this->meta.size.height = 0;
+    this->meta.identifier = NULL;
 }
 
 NativeNML::~NativeNML()
@@ -178,6 +179,18 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
                 return NIDIUM_XML_ERR_VIEWPORT_SIZE;
             }
             this->meta.size.height = height;
+        } else if (strncasecmp(child->name(), "identifier", 10) == 0) {
+            if (child->value_size() > 128) {
+                return NIDIUM_XML_ERR_IDENTIFIER_TOOLONG;
+            }
+            if (this->meta.identifier)
+                free(this->meta.identifier);
+
+            this->meta.identifier = (char *)malloc(sizeof(char) *
+                (child->value_size() + 1));
+
+            memcpy(this->meta.identifier, child->value(), child->value_size());
+            this->meta.identifier[child->value_size()] = '\0';
         }
     }
 

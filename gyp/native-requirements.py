@@ -129,6 +129,10 @@ def registerDeps():
         partial(deps.downloadDep, "SDL2", deps.depsURL + "/SDL-2.0.tar.gz", "SDL-2*"),
         buildSDL2)
 
+    deps.registerDep("leveldb",
+        None,
+        partial(deps.buildDep, "libleveldb", "leveldb", ["make"], outlibs=["leveldb/libleveldb"]))
+
     deps.registerDep("skia", 
         downloadSkia,
         buildSkia)

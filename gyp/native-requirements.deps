@@ -12,6 +12,7 @@ portaudio
 zita-resampler
 http-parser
 gyp
+leveldb
 preload
 native-requirements.py
 ../nativejscore/gyp/nativejscore-requirements.deps

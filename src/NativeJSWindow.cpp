@@ -6,6 +6,8 @@
 #include "NativeContext.h"
 #include "NativeJSNative.h"
 #include "NativeJSCanvas.h"
+#include "NativeDB.h"
+#include "NativeNML.h"
 
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -631,6 +633,12 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
     }
 }
 
+void NativeJSwindow::initDataBase()
+{
+    m_Db = new NativeDB(
+        NativeContext::getNativeClass(this->cx)->getNML()->getIdentifier());
+}
+
 void NativeJSwindow::createMainCanvas(int width, int height)
 {
     JSObject *canvas;
@@ -658,6 +666,7 @@ void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
     jwin->cx = cx;
     JS_SetPrivate(windowObj, jwin);
 
+    jwin->initDataBase();
     jwin->createMainCanvas(width, height);
 
     NativeJS::getNativeClass(cx)->jsobjects.set(

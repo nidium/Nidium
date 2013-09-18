@@ -9,12 +9,14 @@ class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
 class NativeJS;
+class NativeNML;
+
 typedef struct _ape_global ape_global;
 
 class NativeContext
 {
     public:
-    NativeContext(NativeUIInterface *nui,
+    NativeContext(NativeUIInterface *nui, NativeNML *nml,
         int width, int height, ape_global *net);
     ~NativeContext();
 
@@ -45,12 +47,21 @@ class NativeContext
     void setWindowSize(int width, int height);
     void sizeChanged(int w, int h);
 
+    void setNML(NativeNML *nml) {
+        this->m_NML = nml;
+    }
+
+    NativeNML *getNML() const {
+        return this->m_NML;
+    }
+
     private:
     NativeJS *njs;
     NativeSkia *surface;
     NativeCanvasHandler *rootHandler;
     NativeCanvasHandler *debugHandler;
     NativeUIInterface *UI;
+    NativeNML *m_NML;
 
     uint32_t currentFPS;
 
