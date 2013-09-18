@@ -40,7 +40,7 @@
 static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass native_modules_exports_class = {
-    "Exports", JSCLASS_HAS_PRIVATE,
+    "Exports", JSCLASS_HAS_PRIVATE | JSCLASS_GLOBAL_FLAGS,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Exports_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -573,7 +573,7 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 
     JS::Value foo;
     JS_GetProperty(cx, ret.toObjectOrNull(), "foo", &foo);
-    printf("foo is %s\n", foo.toString());
+    //printf("foo is %s\n", foo.toString());
 
 
     return JS_TRUE;
