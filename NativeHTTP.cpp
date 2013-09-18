@@ -470,10 +470,6 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
 
 NativeHTTP::~NativeHTTP()
 {
-    if (req) {
-        delete req;
-    }
-
     if (currentSock != NULL) {
         currentSock->ctx = NULL;
 
@@ -482,6 +478,10 @@ NativeHTTP::~NativeHTTP()
 
     if (timeoutTimer) {
         this->clearTimeout();
+    }
+
+    if (req) {
+        delete req;
     }
 
     if (!http.ended) {
