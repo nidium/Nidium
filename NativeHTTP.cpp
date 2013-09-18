@@ -351,11 +351,15 @@ void NativeHTTP::headerEnded()
         }
     }
 
-    switch (http.parser.status_code) {
-        case 200:
+    printf("Status code : %d\n", http.parser.status_code);
+    switch (http.parser.status_code/100) {
+        case 1:
+        case 2:
+        case 3:
             this->delegate->onHeader();
             break;
-        case 404:
+        case 4:
+        case 5:
         default:
             this->delegate->onError(ERROR_HTTPCODE);
             break;
