@@ -2,6 +2,7 @@
 #include "leveldb/db.h"
 #include "leveldb/filter_policy.h"
 #include "NativeSystemInterface.h"
+#include <jsapi.h>
 
 NativeDB::NativeDB(const char *name) :
     m_Database(NULL), m_Status(false)
@@ -18,7 +19,53 @@ NativeDB::NativeDB(const char *name) :
     leveldb::Status status = leveldb::DB::Open(options, sdir.c_str(), &m_Database);
     m_Status = status.ok();
 
-    printf("Creating DB at : %s\n", sdir.c_str());
+    printf("Creating DB at : %s %d\n", sdir.c_str(), m_Status);
+}
+
+bool NativeDB::insert(const char *key, const uint8_t *data, size_t data_len)
+{
+    leveldb::Slice input((const char *)data, data_len);
+    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
+
+    return status.ok();
+}
+
+bool NativeDB::insert(const char *key, const char *string)
+{
+    leveldb::Slice input(string);
+    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
+    
+    return status.ok();
+}
+
+bool NativeDB::insert(const char *key, const std::string &string)
+{
+    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, string);
+    
+    return status.ok();
+}
+
+bool NativeDB::insert(const char *key, JSContext *cx, const JS::Value &val)
+{
+    uint64_t *data;
+    size_t data_len;
+
+    if (!JS_WriteStructuredClone(cx, val, &data, &data_len, NULL, NULL, JSVAL_VOID)) {
+        return false;
+    }
+    leveldb::Slice input((char *)data, data_len);
+    leveldb::Status status = m_Database->Put(leveldb::WriteOptions(), key, input);
+
+    JS_ClearStructuredClone(data, data_len);
+
+    return status.ok();
+}
+
+bool NativeDB::get(const char *key, std::string &ret)
+{
+    leveldb::Status status = m_Database->Get(leveldb::ReadOptions(), key, &ret);
+
+    return status.ok();
 }
 
 NativeDB::~NativeDB()

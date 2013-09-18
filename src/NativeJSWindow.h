@@ -15,9 +15,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     {
     };
 
-    ~NativeJSwindow(){
-        this->callFrameCallbacks(true);
-    };
+    ~NativeJSwindow();
 
     void onReady();
     void assetReady(const NMLTag &tag);
@@ -38,6 +36,10 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
         return m_handler;
     }
 
+    NativeDB *getDataBase() const {
+        return m_Db;
+    }
+
     static void registerObject(JSContext *cx, int width, int height);
     static const char *getJSObjectName() {
         return "window";
@@ -48,6 +50,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
   private:
 
     void createMainCanvas(int width, int height);
+    void createStorage();
 
     struct _requestedFrame {
         jsval cb;

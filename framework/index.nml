@@ -6,11 +6,9 @@
 		<version>2.5</version>
 		<date>2012-03-15</date>
 		<robots>index, follow</robots>
-		<identifier>com.nidium.mainapp</identifier>
+		<identifier>54502F00-1258-4BF7-A150-4820D0337532</identifier>
 	</meta>
 	<assets>
-		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
-		<script type="native/javascript" src="private://falcon/native.js"></script>
 		<script type="native/javascript" src="main.js"></script>
 	</assets>
 </application>

@@ -17,7 +17,12 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
+
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
+static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
     WINDOW_PROP_WIDTH,
@@ -34,6 +39,13 @@ static JSClass window_class = {
     "Window", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass storage_class = {
+    "NidiumStorage", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -73,6 +85,20 @@ static JSClass NMLEvent_class = {
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+
+static JSFunctionSpec storage_funcs[] = {
+    JS_FN("set", native_storage_set, 2, 0),
+    JS_FN("get", native_storage_get, 1, 0),
+    JS_FS_END
+};
+
+NativeJSwindow::~NativeJSwindow(){
+    this->callFrameCallbacks(true);
+
+    if (m_Db)
+        delete m_Db;
 };
 
 void NativeJSwindow::onReady()
@@ -339,6 +365,12 @@ static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
         delete jwin;
     }
 }
+
+static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+
+}
+
 
 static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
@@ -637,6 +669,12 @@ void NativeJSwindow::initDataBase()
 {
     m_Db = new NativeDB(
         NativeContext::getNativeClass(this->cx)->getNML()->getIdentifier());
+
+    if (m_Db->ok()) {
+        this->createStorage();
+    } else {
+        printf("[Storage] Unable to create database for window.storage %d\n", m_Db->ok());
+    }
 }
 
 void NativeJSwindow::createMainCanvas(int width, int height)
@@ -650,6 +688,75 @@ void NativeJSwindow::createMainCanvas(int width, int height)
 
     JS_DefineProperty(this->cx, this->jsobj, "canvas",
         OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
+}
+
+void NativeJSwindow::createStorage()
+{
+    JS::RootedObject obj(this->cx, this->jsobj);
+    JS::RootedObject storage(cx, JS_NewObject(cx, &storage_class, NULL, NULL));
+
+    JS_DefineFunctions(this->cx, storage, storage_funcs);
+
+    jsval jsstorage = OBJECT_TO_JSVAL(storage.get());
+
+    JS_SetProperty(this->cx, obj.get(), "storage", &jsstorage);
+}
+
+JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NATIVE_CHECK_ARGS("set", 2);
+    if (!args[0].isString()) {
+        JS_ReportError(cx, "set() : key must be a string");
+        return false;
+    }
+
+    JSAutoByteString key(cx, args[0].toString());
+
+    if (!NativeJSwindow::getNativeClass(cx)->getDataBase()->
+        insert(key.ptr(), cx, args[1])) {
+
+        JS_ReportError(cx, "Cant insert data in storage");
+        return false;
+    }
+
+    args.rval().setBoolean(true);
+
+    return true; 
+}
+
+JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NATIVE_CHECK_ARGS("get", 1);
+    if (!args[0].isString()) {
+        JS_ReportError(cx, "get() : key must be a string");
+        return false;
+    }
+
+    JSAutoByteString key(cx, args[0].toString());
+    NativeDB *db = NativeJSwindow::getNativeClass(cx)->getDataBase();
+
+    std::string data;
+
+    if (!db->get(key.ptr(), data)) {
+        args.rval().setUndefined();
+        return true;
+    }
+    jsval ret;
+
+    if (!JS_ReadStructuredClone(cx, (uint64_t *)data.data(), data.length(),
+        JS_STRUCTURED_CLONE_VERSION, &ret, NULL, NULL)) {
+
+        JS_ReportError(cx, "Unable to read internal data");
+        return false;
+    }
+
+    args.rval().set(ret);
+
+    return true;
 }
 
 void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
@@ -667,6 +774,7 @@ void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
     JS_SetPrivate(windowObj, jwin);
 
     jwin->initDataBase();
+    
     jwin->createMainCanvas(width, height);
 
     NativeJS::getNativeClass(cx)->jsobjects.set(

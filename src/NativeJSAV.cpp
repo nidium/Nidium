@@ -466,11 +466,6 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
 
     JSAutoRequest ar(tcx);
 
-    JS_ReadStructuredClone(tcx,
-                msg->clone.datap,
-                msg->clone.nbytes,
-                JS_STRUCTURED_CLONE_VERSION, &val, NULL, NULL);
-
     if (msg->jsNode->hashObj == NULL) {
         if (!msg->jsNode->createHashObj()) {
             JS_ReportError(tcx, "Failed to create hash object");
@@ -478,9 +473,19 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
         }
     }
 
-    JS_SetProperty(tcx, msg->jsNode->hashObj, msg->name, &val);
+    if (!JS_ReadStructuredClone(tcx,
+                msg->clone.datap,
+                msg->clone.nbytes,
+                JS_STRUCTURED_CLONE_VERSION, &val, NULL, NULL)) {
 
+        JS_ReportError(tcx, "Failed to read structured clone");
+        delete msg;
+    }
+
+    JS_SetProperty(tcx, msg->jsNode->hashObj, msg->name, &val);
     JS_free(msg->jsNode->cx, msg->name);
+
+    JS_ClearStructuredClone(msg->clone.datap, msg->clone.nbytes);
     delete msg;
 }
 
