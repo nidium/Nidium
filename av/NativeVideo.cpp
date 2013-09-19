@@ -1258,11 +1258,7 @@ void NativeVideo::flushBuffers()
 {
     if (this->rBuff == NULL) return;
 
-    Frame frame;
-
-    while (PaUtil_ReadRingBuffer(this->rBuff, &frame, 1) > 0) {
-        free(frame.data);
-    }
+    m_framesIdx = 0;
 
     PaUtil_FlushRingBuffer(this->rBuff);
 }
@@ -1292,6 +1288,10 @@ void NativeVideo::close(bool reset) {
     
     this->clearTimers(reset);
     this->flushBuffers();
+
+    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+        free(m_frames[i]);
+    }
 
     this->clearAudioQueue();
     this->clearVideoQueue();
