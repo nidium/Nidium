@@ -7,6 +7,7 @@
 
 
 NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
+NativeUIInterface *__NativeUI;
 
 int ape_running = 1;
 int _nativebuild = 1002;
@@ -70,6 +71,8 @@ unsigned long _ape_seed;
     //NativeConsole *console = [[NativeConsole alloc] init];
     //[console attachToStdout];
     NativeCocoaUIInterface *nUI = new NativeCocoaUIInterface;
+    __NativeUI = nUI;
+    
     self->UI = nUI;
     self->isRunning = YES;
 

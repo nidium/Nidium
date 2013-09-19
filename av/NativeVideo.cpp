@@ -1258,12 +1258,6 @@ void NativeVideo::flushBuffers()
 {
     if (this->rBuff == NULL) return;
 
-    Frame frame;
-
-    while (PaUtil_ReadRingBuffer(this->rBuff, &frame, 1) > 0) {
-        free(frame.data);
-    }
-
     PaUtil_FlushRingBuffer(this->rBuff);
 }
 
