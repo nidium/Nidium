@@ -1997,7 +1997,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             /* get the layer's Texture ID */
             uint32_t textureID = layer->getSkiaTextureID(&width, &height);
-            printf("Texture : %d\n", textureID);
 #if 0
             /* Use our custom shader */
             glUseProgram(0);

@@ -1,3 +1,6 @@
+#ifndef nativeuiinterface_h__
+#define nativeuiinterface_h__
+
 #include <stdint.h>
 #include <stdio.h>
 
@@ -42,6 +45,10 @@ class NativeUIInterface
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
         virtual const char *getCacheDirectory() const=0;
         virtual void setWindowSize(int w, int h)=0;
+
+        virtual void log(const char *buf)=0;
+        virtual void logf(const char *format, ...)=0;
+        virtual void vlog(const char *buf, va_list ap)=0;
         
         int getWidth() const { return this->width; }
         int getHeight() const { return this->height; }
@@ -61,3 +68,5 @@ class NativeUIInterface
         bool initialized;
         NativeUIConsole *console;
 };
+
+#endif
