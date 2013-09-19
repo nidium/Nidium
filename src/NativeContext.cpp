@@ -20,9 +20,9 @@
 
 jsval gfunc  = JSVAL_VOID;
 
-NativeContext::NativeContext(NativeUIInterface *nui,
+NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    UI(nui)
+    UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
 
@@ -42,6 +42,7 @@ NativeContext::NativeContext(NativeUIInterface *nui,
 
     this->initHandlers(width, height);
 
+    printf("Init JS\n");
     this->njs = new NativeJS(net);
     this->njs->setPrivate(this);
 

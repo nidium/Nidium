@@ -48,6 +48,7 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
             uint32_t uniformOpacity;
             uint32_t uniformResolution;
             uint32_t uniformPosition;
+            uint32_t uniformPadding;
         } shader;
 
         void clear(uint32_t color);
@@ -88,6 +89,7 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         uint32_t createProgram(const char *data);
         uint32_t compileShader(const char *data, int type);
 
+
         static void registerObject(JSContext *cx);
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
@@ -99,6 +101,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         ~NativeCanvas2DContext();
     private:
         void initCopyTex();
+        uint32_t compileCoopFragmentShader();
+        char *genModifiedFragmentShader(const char *data);
         void drawTexToFBO(uint32_t textureID);
         void drawTexIDToFBO(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);

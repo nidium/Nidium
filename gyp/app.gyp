@@ -84,6 +84,7 @@
                         '-lskia_effects',
                         '-lskia_core',
                         '-ljs_static',
+                        '-lleveldb',
                         '-Wl,--end-group'
                     ],
                 },
@@ -134,6 +135,7 @@
                         'libnspr4.a',
                         'libcares.a',
                         'libcoroutine.a',
+                        'libleveldb.a',
                         #'..//third-party/angle/libpreprocessor.a',
                         #'..//third-party/angle/libtranslator_common.a',
                         #'..//third-party/angle/libtranslator_glsl.a',

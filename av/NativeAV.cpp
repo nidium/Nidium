@@ -59,10 +59,11 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
 NativeAVStreamReader::NativeAVStreamReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
-: source(source), readFlag(readFlag), opened(false), bufferCond(bufferCond), totalRead(0), streamRead(STREAM_BUFFER_SIZE), streamBuffer(NULL), error(0)
+: source(source), readFlag(readFlag), opened(false), bufferCond(bufferCond), totalRead(0), streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0), streamBuffer(NULL), error(0)
 {
     this->async = true;
     this->stream = new NativeStream(net, src);
+    this->stream->setAutoClose(false);
     this->stream->start(STREAM_BUFFER_SIZE);
     this->stream->setDelegate(this);
 }
@@ -72,77 +73,83 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
 
     int err;
-    size_t streamSize;
     size_t copied = 0;
-    int avail = (STREAM_BUFFER_SIZE - thiz->streamRead);
+    int avail = (thiz->streamPacketSize - thiz->streamRead);
 
     // Have data inside buffer
     if (avail > 0) {
         int copy = avail > size ? size : avail;
-        memcpy(buffer, thiz->streamBuffer + thiz->streamRead, copy);
+        SPAM(("get streamBuffer=%p streamRead=%d, streamSize=%d, copy=%d, size=%d, avail=%d\n", thiz->streamBuffer, thiz->streamRead, thiz->streamPacketSize, copy, size, avail));
+        memcpy(buffer + copied, thiz->streamBuffer + thiz->streamRead, copy);
         thiz->totalRead += copy;
         thiz->streamRead += copy;
 
         if (copy >= size) {
+            SPAM(("Returning %d\n", size));
             return size;
         }
 
         copied += copy;
     }
 
+    SPAM(("streamSize=%d\n", thiz->streamSize));
     // No more data inside buffer, need to get more
     for(;;) {
         bool loopCond = true;
-        thiz->streamBuffer = thiz->stream->getNextPacket(&streamSize, &err);
+        thiz->streamBuffer = thiz->stream->getNextPacket(&thiz->streamPacketSize, &err);
+        SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->streamBuffer, thiz->streamPacketSize, err));
         if (!thiz->streamBuffer) {
             switch (err) {
                 case NativeStream::STREAM_EOF:
+                case NativeStream::STREAM_END:
                 case NativeStream::STREAM_ERROR:
                     thiz->error = AVERROR_EOF;
-                    if (copied >  0) {
-                        return copied;
-                    } else {
-                        return thiz->error;
-                    }
+                    SPAM(("Got EOF\n"));
+                    return copied > 0 ? copied : thiz->error;
                 break;
                 case NativeStream::STREAM_EAGAIN:
+                    SPAM(("Got eagain\n"));
                     // Got EAGAIN, switch back to main coro
                     // and wait for onDataAvailable callback
                     thiz->pending = true;
                     Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
                 break;
+                default:
+                    printf("received unknown error (%d) and streamBuffer is null. Returning EOF\n", err);
+                    thiz->error = AVERROR_EOF;
+                    return copied > 0 ? copied : thiz->error;
             }
         } else {
-            size_t copy = size;
-            if (streamSize < size) {
-                copy = streamSize;
+            size_t copy = size - copied;
+            if (thiz->streamPacketSize < copy) {
+                copy = thiz->streamPacketSize;
             }
 
+            SPAM(("Writting to buffer. copied=%d, copy=%d, size=%d\n", copied, copy, size));
             memcpy(buffer + copied, thiz->streamBuffer, copy);
 
             thiz->streamRead = copy;
             thiz->totalRead += copy;
             copied += copy;
+            SPAM(("totalRead=%lld, size=%d\n", thiz->totalRead, thiz->streamSize));
 
             // Got enought data, return
-            if (streamSize >= size) {
+            if (copied == size || thiz->totalRead >= thiz->streamSize) {
+                SPAM(("wrote enough, return\n"));
                 thiz->error = 0;
                 thiz->pending = false;
                 thiz->needWakup = false;
                 *thiz->readFlag = false;
              
-                return size;
+                return copied;
             } 
         }
     }
 
-    /*
-    // FIXME : Uncomment this code once getFileSize() is implemented in NativeStream
-    if (this->totalRead > this->stream->getFileSize()) {
-          printf("Oh shit, read after EOF\n");
-          //exit(1);
+    if (thiz->streamSize != 0 && thiz->totalRead > thiz->streamSize) {
+          SPAM(("Oh shit, read after EOF\n"));
+          exit(1);
     }
-    */
 
     return 0; 
 }
@@ -151,52 +158,72 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
 {
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     int64_t pos = 0;
+    size_t size = thiz->stream->getFileSize();
 
     switch(whence)
     {
         case AVSEEK_SIZE:
-            return 1024;
-            //return thiz->stream->filesize;
+            return size;
         case SEEK_SET:
             pos = offset;
             break;
         case SEEK_CUR:
             pos = (thiz->totalRead) + offset;
         case SEEK_END:
-            //pos = thiz->stream->filesize - offset;
-            pos = 1024 - offset;
+            if (size != 0) {
+                pos = size - offset;
+            } else {
+                pos = 0;
+            }
         default:
             return -1;
     }
 
-    thiz->totalRead = pos;
-
-    if( pos < 0 /*|| pos > thiz->stream->filesize*/) {
+    if( pos < 0 || pos > size) {
         thiz->error = AVERROR_EOF;
         return AVERROR_EOF;
     }
 
-    thiz->stream->seek(pos);
+    // Does the seek is inside the current buffer?
+    size_t min = thiz->totalRead - thiz->streamRead;
+    size_t max = min + thiz->streamPacketSize;
+
+    SPAM(("SEEK pos=%lld, size=%d\n", pos, size));
+
+    if (pos >= min && pos < max) {
+        SPAM(("------- In stream seeking\n"));
+        thiz->totalRead = pos - thiz->totalRead;
+    } else {
+        thiz->streamBuffer = NULL;
+        thiz->streamRead = STREAM_BUFFER_SIZE;
+        thiz->totalRead = pos;
+        thiz->stream->seek(pos);
+    }
 
     return pos;
 }
 
-void NativeAVStreamReader::onGetContent(const char *data, size_t len) {}
+void NativeAVStreamReader::onProgress(size_t buffered, size_t len)
+{
+    this->source->onProgress(buffered, len);
+}
 
 void NativeAVStreamReader::onAvailableData(size_t len) 
 {
     this->error = 0;
-
-    if (!this->opened) {
-        this->opened = true;
-        this->source->openInit();
-        return;
-    }
+    SPAM(("onAvailableData=%d\n", len));
 
     if (this->pending) {
         this->needWakup = true;
         *this->readFlag = true;
         pthread_cond_signal(this->bufferCond);
+        return;
+    }
+
+    if (!this->opened) {
+        this->opened = true;
+        this->source->openInit();
+        this->streamSize = this->stream->getFileSize();
     }
 }
 
@@ -218,10 +245,10 @@ void NativeAVSource::eventCallback(NativeAVSourceEventCallback cbk, void *custom
     this->eventCbkCustom = custom;
 }
 
-void NativeAVSource::sendEvent(int ev, int value, bool fromThread) 
+void NativeAVSource::sendEvent(int ev, int value1, int value2, bool fromThread) 
 {
     if (this->eventCbk != NULL) {
-        NativeAVSourceEvent *event = new NativeAVSourceEvent(this, ev, value, this->eventCbkCustom, fromThread);
+        NativeAVSourceEvent *event = new NativeAVSourceEvent(this, ev, value1, value2, this->eventCbkCustom, fromThread);
         this->eventCbk(event);
     }
 }
@@ -233,6 +260,10 @@ AVDictionary *NativeAVSource::getMetadata()
     }
 
     return this->container->metadata;
+}
+int NativeAVSource::getBitrate()
+{
+    return this->container ? this->container->bit_rate : 0;
 }
 
 double NativeAVSource::getDuration() 
@@ -246,7 +277,7 @@ double NativeAVSource::getDuration()
 
 int NativeAVSource::readError(int err)
 {
-    printf("readError Got error %d/%d\n", err, AVERROR_EOF);
+    SPAM(("readError Got error %d/%d\n", err, AVERROR_EOF));
     if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
         this->eof = true;
         this->error = AVERROR_EOF;
@@ -258,7 +289,7 @@ int NativeAVSource::readError(int err)
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
         this->error = AVERROR(err);
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, true);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, 0, true);
         return -1;
     }
 

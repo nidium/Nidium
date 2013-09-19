@@ -740,7 +740,7 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external)
 int NativeAudioTrack::open(const char *src) 
 {
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
 this->close(true); \
 return err;
     // If a previous file has been opened, close it
@@ -782,7 +782,7 @@ int NativeAudioTrack::openInit()
 void NativeAudioTrack::openInitCoro(void *arg) 
 {
 #define RETURN_WITH_ERROR(err) \
-thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
+thiz->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
 thiz->doClose = true; \
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
     NativeAudioTrack *thiz = static_cast<NativeAudioTrack *>(arg);
@@ -803,7 +803,7 @@ Coro_switchTo_(thiz->coro, thiz->mainCoro);
 int NativeAudioTrack::open(void *buffer, int size) 
 {
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
 this->close(true); \
 return err;
 
@@ -956,7 +956,7 @@ int NativeAudioTrack::initInternal()
     this->opened = true;
     this->processed = false;
 
-    this->sendEvent(SOURCE_EVENT_READY, 0, false);
+    this->sendEvent(SOURCE_EVENT_READY, 0, 0, false);
 
     return 0;
 }
@@ -1079,7 +1079,7 @@ bool NativeAudioTrack::work()
 bool NativeAudioTrack::decode() 
 {
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, true);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, 0, true);\
 return false;
     // No last packet, get a new one
     if (this->packetConsumed) {
@@ -1384,7 +1384,7 @@ void NativeAudioTrack::seekInternal(double time)
                 this->doNotProcess = false;
             }
         } else {
-            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, 0, true);
         }
     }
 
@@ -1429,7 +1429,7 @@ bool NativeAudioTrack::process() {
             } else {
                 this->doNotProcess = true;
             }
-            this->sendEvent(SOURCE_EVENT_EOF, 0, true);
+            this->sendEvent(SOURCE_EVENT_EOF, 0, 0, true);
         } 
         return false;
     }
@@ -1548,7 +1548,7 @@ void NativeAudioTrack::play()
 
     pthread_cond_signal(&this->audio->bufferNotEmpty);
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
 }
 
 void NativeAudioTrack::pause() 
@@ -1558,7 +1558,7 @@ void NativeAudioTrack::pause()
     }
 
     this->playing = false;
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
 }
 
 void NativeAudioTrack::stop() 
@@ -1589,7 +1589,7 @@ void NativeAudioTrack::stop()
 
     avcodec_flush_buffers(this->codecCtx);
 
-    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
+    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
 }
 
 

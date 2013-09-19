@@ -343,7 +343,6 @@ int NativeSkia::bindOnScreen(int width, int height)
     }
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    printf("Create new object\n");
     SkBaseDevice *dev = NativeSkia::glcontext
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);

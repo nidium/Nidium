@@ -28,7 +28,7 @@ NativeVideo::NativeVideo(ape_global *n)
       tmpFrame(NULL), frameBuffer(NULL),
       lastPts(0), playing(false), stoped(false), width(-1), height(-1),
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
-      rBuff(NULL), buff(NULL), avioBuffer(NULL),
+      rBuff(NULL), buff(NULL), m_framesIdx(NULL), avioBuffer(NULL),
       decodedFrame(NULL), convertedFrame(NULL),
       reader(NULL), buffering(false), readFlag(false), doClose(false)
 {
@@ -48,12 +48,25 @@ NativeVideo::NativeVideo(ape_global *n)
 }
 
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
 this->doClose = true;\
 return err;
 
 int NativeVideo::open(void *buffer, int size) 
 {
+    /*
+            printf("!READ===============1\n");
+            uint8_t *buf = (uint8_t*)buffer;
+            for (int i = 0; i < size; i++) {
+                printf("%x ", buf[i]);
+                if (i % 20 == 0) {
+                    printf("\n!");
+                }
+            }
+            printf("\n");
+            printf("FINISHED\n");
+            */
+
     if (this->opened) {
         this->close(true);
     }
@@ -100,7 +113,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NULL);
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
     if (!this->container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -112,7 +125,9 @@ int NativeVideo::open(const char *src)
 
 int NativeVideo::openInit() 
 {
+    SPAM(("openInit()\n"));
     if (this->reader->async) {
+        pthread_cond_signal(&this->bufferCond);
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
     } else {
         return this->openInitInternal();
@@ -228,23 +243,33 @@ int NativeVideo::openInitInternal()
 
     if (0 > PaUtil_InitializeRingBuffer(this->rBuff, 
             sizeof(NativeVideo::Frame), 
-            //frameSize,
             NATIVE_VIDEO_BUFFER_SAMPLES,
             this->buff)) {
         fprintf(stderr, "Failed to init ringbuffer\n");
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    //pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
+    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+        m_frames[i] = (uint8_t*) malloc(frameSize);
+        if (!m_frames[i]) {
+            fprintf(stderr, "Failed to frames pool\n");
+            RETURN_WITH_ERROR(ERR_OOM);
+        }
+    }
 
     this->opened = true;
 
-    this->sendEvent(SOURCE_EVENT_READY, 0, false);
+    this->sendEvent(SOURCE_EVENT_READY, 0, 0, false);
 
     return 0;
 }
 
 #undef RETURN_WITH_ERROR
+
+void NativeVideo::onProgress(size_t buffered, size_t total)
+{
+    this->sendEvent(SOURCE_EVENT_BUFFERING, buffered, total, false);
+}
 
 void NativeVideo::frameCallback(VideoCallback cbk, void *arg) {
     this->frameCbk = cbk;
@@ -275,7 +300,7 @@ void NativeVideo::play() {
         this->scheduleDisplay(1);
     }
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
 }
 
 void NativeVideo::pause() {
@@ -287,7 +312,7 @@ void NativeVideo::pause() {
         this->track->pause();
     }
 
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
 }
 
 void NativeVideo::stop() {
@@ -372,7 +397,7 @@ bool NativeVideo::seekMethod(int64_t target, int flags)
 
         return true;
     } else {
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, 0, true);
         return false;
     }
 }
@@ -648,7 +673,7 @@ NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio)
         this->track->container = this->container;
         this->track->eventCallback(NULL, NULL); //Disable events callbacks
         if (0 != this->track->initInternal()) {
-            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, 0, false);
             delete this->track;
             this->track = NULL;
         }
@@ -682,7 +707,7 @@ int NativeVideo::display(void *custom) {
         } 
         if (v->eof) {
             SPAM(("No frame, eof reached\n"));
-            v->sendEvent(SOURCE_EVENT_EOF, 0, false);
+            v->sendEvent(SOURCE_EVENT_EOF, 0, 0, false);
             return 0;
         } else {
             SPAM(("No frame, try again in 5ms\n"));
@@ -690,10 +715,10 @@ int NativeVideo::display(void *custom) {
         }
     }
 
-    Frame *frame = new Frame();
-    PaUtil_ReadRingBuffer(v->rBuff, (void *)frame, 1);
+    Frame frame;
+    PaUtil_ReadRingBuffer(v->rBuff, (void *)&frame, 1);
 
-    double pts = frame->pts;
+    double pts = frame.pts;
     double diff = 0;
     double delay, actualDelay, syncThreshold;
 
@@ -743,12 +768,9 @@ int NativeVideo::display(void *custom) {
 
         // Call the frame callback
         if (v->frameCbk != NULL) {
-            v->frameCbk(frame->data, v->frameCbkArg);
+            v->frameCbk(frame.data, v->frameCbkArg);
         }
     } 
-
-    free(frame->data);
-    delete frame;
 
     if (v->playing) {
         if (actualDelay <= NATIVE_VIDEO_SYNC_THRESHOLD && diff <= 0) {
@@ -770,6 +792,7 @@ void NativeVideo::buffer()
         SPAM(("=> Not buffering cause of error\n"));
         return;
     }
+
     if (this->reader->async) {
         if (this->buffering) {
             SPAM(("=> PENDING\n"));
@@ -823,7 +846,7 @@ void NativeVideo::bufferInternal()
     }
 
     while (loopCond) {
-        SPAM(("    => buffernig loop needAudio=%d / needVideo=%d\n", needAudio, needVideo));
+        SPAM(("    => buffering loop needAudio=%d / needVideo=%d\n", needAudio, needVideo));
         int ret = av_read_frame(this->container, &packet);
         SPAM(("    -> post read frame\n"));
 
@@ -865,8 +888,11 @@ void *NativeVideo::decode(void *args)
     NativeVideo *v = static_cast<NativeVideo *>(args);
 
     for (;;) {
+        SPAM(("decode loop\n"));
         if (v->opened) {
+            SPAM(("opened buffering=%d\n", v->buffering));
             if (!v->buffering && !v->seeking) {
+                SPAM(("not buffering and seeking\n"));
                 if (v->doSeek == true) {
                     SPAM(("seeking\n"));
                     if (!v->reader->async) {
@@ -915,13 +941,17 @@ void *NativeVideo::decode(void *args)
                     } 
                 }
             } else if (!v->readFlag) {
+                SPAM(("wait bufferCond\n"));
                 pthread_cond_wait(&v->bufferCond, &v->bufferLock);
             }
+        } else {
+            pthread_cond_wait(&v->bufferCond, &v->bufferLock);
         }
 
         if (v->shutdown) break;
 
         if (v->readFlag) {
+            SPAM(("readFlag, swithcing back to coro\n"));
             Coro_switchTo_(v->mainCoro, v->coro);
             // Make sure another read call havn't been made
             if (!v->reader->pending) {
@@ -1042,29 +1072,30 @@ bool NativeVideo::processVideo()
 
 bool NativeVideo::processFrame(AVFrame *avFrame, double pts)
 {
-    Frame *frame = new Frame();
-    // TODO : Use a frame poll, instead of malloc each time.
-    frame->data = (uint8_t *)malloc(this->frameSize);
-    if (!frame->data) {
-        printf("Malloc frame failed\n");
-        exit(3);
-        return false;
+    Frame frame;
+    frame.data = m_frames[m_framesIdx];
+    frame.pts = pts;
+
+    if (m_framesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
+        m_framesIdx = 0;
+    } else {
+        m_framesIdx++;
     }
 
-    frame->pts = pts;
-
+    // Format the frame for sws_scale
     uint8_t *tmp[1];
-    tmp[0] = (uint8_t *)frame->data;
+    tmp[0] = (uint8_t *)frame.data;
     uint8_t * const *out = (uint8_t * const*)tmp;
 
     // Convert the image from its native format to RGBA 
+    // TODO : Move this to a shader
     sws_scale(this->swsCtx,
               avFrame->data, avFrame->linesize,
               0, this->codecCtx->height, out, this->convertedFrame->linesize);
 
-    PaUtil_WriteRingBuffer(this->rBuff, frame, 1);
-
-    delete frame;
+    // Write frame to rBuff, the frame will be consumed
+    // later by NativeVideo::display() (UI Thread)
+    PaUtil_WriteRingBuffer(this->rBuff, &frame, 1);
 
     return true;
 }
@@ -1080,7 +1111,7 @@ double NativeVideo::syncVideo(double pts)
     }
 
     frameDelay = av_q2d(this->container->streams[this->videoStream]->time_base);
-    frameDelay += this->decodedFrame->repeat_pict * (frameDelay * 0.5); //wtf 0.5?!
+    frameDelay += this->decodedFrame->repeat_pict * (frameDelay * 0.5); // XXX : WTF 0.5?!
     this->videoClock += frameDelay;
 
     return pts;
@@ -1227,13 +1258,11 @@ void NativeVideo::flushBuffers()
 {
     if (this->rBuff == NULL) return;
 
-    Frame *frame = new Frame();
+    Frame frame;
 
-    while (PaUtil_ReadRingBuffer(this->rBuff, frame, 1) > 0) {
-        free(frame->data);
+    while (PaUtil_ReadRingBuffer(this->rBuff, &frame, 1) > 0) {
+        free(frame.data);
     }
-
-    delete frame;
 
     PaUtil_FlushRingBuffer(this->rBuff);
 }

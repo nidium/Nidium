@@ -99,6 +99,8 @@ class NativeVideo : public NativeAVSource
         PaUtilRingBuffer *rBuff;
         uint8_t *buff;
         unsigned char *avioBuffer;
+        uint8_t *m_frames[NATIVE_VIDEO_BUFFER_SAMPLES];
+        int m_framesIdx;
         AVFrame *decodedFrame; 
         AVFrame *convertedFrame;
 
@@ -151,6 +153,7 @@ class NativeVideo : public NativeAVSource
         void buffer();
         static void bufferCoro(void *arg);
         void bufferInternal();
+        void onProgress(size_t buffered, size_t total);
 
         bool processAudio();
         bool processVideo();

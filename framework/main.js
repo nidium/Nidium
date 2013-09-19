@@ -97,7 +97,7 @@ DONE :
 
 */
 
-document.background = "#000000";
+//document.background = "#000000";
 //load("sample.js");
 
 //load("applications/_tests/timers.js");
@@ -164,9 +164,9 @@ document.background = "#000000";
 
 /* SHADERS */
 
-	//load("applications/components/shader.js"); // OK
+	load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 /* TUTORIALS */
 

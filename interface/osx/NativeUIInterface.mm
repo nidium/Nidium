@@ -498,7 +498,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     }
-    NativeCtx = new NativeContext(this, width, height, gnet);
+    NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
     window = NativeCocoaWindow(win);
 #if 0
     id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification
@@ -522,7 +522,7 @@ const char *NativeCocoaUIInterface::getCacheDirectory() const
     NSString* cacheDir = [paths objectAtIndex:0];
 
     if (cacheDir) {
-        NSString *path = [NSString stringWithFormat:@"%@/NATiVE/",cacheDir];
+        NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
         const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
             printf("Cant create cache directory %s\n", cpath);
