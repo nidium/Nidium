@@ -58,12 +58,14 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         NativeAVStreamReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
+        int64_t totalRead;
 
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
         
-        void onGetContent(const char *data, size_t len);
+        void onGetContent(const char *data, size_t len) {}
         void onAvailableData(size_t len);
+        void onProgress(size_t buffered, size_t len);
         void onError(NativeStream::StreamError err){};
 
         ~NativeAVStreamReader();
@@ -73,8 +75,9 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         bool opened;
         pthread_cond_t *bufferCond;
 
-        int64_t totalRead;
         size_t streamRead;
+        size_t streamPacketSize;
+        size_t streamSize;
         unsigned const char* streamBuffer;
         int error;
 };
@@ -137,15 +140,18 @@ typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*ev)
 
 struct NativeAVSourceEvent {
     int ev;
-    int *value;
+    int value1;
+    int value2;
     NativeAVSource *source;
     void *custom;
     bool fromThread;
-    NativeAVSourceEvent(NativeAVSource *source, int ev, int value, void *custom, bool fromThread)
-        : ev(ev), source(source), custom(custom), fromThread(fromThread) 
+    NativeAVSourceEvent(NativeAVSource *source, int ev, int value1, int value2, 
+            void *custom, bool fromThread)
+        : ev(ev), value1(value1), value2(value2), source(source), custom(custom), 
+            fromThread(fromThread) 
     {
-        this->value = new int;
-        memcpy(this->value, (void *)&value, sizeof(int));
+        //this->value = new int;
+        //memcpy(this->value, (void *)&value, sizeof(int));
     };
 };
 
@@ -163,7 +169,7 @@ class NativeAVSource
         bool eof;
 
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
-        void sendEvent(int ev, int value, bool fromThread);
+        void sendEvent(int ev, int value1, int value2, bool fromThread);
 
         virtual void play() = 0;
         virtual void pause() = 0;
@@ -171,10 +177,12 @@ class NativeAVSource
         virtual int open(const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;
+        virtual void onProgress(size_t buffered, size_t total) = 0;
         
         virtual double getClock() = 0;
         virtual void seek(double time) = 0;
         double getDuration();
+        int getBitrate();
         AVDictionary *getMetadata() ;
     protected:
 	    AVFormatContext *container;

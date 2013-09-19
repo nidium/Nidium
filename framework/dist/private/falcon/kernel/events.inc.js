@@ -625,8 +625,9 @@ window._onblur = function(e){
 
 /* -- LOAD EVENTS ----------------------------------------------------------- */
 
-window._onready = function(){
+window._onready = function(LST){
 	Native.core.onready();
+	console.dump(LST);
 };
 
 window._onassetready = function(e){

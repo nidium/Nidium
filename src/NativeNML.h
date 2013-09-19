@@ -43,6 +43,7 @@ class NativeNML : public NativeStreamDelegate
     void onAssetsBlockReady(NativeAssets *asset);
     void onGetContent(const char *data, size_t len);
     void onAvailableData(size_t len){};
+    void onProgress(size_t buffered, size_t len){};
     void onError(NativeStream::StreamError){};
 
     const char *getMetaTitle() const {
