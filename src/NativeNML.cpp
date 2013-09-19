@@ -119,8 +119,10 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
 
     if (this->nassets == 0) {
         NativeJSwindow::getNativeClass(njs)->onReady(m_JSObjectLayout);
-        JS_RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
-        m_JSObjectLayout = NULL;
+        if (m_JSObjectLayout) {
+            JS_RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
+            m_JSObjectLayout = NULL;
+        }
     }
 }
 
@@ -351,11 +353,12 @@ void NativeNML::onGetContent(const char *data, size_t len)
 
     if (this->loadData((char *)data, len, doc)) {
         this->loaded(this->loaded_arg);
+
+        if (m_Layout) {
+            m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
+            JS_AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
+        }
     }
-
-    m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
-    JS_AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
-
     /* Invalidate layout node since memory pool is free'd */
     m_Layout = NULL;
 }
