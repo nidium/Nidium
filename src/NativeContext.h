@@ -57,7 +57,6 @@ class NativeContext
 
     private:
     NativeJS *njs;
-    NativeSkia *surface;
     NativeCanvasHandler *rootHandler;
     NativeCanvasHandler *debugHandler;
     NativeUIInterface *UI;
