@@ -12,14 +12,41 @@
 	<assets>
 		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
 		<script type="native/javascript" src="private://falcon/native.js"></script>
+		<style type="native/javascript" src="main.nss"></style>
 		<script type="native/javascript" src="main.js"></script>
 	</assets>
 	<layout>
 		<include src="module.header.nml"/>
-		<section id="main">
-			<UIView>
-				<UIButton left="10" top="10" label="Submit"/>
-			</UIView>
+		<section id="main" radius="9" background="rgba(255, 0, 0, 0.3)" width="640" height="480">
+			<view background="rgba(0, 0, 255, 0.3)" left="80" top="40">
+				<button class="toto" label="Submit"/>
+				<select id="countries" left="150" maxHeight="198" background="black">
+					<option label="France" value="5"/>
+					<option label="Belgium" value="7"/>
+					<option label="Monaco" value="9"/>
+					<option label="United States" value="15" selected="true"/>
+					<option label="Italy" value="1"/>
+					<option label="Spain" value="3" class="greenland"/>
+					<option label="Bulgaria" value="2" class="greenland"/>
+					<option label="Romania" value="4"/>
+					<option label="Sweden" value="6"/>
+					<option label="China" value="8"/>
+					<option label="Korea" value="10"/>
+					<option label="Luxembourg" value="11" disabled="true"/>
+					<option label="Switzerland" value="12"/>
+					<option label="Japan" value="13"/>
+				</select>
+				<slider
+					left="20"
+					top="100"
+					min="0"
+					max="100"
+					value="50"
+					background="rgba(0, 0, 0, 0.7)"
+					radius="5"
+					height="14"
+				/>
+			</view>
 		</section>
 		<include src="module.footer.nml"/>
 	</layout>

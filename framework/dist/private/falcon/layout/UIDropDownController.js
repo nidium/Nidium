@@ -17,6 +17,36 @@ Native.elements.export("UIDropDownController", {
 		}
 	},
 
+	onAddChildRequest : function(child){
+		var accept = false;
+		
+		/* forward children to the selector (not the UIDropDownController) */
+		if (child.type == "UIOption") {
+			var currentTabIndex = this.tabs.length,
+				top = 0;
+
+			for (var i=0; i<this.tabs.length; i++){
+				top += this.tabs[i].height;
+			}
+
+			var options = {
+				label : child.label,
+				background : child.background,
+				className : child.className,
+				value : child.value,
+				color : child.color,
+				selected : child.selected,
+				disabled : child.disabled
+			};
+
+			this._addElement(currentTabIndex, options, top);
+			return false;
+		}
+
+		if (child.type.in("UIView", "UIButtonDown")) accept = true;
+		return accept;
+	},
+
 	init : function(){
 		var self = this,
 			o = this.options;
@@ -148,7 +178,6 @@ Native.elements.export("UIDropDownController", {
 				className = OptionalString(o.class, ""),
 				value = OptionalValue(o.value, ""),
 				color = OptionalValue(o.color, "#555555"),
-				selected = OptionalBoolean(o.selected, false),
 				disabled = OptionalBoolean(o.disabled, false);
 
 			if (selected) {

@@ -189,7 +189,7 @@ Native.layout = {
 						var z = elements[i],
 							state = st[j];
 
-						if (z[state]) checked++;
+						if (z && z[state]) checked++;
 					}
 					if (checked == st.length) temp.push(elements[i]);
 				}

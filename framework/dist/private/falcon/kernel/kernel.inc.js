@@ -171,7 +171,10 @@ Native.object = {
 
 	addChild : function addChild(element){
 		if (!isDOMElement(element)) return false;
-		print("addChild("+element._uid+")" + " ("+element.left+", "+element.top+", "+element.width+", "+element.height+")", this);
+
+		/* fire the onAddChildRequest event */
+		if (this.onAddChildRequest.call(this, element) === false) return false;
+
 
 		this.nodes.push(element);
 
@@ -183,7 +186,12 @@ Native.object = {
 
 		Native.layout.init(element);
 
+		/* fire the new element's onAdoption event */
 		element.onAdoption.call(element, this);
+
+		/* fire the element's parent onChild event */
+		this.onChildReady.call(this, element);
+
 		element.updateAncestors();
 		Native.layout.update();
 

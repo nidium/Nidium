@@ -550,6 +550,9 @@ DOMElement.prototype = {
 	/* -- user customisable methods -- */
 
 	onAdoption : function(parent){},
+	onAddChildRequest : function(child){},
+	onChildReady : function(child){},
+
 	update : function(context){},
 	draw : function(context){}
 };
