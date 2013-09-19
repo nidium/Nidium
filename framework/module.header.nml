@@ -1,0 +1,8 @@
+<section id="top" class="hide">
+	<UIView>
+		<UILabel>My Delicous App</UILabel>
+	</UIView>
+	<UIView id="john" class="doe">
+		<UIImage class="logo"/>
+	</UIView>
+</section>

@@ -9,10 +9,9 @@ uniform int param;
 uniform sampler2D texture;
 
 vec2 texCoord = gl_TexCoord[0].st;
-float fdata = float(data)/10.;
+float f = float(data)/10.;
 float h = 1. - float(param)/500.;
-
-vec2 amount = vec2(fdata, fdata);
+vec2 amount = vec2(f, f);
 
 void main(){
 	vec4 c = vec4(0.0);
