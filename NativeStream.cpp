@@ -46,7 +46,7 @@ static struct _native_stream_interfaces {
 NativeStream::NativeStream(ape_global *net,
     const char *location, const char *prefix) :
     packets(0), needToSendUpdate(false), m_autoClose(true),
-    m_fileSize(0), m_knownSize(false)
+    m_buffered(0), m_fileSize(0), m_knownSize(false)
 {
     this->interface = NULL;
     int len = 0;
@@ -83,6 +83,8 @@ NativeStream::NativeStream(ape_global *net,
 
 void NativeStream::clean()
 {
+    m_buffered = 0;
+
     dataBuffer.alreadyRead = true;
     dataBuffer.fresh = true;
     dataBuffer.ended = false;
@@ -601,6 +603,8 @@ void NativeStream::onProgress(size_t offset, size_t len,
 {
     if (!this->delegate) return;
 
+    m_buffered += len;
+
     if (mapped.fd) {
         NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
         ssize_t written = 0;
@@ -628,6 +632,8 @@ void NativeStream::onProgress(size_t offset, size_t len,
         dataBuffer.back->used = dataBuffer.back->size;
 
         mapped.idx += written;
+
+        this->delegate->onProgress(m_buffered, m_fileSize);
 
         /*
             If our backbuffer contains enough data,

@@ -164,6 +164,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         bool m_autoClose;
         void swapBuffer();
 
+        size_t m_buffered;
         size_t m_fileSize;
         bool m_knownSize;
 };
@@ -175,7 +176,8 @@ class NativeStreamDelegate
         virtual void onError(NativeStream::StreamError err)=0;
         //virtual void onStreamRead()=0;
         //virtual void onStreamEnd()=0;
-        virtual void onAvailableData(size_t len)=0;
+        virtual void onProgress(size_t buffered, size_t len)=0;
+        virtual void onAvailableData(size_t total)=0;
 };
 
 #endif
