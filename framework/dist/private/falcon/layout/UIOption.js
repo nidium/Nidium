@@ -57,7 +57,9 @@ Native.elements.export("UIOption", {
 		);
 
 		if (this.selected || this.hover) {
-			if (!this.disabled) {
+			if (this.disabled) {
+				gradient = null;
+			} else {
 				gradient = this.parent.parent.selectedBackground;
 			}
 		} else {
@@ -68,6 +70,8 @@ Native.elements.export("UIOption", {
 			} if (this.disabled) {
 				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.10)');
 				gradient.addColorStop(0.10, 'rgba(128, 128, 128, 0.05)');
+			} else {
+				gradient = null;
 			}
 		}
 

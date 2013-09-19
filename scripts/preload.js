@@ -32,7 +32,7 @@ dans le vague, il faut les ramener dans la réalité des faits : la pratique les
 tue.
 */
 
-document.body = Native.canvas;
+document.body = window.canvas;
 
 document.createElement = function(type){
 	switch (type){

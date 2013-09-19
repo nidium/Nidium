@@ -23,6 +23,7 @@
             '<(third_party_path)/skia/include/effects',
             '<(third_party_path)/skia/include/utils/mac',
             '<(third_party_path)/skia/include/lazy',
+            '<(third_party_path)/leveldb/include',
             '<(native_interface_path)/',
             '<(native_nativejscore_path)/',
             '<(native_network_path)/',
@@ -138,7 +139,8 @@
 		    '<(native_src_path)/NativeJSConsole.cpp',
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',
-            '<(native_src_path)/NativeContext.cpp'
+            '<(native_src_path)/NativeContext.cpp',
+            '<(native_src_path)/NativeDB.cpp',
         ],
     }],
 }

@@ -10,7 +10,8 @@
 #include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
-    net(net), stream(NULL), relativePath(NULL), nassets(0), njs(NULL)
+    net(net), stream(NULL), relativePath(NULL), nassets(0),
+    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL)
 {
     assetsList.size = 0;
     assetsList.allocated = 4;
@@ -20,10 +21,15 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.title = NULL;
     this->meta.size.width = 0;
     this->meta.size.height = 0;
+    this->meta.identifier = NULL;
 }
 
 NativeNML::~NativeNML()
 {
+    if (m_JSObjectLayout) {
+        JS_RemoveObjectRoot(this->njs->cx, &m_JSObjectLayout);
+        m_JSObjectLayout = NULL;
+    }
     if (relativePath) {
         if (this->njs) {
             this->njs->setPath(NULL);
@@ -73,10 +79,6 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     tag.content.len = len;
     tag.content.isBinary = false;
 
-    if (njs == NULL) {
-
-    }
-
     switch(item->fileType) {
         case NativeAssets::Item::ITEM_SCRIPT:
         {
@@ -116,7 +118,9 @@ void NativeNML::onAssetsBlockReady(NativeAssets *asset)
     this->nassets--;
 
     if (this->nassets == 0) {
-        NativeJSwindow::getNativeClass(njs)->onReady();
+        NativeJSwindow::getNativeClass(njs)->onReady(m_JSObjectLayout);
+        JS_RemoveObjectRoot(njs->cx, &m_JSObjectLayout);
+        m_JSObjectLayout = NULL;
     }
 }
 
@@ -178,6 +182,18 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
                 return NIDIUM_XML_ERR_VIEWPORT_SIZE;
             }
             this->meta.size.height = height;
+        } else if (strncasecmp(child->name(), "identifier", 10) == 0) {
+            if (child->value_size() > 128) {
+                return NIDIUM_XML_ERR_IDENTIFIER_TOOLONG;
+            }
+            if (this->meta.identifier)
+                free(this->meta.identifier);
+
+            this->meta.identifier = (char *)malloc(sizeof(char) *
+                (child->value_size() + 1));
+
+            memcpy(this->meta.identifier, child->value(), child->value_size());
+            this->meta.identifier[child->value_size()] = '\0';
         }
     }
 
@@ -237,12 +253,16 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
     return NIDIUM_XML_OK;
 }
 
+NativeNML::nidium_xml_ret_t NativeNML::loadLayout(rapidxml::xml_node<> &node)
+{
+    m_Layout = node.document()->clone_node(&node);
 
-bool NativeNML::loadData(char *data, size_t len)
+    return NIDIUM_XML_OK;
+}
+
+bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 {
     using namespace rapidxml;
-
-    xml_document<> doc;
 
     try {
         doc.parse<0>(data);
@@ -259,8 +279,7 @@ bool NativeNML::loadData(char *data, size_t len)
     }
 
     for (xml_node<> *child = node->first_node(); child != NULL;
-        child = child->next_sibling())
-    {
+        child = child->next_sibling()) {
         for (int i = 0; nml_tags[i].str != NULL; i++) {
             if (!strncasecmp(nml_tags[i].str, child->name(),
                 child->name_size())) {
@@ -278,9 +297,65 @@ bool NativeNML::loadData(char *data, size_t len)
     return true;
 }
 
+/*
+    <canvas>
+        <next></next>   
+    </canvas>
+    <foo></foo>
+*/
+JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
+{
+#define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+#define NODE_STR(data, len) STRING_TO_JSVAL(JS_NewStringCopyN(cx, \
+        (const char *)data, len))
+
+    using namespace rapidxml;
+    JSContext *cx = this->njs->cx;
+
+    JS::RootedObject input(cx, JS_NewArrayObject(cx, 0, NULL));
+
+    uint32_t idx = 0;
+    for (xml_node<> *child = node.first_node(); child != NULL;
+        child = child->next_sibling()) {
+
+        /* obj */
+        JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
+
+        /* obj.type */
+        NODE_PROP(obj, "type", NODE_STR(child->name(), child->name_size()));
+
+        /* obj.attributes */
+        JS::RootedObject obj_attr(cx, JS_NewObject(cx, NULL, NULL, NULL));
+        NODE_PROP(obj, "attributes", OBJECT_TO_JSVAL(obj_attr.get()));
+        for (xml_attribute<> *attr = child->first_attribute(); attr != NULL;
+            attr = attr->next_attribute()) {
+            NODE_PROP(obj_attr, attr->name(), NODE_STR(attr->value(), attr->value_size()));
+        }
+
+        /* obj.children */
+        JS::RootedObject obj_children(cx, this->buildLayoutTree(*child));
+        NODE_PROP(obj, "children", OBJECT_TO_JSVAL(obj_children.get()));
+
+        /* push to input array */
+        jsval jobj = OBJECT_TO_JSVAL(obj);
+        JS_SetElement(cx, input, idx++, &jobj);
+    }
+    return input;
+#undef NODE_PROP
+}
+
 void NativeNML::onGetContent(const char *data, size_t len)
 {
-    if (this->loadData((char *)data, len)) {
+    rapidxml::xml_document<> doc;
+
+    if (this->loadData((char *)data, len, doc)) {
         this->loaded(this->loaded_arg);
     }
+
+    m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
+    JS_AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
+
+    /* Invalidate layout node since memory pool is free'd */
+    m_Layout = NULL;
 }

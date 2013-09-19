@@ -47,6 +47,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         struct {
             uint32_t uniformOpacity;
             uint32_t uniformResolution;
+            uint32_t uniformPosition;
+            uint32_t uniformPadding;
         } shader;
 
         void clear(uint32_t color);
@@ -65,6 +67,8 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         void translate(double x, double y);
         
         uint32_t attachShader(const char *string);
+        void detachShader();
+
         bool hasShader() const {
             return (gl.program != 0);
         }
@@ -85,6 +89,7 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         uint32_t createProgram(const char *data);
         uint32_t compileShader(const char *data, int type);
 
+
         static void registerObject(JSContext *cx);
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
@@ -96,12 +101,15 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         ~NativeCanvas2DContext();
     private:
         void initCopyTex();
+        uint32_t compileCoopFragmentShader();
+        char *genModifiedFragmentShader(const char *data);
         void drawTexToFBO(uint32_t textureID);
         void drawTexIDToFBO(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
-        void setupShader(float opacity);
+        void setupShader(float opacity, int width, int height,
+            int left, int top, int wWidth, int wHeight);
         NativeCanvasHandler *handler;
 };
 

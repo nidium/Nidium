@@ -1,7 +1,5 @@
 /*
 	Today :
-		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
-		- shader ne suit pas le coin haut gauche du layer
 		- faire que attachFragmentShader tiennent compte du padding
 
 	CANVAS :
@@ -27,20 +25,24 @@
 				t.src = "http://www.hackers.com/content="+URLencode(e.data);
 			});
 
+	IMPACT SIGNIFICATIF SUR LE FRAMEWORK :
+		- outline
+
+
+	API FILE :
+		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
+
 	CRASH :
 		- bug des gradients (crash)
 		- thread crash
 		- showFPS(true) crash au refresh
 
 	STRAIGHTFORWAD
-		- outline
 		- subtlepatterns.com (contacter et rajouter crédit)
-
 
 	THREADS AND WORKER
 		- Synchronous File API in Thread
 		- API Worker + rajouter console+include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
-
 
 	COMPLEXE
 		- scale
@@ -56,6 +58,10 @@
 ------
 DONE :
 ------
+
+	DAY 4:
+	- Work with Nico : crash au start sur linux (maybe font / skia)
+	- shader ne suit pas le coin haut gauche du layer
 
 	DAY 3:
 	- Stream API: getFileSize (distant + locaux)
@@ -86,7 +92,7 @@ DONE :
 
 */
 
-document.background = "#ffffff";
+//document.background = "#000000";
 //load("sample.js");
 
 //load("applications/_tests/timers.js");
@@ -122,7 +128,7 @@ document.background = "#ffffff";
 //load("applications/canvas/sand.js");
 //load("applications/canvas/bluewheel.js"); // fail
 //load("applications/canvas/cube.js"); // chute de perf VS premières versions 
-//load("applications/canvas/cubewall.js"); // RAS
+load("applications/canvas/cubewall.js"); // RAS
 //load("applications/canvas/flamme.js"); // OK
 //load("applications/canvas/particles.js"); // slow
 //load("applications/canvas/text.js"); // OK
@@ -185,4 +191,3 @@ document.background = "#ffffff";
 /* -- Native Debugger ------------------ */
 
 //load("applications/NatBug.nap");
-

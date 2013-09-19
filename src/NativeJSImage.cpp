@@ -2,7 +2,6 @@
 #include "NativeSkImage.h"
 #include "NativeJS.h"
 #include "NativeSkia.h"
-#include "NativeNML.h"
 #include <string.h>
 
 JSObject *NativeJSImage::classe = NULL;

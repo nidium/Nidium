@@ -8,14 +8,14 @@ class NativeSystem;
 class NativeSystemInterface
 {
     public:
-        static NativeSystemInterface *_interface;
-
         virtual float backingStorePixelRatio()=0;
+        virtual const char *getCacheDirectory()=0;
 
         static NativeSystemInterface* getInstance()
         {
             return NativeSystemInterface::_interface;
         }
+        static NativeSystemInterface *_interface;
     private:
         void operator=(NativeSystem const&);
     protected:
