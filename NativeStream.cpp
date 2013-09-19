@@ -45,7 +45,7 @@ static struct _native_stream_interfaces {
 
 NativeStream::NativeStream(ape_global *net,
     const char *location, const char *prefix) :
-    packets(0), needToSendUpdate(false), m_autoClose(false),
+    packets(0), needToSendUpdate(false), m_autoClose(true),
     m_fileSize(0), m_knownSize(false)
 {
     this->interface = NULL;
