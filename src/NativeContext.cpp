@@ -42,6 +42,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     this->initHandlers(width, height);
 
+    printf("Init JS\n");
     this->njs = new NativeJS(net);
     this->njs->setPrivate(this);
 

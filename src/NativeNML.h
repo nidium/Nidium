@@ -9,6 +9,7 @@
 
 class NativeNML;
 class NativeJS;
+class JSObject;
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
@@ -36,6 +37,7 @@ class NativeNML : public NativeStreamDelegate
 
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
+    nidium_xml_ret_t loadLayout(rapidxml::xml_node<> &node);
 
     void onAssetsItemReady(NativeAssets::Item *item);
     void onAssetsBlockReady(NativeAssets *asset);
@@ -59,6 +61,16 @@ class NativeNML : public NativeStreamDelegate
     const char *getPath() const {
         return this->relativePath;
     }
+
+    rapidxml::xml_node<> *getLayout() const {
+        return m_Layout;
+    }
+
+    JSObject *getJSObjectLayout() const {
+        return m_JSObjectLayout;
+    }
+
+    JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
     /*
     void onNFIOOpen(NativeFileIO *);
     void onNFIOError(NativeFileIO *, int errno){};
@@ -68,7 +80,7 @@ class NativeNML : public NativeStreamDelegate
     void setNJS(NativeJS *js);
 
     private:
-    bool loadData(char *data, size_t len);
+    bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(NativeAssets *);
     ape_global *net;
     NativeStream *stream;
@@ -79,9 +91,10 @@ class NativeNML : public NativeStreamDelegate
         const char *str;
         tag_callback cb; // Call : (this->*cb)()
         bool unique;
-    } nml_tags[3] = {
+    } nml_tags[4] = {
         {"assets",   &NativeNML::loadAssets, false},
         {"meta", &NativeNML::loadMeta, true},
+        {"layout", &NativeNML::loadLayout, true},
         {NULL,       NULL, false}
     };
 
@@ -105,6 +118,9 @@ class NativeNML : public NativeStreamDelegate
     } assetsList;
     NMLLoadedCallback loaded;
     void *loaded_arg;
+
+    rapidxml::xml_node<> *m_Layout;
+    JSObject *m_JSObjectLayout;
 };
 
 

@@ -101,15 +101,18 @@ NativeJSwindow::~NativeJSwindow(){
         delete m_Db;
 };
 
-void NativeJSwindow::onReady()
+void NativeJSwindow::onReady(JSObject *layout)
 {
-    jsval onready, rval;
+    jsval onready, rval, arg[1];
+    JS::RootedObject rlayout(cx, layout);
+
+    arg[0] = OBJECT_TO_JSVAL(rlayout);
 
     if (JS_GetProperty(cx, this->jsobj, "_onready", &onready) &&
         !JSVAL_IS_PRIMITIVE(onready) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onready))) {
 
-        JS_CallFunctionValue(cx, this->jsobj, onready, 0, NULL, &rval);
+        JS_CallFunctionValue(cx, this->jsobj, onready, 1, arg, &rval);
     }
 }
 
@@ -673,7 +676,7 @@ void NativeJSwindow::initDataBase()
     if (m_Db->ok()) {
         this->createStorage();
     } else {
-        printf("[Storage] Unable to create database for window.storage %d\n", m_Db->ok());
+        printf("[Storage] Unable to create database for window.storage");
     }
 }
 

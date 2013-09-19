@@ -38,7 +38,7 @@ var source = [
 
 
 var t = 0,
-	program = main.layer.context.attachGLSLFragment(source),
+	program = main.layer.context.attachFragmentShader(source),
 	itime = program.getUniformLocation("itime");
 
 setInterval(function(){

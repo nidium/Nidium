@@ -1791,14 +1791,11 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
         printf("got a gl error %d\n", err);
     }
 
-    //glViewport(0, 0, gl.textureWidth, gl.textureHeight);
     /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT | GL_SCISSOR_BIT);
+    glPushAttrib(GL_VIEWPORT_BIT);
 
     /* set the viewport with the texture size */
     glViewport(left, (float)size.fHeight-(height+top), width, height);
-    //glEnable(GL_SCISSOR_TEST);
-    //glScissor(left, (float)size.fHeight-(height+top), width, height);
 
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -2000,6 +1997,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             /* get the layer's Texture ID */
             uint32_t textureID = layer->getSkiaTextureID(&width, &height);
+            printf("Texture : %d\n", textureID);
 #if 0
             /* Use our custom shader */
             glUseProgram(0);

@@ -7,6 +7,10 @@
 NativeDB::NativeDB(const char *name) :
     m_Database(NULL), m_Status(false)
 {
+    if (name == NULL) {
+        m_Status = false;
+        return;
+    }
     leveldb::Options options;
 
     const char *dir = NativeSystemInterface::getInstance()->getCacheDirectory();
@@ -18,8 +22,6 @@ NativeDB::NativeDB(const char *name) :
 
     leveldb::Status status = leveldb::DB::Open(options, sdir.c_str(), &m_Database);
     m_Status = status.ok();
-
-    printf("Creating DB at : %s %d\n", sdir.c_str(), m_Status);
 }
 
 bool NativeDB::insert(const char *key, const uint8_t *data, size_t data_len)
