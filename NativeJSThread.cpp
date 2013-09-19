@@ -230,7 +230,7 @@ void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     struct native_thread_msg *ptr;
     int ev;
-    char prop[10];
+    char prop[16];
 
     jsval jscbk, jevent, rval;
     JSObject *event;
@@ -238,34 +238,38 @@ void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
     ptr = static_cast<struct native_thread_msg *>(msg->dataPtr());
     ev = msg->event();
 
+    memset(prop, 0, sizeof(prop));
+
     if (ev == NATIVE_THREAD_MESSAGE) {
         strcpy(prop, "onmessage");
     } else if (ev == NATIVE_THREAD_COMPLETE) {
         strcpy(prop, "oncomplete");
     }
 
+    jsval inval = JSVAL_NULL;
+
+    if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+
+        printf("Failed to read input data (readMessage)\n");
+
+        delete ptr;
+        return;
+    }
+
     if (JS_GetProperty(cx, ptr->callee, prop, &jscbk) &&
         !JSVAL_IS_PRIMITIVE(jscbk) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
-
-        jsval inval = JSVAL_NULL;
-
-        if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
-            JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
-
-            printf("Failed to read input data (readMessage)\n");
-
-            delete ptr;
-            return;
-        }
 
         event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
 
         EVENT_PROP("data", inval);
 
         jevent = OBJECT_TO_JSVAL(event);
-        JS_CallFunctionValue(cx, event, jscbk, 1, &jevent, &rval);          
+        JS_CallFunctionValue(cx, event, jscbk, 1, &jevent, &rval);
+
     }
+    JS_ClearStructuredClone(ptr->data, ptr->nbytes);
 
     delete ptr;
 #undef EVENT_PROP
@@ -324,18 +328,22 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     size_t nbytes;
     NativeJSThread *nthread = (NativeJSThread *)JS_GetContextPrivate(cx);
 
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    NATIVE_CHECK_ARGS("postMessage", 1);
+
     if (nthread == NULL || nthread->markedStop) {
-        printf("thread.send() Could not retrieve thread (or marked for stopping)\n");
-        return JS_TRUE;
+        JS_ReportError(cx, "thread.send() Could not retrieve thread (or marked for stopping)");
+        return false;
     }
 
     struct native_thread_msg *msg;
 
     if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
         NULL, NULL, JSVAL_VOID)) {
-        printf("Failed to write strclone\n");
+        JS_ReportError(cx, "Failed to write strclone");
         /* TODO: exception */
-        return JS_TRUE;
+        return false;
     }
 
     msg = new struct native_thread_msg;

@@ -98,34 +98,30 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FS_END
 };
 
+
 void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
-    int i, j, k, n;
-    char *prefix, *tmp;
-    const char *ctmp;
 
-    prefix = NULL;
+    FILE *file = stdout;
+
+    NativeJS *js = NativeJS::getNativeClass(cx);
     
     if (!report) {
-        fprintf(stdout, "%s\n", message);
-        goto out;
+        js->logf("%s\n", message);
+        return;
     }
 
-    /* Conditionally ignore reported warnings. */
-    /*if (JSREPORT_IS_WARNING(report->flags) && !reportWarnings)
-        return;*/
-
-    prefix = NULL;
+    char *prefix = NULL;
     if (report->filename)
         prefix = JS_smprintf("%s:", report->filename);
     if (report->lineno) {
-        tmp = prefix;
-        prefix = JS_smprintf("%s%u: ", tmp ? tmp : "", report->lineno);
+        char *tmp = prefix;
+        prefix = JS_smprintf("%s%u:%u ", tmp ? tmp : "", report->lineno, report->column);
         JS_free(cx, tmp);
     }
     if (JSREPORT_IS_WARNING(report->flags)) {
-        tmp = prefix;
+        char *tmp = prefix;
         prefix = JS_smprintf("%s%swarning: ",
                              tmp ? tmp : "",
                              JSREPORT_IS_STRICT(report->flags) ? "strict " : "");
@@ -133,76 +129,62 @@ reportError(JSContext *cx, const char *message, JSErrorReport *report)
     }
 
     /* embedded newlines -- argh! */
+    const char *ctmp;
     while ((ctmp = strchr(message, '\n')) != 0) {
         ctmp++;
         if (prefix)
-            fputs(prefix, stdout);
-        fwrite(message, 1, ctmp - message, stdout);
+            js->logf("%s", prefix);
+
+        char *tmpwrite = (char *)malloc((ctmp - message)+1);
+        memcpy(tmpwrite, message, ctmp - message);
+        tmpwrite[ctmp - message] = '\0';
+        js->logf("%s", tmpwrite);
+        free(tmpwrite);
+
         message = ctmp;
     }
 
     /* If there were no filename or lineno, the prefix might be empty */
     if (prefix)
-        fputs(prefix, stdout);
-    fputs(message, stdout);
+        js->logf("%s", prefix);
+    js->logf("%s", message);
 
-    if (!report->linebuf) {
-        fputc('\n', stdout);
-        goto out;
-    }
-
-    /* report->linebuf usually ends with a newline. */
-    n = strlen(report->linebuf);
-    fprintf(stdout, ":\n%s%s%s%s",
-            prefix,
-            report->linebuf,
-            (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
-            prefix);
-    n = report->tokenptr - report->linebuf;
-    for (i = j = 0; i < n; i++) {
-        if (report->linebuf[i] == '\t') {
-            for (k = (j + 8) & ~7; j < k; j++) {
-                fputc('.', stdout);
+    if (report->linebuf) {
+        /* report->linebuf usually ends with a newline. */
+        int n = strlen(report->linebuf);
+        js->logf(":\n%s%s%s%s",
+                prefix,
+                report->linebuf,
+                (n > 0 && report->linebuf[n-1] == '\n') ? "" : "\n",
+                prefix);
+        n = report->tokenptr - report->linebuf;
+        for (int i = 0, j = 0; i < n; i++) {
+            if (report->linebuf[i] == '\t') {
+                for (int k = (j + 8) & ~7; j < k; j++) {
+                    js->logf("%c", '.');
+                }
+                continue;
             }
-            continue;
+            js->logf("%c", '.');
+            j++;
         }
-        fputc('.', stdout);
-        j++;
+        js->logf("%c", '^');
     }
-    fputs("^\n", stdout);
- out:
+    js->logf("%c", '\n');
     fflush(stdout);
-    if (!JSREPORT_IS_WARNING(report->flags)) {
-    /*
-        if (report->errorNumber == JSMSG_OUT_OF_MEMORY) {
-            gExitCode = EXITCODE_OUT_OF_MEMORY;
-        } else {
-            gExitCode = EXITCODE_RUNTIME_ERROR;
-        }*/
-    }
     JS_free(cx, prefix);
+}
 
-    // Dump the stack trace
-    char *buf;
-    buf = JS::FormatStackDump(cx, NULL, true, false, false);
-    printf("%s\n", buf);
-#if 0
-    JS::StackDescription *stack = JS::DescribeStack(cx, 10);
-    for (int f = 0; f < stack->nframes; f++) {
-        JS::FrameDescription frame = stack->frames[f];
-        char *cname = NULL;
-        
-        if (frame.fun) {
-            JSString *funName = JS_GetFunctionDisplayId(frame.fun);
-            cname = JS_EncodeString(cx, funName);
-        }
-
-        printf("%s (%s:%d)\n", cname ? cname : "<NativeFunction>", JS_GetScriptFilename(cx, frame.script), frame.lineno);
-
-        JS_free(cx, cname);
+void NativeJS::logf(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    if (m_vLogger == NULL) {
+        vprintf(format, args);
+    } else {
+        m_vLogger(format, args);
     }
-    JS::FreeStackDescription(cx, stack);
-#endif
+    va_end(args);
 }
 
 char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
@@ -322,7 +304,8 @@ NativeJS *NativeJS::getNativeClass(JSContext *cx)
     return ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
-NativeJS::NativeJS(ape_global *net)
+NativeJS::NativeJS(ape_global *net) :
+    m_Logger(NULL), m_vLogger(NULL)
 {
     JSRuntime *rt;
     JSObject *gbl;
@@ -777,7 +760,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
-    js::RootedObject rgbl(cx, modules->globalScope);
+    js::RootedObject rgbl(cx, gbl);
 
     JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
@@ -808,7 +791,7 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
     oldopts = JS_GetOptions(cx);
 
     if (gbl == NULL) {
-        gbl = modules->globalScope;
+        gbl = JS_GetGlobalObject(cx);
     } else {
         // Specific options for modules
         // We don't want that modules define all of their global
@@ -817,6 +800,7 @@ int NativeJS::LoadScript(const char *filename, JSObject *gbl)
         // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetOptions
         oldopts &= ~JSOPTION_VAROBJFIX;
     }
+    gbl = JS_GetGlobalObject(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
     JS::CompileOptions options(cx);

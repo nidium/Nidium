@@ -351,7 +351,6 @@ void NativeHTTP::headerEnded()
         }
     }
 
-    printf("Status code : %d\n", http.parser.status_code);
     switch (http.parser.status_code/100) {
         case 1:
         case 2:
@@ -476,7 +475,6 @@ NativeHTTP::~NativeHTTP()
 {
     if (currentSock != NULL) {
         currentSock->ctx = NULL;
-
         APE_socket_shutdown_now(currentSock);
     }
 

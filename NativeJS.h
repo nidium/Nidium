@@ -53,6 +53,9 @@ typedef void (*native_thread_message_t)(JSContext *cx, NativeSharedMessages::Mes
 class NativeJS
 {
     public:
+        typedef void (*logger)(const char *format);
+        typedef void (*vlogger)(const char *format, va_list ap);
+
         NativeJS(ape_global *net);
         ~NativeJS();
 
@@ -86,6 +89,13 @@ class NativeJS
             return this->shutdown;
         }
 
+        void setLogger(logger lfunc) {
+            m_Logger = lfunc;
+        }
+        void setLogger(vlogger lfunc) {
+            m_vLogger = lfunc;
+        }
+
         void loadGlobalObjects();
         
         static char *buildRelativePath(JSContext *cx, const char *file = NULL);
@@ -107,11 +117,19 @@ class NativeJS
         int registerMessage(native_thread_message_t cbk);
         void registerMessage(native_thread_message_t cbk, int id);
         void postMessage(void *dataPtr, int ev);
-    private:   
+
+        void logf(const char *format, ...);
+    private:
         NativeJSModules *modules;
         void *privateslot;
         bool shutdown;
         const char *relPath;
+
+        /* argument list (...) */
+        logger m_Logger;
+
+        /* va_list argument */
+        vlogger m_vLogger;
 };
 
 #endif
