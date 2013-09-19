@@ -3,13 +3,10 @@ precision mediump float;
 #endif
 
 uniform vec2 n_Resolution;
-uniform vec2 n_Position;
-uniform float n_Opacity;
 
 uniform sampler2D text;
 
 vec2 resolution = n_Resolution;
-vec2 FragCoord = vec2(gl_FragCoord.x-n_Position.x, gl_FragCoord.y-n_Position.y);
 vec2 screen = vec2(320, 200);
 
 
@@ -18,9 +15,9 @@ vec2 screen = vec2(320, 200);
 #define PI 3.141592653589
 
 #define phase 0.0
-#define inputGamma 2.2
-#define outputGamma 2.0
-#define distortion 0.2
+#define inputGamma 2.0
+#define outputGamma 0.8
+#define distortion 0.5
 
 vec2 radialDistortion(vec2 coord) {
 	coord *= screen / screen;
@@ -30,13 +27,13 @@ vec2 radialDistortion(vec2 coord) {
 }
 		
 vec4 scanlineWeights(float distance, vec4 color) {
-	vec4 wid = 2.0 + 2.0 * pow(color, vec4(4.0));
+	vec4 wid = 1.0 + 2.0 * pow(color, vec4(4.0));
 	vec4 weights = vec4(distance * 3.333333);
 	return 0.51 * exp(-pow(weights * sqrt(2.0 / wid), wid)) / (0.18 + 0.06 * wid);
 }
 		
 void main() {
-	vec2 p = FragCoord.xy / resolution.xy;
+	vec2 p = gl_FragCoord.xy / resolution.xy;
 	vec2 one = 1.0 / screen;
 
 	vec2 xy = radialDistortion(p.xy);
@@ -71,5 +68,5 @@ void main() {
 
 	mul_res = pow(mul_res, vec3(1.0 / (2.0 * inputGamma - outputGamma)));
 	
-	gl_FragColor = vec4(mul_res, 0.9)*n_Opacity;
+	gl_FragColor = vec4(mul_res, 1.2);
 }
