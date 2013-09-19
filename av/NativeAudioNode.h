@@ -333,6 +333,8 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         int initInternal();
         void seek(double time);
 
+        void onProgress(size_t buffered, size_t len) {};
+
         int avail();
         bool buffer();
         void buffer(AVPacket *pkt);

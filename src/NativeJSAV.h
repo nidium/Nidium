@@ -22,7 +22,8 @@ enum {
     VIDEO_PROP_CANVAS,
     SOURCE_PROP_POSITION,
     SOURCE_PROP_DURATION,
-    SOURCE_PROP_METADATA
+    SOURCE_PROP_METADATA,
+    SOURCE_PROP_BITRATE
 };
 
 class NativeJS;
@@ -30,14 +31,12 @@ class NativeJSAudioNode;
 
 struct NativeJSAVMessageCallback {
     JSObject *callee;
-    const char *prop;
-    int *value;
+    int ev;
+    int arg1;
+    int arg2;
 
-    NativeJSAVMessageCallback(JSObject *callee, const char *prop, int *value)
-        : callee(callee), prop(prop), value(value) {};
-    ~NativeJSAVMessageCallback() {
-        delete value;
-    }
+    NativeJSAVMessageCallback(JSObject *callee, int ev, int arg1, int arg2)
+        : callee(callee), ev(ev), arg1(arg1), arg2(arg2) {};
 };
 
 class NativeJSAVSource

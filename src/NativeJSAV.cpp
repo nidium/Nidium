@@ -175,6 +175,10 @@ static JSPropertySpec AudioNodeSource_props[] = {
         JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
         JSOP_WRAPPER(native_audionode_source_prop_getter), 
         JSOP_NULLWRAPPER},
+     {"bitrate", SOURCE_PROP_BITRATE, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_audionode_source_prop_getter), 
+        JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -236,6 +240,10 @@ static JSPropertySpec Video_props[] = {
         JSOP_WRAPPER(native_video_prop_getter), 
         JSOP_NULLWRAPPER},
     {"metadata", SOURCE_PROP_METADATA, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_video_prop_getter), 
+        JSOP_NULLWRAPPER},
+     {"bitrate", SOURCE_PROP_BITRATE, 
         JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
         JSOP_WRAPPER(native_video_prop_getter), 
         JSOP_NULLWRAPPER},
@@ -641,21 +649,13 @@ void NativeJSAudioNode::eventCbk(const struct NativeAVSourceEvent *cev)
 {
     NativeJSAudioNode *thiz;
     NativeJSAVMessageCallback *ev;
-    int *value;
     const char *prop;
 
     thiz = static_cast<NativeJSAudioNode *>(cev->custom);
-    value = cev->value;
-    prop = NativeJSAVEventRead(cev->ev);
-
-    if (!prop) {
-        delete cev->value;
-        delete cev;
-    }
 
     // FIXME : use cev->fromThread to avoid posting message 
     // if message is comming from main thread
-    ev = new NativeJSAVMessageCallback(thiz->jsobj, prop, value);
+    ev = new NativeJSAVMessageCallback(thiz->jsobj, cev->ev, cev->value1, cev->value2);
     
     thiz->njs->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
 
@@ -1563,23 +1563,14 @@ void NativeJSVideo::eventCbk(const struct NativeAVSourceEvent *cev)
 {
     NativeJSVideo *thiz;
     NativeJSAVMessageCallback *ev;
-    int *value;
     const char *prop;
     thiz = static_cast<NativeJSVideo *>(cev->custom);
 
     NativeJS *njs = NativeJS::getNativeClass(thiz->cx);
-    value = cev->value;
-    prop = NativeJSAVEventRead(cev->ev);
-
-    if (!prop) {
-        delete cev->value;
-        delete cev;
-    }
-
     // TODO : use cev->fromThread to avoid posting message 
     // if message is comming from main thread
 
-    ev = new NativeJSAVMessageCallback(thiz->jsobj, prop, value);
+    ev = new NativeJSAVMessageCallback(thiz->jsobj, cev->ev, cev->value1, cev->value2);
     
     njs->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
 
@@ -1814,6 +1805,9 @@ void NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, int id,
         case SOURCE_PROP_DURATION:
             vp.setDouble(source->getDuration());
         break;
+        case SOURCE_PROP_BITRATE:
+            vp.setInt32(source->getBitrate());
+        break;
         case SOURCE_PROP_METADATA:
         {
             AVDictionaryEntry *tag = NULL;
@@ -1845,22 +1839,36 @@ void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
     jsval jscbk, rval;
 
     NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg->dataPtr());
-    if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &jscbk) &&
+
+    const char *prop = NativeJSAVEventRead(cmsg->ev);
+    if (!prop) {
+        delete cmsg;
+        return;
+    }
+
+    if (JS_GetProperty(cx, cmsg->callee, prop, &jscbk) &&
         !JSVAL_IS_PRIMITIVE(jscbk) &&
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
-        jsval event[2];
 
-        if (cmsg->value != NULL) {
-            // Only errors have value
-            const char *errorStr = NativeAVErrorsStr[*cmsg->value];
-            event[0] = INT_TO_JSVAL(*cmsg->value);
+        if (cmsg->ev == SOURCE_EVENT_ERROR) {
+            const char *errorStr = NativeAVErrorsStr[cmsg->arg1];
+            jsval event[2];
+
+            event[0] = INT_TO_JSVAL(cmsg->arg1);
             event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
+
+            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
+        } else if (cmsg->ev == SOURCE_EVENT_BUFFERING) {
+            jsval event[2];
+
+            event[0] = INT_TO_JSVAL(cmsg->arg1);
+            event[1] = INT_TO_JSVAL(cmsg->arg2);
+
+            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
         } else {
-            event[0] = JSVAL_NULL;
-            event[1] = JSVAL_NULL;
+            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 0, NULL, &rval);
         }
         
-        JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
     }
     delete cmsg;
 }
