@@ -45,7 +45,7 @@ static struct _native_stream_interfaces {
 
 NativeStream::NativeStream(ape_global *net,
     const char *location, const char *prefix) :
-    packets(0), needToSendUpdate(false), autoClose(true),
+    packets(0), needToSendUpdate(false), m_autoClose(false),
     m_fileSize(0), m_knownSize(false)
 {
     this->interface = NULL;
@@ -74,6 +74,7 @@ NativeStream::NativeStream(ape_global *net,
 
     mapped.addr = NULL;
     mapped.fd   = 0;
+    mapped.idx = 0;
     mapped.size = 0;
 
     this->getInterface();
@@ -87,23 +88,37 @@ void NativeStream::clean()
     dataBuffer.ended = false;
 
     if (mapped.addr) {
-        /* TODO: wrong size */
-        munmap(mapped.addr, this->getPacketSize());
+        munmap(mapped.addr, mapped.size);
         free(dataBuffer.back);
         free(dataBuffer.front);
     } else if (dataBuffer.back) {
         buffer_destroy(dataBuffer.back);
         buffer_destroy(dataBuffer.front);
     }
+
     if (mapped.fd) {
         printf("Stream closed\n");
         close(mapped.fd);
     }
+
     mapped.addr = NULL;
     mapped.fd   = 0;
+    mapped.idx = 0;
     mapped.size = 0;
+
     dataBuffer.back = NULL;
     dataBuffer.front = NULL;
+}
+
+void NativeStream::setAutoClose(bool close) 
+{ 
+    m_autoClose = close;
+
+    if (interface != NULL &&
+            (IInterface == INTERFACE_FILE ||
+            IInterface == INTERFACE_PRIVATE)) {
+        static_cast<NativeFileIO *>(interface)->setAutoClose(close);
+    }
 }
 
 char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
@@ -280,9 +295,7 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
             char *flocation = NativeStream::resolvePath(this->location, STREAM_RESOLVE_FILE);
             NativeFileIO *nfio = new NativeFileIO(flocation, this, this->net);
             this->interface = nfio;
-            if (this->autoClose) {
-                nfio->setAutoClose(true);
-            }
+            nfio->setAutoClose(m_autoClose);
             free(flocation);
             break;
 
@@ -293,9 +306,7 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
                                 this, this->net);
 
             this->interface = nfio;
-            if (this->autoClose) {
-                nfio->setAutoClose(true);
-            }
+            nfio->setAutoClose(m_autoClose);
 
             break;
         }
@@ -608,7 +619,7 @@ void NativeStream::onProgress(size_t offset, size_t len,
 
         if (dataBuffer.fresh) {
             printf("Current buffer updated (%ld)\n", len);
-            dataBuffer.back->data = &((unsigned char *)mapped.addr)[mapped.size];
+            dataBuffer.back->data = &((unsigned char *)mapped.addr)[mapped.idx];
             dataBuffer.back->size = 0;
             dataBuffer.fresh = false;
         }
@@ -616,7 +627,7 @@ void NativeStream::onProgress(size_t offset, size_t len,
         dataBuffer.back->size += written;
         dataBuffer.back->used = dataBuffer.back->size;
 
-        mapped.size += written;
+        mapped.idx += written;
 
         /*
             If our backbuffer contains enough data,
@@ -650,7 +661,8 @@ void NativeStream::onHeader()
     this->m_fileSize = http->getFileSize();
 
     if (this->mapped.fd && http->http.contentlength) {
-        mapped.addr = mmap(NULL, http->http.contentlength,
+        this->mapped.size = http->http.contentlength;
+        mapped.addr = mmap(NULL, this->mapped.size,
             PROT_READ, MAP_SHARED, mapped.fd, 0);
         printf("Got a header of size : %lld\n", http->http.contentlength);
         printf("File mapped at address : %p\n", mapped.addr);

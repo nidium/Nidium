@@ -59,7 +59,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             const char *prefix = NULL);
         virtual ~NativeStream();
 
-        void setAutoClose(bool close) { autoClose = close; }
+        void setAutoClose(bool close); 
         const char *getLocation() const { return this->location; }
         static char *resolvePath(const char *url,
             StreamResolveMode mode = STREAM_RESOLVE_PATH);
@@ -156,11 +156,12 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         struct {
             int fd;
             void *addr;
+            size_t idx;
             size_t size;
         } mapped;
 
         bool needToSendUpdate;
-        bool autoClose;
+        bool m_autoClose;
         void swapBuffer();
 
         size_t m_fileSize;
