@@ -91,7 +91,22 @@ Native.elements.export("UIVideo", {
 			value : 0.8
 		});
 
-		this.status.addEventListener("mousedown", function(e){
+		this.status.addEventListener("mousemove", function(e){
+			var s1 = this.__left + 124,
+				s2 = this.__left + this.width - 62,
+				max = s2 - s1,
+				x = (e.x - s1),
+				position = x/max * self.player.duration;
+
+			if (e.x >= s1 && e.x<= s2) {
+				this.cursor = "pointer";
+				e.stopPropagation();
+			} else {
+				this.cursor = "arrow";
+			}
+		});
+
+		this.status.addEventListener("mouseclick", function(e){
 			var s1 = this.__left + 124,
 				s2 = this.__left + this.width - 62,
 				max = s2 - s1,
@@ -107,6 +122,7 @@ Native.elements.export("UIVideo", {
 		this.status.addEventListener("dragstart", function(e){
 			var p = self.player;
 			if (!p) return false;
+			this.dragging = true;
 			if (p.playing) {
 				p.pause();
 				this.wasPaused = true;
@@ -116,6 +132,7 @@ Native.elements.export("UIVideo", {
 		this.status.addEventListener("dragend", function(e){
 			var p = self.player;
 			if (!p) return false;
+			this.dragging = false;
 			if (this.wasPaused) {
 				p.play();
 				this.wasPaused = false;
@@ -136,7 +153,7 @@ Native.elements.export("UIVideo", {
 		});
 
 		this.addEventListener("mouseover", function(e){
-			if (this.volume.draggingSlider) return false;
+			if (this.volume.draggingSlider || this.status.dragging) return false;
 			if (!this.player || !this.player.ready) return false;
 
 			this.mouseIsOver = true;
@@ -157,7 +174,7 @@ Native.elements.export("UIVideo", {
 
 		this.addEventListener("mouseout", function(e){
 			var that = this;
-			if (this.volume.draggingSlider) return false;
+			if (this.volume.draggingSlider || this.status.dragging) return false;
 			if (!this.player || !this.player.ready) return false;
 
 			this.mouseIsOver = false;

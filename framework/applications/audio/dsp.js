@@ -47,6 +47,7 @@ var app = {
 		this.processor = this.dsp.createNode("custom", 2, 2);
 		this.delay = this.dsp.createNode("delay", 2, 2);
 		this.target = this.dsp.createNode("target", 2, 0);
+		console.log("nodes created");
 	},
 
 	load : function(url){
@@ -223,6 +224,9 @@ var app = {
 		this.processor.set("cutoff", 0.04);
 		this.processor.set("resonance", 0.0);
 		this.processor.set("width", 1.00);
+
+		console.log("processor initied");
+
 	},
 
 
@@ -269,9 +273,12 @@ var app = {
 		this.delay.set("dry", 0.9); // float 0 ... 1
 		this.delay.set("wet", 0.0); // float 0 ... 1
 		this.delay.set("delay", 500); // delay in ms
+		console.log("nodes created");
 	},
 
 	attachListeners : function(){
+		console.log("attaching listeners");
+
 		this.source.onplay = function(){
 			console.log("Playing");
 		};

@@ -334,7 +334,7 @@ Native.elements.export("UITabController", {
 				
 				var curr = controller.getTabAtPosition(__dragTabPosition);
 
-				//if (controller._oldcursor) window.cursor = controller._oldcursor;
+				if (controller._oldcursor) window.cursor = controller._oldcursor;
 
 				curr.slideX(__startX, 200, function(){}, Math.physics.cubicOut);
 
