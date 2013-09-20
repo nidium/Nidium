@@ -12,8 +12,6 @@
 	<assets>
 		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
 		<script type="native/javascript" src="private://falcon/native.js"></script>
-		<style type="native/javascript" src="main.nss"></style>
-		<script type="native/javascript" src="main.js"></script>
 	</assets>
 	<layout>
 		<include src="module.header.nml"/>

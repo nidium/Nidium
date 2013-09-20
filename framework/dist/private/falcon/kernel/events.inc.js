@@ -230,7 +230,6 @@ Native.events = {
 						e.source.dragendFired = false;
 
 						this.sourceElement = element;
-						this.cursor = window.cursor;
 
 						if (element.draggable) {
 							this.cloneElement = element.clone();
@@ -240,6 +239,7 @@ Native.events = {
 
 					case "drop":
 						this.setSource(e, this.sourceElement, element);
+						this.cursor = element.cursor;
 
 						if (!e.source.dragendFired){
 							e.source.dragendFired = true;
@@ -392,13 +392,15 @@ Native.events = {
 			}
 
 			this.dispatch("drop", e);
+			if (this.cursor) {
+				window.cursor = this.cursor;
+			}
 		}
 		this.dragging = false;
 		this.dragstarted = false;
 		this.sourceElement = null;
 
 		this.dispatch("mouseup", e);
-		if (this.cursor) window.cursor = this.cursor;
 
 		if (o && dist<3) {
 			if (elapsed > this.options.pointerHoldTime) {

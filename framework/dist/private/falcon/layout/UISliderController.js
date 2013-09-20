@@ -27,6 +27,7 @@ Native.elements.export("UISliderController", {
 			value : OptionalNumber(o.value, 0),
 			min : OptionalNumber(o.min, 0),
 			max : OptionalNumber(o.max, 100),
+			cursor : "pointer",
 
 			boxColor : OptionalValue(o.boxColor, false),
 			progressBarColor : OptionalValue(o.progressBarColor, false),
@@ -59,7 +60,8 @@ Native.elements.export("UISliderController", {
 			top : this.vertical ? this.height - this.width/2 : 0,
 			width : this.vertical ? this.width : this.height,
 			height : this.vertical ? this.width : this.height,
-			background : this.color
+			background : this.color,
+			cursor : "drag"
 		});
 
 		this.addEventListener("mousedown", function(e){
