@@ -2,6 +2,7 @@
 #include "NativeSkia.h"
 #include "SkGradientShader.h"
 #include <stdio.h>
+#include "NativeMacros.h"
 
 NativeSkGradient::NativeSkGradient(double x1, double y1, double x2, double y2)
 {
@@ -46,6 +47,8 @@ NativeSkGradient::NativeSkGradient(double x0, double y0, double r0,
 
 NativeSkGradient::~NativeSkGradient()
 {
+    //if (currentShader)
+        //NLOG("Free gradient %d for %p", (currentShader ? currentShader->getRefCnt() : 0), currentShader);
     free(colorsStop.items);
     SkSafeUnref(currentShader);
 }
@@ -95,7 +98,6 @@ SkShader *NativeSkGradient::build()
     }
 
     needUpdate = 0;
-
     SkSafeUnref(currentShader);
 
     if (isRadial) {

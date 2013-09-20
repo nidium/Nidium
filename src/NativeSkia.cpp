@@ -45,6 +45,7 @@
 #include "SkBlurMaskFilter.h"
 #include "SkBlurImageFilter.h"
 #include "SkLightingImageFilter.h"
+#include "NativeMacros.h"
 
 SkCanvas *NativeSkia::glcontext = NULL;
 
@@ -565,6 +566,7 @@ NativeSkia::~NativeSkia()
 
     while (nstate) {
         struct _nativeState *tmp = nstate->next;
+        //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
         delete nstate->paint;
         delete nstate->paint_stroke;
         delete nstate;
@@ -738,10 +740,13 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
     if ((shader = gradient->build()) == NULL) {
         /* Make paint invalid (no future draw) */
         //paint->setShader(NULL);
+        NLOG("Invalid gradient");
         return;
     }
     PAINT->setColor(SK_ColorBLACK);
+
     PAINT->setShader(shader);
+    //NLOG("Add gradient : %p (%d)", shader, shader->getRefCnt());    
 }
 
 void NativeSkia::setFillColor(const char *str)

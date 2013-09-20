@@ -7,6 +7,7 @@
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
 #include "NativeSystemInterface.h"
+#include "NativeMacros.h"
 
 #include <SkDevice.h>
 #define GL_GLEXT_PROTOTYPES
@@ -2150,7 +2151,7 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
     if (gl.program) {
         glDeleteProgram(gl.program);
     }
-
+    //NLOG("Delete skia %p", skia);
     delete skia;
 }
 
