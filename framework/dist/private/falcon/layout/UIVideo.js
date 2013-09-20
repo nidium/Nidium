@@ -91,14 +91,29 @@ Native.elements.export("UIVideo", {
 			value : 0.8
 		});
 
-		this.status.addEventListener("mousemove", function(e){
+		this.status.isMouseOnProgressBar = function(e){
+			var s1 = this.__left + 124,
+				s2 = this.__left + this.width - 62;
+
+			return (e.x >= s1 && e.x<= s2) ? true : false;
+		};
+
+		this.status.getSeekPosition = function(e){
 			var s1 = this.__left + 124,
 				s2 = this.__left + this.width - 62,
 				max = s2 - s1,
 				x = (e.x - s1),
 				position = x/max * self.player.duration;
 
-			if (e.x >= s1 && e.x<= s2) {
+			return position;
+		};
+
+
+		this.status.addEventListener("mousemove", function(e){
+			var p = self.player;
+			if (!p) return false;
+
+			if (this.isMouseOnProgressBar(e)) {
 				this.cursor = "pointer";
 				e.stopPropagation();
 			} else {
@@ -106,27 +121,42 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
-		this.status.addEventListener("mouseclick", function(e){
-			var s1 = this.__left + 124,
-				s2 = this.__left + this.width - 62,
-				max = s2 - s1,
-				x = (e.x - s1),
-				position = x/max * self.player.duration;
+		this.status.addEventListener("mousedown", function(e){
+			var p = self.player;
+			if (!p) return false;
 
-			if (e.x >= s1 && e.x<= s2) {
-				self.seek(position);
+			if (this.isMouseOnProgressBar(e)) {
+				if (p.playing) {
+					p.pause();
+					this.wasPaused = true;
+				}
+
+				self.seek(this.getSeekPosition(e));
 				e.stopPropagation();
 			}
 		});
+
+		this.status.addEventListener("mouseup", function(e){
+			var p = self.player;
+			if (!p) return false;
+
+			if (this.isMouseOnProgressBar(e)) {
+				this.cursor = "pointer";
+				if (this.wasPaused) {
+					p.play();
+					this.wasPaused = false;
+				}
+				e.stopPropagation();
+			} else {
+				this.cursor = "arrow";
+			}
+		});
+
 
 		this.status.addEventListener("dragstart", function(e){
 			var p = self.player;
 			if (!p) return false;
 			this.dragging = true;
-			if (p.playing) {
-				p.pause();
-				this.wasPaused = true;
-			}
 		});
 
 		this.status.addEventListener("dragend", function(e){
@@ -136,6 +166,10 @@ Native.elements.export("UIVideo", {
 			if (this.wasPaused) {
 				p.play();
 				this.wasPaused = false;
+			}
+			if (this.isMouseOnProgressBar(e)) {
+				this.cursor = "pointer";
+				e.stopPropagation();
 			}
 		});
 

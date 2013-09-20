@@ -392,16 +392,15 @@ Native.events = {
 			}
 
 			this.dispatch("drop", e);
+			if (this.cursor) {
+				window.cursor = this.cursor;
+			}
 		}
 		this.dragging = false;
 		this.dragstarted = false;
 		this.sourceElement = null;
 
 		this.dispatch("mouseup", e);
-		if (this.cursor) {
-			window.cursor = this.cursor;
-			console.log(this.cursor);
-		}
 
 		if (o && dist<3) {
 			if (elapsed > this.options.pointerHoldTime) {
