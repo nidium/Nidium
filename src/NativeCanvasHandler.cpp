@@ -264,7 +264,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         return;
     }
 
-    double pzoom = this->zoom * azoom;
+    //double pzoom = this->zoom * azoom;
     double popacity = this->opacity * aopacity;
     /*
         Fill the root layer with white

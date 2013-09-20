@@ -2092,7 +2092,7 @@ void NativeCanvas2DContext::translate(double x, double y)
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height) :
-    setterDisabled(false), handler(handler), commonDraw(true)
+    setterDisabled(false), commonDraw(true), handler(handler)
 {
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
@@ -2119,7 +2119,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    jscx(NULL), handler(handler), commonDraw(true)
+    jscx(NULL), commonDraw(true), handler(handler)
 {
     this->jsobj = NULL;
     skia = new NativeSkia();

@@ -58,13 +58,14 @@ static JSClass mouseEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+#if 0
 static JSClass windowEvent_class = {
     "WindowEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
-
+#endif
 
 static JSClass textEvent_class = {
     "TextInputEvent", 0,

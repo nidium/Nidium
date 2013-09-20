@@ -13,7 +13,8 @@
             ['OS=="mac"', {
                 'xcode_settings': {
                     'OTHER_CFLAGS': [
-                        '-fvisibility=hidden'
+                        '-fvisibility=hidden',
+                        '-Wno-invalid-offsetof'
                     ],
                 },
             }],

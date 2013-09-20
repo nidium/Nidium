@@ -130,7 +130,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         if (++nrefresh > 1) {
                             break;
                         }
-                        NUII->NativeCtx->getNJS()->gc();
+                        if (NUII->NativeCtx) {
+                            NUII->NativeCtx->getNJS()->gc();
+                        }
                         NUII->restartApplication();
                         //SDL_GL_SwapBuffers();
                         break;
@@ -216,7 +218,6 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         if (NUII->NativeCtx) {
             NUII->NativeCtx->callFrame();
             NUII->NativeCtx->postDraw();
-            int s = SDL_GetTicks();
             NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
                 1.0, NULL);
         }
@@ -332,11 +333,14 @@ void NativeCocoaUIInterface::stopApplication()
 {
     if (this->nml) {
         delete this->nml;
+        this->nml = NULL;
     }
-    if (this->NativeCtx) delete this->NativeCtx;
-    this->NativeCtx = NULL;
-    this->nml = NULL;
-    glClearColor(1, 1, 1, 0);
+    if (this->NativeCtx) {
+        delete this->NativeCtx;
+        this->NativeCtx = NULL;
+    }
+
+    glClearColor(1, 1, 1, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     /* Also clear the front buffer */
     SDL_GL_SwapWindow(this->win);
@@ -711,7 +715,7 @@ char *NativeCocoaUIInterface::getClipboardText()
 
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
-    NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
+    //NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
     printf("Calling changing size to SDL\n");
     SDL_SetWindowSize(win, w, h);
     this->width = w;
