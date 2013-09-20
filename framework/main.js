@@ -1,7 +1,9 @@
 /*
 	Today :
+		- hang si NML est invalid
+		- bug des gradients (crash)
 
-		- NML basics + include
+
 		- donner texture du dessous au shader;
 		- canvas.blur(0, 1 ... 4);
 
@@ -14,7 +16,6 @@
 
 	SECURITY DESIGN :
 		- restraindre API File dans le dossier definie par localFileAccess
-
 		- les appels à File.read("config.bin") --> dist/shared/config.bin
 
 		- Nidium Malicious Bacon Attack :
@@ -29,10 +30,6 @@
 
 	IMPACT SIGNIFICATIF :
 		- Gestion du cache
-
-	CRASH :
-		- bug des gradients (crash)
-		- showFPS(true) crash au refresh
 
 	THREADS AND WORKER
 		- thread crash
@@ -56,6 +53,11 @@
 ------
 DONE :
 ------
+
+	DAY 6:
+		- NML basics + include
+		- fixer la console
+		- showFPS(true) crash au refresh
 
 	DAY 5:
 	- window.storage.set (sync)
@@ -164,7 +166,7 @@ DONE :
 
 /* SHADERS */
 
-	load("applications/components/shader.js"); // OK
+	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
 	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
@@ -175,16 +177,6 @@ DONE :
 	//load("applications/tutorials/03.events.js");
 	//load("applications/tutorials/04.motion.js");
 	//load("applications/tutorials/11.post.js");
-
-/* CHARTS DEMOS */
-
-	//load("applications/charts/line.js");
-	//load("applications/charts/pie.js");
-	//load("applications/charts/polar.js"); // implement vertical text align
-	//load("applications/charts/donut.js");
-	//load("applications/charts/radar.js");
-	//load("applications/charts/bar.js");
-	//load("applications/charts/demo.js");
 
 /* Unfinished */
 

@@ -207,6 +207,7 @@ Native.events = {
 
 					case "drag" :
 						cancelEvent = true;
+						window.cursor = "drag";
 						if (!e.source) {
 							this.stopDrag();
 						}
@@ -229,6 +230,7 @@ Native.events = {
 						e.source.dragendFired = false;
 
 						this.sourceElement = element;
+						this.cursor = window.cursor;
 
 						if (element.draggable) {
 							this.cloneElement = element.clone();
@@ -396,6 +398,7 @@ Native.events = {
 		this.sourceElement = null;
 
 		this.dispatch("mouseup", e);
+		if (this.cursor) window.cursor = this.cursor;
 
 		if (o && dist<3) {
 			if (elapsed > this.options.pointerHoldTime) {
@@ -627,7 +630,7 @@ window._onblur = function(e){
 
 window._onready = function(LST){
 	Native.core.onready();
-	console.dump(LST);
+	LSTEngine.parse(LST);
 };
 
 window._onassetready = function(e){
@@ -639,3 +642,62 @@ window._onassetready = function(e){
 	}
 };
 
+var LSTEngine = {
+	parse : function(LST){
+		var createElement = function(node, parent){
+			var element = null,
+				nodeType = node.type,
+				nodeAttributes = node.attributes;
+
+			switch (node.type) {
+				case "section" :
+					nodeType = "UIElement";
+					break;
+
+				case "select" :
+					nodeType = "UIDropDownController";
+					break;
+
+				case "option" :
+					nodeType = "UIOption";
+					break;
+
+				case "view" :
+					nodeType = "UIView";
+					break;
+
+				case "button" :
+					nodeType = "UIButton";
+					break;
+
+				case "slider" :
+					nodeType = "UISliderController";
+					break;
+
+				case "include":
+					nodeType = null;
+					break;
+
+				default:
+					break;
+			}
+
+			if (nodeType) {
+				var element = parent.add(nodeType, nodeAttributes);
+			}
+			return element;
+		};
+
+		var parseNodes = function(nodes, parent){
+			for (var i=0; i<nodes.length; i++) {
+				var node = nodes[i];
+				if (node.type != "include") {
+					var newParent = createElement(node, parent);
+					parseNodes(node.children, newParent);
+				}
+			}
+		};
+
+		parseNodes(LST, document);
+	}
+};

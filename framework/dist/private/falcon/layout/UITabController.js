@@ -334,7 +334,7 @@ Native.elements.export("UITabController", {
 				
 				var curr = controller.getTabAtPosition(__dragTabPosition);
 
-				if (controller._oldcursor) window.cursor = controller._oldcursor;
+				//if (controller._oldcursor) window.cursor = controller._oldcursor;
 
 				curr.slideX(__startX, 200, function(){}, Math.physics.cubicOut);
 
@@ -378,15 +378,6 @@ Native.elements.export("UITabController", {
 				px = prev ? prev.__left : null;
 
 			__mouseX = e.x;
-
-/*
-			if (e.xrel>0) {
-				console.log(dx, __offsetX, e.x - curr.__left);
-			} else {
-				console.log(dx, __offsetX, e.x - curr.__left);
-			}
-*/
-			window.cursor = "drag";
 
 			if (cx + dx < controller.__left) {
 				curr.left = controller.left;

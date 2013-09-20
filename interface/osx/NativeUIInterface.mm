@@ -10,6 +10,7 @@
 #import <SDL_syswm.h>
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
+#import <NativeMacros.h>
 
 #import <NativeNML.h>
 #import <sys/stat.h>
@@ -277,6 +278,43 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     ui->nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
 }
 
+void NativeCocoaUIInterface::log(const char *buf)
+{
+    if (this->console && !this->console->isHidden) {
+        this->console->log(buf);
+    } else {
+        fwrite(buf, sizeof(char), strlen(buf), stdout);
+        fflush(stdout);
+    }    
+}
+
+void NativeCocoaUIInterface::logf(const char *format, ...)
+{
+    char *buff;
+    int len;
+    va_list val;
+
+    va_start(val, format);
+    len = vasprintf(&buff, format, val);
+    va_end(val);
+
+    this->log(buff);
+
+    free(buff);
+}
+
+void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
+{
+    char *buff;
+    int len;
+
+    len = vasprintf(&buff, format, ap);
+
+    this->log(buff);
+
+    free(buff);
+}
+
 void NativeCocoaUIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
@@ -459,7 +497,6 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         [window setDelegate:self];
     }
 */
-        NSLog(@"window %@ %@", window, window.delegate);
 
         [window setCollectionBehavior:
                  NSWindowCollectionBehaviorFullScreenPrimary];
@@ -482,22 +519,21 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         //[window setAlphaValue:0.5];
         NSView *openglview = [window contentView];
         [openglview setWantsBestResolutionOpenGLSurface:YES];
-        NSLog(@"Scale : %f\n", [[NSScreen mainScreen] backingScaleFactor]);
         contexteOpenGL = SDL_GL_CreateContext(win);
         if (contexteOpenGL == NULL) {
-            printf("Failed to create OpenGL context : %s\n", SDL_GetError());
+            NLOG("Failed to create OpenGL context : %s", SDL_GetError());
         }
         SDL_StartTextInput();
 
         if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
-            printf("Cant vsync\n");
+            NLOG("Cant vsync");
         }
 
         this->initialized = true;
         glViewport(0, 0, width, height);
-
-        printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
+        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
     }
+    
     NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
     window = NativeCocoaWindow(win);
 #if 0
@@ -525,7 +561,7 @@ const char *NativeCocoaUIInterface::getCacheDirectory() const
         NSString *path = [NSString stringWithFormat:@"%@/nidium/",cacheDir];
         const char *cpath = [path cStringUsingEncoding:NSASCIIStringEncoding];
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
-            printf("Cant create cache directory %s\n", cpath);
+            NLOG("Cant create cache directory %s", cpath);
             return NULL;
         }  
         return cpath;

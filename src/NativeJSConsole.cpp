@@ -2,6 +2,9 @@
 #include "NativeJS.h"
 #include "NativeUIInterface.h"
 #include "NativeContext.h"
+#include "NativeMacros.h"
+
+#include <jsdbgapi.h>
 
 static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -65,14 +68,16 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     unsigned i;
     JSString *str;
     char *bytes;
-    
-    NativeUIInterface::NativeUIConsole *console = NativeContext::getNativeClass(cx)->getUI()->getConsole();
+    JSScript *parent;
+    const char *filename_parent;
+    unsigned lineno;
 
-    if (console == NULL) {
-        return true;
-    }
+    JS_DescribeScriptedCaller(cx, &parent, &lineno);
+    filename_parent = JS_GetScriptFilename(cx, parent);
+    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
 
     argv = JS_ARGV(cx, vp);
+
     for (i = 0; i < argc; i++) {
         str = JS_ValueToString(cx, argv[i]);
         if (!str)
@@ -81,13 +86,15 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         if (!bytes)
             return false;
         if (i) {
-           console->log(" "); 
+            ui->log(" ");
+        } else {
+            ui->logf("[%s:%d] ", filename_parent, lineno);
         }
-        console->log(bytes);
+        ui->log(bytes);
 
         JS_free(cx, bytes);
     }
-    console->log("\n"); 
+    ui->log("\n");
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;

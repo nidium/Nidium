@@ -38,6 +38,10 @@ class NativeCocoaUIInterface : public NativeUIInterface
         } mainjs;
 
         void onNMLLoaded();
+
+        void log(const char *buf);
+        void logf(const char *format, ...);
+        void vlog(const char *format, va_list ap);
     private:
         bool initContext();
         bool createWindow(int width, int height);

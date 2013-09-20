@@ -28,7 +28,10 @@ Object.definePrivateProperties(Native.elements, {
 
 		if (plugin.draw) element.draw = plugin.draw;
 		if (plugin.refresh) element.update = plugin.refresh;
+
 		if (plugin.onAdoption) element.onAdoption = plugin.onAdoption;
+		if (plugin.onAddChildRequest) element.onAddChildRequest = plugin.onAddChildRequest;
+		if (plugin.onChildReady) element.onChildReady = plugin.onChildReady;
 
 		if (plugin.public){
 			DOMElement.defineDescriptors(element, plugin.public);

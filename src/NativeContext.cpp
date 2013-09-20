@@ -17,12 +17,23 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include "NativeMacros.h"
 
 jsval gfunc  = JSVAL_VOID;
 
+void NativeContext_Logger(const char *format)
+{
+    __NativeUI->log(format);
+}
+
+void NativeContext_vLogger(const char *format, va_list ap)
+{
+    __NativeUI->vlog(format, ap);
+}
+
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    UI(nui), m_NML(nml)
+    debugHandler(NULL), UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
 
@@ -42,12 +53,14 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     this->initHandlers(width, height);
 
-    printf("Init JS\n");
     this->njs = new NativeJS(net);
     this->njs->setPrivate(this);
 
     this->njs->loadGlobalObjects();
     this->loadNativeObjects(width, height);
+
+    this->njs->setLogger(NativeContext_Logger);
+    this->njs->setLogger(NativeContext_vLogger);
 
     this->njs->LoadScriptContent(preload_js,
         strlen(preload_js), "private://__builtin_preload.js");
