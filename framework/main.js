@@ -2,7 +2,6 @@
 	Today :
 		- hang si NML est invalid
 		- bug des gradients (crash)
-		- showFPS(true) crash au refresh
 
 
 		- donner texture du dessous au shader;
@@ -17,7 +16,6 @@
 
 	SECURITY DESIGN :
 		- restraindre API File dans le dossier definie par localFileAccess
-
 		- les appels à File.read("config.bin") --> dist/shared/config.bin
 
 		- Nidium Malicious Bacon Attack :
@@ -59,6 +57,7 @@ DONE :
 	DAY 6:
 		- NML basics + include
 		- fixer la console
+		- showFPS(true) crash au refresh
 
 	DAY 5:
 	- window.storage.set (sync)

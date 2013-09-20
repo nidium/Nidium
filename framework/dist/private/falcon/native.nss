@@ -48,7 +48,13 @@
 		shadowOffsetY : 2,
 		shadowBlur : 4,
 
-		radius : 4
+		radius : 4,
+
+		cursor : {
+			default : "arrow",
+			hover : "pointer",
+			drag : "drag"
+		}
 	},
 
 	/* Element Definitions */
