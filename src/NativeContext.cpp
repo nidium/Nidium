@@ -33,7 +33,7 @@ void NativeContext_vLogger(const char *format, va_list ap)
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    UI(nui), m_NML(nml)
+    debugHandler(NULL), UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
 
