@@ -83,9 +83,9 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
+//static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
-static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
+//static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
 
 static JSFunctionSpec glob_funcs[] = {
@@ -102,9 +102,6 @@ static JSFunctionSpec glob_funcs[] = {
 void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
-
-    FILE *file = stdout;
-
     NativeJS *js = NativeJS::getNativeClass(cx);
     
     if (!report) {
@@ -260,10 +257,12 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+#if 0
 static void gccb(JSRuntime *rt, JSGCStatus status)
 {
     //printf("Gc TH1 callback?\n");
 }
+#endif
 
 static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
@@ -459,15 +458,9 @@ NativeJS::~NativeJS()
 static int Native_handle_messages(void *arg)
 {
 #define MAX_MSG_IN_ROW 20
-
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-
     NativeJS *njs = (NativeJS *)arg;
     JSContext *cx = njs->cx;
     int nread = 0;
-
-    JSObject *event;
 
     NativeSharedMessages::Message msg;
     JSAutoRequest ar(cx);
@@ -735,8 +728,6 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
 int NativeJS::LoadScriptReturn(JSContext *cx,
     const char *filename, jsval *ret)
 {   
-    JSObject *gbl = JS_GetGlobalObject(cx);
-
     NativeAutoFile file;
     if (!file.open(cx, filename))
         return 0;

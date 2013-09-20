@@ -339,7 +339,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
     struct native_thread_msg *msg;
 
-    if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[0], &datap, &nbytes,
+    if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes,
         NULL, NULL, JSVAL_VOID)) {
         JS_ReportError(cx, "Failed to write strclone");
         /* TODO: exception */
@@ -354,7 +354,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
     nthread->njs->messages->postMessage(msg, NATIVE_THREAD_MESSAGE);
 
-    return JS_TRUE;
+    return true;
 }
 
 NativeJSThread::~NativeJSThread()

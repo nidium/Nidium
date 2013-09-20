@@ -193,7 +193,7 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
         {
             const char *url_wo_prefix = &url[len];
             const char *end = strrchr(url_wo_prefix, '/');
-            const char *start = strchr(url_wo_prefix, '/');
+            //const char *start = strchr(url_wo_prefix, '/');
             size_t url_len = strlen(url);
 
             if (mode == STREAM_RESOLVE_ROOT) {
@@ -397,8 +397,9 @@ void NativeStream::stop()
         }
         case INTERFACE_FILE:
         {
+#if 0
             NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
-
+#endif
             break;
         }
         default:

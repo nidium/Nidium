@@ -452,8 +452,6 @@ JS::Value NativeJSModule::require(char *name)
          */
         JSScript *script;
         unsigned lineno;
-        const char *filename;
-
         JS_DescribeScriptedCaller(this->cx, &script, &lineno);
 
         free(this->filePath);

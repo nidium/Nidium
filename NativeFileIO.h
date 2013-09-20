@@ -93,6 +93,7 @@ class NativeFileIODelegate
     virtual void onNFIOError(NativeFileIO *, int errno)=0;
     virtual void onNFIORead(NativeFileIO *, unsigned char *data, size_t len)=0;
     virtual void onNFIOWrite(NativeFileIO *, size_t written)=0;
+    virtual ~NativeFileIODelegate(){};
 
 };
 

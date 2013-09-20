@@ -178,6 +178,7 @@ class NativeStreamDelegate
         //virtual void onStreamEnd()=0;
         virtual void onProgress(size_t buffered, size_t len)=0;
         virtual void onAvailableData(size_t total)=0;
+        virtual ~NativeStreamDelegate(){};
 };
 
 #endif
