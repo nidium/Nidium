@@ -38,6 +38,18 @@ var app = {
 		this.connectNodes();
 		this.setProcessor();
 		this.attachListeners();
+
+		/*
+		FIX ME
+		fileselector.click(function(){
+			window.openFileDialog(["mp3", "wav", "mov", "aiff"], function(res){
+				app.load(res[0]);
+			});
+		});
+		*/
+
+		this.load("http://195.122.253.112/public/mp3/Symphony%20X/Symphony%20X%20'Candlelight%20Fantasia'.mp3");
+
 	},
 
 	createNodes : function(){
@@ -52,10 +64,16 @@ var app = {
 
 	load : function(url){
 		var self = this;
+		/*
 		File.read(url, function(data){
 			self.source.open(data);
 			self.source.play();
 		});
+		*/
+		setTimeout(function(){
+			self.source.open(url);
+			self.source.play();
+		}, 200);
 	},
 
 	setProcessor : function(){
@@ -510,13 +528,8 @@ var Spectral = {
 			label : "Select"
 		});
 
-		fileselector.click(function(){
-			window.openFileDialog(["mp3", "wav", "mov", "aiff"], function(res){
-				app.load(res[0]);
-			});
-		});
-
 		app.init();
+		this.draw();
 
 	},
 
@@ -530,14 +543,12 @@ var Spectral = {
 		var value = 0,
 			pixelSize = 0;
 
-		/*
 		for (var i=0; i<this.nbars; i++){
 			value = app.dftBuffer[i],
 			pixelSize = value*this.barSize>>0;
 
 			this.UIBars[i].top = this.ch-pixelSize;
 		}
-		*/
 	},
 
 	makeBars : function(){

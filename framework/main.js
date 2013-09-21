@@ -155,7 +155,7 @@ DONE :
 
 	//load("applications/audio/test.js"); // CRASH au refresh + BRUIT DE BETE
 	//load("applications/audio/mixer.js"); // FAIL TOTAL + BRUIT DE BETE
-	//load("applications/audio/dsp.js"); // crash
+	load("applications/audio/dsp.js"); // crash
 	//load("applications/media/video.js"); // crash on refresh (and video end)
 
 /* FILE API */
@@ -168,7 +168,7 @@ DONE :
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 /* TUTORIALS */
 
