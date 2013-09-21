@@ -149,7 +149,7 @@ Native.core = {
 		doc.stylesheet = document.stylesheet;
 		doc.run = document.run;
 
-		Object.createProtectedElement(Native.scope, "document", doc);
+		Object.createProtectedElement(window.scope, "document", doc);
 	},
 
 	extendDocument : function(){

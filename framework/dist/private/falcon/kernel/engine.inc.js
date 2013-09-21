@@ -8,9 +8,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.scope = this;
-Native.scope.ttx = 5;
-
 Object.definePrivateProperties(Native, {
 	scope : this,
 	elements : {},
@@ -68,7 +65,7 @@ Object.definePrivateProperties(Native.elements, {
 		}
 
 		this[type] = implement;
-		this.build(Native.scope, type);
+		this.build(window.scope, type);
 	},
 
 	/* Native Element Constructor */

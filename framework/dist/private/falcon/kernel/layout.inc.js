@@ -300,7 +300,7 @@ Native.layout = {
 
 /* ---------------------------------------------------------------------- */
 
-Object.createProtectedElement(Native.scope, "Application", function(options){
+Object.createProtectedElement(window.scope, "Application", function(options){
 	options = options || {};
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;

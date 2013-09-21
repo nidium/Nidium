@@ -339,7 +339,7 @@ Math.factorial = (function(n){
 /* -------------------------------------------------------------------------- */
 
 var natlog = function(txt){
-	if (Native.scope.NatBug && Native.scope.NatBug.console) {
+	if (window.scope.NatBug && window.scope.NatBug.console) {
 		NatBug.console.log(txt);
 	} else {
 		console.log(txt);
@@ -383,8 +383,8 @@ var print = function(txt, element){
 		__other__ = false;
 
 	if (__LOG_BEFORE_DOMREADY__ === false) {
-		if (!Native.scope.document) return false;
-		if (!Native.scope.document.ready) return false;
+		if (!window.scope.document) return false;
+		if (!window.scope.document.ready) return false;
 	}
 
 	if (!__events__ && ___filter___(txt, "event")) return false; else

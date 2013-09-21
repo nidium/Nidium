@@ -204,7 +204,7 @@ NatBug.panes.push({
 
 	inspect : function(){
 		var self = this,
-			z = Native.scope;
+			z = window.scope;
 
 		var dx = function(z, p, container, pcontainer){
 			for (var i in z){
