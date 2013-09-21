@@ -261,6 +261,7 @@ Native.elements.export("UIVideo", {
 			this.status.value = Math.round(position*10000 / this.duration)/100;
 			this.status.redraw();
 			this.timecode.label = toTimeCode(position);
+			return this;
 		};
 
 		this.load = function(url, callback){
@@ -283,8 +284,22 @@ Native.elements.export("UIVideo", {
 				self.status.redraw();
 				self.timecode.label = toTimeCode(e.position);
 			}
+			return this;
+		};
 
+		this.play = function(){
+			this.player.play();
+			return this;
+		};
 
+		this.pause = function(){
+			this.player.pause();
+			return this;
+		};
+
+		this.stop = function(){
+			this.player.stop();
+			return this;
 		};
 	},
 

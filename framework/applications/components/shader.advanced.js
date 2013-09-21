@@ -286,9 +286,7 @@ var processFlickr = function(pictures){
 var video = new UIVideo(main, {
 	width : 640,
 	height : 360
-}).center();
-
-video.load("media/bunny.mp4", function(e){
+}).center().load("media/bunny.mp4", function(e){
 	this.player.play();
 });
 
@@ -308,3 +306,21 @@ video.shader("applications/components/shaders/flag.s", function(program, uniform
 		uniforms.itime = t++;
 	}, 16);
 });
+
+/*
+
+EfyxMe : second videoplayer crash
+
+setTimeout(function(){
+
+	var video2 = new UIVideo(main, {
+		width : 640,
+		height : 360
+	}).center().load("media/bunny.mp4", function(e){
+		this.player.play();
+	});
+	video2.opacity = 0.8;
+
+}, 1500);
+
+*/
