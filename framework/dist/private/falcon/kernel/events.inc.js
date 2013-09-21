@@ -590,49 +590,59 @@ Object.attachEventListener = function(obj){
 
 window._onmousedown = function(e){
 	Native.events.mousedownEvent(e);
+	window.onmousedown(e);
 };
 
 window._onmousemove = function(e){
 	Native.events.mousemoveEvent(e);
+	window.onmousemove(e);
 };
 
 window._onmousewheel = function(e){
 	Native.events.mousewheelEvent(e);
+	window.onmousewheel(e);
 };
 
 window._onmouseup = function(e){
 	Native.events.mouseupEvent(e);
+	window.onmouseup(e);
 };
 
 /* -- KEYBOARD EVENTS ------------------------------------------------------- */
 
 window._onkeydown = function(e){
 	Native.events.keydownEvent(e);
+	window.onkeydown(e);
 };
 
 window._onkeyup = function(e){
 	Native.events.keyupEvent(e);
+	window.onkeyup(e);
 };
 
 window._ontextinput = function(e){
 	Native.events.textinputEvent(e);
+	window.ontextinput(e);
 };
 
 /* -- WINDOW EVENTS --------------------------------------------------------- */
 
 window._onfocus = function(e){
-	
+	window.onfocus(e);
 };
 
 window._onblur = function(e){
-	
+	window.onblur(e);
 };
 
 /* -- LOAD EVENTS ----------------------------------------------------------- */
 
 window._onready = function(LST){
 	Native.core.onready();
-	LSTEngine.parse(LST);
+	window.onload();
+	window.NativeMarkupLayout.parse(LST, function(){
+		window.onDOMReady();
+	});
 };
 
 window._onassetready = function(e){
@@ -644,62 +654,16 @@ window._onassetready = function(e){
 	}
 };
 
-var LSTEngine = {
-	parse : function(LST){
-		var createElement = function(node, parent){
-			var element = null,
-				nodeType = node.type,
-				nodeAttributes = node.attributes;
+/* -- USER LAND EVENTS ------------------------------------------------------ */
 
-			switch (node.type) {
-				case "section" :
-					nodeType = "UIElement";
-					break;
-
-				case "select" :
-					nodeType = "UIDropDownController";
-					break;
-
-				case "option" :
-					nodeType = "UIOption";
-					break;
-
-				case "view" :
-					nodeType = "UIView";
-					break;
-
-				case "button" :
-					nodeType = "UIButton";
-					break;
-
-				case "slider" :
-					nodeType = "UISliderController";
-					break;
-
-				case "include":
-					nodeType = null;
-					break;
-
-				default:
-					break;
-			}
-
-			if (nodeType) {
-				var element = parent.add(nodeType, nodeAttributes);
-			}
-			return element;
-		};
-
-		var parseNodes = function(nodes, parent){
-			for (var i=0; i<nodes.length; i++) {
-				var node = nodes[i];
-				if (node.type != "include") {
-					var newParent = createElement(node, parent);
-					parseNodes(node.children, newParent);
-				}
-			}
-		};
-
-		parseNodes(LST, document);
-	}
-};
+window.onload = function(){};
+window.onDOMReady = function(){};
+window.onmousedown = function(e){};
+window.onmousemove = function(e){};
+window.onmousewheel = function(e){};
+window.onmouseup = function(e){};
+window.onkeydown = function(e){};
+window.onkeyup = function(e){};
+window.ontextinput = function(e){};
+window.onfocus = function(e){};
+window.onblur = function(e){};

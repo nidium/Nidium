@@ -48,6 +48,8 @@
 	},
 
 	".panLabel" : {
+		label : "L                 R",
+		fontSize : 9,
 		color : "#888888"
 	},
 
@@ -94,7 +96,8 @@
 		textShadowColor : "rgba(0, 0, 0, 0.4)",
 		fontSize : 9,
 		radius : 3,
-		paddingLeft : 4
+		paddingLeft : 4,
+		width : 56
 	}
 
 }

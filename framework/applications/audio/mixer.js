@@ -27,7 +27,7 @@
 "use strict";
 
 var main = new Application();
-main.className = "body";
+main.backgroundImage = "private://assets/patterns/wood_1.png";
 
 var mixer = null,
 	master = null,
@@ -35,18 +35,19 @@ var mixer = null,
 	slides = [];
 
 var tx = [
-	{file : "../applications/audio/media/drums.mp3",		label : "Drums"},
-	{file : "../applications/audio/media/bass.mp3",			label : "Bass"},
-	{file : "../applications/audio/media/guitar01.mp3",		label : "Guitar"},
-	{file : "../applications/audio/media/vocals.mp3",		label : "Vocals"},
-	{file : "../applications/audio/media/sequences.mp3",	label : "Seq"},
-	{file : "../applications/audio/media/guitar02.mp3",		label : "Solo"}
+	{file : "media/drums.mp3",		label : "Drums"},
+	{file : "media/bass.mp3",		label : "Bass"},
+	{file : "media/guitar01.mp3",	label : "Guitar"},
+	{file : "media/vocals.mp3",		label : "Vocals"},
+	{file : "media/sequences.mp3",	label : "Seq"},
+	{file : "media/guitar02.mp3",	label : "Solo"},
 
-/*
-	{file : "song.mp3",	label : "Depress"},
-	{file : "song.mp3",	label : "Depress"},
-	{file : "song.mp3",	label : "Depress"}
-*/
+	{file : "media/drums.mp3",		label : "Drums"},
+	{file : "media/bass.mp3",		label : "Bass"},
+	{file : "media/guitar01.mp3",	label : "Guitar"},
+	{file : "media/vocals.mp3",		label : "Vocals"},
+	{file : "media/sequences.mp3",	label : "Seq"},
+	{file : "media/guitar02.mp3",	label : "Solo"}
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -278,24 +279,21 @@ var _grey = function(obj){
 
 /* -------------------------------------------------------------------------- */
 
-
-main.className = "body";
-
-var play = main.add("UIButton", {
+var play = new UIButton(main, {
 	label : "Play"
-}).move(10, 8).addEventListener("mousedown", function(e){
+}).move(10, 8).click(function(e){
 	AudioMixer.play();
 });
 
 var pause = new UIButton(main, {
 	label : "Pause"
-}).move(60, 8).addEventListener("mousedown", function(e){
+}).move(60, 8).click(function(e){
 	AudioMixer.pause();
 });
 
-var stop = main.add("UIButton", {
+var stop = new UIButton(main, {
 	label : "Stop"
-}).move(120, 8).addEventListener("mousedown", function(e){
+}).move(120, 8).click(function(e){
 	AudioMixer.stop();
 });
 
@@ -309,7 +307,7 @@ for (var i=0; i<tx.length; i++){
 		slides[k].levelSlider.progressBarColor = 'rgba(210, 255, 40, 1)';
 		this.volume(0.5);
 	}, i);
-/*
+
 	tracks[i].processor.onbuffer = function(ev, scope){
 		var channels = ev.data,
 			gain = this.get("gain");
@@ -321,7 +319,7 @@ for (var i=0; i<tx.length; i++){
 			}
 		}
 	};
-*/
+
 	tracks[i].processor.onmessage = function(e){
 		console.log(e.message);
 	};

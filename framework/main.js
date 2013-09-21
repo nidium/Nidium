@@ -153,10 +153,10 @@ DONE :
 
 /* MEDIA API */
 
-	//load("applications/audio/test.js"); // CRASH au refresh + BRUIT DE BETE
-	//load("applications/audio/mixer.js"); // FAIL TOTAL + BRUIT DE BETE
-	load("applications/audio/dsp.js"); // crash
-	//load("applications/media/video.js"); // crash on refresh (and video end)
+	//load("applications/audio/test.js");
+	//load("applications/audio/mixer.js");
+	//load("applications/audio/dsp.js");
+	//load("applications/media/video.js");
 
 /* FILE API */
 
