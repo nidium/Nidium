@@ -14,7 +14,7 @@ Native.system = {
 
 /* -------------------------------------------------------------------------- */
 
-Native.events = {
+window.events = {
 	options : {
 		pointerHoldTime : 600
 	},
@@ -180,7 +180,7 @@ Native.events = {
 
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
-						Native.events.hook(element, e);
+						self.hook(element, e);
 						this.mostTopElementUnderMouse = element;
 						__mostTopElementHooked = true;
 					}
@@ -589,39 +589,39 @@ Object.attachEventListener = function(obj){
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 
 window._onmousedown = function(e){
-	Native.events.mousedownEvent(e);
+	window.events.mousedownEvent(e);
 	window.onmousedown(e);
 };
 
 window._onmousemove = function(e){
-	Native.events.mousemoveEvent(e);
+	window.events.mousemoveEvent(e);
 	window.onmousemove(e);
 };
 
 window._onmousewheel = function(e){
-	Native.events.mousewheelEvent(e);
+	window.events.mousewheelEvent(e);
 	window.onmousewheel(e);
 };
 
 window._onmouseup = function(e){
-	Native.events.mouseupEvent(e);
+	window.events.mouseupEvent(e);
 	window.onmouseup(e);
 };
 
 /* -- KEYBOARD EVENTS ------------------------------------------------------- */
 
 window._onkeydown = function(e){
-	Native.events.keydownEvent(e);
+	window.events.keydownEvent(e);
 	window.onkeydown(e);
 };
 
 window._onkeyup = function(e){
-	Native.events.keyupEvent(e);
+	window.events.keyupEvent(e);
 	window.onkeyup(e);
 };
 
 window._ontextinput = function(e){
-	Native.events.textinputEvent(e);
+	window.events.textinputEvent(e);
 	window.ontextinput(e);
 };
 

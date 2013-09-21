@@ -369,7 +369,7 @@ Native.elements.export("UIDropDownController", {
 				}
 
 				this._hideElements();
-				Native.events.tick();
+				window.events.tick();
 				return false;
 			}
 
@@ -398,7 +398,7 @@ Native.elements.export("UIDropDownController", {
 				this._animating = false;
 				self._hideElements();
 				this.hide();
-				Native.events.tick();
+				window.events.tick();
 			}, Math.physics.quintIn);
 
 			return this;

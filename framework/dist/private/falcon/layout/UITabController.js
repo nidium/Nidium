@@ -43,7 +43,7 @@ Native.elements.export("UITabController", {
 				if (counter == 1) {
 					if (typeof callback == "function") callback.call(this);
 				}
-				Native.events.tick();
+				window.events.tick();
 			};
 
 			for (var i=0; i<nbtabs; i++){
