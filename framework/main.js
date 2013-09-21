@@ -166,9 +166,9 @@ DONE :
 
 /* SHADERS */
 
-	//load("applications/components/shader.js"); // OK
+	load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 
 

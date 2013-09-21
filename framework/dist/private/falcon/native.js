@@ -193,7 +193,6 @@ Native.core = {
 			var root = e.element._root;
 
 			if (document.overlayView) {
-				console.log("remove")
 				document.overlayView.remove();
 				document.overlayView = null;
 				return false;

@@ -8,21 +8,15 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.system = {
-	doubleClickInterval : 250
-};
-
-/* -------------------------------------------------------------------------- */
-
 window.events = {
 	options : {
-		pointerHoldTime : 600
+		pointerHoldTime : 600,
+		doubleClickInterval : 250
 	},
 
 	last : null,
 
 	mousedown : false,
-	doubleclick : false,
 	preventmouseclick : false,
 	preventdefault : false,
 
@@ -332,9 +326,8 @@ window.events = {
 		if (this.last){
 			e.duration = e.time - this.last.time;
 
-			if (dist<3 && e.duration <= Native.system.doubleClickInterval) {
+			if (dist<3 && e.duration <= this.options.doubleClickInterval) {
 				this.dispatch("mousedblclick", e);
-				this.doubleclick = true;
 			}
 		}
 
@@ -404,8 +397,6 @@ window.events = {
 
 		if (o && dist<3) {
 			if (elapsed > this.options.pointerHoldTime) {
-				this.doubleclick = false;
-				this.timer = false;
 				this.dispatch("mouseholdup", e);
 				this.dispatch("mouseclick", e);
 			} else {
