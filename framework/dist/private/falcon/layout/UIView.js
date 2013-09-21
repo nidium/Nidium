@@ -274,7 +274,6 @@ Native.elements.export("UIView", {
 
 		this.refreshVerticalScrollBar = function(){
 			if (!this.VScrollBar || !this.VScrollBarHandle) return false;
-			print("refreshVerticalScrollBar", this);
 
 			var container = this.VScrollBar,
 				handle = this.VScrollBarHandle,
@@ -307,7 +306,6 @@ Native.elements.export("UIView", {
 
 		this.refreshHorizontalScrollBar = function(){
 			if (!this.HScrollBar || !this.HScrollBarHandle) return false;
-			print("refreshHorizontalScrollBar", this);
 
 			var container = this.HScrollBar,
 				handle = this.HScrollBarHandle,

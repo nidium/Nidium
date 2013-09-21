@@ -564,8 +564,6 @@ DOMElement.onPropertyUpdate = function(e){
 		old = e.oldValue,
 		value = e.newValue;
 
-	//print("DOMElement.onPropertyUpdate("+e.property+")", element);
-
 	element.__unlock();
 
 	element.fireEvent("propertyupdate", {
@@ -918,12 +916,9 @@ DOMElement.defineNativeProperty = function(descriptor){
 		get : function(){
 			var r = undefined;
 			if (element._locked === false) {
-				print("unlocked get("+property+")", element);
 				element.__lock("plugin:"+property);
 				r = getter ? getter.call(element) : undefined;
 				element.__unlock("plugin:"+property);
-			} else {
-				print("locked get "+property, element);
 			}
 			return r == undefined ? element["_"+property] : r;
 		},
@@ -938,8 +933,6 @@ DOMElement.defineNativeProperty = function(descriptor){
 			}
 
 			if (element.initialized && element._locked === false) {
-				print("set "+property+' = "'+newValue+'"', element);
-
 				/* lock element */
 				element.__lock("plugin:"+property);
 
@@ -953,7 +946,6 @@ DOMElement.defineNativeProperty = function(descriptor){
 
 				/* optional user defined setter method */
 				if (setter){
-					print("plugin:set("+property+"="+newValue+")", element);
 					var r = setter.call(element, newValue);
 					if (r === false) {
 						// handle readonly, restore old value
@@ -976,7 +968,6 @@ DOMElement.defineNativeProperty = function(descriptor){
 /* -------------------------------------------------------------------------- */
 
 DOMElement.defineDescriptors = function(element, props){
-	print("DOMElement.defineDescriptors", element);
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
 			var descriptor = props[key],

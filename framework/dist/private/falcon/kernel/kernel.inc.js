@@ -14,20 +14,16 @@ Native.object = {
 	},
 
 	__lock : function __lock(method){
-		print("__lock" + (method?'('+method+')':'()'), this);
 		this._locked = true;
 		return this;
 	},
 
 	__unlock : function __unlock(method){
-		print("__unlock" + (method?'('+method+')':'()'), this);
 		this._locked = false;
 		return this;
 	},
 
 	refresh : function refresh(){
-		print("refresh()", this);
-
 		if (this._needOpacityUpdate) this.updateLayerOpacity();
 		if (this._needPositionUpdate) this.updateLayerPosition();
 		if (this._needSizeUpdate) this.updateLayerSize();
@@ -45,7 +41,6 @@ Native.object = {
 	updateAncestors : function updateAncestors(){
 		var element = this;
 		if (this.layer.__fixed) return false;
-		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
 
 		/* Refresh ancestors' ScrollBars */
 		while (element.parent){
@@ -58,14 +53,12 @@ Native.object = {
 	},
 
 	updateLayerOpacity : function updateLayerOpacity(){
-		print("updateLayerOpacity()", this);
 		this.layer.opacity = this._opacity;
 		this._needOpacityUpdate = false;
 		return this;
 	},
 
 	updateLayerPosition : function updateLayerPosition(){
-		print("updateLayerPosition("+(this._left)+", "+(this._top)+")", this);
 		this.layer.left = this._left;
 		this.layer.top = this._top;
 		this.layer.scrollTop = this._scrollTop;
@@ -75,7 +68,6 @@ Native.object = {
 	},
 
 	updateLayerSize : function updateLayerSize(){
-		print("updateLayerSize("+this._width+", "+this._height+")", this);
 		this.layer.width = Math.round(this._width);
 		this.layer.height = Math.round(this._height);
 		this._needSizeUpdate = false;
@@ -83,7 +75,6 @@ Native.object = {
 	},
 
 	redraw : function redraw(){
-		print("redraw()", this);
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
 
@@ -96,7 +87,6 @@ Native.object = {
 	},
 
 	add : function add(type, options){
-		print("add()", this);
 		var element = new DOMElement(type, options, this);
 		this.addChild(element);
 		return element;
@@ -175,7 +165,6 @@ Native.object = {
 		/* fire the onAddChildRequest event */
 		if (this.onAddChildRequest.call(this, element) === false) return false;
 
-
 		this.nodes.push(element);
 
 		if (!this.firstChild) this.firstChild = element;
@@ -233,7 +222,6 @@ Native.object = {
 	resetNodes : function resetNodes(){
 		if (!this.parent) return false;
 
-		print("resetNodes()", this);
 
 		var parent = this.parent, // parent of this virtual element
 			element = null,

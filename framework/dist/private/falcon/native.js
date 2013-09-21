@@ -287,9 +287,4 @@ Native.core = {
 	}
 };
 
-/*
-window.width = 640;
-window.height = 480;
-*/
-
 Native.core.init();

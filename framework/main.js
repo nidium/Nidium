@@ -114,7 +114,7 @@ DONE :
 //load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
 //load("applications/components/windows.js");
-load("applications/components/dropdown.js");
+//load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
