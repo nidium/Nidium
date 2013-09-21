@@ -17,16 +17,12 @@ NDMElement.implement({
 		this.animate("opacity", this.opacity, 0, duration, callback, fx);
 	},
 
-	bounceScale : function(delta, duration, callback, fx){
-		this.animate("scale", this.scale, delta, duration, callback, fx);
-	},
-
-	bounceBlur : function(delta, duration, callback, fx){
-		this.animate("blur", this.blur, delta, duration, callback, fx);
-	},
-
 	slideX : function(delta, duration, callback, fx){
 		this.animate("left", this.left, delta, duration, callback, fx);
+	},
+
+	slideY : function(delta, duration, callback, fx){
+		this.animate("top", this.top, delta, duration, callback, fx);
 	},
 
 	set : function(property, delta, duration, callback, fx){
@@ -80,7 +76,7 @@ Native.MotionFactory = {
 	nb : 0,
 
 	timer : null,
-	slice : 10,
+	slice : 16,
 
 	playing : false,
 	ended : 0,
@@ -193,7 +189,7 @@ Native.MotionFactory = {
 		this.playing = true;
 		this.ended = 0;
 
-		this.timer = Native.timer(function(){
+		this.timer = window.timer(function(){
 			for (var i in q){
 				if (q.hasOwnProperty(i) && !q[i].complete){
 					self.animate(q[i]);

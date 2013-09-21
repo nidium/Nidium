@@ -95,7 +95,7 @@ Native.elements.export("UISpinner", {
 			var ms = 1000/this.speed;
 			if (this.timer) this.timer.remove();
 
-			this.timer = Native.timer(function(){
+			this.timer = window.timer(function(){
 				if (!self.playing) return false;
 
 				if (self.forward) {

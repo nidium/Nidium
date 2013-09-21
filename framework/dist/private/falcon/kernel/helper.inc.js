@@ -92,6 +92,32 @@ window.canvas.context = window.canvas.getContext("2D");
 
 /* -------------------------------------------------------------------------- */
 
+Object.createProtectedElement(window, "timer", function(fn, ms, loop, execFirst){
+	var t = {
+		loop : loop,
+		tid : loop 
+			? setInterval(function(){fn.call(t);}, ms)
+			: setTimeout(function(){fn.call(t);}, ms),
+
+		remove : function(){
+			if (this.loop) {
+				clearInterval(this.tid);
+			} else {
+				clearTimeout(this.tid);
+			}
+			delete(this.tid);
+		}
+	};
+
+	if (execFirst) {
+		fn.call(t);
+	}
+	
+	return t;
+});
+
+/* -------------------------------------------------------------------------- */
+
 // Syntax : "22".in([1, 23], 21, {"22":true}) equal true
 
 Object.in = function(...n){

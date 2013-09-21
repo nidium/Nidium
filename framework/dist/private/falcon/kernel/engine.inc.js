@@ -151,32 +151,6 @@ Native.loadImage = function(url, callback){
 
 /* -------------------------------------------------------------------------- */
 
-Native.timer = function(fn, ms, loop, execFirst){
-	var t = {
-		loop : loop,
-		tid : loop 
-			? setInterval(function(){fn.call(t);}, ms)
-			: setTimeout(function(){fn.call(t);}, ms),
-
-		remove : function(){
-			if (this.loop) {
-				clearInterval(this.tid);
-			} else {
-				clearTimeout(this.tid);
-			}
-			delete(this.tid);
-		}
-	};
-
-	if (execFirst) {
-		fn.call(t);
-	}
-	
-	return t;
-};
-
-/* -------------------------------------------------------------------------- */
-
 Native.StyleSheet = {
 
 	/* add to the existing stylesheet document */

@@ -151,7 +151,7 @@ Native.elements.export("UIView", {
 			}
 
 			/* Scroll to goal and slowdown velocity */
-			self._scrollYtimer = Native.timer(function(){
+			self._scrollYtimer = window.timer(function(){
 				var stop = false,
 					value = self._scrollTop;
 
@@ -226,7 +226,7 @@ Native.elements.export("UIView", {
 				self._scrollXtimer.remove();
 			}
 
-			self._scrollXtimer = Native.timer(function(){
+			self._scrollXtimer = window.timer(function(){
 				var stop = false,
 					value = self._scrollLeft;
 
