@@ -103,14 +103,12 @@ Native.MotionFactory = {
 			property = String(o.property);
 
 		if (o.view && o.view[property] != undefined){
-			
-			/*
+		
 			if (o.view._mutex[property] === true) {
-				return false;
+				o.view.finishCurrentAnimations(property);
 			}
 
 			o.view._mutex[property] = true;
-			*/
 
 			animation = {
 				uid : "_anim_" + this.uid,
@@ -159,9 +157,10 @@ Native.MotionFactory = {
 		}
 		animation.time += this.slice;
 
-		if (animation.time>duration){
+		if (animation.time>=duration){
 			view[property] = start + end;
 			this.finish(animation);
+			window.events.tick();
 		}
 	},
 
@@ -175,20 +174,45 @@ Native.MotionFactory = {
 
 		if (callback && animation.callback) animation.callback.call(view);
 		this.remove(animation);
-		window.events.tick();
 
 		this.ended++;
 	},
 
 	play : function(){
 		if (this.playing) return false;
-
 		var self = this,
 			q = this.queue;
 
 		this.playing = true;
 		this.ended = 0;
 
+		/*
+		METHOD 1 --------------------------------------------------------
+		*/
+		var loop = function(time){
+			var startTime = +new Date();
+			for (var i in q){
+				if (q.hasOwnProperty(i) && !q[i].complete){
+					self.animate(q[i]);
+				}
+			}
+			if (self.nb == 0){
+				self.playing = false;
+			}
+
+			var execTime = (+new Date()) - startTime;
+			self.slice = Math.max(16, execTime);
+
+			if (self.playing) window.requestAnimationFrame(loop);
+		};
+
+		loop();
+
+		/*
+		METHOD 2 --------------------------------------------------------
+		*/
+		/*
+		if (this.timer) this.timer.remove();
 		this.timer = window.timer(function(){
 			for (var i in q){
 				if (q.hasOwnProperty(i) && !q[i].complete){
@@ -202,9 +226,11 @@ Native.MotionFactory = {
 			}
 
 		}, this.slice, true, true);
-
+		*/
 	}
 };
+
+
 
 /*
  * Open source under the BSD License. 
