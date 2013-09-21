@@ -103,12 +103,14 @@ NativeJSwindow::~NativeJSwindow(){
 
 void NativeJSwindow::onReady(JSObject *layout)
 {
-    jsval onready, rval, arg[1] = { JSVAL_NULL} ;
+    jsval onready, rval, arg[1];
     JS::RootedObject rlayout(cx);
 
     if (layout) {
         rlayout = layout;
         arg[0] = OBJECT_TO_JSVAL(rlayout);
+    } else {
+        arg[0] = OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, NULL));
     }
 
     if (JS_GetProperty(cx, this->jsobj, "_onready", &onready) &&

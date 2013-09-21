@@ -3,6 +3,7 @@
 #include "NativeUIInterface.h"
 #include "NativeContext.h"
 #include "NativeMacros.h"
+#include "NativeStream.h"
 
 #include <jsdbgapi.h>
 
@@ -75,6 +76,11 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     JS_DescribeScriptedCaller(cx, &parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
     NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+
+    char *fname = strrchr(filename_parent, '/');
+    if (fname != NULL) {
+        filename_parent = &fname[1];
+    }
 
     argv = JS_ARGV(cx, vp);
 

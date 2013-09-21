@@ -130,6 +130,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         if (++nrefresh > 1) {
                             break;
                         }
+                        NUII->NativeCtx->getNJS()->gc();
                         NUII->restartApplication();
                         //SDL_GL_SwapBuffers();
                         break;

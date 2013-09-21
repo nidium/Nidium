@@ -11,9 +11,10 @@
 
     self.isHidden = NO;
     
-    self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 640, 500) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
+    self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 700, 480) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
 
     [self.window setFrameAutosaveName:@"nativeConsole"];
+    [self.window setTitle:@"nidium console"];
     CGRect frame = [[self.window contentView] frame];
     NSButton *btn = [[NSButton alloc] initWithFrame:NSMakeRect(10, 3, 100, 25)];
     [btn setButtonType:NSMomentaryLightButton]; //Set what type button You want
@@ -80,7 +81,8 @@
     [self.textview release];
     
     [textview insertText:@"Console ready.\n"];
-    
+    [textview setBackgroundColor:[NSColor blackColor]];
+    [textview setTextColor:[NSColor greenColor]];
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
 
     return self;
