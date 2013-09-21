@@ -10,13 +10,16 @@
 
 window.events = {
 	options : {
-		pointerHoldTime : 600,
+		pointerHoldTime : 1500,
 		doubleClickInterval : 250
 	},
 
 	last : null,
+	timer : null,
 
 	mousedown : false,
+	mousehold : false,
+
 	preventmouseclick : false,
 	preventdefault : false,
 
@@ -305,10 +308,12 @@ window.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		var self = this,
+			o = this.last || {x:0, y:0},
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
+
 		window.mouseX = e.x;
 		window.mouseY = e.y;
-		var o = this.last || {x:0, y:0},
-			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
 
 		if (e.which == 3) {
 			this.preventmouseclick = false;
@@ -323,10 +328,16 @@ window.events = {
 
 		this.dispatch("mousedown", e);
 
+		this.timer = window.timer(function(){
+			self.dispatch("mouseholdstart", e);
+			self.mousehold = true;
+			this.remove();
+		}, this.options.pointerHoldTime);
+
 		if (this.last){
 			e.duration = e.time - this.last.time;
 
-			if (dist<3 && e.duration <= this.options.doubleClickInterval) {
+			if (dist<4 && e.duration <= this.options.doubleClickInterval) {
 				this.dispatch("mousedblclick", e);
 			}
 		}
@@ -340,6 +351,8 @@ window.events = {
 		e.dataTransfer = this.__dataTransfer;
 
 		if (this.mousedown){
+
+			this.timer && this.timer.remove();
 
 			if (this.dragstarted){
 				this.dragging = true;
@@ -375,6 +388,7 @@ window.events = {
 		}
 
 		this.mousedown = false;
+		this.timer && this.timer.remove();
 
 		e.dataTransfer = this.__dataTransfer;
 
@@ -395,13 +409,13 @@ window.events = {
 
 		this.dispatch("mouseup", e);
 
-		if (o && dist<3) {
-			if (elapsed > this.options.pointerHoldTime) {
-				this.dispatch("mouseholdup", e);
-				this.dispatch("mouseclick", e);
-			} else {
-				this.dispatch("mouseclick", e);
-			}
+		if (this.mousehold) {
+			this.dispatch("mouseholdend", e);
+			this.mousehold = false;
+		}
+
+		if (o && dist<5) {
+			this.dispatch("mouseclick", e);
 		}
 	},
 

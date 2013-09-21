@@ -111,7 +111,7 @@ DONE :
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-//load("applications/components/tabs.js");
+load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
@@ -166,7 +166,7 @@ DONE :
 
 /* SHADERS */
 
-	load("applications/components/shader.js"); // OK
+	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
 	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
