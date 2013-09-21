@@ -90,17 +90,14 @@ var createMasterSlider = function(){
 	});
 
 	master.panLabel = master.add("UILabel", {
-		top : 0,
-		label : "L                 R",
-		fontSize : 9,
 		class : "panLabel"
 	}).centerLeft();
 
 	master.hintLabel = master.add("UILabel", {
 		width : 56,
-		label : "MASTER",
 		background : "rgba(0, 0, 0, 0.80)",
 		shadowBlur : 30,
+		label : "MASTER",
 		class : "hintLabel"
 	}).centerLeft();
 

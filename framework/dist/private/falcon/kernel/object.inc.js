@@ -228,8 +228,6 @@ NDMElement.prototype = {
 	sendToBack : Native.object.sendToBack,
 	resetNodes : Native.object.resetNodes,
 
-	updateClassProperties : Native.object.updateClassProperties,
-	updateIdProperties : Native.object.updateIdProperties,
 	setProperties : Native.object.setProperties,
 
 	center : Native.object.center,
@@ -603,7 +601,6 @@ NDMElement.onPropertyUpdate = function(e){
 		case "hover" :
 		case "selected" :
 		case "className" :
-			//element.updateClassProperties();
 			element.applyStyleSheet();
 			element._needRedraw = true;
 			break;

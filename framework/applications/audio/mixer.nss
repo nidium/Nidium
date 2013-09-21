@@ -48,6 +48,7 @@
 	},
 
 	".panLabel" : {
+		top : 0,
 		label : "L                 R",
 		fontSize : 9,
 		color : "#888888"

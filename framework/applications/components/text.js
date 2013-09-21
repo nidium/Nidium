@@ -212,7 +212,6 @@ console.log(dur, "ms");
 /*
 div.childNodes.each(function(){
 	console.log(this.id, this.className)
-	this.updateClassProperties();
 	this.redraw();
 });
 */

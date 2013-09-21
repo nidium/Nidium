@@ -21,10 +21,6 @@ Native.layout = {
 
 		element.applyStyleSheet();
 
-		if (element._className != '') {
-			element.updateClassProperties();
-		}
-
 		if (element.parent) {
 			element.parent.layer.add(element.layer);
 		} else {

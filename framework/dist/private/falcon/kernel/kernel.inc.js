@@ -453,14 +453,6 @@ Native.object = {
 		return this;
 	},
 
-	updateClassProperties : function updateClassProperties(){
-		var classNames = this.className.split(" ");
-		for (var i in classNames){
-			var props = document.style.get("."+classNames[i]);
-			this.setProperties(props);
-		}
-	},
-
 	updateIdProperties : function updateIdProperties(){
 		var props = document.style.get("#"+this.id);
 		this.setProperties(props);

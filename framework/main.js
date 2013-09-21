@@ -116,7 +116,7 @@ document.background = "#333333";
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-load("applications/components/sliders.js");
+//load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash si vidage console
