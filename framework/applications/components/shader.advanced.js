@@ -4,12 +4,18 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var main = new Application({
-	width : 1004,
-	height : 680
-}).center();
+var main = new Application();
 
-var	myTabs = [
+var	tabController = main.add("UITabController", {
+	top : 0,
+	name : "helloTabs",
+	background : "rgba(25, 26, 24, 0.9)"
+});
+
+document.status.open();
+
+
+tabController.setTabs([
 	/* Tab 0 */ {label : "main.js", class : "tab"},
 	/* Tab 1 */ {label : "core.js", class : "tab"},
 	/* Tab 2 */ {label : "hello.js", selected : true, class : "tab"},
@@ -20,16 +26,25 @@ var	myTabs = [
 	/* Tab 7 */ {label : "rotation.js", class : "tab"},
 	/* Tab 8 */ {label : "scale.js", class : "tab"},
 	/* Tab 9 */ {label : "native.inc.js", class : "tab"}
-];
+]);
 
-var	tabController = document.add("UITabController", {
-	top : 0,
-	name : "helloTabs",
-	tabs : null,
-	background : "rgba(25, 26, 24, 1)"
+
+var toolBar = main.add("UIElement", {
+	top : 32,
+	height : 30,
+	background : "#e0e0e0",
+	alpha : 0.25
 });
 
-tabController.setTabs(myTabs);
+
+var field = toolBar.add("UITextField", {
+	left : 4,
+	top : 4
+});
+
+field.value = "https://www.google.com/";
+field.width = 418;
+
 
 
 var	myElements = [
@@ -49,23 +64,47 @@ var	myElements = [
 	/* Tab 9 */ {label : "Japan", 			value : 13}
 ];
 
-var	dropDownController = main.add("UIDropDownController", {
-	left : 814,
-	top : 0,
+var	dropDownController = toolBar.add("UIDropDownController", {
+	left : 828,
+	top : 4,
 	maxHeight : 198,
 	name : "helloDrop",
 	radius : 2,
 	elements : myElements,
-	background : '#333333',
+	background : '#111111',
 	selectedBackground : "#4D90FE",
 	selectedColor : "#FFFFFF"
 });
+
+
+var	button = new UIButton(toolBar, {
+	id : "button",
+	left : 974,
+	top : 4,
+	label : "Do It"
+});
+
+button.addEventListener("mouseup", function(e){
+	modal.open();
+
+	var h = new HttpRequest('GET', url, null, function(e){
+		if (e.type == "json"){
+			processFlickr(e.data.photos.photo);
+		} else {
+			console.log("failed");
+		}
+	});
+
+});
+
+
+
 
 var ShaderDemo = {
 	init : function(){
 		var self = this;
 
-		main.shader("applications/components/shaders/flamme.s", function(p, u){
+		document.shader("applications/components/shaders/apple.s", function(p, u){
 			self.start(p, u);
 		});
 
@@ -90,12 +129,12 @@ var ShaderDemo = {
 	createSlider : function(uniforms){
 		var self = this;
 
-		this.slider1 = main.add("UISliderController", {
-			left : 10,
-			top : 20,
-			width : 180,
+		this.slider1 = toolBar.add("UISliderController", {
+			left : 500,
+			top : 9,
+			width : 90,
 			background : '#161712',
-			color : 'rgba(0, 40, 50, 1)',
+			color : '#000000',
 			progressBarColor : 'rgba(255, 255, 255, 1)',
 			disabled : false,
 			radius : 2,
@@ -104,12 +143,12 @@ var ShaderDemo = {
 			value : 0
 		});
 
-		this.slider2 = main.add("UISliderController", {
-			left : 10,
-			top : 45,
-			width : 180,
+		this.slider2 = toolBar.add("UISliderController", {
+			left : 610,
+			top : 9,
+			width : 90,
 			background : '#161712',
-			color : 'rgba(0, 40, 50, 1)',
+			color : '#000000',
 			progressBarColor : 'rgba(255, 255, 255, 1)',
 			disabled : false,
 			radius : 2,
@@ -118,12 +157,12 @@ var ShaderDemo = {
 			value : 0
 		});
 
-		this.slider3 = main.add("UISliderController", {
-			left : 10,
-			top : 70,
-			width : 180,
+		this.slider3 = toolBar.add("UISliderController", {
+			left : 720,
+			top : 9,
+			width : 90,
 			background : '#161712',
-			color : 'rgba(0, 40, 50, 1)',
+			color : '#000000',
 			progressBarColor : 'rgba(255, 255, 255, 1)',
 			disabled : false,
 			radius : 2,
@@ -160,27 +199,6 @@ ShaderDemo.init();
 
 
 var modal = new UIModal(main);
-
-var	button = new UIButton(main, {
-	id : "button",
-	left : 960,
-	top : 0,
-	label : "Do It"
-});
-
-button.addEventListener("mouseup", function(e){
-	modal.open();
-
-	var h = new HttpRequest('GET', url, null, function(e){
-		if (e.type == "json"){
-			processFlickr(e.data.photos.photo);
-		} else {
-			console.log("failed");
-		}
-	});
-
-});
-
 
 var resize = new UIButton(modal.contentView).move(10, 10);
 resize.setProperties({
@@ -283,29 +301,37 @@ var processFlickr = function(pictures){
 	}
 };
 
-var video = new UIVideo(main, {
-	width : 640,
-	height : 360
-}).center().load("media/bunny.mp4", function(e){
-	this.player.play();
+
+document.addEventListener("DOMContentLoaded", function(){
+	var video = new UIVideo(main, {
+		width : 640,
+		height : 360
+	}).center().load("media/bunny.mp4", function(e){
+		this.player.play();
+	});
+
+	video.opacity = 0.8;
+
+	video.player.onplay = function(){
+		console.log("Start playing ...");
+	}
+
+	video.player.onpause = function(){};
+	video.player.onstop = function(){};
+	video.player.onerror = function(e){};
+
+	video.shader("applications/components/shaders/flag.s", function(program, uniforms){
+		var t = 0;
+		setInterval(function(){
+			uniforms.itime = t++;
+		}, 16);
+	});
 });
 
-video.opacity = 0.8;
+	
 
-video.player.onplay = function(){
-	console.log("Start playing ...");
-}
 
-video.player.onpause = function(){};
-video.player.onstop = function(){};
-video.player.onerror = function(e){};
 
-video.shader("applications/components/shaders/flag.s", function(program, uniforms){
-	var t = 0;
-	setInterval(function(){
-		uniforms.itime = t++;
-	}, 16);
-});
 
 /*
 

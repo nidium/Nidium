@@ -305,8 +305,8 @@ Native.StyleSheet = {
 
 /* -------------------------------------------------------------------------- */
 
-window.NativeMarkupLayout = {
-	parse : function(LST){
+Object.createProtectedHiddenElement(window.scope, "NDMLayoutParser", {
+	parse : function(LST, callback){
 		var createElement = function(node, parent){
 			var element = null,
 				nodeType = node.type,
@@ -362,5 +362,6 @@ window.NativeMarkupLayout = {
 		};
 
 		parseNodes(LST, document);
+		if (typeof callback == "function") callback();
 	}
-};
+});

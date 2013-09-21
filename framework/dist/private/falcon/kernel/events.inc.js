@@ -640,8 +640,9 @@ window._onblur = function(e){
 window._onready = function(LST){
 	Native.core.onready();
 	window.onload();
-	window.NativeMarkupLayout.parse(LST, function(){
-		window.onDOMReady();
+	NDMLayoutParser.parse(LST, function(){
+		window.onready();
+		document.fireEvent("DOMContentLoaded", {});
 	});
 };
 
@@ -657,7 +658,7 @@ window._onassetready = function(e){
 /* -- USER LAND EVENTS ------------------------------------------------------ */
 
 window.onload = function(){};
-window.onDOMReady = function(){};
+window.onready = function(){};
 window.onmousedown = function(e){};
 window.onmousemove = function(e){};
 window.onmousewheel = function(e){};
