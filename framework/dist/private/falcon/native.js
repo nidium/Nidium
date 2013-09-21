@@ -217,10 +217,10 @@ Native.core = {
 			var disabled = !(e.element.isTextZone);
 
 			var	myMenu = [
-				/* Tab 0 */ {label : "Copy", 		value : 0, disabled:disabled},
-				/* Tab 1 */ {label : "Cut", 		value : 1, disabled:disabled},
-				/* Tab 2 */ {label : "Paste", 		value : 2, disabled:disabled},
-				/* Tab 3 */ {label : "View Source",	value : 10}
+				{label : "Copy", 		value : 0, disabled:disabled},
+				{label : "Cut", 		value : 1, disabled:disabled},
+				{label : "Paste", 		value : 2, disabled:disabled},
+				{label : "View Source",	value : 10}
 			];
 
 			if (this.contextMenu) {

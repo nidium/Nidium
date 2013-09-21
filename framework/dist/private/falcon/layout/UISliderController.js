@@ -90,6 +90,22 @@ Native.elements.export("UISliderController", {
 			self.draggingSlider = true;
 		}, false);
 
+		this.addEventListener("drag", function(e){
+			var k = this.knob,
+				v = self.vertical,
+
+				start = v ? k.top : k.left,
+				delta = v ? (e.y - this.__top - k.height/2)
+						  : (e.x - this.__left - k.width/2),
+
+				property = v ? "top" : "left";
+
+			k.finishCurrentAnimations(property);
+			self.setKnobPosition(delta);
+
+			self.draggingSlider = true;
+		}, false);
+
 		this.addEventListener("mouseup", function(e){
 			self.draggingSlider = false;
 			e.stopPropagation();

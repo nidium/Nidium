@@ -99,7 +99,7 @@ DONE :
 
 */
 
-//document.background = "#000000";
+document.background = "#333333";
 //load("sample.js");
 
 //load("applications/_tests/timers.js");
@@ -111,15 +111,15 @@ DONE :
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-load("applications/components/tabs.js");
+//load("applications/components/tabs.js");
 //load("applications/components/profiler.js");
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-//load("applications/components/sliders.js");
+load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
-//load("applications/components/threads.js"); // crash
+//load("applications/components/threads.js"); // crash si vidage console
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
@@ -129,16 +129,16 @@ load("applications/components/tabs.js");
 //load("applications/components/text.js"); // FAIL
 //load("applications/components/__zzz.js");
 
-/* CANVAS TESTS */
+/* CANVAS TESTS (SANS NATIVE FRAMEWORK)*/
 
 //load("applications/canvas/water.js"); // fail
-//load("applications/canvas/sand.js");
-//load("applications/canvas/bluewheel.js"); // fail
-//load("applications/canvas/cube.js"); // chute de perf VS premières versions 
-//load("applications/canvas/cubewall.js"); // RAS
+//load("applications/canvas/bluewheel.js"); // FAIL (GlobalComposite)
+//load("applications/canvas/sand.js"); // OK
+//load("applications/canvas/cube.js"); // perf OK
+//load("applications/canvas/cubewall.js"); // perf OK
 //load("applications/canvas/flamme.js"); // OK
-//load("applications/canvas/particles.js"); // slow
-//load("applications/canvas/text.js"); // OK
+//load("applications/canvas/particles.js"); // perf OK
+//load("applications/canvas/text.js"); // FAIL (GlobalComposite)
 //load("applications/canvas/shader.js"); // OK
 
 //load("applications/components/flickr.js");
@@ -153,10 +153,10 @@ load("applications/components/tabs.js");
 
 /* MEDIA API */
 
-	//load("applications/audio/test.js");
-	//load("applications/audio/mixer.js");
-	//load("applications/audio/dsp.js");
-	//load("applications/media/video.js");
+	//load("applications/audio/test.js"); // OK
+	//load("applications/audio/mixer.js"); // OK
+	//load("applications/audio/dsp.js"); // OK
+	//load("applications/media/video.js"); // OK
 
 /* FILE API */
 

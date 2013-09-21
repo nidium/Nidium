@@ -379,12 +379,12 @@ window.events = {
 	mouseupEvent : function(e){
 		var self = this,
 			o = this.last || {x:0, y:0},
-			dist = Math.distance(o.x, o.y, e.x, e.y) || 0,
-			elapsed = 0;
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
 
-		// prevent Mouse UP to be fired after (MouseDown + CTRL R)
-		if (this.last) {
-			elapsed = (+new Date()) - this.last.time;
+		// mouseup can be fired without a previous mousedown
+		// this prevent mouseup to be fired after (MouseDown + Refresh)
+		if (this.mousedown === false) {
+			return false;
 		}
 
 		this.mousedown = false;
