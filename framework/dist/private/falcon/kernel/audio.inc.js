@@ -29,13 +29,13 @@
 /* -------------------------------------------------------------------------- */
 
 window.getAudioContext = function(){
-	// Init NATiVE DSP
-	// 512 bytes buffer, 2 channels, 44100Hz
 	if (!Audio) return false;
-	if (!Native.defaultAudioDSP && "getContext" in Audio) {
-		Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);
+	if (!window.__defaultAudioDSP__ && "getContext" in Audio) {
+		// Init NATiVE DSP
+		// 512 bytes buffer, 2 channels, 44100Hz
+		window.__defaultAudioDSP__ = Audio.getContext(512, 2, 44100);
 	}
-	return Native.defaultAudioDSP;
+	return window.__defaultAudioDSP__;
 };
 
 var AudioMixer = {
