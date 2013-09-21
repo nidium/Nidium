@@ -441,7 +441,7 @@ window.events = {
 
 /* -- DOM EVENTS IMPLEMENTATION --------------------------------------------- */
 
-DOMElement.implement({
+NDMElement.implement({
 
 	mouseover : false,
 	mouseout : false,

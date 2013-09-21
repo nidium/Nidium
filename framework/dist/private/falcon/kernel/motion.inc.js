@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.implement({
+NDMElement.implement({
 	fadeIn : function(duration, callback, fx){
 		this.animate("opacity", this.opacity, 1, duration, callback, fx);
 	},

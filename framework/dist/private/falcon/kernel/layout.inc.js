@@ -98,7 +98,7 @@ Native.layout = {
 
 		elements.each = function(cb){
 			for (var i in elements) {
-				if (isDOMElement(elements[i])){
+				if (isNDMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -153,7 +153,7 @@ Native.layout = {
 		elements.each = function(cb){
 			if (typeof cb != "function") return false;
 			for (var i in elements) {
-				if (isDOMElement(elements[i])){
+				if (isNDMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -200,7 +200,7 @@ Native.layout = {
 		elements.each = function(cb){
 			if (typeof cb != "function") return false;
 			for (var i in elements) {
-				if (isDOMElement(elements[i])){
+				if (isNDMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -305,7 +305,7 @@ Object.createProtectedElement(window.scope, "Application", function(options){
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;
 
-	var element = new DOMElement("UIView", options, null);
+	var element = new NDMElement("UIView", options, null);
 	element._root = element;
 
 	Native.layout.init(element, null);

@@ -28,7 +28,7 @@ Native.elements.export("UIPath", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 
 		context.setColor(this.color);
 		context.setPath(this.data, this.units, this.advx, this.advy, scale);

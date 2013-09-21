@@ -11,7 +11,7 @@ Native.elements.export("UISliderKnob", {
 		this.height = OptionalNumber(o.height, 10);
 		this.cursor = OptionalCursor(o.cursor, "pointer");
 
-		DOMElement.listeners.addDefault(this);
+		NDMElement.listeners.addDefault(this);
 	},
 
 	draw : function(context){

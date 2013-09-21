@@ -74,7 +74,7 @@ Native.elements.export("UITabController", {
 			var i = this.currentIndex,
 				target = this.tabs[i] ? this.tabs[i].target : null;
 
-			if (!target || !isDOMElement(target)) return false;
+			if (!target || !isNDMElement(target)) return false;
 			target.hide();
 		};
 
@@ -82,7 +82,7 @@ Native.elements.export("UITabController", {
 			var i = this.currentIndex,
 				target = this.tabs[i] ? this.tabs[i].target : null;
 
-			if (!target || !isDOMElement(target)) return false;
+			if (!target || !isNDMElement(target)) return false;
 			target.show();
 		};
 
@@ -465,6 +465,6 @@ Native.elements.export("UITabController", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 	}
 });

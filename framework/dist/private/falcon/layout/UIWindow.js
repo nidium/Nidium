@@ -157,17 +157,17 @@ Native.elements.export("UIWindow", {
 		var	params = this.getDrawingBounds();
 
  		if (this.outlineColor && this.outline) {
-			DOMElement.draw.outline(this);
+			NDMElement.draw.outline(this);
 		}
 
 		context.setShadow(
 			this.shadowOffsetX, this.shadowOffsetY,
 			this.shadowBlur, this.shadowColor
 		);
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
-		var gradient = DOMElement.draw.getCleanGradient(this, context, params);
-		DOMElement.draw.box(this, context, params, gradient);
+		var gradient = NDMElement.draw.getCleanGradient(this, context, params);
+		NDMElement.draw.box(this, context, params, gradient);
 	}
 });

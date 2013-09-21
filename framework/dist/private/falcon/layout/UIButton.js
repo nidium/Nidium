@@ -59,19 +59,19 @@ Native.elements.export("UIButton", {
 		this.outlineColor = this.background;
 
 		this.resizeElement = function(){
-			this.width = DOMElement.draw.getInnerTextWidth(this);
+			this.width = NDMElement.draw.getInnerTextWidth(this);
 		};
 
 		this.resizeElement();
 
-		DOMElement.listeners.addDefault(this);
+		NDMElement.listeners.addDefault(this);
 	},
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
  		if (this.outlineColor && this.outline) {
-			DOMElement.draw.outline(this);
+			NDMElement.draw.outline(this);
 		}
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
@@ -82,7 +82,7 @@ Native.elements.export("UIButton", {
 			}
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 
 		if (__ENABLE_BUTTON_SHADOWS__){
 			context.setShadow(0, 0, 0);
@@ -92,7 +92,7 @@ Native.elements.export("UIButton", {
 			params.textOffsetY = 1;
 		}
 
-		DOMElement.draw.glassLayer(this, context, params);
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.glassLayer(this, context, params);
+		NDMElement.draw.label(this, context, params);
 	}
 });

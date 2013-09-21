@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.implement({
+NDMElement.implement({
 	shader : function(url, callback){
 		var self = this;
 

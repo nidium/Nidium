@@ -358,7 +358,7 @@ Native.elements.export("UIDiagram", {
 			this.shadowOffsetX, this.shadowOffsetY,
 			this.shadowBlur, this.shadowColor
 		);
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
 		var gradient = context.createLinearGradient(
@@ -368,6 +368,6 @@ Native.elements.export("UIDiagram", {
 		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.20)');
 		gradient.addColorStop(0.10, 'rgba(255, 255, 255, 0.05)');
 		gradient.addColorStop(0.90, 'rgba(255, 255, 255, 0.00)');
-		DOMElement.draw.box(this, context, params, gradient);
+		NDMElement.draw.box(this, context, params, gradient);
 	}
 });

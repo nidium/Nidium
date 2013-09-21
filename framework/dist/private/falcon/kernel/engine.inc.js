@@ -31,7 +31,7 @@ Object.definePrivateProperties(Native.elements, {
 		if (plugin.onChildReady) element.onChildReady = plugin.onChildReady;
 
 		if (plugin.public){
-			DOMElement.defineDescriptors(element, plugin.public);
+			NDMElement.defineDescriptors(element, plugin.public);
 		}
 
 		this.createHardwareLayer(element);
@@ -47,7 +47,7 @@ Object.definePrivateProperties(Native.elements, {
 			}, false);
 		}
 
-		DOMElement.defineReadOnlyProperties(element, {
+		NDMElement.defineReadOnlyProperties(element, {
 			initialized : true
 		});
 
@@ -85,7 +85,7 @@ Object.definePrivateProperties(Native.elements, {
 					
 				// new Element(parent, options);
 				case 2 :
-					parent = isDOMElement(n[0]) ? n[0] : null;
+					parent = isNDMElement(n[0]) ? n[0] : null;
 					options = n[1];
 
 				// new Element();
@@ -101,9 +101,9 @@ Object.definePrivateProperties(Native.elements, {
 			}
 
 			if (parent == null){
-				element = new DOMElement(name, options, null);
+				element = new NDMElement(name, options, null);
 			} else {
-				if (isDOMElement(parent)){
+				if (isNDMElement(parent)){
 					element = parent.add(name, options);
 				} else {
 					throw name + ": Native Element expected";

@@ -50,7 +50,7 @@ Native.elements.export("UILabel", {
 		});
 
 		this.resizeElement = function(){
-			this._innerTextWidth = DOMElement.draw.getInnerTextWidth(this);
+			this._innerTextWidth = NDMElement.draw.getInnerTextWidth(this);
 		};
 
 		this.resizeElement();
@@ -61,7 +61,7 @@ Native.elements.export("UILabel", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		DOMElement.draw.box(this, context, params);
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.box(this, context, params);
+		NDMElement.draw.label(this, context, params);
 	}
 });

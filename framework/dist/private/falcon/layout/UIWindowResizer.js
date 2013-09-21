@@ -19,7 +19,7 @@ Native.elements.export("UIWindowResizer", {
 			this.top = this.parent.height - this.height - 4;
 		};
 
-		DOMElement.listeners.addDefault(this);
+		NDMElement.listeners.addDefault(this);
 
 		this.addEventListener("drag", function(e){
 			var win = this.parent;

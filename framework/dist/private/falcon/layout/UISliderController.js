@@ -21,7 +21,7 @@ Native.elements.export("UISliderController", {
 		var self = this,
 			o = this.options;
 
-		DOMElement.definePublicProperties(this, {
+		NDMElement.definePublicProperties(this, {
 			canReceiveFocus : true,
 			color : OptionalValue(o.color, "#3388dd"),
 			value : OptionalNumber(o.value, 0),

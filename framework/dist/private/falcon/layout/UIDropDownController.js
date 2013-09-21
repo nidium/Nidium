@@ -404,7 +404,7 @@ Native.elements.export("UIDropDownController", {
 			return this;
 		};
 
-		DOMElement.listeners.addHovers(this);
+		NDMElement.listeners.addHovers(this);
 
 		this.addEventListener("contextmenu", function(e){
 			e.preventDefault();
@@ -466,7 +466,7 @@ Native.elements.export("UIDropDownController", {
  		if (this.hideSelector) return;
 
  		if (this.outlineColor && this.outline) {
-			DOMElement.draw.outline(this);
+			NDMElement.draw.outline(this);
 		}
 
 		if (__ENABLE_BUTTON_SHADOWS__) {
@@ -477,13 +477,13 @@ Native.elements.export("UIDropDownController", {
 			}
 		}
 		
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 
 		if (__ENABLE_BUTTON_SHADOWS__){
 			context.setShadow(0, 0, 0);
 		}
 
-		DOMElement.draw.glassLayer(this, context, params);
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.glassLayer(this, context, params);
+		NDMElement.draw.label(this, context, params);
 	}
 });

@@ -87,7 +87,7 @@ Native.object = {
 	},
 
 	add : function add(type, options){
-		var element = new DOMElement(type, options, this);
+		var element = new NDMElement(type, options, this);
 		this.addChild(element);
 		return element;
 	},
@@ -160,7 +160,7 @@ Native.object = {
 	},
 
 	addChild : function addChild(element){
-		if (!isDOMElement(element)) return false;
+		if (!isNDMElement(element)) return false;
 
 		/* fire the onAddChildRequest event */
 		if (this.onAddChildRequest.call(this, element) === false) return false;
@@ -217,7 +217,7 @@ Native.object = {
 	},
 
 	/*
-	 * Sort DOMElements to match hardware physical layers order.
+	 * Sort NDMElements to match hardware physical layers order.
 	 */
 	resetNodes : function resetNodes(){
 		if (!this.parent) return false;
@@ -255,7 +255,7 @@ Native.object = {
 
 		var dx = function(z){
 			for (var i=0; i<z.length; i++){
-				if (isDOMElement(z[i])) elements.push(z[i]);
+				if (isNDMElement(z[i])) elements.push(z[i]);
 				dx(z[i].nodes);
 			}
 		};
@@ -419,7 +419,7 @@ Native.object = {
 	},
 
 	isAncestor : function isAncestor(element){
-		if (!isDOMElement(element)) return false;
+		if (!isNDMElement(element)) return false;
 		if (this.ownerDocument != element.ownerDocument) return false;
 		for (var e = element; e; e = e.parent) {
 			if (e === this) return true;

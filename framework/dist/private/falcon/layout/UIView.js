@@ -421,7 +421,7 @@ Native.elements.export("UIView", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
 		if (this._cachedBackgroundImage) {
@@ -444,7 +444,7 @@ Native.elements.export("UIView", {
 					this._cachedBackgroundImage,
 					"repeat"
 				);
-				DOMElement.draw.box(this, context, params, pattern);
+				NDMElement.draw.box(this, context, params, pattern);
 			}
 		}
 		/*

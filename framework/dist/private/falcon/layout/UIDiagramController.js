@@ -297,6 +297,6 @@ Native.elements.export("UIDiagramController", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 	}
 });
