@@ -104,7 +104,7 @@ var ShaderDemo = {
 	init : function(){
 		var self = this;
 
-		document.shader("applications/components/shaders/apple.s", function(p, u){
+		document.shader("applications/components/shaders/flamme.s", function(p, u){
 			self.start(p, u);
 		});
 
@@ -301,8 +301,8 @@ var processFlickr = function(pictures){
 	}
 };
 
-
 document.addEventListener("DOMContentLoaded", function(){
+
 	var video = new UIVideo(main, {
 		width : 640,
 		height : 360
@@ -327,10 +327,6 @@ document.addEventListener("DOMContentLoaded", function(){
 		}, 16);
 	});
 });
-
-	
-
-
 
 
 /*
