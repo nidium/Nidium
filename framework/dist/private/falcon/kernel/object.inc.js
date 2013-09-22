@@ -187,6 +187,11 @@ NDMElement.prototype = {
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
 	__refresh : Native.object.__refresh, // internal refresh
+	__updateLayerOpacity : Native.object.__updateLayerOpacity,
+	__updateLayerPosition : Native.object.__updateLayerPosition,
+	__updateLayerSize : Native.object.__updateLayerSize,
+	__updateAncestors : Native.object.__updateAncestors,
+	__resizeLayer : Native.object.__resizeLayer,
 
 	add : Native.object.add,
 	remove : Native.object.remove,
@@ -239,11 +244,6 @@ NDMElement.prototype = {
 
 	redraw : Native.object.redraw,
 
-	updateLayerOpacity : Native.object.updateLayerOpacity,
-	updateLayerPosition : Native.object.updateLayerPosition,
-	updateLayerSize : Native.object.updateLayerSize,
-	updateAncestors : Native.object.updateAncestors,
-	resizeLayer : Native.object.resizeLayer,
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
 
@@ -612,7 +612,7 @@ NDMElement.onPropertyUpdate = function(e){
 			break;
 
 		case "angle" :
-			element.resizeLayer();
+			element.__resizeLayer();
 			break;
 
 		case "cursor" :

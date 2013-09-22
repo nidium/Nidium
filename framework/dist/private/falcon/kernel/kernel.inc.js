@@ -24,10 +24,10 @@ Native.object = {
 	},
 
 	__refresh : function __refresh(){
-		if (this._needOpacityUpdate) this.updateLayerOpacity();
-		if (this._needPositionUpdate) this.updateLayerPosition();
-		if (this._needSizeUpdate) this.updateLayerSize();
-		if (this._needAncestorCacheClear) this.updateAncestors();
+		if (this._needOpacityUpdate) this.__updateLayerOpacity();
+		if (this._needPositionUpdate) this.__updateLayerPosition();
+		if (this._needSizeUpdate) this.__updateLayerSize();
+		if (this._needAncestorCacheClear) this.__updateAncestors();
 		if (this._needRedraw) this.redraw();
 
 		this.layer.overflow = this._overflow;
@@ -38,7 +38,7 @@ Native.object = {
 		return this;
 	},
 
-	updateAncestors : function updateAncestors(){
+	__updateAncestors : function __updateAncestors(){
 		var element = this;
 		if (this.layer.__fixed) return false;
 
@@ -52,13 +52,13 @@ Native.object = {
 		return this;
 	},
 
-	updateLayerOpacity : function updateLayerOpacity(){
+	__updateLayerOpacity : function __updateLayerOpacity(){
 		this.layer.opacity = this._opacity;
 		this._needOpacityUpdate = false;
 		return this;
 	},
 
-	updateLayerPosition : function updateLayerPosition(){
+	__updateLayerPosition : function __updateLayerPosition(){
 		this.layer.left = this._left;
 		this.layer.top = this._top;
 		this.layer.scrollTop = this._scrollTop;
@@ -67,12 +67,24 @@ Native.object = {
 		return this;
 	},
 
-	updateLayerSize : function updateLayerSize(){
+	__updateLayerSize : function __updateLayerSize(){
 		this.layer.width = Math.round(this._width);
 		this.layer.height = Math.round(this._height);
 		this._needSizeUpdate = false;
 		return this;
 	},
+
+	__resizeLayer : function __resizeLayer(){
+		/* layer rotation realtime padding update hack */
+		var b = this.getBoundingRect(),
+			w = b.x2 - b.x1,
+			h = b.y2 - b.y1;
+
+		this.layer.padding = h/2;
+		this.redraw();
+	},
+
+	/* ---------------------------------------------------------------------- */
 
 	redraw : function redraw(){
 		this.layer.clear();
@@ -178,10 +190,10 @@ Native.object = {
 		/* fire the new element's onAdoption event */
 		element.onAdoption.call(element, this);
 
-		/* fire the element's parent onChild event */
+		/* fire the element's parent onChildReady event */
 		this.onChildReady.call(this, element);
 
-		element.updateAncestors();
+		element.__updateAncestors();
 		Native.layout.update();
 
 		return this;
@@ -274,16 +286,6 @@ Native.object = {
 		this.layer.sendToBack();
 		this.resetNodes();
 		return this;
-	},
-
-	resizeLayer : function resizeLayer(){
-		/* layer rotation realtime padding update hack */
-		var b = this.getBoundingRect(),
-			w = b.x2 - b.x1,
-			h = b.y2 - b.y1;
-
-		this.layer.padding = h/2;
-		this.redraw();
 	},
 
 	expand : function expand(width, height){
