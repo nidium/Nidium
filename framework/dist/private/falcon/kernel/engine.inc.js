@@ -9,7 +9,6 @@
 /* -------------------------------------------------------------------------- */
 
 Object.definePrivateProperties(Native, {
-	scope : this,
 	elements : {},
 	_cachedTextWidth : {},
 	blankOrphanedCanvas : new Canvas(1, 1)
@@ -55,7 +54,7 @@ Object.definePrivateProperties(Native.elements, {
 			element.onready.call(element);
 		}
 
-		element.refresh();
+		element.__refresh();
 		element.__unlock("init");
 	},
 

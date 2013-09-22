@@ -186,6 +186,7 @@ NDMElement.prototype = {
 
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
+	__refresh : Native.object.__refresh, // internal refresh
 
 	add : Native.object.add,
 	remove : Native.object.remove,
@@ -203,8 +204,6 @@ NDMElement.prototype = {
 
 	getChildren : Native.object.getChildren,
 
-	refresh : Native.object.refresh,
-	
 	beforeDraw : Native.object.beforeDraw,
 	afterDraw : Native.object.afterDraw,
 
@@ -560,17 +559,21 @@ NDMElement.prototype = {
 NDMElement.onPropertyUpdate = function(e){
 	var element = e.element,
 		old = e.oldValue,
-		value = e.newValue;
+		value = e.newValue,
+
+		emitter = {
+			property : e.property,
+			oldValue : e.oldValue,
+			newValue : e.newValue
+		};
 
 	element.__unlock();
 
-	element.fireEvent("propertyupdate", {
-		property : e.property,
-		oldValue : e.oldValue,
-		newValue : e.newValue
-	});
+	element.fireEvent("propertyupdate", emitter);
 
 	element.__lock("onPropertyUpdate");
+
+	//element.update.call(element, e.property, e.value);
 
 	switch (e.property) {
 		case "left" :
@@ -626,7 +629,7 @@ NDMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
-	element.refresh();
+	element.__refresh();
 	element.__unlock("onPropertyUpdate");
 };
 

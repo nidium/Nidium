@@ -23,7 +23,7 @@ Native.object = {
 		return this;
 	},
 
-	refresh : function refresh(){
+	__refresh : function __refresh(){
 		if (this._needOpacityUpdate) this.updateLayerOpacity();
 		if (this._needPositionUpdate) this.updateLayerPosition();
 		if (this._needSizeUpdate) this.updateLayerSize();

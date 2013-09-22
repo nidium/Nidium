@@ -63,8 +63,7 @@ Native.elements.export("UIView", {
 			self._cachedBackgroundImage = img;
 			self._needRefresh = true;
 			self._needRedraw = true;
-			self.refresh();
-			//self.redraw();
+			self.__refresh();
 		};
 
 		this.getMaxScrollTop = function(){

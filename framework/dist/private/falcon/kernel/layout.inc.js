@@ -49,7 +49,7 @@ Native.layout = {
 			var element = z[i];
 			if (element.hasOwnerDocument){
 				if (element._needRefresh){
-					element.refresh();
+					element.__refresh();
 				}
 			}
 		}
