@@ -79,9 +79,6 @@ var AudioMixer = {
 		 
 		*/
 
-		console.log("create track");
-
-
 		// ... SOURCE ---> GAIN ..........................
 		this.dsp.connect(source.output(0), gain.input(0));
 		this.dsp.connect(source.output(1), gain.input(1));
@@ -96,7 +93,6 @@ var AudioMixer = {
 
 		this.dsp.connect(this.master.output(0), this.target.input(0));
 		this.dsp.connect(this.master.output(1), this.target.input(1));
-
 
 		var r = {
 			dsp : this.dsp,

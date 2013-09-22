@@ -453,11 +453,6 @@ Native.object = {
 		return this;
 	},
 
-	updateIdProperties : function updateIdProperties(){
-		var props = document.style.get("#"+this.id);
-		this.setProperties(props);
-	},
-
 	setProperties : function setProperties(properties){
 		for (var k in properties){
 			if (properties.hasOwnProperty(k)){

@@ -51,8 +51,8 @@ Object.definePrivateProperties(Native.elements, {
 			initialized : true
 		});
 
-		if (typeof(element.onReady) == "function"){
-			element.onReady.call(element);
+		if (typeof(element.onready) == "function"){
+			element.onready.call(element);
 		}
 
 		element.refresh();

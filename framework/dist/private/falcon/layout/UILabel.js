@@ -49,13 +49,14 @@ Native.elements.export("UILabel", {
 			color 			: OptionalValue(o.color, "#222222")
 		});
 
+		this.applyStyleSheet();
+
 		this.resizeElement = function(){
 			this._innerTextWidth = NDMElement.draw.getInnerTextWidth(this);
+			this.width = OptionalNumber(o.width, this._innerTextWidth);
 		};
 
 		this.resizeElement();
-
-		this.width = OptionalNumber(o.width, this._innerTextWidth);
 	},
 
 	draw : function(context){

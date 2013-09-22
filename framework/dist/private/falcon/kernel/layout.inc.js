@@ -53,10 +53,6 @@ Native.layout = {
 				}
 			}
 		}
-		if (!document.ready){
-			document.ready = true;
-			document.fireEvent("load");
-		}
 	},
 
 	/*
