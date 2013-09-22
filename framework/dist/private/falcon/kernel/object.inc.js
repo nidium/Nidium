@@ -29,6 +29,9 @@ var NDMElement = function(type, options, parent){
 		isNDMElement : true
 	});
 
+	this.left = OptionalNumber(o.left, 0);
+	this.top = OptionalNumber(o.top, 0);
+
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
 	NDMElement.definePublicProperties(this, {
@@ -37,8 +40,10 @@ var NDMElement = function(type, options, parent){
 		className : OptionalString(o.class, ""),
 
 		// -- layout properties
+		/*
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
+		*/
 		width : o.width ? Number(o.width) : p ? p._width : window.width,
 		height : o.height ? Number(o.height) : p ? p._height : window.height,
 
@@ -247,6 +252,8 @@ NDMElement.prototype = {
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
 
+	/* ----------------------------------------------- */
+
 	set maxWidth(value) {
 		var w = value == null || value == '' ? null : Number(value);
 
@@ -264,6 +271,8 @@ NDMElement.prototype = {
 		return this._maxWidth;
 	},
 
+	/* ----------------------------------------------- */
+
 	set fastLeft(value) {
 		this._left = value;
 		this.layer.left = value;
@@ -272,6 +281,34 @@ NDMElement.prototype = {
 	set fastTop(value) {
 		this._top = value;
 		this.layer.top = value;
+	},
+
+	/* ----------------------------------------------- */
+
+	set left(value) {
+		this._left = value;
+		if (this.layer) {
+			this.layer.left = value
+			this.__updateAncestors();
+		}
+	},
+
+	get left() {
+		return this._left;
+	},
+
+	/* ----------------------------------------------- */
+
+	set top(value) {
+		this._top = value;
+		if (this.layer) {
+			this.layer.top = value
+			this.__updateAncestors();
+		}
+	},
+
+	get top() {
+		return this._top;
 	},
 
 	/* -- READ ONLY WRAPPERS -- */
@@ -576,11 +613,26 @@ NDMElement.onPropertyUpdate = function(e){
 	//element.update.call(element, e.property, e.value);
 
 	switch (e.property) {
+		/*
+		case "left" :
+			element.layer.left = value;
+			element.layer.scrollLeft = element._scrollLeft;
+			element._needAncestorCacheClear = true;
+			break;
+
+		case "top" :
+			element.layer.top = value;
+			element.layer.scrollTop = element._scrollTop;
+			element._needAncestorCacheClear = true;
+			break;
+		*/
+		/*
 		case "left" :
 		case "top" :
 			element._needPositionUpdate = true;
 			element._needAncestorCacheClear = true;
 			break;
+		*/
 
 		case "scrollLeft" :
 		case "scrollTop" :
