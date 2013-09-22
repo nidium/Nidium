@@ -182,7 +182,7 @@ document.background = "#333333";
 
 /* Unfinished */
 
-	//load("applications/components/splines.js"); // LENTEUR ABOMINABLE
+	load("applications/components/splines.js"); // LENTEUR ABOMINABLE
 	//load("applications/components/diagrams.js");
 
 

@@ -588,8 +588,13 @@ NDMElement.onPropertyUpdate = function(e){
 			break;
 
 		case "width" :
+			element.layer.width = Math.round(value);
+			element._needAncestorCacheClear = true;
+			element._needRedraw = true;
+			break;
+
 		case "height" :
-			element._needSizeUpdate = true;
+			element.layer.height = Math.round(value);
 			element._needAncestorCacheClear = true;
 			element._needRedraw = true;
 			break;
