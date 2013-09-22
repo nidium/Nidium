@@ -444,66 +444,13 @@ window.events = {
 
 };
 
-/* -- DOM EVENTS IMPLEMENTATION --------------------------------------------- */
+/* -- DOM HELPERS IMPLEMENTATION -------------------------------------------- */
 
 NDMElement.implement({
 
 	mouseover : false,
 	mouseout : false,
 	dragendFired : false,
-
-	fireEvent : function(name, e, successCallback){
-		var acceptedEvent = true,
-			listenerResponse = true,
-			cb = OptionalCallback(successCallback, null);
-
-		if (typeof this["on"+name] == 'function'){
-			if (e !== undefined){
-				e.dx = e.xrel;
-				e.dy = e.yrel;
-				e.refuse = function(){
-					acceptedEvent = false;
-				};
-				listenerResponse = this["on"+name](e);
-				if (cb && acceptedEvent) cb.call(this);
-
-				return OptionalBoolean(listenerResponse, true);
-			} else {
-				listenerResponse = this["on"+name]();
-			}
-		} else {
-			if (cb) cb.call(this);
-		}
-		return this;
-	},
-
-	addEventListener : function(name, callback, propagation){
-		var self = this;
-		self._eventQueues = self._eventQueues ? self._eventQueues : [];
-		var queue = self._eventQueues[name];
-
-		queue = !queue ? self._eventQueues[name] = [] : 
-						 self._eventQueues[name];
-
-		queue.push({
-			name : OptionalString(name, "error"),
-			fn : OptionalCallback(callback, function(){}),
-			propagation : OptionalBoolean(propagation, true),
-			response : null
-		});
-
-		self["on"+name] = function(e){
-			for(var i=queue.length-1; i>=0; i--){
-				queue[i].response = queue[i].fn.call(self, e);
-				if (!queue[i].propagation){
-					continue;
-				}
-			}
-			// uncomment to support return in listener (you should not)
-			//if (queue && queue[queue.length-1]) return queue[queue.length-1].response;
-		};
-		return this;
-	},
 
 	click : function(cb){
 		if (typeof cb == "function") {
@@ -535,33 +482,7 @@ NDMElement.implement({
 	}
 });
 
-/* -- THREAD EVENT LISTENER ------------------------------------------------- */
-
-Thread.prototype.addEventListener = function(name, callback, propagation){
-	var self = this;
-	self._eventQueues = self._eventQueues ? self._eventQueues : [];
-	var queue = self._eventQueues[name];
-
-	queue = !queue ? self._eventQueues[name] = [] : 
-					 self._eventQueues[name];
-
-	queue.push({
-		name : OptionalString(name, "error"),
-		fn : OptionalCallback(callback, function(){}),
-		propagation : OptionalBoolean(propagation, true),
-		response : null
-	});
-
-	self["on"+name] = function(e){
-		for(var i=queue.length; i>=0; i--){
-			queue[i].response = queue[i].fn.call(self, e);
-			if (!queue[i].propagation){
-				continue;
-			}
-		}
-	};
-	return this;
-};
+/* -- DOM EVENTS IMPLEMENTATION --------------------------------------------- */
 
 Object.attachEventSystem = function(proto){
 	proto.addEventListener = function(name, callback, propagation){
@@ -615,6 +536,11 @@ Object.attachEventSystem = function(proto){
 		return this;
 	};
 };
+
+Object.attachEventSystem(NDMElement.prototype);
+Object.attachEventSystem(Thread.prototype);
+Object.attachEventSystem(window);
+
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 
