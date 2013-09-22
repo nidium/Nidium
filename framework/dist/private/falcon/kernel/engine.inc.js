@@ -23,7 +23,7 @@ Object.definePrivateProperties(Native.elements, {
 		element.__lock("init");
 
 		if (plugin.draw) element.draw = plugin.draw;
-		if (plugin.refresh) element.update = plugin.refresh;
+		if (plugin.update) element.update = plugin.update;
 
 		if (plugin.onAdoption) element.onAdoption = plugin.onAdoption;
 		if (plugin.onAddChildRequest) element.onAddChildRequest = plugin.onAddChildRequest;

@@ -18,8 +18,8 @@ Native.layout = {
 
 	init : function(element){
 		Native.elements.init(element);
-
-		element.applyStyleSheet();
+		element.applyStyleSheet.call(element);
+		element.update.call(element);
 
 		if (element.parent) {
 			element.parent.layer.add(element.layer);

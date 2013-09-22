@@ -5,24 +5,8 @@
 /* -------------------------------------- */
 
 Native.elements.export("UILabel", {
-	public : {
-		label : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-
-		fontSize : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-
-		fontFamily : {
-			set : function(value){
-				this.resizeElement();
-			}
-		}
+	update : function(e){
+		this.width = NDMElement.draw.getInnerTextWidth(this);
 	},
 
 	init : function(){
@@ -50,13 +34,6 @@ Native.elements.export("UILabel", {
 		});
 
 		this.applyStyleSheet();
-
-		this.resizeElement = function(){
-			this._innerTextWidth = NDMElement.draw.getInnerTextWidth(this);
-			this.width = OptionalNumber(o.width, this._innerTextWidth);
-		};
-
-		this.resizeElement();
 	},
 
 	draw : function(context){

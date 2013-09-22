@@ -645,21 +645,17 @@ NDMElement.prototype = {
 NDMElement.onPropertyUpdate = function(e){
 	var element = e.element,
 		old = e.oldValue,
-		value = e.newValue,
-
-		emitter = {
-			property : e.property,
-			oldValue : e.oldValue,
-			newValue : e.newValue
-		};
+		value = e.newValue;
 
 	element.__unlock();
 
-	element.fireEvent("propertyupdate", emitter);
+	element.fireEvent("propertyupdate", {
+		property : e.property,
+		oldValue : e.oldValue,
+		newValue : e.newValue
+	});
 
 	element.__lock("onPropertyUpdate");
-
-	//element.update.call(element, e.property, e.value);
 
 	switch (e.property) {
 		/*
@@ -735,6 +731,10 @@ NDMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
+
+	/* call the user-defined element's update() method */
+	element.update.call(element);
+
 	element.__refresh();
 	element.__unlock("onPropertyUpdate");
 };

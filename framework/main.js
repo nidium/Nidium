@@ -168,8 +168,19 @@ document.background = "#333333";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
+
+var txt = new UILabel(document, {
+	label : "miami",
+	background : "black",
+	color : "white",
+	textAlign : "center",
+	width : 150,
+	height : 75
+});
+
+//txt.label = "toto";
 
 
 /* TUTORIALS */
