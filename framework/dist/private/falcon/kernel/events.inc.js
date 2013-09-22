@@ -563,8 +563,8 @@ Thread.prototype.addEventListener = function(name, callback, propagation){
 	return this;
 };
 
-Object.attachEventListener = function(obj){
-	obj.addEventListener = function(name, callback, propagation){
+Object.attachEventSystem = function(proto){
+	proto.addEventListener = function(name, callback, propagation){
 		var self = this;
 		self._eventQueues = self._eventQueues ? self._eventQueues : [];
 		var queue = self._eventQueues[name];
@@ -588,7 +588,32 @@ Object.attachEventListener = function(obj){
 			}
 		};
 		return this;
-	}
+	};
+
+	proto.fireEvent = function(name, e, successCallback){
+		var acceptedEvent = true,
+			listenerResponse = true,
+			cb = OptionalCallback(successCallback, null);
+
+		if (typeof this["on"+name] == 'function'){
+			if (e !== undefined){
+				e.dx = e.xrel;
+				e.dy = e.yrel;
+				e.refuse = function(){
+					acceptedEvent = false;
+				};
+				listenerResponse = this["on"+name](e);
+				if (cb && acceptedEvent) cb.call(this);
+
+				return OptionalBoolean(listenerResponse, true);
+			} else {
+				listenerResponse = this["on"+name]();
+			}
+		} else {
+			if (cb) cb.call(this);
+		}
+		return this;
+	};
 };
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
