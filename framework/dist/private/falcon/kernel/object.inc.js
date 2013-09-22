@@ -29,8 +29,17 @@ var NDMElement = function(type, options, parent){
 		isNDMElement : true
 	});
 
+	/* Nidium Engine Properties */
 	this.left = OptionalNumber(o.left, 0);
 	this.top = OptionalNumber(o.top, 0);
+
+	/*
+	this.width = o.width ? Number(o.width) : p ?
+					p._width-this.left : window.width-this.left;
+
+	this.height = o.height ? Number(o.height) : p ?
+					p._height-this.top : window.height-this.top;
+	*/
 
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
@@ -284,11 +293,13 @@ NDMElement.prototype = {
 	},
 
 	/* ----------------------------------------------- */
+	/* NDMElement.left                                 */
+	/* ----------------------------------------------- */
 
 	set left(value) {
 		this._left = value;
 		if (this.layer) {
-			this.layer.left = value
+			this.layer.left = value;
 			this.__updateAncestors();
 		}
 	},
@@ -298,11 +309,13 @@ NDMElement.prototype = {
 	},
 
 	/* ----------------------------------------------- */
+	/* NDMElement.top                                  */
+	/* ----------------------------------------------- */
 
 	set top(value) {
 		this._top = value;
 		if (this.layer) {
-			this.layer.top = value
+			this.layer.top = value;
 			this.__updateAncestors();
 		}
 	},
@@ -311,7 +324,43 @@ NDMElement.prototype = {
 		return this._top;
 	},
 
-	/* -- READ ONLY WRAPPERS -- */
+	/* ----------------------------------------------- */
+	/* NDMElement.width                                */
+	/* ----------------------------------------------- */
+	/*
+	set width(value) {
+		this._width = value;
+		if (this.layer) {
+			//this.layer.width = Math.round(value);
+			this.__updateAncestors();
+			this.redraw();
+		}
+	},
+
+	get width() {
+		return this._width;
+	},
+	*/
+	/* ----------------------------------------------- */
+	/* NDMElement.height                               */
+	/* ----------------------------------------------- */
+	/*
+	set height(value) {
+		this._height = value;
+		if (this.layer) {
+			//this.layer.height = Math.round(value);
+			this.__updateAncestors();
+			this.redraw();
+		}
+	},
+
+	get height() {
+		return this._top;
+	},
+	*/
+	/* ----------------------------------------------- */
+	/* READ ONLY WRAPPERS                              */
+	/* ----------------------------------------------- */
 
 	get __left() {
 		return this.layer.__left;
