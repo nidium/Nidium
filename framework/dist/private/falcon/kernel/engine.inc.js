@@ -24,7 +24,6 @@ Object.definePrivateProperties(Native.elements, {
 
 		if (plugin.draw) element.draw = plugin.draw;
 		if (plugin.update) element.update = plugin.update;
-
 		if (plugin.onAdoption) element.onAdoption = plugin.onAdoption;
 		if (plugin.onAddChildRequest) element.onAddChildRequest = plugin.onAddChildRequest;
 		if (plugin.onChildReady) element.onChildReady = plugin.onChildReady;
@@ -33,12 +32,17 @@ Object.definePrivateProperties(Native.elements, {
 			NDMElement.defineDescriptors(element, plugin.public);
 		}
 
-		this.createHardwareLayer(element);
+		/* First : apply NSS properties */
+		/* maybe we can get width and height properties here */
+		element.applyStyleSheet.call(element);
 
-		if (plugin.init){
-			plugin.init.call(element);
-		}
+		/* Then : create the physical layer behind (element.layer) */
+		this.createCanvasLayer(element);
+		
+		/* only then, call init() to apply the inline properties */
+		if (plugin.init) plugin.init.call(element);
 
+		/* if element can receive focus, add a mousedown listener */
 		if (element.canReceiveFocus){
 			element.addEventListener("mousedown", function(e){
 				this.focus();
@@ -46,6 +50,7 @@ Object.definePrivateProperties(Native.elements, {
 			}, false);
 		}
 
+		/* at this stage, the element is reputed initialized */
 		NDMElement.defineReadOnlyProperties(element, {
 			initialized : true
 		});
@@ -59,7 +64,7 @@ Object.definePrivateProperties(Native.elements, {
 	},
 
 	export : function(type, implement){
-		if (type.in("export", "build", "init", "createHardwareLayer")){
+		if (type.in("export", "build", "init", "createCanvasLayer")){
 			return false;
 		}
 
@@ -67,28 +72,35 @@ Object.definePrivateProperties(Native.elements, {
 		this.build(window.scope, type);
 	},
 
-	/* Native Element Constructor */
-	build : function(scope, name){
-		scope[String(name)] = function(...n){
+	/* NDMElement Constructor Instanciation */
+	build : function(scope, type){
+		Object.createProtectedElement(scope, String(type), function(...n){
 			var element = null,
 				parent = null,
 				className = "",
 				options = {};
 
 			switch (n.length) {
-				// new Element(parent);
+				case 0 :
+					// var element = new UISomething();
+					parent = null;
+					options = {};
+					break;					
+
 				case 1 :
+					// var element = new UISomething(parent);
 					parent = n[0];
 					options = {};
 					break;
 					
-				// new Element(parent, options);
 				case 2 :
-					parent = isNDMElement(n[0]) ? n[0] : null;
+					// var element = UISomething(parent, options);
+					parent = n[0];
 					options = n[1];
+					break;
 
-				// new Element();
 				default :
+					throw type + "(parent, options) -> maximum 2 parameters";
 					break;					
 			}
 
@@ -100,19 +112,22 @@ Object.definePrivateProperties(Native.elements, {
 			}
 
 			if (parent == null){
-				element = new NDMElement(name, options, null);
+				/* create an orphaned element, with no attached parent */
+				element = new NDMElement(type, options, null);
 			} else {
+				/* create a rooted element attached to parent */
 				if (isNDMElement(parent)){
-					element = parent.add(name, options);
+					element = parent.add(type, options);
 				} else {
-					throw name + ": Native Element expected";
+					throw type + " -> NDMElement expected";
 				}
 			}
 			return element;
-		};
+		});
 	},
 
-	createHardwareLayer : function(element){
+	/* attach the low level canvas layer to element */
+	createCanvasLayer : function(element){
 		element.layer = new Canvas(element._width, element._height);
 		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");

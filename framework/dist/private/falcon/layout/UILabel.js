@@ -5,12 +5,13 @@
 /* -------------------------------------- */
 
 Native.elements.export("UILabel", {
-	update : function(e){
-		this.width = NDMElement.draw.getInnerTextWidth(this);
-	},
-
 	init : function(){
 		var o = this.options;
+
+		/* Element's Specific Dynamic Properties */
+		NDMElement.definePublicProperties(this, {
+			autosize : OptionalBoolean(o.autosize, true)
+		});
 
 		this.setProperties({
 			canReceiveFocus	: false,
@@ -32,8 +33,12 @@ Native.elements.export("UILabel", {
 			background 		: OptionalValue(o.background, ""),
 			color 			: OptionalValue(o.color, "#222222")
 		});
+	},
 
-		this.applyStyleSheet();
+	update : function(){
+		if (this.autosize) {
+			this.width = NDMElement.draw.getInnerTextWidth(this);
+		}
 	},
 
 	draw : function(context){

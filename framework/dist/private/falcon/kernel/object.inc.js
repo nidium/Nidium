@@ -117,11 +117,11 @@ var NDMElement = function(type, options, parent){
 
 		// -- misc flags
 		canReceiveFocus : OptionalBoolean(o.canReceiveFocus, false),
+		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, true),
 		canReceiveKeyboardEvents : OptionalBoolean(
 			o.canReceiveKeyboardEvents,
 			false
 		),
-		outlineOnFocus : OptionalBoolean(o.outlineOnFocus, true),
 
 		visible : OptionalBoolean(o.visible, true),
 		hidden : OptionalBoolean(o.hidden, false),
@@ -647,14 +647,6 @@ NDMElement.onPropertyUpdate = function(e){
 		old = e.oldValue,
 		value = e.newValue;
 
-	element.__unlock();
-
-	element.fireEvent("propertyupdate", {
-		property : e.property,
-		oldValue : e.oldValue,
-		newValue : e.newValue
-	});
-
 	element.__lock("onPropertyUpdate");
 
 	switch (e.property) {
@@ -707,6 +699,10 @@ NDMElement.onPropertyUpdate = function(e){
 		case "selected" :
 		case "className" :
 			element.applyStyleSheet();
+			element._needOpacityUpdate = true;
+			element._needPositionUpdate = true;
+			element._needAncestorCacheClear = true;
+			element._needSizeUpdate = true;
 			element._needRedraw = true;
 			break;
 
@@ -732,11 +728,18 @@ NDMElement.onPropertyUpdate = function(e){
 
 	element._needRefresh = true;
 
-	/* call the user-defined element's update() method */
-	element.update.call(element);
-
 	element.__refresh();
 	element.__unlock("onPropertyUpdate");
+
+	/* fire the propertyupdate event on element */
+	element.fireEvent("propertyupdate", {
+		property : e.property,
+		oldValue : e.oldValue,
+		newValue : e.newValue
+	});
+
+	/* call the user-defined element's update() method */
+	element.update.call(element);
 };
 
 /* -------------------------------------------------------------------------- */

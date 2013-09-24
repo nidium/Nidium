@@ -170,17 +170,62 @@ document.background = "#333333";
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
 	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
+/*
+1) apply nss properties
+2) apply inline properties
+3) dynamic properties replace inline properties
+*/
 
-var txt = new UILabel(document, {
-	label : "miami",
-	background : "black",
-	color : "white",
-	textAlign : "center",
-	width : 150,
-	height : 75
+
+
+
+
+Native.StyleSheet.add({
+	"UIButton" : {
+		label : "miami",
+		background : "blue",
+		color : "white",
+		textAlign : "center",
+		autosize : false,
+		width : 450,
+		height : 22
+	},
+
+	"UIButton:hover" : {
+		width : 450,
+		height : 500
+	}
 });
 
-//txt.label = "toto";
+
+var UIButton = 5;
+
+var txt = new UIButton(document);
+
+
+
+
+
+
+console.log(txt.width, txt.height);
+console.log(txt.layer.width, txt.layer.height);
+
+/*
+
+txt.width = 350;
+txt.height = 15;
+
+*/
+
+/*
+txt.autosize = true;
+
+console.log("");
+console.log(txt.width, txt.height);
+console.log(txt.layer.width, txt.layer.height);
+
+*/
+
 
 
 /* TUTORIALS */

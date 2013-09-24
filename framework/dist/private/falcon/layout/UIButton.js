@@ -5,40 +5,13 @@
 /* -------------------------------------- */
 
 Native.elements.export("UIButton", {
-	public : {
-		label : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-
-		fontSize : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-
-		fontFamily : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-
-		paddingLeft : {
-			set : function(value){
-				this.resizeElement();
-			}
-		},
-		
-		paddingRight : {
-			set : function(value){
-				this.resizeElement();
-			}
-		}
-	},
-
 	init : function(){
 		var o = this.options;
+
+		/* Element's Specific Dynamic Properties */
+		NDMElement.definePublicProperties(this, {
+			autosize : OptionalBoolean(o.autosize, true)
+		});
 
 		this.setProperties({
 			canReceiveFocus	: true,
@@ -58,13 +31,13 @@ Native.elements.export("UIButton", {
 
 		this.outlineColor = this.background;
 
-		this.resizeElement = function(){
-			this.width = NDMElement.draw.getInnerTextWidth(this);
-		};
-
-		this.resizeElement();
-
 		NDMElement.listeners.addDefault(this);
+	},
+
+	update : function(){
+		if (this.autosize) {
+			this.width = NDMElement.draw.getInnerTextWidth(this);
+		}
 	},
 
 	draw : function(context){
