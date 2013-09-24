@@ -1335,7 +1335,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = (NativeAudioTrack *)jnode->node;
 
     JS::Value src = JS_ARGV(cx, vp)[0];
-    int ret;
+    int ret = -1;
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());
@@ -1633,7 +1633,7 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
 
     JS::Value src = JS_ARGV(cx, vp)[0];
-    int ret;
+    int ret = -1;
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());

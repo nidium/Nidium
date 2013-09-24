@@ -62,7 +62,6 @@ static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {
     using namespace js;
-    JSString *str;
     JS::CallArgs args = CallArgsFromVp(argc, vp);
 
     char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
@@ -74,7 +73,7 @@ static JSBool native_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 
     size_t len = strlen(text)*2;
     jschar *jsc = new jschar[len];
-    js:InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
+    js::InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
 
     JSString *jret = JS_NewUCStringCopyN(cx, jsc, len);
 
@@ -106,7 +105,6 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
 void NativeJSNative::registerObject(JSContext *cx)
 {
     JSObject *NativeObj;
-    JSObject *canvas;
 
     NativeJSNative *jnative = new NativeJSNative();
 

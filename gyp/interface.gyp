@@ -24,6 +24,12 @@
                 ],
             }],
             ['OS=="mac"', {
+                'xcode_settings': {
+                    'OTHER_CFLAGS': [
+                        '-fvisibility=hidden',
+                        '-Wno-invalid-offsetof'
+                    ],
+                },
                 'sources': [
                     '<(native_interface_path)/osx/NativeUIInterface.mm',
                     '<(native_interface_path)/osx/NativeUIConsole.mm',

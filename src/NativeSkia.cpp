@@ -188,6 +188,7 @@ int NativeSkia::getHeight()
     return canvas->getDeviceSize().fHeight;
 }
 
+#if 0
 static U8CPU InvScaleByte(U8CPU component, uint32_t scale)
 {
     SkASSERT(component == (uint8_t)component);
@@ -216,6 +217,7 @@ static SkColor SkPMColorToColor(SkPMColor pm)
                           InvScaleByte(SkGetPackedG32(pm), scale),
                           InvScaleByte(SkGetPackedB32(pm), scale));
 }
+#endif
 
 SkColor makeRGBAFromHSLA(double hue, double saturation, double lightness, double alpha)
 {
@@ -1190,7 +1192,7 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
 
 
     SkMatrix m = canvas->getTotalMatrix();
-    SkPoint pt, p1, p2, p3;
+    SkPoint p1, p2, p3;
 
     m.mapXY(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy), &p1);
     m.mapXY(SkDoubleToScalar(cpx2), SkDoubleToScalar(cpy2), &p2);
