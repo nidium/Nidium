@@ -13,7 +13,7 @@ Native.elements.export("Icon", {
 		this.shape = OptionalString(o.shape, "");
 		this.variation = OptionalNumber(o.variation, 0);
 
-		DOMElement.listeners.addDefault(this);
+		NDMElement.listeners.addDefault(this);
 	},
 
 	draw : function(context){
@@ -23,7 +23,7 @@ Native.elements.export("Icon", {
 
 		if (this.shape == "") return false;
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 
 		context.strokeStyle = this.color;
 		context.setColor(this.color);

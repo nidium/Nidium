@@ -149,7 +149,7 @@ Native.core = {
 		doc.stylesheet = document.stylesheet;
 		doc.run = document.run;
 
-		Object.createProtectedElement(Native.scope, "document", doc);
+		Object.createProtectedElement(window.scope, "document", doc);
 	},
 
 	extendDocument : function(){
@@ -193,7 +193,6 @@ Native.core = {
 			var root = e.element._root;
 
 			if (document.overlayView) {
-				console.log("remove")
 				document.overlayView.remove();
 				document.overlayView = null;
 				return false;
@@ -218,10 +217,10 @@ Native.core = {
 			var disabled = !(e.element.isTextZone);
 
 			var	myMenu = [
-				/* Tab 0 */ {label : "Copy", 		value : 0, disabled:disabled},
-				/* Tab 1 */ {label : "Cut", 		value : 1, disabled:disabled},
-				/* Tab 2 */ {label : "Paste", 		value : 2, disabled:disabled},
-				/* Tab 3 */ {label : "View Source",	value : 10}
+				{label : "Copy", 		value : 0, disabled:disabled},
+				{label : "Cut", 		value : 1, disabled:disabled},
+				{label : "Paste", 		value : 2, disabled:disabled},
+				{label : "View Source",	value : 10}
 			];
 
 			if (this.contextMenu) {
@@ -286,10 +285,5 @@ Native.core = {
 		Native.layout.draw();
 	}
 };
-
-/*
-window.width = 640;
-window.height = 480;
-*/
 
 Native.core.init();

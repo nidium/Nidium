@@ -29,13 +29,13 @@
 /* -------------------------------------------------------------------------- */
 
 window.getAudioContext = function(){
-	// Init NATiVE DSP
-	// 512 bytes buffer, 2 channels, 44100Hz
 	if (!Audio) return false;
-	if (!Native.defaultAudioDSP && "getContext" in Audio) {
-		Native.defaultAudioDSP = Audio.getContext(512, 2, 44100);
+	if (!window.__defaultAudioDSP__ && "getContext" in Audio) {
+		// Init NATiVE DSP
+		// 512 bytes buffer, 2 channels, 44100Hz
+		window.__defaultAudioDSP__ = Audio.getContext(512, 2, 44100);
 	}
-	return Native.defaultAudioDSP;
+	return window.__defaultAudioDSP__;
 };
 
 var AudioMixer = {
@@ -51,8 +51,8 @@ var AudioMixer = {
 			this.master = this.dsp.createNode("gain", 2, 2);
 			this.target = this.dsp.createNode("target", 2, 0);
 
-			this.dsp.connect(this.master.output(0), this.target.input(0));
-			this.dsp.connect(this.master.output(1), this.target.input(1));
+			//this.dsp.connect(this.master.output(0), this.target.input(0));
+			//this.dsp.connect(this.master.output(1), this.target.input(1));
 
 			this.volume(1.0);
 
@@ -90,6 +90,9 @@ var AudioMixer = {
 		// ... GAIN ---> TARGET ...............................
 		this.dsp.connect(gain.output(0), this.master.input(0));
 		this.dsp.connect(gain.output(1), this.master.input(1));
+
+		this.dsp.connect(this.master.output(0), this.target.input(0));
+		this.dsp.connect(this.master.output(1), this.target.input(1));
 
 		var r = {
 			dsp : this.dsp,

@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.implement({
+NDMElement.implement({
 	fadeIn : function(duration, callback, fx){
 		this.animate("opacity", this.opacity, 1, duration, callback, fx);
 	},
@@ -17,16 +17,12 @@ DOMElement.implement({
 		this.animate("opacity", this.opacity, 0, duration, callback, fx);
 	},
 
-	bounceScale : function(delta, duration, callback, fx){
-		this.animate("scale", this.scale, delta, duration, callback, fx);
-	},
-
-	bounceBlur : function(delta, duration, callback, fx){
-		this.animate("blur", this.blur, delta, duration, callback, fx);
-	},
-
 	slideX : function(delta, duration, callback, fx){
 		this.animate("left", this.left, delta, duration, callback, fx);
+	},
+
+	slideY : function(delta, duration, callback, fx){
+		this.animate("top", this.top, delta, duration, callback, fx);
 	},
 
 	set : function(property, delta, duration, callback, fx){
@@ -80,7 +76,7 @@ Native.MotionFactory = {
 	nb : 0,
 
 	timer : null,
-	slice : 10,
+	slice : 16,
 
 	playing : false,
 	ended : 0,
@@ -107,14 +103,12 @@ Native.MotionFactory = {
 			property = String(o.property);
 
 		if (o.view && o.view[property] != undefined){
-			
-			/*
+		
 			if (o.view._mutex[property] === true) {
-				return false;
+				o.view.finishCurrentAnimations(property);
 			}
 
 			o.view._mutex[property] = true;
-			*/
 
 			animation = {
 				uid : "_anim_" + this.uid,
@@ -163,9 +157,10 @@ Native.MotionFactory = {
 		}
 		animation.time += this.slice;
 
-		if (animation.time>duration){
+		if (animation.time>=duration){
 			view[property] = start + end;
 			this.finish(animation);
+			window.events.tick();
 		}
 	},
 
@@ -179,21 +174,46 @@ Native.MotionFactory = {
 
 		if (callback && animation.callback) animation.callback.call(view);
 		this.remove(animation);
-		Native.events.tick();
 
 		this.ended++;
 	},
 
 	play : function(){
 		if (this.playing) return false;
-
 		var self = this,
 			q = this.queue;
 
 		this.playing = true;
 		this.ended = 0;
 
-		this.timer = Native.timer(function(){
+		/*
+		METHOD 1 --------------------------------------------------------
+		*/
+		var loop = function(time){
+			var startTime = +new Date();
+			for (var i in q){
+				if (q.hasOwnProperty(i) && !q[i].complete){
+					self.animate(q[i]);
+				}
+			}
+			if (self.nb == 0){
+				self.playing = false;
+			}
+
+			var execTime = (+new Date()) - startTime;
+			self.slice = Math.max(16, execTime);
+
+			if (self.playing) window.requestAnimationFrame(loop);
+		};
+
+		loop();
+
+		/*
+		METHOD 2 --------------------------------------------------------
+		*/
+		/*
+		if (this.timer) this.timer.remove();
+		this.timer = window.timer(function(){
 			for (var i in q){
 				if (q.hasOwnProperty(i) && !q[i].complete){
 					self.animate(q[i]);
@@ -206,9 +226,11 @@ Native.MotionFactory = {
 			}
 
 		}, this.slice, true, true);
-
+		*/
 	}
 };
+
+
 
 /*
  * Open source under the BSD License. 

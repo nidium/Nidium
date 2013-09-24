@@ -92,6 +92,32 @@ window.canvas.context = window.canvas.getContext("2D");
 
 /* -------------------------------------------------------------------------- */
 
+Object.createProtectedElement(window, "timer", function(fn, ms, loop, execFirst){
+	var t = {
+		loop : loop,
+		tid : loop 
+			? setInterval(function(){fn.call(t);}, ms)
+			: setTimeout(function(){fn.call(t);}, ms),
+
+		remove : function(){
+			if (this.loop) {
+				clearInterval(this.tid);
+			} else {
+				clearTimeout(this.tid);
+			}
+			delete(this.tid);
+		}
+	};
+
+	if (execFirst) {
+		fn.call(t);
+	}
+	
+	return t;
+});
+
+/* -------------------------------------------------------------------------- */
+
 // Syntax : "22".in([1, 23], 21, {"22":true}) equal true
 
 Object.in = function(...n){
@@ -339,100 +365,11 @@ Math.factorial = (function(n){
 /* -------------------------------------------------------------------------- */
 
 var natlog = function(txt){
-	if (Native.scope.NatBug && Native.scope.NatBug.console) {
+	if (window.scope.NatBug && window.scope.NatBug.console) {
 		NatBug.console.log(txt);
 	} else {
 		console.log(txt);
 	}
 };
 
-var ___filter___ = function(txt, keyword){
-	return txt.toLowerCase().indexOf(keyword) != -1;
-};
-
-var print = function(txt, element){
-	return false;
-
-	if (element && element._root == Native.__debugger) return false;
-	if (window.keydown != 1073742051) return false;
-
-	var __LOG_BEFORE_DOMREADY__ = true,
-
-		__KEYWORD__ = "",
-		__ELEMENT_ID__ = "_obj_5, _obj_21, _obj_22, _obj_23",
-
-		/* -- displays ---------- */
-		__events__ = false,
-		__keys__ = false,
-		__mousemove__ = false,
-
-		__add__ = true,
-		__init__ = false,
-
-		__draw__ = false,
-		__refresh__ = false,
-		__update__ = true,
-
-		__getter__ = false,
-		__setter__ = true,
-		__plugin__ = false,
-
-		__locks__ = false,
-		__DOMElement__ = true,
-
-		__other__ = false;
-
-	if (__LOG_BEFORE_DOMREADY__ === false) {
-		if (!Native.scope.document) return false;
-		if (!Native.scope.document.ready) return false;
-	}
-
-	if (!__events__ && ___filter___(txt, "event")) return false; else
-	if (!__keys__ && ___filter___(txt, "key")) return false; else
-	if (!__mousemove__ && ___filter___(txt, "mousemove")) return false; else
-	if (!__getter__ && ___filter___(txt, "get")) return false; else
-	if (!__setter__ && ___filter___(txt, "set")) return false; else
-	if (!__plugin__ && ___filter___(txt, "plugin")) return false; else
-	if (!__locks__ && ___filter___(txt, "lock")) return false; else
-	if (!__add__ && ___filter___(txt, "add")) return false; else
-	if (!__init__ && ___filter___(txt, "init")) return false; else
-	if (!__draw__ && ___filter___(txt, "draw")) return false; else
-	if (!__update__ && ___filter___(txt, "update")) return false; else
-	if (!__refresh__ && ___filter___(txt, "refresh")) return false; else
-	if (!__DOMElement__ && ___filter___(txt, "domelement")) return false;
-
-	if (__KEYWORD__ && !___filter___(txt, __KEYWORD__)) return false;
-
-	if (element) {
-
-		if (__ELEMENT_ID__) {
-			var arr = __ELEMENT_ID__.split(","),
-				go = true;
-
-			if (arr.length) {
-				go = false;
-				for (var i=0; i<arr.length; i++){
-					var id = arr[i].replace(" ", "");
-					if (element.id == id){
-						go = true;
-						break;
-					}
-				}
-			}
-
-			if (go === false) return false;
-		}
-
-		console.log(
-			'#'+element._root.id + ':' + element.type,
-			element._uid, 
-			(element.id!=element._uid?'"#'+element.id+'"':''),
-			(element._label?'('+element._label+')':''),
-			(element._name ? element._name : ''),
-			': ' + txt
-		);
-	} else {
-		if (__other__) console.log(txt);
-	}
-};
-
+/* -------------------------------------------------------------------------- */

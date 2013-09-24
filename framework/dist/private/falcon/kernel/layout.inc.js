@@ -21,10 +21,6 @@ Native.layout = {
 
 		element.applyStyleSheet();
 
-		if (element._className != '') {
-			element.updateClassProperties();
-		}
-
 		if (element.parent) {
 			element.parent.layer.add(element.layer);
 		} else {
@@ -53,13 +49,9 @@ Native.layout = {
 			var element = z[i];
 			if (element.hasOwnerDocument){
 				if (element._needRefresh){
-					element.refresh();
+					element.__refresh();
 				}
 			}
-		}
-		if (!document.ready){
-			document.ready = true;
-			document.fireEvent("load");
 		}
 	},
 
@@ -98,7 +90,7 @@ Native.layout = {
 
 		elements.each = function(cb){
 			for (var i in elements) {
-				if (isDOMElement(elements[i])){
+				if (isNDMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -153,7 +145,7 @@ Native.layout = {
 		elements.each = function(cb){
 			if (typeof cb != "function") return false;
 			for (var i in elements) {
-				if (isDOMElement(elements[i])){
+				if (isNDMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -200,7 +192,7 @@ Native.layout = {
 		elements.each = function(cb){
 			if (typeof cb != "function") return false;
 			for (var i in elements) {
-				if (isDOMElement(elements[i])){
+				if (isNDMElement(elements[i])){
 					cb.call(elements[i]);
 				}
 			}
@@ -300,12 +292,12 @@ Native.layout = {
 
 /* ---------------------------------------------------------------------- */
 
-Object.createProtectedElement(Native.scope, "Application", function(options){
+Object.createProtectedElement(window.scope, "Application", function(options){
 	options = options || {};
 	options.canReceiveFocus = true;
 	options.outlineOnFocus = false;
 
-	var element = new DOMElement("UIView", options, null);
+	var element = new NDMElement("UIView", options, null);
 	element._root = element;
 
 	Native.layout.init(element, null);

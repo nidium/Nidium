@@ -4,7 +4,7 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-DOMElement.nodes = {
+NDMElement.nodes = {
 	updateCharNodes : function(node, parent){
 		var text = node.text;
 

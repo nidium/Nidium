@@ -63,8 +63,7 @@ Native.elements.export("UIView", {
 			self._cachedBackgroundImage = img;
 			self._needRefresh = true;
 			self._needRedraw = true;
-			self.refresh();
-			//self.redraw();
+			self.__refresh();
 		};
 
 		this.getMaxScrollTop = function(){
@@ -151,7 +150,7 @@ Native.elements.export("UIView", {
 			}
 
 			/* Scroll to goal and slowdown velocity */
-			self._scrollYtimer = Native.timer(function(){
+			self._scrollYtimer = window.timer(function(){
 				var stop = false,
 					value = self._scrollTop;
 
@@ -226,7 +225,7 @@ Native.elements.export("UIView", {
 				self._scrollXtimer.remove();
 			}
 
-			self._scrollXtimer = Native.timer(function(){
+			self._scrollXtimer = window.timer(function(){
 				var stop = false,
 					value = self._scrollLeft;
 
@@ -274,7 +273,6 @@ Native.elements.export("UIView", {
 
 		this.refreshVerticalScrollBar = function(){
 			if (!this.VScrollBar || !this.VScrollBarHandle) return false;
-			print("refreshVerticalScrollBar", this);
 
 			var container = this.VScrollBar,
 				handle = this.VScrollBarHandle,
@@ -307,7 +305,6 @@ Native.elements.export("UIView", {
 
 		this.refreshHorizontalScrollBar = function(){
 			if (!this.HScrollBar || !this.HScrollBarHandle) return false;
-			print("refreshHorizontalScrollBar", this);
 
 			var container = this.HScrollBar,
 				handle = this.HScrollBarHandle,
@@ -423,7 +420,7 @@ Native.elements.export("UIView", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
 		if (this._cachedBackgroundImage) {
@@ -446,7 +443,7 @@ Native.elements.export("UIView", {
 					this._cachedBackgroundImage,
 					"repeat"
 				);
-				DOMElement.draw.box(this, context, params, pattern);
+				NDMElement.draw.box(this, context, params, pattern);
 			}
 		}
 		/*

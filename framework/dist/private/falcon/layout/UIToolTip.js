@@ -77,7 +77,7 @@ Native.elements.export("UIToolTip", {
 		}
 
 		this.resizeElement = function(){
-			this._innerTextWidth = DOMElement.draw.getInnerTextWidth(this);
+			this._innerTextWidth = NDMElement.draw.getInnerTextWidth(this);
 		};
 
 		this.enable = function(){
@@ -192,7 +192,7 @@ Native.elements.export("UIToolTip", {
 		);
 		context.restore();
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
 		ox += this.borderWidth+0.5;
@@ -212,7 +212,7 @@ Native.elements.export("UIToolTip", {
 		);
 		context.restore();
 
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.label(this, context, params);
 
 
 	}

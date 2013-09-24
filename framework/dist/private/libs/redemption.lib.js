@@ -30,7 +30,7 @@ Object.defineReadOnlyProperties = function(element, props){
 	}
 };
 
-Object.defineReadOnlyProperties(Native.scope, {
+Object.defineReadOnlyProperties(window.scope, {
 	// unsigned integer types
 	get uint8(){
 		return {m:Uint8Array, l:1};

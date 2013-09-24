@@ -14,24 +14,20 @@ Native.object = {
 	},
 
 	__lock : function __lock(method){
-		print("__lock" + (method?'('+method+')':'()'), this);
 		this._locked = true;
 		return this;
 	},
 
 	__unlock : function __unlock(method){
-		print("__unlock" + (method?'('+method+')':'()'), this);
 		this._locked = false;
 		return this;
 	},
 
-	refresh : function refresh(){
-		print("refresh()", this);
-
-		if (this._needOpacityUpdate) this.updateLayerOpacity();
-		if (this._needPositionUpdate) this.updateLayerPosition();
-		if (this._needSizeUpdate) this.updateLayerSize();
-		if (this._needAncestorCacheClear) this.updateAncestors();
+	__refresh : function __refresh(){
+		if (this._needOpacityUpdate) this.__updateLayerOpacity();
+		if (this._needPositionUpdate) this.__updateLayerPosition();
+		if (this._needSizeUpdate) this.__updateLayerSize();
+		if (this._needAncestorCacheClear) this.__updateAncestors();
 		if (this._needRedraw) this.redraw();
 
 		this.layer.overflow = this._overflow;
@@ -42,10 +38,9 @@ Native.object = {
 		return this;
 	},
 
-	updateAncestors : function updateAncestors(){
+	__updateAncestors : function __updateAncestors(){
 		var element = this;
 		if (this.layer.__fixed) return false;
-		print("updateAncestors("+this._left+", "+this._top+", "+this._width+", "+this._height+")", this);
 
 		/* Refresh ancestors' ScrollBars */
 		while (element.parent){
@@ -57,15 +52,13 @@ Native.object = {
 		return this;
 	},
 
-	updateLayerOpacity : function updateLayerOpacity(){
-		print("updateLayerOpacity()", this);
+	__updateLayerOpacity : function __updateLayerOpacity(){
 		this.layer.opacity = this._opacity;
 		this._needOpacityUpdate = false;
 		return this;
 	},
 
-	updateLayerPosition : function updateLayerPosition(){
-		print("updateLayerPosition("+(this._left)+", "+(this._top)+")", this);
+	__updateLayerPosition : function __updateLayerPosition(){
 		this.layer.left = this._left;
 		this.layer.top = this._top;
 		this.layer.scrollTop = this._scrollTop;
@@ -74,16 +67,26 @@ Native.object = {
 		return this;
 	},
 
-	updateLayerSize : function updateLayerSize(){
-		print("updateLayerSize("+this._width+", "+this._height+")", this);
+	__updateLayerSize : function __updateLayerSize(){
 		this.layer.width = Math.round(this._width);
 		this.layer.height = Math.round(this._height);
 		this._needSizeUpdate = false;
 		return this;
 	},
 
+	__resizeLayer : function __resizeLayer(){
+		/* layer rotation realtime padding update hack */
+		var b = this.getBoundingRect(),
+			w = b.x2 - b.x1,
+			h = b.y2 - b.y1;
+
+		this.layer.padding = h/2;
+		this.redraw();
+	},
+
+	/* ---------------------------------------------------------------------- */
+
 	redraw : function redraw(){
-		print("redraw()", this);
 		this.layer.clear();
 		if (this.layer.debug) this.layer.debug();
 
@@ -96,8 +99,7 @@ Native.object = {
 	},
 
 	add : function add(type, options){
-		print("add()", this);
-		var element = new DOMElement(type, options, this);
+		var element = new NDMElement(type, options, this);
 		this.addChild(element);
 		return element;
 	},
@@ -170,11 +172,10 @@ Native.object = {
 	},
 
 	addChild : function addChild(element){
-		if (!isDOMElement(element)) return false;
+		if (!isNDMElement(element)) return false;
 
 		/* fire the onAddChildRequest event */
 		if (this.onAddChildRequest.call(this, element) === false) return false;
-
 
 		this.nodes.push(element);
 
@@ -189,10 +190,10 @@ Native.object = {
 		/* fire the new element's onAdoption event */
 		element.onAdoption.call(element, this);
 
-		/* fire the element's parent onChild event */
+		/* fire the element's parent onChildReady event */
 		this.onChildReady.call(this, element);
 
-		element.updateAncestors();
+		element.__updateAncestors();
 		Native.layout.update();
 
 		return this;
@@ -228,12 +229,11 @@ Native.object = {
 	},
 
 	/*
-	 * Sort DOMElements to match hardware physical layers order.
+	 * Sort NDMElements to match hardware physical layers order.
 	 */
 	resetNodes : function resetNodes(){
 		if (!this.parent) return false;
 
-		print("resetNodes()", this);
 
 		var parent = this.parent, // parent of this virtual element
 			element = null,
@@ -267,7 +267,7 @@ Native.object = {
 
 		var dx = function(z){
 			for (var i=0; i<z.length; i++){
-				if (isDOMElement(z[i])) elements.push(z[i]);
+				if (isNDMElement(z[i])) elements.push(z[i]);
 				dx(z[i].nodes);
 			}
 		};
@@ -286,16 +286,6 @@ Native.object = {
 		this.layer.sendToBack();
 		this.resetNodes();
 		return this;
-	},
-
-	resizeLayer : function resizeLayer(){
-		/* layer rotation realtime padding update hack */
-		var b = this.getBoundingRect(),
-			w = b.x2 - b.x1,
-			h = b.y2 - b.y1;
-
-		this.layer.padding = h/2;
-		this.redraw();
 	},
 
 	expand : function expand(width, height){
@@ -431,7 +421,7 @@ Native.object = {
 	},
 
 	isAncestor : function isAncestor(element){
-		if (!isDOMElement(element)) return false;
+		if (!isNDMElement(element)) return false;
 		if (this.ownerDocument != element.ownerDocument) return false;
 		for (var e = element; e; e = e.parent) {
 			if (e === this) return true;
@@ -463,19 +453,6 @@ Native.object = {
 			this.className = k.replace(r,' ').replace(/^\s+|\s+$/g, '');
 		}
 		return this;
-	},
-
-	updateClassProperties : function updateClassProperties(){
-		var classNames = this.className.split(" ");
-		for (var i in classNames){
-			var props = document.style.get("."+classNames[i]);
-			this.setProperties(props);
-		}
-	},
-
-	updateIdProperties : function updateIdProperties(){
-		var props = document.style.get("#"+this.id);
-		this.setProperties(props);
 	},
 
 	setProperties : function setProperties(properties){

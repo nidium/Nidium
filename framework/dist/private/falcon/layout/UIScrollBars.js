@@ -21,7 +21,7 @@ Native.elements.export("UIScrollBar", {
 	draw : function(context){
 		if (this.hidden) return false;
 		var	params = this.getDrawingBounds();
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 	}
 });
 
@@ -56,7 +56,7 @@ Native.elements.export("UIScrollBarHandle", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 	}
 });

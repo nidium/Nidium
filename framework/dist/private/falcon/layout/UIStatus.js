@@ -146,11 +146,11 @@ Native.elements.export("UIStatus", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		DOMElement.draw.box(this, context, params);
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.box(this, context, params);
+		NDMElement.draw.label(this, context, params);
 
-		var gradient = DOMElement.draw.getSmoothGradient(this, context, params);
-		DOMElement.draw.box(this, context, params, gradient);
+		var gradient = NDMElement.draw.getSmoothGradient(this, context, params);
+		NDMElement.draw.box(this, context, params, gradient);
 
 		if (this.progressBarColor && this.value!=0) {
 			var mw = params.w - this.progressBarRight  - this.progressBarLeft,

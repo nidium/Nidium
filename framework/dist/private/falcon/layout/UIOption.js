@@ -33,7 +33,7 @@ Native.elements.export("UIOption", {
 			e.preventDefault();
 		}, false);
 
-		DOMElement.listeners.addHovers(this);
+		NDMElement.listeners.addHovers(this);
 
 		this.updateElement = function(){
 			if (this.disabled) this.color = "#bbbbbb";
@@ -49,7 +49,7 @@ Native.elements.export("UIOption", {
 			color = this.selected ? this.parent.parent.selectedColor
 								  : this.color;
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 
 		var gradient = context.createLinearGradient(
 			params.x, params.y, 
@@ -75,7 +75,7 @@ Native.elements.export("UIOption", {
 			}
 		}
 
-		DOMElement.draw.box(this, context, params, gradient);
-		DOMElement.draw.label(this, context, params, color);
+		NDMElement.draw.box(this, context, params, gradient);
+		NDMElement.draw.label(this, context, params, color);
 	}
 });

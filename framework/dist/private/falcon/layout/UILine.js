@@ -143,7 +143,7 @@ Native.elements.export("UILine", {
 		var	params = this.getDrawingBounds(),
 			nbpoints = this.points.length;
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		
 		context.strokeStyle = this.color;
 		context.lineWidth = this.lineWidth;

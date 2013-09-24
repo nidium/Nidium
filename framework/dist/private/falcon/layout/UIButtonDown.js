@@ -11,7 +11,7 @@ Native.elements.export("UIButtonDown", {
 		this.height = OptionalNumber(o.height, 10);
 		this.cursor = OptionalCursor(o.cursor, "pointer");
 
-		DOMElement.listeners.addDefault(this);
+		NDMElement.listeners.addDefault(this);
 	},
 
 	draw : function(context){
@@ -19,7 +19,7 @@ Native.elements.export("UIButtonDown", {
 			radius = this.width/2;
 
 		if (this.background!='') {
-			DOMElement.draw.circleBackground(this, context, params, radius);
+			NDMElement.draw.circleBackground(this, context, params, radius);
 		}
 
 		var m = radius/1.8,

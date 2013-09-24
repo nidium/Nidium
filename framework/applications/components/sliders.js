@@ -154,7 +154,7 @@ setTimeout(function(){
 
 	var s = 0,
 		time = 0,
-		t = Native.timer(function(){
+		t = window.timer(function(){
 			sliders[s].setValue(20*Math.cos(3*frequency*time++), 300);
 
 			s++;

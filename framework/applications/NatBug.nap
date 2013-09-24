@@ -204,11 +204,11 @@ NatBug.panes.push({
 
 	inspect : function(){
 		var self = this,
-			z = Native.scope;
+			z = window.scope;
 
 		var dx = function(z, p, container, pcontainer){
 			for (var i in z){
-				if (isDOMElement(z[i]) && z[i].parent == p){
+				if (isNDMElement(z[i]) && z[i].parent == p){
 
 					z[i].__OPENING_TAG__ = self.insertOpeningTag(z[i], container);
 					z[i].__OPENING_TAG__.closed = false;

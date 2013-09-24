@@ -75,7 +75,7 @@ Native.elements.export("UITab", {
 		};
 
 		this.resizeElement = function(){
-			var width = DOMElement.draw.getInnerTextWidth(this);
+			var width = NDMElement.draw.getInnerTextWidth(this);
 
 			if (this.options.closable) {
 				width += 22;
@@ -92,7 +92,7 @@ Native.elements.export("UITab", {
 			}
 		};
 
-		DOMElement.listeners.addHovers(this);
+		NDMElement.listeners.addHovers(this);
 
 		if (this.options.closable) {
 			this.closeButton = this.add("UIButtonClose", {
@@ -130,7 +130,7 @@ Native.elements.export("UITab", {
 			context.setShadow(0, 0, 0);
 		}
 
-		var gradient = DOMElement.draw.getSoftGradient(this, context, params);
+		var gradient = NDMElement.draw.getSoftGradient(this, context, params);
 
 		context.tabbox(
 			params.x, params.y, 
@@ -138,6 +138,6 @@ Native.elements.export("UITab", {
 			radius, gradient, false
 		);
 
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.label(this, context, params);
 	}
 });

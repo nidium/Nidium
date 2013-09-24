@@ -71,7 +71,7 @@ Native.elements.export("UIRadio", {
 		});
 
 		this.resizeElement = function(){
-			this._innerTextWidth = DOMElement.draw.getInnerTextWidth(this);
+			this._innerTextWidth = NDMElement.draw.getInnerTextWidth(this);
 		};
 
 		this.resizeElement();
@@ -99,7 +99,7 @@ Native.elements.export("UIRadio", {
 		gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.9)');
 
  		if (this.outlineColor && this.outline) {
-			DOMElement.draw.outline(this);
+			NDMElement.draw.outline(this);
 		}
 
 		if (this.shadowBlur != 0) {
@@ -111,7 +111,7 @@ Native.elements.export("UIRadio", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 
 		context.save();
@@ -180,7 +180,7 @@ Native.elements.export("UIRadio", {
 
 		params.x += params.h + this.paddingLeft;
 
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.label(this, context, params);
 
 	}
 });

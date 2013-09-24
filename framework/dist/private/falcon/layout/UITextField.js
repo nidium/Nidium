@@ -200,7 +200,7 @@ Native.elements.export("UITextField", {
 		var	params = this.getDrawingBounds();
 
 		if (this.outlineColor && this.outline) {
-			DOMElement.draw.outline(this);
+			NDMElement.draw.outline(this);
 		}
 
 		if (this.shadowBlur != 0) {
@@ -212,7 +212,7 @@ Native.elements.export("UITextField", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 	}
 });

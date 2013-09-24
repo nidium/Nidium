@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-var DOMElement = function(type, options, parent){
+var NDMElement = function(type, options, parent){
 	var o = this.options = options || {},
 		p = this.parent = parent ? parent : null; // parent element
 
@@ -24,21 +24,35 @@ var DOMElement = function(type, options, parent){
 	this.nodes = []; // children elements
 
 	/* Read Only Properties */
-	DOMElement.defineReadOnlyProperties(this, {
+	NDMElement.defineReadOnlyProperties(this, {
 		type : type,
-		isDOMElement : true
+		isNDMElement : true
 	});
+
+	/* Nidium Engine Properties */
+	this.left = OptionalNumber(o.left, 0);
+	this.top = OptionalNumber(o.top, 0);
+
+	/*
+	this.width = o.width ? Number(o.width) : p ?
+					p._width-this.left : window.width-this.left;
+
+	this.height = o.height ? Number(o.height) : p ?
+					p._height-this.top : window.height-this.top;
+	*/
 
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
-	DOMElement.definePublicProperties(this, {
+	NDMElement.definePublicProperties(this, {
 		// -- class management
 		id : null,
 		className : OptionalString(o.class, ""),
 
 		// -- layout properties
+		/*
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
+		*/
 		width : o.width ? Number(o.width) : p ? p._width : window.width,
 		height : o.height ? Number(o.height) : p ? p._height : window.height,
 
@@ -130,7 +144,7 @@ var DOMElement = function(type, options, parent){
 	});
 
 	/* Internal Hidden Properties */
-	DOMElement.defineInternalProperties(this, {
+	NDMElement.defineInternalProperties(this, {
 		private : {},
 
 		flags : 0,
@@ -181,11 +195,17 @@ var DOMElement = function(type, options, parent){
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.prototype = {
+NDMElement.prototype = {
 	__noSuchMethod__ : Native.object.__noSuchMethod__,
 
 	__lock : Native.object.__lock, // disable setter events
 	__unlock : Native.object.__unlock, // enable setter events
+	__refresh : Native.object.__refresh, // internal refresh
+	__updateLayerOpacity : Native.object.__updateLayerOpacity,
+	__updateLayerPosition : Native.object.__updateLayerPosition,
+	__updateLayerSize : Native.object.__updateLayerSize,
+	__updateAncestors : Native.object.__updateAncestors,
+	__resizeLayer : Native.object.__resizeLayer,
 
 	add : Native.object.add,
 	remove : Native.object.remove,
@@ -203,8 +223,6 @@ DOMElement.prototype = {
 
 	getChildren : Native.object.getChildren,
 
-	refresh : Native.object.refresh,
-	
 	beforeDraw : Native.object.beforeDraw,
 	afterDraw : Native.object.afterDraw,
 
@@ -228,8 +246,6 @@ DOMElement.prototype = {
 	sendToBack : Native.object.sendToBack,
 	resetNodes : Native.object.resetNodes,
 
-	updateClassProperties : Native.object.updateClassProperties,
-	updateIdProperties : Native.object.updateIdProperties,
 	setProperties : Native.object.setProperties,
 
 	center : Native.object.center,
@@ -242,13 +258,10 @@ DOMElement.prototype = {
 
 	redraw : Native.object.redraw,
 
-	updateLayerOpacity : Native.object.updateLayerOpacity,
-	updateLayerPosition : Native.object.updateLayerPosition,
-	updateLayerSize : Native.object.updateLayerSize,
-	updateAncestors : Native.object.updateAncestors,
-	resizeLayer : Native.object.resizeLayer,
 	expand : Native.object.expand,
 	shrink : Native.object.shrink,
+
+	/* ----------------------------------------------- */
 
 	set maxWidth(value) {
 		var w = value == null || value == '' ? null : Number(value);
@@ -267,6 +280,8 @@ DOMElement.prototype = {
 		return this._maxWidth;
 	},
 
+	/* ----------------------------------------------- */
+
 	set fastLeft(value) {
 		this._left = value;
 		this.layer.left = value;
@@ -277,7 +292,75 @@ DOMElement.prototype = {
 		this.layer.top = value;
 	},
 
-	/* -- READ ONLY WRAPPERS -- */
+	/* ----------------------------------------------- */
+	/* NDMElement.left                                 */
+	/* ----------------------------------------------- */
+
+	set left(value) {
+		this._left = value;
+		if (this.layer) {
+			this.layer.left = value;
+			this.__updateAncestors();
+		}
+	},
+
+	get left() {
+		return this._left;
+	},
+
+	/* ----------------------------------------------- */
+	/* NDMElement.top                                  */
+	/* ----------------------------------------------- */
+
+	set top(value) {
+		this._top = value;
+		if (this.layer) {
+			this.layer.top = value;
+			this.__updateAncestors();
+		}
+	},
+
+	get top() {
+		return this._top;
+	},
+
+	/* ----------------------------------------------- */
+	/* NDMElement.width                                */
+	/* ----------------------------------------------- */
+	/*
+	set width(value) {
+		this._width = value;
+		if (this.layer) {
+			//this.layer.width = Math.round(value);
+			this.__updateAncestors();
+			this.redraw();
+		}
+	},
+
+	get width() {
+		return this._width;
+	},
+	*/
+	/* ----------------------------------------------- */
+	/* NDMElement.height                               */
+	/* ----------------------------------------------- */
+	/*
+	set height(value) {
+		this._height = value;
+		if (this.layer) {
+			//this.layer.height = Math.round(value);
+			this.__updateAncestors();
+			this.redraw();
+		}
+	},
+
+	get height() {
+		return this._top;
+	},
+	*/
+	/* ----------------------------------------------- */
+	/* READ ONLY WRAPPERS                              */
+	/* ----------------------------------------------- */
 
 	get __left() {
 		return this.layer.__left;
@@ -559,29 +642,46 @@ DOMElement.prototype = {
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.onPropertyUpdate = function(e){
+NDMElement.onPropertyUpdate = function(e){
 	var element = e.element,
 		old = e.oldValue,
-		value = e.newValue;
+		value = e.newValue,
 
-	//print("DOMElement.onPropertyUpdate("+e.property+")", element);
+		emitter = {
+			property : e.property,
+			oldValue : e.oldValue,
+			newValue : e.newValue
+		};
 
 	element.__unlock();
 
-	element.fireEvent("propertyupdate", {
-		property : e.property,
-		oldValue : e.oldValue,
-		newValue : e.newValue
-	});
+	element.fireEvent("propertyupdate", emitter);
 
 	element.__lock("onPropertyUpdate");
 
+	//element.update.call(element, e.property, e.value);
+
 	switch (e.property) {
+		/*
+		case "left" :
+			element.layer.left = value;
+			element.layer.scrollLeft = element._scrollLeft;
+			element._needAncestorCacheClear = true;
+			break;
+
+		case "top" :
+			element.layer.top = value;
+			element.layer.scrollTop = element._scrollTop;
+			element._needAncestorCacheClear = true;
+			break;
+		*/
+		/*
 		case "left" :
 		case "top" :
 			element._needPositionUpdate = true;
 			element._needAncestorCacheClear = true;
 			break;
+		*/
 
 		case "scrollLeft" :
 		case "scrollTop" :
@@ -589,8 +689,13 @@ DOMElement.onPropertyUpdate = function(e){
 			break;
 
 		case "width" :
+			element.layer.width = Math.round(value);
+			element._needAncestorCacheClear = true;
+			element._needRedraw = true;
+			break;
+
 		case "height" :
-			element._needSizeUpdate = true;
+			element.layer.height = Math.round(value);
 			element._needAncestorCacheClear = true;
 			element._needRedraw = true;
 			break;
@@ -605,7 +710,6 @@ DOMElement.onPropertyUpdate = function(e){
 		case "hover" :
 		case "selected" :
 		case "className" :
-			//element.updateClassProperties();
 			element.applyStyleSheet();
 			element._needRedraw = true;
 			break;
@@ -614,7 +718,7 @@ DOMElement.onPropertyUpdate = function(e){
 			break;
 
 		case "angle" :
-			element.resizeLayer();
+			element.__resizeLayer();
 			break;
 
 		case "cursor" :
@@ -631,28 +735,28 @@ DOMElement.onPropertyUpdate = function(e){
 	};
 
 	element._needRefresh = true;
-	element.refresh();
+	element.__refresh();
 	element.__unlock("onPropertyUpdate");
 };
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.implement = function(props){
+NDMElement.implement = function(props){
 	Object.merge(Native.object, props);
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
-			DOMElement.prototype[key] = Native.object[key];
+			NDMElement.prototype[key] = Native.object[key];
 		}
 	}
 };
 
-var	isDOMElement = function(element){
-	return element && element.isDOMElement;
+var	isNDMElement = function(element){
+	return element && element.isNDMElement;
 };
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.listeners = {
+NDMElement.listeners = {
 	addDefault : function(element){
 		this.addSelectors(element);
 		this.addHovers(element);
@@ -685,7 +789,7 @@ DOMElement.listeners = {
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.draw = {
+NDMElement.draw = {
 	circleBackground : function(element, context, params, radius){
 		var gradient = context.createRadialGradient(
 			params.x+radius,
@@ -766,10 +870,10 @@ DOMElement.draw = {
 			context = element.layer.context,
 			outlineColor = color ? color : element.outlineColor;
 
-		DOMElement.draw.outlineBox(element, context, params, outlineColor);
-		DOMElement.draw.outlineBox(element, context, params, outlineColor);
-		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 0.8)");
-		DOMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 1)");
+		NDMElement.draw.outlineBox(element, context, params, outlineColor);
+		NDMElement.draw.outlineBox(element, context, params, outlineColor);
+		NDMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 0.8)");
+		NDMElement.draw.outlineBox(element, context, params, "rgba(255, 255, 255, 1)");
 	},
 
 	outlineBox : function(element, context, params, borderColor){
@@ -893,7 +997,7 @@ DOMElement.draw = {
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.defineNativeProperty = function(descriptor){
+NDMElement.defineNativeProperty = function(descriptor){
 	var element = descriptor.element, // target element
 		property = descriptor.property, // property
 		value = OptionalValue(descriptor.value, null), // default value
@@ -918,12 +1022,9 @@ DOMElement.defineNativeProperty = function(descriptor){
 		get : function(){
 			var r = undefined;
 			if (element._locked === false) {
-				print("unlocked get("+property+")", element);
 				element.__lock("plugin:"+property);
 				r = getter ? getter.call(element) : undefined;
 				element.__unlock("plugin:"+property);
-			} else {
-				print("locked get "+property, element);
 			}
 			return r == undefined ? element["_"+property] : r;
 		},
@@ -938,13 +1039,11 @@ DOMElement.defineNativeProperty = function(descriptor){
 			}
 
 			if (element.initialized && element._locked === false) {
-				print("set "+property+' = "'+newValue+'"', element);
-
 				/* lock element */
 				element.__lock("plugin:"+property);
 
 				/* fire propertyupdate event if needed */
-				DOMElement.onPropertyUpdate({
+				NDMElement.onPropertyUpdate({
 					element : element,
 					property : property,
 					oldValue : oldValue,
@@ -953,7 +1052,6 @@ DOMElement.defineNativeProperty = function(descriptor){
 
 				/* optional user defined setter method */
 				if (setter){
-					print("plugin:set("+property+"="+newValue+")", element);
 					var r = setter.call(element, newValue);
 					if (r === false) {
 						// handle readonly, restore old value
@@ -975,8 +1073,7 @@ DOMElement.defineNativeProperty = function(descriptor){
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.defineDescriptors = function(element, props){
-	print("DOMElement.defineDescriptors", element);
+NDMElement.defineDescriptors = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
 			var descriptor = props[key],
@@ -1015,7 +1112,7 @@ DOMElement.defineDescriptors = function(element, props){
 
 /* -------------------------------------------------------------------------- */
 
-DOMElement.definePublicProperties = function(element, props){
+NDMElement.definePublicProperties = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
 			this.defineNativeProperty({
@@ -1029,7 +1126,7 @@ DOMElement.definePublicProperties = function(element, props){
 	}
 };
 
-DOMElement.defineReadOnlyProperties = function(element, props){
+NDMElement.defineReadOnlyProperties = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
 			Object.createProtectedElement(element, key, props[key]);
@@ -1037,7 +1134,7 @@ DOMElement.defineReadOnlyProperties = function(element, props){
 	}
 };
 
-DOMElement.defineInternalProperties = function(element, props){
+NDMElement.defineInternalProperties = function(element, props){
 	for (var key in props){
 		if (props.hasOwnProperty(key)){
 			Object.createHiddenElement(element, key, props[key]);

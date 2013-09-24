@@ -8,11 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.scope = this;
-Native.scope.ttx = 5;
-
 Object.definePrivateProperties(Native, {
-	scope : this,
 	elements : {},
 	_cachedTextWidth : {},
 	blankOrphanedCanvas : new Canvas(1, 1)
@@ -34,7 +30,7 @@ Object.definePrivateProperties(Native.elements, {
 		if (plugin.onChildReady) element.onChildReady = plugin.onChildReady;
 
 		if (plugin.public){
-			DOMElement.defineDescriptors(element, plugin.public);
+			NDMElement.defineDescriptors(element, plugin.public);
 		}
 
 		this.createHardwareLayer(element);
@@ -50,15 +46,15 @@ Object.definePrivateProperties(Native.elements, {
 			}, false);
 		}
 
-		DOMElement.defineReadOnlyProperties(element, {
+		NDMElement.defineReadOnlyProperties(element, {
 			initialized : true
 		});
 
-		if (typeof(element.onReady) == "function"){
-			element.onReady.call(element);
+		if (typeof(element.onready) == "function"){
+			element.onready.call(element);
 		}
 
-		element.refresh();
+		element.__refresh();
 		element.__unlock("init");
 	},
 
@@ -68,7 +64,7 @@ Object.definePrivateProperties(Native.elements, {
 		}
 
 		this[type] = implement;
-		this.build(Native.scope, type);
+		this.build(window.scope, type);
 	},
 
 	/* Native Element Constructor */
@@ -88,7 +84,7 @@ Object.definePrivateProperties(Native.elements, {
 					
 				// new Element(parent, options);
 				case 2 :
-					parent = isDOMElement(n[0]) ? n[0] : null;
+					parent = isNDMElement(n[0]) ? n[0] : null;
 					options = n[1];
 
 				// new Element();
@@ -104,9 +100,9 @@ Object.definePrivateProperties(Native.elements, {
 			}
 
 			if (parent == null){
-				element = new DOMElement(name, options, null);
+				element = new NDMElement(name, options, null);
 			} else {
-				if (isDOMElement(parent)){
+				if (isNDMElement(parent)){
 					element = parent.add(name, options);
 				} else {
 					throw name + ": Native Element expected";
@@ -150,32 +146,6 @@ Native.loadImage = function(url, callback){
 		cb(img);
 	};
 	img.src = url;
-};
-
-/* -------------------------------------------------------------------------- */
-
-Native.timer = function(fn, ms, loop, execFirst){
-	var t = {
-		loop : loop,
-		tid : loop 
-			? setInterval(function(){fn.call(t);}, ms)
-			: setTimeout(function(){fn.call(t);}, ms),
-
-		remove : function(){
-			if (this.loop) {
-				clearInterval(this.tid);
-			} else {
-				clearTimeout(this.tid);
-			}
-			delete(this.tid);
-		}
-	};
-
-	if (execFirst) {
-		fn.call(t);
-	}
-	
-	return t;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -333,3 +303,64 @@ Native.StyleSheet = {
 };
 
 /* -------------------------------------------------------------------------- */
+
+Object.createProtectedHiddenElement(window.scope, "NDMLayoutParser", {
+	parse : function(LST, callback){
+		var createElement = function(node, parent){
+			var element = null,
+				nodeType = node.type,
+				nodeAttributes = node.attributes;
+
+			switch (node.type) {
+				case "section" :
+					nodeType = "UIElement";
+					break;
+
+				case "select" :
+					nodeType = "UIDropDownController";
+					break;
+
+				case "option" :
+					nodeType = "UIOption";
+					break;
+
+				case "view" :
+					nodeType = "UIView";
+					break;
+
+				case "button" :
+					nodeType = "UIButton";
+					break;
+
+				case "slider" :
+					nodeType = "UISliderController";
+					break;
+
+				case "include":
+					nodeType = null;
+					break;
+
+				default:
+					break;
+			}
+
+			if (nodeType) {
+				var element = parent.add(nodeType, nodeAttributes);
+			}
+			return element;
+		};
+
+		var parseNodes = function(nodes, parent){
+			for (var i=0; i<nodes.length; i++) {
+				var node = nodes[i];
+				if (node.type != "include") {
+					var newParent = createElement(node, parent);
+					parseNodes(node.children, newParent);
+				}
+			}
+		};
+
+		parseNodes(LST, document);
+		if (typeof callback == "function") callback();
+	}
+});

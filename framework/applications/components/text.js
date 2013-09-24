@@ -212,7 +212,6 @@ console.log(dur, "ms");
 /*
 div.childNodes.each(function(){
 	console.log(this.id, this.className)
-	this.updateClassProperties();
 	this.redraw();
 });
 */
@@ -272,7 +271,7 @@ var dat = +new Date();
 	div.maxWidth = 400;
 	div.width = 400;
 
-	DOMElement.nodes.refresh(div);
+	NDMElement.nodes.refresh(div);
 
 var dur = (+new Date()) - dat;
 console.log(dur, "ms");

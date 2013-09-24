@@ -130,7 +130,9 @@ File.getText = function(url, callback){
 		f.read(f.filesize, function(buffer){
 			this.size = buffer.byteLength;
 			this.buffer = buffer;
-			if (typeof callback == "function") callback.call(this, this.buffer.toString());
+			if (typeof callback == "function"){
+				callback.call(this, this.buffer.toString());
+			}
 		});
 	});
 };
@@ -141,7 +143,9 @@ File.read = function(url, callback){
 		f.read(f.filesize, function(buffer){
 			this.size = buffer.byteLength;
 			this.buffer = buffer;
-			if (typeof callback == "function") callback.call(this, this.buffer, this.size);
+			if (typeof callback == "function"){
+				callback.call(this, this.buffer, this.size);
+			}
 		});
 	});
 };
@@ -151,7 +155,9 @@ File.write = function(url, data, callback){
 	f.open("w", function(){
 		f.write(data, function(){
 			this.close();
-			if (typeof callback == "function") callback.call(this);
+			if (typeof callback == "function"){
+				callback.call(this);
+			}
 		});
 	});
 };
@@ -161,7 +167,9 @@ File.append = function(url, data, callback){
 	f.open("a", function(){
 		f.write(data, function(){
 			this.close();
-			if (typeof callback == "function") callback.call(this);
+			if (typeof callback == "function"){
+				callback.call(this);
+			}
 		});
 	});
 };

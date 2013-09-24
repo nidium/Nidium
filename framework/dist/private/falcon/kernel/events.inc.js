@@ -8,21 +8,18 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.system = {
-	doubleClickInterval : 250
-};
-
-/* -------------------------------------------------------------------------- */
-
-Native.events = {
+window.events = {
 	options : {
-		pointerHoldTime : 600
+		pointerHoldTime : 1500,
+		doubleClickInterval : 250
 	},
 
 	last : null,
+	timer : null,
 
 	mousedown : false,
-	doubleclick : false,
+	mousehold : false,
+
 	preventmouseclick : false,
 	preventdefault : false,
 
@@ -180,7 +177,7 @@ Native.events = {
 
 				if (__mostTopElementHooked === false){
 					if (element._background || element._backgroundImage){
-						Native.events.hook(element, e);
+						self.hook(element, e);
 						this.mostTopElementUnderMouse = element;
 						__mostTopElementHooked = true;
 					}
@@ -311,10 +308,12 @@ Native.events = {
 	/* -- PHYSICAL EVENTS PROCESSING ---------------------------------------- */
 
 	mousedownEvent : function(e){
+		var self = this,
+			o = this.last || {x:0, y:0},
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
+
 		window.mouseX = e.x;
 		window.mouseY = e.y;
-		var o = this.last || {x:0, y:0},
-			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
 
 		if (e.which == 3) {
 			this.preventmouseclick = false;
@@ -329,12 +328,17 @@ Native.events = {
 
 		this.dispatch("mousedown", e);
 
+		this.timer = window.timer(function(){
+			self.dispatch("mouseholdstart", e);
+			self.mousehold = true;
+			this.remove();
+		}, this.options.pointerHoldTime);
+
 		if (this.last){
 			e.duration = e.time - this.last.time;
 
-			if (dist<3 && e.duration <= Native.system.doubleClickInterval) {
+			if (dist<4 && e.duration <= this.options.doubleClickInterval) {
 				this.dispatch("mousedblclick", e);
-				this.doubleclick = true;
 			}
 		}
 
@@ -347,6 +351,8 @@ Native.events = {
 		e.dataTransfer = this.__dataTransfer;
 
 		if (this.mousedown){
+
+			this.timer && this.timer.remove();
 
 			if (this.dragstarted){
 				this.dragging = true;
@@ -373,15 +379,16 @@ Native.events = {
 	mouseupEvent : function(e){
 		var self = this,
 			o = this.last || {x:0, y:0},
-			dist = Math.distance(o.x, o.y, e.x, e.y) || 0,
-			elapsed = 0;
+			dist = Math.distance(o.x, o.y, e.x, e.y) || 0;
 
-		// prevent Mouse UP to be fired after (MouseDown + CTRL R)
-		if (this.last) {
-			elapsed = (+new Date()) - this.last.time;
+		// mouseup can be fired without a previous mousedown
+		// this prevent mouseup to be fired after (MouseDown + Refresh)
+		if (this.mousedown === false) {
+			return false;
 		}
 
 		this.mousedown = false;
+		this.timer && this.timer.remove();
 
 		e.dataTransfer = this.__dataTransfer;
 
@@ -402,15 +409,13 @@ Native.events = {
 
 		this.dispatch("mouseup", e);
 
-		if (o && dist<3) {
-			if (elapsed > this.options.pointerHoldTime) {
-				this.doubleclick = false;
-				this.timer = false;
-				this.dispatch("mouseholdup", e);
-				this.dispatch("mouseclick", e);
-			} else {
-				this.dispatch("mouseclick", e);
-			}
+		if (this.mousehold) {
+			this.dispatch("mouseholdend", e);
+			this.mousehold = false;
+		}
+
+		if (o && dist<5) {
+			this.dispatch("mouseclick", e);
 		}
 	},
 
@@ -439,66 +444,13 @@ Native.events = {
 
 };
 
-/* -- DOM EVENTS IMPLEMENTATION --------------------------------------------- */
+/* -- DOM HELPERS IMPLEMENTATION -------------------------------------------- */
 
-DOMElement.implement({
+NDMElement.implement({
 
 	mouseover : false,
 	mouseout : false,
 	dragendFired : false,
-
-	fireEvent : function(name, e, successCallback){
-		var acceptedEvent = true,
-			listenerResponse = true,
-			cb = OptionalCallback(successCallback, null);
-
-		if (typeof this["on"+name] == 'function'){
-			if (e !== undefined){
-				e.dx = e.xrel;
-				e.dy = e.yrel;
-				e.refuse = function(){
-					acceptedEvent = false;
-				};
-				listenerResponse = this["on"+name](e);
-				if (cb && acceptedEvent) cb.call(this);
-
-				return OptionalBoolean(listenerResponse, true);
-			} else {
-				listenerResponse = this["on"+name]();
-			}
-		} else {
-			if (cb) cb.call(this);
-		}
-		return this;
-	},
-
-	addEventListener : function(name, callback, propagation){
-		var self = this;
-		self._eventQueues = self._eventQueues ? self._eventQueues : [];
-		var queue = self._eventQueues[name];
-
-		queue = !queue ? self._eventQueues[name] = [] : 
-						 self._eventQueues[name];
-
-		queue.push({
-			name : OptionalString(name, "error"),
-			fn : OptionalCallback(callback, function(){}),
-			propagation : OptionalBoolean(propagation, true),
-			response : null
-		});
-
-		self["on"+name] = function(e){
-			for(var i=queue.length-1; i>=0; i--){
-				queue[i].response = queue[i].fn.call(self, e);
-				if (!queue[i].propagation){
-					continue;
-				}
-			}
-			// uncomment to support return in listener (you should not)
-			//if (queue && queue[queue.length-1]) return queue[queue.length-1].response;
-		};
-		return this;
-	},
 
 	click : function(cb){
 		if (typeof cb == "function") {
@@ -530,36 +482,10 @@ DOMElement.implement({
 	}
 });
 
-/* -- THREAD EVENT LISTENER ------------------------------------------------- */
+/* -- DOM EVENTS IMPLEMENTATION --------------------------------------------- */
 
-Thread.prototype.addEventListener = function(name, callback, propagation){
-	var self = this;
-	self._eventQueues = self._eventQueues ? self._eventQueues : [];
-	var queue = self._eventQueues[name];
-
-	queue = !queue ? self._eventQueues[name] = [] : 
-					 self._eventQueues[name];
-
-	queue.push({
-		name : OptionalString(name, "error"),
-		fn : OptionalCallback(callback, function(){}),
-		propagation : OptionalBoolean(propagation, true),
-		response : null
-	});
-
-	self["on"+name] = function(e){
-		for(var i=queue.length; i>=0; i--){
-			queue[i].response = queue[i].fn.call(self, e);
-			if (!queue[i].propagation){
-				continue;
-			}
-		}
-	};
-	return this;
-};
-
-Object.attachEventListener = function(obj){
-	obj.addEventListener = function(name, callback, propagation){
+Object.attachEventSystem = function(proto){
+	proto.addEventListener = function(name, callback, propagation){
 		var self = this;
 		self._eventQueues = self._eventQueues ? self._eventQueues : [];
 		var queue = self._eventQueues[name];
@@ -583,56 +509,97 @@ Object.attachEventListener = function(obj){
 			}
 		};
 		return this;
-	}
+	};
+
+	proto.fireEvent = function(name, e, successCallback){
+		var acceptedEvent = true,
+			listenerResponse = true,
+			cb = OptionalCallback(successCallback, null);
+
+		if (typeof this["on"+name] == 'function'){
+			if (e !== undefined){
+				e.dx = e.xrel;
+				e.dy = e.yrel;
+				e.refuse = function(){
+					acceptedEvent = false;
+				};
+				listenerResponse = this["on"+name](e);
+				if (cb && acceptedEvent) cb.call(this);
+
+				return OptionalBoolean(listenerResponse, true);
+			} else {
+				listenerResponse = this["on"+name]();
+			}
+		} else {
+			if (cb) cb.call(this);
+		}
+		return this;
+	};
 };
+
+Object.attachEventSystem(NDMElement.prototype);
+Object.attachEventSystem(Thread.prototype);
+Object.attachEventSystem(window);
+
 
 /* -- MOUSE EVENTS ---------------------------------------------------------- */
 
 window._onmousedown = function(e){
-	Native.events.mousedownEvent(e);
+	window.events.mousedownEvent(e);
+	window.onmousedown(e);
 };
 
 window._onmousemove = function(e){
-	Native.events.mousemoveEvent(e);
+	window.events.mousemoveEvent(e);
+	window.onmousemove(e);
 };
 
 window._onmousewheel = function(e){
-	Native.events.mousewheelEvent(e);
+	window.events.mousewheelEvent(e);
+	window.onmousewheel(e);
 };
 
 window._onmouseup = function(e){
-	Native.events.mouseupEvent(e);
+	window.events.mouseupEvent(e);
+	window.onmouseup(e);
 };
 
 /* -- KEYBOARD EVENTS ------------------------------------------------------- */
 
 window._onkeydown = function(e){
-	Native.events.keydownEvent(e);
+	window.events.keydownEvent(e);
+	window.onkeydown(e);
 };
 
 window._onkeyup = function(e){
-	Native.events.keyupEvent(e);
+	window.events.keyupEvent(e);
+	window.onkeyup(e);
 };
 
 window._ontextinput = function(e){
-	Native.events.textinputEvent(e);
+	window.events.textinputEvent(e);
+	window.ontextinput(e);
 };
 
 /* -- WINDOW EVENTS --------------------------------------------------------- */
 
 window._onfocus = function(e){
-	
+	window.onfocus(e);
 };
 
 window._onblur = function(e){
-	
+	window.onblur(e);
 };
 
 /* -- LOAD EVENTS ----------------------------------------------------------- */
 
 window._onready = function(LST){
 	Native.core.onready();
-	LSTEngine.parse(LST);
+	window.onload();
+	NDMLayoutParser.parse(LST, function(){
+		window.onready();
+		document.fireEvent("DOMContentLoaded", {});
+	});
 };
 
 window._onassetready = function(e){
@@ -644,62 +611,16 @@ window._onassetready = function(e){
 	}
 };
 
-var LSTEngine = {
-	parse : function(LST){
-		var createElement = function(node, parent){
-			var element = null,
-				nodeType = node.type,
-				nodeAttributes = node.attributes;
+/* -- USER LAND EVENTS ------------------------------------------------------ */
 
-			switch (node.type) {
-				case "section" :
-					nodeType = "UIElement";
-					break;
-
-				case "select" :
-					nodeType = "UIDropDownController";
-					break;
-
-				case "option" :
-					nodeType = "UIOption";
-					break;
-
-				case "view" :
-					nodeType = "UIView";
-					break;
-
-				case "button" :
-					nodeType = "UIButton";
-					break;
-
-				case "slider" :
-					nodeType = "UISliderController";
-					break;
-
-				case "include":
-					nodeType = null;
-					break;
-
-				default:
-					break;
-			}
-
-			if (nodeType) {
-				var element = parent.add(nodeType, nodeAttributes);
-			}
-			return element;
-		};
-
-		var parseNodes = function(nodes, parent){
-			for (var i=0; i<nodes.length; i++) {
-				var node = nodes[i];
-				if (node.type != "include") {
-					var newParent = createElement(node, parent);
-					parseNodes(node.children, newParent);
-				}
-			}
-		};
-
-		parseNodes(LST, document);
-	}
-};
+window.onload = function(){};
+window.onready = function(){};
+window.onmousedown = function(e){};
+window.onmousemove = function(e){};
+window.onmousewheel = function(e){};
+window.onmouseup = function(e){};
+window.onkeydown = function(e){};
+window.onkeyup = function(e){};
+window.ontextinput = function(e){};
+window.onfocus = function(e){};
+window.onblur = function(e){};

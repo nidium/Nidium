@@ -15,7 +15,7 @@ var TextNode = function(text, className){
 		//background : "rgba(255, 0, 0, 0.4)"
 	};
 
-	return new DOMElement("UITextNode", options, null);
+	return new NDMElement("UITextNode", options, null);
 };
 
 Native.elements.export("UITextNode", {
@@ -137,7 +137,7 @@ Native.elements.export("UITextNode", {
 	},
 
 	onAdoption : function(parent){
-		DOMElement.nodes.resetTextNodes(parent);
+		NDMElement.nodes.resetTextNodes(parent);
 	},
 
 	/* ---------------------------------------------------------------------- */
@@ -152,7 +152,7 @@ Native.elements.export("UITextNode", {
 			w = params.w - this.paddingRight - this.paddingLeft,
 			h = params.h - this.paddingTop - this.paddingBottom;
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 
 		context.setColor(this.color);
 		context.fontSize = this.fontSize;
@@ -165,14 +165,14 @@ Native.elements.export("UITextNode", {
 			this.textShadowColor
 		);
 
-		DOMElement.draw.printMatrix(this, context, params);
+		NDMElement.draw.printMatrix(this, context, params);
 
 		context.setShadow(0, 0, 0);
 	}
 });
 
 
-DOMElement.draw.printMatrix = function(element, context, params){
+NDMElement.draw.printMatrix = function(element, context, params){
 	var vOffset = (element.lineHeight/2)+5,
 		letters = element.letters;
 

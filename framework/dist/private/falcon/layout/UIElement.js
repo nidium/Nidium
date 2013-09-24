@@ -28,7 +28,7 @@ Native.elements.export("UIElement", {
 			);
 		}
 
-		DOMElement.draw.box(this, context, params);
+		NDMElement.draw.box(this, context, params);
 		context.setShadow(0, 0, 0);
 	}
 });

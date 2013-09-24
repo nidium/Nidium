@@ -49,19 +49,20 @@ Native.elements.export("UILabel", {
 			color 			: OptionalValue(o.color, "#222222")
 		});
 
+		this.applyStyleSheet();
+
 		this.resizeElement = function(){
-			this._innerTextWidth = DOMElement.draw.getInnerTextWidth(this);
+			this._innerTextWidth = NDMElement.draw.getInnerTextWidth(this);
+			this.width = OptionalNumber(o.width, this._innerTextWidth);
 		};
 
 		this.resizeElement();
-
-		this.width = OptionalNumber(o.width, this._innerTextWidth);
 	},
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		DOMElement.draw.box(this, context, params);
-		DOMElement.draw.label(this, context, params);
+		NDMElement.draw.box(this, context, params);
+		NDMElement.draw.label(this, context, params);
 	}
 });

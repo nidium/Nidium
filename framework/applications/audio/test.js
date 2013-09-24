@@ -24,17 +24,13 @@
  * --------------------------------------------------------------------------- * 
  */
 
- "use strict";
+"use strict";
 
-var main = new Application();
-
-var mixer = null,
-	tracks = [];
+var tracks = [];
 
 var tx = [
-	{file : "../media/song.mp3",	label : "Depress"},
-	{file : "../media/song.mp3",	label : "Depress"},
-	{file : "../media/song.mp3",	label : "Depress"}
+	{file : "media/song.mp3"},,
+	{file : "media/endure.ogg"}
 ];
 
 for (var i=0; i<tx.length; i++){
