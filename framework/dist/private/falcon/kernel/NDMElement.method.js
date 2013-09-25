@@ -109,6 +109,55 @@ NDMElement.method = {
 		document.layout.update();
 	},
 
+	addChild : function addChild(element){
+		if (!isNDMElement(element)) return false;
+
+		/* fire the onAddChildRequest event */
+		if (this.onAddChildRequest.call(this, element) === false) return false;
+
+		this.nodes.push(element);
+
+		if (!this.firstChild) this.firstChild = element;
+		this.lastChild = element;
+
+		element._root = this._root;
+		element.parent = this;
+
+		document.layout.init(element);
+
+		/* fire the new element's onAdoption event */
+		element.onAdoption.call(element, this);
+
+		/* fire the element's parent onChildReady event */
+		this.onChildReady.call(this, element);
+
+		element.__updateAncestors();
+		document.layout.update();
+
+		return this;
+	},
+
+	removeChild : function removeChild(element){
+		if (element.parent && element.parent != this){
+			throw("Unable to remove this element.");
+		}
+		document.layout.remove(element);
+		document.layout.update();
+		return this;
+	},
+
+	insertChildAtIndex : function insertChildAtIndex(element, index){
+
+	},
+
+	insertBefore : function insertBefore(element, refElement){
+		
+	},
+
+	insertAfter : function insertAfter(element, refElement){
+
+	},
+
 	show : function show(){
 		this.visible = true;
 		return this;
@@ -169,55 +218,6 @@ NDMElement.method = {
 	fix : function fix(){
 		this.position = "fixed";
 		return this;
-	},
-
-	addChild : function addChild(element){
-		if (!isNDMElement(element)) return false;
-
-		/* fire the onAddChildRequest event */
-		if (this.onAddChildRequest.call(this, element) === false) return false;
-
-		this.nodes.push(element);
-
-		if (!this.firstChild) this.firstChild = element;
-		this.lastChild = element;
-
-		element._root = this._root;
-		element.parent = this;
-
-		document.layout.init(element);
-
-		/* fire the new element's onAdoption event */
-		element.onAdoption.call(element, this);
-
-		/* fire the element's parent onChildReady event */
-		this.onChildReady.call(this, element);
-
-		element.__updateAncestors();
-		document.layout.update();
-
-		return this;
-	},
-
-	removeChild : function removeChild(element){
-		if (element.parent && element.parent != this){
-			throw("Unable to remove this element.");
-		}
-		document.layout.remove(element);
-		document.layout.update();
-		return this;
-	},
-
-	insertChildAtIndex : function insertChildAtIndex(element, index){
-
-	},
-
-	insertBefore : function insertBefore(element, refElement){
-		
-	},
-
-	insertAfter : function insertAfter(element, refElement){
-
 	},
 
 	clear : function clear(){

@@ -48,14 +48,14 @@ NDMElement.proxy = function(descriptor){
 			} else {
 				/* update element's hidden property */
 				element["_"+property] = newValue;
-
-				/* update element's inline property container */
-				element.inline[property] = newValue;
 			}
 
 			if (element.initialized && element._locked === false) {
 				/* lock element */
 				element.__lock("plugin:"+property);
+
+				/* update element's inline property container */
+				element.inline[property] = newValue;
 
 				/* fire propertyupdate event if needed */
 				NDMElement.updater({

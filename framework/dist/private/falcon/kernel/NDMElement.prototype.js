@@ -108,7 +108,7 @@ NDMElement.prototype = {
 		this._maxWidth = w;
 
 		/* update element's inline property */
-		this.inline.maxWidth = w;
+		!this._locked && (this.inline.maxWidth = w);
 	},
 
 	get maxWidth() {
@@ -121,7 +121,7 @@ NDMElement.prototype = {
 
 	set fastLeft(value) {
 		this._left = value;
-		this.inline.left = value;
+		!this._locked && (this.inline.left = value);
 		this.layer.left = value;
 	},
 
@@ -131,7 +131,7 @@ NDMElement.prototype = {
 
 	set fastTop(value) {
 		this._top = value;
-		this.inline.top = value;
+		!this._locked && (this.inline.top = value);
 		this.layer.top = value;
 	},
 
@@ -141,7 +141,7 @@ NDMElement.prototype = {
 
 	set left(value) {
 		this._left = value;
-		this.inline.left = value;
+		!this._locked && (this.inline.left = value);
 		if (this.layer) {
 			this.layer.left = value;
 			this.__updateAncestors();
@@ -158,7 +158,7 @@ NDMElement.prototype = {
 
 	set top(value) {
 		this._top = value;
-		this.inline.top = value;
+		!this._locked && (this.inline.top = value);
 		if (this.layer) {
 			this.layer.top = value;
 			this.__updateAncestors();

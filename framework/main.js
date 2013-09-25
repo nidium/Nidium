@@ -184,8 +184,7 @@ document.nss.add({
 		cursor : "pointer",
 		textAlign : "center",
 		radius : 2,
-		autosize : false,
-		width : 450,
+		autosize : true,
 		height : 22,
 		paddingLeft : 10,
 		paddingRight : 10,
@@ -195,24 +194,13 @@ document.nss.add({
 	},
 
 	"UIButton:hover" : {
-		width : 450,
-		height : 500
+		background : "black"
 	}
 });
 
+var txt = new UIButton(document);
 
-var txt = new UIButton(document, {
-	width : 300
-});
-
-txt.width = 700;
-
-console.log("style", txt.style.width);
 console.log("inline", txt.inline.width);
-console.log("options", txt.options.width);
-
-console.log("width", txt.width);
-console.log("layer", txt.layer.width);
 
 /*
 

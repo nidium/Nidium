@@ -24,18 +24,19 @@ var NDMElement = function(type, options, parent){
 	this.nodes = []; // children elements
 
 	this.style = {};
-	this.inline = {};
-	for (var k in this.options) {
-		if (this.options.hasOwnProperty(k)) {
-			this.style[k] = this.options[k];
-		}
-	}
-
+	
 	/* Read Only Properties */
 	NDMElement.defineReadOnlyProperties(this, {
 		type : type,
-		isNDMElement : true
+		isNDMElement : true,
+		inline : {}  
 	});
+
+	for (var k in this.options) {
+		if (this.options.hasOwnProperty(k)) {
+			this.inline[k] = this.options[k];
+		}
+	}
 
 	/* Nidium Engine Properties */
 	this.left = OptionalNumber(o.left, 0);
