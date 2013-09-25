@@ -63,7 +63,7 @@ Native.elements.export("UIRadio", {
 		});
 
 		this.addEventListener("mousedown", function(e){
-			Native.layout.find("name", this.name).each(function(){
+			document.layout.find("name", this.name).each(function(){
 				this.selected = false;
 			});
 

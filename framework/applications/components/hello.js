@@ -8,7 +8,7 @@ Native.showFPS(true);
 
 /* --- HELLO APP ------------------------------------------------------------ */
 
-Native.StyleSheet.add({
+document.nss.add({
 	button : {
 		lineHeight : 14,
 		radius : 3,

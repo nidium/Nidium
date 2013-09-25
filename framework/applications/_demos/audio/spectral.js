@@ -52,7 +52,7 @@ var Spectral = {
 		}
 
 		canvas.requestAnimationFrame(function(){
-			Native.layout.draw();
+			document.layout.draw();
 			self.drawLines();
 		});
 

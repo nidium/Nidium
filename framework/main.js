@@ -176,19 +176,22 @@ document.background = "#333333";
 3) dynamic properties replace inline properties
 */
 
-
-
-
-
-Native.StyleSheet.add({
+document.nss.add({
 	"UIButton" : {
-		label : "miami",
-		background : "blue",
-		color : "white",
+		label : "Button",
+		background : "#2277e0",
+		color : "#ffffff",
+		cursor : "pointer",
 		textAlign : "center",
+		radius : 2,
 		autosize : false,
 		width : 450,
-		height : 22
+		height : 22,
+		paddingLeft : 10,
+		paddingRight : 10,
+		fontSize : 11,
+		fontFamily : "arial",
+		canReceiveFocus : true
 	},
 
 	"UIButton:hover" : {
@@ -198,17 +201,18 @@ Native.StyleSheet.add({
 });
 
 
-var UIButton = 5;
+var txt = new UIButton(document, {
+	width : 300
+});
 
-var txt = new UIButton(document);
+txt.width = 700;
 
+console.log("style", txt.style.width);
+console.log("inline", txt.inline.width);
+console.log("options", txt.options.width);
 
-
-
-
-
-console.log(txt.width, txt.height);
-console.log(txt.layer.width, txt.layer.height);
+console.log("width", txt.width);
+console.log("layer", txt.layer.width);
 
 /*
 

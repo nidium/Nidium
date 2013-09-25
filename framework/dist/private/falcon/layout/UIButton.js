@@ -8,27 +8,12 @@ Native.elements.export("UIButton", {
 	init : function(){
 		var o = this.options;
 
-		/* Element's Specific Dynamic Properties */
-		NDMElement.definePublicProperties(this, {
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
 			autosize : OptionalBoolean(o.autosize, true)
 		});
 
-		this.setProperties({
-			canReceiveFocus	: true,
-			label			: OptionalString(o.label, "Button"),
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-
-			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
-			paddingRight	: OptionalNumber(o.paddingLeft, 10),
-
-			height 			: OptionalNumber(o.height, 22),
-			radius 			: OptionalNumber(o.radius, 2),
-			background 		: OptionalValue(o.background, "#2277E0"),
-			color 			: OptionalValue(o.color, "#ffffff"),
-			cursor			: OptionalCursor(o.cursor, "pointer")
-		});
-
+		/* Element's Static Properties */
 		this.outlineColor = this.background;
 
 		NDMElement.listeners.addDefault(this);

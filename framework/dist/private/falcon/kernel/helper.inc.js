@@ -328,42 +328,6 @@ Number.prototype.bound = function(min, max){
 
 /* -------------------------------------------------------------------------- */
 
-Math.rotate = function(x, y, cx, cy, angle){
-	var cos = Math.cos(angle),
-		sin = Math.sin(angle),
-		ax = x - cx,
-		ay = y - cy;
-	return {
-		x : cx + ax*cos + ay*sin,
-		y : cy - ax*sin + ay*cos
-	};
-};
-
-Math.distance = function(x1, y1, x2, y2){
-	var a = y2-y1, b = x2-x1;
-	return Math.sqrt(a*a + b*b);
-};
-
-Math.spline = function(i, n, t){
-	var f = Math.factorial, pw = Math.pow;
-	return f(n) / (f(i) * f(n-i)) * pw(t, i) * pw(1-t, n-i);
-};
-
-/* -- Precalc !n */
-Math.factorial = (function(n){
-	var c = [],
-		f = function(n){
-			if (n==0 || n==1) return 1;
-			if (c[n]) return c[n];
-			for (var r=i=1; i<=n; i++){r *= i}
-			return c[n] = r;
-		};
-	for (var i=0; i<500; i++) f(i);
-	return f;
-}());
-
-/* -------------------------------------------------------------------------- */
-
 var natlog = function(txt){
 	if (window.scope.NatBug && window.scope.NatBug.console) {
 		NatBug.console.log(txt);

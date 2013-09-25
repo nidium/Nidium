@@ -9,7 +9,7 @@ Native.elements.export("UILabel", {
 		var o = this.options;
 
 		/* Element's Specific Dynamic Properties */
-		NDMElement.definePublicProperties(this, {
+		NDMElement.defineDynamicProperties(this, {
 			autosize : OptionalBoolean(o.autosize, true)
 		});
 

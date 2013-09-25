@@ -53,7 +53,7 @@ Native.elements.export("UIView", {
 			if (url) {
 				self._cachedBackgroundImage = null;
 				this._backgroundImage = url;
-				Native.loadImage(url, function(img){
+				Image.load(url, function(img){
 					self.setBackgroundImage(img);
 				});
 			}

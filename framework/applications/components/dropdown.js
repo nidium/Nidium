@@ -5,7 +5,7 @@
 /* -------------------------------------- */
 
 /*
-Native.StyleSheet.add({
+document.nss.add({
 	"#foobar" : {
 		background : "red"
 	},
@@ -159,7 +159,7 @@ var	button = new UIButton(main, {
 });
 
 
-Native.StyleSheet.add({
+document.nss.add({
 	radio : {
 		left : 700,
 		width : 200,

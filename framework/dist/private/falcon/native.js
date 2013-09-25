@@ -47,12 +47,19 @@ const	__ENABLE_TEXT_SHADOWS__ = true,
 /* -------------------------------------------------------------------------- */
 
 load(__PATH_KERNEL__ + 'helper.inc.js');
+load(__PATH_KERNEL__ + 'math.inc.js');
 load(__PATH_KERNEL__ + 'engine.inc.js');
-load(__PATH_KERNEL__ + 'kernel.inc.js');
-load(__PATH_KERNEL__ + 'object.inc.js');
+load(__PATH_KERNEL__ + 'NDMElement.constructor.js');
+load(__PATH_KERNEL__ + 'NDMElement.method.js');
+load(__PATH_KERNEL__ + 'NDMElement.prototype.js');
+load(__PATH_KERNEL__ + 'NDMElement.updater.js');
+load(__PATH_KERNEL__ + 'NDMElement.listeners.js');
+load(__PATH_KERNEL__ + 'NDMElement.draw.js');
+load(__PATH_KERNEL__ + 'NDMElement.proxy.js');
+load(__PATH_KERNEL__ + 'NDMElement.motion.js');
+load(__PATH_KERNEL__ + 'NDMElement.parser.js');
 load(__PATH_KERNEL__ + 'extend.inc.js');
 load(__PATH_KERNEL__ + 'events.inc.js');
-load(__PATH_KERNEL__ + 'motion.inc.js');
 load(__PATH_KERNEL__ + 'opengl.inc.js');
 load(__PATH_KERNEL__ + 'audio.inc.js');
 load(__PATH_KERNEL__ + 'video.inc.js');
@@ -113,8 +120,27 @@ load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'spline.inc.js');
 load(__PATH_PLUGINS__ + 'path.inc.js');
 
-/* -- Start Layout -- */
-load(__PATH_KERNEL__ + 'layout.inc.js');
+/* -- Layout Parser and Renderer -- */
+load(__PATH_KERNEL__ + 'document.layout.js');
+load(__PATH_KERNEL__ + 'document.selectors.js');
+load(__PATH_KERNEL__ + 'document.nss.js');
+
+/* -------------------------------------------------------------------------- */
+
+Object.createProtectedElement(window.scope, "Application", function(options){
+	options = options || {};
+	options.canReceiveFocus = true;
+	options.outlineOnFocus = false;
+
+	var element = new NDMElement("UIView", options, null);
+	element._root = element;
+
+	document.layout.init(element, null);
+	document.layout.register(element);
+	document.layout.update();
+
+	return element;
+});
 
 /* -------------------------------------------------------------------------- */
 
@@ -146,49 +172,14 @@ Native.core = {
 			outlineOnFocus : false
 		});
 
-		doc.stylesheet = document.stylesheet;
-		doc.run = document.run;
+		for (var p in document) {
+			doc[p] = document[p];
+		}
 
 		Object.createProtectedElement(window.scope, "document", doc);
 	},
 
 	extendDocument : function(){
-		var proxy = Native.layout;
-
-		document.getElements = function(){
-			return proxy.getElements();
-		};
-
-		document.getElementById = function(id){
-			return proxy.getElementById(id);
-		};
-		
-		document.getElementsByClassName = function(klass){
-			return proxy.getElementsByClassName(klass);
-		};
-
-		document.getElementsByTagName = function(type){
-			return proxy.getElementsByTagName(type);
-		};
-
-		document.getElementsBySelector = function(selector){
-			return proxy.getElementsBySelector(selector);
-		};
-
-		document.style = {
-			get : function(selector){
-				return document.stylesheet[selector];
-			},
-
-			set : function(selector, properties){
-				Native.StyleSheet.setProperties(selector, properties);
-			},
-
-			add : function(selector, properties){
-				Native.StyleSheet.mergeProperties(selector, properties);
-			}
-		};
-
 		document.addEventListener("contextmenu", function(e){
 			var root = e.element._root;
 
@@ -282,7 +273,7 @@ Native.core = {
 	},
 
 	drawLayout : function(){
-		Native.layout.draw();
+		document.layout.draw();
 	}
 };
 
