@@ -16,7 +16,6 @@ NDMElement.updater = function(e){
 	element.__lock("updater");
 
 	switch (e.property) {
-		/*
 		case "left" :
 			element.layer.left = value;
 			element.layer.scrollLeft = element._scrollLeft;
@@ -28,7 +27,7 @@ NDMElement.updater = function(e){
 			element.layer.scrollTop = element._scrollTop;
 			element._needAncestorCacheClear = true;
 			break;
-		*/
+
 		/*
 		case "left" :
 		case "top" :

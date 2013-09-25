@@ -112,10 +112,10 @@ document.background = "#333333";
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
 //load("applications/components/tabs.js");
-//load("applications/components/profiler.js");
+//load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
-//load("applications/components/buttons.js");
+load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
@@ -168,55 +168,28 @@ document.background = "#333333";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
-/*
-1) apply nss properties
-2) apply inline properties
-3) dynamic properties replace inline properties
-*/
+
 
 document.nss.add({
-	"UIButton" : {
-		label : "Button",
-		background : "#2277e0",
-		color : "#ffffff",
-		cursor : "pointer",
-		textAlign : "center",
-		radius : 2,
-		autosize : true,
+	".button" : {
+		autosize : false,
+		left : 300,
+		width : 450,
 		height : 22,
-		paddingLeft : 10,
-		paddingRight : 10,
-		fontSize : 11,
-		fontFamily : "arial",
-		canReceiveFocus : true
 	},
 
-	"UIButton:hover" : {
-		background : "black"
+	".button:hover" : {
+		left : 350,
+		background : "#222222",
+		radius : 4,
+		width : 450,
+		height : 80
 	}
 });
 
-var txt = new UIButton(document);
-
-console.log("inline", txt.inline.width);
-
-/*
-
-txt.width = 350;
-txt.height = 15;
-
-*/
-
-/*
-txt.autosize = true;
-
-console.log("");
-console.log(txt.width, txt.height);
-console.log(txt.layer.width, txt.layer.height);
-
-*/
+var txt = new UIButton(document, "button");
 
 
 

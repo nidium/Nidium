@@ -22,8 +22,6 @@ var NDMElement = function(type, options, parent){
 
 	this.parent = p;
 	this.nodes = []; // children elements
-
-	this.style = {};
 	
 	/* Read Only Properties */
 	NDMElement.defineReadOnlyProperties(this, {
@@ -38,11 +36,10 @@ var NDMElement = function(type, options, parent){
 		}
 	}
 
-	/* Nidium Engine Properties */
+	/*
 	this.left = OptionalNumber(o.left, 0);
 	this.top = OptionalNumber(o.top, 0);
 
-	/*
 	this.width = o.width ? Number(o.width) : p ?
 					p._width-this.left : window.width-this.left;
 
@@ -58,10 +55,8 @@ var NDMElement = function(type, options, parent){
 		className : OptionalString(o.class, ""),
 
 		// -- layout properties
-		/*
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
-		*/
 		width : o.width ? Number(o.width) : p ? p._width : window.width,
 		height : o.height ? Number(o.height) : p ? p._height : window.height,
 

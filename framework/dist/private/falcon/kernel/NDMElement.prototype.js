@@ -138,7 +138,7 @@ NDMElement.prototype = {
 	/* ----------------------------------------------- */
 	/* NDMElement.left                                 */
 	/* ----------------------------------------------- */
-
+	/*
 	set left(value) {
 		this._left = value;
 		!this._locked && (this.inline.left = value);
@@ -151,11 +151,11 @@ NDMElement.prototype = {
 	get left() {
 		return this._left;
 	},
-
+	*/
 	/* ----------------------------------------------- */
 	/* NDMElement.top                                  */
 	/* ----------------------------------------------- */
-
+	/*
 	set top(value) {
 		this._top = value;
 		!this._locked && (this.inline.top = value);
@@ -168,7 +168,7 @@ NDMElement.prototype = {
 	get top() {
 		return this._top;
 	},
-
+	*/
 	/* ----------------------------------------------- */
 	/* NDMElement.width                                */
 	/* ----------------------------------------------- */

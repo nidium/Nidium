@@ -59,6 +59,24 @@
 
 	/* Element Definitions */
 
+	"UIButton" : {
+		label : "Button",
+		background : "#2277e0",
+		color : "#ffffff",
+		cursor : "pointer",
+		textAlign : "center",
+		radius : 2,
+		autosize : true,
+		height : 22,
+		paddingLeft : 10,
+		paddingRight : 10,
+		fontSize : 11,
+		fontFamily : "arial",
+		canReceiveFocus : true
+	},
+
+	/* -------------------------- */
+
 	"UIToolTip" : {
 		lineheight : 30,
 		height : 30,
