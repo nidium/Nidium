@@ -17,6 +17,18 @@ Native.elements.export("UISliderController", {
 		}
 	},
 
+	default : {
+		canReceiveFocus : true,
+		color : "#3388dd",
+		value : 0,
+		min : 0,
+		max : 100,
+		cursor : "pointer",
+		boxColor : null,
+		progressBarColor : null,
+		splitColor : null
+	},
+
 	init : function(){
 		var self = this,
 			o = this.options;

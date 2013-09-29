@@ -28,6 +28,8 @@
 	/* Static Containers */
 	
 	"@default" : {
+		elementColor : "#3388dd",
+
 		darkBackgroundColor : "#262722",
 		liteBackgroundColor : "#ffffff",
 		textBackgroundColor : "#ffffff",

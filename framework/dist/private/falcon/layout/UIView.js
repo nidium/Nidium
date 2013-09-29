@@ -44,7 +44,7 @@ Native.elements.export("UIView", {
 			scrollBarHideDelay = 400,
 			o = this.options;
 
-		if (o.scrollable === true) {
+		if (this.scrollable === true){
 			this.scrollBarX = o.scrollBarX === false ? false : true;
 			this.scrollBarY = o.scrollBarY === false ? false : true;
 		}

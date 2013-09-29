@@ -115,8 +115,8 @@ document.background = "#333333";
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
-load("applications/components/buttons.js");
-//load("applications/components/sliders.js");
+//load("applications/components/buttons.js");
+load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash si vidage console
@@ -168,28 +168,45 @@ load("applications/components/buttons.js");
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 
+/*
 
 document.nss.add({
-	".button" : {
-		autosize : false,
+	".foobar" : {
+		top : 30,
 		left : 300,
 		width : 450,
-		height : 22,
+		height : 300,
+		background : "red"
 	},
 
-	".button:hover" : {
-		left : 350,
+	".foobar:hover" : {
 		background : "#222222",
 		radius : 4,
 		width : 450,
 		height : 80
+	},
+
+	".foobar:disabled" : {
+		background : "#FF00FF",
+		radius : 4,
+		width : 450,
+		height : 80
+	},
+
+	".foobar:disabled+hover" : {
+		background : "#0000FF"
 	}
 });
 
-var txt = new UIButton(document, "button");
+var txt = new UIView(document);
+
+txt.className = "foobar";
+txt.hover = true;
+txt.disabled = true;
+*/
 
 
 
