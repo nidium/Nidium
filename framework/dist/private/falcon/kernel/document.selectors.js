@@ -41,6 +41,7 @@ document.getElementsByClassName = function(className){
 	return elements;
 };
 
+/* TODO : this */
 document.getElementsBySelector = function(selector){
 	var elements = [],
 		l = selector.length,
@@ -48,7 +49,7 @@ document.getElementsBySelector = function(selector){
 		p = s.in(".", "@", "#", "*") ? selector.substr(-(l-1)) : selector,
 		m = p.split(":"),
 		k = m[0],
-		states = m[1];
+		statefield = m[1];
 
 	switch (s) {
 		case "@" : /* static property container, do nothing */ break;
@@ -57,20 +58,20 @@ document.getElementsBySelector = function(selector){
 		default  : elements = this.getElementsByTagName(k); break;
 	};
 
-	if (states) {
+	if (statefield) {
 		var temp = [],
-			st = states.split('+');  // UITextField:hover+disabled
+			filters = statefield.split('+');  // UITextField:hover+disabled
 
-		if (st.length>0) {
+		if (filters.length>0) {
 			for (var i=0; i<elements.length; i++) {
 				var checked = 0;
-				for (var j=0; j<st.length; j++) {
+				for (var j=0; j<filters.length; j++) {
 					var z = elements[i],
-						state = st[j];
+						state = filters[j];
 
-					if (z && z[state]) checked++;
+					if (z && z[state]===true) checked++;
 				}
-				if (checked == st.length) temp.push(elements[i]);
+				if (checked == filters.length) temp.push(elements[i]);
 			}
 		}
 		elements = temp;

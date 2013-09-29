@@ -557,7 +557,7 @@ NDMElement.method = {
 							}
 						*/
 						var e = this.getPropertyHandler(k);
-						var ret = value.call(e);
+						var ret = value.call(e, this);
 
 						/* if the handler returns, set the prop */
 						if (ret != undefined) {

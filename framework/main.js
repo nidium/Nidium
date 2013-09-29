@@ -203,7 +203,7 @@ document.nss.add({
 */
 
 var txt = new UIButton(document).center();
-txt.background = "red";
+txt.background = "green";
 
 /*
 txt.className = "foobar";

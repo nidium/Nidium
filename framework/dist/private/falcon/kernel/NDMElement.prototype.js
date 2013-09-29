@@ -211,11 +211,11 @@ NDMElement.prototype = {
 	/* ----------------------------------------------- */
 
 	get __left() {
-		return this.layer.__left;
+		return this.layer ? this.layer.__left : 0;
 	},
 
 	get __top() {
-		return this.layer.__top;
+		return this.layer ? this.layer.__top : 0;
 	},
 
 	get contentWidth() {
@@ -231,12 +231,12 @@ NDMElement.prototype = {
 	},
 
 	get previousSibling() {
-		var layer = this.layer.getPrevSibling();
+		var layer = this.layer ? this.layer.getPrevSibling() : null;
 		return layer ? layer.host : null;
 	},
 
 	get nextSibling() {
-		var layer = this.layer.getNextSibling();
+		var layer = this.layer ? this.layer.getNextSibling() : null;
 		return layer ? layer.host : null;
 	},
 

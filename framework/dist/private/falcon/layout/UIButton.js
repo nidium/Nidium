@@ -30,10 +30,8 @@ document.nss.add({
 		cursor : "pointer"
 	},
 
-	"UIButton:focus" : {
-		outlineColor : function(element){
-			return "red";
-		}
+	"UIButton:focus" : function(){
+		this.outlineColor = this.inline.background;
 	}
 });
 

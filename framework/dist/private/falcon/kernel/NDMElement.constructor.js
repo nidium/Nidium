@@ -60,10 +60,12 @@ var NDMElement = function(type, options, parent){
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
 
+		/* Hack to avoid crash when canvas.width = NaN; */
 		width : o.width ? Number(o.width) : p ?
 					p._width-OptionalNumber(o.left, 0) :
 					window.width-OptionalNumber(o.left, 0),
 
+		/* Hack to avoid crash when canvas.height = NaN; */
 		height : o.height ? Number(o.height) : p ?
 					p._height-OptionalNumber(o.top, 0) :
 					window.height-OptionalNumber(o.top, 0),
