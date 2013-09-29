@@ -41,10 +41,12 @@ var NDMElement = function(type, options, parent){
 	this.top = OptionalNumber(o.top, 0);
 
 	this.width = o.width ? Number(o.width) : p ?
-					p._width-this.left : window.width-this.left;
+					p._width-OptionalNumber(o.left, 0) :
+					window.width-OptionalNumber(o.left, 0);
 
 	this.height = o.height ? Number(o.height) : p ?
-					p._height-this.top : window.height-this.top;
+					p._height-OptionalNumber(o.top, 0) :
+					window.height-OptionalNumber(o.top, 0);
 	*/
 
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
@@ -57,8 +59,14 @@ var NDMElement = function(type, options, parent){
 		// -- layout properties
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
-		width : o.width ? Number(o.width) : p ? p._width : window.width,
-		height : o.height ? Number(o.height) : p ? p._height : window.height,
+
+		width : o.width ? Number(o.width) : p ?
+					p._width-OptionalNumber(o.left, 0) :
+					window.width-OptionalNumber(o.left, 0),
+
+		height : o.height ? Number(o.height) : p ?
+					p._height-OptionalNumber(o.top, 0) :
+					window.height-OptionalNumber(o.top, 0),
 
 		innerWidth : o.innerWidth ? Number(o.innerWidth) : -1,
 		innerHeight : o.innerHeight ? Number(o.innerHeight) : -1,

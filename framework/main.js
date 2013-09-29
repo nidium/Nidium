@@ -116,7 +116,7 @@ document.background = "#333333";
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
-load("applications/components/sliders.js");
+//load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
 //load("applications/components/threads.js"); // crash si vidage console
@@ -200,14 +200,16 @@ document.nss.add({
 		background : "#0000FF"
 	}
 });
+*/
 
-var txt = new UIView(document);
+var txt = new UIButton(document).center();
+txt.background = "red";
 
+/*
 txt.className = "foobar";
 txt.hover = true;
 txt.disabled = true;
 */
-
 
 
 /* TUTORIALS */

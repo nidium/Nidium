@@ -4,13 +4,50 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIButton" : {
+		label : "Button",
+		color : "#ffffff",
+		background : "#2277e0",
+
+		radius : 2,
+		height : 22,
+		paddingLeft : 10,
+		paddingRight : 10,
+
+		fontSize : 11,
+		textAlign : "center",
+
+		autowidth : true,
+		canReceiveFocus : true
+	},
+
+	"UIButton:hover" : {
+		cursor : "pointer"
+	},
+
+	"UIButton:focus" : {
+		outlineColor : function(element){
+			return "red";
+		}
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIButton", {
 	init : function(){
 		var o = this.options;
 
 		/* Element's Dynamic Properties */
 		NDMElement.defineDynamicProperties(this, {
-			autosize : OptionalBoolean(o.autosize, true)
+			autowidth : OptionalBoolean(o.autowidth, true)
 		});
 
 		/* Element's Static Properties */
@@ -20,7 +57,7 @@ Native.elements.export("UIButton", {
 	},
 
 	update : function(){
-		if (this.autosize) {
+		if (this.autowidth) {
 			this.width = NDMElement.draw.getInnerTextWidth(this);
 		}
 	},

@@ -10,7 +10,7 @@ Native.elements.export("UILabel", {
 
 		/* Element's Specific Dynamic Properties */
 		NDMElement.defineDynamicProperties(this, {
-			autosize : OptionalBoolean(o.autosize, true)
+			autowidth : OptionalBoolean(o.autowidth, true)
 		});
 
 		this.setProperties({
@@ -36,7 +36,7 @@ Native.elements.export("UILabel", {
 	},
 
 	update : function(){
-		if (this.autosize) {
+		if (this.autowidth) {
 			this.width = NDMElement.draw.getInnerTextWidth(this);
 		}
 	},

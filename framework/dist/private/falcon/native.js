@@ -64,6 +64,12 @@ load(__PATH_KERNEL__ + 'opengl.inc.js');
 load(__PATH_KERNEL__ + 'audio.inc.js');
 load(__PATH_KERNEL__ + 'video.inc.js');
 
+/* -- Layout Parser and Renderer -- */
+load(__PATH_KERNEL__ + 'document.layout.js');
+load(__PATH_KERNEL__ + 'document.selectors.js');
+load(__PATH_KERNEL__ + 'document.nss.js');
+
+
 /* -- UI Elements -- */
 
 load(__PATH_LAYOUT__ + 'UIElement.js');
@@ -119,11 +125,6 @@ load(__PATH_PLUGINS__ + 'roundbox.inc.js');
 load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'spline.inc.js');
 load(__PATH_PLUGINS__ + 'path.inc.js');
-
-/* -- Layout Parser and Renderer -- */
-load(__PATH_KERNEL__ + 'document.layout.js');
-load(__PATH_KERNEL__ + 'document.selectors.js');
-load(__PATH_KERNEL__ + 'document.nss.js');
 
 /* -------------------------------------------------------------------------- */
 
