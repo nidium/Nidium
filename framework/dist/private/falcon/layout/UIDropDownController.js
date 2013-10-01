@@ -95,7 +95,6 @@ Native.elements.export("UIDropDownController", {
 		this.hideSelector = OptionalBoolean(o.hideSelector, false);
 		this.hideToggleButton = OptionalBoolean(o.hideToggleButton, false);
 
-
 		this.getSelectorHeight = function(){
 			var	l = this.tabs.length,
 				h = l*this.height;

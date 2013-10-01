@@ -125,14 +125,14 @@ NDMElement.method = {
 
 		document.layout.init(element);
 
-		/* fire the new element's onAdoption event */
+		/* CHILD: fire the new element's onAdoption event */
 		element.onAdoption.call(element, this);
-
-		/* fire the element's parent onChildReady event */
-		this.onChildReady.call(this, element);
 
 		element.__updateAncestors();
 		document.layout.update();
+
+		/* PARENT: fire the element's parent onChildReady event */
+		this.onChildReady.call(this, element);
 
 		return this;
 	},

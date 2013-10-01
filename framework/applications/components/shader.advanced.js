@@ -28,6 +28,12 @@ tabController.setTabs([
 	/* Tab 9 */ {label : "native.inc.js", class : "tab"}
 ]);
 
+setTimeout(function(){
+	var t1 = tabController.add("UITab");
+	t1.background = "rgba(255, 50, 240, 0.90)";
+	t1.shadowBlur = 0;
+	t1.color = "black";
+}, 1500);
 
 var toolBar = main.add("UIElement", {
 	top : 32,

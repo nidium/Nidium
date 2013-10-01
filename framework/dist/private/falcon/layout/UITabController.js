@@ -27,6 +27,39 @@ document.nss.add({
 /* -------------------------------------------------------------------------- */
 
 Native.elements.export("UITabController", {
+	onAddChildRequest : function(child){
+		var accept = false;
+
+		if (child.type == "UITab") {
+			var t = this.tabs.length,
+				left = 0;
+
+			for (var i=0; i<t; i++){
+				left += this.tabs[i].width - this.overlap;
+			}
+
+			child.left = left;
+			child.top = this.paddingTop;
+			child.name = "tab_" + this.name;
+			child.height = this.height - this.paddingTop - this.paddingBottom;
+			child.closable = true;
+
+			this.tabs[t] = child;
+			this.tabs[t].index = t;
+			this.tabs[t].pos = t;
+
+			this.taborder[t] = t;
+			accept = true;
+		}
+
+		return accept;
+	},
+
+	onChildReady : function(child){
+		this.attachListenersToTab(child);
+		this.resetTabs();
+	},
+
 	init : function(){
 		var self = this,
 			o = this.options,
@@ -281,7 +314,7 @@ Native.elements.export("UITabController", {
 		};
 
 		this.getTabAtPosition = function(p){
-			return self.tabs[ self.taborder[p] ];
+			return this.tabs[ this.taborder[p] ];
 		};
 
 		this._addTab = function(i, p, options, left){
@@ -289,8 +322,8 @@ Native.elements.export("UITabController", {
 				selected = OptionalBoolean(o.selected, false);
 
 			if (selected) {
-				self.currentIndex = i;
-				self.currentPosition = i;
+				this.currentIndex = i;
+				this.currentPosition = i;
 			}
 		
 			this.tabs[i] = this.add("UITab", {
@@ -305,11 +338,6 @@ Native.elements.export("UITabController", {
 				preventmove : OptionalBoolean(o.preventmove, false),
 				target : OptionalValue(o.target, null)
 			});
-
-			this.tabs[i].index = i;
-			this.tabs[i].pos = p;
-
-			this.attachListenersToTab(this.tabs[i]);
 		};
 
 		this._slideTab = function(tab, value){
