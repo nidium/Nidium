@@ -6,29 +6,14 @@
 
 Native.elements.export("UIElement", {
 	init : function(){
-		var o = this.options;
-
-		this.setProperties({
-			canReceiveKeyboardEvents : OptionalBoolean(
-				o.canReceiveKeyboardEvents,
-				false
-			)
-		});
+		this.canReceiveKeyboardEvents = false;
 	},
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		if (this.shadowBlur != 0) {
-			context.setShadow(
-				this.shadowOffsetX,
-				this.shadowOffsetY,
-				this.shadowBlur,
-				this.shadowColor
-			);
-		}
-
+		NDMElement.draw.softShadow(this);
 		NDMElement.draw.box(this, context, params);
-		context.setShadow(0, 0, 0);
+		NDMElement.draw.disableShadow(this);
 	}
 });

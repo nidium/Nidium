@@ -38,7 +38,8 @@ var ಠ_ಠ = '2.5',
 
 /* Todo : add more performance flags */
 const	__ENABLE_TEXT_SHADOWS__ = true,
-		__ENABLE_BUTTON_SHADOWS__ = true,
+		__ENABLE_CONTROL_LAYERS__ = true,
+		__ENABLE_CONTROL_SHADOWS__ = true,
 		__ENABLE_IMAGE_INTERPOLATION__ = true,
 
 		__MAX_INPUT_LENGTH__ = 2048,

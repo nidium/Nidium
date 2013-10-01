@@ -62,6 +62,10 @@ Native.elements.export("UIButton", {
 			autowidth : OptionalBoolean(o.autowidth, true)
 		});
 
+		this.addEventListener("contextmenu", function(e){
+			e.preventDefault();
+		}, false);
+
 		NDMElement.listeners.addDefault(this);
 	},
 

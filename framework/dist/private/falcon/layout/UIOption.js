@@ -41,7 +41,7 @@ document.nss.add({
 	},
 
 	"UIOption:disabled" : {
-		background : "#ffcccc",
+		background : "#cccccc",
 		color : "#999999",
 		cursor : "arrow"
 	},

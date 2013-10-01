@@ -124,7 +124,7 @@ NDMElement.draw = {
 	},
 
 	softShadow : function(element){
-		if (__ENABLE_BUTTON_SHADOWS__) {
+		if (__ENABLE_CONTROL_SHADOWS__) {
 			element.layer.context.setShadow(
 				element.shadowOffsetX,
 				element.shadowOffsetY,

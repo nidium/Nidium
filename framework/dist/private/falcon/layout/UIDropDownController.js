@@ -484,19 +484,9 @@ Native.elements.export("UIDropDownController", {
 			NDMElement.draw.outline(this);
 		}
 
-		if (__ENABLE_BUTTON_SHADOWS__) {
-			if (this.selected){
-				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
-			} else {
-				context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
-			}
-		}
-		
+		NDMElement.draw.softShadow(this);
 		NDMElement.draw.box(this, context, params);
-
-		if (__ENABLE_BUTTON_SHADOWS__){
-			context.setShadow(0, 0, 0);
-		}
+		NDMElement.draw.disableShadow(this);
 
 		NDMElement.draw.glassLayer(this, context, params);
 		NDMElement.draw.label(this, context, params);
