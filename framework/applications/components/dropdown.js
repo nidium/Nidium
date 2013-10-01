@@ -106,9 +106,7 @@ dateField.addEventListener("submit", function(e){
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
-	width : 80,
-	height : 20,
-	//maxHeight : 198,
+	maxHeight : 198,
 	name : "helloDrop",
 	radius : 2,
 	elements : myElements,
