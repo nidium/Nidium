@@ -75,32 +75,6 @@
 		borderColor : "rgba(0, 0, 0, 0.04)"
 	},
 
-	"UIOption" : {
-		background : "#ffffff",
-		color : "#666666",
-		height : 22
-	},
-
-	"UIOption:hover" : {
-		background : "#444444",
-		color : "#ffffff"
-	},
-
-	"UIOption:selected" : {
-		background : "#4D90FE",
-		color : "#ffffff"
-	},
-
-	"UIOption:disabled" : {
-		background : "#cccccc",
-		color : "#999999"
-	},
-
-	"UIOption:disabled+hover" : {
-		background : "#882222",
-		color : "#ffffff"
-	},
-
 	/* Class Definitions */
 
 	".body" : {
