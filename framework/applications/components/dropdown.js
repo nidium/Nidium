@@ -106,19 +106,12 @@ var	listItems = [
 ];
 
 
-
-
-
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
-	maxHeight : 198,
 	name : "helloDrop",
 	radius : 2,
-	elements : myElements,
-	background : '#333333',
-	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF"
+	elements : myElements
 });
 
 

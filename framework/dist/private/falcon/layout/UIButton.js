@@ -37,10 +37,10 @@ document.nss.add({
 	},
 
 	"UIButton:selected" : {
-		shadowBlur : 0.55,
-		shadowColor : "rgba(255, 255, 255, 0.10)",
+		shadowBlur : 0.75,
+		shadowColor : "rgba(255, 255, 255, 0.08)",
 		shadowOffsetX : 0,
-		shadowOffsetY : 0.85,
+		shadowOffsetY : 1,
 		textOffsetY : 1
 	},
 

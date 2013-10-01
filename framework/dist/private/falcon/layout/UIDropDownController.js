@@ -12,6 +12,7 @@ document.nss.add({
 	"UIDropDownController" : {
 		width 			: 180,
 		height 			: 22,
+		maxHeight 		: 198,
 
 		label			: "Choose",
 		fontSize  		: 11,
@@ -20,12 +21,23 @@ document.nss.add({
 		paddingLeft		: 10,
 		paddingRight	: 10,
 
-		maxHeight 		: null,
+		shadowBlur 		: 4,
+		shadowColor 	: "rgba(0, 0, 0, 0.15)",
+		shadowOffsetX 	: 0,
+		shadowOffsetY 	: 2,
+
 		radius 			: 2,
-		background 		: "#2277E0",
+		background 		: "#262722",
 		color 			: "#ffffff",
 		canReceiveFocus	: true,
 		canReceiveKeyboardEvents : true
+	},
+
+	"UIDropDownController:selected" : {
+		shadowBlur : 0.75,
+		shadowColor : "rgba(255, 255, 255, 0.08)",
+		shadowOffsetX : 0,
+		shadowOffsetY : 1
 	}
 });
 
