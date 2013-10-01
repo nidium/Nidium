@@ -111,10 +111,10 @@ document.background = "#333333";
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-load("applications/components/tabs.js");
+//load("applications/components/tabs.js");
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
-//load("applications/components/dropdown.js");
+load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");

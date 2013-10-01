@@ -592,11 +592,13 @@ window._onblur = function(e){
 
 /* TODO :
 window._onmousein = function(e){
-	
+	se déclenche quand la souris viens sur nidium
+	une tab commence a être draggué, puis la souris sors de nidium
 };
 
 window._onmouseout = function(e){
-	
+	se déclenche quand la souris sort de nidium
+	une tab commence a être draggué, puis la souris sors de nidium
 };
 */
 

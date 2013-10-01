@@ -131,6 +131,11 @@ Object.definePrivateProperties(Native.elements, {
 
 	/* attach the low level canvas layer to element */
 	createCanvasLayer : function(element){
+		/* FIX ME : CRASH if NaN or 0 or undefined */
+		element._width = element._width || 1;
+		element._height = element._height || 1;
+		/* FIX ME : CRASH if NaN or 0 or undefined */
+
 		element.layer = new Canvas(element._width, element._height);
 		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");

@@ -4,33 +4,6 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-/*
-document.nss.add({
-	"#foobar" : {
-		background : "red"
-	},
-
-	".selected" : {
-		background : "green"
-	},
-
-	".greenland" : {
-		background : "green",
-		color : "#ffffff",
-	},
-
-	"UITextField" : {
-		background : "green"
-	}, 
-
-	"UITextField:disabled" : {
-		background : "#5599FF"
-	}
-});
-*/
-
-// text.fireStream("boom", 750);
-
 var main = new Application();
 main.className = "body";
 
@@ -127,10 +100,15 @@ dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
 
+
+
+
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
-	maxHeight : 198,
+	width : 80,
+	height : 20,
+	//maxHeight : 198,
 	name : "helloDrop",
 	radius : 2,
 	elements : myElements,
@@ -140,7 +118,7 @@ var	dropDownController = main.add("UIDropDownController", {
 });
 
 
-dropDownController.value = 4;
+//dropDownController.value = 4;
 
 dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);
