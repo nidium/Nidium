@@ -590,6 +590,16 @@ window._onblur = function(e){
 	window.onblur(e);
 };
 
+/* TODO :
+window._onmousein = function(e){
+	
+};
+
+window._onmouseout = function(e){
+	
+};
+*/
+
 /* -- LOAD EVENTS ----------------------------------------------------------- */
 
 window._onready = function(LST){

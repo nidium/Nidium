@@ -24,10 +24,7 @@ var	myTabs = [
 ];
 
 var	tabController = main.add("UITabController", {
-	top : -2,
-	name : "helloTabs",
-	tabs : null,
-	background : "rgba(25, 26, 24, 1)"
+	name : "helloTabs"
 });
 
 tabController.setTabs(myTabs);

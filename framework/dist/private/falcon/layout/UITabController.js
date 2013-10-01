@@ -4,26 +4,36 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-Native.elements.export("UITabController", {
-	public : {
-		overlap : {
-			set : function(value){
-				this.resetTabs();
-			}
-		}
-	},
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
 
+document.nss.add({
+	"UITabController" : {
+		background : "rgba(25, 26, 24, 1)",
+		height : 30,
+		paddingTop : 6,
+		paddingBottom : 0,
+		overlap : 14
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
+Native.elements.export("UITabController", {
 	init : function(){
 		var self = this,
 			o = this.options,
 			controller = this;
 
-		this.overlap = OptionalValue(o.overlap, 14);
-		this.background = OptionalValue(o.background, "");
-		this.name = OptionalString(o.name, "Default");
-		this.width = OptionalNumber(o.width, this.parent.width);
-		this.height = OptionalNumber(o.height, 32);
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
+			overlap : OptionalValue(o.overlap, 14)
+		});
 
+		this.name = OptionalString(o.name, "Default");
 		this.currentIndex = false;
 		this.currentPosition = false;
 
@@ -282,9 +292,9 @@ Native.elements.export("UITabController", {
 			this.tabs[i] = this.add("UITab", {
 				left : left,
 				label : o.label,
-				top : 8,
+				top : this.paddingTop,
 				name : "tab_" + this.name,
-				height : this.height - 8,
+				height : this.height - this.paddingTop - this.paddingBottom,
 				selected : selected,
 
 				closable : OptionalBoolean(o.closable, true),
@@ -453,11 +463,6 @@ Native.elements.export("UITabController", {
 
 			this.resetTabs();
 		};
-
-		if (this.options.tabs) {
-			this.setTabs(this.options.tabs);
-		}
-
 	},
 
 	draw : function(context){
