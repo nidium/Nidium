@@ -33,8 +33,8 @@ Native.elements.export("Icon", {
 
 		/* Element's Specific Dynamic Properties */
 		NDMElement.defineDynamicProperties(this, {
-			shape : OptionalString(o.shape, "");
-			variation : OptionalNumber(o.variation, 0);
+			shape : OptionalString(o.shape, ""),
+			variation : OptionalNumber(o.variation, 0)
 		});
 
 		NDMElement.listeners.addDefault(this);
