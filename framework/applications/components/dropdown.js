@@ -34,24 +34,6 @@ field.width = 430;
 
 
 
-
-var	listItems = [
-	/* Tab 0 */ {label : "France", 			value : 5},
-	/* Tab 1 */ {label : "Belgium", 		value : 7},
-	/* Tab 2 */ {label : "Monaco", 			value : 9},
-	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
-	/* Tab 4 */ {label : "Italy", 			value : 1},
-	/* Tab 5 */ {label : "Spain", 			value : 3, class : "greenland"},
-	/* Tab 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
-	/* Tab 7 */ {label : "Romania", 		value : 4},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 9 */ {label : "Japan", 			value : 13}
-];
-
 /*
 
 var	lv = new UIListView(main, {
@@ -103,6 +85,30 @@ dateField.addEventListener("submit", function(e){
 
 
 
+
+
+
+var	listItems = [
+	/* Tab 0 */ {label : "France", 			value : 5},
+	/* Tab 1 */ {label : "Belgium", 		value : 7},
+	/* Tab 2 */ {label : "Monaco", 			value : 9},
+	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
+	/* Tab 4 */ {label : "Italy", 			value : 1},
+	/* Tab 5 */ {label : "Spain", 			value : 3, class : "greenland"},
+	/* Tab 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
+	/* Tab 7 */ {label : "Romania", 		value : 4},
+	/* Tab 8 */ {label : "Sweden", 			value : 6},
+	/* Tab 8 */ {label : "China", 			value : 8},
+	/* Tab 8 */ {label : "Korea", 			value : 10},
+	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
+	/* Tab 8 */ {label : "Switzerland", 	value : 12},
+	/* Tab 9 */ {label : "Japan", 			value : 13}
+];
+
+
+
+
+
 var	dropDownController = main.add("UIDropDownController", {
 	left : 538,
 	top : 50,
@@ -116,7 +122,7 @@ var	dropDownController = main.add("UIDropDownController", {
 });
 
 
-//dropDownController.value = 4;
+dropDownController.value = 4;
 
 dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);

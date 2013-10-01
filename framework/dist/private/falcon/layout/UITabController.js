@@ -15,6 +15,10 @@ document.nss.add({
 		paddingTop : 6,
 		paddingBottom : 0,
 		overlap : 14
+	},
+
+	"UITabController:hasFocus" : function(){
+		this.outlineColor = this.inline.background;
 	}
 });
 

@@ -4,6 +4,35 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIDropDownController" : {
+		width 			: 180,
+		height 			: 22,
+
+		label			: "Choose",
+		fontSize  		: 11,
+		fontFamily  	: "arial",
+
+		paddingLeft		: 10,
+		paddingRight	: 10,
+
+		maxHeight 		: null,
+		radius 			: 2,
+		background 		: "#2277E0",
+		color 			: "#ffffff",
+		canReceiveFocus	: true,
+		canReceiveKeyboardEvents : true
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIDropDownController", {
 	public : {
 		value : {
@@ -31,10 +60,8 @@ Native.elements.export("UIDropDownController", {
 
 			var options = {
 				label : child.label,
-				background : child.background,
 				className : child.className,
 				value : child.value,
-				color : child.color,
 				selected : child.selected,
 				disabled : child.disabled
 			};
@@ -54,34 +81,7 @@ Native.elements.export("UIDropDownController", {
 		var y = 0,
 			tabs = o.elements ? o.elements : [];
 
-		this.setProperties({
-			canReceiveFocus	: true,
-
-			canReceiveKeyboardEvents : OptionalBoolean(
-				o.canReceiveKeyboardEvents,
-				true
-			),
-
-			label			: OptionalString(o.label, "Choose"),
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-
-			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
-			paddingRight	: OptionalNumber(o.paddingLeft, 10),
-
-			width 			: OptionalNumber(o.width, 140),
-			height 			: OptionalNumber(o.height, 22),
-			maxHeight 		: OptionalNumber(o.maxHeight, null),
-			radius 			: OptionalNumber(o.radius, 2),
-			background 		: OptionalValue(o.background, "#2277E0"),
-			color 			: OptionalValue(o.color, "#ffffff"),
-
-			selectedBackground : OptionalValue(o.selectedBackground, "#4D90FE"),
-			selectedColor : OptionalValue(o.selectedColor, "#ffffff"),
-
-			name : OptionalString(o.name, "Default")
-		});
-
+		this.name = OptionalString(o.name, "Default");
 		this.selection = 0;
 		this.tabs = [];
 		this.hideSelector = OptionalBoolean(o.hideSelector, false);
@@ -174,10 +174,8 @@ Native.elements.export("UIDropDownController", {
 			var o = options,
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
-				background = OptionalValue(o.background, "rgba(255, 255, 255, 1)"),
 				className = OptionalString(o.class, ""),
 				value = OptionalValue(o.value, ""),
-				color = OptionalValue(o.color, "#555555"),
 				disabled = OptionalBoolean(o.disabled, false);
 
 			if (selected) {
@@ -194,8 +192,6 @@ Native.elements.export("UIDropDownController", {
 				class : className,
 				selected : selected,
 				disabled : disabled,
-				background : background,
-				color : color,
 				value : value
 			});
 
@@ -278,6 +274,14 @@ Native.elements.export("UIDropDownController", {
 			this.selector.opacity = 0;
 			this.selector.height = 0;
 			this.toggleState = false;
+		};
+
+		this.toggleSelector = function(){
+			if (this.toggleState){
+				this.closeSelector();
+			} else {
+				this.openSelector();
+			}
 		};
 
 		this.openSelector = function(duration=400){
@@ -438,9 +442,8 @@ Native.elements.export("UIDropDownController", {
 				case 13 : // ENTER
 				case 32 : // SPACE
 				case 1073741912 : // SMALL ENTER
-					self.closeSelector();
+					self.toggleSelector();
 					break;
-
 
 				case 1073741906 : // up
 					self.selectIndex(self.selection-1);

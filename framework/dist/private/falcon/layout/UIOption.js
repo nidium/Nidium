@@ -36,12 +36,14 @@ document.nss.add({
 
 	"UIOption:selected" : {
 		background : "#4D90FE",
-		color : "#ffffff"
+		color : "#ffffff",
+		cursor : "arrow"
 	},
 
 	"UIOption:disabled" : {
-		background : "#cccccc",
-		color : "#999999"
+		background : "#ffcccc",
+		color : "#999999",
+		cursor : "arrow"
 	},
 
 	"UIOption:disabled+hover" : {
@@ -69,7 +71,6 @@ Native.elements.export("UIOption", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds();
-		console.log(this.background);
 		NDMElement.draw.box(this, context, params);
 		NDMElement.draw.label(this, context, params);
 	}
