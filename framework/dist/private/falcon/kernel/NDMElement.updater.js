@@ -105,7 +105,10 @@ NDMElement.updater = function(e){
 	});
 
 	/* call the user-defined element's update() method */
-	element.update.call(element);
+	element.update.call(element, {
+		property : e.property,
+		value : e.newValue
+	});
 };
 
 /* -------------------------------------------------------------------------- */

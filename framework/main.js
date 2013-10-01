@@ -111,7 +111,7 @@ document.background = "#333333";
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-//load("applications/components/tabs.js");
+load("applications/components/tabs.js");
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
@@ -206,7 +206,7 @@ var txt = new UIButton(document).center();
 txt.background = "red";
 txt.selected = true;
 
-var o = new UILabel(document).center().move(40, 0);
+var o = new UILabel(document).center().move(45, 0);
 o.background = "white";
 o.label = "Mama's gonna snatch"
 

@@ -19,7 +19,7 @@ document.nss.add({
 		textShadowOffsetX : 1,
 		textShadowOffsetY : 1,
 		textShadowBlur : 1,
-		textShadowColor : 'rgba(0, 0, 0, 0.2)',
+		textShadowColor : 'rgba(0, 0, 0, 0.15)',
 
 		autowidth : true,
 		height : 22,
