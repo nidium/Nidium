@@ -86,36 +86,34 @@ dateField.addEventListener("submit", function(e){
 
 
 
-
-
 var	listItems = [
-	/* Tab 0 */ {label : "France", 			value : 5},
-	/* Tab 1 */ {label : "Belgium", 		value : 7},
-	/* Tab 2 */ {label : "Monaco", 			value : 9},
-	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
-	/* Tab 4 */ {label : "Italy", 			value : 1},
-	/* Tab 5 */ {label : "Spain", 			value : 3, class : "greenland"},
-	/* Tab 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
-	/* Tab 7 */ {label : "Romania", 		value : 4},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 9 */ {label : "Japan", 			value : 13}
+	/* option 0 */ {label : "France", 			value : 5},
+	/* option 1 */ {label : "Belgium", 		value : 7},
+	/* option 2 */ {label : "Monaco", 			value : 9, selectded:true},
+	/* option 3 */ {label : "United States",	value : 15},
+	/* option 4 */ {label : "Italy", 			value : 1},
+	/* option 5 */ {label : "Spain", 			value : 3, class : "greenland"},
+	/* option 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
+	/* option 7 */ {label : "Romania", 		value : 4},
+	/* option 8 */ {label : "Sweden", 			value : 6},
+	/* option 8 */ {label : "China", 			value : 8},
+	/* option 8 */ {label : "Korea", 			value : 10},
+	/* option 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
+	/* option 8 */ {label : "Switzerland", 	value : 12},
+	/* option 9 */ {label : "Japan", 			value : 13}
 ];
 
 
 var	dropDownController = main.add("UIDropDownController", {
+	name : "helloDrop",
 	left : 538,
 	top : 50,
-	name : "helloDrop",
-	radius : 2,
-	elements : myElements
+	radius : 2
 });
 
+dropDownController.setOptions(listItems);
 
-dropDownController.value = 4;
+//dropDownController.value = 5;
 
 dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);

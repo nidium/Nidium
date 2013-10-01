@@ -40,7 +40,7 @@ Native.elements.export("UIVideo", {
 
 		this.status.hideDelay = 1000;
 
-		this.status.icon = new Icon(this.status, {
+		this.status.icnPlay = new Icon(this.status, {
 			left : 0,
 			top : 0,
 			background : "rgba(0, 0, 0, 0.35)",
@@ -48,7 +48,7 @@ Native.elements.export("UIVideo", {
 			shape : "play"
 		});
 
-		this.status.icon.addEventListener("mousedown", function(e){
+		this.status.icnPlay.addEventListener("mousedown", function(e){
 			var p = self.player;
 			if (!p) return false;
 			if (p.playing) {
@@ -60,7 +60,7 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
-		this.status.speaker = new Icon(this.status, {
+		this.status.icnSpeaker = new Icon(this.status, {
 			left : 26,
 			top : 0,
 			color : "rgba(0, 0, 0, 0.55)",
@@ -238,7 +238,7 @@ Native.elements.export("UIVideo", {
 		this.volume.addEventListener("change", function(e){
 			if (!self.player) return false;
 			self.player.volume = e.value;
-			self.status.speaker.variation = Math.round(2*e.value/1.5);
+			self.status.icnSpeaker.variation = Math.round(2*e.value/1.5);
 		}, false);
 
 		this.spinner.show();

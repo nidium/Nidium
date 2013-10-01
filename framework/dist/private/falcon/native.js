@@ -224,16 +224,14 @@ Native.core = {
 			this.contextMenu = document.overlayView.add("UIDropDownController", {
 				left : 588,
 				top : 80,
-				maxHeight : 198,
 				hideSelector : true,
 				hideToggleButton : true,
 				name : "documentContextMenu",
 				radius : 2,
-				elements : myMenu,
-				background : '#333333',
-				selectedBackground : "#4D90FE",
-				selectedColor : "#FFFFFF"
+				background : '#333333'
 			});
+
+			this.contextMenu.setOptions(myMenu);
 
 			this.contextMenu.addEventListener("blur", function(){
 				this.fireEvent("tick", {});

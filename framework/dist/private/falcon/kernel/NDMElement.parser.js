@@ -48,7 +48,8 @@ NDMElement.parser = function(LST, callback){
 		}
 
 		if (nodeType) {
-			var element = parent.add(nodeType, nodeAttributes);
+			var element = parent.add(nodeType);
+			element.setProperties(nodeAttributes);
 		}
 		return element;
 	};

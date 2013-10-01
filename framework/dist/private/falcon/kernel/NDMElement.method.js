@@ -539,7 +539,7 @@ NDMElement.method = {
 				}
 			*/
 			for (var k in properties) {
-				if (properties.hasOwnProperty(k)) {
+				if (properties.hasOwnProperty(k) && this.inline[k]==undefined) {
 					var value = properties[k];
 
 					if (typeof value == "function") {

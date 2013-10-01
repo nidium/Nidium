@@ -10,8 +10,6 @@
 
 document.nss.add({
 	"Icon" : {
-		shape : "",
-		variation : 0,
 		width : 20,
 		height : 20,
 		cursor : "arrow"
@@ -36,7 +34,6 @@ Native.elements.export("Icon", {
 			shape : OptionalString(o.shape, ""),
 			variation : OptionalNumber(o.variation, 0)
 		});
-
 		NDMElement.listeners.addDefault(this);
 	},
 

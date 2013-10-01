@@ -202,6 +202,8 @@ document.nss.add({
 });
 */
 
+/*
+
 var txt = new UIButton(document).center();
 txt.background = "red";
 txt.selected = true;
@@ -210,7 +212,6 @@ var o = new UILabel(document).center().move(45, 0);
 o.background = "white";
 o.label = "Mama's gonna snatch"
 
-/*
 txt.className = "foobar";
 txt.hover = true;
 txt.disabled = true;

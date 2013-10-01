@@ -41,14 +41,13 @@ document.nss.add({
 	},
 
 	"UIOption:disabled" : {
-		background : "#cccccc",
-		color : "#999999",
+		background : "#bbbbbb",
+		color : "#dddddd",
 		cursor : "arrow"
 	},
 
 	"UIOption:disabled+hover" : {
-		background : "#cccccc",
-		color : "#882222",
+		background : "#aaaaaa",
 		cursor : "arrow"
 	}
 });

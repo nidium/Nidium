@@ -10,11 +10,10 @@
 
 document.nss.add({
 	"UIDropDownController" : {
-		width 			: 180,
+		width 			: 140,
 		height 			: 22,
 		maxHeight 		: 198,
 
-		label			: "Choose",
 		fontSize  		: 11,
 		fontFamily  	: "arial",
 
@@ -90,9 +89,6 @@ Native.elements.export("UIDropDownController", {
 		var self = this,
 			o = this.options;
 
-		var y = 0,
-			tabs = o.elements ? o.elements : [];
-
 		this.name = OptionalString(o.name, "Default");
 		this.selection = 0;
 		this.tabs = [];
@@ -128,7 +124,6 @@ Native.elements.export("UIDropDownController", {
 
 			return this;
 		};
-
 
 		this.scrollToSelection = function(){
 			if (!this.tabs[this.selection]) return this;
@@ -182,7 +177,20 @@ Native.elements.export("UIDropDownController", {
 			return this;
 		};
 
-		this._addElement = function(i, options, y){
+		this.setOptions = function(elements){
+			var top = 0,
+				tabs = elements ? elements : [];
+
+			for (var i=0; i<tabs.length; i++){
+				self._addElement(i, tabs[i], top);
+				top += this.tabs[i].height;
+			}
+
+			this.initSelector();
+			this.reset();
+		};
+
+		this._addElement = function(i, options, top){
 			var o = options,
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
@@ -197,7 +205,7 @@ Native.elements.export("UIDropDownController", {
 			this.selector.__unlock();
 			this.tabs[i] = this.selector.add("UIOption", {
 				left : 0,
-				top : y,
+				top : top,
 				height : this.height,
 				name : "option_" + this.name,
 				label : label,
@@ -235,11 +243,6 @@ Native.elements.export("UIDropDownController", {
 			overflow : false
 		});
 
-		for (var i=0; i<tabs.length; i++){
-			self._addElement(i, tabs[i], y);
-			y += this.tabs[i].height;
-		}
-
 		this.downButton = this.add("UIButtonDown", {
 			left : this.width-this.height,
 			top : 3,
@@ -251,16 +254,14 @@ Native.elements.export("UIDropDownController", {
 		if (this.hideToggleButton) this.downButton.hide();
 
 		this._showElements = function(){
-			var l = tabs.length;
-			for (var i=0; i<l; i++){
-				self.tabs[i].show();
+			for (var i=0; i<this.tabs.length; i++){
+				this.tabs[i].show();
 			}
 		};
 
 		this._hideElements = function(){
-			var l = tabs.length;
-			for (var i=0; i<l; i++){
-				self.tabs[i].hide();
+			for (var i=0; i<this.tabs.length; i++){
+				this.tabs[i].hide();
 			}
 		};
 
@@ -420,6 +421,8 @@ Native.elements.export("UIDropDownController", {
 			return this;
 		};
 
+		/* ---- LISTENERS --------------------------------------------------- */
+
 		NDMElement.listeners.addHovers(this);
 
 		this.addEventListener("contextmenu", function(e){
@@ -434,7 +437,6 @@ Native.elements.export("UIDropDownController", {
 			}
 			e.stopPropagation();
 		}, false);
-
 
 		this.addEventListener("blur", function(e){
 			this.closeSelector();
@@ -470,9 +472,6 @@ Native.elements.export("UIDropDownController", {
 				default : break;
 			}
 		}, false);
-
-		this.initSelector();
-		this.reset();
 	},
 
 	draw : function(context){
