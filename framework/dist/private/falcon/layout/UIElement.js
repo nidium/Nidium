@@ -12,16 +12,8 @@ Native.elements.export("UIElement", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		if (this.shadowBlur != 0) {
-			context.setShadow(
-				this.shadowOffsetX,
-				this.shadowOffsetY,
-				this.shadowBlur,
-				this.shadowColor
-			);
-		}
-
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
-		context.setShadow(0, 0, 0);
+		NDMElement.draw.disableShadow(this);
 	}
 });
