@@ -116,7 +116,7 @@ Native.elements.export("UITab", {
 		var	params = this.getDrawingBounds(),
 			radius = Math.max(3, this.radius);
 			
-		NDMElement.draw.softShadow(this);
+		NDMElement.draw.enableShadow(this);
 
 		context.tabbox(
 			params.x, params.y, 

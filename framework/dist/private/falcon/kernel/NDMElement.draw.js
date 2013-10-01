@@ -123,7 +123,7 @@ NDMElement.draw = {
 		);
 	},
 
-	softShadow : function(element){
+	enableShadow : function(element){
 		if (__ENABLE_CONTROL_SHADOWS__) {
 			element.layer.context.setShadow(
 				element.shadowOffsetX,

@@ -484,7 +484,7 @@ Native.elements.export("UIDropDownController", {
 			NDMElement.draw.outline(this);
 		}
 
-		NDMElement.draw.softShadow(this);
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
 		NDMElement.draw.disableShadow(this);
 

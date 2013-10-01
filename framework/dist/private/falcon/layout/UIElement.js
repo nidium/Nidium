@@ -12,7 +12,7 @@ Native.elements.export("UIElement", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
-		NDMElement.draw.softShadow(this);
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
 		NDMElement.draw.disableShadow(this);
 	}
