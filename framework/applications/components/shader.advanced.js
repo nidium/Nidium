@@ -47,7 +47,14 @@ field.width = 418;
 
 
 
-var	myElements = [
+
+var	dropDownController = toolBar.add("UIDropDownController", {
+	name : "helloDrop",
+	left : 828,
+	top : 4,
+	radius : 2
+});
+dropDownController.setOptions([
 	/* Tab 0 */ {label : "France", 			value : 5},
 	/* Tab 1 */ {label : "Belgium", 		value : 7},
 	/* Tab 2 */ {label : "Monaco", 			value : 9},
@@ -62,20 +69,7 @@ var	myElements = [
 	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
 	/* Tab 8 */ {label : "Switzerland", 	value : 12},
 	/* Tab 9 */ {label : "Japan", 			value : 13}
-];
-
-var	dropDownController = toolBar.add("UIDropDownController", {
-	left : 828,
-	top : 4,
-	maxHeight : 198,
-	name : "helloDrop",
-	radius : 2,
-	elements : myElements,
-	background : '#111111',
-	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF"
-});
-
+]);
 
 var	button = new UIButton(toolBar, {
 	id : "button",

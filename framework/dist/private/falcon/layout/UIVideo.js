@@ -4,19 +4,29 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIVideo" : {
+		canReceiveFocus	: false,
+		background : "black",
+		shadowBlur : 12,
+		shadowOffsetY : 4,
+		shadowColor : "rgba(0, 0, 0, 1)",
+		overflow : false
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIVideo", {
 	init : function(){
 		var self = this,
 			o = this.options;
-
-		this.setProperties({
-			canReceiveFocus	: false,
-			background : OptionalValue(o.background, 'black'),
-			shadowBlur : OptionalNumber(o.shadowBlur, 12),
-			shadowOffsetY : OptionalNumber(o.shadowOffsetY, 4),
-			shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 1)"),
-			overflow	: false
-		});
 
 		this.spinner = new UISpinner(this, {
 			height : 40,

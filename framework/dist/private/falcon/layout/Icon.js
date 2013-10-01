@@ -24,7 +24,6 @@ document.nss.add({
 /* ELEMENT DEFINITION                                                         */
 /* -------------------------------------------------------------------------- */
 
-
 Native.elements.export("Icon", {
 	init : function(){
 		var o = this.options;

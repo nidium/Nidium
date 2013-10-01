@@ -186,7 +186,6 @@ Native.elements.export("UIDropDownController", {
 				top += this.tabs[i].height;
 			}
 
-			this.initSelector();
 			this.reset();
 		};
 
@@ -443,7 +442,7 @@ Native.elements.export("UIDropDownController", {
 		}, false);
 
 		this.addEventListener("focus", function(e){
-			this.bringToFront();
+			this.selector.bringToFront();
 		}, false);
 
 		this.addEventListener("keydown", function(e){
@@ -472,6 +471,8 @@ Native.elements.export("UIDropDownController", {
 				default : break;
 			}
 		}, false);
+
+		this.initSelector();
 	},
 
 	draw : function(context){
