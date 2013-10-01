@@ -73,8 +73,8 @@ NDMElement.draw = {
 
 		context.setText(
 			element.label,
-			params.x+textOffsetX+params.textOffsetX,
-			params.y+textOffsetY+params.textOffsetY,
+			params.x+textOffsetX+element.textOffsetX,
+			params.y+textOffsetY+element.textOffsetY,
 			color ? color : element.color,
 			element.textShadowOffsetX,
 			element.textShadowOffsetY,
@@ -121,6 +121,21 @@ NDMElement.draw = {
 			borderColor ? borderColor : element.borderColor,
 			element.borderWidth
 		);
+	},
+
+	softShadow : function(element){
+		if (__ENABLE_BUTTON_SHADOWS__) {
+			element.layer.context.setShadow(
+				element.shadowOffsetX,
+				element.shadowOffsetY,
+				element.shadowBlur,
+				element.shadowColor
+			);
+		}
+	},
+
+	disableShadow : function(element){
+		element.layer.context.setShadow(0, 0, 0);
 	},
 
 	glassLayer : function(element, context, params){

@@ -41,7 +41,7 @@ document.getElementsByClassName = function(className){
 	return elements;
 };
 
-/* TODO : this */
+/* TODO : cache this */
 document.getElementsBySelector = function(selector){
 	var elements = [],
 		l = selector.length,

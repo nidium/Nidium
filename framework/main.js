@@ -203,7 +203,12 @@ document.nss.add({
 */
 
 var txt = new UIButton(document).center();
-txt.background = "green";
+txt.background = "red";
+txt.selected = true;
+
+var o = new UILabel(document).center().move(40, 0);
+o.background = "white";
+o.label = "Mama's gonna snatch"
 
 /*
 txt.className = "foobar";

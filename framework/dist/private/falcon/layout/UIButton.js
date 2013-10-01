@@ -21,6 +21,12 @@ document.nss.add({
 
 		fontSize : 11,
 		textAlign : "center",
+		textOffsetY : 0,
+
+		shadowBlur : 4,
+		shadowColor : "rgba(0, 0, 0, 0.15)",
+		shadowOffsetX : 0,
+		shadowOffsetY : 2,
 
 		autowidth : true,
 		canReceiveFocus : true
@@ -30,7 +36,15 @@ document.nss.add({
 		cursor : "pointer"
 	},
 
-	"UIButton:focus" : function(){
+	"UIButton:selected" : {
+		shadowBlur : 0.55,
+		shadowColor : "rgba(255, 255, 255, 0.10)",
+		shadowOffsetX : 0,
+		shadowOffsetY : 0.85,
+		textOffsetY : 1
+	},
+
+	"UIButton:hasFocus" : function(){
 		this.outlineColor = this.inline.background;
 	}
 });
@@ -48,9 +62,6 @@ Native.elements.export("UIButton", {
 			autowidth : OptionalBoolean(o.autowidth, true)
 		});
 
-		/* Element's Static Properties */
-		this.outlineColor = this.background;
-
 		NDMElement.listeners.addDefault(this);
 	},
 
@@ -67,23 +78,9 @@ Native.elements.export("UIButton", {
 			NDMElement.draw.outline(this);
 		}
 
-		if (__ENABLE_BUTTON_SHADOWS__) {
-			if (this.selected){
-				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
-			} else {
-				context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
-			}
-		}
-
+		NDMElement.draw.softShadow(this);
 		NDMElement.draw.box(this, context, params);
-
-		if (__ENABLE_BUTTON_SHADOWS__){
-			context.setShadow(0, 0, 0);
-		}
-
-		if (this.selected){
-			params.textOffsetY = 1;
-		}
+		NDMElement.draw.disableShadow(this);
 
 		NDMElement.draw.glassLayer(this, context, params);
 		NDMElement.draw.label(this, context, params);

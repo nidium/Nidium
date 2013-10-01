@@ -325,9 +325,7 @@ NDMElement.method = {
 			x : 0 + this._offsetLeft,
 			y : 0 + this._offsetTop,
 			w : this._width,
-			h : this._height,
-			textOffsetX : 0,
-			textOffsetY : 0
+			h : this._height
 		};
 	},
 

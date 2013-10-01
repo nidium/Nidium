@@ -275,6 +275,7 @@ Native.core = {
 
 	drawLayout : function(){
 		document.layout.draw();
+		window.events.tick();
 	}
 };
 
