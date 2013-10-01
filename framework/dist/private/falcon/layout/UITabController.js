@@ -216,7 +216,9 @@ Native.elements.export("UITabController", {
 			}
 			tb.splice(index, 0, {});
 
+			this._disableUpdate = true;
 			self._addTab(index, p, options);
+			this._disableUpdate = false;
 
 			newtab = tb[index];
 
@@ -276,20 +278,15 @@ Native.elements.export("UITabController", {
 				self.currentIndex = i;
 				self.currentPosition = i;
 			}
-			
+		
 			this.tabs[i] = this.add("UITab", {
 				left : left,
+				label : o.label,
 				top : 8,
 				name : "tab_" + this.name,
 				height : this.height - 8,
 				selected : selected,
 
-				label : OptionalString(o.label, "New Tab"),
-				background : OptionalValue(o.background, "#262722"),
-				color : OptionalValue(o.color, "#abacaa"),
-				opacity : OptionalNumber(o.opacity, 1),
-				fontSize : OptionalNumber(o.fontSize, 11),
-				fontFamily : OptionalString(o.fontFamily, "arial"),
 				closable : OptionalBoolean(o.closable, true),
 				preventmove : OptionalBoolean(o.preventmove, false),
 				target : OptionalValue(o.target, null)

@@ -42,7 +42,7 @@ gradient.addColorStop(0.00, 'rgba(35, 36, 34, 1)');
 gradient.addColorStop(0.95, 'rgba(27, 28, 26, 1)');
 gradient.addColorStop(0.95, 'rgba(0, 0, 0, 1)');
 gradient.addColorStop(0.98, 'rgba(0, 0, 0, 1)');
-gradient.addColorStop(1.00, 'rgba(200, 200, 200, 0.1)');
+gradient.addColorStop(1.00, 'rgba(200, 200, 200, 0.8)');
 
 tabController.background = gradient;
 

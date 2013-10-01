@@ -27,13 +27,14 @@ document.nss.add({
 		shadowOffsetY : -2,
 
 		height : 24,
-		color : "#aaaaaa",
+		background : "#262722",
+		color : "#abacaa",
 		cursor : "arrow"
 	},
 
 	"UITab:selected" : function(){
 		this.shadowBlur = 2;
-		this.shadowColor = this.inline.background;
+		this.shadowColor = this.inline.background || "#262722";
 		this.shadowOffsetX = 0;
 		this.shadowOffsetY = 2;
 	}
@@ -45,7 +46,7 @@ document.nss.add({
 
 Native.elements.export("UITab", {
 	update : function(e){
-		if (!e || e.property.in("label", "fontSize", "fontFamily")) {
+		if (!e || e.property.in("width", "label", "fontSize", "fontFamily")) {
 			if (this.autowidth) {
 				var width = NDMElement.draw.getInnerTextWidth(this);
 
@@ -60,7 +61,9 @@ Native.elements.export("UITab", {
 
 			/* refresh TabController if any */
 			if (this.parent && this.parent.resetTabs){
-				this.parent.resetTabs();
+				if (!(this.parent._disableUpdate === true)) {
+					this.parent.resetTabs();
+				}
 			}
 		}
 	},
