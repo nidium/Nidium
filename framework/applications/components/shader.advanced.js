@@ -300,6 +300,41 @@ var processFlickr = function(pictures){
 	}
 };
 
+document.nss.add({
+	".radio" : {
+		left : 10,
+		width : 200,
+		name : "choice",
+		fontFamily : "menlo",
+		fontSize : 11,
+		textShadowColor : "rgba(0, 0, 0, 0.05)",
+		lineWidth : 1,
+		background : "rgba(0, 0, 0, 0.08)",
+		borderColor : "rgba(0, 0, 0, 0.20)",
+		borderWidth : 1,
+		radius : 10
+	},
+
+	".red" : {
+		color : "red",
+	},
+
+	".green" : {
+		color : "#e0ff60"
+	},
+
+	".white" : {
+		color : "#e0e0e0"
+	},
+
+	".transparent" : {
+		color : "black",
+		background : "rgba(255, 255, 255, 0.2)",
+		borderColor : null
+	}
+});
+
+
 document.addEventListener("DOMContentLoaded", function(){
 
 	var video = new UIVideo(main, {
@@ -325,6 +360,47 @@ document.addEventListener("DOMContentLoaded", function(){
 			uniforms.itime = t++;
 		}, 16);
 	});
+
+	var	radio1 = video.add("UIRadio", {
+		top : 50,
+		label : "Select this",
+		value : "option1",
+		selected : true,
+		shadowBlur : 4,
+		class : "radio"
+	});
+
+	var radio2 = video.add("UIRadio", {
+		top : 78,
+		value : "option2",
+		label : "... or this",
+		class : "radio red"
+	});
+
+	var radio3 = video.add("UIRadio", {
+		top : 106,
+		value : "option3",
+		label : "... or this",
+		class : "radio green"
+	});
+
+	var radio4 = video.add("UIRadio", {
+		top : 134,
+		value : "option4",
+		label : "... or this",
+		class : "radio white"
+	});
+
+	var radio5 = video.add("UIRadio", {
+		top : 162,
+		value : "option5",
+		label : "... or this",
+		class : "radio transparent"
+	});
+
+
+
+
 });
 
 

@@ -30,9 +30,7 @@
 
 	".button" : function(){
 		this.color = "#ffffff";
-		this.fontSize = 10.5;
 		this.top = 48;
-		this.background = "#559933";
 		this.outlineColor = "";
 	},
 
@@ -43,7 +41,6 @@
 	".label" : function(){
 		this.paddingLeft = 8;
 		this.paddingRight = 8;
-		this.width = 150;
 		this.height = 28;
 		this.color = "#ffffff";
 		this.background = "rgba(255, 255, 255, 0.25)";

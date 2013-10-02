@@ -31,6 +31,7 @@ var t = new UIElement(body, {
 	color : '#ffffff'
 });
 
+b1.selected = true;
 b1.disabled = true;
 //b1.applyStyleSheet();
 

@@ -30,9 +30,10 @@ document.layout = {
 	},
 
 	draw : function(){
-		var z = this.elements;
+		var z = this.elements,
+			l = z.length;
 
-		for (var i=0; i<z.length; i++){
+		for (var i=0; i<l; i++){
 			var element = z[i];
 			if (element.hasOwnerDocument){
 				if (element._needRefresh){

@@ -121,48 +121,38 @@ dropDownController.addEventListener("change", function(e){
 
 
 
-/*
-
-var	button = new UIButton(main, {
-	left : 980,
-	top : 10,
-	label : "Go"
-}).click(function(){
-	console.log(field.input.__startx, field.input.__starty);
-});
 
 
 document.nss.add({
-	radio : {
+	".radio" : {
 		left : 700,
 		width : 200,
+		autowidth : false,
 		name : "choice",
 		fontFamily : "menlo",
 		fontSize : 11,
-		textShadowColor : "rgba(0, 0, 0, 0.05)",
-		color : "#d0d0ff",
+		textShadowColor : "rgba(0, 0, 0, 0.1)",
 		lineWidth : 1,
-		background : "rgba(0, 0, 0, 0.01)",
-		borderColor : "rgba(0, 0, 0, 0.09)",
+		borderColor : "rgba(0, 0, 0, 0.05)",
 		borderWidth : 1,
 		radius : 10
 	},
 
-	red : {
+	".red" : {
 		color : "red",
 	},
 
-	green : {
+	".green" : {
 		color : "#e0ff60"
 	},
 
-	white : {
+	".white" : {
 		color : "#e0e0e0"
 	},
 
-	black : {
+	".transparent" : {
 		color : "black",
-		background : "white",
+		background : "rgba(255, 255, 255, 0.7)",
 		borderColor : null
 	}
 });
@@ -202,7 +192,7 @@ var radio5 = main.add("UIRadio", {
 	top : 162,
 	value : "option5",
 	label : "... or this",
-	class : "radio black"
+	class : "radio transparent"
 });
-*/
+
 

@@ -49,7 +49,7 @@ Native.elements.export("UITab", {
 		if (e.property.in(
 			"width", "height",
 			"label", "fontSize", "fontFamily",
-			"paddingLeft", "paddingRight"
+			"paddingLeft", "paddingRight", "selected"
 		)) {
 			this.resize();
 		}
