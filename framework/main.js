@@ -100,7 +100,7 @@ DONE :
 */
 
 
-document.background = "#ffffff";
+document.background = "#333333";
 //load("sample.js");
 
 /*

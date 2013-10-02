@@ -86,6 +86,7 @@ load(__PATH_LAYOUT__ + 'UIButtonClose.js');
 load(__PATH_LAYOUT__ + 'UIButtonDown.js');
 
 load(__PATH_LAYOUT__ + 'UIRadio.js');
+load(__PATH_LAYOUT__ + 'UICheckBox.js');
 
 load(__PATH_LAYOUT__ + 'UISliderKnob.js');
 load(__PATH_LAYOUT__ + 'UISliderController.js');

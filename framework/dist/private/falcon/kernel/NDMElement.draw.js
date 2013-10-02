@@ -112,11 +112,11 @@ NDMElement.draw = {
 		context.setShadow(0, 0, 0);
 	},
 
-	box : function(element, context, params, backgroundColor, borderColor){
+	box : function(element, context, params, backgroundColor, borderColor, rad){
 		context.roundbox(
 			params.x, params.y, 
 			params.w, params.h, 
-			element.radius,
+			rad ? rad : element.radius,
 			backgroundColor ? backgroundColor : element.background,
 			borderColor ? borderColor : element.borderColor,
 			element.borderWidth

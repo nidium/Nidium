@@ -119,10 +119,6 @@ dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);
 });
 
-
-
-
-
 document.nss.add({
 	".radio" : {
 		left : 700,
@@ -193,6 +189,52 @@ var radio5 = main.add("UIRadio", {
 	value : "option5",
 	label : "... or this",
 	class : "radio transparent"
+});
+
+/* ------- CHECKBOXES -------------- */
+
+var	c0 = main.add("UICheckBox", {
+	left : 700,
+	top : 190,
+	height : 18,
+	lineWidth : 0.5,
+	fontSize : 9,
+	label : "UICheckBox (radius = 0)",
+	value : 5,
+	selected : true,
+	radius : 0
+});
+
+var	c1 = main.add("UICheckBox", {
+	left : 700,
+	top : 216,
+	label : "UICheckBox (radius = 1)",
+	value : 5,
+	selected : true,
+	background : "rgba(255, 255, 255, 0.1)",
+	radius : 1
+});
+
+var c2 = main.add("UICheckBox", {
+	left : 700,
+	top : 244,
+	height : 25,
+	value : 6,
+	label : "UICheckBox (radius = 3)",
+	background : "rgba(0, 0, 0, 0.1)",
+	radius : 3,
+	class : "red"
+});
+
+var c3 = main.add("UICheckBox", {
+	left : 700,
+	top : 272,
+	height : 32,
+	value : 7,
+	label : "UICheckBox (radius = 12)",
+	background : "rgba(255, 255, 255, 0.1)",
+	radius : 12,
+	class : "green"
 });
 
 

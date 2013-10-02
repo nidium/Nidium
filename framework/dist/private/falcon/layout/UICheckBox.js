@@ -9,11 +9,11 @@
 /* -------------------------------------------------------------------------- */
 
 document.nss.add({
-	"UIRadio" : {
+	"UICheckBox" : {
 		canReceiveFocus	: true,
 		label			: "",
 		fontSize  		: 11,
-		fontFamily  	: "menlo",
+		fontFamily  	: "arial",
 		textAlign 		: "left",
 
 		textShadowOffsetX	: 1,
@@ -26,6 +26,9 @@ document.nss.add({
 		shadowBlur		: 4,
 		shadowColor 	: "rgba(0, 0, 0, 0.15)",
 
+		borderColor 	: "rgba(0, 0, 0, 0.05)",
+		borderWidth 	: 1,
+
 		paddingLeft 	: 2,
 		paddingRight 	: 10,
 
@@ -33,13 +36,13 @@ document.nss.add({
 		autowidth 		: false,
 		width 			: 200, 
 		height 			: 22,
-		radius 			: 0,
+		radius 			: 1,
 		background 		: "",
 		color 			: "#ffffff",
 		cursor 			: "arrow"
 	},
 
-	"UIRadio:hover" : {
+	"UICheckBox:hover" : {
 		cursor 			: "pointer"
 	}
 });
@@ -48,7 +51,7 @@ document.nss.add({
 /* ELEMENT DEFINITION                                                         */
 /* -------------------------------------------------------------------------- */
 
-Native.elements.export("UIRadio", {
+Native.elements.export("UICheckBox", {
 	init : function(){
 		var o = this.options;
 
@@ -64,11 +67,7 @@ Native.elements.export("UIRadio", {
 		}, false);
 
 		this.addEventListener("mousedown", function(e){
-			document.layout.find("name", this.name).each(function(){
-				this.selected = false;
-			});
-
-			this.selected = true;
+			this.selected = !this.selected;
 		});
 	},
 
@@ -90,7 +89,7 @@ Native.elements.export("UIRadio", {
 
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
-			radius = this.height/2.5;
+			radius = this.height/2;
 
 		context.lineWidth = this.lineWidth;
 
@@ -102,86 +101,79 @@ Native.elements.export("UIRadio", {
 		NDMElement.draw.box(this, context, params);
 		NDMElement.draw.disableShadow(this);
 
-		/* Outer Circle ----------------------------------------------------- */
-		context.save();
+		var pad = 4;
+
 		context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
 			context.strokeStyle = "rgba(0, 0, 0, 0.15)";
-			context.setColor("white");
 			context.lineWidth = 0.75;
 
-			context.beginPath();
-			context.arc(
-				params.x+radius+this.radius*0.25, 
-				params.y+params.h*0.5, 
-				radius, 0, 6.283185307179586, false
-			);
-
-			context.globalAlpha = 0.8;
-			context.fill();
-
-			context.globalAlpha = 0.6;
-			context.stroke();
+			NDMElement.draw.box(this, context, {
+				x : params.x + pad,
+				y : params.y + pad,
+				w : params.h - 2*pad, // yes, params.h
+				h : params.h - 2*pad
+			}, "white", "rgba(0, 0, 0, 0.15)");
 		context.setShadow(0, 0, 0);
-		context.restore();
 
+		var r = pad + pad*0.50;
 
-		/* Inner Gradient --------------------------------------------------- */
-		var gradient = context.createRadialGradient(
-			params.x+radius, params.y+radius, radius, 
-			params.x+radius, params.y+radius, radius*0.1
-		);
-
-		gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.1)');
-		gradient.addColorStop(1.00, 'rgba(255, 255, 255, 0.9)');
-
-		context.save();
-			context.lineWidth = 1;
-			context.strokeStyle = "rgba(0, 0, 0, 0.10)";
-			context.setColor(gradient);
-
-			context.beginPath();
-			context.arc(
-				params.x+radius+this.radius*0.25, 
-				params.y+params.h*0.5, 
-				radius, 0, 6.283185307179586, false
-			);
-			context.fill();
-			context.stroke();
-		context.restore();
-		/* Inner Gradient --------------------------------------------------- */
-
-		var r = 5;
 		context.lineWidth = 1;
 
 		if (this.selected){
-			context.setColor(this.color);
-			context.strokeStyle = this.color;
 
-			context.beginPath();
-			context.arc(
-				params.x+radius+this.radius*0.25,
-				params.y+params.h*0.5, 
-				radius-r, 0, 6.283185307179586, false
+
+			var gradient = context.createLinearGradient(
+				params.x+r, params.y+r,
+				params.x+r+params.h-2*r, params.y+r+params.h-2*r
 			);
 
-			context.fill();
+			gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.70)');
+			gradient.addColorStop(0.50, 'rgba(255, 255, 255, 0.80)');
+			gradient.addColorStop(0.60, 'rgba(255, 255, 255, 0.90)');
 
-			context.setColor("rgba(0, 0, 0, 0.25)");
-			context.strokeStyle = "rgba(0, 0, 0, 0.25)";
+			NDMElement.draw.box(this, context, {
+				x : params.x + r,
+				y : params.y + r,
+				w : params.h - 2*r, // yes, params.h
+				h : params.h - 2*r
+			}, this.color, "rgba(0, 0, 0, 0.15)", this.radius);
+
+			NDMElement.draw.box(this, context, {
+				x : params.x + r,
+				y : params.y + r,
+				w : params.h - 2*r, // yes, params.h
+				h : params.h - 2*r
+			}, gradient, null, this.radius);
+
+
+			var m = radius/1.3,
+				x1 = params.x+m,
+				y1 = params.y+m,
+				x2 = params.x+params.h - m,
+				y2 = params.y+params.h - m;
+
+			context.strokeStyle = "rgba(0, 0, 0, 0.8)";
+			context.lineWidth = 2*this.lineWidth;
+
+			context.beginPath();
+			context.moveTo(x1, y1);
+			context.lineTo(x2, y2);
+			context.stroke();
+
+			context.beginPath();
+			context.moveTo(x1, y2);
+			context.lineTo(x2, y1);
+			context.stroke();
+
+
 		} else {
-			r = 5;
-			context.setColor("rgba(0, 0, 0, 0.00)");
-			context.strokeStyle = "rgba(0, 0, 0, 0.10)";
+			NDMElement.draw.box(this, context, {
+				x : params.x + r,
+				y : params.y + r,
+				w : params.h - 2*r, // yes, params.h
+				h : params.h - 2*r
+			}, null, "rgba(0, 0, 0, 0.25)", this.radius);
 		}
-
-		context.beginPath();
-		context.arc(
-			params.x+radius+this.radius*0.25,
-			params.y+params.h*0.5, 
-			radius-r, 0, 6.283185307179586, false
-		);
-		context.fill();
-		context.stroke();
 
 		params.x += params.h + this.paddingLeft;
 
