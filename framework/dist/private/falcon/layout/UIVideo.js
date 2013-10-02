@@ -196,6 +196,10 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
+		this.addEventListener("mousedown", function(e){
+			e.stopPropagation();
+		}, false);
+
 		this.addEventListener("mouseover", function(e){
 			if (this.volume.draggingSlider || this.status.dragging) return false;
 			if (!this.player || !this.player.ready) return false;
@@ -214,7 +218,8 @@ Native.elements.export("UIVideo", {
 			} else {
 				this.status.open(150);
 			}
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.addEventListener("mouseout", function(e){
 			var that = this;

@@ -102,13 +102,15 @@ Native.elements.export("UITab", {
 
 		NDMElement.listeners.addHovers(this);
 
-		if (this.options.closable) {
-			this.closeButton = this.add("UIButtonClose", {
-				left : this.width - 26,
-				top : (this.height-12)/2,
-				width : 12,
-				height : 12
-			});
+		this.closeButton = this.add("UIButtonClose", {
+			left : this.width - 26,
+			top : (this.height-12)/2,
+			width : 12,
+			height : 12
+		});
+
+		if (!this.options.closable) {
+			this.closeButton.hide();
 		}
 	},
 

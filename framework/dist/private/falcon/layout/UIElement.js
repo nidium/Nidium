@@ -7,6 +7,7 @@
 Native.elements.export("UIElement", {
 	init : function(){
 		/* dummy */
+		NDMElement.listeners.addHovers(this);
 	},
 
 	draw : function(context){

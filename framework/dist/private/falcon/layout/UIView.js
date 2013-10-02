@@ -399,11 +399,13 @@ Native.elements.export("UIView", {
 
 		this.addEventListener("mouseover", function(e){
 			this.refreshScrollBars();
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.addEventListener("mouseout", function(e){
 			this.refreshScrollBars();
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.setBackgroundURL(this.backgroundImage);
 	},

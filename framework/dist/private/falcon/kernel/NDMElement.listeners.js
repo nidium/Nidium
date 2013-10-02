@@ -31,11 +31,13 @@ NDMElement.listeners = {
 	addHovers : function(element){
 		element.addEventListener("mouseover", function(e){
 			this.hover = true;
-		});
+			e.stopPropagation();
+		}, false);
 
 		element.addEventListener("mouseout", function(e){
 			this.hover = false;
-		});
+			e.stopPropagation();
+		}, false);
 	}
 };
 

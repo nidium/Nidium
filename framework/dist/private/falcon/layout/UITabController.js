@@ -392,10 +392,15 @@ Native.elements.export("UITabController", {
 			}, false);
 
 			if (tab.closeButton){
-				tab.closeButton.addEventListener("mouseup", function(){
+				tab.closeButton.addEventListener("mousedown", function(e){
+					e.stopPropagation();
+				}, false);
+				
+				tab.closeButton.addEventListener("mouseup", function(e){
 					if (this.hover){
 						controller.removeTab(tab);
 					}
+					e.stopPropagation();
 				}, false);
 			}
 		};

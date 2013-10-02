@@ -199,7 +199,8 @@ window.events = {
 
 					case "mousemove" :
 						this.setSource(e, this.sourceElement, element);
-						cancelBubble = this.fireMouseOver(element, e);
+						this.fireMouseOver(element, e);
+						cancelBubble = true;
 						break;
 
 					case "drag" :
