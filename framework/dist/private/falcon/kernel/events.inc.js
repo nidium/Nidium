@@ -132,7 +132,7 @@ window.events = {
 			var element = z[i];
 			cancelEvent = false;
 
-			if (!element.layer.__visible) {
+			if (!element.layer || !element.layer.__visible) {
 				continue;
 			}
 
@@ -199,8 +199,7 @@ window.events = {
 
 					case "mousemove" :
 						this.setSource(e, this.sourceElement, element);
-						this.fireMouseOver(element, e);
-						cancelBubble = true;
+						cancelBubble = this.fireMouseOver(element, e);
 						break;
 
 					case "drag" :

@@ -46,24 +46,32 @@ document.nss.add({
 
 Native.elements.export("UITab", {
 	update : function(e){
-		if (!e || e.property.in("width", "label", "fontSize", "fontFamily")) {
-			if (this.autowidth) {
-				var width = NDMElement.draw.getInnerTextWidth(this);
+		if (e.property.in(
+			"width", "height",
+			"label", "fontSize", "fontFamily",
+			"paddingLeft", "paddingRight"
+		)) {
+			this.resize();
+		}
+	},
 
-				if (this.options.closable) {
-					width += 22;
-					this.closeButton.left = width - 26;
-				} else {
-					width += 6;
-				}
-				this.width = width;
+	resize : function(){
+		if (this.autowidth) {
+			var width = NDMElement.draw.getInnerTextWidth(this);
+
+			if (this.options.closable) {
+				width += 22;
+				this.closeButton.left = width - 26;
+			} else {
+				width += 6;
 			}
+			this.width = width;
+		}
 
-			/* refresh TabController if any */
-			if (this.parent && this.parent.resetTabs){
-				if (!(this.parent._disableUpdate === true)) {
-					this.parent.resetTabs();
-				}
+		/* refresh TabController if any */
+		if (this.parent && this.parent.resetTabs){
+			if (!(this.parent._disableUpdate === true)) {
+				this.parent.resetTabs();
 			}
 		}
 	},

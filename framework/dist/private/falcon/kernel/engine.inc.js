@@ -24,6 +24,7 @@ Object.definePrivateProperties(Native.elements, {
 
 		if (plugin.draw) element.draw = plugin.draw;
 		if (plugin.update) element.update = plugin.update;
+		if (plugin.resize) element.resize = plugin.resize;
 		if (plugin.onAdoption) element.onAdoption = plugin.onAdoption;
 		if (plugin.onAddChildRequest) element.onAddChildRequest = plugin.onAddChildRequest;
 		if (plugin.onChildReady) element.onChildReady = plugin.onChildReady;
@@ -42,8 +43,11 @@ Object.definePrivateProperties(Native.elements, {
 		/* Then : create the physical layer behind (element.layer) */
 		this.createCanvasLayer(element);
 		
-		/* Then : call the plugin init() method */
+		/* Then : call the plugin's init() method */
 		if (plugin.init) plugin.init.call(element);
+
+		/* Then : call the element's resize() method */
+		element.resize.call(element);
 
 		/* if element can receive focus, add a mousedown listener */
 		if (element.canReceiveFocus){
@@ -131,16 +135,22 @@ Object.definePrivateProperties(Native.elements, {
 
 	/* attach the low level canvas layer to element */
 	createCanvasLayer : function(element){
-		/* FIX ME : CRASH if NaN or 0 or undefined */
-		element._width = element._width || 1;
-		element._height = element._height || 1;
-		/* FIX ME : CRASH if NaN or 0 or undefined */
+		/* FIX ME : CRASH if w or h = NaN or 0 or undefined */
+		var w = element._width || 1,
+			h = element._height || 1;
 
-		element.layer = new Canvas(element._width, element._height);
+		element.layer = new Canvas(w, h);
 		element.layer.padding = element._layerPadding;
 		element.layer.context = element.layer.getContext("2D");
 		element.layer.context.imageSmoothingEnabled = __ENABLE_IMAGE_INTERPOLATION__;
 		element.layer.host = element;
+
+		/* attach the element to its parent */
+		if (element.parent) {
+			element.parent.layer.add(element.layer);
+		} else {
+			window.canvas.add(element.layer);
+		}
 	}
 });
 

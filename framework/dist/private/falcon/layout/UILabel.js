@@ -43,7 +43,17 @@ Native.elements.export("UILabel", {
 		});
 	},
 
-	update : function(){
+	update : function(e){
+		if (e.property.in(
+			"width", "height",
+			"label", "fontSize", "fontFamily",
+			"paddingLeft", "paddingRight"
+		)) {
+			this.resize();
+		}
+	},
+
+	resize : function(){
 		if (this.autowidth) {
 			this.width = NDMElement.draw.getInnerTextWidth(this);
 		}

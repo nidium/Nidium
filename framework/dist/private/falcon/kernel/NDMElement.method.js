@@ -123,7 +123,7 @@ NDMElement.method = {
 		element._root = this._root;
 		element.parent = this;
 
-		document.layout.init(element);
+		Native.elements.init(element);
 
 		/* CHILD: fire the new element's onAdoption event */
 		element.onAdoption.call(element, this);

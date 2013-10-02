@@ -137,7 +137,8 @@ Object.createProtectedElement(window.scope, "Application", function(options){
 	var element = new NDMElement("UIView", options, null);
 	element._root = element;
 
-	document.layout.init(element, null);
+	Native.elements.init(element);
+
 	document.layout.register(element);
 	document.layout.update();
 

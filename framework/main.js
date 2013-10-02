@@ -99,8 +99,40 @@ DONE :
 
 */
 
+
 document.background = "#333333";
 //load("sample.js");
+
+/*
+var but = new UIButton(document, {
+	left : 20,
+	top : 160,
+	label : "Remove",
+	background : "#000000",
+	fontSize : 10.5
+});
+
+console.log(
+	but.width,
+	but.options.width,
+	but.inline.width,
+	but.layer.width
+);
+
+console.dump(but.inline);
+
+setTimeout(function(){
+console.log(
+	but.width,
+	but.options.width,
+	but.inline.width,
+	but.layer.width
+);
+}, 1500);
+
+*/
+
+
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -111,7 +143,7 @@ document.background = "#333333";
 
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
-//load("applications/components/tabs.js");
+load("applications/components/tabs.js");
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
@@ -168,7 +200,7 @@ document.background = "#333333";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
 
 
 /*

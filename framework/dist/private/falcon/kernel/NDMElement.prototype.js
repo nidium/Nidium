@@ -87,7 +87,8 @@ NDMElement.prototype = {
 	onAddChildRequest : function(child){},
 	onChildReady : function(child){},
 
-	update : function(context){},
+	resize : function(){},
+	update : function(e){},
 	draw : function(context){},
 
 

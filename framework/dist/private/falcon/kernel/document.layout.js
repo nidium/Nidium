@@ -16,22 +16,6 @@ document.layout = {
 	nodes : [], // May content several trees of elements
 	elements : [], // Flat representation of node trees
 
-	init : function(element){
-		Native.elements.init(element);
-
-		element.__lock();
-		element.update.call(element);
-		element.redraw();
-		element.__unlock();
-
-		if (element.parent) {
-			element.parent.layer.add(element.layer);
-		} else {
-			window.canvas.add(element.layer);
-		}
-
-	},
-
 	register : function(rootElement){
 		this.nodes.push(rootElement);
 	},

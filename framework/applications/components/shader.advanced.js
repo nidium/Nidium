@@ -7,7 +7,6 @@
 var main = new Application();
 
 var	tabController = main.add("UITabController", {
-	top : 0,
 	name : "helloTabs",
 	background : "rgba(25, 26, 24, 0.9)"
 });
