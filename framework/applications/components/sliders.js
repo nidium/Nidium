@@ -95,8 +95,6 @@ slider3.addEventListener("change", function(e){
 }, false);
 
 
-
-
 /*
  * -- Sine Sliders -----------------
  */
