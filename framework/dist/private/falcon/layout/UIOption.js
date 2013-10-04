@@ -4,78 +4,73 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIOption" : {
+		label : "Default",
+		fontSize : 11,
+		fontFamily : "arial",
+
+		paddingLeft : 8,
+		paddingRight : 8,
+
+		height : 22,
+		radius : 0,
+		background : "#ffffff",
+		color : "#444444",
+
+		value : "",
+		disabled : false,
+
+		cursor : "arrow"
+	},
+
+	"UIOption:hover" : {
+		cursor : "pointer",
+		background : "#444444",
+		color : "#ffffff"
+	},
+
+	"UIOption:selected" : {
+		background : "#4D90FE",
+		color : "#ffffff",
+		cursor : "arrow"
+	},
+
+	"UIOption:disabled" : {
+		background : "#bbbbbb",
+		color : "#dddddd",
+		cursor : "arrow"
+	},
+
+	"UIOption:disabled+hover" : {
+		background : "#aaaaaa",
+		cursor : "arrow"
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIOption", {
 	init : function(){
 		var self = this,
-			o = this.options,
-			controller = this.parent.parent;
-
-		this.setProperties({
-			label			: OptionalString(o.label, "Default"),
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-
-			paddingLeft		: OptionalNumber(o.paddingLeft, 8),
-			paddingRight	: OptionalNumber(o.paddingLeft, 8),
-
-			height 			: OptionalNumber(o.height, 22),
-			radius 			: OptionalNumber(o.radius, 0),
-			background 		: OptionalValue(o.background, "rgba(0, 0, 0, 0.4)"),
-			color 			: OptionalValue(o.color, "#666666"),
-
-			value 			: OptionalValue(o.value, ""),
-			disabled		: OptionalBoolean(o.disabled, false),
-
-			cursor			: OptionalCursor(o.cursor, "pointer")
-		});
+			o = this.options;
 
 		this.addEventListener("contextmenu", function(e){
 			e.preventDefault();
 		}, false);
 
 		NDMElement.listeners.addHovers(this);
-
-		this.updateElement = function(){
-			if (this.disabled) this.color = "#bbbbbb";
-			this.width = this.parent.width;
-			this.height = this.parent.parent.height;
-		};
-
-		this.updateElement();
 	},
 
 	draw : function(context){
-		var	params = this.getDrawingBounds(),
-			color = this.selected ? this.parent.parent.selectedColor
-								  : this.color;
-
+		var	params = this.getDrawingBounds();
 		NDMElement.draw.box(this, context, params);
-
-		var gradient = context.createLinearGradient(
-			params.x, params.y, 
-			params.x, params.y+params.h
-		);
-
-		if (this.selected || this.hover) {
-			if (this.disabled) {
-				gradient = null;
-			} else {
-				gradient = this.parent.parent.selectedBackground;
-			}
-		} else {
-			if (this.hover){
-				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.25)');
-				gradient.addColorStop(1.00, 'rgba(128, 128, 128, 0.15)');
-				color = "#ffffff";
-			} if (this.disabled) {
-				gradient.addColorStop(0.00, 'rgba(128, 128, 128, 0.10)');
-				gradient.addColorStop(0.10, 'rgba(128, 128, 128, 0.05)');
-			} else {
-				gradient = null;
-			}
-		}
-
-		NDMElement.draw.box(this, context, params, gradient);
-		NDMElement.draw.label(this, context, params, color);
+		NDMElement.draw.label(this, context, params);
 	}
 });

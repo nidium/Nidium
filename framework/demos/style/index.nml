@@ -1,5 +1,5 @@
 <!-- Native Markup Language Draft 0.1 -->
-<application version="1.0">
+<application version="0.1">
 	<meta>
 		<title>Native Style Sheet Demo</title>
 		<description>This is a description of the page</description>
@@ -14,8 +14,8 @@
 		<script type="native/javascript" src="private://falcon/native.js"></script>
 
 		<!-- External assets -->
-		<style type="native/stylesheet" src="http://www.nidium.com/demos/style/style.nss"></style>
-		<script type="native/javascript" src="http://www.nidium.com/demos/style/style.js"></script>
+		<style type="native/stylesheet" src="style.nss"></style>
+		<script type="native/javascript" src="style.js"></script>
 
 		<!-- Inline JS is ok -->
 		<script type="native/javascript">

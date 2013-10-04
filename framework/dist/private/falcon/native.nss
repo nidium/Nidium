@@ -28,6 +28,8 @@
 	/* Static Containers */
 	
 	"@default" : {
+		elementColor : "#3388dd",
+
 		darkBackgroundColor : "#262722",
 		liteBackgroundColor : "#ffffff",
 		textBackgroundColor : "#ffffff",
@@ -59,6 +61,13 @@
 
 	/* Element Definitions */
 
+	"UIButton" : {
+		label : "Button",
+		background : "#2277e0"
+	},
+
+	/* -------------------------- */
+
 	"UIToolTip" : {
 		lineheight : 30,
 		height : 30,
@@ -66,37 +75,11 @@
 		borderColor : "rgba(0, 0, 0, 0.04)"
 	},
 
-	"UIOption" : {
-		background : "#ffffff",
-		color : "#666666",
-		height : 22
-	},
-
-	"UIOption:hover" : {
-		background : "#444444",
-		color : "#ffffff"
-	},
-
-	"UIOption:selected" : {
-		background : "#4D90FE",
-		color : "#ffffff"
-	},
-
-	"UIOption:disabled" : {
-		background : "#cccccc",
-		color : "#999999"
-	},
-
-	"UIOption:disabled+hover" : {
-		background : "#882222",
-		color : "#ffffff"
-	},
-
 	/* Class Definitions */
 
 	".body" : {
 		background : "#262722",
 		backgroundImage : "private://assets/patterns/noisy.png",
-		alpha : 0.25
+		alpha : 0.5
 	}
 }

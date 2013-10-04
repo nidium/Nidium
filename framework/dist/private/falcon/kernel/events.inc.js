@@ -126,13 +126,13 @@ window.events = {
 			}
 		}
 
-		Native.layout.topElement = false;
+		document.layout.topElement = false;
 
 		for(var i=z.length-1 ; i>=0 ; i--) {
 			var element = z[i];
 			cancelEvent = false;
 
-			if (!element.layer.__visible) {
+			if (!element.layer || !element.layer.__visible) {
 				continue;
 			}
 
@@ -171,8 +171,8 @@ window.events = {
 				}
 			} else if (element.isPointInside(x, y)){
 
-				if (Native.layout.topElement === false) {
-					Native.layout.topElement = element;
+				if (document.layout.topElement === false) {
+					document.layout.topElement = element;
 				}
 
 				if (__mostTopElementHooked === false){
@@ -185,7 +185,7 @@ window.events = {
 
 				switch (name) {
 					case "contextmenu" :
-						e.element = Native.layout.topElement;
+						e.element = document.layout.topElement;
 						break;
 
 					case "mousewheel" :
@@ -427,7 +427,7 @@ window.events = {
 		this.dispatch("keydown", e);
 
 		if (e.keyCode == 9) {
-			Native.layout.focusNextElement();
+			document.layout.focusNextElement();
 		}
 		window.keydown = e.keyCode;
 	},
@@ -447,7 +447,6 @@ window.events = {
 /* -- DOM HELPERS IMPLEMENTATION -------------------------------------------- */
 
 NDMElement.implement({
-
 	mouseover : false,
 	mouseout : false,
 	dragendFired : false,
@@ -591,12 +590,24 @@ window._onblur = function(e){
 	window.onblur(e);
 };
 
+/* TODO :
+window._onmousein = function(e){
+	se déclenche quand la souris viens sur nidium
+	une tab commence a être draggué, puis la souris sors de nidium
+};
+
+window._onmouseout = function(e){
+	se déclenche quand la souris sort de nidium
+	une tab commence a être draggué, puis la souris sors de nidium
+};
+*/
+
 /* -- LOAD EVENTS ----------------------------------------------------------- */
 
 window._onready = function(LST){
 	Native.core.onready();
 	window.onload();
-	NDMLayoutParser.parse(LST, function(){
+	NDMElement.parser(LST, function(){
 		window.onready();
 		document.fireEvent("DOMContentLoaded", {});
 	});
@@ -605,13 +616,13 @@ window._onready = function(LST){
 window._onassetready = function(e){
 	switch (e.tag) {
 		case "style" :
-			Native.StyleSheet.refresh();
+			document.nss.refresh();
 			break;
 		default : break
 	}
 };
 
-/* -- USER LAND EVENTS ------------------------------------------------------ */
+/* -- USERLAND EVENTS ------------------------------------------------------- */
 
 window.onload = function(){};
 window.onready = function(){};

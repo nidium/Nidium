@@ -293,8 +293,8 @@ Native.mouseHook = function(e){
 DBT(function(){
 	/*
 	greenView.remove();
-	Native.layout.unregister(main);
-	Native.layout.register(mainTabController);
+	document.layout.unregister(main);
+	document.layout.register(mainTabController);
 	*/
 });
 

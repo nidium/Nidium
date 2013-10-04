@@ -4,35 +4,9 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-/*
-Native.StyleSheet.add({
-	"#foobar" : {
-		background : "red"
-	},
-
-	".selected" : {
-		background : "green"
-	},
-
-	".greenland" : {
-		background : "green",
-		color : "#ffffff",
-	},
-
-	"UITextField" : {
-		background : "green"
-	}, 
-
-	"UITextField:disabled" : {
-		background : "#5599FF"
-	}
+var main = new Application({
+	class : "body"
 });
-*/
-
-// text.fireStream("boom", 750);
-
-var main = new Application();
-main.className = "body";
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -60,24 +34,6 @@ field.value = "https://www.google.com/";
 field.width = 430;
 
 
-
-
-var	listItems = [
-	/* Tab 0 */ {label : "France", 			value : 5},
-	/* Tab 1 */ {label : "Belgium", 		value : 7},
-	/* Tab 2 */ {label : "Monaco", 			value : 9},
-	/* Tab 3 */ {label : "United States",	value : 15, selected : true},
-	/* Tab 4 */ {label : "Italy", 			value : 1},
-	/* Tab 5 */ {label : "Spain", 			value : 3, class : "greenland"},
-	/* Tab 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
-	/* Tab 7 */ {label : "Romania", 		value : 4},
-	/* Tab 8 */ {label : "Sweden", 			value : 6},
-	/* Tab 8 */ {label : "China", 			value : 8},
-	/* Tab 8 */ {label : "Korea", 			value : 10},
-	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
-	/* Tab 8 */ {label : "Switzerland", 	value : 12},
-	/* Tab 9 */ {label : "Japan", 			value : 13}
-];
 
 /*
 
@@ -127,69 +83,74 @@ dateField.addEventListener("submit", function(e){
 	console.log("submit", e.match);
 });
 
+
+
+
+
+var	listItems = [
+	/* option 0 */ {label : "France", 			value : 5},
+	/* option 1 */ {label : "Belgium", 		value : 7},
+	/* option 2 */ {label : "Monaco", 			value : 9, selectded:true},
+	/* option 3 */ {label : "United States",	value : 15},
+	/* option 4 */ {label : "Italy", 			value : 1},
+	/* option 5 */ {label : "Spain", 			value : 3, class : "greenland"},
+	/* option 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
+	/* option 7 */ {label : "Romania", 		value : 4},
+	/* option 8 */ {label : "Sweden", 			value : 6},
+	/* option 8 */ {label : "China", 			value : 8},
+	/* option 8 */ {label : "Korea", 			value : 10},
+	/* option 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
+	/* option 8 */ {label : "Switzerland", 	value : 12},
+	/* option 9 */ {label : "Japan", 			value : 13}
+];
+
+
 var	dropDownController = main.add("UIDropDownController", {
+	name : "helloDrop",
 	left : 538,
 	top : 50,
-	maxHeight : 198,
-	name : "helloDrop",
-	radius : 2,
-	elements : myElements,
-	background : '#333333',
-	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF"
+	radius : 2
 });
 
+dropDownController.setOptions(listItems);
 
-dropDownController.value = 4;
+//dropDownController.value = 5;
 
 dropDownController.addEventListener("change", function(e){
 //	console.log("dropdown", e.value);
 });
 
-
-
-/*
-
-var	button = new UIButton(main, {
-	left : 980,
-	top : 10,
-	label : "Go"
-}).click(function(){
-	console.log(field.input.__startx, field.input.__starty);
-});
-
-
-Native.StyleSheet.add({
-	radio : {
+document.nss.add({
+	".radio" : {
 		left : 700,
 		width : 200,
+		autowidth : true,
 		name : "choice",
 		fontFamily : "menlo",
 		fontSize : 11,
-		textShadowColor : "rgba(0, 0, 0, 0.05)",
-		color : "#d0d0ff",
+		background : "rgba(0, 0, 0, 0.05)",
+		textShadowColor : "rgba(0, 0, 0, 0.1)",
 		lineWidth : 1,
-		background : "rgba(0, 0, 0, 0.01)",
-		borderColor : "rgba(0, 0, 0, 0.09)",
+		borderColor : "rgba(0, 0, 0, 0.05)",
 		borderWidth : 1,
 		radius : 10
 	},
 
-	red : {
+	".red" : {
 		color : "red",
 	},
 
-	green : {
+	".green" : {
 		color : "#e0ff60"
 	},
 
-	white : {
-		color : "#e0e0e0"
+	".white" : {
+		color : "#ffffff"
 	},
 
-	black : {
+	".transparent" : {
 		color : "black",
-		background : "white",
+		background : "rgba(255, 255, 255, 0.7)",
 		borderColor : null
 	}
 });
@@ -214,9 +175,9 @@ var radio2 = main.add("UIRadio", {
 var radio3 = main.add("UIRadio", {
 	top : 106,
 	value : "option3",
-	label : "... or this",
-	class : "radio green"
+	label : "... or this"
 });
+radio3.className = "radio green";
 
 var radio4 = main.add("UIRadio", {
 	top : 134,
@@ -229,7 +190,59 @@ var radio5 = main.add("UIRadio", {
 	top : 162,
 	value : "option5",
 	label : "... or this",
-	class : "radio black"
+	class : "radio transparent"
 });
-*/
 
+radio4.selected = true;
+
+radio5.addEventListener("select", function(e){
+	console.log(this.selected);
+}, false);
+
+
+/* ------- CHECKBOXES -------------- */
+
+var	c0 = main.add("UICheckBox", {
+	left : 700,
+	top : 190,
+	lineWidth : 0.5,
+	fontSize : 9,
+	label : "UICheckBox (radius = 0)",
+	value : 5,
+	selected : true,
+	radius : 0
+});
+
+var	c1 = main.add("UICheckBox", {
+	left : 700,
+	top : 216,
+	label : "default settings",
+	value : 5,
+	selected : true
+});
+
+var c2 = main.add("UICheckBox", {
+	left : 700,
+	top : 244,
+	height : 25,
+	value : 6,
+	label : "UICheckBox (radius = 3)",
+	background : "rgba(0, 0, 0, 0.1)",
+	radius : 3,
+	class : "red"
+});
+
+var c3 = main.add("UICheckBox", {
+	left : 700,
+	top : 272,
+	height : 25,
+	value : 7,
+	label : "UICheckBox (radius = 12)",
+	background : "rgba(255, 255, 255, 0.1)",
+	radius : 12,
+	class : "green"
+});
+
+c3.addEventListener("change", function(e){
+	console.log(this.selected);
+}, false);

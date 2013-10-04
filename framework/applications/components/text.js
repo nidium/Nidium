@@ -5,7 +5,7 @@
 /* -------------------------------------- */
 
 /* ---------------------------------------------------------------------------*/
-Native.StyleSheet.load("../applications/components/style.nss");
+document.nss.load("../applications/components/style.nss");
 /* ---------------------------------------------------------------------------*/
 
 var body = new Application({

@@ -292,6 +292,10 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             return false;
         }
 
+#ifdef NATIVE_USE_GTK
+        gtk_init(0, NULL);
+#endif
+
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
@@ -351,7 +355,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     }
 
     //NJS = new NativeJS(kNativeWidth, kNativeHeight);
-    NativeCtx = new NativeContext(this, width, height, gnet);
+    NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
 
     //NJS->LoadApplication("./demo.npa");
 
@@ -551,9 +555,6 @@ void NativeX11UIInterface::setWindowControlsOffset(double x, double y)
 void NativeX11UIInterface::runLoop()
 {
 
-#ifdef NATIVE_USE_GTK
-    gtk_init(0, NULL);
-#endif
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
     
     events_loop(gnet);  
@@ -695,3 +696,37 @@ void NativeX11UIInterface::setWindowSize(int w, int h)
     this->width = w;
     this->height = h;
 }
+
+void NativeX11UIInterface::log(const char *buf)
+{
+    fwrite(buf, sizeof(char), strlen(buf), stdout);
+    fflush(stdout);
+}
+
+void NativeX11UIInterface::logf(const char *format, ...)
+{
+    char *buff;
+    int len;
+    va_list val;
+
+    va_start(val, format);
+    len = vasprintf(&buff, format, val);
+    va_end(val);
+
+    this->log(buff);
+
+    free(buff);
+}
+
+void NativeX11UIInterface::vlog(const char *format, va_list ap)
+{
+    char *buff;
+    int len;
+
+    len = vasprintf(&buff, format, ap);
+
+    this->log(buff);
+
+    free(buff);
+}
+

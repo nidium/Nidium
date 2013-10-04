@@ -4,13 +4,31 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIButtonDown" : {
+		width : 10,
+		height : 10,
+		color : "rgba(0, 0, 0, 0.75)",
+		background : "rgba(0, 0, 0, 0.3)",
+		cursor : "arrow"
+	},
+
+	"UIButtonDown:hover" : {
+		color : "#ffffff",
+		cursor : "pointer"
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIButtonDown", {
 	init : function(){
-		var o = this.options;
-		this.width = OptionalNumber(o.width, 10);
-		this.height = OptionalNumber(o.height, 10);
-		this.cursor = OptionalCursor(o.cursor, "pointer");
-
 		NDMElement.listeners.addDefault(this);
 	},
 
@@ -18,7 +36,7 @@ Native.elements.export("UIButtonDown", {
 		var	params = this.getDrawingBounds(),
 			radius = this.width/2;
 
-		if (this.background!='') {
+		if (this.background) {
 			NDMElement.draw.circleBackground(this, context, params, radius);
 		}
 

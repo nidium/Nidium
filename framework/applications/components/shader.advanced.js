@@ -7,7 +7,6 @@
 var main = new Application();
 
 var	tabController = main.add("UITabController", {
-	top : 0,
 	name : "helloTabs",
 	background : "rgba(25, 26, 24, 0.9)"
 });
@@ -28,6 +27,12 @@ tabController.setTabs([
 	/* Tab 9 */ {label : "native.inc.js", class : "tab"}
 ]);
 
+setTimeout(function(){
+	var t1 = tabController.add("UITab");
+	t1.background = "rgba(255, 50, 240, 0.90)";
+	t1.shadowBlur = 0;
+	t1.color = "black";
+}, 1500);
 
 var toolBar = main.add("UIElement", {
 	top : 32,
@@ -47,7 +52,14 @@ field.width = 418;
 
 
 
-var	myElements = [
+
+var	dropDownController = toolBar.add("UIDropDownController", {
+	name : "helloDrop",
+	left : 828,
+	top : 4,
+	radius : 2
+});
+dropDownController.setOptions([
 	/* Tab 0 */ {label : "France", 			value : 5},
 	/* Tab 1 */ {label : "Belgium", 		value : 7},
 	/* Tab 2 */ {label : "Monaco", 			value : 9},
@@ -62,20 +74,7 @@ var	myElements = [
 	/* Tab 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
 	/* Tab 8 */ {label : "Switzerland", 	value : 12},
 	/* Tab 9 */ {label : "Japan", 			value : 13}
-];
-
-var	dropDownController = toolBar.add("UIDropDownController", {
-	left : 828,
-	top : 4,
-	maxHeight : 198,
-	name : "helloDrop",
-	radius : 2,
-	elements : myElements,
-	background : '#111111',
-	selectedBackground : "#4D90FE",
-	selectedColor : "#FFFFFF"
-});
-
+]);
 
 var	button = new UIButton(toolBar, {
 	id : "button",
@@ -301,6 +300,41 @@ var processFlickr = function(pictures){
 	}
 };
 
+document.nss.add({
+	".radio" : {
+		left : 10,
+		width : 200,
+		name : "choice",
+		fontFamily : "menlo",
+		fontSize : 11,
+		textShadowColor : "rgba(0, 0, 0, 0.05)",
+		lineWidth : 1,
+		background : "rgba(0, 0, 0, 0.08)",
+		borderColor : "rgba(0, 0, 0, 0.20)",
+		borderWidth : 1,
+		radius : 10
+	},
+
+	".red" : {
+		color : "red",
+	},
+
+	".green" : {
+		color : "#e0ff60"
+	},
+
+	".white" : {
+		color : "#e0e0e0"
+	},
+
+	".transparent" : {
+		color : "black",
+		background : "rgba(255, 255, 255, 0.2)",
+		borderColor : null
+	}
+});
+
+
 document.addEventListener("DOMContentLoaded", function(){
 
 	var video = new UIVideo(main, {
@@ -326,6 +360,76 @@ document.addEventListener("DOMContentLoaded", function(){
 			uniforms.itime = t++;
 		}, 16);
 	});
+
+	var	radio1 = video.add("UIRadio", {
+		top : 50,
+		label : "Select this",
+		value : "option1",
+		selected : true,
+		shadowBlur : 4,
+		class : "radio"
+	});
+
+	var radio2 = video.add("UIRadio", {
+		top : 78,
+		value : "option2",
+		label : "... or this",
+		class : "radio red"
+	});
+
+	var radio3 = video.add("UIRadio", {
+		top : 106,
+		value : "option3",
+		label : "... or this",
+		class : "radio green"
+	});
+
+	var radio4 = video.add("UIRadio", {
+		top : 134,
+		value : "option4",
+		label : "... or this",
+		class : "radio white"
+	});
+
+	var radio5 = video.add("UIRadio", {
+		top : 162,
+		value : "option5",
+		label : "... or this",
+		class : "radio transparent"
+	});
+
+	var	c0 = video.add("UICheckBox", {
+		left : 10,
+		top : 190,
+		label : "UICheckBox (radius = 0)",
+		value : 5,
+		selected : true
+	});
+
+	var	c1 = video.add("UICheckBox", {
+		left : 10,
+		top : 216,
+		label : "... or this",
+		value : 5,
+		selected : true,
+		background : "rgba(255, 255, 255, 0.4)",
+		radius : 12
+	});
+
+	var LFO = video.add("UIDiagram", {
+		left : 450, 
+		top : 10,
+		label : "Low Frequency Oscillator",
+		background : "#222222",
+		pins : [
+		/* pin 0 */	{label:"Pitch",			type:"output"},
+		/* pin 1 */	{label:"Frequency",		type:"output"},
+		/* pin 2 */	{label:"Resonnance",	type:"output"},
+		/* pin 3 */	{label:"Audio Out",		type:"output"}
+		]
+	});
+
+
 });
 
 
