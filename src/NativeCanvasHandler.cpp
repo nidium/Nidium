@@ -10,7 +10,7 @@
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
-    context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
+    m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     right(0.0), bottom(0.0),
     overflow(true),
     parent(NULL), children(NULL), next(NULL),
@@ -61,8 +61,8 @@ bool NativeCanvasHandler::setWidth(int width)
 
     this->width = width;
 
-    if (context) {
-        context->setSize(this->width + (this->padding.global * 2),
+    if (m_Context) {
+        m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
 
         updateChildrenSize(true, false);
@@ -81,8 +81,8 @@ bool NativeCanvasHandler::setHeight(int height)
 
     this->height = height;
 
-    if (context) {
-        context->setSize(this->width + (this->padding.global * 2),
+    if (m_Context) {
+        m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
 
         updateChildrenSize(false, true);
@@ -96,8 +96,8 @@ void NativeCanvasHandler::setSize(int width, int height)
     this->width = width;
     this->height = height;
 
-    if (context) {
-        context->setSize(this->width + (this->padding.global * 2),
+    if (m_Context) {
+        m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
 
         updateChildrenSize(true, true);
@@ -129,20 +129,20 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 
 void NativeCanvasHandler::setPadding(int padding)
 {
-    if (!context) {
+    if (!m_Context) {
         return;
     }
 
     if (padding < 0) padding = 0;
 
-    context->translate(-this->padding.global, -this->padding.global);
+    m_Context->translate(-this->padding.global, -this->padding.global);
 
     this->padding.global = padding;
  
-    context->setSize(this->width + (this->padding.global * 2),
+    m_Context->setSize(this->width + (this->padding.global * 2),
         this->height + (this->padding.global * 2));
 
-    context->translate(this->padding.global, this->padding.global);
+    m_Context->translate(this->padding.global, this->padding.global);
 }
 
 void NativeCanvasHandler::setScrollLeft(int value)
@@ -260,7 +260,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     NativeCanvasHandler *cur;
     NativeRect nclip;
 
-    if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
+    if (!m_Context || visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
         return;
     }
 
@@ -275,7 +275,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
 
     if (layer == NULL) {
         layer = this;
-        context->clear(0xFFFFFFFF);
+        m_Context->clear(0xFFFFFFFF);
     } else {
         double cleft = 0.0, ctop = 0.0;
 
@@ -301,7 +301,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             draw current context on top of the root layer
         */
 
-        layer->context->composeWith(this->context,
+        this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
             this->a_left - this->padding.global, 
             this->a_top - this->padding.global, popacity, zoom,
             (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
@@ -557,12 +557,15 @@ void NativeCanvasHandler::setScale(double x, double y)
     this->scaleY = y;
 }
 
+
 void NativeCanvasHandler::recursiveScale(double x, double y,
     double oldX, double oldY)
 {
     NativeCanvasHandler *cur = this;
 
-    cur->context->setScale(x, y, oldX, oldY);
+    if (!cur->m_Context) return;
+    
+    cur->m_Context->setScale(x, y, oldX, oldY);
 
     for (cur = children; cur != NULL; cur = cur->next) {
         cur->recursiveScale(x, y, oldX, oldY);

@@ -129,10 +129,11 @@ void NativeContext::sizeChanged(int w, int h)
 
 void NativeContext::createDebugCanvas()
 {
+    NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
-    debugHandler = new NativeCanvasHandler(rootHandler->getContext()->getSurface()->getWidth(), DEBUG_HEIGHT);
-    debugHandler->context = new NativeCanvas2DContext(debugHandler, rootHandler->getContext()->getSurface()->getWidth(), DEBUG_HEIGHT, false);
-    debugHandler->context->commonDraw = true;
+    debugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
+    //debugHandler->context = new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, false);
+    //debugHandler->context->commonDraw = true;
     rootHandler->addChild(debugHandler);
     debugHandler->setRight(0);
     debugHandler->setOpacity(0.6);
@@ -142,7 +143,7 @@ void NativeContext::postDraw()
 {
     if (NativeJSNative::showFPS && debugHandler) {
 
-        NativeSkia *s = debugHandler->getContext()->getSurface();
+        NativeSkia *s = ((NativeCanvas2DContext *)debugHandler->getContext())->getSurface();
         debugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
@@ -229,7 +230,7 @@ NativeContext::~NativeContext()
 void NativeContext::initHandlers(int width, int height)
 {
     rootHandler = new NativeCanvasHandler(width, height);
-    rootHandler->context = new NativeCanvas2DContext(rootHandler, width, height);
+    rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height));
 }
 
 void NativeContext::forceLinking()
