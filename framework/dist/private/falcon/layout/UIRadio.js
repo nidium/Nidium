@@ -30,7 +30,7 @@ document.nss.add({
 		paddingRight 	: 10,
 
 		lineWidth  		: 1,
-		autowidth 		: false,
+		autowidth 		: true,
 		width 			: 200, 
 		height 			: 22,
 		radius 			: 0,
@@ -64,16 +64,30 @@ Native.elements.export("UIRadio", {
 		}, false);
 
 		this.addEventListener("mousedown", function(e){
-			document.layout.find("name", this.name).each(function(){
-				this.selected = false;
-			});
-
 			this.selected = true;
 		});
 	},
 
 	update : function(e){
-		if (e.property.in(
+		var key = e.property,
+			val = e.value;
+
+		if (key == "selected" && val === true) {
+			this.__lock();
+			document.layout.find("name", this.name).each(function(){
+				this.selected = false;
+			});
+
+			this.selected = true;
+
+			this.fireEvent("select", {
+				value : this.value,
+				state : true
+			});
+			this.__unlock();
+		}
+
+		if (key.in(
 			"width", "height",
 			"label", "fontSize", "fontFamily",
 			"paddingLeft", "paddingRight", "selected"

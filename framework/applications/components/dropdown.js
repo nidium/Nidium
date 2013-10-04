@@ -4,8 +4,9 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var main = new Application();
-main.className = "body";
+var main = new Application({
+	class : "body"
+});
 
 var	myElements = [
 	/* Tab 0 */ {label : "France", 			value : 5},
@@ -123,10 +124,11 @@ document.nss.add({
 	".radio" : {
 		left : 700,
 		width : 200,
-		autowidth : false,
+		autowidth : true,
 		name : "choice",
 		fontFamily : "menlo",
 		fontSize : 11,
+		background : "rgba(0, 0, 0, 0.05)",
 		textShadowColor : "rgba(0, 0, 0, 0.1)",
 		lineWidth : 1,
 		borderColor : "rgba(0, 0, 0, 0.05)",
@@ -143,7 +145,7 @@ document.nss.add({
 	},
 
 	".white" : {
-		color : "#e0e0e0"
+		color : "#ffffff"
 	},
 
 	".transparent" : {
@@ -173,9 +175,9 @@ var radio2 = main.add("UIRadio", {
 var radio3 = main.add("UIRadio", {
 	top : 106,
 	value : "option3",
-	label : "... or this",
-	class : "radio green"
+	label : "... or this"
 });
+radio3.className = "radio green";
 
 var radio4 = main.add("UIRadio", {
 	top : 134,
@@ -191,12 +193,18 @@ var radio5 = main.add("UIRadio", {
 	class : "radio transparent"
 });
 
+radio4.selected = true;
+
+radio5.addEventListener("select", function(e){
+	console.log(this.selected);
+}, false);
+
+
 /* ------- CHECKBOXES -------------- */
 
 var	c0 = main.add("UICheckBox", {
 	left : 700,
 	top : 190,
-	height : 18,
 	lineWidth : 0.5,
 	fontSize : 9,
 	label : "UICheckBox (radius = 0)",
@@ -208,11 +216,9 @@ var	c0 = main.add("UICheckBox", {
 var	c1 = main.add("UICheckBox", {
 	left : 700,
 	top : 216,
-	label : "UICheckBox (radius = 1)",
+	label : "default settings",
 	value : 5,
-	selected : true,
-	background : "rgba(255, 255, 255, 0.1)",
-	radius : 1
+	selected : true
 });
 
 var c2 = main.add("UICheckBox", {
@@ -229,7 +235,7 @@ var c2 = main.add("UICheckBox", {
 var c3 = main.add("UICheckBox", {
 	left : 700,
 	top : 272,
-	height : 32,
+	height : 25,
 	value : 7,
 	label : "UICheckBox (radius = 12)",
 	background : "rgba(255, 255, 255, 0.1)",
@@ -237,4 +243,6 @@ var c3 = main.add("UICheckBox", {
 	class : "green"
 });
 
-
+c3.addEventListener("change", function(e){
+	console.log(this.selected);
+}, false);

@@ -398,7 +398,36 @@ document.addEventListener("DOMContentLoaded", function(){
 		class : "radio transparent"
 	});
 
+	var	c0 = video.add("UICheckBox", {
+		left : 10,
+		top : 190,
+		label : "UICheckBox (radius = 0)",
+		value : 5,
+		selected : true
+	});
 
+	var	c1 = video.add("UICheckBox", {
+		left : 10,
+		top : 216,
+		label : "... or this",
+		value : 5,
+		selected : true,
+		background : "rgba(255, 255, 255, 0.4)",
+		radius : 12
+	});
+
+	var LFO = video.add("UIDiagram", {
+		left : 450, 
+		top : 10,
+		label : "Low Frequency Oscillator",
+		background : "#222222",
+		pins : [
+		/* pin 0 */	{label:"Pitch",			type:"output"},
+		/* pin 1 */	{label:"Frequency",		type:"output"},
+		/* pin 2 */	{label:"Resonnance",	type:"output"},
+		/* pin 3 */	{label:"Audio Out",		type:"output"}
+		]
+	});
 
 
 });

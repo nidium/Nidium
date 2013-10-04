@@ -234,7 +234,6 @@ NDMElement.method = {
 	resetNodes : function resetNodes(){
 		if (!this.parent) return false;
 
-
 		var parent = this.parent, // parent of this virtual element
 			element = null,
 			layers = parent.layer.getChildren(); // physical children

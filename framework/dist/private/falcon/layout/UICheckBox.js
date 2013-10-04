@@ -13,7 +13,7 @@ document.nss.add({
 		canReceiveFocus	: true,
 		label			: "",
 		fontSize  		: 11,
-		fontFamily  	: "arial",
+		fontFamily  	: "menlo",
 		textAlign 		: "left",
 
 		textShadowOffsetX	: 1,
@@ -26,9 +26,6 @@ document.nss.add({
 		shadowBlur		: 4,
 		shadowColor 	: "rgba(0, 0, 0, 0.15)",
 
-		borderColor 	: "rgba(0, 0, 0, 0.05)",
-		borderWidth 	: 1,
-
 		paddingLeft 	: 2,
 		paddingRight 	: 10,
 
@@ -36,7 +33,7 @@ document.nss.add({
 		autowidth 		: false,
 		width 			: 200, 
 		height 			: 22,
-		radius 			: 1,
+		radius 			: 2,
 		background 		: "",
 		color 			: "#ffffff",
 		cursor 			: "arrow"
@@ -68,7 +65,19 @@ Native.elements.export("UICheckBox", {
 
 		this.addEventListener("mousedown", function(e){
 			this.selected = !this.selected;
+			this.fireEvent("change", {
+				value : this.value,
+				state : this.selected
+			});
 		});
+
+		this.select = function(){
+			this.selected = true;
+		};
+
+		this.unselect = function(){
+			this.selected = true;
+		};
 	},
 
 	update : function(e){
@@ -103,6 +112,7 @@ Native.elements.export("UICheckBox", {
 
 		var pad = 4;
 
+		/* outer box */
 		context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
 			context.strokeStyle = "rgba(0, 0, 0, 0.15)";
 			context.lineWidth = 0.75;
@@ -112,39 +122,29 @@ Native.elements.export("UICheckBox", {
 				y : params.y + pad,
 				w : params.h - 2*pad, // yes, params.h
 				h : params.h - 2*pad
-			}, "white", "rgba(0, 0, 0, 0.15)");
+			}, "white", "rgba(0, 0, 0, 0.15)", null, this.radius-1);
 		context.setShadow(0, 0, 0);
 
-		var r = pad + pad*0.50;
+		var r = pad + Math.floor(this.height*0.10);
 
 		context.lineWidth = 1;
 
 		if (this.selected){
-
-
 			var gradient = context.createLinearGradient(
 				params.x+r, params.y+r,
 				params.x+r+params.h-2*r, params.y+r+params.h-2*r
 			);
 
-			gradient.addColorStop(0.00, 'rgba(255, 255, 255, 0.70)');
-			gradient.addColorStop(0.50, 'rgba(255, 255, 255, 0.80)');
-			gradient.addColorStop(0.60, 'rgba(255, 255, 255, 0.90)');
+			gradient.addColorStop(0.00, 'rgba(0, 0, 0, 0.070)');
+			gradient.addColorStop(0.50, 'rgba(0, 0, 0, 0.080)');
+			gradient.addColorStop(0.60, 'rgba(0, 0, 0, 0.090)');
 
 			NDMElement.draw.box(this, context, {
 				x : params.x + r,
 				y : params.y + r,
 				w : params.h - 2*r, // yes, params.h
 				h : params.h - 2*r
-			}, this.color, "rgba(0, 0, 0, 0.15)", this.radius);
-
-			NDMElement.draw.box(this, context, {
-				x : params.x + r,
-				y : params.y + r,
-				w : params.h - 2*r, // yes, params.h
-				h : params.h - 2*r
-			}, gradient, null, this.radius);
-
+			}, gradient, "rgba(0, 0, 0, 0.15)", 1, this.radius-1);
 
 			var m = radius/1.3,
 				x1 = params.x+m,
@@ -152,7 +152,7 @@ Native.elements.export("UICheckBox", {
 				x2 = params.x+params.h - m,
 				y2 = params.y+params.h - m;
 
-			context.strokeStyle = "rgba(0, 0, 0, 0.8)";
+			context.strokeStyle = "rgba(0, 0, 0, 0.9)";
 			context.lineWidth = 2*this.lineWidth;
 
 			context.beginPath();
@@ -164,15 +164,13 @@ Native.elements.export("UICheckBox", {
 			context.moveTo(x1, y2);
 			context.lineTo(x2, y1);
 			context.stroke();
-
-
 		} else {
 			NDMElement.draw.box(this, context, {
 				x : params.x + r,
 				y : params.y + r,
 				w : params.h - 2*r, // yes, params.h
 				h : params.h - 2*r
-			}, null, "rgba(0, 0, 0, 0.25)", this.radius);
+			}, "white", "rgba(0, 0, 0, 0.15)", 1, this.radius-1);
 		}
 
 		params.x += params.h + this.paddingLeft;

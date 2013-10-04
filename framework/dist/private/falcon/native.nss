@@ -80,6 +80,6 @@
 	".body" : {
 		background : "#262722",
 		backgroundImage : "private://assets/patterns/noisy.png",
-		alpha : 0.25
+		alpha : 0.5
 	}
 }
