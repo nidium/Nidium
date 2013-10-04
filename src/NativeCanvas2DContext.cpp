@@ -2020,8 +2020,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             this->setupShader((float)opacity, width, height,
                 left, top,
-                (int)this->getHandler()->getWidth(),
-                (int)this->getHandler()->getHeight());
+                (int)layer->getHandler()->getWidth(),
+                (int)layer->getHandler()->getHeight());
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
@@ -2036,7 +2036,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
         }
 
-        if (layer->commonDraw) {
+        if (this->commonDraw) {
             skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
             skia->canvas->drawBitmap(bitmapLayer,
                 left*ratio, top*ratio, &pt);
@@ -2050,7 +2050,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             uint32_t textureID = this->getSkiaTextureID(&width, &height);
             //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
             glUseProgram(0);
-            drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
             this->resetGLContext();            
         }
     }
