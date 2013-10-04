@@ -109,7 +109,7 @@ var ShaderDemo = {
 
 		/*
 		setTimeout(function(){
-			main.layer.ctx.detachFragmentShader();
+			main.layer.context.detachFragmentShader();
 		}, 3000);
 		*/
 

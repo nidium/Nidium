@@ -141,7 +141,7 @@ Object.definePrivateProperties(Native.elements, {
 
 		element.layer = new Canvas(w, h);
 		element.layer.padding = element._layerPadding;
-		element.layer.context = element.layer.getContext("2D");
+		element.layer.context = element.layer.getContext("2d");
 		element.layer.context.imageSmoothingEnabled = __ENABLE_IMAGE_INTERPOLATION__;
 		element.layer.host = element;
 
@@ -159,7 +159,7 @@ Object.definePrivateProperties(Native.elements, {
 Native.getTextWidth = function(text, fontSize, fontFamily){
 	var c = Native._cachedTextWidth,
 		key = text + fontSize + fontFamily,
-		context = Native.blankOrphanedCanvas.getContext("2D");
+		context = Native.blankOrphanedCanvas.getContext("2d");
 
 	if (!c[key]) {
 		context.fontSize = fontSize;

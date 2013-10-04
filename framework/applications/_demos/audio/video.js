@@ -1,7 +1,7 @@
 var c = new Canvas(1024, 768);
 window.canvas.add(c);
-//c.ctx.imageSmoothingEnabled = true;
-//c.ctx.scale(1.5, 1.5);
+//c.getContext("2d").imageSmoothingEnabled = true;
+//c.getContext("2d").scale(1.5, 1.5);
 
 var a = Audio.getContext(1024, 2, 44100);
 var target = a.createNode("target", 2, 0);

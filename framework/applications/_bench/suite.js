@@ -4,7 +4,7 @@ var g = {
 	add : function(m){
 		return m + this.val;
 	},
-	ctx : function(){
+	fff : function(){
 		this.zz = 40;
 	}
 };
@@ -15,7 +15,7 @@ var w = {
 } = Membrane(g);
 
 
-var h = new o.ctx();
+var h = new o.fff();
 
 console.log(h.zz);
 w.revoke();

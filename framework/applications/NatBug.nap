@@ -715,7 +715,7 @@ NatBug.panes.push({
 
 
 Canvas.prototype.debug = function(){
-	var context = this.getContext("2D"),
+	var context = this.getContext("2d"),
 		__DEBUG_SHOW_LAYERS__ = true,
 		__DEBUG_SHOW_ORDER__ = false;
 
@@ -779,7 +779,7 @@ Native.FPS = {
 
 	init : function(){
 		this.canvas = new Canvas(50, 30);
-		this.context = this.canvas.getContext("2D");
+		this.context = this.canvas.getContext("2d");
 		this.canvas.left = 0;
 		this.canvas.top = window.height-30;
 		window.canvas.add(this.canvas);

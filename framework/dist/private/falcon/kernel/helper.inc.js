@@ -88,7 +88,7 @@ Object.merge(window, {
 	}
 });
 
-window.canvas.context = window.canvas.getContext("2D");
+window.canvas.context = window.canvas.getContext("2d");
 
 /* -------------------------------------------------------------------------- */
 
@@ -245,7 +245,7 @@ String.prototype.toUint16Array = function(){
 /* -------------------------------------------------------------------------- */
 
 Canvas.prototype.clear = function(){
-	var context = this.getContext("2D");
+	var context = this.getContext("2d");
 	context.clearRect(
 		-this.padding,
 		-this.padding, 

@@ -5,14 +5,14 @@
 /* -------------------------------------- */
 
 var bigview = new Canvas(500, 500);
-bigview.ctx.fillStyle = 'black';
-bigview.ctx.fillRect(0, 0, 500, 500);
+var context = bigview.getContext("2d");
+context.fillStyle = 'black';
+context.fillRect(0, 0, 500, 500);
 window.canvas.add(bigview);
 
 /* --------------- */
 
-var context = bigview.getContext("2d"),
-	x = 40,
+var x = 40,
 	y = 40,
 	w = 100,
 	h = 100,
