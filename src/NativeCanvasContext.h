@@ -16,26 +16,26 @@ public:
     struct JSContext *jscx;
 
     enum mode {
-    	CONTEXT_2D,
-    	CONTEXT_WEBGL
+        CONTEXT_2D,
+        CONTEXT_WEBGL
     } m_Mode;
 
-	virtual void translate(double x, double y)=0;
-	virtual void setSize(int width, int height)=0;
-	virtual void setScale(double x, double y, double px=1, double py=1)=0;
-	virtual void clear(uint32_t color)=0;
-	virtual void flush()=0;
+    virtual void translate(double x, double y)=0;
+    virtual void setSize(int width, int height)=0;
+    virtual void setScale(double x, double y, double px=1, double py=1)=0;
+    virtual void clear(uint32_t color)=0;
+    virtual void flush()=0;
 
-	virtual void composeWith(NativeCanvas2DContext *layer,
-    	double left, double top, double opacity,
-    	double zoom, const NativeRect *rclip)=0;
+    virtual void composeWith(NativeCanvas2DContext *layer,
+        double left, double top, double opacity,
+        double zoom, const NativeRect *rclip)=0;
 
-	NativeCanvasContext() :
-		jsobj(NULL), jscx(NULL) {
+    NativeCanvasContext() :
+        jsobj(NULL), jscx(NULL) {
 
-		printf("New canvas context\n");
-	}
-	virtual ~NativeCanvasContext(){};
+        printf("New canvas context\n");
+    }
+    virtual ~NativeCanvasContext(){};
 };
 
 #endif
