@@ -4,17 +4,34 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIScrollBar" : {
+		background : "rgba(80, 80, 80, 0.0)",
+		radius : 5
+	},
+
+	"UIScrollBarHandle" : {
+		radius : 5,
+		background : "rgba(18, 18, 18, 0.80)",
+		shadowColor : "rgba(255, 255, 255, 0.15)",
+		shadowBlur : 4
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIScrollBar", {
 	init : function(){
 		var o = this.options;
 
-		this.setProperties({
-			background : OptionalValue(o.background, "rgba(80, 80, 80, 0.0)"),
-			radius : OptionalNumber(o.radius, 5),
-			opacity : OptionalNumber(o.opacity, 0),
-			hidden : OptionalBoolean(o.hidden, false)
-		});
-
+		this.options = OptionalNumber(o.opacity, 0);
+		this.hidden = OptionalBoolean(o.hidden, false);
 		this.visible = false;
 	},
 
@@ -25,21 +42,12 @@ Native.elements.export("UIScrollBar", {
 	}
 });
 
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIScrollBarHandle", {
 	init : function(){
 		var o = this.options;
 
-		this.setProperties({
-			left : 0,
-			top : 0,
-			radius : OptionalNumber(o.radius, 5),
-			background : OptionalValue(o.background, "rgba(18, 18, 18, 0.80)"),
-			shadowBlur : OptionalNumber(o.shadowBlur, 4),
-			shadowColor : OptionalValue(
-				o.shadowColor, 
-				"rgba(255, 255, 255, 0.15)"
-			)
-		});
 		this.hidden = this.parent ? this.parent.hidden : false;
 	},
 
@@ -47,17 +55,10 @@ Native.elements.export("UIScrollBarHandle", {
 		if (this.hidden) return false;
 		var	params = this.getDrawingBounds();
 
-		if (this.shadowBlur != 0) {
-			context.setShadow(
-				this.shadowOffsetX,
-				this.shadowOffsetY,
-				this.shadowBlur,
-				this.shadowColor
-			);
-		}
-
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
-		context.setShadow(0, 0, 0);
+		NDMElement.draw.disableShadow(this);
 	}
 });
 
+/* -------------------------------------------------------------------------- */
