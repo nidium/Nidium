@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "NativeJSExposer.h"
 #include "NativeJSImage.h"
+#include "NativeCanvasContext.h"
 
 /*
     Create a new 2D context using NativeSkia.
@@ -22,15 +23,12 @@ struct NativeRect;
 class SkCanvas;
 class NativeCanvasHandler;
 
-class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
+class NativeCanvas2DContext : public NativeCanvasContext
 {
     public:
 
         friend class NativeJSCanvas;
 
-        class JSObject *jsobj;
-        struct JSContext *jscx;
-        NativeSkia *skia;
         bool setterDisabled;
         bool commonDraw;
 
@@ -81,7 +79,7 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         }
 
         NativeSkia *getSurface() const {
-            return this->skia;
+            return this->m_Skia;
         }
 
         void setScale(double x, double y, double px=1, double py=1);
@@ -100,6 +98,7 @@ class NativeCanvas2DContext : public NativeJSExposer<NativeCanvas2DContext>
         
         ~NativeCanvas2DContext();
     private:
+        NativeSkia *m_Skia;
         void initCopyTex();
         uint32_t compileCoopFragmentShader();
         char *genModifiedFragmentShader(const char *data);

@@ -1335,6 +1335,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = (NativeAudioTrack *)jnode->node;
 
     JS::Value src = JS_ARGV(cx, vp)[0];
+
     int ret = -1;
 
     if (src.isString()) {
@@ -1744,9 +1745,14 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_FALSE;
     }
 
+    NativeCanvasContext *ncc = handler->getContext();
+    if (ncc == NULL || ncc->m_Mode != NativeCanvasContext::CONTEXT_2D) {
+        JS_ReportError(cx, "Invalid destination canvas (must be backed by a 2D context)");
+        return false;
+    }
     NJS->rootObjectUntilShutdown(ret);
 
-    NativeSkia *nskia = handler->context->skia;
+    NativeSkia *nskia = ((NativeCanvas2DContext *)ncc)->getSurface();
 
     NativeJSVideo *v = new NativeJSVideo(nskia, cx);
 

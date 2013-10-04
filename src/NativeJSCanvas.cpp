@@ -226,7 +226,7 @@ static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    NativeObject->context->clear(0x00000000);
+    NativeObject->m_Context->clear(0x00000000);
     
     return true;
 }
@@ -496,12 +496,51 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
+    NATIVE_CHECK_ARGS("getContext", 1);
 
-    NativeCanvas2DContext *canvasctx = NativeObject->getContext();
+    JSString *mode = args[0].toString();
+    JSAutoByteString cmode(cx, mode);
 
-    if (canvasctx == NULL) {
-        printf("Cant get context\n");
+    NativeCanvasContext::mode ctxmode = NativeCanvasContext::CONTEXT_2D;
+
+    if (strncmp(cmode.ptr(), "2d", 2) == 0) {
+        ctxmode = NativeCanvasContext::CONTEXT_2D;
+    } else if (strncmp(cmode.ptr(), "webgl", 5) == 0) {
+        ctxmode = NativeCanvasContext::CONTEXT_WEBGL;
+    } else {
+        args.rval().setNull();
         return true;
+    }
+
+    NativeCanvasContext *canvasctx = NativeObject->getContext();
+
+    /* The context is lazy-created */
+    if (canvasctx == NULL) {
+        switch(ctxmode) {
+            case NativeCanvasContext::CONTEXT_2D:
+                NativeObject->setContext(
+                    new NativeCanvas2DContext(NativeObject, cx,
+                        NativeObject->getWidth(), NativeObject->getHeight())
+                );
+                break;
+            case NativeCanvasContext::CONTEXT_WEBGL:
+                /*
+                    TODO :
+                    NativeObject->setContext(new NativeCanvasWebGLContext(...))
+                */
+                break;
+        }
+
+        canvasctx = NativeObject->getContext();
+
+        /*  Protect against GC
+            Canvas.slot[0] = context
+        */
+        JS_SetReservedSlot(NativeObject->jsobj, 0, OBJECT_TO_JSVAL(NativeObject->getContext()->jsobj));
+    } else if (canvasctx->m_Mode != ctxmode) {
+        /* Another mode is requested but another was already created */
+        args.rval().setNull();
+        return true;        
     }
 
     args.rval().set(OBJECT_TO_JSVAL(canvasctx->jsobj));
@@ -768,11 +807,11 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         }
         case CANVAS_PROP_CTX:
         {
-            if (handler->context == NULL) {
+            if (handler->m_Context == NULL) {
                 vp.set(JSVAL_NULL);
                 break;
             }
-            vp.set(OBJECT_TO_JSVAL(handler->context->jsobj));
+            vp.set(OBJECT_TO_JSVAL(handler->m_Context->jsobj));
             break;
         }
         case CANVAS_PROP___OUTOFBOUND:
@@ -805,11 +844,11 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     handler = new NativeCanvasHandler(width, height);
-    handler->context = new NativeCanvas2DContext(handler, cx, width, height);
+    handler->m_Context = NULL;
+    //handler->context = new NativeCanvas2DContext(handler, cx, width, height);
+    //JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
     handler->jsobj = ret;
     handler->jscx = cx;
-
-    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
 
     JS_SetPrivate(ret, handler);
 
@@ -864,11 +903,11 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
     handler = new NativeCanvasHandler(width, height);
-    handler->context = new NativeCanvas2DContext(handler, cx, width, height);
+    handler->m_Context = new NativeCanvas2DContext(handler, cx, width, height);
     handler->jsobj = ret;
     handler->jscx = cx;
     
-    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
 
     JS_SetPrivate(ret, handler);
 
