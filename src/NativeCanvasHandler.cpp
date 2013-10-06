@@ -64,9 +64,9 @@ bool NativeCanvasHandler::setWidth(int width)
     if (m_Context) {
         m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
-
-        updateChildrenSize(true, false);
     }
+
+    updateChildrenSize(true, false);
 
     return true;
 }
@@ -84,9 +84,9 @@ bool NativeCanvasHandler::setHeight(int height)
     if (m_Context) {
         m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
-
-        updateChildrenSize(false, true);
     }
+
+    updateChildrenSize(false, true);
 
     return true;
 }
@@ -99,9 +99,9 @@ void NativeCanvasHandler::setSize(int width, int height)
     if (m_Context) {
         m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
-
-        updateChildrenSize(true, true);
     }
+
+    updateChildrenSize(true, true);
 }
 
 void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
@@ -129,20 +129,20 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 
 void NativeCanvasHandler::setPadding(int padding)
 {
-    if (!m_Context) {
-        return;
-    }
-
     if (padding < 0) padding = 0;
 
-    m_Context->translate(-this->padding.global, -this->padding.global);
+    int tmppadding = this->padding.global;
 
     this->padding.global = padding;
- 
-    m_Context->setSize(this->width + (this->padding.global * 2),
-        this->height + (this->padding.global * 2));
 
-    m_Context->translate(this->padding.global, this->padding.global);
+    if (m_Context) {
+        m_Context->translate(-tmppadding, -tmppadding);
+     
+        m_Context->setSize(this->width + (this->padding.global * 2),
+            this->height + (this->padding.global * 2));
+
+        m_Context->translate(this->padding.global, this->padding.global);
+    }
 }
 
 void NativeCanvasHandler::setScrollLeft(int value)
@@ -557,6 +557,11 @@ void NativeCanvasHandler::setScale(double x, double y)
     this->scaleY = y;
 }
 
+void NativeCanvasHandler::setContext(NativeCanvasContext *context)
+{
+    this->m_Context = context;
+    this->m_Context->translate(this->padding.global, this->padding.global);
+}
 
 void NativeCanvasHandler::recursiveScale(double x, double y,
     double oldX, double oldY)

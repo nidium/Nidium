@@ -268,9 +268,7 @@ class NativeCanvasHandler
 
         void unrootHierarchy();
 
-        void setContext(NativeCanvasContext *context) {
-            this->m_Context = context;
-        }
+        void setContext(NativeCanvasContext *context);
 
         bool setWidth(int width);
         bool setHeight(int height);

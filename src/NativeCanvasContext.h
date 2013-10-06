@@ -32,8 +32,6 @@ public:
 
     NativeCanvasContext() :
         jsobj(NULL), jscx(NULL) {
-
-        printf("New canvas context\n");
     }
     virtual ~NativeCanvasContext(){};
 };
