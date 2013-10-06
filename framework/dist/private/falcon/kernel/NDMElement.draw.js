@@ -58,23 +58,32 @@ NDMElement.draw = {
 	},
 
 	label : function(element, context, params, color, shadowColor){
-		var textOffsetX = element.paddingLeft,
-			textOffsetY = (params.h-element.lineHeight)/2 + 4 + element.lineHeight/2;
+		var vAlign = "middle",
+			textOffsetX = element.paddingLeft,
+			textOffsetY = 1+element.height/2;
 
-		var tx = params.x+textOffsetX,
-			ty = params.y+textOffsetY;
+		var tx = params.x + textOffsetX + element.textOffsetX,
+			ty = params.y + textOffsetY + element.textOffsetY;
 
 		if (element.textAlign == "right") {
-			tx = params.x + params.w - element._textWidth - element.paddingRight;
+			tx = params.x + params.w - context.measureText(element.label).width - element.paddingRight;
+		}
+
+		if (element.verticalAlign == "top") {
+			vAlign = "bottom";
+		} else if (element.verticalAlign == "bottom") {
+			vAlign = "top";
 		}
 
 		context.fontSize = element.fontSize;
 		context.fontFamily = element.fontFamily;
+		context.textAlign = "left";
+		context.textBaseline = vAlign;
 
 		context.setText(
 			element.label,
-			params.x+textOffsetX+element.textOffsetX,
-			params.y+textOffsetY+element.textOffsetY,
+			tx,
+			ty,
 			color ? color : element.color,
 			element.textShadowOffsetX,
 			element.textShadowOffsetY,

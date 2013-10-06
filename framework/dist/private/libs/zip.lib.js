@@ -5,7 +5,7 @@
 /* -------------------------------------------------------------------------- */
 /* Contributors:                                                              */
 /*      Author : Andreas Gal <gal@mozilla.com>                                */
-/*      NATiVE port + refactoring : Vincent Fontaine <dmx374@gmail.com>       */
+/*      Nidium port + refactoring : Vincent Fontaine <dmx374@gmail.com>       */
 /* -------------------------------------------------------------------------- */
 
 "use strict";

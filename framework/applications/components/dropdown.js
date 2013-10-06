@@ -89,18 +89,18 @@ dateField.addEventListener("submit", function(e){
 
 var	listItems = [
 	/* option 0 */ {label : "France", 			value : 5},
-	/* option 1 */ {label : "Belgium", 		value : 7},
+	/* option 1 */ {label : "Belgium", 			value : 7},
 	/* option 2 */ {label : "Monaco", 			value : 9, selectded:true},
 	/* option 3 */ {label : "United States",	value : 15},
 	/* option 4 */ {label : "Italy", 			value : 1},
 	/* option 5 */ {label : "Spain", 			value : 3, class : "greenland"},
-	/* option 6 */ {label : "Bulgaria",		value : 2, class : "greenland"},
-	/* option 7 */ {label : "Romania", 		value : 4},
+	/* option 6 */ {label : "Bulgaria",			value : 2, class : "greenland"},
+	/* option 7 */ {label : "Romania", 			value : 4},
 	/* option 8 */ {label : "Sweden", 			value : 6},
 	/* option 8 */ {label : "China", 			value : 8},
 	/* option 8 */ {label : "Korea", 			value : 10},
 	/* option 8 */ {label : "Luxembourg", 		value : 11, disabled : true},
-	/* option 8 */ {label : "Switzerland", 	value : 12},
+	/* option 8 */ {label : "Switzerland", 		value : 12},
 	/* option 9 */ {label : "Japan", 			value : 13}
 ];
 

@@ -1,0 +1,18 @@
+<!-- Native Markup Language Draft 0.1 -->
+<application version="0.1">
+	<meta>
+		<title>Nidium JS Beautifier</title>
+		<description>This is a description of the page</description>
+		<viewport>800x600</viewport>
+		<version>1.0</version>
+		<date>2013-09-05</date>
+		<robots>index, follow</robots>
+	</meta>
+	<assets>
+		<style src="private://falcon/native.nss"></style>
+		<script src="private://falcon/native.js"></script>
+		<script src="/libs/codegen.lib.js"></script>
+		<script src="/libs/beautify.lib.js"></script>
+		<script src="main.js"></script>
+	</assets>
+</application>

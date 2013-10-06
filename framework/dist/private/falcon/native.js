@@ -28,7 +28,7 @@ const	FLAG_TEXT_NODE = 		1 << 0,
 		FLAG_SYSTEM_NODE = 		1 << 1,
 		FLAG_FLOATING_NODE =	1 << 2;
 
-var ಠ_ಠ = '2.5',
+const ಠ_ಠ = '2.5',
 	
 	__PATH_KERNEL__ = 'kernel/',
 	__PATH_LAYOUT__ = 'layout/',

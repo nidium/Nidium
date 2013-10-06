@@ -95,6 +95,7 @@ var NDMElement = function(type, options, parent){
 		fontSize : OptionalNumber(o.fontSize, 12),
 		fontFamily : OptionalString(o.fontFamily, "arial"),
 		textAlign : OptionalAlign(o.textAlign, "left"),
+		verticalAlign : "middle",
 		textOffsetX : OptionalNumber(o.textOffsetX, 0),
 		textOffsetY : OptionalNumber(o.textOffsetY, 0),
 		lineHeight : OptionalNumber(o.lineHeight, 18),

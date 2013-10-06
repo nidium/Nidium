@@ -68,6 +68,16 @@ Object.merge(window, {
 	mouseY : 0,
 	cursor : "arrow",
 	scope : this,
+
+	__nidium__ : {
+		version : ಠ_ಠ,
+		build : "Falcon",
+		revision : "1.0.3"
+	},
+
+	code : {
+		parse : Reflect.parse
+	},
 	
 	navigator : {
 		get appName() {
