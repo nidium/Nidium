@@ -253,7 +253,7 @@ document.nss.add({
 
 var txt = new UIButton(document, {
 	label : "but",
-	width : 200
+	width : "200"
 }).center();
 
 console.log(txt.layer.left);

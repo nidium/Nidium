@@ -80,10 +80,8 @@ Native.elements.export("UIButton", {
 	},
 
 	resize : function(){
-		console.log(this.left);
 		if (this.autowidth) {
 			this.width = NDMElement.draw.getInnerTextWidth(this);
-			console.log(this.left);
 		}
 	},
 
