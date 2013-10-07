@@ -114,7 +114,9 @@ void *NativeAudio::queueThread(void *args) {
                 case NATIVE_AUDIO_NODE_CALLBACK : {
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
-                    cbkMsg->node->unref();
+                    if (cbkMsg->node != NULL) {
+                        cbkMsg->node->unref();
+                    }
                     delete cbkMsg;
                 }
                 break;
@@ -125,18 +127,18 @@ void *NativeAudio::queueThread(void *args) {
                     } else {
                         memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
                     }
-                    nodeMsg->node->unref();
+                    if (nodeMsg->node != NULL) {
+                        nodeMsg->node->unref();
+                    }
                     delete nodeMsg;
                 }
                 break;
                 case NATIVE_AUDIO_CALLBACK :
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(NULL, cbkMsg->custom);
-                    /*
                     if (cbkMsg->node != NULL) {
                         cbkMsg->node->unref();
                     }
-                    */
                     delete cbkMsg;
                 break;
             }

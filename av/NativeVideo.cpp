@@ -1289,8 +1289,10 @@ void NativeVideo::close(bool reset) {
     this->clearTimers(reset);
     this->flushBuffers();
 
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        free(m_frames[i]);
+    if (this->opened) {
+        for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+            free(m_frames[i]);
+        }
     }
 
     this->clearAudioQueue();

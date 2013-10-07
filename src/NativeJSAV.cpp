@@ -1463,7 +1463,7 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
             NativeAudioNodeCustom *node;
             
             if ((nfn = JS_ValueToFunction(cx, vp)) == NULL ||
-                (fn = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
+                (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
                 JS_ReportError(cx, "Failed to read custom node onbuffer callback function\n");
                 vp.set(JSVAL_VOID);
                 return JS_FALSE;
