@@ -104,6 +104,22 @@ document.background = "#333333";
 //load("sample.js");
 
 /*
+var c0 = new Canvas(200, 200),
+	ctx = c0.getContext("2d");
+
+c0.padding = 20;
+c0.left = 20;
+c0.top = 20;
+window.canvas.add(c0);
+
+ctx.shadowBlur = 14;
+ctx.shadowColor = "black";
+ctx.fillStyle = "red";
+ctx.fillRect(0, 0, 200, 200);
+*/
+
+
+/*
 var but = new UIButton(document, {
 	left : 20,
 	top : 160,
@@ -145,8 +161,8 @@ console.log(
 //load("applications/components/tabs.js");
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
-load("applications/components/dropdown.js");
-//load("applications/components/buttons.js");
+//load("applications/components/dropdown.js");
+load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");

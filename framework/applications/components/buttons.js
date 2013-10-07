@@ -25,7 +25,6 @@ for (var i=0; i<320; i++){
 		left : 10 + 38*x,
 		top : 38 + 36*y,
 		label : i<100 ? (i<10 ? '00'+i : '0'+i) : i,
-		width : 30,
 		height : 30,
 		fontSize : 10,
 		background : "rgb("
@@ -34,7 +33,7 @@ for (var i=0; i<320; i++){
 			+Math.round(Math.random()*180)
 		+")",
 		opacity : 0.9,
-		radius : 8
+		radius : 3
 	});
 	v[i].initialLeft = v[i].left;
 

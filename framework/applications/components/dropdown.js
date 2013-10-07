@@ -33,8 +33,6 @@ var field = main.add("UITextField", {
 field.value = "https://www.google.com/";
 field.width = 430;
 
-
-
 /*
 
 var	lv = new UIListView(main, {
