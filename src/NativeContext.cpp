@@ -132,6 +132,8 @@ void NativeContext::createDebugCanvas()
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
     debugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
+    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, false);
+    debugHandler->setContext(ctx2d);
     //debugHandler->context = new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, false);
     //debugHandler->context->commonDraw = true;
     rootHandler->addChild(debugHandler);

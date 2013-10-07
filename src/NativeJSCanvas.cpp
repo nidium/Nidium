@@ -520,7 +520,8 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
             case NativeCanvasContext::CONTEXT_2D:
                 NativeObject->setContext(
                     new NativeCanvas2DContext(NativeObject, cx,
-                        NativeObject->getWidth(), NativeObject->getHeight())
+                        NativeObject->getWidth() + (NativeObject->padding.global * 2),
+                        NativeObject->getHeight() + (NativeObject->padding.global * 2))
                 );
                 break;
             case NativeCanvasContext::CONTEXT_WEBGL:
