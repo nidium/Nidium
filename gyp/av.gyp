@@ -13,6 +13,8 @@
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
             '<(third_party_path)/http-parser/',
+            '<(third_party_path)/skia/include/core/',
+            '<(third_party_path)/skia/include/config/',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'

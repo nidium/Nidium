@@ -9,6 +9,7 @@
 #include "NativeAudio.h"
 #include "NativeFileIO.h"
 #include <exception>
+#include <SkRefCnt.h>
 
 #define NATIVE_AUDIONODE_ARGS_SIZE      32
 #define NATIVE_AUDIONODE_WIRE_SIZE      256
@@ -62,7 +63,7 @@ typedef void (*NodeCallback)(const struct NodeEvent *ev); // Simple on thread ca
 typedef void (*ArgCallback)(NativeAudioNode *node, int id, void *val, int size); // Callback for node arguments
 typedef void (*NodeMessageCallback)(NativeAudioNode *node, void *custom); // Message posting to thread TODO : Normalize args
 
-class NativeAudioNode
+class NativeAudioNode : public SkRefCnt
 {
     public :
         struct ExportsArgs {
