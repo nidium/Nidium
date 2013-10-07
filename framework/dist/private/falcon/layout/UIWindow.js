@@ -4,6 +4,29 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIWindow" : {
+		canReceiveFocus : true,
+		movable : true,
+		resizable : true,
+		closeable : true,
+		color : "#ffffff",
+		label : "Default",
+		shadowBlur : 8,
+		shadowColor : "rgba(0, 0, 0, 0.5)",
+		radius : 5
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
+
 Native.elements.export("UIWindow", {
 	public : {
 		width : {
@@ -32,14 +55,8 @@ Native.elements.export("UIWindow", {
 		var self = this,
 			o = this.options;
 
-		this.setProperties({
-			canReceiveFocus : true,
-			color : OptionalValue(o.color, "#ffffff"),
-			label : OptionalString(o.label, "Default"),
-			shadowBlur : OptionalNumber(o.shadowBlur, 8),
-			shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)"),
-			radius : Math.max(5, OptionalNumber(o.radius, 5)),
-
+		/* Element's Specific Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
 			movable : OptionalBoolean(o.movable, true),
 			resizable : OptionalBoolean(o.resizable, true),
 			closeable : OptionalBoolean(o.closable, true)
@@ -65,6 +82,10 @@ Native.elements.export("UIWindow", {
 			e.stopPropagation();
 		}, false);
 
+		this.addEventListener("mouseup", function(e){
+			e.stopPropagation();
+		}, false);
+
 		this.addEventListener("mouseover", function(e){
 			e.stopPropagation();
 		}, false);
@@ -80,9 +101,10 @@ Native.elements.export("UIWindow", {
 		});
 
 		this.labelElement = this.add("UILabel", {
-			left : 4,
+			left : 0,
 			top : 0,
 			height : 24,
+			paddingLeft : 4,
 			color : self.color,
 			label : self.label
 		});
@@ -156,16 +178,15 @@ Native.elements.export("UIWindow", {
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
+		/*
  		if (this.outlineColor && this.outline) {
 			NDMElement.draw.outline(this);
 		}
+		*/
 
-		context.setShadow(
-			this.shadowOffsetX, this.shadowOffsetY,
-			this.shadowBlur, this.shadowColor
-		);
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
-		context.setShadow(0, 0, 0);
+		NDMElement.draw.disableShadow(this);
 
 		var gradient = NDMElement.draw.getCleanGradient(this, context, params);
 		NDMElement.draw.box(this, context, params, gradient);
