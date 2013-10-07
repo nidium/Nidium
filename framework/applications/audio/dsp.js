@@ -24,6 +24,16 @@
  * --------------------------------------------------------------------------- * 
  */
 
+document.nss.add({
+	"UISliderController" : {
+		width : 224,
+		height : 16,
+		color : "black",
+		boxColor : "rgba(255, 255, 255, 0.05)"
+	}
+});
+
+
 var main = new Application();
 var	k2PI = 2.0 * Math.PI;
 
@@ -357,17 +367,6 @@ var Spectral = {
 		this.spectrum.volumeSlider = this.spectrum.add("UISliderController", {
 			left : 16,
 			top : 10,
-			width : 224,
-			height : 16,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "black",
-
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
 			min : 0.001,
 			max : 3,
 			value : 0.5
@@ -376,17 +375,6 @@ var Spectral = {
 		this.spectrum.cutoffSlider = this.spectrum.add("UISliderController", {
 			left : 16,
 			top : 30,
-			width : 224,
-			height : 16,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "black",
-
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
 			min : 0.02,
 			max : 0.4,
 			value : 0.08
@@ -395,16 +383,6 @@ var Spectral = {
 		this.spectrum.rezoSlider = this.spectrum.add("UISliderController", {
 			left : 16,
 			top : 50,
-			width : 224,
-			height : 16,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "black",
-
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
 			radius : 2,
 			min : 0,
 			max : 0.8,
@@ -415,15 +393,6 @@ var Spectral = {
 		this.spectrum.delayTime = this.spectrum.add("UISliderController", {
 			left : 400,
 			top : 10,
-			width : 120,
-			height : 12,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "red",
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
 			radius : 2,
 			min : 0.0,
 			max : 1500,
@@ -436,15 +405,6 @@ var Spectral = {
 		this.spectrum.delayWet = this.spectrum.add("UISliderController", {
 			left : 400,
 			top : 30,
-			width : 120,
-			height : 12,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "red",
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
 			radius : 2,
 			min : 0.0,
 			max : 1.0,
@@ -458,16 +418,6 @@ var Spectral = {
 		this.spectrum.stereoSlider = this.spectrum.add("UISliderController", {
 			left : 400,
 			top : 50,
-			width : 120,
-			height : 12,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "blue",
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
 			min : 0.0,
 			max : 3.0,
 			value : 1.0

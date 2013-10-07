@@ -202,7 +202,7 @@ console.log(
 
 	//load("applications/audio/test.js"); // OK
 	//load("applications/audio/mixer.js"); // OK
-	//load("applications/audio/dsp.js"); // OK
+	load("applications/audio/dsp.js"); // OK
 	//load("applications/media/video.js"); // OK
 
 /* FILE API */
@@ -214,8 +214,8 @@ console.log(
 /* SHADERS */
 
 	//load("applications/components/shader.js"); // OK
-	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.basic.js"); // OK
+	//load("applications/components/shader.advanced.js"); // OK
 
 
 /*
