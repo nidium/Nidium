@@ -249,24 +249,28 @@ document.nss.add({
 });
 */
 
+/*
 
-
-var txt = new UIButton(document, {
-	width : "200"
-}).center();
+var txt = new UIButton(document).center();
 
 txt.background = "red";
-//txt.selected = true;
+txt.selected = true;
 //txt.className = "foobar";
 txt.hover = true;
 txt.disabled = true;
+*/
 
-
-
-var o = new UILabel(document).center().move(45, 0);
+/*
+var o = new UILabel(document, {
+	width : 200,
+	autowidth : false,
+	paddingLeft : 10,
+	paddingRight : 10,
+	textAlign : "center"
+}).center().move(45, 0);
 o.background = "white";
 o.label = "Mama's gonna snatch"
-
+*/
 
 
 /* TUTORIALS */

@@ -59,14 +59,34 @@ NDMElement.draw = {
 
 	label : function(element, context, params, color, shadowColor){
 		var vAlign = "middle",
-			textOffsetX = element.paddingLeft,
+			textOffsetX = 0,
 			textOffsetY = 1+element.height/2;
 
-		var tx = params.x + textOffsetX + element.textOffsetX,
-			ty = params.y + textOffsetY + element.textOffsetY;
+		var tx = 0,
+			ty = params.y + textOffsetY;
 
-		if (element.textAlign == "right") {
-			tx = params.x + params.w - context.measureText(element.label).width - element.paddingRight;
+		var textWidth = Native.getTextWidth(
+			element._label,
+			element._fontSize,
+			element._fontFamily
+		);
+
+		switch (element.textAlign) {
+			case "left":
+				tx = params.x + element.paddingLeft;
+				break;
+			
+			case "center":
+				tx = ((params.w-element.paddingLeft-element.paddingRight) - textWidth)/2;
+				tx += element.paddingLeft;
+				break;
+			
+			case "right":
+				tx = params.x + params.w - textWidth - element.paddingRight;
+				break;
+			
+			default:
+				break;
 		}
 
 		if (element.verticalAlign == "top") {
@@ -74,6 +94,9 @@ NDMElement.draw = {
 		} else if (element.verticalAlign == "bottom") {
 			vAlign = "top";
 		}
+
+		tx += element.textOffsetX;
+		ty += element.textOffsetY;
 
 		context.fontSize = element.fontSize;
 		context.fontFamily = element.fontFamily;
