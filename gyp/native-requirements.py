@@ -47,7 +47,7 @@ def buildSkia():
     else:
         exports = "GYP_DEFINES='skia_arch_width=32'"
 
-    deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
+    deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia -I../../gyp/skia.gypi", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
         "skia/out/Release/libskia_pdf",
         "skia/out/Release/libskia_ports",
         "skia/out/Release/libskia_skgpu",
