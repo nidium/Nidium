@@ -73,7 +73,8 @@ Native.elements.export("UIButton", {
 		if (e.property.in(
 			"width", "height",
 			"label", "fontSize", "fontFamily",
-			"paddingLeft", "paddingRight", "hover", "disabled"
+			"paddingLeft", "paddingRight",
+			"hover", "disabled", "selected"
 		)) {
 			this.resize();
 		}

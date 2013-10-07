@@ -252,16 +252,14 @@ document.nss.add({
 
 
 var txt = new UIButton(document, {
-	label : "but",
 	width : "200"
 }).center();
 
-console.log(txt.layer.left);
-//txt.background = "red";
+txt.background = "red";
 //txt.selected = true;
 //txt.className = "foobar";
-//txt.hover = true;
-//txt.disabled = true;
+txt.hover = true;
+txt.disabled = true;
 
 
 

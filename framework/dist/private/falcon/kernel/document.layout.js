@@ -121,7 +121,7 @@ document.layout = {
 		for (var i=z.length-1; i>=0; i--){
 			var element = z[i];
 			if (this.focusID == element._nid){
-				if (element.canReceiveFocus){
+				if (element.canReceiveFocus && !element.disabled){
 					this.focus(element);
 					break;
 				} else {
@@ -135,7 +135,7 @@ document.layout = {
 		if (element.hasFocus === true) {
 			return false;
 		}
-		if (element.canReceiveFocus) {
+		if (element.canReceiveFocus && !element.disabled) {
 			/* Fire blur event on last focused element */
 			if (this.currentFocusedElement) {
 				if (this.currentFocusedElement.outlineOnFocus) {
