@@ -17,14 +17,14 @@ NDMElement.updater = function(e){
 
 	switch (e.property) {
 		case "left" :
-			element.layer.left = Math.round(value);
-			element.layer.scrollLeft = Math.round(element._scrollLeft);
+			element.layer.left = value;
+			element.layer.scrollLeft = element._scrollLeft;
 			element._needAncestorCacheClear = true;
 			break;
 
 		case "top" :
-			element.layer.top = Math.round(value);
-			element.layer.scrollTop = Math.round(element._scrollTop);
+			element.layer.top = value;
+			element.layer.scrollTop = element._scrollTop;
 			element._needAncestorCacheClear = true;
 			break;
 

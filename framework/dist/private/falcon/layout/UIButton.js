@@ -73,15 +73,17 @@ Native.elements.export("UIButton", {
 		if (e.property.in(
 			"width", "height",
 			"label", "fontSize", "fontFamily",
-			"paddingLeft", "paddingRight"
+			"paddingLeft", "paddingRight", "hover", "disabled"
 		)) {
 			this.resize();
 		}
 	},
 
 	resize : function(){
+		console.log(this.left);
 		if (this.autowidth) {
 			this.width = NDMElement.draw.getInnerTextWidth(this);
+			console.log(this.left);
 		}
 	},
 

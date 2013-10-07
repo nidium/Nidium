@@ -162,7 +162,7 @@ console.log(
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
-load("applications/components/buttons.js");
+//load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
@@ -249,20 +249,26 @@ document.nss.add({
 });
 */
 
-/*
 
-var txt = new UIButton(document).center();
-txt.background = "red";
-txt.selected = true;
+
+var txt = new UIButton(document, {
+	label : "but",
+	width : 200
+}).center();
+
+console.log(txt.layer.left);
+//txt.background = "red";
+//txt.selected = true;
+//txt.className = "foobar";
+//txt.hover = true;
+//txt.disabled = true;
+
+
 
 var o = new UILabel(document).center().move(45, 0);
 o.background = "white";
 o.label = "Mama's gonna snatch"
 
-txt.className = "foobar";
-txt.hover = true;
-txt.disabled = true;
-*/
 
 
 /* TUTORIALS */
