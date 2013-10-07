@@ -219,12 +219,12 @@ NativeContext::~NativeContext()
 {
     JS_RemoveValueRoot(njs->cx, &gfunc);
 
-    delete njs;
-
     if (rootHandler != NULL) {
         delete rootHandler->getContext();
         delete rootHandler;
     }
+
+    delete njs;
 
     NativeSkia::glcontext = NULL;
 }
