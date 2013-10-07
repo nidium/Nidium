@@ -40,28 +40,15 @@ var tx = [
 	{file : "media/guitar01.mp3",	label : "Guitar"},
 	{file : "media/vocals.mp3",		label : "Vocals"},
 	{file : "media/sequences.mp3",	label : "Seq"},
-	{file : "media/guitar02.mp3",	label : "Solo"},
-
-	{file : "media/drums.mp3",		label : "Drums"},
-	{file : "media/bass.mp3",		label : "Bass"},
-	{file : "media/guitar01.mp3",	label : "Guitar"},
-	{file : "media/vocals.mp3",		label : "Vocals"},
-	{file : "media/sequences.mp3",	label : "Seq"},
 	{file : "media/guitar02.mp3",	label : "Solo"}
 ];
 
 /* -------------------------------------------------------------------------- */
 
 var createMixer = function(){
-	mixer = new UIView(main, {
-		id : "audioMixerContainer",
-		top : 300,
-		left : 10,
-		width : 1000,
-		height : 350,
-		background : "rgba(0, 0, 0, 0.25)",
-		radius : 4
-	}).centerLeft();
+	mixer = new UIElement(main);
+	mixer.id = "audioMixerContainer";
+	mixer.centerLeft();
 
 	mixer.contentView = new UIView(mixer, {
 		width : mixer.width-64,
@@ -70,63 +57,30 @@ var createMixer = function(){
 		scrollable : true
 	});
 
-	mixer.masterView = new UIView(mixer, {
+	mixer.masterView = new UIElement(mixer, {
 		left : mixer.width-60,
 		width : 60,
-		height : mixer.height,
-		background : 'rgba(100, 0, 0, 0.5)',
+		height : mixer.height-8,
 		overflow : false,
 		radius : 4
 	});
 };
 
 var createMasterSlider = function(){
-	master = new UIView(mixer.masterView, {
-		id : "masterSlide",
-		width : 60,
-		height : 336,
-		left : 1,
-		class : "slide"
-	});
+	master = new UIElement(mixer.masterView, "slide");
 
-	master.panLabel = master.add("UILabel", {
-		class : "panLabel"
-	}).centerLeft();
+	master.panLabel = new UILabel(master, "panLabel").centerLeft();
 
-	master.hintLabel = master.add("UILabel", {
-		width : 56,
-		background : "rgba(0, 0, 0, 0.80)",
-		shadowBlur : 30,
+	master.hintLabel = new UILabel(master, {
 		label : "MASTER",
 		class : "hintLabel"
 	}).centerLeft();
 
-	master.panSlider = master.add("UISliderController", {
-		top : 6,
-		width : 32,
-		height : 8,
-		color : "#440000",
-		min : -1,
-		max : 1,
-		value : 0
-	});
-	master.panSlider.className = "panSlider";
+	master.panSlider = new UISliderController(master, "panSlider");
 	master.panSlider.centerLeft();
 
-	master.levelSlider = master.add("UISliderController", {
-		top : 50,
-		width : 22,
-		height : 250,
-		color : "black",
-		splitColor : 'rgba(140, 140, 140, 0.3)',
-		boxColor : 'rgba(255, 255, 255, 0.07)',
-		progressBarColor : 'rgba(20, 80, 250, 1)',
-		radius : 2,
-		vertical : true,
-		min : 0.0,
-		max : 2,
-		value : 0.5
-	}).centerLeft().addEventListener("change", function(ev){
+	master.levelSlider = new UISliderController(master, "levelSlider");
+	master.levelSlider.centerLeft().addEventListener("change", function(ev){
 	   AudioMixer.volume(this.value);
 	}, false);
 
@@ -139,70 +93,40 @@ var createSlider = function(k, label){
 		v = Math.round(Math.random()*255),
 		b = Math.round(Math.random()*255);
 
-	slides[k] = new UIView(mixer.contentView, {
+	slides[k] = new UIElement(mixer.contentView, {
 		id : "audioSlide_"+k,
-		width : 60,
-		height : 336,
 		left : 1+62*k,
 		class : "slide"
 	});
 
-	slides[k].panLabel = slides[k].add("UILabel", {
-		top : 0,
-		label : "L                 R",
-		fontSize : 9,
-		class : "panLabel"
-	}).centerLeft();
+	slides[k].panLabel = new UILabel(slides[k], "panLabel").centerLeft();
 
-	slides[k].soloButton = new UIButton(slides[k], "solobutton");
+	slides[k].soloButton = new UIButton(slides[k], "button solo");
 	slides[k].soloButton.rel = k;
 	slides[k].soloButton.addEventListener("mouseup", function(e){
 		soloTrack(this);
 	});
 
-	slides[k].muteButton = new UIButton(slides[k], "mutebutton");
+	slides[k].muteButton = new UIButton(slides[k], "button mute");
 	slides[k].muteButton.rel = k;
 	slides[k].muteButton.addEventListener("mouseup", function(e){
 		muteTrack(this);
 	});
 
-	slides[k].hintLabel = slides[k].add("UILabel", {
-		width : 56,
+	slides[k].hintLabel = new UILabel(slides[k], {
 		label : k+". "+label,
 		background : "rgba("+r+", "+v+", "+b+", 0.80)",
-		shadowBlur : 30,
 		class : "hintLabel"
 	}).centerLeft();
 
 	slides[k].hintLabel.angle = 3*(Math.random()*2-1);
 	slides[k].hintLabel.top += 2*(Math.random()*2-1);
 
-	slides[k].panSlider = slides[k].add("UISliderController", {
-		top : 6,
-		width : 32,
-		height : 8,
-		color : "#440000",
-		min : -1,
-		max : 1,
-		value : 0
-	});
-	slides[k].panSlider.className = "panSlider";
+	slides[k].panSlider = new UISliderController(slides[k], "panSlider");
 	slides[k].panSlider.centerLeft();
 
-	slides[k].levelSlider = slides[k].add("UISliderController", {
-		top : 50,
-		width : 22,
-		height : 250,
-		color : "black",
-		splitColor : 'rgba(140, 140, 140, 0.3)',
-		boxColor : 'rgba(255, 255, 255, 0.07)',
-		progressBarColor : 'rgba(210, 255, 40, 1)',
-		radius : 2,
-		vertical : true,
-		min : 0.0,
-		max : 2,
-		value : 0.5
-	}).centerLeft().addEventListener("change", function(ev){
+	slides[k].levelSlider = new UISliderController(slides[k], "levelSlider");
+	slides[k].levelSlider.centerLeft().addEventListener("change", function(ev){
 	   tracks[k].volume(this.value);
 	}, false);
 };
@@ -228,8 +152,8 @@ var soloTrack = function(obj){
 	var k = obj.rel,
 		thisMuteButton = null,
 
-		muteButtons = document.getElementsByClassName("mutebutton"),
-		soloButtons = document.getElementsByClassName("solobutton");
+		muteButtons = document.getElementsByClassName("mute"),
+		soloButtons = document.getElementsByClassName("solo");
 
 	if (obj.soloed) {
 		obj.soloed = false;
@@ -260,18 +184,17 @@ var soloTrack = function(obj){
 /* -------------------------------------------------------------------------- */
 
 var _select = function(obj){
-	obj.color = "#ffffff";
-	obj.background = "red";
+	obj.removeClass("grayed");
+	obj.addClass("selected");
 };
 
 var _unselect = function(obj){
-	obj.color = "#cccccc";
-	obj.background = "rgba(33, 0, 0, 0.1)";
+	obj.removeClass("grayed");
+	obj.removeClass("selected");
 };
 
 var _grey = function(obj){
-	obj.color = "#888888";
-	obj.background = "rgba(128, 0, 0, 0.5)";
+	obj.addClass("grayed");
 };
 
 /* -------------------------------------------------------------------------- */

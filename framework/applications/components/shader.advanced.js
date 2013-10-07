@@ -361,6 +361,7 @@ document.addEventListener("DOMContentLoaded", function(){
 		}, 16);
 	});
 
+/*
 	var	radio1 = video.add("UIRadio", {
 		top : 50,
 		label : "Select this",
@@ -422,13 +423,13 @@ document.addEventListener("DOMContentLoaded", function(){
 		label : "Low Frequency Oscillator",
 		background : "#222222",
 		pins : [
-		/* pin 0 */	{label:"Pitch",			type:"output"},
-		/* pin 1 */	{label:"Frequency",		type:"output"},
-		/* pin 2 */	{label:"Resonnance",	type:"output"},
-		/* pin 3 */	{label:"Audio Out",		type:"output"}
+		{label:"Pitch",			type:"output"},
+		{label:"Frequency",		type:"output"},
+		{label:"Resonnance",	type:"output"},
+		{label:"Audio Out",		type:"output"}
 		]
 	});
-
+	*/
 
 });
 

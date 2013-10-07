@@ -202,7 +202,7 @@ console.log(
 
 	//load("applications/audio/test.js"); // OK
 	//load("applications/audio/mixer.js"); // OK
-	load("applications/audio/dsp.js"); // OK
+	//load("applications/audio/dsp.js"); // OK
 	//load("applications/media/video.js"); // OK
 
 /* FILE API */
@@ -215,7 +215,7 @@ console.log(
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // OK
-	//load("applications/components/shader.advanced.js"); // OK
+	load("applications/components/shader.advanced.js"); // OK
 
 
 /*
