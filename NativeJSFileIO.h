@@ -28,7 +28,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSFileIO() {};
+    NativeJSFileIO() : m_Binnary(true) {};
     ~NativeJSFileIO() {};
 
     void onNFIOOpen(NativeFileIO *);
@@ -47,6 +47,8 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
     } callbacks;
 
     JSObject *jsobj;
+
+    bool m_Binnary;
 
   private:
 
