@@ -94,11 +94,23 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *url;
     NativeFileIO *NFIO;
     NativeJSFileIO *NJSFIO;
+    bool binnary;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
-        return JS_TRUE;
+        return false;
+    }
+
+    // Passing "S/b" to JS_ConvertArguments crash (no crash in debug build)
+    // Here is a quick workaround for that issue
+    if (argc > 1) {
+        JS::Value val = JS_ARGV(cx, vp)[1];
+        if (val.isBoolean()) {
+            binnary = val.toBoolean();
+        } else {
+            binnary = true;
+        }
     }
 
     JSAutoByteString curl(cx, url);
@@ -116,6 +128,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     NJSFIO->jsobj = ret;
     NJSFIO->cx = cx;
+    NJSFIO->m_Binnary = binnary;
 
     NJSFIO->setNFIO(NFIO);
 
@@ -384,11 +397,16 @@ void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t
 
     JSAutoRequest ar(cx);
 
-    JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
-    uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-    memcpy(adata, data, len);
+    if (NJSFIO->m_Binnary) {
+        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
+        uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
+        memcpy(adata, data, len);
 
-    jdata = OBJECT_TO_JSVAL(arrayBuffer);
+        jdata = OBJECT_TO_JSVAL(arrayBuffer);
+    } else {
+        JSString *str = JS_NewStringCopyN(cx, (const char*)data, len);
+        jdata = STRING_TO_JSVAL(str);
+    }
 
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.read,
         1, &jdata, &rval);
