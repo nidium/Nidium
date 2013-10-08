@@ -26,6 +26,10 @@ extern JSClass Canvas_class;
 JS_ReportError(cx, "Invalid NativeAudio context");\
 return JS_FALSE;\
 }
+void FIXMEReportError(JSContext *cx, const char *message, JSErrorReport *report)
+{
+    printf("%s\n", message);
+}
 
 extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
@@ -307,6 +311,7 @@ bool NativeJSAudio::createContext()
             printf("Failed to init JS runtime\n");
             return false;
         }
+        //JS_SetRuntimePrivate(rt, this->cx);
 
         JS_SetGCParameter(this->rt, JSGC_MAX_BYTES, 0xffffffff);
         JS_SetGCParameter(this->rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
@@ -332,7 +337,7 @@ bool NativeJSAudio::createContext()
 
         JS_SetOptions(this->tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
-        JS_SetErrorReporter(this->tcx, reportError);
+        JS_SetErrorReporter(this->tcx, FIXMEReportError);
         JS_SetGlobalObject(this->tcx, this->gbl);
         JS_DefineFunctions(this->tcx, this->gbl, glob_funcs_threaded);
 
@@ -512,12 +517,19 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
 
     JSAutoRequest ar(tcx);
 
-    if (!thiz->bufferFn) {
+    if (!thiz->bufferFn && thiz->bufferStr) {
         const char *args[2] = {"ev", "scope"};
+
+        thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_onbuffer", 2, args, thiz->bufferStr, strlen(thiz->bufferStr), "FILENAME (TODO)", 0);
+        if (!thiz->bufferFn) {
+            JS_ReportError(tcx, "Failed to compile CustomAudioNode_onbuffer function\n%s\n", thiz->bufferStr);
+            JS_free(tcx, (void *)thiz->bufferStr);
+            thiz->bufferStr = NULL;
+            return;
+        }
 
         thiz->nodeObj = JS_NewObject(tcx, &AudioNode_threaded_class, NULL, NULL);
         JS_AddObjectRoot(tcx, &thiz->nodeObj);
-        thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_onbuffer", 2, args, thiz->bufferStr, strlen(thiz->bufferStr), "FILENAME (TODO)", 0);
 
         JS_free(tcx, (void *)thiz->bufferStr);
 
@@ -778,7 +790,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
         free(this->arrayContent);
     }
 
-    delete this->node;
+    this->node->unref();
 
     JS_SetPrivate(this->jsobj, NULL);
 }
