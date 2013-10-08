@@ -149,4 +149,22 @@ Audio.lib = function(){
 	};
 
 	/* ---------------------------------------------------------------------- */ 
+
+	scope.Compressor = function(){
+		this.invScale = 1.0;
+		this.gain = 0.5;
+	};
+	scope.Compressor.prototype = {
+		update : function(scale, gain){
+			this.invScale = 1/Math.max(scale, 0.5);
+			this.gain = isNaN(gain) ? 0.5 : gain;
+		},
+
+		process : function(s){
+			var out = s * this.invScale;
+			return (1+this.gain) * out - this.gain * out * out * out;
+		}
+	};
+
+	/* ---------------------------------------------------------------------- */ 
 };

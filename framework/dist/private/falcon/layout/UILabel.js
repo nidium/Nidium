@@ -41,6 +41,18 @@ Native.elements.export("UILabel", {
 		NDMElement.defineDynamicProperties(this, {
 			autowidth : OptionalBoolean(o.autowidth, true)
 		});
+
+		this.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("drag", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("dragend", function(e){
+			e.forcePropagation();
+		}, true);
 	},
 
 	update : function(e){

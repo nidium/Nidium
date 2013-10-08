@@ -26,17 +26,28 @@
 
 document.nss.add({
 	"UISliderController" : {
-		width : 224,
-		height : 16,
-		color : "black",
-		boxColor : "rgba(255, 255, 255, 0.05)"
-	}
+		left : 130,
+		width : 160,
+		height : 12,
+		color : "black"
+	},
+
+	".label" : {
+		color : "rgba(255, 255, 255, 0.25)",
+		autowidth : false,
+		width : 120,
+		height : 19,
+		textAlign : "right",
+		paddingRight : 10,
+		background : "rgba(0, 0, 0, 0.4)"
+	}	
 });
 
 var main = new Application();
+main.backgroundImage = "private://assets/patterns/wood_1.png";
 
 var app = {
-	audioBufferSize : 4096,
+	audioBufferSize : 2048,
 
 	dftSize : 128,
 	dftBuffer : new Float64Array(128),
@@ -56,7 +67,7 @@ var app = {
 		});
 		*/
 
-		this.load("../../media/sympho.mp3");
+		this.load("../../media/dream.mp3");
 
 	},
 
@@ -85,11 +96,18 @@ var app = {
 
 		this.processor.oninit = function(scope){
 			scope.step = 0;
+
 			scope.moogFilterL = new scope.MoogFilter();
 			scope.moogFilterR = new scope.MoogFilter();
+
 			scope.enhancer = new scope.StereoWidth();
+
 			scope.resonantL = new scope.ResonantFilter(0, 44100);
 			scope.resonantR = new scope.ResonantFilter(0, 44100);
+
+			scope.compL = new scope.Compressor();
+			scope.compR = new scope.Compressor();
+
 		};
 
 		/* Threaded Audio Processor */
@@ -102,15 +120,25 @@ var app = {
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
 				resonance = this.get("resonance"),
-				width = this.get("width");
+				width = this.get("width"),
+
+				comp_scale = this.get("comp_scale"),
+				comp_gain = this.get("comp_gain");
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);
+
+			scope.compL.update(comp_scale, comp_gain);
+			scope.compR.update(comp_scale, comp_gain);
+
 			scope.enhancer.update(width);
 
 			for (var i=0; i<size; i++) {
 				var L = gain * scope.resonantL.process(bufferL[i]);
 				var R = gain * scope.resonantR.process(bufferR[i]);
+
+				L = scope.compL.process(L);
+				R = scope.compR.process(R);
 
 				var eh = scope.enhancer.process(L, R);
 
@@ -131,10 +159,13 @@ var app = {
 			Spectral.ondata();
 		};
 
-		this.processor.set("gain", 0.5);
-		this.processor.set("cutoff", 0.04);
+		this.processor.set("gain", 0.7);
+		this.processor.set("cutoff", 0.2);
 		this.processor.set("resonance", 0.0);
 		this.processor.set("width", 1.00);
+
+		this.processor.set("comp_scale", 2.50);
+		this.processor.set("comp_gain", 1.00);
 
 		console.log("processor initied");
 
@@ -212,11 +243,10 @@ var Spectral = {
  	loga : false,
  	step : 0,
 
- 	UIBars : [],
  	bars : [],
 
  	nbars : app.dftSize,
-	barSize : 200,
+	barSize : 150,
 
 	cw : 768,
 	ch : 250,
@@ -228,99 +258,178 @@ var Spectral = {
 	gdSpectrum : null,
 
 	createSpectrumView : function(){
+		this.toolkit = main.add("UIElement", {
+			top : 100,
+			width : 300,
+			height : 159,
+			background : "#282828",
+			shadowBlur : 24,
+			shadowOffsetY : 10,
+			shadowColor : "black",
+			opacity : 0.9,
+			overflow : false
+		}).centerLeft();
+
+		this.toolkit.addEventListener("drag", function(e){
+			this.left += e.xrel;
+			this.top += e.yrel;
+		});
+
 		this.spectrum = main.add("UIElement", {
-			left : 0,
-			top : 0,
+			top : 400,
 			width : this.cw,
 			height : this.ch,
 			background : "black",
 			shadowBlur : 12,
 			opacity : 0.9,
 			overflow : false
-		}).center();
+		}).centerLeft();
 
 		this.spectrum.addEventListener("drag", function(e){
 			this.left += e.xrel;
 			this.top += e.yrel;
 		});
+
+		/*
+		this.toolkit.shader("../components/shaders/landscape.s", function(program, uniforms){
+			var t = 0;
+			setInterval(function(){
+				uniforms.itime = t++;
+			}, 16);
+		});
+		*/
 	},
 
 	createControllers : function(){
-		this.spectrum.volumeSlider = this.spectrum.add("UISliderController", {
-			left : 16,
-			top : 10,
+		this.toolkit.volumeLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 0,
+			label : "Volume"
+		});
+		this.toolkit.volumeSlider = this.toolkit.add("UISliderController", {
+			top : 4,
 			min : 0.001,
-			max : 3,
-			value : 0.5
-		});
-
-		this.spectrum.cutoffSlider = this.spectrum.add("UISliderController", {
-			left : 16,
-			top : 30,
-			min : 0.02,
-			max : 0.4,
-			value : 0.08
-		});
-
-		this.spectrum.rezoSlider = this.spectrum.add("UISliderController", {
-			left : 16,
-			top : 50,
-			radius : 2,
-			min : 0,
-			max : 0.8,
-			value : 0
-		});
-
-		this.spectrum.delayTime = this.spectrum.add("UISliderController", {
-			left : 400,
-			top : 10,
-			radius : 2,
-			min : 0.0,
-			max : 1500,
-			value : 500
-		});
-
-		this.spectrum.delayWet = this.spectrum.add("UISliderController", {
-			left : 400,
-			top : 30,
-			radius : 2,
-			min : 0.0,
-			max : 1.0,
-			value : 0.0
-		});
-
-		this.spectrum.stereoSlider = this.spectrum.add("UISliderController", {
-			left : 400,
-			top : 50,
-			min : 0.0,
-			max : 3.0,
-			value : 1.0
-		});
-
-		this.spectrum.delayTime.addEventListener("change", function(e){
-			app.delay.set("delay", this.value);
-		}, false);
-
-		this.spectrum.delayWet.addEventListener("change", function(e){
-			app.delay.set("wet", this.value);
-		}, false);
-
-		this.spectrum.stereoSlider.addEventListener("change", function(e){
-			app.processor.set("width", this.value);
-		}, false);
-
-
-		this.spectrum.volumeSlider.addEventListener("change", function(e){
+			max : 1.1,
+			value : 0.7
+		}).addEventListener("change", function(e){
 			app.processor.set("gain", this.value);
 		}, false);
 
-		this.spectrum.cutoffSlider.addEventListener("change", function(e){
+
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.cutoffLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 20,
+			label : "CutOff"
+		});
+		this.toolkit.cutoffSlider = this.toolkit.add("UISliderController", {
+			top : 24,
+			min : 0.02,
+			max : 0.4,
+			value : 0.2
+		}).addEventListener("change", function(e){
 			app.processor.set("cutoff", this.value);
 		}, false);
 
-		this.spectrum.rezoSlider.addEventListener("change", function(e){
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.rezoLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 40,
+			label : "Resonance"
+		});
+		this.toolkit.rezoSlider = this.toolkit.add("UISliderController", {
+			top : 44,
+			min : 0,
+			max : 0.8,
+			value : 0
+		}).addEventListener("change", function(e){
 			app.processor.set("resonance", this.value);
 		}, false);
+
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.delayTimeLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 60,
+			label : "Delay Time"
+		});
+		this.toolkit.delayTime = this.toolkit.add("UISliderController", {
+			top : 64,
+			min : 0.0,
+			max : 1500,
+			value : 500
+		}).addEventListener("change", function(e){
+			app.delay.set("delay", this.value);
+		}, false);
+
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.delayWetLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 80,
+			label : "Delay Dry/Wet"
+		});
+		this.toolkit.delayWet = this.toolkit.add("UISliderController", {
+			top : 84,
+			min : 0.0,
+			max : 1.0,
+			value : 0.0
+		}).addEventListener("change", function(e){
+			app.delay.set("wet", this.value);
+		}, false);
+
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.stereoLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 100,
+			label : "StereoWidth"
+		});
+		this.toolkit.stereoSlider = this.toolkit.add("UISliderController", {
+			top : 104,
+			min : 0.0,
+			max : 3.0,
+			value : 1.0
+		}).addEventListener("change", function(e){
+			app.processor.set("width", this.value);
+		}, false);
+
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.compressorScaleLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 120,
+			label : "Dynamic Threshold"
+		});
+		this.toolkit.compressorScaleSlider = this.toolkit.add("UISliderController", {
+			top : 124,
+			min : 0.75,
+			max : 2.5,
+			value : 2.5
+		}).addEventListener("change", function(e){
+			app.processor.set("comp_scale", this.value);
+		}, false);
+
+		/* ------------------------------------------------------------------ */
+
+		this.toolkit.compressorGainLabel = this.toolkit.add("UILabel", {
+			class : "label",
+			top : 140,
+			label : "Dynamic Gain"
+		});
+		this.toolkit.compressorGainSlider = this.toolkit.add("UISliderController", {
+			top : 144,
+			min : 0.1,
+			max : 1.5,
+			value : 1.0
+		}).addEventListener("change", function(e){
+			app.processor.set("comp_gain", this.value);
+		}, false);
+
+		/* ------------------------------------------------------------------ */
+
 	},
 
 	createGradients : function(){
@@ -341,19 +450,6 @@ var Spectral = {
 	createBars : function(){
 		this.barW = this.cw / this.nbars;
 		this.barY = this.ch - this.barSize;
-
-		for (var i=0 ; i<this.nbars ; i++){
-			this.UIBars[i] = this.spectrum.add("UIElement", {
-				left : 1 + i * this.barW,
-				top : this.ch-1,
-				width : this.barW - 2,
-				height : this.barSize,
-				background : this.gdSpectrum,
-				shadowBlur : 2,
-				shadowOffsetY : 4,
-				shadowColor : 'rgba(255, 100, 100, 0.8)'
-			});
-		}
 
 		if (this.loga === true){
 			for (var i=1, log=Math.log ; i<this.nbars ; i++){
@@ -401,15 +497,6 @@ var Spectral = {
 	},
 
 	ondata : function(){
-		var value = 0,
-			pixelSize = 0;
-
-		for (var i=0; i<this.nbars; i++){
-			value = app.dftBuffer[i],
-			pixelSize = value*this.barSize>>0;
-
-			//this.UIBars[i].layer.top = this.ch-pixelSize;
-		}
 	},
 
 	peak : function(s, l){
@@ -436,12 +523,16 @@ var Spectral = {
 
 
 		//this.spectrum.layer.clear();
-		context.globalAlpha = 0.8;
+		context.globalAlpha = 0.9;
 
-		context.fillStyle = this.gdBack;
+		//context.fillStyle = this.gdBack;
+		//context.fillStyle = "rgba(0, 0, 0, 0.0)";
 		//context.fillStyle = this.peak(14, 10);
-		context.fillRect(0, 0, width, height);
+		//context.fillRect(0, 0, width, height);
 
+		context.clearRect(0, 0, width, height);
+
+		context.globalAlpha = 0.9;
 		context.fillStyle = this.gdSpectrum;
 
 		context.strokeStyle = "rgba(255, 255, 255, 0.6)";
@@ -471,9 +562,9 @@ var Spectral = {
 
 		context.fill();
 
-		context.strokeStyle = "#000000";
-		context.lineWidth = 1;
-		for (var y=0; y<height; y+=3){
+		context.strokeStyle = "rgba(0, 0, 0, 0.4)";
+		context.lineWidth = 3;
+		for (var y=0; y<height; y+=4){
 			context.beginPath();
 			context.moveTo(0, y);
 			context.lineTo(width, y);
