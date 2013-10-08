@@ -35,7 +35,6 @@ Native.elements.export("UIWindow", {
 				this.handle.width = this.width;
 				this.handle.closeButton.left = this.handle.width - 19;
 				this.contentView.width = this.width - 6;
-				this.resizer.updateElement();
 				this.contentView.refreshScrollBars();
 			}
 		},
@@ -44,12 +43,10 @@ Native.elements.export("UIWindow", {
 			set : function(value){
 				if (this.height<40) this.height = 40;
 				this.contentView.height = this.height - 27;
-				this.resizer.updateElement();
 				this.contentView.refreshScrollBars();
 			}
 		}
 	},
-
 
 	init : function(){
 		var self = this,

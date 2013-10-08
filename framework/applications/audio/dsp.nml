@@ -1,0 +1,17 @@
+<application version="1.0">
+	<meta>
+		<title>Native DSP Demo</title>
+		<description>This is the description of the page</description>
+		<viewport>1024x660</viewport>
+		<version>1.0</version>
+		<date>2013-09-15</date>
+		<identifier>com.company.app</identifier>
+		<author>Company Inc.</author>
+	</meta>
+	<assets>
+		<style src="private://falcon/native.nss"></style>
+		<script src="private://falcon/native.js"></script>
+		<script src="private://libs/audio.lib.js"></script>
+		<script src="dsp.js"></script>
+	</assets>
+</application>

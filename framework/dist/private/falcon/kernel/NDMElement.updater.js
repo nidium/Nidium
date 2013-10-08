@@ -18,27 +18,12 @@ NDMElement.updater = function(e){
 	switch (e.property) {
 		case "left" :
 			element.layer.left = value;
-			element.layer.scrollLeft = element._scrollLeft;
 			element._needAncestorCacheClear = true;
 			break;
 
 		case "top" :
 			element.layer.top = value;
-			element.layer.scrollTop = element._scrollTop;
 			element._needAncestorCacheClear = true;
-			break;
-
-		/*
-		case "left" :
-		case "top" :
-			element._needPositionUpdate = true;
-			element._needAncestorCacheClear = true;
-			break;
-		*/
-
-		case "scrollLeft" :
-		case "scrollTop" :
-			element._needPositionUpdate = true;
 			break;
 
 		case "width" :
@@ -51,6 +36,21 @@ NDMElement.updater = function(e){
 			element.layer.height = Math.round(value);
 			element._needAncestorCacheClear = true;
 			element._needRedraw = true;
+			break;
+
+
+
+		/*
+		case "left" :
+		case "top" :
+			element._needPositionUpdate = true;
+			element._needAncestorCacheClear = true;
+			break;
+		*/
+
+		case "scrollLeft" :
+		case "scrollTop" :
+			element._needPositionUpdate = true;
 			break;
 
 		case "opacity" :

@@ -28,8 +28,8 @@ var	win = main.add("UIWindow", {
 	movable : true
 });
 
-win.width = 320;
-win.height = 240;
+win.width = 850;
+win.height = 600;
 
 
 win.color = "rgba(0, 255, 0, 1)";
@@ -41,10 +41,10 @@ win.contentView.background = "rgba(255, 255, 255, 0.8)";
 /* Add 4 children windows to main window */
 
 var w = [];
-for (var i=0; i<4; i++){
+for (var i=0; i<3; i++){
 	w[i] = win.contentView.add("UIWindow", {
-		left : i*160,
-		top : win.height+20,
+		left : 40 + i*220,
+		top : 40 + i*160,
 		width : 150,
 		height : 150,
 		background : "rgba(0, 20, 100, 0.5)",
@@ -58,3 +58,6 @@ for (var i=0; i<4; i++){
 
 w[w.length-1].background = 'rgba(0, 0, 0, 0.2)';
 w[w.length-1].contentView.background = 'rgba(0, 0, 0, 0.45)';
+
+w[w.length-1].stickToRight = true;
+w[w.length-1].right = 10;

@@ -24,8 +24,6 @@
  * --------------------------------------------------------------------------- * 
  */
 
-"use strict";
-
 var main = new Application();
 main.backgroundImage = "private://assets/patterns/wood_1.png";
 
@@ -240,8 +238,9 @@ for (var i=0; i<tx.length; i++){
 		}
 	};
 
+	tracks[i].processor.set("gain", 1.0);
+
 	tracks[i].processor.onmessage = function(e){
 		console.log(e.message);
 	};
 }
-

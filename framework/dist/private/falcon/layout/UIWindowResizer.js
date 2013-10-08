@@ -4,19 +4,38 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIWindowResizer" : {
+		width 	: 8,
+		height 	: 8,
+		left : null,
+		top : null,
+		right : 4,
+		bottom : 4,
+		cursor	: "arrow"
+	},
+
+	"UIWindowResizer:hover" : {
+		cursor	: "pointer"
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIWindowResizer", {
 	init : function(){
 		var o = this.options;
 
-		this.setProperties({
-			width 	: OptionalNumber(o.width, 8),
-			height 	: OptionalNumber(o.height, 8),
-			cursor	: OptionalCursor(o.cursor, "resize")
-		});
+		this.layer.bottom = 4;
+		this.layer.right = 4;
 
 		this.updateElement = function(){
-			this.left = this.parent.width - this.width - 4;
-			this.top = this.parent.height - this.height - 4;
 		};
 
 		NDMElement.listeners.addDefault(this);
@@ -26,9 +45,6 @@ Native.elements.export("UIWindowResizer", {
 			win.width += e.xrel;
 			win.height += e.yrel;
 		});
-
-		this.updateElement();
-
 	},
 
 	draw : function(context){
