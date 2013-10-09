@@ -48,6 +48,7 @@ main.backgroundImage = "private://assets/patterns/wood_1.png";
 
 var app = {
 	audioBufferSize : 2048,
+	ipulse : 0,
 
 	dftSize : 128,
 	dftBuffer : new Float64Array(128),
@@ -286,6 +287,7 @@ var Spectral = {
 			var t = 0;
 			setInterval(function(){
 				uniforms.itime = t++;
+				uniforms.ipulse = app.ipulse;
 			}, 16);
 		});
 	},
@@ -419,13 +421,7 @@ var Spectral = {
 		for (var b=s; b<(s+l); b++){
 			basspeak += app.dftBuffer[b]/l;
 		}
-		if (basspeak>0.40){
-			this.spectrum.background = '#666666';
-			return '#ffffff';
-		} else {
-			this.spectrum.background = '';
-			return this.gdBack;
-		}
+		app.ipulse = basspeak*700;
 	},
 
 	draw : function(){
@@ -436,13 +432,14 @@ var Spectral = {
 			params = this.spectrum.getDrawingBounds(),
 			context = this.spectrum.layer.context;
 
+		app.ipulse = app.ipulse-100;
+		this.peak(2, 2);
 
 		//this.spectrum.layer.clear();
 		//context.globalAlpha = 0.9;
 
 		//context.fillStyle = this.gdBack;
 		//context.fillStyle = "rgba(0, 0, 0, 0.0)";
-		//context.fillStyle = this.peak(14, 10);
 		//context.fillRect(0, 0, width, height);
 
 		context.clearRect(0, 0, width, height);
