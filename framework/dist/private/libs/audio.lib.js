@@ -132,7 +132,7 @@ Audio.lib = function(){
 			this.cutoff = cutoff || 0;
 			this.resonance = resonance || 0;
 			
-			this.freq = 2 * sin(π * min(0.25, cutoff/(this.sampleRate*2))) || 0.0001;
+			this.freq = 2 * sin(π * min(0.25, cutoff/(this.sampleRate*2)));
 
 			this.damp = min(
 				2 * (1 - pow(resonance, 0.25)),
@@ -141,8 +141,6 @@ Audio.lib = function(){
 		},
 
 		process : function(input){
-			input = input || 0;
-
 			var output = 0,
 				f = this.f;
 
