@@ -73,7 +73,23 @@ Audio.lib = function(){
 
 	scope.clip = function(x){
 		return max(min(x, 1), -1);
-	}
+	};
+
+	/* ---------------------------------------------------------------------- */ 
+	/* Decay                                                                  */
+	/* ---------------------------------------------------------------------- */ 
+
+	scope.Decay = function(duration){
+		this.decay = 0.999 + duration * 0.0009;
+		this.val = 0;
+	};
+
+	scope.Decay.prototype = {
+		process : function(trig) {
+			this.val = trig ? 1 : this.val * this.decay;
+			return this.val;
+		}
+	};
 
 	/* ---------------------------------------------------------------------- */ 
 	/* Resonant Filter                                                        */
