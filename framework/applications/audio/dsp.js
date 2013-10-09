@@ -108,6 +108,8 @@ var app = {
 			scope.compL = new scope.Compressor();
 			scope.compR = new scope.Compressor();
 
+			scope.synthL = new scope.LFO(44100, "pulse", 440);
+			scope.synthR = new scope.LFO(44100, "pulse", 440);
 		};
 
 		/* Threaded Audio Processor */
@@ -146,6 +148,20 @@ var app = {
 				bufferR[i] = eh[1];
 			}
 
+			/* --- LOW FREQUENCY OSCILLATOR --- */
+			/*
+			for (var i=0; i<size; i++) {
+				scope.synthL.generate();
+				scope.synthR.generate();
+				var L = gain * scope.synthL.getSample();
+				var R = gain * scope.synthL.getSample();
+
+				bufferL[i] = L;
+				bufferR[i] = R;
+			}
+			*/
+
+
 			if ((scope.step++) % 3 == 0) {
 				this.send({
 					bufferL : bufferL,
@@ -155,7 +171,7 @@ var app = {
 		};
 
 		this.processor.onmessage = function(e){
-			self.iqDFT(e.data.bufferL, e.data.bufferR);
+			Audio.iqDFT(e.data.bufferL, e.data.bufferR);
 			Spectral.ondata();
 		};
 
@@ -169,33 +185,6 @@ var app = {
 
 		console.log("processor initied");
 
-	},
-
-
-	/*
-	 * UltraFast Magic DFT by Iñigo Quílez
-	 * JS implementation by Vincent Fontaine
-	 * http://www.iquilezles.org/www/articles/sincos/sincos.htm
-	 */
-	iqDFT : function(bufferL, bufferR){
-		var bufferSize = bufferL.length, //256
-			len = bufferSize, // 256
-			angularNormalisation = 2.0 * Math.PI/(len); // len
-
-		for(var i=0; i<this.dftSize; i++){
-			var wi = i * angularNormalisation,
-				sii = Math.sin(wi),	coi = Math.cos(wi),
-				co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
-
-			for(var j=0; j<bufferSize; j++){
-				var f = bufferL[j] + bufferR[j],
-					oco = co;
-
-				acco += co*f; co = co*coi -  si*sii;
-				acsi += si*f; si = si*coi + oco*sii;
-			}
-			this.dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/128;
-		}
 	},
 
 	connectNodes : function(){
@@ -514,7 +503,7 @@ var Spectral = {
 	},
 
 	draw : function(){
-		window.requestAnimationFrame(this.draw.bind(this));
+		//window.requestAnimationFrame(this.draw.bind(this));
 
 		var	width = this.cw,
 			height = this.ch,

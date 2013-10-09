@@ -67,7 +67,7 @@ var so = 0,
 var W = 1024,
 	H = text.length*lineHeight;
 
-var canvas = Native.canvas,
+var canvas = window.canvas,
 	ctx = canvas.getContext("2d");
 
 canvas.height = H;
@@ -122,9 +122,6 @@ var timer = setInterval(function() {
 	}
 }, 16);
 
-var c = new Canvas(100, 100);
-
-
 url = "oldscreen.s";
 
 Uint8Array.prototype.toString = function(){
@@ -146,20 +143,8 @@ File.getText = function(url, callback){
 	});
 };
 
+
+
 File.getText(url, function(source){
-	var program = ctx.attachGLSLFragment(source);
+	var program = ctx.attachFragmentShader(source);
 });
-
-/*
-
-var source = [
-	"uniform sampler2D Texture;",
-
-	"void main(void) {",
-		"gl_FragColor = texture2D(Texture, gl_TexCoord[0].xy);",
-	"}"
-].join('\n');
-
-var program = ctx.attachGLSLFragment(source);
-
-*/

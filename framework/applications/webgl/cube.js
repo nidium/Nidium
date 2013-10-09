@@ -1,43 +1,36 @@
-var camera, scene, renderer;
-var geometry, material, mesh;
+var ctx = window.canvas.getContext('2d');
 
-init();
-animate();
+ctx.fillStyle = "red";
+ctx.fillRect(0, 0, 1024, 768);
 
-function init() {
+window.innerWidth = 800;
+window.innerHeight = 600;
 
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
-    camera.position.z = 500;
+var texture = new THREE.ImageUtils.loadTexture( 'img/checkerboard.jpg' );
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+var c = new Canvas(window.innerWidth, window.innerHeight);
+window.canvas.add(c);
 
-    scene = new THREE.Scene();
+var renderer = new THREE.WebGLRenderer({canvas:c});
+    renderer.setClearColor( 0xFF00FF, 1 );
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-    geometry = new THREE.CubeGeometry( 200, 200, 200 );
-    /*
-    var materials = [];
-    var colors = [0xffffff, 0x00ffff, 0xff00ff, 0xffff00, 0x0fffff, 0xff0fff, 0xffff0f];
-    for (var i=0; i<6; i++) {
-        var mat = new THREE.MeshBasicMaterial({color: colors[i]});
-        materials.push(mat);
-    }
-    */
-    material = new THREE.MeshBasicMaterial({ 
-        map: THREE.ImageUtils.loadTexture("http://f.z.nf/crate.png")
-    });
+var geometry = new THREE.CubeGeometry(1,1,1);
+var material = new THREE.MeshBasicMaterial({map: texture});
+var cube = new THREE.Mesh(geometry, material);
+scene.add(cube);
 
-    mesh = new THREE.Mesh( geometry, material );
-    scene.add( mesh );
+camera.position.z = 5;
 
-    renderer = new THREE.WebGLRenderer();
-    renderer.setSize( window.innerWidth, window.innerHeight );
-}
+var render = function () {
+    requestAnimationFrame(render);
 
+    cube.rotation.x += 0.1;
+    cube.rotation.y += 0.1;
 
-function animate() {
-    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+};
 
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.02;
-
-    renderer.render( scene, camera );
-
-}
+render();
+//Native.showFPS(true);
