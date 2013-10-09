@@ -316,6 +316,7 @@ var Spectral = {
 
 		this.controls.push(control);
 		this.controlCount++;
+		this.toolkit.height = this.controlCount*20 - 1;
 	},
 
 	createControllers : function(){

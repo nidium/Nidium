@@ -85,9 +85,28 @@ Audio.lib = function(){
 	};
 
 	scope.Decay.prototype = {
-		process : function(trig) {
+		process : function(trig){
 			this.val = trig ? 1 : this.val * this.decay;
 			return this.val;
+		}
+	};
+
+
+	/* ---------------------------------------------------------------------- */ 
+	/* Distorsion                                                             */
+	/* ---------------------------------------------------------------------- */ 
+
+	scope.Distorsion = function(){
+		this.gain = 0.0;
+	};
+
+	scope.Distorsion.prototype = {
+		update : function(gain){
+			this.gain = gain;
+		},
+		process : function(input){
+			var d = (1.0+this.gain) * input/(1.0+this.gain*Math.abs(input));
+			return max(min(d, 1), -1);
 		}
 	};
 
