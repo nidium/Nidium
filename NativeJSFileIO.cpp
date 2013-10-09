@@ -353,8 +353,6 @@ void NativeJSFileIO::onNFIOOpen(NativeFileIO *NSFIO)
 
     JSAutoRequest ar(cx);
 
-    JS_GC(JS_GetRuntime(cx));
-
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.open,
         0, NULL, &rval);
 
