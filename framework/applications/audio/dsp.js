@@ -112,8 +112,8 @@ var app = {
 			scope.synthL = new scope.LFO(44100, "pulse", 440);
 			scope.synthR = new scope.LFO(44100, "pulse", 440);
 
-			scope.noisegen = new scope.Noise(44100);
-
+			scope.distL = new scope.Distorsion();
+			scope.distR = new scope.Distorsion();
 		};
 
 		/* Threaded Audio Processor */
@@ -121,7 +121,7 @@ var app = {
 			var processor = this,
 				bufferL = ev.data[0],
 				bufferR = ev.data[1],
-				size = bufferL.length,
+				samples = bufferL.length,
 
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
@@ -129,7 +129,9 @@ var app = {
 				width = this.get("width"),
 
 				comp_scale = this.get("comp_scale"),
-				comp_gain = this.get("comp_gain");
+				comp_gain = this.get("comp_gain"),
+
+				preamp = 1.5; //this.get("preamp");
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);
@@ -137,14 +139,22 @@ var app = {
 			scope.compL.update(comp_scale, comp_gain);
 			scope.compR.update(comp_scale, comp_gain);
 
+			/*
+			scope.distL.update(preamp);
+			scope.distR.update(preamp);
+			*/
+
 			scope.enhancer.update(width);
 
-			for (var i=0; i<size; i++) {
-				var L = gain * scope.resonantL.process(bufferL[i]);
-				var R = gain * scope.resonantR.process(bufferR[i]);
+			for (var i=0; i<samples; i++) {
+				var L = gain * scope.distL.process(bufferL[i], preamp);
+				var R = gain * scope.distR.process(bufferR[i], preamp);
 
 				L = scope.compL.process(L);
 				R = scope.compR.process(R);
+
+				L = scope.resonantL.process(L);
+				R = scope.resonantR.process(R);
 
 				var eh = scope.enhancer.process(L, R);
 
@@ -154,7 +164,7 @@ var app = {
 
 			/* --- LOW FREQUENCY OSCILLATOR --- */
 			/*
-			for (var i=0; i<size; i++) {
+			for (var i=0; i<samples; i++) {
 				scope.synthL.generate();
 				scope.synthR.generate();
 				var L = gain * scope.synthL.getSample();
@@ -186,6 +196,8 @@ var app = {
 
 		this.processor.set("comp_scale", 2.50);
 		this.processor.set("comp_gain", 1.00);
+
+		this.processor.set("preamp", 1.50);
 
 		console.log("processor initied");
 
@@ -320,6 +332,10 @@ var Spectral = {
 	},
 
 	createControllers : function(){
+		this.addControl("Preamp", 0.0, 20.0, 1.0, function(value){
+			app.processor.set("preamp", value);
+		});
+
 		this.addControl("Volume", 0.001, 1.1, 0.7, function(value){
 			app.processor.set("gain", value);
 		});

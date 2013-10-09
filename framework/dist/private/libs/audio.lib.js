@@ -56,6 +56,7 @@ Audio.iqDFT = function(bufferL, bufferR, dftBuffer){
 
 Audio.lib = function(){
 	var scope = this,
+		abs = Math.abs,
 		sin = Math.sin,
 		cos = Math.cos,
 		pow = Math.pow,
@@ -104,9 +105,13 @@ Audio.lib = function(){
 		update : function(gain){
 			this.gain = gain;
 		},
-		process : function(input){
-			var d = (1.0+this.gain) * input/(1.0+this.gain*Math.abs(input));
-			return max(min(d, 1), -1);
+
+		process : function(input, gain){
+			/*
+			var out = (1.0+this.gain) * input/(1.0+this.gain*abs(input));
+			return max(min(out, 1), -1);
+			*/
+			return gain * input;
 		}
 	};
 
@@ -388,6 +393,3 @@ Audio.lib = function(){
 
 	return scope;
 };
-
-
-
