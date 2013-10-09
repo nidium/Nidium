@@ -8,6 +8,7 @@
 #include "NativeJSCanvas.h"
 #include "NativeDB.h"
 #include "NativeNML.h"
+#include "NativeMacros.h"
 
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -95,11 +96,11 @@ static JSFunctionSpec storage_funcs[] = {
     JS_FS_END
 };
 
-NativeJSwindow::~NativeJSwindow(){
-    this->callFrameCallbacks(true);
-
-    if (m_Db)
+NativeJSwindow::~NativeJSwindow()
+{
+    if (m_Db) {
         delete m_Db;
+    }
 };
 
 void NativeJSwindow::onReady(JSObject *layout)
@@ -682,7 +683,7 @@ void NativeJSwindow::initDataBase()
     if (m_Db->ok()) {
         this->createStorage();
     } else {
-        printf("[Storage] Unable to create database for window.storage");
+        NLOG("[Storage] Unable to create database for window.storage");
     }
 }
 
