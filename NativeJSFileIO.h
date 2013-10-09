@@ -28,7 +28,12 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSFileIO() {};
+    NativeJSFileIO() {
+        callbacks.open = JSVAL_NULL;
+        callbacks.getContents = JSVAL_NULL;
+        callbacks.read = JSVAL_NULL;
+        callbacks.write = JSVAL_NULL;
+    };
     ~NativeJSFileIO() {};
 
     void onNFIOOpen(NativeFileIO *);

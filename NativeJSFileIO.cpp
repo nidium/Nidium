@@ -162,7 +162,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 
         NJSFIO->callbacks.write = callback;
 
-        JS_AddValueRoot(cx, &NJSFIO->callbacks.write);
+        NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
         NFIO->write((unsigned char *)dupstr, len);
 
@@ -183,7 +183,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 
         NJSFIO->callbacks.write = callback;
 
-        JS_AddValueRoot(cx, &NJSFIO->callbacks.write);
+        NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
         NFIO->write(cdata, len);
 
@@ -227,7 +227,7 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 
     NJSFIO->callbacks.read = callback;
 
-    JS_AddValueRoot(cx, &NJSFIO->callbacks.read);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
     NFIO->read((uint64_t)read_size);  
 
@@ -324,7 +324,7 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     NJSFIO->callbacks.open = callback;
 
-    JS_AddValueRoot(cx, &NJSFIO->callbacks.open);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
     JSAutoByteString cmodes(cx, modes);
 
@@ -340,10 +340,12 @@ void NativeJSFileIO::onNFIOOpen(NativeFileIO *NSFIO)
 
     JSAutoRequest ar(cx);
 
+    JS_GC(JS_GetRuntime(cx));
+
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.open,
         0, NULL, &rval);
 
-    JS_RemoveValueRoot(cx, &NJSFIO->callbacks.open);
+    NativeJS::getNativeClass(cx)->unrootObject(JSVAL_TO_OBJECT(NJSFIO->callbacks.open));
 }
 
 void NativeJSFileIO::onNFIOError(NativeFileIO *NSFIO, int errno)
@@ -356,7 +358,7 @@ void NativeJSFileIO::onNFIOError(NativeFileIO *NSFIO, int errno)
     /*JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.open,
         0, NULL, &rval);*/
 
-    JS_RemoveValueRoot(cx, &NJSFIO->callbacks.open);
+    NativeJS::getNativeClass(cx)->unrootObject(JSVAL_TO_OBJECT(NJSFIO->callbacks.open));
 }
 
 void NativeJSFileIO::onNFIOWrite(NativeFileIO *NSFIO, size_t written)
@@ -372,7 +374,7 @@ void NativeJSFileIO::onNFIOWrite(NativeFileIO *NSFIO, size_t written)
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.write,
         1, &jdata, &rval);
 
-    JS_RemoveValueRoot(cx, &NJSFIO->callbacks.write);
+    NativeJS::getNativeClass(cx)->unrootObject(JSVAL_TO_OBJECT(NJSFIO->callbacks.write));
 }
 
 void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t len)
@@ -393,8 +395,7 @@ void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.read,
         1, &jdata, &rval);
 
-    JS_RemoveValueRoot(cx, &NJSFIO->callbacks.read);
-
+    NativeJS::getNativeClass(cx)->unrootObject(JSVAL_TO_OBJECT(NJSFIO->callbacks.read));
 }
 
 void NativeJSFileIO::registerObject(JSContext *cx)
