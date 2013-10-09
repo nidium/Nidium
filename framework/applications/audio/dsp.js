@@ -282,7 +282,7 @@ var Spectral = {
 			this.top += e.yrel;
 		});
 
-		main.shader("../components/shaders/water.s", function(program, uniforms){
+		main.shader("pulse.s", function(program, uniforms){
 			var t = 0;
 			setInterval(function(){
 				uniforms.itime = t++;

@@ -19,7 +19,7 @@ const float speed_x = 0.3;
 const float speed_y = 0.3;
 
 // geometry
-const float intensity = 0.1;
+const float intensity = 3.;
 const int steps = 6;
 const float freq = 2.0;
 const int angle = 7; // better when a prime
@@ -39,7 +39,7 @@ float col(vec2 coord) {
 		theta = delta_theta*float(i);
 		adjc.x += cos(theta)*time*speed + time * speed_x;
 		adjc.y -= sin(theta)*time*speed - time * speed_y;
-		col = col + cos( (adjc.x*cos(theta) - adjc.y*sin(theta))*freq)*intensity*pulse;
+		col = col + cos( (adjc.x*cos(theta) - adjc.y*sin(theta))*freq)*intensity;
 	}
 
 	return cos(col);
