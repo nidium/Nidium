@@ -111,6 +111,7 @@ Audio.lib = function(){
 			var out = (1.0+this.gain) * input/(1.0+this.gain*abs(input));
 			return max(min(out, 1), -1);
 			*/
+			
 			return gain * input;
 		}
 	};
@@ -132,18 +133,20 @@ Audio.lib = function(){
 
 	scope.ResonantFilter.prototype = {
 		update : function(cutoff, resonance){
-			this.cutoff = cutoff;
-			this.resonance = resonance;
+			this.cutoff = cutoff || 0;
+			this.resonance = resonance || 0;
 			
-			this.freq = 2 * sin(π * min(0.25, cutoff/(this.sampleRate*2)));
+			this.freq = 2 * sin(π * min(0.25, cutoff/(this.sampleRate*2))) || 0.0001;
 
 			this.damp = min(
 				2 * (1 - pow(resonance, 0.25)),
 				min(2, 2/this.freq - this.freq * 0.5)
-			);
+			) || 0;
 		},
 
 		process : function(input){
+			input = input || 0.0001;
+
 			var output = 0,
 				f = this.f;
 
@@ -185,8 +188,8 @@ Audio.lib = function(){
 
 	scope.MoogFilter.prototype = {
 		update : function(cutoff, resonance){
-			this.cutoff = cutoff;
-			this.resonance = resonance;
+			this.cutoff = cutoff || 0;
+			this.resonance = resonance || 0;
 		},
 
 		process : function(input){

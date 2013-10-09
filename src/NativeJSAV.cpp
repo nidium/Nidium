@@ -1144,8 +1144,8 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
     JSString *name;
     ArgType type;
     void *value;
-    int intVal;
-    double doubleVal;
+    int intVal = 0;
+    double doubleVal = 0;
     unsigned long size;
     NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
 

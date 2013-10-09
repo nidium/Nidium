@@ -131,7 +131,7 @@ var app = {
 				comp_scale = this.get("comp_scale"),
 				comp_gain = this.get("comp_gain"),
 
-				preamp = 1.5; //this.get("preamp");
+				preamp = this.get("preamp");
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);

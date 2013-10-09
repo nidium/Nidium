@@ -97,7 +97,7 @@ void NativeAudio::bufferData() {
 #endif
 
 void *NativeAudio::queueThread(void *args) {
-#define MAX_MSG_IN_ROW 20
+#define MAX_MSG_IN_ROW 1024
     NativeAudio *audio = (NativeAudio *)args;
     bool wrote;
     int nread;
