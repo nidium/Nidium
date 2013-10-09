@@ -2,7 +2,7 @@
 	<meta>
 		<title>Native DSP Demo</title>
 		<description>This is the description of the page</description>
-		<viewport>1024x660</viewport>
+		<viewport>1480x1024</viewport>
 		<version>1.0</version>
 		<date>2013-09-15</date>
 		<identifier>com.company.app</identifier>

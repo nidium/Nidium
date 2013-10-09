@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * NATiVE DSP DEMO                                         (c) 2013 nidium.com * 
+ * NIDIUM DSP DEMO                                         (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Version:     1.0                                                            *
  * Author:      Vincent Fontaine                                               *
@@ -162,7 +162,7 @@ var app = {
 			*/
 
 
-			if ((scope.step++) % 3 == 0) {
+			if ((scope.step++) % 2 == 0) {
 				this.send({
 					bufferL : bufferL,
 					bufferR : bufferR
@@ -171,7 +171,7 @@ var app = {
 		};
 
 		this.processor.onmessage = function(e){
-			Audio.iqDFT(e.data.bufferL, e.data.bufferR);
+			Audio.iqDFT(e.data.bufferL, e.data.bufferR, self.dftBuffer);
 			Spectral.ondata();
 		};
 
@@ -231,6 +231,9 @@ var app = {
 var Spectral = {
  	loga : false,
  	step : 0,
+	
+	controls : [],
+	controlCount : 0,
 
  	bars : [],
 
@@ -289,136 +292,61 @@ var Spectral = {
 		*/
 	},
 
+	addControl : function(label, min, max, val, changeCallback){
+		var top = this.controlCount * 20;
+
+		var control = this.toolkit.add("UILabel", {
+			class : "label",
+			top : top,
+			label : label
+		});
+		control.slider = this.toolkit.add("UISliderController", {
+			top : top+4,
+			min : min,
+			max : max,
+			value : val
+		}).addEventListener("change", function(e){
+			if (typeof(changeCallback) == "function") {
+				changeCallback.call(this, this.value);
+			}
+		}, false);
+
+		this.controls.push(control);
+		this.controlCount++;
+	},
+
 	createControllers : function(){
-		this.toolkit.volumeLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 0,
-			label : "Volume"
+		this.addControl("Volume", 0.001, 1.1, 0.7, function(value){
+			app.processor.set("gain", value);
 		});
-		this.toolkit.volumeSlider = this.toolkit.add("UISliderController", {
-			top : 4,
-			min : 0.001,
-			max : 1.1,
-			value : 0.7
-		}).addEventListener("change", function(e){
-			app.processor.set("gain", this.value);
-		}, false);
 
-
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.cutoffLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 20,
-			label : "CutOff"
+		this.addControl("CutOff Frequency", 0.02, 0.4, 0.2, function(value){
+			app.processor.set("cutoff", value);
 		});
-		this.toolkit.cutoffSlider = this.toolkit.add("UISliderController", {
-			top : 24,
-			min : 0.02,
-			max : 0.4,
-			value : 0.2
-		}).addEventListener("change", function(e){
-			app.processor.set("cutoff", this.value);
-		}, false);
 
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.rezoLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 40,
-			label : "Resonance"
+		this.addControl("Resonance", 0.0, 0.7, 0.0, function(value){
+			app.processor.set("resonance", value);
 		});
-		this.toolkit.rezoSlider = this.toolkit.add("UISliderController", {
-			top : 44,
-			min : 0,
-			max : 0.8,
-			value : 0
-		}).addEventListener("change", function(e){
-			app.processor.set("resonance", this.value);
-		}, false);
 
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.delayTimeLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 60,
-			label : "Delay Time"
+		this.addControl("Delay Time", 0, 1500, 500, function(value){
+			app.delay.set("delay", value);
 		});
-		this.toolkit.delayTime = this.toolkit.add("UISliderController", {
-			top : 64,
-			min : 0.0,
-			max : 1500,
-			value : 500
-		}).addEventListener("change", function(e){
-			app.delay.set("delay", this.value);
-		}, false);
 
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.delayWetLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 80,
-			label : "Delay Dry/Wet"
+		this.addControl("Delay Wet", 0.0, 1.0, 0.0, function(value){
+			app.delay.set("wet", value);
 		});
-		this.toolkit.delayWet = this.toolkit.add("UISliderController", {
-			top : 84,
-			min : 0.0,
-			max : 1.0,
-			value : 0.0
-		}).addEventListener("change", function(e){
-			app.delay.set("wet", this.value);
-		}, false);
 
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.stereoLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 100,
-			label : "StereoWidth"
+		this.addControl("StereoWidth", 0.0, 3.0, 1.0, function(value){
+			app.processor.set("width", value);
 		});
-		this.toolkit.stereoSlider = this.toolkit.add("UISliderController", {
-			top : 104,
-			min : 0.0,
-			max : 3.0,
-			value : 1.0
-		}).addEventListener("change", function(e){
-			app.processor.set("width", this.value);
-		}, false);
 
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.compressorScaleLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 120,
-			label : "Dynamic Threshold"
+		this.addControl("Dynamic Threshold", 0.75, 2.5, 2.5, function(value){
+			app.processor.set("comp_scale", value);
 		});
-		this.toolkit.compressorScaleSlider = this.toolkit.add("UISliderController", {
-			top : 124,
-			min : 0.75,
-			max : 2.5,
-			value : 2.5
-		}).addEventListener("change", function(e){
-			app.processor.set("comp_scale", this.value);
-		}, false);
 
-		/* ------------------------------------------------------------------ */
-
-		this.toolkit.compressorGainLabel = this.toolkit.add("UILabel", {
-			class : "label",
-			top : 140,
-			label : "Dynamic Gain"
+		this.addControl("Dynamic Gain", 0.1, 1.5, 1.0, function(value){
+			app.processor.set("comp_gain", value);
 		});
-		this.toolkit.compressorGainSlider = this.toolkit.add("UISliderController", {
-			top : 144,
-			min : 0.1,
-			max : 1.5,
-			value : 1.0
-		}).addEventListener("change", function(e){
-			app.processor.set("comp_gain", this.value);
-		}, false);
-
-		/* ------------------------------------------------------------------ */
-
 	},
 
 	createGradients : function(){
@@ -503,7 +431,7 @@ var Spectral = {
 	},
 
 	draw : function(){
-		//window.requestAnimationFrame(this.draw.bind(this));
+		window.requestAnimationFrame(this.draw.bind(this));
 
 		var	width = this.cw,
 			height = this.ch,
@@ -512,7 +440,7 @@ var Spectral = {
 
 
 		//this.spectrum.layer.clear();
-		context.globalAlpha = 0.9;
+		//context.globalAlpha = 0.9;
 
 		//context.fillStyle = this.gdBack;
 		//context.fillStyle = "rgba(0, 0, 0, 0.0)";
@@ -521,7 +449,7 @@ var Spectral = {
 
 		context.clearRect(0, 0, width, height);
 
-		context.globalAlpha = 0.9;
+		//context.globalAlpha = 0.9;
 		context.fillStyle = this.gdSpectrum;
 
 		context.strokeStyle = "rgba(255, 255, 255, 0.6)";

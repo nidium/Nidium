@@ -29,12 +29,12 @@
 /* http://www.iquilezles.org/www/articles/sincos/sincos.htm                   */
 /* -------------------------------------------------------------------------- */ 
 
-Audio.iqDFT = function(bufferL, bufferR){
-	var bufferSize = bufferL.length, //256
-		len = bufferSize, // 256
-		angularNormalisation = 2.0 * Math.PI/(len); // len
+Audio.iqDFT = function(bufferL, bufferR, dftBuffer){
+	var dftSize = dftBuffer.byteLength,
+		bufferSize = bufferL.length,
+		angularNormalisation = 2.0 * Math.PI/(bufferSize*4);
 
-	for(var i=0; i<this.dftSize; i++){
+	for(var i=0; i<dftSize; i++){
 		var wi = i * angularNormalisation,
 			sii = Math.sin(wi),	coi = Math.cos(wi),
 			co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
@@ -46,7 +46,7 @@ Audio.iqDFT = function(bufferL, bufferR){
 			acco += co*f; co = co*coi -  si*sii;
 			acsi += si*f; si = si*coi + oco*sii;
 		}
-		this.dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/128;
+		dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/128;
 	}
 };
 
