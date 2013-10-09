@@ -572,6 +572,8 @@ NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
 
+    canvas->flush();
+
     while (nstate) {
         struct _nativeState *tmp = nstate->next;
         //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
