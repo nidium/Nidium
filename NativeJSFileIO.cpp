@@ -94,7 +94,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *url;
     NativeFileIO *NFIO;
     NativeJSFileIO *NJSFIO;
-    bool binnary;
+    bool binary;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
 
@@ -107,9 +107,9 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     if (argc > 1) {
         JS::Value val = JS_ARGV(cx, vp)[1];
         if (val.isBoolean()) {
-            binnary = val.toBoolean();
+            binary = val.toBoolean();
         } else {
-            binnary = true;
+            binary = true;
         }
     }
 
@@ -128,7 +128,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     NJSFIO->jsobj = ret;
     NJSFIO->cx = cx;
-    NJSFIO->m_Binnary = binnary;
+    NJSFIO->m_Binary = binary;
 
     NJSFIO->setNFIO(NFIO);
 
@@ -397,7 +397,7 @@ void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t
 
     JSAutoRequest ar(cx);
 
-    if (NJSFIO->m_Binnary) {
+    if (NJSFIO->m_Binary) {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
         uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
         memcpy(adata, data, len);
