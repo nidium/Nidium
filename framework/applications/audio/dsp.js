@@ -282,14 +282,12 @@ var Spectral = {
 			this.top += e.yrel;
 		});
 
-		/*
-		this.toolkit.shader("../components/shaders/landscape.s", function(program, uniforms){
+		main.shader("../components/shaders/water.s", function(program, uniforms){
 			var t = 0;
 			setInterval(function(){
 				uniforms.itime = t++;
 			}, 16);
 		});
-		*/
 	},
 
 	addControl : function(label, min, max, val, changeCallback){

@@ -4,10 +4,12 @@ precision highp float;
 
 uniform sampler2D tex0;
 uniform int itime;
+uniform int ipulse;
 
 uniform vec2 n_Resolution;
 
 float time = float(itime)/50.;
+float pulse = 0.0001+float(ipulse)/2.;
 
 const float PI = 3.1415926535897932;
 
@@ -17,7 +19,7 @@ const float speed_x = 0.3;
 const float speed_y = 0.3;
 
 // geometry
-const float intensity = 3.;
+const float intensity = 0.1;
 const int steps = 6;
 const float freq = 2.0;
 const int angle = 7; // better when a prime
@@ -37,7 +39,7 @@ float col(vec2 coord) {
 		theta = delta_theta*float(i);
 		adjc.x += cos(theta)*time*speed + time * speed_x;
 		adjc.y -= sin(theta)*time*speed - time * speed_y;
-		col = col + cos( (adjc.x*cos(theta) - adjc.y*sin(theta))*freq)*intensity;
+		col = col + cos( (adjc.x*cos(theta) - adjc.y*sin(theta))*freq)*intensity*pulse;
 	}
 
 	return cos(col);
