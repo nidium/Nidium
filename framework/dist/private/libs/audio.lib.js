@@ -106,13 +106,9 @@ Audio.lib = function(){
 			this.gain = gain;
 		},
 
-		process : function(input, gain){
-			/*
+		process : function(input){
 			var out = (1.0+this.gain) * input/(1.0+this.gain*abs(input));
 			return max(min(out, 1), -1);
-			*/
-			
-			return gain * input;
 		}
 	};
 
@@ -124,7 +120,7 @@ Audio.lib = function(){
 		this.type = type;
 		this.sampleRate = sampleRate;
 
-		this.f = new Float32Array(4);
+		this.f = []; //new Float32Array(4); // laggy
 		this.f[0] = 0.0; // Low Pass
 		this.f[1] = 0.0; // High Pass
 		this.f[2] = 0.0; // Band Pass
@@ -145,7 +141,7 @@ Audio.lib = function(){
 		},
 
 		process : function(input){
-			input = input || 0.0001;
+			input = input || 0;
 
 			var output = 0,
 				f = this.f;

@@ -139,16 +139,14 @@ var app = {
 			scope.compL.update(comp_scale, comp_gain);
 			scope.compR.update(comp_scale, comp_gain);
 
-			/*
 			scope.distL.update(preamp);
 			scope.distR.update(preamp);
-			*/
 
 			scope.enhancer.update(width);
 
 			for (var i=0; i<samples; i++) {
-				var L = gain * scope.distL.process(bufferL[i], preamp);
-				var R = gain * scope.distR.process(bufferR[i], preamp);
+				var L = gain * scope.distL.process(bufferL[i]);
+				var R = gain * scope.distR.process(bufferR[i]);
 
 				L = scope.compL.process(L);
 				R = scope.compR.process(R);
