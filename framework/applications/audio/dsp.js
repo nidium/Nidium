@@ -330,7 +330,7 @@ var Spectral = {
 	},
 
 	createControllers : function(){
-		this.addControl("Preamp", 0.0, 20.0, 1.0, function(value){
+		this.addControl("Preamp", 0.001, 25.0, 0.001, function(value){
 			app.processor.set("preamp", value);
 		});
 

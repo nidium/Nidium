@@ -120,7 +120,7 @@ Audio.lib = function(){
 		this.type = type;
 		this.sampleRate = sampleRate;
 
-		this.f = []; //new Float32Array(4); // laggy
+		this.f = new Float64Array(4); // laggy
 		this.f[0] = 0.0; // Low Pass
 		this.f[1] = 0.0; // High Pass
 		this.f[2] = 0.0; // Band Pass
