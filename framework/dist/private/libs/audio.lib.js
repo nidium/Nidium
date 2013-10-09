@@ -202,15 +202,34 @@ Audio.lib = function(){
 			this.gain = isNaN(gain) ? 0.5 : gain;
 		},
 
-		process : function(s){
-			var out = s * this.invScale;
+		process : function(input){
+			var out = input * this.invScale;
 			return (1+this.gain) * out - this.gain * out * out * out;
 		}
 	};
 
-	/* +-----------+--------------------------------------------------------- */ 
-	/* |Generators | Noise                                                    */
-	/* +-----------+--------------------------------------------------------- */ 
+	/* ---------------------------------------------------------------------- */ 
+	/* Normalizer                                                             */
+	/* ---------------------------------------------------------------------- */ 
+
+	scope.Normalizer = function(){
+		this.pos = 0.0;
+		this.max = 0.0;
+		this.follower = 0.0;
+	};
+
+	scope.Normalizer.prototype = {
+		process : function(input){
+			this.max = (input>this.max) ? input : this.max * 0.9998;
+			this.follower = this.follower * 0.9998 + this.max * 0.0002;
+			input *= 1.0/this.follower;
+			return input;
+		}
+	};
+
+	/* +------------+-------------------------------------------------------- */ 
+	/* | Generators | Noise                                                   */
+	/* +------------+-------------------------------------------------------- */ 
 
 	scope.Noise = function(sampleRate){
 		this.sampleRate	= isNaN(sampleRate) ? sampleRate : 44100;
@@ -263,9 +282,9 @@ Audio.lib = function(){
 		}
 	};
 
-	/* +-----------+--------------------------------------------------------- */ 
-	/* |Generators | Low Frequency Oscillator                                 */
-	/* +-----------+--------------------------------------------------------- */ 
+	/* +------------+-------------------------------------------------------- */ 
+	/* | Generators | Low Frequency Oscillator                                */
+	/* +------------+-------------------------------------------------------- */ 
 
 	scope.LFO = function(sampleRate, shape, freq){
 		this.frequency	= isNaN(freq) ? 440 : freq;

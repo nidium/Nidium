@@ -111,6 +111,9 @@ var app = {
 
 			scope.synthL = new scope.LFO(44100, "pulse", 440);
 			scope.synthR = new scope.LFO(44100, "pulse", 440);
+
+			scope.noisegen = new scope.Noise(44100);
+
 		};
 
 		/* Threaded Audio Processor */
