@@ -113,22 +113,17 @@ Audio.lib = function(){
 	};
 
 	scope.ADSR.prototype = {
-		update : function(attack, decay, sustain, release){
+		update : function(trigger, attack, decay, sustain, release){
 			var smp = this.sampleRate * 0.001;
 			this.A = attack*smp;
 			this.D = decay*smp;
 			this.S = sustain;
 			this.R = release*smp;
-		},
 
-		noteon : function(){
-			this.time = 0;
-			this.noteon = true;
-		},
-
-		noteoff : function(){
-			this.time = 0;
-			this.noteon = false;
+			if (this.noteon != trigger) {
+				this.time = 0;
+				this.noteon = trigger;
+			}
 		},
 
 		process : function(){

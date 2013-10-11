@@ -114,6 +114,8 @@ var app = {
 
 			scope.distL = new scope.Distorsion();
 			scope.distR = new scope.Distorsion();
+
+			scope.envelope = new scope.ADSR(44100);
 		};
 
 		/* Threaded Audio Processor */
@@ -131,7 +133,14 @@ var app = {
 				comp_scale = this.get("comp_scale"),
 				comp_gain = this.get("comp_gain"),
 
-				preamp = this.get("preamp");
+				preamp = this.get("preamp"),
+
+				noteon = this.get("noteon"),
+				A = this.get("adsr_A"),
+				D = this.get("adsr_D"),
+				S = this.get("adsr_S"),
+				R = this.get("adsr_R");
+
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);
@@ -143,6 +152,7 @@ var app = {
 			scope.distR.update(preamp);
 
 			scope.enhancer.update(width);
+			scope.envelope.update(noteon, A, D, S, R);
 
 			for (var i=0; i<samples; i++) {
 				var L = gain * scope.distL.process(bufferL[i]);
@@ -154,10 +164,11 @@ var app = {
 				L = scope.resonantL.process(L);
 				R = scope.resonantR.process(R);
 
-				var eh = scope.enhancer.process(L, R);
+				var eh = scope.enhancer.process(L, R),
+					volume = scope.envelope.process();
 
-				bufferL[i] = eh[0];
-				bufferR[i] = eh[1];
+				bufferL[i] = eh[0] * volume;
+				bufferR[i] = eh[1] * volume;
 			}
 
 			/* --- LOW FREQUENCY OSCILLATOR --- */
@@ -196,6 +207,12 @@ var app = {
 		this.processor.set("comp_gain", 1.00);
 
 		this.processor.set("preamp", 1.50);
+
+		this.processor.set("noteon", false);
+		this.processor.set("adsr_A", 10);
+		this.processor.set("adsr_D", 0);
+		this.processor.set("adsr_S", 1);
+		this.processor.set("adsr_R", 10);
 
 		console.log("processor initied");
 
@@ -267,7 +284,7 @@ var Spectral = {
 		this.toolkit = main.add("UIElement", {
 			top : 100,
 			width : 300,
-			height : 159,
+			height : 20,
 			background : "#282828",
 			shadowBlur : 24,
 			shadowOffsetY : 10,
@@ -365,6 +382,20 @@ var Spectral = {
 		this.addControl("Dynamic Gain", 0.1, 1.5, 1.0, function(value){
 			app.processor.set("comp_gain", value);
 		});
+
+		this.addControl("A", 0, 2000, 10, function(value){
+			app.processor.set("adsr_A", value);
+		});
+		this.addControl("D", 0, 2000, 0, function(value){
+			app.processor.set("adsr_D", value);
+		});
+		this.addControl("S", 0, 1, 1, function(value){
+			app.processor.set("adsr_S", value);
+		});
+		this.addControl("R", 0, 3000, 10, function(value){
+			app.processor.set("adsr_R", value);
+		});
+
 	},
 
 	createGradients : function(){
@@ -419,6 +450,19 @@ var Spectral = {
 			left : window.width-58,
 			top : 8,
 			label : "Select"
+		});
+
+		var	noteon = new UIButton(main, {
+			left : window.width-64,
+			top : 34,
+			label : "NoteOn"
+		});
+
+		noteon.addEventListener("mousedown", function(){
+			app.processor.set("noteon", true);
+		});
+		noteon.addEventListener("mouseup", function(){
+			app.processor.set("noteon", false);
 		});
 
 		app.init();
