@@ -4,6 +4,8 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+document.status.open();
+
 var t = new Thread(function(...n){
 	var p = 0;
 	for (var i=0; i<20000000; i++){
@@ -12,8 +14,6 @@ var t = new Thread(function(...n){
 	}
 	return n;
 });
-
-document.status.open();
 
 t.onmessage = function(e){
 	var i = e.data,
@@ -31,4 +31,3 @@ t.oncomplete = function(e){
 };
 
 t.start(5, 6, 6, 9);
-

@@ -67,6 +67,9 @@ Audio.lib = function(){
 		π = Math.PI,
 		π2 = 2.0*π;
 
+	var map = function(val, inMin, inMax, outMin, outMax){
+		return outMin + (outMax-outMin)*(val-inMin) / (inMax-inMin);
+	};
 
 	/* ---------------------------------------------------------------------- */ 
 	/* Clipper                                                                */
@@ -76,9 +79,9 @@ Audio.lib = function(){
 		return max(min(x, 1), -1);
 	};
 
-	/* ---------------------------------------------------------------------- */ 
-	/* Decay                                                                  */
-	/* ---------------------------------------------------------------------- */ 
+	/* +----------+---------------------------------------------------------- */ 
+	/* | Envelope | Decay                                                     */
+	/* +----------+---------------------------------------------------------- */ 
 
 	scope.Decay = function(duration){
 		this.decay = 0.999 + duration * 0.0009;
@@ -89,6 +92,72 @@ Audio.lib = function(){
 		process : function(trig){
 			this.val = trig ? 1 : this.val * this.decay;
 			return this.val;
+		}
+	};
+
+	/* +----------+---------------------------------------------------------- */ 
+	/* | Envelope | ADSR                                                      */
+	/* +----------+---------------------------------------------------------- */ 
+
+	scope.ADSR = function(sampleRate){
+		this.sampleRate = sampleRate || 44100;
+		this.noteon = false;
+
+		this.A = 0;
+		this.D = 0;
+		this.S = 1;
+		this.R = 0;
+
+		this.time = 0;
+		this.volume = 0;
+	};
+
+	scope.ADSR.prototype = {
+		update : function(attack, decay, sustain, release){
+			var smp = this.sampleRate * 0.001;
+			this.A = attack*smp;
+			this.D = decay*smp;
+			this.S = sustain;
+			this.R = release*smp;
+		},
+
+		noteon : function(){
+			this.time = 0;
+			this.noteon = true;
+		},
+
+		noteoff : function(){
+			this.time = 0;
+			this.noteon = false;
+		},
+
+		process : function(){
+			var v = 1,
+				A = this.A,
+				D = this.D,
+				S = this.S,
+				R = this.R,
+				T = this.time++,
+				Z = T-A;
+
+			if (this.noteon){
+				if (Z < 0){
+					/* Attack */
+					this.volume = T/A;
+				} else if (Z < D){
+					/* Decay */
+					this.volume = 1 + (S-1)*Z/D;
+				} else {
+					/* Sustain */
+					this.volume = S;
+				}
+				v = this.volume;
+			} else {
+				/* Release */
+				v = (T-R)<0 ? this.volume * (1 - T/R) : 0;
+			}
+			
+			return v;
 		}
 	};
 
