@@ -67,8 +67,20 @@ Audio.lib = function(){
 		π = Math.PI,
 		π2 = 2.0*π;
 
-	var map = function(val, inMin, inMax, outMin, outMax){
-		return outMin + (outMax-outMin)*(val-inMin) / (inMax-inMin);
+	var quadIn = function (t, b, c, d){
+		return c*(t/=d)*t + b;
+	};
+
+	var quadOut = function (t, b, c, d){
+		return -c *(t/=d)*(t-2) + b;
+	};
+
+	var quintIn = function (t, b, c, d){
+		return c*(t/=d)*t*t*t*t + b;
+	};
+
+	var quintOut = function (t, b, c, d){
+		return c*((t=t/d-1)*t*t*t*t + 1) + b;
 	};
 
 	/* ---------------------------------------------------------------------- */ 
@@ -134,11 +146,12 @@ Audio.lib = function(){
 				R = this.R,
 				T = this.time++,
 				Z = T-A;
-
+	
 			if (this.noteon){
 				if (Z < 0){
 					/* Attack */
-					this.volume = T/A;
+					// this.volume = T/A; // Linear
+					this.volume = quadIn(T, 0, 1, A);
 				} else if (Z < D){
 					/* Decay */
 					this.volume = 1 + (S-1)*Z/D;
@@ -149,7 +162,8 @@ Audio.lib = function(){
 				v = this.volume;
 			} else {
 				/* Release */
-				v = (T-R)<0 ? this.volume * (1 - T/R) : 0;
+				// v = (T-R)<0 ? this.volume * (1 - T/R) : 0; // Linear
+				v = (T-R)<0 ? this.volume - quadOut(T, 0, this.volume, R) : 0;
 			}
 			
 			return v;

@@ -118,6 +118,18 @@ var app = {
 			scope.envelope = new scope.ADSR(44100);
 		};
 
+		this.processor.onupdate = function(key, value, scope){
+			switch (key) {
+				case "noteon" :
+					scope.enveloppe.noteon(value);
+					break;
+
+				case "volume" :
+					scope.foobar();
+					break;
+			}
+		};
+
 		/* Threaded Audio Processor */
 		this.processor.onbuffer = function(ev, scope){
 			var processor = this,
@@ -204,9 +216,9 @@ var app = {
 		this.processor.set("width", 1.00);
 
 		this.processor.set("comp_scale", 2.50);
-		this.processor.set("comp_gain", 1.00);
+		this.processor.set("comp_gain", 0.00);
 
-		this.processor.set("preamp", 1.50);
+		this.processor.set("preamp", 0.001);
 
 		this.processor.set("noteon", false);
 		this.processor.set("adsr_A", 10);
@@ -347,12 +359,20 @@ var Spectral = {
 	},
 
 	createControllers : function(){
-		this.addControl("Preamp", 0.001, 25.0, 0.001, function(value){
+		this.addControl("Preamp Gain", 0.001, 5.0, 0.001, function(value){
 			app.processor.set("preamp", value);
 		});
 
-		this.addControl("Volume", 0.001, 1.1, 0.7, function(value){
+		this.addControl("Preamp Volume", 0.001, 1.1, 0.7, function(value){
 			app.processor.set("gain", value);
+		});
+
+		this.addControl("Compressor Threshold", 0.75, 2.5, 2.5, function(value){
+			app.processor.set("comp_scale", value);
+		});
+
+		this.addControl("Compressor Gain", 0.1, 1.5, 0.0, function(value){
+			app.processor.set("comp_gain", value);
 		});
 
 		this.addControl("CutOff Frequency", 0.02, 0.4, 0.2, function(value){
@@ -373,14 +393,6 @@ var Spectral = {
 
 		this.addControl("StereoWidth", 0.0, 3.0, 1.0, function(value){
 			app.processor.set("width", value);
-		});
-
-		this.addControl("Dynamic Threshold", 0.75, 2.5, 2.5, function(value){
-			app.processor.set("comp_scale", value);
-		});
-
-		this.addControl("Dynamic Gain", 0.1, 1.5, 1.0, function(value){
-			app.processor.set("comp_gain", value);
 		});
 
 		this.addControl("A", 0, 2000, 10, function(value){
