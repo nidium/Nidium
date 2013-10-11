@@ -103,6 +103,11 @@ void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
+
+    if (js == NULL) {
+        printf("Error reporter failed (wrong JSContext?) (%s:%d > %s)\n", report->filename, report->lineno, message);
+        return;
+    }
     
     if (!report) {
         js->logf("%s\n", message);

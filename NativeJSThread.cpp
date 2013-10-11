@@ -22,13 +22,15 @@
 #include "NativeSharedMessages.h"
 #include "NativeJS.h"
 
+#define NATIVE_SCTAG_FUNCTION JS_SCTAG_USER_MIN+1
+
 extern void reportError(JSContext *cx, const char *message,
 	JSErrorReport *report);
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp);
 
-#define NJS ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)))
+#define NJS (NativeJS::getNativeClass(cx))
 
 static JSClass global_Thread_class = {
     "_GLOBALThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
@@ -45,7 +47,7 @@ static JSClass Thread_class = {
 };
 
 static JSClass messageEvent_class = {
-    "MessageEvent", 0,
+    "ThreadMessageEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -59,6 +61,73 @@ static JSFunctionSpec glob_funcs_threaded[] = {
 static JSFunctionSpec Thread_funcs[] = {
     JS_FN("start", native_thread_start, 0, 0),
     JS_FS_END
+};
+
+JSObject *Native_Thread_ReadStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                           uint32_t tag, uint32_t data, void *closure)
+{
+    switch(tag) {
+        case NATIVE_SCTAG_FUNCTION:
+        {
+            const char pre[] = "return (";
+            const char end[] = ").apply(this, Array.prototype.slice.apply(arguments));";
+
+            char *pdata = (char *)malloc(data + 256);
+            memcpy(pdata, pre, sizeof(pre));
+
+            if (!JS_ReadBytes(r, pdata+(sizeof(pre)-1), data)) {
+                free(pdata);
+                return NULL;
+            }
+
+            memcpy(pdata+sizeof(pre)+data-1, end, sizeof(end));
+            JSFunction *cf = JS_CompileFunction(cx, JS_GetGlobalObject(cx), NULL, 0, NULL, pdata,
+                strlen(pdata), NULL, 0);
+
+            free(pdata);
+
+            if (cf == NULL) {
+                return NULL;
+            }
+
+            return JS_GetFunctionObject(cf);
+        }
+        default:
+            return NULL;
+    }
+
+    return NULL;
+}
+
+JSBool Native_Thread_WriteStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                         JSObject *obj, void *closure)
+{
+    JS::Value vobj = OBJECT_TO_JSVAL(obj);
+
+    switch(JS_TypeOfValue(cx, vobj)) {
+        /* Serialize function into a string */
+        case JSTYPE_FUNCTION:
+        {
+            JSString *func = JS_DecompileFunction(cx,
+                JS_ValueToFunction(cx, vobj), 0 | JS_DONT_PRETTY_PRINT);
+            JSAutoByteString cfunc(cx, func);
+            size_t flen = cfunc.length();
+
+            JS_WriteUint32Pair(w, NATIVE_SCTAG_FUNCTION, flen);
+            JS_WriteBytes(w, cfunc.ptr(), flen);
+            break;
+        }
+        default:
+            return false;
+    }
+
+    return true;
+}
+
+static JSStructuredCloneCallbacks jsscc = {
+    .read = Native_Thread_ReadStructuredCloneOp,
+    .write = Native_Thread_WriteStructuredCloneOp,
+    .reportError = NULL
 };
 
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -163,7 +232,9 @@ static void *native_thread(void *arg)
         JS_ReadStructuredClone(tcx,
                     nthread->params.argv[i],
                     nthread->params.nbytes[i],
-                    JS_STRUCTURED_CLONE_VERSION, &arglst[i], NULL, NULL);
+                    JS_STRUCTURED_CLONE_VERSION, &arglst[i], &jsscc, NULL);
+
+        JS_ClearStructuredClone(nthread->params.argv[i], nthread->params.nbytes[i]);
     }
 
     if (JS_CallFunction(tcx, gbl, cf, nthread->params.argc,
@@ -189,6 +260,7 @@ static void *native_thread(void *arg)
     return NULL;
 }
 
+
 static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSThread *nthread;
@@ -208,9 +280,12 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
         (size_t *)malloc(sizeof(*nthread->params.nbytes) * argc) : NULL);
 
     for (int i = 0; i < (int)argc; i++) {
-        JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[i],
+        if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[i],
             &nthread->params.argv[i], &nthread->params.nbytes[i],
-            NULL, NULL, JSVAL_VOID);
+            &jsscc, NULL, JSVAL_VOID)) {
+
+            return false;
+        }
     }
 
     nthread->params.argc = argc;
@@ -249,7 +324,7 @@ void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
     jsval inval = JSVAL_NULL;
 
     if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+        JS_STRUCTURED_CLONE_VERSION, &inval, &jsscc, NULL)) {
 
         printf("Failed to read input data (readMessage)\n");
 
@@ -309,7 +384,7 @@ void NativeJSThread::onComplete(jsval *vp)
     struct native_thread_msg *msg = new struct native_thread_msg;
 
     if (!JS_WriteStructuredClone(jsCx, *vp, &msg->data, &msg->nbytes,
-        NULL, NULL, JSVAL_VOID)) {
+        &jsscc, NULL, JSVAL_VOID)) {
 
         msg->data = NULL;
         msg->nbytes = 0;
@@ -326,6 +401,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 {
     uint64_t *datap;
     size_t nbytes;
+
     NativeJSThread *nthread = (NativeJSThread *)JS_GetContextPrivate(cx);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -340,7 +416,7 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     struct native_thread_msg *msg;
 
     if (!JS_WriteStructuredClone(cx, args[0], &datap, &nbytes,
-        NULL, NULL, JSVAL_VOID)) {
+        &jsscc, NULL, JSVAL_VOID)) {
         JS_ReportError(cx, "Failed to write strclone");
         /* TODO: exception */
         return false;
