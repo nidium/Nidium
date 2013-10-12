@@ -22,8 +22,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     scaleX(1.0),
     scaleY(1.0)
 {
-    this->width = width;
-    this->height = height;
+    this->width = native_max(width, 2);
+    this->height = native_max(height, 2);
 
     memset(&this->padding, 0, sizeof(this->padding));
     memset(&this->translate_s, 0, sizeof(this->translate_s));
