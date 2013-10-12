@@ -290,6 +290,46 @@ Audio.lib = function(){
 		}
 	};
 
+
+	/* ---------------------------------------------------------------------- */ 
+	/* Comb Filter                                                            */
+	/* ---------------------------------------------------------------------- */ 
+
+	scope.CombFilter = function(size){
+		this.size = size;
+		this.buffer = new Float64Array(size);
+
+		this.feedback = 0.1;
+		this.store = 0;
+		this.damp1 = 0;
+		this.damp2 = 0;
+		this.idx = 0;
+
+		this.reset();
+	};
+
+	scope.CombFilter.prototype = {
+		reset : function(){
+			for (var i=0; i<this.size; i++){
+				this.buffer[i] = 0;
+			}
+		},
+
+		update : function(damp, feedback){
+			this.damp1 = damp || 0;
+			this.damp2 = 1-damp || 0;
+			this.feedback = feedback;
+		},
+
+		process : function(input){
+			var output = this.buffer[this.idx];
+			this.store = (output*this.damp2) + (this.store*this.damp1);
+			this.buffer[this.idx] = input + (this.store*this.feedback);
+			if(++this.idx >= this.size) this.idx = 0;
+			return output;
+		}
+	};
+
 	/* ---------------------------------------------------------------------- */ 
 	/* Stereo Width (2 in / 2 out)                                            */
 	/* ---------------------------------------------------------------------- */ 

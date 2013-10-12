@@ -116,6 +116,7 @@ var app = {
 			scope.distR = new scope.Distorsion();
 
 			scope.envelope = new scope.ADSR(44100);
+			scope.comb = new scope.CombFilter(1617);
 		};
 
 		this.processor.onupdate = function(key, value, scope){
@@ -151,8 +152,10 @@ var app = {
 				A = this.get("adsr_A"),
 				D = this.get("adsr_D"),
 				S = this.get("adsr_S"),
-				R = this.get("adsr_R");
+				R = this.get("adsr_R"),
 
+				comb_damp = this.get("comb_damp"),
+				comb_feedback = this.get("comb_feedback");
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);
@@ -165,6 +168,8 @@ var app = {
 
 			scope.enhancer.update(width);
 			scope.envelope.update(noteon, A, D, S, R);
+
+			scope.comb.update(comb_damp, comb_feedback);
 
 			for (var i=0; i<samples; i++) {
 				var L = gain * scope.distL.process(bufferL[i]);
@@ -179,8 +184,10 @@ var app = {
 				var eh = scope.enhancer.process(L, R),
 					volume = scope.envelope.process();
 
-				bufferL[i] = eh[0] * volume;
-				bufferR[i] = eh[1] * volume;
+				//bufferL[i] = eh[0] * volume;
+				//bufferR[i] = eh[1] * volume;
+				bufferL[i] = scope.comb.process(eh[0]);
+				bufferR[i] = scope.comb.process(eh[1]);
 			}
 
 			/* --- LOW FREQUENCY OSCILLATOR --- */
@@ -225,6 +232,9 @@ var app = {
 		this.processor.set("adsr_D", 0);
 		this.processor.set("adsr_S", 1);
 		this.processor.set("adsr_R", 10);
+
+		this.processor.set("comb_damp", 0.0);
+		this.processor.set("comb_feedback", 0.1);
 
 		console.log("processor initied");
 
@@ -406,6 +416,14 @@ var Spectral = {
 		});
 		this.addControl("R", 0, 3000, 10, function(value){
 			app.processor.set("adsr_R", value);
+		});
+
+		this.addControl("Comb Filter Damp", 0.0, 1.0, 0, function(value){
+			app.processor.set("comb_damp", value);
+		});
+
+		this.addControl("Comb Filter Feedback", 0.1, 0.9, 0.1, function(value){
+			app.processor.set("comb_feedback", value);
 		});
 
 	},
