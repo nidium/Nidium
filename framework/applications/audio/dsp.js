@@ -69,6 +69,7 @@ var app = {
 		*/
 
 		this.load("../../media/dream.mp3");
+//		this.load("../../media/drydrum.wav");
 
 	},
 
@@ -112,8 +113,8 @@ var app = {
 			scope.comp = new scope.Compressor();
 			scope.dist = new scope.Distorsion();
 			scope.envelope = new scope.ADSR(44100);
-			scope.comb = new scope.CombFilter(1617);
-			scope.apf = new scope.AllPassFilter(500);
+
+			scope.reverb = new scope.GlaceVerb();
 		};
 
 		this.processor.onupdate = function(key, value, scope){
@@ -154,18 +155,19 @@ var app = {
 				this.get("adsr_R")
 			);
 
-			scope.comb.update(
-				this.get("comb_damp"),
-				this.get("comb_feedback")
-			);
-
-			scope.apf.update(
-				this.get("apf_feedback")
+			scope.reverb.update(
+				this.get("reverb_wet"),
+				this.get("reverb_dry"),
+				this.get("reverb_size"),
+				this.get("reverb_damp"),
+				this.get("reverb_feedback")
 			);
 
 			for (var i=0; i<samples; i++) {
-				var L = gain * scope.dist.process(bufferL[i]);
-				var R = gain * scope.dist.process(bufferR[i]);
+				var volume = scope.envelope.process();
+
+				var L = gain * volume * scope.dist.process(bufferL[i]);
+				var R = gain * volume * scope.dist.process(bufferR[i]);
 
 				L = scope.comp.process(L);
 				R = scope.comp.process(R);
@@ -174,12 +176,10 @@ var app = {
 				R = scope.resonantR.process(R);
 
 				var eh = scope.enhancer.process(L, R),
-					volume = scope.envelope.process();
+					mix = scope.reverb.process(eh[0], eh[1]);
 
-				//bufferL[i] = eh[0] * volume;
-				//bufferR[i] = eh[1] * volume;
-				bufferL[i] = scope.apf.process(scope.comb.process(eh[0]));
-				bufferR[i] = scope.apf.process(scope.comb.process(eh[1]));
+				bufferL[i] = mix[0];
+				bufferR[i] = mix[1];
 			}
 
 			/* --- LOW FREQUENCY OSCILLATOR --- */
@@ -210,7 +210,7 @@ var app = {
 		};
 
 		this.processor.set("gain", 0.7);
-		this.processor.set("cutoff", 0.2);
+		this.processor.set("cutoff", 0.35);
 		this.processor.set("resonance", 0.0);
 		this.processor.set("width", 1.00);
 
@@ -225,10 +225,11 @@ var app = {
 		this.processor.set("adsr_S", 1);
 		this.processor.set("adsr_R", 10);
 
-		this.processor.set("comb_damp", 0.0);
-		this.processor.set("comb_feedback", 0.1);
-
-		this.processor.set("apf_feedback", 0.1);
+		this.processor.set("reverb_size", 0.70);
+		this.processor.set("reverb_feedback", 0.30);
+		this.processor.set("reverb_damp", 0.35);
+		this.processor.set("reverb_wet", 0.00);
+		this.processor.set("reverb_dry", 1.00);
 
 		console.log("processor initied");
 
@@ -298,7 +299,7 @@ var Spectral = {
 
 	createSpectrumView : function(){
 		this.toolkit = main.add("UIElement", {
-			top : 100,
+			top : 30,
 			width : 300,
 			height : 20,
 			background : "#282828",
@@ -315,7 +316,7 @@ var Spectral = {
 		});
 
 		this.spectrum = main.add("UIElement", {
-			top : 400,
+			top : 450,
 			width : this.cw,
 			height : this.ch,
 			background : "black",
@@ -379,7 +380,7 @@ var Spectral = {
 			app.processor.set("comp_gain", value);
 		});
 
-		this.addControl("CutOff Frequency", 0.02, 0.4, 0.2, function(value){
+		this.addControl("CutOff Frequency", 0.02, 0.4, 0.35, function(value){
 			app.processor.set("cutoff", value);
 		});
 
@@ -412,17 +413,27 @@ var Spectral = {
 			app.processor.set("adsr_R", value);
 		});
 
-		this.addControl("Comb Damp", 0.0, 1.0, 0, function(value){
-			app.processor.set("comb_damp", value);
+
+		this.addControl("GlaceVerb Size", 0.40, 0.90, 0.70, function(value){
+			app.processor.set("reverb_size", value);
 		});
 
-		this.addControl("Comb Feedback", 0.1, 0.9, 0.1, function(value){
-			app.processor.set("comb_feedback", value);
+		this.addControl("GlaceVerb Feedback", 0.2, 0.5, 0.3, function(value){
+			app.processor.set("reverb_feedback", value);
 		});
 
-		this.addControl("AllPass Feedback", 0.1, 0.9, 0.1, function(value){
-			app.processor.set("apf_feedback", value);
+		this.addControl("GlaceVerb Damp", 0.05, 0.9, 0.35, function(value){
+			app.processor.set("reverb_damp", value);
 		});
+
+		this.addControl("GlaceVerb Wet", 0.0, 1.0, 0.0, function(value){
+			app.processor.set("reverb_wet", value);
+		});
+
+		this.addControl("GlaceVerb Dry", 0.0, 1.0, 1.0, function(value){
+			app.processor.set("reverb_dry", value);
+		});
+
 	},
 
 	createGradients : function(){

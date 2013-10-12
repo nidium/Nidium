@@ -338,7 +338,7 @@ Audio.lib = function(){
 		this.size = size;
 		this.buffer = new Float64Array(size);
 
-		this.feedback = 0.1;
+		this.feedback = 0.5;
 		this.idx = 0;
 
 		this.reset();
@@ -353,6 +353,7 @@ Audio.lib = function(){
 
 		update : function(feedback){
 			this.feedback = feedback;
+			this.reset();
 		},
 
 		process : function(input){
@@ -362,6 +363,105 @@ Audio.lib = function(){
 			this.buffer[this.idx] = input + (bufout*this.feedback);
 			if (++this.idx>=this.size) this.idx = 0;
 			return output;
+		}
+	};
+
+	/* +----+---------------------------------------------------------------- */ 
+	/* | FX | Reverb (JS implementation of FreeVerb)                          */
+	/* +----+---------------------------------------------------------------- */ 
+	/* source : https://ccrma.stanford.edu/~jos/pasp/Freeverb.html            */
+	/* ---------------------------------------------------------------------- */ 
+
+	/*
+		Note: The original Schroeder reverb (Freeverb) sounds a bit oldish and
+		metallic.
+
+		The following implementation use 10 combfilters instead of 8,
+		and 5 allpass filters in serie instead of 4.
+
+		The original coefs also have been tripled for more realism when dealing
+		with "large room".
+		This is one of the tricks used when I made GlaceVerb 10 years ago.
+	*/
+
+	scope.Reverb = function(spread){
+		var cbTunings = [1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617, 1850, 2207],
+			apTunings = [225, 556, 441, 341, 249];
+
+		this.wet = 0.10;
+		this.dry = 1.0;
+		this.roomsize = 0.6;
+		this.damp = 0.1;
+		this.feedback = 0.5;
+
+		this.combs = [];
+		this.allpasses = [];
+
+		for (var i=0; i<cbTunings.length; i++) {
+			this.combs[i] = new scope.CombFilter(3*cbTunings[i]+spread);
+			this.combs[i].damp = this.damp;
+			this.combs[i].feedback = this.roomsize;
+		}
+
+		for (var i=0; i<apTunings.length; i++) {
+			this.allpasses[i] = new scope.AllPassFilter(3*apTunings[i]+spread);
+			this.allpasses[i].feedback = this.feedback;
+		}
+
+		this.update();
+	};
+
+	scope.Reverb.prototype = {
+		update : function(wet, dry, roomsize, damp, feedback){
+			this.wet = wet;
+			this.dry = dry;
+			this.roomsize = roomsize;
+			this.damp = damp;
+			this.feedback = feedback;
+
+			for (var i=0; i<this.combs.length; i++) {
+				this.combs[i].update(damp, roomsize);
+			}
+			for (var i=0; i<this.allpasses.length; i++) {
+				this.allpasses[i].feedback = feedback;
+			}
+		},
+
+		process : function(input){
+			var output = 0;
+			
+			/* Parallel Comb Filters */
+			for (var i=0; i<this.combs.length; i++){
+				output += this.combs[i].process(input);
+			}
+			
+			/* Send the signal to the serial All Pass Filters */
+			for (var i=0; i<this.allpasses.length; i++){
+				output = this.allpasses[i].process(output);
+			}
+
+			return input*this.dry + 0.02*output*this.wet;
+		}
+	};
+
+	/* --- STEREO GLACEVERB ------------------------------------------------- */
+
+	scope.GlaceVerb = function(){
+		this.L = new scope.Reverb(-380);
+		this.R = new scope.Reverb(+380);
+	};
+
+	scope.GlaceVerb.prototype = {
+		update : function(wet, dry, roomsize, damp, feedback){
+			this.L.update(wet, dry, roomsize, damp, feedback);
+			this.R.update(wet, dry, roomsize, damp, feedback);
+		},
+
+		process : function(inL, inR){
+			return [
+				this.L.process(inL),
+				this.R.process(inL)
+			];
 		}
 	};
 
