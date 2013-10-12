@@ -171,9 +171,9 @@ Audio.lib = function(){
 	};
 
 
-	/* ---------------------------------------------------------------------- */ 
-	/* Distorsion                                                             */
-	/* ---------------------------------------------------------------------- */ 
+	/* +----+---------------------------------------------------------------- */ 
+	/* | FX | Distorsion                                                      */
+	/* +----+---------------------------------------------------------------- */ 
 
 	scope.Distorsion = function(){
 		this.gain = 0.0;
@@ -190,9 +190,9 @@ Audio.lib = function(){
 		}
 	};
 
-	/* ---------------------------------------------------------------------- */ 
-	/* Resonant Filter                                                        */
-	/* ---------------------------------------------------------------------- */ 
+	/* +--------+------------------------------------------------------------ */ 
+	/* | Filter | Resonant Filter                                             */
+	/* +--------+------------------------------------------------------------ */ 
 
 	scope.ResonantFilter = function(type, sampleRate){
 		this.type = type;
@@ -240,9 +240,9 @@ Audio.lib = function(){
 		}
 	};
 
-	/* ---------------------------------------------------------------------- */ 
-	/* Moog Filter                                                            */
-	/* ---------------------------------------------------------------------- */ 
+	/* +--------+------------------------------------------------------------ */ 
+	/* | Filter | Moog Filter                                                 */
+	/* +--------+------------------------------------------------------------ */ 
 	/* source : http://www.musicdsp.org/showArchiveComment.php?ArchiveID=26   */
 	/* ---------------------------------------------------------------------- */ 
 
@@ -291,9 +291,9 @@ Audio.lib = function(){
 	};
 
 
-	/* ---------------------------------------------------------------------- */ 
-	/* Comb Filter                                                            */
-	/* ---------------------------------------------------------------------- */ 
+	/* +--------+------------------------------------------------------------ */ 
+	/* | Filter | Comb                                                        */
+	/* +--------+------------------------------------------------------------ */ 
 
 	scope.CombFilter = function(size){
 		this.size = size;
@@ -325,7 +325,42 @@ Audio.lib = function(){
 			var output = this.buffer[this.idx];
 			this.store = (output*this.damp2) + (this.store*this.damp1);
 			this.buffer[this.idx] = input + (this.store*this.feedback);
-			if(++this.idx >= this.size) this.idx = 0;
+			if (++this.idx >= this.size) this.idx = 0;
+			return output;
+		}
+	};
+
+	/* +--------+------------------------------------------------------------ */ 
+	/* | Filter | AllPass                                                     */
+	/* +--------+------------------------------------------------------------ */ 
+
+	scope.AllPassFilter = function(size){
+		this.size = size;
+		this.buffer = new Float64Array(size);
+
+		this.feedback = 0.1;
+		this.idx = 0;
+
+		this.reset();
+	};
+
+	scope.AllPassFilter.prototype = {
+		reset : function(){
+			for (var i=0; i<this.size; i++){
+				this.buffer[i] = 0;
+			}
+		},
+
+		update : function(feedback){
+			this.feedback = feedback;
+		},
+
+		process : function(input){
+			var bufout = this.buffer[this.idx],
+				output = bufout - input;
+
+			this.buffer[this.idx] = input + (bufout*this.feedback);
+			if (++this.idx>=this.size) this.idx = 0;
 			return output;
 		}
 	};
