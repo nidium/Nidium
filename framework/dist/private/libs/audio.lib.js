@@ -26,16 +26,17 @@
 
 /* -------------------------------------------------------------------------- */ 
 /* UltraFast Magic DFT by Iñigo Quílez                                        */
-/* http://www.iquilezles.org/www/articles/sincos/sincos.htm                   */
+/* ported from http://www.iquilezles.org/www/articles/sincos/sincos.htm       */
 /* -------------------------------------------------------------------------- */ 
 
 Audio.iqDFT = function(bufferL, bufferR, dftBuffer){
 	var dftSize = dftBuffer.byteLength,
 		bufferSize = bufferL.length,
-		angularNormalisation = 2.0 * Math.PI/(bufferSize*4);
+		n = 2.0 * Math.PI/(bufferSize),
+		s = 1.0/256.0; // 32767 in original Iñigo implementation
 
 	for(var i=0; i<dftSize; i++){
-		var wi = i * angularNormalisation,
+		var wi = i * n,
 			sii = Math.sin(wi),	coi = Math.cos(wi),
 			co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
 
@@ -46,7 +47,7 @@ Audio.iqDFT = function(bufferL, bufferR, dftBuffer){
 			acco += co*f; co = co*coi -  si*sii;
 			acsi += si*f; si = si*coi + oco*sii;
 		}
-		dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/128;
+		dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * s;
 	}
 };
 
@@ -83,7 +84,12 @@ Audio.lib = function(){
 		return c*((t=t/d-1)*t*t*t*t + 1) + b;
 	};
 
-	//Lookup table for converting midi note to frequency
+	// Checks if a number is a power of two
+	var isPow2 = function(v){
+		return !(v & (v-1)) && (!!v);
+	};
+
+	// Lookup table for converting midi note to frequency
 	var mtofnote = [
 		0, 8.661957, 9.177024, 9.722718, 10.3, 10.913383, 11.562325, 12.25,
 		12.978271, 13.75, 14.567617, 15.433853, 16.351599, 17.323914, 18.354048,

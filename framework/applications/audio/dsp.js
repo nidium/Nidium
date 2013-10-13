@@ -286,7 +286,7 @@ var Spectral = {
  	bars : [],
 
  	nbars : app.dftSize,
-	barSize : 150,
+	barHeight : 200,
 
 	cw : 768,
 	ch : 250,
@@ -453,7 +453,7 @@ var Spectral = {
 
 	createBars : function(){
 		this.barW = this.cw / this.nbars;
-		this.barY = this.ch - this.barSize;
+		this.barY = this.ch - this.barHeight;
 
 		if (this.loga === true){
 			for (var i=1, log=Math.log ; i<this.nbars ; i++){
@@ -461,7 +461,7 @@ var Spectral = {
 					x : 1 + log(i)/log(this.nbars)*this.cw,
 					y : this.barY,
 					w : this.barW - 1,
-					h : this.barSize
+					h : this.barHeight
 				};
 			}
 		} else {
@@ -470,7 +470,7 @@ var Spectral = {
 					x : 1 + i * this.barW,
 					y : this.barY,
 					w : this.barW - 1,
-					h : this.barSize
+					h : this.barHeight
 				};
 			}
 		}
@@ -519,9 +519,10 @@ var Spectral = {
 	peak : function(s, l){
 		var basspeak = 0;
 		for (var b=s; b<(s+l); b++){
-			basspeak += app.dftBuffer[b]/l;
+			basspeak += app.dftBuffer[b];
 		}
-		app.ipulse = basspeak*700;
+		basspeak *= 1/l;
+		app.ipulse = basspeak>0.5 ? basspeak*100 : basspeak*25;
 	},
 
 	draw : function(){
@@ -532,8 +533,8 @@ var Spectral = {
 			params = this.spectrum.getDrawingBounds(),
 			context = this.spectrum.layer.context;
 
-		app.ipulse = app.ipulse-100;
-		this.peak(2, 2);
+		app.ipulse = app.ipulse-200;
+		this.peak(0, 2);
 
 		//this.spectrum.layer.clear();
 		//context.globalAlpha = 0.9;
@@ -552,37 +553,52 @@ var Spectral = {
 
 		context.beginPath();
 		context.moveTo(0, height);
-		for (var i=(this.loga?1:0), pixelSize=0 ; i<this.nbars ; pixelSize = app.dftBuffer[i] * this.barSize, i++){
-			if (this.loga){
-				this.bars[i].h = Math.log(i)/Math.log(0.5*pixelSize)*this.barSize
-			} else {
-				this.bars[i].h = pixelSize;
+
+
+		if (this.loga) {
+			for (var i=1; i<this.nbars; i++){
+				var pixelSize = app.dftBuffer[i] * this.barHeight;
+				this.bars[i].h = Math.log(i)/Math.log(0.5*pixelSize)*this.barHeight;
+
+				this.bars[i].y = Math.max(height-pixelSize, 0);
+				this.bars[i].h = Math.min(this.bars[i].h, height);
+
+				context.lineTo(
+					this.bars[i].x,
+					this.bars[i].y
+				);
 			}
+			context.lineTo(width, height);
+			context.lineTo(0, height);
+			context.stroke();
+		} else {
+			for (var i=0; i<this.nbars; i++){
+				var pixelSize = app.dftBuffer[i] * this.barHeight;
+				this.bars[i].h = pixelSize;
 
-			this.bars[i].y = Math.max(height-pixelSize, 0);
-			this.bars[i].h = Math.min(this.bars[i].h, height);
+				this.bars[i].y = Math.max(height-pixelSize, 0);
+				this.bars[i].h = Math.min(this.bars[i].h, height);
 
-			context.fillRect(this.bars[i].x, this.bars[i].y, this.bars[i].w, this.bars[i].h);
-			//context.lineTo(this.bars[i].x, this.bars[i].y);
+				context.fillRect(
+					this.bars[i].x, this.bars[i].y,
+					this.bars[i].w, this.bars[i].h
+				);
+			}
+			//context.lineTo(width, height);
 		}
-		context.lineTo(width, height);
 		
-		/*
-		context.lineTo(0, height);
-		context.stroke();
-		*/
-
 		context.fill();
 
 		context.strokeStyle = "rgba(0, 0, 0, 0.4)";
 		context.lineWidth = 3;
+	
+		context.beginPath();
 		for (var y=0; y<height; y+=4){
-			context.beginPath();
 			context.moveTo(0, y);
 			context.lineTo(width, y);
-			context.stroke();
 		}
-
+		context.stroke();
+	
 		if (this.loga){
 			var t0 = 0.1655*width, // 55Hz A0
 				t1 = 0.2745*width, // 110Hz A1
