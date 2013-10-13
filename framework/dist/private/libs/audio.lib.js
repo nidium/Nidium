@@ -62,6 +62,7 @@ Audio.lib = function(){
 		cos = Math.cos,
 		pow = Math.pow,
 		exp = Math.exp,
+		log = Math.log,
 		sqrt = Math.sqrt,
 		min = Math.min,
 		max = Math.max,
@@ -87,6 +88,11 @@ Audio.lib = function(){
 	// Checks if a number is a power of two
 	var isPow2 = function(v){
 		return !(v & (v-1)) && (!!v);
+	};
+
+	// Magnitude to decibels                                                      */
+	var mag2db = function(magnitude){
+		return 20.0*log(max(magnitude, pow(10.0, -6)));
 	};
 
 	// Lookup table for converting midi note to frequency
