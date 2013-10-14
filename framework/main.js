@@ -44,46 +44,47 @@ load("applications/canvas/shader.js"); // OK
 
 /* TESTS */
 
-	//load("applications/_tests/arc.js");
-	//load("testArc.js");
-	//load("testRetina.js");
+    //load("applications/_tests/arc.js");
+    //load("testArc.js");
+    //load("testRetina.js");
 
 
 /* MEDIA API */
 
-	//load("applications/audio/test.js"); // OK
-	//load("applications/audio/mixer.js"); // OK
-	//load("applications/audio/dsp.js"); // OK
-	//load("applications/media/video.js"); // OK
+    //load("applications/audio/test.js"); // OK
+    //load("applications/audio/mixer.js"); // OK
+    //load("applications/audio/dsp.js"); // OK
+    //load("applications/media/video.js"); // OK
 
 /* FILE API */
 
-	//load("applications/components/file.basic.js");
-	//load("applications/components/file.advanced.js");
+    //load("applications/components/file.basic.js");
+    //load("applications/components/file.advanced.js");
 
 
 /* SHADERS */
 
-	//load("applications/components/shader.js"); // OK
-	//load("applications/components/shader.basic.js"); // OK
-	//load("applications/components/shader.advanced.js"); // OK
+    //load("applications/components/shader.js"); // OK
+    //load("applications/components/shader.basic.js"); // OK
+    //load("applications/components/shader.advanced.js"); // OK
 
 
 /* TUTORIALS */
 
-	//load("applications/tutorials/01.hello.js");
-	//load("applications/tutorials/02.buttons.js");
-	//load("applications/tutorials/03.events.js");
-	//load("applications/tutorials/04.motion.js");
-	//load("applications/tutorials/11.post.js");
+    //load("applications/tutorials/01.hello.js");
+    //load("applications/tutorials/02.buttons.js");
+    //load("applications/tutorials/03.events.js");
+    //load("applications/tutorials/04.motion.js");
+    //load("applications/tutorials/11.post.js");
 
 /* Unfinished */
 
-	//load("applications/components/splines.js"); // LENTEUR ABOMINABLE
-	//load("applications/components/diagrams.js");
+    //load("applications/components/splines.js"); // LENTEUR ABOMINABLE
+    //load("applications/components/diagrams.js");
 
 
 /* -- Native Debugger ------------------ */
 
 //load("applications/NatBug.nap");
+
 
