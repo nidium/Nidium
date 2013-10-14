@@ -804,6 +804,116 @@ Audio.lib = function(){
 		}
 	};
 
+	/* ---------------------------------------------------------------------- */ 
+	/* Fast Fourier Transform (Small and Fast JavaScript implementation)      */
+	/* ---------------------------------------------------------------------- */ 
+	/* www.ee.columbia.edu/~ronw/code/MEAPsoft/doc/html/FFT_8java-source.html */
+	/* ---------------------------------------------------------------------- */ 
+
+	scope.FFT = function(n){
+		var n2 = n/2;
+
+		this.n = n;
+		this.m = log(n)/log(2);
+
+		if (n != (1<<this.m)) throw new Error("FFT length must be power of 2");
+
+		// Lookup precomp tables
+		this.cos = new Float64Array(n2);
+		this.sin = new Float64Array(n2);
+
+		for (var i=0; i<n2; i++) {
+			var a = -π2*i/n;
+			this.cos[i] = cos(a);
+			this.sin[i] = sin(a);
+		}
+
+		this.makeWindow(n);
+	};
+
+	scope.FFT.prototype = {
+		makeWindow : function(n){
+			// Make a blackman window:
+			// w(n) = 0.42-0.5*cos{(2*PI*n)/(N-1)} + 0.08*cos{(4*PI*n)/(N-1)};
+			this.win = new Float64Array(n);
+
+			for (var i=0; i<n; i++){
+				this.win[i] = 0.42 - 0.5*cos(π2*i/(n-1))+0.08*cos(2*π2*i/(n-1));
+			}
+		},
+
+		getWindow : function(){
+			return this.win;
+		},
+
+		/* ------------------------------------------------------------------ */
+		/* FFT: in-place radix-2 DIT DFT of a complex input                   */
+		/* ------------------------------------------------------------------ */
+		/* x: double array of length n with real part of data                 */
+		/* y: double array of length n with imag part of data                 */
+		/* ------------------------------------------------------------------ */
+
+		process : function(x, y){
+			// accessors to our lookup tables
+			var __cos = this.cos,
+				__sin = this.sin;
+
+			// integers
+			var n = this.n,
+				m = this.m,
+				n1 = 0,
+				n2 = n/2,
+				i = 0, j = 0, k = 0, a = 0;
+
+			// floats
+			var c, s, e, t1, t2;
+
+			// Bit-reverse
+			for (i=1; i<n-1; i++){
+				n1 = n2;
+				while (j>=n1) {
+					j = j-n1;
+					n1 = n1>>1;
+				}
+
+				j = j+n1;
+
+				if (i<j) {
+					t1 = x[i]; x[i] = x[j]; x[j] = t1;
+					t1 = y[i]; y[i] = y[j]; y[j] = t1;
+				}
+			}
+
+			n1 = 0;
+			n2 = 1;
+
+			for (i=0; i < m; i++) {
+				n1 = n2;
+				n2 = n2+n2;
+				a = 0;
+
+				for (j=0; j<n1; j++) {
+					c = __cos[a];
+					s = __sin[a];
+					a +=  1 << (m-i-1);
+
+					for (k=j; k<n; k+=n2) {
+						t1 = c*x[k+n1] - s*y[k+n1];
+						t2 = s*x[k+n1] + c*y[k+n1];
+						x[k+n1] = x[k] - t1;
+						y[k+n1] = y[k] - t2;
+						x[k] = x[k] + t1;
+						y[k] = y[k] + t2; 
+					}
+				}
+			}
+
+		}
+
+	};
+
+	/* ---------------------------------------------------------------------- */ 
+
+
 	return scope;
 };
-
