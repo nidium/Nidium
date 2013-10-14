@@ -829,7 +829,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    int width, height;
+    int width = 0, height = 0;
     NativeCanvasHandler *handler;
 
     if (!JS_IsConstructing(cx, vp)) {

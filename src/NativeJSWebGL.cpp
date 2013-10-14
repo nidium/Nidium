@@ -362,12 +362,12 @@ static JSBool NativeGL_vertexAttrib_x_fv(JSContext *cx, unsigned int argc, jsval
 NativeJSNativeGL::NativeJSNativeGL () 
     : jsobj(NULL), unpackFlipY(false), unpackPremultiplyAlpha(false)
 {
-    ShInitialize();
+
 }
 
 NativeJSNativeGL::~NativeJSNativeGL() 
 {
-    ShFinalize();
+
 }
 
 D_NGL_JS_FN(WebGLRenderingContext_isContextLost)
@@ -1137,7 +1137,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     // XXX : Might be interesting to use SH_VALIDATE
     if (!ShCompile(compiler, &cshader->source, 1, SH_OBJECT_CODE)) {
         JS_ReportError(cx, "Failed to translate shader to GLSL.");
-        return JS_TRUE;
+        return false;
     }
 
     ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &len);

@@ -1931,7 +1931,9 @@ void NativeCanvas2DContext::resetGLContext()
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
-    if ((gl.program = this->createProgram(string))) {
+    char *mstring = NativeCanvasContext::processShader(string, NativeCanvasContext::SHADER_FRAGMENT);
+    
+    if ((gl.program = this->createProgram(mstring))) {
         shader.uniformOpacity = glGetUniformLocation(gl.program,
                                     "n_Opacity");
         shader.uniformResolution = glGetUniformLocation(gl.program,
@@ -1942,6 +1944,7 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
                                     "n_Padding");
     }
 
+    free(mstring);
     return gl.program;
 }
 
