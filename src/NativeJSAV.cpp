@@ -400,6 +400,25 @@ NativeJSAudio::~NativeJSAudio()
     pthread_mutex_unlock(&this->audio->recurseLock);
     pthread_mutex_unlock(&this->audio->tracksLock);
 
+    // Cleanup audio messages queue and free resources
+    // before shutting down the audio thread
+    NativeSharedMessages::Message msg;
+    while (this->sharedMsg->readMessage(&msg)) {
+        switch (msg.event()) {
+            case NATIVE_AUDIO_CALLBACK :
+            case NATIVE_AUDIO_NODE_CALLBACK : {
+                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                delete cbkMsg;
+            }
+            break;
+            case NATIVE_AUDIO_NODE_SET : {
+                NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
+                JS_ClearStructuredClone(nodeMsg->clone.datap, nodeMsg->clone->nbytes);
+                delete nodeMsg;
+            }
+        }
+    }
+
     // Shutdown the audio
     this->audio->shutdown();
 

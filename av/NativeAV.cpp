@@ -79,7 +79,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     // Have data inside buffer
     if (avail > 0) {
         int copy = avail > size ? size : avail;
-        SPAM(("get streamBuffer=%p streamRead=%d, streamSize=%d, copy=%d, size=%d, avail=%d\n", thiz->streamBuffer, thiz->streamRead, thiz->streamPacketSize, copy, size, avail));
+        SPAM(("get streamBuffer=%p, totalRead=%lld, streamRead=%d, streamSize=%d, copy=%d, size=%d, avail=%d\n", thiz->streamBuffer, thiz->totalRead, thiz->streamRead, thiz->streamPacketSize, copy, size, avail));
         memcpy(buffer + copied, thiz->streamBuffer + thiz->streamRead, copy);
         thiz->totalRead += copy;
         thiz->streamRead += copy;
@@ -112,6 +112,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     // Got EAGAIN, switch back to main coro
                     // and wait for onDataAvailable callback
                     thiz->pending = true;
+                    *thiz->readFlag = false;
                     Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
                 break;
                 default:
@@ -140,7 +141,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 thiz->pending = false;
                 thiz->needWakup = false;
                 *thiz->readFlag = false;
-             
+
                 return copied;
             } 
         }
