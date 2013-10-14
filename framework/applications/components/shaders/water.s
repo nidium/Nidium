@@ -3,9 +3,10 @@ precision highp float;
 #endif
 
 uniform sampler2D tex0;
-
 uniform int itime;
-vec2 resolution = vec2(1500, 800);
+
+uniform vec2 n_Resolution;
+
 float time = float(itime)/50.;
 
 const float PI = 3.1415926535897932;
@@ -22,8 +23,8 @@ const float freq = 2.0;
 const int angle = 7; // better when a prime
 
 // reflection and emboss
-const float delta = 20.;
-const float intence = 400.;
+const float delta = 10.;
+const float intence = 100.;
 const float emboss = 0.3;
 
 float col(vec2 coord) {
@@ -43,19 +44,19 @@ float col(vec2 coord) {
 }
 
 void main(void) {
-	vec2 p = (gl_FragCoord.xy) / resolution.xy, c1 = p, c2 = p;
+	vec2 p = (gl_FragCoord.xy) / n_Resolution.xy, c1 = p, c2 = p;
 	float cc1 = col(c1);
 
-	c2.x += resolution.x/delta;
+	c2.x += n_Resolution.x/delta;
 	float dx = emboss*(cc1-col(c2))/delta;
 
 	c2.x = p.x;
-	c2.y += resolution.y/delta;
+	c2.y += n_Resolution.y/delta;
 	float dy = emboss*(cc1-col(c2))/delta;
 
 	c1.x += dx;
 	c1.y = -(c1.y+dy);
 
 	float alpha = 1.+dot(dx, dy)*intence;
-	gl_FragColor = texture2D(tex0, c1)*alpha;
+	gl_FragColor = texture2D(tex0, 0.7*(c1 - vec2(-0.2, -1.3)))*alpha;
 }

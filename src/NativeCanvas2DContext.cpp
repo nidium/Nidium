@@ -18,8 +18,8 @@
 #endif
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
-#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->skia)
-#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->skia)
+#define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
+#define NSKIA_NATIVE ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))->getSurface())
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
 #define NCTX_NATIVE ((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
@@ -886,8 +886,17 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
         }
     }
 
+    /* The image is a Canvas */
+    /*
+        TODO: work with WebGL canvas
+    */
     if (JS_InstanceOf(cx, jsimage, &Canvas_class, NULL)) {
-        image = new NativeSkImage(HANDLER_GETTER(jsimage)->context->skia->canvas);
+        NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
+        if (drawctx == NULL || drawctx->m_Mode != NativeCanvasContext::CONTEXT_2D) {
+            JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
+            return false;
+        }
+        image = new NativeSkImage(((NativeCanvas2DContext *)drawctx)->getSurface()->canvas);
         need_free = 1;
 
     } else if (!NativeJSImage::JSObjectIs(cx, jsimage) ||
@@ -1592,7 +1601,7 @@ void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj)
 
 void NativeCanvas2DContext::clear(uint32_t color)
 {
-    skia->canvas->clear(color);
+    m_Skia->canvas->clear(color);
 }
 
 char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
@@ -1694,7 +1703,7 @@ uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
 void NativeCanvas2DContext::initCopyTex()
 {
     glEnable(GL_TEXTURE_2D);
-    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
                                         getDevice()->accessRenderTarget();
 
     int width = backingTarget->asTexture()->width();
@@ -1776,7 +1785,7 @@ void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
 
 uint32_t NativeCanvas2DContext::getMainFBO()
 {
-    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
                                         getDevice()->accessRenderTarget();
 
     return (uint32_t)backingTarget->getRenderTargetHandle();
@@ -1785,7 +1794,7 @@ uint32_t NativeCanvas2DContext::getMainFBO()
 void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
 {
-    SkISize size = skia->canvas->getDeviceSize();
+    SkISize size = m_Skia->canvas->getDeviceSize();
 
     GLenum err;
     if ((err = glGetError()) != GL_NO_ERROR) {
@@ -1898,11 +1907,11 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 
 uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
 {
-    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
                                         getDevice()->accessRenderTarget();
 
     if (width != NULL && height != NULL) {
-        SkISize size = skia->canvas->getDeviceSize();
+        SkISize size = m_Skia->canvas->getDeviceSize();
 
         *width = size.fWidth;
         *height = size.fHeight;
@@ -1914,7 +1923,7 @@ uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
 /* tell skia that OpenGL state was altered (and thus restore it) */
 void NativeCanvas2DContext::resetGLContext()
 {
-    GrRenderTarget* backingTarget = (GrRenderTarget*)skia->canvas->
+    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
                                         getDevice()->accessRenderTarget();
 
     backingTarget->getContext()->resetContext(kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState);
@@ -1969,6 +1978,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     pt.setAlpha(opacity * (double)255.);
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
+    NativeSkia *skia = layer->getSurface();
+
     if (rclip != NULL) {
         SkRect r;
         r.set(SkDoubleToScalar(rclip->fLeft*(double)ratio),
@@ -1981,7 +1992,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->clipRect(r);
 
         skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-        skia->canvas->drawBitmap(layer->skia->canvas->getDevice()->accessBitmap(false),
+        skia->canvas->drawBitmap(this->getSurface()->canvas->getDevice()->accessBitmap(false),
             left*ratio, top*ratio, &pt);
         /* TODO : save/restore */
         skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
@@ -1989,15 +2000,15 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->restore();
         skia->canvas->flush();
     } else {
-        const SkBitmap &bitmapLayer = layer->skia->canvas->getDevice()->accessBitmap(false);
+        const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
-        if (layer->hasShader()) {
+        if (this->hasShader()) {
             skia->canvas->flush();
-            layer->skia->canvas->flush();
+            this->getSurface()->canvas->flush();
             int width, height;
 
             /* get the layer's Texture ID */
-            uint32_t textureID = layer->getSkiaTextureID(&width, &height);
+            uint32_t textureID = this->getSkiaTextureID(&width, &height);
 #if 0
             /* Use our custom shader */
             glUseProgram(0);
@@ -2007,17 +2018,17 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 #endif
             /* Use our custom shader */
 
-            layer->setupShader((float)opacity, width, height,
+            this->setupShader((float)opacity, width, height,
                 left, top,
-                (int)this->getHandler()->getWidth(),
-                (int)this->getHandler()->getHeight());
+                (int)layer->getHandler()->getWidth(),
+                (int)layer->getHandler()->getHeight());
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
-            drawTexIDToFBO(textureID, width, height, left, top, getMainFBO());
+            layer->drawTexIDToFBO(textureID, width, height, left, top, layer->getMainFBO());
 
             /* Reset skia GL context */
-            layer->resetGLContext();
+            this->resetGLContext();
 
             return;
 
@@ -2025,7 +2036,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
         }
 
-        if (layer->commonDraw) {
+        if (this->commonDraw) {
             skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
             skia->canvas->drawBitmap(bitmapLayer,
                 left*ratio, top*ratio, &pt);
@@ -2034,13 +2045,13 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         } else {
             int width, height;
             skia->canvas->flush();
-            layer->skia->canvas->flush();
+            this->getSurface()->canvas->flush();
             /* get the layer's Texture ID */
-            uint32_t textureID = layer->getSkiaTextureID(&width, &height);
+            uint32_t textureID = this->getSkiaTextureID(&width, &height);
             //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
             glUseProgram(0);
-            drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, getMainFBO());
-            layer->resetGLContext();            
+            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+            this->resetGLContext();            
         }
     }
     
@@ -2048,7 +2059,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
 void NativeCanvas2DContext::flush()
 {
-    skia->canvas->flush();
+    m_Skia->canvas->flush();
 }
 
 void NativeCanvas2DContext::setSize(int width, int height)
@@ -2058,9 +2069,9 @@ void NativeCanvas2DContext::setSize(int width, int height)
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    const SkBitmap &bt = skia->canvas->getDevice()->accessBitmap(false);
+    const SkBitmap &bt = m_Skia->canvas->getDevice()->accessBitmap(false);
 
-    if (skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
+    if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
         ncanvas = NativeSkia::createGLCanvas(width, height);
         NativeSkia::glcontext = ncanvas;
     } else {
@@ -2077,23 +2088,25 @@ void NativeCanvas2DContext::setSize(int width, int height)
     
     ncanvas->drawBitmap(bt, 0, 0);
     //ncanvas->clipRegion(skia->canvas->getTotalClip());
-    ncanvas->setMatrix(skia->canvas->getTotalMatrix());
+    ncanvas->setMatrix(m_Skia->canvas->getTotalMatrix());
 
     SkSafeUnref(ndev);
-    skia->canvas->unref();
-    skia->canvas = ncanvas;
+    m_Skia->canvas->unref();
+    m_Skia->canvas = ncanvas;
 
 }
 
 void NativeCanvas2DContext::translate(double x, double y)
 {
-    skia->canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    m_Skia->canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height) :
     setterDisabled(false), commonDraw(true), handler(handler)
 {
+    m_Mode = CONTEXT_2D;
+
     jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
     jscx  = cx;
 
@@ -2102,8 +2115,8 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSObject *saved = JS_NewArrayObject(cx, 0, NULL);
     JS_SetReservedSlot(jsobj, 0, OBJECT_TO_JSVAL(saved));
 
-    skia = new NativeSkia();
-    skia->bindOnScreen(width, height);
+    m_Skia = new NativeSkia();
+    m_Skia->bindOnScreen(width, height);
 
     JS_SetPrivate(jsobj, this);
 
@@ -2119,14 +2132,15 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    jscx(NULL), commonDraw(true), handler(handler)
+    commonDraw(true), handler(handler)
 {
-    this->jsobj = NULL;
-    skia = new NativeSkia();
+    m_Mode = CONTEXT_2D;
+    
+    m_Skia = new NativeSkia();
     if (isGL) {
-        skia->bindGL(width, height);
+        m_Skia->bindGL(width, height);
     } else {
-        skia->bindOnScreen(width, height);
+        m_Skia->bindOnScreen(width, height);
     }
     memset(&this->gl, 0, sizeof(this->gl));
     memset(&this->shader, 0, sizeof(this->shader));
@@ -2135,9 +2149,9 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 void NativeCanvas2DContext::setScale(double x, double y,
     double px, double py)
 {
-    this->skia->scale(1./px, 1./py);
+    m_Skia->scale(1./px, 1./py);
 
-    this->skia->scale(x, y);
+    m_Skia->scale(x, y);
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()
@@ -2152,7 +2166,7 @@ NativeCanvas2DContext::~NativeCanvas2DContext()
         glDeleteProgram(gl.program);
     }
     //NLOG("Delete skia %p", skia);
-    delete skia;
+    delete m_Skia;
 }
 
 static JSBool native_Canvas2DContext_constructor(JSContext *cx,

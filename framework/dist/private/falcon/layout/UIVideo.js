@@ -4,19 +4,29 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIVideo" : {
+		canReceiveFocus	: false,
+		background : "black",
+		shadowBlur : 12,
+		shadowOffsetY : 4,
+		shadowColor : "rgba(0, 0, 0, 1)",
+		overflow : false
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIVideo", {
 	init : function(){
 		var self = this,
 			o = this.options;
-
-		this.setProperties({
-			canReceiveFocus	: false,
-			background : OptionalValue(o.background, 'black'),
-			shadowBlur : OptionalNumber(o.shadowBlur, 12),
-			shadowOffsetY : OptionalNumber(o.shadowOffsetY, 4),
-			shadowColor : OptionalValue(o.shadowColor, "rgba(0, 0, 0, 1)"),
-			overflow	: false
-		});
 
 		this.spinner = new UISpinner(this, {
 			height : 40,
@@ -40,7 +50,7 @@ Native.elements.export("UIVideo", {
 
 		this.status.hideDelay = 1000;
 
-		this.status.icon = new Icon(this.status, {
+		this.status.icnPlay = new Icon(this.status, {
 			left : 0,
 			top : 0,
 			background : "rgba(0, 0, 0, 0.35)",
@@ -48,7 +58,7 @@ Native.elements.export("UIVideo", {
 			shape : "play"
 		});
 
-		this.status.icon.addEventListener("mousedown", function(e){
+		this.status.icnPlay.addEventListener("mousedown", function(e){
 			var p = self.player;
 			if (!p) return false;
 			if (p.playing) {
@@ -60,7 +70,7 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
-		this.status.speaker = new Icon(this.status, {
+		this.status.icnSpeaker = new Icon(this.status, {
 			left : 26,
 			top : 0,
 			color : "rgba(0, 0, 0, 0.55)",
@@ -186,6 +196,10 @@ Native.elements.export("UIVideo", {
 			}
 		});
 
+		this.addEventListener("mousedown", function(e){
+			e.stopPropagation();
+		}, false);
+
 		this.addEventListener("mouseover", function(e){
 			if (this.volume.draggingSlider || this.status.dragging) return false;
 			if (!this.player || !this.player.ready) return false;
@@ -204,7 +218,8 @@ Native.elements.export("UIVideo", {
 			} else {
 				this.status.open(150);
 			}
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.addEventListener("mouseout", function(e){
 			var that = this;
@@ -238,7 +253,7 @@ Native.elements.export("UIVideo", {
 		this.volume.addEventListener("change", function(e){
 			if (!self.player) return false;
 			self.player.volume = e.value;
-			self.status.speaker.variation = Math.round(2*e.value/1.5);
+			self.status.icnSpeaker.variation = Math.round(2*e.value/1.5);
 		}, false);
 
 		this.spinner.show();

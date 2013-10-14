@@ -19,19 +19,9 @@ Native.elements.export("UIPath", {
 		var	params = this.getDrawingBounds(),
 			scale = this.width / this.units;
 
-		if (this.shadowBlur != 0) {
-			context.setShadow(
-				this.shadowOffsetX,
-				this.shadowOffsetY,
-				this.shadowBlur,
-				this.shadowColor
-			);
-		}
-
-		NDMElement.draw.box(this, context, params);
-
-		context.setColor(this.color);
-		context.setPath(this.data, this.units, this.advx, this.advy, scale);
-		context.setShadow(0, 0, 0);
+		NDMElement.draw.enableShadow(this);
+			context.setColor(this.color);
+			context.setPath(this.data, this.units, this.advx, this.advy, scale);
+		NDMElement.draw.disableShadow(this);
 	}
 });

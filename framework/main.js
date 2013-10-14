@@ -99,8 +99,55 @@ DONE :
 
 */
 
+
 document.background = "#333333";
 //load("sample.js");
+
+/*
+var c0 = new Canvas(200, 200),
+	ctx = c0.getContext("2d");
+
+c0.padding = 20;
+c0.left = 20;
+c0.top = 20;
+window.canvas.add(c0);
+
+ctx.shadowBlur = 14;
+ctx.shadowColor = "black";
+ctx.fillStyle = "red";
+ctx.fillRect(0, 0, 200, 200);
+*/
+
+
+/*
+var but = new UIButton(document, {
+	left : 20,
+	top : 160,
+	label : "Remove",
+	background : "#000000",
+	fontSize : 10.5
+});
+
+console.log(
+	but.width,
+	but.options.width,
+	but.inline.width,
+	but.layer.width
+);
+
+console.dump(but.inline);
+
+setTimeout(function(){
+console.log(
+	but.width,
+	but.options.width,
+	but.inline.width,
+	but.layer.width
+);
+}, 1500);
+
+*/
+
 
 //load("applications/_tests/timers.js");
 //load("applications/_tests/arc.js");
@@ -112,14 +159,14 @@ document.background = "#333333";
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
 //load("applications/components/tabs.js");
-//load("applications/components/profiler.js");
+//load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
 //load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
-//load("applications/components/threads.js"); // crash si vidage console
+load("applications/components/threads.js"); // crash si vidage console
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
@@ -167,65 +214,63 @@ document.background = "#333333";
 /* SHADERS */
 
 	//load("applications/components/shader.js"); // OK
-	//load("applications/components/shader.basic.js"); // TODO : relative path to app
-	//load("applications/components/shader.advanced.js"); // TODO : relative path to app
+	//load("applications/components/shader.basic.js"); // OK
+	//load("applications/components/shader.advanced.js"); // OK
+
 
 /*
-1) apply nss properties
-2) apply inline properties
-3) dynamic properties replace inline properties
-*/
 
-
-
-
-
-Native.StyleSheet.add({
-	"UIButton" : {
-		label : "miami",
-		background : "blue",
-		color : "white",
-		textAlign : "center",
-		autosize : false,
+document.nss.add({
+	".foobar" : {
+		top : 30,
+		left : 300,
 		width : 450,
-		height : 22
+		height : 300,
+		background : "red"
 	},
 
-	"UIButton:hover" : {
+	".foobar:hover" : {
+		background : "#222222",
+		radius : 4,
 		width : 450,
-		height : 500
+		height : 80
+	},
+
+	".foobar:disabled" : {
+		background : "#FF00FF",
+		radius : 4,
+		width : 450,
+		height : 80
+	},
+
+	".foobar:disabled+hover" : {
+		background : "#0000FF"
 	}
 });
-
-
-var UIButton = 5;
-
-var txt = new UIButton(document);
-
-
-
-
-
-
-console.log(txt.width, txt.height);
-console.log(txt.layer.width, txt.layer.height);
-
-/*
-
-txt.width = 350;
-txt.height = 15;
-
 */
 
 /*
-txt.autosize = true;
 
-console.log("");
-console.log(txt.width, txt.height);
-console.log(txt.layer.width, txt.layer.height);
+var txt = new UIButton(document).center();
 
+txt.background = "red";
+txt.selected = true;
+//txt.className = "foobar";
+txt.hover = true;
+txt.disabled = true;
 */
 
+/*
+var o = new UILabel(document, {
+	width : 200,
+	autowidth : false,
+	paddingLeft : 10,
+	paddingRight : 10,
+	textAlign : "center"
+}).center().move(45, 0);
+o.background = "white";
+o.label = "Mama's gonna snatch"
+*/
 
 
 /* TUTORIALS */

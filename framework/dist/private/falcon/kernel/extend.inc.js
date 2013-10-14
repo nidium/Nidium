@@ -7,6 +7,22 @@
 "use strict";
 
 /* -------------------------------------------------------------------------- */
+/* IMAGE API                                                                  */
+/* -------------------------------------------------------------------------- */
+
+Image.load = function(url, callback){
+	var cb = OptionalCallback(callback, function(){}),
+		img = new Image();
+
+	img.onload = function(){
+		cb(img);
+	};
+	img.src = url;
+};
+
+/* -------------------------------------------------------------------------- */
+/* HTTP API                                                                   */
+/* -------------------------------------------------------------------------- */
 
 var HttpRequest = function(method, url, data, onloadCallback){
 	var self = this;
@@ -45,6 +61,8 @@ var HttpRequest = function(method, url, data, onloadCallback){
 	};
 };
 
+/* -------------------------------------------------------------------------- */
+/* FILE API                                                                   */
 /* -------------------------------------------------------------------------- */
 
 Object.merge(File.prototype, {
@@ -175,12 +193,16 @@ File.append = function(url, data, callback){
 };
 
 /* -------------------------------------------------------------------------- */
+/* CONSOLE API                                                                */
+/* -------------------------------------------------------------------------- */
 
 console.dump = function(...n){
 	this.iteration = 0;
 	this.maxIterations = 5000;
 	for (var i in n){
-		console.log(console.parse(n[i]));
+		if (n.hasOwnProperty(i)) {
+			console.log(console.parse(n[i]));
+		}
 	}
 };
 

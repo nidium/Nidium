@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 class NativeSkia;
-class NativeCanvas2DContext;
+class NativeCanvasContext;
 
 /*
     Handle a canvas layer.
@@ -77,7 +77,7 @@ class NativeCanvasHandler
             CANVAS_VISIBILITY_HIDDEN
         };
 
-        NativeCanvas2DContext *context;
+        NativeCanvasContext *m_Context;
         class JSObject *jsobj;
         struct JSContext *jscx;
 
@@ -115,8 +115,8 @@ class NativeCanvasHandler
 
         bool overflow;
 
-        NativeCanvas2DContext *getContext() const {
-            return this->context;
+        NativeCanvasContext *getContext() const {
+            return this->m_Context;
         }
 
         double getOpacity() const {
@@ -267,6 +267,8 @@ class NativeCanvasHandler
         ~NativeCanvasHandler();
 
         void unrootHierarchy();
+
+        void setContext(NativeCanvasContext *context);
 
         bool setWidth(int width);
         bool setHeight(int height);

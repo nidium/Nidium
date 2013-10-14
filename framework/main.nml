@@ -1,0 +1,19 @@
+<application version="0.2">
+	<meta>
+		<title>My Application</title>
+		<description>This is the description of the page</description>
+		<viewport>1024x768</viewport>
+		<version>1.0</version>
+		<date>2012-03-15</date>
+		<robots>index, follow</robots>
+		<identifier>com.company.app</identifier>
+		<author>Company Inc.</author>
+	</meta>
+	<assets>
+		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
+		<script type="native/javascript" src="private://falcon/native.js"></script>
+		<style type="native/javascript" src="main.nss"></style>
+		<script type="native/javascript" src="main.js"></script>
+	</assets>
+</application>
+

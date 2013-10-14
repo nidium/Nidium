@@ -4,13 +4,60 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UITabController" : {
+		background : "rgba(25, 26, 24, 1)",
+		height : 30,
+		paddingTop : 6,
+		paddingBottom : 0,
+		overlap : 14
+	},
+
+	"UITabController:hasFocus" : function(){
+		this.outlineColor = this.inline.background;
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UITabController", {
-	public : {
-		overlap : {
-			set : function(value){
-				this.resetTabs();
+	onAddChildRequest : function(child){
+		var accept = false;
+
+		if (child.type == "UITab") {
+			var t = this.tabs.length,
+				left = 0;
+
+			for (var i=0; i<t; i++){
+				left += this.tabs[i].width - this.overlap;
 			}
+
+			child.left = left;
+			child.top = this.paddingTop;
+			child.name = "tab_" + this.name;
+			child.height = this.height - this.paddingTop - this.paddingBottom;
+			child.closable = true;
+
+			this.tabs[t] = child;
+			this.tabs[t].index = t;
+			this.tabs[t].pos = t;
+
+			this.taborder[t] = t;
+			accept = true;
 		}
+
+		return accept;
+	},
+
+	onChildReady : function(child){
+		this.attachListenersToTab(child);
+		this.resetTabs();
 	},
 
 	init : function(){
@@ -18,12 +65,12 @@ Native.elements.export("UITabController", {
 			o = this.options,
 			controller = this;
 
-		this.overlap = OptionalValue(o.overlap, 14);
-		this.background = OptionalValue(o.background, "");
-		this.name = OptionalString(o.name, "Default");
-		this.width = OptionalNumber(o.width, this.parent.width);
-		this.height = OptionalNumber(o.height, 32);
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
+			overlap : OptionalValue(o.overlap, 14)
+		});
 
+		this.name = OptionalString(o.name, "Default");
 		this.currentIndex = false;
 		this.currentPosition = false;
 
@@ -216,7 +263,9 @@ Native.elements.export("UITabController", {
 			}
 			tb.splice(index, 0, {});
 
+			this._disableUpdate = true;
 			self._addTab(index, p, options);
+			this._disableUpdate = false;
 
 			newtab = tb[index];
 
@@ -265,7 +314,7 @@ Native.elements.export("UITabController", {
 		};
 
 		this.getTabAtPosition = function(p){
-			return self.tabs[ self.taborder[p] ];
+			return this.tabs[ this.taborder[p] ];
 		};
 
 		this._addTab = function(i, p, options, left){
@@ -273,32 +322,22 @@ Native.elements.export("UITabController", {
 				selected = OptionalBoolean(o.selected, false);
 
 			if (selected) {
-				self.currentIndex = i;
-				self.currentPosition = i;
+				this.currentIndex = i;
+				this.currentPosition = i;
 			}
-			
+		
 			this.tabs[i] = this.add("UITab", {
 				left : left,
-				top : 8,
+				label : o.label,
+				top : this.paddingTop,
 				name : "tab_" + this.name,
-				height : this.height - 8,
+				height : this.height - this.paddingTop - this.paddingBottom,
 				selected : selected,
 
-				label : OptionalString(o.label, "New Tab"),
-				background : OptionalValue(o.background, "#262722"),
-				color : OptionalValue(o.color, "#abacaa"),
-				opacity : OptionalNumber(o.opacity, 1),
-				fontSize : OptionalNumber(o.fontSize, 11),
-				fontFamily : OptionalString(o.fontFamily, "arial"),
 				closable : OptionalBoolean(o.closable, true),
 				preventmove : OptionalBoolean(o.preventmove, false),
 				target : OptionalValue(o.target, null)
 			});
-
-			this.tabs[i].index = i;
-			this.tabs[i].pos = p;
-
-			this.attachListenersToTab(this.tabs[i]);
 		};
 
 		this._slideTab = function(tab, value){
@@ -353,10 +392,15 @@ Native.elements.export("UITabController", {
 			}, false);
 
 			if (tab.closeButton){
-				tab.closeButton.addEventListener("mouseup", function(){
+				tab.closeButton.addEventListener("mousedown", function(e){
+					e.stopPropagation();
+				}, false);
+				
+				tab.closeButton.addEventListener("mouseup", function(e){
 					if (this.hover){
 						controller.removeTab(tab);
 					}
+					e.stopPropagation();
 				}, false);
 			}
 		};
@@ -456,11 +500,6 @@ Native.elements.export("UITabController", {
 
 			this.resetTabs();
 		};
-
-		if (this.options.tabs) {
-			this.setTabs(this.options.tabs);
-		}
-
 	},
 
 	draw : function(context){

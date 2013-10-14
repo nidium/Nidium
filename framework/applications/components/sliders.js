@@ -4,9 +4,7 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-var main = new Application();
-
-var	button = new UIButton(main, {
+var	button = new UIButton(document, {
 	id : "button",
 	left : 966,
 	top : 8,
@@ -21,35 +19,28 @@ button.addEventListener("mouseup", function(e){
 });
 
 // Small Green Slider
-var slider1 = main.add("UISliderController", {
+var slider1 = document.add("UISliderController", {
 	left : 350,
 	top : 150,
-	background : '#161712',
-	color : 'rgba(210, 255, 40, 1)',
-	progressBarColor : 'rgba(210, 255, 40, 1)',
-	disabled : false,
-	radius : 2,
+	background : "black",
 	min : -100,
-	max : 100,
-	value : 0
+	max : 100
 }),
 
 // Small Rose Slider
-slider2 = main.add("UISliderController", {
+slider2 = document.add("UISliderController", {
 	left : 350,
 	top : 180,
 	background : '#161712',
 	color : 'rgba(255, 40, 210, 1)',
 	progressBarColor : 'rgba(255, 40, 210, 1)',
-	disabled : false,
-	radius : 2,
 	min : -100,
 	max : 100,
 	value : 0
 }),
 
 // Big Blue Slider
-slider3 = main.add("UISliderController", {
+slider3 = document.add("UISliderController", {
 	left : 350,
 	top : 240,
 	width : 250,
@@ -75,7 +66,7 @@ slider3 = main.add("UISliderController", {
 	value : 0
 }),
 
-master = main.add("UISliderController", {
+master = document.add("UISliderController", {
 	left : 800,
 	top : 210,
 	width : 12,
@@ -89,26 +80,19 @@ master = main.add("UISliderController", {
 	radius : 3,
 	min : 0,
 	max : 300,
-	value : 0
+	value : 50
 });
-
 
 master.addEventListener("complete", function(value){
 	console.log(value);
 }, false);
 
-
-
 // Big Blue Slider controls the small sliders
 slider3.addEventListener("change", function(e){
-	var g1 = slider1.value,
-		g2 = slider2.value;
-
-	slider1.setValue(g1+e.value*20);
-	slider2.setValue(g2+e.value*20);
-	frequency = (e.value)/10;
+	slider1.value = (this.value)*100;
+	slider2.value = (this.value)*100;
+	frequency = this.value/10;
 }, false);
-
 
 
 /*
@@ -123,7 +107,8 @@ var sliders = [],
 	sliderTop = 12,
 	sliderLeft = 16,
 	sliderWidth = 140,
-	gdSpectrum = window.canvas.ctx.createLinearGradient(0, 0, sliderWidth, 0);
+	ctx = window.canvas.getContext("2d"),
+	gdSpectrum = ctx.createLinearGradient(0, 0, sliderWidth, 0);
 
 gdSpectrum.addColorStop(0.00,'#002200');
 gdSpectrum.addColorStop(0.25,'#00ff00');
@@ -131,7 +116,7 @@ gdSpectrum.addColorStop(0.50,'#ffff00');
 gdSpectrum.addColorStop(1.00,'#ff0000');
 
 for (var s=0; s<nb_sliders; s++){
-	sliders[s] = main.add("UISliderController", {
+	sliders[s] = document.add("UISliderController", {
 		left : sliderLeft,
 		top : sliderTop + s*23,
 		width : sliderWidth,
@@ -156,7 +141,7 @@ setTimeout(function(){
 		time = 0,
 		t = window.timer(function(){
 			sliders[s].setValue(20*Math.cos(3*frequency*time++), 300);
-
+			sliders[s].progress = 20*Math.cos(3*frequency*time);
 			s++;
 			if (s >= nb_sliders) {
 				s = 0;
@@ -166,4 +151,5 @@ setTimeout(function(){
 
 
 }, 200);
+
 

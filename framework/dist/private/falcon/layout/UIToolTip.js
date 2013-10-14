@@ -28,8 +28,8 @@ Native.elements.export("UIToolTip", {
 	init : function(){
 		var self = this,
 			o = this.options,
-			def = document.style.get("@default") || {},
-			style = document.style.get(this.type) || {};
+			def = document.nss.getSelector("@default") || {},
+			style = document.nss.getSelector(this.type) || {};
 
 		this.setProperties({
 			canReceiveFocus	: false,

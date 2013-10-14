@@ -84,12 +84,12 @@ var AudioMixer = {
 		this.dsp.connect(source.output(1), gain.input(1));
 
 		// ... GAIN ---> PROCESSOR ..........................
-//		this.dsp.connect(gain.output(0), processor.input(0));
-//		this.dsp.connect(gain.output(1), processor.input(1));
+		this.dsp.connect(gain.output(0), processor.input(0));
+		this.dsp.connect(gain.output(1), processor.input(1));
 
 		// ... GAIN ---> TARGET ...............................
-		this.dsp.connect(gain.output(0), this.master.input(0));
-		this.dsp.connect(gain.output(1), this.master.input(1));
+		this.dsp.connect(processor.output(0), this.master.input(0));
+		this.dsp.connect(processor.output(1), this.master.input(1));
 
 		this.dsp.connect(this.master.output(0), this.target.input(0));
 		this.dsp.connect(this.master.output(1), this.target.input(1));

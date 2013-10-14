@@ -4,35 +4,78 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
-Native.elements.export("UISliderController", {
-	public : {
-		vertical : {
-			value : function(){
-				return OptionalBoolean(this.options.vertical, false);
-			},
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
 
-			set : function(value){
-				this.changeOrientation(value);
-			}
+document.nss.add({
+	"UISliderController" : {
+		canReceiveFocus : true,
+
+		color : "rgba(210, 255, 40, 1)",
+		background : "#161712",
+		progressBarColor : "rgba(210, 255, 40, 1)",
+		splitColor : "rgba(0, 0, 0, 0.05)",
+
+		cursor : "arrow",
+		width : 120,
+		height : 12,
+
+		value : 0,
+		min : 0,
+		max : 100,
+		value : 0,
+		progress : 0,
+		radius : 2,
+		syncProgressBar : true,
+		vertical : false
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
+Native.elements.export("UISliderController", {
+	update : function(e){
+		var key = e.property,
+			val = e.value;
+
+		this.progress = this.progress.bound(0, 100);
+
+		if (key == "value") {
+			this.__lock();
+			this.setValue(val);
+			this.__unlock();
 		}
+
+		if (key == "vertical") {
+			this.changeOrientation(val);
+		}
+	},
+
+	onAdoption : function(){
+		this.setValue(this.value);
 	},
 
 	init : function(){
 		var self = this,
 			o = this.options;
 
-		NDMElement.definePublicProperties(this, {
-			canReceiveFocus : true,
-			color : OptionalValue(o.color, "#3388dd"),
-			value : OptionalNumber(o.value, 0),
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
 			min : OptionalNumber(o.min, 0),
-			max : OptionalNumber(o.max, 100),
-			cursor : "pointer",
+			max : OptionalNumber(o.max, 0),
+			value : OptionalNumber(o.value, 0),
+			progress : OptionalNumber(o.progress, 0),
 
+			vertical : OptionalValue(o.vertical, false),
 			boxColor : OptionalValue(o.boxColor, false),
 			progressBarColor : OptionalValue(o.progressBarColor, false),
 			splitColor : OptionalValue(o.splitColor, false)
 		});
+
+		this.moving = false;
 
 		if (this.vertical){
 			this.width = OptionalNumber(o.width, 12);
@@ -53,16 +96,17 @@ Native.elements.export("UISliderController", {
 				this.knob.top = 0;
 			}
 			this.setValue(this.value);
+			this.redraw();
 		};
 
 		this.knob = this.add("UISliderKnob", {
-			left : this.vertical ? 0 : -this.height/2,
-			top : this.vertical ? this.height - this.width/2 : 0,
-			width : this.vertical ? this.width : this.height,
-			height : this.vertical ? this.width : this.height,
-			background : this.color,
-			cursor : "drag"
+			background : this.color
 		});
+
+		this.knob.left = this.vertical ? 0 : -this.height/2;
+		this.knob.top = this.vertical ? this.height - this.width/2 : 0;
+		this.knob.width = this.vertical ? this.width : this.height;
+		this.knob.height = this.vertical ? this.width : this.height;
 
 		this.addEventListener("mousedown", function(e){
 			var k = this.knob,
@@ -127,8 +171,10 @@ Native.elements.export("UISliderController", {
 		}, false);
 
 		this.knob.addEventListener("drag", function(e){
-			var nx = e.x - self.__left - this.width/2,
-				ny = e.y - self.__top - this.height/2,
+			var hw = this.width/2,
+				hh = this.height/2,
+				nx = e.x - self.__left - hw,
+				ny = e.y - self.__top - hh,
 				pixelValue = self.vertical ? ny : nx;
 
 			self.draggingSlider = true;
@@ -226,7 +272,9 @@ Native.elements.export("UISliderController", {
 
 			if (this.draggingSlider) return false;
 
+			this.__lock();
 			this.value = Math.max(Math.min(this.max, value), this.min);
+			this.__unlock();
 
 			if (this.vertical){
 				var pxv = (this.max - this._value)*h/d - kh; // pixelview
@@ -287,21 +335,29 @@ Native.elements.export("UISliderController", {
 			);
 		}
 
+		/* Sync progressbar with sliderknob */
+		if (this.syncProgressBar) {
+			var progress = this.vertical ?
+					100*((this.height-this.knob.top)/this.height) :
+					100*(this.knob.left/this.width) ;
+		}
+
 		if (this.progressBarColor){
 			var ga = context.globalAlpha;
 			context.globalAlpha = 0.8;
 			context.setShadow(0, 0, 4, this.progressBarColor);
 			context.globalAlpha = ga;
 			if (this.vertical){
+				var p = h - (progress*h/100);
 				context.roundbox(
-					x, y + this.pixelValue, 
-					w, h - this.pixelValue, 
+					x, y + p,
+					w, (progress*h/100),
 					this.radius, this.progressBarColor, false
 				);
 			} else {
 				context.roundbox(
 					x, y, 
-					this.pixelValue, h,
+					progress*w/100, h,
 					this.radius, this.progressBarColor, false
 				);
 			}

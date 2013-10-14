@@ -95,14 +95,19 @@
 - (void) log:(NSString *)str
 {
     if (!self.isHidden) {
-        [[[textview textStorage] mutableString] appendString: str];
+        @try {
+            [[[textview textStorage] mutableString] appendString: str];
+        } @catch(NSException *e) {}
     }
 }
 
 - (void) clear
 {
     [textview setString:@""];
-    [textview insertText:@"Console ready.\n"];
+    @try {
+        [textview insertText:@"Console ready.\n"];
+    } @catch(NSException *e){}
+    
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
 }
 

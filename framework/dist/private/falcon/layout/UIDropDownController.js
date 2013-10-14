@@ -4,6 +4,46 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIDropDownController" : {
+		width 			: 140,
+		height 			: 22,
+		maxHeight 		: 198,
+
+		fontSize  		: 11,
+		fontFamily  	: "arial",
+
+		paddingLeft		: 10,
+		paddingRight	: 10,
+
+		shadowBlur 		: 4,
+		shadowColor 	: "rgba(0, 0, 0, 0.15)",
+		shadowOffsetX 	: 0,
+		shadowOffsetY 	: 2,
+
+		radius 			: 2,
+		background 		: "#262722",
+		color 			: "#ffffff",
+		canReceiveFocus	: true,
+		canReceiveKeyboardEvents : true
+	},
+
+	"UIDropDownController:selected" : {
+		shadowBlur : 0.75,
+		shadowColor : "rgba(255, 255, 255, 0.08)",
+		shadowOffsetX : 0,
+		shadowOffsetY : 1
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIDropDownController", {
 	public : {
 		value : {
@@ -31,10 +71,8 @@ Native.elements.export("UIDropDownController", {
 
 			var options = {
 				label : child.label,
-				background : child.background,
 				className : child.className,
 				value : child.value,
-				color : child.color,
 				selected : child.selected,
 				disabled : child.disabled
 			};
@@ -51,42 +89,11 @@ Native.elements.export("UIDropDownController", {
 		var self = this,
 			o = this.options;
 
-		var y = 0,
-			tabs = o.elements ? o.elements : [];
-
-		this.setProperties({
-			canReceiveFocus	: true,
-
-			canReceiveKeyboardEvents : OptionalBoolean(
-				o.canReceiveKeyboardEvents,
-				true
-			),
-
-			label			: OptionalString(o.label, "Choose"),
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-
-			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
-			paddingRight	: OptionalNumber(o.paddingLeft, 10),
-
-			width 			: OptionalNumber(o.width, 140),
-			height 			: OptionalNumber(o.height, 22),
-			maxHeight 		: OptionalNumber(o.maxHeight, null),
-			radius 			: OptionalNumber(o.radius, 2),
-			background 		: OptionalValue(o.background, "#2277E0"),
-			color 			: OptionalValue(o.color, "#ffffff"),
-
-			selectedBackground : OptionalValue(o.selectedBackground, "#4D90FE"),
-			selectedColor : OptionalValue(o.selectedColor, "#ffffff"),
-
-			name : OptionalString(o.name, "Default")
-		});
-
+		this.name = OptionalString(o.name, "Default");
 		this.selection = 0;
 		this.tabs = [];
 		this.hideSelector = OptionalBoolean(o.hideSelector, false);
 		this.hideToggleButton = OptionalBoolean(o.hideToggleButton, false);
-
 
 		this.getSelectorHeight = function(){
 			var	l = this.tabs.length,
@@ -116,7 +123,6 @@ Native.elements.export("UIDropDownController", {
 
 			return this;
 		};
-
 
 		this.scrollToSelection = function(){
 			if (!this.tabs[this.selection]) return this;
@@ -170,14 +176,24 @@ Native.elements.export("UIDropDownController", {
 			return this;
 		};
 
-		this._addElement = function(i, options, y){
+		this.setOptions = function(elements){
+			var top = 0,
+				tabs = elements ? elements : [];
+
+			for (var i=0; i<tabs.length; i++){
+				self._addElement(i, tabs[i], top);
+				top += this.tabs[i].height;
+			}
+
+			this.reset();
+		};
+
+		this._addElement = function(i, options, top){
 			var o = options,
 				label = OptionalString(o.label, "Default"),
 				selected = OptionalBoolean(o.selected, false),
-				background = OptionalValue(o.background, "rgba(255, 255, 255, 1)"),
 				className = OptionalString(o.class, ""),
 				value = OptionalValue(o.value, ""),
-				color = OptionalValue(o.color, "#555555"),
 				disabled = OptionalBoolean(o.disabled, false);
 
 			if (selected) {
@@ -187,15 +203,13 @@ Native.elements.export("UIDropDownController", {
 			this.selector.__unlock();
 			this.tabs[i] = this.selector.add("UIOption", {
 				left : 0,
-				top : y,
+				top : top,
 				height : this.height,
 				name : "option_" + this.name,
 				label : label,
 				class : className,
 				selected : selected,
 				disabled : disabled,
-				background : background,
-				color : color,
 				value : value
 			});
 
@@ -227,11 +241,6 @@ Native.elements.export("UIDropDownController", {
 			overflow : false
 		});
 
-		for (var i=0; i<tabs.length; i++){
-			self._addElement(i, tabs[i], y);
-			y += this.tabs[i].height;
-		}
-
 		this.downButton = this.add("UIButtonDown", {
 			left : this.width-this.height,
 			top : 3,
@@ -243,16 +252,14 @@ Native.elements.export("UIDropDownController", {
 		if (this.hideToggleButton) this.downButton.hide();
 
 		this._showElements = function(){
-			var l = tabs.length;
-			for (var i=0; i<l; i++){
-				self.tabs[i].show();
+			for (var i=0; i<this.tabs.length; i++){
+				this.tabs[i].show();
 			}
 		};
 
 		this._hideElements = function(){
-			var l = tabs.length;
-			for (var i=0; i<l; i++){
-				self.tabs[i].hide();
+			for (var i=0; i<this.tabs.length; i++){
+				this.tabs[i].hide();
 			}
 		};
 
@@ -278,6 +285,14 @@ Native.elements.export("UIDropDownController", {
 			this.selector.opacity = 0;
 			this.selector.height = 0;
 			this.toggleState = false;
+		};
+
+		this.toggleSelector = function(){
+			if (this.toggleState){
+				this.closeSelector();
+			} else {
+				this.openSelector();
+			}
 		};
 
 		this.openSelector = function(duration=400){
@@ -404,6 +419,8 @@ Native.elements.export("UIDropDownController", {
 			return this;
 		};
 
+		/* ---- LISTENERS --------------------------------------------------- */
+
 		NDMElement.listeners.addHovers(this);
 
 		this.addEventListener("contextmenu", function(e){
@@ -419,13 +436,12 @@ Native.elements.export("UIDropDownController", {
 			e.stopPropagation();
 		}, false);
 
-
 		this.addEventListener("blur", function(e){
 			this.closeSelector();
 		}, false);
 
 		this.addEventListener("focus", function(e){
-			this.bringToFront();
+			this.selector.bringToFront();
 		}, false);
 
 		this.addEventListener("keydown", function(e){
@@ -438,9 +454,8 @@ Native.elements.export("UIDropDownController", {
 				case 13 : // ENTER
 				case 32 : // SPACE
 				case 1073741912 : // SMALL ENTER
-					self.closeSelector();
+					self.toggleSelector();
 					break;
-
 
 				case 1073741906 : // up
 					self.selectIndex(self.selection-1);
@@ -457,7 +472,6 @@ Native.elements.export("UIDropDownController", {
 		}, false);
 
 		this.initSelector();
-		this.reset();
 	},
 
 	draw : function(context){
@@ -469,19 +483,9 @@ Native.elements.export("UIDropDownController", {
 			NDMElement.draw.outline(this);
 		}
 
-		if (__ENABLE_BUTTON_SHADOWS__) {
-			if (this.selected){
-				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
-			} else {
-				context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
-			}
-		}
-		
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
-
-		if (__ENABLE_BUTTON_SHADOWS__){
-			context.setShadow(0, 0, 0);
-		}
+		NDMElement.draw.disableShadow(this);
 
 		NDMElement.draw.glassLayer(this, context, params);
 		NDMElement.draw.label(this, context, params);

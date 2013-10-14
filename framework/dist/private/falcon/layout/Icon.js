@@ -4,15 +4,35 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"Icon" : {
+		width : 20,
+		height : 20,
+		cursor : "arrow"
+	},
+
+	"Icon:hover" : {
+		cursor : "pointer"
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("Icon", {
 	init : function(){
 		var o = this.options;
-		this.width = OptionalNumber(o.width, 20);
-		this.height = OptionalNumber(o.height, 20);
-		this.cursor = OptionalCursor(o.cursor, "pointer");
-		this.shape = OptionalString(o.shape, "");
-		this.variation = OptionalNumber(o.variation, 0);
 
+		/* Element's Specific Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
+			shape : OptionalString(o.shape, ""),
+			variation : OptionalNumber(o.variation, 0)
+		});
 		NDMElement.listeners.addDefault(this);
 	},
 

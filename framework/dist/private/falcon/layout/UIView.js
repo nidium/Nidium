@@ -44,7 +44,7 @@ Native.elements.export("UIView", {
 			scrollBarHideDelay = 400,
 			o = this.options;
 
-		if (o.scrollable === true) {
+		if (this.scrollable === true){
 			this.scrollBarX = o.scrollBarX === false ? false : true;
 			this.scrollBarY = o.scrollBarY === false ? false : true;
 		}
@@ -53,7 +53,7 @@ Native.elements.export("UIView", {
 			if (url) {
 				self._cachedBackgroundImage = null;
 				this._backgroundImage = url;
-				Native.loadImage(url, function(img){
+				Image.load(url, function(img){
 					self.setBackgroundImage(img);
 				});
 			}
@@ -399,11 +399,13 @@ Native.elements.export("UIView", {
 
 		this.addEventListener("mouseover", function(e){
 			this.refreshScrollBars();
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.addEventListener("mouseout", function(e){
 			this.refreshScrollBars();
-		});
+			e.stopPropagation();
+		}, false);
 
 		this.setBackgroundURL(this.backgroundImage);
 	},

@@ -50,6 +50,7 @@
                     'SK_CAN_USE_FLOAT',
                     'SK_SUPPORT_GPU=1',
                     'SK_BUILD_FOR_MAC',
+                    'SK_FONTHOST_USES_FONTMGR',
                     'SK_USE_POSIX_THREADS',
                     'GR_MAC_BUILD=1',
                     'SK_SUPPORT_PDF',
@@ -57,7 +58,8 @@
                     'GR_RELEASE=1',
                     'TRACING',
                     'JS_THREADSAFE',
-                    'DSO_EXTENSION=.so'
+                    'DSO_EXTENSION=.so',
+                    'GR_GL_CUSTOM_SETUP_HEADER=<../gyp/skia_gl_config.h>'
                 ],
 				'xcode_settings': {
 					'OTHER_CFLAGS': [

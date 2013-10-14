@@ -97,7 +97,7 @@ void NativeAudio::bufferData() {
 #endif
 
 void *NativeAudio::queueThread(void *args) {
-#define MAX_MSG_IN_ROW 20
+#define MAX_MSG_IN_ROW 1024
     NativeAudio *audio = (NativeAudio *)args;
     bool wrote;
     int nread;
@@ -109,10 +109,14 @@ void *NativeAudio::queueThread(void *args) {
 
         while (++nread < MAX_MSG_IN_ROW && audio->sharedMsg->readMessage(&msg)) {
             // FIXME : Here is a possible crash, if node have been deleted 
+            // XXX : Should be fixed now (unref() / ref());
             switch (msg.event()) {
                 case NATIVE_AUDIO_NODE_CALLBACK : {
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
+                    if (cbkMsg->node != NULL) {
+                        cbkMsg->node->unref();
+                    }
                     delete cbkMsg;
                 }
                 break;
@@ -123,12 +127,18 @@ void *NativeAudio::queueThread(void *args) {
                     } else {
                         memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
                     }
+                    if (nodeMsg->node != NULL) {
+                        nodeMsg->node->unref();
+                    }
                     delete nodeMsg;
                 }
                 break;
                 case NATIVE_AUDIO_CALLBACK :
                     NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                     cbkMsg->cbk(NULL, cbkMsg->custom);
+                    if (cbkMsg->node != NULL) {
+                        cbkMsg->node->unref();
+                    }
                     delete cbkMsg;
                 break;
             }
@@ -495,6 +505,7 @@ void NativeAudio::removeTrack(NativeAudioTrack *track)
             }
             pthread_mutex_unlock(&this->recurseLock);
             pthread_mutex_unlock(&this->tracksLock);
+
             delete tracks;
             return;
         }

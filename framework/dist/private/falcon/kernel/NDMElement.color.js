@@ -4,7 +4,7 @@
  * @link   http://www.phpied.com/rgb-color-parser-in-javascript/
  * @license Use it if you like it
  */
-Native.color = function(color_string){
+NDMElement.color = function(color_string){
 	this.ok = false;
 
 	if (color_string.charAt(0) == '#'){

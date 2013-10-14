@@ -26,6 +26,10 @@ extern JSClass Canvas_class;
 JS_ReportError(cx, "Invalid NativeAudio context");\
 return JS_FALSE;\
 }
+void FIXMEReportError(JSContext *cx, const char *message, JSErrorReport *report)
+{
+    printf("%s\n", message);
+}
 
 extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
@@ -307,6 +311,7 @@ bool NativeJSAudio::createContext()
             printf("Failed to init JS runtime\n");
             return false;
         }
+        //JS_SetRuntimePrivate(rt, this->cx);
 
         JS_SetGCParameter(this->rt, JSGC_MAX_BYTES, 0xffffffff);
         JS_SetGCParameter(this->rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
@@ -332,7 +337,7 @@ bool NativeJSAudio::createContext()
 
         JS_SetOptions(this->tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
-        JS_SetErrorReporter(this->tcx, reportError);
+        JS_SetErrorReporter(this->tcx, FIXMEReportError);
         JS_SetGlobalObject(this->tcx, this->gbl);
         JS_DefineFunctions(this->tcx, this->gbl, glob_funcs_threaded);
 
@@ -531,12 +536,19 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
 
     JSAutoRequest ar(tcx);
 
-    if (!thiz->bufferFn) {
+    if (!thiz->bufferFn && thiz->bufferStr) {
         const char *args[2] = {"ev", "scope"};
+
+        thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_onbuffer", 2, args, thiz->bufferStr, strlen(thiz->bufferStr), "FILENAME (TODO)", 0);
+        if (!thiz->bufferFn) {
+            JS_ReportError(tcx, "Failed to compile CustomAudioNode_onbuffer function\n%s\n", thiz->bufferStr);
+            JS_free(tcx, (void *)thiz->bufferStr);
+            thiz->bufferStr = NULL;
+            return;
+        }
 
         thiz->nodeObj = JS_NewObject(tcx, &AudioNode_threaded_class, NULL, NULL);
         JS_AddObjectRoot(tcx, &thiz->nodeObj);
-        thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_onbuffer", 2, args, thiz->bufferStr, strlen(thiz->bufferStr), "FILENAME (TODO)", 0);
 
         JS_free(tcx, (void *)thiz->bufferStr);
 
@@ -797,7 +809,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
         free(this->arrayContent);
     }
 
-    delete this->node;
+    this->node->unref();
 
     JS_SetPrivate(this->jsobj, NULL);
 }
@@ -1151,8 +1163,8 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
     JSString *name;
     ArgType type;
     void *value;
-    int intVal;
-    double doubleVal;
+    int intVal = 0;
+    double doubleVal = 0;
     unsigned long size;
     NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
 
@@ -1354,6 +1366,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = (NativeAudioTrack *)jnode->node;
 
     JS::Value src = JS_ARGV(cx, vp)[0];
+
     int ret = -1;
 
     if (src.isString()) {
@@ -1763,9 +1776,14 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_FALSE;
     }
 
+    NativeCanvasContext *ncc = handler->getContext();
+    if (ncc == NULL || ncc->m_Mode != NativeCanvasContext::CONTEXT_2D) {
+        JS_ReportError(cx, "Invalid destination canvas (must be backed by a 2D context)");
+        return false;
+    }
     NJS->rootObjectUntilShutdown(ret);
 
-    NativeSkia *nskia = handler->context->skia;
+    NativeSkia *nskia = ((NativeCanvas2DContext *)ncc)->getSurface();
 
     NativeJSVideo *v = new NativeJSVideo(nskia, cx);
 

@@ -3,7 +3,7 @@ precision mediump float;
 #endif
 
 uniform sampler2D text;
-vec2 resolution = vec2(1024, 768);
+vec2 resolution = vec2(1024, 1024);
 vec2 screen = vec2(320, 240);
 
 #define TEX2D(c) pow(texture2D(text, (c)), vec4(inputGamma))

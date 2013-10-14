@@ -25,7 +25,9 @@ server.ondisconnect = function(client){
 	console.log("-- disconnected");
 };
 
-window.canvas.ctx.fillStyle = "#ffffff";
+var ctx = window.canvas.getContext("2d");
+
+ctx.fillStyle = "#ffffff";
 Native.requestAnimationFrame(function(){
-	window.canvas.ctx.fillRect(mx-1, my-1, 2, 2);
+	ctx.fillRect(mx-1, my-1, 2, 2);
 });

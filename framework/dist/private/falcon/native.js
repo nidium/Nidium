@@ -28,7 +28,7 @@ const	FLAG_TEXT_NODE = 		1 << 0,
 		FLAG_SYSTEM_NODE = 		1 << 1,
 		FLAG_FLOATING_NODE =	1 << 2;
 
-var ಠ_ಠ = '2.5',
+const ಠ_ಠ = '2.5',
 	
 	__PATH_KERNEL__ = 'kernel/',
 	__PATH_LAYOUT__ = 'layout/',
@@ -38,7 +38,8 @@ var ಠ_ಠ = '2.5',
 
 /* Todo : add more performance flags */
 const	__ENABLE_TEXT_SHADOWS__ = true,
-		__ENABLE_BUTTON_SHADOWS__ = true,
+		__ENABLE_CONTROL_LAYERS__ = true,
+		__ENABLE_CONTROL_SHADOWS__ = true,
 		__ENABLE_IMAGE_INTERPOLATION__ = true,
 
 		__MAX_INPUT_LENGTH__ = 2048,
@@ -47,15 +48,28 @@ const	__ENABLE_TEXT_SHADOWS__ = true,
 /* -------------------------------------------------------------------------- */
 
 load(__PATH_KERNEL__ + 'helper.inc.js');
+load(__PATH_KERNEL__ + 'math.inc.js');
 load(__PATH_KERNEL__ + 'engine.inc.js');
-load(__PATH_KERNEL__ + 'kernel.inc.js');
-load(__PATH_KERNEL__ + 'object.inc.js');
+load(__PATH_KERNEL__ + 'NDMElement.constructor.js');
+load(__PATH_KERNEL__ + 'NDMElement.method.js');
+load(__PATH_KERNEL__ + 'NDMElement.prototype.js');
+load(__PATH_KERNEL__ + 'NDMElement.updater.js');
+load(__PATH_KERNEL__ + 'NDMElement.listeners.js');
+load(__PATH_KERNEL__ + 'NDMElement.draw.js');
+load(__PATH_KERNEL__ + 'NDMElement.proxy.js');
+load(__PATH_KERNEL__ + 'NDMElement.motion.js');
+load(__PATH_KERNEL__ + 'NDMElement.parser.js');
 load(__PATH_KERNEL__ + 'extend.inc.js');
 load(__PATH_KERNEL__ + 'events.inc.js');
-load(__PATH_KERNEL__ + 'motion.inc.js');
 load(__PATH_KERNEL__ + 'opengl.inc.js');
 load(__PATH_KERNEL__ + 'audio.inc.js');
 load(__PATH_KERNEL__ + 'video.inc.js');
+
+/* -- Layout Parser and Renderer -- */
+load(__PATH_KERNEL__ + 'document.layout.js');
+load(__PATH_KERNEL__ + 'document.selectors.js');
+load(__PATH_KERNEL__ + 'document.nss.js');
+
 
 /* -- UI Elements -- */
 
@@ -72,6 +86,7 @@ load(__PATH_LAYOUT__ + 'UIButtonClose.js');
 load(__PATH_LAYOUT__ + 'UIButtonDown.js');
 
 load(__PATH_LAYOUT__ + 'UIRadio.js');
+load(__PATH_LAYOUT__ + 'UICheckBox.js');
 
 load(__PATH_LAYOUT__ + 'UISliderKnob.js');
 load(__PATH_LAYOUT__ + 'UISliderController.js');
@@ -113,8 +128,23 @@ load(__PATH_PLUGINS__ + 'tabbox.inc.js');
 load(__PATH_PLUGINS__ + 'spline.inc.js');
 load(__PATH_PLUGINS__ + 'path.inc.js');
 
-/* -- Start Layout -- */
-load(__PATH_KERNEL__ + 'layout.inc.js');
+/* -------------------------------------------------------------------------- */
+
+Object.createProtectedElement(window.scope, "Application", function(options){
+	options = options || {};
+	options.canReceiveFocus = true;
+	options.outlineOnFocus = false;
+
+	var element = new NDMElement("UIView", options, null);
+	element._root = element;
+
+	Native.elements.init(element);
+
+	document.layout.register(element);
+	document.layout.update();
+
+	return element;
+});
 
 /* -------------------------------------------------------------------------- */
 
@@ -146,49 +176,14 @@ Native.core = {
 			outlineOnFocus : false
 		});
 
-		doc.stylesheet = document.stylesheet;
-		doc.run = document.run;
+		for (var p in document) {
+			doc[p] = document[p];
+		}
 
 		Object.createProtectedElement(window.scope, "document", doc);
 	},
 
 	extendDocument : function(){
-		var proxy = Native.layout;
-
-		document.getElements = function(){
-			return proxy.getElements();
-		};
-
-		document.getElementById = function(id){
-			return proxy.getElementById(id);
-		};
-		
-		document.getElementsByClassName = function(klass){
-			return proxy.getElementsByClassName(klass);
-		};
-
-		document.getElementsByTagName = function(type){
-			return proxy.getElementsByTagName(type);
-		};
-
-		document.getElementsBySelector = function(selector){
-			return proxy.getElementsBySelector(selector);
-		};
-
-		document.style = {
-			get : function(selector){
-				return document.stylesheet[selector];
-			},
-
-			set : function(selector, properties){
-				Native.StyleSheet.setProperties(selector, properties);
-			},
-
-			add : function(selector, properties){
-				Native.StyleSheet.mergeProperties(selector, properties);
-			}
-		};
-
 		document.addEventListener("contextmenu", function(e){
 			var root = e.element._root;
 
@@ -231,16 +226,14 @@ Native.core = {
 			this.contextMenu = document.overlayView.add("UIDropDownController", {
 				left : 588,
 				top : 80,
-				maxHeight : 198,
 				hideSelector : true,
 				hideToggleButton : true,
 				name : "documentContextMenu",
 				radius : 2,
-				elements : myMenu,
-				background : '#333333',
-				selectedBackground : "#4D90FE",
-				selectedColor : "#FFFFFF"
+				background : '#333333'
 			});
+
+			this.contextMenu.setOptions(myMenu);
 
 			this.contextMenu.addEventListener("blur", function(){
 				this.fireEvent("tick", {});
@@ -282,7 +275,8 @@ Native.core = {
 	},
 
 	drawLayout : function(){
-		Native.layout.draw();
+		document.layout.draw();
+		window.events.tick();
 	}
 };
 

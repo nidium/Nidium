@@ -4,38 +4,84 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIButton" : {
+		label : "Button",
+		color : "#ffffff",
+		background : "#2277e0",
+
+		radius : 2,
+		height : 22,
+		paddingLeft : 10,
+		paddingRight : 10,
+
+		fontSize : 11,
+		textAlign : "center",
+		textOffsetY : 0,
+
+		shadowBlur : 4,
+		shadowColor : "rgba(0, 0, 0, 0.15)",
+		shadowOffsetX : 0,
+		shadowOffsetY : 2,
+
+		autowidth : true,
+		canReceiveFocus : true
+	},
+
+	"UIButton:hover" : {
+		cursor : "pointer"
+	},
+
+	"UIButton:selected" : {
+		shadowBlur : 0.75,
+		shadowColor : "rgba(255, 255, 255, 0.08)",
+		shadowOffsetX : 0,
+		shadowOffsetY : 1,
+		textOffsetY : 1
+	},
+
+	"UIButton:hasFocus" : function(){
+		this.outlineColor = this.inline.background;
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UIButton", {
 	init : function(){
 		var o = this.options;
 
-		/* Element's Specific Dynamic Properties */
-		NDMElement.definePublicProperties(this, {
-			autosize : OptionalBoolean(o.autosize, true)
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
+			autowidth : OptionalBoolean(o.autowidth, true)
 		});
 
-		this.setProperties({
-			canReceiveFocus	: true,
-			label			: OptionalString(o.label, "Button"),
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-
-			paddingLeft		: OptionalNumber(o.paddingLeft, 10),
-			paddingRight	: OptionalNumber(o.paddingLeft, 10),
-
-			height 			: OptionalNumber(o.height, 22),
-			radius 			: OptionalNumber(o.radius, 2),
-			background 		: OptionalValue(o.background, "#2277E0"),
-			color 			: OptionalValue(o.color, "#ffffff"),
-			cursor			: OptionalCursor(o.cursor, "pointer")
-		});
-
-		this.outlineColor = this.background;
+		this.addEventListener("contextmenu", function(e){
+			e.preventDefault();
+		}, false);
 
 		NDMElement.listeners.addDefault(this);
 	},
 
-	update : function(){
-		if (this.autosize) {
+	update : function(e){
+		if (e.property.in(
+			"width", "height",
+			"label", "fontSize", "fontFamily",
+			"paddingLeft", "paddingRight",
+			"hover", "disabled", "selected"
+		)) {
+			this.resize();
+		}
+	},
+
+	resize : function(){
+		if (this.autowidth) {
 			this.width = NDMElement.draw.getInnerTextWidth(this);
 		}
 	},
@@ -47,23 +93,9 @@ Native.elements.export("UIButton", {
 			NDMElement.draw.outline(this);
 		}
 
-		if (__ENABLE_BUTTON_SHADOWS__) {
-			if (this.selected){
-				context.setShadow(0, 1, 0.75, "rgba(255, 255, 255, 0.08)");
-			} else {
-				context.setShadow(0, 2, 4, "rgba(0, 0, 0, 0.15)");
-			}
-		}
-
+		NDMElement.draw.enableShadow(this);
 		NDMElement.draw.box(this, context, params);
-
-		if (__ENABLE_BUTTON_SHADOWS__){
-			context.setShadow(0, 0, 0);
-		}
-
-		if (this.selected){
-			params.textOffsetY = 1;
-		}
+		NDMElement.draw.disableShadow(this);
 
 		NDMElement.draw.glassLayer(this, context, params);
 		NDMElement.draw.label(this, context, params);

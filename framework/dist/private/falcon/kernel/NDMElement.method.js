@@ -8,7 +8,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-Native.object = {
+NDMElement.method = {
 	__noSuchMethod__ : function(id, args){
 		throw "Undefined method " + id;
 	},
@@ -105,8 +105,57 @@ Native.object = {
 	},
 
 	remove : function remove(){
-		Native.layout.remove(this);
-		Native.layout.update();
+		document.layout.remove(this);
+		document.layout.update();
+	},
+
+	addChild : function addChild(element){
+		if (!isNDMElement(element)) return false;
+
+		/* fire the onAddChildRequest event */
+		if (this.onAddChildRequest.call(this, element) === false) return false;
+
+		this.nodes.push(element);
+
+		if (!this.firstChild) this.firstChild = element;
+		this.lastChild = element;
+
+		element._root = this._root;
+		element.parent = this;
+
+		Native.elements.init(element);
+
+		/* CHILD: fire the new element's onAdoption event */
+		element.onAdoption.call(element, this);
+
+		element.__updateAncestors();
+		document.layout.update();
+
+		/* PARENT: fire the element's parent onChildReady event */
+		this.onChildReady.call(this, element);
+
+		return this;
+	},
+
+	removeChild : function removeChild(element){
+		if (element.parent && element.parent != this){
+			throw("Unable to remove this element.");
+		}
+		document.layout.remove(element);
+		document.layout.update();
+		return this;
+	},
+
+	insertChildAtIndex : function insertChildAtIndex(element, index){
+
+	},
+
+	insertBefore : function insertBefore(element, refElement){
+		
+	},
+
+	insertAfter : function insertAfter(element, refElement){
+
 	},
 
 	show : function show(){
@@ -120,7 +169,7 @@ Native.object = {
 	},
 
 	focus : function focus(){
-		Native.layout.focus(this);
+		document.layout.focus(this);
 		return this;
 	},
 
@@ -171,61 +220,12 @@ Native.object = {
 		return this;
 	},
 
-	addChild : function addChild(element){
-		if (!isNDMElement(element)) return false;
-
-		/* fire the onAddChildRequest event */
-		if (this.onAddChildRequest.call(this, element) === false) return false;
-
-		this.nodes.push(element);
-
-		if (!this.firstChild) this.firstChild = element;
-		this.lastChild = element;
-
-		element._root = this._root;
-		element.parent = this;
-
-		Native.layout.init(element);
-
-		/* fire the new element's onAdoption event */
-		element.onAdoption.call(element, this);
-
-		/* fire the element's parent onChildReady event */
-		this.onChildReady.call(this, element);
-
-		element.__updateAncestors();
-		Native.layout.update();
-
-		return this;
-	},
-
-	removeChild : function removeChild(element){
-		if (element.parent && element.parent != this){
-			throw("Unable to remove this element.");
-		}
-		Native.layout.remove(element);
-		Native.layout.update();
-		return this;
-	},
-
-	insertChildAtIndex : function insertChildAtIndex(element, index){
-
-	},
-
-	insertBefore : function insertBefore(element, refElement){
-		
-	},
-
-	insertAfter : function insertAfter(element, refElement){
-
-	},
-
 	clear : function clear(){
 		var element = this;
 		while (element.firstChild) {
 			element.firstChild.remove();
 		}
-		Native.layout.update();
+		document.layout.update();
 	},
 
 	/*
@@ -233,7 +233,6 @@ Native.object = {
 	 */
 	resetNodes : function resetNodes(){
 		if (!this.parent) return false;
-
 
 		var parent = this.parent, // parent of this virtual element
 			element = null,
@@ -258,7 +257,7 @@ Native.object = {
 		parent.lastChild = element;
 
 
-		Native.layout.update();
+		document.layout.update();
 	},
 
 	getChildren : function getChildren(){
@@ -325,9 +324,7 @@ Native.object = {
 			x : 0 + this._offsetLeft,
 			y : 0 + this._offsetTop,
 			w : this._width,
-			h : this._height,
-			textOffsetX : 0,
-			textOffsetY : 0
+			h : this._height
 		};
 	},
 
@@ -464,7 +461,11 @@ Native.object = {
 		return this;
 	},
 
-	isBoundBySelector : function(selector){
+	applyInlineProperties : function applyInlineProperties(){
+		this.setProperties(this.inline);
+	},
+
+	isBoundBySelector : function isBoundBySelector(selector){
 		var result = false,
 			l = selector.length,
 			s = selector.substr(0, 1),
@@ -497,12 +498,13 @@ Native.object = {
 		return result;
 	},
 
-	getPropertyHandler : function(selector, property){
+	getPropertyHandler : function(property){
 		var that = this;
 
 		return {
 			set value(value) {
 				that[property] = value;
+				that.options[property] = value;
 			},
 
 			get value() {
@@ -516,21 +518,60 @@ Native.object = {
 
 		if (typeof properties == "function") {
 			/* handle function assigned to selector */
+			/* Example of function assignation:
+				{
+					"UIButton" : function(){
+						this.background = "red";
+						this.color = "white";
+					}
+				}
+			*/
 			properties.call(this);
 		} else {
 			/* handle property object assigned to selector */
+			/* NSS Example of property object assignation:
+				{
+					"UIButton" : {
+						background : function(){ return "red"; },
+						color : "white"
+					}
+				}
+			*/
 			for (var k in properties) {
-				if (properties.hasOwnProperty(k)) {
+				if (properties.hasOwnProperty(k) && this.inline[k]==undefined) {
 					var value = properties[k];
 
 					if (typeof value == "function") {
 						/* handle function assigned to property */
-						var e = this.getPropertyHandler(selector, k);
-						var ret = value.call(e);
-						if (ret != undefined) this[k] = ret;
+						/* NSS Example :
+							{
+								"UIButton" : {
+									background : function(){
+										this.value = "red";
+										return "blue";
+									}
+								}
+							}
+						*/
+						var e = this.getPropertyHandler(k);
+						var ret = value.call(e, this);
+
+						/* if the handler returns, set the prop */
+						if (ret != undefined) {
+							this[k] = ret;
+							this.options[k] = ret;
+						}
 					} else {
-						/* handle normal assignation */
+						/* handle normal assignations (String, Number etc ..) */
+						/* NSS Example :
+							{
+								"UIButton" : {
+									background : "red"
+								}
+							}
+						*/
 						this[k] = value;
+						this.options[k] = value;
 					}
 				}
 			}

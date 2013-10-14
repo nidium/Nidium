@@ -25,24 +25,19 @@
  */
 
 {
-	".mixer" : {
-		id : "audioMixerContainer",
-		top : 400,
+	"#audioMixerContainer" : {
+		top : 300,
 		left : 10,
 		width : 1000,
 		height : 350,
-		background : "rgba(0, 0, 0, 0.25)",
+		background : "rgba(0, 0, 0, 0.20)",
 		radius : 4
-	},
-
-	".mixerContainer" : {
-		top : 4,
-		left : 4,
-		radius : 0
 	},
 
 	".slide" : {
 		top : 0,
+		width : 60,
+		height : 336,
 		background : "rgba(0, 0, 0, 0.30)",
 		radius : 3
 	},
@@ -55,40 +50,72 @@
 	},
 
 	".panSlider" : {
+		top : 6,
+		width : 32,
+		height : 8,
+		color : "#440000",
+		min : -1,
+		max : 1,
+		value : 0,
 		background : 'rgba(128, 128, 128, 0.2)',
 		radius : 2
 	},
 
-	".solobutton" : {
+	".levelSlider" : {
+		top : 50,
+		width : 22,
+		height : 250,
+		color : "black",
+		splitColor : 'rgba(140, 140, 140, 0.3)',
+		boxColor : 'rgba(255, 255, 255, 0.07)',
+		progressBarColor : 'rgba(210, 255, 40, 1)',
+		radius : 2,
+		vertical : true,
+		min : 0.0,
+		max : 2,
+		value : 0.5
+	},
+
+	".button" : {
 		top : 20,
-		left : 5,
 		height : 13,
-		width : 12,
-		label : "S",
+		width : 14,
+		autowidth : false,
 		color : "#cccccc",
 		background : "rgba(33, 0, 0, 0.6)",
-		paddingLeft : 2,
+		paddingLeft : 3,
 		paddingRight : 3,
 		radius : 6,
 		fontSize : 9,
-		fontFamily : "console",
+		fontFamily : "menlo",
 		outlineColor : ""
 	},
 
-	".mutebutton" : {
-		top : 20,
-		left : 42,
-		height : 13,
-		width : 12,
+	".button:selected" : {
+		textOffsetY : 0
+	},
+
+	".selected" : {
+		background : "rgba(255, 0, 0, 0.6)",
+	},
+
+	".solo" : {
+		left : 5,
+		label : "S",
+	},
+
+	".mute" : {
+		left : 44,
 		label : "M",
-		color : "#cccccc",
-		background : "rgba(33, 0, 0, 0.6)",
-		paddingLeft : 2,
-		paddingRight : 3,
-		radius : 6,
-		fontSize : 9,
-		fontFamily : "console",
-		outlineColor : ""
+		paddingLeft : 3
+	},
+
+	".grayed" : {
+		left : 44,
+		label : "M",
+		paddingLeft : 3,
+		background : "white",
+		color : "black"
 	},
 
 	".hintLabel" : {
@@ -98,7 +125,8 @@
 		fontSize : 9,
 		radius : 3,
 		paddingLeft : 4,
-		width : 56
+		paddingRight : 4,
+		shadowBlur : 30
 	}
 
 }

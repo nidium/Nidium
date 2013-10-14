@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------------------- *
- * NATiVE DSP DEMO                                         (c) 2013 nidium.com * 
+ * NIDIUM DSP DEMO                                         (c) 2013 nidium.com * 
  * --------------------------------------------------------------------------- * 
  * Version:     1.0                                                            *
  * Author:      Vincent Fontaine                                               *
@@ -24,11 +24,31 @@
  * --------------------------------------------------------------------------- * 
  */
 
+document.nss.add({
+	"UISliderController" : {
+		left : 130,
+		width : 160,
+		height : 12,
+		color : "black"
+	},
+
+	".label" : {
+		color : "rgba(255, 255, 255, 0.25)",
+		autowidth : false,
+		width : 120,
+		height : 19,
+		textAlign : "right",
+		paddingRight : 10,
+		background : "rgba(0, 0, 0, 0.4)"
+	}	
+});
+
 var main = new Application();
-var	k2PI = 2.0 * Math.PI;
+main.backgroundImage = "private://assets/patterns/wood_1.png";
 
 var app = {
-	audioBuffer : 4096,
+	audioBufferSize : 2048,
+	ipulse : 0,
 
 	dftSize : 128,
 	dftBuffer : new Float64Array(128),
@@ -48,148 +68,65 @@ var app = {
 		});
 		*/
 
-		this.load("http://195.122.253.112/public/mp3/Symphony%20X/Symphony%20X%20'Candlelight%20Fantasia'.mp3");
+		this.load("../../media/dream.mp3");
+//		this.load("../../media/drydrum.wav");
 
 	},
 
 	createNodes : function(){
-		this.dsp = Audio.getContext(this.audioBuffer, 2, 44100);
+		this.dsp = Audio.getContext(this.audioBufferSize, 2, 44100);
 		this.source = this.dsp.createNode("source", 0, 2);
 		this.gain = this.dsp.createNode("gain", 2, 2);
 		this.processor = this.dsp.createNode("custom", 2, 2);
 		this.delay = this.dsp.createNode("delay", 2, 2);
 		this.target = this.dsp.createNode("target", 2, 0);
 		console.log("nodes created");
+		Audio.lib && (this.dsp.run(Audio.lib));
 	},
 
 	load : function(url){
 		var self = this;
-		/*
+		
 		File.read(url, function(data){
 			self.source.open(data);
 			self.source.play();
 		});
-		*/
-		setTimeout(function(){
-			self.source.open(url);
-			self.source.play();
-		}, 200);
 	},
 
 	setProcessor : function(){
 		var self = this;
 
 		this.processor.oninit = function(scope){
-			scope.ResonantFilter = function(type, sampleRate){
-				this.type = type;
-				this.sampleRate = sampleRate;
-
-				this.f = new Float32Array(4);
-				this.f[0] = 0.0; // lp
-				this.f[1] = 0.0; // hp
-				this.f[2] = 0.0; // bp
-				this.f[3] = 0.0; // br
-			};
-
-			scope.ResonantFilter.prototype.update = function(cutoff, resonance){
-				this.cutoff = cutoff;
-				this.resonance = resonance;
-				
-				this.freq = 2 * Math.sin(
-					Math.PI * Math.min(0.25, cutoff/(this.sampleRate*2))
-				);
-
-				this.damp = Math.min(
-					2 * (1 - Math.pow(resonance, 0.25)),
-					Math.min(2, 2/this.freq - this.freq * 0.5)
-				);
-
-			};
-
-			scope.ResonantFilter.prototype.process = function(input){
-				var output = 0,
-					f = this.f;
-
-				// first pass
-				f[3] = input - this.damp * f[2];
-				f[0] = f[0] + this.cutoff * f[2];
-				f[1] = f[3] - f[0];
-				f[2] = this.cutoff * f[1] + f[2];
-				output = 0.5 * f[this.type];
-
-				// second pass
-				f[3] = input - this.damp * f[2];
-				f[0] = f[0] + this.cutoff * f[2];
-				f[1] = f[3] - f[0];
-				f[2] = this.cutoff * f[1] + f[2];
-				output += 0.5 * f[this.type];
-
-				return output;
-			};
-
-			scope.MoogFilter = function(){
-				this.in1 = 0.0;
-				this.in2 = 0.0;
-				this.in3 = 0.0;
-				this.in4 = 0.0;
-
-				this.out1 = 0.0;
-				this.out2 = 0.0;
-				this.out3 = 0.0;
-				this.out4 = 0.0;
-			};
-
-			scope.MoogFilter.prototype.update = function(cutoff, resonance){
-				this.cutoff = cutoff;
-				this.resonance = resonance;
-			};
-
-			scope.MoogFilter.prototype.process = function(input){
-				var f = this.cutoff * 1.16,
-					ff = f * f;
-
-				var fb = this.resonance * (1.0 - 0.15 * ff);
-
-				input -= this.out4 * fb;
-				input *= 0.35013 * (ff*ff);
-
-				this.out1 = input + 0.3 * this.in1 + (1 - f) * this.out1; // Pole 1
-				this.in1  = input;
-
-				this.out2 = this.out1 + 0.3 * this.in2 + (1 - f) * this.out2;  // Pole 2
-				this.in2  = this.out1;
-
-				this.out3 = this.out2 + 0.3 * this.in3 + (1 - f) * this.out3;  // Pole 3
-				this.in3  = this.out2;
-
-				this.out4 = this.out3 + 0.3 * this.in4 + (1 - f) * this.out4;  // Pole 4
-				this.in4  = this.out3;
-
-				return this.out4;
-			};
-
-			scope.StereoWidth = function(){
-				this.width = 0;
-			};
-
-			scope.StereoWidth.prototype.update = function(width){
-				this.width = width;
-			};
-
-			scope.StereoWidth.prototype.process = function(inL, inR){
-				var scale = this.width * 0.5,
-					m = (inL + inR) * 0.5,
-					s = (inR - inL) * scale;
-
-				return [m-s, m+s];
-			};
-
 			scope.step = 0;
+
 			scope.moogFilterL = new scope.MoogFilter();
 			scope.moogFilterR = new scope.MoogFilter();
+
 			scope.enhancer = new scope.StereoWidth();
+
 			scope.resonantL = new scope.ResonantFilter(0, 44100);
 			scope.resonantR = new scope.ResonantFilter(0, 44100);
+
+			scope.synthL = new scope.LFO(44100, "pulse", 440);
+			scope.synthR = new scope.LFO(44100, "pulse", 440);
+
+			scope.comp = new scope.Compressor();
+			scope.dist = new scope.Distorsion();
+			scope.envelope = new scope.ADSR(44100);
+
+			scope.reverb = new scope.GlaceVerb();
+		};
+
+		this.processor.onupdate = function(key, value, scope){
+			switch (key) {
+				case "noteon" :
+					scope.enveloppe.noteon(value);
+					break;
+
+				case "volume" :
+					scope.foobar();
+					break;
+			}
 		};
 
 		/* Threaded Audio Processor */
@@ -197,32 +134,69 @@ var app = {
 			var processor = this,
 				bufferL = ev.data[0],
 				bufferR = ev.data[1],
-				size = bufferL.length,
+				samples = bufferL.length,
 
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
-				resonance = this.get("resonance"),
-				width = this.get("width");
-
-			var echo = function(txt){
-				processor.send(txt);
-			};
+				resonance = this.get("resonance");
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);
-			scope.enhancer.update(width);
 
-			for (var i=0; i<size; i++) {
-				var L = gain * scope.resonantL.process(bufferL[i]);
-				var R = gain * scope.resonantR.process(bufferR[i]);
+			scope.comp.update(this.get("comp_scale"), this.get("comp_gain"));
+			scope.dist.update(this.get("preamp"));
+			scope.enhancer.update(this.get("width"));
 
-				var eh = scope.enhancer.process(L, R);
+			scope.envelope.update(
+				this.get("noteon"),
+				this.get("adsr_A"),
+				this.get("adsr_D"),
+				this.get("adsr_S"),
+				this.get("adsr_R")
+			);
 
-				bufferL[i] = eh[0];
-				bufferR[i] = eh[1];
+			scope.reverb.update(
+				this.get("reverb_wet"),
+				this.get("reverb_dry"),
+				this.get("reverb_size"),
+				this.get("reverb_damp"),
+				this.get("reverb_feedback")
+			);
+
+			for (var i=0; i<samples; i++) {
+				var volume = scope.envelope.process();
+
+				var L = gain * volume * scope.dist.process(bufferL[i]);
+				var R = gain * volume * scope.dist.process(bufferR[i]);
+
+				L = scope.comp.process(L);
+				R = scope.comp.process(R);
+
+				L = scope.resonantL.process(L);
+				R = scope.resonantR.process(R);
+
+				var eh = scope.enhancer.process(L, R),
+					mix = scope.reverb.process(eh[0], eh[1]);
+
+				bufferL[i] = mix[0];
+				bufferR[i] = mix[1];
 			}
 
-			if ((scope.step++) % 3 == 0) {
+			/* --- LOW FREQUENCY OSCILLATOR --- */
+			/*
+			for (var i=0; i<samples; i++) {
+				scope.synthL.generate();
+				scope.synthR.generate();
+				var L = gain * scope.synthL.getSample();
+				var R = gain * scope.synthL.getSample();
+
+				bufferL[i] = L;
+				bufferR[i] = R;
+			}
+			*/
+
+
+			if ((scope.step++) % 2 == 0) {
 				this.send({
 					bufferL : bufferL,
 					bufferR : bufferR
@@ -231,48 +205,34 @@ var app = {
 		};
 
 		this.processor.onmessage = function(e){
-			if (typeof e.data == "string" || typeof e.data == "number") {
-				console.log(e.data);
-			} else {
-				self.iqDFT(e.data.bufferL, e.data.bufferR);
-			}
+			Audio.iqDFT(e.data.bufferL, e.data.bufferR, self.dftBuffer);
+			Spectral.ondata();
 		};
 
-		this.processor.set("gain", 0.5);
-		this.processor.set("cutoff", 0.04);
+		this.processor.set("gain", 0.7);
+		this.processor.set("cutoff", 0.35);
 		this.processor.set("resonance", 0.0);
 		this.processor.set("width", 1.00);
 
+		this.processor.set("comp_scale", 2.50);
+		this.processor.set("comp_gain", 0.00);
+
+		this.processor.set("preamp", 0.001);
+
+		this.processor.set("noteon", false);
+		this.processor.set("adsr_A", 10);
+		this.processor.set("adsr_D", 0);
+		this.processor.set("adsr_S", 1);
+		this.processor.set("adsr_R", 10);
+
+		this.processor.set("reverb_size", 0.70);
+		this.processor.set("reverb_feedback", 0.30);
+		this.processor.set("reverb_damp", 0.35);
+		this.processor.set("reverb_wet", 0.00);
+		this.processor.set("reverb_dry", 1.00);
+
 		console.log("processor initied");
 
-	},
-
-
-	/*
-	 * UltraFast Magic DFT by Iñigo Quílez
-	 * JS implementation by Vincent Fontaine
-	 * http://www.iquilezles.org/www/articles/sincos/sincos.htm
-	 */
-	iqDFT : function(bufferL, bufferR){
-		var bufferSize = bufferL.length, //256
-			len = bufferSize, // 256
-			angularNormalisation = k2PI/(len); // len
-
-		for(var i=0; i<this.dftSize; i++){
-			var wi = i * angularNormalisation,
-				sii = Math.sin(wi),	coi = Math.cos(wi),
-				co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
-
-			for(var j=0; j<bufferSize; j++){
-				var f = bufferL[j] + bufferR[j],
-					oco = co;
-
-				acco += co*f; co = co*coi -  si*sii;
-				acsi += si*f; si = si*coi + oco*sii;
-			}
-			this.dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * 1/128;
-		}
-		Spectral.ondata();
 	},
 
 	connectNodes : function(){
@@ -319,12 +279,14 @@ var app = {
 var Spectral = {
  	loga : false,
  	step : 0,
+	
+	controls : [],
+	controlCount : 0,
 
- 	UIBars : [],
  	bars : [],
 
  	nbars : app.dftSize,
-	barSize : 200,
+	barHeight : 200,
 
 	cw : 768,
 	ch : 250,
@@ -335,230 +297,171 @@ var Spectral = {
 	gdBack : null,
 	gdSpectrum : null,
 
-	init : function(){
-		var self = this;
+	createSpectrumView : function(){
+		this.toolkit = main.add("UIElement", {
+			top : 30,
+			width : 300,
+			height : 20,
+			background : "#282828",
+			shadowBlur : 24,
+			shadowOffsetY : 10,
+			shadowColor : "black",
+			opacity : 0.9,
+			overflow : false
+		}).centerLeft();
 
-		this.spectrum = main.add("UIView", {
-			left : 0,
-			top : 0,
+		this.toolkit.addEventListener("drag", function(e){
+			this.left += e.xrel;
+			this.top += e.yrel;
+		});
+
+		this.spectrum = main.add("UIElement", {
+			top : 450,
 			width : this.cw,
 			height : this.ch,
 			background : "black",
 			shadowBlur : 12,
 			opacity : 0.9,
 			overflow : false
-		}).center();
+		}).centerLeft();
 
 		this.spectrum.addEventListener("drag", function(e){
 			this.left += e.xrel;
 			this.top += e.yrel;
 		});
 
-		this.spectrum.volumeSlider = this.spectrum.add("UISliderController", {
-			left : 16,
-			top : 10,
-			width : 224,
-			height : 16,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "black",
-
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
-			min : 0.001,
-			max : 3,
-			value : 0.5
+		main.shader("pulse.s", function(program, uniforms){
+			var t = 0;
+			setInterval(function(){
+				uniforms.itime = t++;
+				uniforms.ipulse = app.ipulse;
+			}, 16);
 		});
+	},
 
-		this.spectrum.cutoffSlider = this.spectrum.add("UISliderController", {
-			left : 16,
-			top : 30,
-			width : 224,
-			height : 16,
+	addControl : function(label, min, max, val, changeCallback){
+		var top = this.controlCount * 20;
 
-			fontSize : 10,
-			lineHeight : 18,
-			color : "black",
-
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
-			min : 0.02,
-			max : 0.4,
-			value : 0.08
+		var control = this.toolkit.add("UILabel", {
+			class : "label",
+			top : top,
+			label : label
 		});
-
-		this.spectrum.rezoSlider = this.spectrum.add("UISliderController", {
-			left : 16,
-			top : 50,
-			width : 224,
-			height : 16,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "black",
-
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
-			min : 0,
-			max : 0.8,
-			value : 0
-		});
-
-
-		this.spectrum.delayTime = this.spectrum.add("UISliderController", {
-			left : 400,
-			top : 10,
-			width : 120,
-			height : 12,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "red",
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
-			min : 0.0,
-			max : 1500,
-			value : 500
-		});
-		this.spectrum.delayTime.addEventListener("change", function(e){
-			app.delay.set("delay", this.value);
+		control.slider = this.toolkit.add("UISliderController", {
+			top : top+4,
+			min : min,
+			max : max,
+			value : val
+		}).addEventListener("change", function(e){
+			if (typeof(changeCallback) == "function") {
+				changeCallback.call(this, this.value);
+			}
 		}, false);
 
-		this.spectrum.delayWet = this.spectrum.add("UISliderController", {
-			left : 400,
-			top : 30,
-			width : 120,
-			height : 12,
+		this.controls.push(control);
+		this.controlCount++;
+		this.toolkit.height = this.controlCount*20 - 1;
+	},
 
-			fontSize : 10,
-			lineHeight : 18,
-			color : "red",
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
-			min : 0.0,
-			max : 1.0,
-			value : 0.0
+	createControllers : function(){
+		this.addControl("Preamp Gain", 0.001, 5.0, 0.001, function(value){
+			app.processor.set("preamp", value);
 		});
-		this.spectrum.delayWet.addEventListener("change", function(e){
-			app.delay.set("wet", this.value);
-		}, false);
 
-
-		this.spectrum.stereoSlider = this.spectrum.add("UISliderController", {
-			left : 400,
-			top : 50,
-			width : 120,
-			height : 12,
-
-			fontSize : 10,
-			lineHeight : 18,
-			color : "blue",
-			splitColor : 'rgba(0, 0, 0, 0.5)',
-			boxColor : 'rgba(255, 255, 255, 0.02)',
-
-			radius : 2,
-			min : 0.0,
-			max : 3.0,
-			value : 1.0
+		this.addControl("Preamp Volume", 0.001, 1.1, 0.7, function(value){
+			app.processor.set("gain", value);
 		});
-		this.spectrum.stereoSlider.addEventListener("change", function(e){
-			app.processor.set("width", this.value);
-		}, false);
+
+		this.addControl("Compressor Threshold", 0.75, 2.5, 2.5, function(value){
+			app.processor.set("comp_scale", value);
+		});
+
+		this.addControl("Compressor Gain", 0.1, 1.5, 0.0, function(value){
+			app.processor.set("comp_gain", value);
+		});
+
+		this.addControl("CutOff Frequency", 0.02, 0.4, 0.35, function(value){
+			app.processor.set("cutoff", value);
+		});
+
+		this.addControl("Resonance", 0.0, 0.7, 0.0, function(value){
+			app.processor.set("resonance", value);
+		});
+
+		this.addControl("Delay Time", 0, 1500, 500, function(value){
+			app.delay.set("delay", value);
+		});
+
+		this.addControl("Delay Wet", 0.0, 1.0, 0.0, function(value){
+			app.delay.set("wet", value);
+		});
+
+		this.addControl("StereoWidth", 0.0, 3.0, 1.0, function(value){
+			app.processor.set("width", value);
+		});
+
+		this.addControl("A", 0, 2000, 10, function(value){
+			app.processor.set("adsr_A", value);
+		});
+		this.addControl("D", 0, 2000, 0, function(value){
+			app.processor.set("adsr_D", value);
+		});
+		this.addControl("S", 0, 1, 1, function(value){
+			app.processor.set("adsr_S", value);
+		});
+		this.addControl("R", 0, 3000, 10, function(value){
+			app.processor.set("adsr_R", value);
+		});
 
 
-		this.spectrum.volumeSlider.addEventListener("change", function(e){
-			app.processor.set("gain", this.value);
-		}, false);
+		this.addControl("GlaceVerb Size", 0.40, 0.90, 0.70, function(value){
+			app.processor.set("reverb_size", value);
+		});
 
-		this.spectrum.cutoffSlider.addEventListener("change", function(e){
-			app.processor.set("cutoff", this.value);
-		}, false);
+		this.addControl("GlaceVerb Feedback", 0.2, 0.5, 0.3, function(value){
+			app.processor.set("reverb_feedback", value);
+		});
 
-		this.spectrum.rezoSlider.addEventListener("change", function(e){
-			app.processor.set("resonance", this.value);
-		}, false);
+		this.addControl("GlaceVerb Damp", 0.05, 0.9, 0.35, function(value){
+			app.processor.set("reverb_damp", value);
+		});
 
-		this.barW = this.cw / this.nbars;
-		this.barY = this.ch - this.barSize;
+		this.addControl("GlaceVerb Wet", 0.0, 1.0, 0.0, function(value){
+			app.processor.set("reverb_wet", value);
+		});
 
+		this.addControl("GlaceVerb Dry", 0.0, 1.0, 1.0, function(value){
+			app.processor.set("reverb_dry", value);
+		});
+
+	},
+
+	createGradients : function(){
+		/* Spectrum Background Gradient */
 		this.gdBack = this.spectrum.layer.context.createLinearGradient(0, 0, 0, this.ch),
-		this.gdSpectrum = this.spectrum.layer.context.createLinearGradient(0, this.barY, 0, this.ch);
-
 		this.gdBack.addColorStop(0.00,'#444444');
 		this.gdBack.addColorStop(1.00,'#000000');
-		this.spectrum.background = this.gdBack;
 
+		/* Multicolor Bar Gradient */
+		this.gdSpectrum = this.spectrum.layer.context.createLinearGradient(0, this.barY, 0, this.ch);
 		this.gdSpectrum.addColorStop(0.00,'#ff0000');
 		this.gdSpectrum.addColorStop(0.25,'#ffff00');
 		this.gdSpectrum.addColorStop(0.50,'#00ff00');
 		this.gdSpectrum.addColorStop(0.75,'#00dddd');
 		this.gdSpectrum.addColorStop(1.00,'#000055');
-
-		this.clearBuffer();
-
-		for (var i=0 ; i<this.nbars ; i++){
-			this.UIBars[i] = this.spectrum.add("UIElement", {
-				left : 1 + i * this.barW,
-				top : this.ch-1,
-				width : this.barW - 2,
-				height : this.barSize,
-				background : this.gdSpectrum,
-				shadowBlur : 6,
-				shadowOffsetY : 4,
-				shadowColor : 'rgba(255, 100, 100, 0.8)'
-			});
-		}
-
-		this.makeBars();
-
-		var	fileselector = new UIButton(main, {
-			left : window.width-58,
-			top : 8,
-			label : "Select"
-		});
-
-		app.init();
-		this.draw();
-
 	},
 
-	clearBuffer : function(){
-		for (var i=0; i<this.nbars; i++){
-			app.dftBuffer[i] = 0;
-		}
-	},
+	createBars : function(){
+		this.barW = this.cw / this.nbars;
+		this.barY = this.ch - this.barHeight;
 
-	ondata : function(){
-		var value = 0,
-			pixelSize = 0;
-
-		for (var i=0; i<this.nbars; i++){
-			value = app.dftBuffer[i],
-			pixelSize = value*this.barSize>>0;
-
-			this.UIBars[i].top = this.ch-pixelSize;
-		}
-	},
-
-	makeBars : function(){
 		if (this.loga === true){
-			for (var i=1 ; i<this.nbars ; i++){
+			for (var i=1, log=Math.log ; i<this.nbars ; i++){
 				this.bars[i] = {
-					x : 1 + Math.log(i)/Math.log(this.nbars)*this.cw,
+					x : 1 + log(i)/log(this.nbars)*this.cw,
 					y : this.barY,
 					w : this.barW - 1,
-					h : this.barSize
+					h : this.barHeight
 				};
 			}
 		} else {
@@ -567,42 +470,82 @@ var Spectral = {
 					x : 1 + i * this.barW,
 					y : this.barY,
 					w : this.barW - 1,
-					h : this.barSize
+					h : this.barHeight
 				};
 			}
 		}
 	},
 
-	peak : function(s, l){
-		var basspeak = 0;
-		for (var b=s; b<(s+l); b++){
-			basspeak += app.dftBuffer[b]/l;
-		}
-		if (basspeak>0.40){
-			this.spectrum.background = '#666666';
-			return '#ffffff';
-		} else {
-			this.spectrum.background = '';
-			return this.gdBack;
+	init : function(){
+		this.createSpectrumView();
+		this.createControllers();
+		this.createGradients();
+		this.createBars();
+
+		this.clearDFTBuffer();
+
+		var	fileselector = new UIButton(main, {
+			left : window.width-58,
+			top : 8,
+			label : "Select"
+		});
+
+		var	noteon = new UIButton(main, {
+			left : window.width-64,
+			top : 34,
+			label : "NoteOn"
+		});
+
+		noteon.addEventListener("mousedown", function(){
+			app.processor.set("noteon", true);
+		});
+		noteon.addEventListener("mouseup", function(){
+			app.processor.set("noteon", false);
+		});
+
+		app.init();
+		this.draw();
+	},
+
+	clearDFTBuffer : function(){
+		for (var i=0; i<this.nbars; i++){
+			app.dftBuffer[i] = 0;
 		}
 	},
 
+	ondata : function(){
+	},
+
+	peak : function(s, l){
+		var basspeak = 0;
+		for (var b=s; b<(s+l); b++){
+			basspeak += app.dftBuffer[b];
+		}
+		basspeak *= 1/l;
+		app.ipulse = basspeak>0.5 ? basspeak*100 : basspeak*25;
+	},
+
 	draw : function(){
-		window.requestAnimationFrame(this.draw);
+		window.requestAnimationFrame(this.draw.bind(this));
 
 		var	width = this.cw,
 			height = this.ch,
 			params = this.spectrum.getDrawingBounds(),
 			context = this.spectrum.layer.context;
 
+		app.ipulse = app.ipulse-200;
+		this.peak(0, 2);
 
 		//this.spectrum.layer.clear();
-		context.globalAlpha = 0.6;
+		//context.globalAlpha = 0.9;
 
-		context.fillStyle = this.gdBack;
-		//context.fillStyle = this.peak(14, 10);
+		//context.fillStyle = this.gdBack;
+		//context.fillStyle = "rgba(0, 0, 0, 0.0)";
+		//context.fillRect(0, 0, width, height);
 
-		context.fillRect(0, 0, width, height);
+		context.clearRect(0, 0, width, height);
+
+		//context.globalAlpha = 0.9;
 		context.fillStyle = this.gdSpectrum;
 
 		context.strokeStyle = "rgba(255, 255, 255, 0.6)";
@@ -610,34 +553,52 @@ var Spectral = {
 
 		context.beginPath();
 		context.moveTo(0, height);
-		for (var i=(this.loga?1:0), pixelSize=0 ; i<this.nbars ; pixelSize = app.dftBuffer[i] * this.barSize, i++){
-			if (this.loga){
-				this.bars[i].h = Math.log(i)/Math.log(0.5*pixelSize)*this.barSize
-			} else {
-				this.bars[i].h = pixelSize;
+
+
+		if (this.loga) {
+			for (var i=1; i<this.nbars; i++){
+				var pixelSize = app.dftBuffer[i] * this.barHeight;
+				this.bars[i].h = Math.log(i)/Math.log(0.5*pixelSize)*this.barHeight;
+
+				this.bars[i].y = Math.max(height-pixelSize, 0);
+				this.bars[i].h = Math.min(this.bars[i].h, height);
+
+				context.lineTo(
+					this.bars[i].x,
+					this.bars[i].y
+				);
 			}
+			context.lineTo(width, height);
+			context.lineTo(0, height);
+			context.stroke();
+		} else {
+			for (var i=0; i<this.nbars; i++){
+				var pixelSize = app.dftBuffer[i] * this.barHeight;
+				this.bars[i].h = pixelSize;
 
-			this.bars[i].y = height-pixelSize;
+				this.bars[i].y = Math.max(height-pixelSize, 0);
+				this.bars[i].h = Math.min(this.bars[i].h, height);
 
-			context.fillRect(this.bars[i].x, this.bars[i].y, this.bars[i].w, this.bars[i].h);
-			//context.lineTo(this.bars[i].x, this.bars[i].y);
+				context.fillRect(
+					this.bars[i].x, this.bars[i].y,
+					this.bars[i].w, this.bars[i].h
+				);
+			}
+			//context.lineTo(width, height);
 		}
-		context.lineTo(width, height);
-		/*
-		context.lineTo(0, height);
-		context.stroke();
-		*/
+		
 		context.fill();
 
-		context.strokeStyle = "#000000";
-		context.lineWidth = 1;
-		for (var y=0; y<height; y+=3){
-			context.beginPath();
+		context.strokeStyle = "rgba(0, 0, 0, 0.4)";
+		context.lineWidth = 3;
+	
+		context.beginPath();
+		for (var y=0; y<height; y+=4){
 			context.moveTo(0, y);
 			context.lineTo(width, y);
-			context.stroke();
 		}
-
+		context.stroke();
+	
 		if (this.loga){
 			var t0 = 0.1655*width, // 55Hz A0
 				t1 = 0.2745*width, // 110Hz A1

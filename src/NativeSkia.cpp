@@ -2,8 +2,6 @@
    #define UINT32_MAX 4294967295u
 #endif
 
-
-
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl.h>
@@ -400,10 +398,17 @@ int NativeSkia::bindOffScreen(int width, int height)
     return 1;
 }
 
+void glcb(const GrGLInterface*) {
+    //printf("Got a gl call\n");
+}
+
 SkCanvas *NativeSkia::createGLCanvas(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
-    
+
+    //GrGLInterface *interface_noconst = (GrGLInterface *)interface;
+    //((GrGLInterface*)interface)->fCallback = glcb;
+
     if (interface == NULL) {
         printf("Cant get interface\n");
         return NULL;
@@ -458,6 +463,7 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
 int NativeSkia::bindGL(int width, int height)
 {
     const GrGLInterface *interface =  GrGLCreateNativeInterface();
+    //((GrGLInterface*)interface)->fCallback = glcb;
     
     if (interface == NULL) {
         printf("Cant get interface\n");
@@ -565,6 +571,8 @@ NativeSkia::NativeSkia()
 NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
+
+    canvas->flush();
 
     while (nstate) {
         struct _nativeState *tmp = nstate->next;

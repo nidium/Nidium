@@ -4,32 +4,74 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UITab" : {
+		canReceiveFocus	: true,
+		autowidth : true,
+		closable : true,
+
+		label : "Default",
+		fontSize : 11,
+		fontFamily : "arial",
+
+		paddingLeft : 16,
+		paddingRight : 10,
+
+		shadowBlur : 4,
+		shadowColor : "rgba(0, 0, 0, 0.25)",
+		shadowOffsetX : 3,
+		shadowOffsetY : -2,
+
+		height : 24,
+		background : "#262722",
+		color : "#abacaa",
+		cursor : "arrow"
+	},
+
+	"UITab:selected" : function(){
+		this.shadowBlur = 2;
+		this.shadowColor = this.inline.background || "#262722";
+		this.shadowOffsetX = 0;
+		this.shadowOffsetY = 2;
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UITab", {
-	public : {
-		label : {
-			set : function(value){
-				this.resizeElement();
-				this.refreshTabController();
-			}
-		},
+	update : function(e){
+		if (e.property.in(
+			"width", "height",
+			"label", "fontSize", "fontFamily",
+			"paddingLeft", "paddingRight"
+		)) {
+			this.resize();
+		}
+	},
 
-		fontSize : {
-			set : function(value){
-				this.resizeElement();
-				this.refreshTabController();
-			}
-		},
+	resize : function(){
+		if (this.autowidth) {
+			var width = NDMElement.draw.getInnerTextWidth(this);
 
-		fontFamily : {
-			set : function(value){
-				this.resizeElement();
-				this.refreshTabController();
+			if (this.options.closable) {
+				width += 22;
+				this.closeButton.left = width - 26;
+			} else {
+				width += 6;
 			}
-		},
+			this.width = width;
+		}
 
-		width : {
-			set : function(value){
-				this.refreshTabController();
+		/* refresh TabController if any */
+		if (this.parent && this.parent.resetTabs){
+			if (!(this.parent._disableUpdate === true)) {
+				this.parent.resetTabs();
 			}
 		}
 	},
@@ -38,20 +80,12 @@ Native.elements.export("UITab", {
 		var self = this,
 			o = this.options;
 
-		this.setProperties({
-			canReceiveFocus	: true,
-			label			: OptionalString(o.label, "Default"),
-			fontSize  		: OptionalNumber(o.fontSize, 11),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-
-			paddingLeft		: OptionalNumber(o.paddingLeft, 16),
-			paddingRight	: OptionalNumber(o.paddingLeft, 10),
-
-			height 			: OptionalNumber(o.height, 24),
-			color 			: OptionalValue(o.color, "#aaaaaa"),
-			target			: OptionalValue(o.target, null)
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
+			autowidth : OptionalBoolean(o.autowidth, true),
+			target : OptionalValue(o.target, null)
 		});
-		
+
 		this.getState = function(){
 			return this.selected;
 		};
@@ -74,51 +108,25 @@ Native.elements.export("UITab", {
 			this.setState(false);
 		};
 
-		this.resizeElement = function(){
-			var width = NDMElement.draw.getInnerTextWidth(this);
-
-			if (this.options.closable) {
-				width += 22;
-				this.closeButton.left = width - 26;
-			} else {
-				width += 6;
-			}
-			this.width = width;
-		};
-
-		this.refreshTabController = function(){
-			if (this.parent && this.parent.resetTabs){
-				this.parent.resetTabs();
-			}
-		};
-
 		NDMElement.listeners.addHovers(this);
 
-		if (this.options.closable) {
-			this.closeButton = this.add("UIButtonClose", {
-				left : this.width - 26,
-				top : (this.height-12)/2,
-				width : 12,
-				height : 12,
-				color : 'rgba(0, 0, 0, 0.75)',
-				background : "rgba(0, 0, 0, 0.3)"
-			});
-		}
+		this.closeButton = this.add("UIButtonClose", {
+			left : this.width - 26,
+			top : (this.height-12)/2,
+			width : 12,
+			height : 12
+		});
 
-		this.resizeElement();
+		if (!this.options.closable) {
+			this.closeButton.hide();
+		}
 	},
 
 	draw : function(context){
 		var	params = this.getDrawingBounds(),
 			radius = Math.max(3, this.radius);
 			
-		if (__ENABLE_BUTTON_SHADOWS__) {
-			if (this.selected){
-				context.setShadow(0, 0, 2, this.background);
-			} else {
-				context.setShadow(3, -2, 4, "rgba(0, 0, 0, 0.25)");
-			}
-		}
+		NDMElement.draw.enableShadow(this);
 
 		context.tabbox(
 			params.x, params.y, 
@@ -126,9 +134,7 @@ Native.elements.export("UITab", {
 			radius, this.background, false
 		);
 
-		if (__ENABLE_BUTTON_SHADOWS__){
-			context.setShadow(0, 0, 0);
-		}
+		NDMElement.draw.disableShadow(this);
 
 		var gradient = NDMElement.draw.getSoftGradient(this, context, params);
 
