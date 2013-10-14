@@ -68,8 +68,11 @@ var app = {
 		});
 		*/
 
-		this.load("../../media/dream.mp3");
+		this.load("../../media/sympho.mp3");
+//		this.load("../../media/dream.mp3");
+//		this.load("../../media/skrillex.mp3");
 //		this.load("../../media/drydrum.wav");
+//		this.load("../../media/drum01.mp3");
 
 	},
 
@@ -90,7 +93,12 @@ var app = {
 		File.read(url, function(data){
 			self.source.open(data);
 			self.source.play();
+			self.automation();
 		});
+	},
+
+	automation : function(){
+
 	},
 
 	setProcessor : function(){
@@ -115,11 +123,14 @@ var app = {
 			scope.envelope = new scope.ADSR(44100);
 
 			scope.reverb = new scope.GlaceVerb();
+
+			scope.flangerL = new scope.Flanger(44100);
+			scope.flangerR = new scope.Flanger(44100);
 		};
 
-		this.processor.onupdate = function(key, value, scope){
+		this.processor.onset = function(key, value, scope){
 			switch (key) {
-				case "noteon" :
+				case "nofteon" :
 					scope.enveloppe.noteon(value);
 					break;
 
@@ -129,16 +140,29 @@ var app = {
 			}
 		};
 
+		this.processor.onend = function(){
+			this.set("processing", false);
+		};
+
+		this.processor.onpause = function(){
+			this.set("processing", false);
+		};
+
 		/* Threaded Audio Processor */
 		this.processor.onbuffer = function(ev, scope){
-			var processor = this,
-				bufferL = ev.data[0],
+			var bufferL = ev.data[0],
 				bufferR = ev.data[1],
 				samples = bufferL.length,
 
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
 				resonance = this.get("resonance");
+
+			/* FIX ME : hack to avoid onbuffer feedback on source end */
+			/* onbuffer is still called at end, but with no data */
+			/* and the same buffer is played over and over again */
+			/* leading to a horrible "bruit de bete" */
+			if (this.get("processing") === false) return false;
 
 			scope.resonantL.update(cutoff, resonance);
 			scope.resonantR.update(cutoff, resonance);
@@ -155,6 +179,20 @@ var app = {
 				this.get("adsr_R")
 			);
 
+			scope.flangerL.update(
+				this.get("flanger_rate"),
+				this.get("flanger_amplitude"),
+				this.get("flanger_amount"),
+				this.get("flanger_feedback")
+			);
+
+			scope.flangerR.update(
+				this.get("flanger_rate"),
+				this.get("flanger_amplitude"),
+				this.get("flanger_amount"),
+				this.get("flanger_feedback")
+			);
+
 			scope.reverb.update(
 				this.get("reverb_wet"),
 				this.get("reverb_dry"),
@@ -166,14 +204,17 @@ var app = {
 			for (var i=0; i<samples; i++) {
 				var volume = scope.envelope.process();
 
-				var L = gain * volume * scope.dist.process(bufferL[i]);
-				var R = gain * volume * scope.dist.process(bufferR[i]);
+				var L = gain * volume * (bufferL[i]);
+				var R = gain * volume * (bufferR[i]);
 
 				L = scope.comp.process(L);
 				R = scope.comp.process(R);
 
 				L = scope.resonantL.process(L);
 				R = scope.resonantR.process(R);
+
+				L = scope.flangerL.process(L);
+				R = scope.flangerR.process(R);
 
 				var eh = scope.enhancer.process(L, R),
 					mix = scope.reverb.process(eh[0], eh[1]);
@@ -209,6 +250,8 @@ var app = {
 			Spectral.ondata();
 		};
 
+		this.processor.set("processing", true);
+
 		this.processor.set("gain", 0.7);
 		this.processor.set("cutoff", 0.35);
 		this.processor.set("resonance", 0.0);
@@ -230,6 +273,11 @@ var app = {
 		this.processor.set("reverb_damp", 0.35);
 		this.processor.set("reverb_wet", 0.00);
 		this.processor.set("reverb_dry", 1.00);
+
+		this.processor.set("flanger_rate", 0.25);
+		this.processor.set("flanger_amplitude", 0.50);
+		this.processor.set("flanger_amount", 0.00);
+		this.processor.set("flanger_feedback", 0.10);
 
 		console.log("processor initied");
 
@@ -414,23 +462,39 @@ var Spectral = {
 		});
 
 
-		this.addControl("GlaceVerb Size", 0.40, 0.90, 0.70, function(value){
+		this.addControl("Flanger Rate", 0.04, 7.5, 0.25, function(value){
+			app.processor.set("flanger_rate", value);
+		});
+
+		this.addControl("Flanger Amplitude", 0.01, 1.0, 0.10, function(value){
+			app.processor.set("flanger_amplitude", value);
+		});
+
+		this.addControl("Flanger Mix", 0.0, 1.0, 0.0, function(value){
+			app.processor.set("flanger_amount", value);
+		});
+
+		this.addControl("Flanger Feedback", 0.0, 0.6, 0.1, function(value){
+			app.processor.set("flanger_feedback", value);
+		});
+
+		this.addControl("Verb Size", 0.40, 0.90, 0.70, function(value){
 			app.processor.set("reverb_size", value);
 		});
 
-		this.addControl("GlaceVerb Feedback", 0.2, 0.5, 0.3, function(value){
+		this.addControl("Verb Feedback", 0.2, 0.5, 0.3, function(value){
 			app.processor.set("reverb_feedback", value);
 		});
 
-		this.addControl("GlaceVerb Damp", 0.05, 0.9, 0.35, function(value){
+		this.addControl("Verb Damp", 0.05, 0.9, 0.35, function(value){
 			app.processor.set("reverb_damp", value);
 		});
 
-		this.addControl("GlaceVerb Wet", 0.0, 1.0, 0.0, function(value){
+		this.addControl("Verb Wet", 0.0, 1.0, 0.0, function(value){
 			app.processor.set("reverb_wet", value);
 		});
 
-		this.addControl("GlaceVerb Dry", 0.0, 1.0, 1.0, function(value){
+		this.addControl("Verb Dry", 0.0, 1.0, 1.0, function(value){
 			app.processor.set("reverb_dry", value);
 		});
 

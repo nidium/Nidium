@@ -26,7 +26,6 @@ document.nss.add({
 /* ELEMENT DEFINITION                                                         */
 /* -------------------------------------------------------------------------- */
 
-
 Native.elements.export("UIWindow", {
 	public : {
 		width : {

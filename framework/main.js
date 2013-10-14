@@ -166,7 +166,7 @@ console.log(
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
-load("applications/components/threads.js"); // crash si vidage console
+//load("applications/components/threads.js"); // crash si vidage console
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
@@ -215,7 +215,7 @@ load("applications/components/threads.js"); // crash si vidage console
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // OK
-	//load("applications/components/shader.advanced.js"); // OK
+	load("applications/components/shader.advanced.js"); // OK
 
 
 /*

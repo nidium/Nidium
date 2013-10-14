@@ -66,8 +66,12 @@ Audio.lib = function(){
 		sqrt = Math.sqrt,
 		min = Math.min,
 		max = Math.max,
-		π = Math.PI,
-		π2 = 2.0*π;
+		round = Math.round,
+		ceil = Math.ceil,
+		floor = Math.floor;
+
+	const π = Math.PI,
+	      π2 = 2.0*π;
 
 	var quadIn = function (t, b, c, d){
 		return c*(t/=d)*t + b;
@@ -85,14 +89,23 @@ Audio.lib = function(){
 		return c*((t=t/d-1)*t*t*t*t + 1) + b;
 	};
 
+	var sign = function(x){
+		return (x === 0) ? 1 : abs(x) / x;
+	};
+
 	// Checks if a number is a power of two
 	var isPow2 = function(v){
 		return !(v & (v-1)) && (!!v);
 	};
 
-	// Magnitude to decibels                                                      */
+	// Magnitude to decibels
 	var mag2db = function(magnitude){
 		return 20.0*log(max(magnitude, pow(10.0, -6)));
+	};
+
+	// Decibels to magnitude
+	var db2mag = function(db){
+		return max(0, round(100 * pow(2, db / 6)) / 100);
 	};
 
 	// Lookup table for converting midi note to frequency
@@ -120,7 +133,6 @@ Audio.lib = function(){
 		8869.84375, 9397.272461, 9956.063477, 10548.082031, 11175.303711,
 		11839.821289, 12543.853516, 13289.75
 	];
-
 
 	/* ---------------------------------------------------------------------- */ 
 	/* Clipper                                                                */
@@ -514,8 +526,105 @@ Audio.lib = function(){
 		process : function(inL, inR){
 			return [
 				this.L.process(inL),
-				this.R.process(inL)
+				this.R.process(inR)
 			];
+		}
+	};
+
+
+	/* +----+---------------------------------------------------------------- */ 
+	/* | FX | Flanger                                                         */
+	/* +----+---------------------------------------------------------------- */ 
+
+	scope.Flanger = function(sampleRate){
+		this.phase = 0;
+		this.offset = -100;
+		this.index = 0;
+
+		this.sampleRate = sampleRate || 44100;
+		this.bufsize = 2*this.sampleRate;
+
+		this.sin = new Float64Array(2048);
+		this.buffer = new Float64Array(this.bufsize);
+
+		for (var i=0; i<2048; i++){
+			this.sin[i] = sin( π2*(i/2048) );
+		}
+
+		this.update(0.25, 0.5, 0.5, 0.1);
+	};
+
+	scope.Flanger.prototype = {
+		update : function(rate, amplitude, amount, feedback){
+			this.rate = rate || 0;
+			this.amplitude = amplitude || 0;
+			this.amount = amount || 0;
+			this.feedback = feedback || 0;
+
+			this.__incsin__ = this.rate / this.sampleRate;
+			this.__incpre__ = 2048 * this.__incsin__;
+			this.__am__ = this.amplitude * 100;
+		},
+
+		__modulation__ : function(){
+			/* classical naive Math.sin implementation */
+			this.phase += this.__incsin__;
+			return sin(π2 * this.phase) * this.__am__;
+		},
+
+		modulation : function(){
+			/* precomp sin table + linear interpolation */
+			var p = this.phase,
+				i = 0,
+				f = 0,
+				v1 = 0,
+				v2 = 0;
+
+			p += this.__incpre__;
+			while (p>=2048) p -= 2048; // faster than p = p % 2048
+
+			i = p | 0; // truncate to int
+			f = p - i;
+			
+			//i = i & 1023;
+			//j = i === 1023 ? 0 : i+1;
+
+			v1 = this.sin[i];
+			v2 = this.sin[(i+1) & 2047];
+
+			this.phase = p;
+
+			return ( v1 + f*(v2-v1) ) * this.__am__;
+		},
+
+		getDelaySample : function(phase){
+			var	b = this.buffer,
+				i = phase | 0,
+				j = i>this.bufsize-2 ? 0 : i+1;
+				f = phase - i;
+
+			return b[i] + f*(b[j] - b[i]);
+		},
+
+		process : function(input){
+			var delay = 0.0,
+				s = this.bufsize,
+				o = (this.offset++) % s,
+				i = (this.index++) % s;
+
+			o += this.modulation();
+
+			/* Ring Buffer */
+			if (o>s) {
+				o -= s;
+			} else if (o<0) {
+				o += s;
+			}
+
+			delay = this.getDelaySample(o);
+			this.buffer[i] = input + delay*this.feedback;
+
+			return (1-this.amount) * input + this.amount * delay;
 		}
 	};
 
@@ -697,3 +806,4 @@ Audio.lib = function(){
 
 	return scope;
 };
+
