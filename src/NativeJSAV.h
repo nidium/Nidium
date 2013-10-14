@@ -13,8 +13,9 @@ static int NATIVE_AV_THREAD_MESSAGE_CALLBACK = -1;
 enum {
     NODE_EV_PROP_DATA, 
     NODE_EV_PROP_SIZE,
-    NODE_CUSTOM_PROP_BUFFER,
-    NODE_CUSTOM_PROP_INIT,
+    NODE_CUSTOM_PROP_ONBUFFER,
+    NODE_CUSTOM_PROP_ONINIT,
+    NODE_CUSTOM_PROP_ONSET,
     AUDIO_PROP_VOLUME,
     VIDEO_PROP_WIDTH,
     VIDEO_PROP_HEIGHT,
@@ -107,8 +108,8 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), initStr(NULL),
-               nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
+            :  audio(audio), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), onSetStr(NULL), onSetFn(NULL),
+               initStr(NULL), nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
 
             try {
@@ -127,8 +128,8 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
         }
 
         NativeJSAudioNode(NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), initStr(NULL),
-               nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
+            :  audio(audio), node(node), type(type), bufferFn(NULL), bufferObj(NULL), bufferStr(NULL), 
+               onSetStr(NULL), onSetFn(NULL), initStr(NULL), nodeObj(NULL), hashObj(NULL), finalized(false), arrayContent(NULL) 
         { 
             this->add();
         }
@@ -155,11 +156,15 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
         static void customCallback(const struct NodeEvent *ev);
         static void customInitCallback(NativeAudioNode *node, void *custom);
         static void setPropCallback(NativeAudioNode *node, void *custom);
+        static void onSetCallback(NativeAudioNode *node, void *custom);
         static void shutdownCallback(NativeAudioNode *node, void *custom);
         bool createHashObj();
         JSFunction *bufferFn;
         JSObject *bufferObj;
+        JSObject *onSetObj;
+        JSFunction *onSetFn;
         const char *bufferStr;
+        const char *onSetStr;
         const char *initStr;
         JSObject *nodeObj;
         JSObject *hashObj;
