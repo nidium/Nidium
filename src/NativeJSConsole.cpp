@@ -77,6 +77,10 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     filename_parent = JS_GetScriptFilename(cx, parent);
     NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
 
+    if (filename_parent == NULL) {
+        filename_parent = "(null)";
+    }
+
     char *fname = strrchr(filename_parent, '/');
     if (fname != NULL) {
         filename_parent = &fname[1];
