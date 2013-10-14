@@ -97,52 +97,13 @@ void NativeAudio::bufferData() {
 #endif
 
 void *NativeAudio::queueThread(void *args) {
-#define MAX_MSG_IN_ROW 1024
     NativeAudio *audio = (NativeAudio *)args;
     bool wrote;
-    int nread;
     int cause = 0;
 
     while (true) {
-        NativeSharedMessages::Message msg;
-        nread = 0;
 
-        while (++nread < MAX_MSG_IN_ROW && audio->sharedMsg->readMessage(&msg)) {
-            // FIXME : Here is a possible crash, if node have been deleted 
-            // XXX : Should be fixed now (unref() / ref());
-            switch (msg.event()) {
-                case NATIVE_AUDIO_NODE_CALLBACK : {
-                    NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
-                    cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
-                    if (cbkMsg->node != NULL) {
-                        cbkMsg->node->unref();
-                    }
-                    delete cbkMsg;
-                }
-                break;
-                case NATIVE_AUDIO_NODE_SET : {
-                    NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
-                    if (nodeMsg->arg->ptr == NULL) {
-                        nodeMsg->arg->cbk(nodeMsg->node, nodeMsg->arg->id, nodeMsg->val, nodeMsg->size);
-                    } else {
-                        memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
-                    }
-                    if (nodeMsg->node != NULL) {
-                        nodeMsg->node->unref();
-                    }
-                    delete nodeMsg;
-                }
-                break;
-                case NATIVE_AUDIO_CALLBACK :
-                    NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
-                    cbkMsg->cbk(NULL, cbkMsg->custom);
-                    if (cbkMsg->node != NULL) {
-                        cbkMsg->node->unref();
-                    }
-                    delete cbkMsg;
-                break;
-            }
-        }
+        audio->readMessages();
 
         if (audio->output != NULL) {
             int sourceFailed;
@@ -212,8 +173,56 @@ void *NativeAudio::queueThread(void *args) {
     SPAM(("Exiting queueThread\n"));
 
     return NULL;
+}
+
+void NativeAudio::readMessages() 
+{
+    this->readMessages(false);
+}
+void NativeAudio::readMessages(bool flush)
+{
+#define MAX_MSG_IN_ROW 1024
+    NativeSharedMessages::Message msg;
+    int nread = 0;
+    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && this->sharedMsg->readMessage(&msg)) {
+        switch (msg.event()) {
+            case NATIVE_AUDIO_NODE_CALLBACK : {
+                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
+                if (cbkMsg->node != NULL) {
+                    cbkMsg->node->unref();
+                }
+                delete cbkMsg;
+            }
+            break;
+            case NATIVE_AUDIO_NODE_SET : {
+                NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
+                if (nodeMsg->arg->ptr == NULL) {
+                    nodeMsg->arg->cbk(nodeMsg->node, nodeMsg->arg->id, nodeMsg->val, nodeMsg->size);
+                } else {
+                    memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
+                }
+
+                if (nodeMsg->node != NULL) {
+                    nodeMsg->node->unref();
+                }
+
+                delete nodeMsg;
+            }
+            break;
+            case NATIVE_AUDIO_CALLBACK :
+                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                cbkMsg->cbk(NULL, cbkMsg->custom);
+                if (cbkMsg->node != NULL) {
+                    cbkMsg->node->unref();
+                }
+                delete cbkMsg;
+            break;
+        }
+    }
 #undef MAX_MSG_IN_ROW
 }
+
 
 void NativeAudio::processQueue()
 {
@@ -578,6 +587,9 @@ void NativeAudio::wakeup()
 
 void NativeAudio::shutdown()
 {
+    // Cleanup audio messages queue
+    this->readMessages(true);
+
     this->threadShutdown = true;
 
     pthread_cond_signal(&this->queueHaveSpace);

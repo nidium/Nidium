@@ -14,13 +14,13 @@ var video = new UIVideo(body, {
 	height : 360
 }).center();
 
-video.load("../media/native.mov", function(e){
+video.load("../media/bunny.avi", function(e){
 	this.player.play();
 });
 
 video.player.onplay = function(){
 	console.log("Start playing ...");
-}
+};
 
 video.player.onpause = function(){};
 video.player.onstop = function(){};

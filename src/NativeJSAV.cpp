@@ -19,6 +19,11 @@ NativeJSAudio *NativeJSAudio::instance = NULL;
 extern JSClass Canvas_class;
 
 #define NJS (NativeJS::getNativeClass(cx))
+#define JS_PROPAGATE_ERROR(cx, ...)\
+JS_ReportError(cx, __VA_ARGS__);\
+if (!JS_ReportPendingException(cx)) {\
+    JS_ClearPendingException(cx);\
+}
 #define NATIVE_AUDIO_GETTER(obj) ((class NativeJSAudio *)JS_GetPrivate(obj))
 #define NATIVE_AUDIO_NODE_GETTER(obj) ((class NativeJSAudioNode *)JS_GetPrivate(obj))
 #define NATIVE_VIDEO_GETTER(obj) ((class NativeJSVideo *)JS_GetPrivate(obj));
@@ -123,8 +128,9 @@ static JSPropertySpec AudioNodeEvent_props[] = {
 };
 
 static JSPropertySpec AudioNodeCustom_props[] = {
-    {"onbuffer", NODE_CUSTOM_PROP_BUFFER, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
-    {"oninit", NODE_CUSTOM_PROP_INIT, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
+    {"onbuffer", NODE_CUSTOM_PROP_ONBUFFER, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
+    {"oninit", NODE_CUSTOM_PROP_ONINIT, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
+    {"onset", NODE_CUSTOM_PROP_ONSET, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audionode_custom_prop_setter)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -481,7 +487,7 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
 
     if (msg->jsNode->hashObj == NULL) {
         if (!msg->jsNode->createHashObj()) {
-            JS_ReportError(tcx, "Failed to create hash object");
+            JS_PROPAGATE_ERROR(tcx, "Failed to create hash object");
             return;
         }
     }
@@ -491,15 +497,58 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
                 msg->clone.nbytes,
                 JS_STRUCTURED_CLONE_VERSION, &val, NULL, NULL)) {
 
-        JS_ReportError(tcx, "Failed to read structured clone");
+        JS_PROPAGATE_ERROR(tcx, "Failed to read structured clone");
         delete msg;
+        return;
     }
 
     JS_SetProperty(tcx, msg->jsNode->hashObj, msg->name, &val);
-    JS_free(msg->jsNode->cx, msg->name);
 
+    if (msg->jsNode->onSetFn) {
+        jsval params[3];
+        jsval rval;
+
+        params[0] = STRING_TO_JSVAL(JS_NewStringCopyZ(tcx, msg->name));
+        params[1] = val;
+        params[2] = OBJECT_TO_JSVAL(msg->jsNode->hashObj);
+
+        JS_CallFunction(tcx, msg->jsNode->hashObj, msg->jsNode->onSetFn, 3, params, &rval);
+    }
+
+    JS_free(msg->jsNode->cx, msg->name);
     JS_ClearStructuredClone(msg->clone.datap, msg->clone.nbytes);
+
     delete msg;
+}
+
+void NativeJSAudioNode::onSetCallback(NativeAudioNode *node, void *custom)
+{
+    NativeJSAudioNode *thiz;
+    JSContext *tcx;
+
+    thiz = static_cast<NativeJSAudioNode *>(custom);
+    tcx = thiz->audio->tcx;
+
+    if (!tcx || !thiz->cx || !thiz->jsobj || !thiz->onSetStr) {
+        return;
+    }
+
+    const char *args[3] = {"key", "value", "scope"};
+
+    JSFunction *fn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_onset", 3, args, thiz->onSetStr, strlen(thiz->onSetStr), "FILENAME (TODO)", 0);
+
+    JS_free(tcx, (void *)thiz->onSetStr);
+    thiz->onSetStr = NULL;
+
+    if (!fn) {
+        JS_PROPAGATE_ERROR(tcx, "Failed to compile function for CustomAudioNode_onset");
+        return;
+    }
+
+    thiz->onSetObj = JS_GetFunctionObject(fn);
+    JS_AddObjectRoot(tcx, &thiz->onSetObj);
+
+    thiz->onSetFn = fn;
 }
 
 void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
@@ -522,7 +571,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
 
         thiz->bufferFn = JS_CompileFunction(tcx, JS_GetGlobalObject(tcx), "CustomAudioNode_onbuffer", 2, args, thiz->bufferStr, strlen(thiz->bufferStr), "FILENAME (TODO)", 0);
         if (!thiz->bufferFn) {
-            JS_ReportError(tcx, "Failed to compile CustomAudioNode_onbuffer function\n%s\n", thiz->bufferStr);
+            JS_PROPAGATE_ERROR(tcx, "Failed to compile CustomAudioNode_onbuffer function\n%s\n", thiz->bufferStr);
             JS_free(tcx, (void *)thiz->bufferStr);
             thiz->bufferStr = NULL;
             return;
@@ -669,6 +718,7 @@ void NativeJSAudioNode::eventCbk(const struct NativeAVSourceEvent *cev)
     const char *prop;
 
     thiz = static_cast<NativeJSAudioNode *>(cev->custom);
+    thiz->node->ref();
 
     // FIXME : use cev->fromThread to avoid posting message 
     // if message is comming from main thread
@@ -719,6 +769,9 @@ void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
     }
     if (node->bufferObj != NULL) {
         JS_RemoveObjectRoot(node->audio->tcx, &node->bufferObj);
+    }
+    if (node->onSetObj != NULL) {
+        JS_RemoveObjectRoot(node->audio->tcx, &node->onSetObj);
     }
     if (node->hashObj != NULL) {
         JS_RemoveObjectRoot(node->audio->tcx, &node->hashObj);
@@ -899,7 +952,7 @@ static JSBool native_audio_run(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_audio_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Not implemented");
-    return JS_TRUE;
+    return false;
 }
 
 static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
@@ -916,7 +969,7 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     ret = NULL;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Suu", &name, &in, &out)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString cname(cx, name);
@@ -1199,11 +1252,11 @@ static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *v
 
     if (argc != 2) {
         JS_ReportError(cx, "set() require two arguments");
-        return JS_FALSE;
+        return false;
     }
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
-        return JS_TRUE;
+        return false;
     }
 
     node = static_cast<NativeAudioNodeCustom *>(jnode->node);
@@ -1216,15 +1269,20 @@ static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *v
             &msg->clone.datap, &msg->clone.nbytes,
             NULL, NULL, JSVAL_VOID)) {
         JS_ReportError(cx, "Failed to write structured clone");
+
+        JS_free(cx, msg->name);
         delete msg;
-        return JS_FALSE;
+
+        return false;
     }
 
     if (!jnode->audio->tcx) {
         node->callback(NativeJSAudio::ctxCallback, jnode->audio);
     }
 
-    node->callback(NativeJSAudioNode::setPropCallback, msg);
+    if (jnode->onSetStr || jnode->onSetFn) {
+        node->callback(NativeJSAudioNode::setPropCallback, msg);
+    }
 
     return JS_TRUE;
 }
@@ -1266,23 +1324,45 @@ static JSBool native_audionode_custom_get(JSContext *cx, unsigned argc, jsval *v
 static JSBool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *name;
+    JS::Value val;
     NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
 
     CHECK_INVALID_CTX(jnode);
 
     if (argc != 2) {
         JS_ReportError(cx, "set() require two arguments\n");
+        return false;
     }
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
-        return JS_TRUE;
+        return false;
     }
+
+    val = JS_ARGV(cx, vp)[1];
 
     JSAutoByteString str(cx, name);
 
-    JS_SetProperty(cx, jnode->hashObj, str.ptr(), &JS_ARGV(cx, vp)[1]);
+    if (!jnode->hashObj) {
+        if (!jnode->createHashObj()) {
+            JS_ReportError(cx, "Failed to create hash object");
+            return false;
+        }
+    }
 
-    return JS_TRUE;
+    JS_SetProperty(cx, jnode->hashObj, str.ptr(), &val);
+
+    if (jnode->onSetFn) {
+        jsval params[3];
+        jsval rval;
+
+        params[0] = STRING_TO_JSVAL(name);
+        params[1] = val;
+        params[2] = OBJECT_TO_JSVAL(jnode->hashObj);
+
+        JS_CallFunction(cx, jnode->hashObj, jnode->onSetFn, 3, params, &rval);
+    }
+
+    return true;
 }
 
 static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc, jsval *vp)
@@ -1295,11 +1375,11 @@ static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc,
 
     if (jnode->hashObj == NULL) {
         JS_SET_RVAL(cx, vp, JSVAL_NULL);
-        return JS_TRUE;
+        return false;
     }
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString str(cx, name);
@@ -1308,7 +1388,7 @@ static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc,
 
     JS_SET_RVAL(cx, vp, val);
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc, jsval *vp)
@@ -1456,7 +1536,7 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
     CHECK_INVALID_CTX(jnode);
 
     switch(JSID_TO_INT(id)) {
-        case NODE_CUSTOM_PROP_BUFFER :
+        case NODE_CUSTOM_PROP_ONBUFFER :
         {
             JSString *fn;
             JSFunction *nfn;
@@ -1479,7 +1559,32 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
             node->setCallback(NativeJSAudioNode::customCallback, static_cast<void *>(jnode));
         }
         break;
-        case NODE_CUSTOM_PROP_INIT :
+
+        case NODE_CUSTOM_PROP_ONSET: 
+        {
+            JSString *fn;
+            JSFunction *nfn;
+            NativeAudioNodeCustom *node;
+ 
+            if ((nfn = JS_ValueToFunction(cx, vp)) == NULL ||
+                (fn = JS_DecompileFunctionBody(cx, nfn, 0)) == NULL) {
+                JS_ReportError(cx, "Failed to read custom node onset callback function\n");
+                vp.set(JSVAL_VOID);
+                return false;
+            } 
+
+            jnode->onSetStr = JS_EncodeString(cx, fn);
+            node = static_cast<NativeAudioNodeCustom *>(jnode->node);
+
+            if (!jnode->audio->tcx) {
+                node->callback(NativeJSAudio::ctxCallback, jnode->audio);
+            }
+
+            node->callback(NativeJSAudioNode::onSetCallback, jnode);
+        }
+        break;
+
+        case NODE_CUSTOM_PROP_ONINIT :
         {
             JSString *fn;
             JSFunction *nfn;
@@ -1863,9 +1968,16 @@ void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
 
     NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg->dataPtr());
 
+    NativeJSAudioNode *jnode = static_cast<NativeJSAudioNode*>(JS_GetInstancePrivate(cx, cmsg->callee, &AudioNode_class, NULL));
+
     const char *prop = NativeJSAVEventRead(cmsg->ev);
     if (!prop) {
+        if (jnode) {
+            jnode->node->unref();
+        }
+
         delete cmsg;
+
         return;
     }
 
@@ -1874,8 +1986,8 @@ void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
 
         if (cmsg->ev == SOURCE_EVENT_ERROR) {
-            const char *errorStr = NativeAVErrorsStr[cmsg->arg1];
             jsval event[2];
+            const char *errorStr = NativeAVErrorsStr[cmsg->arg1];
 
             event[0] = INT_TO_JSVAL(cmsg->arg1);
             event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
@@ -1893,6 +2005,11 @@ void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
         }
         
     }
+
+    if (jnode) {
+        jnode->node->unref();
+    }
+
     delete cmsg;
 }
 
