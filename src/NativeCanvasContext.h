@@ -8,9 +8,23 @@
 class NativeCanvas2DContext;
 struct NativeRect;
 
+
 class NativeCanvasContext
 {
 public:
+
+    struct Vertex {
+        float Position[3];
+        float TexCoord[2];
+    };
+
+    struct Vertices {
+        int nvertices;
+        Vertex *vertices;
+        
+        int nindices;
+        int *indices;
+    };
 
     class JSObject *jsobj;
     struct JSContext *jscx;
@@ -26,6 +40,7 @@ public:
     };
 
     static char *processShader(const char *content, shaderType type);
+    static Vertices *buildVerticesStripe(int resolution);
 
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height)=0;
