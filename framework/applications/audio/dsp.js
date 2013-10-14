@@ -204,8 +204,8 @@ var app = {
 			for (var i=0; i<samples; i++) {
 				var volume = scope.envelope.process();
 
-				var L = gain * volume * (bufferL[i]);
-				var R = gain * volume * (bufferR[i]);
+				var L = gain * volume * scope.dist.process(bufferL[i]);
+				var R = gain * volume * scope.dist.process(bufferR[i]);
 
 				L = scope.comp.process(L);
 				R = scope.comp.process(R);

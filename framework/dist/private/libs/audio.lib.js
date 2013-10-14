@@ -252,7 +252,34 @@ Audio.lib = function(){
 
 		process : function(input){
 			var out = (1.0+this.gain) * input/(1.0+this.gain*abs(input));
-			return max(min(out, 1), -1);
+			return scope.clip(out);
+		}
+	};
+
+	/* +----+---------------------------------------------------------------- */ 
+	/* | FX | Overdrive                                                       */
+	/* +----+---------------------------------------------------------------- */ 
+
+	scope.Overdrive = function(sampleBufferLength){
+		this.gain = 0.0;
+		this.size = sampleBufferLength;
+	};
+
+	scope.Overdrive.prototype = {
+		update : function(gain){
+			this.gain = gain;
+		},
+
+		process : function(input, phase){
+			var amount = min(this.gain, 0.9999),
+				k = 2 * amount / (1 - amount),
+				x = 2*phase / this.size - 1,
+				buf = (1+k) * x / (1 + k * abs(x));
+
+			return scope.clip(
+				0.01*input*buf*this.gain + 
+				(1.0+this.gain) * input/(1.0+this.gain*abs(input))
+			);
 		}
 	};
 
