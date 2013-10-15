@@ -24,15 +24,19 @@ function job(ast, callback){
 
 	var t = new Thread(function(ast, scope){
 		var source = scope.generate(ast);
-		return ast;
+		return source;
 	});
+
+	t.onmessage = function(e){
+		console.log(e.data);
+	};
 
 	t.oncomplete = function(e){
 		if (typeof(callback)=="function") callback(e.data);
 	};
 
 	t.start(ast, {
-		generate : window.code.export,
+		generate : function(ast){ return "lolo" },
 		beauty : window.code.beautify
 	});
 

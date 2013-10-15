@@ -998,17 +998,11 @@ Audio.lib = function(){
 
 	scope.smbFFT = function(buffer, fftFrameSize, sign){
 		// float
-		var wr, wi, arg, tr, ti, ur, ui, p1r, p1i, p2r, p2i, kr, ki,
+		var wr, wi, arg, tr, ti, ur, ui, temp, p1, p2, p1r, p1i, p2r, p2i, kr, ki,
 			lg = (log(fftFrameSize)/log(2) + 0.5)|0;
 
 		// long
 		var i, bitm, j, le, le2, k, fftsize2 = 2*fftFrameSize;
-
-		var swap = function(buffer, i, j){
-			var temp = buffer[i];
-			buffer[i] = buffer[j];
-			buffer[j] = temp;
-		};
 
 		for (i=2; i<fftsize2-2; i+=2){
 			for (bitm=2, j=0; bitm < fftsize2; bitm <<= 1){
@@ -1016,8 +1010,16 @@ Audio.lib = function(){
 				j <<= 1;
 			}
 			if (i<j){
-				swap(buffer, i+0, j+0);
-				swap(buffer, i+1, j+1);
+				p1 = i;
+				p2 = j;
+
+				temp = buffer[p1]; // temp = *p1;
+				buffer[p1++] = buffer[p2]; // *(p1++) = *p2;
+				buffer[p2++] = temp; // *(p2++) = temp;
+				
+				temp = buffer[p1]; //temp = *p1;
+				buffer[p1] = buffer[p2]; // *p1 = *p2;
+				buffer[p2] = temp; // *p2 = temp;
 			}
 		}
 
@@ -1092,8 +1094,8 @@ Audio.lib = function(){
 	scope.PitchShift = function(sampleRate, oversampling){
 		const MAX_FRAME_LENGTH = 8192; //8192;
 
-		this.oversampling = 8; //oversampling || 4;
-		this.fftFrameSize = 16;
+		this.oversampling = 4; //oversampling || 4;
+		this.fftFrameSize = 1024;
 		this.sampleRate = sampleRate || 44100;
 
 		this.gRover = false;
@@ -1171,7 +1173,7 @@ Audio.lib = function(){
 
 			for (j=0; j<samples; j++) {
 				this.gInFIFO[this.gRover] = buffer[j];
-				//buffer[j] = this.gOutFIFO[this.gRover - inFifoLatency];
+				buffer[j] = this.gOutFIFO[this.gRover - inFifoLatency];
 				this.gRover++;
 
 				if (this.gRover >= fftFrameSize) {
@@ -1182,7 +1184,7 @@ Audio.lib = function(){
 						this.gFFTworksp[2*k+1] = 0.0;
 					}
 
-					//STFT(this.gFFTworksp, fftFrameSize, -1);
+					STFT(this.gFFTworksp, fftFrameSize, -1);
 
 					/* -- ANALYSIS ------------------------------------------ */
 
@@ -1267,7 +1269,7 @@ Audio.lib = function(){
 					}
 
 					/* do inverse transform */
-					//STFT(this.gFFTworksp, fftFrameSize, 1);
+					STFT(this.gFFTworksp, fftFrameSize, 1);
 
 					/* do windowing and add to output accumulator */ 
 					for (k=0; k<fftFrameSize; k++){
@@ -1303,3 +1305,28 @@ Audio.lib = function(){
 };
 
 
+function __AUDIO_UNIT_TEST_FFT__(fftSize){
+	var scope = Audio.lib(),
+		hann = new Float64Array(fftSize),
+		fftBuffer = new Float64Array(2*fftSize); // interleaded real / imag
+
+	// Precomputed Hann Window */
+	for (var k=0; k<fftSize; k++){
+		hann[k] = -0.5*Math.cos(2*Math.PI*k/fftSize)+0.5;
+	}
+
+	// Fill the interleaved FFT Buffer with random audio data (from -1 to 1)
+	for (k=0; k<fftSize; k++){
+		fftBuffer[2*k+0] = 2*Math.random()-1 * hann[k]; // the real part
+		fftBuffer[2*k+1] = 0.0; // the imag part
+	}
+
+	var t = +new Date();
+	for (var i=0; i<2048; i++){
+		scope.smbFFT(fftBuffer, fftSize, -1);
+		scope.smbFFT(fftBuffer, fftSize, 1);
+	}
+	console.log( (+new Date()) - t, "ms");
+}
+
+__AUDIO_UNIT_TEST_FFT__(1024);
