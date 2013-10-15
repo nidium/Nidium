@@ -20,13 +20,6 @@ public:
         CONTEXT_WEBGL
     } m_Mode;
 
-    enum shaderType {
-        SHADER_FRAGMENT = 0x8B30,
-        SHADER_VERTEX = 0x8B31
-    };
-
-    static char *processShader(const char *content, shaderType type);
-
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height)=0;
     virtual void setScale(double x, double y, double px=1, double py=1)=0;

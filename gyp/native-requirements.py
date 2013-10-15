@@ -40,8 +40,7 @@ def downloadSkia():
         deps.runCommand("Downloading skia", "depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
-    #deps.patchDep("skia", "skia-addPath-new-arg.patch")
-
+    deps.patchDep("skia", "../gyp/skia_defines.patch")
     if deps.is64bits:
         exports = "GYP_DEFINES='skia_arch_width=64'"
     else:
@@ -140,6 +139,10 @@ def registerDeps():
     deps.registerDep("libzip",
         partial(deps.downloadDep, "libzip", deps.depsURL + "/libzip-0.10.1.tar.bz2", "libzip-0.10.1"),
         partial(deps.buildDep, "libzip", "libzip", ["./configure", "make"], outlibs=["libzip/lib/.libs/libzip"]))
+
+    deps.registerDep("angle",
+        partial(deps.downloadDep, "angle", deps.depsURL + "/angle.tar.gz"),
+        None)
 
     deps.registerDep("jsoncpp", 
         downloadJSONCPP, 

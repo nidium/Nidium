@@ -13,6 +13,7 @@ zita-resampler
 http-parser
 gyp
 leveldb
+angle
 preload
 native-requirements.py
 ../nativejscore/gyp/nativejscore-requirements.deps
