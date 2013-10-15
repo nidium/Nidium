@@ -95,6 +95,18 @@ var app = {
 			self.source.play();
 			self.automation();
 		});
+
+		/*
+		self.source.open(url);
+		self.source.onready = function() {
+			self.source.play();
+		};
+
+		self.source.onerror = function(err, str) {
+			console.log("error " + err + " : " +str);
+		}
+		*/
+
 	},
 
 	automation : function(){
