@@ -126,6 +126,8 @@ var app = {
 
 			scope.flangerL = new scope.Flanger(44100);
 			scope.flangerR = new scope.Flanger(44100);
+
+			scope.pitch = new scope.PitchShift(44100, 2);
 		};
 
 		this.processor.onset = function(key, value, scope){
@@ -200,6 +202,9 @@ var app = {
 				this.get("reverb_damp"),
 				this.get("reverb_feedback")
 			);
+
+			//scope.pitch.process(1.0, samples, bufferL);
+			//scope.pitch.process(1.0, samples, bufferR);
 
 			for (var i=0; i<samples; i++) {
 				var volume = scope.envelope.process();

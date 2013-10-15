@@ -66,12 +66,17 @@ Audio.lib = function(){
 		sqrt = Math.sqrt,
 		min = Math.min,
 		max = Math.max,
+		atan2 = Math.atan2,
 		round = Math.round,
 		ceil = Math.ceil,
 		floor = Math.floor;
 
 	const π = Math.PI,
 	      π2 = 2.0*π;
+
+	/* ---------------------------------------------------------------------- */ 
+	/* Interpolation Formulas                                                 */
+	/* ---------------------------------------------------------------------- */ 
 
 	var quadIn = function (t, b, c, d){
 		return c*(t/=d)*t + b;
@@ -89,6 +94,10 @@ Audio.lib = function(){
 		return c*((t=t/d-1)*t*t*t*t + 1) + b;
 	};
 
+	/* ---------------------------------------------------------------------- */ 
+	/* Bitwise Tricks and Helpers                                             */
+	/* ---------------------------------------------------------------------- */ 
+
 	var sign = function(x){
 		return (x === 0) ? 1 : abs(x) / x;
 	};
@@ -96,6 +105,39 @@ Audio.lib = function(){
 	// Checks if a number is a power of two
 	var isPow2 = function(v){
 		return !(v & (v-1)) && (!!v);
+	};
+
+	// absolute value of integer
+	var iabs = function(v) {
+		var mask = v >> 31;
+		return (v ^ mask) - mask;
+	};
+
+	// minimum of integers x and y
+	var imin = function(x, y) {
+		return y ^ ((x ^ y) & -(x < y));
+	};
+
+	// maximum of integers x and y
+	var imax = function(x, y) {
+		return x ^ ((x ^ y) & -(x < y));
+	};
+
+	// log base 2 of v
+	var log2 = function(v) {
+		var r, shift;
+		r =     (v > 0xFFFF) << 4; v >>>= r;
+		shift = (v > 0xFF  ) << 3; v >>>= shift; r |= shift;
+		shift = (v > 0xF   ) << 2; v >>>= shift; r |= shift;
+		shift = (v > 0x3   ) << 1; v >>>= shift; r |= shift;
+		return r | (v >> 1);
+	};
+
+	// log base 10 of v
+	var log10 = function(v) {
+		return (v >= 1000000000) ? 9 : (v >= 100000000) ? 8 : (v >= 10000000) ? 7 :
+		       (v >= 1000000) ? 6 : (v >= 100000) ? 5 : (v >= 10000) ? 4 :
+		       (v >= 1000) ? 3 : (v >= 100) ? 2 : (v >= 10) ? 1 : 0;
 	};
 
 	// Magnitude to decibels
@@ -108,7 +150,10 @@ Audio.lib = function(){
 		return max(0, round(100 * pow(2, db / 6)) / 100);
 	};
 
-	// Lookup table for converting midi note to frequency
+	/* ---------------------------------------------------------------------- */ 
+	/* Lookup table for converting midi note to frequency                     */
+	/* ---------------------------------------------------------------------- */ 
+
 	var mtofnote = [
 		0, 8.661957, 9.177024, 9.722718, 10.3, 10.913383, 11.562325, 12.25,
 		12.978271, 13.75, 14.567617, 15.433853, 16.351599, 17.323914, 18.354048,
@@ -291,7 +336,7 @@ Audio.lib = function(){
 		this.type = type;
 		this.sampleRate = sampleRate;
 
-		this.f = new Float64Array(4); // laggy
+		this.f = new Float64Array(4);
 		this.f[0] = 0.0; // Low Pass
 		this.f[1] = 0.0; // High Pass
 		this.f[2] = 0.0; // Band Pass
@@ -906,8 +951,13 @@ Audio.lib = function(){
 				j = j+n1;
 
 				if (i<j) {
-					t1 = x[i]; x[i] = x[j]; x[j] = t1;
-					t1 = y[i]; y[i] = y[j]; y[j] = t1;
+					t1 = x[i];
+					x[i] = x[j];
+					x[j] = t1;
+
+					t1 = y[i];
+					y[i] = y[j];
+					y[j] = t1;
 				}
 			}
 
@@ -940,7 +990,316 @@ Audio.lib = function(){
 	};
 
 	/* ---------------------------------------------------------------------- */ 
+	/* Ultra Optimized In Place Real/Img Interleaved STFT + reverse STFT      */
+	/* ---------------------------------------------------------------------- */ 
+	/* Original C code: http://downloads.dspdimension.com/smbPitchShift.cpp   */
+	/* Author: Stephan M. Bernsee <smb [AT] dspdimension [DOT] com>           */
+	/* ---------------------------------------------------------------------- */ 
 
+	scope.smbFFT = function(buffer, fftFrameSize, sign){
+		// float
+		var wr, wi, arg, tr, ti, ur, ui, p1r, p1i, p2r, p2i, kr, ki,
+			lg = (log(fftFrameSize)/log(2) + 0.5)|0;
+
+		// long
+		var i, bitm, j, le, le2, k, fftsize2 = 2*fftFrameSize;
+
+		var swap = function(buffer, i, j){
+			var temp = buffer[i];
+			buffer[i] = buffer[j];
+			buffer[j] = temp;
+		};
+
+		for (i=2; i<fftsize2-2; i+=2){
+			for (bitm=2, j=0; bitm < fftsize2; bitm <<= 1){
+				if (i & bitm) j++;
+				j <<= 1;
+			}
+			if (i<j){
+				swap(buffer, i+0, j+0);
+				swap(buffer, i+1, j+1);
+			}
+		}
+
+		for (k=0, le=2; k<lg; k++){
+			le <<= 1; le2 = le>>1;
+			ur = 1.0; ui = 0.0;
+			arg = π2 / (le2>>1);
+			wr = cos(arg);
+			wi = sign * sin(arg);
+			for (j=0; j<le2; j+=2){
+				p1r = j; p1i = p1r+1;
+				p2r = p1r+le2; p2i = p2r+1;
+				for (i=j; i<fftsize2; i+=le){
+					kr = buffer[p2r]; ki = buffer[p2i];
+					tr = kr * ur - ki * ui;
+					ti = kr * ui + ki * ur;
+					buffer[p2r] = buffer[p1r] - tr;
+					buffer[p2i] = buffer[p1i] - ti;
+					buffer[p1r] += tr;
+					buffer[p1i] += ti;
+					p1r += le; p1i += le;
+					p2r += le; p2i += le;
+				}
+				tr = ur*wr - ui*wi;
+				ui = ur*wi + ui*wr;
+				ur = tr;
+			}
+		}
+	};
+
+	/* ---------------------------------------------------------------------- */ 
+	/* RealTime Pitch Shifting - JavaScript Implementation                    */
+	/* ---------------------------------------------------------------------- */ 
+	/* Pitch Shifting while maintaining duration using the STF Transform.     */
+	/* ---------------------------------------------------------------------- */ 
+	/* original C code: http://downloads.dspdimension.com/smbPitchShift.cpp   */
+	/* Author: Stephan M. Bernsee <smb [AT] dspdimension [DOT] com>           */
+	/* ---------------------------------------------------------------------- */ 
+	/* DESCRIPTION: The routine takes a pitchShift factor value which         */
+	/* is between 0.5 (one octave down) and 2.0 (one octave up).              */
+	/* A value of exactly 1 does not change the pitch.                        */
+	/*                                                                        */
+	/* samples tells the routine the size of the indata sample buffer.        */
+	/* indata is processed in-place.                                          */
+	/*                                                                        */
+	/* fftFrameSize defines the FFT frame size used for the processing.       */
+	/* Typical values are 1024, 2048 and 4096. It may be any value            */
+	/*  <= MAX_FRAME_LENGTH but it MUST be a power of 2.                      */
+	/*                                                                        */
+	/* osamp is the STFT oversampling factor which also determines the        */
+	/* overlap between adjacent STFT frames. It should at least be 4 for      */
+	/* moderate scaling ratios. A value of 32 is recommended for best         */
+	/* quality.                                                               */
+	/*                                                                        */
+	/* sampleRate takes the sample rate for the signal in unit Hz             */
+	/* (44100 for 44.1 kHz audio).                                            */
+	/*                                                                        */
+	/* The data passed to the routine in indata[] should be in the            */
+	/* range [-1.0, 1.0], which is also the output range.                     */
+	/* ---------------------------------------------------------------------- */ 
+	/* WOL License (The Wide Open License)                                    */
+	/* ---------------------------------------------------------------------- */ 
+	/* Permission to use, copy, modify, distribute and sell this              */
+	/* software and its documentation for any purpose is hereby granted       */
+	/* without fee, provided that the above copyright notice and this         */
+	/* license appear in all source copies. THIS SOFTWARE IS PROVIDED         */
+	/* "AS IS" WITHOUT EXPRESS OR IMPLIED WARRANTY OF ANY KIND.               */
+	/* See http://www.dspguru.com/wol.htm for more information.               */
+	/* ---------------------------------------------------------------------- */ 
+
+
+	scope.PitchShift = function(sampleRate, oversampling){
+		const MAX_FRAME_LENGTH = 8192; //8192;
+
+		this.oversampling = 8; //oversampling || 4;
+		this.fftFrameSize = 16;
+		this.sampleRate = sampleRate || 44100;
+
+		this.gRover = false;
+
+		var Float = function(size){
+			var buffer = new Float64Array(size);
+			for (var i=0; i<size; i++){
+				buffer[i] = 0.0;
+			}
+			return buffer;
+		};
+
+		/* input and output FIFO */
+		this.gInFIFO = Float(MAX_FRAME_LENGTH);
+		this.gOutFIFO = Float(MAX_FRAME_LENGTH);
+
+		this.gLastPhase = Float(MAX_FRAME_LENGTH / 2 + 1);
+		this.gSumPhase = Float(MAX_FRAME_LENGTH / 2 + 1);
+
+		this.gFFTworksp = Float(2*MAX_FRAME_LENGTH);
+		this.gOutputAccum = Float(2 * MAX_FRAME_LENGTH);
+
+		/* Analysis Buffers */
+		this.gAnaFreq = Float(MAX_FRAME_LENGTH);
+		this.gAnaMagn = Float(MAX_FRAME_LENGTH);
+
+		/* Synthesis Buffers */
+		this.gSynFreq = Float(MAX_FRAME_LENGTH);
+		this.gSynMagn = Float(MAX_FRAME_LENGTH);
+
+		this.win = Float(this.fftFrameSize);
+
+		// Hann Window */
+		for (k=0; k<this.fftFrameSize; k++){
+			this.win[k] = -0.5*cos(π2*k/this.fftFrameSize)+0.5;
+		}
+	};
+
+	scope.PitchShift.prototype = {
+		mDoubleCopy : function(dBuffer, dOffset, sBuffer, sOffset, size){
+			var tmp = new Float64Array(size);
+			for (var i=0; i<size; i++){
+				tmp[i] = sBuffer[i+sOffset];
+			}
+			for (var i=0; i<size; i++){
+				dBuffer[i+dOffset] = tmp[i];
+			}
+		},
+
+		process : function(pitchShift, samples, buffer){
+			function memset(buffer, value, size){
+				for (var i=0; i<size; i++){
+					buffer[i] = value;
+				}
+			}
+
+			var osamp = this.oversampling,
+				STFT = scope.smbFFT,
+				fftFrameSize = this.fftFrameSize,
+				fftFrameSize2 = fftFrameSize>>1,
+
+				stepSize = fftFrameSize / osamp,
+				freqPerBin = this.sampleRate / fftFrameSize,
+				expct = π2 * stepSize / fftFrameSize,
+
+				inFifoLatency = fftFrameSize - stepSize,
+				j, k = 0,
+				real, imag,
+				magn, phase,
+				tmp, qpd, index;
+
+			if (this.gRover === false) {
+				this.gRover = inFifoLatency;
+			}
+
+			for (j=0; j<samples; j++) {
+				this.gInFIFO[this.gRover] = buffer[j];
+				//buffer[j] = this.gOutFIFO[this.gRover - inFifoLatency];
+				this.gRover++;
+
+				if (this.gRover >= fftFrameSize) {
+					this.gRover = inFifoLatency;
+
+					for (k=0; k<fftFrameSize; k++){
+						this.gFFTworksp[2*k] = this.gInFIFO[k] * this.win[k];
+						this.gFFTworksp[2*k+1] = 0.0;
+					}
+
+					//STFT(this.gFFTworksp, fftFrameSize, -1);
+
+					/* -- ANALYSIS ------------------------------------------ */
+
+					for (k=0; k<=fftFrameSize2; k++){
+
+						/* de-interlace FFT buffer */
+						real = this.gFFTworksp[2*k];
+						imag = this.gFFTworksp[2*k+1];
+
+						/* compute magnitude and phase */
+						magn = 2*sqrt(real*real + imag*imag);
+						phase = atan2(imag, real);
+
+						/* compute phase difference */
+						tmp = phase - this.gLastPhase[k];
+						this.gLastPhase[k] = phase;
+
+						/* subtract expected phase difference */
+						tmp -= k*expct;
+
+						/* map delta phase into +/- Pi interval */
+						qpd = tmp/π;
+						qpd = (qpd>=0) ? qpd + qpd&1 : qpd - qpd&1;
+						tmp -= π2*qpd;
+
+						/* get frequency deviation from the +/- Pi interval */
+						tmp *= osamp/π2;
+
+						/* compute the k-th partials' true frequency */
+						tmp = k*freqPerBin + tmp*freqPerBin;
+
+						/* store magn and true frequency in analysis arrays */
+						this.gAnaMagn[k] = magn;
+						this.gAnaFreq[k] = tmp;
+					}
+
+					/* -- PROCESSING -------------------------------------------- */
+
+					memset(this.gSynMagn, 0, fftFrameSize);
+					memset(this.gSynFreq, 0, fftFrameSize);
+
+					for (k=0; k<=fftFrameSize2; k++){ 
+						index = (k*pitchShift)|0;
+						if (index<=fftFrameSize2){ 
+							this.gSynMagn[index] += this.gAnaMagn[k]; 
+							this.gSynFreq[index] = this.gAnaFreq[k] * pitchShift;
+						} 
+					}
+
+					/* -- SYNTHESIS ----------------------------------------- */
+
+					for (k=0; k<=fftFrameSize2; k++){
+
+						/* get magn and true frequency from synthesis arrays */
+						magn = this.gSynMagn[k];
+						tmp = this.gSynFreq[k];
+
+						/* subtract bin mid frequency */
+						tmp -= k*freqPerBin;
+
+						/* get bin deviation from freq deviation */
+						tmp /= freqPerBin;
+
+						/* take osamp into account */
+						tmp *= π2/osamp;
+
+						/* add the overlap phase advance back in */
+						tmp += k*expct;
+
+						/* accumulate delta phase to get bin phase */
+						this.gSumPhase[k] += tmp;
+						phase = this.gSumPhase[k];
+
+						/* get real and imag part and re-interleave */
+						this.gFFTworksp[2*k+0] = magn*cos(phase);
+						this.gFFTworksp[2*k+1] = magn*sin(phase);
+					} 
+
+					/* zero negative frequencies */
+					for (k=fftFrameSize+2; k < 2*fftFrameSize; k++){
+						this.gFFTworksp[k] = 0.0;
+					}
+
+					/* do inverse transform */
+					//STFT(this.gFFTworksp, fftFrameSize, 1);
+
+					/* do windowing and add to output accumulator */ 
+					for (k=0; k<fftFrameSize; k++){
+						this.gOutputAccum[k] += 2*this.win[k] * 
+									this.gFFTworksp[2*k]/(fftFrameSize2*osamp);
+					}
+					
+					for (k=0; k<stepSize; k++){
+						this.gOutFIFO[k] = this.gOutputAccum[k];
+					}
+
+					/* shift accumulator */
+					//memmove(gOutputAccum, gOutputAccum+stepSize, fftFrameSize);
+					this.mDoubleCopy(
+						this.gOutputAccum, 0,
+						this.gOutputAccum, stepSize,
+						fftFrameSize
+					);
+
+					/* move input FIFO */
+					for (k=0; k<inFifoLatency; k++){
+						this.gInFIFO[k] = this.gInFIFO[k+stepSize];
+					}
+
+				}
+
+			}
+
+		}
+	};
 
 	return scope;
 };
+
+
