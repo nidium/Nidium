@@ -19,6 +19,7 @@
 #include <string.h>
 #include "NativeMacros.h"
 #include "GLSLANG/ShaderLang.h"
+#include "NativeMacros.h"
 
 jsval gfunc  = JSVAL_VOID;
 
@@ -67,6 +68,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     this->njs->LoadScriptContent(preload_js,
         strlen(preload_js), "private://__builtin_preload.js");
+
+
+    NativeCanvasContext::Vertices *v = NativeCanvasContext::buildVerticesStripe(4);
+    NLOG("Created vertices : %d indices - %d vertices", v->nindices, v->nvertices);
 }
 
 void NativeContext::loadNativeObjects(int width, int height)

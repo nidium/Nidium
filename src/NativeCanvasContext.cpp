@@ -64,6 +64,7 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
     float tystep = 1  / ((float)y-1);
     
     Vertices *info = (Vertices *)malloc(sizeof(Vertices));
+    
     info->vertices = (Vertex *)malloc(sizeof(Vertex) * x * y);
 
     info->nvertices = x*y;

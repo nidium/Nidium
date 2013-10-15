@@ -40,6 +40,13 @@ public:
     };
 
     static char *processShader(const char *content, shaderType type);
+
+    /*
+        Create a grid of |resolution^2| points using triangle strip
+
+        Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
+        Details: http://en.wikipedia.org/wiki/Triangle_strip
+    */
     static Vertices *buildVerticesStripe(int resolution);
 
     virtual void translate(double x, double y)=0;
