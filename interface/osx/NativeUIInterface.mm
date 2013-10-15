@@ -460,9 +460,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
         
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         win = SDL_CreateWindow("nidium", 100, 100,
             width, height,

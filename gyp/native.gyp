@@ -119,11 +119,11 @@
                 'sources': [
                     '<(native_src_path)/NativeJSWebGL.cpp',
                  ],
-                 'defines+': [ 'NATIVE_WEBGL_ENABLED' ]
+                 'defines+': [ 'NATIVE_WEBGL_ENABLED' ],
+                 'dependencies': [
+                    'angle.gyp:*'
+                 ]
             }],
-        ],
-        'dependencies': [
-            'angle.gyp:*'
         ],
         'sources': [
             '<(native_src_path)/NativeSkia.cpp',
@@ -143,7 +143,6 @@
 			'<(native_src_path)/NativeAssets.cpp',
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeDB.cpp',
-            '<(native_src_path)/NativeCanvasContext.cpp',
         ],
     }],
 }

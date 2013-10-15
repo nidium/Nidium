@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "NativeMacros.h"
-#include "GLSLANG/ShaderLang.h"
 
 jsval gfunc  = JSVAL_VOID;
 
@@ -39,8 +38,6 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     gfunc = JSVAL_VOID;
 
     currentFPS = 0;
-
-    ShInitialize();
     
     this->stats.nframe = 0;
     this->stats.starttime = NativeUtils::getTick();
@@ -233,8 +230,6 @@ NativeContext::~NativeContext()
     delete njs;
 
     NativeSkia::glcontext = NULL;
-    
-    ShFinalize();
 }
 
 void NativeContext::initHandlers(int width, int height)
