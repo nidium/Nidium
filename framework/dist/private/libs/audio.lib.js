@@ -996,7 +996,7 @@ Audio.lib = function(){
 	/* Author: Stephan M. Bernsee <smb [AT] dspdimension [DOT] com>           */
 	/* ---------------------------------------------------------------------- */ 
 
-	scope.smbFFT = function(buffer, fftFrameSize, sign){
+	scope.smbFFTJS = function(buffer, fftFrameSize, sign){
 		// float
 		var wr, wi, arg, tr, ti, ur, ui, temp, p1, p2, p1r, p1i, p2r, p2i, kr, ki,
 			lg = (log(fftFrameSize)/log(2) + 0.5)|0;
@@ -1153,7 +1153,7 @@ Audio.lib = function(){
 			}
 
 			var osamp = this.oversampling,
-				STFT = scope.smbFFT,
+				STFT = scope.smbFFTJS,
 				fftFrameSize = this.fftFrameSize,
 				fftFrameSize2 = fftFrameSize>>1,
 
@@ -1304,10 +1304,10 @@ Audio.lib = function(){
 	return scope;
 };
 
-
 function __AUDIO_UNIT_TEST_FFT__(fftSize){
 	var scope = Audio.lib(),
 		hann = new Float64Array(fftSize),
+		tmpBuffer = new Float64Array(2*fftSize),
 		fftBuffer = new Float64Array(2*fftSize); // interleaded real / imag
 
 	// Precomputed Hann Window */
@@ -1321,12 +1321,23 @@ function __AUDIO_UNIT_TEST_FFT__(fftSize){
 		fftBuffer[2*k+1] = 0.0; // the imag part
 	}
 
+	for (k=0; k<fftSize; k++){
+		tmpBuffer[k] = fftBuffer[k];
+	}
+
+	var resetFFTBuffer = function(){
+		for (k=0; k<fftSize; k++){
+			fftBuffer[k] = tmpBuffer[k];
+		}
+	};
+
 	var t = +new Date();
 	for (var i=0; i<2048; i++){
-		scope.smbFFT(fftBuffer, fftSize, -1);
-		scope.smbFFT(fftBuffer, fftSize, 1);
+		resetFFTBuffer();
+		scope.smbFFTJS(fftBuffer, fftSize, -1);
+		scope.smbFFTJS(fftBuffer, fftSize, 1);
 	}
 	console.log( (+new Date()) - t, "ms");
 }
 
-__AUDIO_UNIT_TEST_FFT__(1024);
+//__AUDIO_UNIT_TEST_FFT__(1024);
