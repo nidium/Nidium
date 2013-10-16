@@ -47,7 +47,7 @@ var main = new Application();
 main.backgroundImage = "private://assets/patterns/wood_1.png";
 
 
-var knob = new UIKnob(main);
+//var knob = new UIKnob(main);
 
 var app = {
 	audioBufferSize : 2048,

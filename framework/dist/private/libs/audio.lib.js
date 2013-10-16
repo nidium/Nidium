@@ -1415,6 +1415,7 @@ function __TEST_fntFFT__(fftSize){
 
 }
 
+/*
 
 var fftSize = 32,
 	x = new Float64Array(fftSize),
@@ -1473,3 +1474,5 @@ showMe("After FFT");
 
 Audio.pFFT(x, y, fftSize, -1);
 showMe("After Inverse FFT");
+
+*/
