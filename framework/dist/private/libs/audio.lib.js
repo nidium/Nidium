@@ -1330,7 +1330,7 @@ function __TEST_smbFFT__(fftSize){
 		tmpBuffer = new Float32Array(2*fftSize),
 		fftBuffer = new Float32Array(2*fftSize); // interleaded real / imag
 
-	// Precomputed Hann Window */
+	// Precomputed Hanning Window */
 	for (var k=0; k<fftSize; k++){
 		hann[k] = -0.5*Math.cos(2*Math.PI*k/fftSize)+0.5;
 	}
@@ -1359,7 +1359,7 @@ function __TEST_smbFFT__(fftSize){
 	}
 	console.log("smbFFT(JS):", (+new Date()) - t, "ms");
 
-
+	/*
 	var t = +new Date();
 	for (var i=0; i<samples; i++){
 		resetFFTBuffer();
@@ -1367,16 +1367,16 @@ function __TEST_smbFFT__(fftSize){
 		Audio.smbFFT(fftBuffer, fftSize, 1);
 	}
 	console.log("smbFFT(C):",  (+new Date()) - t, "ms");
-
+	*/
 }
 
 function __TEST_fntFFT__(fftSize){
 	var scope = Audio.lib(),
 		samples = 256,
 		fftSize = 1024,
-		tmpBuffer = new Float32Array(fftSize),
-		x = new Float32Array(fftSize),
-		y = new Float32Array(fftSize);
+		tmpBuffer = new Float64Array(fftSize),
+		x = new Float64Array(fftSize),
+		y = new Float64Array(fftSize);
 
 	for (var k=0; k<fftSize; k++){
 		x[k] = 2*Math.random()-1; // the real part
@@ -1404,8 +1404,72 @@ function __TEST_fntFFT__(fftSize){
 		fft2.process(x, y, -1);
 	}
 	console.log("fntFFT(JS)", (+new Date()) - t, "ms");
+
+	var t = +new Date();
+	for (var i=0; i<samples; i++){
+		resetFFTBuffer();
+		Audio.pFFT(x, y, fftSize,  1);
+		Audio.pFFT(x, y, fftSize, -1);
+	}
+	console.log("pFFT(C)", (+new Date()) - t, "ms");
+
 }
 
 
-__TEST_smbFFT__(1024);
-__TEST_fntFFT__(1024);
+var fftSize = 32,
+	x = new Float64Array(fftSize),
+	y = new Float64Array(fftSize);
+
+function showMe(message){
+	var rnd = function(v){ return Math.round(10000*v)/10000; },
+		rx = [],
+		ry = [];
+
+	for (var k=0; k<fftSize; k++){
+		rx.push(rnd(x[k]));
+		ry.push(rnd(y[k]));
+	}
+	console.log(message);
+	console.log("real:", rx.join(", "));
+	console.log("imag:", ry.join(", "));
+	console.log("");
+};
+
+
+function _feed_fft_with_constant(val){
+	for (var k=0; k<fftSize; k++){
+		x[k] = val;
+		y[k] = 0;
+	}
+}
+
+function _feed_fft_with_delta(val){
+	for (var k=0; k<fftSize; k++){
+		x[k] = 0;
+		y[k] = 0;
+	}
+	x[0] = val;
+}
+
+function _feed_fft_with_cos(){
+	for (var k=0; k<fftSize; k++){
+		x[k] = Math.cos(2*Math.PI*k/fftSize);
+		y[k] = 0;
+	}
+}
+
+function _feed_fft_with_sin(f){
+	for (var k=0; k<fftSize; k++){
+		x[k] = Math.sin(f*2*Math.PI*k/fftSize);
+		y[k] = 0;
+	}
+}
+
+_feed_fft_with_sin(2);
+showMe("Before");
+
+Audio.pFFT(x, y, fftSize,  1);
+showMe("After FFT");
+
+Audio.pFFT(x, y, fftSize, -1);
+showMe("After Inverse FFT");

@@ -4,43 +4,36 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UISpinner" : {
+		width : 20,
+		height : 20,
+		radius : 2,
+		dashes : 14,
+		speed : 30,
+		lineWidth : 2.5,
+		opacity : 0.95,
+		background : "",
+		color : "#ffffff"
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
 Native.elements.export("UISpinner", {
-	public : {
-		speed : {
-			set : function(value){
-				this.speed = Number(value).bound(1, 100);
-				this.refreshAnimation();
-			}
-		},
-
-		width : {
-			set : function(value){
-				this.refreshLayout();
-			}
-		},
-
-		height : {
-			set : function(value){
-				this.refreshLayout();
-			}
-		},
-
-		radius : {
-			set : function(value){
-				this.refreshLayout();
-			}
-		},
-
-		dashes : {
-			set : function(value){
-				this.refreshLayout();
-			}
-		},
-
-		lineWidth : {
-			set : function(value){
-				this.refreshLayout();
-			}
+	update : function(e){
+		if (e.property.in(
+			"width", "height",
+			"speed", "radius", "dashes",
+			"lineWidth"
+		)) {
+			this.refreshLayout();
 		}
 	},
 
@@ -48,18 +41,10 @@ Native.elements.export("UISpinner", {
 		var self = this,
 			o = this.options;
 
-		this.setProperties({
-			width : OptionalNumber(o.width, 20),
-			height : OptionalNumber(o.height, 20),
-
-			radius : OptionalNumber(o.radius, 2),
+		/* Element's Specific Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
 			dashes : OptionalNumber(o.dashes, 14),
 			speed : OptionalNumber(o.speed, 30, 1, 100),
-			lineWidth : OptionalNumber(o.lineWidth, 2.5),
-			opacity : OptionalNumber(o.opacity, 0.95),
-
-			background : OptionalValue(o.background, ""),
-			color : OptionalValue(o.color, "#ffffff")
 		});
 
 		this.frame = 0;
@@ -92,6 +77,7 @@ Native.elements.export("UISpinner", {
 		};
 
 		this.refreshAnimation = function(){
+			this.speed = this.speed.bound(1, 100);
 			var ms = 1000/this.speed;
 			if (this.timer) this.timer.remove();
 
