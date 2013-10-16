@@ -94,23 +94,12 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *url;
     NativeFileIO *NFIO;
     NativeJSFileIO *NJSFIO;
-    bool binary;
+    bool binary = true;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/b", &url, &binary)) {
         return false;
-    }
-
-    // Passing "S/b" to JS_ConvertArguments crash (no crash in debug build)
-    // Here is a quick workaround for that issue
-    if (argc > 1) {
-        JS::Value val = JS_ARGV(cx, vp)[1];
-        if (val.isBoolean()) {
-            binary = val.toBoolean();
-        } else {
-            binary = true;
-        }
     }
 
     JSAutoByteString curl(cx, url);
