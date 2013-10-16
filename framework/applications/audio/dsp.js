@@ -68,8 +68,8 @@ var app = {
 		});
 		*/
 
-		this.load("../../media/sympho.mp3");
-//		this.load("../../media/dream.mp3");
+//		this.load("../../media/sympho.mp3");
+		this.load("../../media/dream.mp3");
 //		this.load("../../media/skrillex.mp3");
 //		this.load("../../media/drydrum.wav");
 //		this.load("../../media/drum01.mp3");
@@ -166,7 +166,7 @@ var app = {
 		this.processor.onbuffer = function(ev, scope){
 			var bufferL = ev.data[0],
 				bufferR = ev.data[1],
-				samples = bufferL.length,
+				samples = bufferL.length, // (audioBuffer/8)
 
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
@@ -218,6 +218,9 @@ var app = {
 //			scope.pitch.process(1.0, samples, bufferL);
 //			scope.pitch.process(1.0, samples, bufferR);
 
+			// 2048 bytes audioBuffer = 2 channels, 1024 bytes per channel
+			// each sample is 64bits double (= 8 bytes)
+			// samples = 2048 / 8 = 256 samples to process
 
 			for (var i=0; i<samples; i++) {
 				var volume = scope.envelope.process();

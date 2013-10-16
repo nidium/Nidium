@@ -30,24 +30,31 @@
 /* -------------------------------------------------------------------------- */ 
 
 Audio.iqDFT = function(bufferL, bufferR, dftBuffer){
-	var dftSize = dftBuffer.byteLength,
-		bufferSize = bufferL.length,
-		n = 2.0 * Math.PI/(bufferSize),
-		s = 1.0/256.0; // 32767 in original Iñigo implementation
+	// integer
+	var i, j,
+		dftSize = dftBuffer.length, // 128 values (64bits each) 
+		samples = bufferL.length; // 256 values (64bits each)
 
-	for(var i=0; i<dftSize; i++){
-		var wi = i * n,
-			sii = Math.sin(wi),	coi = Math.cos(wi),
-			co = 1.0, si = 0.0,	acco = 0.0, acsi = 0.0;
+	// float
+	var	f, wi, sii, coi, oco, co, si, real, imag,
+		n = 2.0 * Math.PI/(samples),
+		s = 1.0/128.0; // 32767 in original Iñigo implementation
 
-		for(var j=0; j<bufferSize; j++){
-			var f = bufferL[j] + bufferR[j],
-				oco = co;
+	for (i=0; i<dftSize; i++){
+		wi = i * n;
+		sii = Math.sin(wi);
+		coi = Math.cos(wi);
+		co = 1.0;	si = 0.0;
+		real = 0.0;	imag = 0.0;
 
-			acco += co*f; co = co*coi -  si*sii;
-			acsi += si*f; si = si*coi + oco*sii;
+		for (j=0; j<samples; j++){
+			oco = co;
+			f = bufferL[j] + bufferR[j];
+			real += co*f; co = co*coi -  si*sii;
+			imag += si*f; si = si*coi + oco*sii;
 		}
-		dftBuffer[i] = Math.sqrt(acco*acco + acsi*acsi) * s;
+		// compute the magnitude of the complex number
+		dftBuffer[i] = Math.sqrt(real*real + imag*imag) * s;
 	}
 };
 
@@ -877,132 +884,144 @@ Audio.lib = function(){
 	};
 
 	/* ---------------------------------------------------------------------- */ 
-	/* Fast Fourier Transform (Small and Fast JavaScript implementation)      */
+	/* Fast Fourier Transform (Maybe the Fastest JavaScript implementation)   */
 	/* ---------------------------------------------------------------------- */ 
-	/* www.ee.columbia.edu/~ronw/code/MEAPsoft/doc/html/FFT_8java-source.html */
-	/* ---------------------------------------------------------------------- */ 
+	/* Description: this compute an in-place radix-2 complex-to-complex FFT   */
+	/* ---------------------------------------------------------------------- */
+	/* Original: http://paulbourke.net/miscellaneous/dft/                     */
+	/* ---------------------------------------------------------------------- */
+	/* x and y are the real and imaginary arrays of n points                  */
+	/* dir =  1 ---> forward transform                                        */
+	/* dir = -1 ---> reverse transform                                        */
+	/* ---------------------------------------------------------------------- */
+	/*
+
+	-----------
+	Forward FFT
+	-----------
+	                 N-1
+	                 ---
+	             1    \            - j k 2π n / N
+	  X(n)  =   ---    >    x(k)  e                    = forward transform
+	             N    /                                  n = 0..N-1
+	                 ---
+	                 k=0
+
+	-----------
+	Reverse FFT
+	-----------
+	                 N-1
+	                 ---
+	                 \              j k 2π n / N
+	       X(n) =     >     x(k)  e                     = forward transform
+	                 /                                   n = 0..N-1
+	                 ---
+	                 k=0
+	*/
 
 	scope.FFT = function(n){
-		var n2 = n/2;
-
 		this.n = n;
 		this.m = log(n)/log(2);
-
 		if (n != (1<<this.m)) throw new Error("FFT length must be power of 2");
-
-		// Lookup precomp tables
-		this.cos = new Float64Array(n2);
-		this.sin = new Float64Array(n2);
-
-		for (var i=0; i<n2; i++) {
-			var a = -π2*i/n;
-			this.cos[i] = cos(a);
-			this.sin[i] = sin(a);
-		}
-
-		this.makeWindow(n);
 	};
 
 	scope.FFT.prototype = {
-		makeWindow : function(n){
-			// Make a blackman window:
-			// w(n) = 0.42-0.5*cos{(2*PI*n)/(N-1)} + 0.08*cos{(4*PI*n)/(N-1)};
-			this.win = new Float64Array(n);
+		process : function(x, y, dir){
+			var n = this.n, m = this.m;
+			var i,i1,j,k,i2,l,l1,l2; // long
+			var c1,c2,tx,ty,t1,t2,u1,u2,z; // double
 
-			for (var i=0; i<n; i++){
-				this.win[i] = 0.42 - 0.5*cos(π2*i/(n-1))+0.08*cos(2*π2*i/(n-1));
-			}
-		},
-
-		getWindow : function(){
-			return this.win;
-		},
-
-		/* ------------------------------------------------------------------ */
-		/* FFT: in-place radix-2 DIT DFT of a complex input                   */
-		/* ------------------------------------------------------------------ */
-		/* x: double array of length n with real part of data                 */
-		/* y: double array of length n with imag part of data                 */
-		/* ------------------------------------------------------------------ */
-
-		process : function(x, y){
-			// accessors to our lookup tables
-			var __cos = this.cos,
-				__sin = this.sin;
-
-			// integers
-			var n = this.n,
-				m = this.m,
-				n1 = 0,
-				n2 = n/2,
-				i = 0, j = 0, k = 0, a = 0;
-
-			// floats
-			var c, s, e, t1, t2;
-
-			// Bit-reverse
-			for (i=1; i<n-1; i++){
-				n1 = n2;
-				while (j>=n1) {
-					j = j-n1;
-					n1 = n1>>1;
-				}
-
-				j = j+n1;
-
-				if (i<j) {
-					t1 = x[i];
+			/* Do the bit reversal */
+			j = 0;
+			i2 = n >> 1;
+			for (i=0;i<n-1;i++){
+				if (i < j){
+					tx = x[i];
+					ty = y[i];
 					x[i] = x[j];
-					x[j] = t1;
-
-					t1 = y[i];
 					y[i] = y[j];
-					y[j] = t1;
+					x[j] = tx;
+					y[j] = ty;
 				}
+				k = i2;
+				while (k <= j){
+					j -= k;
+					k >>= 1;
+				}
+				j += k;
 			}
 
-			n1 = 0;
-			n2 = 1;
-
-			for (i=0; i < m; i++) {
-				n1 = n2;
-				n2 = n2+n2;
-				a = 0;
-
-				for (j=0; j<n1; j++) {
-					c = __cos[a];
-					s = __sin[a];
-					a +=  1 << (m-i-1);
-
-					for (k=j; k<n; k+=n2) {
-						t1 = c*x[k+n1] - s*y[k+n1];
-						t2 = s*x[k+n1] + c*y[k+n1];
-						x[k+n1] = x[k] - t1;
-						y[k+n1] = y[k] - t2;
-						x[k] = x[k] + t1;
-						y[k] = y[k] + t2; 
+			/* Compute the FFT */
+			l2 = 1;
+			c1 = -1.0;
+			c2 = 0.0;
+			for (l=0; l<m; l++){
+				l1 = l2; l2 <<= 1;
+				u1 = 1.0; u2 = 0.0;
+				for (j=0; j<l1; j++){
+					for (i=j; i<n; i+=l2){
+						i1 = i + l1;
+						t1 = u1*x[i1] - u2*y[i1];
+						t2 = u1*y[i1] + u2*x[i1];
+						x[i1] = x[i] - t1;
+						y[i1] = y[i] - t2;
+						x[i] += t1;
+						y[i] += t2;
 					}
+					z =  u1 * c1 - u2 * c2;
+					u2 = u1 * c2 + u2 * c1;
+					u1 = z;
 				}
+				c2 = sqrt((1.0 - c1) / 2.0);
+				c1 = sqrt((1.0 + c1) / 2.0);
+				c2 = (-dir) * c2; // branch removed if (dir==1) c2 = -c2;
 			}
 
+			/* Scaling for forward transform */
+			if (dir == 1) {
+				for (i=0; i<n; i++){
+					x[i] /= n;
+					y[i] /= n;
+				}
+			}
 		}
-
 	};
 
 	/* ---------------------------------------------------------------------- */ 
-	/* Ultra Optimized In Place Real/Img Interleaved STFT + reverse STFT      */
+	/* In-place Radix-2 Real/Img Interleaved FFT + reverse FFT                */
 	/* ---------------------------------------------------------------------- */ 
 	/* Original C code: http://downloads.dspdimension.com/smbPitchShift.cpp   */
 	/* Author: Stephan M. Bernsee <smb [AT] dspdimension [DOT] com>           */
+	/* JS port: Vincent Fontaine                                              */
 	/* ---------------------------------------------------------------------- */ 
+	/* 
+	Sign:         "value",  -1 is FFT, 1 is iFFT (inverse)
+	fftFrameSize: must be a power of 2.
+
+	buffer:       Fills buffer[0 ... 2*fftFrameSize-1] with the Fourier
+	              transform of the time domain data in
+	              buffer[0 ... 2*fftFrameSize-1]
+
+	The FFT array takes	and returns the cosine and sine parts
+	in an interleaved manner:
+	buffer[0] = cosPart[0]
+	buffer[1] = sinPart[0]
+
+	It expects a complex input signal. When working with 'common' audio signals
+	our input signal has to be passed as {in[0], 0., in[1], 0., in[2], 0., ...}
+	In that case, the transform of the frequencies of interest
+	is in buffer[0 ... fftFrameSize].
+	*/
 
 	scope.smbFFTJS = function(buffer, fftFrameSize, sign){
 		// float
-		var wr, wi, arg, tr, ti, ur, ui, temp, p1, p2, p1r, p1i, p2r, p2i, kr, ki,
-			lg = (log(fftFrameSize)/log(2) + 0.5)|0;
+		var wr, wi, arg, tr, ti, ur, ui, temp, p1, p2,
+			p1r, p1i, p2r, p2i, kr, ki;
 
 		// long
-		var i, bitm, j, le, le2, k, fftsize2 = 2*fftFrameSize;
+		var i, bitm, j, le, le2, k,
+			fftsize2 = 2*fftFrameSize,
+			lg = (log(fftFrameSize)/log(2) + 0.5)|0;
 
 		for (i=2; i<fftsize2-2; i+=2){
 			for (bitm=2, j=0; bitm < fftsize2; bitm <<= 1){
@@ -1304,11 +1323,12 @@ Audio.lib = function(){
 	return scope;
 };
 
-function __AUDIO_UNIT_TEST_FFT__(fftSize){
+function __TEST_smbFFT__(fftSize){
 	var scope = Audio.lib(),
-		hann = new Float64Array(fftSize),
-		tmpBuffer = new Float64Array(2*fftSize),
-		fftBuffer = new Float64Array(2*fftSize); // interleaded real / imag
+		samples = 256,
+		hann = new Float32Array(fftSize),
+		tmpBuffer = new Float32Array(2*fftSize),
+		fftBuffer = new Float32Array(2*fftSize); // interleaded real / imag
 
 	// Precomputed Hann Window */
 	for (var k=0; k<fftSize; k++){
@@ -1316,28 +1336,76 @@ function __AUDIO_UNIT_TEST_FFT__(fftSize){
 	}
 
 	// Fill the interleaved FFT Buffer with random audio data (from -1 to 1)
-	for (k=0; k<fftSize; k++){
+	for (var k=0; k<fftSize; k++){
 		fftBuffer[2*k+0] = 2*Math.random()-1 * hann[k]; // the real part
 		fftBuffer[2*k+1] = 0.0; // the imag part
 	}
 
-	for (k=0; k<fftSize; k++){
+	for (var k=0; k<fftSize; k++){
 		tmpBuffer[k] = fftBuffer[k];
 	}
 
 	var resetFFTBuffer = function(){
-		for (k=0; k<fftSize; k++){
+		for (var k=0; k<fftSize; k++){
 			fftBuffer[k] = tmpBuffer[k];
 		}
 	};
 
 	var t = +new Date();
-	for (var i=0; i<2048; i++){
+	for (var i=0; i<samples; i++){
 		resetFFTBuffer();
 		scope.smbFFTJS(fftBuffer, fftSize, -1);
 		scope.smbFFTJS(fftBuffer, fftSize, 1);
 	}
-	console.log( (+new Date()) - t, "ms");
+	console.log("smbFFT(JS):", (+new Date()) - t, "ms");
+
+
+	var t = +new Date();
+	for (var i=0; i<samples; i++){
+		resetFFTBuffer();
+		Audio.smbFFT(fftBuffer, fftSize, -1);
+		Audio.smbFFT(fftBuffer, fftSize, 1);
+	}
+	console.log("smbFFT(C):",  (+new Date()) - t, "ms");
+
 }
 
-//__AUDIO_UNIT_TEST_FFT__(1024);
+function __TEST_fntFFT__(fftSize){
+	var scope = Audio.lib(),
+		samples = 256,
+		fftSize = 1024,
+		tmpBuffer = new Float32Array(fftSize),
+		x = new Float32Array(fftSize),
+		y = new Float32Array(fftSize);
+
+	for (var k=0; k<fftSize; k++){
+		x[k] = 2*Math.random()-1; // the real part
+		y[k] = 0.0; // the imag part
+	}
+
+	for (var k=0; k<fftSize; k++){
+		tmpBuffer[k] = x[k];
+	}
+
+	var resetFFTBuffer = function(){
+		for (var k=0; k<fftSize; k++){
+			x[k] = tmpBuffer[k];
+			y[k] = 0;
+		}
+	};
+
+	var fft1 = new scope.FFT(fftSize);
+	var fft2 = new scope.FFT(fftSize);
+
+	var t = +new Date();
+	for (var i=0; i<samples; i++){
+		resetFFTBuffer();
+		fft1.process(x, y,  1);
+		fft2.process(x, y, -1);
+	}
+	console.log("fntFFT(JS)", (+new Date()) - t, "ms");
+}
+
+
+__TEST_smbFFT__(1024);
+__TEST_fntFFT__(1024);
