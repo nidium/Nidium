@@ -48,7 +48,7 @@ public:
         Details: http://en.wikipedia.org/wiki/Triangle_strip
     */
     static Vertices *buildVerticesStripe(int resolution);
-
+    
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height)=0;
     virtual void setScale(double x, double y, double px=1, double py=1)=0;

@@ -13,8 +13,10 @@ extern "C" {
 }
 
 #undef SPAM
-#if 0
-  #define SPAM(a) printf a
+#if 1
+  #define SPAM(a) \
+    printf(">%lld / ", av_gettime()/1000); \
+    printf a
 #else
   #define SPAM(a) (void)0
 #endif
@@ -44,6 +46,7 @@ NativeVideo::NativeVideo(ape_global *n)
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         this->timers[i] = new TimerItem();
+        m_frames[i] = NULL;
     }
 }
 
@@ -252,7 +255,7 @@ int NativeVideo::openInitInternal()
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         m_frames[i] = (uint8_t*) malloc(frameSize);
         if (!m_frames[i]) {
-            fprintf(stderr, "Failed to frames pool\n");
+            fprintf(stderr, "Failed to setup frames pool\n");
             RETURN_WITH_ERROR(ERR_OOM);
         }
     }
@@ -418,7 +421,7 @@ int64_t NativeVideo::seekTarget(double time, int *flags)
 #define SEEK_STEP 2
 void NativeVideo::seekInternal(double time) 
 {
-    double start = av_gettime()/1000;
+    double start = av_gettime();
     double startFrame = 0;
     int flags;
     int64_t target;
@@ -443,7 +446,7 @@ void NativeVideo::seekInternal(double time)
     diff = time - this->getClock();
     target = this->seekTarget(time, &flags);
 
-    SPAM(("[SEEK] diff = %f\n", diff));
+    SPAM(("[SEEK] diff = %f, time=%lld\n", diff, av_gettime()));
     if (diff > SEEK_THRESHOLD || diff <= 0 || this->seekFlags & NATIVE_VIDEO_SEEK_KEYFRAME) {
         // Flush all buffers
         this->clearAudioQueue();
@@ -507,7 +510,8 @@ void NativeVideo::seekInternal(double time)
     flags = 0;
 
     for (;;) {
-        SPAM(("[SEEK] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", gotFrame, pts, seekTime, time));
+        long foo = av_gettime() - start;
+        SPAM(("[SEEK-%ld] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", foo, gotFrame, pts, seekTime, time));
         if ((pts > seekTime + SEEK_STEP || pts > time) && !keyframe) {
             seekTime = seekTime - SEEK_STEP;
             if (seekTime < 0) seekTime = 0;
@@ -622,11 +626,13 @@ void NativeVideo::seekInternal(double time)
     }
 
     this->frameTimer = (av_gettime() / 1000000.0);
+    this->lastPts = time;
     this->doSeek = false;
     
-    double end = av_gettime()/1000;
+    double end = av_gettime();
     SPAM(("[SEEK] seek took %f / firstFrame to end = %f \n", end-start, end-startFrame));
     SPAM(("Sending seekCond signal\n"));
+    this->processVideo();
     pthread_cond_signal(&this->bufferCond);
 }
 #undef SEEK_THRESHOLD
@@ -692,6 +698,8 @@ NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio)
 int NativeVideo::display(void *custom) {
     NativeVideo *v = (NativeVideo *)custom;
 
+    SPAM(("[DISPLAY]\n"));
+
     // Reset timer from queue
     v->timers[v->lastTimer]->id = -1;
     v->timers[v->lastTimer]->delay = -1;
@@ -724,7 +732,9 @@ int NativeVideo::display(void *custom) {
 
 
     delay = pts - v->lastPts;
+    SPAM(("DELAY=%f\n", delay));
     if (delay <= 0 || delay >= 1.0) {
+        SPAM(("USING LAST DELAY %f\n", v->lastDelay));
         // Incorrect delay, use previous one
         delay = v->lastDelay;
     }
@@ -1141,6 +1151,8 @@ void NativeVideo::scheduleDisplay(int delay, bool force) {
     this->timers[this->timerIdx]->delay = delay;
     this->timers[this->timerIdx]->id = -1;
 
+    SPAM(("scheduleDisplay in %d\n", delay));
+
     if (this->playing || force) {
         this->timers[this->timerIdx]->id = this->addTimer(delay);
     }
@@ -1289,10 +1301,9 @@ void NativeVideo::close(bool reset) {
     this->clearTimers(reset);
     this->flushBuffers();
 
-    if (this->opened) {
-        for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-            free(m_frames[i]);
-        }
+    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+        free(m_frames[i]);
+        m_frames[i] = NULL;
     }
 
     this->clearAudioQueue();
