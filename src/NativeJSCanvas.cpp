@@ -523,6 +523,11 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->padding.global * 2))
                 );
+                /*
+                    XXX: Use VBO instead of skia (WIP)
+                */
+                ((NativeCanvas2DContext *)NativeObject->getContext())->setGLDraw(true);
+                
                 break;
             case NativeCanvasContext::CONTEXT_WEBGL:
                 /*

@@ -34,20 +34,14 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         struct {
             uint32_t program;
-            uint32_t texture;
-            uint32_t fbo;
-            uint32_t textureWidth;
-            uint32_t textureHeight;
-            uint32_t vertexBuffer;
-            uint32_t indexBuffer;
-        } gl;
 
-        struct {
-            uint32_t uniformOpacity;
-            uint32_t uniformResolution;
-            uint32_t uniformPosition;
-            uint32_t uniformPadding;
-        } shader;
+            struct {
+                uint32_t uniformOpacity;
+                uint32_t uniformResolution;
+                uint32_t uniformPosition;
+                uint32_t uniformPadding;
+            } shader;
+        } m_GL;
 
         void clear(uint32_t color);
 
@@ -55,7 +49,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
             draw layer on top of "this"
         */
 
-        void resetGLContext();
+        void resetSkiaContext(uint32_t flags = 0);
         void composeWith(NativeCanvas2DContext *layer, double left,
             double top, double opacity, double zoom,
             const NativeRect *clip);
@@ -68,14 +62,14 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void detachShader();
 
         bool hasShader() const {
-            return (gl.program != 0);
+            return (m_GL.program != 0);
         }
         uint32_t getProgram() const {
-            return gl.program;
+            return m_GL.program;
         }
 
         NativeCanvasHandler *getHandler() const {
-            return this->handler;
+            return this->m_Handler;
         }
 
         NativeSkia *getSurface() const {
@@ -87,6 +81,9 @@ class NativeCanvas2DContext : public NativeCanvasContext
         uint32_t createProgram(const char *data);
         uint32_t compileShader(const char *data, int type);
 
+        void setGLDraw(bool state) {
+            commonDraw = !state;
+        }
 
         static void registerObject(JSContext *cx);
 
@@ -99,6 +96,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
         ~NativeCanvas2DContext();
     private:
         NativeSkia *m_Skia;
+        NativeCanvasHandler *m_Handler;
+
         void initCopyTex();
         uint32_t compileCoopFragmentShader();
         char *genModifiedFragmentShader(const char *data);
@@ -109,7 +108,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         uint32_t getMainFBO();
         void setupShader(float opacity, int width, int height,
             int left, int top, int wWidth, int wHeight);
-        NativeCanvasHandler *handler;
 };
 
 class NativeCanvasPattern

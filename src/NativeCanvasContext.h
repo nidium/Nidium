@@ -39,6 +39,11 @@ public:
         SHADER_VERTEX = 0x8B31
     };
 
+    struct {
+        uint32_t vbo[2];
+        Vertices *vtx;
+    } m_GLObjects;
+
     static char *processShader(const char *content, shaderType type);
 
     /*
@@ -59,10 +64,10 @@ public:
         double left, double top, double opacity,
         double zoom, const NativeRect *rclip)=0;
 
-    NativeCanvasContext() :
-        jsobj(NULL), jscx(NULL) {
-    }
-    virtual ~NativeCanvasContext(){};
+    void resetGLContext();
+
+    NativeCanvasContext();
+    virtual ~NativeCanvasContext();
 };
 
 #endif

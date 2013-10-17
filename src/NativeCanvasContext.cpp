@@ -2,6 +2,13 @@
 #include "GLSLANG/ShaderLang.h"
 #include "NativeMacros.h"
 
+#define GL_GLEXT_PROTOTYPES
+#if __APPLE__
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 char *NativeCanvasContext::processShader(const char *content, shaderType type)
 {
     ShBuiltInResources resources;
@@ -77,6 +84,7 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
     
     for (int i = 0; i < y; i++) {
         for (int j = 0; j < x; j++, t++) {
+            /* TODO: Normalize using glAttributeVertex? */
             vert[t].Position[0] = -1. + ((float)j*xstep);
             vert[t].Position[1] = 1. - ((float)i*ystep);
             vert[t].Position[2] = 0.;
@@ -117,4 +125,38 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
     }
     info->nindices = pos;
     return info;
+}
+
+void NativeCanvasContext::resetGLContext()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
+}
+
+NativeCanvasContext::NativeCanvasContext() :
+    jsobj(NULL), jscx(NULL) {
+
+    glGenBuffers(2, m_GLObjects.vbo);
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(128);
+
+    /* Upload the list of vertex */
+    glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
+        vtx->vertices, GL_STATIC_DRAW);
+
+    /* Upload the indexes for triangle strip */
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
+        vtx->indices, GL_STATIC_DRAW);
+
+    if (glGetError() != GL_NO_ERROR) {
+        NLOG("Got a GL error :-(");
+    }
+
+    NLOG("Vertex buffer object created with ID : %d - %d", m_GLObjects.vbo[0], m_GLObjects.vbo[1]);
+}
+
+NativeCanvasContext::~NativeCanvasContext()
+{
+    glDeleteBuffers(2, m_GLObjects.vbo);
 }
