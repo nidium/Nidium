@@ -44,7 +44,7 @@ class NativeJSModule
 
         bool init();
         bool initJS();
-        void initMain();
+        bool initMain();
         bool initNative();
         JS::Value require(char *name);
 
@@ -62,13 +62,23 @@ class NativeJSModules
         NativeJSModules(JSContext *cx) : cx(cx)
         {
             this->tree.setCompare(NativeJSModules::compare); 
-            this->globalScope = JS_GetGlobalObject(cx);;
-            this->main = new NativeJSModule(cx, this, NULL, "MAIN");
-            this->main->initMain();
         }
 
-        JSObject *globalScope;
+        ~NativeJSModules()
+        {
+            delete this->main;
+        }
+
         NativeJSModule *main;
+
+        bool init()
+        {
+            this->main = new NativeJSModule(cx, this, NULL, "MAIN");
+
+            if (!main) return false;
+
+            return this->main->initMain();
+        }
 
         static int compare(NativeJSModule *first, NativeJSModule *second)
         {

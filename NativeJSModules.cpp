@@ -40,7 +40,7 @@
 static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass native_modules_exports_class = {
-    "Exports", JSCLASS_HAS_PRIVATE | JSCLASS_GLOBAL_FLAGS,
+    "Exports", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Exports_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
@@ -77,13 +77,24 @@ NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJS
 {
 }
 
-void NativeJSModule::initMain() 
+bool NativeJSModule::initMain() 
 {
     this->name = strdup("__MAIN__");
 
-    this->initJS();
+    JSObject *funObj;
+    JSFunction *fun = js::DefineFunctionWithReserved(this->cx, JS_GetGlobalObject(cx), 
+            "require", native_modules_require, 1, 0);
+    if (!fun) {
+        return false;
+    }
 
-    this->modules->globalScope = this->exports;
+    funObj = JS_GetFunctionObject(fun);
+
+    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
+
+    this->exports = NULL; // Main module is not a real module, thus no exports
+
+    return true;
 }
 bool NativeJSModule::init()
 {
@@ -228,52 +239,49 @@ bool NativeJSModule::initJS()
 
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
-    // We don't want to polute the main module (global object)
-    if (this != this->modules->main) { 
-        JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
-        JSObject *module = JS_NewObject(this->cx, &native_modules_class, NULL, NULL);
+    JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
+    JSObject *module = JS_NewObject(this->cx, &native_modules_class, NULL, NULL);
 
-        if (!exports || !module) {
-            njs->unrootObject(gbl);
-            return false;
-        }
-
-        JS::Value id;
-        JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
-        if (!idstr) {
-            njs->unrootObject(gbl);
-            return false;
-        }
-        id.setString(idstr);
-
-        jsval exportsVal = OBJECT_TO_JSVAL(exports);
-        jsval moduleVal  = OBJECT_TO_JSVAL(module);
-
-        TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
-        TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal));
-
-        TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
-        TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
-        TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
-        TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
-
-        //// XXX : This has nothing to do here
-        char *tmp = strdup(this->filePath);
-        char *cfilename = basename(tmp);
-        JSString *filename = JS_NewStringCopyN(cx, cfilename, strlen(cfilename));
-        JSString *dirname = JS_NewStringCopyN(cx, this->dir, strlen(this->dir));
-
-        free(tmp);
-
-        // __filename and __dirname is needed to conform NodeJS require();
-        TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__filename", STRING_TO_JSVAL(filename), 
-                NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
-        TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__dirname", STRING_TO_JSVAL(dirname), 
-                NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
-        ////
-
-        js::SetFunctionNativeReserved(funObj, 1, exportsVal);
+    if (!exports || !module) {
+        njs->unrootObject(gbl);
+        return false;
     }
+
+    JS::Value id;
+    JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
+    if (!idstr) {
+        njs->unrootObject(gbl);
+        return false;
+    }
+    id.setString(idstr);
+
+    jsval exportsVal = OBJECT_TO_JSVAL(exports);
+    jsval moduleVal  = OBJECT_TO_JSVAL(module);
+
+    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal));
+
+    TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
+
+    //// XXX : This has nothing to do here
+    char *tmp = strdup(this->filePath);
+    char *cfilename = basename(tmp);
+    JSString *filename = JS_NewStringCopyN(cx, cfilename, strlen(cfilename));
+    JSString *dirname = JS_NewStringCopyN(cx, this->dir, strlen(this->dir));
+
+    free(tmp);
+
+    // __filename and __dirname is needed to conform NodeJS require();
+    TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__filename", STRING_TO_JSVAL(filename), 
+            NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
+    TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__dirname", STRING_TO_JSVAL(dirname), 
+            NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
+    ////
+
+    js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     this->exports = gbl;
 
@@ -512,10 +520,49 @@ JS::Value NativeJSModule::require(char *name)
         }
 
         if (!cmodule->native) {
-            if (!NativeJS::getNativeClass(cx)->LoadScript(cmodule->filePath,
-                cmodule->exports)) {
+            FILE *fd;
+            size_t readsize;
+            size_t filesize;
+            char *data;
+
+            JSFunction *fn;
+            jsval *rval;
+
+            // TODO : Replace fopen/fseek/fread with future NativeSyncFileIO
+            fd = fopen(cmodule->filePath, "r");
+            if (!fd) {
+                JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 return ret;
-            } 
+            }
+
+            fseek(fd, 0L, SEEK_END);
+            filesize = ftell(fd);
+            fseek(fd, 0L, SEEK_SET);
+
+            data = (char *)malloc(filesize + 1);
+
+            readsize = fread(data, sizeof(char), filesize < 4096 ? filesize : 40986, fd);
+
+            fclose(fd);
+
+            if (readsize < 1) {
+                JS_ReportError(cx, "Failde to read module %s\n", cmodule->name);
+                free(data);
+                return ret;
+            }
+
+            fn = JS_CompileFunction(cx, cmodule->exports, 
+                    "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
+            if (!fn) {
+                free(data);
+                return ret;
+            }
+
+            free(data);
+
+            if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, rval)) {
+                return ret;
+            }
         }
     } 
 

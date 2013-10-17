@@ -775,27 +775,12 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
 
 int NativeJS::LoadScript(const char *filename)
 {
-    return this->LoadScript(filename, NULL);
-}
-
-int NativeJS::LoadScript(const char *filename, JSObject *gbl)
-{
     uint32_t oldopts;
+    JSObject *gbl;
 
     JSAutoRequest ar(cx);
 
     oldopts = JS_GetOptions(cx);
-
-    if (gbl == NULL) {
-        gbl = JS_GetGlobalObject(cx);
-    } else {
-        // Specific options for modules
-        // We don't want that modules define all of their global
-        // on the global scope, but instead on the global object
-        // for the script
-        // https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/JSAPI_reference/JS_SetOptions
-        oldopts &= ~JSOPTION_VAROBJFIX;
-    }
     gbl = JS_GetGlobalObject(cx);
 
     JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
@@ -850,6 +835,12 @@ void NativeJS::loadGlobalObjects()
     if (!modules) {
         JS_ReportOutOfMemory(cx);
         return;
+    }
+    if (!modules->init()) {
+        JS_ReportError(cx, "Failed to init require()");
+        if (!JS_ReportPendingException(cx)) {
+            JS_ClearPendingException(cx);
+        }
     }
 }
 

@@ -107,7 +107,6 @@ class NativeJS
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
         int LoadScript(const char *filename);
-        int LoadScript(const char *filename, JSObject *gbl);
 
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
