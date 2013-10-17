@@ -95,6 +95,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void drawTexToFBO(uint32_t textureID);
         void drawTexIDToFBO(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
+        void drawTexIDToFBO2(uint32_t textureID, uint32_t width,
+            uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
         void setupShader(float opacity, int width, int height,

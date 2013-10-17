@@ -13,6 +13,12 @@ class NativeCanvasContext
 {
 public:
 
+    /* Explicit name used by glBindAttribLocation */
+    enum {
+        SH_ATTR_POSITION = 1,
+        SH_ATTR_TEXCOORD = 2
+    };
+
     struct Vertex {
         float Position[3];
         float TexCoord[2];
@@ -52,6 +58,8 @@ public:
         return m_GLObjects.program;
     }
 
+    uint32_t createPassThroughProgram();
+
     static char *processShader(const char *content, shaderType type);
     static uint32_t compileShader(const char *data, int type);
 
@@ -68,7 +76,6 @@ public:
     virtual void setScale(double x, double y, double px=1, double py=1)=0;
     virtual void clear(uint32_t color)=0;
     virtual void flush()=0;
-
 
     virtual void composeWith(NativeCanvas2DContext *layer,
         double left, double top, double opacity,

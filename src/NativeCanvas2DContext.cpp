@@ -1829,6 +1829,63 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 
 }
 
+
+void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
+    uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
+{
+    SkISize size = m_Skia->canvas->getDeviceSize();
+
+    GLenum err;
+    if ((err = glGetError()) != GL_NO_ERROR) {
+        printf("got a gl error %d\n", err);
+    }
+
+    /* save the old viewport size */
+    glPushAttrib(GL_VIEWPORT_BIT);
+
+    /* set the viewport with the texture size */
+    glViewport(left, (float)size.fHeight-(height+top), width, height);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );    
+
+    /* Anti Aliasing */
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    glEnable(GL_ALPHA_TEST);
+    glAlphaFunc(GL_NOTEQUAL, 0.0f);
+
+    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeCanvasContext::Vertex), 0);
+
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
+
+    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeCanvasContext::Vertex),
+                          (GLvoid*) offsetof(NativeCanvasContext::Vertex, TexCoord));
+
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
+
+
+    glDrawElements(GL_TRIANGLE_STRIP, m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
+
+    glDisable(GL_ALPHA_TEST);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_TEXTURE_2D);
+    glPopAttrib();
+
+}
+
+
 #if 0
 void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 {
@@ -1936,10 +1993,12 @@ void NativeCanvas2DContext::detachShader()
 void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
-    uint32_t program = getProgram();
+    uint32_t program = this->getProgram();
     glUseProgram(program);
+    NLOG("Use program %d", program);
 
     if (program > 0) {
+        /*
         if (m_GL.shader.uniformOpacity != -1) {
             glUniform1f(m_GL.shader.uniformOpacity, opacity);
         }
@@ -1947,7 +2006,7 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
 
         glUniform2f(m_GL.shader.uniformResolution, width-(padding*2), height-(padding*2));
         glUniform2f(m_GL.shader.uniformPosition, left, wHeight - (height+top));
-        glUniform1f(m_GL.shader.uniformPadding, padding);
+        glUniform1f(m_GL.shader.uniformPadding, padding);*/
     }
 }
 
@@ -1983,7 +2042,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     } else {
         const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
-        if (this->hasShader()) {
+        if (this->hasShader() && !commonDraw) {
+            NLOG("Compose form hasShader()");
             skia->canvas->flush();
             this->getSurface()->canvas->flush();
             int width, height;
@@ -1998,6 +2058,10 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             layer->drawTexToFBO(textureID);
 #endif
             /* Use our custom shader */
+            this->resetGLContext();
+            if (glGetError() != GL_NO_ERROR) {
+                NLOG("GL error before draw?");
+            }
 
             this->setupShader((float)opacity, width, height,
                 left, top,
@@ -2006,7 +2070,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
-            layer->drawTexIDToFBO(textureID, width, height, left, top, layer->getMainFBO());
+
+            layer->drawTexIDToFBO2(textureID, width, height, left, top, layer->getMainFBO());
 
             /* Reset skia GL context */
             this->resetSkiaContext();
@@ -2018,7 +2083,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         }
 
         if (this->commonDraw) {
-            NLOG("Regular compositing");
+            //NLOG("Regular compositing");
             this->resetSkiaContext();
             skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
             skia->canvas->drawBitmap(bitmapLayer,

@@ -76,7 +76,7 @@ uint32_t NativeCanvasContext::compileShader(const char *data, int type)
         if (glGetError() != GL_NO_ERROR) {
             return 0;
         }
-        printf("Shader error %d : %s\n", len, messages);
+        NLOG("Shader error %d : %s\n%s", len, messages, data);
         return 0;
     }
     
@@ -158,6 +158,57 @@ void NativeCanvasContext::resetGLContext()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
 }
 
+uint32_t NativeCanvasContext::createPassThroughProgram()
+{
+    /* PassThrough Vertex shader */
+    const char *vertex_s = "attribute vec4 Position;\n"
+    "attribute vec2 TexCoordIn;\n"
+    "varying vec2 TexCoordOut;\n"
+    "void main(void) {\n"
+    "    gl_Position = Position;\n"
+    "    TexCoordOut = TexCoordIn;\n"
+    "}";
+    const char *fragment_s = "varying vec2 TexCoordOut;\n"
+    "uniform sampler2D Texture;\n"
+    "\n"
+    "void main(void) {\n"
+    "    //gl_FragColor = texture2D(Texture, TexCoordOut);\n"
+    "    gl_FragColor = vec4(1., 1., 0., 1.);\n"
+    "}";
+    
+    uint32_t vertexshader = NativeCanvasContext::compileShader(vertex_s, GL_VERTEX_SHADER);
+    uint32_t fragmentshader = NativeCanvasContext::compileShader(fragment_s, GL_FRAGMENT_SHADER);
+
+    GLuint programHandle = glCreateProgram();
+    GLint linkSuccess;
+
+    glAttachShader(programHandle, vertexshader);
+    glAttachShader(programHandle, fragmentshader);
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_POSITION, "Position");
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn");
+    
+    glLinkProgram(programHandle);
+
+    glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
+
+    if (linkSuccess == GL_FALSE) {
+        GLchar messages[256];
+        glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
+        NLOG("createProgram error : %s", messages);
+        return 0;
+    }
+
+    if (glGetError() != GL_NO_ERROR) {
+        NLOG("Got a GL error :-(");
+    }
+    NLOG("Program created : %d", programHandle);
+    return programHandle;
+}
+
 NativeCanvasContext::NativeCanvasContext() :
     jsobj(NULL), jscx(NULL) {
 
@@ -179,6 +230,8 @@ NativeCanvasContext::NativeCanvasContext() :
     if (glGetError() != GL_NO_ERROR) {
         NLOG("Got a GL error :-(");
     }
+
+    m_GLObjects.program = this->createPassThroughProgram();
 
     NLOG("Vertex buffer object created with ID : %d - %d", m_GLObjects.vbo[0], m_GLObjects.vbo[1]);
 }
