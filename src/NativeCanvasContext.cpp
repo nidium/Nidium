@@ -93,7 +93,7 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
     float ystep = 2. / ((float)y-1.);
     
     float txstep = 1.  / ((float)x-1.);
-    float tystep = 1  / ((float)y-1);
+    float tystep = 1.  / ((float)y-1.);
     
     Vertices *info = (Vertices *)malloc(sizeof(Vertices));
     
@@ -115,7 +115,9 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
             vert[t].Position[2] = 0.;
             
             vert[t].TexCoord[0] = ((float)j*txstep);
-            vert[t].TexCoord[1] = ((float)i*tystep)*-1;
+            vert[t].TexCoord[1] = 1-(((float)i*tystep));
+
+            NLOG("Tex Pos : %f:%f", vert[t].TexCoord[0], vert[t].TexCoord[1]);
             
         }
     }
@@ -168,12 +170,12 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     "    gl_Position = Position;\n"
     "    TexCoordOut = TexCoordIn;\n"
     "}";
-    const char *fragment_s = "varying vec2 TexCoordOut;\n"
+    const char *fragment_s = "\n"
     "uniform sampler2D Texture;\n"
-    "\n"
+    "varying vec2 TexCoordOut;\n"
     "void main(void) {\n"
-    "    //gl_FragColor = texture2D(Texture, TexCoordOut);\n"
-    "    gl_FragColor = vec4(1., 1., 0., 1.);\n"
+    "    gl_FragColor = texture2D(Texture, vec2(TexCoordOut.x, TexCoordOut.y));\n"
+    "    //gl_FragColor = vec4(TexCoordOut.y+0.5, 0, 0., 1.);\n"
     "}";
     
     uint32_t vertexshader = NativeCanvasContext::compileShader(vertex_s, GL_VERTEX_SHADER);
@@ -215,7 +217,7 @@ NativeCanvasContext::NativeCanvasContext() :
     m_GLObjects.program = 0;
 
     glGenBuffers(2, m_GLObjects.vbo);
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(128);
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
 
     /* Upload the list of vertex */
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);

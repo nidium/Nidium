@@ -1872,7 +1872,6 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
 
     glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
 
-
     glDrawElements(GL_TRIANGLE_STRIP, m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
 
     glDisable(GL_ALPHA_TEST);
@@ -1995,7 +1994,6 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
 {
     uint32_t program = this->getProgram();
     glUseProgram(program);
-    NLOG("Use program %d", program);
 
     if (program > 0) {
         /*
@@ -2043,7 +2041,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
         if (this->hasShader() && !commonDraw) {
-            NLOG("Compose form hasShader()");
             skia->canvas->flush();
             this->getSurface()->canvas->flush();
             int width, height;
@@ -2070,7 +2067,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
-
             layer->drawTexIDToFBO2(textureID, width, height, left, top, layer->getMainFBO());
 
             /* Reset skia GL context */
