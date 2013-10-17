@@ -1621,7 +1621,7 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
     char *nshader = this->genModifiedFragmentShader(data);
-    uint32_t fragment = this->compileShader(nshader, GL_FRAGMENT_SHADER);
+    uint32_t fragment = NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
     free(nshader);
 
@@ -1641,7 +1641,7 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
-        printf("createProgram error : %s\n", messages);
+        NLOG("createProgram error : %s", messages);
         return 0;
     }
 
@@ -1672,31 +1672,6 @@ uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
         "}\n";
     
     return this->compileShader(coop, GL_FRAGMENT_SHADER);
-}
-
-uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
-{
-    GLuint shaderHandle = glCreateShader(type);
-    int len = strlen(data);
-    glShaderSource(shaderHandle, 1, &data, &len);
-    glCompileShader(shaderHandle);
-
-    GLint compileSuccess = GL_TRUE;
-
-    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
-
-    if (compileSuccess == GL_FALSE) {
-        GLchar messages[512];
-        int len;
-        glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
-        if (glGetError() != GL_NO_ERROR) {
-            return 0;
-        }
-        printf("Shader error %d : %s\n", len, messages);
-        return 0;
-    }
-    
-    return shaderHandle;
 }
 
 #if 0
@@ -1937,25 +1912,25 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
-    if ((m_GL.program = this->createProgram(string))) {
-        m_GL.shader.uniformOpacity = glGetUniformLocation(m_GL.program,
+    if ((m_GLObjects.program = this->createProgram(string))) {
+        m_GL.shader.uniformOpacity = glGetUniformLocation(m_GLObjects.program,
                                     "n_Opacity");
-        m_GL.shader.uniformResolution = glGetUniformLocation(m_GL.program,
+        m_GL.shader.uniformResolution = glGetUniformLocation(m_GLObjects.program,
                                     "n_Resolution");
-        m_GL.shader.uniformPosition = glGetUniformLocation(m_GL.program,
+        m_GL.shader.uniformPosition = glGetUniformLocation(m_GLObjects.program,
                                     "n_Position");
-        m_GL.shader.uniformPadding = glGetUniformLocation(m_GL.program,
+        m_GL.shader.uniformPadding = glGetUniformLocation(m_GLObjects.program,
                                     "n_Padding");
     }
 
-    return m_GL.program;
+    return m_GLObjects.program;
 }
 
 void NativeCanvas2DContext::detachShader()
 {
     /* TODO : shaders must be deleted */
-    glDeleteProgram(m_GL.program);
-    m_GL.program = 0;
+    glDeleteProgram(m_GLObjects.program);
+    m_GLObjects.program = 0;
 }
 
 void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
@@ -2059,7 +2034,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
             glUseProgram(0);
             NLOG("Composing...");
-            //layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
             this->resetSkiaContext();            
         }
     }
@@ -2163,9 +2138,6 @@ void NativeCanvas2DContext::setScale(double x, double y,
 
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
-    if (m_GL.program) {
-        glDeleteProgram(m_GL.program);
-    }
     //NLOG("Delete skia %p", skia);
     delete m_Skia;
 }

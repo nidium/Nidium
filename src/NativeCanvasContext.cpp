@@ -58,6 +58,31 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
     return ocode;
 }
 
+uint32_t NativeCanvasContext::compileShader(const char *data, int type)
+{
+    GLuint shaderHandle = glCreateShader(type);
+    int len = strlen(data);
+    glShaderSource(shaderHandle, 1, &data, &len);
+    glCompileShader(shaderHandle);
+
+    GLint compileSuccess = GL_TRUE;
+
+    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
+
+    if (compileSuccess == GL_FALSE) {
+        GLchar messages[512];
+        int len;
+        glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
+        if (glGetError() != GL_NO_ERROR) {
+            return 0;
+        }
+        printf("Shader error %d : %s\n", len, messages);
+        return 0;
+    }
+    
+    return shaderHandle;
+}
+
 NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 {
     int x = resolution;
@@ -136,6 +161,8 @@ void NativeCanvasContext::resetGLContext()
 NativeCanvasContext::NativeCanvasContext() :
     jsobj(NULL), jscx(NULL) {
 
+    m_GLObjects.program = 0;
+
     glGenBuffers(2, m_GLObjects.vbo);
     Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(128);
 
@@ -159,4 +186,7 @@ NativeCanvasContext::NativeCanvasContext() :
 NativeCanvasContext::~NativeCanvasContext()
 {
     glDeleteBuffers(2, m_GLObjects.vbo);
+    if (m_GLObjects.program) {
+        glDeleteProgram(m_GLObjects.program);
+    }
 }

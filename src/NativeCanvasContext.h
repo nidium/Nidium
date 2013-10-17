@@ -42,9 +42,18 @@ public:
     struct {
         uint32_t vbo[2];
         Vertices *vtx;
+        uint32_t program;
     } m_GLObjects;
 
+    bool hasShader() const {
+        return (m_GLObjects.program != 0);
+    }
+    uint32_t getProgram() const {
+        return m_GLObjects.program;
+    }
+
     static char *processShader(const char *content, shaderType type);
+    static uint32_t compileShader(const char *data, int type);
 
     /*
         Create a grid of |resolution^2| points using triangle strip
@@ -59,6 +68,7 @@ public:
     virtual void setScale(double x, double y, double px=1, double py=1)=0;
     virtual void clear(uint32_t color)=0;
     virtual void flush()=0;
+
 
     virtual void composeWith(NativeCanvas2DContext *layer,
         double left, double top, double opacity,

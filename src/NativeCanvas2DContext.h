@@ -33,8 +33,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         bool commonDraw;
 
         struct {
-            uint32_t program;
-
             struct {
                 uint32_t uniformOpacity;
                 uint32_t uniformResolution;
@@ -61,13 +59,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         uint32_t attachShader(const char *string);
         void detachShader();
 
-        bool hasShader() const {
-            return (m_GL.program != 0);
-        }
-        uint32_t getProgram() const {
-            return m_GL.program;
-        }
-
         NativeCanvasHandler *getHandler() const {
             return this->m_Handler;
         }
@@ -79,7 +70,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void setScale(double x, double y, double px=1, double py=1);
 
         uint32_t createProgram(const char *data);
-        uint32_t compileShader(const char *data, int type);
+        
 
         void setGLDraw(bool state) {
             commonDraw = !state;
