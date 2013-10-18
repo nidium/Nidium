@@ -526,7 +526,7 @@ JS::Value NativeJSModule::require(char *name)
             char *data;
 
             JSFunction *fn;
-            jsval *rval;
+            jsval rval;
 
             // TODO : Replace fopen/fseek/fread with future NativeSyncFileIO
             fd = fopen(cmodule->filePath, "r");
@@ -541,11 +541,12 @@ JS::Value NativeJSModule::require(char *name)
 
             data = (char *)malloc(filesize + 1);
 
-            readsize = fread(data, sizeof(char), filesize < 4096 ? filesize : 40986, fd);
+            readsize = fread(data, 1, filesize, fd);
+            data[readsize] = '\0';
 
             fclose(fd);
 
-            if (readsize < 1) {
+            if (readsize < 1 || readsize != filesize) {
                 JS_ReportError(cx, "Failde to read module %s\n", cmodule->name);
                 free(data);
                 return ret;
@@ -560,7 +561,7 @@ JS::Value NativeJSModule::require(char *name)
 
             free(data);
 
-            if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, rval)) {
+            if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
                 return ret;
             }
         }
