@@ -372,6 +372,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool packetConsumed;
         int samplesConsumed;
         int audioStream;
+        int m_FailedDecoding;
 
         SwrContext *swrCtx;
         PaUtilConverter *sCvt;

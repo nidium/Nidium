@@ -12,6 +12,7 @@ extern "C" {
 #include "libswresample/swresample.h"
 }
 
+#define MAX_FAILED_DECODING 50
 #define NODE_IO_FOR(i, io) int I = 0;\
 while (I < io->count) { \
 if (io->wire[i] != NULL) {\
@@ -728,8 +729,8 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external)
     : NativeAudioNode(0, out, audio), rBufferOut(NULL), reader(NULL), externallyManaged(external), 
       playing(false), stopped(false), loop(false), nbChannel(0), doClose(false),
       codecCtx(NULL), tmpPacket(NULL), clock(0), 
-      frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1),
-      swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
+      frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1), 
+      m_FailedDecoding(0), swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
 {
     this->doSeek = false;
     this->seeking = false; 
@@ -1081,6 +1082,12 @@ bool NativeAudioTrack::work()
         return false;
     }
 
+    // Decode might return true but no frame have been decoded
+    // So we return true here, to get a new frame right away
+    if (this->frameConsumed) {
+        return true;
+    }
+
     int write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
 
     this->resample(write);
@@ -1090,6 +1097,7 @@ bool NativeAudioTrack::work()
 bool NativeAudioTrack::decode() 
 {
 #define RETURN_WITH_ERROR(err) \
+av_free(tmpFrame); \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, true);\
 return false;
     // No last packet, get a new one
@@ -1118,18 +1126,18 @@ return false;
         // Decode packet 
         len = avcodec_decode_audio4(this->codecCtx, tmpFrame, &gotFrame, this->tmpPacket);
 
-        //printf("sample_rate %d\n", tmpFrame->sample_rate);
-        /*
-        uint16_t *c = (uint16_t *)tmpFrame->data[0];
-        for (int i = 0; i < tmpFrame->nb_samples; i++) {
-            printf("read data %d/%d\n", *c++, *c++);
-        }
-        printf("------------------\n");
-        */
-
         if (len < 0) {
-            RETURN_WITH_ERROR(ERR_DECODING);
-            return false;
+            if (m_FailedDecoding > MAX_FAILED_DECODING) {
+                this->stop();
+                RETURN_WITH_ERROR(ERR_DECODING);
+            } else {
+                // Got an error, skip the frame
+                this->tmpPacket->size = 0;
+            }
+
+            m_FailedDecoding++;
+
+            return true;
         } else if (len < this->tmpPacket->size) {
             //printf("Read len = %u/%d\n", len, this->tmpPacket->size);
             this->tmpPacket->data += len;
@@ -1139,6 +1147,8 @@ return false;
             av_free_packet(this->tmpPacket);
         }
 
+        m_FailedDecoding = 0;
+
         /*
         int dataSize = av_samples_get_buffer_size(NULL, this->codecCtx->channels, tmpFrame->nb_samples, this->codecCtx->sample_fmt, 1);
         this->clock += (double)dataSize / (double( 2 * this->codecCtx->channels * this->codecCtx->sample_rate));
@@ -1146,22 +1156,20 @@ return false;
 
         // Didn't got a frame let's try next time
         if (gotFrame == 0) {
-            printf("============================== I DIDN'T GOT A FRAME ======================\n");
             return true;
         }
-
 
         if (this->tmpPacket->pts != AV_NOPTS_VALUE) {
             this->clock = av_q2d(this->container->streams[this->audioStream]->time_base) * this->tmpPacket->pts;
         }
 
-        // tmpFrame is too small to hold the new data
+        // this->tmpFrame is too small to hold the new data
         if (this->tmpFrame.nbSamples < tmpFrame->nb_samples) {
             if (this->tmpFrame.size != 0) {
                 free(this->tmpFrame.data);
             }
             this->tmpFrame.size = tmpFrame->linesize[0];
-            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);// Right now, source output is always stereo
+            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);// XXX : Right now, source output is always stereo
             if (this->tmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
             }
@@ -1251,14 +1259,6 @@ int NativeAudioTrack::resample(int destSamples) {
             if (this->fCvt->inp_count == 0) {
                 this->frameConsumed = true;
                 return copied;
-                /* 
-                 * No, do not try to decode more, because
-                 * we might decode more than destSamples
-                 *
-                if (!this->decode()) {
-                    return copied;
-                }
-                */
             } 
         }
     } else {
@@ -1281,19 +1281,12 @@ int NativeAudioTrack::resample(int destSamples) {
 
             if (this->samplesConsumed == this->tmpFrame.nbSamples) {
                 this->frameConsumed = true;
-            }
-
-            if (copied == destSamples) {
                 return copied;
-            } else if (this->frameConsumed) {
-                if (!this->decode()) {
-                    return copied;
-                }
-
-                if (this->eof) {
-                    return 0;
-                }
             }
+
+            if (copied == destSamples) { 
+                return copied;
+            } 
         }
     }
 
