@@ -65,6 +65,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 static JSBool native_audionode_source_play(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_audionode_source_close(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -171,6 +172,7 @@ static JSFunctionSpec AudioNodeSource_funcs[] = {
     JS_FN("play", native_audionode_source_play, 0, 0),
     JS_FN("pause", native_audionode_source_pause, 0, 0),
     JS_FN("stop", native_audionode_source_stop, 0, 0),
+    JS_FN("close", native_audionode_source_close, 0, 0),
     JS_FS_END
 };
 
@@ -204,6 +206,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_pause(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_stop(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_nextframe(JSContext *cx, unsigned argc, jsval *vp);
@@ -219,6 +222,7 @@ static JSFunctionSpec Video_funcs[] = {
     JS_FN("play", native_video_play, 0, 0),
     JS_FN("pause", native_video_pause, 0, 0),
     JS_FN("stop", native_video_stop, 0, 0),
+    JS_FN("close", native_video_close, 0, 0),
     JS_FN("open", native_video_open, 1, 0),
     JS_FN("getAudioNode", native_video_get_audionode, 0, 0),
     JS_FN("nextFrame", native_video_nextframe, 0, 0),
@@ -1552,7 +1556,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());
-        ret = source->open(csrc.ptr());
+        ret = source->open(NativeJS::getNativeClass(cx)->getPath(), csrc.ptr());
     } else if (src.isObject()) {
         JSObject *arrayBuff = src.toObjectOrNull();
 
@@ -1611,6 +1615,7 @@ static JSBool native_audionode_source_pause(JSContext *cx, unsigned argc, jsval 
     source->pause();
     return JS_TRUE;
 }
+
 static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
@@ -1620,6 +1625,18 @@ static JSBool native_audionode_source_stop(JSContext *cx, unsigned argc, jsval *
     NativeAudioTrack *source = static_cast<NativeAudioTrack *>(jnode->node);
 
     source->stop();
+    return JS_TRUE;
+}
+
+static JSBool native_audionode_source_close(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
+
+    CHECK_INVALID_CTX(jnode);
+
+    NativeAudioTrack *source = static_cast<NativeAudioTrack *>(jnode->node);
+
+    source->close();
     return JS_TRUE;
 }
 
@@ -1866,6 +1883,15 @@ static JSBool native_video_stop(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_video_close(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+
+    v->video->close();
+
+    return JS_TRUE;
+}
+
 static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
@@ -1875,7 +1901,7 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());
-        ret = v->video->open(csrc.ptr());
+        ret = v->video->open(NativeJS::getNativeClass(cx)->getPath(), csrc.ptr());
     } else if (src.isObject()) {
         JSObject *arrayBuff = src.toObjectOrNull();
 

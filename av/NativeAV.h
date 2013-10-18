@@ -55,7 +55,7 @@ class NativeAVBufferReader : public NativeAVReader
 class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate 
 {
     public:
-        NativeAVStreamReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
+        NativeAVStreamReader(const char *chroot, const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
         int64_t totalRead;
@@ -175,7 +175,8 @@ class NativeAVSource
         virtual void play() = 0;
         virtual void pause() = 0;
         virtual void stop() = 0;
-        virtual int open(const char *src) = 0;
+        virtual void close() = 0;
+        virtual int open(const char *chroot, const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;
         virtual void onProgress(size_t buffered, size_t total) = 0;

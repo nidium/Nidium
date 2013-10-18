@@ -71,7 +71,7 @@ int NativeVideo::open(void *buffer, int size)
             */
 
     if (this->opened) {
-        this->close(true);
+        this->closeInternal(true);
     }
 
     if (!(this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
@@ -96,10 +96,10 @@ int NativeVideo::open(void *buffer, int size)
     return 0;
 }
 
-int NativeVideo::open(const char *src) 
+int NativeVideo::open(const char *chroot, const char *src) 
 {
     if (this->avioBuffer != NULL) {
-        this->close(true);
+        this->closeInternal(true);
     } 
 
     this->mainCoro = Coro_new();
@@ -110,7 +110,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->reader = new NativeAVStreamReader(src, &this->readFlag, &this->bufferCond, this, this->net);
+    this->reader = new NativeAVStreamReader(chroot, src, &this->readFlag, &this->bufferCond, this, this->net);
     this->container = avformat_alloc_context();
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -306,7 +306,8 @@ void NativeVideo::play() {
     this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
 }
 
-void NativeVideo::pause() {
+void NativeVideo::pause() 
+{
     this->playing = false;
 
     this->clearTimers(true);
@@ -316,6 +317,16 @@ void NativeVideo::pause() {
     }
 
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
+}
+
+void NativeVideo::close() 
+{
+    this->playing = false;
+    this->videoClock = 0;
+    this->lastDelay = 40e-3;
+    this->error = 0;
+
+    this->closeInternal(true);
 }
 
 void NativeVideo::stop() {
@@ -334,6 +345,8 @@ void NativeVideo::stop() {
     this->clearTimers(true);
 
     pthread_cond_signal(&this->bufferCond);
+
+    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
 }
 
 double NativeVideo::getClock() 
@@ -970,7 +983,7 @@ void *NativeVideo::decode(void *args)
         }
 
         if (v->doClose) {
-            v->close(true);
+            v->closeInternal(true);
         }
 
         if (v->shutdown) break;
@@ -1289,7 +1302,7 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 }
 #endif
 
-void NativeVideo::close(bool reset) {
+void NativeVideo::closeInternal(bool reset) {
     if (this->reader && this->container && this->container->pb) {
         this->shutdown = true;
         if (!this->doClose) {
@@ -1381,5 +1394,5 @@ void NativeVideo::close(bool reset) {
 }
 
 NativeVideo::~NativeVideo() {
-    this->close(false);
+    this->closeInternal(false);
 }

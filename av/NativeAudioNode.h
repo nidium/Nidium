@@ -326,7 +326,8 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         void play();
         void pause();
         void stop();
-        int open(const char *src);
+        void close();
+        int open(const char *chroot, const char *src);
         int open(void *buffer, int size);
         int openInit();
         static void openInitCoro(void *arg);
@@ -350,7 +351,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         double getClock();
         void drop(double ms);
 
-        void close(bool reset);
+        void closeInternal(bool reset);
         ~NativeAudioTrack();
 
     private:
@@ -371,6 +372,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool packetConsumed;
         int samplesConsumed;
         int audioStream;
+        int m_FailedDecoding;
 
         SwrContext *swrCtx;
         PaUtilConverter *sCvt;
