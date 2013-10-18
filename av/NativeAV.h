@@ -175,6 +175,7 @@ class NativeAVSource
         virtual void play() = 0;
         virtual void pause() = 0;
         virtual void stop() = 0;
+        virtual void close() = 0;
         virtual int open(const char *chroot, const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;

@@ -326,6 +326,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         void play();
         void pause();
         void stop();
+        void close();
         int open(const char *chroot, const char *src);
         int open(void *buffer, int size);
         int openInit();
@@ -350,7 +351,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         double getClock();
         void drop(double ms);
 
-        void close(bool reset);
+        void closeInternal(bool reset);
         ~NativeAudioTrack();
 
     private:

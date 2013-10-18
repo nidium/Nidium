@@ -267,13 +267,7 @@ void *NativeAudio::decodeThread(void *args) {
                 for (;;)
                 {
                     SPAM(("Buffering\n"));
-                    bool ret = track->work();
-                    if (track->doClose) {
-                        track->close(true);
-                        break;
-                    }
-
-                    if (!ret) {
+                    if (!track->work()) {
                         // No data to process, exit. 
                         break;
                     }  

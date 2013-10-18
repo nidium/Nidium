@@ -743,11 +743,11 @@ int NativeAudioTrack::open(const char *chroot, const char *src)
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
-this->close(true); \
+this->closeInternal(true); \
 return err;
     // If a previous file has been opened, close it
     if (this->container != NULL) {
-        this->close(true);
+        this->closeInternal(true);
     }
 
     this->coro = Coro_new();
@@ -806,12 +806,12 @@ int NativeAudioTrack::open(void *buffer, int size)
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
-this->close(true); \
+this->closeInternal(true); \
 return err;
 
     // If a previous file has been opened, close it
     if (this->container != NULL) {
-        this->close(true);
+        this->closeInternal(true);
     }
 
     this->reader = new NativeAVBufferReader((uint8_t *)buffer, size);
@@ -887,6 +887,7 @@ int NativeAudioTrack::initInternal()
 
     this->nbChannel = this->outCount;
 
+    printf("initInternal\n");
     this->tmpPacket = new AVPacket();
     av_init_packet(this->tmpPacket);
 
@@ -1021,6 +1022,8 @@ void NativeAudioTrack::bufferCoro(void *arg) {
     Coro_switchTo_(t->coro, t->mainCoro);
 }
 
+// This method is used when the track is externally managed
+// (To fill a packet to the track)
 void NativeAudioTrack::buffer(AVPacket *pkt) {
     this->tmpPacket = pkt;
     this->packetConsumed = false;
@@ -1043,6 +1046,11 @@ bool NativeAudioTrack::work()
         }
     }
 
+    if (this->doClose) {
+        this->closeInternal(true);
+        return false;
+    }
+
     if (this->doSeek) {
         if (this->reader->pending) {
             return false;
@@ -1056,7 +1064,8 @@ bool NativeAudioTrack::work()
         } 
     }
 
-    if (this->doNotProcess || !this->opened) {
+    if (this->doNotProcess || !this->opened || this->stopped) {
+        SPAM(("Track will not be decoded. doNotProcess=%d opened=%d stopped=%d", this->doNotProcess, this->opened, this->stopped));
         return false;
     }
 
@@ -1067,7 +1076,7 @@ bool NativeAudioTrack::work()
         return false;
     }
 
-    if (this->stopped || !this->decode()) {
+    if (!this->decode()) {
         SPAM(("Work failed because track is stoped or decoding failed %d\n", this->stopped));
         return false;
     }
@@ -1393,8 +1402,11 @@ void NativeAudioTrack::seekInternal(double time)
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
     }
-    delete this->tmpPacket;
-    this->tmpPacket = NULL;
+
+    if (this->externallyManaged) {
+        delete this->tmpPacket;
+        this->tmpPacket = NULL;
+    }
 
     this->packetConsumed = true;
     this->frameConsumed = true;
@@ -1464,7 +1476,7 @@ bool NativeAudioTrack::process() {
     return true;
 }
 
-void NativeAudioTrack::close(bool reset) 
+void NativeAudioTrack::closeInternal(bool reset) 
 {
     pthread_mutex_lock(&this->audio->recurseLock);
     pthread_mutex_lock(&this->audio->tracksLock);
@@ -1563,7 +1575,21 @@ void NativeAudioTrack::pause()
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
 }
 
-void NativeAudioTrack::stop() 
+void NativeAudioTrack::stop()
+{
+    if (!this->externallyManaged) {
+        this->seek(0);
+    }
+
+    this->stopped = true;
+    this->playing = false;
+
+    this->resetFrames();
+
+    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
+}
+
+void NativeAudioTrack::close() 
 {
     if (!this->opened) {
         return;
@@ -1571,14 +1597,11 @@ void NativeAudioTrack::stop()
 
     this->playing = false;
     this->stopped = true;
+    this->opened = false;
     SPAM(("Stoped\n"));
 
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
-    }
-
-    if (!this->externallyManaged) {
-        this->seek(0);
     }
 
     PaUtil_FlushRingBuffer(this->rBufferOut);
@@ -1590,12 +1613,10 @@ void NativeAudioTrack::stop()
     this->resetFrames();
 
     avcodec_flush_buffers(this->codecCtx);
-
-    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
 }
 
 
 NativeAudioTrack::~NativeAudioTrack() {
     this->audio->removeTrack(this);
-    this->close(false);
+    this->closeInternal(false);
 }
