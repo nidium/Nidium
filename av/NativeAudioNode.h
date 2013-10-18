@@ -326,7 +326,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         void play();
         void pause();
         void stop();
-        int open(const char *src);
+        int open(const char *chroot, const char *src);
         int open(void *buffer, int size);
         int openInit();
         static void openInitCoro(void *arg);

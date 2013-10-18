@@ -96,7 +96,7 @@ int NativeVideo::open(void *buffer, int size)
     return 0;
 }
 
-int NativeVideo::open(const char *src) 
+int NativeVideo::open(const char *chroot, const char *src) 
 {
     if (this->avioBuffer != NULL) {
         this->close(true);
@@ -110,7 +110,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->reader = new NativeAVStreamReader(src, &this->readFlag, &this->bufferCond, this, this->net);
+    this->reader = new NativeAVStreamReader(chroot, src, &this->readFlag, &this->bufferCond, this, this->net);
     this->container = avformat_alloc_context();
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
