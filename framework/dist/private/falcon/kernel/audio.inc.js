@@ -28,6 +28,14 @@
 
 /* -------------------------------------------------------------------------- */
 
+/*
+Audio.prototype.createNode = function(name, inputs, outputs){
+	var node = this.createNode(name, inputs, outputs);
+	node.type = "name";
+	return node;
+};
+*/
+
 window.getAudioContext = function(){
 	if (!Audio) return false;
 	if (!window.__defaultAudioDSP__ && "getContext" in Audio) {

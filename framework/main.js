@@ -12,7 +12,7 @@ document.background = "#333333";
 //load("applications/components/tabs.js");
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
-//load("applications/components/dropdown.js");
+load("applications/components/dropdown.js");
 //load("applications/components/buttons.js");
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
@@ -26,6 +26,7 @@ document.background = "#333333";
 
 //load("applications/components/text.js"); // FAIL
 //load("applications/components/__zzz.js");
+
 
 
 /* CANVAS TESTS (SANS NATIVE FRAMEWORK)*/
@@ -66,7 +67,7 @@ document.background = "#333333";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // OK
-	load("applications/components/shader.advanced.js"); // OK
+	//load("applications/components/shader.advanced.js"); // OK
 
 
 /*

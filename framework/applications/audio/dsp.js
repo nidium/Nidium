@@ -40,14 +40,11 @@ document.nss.add({
 		textAlign : "right",
 		paddingRight : 10,
 		background : "rgba(0, 0, 0, 0.4)"
-	}	
+	}
 });
 
 var main = new Application();
 main.backgroundImage = "private://assets/patterns/wood_1.png";
-
-
-//var knob = new UIKnob(main);
 
 var app = {
 	audioBufferSize : 2048,
@@ -71,8 +68,8 @@ var app = {
 		});
 		*/
 
-//		this.load("../../media/sympho.mp3");
-		this.load("../../media/dream.mp3");
+		this.load("../../media/sympho.mp3");
+//		this.load("../../media/dream.mp3");
 //		this.load("../../media/skrillex.mp3");
 //		this.load("../../media/drydrum.wav");
 //		this.load("../../media/drum01.mp3");
@@ -86,7 +83,6 @@ var app = {
 		this.processor = this.dsp.createNode("custom", 2, 2);
 		this.delay = this.dsp.createNode("delay", 2, 2);
 		this.target = this.dsp.createNode("target", 2, 0);
-		console.log("nodes created");
 		Audio.lib && (this.dsp.run(Audio.lib));
 	},
 
@@ -302,9 +298,6 @@ var app = {
 		this.processor.set("flanger_amplitude", 0.50);
 		this.processor.set("flanger_amount", 0.00);
 		this.processor.set("flanger_feedback", 0.10);
-
-		console.log("processor initied");
-
 	},
 
 	connectNodes : function(){
@@ -323,11 +316,9 @@ var app = {
 		this.delay.set("dry", 0.9); // float 0 ... 1
 		this.delay.set("wet", 0.0); // float 0 ... 1
 		this.delay.set("delay", 500); // delay in ms
-		console.log("nodes created");
 	},
 
 	attachListeners : function(){
-		console.log("attaching listeners");
 
 		this.source.onplay = function(){
 			console.log("Playing");

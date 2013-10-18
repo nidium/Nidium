@@ -103,6 +103,9 @@ load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
 load(__PATH_LAYOUT__ + 'UIScrollBars.js');
 load(__PATH_LAYOUT__ + 'UISpinner.js');
+load(__PATH_LAYOUT__ + 'UISprite.js');
+load(__PATH_LAYOUT__ + 'UIKnob.js');
+
 load(__PATH_LAYOUT__ + 'UIModal.js');
 load(__PATH_LAYOUT__ + 'UILine.js');
 load(__PATH_LAYOUT__ + 'UIToolTip.js');
