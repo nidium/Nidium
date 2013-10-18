@@ -77,25 +77,11 @@ Object.definePrivateProperties(Native.elements, {
 			return false;
 		}
 
-		var superize = function(t, key, fn){
-			var that = this,
-				element = self[t],
-				__super__ = element[key];
-
-			if (key == "ffinit") {
-				element.init = function(){
-					//__super__.call(that);
-					fn();
-				}.bind(this);
-			} else {
-				element[key] = fn;
-			}
-		};
+		this[type] = {};
 
 		if (this.___source___) {
 			/* build from an existing type */
 
-			this[type] = {};
 			this[type].___source___ = this.___source___;
 
 			// copy all from source
@@ -104,29 +90,13 @@ Object.definePrivateProperties(Native.elements, {
 					this[type][i] = this.___source___[i];
 				}
 			}
-
-			console.log("");
-			for (var key in implement){
-				if (implement.hasOwnProperty(key)) {
-					var value = implement[key];
-
-					this[type][key] = value;
-					/*
-					if (typeof(value) == "function") {
-						superize(type, key, value);
-					} else {
-						// overwrite properties
-						this[type][key] = value;
-					}
-					*/
-					
-				}
-			}
-
 			this.___source___ = null;
-		} else {
-			/* new creation */
-			this[type] = implement;
+		}
+
+		for (var key in implement){
+			if (implement.hasOwnProperty(key)) {
+				this[type][key] = implement[key];
+			}
 		}
 
 		this.build(window.scope, type);
