@@ -4,10 +4,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <SkMatrix44.h>
 
 class NativeCanvas2DContext;
+class NativeCanvasHandler;
 struct NativeRect;
-
 
 class NativeCanvasContext
 {
@@ -49,6 +50,9 @@ public:
         uint32_t vbo[2];
         Vertices *vtx;
         uint32_t program;
+        struct {
+            uint32_t u_projectionMatrix;
+        } uniforms;
     } m_GLObjects;
 
     bool hasShader() const {
@@ -56,6 +60,14 @@ public:
     }
     uint32_t getProgram() const {
         return m_GLObjects.program;
+    }
+
+    NativeCanvasHandler *getHandler() const {
+        return this->m_Handler;
+    }
+
+    const SkMatrix44 &getMatrix() const {
+        return m_Transform;
     }
 
     uint32_t createPassThroughProgram();
@@ -83,8 +95,14 @@ public:
 
     void resetGLContext();
 
-    NativeCanvasContext();
+    NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
+protected:
+    /* Hold the current matrix (model) sent to the Vertex shader */
+    SkMatrix44 m_Transform;
+    NativeCanvasHandler *m_Handler;
+    void updateMatrix(double left, double top);
+
 };
 
 #endif

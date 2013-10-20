@@ -1,6 +1,7 @@
 #include "NativeCanvasContext.h"
 #include "GLSLANG/ShaderLang.h"
 #include "NativeMacros.h"
+#include "NativeCanvasHandler.h"
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
@@ -116,9 +117,6 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
             
             vert[t].TexCoord[0] = ((float)j*txstep);
             vert[t].TexCoord[1] = 1-(((float)i*tystep));
-
-            NLOG("Tex Pos : %f:%f", vert[t].TexCoord[0], vert[t].TexCoord[1]);
-            
         }
     }
 
@@ -166,8 +164,9 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     const char *vertex_s = "attribute vec4 Position;\n"
     "attribute vec2 TexCoordIn;\n"
     "varying vec2 TexCoordOut;\n"
+    "uniform mat4 u_projectionMatrix;\n"
     "void main(void) {\n"
-    "    gl_Position = Position;\n"
+    "    gl_Position = u_projectionMatrix * Position;\n"
     "    TexCoordOut = TexCoordIn;\n"
     "}";
     const char *fragment_s = "\n"
@@ -211,9 +210,11 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     return programHandle;
 }
 
-NativeCanvasContext::NativeCanvasContext() :
-    jsobj(NULL), jscx(NULL) {
+NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
+    jsobj(NULL), jscx(NULL), m_Handler(handler),
+    m_Transform(SkMatrix44::kIdentity_Constructor) {
 
+    m_GLObjects.uniforms.u_projectionMatrix = -1;
     m_GLObjects.program = 0;
 
     glGenBuffers(2, m_GLObjects.vbo);
@@ -233,7 +234,9 @@ NativeCanvasContext::NativeCanvasContext() :
         NLOG("Got a GL error :-(");
     }
 
-    m_GLObjects.program = this->createPassThroughProgram();
+    if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
+        m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
+    }
 
     NLOG("Vertex buffer object created with ID : %d - %d", m_GLObjects.vbo[0], m_GLObjects.vbo[1]);
 }
@@ -243,5 +246,25 @@ NativeCanvasContext::~NativeCanvasContext()
     glDeleteBuffers(2, m_GLObjects.vbo);
     if (m_GLObjects.program) {
         glDeleteProgram(m_GLObjects.program);
+    }
+}
+
+void NativeCanvasContext::updateMatrix(double left, double top)
+{
+    float px = 1024.f, py = 768.f;
+    float w = (float)m_Handler->getWidth();
+    float h = (float)m_Handler->getHeight();
+
+    m_Transform.reset();
+    m_Transform.preTranslate(-(1-(w/px)), (1-(h/py)), 0);
+    m_Transform.preScale(SkFloatToScalar(w/px), SkFloatToScalar(h/py), 1);
+
+    if (m_GLObjects.uniforms.u_projectionMatrix != -1) {
+        GLfloat mat4[16];
+        m_Transform.asColMajorf(mat4);
+
+        glUniformMatrix4fv(m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
+    } else {
+        NLOG("No uniform found");
     }
 }

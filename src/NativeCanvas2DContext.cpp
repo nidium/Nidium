@@ -1842,10 +1842,10 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
 
     /* save the old viewport size */
     glPushAttrib(GL_VIEWPORT_BIT);
-
+#if 0
     /* set the viewport with the texture size */
     glViewport(left, (float)size.fHeight-(height+top), width, height);
-
+#endif
     glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
@@ -1880,6 +1880,7 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //glDisable(GL_SCISSOR_TEST);
     glDisable(GL_TEXTURE_2D);
+
     glPopAttrib();
 
 }
@@ -2067,6 +2068,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
+            this->updateMatrix(left, top);
+            
             layer->drawTexIDToFBO2(textureID, width, height, left, top, layer->getMainFBO());
 
             /* Reset skia GL context */
@@ -2148,7 +2151,8 @@ void NativeCanvas2DContext::translate(double x, double y)
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height) :
-    setterDisabled(false), commonDraw(true), m_Handler(handler)
+    NativeCanvasContext(handler),
+    setterDisabled(false), commonDraw(true)
 {
     m_Mode = CONTEXT_2D;
 
@@ -2167,25 +2171,27 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
     memset(&this->m_GL, 0, sizeof(this->m_GL));
 
-    /* Vertex buffer was altered by NativeCanvasContext() */
+    /* Vertex buffer was altered by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    commonDraw(true), m_Handler(handler)
+    NativeCanvasContext(handler),
+    commonDraw(true)
 {
     m_Mode = CONTEXT_2D;
     
     m_Skia = new NativeSkia();
     if (isGL) {
+        NLOG("Window framebuffer is at %p", this);
         m_Skia->bindGL(width, height);
     } else {
         m_Skia->bindOnScreen(width, height);
     }
     memset(&this->m_GL, 0, sizeof(this->m_GL));
 
-    /* Vertex buffer was altered by NativeCanvasContext() */
+    /* Vertex buffer was altered by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 

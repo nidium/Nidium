@@ -59,10 +59,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         uint32_t attachShader(const char *string);
         void detachShader();
 
-        NativeCanvasHandler *getHandler() const {
-            return this->m_Handler;
-        }
-
         NativeSkia *getSurface() const {
             return this->m_Skia;
         }
@@ -87,7 +83,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         ~NativeCanvas2DContext();
     private:
         NativeSkia *m_Skia;
-        NativeCanvasHandler *m_Handler;
 
         void initCopyTex();
         uint32_t compileCoopFragmentShader();
