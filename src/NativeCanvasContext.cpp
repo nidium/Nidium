@@ -256,7 +256,7 @@ void NativeCanvasContext::updateMatrix(double left, double top)
     float h = (float)m_Handler->getHeight();
 
     m_Transform.reset();
-    m_Transform.preTranslate(-(1-(w/px)), (1-(h/py)), 0);
+    m_Transform.preTranslate(-1+(w/px), 1-(h/py), 0);
     m_Transform.preScale(SkFloatToScalar(w/px), SkFloatToScalar(h/py), 1);
 
     if (m_GLObjects.uniforms.u_projectionMatrix != -1) {
