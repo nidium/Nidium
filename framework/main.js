@@ -12,8 +12,8 @@ document.background = "#333333";
 //load("applications/components/tabs.js");
 //load("applications/components/profiler.js"); // FIXE ME
 //load("applications/components/windows.js");
-load("applications/components/dropdown.js");
-//load("applications/components/buttons.js");
+//load("applications/components/dropdown.js");
+//load("applications/components/buttons.js"); // CRASH
 //load("applications/components/sliders.js");
 //load("applications/components/scrollbars.js");
 //load("applications/components/modal.js");
@@ -68,6 +68,22 @@ load("applications/components/dropdown.js");
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // OK
 	//load("applications/components/shader.advanced.js"); // OK
+
+
+
+/*
+var m = [];
+var t = +new Date();
+
+for (var i=0; i<800; i++){
+	m[i] = new UIButton(document, {width:100, height:100});
+	//m[i] = new Canvas(200, 200);
+	//m[i].ctx = m[i].getContext("2d");
+}
+
+console.log((+new Date())-t, "ms");
+console.log(document.layout.nbObj);
+*/
 
 
 /*

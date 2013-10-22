@@ -51,6 +51,7 @@ var NDMElement = function(type, options, parent){
 
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
+
 	NDMElement.defineDynamicProperties(this, {
 		// -- class management
 		id : null,
@@ -60,12 +61,12 @@ var NDMElement = function(type, options, parent){
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
 
-		/* Hack to avoid crash when canvas.width = NaN; */
+		// Hack to avoid crash when canvas.width = NaN;
 		width : o.width ? Number(o.width) : p ?
 					p._width-OptionalNumber(o.left, 0) :
 					window.width-OptionalNumber(o.left, 0),
 
-		/* Hack to avoid crash when canvas.height = NaN; */
+		// Hack to avoid crash when canvas.height = NaN;
 		height : o.height ? Number(o.height) : p ?
 					p._height-OptionalNumber(o.top, 0) :
 					window.height-OptionalNumber(o.top, 0),
@@ -159,6 +160,115 @@ var NDMElement = function(type, options, parent){
 
 		cursor : OptionalCursor(o.cursor, "arrow")
 	});
+
+
+	/*
+		this.id = null;
+		this.className = OptionalString(o.class, "");
+
+		// -- layout properties
+		this.left = OptionalNumber(o.left, 0);
+		this.top = OptionalNumber(o.top, 0);
+
+		// Hack to avoid crash when canvas.width = NaN;
+		this.width = o.width ? Number(o.width) : p ?
+					p._width-OptionalNumber(o.left, 0) :
+					window.width-OptionalNumber(o.left, 0);
+
+		// Hack to avoid crash when canvas.height = NaN;
+		this.height = o.height ? Number(o.height) : p ?
+					p._height-OptionalNumber(o.top, 0) :
+					window.height-OptionalNumber(o.top, 0);
+
+		this.innerWidth = o.innerWidth ? Number(o.innerWidth) : -1;
+		this.innerHeight = o.innerHeight ? Number(o.innerHeight) : -1;
+
+		this.scrollLeft = OptionalNumber(o.scrollLeft, 0);
+		this.scrollTop = OptionalNumber(o.scrollTop, 0);
+
+		this.percentLeft = OptionalNumber(o.percentLeft, 0);
+		this.percentTop = OptionalNumber(o.percentTop, 0);
+		this.percentWidth = o.percentWidth ? Number(o.percentWidth) : 100;
+		this.percentHeight = o.percentHeight ? Number(o.percentHeight) : 100;
+
+		this.offsetLeft = OptionalNumber(o.offsetLeft, 0);
+		this.offsetTop = OptionalNumber(o.offsetTop, 0);
+
+		this.paddingLeft = OptionalNumber(o.paddingLeft, 0);
+		this.paddingRight = OptionalNumber(o.paddingLeft, 0);
+		this.paddingTop = OptionalNumber(o.paddingTop, 0);
+		this.paddingBottom = OptionalNumber(o.paddingBottom, 0);
+
+		// -- text related properties
+		this.text = OptionalString(o.text, "");
+		this.label = OptionalString(o.label, "");
+		this.fontSize = OptionalNumber(o.fontSize, 12);
+		this.fontFamily = OptionalString(o.fontFamily, "arial");
+		this.textAlign = OptionalAlign(o.textAlign, "left");
+		this.verticalAlign = "middle";
+		this.textOffsetX = OptionalNumber(o.textOffsetX, 0);
+		this.textOffsetY = OptionalNumber(o.textOffsetY, 0);
+		this.lineHeight = OptionalNumber(o.lineHeight, 18);
+		this.fontWeight = OptionalWeight(o.fontWeight, "normal");
+
+		// -- icon related properties
+		this.shape = OptionalString(o.shape, "");
+		this.variation = OptionalNumber(o.variation, 0);
+
+		// -- style properties
+		this.blur = OptionalNumber(o.blur, 0);
+		this.opacity = OptionalNumber(o.opacity, 1);
+		this.alpha = OptionalNumber(o.alpha, 1);
+
+		this.shadowBlur = OptionalNumber(o.shadowBlur, 0);
+		this.shadowColor = OptionalValue(o.shadowColor, "rgba(0, 0, 0, 0.5)");
+		this.shadowOffsetX = OptionalNumber(o.shadowOffsetX, 0);
+		this.shadowOffsetY = OptionalNumber(o.shadowOffsetY, 0);
+
+		this.textShadowBlur = OptionalNumber(o.textShadowBlur, 0);
+		this.textShadowColor = OptionalValue(o.textShadowColor, '');
+		this.textShadowOffsetX = OptionalNumber(o.textShadowOffsetX, 0);
+		this.textShadowOffsetY = OptionalNumber(o.textShadowOffsetY, 0);
+
+		this.color = OptionalValue(o.color, '');
+		this.background = OptionalValue(o.background, '');
+		this.backgroundImage = OptionalValue(o.backgroundImage, '');
+		this.backgroundRepeat = OptionalBoolean(o.backgroundRepeat, true);
+		this.radius = OptionalNumber(o.radius, 0, 0);
+		this.borderWidth = OptionalNumber(o.borderWidth, 0);
+		this.borderColor = OptionalValue(o.borderColor, '');
+		this.outlineColor = OptionalValue(o.outlineColor, 'blue');
+
+		this.angle = OptionalNumber(o.angle, 0);
+		this.scale = OptionalNumber(o.scale, 1);
+
+		// -- misc flags
+		this.canReceiveFocus = OptionalBoolean(o.canReceiveFocus, false);
+		this.outlineOnFocus = OptionalBoolean(o.outlineOnFocus, true);
+		this.canReceiveKeyboardEvents = OptionalBoolean(
+			o.canReceiveKeyboardEvents,
+			false
+		),
+
+		this.visible = OptionalBoolean(o.visible, true);
+		this.hidden = OptionalBoolean(o.hidden, false);
+		this.selected = OptionalBoolean(o.selected, false);
+		this.overflow = OptionalBoolean(o.overflow, true);
+		this.multiline = OptionalBoolean(o.multiline, false);
+		this.editable = OptionalBoolean(o.editable, false);
+		this.disabled = OptionalBoolean(o.disabled, false);
+		this.outline = OptionalBoolean(o.outline, false);
+		
+		this.scrollable = OptionalBoolean(o.scrollable, false);
+		this.scrollBarX = OptionalBoolean(o.scrollBarX, false);
+		this.scrollBarY = OptionalBoolean(o.scrollBarY, false);
+		this.position = OptionalPosition(o.position, "relative");
+
+		this.hover = false;
+		this.hasFocus = false;
+
+		this.cursor = OptionalCursor(o.cursor, "arrow");
+	*/
 
 	/* Internal Hidden Properties */
 	NDMElement.defineInternalProperties(this, {

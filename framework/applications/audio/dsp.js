@@ -68,8 +68,8 @@ var app = {
 		});
 		*/
 
-		this.load("../../media/sympho.mp3");
-//		this.load("../../media/dream.mp3");
+//		this.load("../../media/sympho.mp3");
+		this.load("../../media/dream.mp3");
 //		this.load("../../media/skrillex.mp3");
 //		this.load("../../media/drydrum.wav");
 //		this.load("../../media/drum01.mp3");
@@ -117,6 +117,8 @@ var app = {
 
 		this.processor.oninit = function(scope){
 			scope.step = 0;
+			scope.oldL = new Float64Array(256);
+			scope.oldR = new Float64Array(256);
 
 			scope.moogFilterL = new scope.MoogFilter();
 			scope.moogFilterR = new scope.MoogFilter();
@@ -242,6 +244,15 @@ var app = {
 				bufferL[i] = mix[0];
 				bufferR[i] = mix[1];
 			}
+
+
+			/* Simple Low Pass Filter */
+			/*
+			for (var i=0; i<samples; i+=2) {
+				bufferL[i+1] = -0.98 * bufferL[i];
+				bufferR[i+1] = -0.98 * bufferR[i];
+			}
+			*/
 
 			/* --- LOW FREQUENCY OSCILLATOR --- */
 			/*
