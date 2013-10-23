@@ -725,7 +725,7 @@ bool NativeAudioNodeCustom::process()
     return true;
 }
 
-NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external) 
+NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external) 
     : NativeAudioNode(0, out, audio), rBufferOut(NULL), reader(NULL), externallyManaged(external), 
       playing(false), stopped(false), loop(false), nbChannel(0), doClose(false),
       codecCtx(NULL), tmpPacket(NULL), clock(0), 
@@ -740,7 +740,7 @@ NativeAudioTrack::NativeAudioTrack(int out, NativeAudio *audio, bool external)
     this->tmpFrame.nbSamples = 0;
 }
 
-int NativeAudioTrack::open(const char *chroot, const char *src) 
+int NativeAudioSource::open(const char *chroot, const char *src) 
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
@@ -776,19 +776,19 @@ return err;
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioTrack::openInit() 
+int NativeAudioSource::openInit() 
 {
-    Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioTrack::openInitCoro);
+    Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::openInitCoro);
     return 0;
 }
 
-void NativeAudioTrack::openInitCoro(void *arg) 
+void NativeAudioSource::openInitCoro(void *arg) 
 {
 #define RETURN_WITH_ERROR(err) \
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
 thiz->doClose = true; \
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
-    NativeAudioTrack *thiz = static_cast<NativeAudioTrack *>(arg);
+    NativeAudioSource *thiz = static_cast<NativeAudioSource *>(arg);
 
     int ret;
     if ((ret = thiz->initStream()) != 0) {
@@ -803,7 +803,7 @@ Coro_switchTo_(thiz->coro, thiz->mainCoro);
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioTrack::open(void *buffer, int size) 
+int NativeAudioSource::open(void *buffer, int size) 
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
@@ -846,7 +846,7 @@ return err;
 #undef RETURN_WITH_ERROR
 }
 
-int NativeAudioTrack::initStream()
+int NativeAudioSource::initStream()
 {
 	// Open input 
 	int ret = avformat_open_input(&this->container, "dummyFile", NULL, NULL);
@@ -882,7 +882,7 @@ int NativeAudioTrack::initStream()
     return 0;
 }
 
-int NativeAudioTrack::initInternal() 
+int NativeAudioSource::initInternal() 
 {
     AVCodec *codec;
 
@@ -965,12 +965,12 @@ int NativeAudioTrack::initInternal()
     return 0;
 }
 
-int NativeAudioTrack::avail() 
+int NativeAudioSource::avail() 
 {
     return this->opened ? (int) PaUtil_GetRingBufferReadAvailable(this->rBufferOut) : 0;
 }
 
-bool NativeAudioTrack::buffer() 
+bool NativeAudioSource::buffer() 
 {
     if (this->reader->async) {
         if (this->buffering || this->doSeek) {
@@ -980,7 +980,7 @@ bool NativeAudioTrack::buffer()
         }
 
         this->buffering = true;
-        Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioTrack::bufferCoro);
+        Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::bufferCoro);
 
         if (!this->reader->pending) {
             this->buffering = false;
@@ -993,7 +993,7 @@ bool NativeAudioTrack::buffer()
     }
 }
 
-bool NativeAudioTrack::bufferInternal() 
+bool NativeAudioSource::bufferInternal() 
 {
     for (;;) {
         int ret = av_read_frame(this->container, this->tmpPacket);
@@ -1016,21 +1016,21 @@ bool NativeAudioTrack::bufferInternal()
     return true;
 }
 
-void NativeAudioTrack::bufferCoro(void *arg) {
-    NativeAudioTrack *t = static_cast<NativeAudioTrack*>(arg);
+void NativeAudioSource::bufferCoro(void *arg) {
+    NativeAudioSource *t = static_cast<NativeAudioSource*>(arg);
     t->bufferInternal();
 
     Coro_switchTo_(t->coro, t->mainCoro);
 }
 
-// This method is used when the track is externally managed
-// (To fill a packet to the track)
-void NativeAudioTrack::buffer(AVPacket *pkt) {
+// This method is used when the source is externally managed
+// (To fill a packet to the source)
+void NativeAudioSource::buffer(AVPacket *pkt) {
     this->tmpPacket = pkt;
     this->packetConsumed = false;
 }
 
-bool NativeAudioTrack::work() 
+bool NativeAudioSource::work() 
 {
     if (!this->externallyManaged) {
         if (!this->reader) {
@@ -1060,13 +1060,13 @@ bool NativeAudioTrack::work()
         if (!this->reader->async) {
             this->seekInternal(this->doSeekTime);
         } else {
-            Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioTrack::seekCoro);
+            Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::seekCoro);
             return false;
         } 
     }
 
     if (this->doNotProcess || !this->opened || this->stopped) {
-        SPAM(("Track will not be decoded. doNotProcess=%d opened=%d stopped=%d", this->doNotProcess, this->opened, this->stopped));
+        SPAM(("Source will not be decoded. doNotProcess=%d opened=%d stopped=%d", this->doNotProcess, this->opened, this->stopped));
         return false;
     }
 
@@ -1078,7 +1078,7 @@ bool NativeAudioTrack::work()
     }
 
     if (!this->decode()) {
-        SPAM(("Work failed because track is stoped or decoding failed %d\n", this->stopped));
+        SPAM(("Work failed because source is stoped or decoding failed %d\n", this->stopped));
         return false;
     }
 
@@ -1094,7 +1094,7 @@ bool NativeAudioTrack::work()
 
     return true;
 }
-bool NativeAudioTrack::decode() 
+bool NativeAudioSource::decode() 
 {
 #define RETURN_WITH_ERROR(err) \
 av_free(tmpFrame); \
@@ -1211,7 +1211,7 @@ return false;
     return true;
 #undef RETURN_WITH_ERROR
 }
-int NativeAudioTrack::resample(int destSamples) {
+int NativeAudioSource::resample(int destSamples) {
     int channels = this->nbChannel;
 
     if (this->fCvt) {
@@ -1293,12 +1293,12 @@ int NativeAudioTrack::resample(int destSamples) {
     return 0;
 }
 
-double NativeAudioTrack::getClock() {
-    ring_buffer_size_t queuedTrack = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
+double NativeAudioSource::getClock() {
+    ring_buffer_size_t queuedSource = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
 
     double coef = this->audio->outputParameters->sampleRate * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLT);
 
-    double delay = ((double)queuedTrack * NativeAudio::FLOAT32 * this->outCount) / (coef * this->outCount);
+    double delay = ((double)queuedSource * NativeAudio::FLOAT32 * this->outCount) / (coef * this->outCount);
     //double audioBuffer = ((double)queuedAudio * NativeAudio::FLOAT32 * this->outCount) / (coef * this->audio->outputParameters->channels);
     //printf("queue=%f audiobuff=%f\n", delay, audioBuffer);
     delay += this->audio->getLatency();
@@ -1308,7 +1308,7 @@ double NativeAudioTrack::getClock() {
     return this->clock - delay + 0.28;
 }
 
-void NativeAudioTrack::drop(double ms) 
+void NativeAudioSource::drop(double ms) 
 {
     ring_buffer_size_t del = (ms * (this->audio->outputParameters->sampleRate * NativeAudio::FLOAT32) * this->outCount / (NativeAudio::FLOAT32 * this->outCount));
     ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
@@ -1344,7 +1344,7 @@ void NativeAudioNode::resetFrame(int channel)
     memset(this->frames[channel], 0, this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels);
 }
 
-void NativeAudioTrack::seek(double time) 
+void NativeAudioSource::seek(double time) 
 {
     if (!this->opened || this->doSeek) {
         return;
@@ -1356,12 +1356,12 @@ void NativeAudioTrack::seek(double time)
     pthread_cond_signal(&this->audio->bufferNotEmpty);
 }
 
-void NativeAudioTrack::seekCoro(void *arg) 
+void NativeAudioSource::seekCoro(void *arg) 
 {
-    NativeAudioTrack *source = static_cast<NativeAudioTrack *>(arg);
+    NativeAudioSource *source = static_cast<NativeAudioSource *>(arg);
     source->seekInternal(source->doSeekTime);
 }
-void NativeAudioTrack::seekInternal(double time) 
+void NativeAudioSource::seekInternal(double time) 
 {
     if (this->externallyManaged) {
         avcodec_flush_buffers(this->codecCtx);
@@ -1411,7 +1411,7 @@ void NativeAudioTrack::seekInternal(double time)
     } 
 }
 
-bool NativeAudioTrack::process() {
+bool NativeAudioSource::process() {
     if (!this->opened) {
         SPAM(("Not opened\n"));
         return false;
@@ -1469,10 +1469,10 @@ bool NativeAudioTrack::process() {
     return true;
 }
 
-void NativeAudioTrack::closeInternal(bool reset) 
+void NativeAudioSource::closeInternal(bool reset) 
 {
     pthread_mutex_lock(&this->audio->recurseLock);
-    pthread_mutex_lock(&this->audio->tracksLock);
+    pthread_mutex_lock(&this->audio->sourcesLock);
 
     if (this->opened) {
         avcodec_close(this->codecCtx);
@@ -1540,11 +1540,11 @@ void NativeAudioTrack::closeInternal(bool reset)
     this->avioBuffer = NULL;
     this->doClose = false;
 
-    pthread_mutex_unlock(&this->audio->tracksLock);
+    pthread_mutex_unlock(&this->audio->sourcesLock);
     pthread_mutex_unlock(&this->audio->recurseLock);
 }
 
-void NativeAudioTrack::play() 
+void NativeAudioSource::play() 
 {
     if (!this->opened) {
         return;
@@ -1558,7 +1558,7 @@ void NativeAudioTrack::play()
     this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
 }
 
-void NativeAudioTrack::pause() 
+void NativeAudioSource::pause() 
 {
     if (!this->opened) {
         return;
@@ -1568,7 +1568,7 @@ void NativeAudioTrack::pause()
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
 }
 
-void NativeAudioTrack::stop()
+void NativeAudioSource::stop()
 {
     if (!this->externallyManaged) {
         this->seek(0);
@@ -1582,7 +1582,7 @@ void NativeAudioTrack::stop()
     this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
 }
 
-void NativeAudioTrack::close() 
+void NativeAudioSource::close() 
 {
     if (!this->opened) {
         return;
@@ -1609,7 +1609,7 @@ void NativeAudioTrack::close()
 }
 
 
-NativeAudioTrack::~NativeAudioTrack() {
-    this->audio->removeTrack(this);
+NativeAudioSource::~NativeAudioSource() {
+    this->audio->removeSource(this);
     this->closeInternal(false);
 }

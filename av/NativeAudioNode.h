@@ -165,35 +165,6 @@ class NativeAudioNodeTarget : public NativeAudioNode
         virtual bool process();
 };
 
-#if 0
-class NativeAudioNodeWirdo : public NativeAudioNode
-{
-    public :
-        NativeAudioNodeWirdo (int inCount, int outCount, NativeAudioParameters *params) : NativeAudioNode(inCount, outCount, params) 
-        {
-            printf("Wirdo init\n");
-            printf("count %d/%d\n", inCount, outCount);
-            /*
-            for (int i = 0; i < inCount; i++) {
-                this->inQueue[j]
-            }
-            */
-        }
-
-        float gain;
-
-        virtual bool process() 
-        {
-            SPAM(("|process called on wirdo\n"));
-            for (int i = 0; i < 256; i++) {
-                this->frames[2][i] = this->frames[0][i];
-                this->frames[3][i] = this->frames[1][i];
-            }
-            return true;
-        }
-};
-#endif
-
 class NativeAudioNodeGain : public NativeAudioNode
 {
     public :
@@ -302,10 +273,10 @@ class NativeAudioNodeMixer : public NativeAudioNode
 };
 #endif
 
-class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
+class NativeAudioSource: public NativeAudioNode, public NativeAVSource 
 {
     public:
-        NativeAudioTrack(int out, NativeAudio *audio, bool external);
+        NativeAudioSource(int out, NativeAudio *audio, bool external);
 
         friend class NativeVideo;
 
@@ -347,12 +318,11 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool work();
         bool decode();
         int resample(int destSamples);
-        bool getFrame();
         double getClock();
         void drop(double ms);
 
         void closeInternal(bool reset);
-        ~NativeAudioTrack();
+        ~NativeAudioSource();
 
     private:
         AVCodecContext *codecCtx;

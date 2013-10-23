@@ -66,7 +66,10 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         void onGetContent(const char *data, size_t len) {}
         void onAvailableData(size_t len);
         void onProgress(size_t buffered, size_t len);
-        void onError(NativeStream::StreamError err){};
+        void onError(NativeStream::StreamError err)
+        {
+            // TODO
+        };
 
         ~NativeAVStreamReader();
     private:
@@ -185,7 +188,7 @@ class NativeAVSource
         virtual void seek(double time) = 0;
         double getDuration();
         int getBitrate();
-        AVDictionary *getMetadata() ;
+        AVDictionary *getMetadata();
     protected:
 	    AVFormatContext *container;
        

@@ -266,7 +266,7 @@ AVDictionary *NativeAVSource::getMetadata()
         return NULL;
     }
 
-    return this->container->metadata;
+    return this->container ? this->container->metadata : NULL;
 }
 int NativeAVSource::getBitrate()
 {
@@ -288,10 +288,10 @@ int NativeAVSource::readError(int err)
     if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
         this->eof = true;
         this->error = AVERROR_EOF;
-        //if (this->track != NULL) {
-            //this->track->eof = true; 
+        //if (this->source != NULL) {
+            //this->source->eof = true; 
             // FIXME : Need to find out why when setting EOF, 
-            // track sometimes fail to play when seeking backward
+            // source sometimes fail to play when seeking backward
         //}
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
