@@ -53,6 +53,8 @@
 #define DEFAULT_MAX_STACK_SIZE 500000
 #endif
 
+#define NATIVE_SCTAG_FUNCTION JS_SCTAG_USER_MIN+1
+
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
 struct _native_sm_timer
@@ -69,6 +71,8 @@ struct _native_sm_timer
     struct _ticks_callback *timer;
     
 };
+
+JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
@@ -97,7 +101,6 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
     JS_FS_END
 };
-
 
 void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
@@ -187,6 +190,67 @@ void NativeJS::logf(const char *format, ...)
         m_vLogger(format, args);
     }
     va_end(args);
+}
+
+JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                           uint32_t tag, uint32_t data, void *closure)
+{
+    switch(tag) {
+        case NATIVE_SCTAG_FUNCTION:
+        {
+            const char pre[] = "return (";
+            const char end[] = ").apply(this, Array.prototype.slice.apply(arguments));";
+
+            char *pdata = (char *)malloc(data + 256);
+            memcpy(pdata, pre, sizeof(pre));
+
+            if (!JS_ReadBytes(r, pdata+(sizeof(pre)-1), data)) {
+                free(pdata);
+                return NULL;
+            }
+
+            memcpy(pdata+sizeof(pre)+data-1, end, sizeof(end));
+            JSFunction *cf = JS_CompileFunction(cx, JS_GetGlobalObject(cx), NULL, 0, NULL, pdata,
+                strlen(pdata), NULL, 0);
+
+            free(pdata);
+
+            if (cf == NULL) {
+                return NULL;
+            }
+
+            return JS_GetFunctionObject(cf);
+        }
+        default:
+            return NULL;
+    }
+
+    return NULL;
+}
+
+JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                         JSObject *obj, void *closure)
+{
+    JS::Value vobj = OBJECT_TO_JSVAL(obj);
+
+    switch(JS_TypeOfValue(cx, vobj)) {
+        /* Serialize function into a string */
+        case JSTYPE_FUNCTION:
+        {
+            JSString *func = JS_DecompileFunction(cx,
+                JS_ValueToFunction(cx, vobj), 0 | JS_DONT_PRETTY_PRINT);
+            JSAutoByteString cfunc(cx, func);
+            size_t flen = cfunc.length();
+
+            JS_WriteUint32Pair(w, NATIVE_SCTAG_FUNCTION, flen);
+            JS_WriteBytes(w, cfunc.ptr(), flen);
+            break;
+        }
+        default:
+            return false;
+    }
+
+    return true;
 }
 
 char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
@@ -368,6 +432,15 @@ NativeJS::NativeJS(ape_global *net) :
     //js::frontend::ion::js_IonOptions.gvnIsOptimistic = true;
     //JS_SetGCCallback(rt, gccb);
     JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
+
+    if (NativeJS::jsscc == NULL) {
+        NativeJS::jsscc = new JSStructuredCloneCallbacks();
+        NativeJS::jsscc->read = NativeJS::readStructuredCloneOp;
+        NativeJS::jsscc->write = NativeJS::writeStructuredCloneOp;
+        NativeJS::jsscc->reportError = NULL;
+    }
+
+    JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
 
     /* TODO: HAS_CTYPE in clang */
     JS_InitCTypesClass(cx, gbl);

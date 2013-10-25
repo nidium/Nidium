@@ -26,6 +26,7 @@
 #include "NativeHash.h"
 #include "NativeSharedMessages.h"
 #include <jspubtd.h>
+#include <jsapi.h>
 
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
@@ -117,6 +118,13 @@ class NativeJS
         void registerMessage(native_thread_message_t cbk, int id);
         void postMessage(void *dataPtr, int ev);
 
+        static JSStructuredCloneCallbacks *jsscc;
+        static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                                   uint32_t tag, uint32_t data, void *closure);
+
+        static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                                 JSObject *obj, void *closure);
+
         void logf(const char *format, ...);
     private:
         NativeJSModules *modules;
@@ -130,5 +138,4 @@ class NativeJS
         /* va_list argument */
         vlogger m_vLogger;
 };
-
 #endif
