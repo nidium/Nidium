@@ -114,6 +114,8 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
             vert[t].Position[0] = -1. + ((float)j*xstep);
             vert[t].Position[1] = 1. - ((float)i*ystep);
             vert[t].Position[2] = 0.;
+
+            //NLOG("Create vertex: %f %f", vert[t].Position[0], vert[t].Position[1]);
             
             vert[t].TexCoord[0] = ((float)j*txstep);
             vert[t].TexCoord[1] = 1-(((float)i*tystep));
@@ -218,7 +220,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     m_GLObjects.program = 0;
 
     glGenBuffers(2, m_GLObjects.vbo);
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(32);
 
     /* Upload the list of vertex */
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
@@ -249,6 +251,17 @@ NativeCanvasContext::~NativeCanvasContext()
     }
 }
 
+static void dump_Matrix(float *matrix)
+{
+    int i = 4;
+
+    printf("==========\n");
+    for (i = 0; i < 4; i++) {
+        printf("%f,%f,%f,%f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
+    }
+    printf("==========\n");
+}
+
 void NativeCanvasContext::updateMatrix(double left, double top)
 {
     float px = 1024.f, py = 768.f;
@@ -256,8 +269,33 @@ void NativeCanvasContext::updateMatrix(double left, double top)
     float h = (float)m_Handler->getHeight();
 
     m_Transform.reset();
-    m_Transform.preTranslate(-1+(w/px), 1-(h/py), 0);
-    m_Transform.preScale(SkFloatToScalar(w/px), SkFloatToScalar(h/py), 1);
+
+    /*
+        X position : -1 ----- 0 ------ 1
+
+
+        The canvas is scalled to match its size relative to the window ratio.
+        Scale to (e.g.) 0.5 will shift the left position from -1 to 0
+        and the right position from 1 to 0 -- thus center the canvas.
+        We therefore have to translate the canvas back to its original position
+    */
+
+    float ratioX = w/px, ratioY = h/py;
+    float offsetX = -1.+ratioX, offsetY = 1-ratioY;
+
+    float ratioL = ((float)left)/px;
+    float ratioT = ((float)top)/py;
+
+    m_Transform.preTranslate(
+        /*
+          We multiply by two because we're using the left-to-windowSize
+          percentage whereas the coordinate has a space from -1 to 1 (percentage*2)
+        */
+        SkFloatToScalar(offsetX) + (SkFloatToScalar(ratioL)*2.f),
+        SkFloatToScalar(offsetY) - (SkFloatToScalar(ratioT)*2.f),
+        0);
+
+    m_Transform.preScale(SkFloatToScalar(ratioX), SkFloatToScalar(ratioY), 1);
 
     if (m_GLObjects.uniforms.u_projectionMatrix != -1) {
         GLfloat mat4[16];
