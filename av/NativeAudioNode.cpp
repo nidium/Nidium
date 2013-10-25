@@ -20,7 +20,7 @@ I++;
 #define NODE_IO_FOR_END(i) }i++;}
 
 NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
-    : nullFrames(true), processed(false), inCount(inCount), outCount(outCount), 
+    : nullFrames(true), processed(false), isConnected(false), inCount(inCount), outCount(outCount), 
       audio(audio), doNotProcess(false)
 {
     SPAM(("NativeAudioNode init located at %p\n", this));
@@ -191,7 +191,7 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     // Connect blocks frames
     if (in->node->frames[in->channel] == NULL) {
         SPAM(("Malloc frame\n"));
-        in->node->frames[in->channel] = this->newFrame();
+        in->node->frames[in->channel] = in->node->newFrame();
         //this->frames[out->channel] = in->node->frames[in->channel];
     }
 
@@ -232,6 +232,9 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
 
     // Check if wire created a feedback somewhere
     this->updateFeedback(out->node);
+
+    in->node->updateIsConnected();
+    out->node->updateIsConnected();
 
     pthread_mutex_unlock(&this->audio->recurseLock);
 
@@ -298,6 +301,11 @@ void NativeAudioNode::processQueue()
 {
     SPAM(("process queue on %p\n", this));
 
+    if (!this->isConnected) {
+        SPAM(("    Node is not connected %p\n", this));
+        return;
+    }
+
     // Let's go for a new round.
     // First mark all output as unprocessed
     for (int i = 0; i < this->outCount ; i++) {
@@ -312,12 +320,16 @@ void NativeAudioNode::processQueue()
     for (int i = 0; i < this->inCount; i++) {
         int j = 0;
         NODE_IO_FOR(j, this->input[i]) 
-            if (!this->input[i]->wire[j]->node->processed) {
+            if (!this->input[i]->wire[j]->node->processed && this->input[i]->wire[j]->node->isConnected) {
                 SPAM(("     Input %p havn't been processed, return\n", this->input[i]->wire[j]->node));
                 // Needed data havn't been processed yet. Return.
                 return;
             } else {
-                SPAM(("    Input at %p is already processed\n", this->input[i]->wire[j]->node));
+                if (!this->input[i]->wire[j]->node->isConnected) {
+                    SPAM(("     Input %p isn't connected. No need to process\n", this->input[i]->wire[j]->node));
+                } else {
+                    SPAM(("    Input at %p is already processed\n", this->input[i]->wire[j]->node));
+                }
             }
         NODE_IO_FOR_END(j)
     }
@@ -888,7 +900,6 @@ int NativeAudioSource::initInternal()
 
     this->nbChannel = this->outCount;
 
-    printf("initInternal\n");
     this->tmpPacket = new AVPacket();
     av_init_packet(this->tmpPacket);
 
@@ -1315,19 +1326,96 @@ void NativeAudioSource::drop(double ms)
     PaUtil_AdvanceRingBufferReadIndex(this->rBufferOut, del > avail ? avail : del);
 }
 
-bool NativeAudioNode::isConnected() 
+void NativeAudioCustomSource::play()
 {
+    m_Playing = true;
+
+    pthread_cond_signal(&this->audio->queueHaveData);
+}
+
+
+void NativeAudioCustomSource::pause()
+{
+    m_Playing = false;
+}
+
+void NativeAudioCustomSource::stop()
+{
+    m_Playing = false;
+    this->seek(0);
+}
+
+void NativeAudioCustomSource::setSeek(SeekCallback cbk, void *custom)
+{
+    m_SeekCallback = cbk;
+    m_Custom = custom;
+}
+
+void NativeAudioCustomSource::seek(double ms)
+{
+    m_SeekTime = ms;
+    this->callback(NativeAudioCustomSource::seekMethod, NULL);
+}
+
+// Called from Audio thread
+void NativeAudioCustomSource::seekMethod(NativeAudioNode *node, void *custom)
+{
+    NativeAudioCustomSource *thiz = static_cast<NativeAudioCustomSource*>(node);
+    thiz->m_SeekCallback(static_cast<NativeAudioCustomSource*>(node), thiz->m_SeekTime, thiz->m_Custom);
+}
+
+bool NativeAudioCustomSource::process()
+{
+    if (!m_Playing) return false;
+
+    NativeAudioNodeCustom::process();
+
+    pthread_cond_signal(&this->audio->queueHaveData);
+
+    return true;
+}
+
+bool NativeAudioNode::updateIsConnectedInput() 
+{
+    if (this->inCount == 0) return true;
+
+    for (int i = 0; i < this->inCount; i++)
+    {
+        int count = this->input[i]->count;
+        for (int j = 0; j < count; j++) 
+        {
+            if (this->input[i]->wire[j] != NULL) {
+                return this->input[i]->wire[j]->node->updateIsConnectedInput();
+            }
+        }
+    }
+
+    return false;
+}
+
+bool NativeAudioNode::updateIsConnectedOutput() 
+{
+    if (this->outCount == 0) return true;
+
     for (int i = 0; i < this->outCount; i++)
     {
         int count = this->output[i]->count;
         for (int j = 0; j < count; j++) 
         {
             if (this->output[i]->wire[j] != NULL) {
-                return true;
+                return this->output[i]->wire[j]->node->updateIsConnectedOutput();
             }
         }
     }
+
     return false;
+}
+
+// This method will check that the node 
+// is connected to a source and a target
+void NativeAudioNode::updateIsConnected() 
+{
+    this->isConnected = this->updateIsConnectedInput() && this->updateIsConnectedOutput();
 }
 
 void NativeAudioNode::resetFrames() {

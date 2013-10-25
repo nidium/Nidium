@@ -30,7 +30,7 @@ NativeVideo::NativeVideo(ape_global *n)
       tmpFrame(NULL), frameBuffer(NULL),
       lastPts(0), playing(false), stoped(false), width(-1), height(-1),
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
-      rBuff(NULL), buff(NULL), m_framesIdx(NULL), avioBuffer(NULL),
+      rBuff(NULL), buff(NULL), avioBuffer(NULL), m_FramesIdx(NULL), 
       decodedFrame(NULL), convertedFrame(NULL),
       reader(NULL), buffering(false), readFlag(false), doClose(false)
 {
@@ -46,7 +46,7 @@ NativeVideo::NativeVideo(ape_global *n)
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         this->timers[i] = new TimerItem();
-        m_frames[i] = NULL;
+        m_Frames[i] = NULL;
     }
 }
 
@@ -253,8 +253,8 @@ int NativeVideo::openInitInternal()
     }
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        m_frames[i] = (uint8_t*) malloc(frameSize);
-        if (!m_frames[i]) {
+        m_Frames[i] = (uint8_t*) malloc(frameSize);
+        if (!m_Frames[i]) {
             fprintf(stderr, "Failed to setup frames pool\n");
             RETURN_WITH_ERROR(ERR_OOM);
         }
@@ -523,8 +523,7 @@ void NativeVideo::seekInternal(double time)
     flags = 0;
 
     for (;;) {
-        long foo = av_gettime() - start;
-        SPAM(("[SEEK-%ld] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", foo, gotFrame, pts, seekTime, time));
+        SPAM(("[SEEK] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", gotFrame, pts, seekTime, time));
         if ((pts > seekTime + SEEK_STEP || pts > time) && !keyframe) {
             seekTime = seekTime - SEEK_STEP;
             if (seekTime < 0) seekTime = 0;
@@ -756,7 +755,7 @@ int NativeVideo::display(void *custom) {
     v->lastDelay = delay;
     v->lastPts = pts;
 
-    if (v->audioSource != NULL && v->audioSource->isConnected()) {
+    if (v->audioSource != NULL && v->audioSource->isConnected) {
         diff = pts - v->audioSource->getClock();
 
         SPAM(("Clocks audio=%f / video=%f / diff = %f\n", v->audioSource->getClock(), pts, diff));
@@ -856,7 +855,7 @@ void NativeVideo::bufferInternal()
     int needVideo = 0;
 
     if (this->playing) {
-        if (this->audioSource != NULL && this->audioSource->isConnected()) {
+        if (this->audioSource != NULL && this->audioSource->isConnected) {
             needAudio = NATIVE_VIDEO_PACKET_BUFFER - this->audioQueue->count;
         }
         needVideo = NATIVE_VIDEO_PACKET_BUFFER - this->videoQueue->count;
@@ -893,7 +892,7 @@ void NativeVideo::bufferInternal()
         if (packet.stream_index == this->videoStream) {
             this->addPacket(this->videoQueue, &packet);
             needVideo--;
-        } else if (packet.stream_index == this->audioStream && ((this->audioSource != NULL && this->audioSource->isConnected()) || this->getClock() == 0)) {
+        } else if (packet.stream_index == this->audioStream && ((this->audioSource != NULL && this->audioSource->isConnected) || this->getClock() == 0)) {
             this->addPacket(this->audioQueue, &packet);
             needAudio--;
         } else {
@@ -1019,12 +1018,11 @@ bool NativeVideo::processAudio()
         return false;
     }
 
-    pthread_mutex_lock(&this->audioLock);
-
-    if (!this->audioSource->isConnected()) {
-        pthread_mutex_unlock(&this->audioLock);
+    if (!this->audioSource->isConnected) {
         return false;
     }
+
+    pthread_mutex_lock(&this->audioLock);
 
     if (this->audioQueue->count > 0 || !this->audioSource->packetConsumed) {
         for (;;) {
@@ -1104,13 +1102,13 @@ bool NativeVideo::processVideo()
 bool NativeVideo::processFrame(AVFrame *avFrame, double pts)
 {
     Frame frame;
-    frame.data = m_frames[m_framesIdx];
+    frame.data = m_Frames[m_FramesIdx];
     frame.pts = pts;
 
-    if (m_framesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
-        m_framesIdx = 0;
+    if (m_FramesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
+        m_FramesIdx = 0;
     } else {
-        m_framesIdx++;
+        m_FramesIdx++;
     }
 
     // Format the frame for sws_scale
@@ -1291,7 +1289,7 @@ void NativeVideo::flushBuffers()
 {
     if (this->rBuff == NULL) return;
 
-    m_framesIdx = 0;
+    m_FramesIdx = 0;
 
     PaUtil_FlushRingBuffer(this->rBuff);
 }
@@ -1323,8 +1321,8 @@ void NativeVideo::closeInternal(bool reset) {
     this->flushBuffers();
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        free(m_frames[i]);
-        m_frames[i] = NULL;
+        free(m_Frames[i]);
+        m_Frames[i] = NULL;
     }
 
     this->clearAudioQueue();

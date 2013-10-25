@@ -99,8 +99,8 @@ class NativeVideo : public NativeAVSource
         PaUtilRingBuffer *rBuff;
         uint8_t *buff;
         unsigned char *avioBuffer;
-        uint8_t *m_frames[NATIVE_VIDEO_BUFFER_SAMPLES];
-        int m_framesIdx;
+        uint8_t *m_Frames[NATIVE_VIDEO_BUFFER_SAMPLES];
+        int m_FramesIdx;
         AVFrame *decodedFrame; 
         AVFrame *convertedFrame;
 

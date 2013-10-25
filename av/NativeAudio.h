@@ -49,7 +49,7 @@ class NativeAudio
         };
 
         enum Node {
-            SOURCE, GAIN, TARGET, CUSTOM, REVERB, DELAY,
+            SOURCE, GAIN, TARGET, CUSTOM, CUSTOM_SOURCE, REVERB, DELAY,
             STEREO_ENHANCER
         };
 
@@ -112,6 +112,7 @@ class NativeAudio
         pthread_t threadQueue;
 
         bool haveData, notEmpty;
+        bool m_FlushMessages;
         bool threadShutdown;
 
         NativeAudioSources *sources;

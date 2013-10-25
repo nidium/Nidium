@@ -102,6 +102,8 @@ class NativeAudioNode : public SkRefCnt
 
         bool nullFrames;
         bool processed;
+        bool isConnected;
+
         NodeLink *input[32];
         NodeLink *output[32];
 
@@ -130,7 +132,9 @@ class NativeAudioNode : public SkRefCnt
 
         bool recurseGetData(int *sourceFailed);
         void processQueue();
-        bool isConnected();
+        bool updateIsConnectedInput();
+        bool updateIsConnectedOutput();
+        void updateIsConnected();
 
         virtual bool process() = 0;
 
@@ -354,6 +358,32 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
 
         bool eof;
         bool buffering;
+};
+
+class NativeAudioCustomSource : public NativeAudioNodeCustom
+{
+    public:
+        NativeAudioCustomSource(int out, NativeAudio *audio) 
+            : NativeAudioNodeCustom(0, out, audio), m_Playing(true)
+        {
+        }
+
+        typedef void (*SeekCallback)(NativeAudioCustomSource *node, double ms, void *custom);
+
+        bool m_Playing;
+        SeekCallback m_SeekCallback;
+        void *m_Custom;
+        double m_SeekTime;
+
+        void setSeek(SeekCallback cbk, void *custom);
+
+        void play();
+        void pause();
+        void stop();
+        void seek(double pos);
+        static void seekMethod(NativeAudioNode *node, void *custom);
+
+        bool process();
 };
 
 class NativeAudioNodeException : public std::exception
