@@ -117,7 +117,7 @@ def registerDeps():
         buildLibCoroutine)
 
     deps.registerDep("portaudio",
-        partial(deps.downloadDep, "portaudio", deps.depsURL + "/pa_snapshot.tgz"),
+        partial(deps.downloadDep, "portaudio", deps.depsURL + "/portaudio.tgz"),
         partial(deps.buildDep, "libportaudio", "portaudio", ["./configure", "make"], outlibs=["portaudio/lib/.libs/libportaudio"]))
 
     deps.registerDep("zita-resampler",

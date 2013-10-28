@@ -20,7 +20,7 @@
 }\
 
 class NativeJS;
-class NativeAudioTrack;
+class NativeAudioSource;
 class NativeAudioNode;
 class NativeAudioNodeTarget;
 struct NodeLink;
@@ -49,7 +49,7 @@ class NativeAudio
         };
 
         enum Node {
-            SOURCE, GAIN, TARGET, CUSTOM, REVERB, DELAY,
+            SOURCE, GAIN, TARGET, CUSTOM, CUSTOM_SOURCE, REVERB, DELAY,
             STEREO_ENHANCER
         };
 
@@ -63,9 +63,9 @@ class NativeAudio
         NativeSharedMessages *sharedMsg;
         pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
         pthread_mutex_t recurseLock;
-        pthread_mutex_t tracksLock;
+        pthread_mutex_t sourcesLock;
         PaUtilRingBuffer *rBufferOut;
-        int tracksCount;
+        int sourcesCount;
         bool readFlag;
 
         static void *queueThread(void *args);
@@ -77,8 +77,8 @@ class NativeAudio
 
         NativeAudioNodeTarget *output;
 
-        NativeAudioTrack *addTrack(int out, bool external);
-        void removeTrack(NativeAudioTrack *track);
+        NativeAudioNode *addSource(NativeAudioNode *source, bool externallyManaged);
+        void removeSource(NativeAudioSource *source);
         NativeAudioNode *createNode(NativeAudio::Node node, int input, int ouput);
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
@@ -92,11 +92,12 @@ class NativeAudio
 
         ~NativeAudio();
     private:
-        struct NativeAudioTracks {
-            NativeAudioTrack *curr;
+        struct NativeAudioSources {
+            NativeAudioNode *curr;
+            bool externallyManaged;
 
-            NativeAudioTracks *next;
-            NativeAudioTracks *prev;
+            NativeAudioSources *next;
+            NativeAudioSources *prev;
         };
 
         PaStream *inputStream;
@@ -111,9 +112,10 @@ class NativeAudio
         pthread_t threadQueue;
 
         bool haveData, notEmpty;
+        bool m_FlushMessages;
         bool threadShutdown;
 
-        NativeAudioTracks *tracks;
+        NativeAudioSources *sources;
         int queueCount;
 
         void readMessages();

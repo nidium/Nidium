@@ -68,7 +68,7 @@ class NativeVideo : public NativeAVSource
         int timersDelay;
 
         ape_global *net;
-        NativeAudioTrack *track;
+        NativeAudioSource *audioSource;
 
         VideoCallback frameCbk;
         void *frameCbkArg;
@@ -99,8 +99,8 @@ class NativeVideo : public NativeAVSource
         PaUtilRingBuffer *rBuff;
         uint8_t *buff;
         unsigned char *avioBuffer;
-        uint8_t *m_frames[NATIVE_VIDEO_BUFFER_SAMPLES];
-        int m_framesIdx;
+        uint8_t *m_Frames[NATIVE_VIDEO_BUFFER_SAMPLES];
+        int m_FramesIdx;
         AVFrame *decodedFrame; 
         AVFrame *convertedFrame;
 
@@ -130,7 +130,7 @@ class NativeVideo : public NativeAVSource
 
         void frameCallback(VideoCallback cbk, void *arg);
 
-        NativeAudioTrack *getAudioNode(NativeAudio *audio);
+        NativeAudioSource *getAudioNode(NativeAudio *audio);
         static void* decode(void *args);
         static int display(void *custom);
         void stopAudio();
