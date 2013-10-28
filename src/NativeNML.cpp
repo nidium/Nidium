@@ -361,4 +361,8 @@ void NativeNML::onGetContent(const char *data, size_t len)
     }
     /* Invalidate layout node since memory pool is free'd */
     m_Layout = NULL;
+
+    /* Stream has ended */
+    delete stream;
+    stream = NULL;
 }
