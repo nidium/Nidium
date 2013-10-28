@@ -30,6 +30,7 @@
 #include "NativeJSStream.h"
 
 #include "NativeStream.h"
+#include "NativeUtils.h"
 
 #include <ape_hash.h>
 
@@ -558,7 +559,7 @@ static int Native_handle_messages(void *arg)
 #endif
     }
 
-    return 1;
+    return 8;
 #undef MAX_MSG_IN_ROW
 }
 
@@ -962,7 +963,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
-        ms, native_timerng_wrapper,
+        native_max(ms, 8), native_timerng_wrapper,
         (void *)params);
 
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
@@ -1006,7 +1007,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    params->ms = ms;
+    params->ms = native_max(8, ms);
 
     JS_AddValueRoot(cx, &params->func);
 
@@ -1015,7 +1016,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
-        ms, native_timerng_wrapper,
+        params->ms, native_timerng_wrapper,
         (void *)params);
 
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;

@@ -96,7 +96,7 @@ static int Native_handle_file_messages(void *arg)
             default:break;
         }
     }
-    return 1;
+    return 4;
 #undef MAX_MSG_IN_ROW
 }
 

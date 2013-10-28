@@ -52,6 +52,11 @@ public:
     void close();
     void setAutoClose(bool close) { autoClose = close; }
     void seek(uint64_t pos);
+
+    const char *getFileName() const {
+        return filename;
+    }
+
     bool eof() const {
         return m_eof;
     }
