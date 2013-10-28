@@ -347,6 +347,15 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 #undef NODE_PROP
 }
 
+static int delete_stream(void *arg)
+{
+    NativeStream *stream = (NativeStream *)arg;
+
+    delete stream;
+
+    return 0;
+}
+
 void NativeNML::onGetContent(const char *data, size_t len)
 {
     rapidxml::xml_document<> doc;
@@ -361,8 +370,9 @@ void NativeNML::onGetContent(const char *data, size_t len)
     }
     /* Invalidate layout node since memory pool is free'd */
     m_Layout = NULL;
-
+    printf("Supposed to delete stream : %p\n", stream);
     /* Stream has ended */
-    delete stream;
+    ape_global *ape = net;
+    timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }
