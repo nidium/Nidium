@@ -15,7 +15,7 @@ document.nss.add({
 		shadowBlur : 12,
 		shadowOffsetY : 4,
 		shadowColor : "rgba(0, 0, 0, 1)",
-		overflow : false
+		draggable : true
 	}
 });
 
@@ -246,8 +246,10 @@ Native.elements.export("UIVideo", {
 		});
 
 		this.addEventListener("drag", function(e){
-			this.left += e.xrel;
-			this.top += e.yrel;
+			if (this.draggable) {
+				this.left += e.xrel;
+				this.top += e.yrel;
+			}
 		});
 
 		this.volume.addEventListener("change", function(e){
