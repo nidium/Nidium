@@ -237,6 +237,24 @@ void NativeJSStream::onAvailableData(size_t len)
     }
 }
 
+void NativeJSStream::onProgress(size_t buffered, size_t total)
+{
+    JS::RootedObject obj(cx, this->jsobj);
+    jsval onprogress_callback;
+
+    if (JS_GetProperty(this->cx, obj, "onProgress", &onprogress_callback) &&
+        JS_TypeOfValue(this->cx, onprogress_callback) == JSTYPE_FUNCTION) {
+
+        jsval args[2], rval;
+
+        args[0] = INT_TO_JSVAL(buffered);
+        args[1] = INT_TO_JSVAL(total);
+
+        JS_CallFunctionValue(this->cx, obj, onprogress_callback,
+            2, args, &rval);
+    }
+}
+
 void NativeJSStream::onError(NativeStream::StreamError err)
 {
     printf("[Stream] file doesnt exist?\n");
