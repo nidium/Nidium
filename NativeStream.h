@@ -73,9 +73,9 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             TODO: Need to be implemented
         */
         size_t getFileSize() const {
-            if (!m_knownSize) return 0;
+            if (!m_KnownSize) return 0;
 
-            return m_fileSize;
+            return m_FileSize;
         }
 
         /*
@@ -107,7 +107,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         }
 
         bool hasFileSize() const {
-            return m_knownSize;
+            return m_KnownSize;
         }
 
 
@@ -161,12 +161,13 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         } mapped;
 
         bool needToSendUpdate;
-        bool m_autoClose;
+        bool m_AutoClose;
         void swapBuffer();
 
-        size_t m_buffered;
-        size_t m_fileSize;
-        bool m_knownSize;
+        size_t m_Buffered;
+        size_t m_BufferedPosition;
+        size_t m_FileSize;
+        bool m_KnownSize;
 };
 
 class NativeStreamDelegate
@@ -176,6 +177,8 @@ class NativeStreamDelegate
         virtual void onError(NativeStream::StreamError err)=0;
         //virtual void onStreamRead()=0;
         //virtual void onStreamEnd()=0;
+        // XXX : This need to be implemented in replacement of the old onProgress
+        //virtual void onProgress(size_t buffered, size_t position, size_t len)=0;
         virtual void onProgress(size_t buffered, size_t len)=0;
         virtual void onAvailableData(size_t total)=0;
         virtual ~NativeStreamDelegate(){};
