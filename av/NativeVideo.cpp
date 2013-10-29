@@ -938,16 +938,6 @@ void *NativeVideo::decode(void *args)
                 }
             }
 
-            if (v->error != 0) {
-                if (v->shutdown) break;
-                SPAM(("Waiting for reset cause of error %d\n", v->reader->pending));
-                if (!v->doSeek && !v->readFlag) {
-                    pthread_cond_wait(&v->bufferCond, &v->bufferLock);
-                }
-                SPAM(("reset go\n"));
-                if (v->shutdown) break;
-            }
-
             SPAM(("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking));
             if (!v->doSeek) {
                 SPAM(("processing\n"));
