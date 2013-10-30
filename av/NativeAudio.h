@@ -15,7 +15,7 @@
 #define NATIVE_AVDECODE_BUFFER_SAMPLES  16384
 #define NATIVE_RESAMPLER_BUFFER_SAMPLES 1024
 #define NATIVE_AUDIO_CHECK_EXIT_THREAD if (audio->threadShutdown) {\
-    SPAM(("Exiting"));\
+    SPAM(("Exiting\n"));\
     return NULL;\
 }\
 
