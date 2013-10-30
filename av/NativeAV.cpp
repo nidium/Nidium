@@ -228,8 +228,12 @@ void NativeAVStreamReader::onAvailableData(size_t len)
     }
 
     if (!this->opened) {
-        this->opened = true;
         this->streamSize = this->stream->getFileSize();
+        if (this->streamSize == 0) {
+            this->source->sendEvent(SOURCE_EVENT_ERROR, ERR_STREAMING_NOT_SUPPORTED, 0, false);
+            return;
+        }
+        this->opened = true;
         this->source->openInit();
     }
 }
