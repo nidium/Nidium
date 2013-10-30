@@ -211,8 +211,21 @@ void NativeFileIO::write(unsigned char *data, uint64_t len)
 
 void NativeFileIO::seek(uint64_t pos)
 {
+    if (!fd) {
+        return;
+    }
+
     pthread_mutex_lock(&threadMutex);
+
     fseek(fd, pos, SEEK_SET);
+
+    // Discard all message of type NATIVE_FILEREAD_MESSAGE,
+    // because after a seek we expect to only read new data
+    NativeSharedMessages::Message msg;
+    while (messages->readMessage(&msg, NATIVE_FILEREAD_MESSAGE)) {
+        delete[] (unsigned char *)msg.dataPtr();
+    }
+
     pthread_mutex_unlock(&threadMutex);  
 }
 
