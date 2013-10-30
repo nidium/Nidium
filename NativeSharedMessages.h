@@ -79,6 +79,7 @@ class NativeSharedMessages
     void postMessage(void *dataptr, int event);
     void postMessage(unsigned int dataint, int event);
     int readMessage(NativeSharedMessages::Message *msg);
+    int readMessage(NativeSharedMessages::Message *msg, int ev);
   private:
 
     struct

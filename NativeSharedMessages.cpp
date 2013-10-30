@@ -107,3 +107,44 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 
     return 1;
 }
+
+int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int type)
+{
+    NSMAutoLock lock(&messageslist.lock);
+
+    Message *message = messageslist.queue;
+    Message *next = NULL;
+
+    if (message == NULL) {
+        return 0;
+    }
+
+    while (message != NULL && message->event() != type) {
+        next = message;
+        message = message->prev;
+    }
+
+    if (message == NULL) {
+        return 0;
+    }
+
+    if (message == messageslist.queue) {
+        messageslist.queue = message->prev;
+    } else {
+        next->prev = message->prev;
+    }
+
+    if (messageslist.queue == NULL) {
+        messageslist.head = NULL;
+    }
+
+    messageslist.count--;
+
+    if (msg != NULL) {
+        memcpy(msg, message, sizeof(Message));
+    }
+
+    delete message;
+
+    return 1;
+}
