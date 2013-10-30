@@ -410,6 +410,9 @@ void NativeStream::seek(size_t pos)
 {
     mapped.idx = pos;
 
+    needToSendUpdate = true;
+    dataBuffer.ended = false;
+
     if (pos > m_BufferedPosition + m_Buffered) {
         // Seeking forward to whatever was buffered
         m_BufferedPosition = pos;
@@ -418,22 +421,24 @@ void NativeStream::seek(size_t pos)
         // Seeking backward after a seek forward
         m_BufferedPosition = pos;
         m_Buffered = 0;
-    } else {
-        // In memory seeking
+    } else if (IInterface == INTERFACE_HTTP) {
+        // In memory seeking (only supported for INTERFACE_HTTP)
         dataBuffer.alreadyRead = false;
-        dataBuffer.ended = false;
-        needToSendUpdate = true;
+        dataBuffer.fresh = false;
 
         dataBuffer.back->data = &((unsigned char *)mapped.addr)[mapped.idx];
-        dataBuffer.back->size = 0;
-        dataBuffer.fresh = false;
-        dataBuffer.back->used = m_FileSize - pos;
+        dataBuffer.back->size = m_FileSize - (m_BufferedPosition + m_Buffered);
+        dataBuffer.back->used = dataBuffer.back->size;
+
         dataBuffer.front->used = 0;
+        dataBuffer.front->size = 0;
 
         // If we have enought data buffered
         if (m_BufferedPosition + m_Buffered >= pos + this->getPacketSize() ) {
             needToSendUpdate = false;
-            this->delegate->onAvailableData(this->getPacketSize());
+            if (this->delegate) {
+                this->delegate->onAvailableData(this->getPacketSize());
+            }
         }
 
         return;
@@ -441,16 +446,14 @@ void NativeStream::seek(size_t pos)
 
     dataBuffer.alreadyRead = false;
     dataBuffer.fresh = true;
-    dataBuffer.ended = false;
+
     dataBuffer.back->used = 0;
     dataBuffer.front->used = 0;
-    needToSendUpdate = true;
 
-    lseek(mapped.fd, pos, SEEK_SET);
+    switch (IInterface) {
+        case INTERFACE_HTTP: {
+            lseek(mapped.fd, pos, SEEK_SET);
 
-    switch(IInterface) {
-        case INTERFACE_HTTP:
-        {
             NativeHTTP *http = static_cast<NativeHTTP *>(this->interface);
             NativeHTTPRequest *req = http->getRequest();
 
@@ -463,12 +466,18 @@ void NativeStream::seek(size_t pos)
             break;
         }
         case INTERFACE_FILE:
-        {
+        case INTERFACE_PRIVATE: {
+            m_BufferedPosition = pos;
+            m_Buffered = 0;
+
             NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
             file->seek(pos);
             file->read(this->getPacketSize());
             break;
         }
+        case INTERFACE_DATA:
+            // TODO
+            break;
         default:
             break;
     }
