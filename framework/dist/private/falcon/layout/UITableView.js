@@ -137,6 +137,20 @@ Native.elements.extend("UIView").export("UITableView", {
 });
 
 Native.elements.extend("UIElement").export("UITableHead", {
+	init : function(){
+		this.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("drag", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("dragend", function(e){
+			e.forcePropagation();
+		}, true);
+	},
+	
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
@@ -145,7 +159,21 @@ Native.elements.extend("UIElement").export("UITableHead", {
 	}
 });
 
-Native.elements.extend("UIElement").export("UITableBody");
+Native.elements.extend("UIElement").export("UITableBody", {
+	init : function(){
+		this.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("drag", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("dragend", function(e){
+			e.forcePropagation();
+		}, true);
+	}
+});
 
 
 Native.elements.extend("UIElement").export("UITableRow", {
@@ -201,6 +229,18 @@ Native.elements.extend("UIElement").export("UITableRow", {
 
 			return cell;
 		};
+
+		this.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("drag", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("dragend", function(e){
+			e.forcePropagation();
+		}, true);
 
 	}
 });

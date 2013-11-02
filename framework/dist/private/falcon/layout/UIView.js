@@ -389,6 +389,36 @@ Native.elements.export("UIView", {
 			this.refreshHorizontalScrollBar();
 		};
 
+		this.scrollX = function(e){
+			var	handle = this.HScrollBarHandle,
+				vw = this._width,
+				sw = this.contentWidth,
+				scale = sw/vw,
+				max = sw-vw,
+				inc = (e.x - handle.__left - handle.width/2)*scale;
+
+			if (this.scrollLeft+inc >= 0 && this.scrollLeft+inc <= max){
+				this.scrollLeft += inc;
+			} else {
+				if (inc !== 0) this.scrollLeft = (inc<0) ? 0 : max;
+			}
+		};
+
+		this.scrollY = function(e){
+			var	handle = this.VScrollBarHandle,
+				vh = this._height,
+				sh = this.contentHeight,
+				scale = sh/vh,
+				max = sh-vh,
+				inc = (e.y - handle.__top - handle.height/2)*scale;
+
+			if (this.scrollTop+inc >= 0 && this.scrollTop+inc <= max){
+				this.scrollTop += inc;
+			} else {
+				if (inc !== 0) this.scrollTop = (inc<0) ? 0 : max;
+			}
+		};
+
 		this.createVerticalScrollBar = function(){
 			if (this.VScrollBar) return false;
 			this.VScrollBar = this.add("UIScrollBar", {
@@ -414,17 +444,7 @@ Native.elements.export("UIView", {
 			}, false);
 
 			this.VScrollBarHandle.addEventListener("drag", function(e){
-				var	vh = self._height,
-					sh = self.contentHeight,
-					scale = sh/vh,
-					max = sh-vh,
-					inc = (e.y - this.__top - this.height/2)*scale;
-
-				if (self.scrollTop+inc >= 0 && self.scrollTop+inc <= max){
-					self.scrollTop += inc;
-				} else {
-					if (inc !== 0) self.scrollTop = (inc<0) ? 0 : max;
-				}
+				self.scrollY(e);
 				e.stopPropagation();
 			}, false);
 
@@ -460,17 +480,7 @@ Native.elements.export("UIView", {
 			}, false);
 
 			this.HScrollBarHandle.addEventListener("drag", function(e){
-				var	vw = self._width,
-					sw = self.contentWidth,
-					scale = sw/vw,
-					max = sw-vw,
-					inc = (e.x - this.__left - this.width/2)*scale;
-
-				if (self.scrollLeft+inc >= 0 && self.scrollLeft+inc <= max){
-					self.scrollLeft += inc;
-				} else {
-					if (inc !== 0) self.scrollLeft = (inc<0) ? 0 : max;
-				}
+				self.scrollX(e);
 				e.stopPropagation();
 			}, false);
 
@@ -486,6 +496,41 @@ Native.elements.export("UIView", {
 			this.createHorizontalScrollBar();
 			this.refreshScrollBars();
 		}
+
+		this.addEventListener("dragstart", function(e){
+			this.dragging = true;
+
+			showScrollBar(self.HScrollBar);
+			self.killFadeOutTimer(self.HScrollBar);
+
+			showScrollBar(self.VScrollBar);
+			self.killFadeOutTimer(self.VScrollBar);
+
+			console.log("start");
+		}, false);
+
+		this.addEventListener("drag", function(e){
+			if (!this.dragging) return false;
+			if (e.spaceKeyDown === false) {
+				return false;
+			}
+
+			this.scrollX(e);
+			this.scrollY(e);
+			showScrollBar(self.VScrollBar);
+			showScrollBar(self.VScrollBar);
+
+			e.stopPropagation();
+		}, false);
+
+		this.addEventListener("dragend", function(e){
+			this.dragging = false;
+			console.log("end");
+			self.startFadeOutTimer(self.HScrollBar);
+			self.startFadeOutTimer(self.VScrollBar);
+			e.stopPropagation();
+		}, false);
+
 
 		this.addEventListener("mousewheel", function(e){
 			var stop = false;

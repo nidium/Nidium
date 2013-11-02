@@ -148,6 +148,9 @@ window.events = {
 			}
 
 			if (name=='keydown'){
+				if (e.keyCode == 32) {
+					element.spaceKeyDown = true;
+				}
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
 					element.cmdKeyDown = true;
 				}
@@ -157,6 +160,9 @@ window.events = {
 			}
 
 			if (name=='keyup'){
+				if (e.keyCode == 32) {
+					element.spaceKeyDown = false;
+				}
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
 					element.cmdKeyDown = false;
 				}
@@ -164,6 +170,9 @@ window.events = {
 					element.shiftKeyDown = false;
 				}
 			}
+
+			e.spaceKeyDown = element.spaceKeyDown == undefined ?
+							false : element.spaceKeyDown;
 
 			e.shiftKeyDown = element.shiftKeyDown == undefined ?
 							false : element.shiftKeyDown;
