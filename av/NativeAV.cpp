@@ -142,7 +142,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
 
             // Got enought data, return
             if (copied == size || thiz->totalRead >= thiz->streamSize) {
-                SPAM(("wrote enough, return\n"));
+                SPAM(("wrote enough, return %u \n", copied));
                 thiz->error = 0;
                 thiz->pending = false;
                 thiz->needWakup = false;
@@ -218,7 +218,7 @@ void NativeAVStreamReader::onProgress(size_t buffered, size_t len)
 void NativeAVStreamReader::onAvailableData(size_t len) 
 {
     this->error = 0;
-    SPAM(("onAvailableData=%d\n", len));
+    SPAM(("onAvailableData=%d/%d\n", len, this->opened));
 
     if (this->pending) {
         this->needWakup = true;
@@ -228,9 +228,13 @@ void NativeAVStreamReader::onAvailableData(size_t len)
     }
 
     if (!this->opened) {
+        this->streamSize = this->stream->getFileSize();
+        if (this->streamSize == 0) {
+            this->source->sendEvent(SOURCE_EVENT_ERROR, ERR_STREAMING_NOT_SUPPORTED, 0, false);
+            return;
+        }
         this->opened = true;
         this->source->openInit();
-        this->streamSize = this->stream->getFileSize();
     }
 }
 
@@ -288,11 +292,6 @@ int NativeAVSource::readError(int err)
     if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
         this->eof = true;
         this->error = AVERROR_EOF;
-        //if (this->source != NULL) {
-            //this->source->eof = true; 
-            // FIXME : Need to find out why when setting EOF, 
-            // source sometimes fail to play when seeking backward
-        //}
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
         this->error = AVERROR(err);

@@ -117,6 +117,24 @@
                     }],
                 ],
             }
-        }  
+        },
+        'conditions': [
+            ['addresse_sanitizer==1', {
+                'cflags': [
+                    '-fsanitize=address'
+                ],
+                'ldflags': [
+                    '-fsanitize=address'
+                ],
+                'xcode_settings': {
+                    "OTHER_LDFLAGS": [
+                        '-fsanitize=address'
+                    ],
+                    'OTHER_CFLAGS': [ 
+                        '-fsanitize=address'
+                    ]
+                }
+            }],
+        ],
     },
 }

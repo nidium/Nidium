@@ -32,7 +32,7 @@ NativeVideo::NativeVideo(ape_global *n)
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
       rBuff(NULL), buff(NULL), avioBuffer(NULL), m_FramesIdx(NULL), 
       decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), buffering(false), readFlag(false), doClose(false)
+      reader(NULL), buffering(false), readFlag(false), m_ThreadCreated(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
     pthread_mutex_init(&this->bufferLock, NULL);
@@ -52,7 +52,7 @@ NativeVideo::NativeVideo(ape_global *n)
 
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
-this->doClose = true;\
+this->closeInternal(true);\
 return err;
 
 int NativeVideo::open(void *buffer, int size) 
@@ -80,7 +80,7 @@ int NativeVideo::open(void *buffer, int size)
 
     this->reader = new NativeAVBufferReader((uint8_t *)buffer, size);
     this->container = avformat_alloc_context();
-    if (!this->container) {
+    if (!this->container || !this->reader) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -89,7 +89,10 @@ int NativeVideo::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
     if (this->openInit() == 0) {
-        pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
+        if (pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this) != 0) {
+            RETURN_WITH_ERROR(ERR_INTERNAL);
+        }
+        m_ThreadCreated = true;
         pthread_cond_signal(&this->bufferCond);
     }
 
@@ -98,6 +101,7 @@ int NativeVideo::open(void *buffer, int size)
 
 int NativeVideo::open(const char *chroot, const char *src) 
 {
+    SPAM(("Open %s\n", src));
     if (this->avioBuffer != NULL) {
         this->closeInternal(true);
     } 
@@ -938,16 +942,6 @@ void *NativeVideo::decode(void *args)
                 }
             }
 
-            if (v->error != 0) {
-                if (v->shutdown) break;
-                SPAM(("Waiting for reset cause of error %d\n", v->reader->pending));
-                if (!v->doSeek && !v->readFlag) {
-                    pthread_cond_wait(&v->bufferCond, &v->bufferLock);
-                }
-                SPAM(("reset go\n"));
-                if (v->shutdown) break;
-            }
-
             SPAM(("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking));
             if (!v->doSeek) {
                 SPAM(("processing\n"));
@@ -980,10 +974,6 @@ void *NativeVideo::decode(void *args)
             if (!v->reader->pending) {
                 v->buffering = false;
             }
-        }
-
-        if (v->doClose) {
-            v->closeInternal(true);
         }
 
         if (v->shutdown) break;
@@ -1309,14 +1299,16 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 #endif
 
 void NativeVideo::closeInternal(bool reset) {
-    if (this->reader && this->container && this->container->pb) {
+    if (m_ThreadCreated) {
         this->shutdown = true;
-        if (!this->doClose) {
-            pthread_cond_signal(&this->bufferCond);
-            pthread_join(this->threadDecode, NULL);
-        }
+
+        pthread_cond_signal(&this->bufferCond);
+        pthread_join(this->threadDecode, NULL);
+
+        m_ThreadCreated = false;
+        this->shutdown = false;
     }
-    
+
     this->clearTimers(reset);
     this->flushBuffers();
 
@@ -1396,7 +1388,6 @@ void NativeVideo::closeInternal(bool reset) {
     }
 
     this->opened = false;
-    this->doClose = false;
 }
 
 NativeVideo::~NativeVideo() {

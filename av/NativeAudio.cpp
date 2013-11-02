@@ -134,20 +134,22 @@ void *NativeAudio::queueThread(void *args) {
                 pthread_cond_signal(&audio->bufferNotEmpty);
             //}
         } 
-        if (!audio->threadShutdown) {
-            if (cause == 0) {
-                SPAM(("Waiting for more data\n"));
-                pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
-            } else {
-                //do {
-                    SPAM(("Waiting for more space\n"));
-                    pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
-                //} while (!audio->haveSourceActive(false));
 
-            }
+        if (audio->threadShutdown) break;
+
+        if (cause == 0) {
+            SPAM(("Waiting for more data\n"));
+            pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
         } else {
-            break;
+            //do {
+                SPAM(("Waiting for more space\n"));
+                pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
+            //} while (!audio->haveSourceActive(false));
+
         }
+
+        if (audio->threadShutdown) break;
+
         SPAM(("Queue thead is now working\n"));
     }
 
@@ -589,6 +591,10 @@ void NativeAudio::shutdown()
 }
 
 NativeAudio::~NativeAudio() {
+    if (this->threadShutdown == false) {
+        this->shutdown();
+    }
+
     if (this->outputStream != NULL) {
         Pa_StopStream(this->outputStream); 
         Pa_CloseStream(this->outputStream);

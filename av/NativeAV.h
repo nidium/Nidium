@@ -120,6 +120,7 @@ enum {
     ERR_DECODING,
     ERR_SEEKING,
     ERR_INTERNAL,
+    ERR_STREAMING_NOT_SUPPORTED,
     ERR_MAX
 };
 
@@ -136,6 +137,7 @@ static const char *NativeAVErrorsStr[ERR_MAX] = {
     "Failed to init audio stream from video",
     "Failed to decode stream",
     "Failed to seek",
+    "Trying to read a file which size is unknown is not yet supported",
     "Internal error"
 }; 
 
