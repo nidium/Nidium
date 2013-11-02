@@ -219,34 +219,3 @@ for (var i=0; i<data.length; i++){
 }
 
 table.body.rows[3].disabled = true;
-
-
-/*
-
-var k = document.getElements();
-
-console.log(k.length)
-
-var f = function(i, element){
-	setTimeout(function(){
-		console.log(i, element.type);
-	}, 150);
-};
-
-var nb = 0;
-
-for (var i=0; i<k.length; i++){
-	nb++;
-	if (k[i].layer.__outofbound === true){
-		f(nb, k[i]);
-	} 
-}
-
-*/
-
-console.log(
-	table.body.rows[20].layer.clientWidth
-);
-
-
-document.layout.updateIndexOfVisibles();
