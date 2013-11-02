@@ -49,7 +49,7 @@ Native.elements.export("UIView", {
 
 	init : function(){
 		var self = this,
-			scrollBarHideDelay = 400,
+			scrollBarHideDelay = 1500,
 			o = this.options;
 
 		if (this.scrollable === true){
@@ -92,16 +92,19 @@ Native.elements.export("UIView", {
 			});
 		};
 
-		var scheduler = function(timer, UIScrollBar){
+		this.startFadeOutTimer = function(UIScrollBar){
 			if (UIScrollBar._fading) return false;
-
 			UIScrollBar._fading = true;
+
+			clearTimeout(UIScrollBar.fadeOutTimer);
 			
-			clearTimeout(self[timer]);
-			
-			self[timer] = setTimeout(function(){
+			UIScrollBar.fadeOutTimer = setTimeout(function(){
 				hideScrollBar(UIScrollBar);
 			}, scrollBarHideDelay);
+		};
+
+		this.killFadeOutTimer = function(UIScrollBar){
+			clearTimeout(UIScrollBar.fadeOutTimer);
 		};
 
 		this.updateScrollTop = function(dy){
@@ -129,7 +132,7 @@ Native.elements.export("UIView", {
 			if (this.height / this.contentHeight < 1) {
 				showScrollBar(UIScrollBar);
 				this.scrollContentY(-dy * 4, function(){
-					scheduler("_scrollYfadeTimer", UIScrollBar);
+					self.startFadeOutTimer(UIScrollBar);
 				});
 			}
 
@@ -161,7 +164,7 @@ Native.elements.export("UIView", {
 			if (this.width / this.contentWidth < 1) {
 				showScrollBar(UIScrollBar);
 				this.scrollContentX(-dx * 4, function(){
-					scheduler("_scrollXfadeTimer", UIScrollBar);
+					self.startFadeOutTimer(UIScrollBar);
 				});
 			}
 
@@ -403,6 +406,33 @@ Native.elements.export("UIView", {
 					height : this.VScrollBar._height
 				}
 			);
+
+			this.VScrollBarHandle.addEventListener("dragstart", function(e){
+				showScrollBar(self.VScrollBar);
+				self.killFadeOutTimer(self.VScrollBar);
+				e.stopPropagation();
+			}, false);
+
+			this.VScrollBarHandle.addEventListener("drag", function(e){
+				var	vh = self._height,
+					sh = self.contentHeight,
+					scale = sh/vh,
+					max = sh-vh,
+					inc = (e.y - this.__top - this.height/2)*scale;
+
+				if (self.scrollTop+inc >= 0 && self.scrollTop+inc <= max){
+					self.scrollTop += inc;
+				} else {
+					if (inc !== 0) self.scrollTop = (inc<0) ? 0 : max;
+				}
+				e.stopPropagation();
+			}, false);
+
+			this.VScrollBarHandle.addEventListener("dragend", function(e){
+				self.startFadeOutTimer(self.VScrollBar);
+				e.stopPropagation();
+			}, false);
+
 		};
 
 		this.createHorizontalScrollBar = function(){
@@ -422,6 +452,33 @@ Native.elements.export("UIView", {
 					height : 8
 				}
 			);
+
+			this.HScrollBarHandle.addEventListener("dragstart", function(e){
+				showScrollBar(self.HScrollBar);
+				self.killFadeOutTimer(self.HScrollBar);
+				e.stopPropagation();
+			}, false);
+
+			this.HScrollBarHandle.addEventListener("drag", function(e){
+				var	vw = self._width,
+					sw = self.contentWidth,
+					scale = sw/vw,
+					max = sw-vw,
+					inc = (e.x - this.__left - this.width/2)*scale;
+
+				if (self.scrollLeft+inc >= 0 && self.scrollLeft+inc <= max){
+					self.scrollLeft += inc;
+				} else {
+					if (inc !== 0) self.scrollLeft = (inc<0) ? 0 : max;
+				}
+				e.stopPropagation();
+			}, false);
+
+			this.HScrollBarHandle.addEventListener("dragend", function(e){
+				self.startFadeOutTimer(self.HScrollBar);
+				e.stopPropagation();
+			}, false);
+
 		};
 
 		if (this.scrollable === true){

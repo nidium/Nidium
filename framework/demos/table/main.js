@@ -10,8 +10,8 @@ document.backgroundImage = "private://assets/patterns/egg_shell.png";
 
 document.nss.add({
 	"UITableView" : {
-		width : 1012,
-		height : 760
+		width : 600,
+		height : 400
 	},
 
 	"UITableHead" : {
@@ -194,7 +194,7 @@ for (var i=0; i<data.length; i++){
 	});
 
 	r.addCell({
-		id : "cx_"+key,
+		id : "cx_"+i,
 		label : "#"+i
 	});
 
