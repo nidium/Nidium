@@ -39,6 +39,14 @@ Native.elements.export("UIView", {
 		}
 	},
 
+	onChildReady : function(child){
+		/* each time a child is added, bringToFront scrollbars */
+		if (this.VScrollBar && this.HScrollBar){
+			this.VScrollBar.bringToFront();
+			this.HScrollBar.bringToFront();
+		}
+	},
+
 	init : function(){
 		var self = this,
 			scrollBarHideDelay = 400,
@@ -75,13 +83,11 @@ Native.elements.export("UIView", {
 			UIScrollBar._fading = false;
 			UIScrollBar.opacity = 1;
 			UIScrollBar.show();
-			UIScrollBar.bringToFront();
 		};
 
 		var hideScrollBar = function(UIScrollBar){
 			UIScrollBar.fadeOut(250, function(){
 				this.hide();
-				this.sendToBack();
 				this._fading = false;
 			});
 		};
@@ -99,7 +105,26 @@ Native.elements.export("UIView", {
 		};
 
 		this.updateScrollTop = function(dy){
-			var UIScrollBar = this.VScrollBar;
+			var UIScrollBar = this.VScrollBar,
+				val = self._scrollTop,
+				max = self.contentHeight - self._height;
+
+			if (val === 0 && max === 0) {
+				// not scrollable, forward ...
+				return false;
+			}
+
+			if (dy>0) {
+				if (val-dy <= 0) {
+					// try to scroll above top, forward ...
+					return false;
+				}
+			} else {
+				if (val-dy >= max) {
+					// try to scroll bellow bottom, forward ...
+					return false;
+				}
+			}
 
 			if (this.height / this.contentHeight < 1) {
 				showScrollBar(UIScrollBar);
@@ -107,17 +132,40 @@ Native.elements.export("UIView", {
 					scheduler("_scrollYfadeTimer", UIScrollBar);
 				});
 			}
+
+			return true;
 		};
 
 		this.updateScrollLeft = function(dx){
-			var UIScrollBar = this.HScrollBar;
+			var UIScrollBar = this.HScrollBar,
+				val = self._scrollLeft,
+				max = self.contentWidth - self._width;
 
+			if (val === 0 && max === 0) {
+				// not scrollable, forward ...
+				return false;
+			}
+
+			if (dx>0) {
+				if (val-dx <= 0) {
+					// try to scroll beyond left limit, forward ...
+					return false;
+				}
+			} else {
+				if (val-dx >= max) {
+					// try to scroll beyond right limit, forward ...
+					return false;
+				}
+			}
+			
 			if (this.width / this.contentWidth < 1) {
 				showScrollBar(UIScrollBar);
 				this.scrollContentX(-dx * 4, function(){
 					scheduler("_scrollXfadeTimer", UIScrollBar);
 				});
 			}
+
+			return true;
 		};
 
 		this.scrollContentY = function(delta, callback){
@@ -385,13 +433,11 @@ Native.elements.export("UIView", {
 		this.addEventListener("mousewheel", function(e){
 			var stop = false;
 			if (this.VScrollBar && e.yrel != 0){
-				this.updateScrollTop(e.yrel);
-				stop = true;
+				stop = this.updateScrollTop(e.yrel);
 			}
 
 			if (this.HScrollBar && e.xrel != 0){
-				this.updateScrollLeft(e.xrel);
-				stop = true;
+				stop = this.updateScrollLeft(e.xrel);
 			}
 
 			if (stop) e.stopPropagation();

@@ -85,6 +85,10 @@ window.events = {
 		});
 	},
 
+	updateEvent : function(event){
+		var self = this;
+	},
+
 	dispatch : function(name, e){
 		var self = this,
 			x = e.x,
@@ -93,7 +97,7 @@ window.events = {
 			cancelBubble = false,
 			cancelEvent = false,
 
-			z = document.getElements();
+			z = document.layout.visibles; //document.getElements();
 
 		e.preventDefault = function(){
 			self.preventdefault = true;
@@ -128,7 +132,9 @@ window.events = {
 
 		document.layout.topElement = false;
 
-		for(var i=z.length-1 ; i>=0 ; i--) {
+		var pro = 0;
+
+		for (var i=z.length-1 ; i>=0 ; i--){
 			var element = z[i];
 			cancelEvent = false;
 
@@ -140,6 +146,8 @@ window.events = {
 				this.preventdefault = false;
 				continue;
 			}
+
+			pro++;
 
 			if (name=='keydown'){
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
@@ -259,6 +267,8 @@ window.events = {
 
 			if (cancelBubble) break;
 		}
+
+		//console.log(pro, "elements");
 
 		if (name=="drag"){
 			e.source = this.sourceElement;
@@ -549,7 +559,10 @@ window._onmousedown = function(e){
 };
 
 window._onmousemove = function(e){
+	//var k = +new Date();
 	window.events.mousemoveEvent(e);
+	//k = +new Date() - k;
+	//console.log(k, "ms");
 	window.onmousemove(e);
 };
 

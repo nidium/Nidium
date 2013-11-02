@@ -396,7 +396,7 @@ NDMElement.method = {
 			x1 = r.left + 1,
 			y1 = r.top + 1,
 			x2 = x1 + r.width,
-			y2 = y1 + r.height;
+			y2 = y1 + r.height - 1;
 
 		if (this.angle != 0){
 			var rad = this.angle * (Math.PI/180),

@@ -8,6 +8,12 @@
 
 /* -------------------------------------------------------------------------- */
 
+console.lazylog = function(m){
+	setTimeout(function(){
+		console.log(m);
+	}, 3000);
+};
+
 document.layout = {
 	objID : 0,
 	nbObj : 0, // Number of elements
@@ -15,6 +21,7 @@ document.layout = {
 
 	nodes : [], // May content several trees of elements
 	elements : [], // Flat representation of node trees
+	visibles : [], // Flat representation of visible elements
 
 	register : function(rootElement){
 		this.nodes.push(rootElement);
@@ -64,6 +71,43 @@ document.layout = {
 
 		this.elements = elements;
 	},
+
+	/*
+	 * Rebuild index of visible elements
+	 */
+	updateIndexOfVisibles : function(){
+		var elements = [],
+			mx = window.width,
+			my = window.height,
+			zc = {},
+			pad = 0,
+			x1 = 0, y1 = 0,
+			x2 = 0, y2 = 0;
+
+		//console.lazylog("nb:" + this.elements.length)
+
+		for (var i=0; i<this.elements.length; i++){
+			zc = this.elements[i].layer;
+			if (zc) {
+				pad = zc.padding;
+				x1 = zc.__left - pad;
+				y1 = zc.__top - pad;
+				x2 = x1 + zc.clientWidth;
+				y2 = y1 + zc.clientHeight;
+
+				if (x2>0 && x1<mx && y2>0 && y1<my) {
+					if (zc.__visible && !zc.__outofbound) {
+						elements.push(this.elements[i]);
+					}
+				}
+			}
+		}
+
+		//console.lazylog("visible:" + elements.length)
+
+		this.visibles = elements;
+	},
+
 
 	find : function(property, value){
 		var elements = [],

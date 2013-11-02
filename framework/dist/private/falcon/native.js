@@ -76,6 +76,8 @@ load(__PATH_KERNEL__ + 'document.nss.js');
 load(__PATH_LAYOUT__ + 'UIElement.js');
 load(__PATH_LAYOUT__ + 'UIView.js');
 load(__PATH_LAYOUT__ + 'UIListView.js');
+load(__PATH_LAYOUT__ + 'UITableView.js');
+
 load(__PATH_LAYOUT__ + 'UIPath.js');
 load(__PATH_LAYOUT__ + 'UILabel.js');
 
@@ -280,6 +282,9 @@ Native.core = {
 	drawLayout : function(){
 		document.layout.draw();
 		window.events.tick();
+		this.timer = setInterval(function(){
+			document.layout.updateIndexOfVisibles();
+		}, 64);
 	}
 };
 

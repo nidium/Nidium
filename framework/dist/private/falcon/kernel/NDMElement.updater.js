@@ -63,6 +63,7 @@ NDMElement.updater = function(e){
 		case "hover" :
 		case "selected" :
 		case "className" :
+		case "even" :
 			element.applyStyleSheet();
 			element.applyInlineProperties();
 			element._needOpacityUpdate = true;

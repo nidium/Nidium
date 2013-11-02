@@ -155,6 +155,7 @@ var NDMElement = function(type, options, parent){
 		scrollBarY : OptionalBoolean(o.scrollBarY, false),
 		position : OptionalPosition(o.position, "relative"),
 
+		even : false,
 		hover : false,
 		hasFocus : false,
 
