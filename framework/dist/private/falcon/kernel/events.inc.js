@@ -132,22 +132,20 @@ window.events = {
 
 		document.layout.topElement = false;
 
-		var pro = 0;
-
 		for (var i=z.length-1 ; i>=0 ; i--){
 			var element = z[i];
 			cancelEvent = false;
 
+			/*
 			if (!element.layer || !element.layer.__visible) {
 				continue;
 			}
+			*/
 
 			if (this.preventdefault && element == document) {
 				this.preventdefault = false;
 				continue;
 			}
-
-			pro++;
 
 			if (name=='keydown'){
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
@@ -267,8 +265,6 @@ window.events = {
 
 			if (cancelBubble) break;
 		}
-
-		//console.log(pro, "elements");
 
 		if (name=="drag"){
 			e.source = this.sourceElement;
@@ -559,10 +555,7 @@ window._onmousedown = function(e){
 };
 
 window._onmousemove = function(e){
-	//var k = +new Date();
 	window.events.mousemoveEvent(e);
-	//k = +new Date() - k;
-	//console.log(k, "ms");
 	window.onmousemove(e);
 };
 
