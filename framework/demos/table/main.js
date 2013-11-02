@@ -62,15 +62,6 @@ table.setHead([
 ]);
 
 
-/* ------------------------------------------------------ */
-
-/*
-BringToFront du scrollBar lorsqu'un truc est rajouté
-dans un UIView Scrollable
-*/
-
-
-
 var data = [
 	{ name : "Myrath",			score : 768, progress : "95%" },
 	{ name : "SymphonyX",		score : 573, progress : "19%" },
