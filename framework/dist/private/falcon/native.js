@@ -74,12 +74,12 @@ load(__PATH_KERNEL__ + 'document.nss.js');
 /* -- UI Elements -- */
 
 load(__PATH_LAYOUT__ + 'UIElement.js');
+load(__PATH_LAYOUT__ + 'UILabel.js');
 load(__PATH_LAYOUT__ + 'UIView.js');
 load(__PATH_LAYOUT__ + 'UIListView.js');
 load(__PATH_LAYOUT__ + 'UITableView.js');
 
 load(__PATH_LAYOUT__ + 'UIPath.js');
-load(__PATH_LAYOUT__ + 'UILabel.js');
 
 load(__PATH_LAYOUT__ + 'Icon.js');
 

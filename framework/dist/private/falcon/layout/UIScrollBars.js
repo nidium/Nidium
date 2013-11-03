@@ -58,8 +58,6 @@ Native.elements.export("UIScrollBar", {
 
 Native.elements.export("UIScrollBarHandle", {
 	init : function(){
-		var o = this.options;
-
 		this.hidden = this.parent ? this.parent.hidden : false;
 	},
 

@@ -49,6 +49,11 @@ document.nss.add({
 	"UITableRow:disabled+hover" : {
 		background : "#aaaaaa",
 		cursor : "arrow"
+	},
+
+	"UITableCell" : {
+		color : "red",
+		background : null
 	}
 });
 
@@ -109,7 +114,7 @@ Native.elements.extend("UIView").export("UITableView", {
 			for (var i=0; i<cells.length; i++){
 				var cell = cells[i];
 
-				this.head.cells[i] = new UILabel(this.head, {
+				this.head.cells[i] = new UITableCell(this.head, {
 					top : 0,
 					left : left,
 					autowidth : false,
@@ -150,7 +155,7 @@ Native.elements.extend("UIElement").export("UITableHead", {
 			e.forcePropagation();
 		}, true);
 	},
-	
+
 	draw : function(context){
 		var	params = this.getDrawingBounds();
 
@@ -209,7 +214,7 @@ Native.elements.extend("UIElement").export("UITableRow", {
 
 			if (!headCell) throw "Table Head mismatch";
 
-			var cell = new UILabel(this, {
+			var cell = new UITableCell(this, {
 				top : 0,
 				left : headCell.left,
 				height : this.height,
@@ -242,5 +247,21 @@ Native.elements.extend("UIElement").export("UITableRow", {
 			e.forcePropagation();
 		}, true);
 
+	}
+});
+
+Native.elements.extend("UILabel").export("UITableCell", {
+	init : function(){
+		this.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("drag", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("dragend", function(e){
+			e.forcePropagation();
+		}, true);
 	}
 });

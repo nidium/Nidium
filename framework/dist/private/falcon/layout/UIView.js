@@ -184,12 +184,12 @@ Native.elements.export("UIView", {
 		};
 
 		/* incremental scrollLeft */
-		this.dxScroll = function(dx, smooth){
+		this.dxScroll = function(dx, smooth, scaling=1){
 			var	vw = this._width,
 				sw = this.contentWidth,
 				scale = sw/vw,
 				max = sw-vw,
-				inc = dx*scale;
+				inc = dx*scale*scaling;
 
 			if (smooth) {
 				this.__animateScrollX(inc);
@@ -207,12 +207,12 @@ Native.elements.export("UIView", {
 		};
 
 		/* incremental scrollTop */
-		this.dyScroll = function(dy, smooth){
+		this.dyScroll = function(dy, smooth, scaling=1){
 			var vh = this._height,
 				sh = this.contentHeight,
 				scale = sh/vh,
 				max = sh-vh,
-				inc = dy*scale;
+				inc = dy*scale*scaling;
 
 			if (smooth) {
 				this.__animateScrollY(inc);
@@ -235,9 +235,9 @@ Native.elements.export("UIView", {
 		};
 
 		/* animate content scroll to relative (dx, dy) */
-		this.slideBy = function(dx, dy){
-			this.dxScroll(dx, true);
-			this.dyScroll(dy, true);
+		this.slideBy = function(dx, dy, scaling){
+			this.dxScroll(dx, true, scaling);
+			this.dyScroll(dy, true, scaling);
 			return this;
 		};
 
@@ -556,7 +556,7 @@ Native.elements.export("UIView", {
 		}
 
 		this.addEventListener("dragstart", function(e){
-			if (this.spacedrag === false) {
+			if (!this.spacedrag || !e.spaceKeyDown) {
 				e.forcePropagation();
 				return true;
 			}
@@ -571,17 +571,12 @@ Native.elements.export("UIView", {
 		}, false);
 
 		this.addEventListener("drag", function(e){
-			if (this.spacedrag === false) {
+			if (!this.dragging || !e.spaceKeyDown || !this.spacedrag) {
 				e.forcePropagation();
 				return true;
 			}
 
-			if (!this.dragging) return false;
-			if (e.spaceKeyDown === false) {
-				return false;
-			}
-
-			this.slideBy(-e.xrel, -e.yrel);
+			this.slideBy(e.xrel, e.yrel, 0.5);
 
 			showScrollBar(self.HScrollBar);
 			showScrollBar(self.VScrollBar);
@@ -589,7 +584,7 @@ Native.elements.export("UIView", {
 		}, false);
 
 		this.addEventListener("dragend", function(e){
-			if (this.spacedrag === false) {
+			if (!this.spacedrag) {
 				e.forcePropagation();
 				return true;
 			}
