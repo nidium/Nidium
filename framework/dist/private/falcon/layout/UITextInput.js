@@ -741,12 +741,12 @@ Native.elements.export("UITextInput", {
 
 		this.scrollToLineStart = function(){
 			var pos = this.parent.scrollLeft;
-			this.parent.updateScrollLeft(pos);
+			this.parent.animateScrollLeft(pos);
 		};
 
 		this.scrollToLineEnd = function(){
 			var pos = this.width;
-			this.parent.updateScrollLeft(-pos);
+			this.parent.animateScrollLeft(-pos);
 		};
 
 		/* ------------------------------------------------------------------ */

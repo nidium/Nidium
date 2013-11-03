@@ -10,8 +10,8 @@ document.backgroundImage = "private://assets/patterns/egg_shell.png";
 
 document.nss.add({
 	"UITableView" : {
-		width : 1000,
-		height : 700
+		width : 600,
+		height : 500
 	},
 
 	"UITableHead" : {

@@ -57,6 +57,8 @@ Native.elements.export("UIView", {
 			this.scrollBarY = o.scrollBarY === false ? false : true;
 		}
 
+		this.spacedrag = true;
+
 		this.setBackgroundURL = function(url){
 			if (url) {
 				self._cachedBackgroundImage = null;
@@ -74,8 +76,14 @@ Native.elements.export("UIView", {
 			self.__refresh();
 		};
 
+		/* -- SCROLL RELATED METHODS ---------------------------------------- */
+
 		this.getMaxScrollTop = function(){
 			return this.scrollable ? this.layer.contentHeight - this.height : 0;
+		};
+
+		this.getMaxScrollLeft = function(){
+			return this.scrollable ? this.layer.contentWidth - this.width : 0;
 		};
 
 		var showScrollBar = function(UIScrollBar){
@@ -107,10 +115,10 @@ Native.elements.export("UIView", {
 			clearTimeout(UIScrollBar.fadeOutTimer);
 		};
 
-		this.updateScrollTop = function(dy){
+		this.animateScrollTop = function(dy){
 			var UIScrollBar = this.VScrollBar,
-				val = self._scrollTop,
-				max = self.contentHeight - self._height;
+				val = this._scrollTop,
+				max = this.getMaxScrollTop();
 
 			if (val === 0 && max === 0) {
 				// not scrollable, forward ...
@@ -120,18 +128,20 @@ Native.elements.export("UIView", {
 			if (dy>0) {
 				if (val-dy <= 0) {
 					// try to scroll above top, forward ...
+					this.scrollTop = 0;
 					return false;
 				}
 			} else {
 				if (val-dy >= max) {
 					// try to scroll bellow bottom, forward ...
+					this.scrollTop = max;
 					return false;
 				}
 			}
 
-			if (this.height / this.contentHeight < 1) {
+			if (this.height < this.contentHeight) {
 				showScrollBar(UIScrollBar);
-				this.scrollContentY(-dy * 4, function(){
+				this.__animateScrollY(-dy * 4, function(){
 					self.startFadeOutTimer(UIScrollBar);
 				});
 			}
@@ -139,10 +149,10 @@ Native.elements.export("UIView", {
 			return true;
 		};
 
-		this.updateScrollLeft = function(dx){
+		this.animateScrollLeft = function(dx){
 			var UIScrollBar = this.HScrollBar,
-				val = self._scrollLeft,
-				max = self.contentWidth - self._width;
+				val = this._scrollLeft,
+				max = this.getMaxScrollLeft();
 
 			if (val === 0 && max === 0) {
 				// not scrollable, forward ...
@@ -152,18 +162,20 @@ Native.elements.export("UIView", {
 			if (dx>0) {
 				if (val-dx <= 0) {
 					// try to scroll beyond left limit, forward ...
+					this.scrollLeft = 0;
 					return false;
 				}
 			} else {
 				if (val-dx >= max) {
 					// try to scroll beyond right limit, forward ...
+					this.scrollLeft = max;
 					return false;
 				}
 			}
 			
-			if (this.width / this.contentWidth < 1) {
+			if (this.width < this.contentWidth) {
 				showScrollBar(UIScrollBar);
-				this.scrollContentX(-dx * 4, function(){
+				this.__animateScrollX(-dx * 4, function(){
 					self.startFadeOutTimer(UIScrollBar);
 				});
 			}
@@ -171,10 +183,86 @@ Native.elements.export("UIView", {
 			return true;
 		};
 
-		this.scrollContentY = function(delta, callback){
+		/* incremental scrollLeft */
+		this.dxScroll = function(dx, smooth){
+			var	vw = this._width,
+				sw = this.contentWidth,
+				scale = sw/vw,
+				max = sw-vw,
+				inc = dx*scale;
+
+			if (smooth) {
+				this.__animateScrollX(inc);
+			} else {
+			
+				if (this.scrollLeft+inc >= 0 && this.scrollLeft+inc <= max){
+					this.scrollLeft += inc;
+				} else {
+					if (inc !== 0) this.scrollLeft = (inc<0) ? 0 : max;
+				}
+
+			}
+
+			return this;
+		};
+
+		/* incremental scrollTop */
+		this.dyScroll = function(dy, smooth){
+			var vh = this._height,
+				sh = this.contentHeight,
+				scale = sh/vh,
+				max = sh-vh,
+				inc = dy*scale;
+
+			if (smooth) {
+				this.__animateScrollY(inc);
+			} else {
+
+				if (this.scrollTop+inc >= 0 && this.scrollTop+inc <= max){
+					this.scrollTop += inc;
+				} else {
+					if (inc !== 0) this.scrollTop = (inc<0) ? 0 : max;
+				}
+
+			}
+		};
+
+		/* set content scroll to relative (dx, dy) - no animation */
+		this.scrollBy = function(dx, dy){
+			this.dxScroll(dx, false);
+			this.dyScroll(dy, false);
+			return this;
+		};
+
+		/* animate content scroll to relative (dx, dy) */
+		this.slideBy = function(dx, dy){
+			this.dxScroll(dx, true);
+			this.dyScroll(dy, true);
+			return this;
+		};
+
+		/* set content scroll to absolute (x, y) - no animation */
+		this.scrollTo = function(x, y){
+			var dx = x-this.scrollLeft,
+				dy = y-this.scrollTop;
+			this.dxScroll(dx, false);
+			this.dyScroll(dy, false);
+			return this;
+		};
+
+		/* animate content scroll to absolute (x, y) */
+		this.slideTo = function(x, y){
+			var dx = x-this.scrollLeft,
+				dy = y-this.scrollTop;
+			this.dxScroll(dx, true);
+			this.dyScroll(dy, true);
+			return this;
+		};
+
+		this.__animateScrollY = function(delta, callback){
 			var self = this,
 				fn = OptionalCallback(callback),
-				max = self.contentHeight - self._height,
+				max = this.getMaxScrollTop(),
 				slice = 10,
 				step = 5,
 				dec = 0.98;
@@ -250,7 +338,7 @@ Native.elements.export("UIView", {
 			return true;
 		};
 
-		this.scrollContentX = function(delta, callback){
+		this.__animateScrollX = function(delta, callback){
 			var self = this,
 				fn = OptionalCallback(callback),
 				max = self.contentWidth - self._width,
@@ -389,36 +477,6 @@ Native.elements.export("UIView", {
 			this.refreshHorizontalScrollBar();
 		};
 
-		this.scrollX = function(e){
-			var	handle = this.HScrollBarHandle,
-				vw = this._width,
-				sw = this.contentWidth,
-				scale = sw/vw,
-				max = sw-vw,
-				inc = (e.x - handle.__left - handle.width/2)*scale;
-
-			if (this.scrollLeft+inc >= 0 && this.scrollLeft+inc <= max){
-				this.scrollLeft += inc;
-			} else {
-				if (inc !== 0) this.scrollLeft = (inc<0) ? 0 : max;
-			}
-		};
-
-		this.scrollY = function(e){
-			var	handle = this.VScrollBarHandle,
-				vh = this._height,
-				sh = this.contentHeight,
-				scale = sh/vh,
-				max = sh-vh,
-				inc = (e.y - handle.__top - handle.height/2)*scale;
-
-			if (this.scrollTop+inc >= 0 && this.scrollTop+inc <= max){
-				this.scrollTop += inc;
-			} else {
-				if (inc !== 0) this.scrollTop = (inc<0) ? 0 : max;
-			}
-		};
-
 		this.createVerticalScrollBar = function(){
 			if (this.VScrollBar) return false;
 			this.VScrollBar = this.add("UIScrollBar", {
@@ -444,7 +502,7 @@ Native.elements.export("UIView", {
 			}, false);
 
 			this.VScrollBarHandle.addEventListener("drag", function(e){
-				self.scrollY(e);
+				self.dyScroll(e.y - this.__top - this.height/2, false);
 				e.stopPropagation();
 			}, false);
 
@@ -480,7 +538,7 @@ Native.elements.export("UIView", {
 			}, false);
 
 			this.HScrollBarHandle.addEventListener("drag", function(e){
-				self.scrollX(e);
+				this.dxScroll(e.x - this.__left - this.width/2, false);
 				e.stopPropagation();
 			}, false);
 
@@ -498,34 +556,45 @@ Native.elements.export("UIView", {
 		}
 
 		this.addEventListener("dragstart", function(e){
-			this.dragging = true;
+			if (this.spacedrag === false) {
+				e.forcePropagation();
+				return true;
+			}
 
+			this.dragging = true;
 			showScrollBar(self.HScrollBar);
 			self.killFadeOutTimer(self.HScrollBar);
 
 			showScrollBar(self.VScrollBar);
 			self.killFadeOutTimer(self.VScrollBar);
-
-			console.log("start");
+			e.stopPropagation();
 		}, false);
 
 		this.addEventListener("drag", function(e){
+			if (this.spacedrag === false) {
+				e.forcePropagation();
+				return true;
+			}
+
 			if (!this.dragging) return false;
 			if (e.spaceKeyDown === false) {
 				return false;
 			}
 
-			this.scrollX(e);
-			this.scrollY(e);
-			showScrollBar(self.VScrollBar);
-			showScrollBar(self.VScrollBar);
+			this.slideBy(-e.xrel, -e.yrel);
 
+			showScrollBar(self.HScrollBar);
+			showScrollBar(self.VScrollBar);
 			e.stopPropagation();
 		}, false);
 
 		this.addEventListener("dragend", function(e){
+			if (this.spacedrag === false) {
+				e.forcePropagation();
+				return true;
+			}
+
 			this.dragging = false;
-			console.log("end");
 			self.startFadeOutTimer(self.HScrollBar);
 			self.startFadeOutTimer(self.VScrollBar);
 			e.stopPropagation();
@@ -535,11 +604,11 @@ Native.elements.export("UIView", {
 		this.addEventListener("mousewheel", function(e){
 			var stop = false;
 			if (this.VScrollBar && e.yrel != 0){
-				stop = this.updateScrollTop(e.yrel);
+				stop = this.animateScrollTop(e.yrel);
 			}
 
 			if (this.HScrollBar && e.xrel != 0){
-				stop = this.updateScrollLeft(e.xrel);
+				stop = this.animateScrollLeft(e.xrel);
 			}
 
 			if (stop) e.stopPropagation();
