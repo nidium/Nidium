@@ -35,7 +35,7 @@ var NatBug = {
 			this.createApp(x, y);
 			this.createTabController();
 
-			Native.showFPS(true);
+			//Native.showFPS(true);
 			Native.FPS.init();
 		}
 	},
@@ -100,11 +100,12 @@ var NatBug = {
 
 		this.tabController = new UITabController(this.application, {
 			name : "NatBugTabController",
-			tabs : myTabs,
 			left : 0,
 			top : 3,
 			height : 34
 		});
+
+		this.tabController.setTabs(myTabs);
 
 		this.tabController.addEventListener("tabselect", function(e){
 			var selectedView = e.tab.target,
@@ -724,15 +725,16 @@ Canvas.prototype.debug = function(){
 	}
 
 	if (__DEBUG_SHOW_LAYERS__){
-		if (this.host && this.host.hover){
-			context.fillStyle = "rgba(180, 180, 50, 0.15)";
-			context.strokeStyle = "rgba(180, 180, 255, 0.45)";
-		} else {
-			context.fillStyle = "rgba(180, 180, 0, 0.04)";
-			context.strokeStyle = "rgba(180, 180, 0, 0.08)";
-		}
 
 		var padding = this.host.layer ? this.host.layer.padding : 0;
+
+		if (this.host.hover){
+			context.fillStyle = "rgba(60, 180, 255, 0.05)";
+			context.strokeStyle = "rgba(60, 180, 255, 0.75)";
+		} else {
+			context.fillStyle = "rgba(180, 180, 0, 0.0)";
+			context.strokeStyle = "rgba(180, 180, 0, 0.0)";
+		}
 
 		context.fillRect(
 			-this.padding, 
@@ -814,5 +816,4 @@ Native.FPS = {
 	}
 };
 
-NatBug.init();
-
+//NatBug.init();

@@ -501,6 +501,7 @@ NDMElement.implement({
 Object.attachEventSystem = function(proto){
 	proto.addEventListener = function(name, callback, propagation){
 		var self = this;
+		self.events = self.events ? self.events : {};
 		self._eventQueues = self._eventQueues ? self._eventQueues : [];
 		var queue = self._eventQueues[name];
 
@@ -514,7 +515,7 @@ Object.attachEventSystem = function(proto){
 			response : null
 		});
 
-		self["on"+name] = function(e){
+		self.events["on"+name] = function(e){
 			for(var i=queue.length-1; i>=0; i--){
 				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
@@ -530,19 +531,21 @@ Object.attachEventSystem = function(proto){
 			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
 
-		if (typeof this["on"+name] == 'function'){
+		this.events = this.events ? this.events : {};
+
+		if (typeof this.events["on"+name] == 'function'){
 			if (e !== undefined){
 				e.dx = e.xrel;
 				e.dy = e.yrel;
 				e.refuse = function(){
 					acceptedEvent = false;
 				};
-				listenerResponse = this["on"+name](e);
+				listenerResponse = this.events["on"+name](e);
 				if (cb && acceptedEvent) cb.call(this);
 
 				return OptionalBoolean(listenerResponse, true);
 			} else {
-				listenerResponse = this["on"+name]();
+				listenerResponse = this.events["on"+name]();
 			}
 		} else {
 			if (cb) cb.call(this);

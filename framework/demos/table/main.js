@@ -62,225 +62,77 @@ table.setHead([
 ]);
 
 
-var data = [
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-	{ name : "Dream Theater",	score : 427, progress : "23%" },
-	{ name : "Toto",			score : 231, progress : "48%" },
-	{ name : "Myrath",			score : 768, progress : "95%" },
-	{ name : "SymphonyX",		score : 573, progress : "19%" },
-];
+var feed = function(data){
+	for (var i=0; i<data.length; i++){
+		var row = data[i];
 
+		var r = table.addRow({
+			id : "rx"+i
+		});
 
-for (var i=0; i<data.length; i++){
-	var row = data[i];
-
-	var r = table.addRow({
-		id : "rx"+i
-	});
-
-	r.click(function(e){
-		if (this.disabled) return false;
-		this.selected = !this.selected;
-	});
-
-	r.addCell({
-		id : "cx_"+i,
-		label : "#"+i
-	});
-
-	for (var key in row){
-		var value = row[key];
+		r.click(function(e){
+			if (this.disabled) return false;
+			this.selected = !this.selected;
+		});
 
 		r.addCell({
-			id : "cx_"+key,
-			label : value
+			id : "cx"+i,
+			label : "#"+i
 		});
+
+		for (var key in row){
+			var value = row[key];
+
+			r.addCell({
+				id : "cx"+key,
+				label : value
+			});
+		}
+
 	}
 
-}
+	table.body.rows[3].disabled = true;
+	table.invertScrollDirection();
+	table.invertScrollDirection();
+	table.spacedrag = true;
 
-table.body.rows[3].disabled = true;
+	var r6 = table.body.rows[6],
+		cell_6x1 = r6.cells[1];
 
-var cell_6x1 = table.body.rows[6].cells[1];
-cell_6x1.label = "";
-cell_6x1.add("UISliderController").move(0, 8);
+	cell_6x1.label = "";
+	var g = cell_6x1.add("UISliderController").move(0, 8);
+	g.value = 50;
+	g.height = 30;
+
+
+	/*
+	r6.left = 40;
+	r6.top = 0;
+	r6.background = "red";
+	*/
+
+
+	var m = r6.cloneNode(true);
+	console.log(m.id, "rooted:", m.rooted, "parent:", m.parent ? m.parent.id : null);
+
+	m.move(0, -60);
+	m.background = "red";
+
+	for (var i=0; i<m.nodes.length; i++) {
+		console.log(m.nodes[i].type, m.nodes[i].id, m.nodes[i].parent.id);
+	}
+
+	console.log("-------------------");
+	var p = table.body.rows[6].cells[0];
+	for (var i in p) {
+		//console.log(i, ":", typeof p[i]);
+	}
+
+	NatBug.init();
+
+};
+
+File.getText("data.json", function(text){
+	var data = JSON.parse(text);
+	feed(data);
+});

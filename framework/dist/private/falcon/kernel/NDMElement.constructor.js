@@ -22,6 +22,7 @@ var NDMElement = function(type, options, parent){
 
 	this.parent = p;
 	this.nodes = []; // children elements
+	this.events = {}; // element's events
 	
 	/* Read Only Properties */
 	NDMElement.defineReadOnlyProperties(this, {

@@ -57,8 +57,6 @@ Native.elements.export("UIView", {
 			this.scrollBarY = o.scrollBarY === false ? false : true;
 		}
 
-		this.spacedrag = true;
-
 		this.setBackgroundURL = function(url){
 			if (url) {
 				self._cachedBackgroundImage = null;
@@ -77,6 +75,13 @@ Native.elements.export("UIView", {
 		};
 
 		/* -- SCROLL RELATED METHODS ---------------------------------------- */
+
+		this.spacedrag = true;
+		this.__scrolldir__ = 1;
+
+		this.invertScrollDirection = function(){
+			this.__scrolldir__ = -this.__scrolldir__;
+		};
 
 		this.getMaxScrollTop = function(){
 			return this.scrollable ? this.layer.contentHeight - this.height : 0;
@@ -538,7 +543,7 @@ Native.elements.export("UIView", {
 			}, false);
 
 			this.HScrollBarHandle.addEventListener("drag", function(e){
-				this.dxScroll(e.x - this.__left - this.width/2, false);
+				self.dxScroll(e.x - this.__left - this.width/2, false);
 				e.stopPropagation();
 			}, false);
 
@@ -556,7 +561,7 @@ Native.elements.export("UIView", {
 		}
 
 		this.addEventListener("dragstart", function(e){
-			if (!this.spacedrag || !e.spaceKeyDown) {
+			if (!this.scrollable || !this.spacedrag || !e.spaceKeyDown) {
 				e.forcePropagation();
 				return true;
 			}
@@ -571,12 +576,16 @@ Native.elements.export("UIView", {
 		}, false);
 
 		this.addEventListener("drag", function(e){
-			if (!this.dragging || !e.spaceKeyDown || !this.spacedrag) {
+			if (!this.dragging) {
 				e.forcePropagation();
 				return true;
 			}
 
-			this.slideBy(e.xrel, e.yrel, 0.5);
+			this.slideBy(
+				e.xrel * this.__scrolldir__,
+				e.yrel * this.__scrolldir__,
+				0.5
+			);
 
 			showScrollBar(self.HScrollBar);
 			showScrollBar(self.VScrollBar);
@@ -584,7 +593,7 @@ Native.elements.export("UIView", {
 		}, false);
 
 		this.addEventListener("dragend", function(e){
-			if (!this.spacedrag) {
+			if (!this.dragging) {
 				e.forcePropagation();
 				return true;
 			}
@@ -599,11 +608,11 @@ Native.elements.export("UIView", {
 		this.addEventListener("mousewheel", function(e){
 			var stop = false;
 			if (this.VScrollBar && e.yrel != 0){
-				stop = this.animateScrollTop(e.yrel);
+				stop = this.animateScrollTop(e.yrel * this.__scrolldir__);
 			}
 
 			if (this.HScrollBar && e.xrel != 0){
-				stop = this.animateScrollLeft(e.xrel);
+				stop = this.animateScrollLeft(e.xrel * this.__scrolldir__);
 			}
 
 			if (stop) e.stopPropagation();
