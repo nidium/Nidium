@@ -146,18 +146,14 @@ NDMElement.method = {
 
 			parent.addChild(clone);
 
-		for (var i in element){
-			if (element.hasOwnProperty(i)) {
-				if (i.in("height", "width", "min", "max", "value")) {
-					clone[i] = element[i];
+			/* unfinished ... */
+			for (var i in element){
+				if (element.hasOwnProperty(i)) {
+					if (i.in("height", "width", "min", "max", "value")) {
+						clone[i] = element[i];
+					}
 				}
 			}
-		}
-
-
-	if (element.type == "UISliderController") {
-		console.log(element.height, element.inline.height, clone.height, clone.inline.height);
-	}
 
 			if (deep && element.firstChild) {
 				for (var i=0; i<n; i++){
