@@ -8,7 +8,7 @@ def makePreload():
     cwd = os.getcwd()
     os.chdir(deps.CWD)
 
-    deps.logd("Building preload.h")
+    deps.logstep("Building preload.h")
     os.chdir("scripts")
 
     inFile = open("preload.js", "r")
@@ -25,6 +25,8 @@ def makePreload():
 
     inFile.close()
     outFile.close()
+    
+    deps.logsuccess("preload.h successfully built")
 
     os.chdir(cwd)
 
@@ -37,7 +39,8 @@ def buildSDL2():
 
 def downloadSkia():
     if deps.needDownload("skia", "skia"):
-        deps.runCommand("Downloading skia", "depot_tools/gclient sync --gclientfile=gclient_skia")
+        logstep("Downloading skia")
+        deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
     deps.patchDep("skia", "../gyp/skia_defines.patch")
@@ -151,3 +154,163 @@ def registerDeps():
     deps.registerDep("preload", 
          None,
          makePreload)
+
+    deps.registerDep("breakpad",
+        partial(deps.downloadDep, "breakpad", deps.depsURL + "/breakpad.tar.gz"),
+        partial(deps.buildDep, "libbreakpad_client", "breakpad", ["./configure", "make"], outlibs=["breakpad/src/client/linux/libbreakpad_client"]))
+
+    deps.registerPostAction(releaseActionRegister, releaseAction);
+
+def releaseActionRegister(parser):
+    deps.gypArgs += " -Dnative_enable_breakpad=1"
+    parser.add_option("--release", dest="release", action="store_true", default=False, help="Publish a release")
+
+def releaseAction(opt):
+    import os
+    if opt.release is False:
+        return
+
+    # This is a little hack to be able to display upload progress
+    class fakeFile():
+        def __init__(self, data):
+            self._data = data
+            self._total = len(data)
+            self._pos = 0
+            self._args = 'fakeFile'
+            self._gen = deps.spinningCursor()
+
+        def __len__(self):
+            return self._total
+
+        def read(self, size):
+            if self._pos > self._total:
+                self._pos = self._total;
+
+            data = self._data[self._pos:self._pos + size]
+
+            c = next(self._gen)
+            status = r"%10d  [%3.2f%%]" % (self._pos, self._pos * 100. / self._total)
+            status = status + chr(8)*(len(status)+1)
+            deps.logspinner(c, status)
+            sys.stdout.flush()
+
+            self._pos += size
+
+            return data 
+
+    # Utilities function to post multipart form data 
+    # inspired from http://code.activestate.com/recipes/146306/
+    import urllib2, mimetypes
+
+    def post_multipart(host, selector, fields, files):
+        content_type, body = encode_multipart_formdata(fields, files)
+        stream = fakeFile(body)
+        req = urllib2.Request("http://" + host + selector, stream, {"Content-Type": content_type})
+        res = urllib2.urlopen(req)
+        return res.read()
+
+    def encode_multipart_formdata(fields, files):
+        BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
+        CRLF = '\r\n'
+        L = []
+        for (key, value) in fields:
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"' % key)
+            L.append('')
+            L.append(value)
+        for (key, filename, value) in files:
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+            L.append('Content-Type: %s' % get_content_type(filename))
+            L.append('')
+            L.append(value)
+        L.append('--' + BOUNDARY + '--')
+        L.append('')
+        body = CRLF.join(L)
+        content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+        return content_type, body
+
+    def get_content_type(filename):
+        return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+    symFile = "gyp/nidium.sym"
+    deps.logstep("Producing application symbols for breakpad")
+    deps.runCommand(deps.THIRD_PARTY + "breakpad/src/tools/linux/dump_syms/dump_syms framework/dist/nidium > " + symFile)
+    deps.logstep("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
+    symbols = open(symFile, "rb").read()
+    reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
+
+    if reply == "OK":
+        os.unlink(symFile)
+        print ""
+        deps.logok()
+    else:
+        deps.logerror()
+        deps.loge("Failed to upload symbols : " + reply)
+
+    stripExecutable()
+    packageExecutable()
+
+def stripExecutable():
+    deps.logstep("Striping executable")
+    if deps.system == "Darwin":
+        # TODO
+        print("TODO")
+    elif deps.system == "Linux":
+        deps.runCommand("strip framework/dist/nidium")
+    else:
+        # Window TODO
+        print("TODO")
+
+def packageExecutable():
+    import time
+    import subprocess
+    from zipfile import ZipFile
+
+    datetime = time.strftime("%Y%m%d_%H%M%S")
+    hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    name = "Nidium_%s_%s_%s.zip" % (datetime, deps.system, hash)
+    path = "framework/dist/"
+
+    deps.logstep("Packaging executable")
+    deps.logi(name)
+    deps.startSpinner()
+    with ZipFile(path + name, 'w') as myzip:
+        if deps.system == "Darwin":
+            print("TODO")
+        elif deps.system == "Linux":
+            myzip.write("framework/dist/nidium")
+            myzip.write("framework/dist/nidium-crash-reporter")
+        else:
+            # Window TODO
+            print("TODO")
+
+    deps.stopSpinner()
+    deps.logok()
+
+    uploadExecutable(path, name)
+
+def uploadExecutable(path, name):
+    import ftplib
+    from pprint import pprint
+    
+    args = {"gen": deps.spinningCursor(), "pos": 0, "total": os.stat(path + name).st_size} 
+
+    def callback(data):
+        args["pos"] += 1024 
+
+        c = next(args["gen"])
+        status = r"%10d  [%3.2f%%]" % (args["pos"], args["pos"] * 100. / args["total"])
+        status = status + chr(8)*(len(status)+1)
+        deps.logspinner(c, status)
+
+    deps.logstep("Uploading executable")
+
+    s = ftplib.FTP("nidium.com", "nidium", "i8V}8B833G51gZJ")
+    f = open(path + name, 'rb')
+    s.storbinary("STOR release/" + name, f, 1024, callback)
+
+    print ""
+    deps.logok()
+    deps.logi("Executable uploaded to http://release.nidium.com/" + name)
+

@@ -4,7 +4,7 @@
         'type': 'executable',
 		'mac_bundle': 1,
         'product_dir': '../framework/dist/',
-'dependencies': [
+        'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork',
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
@@ -16,6 +16,7 @@
             '<(native_src_path)',
             '<(native_network_path)',
             '<(native_interface_path)',
+            '<(third_party_path)/breakpad/src/',
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
             '<(third_party_path)/http-parser/',
@@ -56,7 +57,8 @@
                         '-lz',
                         '-ldl',
 
-                        '-Wl,-Bstatic '
+                        '-Wl,-Bstatic ',
+                        '-lbreakpad_client',
                         '-lSDL2',
                         '-lzip',
                         '-lcares',

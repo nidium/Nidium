@@ -1,5 +1,6 @@
 {
     'variables' : {
+        'native_version': '0.1',
         'native_webgl%': 0,
         'native_audio%': 1,
 
@@ -17,6 +18,7 @@
         'native_output%': '../out/',
         'native_interface%': 'auto', 
         'addresse_sanitizer%': 0,
+        'native_enable_breakpad%': 0,
 
         # Linux build only
         'native_use_gtk': 1,
@@ -25,6 +27,5 @@
         # thoses settings are not working
         'native_third_party_build': 'debug',
         'native_autoconf_path%': '/usr/bin/autoconf2.13',
-
     },
 }

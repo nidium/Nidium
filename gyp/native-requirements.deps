@@ -15,5 +15,6 @@ gyp
 leveldb
 angle
 preload
+breakpad
 native-requirements.py
 ../nativejscore/gyp/nativejscore-requirements.deps

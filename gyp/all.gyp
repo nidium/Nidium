@@ -8,6 +8,7 @@
             'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
             'app.gyp:nidium',
+            'crashreporter.gyp:nidium-crash-reporter',
             '../nativejscore/gyp/nativejscore.gyp:nativejscore'
         ],
         'conditions': [

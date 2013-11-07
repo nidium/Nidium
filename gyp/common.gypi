@@ -119,6 +119,9 @@
             }
         },
         'conditions': [
+            ['native_enable_breakpad==1', {
+                'defines': [ 'NATIVE_ENABLE_BREAKPAD' ],
+            }],
             ['addresse_sanitizer==1', {
                 'cflags': [
                     '-fsanitize=address'
