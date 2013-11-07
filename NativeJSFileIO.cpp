@@ -94,7 +94,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *url;
     NativeFileIO *NFIO;
     NativeJSFileIO *NJSFIO;
-    bool binary = true;
+    JSBool binary = JS_TRUE;
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
 
