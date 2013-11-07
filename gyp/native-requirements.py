@@ -39,7 +39,7 @@ def buildSDL2():
 
 def downloadSkia():
     if deps.needDownload("skia", "skia"):
-        logstep("Downloading skia")
+        deps.logstep("Downloading skia")
         deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
