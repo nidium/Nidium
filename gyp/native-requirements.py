@@ -71,6 +71,7 @@ def buildJSONCPP():
         version = commands.getoutput('g++ -dumpversion')
         outlib = ["jsoncpp/libs/linux-gcc-" + version + "/libjson_linux-gcc-" + version + "_libmt", "libjsoncpp"]
     else :
+        # TODO windows
         platform = "msvc8"
 
     deps.buildDep("libjsoncpp", "jsoncpp", ["python scons.py platform=" + platform + "  CC='clang' CXX='clang++' CXXFLAGS='-mmacosx-version-min=10.7 -stdlib=libc++'"], outlibs=[outlib]);
@@ -157,7 +158,8 @@ def registerDeps():
 
     deps.registerDep("breakpad",
         partial(deps.downloadDep, "breakpad", deps.depsURL + "/breakpad.tar.gz"),
-        partial(deps.buildDep, "libbreakpad_client", "breakpad", ["./configure", "make"], outlibs=["breakpad/src/client/linux/libbreakpad_client"]))
+        None)
+        #partial(deps.buildDep, "libbreakpad_client", "breakpad", ["./configure", "make"], outlibs=["breakpad/src/client/linux/libbreakpad_client"]))
 
     deps.registerPostAction(releaseActionRegister, releaseAction);
 
@@ -235,13 +237,20 @@ def releaseAction(opt):
 
     symFile = "gyp/nidium.sym"
     deps.logstep("Producing application symbols for breakpad")
-    deps.runCommand(deps.THIRD_PARTY + "breakpad/src/tools/linux/dump_syms/dump_syms framework/dist/nidium > " + symFile)
+    if deps.system == "Darwin":
+        #deps.runCommand("tools/dump_syms  -a ppc  framework/dist/nidium.app/Contents/MacOS/nidium > " + symFile)
+        deps.runCommand("tools/dump_syms framework/dist/nidium.app/Contents/MacOS/nidium > " + symFile)
+    elif deps.system == "Linux":
+        deps.runCommand("tools/dump_syms framework/dist/nidium > " + symFile)
+    else:
+        # Window TODO
+        print("TODO")
     deps.logstep("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
     symbols = open(symFile, "rb").read()
     reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
 
     if reply == "OK":
-        os.unlink(symFile)
+        #os.unlink(symFile)
         print ""
         deps.logok()
     else:
@@ -254,8 +263,7 @@ def releaseAction(opt):
 def stripExecutable():
     deps.logstep("Striping executable")
     if deps.system == "Darwin":
-        # TODO
-        print("TODO")
+        deps.runCommand("strip framework/dist/nidium.app/Contents/MacOS/nidium")
     elif deps.system == "Linux":
         deps.runCommand("strip framework/dist/nidium")
     else:
@@ -276,11 +284,16 @@ def packageExecutable():
     deps.logi(name)
     deps.startSpinner()
     with ZipFile(path + name, 'w') as myzip:
+        myzip.write("framework/dist/nidium-crash-reporter")
         if deps.system == "Darwin":
-            print("TODO")
+            myzip.write("framework/dist/nidium.app")
+            import os
+            for dirpath,dirs,files in os.walk("framework/dist/nidium.app/"):
+                for f in files:
+                    fn = os.path.join(dirpath, f)
+                    myzip.write(fn)
         elif deps.system == "Linux":
             myzip.write("framework/dist/nidium")
-            myzip.write("framework/dist/nidium-crash-reporter")
         else:
             # Window TODO
             print("TODO")
