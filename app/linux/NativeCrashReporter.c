@@ -89,9 +89,8 @@ int main(int argc, char **argv)
         return -3;
     }
 
-    char cd_minidump[105];
-    sprintf(cd_minidump, "Content-Disposition: form-data; name=\"minidump\"; filename=\"%s\"\r\n", basename(argv[1]));
-    cd_minidump[104] = '\0';
+    char cd_minidump[2048];
+    snprintf(cd_minidump, 2048, "Content-Disposition: form-data; name=\"minidump\"; filename=\"%s\"\r\n", basename(argv[1]));
 
     // Forge the header (needed to get the actual content length)
     FORGE("\r\n", data_ptr);
