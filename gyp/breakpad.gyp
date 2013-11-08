@@ -124,6 +124,7 @@
                 {
                     'target_name': 'dump_syms',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'toolsets': ['host'],
                     'include_dirs': [
                         '<(third_party_path)/breakpad/src/common/mac',
@@ -175,7 +176,7 @@
                         ],
                     },
                     'configurations': {
-                        'Release_Base': {
+                        'Release': {
                             'xcode_settings': {
                                 # dump_syms crashes when built at -O1, -O2, and -O3.    It does
                                 # not crash at -Os.    To play it safe, dump_syms is always built
@@ -185,23 +186,6 @@
                              },
                          },
                     },
-                },
-                {
-                    'target_name': 'symupload',
-                    'type': 'executable',
-                    'toolsets': ['host'],
-                    'include_dirs': [
-                        '<(third_party_path)/breakpad/src/common/mac',
-                    ],
-                    'sources': [
-                        '<(third_party_path)/breakpad/src/common/mac/HTTPMultipartUpload.m',
-                        '<(third_party_path)/breakpad/src/tools/mac/symupload/symupload.m',
-                    ],
-                    'link_settings': {
-                        'libraries': [
-                            '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
-                        ],
-                    }
                 },
             ],
         }],
@@ -251,6 +235,7 @@
                         '<(third_party_path)/breakpad/src/client/mac/crash_generation/ConfigFile.mm',
                         '<(third_party_path)/breakpad/src/client/mac/crash_generation/Inspector.mm',
                         '<(third_party_path)/breakpad/src/client/mac/crash_generation/InspectorMain.mm',
+                        '<(third_party_path)/breakpad/src/common/mac/bootstrap_compat.cc',
                     ],
                     'link_settings': {
                         'libraries': [
@@ -359,6 +344,7 @@
                 {
                     'target_name': 'dump_syms',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'conditions': [
                         ['OS=="android"', {
                             'toolsets': [ 'host' ],
