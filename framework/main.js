@@ -70,7 +70,6 @@ document.background = "#333333";
 	load("applications/components/shader.advanced.js"); // OK
 
 
-
 /*
 var m = [];
 var t = +new Date();

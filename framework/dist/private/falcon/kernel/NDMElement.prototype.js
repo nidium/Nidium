@@ -96,7 +96,6 @@ NDMElement.prototype = {
 	update : function(e){},
 	draw : function(context){},
 
-
 	/* ----------------------------------------------- */
 	/* NDMElement.maxWidth                             */
 	/* ----------------------------------------------- */

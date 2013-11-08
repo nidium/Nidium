@@ -927,6 +927,12 @@ Native.elements.export("UITextInput", {
 					newsize = 0;
 				}
 
+				if (this.text != newtext) {
+					this.fireEvent("change", {
+						value : newtext
+					});
+				}
+
 				this.setText(newtext);
 				this.setCaret(newoffset, newsize);
 
@@ -962,7 +968,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.cut = function(){
-			self.fireEvent("beforecut", self.selection);
+			this.fireEvent("beforecut", this.selection);
 			this.copy();
 			this._insert(
 				'', 
@@ -971,26 +977,26 @@ Native.elements.export("UITextInput", {
 				this.selection.offset, 
 				0
 			);
-			self.fireEvent("cut", self.selection);
+			this.fireEvent("cut", this.selection);
 		};
 
 		this.copy = function(){
-			self.fireEvent("beforecopy", self.selection);
+			this.fireEvent("beforecopy", this.selection);
 			if (this.selection.size > 0) {
 				Native.setPasteBuffer(this.selection.text);
 			} else {
 				Native.setPasteBuffer("");
 			}
-			self.fireEvent("copy", self.selection);
+			this.fireEvent("copy", this.selection);
 		};
 
 		this.paste = function(){
-			self.fireEvent("beforepaste", self.selection);
+			this.fireEvent("beforepaste", this.selection);
 			var pasteBuffer = Native.getPasteBuffer();
 			if (pasteBuffer) {
 				this.replace(pasteBuffer);
 			}
-			self.fireEvent("paste", self.selection);
+			this.fireEvent("paste", this.selection);
 		};
 
 		/* ------------------------------------------------------------------ */

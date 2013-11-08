@@ -35,6 +35,7 @@ document.nss.add({
 		color : "#ffffff",
 		background : "#2277E0"
 	}
+
 });
 
 var table = new UITableView(document).center();
@@ -105,12 +106,17 @@ var feed = function(data){
 	g.height = 30;
 
 
+
+	g.style.toto = 5;
+	console.log(g.style.toto);
+
 	/*
 	r6.left = 40;
 	r6.top = 0;
 	r6.background = "red";
 	*/
 
+	/*
 
 	var m = r6.cloneNode(true);
 	console.log(m.id, "rooted:", m.rooted, "parent:", m.parent ? m.parent.id : null);
@@ -129,6 +135,7 @@ var feed = function(data){
 	}
 
 	NatBug.init();
+	*/
 
 };
 
