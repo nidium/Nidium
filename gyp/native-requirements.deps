@@ -3,7 +3,6 @@ depot_tools
 c-ares
 skia
 SDL2
-jsoncpp
 libzip
 ffmpeg
 basekit
@@ -14,6 +13,7 @@ http-parser
 gyp
 leveldb
 angle
+jsoncpp
 preload
 native-requirements.py
 ../nativejscore/gyp/nativejscore-requirements.deps

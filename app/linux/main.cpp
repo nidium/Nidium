@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "client/linux/handler/exception_handler.h"
 
 #include "NativeX11UIInterface.h"
 #include "NativeSystem.h"
@@ -17,9 +18,32 @@ int ape_running = 1;
 int _nativebuild = 1002;
 unsigned long _ape_seed;
 
+#ifdef NATIVE_ENABLE_BREAKPAD
+static bool dumpCallback(const google_breakpad::MinidumpDescriptor& descriptor,
+        void* context,
+        bool succeeded)
+{
+    printf("Dump path: %s\n", descriptor.path());
+    int ret = execl("./nidium-crash-reporter", descriptor.path());
+    printf("Crash reporter returned %d\n", ret);
+    return succeeded;
+}
+#endif
+
 int main(int argc, char **argv)
 {
     NativeX11UIInterface UI;
+
+#ifdef NATIVE_ENABLE_BREAKPAD
+    google_breakpad::MinidumpDescriptor descriptor(UI.getCacheDirectory());
+    google_breakpad::ExceptionHandler eh(descriptor,
+            NULL,
+            dumpCallback,
+            NULL,
+            true,
+            -1);
+#endif
+
     __NativeUI = &UI;
     _ape_seed = time(NULL) ^ (getpid() << 16);
 
@@ -35,7 +59,7 @@ int main(int argc, char **argv)
     }
 
     free(nml);
-    
+
     UI.runLoop();
 
     return 0;
