@@ -16,6 +16,8 @@ GCC = "/usr/bin/gcc"
 GPP = "/usr/bin/g++"
 CLANG = "/usr/bin/clang"
 CLANGPP = "/usr/bin/clang++"
+
+
 # Change to gyp executable path if you don't 
 # want this script to download gyp for you
 GYP = None 
@@ -822,4 +824,4 @@ registerDep("gyp",
 
 registerDep("http-parser", 
     None,
-    partial(buildDep, "libhttp_parser", "http-parser", ["make", "make package"]))
+    partial(buildDep, "libhttp_parser", "http-parser", ["make package"]))
