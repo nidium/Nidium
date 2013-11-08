@@ -39,7 +39,7 @@ def buildSDL2():
 
 def downloadSkia():
     if deps.needDownload("skia", "skia"):
-        logstep("Downloading skia")
+        deps.logstep("Downloading skia")
         deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
@@ -73,7 +73,7 @@ def buildJSONCPP():
     else :
         platform = "msvc8"
 
-    deps.buildDep("libjsoncpp", "jsoncpp", ["python scons.py platform=" + platform + "  CC='clang' CXX='clang++' CXXFLAGS='-stdlib=libc++' LIBS='-lc++'"], outlibs=[outlib]);
+    deps.buildDep("libjsoncpp", "jsoncpp", ["python scons.py platform=" + platform + "  CC='clang' CXX='clang++' CXXFLAGS='-mmacosx-version-min=10.7 -stdlib=libc++'"], outlibs=[outlib]);
 
 def downloadJSONCPP():
     deps.downloadDep("jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*")
@@ -133,7 +133,7 @@ def registerDeps():
 
     deps.registerDep("leveldb",
         partial(deps.downloadDep, "leveldb", deps.depsURL + "/leveldb.tar.gz"),
-        partial(deps.buildDep, "libleveldb", "leveldb", ["make"], outlibs=["leveldb/libleveldb"]))
+        partial(deps.buildDep, "libleveldb", "leveldb", ["CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7' make"], outlibs=["leveldb/libleveldb"]))
 
     deps.registerDep("skia", 
         downloadSkia,
