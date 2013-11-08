@@ -35,10 +35,10 @@
                         'x86_64',
                     ],
                     'MACOSX_DEPLOYMENT_TARGET': [
-                        '10.8'
+                        '10.7'
                     ],
                     'SDKROOT': [
-                        'macosx10.8'
+                        'macosx10.9'
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g'
@@ -79,7 +79,7 @@
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/release/',
-                        '-F<(native_output)/third-party-libs/release/',
+                        '-F<(native_output)/third-party-libs/release/'
                     ],
                     'ARCHS': [
                         'x86_64',
@@ -88,12 +88,13 @@
                         '10.7'
                     ],
                     'SDKROOT': [
-                        'macosx10.8'
+                        'macosx10.9'
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g',
                         '-O2',
-                        '-Wall'
+                        '-Wall',
+                        '-stdlib=libc++'
                     ]
                 },
                 'ldflags': [

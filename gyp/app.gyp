@@ -87,7 +87,7 @@
                         '-lskia_core',
                         '-ljs_static',
                         '-lleveldb',
-                        '-Wl,--end-group'
+                        '-Wl,--end-group',
                     ],
                 },
                 'include_dirs': [
@@ -143,12 +143,21 @@
                         #'..//third-party/angle/libtranslator_glsl.a',
                         '/usr/lib/libbz2.dylib',
                         '/usr/lib/libz.dylib',
-                        'libiconv.dylib'
+                        'libiconv.dylib',
                     ],
                 },
                 "xcode_settings": {
+                    'MACOSX_DEPLOYMENT_TARGET': [
+                        '10.7'
+                    ],
                     'LD_RUNPATH_SEARCH_PATHS': [
                         '@loader_path/../Frameworks'
+                    ],
+                    'OTHER_LDFLAGS': [ 
+                        '-stdlib=libc++'
+                    ],
+                    'OTHER_CPLUSPLUSFLAGS': [ 
+                        '-stdlib=libc++'
                     ],
                     'INFOPLIST_FILE': './osx/Info.plist',
                 },
