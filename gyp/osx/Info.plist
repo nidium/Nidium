@@ -67,7 +67,11 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
+<<<<<<< HEAD
 	<string>2685</string>
+=======
+	<string>2391</string>
+>>>>>>> 67dd96c... Fix various retina bug
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>NSHumanReadableCopyright</key>

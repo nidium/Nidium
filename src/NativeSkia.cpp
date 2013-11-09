@@ -365,6 +365,11 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     initPaints();
 
+    /* Enabling image smoothing if the screen is scaled (e.g. Retina) */
+    if (ratio != 1.0) {
+        this->setSmooth(true);
+    }
+
     canvas->clear(0x00000000);
 
     this->native_canvas_bind_mode = NativeSkia::BIND_ONSCREEN;
@@ -392,6 +397,10 @@ int NativeSkia::bindOffScreen(int width, int height)
     state->next = NULL;
 
     initPaints();
+
+    if (ratio != 1.0) {
+        this->setSmooth(true);
+    }
 
     this->native_canvas_bind_mode = NativeSkia::BIND_OFFSCREEN;
 
@@ -870,6 +879,7 @@ void NativeSkia::setShadowColor(const char *str)
 void NativeSkia::setSmooth(bool val)
 {
     PAINT->setFilterBitmap(val);
+    PAINT_STROKE->setFilterBitmap(val);
 }
 
 void NativeSkia::setGlobalAlpha(double value)
@@ -1147,8 +1157,8 @@ void NativeSkia::arc(int x, int y, int r,
     m.mapRect(&rect, SkRect::MakeLTRB(cx-radius, cy-radius, cx+radius, cy+radius));
 
     /* Compute the new bounding rect using the transformed rect with the old size */
-    nrect = SkRect::MakeLTRB(rect.centerX()-radius, rect.centerY()-radius,
-        rect.centerX()+radius, rect.centerY()+radius);
+    nrect = SkRect::MakeLTRB(rect.centerX()-radius*m.getScaleX(), rect.centerY()-radius*m.getScaleY(),
+        rect.centerX()+radius*m.getScaleX(), rect.centerY()+radius*m.getScaleY());
 
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
