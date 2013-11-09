@@ -204,15 +204,17 @@ var setCurrentBTCPrice = function(json){
 	updateSecretFormula();
 };
 
-
+/*
+TODO : FIX "JSON.parse: unexpected character" in HTTP API
 var g = '{"result":"success","data":{"last_local":{"value":"265.49428","value_int":"26549428","display":"265.49\u00a0\u20ac","display_short":"265.49\u00a0\u20ac","currency":"EUR"},"last":{"value":"265.49428","value_int":"26549428","display":"265.49\u00a0\u20ac","display_short":"265.49\u00a0\u20ac","currency":"EUR"},"last_orig":{"value":"226.50000","value_int":"22650000","display":"\u00a3226.50","display_short":"\u00a3226.50","currency":"GBP"},"last_all":{"value":"271.17629","value_int":"27117629","display":"271.18\u00a0\u20ac","display_short":"271.18\u00a0\u20ac","currency":"EUR"},"buy":{"value":"265.13109","value_int":"26513109","display":"265.13\u00a0\u20ac","display_short":"265.13\u00a0\u20ac","currency":"EUR"},"sell":{"value":"269.00000","value_int":"26900000","display":"269.00\u00a0\u20ac","display_short":"269.00\u00a0\u20ac","currency":"EUR"},"now":"1383984816107287"}}';
-
 var m = JSON.parse(g);
 setCurrentBTCPrice(m);
+*/
 
 var getCurrentBTCPrice = function(devise){
 	devise = devise.toUpperCase();	
 
+	document.status.label = "Loading BTC Price ...";
 	document.status.open();
 
 	var url = "http://data.mtgox.com/api/2/BTC"+devise+"/money/ticker_fast";
