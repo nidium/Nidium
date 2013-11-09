@@ -919,18 +919,13 @@ Native.elements.export("UITextInput", {
 
 		this._insert = function(text, offset, size, newoffset, newsize){
 			if (this.editable) {
-				var newtext = this.text.splice(offset, size, text);
+				var oldtext = this.text,
+					newtext = this.text.splice(offset, size, text);
 
 				if (this.multiline === false && newtext.length > __MAX_INPUT_LENGTH__) {
 					newtext = newtext.substr(0, __MAX_INPUT_LENGTH__);
 					newoffset = this.caret.x1;
 					newsize = 0;
-				}
-
-				if (this.text != newtext) {
-					this.fireEvent("change", {
-						value : newtext
-					});
 				}
 
 				this.setText(newtext);
@@ -940,6 +935,12 @@ Native.elements.export("UITextInput", {
 				this.checkPattern(this.pattern);
 
 				this.pushState();
+
+				if (oldtext != newtext) {
+					this.fireEvent("change", {
+						value : newtext
+					});
+				}
 			}
 		};
 

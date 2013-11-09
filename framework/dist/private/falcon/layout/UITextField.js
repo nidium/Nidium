@@ -9,14 +9,14 @@ Native.elements.export("UITextField", {
 		value : {
 			set : function(value){
 				var text = OptionalString(value, "");
+				if (text != "") this.input.hidePlaceHolder();
 				this.input.setText(text);
 				this.input.scrollToLineStart();
 				this.input.resetUndo();
-				if (text != "") this.input.hidePlaceHolder();
 			},
 
 			get : function(){
-				return this.input.text;
+				return this.input.isPlaceHolderVisible() ? "" : this.input.text;
 			}
 		},
 

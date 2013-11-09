@@ -21,7 +21,7 @@ document.background = "#333333";
 //load("applications/components/tooltips.js");
 //load("applications/components/animation.js");
 //load("applications/components/flickr.js");
-//load("applications/components/http.js");
+load("applications/components/http.js");
 //load("applications/components/zip.js");
 
 //load("applications/components/text.js"); // FAIL
@@ -67,7 +67,7 @@ document.background = "#333333";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // OK
-	load("applications/components/shader.advanced.js"); // OK
+	//load("applications/components/shader.advanced.js"); // OK
 
 
 /*
