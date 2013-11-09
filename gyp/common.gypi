@@ -3,11 +3,19 @@
         'include_dirs': [
             '<(third_party_path)/c-ares/',
         ],
+        'defines': [
+            'NATIVE_VERSION_STR="<(native_version)"',
+            'NATIVE_BUILD="<!@(git rev-parse HEAD)"',
+            'NATIVE_CRASH_COLLECTOR_HOST="<(native_crash_collector_host)"',
+            'NATIVE_CRASH_COLLECTOR_PORT=<(native_crash_collector_port)',
+            'NATIVE_CRASH_COLLECTOR_ENDPOINT="<(native_crash_collector_endpoint)"',
+            'UINT32_MAX=4294967295u' 
+        ],
         'default_configuration': 'Release',
         'configurations': {
             'Debug': {
                 'product_dir': '<(native_output)/debug/',
-                'defines': [ 'NATIVE_DEBUG', 'DEBUG', '_DEBUG', 'UINT32_MAX=4294967295u' ],
+                'defines': ['NATIVE_DEBUG', 'DEBUG', '_DEBUG'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 1, 
@@ -54,7 +62,7 @@
             },
             'Release': {
                 'product_dir': '<(native_output)/release/',
-                'defines': [ 'NDEBUG','UINT32_MAX=4294967295u' ],
+                'defines': [ 'NDEBUG'],
                 'msvs_settings': {
                     'VCCLCompilerTool': {
                         'RuntimeLibrary': 0,

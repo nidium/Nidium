@@ -20,6 +20,11 @@
         'addresse_sanitizer%': 0,
         'native_enable_breakpad%': 0,
 
+        # Crash reporter settings
+        'native_crash_collector_host': 'nidium.com',
+        'native_crash_collector_port': '5000',
+        'native_crash_collector_endpoint': '/submit',
+
         # Linux build only
         'native_use_gtk': 1,
         'native_use_qt': 0,
