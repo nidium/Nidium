@@ -97,7 +97,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 {
-#define GET_OPT(name) if (JS_GetProperty(cx, options, name, &curopt) && curopt != JSVAL_VOID)
+#define GET_OPT(name) if (JS_GetProperty(cx, options, name, &curopt) && curopt != JSVAL_VOID && curopt != JSVAL_NULL)
     jsval callback;
     NativeHTTP *nhttp;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
@@ -171,6 +171,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     GET_OPT("data") {
+        /* TODO: handle ArrayBuffer */
         JSString *data = JS_ValueToString(cx, curopt);
         if (data != NULL) {
             char *hdata = JS_EncodeString(cx, data);
@@ -196,7 +197,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
-    printf("Request : %s\n", req->getHeadersData()->data);
+    //printf("Request : %s\n", req->getHeadersData()->data);
 
     nhttp->request(jshttp);
 
