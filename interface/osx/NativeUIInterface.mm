@@ -14,6 +14,7 @@
 
 #import <NativeNML.h>
 #import <sys/stat.h>
+#import "NativeSystem.h"
 
 #define kNativeWidth 1024
 #define kNativeHeight 768
@@ -522,8 +523,10 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         //[window setMovableByWindowBackground:NO];
         //[window setOpaque:NO]; // YES by default
         //[window setAlphaValue:0.5];
+#if NIDIUM_ENABLE_HIDPI
         NSView *openglview = [window contentView];
         [openglview setWantsBestResolutionOpenGLSurface:YES];
+#endif
         contexteOpenGL = SDL_GL_CreateContext(win);
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());

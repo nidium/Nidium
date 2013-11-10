@@ -260,7 +260,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     NativeCanvasHandler *cur;
     NativeRect nclip;
 
-    if (!m_Context || visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
+    if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
         return;
     }
 
@@ -273,7 +273,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     int tmpLeft = this->getLeft();
     int tmpTop = this->getTop();
 
-    if (layer == NULL) {
+    if (layer == NULL && m_Context) {
         layer = this;
         m_Context->clear(0xFFFFFFFF);
     } else {
@@ -301,10 +301,12 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             draw current context on top of the root layer
         */
 
-        this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
-            this->a_left - this->padding.global, 
-            this->a_top - this->padding.global, popacity, zoom,
-            (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
+        if (m_Context) {
+            this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
+                this->a_left - this->padding.global, 
+                this->a_top - this->padding.global, popacity, zoom,
+                (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
+        }
     }
 
     if (!this->overflow) {
