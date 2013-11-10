@@ -135,13 +135,16 @@ var getLocal = function(){
 
 	input_nb_buy.value = store.nb_buy;
 	input_buy_price.value = store.buy_price;
+	input_nb_sell.value = getNbAvailableForSell(store.nb_buy);
 	input_fees_percent.value = store.fees;
+
 	updateSecretFormula();
 };
 
 /* EVENTS */
 
 input_nb_buy.addEventListener("change", function(e){
+	input_nb_sell.value = getNbAvailableForSell(this.value);
 	updateSecretFormula();
 	storeLocal();
 });
@@ -160,8 +163,15 @@ input_fees_percent.addEventListener("change", function(e){
 	storeLocal();
 });
 
-var updateSecretFormula = function(){
+var getNbAvailableForSell = function(nb){
+	var nb_buy = Number(nb) || 0,
+		fees = Number(input_fees_percent.value) || 0,
+		fees_buy_nb = Math.round(10000000 * nb_buy * fees/100) / 10000000;
 
+	return nb_buy - fees_buy_nb;
+};
+
+var updateSecretFormula = function(){
 	var nb_buy = Number(input_nb_buy.value) || 0,
 		nb_sell = Number(input_nb_sell.value) || 0,
 		buy_price = Number(input_buy_price.value) || 0,
@@ -171,7 +181,6 @@ var updateSecretFormula = function(){
 		fees_buy_nb = Math.round(10000000 * nb_buy * fees/100) / 10000000,
 		fees_buy_price = Math.round(10000*fees_buy_nb * buy_price)/10000;
 
-	input_nb_sell.value = nb_buy - fees_buy_nb;
 
 	var	total_buy_price = Math.round(10000*nb_buy * buy_price)/10000,
 		total_sell_price = Math.round(10000*nb_sell * sell_price)/10000,
@@ -181,7 +190,6 @@ var updateSecretFormula = function(){
 		total_fees = fees_buy_price + fees_sell_price,
 		gain = Math.round(100*((total_sell_price - total_buy_price) - fees_sell_price))/100,
 		roi = total_buy_price!=0 ? Math.round(100*gain*100/total_buy_price)/100 : 0;
-
 
 	label_fb.label = "-" + fees_buy_nb + " BTC (" + fees_buy_price + " EUR)";
 	label_fs.label = "-" + fees_sell_price + " EUR";

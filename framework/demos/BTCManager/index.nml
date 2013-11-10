@@ -7,7 +7,7 @@
 		<version>1.0</version>
 		<date>2013-09-05</date>
 		<robots>index, follow</robots>
-		<identifier>com.bitflake.btc.manager</identifier>
+		<identifier>com.bitflake.btc</identifier>
 		<author>BitFlake Inc.</author>
 	</meta>
 	<assets>
