@@ -2071,8 +2071,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             this->updateMatrix(left, top);
-
-            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+            NLOG("Matrice updated : %f", ratio);
+            layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
             /* Reset skia GL context */
             this->resetSkiaContext();
