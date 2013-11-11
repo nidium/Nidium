@@ -24,6 +24,7 @@
                     }          
                 },
                 'cflags': [
+                    '-Og',
                     '-g',
                 ],
                 'xcode_settings': {

@@ -2033,6 +2033,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
         skia->canvas->drawBitmap(this->getSurface()->canvas->getDevice()->accessBitmap(false),
             left*ratio, top*ratio, &pt);
+        NLOG("Clip used");
         /* TODO : save/restore */
         skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
 
@@ -2042,6 +2043,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
         if (this->hasShader() && !commonDraw) {
+            return;
+
             skia->canvas->flush();
             this->getSurface()->canvas->flush();
             int width, height;

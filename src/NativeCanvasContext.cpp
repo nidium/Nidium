@@ -220,8 +220,8 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     m_GLObjects.program = 0;
 
     glGenBuffers(2, m_GLObjects.vbo);
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(32);
-
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
+    
     /* Upload the list of vertex */
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
@@ -265,8 +265,8 @@ static void dump_Matrix(float *matrix)
 void NativeCanvasContext::updateMatrix(double left, double top)
 {
     float px = 1024.f, py = 768.f;
-    float w = (float)m_Handler->getWidth();
-    float h = (float)m_Handler->getHeight();
+    float w = (float)m_Handler->getWidth() + m_Handler->padding.global*2;
+    float h = (float)m_Handler->getHeight() + m_Handler->padding.global*2;
 
     m_Transform.reset();
 
