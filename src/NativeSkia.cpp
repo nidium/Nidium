@@ -1430,15 +1430,18 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
 {
     SkMatrix m;
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = 1.0f;
+    if (set) {
+        ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    }
 
     m.setScaleX(SkDoubleToScalar(scalex*ratio));
-    m.setSkewX(SkDoubleToScalar(skewx));
-    m.setTranslateX(SkDoubleToScalar(translatex));
+    m.setSkewX(SkDoubleToScalar(skewx*ratio));
+    m.setTranslateX(SkDoubleToScalar(translatex*ratio));
 
     m.setScaleY(SkDoubleToScalar(scaley*ratio));
-    m.setSkewY(SkDoubleToScalar(skewy));
-    m.setTranslateY(SkDoubleToScalar(translatey));
+    m.setSkewY(SkDoubleToScalar(skewy*ratio));
+    m.setTranslateY(SkDoubleToScalar(translatey*ratio));
 
     m.setPerspX(0);
     m.setPerspY(0);
