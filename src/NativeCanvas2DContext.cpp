@@ -1995,17 +1995,19 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
 {
     uint32_t program = this->getProgram();
     glUseProgram(program);
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
         /*
         if (m_GL.shader.uniformOpacity != -1) {
             glUniform1f(m_GL.shader.uniformOpacity, opacity);
         }
-        float padding = this->getHandler()->padding.global;
+        float padding = this->getHandler()->padding.global * ratio;
 
-        glUniform2f(m_GL.shader.uniformResolution, width-(padding*2), height-(padding*2));
-        glUniform2f(m_GL.shader.uniformPosition, left, wHeight - (height+top));
-        glUniform1f(m_GL.shader.uniformPadding, padding);*/
+        glUniform2f(shader.uniformResolution, (ratio*width)-(padding*2), (ratio*height)-(padding*2));
+        glUniform2f(shader.uniformPosition, ratio*left, ratio*wHeight - (ratio*height+ratio*top));
+        glUniform1f(shader.uniformPadding, padding);
+        */
     }
 }
 
@@ -2072,8 +2074,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             this->updateMatrix(left, top);
-            
-            layer->drawTexIDToFBO2(textureID, width, height, left, top, layer->getMainFBO());
+
+            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
             /* Reset skia GL context */
             this->resetSkiaContext();

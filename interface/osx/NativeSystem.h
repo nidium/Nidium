@@ -3,6 +3,11 @@
 
 #include "NativeSystemInterface.h"
 
+/*
+    Enable Retina support
+*/
+#define NIDIUM_ENABLE_HIDPI 1
+
 class NativeSystem : public NativeSystemInterface
 {
     public:

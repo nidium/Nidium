@@ -80,7 +80,7 @@
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/release/',
-                        '-F<(native_output)/third-party-libs/release/',
+                        '-F<(native_output)/third-party-libs/release/'
                     ],
                     'ARCHS': [
                         'x86_64',
@@ -94,7 +94,8 @@
                     'OTHER_CFLAGS': [ 
                         '-g',
                         '-O2',
-                        '-Wall'
+                        '-Wall',
+                        '-stdlib=libc++'
                     ]
                 },
                 'ldflags': [

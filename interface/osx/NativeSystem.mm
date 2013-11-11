@@ -4,7 +4,12 @@
 
 NativeSystem::NativeSystem()
 {
+#if NIDIUM_ENABLE_HIDPI
     fbackingStorePixelRatio = [[NSScreen mainScreen] backingScaleFactor];
+#else
+    fbackingStorePixelRatio = 1.0;
+#endif
+    printf("Canvas Ratio (HIDPI) : %f\n", fbackingStorePixelRatio);
 }
 
 float NativeSystem::backingStorePixelRatio()
