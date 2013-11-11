@@ -365,10 +365,7 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     initPaints();
 
-    /* Enabling image smoothing if the screen is scaled (e.g. Retina) */
-    if (ratio != 1.0) {
-        this->setSmooth(true);
-    }
+    this->setSmooth(true);
 
     canvas->clear(0x00000000);
 
@@ -398,9 +395,7 @@ int NativeSkia::bindOffScreen(int width, int height)
 
     initPaints();
 
-    if (ratio != 1.0) {
-        this->setSmooth(true);
-    }
+    this->setSmooth(true);
 
     this->native_canvas_bind_mode = NativeSkia::BIND_OFFSCREEN;
 
