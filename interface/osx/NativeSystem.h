@@ -6,7 +6,7 @@
 /*
     Enable Retina support
 */
-#define NIDIUM_ENABLE_HIDPI 1
+#define NIDIUM_ENABLE_HIDPI 0
 
 class NativeSystem : public NativeSystemInterface
 {
