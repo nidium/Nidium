@@ -231,7 +231,7 @@ def releaseAction(opt):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
     symFile = "gyp/nidium.sym"
-    deps.step("Producing application symbols for breakpad")
+    log.step("Producing application symbols for breakpad")
     if deps.system == "Darwin":
         deps.runCommand("tools/dump_syms gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium > " + symFile)
     elif deps.system == "Linux":
@@ -239,7 +239,7 @@ def releaseAction(opt):
     else:
         # Window TODO
         print("TODO")
-    deps.step("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
+    log.step("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
     symbols = open(symFile, "rb").read()
     reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
 
