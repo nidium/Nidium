@@ -206,13 +206,6 @@
                 ],
                 'postbuilds': [
                     {
-                        'postbuild_name': 'Increment build number',
-                        'action': [
-                            './osx/incbuild.sh',
-                            '<(native_exec_path)/<(native_exec_name).app/Contents/'
-                        ]
-                    },
-                    {
                         'postbuild_name': 'Copy Frameworks',
                         'action': [
                             'ditto',
@@ -227,6 +220,13 @@
                             '-r',
                             '<(native_resources_path)/osx/',
                             '<(native_exec_path)/<(native_exec_name).app/Contents/Resources/'
+                        ]
+                    },
+                    {
+                        'postbuild_name': 'Increment build number',
+                        'action': [
+                            './osx/incbuild.sh',
+                            '<(native_exec_path)/<(native_exec_name).app/Contents/'
                         ]
                     }
                 ]
