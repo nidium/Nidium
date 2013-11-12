@@ -188,11 +188,11 @@
                         '-O2',
                         '-Wall',
                     ],
-                    'INFOPLIST_FILE': './osx/Info.plist',
+                    'INFOPLIST_FILE': '<(native_resources_path)/osx/Info.plist',
                 },
                 'mac_bundle_resources': [
-                    './osx/en.lproj/InfoPlist.strings',
-                    './osx/en.lproj/MainMenu.xib',
+                    '<(native_resources_path)/osx/en.lproj/InfoPlist.strings',
+                    '<(native_resources_path)/osx/en.lproj/MainMenu.xib',
                 ],
                 'include_dirs': [
                     '<(native_interface_path)/osx/',
