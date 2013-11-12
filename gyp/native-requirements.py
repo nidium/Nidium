@@ -279,7 +279,7 @@ def packageExecutable():
     else:
         arch = "i386"
 
-    name = "Nidium_%s_%s_%s.zip" % (datetime, deps.system, hash, arch)
+    name = "Nidium_%s_%s_%s_%s.zip" % (datetime, deps.system, hash, arch)
 
     log.step("Packaging executable")
     log.info(name)
