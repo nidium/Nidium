@@ -2045,7 +2045,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
         if (this->hasShader() && !commonDraw) {
-            return;
 
             skia->canvas->flush();
             this->getSurface()->canvas->flush();
@@ -2074,7 +2073,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             this->updateMatrix(left, top);
-            NLOG("Matrice updated : %f", ratio);
+           
             layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
             /* Reset skia GL context */
@@ -2176,7 +2175,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
     memset(&this->m_GL, 0, sizeof(this->m_GL));
 
-    /* Vertex buffer was altered by parent constructor */
+    /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 
@@ -2196,7 +2195,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     }
     memset(&this->m_GL, 0, sizeof(this->m_GL));
 
-    /* Vertex buffer was altered by parent constructor */
+    /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 

@@ -55,9 +55,16 @@ public:
         } uniforms;
     } m_GLObjects;
 
+    /*
+        Check if the context has a program installed
+    */
     bool hasShader() const {
         return (m_GLObjects.program != 0);
     }
+
+    /*
+        Get the current installed program or 0
+    */
     uint32_t getProgram() const {
         return m_GLObjects.program;
     }
@@ -70,7 +77,10 @@ public:
         return m_Transform;
     }
 
-    uint32_t createPassThroughProgram();
+    /*
+        Set the appropriate OpenGL state (bind buffers, ...)
+    */
+    void resetGLContext();
 
     static char *processShader(const char *content, shaderType type);
     static uint32_t compileShader(const char *data, int type);
@@ -93,10 +103,10 @@ public:
         double left, double top, double opacity,
         double zoom, const NativeRect *rclip)=0;
 
-    void resetGLContext();
-
     NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
+private:
+    uint32_t createPassThroughProgram();    
 protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;

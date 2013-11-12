@@ -238,6 +238,8 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
 
     if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
         m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
+    } else {
+        NLOG("Failed to create program OO");
     }
 
     NLOG("Vertex buffer object created with ID : %d - %d", m_GLObjects.vbo[0], m_GLObjects.vbo[1]);
@@ -264,7 +266,7 @@ static void dump_Matrix(float *matrix)
 
 void NativeCanvasContext::updateMatrix(double left, double top)
 {
-    float px = 1024.f, py = 768.f;
+    float px = 800.f, py = 600.f;
     float w = (float)m_Handler->getWidth() + m_Handler->padding.global*2;
     float h = (float)m_Handler->getHeight() + m_Handler->padding.global*2;
 
