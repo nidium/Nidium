@@ -1,6 +1,7 @@
 from functools import partial
 import sys, os
 import deps
+from deps import log, spinner
 
 def makePreload():
     import re
@@ -8,7 +9,7 @@ def makePreload():
     cwd = os.getcwd()
     os.chdir(deps.CWD)
 
-    deps.logstep("Building preload.h")
+    log.step("Building preload.h")
     os.chdir("scripts")
 
     inFile = open("preload.js", "r")
@@ -26,7 +27,7 @@ def makePreload():
     inFile.close()
     outFile.close()
     
-    deps.logsuccess("preload.h successfully built")
+    log.success("preload.h successfully built")
 
     os.chdir(cwd)
 
@@ -39,7 +40,7 @@ def buildSDL2():
 
 def downloadSkia():
     if deps.needDownload("skia", "skia"):
-        deps.logstep("Downloading skia")
+        log.step("Downloading skia")
         deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
@@ -187,7 +188,7 @@ def releaseAction(opt):
             c = next(self._gen)
             status = r"%10d  [%3.2f%%]" % (self._pos, self._pos * 100. / self._total)
             status = status + chr(8)*(len(status)+1)
-            deps.logspinner(c, status)
+            log.spinner(c, status)
             sys.stdout.flush()
 
             self._pos += size
@@ -243,18 +244,18 @@ def releaseAction(opt):
     reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
 
     if reply == "OK":
-        #os.unlink(symFile)
+        os.unlink(symFile)
         print ""
-        deps.logok()
+        log.setOk()
     else:
-        deps.logerror()
-        deps.loge("Failed to upload symbols : " + reply)
+        log.setError()
+        log.error("Failed to upload symbols : " + reply)
 
     stripExecutable()
     packageExecutable()
 
 def stripExecutable():
-    deps.logstep("Striping executable")
+    log.step("Striping executable")
     if deps.system == "Darwin":
         deps.runCommand("strip framework/dist/nidium.app/Contents/MacOS/nidium")
         return
@@ -280,26 +281,26 @@ def packageExecutable():
 
     name = "Nidium_%s_%s_%s.zip" % (datetime, deps.system, hash, arch)
 
-    deps.logstep("Packaging executable")
-    deps.logi(name)
-    deps.startSpinner()
+    log.step("Packaging executable")
+    log.info(name)
+    spinner.start()
     with ZipFile(path + name, 'w') as myzip:
-        myzip.write("framework/dist/nidium-crash-reporter")
         if deps.system == "Darwin":
-            myzip.write("framework/dist/nidium.app")
+            myzip.write(path + "nidium.app")
             import os
-            for dirpath,dirs,files in os.walk("framework/dist/nidium.app/"):
+            for dirpath,dirs,files in os.walk(path + "nidium.app/"):
                 for f in files:
                     fn = os.path.join(dirpath, f)
                     myzip.write(fn)
         elif deps.system == "Linux":
-            myzip.write("framework/dist/nidium")
+            myzip.write(path + "nidium")
+            myzip.write(path + "nidium-crash-reporter")
         else:
             # Window TODO
             print("TODO")
 
-    deps.stopSpinner()
-    deps.logok()
+    spinner.stop()
+    log.setOk()
 
     uploadExecutable(path, name)
 
@@ -315,15 +316,15 @@ def uploadExecutable(path, name):
         c = next(args["gen"])
         status = r"%10d  [%3.2f%%]" % (args["pos"], args["pos"] * 100. / args["total"])
         status = status + chr(8)*(len(status)+1)
-        deps.logspinner(c, status)
+        log.spinner(c, status)
 
-    deps.logstep("Uploading executable")
+    log.step("Uploading executable")
 
     s = ftplib.FTP("nidium.com", "nidium", "i8V}8B833G51gZJ")
     f = open(path + name, 'rb')
     s.storbinary("STOR release/" + name, f, 1024, callback)
 
     print ""
-    deps.logok()
-    deps.logi("Executable uploaded to http://release.nidium.com/" + name)
+    log.setOk()
+    log.info("Executable uploaded to http://release.nidium.com/" + name)
 
