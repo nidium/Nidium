@@ -242,7 +242,7 @@ def releaseAction(opt):
 
     log.step("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
     symbols = open(symFile, "rb").read()
-    reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
+    reply = post_multipart("crash.nidium.com", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
 
     if reply == "OK":
         os.unlink(symFile)
