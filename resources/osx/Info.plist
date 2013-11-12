@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BreakpadProduct</key>
+	<string>nidium</string>
+	<key>BreakpadProductDisplay</key>
+	<string>Nidium</string>
+	<key>BreakpadReportInterval</key>
+	<string>0</string>
+	<key>BreakpadRequestComments</key>
+	<string>YES</string>
+	<key>BreakpadRequestEmail</key>
+	<string>YES</string>
+	<key>BreakpadSendAndExit</key>
+	<string>NO</string>
+	<key>BreakpadSkipConfirm</key>
+	<string>NO</string>
+	<key>BreakpadVendor</key>
+	<string>Nidium</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDocumentTypes</key>
@@ -70,6 +86,8 @@
 	<string>2555</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
+	<key>LSUIElement</key>
+	<string>1</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2013 nidium.com - All rights reserved.</string>
 	<key>NSMainNibFile</key>

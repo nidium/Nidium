@@ -19,7 +19,13 @@
                 {
                     'target_name': 'minidump_stackwalk',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'includes': ['breakpad_tools.gypi'],
+                    'xcode_settings': {
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
+                    },
                     'defines': ['BPLOG_MINIMUM_SEVERITY=SEVERITY_ERROR'],
                     'sources': [
                         '<(third_party_path)/breakpad/src/processor/basic_code_module.h',
@@ -100,6 +106,11 @@
                     'target_name': 'minidump_dump',
                     'type': 'executable',
                     'includes': ['breakpad_tools.gypi'],
+                    'xcode_settings': {
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
+                    },
                     'sources': [
                         '<(third_party_path)/breakpad/src/processor/basic_code_module.h',
                         '<(third_party_path)/breakpad/src/processor/basic_code_modules.cc',
@@ -124,6 +135,7 @@
                 {
                     'target_name': 'dump_syms',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'toolsets': ['host'],
                     'include_dirs': [
                         '<(third_party_path)/breakpad/src/common/mac',
@@ -168,6 +180,9 @@
 
                         # dwarf2reader.cc uses dynamic_cast.
                         'GCC_ENABLE_CPP_RTTI': 'YES',
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
                     },
                     'link_settings': {
                         'libraries': [
@@ -175,7 +190,7 @@
                         ],
                     },
                     'configurations': {
-                        'Release_Base': {
+                        'Release': {
                             'xcode_settings': {
                                 # dump_syms crashes when built at -O1, -O2, and -O3.    It does
                                 # not crash at -Os.    To play it safe, dump_syms is always built
@@ -185,23 +200,6 @@
                              },
                          },
                     },
-                },
-                {
-                    'target_name': 'symupload',
-                    'type': 'executable',
-                    'toolsets': ['host'],
-                    'include_dirs': [
-                        '<(third_party_path)/breakpad/src/common/mac',
-                    ],
-                    'sources': [
-                        '<(third_party_path)/breakpad/src/common/mac/HTTPMultipartUpload.m',
-                        '<(third_party_path)/breakpad/src/tools/mac/symupload/symupload.m',
-                    ],
-                    'link_settings': {
-                        'libraries': [
-                            '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
-                        ],
-                    }
                 },
             ],
         }],
@@ -237,6 +235,7 @@
                 {
                     'target_name': 'crash_inspector',
                     'type': 'executable',
+                    'product_dir': '<(native_resources_path)/osx/',
                     'variables': {
                         'mac_real_dsym': 1,
                     },
@@ -251,17 +250,24 @@
                         '<(third_party_path)/breakpad/src/client/mac/crash_generation/ConfigFile.mm',
                         '<(third_party_path)/breakpad/src/client/mac/crash_generation/Inspector.mm',
                         '<(third_party_path)/breakpad/src/client/mac/crash_generation/InspectorMain.mm',
+                        '<(third_party_path)/breakpad/src/common/mac/bootstrap_compat.cc',
                     ],
                     'link_settings': {
                         'libraries': [
                             '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
                             '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
                         ],
-                    }
+                    },
+                    'xcode_settings': {
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
+                    },
                 },
                 {
                     'target_name': 'crash_report_sender',
                     'type': 'executable',
+                    'product_dir': '<(native_resources_path)/osx/',
                     'mac_bundle': 1,
                     'variables': {
                         'mac_real_dsym': 1,
@@ -359,6 +365,7 @@
                 {
                     'target_name': 'dump_syms',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'conditions': [
                         ['OS=="android"', {
                             'toolsets': [ 'host' ],

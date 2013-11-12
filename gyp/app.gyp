@@ -2,16 +2,11 @@
     'targets': [{
         'target_name': '<(native_exec_name)',
         'type': 'executable',
-		'mac_bundle': 1,
-        'product_dir': '../framework/dist/',
+        'mac_bundle': 1,
+        'product_dir': '<(native_exec_path)',
         'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork',
-            'interface.gyp:nativeinterface',
             'native.gyp:nativestudio',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
-#            #'<(third_party_path)/skia/skia.gyp:alltargets',
         ],
-
         'include_dirs': [
             '<(native_src_path)',
             '<(native_network_path)',
@@ -24,6 +19,11 @@
         'conditions': [
             ['OS=="linux"', {
                 'conditions': [
+                    ['native_enable_breakpad==1', {
+                        'dependencies': [
+                            'crashreporter.gyp:nidium-crash-reporter'
+                         ]
+                    }],
                     ['native_use_gtk==1', {
                         'libraries': [
                             '<!@(pkg-config --libs gtk+-2.0)',
@@ -63,7 +63,6 @@
                         '-lzip',
                         '-lcares',
                         '-lhttp_parser',
-                        '-ljsoncpp',
                         '-lportaudio',
                         '-lzita-resampler',
                         '-lnspr4',
@@ -105,6 +104,33 @@
                 #}]
             }],
             ['OS=="mac"', {
+                # XXX : Dono why, but this has no effect
+                "xcode_settings": {
+                    'STRIP_INSTALLED_PRODUCT': 'YES',
+                    'COPY_PHASE_STRIP': 'YES',
+                    'DEBUGGING_SYMBOLS': 'NO',
+                    'DEAD_CODE_STRIPPING': 'YES'
+                },
+                'conditions': [
+                    ['native_enable_breakpad==1', {
+                        'dependencies+': [
+                            'breakpad.gyp:*'
+                         ],
+                        "xcode_settings": {
+                            'DEBUG_INFORMATION_FORMAT': 'dwarf-with-dsym',
+                            'DEPLOYEMENT_POSTPROCESSING': 'YES',
+                        }
+                    }],
+                    ['native_strip_exec==0', {
+                        "xcode_settings": {
+                            'DEPLOYEMENT_POSTPROCESSING': 'YES',
+                            'STRIP_INSTALLED_PRODUCT': 'NO',
+                            'COPY_PHASE_STRIP': 'NO',
+                            'DEBUGGING_SYMBOLS': 'YES',
+                            'DEAD_CODE_STRIPPING': 'NO'
+                        }
+                    }],
+                ],
                 "link_settings": {
                     'libraries': [
                         '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
@@ -132,7 +158,6 @@
                         'libswscale.a',
                         'libswresample.a',
                         'libhttp_parser.a',
-                        'libjsoncpp.a',
                         'libzip.a',
                         'libnspr4.a',
                         'libcares.a',
@@ -154,10 +179,14 @@
                         '@loader_path/../Frameworks'
                     ],
                     'OTHER_LDFLAGS': [ 
-                        '-stdlib=libc++'
+                        '-stdlib=libc++',
+                        '-L<(native_output)/third-party-libs/release/',
+                        '-F<(native_output)/third-party-libs/release/',
                     ],
-                    'OTHER_CPLUSPLUSFLAGS': [ 
-                        '-stdlib=libc++'
+                    'OTHER_CFLAGS': [ 
+                        '-g',
+                        '-O2',
+                        '-Wall',
                     ],
                     'INFOPLIST_FILE': './osx/Info.plist',
                 },
@@ -167,6 +196,8 @@
                 ],
                 'include_dirs': [
                     '<(native_interface_path)/osx/',
+                    '<(third_party_path)/breakpad/src/client/mac/Framework/',
+                    '<(third_party_path)/breakpad/src/client/apple/Framework/'
                 ],
                 'sources': [
                     '<(native_app_path)/osx/main.mm',
@@ -175,25 +206,29 @@
                 ],
                 'postbuilds': [
                     {
-                        'postbuild_name': 'Increment build number',
-                        'action': ['./osx/incbuild.sh']
-                    },
-                    {
                         'postbuild_name': 'Copy Frameworks',
                         'action': [
                             'ditto',
                             '<(native_output)/third-party-libs/.libs/SDL2.framework/',
-                            '../framework/dist/nidium.app/Contents/Frameworks/SDL2.framework'
+                            '<(native_exec_path)/<(native_exec_name).app/Contents/Frameworks/SDL2.framework'
                         ]
                     },
-					{
-						'postbuild_name': 'Copy resources',
-						'action': [
-							'ditto',
-							'<(native_output)/../resources/',
-							'../framework/dist/nidium.app/Contents/Resources/'
-						]
-					}
+                    {
+                        'postbuild_name': 'Copy resources',
+                        'action': [
+                            'cp',
+                            '-r',
+                            '<(native_resources_path)/osx/',
+                            '<(native_exec_path)/<(native_exec_name).app/Contents/Resources/'
+                        ]
+                    },
+                    {
+                        'postbuild_name': 'Increment build number',
+                        'action': [
+                            './osx/incbuild.sh',
+                            '<(native_exec_path)/<(native_exec_name).app/Contents/'
+                        ]
+                    }
                 ]
             }],
         ],

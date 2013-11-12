@@ -5,7 +5,6 @@
 #import "NativeSystem.h"
 #import <dispatch/dispatch.h>
 
-
 NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
 NativeUIInterface *__NativeUI;
 
@@ -110,5 +109,61 @@ unsigned long _ape_seed;
     
     return true;
 }
+
+#ifdef NATIVE_ENABLE_BREAKPAD
+static BreakpadRef InitBreakpad(void) {
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    BreakpadRef breakpad = 0;
+    NSString *execPath = [[NSBundle mainBundle] resourcePath];
+    NSString *contentPath = [execPath stringByDeletingLastPathComponent];
+    NSString *resourcesPath = [contentPath stringByAppendingPathComponent:@"Resources/"];
+
+    NSString *inspector = [resourcesPath stringByAppendingPathComponent:@"crash_inspector"];
+    NSString *reporter =
+               [resourcesPath stringByAppendingPathComponent:@"crash_report_sender.app"];
+    reporter = [[NSBundle bundleWithPath:reporter] executablePath];
+
+    NSDictionary *dict = [[NSBundle mainBundle] infoDictionary];
+    NSMutableDictionary *config=
+        [[dict mutableCopy] autorelease];
+    [config setObject:inspector
+        forKey:@BREAKPAD_INSPECTOR_LOCATION];
+    [config setObject:reporter
+        forKey:@BREAKPAD_REPORTER_EXE_LOCATION];
+    [config setObject:@"http://"NATIVE_CRASH_COLLECTOR_HOST":"STR(NATIVE_CRASH_COLLECTOR_PORT)""NATIVE_CRASH_COLLECTOR_ENDPOINT
+        forKey:@BREAKPAD_URL];
+    [config setObject:@NATIVE_VERSION_STR
+        forKey:@BREAKPAD_VERSION];
+
+    breakpad = BreakpadCreate(config);
+
+    SetCrashKeyValue(breakpad, @"version", @NATIVE_VERSION_STR);
+    SetCrashKeyValue(breakpad, @"build", @NATIVE_BUILD);
+
+    [pool release];
+    return breakpad;
+#undef STR
+#undef STR_HELPER
+}
+
+void SetCrashKeyValue(BreakpadRef breakpad, NSString *key, NSString *value) {
+  if (breakpad == NULL) {
+    return;
+  }
+
+  BreakpadAddUploadParameter(breakpad, key, value);
+}
+
+- (void)awakeFromNib {
+    breakpad = InitBreakpad();
+}
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
+    BreakpadRelease(breakpad);
+    return NSTerminateNow;
+}
+#endif
 
 @end
