@@ -25,8 +25,8 @@
 
         # Crash reporter settings
         'native_enable_breakpad%': 0,
-        'native_crash_collector_host': 'nidium.com',
-        'native_crash_collector_port': '5000',
+        'native_crash_collector_host': 'crash.nidium.com',
+        'native_crash_collector_port': 80,
         'native_crash_collector_endpoint': '/submit',
 
         # Linux build only
