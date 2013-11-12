@@ -89,7 +89,7 @@ optionParser = OptionParser(usage="Usage: %prog [requirements_file] [options]")
 
 availableDependencies = {}
 availableOptions = []
-availableActions = {"pre": [], "post": []}
+availableActions = {"pre": [], "post": [], "parse": []}
 deps = []
 
 VERBOSE = False
@@ -158,7 +158,7 @@ def parseArguments():
 
     opt, args = optionParser.parse_args()
 
-    for action in availableActions["pre"]:
+    for action in availableActions["parse"]:
         if action(opt) is True:
             exit(0)
 
@@ -185,9 +185,14 @@ def parseArguments():
     
     return opt, args
 
-def registerPostAction(register, action):
+def registerAction(register, parse = None, action = None):
     availableOptions.append(register)
-    availableActions["post"].append(action)
+
+    if parse is not None:
+        availableActions["parse"].append(parse)
+
+    if action is not None:
+        availableActions["post"].append(action)
 
 def needDep(dep):
     return dep in deps
@@ -600,8 +605,10 @@ def buildDep(depName, directory, buildCommand, **kwargs):
         for cmd in buildCommand:
             import string
 
-            if cmd == "make":
-                cmd = "make -j" + str(nbCpu)
+            if cmd.startswith("make"):
+                cmd += " -j" + str(nbCpu)
+            elif cmd.startswith("xcodebuild"):
+                cmd += " -jobs " + str(nbCpu)
 
             code, output = runCommand(cmd)
 
@@ -761,7 +768,7 @@ def runGyp():
 
     makeCmd = ""
     if system == "Darwin":
-        makeCmd = "xcodebuild -project all.xcodeproj"
+        makeCmd = "xcodebuild -project all.xcodeproj -jobs " + str(nbCpu)
     elif system == "Linux":
         makeCmd = "CC=" + CLANG + ", CXX=" + CLANGPP +" make -j" + str(nbCpu)
         if VERBOSE:

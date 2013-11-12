@@ -19,7 +19,13 @@
                 {
                     'target_name': 'minidump_stackwalk',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'includes': ['breakpad_tools.gypi'],
+                    'xcode_settings': {
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
+                    },
                     'defines': ['BPLOG_MINIMUM_SEVERITY=SEVERITY_ERROR'],
                     'sources': [
                         '<(third_party_path)/breakpad/src/processor/basic_code_module.h',
@@ -100,6 +106,11 @@
                     'target_name': 'minidump_dump',
                     'type': 'executable',
                     'includes': ['breakpad_tools.gypi'],
+                    'xcode_settings': {
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
+                    },
                     'sources': [
                         '<(third_party_path)/breakpad/src/processor/basic_code_module.h',
                         '<(third_party_path)/breakpad/src/processor/basic_code_modules.cc',
@@ -169,6 +180,9 @@
 
                         # dwarf2reader.cc uses dynamic_cast.
                         'GCC_ENABLE_CPP_RTTI': 'YES',
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
                     },
                     'link_settings': {
                         'libraries': [
@@ -221,6 +235,7 @@
                 {
                     'target_name': 'crash_inspector',
                     'type': 'executable',
+                    'product_dir': '<(native_resources_path)/osx/',
                     'variables': {
                         'mac_real_dsym': 1,
                     },
@@ -242,11 +257,17 @@
                             '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
                             '$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
                         ],
-                    }
+                    },
+                    'xcode_settings': {
+                        "OTHER_LDFLAGS": [
+                            '-stdlib=libc++'
+                        ]
+                    },
                 },
                 {
                     'target_name': 'crash_report_sender',
                     'type': 'executable',
+                    'product_dir': '<(native_resources_path)/osx/',
                     'mac_bundle': 1,
                     'variables': {
                         'mac_real_dsym': 1,

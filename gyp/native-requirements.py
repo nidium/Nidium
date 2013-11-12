@@ -62,25 +62,8 @@ def buildSkia():
         "skia/out/Release/libskia_opts"
     ])
 
-def buildJSONCPP():
-    if deps.system == "Linux" or deps.system == "Darwin":
-        platform = "linux-gcc"
-
-        # Dirty hack to get output directory/name of libjsoncpp
-        import commands 
-        version = commands.getoutput('g++ -dumpversion')
-        outlib = ["jsoncpp/libs/linux-gcc-" + version + "/libjson_linux-gcc-" + version + "_libmt", "libjsoncpp"]
-    else :
-        # TODO windows
-        platform = "msvc8"
-
-    deps.buildDep("libjsoncpp", "jsoncpp", ["python scons.py platform=" + platform + "  CC='clang' CXX='clang++' CXXFLAGS='-mmacosx-version-min=10.7 -stdlib=libc++'"], outlibs=[outlib]);
-
 def downloadJSONCPP():
     deps.downloadDep("jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*")
-    os.chdir("jsoncpp")
-    # XXX : This is a hack, scons-local should be embedded in jsoncpp archive
-    deps.downloadDep("jsoncpp", deps.depsURL + "/scons-local-2.2.0.tar.gz")
     os.chdir("../")
 
 def buildZitaResampler():
@@ -150,7 +133,7 @@ def registerDeps():
 
     deps.registerDep("jsoncpp", 
         downloadJSONCPP, 
-        buildJSONCPP)
+        None)
 
     deps.registerDep("preload", 
          None,
@@ -161,10 +144,21 @@ def registerDeps():
         None)
         #partial(deps.buildDep, "libbreakpad_client", "breakpad", ["./configure", "make"], outlibs=["breakpad/src/client/linux/libbreakpad_client"]))
 
-    deps.registerPostAction(releaseActionRegister, releaseAction);
+    deps.registerAction(releaseActionRegister, releaseActionParse, releaseAction);
+    deps.registerAction(stripActionRegister, None, stripAction)
+
+def stripActionRegister(parser):
+    parser.add_option("--strip", dest="strip", action="store_true", default=False, help="Strip executable")
+
+def stripAction(options):
+    if options.strip:
+        stripExecutable()
+
+def releaseActionParse(options):
+    if options.release:
+        deps.gypArgs += " -Dnative_enable_breakpad=1"
 
 def releaseActionRegister(parser):
-    deps.gypArgs += " -Dnative_enable_breakpad=1"
     parser.add_option("--release", dest="release", action="store_true", default=False, help="Publish a release")
 
 def releaseAction(opt):
@@ -238,8 +232,7 @@ def releaseAction(opt):
     symFile = "gyp/nidium.sym"
     deps.logstep("Producing application symbols for breakpad")
     if deps.system == "Darwin":
-        #deps.runCommand("tools/dump_syms  -a ppc  framework/dist/nidium.app/Contents/MacOS/nidium > " + symFile)
-        deps.runCommand("tools/dump_syms framework/dist/nidium.app/Contents/MacOS/nidium > " + symFile)
+        deps.runCommand("tools/dump_syms gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium > " + symFile)
     elif deps.system == "Linux":
         deps.runCommand("tools/dump_syms framework/dist/nidium > " + symFile)
     else:
@@ -264,6 +257,7 @@ def stripExecutable():
     deps.logstep("Striping executable")
     if deps.system == "Darwin":
         deps.runCommand("strip framework/dist/nidium.app/Contents/MacOS/nidium")
+        return
     elif deps.system == "Linux":
         deps.runCommand("strip framework/dist/nidium")
     else:
@@ -277,8 +271,14 @@ def packageExecutable():
 
     datetime = time.strftime("%Y%m%d_%H%M%S")
     hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
-    name = "Nidium_%s_%s_%s.zip" % (datetime, deps.system, hash)
     path = "framework/dist/"
+    arch = ""
+    if deps.is64bits:
+        arch = "x86_64"
+    else:
+        arch = "i386"
+
+    name = "Nidium_%s_%s_%s.zip" % (datetime, deps.system, hash, arch)
 
     deps.logstep("Packaging executable")
     deps.logi(name)
