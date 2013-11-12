@@ -21,7 +21,8 @@
                 'conditions': [
                     ['native_enable_breakpad==1', {
                         'dependencies': [
-                            'crashreporter.gyp:nidium-crash-reporter'
+                            'crashreporter.gyp:nidium-crash-reporter',
+                            'breakpad.gyp:*'
                          ]
                     }],
                     ['native_use_gtk==1', {
