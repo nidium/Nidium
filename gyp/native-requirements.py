@@ -230,7 +230,7 @@ def releaseAction(opt):
     def get_content_type(filename):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
-    symFile = "gyp/nidium.sym"
+    symFile = "out/nidium.sym"
     log.step("Producing application symbols for breakpad")
     if deps.system == "Darwin":
         deps.runCommand("tools/dump_syms gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium > " + symFile)
@@ -240,8 +240,9 @@ def releaseAction(opt):
         # Window TODO
         print("TODO")
     log.step("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
-    symbols = open(symFile, "rb").read()
-    reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
+    # symbols = open(symFile, "rb").read()
+    # reply = post_multipart("nidium.com:5000", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
+    reply = "OK"
 
     if reply == "OK":
         os.unlink(symFile)
@@ -268,7 +269,7 @@ def stripExecutable():
 def packageExecutable():
     import time
     import subprocess
-    from zipfile import ZipFile
+    import zipfile 
 
     datetime = time.strftime("%Y%m%d_%H%M%S")
     hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
@@ -279,12 +280,12 @@ def packageExecutable():
     else:
         arch = "i386"
 
-    name = "Nidium_%s_%s_%s_%s.zip" % (datetime, deps.system, hash, arch)
+    name = "Nidium_%s_%s_%s_%s.zip" % (datetime, deps.system, arch, hash)
 
     log.step("Packaging executable")
     log.info(name)
     spinner.start()
-    with ZipFile(path + name, 'w') as myzip:
+    with zipfile.ZipFile("out/" + name, 'w', zipfile.ZIP_DEFLATED) as myzip:
         if deps.system == "Darwin":
             myzip.write(path + "nidium.app")
             import os
@@ -302,7 +303,7 @@ def packageExecutable():
     spinner.stop()
     log.setOk()
 
-    uploadExecutable(path, name)
+    uploadExecutable("out/", name)
 
 def uploadExecutable(path, name):
     import ftplib
@@ -325,6 +326,7 @@ def uploadExecutable(path, name):
     s.storbinary("STOR release/" + name, f, 1024, callback)
 
     print ""
+    os.unlink(path + name);
     log.setOk()
     log.info("Executable uploaded to http://release.nidium.com/" + name)
 
