@@ -207,7 +207,10 @@
                 'postbuilds': [
                     {
                         'postbuild_name': 'Increment build number',
-                        'action': ['./osx/incbuild.sh']
+                        'action': [
+                            './osx/incbuild.sh',
+                            '<(native_exec_path)/<(native_exec_name).app/Contents/'
+                        ]
                     },
                     {
                         'postbuild_name': 'Copy Frameworks',
