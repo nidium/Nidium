@@ -202,11 +202,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
         }
 
         if (NUII->NativeCtx) {
-            NUII->NativeCtx->callFrame();
-            NUII->NativeCtx->postDraw();
-            int s = SDL_GetTicks();
-            NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
-                1.0, NULL);
+            NUII->NativeCtx->frame();
         }
 
         //NUII->getConsole()->flush();

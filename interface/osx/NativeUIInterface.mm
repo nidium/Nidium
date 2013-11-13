@@ -217,10 +217,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         }
         //glUseProgram(0);
         if (NUII->NativeCtx) {
-            NUII->NativeCtx->callFrame();
-            NUII->NativeCtx->postDraw();
-            NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
-                1.0, NULL);
+            NUII->NativeCtx->frame();
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();

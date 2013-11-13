@@ -239,10 +239,22 @@ NativeContext::~NativeContext()
     ShFinalize();
 }
 
+void NativeContext::frame()
+{
+    this->callFrame();
+    this->postDraw();
+    this->getRootHandler()->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
+
+    /* Skia context is dirty after a call to layerize */
+    ((NativeCanvas2DContext *)this->getRootHandler()->getContext())->resetSkiaContext();
+}
+
 void NativeContext::initHandlers(int width, int height)
 {
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height));
+
+    NLOG("Created rootHandler : %p", rootHandler);
 }
 
 void NativeContext::forceLinking()

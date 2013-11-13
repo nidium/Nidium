@@ -1967,6 +1967,7 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
     }
 
     backingTarget->getContext()->resetContext(flag);
+    NLOG("reset skia context?");
 }
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
@@ -2044,23 +2045,13 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->restore();
         skia->canvas->flush();
     } else {
-        const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
         /* TODO: disable alpha testing? */
         if (this->hasShader() && !commonDraw) {
-
-            skia->canvas->flush();
-            this->getSurface()->canvas->flush();
             int width, height;
 
             /* get the layer's Texture ID */
             uint32_t textureID = this->getSkiaTextureID(&width, &height);
-#if 0
-            /* Use our custom shader */
-            glUseProgram(0);
 
-            /* draw layer into a temporary FBO (in layer->gl.fbo/.texture) */
-            layer->drawTexToFBO(textureID);
-#endif
             /* Use our custom shader */
             this->resetGLContext();
             if (glGetError() != GL_NO_ERROR) {
@@ -2079,8 +2070,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
             /* Reset skia GL context */
-            this->resetSkiaContext();
-
+            //this->resetSkiaContext();
+            NLOG("not common sraw %p", this->getHandler());
             return;
 
             /* Draw the temporary FBO into main canvas (root) */
@@ -2088,8 +2079,9 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         }
 
         if (this->commonDraw) {
-            //NLOG("Regular compositing");
-            this->resetSkiaContext();
+            const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
+            NLOG("commonDraw... : %p", this->getHandler());
+            //this->resetSkiaContext();
             skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
             skia->canvas->drawBitmap(bitmapLayer,
                 left*ratio, top*ratio, &pt);
@@ -2105,7 +2097,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             glUseProgram(0);
             NLOG("Composing...");
             layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-            this->resetSkiaContext();            
+            //this->resetSkiaContext();            
         }
     }
     
