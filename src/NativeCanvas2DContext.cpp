@@ -1961,7 +1961,9 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
                                         getDevice()->accessRenderTarget();
 
     if (flag == 0) {
-        flag = kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState;
+        flag = kProgram_GrGLBackendState
+                | kTextureBinding_GrGLBackendState
+                | kVertex_GrGLBackendState;
     }
 
     backingTarget->getContext()->resetContext(flag);
@@ -2073,7 +2075,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             this->updateMatrix(left, top);
-           
+
             layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
             /* Reset skia GL context */
