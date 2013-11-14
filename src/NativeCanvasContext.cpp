@@ -157,8 +157,6 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
 void NativeCanvasContext::resetGLContext()
 {
     glBindVertexArray(m_GLObjects.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
 }
 
 uint32_t NativeCanvasContext::createPassThroughProgram()
@@ -223,10 +221,13 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     glGenBuffers(2, m_GLObjects.vbo);
     glGenVertexArrays(1, &m_GLObjects.vao);
 
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(32);
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(16);
         
     glBindVertexArray(m_GLObjects.vao);
-    
+
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
+
     /* Upload the list of vertex */
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
@@ -236,6 +237,13 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
         vtx->indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeCanvasContext::Vertex), 0);
+
+    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeCanvasContext::Vertex),
+                          (GLvoid*) offsetof(NativeCanvasContext::Vertex, TexCoord));
 
     if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
         m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
@@ -254,6 +262,11 @@ NativeCanvasContext::~NativeCanvasContext()
     if (m_GLObjects.program) {
         glDeleteProgram(m_GLObjects.program);
     }
+
+    /* XXX this could be released after glBufferData */
+    free(m_GLObjects.vtx->indices);
+    free(m_GLObjects.vtx->vertices);
+    free(m_GLObjects.vtx);
 }
 
 static void dump_Matrix(float *matrix)

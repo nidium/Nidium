@@ -1834,8 +1834,6 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
 {
-    SkISize size = m_Skia->canvas->getDeviceSize();
-
     GLenum err;
 
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -1852,21 +1850,9 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     //glEnable(GL_ALPHA_TEST);
     //glAlphaFunc(GL_NOTEQUAL, 0.0f);
 
-    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
-    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
-
-    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(NativeCanvasContext::Vertex), 0);
-
-    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(NativeCanvasContext::Vertex),
-                          (GLvoid*) offsetof(NativeCanvasContext::Vertex, TexCoord));
-    
     glDrawElements(GL_TRIANGLE_STRIP, m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
     //glDisable(GL_ALPHA_TEST);
 
-    glDisableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
-    glDisableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -2033,6 +2019,9 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         /* TODO: disable alpha testing? */
         if (this->hasShader() && !commonDraw) {
             int width, height;
+            this->resetSkiaContext();
+            layer->flush();
+            this->flush();
 
             /* get the layer's Texture ID */
             uint32_t textureID = this->getSkiaTextureID(&width, &height);
