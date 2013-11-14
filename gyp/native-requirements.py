@@ -113,7 +113,7 @@ def registerDeps():
         buildZitaResampler)
 
     deps.registerDep("SDL2",
-        partial(deps.downloadDep, "SDL2", deps.depsURL + "/SDL-2.0.tar.gz", "SDL-2*"),
+        partial(deps.downloadDep, "SDL2", deps.depsURL + "/SDL-2.0.1-7943.tar.gz", "SDL-2*"),
         buildSDL2)
 
     deps.registerDep("leveldb",

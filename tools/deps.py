@@ -17,6 +17,7 @@ GPP = "/usr/bin/g++"
 CLANG = "/usr/bin/clang"
 CLANGPP = "/usr/bin/clang++"
 
+os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
 
 # Change to gyp executable path if you don't 
 # want this script to download gyp for you
@@ -317,7 +318,7 @@ def cloneRepo(repo):
         log.info("Already cloned repo " + repo)
         os.chdir(repo)
     else:
-        logd("Cloning " + repo + " ( " + repoURL + ")")
+        log.debug("Cloning " + repo + " ( " + repoURL + ")")
 
         cloned = subprocess.call([GIT, "clone", repoURL]);
 
@@ -696,7 +697,7 @@ def copyAndLinkDep(outlibs, symlink = True):
                 if ok == False:
                     log.error("    File " + f + " not matching");
                 else:
-                    logd("    File " + f + " matched")
+                    log.debug("    File " + f + " matched")
                     break
 
         if ok == False:
