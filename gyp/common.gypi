@@ -38,6 +38,10 @@
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/debug/',
                         '-F<(native_output)/third-party-libs/debug/',
+                        '-stdlib=libc++'
+                    ],
+                    'OTHER_CPLUSPLUSFLAGS': [ 
+                        '-stdlib=libc++'
                     ],
                     'ARCHS': [
                         'x86_64',
@@ -87,10 +91,13 @@
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/release/',
-                        '-F<(native_output)/third-party-libs/release/'
+                        '-F<(native_output)/third-party-libs/release/',
                     ],
                     'ARCHS': [
                         'x86_64',
+                    ],
+                    'OTHER_CPLUSPLUSFLAGS': [ 
+                        '-stdlib=libc++'
                     ],
                     'MACOSX_DEPLOYMENT_TARGET': [
                         '10.7'
@@ -102,7 +109,6 @@
                         '-g',
                         '-O2',
                         '-Wall',
-                        '-stdlib=libc++'
                     ]
                 },
                 'ldflags': [
@@ -115,15 +121,6 @@
                 'cflags': [
                     '-O2',
                     '-g',
-                ],
-                'conditions': [
-                    ['native_strip_exec==1', {
-                        'xcode_settings': {
-                            'DEAD_CODE_STRIPPING': 'NO',
-                            'DEPLOYMENT_POSTPROCESSING': 'NO',
-                            'STRIP_INSTALLED_PRODUCT': 'NO'
-                        },
-                    }],
                 ],
             }
         },

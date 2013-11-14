@@ -17,6 +17,7 @@ GPP = "/usr/bin/g++"
 CLANG = "/usr/bin/clang"
 CLANGPP = "/usr/bin/clang++"
 
+os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
 
 # Change to gyp executable path if you don't 
 # want this script to download gyp for you
@@ -62,19 +63,18 @@ if __name__ == '__main__':
     d.initDirectories()
 
     # Download and build everything
-    d.logstep("Checking dependencies");
+    d.log.step("Checking dependencies");
     d.downloadAndBuildDeps()
 
     # Build the project(s)
     success = d.runGyp()
     if success:
-        d.logi("Build successfull")
-        d.logok()
+        d.log.success("Build successfull")
  
         for action in d.availableActions["post"]:
             action(opt)
 
-    d.logi("Finished \\o/")
+    d.log.info("Finished \\o/")
     # we don't want to run the rest of the script
     sys.exit()
 
@@ -89,25 +89,14 @@ optionParser = OptionParser(usage="Usage: %prog [requirements_file] [options]")
 
 availableDependencies = {}
 availableOptions = []
-availableActions = {"pre": [], "post": []}
+availableActions = {"pre": [], "post": [], "parse": []}
 deps = []
 
 VERBOSE = False
 LIBS_DIR = None
 LIBS_OUTPUT = None
-STOP_SPINNER_THREAD = False
 FORCE_BUILD = []
 FORCE_DOWNLOAD = []
-COLORS = {
-    "black": 0,
-    "red": 1,
-    "green": 2,
-    "yellow": 3,
-    "blue": 4,
-    "magenta": 5,
-    "cyan": 6,
-    "white": 7
-}
 
 def mkdir_p(path):
     import os, errno
@@ -131,8 +120,8 @@ def initDirectories():
     mkdir_p(OUTPUT + "/third-party-libs/debug/")
 
 def signalHandler(signal, frame):
-    logerror()
-    logi("User aborted")
+    log.setError()
+    log.info("User aborted")
     STOP_SPINNER_THREAD = True
     sys.exit(0)
 
@@ -158,7 +147,7 @@ def parseArguments():
 
     opt, args = optionParser.parse_args()
 
-    for action in availableActions["pre"]:
+    for action in availableActions["parse"]:
         if action(opt) is True:
             exit(0)
 
@@ -179,15 +168,20 @@ def parseArguments():
         FORCE_DOWNLOAD = opt.forceDownload.split(",")
 
     if len(args) == 0 and opt.init is None:
-        loge("You must specify a requirements file")
+        log.error("You must specify a requirements file")
         parser.print_help()
         sys.exit(0)
     
     return opt, args
 
-def registerPostAction(register, action):
+def registerAction(register, parse = None, action = None):
     availableOptions.append(register)
-    availableActions["post"].append(action)
+
+    if parse is not None:
+        availableActions["parse"].append(parse)
+
+    if action is not None:
+        availableActions["post"].append(action)
 
 def needDep(dep):
     return dep in deps
@@ -205,7 +199,7 @@ def downloadDep(depName, url, rename = None):
         f = open(file_name, 'wb')
         meta = u.info()
         file_size = int(meta.getheaders("Content-Length")[0])
-        logstep("Downloading: %s (%s) Bytes: %s" % (depName, file_name, file_size))
+        log.step("Downloading: %s (%s) Bytes: %s" % (depName, file_name, file_size))
 
         file_size_dl = 0
         block_sz = 8192
@@ -221,12 +215,12 @@ def downloadDep(depName, url, rename = None):
             status = status + chr(8)*(len(status)+1)
             c = next(gen)
 
-            logspinner(c, status)
+            log.spinner(c, status)
 
             sys.stdout.flush()
 
         print ""
-        logok()
+        log.setOk()
         f.close()
 
     if depName in deps and os.path.exists(depName) == False:
@@ -238,14 +232,13 @@ def downloadDep(depName, url, rename = None):
                 files = os.listdir("./")
                 for f in files:
                     if re.match(rename, f) and os.path.isdir(f):
-                        log("  Renaming : ", COLORS["yellow"])
-                        log(f + " to " + depName + "\n")
+                        log.info("    Renaming : " + f + " to " + depName + "\n")
                         os.rename(f, depName)
 
             return True
 
 def extractDep(path):
-    logaction("Extracting " + path)
+    log.action("Extracting " + path)
 
     extension = os.path.splitext(path)[1]
     if extension == ".zip":
@@ -258,7 +251,7 @@ def extractDep(path):
         tar.extractall()
         tar.close()
 
-    logok()
+    log.setOk()
 
 def needDownload(dep, fileName):
     if dep in FORCE_DOWNLOAD:
@@ -267,18 +260,18 @@ def needDownload(dep, fileName):
     if dep in deps:
         if os.path.exists(fileName):
             if VERBOSE:
-                logi("Skipping dep " + dep + " (already downloaded)")
+                log.info("Skipping dep " + dep + " (already downloaded)")
             return False
         else:
             return True
     else:
         if VERBOSE:
-            logi("Skipping dep " + dep + " (not needed)")
+            log.info("Skipping dep " + dep + " (not needed)")
         return False
 
 def patchDep(dep, patchFile):
     if not os.path.exists(dep):
-        loge("Dependency does not exist. Not patching : " + dep)
+        log.error("Dependency does not exist. Not patching : " + dep)
         sys.exit(1)
 
     import subprocess
@@ -290,14 +283,14 @@ def patchDep(dep, patchFile):
     applied = subprocess.call(["patch", "-p1", "-N", "--dry-run", "--silent"], stdin=patch, stdout=nullout, stderr=subprocess.STDOUT)
 
     if applied == 0:
-        logstep("    Applying patch " + patchFile + " to " + dep)
+        log.step("    Applying patch " + patchFile + " to " + dep)
         patch.seek(0)
         success, output = runCommand("patch -p1 -N", stdin=patch)
         if success != 0:
-            loge("Failed to patch")
+            log.error("Failed to patch")
             sys.exit(1)
     elif VERBOSE:
-        logi("    Already applied patch "+ patchFile + " to " + dep + ". Skipping.")
+        log.info("    Already applied patch "+ patchFile + " to " + dep + ". Skipping.")
 
     os.chdir(cwd)
     patch.close()
@@ -318,26 +311,26 @@ def cloneRepo(repo):
         repoURL = "https://github.com/SwelenFrance/NativeJSCore"
         requirementsFile = "gyp/nativejscore-requirements.deps"
     else:
-        loge("Unknown repo " + repo + ". Exiting.")
+        log.error("Unknown repo " + repo + ". Exiting.")
         sys.exit()
 
     if os.path.exists(repo):
-        logi("Already cloned repo " + repo)
+        log.info("Already cloned repo " + repo)
         os.chdir(repo)
     else:
-        logd("Cloning " + repo + " ( " + repoURL + ")")
+        log.debug("Cloning " + repo + " ( " + repoURL + ")")
 
         cloned = subprocess.call([GIT, "clone", repoURL]);
 
         if cloned != 0:
-            loge("Failed to clone NativeStudio repo. Exiting")
+            log.error("Failed to clone NativeStudio repo. Exiting")
             sys.exit()
 
         os.chdir(repo)
 
         sub = subprocess.call([GIT, "submodule", "update", "--init", "--recursive"]);
         if sub != 0:
-            loge("Failed to init " + repo + " submodule(s). Exiting")
+            log.error("Failed to init " + repo + " submodule(s). Exiting")
             sys.exit()
 
     return requirementsFile
@@ -425,120 +418,149 @@ def hasColours(stream):
     except:
         # guess false in case of error
         return False
+class log():
+    COLORS = {
+        "black": 0,
+        "red": 1,
+        "green": 2,
+        "yellow": 3,
+        "blue": 4,
+        "magenta": 5,
+        "cyan": 6,
+        "white": 7
+    }
+    @staticmethod
+    def setOk():
+        print "\r\033[1A[",
+        log.log("✔", log.COLORS["green"])
+        print "]\033[1B",
 
-def logok():
-    print "\r\033[1A[",
-    log("✔", COLORS["green"])
-    print "]\033[1B",
+    @staticmethod
+    def setError():
+        print "\r\033[1A[",
+        log.log("✖", log.COLORS["red"])
+        print "]\033[1B",
 
-def logerror():
-    print "\r\033[1A[",
-    log("✖", COLORS["red"])
-    print "]\033[1B",
+    @staticmethod
+    def spinner(c, state):
+        print "\r[",
+        log.log(c, log.COLORS["cyan"])
+        print "]",
+        log.log(state)
 
-def logspinner(c, state):
-    print "\r[",
-    log(c, COLORS["cyan"])
-    print "]",
-    log(state)
+    @staticmethod
+    def state(state, color):
+        print "\r",
+        print "[",
+        log.log(state, color)
+        print "\x1b[0m]",
 
-def logstate(state, color):
-    print "\r",
-    print "[",
-    log(state, color)
-    print "\x1b[0m]",
+    @staticmethod
+    def error(text, newLine = False):
+        print "\r[",
+        log.log("✖", log.COLORS["red"])
+        print "]",
+        log.log(text + "\n")
 
-def loge(text, newLine = False):
-    print "\r[",
-    log("✖", COLORS["red"])
-    print "]",
-    log(text + "\n")
+    @staticmethod
+    def success(text):
+        print "\r[",
+        log.log("✔", log.COLORS["green"])
+        print "] " + text
 
-def logsuccess(text):
-    print "\r[",
-    log("✔", COLORS["green"])
-    print "] " + text
+    @staticmethod
+    def action(text):
+        log.state("❖", log.COLORS["yellow"])
+        log.log(text + "\n")
 
-def logaction(text):
-    logstate("❖", COLORS["yellow"])
-    log(text + "\n")
+    @staticmethod
+    def step(text):
+        log.state("ᐅ", log.COLORS["cyan"])
+        log.log("\x1b[4m" + text + "\x1b[0m\n")
 
-def logstep(text):
-    logstate("ᐅ", COLORS["cyan"])
-    log("\x1b[4m" + text + "\x1b[0m\n")
+    @staticmethod
+    def info(text, newLine = False):
+        log.state("ᐅ", log.COLORS["blue"])
+        log.log(text + "\n")
 
-def logi(text, newLine = False):
-    logstate("ᐅ", COLORS["blue"])
-    log(text + "\n")
+    @staticmethod
+    def debug(text, newLine = False):
+        log.log(text, log.COLORS["cyan"], newLine)
 
-def logd(text, newLine = False):
-    log(text, COLORS["cyan"], newLine)
+    @staticmethod
+    def warn(text, newLine = False):
+        log.log(text, log.COLORS["yellow"], newLine)
 
-def logw(text, newLine = False):
-    log(text, COLORS["yellow"], newLine)
+    @staticmethod
+    def log(text, color=None, newLine = False):
+        import sys
+        if hasColours(sys.stdout):
+            if color is None:
+                seq = "\x1b[0m" + text
+            else:
+                seq = "\x1b[1;%dm" % (30 + color) + text
+            seq += "\x1b[0m"
+            if newLine:
+                seq += "\n"
+            print seq,
+        else:
+            print text,
 
-def log(text, colour=COLORS["white"], newLine = False):
-    import sys
-    if hasColours(sys.stdout):
-        seq = "\x1b[1;%dm" % (30+colour) + text
-        seq += "\x1b[0m"
-        if newLine:
-            seq += "\n"
-        print seq,
-    else:
-        print text,
+class spinner():
+    STOP_SPINNER_THREAD = False
 
-def startSpinner():
-    import threading
-    # Workaround for a bug with subprocess.poll() that always return None for long running process
-    # Instead the spinner is printed from a thread while communicate() waiting from script ends 
-    t = threading.Thread(target=printSpinner)
-    t.daemon = True
-    t.start()
+    @staticmethod
+    def start():
+        import threading
+        # Workaround for a bug with subprocess.poll() that always return None for long running process
+        # Instead the spinner is printed from a thread while communicate() waiting from script ends 
+        t = threading.Thread(target=spinner.display)
+        t.daemon = True
+        t.start()
 
-def stopSpinner():
-    global STOP_SPINNER_THREAD
-    STOP_SPINNER_THREAD = True
+    @staticmethod
+    def stop():
+        spinner.STOP_SPINNER_THREAD = True
 
-def printSpinner():
-    import time
-    global STOP_SPINNER_THREAD
+    @staticmethod
+    def display():
+        import time
 
-    if sys.stdout.isatty():
-        for c in spinningCursor():
-            if STOP_SPINNER_THREAD is True:
-                STOP_SPINNER_THREAD = False
-                print "\r",
+        if sys.stdout.isatty():
+            for c in spinningCursor():
+                if spinner.STOP_SPINNER_THREAD is True:
+                    spinner.STOP_SPINNER_THREAD = False
+                    print "\r",
+                    sys.stdout.flush()
+                    time.sleep(0.2)
+                    return
+
+                print "\r\033[1A[",
+                log.log(c, log.COLORS["cyan"])
+                print "]\033[1B",
+
                 sys.stdout.flush()
                 time.sleep(0.2)
-                return
-
-            print "\r\033[1A[",
-            log(c, COLORS["cyan"])
-            print "]\033[1B",
-
-            sys.stdout.flush()
-            time.sleep(0.2)
-    else:
-        logi("Working ...") 
+        else:
+            log.info("Working ...") 
 
 def runCommand(cmd, **kwargs):
     import sys
     import subprocess
 
-    logaction("Executing " + cmd)
+    log.action("Executing " + cmd)
 
-    spinner = True
+    displaySpinner = True
     stdin = None 
 
     if "stdin" in kwargs:
         stdin = kwargs["stdin"]
 
     if "spinner" in kwargs:
-        spinner = kwargs["spinner"]
+        displaySpinner = kwargs["displaySpinner"]
 
     if VERBOSE:
-        spinner = False
+        displaySpinner = False
 
     child = None
 
@@ -547,27 +569,27 @@ def runCommand(cmd, **kwargs):
     else:
         child = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-        if spinner:
-            startSpinner()
+        if displaySpinner:
+            spinner.start()
 
     output, error = child.communicate()
     code = child.returncode
 
-    if spinner:
-        stopSpinner()
+    if displaySpinner:
+        spinner.stop()
 
     if code != 0:
         if not VERBOSE:
-            logerror()
+            log.setError()
             print "\r" + output,
-            logi("Error output saved to " + CWD + "/deps-error.log")
+            log.info("Error output saved to " + CWD + "/deps-error.log")
             f = open(CWD + '/deps-error.log', 'w')
             f.write(output)
             f.close()
         else:
-            loge("Failed to run previous command")
+            log.error("Failed to run previous command")
     else:
-        logok()
+        log.setOk()
     
     return code, output
 
@@ -594,29 +616,31 @@ def buildDep(depName, directory, buildCommand, **kwargs):
         import shutil
 
         cwd = os.getcwd()
-        logstep("Building " + depName)
+        log.step("Building " + depName)
         os.chdir(directory)
 
         for cmd in buildCommand:
             import string
 
-            if cmd == "make":
-                cmd = "make -j" + str(nbCpu)
+            if cmd.startswith("make"):
+                cmd += " -j" + str(nbCpu)
+            elif cmd.startswith("xcodebuild"):
+                cmd += " -jobs " + str(nbCpu)
 
             code, output = runCommand(cmd)
 
             if code != 0:
-                loge("Failed to build " + depName)
+                log.error("Failed to build " + depName)
                 os.chdir(cwd)
                 sys.exit()
 
         os.chdir(cwd)
         copyAndLinkDep(outlibs, symlink)
-        logok()
+        log.setOk()
     elif not build and needLink(depName):
         copyAndLinkDep(outlibs, symlink)
     elif VERBOSE:
-        logi("Dependency " + depName + " already built and copied. Skipping")
+        log.info("Dependency " + depName + " already built and copied. Skipping")
 
 def copyAndLinkDep(outlibs, symlink = True):
     import re
@@ -635,7 +659,7 @@ def copyAndLinkDep(outlibs, symlink = True):
         ok = False
 
         if VERBOSE:
-            logi("Trying to copy lib " + l)
+            log.info("Trying to copy lib " + l)
 
         for f in files:
             if re.match(name + "$", f):
@@ -653,7 +677,7 @@ def copyAndLinkDep(outlibs, symlink = True):
                         # TODO : Support windows
                         #import win32file
                         #win32file.CreateSymbolicLink(fileSrc, fileTarget, 1)
-                        loge("Not supported")
+                        log.error("Not supported")
                         sys.exit()
                     else:
                         os.chdir(LIBS_OUTPUT)
@@ -671,13 +695,13 @@ def copyAndLinkDep(outlibs, symlink = True):
 
             if VERBOSE:
                 if ok == False:
-                    loge("    File " + f + " not matching");
+                    log.error("    File " + f + " not matching");
                 else:
-                    logd("    File " + f + " matched")
+                    log.debug("    File " + f + " matched")
                     break
 
         if ok == False:
-            loge("Failed to copy and link " + name)
+            log.error("Failed to copy and link " + name)
             sys.exit(1);
 
 
@@ -689,7 +713,7 @@ def downloadAndBuildDeps():
     # Download everything
     for dep in deps:
         if dep not in availableDependencies:
-            loge("Dependency " + dep + " is not available")
+            log.error("Dependency " + dep + " is not available")
             sys.exit()
 
         dep = availableDependencies[dep]
@@ -700,7 +724,7 @@ def downloadAndBuildDeps():
     # Build everything
     for dep in deps:
         if dep not in availableDependencies:
-            loge("Dependency " + dep + " is not available")
+            log.error("Dependency " + dep + " is not available")
             sys.exit()
 
         dep = availableDependencies[dep]
@@ -726,21 +750,21 @@ def processRequirements(fileName):
         with open(name) as f:
             fileDeps = f.read().splitlines()
     except:
-        loge("Failed to open requirements file : " + fileName)
+        log.error("Failed to open requirements file : " + fileName)
         sys.exit()
 
     # Look for any python requirements file, and run it
     for dep in fileDeps:
         if dep.endswith(".py"):
-                logi("Importing requirements file \"" + dep + "\" ... ")
+                log.info("Importing requirements file \"" + dep + "\" ... ")
                 try:
                     tmp = __import__(dep[:-3])
                     tmp.registerDeps()
                 except:
-                    logerror()
+                    log.errorrror()
                     raise
                 else:
-                    logok()
+                    log.setOk()
         elif dep.endswith(".deps"):
             processRequirements(dep)
         else:
@@ -752,7 +776,7 @@ def processRequirements(fileName):
 def runGyp():
     cwd = os.getcwd()
     os.chdir("gyp")
-    logstep("Preparing gyp")
+    log.step("Preparing gyp")
 
     code, output = runCommand(GYP + " --include=config.gypi --include=common.gypi --depth ./ all.gyp " + gypArgs)
 
@@ -761,23 +785,23 @@ def runGyp():
 
     makeCmd = ""
     if system == "Darwin":
-        makeCmd = "xcodebuild -project all.xcodeproj"
+        makeCmd = "xcodebuild -project all.xcodeproj -jobs " + str(nbCpu)
     elif system == "Linux":
         makeCmd = "CC=" + CLANG + ", CXX=" + CLANGPP +" make -j" + str(nbCpu)
         if VERBOSE:
             makeCmd += " V=1"
     else:
-        loge("TODO")
+        log.error("TODO")
         sys.exit(0)
     
     if BUILD == "debug":
         makeCmd += " BUILDTYPE=Debug"
 
-    logstep("Running gyp");
+    log.step("Running gyp");
     code, output = runCommand(makeCmd)
 
     if code != 0:
-        loge("Failed to build project")
+        log.error("Failed to build project")
         sys.exit(1)
 
     os.chdir(cwd)

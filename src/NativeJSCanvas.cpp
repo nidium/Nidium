@@ -226,7 +226,9 @@ static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    NativeObject->m_Context->clear(0x00000000);
+    if (NativeObject->m_Context) {
+        NativeObject->m_Context->clear(0x00000000);
+    }
     
     return true;
 }
