@@ -12,7 +12,7 @@
 #include <SkDevice.h>
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -1767,6 +1767,7 @@ uint32_t NativeCanvas2DContext::getMainFBO()
     return (uint32_t)backingTarget->getRenderTargetHandle();
 }
 
+#if 0
 void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
 {
@@ -1828,7 +1829,7 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     glPopAttrib();
 
 }
-
+#endif
 
 void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
@@ -1836,17 +1837,7 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     SkISize size = m_Skia->canvas->getDeviceSize();
 
     GLenum err;
-    if ((err = glGetError()) != GL_NO_ERROR) {
-        printf("got a gl error %d\n", err);
-    }
 
-    /* save the old viewport size */
-    glPushAttrib(GL_VIEWPORT_BIT);
-#if 0
-    /* set the viewport with the texture size */
-    glViewport(left, (float)size.fHeight-(height+top), width, height);
-#endif
-    glEnable(GL_TEXTURE_2D);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -1858,31 +1849,26 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_NOTEQUAL, 0.0f);
+    //glEnable(GL_ALPHA_TEST);
+    //glAlphaFunc(GL_NOTEQUAL, 0.0f);
+
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
 
     glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
                           sizeof(NativeCanvasContext::Vertex), 0);
 
-    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
-
     glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
                           sizeof(NativeCanvasContext::Vertex),
                           (GLvoid*) offsetof(NativeCanvasContext::Vertex, TexCoord));
-
-    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
-
+    
     glDrawElements(GL_TRIANGLE_STRIP, m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
+    //glDisable(GL_ALPHA_TEST);
 
-    glDisable(GL_ALPHA_TEST);
-
+    glDisableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
+    glDisableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_TEXTURE_2D);
-
-    glPopAttrib();
-
 }
 
 
@@ -1967,7 +1953,6 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
     }
 
     backingTarget->getContext()->resetContext(flag);
-    NLOG("reset skia context?");
 }
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
@@ -2054,9 +2039,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
             /* Use our custom shader */
             this->resetGLContext();
-            if (glGetError() != GL_NO_ERROR) {
-                NLOG("GL error before draw?");
-            }
 
             this->setupShader((float)opacity, width, height,
                 left, top,
@@ -2066,12 +2048,11 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //glDisable(GL_ALPHA_TEST);
             /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
             this->updateMatrix(left, top);
-
             layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
             /* Reset skia GL context */
-            //this->resetSkiaContext();
-            NLOG("not common sraw %p", this->getHandler());
+            this->resetSkiaContext();
+
             return;
 
             /* Draw the temporary FBO into main canvas (root) */
@@ -2079,14 +2060,17 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         }
 
         if (this->commonDraw) {
+            //return;
             const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
-            NLOG("commonDraw... : %p", this->getHandler());
-            //this->resetSkiaContext();
+
+            this->resetSkiaContext();
+            layer->flush();
+            this->flush();
             skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
             skia->canvas->drawBitmap(bitmapLayer,
                 left*ratio, top*ratio, &pt);
             skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
-            skia->canvas->flush();
+            //skia->canvas->flush();
         } else {
             int width, height;
             skia->canvas->flush();
@@ -2096,7 +2080,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
             glUseProgram(0);
             NLOG("Composing...");
-            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+            //layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
             //this->resetSkiaContext();            
         }
     }

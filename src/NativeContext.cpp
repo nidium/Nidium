@@ -243,6 +243,8 @@ void NativeContext::frame()
 {
     this->callFrame();
     this->postDraw();
+
+    this->getRootHandler()->getContext()->flush();
     this->getRootHandler()->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
 
     /* Skia context is dirty after a call to layerize */

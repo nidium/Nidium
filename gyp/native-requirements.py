@@ -117,7 +117,7 @@ def registerDeps():
         buildLibCoroutine)
 
     deps.registerDep("portaudio",
-        partial(deps.downloadDep, "portaudio", deps.depsURL + "/pa_snapshot.tgz"),
+        partial(deps.downloadDep, "portaudio", deps.depsURL + "/portaudio.tgz"),
         partial(deps.buildDep, "libportaudio", "portaudio", ["./configure", "make"], outlibs=["portaudio/lib/.libs/libportaudio"]))
 
     deps.registerDep("zita-resampler",
@@ -125,7 +125,7 @@ def registerDeps():
         buildZitaResampler)
 
     deps.registerDep("SDL2",
-        partial(deps.downloadDep, "SDL2", deps.depsURL + "/SDL-2.0.tar.gz", "SDL-2*"),
+        partial(deps.downloadDep, "SDL2", deps.depsURL + "/SDL-2.0.1-7943.tar.gz", "SDL-2*"),
         buildSDL2)
 
     deps.registerDep("leveldb",

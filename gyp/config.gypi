@@ -24,6 +24,6 @@
         # thoses settings are not working
         'native_third_party_build': 'debug',
         'native_autoconf_path%': '/usr/bin/autoconf2.13',
-
+        'addresse_sanitizer%': 0,
     },
 }

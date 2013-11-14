@@ -201,6 +201,7 @@ def downloadDep(depName, url, rename = None):
     file_name = url.split('/')[-1]
 
     if needDownload(depName, file_name):
+        print(url)
         u = urllib2.urlopen(url)
         f = open(file_name, 'wb')
         meta = u.info()

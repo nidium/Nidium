@@ -278,7 +278,6 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
     if (layer == NULL) {
         layer = this;
         m_Context->clear(0xFFFFFFFF);
-        NLOG("Layerize...");
     } else {
         double cleft = 0.0, ctop = 0.0;
 

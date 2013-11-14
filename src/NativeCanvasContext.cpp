@@ -5,7 +5,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -156,6 +156,7 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
 
 void NativeCanvasContext::resetGLContext()
 {
+    glBindVertexArray(m_GLObjects.vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
 }
@@ -163,7 +164,7 @@ void NativeCanvasContext::resetGLContext()
 uint32_t NativeCanvasContext::createPassThroughProgram()
 {
     /* PassThrough Vertex shader */
-    const char *vertex_s = "attribute vec4 Position;\n"
+    const char *vertex_s = "#version 100\nprecision highp float;\nattribute vec4 Position;\n"
     "attribute vec2 TexCoordIn;\n"
     "varying vec2 TexCoordOut;\n"
     "uniform mat4 u_projectionMatrix;\n"
@@ -171,7 +172,7 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     "    gl_Position = u_projectionMatrix * Position;\n"
     "    TexCoordOut = TexCoordIn;\n"
     "}";
-    const char *fragment_s = "\n"
+    const char *fragment_s = "#version 100\nprecision highp float;\n"
     "uniform sampler2D Texture;\n"
     "varying vec2 TexCoordOut;\n"
     "void main(void) {\n"
@@ -206,7 +207,7 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     }
 
     if (glGetError() != GL_NO_ERROR) {
-        NLOG("Got a GL error :-(");
+        NLOG("Got a GL error :-( 1.");
     }
     NLOG("Program created : %d", programHandle);
     return programHandle;
@@ -220,7 +221,11 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     m_GLObjects.program = 0;
 
     glGenBuffers(2, m_GLObjects.vbo);
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
+    glGenVertexArrays(1, &m_GLObjects.vao);
+
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(32);
+        
+    glBindVertexArray(m_GLObjects.vao);
     
     /* Upload the list of vertex */
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
@@ -232,22 +237,20 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
         vtx->indices, GL_STATIC_DRAW);
 
-    if (glGetError() != GL_NO_ERROR) {
-        NLOG("Got a GL error :-(");
-    }
-
     if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
         m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
     } else {
         NLOG("Failed to create program OO");
     }
 
-    NLOG("Vertex buffer object created with ID : %d - %d", m_GLObjects.vbo[0], m_GLObjects.vbo[1]);
+    NLOG("Vertex buffer object created with ID : %d - %d (vao : %d)", m_GLObjects.vbo[0], m_GLObjects.vbo[1], m_GLObjects.vao);
 }
 
 NativeCanvasContext::~NativeCanvasContext()
 {
     glDeleteBuffers(2, m_GLObjects.vbo);
+    glDeleteVertexArrays(1, &m_GLObjects.vao);
+
     if (m_GLObjects.program) {
         glDeleteProgram(m_GLObjects.program);
     }
@@ -305,6 +308,6 @@ void NativeCanvasContext::updateMatrix(double left, double top)
 
         glUniformMatrix4fv(m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
     } else {
-        NLOG("No uniform found");
+        //NLOG("No uniform found");
     }
 }

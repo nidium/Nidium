@@ -16,8 +16,8 @@ public:
 
     /* Explicit name used by glBindAttribLocation */
     enum {
-        SH_ATTR_POSITION = 1,
-        SH_ATTR_TEXCOORD = 2
+        SH_ATTR_POSITION = 0,
+        SH_ATTR_TEXCOORD = 1
     };
 
     struct Vertex {
@@ -48,6 +48,7 @@ public:
 
     struct {
         uint32_t vbo[2];
+        uint32_t vao;
         Vertices *vtx;
         uint32_t program;
         struct {
