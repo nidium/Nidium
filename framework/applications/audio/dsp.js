@@ -47,7 +47,7 @@ var main = new Application();
 main.backgroundImage = "private://assets/patterns/wood_1.png";
 
 var app = {
-	audioBufferSize : 2048,
+	audioBufferSize : 256, // 256 samples
 	ipulse : 0,
 
 	dftSize : 128,
@@ -68,8 +68,8 @@ var app = {
 		});
 		*/
 
-//		this.load("../../media/sympho.mp3");
-		this.load("../../media/dream.mp3");
+		this.load("../../media/sympho.mp3");
+//		this.load("../../media/dream.mp3");
 //		this.load("../../media/skrillex.mp3");
 //		this.load("../../media/drydrum.wav");
 //		this.load("../../media/drum01.mp3");
@@ -115,7 +115,7 @@ var app = {
 	setProcessor : function(){
 		var self = this;
 
-		this.processor.oninit = function(scope){
+		this.processor.init = function(scope){
 			scope.step = 0;
 			scope.oldL = new Float64Array(256);
 			scope.oldR = new Float64Array(256);
@@ -143,7 +143,7 @@ var app = {
 			scope.pitch = new scope.PitchShift(44100, 2);
 		};
 
-		this.processor.onset = function(key, value, scope){
+		this.processor.setter = function(key, value, scope){
 			switch (key) {
 				case "nofteon" :
 					scope.enveloppe.noteon(value);
@@ -164,7 +164,7 @@ var app = {
 		};
 
 		/* Threaded Audio Processor */
-		this.processor.onbuffer = function(ev, scope){
+		this.processor.process = function(ev, scope){
 			var bufferL = ev.data[0],
 				bufferR = ev.data[1],
 				samples = bufferL.length, // (audioBuffer/8)

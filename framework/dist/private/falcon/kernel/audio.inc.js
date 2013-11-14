@@ -40,8 +40,8 @@ window.getAudioContext = function(){
 	if (!Audio) return false;
 	if (!window.__defaultAudioDSP__ && "getContext" in Audio) {
 		// Init NATiVE DSP
-		// 512 bytes buffer, 2 channels, 44100Hz
-		window.__defaultAudioDSP__ = Audio.getContext(512, 2, 44100);
+		// 128 samples buffer, 2 channels, 44100Hz
+		window.__defaultAudioDSP__ = Audio.getContext(128, 2, 44100);
 	}
 	return window.__defaultAudioDSP__;
 };
