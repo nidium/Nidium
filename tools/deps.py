@@ -135,17 +135,23 @@ def parseArgumentsFile():
 
 def parseArguments():
     import sys
+    global gypArgs
 
     optionParser.add_option("--init", dest="init", help="Repository name to initialize (NativeStudio, NativeJSCore, libapenetwork)", metavar="REPOSITORY")
     optionParser.add_option("--verbose", "-v", dest="verbose", action="store_true", default=False, help="Be verbose")
     optionParser.add_option("--debug", dest="debug", action="store_true", default=False, help="Build a debug version")
     optionParser.add_option("--force-build", dest="forceBuild", default=False, help="Force building of dependencies. Eg : --force-build=skia,mozilla-central")
     optionParser.add_option("--force-download", dest="forceDownload", default=False, help="Force download of dependencies. Eg : --force-download=skia,mozilla-central")
+    optionParser.add_option("-D", dest="defines", type="string", action="append", help="Defines variables to be passed to gyp\n Eg : -Dfoo=1")
 
     for option in availableOptions:
         option(optionParser)
 
     opt, args = optionParser.parse_args()
+
+    if opt.defines is not None:
+        for define in opt.defines:
+            gypArgs += "-D%s " % define
 
     for action in availableActions["parse"]:
         if action(opt) is True:
