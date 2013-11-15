@@ -45,10 +45,15 @@ def downloadSkia():
 
 def buildSkia():
     deps.patchDep("skia", "../gyp/skia_defines.patch")
+    gypDefines = os.environ.get('GYP_DEFINES')
     if deps.is64bits:
-        exports = "GYP_DEFINES='skia_arch_width=64'"
+        exports = "GYP_DEFINES='skia_arch_width=64"
     else:
-        exports = "GYP_DEFINES='skia_arch_width=32'"
+        exports = "GYP_DEFINES='skia_arch_width=32"
+    if gypDefines is not None:
+        exports += " " + gypDefines
+
+    exports += "'"
 
     deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia -I../../gyp/skia.gypi", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
         "skia/out/Release/libskia_pdf",
