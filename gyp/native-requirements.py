@@ -55,7 +55,11 @@ def buildSkia():
 
     exports += "'"
 
-    deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia -I../../gyp/skia.gypi", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
+    makeFlags = ""
+    if deps.VERBOSE:
+        makeFlags = "V=1"
+
+    deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia -I../../gyp/skia.gypi", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(deps.nbCpu)], outlibs=[
         "skia/out/Release/libskia_pdf",
         "skia/out/Release/libskia_ports",
         "skia/out/Release/libskia_skgpu",
