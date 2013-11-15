@@ -1306,7 +1306,7 @@ void NativeSkia::restore()
 
         state = dstate;
     } else {
-        printf("Shouldnt be there\n");
+        NLOG("restore() without matching save()\n");
     }
     
     canvas->restore();
