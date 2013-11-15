@@ -111,6 +111,9 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 case NativeStream::STREAM_ERROR:
                     thiz->error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
+                    thiz->pending = false;
+                    thiz->needWakup = false;
+                    *thiz->readFlag = false;
                     return copied > 0 ? copied : thiz->error;
                 break;
                 case NativeStream::STREAM_EAGAIN:
