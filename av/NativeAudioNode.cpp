@@ -1072,7 +1072,6 @@ bool NativeAudioSource::work()
             this->seekInternal(this->doSeekTime);
         } else {
             Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::seekCoro);
-            return false;
         } 
     }
 
@@ -1084,7 +1083,7 @@ bool NativeAudioSource::work()
     ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
 
     if (avail < 256) {
-        SPAM(("Work failed because not enought space is available to write decoded packet\n"));
+        SPAM(("Work failed because not enought space is available to write decoded packet %lu\n", avail));
         return false;
     }
 
@@ -1465,10 +1464,14 @@ void NativeAudioSource::seekInternal(double time)
         PaUtil_FlushRingBuffer(this->rBufferOut);
         this->resetFrames();
         this->eof = false;
+        this->error = 0;
+        this->doNotProcess = false;
     } else {
         int64_t target = 0;
         int flags = 0;
         double clock = this->getClock();
+
+        SPAM(("Seeking source %f / %f\n", time, clock));
 
         flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
 
@@ -1477,14 +1480,22 @@ void NativeAudioSource::seekInternal(double time)
         target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->audioStream]->time_base);
 
         if (av_seek_frame(this->container, this->audioStream, target, flags) >= 0) {
+            SPAM(("Seeking success\n"));
             avcodec_flush_buffers(this->codecCtx);
             PaUtil_FlushRingBuffer(this->rBufferOut);
+            ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
+            printf("seek avail %lu\n", avail);
             this->resetFrames();
+            this->error = 0;
             if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
                 this->eof = false;
                 this->doNotProcess = false;
+                if (this->loop) {
+                    this->play();
+                }
             }
         } else {
+            SPAM(("Seeking error\n"));
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, 0, true);
         }
     }
@@ -1525,14 +1536,13 @@ bool NativeAudioSource::process() {
         this->resetFrames();
         //SPAM(("Not enought to read\n"));
         // EOF reached, send message to NativeAudio
-        if (this->error == AVERROR_EOF) {
+        if (this->error == AVERROR_EOF && !this->eof) {
+            SPAM(("     => EOF loop=%d\n", this->loop));
+
             this->eof = true;
-            SPAM(("     => EOF\n"));
-            if (this->loop) {
-                this->seek(0);
-            } else {
-                this->doNotProcess = true;
-            }
+            this->doNotProcess = true;
+            this->stop();
+
             this->sendEvent(SOURCE_EVENT_EOF, 0, 0, true);
         } 
         return false;
@@ -1649,6 +1659,13 @@ void NativeAudioSource::play()
 
     this->playing = true;
     this->stopped = false;
+
+    SPAM(("Play source @ %p\n", this));
+
+    // Since the decoding thread might be going to sleep
+    // when we want to play. We need to explicitly not to
+    // so it can start working on this node
+    this->audio->readFlag = true;
 
     pthread_cond_signal(&this->audio->bufferNotEmpty);
 

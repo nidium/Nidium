@@ -113,7 +113,6 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     SPAM(("Got EOF\n"));
                     thiz->pending = false;
                     thiz->needWakup = false;
-                    *thiz->readFlag = false;
                     return copied > 0 ? copied : thiz->error;
                 break;
                 case NativeStream::STREAM_EAGAIN:
@@ -121,7 +120,6 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     // Got EAGAIN, switch back to main coro
                     // and wait for onDataAvailable callback
                     thiz->pending = true;
-                    *thiz->readFlag = false;
                     Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
                 break;
                 default:
@@ -149,7 +147,6 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 thiz->error = 0;
                 thiz->pending = false;
                 thiz->needWakup = false;
-                *thiz->readFlag = false;
 
                 return copied;
             } 
@@ -293,7 +290,6 @@ int NativeAVSource::readError(int err)
 {
     SPAM(("readError Got error %d/%d\n", err, AVERROR_EOF));
     if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
-        this->eof = true;
         this->error = AVERROR_EOF;
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {

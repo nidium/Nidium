@@ -129,6 +129,7 @@ void *NativeAudio::queueThread(void *args) {
             pthread_mutex_unlock(&audio->recurseLock);
 
             if (audio->haveSourceActive(true)) {
+                SPAM(("Sending bufferNotEmpty\n"));
                 pthread_cond_signal(&audio->bufferNotEmpty);
             }
         } 
@@ -288,6 +289,8 @@ void *NativeAudio::decodeThread(void *args)
         } else {
             SPAM(("decodeThread not sleeping cause it need wakup\n"));
         }
+
+        audio->readFlag = false;
 
         NATIVE_AUDIO_CHECK_EXIT_THREAD
     }
