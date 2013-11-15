@@ -302,3 +302,7 @@ int NativeAVSource::readError(int err)
     return 0;
 }
 
+NativeAVSource::~NativeAVSource() 
+{
+}
+

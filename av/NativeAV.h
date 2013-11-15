@@ -191,6 +191,8 @@ class NativeAVSource
         double getDuration();
         int getBitrate();
         AVDictionary *getMetadata();
+
+        virtual ~NativeAVSource() = 0;
     protected:
 	    AVFormatContext *container;
        
