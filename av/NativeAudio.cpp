@@ -574,11 +574,17 @@ void NativeAudio::wakeup()
 
 void NativeAudio::shutdown()
 {
+    pthread_mutex_lock(&this->queueLock);
+    pthread_mutex_lock(&this->decodeLock);
+
     this->threadShutdown = true;
 
     pthread_cond_signal(&this->queueHaveSpace);
     pthread_cond_signal(&this->queueHaveData);
     pthread_cond_signal(&this->bufferNotEmpty);
+
+    pthread_mutex_unlock(&this->queueLock);
+    pthread_mutex_unlock(&this->decodeLock);
 
     pthread_join(this->threadQueue, NULL);
     pthread_join(this->threadDecode, NULL);
