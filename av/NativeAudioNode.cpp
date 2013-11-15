@@ -1111,6 +1111,10 @@ bool NativeAudioSource::decode()
 av_free(tmpFrame); \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, true);\
 return false;
+    if (this->error) {
+        SPAM(("decode() return false cause of error %d\n", this->error));
+        return false;
+    }
     // No last packet, get a new one
     if (this->packetConsumed) {
         if (this->externallyManaged) {
@@ -1373,6 +1377,11 @@ bool NativeAudioCustomSource::process()
     pthread_cond_signal(&this->audio->queueHaveData);
 
     return true;
+}
+
+bool NativeAudioCustomSource::isActive()
+{
+    return m_Playing;
 }
 
 bool NativeAudioNode::updateIsConnectedInput() 
@@ -1694,6 +1703,11 @@ void NativeAudioSource::close()
     this->resetFrames();
 
     avcodec_flush_buffers(this->codecCtx);
+}
+
+bool NativeAudioSource::isActive()
+{
+    return this->playing && this->error != AVERROR_EOF;
 }
 
 

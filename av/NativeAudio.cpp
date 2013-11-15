@@ -82,7 +82,6 @@ void *NativeAudio::queueThread(void *args) {
         audio->readMessages(audio->m_FlushMessages);
 
         if (audio->output != NULL) {
-            int sourceFailed;
             wrote = false;
             cause = 0;
 
@@ -94,7 +93,6 @@ void *NativeAudio::queueThread(void *args) {
             }
 
             for (;;) {
-                sourceFailed = 0;
 /*
                 if (PaUtil_GetRingBufferReadAvailable(audio->rBufferOut) >= (audio->outputParameters->framesPerBuffer * audio->outputParameters->channels)*32) {
                     printf("Output have enought data\n");
@@ -130,9 +128,9 @@ void *NativeAudio::queueThread(void *args) {
 
             pthread_mutex_unlock(&audio->recurseLock);
 
-            //if (audio->haveSourceActive(true)) {
+            if (audio->haveSourceActive(true)) {
                 pthread_cond_signal(&audio->bufferNotEmpty);
-            //}
+            }
         } 
 
         if (audio->threadShutdown) break;
@@ -145,7 +143,6 @@ void *NativeAudio::queueThread(void *args) {
                 SPAM(("Waiting for more space\n"));
                 pthread_cond_wait(&audio->queueHaveSpace, &audio->queueLock);
             //} while (!audio->haveSourceActive(false));
-
         }
 
         if (audio->threadShutdown) break;
@@ -273,7 +270,7 @@ void *NativeAudio::decodeThread(void *args)
         // the commented expression bellow fail to work
         if (audio->sourcesCount > 0 /*&& haveEnought == sourcesCount*/) {
             if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) > 0) {
-                SPAM(("Have data\n"));
+                SPAM(("Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
                 pthread_cond_signal(&audio->queueHaveData);
                 //audio->haveData = true;
             }  else {
@@ -403,15 +400,13 @@ int NativeAudio::paOutputCallback( const void *inputBuffer, void *outputBuffer,
 
 bool NativeAudio::haveSourceActive(bool excludeExternal) 
 {
-    return true;
-#if 0
     pthread_mutex_lock(&this->sourcesLock);
     NativeAudioSources *sources = this->sources;
     while (sources != NULL) 
     {
-        NativeAudioSource *t = sources->curr;
-        nf (t != NULL && (!excludeExternal || (excludeExternal && t->externallyManaged))) {
-            if  (t->opened && t->playing) {
+        NativeAudioNode *node = sources->curr;
+        if (node != NULL && (!excludeExternal || (excludeExternal && !sources->externallyManaged))) {
+            if (node->isActive()) {
                 pthread_mutex_unlock(&this->sourcesLock);
                 return true;
             }
@@ -420,7 +415,6 @@ bool NativeAudio::haveSourceActive(bool excludeExternal)
     }
     pthread_mutex_unlock(&this->sourcesLock);
     return false;
-#endif
 }
 
 int NativeAudio::getSampleSize(int sampleFormat) {

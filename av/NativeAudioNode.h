@@ -137,6 +137,9 @@ class NativeAudioNode : public SkRefCnt
         void updateIsConnected();
 
         virtual bool process() = 0;
+        virtual bool isActive() {
+            return true;
+        }
 
         virtual ~NativeAudioNode() = 0;
     protected:
@@ -319,6 +322,7 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         bool bufferInternal();
 
         virtual bool process();
+        bool isActive();
         bool work();
         bool decode();
         int resample(int destSamples);
@@ -327,7 +331,6 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
 
         void closeInternal(bool reset);
         ~NativeAudioSource();
-
     private:
         AVCodecContext *codecCtx;
 
@@ -384,6 +387,7 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom
         static void seekMethod(NativeAudioNode *node, void *custom);
 
         bool process();
+        bool isActive() override;
 };
 
 class NativeAudioNodeException : public std::exception
