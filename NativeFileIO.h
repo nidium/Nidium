@@ -88,6 +88,7 @@ private:
 
     bool autoClose;
     bool m_eof;
+    void checkRead();
 
 };
 

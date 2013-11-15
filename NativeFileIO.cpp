@@ -126,26 +126,14 @@ void NativeFileIO::readAction(uint64_t len)
     size_t readsize = 0;
 
     if ((readsize = fread(data, sizeof(char), clamped_len, fd)) < 1) {
-        unsigned int err = 0;
 
-        if (ferror(fd)) {
-            err = errno;
-        } else if (feof(fd)) {
-            this->m_eof = true;
-        }
-
-        if (autoClose) {
-            fclose(fd);
-            fd = NULL;
-        }
-
-        if (!action.stop) {
-            messages->postMessage(err, NATIVE_FILEERROR_MESSAGE);
-        }
+        checkRead();
 
         delete[] data;
         return;
     }
+
+    checkRead();
 
     /* Always null-terminate the returned data (doesn't impact returned size) */
     data[readsize] = '\0';
@@ -281,6 +269,27 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     pthread_mutex_lock(&threadMutex);
         pthread_cond_signal(&threadCond);
     pthread_mutex_unlock(&threadMutex);
+}
+
+void NativeFileIO::checkRead()
+{
+    int err = -1;
+
+    if (ferror(fd)) {
+        err = errno;
+    } else if (feof(fd)) {
+        m_eof = true;
+        err = 0;
+    }
+
+    if (m_eof && autoClose) {
+        fclose(fd);
+        fd = NULL;
+    }
+
+    if (!action.stop && err != -1) {
+        messages->postMessage((unsigned int)err, NATIVE_FILEERROR_MESSAGE);
+    }
 }
 
 NativeFileIO::~NativeFileIO()
