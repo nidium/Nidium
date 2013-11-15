@@ -126,17 +126,25 @@ void NativeFileIO::readAction(uint64_t len)
     size_t readsize = 0;
 
     if ((readsize = fread(data, sizeof(char), clamped_len, fd)) < 1) {
-        if (!action.stop) {
-            messages->postMessage((unsigned int)0, NATIVE_FILEERROR_MESSAGE);
+        unsigned int err = 0;
+
+        if (ferror(fd)) {
+            err = errno;
+        } else if (feof(fd)) {
+            this->m_eof = true;
         }
+
+        if (autoClose) {
+            fclose(fd);
+            fd = NULL;
+        }
+
+        if (!action.stop) {
+            messages->postMessage(err, NATIVE_FILEERROR_MESSAGE);
+        }
+
         delete[] data;
         return;
-    }
-    if (feof(fd) && autoClose) {
-        printf("End of file reached\n");
-        this->m_eof = true;
-        fclose(fd);
-        fd = NULL;
     }
 
     /* Always null-terminate the returned data (doesn't impact returned size) */

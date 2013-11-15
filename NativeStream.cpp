@@ -552,9 +552,7 @@ void NativeStream::swapBuffer()
         }
     } else if (dataBuffer.ended) {
         dataBuffer.back->used = 0;
-    } else {
-        dataBuffer.back->used = dataBuffer.front->used - this->getPacketSize();
-    }
+    } 
 }
 
 void NativeStream::getContent()
@@ -601,7 +599,18 @@ void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
 
 void NativeStream::onNFIOError(NativeFileIO *NFIO, int err)
 {
-    // TODO
+    if (err == 0) {
+        this->dataBuffer.ended = true;
+        if (this->dataBuffer.alreadyRead) {
+            // Trigger onAvailableData so caller can call getNextPacket()
+            // and be aware that EOF occured
+            this->delegate->onAvailableData(0);
+        }
+    } else {
+        // XXX : Error are not always STREAM_ERROR_OPEN
+        // we should forward the error to the callback
+        this->delegate->onError(NativeStream::STREAM_ERROR_OPEN);
+    }
 }
 
 void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
@@ -609,11 +618,6 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
     m_Buffered += len;
 
     if (this->delegate) {
-
-        if (NFIO->eof()) {
-            this->dataBuffer.ended = true;
-        }
-
         this->delegate->onGetContent((const char *)data, len);
 
         dataBuffer.alreadyRead = false;
