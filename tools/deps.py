@@ -265,7 +265,7 @@ def needDownload(dep, fileName):
         return True
 
     if dep in deps:
-        if os.path.exists(fileName):
+        if os.path.exists(dep):
             if VERBOSE:
                 log.info("Skipping dep " + dep + " (already downloaded)")
             return False
@@ -794,7 +794,7 @@ def runGyp():
     if system == "Darwin":
         makeCmd = "xcodebuild -project all.xcodeproj -jobs " + str(nbCpu)
     elif system == "Linux":
-        makeCmd = "CC=" + CLANG + ", CXX=" + CLANGPP +" make -j" + str(nbCpu)
+        makeCmd = "CC=" + CLANG + " CXX=" + CLANGPP +" make -j" + str(nbCpu)
         if VERBOSE:
             makeCmd += " V=1"
     else:
