@@ -15,4 +15,5 @@ leveldb
 angle
 preload
 native-requirements.py
+breakpad
 ../nativejscore/gyp/nativejscore-requirements.deps
