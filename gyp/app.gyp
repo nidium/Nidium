@@ -23,7 +23,7 @@
                         'dependencies': [
                             'crashreporter.gyp:nidium-crash-reporter',
                             'breakpad.gyp:*'
-                         ]
+                         ],
                     }],
                     ['native_use_gtk==1', {
                         'libraries': [
@@ -59,7 +59,6 @@
                         '-ldl',
 
                         '-Wl,-Bstatic ',
-                        '-lbreakpad_client',
                         '-lSDL2',
                         '-lzip',
                         '-lcares',
