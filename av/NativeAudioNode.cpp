@@ -233,8 +233,9 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     // Check if wire created a feedback somewhere
     this->updateFeedback(out->node);
 
+    // Go trought all the node connected to this one,
+    // and update "isConnected" for each one.
     in->node->updateIsConnected();
-    out->node->updateIsConnected();
 
     pthread_mutex_unlock(&this->audio->recurseLock);
 
@@ -1385,15 +1386,18 @@ bool NativeAudioCustomSource::isActive()
 
 bool NativeAudioNode::updateIsConnectedInput() 
 {
+    SPAM(("    updateIsConnectedInput @ %p\n", this));
     if (this->inCount == 0) return true;
 
     for (int i = 0; i < this->inCount; i++)
     {
+        SPAM(("    input %d\n", i));
         int count = this->input[i]->count;
         for (int j = 0; j < count; j++) 
         {
             if (this->input[i]->wire[j] != NULL) {
-                return this->input[i]->wire[j]->node->updateIsConnectedInput();
+                SPAM(("    Wire %d to %p\n", i, this->input[i]->wire[j]->node));
+                return this->input[i]->wire[j]->node->updateIsConnected(false, true);
             }
         }
     }
@@ -1403,15 +1407,18 @@ bool NativeAudioNode::updateIsConnectedInput()
 
 bool NativeAudioNode::updateIsConnectedOutput() 
 {
+    SPAM(("    updateIsConnectedOutput @ %p\n", this));
     if (this->outCount == 0) return true;
 
     for (int i = 0; i < this->outCount; i++)
     {
         int count = this->output[i]->count;
+        SPAM(("    output %d count=%d\n", i, count));
         for (int j = 0; j < count; j++) 
         {
             if (this->output[i]->wire[j] != NULL) {
-                return this->output[i]->wire[j]->node->updateIsConnectedOutput();
+                SPAM(("    Wire %d to %p\n", i, this->output[i]->wire[j]->node));
+                return this->output[i]->wire[j]->node->updateIsConnected(true, false);
             }
         }
     }
@@ -1421,9 +1428,18 @@ bool NativeAudioNode::updateIsConnectedOutput()
 
 // This method will check that the node 
 // is connected to a source and a target
-void NativeAudioNode::updateIsConnected() 
+bool NativeAudioNode::updateIsConnected() {
+    return this->updateIsConnected(false, false);
+}
+
+bool NativeAudioNode::updateIsConnected(bool input, bool output) 
 {
-    this->isConnected = this->updateIsConnectedInput() && this->updateIsConnectedOutput();
+    SPAM(("updateIsConnected @ %p input=%d output=%d\n", this, input, output));
+    this->isConnected = 
+        (input || this->updateIsConnectedInput()) && 
+        (output || this->updateIsConnectedOutput());
+    SPAM(("updateIsConnected finished @ %p / isConnected=%d\n", this, this->isConnected));
+    return this->isConnected;
 }
 
 void NativeAudioNode::resetFrames() {

@@ -218,6 +218,7 @@ void NativeAudio::processQueue()
 
     while (sources!= NULL) 
     {
+        SPAM(("curr=%p connected=%d\n", sources->curr, sources->curr->isConnected));
         if (sources->curr != NULL && sources->curr->isConnected) {
             sources->curr->processQueue();
         }

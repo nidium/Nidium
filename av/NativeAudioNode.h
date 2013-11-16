@@ -100,8 +100,10 @@ class NativeAudioNode : public SkRefCnt
 
         float **frames;
 
+        // true if all the frames are zeroed
         bool nullFrames;
         bool processed;
+        // true if the node is connected to a source and a target
         bool isConnected;
 
         NodeLink *input[32];
@@ -134,7 +136,8 @@ class NativeAudioNode : public SkRefCnt
         void processQueue();
         bool updateIsConnectedInput();
         bool updateIsConnectedOutput();
-        void updateIsConnected();
+        bool updateIsConnected();
+        bool updateIsConnected(bool input, bool output);
 
         virtual bool process() = 0;
         virtual bool isActive() {
