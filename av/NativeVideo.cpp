@@ -617,7 +617,7 @@ void NativeVideo::seekInternal(double time)
                     this->videoQueue->count++;
 
                     if (this->seekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) {
-                        this->processFrame(this->decodedFrame, prevPts);
+                        this->processFrame(this->decodedFrame);
                     } 
                     break;
                 }
@@ -805,7 +805,7 @@ int NativeVideo::display(void *custom) {
                 return ret;
             }
         } else {
-            v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
+            v->scheduleDisplay(((int)(actualDelay * 1000)));
         }
         pthread_cond_signal(&v->bufferCond);
     }
@@ -1081,8 +1081,7 @@ bool NativeVideo::processVideo()
     avcodec_decode_video2(this->codecCtx, this->decodedFrame, &gotFrame, &packet);
 
     if (gotFrame) {
-        //printf("decoding video, packet pts is at %f\n", packet.dts * av_q2d(stream->time_base));
-        this->processFrame(this->decodedFrame, this->getPts(&packet));
+        this->processFrame(this->decodedFrame);
     } 
 
     delete p;
@@ -1091,11 +1090,11 @@ bool NativeVideo::processVideo()
     return true;
 }
 
-bool NativeVideo::processFrame(AVFrame *avFrame, double pts)
+bool NativeVideo::processFrame(AVFrame *avFrame)
 {
     Frame frame;
     frame.data = m_Frames[m_FramesIdx];
-    frame.pts = pts;
+    frame.pts = this->getPts(avFrame);
 
     if (m_FramesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
         m_FramesIdx = 0;
@@ -1132,10 +1131,19 @@ double NativeVideo::syncVideo(double pts)
     }
 
     frameDelay = av_q2d(this->container->streams[this->videoStream]->time_base);
-    frameDelay += this->decodedFrame->repeat_pict * (frameDelay * 0.5); // XXX : WTF 0.5?!
+    frameDelay += this->decodedFrame->repeat_pict * (frameDelay);
     this->videoClock += frameDelay;
 
     return pts;
+}
+
+double NativeVideo::getPts(AVFrame *frame)
+{
+    double pts;
+
+    pts = av_frame_get_best_effort_timestamp(frame);
+
+    return this->syncVideo(pts) * av_q2d(this->container->streams[this->videoStream]->time_base);
 }
 
 double NativeVideo::getPts(AVPacket *packet)

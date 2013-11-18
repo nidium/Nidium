@@ -158,10 +158,11 @@ class NativeVideo : public NativeAVSource
 
         bool processAudio();
         bool processVideo();
-        bool processFrame(AVFrame *frame, double pts);
+        bool processFrame(AVFrame *frame);
 
         double syncVideo(double pts);
         double getPts(AVPacket *packet);
+        double getPts(AVFrame *frame);
         double getSyncedPts(AVPacket *packet);
         void scheduleDisplay(int delay);
         void scheduleDisplay(int delay, bool force);
