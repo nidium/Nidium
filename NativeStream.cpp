@@ -428,7 +428,7 @@ void NativeStream::seek(size_t pos)
 
         dataBuffer.back->data = &((unsigned char *)mapped.addr)[mapped.idx];
         dataBuffer.back->size = m_FileSize - (m_BufferedPosition + m_Buffered);
-        dataBuffer.back->used = dataBuffer.back->size;
+        dataBuffer.back->used = 0;
 
         dataBuffer.front->used = 0;
         dataBuffer.front->size = 0;
