@@ -336,7 +336,8 @@ static struct native_cursors {
     {"beam",                NativeUIInterface::BEAM},
     {"pointer",             NativeUIInterface::POINTING},
     {"drag",                NativeUIInterface::CLOSEDHAND},
-    {NULL,                  NativeUIInterface::NOCHANGE}
+    {"hidden",              NativeUIInterface::HIDDEN},
+    {NULL,                  NativeUIInterface::NOCHANGE},
 };
 
 static JSPropertySpec window_props[] = {

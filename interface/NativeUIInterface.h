@@ -23,6 +23,7 @@ class NativeUIInterface
             RESIZEUP,
             RESIZEDOWN,
             RESIZEUPDOWN,
+            HIDDEN,
             NOCHANGE
         } currentCursor;
         NativeContext *NativeCtx;
