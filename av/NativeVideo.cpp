@@ -976,6 +976,8 @@ void *NativeVideo::decode(void *args)
             }
         }
 
+        v->readFlag =false;
+
         if (v->shutdown) break;
     }
 
