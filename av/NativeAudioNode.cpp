@@ -780,7 +780,7 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NULL);
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -1487,15 +1487,15 @@ void NativeAudioSource::seekInternal(double time)
         int flags = 0;
         double clock = this->getClock();
 
-        SPAM(("Seeking source %f / %f\n", time, clock));
+        SPAM(("Seeking source to=%f / position=%f\n", time, clock));
 
         flags = time > clock ? 0 : AVSEEK_FLAG_BACKWARD;
 
         target = time * AV_TIME_BASE;
 
         target = av_rescale_q(target, AV_TIME_BASE_Q, this->container->streams[this->audioStream]->time_base);
-
-        if (av_seek_frame(this->container, this->audioStream, target, flags) >= 0) {
+        int ret = av_seek_frame(this->container, this->audioStream, target, flags);
+        if (ret >= 0) {
             SPAM(("Seeking success\n"));
             avcodec_flush_buffers(this->codecCtx);
             PaUtil_FlushRingBuffer(this->rBufferOut);
@@ -1511,7 +1511,9 @@ void NativeAudioSource::seekInternal(double time)
                 }
             }
         } else {
-            SPAM(("Seeking error\n"));
+            char errorStr[2048];
+            av_strerror(ret, errorStr, 2048);
+            SPAM(("Seeking error %d : %s\n", ret, errorStr));
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, 0, true);
         }
     }

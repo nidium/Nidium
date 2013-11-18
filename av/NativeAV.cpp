@@ -166,6 +166,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     int64_t pos = 0;
     size_t size = thiz->stream->getFileSize();
+    SPAM(("NativeAVStreamReader::seek to %llu / %d\n", offset, whence));
 
     switch(whence)
     {
@@ -191,21 +192,12 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return AVERROR_EOF;
     }
 
-    // Does the seek is inside the current buffer?
-    size_t min = thiz->totalRead - thiz->streamRead;
-    size_t max = min + thiz->streamPacketSize;
-
     SPAM(("SEEK pos=%lld, size=%d\n", pos, size));
 
-    if (pos >= min && pos < max) {
-        SPAM(("------- In stream seeking\n"));
-        thiz->totalRead = pos - thiz->totalRead;
-    } else {
-        thiz->streamBuffer = NULL;
-        thiz->streamRead = STREAM_BUFFER_SIZE;
-        thiz->totalRead = pos;
-        thiz->stream->seek(pos);
-    }
+    thiz->streamBuffer = NULL;
+    thiz->streamRead = STREAM_BUFFER_SIZE;
+    thiz->totalRead = pos;
+    thiz->stream->seek(pos);
 
     return pos;
 }
