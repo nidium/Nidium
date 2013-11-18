@@ -373,7 +373,7 @@ void NativeStream::start(size_t packets, size_t seek)
             if (seek != 0) {
                 NativeHTTPRequest *req = http->getRequest();
                 char seekstr[64];
-                sprintf(seekstr, "bytes=%ld-", seek);
+                sprintf(seekstr, "bytes=%zu-", seek);
                 req->setHeader("Range", seekstr);
             }
             http->request(this);
@@ -460,7 +460,7 @@ void NativeStream::seek(size_t pos)
             http->stopRequest();
 
             char seekstr[64];
-            sprintf(seekstr, "bytes=%ld-", pos);
+            sprintf(seekstr, "bytes=%zu-", pos);
             req->setHeader("Range", seekstr);
             http->request(this);
             break;
@@ -685,7 +685,7 @@ void NativeStream::onProgress(size_t offset, size_t len,
         http->resetData();
 
         if (dataBuffer.fresh) {
-            printf("Current buffer updated (%ld)\n", len);
+            printf("Current buffer updated (%zu)\n", len);
             dataBuffer.back->data = &((unsigned char *)mapped.addr)[mapped.idx];
             dataBuffer.back->size = 0;
             dataBuffer.fresh = false;
