@@ -72,7 +72,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         /*
             TODO: Need to be implemented
         */
-        size_t getFileSize() const {
+        off_t getFileSize() const {
             if (!m_KnownSize) return 0;
 
             return m_FileSize;
@@ -166,7 +166,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
 
         size_t m_Buffered;
         size_t m_BufferedPosition;
-        size_t m_FileSize;
+        off_t m_FileSize;
         bool m_KnownSize;
 };
 

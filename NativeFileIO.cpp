@@ -147,7 +147,7 @@ void NativeFileIO::readAction(uint64_t len)
 void NativeFileIO::openAction(char *modes)
 {
     if ((this->fd = fopen(this->filename, modes)) == NULL) {
-        printf("Failed to open : %s\n", this->filename);
+        printf("Failed to open : %s errno=%d\n", this->filename, errno);
         if (!action.stop) {
             this->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
         }

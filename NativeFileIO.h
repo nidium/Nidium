@@ -64,7 +64,7 @@ public:
     char *filename;
     NativeSharedMessages *messages;
     FILE *fd;
-    size_t filesize;
+    off_t filesize;
 
     pthread_t threadHandle;
     pthread_mutex_t threadMutex;

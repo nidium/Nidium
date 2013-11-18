@@ -9,6 +9,7 @@
             '../network/',
             '../',
         ],
+        'defines': ['_FILE_OFFSET_BITS=64'],
         'dependencies': [
             '../network/gyp/network.gyp:nativenetwork'
         ],
