@@ -66,11 +66,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         void onGetContent(const char *data, size_t len) {}
         void onAvailableData(size_t len);
         void onProgress(size_t buffered, size_t len);
-        void onError(NativeStream::StreamError err)
-        {
-            // TODO
-        };
-
+        void onError(NativeStream::StreamError err);
         ~NativeAVStreamReader();
     private:
         NativeStream *stream;
@@ -121,6 +117,7 @@ enum {
     ERR_SEEKING,
     ERR_INTERNAL,
     ERR_STREAMING_NOT_SUPPORTED,
+    ERR_UNKNOWN,
     ERR_MAX
 };
 
@@ -137,8 +134,9 @@ static const char *NativeAVErrorsStr[ERR_MAX] = {
     "Failed to init audio stream from video",
     "Failed to decode stream",
     "Failed to seek",
-    "Trying to read a file which size is unknown is not yet supported",
-    "Internal error"
+    "Internal error",
+    "HTTP Streaming on unknown file size is not supported yet",
+    "Unknown error"
 }; 
 
 // Used for event (play, pause, stop, error, buffered...)

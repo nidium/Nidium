@@ -215,6 +215,22 @@ void NativeAVStreamReader::onProgress(size_t buffered, size_t len)
     this->source->onProgress(buffered, len);
 }
 
+void NativeAVStreamReader::onError(NativeStream::StreamError err)
+{
+    int error;
+    switch (err)
+    {
+        case NativeStream::STREAM_ERROR_OPEN:
+            error = ERR_FAILED_OPEN;
+        break;
+        default:
+            error = ERR_UNKNOWN;
+        break;
+    }
+
+    this->source->sendEvent(SOURCE_EVENT_ERROR, error, 0, false);
+}
+
 void NativeAVStreamReader::onAvailableData(size_t len) 
 {
     this->error = 0;
