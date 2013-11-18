@@ -176,7 +176,7 @@ def parseArguments():
 
     if len(args) == 0 and opt.init is None:
         log.error("You must specify a requirements file")
-        parser.print_help()
+        optionParser.print_help()
         sys.exit(0)
     
     return opt, args
