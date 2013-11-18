@@ -9,7 +9,8 @@
             'NATIVE_CRASH_COLLECTOR_HOST="<(native_crash_collector_host)"',
             'NATIVE_CRASH_COLLECTOR_PORT=<(native_crash_collector_port)',
             'NATIVE_CRASH_COLLECTOR_ENDPOINT="<(native_crash_collector_endpoint)"',
-            'UINT32_MAX=4294967295u' 
+            'UINT32_MAX=4294967295u',
+            '_FILE_OFFSET_BITS=64'
         ],
         'default_configuration': 'Release',
         'configurations': {

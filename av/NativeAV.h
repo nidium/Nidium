@@ -76,7 +76,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
 
         size_t streamRead;
         size_t streamPacketSize;
-        size_t streamSize;
+        off_t streamSize;
         unsigned const char* streamBuffer;
         int error;
 };

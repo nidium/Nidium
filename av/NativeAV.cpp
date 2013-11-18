@@ -98,7 +98,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         copied += copy;
     }
 
-    SPAM(("streamSize=%d\n", thiz->streamSize));
+    SPAM(("streamSize=%lld\n", thiz->streamSize));
     // No more data inside buffer, need to get more
     for(;;) {
         bool loopCond = true;
@@ -139,7 +139,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
             thiz->streamRead = copy;
             thiz->totalRead += copy;
             copied += copy;
-            SPAM(("totalRead=%lld, size=%d\n", thiz->totalRead, thiz->streamSize));
+            SPAM(("totalRead=%lld, streamSize=%lld\n", thiz->totalRead, thiz->streamSize));
 
             // Got enought data, return
             if (copied == size || thiz->totalRead >= thiz->streamSize) {
@@ -165,7 +165,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
 {
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     int64_t pos = 0;
-    size_t size = thiz->stream->getFileSize();
+    off_t size = thiz->stream->getFileSize();
     SPAM(("NativeAVStreamReader::seek to %llu / %d\n", offset, whence));
 
     switch(whence)
@@ -183,6 +183,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
             } else {
                 pos = 0;
             }
+            break;
         default:
             return -1;
     }
@@ -192,7 +193,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return AVERROR_EOF;
     }
 
-    SPAM(("SEEK pos=%lld, size=%d\n", pos, size));
+    SPAM(("SEEK pos=%lld, size=%lld\n", pos, size));
 
     thiz->streamBuffer = NULL;
     thiz->streamRead = STREAM_BUFFER_SIZE;
