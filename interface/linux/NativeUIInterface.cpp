@@ -65,7 +65,6 @@ int NativeEvents(NativeX11UIInterface *NUII)
             nevents++;
             switch(event.type) {
                 case SDL_WINDOWEVENT:
-                    printf("WINDOW EVENT\n");
                     if (window) {
                         switch (event.window.event) {
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
