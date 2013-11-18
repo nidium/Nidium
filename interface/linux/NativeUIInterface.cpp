@@ -64,6 +64,20 @@ int NativeEvents(NativeX11UIInterface *NUII)
             }
             nevents++;
             switch(event.type) {
+                case SDL_WINDOWEVENT:
+                    printf("WINDOW EVENT\n");
+                    if (window) {
+                        switch (event.window.event) {
+                            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                                window->windowFocus();
+                                break;
+                            case SDL_WINDOWEVENT_FOCUS_LOST:
+                                window->windowBlur();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 case SDL_TEXTINPUT:
                     if (window) {
                         window->textInput(event.text.text);
