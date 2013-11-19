@@ -53,7 +53,6 @@ var input_fees_percent = input({left:70, top:180, width:35, placeholder:"Fees", 
 
 input_nb_sell.editable = false;
 
-
 /* LOCAL STORAGE */
 
 var storeLocal = function(){

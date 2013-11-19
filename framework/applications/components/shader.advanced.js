@@ -186,7 +186,7 @@ var ShaderDemo = {
 			var gg = Math.round(uniforms.zoom + e.yrel*2);
 			gg = Math.min(gg, 200);
 			gg = Math.max(gg, -100);
-			self.slider3.setValue(gg);
+			//self.slider3.setValue(gg);
 		});
 
 	}
@@ -300,6 +300,8 @@ var processFlickr = function(pictures){
 	}
 };
 
+/*
+
 document.nss.add({
 	".radio" : {
 		left : 10,
@@ -333,8 +335,9 @@ document.nss.add({
 		borderColor : null
 	}
 });
+*/
 
-
+/*
 document.addEventListener("DOMContentLoaded", function(){
 
 	var video = new UIVideo(main, {
@@ -361,7 +364,7 @@ document.addEventListener("DOMContentLoaded", function(){
 		}, 16);
 	});
 
-/*
+
 	var	radio1 = video.add("UIRadio", {
 		top : 50,
 		label : "Select this",
@@ -429,9 +432,10 @@ document.addEventListener("DOMContentLoaded", function(){
 		{label:"Audio Out",		type:"output"}
 		]
 	});
-	*/
 
 });
+
+*/
 
 
 /*

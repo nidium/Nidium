@@ -89,7 +89,7 @@ var app = {
 	load : function(url){
 		var self = this;
 		
-		File.read(url, function(data){
+		File.read(url, function(data, size){
 			self.source.open(data);
 			self.source.play();
 			self.automation();
@@ -167,7 +167,7 @@ var app = {
 		this.processor.process = function(ev, scope){
 			var bufferL = ev.data[0],
 				bufferR = ev.data[1],
-				samples = bufferL.length, // (audioBuffer/8)
+				samples = bufferL.length,
 
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
@@ -219,9 +219,7 @@ var app = {
 //			scope.pitch.process(1.0, samples, bufferL);
 //			scope.pitch.process(1.0, samples, bufferR);
 
-			// 2048 bytes audioBuffer = 2 channels, 1024 bytes per channel
-			// each sample is 64bits double (= 8 bytes)
-			// samples = 2048 / 8 = 256 samples to process
+			// 256 samples of 64bits to process
 
 			for (var i=0; i<samples; i++) {
 				var volume = scope.envelope.process();
