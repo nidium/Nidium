@@ -9,12 +9,9 @@ class NativeSkia;
 class NativeCanvasContext;
 
 /*
-    Handle a canvas layer.
-    Agnostic to any renderer.
-    A NativeCanvasContext must be attached to it
-
-    TODO:
-        * NativeCanvasContext interface instead of NativeCanvas2DContext;
+    - Handle a canvas layer.
+    - Agnostic to any renderer.
+    - All size are in logical pixels (device ratio is handled by NativeCanvasContext)
 */
 
 struct NativeRect
@@ -170,6 +167,9 @@ class NativeCanvasHandler
             return this->bottom;
         }
 
+        /*
+            Get the width in logical pixels
+        */
         double getWidth() const {
             if (hasFixedWidth()) {
                 return this->width;
@@ -183,6 +183,9 @@ class NativeCanvasHandler
             return pwidth - this->getLeft() - this->getRight();
         }
 
+        /*
+            Get the height in logical pixels
+        */
         double getHeight() const {
             if (hasFixedHeight()) {
                 return this->height;

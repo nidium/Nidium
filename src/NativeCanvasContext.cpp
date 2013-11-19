@@ -223,7 +223,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     glGenBuffers(2, m_GLObjects.vbo);
     glGenVertexArrays(1, &m_GLObjects.vao);
 
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(16);
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
         
     glBindVertexArray(m_GLObjects.vao);
 
@@ -287,8 +287,10 @@ void NativeCanvasContext::updateMatrix(double left, double top,
     int layerWidth, int layerHeight)
 {
     float px = (float)layerWidth, py = (float)layerHeight;
-    float w = (float)m_Handler->getWidth() + m_Handler->padding.global*2;
-    float h = (float)m_Handler->getHeight() + m_Handler->padding.global*2;
+    int w, h;
+
+    /* get the size in device pixels */
+    this->getSize(&w, &h);
 
     m_Transform.reset();
 
@@ -302,7 +304,7 @@ void NativeCanvasContext::updateMatrix(double left, double top,
         We therefore have to translate the canvas back to its original position
     */
 
-    float ratioX = w/px, ratioY = h/py;
+    float ratioX = ((float)w)/px, ratioY = ((float)h)/py;
     float offsetX = -1.+ratioX, offsetY = 1-ratioY;
 
     float ratioL = ((float)left)/px;

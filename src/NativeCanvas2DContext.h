@@ -55,6 +55,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);
+
+        void getSize(int *width, int *height) const;
         
         uint32_t attachShader(const char *string);
         void detachShader();

@@ -1,8 +1,8 @@
 <application version="0.2">
 	<meta>
-		<title>PD</title>
+		<title>My Application</title>
 		<description>This is the description of the page</description>
-		<viewport>160x50</viewport>
+		<viewport>1024x768</viewport>
 		<version>1.0</version>
 		<date>2012-03-15</date>
 		<robots>index, follow</robots>
@@ -10,11 +10,8 @@
 		<author>Company Inc.</author>
 	</meta>
 	<assets>
-		<script>
-			var ctx = window.canvas.getContext("2d");
-			ctx.fillStyle = "red";
-			ctx.fillText("Martin is a fag", 30, 30);
-		</script>
+		<style type="native/stylesheet" src="private://falcon/native.nss"></style>
+		<script type="native/javascript" src="private://falcon/native.js"></script>
+		<script type="native/javascript" src="main.js"></script>
 	</assets>
 </application>
-

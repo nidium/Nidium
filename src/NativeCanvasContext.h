@@ -104,6 +104,9 @@ public:
     virtual void clear(uint32_t color)=0;
     virtual void flush()=0;
 
+    /* Returns the size in device pixel */
+    virtual void getSize(int *width, int *height) const=0;
+
     virtual void composeWith(NativeCanvas2DContext *layer,
         double left, double top, double opacity,
         double zoom, const NativeRect *rclip)=0;

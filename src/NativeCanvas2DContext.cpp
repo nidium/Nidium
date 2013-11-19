@@ -2036,7 +2036,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
         //glDisable(GL_ALPHA_TEST);
         
-        this->updateMatrix(left, top, layerSize.width(), layerSize.height());
+        this->updateMatrix(left*ratio, top*ratio, layerSize.width(), layerSize.height());
 
         /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
         layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
@@ -2081,6 +2081,14 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 void NativeCanvas2DContext::flush()
 {
     m_Skia->canvas->flush();
+}
+
+void NativeCanvas2DContext::getSize(int *width, int *height) const
+{
+    SkISize size = this->m_Skia->canvas->getDeviceSize();
+
+    *width = size.width();
+    *height = size.height();
 }
 
 void NativeCanvas2DContext::setSize(int width, int height)
