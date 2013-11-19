@@ -148,7 +148,7 @@ void *NativeAudio::queueThread(void *args) {
 
         if (audio->threadShutdown) break;
 
-        SPAM(("Queue thead is now working\n"));
+        SPAM(("Queue thead is now working shutdown=%d\n", audio->threadShutdown));
     }
 
     audio->readMessages(true);
@@ -592,6 +592,18 @@ void NativeAudio::shutdown()
 
     pthread_join(this->threadQueue, NULL);
     pthread_join(this->threadDecode, NULL);
+}
+
+void NativeAudio::lockThreads()
+{
+    pthread_mutex_lock(&this->queueLock);
+    pthread_mutex_lock(&this->decodeLock);
+}
+
+void NativeAudio::unlockThreads()
+{
+    pthread_mutex_unlock(&this->queueLock);
+    pthread_mutex_unlock(&this->decodeLock);
 }
 
 NativeAudio::~NativeAudio() {

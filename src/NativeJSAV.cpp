@@ -899,7 +899,6 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
 
 NativeJSAudioNode::~NativeJSAudioNode()
 {
-    // Remove node from nodes linked list
     NativeJSAudio::Nodes *nodes = this->audio->nodes;
 
     if (this->type == NativeAudio::SOURCE) {
@@ -917,6 +916,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
         }
     }
 
+    // Remove node from nodes linked list
     while (nodes != NULL) {
         if (nodes->curr == this) {
             if (nodes->prev != NULL) {
@@ -959,9 +959,16 @@ NativeJSAudioNode::~NativeJSAudioNode()
         m_TransferableFuncs[i] = NULL;
     }
 
+    // Block NativeAudio threads execution.
+    // While the node is destructed we don't want any thread 
+    // to call some method on a node that is being destroyed
+    this->audio->audio->lockThreads();
+
     this->node->unref();
 
     JS_SetPrivate(this->jsobj, NULL);
+
+    this->audio->audio->unlockThreads();
 }
 
 

@@ -89,6 +89,8 @@ class NativeAudio
 
         void wakeup();
         void shutdown();
+        void lockThreads();
+        void unlockThreads();
 
         ~NativeAudio();
     private:
