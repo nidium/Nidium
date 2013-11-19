@@ -53,6 +53,10 @@ public:
         uint32_t program;
         struct {
             uint32_t u_projectionMatrix;
+            uint32_t u_opacity;
+            uint32_t u_resolution;
+            uint32_t u_position;
+            uint32_t u_padding;            
         } uniforms;
     } m_GLObjects;
 

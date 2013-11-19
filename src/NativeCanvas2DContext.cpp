@@ -1973,17 +1973,25 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
-        /*
+        if (m_GLObjects.uniforms.u_opacity != -1) {
+            glUniform1f(m_GLObjects.uniforms.u_opacity, opacity);
+        }
+#if 0
         if (m_GL.shader.uniformOpacity != -1) {
             glUniform1f(m_GL.shader.uniformOpacity, opacity);
         }
+
         float padding = this->getHandler()->padding.global * ratio;
 
-        glUniform2f(shader.uniformResolution, (ratio*width)-(padding*2), (ratio*height)-(padding*2));
-        glUniform2f(shader.uniformPosition, ratio*left, ratio*wHeight - (ratio*height+ratio*top));
-        glUniform1f(shader.uniformPadding, padding);
-        */
+        if (m_GL.shader.uniformResolution != -1)
+            glUniform2f(m_GL.shader.uniformResolution, (ratio*width)-(padding*2), (ratio*height)-(padding*2));
+        if (m_GL.shader.uniformPosition != -1)
+            glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (ratio*height+ratio*top));
+        if (m_GL.shader.uniformPadding != -1)
+            glUniform1f(m_GL.shader.uniformPadding, padding);
+#endif
     }
+
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,

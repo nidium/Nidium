@@ -172,9 +172,10 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     "}";
     const char *fragment_s = "#version 100\nprecision highp float;\n"
     "uniform sampler2D Texture;\n"
+    "uniform float u_opacity;\n"
     "varying vec2 TexCoordOut;\n"
     "void main(void) {\n"
-    "    gl_FragColor = texture2D(Texture, vec2(TexCoordOut.x, TexCoordOut.y));\n"
+    "    gl_FragColor = texture2D(Texture, vec2(TexCoordOut.x, TexCoordOut.y)) * u_opacity;\n"
     "    //gl_FragColor = vec4(TexCoordOut.y+0.5, 0, 0., 1.);\n"
     "}";
     
@@ -215,7 +216,8 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     jsobj(NULL), jscx(NULL), m_Handler(handler),
     m_Transform(SkMatrix44::kIdentity_Constructor) {
 
-    m_GLObjects.uniforms.u_projectionMatrix = -1;
+    memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
+
     m_GLObjects.program = 0;
 
     glGenBuffers(2, m_GLObjects.vbo);
@@ -247,6 +249,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
 
     if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
         m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
+        m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");
     } else {
         NLOG("Failed to create program OO");
     }
