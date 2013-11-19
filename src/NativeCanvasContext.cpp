@@ -280,9 +280,10 @@ static void dump_Matrix(float *matrix)
     printf("==========\n");
 }
 
-void NativeCanvasContext::updateMatrix(double left, double top)
+void NativeCanvasContext::updateMatrix(double left, double top,
+    int layerWidth, int layerHeight)
 {
-    float px = 800.f, py = 600.f;
+    float px = (float)layerWidth, py = (float)layerHeight;
     float w = (float)m_Handler->getWidth() + m_Handler->padding.global*2;
     float h = (float)m_Handler->getHeight() + m_Handler->padding.global*2;
 

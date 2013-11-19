@@ -1855,6 +1855,7 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(0);
 }
 
 
@@ -1994,6 +1995,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     NativeSkia *skia = layer->getSurface();
+    SkISize layerSize = skia->canvas->getDeviceSize();
 
     if (rclip != NULL) {
         SkRect r;
@@ -2001,78 +2003,69 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             SkDoubleToScalar(rclip->fTop*(double)ratio),
             SkDoubleToScalar(rclip->fRight*(double)ratio),
             SkDoubleToScalar(rclip->fBottom*(double)ratio));
-
-        skia->canvas->save(SkCanvas::kClip_SaveFlag);
-
-        skia->canvas->clipRect(r);
-
-        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-        skia->canvas->drawBitmap(this->getSurface()->canvas->getDevice()->accessBitmap(false),
-            left*ratio, top*ratio, &pt);
-        NLOG("Clip used");
-        /* TODO : save/restore */
-        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
-
-        skia->canvas->restore();
-        skia->canvas->flush();
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height());
     } else {
-        /* TODO: disable alpha testing? */
-        if (this->hasShader() && !commonDraw) {
-            int width, height;
-            this->resetSkiaContext();
-            layer->flush();
-            this->flush();
-
-            /* get the layer's Texture ID */
-            uint32_t textureID = this->getSkiaTextureID(&width, &height);
-
-            /* Use our custom shader */
-            this->resetGLContext();
-
-            this->setupShader((float)opacity, width, height,
-                left, top,
-                (int)layer->getHandler()->getWidth(),
-                (int)layer->getHandler()->getHeight());
-
-            //glDisable(GL_ALPHA_TEST);
-            /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
-            this->updateMatrix(left, top);
-            layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-
-            /* Reset skia GL context */
-            this->resetSkiaContext();
-
-            return;
-
-            /* Draw the temporary FBO into main canvas (root) */
-            // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
-        }
-
-        if (this->commonDraw) {
-            //return;
-            const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
-
-            this->resetSkiaContext();
-            layer->flush();
-            this->flush();
-            skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-            skia->canvas->drawBitmap(bitmapLayer,
-                left*ratio, top*ratio, &pt);
-            skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
-            //skia->canvas->flush();
-        } else {
-            int width, height;
-            skia->canvas->flush();
-            this->getSurface()->canvas->flush();
-            /* get the layer's Texture ID */
-            uint32_t textureID = this->getSkiaTextureID(&width, &height);
-            //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
-            glUseProgram(0);
-            NLOG("Composing...");
-            //layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-            //this->resetSkiaContext();            
-        }
+        glDisable(GL_SCISSOR_TEST);
     }
+    /* TODO: disable alpha testing? */
+    if (this->hasShader() && !commonDraw) {
+        int width, height;
+        //this->resetSkiaContext();
+        //layer->flush();
+        //this->flush();
+
+        /* get the layer's Texture ID */
+        uint32_t textureID = this->getSkiaTextureID(&width, &height);
+        /* Use our custom shader */
+        this->resetGLContext();
+
+        this->setupShader((float)opacity, width, height,
+            left, top,
+            (int)layer->getHandler()->getWidth(),
+            (int)layer->getHandler()->getHeight());
+
+        //glDisable(GL_ALPHA_TEST);
+        
+        this->updateMatrix(left, top, layerSize.width(), layerSize.height());
+
+        /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
+        layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+
+        /* Reset skia GL context */
+        this->resetSkiaContext();
+
+        return;
+
+        /* Draw the temporary FBO into main canvas (root) */
+        // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
+    }
+
+    if (this->commonDraw) {
+        //return;
+        const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
+
+        this->resetSkiaContext();
+        layer->flush();
+        this->flush();
+        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
+        skia->canvas->drawBitmap(bitmapLayer,
+            left*ratio, top*ratio, &pt);
+        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
+        //skia->canvas->flush();
+    } else {
+        int width, height;
+        skia->canvas->flush();
+        this->getSurface()->canvas->flush();
+        /* get the layer's Texture ID */
+        uint32_t textureID = this->getSkiaTextureID(&width, &height);
+        //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
+        glUseProgram(0);
+        NLOG("Composing...");
+        //layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+        //this->resetSkiaContext();            
+    }
+    
     
 }
 

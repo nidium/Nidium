@@ -112,7 +112,7 @@ protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;
-    void updateMatrix(double left, double top);
+    void updateMatrix(double left, double top, int layerWidth, int layerHeight);
 
 };
 
