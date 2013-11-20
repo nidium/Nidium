@@ -1620,6 +1620,8 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
+    NativeCanvasContext::processShader(data, NativeCanvasContext::SHADER_FRAGMENT);
+    
     char *nshader = this->genModifiedFragmentShader(data);
     uint32_t fragment = NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
