@@ -62,6 +62,7 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
 uint32_t NativeCanvasContext::compileShader(const char *data, int type)
 {
     GLuint shaderHandle = glCreateShader(type);
+
     int len = strlen(data);
     glShaderSource(shaderHandle, 1, &data, &len);
     glCompileShader(shaderHandle);
@@ -183,6 +184,11 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     uint32_t fragmentshader = NativeCanvasContext::compileShader(fragment_s, GL_FRAGMENT_SHADER);
 
     GLuint programHandle = glCreateProgram();
+
+    m_Resources.add(vertexshader, NativeGLResources::RSHADER);
+    m_Resources.add(fragmentshader, NativeGLResources::RSHADER);
+    m_Resources.add(programHandle, NativeGLResources::RPROGRAM);
+
     GLint linkSuccess;
 
     glAttachShader(programHandle, vertexshader);
@@ -223,6 +229,10 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     glGenBuffers(2, m_GLObjects.vbo);
     glGenVertexArrays(1, &m_GLObjects.vao);
 
+    m_Resources.add(m_GLObjects.vbo[0], NativeGLResources::RBUFFER);
+    m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
+    m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
+
     Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
         
     glBindVertexArray(m_GLObjects.vao);
@@ -259,13 +269,6 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
 
 NativeCanvasContext::~NativeCanvasContext()
 {
-    glDeleteBuffers(2, m_GLObjects.vbo);
-    glDeleteVertexArrays(1, &m_GLObjects.vao);
-
-    if (m_GLObjects.program) {
-        glDeleteProgram(m_GLObjects.program);
-    }
-
     /* XXX this could be released after glBufferData */
     free(m_GLObjects.vtx->indices);
     free(m_GLObjects.vtx->vertices);

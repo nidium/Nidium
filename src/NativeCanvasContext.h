@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <SkMatrix44.h>
+#include "NativeGLResources.h"
 
 class NativeCanvas2DContext;
 class NativeCanvasHandler;
@@ -114,11 +115,12 @@ public:
     NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
 private:
-    uint32_t createPassThroughProgram();    
+    uint32_t createPassThroughProgram();
 protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;
+    NativeGLResources m_Resources;
     void updateMatrix(double left, double top, int layerWidth, int layerHeight);
 
 };

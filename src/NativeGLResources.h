@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <NativeHash.h>
+#include "NativeMacros.h"
 
 class NativeGLResources
 {
@@ -12,7 +13,9 @@ public:
     enum ResourceType {
         RTEXTURE,
         RPROGRAM,
-        RSHADER
+        RSHADER,
+        RBUFFER,
+        RVERTEX_ARRAY
     };
 
     class Resource {
@@ -37,12 +40,12 @@ public:
 
     void add(uint32_t glid, ResourceType type, const char *name = NULL);
 
-    Resource *get(const char *name) const {
-        return m_List.get(name);
+    Resource *get(uint32_t glid, ResourceType type) const {
+        return m_List.get(((uint64_t)glid << 8) | (uint8_t)type);
     }
 
 private:
-    NativeHash<Resource *> m_List;
+    NativeHash64<Resource *> m_List;
 };
 
 #endif

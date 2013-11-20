@@ -144,7 +144,7 @@
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeDB.cpp',
             '<(native_src_path)/NativeCanvasContext.cpp',
-            '<(native_src_path)/NativeGMResources.cpp',
+            '<(native_src_path)/NativeGLResources.cpp',
         ],
     }],
 }

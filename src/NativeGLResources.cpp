@@ -11,9 +11,9 @@ void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 {
 
     NativeGLResources::Resource *res = new NativeGLResources::Resource(glid,
-        type, strdup(name));
+        type, NULL);
 
-    m_List.set(name, res);
+    m_List.set(((uint64_t)glid << 8) | (uint8_t)type, res);
 }
 
 
@@ -37,6 +37,13 @@ NativeGLResources::Resource::~Resource()
             break;
         case NativeGLResources::RTEXTURE:
             glDeleteTextures(1, &this->m_Glid);
+            break;
+        case NativeGLResources::RBUFFER:
+            glDeleteBuffers(1, &this->m_Glid);
+            break;
+        case NativeGLResources::RVERTEX_ARRAY:
+            glDeleteVertexArrays(1, &this->m_Glid);
+            break;
         default:
             break;
     }
