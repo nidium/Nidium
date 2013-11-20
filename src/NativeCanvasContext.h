@@ -114,9 +114,11 @@ public:
 
     NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
-private:
-    uint32_t createPassThroughProgram();
 protected:
+    uint32_t createPassThroughVertex();
+    uint32_t createPassThroughFragment();
+    uint32_t createPassThroughProgram();
+    void setupUniforms();
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;

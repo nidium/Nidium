@@ -34,7 +34,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         struct {
             struct {
-                uint32_t uniformOpacity;
                 uint32_t uniformResolution;
                 uint32_t uniformPosition;
                 uint32_t uniformPadding;

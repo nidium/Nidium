@@ -1607,6 +1607,7 @@ void NativeCanvas2DContext::clear(uint32_t color)
 char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 {
     const char *prologue =
+        "#version 100\nprecision mediump float;\n"
         "vec4 ___gl_FragCoord;\n"
         "#define main ___main\n"
         "#define gl_FragCoord ___gl_FragCoord\n";
@@ -1620,11 +1621,15 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
-    NativeCanvasContext::processShader(data, NativeCanvasContext::SHADER_FRAGMENT);
+    char *pdata = NativeCanvasContext::processShader(data, NativeCanvasContext::SHADER_FRAGMENT);
     
-    char *nshader = this->genModifiedFragmentShader(data);
+    char *nshader = this->genModifiedFragmentShader(pdata);
+
+    NLOG("Shader : %s", nshader);
     uint32_t fragment = NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
+    uint32_t vertex = this->createPassThroughVertex();
+
     free(nshader);
 
     if (fragment == 0) {
@@ -1634,9 +1639,16 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     GLuint programHandle = glCreateProgram();
     GLint linkSuccess;
 
+    glAttachShader(programHandle, vertex);
     glAttachShader(programHandle, coop);
     glAttachShader(programHandle, fragment);
-    
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_POSITION, "Position");
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn");
+
     glLinkProgram(programHandle);
 
     glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
@@ -1653,12 +1665,15 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
 uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
 {
     const char *coop =
+        "#version 100\nprecision mediump float;\n"
         "void ___main(void);\n"
         "uniform sampler2D Texture;\n"
         "uniform vec2 n_Position;\n"
         "uniform vec2 n_Resolution;\n"
-        "uniform float n_Opacity;\n"
+        "uniform float u_opacity;\n"
         "uniform float n_Padding;\n"
+        "varying vec2 TexCoordOut;\n"
+
         "vec4 ___gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
 
         "void main(void) {\n"
@@ -1666,11 +1681,11 @@ uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
         "    ___gl_FragCoord.x > n_Resolution.x ||\n"
         "    ___gl_FragCoord.y+n_Padding < n_Padding ||\n"
         "    ___gl_FragCoord.y > n_Resolution.y) {\n"
-        "    gl_FragColor = texture2D(Texture, gl_TexCoord[0].xy);\n"
+        "    ___main();\n"
         "} else {\n"
         "___main();\n"
         "}\n"
-        "gl_FragColor = gl_FragColor * n_Opacity;"
+        "gl_FragColor = gl_FragColor * u_opacity;"
         "}\n";
     
     return this->compileShader(coop, GL_FRAGMENT_SHADER);
@@ -1948,14 +1963,15 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
     if ((m_GLObjects.program = this->createProgram(string))) {
-        m_GL.shader.uniformOpacity = glGetUniformLocation(m_GLObjects.program,
-                                    "n_Opacity");
+        this->setupUniforms();
+        NLOG("uniform setup... %d", m_GLObjects.uniforms.u_projectionMatrix);
+
         m_GL.shader.uniformResolution = glGetUniformLocation(m_GLObjects.program,
                                     "n_Resolution");
         m_GL.shader.uniformPosition = glGetUniformLocation(m_GLObjects.program,
                                     "n_Position");
         m_GL.shader.uniformPadding = glGetUniformLocation(m_GLObjects.program,
-                                    "n_Padding");
+                                    "n_Padding");        
     }
 
     return m_GLObjects.program;
@@ -1979,11 +1995,7 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
         if (m_GLObjects.uniforms.u_opacity != -1) {
             glUniform1f(m_GLObjects.uniforms.u_opacity, opacity);
         }
-#if 0
-        if (m_GL.shader.uniformOpacity != -1) {
-            glUniform1f(m_GL.shader.uniformOpacity, opacity);
-        }
-
+#if 1
         float padding = this->getHandler()->padding.global * ratio;
 
         if (m_GL.shader.uniformResolution != -1)
@@ -2072,7 +2084,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         uint32_t textureID = this->getSkiaTextureID(&width, &height);
         //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
         glUseProgram(0);
-        NLOG("Composing...");
+        //NLOG("Composing...");
         //layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
         //this->resetSkiaContext();            
     }
@@ -2153,6 +2165,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JS_SetPrivate(jsobj, this);
 
     memset(&this->m_GL, 0, sizeof(this->m_GL));
+    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);

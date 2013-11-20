@@ -160,10 +160,10 @@ void NativeCanvasContext::resetGLContext()
     glBindVertexArray(m_GLObjects.vao);
 }
 
-uint32_t NativeCanvasContext::createPassThroughProgram()
+uint32_t NativeCanvasContext::createPassThroughVertex()
 {
     /* PassThrough Vertex shader */
-    const char *vertex_s = "#version 100\nprecision highp float;\nattribute vec4 Position;\n"
+    const char *vertex_s = "#version 100\nprecision mediump float;\nattribute vec4 Position;\n"
     "attribute vec2 TexCoordIn;\n"
     "varying vec2 TexCoordOut;\n"
     "uniform mat4 u_projectionMatrix;\n"
@@ -171,22 +171,42 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
     "    gl_Position = u_projectionMatrix * Position;\n"
     "    TexCoordOut = TexCoordIn;\n"
     "}";
-    const char *fragment_s = "#version 100\nprecision highp float;\n"
+
+    uint32_t vertexshader = NativeCanvasContext::compileShader(vertex_s, GL_VERTEX_SHADER);
+
+    m_Resources.add(vertexshader, NativeGLResources::RSHADER);
+
+    return vertexshader;
+}
+
+uint32_t NativeCanvasContext::createPassThroughFragment()
+{
+    const char *fragment_s = "#version 100\nprecision mediump float;\n"
     "uniform sampler2D Texture;\n"
     "uniform float u_opacity;\n"
     "varying vec2 TexCoordOut;\n"
     "void main(void) {\n"
-    "    gl_FragColor = texture2D(Texture, vec2(TexCoordOut.x, TexCoordOut.y)) * u_opacity;\n"
-    "    //gl_FragColor = vec4(TexCoordOut.y+0.5, 0, 0., 1.);\n"
+    "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
     "}";
     
-    uint32_t vertexshader = NativeCanvasContext::compileShader(vertex_s, GL_VERTEX_SHADER);
     uint32_t fragmentshader = NativeCanvasContext::compileShader(fragment_s, GL_FRAGMENT_SHADER);
+
+    m_Resources.add(fragmentshader, NativeGLResources::RSHADER);
+
+    return fragmentshader;
+}
+
+uint32_t NativeCanvasContext::createPassThroughProgram()
+{    
+    uint32_t vertexshader = this->createPassThroughVertex();
+    uint32_t fragmentshader = this->createPassThroughFragment();
+
+    if (vertexshader == 0 || fragmentshader == 0) {
+        return 0;
+    }
 
     GLuint programHandle = glCreateProgram();
 
-    m_Resources.add(vertexshader, NativeGLResources::RSHADER);
-    m_Resources.add(fragmentshader, NativeGLResources::RSHADER);
     m_Resources.add(programHandle, NativeGLResources::RPROGRAM);
 
     GLint linkSuccess;
@@ -258,8 +278,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
                           (GLvoid*) offsetof(NativeCanvasContext::Vertex, TexCoord));
 
     if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
-        m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
-        m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");
+        this->setupUniforms();
     } else {
         NLOG("Failed to create program OO");
     }
@@ -284,6 +303,12 @@ static void dump_Matrix(float *matrix)
         printf("%f,%f,%f,%f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
     }
     printf("==========\n");
+}
+
+void NativeCanvasContext::setupUniforms()
+{
+    m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
+    m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");
 }
 
 void NativeCanvasContext::updateMatrix(double left, double top,

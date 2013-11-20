@@ -9,7 +9,10 @@
 
 void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 {
-
+    if (glid == 0) {
+        return;
+    }
+    
     NativeGLResources::Resource *res = new NativeGLResources::Resource(glid,
         type, NULL);
 
