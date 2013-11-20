@@ -55,4 +55,30 @@ class NativeHash
         struct _ape_htable *table;
 };
 
+template <>
+class NativeHash<uint32_t>
+{
+    public:
+        NativeHash() {
+            this->table = hashtbl_init(APE_HASH_STR);
+        }
+        ~NativeHash() {
+            hashtbl_free(this->table);
+        }
+
+        void set(const char *key, uint32_t val) {
+            hashtbl_append_val32(this->table, key, strlen(key), val);
+        }
+
+        uint32_t get(const char *key) const {
+            return hashtbl_seek_val32(this->table, key, strlen(key));
+        }
+
+        void erase(const char *key) {
+            hashtbl_erase(this->table, key, strlen(key));
+        }
+    private:
+        struct _ape_htable *table;    
+};
+
 #endif
