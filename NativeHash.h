@@ -33,7 +33,9 @@ template <typename T>
 class NativeHash
 {
     public:
-        NativeHash() {
+        NativeHash() :
+            m_AutoDelete(false)
+        {
             this->table = hashtbl_init(APE_HASH_STR);
         }
         ~NativeHash() {
@@ -51,8 +53,17 @@ class NativeHash
         void erase(const char *key) {
             hashtbl_erase(this->table, key, strlen(key));
         }
+
+        void setAutoDelete(bool val) {
+            hashtbl_set_cleaner(this->table, (val ? NativeHash<T>::cleaner : NULL));
+        }
+        static void cleaner(ape_htable_item_t *item) {
+            delete (T)item->content.addrs;
+        }
     private:
+
         struct _ape_htable *table;
+        bool m_AutoDelete;
 };
 
 template <>
