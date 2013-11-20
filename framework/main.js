@@ -66,7 +66,7 @@ document.background = "#333333";
 
 	//load("applications/components/shader.js"); // OK
 	//load("applications/components/shader.basic.js"); // OK
-	//load("applications/components/shader.advanced.js"); // OK
+	load("applications/components/shader.advanced.js"); // OK
 
 
 /*

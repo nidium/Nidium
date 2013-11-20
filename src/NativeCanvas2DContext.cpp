@@ -1681,7 +1681,7 @@ uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
         "    ___gl_FragCoord.x > n_Resolution.x ||\n"
         "    ___gl_FragCoord.y+n_Padding < n_Padding ||\n"
         "    ___gl_FragCoord.y > n_Resolution.y) {\n"
-        "    ___main();\n"
+        "     gl_FragColor = texture2D(Texture, TexCoordOut.xy);\n"
         "} else {\n"
         "___main();\n"
         "}\n"
