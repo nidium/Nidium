@@ -352,7 +352,7 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
 #ifdef DEBUG
         JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, item, 0);
 #endif
-        JS_CallObjectTracer(trc, (JSObject *)item->addrs, "nativeroot");
+        JS_CallObjectTracer(trc, (JSObject *)item->content.addrs, "nativeroot");
         //printf("Tracing object at %p\n", item->addrs);
     }
 }

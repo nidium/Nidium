@@ -30,6 +30,44 @@
 */
 
 template <typename T>
+class NativeHash64
+{
+    public:
+        NativeHash64() :
+            m_AutoDelete(false)
+        {
+            this->table = hashtbl_init(APE_HASH_INT);
+        }
+        ~NativeHash64() {
+            hashtbl_free(this->table);
+        }
+
+        void set(uint64_t key, T val) {
+            hashtbl_append64(this->table, key, val);
+        }
+
+        T get(uint64_t key) const {
+            return (T)hashtbl_seek64(this->table, key);
+        }
+
+        void erase(uint64_t key) {
+            hashtbl_erase64(this->table, key);
+        }
+
+        void setAutoDelete(bool val) {
+            hashtbl_set_cleaner(this->table, (val ? NativeHash64<T>::cleaner : NULL));
+        }
+        static void cleaner(ape_htable_item_t *item) {
+            delete (T)item->content.addrs;
+        }
+    private:
+
+        struct _ape_htable *table;
+        bool m_AutoDelete;
+};
+   
+
+template <typename T>
 class NativeHash
 {
     public:
