@@ -44,7 +44,6 @@ def downloadSkia():
         deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
-    deps.patchDep("skia", "../gyp/skia_defines.patch")
     gypDefines = os.environ.get('GYP_DEFINES')
     if deps.is64bits:
         exports = "GYP_DEFINES='skia_arch_width=64"
