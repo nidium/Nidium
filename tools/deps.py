@@ -71,7 +71,6 @@ if __name__ == '__main__':
     success = d.runGyp()
     if success:
         d.log.success("Build successfull")
-        d.logok()
  
         for action in d.availableActions["post"]:
             action(opt)
@@ -97,19 +96,9 @@ deps = []
 VERBOSE = False
 LIBS_DIR = None
 LIBS_OUTPUT = None
-STOP_SPINNER_THREAD = False
 FORCE_BUILD = []
 FORCE_DOWNLOAD = []
-COLORS = {
-    "black": 0,
-    "red": 1,
-    "green": 2,
-    "yellow": 3,
-    "blue": 4,
-    "magenta": 5,
-    "cyan": 6,
-    "white": 7
-}
+CURRENT_DEP = None
 
 def mkdir_p(path):
     import os, errno
@@ -214,7 +203,6 @@ def downloadDep(depName, url, rename = None):
     file_name = url.split('/')[-1]
 
     if needDownload(depName, file_name):
-        print(url)
         u = urllib2.urlopen(url)
         f = open(file_name, 'wb')
         meta = u.info()
@@ -252,7 +240,6 @@ def downloadDep(depName, url, rename = None):
                 files = os.listdir("./")
                 for f in files:
                     if re.match(rename, f) and os.path.isdir(f):
-                        log("  Renaming : ", COLORS["yellow"])
                         log.info("    Renaming : " + f + " to " + depName + "\n")
                         os.rename(f, depName)
 
@@ -275,7 +262,7 @@ def extractDep(path):
     log.setOk()
 
 def needDownload(dep, fileName):
-    if dep in FORCE_DOWNLOAD:
+    if CURRENT_DEP in FORCE_DOWNLOAD:
         return True
 
     if dep in deps:
@@ -370,7 +357,7 @@ def needBuild(depName, symlink):
 
     
 def needLink(depName):
-    if depName in FORCE_BUILD:
+    if CURRENT_DEP in FORCE_BUILD:
         return True
 
     if os.path.exists(LIBS_OUTPUT + depName):
@@ -492,15 +479,11 @@ class log():
     @staticmethod
     def action(text):
         log.state("❖", log.COLORS["yellow"])
-    print "[",
         log.log(text + "\n")
-    print "\x1b[0m]",
 
     @staticmethod
     def step(text):
         log.state("ᐅ", log.COLORS["cyan"])
-    log("✖", COLORS["red"])
-    print "]",
         log.log("\x1b[4m" + text + "\x1b[0m\n")
 
     @staticmethod
@@ -545,22 +528,11 @@ class spinner():
 
     @staticmethod
     def stop():
-    if hasColours(sys.stdout):
         spinner.STOP_SPINNER_THREAD = True
-        seq += "\x1b[0m"
-        if newLine:
-            seq += "\n"
-        print seq,
-    else:
-        print text,
 
-def startSpinner():
     @staticmethod
     def display():
         import time
-    t = threading.Thread(target=printSpinner)
-    t.daemon = True
-    t.start()
 
         if sys.stdout.isatty():
             for c in spinningCursor():
@@ -575,22 +547,9 @@ def startSpinner():
                 log.log(c, log.COLORS["cyan"])
                 print "]\033[1B",
 
-    if sys.stdout.isatty():
-        for c in spinningCursor():
-            if STOP_SPINNER_THREAD is True:
-                STOP_SPINNER_THREAD = False
-                print "\r",
                 sys.stdout.flush()
                 time.sleep(0.2)
         else:
-
-            print "\r\033[1A[",
-            log(c, COLORS["cyan"])
-            print "]\033[1B",
-
-            sys.stdout.flush()
-            time.sleep(0.2)
-    else:
             log.info("Working ...") 
 
 def runCommand(cmd, **kwargs):
@@ -655,7 +614,7 @@ def buildDep(depName, directory, buildCommand, **kwargs):
 
     depName += getLibExt(depName)
 
-    if directory in FORCE_BUILD:
+    if CURRENT_DEP in FORCE_BUILD:
         build = True
     else:
         build = needBuild(depName, symlink);
@@ -744,7 +703,7 @@ def copyAndLinkDep(outlibs, symlink = True):
 
             if VERBOSE:
                 if ok == False:
-                    log.error("    File " + f + " not matching");
+                    log.info("    File " + f + " not matching");
                 else:
                     log.debug("    File " + f + " matched")
                     break
@@ -756,11 +715,14 @@ def copyAndLinkDep(outlibs, symlink = True):
 
 
 def downloadAndBuildDeps():
+    global CURRENT_DEP
+
     cwd = os.getcwd()
     os.chdir(THIRD_PARTY)
 
     # Download everything
     for dep in deps:
+        CURRENT_DEP = dep
         if dep not in availableDependencies:
             log.error("Dependency " + dep + " is not available")
             sys.exit()
@@ -772,6 +734,7 @@ def downloadAndBuildDeps():
 
     # Build everything
     for dep in deps:
+        CURRENT_DEP = dep
         if dep not in availableDependencies:
             log.error("Dependency " + dep + " is not available")
             sys.exit()
