@@ -141,6 +141,7 @@ static BreakpadRef InitBreakpad(void) {
 
     SetCrashKeyValue(breakpad, @"version", @NATIVE_VERSION_STR);
     SetCrashKeyValue(breakpad, @"build", @NATIVE_BUILD);
+    SetCrashKeyValue(breakpad, @"product", "Nidium");
 
     [pool release];
     return breakpad;
