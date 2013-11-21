@@ -4,6 +4,10 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+#ifdef GL_ES
+precision mediump float;
+#endif
+
 uniform int data;
 uniform int param;
 uniform sampler2D texture;

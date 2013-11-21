@@ -3,7 +3,7 @@
 /* ------------------------------------------------------------------------- */
 
 #ifdef GL_ES
-precision highp float;
+precision mediump float;
 #endif
 
 uniform int itime;

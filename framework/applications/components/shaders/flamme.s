@@ -2,7 +2,6 @@
 precision mediump float;
 #endif
 
-
 uniform vec2      n_Resolution;
 uniform int itime;
 uniform vec2 n_Position;
