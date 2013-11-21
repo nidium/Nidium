@@ -26,6 +26,8 @@
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
 
+#include <unistd.h>
+
 #define kNativeWidth 1280
 #define kNativeHeight 600
 
