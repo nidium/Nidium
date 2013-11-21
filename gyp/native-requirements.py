@@ -137,7 +137,6 @@ def registerDeps():
         None)
 
     deps.registerDep("jsoncpp", 
-        downloadJSONCPP, 
         partial(deps.downloadDep, "jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*"),
         None)
 
