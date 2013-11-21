@@ -5,7 +5,6 @@
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
-            'interface.gyp:nativeinterface',
             'jsoncpp.gyp:jsoncpp',
         ],
         'include_dirs': [

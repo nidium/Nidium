@@ -44,20 +44,31 @@
                 'include_dirs': [
                     '<(native_interface_path)/linux/',
                 ],
-                'conditions': [
-                    ['native_use_gtk==1', {
-                        'defines': ['NATIVE_USE_GTK'],
-                        'cflags': [
-                            '<!@(pkg-config --cflags gtk+-2.0)',
-                        ],
-                    }],
-                    ['native_use_qt==1', {
-                        'defines': ['NATIVE_USE_QT'],
-                        'cflags': [
-                            '<!@(pkg-config --cflags QtCore QtGui)'
-                        ],
-                    }]
-                ]
+                'direct_dependent_settings': {
+                    'libraries': [
+                        '-lX11',
+                    ],
+                    'conditions': [
+                        ['native_use_gtk==1', {
+                            'defines': ['NATIVE_USE_GTK'],
+                            'cflags': [
+                                '<!@(pkg-config --cflags gtk+-2.0)',
+                            ],
+                            'libraries': [
+                                '<!@(pkg-config --libs gtk+-2.0)',
+                            ]
+                        }],
+                        ['native_use_qt==1', {
+                            'defines': ['NATIVE_USE_QT'],
+                            'cflags': [
+                                '<!@(pkg-config --cflags QtCore QtGui)'
+                            ],
+                            'libraries': [
+                                '<!@(pkg-config --libs QtCore QtGui)'
+                            ]
+                        }]
+                    ]
+                },
             }],
         ],
     }],
