@@ -1622,10 +1622,13 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
     char *pdata = NativeCanvasContext::processShader(data, NativeCanvasContext::SHADER_FRAGMENT);
+
+    if (pdata == NULL) {
+        return 0;
+    }
     
     char *nshader = this->genModifiedFragmentShader(pdata);
 
-    NLOG("Shader : %s", nshader);
     uint32_t fragment = NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
     uint32_t vertex = this->createPassThroughVertex();
@@ -1964,7 +1967,6 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
     if ((m_GLObjects.program = this->createProgram(string))) {
         this->setupUniforms();
-        NLOG("uniform setup... %d", m_GLObjects.uniforms.u_projectionMatrix);
 
         m_GL.shader.uniformResolution = glGetUniformLocation(m_GLObjects.program,
                                     "n_Resolution");

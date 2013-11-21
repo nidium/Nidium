@@ -54,8 +54,6 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
 
     ShGetObjectCode(compiler, ocode);
 
-    NLOG("Shader code : \n=========\n%s======", ocode);
-
     return ocode;
 }
 
@@ -231,10 +229,6 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
         return 0;
     }
 
-    if (glGetError() != GL_NO_ERROR) {
-        NLOG("Got a GL error :-( 1.");
-    }
-    NLOG("Program created : %d", programHandle);
     return programHandle;
 }
 
@@ -280,10 +274,8 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
         this->setupUniforms();
     } else {
-        NLOG("Failed to create program OO");
+        NLOG("[OpenGL Error] Failed to create passthrough program");
     }
-
-    NLOG("Vertex buffer object created with ID : %d - %d (vao : %d)", m_GLObjects.vbo[0], m_GLObjects.vbo[1], m_GLObjects.vao);
 }
 
 NativeCanvasContext::~NativeCanvasContext()
