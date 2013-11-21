@@ -99,6 +99,7 @@ LIBS_OUTPUT = None
 FORCE_BUILD = []
 FORCE_DOWNLOAD = []
 CURRENT_DEP = None
+ENABLE_VALGRIND = False
 
 def mkdir_p(path):
     import os, errno
@@ -145,6 +146,7 @@ def parseArguments():
     optionParser.add_option("--force-build", dest="forceBuild", default=False, help="Force building of dependencies. Eg : --force-build=skia,mozilla-central")
     optionParser.add_option("--force-download", dest="forceDownload", default=False, help="Force download of dependencies. Eg : --force-download=skia,mozilla-central")
     optionParser.add_option("-D", dest="defines", type="string", action="append", help="Defines variables to be passed to gyp\n Eg : -Dfoo=1")
+    optionParser.add_option("--enable-valgrind", dest="valgrind", default=False, action="store_true", help="Enable valgrind (only works in debug build)")
 
     for option in availableOptions:
         option(optionParser)
@@ -166,6 +168,8 @@ def parseArguments():
     if opt.debug is True:
         global BUILD
         BUILD = "debug"
+        if opt.valgrind:
+            ENABLE_VALGRIND = True;
     
     if opt.forceBuild:
         global FORCE_BUILD
@@ -834,7 +838,9 @@ def buildMC():
 
     # => mozilla-central
     if BUILD == "debug":
-        configure = "./configure --enable-debug --disable-optimize --enable-valgrind --enable-ctypes " + nsprFlags
+        configure = "./configure --enable-debug --disable-optimize --enable-ctypes " + nsprFlags
+        if ENABLE_VALGRIND:
+            configure += "--enable-valgrind "
     else:
         configure = "./configure --enable-threadsafe --enable-ctypes " + nsprFlags
 

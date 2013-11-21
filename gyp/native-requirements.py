@@ -77,7 +77,7 @@ def buildZitaResampler():
 
 def buildLibCoroutine():
     deps.patchDep("libcoroutine", "libcoroutine.patch")
-    if deps.BUILD == "debug":
+    if deps.BUILD == "debug" and deps.ENABLE_VALGRIND:
         deps.patchDep("libcoroutine", "libcoroutine.debug.patch")
 
     deps.buildDep("libcoroutine", "libcoroutine", ["make"], outlibs=[["libcoroutine/_build/lib/liblibcoroutine", "libcoroutine"]])
