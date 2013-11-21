@@ -1999,9 +1999,9 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
         float padding = this->getHandler()->padding.global * ratio;
 
         if (m_GL.shader.uniformResolution != -1)
-            glUniform2f(m_GL.shader.uniformResolution, (ratio*width)-(padding*2), (ratio*height)-(padding*2));
+            glUniform2f(m_GL.shader.uniformResolution, (width)-(padding*2), (height)-(padding*2));
         if (m_GL.shader.uniformPosition != -1)
-            glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (ratio*height+ratio*top));
+            glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (height+ratio*top));
         if (m_GL.shader.uniformPadding != -1)
             glUniform1f(m_GL.shader.uniformPadding, padding);
 #endif
