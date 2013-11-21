@@ -69,11 +69,7 @@ def buildSkia():
         "skia/out/Release/libskia_images",
         "skia/out/Release/libskia_opts_ssse3",
         "skia/out/Release/libskia_opts"
-    ])
-
-def downloadJSONCPP():
-    deps.downloadDep("jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*")
-    os.chdir("../")
+    ]) 
 
 def buildZitaResampler():
     deps.patchDep("zita-resampler", "zita.patch")
@@ -142,6 +138,7 @@ def registerDeps():
 
     deps.registerDep("jsoncpp", 
         downloadJSONCPP, 
+        partial(deps.downloadDep, "jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*"),
         None)
 
     deps.registerDep("preload", 
