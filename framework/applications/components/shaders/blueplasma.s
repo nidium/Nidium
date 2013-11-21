@@ -1,3 +1,7 @@
+#ifdef GL_ES
+precision mediump float;
+#endif
+
 uniform int itime;
 uniform vec2 mouse;
 vec2 r = vec2(640, 480);
