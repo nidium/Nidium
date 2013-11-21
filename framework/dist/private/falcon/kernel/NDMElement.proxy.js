@@ -163,3 +163,97 @@ NDMElement.defineInternalProperties = function(element, props){
 
 /* -------------------------------------------------------------------------- */
 
+/*
+
+NDMElement.defineDynamicProperties(NDMElement.prototype, {
+	id : null,
+	className : "",
+
+	left : 0,
+	top : 0,
+
+	width : 1,
+	height : 1,
+
+	innerWidth : -1,
+	innerHeight : -1,
+
+	scrollLeft : 0,
+	scrollTop : 0,
+
+	percentLeft : 0,
+	percentTop : 0,
+	percentWidth : 100,
+	percentHeight : 100,
+
+	offsetLeft : 0,
+	offsetTop : 0,
+
+	paddingLeft : 0,
+	paddingRight : 0,
+	paddingTop : 0,
+	paddingBottom : 0,
+
+	text : "",
+	label : "",
+	fontSize : 12,
+	fontFamily : "arial",
+	textAlign : "left",
+	verticalAlign : "middle",
+	textOffsetX : 0,
+	textOffsetY : 0,
+	lineHeight : 18,
+	fontWeight : "normal",
+
+	blur : 0,
+	opacity : 1,
+	alpha : 1,
+
+	shadowBlur : 0,
+	shadowColor : "rgba(0, 0, 0, 0.5)",
+	shadowOffsetX : 0,
+	shadowOffsetY : 0,
+
+	textShadowBlur : 0,
+	textShadowColor : '',
+	textShadowOffsetX : 0,
+	textShadowOffsetY : 0,
+
+	color : '',
+	background : '',
+	backgroundImage : '',
+	backgroundRepeat : true,
+	radius : 0,
+	borderWidth : 0,
+	borderColor : '',
+	outlineColor : 'blue',
+
+	angle : 0,
+	scale : 1,
+
+	// -- misc flags
+	canReceiveFocus : false,
+	outlineOnFocus : true,
+	canReceiveKeyboardEvents : false,
+
+	visible : true,
+	hidden : false,
+	selected : false,
+	overflow : true,
+	multiline : false,
+	editable : false,
+	disabled : false,
+	outline : false,
+	
+	scrollable : false,
+	scrollBarX : false,
+	scrollBarY : false,
+	position : "relative",
+
+	hover : false,
+	hasFocus : false,
+
+	cursor : "arrow"
+});
+
+*/

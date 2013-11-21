@@ -44,6 +44,7 @@ Object.definePrivateProperties(Native.elements, {
 		this.createCanvasLayer(element);
 		
 		/* Then : call the plugin's init() method */
+		if (plugin.___source___ && plugin.___source___.init) plugin.___source___.init.call(element);
 		if (plugin.init) plugin.init.call(element);
 
 		/* Then : call the element's resize() method */
@@ -71,12 +72,44 @@ Object.definePrivateProperties(Native.elements, {
 	},
 
 	export : function(type, implement){
-		if (type.in("export", "build", "init", "createCanvasLayer")){
+		var self = this;
+		if (type.in("extend", "export", "build", "init", "createCanvasLayer")){
 			return false;
 		}
 
-		this[type] = implement;
+		this[type] = {};
+
+		if (this.___source___) {
+			/* build from an existing type */
+
+			this[type].___source___ = this.___source___;
+
+			// copy all from source
+			for (var i in this.___source___){
+				if (this.___source___.hasOwnProperty(i)) {
+					this[type][i] = this.___source___[i];
+				}
+			}
+			this.___source___ = null;
+		}
+
+		for (var key in implement){
+			if (implement.hasOwnProperty(key)) {
+				this[type][key] = implement[key];
+			}
+		}
+
 		this.build(window.scope, type);
+	},
+
+	extend : function(type){
+		this.___source___ = this[type];
+		if (type.in("extend", "export", "build", "init", "createCanvasLayer")){
+			return false;
+		}
+		if (!this.___source___) throw "Unable to extend undefined " + type;
+
+		return this;
 	},
 
 	/* NDMElement Constructor Instanciation */

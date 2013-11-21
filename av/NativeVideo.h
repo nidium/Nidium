@@ -68,7 +68,7 @@ class NativeVideo : public NativeAVSource
         int timersDelay;
 
         ape_global *net;
-        NativeAudioTrack *track;
+        NativeAudioSource *audioSource;
 
         VideoCallback frameCbk;
         void *frameCbkArg;
@@ -99,8 +99,8 @@ class NativeVideo : public NativeAVSource
         PaUtilRingBuffer *rBuff;
         uint8_t *buff;
         unsigned char *avioBuffer;
-        uint8_t *m_frames[NATIVE_VIDEO_BUFFER_SAMPLES];
-        int m_framesIdx;
+        uint8_t *m_Frames[NATIVE_VIDEO_BUFFER_SAMPLES];
+        int m_FramesIdx;
         AVFrame *decodedFrame; 
         AVFrame *convertedFrame;
 
@@ -111,7 +111,8 @@ class NativeVideo : public NativeAVSource
         void play();
         void pause();
         void stop();
-        int open(const char *src);
+        void close();
+        int open(const char *chroot, const char *src);
         int open(void *buffer, int size);
         int openInit();
         int openInitInternal();
@@ -129,7 +130,7 @@ class NativeVideo : public NativeAVSource
 
         void frameCallback(VideoCallback cbk, void *arg);
 
-        NativeAudioTrack *getAudioNode(NativeAudio *audio);
+        NativeAudioSource *getAudioNode(NativeAudio *audio);
         static void* decode(void *args);
         static int display(void *custom);
         void stopAudio();
@@ -141,10 +142,10 @@ class NativeVideo : public NativeAVSource
         bool buffering;
         bool seeking;
         bool readFlag;
-        bool doClose;
+        bool m_ThreadCreated;
         pthread_mutex_t audioLock;
 
-        void close(bool reset);
+        void closeInternal(bool reset);
         static void seekCoro(void *arg);
         int64_t seekTarget(double time, int *flags);
         bool seekMethod(int64_t target, int flags);
@@ -157,10 +158,11 @@ class NativeVideo : public NativeAVSource
 
         bool processAudio();
         bool processVideo();
-        bool processFrame(AVFrame *frame, double pts);
+        bool processFrame(AVFrame *frame);
 
         double syncVideo(double pts);
         double getPts(AVPacket *packet);
+        double getPts(AVFrame *frame);
         double getSyncedPts(AVPacket *packet);
         void scheduleDisplay(int delay);
         void scheduleDisplay(int delay, bool force);

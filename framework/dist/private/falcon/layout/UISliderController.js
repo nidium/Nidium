@@ -121,7 +121,9 @@ Native.elements.export("UISliderController", {
 			k.finishCurrentAnimations(property);
 			k.animate(property, start, delta, 200,
 				function(){
-					self.fireEvent("complete", self.value);
+					self.fireEvent("complete", {
+						value : self.value
+					});
 				},
 
 				Math.physics.quadOut,
@@ -183,7 +185,9 @@ Native.elements.export("UISliderController", {
 
 		this.knob.addEventListener("dragend", function(){
 			self.draggingSlider = false;
-			self.fireEvent("complete", self.value);
+			self.fireEvent("complete", {
+				value : self.value
+			});
 		}, false);
 
 		this.addEventListener("mousewheel", function(e){
@@ -228,6 +232,10 @@ Native.elements.export("UISliderController", {
 				this.pixelValue = k.left + kw;
 				this.value = this.pixelValue * d/w + this.min;
 			}
+
+			if (this._oldvalue === this.value) return false;
+			this._oldvalue = this.value;
+
 			this.fireEvent("change", {
 				value : this.value
 			});
@@ -264,7 +272,7 @@ Native.elements.export("UISliderController", {
 		this.setValue = function(value, duration, callback){
 			var oldValue = this.value,
 				k = this.knob,
-				d = this.max - this.min,
+				d = this.max - this.min, // TODO : what if d=0 ????
 				h = this.height,
 				w = this.width,
 				kh = k.height/2,

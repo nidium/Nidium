@@ -100,8 +100,12 @@ class NativeAudioNode : public SkRefCnt
 
         float **frames;
 
+        // true if all the frames are zeroed
         bool nullFrames;
         bool processed;
+        // true if the node is connected to a source and a target
+        bool isConnected;
+
         NodeLink *input[32];
         NodeLink *output[32];
 
@@ -130,9 +134,15 @@ class NativeAudioNode : public SkRefCnt
 
         bool recurseGetData(int *sourceFailed);
         void processQueue();
-        bool isConnected();
+        bool updateIsConnectedInput();
+        bool updateIsConnectedOutput();
+        bool updateIsConnected();
+        bool updateIsConnected(bool input, bool output);
 
         virtual bool process() = 0;
+        virtual bool isActive() {
+            return true;
+        }
 
         virtual ~NativeAudioNode() = 0;
     protected:
@@ -164,35 +174,6 @@ class NativeAudioNodeTarget : public NativeAudioNode
 
         virtual bool process();
 };
-
-#if 0
-class NativeAudioNodeWirdo : public NativeAudioNode
-{
-    public :
-        NativeAudioNodeWirdo (int inCount, int outCount, NativeAudioParameters *params) : NativeAudioNode(inCount, outCount, params) 
-        {
-            printf("Wirdo init\n");
-            printf("count %d/%d\n", inCount, outCount);
-            /*
-            for (int i = 0; i < inCount; i++) {
-                this->inQueue[j]
-            }
-            */
-        }
-
-        float gain;
-
-        virtual bool process() 
-        {
-            SPAM(("|process called on wirdo\n"));
-            for (int i = 0; i < 256; i++) {
-                this->frames[2][i] = this->frames[0][i];
-                this->frames[3][i] = this->frames[1][i];
-            }
-            return true;
-        }
-};
-#endif
 
 class NativeAudioNodeGain : public NativeAudioNode
 {
@@ -302,10 +283,10 @@ class NativeAudioNodeMixer : public NativeAudioNode
 };
 #endif
 
-class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
+class NativeAudioSource: public NativeAudioNode, public NativeAVSource 
 {
     public:
-        NativeAudioTrack(int out, NativeAudio *audio, bool external);
+        NativeAudioSource(int out, NativeAudio *audio, bool external);
 
         friend class NativeVideo;
 
@@ -326,7 +307,8 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         void play();
         void pause();
         void stop();
-        int open(const char *src);
+        void close();
+        int open(const char *chroot, const char *src);
         int open(void *buffer, int size);
         int openInit();
         static void openInitCoro(void *arg);
@@ -343,16 +325,15 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool bufferInternal();
 
         virtual bool process();
+        bool isActive();
         bool work();
         bool decode();
         int resample(int destSamples);
-        bool getFrame();
         double getClock();
         void drop(double ms);
 
-        void close(bool reset);
-        ~NativeAudioTrack();
-
+        void closeInternal(bool reset);
+        ~NativeAudioSource();
     private:
         AVCodecContext *codecCtx;
 
@@ -371,6 +352,7 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
         bool packetConsumed;
         int samplesConsumed;
         int audioStream;
+        int m_FailedDecoding;
 
         SwrContext *swrCtx;
         PaUtilConverter *sCvt;
@@ -382,6 +364,33 @@ class NativeAudioTrack : public NativeAudioNode, public NativeAVSource
 
         bool eof;
         bool buffering;
+};
+
+class NativeAudioCustomSource : public NativeAudioNodeCustom
+{
+    public:
+        NativeAudioCustomSource(int out, NativeAudio *audio) 
+            : NativeAudioNodeCustom(0, out, audio), m_Playing(true)
+        {
+        }
+
+        typedef void (*SeekCallback)(NativeAudioCustomSource *node, double ms, void *custom);
+
+        bool m_Playing;
+        SeekCallback m_SeekCallback;
+        void *m_Custom;
+        double m_SeekTime;
+
+        void setSeek(SeekCallback cbk, void *custom);
+
+        void play();
+        void pause();
+        void stop();
+        void seek(double pos);
+        static void seekMethod(NativeAudioNode *node, void *custom);
+
+        bool process();
+        bool isActive() override;
 };
 
 class NativeAudioNodeException : public std::exception

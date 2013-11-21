@@ -741,12 +741,12 @@ Native.elements.export("UITextInput", {
 
 		this.scrollToLineStart = function(){
 			var pos = this.parent.scrollLeft;
-			this.parent.updateScrollLeft(pos);
+			this.parent.animateScrollLeft(pos);
 		};
 
 		this.scrollToLineEnd = function(){
 			var pos = this.width;
-			this.parent.updateScrollLeft(-pos);
+			this.parent.animateScrollLeft(-pos);
 		};
 
 		/* ------------------------------------------------------------------ */
@@ -919,7 +919,8 @@ Native.elements.export("UITextInput", {
 
 		this._insert = function(text, offset, size, newoffset, newsize){
 			if (this.editable) {
-				var newtext = this.text.splice(offset, size, text);
+				var oldtext = this.text,
+					newtext = this.text.splice(offset, size, text);
 
 				if (this.multiline === false && newtext.length > __MAX_INPUT_LENGTH__) {
 					newtext = newtext.substr(0, __MAX_INPUT_LENGTH__);
@@ -934,6 +935,12 @@ Native.elements.export("UITextInput", {
 				this.checkPattern(this.pattern);
 
 				this.pushState();
+
+				if (oldtext != newtext) {
+					this.fireEvent("change", {
+						value : newtext
+					});
+				}
 			}
 		};
 
@@ -962,7 +969,7 @@ Native.elements.export("UITextInput", {
 		};
 
 		this.cut = function(){
-			self.fireEvent("beforecut", self.selection);
+			this.fireEvent("beforecut", this.selection);
 			this.copy();
 			this._insert(
 				'', 
@@ -971,26 +978,26 @@ Native.elements.export("UITextInput", {
 				this.selection.offset, 
 				0
 			);
-			self.fireEvent("cut", self.selection);
+			this.fireEvent("cut", this.selection);
 		};
 
 		this.copy = function(){
-			self.fireEvent("beforecopy", self.selection);
+			this.fireEvent("beforecopy", this.selection);
 			if (this.selection.size > 0) {
 				Native.setPasteBuffer(this.selection.text);
 			} else {
 				Native.setPasteBuffer("");
 			}
-			self.fireEvent("copy", self.selection);
+			this.fireEvent("copy", this.selection);
 		};
 
 		this.paste = function(){
-			self.fireEvent("beforepaste", self.selection);
+			this.fireEvent("beforepaste", this.selection);
 			var pasteBuffer = Native.getPasteBuffer();
 			if (pasteBuffer) {
 				this.replace(pasteBuffer);
 			}
-			self.fireEvent("paste", self.selection);
+			this.fireEvent("paste", this.selection);
 		};
 
 		/* ------------------------------------------------------------------ */

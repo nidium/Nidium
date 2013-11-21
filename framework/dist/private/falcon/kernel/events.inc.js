@@ -85,6 +85,10 @@ window.events = {
 		});
 	},
 
+	updateEvent : function(event){
+		var self = this;
+	},
+
 	dispatch : function(name, e){
 		var self = this,
 			x = e.x,
@@ -93,7 +97,7 @@ window.events = {
 			cancelBubble = false,
 			cancelEvent = false,
 
-			z = document.getElements();
+			z = document.layout.visibles; //document.getElements();
 
 		e.preventDefault = function(){
 			self.preventdefault = true;
@@ -128,13 +132,15 @@ window.events = {
 
 		document.layout.topElement = false;
 
-		for(var i=z.length-1 ; i>=0 ; i--) {
+		for (var i=z.length-1 ; i>=0 ; i--){
 			var element = z[i];
 			cancelEvent = false;
 
+			/*
 			if (!element.layer || !element.layer.__visible) {
 				continue;
 			}
+			*/
 
 			if (this.preventdefault && element == document) {
 				this.preventdefault = false;
@@ -142,6 +148,9 @@ window.events = {
 			}
 
 			if (name=='keydown'){
+				if (e.keyCode == 32) {
+					element.spaceKeyDown = true;
+				}
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
 					element.cmdKeyDown = true;
 				}
@@ -151,6 +160,9 @@ window.events = {
 			}
 
 			if (name=='keyup'){
+				if (e.keyCode == 32) {
+					element.spaceKeyDown = false;
+				}
 				if (e.keyCode == 1073742051 || e.keyCode == 1073742055) {
 					element.cmdKeyDown = false;
 				}
@@ -158,6 +170,9 @@ window.events = {
 					element.shiftKeyDown = false;
 				}
 			}
+
+			e.spaceKeyDown = element.spaceKeyDown == undefined ?
+							false : element.spaceKeyDown;
 
 			e.shiftKeyDown = element.shiftKeyDown == undefined ?
 							false : element.shiftKeyDown;
@@ -486,6 +501,7 @@ NDMElement.implement({
 Object.attachEventSystem = function(proto){
 	proto.addEventListener = function(name, callback, propagation){
 		var self = this;
+		self.events = self.events ? self.events : {};
 		self._eventQueues = self._eventQueues ? self._eventQueues : [];
 		var queue = self._eventQueues[name];
 
@@ -499,7 +515,7 @@ Object.attachEventSystem = function(proto){
 			response : null
 		});
 
-		self["on"+name] = function(e){
+		self.events["on"+name] = function(e){
 			for(var i=queue.length-1; i>=0; i--){
 				queue[i].response = queue[i].fn.call(self, e);
 				if (!queue[i].propagation){
@@ -515,19 +531,21 @@ Object.attachEventSystem = function(proto){
 			listenerResponse = true,
 			cb = OptionalCallback(successCallback, null);
 
-		if (typeof this["on"+name] == 'function'){
+		this.events = this.events ? this.events : {};
+
+		if (typeof this.events["on"+name] == 'function'){
 			if (e !== undefined){
 				e.dx = e.xrel;
 				e.dy = e.yrel;
 				e.refuse = function(){
 					acceptedEvent = false;
 				};
-				listenerResponse = this["on"+name](e);
+				listenerResponse = this.events["on"+name](e);
 				if (cb && acceptedEvent) cb.call(this);
 
 				return OptionalBoolean(listenerResponse, true);
 			} else {
-				listenerResponse = this["on"+name]();
+				listenerResponse = this.events["on"+name]();
 			}
 		} else {
 			if (cb) cb.call(this);

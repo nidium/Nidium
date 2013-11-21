@@ -13,7 +13,7 @@ extern "C" {
 }
 
 #undef SPAM
-#if 1
+#if 0
   #define SPAM(a) \
     printf(">%lld / ", av_gettime()/1000); \
     printf a
@@ -26,13 +26,13 @@ extern "C" {
 
 NativeVideo::NativeVideo(ape_global *n) 
     : freePacket(NULL), timerIdx(0), lastTimer(0),
-      net(n), track(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
+      net(n), audioSource(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
       tmpFrame(NULL), frameBuffer(NULL),
       lastPts(0), playing(false), stoped(false), width(-1), height(-1),
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
-      rBuff(NULL), buff(NULL), m_framesIdx(NULL), avioBuffer(NULL),
+      rBuff(NULL), buff(NULL), avioBuffer(NULL), m_FramesIdx(NULL), 
       decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), buffering(false), readFlag(false), doClose(false)
+      reader(NULL), buffering(false), readFlag(false), m_ThreadCreated(false)
 {
     pthread_cond_init(&this->bufferCond, NULL);
     pthread_mutex_init(&this->bufferLock, NULL);
@@ -46,13 +46,13 @@ NativeVideo::NativeVideo(ape_global *n)
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         this->timers[i] = new TimerItem();
-        m_frames[i] = NULL;
+        m_Frames[i] = NULL;
     }
 }
 
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
-this->doClose = true;\
+this->closeInternal(true);\
 return err;
 
 int NativeVideo::open(void *buffer, int size) 
@@ -71,7 +71,7 @@ int NativeVideo::open(void *buffer, int size)
             */
 
     if (this->opened) {
-        this->close(true);
+        this->closeInternal(true);
     }
 
     if (!(this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE))) {
@@ -80,7 +80,7 @@ int NativeVideo::open(void *buffer, int size)
 
     this->reader = new NativeAVBufferReader((uint8_t *)buffer, size);
     this->container = avformat_alloc_context();
-    if (!this->container) {
+    if (!this->container || !this->reader) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
@@ -89,17 +89,21 @@ int NativeVideo::open(void *buffer, int size)
         RETURN_WITH_ERROR(ERR_OOM);
     }
     if (this->openInit() == 0) {
-        pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
+        if (pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this) != 0) {
+            RETURN_WITH_ERROR(ERR_INTERNAL);
+        }
+        m_ThreadCreated = true;
         pthread_cond_signal(&this->bufferCond);
     }
 
     return 0;
 }
 
-int NativeVideo::open(const char *src) 
+int NativeVideo::open(const char *chroot, const char *src) 
 {
+    SPAM(("Open %s\n", src));
     if (this->avioBuffer != NULL) {
-        this->close(true);
+        this->closeInternal(true);
     } 
 
     this->mainCoro = Coro_new();
@@ -110,7 +114,7 @@ int NativeVideo::open(const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->reader = new NativeAVStreamReader(src, &this->readFlag, &this->bufferCond, this, this->net);
+    this->reader = new NativeAVStreamReader(chroot, src, &this->readFlag, &this->bufferCond, this, this->net);
     this->container = avformat_alloc_context();
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -253,8 +257,8 @@ int NativeVideo::openInitInternal()
     }
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        m_frames[i] = (uint8_t*) malloc(frameSize);
-        if (!m_frames[i]) {
+        m_Frames[i] = (uint8_t*) malloc(frameSize);
+        if (!m_Frames[i]) {
             fprintf(stderr, "Failed to setup frames pool\n");
             RETURN_WITH_ERROR(ERR_OOM);
         }
@@ -287,8 +291,8 @@ void NativeVideo::play() {
     this->frameTimer = (av_gettime() / 1000000.0);
     this->playing = true;
 
-    if (this->track != NULL) {
-        this->track->play();
+    if (this->audioSource != NULL) {
+        this->audioSource->play();
     }
 
     bool haveTimer = false;
@@ -306,16 +310,27 @@ void NativeVideo::play() {
     this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
 }
 
-void NativeVideo::pause() {
+void NativeVideo::pause() 
+{
     this->playing = false;
 
     this->clearTimers(true);
 
-    if (this->track != NULL) {
-        this->track->pause();
+    if (this->audioSource != NULL) {
+        this->audioSource->pause();
     }
 
     this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
+}
+
+void NativeVideo::close() 
+{
+    this->playing = false;
+    this->videoClock = 0;
+    this->lastDelay = 40e-3;
+    this->error = 0;
+
+    this->closeInternal(true);
 }
 
 void NativeVideo::stop() {
@@ -324,8 +339,8 @@ void NativeVideo::stop() {
     this->lastDelay = 40e-3;
     this->error = 0;
 
-    if (this->track != NULL) {
-        this->track->stop();
+    if (this->audioSource != NULL) {
+        this->audioSource->stop();
     }
 
     this->seek(0);
@@ -334,6 +349,8 @@ void NativeVideo::stop() {
     this->clearTimers(true);
 
     pthread_cond_signal(&this->bufferCond);
+
+    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
 }
 
 double NativeVideo::getClock() 
@@ -452,10 +469,10 @@ void NativeVideo::seekInternal(double time)
         this->clearAudioQueue();
         this->clearVideoQueue();
 
-        if (this->track != NULL) {
-            avcodec_flush_buffers(this->track->codecCtx);
-            PaUtil_FlushRingBuffer(this->track->rBufferOut);
-            this->track->resetFrames();
+        if (this->audioSource!= NULL) {
+            avcodec_flush_buffers(this->audioSource->codecCtx);
+            PaUtil_FlushRingBuffer(this->audioSource->rBufferOut);
+            this->audioSource->resetFrames();
         }
 
         if (this->seekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) {
@@ -477,7 +494,7 @@ void NativeVideo::seekInternal(double time)
         // instead of looking for a keyframe, we just 
         // read packet until we hit the desired time
         keyframe = true;
-        if (track != NULL) {
+        if (audioSource != NULL) {
             double tmp;
             // "in memory" seeking, we need to drop audio packet
             for (;;) {
@@ -502,16 +519,15 @@ void NativeVideo::seekInternal(double time)
 
     if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
         this->eof = false;
-        if (this->track != NULL) {
-            this->track->eof = false;
+        if (this->audioSource != NULL) {
+            this->audioSource->eof = false;
         }
     }
 
     flags = 0;
 
     for (;;) {
-        long foo = av_gettime() - start;
-        SPAM(("[SEEK-%ld] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", foo, gotFrame, pts, seekTime, time));
+        SPAM(("[SEEK] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", gotFrame, pts, seekTime, time));
         if ((pts > seekTime + SEEK_STEP || pts > time) && !keyframe) {
             seekTime = seekTime - SEEK_STEP;
             if (seekTime < 0) seekTime = 0;
@@ -601,7 +617,7 @@ void NativeVideo::seekInternal(double time)
                     this->videoQueue->count++;
 
                     if (this->seekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) {
-                        this->processFrame(this->decodedFrame, prevPts);
+                        this->processFrame(this->decodedFrame);
                     } 
                     break;
                 }
@@ -664,35 +680,36 @@ void NativeVideo::frameAt(double time, bool keyframe)
     this->seek(time, keyframe ? NATIVE_VIDEO_SEEK_KEYFRAME : 0);
 }
 
-NativeAudioTrack *NativeVideo::getAudioNode(NativeAudio *audio) 
+NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio) 
 {
 
-    if (this->track) {
-        return this->track;
+    if (this->audioSource) {
+        return this->audioSource;
     }
 
     this->audio = audio;
 
     if (this->audioStream != -1 && audio) {
-        this->track = audio->addTrack(2, true);
-        this->track->audioStream = this->audioStream;
-        this->track->container = this->container;
-        this->track->eventCallback(NULL, NULL); //Disable events callbacks
-        if (0 != this->track->initInternal()) {
+        this->audioSource = new NativeAudioSource(2, audio, true);
+        audio->addSource(this->audioSource, true);
+        this->audioSource->audioStream = this->audioStream;
+        this->audioSource->container = this->container;
+        this->audioSource->eventCallback(NULL, NULL); //Disable events callbacks
+        if (0 != this->audioSource->initInternal()) {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, 0, false);
-            delete this->track;
-            this->track = NULL;
+            this->audioSource->unref();
+            this->audioSource = NULL;
         }
 
         if (this->playing) {
-            this->track->play();
+            this->audioSource->play();
         }
 
         if (this->getClock() > 0) {
             this->clearAudioQueue();
         }
     }
-    return this->track;
+    return this->audioSource;
 }
 
 int NativeVideo::display(void *custom) {
@@ -742,15 +759,15 @@ int NativeVideo::display(void *custom) {
     v->lastDelay = delay;
     v->lastPts = pts;
 
-    if (v->track != NULL && v->track->isConnected()) {
-        diff = pts - v->track->getClock();
+    if (v->audioSource != NULL && v->audioSource->isConnected) {
+        diff = pts - v->audioSource->getClock();
 
-        SPAM(("Clocks audio=%f / video=%f / diff = %f\n", v->track->getClock(), pts, diff));
+        SPAM(("Clocks audio=%f / video=%f / diff = %f\n", v->audioSource->getClock(), pts, diff));
 
-        if (diff > NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD && v->track->avail() > 0) {
+        if (diff > NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD && v->audioSource->avail() > 0) {
             // Diff is too big an will be noticed
             // Let's drop some audio sample
-            v->track->drop(diff);
+            v->audioSource->drop(diff);
         } else {
             syncThreshold = (delay > NATIVE_VIDEO_SYNC_THRESHOLD) ? delay : NATIVE_VIDEO_SYNC_THRESHOLD;
 
@@ -788,7 +805,7 @@ int NativeVideo::display(void *custom) {
                 return ret;
             }
         } else {
-            v->scheduleDisplay(((int)(actualDelay * 1000 + 0.5)));
+            v->scheduleDisplay(((int)(actualDelay * 1000)));
         }
         pthread_cond_signal(&v->bufferCond);
     }
@@ -842,7 +859,7 @@ void NativeVideo::bufferInternal()
     int needVideo = 0;
 
     if (this->playing) {
-        if (this->track != NULL && this->track->isConnected()) {
+        if (this->audioSource != NULL && this->audioSource->isConnected) {
             needAudio = NATIVE_VIDEO_PACKET_BUFFER - this->audioQueue->count;
         }
         needVideo = NATIVE_VIDEO_PACKET_BUFFER - this->videoQueue->count;
@@ -879,7 +896,7 @@ void NativeVideo::bufferInternal()
         if (packet.stream_index == this->videoStream) {
             this->addPacket(this->videoQueue, &packet);
             needVideo--;
-        } else if (packet.stream_index == this->audioStream && ((this->track != NULL && this->track->isConnected()) || this->getClock() == 0)) {
+        } else if (packet.stream_index == this->audioStream && ((this->audioSource != NULL && this->audioSource->isConnected) || this->getClock() == 0)) {
             this->addPacket(this->audioQueue, &packet);
             needAudio--;
         } else {
@@ -925,16 +942,6 @@ void *NativeVideo::decode(void *args)
                 }
             }
 
-            if (v->error != 0) {
-                if (v->shutdown) break;
-                SPAM(("Waiting for reset cause of error %d\n", v->reader->pending));
-                if (!v->doSeek && !v->readFlag) {
-                    pthread_cond_wait(&v->bufferCond, &v->bufferLock);
-                }
-                SPAM(("reset go\n"));
-                if (v->shutdown) break;
-            }
-
             SPAM(("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking));
             if (!v->doSeek) {
                 SPAM(("processing\n"));
@@ -969,9 +976,7 @@ void *NativeVideo::decode(void *args)
             }
         }
 
-        if (v->doClose) {
-            v->close(true);
-        }
+        v->readFlag =false;
 
         if (v->shutdown) break;
     }
@@ -988,7 +993,10 @@ void NativeVideo::stopAudio()
     this->clearAudioQueue();
 
     this->audio = NULL;
-    this->track = NULL; 
+    // XXX : We set audio source to NULL because right now 
+    // it's the JS implementation that free the node
+    // this->audioSource->unref();
+    this->audioSource = NULL; 
 
     pthread_mutex_unlock(&this->audioLock);
 }
@@ -998,26 +1006,29 @@ bool NativeVideo::processAudio()
     bool audioFailed = false;
     bool wakeup = false;
 
-    pthread_mutex_lock(&this->audioLock);
-
-    if (this->track == NULL || (this->track != NULL && !this->track->isConnected())) {
-        pthread_mutex_unlock(&this->audioLock);
+    if (this->audioSource == NULL) {
         return false;
     }
 
-    if (this->audioQueue->count > 0 || !this->track->packetConsumed) {
+    if (!this->audioSource->isConnected) {
+        return false;
+    }
+
+    pthread_mutex_lock(&this->audioLock);
+
+    if (this->audioQueue->count > 0 || !this->audioSource->packetConsumed) {
         for (;;) {
             // Decode audio
-            if (!this->track->work()) {
-                if (this->track->packetConsumed && this->freePacket != NULL) {
+            if (!this->audioSource->work()) {
+                if (this->audioSource->packetConsumed && this->freePacket != NULL) {
                     delete this->freePacket;
                     this->freePacket = NULL;
-                    // Note : av_free_packet is called by the track
+                    // Note : av_free_packet is called by the audioSource
                 }
-                if (this->track->packetConsumed) {
+                if (this->audioSource->packetConsumed) {
                     Packet *p = this->getPacket(this->audioQueue);
                     if (p != NULL) {
-                        this->track->buffer(&p->curr);
+                        this->audioSource->buffer(&p->curr);
                         this->freePacket = p;
                     } else {
                         // No more packet, no more to decode
@@ -1034,7 +1045,7 @@ bool NativeVideo::processAudio()
             }
         }
     } else {
-        // No track || no packet || packet not consumed (CHECKME)
+        // No audioSource || no packet || packet not consumed (CHECKME)
         audioFailed = true;
     }
 
@@ -1070,8 +1081,7 @@ bool NativeVideo::processVideo()
     avcodec_decode_video2(this->codecCtx, this->decodedFrame, &gotFrame, &packet);
 
     if (gotFrame) {
-        //printf("decoding video, packet pts is at %f\n", packet.dts * av_q2d(stream->time_base));
-        this->processFrame(this->decodedFrame, this->getPts(&packet));
+        this->processFrame(this->decodedFrame);
     } 
 
     delete p;
@@ -1080,16 +1090,16 @@ bool NativeVideo::processVideo()
     return true;
 }
 
-bool NativeVideo::processFrame(AVFrame *avFrame, double pts)
+bool NativeVideo::processFrame(AVFrame *avFrame)
 {
     Frame frame;
-    frame.data = m_frames[m_framesIdx];
-    frame.pts = pts;
+    frame.data = m_Frames[m_FramesIdx];
+    frame.pts = this->getPts(avFrame);
 
-    if (m_framesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
-        m_framesIdx = 0;
+    if (m_FramesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
+        m_FramesIdx = 0;
     } else {
-        m_framesIdx++;
+        m_FramesIdx++;
     }
 
     // Format the frame for sws_scale
@@ -1121,10 +1131,19 @@ double NativeVideo::syncVideo(double pts)
     }
 
     frameDelay = av_q2d(this->container->streams[this->videoStream]->time_base);
-    frameDelay += this->decodedFrame->repeat_pict * (frameDelay * 0.5); // XXX : WTF 0.5?!
+    frameDelay += this->decodedFrame->repeat_pict * (frameDelay);
     this->videoClock += frameDelay;
 
     return pts;
+}
+
+double NativeVideo::getPts(AVFrame *frame)
+{
+    double pts;
+
+    pts = av_frame_get_best_effort_timestamp(frame);
+
+    return this->syncVideo(pts) * av_q2d(this->container->streams[this->videoStream]->time_base);
 }
 
 double NativeVideo::getPts(AVPacket *packet)
@@ -1230,8 +1249,8 @@ void NativeVideo::clearTimers(bool reset)
 void NativeVideo::clearAudioQueue() 
 {
     if (this->freePacket != NULL) {
-        if (this->track != NULL) {
-            this->track->packetConsumed = true;
+        if (this->audioSource != NULL) {
+            this->audioSource->packetConsumed = true;
         }
         av_free_packet(&this->freePacket->curr);
         delete this->freePacket;
@@ -1270,7 +1289,7 @@ void NativeVideo::flushBuffers()
 {
     if (this->rBuff == NULL) return;
 
-    m_framesIdx = 0;
+    m_FramesIdx = 0;
 
     PaUtil_FlushRingBuffer(this->rBuff);
 }
@@ -1289,21 +1308,23 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 }
 #endif
 
-void NativeVideo::close(bool reset) {
-    if (this->reader && this->container && this->container->pb) {
+void NativeVideo::closeInternal(bool reset) {
+    if (m_ThreadCreated) {
         this->shutdown = true;
-        if (!this->doClose) {
-            pthread_cond_signal(&this->bufferCond);
-            pthread_join(this->threadDecode, NULL);
-        }
+
+        pthread_cond_signal(&this->bufferCond);
+        pthread_join(this->threadDecode, NULL);
+
+        m_ThreadCreated = false;
+        this->shutdown = false;
     }
-    
+
     this->clearTimers(reset);
     this->flushBuffers();
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        free(m_frames[i]);
-        m_frames[i] = NULL;
+        free(m_Frames[i]);
+        m_Frames[i] = NULL;
     }
 
     this->clearAudioQueue();
@@ -1366,20 +1387,19 @@ void NativeVideo::close(bool reset) {
         }
     }
 
-    if (this->track != NULL) {
-        if (this->track->packetConsumed && this->freePacket != NULL) {
+    if (this->audioSource != NULL) {
+        if (this->audioSource->packetConsumed && this->freePacket != NULL) {
             delete this->freePacket;
             this->freePacket = NULL;
-            // Note : av_free_packet is called by the track
+            // Note : av_free_packet is called by the audioSource
         }
-        delete this->track;
-        this->track = NULL;
+        this->audioSource->unref();
+        this->audioSource = NULL;
     }
 
     this->opened = false;
-    this->doClose = false;
 }
 
 NativeVideo::~NativeVideo() {
-    this->close(false);
+    this->closeInternal(false);
 }

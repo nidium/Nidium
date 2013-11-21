@@ -48,7 +48,7 @@ var HttpRequest = function(method, url, data, onloadCallback){
 			"User-Agent": window.navigator.userAgent,
 		},
 		method : method,
-		data : data
+		data : data ? data : undefined
 	}, function(e){
 		if (typeof onloadCallback == "function"){
 			onloadCallback.call(this, e);

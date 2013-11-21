@@ -9,13 +9,14 @@ Native.elements.export("UITextField", {
 		value : {
 			set : function(value){
 				var text = OptionalString(value, "");
+				if (text != "") this.input.hidePlaceHolder();
 				this.input.setText(text);
 				this.input.scrollToLineStart();
 				this.input.resetUndo();
 			},
 
 			get : function(){
-				return this.input.text;
+				return this.input.isPlaceHolderVisible() ? "" : this.input.text;
 			}
 		},
 
@@ -146,7 +147,6 @@ Native.elements.export("UITextField", {
 		};
 
 		this.input.addEventListener("focus", function(e){
-			var color = "blue";
 			if (self.outlineOnFocus === false) return;
 			self.outline = true;
 			self.input.showOutline();
@@ -156,6 +156,10 @@ Native.elements.export("UITextField", {
 			if (self.outlineOnFocus === false) return;
 			self.outline = false;
 		}, false);
+
+		this.input.addEventListener("change", function(e){
+			self.fireEvent("change", e);
+		});
 
 		this.submit = function(){
 			if (self.input.pattern && self.input.match === false) {

@@ -26,6 +26,10 @@ NDMElement.prototype = {
 
 	add : NDMElement.method.add,
 	remove : NDMElement.method.remove,
+
+	clone : NDMElement.method.clone,
+	cloneNode : NDMElement.method.cloneNode,
+
 	clear : NDMElement.method.clear,
 	show : NDMElement.method.show,
 	hide : NDMElement.method.hide,
@@ -59,6 +63,7 @@ NDMElement.prototype = {
 	applySelectorProperties : NDMElement.method.applySelectorProperties,
 	applyStyleSheet : NDMElement.method.applyStyleSheet,
 	applyInlineProperties : NDMElement.method.applyInlineProperties,
+	copyInlinePropertiesFrom : NDMElement.method.copyInlinePropertiesFrom,
 
 	bringToFront : NDMElement.method.bringToFront,
 	sendToBack : NDMElement.method.sendToBack,
@@ -90,7 +95,6 @@ NDMElement.prototype = {
 	resize : function(){},
 	update : function(e){},
 	draw : function(context){},
-
 
 	/* ----------------------------------------------- */
 	/* NDMElement.maxWidth                             */
@@ -285,49 +289,51 @@ NDMElement.prototype = {
 	/* EVENTS                                          */
 	/* ----------------------------------------------- */
 
-	onbeforecopy : null, /* implemented */
-	onbeforecut : null, /* implemented */
-	onbeforepaste : null, /* implemented */
-	oncopy : null, /* implemented */
-	oncut : null, /* implemented */
-	onpaste : null, /* implemented */
-	onselect : null, /* implemented */
-	onselectstart : null, /* implemented */
+	events : {
+		onbeforecopy : null, /* implemented */
+		onbeforecut : null, /* implemented */
+		onbeforepaste : null, /* implemented */
+		oncopy : null, /* implemented */
+		oncut : null, /* implemented */
+		onpaste : null, /* implemented */
+		onselect : null, /* implemented */
+		onselectstart : null, /* implemented */
 
-	onblur : null, /* implemented */
-	onfocus : null, /* implemented */
+		onblur : null, /* implemented */
+		onfocus : null, /* implemented */
 
-	onchange : null, /* implemented */
-	oncontextmenu : null, /* implemented */
+		onchange : null, /* implemented */
+		oncontextmenu : null, /* implemented */
 
-	ondrag : null, /* implemented */
-	ondragend : null, /* implemented */
-	ondragenter : null, /* implemented */
-	ondragleave : null, /* implemented */
-	ondragover : null, /* implemented */
-	ondragstart : null, /* implemented */
-	ondrop : null, /* implemented */
+		ondrag : null, /* implemented */
+		ondragend : null, /* implemented */
+		ondragenter : null, /* implemented */
+		ondragleave : null, /* implemented */
+		ondragover : null, /* implemented */
+		ondragstart : null, /* implemented */
+		ondrop : null, /* implemented */
 
-	onkeydown : null, /* implemented */
-	onkeypress : null, /* implemented */
-	onkeyup : null, /* implemented */
-	ontextinput : null, /* implemented */
-	onload : null, /* implemented */
+		onkeydown : null, /* implemented */
+		onkeypress : null, /* implemented */
+		onkeyup : null, /* implemented */
+		ontextinput : null, /* implemented */
+		onload : null, /* implemented */
 
-	onmouseclick : null, /* implemented */
-	onmousedblclick : null, /* implemented */
-	onmousedown : null, /* implemented */
-	onmousemove : null, /* implemented */
-	onmouseout : null, /* implemented */
-	onmouseover : null, /* implemented */
-	onmouseup : null, /* implemented */
-	onmousewheel : null, /* implemented */
+		onmouseclick : null, /* implemented */
+		onmousedblclick : null, /* implemented */
+		onmousedown : null, /* implemented */
+		onmousemove : null, /* implemented */
+		onmouseout : null, /* implemented */
+		onmouseover : null, /* implemented */
+		onmouseup : null, /* implemented */
+		onmousewheel : null, /* implemented */
 
-	onreset : null, /* implemented */
-	onerror : null, /* implemented */
-	onsubmit : null, /* implemented */
+		onreset : null, /* implemented */
+		onerror : null, /* implemented */
+		onsubmit : null, /* implemented */
 
-	onscroll : null,
+		onscroll : null
+	},
 
 	/* ----------------------------------------------- */
 	/* NSS Properties (to be implemented)              */

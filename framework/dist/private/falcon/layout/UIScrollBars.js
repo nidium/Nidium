@@ -33,6 +33,18 @@ Native.elements.export("UIScrollBar", {
 		this.options = OptionalNumber(o.opacity, 0);
 		this.hidden = OptionalBoolean(o.hidden, false);
 		this.visible = false;
+
+		this.addEventListener("dragstart", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("drag", function(e){
+			e.forcePropagation();
+		}, true);
+
+		this.addEventListener("dragend", function(e){
+			e.forcePropagation();
+		}, true);
 	},
 
 	draw : function(context){
@@ -46,8 +58,6 @@ Native.elements.export("UIScrollBar", {
 
 Native.elements.export("UIScrollBarHandle", {
 	init : function(){
-		var o = this.options;
-
 		this.hidden = this.parent ? this.parent.hidden : false;
 	},
 

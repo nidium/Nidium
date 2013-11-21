@@ -109,8 +109,95 @@ NDMElement.method = {
 		document.layout.update();
 	},
 
+	/* -- EXPERIMENTAL -- */
+	clone : function(){
+		var element = new NDMElement(this.type, this.options, null);
+
+		element.__lock();
+
+		for (var i in this){
+			if (this.hasOwnProperty(i)) {
+				if (!i.in("events", "parent", "type", "inline", "isNDMElement", "nodes")) {
+					element[i] = this[i];
+				}
+			}
+		}
+
+		element.nodes = []; /* reset childnodes */
+		element.events = []; /* reset events */
+		element._eventQueues = []; /* reset event queues */
+
+		element.__original__ = this;
+		element._uid = this._uid + "_clone";
+		element.id = this.id + "_clone";
+
+		element.copyInlinePropertiesFrom(this);
+
+		element.__unlock();
+
+		return element;
+	},
+
+	/* -- EXPERIMENTAL -- */
+	cloneNode : function(deep){
+		var process = function(element, parent){
+			var clone = element.clone(),
+				n = element.nodes.length;
+
+			parent.addChild(clone);
+
+			/* unfinished ... */
+			for (var i in element){
+				if (element.hasOwnProperty(i)) {
+					if (i.in("height", "width", "min", "max", "value")) {
+						clone[i] = element[i];
+					}
+				}
+			}
+
+			if (deep && element.firstChild) {
+				for (var i=0; i<n; i++){
+					process(element.nodes[i], clone);
+				}
+			}
+
+			if (parent.type == "UISliderController") {
+				parent.removeChild(clone);
+				return false;
+			}
+
+			return clone;
+		};
+
+		return process(this, this.parent);
+	},
+
+	copyInlinePropertiesFrom : function(element){
+		var id = this.id;
+
+		/* copy inline properties */
+		for (var k in element.inline){
+			if (element.inline.hasOwnProperty(k)){
+				this.inline[k] = element.inline[k];
+			}
+		}
+
+		/* overide the id property if any */
+		this.inline.id && (this.inline.id = id);
+	},
+
 	addChild : function addChild(element){
 		if (!isNDMElement(element)) return false;
+
+		/* if element is a clone ... */
+		if (element.__original__) {
+			/*
+				inlines properties of cloned elements may have been modified
+				from the cloning to the adopting, so we must copy inline
+				properties again
+			*/
+			element.copyInlinePropertiesFrom(element.__original__);
+		}
 
 		/* fire the onAddChildRequest event */
 		if (this.onAddChildRequest.call(this, element) === false) return false;
@@ -396,7 +483,7 @@ NDMElement.method = {
 			x1 = r.left + 1,
 			y1 = r.top + 1,
 			x2 = x1 + r.width,
-			y2 = y1 + r.height;
+			y2 = y1 + r.height - 1;
 
 		if (this.angle != 0){
 			var rad = this.angle * (Math.PI/180),

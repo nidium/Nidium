@@ -9,26 +9,31 @@
 /* -------------------------------------------------------------------------- */
 
 var NDMElement = function(type, options, parent){
-	var o = this.options = options || {},
-		p = this.parent = parent ? parent : null; // parent element
+	var self = this,
+		o = options || {},
+		p = parent ? parent : null;
 
 	if (!Native.elements[type]) {
 		throw("Undefined element " + type);
 	}
 
-	if (o && o.class) {
+	if (o.class) {
 		o.className = o.class;
 	}
 
 	this.parent = p;
+	this.options = o;
 	this.nodes = []; // children elements
-	
+	this.events = {}; // element's events
+
 	/* Read Only Properties */
 	NDMElement.defineReadOnlyProperties(this, {
 		type : type,
 		isNDMElement : true,
-		inline : {}  
+		inline : {}
 	});
+
+	this.style = NDMElement.getStyleDescriptors(this);
 
 	for (var k in this.options) {
 		if (this.options.hasOwnProperty(k)) {
@@ -51,6 +56,7 @@ var NDMElement = function(type, options, parent){
 
 	/* Public Dynamic Properties (visual impact on element, need redraw) */
 	/* Common to all elements */
+
 	NDMElement.defineDynamicProperties(this, {
 		// -- class management
 		id : null,
@@ -60,12 +66,12 @@ var NDMElement = function(type, options, parent){
 		left : OptionalNumber(o.left, 0),
 		top : OptionalNumber(o.top, 0),
 
-		/* Hack to avoid crash when canvas.width = NaN; */
+		// Hack to avoid crash when canvas.width = NaN;
 		width : o.width ? Number(o.width) : p ?
 					p._width-OptionalNumber(o.left, 0) :
 					window.width-OptionalNumber(o.left, 0),
 
-		/* Hack to avoid crash when canvas.height = NaN; */
+		// Hack to avoid crash when canvas.height = NaN;
 		height : o.height ? Number(o.height) : p ?
 					p._height-OptionalNumber(o.top, 0) :
 					window.height-OptionalNumber(o.top, 0),
@@ -154,6 +160,7 @@ var NDMElement = function(type, options, parent){
 		scrollBarY : OptionalBoolean(o.scrollBarY, false),
 		position : OptionalPosition(o.position, "relative"),
 
+		even : false,
 		hover : false,
 		hasFocus : false,
 
@@ -162,8 +169,6 @@ var NDMElement = function(type, options, parent){
 
 	/* Internal Hidden Properties */
 	NDMElement.defineInternalProperties(this, {
-		private : {},
-
 		flags : 0,
 		lineIndex : 0,
 
@@ -176,11 +181,6 @@ var NDMElement = function(type, options, parent){
 
 		_cachedBackgroundImage : null,
 
-		_minx : this._left,
-		_miny : this._top,
-		_maxx : this._left + this._width,
-		_maxy : this._top + this._top,
-
 		_layerPadding : p ? Math.max(this.shadowBlur*5, 20) : Math.max(this.shadowBlur*5, 10),
 
 		/* refreshing flags */
@@ -190,10 +190,6 @@ var NDMElement = function(type, options, parent){
 		_needSizeUpdate : true,
 		_needOpacityUpdate : true,
 		_needAncestorCacheClear : false
-	});
-
-	Object.createProtectedHiddenElement(this, "static", {
-		default : {}
 	});
 
 	/* runtime change of id leads to nss class check */
@@ -212,3 +208,17 @@ var NDMElement = function(type, options, parent){
 
 /* -------------------------------------------------------------------------- */
 
+
+NDMElement.getStyleDescriptors = function(self){
+	var style = {
+		get tata() {
+			return self.layer.width;
+		}
+	};
+
+	NDMElement.defineDynamicProperties(style, {
+		toto : 45
+	});
+
+	return style;
+};

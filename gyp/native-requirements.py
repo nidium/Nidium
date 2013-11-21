@@ -1,6 +1,7 @@
 from functools import partial
 import sys, os
 import deps
+from deps import log, spinner
 
 def makePreload():
     import re
@@ -8,7 +9,7 @@ def makePreload():
     cwd = os.getcwd()
     os.chdir(deps.CWD)
 
-    deps.logd("Building preload.h")
+    log.step("Building preload.h")
     os.chdir("scripts")
 
     inFile = open("preload.js", "r")
@@ -25,6 +26,8 @@ def makePreload():
 
     inFile.close()
     outFile.close()
+    
+    log.success("preload.h successfully built")
 
     os.chdir(cwd)
 
@@ -37,16 +40,26 @@ def buildSDL2():
 
 def downloadSkia():
     if deps.needDownload("skia", "skia"):
-        deps.runCommand("Downloading skia", "depot_tools/gclient sync --gclientfile=gclient_skia")
+        log.step("Downloading skia")
+        deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
     deps.patchDep("skia", "../gyp/skia_defines.patch")
+    gypDefines = os.environ.get('GYP_DEFINES')
     if deps.is64bits:
-        exports = "GYP_DEFINES='skia_arch_width=64'"
+        exports = "GYP_DEFINES='skia_arch_width=64"
     else:
-        exports = "GYP_DEFINES='skia_arch_width=32'"
+        exports = "GYP_DEFINES='skia_arch_width=32"
+    if gypDefines is not None:
+        exports += " " + gypDefines
 
-    deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia -I../../gyp/skia.gypi", exports + " make tests BUILDTYPE=Release -j " + str(deps.nbCpu)], outlibs=[
+    exports += "'"
+
+    makeFlags = ""
+    if deps.VERBOSE:
+        makeFlags = "V=1"
+
+    deps.buildDep("libskia_core", "skia", [exports + " ./gyp_skia -I../../gyp/skia.gypi", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(deps.nbCpu)], outlibs=[
         "skia/out/Release/libskia_pdf",
         "skia/out/Release/libskia_ports",
         "skia/out/Release/libskia_skgpu",
@@ -59,24 +72,8 @@ def buildSkia():
         "skia/out/Release/libskia_opts"
     ])
 
-def buildJSONCPP():
-    if deps.system == "Linux" or deps.system == "Darwin":
-        platform = "linux-gcc"
-
-        # Dirty hack to get output directory/name of libjsoncpp
-        import commands 
-        version = commands.getoutput('g++ -dumpversion')
-        outlib = ["jsoncpp/libs/linux-gcc-" + version + "/libjson_linux-gcc-" + version + "_libmt", "libjsoncpp"]
-    else :
-        platform = "msvc8"
-
-    deps.buildDep("libjsoncpp", "jsoncpp", ["python scons.py platform=" + platform + "  CC='clang' CXX='clang++' CXXFLAGS='-mmacosx-version-min=10.7 -stdlib=libc++'"], outlibs=[outlib]);
-
 def downloadJSONCPP():
     deps.downloadDep("jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*")
-    os.chdir("jsoncpp")
-    # XXX : This is a hack, scons-local should be embedded in jsoncpp archive
-    deps.downloadDep("jsoncpp", deps.depsURL + "/scons-local-2.2.0.tar.gz")
     os.chdir("../")
 
 def buildZitaResampler():
@@ -146,8 +143,199 @@ def registerDeps():
 
     deps.registerDep("jsoncpp", 
         downloadJSONCPP, 
-        buildJSONCPP)
+        None)
 
     deps.registerDep("preload", 
          None,
          makePreload)
+
+    deps.registerDep("breakpad",
+        partial(deps.downloadDep, "breakpad", deps.depsURL + "/breakpad.tar.gz"),
+        None)
+        #partial(deps.buildDep, "libbreakpad_client", "breakpad", ["./configure", "make"], outlibs=["breakpad/src/client/linux/libbreakpad_client"]))
+
+    deps.registerAction(releaseActionRegister, releaseActionParse, releaseAction);
+    deps.registerAction(stripActionRegister, None, stripAction)
+
+def stripActionRegister(parser):
+    parser.add_option("--strip", dest="strip", action="store_true", default=False, help="Strip executable")
+
+def stripAction(options):
+    if options.strip:
+        stripExecutable()
+
+def releaseActionParse(options):
+    if options.release:
+        deps.gypArgs += " -Dnative_enable_breakpad=1"
+
+def releaseActionRegister(parser):
+    parser.add_option("--release", dest="release", action="store_true", default=False, help="Publish a release")
+
+def releaseAction(opt):
+    import os
+    if opt.release is False:
+        return
+
+    # This is a little hack to be able to display upload progress
+    class fakeFile():
+        def __init__(self, data):
+            self._data = data
+            self._total = len(data)
+            self._pos = 0
+            self._args = 'fakeFile'
+            self._gen = deps.spinningCursor()
+
+        def __len__(self):
+            return self._total
+
+        def read(self, size):
+            if self._pos > self._total:
+                self._pos = self._total;
+
+            data = self._data[self._pos:self._pos + size]
+
+            c = next(self._gen)
+            status = r"%10d  [%3.2f%%]" % (self._pos, self._pos * 100. / self._total)
+            status = status + chr(8)*(len(status)+1)
+            log.spinner(c, status)
+            sys.stdout.flush()
+
+            self._pos += size
+
+            return data 
+
+    # Utilities function to post multipart form data 
+    # inspired from http://code.activestate.com/recipes/146306/
+    import urllib2, mimetypes
+
+    def post_multipart(host, selector, fields, files):
+        content_type, body = encode_multipart_formdata(fields, files)
+        stream = fakeFile(body)
+        req = urllib2.Request("http://" + host + selector, stream, {"Content-Type": content_type})
+        res = urllib2.urlopen(req)
+        return res.read()
+
+    def encode_multipart_formdata(fields, files):
+        BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
+        CRLF = '\r\n'
+        L = []
+        for (key, value) in fields:
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"' % key)
+            L.append('')
+            L.append(value)
+        for (key, filename, value) in files:
+            L.append('--' + BOUNDARY)
+            L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+            L.append('Content-Type: %s' % get_content_type(filename))
+            L.append('')
+            L.append(value)
+        L.append('--' + BOUNDARY + '--')
+        L.append('')
+        body = CRLF.join(L)
+        content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
+        return content_type, body
+
+    def get_content_type(filename):
+        return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+    symFile = "out/nidium.sym"
+    log.step("Producing application symbols for breakpad")
+    if deps.system == "Darwin":
+        deps.runCommand("tools/dump_syms gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium > " + symFile)
+    elif deps.system == "Linux":
+        deps.runCommand("tools/dump_syms framework/dist/nidium > " + symFile)
+    else:
+        # Window TODO
+        print("TODO")
+
+    log.step("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
+    symbols = open(symFile, "rb").read()
+    reply = post_multipart("crash.nidium.com", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
+
+    if reply == "OK":
+        os.unlink(symFile)
+        print ""
+        log.setOk()
+    else:
+        log.setError()
+        log.error("Failed to upload symbols : " + reply)
+
+    stripExecutable()
+    packageExecutable()
+
+def stripExecutable():
+    log.step("Striping executable")
+    if deps.system == "Darwin":
+        deps.runCommand("strip framework/dist/nidium.app/Contents/MacOS/nidium")
+        return
+    elif deps.system == "Linux":
+        deps.runCommand("strip framework/dist/nidium")
+    else:
+        # Window TODO
+        print("TODO")
+
+def packageExecutable():
+    import time
+    import subprocess
+    import zipfile 
+
+    datetime = time.strftime("%Y%m%d_%H%M%S")
+    hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    path = "framework/dist/"
+    arch = ""
+    if deps.is64bits:
+        arch = "x86_64"
+    else:
+        arch = "i386"
+
+    name = "Nidium_%s_%s_%s_%s.zip" % (datetime, deps.system, arch, hash)
+
+    log.step("Packaging executable")
+    log.info(name)
+    spinner.start()
+    with zipfile.ZipFile("out/" + name, 'w', zipfile.ZIP_DEFLATED) as myzip:
+        if deps.system == "Darwin":
+            myzip.write(path + "nidium.app")
+            import os
+            for dirpath,dirs,files in os.walk(path + "nidium.app/"):
+                for f in files:
+                    fn = os.path.join(dirpath, f)
+                    myzip.write(fn)
+        elif deps.system == "Linux":
+            myzip.write(path + "nidium")
+            myzip.write(path + "nidium-crash-reporter")
+        else:
+            # Window TODO
+            print("TODO")
+
+    spinner.stop()
+    log.setOk()
+
+    uploadExecutable("out/", name)
+
+def uploadExecutable(path, name):
+    import ftplib
+    from pprint import pprint
+    
+    args = {"gen": deps.spinningCursor(), "pos": 0, "total": os.stat(path + name).st_size} 
+
+    def callback(data):
+        args["pos"] += 1024 
+
+        c = next(args["gen"])
+        status = r"%10d  [%3.2f%%]" % (args["pos"], args["pos"] * 100. / args["total"])
+        status = status + chr(8)*(len(status)+1)
+        log.spinner(c, status)
+
+    log.step("Uploading executable")
+
+    s = ftplib.FTP("nidium.com", "nidium", "i8V}8B833G51gZJ")
+    f = open(path + name, 'rb')
+    s.storbinary("STOR release/" + name, f, 1024, callback)
+
+    print ""
+    os.unlink(path + name);
+    log.setOk()
+    log.info("Executable uploaded to http://release.nidium.com/" + name)
+

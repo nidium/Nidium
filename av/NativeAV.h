@@ -55,7 +55,7 @@ class NativeAVBufferReader : public NativeAVReader
 class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate 
 {
     public:
-        NativeAVStreamReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
+        NativeAVStreamReader(const char *chroot, const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
         int64_t totalRead;
@@ -66,8 +66,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         void onGetContent(const char *data, size_t len) {}
         void onAvailableData(size_t len);
         void onProgress(size_t buffered, size_t len);
-        void onError(NativeStream::StreamError err){};
-
+        void onError(NativeStream::StreamError err);
         ~NativeAVStreamReader();
     private:
         NativeStream *stream;
@@ -77,7 +76,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
 
         size_t streamRead;
         size_t streamPacketSize;
-        size_t streamSize;
+        off_t streamSize;
         unsigned const char* streamBuffer;
         int error;
 };
@@ -117,6 +116,8 @@ enum {
     ERR_DECODING,
     ERR_SEEKING,
     ERR_INTERNAL,
+    ERR_STREAMING_NOT_SUPPORTED,
+    ERR_UNKNOWN,
     ERR_MAX
 };
 
@@ -133,7 +134,9 @@ static const char *NativeAVErrorsStr[ERR_MAX] = {
     "Failed to init audio stream from video",
     "Failed to decode stream",
     "Failed to seek",
-    "Internal error"
+    "Internal error",
+    "HTTP Streaming on unknown file size is not supported yet",
+    "Unknown error"
 }; 
 
 // Used for event (play, pause, stop, error, buffered...)
@@ -175,7 +178,8 @@ class NativeAVSource
         virtual void play() = 0;
         virtual void pause() = 0;
         virtual void stop() = 0;
-        virtual int open(const char *src) = 0;
+        virtual void close() = 0;
+        virtual int open(const char *chroot, const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;
         virtual void onProgress(size_t buffered, size_t total) = 0;
@@ -184,7 +188,9 @@ class NativeAVSource
         virtual void seek(double time) = 0;
         double getDuration();
         int getBitrate();
-        AVDictionary *getMetadata() ;
+        AVDictionary *getMetadata();
+
+        virtual ~NativeAVSource() = 0;
     protected:
 	    AVFormatContext *container;
        

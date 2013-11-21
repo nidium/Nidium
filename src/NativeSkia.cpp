@@ -365,10 +365,7 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     initPaints();
 
-    /* Enabling image smoothing if the screen is scaled (e.g. Retina) */
-    if (ratio != 1.0) {
-        this->setSmooth(true);
-    }
+    this->setSmooth(true);
 
     canvas->clear(0x00000000);
 
@@ -398,9 +395,7 @@ int NativeSkia::bindOffScreen(int width, int height)
 
     initPaints();
 
-    if (ratio != 1.0) {
-        this->setSmooth(true);
-    }
+    this->setSmooth(true);
 
     this->native_canvas_bind_mode = NativeSkia::BIND_OFFSCREEN;
 
@@ -1127,6 +1122,41 @@ void NativeSkia::rect(double x, double y, double width, double height)
     currentPath->addPath(tmpPath);
 }
 
+void NativeSkia::addPath(const SkPath& path, SkPath *to)
+{
+    SkPath::Iter iter(path, false);
+    SkPoint pts[4];
+    SkPath::Verb    verb;
+    int i = 0;
+
+    while ((verb = iter.next(pts)) != SkPath::kDone_Verb) {
+        switch (verb) {
+            case SkPath::kMove_Verb:
+            {
+                if (i == 0) break;
+                to->moveTo(pts[0]);
+                break;
+            }
+            case SkPath::kLine_Verb:
+                to->lineTo(pts[1]);
+                break;
+            case SkPath::kQuad_Verb:
+                to->quadTo(pts[1], pts[2]);
+                break;
+            case SkPath::kConic_Verb:
+                to->conicTo(pts[1], pts[2], iter.conicWeight());
+                break;
+            case SkPath::kCubic_Verb:
+                to->cubicTo(pts[1], pts[2], pts[3]);
+                break;
+            case SkPath::kClose_Verb:
+                to->close();
+                break;
+            default:break;
+        }
+        i++;
+    }
+}
 
 void NativeSkia::arc(int x, int y, int r,
     double startAngle, double endAngle, int CCW)
@@ -1146,35 +1176,41 @@ void NativeSkia::arc(int x, int y, int r,
     SkScalar start = SkDoubleToScalar(180 * startAngle / SK_ScalarPI);
     SkScalar end = SkDoubleToScalar(180 * sweep / SK_ScalarPI);
 
-    SkRect rect, nrect;
+    SkRect rect;
+    rect.set(cx-radius, cy-radius, cx+radius, cy+radius);
 
-    SkPoint pt;
-    m.mapXY(cx, cy, &pt);
+    SkPath tmppath;
+    bool dropfirst = false;
 
     if (!currentPath->isEmpty()) {
-        currentPath->lineTo(pt);
+        SkPoint lp;
+        currentPath->getLastPt(&lp);
+        tmppath.moveTo(lp);
+        dropfirst = true;
     }
-
-    m.mapRect(&rect, SkRect::MakeLTRB(cx-radius, cy-radius, cx+radius, cy+radius));
-
-    /* Compute the new bounding rect using the transformed rect with the old size */
-    nrect = SkRect::MakeLTRB(rect.centerX()-radius*m.getScaleX(), rect.centerY()-radius*m.getScaleY(),
-        rect.centerX()+radius*m.getScaleX(), rect.centerY()+radius*m.getScaleY());
 
     if (end >= s360 || end <= -s360) {
         // Move to the start position (0 sweep means we add a single point).
-        currentPath->arcTo(nrect, start, 0, false);
+        tmppath.arcTo(rect, start, 0, false);
         // Draw the circle.
-        currentPath->addOval(nrect);
+        tmppath.addOval(rect);
         // Force a moveTo the end position.
-        currentPath->arcTo(nrect, start + end, 0, true);        
+        tmppath.arcTo(rect, start + end, 0, true);        
     } else {
         if (CCW && end > 0) {
             end -= s360;
         } else if (!CCW && end < 0) {
             end += s360;
         }
-        currentPath->arcTo(nrect, start, end, false);        
+        tmppath.arcTo(rect, start, end, false);        
+    }
+
+    /* TODO: do the transform in addPath */
+    tmppath.transform(m);
+    if (dropfirst) {
+        this->addPath(tmppath, currentPath);
+    } else {
+        currentPath->addPath(tmppath);
     }
 }
 
@@ -1271,7 +1307,7 @@ void NativeSkia::restore()
 
         state = dstate;
     } else {
-        printf("Shouldnt be there\n");
+        NLOG("restore() without matching save()\n");
     }
     
     canvas->restore();
@@ -1390,15 +1426,18 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
 {
     SkMatrix m;
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    float ratio = 1.0f;
+    if (set) {
+        ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+    }
 
     m.setScaleX(SkDoubleToScalar(scalex*ratio));
-    m.setSkewX(SkDoubleToScalar(skewx));
-    m.setTranslateX(SkDoubleToScalar(translatex));
+    m.setSkewX(SkDoubleToScalar(skewx*ratio));
+    m.setTranslateX(SkDoubleToScalar(translatex*ratio));
 
     m.setScaleY(SkDoubleToScalar(scaley*ratio));
-    m.setSkewY(SkDoubleToScalar(skewy));
-    m.setTranslateY(SkDoubleToScalar(translatey));
+    m.setSkewY(SkDoubleToScalar(skewy*ratio));
+    m.setTranslateY(SkDoubleToScalar(translatey*ratio));
 
     m.setPerspX(0);
     m.setPerspY(0);

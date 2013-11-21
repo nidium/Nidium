@@ -4,62 +4,75 @@
 /* (c) 2013 nidium.com - Vincent Fontaine */
 /* -------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* NSS PROPERTIES                                                             */
+/* -------------------------------------------------------------------------- */
+
+document.nss.add({
+	"UIStatus" : {
+		canReceiveFocus	: false,
+		spinner			: true,
+
+		label			: "Ready",
+		fontSize  		: 10,
+		fontFamily  	: "arial",
+		textAlign 		: "left",
+
+		progressBarColor : null,
+		progressBarLeft : 40,
+		progressBarRight : 40,
+
+		textShadowOffsetX	: 1,
+		textShadowOffsetY	: 1,
+		textShadowBlur		: 1,
+		textShadowColor 	: "rgba(0, 0, 0, 0.25)",
+
+		value 			: 0,
+		paddingLeft		: 5,
+		height 			: 20,
+		radius 			: 0,
+		background 		: "rgba(38, 39, 34, 0.85)",
+		color 			: "#eeeeee",
+		opacity			: 1.0
+	}
+});
+
+/* -------------------------------------------------------------------------- */
+/* ELEMENT DEFINITION                                                         */
+/* -------------------------------------------------------------------------- */
+
+
 Native.elements.export("UIStatus", {
 	init : function(){
 		var self = this,
 			o = this.options;
 
-		this.setProperties({
-			canReceiveFocus	: false,
-			spinner			: OptionalBoolean(o.spinner, true),
-
-			label			: OptionalString(o.label, "Ready"),
-			fontSize  		: OptionalNumber(o.fontSize, 10),
-			fontFamily  	: OptionalString(o.fontFamily, "arial"),
-			textAlign 		: OptionalAlign(o.textAlign, "left"),
-
-			progressBarColor : OptionalValue(o.progressBarColor, false),
-			progressBarLeft : OptionalNumber(o.progressBarLeft, 40),
-			progressBarRight : OptionalNumber(o.progressBarRight, 40),
-
-			textShadowOffsetX	: OptionalNumber(o.textShadowOffsetX, 1),
-			textShadowOffsetY	: OptionalNumber(o.textShadowOffsetY, 1),
-			textShadowBlur		: OptionalNumber(o.textShadowBlur, 1),
-			textShadowColor 	: OptionalValue(
-									o.textShadowColor,
-									'rgba(0, 0, 0, 0.25)'
-								),
-
-			value 			: OptionalNumber(o.value, 0),
-			paddingLeft		: OptionalNumber(o.paddingLeft, 5),
-			height 			: OptionalNumber(o.height, 20),
-			radius 			: OptionalNumber(o.radius, 0),
-			background 		: OptionalValue(o.background, "rgba(38, 39, 34, 0.85)"),
-			color 			: OptionalValue(o.color, "#eeeeee"),
-			opacity			: 1.0
+		/* Element's Dynamic Properties */
+		NDMElement.defineDynamicProperties(this, {
+			spinner : OptionalBoolean(o.spinner, true)
 		});
 
-		if (this.spinner === true) {
-			this.spinnerElement = new UISpinner(this, {
-				height : this.height-6,
-				width : this.height-6,
-				left : this.width-(this.height-6)-3,
-				top : 3,
+		this.spinnerElement = new UISpinner(this, {
+			height : this.height-6,
+			width : this.height-6,
+			left : this.width-(this.height-6)-3,
+			top : 3,
 
-				dashes : 10,
-				color : this.color,
-				speed : 20,
-				opacity : 0.7,
-				radius : 2
-			});
-			this.spinnerElement.stop();
-			this.spinnerElement.opacity = 0;
-		}
+			dashes : 10,
+			color : this.color,
+			speed : 20,
+			opacity : 0.7,
+			radius : 2
+		});
+		this.spinnerElement.stop();
+		this.spinnerElement.opacity = 0;
 
 		this.open = function(duration=600, callback=null){
 			var cb = OptionalCallback(callback, null);
 			if (this.closed === false || this.opening) return false;
 			this.visible = true;
+
+			this.bringToFront();
 
 			if (this.spinner === true) {
 				this.spinnerElement.opacity = 0.7;

@@ -40,17 +40,14 @@ document.nss.add({
 		textAlign : "right",
 		paddingRight : 10,
 		background : "rgba(0, 0, 0, 0.4)"
-	}	
+	}
 });
 
 var main = new Application();
 main.backgroundImage = "private://assets/patterns/wood_1.png";
 
-
-//var knob = new UIKnob(main);
-
 var app = {
-	audioBufferSize : 2048,
+	audioBufferSize : 256, // 256 samples
 	ipulse : 0,
 
 	dftSize : 128,
@@ -71,8 +68,8 @@ var app = {
 		});
 		*/
 
-//		this.load("../../media/sympho.mp3");
-		this.load("../../media/dream.mp3");
+		this.load("../../media/sympho.mp3");
+//		this.load("../../media/dream.mp3");
 //		this.load("../../media/skrillex.mp3");
 //		this.load("../../media/drydrum.wav");
 //		this.load("../../media/drum01.mp3");
@@ -86,14 +83,13 @@ var app = {
 		this.processor = this.dsp.createNode("custom", 2, 2);
 		this.delay = this.dsp.createNode("delay", 2, 2);
 		this.target = this.dsp.createNode("target", 2, 0);
-		console.log("nodes created");
 		Audio.lib && (this.dsp.run(Audio.lib));
 	},
 
 	load : function(url){
 		var self = this;
 		
-		File.read(url, function(data){
+		File.read(url, function(data, size){
 			self.source.open(data);
 			self.source.play();
 			self.automation();
@@ -119,8 +115,10 @@ var app = {
 	setProcessor : function(){
 		var self = this;
 
-		this.processor.oninit = function(scope){
+		this.processor.init = function(scope){
 			scope.step = 0;
+			scope.oldL = new Float64Array(256);
+			scope.oldR = new Float64Array(256);
 
 			scope.moogFilterL = new scope.MoogFilter();
 			scope.moogFilterR = new scope.MoogFilter();
@@ -145,7 +143,7 @@ var app = {
 			scope.pitch = new scope.PitchShift(44100, 2);
 		};
 
-		this.processor.onset = function(key, value, scope){
+		this.processor.setter = function(key, value, scope){
 			switch (key) {
 				case "nofteon" :
 					scope.enveloppe.noteon(value);
@@ -166,10 +164,10 @@ var app = {
 		};
 
 		/* Threaded Audio Processor */
-		this.processor.onbuffer = function(ev, scope){
+		this.processor.process = function(ev, scope){
 			var bufferL = ev.data[0],
 				bufferR = ev.data[1],
-				samples = bufferL.length, // (audioBuffer/8)
+				samples = bufferL.length,
 
 				gain = this.get("gain"),
 				cutoff = this.get("cutoff"),
@@ -221,9 +219,7 @@ var app = {
 //			scope.pitch.process(1.0, samples, bufferL);
 //			scope.pitch.process(1.0, samples, bufferR);
 
-			// 2048 bytes audioBuffer = 2 channels, 1024 bytes per channel
-			// each sample is 64bits double (= 8 bytes)
-			// samples = 2048 / 8 = 256 samples to process
+			// 256 samples of 64bits to process
 
 			for (var i=0; i<samples; i++) {
 				var volume = scope.envelope.process();
@@ -246,6 +242,15 @@ var app = {
 				bufferL[i] = mix[0];
 				bufferR[i] = mix[1];
 			}
+
+
+			/* Simple Low Pass Filter */
+			/*
+			for (var i=0; i<samples; i+=2) {
+				bufferL[i+1] = -0.98 * bufferL[i];
+				bufferR[i+1] = -0.98 * bufferR[i];
+			}
+			*/
 
 			/* --- LOW FREQUENCY OSCILLATOR --- */
 			/*
@@ -302,9 +307,6 @@ var app = {
 		this.processor.set("flanger_amplitude", 0.50);
 		this.processor.set("flanger_amount", 0.00);
 		this.processor.set("flanger_feedback", 0.10);
-
-		console.log("processor initied");
-
 	},
 
 	connectNodes : function(){
@@ -323,11 +325,9 @@ var app = {
 		this.delay.set("dry", 0.9); // float 0 ... 1
 		this.delay.set("wet", 0.0); // float 0 ... 1
 		this.delay.set("delay", 500); // delay in ms
-		console.log("nodes created");
 	},
 
 	attachListeners : function(){
-		console.log("attaching listeners");
 
 		this.source.onplay = function(){
 			console.log("Playing");

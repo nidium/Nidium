@@ -74,10 +74,12 @@ load(__PATH_KERNEL__ + 'document.nss.js');
 /* -- UI Elements -- */
 
 load(__PATH_LAYOUT__ + 'UIElement.js');
+load(__PATH_LAYOUT__ + 'UILabel.js');
 load(__PATH_LAYOUT__ + 'UIView.js');
 load(__PATH_LAYOUT__ + 'UIListView.js');
+load(__PATH_LAYOUT__ + 'UITableView.js');
+
 load(__PATH_LAYOUT__ + 'UIPath.js');
-load(__PATH_LAYOUT__ + 'UILabel.js');
 
 load(__PATH_LAYOUT__ + 'Icon.js');
 
@@ -103,6 +105,9 @@ load(__PATH_LAYOUT__ + 'UIDropDownController.js');
 
 load(__PATH_LAYOUT__ + 'UIScrollBars.js');
 load(__PATH_LAYOUT__ + 'UISpinner.js');
+load(__PATH_LAYOUT__ + 'UISprite.js');
+load(__PATH_LAYOUT__ + 'UIKnob.js');
+
 load(__PATH_LAYOUT__ + 'UIModal.js');
 load(__PATH_LAYOUT__ + 'UILine.js');
 load(__PATH_LAYOUT__ + 'UIToolTip.js');
@@ -277,6 +282,9 @@ Native.core = {
 	drawLayout : function(){
 		document.layout.draw();
 		window.events.tick();
+		this.timer = setInterval(function(){
+			document.layout.updateIndexOfVisibles();
+		}, 64);
 	}
 };
 

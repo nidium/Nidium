@@ -58,11 +58,17 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 
 
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
-NativeAVStreamReader::NativeAVStreamReader(const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
-: source(source), readFlag(readFlag), opened(false), bufferCond(bufferCond), totalRead(0), streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0), streamBuffer(NULL), error(0)
+NativeAVStreamReader::NativeAVStreamReader(const char *chroot, const char *src, bool *readFlag, 
+        pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
+    : source(source), readFlag(readFlag), opened(false), bufferCond(bufferCond), totalRead(0), 
+      streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0), streamBuffer(NULL), error(0)
 {
     this->async = true;
-    this->stream = new NativeStream(net, src);
+    if (chroot != NULL) {
+        this->stream = new NativeStream(net, src, chroot);
+    } else {
+        this->stream = new NativeStream(net, src);
+    }
     this->stream->setAutoClose(false);
     this->stream->start(STREAM_BUFFER_SIZE);
     this->stream->setDelegate(this);
@@ -92,7 +98,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         copied += copy;
     }
 
-    SPAM(("streamSize=%d\n", thiz->streamSize));
+    SPAM(("streamSize=%lld\n", thiz->streamSize));
     // No more data inside buffer, need to get more
     for(;;) {
         bool loopCond = true;
@@ -105,6 +111,8 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 case NativeStream::STREAM_ERROR:
                     thiz->error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
+                    thiz->pending = false;
+                    thiz->needWakup = false;
                     return copied > 0 ? copied : thiz->error;
                 break;
                 case NativeStream::STREAM_EAGAIN:
@@ -112,7 +120,6 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                     // Got EAGAIN, switch back to main coro
                     // and wait for onDataAvailable callback
                     thiz->pending = true;
-                    *thiz->readFlag = false;
                     Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
                 break;
                 default:
@@ -132,15 +139,14 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
             thiz->streamRead = copy;
             thiz->totalRead += copy;
             copied += copy;
-            SPAM(("totalRead=%lld, size=%d\n", thiz->totalRead, thiz->streamSize));
+            SPAM(("totalRead=%lld, streamSize=%lld\n", thiz->totalRead, thiz->streamSize));
 
             // Got enought data, return
             if (copied == size || thiz->totalRead >= thiz->streamSize) {
-                SPAM(("wrote enough, return\n"));
+                SPAM(("wrote enough, return %u \n", copied));
                 thiz->error = 0;
                 thiz->pending = false;
                 thiz->needWakup = false;
-                *thiz->readFlag = false;
 
                 return copied;
             } 
@@ -159,7 +165,8 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
 {
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     int64_t pos = 0;
-    size_t size = thiz->stream->getFileSize();
+    off_t size = thiz->stream->getFileSize();
+    SPAM(("NativeAVStreamReader::seek to %llu / %d\n", offset, whence));
 
     switch(whence)
     {
@@ -176,6 +183,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
             } else {
                 pos = 0;
             }
+            break;
         default:
             return -1;
     }
@@ -185,21 +193,12 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
         return AVERROR_EOF;
     }
 
-    // Does the seek is inside the current buffer?
-    size_t min = thiz->totalRead - thiz->streamRead;
-    size_t max = min + thiz->streamPacketSize;
+    SPAM(("SEEK pos=%lld, size=%lld\n", pos, size));
 
-    SPAM(("SEEK pos=%lld, size=%d\n", pos, size));
-
-    if (pos >= min && pos < max) {
-        SPAM(("------- In stream seeking\n"));
-        thiz->totalRead = pos - thiz->totalRead;
-    } else {
-        thiz->streamBuffer = NULL;
-        thiz->streamRead = STREAM_BUFFER_SIZE;
-        thiz->totalRead = pos;
-        thiz->stream->seek(pos);
-    }
+    thiz->streamBuffer = NULL;
+    thiz->streamRead = STREAM_BUFFER_SIZE;
+    thiz->totalRead = pos;
+    thiz->stream->seek(pos);
 
     return pos;
 }
@@ -209,10 +208,26 @@ void NativeAVStreamReader::onProgress(size_t buffered, size_t len)
     this->source->onProgress(buffered, len);
 }
 
+void NativeAVStreamReader::onError(NativeStream::StreamError err)
+{
+    int error;
+    switch (err)
+    {
+        case NativeStream::STREAM_ERROR_OPEN:
+            error = ERR_FAILED_OPEN;
+        break;
+        default:
+            error = ERR_UNKNOWN;
+        break;
+    }
+
+    this->source->sendEvent(SOURCE_EVENT_ERROR, error, 0, false);
+}
+
 void NativeAVStreamReader::onAvailableData(size_t len) 
 {
     this->error = 0;
-    SPAM(("onAvailableData=%d\n", len));
+    SPAM(("onAvailableData=%d/%d\n", len, this->opened));
 
     if (this->pending) {
         this->needWakup = true;
@@ -222,9 +237,13 @@ void NativeAVStreamReader::onAvailableData(size_t len)
     }
 
     if (!this->opened) {
+        this->streamSize = this->stream->getFileSize();
+        if (this->streamSize == 0) {
+            this->source->sendEvent(SOURCE_EVENT_ERROR, ERR_STREAMING_NOT_SUPPORTED, 0, false);
+            return;
+        }
         this->opened = true;
         this->source->openInit();
-        this->streamSize = this->stream->getFileSize();
     }
 }
 
@@ -260,7 +279,7 @@ AVDictionary *NativeAVSource::getMetadata()
         return NULL;
     }
 
-    return this->container->metadata;
+    return this->container ? this->container->metadata : NULL;
 }
 int NativeAVSource::getBitrate()
 {
@@ -280,13 +299,7 @@ int NativeAVSource::readError(int err)
 {
     SPAM(("readError Got error %d/%d\n", err, AVERROR_EOF));
     if (err == AVERROR_EOF || (this->container->pb && this->container->pb->eof_reached)) {
-        this->eof = true;
         this->error = AVERROR_EOF;
-        //if (this->track != NULL) {
-            //this->track->eof = true; 
-            // FIXME : Need to find out why when setting EOF, 
-            // track sometimes fail to play when seeking backward
-        //}
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
         this->error = AVERROR(err);
@@ -295,5 +308,9 @@ int NativeAVSource::readError(int err)
     }
 
     return 0;
+}
+
+NativeAVSource::~NativeAVSource() 
+{
 }
 

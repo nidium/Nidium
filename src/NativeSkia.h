@@ -71,6 +71,7 @@ class NativeSkia
         NativeShadowLooper *buildShadow();
 
         void initPaints();
+        void addPath(const SkPath& path, SkPath *to);
         
     public:
         enum BindMode {
