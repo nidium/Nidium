@@ -773,7 +773,8 @@ def processRequirements(fileName):
                     tmp = __import__(dep[:-3])
                     tmp.registerDeps()
                 except:
-                    log.errorrror()
+                    log.setError()
+                    log.error("Failed to load python requirement " + dep)
                     raise
                 else:
                     log.setOk()
