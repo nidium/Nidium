@@ -6,6 +6,7 @@
         'product_dir': '<(native_exec_path)',
         'dependencies': [
             'native.gyp:nativestudio',
+            'interface.gyp:nativeinterface',
         ],
         'include_dirs': [
             '<(native_src_path)',
@@ -25,16 +26,6 @@
                             'breakpad.gyp:*'
                          ],
                     }],
-                    ['native_use_gtk==1', {
-                        'libraries': [
-                            '<!@(pkg-config --libs gtk+-2.0)',
-                        ]
-                    }],
-                    ['native_use_qt==1', {
-                        'libraries': [
-                            '<!@(pkg-config --libs QtCore QtGui)'
-                        ]
-                    }]
                 ],
                 'cflags': [
                     '-fno-rtti',

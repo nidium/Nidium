@@ -98,6 +98,7 @@ LIBS_DIR = None
 LIBS_OUTPUT = None
 FORCE_BUILD = []
 FORCE_DOWNLOAD = []
+CURRENT_DEP = None
 
 def mkdir_p(path):
     import os, errno
@@ -261,7 +262,7 @@ def extractDep(path):
     log.setOk()
 
 def needDownload(dep, fileName):
-    if dep in FORCE_DOWNLOAD:
+    if CURRENT_DEP in FORCE_DOWNLOAD:
         return True
 
     if dep in deps:
@@ -356,7 +357,7 @@ def needBuild(depName, symlink):
 
     
 def needLink(depName):
-    if depName in FORCE_BUILD:
+    if CURRENT_DEP in FORCE_BUILD:
         return True
 
     if os.path.exists(LIBS_OUTPUT + depName):
@@ -613,7 +614,7 @@ def buildDep(depName, directory, buildCommand, **kwargs):
 
     depName += getLibExt(depName)
 
-    if directory in FORCE_BUILD:
+    if CURRENT_DEP in FORCE_BUILD:
         build = True
     else:
         build = needBuild(depName, symlink);
@@ -702,7 +703,7 @@ def copyAndLinkDep(outlibs, symlink = True):
 
             if VERBOSE:
                 if ok == False:
-                    log.error("    File " + f + " not matching");
+                    log.info("    File " + f + " not matching");
                 else:
                     log.debug("    File " + f + " matched")
                     break
@@ -714,11 +715,14 @@ def copyAndLinkDep(outlibs, symlink = True):
 
 
 def downloadAndBuildDeps():
+    global CURRENT_DEP
+
     cwd = os.getcwd()
     os.chdir(THIRD_PARTY)
 
     # Download everything
     for dep in deps:
+        CURRENT_DEP = dep
         if dep not in availableDependencies:
             log.error("Dependency " + dep + " is not available")
             sys.exit()
@@ -730,6 +734,7 @@ def downloadAndBuildDeps():
 
     # Build everything
     for dep in deps:
+        CURRENT_DEP = dep
         if dep not in availableDependencies:
             log.error("Dependency " + dep + " is not available")
             sys.exit()
@@ -768,7 +773,8 @@ def processRequirements(fileName):
                     tmp = __import__(dep[:-3])
                     tmp.registerDeps()
                 except:
-                    log.errorrror()
+                    log.setError()
+                    log.error("Failed to load python requirement " + dep)
                     raise
                 else:
                     log.setOk()

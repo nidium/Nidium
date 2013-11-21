@@ -44,7 +44,6 @@ def downloadSkia():
         deps.runCommand("depot_tools/gclient sync --gclientfile=gclient_skia")
 
 def buildSkia():
-    deps.patchDep("skia", "../gyp/skia_defines.patch")
     gypDefines = os.environ.get('GYP_DEFINES')
     if deps.is64bits:
         exports = "GYP_DEFINES='skia_arch_width=64"
@@ -70,11 +69,7 @@ def buildSkia():
         "skia/out/Release/libskia_images",
         "skia/out/Release/libskia_opts_ssse3",
         "skia/out/Release/libskia_opts"
-    ])
-
-def downloadJSONCPP():
-    deps.downloadDep("jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*")
-    os.chdir("../")
+    ]) 
 
 def buildZitaResampler():
     deps.patchDep("zita-resampler", "zita.patch")
@@ -142,7 +137,7 @@ def registerDeps():
         None)
 
     deps.registerDep("jsoncpp", 
-        downloadJSONCPP, 
+        partial(deps.downloadDep, "jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*"),
         None)
 
     deps.registerDep("preload", 
@@ -173,6 +168,9 @@ def releaseActionRegister(parser):
 
 def releaseAction(opt):
     import os
+    import zipfile 
+    import urllib2, mimetypes
+
     if opt.release is False:
         return
 
@@ -206,8 +204,6 @@ def releaseAction(opt):
 
     # Utilities function to post multipart form data 
     # inspired from http://code.activestate.com/recipes/146306/
-    import urllib2, mimetypes
-
     def post_multipart(host, selector, fields, files):
         content_type, body = encode_multipart_formdata(fields, files)
         stream = fakeFile(body)
@@ -249,12 +245,24 @@ def releaseAction(opt):
         # Window TODO
         print("TODO")
 
-    log.step("Uploading application symbols. Bytes : %s " % (os.stat(symFile).st_size));
-    symbols = open(symFile, "rb").read()
-    reply = post_multipart("crash.nidium.com", "/upload_symbols", [], [["symbols", "nidium.sym", symbols]])
+    log.step("Archiving application symbols for breakpad")
+    symArchive = "out/nidium.sym.zip"
+    log.info(symArchive)
 
-    if reply == "OK":
+    spinner.start()
+    with zipfile.ZipFile(symArchive, 'w', zipfile.ZIP_DEFLATED) as myzip:
+        myzip.write(symFile)
+
+    spinner.stop()
+    log.setOk()
+
+    log.step("Uploading application symbols. Bytes : %s " % (os.stat(symArchive).st_size));
+    symbols = open(symArchive, "rb").read()
+    reply = post_multipart("crash.nidium.com", "/upload_symbols", [], [["symbols", "nidium.sym.zip", symbols]])
+
+    if reply.strip() == "OK":
         os.unlink(symFile)
+        os.unlink(symArchive)
         print ""
         log.setOk()
     else:

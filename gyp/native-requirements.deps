@@ -1,4 +1,5 @@
 mozilla-central
+jsoncpp
 depot_tools
 c-ares
 skia
