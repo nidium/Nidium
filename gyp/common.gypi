@@ -33,7 +33,7 @@
                     }          
                 },
                 'cflags': [
-                    '-Og',
+                    '-O2',
                     '-g',
                 ],
                 'xcode_settings': {
