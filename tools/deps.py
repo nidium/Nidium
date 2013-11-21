@@ -803,17 +803,18 @@ def runGyp():
     makeCmd = ""
     if system == "Darwin":
         makeCmd = "xcodebuild -project all.xcodeproj -jobs " + str(nbCpu)
+        if BUILD == "debug":
+            makeCmd += " -configuration Debug"
     elif system == "Linux":
         makeCmd = "CC=" + CLANG + " CXX=" + CLANGPP +" make -j" + str(nbCpu)
         if VERBOSE:
             makeCmd += " V=1"
+        if BUILD == "debug":
+            makeCmd += " BUILDTYPE=Debug"
     else:
         log.error("TODO")
         sys.exit(0)
     
-    if BUILD == "debug":
-        makeCmd += " BUILDTYPE=Debug"
-
     log.step("Running gyp");
     code, output = runCommand(makeCmd)
 
