@@ -2,11 +2,6 @@
     'targets': [{
         'target_name': 'nativestudio',
         'type': 'static_library',
-        'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
-            'jsoncpp.gyp:jsoncpp',
-        ],
         'include_dirs': [
             '<(native_src_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',

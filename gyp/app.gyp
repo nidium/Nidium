@@ -5,6 +5,9 @@
         'mac_bundle': 1,
         'product_dir': '<(native_exec_path)',
         'dependencies': [
+            '<(native_network_path)/gyp/network.gyp:nativenetwork',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            'jsoncpp.gyp:jsoncpp',
             'native.gyp:nativestudio',
             'interface.gyp:nativeinterface',
         ],
