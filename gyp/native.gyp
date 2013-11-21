@@ -2,6 +2,12 @@
     'targets': [{
         'target_name': 'nativestudio',
         'type': 'static_library',
+        'dependencies': [
+            '<(native_network_path)/gyp/network.gyp:nativenetwork',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            'jsoncpp.gyp:jsoncpp',
+            'angle.gyp:*'
+        ],
         'include_dirs': [
             '<(native_src_path)',
             '<(third_party_path)/mozilla-central/js/src/dist/include/',
@@ -121,9 +127,6 @@
                  ],
                  'defines+': [ 'NATIVE_WEBGL_ENABLED' ],
             }],
-        ],
-        'dependencies': [
-            'angle.gyp:*'
         ],
         'sources': [
             '<(native_src_path)/NativeSkia.cpp',
