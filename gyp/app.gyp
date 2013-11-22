@@ -171,8 +171,6 @@
                     ],
                     'OTHER_LDFLAGS': [ 
                         '-stdlib=libc++',
-                        '-L<(native_output)/third-party-libs/release/',
-                        '-F<(native_output)/third-party-libs/release/',
                     ],
                     'OTHER_CFLAGS': [ 
                         '-g',

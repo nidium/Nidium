@@ -627,6 +627,7 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *dummy, void *custom)
 
     if (audio->tcx != NULL) {
         JSRuntime *rt = JS_GetRuntime(audio->tcx);
+        JS_RemoveObjectRoot(audio->tcx, &audio->gbl);
         JS_DestroyContext(audio->tcx);
         JS_DestroyRuntime(rt);
         audio->tcx = NULL;
