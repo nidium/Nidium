@@ -1350,6 +1350,7 @@ void NativeVideo::closeInternal(bool reset) {
 
     if (this->opened) {
         avcodec_close(this->codecCtx);
+        av_free(this->container->pb);
         avformat_close_input(&this->container);
     } else {
         if (this->container) {
