@@ -8,6 +8,8 @@
 
 document.backgroundImage = "private://assets/patterns/egg_shell.png";
 
+var currentDevise = "EUR";
+
 var label = function(options){
 	return new UILabel(document, options);
 };
@@ -53,13 +55,35 @@ var input_fees_percent = input({left:70, top:180, width:35, placeholder:"Fees", 
 
 input_nb_sell.editable = false;
 
+/* Dropdowns */
+
+var	ddCurrency = document.add("UIDropDownController", {
+	name : "currency",
+	left : 205,
+	width : 50,
+	radius : 2,
+	paddingLeft : 5,
+	class : "buy"
+});
+
+ddCurrency.setOptions([
+	{label : "EUR",	value : 0, selected : true},
+	{label : "USD",	value : 1}
+]);
+
+ddCurrency.addEventListener("change", function(e){
+	console.log("ffdfd", e.value);
+	//storeLocal();
+});
+
 /* LOCAL STORAGE */
 
 var storeLocal = function(){
 	window.storage.set("inputs", {
 		nb_buy : input_nb_buy.value,
 		buy_price : input_buy_price.value,
-		fees : input_fees_percent.value
+		fees : input_fees_percent.value,
+		currency : ddCurrency.value
 	});	
 };
 
@@ -71,6 +95,8 @@ var getLocal = function(){
 	input_buy_price.value = store.buy_price;
 	input_nb_sell.value = getNbAvailableForSell(store.nb_buy);
 	input_fees_percent.value = store.fees;
+	
+	currentDevise = store.currency;
 
 	updateSecretFormula();
 };
@@ -153,13 +179,11 @@ var m = JSON.parse(g);
 setCurrentBTCPrice(m);
 */
 
-var getCurrentBTCPrice = function(devise){
-	devise = devise.toUpperCase();	
-
+var getCurrentBTCPrice = function(){
 	document.status.label = "Loading BTC Price ...";
 	document.status.open();
 
-	var url = "http://data.mtgox.com/api/2/BTC"+devise+"/money/ticker_fast";
+	var url = "http://data.mtgox.com/api/2/BTC"+currentDevise+"/money/ticker_fast";
 
 	var h = new HttpRequest('GET', url, null, function(e){
 		document.status.label = "Complete";
@@ -180,5 +204,5 @@ var getCurrentBTCPrice = function(devise){
 
 };
 
-getCurrentBTCPrice("EUR");
+getCurrentBTCPrice();
 getLocal();

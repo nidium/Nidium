@@ -151,7 +151,7 @@ Native.elements.export("UIDropDownController", {
 			this.selection = index;
 			this.reset(this.selection);
 
-			if (this.selection != index){
+			if (this.selection != old){
 				this.fireEvent("change", {
 					index : this.selection,
 					value : this.tabs[this.selection].value
