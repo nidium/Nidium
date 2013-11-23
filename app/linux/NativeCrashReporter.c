@@ -97,6 +97,7 @@ int main(int argc, char **argv)
     FORGE("--"HTTP_BOUNDARY, data_ptr);
     FORGE("Content-Disposition: form-data; name=\"product\"\r\n\r\n", data_ptr);
     FORGE("Nidium\r\n", data_ptr);
+    FORGE("--"HTTP_BOUNDARY, data_ptr);
     FORGE("Content-Disposition: form-data; name=\"build\"\r\n\r\n", data_ptr);
     FORGE(NATIVE_BUILD"\r\n", data_ptr);
     FORGE("--"HTTP_BOUNDARY, data_ptr);

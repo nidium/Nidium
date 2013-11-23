@@ -1603,6 +1603,7 @@ void NativeAudioSource::closeInternal(bool reset)
         avcodec_close(this->codecCtx);
 
         if (!this->externallyManaged) {
+            av_free(this->container->pb);
             avformat_close_input(&this->container);
         }
 
@@ -1635,9 +1636,9 @@ void NativeAudioSource::closeInternal(bool reset)
 
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
-        if (!reset) {
-            delete this->tmpPacket;
-        }
+    }
+    if (!reset) {
+        delete this->tmpPacket;
     }
 
     if (this->tmpFrame.data != NULL) {
