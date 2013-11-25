@@ -304,7 +304,7 @@ void NativeSkia::initPaints()
     PAINT->setLCDRenderText(false);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    PAINT->setFilterBitmap(false);
+    PAINT->setFilterLevel(SkPaint::kNone_FilterLevel);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -329,7 +329,7 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setAutohinted(true);
     PAINT_STROKE->setHinting(SkPaint::kFull_Hinting);
     PAINT_STROKE->setDither(true);
-    PAINT_STROKE->setFilterBitmap(false);
+    PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
     
     this->setLineWidth(1);
 
@@ -798,10 +798,21 @@ void NativeSkia::setShadowColor(const char *str)
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
-void NativeSkia::setSmooth(bool val)
+void NativeSkia::setSmooth(bool val, int level)
 {
-    PAINT->setFilterBitmap(val);
-    PAINT_STROKE->setFilterBitmap(val);
+    SkPaint::FilterLevel flevel = SkPaint::kNone_FilterLevel;
+
+    if (val) {
+        switch (level) {
+            case 0: flevel = SkPaint::kNone_FilterLevel;break;
+            case 1: flevel = SkPaint::kLow_FilterLevel;break;
+            case 2: flevel = SkPaint::kMedium_FilterLevel;break;
+            case 3: default: flevel = SkPaint::kHigh_FilterLevel;break;
+        }
+    }
+
+    PAINT->setFilterBitmap(flevel);
+    PAINT_STROKE->setFilterBitmap(flevel);
 }
 
 void NativeSkia::setGlobalAlpha(double value)
@@ -1531,7 +1542,7 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     bt.setPixels(PMPixels);
     r.setXYWH(x, y, width, height);
 
-    pt.setFilterBitmap(PAINT->isFilterBitmap());
+    pt.setFilterLevel(PAINT->getFilterLevel());
     canvas->saveLayer(NULL, NULL);
         canvas->clipRect(r, SkRegion::kReplace_Op);
         canvas->drawColor(SK_ColorWHITE);
