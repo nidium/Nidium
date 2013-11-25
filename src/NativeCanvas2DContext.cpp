@@ -2085,7 +2085,11 @@ void NativeCanvas2DContext::setSize(int width, int height)
     const SkBitmap &bt = m_Skia->canvas->getDevice()->accessBitmap(false);
 
     if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
-        ncanvas = NativeSkia::createGLCanvas(width, height);
+        if ((ncanvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+            NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
+            return;
+        }
+
         NativeSkia::glcontext = ncanvas;
     } else {
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
@@ -2130,7 +2134,11 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JS_SetReservedSlot(jsobj, 0, OBJECT_TO_JSVAL(saved));
 
     m_Skia = new NativeSkia();
-    m_Skia->bindOnScreen(width, height);
+    if (!m_Skia->bindOnScreen(width, height)) {
+        delete m_Skia;
+        m_Skia = NULL;
+        return;
+    }
 
     JS_SetPrivate(jsobj, this);
 
@@ -2148,14 +2156,20 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     m_Mode = CONTEXT_2D;
     
     m_Skia = new NativeSkia();
-    if (isGL) {
-        NLOG("Window framebuffer is at %p", this);
-        m_Skia->bindGL(width, height);
-    } else {
-        m_Skia->bindOnScreen(width, height);
+    int state;
 
+    if (isGL) {
+        state = m_Skia->bindGL(width, height);
+    } else {
+        state = m_Skia->bindOnScreen(width, height);
     }
     memset(&this->m_GL, 0, sizeof(this->m_GL));
+
+    if (!state) {
+        delete m_Skia;
+        m_Skia = NULL;
+        return;
+    }
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
