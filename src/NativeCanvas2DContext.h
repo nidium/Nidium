@@ -30,7 +30,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         friend class NativeJSCanvas;
 
         bool setterDisabled;
-        bool commonDraw;
 
         struct {
             struct {
@@ -67,11 +66,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void setScale(double x, double y, double px=1, double py=1);
 
         uint32_t createProgram(const char *data);
-        
-
-        void setGLDraw(bool state) {
-            commonDraw = !state;
-        }
 
         static void registerObject(JSContext *cx);
 

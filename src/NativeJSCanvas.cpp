@@ -525,10 +525,6 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->padding.global * 2))
                 );
-                /*
-                    XXX: Use VBO instead of skia (WIP)
-                */
-                ((NativeCanvas2DContext *)NativeObject->getContext())->setGLDraw(true);
                 
                 break;
             case NativeCanvasContext::CONTEXT_WEBGL:
@@ -909,13 +905,11 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
     handler = new NativeCanvasHandler(width, height);
-    printf("===============generateJSObject\n");
-    handler->m_Context = new NativeCanvas2DContext(handler, cx, width, height);
+    handler->setContext(new NativeCanvas2DContext(handler, cx, width, height));
+
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    //((NativeCanvas2DContext*)handler->getContext())->setGLDraw(true);
-    
     JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
 
     JS_SetPrivate(ret, handler);

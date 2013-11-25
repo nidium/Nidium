@@ -2034,11 +2034,11 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         glDisable(GL_SCISSOR_TEST);
     }
     /* TODO: disable alpha testing? */
-    if (this->hasShader() && !commonDraw) {
+    if (this->hasShader()) {
         int width, height;
-        //this->resetSkiaContext();
-        //layer->flush();
-        //this->flush();
+
+        /* TODO: /!\ Skia context is dirty here, is that a problem? */
+        this->flush();
 
         /* get the layer's Texture ID */
         uint32_t textureID = this->getSkiaTextureID(&width, &height);
@@ -2059,39 +2059,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
         /* Reset skia GL context */
         this->resetSkiaContext();
-
-        return;
-
-        /* Draw the temporary FBO into main canvas (root) */
-        // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
     }
-
-    if (this->commonDraw) {
-        //return;
-        const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
-
-        this->resetSkiaContext();
-        layer->flush();
-        this->flush();
-        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-        skia->canvas->drawBitmap(bitmapLayer,
-            left*ratio, top*ratio, &pt);
-        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
-        //skia->canvas->flush();
-    } else {
-        int width, height;
-        skia->canvas->flush();
-        this->getSurface()->canvas->flush();
-        /* get the layer's Texture ID */
-        uint32_t textureID = this->getSkiaTextureID(&width, &height);
-        //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
-        glUseProgram(0);
-        //NLOG("Composing...");
-        //layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-        //this->resetSkiaContext();            
-    }
-    
-    
 }
 
 void NativeCanvas2DContext::flush()
@@ -2130,7 +2098,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
 
         ncanvas = new SkCanvas(ndev);
     }
-    
+
     ncanvas->drawBitmap(bt, 0, 0);
     //ncanvas->clipRegion(skia->canvas->getTotalClip());
     ncanvas->setMatrix(m_Skia->canvas->getTotalMatrix());
@@ -2149,7 +2117,7 @@ void NativeCanvas2DContext::translate(double x, double y)
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height) :
     NativeCanvasContext(handler),
-    setterDisabled(false), commonDraw(true)
+    setterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
 
@@ -2175,8 +2143,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    NativeCanvasContext(handler),
-    commonDraw(true)
+    NativeCanvasContext(handler)
 {
     m_Mode = CONTEXT_2D;
     
@@ -2186,6 +2153,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
         m_Skia->bindGL(width, height);
     } else {
         m_Skia->bindOnScreen(width, height);
+
     }
     memset(&this->m_GL, 0, sizeof(this->m_GL));
 

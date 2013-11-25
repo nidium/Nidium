@@ -156,6 +156,7 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
 void NativeCanvasContext::resetGLContext()
 {
     glBindVertexArray(m_GLObjects.vao);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 uint32_t NativeCanvasContext::createPassThroughVertex()

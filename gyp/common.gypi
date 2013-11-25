@@ -33,14 +33,13 @@
                     }          
                 },
                 'cflags': [
-                    '-O2',
+                    '-O0',
                     '-g',
                 ],
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/debug/',
                         '-F<(native_output)/third-party-libs/debug/',
-                        '-stdlib=libc++'
                     ],
                     'OTHER_CPLUSPLUSFLAGS': [ 
                         '-stdlib=libc++'
@@ -55,7 +54,8 @@
                         'macosx10.9'
                     ],
                     'OTHER_CFLAGS': [ 
-                        '-g'
+                        '-g',
+                        '-O0'
                     ]
                 },
                 'ldflags': [
