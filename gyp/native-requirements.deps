@@ -14,6 +14,7 @@ http-parser
 gyp
 leveldb
 angle
+jsoncpp
 preload
 native-requirements.py
 breakpad

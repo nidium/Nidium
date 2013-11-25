@@ -362,12 +362,12 @@ static JSBool NativeGL_vertexAttrib_x_fv(JSContext *cx, unsigned int argc, jsval
 NativeJSNativeGL::NativeJSNativeGL () 
     : jsobj(NULL), unpackFlipY(false), unpackPremultiplyAlpha(false)
 {
-    ShInitialize();
+
 }
 
 NativeJSNativeGL::~NativeJSNativeGL() 
 {
-    ShFinalize();
+
 }
 
 D_NGL_JS_FN(WebGLRenderingContext_isContextLost)

@@ -33,13 +33,13 @@
                     }          
                 },
                 'cflags': [
+                    '-O0',
                     '-g',
                 ],
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/debug/',
                         '-F<(native_output)/third-party-libs/debug/',
-                        '-stdlib=libc++'
                     ],
                     'OTHER_CPLUSPLUSFLAGS': [ 
                         '-stdlib=libc++'
@@ -54,7 +54,8 @@
                         'macosx10.9'
                     ],
                     'OTHER_CFLAGS': [ 
-                        '-g'
+                        '-g',
+                        '-O0'
                     ]
                 },
                 'ldflags': [
@@ -92,7 +93,7 @@
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
                         '-L<(native_output)/third-party-libs/release/',
-                        '-F<(native_output)/third-party-libs/release/',
+                        '-F<(native_output)/third-party-libs/release/'
                     ],
                     'ARCHS': [
                         'x86_64',
@@ -110,6 +111,7 @@
                         '-g',
                         '-O2',
                         '-Wall',
+                        '-stdlib=libc++'
                     ]
                 },
                 'ldflags': [

@@ -1,6 +1,7 @@
 #include "NativeCanvasHandler.h"
 #include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeMacros.h"
 #include <stdio.h>
 
 #include <jsapi.h>
@@ -266,16 +267,18 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
 
     //double pzoom = this->zoom * azoom;
     double popacity = this->opacity * aopacity;
+
+    int tmpLeft = this->getLeft();
+    int tmpTop = this->getTop();
+
     /*
         Fill the root layer with white
         This is the base surface on top of the window frame buffer
     */
-    int tmpLeft = this->getLeft();
-    int tmpTop = this->getTop();
-
     if (layer == NULL && m_Context) {
         layer = this;
         m_Context->clear(0xFFFFFFFF);
+        m_Context->flush();
     } else {
         double cleft = 0.0, ctop = 0.0;
 

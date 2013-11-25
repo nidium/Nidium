@@ -43,6 +43,7 @@ class NativeContext
     void callFrame();
     void createDebugCanvas();
     void postDraw();
+    void frame();
 
     void setWindowSize(int width, int height);
     void sizeChanged(int w, int h);

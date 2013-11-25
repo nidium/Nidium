@@ -525,6 +525,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->padding.global * 2))
                 );
+                
                 break;
             case NativeCanvasContext::CONTEXT_WEBGL:
                 /*
@@ -848,8 +849,6 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     handler = new NativeCanvasHandler(width, height);
     handler->m_Context = NULL;
-    //handler->context = new NativeCanvas2DContext(handler, cx, width, height);
-    //JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->context->jsobj));
     handler->jsobj = ret;
     handler->jscx = cx;
 
@@ -906,10 +905,11 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
     handler = new NativeCanvasHandler(width, height);
-    handler->m_Context = new NativeCanvas2DContext(handler, cx, width, height);
+    handler->setContext(new NativeCanvas2DContext(handler, cx, width, height));
+
     handler->jsobj = ret;
     handler->jscx = cx;
-    
+
     JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
 
     JS_SetPrivate(ret, handler);

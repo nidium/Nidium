@@ -191,7 +191,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
         }
         if (ttfps%20 == 0 && NUII->NativeCtx != NULL) {
-            NUII->NativeCtx->getNJS()->gc();
+            //NUII->NativeCtx->getNJS()->gc();
         }
         if (NUII->currentCursor != NativeCocoaUIInterface::NOCHANGE) {
             switch(NUII->currentCursor) {
@@ -220,10 +220,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         }
         //glUseProgram(0);
         if (NUII->NativeCtx) {
-            NUII->NativeCtx->callFrame();
-            NUII->NativeCtx->postDraw();
-            NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
-                1.0, NULL);
+            NUII->NativeCtx->frame();
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();
@@ -238,6 +235,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
     return 16;
 }
 
+/*
+    TODO: useless indirection?
+*/
 static int NativeProcessUI(void *arg)
 {
     return NativeEvents((NativeCocoaUIInterface *)arg);
@@ -450,7 +450,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     if (!this->initialized) {
         SDL_GLContext contexteOpenGL;
         
-        if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER | SDL_INIT_AUDIO) == -1)
+        if (SDL_Init( SDL_INIT_EVERYTHING) == -1)
         {
             printf( "Can't init SDL:  %s\n", SDL_GetError( ));
             return false;
@@ -464,9 +464,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
         
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-        //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         win = SDL_CreateWindow("nidium", 100, 100,
             width, height,

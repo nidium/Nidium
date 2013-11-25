@@ -37,8 +37,8 @@ NativeShadowLooper::NativeShadowLooper(SkFlattenableReadBuffer& buffer)
     fDx = buffer.readScalar();
     fDy = buffer.readScalar();
     fBlurColor = buffer.readColor();
-    fBlur = buffer.readFlattenableT<SkMaskFilter>();
-    fColorFilter = buffer.readFlattenableT<SkColorFilter>();
+    fBlur = buffer.readMaskFilter();
+    fColorFilter = buffer.readColorFilter();
     fBlurFlags = buffer.readUInt() & kAll_BlurFlag;
 }
 
