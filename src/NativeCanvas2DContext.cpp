@@ -2163,14 +2163,15 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     } else {
         state = m_Skia->bindOnScreen(width, height);
     }
-    memset(&this->m_GL, 0, sizeof(this->m_GL));
 
     if (!state) {
+        NLOG("Failed to create canvas");
         delete m_Skia;
         m_Skia = NULL;
         return;
     }
-
+    memset(&this->m_GL, 0, sizeof(this->m_GL));
+    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
