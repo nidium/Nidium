@@ -1608,9 +1608,9 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 {
     const char *prologue =
         "#version 100\nprecision mediump float;\n"
-        "vec4 ___gl_FragCoord;\n"
-        "#define main ___main\n"
-        "#define gl_FragCoord ___gl_FragCoord\n";
+        "vec4 _nm_gl_FragCoord;\n"
+        "#define main _nm_main\n"
+        "#define gl_FragCoord _nm_gl_FragCoord\n";
 
     char *ret;
 
@@ -1669,7 +1669,7 @@ uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
 {
     const char *coop =
         "#version 100\nprecision mediump float;\n"
-        "void ___main(void);\n"
+        "void _nm_main(void);\n"
         "uniform sampler2D Texture;\n"
         "uniform vec2 n_Position;\n"
         "uniform vec2 n_Resolution;\n"
@@ -1677,16 +1677,16 @@ uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
         "uniform float n_Padding;\n"
         "varying vec2 TexCoordOut;\n"
 
-        "vec4 ___gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
+        "vec4 _nm_gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
 
         "void main(void) {\n"
-        "if (___gl_FragCoord.x+n_Padding < n_Padding ||\n"
-        "    ___gl_FragCoord.x > n_Resolution.x ||\n"
-        "    ___gl_FragCoord.y+n_Padding < n_Padding ||\n"
-        "    ___gl_FragCoord.y > n_Resolution.y) {\n"
+        "if (_nm_gl_FragCoord.x+n_Padding < n_Padding ||\n"
+        "    _nm_gl_FragCoord.x > n_Resolution.x ||\n"
+        "    _nm_gl_FragCoord.y+n_Padding < n_Padding ||\n"
+        "    _nm_gl_FragCoord.y > n_Resolution.y) {\n"
         "     gl_FragColor = texture2D(Texture, TexCoordOut.xy);\n"
         "} else {\n"
-        "___main();\n"
+        "_nm_main();\n"
         "}\n"
         "gl_FragColor = gl_FragColor * u_opacity;"
         "}\n";
