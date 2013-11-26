@@ -237,7 +237,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     jsobj(NULL), jscx(NULL), m_Handler(handler),
     m_Transform(SkMatrix44::kIdentity_Constructor) {
 
-    memset(&m_GLObjects.uniforms, 0, sizeof(m_GLObjects.uniforms));
+    memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
 
     m_GLObjects.program = 0;
 
@@ -344,12 +344,12 @@ void NativeCanvasContext::updateMatrix(double left, double top,
 
     m_Transform.preScale(SkFloatToScalar(ratioX), SkFloatToScalar(ratioY), 1);
 
-    if (m_GLObjects.uniforms.u_projectionMatrix != -1) {
+    if (m_GLObjects.uniforms.u_projectionMatrix != 0) {
         GLfloat mat4[16];
         m_Transform.asColMajorf(mat4);
 
         glUniformMatrix4fv(m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
     } else {
-        //NLOG("No uniform found");
+        NLOG("No uniform found");
     }
 }

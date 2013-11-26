@@ -52,11 +52,11 @@ public:
         Vertices *vtx;
         uint32_t program;
         struct {
-            uint32_t u_projectionMatrix;
-            uint32_t u_opacity;
-            uint32_t u_resolution;
-            uint32_t u_position;
-            uint32_t u_padding;            
+            int32_t u_projectionMatrix;
+            int32_t u_opacity;
+            int32_t u_resolution;
+            int32_t u_position;
+            int32_t u_padding;            
         } uniforms;
     } m_GLObjects;
 
