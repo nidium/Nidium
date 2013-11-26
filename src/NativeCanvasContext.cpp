@@ -155,8 +155,7 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 
 void NativeCanvasContext::resetGLContext()
 {
-    glBindVertexArray(m_GLObjects.vao);
-    glActiveTexture(GL_TEXTURE0);
+    this->m_GLState->setActive();
 }
 
 uint32_t NativeCanvasContext::createPassThroughVertex()
@@ -232,59 +231,16 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 }
 
 NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
-    jsobj(NULL), jscx(NULL), m_Handler(handler),
-    m_Transform(SkMatrix44::kIdentity_Constructor) {
+    jsobj(NULL), jscx(NULL), m_Handler(handler), m_GLState(NULL),
+    m_Transform(SkMatrix44::kIdentity_Constructor)
+{
 
-    memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
 
-    m_GLObjects.program = 0;
-
-    glGenBuffers(2, m_GLObjects.vbo);
-    glGenVertexArrays(1, &m_GLObjects.vao);
-
-    m_Resources.add(m_GLObjects.vbo[0], NativeGLResources::RBUFFER);
-    m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
-    m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
-
-    NativeVertices *vtx = m_GLObjects.vtx = buildVerticesStripe(4);
-        
-    glBindVertexArray(m_GLObjects.vao);
-
-    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
-    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
-
-    /* Upload the list of vertex */
-    glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
-        vtx->vertices, GL_STATIC_DRAW);
-
-    /* Upload the indexes for triangle strip */
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
-        vtx->indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(NativeVertex), 0);
-
-    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(NativeVertex),
-                          (GLvoid*) offsetof(NativeVertex, TexCoord));
-
-    if ((m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(this->m_Resources)) != 0) {
-        this->setupUniforms();
-    } else {
-        NLOG("[OpenGL Error] Failed to create passthrough program");
-    }
-
-    glBindVertexArray(0);
 }
 
 NativeCanvasContext::~NativeCanvasContext()
 {
-    /* XXX this could be released after glBufferData */
-    free(m_GLObjects.vtx->indices);
-    free(m_GLObjects.vtx->vertices);
-    free(m_GLObjects.vtx);
+
 }
 
 static void dump_Matrix(float *matrix)
@@ -296,12 +252,6 @@ static void dump_Matrix(float *matrix)
         printf("%f,%f,%f,%f\n", matrix[i*4], matrix[i*4+1], matrix[i*4+2], matrix[i*4+3]);
     }
     printf("==========\n");
-}
-
-void NativeCanvasContext::setupUniforms()
-{
-    m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
-    m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");
 }
 
 void NativeCanvasContext::updateMatrix(double left, double top,
@@ -350,4 +300,9 @@ void NativeCanvasContext::updateMatrix(double left, double top,
     } else {
         NLOG("No uniform found");
     }
+}
+
+void NativeCanvasContext::setGLState(NativeGLState *state)
+{
+    this->m_GLState = state;
 }

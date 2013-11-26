@@ -6,10 +6,12 @@
 #include <stdio.h>
 #include <SkMatrix44.h>
 #include "NativeGLResources.h"
+#include "NativeGLState.h"
 #include "NativeTypes.h"
 
 class NativeCanvas2DContext;
 class NativeCanvasHandler;
+
 struct NativeRect;
 
 class NativeCanvasContext
@@ -35,32 +37,18 @@ public:
         SHADER_VERTEX = 0x8B31
     };
 
-    struct {
-        uint32_t vbo[2];
-        uint32_t vao;
-        NativeVertices *vtx;
-        uint32_t program;
-        struct {
-            int32_t u_projectionMatrix;
-            int32_t u_opacity;
-            int32_t u_resolution;
-            int32_t u_position;
-            int32_t u_padding;            
-        } uniforms;
-    } m_GLObjects;
-
     /*
         Check if the context has a program installed
     */
     bool hasShader() const {
-        return (m_GLObjects.program != 0);
+        return (m_GLState->getProgram() != 0);
     }
 
     /*
         Get the current installed program or 0
     */
     uint32_t getProgram() const {
-        return m_GLObjects.program;
+        return m_GLState->getProgram();
     }
 
     NativeCanvasHandler *getHandler() const {
@@ -71,6 +59,8 @@ public:
         return m_Transform;
     }
 
+    void setGLState(NativeGLState *state);
+
     /*
         Set the appropriate OpenGL state (bind buffers, ...)
     */
@@ -78,14 +68,6 @@ public:
 
     static char *processShader(const char *content, shaderType type);
     static uint32_t compileShader(const char *data, int type);
-
-    /*
-        Create a grid of |resolution^2| points using triangle strip
-
-        Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
-        Details: http://en.wikipedia.org/wiki/Triangle_strip
-    */
-    static NativeVertices *buildVerticesStripe(int resolution);
     
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height)=0;
@@ -102,6 +84,16 @@ public:
 
     NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
+
+
+    /*
+        Create a grid of |resolution^2| points using triangle strip
+
+        Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
+        Details: http://en.wikipedia.org/wiki/Triangle_strip
+    */
+    static NativeVertices *buildVerticesStripe(int resolution);
+
     static uint32_t createPassThroughVertex();
     static uint32_t createPassThroughFragment();
     static uint32_t createPassThroughProgram(NativeGLResources &resource);
@@ -110,6 +102,7 @@ protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;
+    NativeGLState *m_GLState;
     NativeGLResources m_Resources;
     void updateMatrix(double left, double top, int layerWidth, int layerHeight);
 

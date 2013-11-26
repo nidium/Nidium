@@ -13,6 +13,7 @@ class NativeUIInterface;
 class NativeJS;
 class NativeNML;
 class NativeCanvasContext;
+class NativeGLState;
 
 typedef struct _ape_global ape_global;
 
@@ -65,6 +66,7 @@ class NativeContext
     NativeCanvasHandler *debugHandler;
     NativeUIInterface *UI;
     NativeNML *m_NML;
+    NativeGLState *m_GLState;
 
     uint32_t currentFPS;
 
@@ -81,27 +83,11 @@ class NativeContext
         float sampleminfps;
     } stats;
 
-    struct {
-        uint32_t passThroughProgram;
-        uint32_t vao;
-        uint32_t vbo[2];
-        NativeVertices *vtx;
-        struct {
-            uint32_t u_projectionMatrix;
-            uint32_t u_opacity;
-            uint32_t u_resolution;
-            uint32_t u_position;
-            uint32_t u_padding;            
-        } uniforms;
-    } m_GL;
-
     void forceLinking();
     void loadNativeObjects(int width, int height);
 
     void initHandlers(int width, int height);
 
-    /* Initialize default common GL objects (VBO, VAO, etc...) */
-    bool initGLBase();
 };
 
 #endif

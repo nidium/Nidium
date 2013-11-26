@@ -1878,7 +1878,7 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     //glEnable(GL_ALPHA_TEST);
     //glAlphaFunc(GL_NOTEQUAL, 0.0f);
 
-    glDrawElements(GL_TRIANGLE_STRIP, m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
     //glDisable(GL_ALPHA_TEST);
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1973,6 +1973,7 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
+#if 0
     if ((m_GLObjects.program = this->createProgram(string))) {
         this->setupUniforms();
 
@@ -1985,13 +1986,17 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
     }
 
     return m_GLObjects.program;
+#endif
+    return 0;
 }
 
 void NativeCanvas2DContext::detachShader()
 {
+#if 0
     /* TODO : shaders must be deleted */
     glDeleteProgram(m_GLObjects.program);
     m_GLObjects.program = 0;
+#endif
 }
 
 void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
@@ -2003,10 +2008,10 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
-        if (m_GLObjects.uniforms.u_opacity != -1) {
-            glUniform1f(m_GLObjects.uniforms.u_opacity, opacity);
+        if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
+            glUniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity);
         }
-
+#if 0
         float padding = this->getHandler()->padding.global * ratio;
 
         if (m_GL.shader.uniformResolution != -1)
@@ -2015,6 +2020,7 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
             glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (height+ratio*top));
         if (m_GL.shader.uniformPadding != -1)
             glUniform1f(m_GL.shader.uniformPadding, padding);
+#endif
     }
 
 }
@@ -2161,7 +2167,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JS_SetPrivate(jsobj, this);
 
     memset(&this->m_GL, 0, sizeof(this->m_GL));
-    memset(&this->m_GL.shader, 0, sizeof(this->m_GL.shader));
+    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
@@ -2189,7 +2195,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
         return;
     }
     memset(&this->m_GL, 0, sizeof(this->m_GL));
-    memset(&this->m_GL.shader, 0, sizeof(this->m_GL.shader));
+    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }

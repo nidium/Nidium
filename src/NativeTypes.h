@@ -15,16 +15,16 @@ typedef struct _NMLTag {
     } content;
 } NMLTag;
 
-struct NativeVertex {
+typedef struct _NativeVertex {
     float Position[3];
     float TexCoord[2];
-};
+} NativeVertex;
 
-struct NativeVertices {
+typedef struct _NativeVertices {
     NativeVertex *vertices;
     unsigned int *indices;
     unsigned int nvertices;
     unsigned int nindices;
-};
+} NativeVertices;
 
 #endif
