@@ -237,7 +237,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     jsobj(NULL), jscx(NULL), m_Handler(handler),
     m_Transform(SkMatrix44::kIdentity_Constructor) {
 
-    memset(&m_GLObjects.uniforms, -1, sizeof(m_GLObjects.uniforms));
+    memset(&m_GLObjects.uniforms, 0, sizeof(m_GLObjects.uniforms));
 
     m_GLObjects.program = 0;
 

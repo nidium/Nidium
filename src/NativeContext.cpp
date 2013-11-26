@@ -43,6 +43,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     ShInitialize();
 
     currentFPS = 0;
+
+    memset(&this->GL, 0, sizeof(this->GL));
     
     this->stats.nframe = 0;
     this->stats.starttime = NativeUtils::getTick();

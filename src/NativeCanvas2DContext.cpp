@@ -1851,6 +1851,14 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
 }
 #endif
 
+#if 0
+void NativeCanvas2DContext::setupCommonDraw()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+#endif
+
 void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
 {
@@ -1995,19 +2003,18 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
-        if (m_GLObjects.uniforms.u_opacity != -1) {
+        if (m_GLObjects.uniforms.u_opacity != 0) {
             glUniform1f(m_GLObjects.uniforms.u_opacity, opacity);
         }
-#if 1
+
         float padding = this->getHandler()->padding.global * ratio;
 
-        if (m_GL.shader.uniformResolution != -1)
+        if (m_GL.shader.uniformResolution != 0)
             glUniform2f(m_GL.shader.uniformResolution, (width)-(padding*2), (height)-(padding*2));
-        if (m_GL.shader.uniformPosition != -1)
+        if (m_GL.shader.uniformPosition != 0)
             glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (height+ratio*top));
-        if (m_GL.shader.uniformPadding != -1)
+        if (m_GL.shader.uniformPadding != 0)
             glUniform1f(m_GL.shader.uniformPadding, padding);
-#endif
     }
 
 }
