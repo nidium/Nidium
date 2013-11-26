@@ -101,11 +101,11 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
 
     info->nvertices = x*y;
     
-    info->indices = (int *)malloc((sizeof(int) * x * y) * 2);
+    info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
     info->nindices = 0;
     
     Vertex *vert = info->vertices;
-    int *indices = info->indices;
+    unsigned int *indices = info->indices;
     
     for (int i = 0; i < y; i++) {
         for (int j = 0; j < x; j++, t++) {
@@ -277,6 +277,8 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     } else {
         NLOG("[OpenGL Error] Failed to create passthrough program");
     }
+
+    glBindVertexArray(0);
 }
 
 NativeCanvasContext::~NativeCanvasContext()

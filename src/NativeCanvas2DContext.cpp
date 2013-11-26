@@ -1991,6 +1991,7 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
 {
     uint32_t program = this->getProgram();
     glUseProgram(program);
+
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
@@ -2059,6 +2060,16 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
 
         /* Reset skia GL context */
         this->resetSkiaContext();
+    } else {
+        const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
+
+        this->resetSkiaContext();
+        layer->flush();
+        this->flush();
+        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
+        skia->canvas->drawBitmap(bitmapLayer,
+            left*ratio, top*ratio, &pt);
+        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));        
     }
 }
 

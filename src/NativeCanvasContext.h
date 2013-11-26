@@ -27,11 +27,10 @@ public:
     };
 
     struct Vertices {
-        int nvertices;
         Vertex *vertices;
-        
-        int nindices;
-        int *indices;
+        unsigned int *indices;
+        unsigned int nvertices;
+        unsigned int nindices;
     };
 
     class JSObject *jsobj;
