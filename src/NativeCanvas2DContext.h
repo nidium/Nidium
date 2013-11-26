@@ -33,9 +33,9 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         struct {
             struct {
-                uint32_t uniformResolution;
-                uint32_t uniformPosition;
-                uint32_t uniformPadding;
+                int32_t uniformResolution;
+                int32_t uniformPosition;
+                int32_t uniformPadding;
             } shader;
         } m_GL;
 
