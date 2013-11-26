@@ -1637,7 +1637,7 @@ void NativeAudioSource::closeInternal(bool reset)
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
     }
-    if (!reset) {
+    if (!reset && !this->externallyManaged) {
         delete this->tmpPacket;
     }
 
