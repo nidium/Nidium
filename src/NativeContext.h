@@ -59,6 +59,10 @@ class NativeContext
         return this->m_NML;
     }
 
+    NativeGLState *getGLState() const {
+        return m_GLState;
+    }
+
     private:
     NativeGLResources m_Resources;
     NativeJS *njs;

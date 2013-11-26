@@ -292,17 +292,12 @@ void NativeCanvasContext::updateMatrix(double left, double top,
 
     m_Transform.preScale(SkFloatToScalar(ratioX), SkFloatToScalar(ratioY), 1);
 
-    if (m_GLObjects.uniforms.u_projectionMatrix != 0) {
+    if (m_GLState->m_GLObjects.uniforms.u_projectionMatrix != 0) {
         GLfloat mat4[16];
         m_Transform.asColMajorf(mat4);
 
-        glUniformMatrix4fv(m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
+        glUniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
     } else {
         NLOG("No uniform found");
     }
-}
-
-void NativeCanvasContext::setGLState(NativeGLState *state)
-{
-    this->m_GLState = state;
 }

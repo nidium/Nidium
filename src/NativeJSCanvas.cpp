@@ -2,6 +2,7 @@
 #include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeCanvasHandler.h"
+#include "NativeContext.h"
 
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
 #define HANDLER_FROM_CALLEE ((class NativeCanvasHandler *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
@@ -536,6 +537,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
         }
 
         canvasctx = NativeObject->getContext();
+        canvasctx->setGLState(NativeContext::getNativeClass(cx)->getGLState());
 
         /*  Protect against GC
             Canvas.slot[0] = context
@@ -906,6 +908,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
     handler = new NativeCanvasHandler(width, height);
     handler->setContext(new NativeCanvas2DContext(handler, cx, width, height));
+    handler->getContext()->setGLState(NativeContext::getNativeClass(cx)->getGLState());
 
     handler->jsobj = ret;
     handler->jscx = cx;

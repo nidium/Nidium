@@ -152,6 +152,7 @@ void NativeContext::createDebugCanvas()
     debugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
     NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, false);
     debugHandler->setContext(ctx2d);
+    ctx2d->setGLState(this->getGLState());
     //debugHandler->context = new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, false);
     //debugHandler->context->commonDraw = true;
     rootHandler->addChild(debugHandler);
@@ -269,6 +270,7 @@ void NativeContext::initHandlers(int width, int height)
 {
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height));
+    rootHandler->getContext()->setGLState(this->getGLState());
 
     NLOG("Created rootHandler : %p", rootHandler);
 }

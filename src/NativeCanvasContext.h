@@ -59,7 +59,9 @@ public:
         return m_Transform;
     }
 
-    void setGLState(NativeGLState *state);
+    void setGLState(NativeGLState *state) {
+        m_GLState = state;
+    }
 
     /*
         Set the appropriate OpenGL state (bind buffers, ...)
