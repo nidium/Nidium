@@ -2161,7 +2161,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JS_SetPrivate(jsobj, this);
 
     memset(&this->m_GL, 0, sizeof(this->m_GL));
-    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
+    memset(&this->m_GL.shader, 0, sizeof(this->m_GL.shader));
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
@@ -2189,7 +2189,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
         return;
     }
     memset(&this->m_GL, 0, sizeof(this->m_GL));
-    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
+    memset(&this->m_GL.shader, 0, sizeof(this->m_GL.shader));
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }

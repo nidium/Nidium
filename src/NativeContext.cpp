@@ -2,6 +2,7 @@
 #include "NativeUtils.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeCanvasContext.h"
 #include "NativeSkia.h"
 #include "NativeJSNative.h"
 #include "NativeJS.h"
@@ -22,6 +23,13 @@
 #include "GLSLANG/ShaderLang.h"
 #include "NativeMacros.h"
 
+#define GL_GLEXT_PROTOTYPES
+#if __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#include <GL/gl.h>
+#endif
+
 jsval gfunc  = JSVAL_VOID;
 
 void NativeContext_Logger(const char *format)
@@ -34,6 +42,49 @@ void NativeContext_vLogger(const char *format, va_list ap)
     __NativeUI->vlog(format, ap);
 }
 
+bool NativeContext::initGLBase()
+{
+    glGenBuffers(2, m_GL.vbo);
+    glGenVertexArrays(1, &m_GL.vao);
+
+    m_Resources.add(m_GL.vbo[0], NativeGLResources::RBUFFER);
+    m_Resources.add(m_GL.vbo[1], NativeGLResources::RBUFFER);
+    m_Resources.add(m_GL.vao, NativeGLResources::RVERTEX_ARRAY);
+
+    NativeVertices *vtx = m_GL.vtx = NativeCanvasContext::buildVerticesStripe(4);
+
+    glBindVertexArray(m_GL.vao);
+
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION);
+    glEnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD);
+
+    /* Upload the list of vertex */
+    glBindBuffer(GL_ARRAY_BUFFER, m_GL.vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
+        vtx->vertices, GL_STATIC_DRAW);
+
+    /* Upload the indexes for triangle strip */
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GL.vbo[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
+        vtx->indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeVertex), 0);
+
+    glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeVertex),
+                          (GLvoid*) offsetof(NativeVertex, TexCoord));
+
+    this->m_GL.passThroughProgram = NativeCanvasContext::createPassThroughProgram(this->m_Resources);
+
+    m_GL.uniforms.u_projectionMatrix = glGetUniformLocation(m_GL.passThroughProgram, "u_projectionMatrix");
+    m_GL.uniforms.u_opacity = glGetUniformLocation(m_GL.passThroughProgram, "u_opacity");    
+
+    glBindVertexArray(0);
+
+    return true;
+}
+
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
     debugHandler(NULL), UI(nui), m_NML(nml)
@@ -44,8 +95,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     currentFPS = 0;
 
-    memset(&this->GL, 0, sizeof(this->GL));
-    
+    memset(&this->m_GL, 0, sizeof(this->m_GL));
+
     this->stats.nframe = 0;
     this->stats.starttime = NativeUtils::getTick();
     this->stats.lastmeasuredtime = this->stats.starttime;
@@ -57,6 +108,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     this->stats.sampleminfps = 0.f;
 
     memset(this->stats.samples, 0, sizeof(this->stats.samples));
+
+    this->initGLBase();
 
     this->initHandlers(width, height);
 

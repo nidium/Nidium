@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <SkMatrix44.h>
 #include "NativeGLResources.h"
+#include "NativeTypes.h"
 
 class NativeCanvas2DContext;
 class NativeCanvasHandler;
@@ -19,18 +20,6 @@ public:
     enum {
         SH_ATTR_POSITION = 0,
         SH_ATTR_TEXCOORD = 1
-    };
-
-    struct Vertex {
-        float Position[3];
-        float TexCoord[2];
-    };
-
-    struct Vertices {
-        Vertex *vertices;
-        unsigned int *indices;
-        unsigned int nvertices;
-        unsigned int nindices;
     };
 
     class JSObject *jsobj;
@@ -49,7 +38,7 @@ public:
     struct {
         uint32_t vbo[2];
         uint32_t vao;
-        Vertices *vtx;
+        NativeVertices *vtx;
         uint32_t program;
         struct {
             uint32_t u_projectionMatrix;
@@ -96,7 +85,7 @@ public:
         Scheme : http://dan.lecocq.us/wordpress/wp-content/uploads/2009/12/strip.png
         Details: http://en.wikipedia.org/wiki/Triangle_strip
     */
-    static Vertices *buildVerticesStripe(int resolution);
+    static NativeVertices *buildVerticesStripe(int resolution);
     
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height)=0;
@@ -113,10 +102,10 @@ public:
 
     NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
+    static uint32_t createPassThroughVertex();
+    static uint32_t createPassThroughFragment();
+    static uint32_t createPassThroughProgram(NativeGLResources &resource);
 protected:
-    uint32_t createPassThroughVertex();
-    uint32_t createPassThroughFragment();
-    uint32_t createPassThroughProgram();
     void setupUniforms();
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;

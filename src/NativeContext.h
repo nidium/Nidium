@@ -4,13 +4,15 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "NativeJS.h"
-
+#include "NativeTypes.h"
+#include "NativeGLResources.h"
 
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
 class NativeJS;
 class NativeNML;
+class NativeCanvasContext;
 
 typedef struct _ape_global ape_global;
 
@@ -40,7 +42,6 @@ class NativeContext
         return (NativeContext *)njs->getPrivate();
     }
 
-    void initHandlers(int width, int height);
     void callFrame();
     void createDebugCanvas();
     void postDraw();
@@ -58,6 +59,7 @@ class NativeContext
     }
 
     private:
+    NativeGLResources m_Resources;
     NativeJS *njs;
     NativeCanvasHandler *rootHandler;
     NativeCanvasHandler *debugHandler;
@@ -83,11 +85,23 @@ class NativeContext
         uint32_t passThroughProgram;
         uint32_t vao;
         uint32_t vbo[2];
-        //NativeCanvasContext::Vertices *vtx;
-    } GL;
+        NativeVertices *vtx;
+        struct {
+            uint32_t u_projectionMatrix;
+            uint32_t u_opacity;
+            uint32_t u_resolution;
+            uint32_t u_position;
+            uint32_t u_padding;            
+        } uniforms;
+    } m_GL;
 
     void forceLinking();
     void loadNativeObjects(int width, int height);
+
+    void initHandlers(int width, int height);
+
+    /* Initialize default common GL objects (VBO, VAO, etc...) */
+    bool initGLBase();
 };
 
 #endif

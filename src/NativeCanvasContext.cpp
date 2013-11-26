@@ -83,7 +83,7 @@ uint32_t NativeCanvasContext::compileShader(const char *data, int type)
     return shaderHandle;
 }
 
-NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int resolution)
+NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 {
     int x = resolution;
     int y = resolution;
@@ -95,16 +95,16 @@ NativeCanvasContext::Vertices *NativeCanvasContext::buildVerticesStripe(int reso
     float txstep = 1.  / ((float)x-1.);
     float tystep = 1.  / ((float)y-1.);
     
-    Vertices *info = (Vertices *)malloc(sizeof(Vertices));
+    NativeVertices *info = (NativeVertices *)malloc(sizeof(NativeVertices));
     
-    info->vertices = (Vertex *)malloc(sizeof(Vertex) * x * y);
+    info->vertices = (NativeVertex *)malloc(sizeof(NativeVertex) * x * y);
 
     info->nvertices = x*y;
     
     info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
     info->nindices = 0;
     
-    Vertex *vert = info->vertices;
+    NativeVertex *vert = info->vertices;
     unsigned int *indices = info->indices;
     
     for (int i = 0; i < y; i++) {
@@ -173,8 +173,6 @@ uint32_t NativeCanvasContext::createPassThroughVertex()
 
     uint32_t vertexshader = NativeCanvasContext::compileShader(vertex_s, GL_VERTEX_SHADER);
 
-    m_Resources.add(vertexshader, NativeGLResources::RSHADER);
-
     return vertexshader;
 }
 
@@ -190,15 +188,13 @@ uint32_t NativeCanvasContext::createPassThroughFragment()
     
     uint32_t fragmentshader = NativeCanvasContext::compileShader(fragment_s, GL_FRAGMENT_SHADER);
 
-    m_Resources.add(fragmentshader, NativeGLResources::RSHADER);
-
     return fragmentshader;
 }
 
-uint32_t NativeCanvasContext::createPassThroughProgram()
+uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resource)
 {    
-    uint32_t vertexshader = this->createPassThroughVertex();
-    uint32_t fragmentshader = this->createPassThroughFragment();
+    uint32_t vertexshader = NativeCanvasContext::createPassThroughVertex();
+    uint32_t fragmentshader = NativeCanvasContext::createPassThroughFragment();
 
     if (vertexshader == 0 || fragmentshader == 0) {
         return 0;
@@ -206,7 +202,9 @@ uint32_t NativeCanvasContext::createPassThroughProgram()
 
     GLuint programHandle = glCreateProgram();
 
-    m_Resources.add(programHandle, NativeGLResources::RPROGRAM);
+    resource.add(fragmentshader, NativeGLResources::RSHADER);
+    resource.add(vertexshader, NativeGLResources::RSHADER);
+    resource.add(programHandle, NativeGLResources::RPROGRAM);
 
     GLint linkSuccess;
 
@@ -248,7 +246,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(4);
+    NativeVertices *vtx = m_GLObjects.vtx = buildVerticesStripe(4);
         
     glBindVertexArray(m_GLObjects.vao);
 
@@ -257,7 +255,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
 
     /* Upload the list of vertex */
     glBindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vtx->nvertices,
+    glBufferData(GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
         vtx->vertices, GL_STATIC_DRAW);
 
     /* Upload the indexes for triangle strip */
@@ -266,13 +264,13 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
         vtx->indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(NativeCanvasContext::Vertex), 0);
+                          sizeof(NativeVertex), 0);
 
     glVertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(NativeCanvasContext::Vertex),
-                          (GLvoid*) offsetof(NativeCanvasContext::Vertex, TexCoord));
+                          sizeof(NativeVertex),
+                          (GLvoid*) offsetof(NativeVertex, TexCoord));
 
-    if ((m_GLObjects.program = this->createPassThroughProgram()) != 0) {
+    if ((m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(this->m_Resources)) != 0) {
         this->setupUniforms();
     } else {
         NLOG("[OpenGL Error] Failed to create passthrough program");
