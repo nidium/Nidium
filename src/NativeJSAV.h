@@ -129,7 +129,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), type(type), nodeObj(NULL), hashObj(NULL), 
+            :  audio(audio), node(NULL), jsobj(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
                finalized(false), arrayContent(NULL) 
         { 
 

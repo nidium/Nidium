@@ -963,9 +963,13 @@ NativeJSAudioNode::~NativeJSAudioNode()
     // to call some method on a node that is being destroyed
     this->audio->audio->lockThreads();
 
-    this->node->unref();
+    if (this->node != NULL) {
+        this->node->unref();
+    }
 
-    JS_SetPrivate(this->jsobj, NULL);
+    if (this->jsobj != NULL) {
+        JS_SetPrivate(this->jsobj, NULL);
+    }
 
     this->audio->audio->unlockThreads();
 }
