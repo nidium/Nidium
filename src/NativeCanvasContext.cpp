@@ -248,7 +248,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(8);
+    Vertices *vtx = m_GLObjects.vtx = buildVerticesStripe(4);
         
     glBindVertexArray(m_GLObjects.vao);
 
