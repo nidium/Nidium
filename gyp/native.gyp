@@ -25,6 +25,7 @@
             '<(third_party_path)/skia/include/pdf',
             '<(third_party_path)/skia/src/gpu/gl',
             '<(third_party_path)/skia/src/gpu',
+            '<(third_party_path)/skia/src/effects',
             '<(third_party_path)/skia/src/core',
             '<(third_party_path)/skia/include/effects',
             '<(third_party_path)/skia/include/utils/mac',

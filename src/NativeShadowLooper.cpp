@@ -1,4 +1,5 @@
 #include "NativeShadowLooper.h"
+#include "SkBlurMask.h"     // just for SkBlurMask::ConvertRadiusToSigma
 #include "SkBlurMaskFilter.h"
 #include "SkCanvas.h"
 #include "SkFlattenableBuffers.h"
@@ -7,12 +8,23 @@
 #include "SkColorFilter.h"
 #include "SkColorPriv.h"
 
-NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
-                                   SkColor color, uint32_t flags)
-    : fDx(dx), fDy(dy), fBlurColor(color), fBlurFlags(flags), fState(kDone) {
+
+void NativeShadowLooper::init(SkCanvas* canvas) {
+    fState = kBeforeEdge;
+}
+
+
+void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
+                            SkColor color, uint32_t flags) {
+
+    fDx = dx;
+    fDy = dy;
+    fBlurColor = color;
+    fBlurFlags = flags;
+    fState = kDone;
 
     SkASSERT(flags <= kAll_BlurFlag);
-    if (radius > 0) {
+    if (sigma > 0) {
         uint32_t blurFlags = flags & kIgnoreTransform_BlurFlag ?
             SkBlurMaskFilter::kIgnoreTransform_BlurFlag :
             SkBlurMaskFilter::kNone_BlurFlag;
@@ -21,14 +33,26 @@ NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy
             SkBlurMaskFilter::kHighQuality_BlurFlag :
             SkBlurMaskFilter::kNone_BlurFlag;
 
-        fBlur = SkBlurMaskFilter::Create(radius,
-                                         SkBlurMaskFilter::kNormal_BlurStyle,
+        fBlur = SkBlurMaskFilter::Create(SkBlurMaskFilter::kNormal_BlurStyle,
+                                         sigma,
                                          blurFlags);
     } else {
         fBlur = NULL;
     }
 
+
     fColorFilter = NULL;
+
+}
+
+NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
+                                   SkColor color, uint32_t flags) {
+    this->init(SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, color, flags);
+}
+
+NativeShadowLooper::NativeShadowLooper(SkColor color, SkScalar sigma,
+                                   SkScalar dx, SkScalar dy, uint32_t flags) {
+    this->init(sigma, dx, dy, color, flags);
 }
 
 NativeShadowLooper::NativeShadowLooper(SkFlattenableReadBuffer& buffer)
@@ -55,10 +79,6 @@ void NativeShadowLooper::flatten(SkFlattenableWriteBuffer& buffer) const {
     buffer.writeFlattenable(fBlur);
     buffer.writeFlattenable(fColorFilter);
     buffer.writeUInt(fBlurFlags);
-}
-
-void NativeShadowLooper::init(SkCanvas* canvas) {
-    fState = kBeforeEdge;
 }
 
 bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
