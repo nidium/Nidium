@@ -269,6 +269,7 @@ Native.elements.export("UITextInput", {
 		}, false);
 
 		this.overlay.addEventListener("dragend", function(e){
+			console.log("fsdfds");
 			self._endMouseSelection();
 			self._autoScrollLeft = false;
 			self.saveState(self.undoIndex);

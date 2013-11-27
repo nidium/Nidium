@@ -267,9 +267,20 @@ window.events = {
 				}
 
 			} else {
-				e.source = this.sourceElement || element;
-				e.target = element;
-				cancelBubble = this.fireMouseOut(element, e);
+				if (name == "drop") {
+					/* drop outside window must fire dragend */
+					this.setSource(e, this.sourceElement, element);
+					this.cursor = element.cursor;
+
+					if (!e.source.dragendFired){
+						e.source.dragendFired = true;
+						e.source.fireEvent("dragend", e);
+					}
+				} else {
+					e.source = this.sourceElement || element;
+					e.target = element;
+					cancelBubble = this.fireMouseOut(element, e);
+				}
 			}
 
 			if (cancelBubble) break;
