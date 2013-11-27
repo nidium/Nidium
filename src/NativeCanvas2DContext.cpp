@@ -1971,21 +1971,28 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
-#if 0
-    if ((m_GLObjects.program = this->createProgram(string))) {
-        this->setupUniforms();
+    uint32_t program = this->createProgram(string);
 
-        m_GL.shader.uniformResolution = glGetUniformLocation(m_GLObjects.program,
+    if (program) {
+        /* Destroy the old context (if it's not shared) */
+        m_GLState->destroy();
+        /* Create a new state without program */
+        NativeGLState *nstate = new NativeGLState(false);
+        nstate->setShared(false);
+
+        m_GLState = nstate;
+
+        m_GLState->setProgram(program);
+
+        m_GLState->m_GLObjects.uniforms.u_resolution = glGetUniformLocation(program,
                                     "n_Resolution");
-        m_GL.shader.uniformPosition = glGetUniformLocation(m_GLObjects.program,
+        m_GLState->m_GLObjects.uniforms.u_position = glGetUniformLocation(program,
                                     "n_Position");
-        m_GL.shader.uniformPadding = glGetUniformLocation(m_GLObjects.program,
-                                    "n_Padding");        
+        m_GLState->m_GLObjects.uniforms.u_padding = glGetUniformLocation(program,
+                                    "n_Padding");
     }
 
-    return m_GLObjects.program;
-#endif
-    return 0;
+    return program;
 }
 
 void NativeCanvas2DContext::detachShader()
@@ -2009,16 +2016,14 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
             glUniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity);
         }
-#if 0
         float padding = this->getHandler()->padding.global * ratio;
 
-        if (m_GL.shader.uniformResolution != -1)
-            glUniform2f(m_GL.shader.uniformResolution, (width)-(padding*2), (height)-(padding*2));
-        if (m_GL.shader.uniformPosition != -1)
-            glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (height+ratio*top));
-        if (m_GL.shader.uniformPadding != -1)
-            glUniform1f(m_GL.shader.uniformPadding, padding);
-#endif
+        if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
+            glUniform2f(m_GLState->m_GLObjects.uniforms.u_resolution, (width)-(padding*2), (height)-(padding*2));
+        if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
+            glUniform2f(m_GLState->m_GLObjects.uniforms.u_position , ratio*left, ratio*wHeight - (height+ratio*top));
+        if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
+            glUniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding);
     }
 
 }
@@ -2171,9 +2176,6 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
     JS_SetPrivate(jsobj, this);
 
-    memset(&this->m_GL, 0, sizeof(this->m_GL));
-    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
-
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }
@@ -2199,8 +2201,7 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
         m_Skia = NULL;
         return;
     }
-    memset(&this->m_GL, 0, sizeof(this->m_GL));
-    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
+
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
 }

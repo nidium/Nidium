@@ -11,15 +11,22 @@ class NativeGLState
 
 public:
 
-    NativeGLState();
+    NativeGLState(bool withProgram = true);
     ~NativeGLState();
 
-    bool initGLBase();
+    bool initGLBase(bool withProgram = true);
     void setActive();
+    void destroy();
+
+    void setShared(bool val) {
+        m_Shared = val;
+    }
 
     uint32_t getProgram() const {
         return m_GLObjects.program;
     }
+
+    void setProgram(uint32_t program);
 
     struct {
         uint32_t vbo[2];
@@ -37,6 +44,8 @@ public:
 
 private:
     NativeGLResources m_Resources;
+
+    bool m_Shared;
 };
 
 #endif

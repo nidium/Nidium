@@ -109,7 +109,6 @@ public:
     static uint32_t createPassThroughFragment();
     static uint32_t createPassThroughProgram(NativeGLResources &resource);
 protected:
-    void setupUniforms();
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;

@@ -31,14 +31,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         bool setterDisabled;
 
-        struct {
-            struct {
-                int32_t uniformResolution;
-                int32_t uniformPosition;
-                int32_t uniformPadding;
-            } shader;
-        } m_GL;
-
         void clear(uint32_t color);
 
         /*

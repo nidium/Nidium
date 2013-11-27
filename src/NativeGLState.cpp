@@ -12,15 +12,23 @@
 #endif
 
 
-NativeGLState::NativeGLState()
+NativeGLState::NativeGLState(bool withProgram)
 {
     memset(&this->m_GLObjects, 0, sizeof(this->m_GLObjects));
     memset(&this->m_GLObjects.uniforms, -1, sizeof(this->m_GLObjects.uniforms));
+    m_Shared = true;
 
-    this->initGLBase();
+    this->initGLBase(withProgram);
 }
 
-bool NativeGLState::initGLBase()
+void NativeGLState::destroy()
+{
+    if (!m_Shared) {
+        delete this;
+    }
+}
+
+bool NativeGLState::initGLBase(bool withProgram)
 {
     glGenBuffers(2, m_GLObjects.vbo);
     glGenVertexArrays(1, &m_GLObjects.vao);
@@ -53,14 +61,24 @@ bool NativeGLState::initGLBase()
                           sizeof(NativeVertex),
                           (GLvoid*) offsetof(NativeVertex, TexCoord));
 
-    this->m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(this->m_Resources);
+    if (withProgram) {
+        this->m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(this->m_Resources);
 
-    m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
-    m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");    
+        m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
+        m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");    
+    }
 
     glBindVertexArray(0);
 
     return true;
+}
+
+void NativeGLState::setProgram(uint32_t program)
+{
+    this->m_GLObjects.program = program;
+
+    m_GLObjects.uniforms.u_projectionMatrix = glGetUniformLocation(m_GLObjects.program, "u_projectionMatrix");
+    m_GLObjects.uniforms.u_opacity = glGetUniformLocation(m_GLObjects.program, "u_opacity");     
 }
 
 void NativeGLState::setActive()
