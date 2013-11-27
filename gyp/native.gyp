@@ -106,6 +106,7 @@
                     'DSO_EXTENSION=".so"'
                 ],
                 'cflags+': [
+                    '-fno-rtti',
                     '-fvisibility=hidden',
                     '-fvisibility-inlines-hidden',
                     '-Wno-c++0x-extensions',
