@@ -19,6 +19,7 @@
 */
 
 #include "NativeSharedMessages.h"
+#include "NativeUtils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,7 +48,7 @@ void NativeSharedMessages::postMessage(void *dataptr, int event)
 
     message = new Message(dataptr, event);
 
-    NSMAutoLock lock(&messageslist.lock);
+    NativePthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
         messageslist.head->prev = message;
@@ -67,7 +68,7 @@ void NativeSharedMessages::postMessage(unsigned int dataint, int event)
 
     message = new Message(dataint, event);
 
-    NSMAutoLock lock(&messageslist.lock);
+    NativePthreadAutoLock lock(&messageslist.lock);
 
     if (messageslist.head) {
         messageslist.head->prev = message;
@@ -83,7 +84,7 @@ void NativeSharedMessages::postMessage(unsigned int dataint, int event)
 
 int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 {
-    NSMAutoLock lock(&messageslist.lock);
+    NativePthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
 
@@ -110,7 +111,7 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 
 int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int type)
 {
-    NSMAutoLock lock(&messageslist.lock);
+    NativePthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
     Message *next = NULL;

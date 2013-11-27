@@ -91,20 +91,4 @@ class NativeSharedMessages
 
     } messageslist;
 };
-
-class NSMAutoLock {
-  public:
-    NSMAutoLock(pthread_mutex_t *mutex)
-      : lock(mutex) {
-
-        pthread_mutex_lock(lock);
-    }
-
-    ~NSMAutoLock() {
-        pthread_mutex_unlock(lock);
-    }
-  private:
-    pthread_mutex_t *lock;
-};
-
 #endif

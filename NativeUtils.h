@@ -22,11 +22,27 @@
 #define nativeutils_h__
 
 #include <stdint.h>
+#include <pthread.h>
 
 class NativeUtils
 {
     public:
     static uint64_t getTick();
+};
+
+class NativePthreadAutoLock {
+  public:
+    NativePthreadAutoLock(pthread_mutex_t *mutex)
+      : lock(mutex) {
+
+        pthread_mutex_lock(lock);
+    }
+
+    ~NativePthreadAutoLock() {
+        pthread_mutex_unlock(lock);
+    }
+  private:
+    pthread_mutex_t *lock;
 };
 
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
