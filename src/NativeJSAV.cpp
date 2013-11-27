@@ -464,7 +464,8 @@ NativeJSAudio *NativeJSAudio::getContext()
 }
 
 NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj)
-    : audio(audio), nodes(NULL), shutdowned(false), jsobj(obj), gbl(NULL), rt(NULL), tcx(NULL)
+    : audio(audio), nodes(NULL), shutdowned(false), jsobj(obj), gbl(NULL), rt(NULL), tcx(NULL),
+      target(NULL)
 {
     this->cx = cx;
 
@@ -1192,7 +1193,14 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         } else if (strcmp("gain", cname.ptr()) == 0) {
             node = new NativeJSAudioNode(NativeAudio::GAIN, in, out, audio);
         } else if (strcmp("target", cname.ptr()) == 0) {                      
-            node = new NativeJSAudioNode(NativeAudio::TARGET, in, out, audio);
+            if (audio->target != NULL) {
+                JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(audio->target->jsobj));
+                audio->target->node->ref();
+                return true;
+            } else {
+                node = new NativeJSAudioNode(NativeAudio::TARGET, in, out, audio);
+                audio->target = node;
+            }
         } else if (strcmp("stereo-enhancer", cname.ptr()) == 0) {
             node = new NativeJSAudioNode(NativeAudio::STEREO_ENHANCER, in, out, audio);
         } else {
