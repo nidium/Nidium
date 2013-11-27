@@ -26,7 +26,8 @@ class NativeNML : public NativeStreamDelegate
     typedef enum {
         NIDIUM_XML_OK,
         NIDIUM_XML_ERR_VIEWPORT_SIZE,
-        NIDIUM_XML_ERR_IDENTIFIER_TOOLONG
+        NIDIUM_XML_ERR_IDENTIFIER_TOOLONG,
+        NIDIUM_XML_ERR_META_MISSING
     } nidium_xml_ret_t;
 
     typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
@@ -106,6 +107,7 @@ class NativeNML : public NativeStreamDelegate
     struct {
         char *identifier;
         char *title;
+        bool loaded;
         struct {
             int width;
             int height;

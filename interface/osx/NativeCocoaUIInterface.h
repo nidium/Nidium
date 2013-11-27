@@ -25,6 +25,9 @@ class NativeCocoaUIInterface : public NativeUIInterface
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
         const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
+
+        void alert(const char *message);
+
         struct {
             CGRect closeFrame;
             CGRect zoomFrame;

@@ -727,3 +727,8 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
     this->width = w;
     this->height = h;
 }
+
+void NativeCocoaUIInterface::alert(const char *message)
+{
+    
+}

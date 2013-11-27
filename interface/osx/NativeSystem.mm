@@ -33,3 +33,18 @@ const char *NativeSystem::getCacheDirectory()
     }
     return NULL;
 }
+
+void NativeSystem::alert(const char *message, AlertType type)
+{
+    NSAlert *alert = [[NSAlert alloc] init];
+
+    [alert addButtonWithTitle:@"OK"];
+    [alert setMessageText:@"nidium"];
+    [alert setInformativeText:[NSString stringWithCString:message encoding:NSUTF8StringEncoding]];
+
+    [alert setAlertStyle:type];
+
+    [alert runModal];
+
+    [alert release];
+}

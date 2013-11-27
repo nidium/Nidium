@@ -8,8 +8,16 @@ class NativeSystem;
 class NativeSystemInterface
 {
     public:
+
+        enum AlertType {
+            ALERT_WARNING = 0,
+            ALERT_INFO = 1,
+            ALERT_CRITIC = 2
+        };
+
         virtual float backingStorePixelRatio()=0;
         virtual const char *getCacheDirectory()=0;
+        virtual void alert(const char *message, AlertType type = ALERT_INFO)=0;
 
         static NativeSystemInterface* getInstance()
         {

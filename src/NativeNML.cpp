@@ -7,6 +7,7 @@
 #include "NativeJS.h"
 #include "NativeJSWindow.h"
 #include "NativeJSDocument.h"
+#include "NativeSystemInterface.h"
 #include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
@@ -22,6 +23,8 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.size.width = 0;
     this->meta.size.height = 0;
     this->meta.identifier = NULL;
+
+    memset(&this->meta, 0, sizeof(this->meta));
 }
 
 NativeNML::~NativeNML()
@@ -150,6 +153,7 @@ void NativeNML::addAsset(NativeAssets *asset)
 NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
 {
     using namespace rapidxml;
+
     for (xml_node<> *child = node.first_node(); child != NULL;
         child = child->next_sibling())
     {
@@ -206,11 +210,16 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
         this->meta.size.height = XML_VP_DEFAULT_HEIGHT;
     }
 
+    this->meta.loaded = true;
+
     return NIDIUM_XML_OK;
 }
 
 NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
 {
+
+    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
+
     using namespace rapidxml;
 
     NativeAssets *assets = new NativeAssets(NativeNML_onAssetsItemRead,
@@ -257,6 +266,8 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
 
 NativeNML::nidium_xml_ret_t NativeNML::loadLayout(rapidxml::xml_node<> &node)
 {
+    if (!this->meta.loaded) return NIDIUM_XML_ERR_META_MISSING;
+
     m_Layout = node.document()->clone_node(&node);
 
     return NIDIUM_XML_OK;
@@ -290,10 +301,16 @@ bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 
                 if ((ret = (this->*nml_tags[i].cb)(*child)) != NIDIUM_XML_OK) {
                     printf("XML : Nidium error (%d)\n", ret);
+                    NativeSystemInterface::getInstance()->alert("NML ERROR", NativeSystemInterface::ALERT_CRITIC);
                     return false;
                 }
             }
         }
+    }
+
+    if (!this->meta.loaded) {
+        NativeSystemInterface::getInstance()->alert("<meta> tag is missing in the NML file", NativeSystemInterface::ALERT_CRITIC);
+        return false;
     }
 
     return true;
@@ -367,10 +384,15 @@ void NativeNML::onGetContent(const char *data, size_t len)
             m_JSObjectLayout = this->buildLayoutTree(*m_Layout);
             JS_AddObjectRoot(this->njs->cx, &m_JSObjectLayout);
         }
+    } else {
+        /*
+            TODO: dont close ! (load a default NML?)
+        */
+        exit(1);
     }
+
     /* Invalidate layout node since memory pool is free'd */
     m_Layout = NULL;
-    printf("Supposed to delete stream : %p\n", stream);
     /* Stream has ended */
     ape_global *ape = net;
     timer_dispatch_async(delete_stream, stream);
