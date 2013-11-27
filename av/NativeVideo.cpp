@@ -130,6 +130,7 @@ int NativeVideo::open(const char *chroot, const char *src)
 
     return 0;
 }
+#undef RETURN_WITH_ERROR
 
 int NativeVideo::openInit() 
 {
@@ -137,6 +138,9 @@ int NativeVideo::openInit()
     if (this->reader->async) {
         pthread_cond_signal(&this->bufferCond);
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
+        if (!this->opened) {
+            this->closeInternal(true);
+        }
     } else {
         return this->openInitInternal();
     }
@@ -146,7 +150,10 @@ int NativeVideo::openInit()
 void NativeVideo::openInitCoro(void *arg) 
 {
     NativeVideo *thiz = (static_cast<NativeVideo*>(arg));
-    thiz->openInitInternal();
+    int ret = thiz->openInitInternal();
+    if (ret != 0) {
+        thiz->sendEvent(SOURCE_EVENT_ERROR, ret, 0, false);
+    }
     Coro_switchTo_(thiz->coro, thiz->mainCoro);
 }
 
@@ -163,13 +170,13 @@ int NativeVideo::openInitInternal()
 		char error[1024];
 		av_strerror(ret, error, 1024);
 		fprintf(stderr, "Couldn't open file : %s\n", error);
-        RETURN_WITH_ERROR(ERR_INTERNAL);
+        return ERR_INTERNAL;
 	}
 
     NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
     if (avformat_find_stream_info(this->container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information");
-        RETURN_WITH_ERROR(ERR_NO_INFORMATION);
+        return ERR_NO_INFORMATION;
     }
 
 	av_dump_format(this->container, 0, "Memory input", 0);
@@ -183,7 +190,7 @@ int NativeVideo::openInitInternal()
 	}
 
     if (this->videoStream == -1) {
-		RETURN_WITH_ERROR(ERR_NO_VIDEO);
+        return ERR_NO_VIDEO;
     }
 
     this->codecCtx = this->container->streams[this->videoStream]->codec;
@@ -192,12 +199,12 @@ int NativeVideo::openInitInternal()
 
     codec = avcodec_find_decoder(this->codecCtx->codec_id);
     if (!codec) {
-		RETURN_WITH_ERROR(ERR_NO_CODEC);
+		return ERR_NO_CODEC;
     }
 
     if (avcodec_open2(this->codecCtx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
-		RETURN_WITH_ERROR(ERR_NO_CODEC);
+		return ERR_NO_CODEC;
     }
 
     this->width = this->codecCtx->width;
@@ -208,7 +215,7 @@ int NativeVideo::openInitInternal()
                                   SWS_BICUBIC, NULL, NULL, NULL);
 
     if (!this->swsCtx) {
-		RETURN_WITH_ERROR(ERR_NO_VIDEO_CONVERTER);
+		return ERR_NO_VIDEO_CONVERTER;
     }
 
     // Allocate video frame
@@ -218,7 +225,7 @@ int NativeVideo::openInitInternal()
     this->convertedFrame = avcodec_alloc_frame();
     if (this->decodedFrame == NULL || this->convertedFrame == NULL) {
         fprintf(stderr, "Failed to alloc frame\n");
-        RETURN_WITH_ERROR(ERR_OOM);
+        return ERR_OOM;
     }
 
     // Determine required buffer size and allocate buffer
@@ -227,7 +234,7 @@ int NativeVideo::openInitInternal()
     this->frameBuffer = (uint8_t *)av_malloc(frameSize * sizeof(uint8_t));
     if (frameBuffer == NULL) {
         fprintf(stderr, "Failed to alloc buffer\n");
-        RETURN_WITH_ERROR(ERR_OOM);
+        return ERR_OOM;
     }
 
     avpicture_fill((AVPicture *)this->convertedFrame, this->frameBuffer, PIX_FMT_RGBA, this->codecCtx->width, this->codecCtx->height);
@@ -239,7 +246,7 @@ int NativeVideo::openInitInternal()
     this->tmpFrame = (uint8_t *) malloc(frameSize);
     if (this->tmpFrame == NULL) {
         fprintf(stderr, "Failed to alloc tmp frame\n");
-        RETURN_WITH_ERROR(ERR_OOM);
+        return ERR_OOM;
     }
 
     this->rBuff = new PaUtilRingBuffer();
@@ -247,7 +254,7 @@ int NativeVideo::openInitInternal()
 
     if (this->buff == NULL) {
         fprintf(stderr, "Failed to alloc buffer\n");
-        RETURN_WITH_ERROR(ERR_OOM);
+        return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer(this->rBuff, 
@@ -255,14 +262,14 @@ int NativeVideo::openInitInternal()
             NATIVE_VIDEO_BUFFER_SAMPLES,
             this->buff)) {
         fprintf(stderr, "Failed to init ringbuffer\n");
-        RETURN_WITH_ERROR(ERR_OOM);
+        return ERR_OOM;
     }
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
         m_Frames[i] = (uint8_t*) malloc(frameSize);
         if (!m_Frames[i]) {
             fprintf(stderr, "Failed to setup frames pool\n");
-            RETURN_WITH_ERROR(ERR_OOM);
+            return ERR_OOM;
         }
     }
 
