@@ -108,7 +108,8 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         JSRuntime *rt;
         JSContext *tcx;
-        const char *fun;
+
+        NativeJSAudioNode *target;
 
         bool createContext();
         bool run(char *str);
