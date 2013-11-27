@@ -5,6 +5,7 @@
 #include "NativeAudioNode.h"
 #include "zita-resampler/resampler.h"
 #include "NativeSharedMessages.h"
+#include "NativeUtils.h"
 #include "Coro.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -871,6 +872,7 @@ int NativeAudioSource::initStream()
         return ERR_INTERNAL;
 	}
 
+    NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
 	// Retrieve stream information
 	if (avformat_find_stream_info(this->container, NULL) < 0) {
 		fprintf(stderr, "Couldn't find stream information\n");
@@ -911,6 +913,7 @@ int NativeAudioSource::initInternal()
         return ERR_NO_CODEC;
     }
 
+    NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
 	if (!avcodec_open2(this->codecCtx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
 		return ERR_NO_CODEC;
@@ -1600,6 +1603,7 @@ void NativeAudioSource::closeInternal(bool reset)
     pthread_mutex_lock(&this->audio->sourcesLock);
 
     if (this->opened) {
+        NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
         avcodec_close(this->codecCtx);
 
         if (!this->externallyManaged) {
@@ -1637,7 +1641,7 @@ void NativeAudioSource::closeInternal(bool reset)
     if (!this->packetConsumed) {
         av_free_packet(this->tmpPacket);
     }
-    if (!reset) {
+    if (!reset && !this->externallyManaged) {
         delete this->tmpPacket;
     }
 

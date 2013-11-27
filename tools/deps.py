@@ -839,7 +839,7 @@ def buildMC():
 
     # => mozilla-central
     if BUILD == "debug":
-        configure = "./configure --enable-debug --disable-optimize --enable-ctypes " + nsprFlags
+        configure = "./configure --enable-threadsafe --enable-debug --disable-optimize --enable-ctypes " + nsprFlags
         if ENABLE_VALGRIND:
             configure += "--enable-valgrind "
     else:

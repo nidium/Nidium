@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "NativeUtils.h"
 #include "NativeVideo.h"
 #include "NativeAudioNode.h"
 #include "native_netlib.h"
@@ -165,6 +166,7 @@ int NativeVideo::openInitInternal()
         RETURN_WITH_ERROR(ERR_INTERNAL);
 	}
 
+    NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
     if (avformat_find_stream_info(this->container, NULL) < 0) {
         fprintf(stderr, "Couldn't find stream information");
         RETURN_WITH_ERROR(ERR_NO_INFORMATION);
@@ -975,7 +977,7 @@ void *NativeVideo::decode(void *args)
             }
         }
 
-        v->readFlag =false;
+        v->readFlag = false;
 
         if (v->shutdown) break;
     }
@@ -1348,6 +1350,7 @@ void NativeVideo::closeInternal(bool reset) {
     delete this->reader;
 
     if (this->opened) {
+        NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
         avcodec_close(this->codecCtx);
         av_free(this->container->pb);
         avformat_close_input(&this->container);

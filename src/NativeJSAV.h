@@ -108,7 +108,8 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         JSRuntime *rt;
         JSContext *tcx;
-        const char *fun;
+
+        NativeJSAudioNode *target;
 
         bool createContext();
         bool run(char *str);
@@ -129,7 +130,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), type(type), nodeObj(NULL), hashObj(NULL), 
+            :  audio(audio), node(NULL), jsobj(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
                finalized(false), arrayContent(NULL) 
         { 
 
