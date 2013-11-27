@@ -3,6 +3,8 @@
 #include "NativeMacros.h"
 #include "NativeCanvasHandler.h"
 
+#include "NativeCanvas2DContext.h"
+
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl3.h>
@@ -299,5 +301,21 @@ void NativeCanvasContext::updateMatrix(double left, double top,
         glUniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
     } else {
         NLOG("No uniform found");
+    }
+}
+
+/*
+    TODO: implement
+*/
+NativeCanvasContext *NativeCanvasContext::Create(NativeContextType type)
+{
+    switch (type) {
+        case kWebGL_ContextType:
+            return NULL;
+        case kSkia2D_ContextType:
+            return NULL;
+        default:
+            NLOG("[Error] Invalid CanvasContext requested");
+            return NULL;
     }
 }

@@ -38,6 +38,11 @@ public:
     };
 
     /*
+        Create a CanvasContext of type |type|
+    */
+    static NativeCanvasContext *Create(NativeContextType type);
+
+    /*
         Check if the context has a program installed
     */
     bool hasShader() const {
@@ -61,6 +66,10 @@ public:
 
     void setGLState(NativeGLState *state) {
         m_GLState = state;
+    }
+
+    NativeGLState *getGLState() const {
+        return m_GLState;
     }
 
     /*

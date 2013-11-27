@@ -260,8 +260,11 @@ void NativeContext::frame()
     this->postDraw();
 
     this->getRootHandler()->getContext()->flush();
-    this->getRootHandler()->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
+    this->getRootHandler()->getContext()->resetGLContext();
 
+    /* We draw on the screen */
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    this->getRootHandler()->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)this->getRootHandler()->getContext())->resetSkiaContext();
 }

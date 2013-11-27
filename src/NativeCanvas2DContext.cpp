@@ -1864,8 +1864,6 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
 {
     GLenum err;
 
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
@@ -1882,10 +1880,10 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     //glDisable(GL_ALPHA_TEST);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /* Unbind vertex array bound by resetGLContext() */
     glBindVertexArray(0);
 }
-
 
 #if 0
 void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
@@ -2045,7 +2043,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         glEnable(GL_SCISSOR_TEST);
         glScissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height());
     } else {
-        glDisable(GL_SCISSOR_TEST);
+        //glDisable(GL_SCISSOR_TEST);
     }
     /* TODO: disable alpha testing? */
     if (this->hasShader()) {
@@ -2072,7 +2070,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 
         /* Reset skia GL context */
-        this->resetSkiaContext();
+        //this->resetSkiaContext();
     } else {
         const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
 

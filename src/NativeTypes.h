@@ -27,4 +27,9 @@ typedef struct _NativeVertices {
     unsigned int nindices;
 } NativeVertices;
 
+enum NativeContextType {
+    kSkia2D_ContextType,
+    kWebGL_ContextType
+};
+
 #endif
