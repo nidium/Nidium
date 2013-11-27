@@ -8,6 +8,9 @@
 #include "SkColorFilter.h"
 #include "SkColorPriv.h"
 
+#include "SkMaskFilter.h"
+#include "SkString.h"
+#include "SkStringUtils.h"
 
 void NativeShadowLooper::init(SkCanvas* canvas) {
     fState = kBeforeEdge;
@@ -117,3 +120,35 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
             return false;
     }
 }
+
+#ifdef SK_DEVELOPER
+void NativeShadowLooper::toString(SkString* str) const {
+    str->append("SkBlurDrawLooper: ");
+
+    str->append("dx: ");
+    str->appendScalar(fDx);
+
+    str->append(" dy: ");
+    str->appendScalar(fDy);
+
+    str->append(" color: ");
+    str->appendHex(fBlurColor);
+
+    str->append(" flags: (");
+    if (kNone_BlurFlag == fBlurFlags) {
+        str->append("None");
+    } else {
+        bool needsSeparator = false;
+        SkAddFlagToString(str, SkToBool(kIgnoreTransform_BlurFlag & fBlurFlags), "IgnoreTransform",
+                          &needsSeparator);
+        SkAddFlagToString(str, SkToBool(kOverrideColor_BlurFlag & fBlurFlags), "OverrideColor",
+                          &needsSeparator);
+        SkAddFlagToString(str, SkToBool(kHighQuality_BlurFlag & fBlurFlags), "HighQuality",
+                          &needsSeparator);
+    }
+    str->append(")");
+
+    // TODO: add optional "fBlurFilter->toString(str);" when SkMaskFilter::toString is added
+    // alternatively we could cache the radius in SkBlurDrawLooper and just add it here
+}
+#endif
