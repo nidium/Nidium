@@ -171,6 +171,7 @@ class NativeAVSource
         void *eventCbkCustom;
         bool opened;
         bool eof;
+        static pthread_mutex_t ffmpegLock;
 
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
         void sendEvent(int ev, int value1, int value2, bool fromThread);

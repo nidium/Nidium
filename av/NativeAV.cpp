@@ -8,6 +8,8 @@ extern "C" {
 #include "libavformat/avformat.h"
 }
 
+pthread_mutex_t NativeAVSource::ffmpegLock = PTHREAD_MUTEX_INITIALIZER;
+
 NativeAVBufferReader::NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize) 
     : buffer(buffer), bufferSize(bufferSize), pos(0) {}
 
