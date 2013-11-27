@@ -30,24 +30,14 @@ class NativeCanvas2DContext : public NativeCanvasContext
         friend class NativeJSCanvas;
 
         bool setterDisabled;
-        bool commonDraw;
 
         struct {
-            uint32_t program;
-            uint32_t texture;
-            uint32_t fbo;
-            uint32_t textureWidth;
-            uint32_t textureHeight;
-            uint32_t vertexBuffer;
-            uint32_t indexBuffer;
-        } gl;
-
-        struct {
-            uint32_t uniformOpacity;
-            uint32_t uniformResolution;
-            uint32_t uniformPosition;
-            uint32_t uniformPadding;
-        } shader;
+            struct {
+                int32_t uniformResolution;
+                int32_t uniformPosition;
+                int32_t uniformPadding;
+            } shader;
+        } m_GL;
 
         void clear(uint32_t color);
 
@@ -55,7 +45,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
             draw layer on top of "this"
         */
 
-        void resetGLContext();
+        void resetSkiaContext(uint32_t flags = 0);
         void composeWith(NativeCanvas2DContext *layer, double left,
             double top, double opacity, double zoom,
             const NativeRect *clip);
@@ -63,20 +53,11 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void flush();
         void setSize(int width, int height);
         void translate(double x, double y);
+
+        void getSize(int *width, int *height) const;
         
         uint32_t attachShader(const char *string);
         void detachShader();
-
-        bool hasShader() const {
-            return (gl.program != 0);
-        }
-        uint32_t getProgram() const {
-            return gl.program;
-        }
-
-        NativeCanvasHandler *getHandler() const {
-            return this->handler;
-        }
 
         NativeSkia *getSurface() const {
             return this->m_Skia;
@@ -85,8 +66,6 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void setScale(double x, double y, double px=1, double py=1);
 
         uint32_t createProgram(const char *data);
-        uint32_t compileShader(const char *data, int type);
-
 
         static void registerObject(JSContext *cx);
 
@@ -99,17 +78,19 @@ class NativeCanvas2DContext : public NativeCanvasContext
         ~NativeCanvas2DContext();
     private:
         NativeSkia *m_Skia;
+
         void initCopyTex();
         uint32_t compileCoopFragmentShader();
         char *genModifiedFragmentShader(const char *data);
         void drawTexToFBO(uint32_t textureID);
         void drawTexIDToFBO(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
+        void drawTexIDToFBO2(uint32_t textureID, uint32_t width,
+            uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
         void setupShader(float opacity, int width, int height,
             int left, int top, int wWidth, int wHeight);
-        NativeCanvasHandler *handler;
 };
 
 class NativeCanvasPattern

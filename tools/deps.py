@@ -18,7 +18,7 @@ CLANG = "/usr/bin/clang"
 CLANGPP = "/usr/bin/clang++"
 
 os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.7'
-os.environ['GYP_DEFINES'] = 'skia_texture_cache_mb_limit=256'
+os.environ['GYP_DEFINES'] = 'skia_resource_cache_mb_limit=256'
 
 # Change to gyp executable path if you don't 
 # want this script to download gyp for you

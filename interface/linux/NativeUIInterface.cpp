@@ -19,6 +19,7 @@
 #include <SDL_syswm.h>
 #include <native_netlib.h>
 #include <NativeNML.h>
+#include <NativeMacros.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -217,11 +218,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
         }
 
         if (NUII->NativeCtx) {
-            NUII->NativeCtx->callFrame();
-            NUII->NativeCtx->postDraw();
-            int s = SDL_GetTicks();
-            NUII->NativeCtx->getRootHandler()->layerize(NULL, 0, 0, 1.0,
-                1.0, NULL);
+            NUII->NativeCtx->frame();
         }
 
         //NUII->getConsole()->flush();
@@ -356,6 +353,10 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         //[window setAlphaValue:0.5];
 
         contexteOpenGL = SDL_GL_CreateContext(win);
+        if (contexteOpenGL == NULL) {
+            NLOG("Failed to create OpenGL context : %s", SDL_GetError());
+            exit(2);
+        }
         SDL_StartTextInput();
 
         if (SDL_GL_SetSwapInterval(kNativeVSYNC) == -1) {
@@ -363,6 +364,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         }
 
         glViewport(0, 0, width, height);
+        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
 
         console = new NativeUIX11Console();
 

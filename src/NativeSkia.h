@@ -91,7 +91,6 @@ class NativeSkia
         NativeSkia();
         double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
-        int bindOffScreen(int width, int height);
         int bindOnScreen(int width, int height);
         static SkCanvas *createGLCanvas(int width, int height);
         int bindGL(int width, int height);
@@ -107,7 +106,7 @@ class NativeSkia
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);
         void setShadowColor(const char *str);
-        void setSmooth(bool val);
+        void setSmooth(bool val, int level = 1);
         void setFontSize(double size);
         void setFontType(const char *str);
         void drawText(const char *text, int x, int y);

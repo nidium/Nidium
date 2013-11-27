@@ -4,7 +4,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -304,7 +304,7 @@ void NativeSkia::initPaints()
     PAINT->setLCDRenderText(false);
 
     PAINT->setStyle(SkPaint::kFill_Style);
-    PAINT->setFilterBitmap(false);
+    PAINT->setFilterLevel(SkPaint::kNone_FilterLevel);
  
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
@@ -329,7 +329,7 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setAutohinted(true);
     PAINT_STROKE->setHinting(SkPaint::kFull_Hinting);
     PAINT_STROKE->setDither(true);
-    PAINT_STROKE->setFilterBitmap(false);
+    PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
     
     this->setLineWidth(1);
 
@@ -374,33 +374,6 @@ int NativeSkia::bindOnScreen(int width, int height)
     return 1;
 }
 
-int NativeSkia::bindOffScreen(int width, int height)
-{
-    SkBitmap bitmap;
-
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
-
-    bitmap.setConfig(SkBitmap::kARGB_8888_Config, width*ratio, height*ratio);
-    bitmap.allocPixels();
-
-    canvas = new SkCanvas(bitmap);
-    this->scale(ratio, ratio);
-
-    /* TODO: Move the following in a common methode (init) */
-    globalAlpha = 255;
-    currentPath = NULL;
-
-    state = new struct _nativeState;
-    state->next = NULL;
-
-    initPaints();
-
-    this->setSmooth(true);
-
-    this->native_canvas_bind_mode = NativeSkia::BIND_OFFSCREEN;
-
-    return 1;
-}
 
 void glcb(const GrGLInterface*) {
     //printf("Got a gl call\n");
@@ -434,9 +407,9 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     desc.fHeight = SkScalarRound(height*ratio);
     desc.fConfig = kSkia8888_GrPixelConfig;
     desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
-
+    desc.fStencilBits = 0;
     GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
-    GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
+    //GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
 
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
@@ -466,62 +439,16 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
 
 int NativeSkia::bindGL(int width, int height)
 {
-    const GrGLInterface *interface =  GrGLCreateNativeInterface();
-    //((GrGLInterface*)interface)->fCallback = glcb;
-    
-    if (interface == NULL) {
-        printf("Cant get interface\n");
-        return 0;
-    }
-
-    context = GrContext::Create(kOpenGL_GrBackend,
-        (GrBackendContext)interface);
-
-    if (context == NULL) {
-        printf("Cant get context\n");
-    }
-
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
-    
-    GrBackendRenderTargetDesc desc;
-    //GrGLRenderTarget *t = new GrGLRenderTarget();
-    
-    desc.fWidth = SkScalarRound(width*ratio);
-    desc.fHeight = SkScalarRound(height*ratio);
-    desc.fConfig = kSkia8888_GrPixelConfig;
-    desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
-
-    GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
-    GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
-
-    GrGLint buffer = 0;
-    GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
-    desc.fRenderTargetHandle = 0;
-    // TODO : check sample
-    //printf("Samples : %d | buffer %d\n", desc.fSampleCnt, buffer);
- 
-    GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
-
-    if (target == NULL) {
-        printf("Failed to init Skia\n");
-        return 0;
-    }
-    SkGpuDevice *dev = new SkGpuDevice(context, target);
-
-    if (dev == NULL) {
-        printf("Failed to init Skia (2)\n");
-        return 0;
-    }
-
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
-    canvas = new SkCanvas(dev);
+    if ((canvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+        return 0;
+    }
 
     if (NativeSkia::glcontext == NULL) {
         NativeSkia::glcontext = canvas;
     }
-    
-    SkSafeUnref(dev);
+
     globalAlpha = 255;
     currentPath = NULL;
 
@@ -871,10 +798,21 @@ void NativeSkia::setShadowColor(const char *str)
     SkSafeUnref(PAINT->setLooper(buildShadow()));
 }
 
-void NativeSkia::setSmooth(bool val)
+void NativeSkia::setSmooth(bool val, int level)
 {
-    PAINT->setFilterBitmap(val);
-    PAINT_STROKE->setFilterBitmap(val);
+    SkPaint::FilterLevel flevel = SkPaint::kNone_FilterLevel;
+
+    if (val) {
+        switch (level) {
+            case 0: flevel = SkPaint::kNone_FilterLevel;break;
+            case 1: flevel = SkPaint::kLow_FilterLevel;break;
+            case 2: flevel = SkPaint::kMedium_FilterLevel;break;
+            case 3: default: flevel = SkPaint::kHigh_FilterLevel;break;
+        }
+    }
+
+    PAINT->setFilterBitmap(flevel);
+    PAINT_STROKE->setFilterBitmap(flevel);
 }
 
 void NativeSkia::setGlobalAlpha(double value)
@@ -1604,7 +1542,7 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     bt.setPixels(PMPixels);
     r.setXYWH(x, y, width, height);
 
-    pt.setFilterBitmap(PAINT->isFilterBitmap());
+    pt.setFilterLevel(PAINT->getFilterLevel());
     canvas->saveLayer(NULL, NULL);
         canvas->clipRect(r, SkRegion::kReplace_Op);
         canvas->drawColor(SK_ColorWHITE);

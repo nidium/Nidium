@@ -758,7 +758,22 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp)
     }
     jsval ret;
 
-    if (!JS_ReadStructuredClone(cx, (uint64_t *)data.data(), data.length(),
+    uint64_t *aligned_data;
+
+    /*
+        ReadStructuredClone requires 8-bytes aligned memory
+    */
+    if (((uintptr_t)data.data() & 7) == 0) {
+        aligned_data = (uint64_t *)data.data();
+    } else {
+        if (posix_memalign((void **)&aligned_data, 8, data.length()) != 0) {
+            return false;
+        }
+
+        memcpy(aligned_data, data.data(), data.length());
+    }
+
+    if (!JS_ReadStructuredClone(cx, aligned_data, data.length(),
         JS_STRUCTURED_CLONE_VERSION, &ret, NULL, NULL)) {
 
         JS_ReportError(cx, "Unable to read internal data");
@@ -766,6 +781,10 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     args.rval().set(ret);
+
+    if ((void *)aligned_data != data.data()) {
+        free(aligned_data);
+    }
 
     return true;
 }

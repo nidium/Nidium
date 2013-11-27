@@ -6,6 +6,7 @@
             '<(native_network_path)/gyp/network.gyp:nativenetwork',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
             'jsoncpp.gyp:jsoncpp',
+            'angle.gyp:*'
         ],
         'include_dirs': [
             '<(native_src_path)',
@@ -125,9 +126,6 @@
                     '<(native_src_path)/NativeJSWebGL.cpp',
                  ],
                  'defines+': [ 'NATIVE_WEBGL_ENABLED' ],
-                 'dependencies': [
-                    'angle.gyp:*'
-                 ]
             }],
         ],
         'sources': [
@@ -148,6 +146,8 @@
 			'<(native_src_path)/NativeAssets.cpp',
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeDB.cpp',
+            '<(native_src_path)/NativeCanvasContext.cpp',
+            '<(native_src_path)/NativeGLResources.cpp',
         ],
     }],
 }

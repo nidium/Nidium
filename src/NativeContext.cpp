@@ -19,6 +19,9 @@
 #include <string.h>
 #include "NativeMacros.h"
 
+#include "GLSLANG/ShaderLang.h"
+#include "NativeMacros.h"
+
 jsval gfunc  = JSVAL_VOID;
 
 void NativeContext_Logger(const char *format)
@@ -37,7 +40,11 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 {
     gfunc = JSVAL_VOID;
 
+    ShInitialize();
+
     currentFPS = 0;
+
+    memset(&this->GL, 0, sizeof(this->GL));
     
     this->stats.nframe = 0;
     this->stats.starttime = NativeUtils::getTick();
@@ -230,12 +237,28 @@ NativeContext::~NativeContext()
     delete njs;
 
     NativeSkia::glcontext = NULL;
+
+    ShFinalize();
+}
+
+void NativeContext::frame()
+{
+    this->callFrame();
+    this->postDraw();
+
+    this->getRootHandler()->getContext()->flush();
+    this->getRootHandler()->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
+
+    /* Skia context is dirty after a call to layerize */
+    ((NativeCanvas2DContext *)this->getRootHandler()->getContext())->resetSkiaContext();
 }
 
 void NativeContext::initHandlers(int width, int height)
 {
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height));
+
+    NLOG("Created rootHandler : %p", rootHandler);
 }
 
 void NativeContext::forceLinking()

@@ -28,7 +28,7 @@ NativeVideo::NativeVideo(ape_global *n)
     : freePacket(NULL), timerIdx(0), lastTimer(0),
       net(n), audioSource(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
       tmpFrame(NULL), frameBuffer(NULL),
-      lastPts(0), playing(false), stoped(false), width(-1), height(-1),
+      lastPts(0), videoClock(0), playing(false), stoped(false), width(-1), height(-1),
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
       rBuff(NULL), buff(NULL), avioBuffer(NULL), m_FramesIdx(NULL), 
       decodedFrame(NULL), convertedFrame(NULL),
@@ -747,7 +747,6 @@ int NativeVideo::display(void *custom) {
     double diff = 0;
     double delay, actualDelay, syncThreshold;
 
-
     delay = pts - v->lastPts;
     SPAM(("DELAY=%f\n", delay));
     if (delay <= 0 || delay >= 1.0) {
@@ -1124,7 +1123,7 @@ double NativeVideo::syncVideo(double pts)
 {
     double frameDelay;
 
-    if (pts != 0) {
+    if (pts != 0 && pts != AV_NOPTS_VALUE) {
         this->videoClock = pts;
     } else {
         pts = this->videoClock;

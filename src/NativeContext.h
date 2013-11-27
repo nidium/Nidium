@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include "NativeJS.h"
 
+
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
@@ -43,6 +44,7 @@ class NativeContext
     void callFrame();
     void createDebugCanvas();
     void postDraw();
+    void frame();
 
     void setWindowSize(int width, int height);
     void sizeChanged(int w, int h);
@@ -76,6 +78,13 @@ class NativeContext
         float minfps;
         float sampleminfps;
     } stats;
+
+    struct {
+        uint32_t passThroughProgram;
+        uint32_t vao;
+        uint32_t vbo[2];
+        //NativeCanvasContext::Vertices *vtx;
+    } GL;
 
     void forceLinking();
     void loadNativeObjects(int width, int height);

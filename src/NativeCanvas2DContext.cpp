@@ -12,7 +12,7 @@
 #include <SkDevice.h>
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl.h>
+#include <OpenGL/gl3.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -1607,9 +1607,10 @@ void NativeCanvas2DContext::clear(uint32_t color)
 char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 {
     const char *prologue =
-        "vec4 ___gl_FragCoord;\n"
-        "#define main ___main\n"
-        "#define gl_FragCoord ___gl_FragCoord\n";
+        "#version 100\nprecision mediump float;\n"
+        "vec4 _nm_gl_FragCoord;\n"
+        "#define main _nm_main\n"
+        "#define gl_FragCoord _nm_gl_FragCoord\n";
 
     char *ret;
 
@@ -1620,9 +1621,18 @@ char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 
 uint32_t NativeCanvas2DContext::createProgram(const char *data)
 {
-    char *nshader = this->genModifiedFragmentShader(data);
-    uint32_t fragment = this->compileShader(nshader, GL_FRAGMENT_SHADER);
+    char *pdata = NativeCanvasContext::processShader(data, NativeCanvasContext::SHADER_FRAGMENT);
+
+    if (pdata == NULL) {
+        return 0;
+    }
+    
+    char *nshader = this->genModifiedFragmentShader(pdata);
+
+    uint32_t fragment = NativeCanvasContext::compileShader(nshader, GL_FRAGMENT_SHADER);
     uint32_t coop = this->compileCoopFragmentShader();
+    uint32_t vertex = this->createPassThroughVertex();
+
     free(nshader);
 
     if (fragment == 0) {
@@ -1632,16 +1642,23 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     GLuint programHandle = glCreateProgram();
     GLint linkSuccess;
 
+    glAttachShader(programHandle, vertex);
     glAttachShader(programHandle, coop);
     glAttachShader(programHandle, fragment);
-    
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_POSITION, "Position");
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn");
+
     glLinkProgram(programHandle);
 
     glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
         glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
-        printf("createProgram error : %s\n", messages);
+        NLOG("createProgram error : %s", messages);
         return 0;
     }
 
@@ -1651,55 +1668,33 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
 uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
 {
     const char *coop =
-        "void ___main(void);\n"
+        "#version 100\nprecision mediump float;\n"
+        "void _nm_main(void);\n"
         "uniform sampler2D Texture;\n"
         "uniform vec2 n_Position;\n"
         "uniform vec2 n_Resolution;\n"
-        "uniform float n_Opacity;\n"
+        "uniform float u_opacity;\n"
         "uniform float n_Padding;\n"
-        "vec4 ___gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
+        "varying vec2 TexCoordOut;\n"
+
+        "vec4 _nm_gl_FragCoord = vec4(gl_FragCoord.x-n_Position.x-n_Padding, gl_FragCoord.y-n_Position.y-n_Padding, gl_FragCoord.wz);\n"
 
         "void main(void) {\n"
-        "if (___gl_FragCoord.x+n_Padding < n_Padding ||\n"
-        "    ___gl_FragCoord.x > n_Resolution.x ||\n"
-        "    ___gl_FragCoord.y+n_Padding < n_Padding ||\n"
-        "    ___gl_FragCoord.y > n_Resolution.y) {\n"
-        "    gl_FragColor = texture2D(Texture, gl_TexCoord[0].xy);\n"
+        "if (_nm_gl_FragCoord.x+n_Padding < n_Padding ||\n"
+        "    _nm_gl_FragCoord.x > n_Resolution.x ||\n"
+        "    _nm_gl_FragCoord.y+n_Padding < n_Padding ||\n"
+        "    _nm_gl_FragCoord.y > n_Resolution.y) {\n"
+        "     gl_FragColor = texture2D(Texture, TexCoordOut.xy);\n"
         "} else {\n"
-        "___main();\n"
+        "_nm_main();\n"
         "}\n"
-        "gl_FragColor = gl_FragColor * n_Opacity;"
+        "gl_FragColor = gl_FragColor * u_opacity;"
         "}\n";
     
     return this->compileShader(coop, GL_FRAGMENT_SHADER);
 }
 
-uint32_t NativeCanvas2DContext::compileShader(const char *data, int type)
-{
-    GLuint shaderHandle = glCreateShader(type);
-    int len = strlen(data);
-    glShaderSource(shaderHandle, 1, &data, &len);
-    glCompileShader(shaderHandle);
-
-    GLint compileSuccess = GL_TRUE;
-
-    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &compileSuccess);
-
-    if (compileSuccess == GL_FALSE) {
-        GLchar messages[512];
-        int len;
-        glGetShaderInfoLog(shaderHandle, sizeof(messages), &len, messages);
-        if (glGetError() != GL_NO_ERROR) {
-            return 0;
-        }
-        printf("Shader error %d : %s\n", len, messages);
-        return 0;
-    }
-    
-    return shaderHandle;
-}
-
-
+#if 0
 void NativeCanvas2DContext::initCopyTex()
 {
     glEnable(GL_TEXTURE_2D);
@@ -1757,6 +1752,7 @@ void NativeCanvas2DContext::initCopyTex()
     gl.textureHeight = height;
     glDisable(GL_TEXTURE_2D);
 }
+#endif
 #if 0
 void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
 {
@@ -1791,6 +1787,7 @@ uint32_t NativeCanvas2DContext::getMainFBO()
     return (uint32_t)backingTarget->getRenderTargetHandle();
 }
 
+#if 0
 void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
 {
@@ -1852,7 +1849,45 @@ void NativeCanvas2DContext::drawTexIDToFBO(uint32_t textureID, uint32_t width,
     glPopAttrib();
 
 }
+#endif
 
+#if 0
+void NativeCanvas2DContext::setupCommonDraw()
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+#endif
+
+void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
+    uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
+{
+    GLenum err;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );    
+
+    /* Anti Aliasing */
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+
+    //glEnable(GL_ALPHA_TEST);
+    //glAlphaFunc(GL_NOTEQUAL, 0.0f);
+
+    glDrawElements(GL_TRIANGLE_STRIP, m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
+    //glDisable(GL_ALPHA_TEST);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindVertexArray(0);
+}
+
+
+#if 0
 void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 {
     glEnable(GL_TEXTURE_2D);
@@ -1903,7 +1938,7 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
     glDisable(GL_TEXTURE_2D);
     glPopAttrib();
 }
-
+#endif
 
 uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
 {
@@ -1920,54 +1955,68 @@ uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
     return backingTarget->asTexture()->getTextureHandle();
 }
 
-/* tell skia that OpenGL state was altered (and thus restore it) */
-void NativeCanvas2DContext::resetGLContext()
+/* Ask skia to restore its GL state */
+void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->canvas->
                                         getDevice()->accessRenderTarget();
 
-    backingTarget->getContext()->resetContext(kProgram_GrGLBackendState | kTextureBinding_GrGLBackendState);
+    if (flag == 0) {
+        flag = kProgram_GrGLBackendState
+                | kTextureBinding_GrGLBackendState
+                | kVertex_GrGLBackendState
+                | kView_GrGLBackendState;
+    }
+
+    backingTarget->getContext()->resetContext(flag);
 }
 
 uint32_t NativeCanvas2DContext::attachShader(const char *string)
 {
-    if ((gl.program = this->createProgram(string))) {
-        shader.uniformOpacity = glGetUniformLocation(gl.program,
-                                    "n_Opacity");
-        shader.uniformResolution = glGetUniformLocation(gl.program,
+    if ((m_GLObjects.program = this->createProgram(string))) {
+        this->setupUniforms();
+
+        m_GL.shader.uniformResolution = glGetUniformLocation(m_GLObjects.program,
                                     "n_Resolution");
-        shader.uniformPosition = glGetUniformLocation(gl.program,
+        m_GL.shader.uniformPosition = glGetUniformLocation(m_GLObjects.program,
                                     "n_Position");
-        shader.uniformPadding = glGetUniformLocation(gl.program,
-                                    "n_Padding");
+        m_GL.shader.uniformPadding = glGetUniformLocation(m_GLObjects.program,
+                                    "n_Padding");        
     }
 
-    return gl.program;
+    return m_GLObjects.program;
 }
 
 void NativeCanvas2DContext::detachShader()
 {
     /* TODO : shaders must be deleted */
-    glDeleteProgram(gl.program);
-    gl.program = 0;
+    glDeleteProgram(m_GLObjects.program);
+    m_GLObjects.program = 0;
 }
 
 void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
-    uint32_t program = getProgram();
+    uint32_t program = this->getProgram();
     glUseProgram(program);
+
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
-        if (shader.uniformOpacity != -1) {
-            glUniform1f(shader.uniformOpacity, opacity);
+        if (m_GLObjects.uniforms.u_opacity != -1) {
+            glUniform1f(m_GLObjects.uniforms.u_opacity, opacity);
         }
+
         float padding = this->getHandler()->padding.global * ratio;
-        glUniform2f(shader.uniformResolution, (width)-(padding*2), (height)-(padding*2));
-        glUniform2f(shader.uniformPosition, ratio*left, ratio*wHeight - (height+ratio*top));
-        glUniform1f(shader.uniformPadding, padding);
+
+        if (m_GL.shader.uniformResolution != -1)
+            glUniform2f(m_GL.shader.uniformResolution, (width)-(padding*2), (height)-(padding*2));
+        if (m_GL.shader.uniformPosition != -1)
+            glUniform2f(m_GL.shader.uniformPosition, ratio*left, ratio*wHeight - (height+ratio*top));
+        if (m_GL.shader.uniformPadding != -1)
+            glUniform1f(m_GL.shader.uniformPadding, padding);
     }
+
 }
 
 void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
@@ -1979,6 +2028,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     NativeSkia *skia = layer->getSurface();
+    SkISize layerSize = skia->canvas->getDeviceSize();
 
     if (rclip != NULL) {
         SkRect r;
@@ -1986,80 +2036,61 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             SkDoubleToScalar(rclip->fTop*(double)ratio),
             SkDoubleToScalar(rclip->fRight*(double)ratio),
             SkDoubleToScalar(rclip->fBottom*(double)ratio));
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height());
+    } else {
+        glDisable(GL_SCISSOR_TEST);
+    }
+    /* TODO: disable alpha testing? */
+    if (this->hasShader()) {
+        int width, height;
 
-        skia->canvas->save(SkCanvas::kClip_SaveFlag);
+        /* TODO: /!\ Skia context is dirty here, is that a problem? */
+        this->flush();
 
-        skia->canvas->clipRect(r);
+        /* get the layer's Texture ID */
+        uint32_t textureID = this->getSkiaTextureID(&width, &height);
+        /* Use our custom shader */
+        this->resetGLContext();
 
-        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-        skia->canvas->drawBitmap(this->getSurface()->canvas->getDevice()->accessBitmap(false),
-            left*ratio, top*ratio, &pt);
-        /* TODO : save/restore */
-        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
+        this->setupShader((float)opacity, width, height,
+            left, top,
+            (int)layer->getHandler()->getWidth(),
+            (int)layer->getHandler()->getHeight());
 
-        skia->canvas->restore();
-        skia->canvas->flush();
+        //glDisable(GL_ALPHA_TEST);
+        
+        this->updateMatrix(left*ratio, top*ratio, layerSize.width(), layerSize.height());
+
+        /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
+        layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
+
+        /* Reset skia GL context */
+        this->resetSkiaContext();
     } else {
         const SkBitmap &bitmapLayer = this->getSurface()->canvas->getDevice()->accessBitmap(false);
-        /* TODO: disable alpha testing? */
-        if (this->hasShader()) {
-            skia->canvas->flush();
-            this->getSurface()->canvas->flush();
-            int width, height;
 
-            /* get the layer's Texture ID */
-            uint32_t textureID = this->getSkiaTextureID(&width, &height);
-#if 0
-            /* Use our custom shader */
-            glUseProgram(0);
-
-            /* draw layer into a temporary FBO (in layer->gl.fbo/.texture) */
-            layer->drawTexToFBO(textureID);
-#endif
-            /* Use our custom shader */
-
-            this->setupShader((float)opacity, width, height,
-                left, top,
-                (int)layer->getHandler()->getWidth(),
-                (int)layer->getHandler()->getHeight());
-
-            //glDisable(GL_ALPHA_TEST);
-            /* draw layer->skia->canvas (textureID) in skia->canvas (getMainFBO) */
-            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-
-            /* Reset skia GL context */
-            this->resetGLContext();
-
-            return;
-
-            /* Draw the temporary FBO into main canvas (root) */
-            // /bitmapLayer = layer->gl.copy->getDevice()->accessBitmap(false);
-        }
-
-        if (this->commonDraw) {
-            skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-            skia->canvas->drawBitmap(bitmapLayer,
-                left*ratio, top*ratio, &pt);
-            skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));
-            skia->canvas->flush();
-        } else {
-            int width, height;
-            skia->canvas->flush();
-            this->getSurface()->canvas->flush();
-            /* get the layer's Texture ID */
-            uint32_t textureID = this->getSkiaTextureID(&width, &height);
-            //printf("Texture size : %dx%d (%d)\n", width, height, textureID);
-            glUseProgram(0);
-            layer->drawTexIDToFBO(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-            this->resetGLContext();            
-        }
+        this->resetSkiaContext();
+        layer->flush();
+        this->flush();
+        skia->canvas->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
+        skia->canvas->drawBitmap(bitmapLayer,
+            left*ratio, top*ratio, &pt);
+        skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));        
     }
-    
 }
 
 void NativeCanvas2DContext::flush()
 {
     m_Skia->canvas->flush();
+}
+
+void NativeCanvas2DContext::getSize(int *width, int *height) const
+{
+    SkISize size = this->m_Skia->canvas->getDeviceSize();
+
+    *width = size.width();
+    *height = size.height();
 }
 
 void NativeCanvas2DContext::setSize(int width, int height)
@@ -2072,7 +2103,11 @@ void NativeCanvas2DContext::setSize(int width, int height)
     const SkBitmap &bt = m_Skia->canvas->getDevice()->accessBitmap(false);
 
     if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
-        ncanvas = NativeSkia::createGLCanvas(width, height);
+        if ((ncanvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+            NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
+            return;
+        }
+
         NativeSkia::glcontext = ncanvas;
     } else {
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
@@ -2085,7 +2120,7 @@ void NativeCanvas2DContext::setSize(int width, int height)
 
         ncanvas = new SkCanvas(ndev);
     }
-    
+
     ncanvas->drawBitmap(bt, 0, 0);
     //ncanvas->clipRegion(skia->canvas->getTotalClip());
     ncanvas->setMatrix(m_Skia->canvas->getTotalMatrix());
@@ -2103,7 +2138,8 @@ void NativeCanvas2DContext::translate(double x, double y)
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height) :
-    setterDisabled(false), commonDraw(true), handler(handler)
+    NativeCanvasContext(handler),
+    setterDisabled(false)
 {
     m_Mode = CONTEXT_2D;
 
@@ -2116,34 +2152,46 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     JS_SetReservedSlot(jsobj, 0, OBJECT_TO_JSVAL(saved));
 
     m_Skia = new NativeSkia();
-    m_Skia->bindOnScreen(width, height);
+    if (!m_Skia->bindOnScreen(width, height)) {
+        delete m_Skia;
+        m_Skia = NULL;
+        return;
+    }
 
     JS_SetPrivate(jsobj, this);
 
-    memset(&this->gl, 0, sizeof(this->gl));
-    memset(&this->shader, 0, sizeof(this->shader));
-    uint32_t glBuffers[2];
+    memset(&this->m_GL, 0, sizeof(this->m_GL));
+    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
 
-    glGenBuffers(2, glBuffers);
-
-    gl.vertexBuffer = glBuffers[0];
-    gl.indexBuffer  = glBuffers[1];
+    /* Vertex buffers were unbound by parent constructor */
+    this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int width, int height, bool isGL) :
-    commonDraw(true), handler(handler)
+    NativeCanvasContext(handler)
 {
     m_Mode = CONTEXT_2D;
     
     m_Skia = new NativeSkia();
+    int state;
+
     if (isGL) {
-        m_Skia->bindGL(width, height);
+        state = m_Skia->bindGL(width, height);
     } else {
-        m_Skia->bindOnScreen(width, height);
+        state = m_Skia->bindOnScreen(width, height);
     }
-    memset(&this->gl, 0, sizeof(this->gl));
-    memset(&this->shader, 0, sizeof(this->shader));
+
+    if (!state) {
+        NLOG("Failed to create canvas");
+        delete m_Skia;
+        m_Skia = NULL;
+        return;
+    }
+    memset(&this->m_GL, 0, sizeof(this->m_GL));
+    memset(&this->m_GL.shader, -1, sizeof(this->m_GL.shader));
+    /* Vertex buffers were unbound by parent constructor */
+    this->resetSkiaContext(kVertex_GrGLBackendState);
 }
 
 void NativeCanvas2DContext::setScale(double x, double y,
@@ -2156,15 +2204,6 @@ void NativeCanvas2DContext::setScale(double x, double y,
 
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
-    if (gl.fbo) {
-        glDeleteFramebuffers(1, &gl.fbo);
-    }
-    if (gl.texture) {
-        glDeleteTextures(1, &gl.texture);
-    }
-    if (gl.program) {
-        glDeleteProgram(gl.program);
-    }
     //NLOG("Delete skia %p", skia);
     delete m_Skia;
 }
