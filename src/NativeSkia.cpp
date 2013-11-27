@@ -1530,7 +1530,7 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     SkPaint pt;
     SkRect r;
 
-    uint32_t *PMPixels = (uint32_t *)alloca(width * height * 4);
+    uint32_t *PMPixels = (uint32_t *)malloc(width * height * 4);
     bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
 
     SkConvertConfig8888Pixels(PMPixels, width*4,
@@ -1548,6 +1548,8 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
         canvas->drawColor(SK_ColorWHITE);
         canvas->drawBitmap(bt, x, y, &pt);
     canvas->restore();
+
+    free(PMPixels);
 }
 
 int NativeSkia::readPixels(int top, int left, int width, int height,
