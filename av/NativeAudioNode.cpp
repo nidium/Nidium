@@ -5,6 +5,7 @@
 #include "NativeAudioNode.h"
 #include "zita-resampler/resampler.h"
 #include "NativeSharedMessages.h"
+#include "NativeUtils.h"
 #include "Coro.h"
 extern "C" {
 #include "libavcodec/avcodec.h"
