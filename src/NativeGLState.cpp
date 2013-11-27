@@ -12,11 +12,11 @@
 #endif
 
 
-NativeGLState::NativeGLState(bool withProgram)
+NativeGLState::NativeGLState(bool withProgram) :
+    m_Shared(true)
 {
     memset(&this->m_GLObjects, 0, sizeof(this->m_GLObjects));
     memset(&this->m_GLObjects.uniforms, -1, sizeof(this->m_GLObjects.uniforms));
-    m_Shared = true;
 
     this->initGLBase(withProgram);
 }

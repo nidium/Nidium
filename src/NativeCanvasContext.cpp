@@ -243,6 +243,7 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
 NativeCanvasContext::~NativeCanvasContext()
 {
     m_GLState->destroy();
+    m_GLState = NULL;
 }
 
 static void dump_Matrix(float *matrix)

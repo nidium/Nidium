@@ -246,8 +246,8 @@ NativeContext::~NativeContext()
     NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(this->getNJS());
     jswindow->callFrameCallbacks(0, true);
 
-    delete m_GLState;
     delete njs;
+    delete m_GLState;
 
     NativeSkia::glcontext = NULL;
 
