@@ -2027,8 +2027,11 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     double left, double top, double opacity,
     double zoom, const NativeRect *rclip)
 {
+    bool revertScissor = false;
+
     SkPaint pt;
     pt.setAlpha(opacity * (double)255.);
+    
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     NativeSkia *skia = layer->getSurface();
@@ -2042,9 +2045,9 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             SkDoubleToScalar(rclip->fBottom*(double)ratio));
         glEnable(GL_SCISSOR_TEST);
         glScissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height());
-    } else {
-        //glDisable(GL_SCISSOR_TEST);
+        revertScissor = true;
     }
+
     /* TODO: disable alpha testing? */
     if (this->hasShader()) {
         int width, height;
@@ -2081,6 +2084,10 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         skia->canvas->drawBitmap(bitmapLayer,
             left*ratio, top*ratio, &pt);
         skia->canvas->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));        
+    }
+
+    if (revertScissor) {
+        glDisable(GL_SCISSOR_TEST);
     }
 }
 
