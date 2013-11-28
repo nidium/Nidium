@@ -82,27 +82,28 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     tag.content.len = len;
     tag.content.isBinary = false;
 
-    switch(item->fileType) {
-        case NativeAssets::Item::ITEM_SCRIPT:
-        {
-            size_t len = 0;
-            const unsigned char *data = item->get(&len);
-            njs->LoadScriptContent((const char *)data, len, item->getName());
+    if (data != NULL) {
 
-            break;
-        }
-        case NativeAssets::Item::ITEM_NSS:
-        {
-            NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(njs->cx);
-            if (jdoc == NULL) {
-                return;
+        switch(item->fileType) {
+            case NativeAssets::Item::ITEM_SCRIPT:
+            {
+                njs->LoadScriptContent((const char *)data, len, item->getName());
+
+                break;
             }
-            jdoc->populateStyle(njs->cx, (const char *)data,
-                len, item->getName());
-            break;
+            case NativeAssets::Item::ITEM_NSS:
+            {
+                NativeJSdocument *jdoc = NativeJSdocument::getNativeClass(njs->cx);
+                if (jdoc == NULL) {
+                    return;
+                }
+                jdoc->populateStyle(njs->cx, (const char *)data,
+                    len, item->getName());
+                break;
+            }
+            default:
+                break;
         }
-        default:
-            break;
     }
     /* TODO: allow the callback to change content ? */
 

@@ -68,9 +68,13 @@ static int NativeAssets_pendingListUpdate(void *arg)
 void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
     this->state = ITEM_LOADED;
 
-    this->data.data = (unsigned char *)malloc(len);
-    memcpy(this->data.data, data, len);
-    this->data.len  = len;           
+    if (len) {
+        this->data.data = (unsigned char *)malloc(len);
+        memcpy(this->data.data, data, len);
+    } else {
+        this->data.data = NULL;
+    }
+    this->data.len  = len;
     if (assets) {
         if (async) {
             ape_global *ape = this->net;
