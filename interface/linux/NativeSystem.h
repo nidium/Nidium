@@ -10,7 +10,7 @@ class NativeSystem : public NativeSystemInterface
         ~NativeSystem(){};
         float backingStorePixelRatio();     
         const char *getCacheDirectory();
-        void alert(const char *message, AlertType type = ALERT_INFO) {};
+        void alert(const char *message, AlertType type = ALERT_INFO);
 };
 
 #endif

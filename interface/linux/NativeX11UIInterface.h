@@ -50,6 +50,7 @@ class NativeX11UIInterface : public NativeUIInterface
         void vlog(const char *buf, va_list ap);
         void log(const char *buf);
         void logf(const char *format, ...);
+        void alert(const char *msg) {}
         /*
         struct {
             CGRect closeFrame;

@@ -304,10 +304,6 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             return false;
         }
 
-#ifdef NATIVE_USE_GTK
-        gtk_init(0, NULL);
-#endif
-
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
