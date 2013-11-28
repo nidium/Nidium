@@ -623,7 +623,9 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
         dataBuffer.alreadyRead = false;
         if (dataBuffer.back != NULL) {
             dataBuffer.back->used = 0;
-            buffer_append_data(dataBuffer.back, data, len);
+            if (data != NULL) {
+                buffer_append_data(dataBuffer.back, data, len);
+            }
         }
         if (needToSendUpdate) {
             needToSendUpdate = false;

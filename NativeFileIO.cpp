@@ -87,7 +87,6 @@ static int Native_handle_file_messages(void *arg)
             case NATIVE_FILEREAD_MESSAGE:
                 nfileio->getDelegate()->onNFIORead(nfileio,
                     (unsigned char *)msg.dataPtr(), nfileio->action.u64);
-
                 delete[] (unsigned char *)msg.dataPtr();
                 break;
             case NATIVE_FILEWRITE_MESSAGE:
@@ -115,18 +114,26 @@ void NativeFileIO::writeAction(unsigned char *data, uint64_t len)
 
 void NativeFileIO::readAction(uint64_t len)
 {
+    if (this->fd == NULL) {
+        return;
+    }
+
     uint64_t clamped_len;
     clamped_len = native_min(filesize, len);
 
-    if (this->fd == NULL) {
-        return;
+    if (clamped_len == 0) {
+        action.u64 = 0;
+
+        if (!action.stop) {
+            messages->postMessage((void *)NULL, NATIVE_FILEREAD_MESSAGE);
+            return;
+        }
     }
 
     unsigned char *data = new unsigned char[clamped_len + 1];
     size_t readsize = 0;
 
     if ((readsize = fread(data, sizeof(char), clamped_len, fd)) < 1) {
-
         checkRead();
 
         delete[] data;
@@ -153,6 +160,7 @@ void NativeFileIO::openAction(char *modes)
         }
         return;
     }
+
     fseek(this->fd, 0L, SEEK_END);
     this->filesize = ftell(this->fd);
     fseek(this->fd, 0L, SEEK_SET);
@@ -219,7 +227,9 @@ void NativeFileIO::seek(uint64_t pos)
     // because after a seek we expect to only read new data
     NativeSharedMessages::Message msg;
     while (messages->readMessage(&msg, NATIVE_FILEREAD_MESSAGE)) {
-        delete[] (unsigned char *)msg.dataPtr();
+        if (msg.dataPtr() != NULL) {
+            delete[] (unsigned char *)msg.dataPtr();
+        }
     }
 
     pthread_mutex_unlock(&threadMutex);  
@@ -274,7 +284,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 void NativeFileIO::checkRead()
 {
     int err = -1;
-
+    printf("Check : %s\n", this->filename);
     if (ferror(fd)) {
         err = errno;
     } else if (feof(fd)) {
@@ -288,6 +298,7 @@ void NativeFileIO::checkRead()
     }
 
     if (!action.stop && err != -1) {
+        printf("Error message?\n");
         messages->postMessage((unsigned int)err, NATIVE_FILEERROR_MESSAGE);
     }
 }
@@ -305,7 +316,7 @@ NativeFileIO::~NativeFileIO()
 
     NativeSharedMessages::Message msg;
     while (messages->readMessage(&msg)) {
-        if (msg.event() == NATIVE_FILEREAD_MESSAGE) {
+        if (msg.event() == NATIVE_FILEREAD_MESSAGE && msg.dataPtr() != NULL) {
             delete[] (unsigned char *)msg.dataPtr();
         }
     }

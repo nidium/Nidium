@@ -414,6 +414,7 @@ NativeJS::NativeJS(ape_global *net) :
         printf("Failed to init JS context\n");
         return;     
     }
+    printf("Created context : %p\n", cx);
     JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
     #ifdef NATIVE_DEBUG
@@ -510,6 +511,8 @@ NativeJS::~NativeJS()
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
     JS_BeginRequest(cx);
+    printf("Delete unprotected timers\n");
+    printf("[JS shutdown] cx : %p\n", cx);
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
     

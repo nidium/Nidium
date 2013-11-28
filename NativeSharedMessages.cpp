@@ -42,10 +42,6 @@ void NativeSharedMessages::postMessage(void *dataptr, int event)
 {
     Message *message;
 
-    if (dataptr == NULL) {
-        return;
-    }
-
     message = new Message(dataptr, event);
 
     NativePthreadAutoLock lock(&messageslist.lock);

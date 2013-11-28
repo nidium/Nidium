@@ -388,13 +388,21 @@ void NativeJSFileIO::onNFIORead(NativeFileIO *NSFIO, unsigned char *data, size_t
 
     if (NJSFIO->m_Binary) {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
-        uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-        memcpy(adata, data, len);
+        if (arrayBuffer == NULL) {
+            jdata = JSVAL_NULL;
+        } else {
+            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
+            memcpy(adata, data, len);
 
-        jdata = OBJECT_TO_JSVAL(arrayBuffer);
+            jdata = OBJECT_TO_JSVAL(arrayBuffer);
+        }
     } else {
         JSString *str = JS_NewStringCopyN(cx, (const char*)data, len);
-        jdata = STRING_TO_JSVAL(str);
+        if (str == NULL) {
+            jdata = JSVAL_NULL;
+        } else {
+            jdata = STRING_TO_JSVAL(str);
+        }
     }
 
     JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.read,
