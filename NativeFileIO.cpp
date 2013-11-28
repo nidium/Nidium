@@ -284,7 +284,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 void NativeFileIO::checkRead()
 {
     int err = -1;
-    printf("Check : %s\n", this->filename);
+
     if (ferror(fd)) {
         err = errno;
     } else if (feof(fd)) {
@@ -298,7 +298,6 @@ void NativeFileIO::checkRead()
     }
 
     if (!action.stop && err != -1) {
-        printf("Error message?\n");
         messages->postMessage((unsigned int)err, NATIVE_FILEERROR_MESSAGE);
     }
 }
