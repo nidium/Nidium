@@ -21,6 +21,7 @@
 #include "NativeFileIO.h"
 #include "NativeSharedMessages.h"
 #include <native_netlib.h>
+#include "NativeUtils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -172,45 +173,42 @@ void NativeFileIO::openAction(char *modes)
 
 void NativeFileIO::open(const char *modes)
 {
-    pthread_mutex_lock(&threadMutex);
+    NativePthreadAutoLock npal(&threadMutex);
+
     if (action.active) {
-        pthread_mutex_unlock(&threadMutex);
         return;
     }
     action.active = true;
     action.type = FILE_ACTION_OPEN;
     action.ptr  = strdup(modes);
     pthread_cond_signal(&threadCond);
-    pthread_mutex_unlock(&threadMutex);
 }
 
 void NativeFileIO::read(uint64_t len)
 {
-    pthread_mutex_lock(&threadMutex);
+    NativePthreadAutoLock npal(&threadMutex);
+
     if (action.active) {
-        pthread_mutex_unlock(&threadMutex);
         return;
     }
     action.active = true;
     action.type = FILE_ACTION_READ;
     action.u64  = len;
-    pthread_cond_signal(&threadCond);
-    pthread_mutex_unlock(&threadMutex);    
+    pthread_cond_signal(&threadCond);  
 }
 
 void NativeFileIO::write(unsigned char *data, uint64_t len)
 {
-    pthread_mutex_lock(&threadMutex);
+    NativePthreadAutoLock npal(&threadMutex);
+
     if (action.active) {
-        pthread_mutex_unlock(&threadMutex);
         return;
     }
     action.active = true;
     action.type = FILE_ACTION_WRITE;
     action.ptr  = data;
     action.u64  = len;
-    pthread_cond_signal(&threadCond);
-    pthread_mutex_unlock(&threadMutex);    
+    pthread_cond_signal(&threadCond); 
 }
 
 void NativeFileIO::seek(uint64_t pos)
@@ -219,7 +217,7 @@ void NativeFileIO::seek(uint64_t pos)
         return;
     }
 
-    pthread_mutex_lock(&threadMutex);
+    NativePthreadAutoLock npal(&threadMutex);
 
     fseek(fd, pos, SEEK_SET);
 
@@ -231,8 +229,6 @@ void NativeFileIO::seek(uint64_t pos)
             delete[] (unsigned char *)msg.dataPtr();
         }
     }
-
-    pthread_mutex_unlock(&threadMutex);  
 }
 
 void NativeFileIO::close()
@@ -240,10 +236,9 @@ void NativeFileIO::close()
     if (!fd) {
         return;
     }
-    pthread_mutex_lock(&threadMutex);
+    NativePthreadAutoLock npal(&threadMutex);
     fclose(fd);
     fd = NULL;
-    pthread_mutex_unlock(&threadMutex);
 }
 
 
