@@ -1,4 +1,4 @@
 [submodule "nativejscore"]
 	path = nativejscore
-	url = https://github.com/SwelenFrance/NativeJSCore.git
+	url = https://github.com/nidium/NativeJSCore.git
 	branch = master
