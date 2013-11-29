@@ -238,6 +238,11 @@ NativeContext::~NativeContext()
 {
     JS_RemoveValueRoot(njs->cx, &gfunc);
 
+    if (debugHandler != NULL) {
+        delete debugHandler->getContext();
+        delete debugHandler;
+    }
+
     if (rootHandler != NULL) {
         delete rootHandler->getContext();
         delete rootHandler;
