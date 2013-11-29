@@ -69,7 +69,7 @@ class NativeAssets
                 void onGetContent(const char *data, size_t len);
                 void onAvailableData(size_t len) {};
                 void onProgress(size_t buffered, size_t len) {};
-                void onError(NativeStream::StreamError err){};
+                void onError(NativeStream::StreamError err);
                 NativeAssets *assets;
                 char *name;
                 char *tagname;

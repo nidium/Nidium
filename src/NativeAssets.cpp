@@ -85,6 +85,17 @@ void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
     }
 }
 
+void NativeAssets::Item::onError(NativeStream::StreamError err)
+{
+    switch (err) {
+        case NativeStream::STREAM_ERROR_OPEN:
+            this->setContent(NULL, 0);
+            break;
+        default:
+            break;
+    }
+}
+
 void NativeAssets::Item::onGetContent(const char *data, size_t len)
 {
     this->setContent(data, len);
