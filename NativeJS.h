@@ -31,7 +31,8 @@
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
     NATIVE_KEY_ALT = 1 << 1,
-    NATIVE_KEY_CTRL = 1 << 2
+    NATIVE_KEY_CTRL = 1 << 2,
+    NATIVE_KEY_META = 1 << 3
 };
 
 struct native_thread_msg
