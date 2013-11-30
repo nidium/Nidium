@@ -201,7 +201,7 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
    
 }
 
-void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat)
+void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int location)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -214,6 +214,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat)
     event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
+    EVENT_PROP("location", INT_TO_JSVAL(location));
     EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
     EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
     EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));

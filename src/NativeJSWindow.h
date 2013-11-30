@@ -26,7 +26,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void mouseMove(int x, int y, int xrel, int yrel);
     void mouseClick(int x, int y, int state, int button);
     void textInput(const char *data);
-    void keyupdown(int keycode, int mod, int state, int repeat);
+    void keyupdown(int keycode, int mod, int state, int repeat, int location);
     void addFrameCallback(jsval &cb);
     void callFrameCallbacks(double ts, bool garbage = false);
 
