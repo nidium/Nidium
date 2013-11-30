@@ -1,6 +1,0 @@
-<application version="1.0">
-	<assets>
-		<script type="native/javascript" src="private://falcon/native.js"></script>
-		<script type="native/javascript" src="components/shader.basic.js"></script>
-	</assets>
-</application>
