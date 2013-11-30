@@ -218,6 +218,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
     EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
     EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
     EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
+    EVENT_PROP("metaKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_META)));
     EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
 
     jevent = OBJECT_TO_JSVAL(event);

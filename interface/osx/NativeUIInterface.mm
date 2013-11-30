@@ -176,6 +176,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (event.key.keysym.mod & KMOD_CTRL) {
                         mod |= NATIVE_KEY_CTRL;
                     }
+                    if (event.key.keysym.mod & KMOD_GUI) {
+                        mod |= NATIVE_KEY_META;
+                    }
                     if (window) {
                         window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
                             event.key.state, event.key.repeat,
