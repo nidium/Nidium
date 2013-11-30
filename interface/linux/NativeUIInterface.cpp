@@ -1,4 +1,3 @@
-
 #include "NativeX11UIInterface.h"
 #include <NativeJS.h>
 #include <NativeSkia.h>
@@ -28,6 +27,8 @@
 #include <X11/cursorfont.h>
 
 #include <unistd.h>
+
+#import "SDL_keycode_translate.h"
 
 #define kNativeWidth 1280
 #define kNativeHeight 600
@@ -145,7 +146,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
                         keyCode = event.key.keysym.sym - 32;
                     } else {
-                        keyCode = event.key.keysym.sym;
+                        keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
                     }
                     
                     if (event.key.keysym.mod & KMOD_SHIFT) {
@@ -159,7 +160,9 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     }
                     
                     if (window) {
-                        window->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
+                        window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
+                            event.key.state, event.key.repeat,
+                            SDL_KEYCODE_GET_LOCATION(keyCode));
                     }
                     /*printf("Mapped to %d\n", keyCode);
                     printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
