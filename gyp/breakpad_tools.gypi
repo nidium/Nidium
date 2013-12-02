@@ -14,10 +14,6 @@
                     'ldflags!': ['-m32'],
                     'cflags': ['-O2'],
                     'include_dirs!': ['/usr/include32'],
-                    'conditions': [
-                        ['target_arch=="ia32" and sysroot!=""', {
-                            'cflags!': ['--sysroot=<(sysroot)'],
-                        }],
                     ],
                 }],
             ],
