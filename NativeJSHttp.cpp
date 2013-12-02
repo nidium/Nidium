@@ -62,7 +62,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *ret = JS_NewObjectForConstructor(cx, &Http_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
-        return true;
+        return false;
     }
 
     JSAutoByteString curl(cx, url);
@@ -114,11 +114,11 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
     if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &options)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
-        return JS_TRUE;
+        return false;
     }
 
     if ((nhttp = (NativeHTTP *)JS_GetPrivate(caller)) == NULL) {

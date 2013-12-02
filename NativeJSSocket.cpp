@@ -406,7 +406,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Su",
         &host, &port)) {
-        return JS_TRUE;
+        return false;
     }
 
     nsocket = new NativeJSSocket(JS_EncodeString(cx, host), port);
@@ -529,7 +529,7 @@ static JSBool native_socket_client_write(JSContext *cx,
     }
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString cdata(cx, data);
@@ -554,7 +554,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 
     if (nsocket == NULL || !nsocket->isAttached() ||
         !JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
-        return JS_TRUE;
+        return false;
     }
     /* TODO array buffer */
     /* TODO: Use APE_DATA_AUTORELEASE and specicy a free func (JS_free)) */

@@ -106,7 +106,7 @@ static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &pos)) {
-        return true;
+        return false;
     }
 
     ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->seek(pos);
@@ -189,7 +189,7 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &url)) {
-        return true;
+        return false;
     }
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Stream_class, vp));

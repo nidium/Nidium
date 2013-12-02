@@ -595,7 +595,7 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
     JSString *name = NULL;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString namestr(cx, name);

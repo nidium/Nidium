@@ -294,7 +294,7 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
     unsigned lineno;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S", &script, &type)) {
-        return JS_TRUE;
+        return false;
     }
 
     JS_DescribeScriptedCaller(cx, &parent, &lineno);
@@ -1043,7 +1043,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
         free(params->argv);
         free(params);
-        return JS_TRUE;
+        return false;
     }
 
     JS_AddValueRoot(cx, &params->func);
@@ -1094,7 +1094,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
         free(params->argv);
         free(params);
-        return JS_TRUE;
+        return false;
     }
 
     params->ms = native_max(8, ms);
@@ -1122,7 +1122,7 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
     unsigned int identifier;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &identifier)) {
-        return JS_TRUE;
+        return false;
     }
 
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,

@@ -212,7 +212,7 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &read_size)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
@@ -248,7 +248,7 @@ static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &seek_pos)) {
-        return JS_TRUE;
+        return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
@@ -313,11 +313,11 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &modes)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
-        return JS_TRUE;
+        return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
