@@ -510,7 +510,6 @@ NativeJS::~NativeJS()
 
     ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
 
-    JS_BeginRequest(cx);
     printf("Delete unprotected timers\n");
     printf("[JS shutdown] cx : %p\n", cx);
     /* clear all non protected timers */
