@@ -894,6 +894,30 @@ int NativeJS::LoadScript(const char *filename)
     return 1;
 }
 
+int NativeJS::LoadBytecode(NativeBytecodeScript *script)
+{
+    return this->LoadBytecode((void *)script->data, script->size, script->name);
+}
+
+int NativeJS::LoadBytecode(void *data, int size, const char *filename)
+{
+    uint32_t oldopts;
+    JSObject *gbl = JS_GetGlobalObject(cx);
+    js::RootedObject rgbl(cx, gbl);
+
+    JSScript *script = JS_DecodeScript(cx, data, size, NULL, NULL);
+
+    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
+        return 0;
+    }
+    return 1;
+}
+
 void NativeJS::loadGlobalObjects()
 {
     /* File() object */

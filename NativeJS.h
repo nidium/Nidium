@@ -52,6 +52,12 @@ struct _ape_htable;
 typedef struct _ape_global ape_global;
 typedef void (*native_thread_message_t)(JSContext *cx, NativeSharedMessages::Message *msg);
 
+typedef struct _NativeBytecodeScript {
+    const char *name;
+    int size;
+    const unsigned char *data;
+} NativeBytecodeScript;
+
 class NativeJS
 {
     public:
@@ -109,6 +115,8 @@ class NativeJS
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
         int LoadScript(const char *filename);
+        int LoadBytecode(NativeBytecodeScript *script);
+        int LoadBytecode(void *data, int size, const char *filename);
 
         void rootObjectUntilShutdown(JSObject *obj);
         void unrootObject(JSObject *obj);
