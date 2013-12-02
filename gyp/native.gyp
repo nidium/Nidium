@@ -15,15 +15,28 @@
             '-Wno-c++0x-extensions',
             '-Wno-invalid-offsetof'
         ],
-        'link_settings': {
-            'libraries': [
-                '-lpthread',
-                '-lz',
-                '-ldl',
-                '-ljs_static',
-                '-lnspr4',
-            ]
-        },
+        'conditions': [
+            ['OS=="linux"', {
+                'link_settings': {
+                    'libraries': [
+                        '-lpthread',
+                        '-lz',
+                        '-ldl',
+                        '-ljs_static',
+                        '-lnspr4',
+                    ]
+                },
+            }],
+            ['OS=="mac"', {
+                'link_settings': {
+                    'libraries': [
+                        'libjs_static.a',
+                        '/usr/lib/libz.dylib',
+                        'libnspr4.a'
+                    ]
+                },
+            }]
+        ],
         'sources': [
             '<(native_src_path)/tools/js2bytecode.cpp',
         ],
