@@ -34,7 +34,8 @@
                     '-fno-exceptions',
                     '-DTRIMMED',
                     '-freorder-blocks',
-                    '-fomit-frame-pointer'
+                    '-fomit-frame-pointer',
+                    '-Wno-invalid-offsetof'
                 ],
                 'link_settings': {
                     'libraries': [

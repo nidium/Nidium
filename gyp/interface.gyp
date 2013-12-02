@@ -44,6 +44,10 @@
                 'include_dirs': [
                     '<(native_interface_path)/linux/',
                 ],
+                'cflags': [
+                    '-Wno-c++0x-extensions',
+                    '-Wno-invalid-offsetof'
+                ],
                 'conditions': [
                     ['native_use_gtk==1', {
                         'defines': ['NATIVE_USE_GTK'],

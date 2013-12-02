@@ -11,7 +11,6 @@
             '<(native_nativejscore_path)/',
         ],
         'cflags': [
-            '-std=c++11',
             '-Wno-c++0x-extensions',
             '-Wno-invalid-offsetof'
         ],
@@ -151,7 +150,6 @@
                     '-fvisibility=hidden',
                     '-fvisibility-inlines-hidden',
                     '-Wno-c++0x-extensions',
-                    '-Wno-unused-function',
                     '-Wno-invalid-offsetof'
                 ],
             }],
