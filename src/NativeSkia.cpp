@@ -354,7 +354,7 @@ int NativeSkia::bindOnScreen(int width, int height)
     m_Canvas = new SkCanvas(dev);
     this->scale(ratio, ratio);
 
-    SkSafeUnref(dev);
+    dev->unref();
 
     globalAlpha = 255;
     currentPath = NULL;
@@ -432,7 +432,8 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     SkCanvas *ret;
     ret = new SkCanvas(dev);
 
-    SkSafeUnref(dev);
+    dev->unref();
+    context->unref();
 
     ret->clear(0xFFFFFFFF);
 
@@ -460,6 +461,9 @@ int NativeSkia::bindGL(int width, int height)
 
     initPaints();
     m_Canvas->clear(0xFFFFFFFF);
+
+    NLOG("Create bindGL at %p", this);
+    m_Debug = true;
 
     return 1;
 }
@@ -497,9 +501,9 @@ void NativeSkia::drawRect(double x, double y, double width,
 }
 
 NativeSkia::NativeSkia() :
-    m_Canvas(NULL), context(NULL),
+    m_Canvas(NULL),
     native_canvas_bind_mode(NativeSkia::BIND_NO),
-    state(NULL), paint_system(NULL), currentPath(NULL)
+    state(NULL), paint_system(NULL), currentPath(NULL), m_Debug(false)
 {
 
 }
@@ -524,7 +528,6 @@ NativeSkia::~NativeSkia()
     if (currentPath) delete currentPath;
 
     SkSafeUnref(m_Canvas);
-    SkSafeUnref(context);
 }
 
 /* TODO: check if there is a best way to do this;
@@ -1518,10 +1521,6 @@ void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
 }
 #endif
 
-void NativeSkia::resetGLContext()
-{
-    context->resetContext();
-}
 
 void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     int x, int y)

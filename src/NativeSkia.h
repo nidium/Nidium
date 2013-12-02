@@ -61,7 +61,6 @@ class NativeSkia
 
         SkPaint *paint_system;
         SkPath *currentPath;
-        GrContext *context;
 
         uint8_t globalAlpha;
         uint8_t asComposite;
@@ -73,6 +72,8 @@ class NativeSkia
 
         void initPaints();
         void addPath(const SkPath& path, SkPath *to);
+
+        bool m_Debug;
         
     public:
         enum BindMode {
@@ -103,7 +104,6 @@ class NativeSkia
         int bindOnScreen(int width, int height);
         static SkCanvas *createGLCanvas(int width, int height);
         int bindGL(int width, int height);
-        void resetGLContext();
         void flush();
         void unlink();
         /* Basics */
