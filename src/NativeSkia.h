@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include "NativeCanvasHandler.h"
 
-
 class SkCanvas;
 class SkPaint;
 class SkPath;
@@ -70,6 +69,8 @@ class NativeSkia
         NativeShadow_t currentShadow;
         NativeShadowLooper *buildShadow();
 
+        SkCanvas *m_Canvas;
+
         void initPaints();
         void addPath(const SkPath& path, SkPath *to);
         
@@ -86,7 +87,15 @@ class NativeSkia
 
         static SkCanvas *glcontext;
 
-        SkCanvas *canvas;
+        SkCanvas *getCanvas() const {
+            return m_Canvas;
+        }
+
+        /*
+            Assign canvas (hold a ref and unref existing value)
+        */
+        void setCanvas(SkCanvas *canvas);
+
         ~NativeSkia();
         NativeSkia();
         double breakText(const char *str, size_t len,

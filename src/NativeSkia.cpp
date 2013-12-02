@@ -178,12 +178,12 @@ static inline double calcHue(double temp1, double temp2, double hueVal) {
 
 int NativeSkia::getWidth()
 {
-    return canvas->getDeviceSize().fWidth;
+    return m_Canvas->getDeviceSize().fWidth;
 }
 
 int NativeSkia::getHeight()
 {
-    return canvas->getDeviceSize().fHeight;
+    return m_Canvas->getDeviceSize().fHeight;
 }
 
 #if 0
@@ -351,7 +351,7 @@ int NativeSkia::bindOnScreen(int width, int height)
     if (dev == NULL) {
         return 0;
     }
-    canvas = new SkCanvas(dev);
+    m_Canvas = new SkCanvas(dev);
     this->scale(ratio, ratio);
 
     SkSafeUnref(dev);
@@ -366,7 +366,7 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     this->setSmooth(true);
 
-    canvas->clear(0x00000000);
+    m_Canvas->clear(0x00000000);
 
     this->native_canvas_bind_mode = NativeSkia::BIND_ONSCREEN;
 
@@ -440,12 +440,12 @@ int NativeSkia::bindGL(int width, int height)
 {
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
-    if ((canvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+    if ((m_Canvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
         return 0;
     }
 
     if (NativeSkia::glcontext == NULL) {
-        NativeSkia::glcontext = canvas;
+        NativeSkia::glcontext = m_Canvas;
     }
 
     globalAlpha = 255;
@@ -455,7 +455,7 @@ int NativeSkia::bindGL(int width, int height)
     state->next = NULL;
 
     initPaints();
-    canvas->clear(0xFFFFFFFF);
+    m_Canvas->clear(0xFFFFFFFF);
 
     return 1;
 }
@@ -468,7 +468,7 @@ void NativeSkia::drawRect(double x, double y, double width,
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
-    canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
+    m_Canvas->drawRect(r, (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
 
@@ -476,7 +476,7 @@ void NativeSkia::drawRect(double x, double y, double width,
 
 void NativeSkia::drawLine(double x1, double y1, double x2, double y2)
 {
-    canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
+    m_Canvas->drawLine(SkDoubleToScalar(x1), SkDoubleToScalar(y1),
         SkDoubleToScalar(x2), SkDoubleToScalar(y2), *PAINT_STROKE);
 }
 
@@ -488,12 +488,12 @@ void NativeSkia::drawRect(double x, double y, double width,
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
-    canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
+    m_Canvas->drawRoundRect(r, SkDoubleToScalar(rx), SkDoubleToScalar(ry),
         (stroke ? *PAINT_STROKE : *PAINT));
 }
 
 NativeSkia::NativeSkia() :
-    canvas(NULL), context(NULL),
+    m_Canvas(NULL), context(NULL),
     native_canvas_bind_mode(NativeSkia::BIND_NO),
     state(NULL), paint_system(NULL), currentPath(NULL)
 {
@@ -504,8 +504,8 @@ NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
 
-    if (canvas != NULL) {
-        canvas->flush();
+    if (m_Canvas != NULL) {
+        m_Canvas->flush();
     }
     while (nstate) {
         struct _nativeState *tmp = nstate->next;
@@ -519,7 +519,7 @@ NativeSkia::~NativeSkia()
     if (paint_system) delete paint_system;
     if (currentPath) delete currentPath;
 
-    SkSafeUnref(canvas);
+    SkSafeUnref(m_Canvas);
     SkSafeUnref(context);
 }
 
@@ -545,7 +545,7 @@ void NativeSkia::clearRect(double x, double y, double width, double height)
     clearPaint.setARGB(0,0,0,0);
     clearPaint.setXfermodeMode(SkXfermode::kClear_Mode);
 
-    canvas->drawRect(r, clearPaint);
+    m_Canvas->drawRect(r, clearPaint);
 
     CANVAS_FLUSH();
 
@@ -599,7 +599,7 @@ void NativeSkia::drawText(const char *text, int x, int y)
             break;
     }
 
-    canvas->drawText(text, strlen(text),
+    m_Canvas->drawText(text, strlen(text),
         sx, sy, *PAINT);
 
     CANVAS_FLUSH();
@@ -653,7 +653,7 @@ void NativeSkia::drawTextf(int x, int y, const char text[], ...)
 
 void NativeSkia::system(const char *text, int x, int y)
 {
-    canvas->drawText(text, strlen(text),
+    m_Canvas->drawText(text, strlen(text),
         SkIntToScalar(x), SkIntToScalar(y), *paint_system);
 
     CANVAS_FLUSH();
@@ -887,7 +887,7 @@ void NativeSkia::moveTo(double x, double y)
     if (!currentPath) {
         beginPath();
     }
-    const SkMatrix &m = canvas->getTotalMatrix();
+    const SkMatrix &m = m_Canvas->getTotalMatrix();
     SkPoint pt = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
     SkMatrix::MapPtsProc proc = m.getMapPtsProc();
@@ -904,7 +904,7 @@ void NativeSkia::lineTo(double x, double y)
         beginPath();
     }
 
-    const SkMatrix &m = canvas->getTotalMatrix();
+    const SkMatrix &m = m_Canvas->getTotalMatrix();
     SkPoint pt = SkPoint::Make(SkDoubleToScalar(x), SkDoubleToScalar(y));
 
     SkMatrix::MapPtsProc proc = m.getMapPtsProc();
@@ -932,13 +932,13 @@ void NativeSkia::fill()
             m = &shader->getLocalMatrix();
         }
 
-        shader->setLocalMatrix(canvas->getTotalMatrix());
+        shader->setLocalMatrix(m_Canvas->getTotalMatrix());
     }
     /* The matrix was already applied point by point */
-    canvas->save(SkCanvas::kMatrix_SaveFlag);
-    canvas->resetMatrix();
-    canvas->drawPath(*currentPath, *PAINT);
-    canvas->restore();
+    m_Canvas->save(SkCanvas::kMatrix_SaveFlag);
+    m_Canvas->resetMatrix();
+    m_Canvas->drawPath(*currentPath, *PAINT);
+    m_Canvas->restore();
 
     if (shader != NULL && m != NULL) {
         shader->setLocalMatrix(*m);
@@ -962,14 +962,14 @@ void NativeSkia::stroke()
             m = &shader->getLocalMatrix();
         }
 
-        shader->setLocalMatrix(canvas->getTotalMatrix());
+        shader->setLocalMatrix(m_Canvas->getTotalMatrix());
     }
 
     /* The matrix was already applied point by point */
-    canvas->save(SkCanvas::kMatrix_SaveFlag);
-    canvas->resetMatrix();
-    canvas->drawPath(*currentPath, *PAINT_STROKE);
-    canvas->restore();
+    m_Canvas->save(SkCanvas::kMatrix_SaveFlag);
+    m_Canvas->resetMatrix();
+    m_Canvas->drawPath(*currentPath, *PAINT_STROKE);
+    m_Canvas->restore();
 
     if (shader != NULL && m != NULL) {
         shader->setLocalMatrix(*m);
@@ -996,7 +996,7 @@ void NativeSkia::clip()
         return;
     }
 
-    canvas->clipPath(*currentPath);
+    m_Canvas->clipPath(*currentPath);
     CANVAS_FLUSH();
 }
 
@@ -1046,7 +1046,7 @@ void NativeSkia::rect(double x, double y, double width, double height)
     if (!currentPath) {
         beginPath();
     }
-    SkMatrix m = canvas->getTotalMatrix();
+    SkMatrix m = m_Canvas->getTotalMatrix();
 
     SkRect r = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
@@ -1102,7 +1102,7 @@ void NativeSkia::arc(int x, int y, int r,
     }
 
     double sweep = endAngle - startAngle;
-    SkMatrix m = canvas->getTotalMatrix();
+    SkMatrix m = m_Canvas->getTotalMatrix();
 
     SkScalar cx = SkIntToScalar(x);
     SkScalar cy = SkIntToScalar(y);
@@ -1156,7 +1156,7 @@ void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
         return;
     }
 
-    SkMatrix m = canvas->getTotalMatrix();
+    SkMatrix m = m_Canvas->getTotalMatrix();
 
     if (!currentPath->countPoints()) {
         currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
@@ -1182,7 +1182,7 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
     }
 
 
-    SkMatrix m = canvas->getTotalMatrix();
+    SkMatrix m = m_Canvas->getTotalMatrix();
     SkPoint p1, p2, p3;
 
     m.mapXY(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy), &p1);
@@ -1206,17 +1206,17 @@ void NativeSkia::light(double x, double y, double z)
 
 void NativeSkia::rotate(double angle)
 {
-    canvas->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));
+    m_Canvas->rotate(SkDoubleToScalar(180 * angle / SK_ScalarPI));
 }
 
 void NativeSkia::scale(double x, double y)
 {
-    canvas->scale(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    m_Canvas->scale(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 void NativeSkia::translate(double x, double y)
 {
-    canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    m_Canvas->translate(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 void NativeSkia::save()
@@ -1230,7 +1230,7 @@ void NativeSkia::save()
 
     state = nstate;
 
-    canvas->save();
+    m_Canvas->save();
 }
 
 void NativeSkia::restore()
@@ -1246,7 +1246,7 @@ void NativeSkia::restore()
         NLOG("restore() without matching save()\n");
     }
     
-    canvas->restore();
+    m_Canvas->restore();
 }
 
 double NativeSkia::measureText(const char *str, size_t length)
@@ -1256,7 +1256,7 @@ double NativeSkia::measureText(const char *str, size_t length)
 
 void NativeSkia::skew(double x, double y)
 {
-    canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
+    m_Canvas->skew(SkDoubleToScalar(x), SkDoubleToScalar(y));
 }
 
 /*
@@ -1351,7 +1351,7 @@ void NativeSkia::itransform(double scalex, double skewy, double skewx,
     SkMatrix im;
     if (m.invert(&im)) {
         printf("transformed\n");
-        canvas->concat(im);
+        m_Canvas->concat(im);
     } else {
         printf("Cant revert Matrix\n");
     }
@@ -1381,9 +1381,9 @@ void NativeSkia::transform(double scalex, double skewy, double skewx,
     m.set(SkMatrix::kMPersp2, SK_Scalar1);
 
     if (set) {
-        canvas->setMatrix(m);
+        m_Canvas->setMatrix(m);
     } else {
-        canvas->concat(m);
+        m_Canvas->concat(m);
     }
 }
 
@@ -1415,12 +1415,12 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
+        m_Canvas->drawBitmap(image->canvasRef->getDevice()->accessBitmap(false),
             SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
 
     } else if (image->img != NULL) {
-        canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
+        m_Canvas->drawBitmap(*image->img, SkDoubleToScalar(x), SkDoubleToScalar(y),
             PAINT);
     }
 
@@ -1441,10 +1441,10 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y,
     PAINT->setColor(SK_ColorBLACK);
 
     if (image->isCanvas) {
-        canvas->drawBitmapRect(image->canvasRef->getDevice()->accessBitmap(false),
+        m_Canvas->drawBitmapRect(image->canvasRef->getDevice()->accessBitmap(false),
             NULL, r, PAINT);
     } else if (image->img != NULL) {
-        canvas->drawBitmapRect(*image->img, NULL, r, PAINT);
+        m_Canvas->drawBitmapRect(*image->img, NULL, r, PAINT);
     }
 
     PAINT->setColor(old);
@@ -1474,10 +1474,10 @@ void NativeSkia::drawImage(NativeSkImage *image,
         image->canvasRef->readPixels(src, &bitmapImage);
         bitmapImage.setIsVolatile(true);
 
-        canvas->drawBitmapRect(bitmapImage,
+        m_Canvas->drawBitmapRect(bitmapImage,
             NULL, dst, PAINT);        
     } else if (image->img != NULL) {
-        canvas->drawBitmapRect(*image->img,
+        m_Canvas->drawBitmapRect(*image->img,
             &src, dst, PAINT);
     }
 
@@ -1488,9 +1488,9 @@ void NativeSkia::drawImage(NativeSkImage *image,
 
 void NativeSkia::redrawScreen()
 {
-    canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()),
+    m_Canvas->readPixels(SkIRect::MakeSize(m_Canvas->getDeviceSize()),
         screen);
-    canvas->writePixels(*screen, 0, 0);
+    m_Canvas->writePixels(*screen, 0, 0);
     CANVAS_FLUSH();  
 }
 
@@ -1498,7 +1498,7 @@ void NativeSkia::redrawScreen()
 void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
     int x, int y)
 {
-    canvas->flush();
+    m_Canvas->flush();
     glDisable(GL_ALPHA_TEST);
 
     glWindowPos2i(x, y);
@@ -1542,11 +1542,11 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     r.setXYWH(x, y, width, height);
 
     pt.setFilterLevel(PAINT->getFilterLevel());
-    canvas->saveLayer(NULL, NULL);
-        canvas->clipRect(r, SkRegion::kReplace_Op);
-        canvas->drawColor(SK_ColorWHITE);
-        canvas->drawBitmap(bt, x, y, &pt);
-    canvas->restore();
+    m_Canvas->saveLayer(NULL, NULL);
+        m_Canvas->clipRect(r, SkRegion::kReplace_Op);
+        m_Canvas->drawColor(SK_ColorWHITE);
+        m_Canvas->drawBitmap(bt, x, y, &pt);
+    m_Canvas->restore();
 
     free(PMPixels);
 }
@@ -1561,7 +1561,7 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
 
     bt.setPixels(pixels);
 
-    if (!canvas->readPixels(&bt, left, top, SkCanvas::kRGBA_Premul_Config8888)) {
+    if (!m_Canvas->readPixels(&bt, left, top, SkCanvas::kRGBA_Premul_Config8888)) {
         printf("Failed to read pixels\n");
         return 0;
     }
@@ -1651,7 +1651,11 @@ static SkBitmap load_bitmap() {
 
 void NativeSkia::flush()
 {
-    canvas->flush();
+    m_Canvas->flush();
 }
 
 
+void NativeSkia::setCanvas(SkCanvas *canvas)
+{
+    SkRefCnt_SafeAssign(m_Canvas, canvas);
+}
