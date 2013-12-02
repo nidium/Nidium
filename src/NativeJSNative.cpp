@@ -47,7 +47,7 @@ static JSBool native_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
         &str)) {
-        return JS_TRUE;
+        return false;
     }
 
     char *text = JS_EncodeStringToUTF8(cx, str);
@@ -90,7 +90,7 @@ static JSBool native_showfps(JSContext *cx, unsigned argc, jsval *vp)
     JSBool show = JS_FALSE;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "b", &show)) {
-        return JS_TRUE;
+        return false;
     }
 
     NativeJSNative::showFPS = (show == JS_TRUE) ? true : false;

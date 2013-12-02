@@ -51,7 +51,7 @@ static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp)
     JSString *location;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &location)) {
-        return JS_TRUE;
+        return false;
     }
 
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();

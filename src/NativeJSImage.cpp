@@ -52,7 +52,7 @@ static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
     int color;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &val, &color)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (nimg->img) {

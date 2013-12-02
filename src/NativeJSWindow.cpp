@@ -558,7 +558,7 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
     double w, h;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &w, &h)) {
-        return true;
+        return false;
     }
 
     printf("Calling set size ?\n");
@@ -574,7 +574,7 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
     jsval callback;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ov", &types, &callback)) {
-        return true;
+        return false;
     }
 
     if (!JSVAL_IS_NULL(OBJECT_TO_JSVAL(types)) && !JS_IsArrayObject(cx, types)) {

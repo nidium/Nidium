@@ -262,7 +262,7 @@ static JSBool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, jsval *v
     double x, y, width, height, rx = 0, ry = 0;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd/dd", &x, &y,
         &width, &height, &rx, &ry)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (argc > 4) {
@@ -280,7 +280,7 @@ static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval 
     double x, y, width, height, rx = 0, ry = 0;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd/dd", &x, &y,
         &width, &height, &rx, &ry)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (argc > 4) {
@@ -298,7 +298,7 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
     double x, y, width, height;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
         &width, &height)) {
-        return JS_TRUE;
+        return false;
     }
     
     NSKIA_NATIVE->clearRect(x, y, width, height);
@@ -318,7 +318,7 @@ static JSBool native_canvas2dctx_breakText(JSContext *cx,
     int length = 0;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sd", &str, &maxWidth)) {
-        return JS_TRUE;
+        return false;
     }
 
     res = JS_NewObject(cx, NULL, NULL, NULL);
@@ -368,7 +368,7 @@ static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *v
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sii/i",
             &str, &x, &y, &maxwidth)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString text(cx, str);
@@ -396,7 +396,7 @@ static JSBool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, jsval *vp)
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->moveTo(x, y);
@@ -409,7 +409,7 @@ static JSBool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, jsval *vp)
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->lineTo(x, y);
@@ -450,7 +450,7 @@ static JSBool native_canvas2dctx_rect(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
         &width, &height)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->rect(x, y, width, height);
@@ -466,7 +466,7 @@ static JSBool native_canvas2dctx_arc(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiidd/b", &x, &y,
         &radius, &startAngle, &endAngle, &CCW)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->arc(x, y, radius, startAngle, endAngle, CCW);
@@ -480,7 +480,7 @@ static JSBool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     double x, y, cpx, cpy;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &cpx, &cpy,
         &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->quadraticCurveTo(cpx, cpy, x, y);
@@ -494,7 +494,7 @@ static JSBool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
     double x, y, cpx, cpy, cpx2, cpy2;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd", &cpx, &cpy,
         &cpx2, &cpy2, &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->bezierCurveTo(cpx, cpy, cpx2, cpy2, x, y);
@@ -507,7 +507,7 @@ static JSBool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, jsval *vp)
     double angle;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &angle)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->rotate(angle);
@@ -520,7 +520,7 @@ static JSBool native_canvas2dctx_scale(JSContext *cx, unsigned argc, jsval *vp)
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->scale(x, y);
@@ -533,7 +533,7 @@ static JSBool native_canvas2dctx_translate(JSContext *cx, unsigned argc, jsval *
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->translate(x, y);
@@ -547,7 +547,7 @@ static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd/d",
         &scalex, &skewx, &skewy, &scaley, &translatex, &translatey, &rotate)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
@@ -566,7 +566,7 @@ static JSBool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, jsval 
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
         &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->itransform(scalex, skewx, skewy, scaley,
@@ -583,7 +583,7 @@ static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, jsva
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
         &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->transform(scalex, skewx, skewy, scaley,
@@ -657,7 +657,7 @@ static JSBool native_canvas2dctx_createLinearGradient(JSContext *cx,
     double x1, y1, x2, y2;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd",
         &x1, &y1, &x2, &y2)) {
-        return JS_TRUE;
+        return false;
     }
 
     linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
@@ -682,7 +682,7 @@ static JSBool native_canvas2dctx_getImageData(JSContext *cx,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii",
         &left, &top, &width, &height)) {
-        return JS_TRUE;
+        return false;
     }
 
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
@@ -715,11 +715,12 @@ static JSBool native_canvas2dctx_putImageData(JSContext *cx,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oii",
         &dataObject, &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (!JS_InstanceOf(cx, dataObject, &imageData_class, NULL)) {
-        return JS_TRUE;
+        JS_ReportError(cx, "First argument must be a imageData object");
+        return false;
     }
 
     JS_GetProperty(cx, dataObject, "data", &jdata);
@@ -744,7 +745,7 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu",
         &x, &y)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (x == 0) {
@@ -757,7 +758,7 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     arrBuffer = JS_NewUint8ClampedArray(cx, x*y * 4);
     if (arrBuffer == NULL) {
         JS_ReportOutOfMemory(cx);
-        return JS_TRUE;
+        return false;
     }
     
     dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
@@ -785,12 +786,12 @@ static JSBool native_canvas2dctx_createPattern(JSContext *cx,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS",
         &jsimage, &mode)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (!NativeJSImage::JSObjectIs(cx, jsimage)) {
         JS_ReportError(cx, "First parameter is not an Image");
-        return JS_FALSE;
+        return false;
     }
 
     patternObject = JS_NewObject(cx, &canvasPattern_class, NULL, NULL);
@@ -816,7 +817,7 @@ static JSBool native_canvas2dctx_createRadialGradient(JSContext *cx,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
         &x1, &y1, &r1, &x2, &y2, &r2)) {
-        return JS_TRUE;
+        return false;
     }
 
     linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
@@ -841,7 +842,7 @@ static JSBool native_canvas2dctxGradient_addColorStop(JSContext *cx,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dS",
         &position, &color)) {
-        return JS_TRUE;
+        return false;
     }
 
     if ((gradient = (NativeSkGradient *)JS_GetPrivate(caller)) != NULL) {
@@ -876,13 +877,13 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
     if (argc == 9) {
          if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oiiiidddd",
             &jsimage, &sx, &sy, &swidth, &sheight, &x, &y, &width, &height)) {
-            return JS_TRUE;
+            return false;
         }
     } else {
 
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "odd/dd",
             &jsimage, &x, &y, &width, &height)) {
-            return JS_TRUE;
+            return false;
         }
     }
 
@@ -938,7 +939,7 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
         &text)) {
-        return true;
+        return false;
     }
 
     JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
@@ -961,7 +962,7 @@ static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
         vp->setBoolean(false);
-        return JS_TRUE;
+        return false;
     }
 
     NativeSkia *n = NSKIA_NATIVE;
@@ -1011,14 +1012,14 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
         &glsl)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString cglsl(cx, glsl);
 
     if ((program = nctx->attachShader(cglsl.ptr())) == 0) {
         JS_ReportError(cx, "Failed to compile GLSL shader");
-        return JS_FALSE;
+        return false;
     }
     JSObject *canvasProgram = JS_NewObject(cx, &canvasGLProgram_class, NULL, NULL);
 
@@ -1040,7 +1041,7 @@ static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsi
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S",
         &location)) {
-        return JS_TRUE;
+        return false;
     }
 
     JSAutoByteString clocation(cx, location);
@@ -1063,7 +1064,7 @@ static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
         &location, &val)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (location == -1) {
@@ -1089,7 +1090,7 @@ static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "id",
         &location, &val)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (location == -1) {
@@ -1119,7 +1120,7 @@ static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     program = (size_t)JS_GetPrivate(caller);
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "io", &location, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (location == -1) {
@@ -1135,7 +1136,7 @@ static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Int32 array");
-        return JS_FALSE;
+        return false;
     }
     int32_t tmpProgram;
     glGetIntegerv(GL_CURRENT_PROGRAM, &tmpProgram);
@@ -1176,7 +1177,7 @@ static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     program = (size_t)JS_GetPrivate(caller);
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "io", &location, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (location == -1) {
@@ -1311,7 +1312,7 @@ static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     double x, y, z;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ddd", &x, &y, &z)) {
-        return JS_TRUE;
+        return false;
     }
 
     NSKIA_NATIVE->light(x, y, z);

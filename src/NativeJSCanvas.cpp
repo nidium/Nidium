@@ -242,7 +242,7 @@ static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "d",
         &zoom)) {
-        return true;
+        return false;
     }
 
     NativeObject->setZoom(zoom);
@@ -258,7 +258,7 @@ static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
         &x, &y)) {
-        return true;
+        return false;
     }
 
     NativeObject->setScale(x, y);
@@ -274,7 +274,7 @@ static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii",
         &width, &height)) {
-        return true;
+        return false;
     }
 
     NativeObject->setSize(width, height);
@@ -434,7 +434,7 @@ static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
         &left, &top)) {
-        return true;
+        return false;
     }
 
     NativeObject->left = left;
@@ -452,7 +452,7 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
         &left, &top)) {
-        return true;
+        return false;
     }
 
     NativeObject->translate(left, top);
@@ -469,7 +469,7 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     NativeCanvasHandler *handler;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub)) {
-        return true;
+        return false;
     }
 
     if (!JS_InstanceOf(cx, sub, &Canvas_class, NULL)) {
