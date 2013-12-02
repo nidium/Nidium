@@ -24,7 +24,7 @@
 
 #define kNativeVSYNC 1
 
-uint32_t ttfps = 0;
+uint64_t ttfps = 0;
 
 static __inline__ void ConvertNSRect(NSRect *r)
 {
@@ -196,8 +196,8 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 }
             }
         }
-        if (ttfps%20 == 0 && NUII->NativeCtx != NULL) {
-            //NUII->NativeCtx->getNJS()->gc();
+        if (ttfps%300 == 0 && NUII->NativeCtx != NULL) {
+            NUII->NativeCtx->getNJS()->gc();
         }
         if (NUII->currentCursor != NativeCocoaUIInterface::NOCHANGE) {
             switch(NUII->currentCursor) {
