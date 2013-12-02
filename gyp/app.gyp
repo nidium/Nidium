@@ -5,7 +5,7 @@
         'mac_bundle': 1,
         'product_dir': '<(native_exec_path)',
         'dependencies': [
-            'native.gyp:nativestudio',
+            'native.gyp:*',
             'interface.gyp:nativeinterface',
         ],
         'include_dirs': [
