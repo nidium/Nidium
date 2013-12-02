@@ -2217,7 +2217,7 @@ void NativeCanvas2DContext::setScale(double x, double y,
 NativeCanvas2DContext::~NativeCanvas2DContext()
 {
     //NLOG("Delete skia %p", skia);
-    delete m_Skia;
+    if (m_Skia) delete m_Skia;
 }
 
 static JSBool native_Canvas2DContext_constructor(JSContext *cx,

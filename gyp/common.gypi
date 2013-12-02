@@ -99,7 +99,11 @@
                         'x86_64',
                     ],
                     'OTHER_CPLUSPLUSFLAGS': [ 
-                        '-stdlib=libc++'
+                        '-stdlib=libc++',
+                        '-g',
+                        '-O2',
+                        '-Wall',
+                        '-Wno-invalid-offsetof'
                     ],
                     'MACOSX_DEPLOYMENT_TARGET': [
                         '10.7'
@@ -111,7 +115,8 @@
                         '-g',
                         '-O2',
                         '-Wall',
-                        '-stdlib=libc++'
+                        '-stdlib=libc++',
+                        '-Wno-invalid-offsetof'
                     ]
                 },
                 'ldflags': [

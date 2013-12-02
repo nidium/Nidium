@@ -349,7 +349,6 @@ int NativeSkia::bindOnScreen(int width, int height)
                             width*ratio, height*ratio, false);
 
     if (dev == NULL) {
-        printf("Failed to create onscreen canvas");
         return 0;
     }
     canvas = new SkCanvas(dev);
@@ -493,18 +492,21 @@ void NativeSkia::drawRect(double x, double y, double width,
         (stroke ? *PAINT_STROKE : *PAINT));
 }
 
-NativeSkia::NativeSkia()
+NativeSkia::NativeSkia() :
+    canvas(NULL), context(NULL),
+    native_canvas_bind_mode(NativeSkia::BIND_NO),
+    state(NULL), paint_system(NULL), currentPath(NULL)
 {
-    context = NULL;
-    this->native_canvas_bind_mode = NativeSkia::BIND_NO;
+
 }
 
 NativeSkia::~NativeSkia()
 {
     struct _nativeState *nstate = state;
 
-    canvas->flush();
-
+    if (canvas != NULL) {
+        canvas->flush();
+    }
     while (nstate) {
         struct _nativeState *tmp = nstate->next;
         //NLOG("Delete pain %p with shader : %p", nstate->paint, nstate->paint->getShader());
@@ -513,15 +515,12 @@ NativeSkia::~NativeSkia()
         delete nstate;
         nstate = tmp;
     }
-    delete paint_system;
 
+    if (paint_system) delete paint_system;
     if (currentPath) delete currentPath;
 
-    canvas->unref();
-
-    if (context) {
-        context->unref();
-    }
+    SkSafeUnref(canvas);
+    SkSafeUnref(context);
 }
 
 /* TODO: check if there is a best way to do this;

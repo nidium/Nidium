@@ -157,7 +157,8 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 
 void NativeCanvasContext::resetGLContext()
 {
-    this->m_GLState->setActive();
+    if (this->m_GLState)
+        this->m_GLState->setActive();
 }
 
 uint32_t NativeCanvasContext::createPassThroughVertex()
@@ -242,8 +243,10 @@ NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
 
 NativeCanvasContext::~NativeCanvasContext()
 {
-    m_GLState->destroy();
-    m_GLState = NULL;
+    if (m_GLState) {
+        m_GLState->destroy();
+        m_GLState = NULL;
+    }
 }
 
 static void dump_Matrix(float *matrix)
@@ -260,6 +263,11 @@ static void dump_Matrix(float *matrix)
 void NativeCanvasContext::updateMatrix(double left, double top,
     int layerWidth, int layerHeight)
 {
+
+    if (!m_GLState) {
+        return;
+    }
+
     float px = (float)layerWidth, py = (float)layerHeight;
     int w, h;
 

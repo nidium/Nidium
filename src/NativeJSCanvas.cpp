@@ -521,13 +521,20 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     if (canvasctx == NULL) {
         switch(ctxmode) {
             case NativeCanvasContext::CONTEXT_2D:
-                NativeObject->setContext(
-                    new NativeCanvas2DContext(NativeObject, cx,
+            {
+                NativeCanvas2DContext *ctx2d = new NativeCanvas2DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
-                        NativeObject->getHeight() + (NativeObject->padding.global * 2))
-                );
+                        NativeObject->getHeight() + (NativeObject->padding.global * 2));
+
+                if (ctx2d->getSurface() == NULL) {
+                    delete ctx2d;
+                    JS_ReportError(cx, "Could not create 2D context for this canvas");
+                    return false;
+                }
+                NativeObject->setContext(ctx2d);
                 
                 break;
+            }
             case NativeCanvasContext::CONTEXT_WEBGL:
                 /*
                     TODO :
@@ -544,7 +551,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
         */
         JS_SetReservedSlot(NativeObject->jsobj, 0, OBJECT_TO_JSVAL(NativeObject->getContext()->jsobj));
     } else if (canvasctx->m_Mode != ctxmode) {
-        /* Another mode is requested but another was already created */
+        /* A mode is requested but another one was already created */
         args.rval().setNull();
         return true;        
     }
