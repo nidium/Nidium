@@ -234,8 +234,8 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 }
 
 NativeCanvasContext::NativeCanvasContext(NativeCanvasHandler *handler) :
-    jsobj(NULL), jscx(NULL), m_Handler(handler), m_GLState(NULL),
-    m_Transform(SkMatrix44::kIdentity_Constructor)
+    jsobj(NULL), jscx(NULL), m_Transform(SkMatrix44::kIdentity_Constructor),
+    m_Handler(handler), m_GLState(NULL)
 {
 
 

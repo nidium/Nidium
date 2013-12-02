@@ -29,7 +29,7 @@ unsigned long _ape_seed;
         [[NSAppleEventManager sharedAppleEventManager] setEventHandler:self andSelector:@selector(handleURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
         CFStringRef bundleID = (CFStringRef)[[NSBundle mainBundle] bundleIdentifier];
-        OSStatus nativeResult = LSSetDefaultHandlerForURLScheme(CFSTR("native"), bundleID);
+        LSSetDefaultHandlerForURLScheme(CFSTR("native"), bundleID);
     }
     return self;
 }

@@ -366,6 +366,10 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     this->setSmooth(true);
 
+    /*
+        TODO
+        Why setting this value to something else is doing strange things?
+    */
     m_Canvas->clear(0x00000000);
 
     this->native_canvas_bind_mode = NativeSkia::BIND_ONSCREEN;
@@ -810,8 +814,8 @@ void NativeSkia::setSmooth(bool val, int level)
         }
     }
 
-    PAINT->setFilterBitmap(flevel);
-    PAINT_STROKE->setFilterBitmap(flevel);
+    PAINT->setFilterLevel(flevel);
+    PAINT_STROKE->setFilterLevel(flevel);
 }
 
 void NativeSkia::setGlobalAlpha(double value)
