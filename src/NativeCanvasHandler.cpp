@@ -305,22 +305,34 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         */
 
         if (m_Context) {
-            this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
-                this->a_left - this->padding.global, 
-                this->a_top - this->padding.global, popacity, zoom,
-                (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
+            /*
+                Not visible. Don't call composeWith()
+            */
+            if (!clip || (coordPosition != COORD_ABSOLUTE && clip->checkIntersect(
+                this->a_left - this->padding.global,
+                this->a_top - this->padding.global,
+                this->a_left - this->padding.global + this->getWidth(),
+                this->a_top - this->padding.global + this->getHeight()))) {
+            
+                this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
+                    this->a_left - this->padding.global, 
+                    this->a_top - this->padding.global, popacity, zoom,
+                    (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
+            }
         }
     }
 
     if (!this->overflow) {
-
         if (clip == NULL) {
             clip = &nclip;
             clip->fLeft = this->a_left;
             clip->fTop = this->a_top;
             clip->fRight = this->width + this->a_left;
             clip->fBottom = this->height + this->a_top;
-            /* if clip is not null, reduce it to intersect the current rect */
+            /*
+                if clip is not null, reduce it to intersect the current rect.
+                /!\ clip->intersect changes "clip"
+            */
         } else if (!clip->intersect(this->a_left, this->a_top,
                     this->width + this->a_left, this->height + this->a_top)) {
             /* don't need to draw children (out of bounds) */

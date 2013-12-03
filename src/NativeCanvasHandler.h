@@ -30,6 +30,16 @@ struct NativeRect
         }
         return false;
     }
+
+    bool checkIntersect(double left, double top, double right, double bottom) const {
+        if (left < right && top < bottom && !this->isEmpty() &&
+            fLeft < right && left < fRight && fTop < bottom && top < fBottom)
+        {
+            return true;
+        }
+        return false;
+    }
+
     NativeRect scaled(float scale) const {
         NativeRect r = {
             this->fLeft*scale,

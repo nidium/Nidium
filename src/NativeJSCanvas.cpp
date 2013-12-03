@@ -917,6 +917,9 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     handler->setContext(new NativeCanvas2DContext(handler, cx, width, height));
     handler->getContext()->setGLState(NativeContext::getNativeClass(cx)->getGLState());
 
+    /* window.canvas.overflow default to false */
+    handler->overflow = false;
+
     handler->jsobj = ret;
     handler->jscx = cx;
 
