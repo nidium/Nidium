@@ -366,10 +366,6 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     this->setSmooth(true);
 
-    /*
-        TODO
-        Why setting this value to something else is doing strange things?
-    */
     m_Canvas->clear(0x00000000);
 
     this->native_canvas_bind_mode = NativeSkia::BIND_ONSCREEN;
@@ -435,8 +431,6 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     dev->unref();
     context->unref();
 
-    ret->clear(0xFFFFFFFF);
-
     return ret;
 
 }
@@ -460,9 +454,15 @@ int NativeSkia::bindGL(int width, int height)
     state->next = NULL;
 
     initPaints();
+
+    /*
+        TODO. (dirty hack)
+        Skia bug? If we don't draw something first, clear does nothing.
+    */
+    this->drawRect(0, 0, 1, 1, 0);
+
     m_Canvas->clear(0xFFFFFFFF);
 
-    NLOG("Create bindGL at %p", this);
     m_Debug = true;
 
     return 1;

@@ -1874,11 +1874,7 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
-    //glEnable(GL_ALPHA_TEST);
-    //glAlphaFunc(GL_NOTEQUAL, 0.0f);
-
     glDrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
-    //glDisable(GL_ALPHA_TEST);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
