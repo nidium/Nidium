@@ -616,7 +616,7 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *dummy, void *custom)
     NativeJSAudio *audio = static_cast<NativeJSAudio *>(custom);
     NativeJSAudio::Nodes *nodes = audio->nodes;
 
-    // Let's shutdown and destroy all nodes
+    // Let's shutdown all custom nodes
     while (nodes != NULL) {
         if (nodes->curr->type == NativeAudio::CUSTOM ||
             nodes->curr->type == NativeAudio::CUSTOM_SOURCE) {
@@ -627,8 +627,13 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *dummy, void *custom)
     }
 
     if (audio->tcx != NULL) {
+        JS_BeginRequest(audio->tcx);
+
         JSRuntime *rt = JS_GetRuntime(audio->tcx);
         JS_RemoveObjectRoot(audio->tcx, &audio->gbl);
+
+        JS_EndRequest(audio->tcx);
+
         JS_DestroyContext(audio->tcx);
         JS_DestroyRuntime(rt);
         audio->tcx = NULL;
@@ -859,6 +864,7 @@ void NativeJSAudio::ctxCallback(NativeAudioNode *dummy, void *custom)
 void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
 {
     NativeJSAudioNode *node = static_cast<NativeJSAudioNode *>(custom);
+    JSAutoRequest ar(node->audio->tcx);
 
     if (node->nodeObj != NULL) {
         JS_RemoveObjectRoot(node->audio->tcx, &node->nodeObj);
@@ -1897,19 +1903,12 @@ void NativeJSVideo::stopAudio()
 {
     this->video->stopAudio();
 
-#if 0 // Code never used?
-
     if (this->audioNode) {
         NJS->unrootObject(this->audioNode);
         NativeJSAudioNode *jnode = static_cast<NativeJSAudioNode *>(JS_GetPrivate(this->audioNode));
         JS_SetReservedSlot(jnode->jsobj, 0, JSVAL_NULL);
         this->audioNode = NULL;
-        //This will remove the source from 
-        // NativeJSAudio nodes list and NativeAudio sources
-        // (and free source resources)
-        delete jnode; 
     } 
-#endif
 }
 
 void NativeJSVideo::eventCbk(const struct NativeAVSourceEvent *cev) 
@@ -2131,12 +2130,15 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSVideo::~NativeJSVideo() 
 {
+    JSAutoRequest ar(cx);
     if (this->audioNode) {
-        NJS->unrootObject(this->audioNode);
         NativeJSAudioNode *node = static_cast<NativeJSAudioNode *>(JS_GetPrivate(this->audioNode));
-        // This will remove the source from 
-        // NativeJSAudio nodes list and NativeAudio sources 
-        delete node; 
+        NJS->unrootObject(this->audioNode);
+        if (node) {
+            // This will remove the source from 
+            // NativeJSAudio nodes list and NativeAudio sources 
+            delete node; 
+        }
     } 
     
     if (this->arrayContent != NULL) {
