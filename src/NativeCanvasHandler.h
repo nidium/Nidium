@@ -275,6 +275,14 @@ class NativeCanvasHandler
         double getScaleY() const {
             return this->scaleY;
         }
+
+        void setAllowNegativeScroll(bool val) {
+            m_AllowNegativeScroll = val;
+        }
+
+        bool getAllowNegativeScroll() const {
+            return m_AllowNegativeScroll;
+        }
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
@@ -337,6 +345,7 @@ class NativeCanvasHandler
         double zoom;
 
         double scaleX, scaleY;
+        bool m_AllowNegativeScroll;
 
         void recursiveScale(double x, double y, double oldX, double oldY);
 };

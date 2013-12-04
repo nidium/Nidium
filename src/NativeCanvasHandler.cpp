@@ -21,7 +21,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     opacity(1.0),
     zoom(1.0),
     scaleX(1.0),
-    scaleY(1.0)
+    scaleY(1.0),
+    m_AllowNegativeScroll(false)
 {
     this->width = native_max(width, 2);
     this->height = native_max(height, 2);
@@ -148,14 +149,14 @@ void NativeCanvasHandler::setPadding(int padding)
 
 void NativeCanvasHandler::setScrollLeft(int value)
 {
-    if (value < 0) value = 0;
+    if (value < 0 && !m_AllowNegativeScroll) value = 0;
 
     this->content.scrollLeft = value;
 }
 
 void NativeCanvasHandler::setScrollTop(int value)
 {
-    if (value < 0) value = 0;
+    if (value < 0 && !m_AllowNegativeScroll) value = 0;
 
     this->content.scrollTop = value;
 }
@@ -308,7 +309,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             /*
                 Not visible. Don't call composeWith()
             */
-            if (!clip || (coordPosition != COORD_ABSOLUTE && clip->checkIntersect(
+            if (!clip || coordPosition == COORD_ABSOLUTE || (clip->checkIntersect(
                 this->a_left - this->padding.global,
                 this->a_top - this->padding.global,
                 this->a_left - this->padding.global + this->getWidth(),
@@ -469,7 +470,7 @@ bool NativeCanvasHandler::isOutOfBound()
 
 NativeRect NativeCanvasHandler::getViewport()
 {
-    NativeCanvasHandler *cur;
+    NativeCanvasHandler *cur = NULL;
 
     for (cur = this->parent; cur != NULL; cur = cur->parent) {
         if (!cur->parent) break;

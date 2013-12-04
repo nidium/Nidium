@@ -52,7 +52,8 @@ enum {
     CANVAS_PROP_SCROLLTOP,
     CANVAS_PROP_SCROLLLEFT,
     CANVAS_PROP___FIXED,
-    CANVAS_PROP___OUTOFBOUND
+    CANVAS_PROP___OUTOFBOUND,
+    CANVAS_PROP_ALLOWNEGATIVESCROLL
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -120,6 +121,9 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
     {"scrollTop", CANVAS_PROP_SCROLLTOP, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+    {"allowNegativeScroll", CANVAS_PROP_ALLOWNEGATIVESCROLL, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
     {"width", CANVAS_PROP_WIDTH, NATIVE_JS_PROP,
@@ -694,6 +698,15 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->setScrollTop(dval);
         }
         break;
+        case CANVAS_PROP_ALLOWNEGATIVESCROLL:
+        {
+            if (!JSVAL_IS_BOOLEAN(vp)) {
+                return JS_TRUE;
+            }
+
+            handler->setAllowNegativeScroll(JSVAL_TO_BOOLEAN(vp));
+        }
+        break;
         case CANVAS_PROP_VISIBLE:
         {
             if (!JSVAL_IS_BOOLEAN(vp)) {
@@ -802,6 +815,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_SCROLLTOP:
             vp.set(INT_TO_JSVAL(handler->content.scrollTop));
+            break;
+        case CANVAS_PROP_ALLOWNEGATIVESCROLL:
+            vp.set(BOOLEAN_TO_JSVAL(handler->getAllowNegativeScroll()));
             break;
         case CANVAS_PROP___FIXED:
             vp.set(BOOLEAN_TO_JSVAL(handler->hasAFixedAncestor()));
