@@ -150,7 +150,7 @@ static void *native_thread(void *arg)
     JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
         strlen(scoped), NULL, 0);
 
-    delete scoped;
+    delete[] scoped;
     
     if (cf == NULL) {
         printf("Cant compile function\n");
