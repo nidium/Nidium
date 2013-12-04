@@ -710,7 +710,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
             this->audioSource = NULL;
         }
 
-        if (this->playing) {
+        if (this->playing && this->audioSource) {
             this->audioSource->play();
         }
 
@@ -1220,7 +1220,7 @@ bool NativeVideo::addPacket(PacketQueue *queue, AVPacket *packet)
 
 NativeVideo::Packet *NativeVideo::getPacket(PacketQueue *queue) 
 {
-    if (queue->count == 0) {
+    if (queue->count == 0 || queue->head == NULL) {
         return NULL;
     }
 

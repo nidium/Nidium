@@ -46,7 +46,7 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
 
     // Malloc node I/O frames
     max = (inCount > outCount ? inCount : outCount);
-    this->frames = (float **)calloc(sizeof(float), max);
+    this->frames = (float **)calloc(sizeof(float *), max);
 
     for (int i = 0; i < max; i++) {
         this->frames[i] = NULL;

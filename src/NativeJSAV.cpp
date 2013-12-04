@@ -438,9 +438,9 @@ JSTransferableFunction::~JSTransferableFunction()
     }
 
     if (m_Fn != NULL) {
-        delete m_Fn;
-        JSAutoCompartment(m_DestCx, JS_GetGlobalObject(m_DestCx));
+        JSAutoCompartment ac(m_DestCx, JS_GetGlobalObject(m_DestCx));
         JS_RemoveValueRoot(m_DestCx, m_Fn);
+        delete m_Fn;
     }
 }
 
