@@ -312,8 +312,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             if (!clip || coordPosition == COORD_ABSOLUTE || (clip->checkIntersect(
                 this->a_left - this->padding.global,
                 this->a_top - this->padding.global,
-                this->a_left - this->padding.global + this->getWidth(),
-                this->a_top - this->padding.global + this->getHeight()))) {
+                this->a_left + this->padding.global + this->getWidth(),
+                this->a_top + this->padding.global + this->getHeight()))) {
             
                 this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
                     this->a_left - this->padding.global, 
