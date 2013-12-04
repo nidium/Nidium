@@ -39,16 +39,18 @@ static void *native_appworker_thread(void *arg)
             {
 #define APP_READ_SIZE (1024L*1024L*2)
                 struct zip_file *zfile;
-                char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
-
+                
                 zfile = zip_fopen_index(app->fZip, app->action.u32,
                     ZIP_FL_UNCHANGED);
 
                 if (zfile == NULL) {
                     break;
                 }
+
+                char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
                 size_t total = 0;
                 int r = 0;
+                
                 while ((r = zip_fread(zfile, content, APP_READ_SIZE)) >= 0) {
                     total += r;
                     app->actionExtractRead(content, r, total, app->action.u64);
