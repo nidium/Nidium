@@ -179,7 +179,7 @@ static void *native_thread(void *arg)
     free(nthread->params.argv);
     free(nthread->params.nbytes);
 
-    delete arglst;
+    delete[] arglst;
 
     nthread->onComplete(&rval);
 

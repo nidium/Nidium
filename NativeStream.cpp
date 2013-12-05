@@ -645,6 +645,7 @@ void NativeStream::onNFIOWrite(NativeFileIO *NFIO, size_t written)
 /* On data end */
 void NativeStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
+    printf("HTTP over !\n");
     this->dataBuffer.ended = true;
 
     if (this->delegate) {

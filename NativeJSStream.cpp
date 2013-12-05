@@ -169,6 +169,11 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
         }
     }
 
+    if (len == 0 || ret == NULL) {
+        args.rval().setNull();
+        return true;       
+    }
+
     JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
     uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
     memcpy(data, ret, len);

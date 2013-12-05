@@ -203,6 +203,44 @@ inline static void native_socket_readcb(NativeJSSocket *nsocket, char *data, siz
     }    
 }
 
+static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
+    ape_global *ape, const unsigned char *packet, size_t len, void *socket_arg)
+{
+    JSContext *cx;
+    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+    jsval onmessage, rval, jparams[1];
+
+    if (nsocket == NULL || !nsocket->isJSCallable()) {
+        return;
+    }
+
+    cx = nsocket->cx;
+
+    if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
+        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
+        memcpy(data, packet, len);
+
+        jparams[0] = OBJECT_TO_JSVAL(arrayBuffer);
+
+    } else {
+        JSString *jstr = JS_NewStringCopyN(cx, (char *)packet, len);
+
+        if (jstr == NULL) {
+            printf("JS_NewStringCopyN Failed\n");
+            return;
+        }
+        jparams[0] = STRING_TO_JSVAL(jstr);        
+    }
+
+    if (JS_GetProperty(cx, nsocket->getJSObject(), "onmessage", &onmessage) &&
+        JS_TypeOfValue(cx, onmessage) == JSTYPE_FUNCTION) {
+
+        JS_CallFunctionValue(cx, nsocket->getJSObject(), onmessage,
+            1, jparams, &rval);
+    }
+}
+
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
     ape_global *ape, void *socket_arg)
 {
@@ -426,11 +464,15 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 {
     ape_socket *socket;
-    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    ape_socket_proto protocol = APE_SOCKET_PT_TCP;
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == JS_FALSE) {
+        return false;
     }
 
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
@@ -439,14 +481,26 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
+    if (args.length() > 0) {
+        JSString *farg = args[0].toString();
+
+        JSAutoByteString cproto(cx, farg);
+
+        if (strncasecmp("udp", cproto.ptr(), 3) == 0) {
+            protocol = APE_SOCKET_PT_UDP;
+        }
+
+    }
+
+    if ((socket = APE_socket_new(protocol, 0, net)) == NULL) {
         JS_ReportError(cx, "Failed to create socket");
-        return JS_FALSE;
+        return false;
     }
 
     socket->callbacks.on_connect    = native_socket_wrapper_onaccept;
     socket->callbacks.on_read       = native_socket_wrapper_client_read;
     socket->callbacks.on_disconnect = native_socket_wrapper_client_disconnect;
+    socket->callbacks.on_message    = native_socket_wrapper_client_onmessage;
 
     socket->ctx = nsocket;
 
@@ -471,22 +525,37 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 {
     ape_socket *socket;
-    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    ape_socket_proto protocol = APE_SOCKET_PT_TCP;
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    ape_global *net = (ape_global *)JS_GetContextPrivate(cx);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == JS_FALSE) {
+        return false;
     }
 
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || nsocket->isAttached()) {
-        return JS_TRUE;
+        return false;
     }
 
-    if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
+    if (args.length() > 0) {
+        JSString *farg = args[0].toString();
+
+        JSAutoByteString cproto(cx, farg);
+
+        if (strncasecmp("udp", cproto.ptr(), 3) == 0) {
+            protocol = APE_SOCKET_PT_UDP;
+        }
+
+    }
+
+    if ((socket = APE_socket_new(protocol, 0, net)) == NULL) {
         JS_ReportError(cx, "Failed to create socket");
-        return JS_FALSE;
+        return false;
     }
 
     socket->callbacks.on_connected  = native_socket_wrapper_onconnected;
@@ -502,14 +571,14 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     if (APE_socket_connect(socket, nsocket->port, nsocket->host) == -1) {
         JS_ReportError(cx, "Can't connect on socket (%s:%d)", nsocket->host,
             nsocket->port);
-        return JS_FALSE;
+        return false;
     }
 
     NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_socket_client_write(JSContext *cx,
@@ -521,7 +590,7 @@ static JSBool native_socket_client_write(JSContext *cx,
 
     if (JS_InstanceOf(cx, caller, &socket_client_class,
         JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+        return false;
     }
 
     if ((socket_client = (ape_socket *)JS_GetPrivate(caller)) == NULL) {
@@ -546,8 +615,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
     if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        printf("Bad caller\n");
-        return JS_TRUE;
+        return false;
     }
 
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
@@ -574,7 +642,7 @@ static JSBool native_socket_client_close(JSContext *cx,
 
     if (JS_InstanceOf(cx, caller, &socket_client_class,
         JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+        return false;
     }
 
     if ((socket_client = (ape_socket *)JS_GetPrivate(caller)) == NULL) {
@@ -591,7 +659,7 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
     if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+        return false;
     }
 
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
