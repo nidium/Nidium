@@ -561,6 +561,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     socket->callbacks.on_connected  = native_socket_wrapper_onconnected;
     socket->callbacks.on_read       = native_socket_wrapper_read;
     socket->callbacks.on_disconnect = native_socket_wrapper_disconnect;
+    socket->callbacks.on_message    = native_socket_wrapper_client_onmessage;
 
     socket->ctx = nsocket;
 
