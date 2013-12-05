@@ -599,7 +599,6 @@ void NativeVideo::seekInternal(double time)
         SPAM(("[SEEK] reading packet stream=%d, pts=%lld/%lld\n", packet.stream_index, packet.pts, packet.dts));
 
         if (packet.stream_index == this->videoStream) {
-            double prevPts = pts;
             pts = this->getPts(&packet);
             frame = true;
 
