@@ -12,7 +12,9 @@
 #include "NativeJSDocument.h"
 #include "NativeJSWindow.h"
 #include "NativeJSConsole.h"
+#ifdef NATIVE_EMBED_PRIVATE
 #include "NativeJS_preload.h"
+#endif
 #include "NativeUIInterface.h"
 #ifdef __linux__
 #include "SkImageDecoder.h"
@@ -84,6 +86,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_NML->setNJS(this->njs);
 
+#ifdef NATIVE_EMBED_PRIVATE
     this->preload = __preloadScripts();
 
     const char *loadPreload[] = {"falcon/native.js", "../scripts/preload.js"};
@@ -93,6 +96,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
             this->njs->LoadBytecode(script);
         }
     }
+#endif
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
