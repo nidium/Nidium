@@ -17,6 +17,7 @@ class NativeSystemInterface
 
         virtual float backingStorePixelRatio()=0;
         virtual const char *getCacheDirectory()=0;
+        virtual const char *getPrivateDirectory()=0;
         virtual void alert(const char *message, AlertType type = ALERT_INFO)=0;
 
         static NativeSystemInterface* getInstance()

@@ -286,7 +286,6 @@ static void NativeDoneExtracting(void *closure, const char *fpath)
     printf("Changing directory to : %s\n", fpath);
 
     ui->nml = new NativeNML(ui->gnet);
-    ui->nml->setNJS(ui->NativeCtx->getNJS());
     ui->nml->loadFile("./index.nml", NativeCocoaUIInterface_onNMLLoaded, ui);
 }
 
@@ -335,7 +334,7 @@ void NativeCocoaUIInterface::onNMLLoaded()
 
         return;
     }
-    this->nml->setNJS(this->NativeCtx->getNJS());
+
     this->setWindowTitle(this->nml->getMetaTitle());
 }
 

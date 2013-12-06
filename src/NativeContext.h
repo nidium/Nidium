@@ -17,7 +17,7 @@ class NativeGLState;
 
 typedef struct _ape_global ape_global;
 
-class NativeContext
+class NativeContext : public NativeJSDelegate
 {
     public:
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
@@ -63,6 +63,11 @@ class NativeContext
         return m_GLState;
     }
 
+    NativeHash<NativeBytecodeScript *> *preload;
+
+    // NativeJS delegate
+    bool onLoad(NativeJS *njs, char *filename, int argc, jsval *vp);
+
     private:
     NativeGLResources m_Resources;
     NativeJS *njs;
@@ -91,7 +96,6 @@ class NativeContext
     void loadNativeObjects(int width, int height);
 
     void initHandlers(int width, int height);
-
 };
 
 #endif

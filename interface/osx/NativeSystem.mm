@@ -17,6 +17,11 @@ float NativeSystem::backingStorePixelRatio()
     return fbackingStorePixelRatio;
 }
 
+const char *NativeSystem::getPrivateDirectory()
+{
+    return "dist/private/";
+}
+
 const char *NativeSystem::getCacheDirectory()
 {
     NSArray* paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);

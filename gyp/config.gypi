@@ -3,9 +3,7 @@
         'native_version': '0.1',
         'native_webgl%': 0,
         'native_audio%': 1,
-
-        # Deprecated in favor of --strip option to deps.py 
-        'native_strip_exec%': 1,
+        'native_embed_private%': 0,
 
         'native_src_path': '../src/',
         'native_av_path': '../av/',
@@ -14,6 +12,7 @@
         'native_network_path': '../nativejscore/network/',
         'native_nativejscore_path': '../nativejscore/',
         'native_resources_path': '../resources/',
+        'native_tools_path': '../tools/',
         'native_exec_name': 'nidium',
         'native_exec_path': '../framework/dist/',
 

@@ -22,6 +22,11 @@ float NativeSystem::backingStorePixelRatio()
     return fbackingStorePixelRatio;
 }
 
+const char *NativeSystem::getPrivateDirectory()
+{
+    return "dist/private/";
+}
+
 const char *NativeSystem::getCacheDirectory()
 {
     char *homedir = getenv("HOME");

@@ -23,6 +23,7 @@
 
 #include "GLSLANG/ShaderLang.h"
 #include "NativeMacros.h"
+#include "NativeNML.h"
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
@@ -79,9 +80,19 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     this->njs->setLogger(NativeContext_Logger);
     this->njs->setLogger(NativeContext_vLogger);
+    this->njs->setDelegate(this);
 
-    this->njs->LoadScriptContent(preload_js,
-        strlen(preload_js), "private://__builtin_preload.js");
+    m_NML->setNJS(this->njs);
+
+    this->preload = __preloadScripts();
+
+    const char *loadPreload[] = {"falcon/native.js", "../scripts/preload.js"};
+    for (int i = 0; i < 2; i++) {
+        NativeBytecodeScript *script = this->preload->get(loadPreload[i]);
+        if (script) {
+            this->njs->LoadBytecode(script);
+        }
+    }
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
@@ -277,6 +288,63 @@ void NativeContext::initHandlers(int width, int height)
     rootHandler = new NativeCanvasHandler(width, height);
     rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height));
     rootHandler->getContext()->setGLState(this->getGLState());
+}
+
+bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
+{
+    JSContext *cx = njs->cx;
+    int interfaceLen = 0;
+    NativeStream::StreamInterfaces interface = 
+        NativeStream::typeInterface(filename, &interfaceLen);
+    char *file = NativeStream::resolvePath(filename, NativeStream::STREAM_RESOLVE_FILE);
+    const char *prefix = njs->getPath();
+    char *finalfile = (char *)malloc(sizeof(char) *
+        (1 + strlen(prefix) + strlen(file)));
+
+    sprintf(finalfile, "%s%s", prefix, file);
+
+    // More than 1 argument, assume it's nss loading
+    if (argc > 1) {
+        JS::RootedValue type(cx, JS_ARGV(cx, vp)[1]);
+        if (type.isString()) {
+            printf("loading nss %s\n", finalfile);
+            JS::RootedValue ret(cx, JSVAL_NULL);
+            if (!NativeJS::LoadScriptReturn(cx, finalfile, ret.address())) {
+                JS_ReportError(cx, "Failed to load %s\n", finalfile);
+            }
+
+            JS_SET_RVAL(cx, vp, ret);
+        }
+
+        free(file);
+        free(finalfile);
+
+        return true;
+    }
+
+#ifdef NATIVE_EMBED_PRIVATE
+    if (interface == NativeStream::INTERFACE_PRIVATE) {
+        // XXX : This is a temporary hack until we got VFS working
+        // If falcon framework is embeded inside the binary so all call to load()
+        // with private:// have to load data from the binary 
+        njs->LoadBytecode(this->preload->get(&filename[interfaceLen]));
+
+        free(file);
+        free(finalfile);
+
+        return true;
+    } else {
+        printf("I am not a private %s\n", filename);
+    }
+#endif
+
+    if (!njs->LoadScript(finalfile)) {
+        JS_ReportError(cx, "Failed to load %s\n", finalfile);
+    }
+    
+    free(file);
+    free(finalfile);
+    return true;
 }
 
 void NativeContext::forceLinking()

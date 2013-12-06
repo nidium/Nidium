@@ -9,6 +9,7 @@
 #define MAX_FILES 8192
 #define MAX_FILE_LENGTH 4096
 #define MAX_LINE_LENGTH 16
+#define FRAMEWORK_LOCATION "../framework/dist/private/"
 
 typedef struct _Script {
     char *name;
@@ -37,11 +38,12 @@ int readArgs(int argc, const char *argv[], char *inFiles[], char **outFile)
 
     for (j = 0; i < argc && i < MAX_FILES; i++) {
         int len = strlen(argv[i]);
-        if (argv[i][len - 1] != 'j' && argv[i][len] != 's')  {
-            inFiles[j] = (char *)argv[i];
-        } else {
-            printf("Skipping file %s (not a js file)\n", argv[i]);
+        if ((argv[i][len - 2] != 'j' && argv[i][len - 1] != 's') ||
+            (argv[i][len - 3] != 'n' && argv[i][len - 2] != 's' && argv[i][len - 1] != 's'))  {
+            printf("Skipping file %s (not a js or nss file)\n", argv[i]);
             continue;
+        } else {
+            inFiles[j] = (char *)argv[i];
         }
 
         j++;
@@ -59,28 +61,84 @@ Script encode(JSContext *cx, char *filename)
     JSObject *gbl;
 
     gbl = JS_GetGlobalObject(cx);
-    JS_SetOptions(cx, JSOPTION_NO_SCRIPT_RVAL);
     JS::CompileOptions options(cx);
+
+    char *name= strstr(filename, FRAMEWORK_LOCATION);
+    if (name== NULL) {
+        name = filename;
+    } else {
+        name = &filename[strlen(FRAMEWORK_LOCATION)];
+    }
+
     options.setUTF8(true)
-           .setFileAndLine(filename, 1);
+           .setFileAndLine(name, 1);
 
     js::RootedObject rgbl(cx, gbl);
+    JSScript *script;
 
-    JSScript *script = JS::Compile(cx, rgbl, options, filename);
+    // XXX : We always compile the JS passing data instead of filename
+    // This allow us to trick spidermonkey regarding the file location
+    FILE *fd = fopen(filename, "r");
+    char *fileData;
+    size_t filesize;
+    int readsize;
+
+    if (!fd) {
+        fprintf(stderr, "Failed to open input file %s\n", filename);
+        return ret;
+    }
+
+    fseek(fd, 0L, SEEK_END);
+    filesize = ftell(fd);
+    fseek(fd, 0L, SEEK_SET);
+
+    fileData = (char *)malloc(filesize); 
+
+    readsize = fread(fileData, sizeof(char), filesize, fd);
+    if (readsize < 1 || readsize != filesize) {
+        fprintf(stderr, "Failed to read input file %s\n", filename);
+        free(fileData);
+        return ret;
+    }
+
+    int l = strlen(filename);
+    if (filename[l - 3] == 'n' && filename[l - 2] == 's' && filename[l - 1] == 's')  {
+        // nss file, data need to be enclosed with a function
+        size_t dataSize = filesize + (sizeof(char) * 512);
+        char *data = (char *)malloc(dataSize); 
+
+        snprintf(data, dataSize, "(function() { return (\n%s\n)})()", fileData);
+
+        JS_SetOptions(cx, JSOPTION_VAROBJFIX);
+        script = JS::Compile(cx, rgbl, options, data, strlen(data));
+
+        free(data);
+    } else {
+        JS_SetOptions(cx, JSOPTION_VAROBJFIX|JSOPTION_NO_SCRIPT_RVAL);
+        script = JS::Compile(cx, rgbl, options, fileData, filesize);
+    }
+
+    free(fileData);
+
     if (!script) {
+        if (JS_IsExceptionPending(cx)) {
+            if (!JS_ReportPendingException(cx)) {
+                JS_ClearPendingException(cx);
+            }
+        }
         return ret;
     }
 
     uint32_t len;
-    void *data;
+    void *bytecode;
 
-    data = JS_EncodeScript(cx, script, &len);
+    bytecode = JS_EncodeScript(cx, script, &len);
 
-    printf("script %s encoded with %d size\n", filename, len);
+    printf("script %s encoded with %d size\n", name, len);
 
-    ret.name = filename;
+    ret.name = name;
     ret.size = len;
-    ret.data = data;
+    ret.data = bytecode;
 
     return ret;
 }
@@ -108,8 +166,11 @@ int run(JSContext *cx, char *inFiles[], char *outFile)
     // Buffer to hold an array of NativeBytecodeScript 
     // with, filename, size and a reference to bytecode
     char *structArray = (char *)malloc(MAX_FILE_LENGTH * MAX_FILES + (MAX_FILES * 512));
+    char *hashInit = (char *)malloc(MAX_FILE_LENGTH * MAX_FILES + (MAX_FILES * 512));
     int offset = 0;
+    int offsetHash = 0;
     offset += sprintf(structArray, "NativeBytecodeScript __bytecodeScripts[] = {\n");
+    offsetHash += sprintf(hashInit, "NativeHash<NativeBytecodeScript*> *__preloadScripts() {\n    NativeHash<NativeBytecodeScript*> *scripts = new NativeHash<NativeBytecodeScript*>();");
 
     for (int i = 0; i < MAX_FILES; i++) {
         if (inFiles[i] == NULL) break;
@@ -167,11 +228,21 @@ int run(JSContext *cx, char *inFiles[], char *outFile)
             script.name, 
             script.size,
             name); 
+
+        char *hashFilename = strstr(script.name, FRAMEWORK_LOCATION);
+        if (hashFilename == NULL) {
+            hashFilename = script.name;
+        } else {
+            hashFilename = &script.name[strlen(FRAMEWORK_LOCATION)];
+        }
+        offsetHash += sprintf(hashInit + offsetHash, "\n    scripts->set(\"%s\", &__bytecodeScripts[%d]);", hashFilename, i);
     }
 
     sprintf(structArray + offset, "\n};\n");
+    sprintf(hashInit + offsetHash, "\n    return scripts;\n};\n");
 
     write(fd, structArray);
+    write(fd, hashInit);
    
     return 0;
 }

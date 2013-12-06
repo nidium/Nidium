@@ -1,51 +1,11 @@
 {
     'targets': [{
-        'target_name': 'js2bytecode',
-        'type': 'executable',
-        'product_dir': '../tools/',
-        'include_dirs': [
-            '<(native_src_path)',
-            '<(third_party_path)/mozilla-central/js/src/dist/include/',
-            '<(third_party_path)/mozilla-central/js/src/',
-            '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-            '<(native_nativejscore_path)/',
-        ],
-        'cflags': [
-            '-Wno-c++0x-extensions',
-            '-Wno-invalid-offsetof'
-        ],
-        'conditions': [
-            ['OS=="linux"', {
-                'link_settings': {
-                    'libraries': [
-                        '-lpthread',
-                        '-lz',
-                        '-ldl',
-                        '-ljs_static',
-                        '-lnspr4',
-                        '-lrt',
-                    ]
-                },
-            }],
-            ['OS=="mac"', {
-                'link_settings': {
-                    'libraries': [
-                        'libjs_static.a',
-                        '/usr/lib/libz.dylib',
-                        'libnspr4.a'
-                    ]
-                },
-            }]
-        ],
-        'sources': [
-            '<(native_src_path)/tools/js2bytecode.cpp',
-        ],
-    },{
         'target_name': 'nativestudio',
         'type': 'static_library',
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            'tools.gyp:js2bytecode',
             'jsoncpp.gyp:jsoncpp',
             'angle.gyp:*'
         ],
@@ -153,6 +113,29 @@
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof'
                 ],
+            }],
+            ['native_embed_private==1', {
+                'defines+': [
+                    'NATIVE_EMBED_PRIVATE',
+                ],
+                'actions': [{
+                    'action_name': 'Build preload',
+                    # If I use find command inside a variable, output is not 
+                    # considered as multiple files using it in inputs works fine
+                    'inputs': [
+                        '<!@(find ../framework/dist/private/ -name *.nss)',
+                        '<!@(find ../framework/dist/private/ -name *.js)',
+                        '../scripts/preload.js',
+                        # Any change to js2bytecode will trigger the action : 
+                        '<(native_src_path)/tools/js2bytecode.cpp',
+                        '<(native_tools_path)js2bytecode',
+                    ],
+                    'outputs': [
+                        '<(native_src_path)/NativeJS_preload.h'
+                    ],
+                    'action': ['<@(native_tools_path)js2bytecode', '<@(_inputs)', '<@(_outputs)'],
+                    'process_outputs_as_sources': 1,
+                }],
             }],
             ['native_audio==1', {
                 'sources': [
