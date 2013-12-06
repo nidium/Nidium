@@ -307,7 +307,6 @@ bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
     if (argc > 1) {
         JS::RootedValue type(cx, JS_ARGV(cx, vp)[1]);
         if (type.isString()) {
-            printf("loading nss %s\n", finalfile);
             JS::RootedValue ret(cx, JSVAL_NULL);
             if (!NativeJS::LoadScriptReturn(cx, finalfile, ret.address())) {
                 JS_ReportError(cx, "Failed to load %s\n", finalfile);
