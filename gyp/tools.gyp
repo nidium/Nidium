@@ -23,6 +23,7 @@
                         '-ldl',
                         '-ljs_static',
                         '-lnspr4',
+                        '-lrt',
                     ]
                 },
             }],
