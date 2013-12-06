@@ -113,15 +113,6 @@
                             'DEPLOYEMENT_POSTPROCESSING': 'YES',
                         }
                     }],
-                    ['native_strip_exec==0', {
-                        "xcode_settings": {
-                            'DEPLOYEMENT_POSTPROCESSING': 'YES',
-                            'STRIP_INSTALLED_PRODUCT': 'NO',
-                            'COPY_PHASE_STRIP': 'NO',
-                            'DEBUGGING_SYMBOLS': 'YES',
-                            'DEAD_CODE_STRIPPING': 'NO'
-                        }
-                    }],
                 ],
                 "link_settings": {
                     'libraries': [
