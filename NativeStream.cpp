@@ -27,6 +27,8 @@
 #include <ape_base64.h>
 #include "NativeUtils.h"
 
+#include "../interface/NativeSystemInterface.h"
+
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
@@ -49,17 +51,24 @@ NativeStream::NativeStream(ape_global *net,
     m_Buffered(0), m_BufferedPosition(0), m_FileSize(0), m_KnownSize(false)
 {
     this->interface = NULL;
+
     int len = 0;
+    StreamInterfaces streamInterface = NativeStream::typeInterface(location, &len);
     if (prefix == NULL ||
-        NativeStream::typeInterface(location, &len) != INTERFACE_UNKNOWN) {
+         streamInterface == INTERFACE_HTTP ||
+         streamInterface == INTERFACE_DATA) {
 
         this->location  = strdup(location);
     } else {
+        char *tmp = NativeStream::resolvePath(location, STREAM_RESOLVE_FILE);
+
         this->location = (char *)malloc(sizeof(char) *
-            (strlen(location) + strlen(prefix) + 1));
+            (strlen(tmp) + strlen(prefix) + 1));
 
         memcpy(this->location, prefix, strlen(prefix)+1);
-        strcat(this->location, location);
+        strcat(this->location, tmp);
+
+        free(tmp);
     }
 
     this->net = net;
@@ -124,7 +133,6 @@ void NativeStream::setAutoClose(bool close)
 
 char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
 {
-#define FRAMEWORK_LOCATION "./private/"
 #define INDEX_FILE "index.nml"
 
     int len = 0;
@@ -202,7 +210,7 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
                     return strdup("./");
                 }
             } else if (mode == STREAM_RESOLVE_FILE) {
-                return strdup(url);
+                return strdup(&url[len]);
             } else if (mode == STREAM_RESOLVE_PATH) {
                 if (end == NULL) {
                     return strdup("./");
@@ -220,10 +228,12 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
             return strdup("./");
         case INTERFACE_PRIVATE:
         {
+            const char *privateLocation = 
+                NativeSystemInterface::getInstance()->getPrivateDirectory();
             char *flocation = (char *)malloc(sizeof(char) *
-                    (strlen(&url[len]) + sizeof(FRAMEWORK_LOCATION) + 1));
+                    (strlen(&url[len]) + strlen(privateLocation) + 1));
 
-            sprintf(flocation, FRAMEWORK_LOCATION "%s", &url[len]);
+            sprintf(flocation, "%s%s", privateLocation, &url[len]);
 
             /* TODO : force interface type to avoid looping (private://private://) */
             char *ret = NativeStream::resolvePath(flocation, mode);
@@ -236,7 +246,6 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
     }
 
     return strdup("./");
-#undef FRAMEWORK_LOCATION
 #undef INDEX_FILE
 }
 
@@ -253,6 +262,10 @@ NativeStream::StreamInterfaces NativeStream::typeInterface(const char *url, int 
 
             break;
         }
+    }
+
+    if (interface == NativeStream::INTERFACE_UNKNOWN) {
+        *len = 0;
     }
 
     return interface;

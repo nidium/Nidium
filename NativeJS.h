@@ -58,6 +58,8 @@ typedef struct _NativeBytecodeScript {
     const unsigned char *data;
 } NativeBytecodeScript;
 
+class NativeJSDelegate;
+
 class NativeJS
 {
     public:
@@ -77,6 +79,7 @@ class NativeJS
         native_thread_message_t *registeredMessages;
         int registeredMessagesIdx;
         int registeredMessagesSize;
+        NativeJSDelegate *m_Delegate;
 
         static NativeJS *getNativeClass(JSContext *cx);
 
@@ -102,6 +105,9 @@ class NativeJS
         }
         void setLogger(vlogger lfunc) {
             m_vLogger = lfunc;
+        }
+        void setDelegate(NativeJSDelegate *delegate) {
+            m_Delegate = delegate;
         }
 
         void loadGlobalObjects();
@@ -147,4 +153,10 @@ class NativeJS
         /* va_list argument */
         vlogger m_vLogger;
 };
+
+class NativeJSDelegate {
+    public:
+        virtual bool onLoad(NativeJS *njs, char *filename, int argc, jsval *vp);
+};
 #endif
+

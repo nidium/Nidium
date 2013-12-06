@@ -288,43 +288,43 @@ static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *script, *type = NULL;
+    JSString *script = NULL;
     JSScript *parent;
+    NativeJS *njs = NativeJS::getNativeClass(cx);
     const char *filename_parent;
     unsigned lineno;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S", &script, &type)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
         return false;
     }
+    
+    JSAutoByteString scriptstr(cx, script);
+
+    if (njs->m_Delegate != NULL) {
+        if (njs->m_Delegate->onLoad(njs, scriptstr.ptr(), argc, vp)) {
+            return true;
+        }
+    }
+
+    NativeJS::getNativeClass(cx)->LoadScript(scriptstr.ptr());
 
     JS_DescribeScriptedCaller(cx, &parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
 
-    JSAutoByteString scriptstr(cx, script);
     char *basepath = NativeStream::resolvePath(filename_parent, NativeStream::STREAM_RESOLVE_PATH);
-
     char *finalfile = (char *)malloc(sizeof(char) *
-        (1 + strlen(basepath) + strlen(scriptstr.ptr())));
+        (1 + strlen(basepath) + strlen(filename_parent)));
 
-    sprintf(finalfile, "%s%s", basepath, scriptstr.ptr());
-
-    jsval ret = JSVAL_NULL;
-
-    if (type == NULL && !NativeJS::getNativeClass(cx)->LoadScript(finalfile)) {
+    if (!NativeJS::getNativeClass(cx)->LoadScript(finalfile)) {
         free(finalfile);
         free(basepath);
-        return JS_TRUE;
-    } else if (type != NULL &&
-        !NativeJS::LoadScriptReturn(cx, finalfile, &ret)) {
-        free(finalfile);
-        free(basepath);
-        return JS_TRUE;
-    }
+        return false;
+    } 
+
     free(finalfile);
     free(basepath);
-    JS_SET_RVAL(cx, vp, ret);
 
-    return JS_TRUE;
+    return true;
 }
 
 #if 0
@@ -374,7 +374,7 @@ NativeJS *NativeJS::getNativeClass(JSContext *cx)
 }
 
 NativeJS::NativeJS(ape_global *net) :
-    m_Logger(NULL), m_vLogger(NULL)
+    m_Delegate(NULL), m_Logger(NULL), m_vLogger(NULL)
 {
     JSRuntime *rt;
     JSObject *gbl;
