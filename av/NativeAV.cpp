@@ -64,7 +64,7 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
 NativeAVStreamReader::NativeAVStreamReader(const char *chroot, const char *src, bool *readFlag, 
         pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net) 
-    : source(source), readFlag(readFlag), opened(false), bufferCond(bufferCond), totalRead(0), 
+    : source(source), totalRead(0), readFlag(readFlag), opened(false), bufferCond(bufferCond), 
       streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0), streamBuffer(NULL), error(0)
 {
     this->async = true;

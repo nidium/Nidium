@@ -40,6 +40,7 @@
 uint32_t ttfps = 0;
 
 
+#if 0
 static Window *NativeX11Window(SDL_Window *win)
 {
     SDL_SysWMinfo info;
@@ -48,6 +49,7 @@ static Window *NativeX11Window(SDL_Window *win)
 
     return (Window*)info.info.x11.window;
 }
+#endif
 
 void NativeX11UIInterface_onNMLLoaded(void *arg)
 {
@@ -391,7 +393,7 @@ const char *NativeX11UIInterface::getWindowTitle() const
     return SDL_GetWindowTitle(win);
 }
 
-void NativeX11UIInterface::openFileDialog(const char const *files[],
+void NativeX11UIInterface::openFileDialog(const char *files[],
     void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
 {
 #ifdef NATIVE_USE_GTK
@@ -576,7 +578,6 @@ void NativeX11UIInterface::runLoop()
 }
 
 NativeUIX11Console::NativeUIX11Console () 
-    : isHidden(false), needFlush(false)
 {
 }
 
