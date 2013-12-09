@@ -300,10 +300,9 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
     
     JSAutoByteString scriptstr(cx, script);
 
-    if (njs->m_Delegate != NULL) {
-        if (njs->m_Delegate->onLoad(njs, scriptstr.ptr(), argc, vp)) {
-            return true;
-        }
+    if (njs->m_Delegate != NULL && 
+            njs->m_Delegate->onLoad(njs, scriptstr.ptr(), argc, vp)) {
+        return true;
     }
 
     NativeJS::getNativeClass(cx)->LoadScript(scriptstr.ptr());
