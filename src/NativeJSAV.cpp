@@ -638,6 +638,7 @@ bool NativeJSAudio::run(char *str)
 
 NativeJSAudio::~NativeJSAudio() 
 {
+    this->threadMessageEvent = -1;
     // Unroot all js audio nodes
     this->unroot();
 
