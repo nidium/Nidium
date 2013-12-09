@@ -14,7 +14,7 @@ typedef struct _Script {
     char *name;
     int size;
     void *data;
-    _Script() : data(NULL), name(NULL), size(0) {}
+    _Script() : name(NULL), size(0), data(NULL) {}
 } Script;
 
 int readArgs(int argc, const char *argv[], char *inFiles[], char **outFile) 
