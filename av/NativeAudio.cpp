@@ -46,12 +46,6 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
         throw;
     }
 
-    if (!(this->nullBuffer = (float *)calloc(bufferSize/channels, NativeAudio::FLOAT32))) {
-        printf("Failed to init nullBuffer\n");
-        free(this->rBufferOutData);
-        throw;
-    }
-
     if (!(this->cbkBuffer = (float *)calloc(bufferSize, NativeAudio::FLOAT32))) {
         printf("Failed to init cbkBUffer\n");
         free(this->rBufferOutData);
@@ -623,7 +617,6 @@ NativeAudio::~NativeAudio() {
 
     Pa_Terminate(); 
 
-    free(this->nullBuffer);
     free(this->cbkBuffer);
     free(this->rBufferOutData);
 

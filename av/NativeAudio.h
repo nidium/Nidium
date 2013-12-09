@@ -59,7 +59,6 @@ class NativeAudio
         NativeAudioParameters *inputParameters;
 
         // TODO : Use friend class instead of exposing those var
-        float *nullBuffer;
         NativeSharedMessages *sharedMsg;
         pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
         pthread_mutex_t recurseLock;
