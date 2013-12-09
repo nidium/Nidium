@@ -43,8 +43,10 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
             break;
         case SEEK_CUR:
             pos = reader->pos + offset;
+            break;
         case SEEK_END:
             pos = reader->bufferSize - offset;
+            break;
         default:
             return -1;
     }
@@ -179,6 +181,7 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
             break;
         case SEEK_CUR:
             pos = (thiz->totalRead) + offset;
+            break;
         case SEEK_END:
             if (size != 0) {
                 pos = size - offset;
