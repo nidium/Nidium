@@ -54,11 +54,7 @@ NativeStream::NativeStream(ape_global *net,
 
     int len = 0;
     StreamInterfaces streamInterface = NativeStream::typeInterface(location, &len);
-    if (prefix == NULL ||
-         streamInterface == INTERFACE_HTTP ||
-         streamInterface == INTERFACE_DATA ||
-         streamInterface == INTERFACE_PRIVATE) {
-
+    if (prefix == NULL || streamInterface != INTERFACE_UNKNOWN) {
         this->location  = strdup(location);
     } else {
         char *tmp = NativeStream::resolvePath(location, STREAM_RESOLVE_FILE);
