@@ -157,6 +157,7 @@ class NativeJS
 class NativeJSDelegate {
     public:
         virtual bool onLoad(NativeJS *njs, char *filename, int argc, jsval *vp) = 0;
+        virtual ~NativeJSDelegate() {};
 };
 #endif
 
