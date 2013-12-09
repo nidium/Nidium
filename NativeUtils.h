@@ -24,6 +24,15 @@
 #include <stdint.h>
 #include <pthread.h>
 
+class NativeNoncopyable {
+public:
+    NativeNoncopyable() {}
+
+private:
+    NativeNoncopyable(const NativeNoncopyable&);
+    NativeNoncopyable& operator=(const NativeNoncopyable&);
+};
+
 class NativeUtils
 {
     public:

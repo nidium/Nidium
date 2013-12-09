@@ -24,13 +24,15 @@
 #include <ape_hash.h>
 #include <stdlib.h>
 #include <string.h>
+#include "NativeUtils.h"
+
 
 /*
     C++ wrapper to ape_hash
 */
 
 template <typename T>
-class NativeHash64
+class NativeHash64 : public NativeNoncopyable
 {
     public:
         NativeHash64() :
@@ -68,7 +70,7 @@ class NativeHash64
    
 
 template <typename T>
-class NativeHash
+class NativeHash : public NativeNoncopyable
 {
     public:
         NativeHash() :
@@ -105,7 +107,7 @@ class NativeHash
 };
 
 template <>
-class NativeHash<uint32_t>
+class NativeHash<uint32_t> : public NativeNoncopyable
 {
     public:
         NativeHash() {
