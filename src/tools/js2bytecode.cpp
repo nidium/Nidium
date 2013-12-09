@@ -9,7 +9,6 @@
 #define MAX_FILES 8192
 #define MAX_FILE_LENGTH 4096
 #define MAX_LINE_LENGTH 16
-#define FRAMEWORK_LOCATION "../framework/dist/private/"
 
 typedef struct _Script {
     char *name;
@@ -24,12 +23,12 @@ int readArgs(int argc, const char *argv[], char *inFiles[], char **outFile)
     int j;
 
     if (argc - 1 > MAX_FILES) {
-        fprintf(stderr, "More than %d files as input", MAX_FILES);
+        fprintf(stderr, "More than %d files as input\n", MAX_FILES);
         return 1;
     }
 
     if (argc < 3) {
-        fprintf(stderr, "Usage : js2byte input_file ... output_file");
+        fprintf(stderr, "Usage : js2byte input_file ... output_file\n");
         return 1;
     }
 
@@ -63,11 +62,11 @@ Script encode(JSContext *cx, char *filename)
     gbl = JS_GetGlobalObject(cx);
     JS::CompileOptions options(cx);
 
-    char *name= strstr(filename, FRAMEWORK_LOCATION);
-    if (name== NULL) {
+    char *name = strstr(filename, PRIVATE_ROOT);
+    if (name == NULL) {
         name = filename;
     } else {
-        name = &filename[strlen(FRAMEWORK_LOCATION)];
+        name = &filename[strlen(PRIVATE_ROOT)];
     }
 
     options.setUTF8(true)
@@ -166,11 +165,8 @@ int run(JSContext *cx, char *inFiles[], char *outFile)
     // Buffer to hold an array of NativeBytecodeScript 
     // with, filename, size and a reference to bytecode
     char *structArray = (char *)malloc(MAX_FILE_LENGTH * MAX_FILES + (MAX_FILES * 512));
-    char *hashInit = (char *)malloc(MAX_FILE_LENGTH * MAX_FILES + (MAX_FILES * 512));
     int offset = 0;
-    int offsetHash = 0;
     offset += sprintf(structArray, "NativeBytecodeScript __bytecodeScripts[] = {\n");
-    offsetHash += sprintf(hashInit, "NativeHash<NativeBytecodeScript*> *__preloadScripts() {\n    NativeHash<NativeBytecodeScript*> *scripts = new NativeHash<NativeBytecodeScript*>();");
 
     for (int i = 0; i < MAX_FILES; i++) {
         if (inFiles[i] == NULL) break;
@@ -228,21 +224,17 @@ int run(JSContext *cx, char *inFiles[], char *outFile)
             script.name, 
             script.size,
             name); 
-
-        char *hashFilename = strstr(script.name, FRAMEWORK_LOCATION);
-        if (hashFilename == NULL) {
-            hashFilename = script.name;
-        } else {
-            hashFilename = &script.name[strlen(FRAMEWORK_LOCATION)];
-        }
-        offsetHash += sprintf(hashInit + offsetHash, "\n    scripts->set(\"%s\", &__bytecodeScripts[%d]);", hashFilename, i);
     }
 
-    sprintf(structArray + offset, "\n};\n");
-    sprintf(hashInit + offsetHash, "\n    return scripts;\n};\n");
+    sprintf(structArray + offset, "\n,    {NULL, 0, NULL}\n};\n");
 
     write(fd, structArray);
-    write(fd, hashInit);
+
+    write(fd, "void __preloadScripts(NativeHash<NativeBytecodeScript*> *scripts) {\n    ");
+    write(fd, "    for (int i = 0; __bytecodeScripts[i].name != NULL; i++) {\n");
+    write(fd, "        scripts->set(__bytecodeScripts[i].name, &__bytecodeScripts[i]);\n");
+    write(fd, "    }\n");
+    write(fd, "}\n");
    
     return 0;
 }

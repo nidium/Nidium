@@ -84,11 +84,11 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_NML->setNJS(this->njs);
 
-    this->preload = __preloadScripts();
+    __preloadScripts(&this->preload);
 
     const char *loadPreload[] = {"falcon/native.js", "../scripts/preload.js"};
     for (int i = 0; i < 2; i++) {
-        NativeBytecodeScript *script = this->preload->get(loadPreload[i]);
+        NativeBytecodeScript *script = this->preload.get(loadPreload[i]);
         if (script) {
             this->njs->LoadBytecode(script);
         }
@@ -332,9 +332,7 @@ bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
         free(finalfile);
 
         return true;
-    } else {
-        printf("I am not a private %s\n", filename);
-    }
+    } 
 #endif
 
     if (!njs->LoadScript(finalfile)) {

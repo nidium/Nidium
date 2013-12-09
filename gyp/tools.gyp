@@ -14,6 +14,9 @@
             '-Wno-c++0x-extensions',
             '-Wno-invalid-offsetof'
         ],
+        'defines': [
+            'PRIVATE_ROOT="<(native_exec_path)private"'
+        ],
         'conditions': [
             ['OS=="linux"', {
                 'link_settings': {

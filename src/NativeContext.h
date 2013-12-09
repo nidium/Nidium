@@ -63,7 +63,7 @@ class NativeContext : public NativeJSDelegate
         return m_GLState;
     }
 
-    NativeHash<NativeBytecodeScript *> *preload;
+    NativeHash<NativeBytecodeScript *> preload;
 
     // NativeJS delegate
     bool onLoad(NativeJS *njs, char *filename, int argc, jsval *vp);
