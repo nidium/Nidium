@@ -63,11 +63,7 @@ Script encode(JSContext *cx, char *filename)
     JS::CompileOptions options(cx);
 
     char *name = strstr(filename, PRIVATE_ROOT);
-    if (name == NULL) {
-        name = filename;
-    } else {
-        name = &filename[strlen(PRIVATE_ROOT)];
-    }
+    name = (name == NULL ? filename : &name[strlen(PRIVATE_ROOT)]);
 
     options.setUTF8(true)
            .setFileAndLine(name, 1);
@@ -91,7 +87,7 @@ Script encode(JSContext *cx, char *filename)
     filesize = ftell(fd);
     fseek(fd, 0L, SEEK_SET);
 
-    fileData = (char *)malloc(filesize); 
+    fileData = (char *)malloc(filesize + 1); 
 
     readsize = fread(fileData, sizeof(char), filesize, fd);
     if (readsize < 1 || readsize != filesize) {
@@ -99,6 +95,8 @@ Script encode(JSContext *cx, char *filename)
         free(fileData);
         return ret;
     }
+
+    fileData[readsize] = '\0';
 
     int l = strlen(filename);
     if (filename[l - 3] == 'n' && filename[l - 2] == 's' && filename[l - 1] == 's')  {
