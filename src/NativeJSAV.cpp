@@ -935,6 +935,10 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
     NativeJSAudioNode *jnode = static_cast<NativeJSAudioNode *>(custom);
     JSContext *tcx = jnode->audio->tcx;
 
+    if (jnode->hashObj != NULL || jnode->nodeObj != NULL) {
+        return;
+    }
+
     jnode->hashObj = JS_NewObject(tcx, NULL, NULL, NULL);
     if (!jnode->hashObj) {
         JS_PROPAGATE_ERROR(tcx, "Failed to create hash object for custom node");
@@ -1899,9 +1903,10 @@ static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject 
 
     jnode->m_TransferableFuncs[funID] = fun;
 
-
     if (JSID_TO_INT(id) == NODE_CUSTOM_PROP_PROCESS) {
-        node->callback(NativeJSAudioNode::initCustomObject, static_cast<void *>(jnode));
+        if (!jnode->nodeObj) {
+            node->callback(NativeJSAudioNode::initCustomObject, static_cast<void *>(jnode));
+        }
         node->setCallback(NativeJSAudioNode::customCallback, static_cast<void *>(jnode));
     }
 
