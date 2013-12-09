@@ -56,7 +56,8 @@ NativeStream::NativeStream(ape_global *net,
     StreamInterfaces streamInterface = NativeStream::typeInterface(location, &len);
     if (prefix == NULL ||
          streamInterface == INTERFACE_HTTP ||
-         streamInterface == INTERFACE_DATA) {
+         streamInterface == INTERFACE_DATA ||
+         streamInterface == INTERFACE_PRIVATE) {
 
         this->location  = strdup(location);
     } else {
