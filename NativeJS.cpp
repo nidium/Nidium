@@ -899,7 +899,6 @@ int NativeJS::LoadBytecode(NativeBytecodeScript *script)
 
 int NativeJS::LoadBytecode(void *data, int size, const char *filename)
 {
-    uint32_t oldopts;
     JSObject *gbl = JS_GetGlobalObject(cx);
     js::RootedObject rgbl(cx, gbl);
 
