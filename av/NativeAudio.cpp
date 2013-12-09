@@ -41,18 +41,18 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
 
     this->rBufferOut = new PaUtilRingBuffer();
 
-    if (!(this->rBufferOutData = (float *)calloc(NativeAudio::FLOAT32, NATIVE_AVDECODE_BUFFER_SAMPLES * NativeAudio::FLOAT32))) {
+    if (!(this->rBufferOutData = (float *)calloc(NATIVE_AVDECODE_BUFFER_SAMPLES * channels, NativeAudio::FLOAT32))) {
         printf("Failed to init ouput ringbuffer\n");
         throw;
     }
 
-    if (!(this->nullBuffer = (float *)calloc(NativeAudio::FLOAT32, bufferSize/channels))) {
+    if (!(this->nullBuffer = (float *)calloc(bufferSize/channels, NativeAudio::FLOAT32))) {
         printf("Failed to init nullBuffer\n");
         free(this->rBufferOutData);
         throw;
     }
 
-    if (!(this->cbkBuffer = (float *)calloc(NativeAudio::FLOAT32, bufferSize))) {
+    if (!(this->cbkBuffer = (float *)calloc(bufferSize, NativeAudio::FLOAT32))) {
         printf("Failed to init cbkBUffer\n");
         free(this->rBufferOutData);
         free(this->cbkBuffer);
@@ -60,8 +60,8 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     }
 
     if (0 > PaUtil_InitializeRingBuffer(this->rBufferOut, 
-            (NativeAudio::FLOAT32),
-            NATIVE_AVDECODE_BUFFER_SAMPLES,
+            NativeAudio::FLOAT32,
+            NATIVE_AVDECODE_BUFFER_SAMPLES * channels,
             this->rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         free(this->rBufferOutData);

@@ -46,7 +46,7 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
 
     // Malloc node I/O frames
     max = (inCount > outCount ? inCount : outCount);
-    this->frames = (float **)calloc(sizeof(float *), max);
+    this->frames = (float **)calloc(max, NativeAudio::FLOAT32);
 
     for (int i = 0; i < max; i++) {
         this->frames[i] = NULL;
@@ -415,7 +415,7 @@ void NativeAudioNode::processQueue()
 float *NativeAudioNode::newFrame()
 {
 #define FRAME_SIZE this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels
-    float *ret = (float *)calloc(sizeof(float), FRAME_SIZE + sizeof(void *));
+    float *ret = (float *)calloc(FRAME_SIZE + sizeof(void *), NativeAudio::FLOAT32);
     if (ret != NULL) {
         // Store at the end of the frame array
         // a pointer to the frame owner
@@ -613,7 +613,7 @@ NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudi
     int max = inCount > outCount ? inCount : outCount;
     this->buffers = (float **)malloc(max * sizeof(void *));
     for (int i = 0; i < max; i++) {
-        this->buffers[i] = (float *)calloc(NativeAudio::FLOAT32, audio->outputParameters->sampleRate * (delay/1000));
+        this->buffers[i] = (float *)calloc(audio->outputParameters->sampleRate * (delay/1000), NativeAudio::FLOAT32);
         if (!this->buffers[i]) {
             this->doNotProcess = true;
         }
@@ -938,7 +938,7 @@ int NativeAudioSource::initInternal()
 
     // Init output buffer
     this->rBufferOut = new PaUtilRingBuffer();
-    if (!(this->rBufferOutData = calloc(sizeof(float), (NativeAudio::FLOAT32 * NATIVE_AVDECODE_BUFFER_SAMPLES * this->outCount)))) {
+    if (!(this->rBufferOutData = calloc(NATIVE_AVDECODE_BUFFER_SAMPLES * this->outCount, NativeAudio::FLOAT32))) {
         return ERR_OOM;
     }
 
