@@ -121,7 +121,7 @@ enum {
     ERR_MAX
 };
 
-static const char *NativeAVErrorsStr[ERR_MAX] = {
+const char * const NativeAVErrorsStr[ERR_MAX] = {
     "Failed to open media file",
     "Failed to read media file",
     "Failed to find stream information",

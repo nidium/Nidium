@@ -16,6 +16,7 @@ extern "C" {
 // TODO : When stop/pause/kill fade out sound
 
 NativeJSAudio *NativeJSAudio::instance = NULL;
+int NativeJSAudio::threadMessageEvent = -1;
 extern JSClass Canvas_class;
 
 #define NJS (NativeJS::getNativeClass(cx))
@@ -381,6 +382,87 @@ int FFT(int dir,int nn,double *x,double *y)
    }
 
    return true;
+}
+
+const char *NativeJSAVEventRead(int ev)
+{
+    switch (ev) {
+        case SOURCE_EVENT_PAUSE:
+            return "onpause";
+        break;
+        case SOURCE_EVENT_PLAY:
+            return "onplay";
+        break;
+        case SOURCE_EVENT_STOP:
+            return "onstop";
+        break;
+        case SOURCE_EVENT_EOF:
+            return "onend";
+        break;
+        case SOURCE_EVENT_ERROR:
+            return "onerror";
+        break;
+        case SOURCE_EVENT_BUFFERING:
+            return "onbuffering";
+        break;
+        case SOURCE_EVENT_READY:
+            return "onready";
+        break;
+        default:
+            return NULL;
+        break;
+    }
+}
+
+void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
+{
+    jsval jscbk, rval;
+
+    NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg->dataPtr());
+
+    NativeJSAudioNode *jnode = static_cast<NativeJSAudioNode*>(JS_GetInstancePrivate(cx, cmsg->callee, &AudioNode_class, NULL));
+
+    const char *prop = NativeJSAVEventRead(cmsg->ev);
+    if (!prop) {
+        if (jnode) {
+            jnode->node->unref();
+        }
+
+        delete cmsg;
+
+        return;
+    }
+
+    if (JS_GetProperty(cx, cmsg->callee, prop, &jscbk) &&
+        !JSVAL_IS_PRIMITIVE(jscbk) &&
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
+
+        if (cmsg->ev == SOURCE_EVENT_ERROR) {
+            jsval event[2];
+            const char *errorStr = NativeAVErrorsStr[cmsg->arg1];
+
+            event[0] = INT_TO_JSVAL(cmsg->arg1);
+            event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
+
+            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
+        } else if (cmsg->ev == SOURCE_EVENT_BUFFERING) {
+            jsval event[2];
+
+            event[0] = INT_TO_JSVAL(cmsg->arg1);
+            event[1] = INT_TO_JSVAL(cmsg->arg2);
+
+            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
+        } else {
+            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 0, NULL, &rval);
+        }
+        
+    }
+
+    if (jnode) {
+        jnode->node->unref();
+    }
+
+    delete cmsg;
 }
 
 bool JSTransferableFunction::prepare(JSContext *cx, jsval val)
@@ -789,36 +871,6 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     }
 }
 
-const char *NativeJSAVEventRead(int ev)
-{
-    switch (ev) {
-        case SOURCE_EVENT_PAUSE:
-            return "onpause";
-        break;
-        case SOURCE_EVENT_PLAY:
-            return "onplay";
-        break;
-        case SOURCE_EVENT_STOP:
-            return "onstop";
-        break;
-        case SOURCE_EVENT_EOF:
-            return "onend";
-        break;
-        case SOURCE_EVENT_ERROR:
-            return "onerror";
-        break;
-        case SOURCE_EVENT_BUFFERING:
-            return "onbuffering";
-        break;
-        case SOURCE_EVENT_READY:
-            return "onready";
-        break;
-        default:
-            return NULL;
-        break;
-    }
-}
-
 void NativeJSAudioNode::eventCbk(const struct NativeAVSourceEvent *cev) 
 {
     NativeJSAudioNode *thiz;
@@ -831,7 +883,7 @@ void NativeJSAudioNode::eventCbk(const struct NativeAVSourceEvent *cev)
     // if message is comming from main thread
     ev = new NativeJSAVMessageCallback(thiz->jsobj, cev->ev, cev->value1, cev->value2);
     
-    thiz->njs->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
+    thiz->njs->postMessage(ev, NativeJSAudio::threadMessageEvent);
 
     delete cev;
 }
@@ -1075,9 +1127,11 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     bool paramsChanged = false;
+    int oldThreadEv = -1;
     NativeJSAudio *jaudio = NativeJSAudio::getContext();
 
     if (jaudio) {
+        oldThreadEv = jaudio->threadMessageEvent;
         NativeAudioParameters *params = jaudio->audio->outputParameters;
         if (params->bufferSize != bufferSize ||
             params->channels != channels ||
@@ -1099,6 +1153,11 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Audio_class, vp);
     NativeJSAudio *naudio = NativeJSAudio::getContext(cx, ret, bufferSize, channels, sampleRate);
+
+    if (NativeJSAudio::threadMessageEvent == -1) {
+        // TODO : Depending on how we implement multiple windows this might become an issue
+        NativeJSAudio::threadMessageEvent = NativeJSObj(cx)->registerMessage(native_av_thread_message);
+    }
 
     JS_DefineProperty(cx, ret, "bufferSize", INT_TO_JSVAL(bufferSize/8), NULL, NULL, 
             JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
@@ -1923,7 +1982,7 @@ void NativeJSVideo::eventCbk(const struct NativeAVSourceEvent *cev)
 
     ev = new NativeJSAVMessageCallback(thiz->jsobj, cev->ev, cev->value1, cev->value2);
     
-    njs->postMessage(ev, NATIVE_AV_THREAD_MESSAGE_CALLBACK);
+    njs->postMessage(ev, NativeJSAudio::threadMessageEvent);
 
     delete cev;
 }
@@ -2264,57 +2323,6 @@ void NativeJSAudioNode::seekCallback(NativeAudioCustomSource *node, double seekT
     fn->call(jnode->audio->tcx, jnode->nodeObj, 2, params, &rval);
 }
 
-void native_av_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
-{
-    jsval jscbk, rval;
-
-    NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg->dataPtr());
-
-    NativeJSAudioNode *jnode = static_cast<NativeJSAudioNode*>(JS_GetInstancePrivate(cx, cmsg->callee, &AudioNode_class, NULL));
-
-    const char *prop = NativeJSAVEventRead(cmsg->ev);
-    if (!prop) {
-        if (jnode) {
-            jnode->node->unref();
-        }
-
-        delete cmsg;
-
-        return;
-    }
-
-    if (JS_GetProperty(cx, cmsg->callee, prop, &jscbk) &&
-        !JSVAL_IS_PRIMITIVE(jscbk) &&
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
-
-        if (cmsg->ev == SOURCE_EVENT_ERROR) {
-            jsval event[2];
-            const char *errorStr = NativeAVErrorsStr[cmsg->arg1];
-
-            event[0] = INT_TO_JSVAL(cmsg->arg1);
-            event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
-
-            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
-        } else if (cmsg->ev == SOURCE_EVENT_BUFFERING) {
-            jsval event[2];
-
-            event[0] = INT_TO_JSVAL(cmsg->arg1);
-            event[1] = INT_TO_JSVAL(cmsg->arg2);
-
-            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 2, event, &rval);
-        } else {
-            JS_CallFunctionValue(cx, cmsg->callee, jscbk, 0, NULL, &rval);
-        }
-        
-    }
-
-    if (jnode) {
-        jnode->node->unref();
-    }
-
-    delete cmsg;
-}
-
 void NativeJSAudioNode::registerObject(JSContext *cx)
 {
     JSObject *obj;
@@ -2331,8 +2339,6 @@ void NativeJSAudio::registerObject(JSContext *cx)
     obj = JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, 
             &Audio_class, native_Audio_constructor, 0, 
             Audio_props, Audio_funcs, NULL, Audio_static_funcs);
-
-    NATIVE_AV_THREAD_MESSAGE_CALLBACK = NativeJSObj(cx)->registerMessage(native_av_thread_message);
 }
 
 NATIVE_OBJECT_EXPOSE(Video);

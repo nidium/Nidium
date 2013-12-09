@@ -293,9 +293,6 @@ void NativeContext::initHandlers(int width, int height)
 bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
 {
     JSContext *cx = njs->cx;
-    int interfaceLen = 0;
-    NativeStream::StreamInterfaces interface = 
-        NativeStream::typeInterface(filename, &interfaceLen);
     char *file = NativeStream::resolvePath(filename, NativeStream::STREAM_RESOLVE_FILE);
     const char *prefix = njs->getPath();
     char *finalfile = (char *)malloc(sizeof(char) *
@@ -322,6 +319,9 @@ bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
     }
 
 #ifdef NATIVE_EMBED_PRIVATE
+    int interfaceLen = 0;
+    NativeStream::StreamInterfaces interface = 
+        NativeStream::typeInterface(filename, &interfaceLen);
     if (interface == NativeStream::INTERFACE_PRIVATE) {
         // XXX : This is a temporary hack until we got VFS working
         // If falcon framework is embeded inside the binary so all call to load()

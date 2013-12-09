@@ -13,13 +13,14 @@ extern "C" {
 #include "libswscale/swscale.h"
 }
 
-#undef SPAM
+#undef DPRINT
 #if 0
-  #define SPAM(a) \
+  #define DEBUG_PRINT
+  #define DPRINT(a, ...) \
     printf(">%lld / ", av_gettime()/1000); \
-    printf a
+    printf(a, __VA_ARGS__)
 #else
-  #define SPAM(a) (void)0
+  #define DPRINT(...) (void)0
 #endif
 
 // XXX : Well, NativeVideo need a better interaction with NativeAudi. 
@@ -102,7 +103,7 @@ int NativeVideo::open(void *buffer, int size)
 
 int NativeVideo::open(const char *chroot, const char *src) 
 {
-    SPAM(("Open %s\n", src));
+    DPRINT("Open %s\n", src);
     if (this->avioBuffer != NULL) {
         this->closeInternal(true);
     } 
@@ -134,7 +135,7 @@ int NativeVideo::open(const char *chroot, const char *src)
 
 int NativeVideo::openInit() 
 {
-    SPAM(("openInit()\n"));
+    DPRINT("openInit()\n");
     if (this->reader->async) {
         pthread_cond_signal(&this->bufferCond);
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
@@ -369,9 +370,9 @@ double NativeVideo::getClock()
 
 void NativeVideo::seek(double time, uint32_t flags)
 {
-    SPAM(("Seek called\n"));
+    DPRINT("Seek called\n");
     if (!this->opened || this->doSeek) {
-        SPAM(("not seeking cause already seeking\n"));
+        DPRINT("not seeking cause already seeking\n");
         return;
     }
 
@@ -400,12 +401,12 @@ void NativeVideo::seekCoro(void *arg)
 
 bool NativeVideo::seekMethod(int64_t target, int flags)
 {
-    SPAM(("av_seek_frame\n"));
+    DPRINT("av_seek_frame\n");
     if (!(this->seekFlags & NATIVE_VIDEO_SEEK_KEYFRAME)) {
         flags |= AVSEEK_FLAG_ANY;
     }
     int ret = av_seek_frame(this->container, this->videoStream, target, flags);
-    SPAM(("av_seek_frame done ret=%d\n", ret));
+    DPRINT("av_seek_frame done ret=%d\n", ret);
     if (ret >= 0) {
         this->error = 0;
 
@@ -447,7 +448,9 @@ int64_t NativeVideo::seekTarget(double time, int *flags)
 #define SEEK_STEP 2
 void NativeVideo::seekInternal(double time) 
 {
+#ifdef DEBUG_PRINT
     double start = av_gettime();
+#endif
     double startFrame = 0;
     int flags;
     int64_t target;
@@ -461,7 +464,7 @@ void NativeVideo::seekInternal(double time)
     Packet *p = NULL;
     AVPacket packet;
 
-    SPAM(("SeekInternal\n"));
+    DPRINT("SeekInternal\n");
 
     if (time > this->getDuration()) {
         time = this->getDuration();
@@ -472,7 +475,7 @@ void NativeVideo::seekInternal(double time)
     diff = time - this->getClock();
     target = this->seekTarget(time, &flags);
 
-    SPAM(("[SEEK] diff = %f, time=%lld\n", diff, av_gettime()));
+    DPRINT("[SEEK] diff = %f, time=%lld\n", diff, av_gettime());
     if (diff > SEEK_THRESHOLD || diff <= 0 || this->seekFlags & NATIVE_VIDEO_SEEK_KEYFRAME) {
         // Flush all buffers
         this->clearAudioQueue();
@@ -514,7 +517,7 @@ void NativeVideo::seekInternal(double time)
                 }
 
                 tmp = av_q2d(this->container->streams[this->audioStream]->time_base) * p->curr.pts;
-                SPAM(("[SEEK] Dropping audio packet @ %f\n", tmp));
+                DPRINT("[SEEK] Dropping audio packet @ %f\n", tmp);
 
                 av_free_packet(&p->curr);
                 delete p;
@@ -536,12 +539,12 @@ void NativeVideo::seekInternal(double time)
     flags = 0;
 
     for (;;) {
-        SPAM(("[SEEK] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", gotFrame, pts, seekTime, time));
+        DPRINT("[SEEK] loop gotFrame=%d pts=%f seekTime=%f time=%f\n", gotFrame, pts, seekTime, time);
         if ((pts > seekTime + SEEK_STEP || pts > time) && !keyframe) {
             seekTime = seekTime - SEEK_STEP;
             if (seekTime < 0) seekTime = 0;
             target = this->seekTarget(seekTime, &flags);
-            SPAM(("    => seeking backward to %f/%lld\n", seekTime, target));
+            DPRINT("    => seeking backward to %f/%lld\n", seekTime, target);
             if (!this->seekMethod(target, flags)) {
                 return;
             }
@@ -554,7 +557,7 @@ void NativeVideo::seekInternal(double time)
         }
 
         if (this->videoQueue->count == 0) {
-            SPAM(("[SEEK] av_read_frame\n"));
+            DPRINT("[SEEK] av_read_frame\n");
             int count = 0;
             while (count < SEEK_BUFFER_PACKET) {
                 int err = av_read_frame(this->container, &packet);
@@ -564,14 +567,14 @@ void NativeVideo::seekInternal(double time)
                     if (err == AVERROR_EOF && this->videoQueue->count > 0) {
                         break;
                     } else if (err < 0) {
-                        SPAM(("[SEEK] Got fatal error %d\n", err));
+                        DPRINT("[SEEK] Got fatal error %d\n", err);
                         return;
                     }
                     continue;
                 }
                 if (packet.stream_index == this->videoStream) {
                     double tmp = this->getPts(&packet);
-                    SPAM(("[SEEK] Got packet @ %f\n", tmp));
+                    DPRINT("[SEEK] Got packet @ %f\n", tmp);
                     this->addPacket(this->videoQueue, &packet);
                     count++;
                     if ((tmp > seekTime + SEEK_STEP || tmp > time) && !keyframe) {
@@ -588,7 +591,7 @@ void NativeVideo::seekInternal(double time)
             }
             packet = p->curr;
         } else {
-            SPAM(("[SEEK] getPacket\n"));
+            DPRINT("[SEEK] getPacket\n");
             p = this->getPacket(this->videoQueue);
             if (p == NULL) {
                 continue;
@@ -596,13 +599,13 @@ void NativeVideo::seekInternal(double time)
             packet = p->curr;
         }
 
-        SPAM(("[SEEK] reading packet stream=%d, pts=%lld/%lld\n", packet.stream_index, packet.pts, packet.dts));
+        DPRINT("[SEEK] reading packet stream=%d, pts=%lld/%lld\n", packet.stream_index, packet.pts, packet.dts);
 
         if (packet.stream_index == this->videoStream) {
             pts = this->getPts(&packet);
             frame = true;
 
-            SPAM(("[SEEK] got video frame at=%f flags=%d\n", pts, packet.flags));
+            DPRINT("[SEEK] got video frame at=%f flags=%d\n", pts, packet.flags);
 
 
             if (packet.flags & AV_PKT_FLAG_KEY || keyframe) {
@@ -615,7 +618,7 @@ void NativeVideo::seekInternal(double time)
                         keyframe = false;
                         continue;
                     }
-                    SPAM(("[SEEK] got seek frame at=%f\n", pts));
+                    DPRINT("[SEEK] got seek frame at=%f\n", pts);
                     Packet *tmp = this->videoQueue->head;
                     this->videoQueue->head = p;
                     if (tmp == NULL) {
@@ -630,10 +633,10 @@ void NativeVideo::seekInternal(double time)
                     break;
                 }
 
-                SPAM(("[SEEK]  its a keyframe\n"));
+                DPRINT("[SEEK]  its a keyframe\n");
                 avcodec_decode_video2(this->codecCtx, this->decodedFrame, &gotFrame, &packet);
                 if (gotFrame) {
-                    SPAM(("[SEEK] ==== GOT FRAME\n"));
+                    DPRINT("[SEEK] ==== GOT FRAME\n");
                     if (!keyframe) {
                         startFrame = av_gettime()/1000;
                     }
@@ -652,10 +655,13 @@ void NativeVideo::seekInternal(double time)
     this->frameTimer = (av_gettime() / 1000000.0);
     this->lastPts = time;
     this->doSeek = false;
+
     
+#ifdef DEBUG_PRINT
     double end = av_gettime();
-    SPAM(("[SEEK] seek took %f / firstFrame to end = %f \n", end-start, end-startFrame));
-    SPAM(("Sending seekCond signal\n"));
+    DPRINT("[SEEK] seek took %f / firstFrame to end = %f \n", end-start, end-startFrame);
+    DPRINT("Sending seekCond signal\n");
+#endif
     this->processVideo();
     pthread_cond_signal(&this->bufferCond);
 }
@@ -723,7 +729,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
 int NativeVideo::display(void *custom) {
     NativeVideo *v = (NativeVideo *)custom;
 
-    SPAM(("[DISPLAY]\n"));
+    DPRINT("[DISPLAY]\n");
 
     // Reset timer from queue
     v->timers[v->lastTimer]->id = -1;
@@ -739,11 +745,11 @@ int NativeVideo::display(void *custom) {
             pthread_cond_signal(&v->bufferCond);
         } 
         if (v->eof) {
-            SPAM(("No frame, eof reached\n"));
+            DPRINT("No frame, eof reached\n");
             v->sendEvent(SOURCE_EVENT_EOF, 0, 0, false);
             return 0;
         } else {
-            SPAM(("No frame, try again in 5ms\n"));
+            DPRINT("No frame, try again in 5ms\n");
             return 5;
         }
     }
@@ -756,9 +762,9 @@ int NativeVideo::display(void *custom) {
     double delay, actualDelay, syncThreshold;
 
     delay = pts - v->lastPts;
-    SPAM(("DELAY=%f\n", delay));
+    DPRINT("DELAY=%f\n", delay);
     if (delay <= 0 || delay >= 1.0) {
-        SPAM(("USING LAST DELAY %f\n", v->lastDelay));
+        DPRINT("USING LAST DELAY %f\n", v->lastDelay);
         // Incorrect delay, use previous one
         delay = v->lastDelay;
     }
@@ -769,7 +775,7 @@ int NativeVideo::display(void *custom) {
     if (v->audioSource != NULL && v->audioSource->isConnected) {
         diff = pts - v->audioSource->getClock();
 
-        SPAM(("Clocks audio=%f / video=%f / diff = %f\n", v->audioSource->getClock(), pts, diff));
+        DPRINT("Clocks audio=%f / video=%f / diff = %f\n", v->audioSource->getClock(), pts, diff);
 
         if (diff > NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD && v->audioSource->avail() > 0) {
             // Diff is too big an will be noticed
@@ -780,21 +786,21 @@ int NativeVideo::display(void *custom) {
 
             if (fabs(diff) < NATIVE_VIDEO_NOSYNC_THRESHOLD) {
                 if (diff <= -syncThreshold) {
-                    SPAM((" (diff < syncThreshold) "));
+                    DPRINT(" (diff < syncThreshold) ");
                     delay = 0;
                 } else if (diff >= syncThreshold) {
-                    SPAM((" (diff > syncThreshold) "));
+                    DPRINT(" (diff > syncThreshold) ");
                     delay = 2 * delay;
                 }
             }
-            SPAM((" | after  %f\n", delay));
+            DPRINT(" | after  %f\n", delay);
         }
     } 
 
     v->frameTimer += delay;
     actualDelay = v->frameTimer - (av_gettime() / 1000000.0);
 
-    SPAM(("Using delay %f\n", actualDelay));
+    DPRINT("Using delay %f\n", actualDelay);
 
     if (actualDelay > NATIVE_VIDEO_SYNC_THRESHOLD || diff > 0 || !v->playing) {
         // If not playing, we can be here because user seeked 
@@ -823,18 +829,18 @@ int NativeVideo::display(void *custom) {
 void NativeVideo::buffer()
 {
     if (this->error != 0) {
-        SPAM(("=> Not buffering cause of error\n"));
+        DPRINT("=> Not buffering cause of error\n");
         return;
     }
 
     if (this->reader->async) {
         if (this->buffering) {
-            SPAM(("=> PENDING\n"));
+            DPRINT("=> PENDING\n");
             // Reader already trying to get data
             return;
         }
         this->buffering = true;
-        SPAM(("buffer coro start\n"));
+        DPRINT("buffer coro start\n");
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::bufferCoro);
     } else {
         this->bufferInternal();
@@ -857,7 +863,7 @@ void NativeVideo::bufferCoro(void *arg)
 
 void NativeVideo::bufferInternal()
 {
-    SPAM(("hello buffer internal\n"));
+    DPRINT("hello buffer internal\n");
     AVPacket packet;
 
     bool loopCond = false;
@@ -880,9 +886,9 @@ void NativeVideo::bufferInternal()
     }
 
     while (loopCond) {
-        SPAM(("    => buffering loop needAudio=%d / needVideo=%d\n", needAudio, needVideo));
+        DPRINT("    => buffering loop needAudio=%d / needVideo=%d\n", needAudio, needVideo);
         int ret = av_read_frame(this->container, &packet);
-        SPAM(("    -> post read frame\n"));
+        DPRINT("    -> post read frame\n");
 
         // If a seek is asked while buffering. Return.
         if (this->doSeek) {
@@ -922,50 +928,50 @@ void *NativeVideo::decode(void *args)
     NativeVideo *v = static_cast<NativeVideo *>(args);
 
     for (;;) {
-        SPAM(("decode loop\n"));
+        DPRINT("decode loop\n");
         if (v->opened) {
-            SPAM(("opened buffering=%d\n", v->buffering));
+            DPRINT("opened buffering=%d\n", v->buffering);
             if (!v->buffering && !v->seeking) {
-                SPAM(("not buffering and seeking\n"));
+                DPRINT("not buffering and seeking\n");
                 if (v->doSeek == true) {
-                    SPAM(("seeking\n"));
+                    DPRINT("seeking\n");
                     if (!v->reader->async) {
                         v->seekInternal(v->doSeekTime);
                         v->doSeek = false;
                     } else {
-                        SPAM(("    running seek coro\n"));
+                        DPRINT("    running seek coro\n");
                         Coro_startCoro_(v->mainCoro, v->coro, v, NativeVideo::seekCoro);
                     } 
                     if (v->doSeek == true) { 
-                        SPAM(("     Waiting for seekCond\n"));
+                        DPRINT("     Waiting for seekCond\n");
                         pthread_cond_wait(&v->bufferCond, &v->bufferLock);
-                        SPAM(("     seekCond go\n"));
+                        DPRINT("     seekCond go\n");
                     }
-                    SPAM(("done seeking\n"));
+                    DPRINT("done seeking\n");
                 } else {
-                    SPAM(("buffering\n"));
-                    //SPAM(("Coro space main=%d coro=%d\n", Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro)));
+                    DPRINT("buffering\n");
+                    //DPRINT("Coro space main=%d coro=%d\n", Coro_stackSpaceAlmostGone(v->mainCoro), Coro_stackSpaceAlmostGone(v->coro));
                     v->buffer();
                 }
             }
 
-            SPAM(("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking));
+            DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking);
             if (!v->doSeek) {
-                SPAM(("processing\n"));
+                DPRINT("processing\n");
                 bool audioFailed = !v->processAudio();
                 bool videoFailed = !v->processVideo();
-                SPAM(("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed));
+                DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed);
 
                 if (audioFailed && videoFailed) {
                     if (v->shutdown) break;
                     if (!v->doSeek && !v->readFlag) {
-                        SPAM(("Waiting for buffNotEmpty cause of audio and video failed\n"));
+                        DPRINT("Waiting for buffNotEmpty cause of audio and video failed\n");
                         pthread_cond_wait(&v->bufferCond, &v->bufferLock);
-                        SPAM(("buffNotEmpty go\n"));
+                        DPRINT("buffNotEmpty go\n");
                     } 
                 }
             } else if (!v->readFlag) {
-                SPAM(("wait bufferCond\n"));
+                DPRINT("wait bufferCond\n");
                 pthread_cond_wait(&v->bufferCond, &v->bufferLock);
             }
         } else {
@@ -975,7 +981,7 @@ void *NativeVideo::decode(void *args)
         if (v->shutdown) break;
 
         if (v->readFlag) {
-            SPAM(("readFlag, swithcing back to coro\n"));
+            DPRINT("readFlag, swithcing back to coro\n");
             Coro_switchTo_(v->mainCoro, v->coro);
             // Make sure another read call havn't been made
             if (!v->reader->pending) {
@@ -1068,7 +1074,7 @@ bool NativeVideo::processAudio()
 bool NativeVideo::processVideo()
 {
     if (PaUtil_GetRingBufferWriteAvailable(this->rBuff) < 1) {
-        SPAM(("processVideo not enought space to write data\n"));
+        DPRINT("processVideo not enought space to write data\n");
         return false;
     }
 
@@ -1076,7 +1082,7 @@ bool NativeVideo::processVideo()
     Packet *p = this->getPacket(this->videoQueue);
 
     if (p == NULL) {
-        SPAM(("processVideo no more packet\n"));
+        DPRINT("processVideo no more packet\n");
         if (this->error == AVERROR_EOF) {
             this->eof = true;
         }
@@ -1177,7 +1183,7 @@ void NativeVideo::scheduleDisplay(int delay, bool force) {
     this->timers[this->timerIdx]->delay = delay;
     this->timers[this->timerIdx]->id = -1;
 
-    SPAM(("scheduleDisplay in %d\n", delay));
+    DPRINT("scheduleDisplay in %d\n", delay);
 
     if (this->playing || force) {
         this->timers[this->timerIdx]->id = this->addTimer(delay);

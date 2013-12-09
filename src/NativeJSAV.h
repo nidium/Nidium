@@ -8,8 +8,6 @@
 #include "NativeVideo.h"
 #include "NativeSkia.h"
 
-static int NATIVE_AV_THREAD_MESSAGE_CALLBACK = -1;
-
 enum {
     NODE_EV_PROP_DATA, 
     NODE_EV_PROP_SIZE,
@@ -110,6 +108,8 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         JSContext *tcx;
 
         NativeJSAudioNode *target;
+
+        static int threadMessageEvent;
 
         bool createContext();
         bool run(char *str);

@@ -105,7 +105,6 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
     SPAM(("streamSize=%lld\n", thiz->streamSize));
     // No more data inside buffer, need to get more
     for(;;) {
-        bool loopCond = true;
         thiz->streamBuffer = thiz->stream->getNextPacket(&thiz->streamPacketSize, &err);
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->streamBuffer, thiz->streamPacketSize, err));
         if (!thiz->streamBuffer) {
