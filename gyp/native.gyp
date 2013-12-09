@@ -43,6 +43,34 @@
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
         ],
+
+        'actions': [{
+            'action_name': 'Build preload',
+            'inputs': [
+                '../scripts/preload.js',
+                # Any change to js2bytecode will trigger the action : 
+                '<(native_src_path)/tools/js2bytecode.cpp',
+                '<(native_tools_path)js2bytecode',
+            ],
+            'conditions': [
+                ['native_embed_private==1', {
+                    'defines+': [
+                        'NATIVE_EMBED_PRIVATE',
+                    ],
+                    # If I use find command inside a variable, output is not 
+                    # considered as multiple files using it in inputs works fine
+                    'inputs+': [
+                        '<!@(find ../framework/dist/private/ -name *.nss)',
+                        '<!@(find ../framework/dist/private/ -name *.js)',
+                    ],
+                }]
+             ],
+            'outputs': [
+                '<(native_src_path)/NativeJS_preload.h'
+            ],
+            'action': ['<@(native_tools_path)js2bytecode', '<@(_inputs)', '<@(_outputs)'],
+            'process_outputs_as_sources': 1,
+        }],
         'conditions': [
             ['OS=="mac"', {
                 'defines': [
@@ -113,29 +141,6 @@
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof'
                 ],
-            }],
-            ['native_embed_private==1', {
-                'defines+': [
-                    'NATIVE_EMBED_PRIVATE',
-                ],
-                'actions': [{
-                    'action_name': 'Build preload',
-                    # If I use find command inside a variable, output is not 
-                    # considered as multiple files using it in inputs works fine
-                    'inputs': [
-                        '<!@(find ../framework/dist/private/ -name *.nss)',
-                        '<!@(find ../framework/dist/private/ -name *.js)',
-                        '../scripts/preload.js',
-                        # Any change to js2bytecode will trigger the action : 
-                        '<(native_src_path)/tools/js2bytecode.cpp',
-                        '<(native_tools_path)js2bytecode',
-                    ],
-                    'outputs': [
-                        '<(native_src_path)/NativeJS_preload.h'
-                    ],
-                    'action': ['<@(native_tools_path)js2bytecode', '<@(_inputs)', '<@(_outputs)'],
-                    'process_outputs_as_sources': 1,
-                }],
             }],
             ['native_audio==1', {
                 'sources': [
