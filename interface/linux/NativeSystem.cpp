@@ -24,7 +24,7 @@ float NativeSystem::backingStorePixelRatio()
 
 const char *NativeSystem::getPrivateDirectory()
 {
-    return "dist/private/";
+    return "private/";
 }
 
 const char *NativeSystem::getCacheDirectory()
