@@ -285,7 +285,9 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
 bool NativeFileIO::checkEOF()
 {
-    if (fd && (m_eof = (bool)feof(fd)) == true && autoClose) {
+    if (fd && ((m_eof = (bool)feof(fd)) == true ||
+        (m_eof = (ftell(fd) == this->filesize))) && autoClose) {
+        
         fclose(fd);
         fd = NULL;
     }
