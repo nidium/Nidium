@@ -109,7 +109,6 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->streamBuffer, thiz->streamPacketSize, err));
         if (!thiz->streamBuffer) {
             switch (err) {
-                case NativeStream::STREAM_EOF:
                 case NativeStream::STREAM_END:
                 case NativeStream::STREAM_ERROR:
                     thiz->error = AVERROR_EOF;
