@@ -157,7 +157,6 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
     if (ret == NULL) {
         switch(err) {
             case NativeStream::STREAM_END:
-            case NativeStream::STREAM_EOF:
                 JS_ReportError(cx, "Stream has ended");
                 return false;
             case NativeStream::STREAM_ERROR:

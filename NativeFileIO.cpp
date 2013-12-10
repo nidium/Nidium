@@ -122,6 +122,9 @@ void NativeFileIO::readAction(uint64_t len)
     uint64_t clamped_len;
     clamped_len = native_min(filesize, len);
 
+    /*
+        Read an empty file
+    */
     if (clamped_len == 0) {
         action.u64 = 0;
 
@@ -131,17 +134,21 @@ void NativeFileIO::readAction(uint64_t len)
         }
     }
 
-    unsigned char *data = new unsigned char[clamped_len + 1];
+    unsigned char *data = (unsigned char *)malloc(clamped_len + 1);
     size_t readsize = 0;
 
-    if ((readsize = fread(data, sizeof(char), clamped_len, fd)) < 1) {
-        checkRead();
+    if ((readsize = fread(data, sizeof(char), clamped_len, fd)) == 0) {
 
-        delete[] data;
+        this->checkRead();
+
+        free(data);
         return;
     }
 
-    checkRead();
+    /*
+        Never emit error (can closes the file and invalid |fd|)
+    */
+    this->checkEOF();
 
     /* Always null-terminate the returned data (doesn't impact returned size) */
     data[readsize] = '\0';
@@ -276,20 +283,24 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     pthread_mutex_unlock(&threadMutex);
 }
 
+bool NativeFileIO::checkEOF()
+{
+    if (fd && (m_eof = (bool)feof(fd)) == true && autoClose) {
+        fclose(fd);
+        fd = NULL;
+    }
+
+    return m_eof;
+}
+
 void NativeFileIO::checkRead()
 {
     int err = -1;
 
     if (ferror(fd)) {
         err = errno;
-    } else if (feof(fd)) {
-        m_eof = true;
+    } else if (this->checkEOF()) {
         err = 0;
-    }
-
-    if (m_eof && autoClose) {
-        fclose(fd);
-        fd = NULL;
     }
 
     if (!action.stop && err != -1) {

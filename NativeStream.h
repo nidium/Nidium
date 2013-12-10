@@ -40,9 +40,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
 
         enum StreamDataStatus {
             STREAM_EAGAIN = -1,
-            STREAM_EOF = -2,
-            STREAM_ERROR = -3,
-            STREAM_END = -4
+            STREAM_ERROR = -2,
+            STREAM_END = -3
         };
 
         enum StreamResolveMode {

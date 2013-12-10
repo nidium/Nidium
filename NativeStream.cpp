@@ -627,6 +627,10 @@ void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t le
 {
     m_Buffered += len;
 
+    if (NFIO->eof()) {
+        dataBuffer.ended = true;
+    }
+
     if (this->delegate) {
         this->delegate->onGetContent((const char *)data, len);
 

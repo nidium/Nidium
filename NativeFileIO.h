@@ -58,7 +58,7 @@ public:
     }
 
     bool eof() const {
-        return m_eof;
+        return fd == NULL || m_eof;
     }
     NativeFileIODelegate *getDelegate() const { return delegate; };
     char *filename;
@@ -89,7 +89,7 @@ private:
     bool autoClose;
     bool m_eof;
     void checkRead();
-
+    bool checkEOF();
 };
 
 class NativeFileIODelegate
