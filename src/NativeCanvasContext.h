@@ -8,10 +8,10 @@
 #include "NativeGLResources.h"
 #include "NativeGLState.h"
 #include "NativeTypes.h"
+#include "NativeGLContext.h"
 
 class NativeCanvas2DContext;
 class NativeCanvasHandler;
-
 struct NativeRect;
 
 class NativeCanvasContext
@@ -72,6 +72,11 @@ public:
         return m_GLState;
     }
 
+    bool makeGLCurrent() {
+        if (!m_GLContext) return false;
+
+        return m_GLContext->makeCurrent();
+    }
     /*
         Set the appropriate OpenGL state (bind buffers, ...)
     */
@@ -113,6 +118,7 @@ protected:
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;
     NativeGLState *m_GLState;
+    NativeGLContext *m_GLContext;
     NativeGLResources m_Resources;
     void updateMatrix(double left, double top, int layerWidth, int layerHeight);
 

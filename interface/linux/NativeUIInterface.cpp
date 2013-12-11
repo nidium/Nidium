@@ -353,6 +353,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         //[window setAlphaValue:0.5];
 
         contexteOpenGL = SDL_GL_CreateContext(win);
+        m_mainGLCtx = contexteOpenGL;
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
             exit(2);

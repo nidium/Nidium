@@ -62,6 +62,8 @@ unsigned long _ape_seed;
     }
 }
 
+#define NIDIUM_DISPATCH_MAINTHREAD 0
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
 
@@ -74,8 +76,9 @@ unsigned long _ape_seed;
     
     self->UI = nUI;
     self->isRunning = YES;
-
+#if NIDIUM_DISPATCH_MAINTHREAD
     dispatch_async(dispatch_get_main_queue(), ^{
+#endif
         const char *filename;
         
         if (self.appfile == nil) {
@@ -91,8 +94,9 @@ unsigned long _ape_seed;
         }
 
         nUI->runLoop();
+#if NIDIUM_DISPATCH_MAINTHREAD
     });
-
+#endif
 }
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename

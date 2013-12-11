@@ -249,6 +249,12 @@ static int NativeProcessUI(void *arg)
     return NativeEvents((NativeCocoaUIInterface *)arg);
 }
 
+static int NativeProcessSystemLoop(void *arg)
+{
+    SDL_PumpEvents();
+
+    return 4;
+}
 
 void NativeCocoaUIInterface_onNMLLoaded(void *arg)
 {
@@ -536,6 +542,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         [openglview setWantsBestResolutionOpenGLSurface:YES];
 #endif
         contexteOpenGL = SDL_GL_CreateContext(win);
+        m_mainGLCtx = contexteOpenGL;
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
         }
@@ -688,7 +695,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
     [openDlg setCanChooseDirectories:NO];
     [openDlg setAllowsMultipleSelection:YES];
 
-    [openDlg beginSheetModalForWindow:NativeCocoaWindow(win) completionHandler:^(NSInteger result) {
+    [openDlg beginWithCompletionHandler:^(NSInteger result) {
         if (result == NSFileHandlingPanelOKButton) {
             uint32_t len = [openDlg.URLs count];
             const char **lst = (const char **)malloc(sizeof(char **) * len);
@@ -710,6 +717,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 void NativeCocoaUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
+    add_timer(&gnet->timersng, 1, NativeProcessSystemLoop, NULL);
     
     events_loop(gnet);
 }

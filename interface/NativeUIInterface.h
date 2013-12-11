@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef __linux__
+#include <../build/include/SDL_config.h> 
+#endif
+#include <SDL.h>
+
 class NativeContext;
 class NativeNML;
 
@@ -64,12 +69,22 @@ class NativeUIInterface
             virtual void clear()=0;
         };
         virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
+
+        bool makeMainGLCurrent() {
+            return (SDL_GL_MakeCurrent(this->win, m_mainGLCtx) == 0);
+        }
+
+        SDL_GLContext getGLContext() {
+            return m_mainGLCtx;
+        }
+
     protected:
         int width;
         int height;
         char *filePath;
         bool initialized;
         NativeUIConsole *console;
+        SDL_GLContext m_mainGLCtx;
 };
 
 #endif
