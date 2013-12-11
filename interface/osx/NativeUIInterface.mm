@@ -128,6 +128,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                             NUII->NativeCtx->getNJS()->gc();
                         }
                         NUII->restartApplication();
+                        break;
                     }
                     else if (
                         (&event.key)->keysym.sym == SDLK_r &&
