@@ -6,16 +6,6 @@
 
 typedef void *SDL_GLContext;
 
-/*
-    Make the context pointed by IFANCE current and make a GL call
-    e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));
-*/
-#define NATIVE_GL_CALL(IFACE, X)                                \
-    do {                                                        \
-        (IFACE)->makeCurrent();                                 \
-        gl##X;                                                  \
-    } while (false)
-
 class NativeGLContext 
 {
     public:
@@ -28,6 +18,7 @@ class NativeGLContext
                 wrapped = true;
                 return;
             }
+
             wrapped = false;
 
             SDL_GLContext oldctx = m_UI->getCurrentGLContext();
@@ -57,6 +48,10 @@ class NativeGLContext
             if (!wrapped) {
                 m_UI->deleteGLContext(m_SDLGLCtx);
             }
+        }
+
+        NativeUIInterface *getUI() const {
+            return m_UI;
         }
     private:
         SDL_GLContext m_SDLGLCtx;

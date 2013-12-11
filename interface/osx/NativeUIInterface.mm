@@ -705,7 +705,9 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
     [openDlg setCanChooseDirectories:NO];
     [openDlg setAllowsMultipleSelection:YES];
 
-    [openDlg beginWithCompletionHandler:^(NSInteger result) {
+    // TODO: set a flag so that nidium can't be refreshed and unset after the block is called
+
+    [openDlg beginSheetModalForWindow:NativeCocoaWindow(win) completionHandler:^(NSInteger result) {
         if (result == NSFileHandlingPanelOKButton) {
             uint32_t len = [openDlg.URLs count];
             const char **lst = (const char **)malloc(sizeof(char **) * len);

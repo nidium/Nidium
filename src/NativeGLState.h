@@ -6,12 +6,32 @@
 #include <NativeTypes.h>
 #include <NativeGLResources.h>
 
+#include "NativeGLContext.h"
+
+/*
+    Make the context pointed by IFANCE current and make a GL call
+    e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));
+*/
+#define NATIVE_GL_CALL(IFACE, X)                                \
+    do {                                                        \
+        (IFACE)->makeGLCurrent();                               \
+        gl##X;                                                  \
+    } while (false)
+
+#define NATIVE_GL_CALL_RET(IFACE, X, RET)                       \
+    do {                                                        \
+        (RET) = (IFACE)->makeGLCurrent();                       \
+        gl##X;                                                  \
+    } while (false)
+
+class NativeUIInterface;
+
 class NativeGLState
 {
 
 public:
 
-    NativeGLState(bool withProgram = true);
+    NativeGLState(NativeUIInterface *ui, bool withProgram = true);
     ~NativeGLState();
 
     bool initGLBase(bool withProgram = true);
@@ -27,6 +47,14 @@ public:
     }
 
     void setProgram(uint32_t program);
+
+    bool makeGLCurrent() {
+        return m_GLContext->makeCurrent();
+    }
+
+    NativeGLContext *getNativeGLContext() const {
+        return m_GLContext;
+    }
 
     struct {
         uint32_t vbo[2];
@@ -46,6 +74,7 @@ private:
     NativeGLResources m_Resources;
 
     bool m_Shared;
+    NativeGLContext *m_GLContext;
 };
 
 #endif

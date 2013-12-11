@@ -508,6 +508,8 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     JSString *mode = args[0].toString();
     JSAutoByteString cmode(cx, mode);
 
+    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+
     NativeCanvasContext::mode ctxmode = NativeCanvasContext::CONTEXT_2D;
 
     if (strncmp(cmode.ptr(), "2d", 2) == 0) {
@@ -528,7 +530,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
             {
                 NativeCanvas2DContext *ctx2d = new NativeCanvas2DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
-                        NativeObject->getHeight() + (NativeObject->padding.global * 2));
+                        NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
 
                 if (ctx2d->getSurface() == NULL) {
                     delete ctx2d;
@@ -926,11 +928,12 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 {
     JSObject *ret;
     NativeCanvasHandler *handler;
+    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
 
     handler = new NativeCanvasHandler(width, height);
-    handler->setContext(new NativeCanvas2DContext(handler, cx, width, height));
+    handler->setContext(new NativeCanvas2DContext(handler, cx, width, height, ui));
     handler->getContext()->setGLState(NativeContext::getNativeClass(cx)->getGLState());
 
     /* window.canvas.overflow default to false */

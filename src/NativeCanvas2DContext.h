@@ -62,10 +62,10 @@ class NativeCanvas2DContext : public NativeCanvasContext
         static void registerObject(JSContext *cx);
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
-            int width, int height, bool isGL = true);
+            int width, int height, NativeUIInterface *ui, bool isGL = true);
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
-            struct JSContext *cx, int width, int height);
+            struct JSContext *cx, int width, int height, NativeUIInterface *ui);
         
         ~NativeCanvas2DContext();
     private:

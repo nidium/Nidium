@@ -68,7 +68,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     memset(this->stats.samples, 0, sizeof(this->stats.samples));
 
-    this->m_GLState = new NativeGLState();
+    this->m_GLState = new NativeGLState(nui);
 
     this->initHandlers(width, height);
 
@@ -161,7 +161,7 @@ void NativeContext::createDebugCanvas()
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
     debugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
-    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, false);
+    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     debugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
     rootHandler->addChild(debugHandler);
@@ -286,7 +286,7 @@ void NativeContext::frame()
 void NativeContext::initHandlers(int width, int height)
 {
     rootHandler = new NativeCanvasHandler(width, height);
-    rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height));
+    rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height, this->getUI()));
     rootHandler->getContext()->setGLState(this->getGLState());
 }
 

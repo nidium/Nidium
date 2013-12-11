@@ -1640,25 +1640,27 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
         return 0;
     }
 
-    GLuint programHandle = glCreateProgram();
+    GLuint programHandle;
+    NATIVE_GL_CALL_RET(this->m_GLState, CreateProgram(), programHandle);
+    
     GLint linkSuccess;
 
-    glAttachShader(programHandle, vertex);
-    glAttachShader(programHandle, coop);
-    glAttachShader(programHandle, fragment);
+    NATIVE_GL_CALL(this->m_GLState, AttachShader(programHandle, vertex));
+    NATIVE_GL_CALL(this->m_GLState, AttachShader(programHandle, coop));
+    NATIVE_GL_CALL(this->m_GLState, AttachShader(programHandle, fragment));
 
-    glBindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_POSITION, "Position");
+    NATIVE_GL_CALL(this->m_GLState, BindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_POSITION, "Position"));
 
-    glBindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn");
+    NATIVE_GL_CALL(this->m_GLState, BindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
-    glLinkProgram(programHandle);
+    NATIVE_GL_CALL(this->m_GLState, LinkProgram(programHandle));
 
-    glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
+    NATIVE_GL_CALL(this->m_GLState, GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
-        glGetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]);
+        NATIVE_GL_CALL(this->m_GLState, GetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]));
         NLOG("createProgram error : %s", messages);
         return 0;
     }
@@ -1864,22 +1866,21 @@ void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
 {
     GLenum err;
+    NATIVE_GL_CALL(this->m_GLState, BindTexture(GL_TEXTURE_2D, textureID));
 
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );    
+    NATIVE_GL_CALL(this->m_GLState, TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
+    NATIVE_GL_CALL(this->m_GLState, TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ));    
 
     /* Anti Aliasing */
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    NATIVE_GL_CALL(this->m_GLState, TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
+    NATIVE_GL_CALL(this->m_GLState, TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
 
-    glDrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0);
+    NATIVE_GL_CALL(this->m_GLState, DrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+    NATIVE_GL_CALL(this->m_GLState, BindTexture(GL_TEXTURE_2D, 0));
 
     /* Unbind vertex array bound by resetGLContext() */
-    glBindVertexArray(0);
+    NATIVE_GL_CALL(this->m_GLState, BindVertexArray(0));
 }
 
 #if 0
@@ -1971,22 +1972,28 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
     uint32_t program = this->createProgram(string);
 
     if (program) {
+        NativeUIInterface *ui = m_GLState->getNativeGLContext()->getUI();
         /* Destroy the old context (if it's not shared) */
         m_GLState->destroy();
         /* Create a new state without program */
-        NativeGLState *nstate = new NativeGLState(false);
+        NativeGLState *nstate = new NativeGLState(ui, false);
         nstate->setShared(false);
 
         m_GLState = nstate;
 
         m_GLState->setProgram(program);
 
-        m_GLState->m_GLObjects.uniforms.u_resolution = glGetUniformLocation(program,
-                                    "n_Resolution");
-        m_GLState->m_GLObjects.uniforms.u_position = glGetUniformLocation(program,
-                                    "n_Position");
-        m_GLState->m_GLObjects.uniforms.u_padding = glGetUniformLocation(program,
-                                    "n_Padding");
+        NATIVE_GL_CALL_RET(this->m_GLState,
+            GetUniformLocation(program, "n_Resolution"),
+            m_GLState->m_GLObjects.uniforms.u_resolution);
+
+        NATIVE_GL_CALL_RET(this->m_GLState,
+            GetUniformLocation(program, "n_Position"),
+            m_GLState->m_GLObjects.uniforms.u_position);
+
+        NATIVE_GL_CALL_RET(this->m_GLState,
+            GetUniformLocation(program, "n_Padding"),
+            m_GLState->m_GLObjects.uniforms.u_padding);
     }
 
     return program;
@@ -2005,22 +2012,22 @@ void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
     uint32_t program = this->getProgram();
-    glUseProgram(program);
+    NATIVE_GL_CALL(this->m_GLState, UseProgram(program));
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (program > 0) {
         if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
-            glUniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity);
+            NATIVE_GL_CALL(this->m_GLState, Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
         }
         float padding = this->getHandler()->padding.global * ratio;
 
         if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
-            glUniform2f(m_GLState->m_GLObjects.uniforms.u_resolution, (width)-(padding*2), (height)-(padding*2));
+            NATIVE_GL_CALL(this->m_GLState, Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution, (width)-(padding*2), (height)-(padding*2)));
         if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
-            glUniform2f(m_GLState->m_GLObjects.uniforms.u_position , ratio*left, ratio*wHeight - (height+ratio*top));
+            NATIVE_GL_CALL(this->m_GLState, Uniform2f(m_GLState->m_GLObjects.uniforms.u_position , ratio*left, ratio*wHeight - (height+ratio*top)));
         if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
-            glUniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding);
+            NATIVE_GL_CALL(this->m_GLState, Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
     }
 
 }
@@ -2045,8 +2052,8 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
             SkDoubleToScalar(rclip->fTop*(double)ratio),
             SkDoubleToScalar(rclip->fRight*(double)ratio),
             SkDoubleToScalar(rclip->fBottom*(double)ratio));
-        glEnable(GL_SCISSOR_TEST);
-        glScissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height());
+        NATIVE_GL_CALL(this->m_GLState, Enable(GL_SCISSOR_TEST));
+        NATIVE_GL_CALL(this->m_GLState, Scissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height()));
         revertScissor = true;
     }
 
@@ -2089,7 +2096,7 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
     }
 
     if (revertScissor) {
-        glDisable(GL_SCISSOR_TEST);
+        NATIVE_GL_CALL(this->m_GLState, Disable(GL_SCISSOR_TEST));
     }
 }
 
@@ -2152,7 +2159,7 @@ void NativeCanvas2DContext::translate(double x, double y)
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
-    JSContext *cx, int width, int height) :
+    JSContext *cx, int width, int height, NativeUIInterface *ui) :
     NativeCanvasContext(handler),
     setterDisabled(false)
 {
@@ -2180,11 +2187,11 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
-    int width, int height, bool isGL) :
+    int width, int height, NativeUIInterface *ui, bool isGL) :
     NativeCanvasContext(handler)
 {
     m_Mode = CONTEXT_2D;
-    
+
     m_Skia = new NativeSkia();
     int state;
 
