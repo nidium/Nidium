@@ -14,6 +14,9 @@
             '<(native_nativejscore_path)/',
             '<(native_interface_path)/',
         ],
+        'sources': [
+            '<(native_interface_path)/NativeUIInterface_base.cpp',
+        ],
         'conditions': [
             ['native_interface=="terminal"', {
                 'sources': [

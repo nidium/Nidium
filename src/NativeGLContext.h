@@ -3,7 +3,8 @@
 
 #include <NativeUIInterface.h>
 #include "NativeMacros.h"
-#include <SDL_Video.h>
+
+typedef void *SDL_GLContext;
 
 /*
     Make the context pointed by IFANCE current and make a GL call
@@ -29,39 +30,32 @@ class NativeGLContext
             }
             wrapped = false;
 
-            SDL_GLContext oldctx = SDL_GL_GetCurrentContext();
+            SDL_GLContext oldctx = m_UI->getCurrentGLContext();
 
             /* The new context share with the "main" GL context */
             if (!m_UI->makeMainGLCurrent()) {
                 NLOG("Cant make main current");
             }
-            SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-            SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
-            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
-            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
-            SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
-            SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-            SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
-            SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-            m_SDLGLCtx = SDL_GL_CreateContext(m_UI->win);
+
+            m_SDLGLCtx = m_UI->createSharedContext();
             if (m_SDLGLCtx == NULL) {
                 NLOG("Cant create context");
             }
             
             /* Restore to the old GL Context */
-            if (SDL_GL_MakeCurrent(m_UI->win, oldctx) != 0) {
+            if (!m_UI->makeGLCurrent(oldctx)) {
                 NLOG("Cant restore old ctx");
             }
             NLOG("New context created");
         }
 
         bool makeCurrent() {
-            return (SDL_GL_MakeCurrent(m_UI->win, m_SDLGLCtx) == 0);
+            return m_UI->makeGLCurrent(m_SDLGLCtx);
         }
 
         ~NativeGLContext() {
             if (!wrapped) {
-                SDL_GL_DeleteContext(m_SDLGLCtx);
+                m_UI->deleteGLContext(m_SDLGLCtx);
             }
         }
     private:

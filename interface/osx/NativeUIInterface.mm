@@ -120,11 +120,14 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         (&event.key)->keysym.sym == SDLK_r &&
                         event.key.keysym.mod & KMOD_GUI && event.key.keysym.mod & KMOD_SHIFT && event.type == SDL_KEYDOWN) {
 
-                        NativeUICocoaConsole *console = NUII->getConsole();
-
-                        if (console && !console->isHidden) {
-                            console->clear();
+                        if (++nrefresh > 1) {
+                            break;
                         }
+
+                        if (NUII->NativeCtx) {
+                            NUII->NativeCtx->getNJS()->gc();
+                        }
+                        NUII->restartApplication();
                     }
                     else if (
                         (&event.key)->keysym.sym == SDLK_r &&
@@ -132,6 +135,12 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         if (++nrefresh > 1) {
                             break;
                         }
+                        NativeUICocoaConsole *console = NUII->getConsole();
+
+                        if (console && !console->isHidden) {
+                            console->clear();
+                        }
+                        
                         if (NUII->NativeCtx) {
                             NUII->NativeCtx->getNJS()->gc();
                         }
