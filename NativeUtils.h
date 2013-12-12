@@ -58,4 +58,6 @@ class NativePthreadAutoLock {
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 #define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
 
+#define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
+
 #endif

@@ -106,14 +106,17 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     int flen = 0;
 
-    if (NativeStream::typeInterface(curl.ptr(), &flen) != NativeStream::INTERFACE_UNKNOWN) {
+    NativeStream::StreamInterfaces typeinter;
+    typeinter = NativeStream::typeInterface(curl.ptr(), &flen);
+
+    if (typeinter != NativeStream::INTERFACE_UNKNOWN) {
         JS_ReportError(cx, "NativeFileIO : Invalid file path");
         return false;
     }
 
     NJSFIO = new NativeJSFileIO();
     NFIO = new NativeFileIO(curl.ptr(), NJSFIO,
-        (ape_global *)JS_GetContextPrivate(cx), NativeJS::getNativeClass(cx)->getPath());
+        APE_CTX(cx), NativeJS::getNativeClass(cx)->getPath());
 
     NJSFIO->jsobj = ret;
     NJSFIO->cx = cx;
@@ -416,4 +419,29 @@ void NativeJSFileIO::registerObject(JSContext *cx)
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &File_class,
         native_File_constructor,
         0, NULL, NULL, NULL, NULL);
+}
+
+JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
+{
+    JSObject *ret;
+
+    ret = JS_NewObject(cx, &File_class, NULL, NULL);
+    NativeFileIO *NFIO;
+    NativeJSFileIO *NJSFIO;
+
+    NJSFIO = new NativeJSFileIO();
+    NFIO = new NativeFileIO(path, NJSFIO, APE_CTX(cx), NULL);
+
+    NJSFIO->jsobj = ret;
+    NJSFIO->cx = cx;
+    NJSFIO->m_Binary = true;
+
+    NJSFIO->setNFIO(NFIO);
+
+    JS_DefineFunctions(cx, ret, File_funcs);
+    JS_DefineProperties(cx, ret, File_props);   
+
+    JS_SetPrivate(ret, NJSFIO);
+
+    return ret;
 }

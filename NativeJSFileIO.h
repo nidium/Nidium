@@ -28,6 +28,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
 {
   public:
     static void registerObject(JSContext *cx);
+    static JSObject *generateJSObject(JSContext *cx, const char *path);
     
     NativeJSFileIO()  : m_Binary(true) {
         callbacks.open = JSVAL_NULL;
