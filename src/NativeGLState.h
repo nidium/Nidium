@@ -20,8 +20,8 @@
 
 #define NATIVE_GL_CALL_RET(IFACE, X, RET)                       \
     do {                                                        \
-        (RET) = (IFACE)->makeGLCurrent();                       \
-        gl##X;                                                  \
+        (IFACE)->makeGLCurrent();                               \
+        (RET) = gl##X;                                          \
     } while (false)
 
 class NativeUIInterface;
