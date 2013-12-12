@@ -138,6 +138,7 @@ def releaseAction(opt):
     import os
     import zipfile 
     import urllib2, mimetypes
+    import subprocess
 
     if opt.release is False:
         return
@@ -203,39 +204,64 @@ def releaseAction(opt):
     def get_content_type(filename):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
-    symFile = "out/nidium.sym"
-    log.step("Producing application symbols for breakpad")
+    breakpadSymFile = "out/nidium.sym"
+    symFile = ""
+    binFile = ""
     if deps.system == "Darwin":
-        deps.runCommand("tools/dump_syms gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium > " + symFile)
+        symFile = "gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium"
+        binFile = "framework/dist/nidium.app/Contents/MacOS/nidium"
     elif deps.system == "Linux":
-        deps.runCommand("tools/dump_syms framework/dist/nidium > " + symFile)
+        symFile = "framework/dist/nidium.debug"
+        binFile = "framework/dist/nidium"
     else:
         # Window TODO
         print("TODO")
 
-    log.step("Archiving application symbols for breakpad")
+    log.step("Producing debug symbols")
+
+    if deps.system == "Darwin":
+        deps.runCommand("tools/dump_syms " + symFile + " > " + breakpadSymFile)
+    elif deps.system == "Linux":
+        deps.runCommand("objcopy --only-keep-debug " + binFile + " " + symFile)
+        deps.runCommand("objcopy --add-gnu-debuglink " + symFile+ " " + binFile)
+        deps.runCommand("tools/dump_syms " + binFile + "  > " + breakpadSymFile)
+    else:
+        # Window TODO
+        print("TODO")
+
+    log.step("Archiving debug symbols")
     symArchive = "out/nidium.sym.zip"
     log.info(symArchive)
 
     spinner.start()
+
     with zipfile.ZipFile(symArchive, 'w', zipfile.ZIP_DEFLATED) as myzip:
-        myzip.write(symFile)
+        myzip.write(breakpadSymFile, "nidium.sym")
+        myzip.write(symFile, "nidium.debug")
 
     spinner.stop()
     log.setOk()
 
     log.step("Uploading application symbols. Bytes : %s " % (os.stat(symArchive).st_size));
     symbols = open(symArchive, "rb").read()
-    reply = post_multipart("crash.nidium.com", "/upload_symbols", [], [["symbols", "nidium.sym.zip", symbols]])
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    arch = ""
+    if deps.is64bits:
+        arch = "x86_64"
+    else:
+        arch = "i386"
+    reply = post_multipart("crash.nidium.com", "/upload_symbols", [["revision", revision], ["arch", arch], ["system", deps.system]], [["symbols", "nidium.sym.zip", symbols]])
 
     if reply.strip() == "OK":
-        os.unlink(symFile)
-        os.unlink(symArchive)
         print ""
         log.setOk()
     else:
         log.setError()
         log.error("Failed to upload symbols : " + reply)
+
+    os.unlink(symFile)
+    os.unlink(symArchive)
+    os.unlink(breakpadSymFile)
 
     stripExecutable()
     packageExecutable()
