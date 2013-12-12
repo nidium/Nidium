@@ -100,6 +100,7 @@ FORCE_BUILD = []
 FORCE_DOWNLOAD = []
 CURRENT_DEP = None
 ENABLE_VALGRIND = False
+LOG_FILE = open('./deps.log', 'w')
 
 def mkdir_p(path):
     import os, errno
@@ -231,7 +232,7 @@ def downloadDep(depName, url, rename = None):
 
             sys.stdout.flush()
 
-        print ""
+        log.log("\n")
         log.setOk()
         f.close()
 
@@ -442,43 +443,49 @@ class log():
         "white": 7
     }
     @staticmethod
+    def _clean(string):
+        import re
+        ansi_escape = re.compile(r'\x1b[^m]*m')
+        string = ansi_escape.sub('', string)
+        return string.replace("\r", "")
+
+    @staticmethod
     def setOk():
-        print "\r\033[1A[",
-        log.log("✔", log.COLORS["green"])
-        print "]\033[1B",
+        log.log("\r\x1b[1A[", None, False)
+        log.log("✔", log.COLORS["green"], False)
+        log.log("]\x1b[1B", None, False);
 
     @staticmethod
     def setError():
-        print "\r\033[1A[",
-        log.log("✖", log.COLORS["red"])
-        print "]\033[1B",
+        log.log("\r\x1b[1A[", None, False)
+        log.log("✖", log.COLORS["red"], False)
+        log.log("]\x1b[1B", None, False)
 
     @staticmethod
-    def spinner(c, state):
-        print "\r[",
-        log.log(c, log.COLORS["cyan"])
-        print "]",
-        log.log(state)
+    def spinner(c, state = None):
+        log.log("\r[", None, False)
+        log.log(c, log.COLORS["cyan"], False)
+        log.log("]", None, False)
+        if state is not None:
+            log.log(state, None, False)
 
     @staticmethod
     def state(state, color):
-        print "\r",
-        print "[",
+        log.log("\r[")
         log.log(state, color)
-        print "\x1b[0m]",
+        log.log("\x1b[0m]")
 
     @staticmethod
     def error(text, newLine = False):
-        print "\r[",
+        log.log("\r[")
         log.log("✖", log.COLORS["red"])
-        print "]",
-        log.log(text + "\n")
+        log.log("]" + text + "\n")
 
     @staticmethod
     def success(text):
-        print "\r[",
+        log.log("\r[")
         log.log("✔", log.COLORS["green"])
-        print "] " + text
+        log.log("] " + text + "\n")
 
     @staticmethod
     def action(text):
@@ -491,20 +498,20 @@ class log():
         log.log("\x1b[4m" + text + "\x1b[0m\n")
 
     @staticmethod
-    def info(text, newLine = False):
+    def info(text):
         log.state("ᐅ", log.COLORS["blue"])
         log.log(text + "\n")
 
     @staticmethod
-    def debug(text, newLine = False):
-        log.log(text, log.COLORS["cyan"], newLine)
+    def debug(text):
+        log.log(text, log.COLORS["cyan"])
 
     @staticmethod
-    def warn(text, newLine = False):
-        log.log(text, log.COLORS["yellow"], newLine)
+    def warn(text):
+        log.log(text, log.COLORS["yellow"])
 
     @staticmethod
-    def log(text, color=None, newLine = False):
+    def log(text, color=None, logToFile = True):
         import sys
         if hasColours(sys.stdout):
             if color is None:
@@ -512,17 +519,21 @@ class log():
             else:
                 seq = "\x1b[1;%dm" % (30 + color) + text
             seq += "\x1b[0m"
-            if newLine:
-                seq += "\n"
             print seq,
         else:
             print text,
+
+        if logToFile:
+            LOG_FILE.write(log._clean(text))
 
 class spinner():
     STOP_SPINNER_THREAD = False
 
     @staticmethod
     def start():
+        if VERBOSE:
+            return
+
         import threading
         # Workaround for a bug with subprocess.poll() that always return None for long running process
         # Instead the spinner is printed from a thread while communicate() waiting from script ends 
@@ -547,14 +558,10 @@ class spinner():
                     time.sleep(0.2)
                     return
 
-                print "\r\033[1A[",
-                log.log(c, log.COLORS["cyan"])
-                print "]\033[1B",
+                log.spinner(c)
 
                 sys.stdout.flush()
                 time.sleep(0.2)
-        else:
-            log.info("Working ...") 
 
 def runCommand(cmd, **kwargs):
     import sys
@@ -579,7 +586,8 @@ def runCommand(cmd, **kwargs):
     if VERBOSE:
         child = subprocess.Popen(cmd, shell=True, stdin=stdin)
     else:
-        child = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        LOG_FILE.flush()
+        child = subprocess.Popen(cmd, shell=True, stdin=stdin, stdout=LOG_FILE, stderr=LOG_FILE)
 
         if displaySpinner:
             spinner.start()
@@ -600,6 +608,7 @@ def runCommand(cmd, **kwargs):
             f.close()
         else:
             log.error("Failed to run previous command")
+            sys.exit()
     else:
         log.setOk()
     
@@ -671,7 +680,7 @@ def copyAndLinkDep(outlibs, symlink = True):
         ok = False
 
         if VERBOSE:
-            log.info("Trying to copy lib " + l)
+            log.info("Searching and copying library : " + l)
 
         for f in files:
             if re.match(name + "$", f):
@@ -705,17 +714,9 @@ def copyAndLinkDep(outlibs, symlink = True):
                 else:
                     shutil.copyfile(l, LIBS_OUTPUT + "/" + name)
 
-            if VERBOSE:
-                if ok == False:
-                    log.info("    File " + f + " not matching");
-                else:
-                    log.debug("    File " + f + " matched")
-                    break
-
         if ok == False:
             log.error("Failed to copy and link " + name)
             sys.exit(1);
-
 
 
 def downloadAndBuildDeps():
