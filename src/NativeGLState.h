@@ -8,6 +8,9 @@
 
 #include "NativeGLContext.h"
 
+#define NATIVE_MAKE_CURRENT_EACH_GL_CALL 0
+
+#if NATIVE_MAKE_CURRENT_EACH_GL_CALL
 /*
     Make the context pointed by IFANCE current and make a GL call
     e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));
@@ -23,6 +26,17 @@
         (IFACE)->makeGLCurrent();                               \
         (RET) = gl##X;                                          \
     } while (false)
+#else
+#define NATIVE_GL_CALL(IFACE, X)                                \
+    do {                                                        \
+        gl##X;                                                  \
+    } while (false)
+
+#define NATIVE_GL_CALL_RET(IFACE, X, RET)                       \
+    do {                                                        \
+        (RET) = gl##X;                                          \
+    } while (false)
+#endif    
 
 class NativeUIInterface;
 

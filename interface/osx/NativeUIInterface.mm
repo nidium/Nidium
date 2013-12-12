@@ -47,6 +47,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
     //while(1) {
     int nevents = 0;
         while(SDL_PollEvent(&event)) {
+            if (NUII->NativeCtx) {
+                NUII->makeMainGLCurrent();
+            }
             NativeJSwindow *window = NULL;
             if (NUII->NativeCtx) {
                 window = NativeJSwindow::getNativeClass(NUII->NativeCtx->getNJS());
@@ -236,6 +239,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         }
         //glUseProgram(0);
         if (NUII->NativeCtx) {
+            NUII->makeMainGLCurrent();
             NUII->NativeCtx->frame();
         }
         if (NUII->getConsole()) {
@@ -263,7 +267,11 @@ static int NativeProcessUI(void *arg)
 static int NativeProcessSystemLoop(void *arg)
 {
     SDL_PumpEvents();
+    NativeCocoaUIInterface *ui = (NativeCocoaUIInterface *)arg;
 
+    if (ui->NativeCtx) {
+        ui->makeMainGLCurrent();
+    }
     return 4;
 }
 
@@ -727,13 +735,15 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
             free(lst);
         }
     }];
+
+    this->makeMainGLCurrent();
 #endif
 }
 
 void NativeCocoaUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
-    add_timer(&gnet->timersng, 1, NativeProcessSystemLoop, NULL);
+    add_timer(&gnet->timersng, 1, NativeProcessSystemLoop, (void *)this);
     
     events_loop(gnet);
 }
