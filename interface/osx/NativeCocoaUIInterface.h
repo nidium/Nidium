@@ -45,6 +45,11 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void log(const char *buf);
         void logf(const char *format, ...);
         void vlog(const char *format, va_list ap);
+
+        virtual bool makeMainGLCurrent();
+        virtual bool makeGLCurrent(SDL_GLContext ctx);
+        virtual SDL_GLContext getCurrentGLContext();
+        
     private:
         bool initContext();
         bool createWindow(int width, int height);

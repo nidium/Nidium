@@ -157,8 +157,9 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 
 void NativeCanvasContext::resetGLContext()
 {
-    if (this->m_GLState)
+    if (this->m_GLState) {
         this->m_GLState->setActive();
+    }
 }
 
 uint32_t NativeCanvasContext::createPassThroughVertex()
@@ -194,7 +195,7 @@ uint32_t NativeCanvasContext::createPassThroughFragment()
 }
 
 uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resource)
-{    
+{   
     uint32_t vertexshader = NativeCanvasContext::createPassThroughVertex();
     uint32_t fragmentshader = NativeCanvasContext::createPassThroughFragment();
 
@@ -306,8 +307,7 @@ void NativeCanvasContext::updateMatrix(double left, double top,
     if (m_GLState->m_GLObjects.uniforms.u_projectionMatrix != 0) {
         GLfloat mat4[16];
         m_Transform.asColMajorf(mat4);
-
-        glUniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4);
+        NATIVE_GL_CALL(m_GLState, UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4));
     } else {
         NLOG("No uniform found");
     }

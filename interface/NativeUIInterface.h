@@ -67,15 +67,17 @@ class NativeUIInterface
         };
         virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
 
-        bool makeMainGLCurrent();
-        bool makeGLCurrent(SDL_GLContext ctx);
+        virtual bool makeMainGLCurrent();
+        virtual bool makeGLCurrent(SDL_GLContext ctx);
+        virtual SDL_GLContext getCurrentGLContext();
 
         SDL_GLContext getGLContext() {
             return m_mainGLCtx;
         }
-
-        SDL_GLContext getCurrentGLContext();
+        
         SDL_GLContext createSharedContext();
+
+
         void deleteGLContext(SDL_GLContext ctx);
 
     protected:

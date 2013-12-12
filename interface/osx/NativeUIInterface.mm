@@ -241,6 +241,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();
         }
+
         SDL_GL_SwapWindow(NUII->win);
 
         //NSLog(@"Swap : %d\n", SDL_GetTicks()-s);
@@ -705,6 +706,9 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
     [openDlg setCanChooseDirectories:NO];
     [openDlg setAllowsMultipleSelection:YES];
 
+    //[openDlg runModal];
+
+#if 1
     // TODO: set a flag so that nidium can't be refreshed and unset after the block is called
 
     [openDlg beginSheetModalForWindow:NativeCocoaWindow(win) completionHandler:^(NSInteger result) {
@@ -723,7 +727,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
             free(lst);
         }
     }];
-
+#endif
 }
 
 void NativeCocoaUIInterface::runLoop()
@@ -756,4 +760,23 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
 void NativeCocoaUIInterface::alert(const char *message)
 {
     
+}
+
+bool NativeCocoaUIInterface::makeMainGLCurrent()
+{
+    [((NSOpenGLContext *)m_mainGLCtx) makeCurrentContext];
+    
+    return true;
+}
+
+SDL_GLContext NativeCocoaUIInterface::getCurrentGLContext()
+{
+    return (SDL_GLContext)[NSOpenGLContext currentContext];
+}
+
+bool NativeCocoaUIInterface::makeGLCurrent(SDL_GLContext ctx)
+{
+    [((NSOpenGLContext *)ctx) makeCurrentContext];
+
+    return true;
 }

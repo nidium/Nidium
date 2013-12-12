@@ -33,10 +33,6 @@ void NativeGLState::destroy()
     if (!m_Shared) {
         delete this;
     }
-
-    if (m_GLContext) {
-        delete m_GLContext;
-    }
 }
 
 bool NativeGLState::initGLBase(bool withProgram)
@@ -108,4 +104,8 @@ NativeGLState::~NativeGLState()
     free(m_GLObjects.vtx->indices);
     free(m_GLObjects.vtx->vertices);
     free(m_GLObjects.vtx);
+
+    if (m_GLContext) {
+        delete m_GLContext;
+    }
 }
