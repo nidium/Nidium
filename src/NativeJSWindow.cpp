@@ -10,6 +10,8 @@
 #include "NativeNML.h"
 #include "NativeMacros.h"
 
+#include <NativeJSFileIO.h>
+
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
@@ -540,7 +542,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     JSObject *arr = JS_NewArrayObject(nof->cx, len, NULL);
 
     for (int i = 0; i < len; i++) {
-        jsval val = STRING_TO_JSVAL(JS_NewStringCopyZ(nof->cx, lst[i]));
+        jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(nof->cx, lst[i]));
         JS_SetElement(nof->cx, arr, i, &val);        
     }
 
