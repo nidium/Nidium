@@ -61,6 +61,13 @@ static JSClass mouseEvent_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+static JSClass dragEvent_class = {
+    "DragEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 #if 0
 static JSClass windowEvent_class = {
     "WindowEvent", 0,
@@ -100,6 +107,9 @@ static JSFunctionSpec storage_funcs[] = {
 
 NativeJSwindow::~NativeJSwindow()
 {
+    if (m_Dragging) {
+        /* cleanup drag files */
+    }
     if (m_Db) {
         delete m_Db;
     }
@@ -288,6 +298,143 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 
         JS_CallFunctionValue(cx, event, onclick, 1, &jevent, &rval);
     }
+}
+
+bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+
+    if (m_Dragging) {
+        return this->dragUpdate(x, y);
+    }
+
+    m_Dragging = true;
+
+    jsval rval, jevent;
+    JSObject *event;
+
+    jsval ondragenter;
+
+    JSAutoRequest ar(cx);
+
+    event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
+
+    EVENT_PROP("x", INT_TO_JSVAL(x));
+    EVENT_PROP("y", INT_TO_JSVAL(y));
+    EVENT_PROP("clientX", INT_TO_JSVAL(x));
+    EVENT_PROP("clientY", INT_TO_JSVAL(y));
+
+    JSObject *arr = JS_NewArrayObject(cx, nfiles, NULL);
+
+    for (int i = 0; i < nfiles; i++) {
+        jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(cx, files[i]));
+        JS_SetElement(cx, arr, i, &val);         
+    }
+
+    this->m_DragedFiles = arr;
+
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(this->m_DragedFiles);
+
+    EVENT_PROP("files", OBJECT_TO_JSVAL(arr));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    if (JS_GetProperty(cx, this->jsobj,
+        "_onFileDrag", &ondragenter) &&
+        !JSVAL_IS_PRIMITIVE(ondragenter) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragenter))) {
+
+        JS_CallFunctionValue(cx, event, ondragenter, 1, &jevent, &rval);
+
+        return JSVAL_TO_BOOLEAN(rval);
+    }    
+
+    return false;    
+}
+
+bool NativeJSwindow::dragUpdate(int x, int y)
+{
+    if (!m_Dragging) {
+        return false;
+    }
+
+    jsval rval, jevent;
+    JSObject *event;
+
+    jsval ondragenter;
+
+    JSAutoRequest ar(cx);
+
+    event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
+
+    EVENT_PROP("x", INT_TO_JSVAL(x));
+    EVENT_PROP("y", INT_TO_JSVAL(y));
+    EVENT_PROP("clientX", INT_TO_JSVAL(x));
+    EVENT_PROP("clientY", INT_TO_JSVAL(y));
+    EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    if (JS_GetProperty(cx, this->jsobj,
+        "_onFileDrag", &ondragenter) &&
+        !JSVAL_IS_PRIMITIVE(ondragenter) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragenter))) {
+
+        JS_CallFunctionValue(cx, event, ondragenter, 1, &jevent, &rval);
+
+        return JSVAL_TO_BOOLEAN(rval);
+    }    
+
+    return false;
+}
+
+bool NativeJSwindow::dragDroped(int x, int y)
+{
+    if (!m_Dragging) {
+        return false;
+    }
+
+    jsval rval, jevent;
+    JSObject *event;
+
+    jsval onfiledrop;
+
+    JSAutoRequest ar(cx);
+
+    event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
+
+    EVENT_PROP("x", INT_TO_JSVAL(x));
+    EVENT_PROP("y", INT_TO_JSVAL(y));
+    EVENT_PROP("clientX", INT_TO_JSVAL(x));
+    EVENT_PROP("clientY", INT_TO_JSVAL(y));
+    EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
+
+    jevent = OBJECT_TO_JSVAL(event);
+
+    if (JS_GetProperty(cx, this->jsobj,
+        "_onFileDrop", &onfiledrop) &&
+        !JSVAL_IS_PRIMITIVE(onfiledrop) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onfiledrop))) {
+
+        JS_CallFunctionValue(cx, event, onfiledrop, 1, &jevent, &rval);
+
+        return JSVAL_TO_BOOLEAN(rval);
+    }
+
+    return false;
+}
+
+void NativeJSwindow::dragEnd()
+{
+    if (!m_Dragging) {
+        return;
+    }
+
+    NativeJS::getNativeClass(cx)->unrootObject(m_DragedFiles);
+
+    m_DragedFiles = NULL;
+    m_Dragging = false;
 }
 
 void NativeJSwindow::resized(int width, int height)

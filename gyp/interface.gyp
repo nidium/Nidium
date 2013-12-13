@@ -37,6 +37,7 @@
                     '<(native_interface_path)/osx/NativeUIInterface.mm',
                     '<(native_interface_path)/osx/NativeUIConsole.mm',
                     '<(native_interface_path)/osx/NativeSystem.mm',
+                    '<(native_interface_path)/osx/NativeDragNSView.mm',
                 ],
 			}],
             ['OS=="linux"', {

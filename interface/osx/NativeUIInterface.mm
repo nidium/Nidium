@@ -17,6 +17,8 @@
 #import "NativeSystem.h"
 #import "SDL_keycode_translate.h"
 
+#import "NativeDragNSView.h"
+
 #define kNativeWidth 1024
 #define kNativeHeight 768
 
@@ -365,6 +367,8 @@ void NativeCocoaUIInterface::onNMLLoaded()
 
 void NativeCocoaUIInterface::stopApplication()
 {
+    [this->dragNSView setResponder:nil];
+
     if (this->nml) {
         delete this->nml;
         this->nml = NULL;
@@ -448,6 +452,9 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
     this->nml = NULL;
     this->filePath = NULL;
     this->console = NULL;
+
+    this->dragNSView = nil;
+
     /* Set the current working directory relative to the .app */
     char parentdir[MAXPATHLEN];
 
@@ -511,6 +518,9 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         this->height = height;
 
         window = NativeCocoaWindow(win);
+
+        this->dragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
+        [[window contentView] addSubview:this->dragNSView];
 
         //[center addObserver:self selector:@selector(windowBeingResized) name:NSWindowWillStartLiveResizeNotification object window];
 /*
@@ -578,6 +588,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     
     NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
     window = NativeCocoaWindow(win);
+
+    [this->dragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
 #if 0
     id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification
     object:window queue:nil usingBlock:^(NSNotification *notif){

@@ -11,7 +11,8 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
   public:
     NativeJSwindow() : 
-        m_RequestedFrame(NULL), m_handler(NULL), m_Db(NULL)
+        m_RequestedFrame(NULL), m_handler(NULL), m_Db(NULL),
+        m_Dragging(false), m_DragedFiles(NULL)
     {
     };
 
@@ -25,6 +26,12 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void mouseWheel(int xrel, int yrel, int x, int y);
     void mouseMove(int x, int y, int xrel, int yrel);
     void mouseClick(int x, int y, int state, int button);
+
+    bool dragBegin(int x, int y, const char * const *files, size_t nfiles);
+    bool dragUpdate(int x, int y);
+    bool dragDroped(int x, int y);
+    void dragEnd();
+
     void textInput(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
     void addFrameCallback(jsval &cb);
@@ -59,6 +66,9 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     NativeCanvasHandler *m_handler;
     NativeDB *m_Db;
+
+    bool m_Dragging;
+    JSObject *m_DragedFiles;
 };
 
 #endif

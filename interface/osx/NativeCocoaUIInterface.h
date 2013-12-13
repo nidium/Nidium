@@ -4,6 +4,8 @@
 
 class NativeUICocoaConsole;
 
+@class NativeDragNSView;
+
 class NativeCocoaUIInterface : public NativeUIInterface
 {
     public:
@@ -54,4 +56,5 @@ class NativeCocoaUIInterface : public NativeUIInterface
         bool initContext();
         bool createWindow(int width, int height);
         NativeUICocoaConsole *console;
+        NativeDragNSView *dragNSView;
 };
