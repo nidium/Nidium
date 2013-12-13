@@ -23,6 +23,8 @@
     NSPasteboard *pboard = [sender draggingPasteboard];
     NSArray *filenames = [pboard propertyListForType:NSFilenamesPboardType];
 
+    NSWindow *win = [sender draggingDestinationWindow];
+
     if (!update) {
         char const **files = (char const **)malloc(sizeof(char *) * [filenames count]);
         int idx = 0;
@@ -31,7 +33,7 @@
             idx++;
         }
 
-        if (!self.responder->dragBegin([sender draggingLocation].x, [sender draggingLocation].y, files, [filenames count])) {
+        if (!self.responder->dragBegin([sender draggingLocation].x, [win.contentView frame].size.height - [sender draggingLocation].y, files, [filenames count])) {
 
             free(files);
             return NSDragOperationNone;
@@ -39,7 +41,7 @@
 
         free(files);
     } else {
-        if (!self.responder->dragUpdate([sender draggingLocation].x, [sender draggingLocation].y)) {
+        if (!self.responder->dragUpdate([sender draggingLocation].x, [win.contentView frame].size.height - [sender draggingLocation].y)) {
             return NSDragOperationNone;
         }
     }
@@ -80,7 +82,9 @@
         return NO;
     }
 
-    return self.responder->dragDroped([sender draggingLocation].x, [sender draggingLocation].y);
+    NSWindow *win = [sender draggingDestinationWindow];
+
+    return self.responder->dragDroped([sender draggingLocation].x, [win.contentView frame].size.height - [sender draggingLocation].y);
 }
 
 @end

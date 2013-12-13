@@ -312,11 +312,16 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 
     event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
 
+    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
     EVENT_PROP("clientX", INT_TO_JSVAL(x));
     EVENT_PROP("clientY", INT_TO_JSVAL(y));
-    EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
+
+    if (m_DragedFiles) {
+        EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
+    }
 
     jevent = OBJECT_TO_JSVAL(event);
 
@@ -361,7 +366,6 @@ void NativeJSwindow::dragLeave()
     if (!m_Dragging) {
         return;
     }
-
     this->dragEvent("_onFileDragLeave", 0, 0);
     this->dragEnd();
 }
@@ -533,7 +537,6 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             }
             
             JS_ValueToNumber(cx, vp, &dval);
-            printf("Width changed : %f\n", dval);
             //NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
@@ -546,7 +549,6 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             JS_ValueToNumber(cx, vp, &dval);
-            printf("height changed : %f\n", dval);
             //NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
