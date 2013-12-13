@@ -105,6 +105,7 @@
                 {
                     'target_name': 'minidump_dump',
                     'type': 'executable',
+                    'product_dir': '../tools/',
                     'includes': ['breakpad_tools.gypi'],
                     'xcode_settings': {
                         "OTHER_LDFLAGS": [
