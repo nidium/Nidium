@@ -64,7 +64,11 @@
 }
 
 - (void)draggingExited:(id < NSDraggingInfo >)sender {
+    if (self.responder == nil) {
+        return;
+    }
 
+    self.responder->dragLeave();    
 }
 
 - (BOOL)wantsPeriodicDraggingUpdates {

@@ -30,6 +30,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     bool dragBegin(int x, int y, const char * const *files, size_t nfiles);
     bool dragUpdate(int x, int y);
     bool dragDroped(int x, int y);
+    void dragLeave();
     void dragEnd();
 
     void textInput(const char *data);
@@ -55,6 +56,8 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     static JSClass *jsclass;
 
   private:
+
+    bool dragEvent(const char *name, int x, int y);
 
     void createMainCanvas(int width, int height);
     void createStorage();

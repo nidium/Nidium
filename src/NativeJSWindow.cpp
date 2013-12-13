@@ -300,21 +300,13 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
     }
 }
 
-bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
+
+bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-
-    if (m_Dragging) {
-        return this->dragUpdate(x, y);
-    }
-
-    m_Dragging = true;
-
     jsval rval, jevent;
     JSObject *event;
 
-    jsval ondragenter;
+    jsval ondragevent;
 
     JSAutoRequest ar(cx);
 
@@ -324,33 +316,54 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
     EVENT_PROP("y", INT_TO_JSVAL(y));
     EVENT_PROP("clientX", INT_TO_JSVAL(x));
     EVENT_PROP("clientY", INT_TO_JSVAL(y));
-
-    JSObject *arr = JS_NewArrayObject(cx, nfiles, NULL);
-
-    for (int i = 0; i < nfiles; i++) {
-        jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(cx, files[i]));
-        JS_SetElement(cx, arr, i, &val);         
-    }
-
-    this->m_DragedFiles = arr;
-
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(this->m_DragedFiles);
-
-    EVENT_PROP("files", OBJECT_TO_JSVAL(arr));
+    EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj,
-        "_onFileDrag", &ondragenter) &&
-        !JSVAL_IS_PRIMITIVE(ondragenter) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragenter))) {
+    if (JS_GetProperty(cx, this->jsobj, name, &ondragevent) &&
+        !JSVAL_IS_PRIMITIVE(ondragevent) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragevent))) {
 
-        JS_CallFunctionValue(cx, event, ondragenter, 1, &jevent, &rval);
+        JS_CallFunctionValue(cx, event, ondragevent, 1, &jevent, &rval);
 
         return JSVAL_TO_BOOLEAN(rval);
     }    
 
-    return false;    
+    return false;
+}
+
+bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
+{
+#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+
+    if (m_Dragging) {
+        return false;
+    }
+
+    m_Dragging = true;
+
+    m_DragedFiles = JS_NewArrayObject(cx, nfiles, NULL);
+
+    for (int i = 0; i < nfiles; i++) {
+        jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(cx, files[i]));
+        JS_SetElement(cx, m_DragedFiles, i, &val);         
+    }
+
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(m_DragedFiles);
+
+    return this->dragEvent("_onFileDragEnter", x, y);
+
+}
+
+void NativeJSwindow::dragLeave()
+{
+    if (!m_Dragging) {
+        return;
+    }
+
+    this->dragEvent("_onFileDragLeave", 0, 0);
+    this->dragEnd();
 }
 
 bool NativeJSwindow::dragUpdate(int x, int y)
@@ -359,34 +372,7 @@ bool NativeJSwindow::dragUpdate(int x, int y)
         return false;
     }
 
-    jsval rval, jevent;
-    JSObject *event;
-
-    jsval ondragenter;
-
-    JSAutoRequest ar(cx);
-
-    event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
-
-    EVENT_PROP("x", INT_TO_JSVAL(x));
-    EVENT_PROP("y", INT_TO_JSVAL(y));
-    EVENT_PROP("clientX", INT_TO_JSVAL(x));
-    EVENT_PROP("clientY", INT_TO_JSVAL(y));
-    EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
-
-    jevent = OBJECT_TO_JSVAL(event);
-
-    if (JS_GetProperty(cx, this->jsobj,
-        "_onFileDrag", &ondragenter) &&
-        !JSVAL_IS_PRIMITIVE(ondragenter) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragenter))) {
-
-        JS_CallFunctionValue(cx, event, ondragenter, 1, &jevent, &rval);
-
-        return JSVAL_TO_BOOLEAN(rval);
-    }    
-
-    return false;
+    return this->dragEvent("_onFileDragMove", x, y);
 }
 
 bool NativeJSwindow::dragDroped(int x, int y)
@@ -395,34 +381,7 @@ bool NativeJSwindow::dragDroped(int x, int y)
         return false;
     }
 
-    jsval rval, jevent;
-    JSObject *event;
-
-    jsval onfiledrop;
-
-    JSAutoRequest ar(cx);
-
-    event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
-
-    EVENT_PROP("x", INT_TO_JSVAL(x));
-    EVENT_PROP("y", INT_TO_JSVAL(y));
-    EVENT_PROP("clientX", INT_TO_JSVAL(x));
-    EVENT_PROP("clientY", INT_TO_JSVAL(y));
-    EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
-
-    jevent = OBJECT_TO_JSVAL(event);
-
-    if (JS_GetProperty(cx, this->jsobj,
-        "_onFileDrop", &onfiledrop) &&
-        !JSVAL_IS_PRIMITIVE(onfiledrop) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onfiledrop))) {
-
-        JS_CallFunctionValue(cx, event, onfiledrop, 1, &jevent, &rval);
-
-        return JSVAL_TO_BOOLEAN(rval);
-    }
-
-    return false;
+    return this->dragEvent("_onFileDragDrop", x, y);
 }
 
 void NativeJSwindow::dragEnd()
