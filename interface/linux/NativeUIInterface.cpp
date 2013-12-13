@@ -482,6 +482,8 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
         for (int j = 0; j < i; j++) {
             free((void *)lst[j]);
         }
+    } else {
+        cb(arg, NULL, 0);
     }
 
     free(lst);

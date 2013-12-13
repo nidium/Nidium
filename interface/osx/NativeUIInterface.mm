@@ -738,13 +738,15 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
 
             int i = 0;
             for (NSURL *url in openDlg.URLs) {
-                lst[i] = [[url relativePath] cStringUsingEncoding:NSASCIIStringEncoding];
+                lst[i] = [[url relativePath] UTF8String];
                 i++;
             }
 
             cb(arg, lst, i);
 
             free(lst);
+        } else {
+            cb(arg, NULL, 0);
         }
     }];
 

@@ -686,6 +686,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     jsval rval;
 
     jsval cb = nof->cb;
+
     JSObject *arr = JS_NewArrayObject(nof->cx, len, NULL);
 
     for (int i = 0; i < len; i++) {
