@@ -23,7 +23,9 @@
 #include "NativeStream.h"
 
 enum {
-    FILE_PROP_FILESIZE
+    FILE_PROP_FILESIZE,
+    FILE_PROP_FILENAME,
+    FILE_PROP_BINARY
 };
 
 #define NJSFIO_GETTER(obj) ((class NativeJSFileIO *)JS_GetPrivate(obj))
@@ -31,6 +33,8 @@ enum {
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
+static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
 static JSClass File_class = {
     "File", JSCLASS_HAS_PRIVATE,
@@ -50,6 +54,12 @@ static JSPropertySpec File_props[] = {
     {"filesize", FILE_PROP_FILESIZE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_file_prop_get),
         JSOP_NULLWRAPPER},
+    {"filename", FILE_PROP_FILENAME, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_file_prop_get),
+        JSOP_NULLWRAPPER},
+    {"binary", FILE_PROP_BINARY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_file_prop_get),
+        JSOP_WRAPPER(native_file_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -82,11 +92,40 @@ static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
         case FILE_PROP_FILESIZE:
             vp.set(JS_NumberValue(NFIO->filesize));
             break;
+        case FILE_PROP_FILENAME:
+            vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, NFIO->getFileName())));
+            break;
+        case FILE_PROP_BINARY:
+            vp.set(BOOLEAN_TO_JSVAL(NJSFIO_GETTER(obj.get())->m_Binary));
+            break;
         default:break;
 
     }
 
     return JS_TRUE;
+}
+
+static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+{
+    NativeJSFileIO *nfio = NJSFIO_GETTER(obj.get());
+
+    if (nfio == NULL) {
+        return true;
+    }
+
+    switch(JSID_TO_INT(id)) {
+        case FILE_PROP_BINARY:
+        {
+            if (JSVAL_IS_BOOLEAN(vp)) {
+                nfio->m_Binary = JSVAL_TO_BOOLEAN(vp);
+            }        
+        }
+        break;      
+        default:
+            break;
+    }
+    return true;    
 }
 
 static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
