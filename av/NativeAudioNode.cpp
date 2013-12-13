@@ -937,14 +937,15 @@ int NativeAudioSource::initInternal()
     }
 
     // Init output buffer
+    int bufferSize = this->audio->outputParameters->bufferSize;
     this->rBufferOut = new PaUtilRingBuffer();
-    if (!(this->rBufferOutData = calloc(NATIVE_AVDECODE_BUFFER_SAMPLES * this->outCount, NativeAudio::FLOAT32))) {
+    if (!(this->rBufferOutData = calloc(bufferSize * this->outCount, NativeAudio::FLOAT32))) {
         return ERR_OOM;
     }
 
     if (0 > PaUtil_InitializeRingBuffer((PaUtilRingBuffer*)this->rBufferOut, 
             (NativeAudio::FLOAT32 * this->outCount),
-            NATIVE_AVDECODE_BUFFER_SAMPLES,
+            bufferSize,
             this->rBufferOutData)) {
         fprintf(stderr, "Failed to init output ringbuffer\n");
         return ERR_OOM;
