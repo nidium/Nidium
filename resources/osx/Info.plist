@@ -13,7 +13,7 @@
 	<key>BreakpadRequestEmail</key>
 	<string>YES</string>
 	<key>BreakpadSendAndExit</key>
-	<string>NO</string>
+	<string>YES</string>
 	<key>BreakpadSkipConfirm</key>
 	<string>NO</string>
 	<key>BreakpadVendor</key>
