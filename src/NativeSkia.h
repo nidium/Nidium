@@ -76,6 +76,9 @@ class NativeSkia
         bool m_Debug;
         
     public:
+        ~NativeSkia();
+        NativeSkia();
+
         enum BindMode {
             BIND_NO,
             BIND_GL,
@@ -97,8 +100,6 @@ class NativeSkia
         */
         void setCanvas(SkCanvas *canvas);
 
-        ~NativeSkia();
-        NativeSkia();
         double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);

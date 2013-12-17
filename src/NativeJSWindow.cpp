@@ -376,7 +376,7 @@ bool NativeJSwindow::dragUpdate(int x, int y)
         return false;
     }
 
-    return this->dragEvent("_onFileDragMove", x, y);
+    return this->dragEvent("_onFileDrag", x, y);
 }
 
 bool NativeJSwindow::dragDroped(int x, int y)
@@ -385,7 +385,7 @@ bool NativeJSwindow::dragDroped(int x, int y)
         return false;
     }
 
-    return this->dragEvent("_onFileDragDrop", x, y);
+    return this->dragEvent("_onFileDrop", x, y);
 }
 
 void NativeJSwindow::dragEnd()
@@ -537,7 +537,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             }
             
             JS_ValueToNumber(cx, vp, &dval);
-            //NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
+            NativeContext::getNativeClass(cx)->setWindowSize((int)dval, NUI->getHeight());
 
             break;
         }
@@ -549,7 +549,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             JS_ValueToNumber(cx, vp, &dval);
-            //NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
+            NativeContext::getNativeClass(cx)->setWindowSize((int)NUI->getWidth(), (int)dval);
 
             break;
         }

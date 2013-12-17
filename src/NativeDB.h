@@ -20,7 +20,7 @@ struct JSContext;
 class NativeDB
 {
     public:
-        NativeDB(const char *name);
+        explicit NativeDB(const char *name);
         ~NativeDB();
 
         /*

@@ -7,21 +7,23 @@
 #include "external/rapidxml.hpp"
 #include "NativeTypes.h"
 
+#define XML_VP_MAX_WIDTH 8000
+#define XML_VP_MAX_HEIGHT 8000
+#define XML_VP_DEFAULT_WIDTH 980
+#define XML_VP_DEFAULT_HEIGHT 700
+
+
 class NativeNML;
 class NativeJS;
 class JSObject;
-
-#define XML_VP_MAX_WIDTH 8000
-#define XML_VP_MAX_HEIGHT 8000
-
-#define XML_VP_DEFAULT_WIDTH 980
-#define XML_VP_DEFAULT_HEIGHT 700
 
 typedef void (*NMLLoadedCallback)(void *arg);
 
 class NativeNML : public NativeStreamDelegate
 {
-    public:
+public:
+    explicit NativeNML(ape_global *net);
+    ~NativeNML();
 
     typedef enum {
         NIDIUM_XML_OK,
@@ -32,8 +34,6 @@ class NativeNML : public NativeStreamDelegate
 
     typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
 
-    NativeNML(ape_global *net);
-    ~NativeNML();
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);

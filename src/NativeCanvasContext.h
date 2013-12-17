@@ -18,6 +18,9 @@ class NativeCanvasContext
 {
 public:
 
+    explicit NativeCanvasContext(NativeCanvasHandler *handler);
+    virtual ~NativeCanvasContext();
+    
     /* Explicit name used by glBindAttribLocation */
     enum {
         SH_ATTR_POSITION = 0,
@@ -97,10 +100,6 @@ public:
     virtual void composeWith(NativeCanvas2DContext *layer,
         double left, double top, double opacity,
         double zoom, const NativeRect *rclip)=0;
-
-    NativeCanvasContext(NativeCanvasHandler *handler);
-    virtual ~NativeCanvasContext();
-
 
     /*
         Create a grid of |resolution^2| points using triangle strip
