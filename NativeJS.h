@@ -63,11 +63,11 @@ class NativeJSDelegate;
 class NativeJS
 {
     public:
+        explicit NativeJS(ape_global *net);
+        ~NativeJS();
+
         typedef void (*logger)(const char *format);
         typedef void (*vlogger)(const char *format, va_list ap);
-
-        NativeJS(ape_global *net);
-        ~NativeJS();
 
         JSContext *cx;
         NativeSharedMessages *messages;

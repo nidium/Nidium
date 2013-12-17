@@ -42,7 +42,7 @@ class NativeHTTPRequest
             NATIVE_HTTP_HEAD
         } method;
 
-        NativeHTTPRequest(const char *url);
+        explicit NativeHTTPRequest(const char *url);
 
         ~NativeHTTPRequest(){
             ape_array_destroy(this->headers);
