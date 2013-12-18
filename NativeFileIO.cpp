@@ -134,14 +134,14 @@ void NativeFileIO::readAction(uint64_t len)
         }
     }
 
-    unsigned char *data = (unsigned char *)malloc(clamped_len + 1);
+    unsigned char *data = new unsigned char[clamped_len + 1];
     size_t readsize = 0;
 
     if ((readsize = fread(data, sizeof(char), clamped_len, fd)) == 0) {
 
         this->checkRead();
 
-        free(data);
+        delete[] data;
         return;
     }
 
