@@ -81,7 +81,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     }
                     break;
                 case SDL_TEXTINPUT:
-                    if (window) {
+                    if (window && event.text.text) {
                         window->textInput(event.text.text);
                     }
                     break;
@@ -776,9 +776,19 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
     //NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
     printf("Calling changing size to SDL\n");
-    SDL_SetWindowSize(win, w, h);
+
+    NSWindow *nswindow = NativeCocoaWindow(this->win);
+
+    NSSize size;
+    size.width = w;
+    size.height = h;
+
+    [nswindow setContentSize:size];
+    
     this->width = w;
     this->height = h;
+
+    glViewport(0, 0, w, h);
 }
 
 void NativeCocoaUIInterface::alert(const char *message)
