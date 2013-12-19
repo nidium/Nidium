@@ -593,8 +593,12 @@ static JSBool native_socket_client_write(JSContext *cx,
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
     ape_socket *socket_client;
 
+    NATIVE_CHECK_ARGS("write", 1);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
     if (JS_InstanceOf(cx, caller, &socket_client_class,
-        JS_ARGV(cx, vp)) == JS_FALSE) {
+        args.array()) == JS_FALSE) {
         return false;
     }
 
@@ -602,16 +606,31 @@ static JSBool native_socket_client_write(JSContext *cx,
         return JS_TRUE;
     }
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
+    if (args[0].isString()) {
+
+        JSAutoByteString cdata(cx, args[0].toString());
+
+        APE_socket_write(socket_client, (unsigned char *)cdata.ptr(),
+            strlen(cdata.ptr()), APE_DATA_COPY);
+
+    } else if (args[0].isObject()) {
+        JSObject *objdata = args[0].toObjectOrNull();
+
+        if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+            return false;            
+        }
+        uint32_t len = JS_GetArrayBufferByteLength(objdata);
+        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        APE_socket_write(socket_client, data, len, APE_DATA_COPY);        
+
+    } else {
+        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
         return false;
     }
 
-    JSAutoByteString cdata(cx, data);
-
-    APE_socket_write(socket_client, (unsigned char *)cdata.ptr(),
-        strlen(cdata.ptr()), APE_DATA_COPY);
-
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
@@ -619,22 +638,41 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     JSString *data;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    NATIVE_CHECK_ARGS("write", 1);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == JS_FALSE) {
         return false;
     }
 
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
-    if (nsocket == NULL || !nsocket->isAttached() ||
-        !JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &data)) {
+    if (nsocket == NULL || !nsocket->isAttached()) {
         return false;
     }
-    /* TODO array buffer */
-    /* TODO: Use APE_DATA_AUTORELEASE and specicy a free func (JS_free)) */
-    JSAutoByteString cdata(cx, data);
 
-    nsocket->write((unsigned char*)cdata.ptr(),
-        strlen(cdata.ptr()), APE_DATA_COPY);
+    if (args[0].isString()) {
+        JSAutoByteString cdata(cx, args[0].toString());
+
+        nsocket->write((unsigned char*)cdata.ptr(),
+            strlen(cdata.ptr()), APE_DATA_COPY);
+    } else if (args[0].isObject()) {
+        JSObject *objdata = args[0].toObjectOrNull();
+
+        if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+            return false;            
+        }
+        uint32_t len = JS_GetArrayBufferByteLength(objdata);
+        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        nsocket->write(data, len, APE_DATA_COPY);        
+
+    } else {
+        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+        return false;
+    }
 
     return JS_TRUE;
 }
@@ -682,7 +720,11 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+    NATIVE_CHECK_ARGS("sendto", 3);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == JS_FALSE) {
         return false;
     }
 
@@ -697,17 +739,31 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JSString *data, *ip;
-    unsigned int port;
+    JSString *ip = args[0].toString();
+    unsigned int port = args[1].toInt32();
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "SuS", &ip, &port, &data)) {
-        return false;
-    }
-
-    JSAutoByteString cdata(cx, data);
     JSAutoByteString cip(cx, ip);
 
-    ape_socket_write_udp(nsocket->socket, cdata.ptr(), cdata.length(), cip.ptr(), port);
+    if (args[2].isString()) {
+        JSAutoByteString cdata(cx, args[2].toString());
+
+        ape_socket_write_udp(nsocket->socket, cdata.ptr(), cdata.length(), cip.ptr(), (uint16_t)port);
+    } else if (args[2].isObject()) {
+        JSObject *objdata = args[2].toObjectOrNull();
+
+        if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+            JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer");
+            return false;
+        }
+        uint32_t len = JS_GetArrayBufferByteLength(objdata);
+        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        ape_socket_write_udp(nsocket->socket, (char *)data, len, cip.ptr(), (uint16_t)port);
+
+    } else {
+        JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer");
+        return false;
+    }
 
     return true;
 }
