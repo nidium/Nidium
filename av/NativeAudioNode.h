@@ -208,8 +208,8 @@ class NativeAudioNodeDelay : public NativeAudioNode
         };
 
         double delay;
-        double wet;
-        double dry;
+        int wet;
+        int dry;
         float **buffers;
 
         virtual bool process();

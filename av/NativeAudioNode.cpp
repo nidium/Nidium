@@ -13,6 +13,8 @@ extern "C" {
 #include "libswresample/swresample.h"
 }
 
+#include <math.h>
+
 #define MAX_FAILED_DECODING 50
 #define NODE_IO_FOR(i, io) int I = 0;\
 while (I < io->count) { \
@@ -85,31 +87,38 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
 {
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
         if (this->args[i] != NULL && strcmp(name, this->args[i]->name) == 0) {
-            void *val;
+            void *val = value;
 
             // If posted type and expected type are different
             // try to typecast the value (only few are supported)
+            int intVal = 0;
+            double doubleVal = 0;
             if (this->args[i]->type != type) {
-
-                double doubleVal;
-
                 switch (type) {
-                    case DOUBLE:
-                        return false;
+                    case DOUBLE : {
+                        if (this->args[i]->type == INT) {
+                            size = sizeof(int);
+                            intVal = static_cast<int>(*((double*)value));
+                            val = &intVal;
+                        } else {
+                            return false;
+                        }
+                    }
                     break;
                     case INT : {
-                        int *tmp = static_cast<int *>(value);
-                        doubleVal = static_cast<double>(*tmp);
-                        val = &doubleVal;
-                        size = sizeof(double);
+                        if (this->args[i]->type == DOUBLE) {
+                            size = sizeof(double);
+                            doubleVal = static_cast<double>(*((int*)value));
+                            val = &doubleVal;
+                        } else {
+                            return false;
+                        }
                     }
                     break;
                     default :
                         return false;
                     break;
                 }
-            } else {
-                val = value;
             }
 
             this->post(NATIVE_AUDIO_NODE_SET, this->args[i], val, size);
@@ -606,14 +615,14 @@ bool NativeAudioNodeReverb::process()
 NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNode(inCount, outCount, audio), delay(500), wet(1), dry(1), idx(0)
 {
-    this->args[0] = new ExportsArgs("delay", DOUBLE, DELAY, NativeAudioNodeDelay::argCallback);
-    this->args[1] = new ExportsArgs("wet", DOUBLE, WET, NativeAudioNodeDelay::argCallback);
-    this->args[2] = new ExportsArgs("dry", DOUBLE, DRY, NativeAudioNodeDelay::argCallback);
+    this->args[0] = new ExportsArgs("delay", INT, DELAY, NativeAudioNodeDelay::argCallback);
+    this->args[1] = new ExportsArgs("wet", INT, WET, NativeAudioNodeDelay::argCallback);
+    this->args[2] = new ExportsArgs("dry", INT, DRY, NativeAudioNodeDelay::argCallback);
 
     int max = inCount > outCount ? inCount : outCount;
     this->buffers = (float **)malloc(max * sizeof(void *));
     for (int i = 0; i < max; i++) {
-        this->buffers[i] = (float *)calloc(audio->outputParameters->sampleRate * (delay/1000), NativeAudio::FLOAT32);
+        this->buffers[i] = (float *)calloc(audio->outputParameters->sampleRate * ceil((double)delay/1000), NativeAudio::FLOAT32);
         if (!this->buffers[i]) {
             this->doNotProcess = true;
         }
@@ -623,7 +632,7 @@ NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudi
 bool NativeAudioNodeDelay::process()
 {
     for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
-        if (this->idx >= audio->outputParameters->sampleRate * (this->delay/1000)) {
+        if (this->idx >= audio->outputParameters->sampleRate * (delay / 1000)) {
             this->idx = 0;
         }
         for (int j = 0; j < this->inCount; j++) {
@@ -640,23 +649,23 @@ bool NativeAudioNodeDelay::process()
 void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp, int size)
 {
     NativeAudioNodeDelay *thiz = static_cast<NativeAudioNodeDelay *>(node);
-    double val = *((double *)tmp);
+    int val = *((int*)tmp);
     switch (id) {
         case DELAY: {
-            if (val < 0 || val > 60000) {
-                printf("NativeAudioNodeDelay delay must be between 0 and 60000\n");
+            if (val < 0 || val > 6000) {
+                printf("NativeAudioNodeDelay delay must be between 0 and 6000\n");
                 return;
             }
             if (val > thiz->delay) {
                 int max = thiz->inCount > thiz->outCount ? thiz->inCount : thiz->outCount;
                 for (int i = 0; i < max; i++) {
-                    int size = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (val/1000);
-                    thiz->buffers[i] = (float *)realloc(thiz->buffers[i], size);
+                    int newSize = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (ceil((double)val / 1000));
+                    int prevSize = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (ceil((double)thiz->delay / 1000));
+                    thiz->buffers[i] = (float *)realloc(thiz->buffers[i], newSize);
                     if (!thiz->buffers[i]) {
                         thiz->doNotProcess = true;
                     } else { 
-                        memset(&thiz->buffers[i][thiz->idx], 0, 
-                            (size / NativeAudio::FLOAT32 - thiz->idx) * NativeAudio::FLOAT32);
+                        memset(&thiz->buffers[i][thiz->idx], 0, newSize - prevSize);
                         thiz->doNotProcess = false;
                     }
                 }
