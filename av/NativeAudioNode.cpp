@@ -652,8 +652,8 @@ void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp,
     int val = *((int*)tmp);
     switch (id) {
         case DELAY: {
-            if (val < 0 || val > 6000) {
-                printf("NativeAudioNodeDelay delay must be between 0 and 6000\n");
+            if (val < 0 || val > 10000) {
+                printf("NativeAudioNodeDelay delay must be between 0 and 10000\n");
                 return;
             }
             if (val > thiz->delay) {
