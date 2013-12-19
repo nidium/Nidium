@@ -132,7 +132,9 @@ void *NativeAudio::queueThread(void *args) {
 
         if (cause == 0) {
             SPAM(("Waiting for more data\n"));
-            pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
+            if (PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut) == 0) {
+                pthread_cond_wait(&audio->queueHaveData, &audio->queueLock);
+            }
         } else {
             //do {
                 SPAM(("Waiting for more space\n"));
