@@ -32,6 +32,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_socket_client_write(JSContext *cx,
     unsigned argc, jsval *vp);
@@ -63,6 +64,7 @@ static JSFunctionSpec socket_funcs[] = {
     JS_FN("connect", native_socket_connect, 0, 0),
     JS_FN("write", native_socket_write, 1, 0),
     JS_FN("disconnect", native_socket_close, 0, 0), /* TODO: add force arg */
+    JS_FN("sendTo", native_socket_sendto, 3, 0),
     JS_FS_END
 };
 
@@ -519,6 +521,8 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
+    nsocket->flags |= NATIVE_SOCKET_ISSERVER;
+
     return JS_TRUE;
 }
 
@@ -672,6 +676,40 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
     nsocket->shutdown();
 
     return JS_TRUE;
+}
+
+static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+
+    if (JS_InstanceOf(cx, caller, &Socket_class, JS_ARGV(cx, vp)) == JS_FALSE) {
+        return false;
+    }
+
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
+
+    if (nsocket == NULL || !nsocket->isAttached()) {
+        return JS_TRUE;
+    }
+
+    if (!(nsocket->flags & NATIVE_SOCKET_ISSERVER)) {
+        JS_ReportError(cx, "sendto() is only available on listening socket");
+        return false;
+    }
+
+    JSString *data, *ip;
+    unsigned int port;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "SuS", &ip, &port, &data)) {
+        return false;
+    }
+
+    JSAutoByteString cdata(cx, data);
+    JSAutoByteString cip(cx, ip);
+
+    ape_socket_write_udp(nsocket->socket, cdata.ptr(), cdata.length(), cip.ptr(), port);
+
+    return true;
 }
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj)

@@ -26,7 +26,8 @@
 
 enum {
     NATIVE_SOCKET_ISBINARY = 1 << 0,
-    NATIVE_SOCKET_READLINE = 1 << 1
+    NATIVE_SOCKET_READLINE = 1 << 1,
+    NATIVE_SOCKET_ISSERVER = 1 << 2
 };
 
 enum {
