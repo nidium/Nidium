@@ -86,17 +86,18 @@ void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom)
 bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned long size) 
 {
     for (int i = 0; i < NATIVE_AUDIONODE_ARGS_SIZE; i++) {
-        if (this->args[i] != NULL && strcmp(name, this->args[i]->name) == 0) {
+        ExportsArgs *arg = this->args[i];
+        if (arg != NULL && strcmp(name, arg->name) == 0) {
             void *val = value;
 
             // If posted type and expected type are different
             // try to typecast the value (only few are supported)
             int intVal = 0;
             double doubleVal = 0;
-            if (this->args[i]->type != type) {
+            if (arg->type != type) {
                 switch (type) {
-                    case DOUBLE : {
-                        if (this->args[i]->type == INT) {
+                    case DOUBLE: {
+                        if (arg->type == INT) {
                             size = sizeof(int);
                             intVal = static_cast<int>(*((double*)value));
                             val = &intVal;
@@ -105,14 +106,14 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
                         }
                     }
                     break;
-                    case INT : {
-                        if (this->args[i]->type == DOUBLE) {
+                    case INT: {
+                        if (arg->type == DOUBLE) {
                             size = sizeof(double);
                             doubleVal = static_cast<double>(*((int*)value));
                             val = &doubleVal;
                         } else {
                             return false;
-                        }
+                        } 
                     }
                     break;
                     default :
@@ -120,8 +121,7 @@ bool NativeAudioNode::set(const char *name, ArgType type, void *value, unsigned 
                     break;
                 }
             }
-
-            this->post(NATIVE_AUDIO_NODE_SET, this->args[i], val, size);
+            this->post(NATIVE_AUDIO_NODE_SET, arg, val, size);
             return true;
         }
     }
@@ -616,8 +616,8 @@ NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudi
     : NativeAudioNode(inCount, outCount, audio), delay(500), wet(1), dry(1), idx(0)
 {
     this->args[0] = new ExportsArgs("delay", INT, DELAY, NativeAudioNodeDelay::argCallback);
-    this->args[1] = new ExportsArgs("wet", INT, WET, NativeAudioNodeDelay::argCallback);
-    this->args[2] = new ExportsArgs("dry", INT, DRY, NativeAudioNodeDelay::argCallback);
+    this->args[1] = new ExportsArgs("wet", DOUBLE, WET, NativeAudioNodeDelay::argCallback);
+    this->args[2] = new ExportsArgs("dry", DOUBLE, DRY, NativeAudioNodeDelay::argCallback);
 
     int max = inCount > outCount ? inCount : outCount;
     this->buffers = (float **)malloc(max * sizeof(void *));
@@ -649,9 +649,9 @@ bool NativeAudioNodeDelay::process()
 void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp, int size)
 {
     NativeAudioNodeDelay *thiz = static_cast<NativeAudioNodeDelay *>(node);
-    int val = *((int*)tmp);
     switch (id) {
         case DELAY: {
+            int val = *((int*)tmp);
             if (val < 0 || val > 10000) {
                 printf("NativeAudioNodeDelay delay must be between 0 and 10000\n");
                 return;
@@ -673,15 +673,19 @@ void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp,
             thiz->delay = val;
         }
         break;
-        case WET:
+        case WET: {
+            double val = *((double*)tmp);
             if (val > 1) val = 1;
             if (val < 0) val = 0;
             thiz->wet = val;
+        }
         break;
-        case DRY:
+        case DRY: {
+            double val = *((double*)tmp);
             if (val > 1) val = 1;
             if (val < 0) val = 0;
             thiz->dry = val;
+        }
         break;
     }
 }
