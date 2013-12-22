@@ -150,7 +150,7 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"position", CANVAS_PROP_POSITION, NATIVE_JS_PROP,
-        JSOP_NULLWRAPPER, JSOP_WRAPPER(native_canvas_prop_set)},
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"top", CANVAS_PROP_TOP, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
@@ -848,6 +848,21 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP___OUTOFBOUND:
         {
             vp.set(BOOLEAN_TO_JSVAL(handler->isOutOfBound()));
+            break;
+        }
+        case CANVAS_PROP_POSITION:
+        {
+            switch (handler->getPositioning()) {
+                case NativeCanvasHandler::COORD_RELATIVE:
+                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "relative")));
+                    break;
+                case NativeCanvasHandler::COORD_ABSOLUTE:
+                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "absolute")));
+                    break;
+                case NativeCanvasHandler::COORD_FIXED:
+                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "fixed")));
+                    break;
+            }
             break;
         }
         default:
