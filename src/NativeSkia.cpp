@@ -874,7 +874,9 @@ void NativeSkia::setGlobalComposite(const char *str)
 
 void NativeSkia::setLineWidth(double size)
 {
-    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size*ratio));
 }
 
 void NativeSkia::beginPath()
