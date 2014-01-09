@@ -97,9 +97,7 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         pthread_t threadIO;
 
-        pthread_cond_t shutdownCond;
-        pthread_mutex_t shutdownLock;
-        bool shutdowned;
+        NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 
         JSObject *jsobj;
         JSObject *gbl;
@@ -131,7 +129,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
             :  audio(audio), node(NULL), jsobj(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
-               finalized(false), arrayContent(NULL) 
+               arrayContent(NULL) 
         { 
 
             try {
@@ -141,8 +139,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
             }
 
             if (type == NativeAudio::CUSTOM || type == NativeAudio::CUSTOM_SOURCE) {
-                pthread_cond_init(&this->shutdownCond, NULL);
-                pthread_mutex_init(&this->shutdownLock, NULL);
+                NATIVE_PTHREAD_VAR_INIT(&this->m_ShutdownWait);
             }
 
             this->add();
@@ -154,7 +151,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 
         NativeJSAudioNode(NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
             :  audio(audio), node(node), type(type), 
-               hashObj(NULL), finalized(false), arrayContent(NULL) 
+               hashObj(NULL), arrayContent(NULL) 
         { 
             this->add();
 
@@ -195,10 +192,8 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 
         JSObject *nodeObj;
         JSObject *hashObj;
-        bool finalized;
 
-        pthread_cond_t shutdownCond;
-        pthread_mutex_t shutdownLock;
+        NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 
         // Source node
         void *arrayContent;

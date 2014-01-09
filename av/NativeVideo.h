@@ -105,8 +105,7 @@ class NativeVideo : public NativeAVSource
         AVFrame *convertedFrame;
 
         pthread_t threadDecode;
-        pthread_mutex_t bufferLock;
-        pthread_cond_t bufferCond;
+        NATIVE_PTHREAD_VAR_DECL(bufferCond);
 
         void play();
         void pause();
@@ -135,14 +134,16 @@ class NativeVideo : public NativeAVSource
         static int display(void *custom);
         void stopAudio();
 
+        static void sourceNeedWork(void *ptr);
+
         ~NativeVideo();
     private :
         NativeAVReader *reader;
         NativeAudio *audio;
         bool buffering;
         bool seeking;
-        bool readFlag;
         bool m_ThreadCreated;
+        bool m_SourceNeedWork;
         pthread_mutex_t audioLock;
 
         void closeInternal(bool reset);

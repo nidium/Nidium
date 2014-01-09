@@ -197,7 +197,7 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
         return false;
     }
 
-    pthread_mutex_lock(&this->audio->recurseLock);
+    this->audio->lockQueue();
     // Connect blocks frames
     if (in->node->frames[in->channel] == NULL) {
         SPAM(("Malloc frame\n"));
@@ -247,14 +247,14 @@ bool NativeAudioNode::queue(NodeLink *in, NodeLink *out)
     // and update "isConnected" for each one.
     in->node->updateIsConnected();
 
-    pthread_mutex_unlock(&this->audio->recurseLock);
+    this->audio->unlockQueue();
 
     return true;
 }
 
 bool NativeAudioNode::unqueue(NodeLink *input, NodeLink *output) 
 {
-    pthread_mutex_lock(&this->audio->recurseLock);
+    this->audio->lockQueue();
     NodeLink *wiresIn, *wiresOut;
     int count;
     
@@ -304,7 +304,7 @@ bool NativeAudioNode::unqueue(NodeLink *input, NodeLink *output)
         wiresIn->count = 0;
     }
 
-    pthread_mutex_unlock(&this->audio->recurseLock);
+    this->audio->unlockQueue();
     return true;
 }
 
@@ -443,27 +443,33 @@ void NativeAudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long s
 }
 
 NativeAudioNode::~NativeAudioNode() {
-    // Let's disconnect the node
-    SPAM(("NativeAudioNode destructor %p\n", this));
-    pthread_mutex_lock(&this->audio->recurseLock);
+    // NOTE : The caller is responsible for calling NativeAudio::lockQueue();
+    // before deleting a node 
 
     // Disconnect algorithm : 
-    //  Follow each input and output wire to connected node
-    //  Free frame owned by the node
-    //  From that node, delete all wire connected to this node
-    //  Then delete the wire that drived us to that node
+    //  - Start from the node and free internal frames (frame id > input count)
+    //  - Go trought all input wire to find connected node
+    //      - Itterate over nodes output and delete the wire
+    //  - Delete destructing node input wire
+    //
+    //  - Go trought all output 
+    //      - Free frame owned by the node, set it to NULL then forward update
+    //      the frames for output nodes (the frames will be set to NULL, if
+    //      needed the FX queue will alloc a new frame on next run)
+    //  - Delete the wires, using the same technique than inputs
 
-    // Disconnect all inputs
     SPAM(("--- Disconnect inputs\n"));
     for (int i = 0; i < this->inCount; i++) {
         int count = this->input[i]->count;
         SPAM(("    node have %d input\n", count));
+        // Free internal frames
         if (i > this->outCount) {
             if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
                 free(this->frames[i]);
                 this->frames[i] = NULL;
             } 
         }
+        // Find all connected inputs
         for (int j = 0; j < count; j++) {
             if (this->input[i]->wire[j] != NULL) { // Got a wire to a node
                 NativeAudioNode *outNode = this->input[i]->wire[j]->node;
@@ -475,7 +481,8 @@ NativeAudioNode::~NativeAudioNode() {
                     for (int l = 0; l < wireCount; l++) {
                         if (outNode->output[k]->wire[l] != NULL) {
                             SPAM(("        wire=%d node=%p\n", l, outNode->output[k]->wire[l]->node));
-                            if (outNode->output[k]->wire[l]->node == this) { // Found a wire connected to this node
+                            // Found a wire connected to this node, delete it
+                            if (outNode->output[k]->wire[l]->node == this) { 
                                 SPAM(("        DELETE\n"));
                                 delete outNode->output[k]->wire[l];
                                 outNode->output[k]->wire[l] = NULL;
@@ -485,6 +492,7 @@ NativeAudioNode::~NativeAudioNode() {
                     }
                 }
                 SPAM(("    Deleting input wire\n\n"));
+                // Deleting input wire
                 delete this->input[i]->wire[j];
                 this->input[i]->wire[j] = NULL;
                 this->input[i]->count--;
@@ -493,11 +501,12 @@ NativeAudioNode::~NativeAudioNode() {
     }
 
 
-    // Disconnect all outputs
     SPAM(("--- Disconnect ouputs\n"));
     for (int i = 0; i < this->outCount; i++) {
         int count = this->output[i]->count;
         SPAM(("    node have %d output on channel %d/%d\n", count, this->output[i]->channel, i));
+        // Free remaining frames owned by the node
+        // And forward update it
         if (this->frames[i] != NULL && this->isFrameOwner(this->frames[i])) {
             float *frame = this->frames[i];
             this->frames[i] = NULL;
@@ -532,10 +541,8 @@ NativeAudioNode::~NativeAudioNode() {
         }
     }
 
-    // Free frames array
     free(this->frames);
 
-    // And free all NodeLink
     for (int i = 0; i < this->inCount; i++) {
         delete this->input[i];
     }
@@ -553,9 +560,8 @@ NativeAudioNode::~NativeAudioNode() {
     if (this == this->audio->output) {
         this->audio->output = NULL;
     }
-
-    pthread_mutex_unlock(&this->audio->recurseLock);
 }
+
 NativeAudioNodeTarget::NativeAudioNodeTarget(int inCount, int outCount, NativeAudio *audio) 
     : NativeAudioNode(inCount, outCount, audio)
 { 
@@ -661,11 +667,12 @@ void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp,
                 for (int i = 0; i < max; i++) {
                     int newSize = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (ceil((double)val / 1000));
                     int prevSize = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (ceil((double)thiz->delay / 1000));
+                    if (newSize == prevSize) return;
+
                     thiz->buffers[i] = (float *)realloc(thiz->buffers[i], newSize);
                     if (!thiz->buffers[i]) {
                         thiz->doNotProcess = true;
                     } else { 
-                        memset(&thiz->buffers[i][thiz->idx], 0, newSize - prevSize);
                         thiz->doNotProcess = false;
                     }
                 }
@@ -782,7 +789,7 @@ return err;
     this->mainCoro = Coro_new();
     Coro_initializeMainCoro(this->mainCoro);
 
-    this->reader = new NativeAVStreamReader(chroot, src, &this->audio->readFlag, &this->audio->bufferNotEmpty, this, this->audio->net);
+    this->reader = new NativeAVStreamReader(chroot, src, NativeAudio::sourceNeedWork, this->audio, this, this->audio->net);
 
     this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!this->avioBuffer) {
@@ -1100,7 +1107,7 @@ bool NativeAudioSource::work()
 
     ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
 
-    if (avail < 256) {
+    if (avail < this->audio->outputParameters->framesPerBuffer) {
         SPAM(("Work failed because not enought space is available to write decoded packet %lu\n", avail));
         return false;
     }
@@ -1116,6 +1123,7 @@ bool NativeAudioSource::work()
         return true;
     }
 
+    avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
     int write = avail > this->audio->outputParameters->framesPerBuffer ? this->audio->outputParameters->framesPerBuffer : avail;
 
     this->resample(write);
@@ -1351,7 +1359,7 @@ void NativeAudioCustomSource::play()
 {
     m_Playing = true;
 
-    pthread_cond_signal(&this->audio->queueHaveData);
+    NATIVE_PTHREAD_SIGNAL(&this->audio->queueHaveData);
 }
 
 
@@ -1391,7 +1399,7 @@ bool NativeAudioCustomSource::process()
 
     NativeAudioNodeCustom::process();
 
-    pthread_cond_signal(&this->audio->queueHaveData);
+    NATIVE_PTHREAD_SIGNAL(&this->audio->queueHaveData);
 
     return true;
 }
@@ -1482,7 +1490,7 @@ void NativeAudioSource::seek(double time)
     this->doSeekTime = time < 0 ? 0 : time;
     this->doSeek = true;
 
-    pthread_cond_signal(&this->audio->bufferNotEmpty);
+    NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
 }
 
 void NativeAudioSource::seekCoro(void *arg) 
@@ -1516,8 +1524,6 @@ void NativeAudioSource::seekInternal(double time)
             SPAM(("Seeking success\n"));
             avcodec_flush_buffers(this->codecCtx);
             PaUtil_FlushRingBuffer(this->rBufferOut);
-            ring_buffer_size_t avail = PaUtil_GetRingBufferWriteAvailable(this->rBufferOut);
-            printf("seek avail %lu\n", avail);
             this->resetFrames();
             this->error = 0;
             if (this->eof && flags == AVSEEK_FLAG_BACKWARD) {
@@ -1580,6 +1586,7 @@ bool NativeAudioSource::process() {
 
             this->sendEvent(SOURCE_EVENT_EOF, 0, 0, true);
         } 
+        SPAM(("Not enought data to read. return false %ld\n", PaUtil_GetRingBufferReadAvailable(this->rBufferOut)));
         return false;
     }
 
@@ -1613,8 +1620,8 @@ bool NativeAudioSource::process() {
 
 void NativeAudioSource::closeInternal(bool reset) 
 {
-    pthread_mutex_lock(&this->audio->recurseLock);
-    pthread_mutex_lock(&this->audio->sourcesLock);
+    this->audio->lockQueue();
+    this->audio->lockSources();
 
     if (this->opened) {
         NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
@@ -1684,8 +1691,8 @@ void NativeAudioSource::closeInternal(bool reset)
     this->avioBuffer = NULL;
     this->doClose = false;
 
-    pthread_mutex_unlock(&this->audio->sourcesLock);
-    pthread_mutex_unlock(&this->audio->recurseLock);
+    this->audio->unlockQueue();
+    this->audio->unlockSources();
 }
 
 void NativeAudioSource::play() 
@@ -1699,12 +1706,7 @@ void NativeAudioSource::play()
 
     SPAM(("Play source @ %p\n", this));
 
-    // Since the decoding thread might be going to sleep
-    // when we want to play. We need to explicitly not to
-    // so it can start working on this node
-    this->audio->readFlag = true;
-
-    pthread_cond_signal(&this->audio->bufferNotEmpty);
+    NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
 
     this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
 }

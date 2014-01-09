@@ -19,6 +19,28 @@
 #define SOURCE_EVENT_BUFFERING 0x06
 #define SOURCE_EVENT_READY     0x07
 
+#define NATIVE_PTHREAD_VAR_DECL(name)\
+pthread_cond_t name;\
+pthread_mutex_t name##Lock;\
+bool name##Cond;\
+
+#define NATIVE_PTHREAD_VAR_INIT(name)\
+pthread_cond_init(name, NULL);\
+pthread_mutex_init(name##Lock, NULL);\
+*(name##Cond) = false;
+
+#define NATIVE_PTHREAD_WAIT(mutexRef)\
+pthread_mutex_lock(mutexRef##Lock);\
+while (*(mutexRef##Cond) == false) {\
+    pthread_cond_wait(mutexRef, mutexRef##Lock);\
+}\
+pthread_mutex_unlock(mutexRef##Lock);\
+*(mutexRef##Cond) = false;
+
+#define NATIVE_PTHREAD_SIGNAL(mutexRef)\
+*(mutexRef##Cond) = true;\
+pthread_cond_signal(mutexRef);
+
 struct AVDictionary;
 struct AVFormatContext;
 class NativeAudioTrack;
@@ -52,10 +74,11 @@ class NativeAVBufferReader : public NativeAVReader
         unsigned long pos;
 };
 
+typedef void (*NativeAVStreamReadCallback)(void *callbackPrivate);
 class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate 
 {
     public:
-        NativeAVStreamReader(const char *chroot, const char *src, bool *readFlag, pthread_cond_t *bufferCond, NativeAVSource *source, ape_global *net);
+        NativeAVStreamReader(const char *chroot, const char *src, NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
         int64_t totalRead;
@@ -70,9 +93,10 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         ~NativeAVStreamReader();
     private:
         NativeStream *stream;
-        bool *readFlag;
+        NativeAVStreamReadCallback readCallback;
+        void *callbackPrivate;
+
         bool opened;
-        pthread_cond_t *bufferCond;
 
         size_t streamRead;
         size_t streamPacketSize;
@@ -94,6 +118,7 @@ struct NativeAudioParameters {
 };
 
 
+// Shared messages enum
 enum {
     NATIVE_AUDIO_NODE_SET,
     NATIVE_AUDIO_NODE_ONSET_CALLBACK,
@@ -102,6 +127,7 @@ enum {
     NATIVE_AUDIO_CALLBACK,
 };
 
+// Error code and description
 enum {
     ERR_FAILED_OPEN,
     ERR_READING,
