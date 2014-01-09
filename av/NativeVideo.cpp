@@ -34,10 +34,9 @@ NativeVideo::NativeVideo(ape_global *n)
       swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
       rBuff(NULL), buff(NULL), avioBuffer(NULL), m_FramesIdx(NULL), 
       decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), buffering(false), readFlag(false), m_ThreadCreated(false)
+      reader(NULL), buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false)
 {
-    pthread_cond_init(&this->bufferCond, NULL);
-    pthread_mutex_init(&this->bufferLock, NULL);
+    NATIVE_PTHREAD_VAR_INIT(&this->bufferCond);
     pthread_mutex_init(&this->audioLock, NULL);
 
     this->audioQueue = new PacketQueue();
@@ -95,7 +94,7 @@ int NativeVideo::open(void *buffer, int size)
             RETURN_WITH_ERROR(ERR_INTERNAL);
         }
         m_ThreadCreated = true;
-        pthread_cond_signal(&this->bufferCond);
+        NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
     }
 
     return 0;
@@ -116,7 +115,7 @@ int NativeVideo::open(const char *chroot, const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->reader = new NativeAVStreamReader(chroot, src, &this->readFlag, &this->bufferCond, this, this->net);
+    this->reader = new NativeAVStreamReader(chroot, src, NativeVideo::sourceNeedWork, this, this, this->net);
     this->container = avformat_alloc_context();
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
@@ -137,7 +136,7 @@ int NativeVideo::openInit()
 {
     DPRINT("openInit()\n");
     if (this->reader->async) {
-        pthread_cond_signal(&this->bufferCond);
+        NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
         Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
         if (!this->opened) {
             this->closeInternal(true);
@@ -358,7 +357,7 @@ void NativeVideo::stop() {
     this->flushBuffers();
     this->clearTimers(true);
 
-    pthread_cond_signal(&this->bufferCond);
+    NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
 
     this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
 }
@@ -383,7 +382,7 @@ void NativeVideo::seek(double time, uint32_t flags)
     this->clearTimers(true);
     this->flushBuffers();
 
-    pthread_cond_signal(&this->bufferCond);
+    NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
 
     this->scheduleDisplay(1, true);
 }
@@ -663,7 +662,7 @@ void NativeVideo::seekInternal(double time)
     DPRINT("Sending seekCond signal\n");
 #endif
     this->processVideo();
-    pthread_cond_signal(&this->bufferCond);
+    NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
 }
 #undef SEEK_THRESHOLD
 #undef SEEK_STEP
@@ -742,7 +741,7 @@ int NativeVideo::display(void *custom) {
     // Read frame from ring buffer
     if (PaUtil_GetRingBufferReadAvailable(v->rBuff) < 1) {
         if (!v->buffering && !v->seeking) {
-            pthread_cond_signal(&v->bufferCond);
+            NATIVE_PTHREAD_SIGNAL(&v->bufferCond);
         } 
         if (v->eof) {
             DPRINT("No frame, eof reached\n");
@@ -820,7 +819,7 @@ int NativeVideo::display(void *custom) {
         } else {
             v->scheduleDisplay(((int)(actualDelay * 1000)));
         }
-        pthread_cond_signal(&v->bufferCond);
+        NATIVE_PTHREAD_SIGNAL(&v->bufferCond);
     }
 
     return 0;
@@ -944,7 +943,7 @@ void *NativeVideo::decode(void *args)
                     } 
                     if (v->doSeek == true) { 
                         DPRINT("     Waiting for seekCond\n");
-                        pthread_cond_wait(&v->bufferCond, &v->bufferLock);
+                        NATIVE_PTHREAD_WAIT(&v->bufferCond);
                         DPRINT("     seekCond go\n");
                     }
                     DPRINT("done seeking\n");
@@ -955,7 +954,7 @@ void *NativeVideo::decode(void *args)
                 }
             }
 
-            DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->readFlag, v->seeking);
+            DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->m_SourceNeedWork, v->seeking);
             if (!v->doSeek) {
                 DPRINT("processing\n");
                 bool audioFailed = !v->processAudio();
@@ -964,23 +963,23 @@ void *NativeVideo::decode(void *args)
 
                 if (audioFailed && videoFailed) {
                     if (v->shutdown) break;
-                    if (!v->doSeek && !v->readFlag) {
+                    if (!v->doSeek && !v->m_SourceNeedWork) {
                         DPRINT("Waiting for buffNotEmpty cause of audio and video failed\n");
-                        pthread_cond_wait(&v->bufferCond, &v->bufferLock);
+                        NATIVE_PTHREAD_WAIT(&v->bufferCond);
                         DPRINT("buffNotEmpty go\n");
                     } 
                 }
-            } else if (!v->readFlag) {
+            } else if (!v->m_SourceNeedWork) {
                 DPRINT("wait bufferCond\n");
-                pthread_cond_wait(&v->bufferCond, &v->bufferLock);
+                NATIVE_PTHREAD_WAIT(&v->bufferCond);
             }
         } else {
-            pthread_cond_wait(&v->bufferCond, &v->bufferLock);
+            NATIVE_PTHREAD_WAIT(&v->bufferCond);
         }
 
         if (v->shutdown) break;
 
-        if (v->readFlag) {
+        if (v->m_SourceNeedWork) {
             DPRINT("readFlag, swithcing back to coro\n");
             Coro_switchTo_(v->mainCoro, v->coro);
             // Make sure another read call havn't been made
@@ -989,7 +988,7 @@ void *NativeVideo::decode(void *args)
             }
         }
 
-        v->readFlag = false;
+        v->m_SourceNeedWork = false;
 
         if (v->shutdown) break;
     }
@@ -1012,6 +1011,13 @@ void NativeVideo::stopAudio()
     this->audioSource = NULL; 
 
     pthread_mutex_unlock(&this->audioLock);
+}
+
+void NativeVideo::sourceNeedWork(void *ptr)
+{
+    NativeVideo *thiz = static_cast<NativeVideo*>(ptr);
+    thiz->m_SourceNeedWork = true;
+    NATIVE_PTHREAD_SIGNAL(&thiz->bufferCond);
 }
 
 bool NativeVideo::processAudio() 
@@ -1054,6 +1060,8 @@ bool NativeVideo::processAudio()
                     break;
                 }
             } else {
+                // Not enought space to write more decoded data
+                // Wakeup the queue thread to process the new data
                 wakeup = true;
             }
         }
@@ -1065,7 +1073,7 @@ bool NativeVideo::processAudio()
     pthread_mutex_unlock(&this->audioLock);
 
     if (wakeup) {
-        pthread_cond_signal(&this->audio->queueHaveData);
+        NATIVE_PTHREAD_SIGNAL(&this->audio->queueHaveData);
     }
 
     return !audioFailed;
@@ -1325,7 +1333,7 @@ void NativeVideo::closeInternal(bool reset) {
     if (m_ThreadCreated) {
         this->shutdown = true;
 
-        pthread_cond_signal(&this->bufferCond);
+        NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
         pthread_join(this->threadDecode, NULL);
 
         m_ThreadCreated = false;

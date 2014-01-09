@@ -7,7 +7,9 @@
 #include "native_netlib.h"
 
 #if 0
-  #define SPAM(a) printf a
+  #define SPAM(a) \
+    printf(">%lld / ", av_gettime()/1000); \
+    printf a
 #else
   #define SPAM(a) (void)0
 #endif
@@ -37,6 +39,8 @@ class NativeAudio
         NativeAudio(ape_global *net, int bufferSize, int channels, int sampleRate);
 
         friend class NativeVideo;
+        friend class NativeAudioSource;
+        friend class NativeAudioCustomSource;
 
         enum SampleFormat {
             FLOAT32 = sizeof(float), 
@@ -57,14 +61,9 @@ class NativeAudio
         NativeAudioParameters *outputParameters;
         NativeAudioParameters *inputParameters;
 
-        // TODO : Use friend class instead of exposing those var
         NativeSharedMessages *sharedMsg;
-        pthread_cond_t bufferNotEmpty, queueHaveData, queueHaveSpace;
-        pthread_mutex_t recurseLock;
-        pthread_mutex_t sourcesLock;
-        PaUtilRingBuffer *rBufferOut;
+
         int sourcesCount;
-        bool readFlag;
 
         static void *queueThread(void *args);
         static void *decodeThread(void *args);
@@ -87,8 +86,13 @@ class NativeAudio
 
         void wakeup();
         void shutdown();
-        void lockThreads();
-        void unlockThreads();
+
+        static void sourceNeedWork(void *ptr);
+        void lockSources();
+        void unlockSources();
+
+        void lockQueue();
+        void unlockQueue();
 
         ~NativeAudio();
     private:
@@ -107,12 +111,20 @@ class NativeAudio
         float *cbkBuffer;
         float volume;
 
-        pthread_mutex_t decodeLock, queueLock, shutdownLock;
         pthread_t threadDecode;
         pthread_t threadQueue;
 
+        NATIVE_PTHREAD_VAR_DECL(queueHaveData)
+        NATIVE_PTHREAD_VAR_DECL(queueHaveSpace)
+        NATIVE_PTHREAD_VAR_DECL(queueNeedData)
+
+        pthread_mutex_t shutdownLock, recurseLock, sourcesLock;
+
+        PaUtilRingBuffer *rBufferOut;
+
         bool haveData, notEmpty;
-        bool m_FlushMessages;
+        bool m_SourceNeedWork;
+        bool m_SharedMsgFlush;
         bool threadShutdown;
 
         NativeAudioSources *sources;
@@ -122,6 +134,8 @@ class NativeAudio
         void readMessages(bool flush);
 
         void processQueue();
+        bool canWriteFrame();
+
         inline bool haveSourceActive(bool excludeExternal);
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,
             unsigned long framesPerBuffer,
@@ -134,7 +148,6 @@ class NativeAudio
             const PaStreamCallbackTimeInfo* timeInfo,
             PaStreamCallbackFlags statusFlags);
 
-        bool convert();
 };
 
 

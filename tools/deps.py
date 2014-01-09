@@ -167,7 +167,7 @@ def parseArguments():
         VERBOSE = True
 
     if opt.debug is True:
-        global BUILD
+        global BUILD, ENABLE_VALGRIND
         BUILD = "debug"
         if opt.valgrind:
             ENABLE_VALGRIND = True;
@@ -842,7 +842,7 @@ def buildMC():
     if BUILD == "debug":
         configure = "./configure --enable-threadsafe --enable-debug --disable-optimize --enable-ctypes " + nsprFlags
         if ENABLE_VALGRIND:
-            configure += "--enable-valgrind "
+            configure += " --enable-valgrind "
     else:
         configure = "./configure --enable-threadsafe --enable-ctypes " + nsprFlags
 

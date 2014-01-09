@@ -520,7 +520,6 @@ JSTransferableFunction::~JSTransferableFunction()
     }
 
     if (m_Fn != NULL) {
-        JSAutoCompartment ac(m_DestCx, JS_GetGlobalObject(m_DestCx));
         JS_RemoveValueRoot(m_DestCx, m_Fn);
         delete m_Fn;
     }
@@ -546,7 +545,7 @@ NativeJSAudio *NativeJSAudio::getContext()
 }
 
 NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj)
-    : audio(audio), nodes(NULL), shutdowned(false), jsobj(obj), gbl(NULL), rt(NULL), tcx(NULL),
+    : audio(audio), nodes(NULL), jsobj(obj), gbl(NULL), rt(NULL), tcx(NULL),
       target(NULL)
 {
     this->cx = cx;
@@ -560,8 +559,7 @@ NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj)
     JS_DefineFunctions(cx, obj, Audio_funcs);
     JS_DefineProperties(cx, obj, Audio_props);
 
-    pthread_cond_init(&this->shutdownCond, NULL);
-    pthread_mutex_init(&this->shutdownLock, NULL);
+    NATIVE_PTHREAD_VAR_INIT(&this->m_ShutdownWait)
 
     this->audio->sharedMsg->postMessage(
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::ctxCallback, NULL, static_cast<void *>(this)), 
@@ -624,6 +622,8 @@ bool NativeJSAudio::run(char *str)
         return false;
     }
 
+    JSAutoRequest ar(this->tcx);
+
     fun = JS_CompileFunction(this->tcx, JS_GetGlobalObject(this->tcx), "Audio_run", 0, NULL, str, strlen(str), "FILENAME (TODO)", 0);
 
     if (!fun) {
@@ -639,6 +639,10 @@ bool NativeJSAudio::run(char *str)
 NativeJSAudio::~NativeJSAudio() 
 {
     this->threadMessageEvent = -1;
+
+    this->audio->lockSources();
+    this->audio->lockQueue();
+
     // Unroot all js audio nodes
     this->unroot();
 
@@ -658,13 +662,12 @@ NativeJSAudio::~NativeJSAudio()
             (void *)new NativeAudioNode::CallbackMessage(NativeJSAudio::shutdownCallback, NULL, this),
             NATIVE_AUDIO_CALLBACK);
 
-    // If audio doesn't have any tracks playing, the queue thread might sleep
-    // So we need to wake it up to deliver the message
     this->audio->wakeup();
 
-    if (!this->shutdowned) {
-        pthread_cond_wait(&this->shutdownCond, &this->shutdownLock);
-    }
+    NATIVE_PTHREAD_WAIT(&this->m_ShutdownWait)
+
+    this->audio->unlockSources();
+    this->audio->unlockQueue();
 
     // Shutdown the audio
     this->audio->shutdown();
@@ -722,9 +725,7 @@ void NativeJSAudio::shutdownCallback(NativeAudioNode *dummy, void *custom)
         audio->tcx = NULL;
     }
 
-    audio->shutdowned = true;
-
-    pthread_cond_signal(&audio->shutdownCond);
+    NATIVE_PTHREAD_SIGNAL(&audio->m_ShutdownWait)
 }
 
 void NativeJSAudioNode::add() 
@@ -926,9 +927,14 @@ void NativeJSAudioNode::shutdownCallback(NativeAudioNode *nnode, void *custom)
         JS_RemoveObjectRoot(node->audio->tcx, &node->hashObj);
     }
 
-    node->finalized = true;
+    // JSTransferableFunction need to be destroyed on the JS thread
+    // since they belong to it
+    for (int i = 0; i < NativeJSAudioNode::END_FN; i++) {
+        delete node->m_TransferableFuncs[i];
+        node->m_TransferableFuncs[i] = NULL;
+    }
 
-    pthread_cond_signal(&node->shutdownCond);
+    NATIVE_PTHREAD_SIGNAL(&node->m_ShutdownWait)
 }
 
 void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
@@ -939,6 +945,8 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
     if (jnode->hashObj != NULL || jnode->nodeObj != NULL) {
         return;
     }
+
+    JSAutoRequest ar(tcx);
 
     jnode->hashObj = JS_NewObject(tcx, NULL, NULL, NULL);
     if (!jnode->hashObj) {
@@ -963,6 +971,16 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
 NativeJSAudioNode::~NativeJSAudioNode()
 {
     NativeJSAudio::Nodes *nodes = this->audio->nodes;
+    // Wakeup audio thread. This will flush all pending messages.
+    // That way, we are sure nothing will need to be processed
+    // later for this node.
+    this->audio->audio->wakeup();
+
+    // Block NativeAudio threads execution.
+    // While the node is destructed we don't want any thread
+    // to call some method on a node that is being destroyed
+    this->audio->audio->lockQueue();
+    this->audio->audio->lockSources();
 
     if (this->type == NativeAudio::SOURCE) {
         // Only source from NativeVideo has reserved slot
@@ -979,7 +997,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
         }
     }
 
-    // Remove node from nodes linked list
+    // Remove JS node from nodes linked list
     while (nodes != NULL) {
         if (nodes->curr == this) {
             if (nodes->prev != NULL) {
@@ -1000,32 +1018,22 @@ NativeJSAudioNode::~NativeJSAudioNode()
         nodes = nodes->next;
     }
 
-    // Custom node must be finalized (in his own thread)
-    if ((this->type == NativeAudio::CUSTOM ||
-         this->type == NativeAudio::CUSTOM_SOURCE) && !this->finalized) {
-        this->node->callback(
-                NativeJSAudioNode::shutdownCallback, this);
+
+    // Custom nodes and sources must release all JS object on the JS thread
+    if (this->node != NULL && this->audio->tcx != NULL && 
+            (this->type == NativeAudio::CUSTOM ||
+             this->type == NativeAudio::CUSTOM_SOURCE)) {
+
+        this->node->callback(NativeJSAudioNode::shutdownCallback, this);
 
         this->audio->audio->wakeup();
 
-        if (!this->finalized) {
-            pthread_cond_wait(&this->shutdownCond, &this->shutdownLock);
-        }
+        NATIVE_PTHREAD_WAIT(&this->m_ShutdownWait);
     }
 
     if (this->arrayContent != NULL) {
         free(this->arrayContent);
     }
-
-    for (int i = 0; i < NativeJSAudioNode::END_FN; i++) {
-        delete m_TransferableFuncs[i];
-        m_TransferableFuncs[i] = NULL;
-    }
-
-    // Block NativeAudio threads execution.
-    // While the node is destructed we don't want any thread 
-    // to call some method on a node that is being destroyed
-    this->audio->audio->lockThreads();
 
     if (this->node != NULL) {
         this->node->unref();
@@ -1035,7 +1043,9 @@ NativeJSAudioNode::~NativeJSAudioNode()
         JS_SetPrivate(this->jsobj, NULL);
     }
 
-    this->audio->audio->unlockThreads();
+    this->audio->audio->unlockQueue();
+    this->audio->audio->unlockSources();
+
 }
 
 
