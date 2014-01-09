@@ -44,7 +44,7 @@ class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
     NativeJSSocket(const char *host, unsigned short port);
     ~NativeJSSocket();
 
-    void write(unsigned char *data, size_t len,
+    int write(unsigned char *data, size_t len,
         ape_socket_data_autorelease data_type);
 
     void disconnect();

@@ -443,7 +443,7 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
         return 0;
     }
 
-    if (APE_socket_connect(socket, this->req->getPort(), this->req->getHost()) == -1) {
+    if (APE_socket_connect(socket, this->req->getPort(), this->req->getHost(), 0) == -1) {
         printf("[Socket] Cant connect (0)\n");
         this->delegate->onError(ERROR_SOCKET);
         return 0;
