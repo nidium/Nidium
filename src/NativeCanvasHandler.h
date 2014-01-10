@@ -283,6 +283,10 @@ class NativeCanvasHandler
         bool getAllowNegativeScroll() const {
             return m_AllowNegativeScroll;
         }
+
+        COORD_POSITION getPositioning() const {
+            return coordPosition;
+        }
         
         NativeCanvasHandler(int width, int height);
         ~NativeCanvasHandler();
