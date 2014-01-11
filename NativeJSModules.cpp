@@ -305,7 +305,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         // TODO : Paths handling will need to be updated for supporting
         // CommonJS "paths" specification
         int end = strlen(parent->absoluteDir);
-        char *cwd = realpath(".", NULL);
+        char *top = module->modules->main->absoluteDir;
         char *paths[PATHS_COUNT];
         memset(paths, 0, sizeof(char*) * PATHS_COUNT);
 
@@ -313,7 +313,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         paths[0] = (char *)"/";                 // Current working directory
         paths[1] = (char *)"/node_modules";    // Root modules directory
 
-        DPRINT("nativeRoot %s\n", cwd);
+        DPRINT("top module %s\n", top);
         // NodeJS compatibility : we need to look for module in all
         // parent directory until current working directory is reached
         char *path = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("/node_modules") + 1);
@@ -336,7 +336,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
             }
             // Go to parent directory
             path[end] = '\0';
-            stop = (strcmp(cwd, path) == 0);
+            stop = (strcmp(top, path) == 0);
             if (!stop) {
                 DPRINT("asking real path for %s\n", path);
                 path = dirname(path);
@@ -355,7 +355,6 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         }
 
         free(path);
-        free(cwd);
     }
 
     if (!modulePath) {
@@ -374,11 +373,7 @@ char *NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path
 {
     // FIXME : NodeJS compatibility, instead of looking for index.js 
     // we should look for package.json, read it and find the main package file
-    #define _MTOSTR(s) #s
-    #define MTOSTR(s) _MTOSTR(s)
-    const char *extensions[] = { MTOSTR(DSO_EXTENSION), ".js", "/index.js", NULL};
-    #undef MTOSTR
-    #undef _MTROSTR
+    const char *extensions[] = {DSO_EXTENSION, ".js", "/index.js", NULL};
 
     size_t len = strlen(module->name);
     char *tmp = (char *)calloc(sizeof(char), strlen(path) + len + (len > MAX_EXT_SIZE  ? len + 1 : MAX_EXT_SIZE) + 2);

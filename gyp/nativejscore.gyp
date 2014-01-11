@@ -15,6 +15,9 @@
         ],
         'conditions': [
             ['OS=="mac"', {
+                'defines': [
+                    'DSO_EXTENSION=".so"'
+                ],
                 'xcode_settings': {
                     'OTHER_CFLAGS': [
                         '-fvisibility=hidden'
@@ -26,6 +29,9 @@
                     '-fvisibility=hidden',
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof'
+                ],
+                'defines': [
+                    'DSO_EXTENSION=".so"'
                 ],
             }]
         ],

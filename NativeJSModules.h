@@ -41,6 +41,7 @@ class NativeJSModule
         JSObject *exports;
 
         NativeJSModule *parent;
+        NativeJSModules *modules;
 
         bool init();
         bool initJS();
@@ -51,7 +52,6 @@ class NativeJSModule
         ~NativeJSModule();
     private:
         JSContext *cx;
-        NativeJSModules *modules;
 
         void setScriptDir();
 };
