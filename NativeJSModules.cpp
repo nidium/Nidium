@@ -346,14 +346,6 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
             }
         } while (!modulePath && !stop);
 
-        // XXX : temp hack for looking inside modules directory. 
-        // Remove me once CommonJS paths argument is supported
-        if (!modulePath) {
-            path[0] = '\0';
-            strcat(path, (char *)"modules");
-            modulePath = NativeJSModules::findModuleInPath(module, path);
-        }
-
         free(path);
     }
 
