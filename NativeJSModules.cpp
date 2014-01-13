@@ -292,7 +292,7 @@ bool NativeJSModule::initJS()
 char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
 {
 #define MAX_EXT_SIZE 9
-#define PATHS_COUNT 2
+#define PATHS_COUNT 3
     char *modulePath = NULL;
 
     if (module->name[0] == '.') {
@@ -311,12 +311,13 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
 
         // Setup search paths
         paths[0] = (char *)"/";                 // Current working directory
-        paths[1] = (char *)"/node_modules";    // Root modules directory
+        paths[1] = (char *)"/node_modules";
+        paths[2] = (char *)"/nidium_modules";
 
         DPRINT("top module %s\n", top);
         // NodeJS compatibility : we need to look for module in all
         // parent directory until current working directory is reached
-        char *path = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("/node_modules") + 1);
+        char *path = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("/nidium_modules") + 1);
         if (!path) {
             return NULL;
         }
