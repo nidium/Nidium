@@ -73,7 +73,7 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
 
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
     : dir(NULL), absoluteDir(NULL), filePath(NULL), name(strdup(name)), native(false), exports(NULL),
-      cx(cx), modules(modules), parent(parent)
+      parent(parent), modules(modules), cx(cx)
 {
 }
 

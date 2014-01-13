@@ -21,7 +21,6 @@
 #ifndef nativejsmodules_h__
 #define nativejsmodules_h__
 
-#include "external/SplayTree.h"
 #include <jspubtd.h>
 #include <string.h>
 
@@ -59,10 +58,7 @@ class NativeJSModule
 class NativeJSModules
 {
     public:
-        NativeJSModules(JSContext *cx) : cx(cx)
-        {
-            this->tree.setCompare(NativeJSModules::compare); 
-        }
+        NativeJSModules(JSContext *cx) : cx(cx) {}
 
         ~NativeJSModules()
         {
@@ -80,32 +76,19 @@ class NativeJSModules
             return this->main->initMain();
         }
 
-        static int compare(NativeJSModule *first, NativeJSModule *second)
-        {
-            int ret;
-            ret = strcmp(first->filePath, second->filePath);
-            return ret < 0;
-        }
-
         void add(NativeJSModule *module)
         {
-            this->tree.insert(module);
+            m_Cache.set(module->filePath, module);
         }
 
         void remove(NativeJSModule *module)
         {
-            this->tree.erase(module);
+            m_Cache.erase(module->filePath);
         }
 
         NativeJSModule *find(NativeJSModule *module)
         {
-            SplayTree<NativeJSModule *>::node *node = this->tree.find(module);
-
-            if (!node) {
-                return NULL;
-            }
-
-            return node->key;
+            return m_Cache.get(module->filePath);
         }
 
         JSObject *init(JSObject *scope, const char *name);
@@ -113,7 +96,7 @@ class NativeJSModules
         static char *findModulePath(NativeJSModule *parent, NativeJSModule *module);
         static char *findModuleInPath(NativeJSModule *module, const char *path);
     private:
-        SplayTree<NativeJSModule *> tree;
+        NativeHash<NativeJSModule *> m_Cache;
         JSContext *cx;
         bool initJS(NativeJSModule *cmodule);
 
