@@ -59,16 +59,6 @@ static JSPropertySpec native_modules_exports_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSPropertySpec native_modules_props[] = {
-    {"id", 0, 
-        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
-        JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {"exports", 0, 
-        0, 
-        JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
-};
-
 static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
 
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
