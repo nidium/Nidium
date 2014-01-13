@@ -30,6 +30,7 @@
 #include <NativeJSExposer.h>
 #include <NativeJSModules.h>
 #include <NativeJS.h>
+#include <NativeStream.h>
 
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
@@ -103,7 +104,7 @@ bool NativeJSModule::init()
         return false;
     }
 
-    this->dir = (char *)dirname(strdup(this->filePath));
+    this->dir = NativeStream::resolvePath(this->filePath, NativeStream::STREAM_RESOLVE_PATH);
     if (!this->dir) {
         return false;
     }
@@ -129,21 +130,22 @@ bool NativeJSModule::init()
             for (int i = len; i > -1; i--) {
                 if (this->filePath[i] == '/') {
                     last = i;
+                    dirCount++;
                     if (dirCount == count) {
                         break;
                     }
-                    dirCount++;
                 }
             }
 
-            this->absoluteDir = (char *)malloc(sizeof(char) * last + 1);
+            this->absoluteDir = (char *)malloc(sizeof(char) * last + 2);
             if (!this->absoluteDir) {
                 return false;
             }
 
             memcpy(this->absoluteDir, this->filePath, last);
 
-            this->absoluteDir[last] = '\0';
+            this->absoluteDir[last] = '/';
+            this->absoluteDir[last + 1] = '\0';
         } else {
             this->absoluteDir = strdup(this->dir);
             if (!this->absoluteDir) {
@@ -282,7 +284,7 @@ bool NativeJSModule::initJS()
 char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
 {
 #define MAX_EXT_SIZE 9
-#define PATHS_COUNT 3
+#define PATHS_COUNT 2
     char *modulePath = NULL;
 
     if (module->name[0] == '.') {
@@ -292,26 +294,24 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         modulePath = NativeJSModules::findModuleInPath(module, "");
     }  else {
         DPRINT("absolute module\n");
-        // TODO : Paths handling will need to be updated for supporting
-        // CommonJS "paths" specification
         int end = strlen(parent->absoluteDir);
-        char *top = module->modules->main->absoluteDir;
+        const char *top = module->modules->m_TopDir;
         char *paths[PATHS_COUNT];
         memset(paths, 0, sizeof(char*) * PATHS_COUNT);
 
         // Setup search paths
-        paths[0] = (char *)"/";                 // Current working directory
-        paths[1] = (char *)"/node_modules";
-        paths[2] = (char *)"/nidium_modules";
+        paths[0] = (char *)"nidium_modules";
+        paths[1] = (char *)"node_modules";
 
         DPRINT("top module %s\n", top);
         // NodeJS compatibility : we need to look for module in all
-        // parent directory until current working directory is reached
-        char *path = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("/nidium_modules") + 1);
-        if (!path) {
+        // parent directory until top working directory is reached
+        char *pathPtr = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("nidium_modules") + 1);
+        char *path = pathPtr;
+        if (!pathPtr) {
             return NULL;
         }
-        memcpy(path, parent->absoluteDir, (end + 1) * sizeof(char));
+        memcpy(pathPtr, parent->absoluteDir, (end + 1) * sizeof(char));
 
         DPRINT("absolute dir is %s\n", parent->absoluteDir);
         DPRINT("path is %s\n", path);
@@ -329,15 +329,21 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
             path[end] = '\0';
             stop = (strcmp(top, path) == 0);
             if (!stop) {
-                DPRINT("asking real path for %s\n", path);
+                DPRINT("Getting parent dir for %s\n", path);
                 path = dirname(path);
                 end = strlen(path);
-                DPRINT("new path is %s\n", path);
+
+                // Add trailing '/' (since |top| is always '/' terminated)
+                path[end] = '/';
+                path[end + 1] = '\0';
+                end += 1;
+
+                DPRINT("Parent path is %s\n", path);
                 if (!path) break;
             }
         } while (!modulePath && !stop);
 
-        free(path);
+        free(pathPtr);
     }
 
     if (!modulePath) {
@@ -419,7 +425,7 @@ JS::Value NativeJSModule::require(char *name)
     JS::Value ret;
     NativeJSModule *cmodule;
 
-    ret.setNull();
+    ret.setUndefined();
 
     // require() have been called from the main module
     if (this == this->modules->main) {
@@ -446,7 +452,7 @@ JS::Value NativeJSModule::require(char *name)
         // filePath is needed for cyclic deps check
         this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
         // absoluteDir is needed for findModulePath
-        this->absoluteDir = dirname(strdup(this->filePath));
+        this->absoluteDir = NativeStream::resolvePath(this->filePath, NativeStream::STREAM_RESOLVE_PATH);
         DPRINT("Global scope loading\n");
     } else {
         DPRINT("Module scope loading\n");
@@ -464,21 +470,20 @@ JS::Value NativeJSModule::require(char *name)
     // Let's see if the module is in the cache
     NativeJSModule *cached = this->modules->find(tmp);
     if (!cached) {
+        DPRINT("Module is not cached\n");
         cmodule = tmp;
     } else {
-        DPRINT("Module is cached\n");
+        DPRINT("Module is cached %s\n", cached->filePath);
         cmodule = cached;
         delete tmp;
     }
 
     // Is there is a cyclic dependency
     for (NativeJSModule *m = cmodule->parent;;) {
-        if (!m) break;
+        if (!m || !m->exports) break;
 
         // Found a cyclic dependency
         if (strcmp(cmodule->filePath, m->filePath) == 0) {
-            DPRINT("Cyclic dependency found\n");
-            // return exports
             JSObject *gbl = m->exports;
             jsval module;
             JS_GetProperty(cx, gbl, "module", &module);
@@ -488,7 +493,6 @@ JS::Value NativeJSModule::require(char *name)
 
         m = m->parent;
     }
-
 
     if (!cached) {
         // Create all objects/methods on the module scope
@@ -517,6 +521,11 @@ JS::Value NativeJSModule::require(char *name)
             filesize = ftell(fd);
             fseek(fd, 0L, SEEK_SET);
 
+            if (filesize == 0) {
+                ret.setNull();
+                return ret;
+            }
+
             data = (char *)malloc(filesize + 1);
 
             readsize = fread(data, 1, filesize, fd);
@@ -525,7 +534,7 @@ JS::Value NativeJSModule::require(char *name)
             fclose(fd);
 
             if (readsize < 1 || readsize != filesize) {
-                JS_ReportError(cx, "Failde to read module %s\n", cmodule->name);
+                JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 free(data);
                 return ret;
             }
@@ -533,6 +542,7 @@ JS::Value NativeJSModule::require(char *name)
             fn = JS_CompileFunction(cx, cmodule->exports, 
                     "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
             if (!fn) {
+                ret.setNull();
                 free(data);
                 return ret;
             }
@@ -540,6 +550,7 @@ JS::Value NativeJSModule::require(char *name)
             free(data);
 
             if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
+                ret.setNull();
                 return ret;
             }
         }
@@ -582,7 +593,7 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
     JS::Value reserved = js::GetFunctionNativeReserved(callee, 0);
     if (!reserved.isDouble()) {
         JS_ReportError(cx, "InternalError");
-        return JS_FALSE;
+        return false;
     }
 
     NativeJSModule *module = static_cast<NativeJSModule *>(JSVAL_TO_PRIVATE(reserved));
@@ -591,16 +602,11 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, ret);
 
-    if (ret.isNull()) {
-        return JS_FALSE;
+    if (ret.isUndefined()) {
+        return false;
     }
 
-    JS::Value foo;
-    JS_GetProperty(cx, ret.toObjectOrNull(), "foo", &foo);
-    //printf("foo is %s\n", foo.toString());
-
-
-    return JS_TRUE;
+    return true;
 }
 
 void Exports_Finalize(JSFreeOp *fop, JSObject *obj)

@@ -92,9 +92,8 @@ class NativeJS
         const char *getPath() const {
             return this->relPath;
         }
-        void setPath(const char *path) {
-            this->relPath = path;
-        }
+
+        void setPath(const char *path);
 
         bool isShuttingDown() const {
             return this->shutdown;

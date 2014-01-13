@@ -914,6 +914,13 @@ int NativeJS::LoadBytecode(void *data, int size, const char *filename)
     return 1;
 }
 
+void NativeJS::setPath(const char *path) {
+    this->relPath = path;
+    if (this->modules) {
+        this->modules->setPath(path);
+    }
+}
+
 void NativeJS::loadGlobalObjects()
 {
     /* File() object */

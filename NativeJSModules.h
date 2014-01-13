@@ -66,6 +66,7 @@ class NativeJSModules
         }
 
         NativeJSModule *main;
+        const char *m_TopDir;
 
         bool init()
         {
@@ -89,6 +90,11 @@ class NativeJSModules
         NativeJSModule *find(NativeJSModule *module)
         {
             return m_Cache.get(module->filePath);
+        }
+
+        void setPath(const char *topDir)
+        {
+            m_TopDir = topDir;
         }
 
         JSObject *init(JSObject *scope, const char *name);
