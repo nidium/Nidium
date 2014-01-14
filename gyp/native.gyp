@@ -5,8 +5,8 @@
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'tools.gyp:js2bytecode',
-            'jsoncpp.gyp:jsoncpp',
             'angle.gyp:*'
         ],
         'include_dirs': [
@@ -38,7 +38,6 @@
             '<(third_party_path)/http-parser',
             '<(native_av_path)',
             '<(third_party_path)/libzip/lib',
-            '<(third_party_path)/jsoncpp/include',
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
