@@ -1,3 +1,5 @@
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
 #include <NativeJSExposer.h>
 
 static JSBool hello(JSContext *cx, unsigned argc, jsval *vp)
@@ -19,7 +21,7 @@ static JSPropertySpec TestModule_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-void registerCallback(JSContext *cx, JSObject *exports) {
+bool registerCallback(JSContext *cx, JSObject *exports) {
     JS_DefineFunctions(cx, exports, TestModule_funcs);
     JS_DefineProperties(cx, exports, TestModule_props);
 
@@ -29,6 +31,8 @@ void registerCallback(JSContext *cx, JSObject *exports) {
     JS_SetProperty(cx, exports, "bar", &bar);
 
     printf("regsiter callback called\n");
+
+    return true;
 }
  
 NATIVE_REGISTER_MODULE(registerCallback)

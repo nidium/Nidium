@@ -15,14 +15,12 @@
             '-Wno-invalid-offsetof',
             '-Wno-c++0x-extensions'
         ],
-        'product_dir': '../framework/modules/',
+        'product_dir': '../framework/nidium_modules/',
         'default_configuration': 'Release',
         'configurations': {
             'Debug': {
             },
             'Release': {
-                'product_dir': './foobar',
-                'defines': [ 'NDEBUG' ],
             }
         }  
     },
