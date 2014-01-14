@@ -94,7 +94,6 @@
                     'GR_RELEASE=1',
                     'TRACING',
                     'JS_THREADSAFE',
-                    'DSO_EXTENSION=.so',
                     'GR_GL_CUSTOM_SETUP_HEADER=<../gyp/skia_gl_config.h>'
                 ],
 				'xcode_settings': {
@@ -132,7 +131,6 @@
                     'UINT32_MAX=4294967295u',
                     'GR_RELEASE=1',
                     '__STDC_CONSTANT_MACROS',
-                    'DSO_EXTENSION=".so"'
                 ],
                 'cflags+': [
                     '-fno-rtti',
