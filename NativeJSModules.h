@@ -22,7 +22,10 @@
 #define nativejsmodules_h__
 
 #include <jspubtd.h>
-#include <string.h>
+
+#include <string>
+
+#define NATIVE_MODULES_PATHS_COUNT 2
 
 class NativeJSModules;
 
@@ -31,7 +34,6 @@ class NativeJSModule
     public:
         NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name);
 
-        char *dir;
         char *absoluteDir;
         char *filePath;
         char *name;
@@ -58,24 +60,22 @@ class NativeJSModule
 class NativeJSModules
 {
     public:
-        NativeJSModules(JSContext *cx) : cx(cx) {}
+        NativeJSModules(JSContext *cx) : cx(cx)
+        {
+            m_Paths[0] = (const char *)"nidium_modules";
+            m_Paths[1] = (const char *)"node_modules";
+        }
 
         ~NativeJSModules()
         {
+            for (int i = 0; m_EnvPaths[i] != NULL; i++) {
+                free(m_EnvPaths[i]);
+            }
             delete this->main;
         }
 
         NativeJSModule *main;
         const char *m_TopDir;
-
-        bool init()
-        {
-            this->main = new NativeJSModule(cx, this, NULL, "MAIN");
-
-            if (!main) return false;
-
-            return this->main->initMain();
-        }
 
         void add(NativeJSModule *module)
         {
@@ -97,14 +97,17 @@ class NativeJSModules
             m_TopDir = topDir;
         }
 
-        JSObject *init(JSObject *scope, const char *name);
+        bool init();
         bool init(NativeJSModule *module);
         static char *findModulePath(NativeJSModule *parent, NativeJSModule *module);
         static char *findModuleInPath(NativeJSModule *module, const char *path);
     private:
         NativeHash<NativeJSModule *> m_Cache;
+        const char *m_Paths[2];
+        char *m_EnvPaths[64];
         JSContext *cx;
         bool initJS(NativeJSModule *cmodule);
+        static std::string dirname(std::string source);
 
 };
 

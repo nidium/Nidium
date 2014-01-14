@@ -27,6 +27,8 @@
 #include <dlfcn.h> 
 #include <sys/stat.h>
 
+#include <algorithm>
+
 #include <NativeJSExposer.h>
 #include <NativeJSModules.h>
 #include <NativeJS.h>
@@ -63,7 +65,7 @@ static JSPropertySpec native_modules_exports_props[] = {
 static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
 
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
-    : dir(NULL), absoluteDir(NULL), filePath(NULL), name(strdup(name)), native(false), exports(NULL),
+    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), native(false), exports(NULL),
       parent(parent), modules(modules), cx(cx)
 {
 }
@@ -104,64 +106,52 @@ bool NativeJSModule::init()
         return false;
     }
 
-    this->dir = NativeStream::resolvePath(this->filePath, NativeStream::STREAM_RESOLVE_PATH);
-    if (!this->dir) {
+    this->absoluteDir = NativeStream::resolvePath(this->filePath, NativeStream::STREAM_RESOLVE_PATH);
+    if (!this->absoluteDir) {
         return false;
     }
     DPRINT("filepath = %s\n", this->filePath);
-    DPRINT("dir = %s\n", this->dir);
     DPRINT("name = %s\n", this->name);
-
-    // For absolute module, if the module name contain directories ("/") 
-    // we must remove them for the absoluteDir
-    if (this->name[0] != '.' && this->name[0] != '/') {
-        int count = 0;
-        for (int i = 0; this->name[i]; i++) {
-            count += this->name[i] == '/';
-        }
-        DPRINT("count = %d\n", count);
-
-        // module name contains a "/"
-        if (count > 0) {
-            int dirCount = 0;
-            int last = 0;
-            size_t len = strlen(this->filePath);
-
-            for (int i = len; i > -1; i--) {
-                if (this->filePath[i] == '/') {
-                    last = i;
-                    dirCount++;
-                    if (dirCount == count) {
-                        break;
-                    }
-                }
-            }
-
-            this->absoluteDir = (char *)malloc(sizeof(char) * last + 2);
-            if (!this->absoluteDir) {
-                return false;
-            }
-
-            memcpy(this->absoluteDir, this->filePath, last);
-
-            this->absoluteDir[last] = '/';
-            this->absoluteDir[last + 1] = '\0';
-        } else {
-            this->absoluteDir = strdup(this->dir);
-            if (!this->absoluteDir) {
-                return false;
-            }
-        }
-    } else {
-        this->absoluteDir = strdup(this->dir);
-        if (!this->absoluteDir) {
-            return false;
-        }
-    }
 
     DPRINT("absolute dir for %s\n", this->absoluteDir);
 
     return true;
+}
+
+bool NativeJSModules::init()
+{
+    char *paths = getenv("NIDIUM_REQUIRE_PATH");
+
+    if (paths) {
+        char *token;
+        char *originalPaths = strdup(paths);
+        char *tmp = originalPaths;
+        int i = 0;
+
+        while ((token = strsep(&tmp, ":")) != NULL && i < 63) {
+            if (i > 63) {
+            } else {
+                m_EnvPaths[i] = strdup(token);
+                i++;
+            }
+        }
+
+        if (token != NULL && i == 63) {
+            fprintf(stderr, "Warning : require path ignored %s. A maximum of 63 search path is allowed. All subsequent path will be ignored.\n", token);
+        }
+
+        m_EnvPaths[i] = NULL;
+
+        free(originalPaths);
+    } else {
+        m_EnvPaths[0] = NULL;
+    }
+
+    this->main = new NativeJSModule(cx, this, NULL, "MAIN");
+
+    if (!main) return false;
+
+    return this->main->initMain();
 }
 
 bool NativeJSModules::init(NativeJSModule *module)
@@ -262,7 +252,7 @@ bool NativeJSModule::initJS()
     char *tmp = strdup(this->filePath);
     char *cfilename = basename(tmp);
     JSString *filename = JS_NewStringCopyN(cx, cfilename, strlen(cfilename));
-    JSString *dirname = JS_NewStringCopyN(cx, this->dir, strlen(this->dir));
+    JSString *dirname = JS_NewStringCopyN(cx, this->absoluteDir, strlen(this->absoluteDir));
 
     free(tmp);
 
@@ -281,69 +271,68 @@ bool NativeJSModule::initJS()
 #undef TRY_OR_DIE
 }
 
+std::string NativeJSModules::dirname(std::string source)
+{
+    if (source.size() <= 1) {
+        return source;
+    }
+
+    // Remove trailing slash if it exists.
+    if (*(source.rbegin()) == '/') {
+        source.resize(source.size() - 1);
+    }
+
+    source.erase(std::find(source.rbegin(), source.rend(), '/').base(), source.end());
+
+    return source;
+}
+
 char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
 {
-#define MAX_EXT_SIZE 9
-#define PATHS_COUNT 2
     char *modulePath = NULL;
+    NativeJSModules *modules = module->modules;
 
     if (module->name[0] == '.') {
         // Relative module, only look in current script directory
-        modulePath = NativeJSModules::findModuleInPath(module, parent->dir);
+        modulePath = NativeJSModules::findModuleInPath(module, parent->absoluteDir);
     }  else if (module->name[0] == '/') {
         modulePath = NativeJSModules::findModuleInPath(module, "");
     }  else {
-        DPRINT("absolute module\n");
-        int end = strlen(parent->absoluteDir);
-        const char *top = module->modules->m_TopDir;
-        char *paths[PATHS_COUNT];
-        memset(paths, 0, sizeof(char*) * PATHS_COUNT);
+        std::string path = parent->absoluteDir;
 
-        // Setup search paths
-        paths[0] = (char *)"nidium_modules";
-        paths[1] = (char *)"node_modules";
+        DPRINT("[findModulePath] absolute dir=%s path=%s\n", parent->absoluteDir, path.c_str());
 
-        DPRINT("top module %s\n", top);
-        // NodeJS compatibility : we need to look for module in all
-        // parent directory until top working directory is reached
-        char *pathPtr = (char *)calloc(sizeof(char), strlen(parent->absoluteDir) + strlen("nidium_modules") + 1);
-        char *path = pathPtr;
-        if (!pathPtr) {
-            return NULL;
-        }
-        memcpy(pathPtr, parent->absoluteDir, (end + 1) * sizeof(char));
-
-        DPRINT("absolute dir is %s\n", parent->absoluteDir);
-        DPRINT("path is %s\n", path);
-
+        // Look for the module in all parent directory until it's found
+        // or if the top level working directory is reached
         bool stop = false;
         do {
-            for (int i = 0; i < PATHS_COUNT && !modulePath; i++) {
-                path[end] = '\0'; // Reset
-                strcat(path, paths[i]);
-                DPRINT("path looking %s\n", path);
-                modulePath = NativeJSModules::findModuleInPath(module, path);
+            // Try local search path
+            for (int i = 0; i < NATIVE_MODULES_PATHS_COUNT && !modulePath; i++) {
+                std::string currentPath = path + modules->m_Paths[i];
+
+                DPRINT("Looking for module %s in %s\n", module->name, currentPath.c_str());
+                modulePath = NativeJSModules::findModuleInPath(module, currentPath.c_str());
                 DPRINT("module path is %s\n", modulePath);
             }
-            // Go to parent directory
-            path[end] = '\0';
-            stop = (strcmp(top, path) == 0);
+
+            stop = (strcmp(module->modules->m_TopDir, path.c_str()) == 0);
+            // Try again with parent directory
             if (!stop) {
-                DPRINT("Getting parent dir for %s\n", path);
-                path = dirname(path);
-                end = strlen(path);
-
-                // Add trailing '/' (since |top| is always '/' terminated)
-                path[end] = '/';
-                path[end + 1] = '\0';
-                end += 1;
-
-                DPRINT("Parent path is %s\n", path);
-                if (!path) break;
+                DPRINT("  Getting parent dir for %s\n", path.c_str());
+                path.assign(NativeJSModules::dirname(path));
+                DPRINT("  Parent path is         %s\n", path.c_str());
             }
         } while (!modulePath && !stop);
 
-        free(pathPtr);
+        if (!modulePath) {
+            // Check in system directories if module hasn't been found
+            for (int i = 0; modules->m_EnvPaths[i] != NULL && !modulePath; i++) {
+                std::string currentPath = modules->m_EnvPaths[i];
+                DPRINT("Looking for module %s in %s\n", module->name, currentPath.c_str());
+                modulePath = NativeJSModules::findModuleInPath(module, currentPath.c_str());
+                DPRINT("module path is %s\n", modulePath);
+            }
+        }
     }
 
     if (!modulePath) {
@@ -355,11 +344,11 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
     free(modulePath);
 
     return rpath;
-#undef PATHS_COUNT
 }
 
 char *NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
 {
+#define MAX_EXT_SIZE 9
     // FIXME : NodeJS compatibility, instead of looking for index.js 
     // we should look for package.json, read it and find the main package file
     const char *extensions[] = {DSO_EXTENSION, ".js", "/index.js", NULL};
@@ -370,14 +359,12 @@ char *NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path
         return NULL;
     }
 
-    DPRINT("path : %s\n", path);
-    DPRINT("module->name: %s\n", module->name);
     strcat(tmp, path);
     strcat(tmp, "/");
     strcat(tmp, module->name);
 
     size_t end = strlen(tmp);
-    DPRINT("tmp is %s\n", tmp);
+    DPRINT("    tmp is %s\n", tmp);
 
     for (int j = 0; j < 4; j++) {
         if (extensions[j]) {
@@ -542,7 +529,6 @@ JS::Value NativeJSModule::require(char *name)
             fn = JS_CompileFunction(cx, cmodule->exports, 
                     "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
             if (!fn) {
-                ret.setNull();
                 free(data);
                 return ret;
             }
@@ -550,7 +536,6 @@ JS::Value NativeJSModule::require(char *name)
             free(data);
 
             if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
-                ret.setNull();
                 return ret;
             }
         }
