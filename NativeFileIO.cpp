@@ -88,7 +88,7 @@ static int Native_handle_file_messages(void *arg)
             case NATIVE_FILEREAD_MESSAGE:
                 nfileio->getDelegate()->onNFIORead(nfileio,
                     (unsigned char *)msg.dataPtr(), nfileio->action.u64);
-                delete[] (unsigned char *)msg.dataPtr();
+                free(msg.dataPtr());
                 break;
             case NATIVE_FILEWRITE_MESSAGE:
                 nfileio->getDelegate()->onNFIOWrite(nfileio, msg.dataUInt());
