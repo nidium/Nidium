@@ -227,11 +227,12 @@ static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
 }
 
 static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
-    ape_global *ape, const unsigned char *packet, size_t len, void *socket_arg)
+    ape_global *ape, const unsigned char *packet, size_t len,
+    struct sockaddr_in *addr, void *socket_arg)
 {
     JSContext *cx;
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
-    jsval onmessage, rval, jparams[1];
+    jsval onmessage, rval, jparams[2];
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -259,8 +260,18 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onmessage", &onmessage) &&
         JS_TypeOfValue(cx, onmessage) == JSTYPE_FUNCTION) {
 
+        JSObject *remote = JS_NewObject(cx, NULL, NULL, NULL);
+
+        char *cip = inet_ntoa(addr->sin_addr);
+        jsval jip = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip));
+        jsval jport = INT_TO_JSVAL(ntohs(addr->sin_port));
+
+        JS_SetProperty(cx, remote, "ip", &jip);
+        JS_SetProperty(cx, remote, "port", &jport);
+        jparams[1] = OBJECT_TO_JSVAL(remote);
+
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onmessage,
-            1, jparams, &rval);
+            2, jparams, &rval);
     }
 }
 
@@ -645,7 +656,7 @@ static JSBool native_socket_client_write(JSContext *cx,
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
             return false;            
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
@@ -656,7 +667,7 @@ static JSBool native_socket_client_write(JSContext *cx,
         args.rval().setInt32(ret);
 
     } else {
-        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
         return false;
     }
 
@@ -696,7 +707,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
         JSObject *objdata = args[0].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
             return false;            
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
@@ -707,7 +718,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
         args.rval().setInt32(ret);
 
     } else {
-        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer");
+        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
         return false;
     }
 
@@ -789,7 +800,7 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
         JSObject *objdata = args[2].toObjectOrNull();
 
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
-            JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer");
+            JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer)");
             return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
@@ -798,7 +809,7 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
         ape_socket_write_udp(nsocket->socket, (char *)data, len, cip.ptr(), (uint16_t)port);
 
     } else {
-        JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer");
+        JS_ReportError(cx, "sendTo() invalid data (must be either a string or an ArrayBuffer)");
         return false;
     }
 
