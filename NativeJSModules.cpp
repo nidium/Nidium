@@ -27,12 +27,14 @@
 #include <dlfcn.h> 
 #include <sys/stat.h>
 
-#include <algorithm>
-
 #include <NativeJSExposer.h>
 #include <NativeJSModules.h>
 #include <NativeJS.h>
 #include <NativeStream.h>
+
+#include <json/json.h>
+
+#include <algorithm>
 
 #if 0
 #define DPRINT(...) printf(__VA_ARGS__)
@@ -289,7 +291,7 @@ std::string NativeJSModules::dirname(std::string source)
 
 char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
 {
-    char *modulePath = NULL;
+    std::string modulePath;
     NativeJSModules *modules = module->modules;
 
     if (module->name[0] == '.') {
@@ -307,12 +309,13 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         bool stop = false;
         do {
             // Try local search path
-            for (int i = 0; i < NATIVE_MODULES_PATHS_COUNT && !modulePath; i++) {
-                std::string currentPath = path + modules->m_Paths[i];
+            for (int i = 0; i < NATIVE_MODULES_PATHS_COUNT && modulePath.empty(); i++) {
+                std::string currentPath = path;
+                currentPath += modules->m_Paths[i];
 
                 DPRINT("Looking for module %s in %s\n", module->name, currentPath.c_str());
                 modulePath = NativeJSModules::findModuleInPath(module, currentPath.c_str());
-                DPRINT("module path is %s\n", modulePath);
+                DPRINT("module path is %s\n", modulePath.c_str());
             }
 
             stop = (strcmp(module->modules->m_TopDir, path.c_str()) == 0);
@@ -322,86 +325,158 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
                 path.assign(NativeJSModules::dirname(path));
                 DPRINT("  Parent path is         %s\n", path.c_str());
             }
-        } while (!modulePath && !stop);
+        } while (modulePath.empty() && !stop);
 
-        if (!modulePath) {
+        if (modulePath.empty()) {
             // Check in system directories if module hasn't been found
-            for (int i = 0; modules->m_EnvPaths[i] != NULL && !modulePath; i++) {
-                std::string currentPath = modules->m_EnvPaths[i];
-                DPRINT("Looking for module %s in %s\n", module->name, currentPath.c_str());
-                modulePath = NativeJSModules::findModuleInPath(module, currentPath.c_str());
-                DPRINT("module path is %s\n", modulePath);
+            for (int i = 0; modules->m_EnvPaths[i] != NULL && modulePath.empty(); i++) {
+                char *tmp = modules->m_EnvPaths[i];
+                DPRINT("Looking for module %s in %s\n", module->name, tmp);
+                modulePath = NativeJSModules::findModuleInPath(module, tmp);
+                DPRINT("module path is %s\n", modulePath.c_str());
             }
         }
     }
 
-    if (!modulePath) {
+    if (modulePath.empty()) {
         return NULL;
     }
 
-    char *rpath = realpath(modulePath, NULL);
-
-    free(modulePath);
-
-    return rpath;
+    return realpath(strdup(modulePath.c_str()), NULL);
 }
 
-char *NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
+bool NativeJSModules::getFileContent(const char *file, char **content, size_t *size)
 {
-#define MAX_EXT_SIZE 9
-    // FIXME : NodeJS compatibility, instead of looking for index.js 
-    // we should look for package.json, read it and find the main package file
-    const char *extensions[] = {DSO_EXTENSION, ".js", "/index.js", NULL};
+    FILE *fd;
+    size_t readsize;
+    size_t filesize;
+    char *data;
 
-    size_t len = strlen(module->name);
-    char *tmp = (char *)calloc(sizeof(char), strlen(path) + len + (len > MAX_EXT_SIZE  ? len + 1 : MAX_EXT_SIZE) + 2);
-    if (!tmp) {
-        return NULL;
+    *content = NULL;
+    *size = 0;
+
+    fd = fopen(file, "r");
+    if (!fd) {
+        return false;
     }
 
-    strcat(tmp, path);
-    strcat(tmp, "/");
-    strcat(tmp, module->name);
+    fseek(fd, 0L, SEEK_END);
+    filesize = ftell(fd);
+    fseek(fd, 0L, SEEK_SET);
 
-    size_t end = strlen(tmp);
-    DPRINT("    tmp is %s\n", tmp);
+    if (filesize == 0) {
+        return true;
+    }
+
+    data = (char *)malloc(filesize + 1);
+
+    readsize = fread(data, 1, filesize, fd);
+    data[readsize] = '\0';
+
+    fclose(fd);
+
+    if (readsize < 1 || readsize != filesize) {
+        free(data);
+        return false;
+    }
+
+    *content = data;
+    *size = filesize;
+    return true;
+}
+
+std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
+{
+#define MAX_EXT_SIZE 13
+    const char *extensions[] = {NULL, ".js", DSO_EXTENSION};
+
+    std::string tmp = std::string(path) + std::string("/") + std::string(module->name);
+    size_t len = tmp.length();
+
+    DPRINT("    tmp is %s\n", tmp.c_str());
 
     for (int j = 0; j < 4; j++) {
         if (extensions[j]) {
-            const char *c = &extensions[j][0];
-            for (int k = 0; k < MAX_EXT_SIZE && *c != '\0'; k++) {
-                tmp[end + k] = *c++;
-            }
+            tmp += extensions[j];
         } else {
-            tmp[end] = '\0';
+            tmp.erase(len);
         }
 
-        DPRINT("    [NativeJSModule] Looking for %s\n", tmp);
+        DPRINT("    [NativeJSModule] Looking for %s\n", tmp.c_str());
 
-        if (access(tmp, F_OK) == 0) {
-            struct stat sb;
-            if (stat(tmp, &sb) == 0 && S_ISDIR(sb.st_mode)) {
-                // Extra check for NodeJS compatibility : 
-                // If the module name is a directory, let's check if the module name
-                // exist in that directory
-                DPRINT("it's a directory, extra check : ");
-                strcat(tmp, "/");
-                strcat(tmp, module->name);
-                DPRINT("%s\n", tmp);
-                if (access(tmp, F_OK) != 0) {
-                    continue;
+        if (access(tmp.c_str(), F_OK) != 0) continue;
+
+        switch (j) {
+            case 0: // directory or exact filename
+                struct stat sb;
+                if (stat(tmp.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
+                    if (NativeJSModules::loadDirectoryModule(tmp)) {
+                        return tmp;
+                    }
+                    DPRINT("%s\n", tmp.c_str());
                 }
-            }
-            DPRINT("    [NativeJSModule] FOUND IT\n");
-            if (j == 0) {
+                continue;
+            case 1: // .js
+                break;
+            case 2: // native module
                 module->native = true;
-            }
-            return tmp;
+                break;
         }
+        DPRINT("    [NativeJSModule] FOUND IT\n");
+        return tmp;
     }
 
-    free(tmp);
-    return NULL;
+    return std::string();
+}
+
+bool NativeJSModules::loadDirectoryModule(std::string &dir)
+{
+    const char *files[] = {"/index.js", "/package.json"};
+    size_t len = dir.length();
+
+    for (int i = 0; i < 2; i++) {
+        dir.erase(len);
+        dir += files[i];
+
+        if (access(dir.c_str(), F_OK) != 0) continue;
+
+        switch (i) {
+            case 0: // index.js
+                return true;
+                break;
+            case 1: // package.json
+                char *data;
+                size_t size;
+
+                if (!NativeJSModules::getFileContent(dir.c_str(), &data, &size)) {
+                    fprintf(stderr, "Failed to open %s", dir.c_str());
+                    return false;
+                }
+
+                Json::Value root;
+                Json::Reader reader;
+                bool parsingSuccessful = reader.parse(data, data + size, root);
+                if (!parsingSuccessful) {
+                    fprintf(stderr, "Failed to parse %s\n  %s", dir.c_str(), reader.getFormatedErrorMessages().c_str());
+                    return false;
+                }
+
+                std::string main = root.get("main", "").asString();
+                dir.erase(len);
+                dir += std::string("/") + main;
+
+                if (access(dir.c_str(), F_OK) != 0) {
+                    fprintf(stderr, "Failed to access file %s", dir.c_str());
+                    return false;
+                }
+
+                return true;
+                break;
+        }
+
+    }
+
+    return false;
 }
 
 #undef MAX_EXT_SIZE 
@@ -489,43 +564,22 @@ JS::Value NativeJSModule::require(char *name)
         }
 
         if (!cmodule->native) {
-            FILE *fd;
-            size_t readsize;
             size_t filesize;
             char *data;
 
             JSFunction *fn;
             jsval rval;
-
-            // TODO : Replace fopen/fseek/fread with future NativeSyncFileIO
-            fd = fopen(cmodule->filePath, "r");
-            if (!fd) {
+    
+            if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize)) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 return ret;
             }
-
-            fseek(fd, 0L, SEEK_END);
-            filesize = ftell(fd);
-            fseek(fd, 0L, SEEK_SET);
 
             if (filesize == 0) {
                 ret.setNull();
                 return ret;
             }
-
-            data = (char *)malloc(filesize + 1);
-
-            readsize = fread(data, 1, filesize, fd);
-            data[readsize] = '\0';
-
-            fclose(fd);
-
-            if (readsize < 1 || readsize != filesize) {
-                JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
-                free(data);
-                return ret;
-            }
-
+            
             fn = JS_CompileFunction(cx, cmodule->exports, 
                     "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
             if (!fn) {

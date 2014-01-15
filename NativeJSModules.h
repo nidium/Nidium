@@ -53,8 +53,6 @@ class NativeJSModule
         ~NativeJSModule();
     private:
         JSContext *cx;
-
-        void setScriptDir();
 };
 
 class NativeJSModules
@@ -99,14 +97,20 @@ class NativeJSModules
 
         bool init();
         bool init(NativeJSModule *module);
+
         static char *findModulePath(NativeJSModule *parent, NativeJSModule *module);
-        static char *findModuleInPath(NativeJSModule *module, const char *path);
+        static bool getFileContent(const char *file, char **content, size_t *size);
     private:
         NativeHash<NativeJSModule *> m_Cache;
         const char *m_Paths[2];
         char *m_EnvPaths[64];
         JSContext *cx;
+
         bool initJS(NativeJSModule *cmodule);
+
+        static std::string findModuleInPath(NativeJSModule *module, const char *path);
+        static bool loadDirectoryModule(std::string &dir);
+
         static std::string dirname(std::string source);
 
 };

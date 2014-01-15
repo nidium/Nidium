@@ -11,7 +11,8 @@
         ],
         'defines': ['_FILE_OFFSET_BITS=64'],
         'dependencies': [
-            '../network/gyp/network.gyp:nativenetwork'
+            '../network/gyp/network.gyp:nativenetwork',
+            'jsoncpp.gyp:jsoncpp'
         ],
         'conditions': [
             ['OS=="mac"', {
