@@ -115,10 +115,6 @@ def registerDeps():
         partial(deps.downloadDep, "angle", deps.depsURL + "/angle.tar.gz"),
         None)
 
-    deps.registerDep("jsoncpp", 
-        partial(deps.downloadDep, "jsoncpp", deps.depsURL + "/jsoncpp-src-0.5.0.tar.gz", "jsoncpp-src*"),
-        None)
-
     deps.registerDep("breakpad",
         partial(deps.downloadDep, "breakpad", deps.depsURL + "/breakpad.tar.gz"),
         None)

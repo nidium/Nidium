@@ -14,7 +14,6 @@ http-parser
 gyp
 leveldb
 angle
-jsoncpp
 native-requirements.py
 breakpad
 ../nativejscore/gyp/nativejscore-requirements.deps
