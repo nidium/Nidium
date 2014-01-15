@@ -111,7 +111,7 @@ class NativeJSModules
         static std::string findModuleInPath(NativeJSModule *module, const char *path);
         static bool loadDirectoryModule(std::string &dir);
 
-        static std::string dirname(std::string source);
+        static void dirname(std::string &source);
 
 };
 

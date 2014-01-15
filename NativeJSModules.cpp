@@ -273,10 +273,10 @@ bool NativeJSModule::initJS()
 #undef TRY_OR_DIE
 }
 
-std::string NativeJSModules::dirname(std::string source)
+void NativeJSModules::dirname(std::string &source)
 {
     if (source.size() <= 1) {
-        return source;
+        return;
     }
 
     // Remove trailing slash if it exists.
@@ -285,8 +285,6 @@ std::string NativeJSModules::dirname(std::string source)
     }
 
     source.erase(std::find(source.rbegin(), source.rend(), '/').base(), source.end());
-
-    return source;
 }
 
 char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *module)
@@ -322,7 +320,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
             // Try again with parent directory
             if (!stop) {
                 DPRINT("  Getting parent dir for %s\n", path.c_str());
-                path.assign(NativeJSModules::dirname(path));
+                NativeJSModules::dirname(path);
                 DPRINT("  Parent path is         %s\n", path.c_str());
             }
         } while (modulePath.empty() && !stop);
@@ -342,7 +340,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         return NULL;
     }
 
-    return realpath(strdup(modulePath.c_str()), NULL);
+    return realpath(modulePath.c_str(), NULL);
 }
 
 bool NativeJSModules::getFileContent(const char *file, char **content, size_t *size)
