@@ -44,13 +44,18 @@ public:
         struct _ape_global *net, const char *prefix = NULL);
     ~NativeFileIO();
     void open(const char *modes);
+    int openSync(const char *modes, int *err);
+
     void openAction(char *modes);
     void read(uint64_t len);
+    ssize_t readSync(uint64_t len, unsigned char **buffer, int *err);
+
     void readAction(uint64_t len);
     void write(unsigned char *data, uint64_t len);
+    ssize_t writeSync(unsigned char *data, uint64_t len, int *err);
     void writeAction(unsigned char *data, uint64_t len);
     void close();
-    void setAutoClose(bool close) { autoClose = close; }
+    void setAutoClose(bool close) { m_AutoClose = close; }
     void seek(uint64_t pos);
 
     const char *getFileName() const {
@@ -58,13 +63,13 @@ public:
     }
 
     bool eof() const {
-        return fd == NULL || m_eof;
+        return fd == NULL || m_Eof;
     }
     NativeFileIODelegate *getDelegate() const { return delegate; };
     char *filename;
     NativeSharedMessages *messages;
     FILE *fd;
-    off_t filesize;
+    off_t m_Filesize;
 
     pthread_t threadHandle;
     pthread_mutex_t threadMutex;
@@ -86,9 +91,9 @@ private:
     struct _ape_timer *timer;
     struct _ape_global *net;
 
-    bool autoClose;
-    bool m_eof;
-    void checkRead();
+    bool m_AutoClose;
+    bool m_Eof;
+    void checkRead(bool async = true);
     bool checkEOF();
 };
 

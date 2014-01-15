@@ -600,10 +600,10 @@ void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
 {
     if (this->delegate) {
         size_t packetSize = this->getPacketSize();
-        this->m_FileSize = NFIO->filesize;
+        this->m_FileSize = NFIO->m_Filesize;
         this->m_KnownSize = true;
 
-        NFIO->read(packetSize == 0 ? NFIO->filesize : packetSize);
+        NFIO->read(packetSize == 0 ? NFIO->m_Filesize : packetSize);
     }
 }
 
