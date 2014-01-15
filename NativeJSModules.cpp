@@ -33,6 +33,7 @@
 #include <NativeStream.h>
 
 #include <jsoncpp.h>
+#include <json.h>
 
 #include <algorithm>
 
@@ -67,8 +68,8 @@ static JSPropertySpec native_modules_exports_props[] = {
 static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
 
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
-    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), native(false), exports(NULL),
-      parent(parent), modules(modules), cx(cx)
+    : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE), 
+      exports(NULL), parent(parent), modules(modules), cx(cx)
 {
 }
 
@@ -158,14 +159,17 @@ bool NativeJSModules::init()
 
 bool NativeJSModules::init(NativeJSModule *module)
 {
-    if (module->native) {
-        if (!module->initNative()) {
-            return false;
-        }
-    } else {
-        if (!module->initJS()) {
-            return false;
-        }
+    switch (module->m_ModuleType) {
+        case NativeJSModule::NATIVE:
+            if (!module->initNative()) {
+                return false;
+            }
+            break;
+        case NativeJSModule::JS:
+            if (!module->initJS()) {
+                return false;
+            }
+            break;
     }
 
     this->add(module);
@@ -192,9 +196,8 @@ bool NativeJSModule::initNative()
         return false;
     }
 
-    NativeJS::getNativeClass(this->cx)->rootObjectUntilShutdown(exports);
-
     this->exports = exports;
+    JS_AddObjectRoot(cx, &this->exports);
 
     return true;
 }
@@ -209,13 +212,11 @@ bool NativeJSModule::initJS()
 
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
-    njs->rootObjectUntilShutdown(gbl);
     JS_SetPrivate(gbl, this);
 
     JSObject *funObj;
     JSFunction *fun = js::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
     if (!fun) {
-        njs->unrootObject(gbl);
         return false;
     }
 
@@ -227,14 +228,12 @@ bool NativeJSModule::initJS()
     JSObject *module = JS_NewObject(this->cx, &native_modules_class, NULL, NULL);
 
     if (!exports || !module) {
-        njs->unrootObject(gbl);
         return false;
     }
 
     JS::Value id;
     JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
     if (!idstr) {
-        njs->unrootObject(gbl);
         return false;
     }
     id.setString(idstr);
@@ -268,6 +267,7 @@ bool NativeJSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     this->exports = gbl;
+    JS_AddObjectRoot(cx, &this->exports);
 
     return true;
 #undef TRY_OR_DIE
@@ -386,38 +386,72 @@ bool NativeJSModules::getFileContent(const char *file, char **content, size_t *s
 std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
 {
 #define MAX_EXT_SIZE 13
-    const char *extensions[] = {NULL, ".js", DSO_EXTENSION};
+    const char *extensions[] = {NULL, ".js", DSO_EXTENSION, ".json"};
 
     std::string tmp = std::string(path) + std::string("/") + std::string(module->name);
     size_t len = tmp.length();
 
     DPRINT("    tmp is %s\n", tmp.c_str());
 
-    for (int j = 0; j < 4; j++) {
-        if (extensions[j]) {
-            tmp += extensions[j];
-        } else {
+    for (int i = 0; i < 4; i++) {
+        if (extensions[i]) {
             tmp.erase(len);
+            tmp += extensions[i];
         }
 
         DPRINT("    [NativeJSModule] Looking for %s\n", tmp.c_str());
 
-        if (access(tmp.c_str(), F_OK) != 0) continue;
+        if (access(tmp.c_str(), F_OK) != 0) {
+            continue;
+        }
 
-        switch (j) {
+        // XXX : Refactor this code. It's a bit messy.
+        switch (i) {
             case 0: // directory or exact filename
+                module->m_ModuleType = NativeJSModule::JS;
                 struct stat sb;
                 if (stat(tmp.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)) {
                     if (NativeJSModules::loadDirectoryModule(tmp)) {
                         return tmp;
                     }
                     DPRINT("%s\n", tmp.c_str());
+                } else {
+                    // Exact filename, find the extension
+                    size_t pos = tmp.find_last_of('.');
+                    // No extension, assume it's a JS file
+                    if (pos == std::string::npos) {
+                        DPRINT("      No extension found. Assuming JS file\n");
+                        module->m_ModuleType = NativeJSModule::JS;
+                        return tmp;
+                    }
+
+                    for (int j = 1; j < 4; j++) {
+                        size_t tmpPos = tmp.find(extensions[j], pos, tmp.length() - pos);
+                        if (tmpPos != std::string::npos) {
+                            switch (j) {
+                                case 1:
+                                    module->m_ModuleType = NativeJSModule::JS;
+                                    break;
+                                case 2:
+                                    module->m_ModuleType = NativeJSModule::NATIVE;
+                                    break;
+                                case 3:
+                                    module->m_ModuleType = NativeJSModule::JSON;
+                                    break;
+                            }
+                            return tmp;
+                        }
+                    }
                 }
                 continue;
             case 1: // .js
+                module->m_ModuleType = NativeJSModule::JS;
                 break;
             case 2: // native module
-                module->native = true;
+                module->m_ModuleType = NativeJSModule::NATIVE;
+                break;
+            case 3: // json file
+                module->m_ModuleType = NativeJSModule::JSON;
                 break;
         }
         DPRINT("    [NativeJSModule] FOUND IT\n");
@@ -555,13 +589,12 @@ JS::Value NativeJSModule::require(char *name)
     }
 
     if (!cached) {
-        // Create all objects/methods on the module scope
         if (!this->modules->init(cmodule)) {
             JS_ReportError(cx, "Failed to initialize module %s\n", cmodule->name);
             return ret;
         }
 
-        if (!cmodule->native) {
+        if (cmodule->m_ModuleType == JSON || cmodule->m_ModuleType == JS) {
             size_t filesize;
             char *data;
 
@@ -574,31 +607,69 @@ JS::Value NativeJSModule::require(char *name)
             }
 
             if (filesize == 0) {
-                ret.setNull();
+                ret.setObject(*cmodule->exports);
                 return ret;
             }
-            
-            fn = JS_CompileFunction(cx, cmodule->exports, 
-                    "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
-            if (!fn) {
+
+            if (cmodule->m_ModuleType == JS) {
+                fn = JS_CompileFunction(cx, cmodule->exports, 
+                        "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
+                if (!fn) {
+                    free(data);
+                    return ret;
+                }
+
                 free(data);
-                return ret;
-            }
 
-            free(data);
+                if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
+                    return ret;
+                }
+            } else {
+                size_t len;
+                jschar *jchars;
+                jsval jsonData;
 
-            if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
-                return ret;
+                if (!JS_DecodeBytes(cx, data, filesize, NULL, &len)) {
+                    return ret;
+                }
+
+                jchars = (jschar *)JS_malloc(cx, len * sizeof(jschar));
+                if (!jchars) {
+                    return ret;
+                }
+
+                if (!JS_DecodeBytes(cx, data, filesize, jchars, &len)) {
+                    JS_free(cx, jchars);
+                    return ret;
+                }
+
+                if (!JS_ParseJSON(cx, jchars, len, &jsonData)) {
+                    JS_free(cx, jchars);
+                    return ret;
+                }
+
+                JS_free(cx, jchars);
+
+                cmodule->exports = JSVAL_TO_OBJECT(jsonData);
+                JS_AddObjectRoot(cx, &cmodule->exports);
             }
         }
     } 
 
-    if (cmodule->native) {
-        ret = OBJECT_TO_JSVAL(cmodule->exports);
-    } else {
-        JS::Value module;
-        JS_GetProperty(cx, cmodule->exports, "module", &module);
-        JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
+    switch (cmodule->m_ModuleType) {
+        case JS:
+        {
+            JS::Value module;
+            JS_GetProperty(cx, cmodule->exports, "module", &module);
+            JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
+        }
+        break;
+        case JSON:
+        case NATIVE:
+        {
+            ret = OBJECT_TO_JSVAL(cmodule->exports);
+        }
+        break;
     }
 
     return ret;
@@ -608,6 +679,10 @@ NativeJSModule::~NativeJSModule()
 {
     if (this->filePath) {
         this->modules->remove(this);
+    }
+
+    if (this->exports != NULL) {
+        JS_RemoveObjectRoot(this->cx, &this->exports);
     }
 
     free(this->name);

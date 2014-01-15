@@ -34,10 +34,14 @@ class NativeJSModule
     public:
         NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name);
 
+        enum ModuleType {
+            NONE, JS, NATIVE, JSON
+        };
+
         char *absoluteDir;
         char *filePath;
         char *name;
-        bool native;
+        int m_ModuleType;
 
         JSObject *exports;
 
@@ -48,11 +52,14 @@ class NativeJSModule
         bool initJS();
         bool initMain();
         bool initNative();
+
         JS::Value require(char *name);
 
         ~NativeJSModule();
     private:
         JSContext *cx;
+
+        JS::Value load(JS::Value &scope);
 };
 
 class NativeJSModules
@@ -112,7 +119,6 @@ class NativeJSModules
         static bool loadDirectoryModule(std::string &dir);
 
         static void dirname(std::string &source);
-
 };
 
 #endif
