@@ -32,7 +32,7 @@
 #include <NativeJS.h>
 #include <NativeStream.h>
 
-#include <json/json.h>
+#include <jsoncpp.h>
 
 #include <algorithm>
 
