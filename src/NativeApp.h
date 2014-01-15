@@ -1,7 +1,7 @@
 #ifndef nativeapp_h__
 #define nativeapp_h__
 
-#include <json/json.h>
+#include <jsoncpp.h>
 #include <pthread.h>
 #include "zip.h"
 
