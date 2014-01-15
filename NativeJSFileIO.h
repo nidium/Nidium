@@ -30,7 +30,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
     
-    NativeJSFileIO()  : m_Binary(true) {
+    NativeJSFileIO()  : m_Binary(true), m_Async(true) {
         callbacks.open = JSVAL_NULL;
         callbacks.getContents = JSVAL_NULL;
         callbacks.read = JSVAL_NULL;
@@ -57,12 +57,10 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
     JSObject *jsobj;
 
     bool m_Binary;
-
+    bool m_Async;
   private:
 
     NativeFileIO *NFIO;
-
-
 };
 
 #endif

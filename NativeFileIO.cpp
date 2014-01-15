@@ -120,7 +120,7 @@ void NativeFileIO::readAction(uint64_t len)
     }
 
     uint64_t clamped_len;
-    clamped_len = native_min(filesize, len);
+    clamped_len = native_min(m_Filesize, len);
 
     /*
         Read an empty file
@@ -170,7 +170,7 @@ void NativeFileIO::openAction(char *modes)
     }
 
     fseek(this->fd, 0L, SEEK_END);
-    this->filesize = ftell(this->fd);
+    this->m_Filesize = ftell(this->fd);
     fseek(this->fd, 0L, SEEK_SET);
 
     if (!action.stop) {
@@ -191,6 +191,22 @@ void NativeFileIO::open(const char *modes)
     pthread_cond_signal(&threadCond);
 }
 
+int NativeFileIO::openSync(const char *modes, int *err)
+{
+    *err = 0;
+    if ((this->fd = fopen(this->filename, modes)) == NULL) {
+        printf("Failed to open : %s errno=%d\n", this->filename, errno);
+        *err = errno;
+        return 0;
+    }
+
+    fseek(this->fd, 0L, SEEK_END);
+    this->m_Filesize = ftell(this->fd);
+    fseek(this->fd, 0L, SEEK_SET);
+
+    return 1;
+}
+
 void NativeFileIO::read(uint64_t len)
 {
     NativePthreadAutoLock npal(&threadMutex);
@@ -204,11 +220,48 @@ void NativeFileIO::read(uint64_t len)
     pthread_cond_signal(&threadCond);  
 }
 
+ssize_t NativeFileIO::readSync(uint64_t len, unsigned char **buffer, int *err)
+{
+    *err = 0;
+    if (!this->fd) {
+        return -1;
+    }
+
+    uint64_t clamped_len;
+    clamped_len = native_min(m_Filesize, len);
+
+    /*
+        Read an empty file
+    */
+    if (clamped_len == 0) {
+        return 0;
+    }
+
+    unsigned char *data = (unsigned char *)malloc(clamped_len + 1);
+    size_t readsize = 0;
+
+    if ((readsize = fread(data, sizeof(char), clamped_len, fd)) == 0) {
+
+        this->checkRead(false);
+
+        free(data);
+        *err = errno;
+        return -1;
+    }
+
+    *buffer = data;
+
+    this->checkEOF();
+
+    return readsize;
+}
+
 void NativeFileIO::write(unsigned char *data, uint64_t len)
 {
     NativePthreadAutoLock npal(&threadMutex);
 
     if (action.active) {
+        printf("Write failed (active queue)\n");
         return;
     }
     action.active = true;
@@ -216,6 +269,23 @@ void NativeFileIO::write(unsigned char *data, uint64_t len)
     action.ptr  = data;
     action.u64  = len;
     pthread_cond_signal(&threadCond); 
+}
+
+ssize_t NativeFileIO::writeSync(unsigned char *data, uint64_t len, int *err)
+{
+    *err = 0;
+    if (this->fd == NULL) {
+        return -1;
+    }
+    int ret;
+
+    ret = fwrite(data, sizeof(char), len, fd);
+
+    if (ret < len) {
+        *err = errno;
+    }
+
+    return ret;
 }
 
 void NativeFileIO::seek(uint64_t pos)
@@ -251,7 +321,7 @@ void NativeFileIO::close()
 
 NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     ape_global *net, const char *prefix) :
-    fd(NULL), autoClose(true), m_eof(false)
+    fd(NULL), m_AutoClose(true), m_Eof(false)
 {
     messages = new NativeSharedMessages();
     if (prefix) {
@@ -265,7 +335,7 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     }
     this->net = net;
     this->delegate = delegate;
-    this->filesize = 0;
+    this->m_Filesize = 0;
 
     this->action.active = false;
     this->action.stop = false;
@@ -285,17 +355,17 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
 bool NativeFileIO::checkEOF()
 {
-    if (fd && ((m_eof = (bool)feof(fd)) == true ||
-        (m_eof = (ftell(fd) == this->filesize))) && autoClose) {
+    if (fd && ((m_Eof = (bool)feof(fd)) == true ||
+        (m_Eof = (ftell(fd) == this->m_Filesize))) && m_AutoClose) {
         
         fclose(fd);
         fd = NULL;
     }
 
-    return m_eof;
+    return m_Eof;
 }
 
-void NativeFileIO::checkRead()
+void NativeFileIO::checkRead(bool async)
 {
     int err = -1;
 
@@ -305,7 +375,7 @@ void NativeFileIO::checkRead()
         err = 0;
     }
 
-    if (!action.stop && err != -1) {
+    if (async && !action.stop && err != -1) {
         messages->postMessage((unsigned int)err, NATIVE_FILEERROR_MESSAGE);
     }
 }

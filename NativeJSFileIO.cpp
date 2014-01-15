@@ -25,7 +25,8 @@
 enum {
     FILE_PROP_FILESIZE,
     FILE_PROP_FILENAME,
-    FILE_PROP_BINARY
+    FILE_PROP_BINARY,
+    FILE_PROP_ASYNC
 };
 
 #define NJSFIO_GETTER(obj) ((class NativeJSFileIO *)JS_GetPrivate(obj))
@@ -60,16 +61,19 @@ static JSPropertySpec File_props[] = {
     {"binary", FILE_PROP_BINARY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_file_prop_get),
         JSOP_WRAPPER(native_file_prop_set)},
+    {"async", FILE_PROP_ASYNC, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_file_prop_get),
+        JSOP_WRAPPER(native_file_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSFunctionSpec File_funcs[] = {
-    JS_FN("open", native_file_open, 2, 0),
-    JS_FN("read", native_file_read, 2, 0),
+    JS_FN("open", native_file_open, 1, 0),
+    JS_FN("read", native_file_read, 1, 0),
     JS_FN("seek", native_file_seek, 1, 0),
     JS_FN("rewind", native_file_rewind, 0, 0),
     JS_FN("close", native_file_close, 0, 0),
-    JS_FN("write", native_file_write, 2, 0),
+    JS_FN("write", native_file_write, 1, 0),
     JS_FS_END
 };
 
@@ -90,13 +94,16 @@ static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
 
     switch(JSID_TO_INT(id)) {
         case FILE_PROP_FILESIZE:
-            vp.set(JS_NumberValue(NFIO->filesize));
+            vp.set(JS_NumberValue(NFIO->m_Filesize));
             break;
         case FILE_PROP_FILENAME:
             vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, NFIO->getFileName())));
             break;
         case FILE_PROP_BINARY:
             vp.set(BOOLEAN_TO_JSVAL(NJSFIO_GETTER(obj.get())->m_Binary));
+            break;
+        case FILE_PROP_ASYNC:
+            vp.set(BOOLEAN_TO_JSVAL(NJSFIO_GETTER(obj.get())->m_Async));
             break;
         default:break;
 
@@ -121,7 +128,14 @@ static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
                 nfio->m_Binary = JSVAL_TO_BOOLEAN(vp);
             }        
         }
-        break;      
+        break;
+        case FILE_PROP_ASYNC:
+        {
+            if (JSVAL_IS_BOOLEAN(vp)) {
+                nfio->m_Async = JSVAL_TO_BOOLEAN(vp);
+            }        
+        }
+        break;    
         default:
             break;
     }
@@ -175,121 +189,186 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
 
-    NATIVE_CHECK_ARGS("write", 2);
-
-    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
-    }
-
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
-        return JS_TRUE;
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+
+    NATIVE_CHECK_ARGS("write", (NJSFIO->m_Async ? 2 : 1));
+
+    if (NJSFIO->m_Async &&
+        !JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+        JS_ReportError(cx, "write() bad callback");
+        return false;
+    }
+
     NFIO = NJSFIO->getNFIO();
 
     if (NFIO->fd == NULL) {
         JS_ReportError(cx, "NativeFileIO : use File.open() first.");
-        return JS_FALSE;
+        return false;
     }
 
-    if (JSVAL_IS_STRING(JS_ARGV(cx, vp)[0])) {
+    if (args[0].isString()) {
         //printf("got a string to write\n");
-        JSString *str = JS_ValueToString(cx, JS_ARGV(cx, vp)[0]);
+        JSString *str = args[0].toString();
         JSAutoByteString cstr(cx, str);
         size_t len = strlen(cstr.ptr());
-        char *dupstr = strndup(cstr.ptr(), len);
 
-        NJSFIO->callbacks.write = callback;
+        if (NJSFIO->m_Async) {
+            char *dupstr = strndup(cstr.ptr(), len);
 
-        NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
+            NJSFIO->callbacks.write = callback;
 
-        NFIO->write((unsigned char *)dupstr, len);
+            NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
-    } else if (!JSVAL_IS_PRIMITIVE(JS_ARGV(cx, vp)[0])) {
-        JSObject *jsobj = JSVAL_TO_OBJECT(JS_ARGV(cx, vp)[0]);
+            NFIO->write((unsigned char *)dupstr, len);
+        } else {
+            int err;
+            int ret = NFIO->writeSync((unsigned char *)cstr.ptr(), len, &err);
 
-        if (!JS_IsArrayBufferObject(jsobj)) {
+            if (err != 0 || ret == -1) {
+                JS_ReportError(cx, "write() error %d : %s", err, strerror(err));
+                return false;
+            }
+
+            args.rval().setInt32(ret);
+        }
+
+    } else if (args[0].isObject()) {
+        JSObject *jsobj = args[0].toObjectOrNull();
+
+        if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
             JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
-            return JS_FALSE;
+            return false;
         }
         uint32_t len = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
-        uint8_t *cdata = (uint8_t *)malloc(sizeof(char) * len);
 
-        //printf("Got an arraybuffer of size : %d\n", len);
+        if (NJSFIO->m_Async) {
+            uint8_t *cdata = (uint8_t *)malloc(sizeof(char) * len);
 
-        memcpy(cdata, data, len);
+            //printf("Got an arraybuffer of size : %d\n", len);
 
-        NJSFIO->callbacks.write = callback;
+            memcpy(cdata, data, len);
 
-        NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
+            NJSFIO->callbacks.write = callback;
 
-        NFIO->write(cdata, len);
+            NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
+            NFIO->write(cdata, len);
+        } else {
+            int err;
+            int ret = NFIO->writeSync(data, len, &err);
+
+            if (err != 0 || ret == -1) {
+                JS_ReportError(cx, "write() error %d : %s", err, strerror(err));
+                return false;
+            }
+
+            args.rval().setInt32(ret);            
+        }
     } else {
         JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
-        return JS_FALSE;        
+        return false;        
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
     double read_size;
 
-    NATIVE_CHECK_ARGS("read", 2);
-
-    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
-    }
-
-    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &read_size)) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, 1, args.array(), "d", &read_size)) {
+        return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+
+    NATIVE_CHECK_ARGS("read", (NJSFIO->m_Async ? 2 : 1));
+
+    if (NJSFIO->m_Async && !JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+        JS_ReportError(cx, "read() bad callback");
+        return false;
+    }
+
     NFIO = NJSFIO->getNFIO();
 
     if (NFIO->fd == NULL) {
         JS_ReportError(cx, "NativeFileIO : use File.open() first.");
-        return JS_FALSE;
+        return false;
     }
 
-    NJSFIO->callbacks.read = callback;
+    if (NJSFIO->m_Async) {
+        NJSFIO->callbacks.read = callback;
 
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
+        NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
-    NFIO->read((uint64_t)read_size);  
+        NFIO->read((uint64_t)read_size);
+    } else {
+        unsigned char *data;
+        int err;
 
-    return JS_TRUE;
+        ssize_t ret = NFIO->readSync((uint64_t)read_size, &data, &err);
+
+        if (ret > 0) {
+            if (NJSFIO->m_Binary) {
+                jsval jdata;
+
+                JSObject *arrayBuffer = JS_NewArrayBuffer(cx, ret);
+                if (arrayBuffer == NULL) {
+                    args.rval().setNull();
+                } else {
+                    uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
+                    memcpy(adata, data, ret);
+
+                    args.rval().setObjectOrNull(arrayBuffer);
+                }
+            } else {
+                args.rval().setString(JS_NewStringCopyN(cx, (char *)data, ret));
+            }
+            free(data);
+        } else if (ret < 0) {
+            JS_ReportError(cx, "read() error %d : %s", err, strerror(err));
+            return false;
+        } else {
+            args.rval().setNull();
+        }
+    }
+    return true;
 }
 
 static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
     double seek_pos;
 
-    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
     }
 
-    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "d", &seek_pos)) {
+    if (!JS_ConvertArguments(cx, 1, args.array(), "d", &seek_pos)) {
         return false;
     }
 
@@ -299,17 +378,19 @@ static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 
     NFIO->seek(seek_pos);    
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_file_rewind(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
 
-    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
@@ -318,17 +399,19 @@ static JSBool native_file_rewind(JSContext *cx, unsigned argc, jsval *vp)
 
     NFIO->seek(0);    
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
 
-    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
@@ -343,38 +426,51 @@ static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
     NativeJSFileIO *NJSFIO;
     NativeFileIO *NFIO;
     JSString *modes;
 
-    NATIVE_CHECK_ARGS("open", 2);
-
-    if (JS_InstanceOf(cx, caller, &File_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
-    }
-
-    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "S", &modes)) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertArguments(cx, 1, args.array(), "S", &modes)) {
         return false;
     }
 
     NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
 
+    NATIVE_CHECK_ARGS("open", (NJSFIO->m_Async ? 2 : 1));
+
+    if (NJSFIO->m_Async &&
+        !JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+        JS_ReportError(cx, "open() invalid callback");
+        return false;
+    }
+
     NFIO = NJSFIO->getNFIO();
-
-    NJSFIO->callbacks.open = callback;
-
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
 
     JSAutoByteString cmodes(cx, modes);
 
-    NFIO->open(cmodes.ptr());
+    if (NJSFIO->m_Async) {
+        NJSFIO->callbacks.open = callback;
+        NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(JSVAL_TO_OBJECT(callback));
+        NFIO->open(cmodes.ptr());
+    } else {
+        int err;
+        int ret = NFIO->openSync(cmodes.ptr(), &err);
 
-    return JS_TRUE;
+        if (ret != 1) {
+            JS_ReportError(cx, "open() failed (%d) : %s", err, strerror(err));
+            return false;
+        } else {
+            args.rval().setBoolean(true);
+        }
+    }
+
+    return true;
 }
 
 void NativeJSFileIO::onNFIOOpen(NativeFileIO *NSFIO)
