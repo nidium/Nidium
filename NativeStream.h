@@ -109,7 +109,6 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             return m_KnownSize;
         }
 
-
         /*****************************/
         NativeStreamDelegate *delegate;
 
@@ -169,6 +168,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         bool m_KnownSize;
 
         char *m_Location;
+
+        bool m_Pending;
 };
 
 class NativeStreamDelegate
