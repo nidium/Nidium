@@ -59,7 +59,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         virtual ~NativeStream();
 
         void setAutoClose(bool close); 
-        const char *getLocation() const { return this->location; }
+        const char *getLocation() const { return m_Location; }
         static char *resolvePath(const char *url,
             StreamResolveMode mode = STREAM_RESOLVE_PATH);
 
@@ -102,7 +102,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
             Determine if getNextPacket is going to return some data
         */
         bool hasDataAvailable() const {
-            return !dataBuffer.alreadyRead || (dataBuffer.ended && dataBuffer.back->used);
+            return !m_DataBuffer.alreadyRead || (m_DataBuffer.ended && m_DataBuffer.back->used);
         }
 
         bool hasFileSize() const {
@@ -130,10 +130,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
         void onNFIOWrite(NativeFileIO *, size_t written);
 
-        char *location;
-
         size_t getPacketSize() const {
-            return this->packets;
+            return this->m_PacketsSize;
         }
 
         static NativeStream::StreamInterfaces typeInterface(const char *url, int *len);
@@ -143,23 +141,25 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void setInterface(StreamInterfaces interface, int path_offset);
         void clean();
         ape_global *net;
-        size_t packets;
+
+        size_t m_PacketsSize;
+
         struct {
             buffer *back;
             buffer *front;
             bool alreadyRead;
             bool fresh;
             bool ended;
-        } dataBuffer;
+        } m_DataBuffer;
 
         struct {
             int fd;
             void *addr;
             size_t idx;
             size_t size;
-        } mapped;
+        } m_Mapped;
 
-        bool needToSendUpdate;
+        bool m_NeedToSendUpdate;
         bool m_AutoClose;
         void swapBuffer();
 
@@ -167,6 +167,8 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         size_t m_BufferedPosition;
         off_t m_FileSize;
         bool m_KnownSize;
+
+        char *m_Location;
 };
 
 class NativeStreamDelegate
