@@ -45,6 +45,8 @@
 #include "SkLightingImageFilter.h"
 #include "NativeMacros.h"
 
+#include "Sk2DPathEffect.h"
+
 SkCanvas *NativeSkia::glcontext = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
@@ -583,6 +585,24 @@ void NativeSkia::setFontType(const char *str)
     tf->unref();
 }
 
+void NativeSkia::setFontFile(const char *str)
+{
+    NLOG("Loading font %s", str);
+    SkTypeface *tf = SkTypeface::CreateFromFile(str);
+    // Workarround for skia bug #1648
+    // https://code.google.com/p/skia/issues/detail?id=1648
+    if (tf == NULL) {
+        tf = SkTypeface::CreateFromName(NULL, 
+                SkTypeface::kNormal);
+        if (tf == NULL) return;
+    }
+
+    PAINT->setTypeface(tf);
+    PAINT_STROKE->setTypeface(tf);
+
+    tf->unref();
+}
+
 /* TODO: bug with alpha */
 void NativeSkia::drawText(const char *text, int x, int y)
 {
@@ -874,9 +894,7 @@ void NativeSkia::setGlobalComposite(const char *str)
 
 void NativeSkia::setLineWidth(double size)
 {
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
-
-    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size*ratio));
+    PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
 }
 
 void NativeSkia::beginPath()
@@ -977,7 +995,20 @@ void NativeSkia::stroke()
     /* The matrix was already applied point by point */
     m_Canvas->save(SkCanvas::kMatrix_SaveFlag);
     m_Canvas->resetMatrix();
+
+    SkScalar lineWidth = PAINT_STROKE->getStrokeWidth();
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    PAINT_STROKE->setStrokeWidth(SkFloatToScalar(ratio) * lineWidth);
+
+#if 0
+    SkMatrix mat;
+    mat.setIdentity();
+    PAINT_STROKE->setPathEffect(new SkLine2DPathEffect(SK_Scalar1, mat))->unref();
+#endif
     m_Canvas->drawPath(*currentPath, *PAINT_STROKE);
+    PAINT_STROKE->setStrokeWidth(lineWidth);
+
     m_Canvas->restore();
 
     if (shader != NULL && m != NULL) {

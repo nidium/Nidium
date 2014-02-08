@@ -25,7 +25,9 @@ NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram) :
     */
     m_GLContext = new NativeGLContext(ui, ui->getGLContext());
 
-    this->initGLBase(withProgram);
+    if (!this->initGLBase(withProgram)) {
+        NLOG("[OpenGL] Failed to init base GL");
+    }
 }
 
 void NativeGLState::destroy()
@@ -33,6 +35,18 @@ void NativeGLState::destroy()
     if (!m_Shared) {
         delete this;
     }
+}
+
+void NativeGLState::setVertexDeformation(uint32_t vertex, float x, float y)
+{
+    NATIVE_GL_CALL_THIS(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
+
+    float mod[2] = {x, y};
+
+    NATIVE_GL_CALL_THIS(BufferSubData(GL_ARRAY_BUFFER,
+        (sizeof(NativeVertex) * vertex) + offsetof(NativeVertex, Modifier),
+        sizeof(((NativeVertex *)0)->Modifier),
+        &mod));
 }
 
 bool NativeGLState::initGLBase(bool withProgram)
@@ -44,17 +58,18 @@ bool NativeGLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
+    NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(16);
 
     NATIVE_GL_CALL_THIS(BindVertexArray(m_GLObjects.vao));
 
     NATIVE_GL_CALL_THIS(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION));
     NATIVE_GL_CALL_THIS(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD));
+    NATIVE_GL_CALL_THIS(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_MODIFIER));
 
     /* Upload the list of vertex */
     NATIVE_GL_CALL_THIS(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
     NATIVE_GL_CALL_THIS(BufferData(GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
-        vtx->vertices, GL_STATIC_DRAW));
+        vtx->vertices, GL_DYNAMIC_DRAW));
 
     /* Upload the indexes for triangle strip */
     NATIVE_GL_CALL_THIS(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
@@ -68,8 +83,16 @@ bool NativeGLState::initGLBase(bool withProgram)
                           sizeof(NativeVertex),
                           (GLvoid*) offsetof(NativeVertex, TexCoord)));
 
+    NATIVE_GL_CALL_THIS(VertexAttribPointer(NativeCanvasContext::SH_ATTR_MODIFIER, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(NativeVertex),
+                          (GLvoid*) offsetof(NativeVertex, Modifier)));
+
     if (withProgram) {
         this->m_GLObjects.program = NativeCanvasContext::createPassThroughProgram(this->m_Resources);
+
+        if (this->m_GLObjects.program == 0) {
+            return false;
+        }
 
         NATIVE_GL_CALL_RET_THIS(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
             m_GLObjects.uniforms.u_projectionMatrix);

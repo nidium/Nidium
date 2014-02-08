@@ -51,6 +51,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
         uint32_t attachShader(const char *string);
         void detachShader();
 
+        void setVertexDeformation(uint32_t vertex, float x, float y);
+
         NativeSkia *getSurface() const {
             return this->m_Skia;
         }

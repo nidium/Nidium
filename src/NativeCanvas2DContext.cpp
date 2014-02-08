@@ -139,6 +139,8 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
     jsval *vp);
 static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
+    jsval *vp);
 
 /* GLSL related */
 static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
@@ -224,6 +226,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("light", native_canvas2dctx_light, 3, 0),
     JS_FN("attachFragmentShader", native_canvas2dctx_attachGLSLFragment, 1, 0),
     JS_FN("detachFragmentShader", native_canvas2dctx_detachGLSLFragment, 0, 0),
+    JS_FN("setVertexOffset", native_canvas2dctx_setVertexOffset, 3, 0),
     JS_FS_END
 };
 
@@ -371,7 +374,8 @@ static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *v
         return false;
     }
 
-    JSAutoByteString text(cx, str);
+    JSAutoByteString text;
+    text.encodeUtf8(cx, str);
 
     NSKIA_NATIVE->drawText(text.ptr(), x, y);
 
@@ -1002,6 +1006,24 @@ static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc
     return true;
 }
 
+static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeCanvas2DContext *nctx = NCTX_NATIVE;
+
+    uint32_t vertex;
+    double x, y;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "udd",
+        &vertex, &x, &y)) {
+        return false;
+    }
+
+    nctx->setVertexDeformation(vertex, x, y);
+
+    return true;
+}
+
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp)
 {
@@ -1434,6 +1456,17 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             }
             JSAutoByteString font(cx, JSVAL_TO_STRING(vp));
             curSkia->setFontType(font.ptr());          
+        }
+        break;
+        case CTX_PROP(fontFile):
+        {
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
+
+                return JS_TRUE;
+            }
+            JSAutoByteString font(cx, JSVAL_TO_STRING(vp));
+            curSkia->setFontFile(font.ptr());          
         }
         break;
         case CTX_PROP(fillStyle):
@@ -2008,6 +2041,25 @@ void NativeCanvas2DContext::detachShader()
 #endif
 }
 
+void NativeCanvas2DContext::setVertexDeformation(uint32_t vertex,
+    float x, float y)
+{
+    NativeGLState *state = m_GLState;
+
+    /*
+        If the GL state is shared among other Canvas, create a new one
+    */
+    if (state->isShared()) {
+        NLOG("New GL state created !");
+        state = new NativeGLState(m_GLState->getNativeGLContext()->getUI());
+        state->setShared(false);
+
+        m_GLState = state;
+    }
+
+    state->setVertexDeformation(vertex, x, y);
+}
+
 void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
@@ -2120,8 +2172,6 @@ void NativeCanvas2DContext::setSize(int width, int height)
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    const SkBitmap &bt = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
-
     if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
         if ((ncanvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
@@ -2129,7 +2179,10 @@ void NativeCanvas2DContext::setSize(int width, int height)
         }
 
         NativeSkia::glcontext = ncanvas;
+
     } else {
+        const SkBitmap &bt = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
+
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                     width*ratio, height*ratio, false);
 
@@ -2139,9 +2192,10 @@ void NativeCanvas2DContext::setSize(int width, int height)
         }
 
         ncanvas = new SkCanvas(ndev);
-    }
 
-    ncanvas->drawBitmap(bt, 0, 0);
+        ncanvas->drawBitmap(bt, 0, 0);
+    }
+    
     //ncanvas->clipRegion(skia->getCanvas()->getTotalClip());
     ncanvas->setMatrix(m_Skia->getCanvas()->getTotalMatrix());
 
@@ -2151,6 +2205,9 @@ void NativeCanvas2DContext::setSize(int width, int height)
     m_Skia->setCanvas(ncanvas);
     ncanvas->unref();
 
+    if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
+        m_Skia->drawRect(0, 0, 1, 1, 0);
+    }
 }
 
 void NativeCanvas2DContext::translate(double x, double y)

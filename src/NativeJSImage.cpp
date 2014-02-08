@@ -176,10 +176,17 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
     jsval rval, onload_callback;
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
+    if (data == NULL || len == 0) {
+        timer_dispatch_async(delete_stream, stream);
+        stream = NULL;
+        return;
+    }
+
     NativeSkImage *ImageObject = new NativeSkImage((void *)data, len);
     if (ImageObject->img == NULL) {
         timer_dispatch_async(delete_stream, stream);
         stream = NULL;
+        delete ImageObject;
         return;
     }
     img = ImageObject;

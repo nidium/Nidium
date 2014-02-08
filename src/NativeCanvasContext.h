@@ -24,7 +24,8 @@ public:
     /* Explicit name used by glBindAttribLocation */
     enum {
         SH_ATTR_POSITION = 0,
-        SH_ATTR_TEXCOORD = 1
+        SH_ATTR_TEXCOORD = 1,
+        SH_ATTR_MODIFIER = 2
     };
 
     class JSObject *jsobj;

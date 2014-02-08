@@ -56,6 +56,10 @@ public:
         m_Shared = val;
     }
 
+    bool isShared() const {
+        return m_Shared;
+    }
+
     uint32_t getProgram() const {
         return m_GLObjects.program;
     }
@@ -65,6 +69,8 @@ public:
     bool makeGLCurrent() {
         return m_GLContext->makeCurrent();
     }
+
+    void setVertexDeformation(uint32_t vertex, float x, float y);
 
     NativeGLContext *getNativeGLContext() const {
         return m_GLContext;

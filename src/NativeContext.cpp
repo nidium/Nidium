@@ -141,17 +141,17 @@ void NativeContext::setWindowSize(int w, int h)
     /* OS window */
     this->getUI()->setWindowSize((int)w, (int)h);
 
-    this->sizeChanged(w, h);
+    //this->sizeChanged(w, h);
 }
 
 void NativeContext::sizeChanged(int w, int h)
 {
     NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(this->getNJS());
 
-    printf("Window size changed %d %d\n", w, h);
+    NLOG("Change GL : Window size changed %d %d\n", w, h);
     /* Skia GL */
     this->getRootHandler()->setSize((int)w, (int)h);
-
+    NLOG("Change main handler");
     /* Native Canvas */
     jswindow->getCanvasHandler()->setSize((int)w, (int)h);
 }

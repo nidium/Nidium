@@ -120,6 +120,9 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
             
             vert[t].TexCoord[0] = ((float)j*txstep);
             vert[t].TexCoord[1] = 1-(((float)i*tystep));
+
+            vert[t].Modifier[0] = 0.;
+            vert[t].Modifier[1] = 0.;
         }
     }
 
@@ -167,10 +170,11 @@ uint32_t NativeCanvasContext::createPassThroughVertex()
     /* PassThrough Vertex shader */
     const char *vertex_s = "#version 100\nprecision mediump float;\nattribute vec4 Position;\n"
     "attribute vec2 TexCoordIn;\n"
+    "attribute vec2 Modifier;\n"
     "varying vec2 TexCoordOut;\n"
     "uniform mat4 u_projectionMatrix;\n"
     "void main(void) {\n"
-    "    gl_Position = u_projectionMatrix * Position;\n"
+    "    gl_Position = u_projectionMatrix * Position + vec4(Modifier, 0., 0.);\n"
     "    TexCoordOut = TexCoordIn;\n"
     "}";
 
@@ -219,6 +223,9 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 
     glBindAttribLocation(programHandle,
         NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn");
+
+    glBindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_MODIFIER, "Modifier");
     
     glLinkProgram(programHandle);
 

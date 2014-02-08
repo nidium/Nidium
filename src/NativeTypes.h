@@ -18,6 +18,7 @@ typedef struct _NMLTag {
 typedef struct _NativeVertex {
     float Position[3];
     float TexCoord[2];
+    float Modifier[2];
 } NativeVertex;
 
 typedef struct _NativeVertices {
