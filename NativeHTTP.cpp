@@ -436,16 +436,21 @@ void NativeHTTP::clearTimeout()
 int NativeHTTP::request(NativeHTTPDelegate *delegate)
 {
     ape_socket *socket;
+    this->delegate = delegate;
 
     if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
         printf("[Socket] Cant load socket (new)\n");
-        this->delegate->onError(ERROR_SOCKET);
+        if (this->delegate) {
+            this->delegate->onError(ERROR_SOCKET);
+        }
         return 0;
     }
 
     if (APE_socket_connect(socket, this->req->getPort(), this->req->getHost(), 0) == -1) {
         printf("[Socket] Cant connect (0)\n");
-        this->delegate->onError(ERROR_SOCKET);
+        if (this->delegate) {
+            this->delegate->onError(ERROR_SOCKET);
+        }
         return 0;
     }
 
@@ -455,7 +460,7 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
 
     http.ended = 0;
     socket->ctx = this;
-    this->delegate = delegate;
+    
     this->currentSock = socket;
     delegate->httpref = this;
 
