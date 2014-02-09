@@ -47,7 +47,7 @@ void NativeContext_vLogger(const char *format, va_list ap)
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    debugHandler(NULL), UI(nui), m_NML(nml)
+    m_DebugHandler(NULL), UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
 
@@ -140,8 +140,7 @@ void NativeContext::setWindowSize(int w, int h)
 {
     /* OS window */
     this->getUI()->setWindowSize((int)w, (int)h);
-
-    //this->sizeChanged(w, h);
+    this->sizeChanged(w, h);
 }
 
 void NativeContext::sizeChanged(int w, int h)
@@ -158,26 +157,27 @@ void NativeContext::sizeChanged(int w, int h)
 
 void NativeContext::createDebugCanvas()
 {
-    NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
+    NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
-    debugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
-    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(debugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
-    debugHandler->setContext(ctx2d);
+    m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
+    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
+    m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
-    rootHandler->addChild(debugHandler);
-    debugHandler->setRight(0);
-    debugHandler->setOpacity(0.6);
+
+    m_RootHandler->addChild(m_DebugHandler);
+    m_DebugHandler->setRight(0);
+    m_DebugHandler->setOpacity(0.6);
 }
 
 void NativeContext::postDraw()
 {
-    if (NativeJSNative::showFPS && debugHandler) {
+    if (NativeJSNative::showFPS && m_DebugHandler) {
 
-        NativeSkia *s = ((NativeCanvas2DContext *)debugHandler->getContext())->getSurface();
-        debugHandler->bringToFront();
+        NativeSkia *s = ((NativeCanvas2DContext *)m_DebugHandler->getContext())->getSurface();
+        m_DebugHandler->bringToFront();
 
         s->setFillColor(0xFF000000u);
-        s->drawRect(0, 0, debugHandler->getWidth(), debugHandler->getHeight(), 0);
+        s->drawRect(0, 0, m_DebugHandler->getWidth(), m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
         s->setFontType("monospace");
@@ -190,9 +190,9 @@ void NativeContext::postDraw()
         for (int i = 0; i < sizeof(stats.samples)/sizeof(float); i++) {
             //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
-            s->drawLine(debugHandler->getWidth()-20-i*3, 55, debugHandler->getWidth()-20-i*3, 20.f);
+            s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, 20.f);
             s->setStrokeColor(0xFF00BB00u);   
-            s->drawLine(debugHandler->getWidth()-20-i*3, 55, debugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)stats.samples[i]), 55));
+            s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)stats.samples[i]), 55));
         }
         //s->setLineWidth(1.0);
         
@@ -247,14 +247,14 @@ NativeContext::~NativeContext()
 {
     JS_RemoveValueRoot(njs->cx, &gfunc);
 
-    if (debugHandler != NULL) {
-        delete debugHandler->getContext();
-        delete debugHandler;
+    if (m_DebugHandler != NULL) {
+        delete m_DebugHandler->getContext();
+        delete m_DebugHandler;
     }
 
-    if (rootHandler != NULL) {
-        delete rootHandler->getContext();
-        delete rootHandler;
+    if (m_RootHandler != NULL) {
+        delete m_RootHandler->getContext();
+        delete m_RootHandler;
     }
 
     NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(this->getNJS());
@@ -273,21 +273,21 @@ void NativeContext::frame()
     this->callFrame();
     this->postDraw();
 
-    this->getRootHandler()->getContext()->flush();
-    this->getRootHandler()->getContext()->resetGLContext();
+    m_RootHandler->getContext()->flush();
+    m_RootHandler->getContext()->resetGLContext();
 
     /* We draw on the screen */
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    this->getRootHandler()->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
+    m_RootHandler->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
     /* Skia context is dirty after a call to layerize */
-    ((NativeCanvas2DContext *)this->getRootHandler()->getContext())->resetSkiaContext();
+    ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }
 
 void NativeContext::initHandlers(int width, int height)
 {
-    rootHandler = new NativeCanvasHandler(width, height);
-    rootHandler->setContext(new NativeCanvas2DContext(rootHandler, width, height, this->getUI()));
-    rootHandler->getContext()->setGLState(this->getGLState());
+    m_RootHandler = new NativeCanvasHandler(width, height);
+    m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, this->getUI()));
+    m_RootHandler->getContext()->setGLState(this->getGLState());
 }
 
 bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)

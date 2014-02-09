@@ -28,7 +28,7 @@ class NativeContext : public NativeJSDelegate
         return this->UI;
     }
     NativeCanvasHandler *getRootHandler() const {
-        return this->rootHandler;
+        return m_RootHandler;
     }
 
     NativeJS *getNJS() const {
@@ -71,8 +71,8 @@ class NativeContext : public NativeJSDelegate
     private:
     NativeGLResources m_Resources;
     NativeJS *njs;
-    NativeCanvasHandler *rootHandler;
-    NativeCanvasHandler *debugHandler;
+    NativeCanvasHandler *m_RootHandler;
+    NativeCanvasHandler *m_DebugHandler;
     NativeUIInterface *UI;
     NativeNML *m_NML;
     NativeGLState *m_GLState;
