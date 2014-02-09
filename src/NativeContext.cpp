@@ -84,8 +84,15 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     __preloadScripts(&this->preload);
 
-    const char *loadPreload[] = {"falcon/native.js", "../scripts/preload.js"};
-    for (int i = 0; i < 2; i++) {
+    /*
+        TODO: Why is "native.js" hardcoded???
+    */
+    const char *loadPreload[] = {
+        "falcon/native.js",
+        "../scripts/preload.js"
+    };
+
+    for (int i = 0; i < (sizeof(loadPreload) / sizeof(intptr_t)); i++) {
         NativeBytecodeScript *script = this->preload.get(loadPreload[i]);
         if (script) {
             m_JS->LoadBytecode(script);

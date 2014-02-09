@@ -926,7 +926,7 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
     if (handler != NULL) {
         NativeCanvasHandler *cur;
 
-        for (cur = handler->children; cur != NULL; cur = cur->next) {
+        for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->jsobj) {
 #ifdef DEBUG
                 JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);

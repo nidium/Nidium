@@ -14,8 +14,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     right(0.0), bottom(0.0),
     overflow(true),
-    parent(NULL), children(NULL), next(NULL),
-    prev(NULL), last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
+    m_Parent(NULL), m_Children(NULL), m_Next(NULL),
+    m_Prev(NULL), m_Last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE),
     coordMode(kLeft_Coord | kTop_Coord),
     opacity(1.0),
@@ -98,6 +98,8 @@ void NativeCanvasHandler::setSize(int width, int height)
     this->width = width;
     this->height = height;
 
+    NLOG("set size of %p", this);
+
     if (m_Context) {
         m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));
@@ -110,7 +112,7 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 {
     NativeCanvasHandler *cur;
 
-    for (cur = children; cur != NULL; cur = cur->next) {
+    for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         bool updateWidth = false, updateHeight = false;
 
         if (width && !cur->hasFixedWidth()) {
@@ -123,7 +125,7 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
         if (!updateHeight && !updateWidth) {
             continue;
         }
-
+        NLOG("Update size of %p through parent", cur);
         cur->setSize(updateWidth ? cur->getWidth() : cur->width,
             updateHeight ? cur->getHeight() : cur->height);
     }
@@ -163,20 +165,20 @@ void NativeCanvasHandler::setScrollTop(int value)
 
 void NativeCanvasHandler::bringToFront()
 {
-    if (!this->parent) {
+    if (!m_Parent) {
         return;
     }
 
-    this->parent->addChild(this, POSITION_FRONT);
+    m_Parent->addChild(this, POSITION_FRONT);
 }
 
 void NativeCanvasHandler::sendToBack()
 {
-    if (!this->parent) {
+    if (!m_Parent) {
         return;
     }
 
-    this->parent->addChild(this, POSITION_BACK);
+    m_Parent->addChild(this, POSITION_BACK);
 }
 
 void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
@@ -187,38 +189,38 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
 
     switch(position) {
         case POSITION_FRONT:
-            if (!children) {
-                children = insert;
+            if (!m_Children) {
+                m_Children = insert;
             }
-            insert->next = NULL;
-            insert->prev = last;
+            insert->m_Next = NULL;
+            insert->m_Prev = m_Last;
 
-            if (last) {
-                last->next = insert;
+            if (m_Last) {
+                m_Last->m_Next = insert;
             }
 
-            last = insert;
+            m_Last = insert;
             break;
         case POSITION_BACK:
-            if (!last) {
-                last = insert;
+            if (!m_Last) {
+                m_Last = insert;
             }
-            if (children) {
-                children->prev = insert;
+            if (m_Children) {
+                m_Children->m_Prev = insert;
             }
-            insert->next = children;
-            insert->prev = NULL;
-            children = insert;
+            insert->m_Next = m_Children;
+            insert->m_Prev = NULL;
+            m_Children = insert;
             break;
     }
     
-    insert->parent = this;
+    insert->m_Parent = this;
     this->nchildren++;
 }
 
 void NativeCanvasHandler::removeFromParent()
 {   
-    if (!parent) {
+    if (!m_Parent) {
         return;
     }
 
@@ -227,25 +229,25 @@ void NativeCanvasHandler::removeFromParent()
         JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
     
-    if (parent->children == this) {
-        parent->children = next;
+    if (m_Parent->m_Children == this) {
+        m_Parent->m_Children = m_Next;
     }
 
-    if (parent->last == this) {
-        parent->last = prev;
+    if (m_Parent->m_Last == this) {
+        m_Parent->m_Last = m_Prev;
     }
 
-    if (prev) {
-        prev->next = next;
+    if (m_Prev) {
+        m_Prev->m_Next = m_Next;
     }
-    if (next) {
-        next->prev = prev;
+    if (m_Next) {
+        m_Next->m_Prev = m_Prev;
     }
 
-    parent->nchildren--;
-    parent = NULL;
-    next = NULL;
-    prev = NULL;
+    m_Parent->nchildren--;
+    m_Parent = NULL;
+    m_Next = NULL;
+    m_Prev = NULL;
 
 }
 
@@ -359,7 +361,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             
         }
 #endif
-        for (cur = children; cur != NULL; cur = cur->next) {
+        for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
             if (cur->coordPosition == COORD_RELATIVE) {
                 offsetLeft = -this->content.scrollLeft;
@@ -402,7 +404,7 @@ bool NativeCanvasHandler::hasAFixedAncestor() const
     if (coordPosition == COORD_FIXED) {
         return true;
     }
-    return (parent ? parent->hasAFixedAncestor() : false);
+    return (m_Parent ? m_Parent->hasAFixedAncestor() : false);
 }
 
 /* Compute whether or the canvas is going to be drawn */
@@ -412,7 +414,7 @@ bool NativeCanvasHandler::isDisplayed() const
         return false;
     }
 
-    return (parent ? parent->isDisplayed() : true);
+    return (m_Parent ? m_Parent->isDisplayed() : true);
 }
 
 void NativeCanvasHandler::computeAbsolutePosition()
@@ -425,7 +427,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
     double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
 
-    NativeCanvasHandler *cparent = this->parent;
+    NativeCanvasHandler *cparent = m_Parent;
 
     while (cparent != NULL) {
 
@@ -436,7 +438,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
             break;
         }
 
-        cparent = cparent->parent;
+        cparent = cparent->getParent();
     }
 
     this->a_top = ctop;
@@ -446,13 +448,13 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
 bool NativeCanvasHandler::isOutOfBound()
 {
-    if (!this->parent) {
+    if (!m_Parent) {
         return false;
     }
 
     NativeCanvasHandler *cur;
 
-    for (cur = this->parent; cur != NULL; cur = cur->parent) {
+    for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
         if (!cur->overflow) {
             
             cur->computeAbsolutePosition();
@@ -472,21 +474,28 @@ NativeRect NativeCanvasHandler::getViewport()
 {
     NativeCanvasHandler *cur = NULL;
 
-    for (cur = this->parent; cur != NULL; cur = cur->parent) {
-        if (!cur->parent) break;
+    for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
+        if (!cur->m_Parent) break;
 
         if (!cur->overflow) {
             
             cur->computeAbsolutePosition();
 
-            return {cur->getLeft(true), cur->getTop(true),
-                cur->getTop(true)+cur->height, cur->getLeft(true)+cur->width};
+            return {
+                cur->getLeft(true),
+                cur->getTop(true),
+                cur->getTop(true)+cur->height,
+                cur->getLeft(true)+cur->width
+            };
         }
     }
     if (!cur) cur = this;
 
-    return {cur->getLeft(), cur->getTop(),
-        cur->getTop()+cur->height, cur->getLeft()+cur->width};
+    return {
+        cur->getLeft(),
+        cur->getTop(),
+        cur->getTop()+cur->height,
+        cur->getLeft()+cur->width};
 }
 
 NativeRect NativeCanvasHandler::getVisibleRect()
@@ -515,7 +524,7 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
         return;
     }
 
-    for (cur = children; cur != NULL; cur = cur->next) {
+    for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         if (cur->coordPosition == COORD_RELATIVE &&
             cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
             
@@ -563,7 +572,7 @@ void NativeCanvasHandler::getChildren(NativeCanvasHandler **out) const
 {
     NativeCanvasHandler *cur;
     int i = 0;
-    for (cur = children; cur != NULL; cur = cur->next) {
+    for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         out[i++] = cur;
     }
 }
@@ -590,7 +599,7 @@ void NativeCanvasHandler::recursiveScale(double x, double y,
     
     cur->m_Context->setScale(x, y, oldX, oldY);
 
-    for (cur = children; cur != NULL; cur = cur->next) {
+    for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         cur->recursiveScale(x, y, oldX, oldY);
     }
 }
@@ -628,14 +637,14 @@ void NativeCanvasHandler::unrootHierarchy()
 
 NativeCanvasHandler::~NativeCanvasHandler()
 {
-    NativeCanvasHandler *cur = children, *cnext;
+    NativeCanvasHandler *cur = m_Children, *cnext;
 
     removeFromParent();
 
     /* all children got orphaned :( */
     while(cur != NULL) {
         //printf("Warning: a canvas got orphaned (%p)\n", cur);
-        cnext = cur->next;
+        cnext = cur->m_Next;
         cur->removeFromParent();
         cur = cnext;
     }

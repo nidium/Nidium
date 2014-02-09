@@ -138,7 +138,7 @@ class NativeCanvasHandler
             if (absolute) return a_left;
 
             if (!(coordMode & kLeft_Coord)) {
-                return this->parent->getWidth() - (this->width + this->right);
+                return m_Parent->getWidth() - (this->width + this->right);
             }
 
             return this->left;
@@ -147,7 +147,7 @@ class NativeCanvasHandler
             if (absolute) return a_top;
 
             if (!(coordMode & kTop_Coord)) {
-                return this->parent->getHeight() - (this->height + this->bottom);
+                return m_Parent->getHeight() - (this->height + this->bottom);
             }
 
             return this->top;
@@ -155,8 +155,8 @@ class NativeCanvasHandler
 
         double getTopScrolled() const {
             double top = getTop();
-            if (coordPosition == COORD_RELATIVE && parent != NULL) {
-                top -= parent->content.scrollTop;
+            if (coordPosition == COORD_RELATIVE && m_Parent != NULL) {
+                top -= m_Parent->content.scrollTop;
             }
 
             return top;
@@ -164,8 +164,8 @@ class NativeCanvasHandler
 
         double getLeftScrolled() const {
             double left = getLeft();
-            if (coordPosition == COORD_RELATIVE && parent != NULL) {
-                left -= parent->content.scrollLeft;
+            if (coordPosition == COORD_RELATIVE && m_Parent != NULL) {
+                left -= m_Parent->content.scrollLeft;
             }
             return left;
         }
@@ -184,9 +184,9 @@ class NativeCanvasHandler
             if (hasFixedWidth()) {
                 return this->width;
             }
-            if (parent == NULL) return 0.;
+            if (m_Parent == NULL) return 0.;
 
-            double pwidth = parent->getWidth();
+            double pwidth = m_Parent->getWidth();
 
             if (pwidth == 0) return 0.;
 
@@ -200,9 +200,9 @@ class NativeCanvasHandler
             if (hasFixedHeight()) {
                 return this->height;
             }
-            if (parent == NULL) return 0.;
+            if (m_Parent == NULL) return 0.;
 
-            double pheight = parent->getHeight();
+            double pheight = m_Parent->getHeight();
 
             if (pheight == 0) return 0.;
 
@@ -325,20 +325,23 @@ class NativeCanvasHandler
         void setZoom(double val);
         void removeFromParent();
         void getChildren(NativeCanvasHandler **out) const;
-        NativeCanvasHandler *getParent() const { return this->parent; }
-        NativeCanvasHandler *getFirstChild() const { return this->children; }
-        NativeCanvasHandler *getLastChild() const { return this->last; }
-        NativeCanvasHandler *getNextSibling() const { return this->next; }
-        NativeCanvasHandler *getPrevSibling() const { return this->prev; }
+
+        NativeCanvasHandler *getParent() const { return m_Parent; }
+        NativeCanvasHandler *getFirstChild() const { return m_Children; }
+        NativeCanvasHandler *getLastChild() const { return m_Last; }
+        NativeCanvasHandler *getNextSibling() const { return m_Next; }
+        NativeCanvasHandler *getPrevSibling() const { return m_Prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
         void layerize(NativeCanvasHandler *layer, double pleft,
             double ptop, double aopacity, double zoom, NativeRect *clip);
-        NativeCanvasHandler *parent;
-        NativeCanvasHandler *children;
-        NativeCanvasHandler *next;
-        NativeCanvasHandler *prev;
-        NativeCanvasHandler *last;
+
+        NativeCanvasHandler *m_Parent;
+        NativeCanvasHandler *m_Children;
+
+        NativeCanvasHandler *m_Next;
+        NativeCanvasHandler *m_Prev;
+        NativeCanvasHandler *m_Last;
     private:
         int32_t nchildren;
         void dispatchMouseEvents(NativeCanvasHandler *layer);
