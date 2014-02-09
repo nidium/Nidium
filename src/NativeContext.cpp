@@ -47,42 +47,39 @@ void NativeContext_vLogger(const char *format, va_list ap)
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    m_DebugHandler(NULL), UI(nui), m_NML(nml)
+    m_DebugHandler(NULL), m_UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
 
     ShInitialize();
 
-    currentFPS = 0;
+    m_Stats.nframe = 0;
+    m_Stats.starttime = NativeUtils::getTick();
+    m_Stats.lastmeasuredtime = m_Stats.starttime;
+    m_Stats.lastdifftime = 0;
+    m_Stats.cumulframe = 0;
+    m_Stats.cumultimems = 0.f;
+    m_Stats.fps = 0.f;
+    m_Stats.minfps = UINT32_MAX;
+    m_Stats.sampleminfps = 0.f;
 
-    
-    this->stats.nframe = 0;
-    this->stats.starttime = NativeUtils::getTick();
-    this->stats.lastmeasuredtime = this->stats.starttime;
-    this->stats.lastdifftime = 0;
-    this->stats.cumulframe = 0;
-    this->stats.cumultimems = 0.f;
-    this->stats.fps = 0.f;
-    this->stats.minfps = UINT32_MAX;
-    this->stats.sampleminfps = 0.f;
-
-    memset(this->stats.samples, 0, sizeof(this->stats.samples));
+    memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 
     this->m_GLState = new NativeGLState(nui);
 
     this->initHandlers(width, height);
 
-    this->njs = new NativeJS(net);
-    this->njs->setPrivate(this);
+    m_JS = new NativeJS(net);
+    m_JS->setPrivate(this);
 
-    this->njs->loadGlobalObjects();
+    m_JS->loadGlobalObjects();
     this->loadNativeObjects(width, height);
 
-    this->njs->setLogger(NativeContext_Logger);
-    this->njs->setLogger(NativeContext_vLogger);
-    this->njs->setDelegate(this);
+    m_JS->setLogger(NativeContext_Logger);
+    m_JS->setLogger(NativeContext_vLogger);
+    m_JS->setDelegate(this);
 
-    m_NML->setNJS(this->njs);
+    m_NML->setNJS(m_JS);
 
     __preloadScripts(&this->preload);
 
@@ -90,14 +87,14 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     for (int i = 0; i < 2; i++) {
         NativeBytecodeScript *script = this->preload.get(loadPreload[i]);
         if (script) {
-            this->njs->LoadBytecode(script);
+            m_JS->LoadBytecode(script);
         }
     }
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
 {
-    JSContext *cx = this->njs->cx;
+    JSContext *cx = m_JS->cx;
 
    /* CanvasRenderingContext2D object */
     NativeCanvas2DContext::registerObject(cx);
@@ -139,13 +136,13 @@ void NativeContext::loadNativeObjects(int width, int height)
 void NativeContext::setWindowSize(int w, int h)
 {
     /* OS window */
-    this->getUI()->setWindowSize((int)w, (int)h);
+    m_UI->setWindowSize((int)w, (int)h);
     this->sizeChanged(w, h);
 }
 
 void NativeContext::sizeChanged(int w, int h)
 {
-    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(this->getNJS());
+    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(m_JS);
 
     NLOG("Change GL : Window size changed %d %d\n", w, h);
     /* Skia GL */
@@ -182,17 +179,17 @@ void NativeContext::postDraw()
 
         s->setFontType("monospace");
         s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
-        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", this->stats.nframe, stats.lastdifftime/1000000LL);
-        s->drawTextf(5, 38, "Time : %lldns\n", stats.lastmeasuredtime-stats.starttime);
-        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", stats.fps, stats.sampleminfps);
+        s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime/1000000LL);
+        s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);
+        s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps, m_Stats.sampleminfps);
 
         s->setLineWidth(0.0);
-        for (int i = 0; i < sizeof(stats.samples)/sizeof(float); i++) {
-            //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*stats.samples[i]);
+        for (int i = 0; i < sizeof(m_Stats.samples)/sizeof(float); i++) {
+            //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
             s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, 20.f);
             s->setStrokeColor(0xFF00BB00u);   
-            s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)stats.samples[i]), 55));
+            s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)m_Stats.samples[i]), 55));
         }
         //s->setLineWidth(1.0);
         
@@ -208,44 +205,44 @@ void NativeContext::callFrame()
 {
     jsval rval;
     uint64_t tmptime = NativeUtils::getTick();
-    stats.nframe++;
+    m_Stats.nframe++;
 
-    stats.lastdifftime = tmptime - stats.lastmeasuredtime;
-    stats.lastmeasuredtime = tmptime;
+    m_Stats.lastdifftime = tmptime - m_Stats.lastmeasuredtime;
+    m_Stats.lastmeasuredtime = tmptime;
 
     /* convert to ms */
-    stats.cumultimems += (float)stats.lastdifftime / 1000000.f;
-    stats.cumulframe++;
+    m_Stats.cumultimems += (float)m_Stats.lastdifftime / 1000000.f;
+    m_Stats.cumulframe++;
 
-    stats.minfps = native_min(stats.minfps, 1000.f/(stats.lastdifftime/1000000.f));
-    //printf("FPS : %f\n", 1000.f/(stats.lastdifftime/1000000.f));
+    m_Stats.minfps = native_min(m_Stats.minfps, 1000.f/(m_Stats.lastdifftime/1000000.f));
+    //printf("FPS : %f\n", 1000.f/(m_Stats.lastdifftime/1000000.f));
 
-    //printf("Last diff : %f\n", (float)(stats.lastdifftime/1000000.f));
+    //printf("Last diff : %f\n", (float)(m_Stats.lastdifftime/1000000.f));
 
     /* Sample every 1000ms */
-    if (stats.cumultimems >= 1000.f) {
-        stats.fps = 1000.f/(float)(stats.cumultimems/(float)stats.cumulframe);
-        stats.cumulframe = 0;
-        stats.cumultimems = 0.f;
-        stats.sampleminfps = stats.minfps;
-        stats.minfps = UINT32_MAX;
+    if (m_Stats.cumultimems >= 1000.f) {
+        m_Stats.fps = 1000.f/(float)(m_Stats.cumultimems/(float)m_Stats.cumulframe);
+        m_Stats.cumulframe = 0;
+        m_Stats.cumultimems = 0.f;
+        m_Stats.sampleminfps = m_Stats.minfps;
+        m_Stats.minfps = UINT32_MAX;
 
-        memmove(&stats.samples[1], stats.samples, sizeof(stats.samples)-sizeof(float));
+        memmove(&m_Stats.samples[1], m_Stats.samples, sizeof(m_Stats.samples)-sizeof(float));
 
-        stats.samples[0] = stats.fps;
+        m_Stats.samples[0] = m_Stats.fps;
     }
 
-    NativeJSwindow::getNativeClass(this->getNJS())->callFrameCallbacks(tmptime);
+    NativeJSwindow::getNativeClass(m_JS)->callFrameCallbacks(tmptime);
 
     if (gfunc != JSVAL_VOID) {
-        JSAutoRequest ar(njs->cx);
-        JS_CallFunctionValue(njs->cx, JS_GetGlobalObject(njs->cx), gfunc, 0, NULL, &rval);
+        JSAutoRequest ar(m_JS->cx);
+        JS_CallFunctionValue(m_JS->cx, JS_GetGlobalObject(m_JS->cx), gfunc, 0, NULL, &rval);
     }
 }
 
 NativeContext::~NativeContext()
 {
-    JS_RemoveValueRoot(njs->cx, &gfunc);
+    JS_RemoveValueRoot(m_JS->cx, &gfunc);
 
     if (m_DebugHandler != NULL) {
         delete m_DebugHandler->getContext();
@@ -257,10 +254,10 @@ NativeContext::~NativeContext()
         delete m_RootHandler;
     }
 
-    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(this->getNJS());
+    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(m_JS);
     jswindow->callFrameCallbacks(0, true);
 
-    delete njs;
+    delete m_JS;
     delete m_GLState;
 
     NativeSkia::glcontext = NULL;
@@ -286,7 +283,7 @@ void NativeContext::frame()
 void NativeContext::initHandlers(int width, int height)
 {
     m_RootHandler = new NativeCanvasHandler(width, height);
-    m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, this->getUI()));
+    m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }
 

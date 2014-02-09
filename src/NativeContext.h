@@ -25,14 +25,22 @@ class NativeContext : public NativeJSDelegate
     ~NativeContext();
 
     NativeUIInterface *getUI() const {
-        return this->UI;
+        return m_UI;
     }
     NativeCanvasHandler *getRootHandler() const {
         return m_RootHandler;
     }
 
     NativeJS *getNJS() const {
-        return this->njs;
+        return m_JS;
+    }
+
+    NativeNML *getNML() const {
+        return m_NML;
+    }
+
+    NativeGLState *getGLState() const {
+        return m_GLState;
     }
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
@@ -55,13 +63,6 @@ class NativeContext : public NativeJSDelegate
         this->m_NML = nml;
     }
 
-    NativeNML *getNML() const {
-        return this->m_NML;
-    }
-
-    NativeGLState *getGLState() const {
-        return m_GLState;
-    }
 
     NativeHash<NativeBytecodeScript *> preload;
 
@@ -70,14 +71,12 @@ class NativeContext : public NativeJSDelegate
 
     private:
     NativeGLResources m_Resources;
-    NativeJS *njs;
+    NativeJS *m_JS;
     NativeCanvasHandler *m_RootHandler;
     NativeCanvasHandler *m_DebugHandler;
-    NativeUIInterface *UI;
+    NativeUIInterface *m_UI;
     NativeNML *m_NML;
     NativeGLState *m_GLState;
-
-    uint32_t currentFPS;
 
     struct {
         uint64_t nframe;
@@ -90,7 +89,7 @@ class NativeContext : public NativeJSDelegate
         float fps;
         float minfps;
         float sampleminfps;
-    } stats;
+    } m_Stats;
 
     void forceLinking();
     void loadNativeObjects(int width, int height);
