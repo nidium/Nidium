@@ -243,7 +243,7 @@ static void native_http_disconnect(ape_socket *s,
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
     if (nhttp == NULL ||
-        (nhttp->currentSock != NULL && s != nhttp->currentSock)) {
+        (nhttp->m_CurrentSock != NULL && s != nhttp->m_CurrentSock)) {
 
         return;
     }
@@ -253,7 +253,7 @@ static void native_http_disconnect(ape_socket *s,
     http_parser_execute(&nhttp->http.parser, &settings,
         NULL, 0);
 
-    nhttp->currentSock = NULL;
+    nhttp->m_CurrentSock = NULL;
 
     if (!nhttp->http.ended) {
         nhttp->delegate->onError(NativeHTTP::ERROR_DISCONNECTED);
@@ -282,9 +282,9 @@ static void native_http_read(ape_socket *s, ape_global *ape,
 }
 
 NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
-    ptr(NULL), net(n), currentSock(NULL),
-    err(0), timeout(HTTP_DEFAULT_TIMEOUT),
-    timeoutTimer(0), delegate(NULL), m_FileSize(0)
+    ptr(NULL), net(n), m_CurrentSock(NULL),
+    err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
+    m_TimeoutTimer(0), delegate(NULL), m_FileSize(0)
 {
     this->req = req;
 
@@ -383,8 +383,8 @@ void NativeHTTP::stopRequest(bool timeout)
         http.headers.tkey = NULL;
         http.headers.list = NULL;
 
-        if (currentSock) {
-            APE_socket_shutdown_now(currentSock);
+        if (m_CurrentSock) {
+            APE_socket_shutdown_now(m_CurrentSock);
         }
 
         if (timeout) {
@@ -412,8 +412,8 @@ void NativeHTTP::requestEnded()
         http.headers.tkey = NULL;
         http.headers.list = NULL;
 
-        if (currentSock) {
-            APE_socket_shutdown(currentSock);
+        if (m_CurrentSock) {
+            APE_socket_shutdown(m_CurrentSock);
         }
     } 
 }
@@ -427,9 +427,9 @@ static int NativeHTTP_handle_timeout(void *arg)
 
 void NativeHTTP::clearTimeout()
 {
-    if (this->timeoutTimer) {
-        clear_timer_by_id(&net->timersng, this->timeoutTimer, 1);
-        this->timeoutTimer = 0;
+    if (this->m_TimeoutTimer) {
+        clear_timer_by_id(&net->timersng, this->m_TimeoutTimer, 1);
+        this->m_TimeoutTimer = 0;
     }
 }
 
@@ -461,16 +461,16 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
     http.ended = 0;
     socket->ctx = this;
     
-    this->currentSock = socket;
+    this->m_CurrentSock = socket;
     delegate->httpref = this;
 
-    if (timeout) {
+    if (m_Timeout) {
         ape_timer *ctimer;
-        ctimer = add_timer(&net->timersng, timeout,
+        ctimer = add_timer(&net->timersng, m_Timeout,
             NativeHTTP_handle_timeout, this);
 
         ctimer->flags &= ~APE_TIMER_IS_PROTECTED;
-        timeoutTimer = ctimer->identifier;
+        m_TimeoutTimer = ctimer->identifier;
     }
 
     return 1;
@@ -478,12 +478,12 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
 
 NativeHTTP::~NativeHTTP()
 {
-    if (currentSock != NULL) {
-        currentSock->ctx = NULL;
-        APE_socket_shutdown_now(currentSock);
+    if (m_CurrentSock != NULL) {
+        m_CurrentSock->ctx = NULL;
+        APE_socket_shutdown_now(m_CurrentSock);
     }
 
-    if (timeoutTimer) {
+    if (m_TimeoutTimer) {
         this->clearTimeout();
     }
 

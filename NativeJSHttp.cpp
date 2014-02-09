@@ -187,7 +187,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     GET_OPT("timeout") {
         if (JSVAL_IS_NUMBER(curopt)) {
-            JS_ValueToECMAUint32(cx, curopt, &nhttp->timeout);
+            JS_ValueToECMAUint32(cx, curopt, &nhttp->m_Timeout);
         }
     }
 

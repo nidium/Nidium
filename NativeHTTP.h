@@ -27,7 +27,7 @@
 #include <http_parser.h>
 
 #define HTTP_MAX_CL 1024L*1024L*1024L*2L
-#define HTTP_DEFAULT_TIMEOUT 15000
+#define HTTP_DEFAULT_TIMEOUT 2000
 
 #include "NativeIStreamer.h"
 
@@ -136,11 +136,11 @@ class NativeHTTP : public NativeIStreamer
     };
 
     ape_global *net;
-    ape_socket *currentSock;
+    ape_socket *m_CurrentSock;
 
     int err;
-    uint32_t timeout;
-    int timeoutTimer;
+    uint32_t m_Timeout;
+    int m_TimeoutTimer;
 
     NativeHTTPDelegate *delegate;
 

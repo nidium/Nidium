@@ -27,6 +27,7 @@
 
 class NativeStreamDelegate;
 
+
 class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
 {
     public:

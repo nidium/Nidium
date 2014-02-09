@@ -54,9 +54,16 @@ NativeStream::NativeStream(ape_global *net,
 
     int len = 0;
     StreamInterfaces streamInterface = NativeStream::typeInterface(location, &len);
+
+    /*
+        Already prefixed path given
+    */
     if (prefix == NULL || streamInterface != INTERFACE_UNKNOWN) {
         m_Location  = strdup(location);
     } else {
+    /*
+        relative path given
+    */
         char *tmp = NativeStream::resolvePath(location, STREAM_RESOLVE_FILE);
 
         m_Location = (char *)malloc(sizeof(char) *
@@ -227,6 +234,7 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
         {
             const char *privateLocation = 
                 NativeSystemInterface::getInstance()->getPrivateDirectory();
+
             char *flocation = (char *)malloc(sizeof(char) *
                     (strlen(&url[len]) + strlen(privateLocation) + 1));
 
