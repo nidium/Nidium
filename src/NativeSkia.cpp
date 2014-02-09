@@ -15,6 +15,7 @@
 #include "NativeSkImage.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeSystemInterface.h"
+#include "NativeStream.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
@@ -588,7 +589,16 @@ void NativeSkia::setFontType(const char *str)
 void NativeSkia::setFontFile(const char *str)
 {
     NLOG("Loading font %s", str);
-    SkTypeface *tf = SkTypeface::CreateFromFile(str);
+    int len = 0;
+
+    NativeStream::StreamInterfaces streamInterface = NativeStream::typeInterface(str, &len);
+    if (streamInterface == NativeStream::INTERFACE_HTTP) {
+        return;
+    }
+
+    char *path = NativeStream::resolvePath(str, NativeStream::STREAM_RESOLVE_FILE);
+
+    SkTypeface *tf = SkTypeface::CreateFromFile(path);
     // Workarround for skia bug #1648
     // https://code.google.com/p/skia/issues/detail?id=1648
     if (tf == NULL) {

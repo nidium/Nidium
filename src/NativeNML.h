@@ -45,7 +45,7 @@ public:
     void onGetContent(const char *data, size_t len);
     void onAvailableData(size_t len){};
     void onProgress(size_t buffered, size_t len){};
-    void onError(NativeStream::StreamError){};
+    void onError(NativeStream::StreamError);
 
     const char *getMetaTitle() const {
         return this->meta.title;

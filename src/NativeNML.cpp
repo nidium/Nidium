@@ -399,3 +399,9 @@ void NativeNML::onGetContent(const char *data, size_t len)
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }
+
+void NativeNML::onError(NativeStream::StreamError err)
+{
+    printf("[NML] onError(%d)\n", err);
+    exit(1);
+}

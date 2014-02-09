@@ -58,7 +58,7 @@ bool NativeGLState::initGLBase(bool withProgram)
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vao, NativeGLResources::RVERTEX_ARRAY);
 
-    NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(16);
+    NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
 
     NATIVE_GL_CALL_THIS(BindVertexArray(m_GLObjects.vao));
 

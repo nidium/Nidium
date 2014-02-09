@@ -5,6 +5,10 @@
 #import "NativeSystem.h"
 #import <dispatch/dispatch.h>
 
+
+#define NIDIUM_DISPATCH_MAINTHREAD 0
+
+
 NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
 NativeUIInterface *__NativeUI;
 
@@ -62,11 +66,9 @@ unsigned long _ape_seed;
     }
 }
 
-#define NIDIUM_DISPATCH_MAINTHREAD 0
-
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-
+    NSLog(@"[Cocoa] applicationDidFinishLaunching");
     [self setupWorkingDirectory:YES];
     _ape_seed = time(NULL) ^ (getpid() << 16);
     //NativeConsole *console = [[NativeConsole alloc] init];
@@ -82,12 +84,12 @@ unsigned long _ape_seed;
         const char *filename;
         
         if (self.appfile == nil) {
-            filename = "index.nml";
+            filename = "private://default.nml";
         } else {
             filename = [self.appfile UTF8String];
         }
 
-        NSLog(@"Launching... %s\n", filename);
+        NSLog(@"[Nidium] Executing NML at <%s>\n", filename);
         if (!nUI->runApplication(filename)) {
             [[NSApplication sharedApplication] terminate:nil];
             return;
@@ -101,9 +103,7 @@ unsigned long _ape_seed;
 
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
-
-    NSLog(@"Running? %d", self->isRunning);
-    NSLog(@"drop : %@", filename);
+    NSLog(@"[Cocoa] application:openFile: <%@>", filename);
 
     self.appfile = filename;
 
