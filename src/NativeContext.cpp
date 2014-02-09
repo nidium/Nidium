@@ -14,9 +14,10 @@
 #include "NativeJSConsole.h"
 #include "NativeJS_preload.h"
 #include "NativeUIInterface.h"
-#ifdef __linux__
+#include "SkForceLinking.h"
+
 #include "SkImageDecoder.h"
-#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include "NativeMacros.h"
@@ -344,16 +345,4 @@ bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
     free(file);
     free(finalfile);
     return true;
-}
-
-void NativeContext::forceLinking()
-{
-#ifdef __linux__
-    CreateJPEGImageDecoder();
-    CreatePNGImageDecoder();
-    //CreateGIFImageDecoder();
-    CreateBMPImageDecoder();
-    CreateICOImageDecoder();
-    CreateWBMPImageDecoder();
-#endif
 }
