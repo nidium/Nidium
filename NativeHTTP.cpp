@@ -217,16 +217,16 @@ static void native_http_connected(ape_socket *s,
     nhttp->http.headers.list = NULL;
     nhttp->http.headers.tkey = NULL;
     nhttp->http.headers.tval = NULL;
-    nhttp->http.data = NULL;
+    nhttp->http.data = buffer_new(0);
     nhttp->http.ended = 0;
     nhttp->http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
     nhttp->http.parser.data = nhttp;
 
-    buffer *data = nhttp->getRequest()->getHeadersData();
+    buffer *headers = nhttp->getRequest()->getHeadersData();
 
-    APE_socket_write(s, data->data, data->used, APE_DATA_COPY);
+    APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
 
     if (nhttp->getRequest()->getData() != NULL &&
         nhttp->getRequest()->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
@@ -234,7 +234,7 @@ static void native_http_connected(ape_socket *s,
         APE_socket_write(s, (unsigned char *)nhttp->getRequest()->getData(),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
     }
-    buffer_destroy(data);
+    buffer_destroy(headers);
 }
 
 static void native_http_disconnect(ape_socket *s,
