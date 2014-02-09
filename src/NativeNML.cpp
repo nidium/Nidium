@@ -278,17 +278,25 @@ bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
 {
     using namespace rapidxml;
 
+    if (len == 0 || data == NULL) {
+        NativeSystemInterface::getInstance()->alert("NML error : empty file", NativeSystemInterface::ALERT_CRITIC);
+        return false;
+    }
+
     try {
         doc.parse<0>(data);
     } catch(rapidxml::parse_error &err) {
-        printf("XML error : %s\n", err.what());
+        char cerr[2048];
+
+        sprintf(cerr, "NML error : %s", err.what());
+        NativeSystemInterface::getInstance()->alert(cerr, NativeSystemInterface::ALERT_CRITIC);
 
         return false;
     }
 
     xml_node<> *node = doc.first_node("application");
     if (node == NULL) {
-        printf("XML : <application> node not found\n");
+        NativeSystemInterface::getInstance()->alert("<application> node not found", NativeSystemInterface::ALERT_CRITIC);
         return false;
     }
 
@@ -402,6 +410,6 @@ void NativeNML::onGetContent(const char *data, size_t len)
 
 void NativeNML::onError(NativeStream::StreamError err)
 {
-    printf("[NML] onError(%d)\n", err);
+    NativeSystemInterface::getInstance()->alert("NML error : stream error", NativeSystemInterface::ALERT_CRITIC);
     exit(1);
 }
