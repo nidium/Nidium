@@ -143,6 +143,9 @@ def releaseAction(opt):
     import urllib2, mimetypes
     import subprocess
 
+    packageExecutable()
+    return
+
     if opt.release is False:
         return
 
@@ -293,7 +296,8 @@ def packageExecutable():
     name = ""
 
     try:
-        tag = subprocess.check_output(["git", " describe",  "--exact-match", revision])
+        tag = subprocess.check_output(["git", "describe",  "--exact-match", revision], stderr=subprocess.PIPE)
+        print "Tag is " + tag
     except:
         tag = None
 
@@ -315,7 +319,7 @@ def packageExecutable():
     if deps.system == "Darwin":
         resources += "osx/"
         opts = [
-            "create-dmg", 
+            "tools/osx/create-dmg", 
             "--volname", "Nidium", 
             "--volicon", resources + "/nidium.icns",
             "--background", resources + "/nidium-background.png",
@@ -323,10 +327,9 @@ def packageExecutable():
             "out/" + name + ".dmg",
             path + "nidium.app/"
         ]
-
-        try:
-            subprocess.check_output(opts)
-        except:
+        code, output = deps.runCommand(" ".join(opts))
+        print output
+        if code != 0:
             log.setError()
             log.error("Failed to build dmg")
             sys.exit(0)
