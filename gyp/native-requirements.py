@@ -283,36 +283,63 @@ def stripExecutable():
 def packageExecutable():
     import time
     import subprocess
-    import zipfile 
+    import tarfile 
 
-    datetime = time.strftime("%Y%m%d_%H%M%S")
-    hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
+    tag = None
     path = "framework/dist/"
+    resources = "resources/"
     arch = ""
+    name = ""
+
+    try:
+        tag = subprocess.check_output(["git", " describe",  "--exact-match", revision])
+    except:
+        tag = None
+
     if deps.is64bits:
         arch = "x86_64"
     else:
         arch = "i386"
 
-    name = "Nidium_%s_%s_%s_%s.zip" % (datetime, deps.system, arch, hash)
+    if tag is None:
+        datetime = time.strftime("%Y%m%d_%H%M%S")
+        name = "Nidium_%s_%s_%s_%s.zip" % (datetime, revision, deps.system, arch)
+    else:
+        name = "Nidium_%s_%s_%s" % (tag, deps.system, arch)
 
     log.step("Packaging executable")
     log.info(name)
     spinner.start()
-    with zipfile.ZipFile("out/" + name, 'w', zipfile.ZIP_DEFLATED) as myzip:
-        if deps.system == "Darwin":
-            myzip.write(path + "nidium.app")
-            import os
-            for dirpath,dirs,files in os.walk(path + "nidium.app/"):
-                for f in files:
-                    fn = os.path.join(dirpath, f)
-                    myzip.write(fn)
-        elif deps.system == "Linux":
-            myzip.write(path + "nidium")
-            myzip.write(path + "nidium-crash-reporter")
-        else:
-            # Window TODO
-            print("TODO")
+
+    if deps.system == "Darwin":
+        resources += "osx/"
+        opts = [
+            "create-dmg", 
+            "--volname", "Nidium", 
+            "--volicon", resources + "/nidium.icns",
+            "--background", resources + "/nidium-background.png",
+            "--app-drop-link", "100 100",
+            "out/" + name + ".dmg",
+            path + "nidium.app/"
+        ]
+
+        try:
+            subprocess.check_output(opts)
+        except:
+            log.setError()
+            log.error("Failed to build dmg")
+            sys.exit(0)
+    elif deps.system == "Linux":
+        resources += "linux/"
+        with tarfile.open("out/" + name + ".tar.bz2", 'w:bz2') as archive:
+            tarfile.add(resources + "nidium.desktop", arcname="resources/nidium.desktop")
+            tarfile.add(resources + "nidium.png", arcname="resources/nidium.png")
+            tarfile.add(path + "nidium", arcname="bin/nidium")
+            tarfile.add(path + "nidium-crash-reporter", arcname="bin/nidium-crash-reporter")
+    else:
+        # Window TODO
+        print("TODO")
 
     spinner.stop()
     log.setOk()
