@@ -319,7 +319,7 @@ def packageExecutable():
     if deps.system == "Darwin":
         resources += "osx/"
         opts = [
-            "tools/osx/create-dmg", 
+            "tools/installer/osx/create-dmg", 
             "--volname", "Nidium", 
             "--volicon", resources + "/nidium.icns",
             "--background", resources + "/nidium-background.png",
