@@ -143,9 +143,6 @@ def releaseAction(opt):
     import urllib2, mimetypes
     import subprocess
 
-    packageExecutable()
-    return
-
     if opt.release is False:
         return
 
@@ -182,9 +179,15 @@ def releaseAction(opt):
     def post_multipart(host, selector, fields, files):
         content_type, body = encode_multipart_formdata(fields, files)
         stream = fakeFile(body)
-        req = urllib2.Request("http://" + host + selector, stream, {"Content-Type": content_type})
-        res = urllib2.urlopen(req)
-        return res.read()
+        ret = ""
+        try:
+            req = urllib2.Request("http://" + host + selector, stream, {"Content-Type": content_type})
+            res = urllib2.urlopen(req)
+            ret = res.read()
+        except urllib2.HTTPError as err:
+            ret = err.read()
+
+        return ret
 
     def encode_multipart_formdata(fields, files):
         BOUNDARY = '----------ThIs_Is_tHe_bouNdaRY_$'
@@ -256,7 +259,7 @@ def releaseAction(opt):
         arch = "x86_64"
     else:
         arch = "i386"
-    reply = post_multipart("crash.nidium.com", "/upload_symbols", [["revision", revision], ["arch", arch], ["system", deps.system]], [["symbols", "nidium.sym.zip", symbols]])
+    reply = post_multipart("crash.nidium.com", "/upload_symbols", [["build", revision], ["arch", arch], ["system", deps.system]], [["symbols", "nidium.sym.zip", symbols]])
 
     if reply.strip() == "OK":
         print ""
@@ -264,6 +267,8 @@ def releaseAction(opt):
     else:
         log.setError()
         log.error("Failed to upload symbols : " + reply)
+        sys.exit(3)
+
 
     os.unlink(symFile)
     os.unlink(symArchive)
@@ -308,7 +313,7 @@ def packageExecutable():
 
     if tag is None:
         datetime = time.strftime("%Y%m%d_%H%M%S")
-        name = "Nidium_%s_%s_%s_%s.zip" % (datetime, revision, deps.system, arch)
+        name = "Nidium_%s_%s_%s_%s" % (datetime, revision, deps.system, arch)
     else:
         name = "Nidium_%s_%s_%s" % (tag, deps.system, arch)
 
@@ -318,28 +323,39 @@ def packageExecutable():
 
     if deps.system == "Darwin":
         resources += "osx/"
-        opts = [
+        name += ".dmg"
+        cmd = [
             "tools/installer/osx/create-dmg", 
             "--volname", "Nidium", 
             "--volicon", resources + "/nidium.icns",
-            "--background", resources + "/nidium-background.png",
+            "--background", resources + "/dmg-background.png",
             "--app-drop-link", "100 100",
-            "out/" + name + ".dmg",
+            "out/" + name,
             path + "nidium.app/"
         ]
-        code, output = deps.runCommand(" ".join(opts))
-        print output
+        code, output = deps.runCommand(" ".join(cmd))
         if code != 0:
             log.setError()
             log.error("Failed to build dmg")
-            sys.exit(0)
+            sys.exit(3)
     elif deps.system == "Linux":
+        import shutil
         resources += "linux/"
-        with tarfile.open("out/" + name + ".tar.bz2", 'w:bz2') as archive:
-            tarfile.add(resources + "nidium.desktop", arcname="resources/nidium.desktop")
-            tarfile.add(resources + "nidium.png", arcname="resources/nidium.png")
-            tarfile.add(path + "nidium", arcname="bin/nidium")
-            tarfile.add(path + "nidium-crash-reporter", arcname="bin/nidium-crash-reporter")
+        name += ".run"
+        tmpDir = "out/nidium.tmp/"
+        deps.mkdir_p(tmpDir + "dist/")
+        deps.mkdir_p(tmpDir + "resources/")
+        shutil.copy(resources + "/nidium.desktop", tmpDir + "resources/")
+        shutil.copy(resources + "/x-application-nidium.xml", tmpDir + "resources/")
+        shutil.copy(resources + "/nidium.png", tmpDir + "resources/")
+        shutil.copy(resources + "/installer.sh", tmpDir)
+        shutil.copy(path + "nidium",  tmpDir + "dist/")
+        shutil.copy(path + "nidium-crash-reporter", tmpDir + "dist/")
+
+        deps.runCommand("tools/installer/linux/makeself.sh %s out/%s 'Nidium installer' ./installer.sh " % (tmpDir, name))
+
+        shutil.rmtree(tmpDir);
+
     else:
         # Window TODO
         print("TODO")
