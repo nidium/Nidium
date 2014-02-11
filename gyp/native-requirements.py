@@ -325,11 +325,15 @@ def packageExecutable():
         resources += "osx/"
         name += ".dmg"
         cmd = [
-            "tools/installer/osx/create-dmg", 
-            "--volname", "Nidium", 
-            "--volicon", resources + "/nidium.icns",
-            "--background", resources + "/dmg-background.png",
-            "--app-drop-link", "100 100",
+            "tools/installer/osx/create-dmg",
+            "--volname 'Nidium'",
+            "--no-internet-enable",
+            "--volicon " + resources + "/nidium.icns",
+            "--background " + resources + "/dmg-background.png",
+            "--window-size 555 394",
+            "--icon-size 96",
+            "--app-drop-link 460 290",
+            "--icon 'nidium' 460 80",
             "out/" + name,
             path + "nidium.app/"
         ]
