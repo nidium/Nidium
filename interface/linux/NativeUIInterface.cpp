@@ -4,6 +4,7 @@
 #include <NativeApp.h>
 #include <NativeJSWindow.h> 
 #include <NativeContext.h>
+#include <NativeSystem.h>
 #ifdef NATIVE_USE_GTK
 #include <gtk/gtk.h>
 #endif
@@ -307,6 +308,8 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             printf( "Can't init SDL:  %s\n", SDL_GetError( ));
             return false;
         }
+
+        static_cast<NativeSystem *>(NativeSystemInterface::_interface)->initSystemUI();
 
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );

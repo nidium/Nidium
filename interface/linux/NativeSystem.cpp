@@ -9,12 +9,9 @@
 #include <pwd.h>
 #include <gtk/gtk.h>
 
-NativeSystem::NativeSystem()
+NativeSystem::NativeSystem() : m_SystemUIReady(false)
 {
     fbackingStorePixelRatio = 1.0;
-#ifdef NATIVE_USE_GTK
-    gtk_init(0, NULL);
-#endif
 }
 
 float NativeSystem::backingStorePixelRatio()
@@ -48,6 +45,11 @@ const char *NativeSystem::getCacheDirectory()
 
 void NativeSystem::alert(const char *message, AlertType type)
 {
+    // SystemUI (GTK/QT) must be initialized after SDL (or GTK crash)
+    // Since NativeSystem::alert() can be called before SDL is initialized
+    // we initialize system UI on the fly if needed
+    this->initSystemUI();
+
     GtkMessageType gtkType = GTK_MESSAGE_INFO;
 
     switch (type) {
@@ -68,4 +70,13 @@ void NativeSystem::alert(const char *message, AlertType type)
     gtk_dialog_run (GTK_DIALOG (dialog));
 
     gtk_widget_destroy (dialog);
+}
+
+void NativeSystem::initSystemUI()
+{
+    if (!m_SystemUIReady) {
+#ifdef NATIVE_USE_GTK
+        gtk_init(0, NULL);
+#endif
+    }
 }
