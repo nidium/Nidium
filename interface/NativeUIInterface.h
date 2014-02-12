@@ -54,6 +54,8 @@ class NativeUIInterface
         virtual void vlog(const char *buf, va_list ap)=0;
 
         virtual void alert(const char *message)=0;
+
+        virtual void refresh();
         
         int getWidth() const { return this->width; }
         int getHeight() const { return this->height; }

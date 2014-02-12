@@ -2183,23 +2183,27 @@ void NativeCanvas2DContext::setSize(int width, int height)
     } else {
         const SkBitmap &bt = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
 
+#if 1
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                     width*ratio, height*ratio, false);
-
+#else
+        GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
+        ndev = m_Skia->createNewGPUDevice(gr, width*ratio, width*ratio);
+#endif
         if (ndev == NULL) {
             printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);
             return;
         }
 
         ncanvas = new SkCanvas(ndev);
-
+        
         ncanvas->drawBitmap(bt, 0, 0);
+
+        SkSafeUnref(ndev);
     }
     
     //ncanvas->clipRegion(skia->getCanvas()->getTotalClip());
     ncanvas->setMatrix(m_Skia->getCanvas()->getTotalMatrix());
-
-    SkSafeUnref(ndev);
 
     /* Automatically unref the old one and ref the new one */
     m_Skia->setCanvas(ncanvas);

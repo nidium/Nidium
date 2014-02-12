@@ -62,11 +62,11 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     if (window) {
                         switch (event.window.event) {
                             case SDL_WINDOWEVENT_SIZE_CHANGED:
-                                printf("Size changed ??? %d %d\n", event.window.data1, event.window.data2);
+                                //printf("Size changed ??? %d %d\n", event.window.data1, event.window.data2);
                                 //window->resized(event.window.data1, event.window.data2);
                                 break;
                             case SDL_WINDOWEVENT_RESIZED:
-                                printf("Resized\n");
+                                //printf("Resized\n");
                                 //window->resized(event.window.data1, event.window.data2);
                                 break;
                             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -775,7 +775,6 @@ char *NativeCocoaUIInterface::getClipboardText()
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
     //NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
-    printf("Calling changing size to SDL\n");
 
     NSWindow *nswindow = NativeCocoaWindow(this->win);
 
@@ -784,11 +783,16 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
     size.height = h;
 
     [nswindow setContentSize:size];
+
+    [(NSOpenGLContext *)m_mainGLCtx update];
+
+    //NSOpenGLContext update ???
     
     this->width = w;
     this->height = h;
 
     glViewport(0, 0, w, h);
+
 }
 
 void NativeCocoaUIInterface::alert(const char *message)

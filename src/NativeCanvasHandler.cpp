@@ -98,8 +98,6 @@ void NativeCanvasHandler::setSize(int width, int height)
     this->width = width;
     this->height = height;
 
-    NLOG("set size of %p", this);
-
     if (m_Context) {
         m_Context->setSize(this->width + (this->padding.global * 2),
             this->height + (this->padding.global * 2));

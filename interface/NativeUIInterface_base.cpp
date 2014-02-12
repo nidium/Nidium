@@ -1,5 +1,7 @@
 #include "NativeUIInterface.h"
 #include <SDL.h>
+#import <NativeContext.h>
+#include <unistd.h>
 
 bool NativeUIInterface::makeMainGLCurrent()
 {
@@ -33,4 +35,19 @@ SDL_GLContext NativeUIInterface::createSharedContext()
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
 {
     SDL_GL_DeleteContext(ctx);
+}
+
+void NativeUIInterface::refresh()
+{
+    int oswap = SDL_GL_GetSwapInterval();
+    SDL_GL_SetSwapInterval(0);
+
+    if (this->NativeCtx) {
+        this->makeMainGLCurrent();
+        this->NativeCtx->frame();
+    }
+
+    SDL_GL_SwapWindow(this->win);
+
+    SDL_GL_SetSwapInterval(oswap);
 }

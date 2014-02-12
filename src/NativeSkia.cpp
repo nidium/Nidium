@@ -339,21 +339,40 @@ void NativeSkia::initPaints()
     asComposite = 0;
 }
 
+SkGpuDevice *NativeSkia::createNewGPUDevice(GrContext *gr, int width, int height)
+{
+    GrTextureDesc desc;
+    desc.fConfig = kSkia8888_GrPixelConfig;
+    desc.fFlags = kRenderTarget_GrTextureFlagBit;
+    desc.fWidth = width;
+    desc.fHeight = height;
+    desc.fSampleCnt = 0;
+    GrTexture *tex = gr->createUncachedTexture(desc, NULL, 0);
+    
+    return SkGpuDevice::Create(tex);
+}
+
 int NativeSkia::bindOnScreen(int width, int height)
 {
     if (NativeSkia::glcontext == NULL) {
         printf("Cant find GL context\n");
         return 0;
     }
+
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
+#if 1
     SkBaseDevice *dev = NativeSkia::glcontext
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);
-
+#else
+    GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
+    SkBaseDevice *dev = this->createNewGPUDevice(gr, width*ratio, width*ratio);
+#endif
     if (dev == NULL) {
         return 0;
     }
+    
     m_Canvas = new SkCanvas(dev);
     this->scale(ratio, ratio);
 
@@ -383,23 +402,30 @@ void glcb(const GrGLInterface*) {
 
 SkCanvas *NativeSkia::createGLCanvas(int width, int height)
 {
-    const GrGLInterface *interface =  GrGLCreateNativeInterface();
+    const GrGLInterface *interface = NULL;
+    GrContext *context = NULL;
 
     //GrGLInterface *interface_noconst = (GrGLInterface *)interface;
     //((GrGLInterface*)interface)->fCallback = glcb;
 
-    if (interface == NULL) {
-        printf("Cant get interface\n");
-        return NULL;
-    }    
-    
-    GrContext *context = GrContext::Create(kOpenGL_GrBackend,
-        (GrBackendContext)interface);
+    if (NativeSkia::glcontext) {
+        context = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
+        context->ref();
+    } else {
+        interface = GrGLCreateNativeInterface();
 
-    if (context == NULL) {
-        return NULL;
+        if (interface == NULL) {
+            NLOG("Cant get OpenGL interface");
+            return NULL;
+        }
+
+        context = GrContext::Create(kOpenGL_GrBackend,
+            (GrBackendContext)interface);
+
+        if (context == NULL) {
+            return NULL;
+        }
     }
-
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
     
     GrBackendRenderTargetDesc desc;
@@ -410,22 +436,23 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     desc.fConfig = kSkia8888_GrPixelConfig;
     desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;
-    GR_GL_GetIntegerv(interface, GR_GL_SAMPLES, &desc.fSampleCnt);
+    desc.fSampleCnt = 0;
     //GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
-
+#if 0
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
+#endif
     desc.fRenderTargetHandle = 0;
     GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {
-        printf("Failed to init Skia\n");
+        NLOG("Failed to init Skia render target");
         return NULL;
     }
     SkGpuDevice *dev = new SkGpuDevice(context, target);
 
     if (dev == NULL) {
-        printf("Failed to init Skia (2)\n");
+        NLOG("Failed to init Skia GPU device");
         return NULL;
     }
     SkCanvas *ret;

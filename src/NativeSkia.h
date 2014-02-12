@@ -14,6 +14,7 @@ class SkBitmap;
 class NativeShadowLooper;
 class GrContext;
 class NativeCanvasPattern;
+class SkGpuDevice;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -99,6 +100,7 @@ class NativeSkia
             Assign canvas (hold a ref and unref existing value)
         */
         void setCanvas(SkCanvas *canvas);
+        SkGpuDevice *createNewGPUDevice(GrContext *gr, int width, int height);
 
         double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
