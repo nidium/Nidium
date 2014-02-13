@@ -666,11 +666,14 @@ NativeJSAudio::~NativeJSAudio()
 
     NATIVE_PTHREAD_WAIT(&this->m_ShutdownWait)
 
+    // Unlock the sources, so the decode thread can exit
+    // when we call NativeAudio::shutdown()
     this->audio->unlockSources();
-    this->audio->unlockQueue();
 
     // Shutdown the audio
     this->audio->shutdown();
+
+    this->audio->unlockQueue();
 
     // And delete the audio
     delete this->audio;
