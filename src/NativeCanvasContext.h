@@ -90,7 +90,7 @@ public:
     static uint32_t compileShader(const char *data, int type);
     
     virtual void translate(double x, double y)=0;
-    virtual void setSize(int width, int height)=0;
+    virtual void setSize(int width, int height, bool redraw = true)=0;
     virtual void setScale(double x, double y, double px=1, double py=1)=0;
     virtual void clear(uint32_t color)=0;
     virtual void flush()=0;

@@ -93,14 +93,14 @@ bool NativeCanvasHandler::setHeight(int height)
     return true;
 }
 
-void NativeCanvasHandler::setSize(int width, int height)
+void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 {
     this->width = width;
     this->height = height;
 
     if (m_Context) {
         m_Context->setSize(this->width + (this->padding.global * 2),
-            this->height + (this->padding.global * 2));
+            this->height + (this->padding.global * 2), redraw);
     }
 
     updateChildrenSize(true, true);

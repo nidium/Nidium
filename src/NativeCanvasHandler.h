@@ -298,7 +298,7 @@ class NativeCanvasHandler
         bool setWidth(int width);
         bool setHeight(int height);
         void updateChildrenSize(bool width, bool height);
-        void setSize(int width, int height);
+        void setSize(int width, int height, bool redraw = true);
         void setPadding(int padding);
         void setPositioning(NativeCanvasHandler::COORD_POSITION mode);
         void setScrollTop(int value);
