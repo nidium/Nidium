@@ -43,7 +43,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
             const NativeRect *clip);
 
         void flush();
-        void setSize(int width, int height);
+        void setSize(int width, int height, bool redraw = true);
         void translate(double x, double y);
 
         void getSize(int *width, int *height) const;

@@ -2165,7 +2165,7 @@ void NativeCanvas2DContext::getSize(int *width, int *height) const
     *height = size.height();
 }
 
-void NativeCanvas2DContext::setSize(int width, int height)
+void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
 {
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
@@ -2181,8 +2181,6 @@ void NativeCanvas2DContext::setSize(int width, int height)
         NativeSkia::glcontext = ncanvas;
 
     } else {
-        const SkBitmap &bt = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
-
 #if 1
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                     width*ratio, height*ratio, false);
@@ -2196,9 +2194,12 @@ void NativeCanvas2DContext::setSize(int width, int height)
         }
 
         ncanvas = new SkCanvas(ndev);
+        ncanvas->clear(0x00000000);
         
-        ncanvas->drawBitmap(bt, 0, 0);
-
+        if (redraw) {
+            const SkBitmap &bt = m_Skia->getCanvas()->getDevice()->accessBitmap(false);
+            ncanvas->drawBitmap(bt, 0, 0);
+        }
         SkSafeUnref(ndev);
     }
     
