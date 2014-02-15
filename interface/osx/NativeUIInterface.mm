@@ -18,6 +18,7 @@
 #import "SDL_keycode_translate.h"
 
 #import "NativeDragNSView.h"
+#import <objc/runtime.h>
 
 #define kNativeWidth 1024
 #define kNativeHeight 768
@@ -25,6 +26,7 @@
 #define kNativeTitleBarHeight 0
 
 #define kNativeVSYNC 1
+
 
 uint64_t ttfps = 0;
 
@@ -365,6 +367,8 @@ void NativeCocoaUIInterface::onNMLLoaded()
     this->setWindowTitle(this->nml->getMetaTitle());
 }
 
+
+
 void NativeCocoaUIInterface::stopApplication()
 {
     [this->dragNSView setResponder:nil];
@@ -507,7 +511,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         
         win = SDL_CreateWindow("nidium", 100, 100,
             width, height,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL/* | SDL_WINDOW_FULLSCREEN*/);
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN*/);
 
         if (win == NULL) {
             printf("Cant create window (SDL)\n");
@@ -522,6 +526,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         this->dragNSView = [[NativeDragNSView alloc] initWithFrame:NSMakeRect(0, 0, width, height)];
         [[window contentView] addSubview:this->dragNSView];
 
+        this->patchSDLView([window contentView]);
         //[center addObserver:self selector:@selector(windowBeingResized) name:NSWindowWillStartLiveResizeNotification object window];
 /*
     NSNotificationCenter *center;
@@ -775,7 +780,7 @@ char *NativeCocoaUIInterface::getClipboardText()
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
     //NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
-
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *nswindow = NativeCocoaWindow(this->win);
 
     NSSize size;
@@ -793,6 +798,7 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
 
     glViewport(0, 0, w, h);
 
+    [pool drain];
 }
 
 void NativeCocoaUIInterface::alert(const char *message)
@@ -817,4 +823,56 @@ bool NativeCocoaUIInterface::makeGLCurrent(SDL_GLContext ctx)
     [((NSOpenGLContext *)ctx) makeCurrentContext];
 
     return true;
+}
+
+static const char *drawRect_Associated_obj = "_NativeUIInterface";
+
+@interface NSPointer : NSObject
+{
+@public
+    void *ptr;
+}
+
+- (id) initWithPtr:(void *)ptr;
+@end
+
+@implementation NSPointer
+- (id) initWithPtr:(void *)ptr
+{
+    self = [super init];
+    if (!self) return nil;
+
+    self->ptr = ptr;
+
+    return self;
+}
+@end
+@interface NativeDrawRectResponder : NSView
+    - (void) drawRect:(NSRect)dirtyRect;
+@end
+
+@implementation NativeDrawRectResponder
+- (void) drawRect:(NSRect)dirtyRect
+{
+    NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
+    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->ptr;
+    
+}
+@end
+
+
+void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
+{
+    Class SDLView = NSClassFromString(@"SDLView");
+    Method drawRectNewMeth = class_getInstanceMethod([NativeDrawRectResponder class], @selector(drawRect:));
+    IMP drawRectNewImp = method_getImplementation(drawRectNewMeth);
+    const char *types = method_getTypeEncoding(drawRectNewMeth);
+
+    class_replaceMethod(SDLView, @selector(drawRect:), drawRectNewImp, types);
+
+    NSPointer *idthis = [[NSPointer alloc] initWithPtr:this];
+
+    objc_setAssociatedObject(sdlview, drawRect_Associated_obj, idthis, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+    [idthis release];
 }

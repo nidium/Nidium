@@ -55,6 +55,14 @@ class NativeCocoaUIInterface : public NativeUIInterface
     private:
         bool initContext();
         bool createWindow(int width, int height);
+
+        /*
+            We need to patch SDLView in order to add NSView(drawRect:) method.
+            This is done, so that we can avoid flickering during resize by
+            redrawing the OpenGL scene when it's dirty.
+        */
+        void patchSDLView(NSView *sdlview);
+
         NativeUICocoaConsole *console;
         NativeDragNSView *dragNSView;
 };
