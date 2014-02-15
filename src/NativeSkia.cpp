@@ -361,7 +361,7 @@ int NativeSkia::bindOnScreen(int width, int height)
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-#if 1
+#if 0
     SkBaseDevice *dev = NativeSkia::glcontext
                         ->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                             width*ratio, height*ratio, false);

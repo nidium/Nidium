@@ -2181,7 +2181,7 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
         NativeSkia::glcontext = ncanvas;
 
     } else {
-#if 1
+#if 0
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                     width*ratio, height*ratio, false);
 #else
