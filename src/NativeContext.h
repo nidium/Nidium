@@ -63,6 +63,13 @@ class NativeContext : public NativeJSDelegate
         this->m_NML = nml;
     }
 
+    void sizeNeedUpdate() {
+        m_SizeDirty = true;
+    }
+
+    bool isSizeDirty() const {
+        return m_SizeDirty;
+    }
 
     NativeHash<NativeBytecodeScript *> preload;
 
@@ -77,6 +84,8 @@ class NativeContext : public NativeJSDelegate
     NativeUIInterface *m_UI;
     NativeNML *m_NML;
     NativeGLState *m_GLState;
+
+    bool m_SizeDirty;
 
     struct {
         uint64_t nframe;

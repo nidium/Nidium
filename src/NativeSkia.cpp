@@ -367,7 +367,7 @@ int NativeSkia::bindOnScreen(int width, int height)
                             width*ratio, height*ratio, false);
 #else
     GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
-    SkBaseDevice *dev = this->createNewGPUDevice(gr, width*ratio, width*ratio);
+    SkBaseDevice *dev = this->createNewGPUDevice(gr, width*ratio, height*ratio);
 #endif
     if (dev == NULL) {
         return 0;

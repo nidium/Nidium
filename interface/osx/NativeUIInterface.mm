@@ -786,17 +786,13 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
     NSSize size;
     size.width = w;
     size.height = h;
-
-    [nswindow setContentSize:size];
-
-    [(NSOpenGLContext *)m_mainGLCtx update];
-
-    //NSOpenGLContext update ???
     
     this->width = w;
     this->height = h;
 
+    [nswindow setContentSize:size];
     glViewport(0, 0, w, h);
+    [(NSOpenGLContext *)m_mainGLCtx update];
 
     [pool drain];
 }
@@ -856,7 +852,11 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->ptr;
-    
+    NativeContext *ctx = UI->getNativeContext();
+
+    if (ctx->isSizeDirty()) {
+        ctx->sizeChanged(UI->getWidth(), UI->getHeight());
+    }
 }
 @end
 

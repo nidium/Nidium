@@ -2186,7 +2186,7 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
                                     width*ratio, height*ratio, false);
 #else
         GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
-        ndev = m_Skia->createNewGPUDevice(gr, width*ratio, width*ratio);
+        ndev = m_Skia->createNewGPUDevice(gr, width*ratio, height*ratio);
 #endif
         if (ndev == NULL) {
             printf("Cant create canvas of size %dx%d (backstore ratio : %f)\n", width, height, ratio);

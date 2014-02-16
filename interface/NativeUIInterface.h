@@ -33,6 +33,10 @@ class NativeUIInterface
         struct SDL_Window *win;
         struct _ape_global *gnet;
 
+        NativeContext *getNativeContext() const {
+            return NativeCtx;
+        }
+
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
         virtual bool runApplication(const char *path)=0;

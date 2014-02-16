@@ -54,6 +54,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     ShInitialize();
 
+    m_SizeDirty = false;
     m_Stats.nframe = 0;
     m_Stats.starttime = NativeUtils::getTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
@@ -143,22 +144,30 @@ void NativeContext::loadNativeObjects(int width, int height)
 
 void NativeContext::setWindowSize(int w, int h)
 {
+    m_SizeDirty = true;
     /* OS window */
     m_UI->setWindowSize((int)w, (int)h);
     /* Root canvases */
     this->sizeChanged(w, h);
-    /* Redraw */
-    m_UI->refresh();
 }
 
 void NativeContext::sizeChanged(int w, int h)
 {
+    if (!m_SizeDirty) {
+        return;
+    }
+
+    m_SizeDirty = false;
+
     NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(m_JS);
 
     /* Skia GL */
     this->getRootHandler()->setSize((int)w, (int)h);
     /* Native Canvas */
     jswindow->getCanvasHandler()->setSize((int)w, (int)h);
+    
+    /* Redraw */
+    m_UI->refresh();
 }
 
 void NativeContext::createDebugCanvas()
