@@ -457,7 +457,7 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     }
     SkCanvas *ret;
     ret = new SkCanvas(dev);
-
+    ret->clear(0x00000000);
     dev->unref();
     context->unref();
 
