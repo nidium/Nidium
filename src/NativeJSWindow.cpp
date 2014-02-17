@@ -20,6 +20,8 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_center(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
@@ -28,6 +30,8 @@ static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
+    WINDOW_PROP_X,
+    WINDOW_PROP_Y,
     WINDOW_PROP_WIDTH,
     WINDOW_PROP_HEIGHT,
     WINDOW_PROP_TITLE,
@@ -103,6 +107,61 @@ static JSFunctionSpec storage_funcs[] = {
     JS_FN("set", native_storage_set, 2, 0),
     JS_FN("get", native_storage_get, 1, 0),
     JS_FS_END
+};
+
+static JSFunctionSpec window_funcs[] = {
+    JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
+    JS_FN("setSize", native_window_setSize, 2, 0),
+    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, 0),
+    JS_FN("center", native_window_center, 0, 0),
+    JS_FN("setPosition", native_window_setPosition, 2, 0),
+    JS_FS_END
+};
+
+static struct native_cursors {
+    const char *str;
+    NativeUIInterface::CURSOR_TYPE type;
+} native_cursors_list[] = {
+    {"arrow",               NativeUIInterface::ARROW},
+    {"beam",                NativeUIInterface::BEAM},
+    {"pointer",             NativeUIInterface::POINTING},
+    {"drag",                NativeUIInterface::CLOSEDHAND},
+    {"hidden",              NativeUIInterface::HIDDEN},
+    {NULL,                  NativeUIInterface::NOCHANGE},
+};
+
+static JSPropertySpec window_props[] = {
+    {"devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_NULLWRAPPER},
+    {"x", WINDOW_PROP_X, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"y", WINDOW_PROP_Y, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"width", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"height", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"title", WINDOW_PROP_TITLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"cursor", WINDOW_PROP_CURSOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_window_prop_set)},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 NativeJSwindow::~NativeJSwindow()
@@ -442,46 +501,6 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
 }
 
-static struct native_cursors {
-    const char *str;
-    NativeUIInterface::CURSOR_TYPE type;
-} native_cursors_list[] = {
-    {"arrow",               NativeUIInterface::ARROW},
-    {"beam",                NativeUIInterface::BEAM},
-    {"pointer",             NativeUIInterface::POINTING},
-    {"drag",                NativeUIInterface::CLOSEDHAND},
-    {"hidden",              NativeUIInterface::HIDDEN},
-    {NULL,                  NativeUIInterface::NOCHANGE},
-};
-
-static JSPropertySpec window_props[] = {
-    {"devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_NULLWRAPPER},
-    {"width", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"height", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"title", WINDOW_PROP_TITLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_window_prop_get),
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"cursor", WINDOW_PROP_CURSOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"titleBarColor", WINDOW_PROP_TITLEBAR_COLOR, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"titleBarControlsOffsetX", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETX, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {"titleBarControlsOffsetY", WINDOW_PROP_TITLEBAR_CONTROLS_OFFSETY, JSPROP_PERMANENT | JSPROP_ENUMERATE,
-        JSOP_NULLWRAPPER,
-        JSOP_WRAPPER(native_window_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
-};
-
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSwindow *jwin = NativeJSwindow::getNativeClass(obj);
@@ -496,7 +515,6 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 
 }
 
-
 static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
@@ -507,6 +525,20 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
             /* TODO: Actual value */
             vp.setInt32(1);
             break;
+        case WINDOW_PROP_X:
+        {
+            int x;
+            NUI->getWindowPosition(&x, NULL);
+            vp.set(INT_TO_JSVAL(x));
+            break;
+        }
+        case WINDOW_PROP_Y:
+        {
+            int y;
+            NUI->getWindowPosition(NULL, &y);
+            vp.set(INT_TO_JSVAL(y));
+            break;
+        }
         case WINDOW_PROP_WIDTH:
             vp.set(INT_TO_JSVAL(NUI->getWidth()));
             break;
@@ -529,6 +561,33 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
+        case WINDOW_PROP_X:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return true;
+            }
+            
+            JS_ValueToNumber(cx, vp, &dval);
+
+            NUI->setWindowPosition((int)dval, NATIVE_WINDOWPOS_UNDEFINED_MASK);
+
+            break;
+        }
+
+        case WINDOW_PROP_Y:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return true;
+            }
+            
+            JS_ValueToNumber(cx, vp, &dval);
+
+            NUI->setWindowPosition(NATIVE_WINDOWPOS_UNDEFINED_MASK, (int)dval);
+
+            break;
+        }
         case WINDOW_PROP_WIDTH:
         {
             double dval;
@@ -672,7 +731,6 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    printf("Calling set size ?\n");
     NativeContext::getNativeClass(cx)->setWindowSize(w, h);
 
     return true;
@@ -747,12 +805,30 @@ static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, 
     return true;
 }
 
-static JSFunctionSpec window_funcs[] = {
-    JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
-    JS_FN("setSize", native_window_setSize, 2, 0),
-    JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, 0),
-    JS_FS_END
-};
+static JSBool native_window_center(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeContext::getNativeClass(cx)->getUI()->centerWindow();
+
+    return true;
+}
+
+static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_CHECK_ARGS("setPosition", 2);
+
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    int x = (args[0].isUndefined() || args[0].isNull()) ?
+        NATIVE_WINDOWPOS_UNDEFINED_MASK : args[0].toInt32();
+
+    int y = (args[1].isUndefined() || args[1].isNull()) ?
+        NATIVE_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
+
+    NativeContext::getNativeClass(cx)->getUI()->setWindowPosition(x, y);
+
+    return true;
+}
+
 
 void NativeJSwindow::addFrameCallback(jsval &cb)
 {

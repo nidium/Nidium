@@ -1,7 +1,8 @@
 #include "NativeUIInterface.h"
-#include <SDL.h>
 #import <NativeContext.h>
 #include <unistd.h>
+
+#include <SDL.h>
 
 bool NativeUIInterface::makeMainGLCurrent()
 {
@@ -50,4 +51,33 @@ void NativeUIInterface::refresh()
     SDL_GL_SwapWindow(this->win);
 
     SDL_GL_SetSwapInterval(oswap);
+}
+
+void NativeUIInterface::centerWindow()
+{
+    SDL_SetWindowPosition(this->win, SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED);
+}
+
+void NativeUIInterface::getScreenSize(int *width, int *height)
+{
+    SDL_Rect bounds;
+    int displayIndex = SDL_GetWindowDisplayIndex(this->win);
+
+    SDL_GetDisplayBounds(displayIndex, &bounds);
+
+    if (width) *width = bounds.w;
+    if (height) *height = bounds.h;
+}
+
+void NativeUIInterface::setWindowPosition(int x, int y)
+{
+    SDL_SetWindowPosition(this->win,
+        (x == NATIVE_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : x,
+        (y == NATIVE_WINDOWPOS_UNDEFINED_MASK) ? SDL_WINDOWPOS_UNDEFINED_MASK : y);
+}
+
+void NativeUIInterface::getWindowPosition(int *x, int *y)
+{
+    SDL_GetWindowPosition(this->win, x, y);
 }
