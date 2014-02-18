@@ -530,6 +530,8 @@ NativeJS::~NativeJS()
     delete messages;
     delete modules;
 
+    NativeMessages::destroyReader();
+
     hashtbl_free(rootedObj);
     free(registeredMessages);
 }

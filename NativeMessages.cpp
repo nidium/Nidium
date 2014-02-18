@@ -24,8 +24,8 @@
 #include <native_netlib.h>
 #include <stdio.h>
 
-static NativeHash64<NativeMessages *> *g_ObjectsList = new NativeHash64<NativeMessages *>();
-static NativeSharedMessages *g_MessagesList = new NativeSharedMessages();
+static NativeHash64<NativeMessages *> *g_ObjectsList;
+static NativeSharedMessages *g_MessagesList;
 
 NativeMessages::NativeMessages()
 {
@@ -66,8 +66,17 @@ static int NativeMessages_handle(void *arg)
 
 void NativeMessages::initReader(ape_global *ape)
 {
+    g_ObjectsList = new NativeHash64<NativeMessages *>();
+    g_MessagesList = new NativeSharedMessages();
+
     ape_timer *timer = add_timer(&ape->timersng, 1,
         NativeMessages_handle, NULL);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+}
+
+void NativeMessages::destroyReader()
+{
+    delete g_MessagesList;
+    delete g_ObjectsList;
 }

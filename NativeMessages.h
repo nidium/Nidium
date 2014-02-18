@@ -31,6 +31,7 @@ public:
     virtual void onMessage(void *data, int event);
     void postMessage(void *dataptr, int event);
     static void initReader(ape_global *ape);
+    static void destroyReader();
 };
 
 #endif
