@@ -81,3 +81,12 @@ void NativeUIInterface::getWindowPosition(int *x, int *y)
 {
     SDL_GetWindowPosition(this->win, x, y);
 }
+
+
+void NativeUIInterface::setWindowSize(int w, int h)
+{
+    this->width = w;
+    this->height = h;
+
+    SDL_SetWindowSize(this->win, w, h);    
+}

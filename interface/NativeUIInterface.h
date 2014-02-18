@@ -53,7 +53,7 @@ class NativeUIInterface
         virtual void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
         virtual const char *getCacheDirectory() const=0;
-        virtual void setWindowSize(int w, int h)=0;
+        virtual void setWindowSize(int w, int h);
         virtual void centerWindow();
         virtual void getScreenSize(int *width, int *height);
         virtual void setWindowPosition(int x, int y);
