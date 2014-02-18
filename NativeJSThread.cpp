@@ -231,19 +231,17 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg)
+void NativeJSThread::onMessage(void *data, int ev)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     struct native_thread_msg *ptr;
-    int ev;
     char prop[16];
 
     jsval jscbk, jevent, rval;
     JSObject *event;
 
-    ptr = static_cast<struct native_thread_msg *>(msg->dataPtr());
-    ev = msg->event();
+    ptr = static_cast<struct native_thread_msg *>(data);
 
     memset(prop, 0, sizeof(prop));
 
@@ -324,7 +322,7 @@ void NativeJSThread::onComplete(jsval *vp)
 
     msg->callee = jsObject;
 
-    njs->messages->postMessage(msg, NATIVE_THREAD_COMPLETE);
+    this->postMessage(msg, NATIVE_THREAD_COMPLETE);
 
     njs->unrootObject(jsObject);
 }
@@ -360,7 +358,8 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
     msg->nbytes = nbytes;
     msg->callee = nthread->jsObject;
 
-    nthread->njs->messages->postMessage(msg, NATIVE_THREAD_MESSAGE);
+    //nthread->njs->messages->postMessage(msg, NATIVE_THREAD_MESSAGE);
+    nthread->postMessage(msg, NATIVE_THREAD_MESSAGE);
 
     return true;
 }

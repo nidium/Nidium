@@ -20,21 +20,22 @@
 
 #ifndef nativejsthread_h__
 #define nativejsthread_h__
+#include <pthread.h>
 
 #include "NativeJSExposer.h"
 #include "NativeSharedMessages.h"
-#include <pthread.h>
+#include "NativeMessages.h"
 
 class NativeJS;
 
-
-class NativeJSThread : public NativeJSExposer<NativeJSThread>
+class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMessages
 {
   public:
     NativeJSThread();
     ~NativeJSThread();
     static void registerObject(JSContext *cx);
     void onComplete(jsval *vp);
+    void onMessage(void *data, int ev);
 
     JSString *jsFunction;
     JSRuntime *jsRuntime;
@@ -55,7 +56,5 @@ enum {
     NATIVE_THREAD_MESSAGE = 0,
     NATIVE_THREAD_COMPLETE = 1
 };
-
-void native_thread_message(JSContext *cx, NativeSharedMessages::Message *msg);
 
 #endif

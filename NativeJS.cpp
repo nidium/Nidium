@@ -460,9 +460,6 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
 
-    this->registerMessage(native_thread_message, NATIVE_THREAD_MESSAGE);
-    this->registerMessage(native_thread_message, NATIVE_THREAD_COMPLETE);
-
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
     //NativeStreamTest *st = new NativeStreamTest(net);
@@ -995,7 +992,6 @@ void NativeJS::postMessage(void *dataPtr, int ev)
 {
     this->messages->postMessage(dataPtr, ev);
 }
-
 
 static int native_timer_deleted(void *arg)
 {
