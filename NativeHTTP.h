@@ -30,6 +30,7 @@
 #define HTTP_DEFAULT_TIMEOUT 2000
 
 #include "NativeIStreamer.h"
+#include "NativeMessages.h"
 
 class NativeHTTPDelegate;
 
@@ -106,7 +107,7 @@ class NativeHTTPRequest
         ape_array_t *headers;
 };
 
-class NativeHTTP : public NativeIStreamer
+class NativeHTTP : public NativeIStreamer, public NativeMessages
 {
   private:
     void *ptr;

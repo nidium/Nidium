@@ -31,6 +31,7 @@
 
 #include "NativeStream.h"
 #include "NativeUtils.h"
+#include "NativeMessages.h"
 
 #include <ape_hash.h>
 
@@ -662,6 +663,8 @@ void NativeJS::bindNetObject(ape_global *net)
         Native_handle_messages, this);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+
+    NativeMessages::initReader(net);
 
     //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
     //io->open();

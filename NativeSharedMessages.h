@@ -42,19 +42,24 @@ class NativeSharedMessages
     class Message
     {
         public:
-            Message(void *ptr, int type)
-            : prev(NULL), type(type) {
+            Message(void *ptr, int type, void *dest = NULL)
+            : prev(NULL), type(type), m_Dest(dest) {
                 msgdata.dataptr = ptr;
             }
-            Message(uint64_t dataint, int type)
-            : prev(NULL), type(type) {
+            Message(uint64_t dataint, int type, void *dest = NULL)
+            : prev(NULL), type(type), m_Dest(dest) {
                 msgdata.dataint = dataint;
+                m_Dest = NULL;
             }
 
             Message(){};
 
             void *dataPtr() const {
                 return msgdata.dataptr;
+            }
+
+            void *dest() const {
+                return m_Dest;
             }
 
             uint64_t dataUInt() const {
@@ -72,10 +77,12 @@ class NativeSharedMessages
                 uint64_t dataint;
             } msgdata;
 
+            void *m_Dest;
             int type;
     };
     NativeSharedMessages();
     ~NativeSharedMessages();
+    void postMessage(Message *msg);
     void postMessage(void *dataptr, int event);
     void postMessage(unsigned int dataint, int event);
     int readMessage(NativeSharedMessages::Message *msg);

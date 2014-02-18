@@ -38,6 +38,22 @@ NativeSharedMessages::~NativeSharedMessages()
     while (readMessage(NULL));
 }
 
+void NativeSharedMessages::postMessage(Message *message)
+{
+    NativePthreadAutoLock lock(&messageslist.lock);
+
+    if (messageslist.head) {
+        messageslist.head->prev = message;
+    }
+
+    if (messageslist.queue == NULL) {
+        messageslist.queue = message;
+    }
+
+    messageslist.head = message;
+    messageslist.count++;
+}
+
 void NativeSharedMessages::postMessage(void *dataptr, int event)
 {
     Message *message;
