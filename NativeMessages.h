@@ -26,7 +26,6 @@ typedef struct _ape_global ape_global;
 class NativeMessages
 {
 public:
-    NativeMessages();
     virtual ~NativeMessages()=0;
     virtual void onMessage(void *data, int event);
     void postMessage(void *dataptr, int event);

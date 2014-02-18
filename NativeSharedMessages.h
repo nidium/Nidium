@@ -87,6 +87,7 @@ class NativeSharedMessages
     void postMessage(unsigned int dataint, int event);
     int readMessage(NativeSharedMessages::Message *msg);
     int readMessage(NativeSharedMessages::Message *msg, int ev);
+    void delMessagesForDest(void *dest);
   private:
 
     struct

@@ -24,17 +24,11 @@
 #include <native_netlib.h>
 #include <stdio.h>
 
-static NativeHash64<NativeMessages *> *g_ObjectsList;
 static NativeSharedMessages *g_MessagesList;
-
-NativeMessages::NativeMessages()
-{
-    g_ObjectsList->set((uintptr_t)this, this);
-}
 
 NativeMessages::~NativeMessages()
 {
-    g_ObjectsList->erase((uintptr_t)this);
+    g_MessagesList->delMessagesForDest(this);
 }
 
 void NativeMessages::postMessage(void *dataptr, int event)
@@ -66,7 +60,6 @@ static int NativeMessages_handle(void *arg)
 
 void NativeMessages::initReader(ape_global *ape)
 {
-    g_ObjectsList = new NativeHash64<NativeMessages *>();
     g_MessagesList = new NativeSharedMessages();
 
     ape_timer *timer = add_timer(&ape->timersng, 1,
@@ -78,5 +71,4 @@ void NativeMessages::initReader(ape_global *ape)
 void NativeMessages::destroyReader()
 {
     delete g_MessagesList;
-    delete g_ObjectsList;
 }

@@ -35,7 +35,7 @@ NativeSharedMessages::NativeSharedMessages()
 
 NativeSharedMessages::~NativeSharedMessages()
 {
-    while (readMessage(NULL));
+    this->delMessagesForDest(NULL);
 }
 
 void NativeSharedMessages::postMessage(Message *message)
@@ -161,3 +161,35 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int ty
 
     return 1;
 }
+
+void NativeSharedMessages::delMessagesForDest(void *dest)
+{
+    NativePthreadAutoLock lock(&messageslist.lock);
+
+    Message *message = messageslist.queue;
+    Message *next = NULL;
+
+    while (message != NULL) {
+        Message *tmp = message->prev;
+
+        if (dest == NULL || message->dest() == dest) {
+            if (next != NULL) {
+                next->prev = message->prev;
+            } else {
+                messageslist.queue = message->prev;
+            }
+
+            if (messageslist.queue == NULL) {
+                messageslist.head = NULL;
+            }
+
+            delete message;
+            messageslist.count--;
+        } else {
+            next = message;
+        }
+
+        message = tmp;
+    }
+}
+
