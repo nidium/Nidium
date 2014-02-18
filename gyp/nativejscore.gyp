@@ -50,6 +50,7 @@
             '../NativeStream.cpp',
             '../NativeUtils.cpp',
             '../NativeJSStream.cpp',
+            '../NativeMessages.cpp',
         ],
     }],
 }
