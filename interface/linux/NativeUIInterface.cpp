@@ -634,6 +634,8 @@ void NativeX11UIInterface::restartApplication(const char *path)
 
 bool NativeX11UIInterface::runApplication(const char *path)
 {
+    NativeMessages::initReader(gnet);
+    
     if (path != this->filePath) {
         if (this->filePath) {
             free(this->filePath);

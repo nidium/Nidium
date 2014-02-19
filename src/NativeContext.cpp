@@ -165,7 +165,6 @@ void NativeContext::sizeChanged(int w, int h)
     this->getRootHandler()->setSize((int)w, (int)h);
     /* Native Canvas */
     jswindow->getCanvasHandler()->setSize((int)w, (int)h);
-    
     /* Redraw */
     m_UI->refresh();
 }

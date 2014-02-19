@@ -11,6 +11,7 @@
 #import <Cocoa/Cocoa.h>
 #import <native_netlib.h>
 #import <NativeMacros.h>
+#import <NativeMessages.h>
 
 #import <NativeNML.h>
 #import <sys/stat.h>
@@ -397,6 +398,8 @@ void NativeCocoaUIInterface::restartApplication(const char *path)
 
 bool NativeCocoaUIInterface::runApplication(const char *path)
 {
+    NativeMessages::initReader(gnet);
+
     if (path != this->filePath) {
         if (this->filePath) {
             free(this->filePath);
@@ -859,7 +862,6 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
     }
 }
 @end
-
 
 void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
 {
