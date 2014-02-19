@@ -180,7 +180,6 @@ static int header_value_cb(http_parser *p, const char *buf, size_t len)
 
 static int request_url_cb(http_parser *p, const char *buf, size_t len)
 {
-    printf("Request URL cb\n");
     return 0;
 }
 
@@ -369,9 +368,11 @@ void NativeHTTP::headerEnded()
 
 void NativeHTTP::stopRequest(bool timeout)
 {
-    this->clearTimeout();
-    
     if (!http.ended) {
+        if (m_CurrentSock) {
+            APE_socket_shutdown_now(m_CurrentSock);
+        }
+
         if (http.headers.list) {
             ape_array_destroy(http.headers.list);
         }
@@ -383,9 +384,6 @@ void NativeHTTP::stopRequest(bool timeout)
         http.headers.tkey = NULL;
         http.headers.list = NULL;
 
-        if (m_CurrentSock) {
-            APE_socket_shutdown_now(m_CurrentSock);
-        }
 
         if (timeout) {
             this->delegate->onError(ERROR_TIMEOUT);
@@ -395,6 +393,8 @@ void NativeHTTP::stopRequest(bool timeout)
 
 void NativeHTTP::requestEnded()
 {
+    this->clearTimeout();
+
     if (!http.ended) {
         http.ended = 1;
 
