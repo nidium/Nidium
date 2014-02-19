@@ -22,15 +22,15 @@
 #define nativefileio_h__
 
 #include <NativeIStreamer.h>
+#include "NativeMessages.h"
 
 #include <pthread.h>
 #include <stdio.h>
 #include <stdint.h>
 
-class NativeSharedMessages;
 class NativeFileIODelegate;
 
-class NativeFileIO : public NativeIStreamer
+class NativeFileIO : public NativeIStreamer, public NativeMessages
 {
 public:
 
@@ -39,6 +39,9 @@ public:
         FILE_ACTION_READ,
         FILE_ACTION_WRITE
     };
+
+    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessageLost(const NativeSharedMessages::Message &msg);
 
     NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
         struct _ape_global *net, const char *prefix = NULL);
@@ -67,7 +70,6 @@ public:
     }
     NativeFileIODelegate *getDelegate() const { return delegate; };
     char *filename;
-    NativeSharedMessages *messages;
     FILE *fd;
     off_t m_Filesize;
 
@@ -88,7 +90,6 @@ public:
 private:
     NativeFileIODelegate *delegate;
 
-    struct _ape_timer *timer;
     struct _ape_global *net;
 
     bool m_AutoClose;

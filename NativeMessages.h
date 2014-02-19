@@ -21,16 +21,23 @@
 #ifndef nativemessages_h__
 #define nativemessages_h__
 
+#include <NativeSharedMessages.h>
+
 typedef struct _ape_global ape_global;
 
 class NativeMessages
 {
 public:
     virtual ~NativeMessages()=0;
-    virtual void onMessage(void *data, int event);
+    virtual void onMessage(const NativeSharedMessages::Message &msg);
+    virtual void onMessageLost(const NativeSharedMessages::Message &msg);
     void postMessage(void *dataptr, int event);
+    void postMessage(uint64_t dataint, int event);
+    void postMessage(NativeSharedMessages::Message *msg);
     static void initReader(ape_global *ape);
     static void destroyReader();
+
+    NativeSharedMessages *getSharedMessages();
 };
 
 #endif

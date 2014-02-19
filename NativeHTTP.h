@@ -27,7 +27,7 @@
 #include <http_parser.h>
 
 #define HTTP_MAX_CL 1024L*1024L*1024L*2L
-#define HTTP_DEFAULT_TIMEOUT 2000
+#define HTTP_DEFAULT_TIMEOUT 15000
 
 #include "NativeIStreamer.h"
 #include "NativeMessages.h"

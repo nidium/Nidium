@@ -231,17 +231,18 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
-void NativeJSThread::onMessage(void *data, int ev)
+void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     struct native_thread_msg *ptr;
     char prop[16];
+    int ev = msg.event();
 
     jsval jscbk, jevent, rval;
     JSObject *event;
 
-    ptr = static_cast<struct native_thread_msg *>(data);
+    ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
     memset(prop, 0, sizeof(prop));
 

@@ -35,6 +35,7 @@ typedef struct _native_shared_message
     struct _native_shared_message *prev;
 } native_shared_message;
 
+
 class NativeSharedMessages
 {
   public:
@@ -62,6 +63,10 @@ class NativeSharedMessages
                 return m_Dest;
             }
 
+            void setDest(void *dest) {
+                m_Dest = dest;
+            }
+
             uint64_t dataUInt() const {
                 return msgdata.dataint;
             }
@@ -77,17 +82,25 @@ class NativeSharedMessages
                 uint64_t dataint;
             } msgdata;
 
-            void *m_Dest;
             int type;
+            void *m_Dest;
     };
+
+    typedef void (*native_shared_message_cleaner)(const NativeSharedMessages::Message &msg);
+
     NativeSharedMessages();
     ~NativeSharedMessages();
     void postMessage(Message *msg);
     void postMessage(void *dataptr, int event);
-    void postMessage(unsigned int dataint, int event);
+    void postMessage(uint64_t dataint, int event);
     int readMessage(NativeSharedMessages::Message *msg);
     int readMessage(NativeSharedMessages::Message *msg, int ev);
     void delMessagesForDest(void *dest);
+    void delMessagesForEvent(int event);
+    void setCleaner(native_shared_message_cleaner cleaner) {
+        m_Cleaner = cleaner;
+    }
+
   private:
 
     struct
@@ -98,5 +111,7 @@ class NativeSharedMessages
         pthread_mutex_t lock;
 
     } messageslist;
+
+    native_shared_message_cleaner m_Cleaner;
 };
 #endif

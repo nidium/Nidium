@@ -35,7 +35,7 @@ class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMess
     ~NativeJSThread();
     static void registerObject(JSContext *cx);
     void onComplete(jsval *vp);
-    void onMessage(void *data, int ev);
+    void onMessage(const NativeSharedMessages::Message &msg);
 
     JSString *jsFunction;
     JSRuntime *jsRuntime;

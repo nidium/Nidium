@@ -25,11 +25,13 @@
 #include <stdio.h>
 #include <string.h>
 
-NativeSharedMessages::NativeSharedMessages()
+NativeSharedMessages::NativeSharedMessages() : 
+    m_Cleaner(NULL)
 {
     messageslist.count = 0;
     messageslist.head  = NULL;
     messageslist.queue = NULL;
+
     pthread_mutex_init(&messageslist.lock, NULL);
 }
 
@@ -74,7 +76,7 @@ void NativeSharedMessages::postMessage(void *dataptr, int event)
     messageslist.count++;
 }
 
-void NativeSharedMessages::postMessage(unsigned int dataint, int event)
+void NativeSharedMessages::postMessage(uint64_t dataint, int event)
 {
     Message *message;
 
@@ -182,7 +184,42 @@ void NativeSharedMessages::delMessagesForDest(void *dest)
             if (messageslist.queue == NULL) {
                 messageslist.head = NULL;
             }
+            if (m_Cleaner) {
+                m_Cleaner(*message);
+            }
+            delete message;
+            messageslist.count--;
+        } else {
+            next = message;
+        }
 
+        message = tmp;
+    }
+}
+
+void NativeSharedMessages::delMessagesForEvent(int event)
+{
+    NativePthreadAutoLock lock(&messageslist.lock);
+
+    Message *message = messageslist.queue;
+    Message *next = NULL;
+
+    while (message != NULL) {
+        Message *tmp = message->prev;
+
+        if (message->event() == event) {
+            if (next != NULL) {
+                next->prev = message->prev;
+            } else {
+                messageslist.queue = message->prev;
+            }
+
+            if (messageslist.queue == NULL) {
+                messageslist.head = NULL;
+            }
+            if (m_Cleaner) {
+                m_Cleaner(*message);
+            }
             delete message;
             messageslist.count--;
         } else {

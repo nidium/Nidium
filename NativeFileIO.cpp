@@ -70,34 +70,32 @@ static void *native_fileio_thread(void *arg)
     return NULL;
 }
 
-static int Native_handle_file_messages(void *arg)
+void NativeFileIO::onMessage(const NativeSharedMessages::Message &msg)
 {
-#define MAX_MSG_IN_ROW 32
-    NativeFileIO *nfileio = (NativeFileIO *)arg;
-    NativeSharedMessages::Message msg;
-    int nread = 0;
-
-    while (++nread < MAX_MSG_IN_ROW && nfileio->messages->readMessage(&msg)) {
-        switch (msg.event()) {
-            case NATIVE_FILEOPEN_MESSAGE:
-                nfileio->getDelegate()->onNFIOOpen(nfileio);
-                break;
-            case NATIVE_FILEERROR_MESSAGE:
-                nfileio->getDelegate()->onNFIOError(nfileio, msg.dataUInt());
-                break;
-            case NATIVE_FILEREAD_MESSAGE:
-                nfileio->getDelegate()->onNFIORead(nfileio,
-                    (unsigned char *)msg.dataPtr(), nfileio->action.u64);
-                free(msg.dataPtr());
-                break;
-            case NATIVE_FILEWRITE_MESSAGE:
-                nfileio->getDelegate()->onNFIOWrite(nfileio, msg.dataUInt());
-                break;
-            default:break;
-        }
+    switch (msg.event()) {
+        case NATIVE_FILEOPEN_MESSAGE:
+            this->getDelegate()->onNFIOOpen(this);
+            break;
+        case NATIVE_FILEERROR_MESSAGE:
+            this->getDelegate()->onNFIOError(this, msg.dataUInt());
+            break;
+        case NATIVE_FILEREAD_MESSAGE:
+            this->getDelegate()->onNFIORead(this,
+                (unsigned char *)msg.dataPtr(), this->action.u64);
+            free(msg.dataPtr());
+            break;
+        case NATIVE_FILEWRITE_MESSAGE:
+            this->getDelegate()->onNFIOWrite(this, msg.dataUInt());
+            break;
+        default:break;
     }
-    return 4;
-#undef MAX_MSG_IN_ROW
+}
+
+void NativeFileIO::onMessageLost(const NativeSharedMessages::Message &msg)
+{
+    if (msg.dataPtr() != NULL) {
+        delete[] (unsigned char *)msg.dataPtr();
+    }
 }
 
 void NativeFileIO::writeAction(unsigned char *data, uint64_t len)
@@ -110,7 +108,7 @@ void NativeFileIO::writeAction(unsigned char *data, uint64_t len)
 
     ret = fwrite(data, sizeof(char), len, fd);
 
-    messages->postMessage(ret, NATIVE_FILEWRITE_MESSAGE);
+    this->postMessage(ret, NATIVE_FILEWRITE_MESSAGE);
 }
 
 void NativeFileIO::readAction(uint64_t len)
@@ -129,7 +127,7 @@ void NativeFileIO::readAction(uint64_t len)
         action.u64 = 0;
 
         if (!action.stop) {
-            messages->postMessage((void *)NULL, NATIVE_FILEREAD_MESSAGE);
+            this->postMessage((void *)NULL, NATIVE_FILEREAD_MESSAGE);
             return;
         }
     }
@@ -155,7 +153,7 @@ void NativeFileIO::readAction(uint64_t len)
 
     action.u64 = readsize;
     if (!action.stop) {
-        messages->postMessage(data, NATIVE_FILEREAD_MESSAGE);
+        this->postMessage(data, NATIVE_FILEREAD_MESSAGE);
     }
 }
 
@@ -164,7 +162,7 @@ void NativeFileIO::openAction(char *modes)
     if ((this->fd = fopen(this->filename, modes)) == NULL) {
         printf("Failed to open : %s errno=%d\n", this->filename, errno);
         if (!action.stop) {
-            this->messages->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
+            this->postMessage(errno, NATIVE_FILEERROR_MESSAGE);
         }
         return;
     }
@@ -174,7 +172,7 @@ void NativeFileIO::openAction(char *modes)
     fseek(this->fd, 0L, SEEK_SET);
 
     if (!action.stop) {
-        this->messages->postMessage(this->fd, NATIVE_FILEOPEN_MESSAGE);
+        this->postMessage(this->fd, NATIVE_FILEOPEN_MESSAGE);
     }
 }
 
@@ -300,12 +298,8 @@ void NativeFileIO::seek(uint64_t pos)
 
     // Discard all message of type NATIVE_FILEREAD_MESSAGE,
     // because after a seek we expect to only read new data
-    NativeSharedMessages::Message msg;
-    while (messages->readMessage(&msg, NATIVE_FILEREAD_MESSAGE)) {
-        if (msg.dataPtr() != NULL) {
-            delete[] (unsigned char *)msg.dataPtr();
-        }
-    }
+
+    this->getSharedMessages()->delMessagesForEvent(NATIVE_FILEREAD_MESSAGE);
 }
 
 void NativeFileIO::close()
@@ -323,7 +317,6 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
     ape_global *net, const char *prefix) :
     fd(NULL), m_AutoClose(true), m_Eof(false)
 {
-    messages = new NativeSharedMessages();
     if (prefix) {
         this->filename = (char *)malloc(sizeof(char) *
             (strlen(filename) + strlen(prefix) + 1));
@@ -339,9 +332,6 @@ NativeFileIO::NativeFileIO(const char *filename, NativeFileIODelegate *delegate,
 
     this->action.active = false;
     this->action.stop = false;
-
-    timer = add_timer(&this->net->timersng, 1,
-        Native_handle_file_messages, this);
 
     pthread_mutex_init(&threadMutex, NULL);
     pthread_cond_init(&threadCond, NULL);
@@ -376,7 +366,7 @@ void NativeFileIO::checkRead(bool async)
     }
 
     if (async && !action.stop && err != -1) {
-        messages->postMessage((unsigned int)err, NATIVE_FILEERROR_MESSAGE);
+        this->postMessage(err, NATIVE_FILEERROR_MESSAGE);
     }
 }
 
@@ -389,15 +379,6 @@ NativeFileIO::~NativeFileIO()
     pthread_mutex_unlock(&threadMutex);
 
     pthread_join(threadHandle, NULL);
-    del_timer(&this->net->timersng, this->timer);
-
-    NativeSharedMessages::Message msg;
-    while (messages->readMessage(&msg)) {
-        if (msg.event() == NATIVE_FILEREAD_MESSAGE && msg.dataPtr() != NULL) {
-            delete[] (unsigned char *)msg.dataPtr();
-        }
-    }
-    delete messages;
 
     free(filename);
     if (fd != NULL) {

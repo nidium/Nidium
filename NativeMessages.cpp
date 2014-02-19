@@ -26,6 +26,28 @@
 
 static NativeSharedMessages *g_MessagesList;
 
+static int NativeMessages_handle(void *arg)
+{
+#define MAX_MSG_IN_ROW 128
+    int nread = 0;
+
+    NativeSharedMessages::Message msg;
+
+    while (++nread < MAX_MSG_IN_ROW && g_MessagesList->readMessage(&msg)) {
+        NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
+
+        obj->onMessage(msg);
+    }
+
+    return 8;
+}
+
+static void NativeMessages_lost(const NativeSharedMessages::Message &msg)
+{
+    NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
+    obj->onMessageLost(msg);
+}
+
 NativeMessages::~NativeMessages()
 {
     g_MessagesList->delMessagesForDest(this);
@@ -37,30 +59,33 @@ void NativeMessages::postMessage(void *dataptr, int event)
     g_MessagesList->postMessage(msg);
 }
 
-void NativeMessages::onMessage(void *data, int event)
+void NativeMessages::postMessage(uint64_t dataint, int event)
+{
+    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataint, event, this);
+    g_MessagesList->postMessage(msg);
+}
+
+void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
+{
+    msg->setDest(this);
+    g_MessagesList->postMessage(msg);
+}
+
+void NativeMessages::onMessage(const NativeSharedMessages::Message &msg)
 {
     printf("Unhandled message sent to %p\n", this);
 }
 
-static int NativeMessages_handle(void *arg)
+void NativeMessages::onMessageLost(const NativeSharedMessages::Message &msg)
 {
-#define MAX_MSG_IN_ROW 20
-    int nread = 0;
-
-    NativeSharedMessages::Message msg;
-
-    while (++nread < MAX_MSG_IN_ROW && g_MessagesList->readMessage(&msg)) {
-        NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
-
-        obj->onMessage(msg.dataPtr(), msg.event());
-    }
-
-    return 8;
+    
 }
 
 void NativeMessages::initReader(ape_global *ape)
 {
     g_MessagesList = new NativeSharedMessages();
+
+    g_MessagesList->setCleaner(NativeMessages_lost);
 
     ape_timer *timer = add_timer(&ape->timersng, 1,
         NativeMessages_handle, NULL);
@@ -71,4 +96,9 @@ void NativeMessages::initReader(ape_global *ape)
 void NativeMessages::destroyReader()
 {
     delete g_MessagesList;
+}
+
+NativeSharedMessages *NativeMessages::getSharedMessages()
+{
+    return g_MessagesList;
 }
