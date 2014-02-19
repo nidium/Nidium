@@ -22,6 +22,9 @@
 #define nativeutils_h__
 
 #include <stdint.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 #include <pthread.h>
 
 class NativeNoncopyable {
@@ -37,6 +40,11 @@ class NativeUtils
 {
     public:
     static uint64_t getTick();
+    static bool isMainThread()
+    {
+        // TODO : Windows support and better implementation
+        return getpid() == syscall(SYS_gettid);
+    }
 };
 
 class NativePthreadAutoLock {
