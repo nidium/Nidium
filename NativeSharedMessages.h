@@ -95,8 +95,7 @@ class NativeSharedMessages
     void postMessage(uint64_t dataint, int event);
     int readMessage(NativeSharedMessages::Message *msg);
     int readMessage(NativeSharedMessages::Message *msg, int ev);
-    void delMessagesForDest(void *dest);
-    void delMessagesForEvent(int event);
+    void delMessagesForDest(void *dest, int event = -1);
     void setCleaner(native_shared_message_cleaner cleaner) {
         m_Cleaner = cleaner;
     }

@@ -299,7 +299,7 @@ void NativeFileIO::seek(uint64_t pos)
     // Discard all message of type NATIVE_FILEREAD_MESSAGE,
     // because after a seek we expect to only read new data
 
-    this->getSharedMessages()->delMessagesForEvent(NATIVE_FILEREAD_MESSAGE);
+    this->getSharedMessages()->delMessagesForDest(this, NATIVE_FILEREAD_MESSAGE);
 }
 
 void NativeFileIO::close()

@@ -663,8 +663,6 @@ void NativeJS::bindNetObject(ape_global *net)
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
 
-    NativeMessages::initReader(net);
-
     //NativeFileIO *io = new NativeFileIO("/tmp/foobar", this, net);
     //io->open();
 }

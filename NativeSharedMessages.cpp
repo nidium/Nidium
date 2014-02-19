@@ -164,7 +164,7 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int ty
     return 1;
 }
 
-void NativeSharedMessages::delMessagesForDest(void *dest)
+void NativeSharedMessages::delMessagesForDest(void *dest, int event)
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
@@ -174,40 +174,9 @@ void NativeSharedMessages::delMessagesForDest(void *dest)
     while (message != NULL) {
         Message *tmp = message->prev;
 
-        if (dest == NULL || message->dest() == dest) {
-            if (next != NULL) {
-                next->prev = message->prev;
-            } else {
-                messageslist.queue = message->prev;
-            }
-
-            if (messageslist.queue == NULL) {
-                messageslist.head = NULL;
-            }
-            if (m_Cleaner) {
-                m_Cleaner(*message);
-            }
-            delete message;
-            messageslist.count--;
-        } else {
-            next = message;
-        }
-
-        message = tmp;
-    }
-}
-
-void NativeSharedMessages::delMessagesForEvent(int event)
-{
-    NativePthreadAutoLock lock(&messageslist.lock);
-
-    Message *message = messageslist.queue;
-    Message *next = NULL;
-
-    while (message != NULL) {
-        Message *tmp = message->prev;
-
-        if (message->event() == event) {
+        if ((dest == NULL || message->dest() == dest) &&
+            (event == -1 || event == message->event())) {
+            
             if (next != NULL) {
                 next->prev = message->prev;
             } else {
