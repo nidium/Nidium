@@ -82,7 +82,7 @@ void NativeFileIO::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_FILEREAD_MESSAGE:
             this->getDelegate()->onNFIORead(this,
                 (unsigned char *)msg.dataPtr(), this->action.u64);
-            free(msg.dataPtr());
+            delete[] (unsigned char *)(msg.dataPtr());
             break;
         case NATIVE_FILEWRITE_MESSAGE:
             this->getDelegate()->onNFIOWrite(this, msg.dataUInt());
@@ -294,12 +294,20 @@ void NativeFileIO::seek(uint64_t pos)
 
     NativePthreadAutoLock npal(&threadMutex);
 
-    fseek(fd, pos, SEEK_SET);
+    if ((fseek(fd, pos, SEEK_SET) != 0)) {
+        messages->postMessage((unsigned int)errno, NATIVE_FILEERROR_MESSAGE);
+        return;
+    }
+
+    m_Eof = false;
 
     // Discard all message of type NATIVE_FILEREAD_MESSAGE,
     // because after a seek we expect to only read new data
-
     this->getSharedMessages()->delMessagesForDest(this, NATIVE_FILEREAD_MESSAGE);
+    // Discard all messages of type NATIVE_FILEERROR_MESSAGE
+    // Beacuse after a seek sending an error is not correct
+    // XXX : Does it make sense to delete non EOF errors?
+    this->getSharedMessages()->delMessagesForDest(this, NATIVE_FILEERROR_MESSAGE);
 }
 
 void NativeFileIO::close()
