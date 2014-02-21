@@ -71,7 +71,6 @@ struct _native_sm_timer
     int ms;
     int cleared;
     struct _ticks_callback *timer;
-    
 };
 
 JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;

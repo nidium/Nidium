@@ -27,7 +27,9 @@
 #include <ape_base64.h>
 #include "NativeUtils.h"
 
+#ifndef NATIVE_NO_PRIVATE_DIR
 #include "../interface/NativeSystemInterface.h"
+#endif
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -230,6 +232,7 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
         }
         case INTERFACE_DATA:
             return strdup("./");
+#ifndef NATIVE_NO_PRIVATE_DIR
         case INTERFACE_PRIVATE:
         {
             const char *privateLocation = 
@@ -246,6 +249,7 @@ char *NativeStream::resolvePath(const char *url, StreamResolveMode mode)
             
             return ret;
         }
+#endif
         default:
             return strdup("./");
     }
