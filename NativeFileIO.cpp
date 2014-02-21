@@ -295,7 +295,7 @@ void NativeFileIO::seek(uint64_t pos)
     NativePthreadAutoLock npal(&threadMutex);
 
     if ((fseek(fd, pos, SEEK_SET) != 0)) {
-        messages->postMessage((unsigned int)errno, NATIVE_FILEERROR_MESSAGE);
+        this->postMessage((unsigned int)errno, NATIVE_FILEERROR_MESSAGE);
         return;
     }
 
