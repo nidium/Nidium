@@ -66,8 +66,8 @@ class NativeJS
         explicit NativeJS(ape_global *net);
         ~NativeJS();
 
-        typedef void (*logger)(const char *format);
-        typedef void (*vlogger)(const char *format, va_list ap);
+        typedef int (*logger)(const char *format);
+        typedef int (*vlogger)(const char *format, va_list ap);
 
         JSContext *cx;
         NativeSharedMessages *messages;
