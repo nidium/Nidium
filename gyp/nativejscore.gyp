@@ -9,6 +9,11 @@
             '../network/',
             '../',
         ],
+        'direct_dependent_settings': {
+            'include_dirs': [
+                '../'
+            ]
+        },
         'defines': ['_FILE_OFFSET_BITS=64'],
         'dependencies': [
             '../network/gyp/network.gyp:nativenetwork',

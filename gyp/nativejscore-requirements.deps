@@ -2,4 +2,5 @@ mozilla-central
 c-ares
 http-parser
 gyp
+nativejscore-requirements.py
 ../network/gyp/libapenetwork-requirements.deps
