@@ -50,7 +50,6 @@ class NativeSharedMessages
             Message(uint64_t dataint, int type, void *dest = NULL)
             : prev(NULL), type(type), m_Dest(dest) {
                 msgdata.dataint = dataint;
-                m_Dest = NULL;
             }
 
             Message(){};
