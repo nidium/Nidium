@@ -72,30 +72,7 @@
                         '-O2',
                         '-Wall',
                     ],
-                    'INFOPLIST_FILE': '<(native_resources_path)/osx/Info.plist',
                 },
-                'mac_bundle_resources': [
-                    '<(native_resources_path)/osx/en.lproj/InfoPlist.strings',
-                    '<(native_resources_path)/osx/en.lproj/MainMenu.xib',
-                ],
-                'postbuilds': [
-                    {
-                        'postbuild_name': 'Copy resources',
-                        'action': [
-                            'cp',
-                            '-r',
-                            '<(native_resources_path)/osx/',
-                            '<(native_exec_path)/<(native_exec_name).app/Contents/Resources/'
-                        ]
-                    },
-                    {
-                        'postbuild_name': 'Increment build number',
-                        'action': [
-                            './osx/incbuild.sh',
-                            '<(native_exec_path)/<(native_exec_name).app/Contents/'
-                        ]
-                    }
-                ]
             }],
         ],
     }]
