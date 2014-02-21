@@ -1,7 +1,7 @@
 #ifndef nativesystem_h__
 #define nativesystem_h__
 
-#include "NativeSystemInterface.h"
+#include "../NativeSystemInterface.h"
 
 /*
     Enable Retina support
