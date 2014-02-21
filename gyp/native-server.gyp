@@ -14,6 +14,7 @@
         'sources': [
             '<(native_src_path)/native_main.cpp',
             '<(native_src_path)/NativeServer.cpp',
+            '<(native_src_path)/NativeContext.cpp',
         ],
         'conditions': [
             ['OS=="linux"', {
