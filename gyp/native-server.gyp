@@ -2,7 +2,6 @@
     'targets': [{
         'target_name': '<(native_exec_name)',
         'type': 'executable',
-        'mac_bundle': 1,
         'product_dir': '<(native_exec_path)',
         'dependencies': [
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore'
