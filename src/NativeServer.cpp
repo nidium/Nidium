@@ -40,11 +40,18 @@ int NativeServer::Start(int argc, char **argv)
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
 
-    NativeContext *ctx = new NativeContext(net);
+    NativeContext ctx(net);
+
+    if (argc < 2) {
+        NLOG("./nidium-server <filename.js>");
+        return 1;
+    }
+    
+    if (!ctx.getNJS()->LoadScript(argv[1])) {
+        return 1;
+    }
 
     events_loop(net);
-
-    delete ctx;
 
     return 1;
 }
