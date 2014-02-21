@@ -54,7 +54,9 @@
                         'libjs_static.a',
                         'libnspr4.a',
                         'libcares.a',
-                        'libleveldb.a'
+                        'libleveldb.a',
+                        'libhttp_parser.a',
+                        '/usr/lib/libz.dylib',
                     ],
                 },
                 "xcode_settings": {

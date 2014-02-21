@@ -9,7 +9,7 @@
         'native_exec_path': '../dist/',
 
         'third_party_path%': '../../NativeStudio/third-party/',
-        'native_output%': '../out/',
+        'native_output%': '../../NativeStudio/out/',
         'addresse_sanitizer%': 0,
     },
 }
