@@ -56,13 +56,13 @@ NativeMessages::~NativeMessages()
 void NativeMessages::postMessage(void *dataptr, int event)
 {
     NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataptr, event, this);
-    this->postMessage(msg);
+    g_MessagesList->postMessage(msg);
 }
 
 void NativeMessages::postMessage(uint64_t dataint, int event)
 {
     NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataint, event, this);
-    this->postMessage(msg);
+    g_MessagesList->postMessage(msg);
 }
 
 void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
