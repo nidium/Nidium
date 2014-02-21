@@ -1,8 +1,11 @@
 #include "NativeDB.h"
-#include "leveldb/db.h"
-#include "leveldb/filter_policy.h"
-#include "NativeSystemInterface.h"
+#include <leveldb/db.h>
+#include <leveldb/filter_policy.h>
 #include <jsapi.h>
+
+#ifndef NATIVE_NO_PRIVATE_DIR
+#  include "../interface/NativeSystemInterface.h"
+#endif
 
 NativeDB::NativeDB(const char *name) :
     m_Database(NULL), m_Status(false)
@@ -12,8 +15,11 @@ NativeDB::NativeDB(const char *name) :
         return;
     }
     leveldb::Options options;
-
+#ifndef NATIVE_NO_PRIVATE_DIR
     const char *dir = NativeSystemInterface::getInstance()->getCacheDirectory();
+#else
+    const char *dir = "./";
+#endif
     std::string sdir(dir);
     sdir += name;
 
