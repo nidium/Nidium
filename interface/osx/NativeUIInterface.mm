@@ -780,9 +780,34 @@ char *NativeCocoaUIInterface::getClipboardText()
     return SDL_GetClipboardText();
 }
 
+void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
+{
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSWindow *nswindow = NativeCocoaWindow(this->win);
+    
+    this->width = w;
+    this->height = h;
+
+    int screen_width, screen_height;
+    if (x == NATIVE_WINDOWPOS_CENTER_MASK || y == NATIVE_WINDOWPOS_CENTER_MASK) {
+        this->getScreenSize(&screen_width, &screen_height);
+
+        if (x == NATIVE_WINDOWPOS_CENTER_MASK) {
+            x = (screen_width - w) / 2;
+        }
+        if (y == NATIVE_WINDOWPOS_CENTER_MASK) {
+            y = (screen_height - h) / 2;
+        }
+    }
+
+    CGRect newframe = [nswindow frameRectForContentRect:CGRectMake(x, y, w, h)];
+    [nswindow setFrame:newframe display:YES];
+
+    [pool drain];
+}
+
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
-    //NativeJSwindow *window = NativeJSwindow::getNativeClass(NativeCtx->getNJS());
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *nswindow = NativeCocoaWindow(this->win);
 

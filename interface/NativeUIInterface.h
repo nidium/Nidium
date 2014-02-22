@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #define NATIVE_WINDOWPOS_UNDEFINED_MASK   0xFFFFFFF0
+#define NATIVE_WINDOWPOS_CENTER_MASK   0xFFFFFFF1
 
 class NativeContext;
 class NativeNML;
@@ -53,11 +54,13 @@ class NativeUIInterface
         virtual void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
         virtual const char *getCacheDirectory() const=0;
+
         virtual void setWindowSize(int w, int h);
-        virtual void centerWindow();
+        virtual void setWindowFrame(int x, int y, int w, int h);
         virtual void getScreenSize(int *width, int *height);
         virtual void setWindowPosition(int x, int y);
         virtual void getWindowPosition(int *x, int *y);
+        virtual void centerWindow();
 
         virtual void log(const char *buf)=0;
         virtual void logf(const char *format, ...)=0;

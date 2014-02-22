@@ -22,6 +22,7 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_center(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_setFrame(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
@@ -115,6 +116,7 @@ static JSFunctionSpec window_funcs[] = {
     JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, 0),
     JS_FN("center", native_window_center, 0, 0),
     JS_FN("setPosition", native_window_setPosition, 2, 0),
+    JS_FN("setFrame", native_window_setFrame, 4, 0),
     JS_FS_END
 };
 
@@ -829,6 +831,48 @@ static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
+static JSBool native_window_setFrame(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_CHECK_ARGS("setFrame", 4);
+
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    int x = 0, y = 0;
+
+    if (args[0].isString()) {
+        JSString *xstr = args[0].toString();
+        JSAutoByteString cxstr(cx, xstr);
+
+        if (strcmp(cxstr.ptr(), "center") == 0) {
+            x = NATIVE_WINDOWPOS_CENTER_MASK;
+        }
+
+    } else if (args[0].isNumber()) {
+        x = args[0].toInt32();
+    } else {
+        JS_ReportError(cx, "setFrame() invalid position");
+        return false;
+    }
+    if (args[1].isString()) {
+        JSString *ystr = args[1].toString();
+        JSAutoByteString cystr(cx, ystr);
+
+        if (strcmp(cystr.ptr(), "center") == 0) {
+            y = NATIVE_WINDOWPOS_CENTER_MASK;
+        }
+
+    } else if (args[1].isNumber()) {
+        y = args[1].toInt32();
+    } else {
+        JS_ReportError(cx, "setFrame() invalid position");
+        return false;
+    }
+
+    NativeContext::getNativeClass(cx)->setWindowFrame(x, y,
+        args[2].toInt32(), args[3].toInt32());
+
+    return true;
+}
 
 void NativeJSwindow::addFrameCallback(jsval &cb)
 {

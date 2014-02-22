@@ -57,6 +57,7 @@ class NativeContext : public NativeJSDelegate
     void frame();
 
     void setWindowSize(int width, int height);
+    void setWindowFrame(int x, int y, int width, int height);
     void sizeChanged(int w, int h);
 
     void setNML(NativeNML *nml) {

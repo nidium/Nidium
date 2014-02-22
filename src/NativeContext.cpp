@@ -35,14 +35,18 @@
 
 jsval gfunc  = JSVAL_VOID;
 
-void NativeContext_Logger(const char *format)
+int NativeContext_Logger(const char *format)
 {
     __NativeUI->log(format);
+
+    return 0;
 }
 
-void NativeContext_vLogger(const char *format, va_list ap)
+int NativeContext_vLogger(const char *format, va_list ap)
 {
     __NativeUI->vlog(format, ap);
+
+    return 0;
 }
 
 
@@ -147,6 +151,15 @@ void NativeContext::setWindowSize(int w, int h)
     m_SizeDirty = true;
     /* OS window */
     m_UI->setWindowSize((int)w, (int)h);
+    /* Root canvases */
+    this->sizeChanged(w, h);
+}
+
+void NativeContext::setWindowFrame(int x, int y, int w, int h)
+{
+    m_SizeDirty = true;
+    /* OS window */
+    m_UI->setWindowFrame((int)x, (int)y, (int)w, (int)h);
     /* Root canvases */
     this->sizeChanged(w, h);
 }
