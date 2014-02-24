@@ -1,5 +1,6 @@
 mozilla-central
 c-ares
+leveldb
 http-parser
 gyp
 nativejscore-requirements.py
