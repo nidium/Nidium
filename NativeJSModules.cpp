@@ -299,8 +299,12 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
         modulePath = NativeJSModules::findModuleInPath(module, "");
     }  else {
         std::string path = parent->absoluteDir;
+        const char *topDir = module->modules->m_TopDir;
+        if (topDir == NULL) {
+            topDir = "/";
+        }
 
-        DPRINT("[findModulePath] absolute dir=%s path=%s\n", parent->absoluteDir, path.c_str());
+        DPRINT("[findModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->absoluteDir, path.c_str());
 
         // Look for the module in all parent directory until it's found
         // or if the top level working directory is reached
@@ -316,7 +320,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
                 DPRINT("module path is %s\n", modulePath.c_str());
             }
 
-            stop = (strcmp(module->modules->m_TopDir, path.c_str()) == 0);
+            stop = (strcmp(topDir, path.c_str()) == 0);
             // Try again with parent directory
             if (!stop) {
                 DPRINT("  Getting parent dir for %s\n", path.c_str());
