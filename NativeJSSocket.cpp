@@ -639,7 +639,7 @@ static JSBool native_socket_client_write(JSContext *cx,
     }
 
     if ((socket_client = (ape_socket *)JS_GetPrivate(caller)) == NULL) {
-        JS_ReportError(cx, "write() bad caller");
+        JS_ReportError(cx, "socket.write() Invalid socket");
         return false;
     }
 
@@ -691,7 +691,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 
     if (nsocket == NULL || !nsocket->isAttached()) {
 
-        JS_ReportError(cx, "write() bad caller");
+        JS_ReportError(cx, "socket.write() Invalid socket");
         return false;
     }
 
