@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "NativeServer.h"
 #include "NativeContext.h"
@@ -27,8 +28,38 @@ static int inc_rlimit(int nofile)
     return setrlimit(RLIMIT_NOFILE, &rl);
 }
 
-int NativeServer::Start(int argc, char **argv)
+void NativeServer::Daemonize(int pidfile)
 {
+    if (0 != fork()) { 
+        exit(0);
+    }
+    if (-1 == setsid()) {
+        exit(0);
+    }
+    signal(SIGHUP, SIG_IGN);
+
+    if (0 != fork()) {
+        exit(0);
+    }
+    if (pidfile > 0) {
+        char pidstring[32];
+        int len;
+        len = sprintf(pidstring, "%i", (int)getpid());
+        write(pidfile, pidstring, len);
+        close(pidfile);
+    }
+}
+
+int NativeServer::Start(int argc, char *argv[])
+{
+    bool daemon = false;
+
+    static struct option long_options[] =
+    {
+        {"daemon",     no_argument,       0, 'd'},
+        {0, 0, 0, 0}
+    };
+
     _ape_seed = time(NULL) ^ (getpid() << 16);
     ape_global *net = native_netlib_init();
 
@@ -43,14 +74,29 @@ int NativeServer::Start(int argc, char **argv)
     NativeContext ctx(net);
 
     if (argc < 2) {
-        NLOG("./nidium-server <filename.js>");
-        return 1;
-    }
-    
-    if (!ctx.getNJS()->LoadScript(argv[1])) {
+        NLOG("./nidium-server [-d] <filename.js>");
         return 1;
     }
 
+    int ch;
+
+    while ((ch = getopt_long(argc, argv, "d", long_options, NULL)) != -1) {
+        switch (ch) {
+            case 'd':
+                daemon = true;
+                break;
+            default:
+                break;            
+        }
+    }
+
+    if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
+        return 1;
+    }
+
+    if (daemon) {
+        NativeServer::Daemonize();
+    }
     events_loop(net);
 
     return 1;

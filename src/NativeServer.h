@@ -7,6 +7,7 @@ class NativeServer
 {
 public:
     static int Start(int argc, char **argv);
+    static void Daemonize(int pidfile = 0);
 };
 
 #endif
