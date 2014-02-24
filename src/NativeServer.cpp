@@ -54,6 +54,7 @@ void NativeServer::Daemonize(int pidfile)
 int NativeServer::Start(int argc, char *argv[])
 {
     bool daemon = false;
+    NativeREPL *repl = NULL;
 
     static struct option long_options[] =
     {
@@ -72,13 +73,6 @@ int NativeServer::Start(int argc, char *argv[])
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
 
-    NativeContext ctx(net);
-
-    if (argc < 2) {
-        NLOG("%s [-d] <filename.js>", argv[0]);
-        return 1;
-    }
-
     int ch;
 
     while ((ch = getopt_long(argc, argv, "d", long_options, NULL)) != -1) {
@@ -91,19 +85,26 @@ int NativeServer::Start(int argc, char *argv[])
         }
     }
 
-    if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
-        return 1;
-    }
-
+    NativeContext ctx(net);
+    /*
+        Daemon require a .js to load
+    */
     if (daemon) {
+        if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
+            return 1;
+        }
         NativeServer::Daemonize();
+    } else {
+        if (argc > 1) {
+            ctx.getNJS()->LoadScript(argv[argc-1]);
+        }
+        /* Heap allocated because we need to be sure that it's deleted before NativeJS */
+        repl = new NativeREPL(ctx.getNJS());
     }
-
-    /* Heap allocated because we need to be sure that it's deleted before NativeJS */
-    NativeREPL *repl = new NativeREPL(ctx.getNJS());
-
     events_loop(net);
 
-    delete repl;
+    if (repl) {
+        delete repl;
+    }
     return 1;
 }
