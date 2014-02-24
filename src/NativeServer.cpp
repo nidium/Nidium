@@ -65,8 +65,6 @@ int NativeServer::Start(int argc, char *argv[])
     _ape_seed = time(NULL) ^ (getpid() << 16);
     ape_global *net = native_netlib_init();
 
-    NLOG("[Native Server] Starting.");
-
     inc_rlimit(64000);
 
     signal(SIGPIPE, SIG_IGN);
@@ -87,7 +85,7 @@ int NativeServer::Start(int argc, char *argv[])
 
     NativeContext ctx(net);
     /*
-        Daemon require a .js to load
+        Daemon requires a .js to load
     */
     if (daemon) {
         if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
@@ -98,13 +96,14 @@ int NativeServer::Start(int argc, char *argv[])
         if (argc > 1) {
             ctx.getNJS()->LoadScript(argv[argc-1]);
         }
-        /* Heap allocated because we need to be sure that it's deleted before NativeJS */
+
+        /* Heap allocated because we need to be
+        sure that it's deleted before NativeJS */
         repl = new NativeREPL(ctx.getNJS());
     }
+
     events_loop(net);
 
-    if (repl) {
-        delete repl;
-    }
+    delete repl;
     return 1;
 }

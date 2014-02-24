@@ -2,10 +2,7 @@
 #include "NativeMacros.h"
 
 #include <NativeJS.h>
-
 #include <stdio.h>
-#include <termios.h>
-#include <unistd.h>
 
 enum {
     NATIVE_MESSAGE_READLINE
