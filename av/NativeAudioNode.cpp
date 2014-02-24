@@ -812,7 +812,8 @@ return err;
 
 int NativeAudioSource::openInit() 
 {
-    Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::openInitCoro);
+    m_SourceDoOpen = true;
+    NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
     return 0;
 }
 
@@ -823,6 +824,7 @@ thiz->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
 thiz->doClose = true; \
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
     NativeAudioSource *thiz = static_cast<NativeAudioSource *>(arg);
+    thiz->m_SourceDoOpen = false;
 
     int ret;
     if ((ret = thiz->initStream()) != 0) {
@@ -1071,6 +1073,11 @@ bool NativeAudioSource::work()
     if (!this->externallyManaged) {
         if (!this->reader) {
             return false;
+        }
+
+        if (m_SourceDoOpen) {
+            Coro_startCoro_(this->mainCoro, this->coro, this, NativeAudioSource::openInitCoro);
+            return true;
         }
 
         if (this->reader->needWakup) {

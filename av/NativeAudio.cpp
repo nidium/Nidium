@@ -62,7 +62,8 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     pthread_create(&this->threadQueue, NULL, NativeAudio::queueThread, this);
 }
 
-void *NativeAudio::queueThread(void *args) {
+void *NativeAudio::queueThread(void *args) 
+{
     NativeAudio *audio = (NativeAudio *)args;
     bool wrote;
     int cause = 0;
