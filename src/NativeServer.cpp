@@ -8,6 +8,7 @@
 #include "NativeServer.h"
 #include "NativeContext.h"
 #include "NativeMacros.h"
+#include "NativeREPL.h"
 
 int ape_running = 1;
 unsigned long _ape_seed;
@@ -74,7 +75,7 @@ int NativeServer::Start(int argc, char *argv[])
     NativeContext ctx(net);
 
     if (argc < 2) {
-        NLOG("./nidium-server [-d] <filename.js>");
+        NLOG("%s [-d] <filename.js>", argv[0]);
         return 1;
     }
 
@@ -97,7 +98,12 @@ int NativeServer::Start(int argc, char *argv[])
     if (daemon) {
         NativeServer::Daemonize();
     }
+
+    /* Heap allocated because we need to be sure that it's deleted before NativeJS */
+    NativeREPL *repl = new NativeREPL(ctx.getNJS());
+
     events_loop(net);
 
+    delete repl;
     return 1;
 }
