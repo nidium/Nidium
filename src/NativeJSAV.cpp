@@ -990,16 +990,16 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
 NativeJSAudioNode::~NativeJSAudioNode()
 {
     NativeJSAudio::Nodes *nodes = this->audio->nodes;
-    // Wakeup audio thread. This will flush all pending messages.
-    // That way, we are sure nothing will need to be processed
-    // later for this node.
-    this->audio->audio->wakeup();
-
     // Block NativeAudio threads execution.
     // While the node is destructed we don't want any thread
     // to call some method on a node that is being destroyed
     this->audio->audio->lockQueue();
     this->audio->audio->lockSources();
+
+    // Wakeup audio thread. This will flush all pending messages.
+    // That way, we are sure nothing will need to be processed
+    // later for this node.
+    this->audio->audio->wakeup();
 
     if (this->type == NativeAudio::SOURCE) {
         // Only source from NativeVideo has reserved slot
