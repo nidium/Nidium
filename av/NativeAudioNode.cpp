@@ -79,7 +79,6 @@ NativeAudioNode::Message::~Message() {
 
 void NativeAudioNode::callback(NodeMessageCallback cbk, void *custom) 
 {
-    this->ref();
     this->audio->sharedMsg->postMessage((void *)new CallbackMessage(cbk, this, custom), NATIVE_AUDIO_NODE_CALLBACK);
 }
 
@@ -438,7 +437,6 @@ float *NativeAudioNode::newFrame()
 }
 
 void NativeAudioNode::post(int msg, ExportsArgs *arg, void *val, unsigned long size) {
-    this->ref();
     this->audio->sharedMsg->postMessage((void *)new Message(this, arg, val, size), msg);
 }
 

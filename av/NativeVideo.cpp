@@ -113,7 +113,10 @@ int NativeVideo::open(const char *chroot, const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
+    if (pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this) != 0) {
+        RETURN_WITH_ERROR(ERR_INTERNAL);
+    }
+    m_ThreadCreated = true;
 
     return 0;
 }
@@ -691,7 +694,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
         this->audioSource->eventCallback(NULL, NULL); //Disable events callbacks
         if (0 != this->audioSource->initInternal()) {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, 0, false);
-            this->audioSource->unref();
+            delete this->audioSource;
             this->audioSource = NULL;
         }
 
@@ -973,7 +976,7 @@ void *NativeVideo::decode(void *args)
         } else if (v->m_SourceDoClose) {
             DPRINT("m_SourceDoClose set to true\n");
             v->closeInternal(true);
-            break;
+            return NULL;
         } else {
             DPRINT("wait bufferCond, no work needed\n");
             NATIVE_PTHREAD_WAIT(&v->bufferCond);
@@ -994,9 +997,8 @@ void NativeVideo::stopAudio()
     this->clearAudioQueue();
 
     this->audio = NULL;
-    // XXX : We set audio source to NULL because right now 
-    // it's the JS implementation that free the node
-    // this->audioSource->unref();
+    // NativeVideo::stopAudio() is called when the audio node
+    // is being destructed, so we just set the audioSource to null
     this->audioSource = NULL; 
 
     pthread_mutex_unlock(&this->audioLock);
@@ -1322,7 +1324,7 @@ void NativeVideo::closeInternal(bool reset) {
     this->clearTimers(reset);
 
     if (m_ThreadCreated && !m_SourceDoClose) {
-        // m_SourceDoClose is true when source is closed
+        // m_SourceDoClose is true when source need to be closed
         // from the decode thread. So we don't want to join the thread
         this->shutdown = true;
 
@@ -1408,7 +1410,7 @@ void NativeVideo::closeInternal(bool reset) {
             this->freePacket = NULL;
             // Note : av_free_packet is called by the audioSource
         }
-        this->audioSource->unref();
+        delete this->audioSource;
         this->audioSource = NULL;
     }
 

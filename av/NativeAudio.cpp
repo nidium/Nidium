@@ -83,7 +83,6 @@ void *NativeAudio::queueThread(void *args)
         // Example : For shutdown, we need to suspend the queue thread (using
         // NativeAudio::lockQueue()) but we also need the ability to read
         // shared messages for shuting down various nodes.
-        //
         int lockErr = pthread_mutex_trylock(&audio->recurseLock);
 
         if (lockErr == 0 && audio->output != NULL && msgFlush != true) {
@@ -181,9 +180,6 @@ void NativeAudio::readMessages(bool flush)
             case NATIVE_AUDIO_NODE_CALLBACK : {
                 NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                 cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
-                if (cbkMsg->node != NULL) {
-                    cbkMsg->node->unref();
-                }
                 delete cbkMsg;
             }
             break;
@@ -195,19 +191,12 @@ void NativeAudio::readMessages(bool flush)
                     memcpy(nodeMsg->arg->ptr, nodeMsg->val, nodeMsg->size);
                 }
 
-                if (nodeMsg->node != NULL) {
-                    nodeMsg->node->unref();
-                }
-
                 delete nodeMsg;
             }
             break;
             case NATIVE_AUDIO_CALLBACK :
                 NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
                 cbkMsg->cbk(NULL, cbkMsg->custom);
-                if (cbkMsg->node != NULL) {
-                    cbkMsg->node->unref();
-                }
                 delete cbkMsg;
             break;
         }
