@@ -89,6 +89,7 @@ class NativeSharedMessages
 
     NativeSharedMessages();
     ~NativeSharedMessages();
+
     void postMessage(Message *msg);
     void postMessage(void *dataptr, int event);
     void postMessage(uint64_t dataint, int event);
@@ -98,7 +99,10 @@ class NativeSharedMessages
     void setCleaner(native_shared_message_cleaner cleaner) {
         m_Cleaner = cleaner;
     }
-
+    
+    int hasPendingMessages() const {
+        return (messageslist.count != 0);
+    }
   private:
 
     struct
