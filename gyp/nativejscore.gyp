@@ -58,7 +58,7 @@
             '../NativeJSStream.cpp',
             '../NativeMessages.cpp',
             '../NativeDB.cpp',
-            '../NativeTaskManagerManager.cpp',
+            '../NativeTaskManager.cpp',
             '../NativeFile.cpp',
         ],
     }],
