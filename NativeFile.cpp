@@ -27,9 +27,7 @@
 
 #define NATIVE_FILE_NOTIFY(arg, event) \
     do {   \
-        if (m_Delegate) { \
-            m_Delegate->postMessage(arg, event); \
-        } \
+        this->postMessage(arg, event); \
     } while(0);
 
 enum {
@@ -41,7 +39,7 @@ enum {
 };
 
 NativeFile::NativeFile(const char *name) :
-    m_Fd(NULL), m_Delegate(NULL), m_Filesize(0)
+    m_Fd(NULL), m_Delegate(NULL), m_Filesize(0), m_AutoClose(true), m_Eof(false)
 {
     m_Path = strdup(name);
 }
@@ -87,6 +85,14 @@ void NativeFile_dispatchTask(NativeTask *task)
             file->writeTask(buf, buflen);
             break;
         }
+        case NATIVEFILE_TASK_SEEK:
+        {
+            uint64_t pos;
+            task->getArg(1, &pos);
+
+            file->seekTask(pos);
+            break;
+        }
         default:
             break;
     }
@@ -98,6 +104,7 @@ void NativeFile_dispatchTask(NativeTask *task)
 void NativeFile::openTask(const char *mode)
 {
     m_Fd = fopen(m_Path, mode);
+
     if (m_Fd == NULL) {
         NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR);
         return;
@@ -146,15 +153,13 @@ void NativeFile::readTask(size_t size)
 
     buffer *buf = buffer_new(clamped_len + 1);
 
-    int readsize;
-
-    if ((buf->used = fread(buf->data, 1, buf->size, m_Fd)) == 0) {
-
-        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_READ_ERROR);
+    if ((buf->used = fread(buf->data, 1, buf->size, m_Fd)) == 0) {        
+        this->checkRead();
         buffer_destroy(buf);
-        // checkRead
         return;
     }
+
+    this->checkEOF();
 
     buf->data[buf->used] = '\0';
 
@@ -181,6 +186,25 @@ void NativeFile::writeTask(char *buf, size_t buflen)
     m_Filesize = ftell(m_Fd);
 
     NATIVE_FILE_NOTIFY(writelen, NATIVEFILE_WRITE_SUCCESS);
+}
+
+/*
+    /!\ Exec in a worker thread
+*/
+void NativeFile::seekTask(size_t pos)
+{
+    int res;
+
+    if (m_Fd == NULL) {
+        return;
+    }
+
+    if ((res = fseek(m_Fd, pos, SEEK_SET)) == -1) {
+        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_SEEK_ERROR);
+        return;
+    }
+
+    NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_SEEK_SUCCESS);
 }
 
 void NativeFile::open(const char *mode, void *arg)
@@ -227,7 +251,72 @@ void NativeFile::write(char *buf, size_t size, void *arg)
     this->addTask(task);
 }
 
+void NativeFile::seek(size_t pos, void *arg)
+{
+    NativeTask *task = new NativeTask();
+    task->setObject(this);
+    task->setArg(NATIVEFILE_TASK_SEEK, 0);
+    task->setArg(pos, 1);
+    task->setFunction(NativeFile_dispatchTask);
+
+    this->addTask(task);
+}
+
+bool NativeFile::checkEOF()
+{
+    if (m_Fd && ((m_Eof = (bool)feof(m_Fd)) == true ||
+        (m_Eof = (ftell(m_Fd) == this->m_Filesize))) && m_AutoClose) {
+        
+        this->closeTask();
+    }
+
+    return m_Eof;
+}
+
+void NativeFile::checkRead(bool async)
+{
+    int err = -1;
+
+    if (ferror(m_Fd)) {
+        err = errno;
+    } else if (this->checkEOF()) {
+        err = 0;
+    }
+
+    if (async && err != -1) {
+        NATIVE_FILE_NOTIFY(err, NATIVEFILE_READ_ERROR);
+    }
+}
+
 NativeFile::~NativeFile()
 {
     free(m_Path);
+}
+
+void NativeFile::onMessage(const NativeSharedMessages::Message &msg)
+{
+    if (m_Delegate) {
+        m_Delegate->onMessage(msg);
+    }
+
+    switch(msg.event()) {
+        case NATIVEFILE_READ_SUCCESS:
+        {
+            buffer *buf = (buffer *)msg.dataPtr();
+            buffer_delete(buf);
+            break;
+        }
+    }
+}
+
+void NativeFile::onMessageLost(const NativeSharedMessages::Message &msg)
+{
+    switch(msg.event()) {
+        case NATIVEFILE_READ_SUCCESS:
+        {
+            buffer *buf = (buffer *)msg.dataPtr();
+            buffer_delete(buf);
+            break;
+        }
+    }
 }

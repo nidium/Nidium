@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "NativeMessages.h"
 #include "NativeTaskManager.h"
+#include "NativeIStreamer.h"
 
 #define NATIVEFILE_MESSAGE_BITS(id) ((1 << 20) | id)
 
@@ -36,9 +37,11 @@ enum {
     NATIVEFILE_READ_ERROR = NATIVEFILE_MESSAGE_BITS(5),
     NATIVEFILE_WRITE_SUCCESS = NATIVEFILE_MESSAGE_BITS(6),
     NATIVEFILE_WRITE_ERROR = NATIVEFILE_MESSAGE_BITS(7),
+    NATIVEFILE_SEEK_SUCCESS = NATIVEFILE_MESSAGE_BITS(8),
+    NATIVEFILE_SEEK_ERROR = NATIVEFILE_MESSAGE_BITS(9),
 };
 
-class NativeFile : public NativeManaged
+class NativeFile : public NativeManaged, public NativeIStreamer
 {
 public:
     explicit NativeFile(const char *path);
@@ -54,11 +57,32 @@ public:
     void closeTask();
     void readTask(size_t size);
     void writeTask(char *buf, size_t buflen);
+    void seekTask(size_t pos);
+
+    void setAutoClose(bool close) { m_AutoClose = close; }
+    void setListener(NativeMessages *listener) {
+        m_Delegate = listener;
+    }
+    size_t getFileSize() const {
+        return m_Filesize;
+    }
+
+    bool eof() const {
+        return m_Fd == NULL || m_Eof;
+    }
+
+    void onMessage(const NativeSharedMessages::Message &msg);
+    void onMessageLost(const NativeSharedMessages::Message &msg);
 private:
+    bool checkEOF();
+    void checkRead(bool async = true);
+
     FILE *m_Fd;
     NativeMessages *m_Delegate;
     char *m_Path;
     size_t m_Filesize;
+    bool m_AutoClose;
+    bool m_Eof;
 };
 
 #endif

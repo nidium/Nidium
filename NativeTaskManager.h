@@ -24,9 +24,10 @@
 #include <pthread.h>
 #include "NativeMessages.h"
 #include "NativeSharedMessages.h"
+#include <stdio.h>
 
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
-#define NATIVE_TASKMANAGER_MAX_THREAD 64
+#define NATIVE_TASKMANAGER_MAX_THREAD 16
 
 class NativeTask;
 
@@ -42,9 +43,14 @@ public:
         void stop();
         void run();
         void addTask(NativeTask *task);
+        void waitTerminate();
 
         void setManager(NativeTaskManager *manager) {
             m_Manager = manager;
+        }
+
+        NativeSharedMessages *getMessages() {
+            return &m_Messages;
         }
     private:
         pthread_t m_Handle;
@@ -58,8 +64,11 @@ public:
     NativeTaskManager();
     ~NativeTaskManager();
     int createWorker(int count = 1);
+    void stopAll();
 
     workerInfo *getAvailableWorker();
+    static NativeTaskManager *getManager();
+    static void createManager();
 
 private:
 
@@ -130,12 +139,11 @@ private:
 class NativeManaged : public NativeMessages
 {
 public:
-    NativeManaged() : m_Manager(NULL), m_Worker(NULL) {}
+    NativeManaged() : m_Worker(NULL) {
+        m_Manager = NativeTaskManager::getManager();
+    }
     ~NativeManaged(){};
     void addTask(NativeTask *task);
-    void setManager(NativeTaskManager *manager) {
-        m_Manager = manager;
-    }
 private:
     NativeTaskManager *m_Manager;
     NativeTaskManager::workerInfo *m_Worker;

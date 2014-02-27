@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static pthread_key_t gManager = 0;
+
 void *NativeTaskManager_Worker(void *arg)
 {
     return ((NativeTaskManager::workerInfo *)arg)->work();
@@ -62,6 +64,11 @@ void NativeTaskManager::workerInfo::stop()
     pthread_cond_signal(&m_Cond);
 }
 
+void NativeTaskManager::workerInfo::waitTerminate()
+{
+    pthread_join(m_Handle, NULL);
+}
+
 void NativeTaskManager_workerInfo_MessageCleaner(const NativeSharedMessages::Message &msg)
 {
     NativeTask *task = (NativeTask *)msg.dataPtr();
@@ -80,8 +87,9 @@ NativeTaskManager::workerInfo::workerInfo() :
 NativeTaskManager::workerInfo::~workerInfo()
 {
     this->stop();
-    m_Messages.delMessagesForDest(NULL);
     pthread_join(m_Handle, NULL);
+
+    m_Messages.delMessagesForDest(NULL);
 }
 
 void NativeTaskManager::workerInfo::run()
@@ -142,14 +150,47 @@ int NativeTaskManager::createWorker(int count)
     return actualCount;
 }
 
+void NativeTaskManager::stopAll()
+{
+    int count = m_Threadpool.count, i;
+    for (i = 0; i < count; i++) {
+        m_Threadpool.worker[i].stop();
+    }
+
+    for (i = 0; i < count; i++) {
+        m_Threadpool.worker[i].waitTerminate();
+        m_Threadpool.worker[i].getMessages()->delMessagesForDest(NULL);
+    }
+}
+
 NativeTaskManager::workerInfo *NativeTaskManager::getAvailableWorker()
 {
     return &m_Threadpool.worker[0];
 }
 
+NativeTaskManager *NativeTaskManager::getManager()
+{
+    return (NativeTaskManager *)pthread_getspecific(gManager);
+}
+
+void NativeTaskManager::createManager()
+{
+    NativeTaskManager *manager = new NativeTaskManager();
+    if (gManager == 0) {
+        pthread_key_create(&gManager, NULL);
+    }
+    pthread_setspecific(gManager, manager);
+}
+
 NativeTaskManager::~NativeTaskManager()
 {
-
+    /*
+        It's faster to stop all the
+        worker at the same time
+    */
+    this->stopAll();
+    delete[] m_Threadpool.worker;
+    pthread_setspecific(gManager, NULL);
 }
 
 ////////////////////////////////////////////
