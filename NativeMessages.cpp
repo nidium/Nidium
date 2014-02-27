@@ -35,7 +35,6 @@ static int NativeMessages_handle(void *arg)
 
     while (++nread < MAX_MSG_IN_ROW && g_MessagesList->readMessage(&msg)) {
         NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
-
         obj->onMessage(msg);
     }
 
@@ -91,6 +90,11 @@ void NativeMessages::initReader(ape_global *ape)
         NativeMessages_handle, NULL);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+}
+
+void NativeMessages::delMessages(int event)
+{
+    g_MessagesList->delMessagesForDest(this, event);
 }
 
 void NativeMessages::destroyReader()
