@@ -22,13 +22,13 @@
 #define nativestream_h__
 
 #include "NativeHTTP.h"
-#include "NativeFileIO.h"
 #include "NativeIStreamer.h"
+#include "NativeTaskManager.h"
 
 class NativeStreamDelegate;
 
 
-class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
+class NativeStream : public NativeHTTPDelegate, public NativeManaged
 {
     public:
         enum StreamInterfaces {
@@ -124,17 +124,13 @@ class NativeStream : public NativeHTTPDelegate, public NativeFileIODelegate
         void onError(NativeHTTP::HTTPError err);
         void onHeader();
 
-        /* File */
-        void onNFIOOpen(NativeFileIO *);
-        void onNFIOError(NativeFileIO *, int errno);
-        void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
-        void onNFIOWrite(NativeFileIO *, size_t written);
-
         size_t getPacketSize() const {
             return this->m_PacketsSize;
         }
 
         static NativeStream::StreamInterfaces typeInterface(const char *url, int *len);
+
+        void onMessage(const NativeSharedMessages::Message &msg);
     private:
         NativeIStreamer *interface;
         NativeIStreamer *getInterface(bool refresh = false);

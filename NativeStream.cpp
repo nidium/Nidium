@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include "NativeStream.h"
 #include "NativeHTTP.h"
-#include "NativeFileIO.h"
+#include "NativeFile.h"
 #include <ape_base64.h>
 #include "NativeUtils.h"
 
@@ -133,7 +133,7 @@ void NativeStream::setAutoClose(bool close)
     if (interface != NULL &&
             (IInterface == INTERFACE_FILE ||
             IInterface == INTERFACE_PRIVATE)) {
-        static_cast<NativeFileIO *>(interface)->setAutoClose(close);
+        static_cast<NativeFile *>(interface)->setAutoClose(close);
     }
 }
 
@@ -316,20 +316,22 @@ void NativeStream::setInterface(StreamInterfaces interface, int path_offset)
         case INTERFACE_PRIVATE:
         {
             char *flocation = NativeStream::resolvePath(m_Location, STREAM_RESOLVE_FILE);
-            NativeFileIO *nfio = new NativeFileIO(flocation, this, this->net);
-            this->interface = nfio;
-            nfio->setAutoClose(m_AutoClose);
+
+            NativeFile *file = new NativeFile(flocation);
+            file->setListener(this);
+
+            this->interface = file;
+            file->setAutoClose(m_AutoClose);
             free(flocation);
             break;
-
         }
         case INTERFACE_FILE:
         {
-            NativeFileIO *nfio = new NativeFileIO(&m_Location[path_offset],
-                                this, this->net);
+            NativeFile *file = new NativeFile(&m_Location[path_offset]);
+            file->setListener(this);
 
-            this->interface = nfio;
-            nfio->setAutoClose(m_AutoClose);
+            this->interface = file;
+            file->setAutoClose(m_AutoClose);
 
             break;
         }
@@ -367,7 +369,7 @@ void NativeStream::start(size_t packets, size_t seek)
                 m_DataBuffer.back = buffer_new(packets);
                 m_DataBuffer.front    = buffer_new(packets);
             }
-            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            NativeFile *file = static_cast<NativeFile *>(this->interface);
             file->open("r");
             if (seek != 0) {
                 file->seek(seek);
@@ -492,7 +494,7 @@ void NativeStream::seek(size_t pos)
             m_BufferedPosition = pos;
             m_Buffered = 0;
 
-            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            NativeFile *file = static_cast<NativeFile *>(this->interface);
             file->seek(pos);
             file->read(this->getPacketSize());
             break;
@@ -537,7 +539,7 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
     switch(IInterface) {
         case INTERFACE_FILE:
         {
-            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            NativeFile *file = static_cast<NativeFile *>(this->interface);
             file->read(this->getPacketSize());
             break;
         }
@@ -592,7 +594,7 @@ void NativeStream::getContent()
         case INTERFACE_FILE:
         case INTERFACE_PRIVATE:
         {
-            NativeFileIO *file = static_cast<NativeFileIO *>(this->interface);
+            NativeFile *file = static_cast<NativeFile *>(this->interface);
             file->open("r");
             break;
         }
@@ -608,17 +610,52 @@ void NativeStream::getContent()
     }
 }
 
-/* File methods */
-void NativeStream::onNFIOOpen(NativeFileIO *NFIO)
+void NativeStream::onMessage(const NativeSharedMessages::Message &msg)
 {
-    if (this->delegate) {
-        size_t packetSize = this->getPacketSize();
-        this->m_FileSize = NFIO->m_Filesize;
-        this->m_KnownSize = true;
+    switch (msg.event()) {
+        case NATIVEFILE_OPEN_SUCCESS:
+            if (this->delegate) {
+                NativeFile *file = static_cast<NativeFile *>(this->interface);
+                size_t packetSize = this->getPacketSize();
+                this->m_FileSize = file->getFileSize();
+                this->m_KnownSize = true;
 
-        NFIO->read(packetSize == 0 ? NFIO->m_Filesize : packetSize);
+                file->read(packetSize == 0 ? file->getFileSize(): packetSize);
+            }
+            break;
+        case NATIVEFILE_READ_SUCCESS:
+        {
+            NativeFile *file = static_cast<NativeFile *>(this->interface);
+            buffer *buf = (buffer *)msg.dataPtr();
+            m_Buffered += buf->used;
+
+            /*if (NFIO->eof()) {
+                m_DataBuffer.ended = true;
+            }*/
+
+            if (this->delegate) {
+                this->delegate->onGetContent((const char *)buf->data, buf->used);
+
+                m_DataBuffer.alreadyRead = false;
+                if (m_DataBuffer.back != NULL) {
+                    m_DataBuffer.back->used = 0;
+                    if (buf->data != NULL) {
+                        buffer_append_data(m_DataBuffer.back, buf->data, buf->used);
+                    }
+                }
+                if (m_NeedToSendUpdate) {
+                    m_NeedToSendUpdate = false;
+                    this->delegate->onAvailableData(buf->used);
+                }
+            }
+        }
+        default:
+            break;
     }
 }
+
+#if 0
+/* File methods */
 
 void NativeStream::onNFIOError(NativeFileIO *NFIO, int err)
 {
@@ -636,35 +673,8 @@ void NativeStream::onNFIOError(NativeFileIO *NFIO, int err)
     }
 }
 
-void NativeStream::onNFIORead(NativeFileIO *NFIO, unsigned char *data, size_t len)
-{
-    m_Buffered += len;
 
-    if (NFIO->eof()) {
-        m_DataBuffer.ended = true;
-    }
-
-    if (this->delegate) {
-        this->delegate->onGetContent((const char *)data, len);
-
-        m_DataBuffer.alreadyRead = false;
-        if (m_DataBuffer.back != NULL) {
-            m_DataBuffer.back->used = 0;
-            if (data != NULL) {
-                buffer_append_data(m_DataBuffer.back, data, len);
-            }
-        }
-        if (m_NeedToSendUpdate) {
-            m_NeedToSendUpdate = false;
-            this->delegate->onAvailableData(len);
-        }
-    }
-}
-
-void NativeStream::onNFIOWrite(NativeFileIO *NFIO, size_t written)
-{
-
-}
+#endif
 /****************/
 
 /* HTTP methods */
