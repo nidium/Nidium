@@ -1,8 +1,14 @@
 #include "NativeUIInterface.h"
-#import <NativeContext.h>
+#include <NativeContext.h>
+#include <NativeTaskManager.h>
 #include <unistd.h>
 
 #include <SDL.h>
+
+NativeUIInterface::NativeUIInterface()
+{
+    NativeTaskManager::createManager();
+}
 
 bool NativeUIInterface::makeMainGLCurrent()
 {

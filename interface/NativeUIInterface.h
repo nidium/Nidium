@@ -40,6 +40,7 @@ class NativeUIInterface
             return NativeCtx;
         }
 
+        NativeUIInterface();
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
         virtual bool runApplication(const char *path)=0;
