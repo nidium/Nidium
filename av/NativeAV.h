@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "NativeStream.h"
+#include "NativeMessages.h"
 #include "native_netlib.h"
 
 #define NATIVE_AVIO_BUFFER_SIZE 32768 
@@ -75,7 +76,7 @@ class NativeAVBufferReader : public NativeAVReader
 };
 
 typedef void (*NativeAVStreamReadCallback)(void *callbackPrivate);
-class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate 
+class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate, public NativeMessages
 {
     public:
         NativeAVStreamReader(const char *chroot, const char *src, NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net);
@@ -92,6 +93,14 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
         void onError(NativeStream::StreamError err);
         ~NativeAVStreamReader();
     private:
+        enum {
+            MSG_SEEK,
+            MSG_READ,
+            MSG_STOP
+        };
+        void onMessage(const NativeSharedMessages::Message &msg);
+        NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
+
         NativeStream *stream;
         NativeAVStreamReadCallback readCallback;
         void *callbackPrivate;
@@ -100,6 +109,8 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate
 
         size_t streamRead;
         size_t streamPacketSize;
+        int streamErr;
+        size_t streamSeekPos;
         off_t streamSize;
         unsigned const char* streamBuffer;
         int error;
@@ -229,6 +240,9 @@ class NativeAVSource
         double doSeekTime;
         int seekFlags;
         int error;
+
+        bool m_SourceDoOpen;
+        bool m_SourceDoClose;
 
         int readError(int err);
 };

@@ -4,9 +4,12 @@
 #include "NativeJSExposer.h"
 #include <NativeAudio.h>
 #include <NativeAudioNode.h>
+#include <NativeVideo.h>
+#include <NativeMessages.h>
 
-#include "NativeVideo.h"
 #include "NativeSkia.h"
+
+#define CUSTOM_SOURCE_SEND 100
 
 enum {
     NODE_EV_PROP_DATA, 
@@ -99,15 +102,12 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 
         NATIVE_PTHREAD_VAR_DECL(m_ShutdownWait)
 
-        JSObject *jsobj;
         JSObject *gbl;
 
         JSRuntime *rt;
         JSContext *tcx;
 
         NativeJSAudioNode *target;
-
-        static int threadMessageEvent;
 
         bool createContext();
         bool run(char *str);
@@ -116,6 +116,7 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         static void shutdownCallback(NativeAudioNode *dummy, void *custom);
         void unroot();
 
+        void onMessage(const NativeSharedMessages::Message &msg);
         static void registerObject(JSContext *cx);
 
         ~NativeJSAudio();
@@ -124,13 +125,14 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         static NativeJSAudio *instance;
 };
 
-class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
+class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public NativeMessages
 {
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), node(NULL), jsobj(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
+            :  audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
                arrayContent(NULL) 
         { 
+            this->jsobj = NULL;
 
             try {
                 this->node = audio->audio->createNode(type, in, out);
@@ -179,7 +181,6 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
         NativeJS *njs;
         NativeJSAudio *audio;
         NativeAudioNode *node;
-        JSObject *jsobj;
         NativeAudio::Node type;
 
         // Custom node
@@ -197,7 +198,8 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
 
         // Source node
         void *arrayContent;
-        static void eventCbk(const struct NativeAVSourceEvent *cev);
+        void onMessage(const NativeSharedMessages::Message &msg);
+        static void onEvent(const struct NativeAVSourceEvent *cev);
 
         // Custom source node
         static void seekCallback(NativeAudioCustomSource *node, double seekTime, void *custom);
@@ -209,7 +211,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>
         void add();
 };
 
-class NativeJSVideo : public NativeJSExposer<NativeJSVideo>
+class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessages
 {
     public :
         NativeJSVideo(NativeSkia *nskia, JSContext *cx);
@@ -226,7 +228,8 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);
-        static void eventCbk(const struct NativeAVSourceEvent *cev);
+        void onMessage(const NativeSharedMessages::Message &msg);
+        static void onEvent(const struct NativeAVSourceEvent *cev);
         
         ~NativeJSVideo();
     private :

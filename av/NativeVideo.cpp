@@ -16,9 +16,9 @@ extern "C" {
 #undef DPRINT
 #if 0
   #define DEBUG_PRINT
-  #define DPRINT(a, ...) \
+  #define DPRINT(...) \
     printf(">%lld / ", av_gettime()/1000); \
-    printf(a, __VA_ARGS__)
+    printf(__VA_ARGS__)
 #else
   #define DPRINT(...) (void)0
 #endif
@@ -58,19 +58,6 @@ return err;
 
 int NativeVideo::open(void *buffer, int size) 
 {
-    /*
-            printf("!READ===============1\n");
-            uint8_t *buf = (uint8_t*)buffer;
-            for (int i = 0; i < size; i++) {
-                printf("%x ", buf[i]);
-                if (i % 20 == 0) {
-                    printf("\n!");
-                }
-            }
-            printf("\n");
-            printf("FINISHED\n");
-            */
-
     if (this->opened) {
         this->closeInternal(true);
     }
@@ -126,7 +113,10 @@ int NativeVideo::open(const char *chroot, const char *src)
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this);
+    if (pthread_create(&this->threadDecode, NULL, NativeVideo::decode, this) != 0) {
+        RETURN_WITH_ERROR(ERR_INTERNAL);
+    }
+    m_ThreadCreated = true;
 
     return 0;
 }
@@ -135,15 +125,8 @@ int NativeVideo::open(const char *chroot, const char *src)
 int NativeVideo::openInit() 
 {
     DPRINT("openInit()\n");
-    if (this->reader->async) {
-        NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
-        Coro_startCoro_(this->mainCoro, this->coro, this, NativeVideo::openInitCoro);
-        if (!this->opened) {
-            this->closeInternal(true);
-        }
-    } else {
-        return this->openInitInternal();
-    }
+    this->m_SourceDoOpen = true;
+    NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
     return 0;
 }
 
@@ -153,6 +136,7 @@ void NativeVideo::openInitCoro(void *arg)
     int ret = thiz->openInitInternal();
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, 0, false);
+        thiz->m_SourceDoClose = true;
     }
     Coro_switchTo_(thiz->coro, thiz->mainCoro);
 }
@@ -710,7 +694,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
         this->audioSource->eventCallback(NULL, NULL); //Disable events callbacks
         if (0 != this->audioSource->initInternal()) {
             this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, 0, false);
-            this->audioSource->unref();
+            delete this->audioSource;
             this->audioSource = NULL;
         }
 
@@ -969,12 +953,14 @@ void *NativeVideo::decode(void *args)
                         DPRINT("buffNotEmpty go\n");
                     } 
                 }
-            } else if (!v->m_SourceNeedWork) {
-                DPRINT("wait bufferCond\n");
-                NATIVE_PTHREAD_WAIT(&v->bufferCond);
             }
-        } else {
-            NATIVE_PTHREAD_WAIT(&v->bufferCond);
+        } else if (v->m_SourceDoOpen) {
+            v->m_SourceDoOpen = false;
+            if (v->reader->async) {
+                Coro_startCoro_(v->mainCoro, v->coro, v, NativeVideo::openInitCoro);
+            } else {
+                v->openInitInternal();
+            }
         }
 
         if (v->shutdown) break;
@@ -986,16 +972,22 @@ void *NativeVideo::decode(void *args)
             if (!v->reader->pending) {
                 v->buffering = false;
             }
+            v->m_SourceNeedWork = false;
+        } else if (v->m_SourceDoClose) {
+            DPRINT("m_SourceDoClose set to true\n");
+            v->closeInternal(true);
+            return NULL;
+        } else {
+            DPRINT("wait bufferCond, no work needed\n");
+            NATIVE_PTHREAD_WAIT(&v->bufferCond);
         }
-
-        v->m_SourceNeedWork = false;
 
         if (v->shutdown) break;
     }
 
     v->shutdown = false;
+
     return NULL;
-#undef WAIT_FOR_RESET
 }
 
 void NativeVideo::stopAudio()
@@ -1005,9 +997,8 @@ void NativeVideo::stopAudio()
     this->clearAudioQueue();
 
     this->audio = NULL;
-    // XXX : We set audio source to NULL because right now 
-    // it's the JS implementation that free the node
-    // this->audioSource->unref();
+    // NativeVideo::stopAudio() is called when the audio node
+    // is being destructed, so we just set the audioSource to null
     this->audioSource = NULL; 
 
     pthread_mutex_unlock(&this->audioLock);
@@ -1330,7 +1321,11 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 #endif
 
 void NativeVideo::closeInternal(bool reset) {
-    if (m_ThreadCreated) {
+    this->clearTimers(reset);
+
+    if (m_ThreadCreated && !m_SourceDoClose) {
+        // m_SourceDoClose is true when source need to be closed
+        // from the decode thread. So we don't want to join the thread
         this->shutdown = true;
 
         NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
@@ -1340,7 +1335,6 @@ void NativeVideo::closeInternal(bool reset) {
         this->shutdown = false;
     }
 
-    this->clearTimers(reset);
     this->flushBuffers();
 
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
@@ -1416,11 +1410,12 @@ void NativeVideo::closeInternal(bool reset) {
             this->freePacket = NULL;
             // Note : av_free_packet is called by the audioSource
         }
-        this->audioSource->unref();
+        delete this->audioSource;
         this->audioSource = NULL;
     }
 
     this->opened = false;
+    this->m_SourceDoOpen = false;
 }
 
 NativeVideo::~NativeVideo() {
