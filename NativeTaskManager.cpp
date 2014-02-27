@@ -94,6 +94,8 @@ void NativeTaskManager::workerInfo::run()
 void NativeTaskManager::workerInfo::addTask(NativeTask *task)
 {
     m_Messages.postMessage(task, 0);
+    NativePthreadAutoLock npal(&m_Lock);
+    pthread_cond_signal(&m_Cond);
 }
 
 ////////////////////////////////////////////

@@ -120,9 +120,7 @@ void NativeFile::closeTask()
     }
 
     fclose(m_Fd);
-    
     NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS);
-
     m_Fd = NULL;
 }
 

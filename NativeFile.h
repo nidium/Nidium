@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "NativeMessages.h"
-#include "NativeFileIOManager.h"
+#include "NativeTaskManager.h"
 
 #define NATIVEFILE_MESSAGE_BITS(id) ((1 << 20) | id)
 
