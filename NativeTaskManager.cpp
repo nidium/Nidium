@@ -110,16 +110,6 @@ NativeTaskManager::NativeTaskManager()
     this->createWorker(NATIVE_TASKMANAGER_MAX_IDLE_THREAD);
 }
 
-void NativeTaskManager::onMessage(const NativeSharedMessages::Message &msg)
-{
-
-}
-
-void NativeTaskManager::onMessageLost(const NativeSharedMessages::Message &msg)
-{
-
-}
-
 int NativeTaskManager::createWorker(int count)
 {
     int actualCount = count;

@@ -30,7 +30,7 @@
 
 class NativeTask;
 
-class NativeTaskManager : public NativeMessages
+class NativeTaskManager
 {
 public:
     class workerInfo {
@@ -57,8 +57,6 @@ public:
 
     NativeTaskManager();
     ~NativeTaskManager();
-    void onMessage(const NativeSharedMessages::Message &msg);
-    void onMessageLost(const NativeSharedMessages::Message &msg);
     int createWorker(int count = 1);
 
     workerInfo *getAvailableWorker();
