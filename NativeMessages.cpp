@@ -24,18 +24,23 @@
 #include <native_netlib.h>
 #include <stdio.h>
 
+/*
+    TODO: make thread local storage
+*/
 static NativeSharedMessages *g_MessagesList;
 
 static int NativeMessages_handle(void *arg)
 {
-#define MAX_MSG_IN_ROW 128
+#define MAX_MSG_IN_ROW 256
     int nread = 0;
 
-    NativeSharedMessages::Message msg;
+    NativeSharedMessages::Message *msg;
 
-    while (++nread < MAX_MSG_IN_ROW && g_MessagesList->readMessage(&msg)) {
-        NativeMessages *obj = static_cast<NativeMessages *>(msg.dest());
-        obj->onMessage(msg);
+    while (++nread < MAX_MSG_IN_ROW && (msg = g_MessagesList->readMessage())) {
+        NativeMessages *obj = static_cast<NativeMessages *>(msg->dest());
+        obj->onMessage(*msg);
+
+        delete msg;
     }
 
     return 8;
@@ -47,6 +52,11 @@ static void NativeMessages_lost(const NativeSharedMessages::Message &msg)
     obj->onMessageLost(msg);
 }
 
+NativeMessages::NativeMessages()
+{
+    m_GenesisThread = pthread_self();
+}
+
 NativeMessages::~NativeMessages()
 {
     g_MessagesList->delMessagesForDest(this);
@@ -54,30 +64,33 @@ NativeMessages::~NativeMessages()
 
 void NativeMessages::postMessage(void *dataptr, int event)
 {
-    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataptr, event, this);
-    g_MessagesList->postMessage(msg);
+    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataptr, event);
+    this->postMessage(msg);
 }
 
 void NativeMessages::postMessage(uint64_t dataint, int event)
 {
-    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataint, event, this);
-    g_MessagesList->postMessage(msg);
+    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataint, event);
+    this->postMessage(msg);
 }
 
 void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
 {
     msg->setDest(this);
-    g_MessagesList->postMessage(msg);
-}
 
-void NativeMessages::onMessage(const NativeSharedMessages::Message &msg)
-{
-    printf("Unhandled message sent to %p\n", this);
-}
+    /*
+        Message sent from the same thread. Don't need 
+        to send in an asynchronous way
+    */
+    if (pthread_equal(m_GenesisThread, pthread_self())) {
+        // Make sure pending messagess are read so that we keep the FIFO rule
+        (void)NativeMessages_handle(NULL);
 
-void NativeMessages::onMessageLost(const NativeSharedMessages::Message &msg)
-{
-    
+        this->onMessage(*msg);
+        delete msg;
+    } else {
+        g_MessagesList->postMessage(msg);
+    }
 }
 
 void NativeMessages::initReader(ape_global *ape)

@@ -22,23 +22,33 @@
 #define nativemessages_h__
 
 #include <NativeSharedMessages.h>
+#include <pthread.h>
 
 typedef struct _ape_global ape_global;
 
 class NativeMessages
 {
 public:
+    NativeMessages();
     virtual ~NativeMessages()=0;
-    virtual void onMessage(const NativeSharedMessages::Message &msg);
-    virtual void onMessageLost(const NativeSharedMessages::Message &msg);
+
+    /*
+        Derived classes must implement this in order to catch messages
+    */
+    virtual void onMessage(const NativeSharedMessages::Message &msg){};
+    virtual void onMessageLost(const NativeSharedMessages::Message &msg){};
+
     void postMessage(void *dataptr, int event);
     void postMessage(uint64_t dataint, int event);
     void postMessage(NativeSharedMessages::Message *msg);
     void delMessages(int event = -1);
+
     static void initReader(ape_global *ape);
     static void destroyReader();
 
     NativeSharedMessages *getSharedMessages();
+private:
+    pthread_t m_GenesisThread;
 };
 
 #endif
