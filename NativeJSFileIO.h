@@ -23,8 +23,10 @@
 
 #include "NativeJSExposer.h"
 #include "NativeFileIO.h"
+#include "NativeFile.h"
+#include "NativeMessages.h"
 
-class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFileIODelegate
+class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeMessages
 {
   public:
     static void registerObject(JSContext *cx);
@@ -44,8 +46,9 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
     void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
     void onNFIOWrite(NativeFileIO *, size_t written);
 
-    NativeFileIO *getNFIO() const { return NFIO; }
-    void setNFIO(NativeFileIO *nfio) { NFIO = nfio; }
+
+    NativeFile *getFile() const { return m_File; }
+    void setFile(NativeFile *file) { m_File = file; }
 
     struct {
         jsval open;
@@ -60,7 +63,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeFile
     bool m_Async;
   private:
 
-    NativeFileIO *NFIO;
+    NativeFile *m_File;
 };
 
 #endif
