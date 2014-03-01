@@ -81,15 +81,16 @@ static int Native_handle_app_messages(void *arg)
     struct NativeApp::native_app_msg *ptr;
     int nread = 0;
 
-    NativeSharedMessages::Message msg;
+    NativeSharedMessages::Message *msg;
 
-    while (++nread < MAX_MSG_IN_ROW && app->messages->readMessage(&msg)) {
-        switch (msg.event()) {
+    while (++nread < MAX_MSG_IN_ROW && (msg = app->messages->readMessage())) {
+        switch (msg->event()) {
             case NativeApp::APP_MESSAGE_READ:
-                ptr = static_cast<struct NativeApp::native_app_msg *>(msg.dataPtr());
+                ptr = static_cast<struct NativeApp::native_app_msg *>(msg->dataPtr());
                 ptr->cb(ptr->data, ptr->len, ptr->offset, ptr->total, ptr->user);
                 free(ptr->data);
                 delete ptr;
+                delete msg;
                 break;
             default:break;
         }
