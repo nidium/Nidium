@@ -43,12 +43,13 @@ void *NativeTaskManager::workerInfo::work()
         }
         pthread_mutex_unlock(&m_Lock);
 
-        NativeSharedMessages::Message msg;
+        NativeSharedMessages::Message *msg;
 
-        while (m_Messages.readMessage(&msg)) {
-            NativeTask *task = (NativeTask *)msg.dataPtr();
+        while ((msg = m_Messages.readMessage())) {
+            NativeTask *task = (NativeTask *)msg->dataPtr();
             task->getFunction()(task);
             delete task;
+            delete msg;
         }
     }
     return NULL;
@@ -101,7 +102,16 @@ void NativeTaskManager::workerInfo::run()
 
 void NativeTaskManager::workerInfo::addTask(NativeTask *task)
 {
-    m_Messages.postMessage(task, 0);
+    NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(task, 0);
+
+    /*
+        Set the caller as destination so that messages
+        can be deleted "per caller" in a worker
+        (in case a worker handle multiple caller/task)
+    */
+    msg->setDest(task->getObject());
+    m_Messages.postMessage(msg);
+
     NativePthreadAutoLock npal(&m_Lock);
     pthread_cond_signal(&m_Cond);
 }
@@ -207,5 +217,6 @@ void NativeManaged::addTask(NativeTask *task)
         m_Worker = m_Manager->getAvailableWorker();
     }
 
+    task->setObject(this);
     m_Worker->addTask(task);
 }

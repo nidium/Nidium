@@ -53,11 +53,17 @@ public:
     void write(char *buf, size_t size, void *arg = NULL);
     void seek(size_t pos, void *arg = NULL);
 
-    void openTask(const char *mode);
-    void closeTask();
-    void readTask(size_t size);
-    void writeTask(char *buf, size_t buflen);
-    void seekTask(size_t pos);
+    int openSync(const char *modes, int *err);
+    ssize_t readSync(uint64_t len, char **buffer, int *err);
+    ssize_t writeSync(char *data, uint64_t len, int *err);
+    int seekSync(size_t pos, int *err);
+    void closeSync();
+
+    void openTask(const char *mode, void *arg = NULL);
+    void closeTask(void *arg = NULL);
+    void readTask(size_t size, void *arg = NULL);
+    void writeTask(char *buf, size_t buflen, void *arg = NULL);
+    void seekTask(size_t pos, void *arg = NULL);
 
     void setAutoClose(bool close) { m_AutoClose = close; }
     void setListener(NativeMessages *listener) {
@@ -67,8 +73,16 @@ public:
         return m_Filesize;
     }
 
+    bool isOpen() const {
+        return m_Fd != NULL;
+    }
+
     bool eof() const {
         return m_Fd == NULL || m_Eof;
+    }
+
+    const char *getFullPath() const {
+        return m_Path;
     }
 
     void onMessage(const NativeSharedMessages::Message &msg);

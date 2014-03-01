@@ -20,14 +20,15 @@
 
 #include "NativeFile.h"
 #include "NativeUtils.h"
+
 #include <ape_buffer.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 
-#define NATIVE_FILE_NOTIFY(arg, event) \
+#define NATIVE_FILE_NOTIFY(param, event) \
     do {   \
-        this->postMessage(arg, event); \
+        this->postMessage(param, event); \
     } while(0);
 
 enum {
@@ -39,7 +40,9 @@ enum {
 };
 
 NativeFile::NativeFile(const char *name) :
-    m_Fd(NULL), m_Delegate(NULL), m_Filesize(0), m_AutoClose(true), m_Eof(false)
+    m_Fd(NULL), m_Delegate(NULL),
+    m_Filesize(0), m_AutoClose(true),
+    m_Eof(false)
 {
     m_Path = strdup(name);
 }
@@ -50,15 +53,14 @@ NativeFile::NativeFile(const char *name) :
 void NativeFile_dispatchTask(NativeTask *task)
 {
     NativeFile *file = (NativeFile *)task->getObject();
-    uint64_t type;
-    task->getArg(0, &type);
+    uint64_t type = task->args[0].toInt64();
+    void *arg = task->args[7].toPtr();
 
     switch (type) {
         case NATIVEFILE_TASK_OPEN:
         {
-            char *modes;
-            task->getArg(1, (void **)&modes);
-            file->openTask(modes);
+            char *modes = (char *)task->args[1].toPtr();
+            file->openTask(modes, arg);
             free(modes);
             break;
         }
@@ -69,28 +71,22 @@ void NativeFile_dispatchTask(NativeTask *task)
         }
         case NATIVEFILE_TASK_READ:
         {
-            uint64_t readsize;
-            task->getArg(1, &readsize);
-            file->readTask(readsize);
+            uint64_t size = task->args[1].toInt64();
+            file->readTask(size, arg);
             break;
         }
         case NATIVEFILE_TASK_WRITE:
         {
-            uint64_t buflen;
-            char *buf;
+            uint64_t buflen = task->args[1].toInt64();
+            char *buf = (char *)task->args[2].toPtr();
 
-            task->getArg(1, &buflen);
-            task->getArg(2, (void **)&buf);
-
-            file->writeTask(buf, buflen);
+            file->writeTask(buf, buflen, arg);
             break;
         }
         case NATIVEFILE_TASK_SEEK:
         {
-            uint64_t pos;
-            task->getArg(1, &pos);
-
-            file->seekTask(pos);
+            uint64_t pos = task->args[1].toInt64();
+            file->seekTask(pos, arg);
             break;
         }
         default:
@@ -101,7 +97,7 @@ void NativeFile_dispatchTask(NativeTask *task)
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::openTask(const char *mode)
+void NativeFile::openTask(const char *mode, void *arg)
 {
     m_Fd = fopen(m_Path, mode);
 
@@ -120,7 +116,7 @@ void NativeFile::openTask(const char *mode)
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::closeTask()
+void NativeFile::closeTask(void *arg)
 {
     if (m_Fd == NULL) {
         return;
@@ -134,7 +130,7 @@ void NativeFile::closeTask()
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::readTask(size_t size)
+void NativeFile::readTask(size_t size, void *arg)
 {
     if (m_Fd == NULL) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_READ_ERROR);
@@ -153,7 +149,7 @@ void NativeFile::readTask(size_t size)
 
     buffer *buf = buffer_new(clamped_len + 1);
 
-    if ((buf->used = fread(buf->data, 1, buf->size, m_Fd)) == 0) {        
+    if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {        
         this->checkRead();
         buffer_destroy(buf);
         return;
@@ -169,7 +165,7 @@ void NativeFile::readTask(size_t size)
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::writeTask(char *buf, size_t buflen)
+void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 {
     if (m_Fd == NULL) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_WRITE_ERROR);
@@ -191,15 +187,13 @@ void NativeFile::writeTask(char *buf, size_t buflen)
 /*
     /!\ Exec in a worker thread
 */
-void NativeFile::seekTask(size_t pos)
+void NativeFile::seekTask(size_t pos, void *arg)
 {
-    int res;
-
     if (m_Fd == NULL) {
         return;
     }
 
-    if ((res = fseek(m_Fd, pos, SEEK_SET)) == -1) {
+    if (fseek(m_Fd, pos, SEEK_SET) == -1) {
         NATIVE_FILE_NOTIFY(errno, NATIVEFILE_SEEK_ERROR);
         return;
     }
@@ -210,9 +204,10 @@ void NativeFile::seekTask(size_t pos)
 void NativeFile::open(const char *mode, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->setObject(this);
-    task->setArg(NATIVEFILE_TASK_OPEN, 0);
-    task->setArg(strdup(mode), 1);
+    task->args[0].set(NATIVEFILE_TASK_OPEN);
+    task->args[1].set(strdup(mode));
+    task->args[7].set(arg);
+
     task->setFunction(NativeFile_dispatchTask);
 
     this->addTask(task);
@@ -221,8 +216,9 @@ void NativeFile::open(const char *mode, void *arg)
 void NativeFile::close(void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->setObject(this);
-    task->setArg(NATIVEFILE_TASK_CLOSE, 0);
+    task->args[0].set(NATIVEFILE_TASK_CLOSE);
+    task->args[7].set(arg);
+
     task->setFunction(NativeFile_dispatchTask);
 
     this->addTask(task);
@@ -231,9 +227,10 @@ void NativeFile::close(void *arg)
 void NativeFile::read(size_t size, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->setObject(this);
-    task->setArg(NATIVEFILE_TASK_READ, 0);
-    task->setArg(size, 1);
+    task->args[0].set(NATIVEFILE_TASK_READ);
+    task->args[1].set(size);
+    task->args[7].set(arg);
+
     task->setFunction(NativeFile_dispatchTask);
 
     this->addTask(task);
@@ -242,10 +239,11 @@ void NativeFile::read(size_t size, void *arg)
 void NativeFile::write(char *buf, size_t size, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->setObject(this);
-    task->setArg(NATIVEFILE_TASK_WRITE, 0);
-    task->setArg(size, 1);
-    task->setArg(buf, 2);
+    task->args[0].set(NATIVEFILE_TASK_WRITE);
+    task->args[1].set(size);
+    task->args[2].set(buf);
+    task->args[7].set(arg);
+
     task->setFunction(NativeFile_dispatchTask);
 
     this->addTask(task);
@@ -254,9 +252,10 @@ void NativeFile::write(char *buf, size_t size, void *arg)
 void NativeFile::seek(size_t pos, void *arg)
 {
     NativeTask *task = new NativeTask();
-    task->setObject(this);
-    task->setArg(NATIVEFILE_TASK_SEEK, 0);
-    task->setArg(pos, 1);
+    task->args[0].set(NATIVEFILE_TASK_SEEK);
+    task->args[1].set(pos);
+    task->args[7].set(arg);
+    
     task->setFunction(NativeFile_dispatchTask);
 
     this->addTask(task);
@@ -319,4 +318,105 @@ void NativeFile::onMessageLost(const NativeSharedMessages::Message &msg)
             break;
         }
     }
+}
+
+////////////////////
+////////////////////
+
+int NativeFile::openSync(const char *modes, int *err)
+{
+    *err = 0;
+    if ((m_Fd = fopen(m_Path, modes)) == NULL) {
+        printf("Failed to open : %s errno=%d\n", m_Path, errno);
+        *err = errno;
+        return 0;
+    }
+
+    fseek(m_Fd, 0L, SEEK_END);
+    m_Filesize = ftell(m_Fd);
+    fseek(this->m_Fd, 0L, SEEK_SET);
+
+    return 1;
+}
+
+ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
+{
+    *err = 0;
+    if (m_Fd == NULL) {
+        return -1;
+    }
+    int ret;
+
+    ret = fwrite(data, sizeof(char), len, m_Fd);
+
+    if (ret < len) {
+        *err = errno;
+    } else {
+        m_Filesize = ftell(m_Fd);
+    }
+
+    return ret;
+}
+
+ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
+{
+    *err = 0;
+    if (!m_Fd) {
+        return -1;
+    }
+
+    uint64_t clamped_len;
+    clamped_len = native_min(m_Filesize, len);
+
+    /*
+        Read an empty file
+    */
+    if (clamped_len == 0) {
+        return 0;
+    }
+
+    char *data = (char *)malloc(clamped_len + 1);
+    size_t readsize = 0;
+
+    if ((readsize = fread(data, sizeof(char), clamped_len, m_Fd)) == 0) {
+
+        this->checkRead(false);
+
+        free(data);
+        *err = errno;
+        return -1;
+    }
+
+    *buffer = data;
+
+    this->checkEOF();
+
+    return readsize;
+}
+
+void NativeFile::closeSync()
+{
+    if (!m_Fd) {
+        return;
+    }
+
+    fclose(m_Fd);
+
+    m_Fd = NULL;
+}
+
+int NativeFile::seekSync(size_t pos, int *err)
+{
+    *err = 0;
+    if (!m_Fd) {
+        return -1;
+    }
+
+    if (fseek(m_Fd, pos, SEEK_SET) == -1) {
+        *err = errno;
+
+        return -1;
+    }
+
+    return 0;
 }

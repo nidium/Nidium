@@ -24,6 +24,7 @@
 #include <pthread.h>
 #include "NativeMessages.h"
 #include "NativeSharedMessages.h"
+#include "NativeArgs.h"
 #include <stdio.h>
 
 #define NATIVE_TASKMANAGER_MAX_IDLE_THREAD 8
@@ -87,24 +88,7 @@ class NativeTask
 #define MAX_ARG 8
 public:
     typedef void (* task_func)(NativeTask *arg);
-    NativeTask() : m_Obj(NULL) {}
-    void setObject(NativeManaged *obj) {
-        m_Obj = obj;
-    }
-
-    void setArg(void *arg, int pos) {
-        if (pos >= MAX_ARG) {
-            return;
-        }
-        m_Arg[pos].ptr = arg;
-    }
-
-    void setArg(uint64_t arg, int pos) {
-        if (pos >= MAX_ARG) {
-            return;
-        }
-        m_Arg[pos].u64 = arg;        
-    }
+    NativeTask() : m_Obj(NULL), m_Func(NULL) {}
 
     void setFunction(task_func func) {
         m_Func = func;
@@ -114,22 +98,17 @@ public:
         return m_Func;
     }
 
-    void getArg(int pos, void **out) const {
-        *out = m_Arg[pos].ptr;
-    }
-
-    void getArg(int pos, uint64_t *out) const {
-        *out = m_Arg[pos].u64;
-    }   
-
     void *getObject() const {
         return m_Obj;
     }
+
+    NativeArgs args;
+
+    friend NativeManaged;
 private:
-    union {
-        void *ptr;
-        uint64_t u64;
-    } m_Arg[MAX_ARG];
+    void setObject(NativeManaged *obj) {
+        m_Obj = obj;
+    }
 
     NativeManaged *m_Obj;
     task_func m_Func;
@@ -142,12 +121,15 @@ public:
     NativeManaged() : m_Worker(NULL) {
         m_Manager = NativeTaskManager::getManager();
     }
-    ~NativeManaged(){};
+    ~NativeManaged() {
+        if (m_Worker) {
+            m_Worker->getMessages()->delMessagesForDest(this);
+        }
+    };
     void addTask(NativeTask *task);
 private:
     NativeTaskManager *m_Manager;
     NativeTaskManager::workerInfo *m_Worker;
 };
 
-    
 #endif

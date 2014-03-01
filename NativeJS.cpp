@@ -46,6 +46,9 @@
 #include <unistd.h>
 #include <libgen.h>
 
+#include "NativeTaskManager.h"
+#include "NativeFile.h"
+
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
 /* Sun compiler uses larger stack space for js_Interpret() with debug
@@ -462,6 +465,13 @@ NativeJS::NativeJS(ape_global *net) :
     //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
 
     //NativeStreamTest *st = new NativeStreamTest(net);
+
+    /*NativeTaskManager *manager = new NativeTaskManager();
+
+    NativeFile *file = new NativeFile("/tmp/x.cpp");
+
+    file->open("r");
+    file->close();*/
 }
 
 #if 0
@@ -539,118 +549,22 @@ static int Native_handle_messages(void *arg)
     JSContext *cx = njs->cx;
     int nread = 0;
 
-    NativeSharedMessages::Message msg;
+    NativeSharedMessages::Message *msg;
     JSAutoRequest ar(cx);
 
-    while (++nread < MAX_MSG_IN_ROW && njs->messages->readMessage(&msg)) {
-        int ev = msg.event();
+    while (++nread < MAX_MSG_IN_ROW && (msg = njs->messages->readMessage())) {
+        int ev = msg->event();
         if (ev < 0 || ev > njs->registeredMessagesSize) {
             continue;
         }
-        njs->registeredMessages[ev](cx, &msg);
-#if 0
-        switch (msg.event()) {
-            case NATIVE_THREAD_MESSAGE:
-            ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
-
-            if (JS_GetProperty(cx, ptr->callee, "onmessage", &onmessage) &&
-                !JSVAL_IS_PRIMITIVE(onmessage) && 
-                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
-
-                jsval inval = JSVAL_NULL;
-
-                if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
-                    JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
-
-                    printf("Failed to read input data (readMessage)\n");
-
-                    continue;
-                }
-
-                event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-
-                EVENT_PROP("data", inval);
-
-                jevent = OBJECT_TO_JSVAL(event);
-                JS_CallFunctionValue(cx, event, onmessage, 1, &jevent, &rval);          
-
-            }
-            delete ptr;
-            break;
-            case NATIVE_THREAD_COMPLETE:
-            ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
-            if (JS_GetProperty(cx, ptr->callee, "oncomplete", &onmessage) &&
-                !JSVAL_IS_PRIMITIVE(onmessage) && 
-                JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
-
-                jsval inval = JSVAL_NULL;
-
-                if (ptr->nbytes && !JS_ReadStructuredClone(cx,
-                        ptr->data, ptr->nbytes,
-                        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
-
-                    continue;
-
-                }
-
-                event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
-                EVENT_PROP("data", inval);
-                jevent = OBJECT_TO_JSVAL(event);
-
-                JS_CallFunctionValue(cx, ptr->callee, onmessage, 1, &jevent, &rval);          
-            }            
-            delete ptr;
-            break;
-            #if 0
-            case NATIVE_AV_THREAD_MESSAGE_CALLBACK: {
-                NativeJSAVMessageCallback *cmsg = static_cast<struct NativeJSAVMessageCallback *>(msg.dataPtr());
-                if (JS_GetProperty(cx, cmsg->callee, cmsg->prop, &onmessage) &&
-                    !JSVAL_IS_PRIMITIVE(onmessage) &&
-                    JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmessage))) {
-                    jsval event[2];
-
-                    if (cmsg->value != NULL) {
-                        // Only errors have value
-                        const char *errorStr = NativeAVErrorsStr[*cmsg->value];
-                        event[0] = INT_TO_JSVAL(*cmsg->value);
-                        event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
-                    } else {
-                        event[0] = JSVAL_NULL;
-                        event[1] = JSVAL_NULL;
-                    }
-                    
-                    JS_CallFunctionValue(cx, cmsg->callee, onmessage, 2, event, &rval);
-                }
-                delete cmsg;
-            }
-            break;
-            #endif
-            default:break;
-        }
-#endif
+        njs->registeredMessages[ev](cx, msg);
+        delete msg;
     }
 
     return 8;
 #undef MAX_MSG_IN_ROW
 }
 
-#if 0
-void NativeJS::onNFIOOpen(NativeFileIO *nfio)
-{
-    printf("Open success\n");
-    nfio->getContents();
-}
-
-void NativeJS::onNFIOError(NativeFileIO *nfio, int errno)
-{
-    printf("Error while opening file\n");
-}
-
-void NativeJS::onNFIORead(NativeFileIO *nfio, unsigned char *data, size_t len)
-{
-    printf("Data from file : %s\n", data);
-}
-#endif
 
 void NativeJS::bindNetObject(ape_global *net)
 {
