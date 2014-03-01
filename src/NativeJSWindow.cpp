@@ -31,8 +31,8 @@ static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
 
 enum {
-    WINDOW_PROP_X,
-    WINDOW_PROP_Y,
+    WINDOW_PROP_LEFT,
+    WINDOW_PROP_TOP,
     WINDOW_PROP_WIDTH,
     WINDOW_PROP_HEIGHT,
     WINDOW_PROP_TITLE,
@@ -136,10 +136,10 @@ static JSPropertySpec window_props[] = {
     {"devicePixelRatio", WINDOW_PROP_DEVICE_PIXELRATIO, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_NULLWRAPPER},
-    {"x", WINDOW_PROP_X, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"left", WINDOW_PROP_LEFT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
-    {"y", WINDOW_PROP_Y, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"top", WINDOW_PROP_TOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
     {"width", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
@@ -527,14 +527,14 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
             /* TODO: Actual value */
             vp.setInt32(1);
             break;
-        case WINDOW_PROP_X:
+        case WINDOW_PROP_LEFT:
         {
             int x;
             NUI->getWindowPosition(&x, NULL);
             vp.set(INT_TO_JSVAL(x));
             break;
         }
-        case WINDOW_PROP_Y:
+        case WINDOW_PROP_TOP:
         {
             int y;
             NUI->getWindowPosition(NULL, &y);
@@ -563,7 +563,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
-        case WINDOW_PROP_X:
+        case WINDOW_PROP_LEFT:
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -577,7 +577,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
             break;
         }
 
-        case WINDOW_PROP_Y:
+        case WINDOW_PROP_TOP:
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
