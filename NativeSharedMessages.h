@@ -23,6 +23,7 @@
 
 #include <pthread.h>
 #include <stdint.h>
+#include "NativeArgs.h"
 
 /*
     TODO: Add "max messages in queue" to guard memory congestion in case of allocation
@@ -52,6 +53,8 @@ class NativeSharedMessages
                 msgdata.dataint = dataint;
             }
 
+            ~Message() {}
+
             Message(){};
 
             void *dataPtr() const {
@@ -73,7 +76,9 @@ class NativeSharedMessages
             int event() const {
                 return type;
             }
+
             Message *prev;
+            NativeArgs args;
         private:
 
             union {
@@ -93,8 +98,8 @@ class NativeSharedMessages
     void postMessage(Message *msg);
     void postMessage(void *dataptr, int event);
     void postMessage(uint64_t dataint, int event);
-    int readMessage(NativeSharedMessages::Message *msg);
-    int readMessage(NativeSharedMessages::Message *msg, int ev);
+    Message *readMessage();
+    Message *readMessage(int ev);
     void delMessagesForDest(void *dest, int event = -1);
     void setCleaner(native_shared_message_cleaner cleaner) {
         m_Cleaner = cleaner;

@@ -96,14 +96,14 @@ void NativeSharedMessages::postMessage(uint64_t dataint, int event)
     messageslist.count++;
 }
 
-int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
+NativeSharedMessages::Message *NativeSharedMessages::readMessage()
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
     Message *message = messageslist.queue;
 
     if (message == NULL) {
-        return 0;
+        return NULL;
     }
 
     messageslist.queue = message->prev;
@@ -114,16 +114,10 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg)
 
     messageslist.count--;
 
-    if (msg != NULL) {
-        memcpy(msg, message, sizeof(Message));
-    }
-
-    delete message;
-
-    return 1;
+    return message;
 }
 
-int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int type)
+NativeSharedMessages::Message *NativeSharedMessages::readMessage(int type)
 {
     NativePthreadAutoLock lock(&messageslist.lock);
 
@@ -131,7 +125,8 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int ty
     Message *next = NULL;
 
     if (message == NULL) {
-        return 0;
+        printf("no message to delete\n");
+        return NULL;
     }
 
     while (message != NULL && message->event() != type) {
@@ -140,7 +135,7 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int ty
     }
 
     if (message == NULL) {
-        return 0;
+        return NULL;
     }
 
     if (message == messageslist.queue) {
@@ -155,13 +150,7 @@ int NativeSharedMessages::readMessage(NativeSharedMessages::Message *msg, int ty
 
     messageslist.count--;
 
-    if (msg != NULL) {
-        memcpy(msg, message, sizeof(Message));
-    }
-
-    delete message;
-
-    return 1;
+    return message;
 }
 
 void NativeSharedMessages::delMessagesForDest(void *dest, int event)
