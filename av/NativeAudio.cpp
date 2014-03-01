@@ -173,18 +173,18 @@ void NativeAudio::readMessages()
 void NativeAudio::readMessages(bool flush)
 {
 #define MAX_MSG_IN_ROW 1024
-    NativeSharedMessages::Message msg;
+    NativeSharedMessages::Message *msg;
     int nread = 0;
-    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && this->sharedMsg->readMessage(&msg)) {
-        switch (msg.event()) {
+    while (((!flush && ++nread < MAX_MSG_IN_ROW) || flush) && (msg = this->sharedMsg->readMessage())) {
+        switch (msg->event()) {
             case NATIVE_AUDIO_NODE_CALLBACK : {
-                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg->dataPtr());
                 cbkMsg->cbk(cbkMsg->node, cbkMsg->custom);
                 delete cbkMsg;
             }
             break;
             case NATIVE_AUDIO_NODE_SET : {
-                NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg.dataPtr());
+                NativeAudioNode::Message *nodeMsg =  static_cast<NativeAudioNode::Message *>(msg->dataPtr());
                 if (nodeMsg->arg->ptr == NULL) {
                     nodeMsg->arg->cbk(nodeMsg->node, nodeMsg->arg->id, nodeMsg->val, nodeMsg->size);
                 } else {
@@ -195,11 +195,12 @@ void NativeAudio::readMessages(bool flush)
             }
             break;
             case NATIVE_AUDIO_CALLBACK :
-                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg.dataPtr());
+                NativeAudioNode::CallbackMessage *cbkMsg = static_cast<NativeAudioNode::CallbackMessage*>(msg->dataPtr());
                 cbkMsg->cbk(NULL, cbkMsg->custom);
                 delete cbkMsg;
             break;
         }
+        delete msg;
     }
 #undef MAX_MSG_IN_ROW
 }
