@@ -21,7 +21,7 @@
 #include "NativeFile.h"
 #include "NativeUtils.h"
 
-#define NOTIFY_MESSAGE(var, ev) NativeSharedMessages::Message *var = new NativeSharedMessages::Message(ev);
+#define CREATE_MESSAGE(var, ev) NativeSharedMessages::Message *var = new NativeSharedMessages::Message(ev);
 
 NativeFileStream::NativeFileStream(const char *location) : 
     NativeBaseStream(location), m_File(location)
@@ -91,11 +91,11 @@ void NativeFileStream::getContent()
     }
 
     m_File.open("r");
-    m_File.read(m_File.getFileSize());
+    m_File.read(UINT64_MAX);
     m_File.close();
 }
 
-size_t NativeFileStream::getFileSize()
+size_t NativeFileStream::getFileSize() const
 {
     return m_File.getFileSize();
 }
@@ -112,8 +112,10 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             break;
         case NATIVEFILE_OPEN_ERROR:
         {
-            NOTIFY_MESSAGE(message, NATIVESTREAM_OPEN_ERROR);
+            CREATE_MESSAGE(message, NATIVESTREAM_OPEN_ERROR);
             message->args[0].set(msg.dataUInt());
+
+            this->notify(message);
             break;
         }
         case NATIVEFILE_READ_SUCCESS:
@@ -127,7 +129,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             if (m_File.eof()) {
                 m_DataBuffer.ended = true;
             }
-            NOTIFY_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+            CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
             message->args[0].set(buf);
 
             /*
@@ -148,8 +150,9 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
 
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
-                        NOTIFY_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
+                        CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
+                        this->notify(message_available);
                     }
                 }
             }
