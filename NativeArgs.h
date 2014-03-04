@@ -68,6 +68,9 @@ public:
         free(m_Args);
     }
 
+    /*
+        Overflow value are automatically created
+    */
     NativeArgsValue& operator[] (int idx) {
         if (idx >= m_numArgs) {
             m_Args = (NativeArgsValue **)realloc(m_Args,
@@ -80,6 +83,13 @@ public:
 
         }
 
+        return *m_Args[idx];
+    }
+
+    /*
+        const version doesn't protect against overflow
+    */
+    const NativeArgsValue& operator[] (int idx) const {
         return *m_Args[idx];
     }
 private:
