@@ -25,20 +25,18 @@
 #include "NativeMessages.h"
 #include "NativeFile.h"
 
-class NativeFile;
-
 class NativeFileStream : public NativeBaseStream,
                          public NativeMessages
 {
 public:
     NativeFileStream(const char *location);
-    virtual ~NativeFileStream();
+    virtual ~NativeFileStream(){};
 
     virtual void stop();
     virtual void getContent();
-    virtual void seek(size_t pos) override;
-
-    virtual size_t getFileSize();
+    virtual size_t getFileSize() const;
+    virtual void seek(size_t pos);
+    
     virtual void onMessage(const NativeSharedMessages::Message &msg);
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
