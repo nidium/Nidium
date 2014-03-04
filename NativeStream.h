@@ -28,7 +28,7 @@
 class NativeStreamDelegate;
 
 
-class NativeStream : public NativeHTTPDelegate, public NativeManaged
+class NativeStream : public NativeHTTPDelegate, public NativeMessages
 {
     public:
         enum StreamInterfaces {
@@ -82,6 +82,7 @@ class NativeStream : public NativeHTTPDelegate, public NativeManaged
             Move at pos on file
         */
         void seek(size_t pos);
+        void seek2(size_t pos);
 
         /*
             Start streaming the file

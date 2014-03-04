@@ -24,6 +24,17 @@
 #include <stdlib.h>
 
 #include <ape_buffer.h>
+#include "NativeSharedMessages.h"
+
+#define NATIVESTREAM_MESSAGE_BITS(id) ((1 << 21) | id)
+
+enum {
+    NATIVESTREAM_READ_BUFFER =      NATIVESTREAM_MESSAGE_BITS(1),
+    NATIVESTREAM_OPEN_ERROR =       NATIVESTREAM_MESSAGE_BITS(2),
+    NATIVESTREAM_AVAILABLE_DATA =   NATIVESTREAM_MESSAGE_BITS(3),
+};
+
+class NativeMessages;
 
 class NativeBaseStream
 {
@@ -36,6 +47,11 @@ public:
         STREAM_ERROR = -2,
         STREAM_END = -3
     };
+
+    void setListener(NativeMessages *listener) {
+        m_Listener = listener;
+    }
+
     /*
         Start streaming the file
         @param packets  How much bytes should be filled in
@@ -80,9 +96,23 @@ protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err)=0;
     virtual void onStart(size_t packets, size_t seek)=0;
 
+    /*
+        Send a message to the listener
+    */
+    void notify(NativeSharedMessages::Message *msg);
+
+    /*
+        Swap back and front buffer.
+        so that the requested data (getNextPacket()) remains valid
+        while data are still incoming (double buffering).
+    */
+    void swapBuffer();
+
     char*   m_Location;
     size_t  m_PacketsSize;
     bool    m_NeedToSendUpdate;
+
+    NativeMessages *m_Listener;
 
     struct {
         buffer *back, *front;

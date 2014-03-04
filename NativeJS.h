@@ -82,6 +82,7 @@ class NativeJS
         NativeJSDelegate *m_Delegate;
 
         static NativeJS *getNativeClass(JSContext *cx);
+        static ape_global *getNet();
 
         void setPrivate(void *arg) {
             this->privateslot = arg;

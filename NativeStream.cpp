@@ -50,7 +50,8 @@ static struct _native_stream_interfaces {
 NativeStream::NativeStream(ape_global *net,
     const char *location, const char *prefix) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_AutoClose(true),
-    m_Buffered(0), m_BufferedPosition(0), m_FileSize(0), m_KnownSize(false), m_Pending(false)
+    m_Buffered(0), m_BufferedPosition(0), m_FileSize(0),
+    m_KnownSize(false), m_Pending(false)
 {
     this->interface = NULL;
 
@@ -430,6 +431,25 @@ void NativeStream::stop()
     }
 }
 
+void NativeStream::seek2(size_t pos)
+{
+    m_NeedToSendUpdate = true;
+    m_DataBuffer.ended = false;
+
+    switch (IInterface) {
+        case INTERFACE_FILE:
+        case INTERFACE_PRIVATE:
+        {
+            NativeFile *file = static_cast<NativeFile *>(this->interface);
+            file->seek(pos);
+            file->read(this->getPacketSize());
+            break;
+        }
+        default:
+            break;
+    }
+}
+
 void NativeStream::seek(size_t pos)
 {
     m_Mapped.idx = pos;
@@ -533,7 +553,7 @@ const unsigned char *NativeStream::getNextPacket(size_t *len, int *err)
     *err = 0;
     *len = native_min(m_DataBuffer.back->used, this->getPacketSize());
 
-    m_DataBuffer.alreadyRead = true;    
+    m_DataBuffer.alreadyRead = true;
     this->swapBuffer();
 
     switch(IInterface) {
@@ -629,9 +649,9 @@ void NativeStream::onMessage(const NativeSharedMessages::Message &msg)
             buffer *buf = (buffer *)msg.dataPtr();
             m_Buffered += buf->used;
 
-            /*if (NFIO->eof()) {
+            if (file->eof()) {
                 m_DataBuffer.ended = true;
-            }*/
+            }
 
             if (this->delegate) {
                 this->delegate->onGetContent((const char *)buf->data, buf->used);

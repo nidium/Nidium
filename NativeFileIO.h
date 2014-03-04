@@ -106,7 +106,6 @@ class NativeFileIODelegate
     virtual void onNFIORead(NativeFileIO *, unsigned char *data, size_t len)=0;
     virtual void onNFIOWrite(NativeFileIO *, size_t written)=0;
     virtual ~NativeFileIODelegate(){};
-
 };
 
 enum {

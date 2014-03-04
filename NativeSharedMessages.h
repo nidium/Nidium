@@ -53,6 +53,9 @@ class NativeSharedMessages
                 msgdata.dataint = dataint;
             }
 
+            Message(int type) : type(type), m_Dest(NULL) {
+            }
+
             ~Message() {}
 
             Message(){};

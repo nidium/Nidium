@@ -178,6 +178,7 @@ void NativeSharedMessages::delMessagesForDest(void *dest, int event)
             if (m_Cleaner) {
                 m_Cleaner(*message);
             }
+            
             delete message;
             messageslist.count--;
         } else {

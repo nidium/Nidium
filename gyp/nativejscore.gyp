@@ -60,6 +60,8 @@
             '../NativeDB.cpp',
             '../NativeTaskManager.cpp',
             '../NativeFile.cpp',
+            '../NativeStreamInterface.cpp',
+            '../NativeFileStream.cpp',
         ],
     }],
 }

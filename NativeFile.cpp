@@ -99,6 +99,12 @@ void NativeFile_dispatchTask(NativeTask *task)
 */
 void NativeFile::openTask(const char *mode, void *arg)
 {
+    if (this->isOpen()) {
+        // seek(0)?
+        NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS);
+        return;
+    }
+
     m_Fd = fopen(m_Path, mode);
 
     if (m_Fd == NULL) {
@@ -118,7 +124,7 @@ void NativeFile::openTask(const char *mode, void *arg)
 */
 void NativeFile::closeTask(void *arg)
 {
-    if (m_Fd == NULL) {
+    if (!this->isOpen()) {
         return;
     }
 
@@ -132,7 +138,7 @@ void NativeFile::closeTask(void *arg)
 */
 void NativeFile::readTask(size_t size, void *arg)
 {
-    if (m_Fd == NULL) {
+    if (!this->isOpen()) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_READ_ERROR);
         return;
     }
@@ -167,7 +173,7 @@ void NativeFile::readTask(size_t size, void *arg)
 */
 void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 {
-    if (m_Fd == NULL) {
+    if (!this->isOpen()) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_WRITE_ERROR);
         return;
     }
@@ -189,7 +195,7 @@ void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 */
 void NativeFile::seekTask(size_t pos, void *arg)
 {
-    if (m_Fd == NULL) {
+    if (!this->isOpen()) {
         return;
     }
 
@@ -289,6 +295,9 @@ void NativeFile::checkRead(bool async)
 
 NativeFile::~NativeFile()
 {
+    if (this->isOpen()) {
+        this->closeTask();
+    }
     free(m_Path);
 }
 
@@ -326,6 +335,11 @@ void NativeFile::onMessageLost(const NativeSharedMessages::Message &msg)
 int NativeFile::openSync(const char *modes, int *err)
 {
     *err = 0;
+
+    if (this->isOpen()) {
+        return 1;
+    }
+    
     if ((m_Fd = fopen(m_Path, modes)) == NULL) {
         printf("Failed to open : %s errno=%d\n", m_Path, errno);
         *err = errno;
@@ -342,7 +356,8 @@ int NativeFile::openSync(const char *modes, int *err)
 ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
 {
     *err = 0;
-    if (m_Fd == NULL) {
+
+    if (!this->isOpen()) {
         return -1;
     }
     int ret;
@@ -361,7 +376,8 @@ ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
 ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
 {
     *err = 0;
-    if (!m_Fd) {
+
+    if (!this->isOpen()) {
         return -1;
     }
 
@@ -396,7 +412,7 @@ ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
 
 void NativeFile::closeSync()
 {
-    if (!m_Fd) {
+    if (!this->isOpen()) {
         return;
     }
 
@@ -408,7 +424,7 @@ void NativeFile::closeSync()
 int NativeFile::seekSync(size_t pos, int *err)
 {
     *err = 0;
-    if (!m_Fd) {
+    if (!this->isOpen()) {
         return -1;
     }
 

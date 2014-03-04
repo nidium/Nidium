@@ -19,9 +19,10 @@
 */
 
 #include "NativeStreamInterface.h"
+#include "NativeMessages.h"
 
 NativeBaseStream::NativeBaseStream(const char *location) :
-    m_PacketsSize(0), m_NeedToSendUpdate(false)
+    m_PacketsSize(0), m_NeedToSendUpdate(false), m_Listener(NULL)
 {
     m_DataBuffer.back =         NULL;
     m_DataBuffer.front =        NULL;
@@ -68,4 +69,42 @@ const unsigned char *NativeBaseStream::getNextPacket(size_t *len, int *err)
     }    
 
     return this->onGetNextPacket(len, err);
+}
+
+void NativeBaseStream::notify(NativeSharedMessages::Message *msg)
+{
+    if (m_Listener) {
+        m_Listener->postMessage(msg);
+    } else {
+        delete msg;
+    }
+}
+
+void NativeBaseStream::swapBuffer()
+{
+    buffer *tmp =           m_DataBuffer.back;
+    m_DataBuffer.back =     m_DataBuffer.front;
+    m_DataBuffer.front =    tmp;
+    m_DataBuffer.fresh =    true;
+
+    /*  If we have remaining data in our old backbuffer
+        we place it in our new backbuffer.
+
+        If after that, our new backbuffer contains enough data to be read,
+        the user can read a next packet (alreadyRead == false)
+
+        Further reading are queued to the new backbuffer
+    */
+    if (m_DataBuffer.front->used > m_PacketsSize) {
+        m_DataBuffer.back->data = &m_DataBuffer.front->data[m_PacketsSize];
+        m_DataBuffer.back->used = m_DataBuffer.front->used - m_PacketsSize;
+        m_DataBuffer.back->size = m_DataBuffer.back->used;
+        m_DataBuffer.fresh = false;
+
+        if (m_DataBuffer.back->used >= m_PacketsSize) {
+            m_DataBuffer.alreadyRead = false;
+        }
+    } else if (m_DataBuffer.ended) {
+        m_DataBuffer.back->used = 0;
+    } 
 }
