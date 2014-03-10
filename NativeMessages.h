@@ -26,6 +26,8 @@
 
 typedef struct _ape_global ape_global;
 
+#define CREATE_MESSAGE(var, ev) NativeSharedMessages::Message *var = new NativeSharedMessages::Message(ev);
+
 class NativeMessages
 {
 public:
