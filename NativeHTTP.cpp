@@ -336,7 +336,8 @@ void NativeHTTP::headerEnded()
             }
         }
 
-        if ((content_range = REQUEST_HEADER("Content-Range")) != NULL) {
+        if (http.parser.status_code == 206 &&
+            (content_range = REQUEST_HEADER("Content-Range")) != NULL) {
             char *ptr = (char *)memchr(content_range->data,
                 '/', content_range->used);
 
