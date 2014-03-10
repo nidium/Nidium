@@ -28,14 +28,17 @@ class NativeHTTPStream : public NativeBaseStream,
                          public NativeHTTPDelegate
 {
 public:
-    NativeHTTPStream(const char *location);
+    explicit NativeHTTPStream(const char *location);
     virtual ~NativeHTTPStream();
+
+    static NativeBaseStream *createStream(const char *location);
 
     virtual void stop();
     virtual void getContent();
     virtual void seek(size_t pos) override;
 
-    virtual size_t getFileSize();
+    virtual size_t getFileSize() const;
+    virtual bool hasDataAvailable() const;
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
@@ -47,6 +50,17 @@ private:
         NativeHTTP::DataType);
     void onError(NativeHTTP::HTTPError err);
     void onHeader();
+
+    struct {
+        int fd;
+        void *addr;
+        size_t idx;
+        size_t size;
+    } m_Mapped;
+
+    size_t m_StartPosition;
+    size_t m_BytesBuffered;
+    size_t m_LastReadUntil;
 };
 
 #endif
