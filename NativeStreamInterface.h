@@ -39,8 +39,9 @@ class NativeMessages;
 class NativeBaseStream
 {
 public:
-    NativeBaseStream(const char *location);
     virtual ~NativeBaseStream();
+
+    static NativeBaseStream *create(const char *location);
 
     enum StreamDataStatus {
         STREAM_EAGAIN = -1,
@@ -92,7 +93,8 @@ public:
     }
 
 protected:
-
+    explicit NativeBaseStream(const char *location);
+    
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err)=0;
     virtual void onStart(size_t packets, size_t seek)=0;
 

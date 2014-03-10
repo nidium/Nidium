@@ -29,7 +29,9 @@ class NativeFileStream : public NativeBaseStream,
                          public NativeMessages
 {
 public:
-    NativeFileStream(const char *location);
+    explicit NativeFileStream(const char *location);
+    static NativeBaseStream *createStream(const char *location);
+
     virtual ~NativeFileStream(){};
 
     virtual void stop();

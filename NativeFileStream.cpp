@@ -21,12 +21,15 @@
 #include "NativeFile.h"
 #include "NativeUtils.h"
 
-#define CREATE_MESSAGE(var, ev) NativeSharedMessages::Message *var = new NativeSharedMessages::Message(ev);
-
 NativeFileStream::NativeFileStream(const char *location) : 
     NativeBaseStream(location), m_File(location)
 {
     m_File.setListener(this);
+}
+
+NativeBaseStream *NativeFileStream::createStream(const char *location)
+{
+    return new NativeFileStream(location);
 }
 
 void NativeFileStream::onStart(size_t packets, size_t seek)

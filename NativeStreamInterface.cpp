@@ -21,6 +21,24 @@
 #include "NativeStreamInterface.h"
 #include "NativeMessages.h"
 
+#include "NativeFileStream.h"
+#include "NativeHTTPStream.h"
+
+#include <string.h>
+
+/*
+    First one is default when not found
+*/
+static struct _native_stream_interfaces {
+    const char *str;
+    NativeBaseStream *(*base)(const char *);
+} native_stream_interfaces[] = {
+    {"file://",      NativeFileStream::createStream},
+    {"private://",   NativeFileStream::createStream},
+    {"http://",      NativeHTTPStream::createStream},
+    {NULL,           NULL}
+};
+
 NativeBaseStream::NativeBaseStream(const char *location) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_Listener(NULL)
 {
@@ -36,6 +54,20 @@ NativeBaseStream::~NativeBaseStream()
 
 }
 
+NativeBaseStream *NativeBaseStream::create(const char *location)
+{
+    for (int i = 0; native_stream_interfaces[i].str != NULL; i++) {
+        int len = strlen(native_stream_interfaces[i].str);
+        if (strncasecmp(native_stream_interfaces[i].str, location,
+                        len) == 0) {
+            
+            return native_stream_interfaces[i].base(&location[len]);
+        }
+    }
+
+    return native_stream_interfaces[0].base(location);
+}
+
 void NativeBaseStream::start(size_t packets, size_t seek)
 {
     m_PacketsSize = packets;
@@ -46,28 +78,6 @@ void NativeBaseStream::start(size_t packets, size_t seek)
 
 const unsigned char *NativeBaseStream::getNextPacket(size_t *len, int *err)
 {
-    unsigned char *data;
-
-    if (m_DataBuffer.back == NULL) {
-        *len = 0;
-        *err = STREAM_ERROR;
-        return NULL;
-    }
-
-    if (!this->hasDataAvailable()) {
-        /*
-            We need to notify when data
-            become available through "onAvailableData"
-        */
-        m_NeedToSendUpdate = !m_DataBuffer.ended;
-
-        *len = 0;
-        *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead ?
-            STREAM_END : STREAM_EAGAIN);
-
-        return NULL;
-    }    
-
     return this->onGetNextPacket(len, err);
 }
 
