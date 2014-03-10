@@ -69,7 +69,7 @@ public:
     }
 
     /*
-        Overflow value are automatically created
+        Overflow values are automatically allocated
     */
     NativeArgsValue& operator[] (int idx) {
         if (idx >= m_numArgs) {
