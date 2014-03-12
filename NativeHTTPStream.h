@@ -54,7 +54,6 @@ private:
     struct {
         int fd;
         void *addr;
-        size_t idx;
         size_t size;
     } m_Mapped;
 

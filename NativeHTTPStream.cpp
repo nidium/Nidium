@@ -31,7 +31,6 @@ NativeHTTPStream::NativeHTTPStream(const char *location) :
 
     m_Mapped.addr = NULL;
     m_Mapped.fd   = 0;
-    m_Mapped.idx = 0;
     m_Mapped.size = 0;
 
     NativeHTTPRequest *req = new NativeHTTPRequest(location);
@@ -85,7 +84,12 @@ void NativeHTTPStream::onStart(size_t packets, size_t seek)
 
 bool NativeHTTPStream::hasDataAvailable() const
 {
-    return (m_BytesBuffered - m_LastReadUntil >= m_PacketsSize);
+    /*
+        Returns true if we have either enough data buffered or
+        if the stream reached the end of file
+    */
+    return (m_BytesBuffered - m_LastReadUntil >= m_PacketsSize ||
+        (m_LastReadUntil != m_BytesBuffered && m_BytesBuffered == m_Mapped.size));
 }
 
 const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
@@ -97,13 +101,20 @@ const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
         return NULL;
     }
 
+    if (m_Mapped.size == m_LastReadUntil) {
+        *err = STREAM_END;
+        return NULL;        
+    }
     if (!this->hasDataAvailable()) {
         m_NeedToSendUpdate = true;
         *err = STREAM_EAGAIN;
 
         return NULL;
     }
-    *len = m_PacketsSize;
+
+    size_t byteLeft = m_Mapped.size - m_LastReadUntil;
+    *len = native_min(m_PacketsSize, byteLeft);
+
     data = (unsigned char *)m_Mapped.addr + m_LastReadUntil;
     m_LastReadUntil += *len;
 
@@ -140,8 +151,8 @@ void NativeHTTPStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
     this->m_DataBuffer.ended = true;
 }
 
-void NativeHTTPStream::onProgress(size_t offset, size_t len, NativeHTTP::HTTPData *h,
-    NativeHTTP::DataType)
+void NativeHTTPStream::onProgress(size_t offset, size_t len,
+    NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
     /* overflow */
     if (!m_Mapped.fd || m_BytesBuffered + len > m_Mapped.size) {
@@ -149,13 +160,15 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len, NativeHTTP::HTTPDat
         return;
     }
 
-    memcpy((char *)m_Mapped.addr + m_BytesBuffered, &h->data->data[offset], len);
+    memcpy((char *)m_Mapped.addr + m_BytesBuffered,
+        &h->data->data[offset], len);
+
     m_BytesBuffered += len;
 
     /* Reset the data buffer, so that data doesn't grow in memory */
     m_Http->resetData();
 
-    if (m_NeedToSendUpdate && (m_LastReadUntil + m_BytesBuffered > m_PacketsSize)) {
+    if (m_NeedToSendUpdate && this->hasDataAvailable()) {
         m_NeedToSendUpdate = false;
 
         CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
@@ -183,6 +196,7 @@ void NativeHTTPStream::onHeader()
     }
 
     m_Mapped.size = m_Http->http.contentlength;
+
     ftruncate(m_Mapped.fd, m_Mapped.size);
 
     m_Mapped.addr = mmap(NULL, m_Mapped.size,
