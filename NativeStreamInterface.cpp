@@ -32,10 +32,11 @@
 static struct _native_stream_interfaces {
     const char *str;
     NativeBaseStream *(*base)(const char *);
+    bool keepPrefix;
 } native_stream_interfaces[] = {
-    {"file://",      NativeFileStream::createStream},
-    {"private://",   NativeFileStream::createStream},
-    {"http://",      NativeHTTPStream::createStream},
+    {"file://",      NativeFileStream::createStream, false},
+    {"private://",   NativeFileStream::createStream, false},
+    {"http://",      NativeHTTPStream::createStream, true},
     {NULL,           NULL}
 };
 
@@ -60,8 +61,9 @@ NativeBaseStream *NativeBaseStream::create(const char *location)
         int len = strlen(native_stream_interfaces[i].str);
         if (strncasecmp(native_stream_interfaces[i].str, location,
                         len) == 0) {
-            
-            return native_stream_interfaces[i].base(&location[len]);
+            bool prefix = native_stream_interfaces[i].keepPrefix;
+            return native_stream_interfaces[i].base(!prefix ?
+                &location[len] : location);
         }
     }
 
@@ -78,6 +80,8 @@ void NativeBaseStream::start(size_t packets, size_t seek)
 
 const unsigned char *NativeBaseStream::getNextPacket(size_t *len, int *err)
 {
+    *len = 0;
+    *err = 0;
     return this->onGetNextPacket(len, err);
 }
 
