@@ -62,6 +62,7 @@
             '../NativeFile.cpp',
             '../NativeStreamInterface.cpp',
             '../NativeFileStream.cpp',
+            '../NativeHTTPStream.cpp',
         ],
     }],
 }
