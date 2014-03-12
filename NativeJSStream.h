@@ -22,26 +22,24 @@
 #define nativejsstream_h__
 
 #include "NativeJSExposer.h"
-#include "NativeStream.h"
+#include "NativeMessages.h"
 
+class NativeBaseStream;
 
 class NativeJSStream :  public NativeJSExposer<NativeJSStream>,
-                        public NativeStreamDelegate
+                        public NativeMessages
 {
   public:
     static void registerObject(JSContext *cx);
     NativeJSStream(JSContext *cx, ape_global *net, const char *url);
     ~NativeJSStream();
-    NativeStream *getStream() const {
-        return m_stream;
+    NativeBaseStream *getStream() const {
+        return m_Stream;
     }
 
-    void onGetContent(const char *data, size_t len){};
-    void onAvailableData(size_t len);
-    void onProgress(size_t buffered, size_t total);
-    void onError(NativeStream::StreamError err);
+    void onMessage(const NativeSharedMessages::Message &msg);
   private:
-    NativeStream *m_stream;
+    NativeBaseStream *m_Stream;
 };
 
 #endif

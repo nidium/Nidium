@@ -21,6 +21,9 @@
 #include "NativeJSStream.h"
 #include "NativeJS.h"
 #include "NativeUtils.h"
+#include "NativeStreamInterface.h"
+
+#include <string>
 
 enum {
     STREAM_PROP_FILESIZE
@@ -156,13 +159,13 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
 
     if (ret == NULL) {
         switch(err) {
-            case NativeStream::STREAM_END:
+            case NativeBaseStream::STREAM_END:
                 JS_ReportError(cx, "Stream has ended");
                 return false;
-            case NativeStream::STREAM_ERROR:
+            case NativeBaseStream::STREAM_ERROR:
                 JS_ReportError(cx, "Stream error (unknown)");
                 return false;
-            case NativeStream::STREAM_EAGAIN:
+            case NativeBaseStream::STREAM_EAGAIN:
                 args.rval().setNull();
                 return true;
         }
@@ -217,30 +220,23 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSStream::NativeJSStream(JSContext *cx, ape_global *net, const char *url)
 {
-    m_stream = new NativeStream(net, url,
-        NativeJS::getNativeClass(cx)->getPath());
+    std::string str = url;
+    //str += NativeJS::getNativeClass(cx)->getPath();
 
-    m_stream->setDelegate(this);
+    printf("Opening : %s\n", str.c_str());
+    m_Stream = NativeBaseStream::create(str.c_str());
+
+    m_Stream->setListener(this);
+
+    printf("CReated stream\n");
 }
 
 NativeJSStream::~NativeJSStream()
 {
-    delete m_stream;
+    delete m_Stream;
 }
 
-void NativeJSStream::onAvailableData(size_t len)
-{
-    jsval onavailable_callback, rval;
-    JS::RootedObject obj(cx, this->jsobj);
-
-    if (JS_GetProperty(this->cx, obj, "onAvailableData", &onavailable_callback) &&
-        JS_TypeOfValue(this->cx, onavailable_callback) == JSTYPE_FUNCTION) {
-
-        JS_CallFunctionValue(this->cx, obj, onavailable_callback,
-            0, NULL, &rval);
-    }
-}
-
+#if 0
 void NativeJSStream::onProgress(size_t buffered, size_t total)
 {
     JS::RootedObject obj(cx, this->jsobj);
@@ -258,10 +254,28 @@ void NativeJSStream::onProgress(size_t buffered, size_t total)
             2, args, &rval);
     }
 }
+#endif
 
-void NativeJSStream::onError(NativeStream::StreamError err)
+void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
 {
-    printf("[Stream] file doesnt exist?\n");
+    jsval onavailable_callback, rval;
+    JS::RootedObject obj(this->cx, this->jsobj);
+
+    switch (msg.event()) {
+        case NATIVESTREAM_AVAILABLE_DATA:
+            if (JS_GetProperty(this->cx, obj, "onAvailableData", &onavailable_callback) &&
+                JS_TypeOfValue(this->cx, onavailable_callback) == JSTYPE_FUNCTION) {
+
+                JS_CallFunctionValue(this->cx, obj, onavailable_callback,
+                    0, NULL, &rval);
+            }
+            break;
+        case NATIVESTREAM_OPEN_ERROR:
+            printf("Open stream error\n");
+            break;
+        default:
+            break;
+    }
 }
 
 NATIVE_OBJECT_EXPOSE(Stream)
