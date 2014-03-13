@@ -71,14 +71,10 @@ NativeAVStreamReader::NativeAVStreamReader(const char *chroot, const char *src,
       streamBuffer(NULL), error(0)
 {
     this->async = true;
-    if (chroot != NULL) {
-        this->stream = new NativeStream(net, src, chroot);
-    } else {
-        this->stream = new NativeStream(net, src);
-    }
-    this->stream->setAutoClose(false);
+    this->stream = NativeBaseStream::create(src);
+    //this->stream->setAutoClose(false);
     this->stream->start(STREAM_BUFFER_SIZE);
-    this->stream->setDelegate(this);
+    this->stream->setListener(this);
     NATIVE_PTHREAD_VAR_INIT(&this->m_ThreadCond);
 }
 
@@ -116,15 +112,15 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->streamBuffer, thiz->streamPacketSize, thiz->streamErr));
         if (!thiz->streamBuffer) {
             switch (thiz->streamErr) {
-                case NativeStream::STREAM_END:
-                case NativeStream::STREAM_ERROR:
+                case NativeBaseStream::STREAM_END:
+                case NativeBaseStream::STREAM_ERROR:
                     thiz->error = AVERROR_EOF;
                     SPAM(("Got EOF\n"));
                     thiz->pending = false;
                     thiz->needWakup = false;
                     return copied > 0 ? copied : thiz->error;
                 break;
-                case NativeStream::STREAM_EAGAIN:
+                case NativeBaseStream::STREAM_EAGAIN:
                     SPAM(("Got eagain\n"));
                     // Got EAGAIN, switch back to main coro
                     // and wait for onDataAvailable callback
@@ -222,27 +218,39 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
 
 void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
 {
-    NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(msg.dataPtr());
+    //NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(msg.dataPtr());
 
     switch (msg.event()) {
+        case NATIVESTREAM_AVAILABLE_DATA:
+            this->onAvailableData(0);
+            return;
+        case NATIVESTREAM_OPEN_ERROR:
+            //thiz->onError();
+            return;
         case MSG_SEEK:
-            thiz->stream->seek(thiz->streamSeekPos);
-        break;
+            this->stream->seek(this->streamSeekPos);
+            break;
         case MSG_READ:
-            thiz->streamBuffer = thiz->stream->getNextPacket(&thiz->streamPacketSize, &thiz->streamErr);
-        break;
+            this->streamBuffer = this->stream->getNextPacket(&this->streamPacketSize, &this->streamErr);
+            break;
         case MSG_STOP:
-            delete thiz->stream;
+            delete this->stream;
+            break;
+        default:
+            return;
     }
 
-    NATIVE_PTHREAD_SIGNAL(&thiz->m_ThreadCond);
+    NATIVE_PTHREAD_SIGNAL(&this->m_ThreadCond);
 }
 
+/*
 void NativeAVStreamReader::onProgress(size_t buffered, size_t len)
 {
     this->source->onProgress(buffered, len);
 }
+*/
 
+/*
 void NativeAVStreamReader::onError(NativeStream::StreamError err)
 {
     int error;
@@ -258,6 +266,7 @@ void NativeAVStreamReader::onError(NativeStream::StreamError err)
 
     this->source->sendEvent(SOURCE_EVENT_ERROR, error, 0, false);
 }
+*/
 
 void NativeAVStreamReader::onAvailableData(size_t len) 
 {

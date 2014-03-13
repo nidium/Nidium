@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-#include "NativeStream.h"
+#include "NativeStreamInterface.h"
 #include "NativeMessages.h"
 #include "native_netlib.h"
 
@@ -76,7 +76,7 @@ class NativeAVBufferReader : public NativeAVReader
 };
 
 typedef void (*NativeAVStreamReadCallback)(void *callbackPrivate);
-class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate, public NativeMessages
+class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 {
     public:
         NativeAVStreamReader(const char *chroot, const char *src, NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net);
@@ -87,10 +87,10 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate,
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
         
-        void onGetContent(const char *data, size_t len) {}
+        //void onGetContent(const char *data, size_t len) {}
         void onAvailableData(size_t len);
-        void onProgress(size_t buffered, size_t len);
-        void onError(NativeStream::StreamError err);
+        //void onProgress(size_t buffered, size_t len);
+        //void onError(NativeStream::StreamError err);
         ~NativeAVStreamReader();
     private:
         enum {
@@ -101,7 +101,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeStreamDelegate,
         void onMessage(const NativeSharedMessages::Message &msg);
         NATIVE_PTHREAD_VAR_DECL(m_ThreadCond);
 
-        NativeStream *stream;
+        NativeBaseStream *stream;
         NativeAVStreamReadCallback readCallback;
         void *callbackPrivate;
 
