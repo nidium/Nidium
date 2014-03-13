@@ -36,6 +36,9 @@ static int NativeMessages_handle(void *arg)
 
     NativeSharedMessages::Message *msg;
 
+    /*
+        TODO: need a lock for "obj"
+    */
     while (++nread < MAX_MSG_IN_ROW && (msg = g_MessagesList->readMessage())) {
         NativeMessages *obj = static_cast<NativeMessages *>(msg->dest());
         obj->onMessage(*msg);
@@ -83,7 +86,7 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
         to send in an asynchronous way
     */
     if (pthread_equal(m_GenesisThread, pthread_self())) {
-        // Make sure pending messagess are read so that we keep the FIFO rule
+        // Make sure pending messagess are read so that we don't break the FIFO rule
         (void)NativeMessages_handle(NULL);
 
         this->onMessage(*msg);

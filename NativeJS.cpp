@@ -377,7 +377,7 @@ NativeJS *NativeJS::getNativeClass(JSContext *cx)
     return ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
-static ape_global *getNet()
+ape_global *NativeJS::getNet()
 {
     return (ape_global *)pthread_getspecific(gAPE);
 }
@@ -473,18 +473,8 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
-
-    //animationframeCallbacks = ape_new_pool(sizeof(ape_pool_t), 8);
-
-    //NativeStreamTest *st = new NativeStreamTest(net);
-
-    /*NativeTaskManager *manager = new NativeTaskManager();
-
-    NativeFile *file = new NativeFile("/tmp/x.cpp");
-
-    file->open("r");
-    file->close();*/
 }
+
 
 #if 0
 static bool test_extracting(const char *buf, int len,
@@ -530,13 +520,6 @@ NativeJS::~NativeJS()
 
     /* clear all non protected timers */
     del_timers_unprotected(&net->timersng);
-    
-#if 0
-    rootHandler->unrootHierarchy();
-    
-    delete rootHandler;
-#endif
-    //JS_SetAllNonReservedSlotsToUndefined(cx, JS_GetGlobalObject(cx));
 
     JS_EndRequest(cx);
 

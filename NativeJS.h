@@ -28,6 +28,8 @@
 #include <jspubtd.h>
 #include <jsapi.h>
 
+#include <NativeMessages.h>
+
 enum {
     NATIVE_KEY_SHIFT = 1 << 0,
     NATIVE_KEY_ALT = 1 << 1,
@@ -141,6 +143,7 @@ class NativeJS
                                                  JSObject *obj, void *closure);
 
         void logf(const char *format, ...);
+
     private:
         NativeJSModules *modules;
         void *privateslot;
