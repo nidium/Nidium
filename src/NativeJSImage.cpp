@@ -3,6 +3,7 @@
 #include "NativeJS.h"
 #include "NativeSkia.h"
 #include <string.h>
+#include <native_netlib.h>
 
 JSObject *NativeJSImage::classe = NULL;
 
@@ -96,13 +97,11 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
                 
-                NativeStream *stream = new NativeStream(
-                        (ape_global *)JS_GetContextPrivate(cx),
-                        imgPath.ptr(), NativeJS::getNativeClass(cx)->getPath());
+                NativeBaseStream *stream = NativeBaseStream::create(imgPath.ptr());
 
-                nimg->stream = stream;
+                nimg->m_Stream = stream;
 
-                stream->setDelegate(nimg);
+                stream->setListener(nimg);
                 stream->getContent();
             } else {
                 vp.set(JSVAL_VOID);
@@ -120,8 +119,8 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSImage *img = NATIVE_IMAGE_GETTER(obj);
     if (img != NULL) {
-        if (img->stream) {
-            img->stream->setDelegate(NULL);
+        if (img->m_Stream) {
+            img->m_Stream->setListener(NULL);
         }
 
         delete img;
@@ -164,13 +163,64 @@ NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)
 
 static int delete_stream(void *arg)
 {
-    NativeStream *stream = (NativeStream *)arg;
+    NativeBaseStream *stream = (NativeBaseStream *)arg;
 
     delete stream;
 
     return 0;
 }
 
+void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
+{
+    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
+
+    switch (msg.event()) {
+        case NATIVESTREAM_READ_BUFFER:
+        {
+            jsval rval, onload_callback;
+            if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
+                if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
+                    JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
+
+                    JS_CallFunctionValue(cx, jsobj, onload_callback,
+                        0, NULL, &rval);
+                }
+            }
+
+            timer_dispatch_async(delete_stream, m_Stream);
+            m_Stream = NULL;
+            break;
+        }
+    }
+}
+
+bool NativeJSImage::setupWithBuffer(buffer *buf)
+{
+    if (buf->used == 0) {
+        return false;
+    }
+
+    NativeSkImage *ImageObject = new NativeSkImage(buf->data, buf->used);
+    if (ImageObject->img == NULL) {
+        delete ImageObject;
+        return false;
+    }
+
+    img = ImageObject;
+    JS_DefineProperty(cx, jsobj, "width",
+        INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, jsobj, "height",
+        INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_READONLY);
+
+    NativeJSObj(cx)->unrootObject(jsobj);
+
+    return true;
+}
+
+#if 0
 void NativeJSImage::onGetContent(const char *data, size_t len)
 {
     jsval rval, onload_callback;
@@ -210,7 +260,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
 }
-
+#endif
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 	const char name[])
 {	
@@ -242,9 +292,9 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 }
 
 NativeJSImage::NativeJSImage() :
-    img(NULL), jsobj(NULL)
+    img(NULL), jsobj(NULL), m_Stream(NULL)
 {
-    stream = NULL;
+
 }
 
 NativeJSImage::~NativeJSImage()
@@ -252,8 +302,8 @@ NativeJSImage::~NativeJSImage()
     if (img != NULL) {
         delete img;
     }
-    if (stream) {
-        delete stream;
+    if (m_Stream) {
+        delete m_Stream;
     }
 }
 

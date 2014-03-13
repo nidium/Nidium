@@ -2,7 +2,8 @@
 #define nativejsimage_h__
 
 #include "NativeJSExposer.h"
-#include "NativeStream.h"
+#include <NativeMessages.h>
+#include <NativeStreamInterface.h>
 
 enum {
     IMAGE_PROP_SRC
@@ -10,7 +11,8 @@ enum {
 
 class NativeSkImage;
 
-class NativeJSImage : public NativeJSExposer<NativeJSImage>, public NativeStreamDelegate
+class NativeJSImage : public NativeJSExposer<NativeJSImage>,
+                      public NativeMessages
 {
   public:
 
@@ -19,7 +21,7 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>, public NativeStream
 
     NativeSkImage *img;
     JSObject *jsobj;
-    NativeStream *stream;
+    NativeBaseStream *m_Stream;
 
     static NativeSkImage *JSObjectToNativeSkImage(JSObject *obj);
     static void registerObject(JSContext *cx);
@@ -28,15 +30,14 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>, public NativeStream
     	const char name[] = NULL);
     static JSObject *classe;
 
-    void onGetContent(const char *data, size_t len);
-    void onAvailableData(size_t len){};
-    void onProgress(size_t buffered, size_t len){};
-    void onError(NativeStream::StreamError err){};
+    void onMessage(const NativeSharedMessages::Message &msg);
     /*
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onProgress(size_t offset, size_t len,
         NativeHTTP::HTTPData *h, NativeHTTP::DataType) {};
     void onError(NativeHTTP::HTTPError err) {};*/
+private:
+    bool setupWithBuffer(buffer *buf);
 };
 
 #endif
