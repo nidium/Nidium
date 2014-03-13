@@ -50,8 +50,6 @@ void NativeFileStream::onStart(size_t packets, size_t seek)
 
 const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
 {
-    *len = 0;
-    *err = 0;
     unsigned char *data;
 
     if (m_DataBuffer.back == NULL) {
@@ -153,7 +151,8 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
 
                     if (m_NeedToSendUpdate) {
                         m_NeedToSendUpdate = false;
-                        CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
+                        CREATE_MESSAGE(message_available,
+                            NATIVESTREAM_AVAILABLE_DATA);
                         message_available->args[0].set(buf->used);
                         this->notify(message_available);
                     }
