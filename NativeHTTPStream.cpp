@@ -115,7 +115,9 @@ void NativeHTTPStream::stop()
 
 void NativeHTTPStream::getContent()
 {
+    this->onStart(0, 0);
     m_Http->request(this);
+    m_NeedToSendUpdate = false;
 }
 
 size_t NativeHTTPStream::getFileSize() const
@@ -160,7 +162,7 @@ void NativeHTTPStream::notifyAvailable()
 {
     m_NeedToSendUpdate = false;
     CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
-    message_available->args[0].set((char *)m_Mapped.addr + m_LastReadUntil);
+    message_available->args[0].set(m_BytesBuffered - m_LastReadUntil);
     
     this->notify(message_available);
 }
@@ -173,6 +175,17 @@ void NativeHTTPStream::notifyAvailable()
 void NativeHTTPStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
     this->m_DataBuffer.ended = true;
+
+    buffer buf;
+    buffer_init(&buf);
+
+    buf.data = (unsigned char *)m_Mapped.addr;
+    buf.size = buf.used = m_Mapped.size;
+
+    CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+    message->args[0].set(&buf);
+
+    this->notify(message);
 }
 
 void NativeHTTPStream::onProgress(size_t offset, size_t len,
