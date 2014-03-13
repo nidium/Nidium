@@ -51,23 +51,11 @@ NativeHTTPStream::~NativeHTTPStream()
         close(m_Mapped.fd);
     }
 
-    if (m_DataBuffer.back) {
-        free(m_DataBuffer.back);
-    }
-    if (m_DataBuffer.front) {
-        free(m_DataBuffer.front);
-    }
-
     delete m_Http;
 }
 
 void NativeHTTPStream::onStart(size_t packets, size_t seek)
 {
-    if (m_DataBuffer.back == NULL) {
-        m_DataBuffer.back     = buffer_new(0);
-        m_DataBuffer.front    = buffer_new(0);
-    }
-
     char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
     m_Mapped.fd = mkstemp(tmpfname);
     if (m_Mapped.fd == -1) {
@@ -108,7 +96,6 @@ const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
     if (!this->hasDataAvailable()) {
         m_NeedToSendUpdate = true;
         *err = STREAM_EAGAIN;
-
         return NULL;
     }
 
@@ -138,7 +125,44 @@ size_t NativeHTTPStream::getFileSize() const
 
 void NativeHTTPStream::seek(size_t pos)
 {
+    size_t max = m_StartPosition + m_BytesBuffered;
 
+    /*
+        We can read directly from our buffer
+    */
+    if (pos >= m_StartPosition && pos < max - m_PacketsSize) {
+        m_LastReadUntil = pos - m_StartPosition;
+
+        this->notifyAvailable();
+        return;
+    }
+
+    /*
+        We need to seek in HTTP
+    */
+    NativeHTTPRequest *req = m_Http->getRequest();
+    m_Http->stopRequest();
+
+    char seekstr[64];
+    sprintf(seekstr, "bytes=%zu-", pos);
+    req->setHeader("Range", seekstr);
+
+    m_Http->request(this);
+
+    m_StartPosition = pos;
+    m_LastReadUntil = 0;
+    m_BytesBuffered = 0;
+
+    m_NeedToSendUpdate = true;
+}
+
+void NativeHTTPStream::notifyAvailable()
+{
+    m_NeedToSendUpdate = false;
+    CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
+    message_available->args[0].set((char *)m_Mapped.addr + m_LastReadUntil);
+    
+    this->notify(message_available);
 }
 
 //////////////////
@@ -169,12 +193,7 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
     m_Http->resetData();
 
     if (m_NeedToSendUpdate && this->hasDataAvailable()) {
-        m_NeedToSendUpdate = false;
-
-        CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
-        message_available->args[0].set((char *)m_Mapped.addr + m_LastReadUntil);
-        
-        this->notify(message_available);        
+        this->notifyAvailable();      
     }
 }
 
@@ -196,7 +215,6 @@ void NativeHTTPStream::onHeader()
     }
 
     m_Mapped.size = m_Http->http.contentlength;
-
     ftruncate(m_Mapped.fd, m_Mapped.size);
 
     m_Mapped.addr = mmap(NULL, m_Mapped.size,

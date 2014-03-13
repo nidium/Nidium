@@ -51,6 +51,8 @@ private:
     void onError(NativeHTTP::HTTPError err);
     void onHeader();
 
+    void notifyAvailable();
+
     struct {
         int fd;
         void *addr;
