@@ -22,7 +22,7 @@
 #include "NativeUtils.h"
 
 NativeFileStream::NativeFileStream(const char *location) : 
-    NativeBaseStream(location), m_File(location), m_PendingSeek(0)
+    NativeBaseStream(location), m_File(location)
 {
     m_File.setListener(this);
 }
@@ -114,18 +114,19 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVEFILE_OPEN_SUCCESS:
+            /* do nothing */
             break;
         case NATIVEFILE_OPEN_ERROR:
-        {
-            CREATE_MESSAGE(message, NATIVESTREAM_OPEN_ERROR);
-            message->args[0].set(msg.dataUInt());
-
-            this->notify(message);
+            this->error(NATIVESTREAM_ERROR_OPEN, msg.dataUInt());
             break;
-        }
         case NATIVEFILE_SEEK_ERROR:
+            this->error(NATIVESTREAM_ERROR_SEEK, -1);
+            /* fall through */
         case NATIVEFILE_SEEK_SUCCESS:
             m_PendingSeek = false;
+            break;
+        case NATIVEFILE_READ_ERROR:
+            this->error(NATIVESTREAM_ERROR_READ, msg.dataUInt());
             break;
         case NATIVEFILE_READ_SUCCESS:
         {

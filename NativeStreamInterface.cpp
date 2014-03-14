@@ -41,7 +41,8 @@ static struct _native_stream_interfaces {
 };
 
 NativeBaseStream::NativeBaseStream(const char *location) :
-    m_PacketsSize(0), m_NeedToSendUpdate(false), m_Listener(NULL)
+    m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
+    m_Listener(NULL)
 {
     m_DataBuffer.back =         NULL;
     m_DataBuffer.front =        NULL;
@@ -92,6 +93,15 @@ void NativeBaseStream::notify(NativeSharedMessages::Message *msg)
     } else {
         delete msg;
     }
+}
+
+void NativeBaseStream::error(StreamErrors err, unsigned int code)
+{
+    CREATE_MESSAGE(message, NATIVESTREAM_ERROR);
+    message->args[0].set(err);
+    message->args[1].set(code);
+
+    this->notify(message);    
 }
 
 void NativeBaseStream::swapBuffer()

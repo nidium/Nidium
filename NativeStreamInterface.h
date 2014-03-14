@@ -29,16 +29,24 @@
 #define NATIVESTREAM_MESSAGE_BITS(id) ((1 << 21) | id)
 
 enum {
-    NATIVESTREAM_READ_BUFFER =      NATIVESTREAM_MESSAGE_BITS(1),
-    NATIVESTREAM_OPEN_ERROR =       NATIVESTREAM_MESSAGE_BITS(2),
-    NATIVESTREAM_AVAILABLE_DATA =   NATIVESTREAM_MESSAGE_BITS(3),
+    NATIVESTREAM_ERROR =            NATIVESTREAM_MESSAGE_BITS(1),
+    NATIVESTREAM_READ_BUFFER =      NATIVESTREAM_MESSAGE_BITS(2),
+    NATIVESTREAM_AVAILABLE_DATA =   NATIVESTREAM_MESSAGE_BITS(3)
 };
+
 
 class NativeMessages;
 
 class NativeBaseStream
 {
 public:
+    enum StreamErrors {
+        NATIVESTREAM_ERROR_OPEN,
+        NATIVESTREAM_ERROR_SEEK,
+        NATIVESTREAM_ERROR_READ,
+        NATIVESTREAM_ERROR_UNKNOWN,
+    };
+
     virtual ~NativeBaseStream();
 
     static NativeBaseStream *create(const char *location);
@@ -89,7 +97,8 @@ public:
         Check whether there is data pending
     */
     virtual bool hasDataAvailable() const {
-        return !m_DataBuffer.alreadyRead || (m_DataBuffer.ended && m_DataBuffer.back->used);
+        return !m_DataBuffer.alreadyRead ||
+        (m_DataBuffer.ended && m_DataBuffer.back->used);
     }
 
 protected:
@@ -104,6 +113,11 @@ protected:
     void notify(NativeSharedMessages::Message *msg);
 
     /*
+        Send an error message
+    */
+    void error(StreamErrors, unsigned int code);
+
+    /*
         Swap back and front buffer.
         so that the requested data (getNextPacket()) remains valid
         while data are still incoming (double buffering).
@@ -113,6 +127,7 @@ protected:
     char*   m_Location;
     size_t  m_PacketsSize;
     bool    m_NeedToSendUpdate;
+    bool    m_PendingSeek;
 
     NativeMessages *m_Listener;
 

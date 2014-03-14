@@ -52,6 +52,7 @@ private:
     void onHeader();
 
     void notifyAvailable();
+    void cleanCacheFile();
 
     struct {
         int fd;

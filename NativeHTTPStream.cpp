@@ -56,6 +56,10 @@ NativeHTTPStream::~NativeHTTPStream()
 
 void NativeHTTPStream::onStart(size_t packets, size_t seek)
 {
+    if (m_Mapped.fd) {
+        close(m_Mapped.fd);
+    }
+
     char tmpfname[] = "/tmp/nidiumtmp.XXXXXXXX";
     m_Mapped.fd = mkstemp(tmpfname);
     if (m_Mapped.fd == -1) {
@@ -144,6 +148,7 @@ void NativeHTTPStream::seek(size_t pos)
     NativeHTTPRequest *req = m_Http->getRequest();
     m_Http->stopRequest();
 
+    m_PendingSeek = true;
     char seekstr[64];
     sprintf(seekstr, "bytes=%zu-", pos);
     req->setHeader("Range", seekstr);
@@ -190,8 +195,9 @@ void NativeHTTPStream::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 void NativeHTTPStream::onProgress(size_t offset, size_t len,
     NativeHTTP::HTTPData *h, NativeHTTP::DataType)
 {
-    /* overflow */
-    if (!m_Mapped.fd || m_BytesBuffered + len > m_Mapped.size) {
+    /* overflow or invalid state */
+    if (!m_Mapped.fd || !m_Mapped.addr ||
+          m_BytesBuffered + len > m_Mapped.size) {
         m_Http->resetData();
         return;
     }
@@ -211,7 +217,34 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
 
 void NativeHTTPStream::onError(NativeHTTP::HTTPError err)
 {
+    this->cleanCacheFile();
 
+    if (m_PendingSeek) {
+        this->error(NATIVESTREAM_ERROR_SEEK, -1);
+        m_PendingSeek = false;
+        this->stop();
+        return;
+    }
+    switch (err) {
+        case NativeHTTP::ERROR_HTTPCODE:
+            this->error(NATIVESTREAM_ERROR_OPEN, m_Http->getStatusCode());
+            break;
+        case NativeHTTP::ERROR_RESPONSE:
+        case NativeHTTP::ERROR_SOCKET:
+        case NativeHTTP::ERROR_TIMEOUT:
+            this->error(NATIVESTREAM_ERROR_OPEN, -1);
+            break;
+        default:
+            break;
+    }
+}
+
+void NativeHTTPStream::cleanCacheFile()
+{
+    if (m_Mapped.addr) {
+        munmap(m_Mapped.addr, m_Mapped.size);
+        m_Mapped.addr = NULL;
+    }
 }
 
 void NativeHTTPStream::onHeader()
@@ -222,9 +255,19 @@ void NativeHTTPStream::onHeader()
         return;
     }
 
-    if (m_Mapped.addr) {
-        munmap(m_Mapped.addr, m_Mapped.size);
+    this->cleanCacheFile();
+    /*
+        HTTP didn't returned a partial content (HTTP 206) (seek failed?)
+    */
+    if (m_PendingSeek && m_Http->getStatusCode() != 206) {
+        this->error(NATIVESTREAM_ERROR_SEEK, -1);
+
+        m_PendingSeek = false;
+        this->stop();
+        return;
     }
+
+    m_PendingSeek = false;
 
     m_Mapped.size = m_Http->http.contentlength;
     ftruncate(m_Mapped.fd, m_Mapped.size);

@@ -45,7 +45,6 @@ protected:
     virtual void onStart(size_t packets, size_t seek);
 private:
     NativeFile m_File;
-    bool m_PendingSeek;
 };
 
 #endif

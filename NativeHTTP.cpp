@@ -219,6 +219,7 @@ static void native_http_connected(ape_socket *s,
     nhttp->http.headers.tval = NULL;
     nhttp->http.data = buffer_new(0);
     nhttp->http.ended = 0;
+
     nhttp->http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
@@ -244,7 +245,6 @@ static void native_http_disconnect(ape_socket *s,
 
     if (nhttp == NULL ||
         (nhttp->m_CurrentSock != NULL && s != nhttp->m_CurrentSock)) {
-
         return;
     }
 
@@ -266,12 +266,14 @@ static void native_http_read(ape_socket *s, ape_global *ape,
     size_t nparsed;
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
-    if (nhttp == NULL) return;
+    if (nhttp == NULL || nhttp->http.ended) {
+        return;
+    }
 
     nparsed = http_parser_execute(&nhttp->http.parser, &settings,
         (const char *)s->data_in.data, (size_t)s->data_in.used);
 
-    if (nparsed != s->data_in.used) {
+    if (nparsed != s->data_in.used && !nhttp->http.ended) {
         printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
@@ -378,7 +380,7 @@ void NativeHTTP::stopRequest(bool timeout)
         }
 
         if (http.data) buffer_destroy(http.data);
-
+        http.ended = 1;
         http.data = NULL;
         http.headers.tval = NULL;
         http.headers.tkey = NULL;
@@ -391,6 +393,7 @@ void NativeHTTP::stopRequest(bool timeout)
         if (timeout) {
             this->delegate->onError(ERROR_TIMEOUT);
         }
+        http_parser_execute(&http.parser, &settings, NULL, 0);
     }
 }
 

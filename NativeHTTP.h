@@ -176,6 +176,10 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
         return m_FileSize;
     }
 
+    uint16_t getStatusCode() const {
+        return http.parser.status_code;
+    }
+
     NativeHTTPRequest *getRequest() const {
         return req;
     }

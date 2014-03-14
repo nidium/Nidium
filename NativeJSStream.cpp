@@ -270,9 +270,26 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                     0, NULL, &rval);
             }
             break;
-        case NATIVESTREAM_OPEN_ERROR:
-            printf("Open stream error\n");
+        case NATIVESTREAM_ERROR:
+        {
+            NativeBaseStream::StreamErrors err = 
+                (NativeBaseStream::StreamErrors)msg.args[0].toInt();
+            int code = msg.args[1].toInt();
+            switch (err) {
+                case NativeBaseStream::NATIVESTREAM_ERROR_OPEN:
+                    break;
+                case NativeBaseStream::NATIVESTREAM_ERROR_READ:
+                    break;
+                case NativeBaseStream::NATIVESTREAM_ERROR_SEEK:
+                    
+                    break;
+                default:
+                    break;
+            }
             break;
+
+            // TODO: onerror
+        }
         default:
             break;
     }
