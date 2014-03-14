@@ -22,7 +22,7 @@
 #include "NativeUtils.h"
 
 NativeFileStream::NativeFileStream(const char *location) : 
-    NativeBaseStream(location), m_File(location)
+    NativeBaseStream(location), m_File(location), m_PendingSeek(0)
 {
     m_File.setListener(this);
 }
@@ -104,6 +104,10 @@ size_t NativeFileStream::getFileSize() const
 void NativeFileStream::seek(size_t pos)
 {
     m_File.seek(pos);
+    m_File.read(m_PacketsSize);
+    m_PendingSeek = true;
+    m_DataBuffer.back->used = 0;
+    m_NeedToSendUpdate = true;
 }
 
 void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
@@ -119,8 +123,15 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             this->notify(message);
             break;
         }
+        case NATIVEFILE_SEEK_ERROR:
+        case NATIVEFILE_SEEK_SUCCESS:
+            m_PendingSeek = false;
+            break;
         case NATIVEFILE_READ_SUCCESS:
         {
+            if (m_PendingSeek) {
+                break;
+            }
             /*
                 the buffer is automatically detroyed by NativeFile
                 after the return of this function
