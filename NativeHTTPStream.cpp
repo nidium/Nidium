@@ -116,7 +116,6 @@ void NativeHTTPStream::stop()
 void NativeHTTPStream::getContent()
 {
     this->onStart(0, 0);
-    m_Http->request(this);
     m_NeedToSendUpdate = false;
 }
 
