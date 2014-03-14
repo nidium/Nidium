@@ -224,7 +224,7 @@ void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVESTREAM_AVAILABLE_DATA:
             this->onAvailableData(0);
             return;
-        case NATIVESTREAM_OPEN_ERROR:
+        case NATIVESTREAM_ERROR:
             //thiz->onError();
             return;
         case MSG_SEEK:
