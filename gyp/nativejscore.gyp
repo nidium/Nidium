@@ -15,7 +15,10 @@
                 '../'
             ]
         },
-        'defines': ['_FILE_OFFSET_BITS=64'],
+        'defines': [
+            '_FILE_OFFSET_BITS=64',
+            '__STDC_LIMIT_MACROS'
+        ],
         'dependencies': [
             '../network/gyp/network.gyp:nativenetwork',
             'jsoncpp.gyp:jsoncpp'
