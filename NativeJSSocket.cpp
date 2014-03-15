@@ -206,7 +206,7 @@ inline static void native_socket_readcb(NativeJSSocket *nsocket, char *data, siz
 }
 
 static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
-    ape_global *ape)
+    ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
