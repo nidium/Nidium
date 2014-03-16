@@ -21,6 +21,7 @@
 #define nativewebsocket_h__
 
 #include "NativeHTTPListener.h"
+#include <ape_websocket.h>
 
 class NativeWebSocketListener : public NativeHTTPListener
 {
@@ -34,6 +35,15 @@ class NativeWebSocketClientConnection : public NativeHTTPClientConnection
 public:
     NativeWebSocketClientConnection(NativeHTTPListener *httpserver,
         ape_socket *socket);
+    ~NativeWebSocketClientConnection();
+
+    virtual void onFrame(const char *data, size_t len);
+
+    /* TODO: support "buffering" detection + ondrain()
+        (need ape_websocket.c modification)
+    */
+    void write(const char *data, size_t len,
+        ape_socket_data_autorelease type = APE_DATA_COPY);
 
     virtual void onHeaderEnded();
     virtual void onDisconnect(ape_global *ape);
@@ -41,6 +51,9 @@ public:
     virtual void onContent(const char *data, size_t len);
 
     virtual void close();
+private:
+    websocket_state m_WSState;
+    bool m_Handshaked;
 };
 
 #endif

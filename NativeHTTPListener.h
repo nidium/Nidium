@@ -33,7 +33,7 @@ class NativeHTTPListener
 {
 public:
     NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
-    ~NativeHTTPListener();
+    virtual ~NativeHTTPListener();
     bool start();
     void stop();
     
@@ -55,6 +55,7 @@ class NativeHTTPClientConnection
 public:
     NativeHTTPClientConnection(NativeHTTPListener *httpserver,
         ape_socket *socket);
+    virtual ~NativeHTTPClientConnection();
 
     enum PrevState {
         PSTATE_NOTHING,
@@ -93,7 +94,7 @@ public:
     virtual void onContent(const char *data, size_t len){};
 
     virtual void close(){};
-private:
+protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;

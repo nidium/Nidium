@@ -230,7 +230,7 @@ bool NativeHTTPListener::start()
 
 void NativeHTTPListener::stop()
 {
-    if (m_Socket) {
+    if (m_Socket && m_Socket->ctx == this) {
         m_Socket->ctx = NULL;
         APE_socket_shutdown_now(m_Socket);
     }
