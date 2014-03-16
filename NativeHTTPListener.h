@@ -1,0 +1,102 @@
+/*
+    NativeJS Core Library
+    Copyright (C) 2014 Anthony Catel <paraboul@gmail.com>
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#ifndef nativehttplistener_h__
+#define nativehttplistener_h__
+
+#include <native_netlib.h>
+#include <ape_array.h>
+#include <http_parser.h>
+#include <stdio.h>
+#define HTTP_MAX_CL 1024L*1024L*1024L*2L
+#define HTTP_DEFAULT_TIMEOUT 15000
+
+class NativeMessages;
+
+class NativeHTTPListener
+{
+public:
+    NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
+    ~NativeHTTPListener();
+    bool start();
+    void stop();
+    
+    void setListener(NativeMessages *listener) {
+        m_Listener = listener;
+    }
+
+    virtual void onClientConnect(ape_socket *client, ape_global *ape);
+
+private:
+    NativeMessages *  m_Listener;
+    ape_socket *      m_Socket;
+    char *            m_IP;
+    uint16_t          m_Port;
+};
+
+class NativeHTTPClientConnection
+{
+public:
+    NativeHTTPClientConnection(NativeHTTPListener *httpserver,
+        ape_socket *socket);
+
+    enum PrevState {
+        PSTATE_NOTHING,
+        PSTATE_FIELD,
+        PSTATE_VALUE
+    };
+    struct HTTPData {
+        http_parser parser;
+        struct {
+            ape_array_t *list;
+            buffer *tkey;
+            buffer *tval;
+            PrevState prevstate;
+        } headers;
+        int ended;
+        uint64_t contentlength;
+    };
+
+    struct HTTPData *getHTTPState() {
+        return &m_HttpState;
+    }
+
+    ape_socket *getSocket() const {
+        return m_SocketClient;
+    }
+
+    NativeHTTPListener *getHTTPListener() const {
+        return m_HTTPListener;
+    }
+
+    void onRead(buffer *buf, ape_global *ape);
+
+    virtual void onHeaderEnded(){};
+    virtual void onDisconnect(ape_global *ape){};
+    virtual void onUpgrade(const char *to){};
+    virtual void onContent(const char *data, size_t len){};
+
+    virtual void close(){};
+private:
+    struct HTTPData m_HttpState;
+    ape_socket *m_SocketClient;
+    NativeHTTPListener *m_HTTPListener;
+};
+
+#endif
