@@ -55,7 +55,7 @@ class NativeHTTPClientConnection
 public:
     NativeHTTPClientConnection(NativeHTTPListener *httpserver,
         ape_socket *socket);
-    virtual ~NativeHTTPClientConnection();
+    virtual ~NativeHTTPClientConnection(){};
 
     enum PrevState {
         PSTATE_NOTHING,

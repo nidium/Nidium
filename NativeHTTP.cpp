@@ -503,14 +503,14 @@ NativeHTTP::~NativeHTTP()
 
 
 int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
-    u_short *port, char *file)
+    u_short *port, char *file, const char *prefix)
 {
     char *p;
     const char *p2;
     int len;
 
-    len = strlen(HTTP_PREFIX);
-    if (strncasecmp(url, HTTP_PREFIX, len)) {
+    len = strlen(prefix);
+    if (strncasecmp(url, prefix, len)) {
         return -1;
     }
 

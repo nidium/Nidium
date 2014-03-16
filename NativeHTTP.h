@@ -159,7 +159,7 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
     } http;
 
     static int ParseURI(char *url, size_t url_len, char *host,
-    u_short *port, char *file);
+    u_short *port, char *file, const char *prefix = "http://");
     void requestEnded();
     void headerEnded();
     void stopRequest(bool timeout=false);

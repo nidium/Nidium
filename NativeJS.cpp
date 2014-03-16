@@ -28,6 +28,7 @@
 #include "NativeJSFileIO.h"
 #include "NativeJSModules.h"
 #include "NativeJSStream.h"
+#include "NativeJSWebSocket.h"
 
 #include "NativeStream.h"
 #include "NativeUtils.h"
@@ -48,6 +49,8 @@
 
 #include "NativeTaskManager.h"
 #include "NativeFile.h"
+
+#include "NativeWebSocket.h"
 
 static pthread_key_t gAPE = 0;
 
@@ -841,6 +844,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSHttp::registerObject(cx);
     /* Stream() object */
     NativeJSStream::registerObject(cx);
+    /* WebSocket*() object */
+    NativeJSWebSocketServer::registerObject(cx);
 
     modules = new NativeJSModules(cx);
     if (!modules) {

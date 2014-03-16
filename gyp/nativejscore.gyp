@@ -68,6 +68,7 @@
             '../NativeHTTPStream.cpp',
             '../NativeHTTPListener.cpp',
             '../NativeWebSocket.cpp',
+            '../NativeJSWebSocket.cpp',
         ],
     }],
 }

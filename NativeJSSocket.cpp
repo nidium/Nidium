@@ -481,7 +481,9 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    nsocket = new NativeJSSocket(JS_EncodeString(cx, host), port);
+    JSAutoByteString chost(cx, host);
+
+    nsocket = new NativeJSSocket(chost.ptr(), port);
 
     JS_SetPrivate(ret, nsocket);
 
