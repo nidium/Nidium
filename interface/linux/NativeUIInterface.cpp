@@ -229,7 +229,18 @@ int NativeEvents(NativeX11UIInterface *NUII)
         }
 
         //NUII->getConsole()->flush();
-        SDL_GL_SwapWindow(NUII->win);
+        if (NUII->getFBO() != 0 && NUII->NativeCtx) {
+            //glFlush();
+            //glFinish();
+            glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+            glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
+            uint8_t *pdata = NUII->getFrameBufferData();
+            
+            NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
+        } else {
+            SDL_GL_SwapWindow(NUII->win);
+        }
 
     //}
     ttfps++;
