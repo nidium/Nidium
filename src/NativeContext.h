@@ -6,6 +6,7 @@
 #include "NativeJS.h"
 #include "NativeTypes.h"
 #include "NativeGLResources.h"
+#include <NativeMessages.h>
 
 class NativeSkia;
 class NativeCanvasHandler;
@@ -14,10 +15,13 @@ class NativeJS;
 class NativeNML;
 class NativeCanvasContext;
 class NativeGLState;
+class NativeWebSocketListener;
+class NativeWebSocketClientConnection;
 
 typedef struct _ape_global ape_global;
 
-class NativeContext : public NativeJSDelegate
+class NativeContext : public NativeJSDelegate,
+                      public NativeMessages
 {
     public:
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
@@ -56,6 +60,9 @@ class NativeContext : public NativeJSDelegate
     void postDraw();
     void frame();
 
+    // called during offline rendering
+    void rendered(uint8_t *pdata, int width, int height);
+
     void setWindowSize(int width, int height);
     void setWindowFrame(int x, int y, int width, int height);
     void sizeChanged(int w, int h);
@@ -77,16 +84,19 @@ class NativeContext : public NativeJSDelegate
     // NativeJS delegate
     bool onLoad(NativeJS *njs, char *filename, int argc, jsval *vp);
 
-    private:
-    NativeGLResources m_Resources;
-    NativeJS *m_JS;
-    NativeCanvasHandler *m_RootHandler;
-    NativeCanvasHandler *m_DebugHandler;
-    NativeUIInterface *m_UI;
-    NativeNML *m_NML;
-    NativeGLState *m_GLState;
+    void onMessage(const NativeSharedMessages::Message &msg);
 
-    bool m_SizeDirty;
+    private:
+    NativeGLResources         m_Resources;
+    NativeJS *                m_JS;
+    NativeCanvasHandler *     m_RootHandler;
+    NativeCanvasHandler *     m_DebugHandler;
+    NativeUIInterface *       m_UI;
+    NativeNML *               m_NML;
+    NativeGLState *           m_GLState;
+    NativeWebSocketListener * m_WS;
+    NativeWebSocketClientConnection *m_WSClient;
+    bool                      m_SizeDirty;
 
     struct {
         uint64_t nframe;

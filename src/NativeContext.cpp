@@ -25,6 +25,8 @@
 #include "NativeMacros.h"
 #include "NativeNML.h"
 
+#include <NativeWebSocket.h>
+
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl3.h>
@@ -54,6 +56,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_DebugHandler(NULL), m_UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
+
+    nui->useOffScreenRendering(true);
 
     ShInitialize();
 
@@ -102,6 +106,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
             m_JS->LoadBytecode(script);
         }
     }
+    m_WSClient = NULL;
+    m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
+    m_WS->setListener(this);
+    m_WS->start();
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
@@ -288,10 +296,20 @@ NativeContext::~NativeContext()
 
     delete m_JS;
     delete m_GLState;
+    printf("destroy reader\n");
+    delete m_WS;
+    
 
     NativeSkia::glcontext = NULL;
 
     ShFinalize();
+}
+
+void NativeContext::rendered(uint8_t *pdata, int width, int height)
+{
+    if (m_WSClient) {
+        m_WSClient->write((const char *)pdata, width*height*4, true);
+    }
 }
 
 void NativeContext::frame()
@@ -302,8 +320,8 @@ void NativeContext::frame()
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
 
-    /* We draw on the screen */
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /* We draw on the UI fbo */
+    glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
     m_RootHandler->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
@@ -373,6 +391,16 @@ bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
     free(file);
     free(finalfile);
     return true;
+}
+
+void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case NATIVEWEBSOCKET_SERVER_CONNECT:
+            m_WSClient = (NativeWebSocketClientConnection *)msg.args[0].toPtr();
+            printf("New WS client for render :)\n");
+            break;
+    }
 }
 
 void NativeContext::forceLinking()

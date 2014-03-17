@@ -438,11 +438,11 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     desc.fStencilBits = 0;
     desc.fSampleCnt = 0;
     //GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
-#if 0
+#if 1
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
 #endif
-    desc.fRenderTargetHandle = 0;
+    desc.fRenderTargetHandle = buffer;
     GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {

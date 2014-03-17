@@ -87,6 +87,8 @@ class NativeUIInterface
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
 
+        virtual int useOffScreenRendering(bool val);
+
         SDL_GLContext getGLContext() {
             return m_mainGLCtx;
         }
@@ -96,11 +98,24 @@ class NativeUIInterface
 
         void deleteGLContext(SDL_GLContext ctx);
 
+        int getFBO() const {
+            return m_FBO;
+        }
+
+        uint8_t *getFrameBufferData() {
+            return m_FrameBuffer;
+        }
+
     protected:
         int width;
         int height;
         char *filePath;
         bool initialized;
+        bool m_isOffscreen;
+        int m_FBO;
+        uint8_t *m_FrameBuffer;
+
+
         NativeUIConsole *console;
         SDL_GLContext m_mainGLCtx;
 };

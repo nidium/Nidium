@@ -20,6 +20,7 @@
 #include <native_netlib.h>
 #include <NativeNML.h>
 #include <NativeMacros.h>
+#include <NativeMessages.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -692,6 +693,7 @@ void NativeX11UIInterface::stopApplication()
     if (this->nml) delete this->nml;
     if (this->NativeCtx) {
         delete this->NativeCtx;
+        NativeMessages::destroyReader();
     }
     this->NativeCtx = NULL;
     this->nml = NULL;

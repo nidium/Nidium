@@ -4,8 +4,15 @@
 #include <unistd.h>
 
 #include <SDL.h>
+#define GL_GLEXT_PROTOTYPES
+#if __APPLE__
+#include <OpenGL/gl3.h>
+#else
+#include <GL/gl.h>
+#endif
 
-NativeUIInterface::NativeUIInterface()
+NativeUIInterface::NativeUIInterface() :
+    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL)
 {
     NativeTaskManager::createManager();
 }
@@ -103,4 +110,40 @@ void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
 
     this->setWindowSize(w, h);
     this->setWindowPosition(x, y);
+}
+
+int NativeUIInterface::useOffScreenRendering(bool val)
+{
+    if (!val && m_isOffscreen) {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        m_isOffscreen = false;
+        m_FBO = 0;
+        free(m_FrameBuffer);
+        m_FrameBuffer = NULL;
+        // todo : delete fbo & renderbuffer
+        return 0;
+    }
+
+    if (val && !m_isOffscreen) {
+        GLuint fbo, render_buf;
+        glGenFramebuffers(1, &fbo);
+        glGenRenderbuffers(1, &render_buf);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, render_buf);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA4, width, height);
+
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+        glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, render_buf);
+
+        m_FBO = fbo;
+
+        m_FrameBuffer = (uint8_t *)malloc(width*height*4);
+
+        SDL_HideWindow(win);
+
+        return fbo;
+    }
+
+    return 0;
 }
