@@ -169,6 +169,9 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
     void *getPrivate();
 
     void resetData() {
+        if (http.data == NULL) {
+            return;
+        }
         http.data->used = 0;
     }
 

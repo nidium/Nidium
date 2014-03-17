@@ -207,16 +207,16 @@ void NativeHTTPStream::onProgress(size_t offset, size_t len,
 
     m_BytesBuffered += len;
 
+    /* Reset the data buffer, so that data doesn't grow in memory */
+    m_Http->resetData();
+    
     CREATE_MESSAGE(msg_progress, NATIVESTREAM_PROGRESS);
     msg_progress->args[0].set(m_Http->getFileSize());
     msg_progress->args[1].set(m_StartPosition);
     msg_progress->args[2].set(m_BytesBuffered);
     msg_progress->args[3].set(m_LastReadUntil);
-    
-    this->notify(msg_progress);
 
-    /* Reset the data buffer, so that data doesn't grow in memory */
-    m_Http->resetData();
+    this->notify(msg_progress);
 
     if (m_NeedToSendUpdate && this->hasDataAvailable()) {
         this->notifyAvailable();      
