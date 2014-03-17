@@ -47,7 +47,6 @@ struct native_thread_msg
 class NativeSharedMessages;
 class NativeSkia;
 class NativeCanvasHandler;
-class NativeUIInterface;
 class NativeJSModules;
 struct _ape_htable;
 

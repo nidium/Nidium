@@ -21,6 +21,7 @@
 #include "NativeHTTP.h"
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj);
+static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj);
 
 static JSClass WebSocketServer_class = {
     "WebSocketServer", JSCLASS_HAS_PRIVATE,
@@ -29,9 +30,25 @@ static JSClass WebSocketServer_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
+static JSClass WebSocketServer_client_class = {
+    "WebSocketServerClient", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebSocket_Finalize_client,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
 
+}
+
+static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeJSWebSocketServer *wss = (NativeJSWebSocketServer *)JS_GetPrivate(obj);
+
+    if (wss != NULL) {
+        delete wss;
+    }    
 }
 
 static JSBool native_WebSocketServer_constructor(JSContext *cx,
@@ -67,6 +84,8 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
     }
 
     NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(host, port);
+    wss->jsobj = ret;
+    wss->cx = cx;
 
     free(path);
     free(host);
@@ -78,6 +97,16 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
         delete wss;
         return false;
     }
+
+    JS_SetPrivate(ret, wss);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    /*
+        Server is listening at this point. Don't collect.
+    */
+    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+
     return true;
 }
 
@@ -88,9 +117,50 @@ NativeJSWebSocketServer::NativeJSWebSocketServer(const char *host,
     m_WebSocketServer->setListener(this);
 }
 
+JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection *client)
+{
+    JSObject *jclient;
+
+    jclient = JS_NewObject(cx, &WebSocketServer_client_class, NULL, NULL);
+
+    JS_SetPrivate(jclient, client);
+
+    NativeJSObj(cx)->rootObjectUntilShutdown(jclient);
+
+    return jclient;
+}
+
 void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg)
 {
-    
+    jsval oncallback, rval;
+    switch (msg.event()) {
+        case NATIVEWEBSOCKET_SERVER_FRAME:
+        {
+            const char *data = (const char *)msg.args[1].toPtr();
+            int len = msg.args[2].toInt();
+            
+            break;
+        }
+        case NATIVEWEBSOCKET_SERVER_CONNECT:
+        {
+            jsval arg;
+            JSObject *jclient = this->createClient(
+                (NativeWebSocketClientConnection *)msg.args[0].toPtr());
+
+            arg = OBJECT_TO_JSVAL(jclient);
+
+            if (JS_GetProperty(cx, this->getJSObject(), "onopen", &oncallback) &&
+                JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
+
+                JS_CallFunctionValue(cx, this->getJSObject(), oncallback,
+                    1, &arg, &rval);
+            }
+
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 bool NativeJSWebSocketServer::start()

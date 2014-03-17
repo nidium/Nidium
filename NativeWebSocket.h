@@ -23,6 +23,14 @@
 #include "NativeHTTPListener.h"
 #include <ape_websocket.h>
 
+#define NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(id) ((1 << 22) | id)
+
+enum {
+    NATIVEWEBSOCKET_SERVER_CONNECT = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(1),
+    NATIVEWEBSOCKET_SERVER_FRAME   = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(2),
+    NATIVEWEBSOCKET_SERVER_CLOSE   = NATIVEWEBSOCKET_SERVER_MESSAGE_BITS(3),
+};
+
 class NativeWebSocketListener : public NativeHTTPListener
 {
 public:
@@ -43,6 +51,7 @@ public:
         (need ape_websocket.c modification)
     */
     void write(const char *data, size_t len,
+        bool binary = false,
         ape_socket_data_autorelease type = APE_DATA_COPY);
 
     virtual void onHeaderEnded();

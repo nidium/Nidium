@@ -35,7 +35,6 @@ enum {
     NATIVESTREAM_PROGRESS =         NATIVESTREAM_MESSAGE_BITS(4)
 };
 
-
 class NativeMessages;
 
 class NativeBaseStream

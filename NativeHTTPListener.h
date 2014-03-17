@@ -24,6 +24,8 @@
 #include <ape_array.h>
 #include <http_parser.h>
 #include <stdio.h>
+#include "NativeMessages.h"
+
 #define HTTP_MAX_CL 1024L*1024L*1024L*2L
 #define HTTP_DEFAULT_TIMEOUT 15000
 
@@ -42,6 +44,15 @@ public:
     }
 
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
+
+    void notify(NativeSharedMessages::Message *msg)
+    {
+        if (m_Listener) {
+            m_Listener->postMessage(msg);
+        } else {
+            delete msg;
+        }
+    }
 
 private:
     NativeMessages *  m_Listener;

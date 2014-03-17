@@ -75,7 +75,7 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
         this->close();
         return;
     }
-    printf("upgraded\n");
+
     const buffer *ws_key = REQUEST_HEADER("Sec-WebSocket-Key");
 
     if (ws_key == NULL || ws_key->used < 2) {
@@ -95,7 +95,12 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     APE_socket_write(m_SocketClient,
         (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"), APE_DATA_STATIC);
 
-    m_Handshaked = true;   
+    m_Handshaked = true;
+
+    CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_CONNECT);
+    msg->args[0].set(this);
+
+    m_HTTPListener->notify(msg);
 }
 
 void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
@@ -105,8 +110,13 @@ void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
 
 void NativeWebSocketClientConnection::onFrame(const char *data, size_t len)
 {
-    printf("Ws got a frame of length : %ld\n", len);
-    printf("Frame : %s\n", data);
+    CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_FRAME);
+
+    msg->args[0].set(this);
+    msg->args[1].set((void *)data);
+    msg->args[2].set(len);
+
+    m_HTTPListener->notify(msg);
 }
 
 void NativeWebSocketClientConnection::close()
@@ -119,9 +129,9 @@ void NativeWebSocketClientConnection::close()
 }
 
 void NativeWebSocketClientConnection::write(const char *data,
-    size_t len, ape_socket_data_autorelease type)
+    size_t len, bool binary, ape_socket_data_autorelease type)
 {
-    ape_ws_write(m_SocketClient, (unsigned char *)data, len, type);
+    ape_ws_write(m_SocketClient, (unsigned char *)data, len, (int)binary, type);
 }
 
 static void native_on_ws_frame(websocket_state *state,

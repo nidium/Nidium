@@ -33,7 +33,9 @@ public:
     static void registerObject(JSContext *cx);
     void onMessage(const NativeSharedMessages::Message &msg);
 private:
-    NativeWebSocketListener *m_WebSocketServer;  
+    NativeWebSocketListener *m_WebSocketServer;
+
+    JSObject *createClient(NativeWebSocketClientConnection *client);
 };
 
 #endif
