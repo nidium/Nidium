@@ -472,19 +472,8 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
 
     this->dragNSView = nil;
 
-    /* Set the current working directory relative to the .app */
-    char parentdir[MAXPATHLEN];
-
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
-
-    CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-    CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
-    if (CFURLGetFileSystemRepresentation(url2, 1, (UInt8 *)parentdir, MAXPATHLEN)) {
-        chdir(parentdir);   /* chdir to the binary app's parent */
-    }
-    CFRelease(url);
-    CFRelease(url2);
 
     gnet = native_netlib_init();
 }

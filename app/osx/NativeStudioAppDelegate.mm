@@ -5,7 +5,6 @@
 #import "NativeSystem.h"
 #import <dispatch/dispatch.h>
 
-
 #define NIDIUM_DISPATCH_MAINTHREAD 0
 
 
@@ -69,7 +68,7 @@ unsigned long _ape_seed;
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     NSLog(@"[Cocoa] applicationDidFinishLaunching");
-    [self setupWorkingDirectory:YES];
+    //[self setupWorkingDirectory:YES];
     _ape_seed = time(NULL) ^ (getpid() << 16);
     //NativeConsole *console = [[NativeConsole alloc] init];
     //[console attachToStdout];
