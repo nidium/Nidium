@@ -22,11 +22,52 @@
 #include <jsapi.h>
 #include <jsdbgapi.h>
 
+
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
 
 int NativePath::g_m_SchemesCount = 0;
 struct NativePath::schemeInfo *NativePath::g_m_DefaultScheme = NULL;
+struct NativePath::schemeInfo NativePath::g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES] = {};
+
+NativePath::NativePath(const char *origin, bool allowAll) :
+    m_Path(NULL), m_Dir(NULL)
+{
+    int originlen = strlen(origin);
+    if (originlen > MAXPATHLEN-1) {
+        return;
+    }
+    m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN + 1));
+    m_Path[0] = '\0';
+
+    printf("Get path for origin %s\n", origin);
+
+    if (!NativePath::getPwd() && SCHEME_MATCH(origin, "file")) {
+        realpath(origin, m_Path);
+    } else if (!NativePath::getPwd()) {
+        memcpy(m_Path, origin, originlen+1);
+    } else {
+        printf("Dont match path\n");
+    }
+
+    this->setDir();
+}
+
+void NativePath::setDir()
+{
+    int len = strlen(m_Path);
+    if (len == 0) {
+        m_Dir = NULL;
+        return;
+    }
+    m_Dir = (char *)malloc(sizeof(char) * (len + 1));
+    memcpy(m_Dir, m_Path, len + 1);
+
+    char *pos = strrchr(m_Dir, '/');
+    if (pos != NULL) {
+        pos[1] = '\0';
+    }
+}
 
 void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
     bool isDefault)
@@ -35,27 +76,35 @@ void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
         return;
     }
 
-    memcpy(&g_m_Schemes[NativePath::g_m_SchemesCount],
-        &scheme, sizeof(schemeInfo));
+    schemeInfo *newScheme = &NativePath::g_m_Schemes[NativePath::g_m_SchemesCount];
+
+    newScheme->str = strdup(scheme.str);
+    newScheme->base = scheme.base;
+    newScheme->keepPrefix = scheme.keepPrefix;
 
     NativePath::g_m_SchemesCount++;
 
-    if (isDefault || g_m_DefaultScheme == NULL) {
-        g_m_DefaultScheme = &g_m_Schemes[NativePath::g_m_SchemesCount];
+    if (isDefault || NativePath::g_m_DefaultScheme == NULL) {
+       NativePath::g_m_DefaultScheme = newScheme;
     }
 }
 
-NativePath::schemeInfo *NativePath::getScheme(const char *url)
+NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL)
 {
     for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
         int len = strlen(NativePath::g_m_Schemes[i].str);
         if (strncasecmp(NativePath::g_m_Schemes[i].str, url,
                         len) == 0) {
             bool prefix = NativePath::g_m_Schemes[i].keepPrefix;
+            if (pURL) {
+                *pURL = (prefix ? url : &url[len]);
+            }
             return &NativePath::g_m_Schemes[i];
         }
     }
-
+    if (pURL) {
+        *pURL = url;
+    }
     return g_m_DefaultScheme;
 }
 

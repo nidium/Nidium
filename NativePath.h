@@ -41,6 +41,9 @@ class NativeBaseStream;
 extern char *g_m_Root;
 extern char *g_m_Pwd;
 
+#define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct NativePath::schemeInfo){prefix, streamclass::createStream, keepprefix}
+#define SCHEME_MATCH(url, scheme) (strcmp(NativePath::getScheme(url)->str, scheme "://") == 0)
+
 class NativePath
 {
 public:
@@ -50,17 +53,22 @@ public:
         bool keepPrefix;
     };
 
-    explicit NativePath(const char *origin) {
-        m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN + 1));
-
-        if (!NativePath::getPwd()) {
-            realpath(origin, m_Path);
-        }
-    }
+    /*
+        allowAll defines if origin must match "pwd" stream class (if false)
+    */
+    explicit NativePath(const char *origin, bool allowAll = false);
 
     operator const char *() {
         printf("Returned path : %s\n", m_Path);
         return m_Path;
+    }
+
+    const char *path() const {
+        return m_Path;
+    }
+
+    const char *dir() const {
+        return m_Dir;
     }
 
     bool isRelative(const char *path) {
@@ -79,7 +87,7 @@ public:
 
     static void registerScheme(const schemeInfo &scheme,
         bool isDefault = false);
-    static schemeInfo *getScheme(const char *url);
+    static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
     static int getNumPath(const char *path);
 
@@ -93,8 +101,8 @@ public:
     static void cd(const char *dir) {
         if (g_m_Pwd != NULL && dir != g_m_Pwd) {
             free(g_m_Pwd);
-        }        
-        g_m_Root = strdup(dir);
+        }
+        g_m_Pwd = strdup(dir);
     }
 
     static const char *getRoot() {
@@ -117,7 +125,10 @@ public:
     static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
 private:
+    void setDir();
+
     char *m_Path;
+    char *m_Dir;
 };
 
 
