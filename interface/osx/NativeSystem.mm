@@ -1,6 +1,7 @@
 #include "NativeSystem.h"
 #import <Cocoa/Cocoa.h>
 #import <sys/stat.h>
+#include <unistd.h>
 
 NativeSystem::NativeSystem()
 {
@@ -52,4 +53,14 @@ void NativeSystem::alert(const char *message, AlertType type)
     [alert runModal];
 
     [alert release];
+}
+
+
+const char *NativeSystem::pwd()
+{
+    static char dir[MAXPATHLEN];
+
+    getcwd(dir, MAXPATHLEN);
+
+    return dir;
 }

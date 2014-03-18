@@ -13,6 +13,7 @@ class NativeSystem : public NativeSystemInterface
         const char *getPrivateDirectory();
         void alert(const char *message, AlertType type = ALERT_INFO);
         void initSystemUI();
+        const char *pwd();
     private:
         bool m_SystemUIReady;
 };

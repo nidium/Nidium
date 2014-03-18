@@ -80,3 +80,13 @@ void NativeSystem::initSystemUI()
 #endif
     }
 }
+
+
+const char *NativeSystem::pwd()
+{
+    static char dir[MAXPATHLEN];
+
+    getcwd(dir, MAXPATHLEN);
+
+    return dir;
+}
