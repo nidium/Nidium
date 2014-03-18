@@ -1,7 +1,11 @@
 #include "NativeUIInterface.h"
 #include <NativeContext.h>
 #include <NativeTaskManager.h>
+#include <NativePath.h>
 #include <unistd.h>
+
+#include <NativeHTTPStream.h>
+#include <NativeFileStream.h>
 
 #include <SDL.h>
 #define GL_GLEXT_PROTOTYPES
@@ -14,6 +18,10 @@
 NativeUIInterface::NativeUIInterface() :
     m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL)
 {
+    NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream, false), true); // default
+    NativePath::registerScheme(SCHEME_DEFINE("private://", NativeFileStream, false));
+    NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream, true));
+
     NativeTaskManager::createManager();
 }
 
