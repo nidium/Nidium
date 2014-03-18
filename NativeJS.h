@@ -82,7 +82,7 @@ class NativeJS
         int registeredMessagesSize;
         NativeJSDelegate *m_Delegate;
 
-        static NativeJS *getNativeClass(JSContext *cx);
+        static NativeJS *getNativeClass(JSContext *cx = NULL);
         static ape_global *getNet();
 
         void setPrivate(void *arg) {
@@ -93,6 +93,10 @@ class NativeJS
         }
         const char *getPath() const {
             return this->relPath;
+        }
+
+        JSContext *getJSContext() const {
+            return this->cx;
         }
 
         void setPath(const char *path);

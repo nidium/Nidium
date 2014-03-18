@@ -51,8 +51,10 @@
 #include "NativeFile.h"
 
 #include "NativeWebSocket.h"
+#include "NativePath.h"
 
 static pthread_key_t gAPE = 0;
+static pthread_key_t gJS = 0;
 
 /* Assume that we can not use more than 5e5 bytes of C stack by default. */
 #if (defined(DEBUG) && defined(__SUNPRO_CC))  || defined(JS_CPU_SPARC)
@@ -377,6 +379,9 @@ void NativeJS::unrootObject(JSObject *obj)
 
 NativeJS *NativeJS::getNativeClass(JSContext *cx)
 {
+    if (cx == NULL) {
+        return (NativeJS *)pthread_getspecific(gJS);
+    }
     return ((class NativeJS *)JS_GetRuntimePrivate(JS_GetRuntime(cx)));
 }
 
@@ -412,6 +417,11 @@ NativeJS::NativeJS(ape_global *net) :
         pthread_key_create(&gAPE, NULL);
     }
     pthread_setspecific(gAPE, net);    
+
+    if (gJS == 0) {
+        pthread_key_create(&gJS, NULL);
+    }
+    pthread_setspecific(gJS, this);    
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L,
         JS_NO_HELPER_THREADS)) == NULL) {
@@ -476,6 +486,8 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
+
+    printf("Transforme path : %d\n", NativePath::getNumPath("foo/"));
 }
 
 
@@ -534,6 +546,8 @@ NativeJS::~NativeJS()
     delete messages;
     delete modules;
 
+    pthread_setspecific(gJS, NULL);
+    
     hashtbl_free(rootedObj);
     free(registeredMessages);
 }
