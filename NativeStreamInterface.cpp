@@ -23,22 +23,10 @@
 
 #include "NativeFileStream.h"
 #include "NativeHTTPStream.h"
+#include "NativePath.h"
 
 #include <string.h>
 
-/*
-    First one is default when not found
-*/
-static struct _native_stream_interfaces {
-    const char *str;
-    NativeBaseStream *(*base)(const char *);
-    bool keepPrefix;
-} native_stream_interfaces[] = {
-    {"file://",      NativeFileStream::createStream, false},
-    {"private://",   NativeFileStream::createStream, false},
-    {"http://",      NativeHTTPStream::createStream, true},
-    {NULL,           NULL}
-};
 
 NativeBaseStream::NativeBaseStream(const char *location) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
@@ -58,17 +46,14 @@ NativeBaseStream::~NativeBaseStream()
 
 NativeBaseStream *NativeBaseStream::create(const char *location)
 {
-    for (int i = 0; native_stream_interfaces[i].str != NULL; i++) {
-        int len = strlen(native_stream_interfaces[i].str);
-        if (strncasecmp(native_stream_interfaces[i].str, location,
-                        len) == 0) {
-            bool prefix = native_stream_interfaces[i].keepPrefix;
-            return native_stream_interfaces[i].base(!prefix ?
-                &location[len] : location);
-        }
+    const char *pLocation;
+
+    NativePath::schemeInfo *info = NativePath::getScheme(location, &pLocation);
+    if (info == NULL) {
+        return NULL;
     }
 
-    return native_stream_interfaces[0].base(location);
+    return info->base(pLocation);
 }
 
 void NativeBaseStream::start(size_t packets, size_t seek)
