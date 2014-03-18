@@ -252,6 +252,7 @@ void NativeHTTPStream::cleanCacheFile()
     if (m_Mapped.addr) {
         munmap(m_Mapped.addr, m_Mapped.size);
         m_Mapped.addr = NULL;
+        m_Mapped.size = 0;
     }
 }
 
@@ -278,10 +279,22 @@ void NativeHTTPStream::onHeader()
     m_PendingSeek = false;
 
     m_Mapped.size = m_Http->http.contentlength;
-    ftruncate(m_Mapped.fd, m_Mapped.size);
+
+    if (ftruncate(m_Mapped.fd, m_Mapped.size) == -1) {
+        m_Mapped.size = 0;
+        this->stop();
+        return;
+    }
 
     m_Mapped.addr = mmap(NULL, m_Mapped.size,
         PROT_READ | PROT_WRITE,
         MAP_SHARED,
         m_Mapped.fd, 0);
+
+    if (m_Mapped.addr == MAP_FAILED) {
+        m_Mapped.addr = NULL;
+        m_Mapped.size = 0;
+        this->stop();
+        return;
+    }
 }
