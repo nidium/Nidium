@@ -61,6 +61,10 @@ public:
         m_Listener = listener;
     }
 
+    const char *getLocation() const {
+        return m_Location;
+    }
+
     /*
         Start streaming the file
         @param packets  How much bytes should be filled in
@@ -121,6 +125,8 @@ protected:
         Swap back and front buffer.
         so that the requested data (getNextPacket()) remains valid
         while data are still incoming (double buffering).
+
+        TODO: move to NativeFileStream?
     */
     void swapBuffer();
 
