@@ -25,9 +25,38 @@
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
 
-void NativePath::registerScheme(const char *scheme)
-{
+int NativePath::g_m_SchemesCount = 0;
+struct NativePath::schemeInfo *NativePath::g_m_DefaultScheme = NULL;
 
+void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
+    bool isDefault)
+{
+    if (NativePath::g_m_SchemesCount + 1 >= NATIVE_MAX_REGISTERED_SCHEMES) {
+        return;
+    }
+
+    memcpy(&g_m_Schemes[NativePath::g_m_SchemesCount],
+        &scheme, sizeof(schemeInfo));
+
+    NativePath::g_m_SchemesCount++;
+
+    if (isDefault || g_m_DefaultScheme == NULL) {
+        g_m_DefaultScheme = &g_m_Schemes[NativePath::g_m_SchemesCount];
+    }
+}
+
+NativePath::schemeInfo *NativePath::getScheme(const char *url)
+{
+    for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
+        int len = strlen(NativePath::g_m_Schemes[i].str);
+        if (strncasecmp(NativePath::g_m_Schemes[i].str, url,
+                        len) == 0) {
+            bool prefix = NativePath::g_m_Schemes[i].keepPrefix;
+            return &NativePath::g_m_Schemes[i];
+        }
+    }
+
+    return g_m_DefaultScheme;
 }
 
 const char * NativePath::currentJSCaller(JSContext *cx)

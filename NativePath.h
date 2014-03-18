@@ -31,8 +31,12 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <sys/param.h>
+#include <ape_array.h>
+
+#define NATIVE_MAX_REGISTERED_SCHEMES 1024
 
 struct JSContext;
+class NativeBaseStream;
 
 extern char *g_m_Root;
 extern char *g_m_Pwd;
@@ -40,6 +44,12 @@ extern char *g_m_Pwd;
 class NativePath
 {
 public:
+    struct schemeInfo {
+        const char *str;
+        NativeBaseStream *(*base)(const char *);
+        bool keepPrefix;
+    };
+
     explicit NativePath(const char *origin) {
         m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN + 1));
 
@@ -67,7 +77,10 @@ public:
         }
     };
 
-    static void registerScheme(const char *scheme);
+    static void registerScheme(const schemeInfo &scheme,
+        bool isDefault = false);
+    static schemeInfo *getScheme(const char *url);
+
     static int getNumPath(const char *path);
 
     static void chroot(const char *root) {
@@ -100,7 +113,9 @@ public:
     }
 
     static const char *currentJSCaller(JSContext *cx = NULL);
-
+    static int g_m_SchemesCount;
+    static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
+    static struct schemeInfo *g_m_DefaultScheme;
 private:
     char *m_Path;
 };
