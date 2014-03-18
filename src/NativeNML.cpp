@@ -3,11 +3,12 @@
 
 #include <string.h>
 #include "NativeHash.h"
-#include "NativeStream.h"
 #include "NativeJS.h"
 #include "NativeJSWindow.h"
 #include "NativeJSDocument.h"
 #include "NativeSystemInterface.h"
+#include <NativeStreamInterface.h>
+#include <NativePath.h>
 #include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
@@ -64,8 +65,16 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
 
-    stream = new NativeStream(this->net, file);
-    stream->setDelegate(this);
+    NativePath path(file);
+
+    stream = NativeBaseStream::create(path);
+
+    /*
+        Set the global working directory at the NML location
+    */
+    NativePath::cd(path.dir());
+
+    stream->setListener(this);
     stream->getContent();
 }
 
@@ -237,7 +246,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         if ((src = child->first_attribute("src"))) {
             xml_attribute<> *id = child->first_attribute("id");
             item = new NativeAssets::Item(src->value(),
-                NativeAssets::Item::ITEM_UNKNOWN, net, this->relativePath);
+                NativeAssets::Item::ITEM_UNKNOWN, net);
 
             /* Name could be automatically changed afterward */
             item->setName(src->value());
@@ -375,11 +384,33 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 
 static int delete_stream(void *arg)
 {
-    NativeStream *stream = (NativeStream *)arg;
+    NativeBaseStream *stream = (NativeBaseStream *)arg;
 
     delete stream;
 
     return 0;
+}
+
+void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case NATIVESTREAM_READ_BUFFER:
+        {
+            buffer *buf = (buffer *)msg.args[0].toPtr();
+            this->onGetContent((const char *)buf->data, buf->used);
+            break;
+        }
+        case NATIVESTREAM_ERROR:
+        {   
+            NativeSystemInterface::getInstance()->
+                alert("NML error : stream error",
+                NativeSystemInterface::ALERT_CRITIC);
+            exit(1);            
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void NativeNML::onGetContent(const char *data, size_t len)
@@ -406,10 +437,4 @@ void NativeNML::onGetContent(const char *data, size_t len)
     ape_global *ape = net;
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
-}
-
-void NativeNML::onError(NativeStream::StreamError err)
-{
-    NativeSystemInterface::getInstance()->alert("NML error : stream error", NativeSystemInterface::ALERT_CRITIC);
-    exit(1);
 }

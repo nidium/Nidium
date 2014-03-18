@@ -1,5 +1,6 @@
 #include "NativeAssets.h"
 #include <native_netlib.h>
+#include <NativePath.h>
 
 NativeAssets::NativeAssets(readyItem cb, readyAssets rcb, void *arg) :
     itemReady(cb), assetsReady(rcb), readyArg(arg), nitems(0)
@@ -20,13 +21,34 @@ NativeAssets::~NativeAssets()
 }
 
 NativeAssets::Item::Item(const char *url, FileType t,
-    ape_global *net, char *prefixPath) :
-    fileType(t), state(ITEM_LOADING), stream(NULL), prefixPath(prefixPath),
+    ape_global *net) :
+    fileType(t), state(ITEM_LOADING), stream(NULL),
     url(url), net(net), assets(NULL), name(NULL), tagname(NULL)
 {
     data.data = NULL;
     data.len = 0;
 }
+
+
+void NativeAssets::Item::onMessage(const NativeSharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case NATIVESTREAM_READ_BUFFER:
+        {
+            buffer *buf = (buffer *)msg.args[0].toPtr();
+            this->setContent((const char *)buf->data, buf->used);
+            break;
+        }
+        case NATIVESTREAM_ERROR:
+        {   
+            this->setContent(NULL, 0);           
+            break;
+        }
+        default:
+            break;
+    }   
+}
+
 
 NativeAssets::Item::~Item()
 {
@@ -48,11 +70,12 @@ NativeAssets::Item::~Item()
 
 void NativeAssets::Item::download()
 {
-    this->stream = new NativeStream(net, url, this->prefixPath);
+    this->stream = NativeBaseStream::create(NativePath(url));
+
     /* Reset the name with the new location forged by NativeStream */
     this->setName(this->stream->getLocation());
 
-    stream->setDelegate(this);
+    stream->setListener(this);
     stream->getContent();
 }
 
@@ -83,22 +106,6 @@ void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
             assets->pendingListUpdate();
         }
     }
-}
-
-void NativeAssets::Item::onError(NativeStream::StreamError err)
-{
-    switch (err) {
-        case NativeStream::STREAM_ERROR_OPEN:
-            this->setContent(NULL, 0);
-            break;
-        default:
-            break;
-    }
-}
-
-void NativeAssets::Item::onGetContent(const char *data, size_t len)
-{
-    this->setContent(data, len);
 }
 
 void NativeAssets::addToPendingList(Item *item)

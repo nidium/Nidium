@@ -7,6 +7,7 @@
 #include <ape_hash.h>
 #include <native_netlib.h>
 #include "NativeStream.h"
+#include <NativeStreamInterface.h>
 
 class NativeStream;
 
@@ -14,7 +15,7 @@ class NativeAssets
 {
     public:
 
-        class Item : public NativeStreamDelegate
+        class Item : public NativeMessages
         {
             friend class NativeAssets;
             public:
@@ -25,7 +26,7 @@ class NativeAssets
                     ITEM_IMG
                 } fileType;
 
-                Item(const char *url, FileType t, ape_global *net, char *prefixPath = NULL);
+                Item(const char *url, FileType t, ape_global *net);
                 ~Item();
                 void download();
                 const unsigned char *get(size_t *size) {
@@ -60,16 +61,11 @@ class NativeAssets
                     this->tagname = strdup(name);
                 }
 
-                NativeStream *stream;
-
+                NativeBaseStream *stream;
+                void onMessage(const NativeSharedMessages::Message &msg);
             private:
-                char *prefixPath;
                 const char *url;
                 ape_global *net;
-                void onGetContent(const char *data, size_t len);
-                void onAvailableData(size_t len) {};
-                void onProgress(size_t buffered, size_t len) {};
-                void onError(NativeStream::StreamError err);
                 NativeAssets *assets;
                 char *name;
                 char *tagname;

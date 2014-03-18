@@ -1,11 +1,12 @@
 #ifndef nativenml_h__
 #define nativenml_h__
 
-#include "NativeStream.h"
+
 #include <native_netlib.h>
 #include "NativeAssets.h"
 #include "external/rapidxml.hpp"
 #include "NativeTypes.h"
+#include <NativeMessages.h>
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
@@ -16,10 +17,11 @@
 class NativeNML;
 class NativeJS;
 class JSObject;
+class NativeBaseStream;
 
 typedef void (*NMLLoadedCallback)(void *arg);
 
-class NativeNML : public NativeStreamDelegate
+class NativeNML : public NativeMessages
 {
 public:
     explicit NativeNML(ape_global *net);
@@ -34,6 +36,7 @@ public:
 
     typedef nidium_xml_ret_t (NativeNML::*tag_callback)(rapidxml::xml_node<> &node);
 
+    void onMessage(const NativeSharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
@@ -43,9 +46,6 @@ public:
     void onAssetsItemReady(NativeAssets::Item *item);
     void onAssetsBlockReady(NativeAssets *asset);
     void onGetContent(const char *data, size_t len);
-    void onAvailableData(size_t len){};
-    void onProgress(size_t buffered, size_t len){};
-    void onError(NativeStream::StreamError);
 
     const char *getMetaTitle() const {
         return this->meta.title;
@@ -85,7 +85,7 @@ public:
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(NativeAssets *);
     ape_global *net;
-    NativeStream *stream;
+    NativeBaseStream *stream;
     char *relativePath;
 
     /* Define callbacks for tags in <application> */
