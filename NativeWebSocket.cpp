@@ -66,7 +66,10 @@ void NativeWebSocketClientConnection::onHeaderEnded()
 
 void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
 {
-    printf("Ws disconnected\n");
+    CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_CLOSE);
+    msg->args[0].set(this);
+
+    m_HTTPListener->notify(msg);
 }
 
 void NativeWebSocketClientConnection::onUpgrade(const char *to)
@@ -93,7 +96,8 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
     APE_socket_write(m_SocketClient,
         ws_computed_key, strlen(ws_computed_key), APE_DATA_STATIC);
     APE_socket_write(m_SocketClient,
-        (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"), APE_DATA_STATIC);
+        (void *)CONST_STR_LEN("\r\nSec-WebSocket-Origin: 127.0.0.1\r\n\r\n"),
+        APE_DATA_STATIC);
 
     m_Handshaked = true;
 
@@ -142,7 +146,8 @@ static void native_on_ws_frame(websocket_state *state,
         return;
     }
 
-    NativeWebSocketClientConnection *con = (NativeWebSocketClientConnection *)sock->ctx;
+    NativeWebSocketClientConnection *con =
+        (NativeWebSocketClientConnection *)sock->ctx;
 
     if (con == NULL) {
         return;
