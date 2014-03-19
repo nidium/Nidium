@@ -21,7 +21,9 @@
 #include "NativeJS.h"
 #include <jsapi.h>
 #include <jsdbgapi.h>
-
+#include <vector>
+#include <string>
+#include <NativeUtils.h>
 
 char *g_m_Root = NULL;
 char *g_m_Pwd = NULL;
@@ -33,8 +35,11 @@ struct NativePath::schemeInfo NativePath::g_m_Schemes[NATIVE_MAX_REGISTERED_SCHE
 NativePath::NativePath(const char *origin, bool allowAll) :
     m_Path(NULL), m_Dir(NULL)
 {
+    if (origin == NULL) {
+        return;
+    }
     int originlen = strlen(origin);
-    if (originlen > MAXPATHLEN-1) {
+    if (originlen > MAXPATHLEN-1 || origin[originlen-1] == '/') {
         return;
     }
     m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN + 1));
@@ -42,15 +47,52 @@ NativePath::NativePath(const char *origin, bool allowAll) :
 
     printf("Get path for origin %s\n", origin);
 
-    if (!NativePath::getPwd() && SCHEME_MATCH(origin, "file")) {
+    if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
         realpath(origin, m_Path);
     } else if (!NativePath::getPwd()) {
         memcpy(m_Path, origin, originlen+1);
     } else {
-        printf("Dont match path\n");
+        bool outsideRoot;
+        char *ret = NativePath::sanitize(origin, &outsideRoot);
+
+        if (this->isRelative(origin)) {
+            if (outsideRoot) {
+                free(m_Path);
+                m_Path = NULL;
+                return;
+            }
+
+            /* prepend the current working directory */
+            strcat(m_Path, NativePath::getPwd());
+
+            /* append the relative path without the leading "./" */
+            strcat(m_Path, &ret[2]);
+
+            printf("Builded path : %s\n", m_Path);
+        }
     }
 
     this->setDir();
+}
+
+
+bool NativePath::isRelative(const char *path)
+{
+    const char *pPath;
+
+    if (!path) {
+        return false;
+    }
+
+    schemeInfo *scheme = NativePath::getScheme(path, &pPath);
+
+    /* We assume that if a "prefix based" path is give, it's absolute URL */
+    if (!SCHEME_MATCH(scheme, "file")) {
+        return false;
+    }
+
+    /* We are matching a local file scheme (either from file:// or simple path) */
+    return pPath[0] != '/';
 }
 
 void NativePath::setDir()
@@ -124,7 +166,7 @@ const char * NativePath::currentJSCaller(JSContext *cx)
     return JS_GetScriptFilename(cx, parent);
 }
 
-int NativePath::getNumPath(const char *path)
+char *NativePath::sanitize(const char *path, bool *external)
 {
     enum {
         PATH_STATE_START,
@@ -134,11 +176,22 @@ int NativePath::getNumPath(const char *path)
         PATH_STATE_SLASH
     } state = PATH_STATE_SLASH;
 
-    int counter = 0;
     int pathlen = strlen(path);
 
-    for (int i = 0; i < pathlen; i++) {
+    if (external) {
+        *external = false;
+    }
 
+    if (pathlen == 0) {
+        return NULL;
+    }
+
+    int counter = 0, minCounter = 0, counterPos = 0;
+    bool outsideRoot = false;
+
+    std::vector<std::string> elements(pathlen);
+
+    for (int i = 0; i < pathlen; i++) {
         switch (path[i]) {
             case '.':
                 switch (state) {
@@ -149,6 +202,7 @@ int NativePath::getNumPath(const char *path)
                         state = PATH_STATE_NAME;
                         break;
                     case PATH_STATE_NAME:
+                        elements[counterPos] += path[i];
                         break;
                     case PATH_STATE_SLASH:
                         state = PATH_STATE_DOT;
@@ -160,13 +214,19 @@ int NativePath::getNumPath(const char *path)
             case '/':
                 switch (state) {
                     case PATH_STATE_DOT:
-                        counter++;
-                        break;
-                    case PATH_STATE_DOUBLE_DOT:
-                        counter--;
                         break;
                     case PATH_STATE_NAME:
                         counter++;
+                        counterPos++;
+                        break;
+                    case PATH_STATE_DOUBLE_DOT:
+                        counter--;
+                        counterPos = native_max(0, counterPos - 1);
+                        if (counter < 0) {
+                            outsideRoot = true;
+                        }
+                        elements[counterPos].clear();
+                        minCounter = native_min(counter, minCounter);        
                         break;
                     case PATH_STATE_SLASH:
                         break;
@@ -176,10 +236,28 @@ int NativePath::getNumPath(const char *path)
                 state = PATH_STATE_SLASH;           
                 break;
             default:
+                elements[counterPos] += path[i];
                 state = PATH_STATE_NAME;
                 break;
         }
     }
 
-    return counter;
+    std::string finalPath;
+    if (outsideRoot) {
+        for (int i = minCounter; i != 0; i++) {
+            finalPath += "../";
+        }
+    } else {
+        finalPath += "./";
+    }
+
+    for (int i = 0; elements[i].length() != 0; i++) {
+        finalPath += elements[i] + "/";
+    }
+
+    if (external) {
+        *external = outsideRoot;
+    }
+
+    return strdup(finalPath.c_str());
 }

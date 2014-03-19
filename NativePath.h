@@ -42,7 +42,8 @@ extern char *g_m_Root;
 extern char *g_m_Pwd;
 
 #define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct NativePath::schemeInfo){prefix, streamclass::createStream, keepprefix}
-#define SCHEME_MATCH(url, scheme) (strcmp(NativePath::getScheme(url)->str, scheme "://") == 0)
+#define URLSCHEME_MATCH(url, scheme) (strcmp(NativePath::getScheme(url)->str, scheme "://") == 0)
+#define SCHEME_MATCH(obj, scheme) (strcmp(obj->str, scheme "://") == 0)
 
 class NativePath
 {
@@ -71,13 +72,7 @@ public:
         return m_Dir;
     }
 
-    bool isRelative(const char *path) {
-        if (!path) {
-            return false;
-        }
-
-        return path[0] != '/';
-    }
+    bool isRelative(const char *path);
 
     ~NativePath(){
         if (m_Path) {
@@ -89,7 +84,7 @@ public:
         bool isDefault = false);
     static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
-    static int getNumPath(const char *path);
+    static char *sanitize(const char *path, bool *external = NULL);
 
     static void chroot(const char *root) {
         if (g_m_Root != NULL && root != g_m_Root) {
