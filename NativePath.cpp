@@ -45,8 +45,6 @@ NativePath::NativePath(const char *origin, bool allowAll) :
     m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN + 1));
     m_Path[0] = '\0';
 
-    printf("Get path for origin %s\n", origin);
-
     if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
         realpath(origin, m_Path);
     } else if (!NativePath::getPwd()) {
@@ -55,21 +53,23 @@ NativePath::NativePath(const char *origin, bool allowAll) :
         bool outsideRoot;
         char *ret = NativePath::sanitize(origin, &outsideRoot);
 
-        if (this->isRelative(origin)) {
-            if (outsideRoot) {
-                free(m_Path);
-                m_Path = NULL;
-                return;
-            }
+        if (outsideRoot) {
+            free(m_Path);
+            m_Path = NULL;
+            return;
+        }
 
+        if (this->isRelative(origin)) {
             /* prepend the current working directory */
             strcat(m_Path, NativePath::getPwd());
-
-            /* append the relative path without the leading "./" */
-            strcat(m_Path, &ret[2]);
-
-            printf("Builded path : %s\n", m_Path);
+        } else {
+            strcat(m_Path, NativePath::getRoot());
         }
+        /* append the relative path without the leading "./" */
+        strcat(m_Path, &ret[2]);
+
+        free(ret);
+
     }
 
     this->setDir();
@@ -253,6 +253,12 @@ char *NativePath::sanitize(const char *path, bool *external)
 
     for (int i = 0; elements[i].length() != 0; i++) {
         finalPath += elements[i] + "/";
+    }
+
+    if (finalPath.length() > 0 && path[pathlen-1] != '/' &&
+        finalPath[finalPath.length()-1] == '/') {
+
+        finalPath[finalPath.length()-1] = '\0';
     }
 
     if (external) {

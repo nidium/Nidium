@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <NativePath.h>
+
 #include <ape_buffer.h>
 #include "NativeSharedMessages.h"
 

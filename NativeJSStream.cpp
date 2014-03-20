@@ -223,8 +223,11 @@ NativeJSStream::NativeJSStream(JSContext *cx, ape_global *net, const char *url)
     std::string str = url;
     //str += NativeJS::getNativeClass(cx)->getPath();
 
-    printf("Opening : %s\n", str.c_str());
-    m_Stream = NativeBaseStream::create(str.c_str());
+    m_Stream = NativeBaseStream::create(NativePath(str.c_str()));
+
+    if (!m_Stream) {
+        return;
+    }
 
     m_Stream->setListener(this);
 

@@ -60,7 +60,6 @@ public:
     explicit NativePath(const char *origin, bool allowAll = false);
 
     operator const char *() {
-        printf("Returned path : %s\n", m_Path);
         return m_Path;
     }
 

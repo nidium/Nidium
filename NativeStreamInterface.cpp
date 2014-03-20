@@ -32,6 +32,8 @@ NativeBaseStream::NativeBaseStream(const char *location) :
     m_PacketsSize(0), m_NeedToSendUpdate(false), m_PendingSeek(false),
     m_Listener(NULL)
 {
+    m_Location = strdup(location);
+    
     m_DataBuffer.back =         NULL;
     m_DataBuffer.front =        NULL;
     m_DataBuffer.alreadyRead =  true;
@@ -41,15 +43,16 @@ NativeBaseStream::NativeBaseStream(const char *location) :
 
 NativeBaseStream::~NativeBaseStream()
 {
-
+    free(m_Location);
 }
 
 NativeBaseStream *NativeBaseStream::create(const char *location)
 {
     const char *pLocation;
+    NativePath::schemeInfo *info;
 
-    NativePath::schemeInfo *info = NativePath::getScheme(location, &pLocation);
-    if (info == NULL) {
+    if (location == NULL ||
+        (info = NativePath::getScheme(location, &pLocation)) == NULL) {
         return NULL;
     }
 
@@ -58,6 +61,11 @@ NativeBaseStream *NativeBaseStream::create(const char *location)
 
 void NativeBaseStream::start(size_t packets, size_t seek)
 {
+    if (m_Location == NULL || packets < 1) {
+        this->error(NATIVESTREAM_ERROR_OPEN, -1);
+        return;
+    }
+
     m_PacketsSize = packets;
     m_NeedToSendUpdate = true;
 
