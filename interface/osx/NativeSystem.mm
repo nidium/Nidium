@@ -20,7 +20,26 @@ float NativeSystem::backingStorePixelRatio()
 
 const char *NativeSystem::getPrivateDirectory()
 {
-    return "private/";
+    static char parentdir[MAXPATHLEN];
+    static bool resolved = false;
+
+    if (resolved) {
+        return parentdir;
+    }
+
+    parentdir[0] = '/';
+    parentdir[1] = '\0';
+
+    CFURLRef url = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+    CFURLRef url2 = CFURLCreateCopyDeletingLastPathComponent(0, url);
+    if (CFURLGetFileSystemRepresentation(url2, 1, (UInt8 *)parentdir, MAXPATHLEN)) {
+        strcat(parentdir, "/private/");
+        resolved = true;
+    }
+    CFRelease(url);
+    CFRelease(url2);    
+
+    return parentdir;
 }
 
 const char *NativeSystem::getCacheDirectory()

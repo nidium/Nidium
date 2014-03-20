@@ -72,6 +72,18 @@ void NativeAssets::Item::download()
 {
     this->stream = NativeBaseStream::create(NativePath(url));
 
+    if (this->stream == NULL) {
+        this->setName(url);
+
+        /* 
+            setContent to NULL .
+            In async way (3rd param) so that NativeContext
+            has time to set setNJS().
+        */
+        this->setContent(NULL, 0, true);
+        return;
+    }
+    
     /* Reset the name with the new location forged by NativeStream */
     this->setName(this->stream->getLocation());
 

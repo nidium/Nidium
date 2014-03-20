@@ -25,6 +25,9 @@ NativeNML::NativeNML(ape_global *net) :
     this->meta.size.height = 0;
     this->meta.identifier = NULL;
 
+    /* Make sur NativeJS already has the netlib set */
+    NativeJS::initNet(net);
+
     memset(&this->meta, 0, sizeof(this->meta));
 }
 
@@ -68,11 +71,17 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
     NativePath path(file);
 
     stream = NativeBaseStream::create(path);
-
+    if (stream == NULL) {
+        NativeSystemInterface::getInstance()->
+            alert("NML error : stream error",
+            NativeSystemInterface::ALERT_CRITIC);
+        exit(1);
+    }
     /*
         Set the global working directory at the NML location
     */
     NativePath::cd(path.dir());
+    NativePath::chroot(path.dir());
 
     stream->setListener(this);
     stream->getContent();
@@ -83,6 +92,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
     NMLTag tag;
     memset(&tag, 0, sizeof(NMLTag));
     size_t len = 0;
+
     const unsigned char *data = item->get(&len);
 
     tag.tag = item->getTagName();

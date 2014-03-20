@@ -42,7 +42,6 @@ static JSFunctionSpec Image_funcs[] = {
 
 static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp)
 {
-    printf("hello\n");
     return JS_TRUE;
 }
 
@@ -97,7 +96,11 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
                 
-                NativeBaseStream *stream = NativeBaseStream::create(imgPath.ptr());
+                NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
+
+                if (stream == NULL) {
+                    break;
+                }
 
                 nimg->m_Stream = stream;
 

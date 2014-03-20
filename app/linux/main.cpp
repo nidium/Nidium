@@ -61,11 +61,8 @@ int main(int argc, char **argv)
     }
 
     char *nml = NULL;
-    if (argc > 1) {
-        nml = realpath(argv[1], NULL);
-    } else {
-        nml = realpath("../index.nml", NULL);
-    }
+
+    nml = (argc > 1 ? argv[1] : realpath("../index.nml", NULL));
 
     if (!UI.runApplication(nml)) {
         return 0;

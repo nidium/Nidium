@@ -27,6 +27,8 @@
 
 #include <NativeWebSocket.h>
 
+#include <NativeSystemInterface.h>
+
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl3.h>
@@ -56,8 +58,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_DebugHandler(NULL), m_UI(nui), m_NML(nml)
 {
     gfunc = JSVAL_VOID;
-
-    nui->useOffScreenRendering(true);
+    //nui->useOffScreenRendering(true);
 
     ShInitialize();
 

@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <pwd.h>
 #include <gtk/gtk.h>
+#include <string>
+#include <unistd.h>
 
 NativeSystem::NativeSystem() : m_SystemUIReady(false)
 {
@@ -21,7 +23,12 @@ float NativeSystem::backingStorePixelRatio()
 
 const char *NativeSystem::getPrivateDirectory()
 {
-    return "private/";
+    static char privatedir[MAXPATHLEN];
+    
+    strncpy(privatedir, this->pwd(), MAXPATHLEN - (sizeof("/private/") + 1));
+    strcat(privatedir, "/private/");
+
+    return privatedir;
 }
 
 const char *NativeSystem::getCacheDirectory()
