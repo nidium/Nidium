@@ -89,14 +89,14 @@ public:
         if (g_m_Root != NULL && root != g_m_Root) {
             free(g_m_Root);
         }
-        g_m_Root = strdup(root);
+        g_m_Root = (root != NULL ? strdup(root) : NULL);
     }
 
     static void cd(const char *dir) {
         if (g_m_Pwd != NULL && dir != g_m_Pwd) {
             free(g_m_Pwd);
         }
-        g_m_Pwd = strdup(dir);
+        g_m_Pwd = (dir != NULL ? strdup(dir) : NULL);
     }
 
     static const char *getRoot() {

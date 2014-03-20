@@ -86,7 +86,7 @@ bool NativePath::isRelative(const char *path)
 
     schemeInfo *scheme = NativePath::getScheme(path, &pPath);
 
-    /* We assume that if a "prefix based" path is give, it's absolute URL */
+    /* We assume that if a "prefix based" path is given, it's an absolute URL */
     if (!SCHEME_MATCH(scheme, "file")) {
         return false;
     }
