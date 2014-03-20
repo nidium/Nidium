@@ -387,7 +387,19 @@ NativeJS *NativeJS::getNativeClass(JSContext *cx)
 
 ape_global *NativeJS::getNet()
 {
+    if (gAPE == 0) {
+        return NULL;
+    }
     return (ape_global *)pthread_getspecific(gAPE);
+}
+
+void NativeJS::initNet(ape_global *net)
+{
+    if (gAPE == 0) {
+        pthread_key_create(&gAPE, NULL);
+    }
+
+    pthread_setspecific(gAPE, net); 
 }
 
 NativeJS::NativeJS(ape_global *net) :
@@ -413,10 +425,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     rootedObj = hashtbl_init(APE_HASH_INT);
 
-    if (gAPE == 0) {
-        pthread_key_create(&gAPE, NULL);
-    }
-    pthread_setspecific(gAPE, net);    
+    NativeJS::initNet(net);
 
     if (gJS == 0) {
         pthread_key_create(&gJS, NULL);
@@ -486,8 +495,6 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
-
-    printf("Transforme path : %d\n", NativePath::getNumPath("foo/"));
 }
 
 

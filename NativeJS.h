@@ -84,6 +84,7 @@ class NativeJS
 
         static NativeJS *getNativeClass(JSContext *cx = NULL);
         static ape_global *getNet();
+        static void initNet(ape_global *net);
 
         void setPrivate(void *arg) {
             this->privateslot = arg;
