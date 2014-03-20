@@ -27,11 +27,6 @@ NativeFileStream::NativeFileStream(const char *location) :
     m_File.setListener(this);
 }
 
-NativeBaseStream *NativeFileStream::createStream(const char *location)
-{
-    return new NativeFileStream(location);
-}
-
 void NativeFileStream::onStart(size_t packets, size_t seek)
 {
     if (m_DataBuffer.back == NULL) {

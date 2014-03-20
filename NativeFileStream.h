@@ -30,8 +30,13 @@ class NativeFileStream : public NativeBaseStream,
 {
 public:
     explicit NativeFileStream(const char *location);
-    static NativeBaseStream *createStream(const char *location);
 
+    static NativeBaseStream *createStream(const char *location) {
+        return new NativeFileStream(location);
+    }
+    static const char *getBaseDir() {
+        return NULL;
+    }
     virtual ~NativeFileStream(){};
 
     virtual void stop();
