@@ -37,11 +37,6 @@ NativeHTTPStream::NativeHTTPStream(const char *location) :
     m_Http = new NativeHTTP(req, NativeJS::getNet());
 }
 
-NativeBaseStream *NativeHTTPStream::createStream(const char *location)
-{
-    return new NativeHTTPStream(location);
-}
-
 NativeHTTPStream::~NativeHTTPStream()
 {
     if (m_Mapped.addr) {
