@@ -53,6 +53,9 @@ NativeNML::~NativeNML()
     if (this->meta.title) {
         free(this->meta.title);
     }
+
+    NativePath::cd(NULL);
+    NativePath::chroot(NULL);
 }
 
 void NativeNML::setNJS(NativeJS *js)
