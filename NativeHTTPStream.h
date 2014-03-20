@@ -37,6 +37,10 @@ public:
     static const char *getBaseDir() {
         return NULL;
     }
+
+    static bool allowLocalFileStream() {
+        return false;
+    }
     
     virtual void stop();
     virtual void getContent();

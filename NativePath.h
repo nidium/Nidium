@@ -41,7 +41,15 @@ class NativeBaseStream;
 extern char *g_m_Root;
 extern char *g_m_Pwd;
 
-#define SCHEME_DEFINE(prefix, streamclass, keepprefix) (struct NativePath::schemeInfo){prefix, streamclass::createStream, keepprefix}
+#define SCHEME_DEFINE(prefix, streamclass, keepprefix) ( \
+struct NativePath::schemeInfo){ \
+    .str        = prefix, \
+    .base       = streamclass::createStream, \
+    .getBaseDir = streamclass::getBaseDir, \
+    .keepPrefix = keepprefix, \
+    .allowLocalFileStream = streamclass::allowLocalFileStream \
+}
+
 #define URLSCHEME_MATCH(url, scheme) (strcmp(NativePath::getScheme(url)->str, scheme "://") == 0)
 #define SCHEME_MATCH(obj, scheme) (strcmp(obj->str, scheme "://") == 0)
 
@@ -51,7 +59,9 @@ public:
     struct schemeInfo {
         const char *str;
         NativeBaseStream *(*base)(const char *);
+        const char *(*getBaseDir)();
         bool keepPrefix;
+        bool (*allowLocalFileStream)();
     };
 
     /*
@@ -60,10 +70,12 @@ public:
     explicit NativePath(const char *origin, bool allowAll = false);
 
     operator const char *() {
+        printf("Returned path : %s\n", m_Path);
         return m_Path;
     }
 
     const char *path() const {
+        printf("Returned path : %s\n", m_Path);
         return m_Path;
     }
 
@@ -104,14 +116,14 @@ public:
     }
 
     static const char *getPwd() {
-#if 0
-        if (g_m_Pwd == NULL) {
-            static char cpwd[MAXPATHLEN];
-            getcwd(cpwd, MAXPATHLEN);
-            return cpwd;
-        }
-#endif
         return g_m_Pwd;        
+    }
+
+    static schemeInfo *getPwdScheme() {
+        if (!g_m_Pwd) {
+            return NULL;
+        }
+        return NativePath::getScheme(g_m_Pwd);
     }
 
     static const char *currentJSCaller(JSContext *cx = NULL);
@@ -119,6 +131,10 @@ public:
     static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
 private:
+    void invalidatePath() {
+        free(m_Path);
+        m_Path = NULL;
+    }
     void setDir();
 
     char *m_Path;

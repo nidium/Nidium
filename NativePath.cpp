@@ -38,6 +38,7 @@ NativePath::NativePath(const char *origin, bool allowAll) :
     if (origin == NULL) {
         return;
     }
+
     int originlen = strlen(origin);
     if (originlen > MAXPATHLEN-1 || origin[originlen-1] == '/') {
         return;
@@ -50,25 +51,57 @@ NativePath::NativePath(const char *origin, bool allowAll) :
     } else if (!NativePath::getPwd()) {
         memcpy(m_Path, origin, originlen+1);
     } else {
-        bool outsideRoot;
-        char *ret = NativePath::sanitize(origin, &outsideRoot);
+        const char *pOrigin;
+        bool outsideRoot      = false;
+        schemeInfo *pwdScheme = NativePath::getPwdScheme();
+        schemeInfo *scheme    = NativePath::getScheme(origin, &pOrigin);
+        char *sanitized       = NativePath::sanitize(pOrigin, &outsideRoot);
 
-        if (outsideRoot) {
-            free(m_Path);
-            m_Path = NULL;
+        printf("vals : %p %p\n", scheme->getBaseDir, scheme->allowLocalFileStream);
+
+        if (this->isRelative(origin)) {
+            if (outsideRoot) {
+                this->invalidatePath();
+                return;
+            }
+
+            strcat(m_Path, NativePath::getPwd());
+            strcat(m_Path, &sanitized[2]);
+            free(sanitized);
+
+            this->setDir();
             return;
         }
 
-        if (this->isRelative(origin)) {
-            /* prepend the current working directory */
-            strcat(m_Path, NativePath::getPwd());
-        } else {
+        /* Absolute path */
+        if (!allowAll && SCHEME_MATCH(scheme, "file") &&
+            !pwdScheme->allowLocalFileStream()) {
+
+            this->invalidatePath();
+            return;
+        }
+        const char *baseDir;
+        printf("Basedir : %p %s\n", scheme->getBaseDir, scheme->str);
+        if ((baseDir = scheme->getBaseDir()) != NULL) {
+            if (outsideRoot) {
+                this->invalidatePath();
+                return;
+            }
+            strcat(m_Path, baseDir);
+            strcat(m_Path, &sanitized[2]);
+
+            this->setDir();
+
+            return;
+        }
+
+        if (SCHEME_MATCH(scheme, "file")) {
             strcat(m_Path, NativePath::getRoot());
         }
-        /* append the relative path without the leading "./" */
-        strcat(m_Path, &ret[2]);
 
-        free(ret);
+        strcat(m_Path, &sanitized[2]);
+
+        free(sanitized);
 
     }
 
@@ -123,6 +156,8 @@ void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
     newScheme->str = strdup(scheme.str);
     newScheme->base = scheme.base;
     newScheme->keepPrefix = scheme.keepPrefix;
+    newScheme->getBaseDir = scheme.getBaseDir;
+    newScheme->allowLocalFileStream = scheme.allowLocalFileStream;
 
     NativePath::g_m_SchemesCount++;
 
