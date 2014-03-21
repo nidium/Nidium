@@ -106,13 +106,11 @@ void *NativeAudio::queueThread(void *args)
                     audio->processQueue();
 
                     if (!audio->output->processed) {
-                        cause = 2;
                         break;
                     } 
 
                     wrote = true;
                     audio->output->processed = false;
-                    cause = 0;
 
                     // Copy output node frame data to output ring buffer
                     for (int i = 0; i < audio->output->inCount; i++) {
