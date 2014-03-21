@@ -60,15 +60,13 @@ int main(int argc, char **argv)
         dirname(_root);
     }
 
-    char *nml = NULL;
+    const char *nml = NULL;
 
-    nml = (argc > 1 ? argv[1] : realpath("../index.nml", NULL));
+    nml = argc > 1 ? argv[1] : "private://default.nml";
 
     if (!UI.runApplication(nml)) {
         return 0;
     }
-
-    free(nml);
 
     UI.runLoop();
 
