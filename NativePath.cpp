@@ -43,7 +43,7 @@ NativePath::NativePath(const char *origin, bool allowAll) :
     if (originlen > MAXPATHLEN-1 || origin[originlen-1] == '/') {
         return;
     }
-    m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN + 1));
+    m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN*4 + 1));
     m_Path[0] = '\0';
 
     if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
@@ -56,8 +56,6 @@ NativePath::NativePath(const char *origin, bool allowAll) :
         schemeInfo *pwdScheme = NativePath::getPwdScheme();
         schemeInfo *scheme    = NativePath::getScheme(origin, &pOrigin);
         char *sanitized       = NativePath::sanitize(pOrigin, &outsideRoot);
-
-        printf("vals : %p %p\n", scheme->getBaseDir, scheme->allowLocalFileStream);
 
         if (this->isRelative(origin)) {
             if (outsideRoot) {
@@ -81,7 +79,7 @@ NativePath::NativePath(const char *origin, bool allowAll) :
             return;
         }
         const char *baseDir;
-        printf("Basedir : %p %s\n", scheme->getBaseDir, scheme->str);
+
         if ((baseDir = scheme->getBaseDir()) != NULL) {
             if (outsideRoot) {
                 this->invalidatePath();
@@ -97,9 +95,10 @@ NativePath::NativePath(const char *origin, bool allowAll) :
 
         if (SCHEME_MATCH(scheme, "file")) {
             strcat(m_Path, NativePath::getRoot());
+            strcat(m_Path, &sanitized[2]);
+        } else {
+            strcat(m_Path, origin);
         }
-
-        strcat(m_Path, &sanitized[2]);
 
         free(sanitized);
 

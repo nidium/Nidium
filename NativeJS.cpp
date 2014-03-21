@@ -495,6 +495,11 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessages = (native_thread_message_t*)calloc(16, sizeof(native_thread_message_t));
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
+
+    NativePath p("http://www.google.com/hey/foo.nml");
+
+    printf("Resolved : %s in dir : %s\n", (const char *)p, p.dir());
+
 }
 
 
