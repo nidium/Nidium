@@ -732,8 +732,9 @@ int NativeVideo::display(void *custom) {
             v->sendEvent(SOURCE_EVENT_EOF, 0, 0, false);
             return 0;
         } else {
-            DPRINT("No frame, try again in 5ms\n");
-            return 5;
+            DPRINT("No frame, try again in 50ms\n");
+            v->scheduleDisplay(50, true);
+            return 0;
         }
     }
 
@@ -1254,6 +1255,7 @@ void NativeVideo::clearTimers(bool reset)
             this->timers[i]->delay = -1;
         } else {
             delete this->timers[i];
+            this->timers[i] = NULL;
         }
     }
 }
@@ -1323,6 +1325,10 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 void NativeVideo::closeInternal(bool reset) {
     this->clearTimers(reset);
 
+    // Stream need to be closed first to avoid
+    // blocking the thread if it's waiting for data
+    delete this->reader;
+
     if (m_ThreadCreated && !m_SourceDoClose) {
         // m_SourceDoClose is true when source need to be closed
         // from the decode thread. So we don't want to join the thread
@@ -1361,7 +1367,6 @@ void NativeVideo::closeInternal(bool reset) {
     }
 
     delete this->rBuff;
-    delete this->reader;
 
     if (this->opened) {
         NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);

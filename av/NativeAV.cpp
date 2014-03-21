@@ -292,6 +292,12 @@ void NativeAVStreamReader::onAvailableData(size_t len)
 
 NativeAVStreamReader::~NativeAVStreamReader() 
 {
+    // In case the stream is waiting for data when the destructor is called
+    // Reset the stream to EOF and wakup the read() method
+    this->streamBuffer = NULL;
+    this->streamErr = NativeBaseStream::STREAM_END;
+    NATIVE_PTHREAD_SIGNAL(&this->m_ThreadCond);
+
     if (NativeUtils::isMainThread()) {
         delete this->stream;
     } else {
