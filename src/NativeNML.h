@@ -73,11 +73,6 @@ public:
     }
 
     JSObject *buildLayoutTree(rapidxml::xml_node<> &node);
-    /*
-    void onNFIOOpen(NativeFileIO *);
-    void onNFIOError(NativeFileIO *, int errno){};
-    void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
-    void onNFIOWrite(NativeFileIO *, size_t written){};*/
 
     void setNJS(NativeJS *js);
 
