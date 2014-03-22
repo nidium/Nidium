@@ -32,7 +32,7 @@ int NativePath::g_m_SchemesCount = 0;
 struct NativePath::schemeInfo *NativePath::g_m_DefaultScheme = NULL;
 struct NativePath::schemeInfo NativePath::g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES] = {};
 
-NativePath::NativePath(const char *origin, bool allowAll) :
+NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
     m_Path(NULL), m_Dir(NULL)
 {
     if (origin == NULL) {
@@ -48,7 +48,7 @@ NativePath::NativePath(const char *origin, bool allowAll) :
 
     if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
         realpath(origin, m_Path);
-    } else if (!NativePath::getPwd()) {
+    } else if (!NativePath::getPwd() || noFilter) {
         memcpy(m_Path, origin, originlen+1);
     } else {
         const char *pOrigin;
@@ -70,7 +70,6 @@ NativePath::NativePath(const char *origin, bool allowAll) :
             this->setDir();
             return;
         }
-
         /* Absolute path */
         if (!allowAll && SCHEME_MATCH(scheme, "file") &&
             !pwdScheme->allowLocalFileStream()) {

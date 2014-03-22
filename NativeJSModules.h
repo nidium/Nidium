@@ -22,7 +22,7 @@
 #define nativejsmodules_h__
 
 #include <jspubtd.h>
-
+#include <NativeHash.h>
 #include <string>
 
 #define NATIVE_MODULES_PATHS_COUNT 2

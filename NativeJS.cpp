@@ -264,37 +264,19 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
     return true;
 }
 
-char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
-{
-    JSScript *parent;
-    const char *filename_parent;
-    unsigned lineno;
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
-    filename_parent = JS_GetScriptFilename(cx, parent);
-    char *basepath = NativeStream::resolvePath(filename_parent, NativeStream::STREAM_RESOLVE_PATH);
-
-    if (file == NULL) {
-        return basepath;
-    }
-    char *finalfile = (char *)malloc(sizeof(char) *
-        (1 + strlen(basepath) + strlen(file)));
-
-    sprintf(finalfile, "%s%s", basepath, file);
-
-    free(basepath);
-    return finalfile;
-
-}
-
 static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 {
+    NativePath cur(NativePath::currentJSCaller(cx), false, true);
     JS::CallArgs args = CallArgsFromVp(argc, vp);
-    char *rel = NativeJS::buildRelativePath(cx);
-    JSString *res = JS_NewStringCopyZ(cx, rel);
+
+    if (cur.dir() == NULL) {
+        args.rval().setUndefined();
+        return true;
+    }
+
+    JSString *res = JS_NewStringCopyZ(cx, cur.dir());
 
     args.rval().setString(res);
-
-    free(rel);
 
     return true;
 }

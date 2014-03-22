@@ -67,7 +67,8 @@ public:
     /*
         allowAll defines if origin must match "pwd" stream class (if false)
     */
-    explicit NativePath(const char *origin, bool allowAll = false);
+    explicit NativePath(const char *origin, bool allowAll = false,
+        bool noFilter = false);
 
     operator const char *() {
         return m_Path;
@@ -86,6 +87,9 @@ public:
     ~NativePath(){
         if (m_Path) {
             free(m_Path);
+        }
+        if (m_Dir) {
+            free(m_Dir);
         }
     };
 
