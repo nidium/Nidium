@@ -289,9 +289,12 @@ char *NativeJS::buildRelativePath(JSContext *cx, const char *file)
 static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = CallArgsFromVp(argc, vp);
-    JSString *res = JS_NewStringCopyZ(cx, NativeJS::buildRelativePath(cx));
+    char *rel = NativeJS::buildRelativePath(cx);
+    JSString *res = JS_NewStringCopyZ(cx, rel);
 
     args.rval().setString(res);
+
+    free(rel);
 
     return true;
 }
@@ -299,17 +302,36 @@ static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *script = NULL;
-    JSScript *parent;
-    NativeJS *njs = NativeJS::getNativeClass(cx);
-    const char *filename_parent;
-    unsigned lineno;
-
+    
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
         return false;
     }
     
+    NativeJS *njs = NativeJS::getNativeClass(cx);
     JSAutoByteString scriptstr(cx, script);
+    NativePath scriptpath(scriptstr.ptr());
 
+    NativePath::schemeInfo *schemePwd = NativePath::getPwdScheme();
+
+    if (scriptpath.path() == NULL) {
+        JS_ReportError(cx, "script error : invalid file location");
+        return false;
+    }
+
+    /* only private are allowed in an http context */
+    if (SCHEME_MATCH(schemePwd, "http") &&
+        !URLSCHEME_MATCH(scriptstr.ptr(), "private")) {
+        JS_ReportError(cx, "script access error : cannot load in this context");
+        return false;
+    }
+
+    if (!njs->LoadScript(scriptpath.path())) {
+        JS_ReportError(cx, "load() failed to load script");
+        return false;
+    }
+
+    return true;
+#if 0
     if (njs->m_Delegate != NULL && 
             njs->m_Delegate->onLoad(njs, scriptstr.ptr(), argc, vp)) {
         return true;
@@ -334,6 +356,8 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
     free(basepath);
 
     return true;
+
+#endif
 }
 
 #if 0
@@ -496,7 +520,7 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
 
-    NativePath p("http://www.google.com/hey/foo.nml");
+    NativePath p("private://foo/bar.txt");
 
     printf("Resolved : %s in dir : %s\n", (const char *)p, p.dir());
 
@@ -602,77 +626,6 @@ void NativeJS::bindNetObject(ape_global *net)
     //io->open();
 }
 
-typedef js::Vector<char, 8, js::TempAllocPolicy> FileContents;
-
-static bool
-ReadCompleteFile(JSContext *cx, FILE *fp, FileContents &buffer)
-{
-    /* Get the complete length of the file, if possible. */
-    struct stat st;
-    int ok = fstat(fileno(fp), &st);
-    if (ok != 0)
-        return false;
-    if (st.st_size > 0) {
-        if (!buffer.reserve(st.st_size))
-            return false;
-    }
-
-    // Read in the whole file. Note that we can't assume the data's length
-    // is actually st.st_size, because 1) some files lie about their size
-    // (/dev/zero and /dev/random), and 2) reading files in text mode on
-    // Windows collapses "\r\n" pairs to single \n characters.
-    for (;;) {
-        int c = getc(fp);
-        if (c == EOF)
-            break;
-        if (!buffer.append(c))
-            return false;
-    }
-
-    return true;
-}
-
-class NativeAutoFile
-{
-    FILE *fp_;
-  public:
-    NativeAutoFile()
-      : fp_(NULL)
-    {}
-    ~NativeAutoFile()
-    {
-        if (fp_ && fp_ != stdin)
-            fclose(fp_);
-    }
-    FILE *fp() const { return fp_; }
-    bool open(JSContext *cx, const char *filename);
-    bool readAll(JSContext *cx, FileContents &buffer)
-    {
-        JS_ASSERT(fp_);
-        return ReadCompleteFile(cx, fp_, buffer);
-    }
-};
-
-/*
- * Open a source file for reading. Supports "-" and NULL to mean stdin. The
- * return value must be fclosed unless it is stdin.
- */
-bool
-NativeAutoFile::open(JSContext *cx, const char *filename)
-{
-    if (!filename || strcmp(filename, "-") == 0) {
-        fp_ = stdin;
-    } else {
-        fp_ = fopen(filename, "r");
-        if (!fp_) {
-            JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_CANT_OPEN,
-                                 filename, "No such file or directory");
-            return false;
-        }
-    }
-    return true;
-}
-
 void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
 {
 
@@ -741,15 +694,25 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
 int NativeJS::LoadScriptReturn(JSContext *cx,
     const char *filename, jsval *ret)
 {   
-    NativeAutoFile file;
-    if (!file.open(cx, filename))
-        return 0;
-    FileContents buffer(cx);
-    if (!ReadCompleteFile(cx, file.fp(), buffer))
-        return 0;
+    int err;
+    char *data;
+    size_t len;
 
-    return NativeJS::LoadScriptReturn(cx, buffer.begin(),
-        buffer.length(), filename, ret);
+    NativeFile file(filename);
+
+    if (!file.openSync("r", &err)) {
+        return 0;
+    }
+
+    if ((len = file.readSync(file.getFileSize(), &data, &err)) <= 0) {
+        return 0;
+    }
+
+    int r = NativeJS::LoadScriptReturn(cx, data, len, filename, ret);
+
+    free(data);
+
+    return r;
 }
 
 int NativeJS::LoadScriptContent(const char *data, size_t len,
@@ -759,7 +722,9 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
 
-    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL | JSOPTION_VAROBJFIX);
+    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO |
+        JSOPTION_NO_SCRIPT_RVAL | JSOPTION_VAROBJFIX);
+
     JS::CompileOptions options(cx);
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
@@ -783,47 +748,25 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
 
 int NativeJS::LoadScript(const char *filename)
 {
-    uint32_t oldopts;
-    JSObject *gbl;
+    int err;
+    char *data;
+    size_t len;
 
-    JSAutoRequest ar(cx);
+    NativeFile file(filename);
 
-    oldopts = JS_GetOptions(cx);
-    gbl = JS_GetGlobalObject(cx);
-
-    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO | JSOPTION_NO_SCRIPT_RVAL);
-    JS::CompileOptions options(cx);
-    options.setUTF8(true)
-           .setFileAndLine(filename, 1);
-
-    js::RootedObject rgbl(cx, gbl);
-
-    JSScript *script = JS::Compile(cx, rgbl, options, filename);
-
-#if 0
-    uint32_t encoded;
-    void *data;
-    data = JS_EncodeScript(cx, script, &encoded);
-
-    printf("script encoded with %d size\n", encoded);
-
-    FILE *jsc = fopen("./compiled.jsc", "w+");
-
-    fwrite(data, 1, encoded, jsc);
-    fclose(jsc);
-#endif
-    JS_SetOptions(cx, oldopts);
-
-    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
-        if (JS_IsExceptionPending(cx)) {
-            if (!JS_ReportPendingException(cx)) {
-                JS_ClearPendingException(cx);
-            }
-        }
+    if (!file.openSync("r", &err)) {
         return 0;
     }
-    
-    return 1;
+
+    if ((len = file.readSync(file.getFileSize(), &data, &err)) <= 0) {
+        return 0;
+    }
+
+    int ret = this->LoadScriptContent(data, len, filename);
+
+    free(data);
+
+    return ret;
 }
 
 int NativeJS::LoadBytecode(NativeBytecodeScript *script)
