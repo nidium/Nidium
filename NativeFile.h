@@ -97,6 +97,7 @@ private:
     size_t m_Filesize;
     bool m_AutoClose;
     bool m_Eof;
+    bool m_OpenSync;
 };
 
 #endif

@@ -42,7 +42,7 @@ enum {
 NativeFile::NativeFile(const char *name) :
     m_Fd(NULL), m_Delegate(NULL),
     m_Filesize(0), m_AutoClose(true),
-    m_Eof(false)
+    m_Eof(false), m_OpenSync(false)
 {
     m_Path = strdup(name);
 }
@@ -129,7 +129,9 @@ void NativeFile::closeTask(void *arg)
     }
 
     fclose(m_Fd);
-    NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS);
+    if (!m_OpenSync) {
+        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS);
+    }
     m_Fd = NULL;
 }
 
@@ -345,6 +347,8 @@ int NativeFile::openSync(const char *modes, int *err)
         *err = errno;
         return 0;
     }
+
+    m_OpenSync = true;
 
     fseek(m_Fd, 0L, SEEK_END);
     m_Filesize = ftell(m_Fd);
