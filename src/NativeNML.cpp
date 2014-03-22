@@ -37,12 +37,7 @@ NativeNML::~NativeNML()
         JS_RemoveObjectRoot(this->njs->cx, &m_JSObjectLayout);
         m_JSObjectLayout = NULL;
     }
-    if (relativePath) {
-        if (this->njs) {
-            this->njs->setPath(NULL);
-        }
-        free(relativePath);
-    }
+
     if (stream) {
         delete stream;
     }
@@ -61,7 +56,6 @@ NativeNML::~NativeNML()
 void NativeNML::setNJS(NativeJS *js)
 {
     this->njs = js;
-    this->njs->setPath(this->relativePath);
 }
 
 void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)

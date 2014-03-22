@@ -90,6 +90,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_JS->setDelegate(this);
 
     m_NML->setNJS(m_JS);
+    /*
+        Set path for modules
+    */
+    m_JS->setPath(NativePath::getPwd());
 
     __preloadScripts(&this->preload);
 
