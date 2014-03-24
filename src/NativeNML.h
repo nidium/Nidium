@@ -59,11 +59,7 @@ public:
     int getMetaHeight() const {
         return this->meta.size.height;
     }
-
-    const char *getPath() const {
-        return this->relativePath;
-    }
-
+    
     rapidxml::xml_node<> *getLayout() const {
         return m_Layout;
     }
@@ -81,7 +77,6 @@ public:
     void addAsset(NativeAssets *);
     ape_global *net;
     NativeBaseStream *stream;
-    char *relativePath;
 
     /* Define callbacks for tags in <application> */
     struct _nml_tags {

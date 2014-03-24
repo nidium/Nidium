@@ -121,7 +121,7 @@ class NativeSkia
         void setSmooth(bool val, int level = 1);
         void setFontSize(double size);
         void setFontType(const char *str);
-        void setFontFile(const char *str);
+        bool setFontFile(const char *str);
         void drawText(const char *text, int x, int y);
         void drawTextf(int x, int y, const char *text, ...);
         void system(const char *text, int x, int y);

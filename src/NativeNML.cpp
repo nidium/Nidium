@@ -12,7 +12,7 @@
 #include <jsapi.h>
 
 NativeNML::NativeNML(ape_global *net) :
-    net(net), stream(NULL), relativePath(NULL), nassets(0),
+    net(net), stream(NULL), nassets(0),
     njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL)
 {
     assetsList.size = 0;
@@ -62,8 +62,6 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 {
     this->loaded = cb;
     this->loaded_arg = arg;
-
-    this->relativePath = NativeStream::resolvePath(file, NativeStream::STREAM_RESOLVE_PATH);
 
     NativePath path(file);
 

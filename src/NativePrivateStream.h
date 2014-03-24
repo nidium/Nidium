@@ -31,12 +31,19 @@ public:
     {
 
     }
+
     static NativeBaseStream *createStream(const char *location) {
         return new NativePrivateStream(location);
     }
+
     static bool allowLocalFileStream() {
         return true;
     }
+
+    static bool allowSyncStream() {
+        return true;
+    }
+
     static const char *getBaseDir() {
         return NativeSystemInterface::getInstance()->getPrivateDirectory();
     }
