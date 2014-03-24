@@ -31,6 +31,7 @@
 #include <NativeJSModules.h>
 #include <NativeJS.h>
 #include <NativePath.h>
+#include <NativeStreamInterface.h>
 
 #include <jsoncpp.h>
 #include <json.h>
@@ -253,21 +254,6 @@ bool NativeJSModule::initJS()
     TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
     TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
 
-    //// XXX : This has nothing to do here
-    char *tmp = strdup(this->filePath);
-    char *cfilename = basename(tmp);
-    JSString *filename = JS_NewStringCopyN(cx, cfilename, strlen(cfilename));
-    JSString *dirname = JS_NewStringCopyN(cx, this->absoluteDir, strlen(this->absoluteDir));
-
-    free(tmp);
-
-    // __filename and __dirname is needed to conform NodeJS require();
-    TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__filename", STRING_TO_JSVAL(filename), 
-            NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
-    TRY_OR_DIE(JS_DefineProperty(cx, gbl, "__dirname", STRING_TO_JSVAL(dirname), 
-            NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE));
-    ////
-
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     this->exports = gbl;
@@ -353,41 +339,17 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
 
 bool NativeJSModules::getFileContent(const char *file, char **content, size_t *size)
 {
-    FILE *fd;
-    size_t readsize;
-    size_t filesize;
-    char *data;
+    NativePath path(file);
+    NativeBaseStream *stream = path.createStream(true);
 
-    *content = NULL;
-    *size = 0;
-
-    fd = fopen(file, "r");
-    if (!fd) {
+    if (!stream) {
         return false;
     }
 
-    fseek(fd, 0L, SEEK_END);
-    filesize = ftell(fd);
-    fseek(fd, 0L, SEEK_SET);
+    stream->getContentSync(content, size);
 
-    if (filesize == 0) {
-        return true;
-    }
+    delete stream;
 
-    data = (char *)malloc(filesize + 1);
-
-    readsize = fread(data, 1, filesize, fd);
-    data[readsize] = '\0';
-
-    fclose(fd);
-
-    if (readsize < 1 || readsize != filesize) {
-        free(data);
-        return false;
-    }
-
-    *content = data;
-    *size = filesize;
     return true;
 }
 
@@ -496,6 +458,9 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                 Json::Value root;
                 Json::Reader reader;
                 bool parsingSuccessful = reader.parse(data, data + size, root);
+
+                free(data);
+
                 if (!parsingSuccessful) {
                     fprintf(stderr, "Failed to parse %s\n  %s", dir.c_str(), reader.getFormatedErrorMessages().c_str());
                     return false;
@@ -616,6 +581,7 @@ JS::Value NativeJSModule::require(char *name)
             }
 
             if (filesize == 0) {
+                free(data);
                 ret.setObject(*cmodule->exports);
                 return ret;
             }
@@ -634,6 +600,7 @@ JS::Value NativeJSModule::require(char *name)
                     return ret;
                 }
             } else {
+                // TODO: data leaks here
                 size_t len;
                 jschar *jchars;
                 jsval jsonData;
