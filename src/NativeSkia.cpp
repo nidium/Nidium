@@ -48,6 +48,9 @@
 
 #include "Sk2DPathEffect.h"
 
+#include <NativePath.h>
+#include <SkStream.h>
+
 SkCanvas *NativeSkia::glcontext = NULL;
 
 //#define CANVAS_FLUSH() canvas->flush()
@@ -613,31 +616,39 @@ void NativeSkia::setFontType(const char *str)
     tf->unref();
 }
 
-void NativeSkia::setFontFile(const char *str)
+bool NativeSkia::setFontFile(const char *str)
 {
-    NLOG("Loading font %s", str);
-    int len = 0;
+    char *data;
+    size_t len;
 
-    NativeStream::StreamInterfaces streamInterface = NativeStream::typeInterface(str, &len);
-    if (streamInterface == NativeStream::INTERFACE_HTTP) {
-        return;
+    NativePath fontPath(str);
+    NativeBaseStream *stream;
+
+    if ((stream = fontPath.createStream(true)) == NULL) {
+        return false;
+    }
+    if (!stream->getContentSync(&data, &len)) {
+        delete stream;
+        return false;
     }
 
-    char *path = NativeStream::resolvePath(str, NativeStream::STREAM_RESOLVE_FILE);
+    delete stream;
 
-    SkTypeface *tf = SkTypeface::CreateFromFile(path);
-    // Workarround for skia bug #1648
-    // https://code.google.com/p/skia/issues/detail?id=1648
+    SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
+    free(data);
+
+    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
     if (tf == NULL) {
-        tf = SkTypeface::CreateFromName(NULL, 
-                SkTypeface::kNormal);
-        if (tf == NULL) return;
+        delete skmemory;
+        return false;
     }
 
     PAINT->setTypeface(tf);
     PAINT_STROKE->setTypeface(tf);
 
     tf->unref();
+
+    return true;
 }
 
 /* TODO: bug with alpha */
