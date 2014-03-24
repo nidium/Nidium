@@ -85,8 +85,12 @@ public:
         return m_Dir;
     }
 
-    NativeBaseStream *createStream() const {
+    NativeBaseStream *createStream(bool onlySync = false) const {
         if (!m_Scheme || !m_Path) {
+            return NULL;
+        }
+
+        if (onlySync && !m_Scheme->allowSyncStream()) {
             return NULL;
         }
 
