@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 class NativeNoncopyable {
 public:
@@ -60,6 +61,20 @@ class NativePthreadAutoLock {
     }
   private:
     pthread_mutex_t *lock;
+};
+
+class NativePtrAutoFree {
+  public:
+    NativePtrAutoFree(void *ptr, void (*func)(void *) = free)
+      : m_Ptr(ptr), m_Free(free) {
+    }
+
+    ~NativePtrAutoFree() {
+        m_Free(m_Ptr);
+    }
+  private:
+    void *m_Ptr;
+    void (*m_Free)(void *);
 };
 
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
