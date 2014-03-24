@@ -46,6 +46,11 @@ NativeBaseStream::~NativeBaseStream()
     free(m_Location);
 }
 
+NativeBaseStream *NativeBaseStream::create(const NativePath &path)
+{
+    return path.createStream();
+}
+
 NativeBaseStream *NativeBaseStream::create(const char *location)
 {
     const char *pLocation;

@@ -19,7 +19,6 @@
 
 #include "NativePath.h"
 #include "NativeJS.h"
-#include <jsapi.h>
 #include <jsdbgapi.h>
 #include <vector>
 #include <string>
@@ -33,7 +32,7 @@ struct NativePath::schemeInfo *NativePath::g_m_DefaultScheme = NULL;
 struct NativePath::schemeInfo NativePath::g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES] = {};
 
 NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
-    m_Path(NULL), m_Dir(NULL)
+    m_Path(NULL), m_Dir(NULL), m_Scheme(NULL)
 {
     if (origin == NULL) {
         return;
@@ -48,14 +47,18 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
 
     if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
         realpath(origin, m_Path);
+        m_Scheme = NativePath::getScheme(origin);
     } else if (!NativePath::getPwd() || noFilter) {
         memcpy(m_Path, origin, originlen+1);
+        m_Scheme = NativePath::getScheme(origin);
     } else {
         const char *pOrigin;
         bool outsideRoot      = false;
         schemeInfo *pwdScheme = NativePath::getPwdScheme();
         schemeInfo *scheme    = NativePath::getScheme(origin, &pOrigin);
         char *sanitized       = NativePath::sanitize(pOrigin, &outsideRoot);
+
+        /* Relative Path */
 
         if (this->isRelative(origin)) {
             if (outsideRoot) {
@@ -66,11 +69,14 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
             strcat(m_Path, NativePath::getPwd());
             strcat(m_Path, &sanitized[2]);
             free(sanitized);
+            m_Scheme = pwdScheme;
 
             this->setDir();
             return;
         }
+
         /* Absolute path */
+
         if (!allowAll && SCHEME_MATCH(scheme, "file") &&
             !pwdScheme->allowLocalFileStream()) {
 
@@ -84,8 +90,10 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
                 this->invalidatePath();
                 return;
             }
+            
             strcat(m_Path, baseDir);
             strcat(m_Path, &sanitized[2]);
+            m_Scheme = scheme;
 
             this->setDir();
 
@@ -95,11 +103,14 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
         if (SCHEME_MATCH(scheme, "file")) {
             strcat(m_Path, NativePath::getRoot());
             strcat(m_Path, &sanitized[2]);
+
         } else {
             strcat(m_Path, origin);
         }
 
         free(sanitized);
+
+        m_Scheme = scheme;
 
     }
 
@@ -156,6 +167,7 @@ void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
     newScheme->keepPrefix = scheme.keepPrefix;
     newScheme->getBaseDir = scheme.getBaseDir;
     newScheme->allowLocalFileStream = scheme.allowLocalFileStream;
+    newScheme->allowSyncStream = scheme.allowSyncStream;
 
     NativePath::g_m_SchemesCount++;
 

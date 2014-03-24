@@ -47,7 +47,8 @@ struct NativePath::schemeInfo){ \
     .base       = streamclass::createStream, \
     .getBaseDir = streamclass::getBaseDir, \
     .keepPrefix = keepprefix, \
-    .allowLocalFileStream = streamclass::allowLocalFileStream \
+    .allowLocalFileStream = streamclass::allowLocalFileStream, \
+    .allowSyncStream = streamclass::allowSyncStream \
 }
 
 #define URLSCHEME_MATCH(url, scheme) (strcmp(NativePath::getScheme(url)->str, scheme "://") == 0)
@@ -62,6 +63,7 @@ public:
         const char *(*getBaseDir)();
         bool keepPrefix;
         bool (*allowLocalFileStream)();
+        bool (*allowSyncStream)();
     };
 
     /*
@@ -70,16 +72,29 @@ public:
     explicit NativePath(const char *origin, bool allowAll = false,
         bool noFilter = false);
 
+#if 0
     operator const char *() {
         return m_Path;
     }
-
+#endif
     const char *path() const {
         return m_Path;
     }
 
     const char *dir() const {
         return m_Dir;
+    }
+
+    NativeBaseStream *createStream() const {
+        if (!m_Scheme || !m_Path) {
+            return NULL;
+        }
+
+        return m_Scheme->base(m_Path);
+    }
+
+    schemeInfo *getScheme() const {
+        return m_Scheme;
     }
 
     bool isRelative(const char *path);
@@ -138,9 +153,9 @@ private:
         m_Path = NULL;
     }
     void setDir();
-
     char *m_Path;
     char *m_Dir;
+    schemeInfo *m_Scheme;
 };
 
 

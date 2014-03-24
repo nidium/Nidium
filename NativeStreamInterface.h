@@ -51,6 +51,7 @@ public:
 
     virtual ~NativeBaseStream();
 
+    static NativeBaseStream *create(const NativePath &path);
     static NativeBaseStream *create(const char *location);
 
     enum StreamDataStatus {
@@ -88,6 +89,10 @@ public:
         Get file as a whole
     */
     virtual void getContent()=0;
+
+    virtual bool getContentSync(char **data, size_t *len) {
+        return false;
+    }
 
     /*
         Get file size

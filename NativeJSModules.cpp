@@ -30,7 +30,7 @@
 #include <NativeJSExposer.h>
 #include <NativeJSModules.h>
 #include <NativeJS.h>
-#include <NativeStream.h>
+#include <NativePath.h>
 
 #include <jsoncpp.h>
 #include <json.h>
@@ -109,10 +109,14 @@ bool NativeJSModule::init()
         return false;
     }
 
-    this->absoluteDir = NativeStream::resolvePath(this->filePath, NativeStream::STREAM_RESOLVE_PATH);
-    if (!this->absoluteDir) {
+    NativePath p(this->filePath, false, true);
+
+    if (!p.dir()) {
         return false;
     }
+
+    this->absoluteDir = strdup(p.dir());
+    
     DPRINT("filepath = %s\n", this->filePath);
     DPRINT("name = %s\n", this->name);
 
