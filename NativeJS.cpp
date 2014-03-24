@@ -83,6 +83,12 @@ struct _native_sm_timer
     struct _ticks_callback *timer;
 };
 
+enum {
+    GLOBAL_PROP___DIRNAME,
+    GLOBAL_PROP___FILENAME,
+    GLOBAL_PROP_GLOBAL,
+};
+
 JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 
 static JSClass global_class = {
@@ -91,6 +97,9 @@ static JSClass global_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp);
 
 /******** Natives ********/
 static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
@@ -112,6 +121,45 @@ static JSFunctionSpec glob_funcs[] = {
     JS_FN("clearInterval", native_clear_timeout, 1, 0),
     JS_FS_END
 };
+
+static JSPropertySpec glob_props[] = {
+    {"__filename", GLOBAL_PROP___FILENAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_global_prop_get),
+        JSOP_NULLWRAPPER},
+   {"__dirname", GLOBAL_PROP___DIRNAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_global_prop_get),
+        JSOP_NULLWRAPPER},
+   {"global", GLOBAL_PROP_GLOBAL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_global_prop_get),
+        JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
+static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp)
+{
+    switch(JSID_TO_INT(id)) {
+        case GLOBAL_PROP___FILENAME:
+        {
+            vp.setString(JS_NewStringCopyZ(cx, NativePath::currentJSCaller()));
+            break;
+        }
+        case GLOBAL_PROP___DIRNAME:
+        {
+            NativePath path(NativePath::currentJSCaller(), false, true);
+            vp.setString(JS_NewStringCopyZ(cx, path.dir()));
+            break;
+        }
+        case GLOBAL_PROP_GLOBAL:
+        {
+            vp.setObjectOrNull(JS_GetGlobalObject(cx));
+            break;
+        }
+        default:
+            return false;
+    }
+    return true;
+}
 
 void
 reportError(JSContext *cx, const char *message, JSErrorReport *report)
@@ -492,6 +540,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     JS_SetGlobalObject(cx, gbl);
     JS_DefineFunctions(cx, gbl, glob_funcs);
+    JS_DefineProperties(cx, gbl, glob_props);
 
     this->bindNetObject(net);
 
@@ -504,7 +553,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     NativePath p("private://foo/bar.txt");
 
-    printf("Resolved : %s in dir : %s\n", (const char *)p, p.dir());
+    printf("Resolved : %s in dir : %s\n", p.path(), p.dir());
 
 }
 
