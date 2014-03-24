@@ -155,7 +155,6 @@ class NativeVideo : public NativeAVSource
         void buffer();
         static void bufferCoro(void *arg);
         void bufferInternal();
-        void onProgress(size_t buffered, size_t total);
 
         bool processAudio();
         bool processVideo();

@@ -52,7 +52,7 @@ NativeVideo::NativeVideo(ape_global *n)
 }
 
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->closeInternal(true);\
 return err;
 
@@ -135,7 +135,7 @@ void NativeVideo::openInitCoro(void *arg)
     NativeVideo *thiz = (static_cast<NativeVideo*>(arg));
     int ret = thiz->openInitInternal();
     if (ret != 0) {
-        thiz->sendEvent(SOURCE_EVENT_ERROR, ret, 0, false);
+        thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
         thiz->m_SourceDoClose = true;
     }
     Coro_switchTo_(thiz->coro, thiz->mainCoro);
@@ -259,17 +259,12 @@ int NativeVideo::openInitInternal()
 
     this->opened = true;
 
-    this->sendEvent(SOURCE_EVENT_READY, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_READY, 0, false);
 
     return 0;
 }
 
 #undef RETURN_WITH_ERROR
-
-void NativeVideo::onProgress(size_t buffered, size_t total)
-{
-    this->sendEvent(SOURCE_EVENT_BUFFERING, buffered, total, false);
-}
 
 void NativeVideo::frameCallback(VideoCallback cbk, void *arg) {
     this->frameCbk = cbk;
@@ -300,7 +295,7 @@ void NativeVideo::play() {
         this->scheduleDisplay(1);
     }
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
 
 void NativeVideo::pause() 
@@ -313,7 +308,7 @@ void NativeVideo::pause()
         this->audioSource->pause();
     }
 
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
 void NativeVideo::close() 
@@ -343,7 +338,7 @@ void NativeVideo::stop() {
 
     NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
 
-    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
 double NativeVideo::getClock() 
@@ -410,7 +405,7 @@ bool NativeVideo::seekMethod(int64_t target, int flags)
 
         return true;
     } else {
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, 0, true);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
         return false;
     }
 }
@@ -693,7 +688,7 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
         this->audioSource->container = this->container;
         this->audioSource->eventCallback(NULL, NULL); //Disable events callbacks
         if (0 != this->audioSource->initInternal()) {
-            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, 0, false);
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_INIT_VIDEO_AUDIO, false);
             delete this->audioSource;
             this->audioSource = NULL;
         }
@@ -729,7 +724,7 @@ int NativeVideo::display(void *custom) {
         } 
         if (v->eof) {
             DPRINT("No frame, eof reached\n");
-            v->sendEvent(SOURCE_EVENT_EOF, 0, 0, false);
+            v->sendEvent(SOURCE_EVENT_EOF, 0, false);
             return 0;
         } else {
             DPRINT("No frame, try again in 50ms\n");

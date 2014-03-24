@@ -775,7 +775,7 @@ NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external)
 int NativeAudioSource::open(const char *chroot, const char *src) 
 {
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->closeInternal(true); \
 return err;
     // If a previous file has been opened, close it
@@ -818,7 +818,7 @@ int NativeAudioSource::openInit()
 void NativeAudioSource::openInitCoro(void *arg) 
 {
 #define RETURN_WITH_ERROR(err) \
-thiz->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
+thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 thiz->doClose = true; \
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
     NativeAudioSource *thiz = static_cast<NativeAudioSource *>(arg);
@@ -840,7 +840,7 @@ Coro_switchTo_(thiz->coro, thiz->mainCoro);
 int NativeAudioSource::open(void *buffer, int size) 
 {
 #define RETURN_WITH_ERROR(err) \
-this->sendEvent(SOURCE_EVENT_ERROR, err, 0, false);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
 this->closeInternal(true); \
 return err;
 
@@ -996,7 +996,7 @@ int NativeAudioSource::initInternal()
     this->opened = true;
     this->processed = false;
 
-    this->sendEvent(SOURCE_EVENT_READY, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_READY, 0, false);
 
     return 0;
 }
@@ -1139,7 +1139,7 @@ bool NativeAudioSource::decode()
 {
 #define RETURN_WITH_ERROR(err) \
 av_free(tmpFrame); \
-this->sendEvent(SOURCE_EVENT_ERROR, err, 0, true);\
+this->sendEvent(SOURCE_EVENT_ERROR, err, true);\
 return false;
     if (this->error) {
         SPAM(("decode() return false cause of error %d\n", this->error));
@@ -1542,7 +1542,7 @@ void NativeAudioSource::seekInternal(double time)
             char errorStr[2048];
             av_strerror(ret, errorStr, 2048);
             SPAM(("Seeking error %d : %s\n", ret, errorStr));
-            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, 0, true);
+            this->sendEvent(SOURCE_EVENT_ERROR, ERR_SEEKING, true);
         }
     }
 
@@ -1589,7 +1589,7 @@ bool NativeAudioSource::process() {
             this->doNotProcess = true;
             this->stop();
 
-            this->sendEvent(SOURCE_EVENT_EOF, 0, 0, true);
+            this->sendEvent(SOURCE_EVENT_EOF, 0, true);
         } 
         SPAM(("Not enought data to read. return false %ld\n", PaUtil_GetRingBufferReadAvailable(this->rBufferOut)));
         return false;
@@ -1713,7 +1713,7 @@ void NativeAudioSource::play()
 
     NATIVE_PTHREAD_SIGNAL(&this->audio->queueNeedData);
 
-    this->sendEvent(SOURCE_EVENT_PLAY, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_PLAY, 0, false);
 }
 
 void NativeAudioSource::pause() 
@@ -1723,7 +1723,7 @@ void NativeAudioSource::pause()
     }
 
     this->playing = false;
-    this->sendEvent(SOURCE_EVENT_PAUSE, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_PAUSE, 0, false);
 }
 
 void NativeAudioSource::stop()
@@ -1737,7 +1737,7 @@ void NativeAudioSource::stop()
 
     this->resetFrames();
 
-    this->sendEvent(SOURCE_EVENT_STOP, 0, 0, false);
+    this->sendEvent(SOURCE_EVENT_STOP, 0, false);
 }
 
 void NativeAudioSource::close() 

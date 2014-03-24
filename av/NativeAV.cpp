@@ -227,6 +227,16 @@ void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVESTREAM_ERROR:
             //thiz->onError();
             return;
+        case NATIVESTREAM_PROGRESS: {
+            NativeAVSourceEvent *ev = this->source->createEvent(SOURCE_EVENT_BUFFERING, false);
+            ev->args[0].set(msg.args[0].toInt64());
+            ev->args[1].set(msg.args[1].toInt64());
+            ev->args[2].set(msg.args[2].toInt64());
+            this->source->sendEvent(ev);
+            return;
+        }
+        case NATIVESTREAM_READ_BUFFER:
+            return;
         case MSG_SEEK:
             this->stream->seek(this->streamSeekPos);
             break;
@@ -282,7 +292,7 @@ void NativeAVStreamReader::onAvailableData(size_t len)
     if (!this->opened) {
         this->streamSize = this->stream->getFileSize();
         if (this->streamSize == 0) {
-            this->source->sendEvent(SOURCE_EVENT_ERROR, ERR_STREAMING_NOT_SUPPORTED, 0, false);
+            this->source->sendEvent(SOURCE_EVENT_ERROR, ERR_STREAMING_NOT_SUPPORTED, false);
             return;
         }
         this->opened = true;
@@ -320,11 +330,22 @@ void NativeAVSource::eventCallback(NativeAVSourceEventCallback cbk, void *custom
     this->eventCbkCustom = custom;
 }
 
-void NativeAVSource::sendEvent(int ev, int value1, int value2, bool fromThread) 
+NativeAVSourceEvent *NativeAVSource::createEvent(int ev, bool fromThread)
+{
+    return new NativeAVSourceEvent(this, ev, this->eventCbkCustom, fromThread);
+}
+
+void NativeAVSource::sendEvent(int type, int value, bool fromThread) 
+{
+    NativeAVSourceEvent *ev = this->createEvent(type, fromThread);
+    ev->args[0].set(value);
+    this->sendEvent(ev);
+}
+
+void NativeAVSource::sendEvent(NativeAVSourceEvent *ev) 
 {
     if (this->eventCbk != NULL) {
-        NativeAVSourceEvent *event = new NativeAVSourceEvent(this, ev, value1, value2, this->eventCbkCustom, fromThread);
-        this->eventCbk(event);
+        this->eventCbk(ev);
     }
 }
 
@@ -358,7 +379,7 @@ int NativeAVSource::readError(int err)
         return AVERROR_EOF;
     } else if (err != AVERROR(EAGAIN)) {
         this->error = AVERROR(err);
-        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, 0, true);
+        this->sendEvent(SOURCE_EVENT_ERROR, ERR_READING, true);
         return -1;
     }
 

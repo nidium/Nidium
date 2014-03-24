@@ -87,10 +87,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
         
-        //void onGetContent(const char *data, size_t len) {}
         void onAvailableData(size_t len);
-        //void onProgress(size_t buffered, size_t len);
-        //void onError(NativeStream::StreamError err);
         ~NativeAVStreamReader();
     private:
         enum {
@@ -180,19 +177,14 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
 typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*ev); 
 
 struct NativeAVSourceEvent {
-    int ev;
-    int value1;
-    int value2;
     NativeAVSource *source;
+    int ev;
+    NativeArgs args;
     void *custom;
     bool fromThread;
-    NativeAVSourceEvent(NativeAVSource *source, int ev, int value1, int value2, 
-            void *custom, bool fromThread)
-        : ev(ev), value1(value1), value2(value2), source(source), custom(custom), 
-            fromThread(fromThread) 
+    NativeAVSourceEvent(NativeAVSource *source, int ev, void *custom, bool fromThread)
+        : source(source), ev(ev), custom(custom), fromThread(fromThread) 
     {
-        //this->value = new int;
-        //memcpy(this->value, (void *)&value, sizeof(int));
     };
 };
 
@@ -211,7 +203,9 @@ class NativeAVSource
         static pthread_mutex_t ffmpegLock;
 
         void eventCallback(NativeAVSourceEventCallback cbk, void *custom);
-        void sendEvent(int ev, int value1, int value2, bool fromThread);
+        NativeAVSourceEvent *createEvent(int ev, bool fromThread);
+        void sendEvent(int ev, int value, bool fromThread);
+        void sendEvent(NativeAVSourceEvent *ev);
 
         virtual void play() = 0;
         virtual void pause() = 0;
@@ -220,7 +214,6 @@ class NativeAVSource
         virtual int open(const char *chroot, const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;
-        virtual void onProgress(size_t buffered, size_t total) = 0;
         
         virtual double getClock() = 0;
         virtual void seek(double time) = 0;

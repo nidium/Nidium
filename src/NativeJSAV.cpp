@@ -465,19 +465,21 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
 
             if (cmsg->ev == SOURCE_EVENT_ERROR) {
                 jsval event[2];
-                const char *errorStr = NativeAVErrorsStr[cmsg->value1];
+                int errorCode = cmsg->args[0].toInt();
+                const char *errorStr = NativeAVErrorsStr[errorCode];
 
-                event[0] = INT_TO_JSVAL(cmsg->value1);
+                event[0] = INT_TO_JSVAL(errorCode);
                 event[1] = STRING_TO_JSVAL(JS_NewStringCopyN(cx, errorStr, strlen(errorStr)));
 
                 JS_CallFunctionValue(cx, obj, jscbk, 2, event, &rval);
             } else if (cmsg->ev == SOURCE_EVENT_BUFFERING) {
                 jsval event[2];
 
-                event[0] = INT_TO_JSVAL(cmsg->value1);
-                event[1] = INT_TO_JSVAL(cmsg->value2);
+                event[0] = INT_TO_JSVAL(cmsg->args[0].toInt());
+                event[1] = INT_TO_JSVAL(cmsg->args[1].toInt());
+                event[2] = INT_TO_JSVAL(cmsg->args[2].toInt());
 
-                JS_CallFunctionValue(cx, obj, jscbk, 2, event, &rval);
+                JS_CallFunctionValue(cx, obj, jscbk, 3, event, &rval);
             } else {
                 JS_CallFunctionValue(cx, obj, jscbk, 0, NULL, &rval);
             }
