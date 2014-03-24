@@ -32,6 +32,7 @@
 #include <NativeJS.h>
 #include <NativePath.h>
 #include <NativeStreamInterface.h>
+#include <NativeUtils.h>
 
 #include <jsoncpp.h>
 #include <json.h>
@@ -447,7 +448,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                 return true;
                 break;
             case 1: // package.json
-                char *data;
+                char *data = NULL;
                 size_t size;
 
                 if (!NativeJSModules::getFileContent(dir.c_str(), &data, &size)) {
@@ -455,11 +456,11 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                     return false;
                 }
 
+                NativePtrAutoDelete<> npad(data, free);
+
                 Json::Value root;
                 Json::Reader reader;
                 bool parsingSuccessful = reader.parse(data, data + size, root);
-
-                free(data);
 
                 if (!parsingSuccessful) {
                     fprintf(stderr, "Failed to parse %s\n  %s", dir.c_str(), reader.getFormatedErrorMessages().c_str());
@@ -580,8 +581,9 @@ JS::Value NativeJSModule::require(char *name)
                 return ret;
             }
 
+            NativePtrAutoDelete<> npad(data, free);
+
             if (filesize == 0) {
-                free(data);
                 ret.setObject(*cmodule->exports);
                 return ret;
             }
@@ -590,17 +592,13 @@ JS::Value NativeJSModule::require(char *name)
                 fn = JS_CompileFunction(cx, cmodule->exports, 
                         "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
                 if (!fn) {
-                    free(data);
                     return ret;
                 }
-
-                free(data);
 
                 if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
                     return ret;
                 }
             } else {
-                // TODO: data leaks here
                 size_t len;
                 jschar *jchars;
                 jsval jsonData;
