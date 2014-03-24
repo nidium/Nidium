@@ -109,7 +109,7 @@ bool NativeJSModule::init()
         return false;
     }
 
-    NativePath p(this->filePath, false, true);
+    NativePath p(this->filePath);
 
     if (!p.dir()) {
         return false;
@@ -554,7 +554,8 @@ JS::Value NativeJSModule::require(char *name)
         // filePath is needed for cyclic deps check
         this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
         // absoluteDir is needed for findModulePath
-        this->absoluteDir = NativeStream::resolvePath(this->filePath, NativeStream::STREAM_RESOLVE_PATH);
+        NativePath p(this->filePath);
+        this->absoluteDir = strdup(p.dir());
         DPRINT("Global scope loading\n");
     } else {
         DPRINT("Module scope loading\n");
