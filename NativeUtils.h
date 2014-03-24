@@ -63,17 +63,22 @@ class NativePthreadAutoLock {
     pthread_mutex_t *lock;
 };
 
-class NativePtrAutoFree {
+template <typename T = void *>
+class NativePtrAutoDelete {
   public:
-    NativePtrAutoFree(void *ptr, void (*func)(void *) = free)
-      : m_Ptr(ptr), m_Free(free) {
+    NativePtrAutoDelete(T ptr, void (*func)(void *) = NULL)
+      : m_Ptr(ptr), m_Free(func) {
     }
 
-    ~NativePtrAutoFree() {
-        m_Free(m_Ptr);
+    ~NativePtrAutoDelete() {
+        if (!m_Free) {
+            delete m_Ptr;
+        } else {
+            m_Free(m_Ptr);
+        }
     }
   private:
-    void *m_Ptr;
+    T m_Ptr;
     void (*m_Free)(void *);
 };
 
