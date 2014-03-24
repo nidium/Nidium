@@ -1466,7 +1466,10 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString font(cx, JSVAL_TO_STRING(vp));
-            curSkia->setFontFile(font.ptr());          
+            if (!curSkia->setFontFile(font.ptr())) {
+                JS_ReportError(cx, "Cannot set font (invalid file)");
+                return false;
+            }       
         }
         break;
         case CTX_PROP(fillStyle):
