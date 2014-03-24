@@ -70,6 +70,14 @@ class NativePtrAutoDelete {
       : m_Ptr(ptr), m_Free(func) {
     }
 
+    T ptr() const {
+        return m_Ptr;
+    }
+
+    operator T() {
+        return m_Ptr;
+    }
+
     ~NativePtrAutoDelete() {
         if (!m_Free) {
             delete m_Ptr;
