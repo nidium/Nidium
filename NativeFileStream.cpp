@@ -99,7 +99,7 @@ bool NativeFileStream::getContentSync(char **data, size_t *len)
         return false;
     }
 
-    if (m_File.readSync(m_File.getFileSize(), data, &err) <= 0) {
+    if ((*len = m_File.readSync(m_File.getFileSize(), data, &err)) <= 0) {
         return false;
     }
 
