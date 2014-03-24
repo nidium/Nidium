@@ -91,6 +91,21 @@ void NativeFileStream::getContent()
     m_File.close();
 }
 
+bool NativeFileStream::getContentSync(char **data, size_t *len)
+{
+    int err;
+
+    if (!m_File.openSync("r", &err)) {
+        return false;
+    }
+
+    if (m_File.readSync(m_File.getFileSize(), data, &err) <= 0) {
+        return false;
+    }
+
+    return true;
+}
+
 size_t NativeFileStream::getFileSize() const
 {
     return m_File.getFileSize();

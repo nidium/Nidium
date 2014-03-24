@@ -41,11 +41,15 @@ public:
     static bool allowLocalFileStream() {
         return true;
     }
+    static bool allowSyncStream() {
+        return true;
+    }
 
     virtual ~NativeFileStream(){};
 
     virtual void stop();
     virtual void getContent();
+    virtual bool getContentSync(char **data, size_t *len);
     virtual size_t getFileSize() const;
     virtual void seek(size_t pos);
     

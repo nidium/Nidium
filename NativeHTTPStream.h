@@ -41,6 +41,10 @@ public:
     static bool allowLocalFileStream() {
         return false;
     }
+
+    static bool allowSyncStream() {
+        return false;
+    }
     
     virtual void stop();
     virtual void getContent();
