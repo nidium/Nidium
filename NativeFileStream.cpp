@@ -94,14 +94,18 @@ void NativeFileStream::getContent()
 bool NativeFileStream::getContentSync(char **data, size_t *len)
 {
     int err;
+    ssize_t slen;
 
     if (!m_File.openSync("r", &err)) {
         return false;
     }
 
-    if ((*len = m_File.readSync(m_File.getFileSize(), data, &err)) <= 0) {
+    if ((slen = m_File.readSync(m_File.getFileSize(), data, &err)) < 0) {
+        *len = 0;
         return false;
     }
+
+    *len = slen;
 
     return true;
 }
