@@ -29,7 +29,9 @@ class NativeArgs
 public:
     class NativeArgsValue {
     public:
-        NativeArgsValue() : m_Value(0) {}
+        NativeArgsValue() : m_Value(0LL), m_isSet(false) {
+            m_ValuePtr = NULL;
+        }
 
         void *toPtr() const {
             return m_ValuePtr;
@@ -41,10 +43,16 @@ public:
             return static_cast<uint32_t>(m_Value);
         }
 
+        bool isSet() const {
+            return m_isSet;
+        }
+
         void set(void *val) {
+            m_isSet = true;
             m_ValuePtr = val;
         }
         void set(int64_t val) {
+            m_isSet = true;
             m_Value = val;
         }
     private:
@@ -52,6 +60,8 @@ public:
             uint64_t m_Value;
             void *m_ValuePtr;
         };
+
+        bool m_isSet;
     };
     NativeArgs() {
         m_numArgs = 8;
