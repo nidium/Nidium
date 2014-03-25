@@ -25,44 +25,40 @@
 #include "NativeFileIO.h"
 #include "NativeFile.h"
 #include "NativeMessages.h"
+#include <ape_buffer.h>
 
-class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>, public NativeMessages
+class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
+                       public NativeMessages
 {
   public:
+    void onMessage(const NativeSharedMessages::Message &msg);
+
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
+
+    /*
+        output a jsval corresponding to the given data.
+        Encoding accepts : utf8, NULL, anything else.
+        In case encoding is NULL, the jsval is an arraybuffer.
+    */
+    static bool dataOutput(JSContext *cx, const char *buf, size_t len,
+        jsval *jsval, const char *encoding);
     
     NativeJSFileIO()  : m_Binary(true), m_Async(true) {
-        callbacks.open = JSVAL_NULL;
-        callbacks.getContents = JSVAL_NULL;
-        callbacks.read = JSVAL_NULL;
-        callbacks.write = JSVAL_NULL;
     };
 
-    ~NativeJSFileIO() {};
-
-    void onNFIOOpen(NativeFileIO *);
-    void onNFIOError(NativeFileIO *, int errno);
-    void onNFIORead(NativeFileIO *, unsigned char *data, size_t len);
-    void onNFIOWrite(NativeFileIO *, size_t written);
-
+    ~NativeJSFileIO() {
+    };
 
     NativeFile *getFile() const { return m_File; }
     void setFile(NativeFile *file) { m_File = file; }
-
-    struct {
-        jsval open;
-        jsval getContents;
-        jsval read;
-        jsval write;
-    } callbacks;
 
     JSObject *jsobj;
 
     bool m_Binary;
     bool m_Async;
   private:
-
+    void onRead(buffer *buf, jsval *vals, int *nvals);
     NativeFile *m_File;
 };
 
