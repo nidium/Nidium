@@ -224,9 +224,22 @@ void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVESTREAM_AVAILABLE_DATA:
             this->onAvailableData(0);
             return;
-        case NATIVESTREAM_ERROR:
-            //thiz->onError();
+        case NATIVESTREAM_ERROR: {
+            int err;
+            int streamErr = msg.args[0].toInt();
+
+            if (streamErr == NativeBaseStream::NATIVESTREAM_ERROR_OPEN) {
+                err = ERR_FAILED_OPEN;
+            } else if (streamErr == NativeBaseStream::NATIVESTREAM_ERROR_READ) {
+                err = ERR_READING;
+            } else {
+                err = ERR_IO;
+            }
+
+            this->source->sendEvent(SOURCE_EVENT_ERROR, err, false);
+
             return;
+        }
         case NATIVESTREAM_PROGRESS: {
             NativeAVSourceEvent *ev = this->source->createEvent(SOURCE_EVENT_BUFFERING, false);
             ev->args[0].set(msg.args[0].toInt64());

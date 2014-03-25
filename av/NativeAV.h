@@ -151,7 +151,7 @@ enum {
     ERR_SEEKING,
     ERR_INTERNAL,
     ERR_STREAMING_NOT_SUPPORTED,
-    ERR_UNKNOWN,
+    ERR_IO,
     ERR_MAX
 };
 
@@ -170,7 +170,7 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
     "Failed to seek",
     "Internal error",
     "HTTP Streaming on unknown file size is not supported yet",
-    "Unknown error"
+    "Input/Output error"
 }; 
 
 // Used for event (play, pause, stop, error, buffered...)
