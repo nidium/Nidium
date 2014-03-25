@@ -772,7 +772,7 @@ NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external)
     this->tmpFrame.nbSamples = 0;
 }
 
-int NativeAudioSource::open(const char *chroot, const char *src) 
+int NativeAudioSource::open(const char *src) 
 {
 #define RETURN_WITH_ERROR(err) \
 this->sendEvent(SOURCE_EVENT_ERROR, err, false);\
@@ -787,7 +787,7 @@ return err;
     this->mainCoro = Coro_new();
     Coro_initializeMainCoro(this->mainCoro);
 
-    this->reader = new NativeAVStreamReader(chroot, src, NativeAudio::sourceNeedWork, this->audio, this, this->audio->net);
+    this->reader = new NativeAVStreamReader(src, NativeAudio::sourceNeedWork, this->audio, this, this->audio->net);
 
     this->avioBuffer = (unsigned char *)av_malloc(NATIVE_AVIO_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE);
     if (!this->avioBuffer) {

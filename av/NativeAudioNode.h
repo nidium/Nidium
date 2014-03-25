@@ -307,7 +307,7 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         void pause();
         void stop();
         void close();
-        int open(const char *chroot, const char *src);
+        int open(const char *src);
         int open(void *buffer, int size);
         int openInit();
         static void openInitCoro(void *arg);

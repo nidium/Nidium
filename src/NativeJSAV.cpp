@@ -1728,7 +1728,7 @@ static JSBool native_audionode_source_open(JSContext *cx, unsigned argc, jsval *
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());
-        ret = source->open(NativeJS::getNativeClass(cx)->getPath(), csrc.ptr());
+        ret = source->open(csrc.ptr());
     } else if (src.isObject()) {
         JSObject *arrayBuff = src.toObjectOrNull();
 
@@ -2069,7 +2069,7 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
 
     if (src.isString()) {
         JSAutoByteString csrc(cx, src.toString());
-        ret = v->video->open(NativeJS::getNativeClass(cx)->getPath(), csrc.ptr());
+        ret = v->video->open(csrc.ptr());
     } else if (src.isObject()) {
         JSObject *arrayBuff = src.toObjectOrNull();
 

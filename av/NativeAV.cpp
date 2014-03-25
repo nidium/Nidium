@@ -64,14 +64,14 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 
 
 #define STREAM_BUFFER_SIZE NATIVE_AVIO_BUFFER_SIZE*6
-NativeAVStreamReader::NativeAVStreamReader(const char *chroot, const char *src,
+NativeAVStreamReader::NativeAVStreamReader(const char *src,
         NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net)
     : source(source), totalRead(0), readCallback(readCallback), callbackPrivate(callbackPrivate),
       opened(false), streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0),
       streamBuffer(NULL), error(0)
 {
     this->async = true;
-    this->stream = NativeBaseStream::create(src);
+    this->stream = NativeBaseStream::create(NativePath(src));
     //this->stream->setAutoClose(false);
     this->stream->start(STREAM_BUFFER_SIZE);
     this->stream->setListener(this);

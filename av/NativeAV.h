@@ -79,7 +79,7 @@ typedef void (*NativeAVStreamReadCallback)(void *callbackPrivate);
 class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 {
     public:
-        NativeAVStreamReader(const char *chroot, const char *src, NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net);
+        NativeAVStreamReader(const char *src, NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net);
 
         NativeAVSource *source;
         int64_t totalRead;
@@ -211,7 +211,7 @@ class NativeAVSource
         virtual void pause() = 0;
         virtual void stop() = 0;
         virtual void close() = 0;
-        virtual int open(const char *chroot, const char *src) = 0;
+        virtual int open(const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;
         
