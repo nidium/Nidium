@@ -627,12 +627,12 @@ bool NativeSkia::setFontFile(const char *str)
     if ((stream = fontPath.createStream(true)) == NULL) {
         return false;
     }
+
+    NativePtrAutoDelete<NativeBaseStream *> npad(stream);
+
     if (!stream->getContentSync(&data, &len)) {
-        delete stream;
         return false;
     }
-
-    delete stream;
 
     SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
     free(data);
