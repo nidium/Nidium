@@ -510,7 +510,7 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
 
     jsval ret;
 
-    if (!NativeJSFileIO::dataOutput(cx, buf, len, &ret, cencoding)) {
+    if (!NativeJSFileIO::strToJsval(cx, buf, len, &ret, cencoding)) {
         return false;
     }
 
@@ -715,7 +715,7 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
     return ret;
 }
 
-bool NativeJSFileIO::dataOutput(JSContext *cx, const char *buf, size_t len, jsval *ret,
+bool NativeJSFileIO::strToJsval(JSContext *cx, const char *buf, size_t len, jsval *ret,
     const char *encoding)
 {
     *ret = JSVAL_NULL;

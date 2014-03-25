@@ -41,7 +41,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
         Encoding accepts : utf8, NULL, anything else.
         In case encoding is NULL, the jsval is an arraybuffer.
     */
-    static bool dataOutput(JSContext *cx, const char *buf, size_t len,
+    static bool strToJsval(JSContext *cx, const char *buf, size_t len,
         jsval *jsval, const char *encoding);
     
     NativeJSFileIO()  : m_Binary(true), m_Async(true) {
