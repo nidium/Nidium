@@ -4,6 +4,8 @@
         'type': 'static_library',
         'include_dirs': [
             '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/dist/include/',
+            '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/',
+            '<(DEPTH)/<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
             '<(DEPTH)/<(third_party_path)/c-ares/',
             '<(DEPTH)/<(third_party_path)/http-parser/',
             '<(DEPTH)/<(third_party_path)/leveldb/include/',
