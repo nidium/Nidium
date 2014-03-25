@@ -53,7 +53,7 @@ class NativeSharedMessages
                 msgdata.dataint = dataint;
             }
 
-            Message(int type) : type(type), m_Dest(NULL) {
+            Message(int type) : prev(NULL), type(type), m_Dest(NULL) {
             }
 
             ~Message() {}
