@@ -41,6 +41,7 @@ class NativeUtils
 {
     public:
     static uint64_t getTick();
+    static uint16_t *Utf8ToUtf16(const char *str, size_t len, size_t *outputlen);
     static bool isMainThread()
     {
         // TODO : Windows support and better implementation
@@ -76,6 +77,10 @@ class NativePtrAutoDelete {
 
     operator T() {
         return m_Ptr;
+    }
+
+    void disable() {
+        m_Ptr = NULL;
     }
 
     ~NativePtrAutoDelete() {

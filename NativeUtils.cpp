@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <jsstr.h>
 
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
@@ -112,4 +113,17 @@ static __inline uint64_t mach_absolute_time()
 uint64_t NativeUtils::getTick()
 {
     return mach_absolute_time();
+}
+
+
+uint16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputlen)
+{
+    *outputlen = sizeof(jschar) * (len + 1);
+
+    jschar *jsc = (jschar *)malloc(*outputlen);
+    if (!js::InflateUTF8StringToBufferReplaceInvalid(NULL, str, len, jsc, outputlen)) {
+        return NULL;
+    }
+
+    return jsc;
 }
