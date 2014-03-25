@@ -131,7 +131,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             /* do nothing */
             break;
         case NATIVEFILE_OPEN_ERROR:
-            this->error(NATIVESTREAM_ERROR_OPEN, msg.dataUInt());
+            this->error(NATIVESTREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
         case NATIVEFILE_SEEK_ERROR:
             this->error(NATIVESTREAM_ERROR_SEEK, -1);
@@ -140,7 +140,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             m_PendingSeek = false;
             break;
         case NATIVEFILE_READ_ERROR:
-            this->error(NATIVESTREAM_ERROR_READ, msg.dataUInt());
+            this->error(NATIVESTREAM_ERROR_READ, msg.args[0].toInt());
             break;
         case NATIVEFILE_READ_SUCCESS:
         {
@@ -151,7 +151,7 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
                 the buffer is automatically detroyed by NativeFile
                 after the return of this function
             */
-            buffer *buf = (buffer *)msg.dataPtr();
+            buffer *buf = (buffer *)msg.args[0].toPtr();
 
             if (m_File.eof()) {
                 m_DataBuffer.ended = true;

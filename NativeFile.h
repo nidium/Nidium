@@ -89,7 +89,7 @@ public:
     void onMessageLost(const NativeSharedMessages::Message &msg);
 private:
     bool checkEOF();
-    void checkRead(bool async = true);
+    void checkRead(bool async = true, void *arg = NULL);
 
     FILE *m_Fd;
     NativeMessages *m_Delegate;

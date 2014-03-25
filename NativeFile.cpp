@@ -26,9 +26,12 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#define NATIVE_FILE_NOTIFY(param, event) \
+#define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
-        this->postMessage(param, event); \
+        NativeSharedMessages::Message *__msg = new NativeSharedMessages::Message(event); \
+        __msg->args[0].set(param); \
+        __msg->args[7].set(arg); \
+        this->postMessage(__msg); \
     } while(0);
 
 enum {
@@ -101,14 +104,14 @@ void NativeFile::openTask(const char *mode, void *arg)
 {
     if (this->isOpen()) {
         // seek(0)?
-        NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS);
+        NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS, arg);
         return;
     }
 
     m_Fd = fopen(m_Path, mode);
 
     if (m_Fd == NULL) {
-        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR);
+        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
         return;
     }
     
@@ -116,7 +119,7 @@ void NativeFile::openTask(const char *mode, void *arg)
     m_Filesize = ftell(m_Fd);
     fseek(m_Fd, 0L, SEEK_SET);
 
-    NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS);
+    NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS, arg);
 }
 
 /*
@@ -130,7 +133,7 @@ void NativeFile::closeTask(void *arg)
 
     fclose(m_Fd);
     if (!m_OpenSync) {
-        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS);
+        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS, arg);
     }
     m_Fd = NULL;
 }
@@ -141,7 +144,7 @@ void NativeFile::closeTask(void *arg)
 void NativeFile::readTask(size_t size, void *arg)
 {
     if (!this->isOpen()) {
-        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_READ_ERROR);
+        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_READ_ERROR, arg);
         return;
     }
 
@@ -158,7 +161,7 @@ void NativeFile::readTask(size_t size, void *arg)
     buffer *buf = buffer_new(clamped_len + 1);
 
     if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {        
-        this->checkRead();
+        this->checkRead(true, arg);
         buffer_destroy(buf);
         return;
     }
@@ -167,7 +170,7 @@ void NativeFile::readTask(size_t size, void *arg)
 
     buf->data[buf->used] = '\0';
 
-    NATIVE_FILE_NOTIFY(buf, NATIVEFILE_READ_SUCCESS);
+    NATIVE_FILE_NOTIFY((void *)buf, NATIVEFILE_READ_SUCCESS, arg);
 }
 
 /*
@@ -176,7 +179,7 @@ void NativeFile::readTask(size_t size, void *arg)
 void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 {
     if (!this->isOpen()) {
-        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_WRITE_ERROR);
+        NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_WRITE_ERROR, arg);
         return;
     }
 
@@ -189,7 +192,7 @@ void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
     */
     m_Filesize = ftell(m_Fd);
 
-    NATIVE_FILE_NOTIFY(writelen, NATIVEFILE_WRITE_SUCCESS);
+    NATIVE_FILE_NOTIFY(writelen, NATIVEFILE_WRITE_SUCCESS, arg);
 }
 
 /*
@@ -202,11 +205,11 @@ void NativeFile::seekTask(size_t pos, void *arg)
     }
 
     if (fseek(m_Fd, pos, SEEK_SET) == -1) {
-        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_SEEK_ERROR);
+        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_SEEK_ERROR, arg);
         return;
     }
 
-    NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_SEEK_SUCCESS);
+    NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_SEEK_SUCCESS, arg);
 }
 
 void NativeFile::open(const char *mode, void *arg)
@@ -280,7 +283,7 @@ bool NativeFile::checkEOF()
     return m_Eof;
 }
 
-void NativeFile::checkRead(bool async)
+void NativeFile::checkRead(bool async, void *arg)
 {
     int err = -1;
 
@@ -291,7 +294,7 @@ void NativeFile::checkRead(bool async)
     }
 
     if (async && err != -1) {
-        NATIVE_FILE_NOTIFY(err, NATIVEFILE_READ_ERROR);
+        NATIVE_FILE_NOTIFY(err, NATIVEFILE_READ_ERROR, arg);
     }
 }
 
@@ -312,7 +315,7 @@ void NativeFile::onMessage(const NativeSharedMessages::Message &msg)
     switch(msg.event()) {
         case NATIVEFILE_READ_SUCCESS:
         {
-            buffer *buf = (buffer *)msg.dataPtr();
+            buffer *buf = (buffer *)msg.args[0].toPtr();
             buffer_delete(buf);
             break;
         }
@@ -324,7 +327,7 @@ void NativeFile::onMessageLost(const NativeSharedMessages::Message &msg)
     switch(msg.event()) {
         case NATIVEFILE_READ_SUCCESS:
         {
-            buffer *buf = (buffer *)msg.dataPtr();
+            buffer *buf = (buffer *)msg.args[0].toPtr();
             buffer_delete(buf);
             break;
         }
