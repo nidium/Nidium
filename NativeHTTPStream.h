@@ -52,9 +52,15 @@ public:
 
     virtual size_t getFileSize() const;
     virtual bool hasDataAvailable() const;
+
+    void notifyAvailable();
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
+
+    bool readComplete() const {
+        return m_BytesBuffered == m_Mapped.size;
+    }
 private:
     NativeHTTP *m_Http;
 
@@ -63,8 +69,6 @@ private:
         NativeHTTP::DataType);
     void onError(NativeHTTP::HTTPError err);
     void onHeader();
-
-    void notifyAvailable();
     void cleanCacheFile();
 
     struct {

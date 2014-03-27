@@ -75,8 +75,8 @@ bool NativeHTTPStream::hasDataAvailable() const
         Returns true if we have either enough data buffered or
         if the stream reached the end of file
     */
-    return (m_BytesBuffered - m_LastReadUntil >= m_PacketsSize ||
-        (m_LastReadUntil != m_BytesBuffered && m_BytesBuffered == m_Mapped.size));
+    return !m_PendingSeek && ((m_BytesBuffered - m_LastReadUntil >= m_PacketsSize ||
+        (m_LastReadUntil != m_BytesBuffered && this->readComplete())));
 }
 
 const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
@@ -123,6 +123,14 @@ size_t NativeHTTPStream::getFileSize() const
     return m_Http->getFileSize();
 }
 
+int NativeHTTPStream_notifyAvailable(void *arg)
+{
+    NativeHTTPStream *http = (NativeHTTPStream *)arg;
+
+    http->notifyAvailable();
+    return 0;
+}
+
 void NativeHTTPStream::seek(size_t pos)
 {
     size_t max = m_StartPosition + m_BytesBuffered;
@@ -130,13 +138,19 @@ void NativeHTTPStream::seek(size_t pos)
     /*
         We can read directly from our buffer
     */
-    if (pos >= m_StartPosition && pos < max - m_PacketsSize) {
-        m_LastReadUntil = pos - m_StartPosition;
+    if (pos >= m_StartPosition && pos < max &&
+        (pos <= max - m_PacketsSize || this->readComplete())) {
 
-        this->notifyAvailable();
+        ape_global *ape = NativeJS::getNet();
+        m_LastReadUntil = pos - m_StartPosition;
+        m_PendingSeek = true;
+        m_NeedToSendUpdate = false;
+
+        timer_dispatch_async(NativeHTTPStream_notifyAvailable, this);
+
         return;
     }
-
+    printf("seek out of data...\n");
     /*
         We need to seek in HTTP
     */
@@ -159,7 +173,9 @@ void NativeHTTPStream::seek(size_t pos)
 
 void NativeHTTPStream::notifyAvailable()
 {
+    m_PendingSeek = false;
     m_NeedToSendUpdate = false;
+
     CREATE_MESSAGE(message_available, NATIVESTREAM_AVAILABLE_DATA);
     message_available->args[0].set(m_BytesBuffered - m_LastReadUntil);
     
