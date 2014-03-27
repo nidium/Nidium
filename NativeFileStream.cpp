@@ -24,7 +24,7 @@
 NativeFileStream::NativeFileStream(const char *location) : 
     NativeBaseStream(location), m_File(location)
 {
-    /* We don't want the file to close when end of file reached */
+    /* We don't want the file to close when end of file is reached */
     m_File.setAutoClose(false);
     m_File.setListener(this);
 }
@@ -119,6 +119,10 @@ size_t NativeFileStream::getFileSize() const
 
 void NativeFileStream::seek(size_t pos)
 {
+    if (!m_File.isOpen()) {
+        return;
+    }
+
     m_File.seek(pos);
     m_File.read(m_PacketsSize);
     m_PendingSeek = true;
