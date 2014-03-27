@@ -43,11 +43,19 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
     */
     static bool strToJsval(JSContext *cx, const char *buf, size_t len,
         jsval *jsval, const char *encoding);
-    
-    NativeJSFileIO()  : m_Binary(true), m_Async(true) {
+
+    static bool handleError(JSContext *cx, const NativeSharedMessages::Message &msg, jsval &vals);
+    static bool callbackForMessage(JSContext *cx,
+        const NativeSharedMessages::Message &msg,
+        JSObject *thisobj, const char *encoding = NULL);
+
+    NativeJSFileIO()  : m_Encoding(NULL) {
     };
 
     ~NativeJSFileIO() {
+        if (m_Encoding) {
+            free(m_Encoding);
+        }
     };
 
     NativeFile *getFile() const { return m_File; }
@@ -55,10 +63,8 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
 
     JSObject *jsobj;
 
-    bool m_Binary;
-    bool m_Async;
+    char *m_Encoding;
   private:
-    void onRead(buffer *buf, jsval *vals, int *nvals);
     NativeFile *m_File;
 };
 
