@@ -311,7 +311,7 @@ void NativeCanvasContext::updateMatrix(double left, double top,
 
     m_Transform.preScale(SkFloatToScalar(ratioX), SkFloatToScalar(ratioY), 1);
 
-    if (m_GLState->m_GLObjects.uniforms.u_projectionMatrix != 0) {
+    if (m_GLState->m_GLObjects.uniforms.u_projectionMatrix != -1) {
         GLfloat mat4[16];
         m_Transform.asColMajorf(mat4);
         NATIVE_GL_CALL(m_GLState, UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4));
