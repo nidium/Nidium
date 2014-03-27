@@ -24,6 +24,8 @@
 NativeFileStream::NativeFileStream(const char *location) : 
     NativeBaseStream(location), m_File(location)
 {
+    /* We don't want the file to close when end of file reached */
+    m_File.setAutoClose(false);
     m_File.setListener(this);
 }
 
@@ -122,6 +124,7 @@ void NativeFileStream::seek(size_t pos)
     m_PendingSeek = true;
     m_DataBuffer.back->used = 0;
     m_NeedToSendUpdate = true;
+    m_DataBuffer.ended = false;
 }
 
 void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
@@ -134,10 +137,12 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             this->error(NATIVESTREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
         case NATIVEFILE_SEEK_ERROR:
+            printf("seek error\n");
             this->error(NATIVESTREAM_ERROR_SEEK, -1);
             /* fall through */
         case NATIVEFILE_SEEK_SUCCESS:
             m_PendingSeek = false;
+            printf("seek ok :)\n");
             break;
         case NATIVEFILE_READ_ERROR:
             this->error(NATIVESTREAM_ERROR_READ, msg.args[0].toInt());

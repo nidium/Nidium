@@ -266,7 +266,7 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
 
     switch (msg.event()) {
         case NATIVESTREAM_AVAILABLE_DATA:
-            if (JS_GetProperty(this->cx, obj, "onAvailableData", &onavailable_callback) &&
+            if (JS_GetProperty(this->cx, obj, "onavailabledata", &onavailable_callback) &&
                 JS_TypeOfValue(this->cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
                 JS_CallFunctionValue(this->cx, obj, onavailable_callback,
