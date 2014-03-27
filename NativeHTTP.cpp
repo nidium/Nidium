@@ -250,8 +250,10 @@ static void native_http_disconnect(ape_socket *s,
 
     nhttp->clearTimeout();
 
-    http_parser_execute(&nhttp->http.parser, &settings,
-        NULL, 0);
+    if (!nhttp->isParsing()) {
+        http_parser_execute(&nhttp->http.parser, &settings,
+            NULL, 0);
+    }
 
     nhttp->m_CurrentSock = NULL;
 
@@ -270,8 +272,10 @@ static void native_http_read(ape_socket *s, ape_global *ape,
         return;
     }
 
+    nhttp->parsing(true);
     nparsed = http_parser_execute(&nhttp->http.parser, &settings,
         (const char *)s->data_in.data, (size_t)s->data_in.used);
+    nhttp->parsing(false);
 
     if (nparsed != s->data_in.used && !nhttp->http.ended) {
         printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, nparsed,
@@ -286,7 +290,7 @@ static void native_http_read(ape_socket *s, ape_global *ape,
 NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
     ptr(NULL), net(n), m_CurrentSock(NULL),
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
-    m_TimeoutTimer(0), delegate(NULL), m_FileSize(0)
+    m_TimeoutTimer(0), delegate(NULL), m_FileSize(0), m_isParsing(false)
 {
     this->req = req;
 
@@ -373,7 +377,7 @@ void NativeHTTP::headerEnded()
 void NativeHTTP::stopRequest(bool timeout)
 {
     this->clearTimeout();
-    
+
     if (!http.ended) {
         if (http.headers.list) {
             ape_array_destroy(http.headers.list);
@@ -393,7 +397,10 @@ void NativeHTTP::stopRequest(bool timeout)
         if (timeout) {
             this->delegate->onError(ERROR_TIMEOUT);
         }
-        http_parser_execute(&http.parser, &settings, NULL, 0);
+
+        if (!m_isParsing) {
+            http_parser_execute(&http.parser, &settings, NULL, 0);
+        }
     }
 }
 
@@ -476,7 +483,6 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
         ctimer->flags &= ~APE_TIMER_IS_PROTECTED;
         m_TimeoutTimer = ctimer->identifier;
     }
-
     return 1;
 }
 

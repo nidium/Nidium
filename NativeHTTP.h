@@ -168,6 +168,14 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
     void setPrivate(void *ptr);
     void *getPrivate();
 
+    void parsing(bool val) {
+        m_isParsing = val;
+    }
+
+    bool isParsing() const {
+        return m_isParsing;
+    }
+
     void resetData() {
         if (http.data == NULL) {
             return;
@@ -193,6 +201,7 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
     private:
         NativeHTTPRequest *req;
         uint64_t m_FileSize;
+        bool m_isParsing; // http_parser_execute is working
 };
 
 class NativeHTTPDelegate
