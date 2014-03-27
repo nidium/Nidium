@@ -230,6 +230,14 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
     return NIDIUM_XML_OK;
 }
 
+void NativeNML::loadDefaultItems(NativeAssets *assets)
+{
+    NativeAssets::Item *item = new NativeAssets::Item("private://falcon/native.js",
+        NativeAssets::Item::ITEM_SCRIPT, net);
+
+    assets->addToPendingList(item);
+}
+
 NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
 {
 
@@ -241,6 +249,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         NativeNML_onAssetsReady, this);
 
     this->addAsset(assets);
+    this->loadDefaultItems(assets);
 
     for (xml_node<> *child = node.first_node(); child != NULL;
         child = child->next_sibling())

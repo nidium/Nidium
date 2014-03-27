@@ -39,6 +39,7 @@ public:
     void onMessage(const NativeSharedMessages::Message &msg);
     void loadFile(const char *filename, NMLLoadedCallback cb, void *arg);
 
+    void loadDefaultItems(NativeAssets *assets);
     nidium_xml_ret_t loadAssets(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadMeta(rapidxml::xml_node<> &node);
     nidium_xml_ret_t loadLayout(rapidxml::xml_node<> &node);
