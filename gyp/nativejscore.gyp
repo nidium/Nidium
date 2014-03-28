@@ -72,6 +72,7 @@
             '../NativeWebSocket.cpp',
             '../NativeJSWebSocket.cpp',
             '../NativePath.cpp',
+            '../NativeJSUtils.cpp',
         ],
     }],
 }
