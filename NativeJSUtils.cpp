@@ -55,7 +55,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::V
     return true;
 }
 
-static JSString *newStringWithEncoding(JSContext *cx, const char *buf,
+JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
         size_t len, const char *encoding)
 {
 
