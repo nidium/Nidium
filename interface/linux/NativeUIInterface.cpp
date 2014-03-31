@@ -385,6 +385,8 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         console = new NativeUIX11Console();
 
         this->initialized = true;
+    } else {
+        this->setWindowSize(width, height);
     }
 
     //NJS = new NativeJS(kNativeWidth, kNativeHeight);
@@ -704,9 +706,9 @@ void NativeX11UIInterface::stopApplication()
     if (this->nml) delete this->nml;
     if (this->NativeCtx) {
         delete this->NativeCtx;
+        this->NativeCtx = NULL;
         NativeMessages::destroyReader();
     }
-    this->NativeCtx = NULL;
     this->nml = NULL;
     glClearColor(1, 1, 1, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
