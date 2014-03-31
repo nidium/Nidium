@@ -20,6 +20,13 @@
 
 #include "NativeJSSocket.h"
 #include "NativeJS.h"
+#include "NativeJSUtils.h"
+
+enum {
+    SOCKET_PROP_BINARY,
+    SOCKET_PROP_READLINE,
+    SOCKET_PROP_ENCODING
+};
 
 /* only use on connected clients */
 #define NATIVE_SOCKET_JSOBJECT(socket) ((JSObject *)socket->ctx)
@@ -73,20 +80,27 @@ static JSPropertySpec Socket_props[] = {
     JSOP_WRAPPER(native_socket_prop_set)},
     {"readline", SOCKET_PROP_READLINE, 0, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_socket_prop_set)},
+    {"encoding", SOCKET_PROP_ENCODING, 0, JSOP_NULLWRAPPER,
+    JSOP_WRAPPER(native_socket_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get());
+    if (nsocket == NULL) {
+        JS_ReportError(cx, "Invalid socket object");
+        return false;
+    }
+
     switch(JSID_TO_INT(id)) {
         case SOCKET_PROP_BINARY:
         {
             NativeJSSocket *nsocket;
-            if (JSVAL_IS_BOOLEAN(vp) &&
-                (nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get())) != NULL) {
+            if (vp.isBoolean()) {
 
-                nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
+                nsocket->flags = (vp.toBoolean() == JS_TRUE ?
                     nsocket->flags | NATIVE_SOCKET_ISBINARY :
                     nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
 
@@ -98,15 +112,13 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case SOCKET_PROP_READLINE:
         {
-            NativeJSSocket *nsocket;
-            if (JSVAL_IS_BOOLEAN(vp) &&
-                (nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get())) != NULL) {
+            if (vp.isBoolean()) {
 
-                nsocket->flags = (JSVAL_TO_BOOLEAN(vp) == JS_TRUE ?
+                nsocket->flags = (vp.toBoolean() == JS_TRUE ?
                     nsocket->flags | NATIVE_SOCKET_READLINE :
                     nsocket->flags & ~NATIVE_SOCKET_READLINE);
 
-                if (JSVAL_TO_BOOLEAN(vp) == JS_TRUE &&
+                if (vp.toBoolean() == JS_TRUE &&
                     nsocket->lineBuffer.data == NULL) {
 
                     nsocket->lineBuffer.data = (char *)malloc(sizeof(char)
@@ -118,7 +130,14 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
         }
-        break;        
+        break;
+        case SOCKET_PROP_ENCODING:
+        {
+            if (vp.isString()) {
+                JSAutoByteString enc(cx, vp.toString());
+                nsocket->m_Encoding = strdup(enc.ptr());
+            }
+        }
         default:
             break;
     }
@@ -180,16 +199,18 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     }
 }
 
-inline static void native_socket_readcb(NativeJSSocket *nsocket, char *data, size_t len)
+inline static void native_socket_readcb_lines(NativeJSSocket *nsocket, char *data, size_t len)
 {
+
     jsval onread, rval, jdata;
     JSContext *cx = nsocket->cx;
-    JSString *tstr = JS_NewStringCopyN(cx, data, len);
+    //JSString *tstr = JS_NewStringCopyN(cx, data, len);
+    JSString *tstr = NativeJSUtils::newStringWithEncoding(cx, data, len, nsocket->m_Encoding);
     JSString *jstr = tstr;
 
     if (nsocket->lineBuffer.pos && nsocket->flags & NATIVE_SOCKET_READLINE) {
-        JSString *left = JS_NewStringCopyN(cx, nsocket->lineBuffer.data,
-            nsocket->lineBuffer.pos);
+        JSString *left = NativeJSUtils::newStringWithEncoding(cx, nsocket->lineBuffer.data,
+            nsocket->lineBuffer.pos, nsocket->m_Encoding);
 
         jstr = JS_ConcatStrings(cx, left, tstr);
         nsocket->lineBuffer.pos = 0;
@@ -248,12 +269,8 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
         jparams[0] = OBJECT_TO_JSVAL(arrayBuffer);
 
     } else {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)packet, len);
+        JSString *jstr = NativeJSUtils::newStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding);
 
-        if (jstr == NULL) {
-            printf("JS_NewStringCopyN Failed\n");
-            return;
-        }
         jparams[0] = STRING_TO_JSVAL(jstr);        
     }
 
@@ -307,7 +324,7 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {
-                native_socket_readcb(nsocket, pBuf, pLen);
+                native_socket_readcb_lines(nsocket, pBuf, pLen);
                 pBuf = eol+1;
             }
         }
@@ -322,13 +339,9 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
         return;
 
     } else {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)socket_client->data_in.data,
-            socket_client->data_in.used);
+        JSString *jstr = NativeJSUtils::newStringWithEncoding(cx, (char *)socket_client->data_in.data,
+            socket_client->data_in.used, nsocket->m_Encoding);
 
-        if (jstr == NULL) {
-            printf("JS_NewStringCopyN Failed\n");
-            return;
-        }
         jparams[1] = STRING_TO_JSVAL(jstr);        
     }
 
@@ -371,7 +384,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {
-                native_socket_readcb(nsocket, pBuf, pLen);
+                native_socket_readcb_lines(nsocket, pBuf, pLen);
                 pBuf = eol+1;
             }
         }
@@ -386,13 +399,9 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
         return;
 
     } else {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)s->data_in.data,
-            s->data_in.used);
+        JSString *jstr = NativeJSUtils::newStringWithEncoding(cx,
+            (char *)s->data_in.data, s->data_in.used, nsocket->m_Encoding);
 
-        if (jstr == NULL) {
-            printf("JS_NewStringCopyN Failed\n");
-            return;
-        }
         jdata = STRING_TO_JSVAL(jstr);        
     }
 
@@ -848,6 +857,8 @@ NativeJSSocket::NativeJSSocket(const char *host, unsigned short port)
 
     lineBuffer.pos = 0;
     lineBuffer.data = NULL;
+
+    m_Encoding = NULL;
 }
 
 NativeJSSocket::~NativeJSSocket()
@@ -859,6 +870,10 @@ NativeJSSocket::~NativeJSSocket()
     free(host);
     if (lineBuffer.data) {
         free(lineBuffer.data);
+    }
+
+    if (m_Encoding) {
+        free(m_Encoding);
     }
 }
 

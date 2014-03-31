@@ -36,14 +36,6 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
 
-    /*
-        output a jsval corresponding to the given data.
-        Encoding accepts : utf8, NULL, anything else.
-        In case encoding is NULL, the jsval is an arraybuffer.
-    */
-    static bool strToJsval(JSContext *cx, const char *buf, size_t len,
-        jsval *jsval, const char *encoding);
-
     static bool handleError(JSContext *cx, const NativeSharedMessages::Message &msg, jsval &vals);
     static bool callbackForMessage(JSContext *cx,
         const NativeSharedMessages::Message &msg,

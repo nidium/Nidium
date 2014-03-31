@@ -18,13 +18,14 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// sync API should have a different constructor (new FileSync)
+
 #include "NativeJSFileIO.h"
 #include <native_netlib.h>
 #include <NativePath.h>
 #include <NativeStreamInterface.h>
 
-#include <string>
-#include <jsstr.h>
+#include "NativeJSUtils.h"
 
 enum {
     FILE_PROP_FILESIZE,
@@ -32,7 +33,6 @@ enum {
     FILE_PROP_BINARY,
     FILE_PROP_ASYNC
 };
-
 
 class NativeJSFileAsyncReader : public NativeMessages
 {
@@ -57,7 +57,7 @@ public:
             {
                 jsval ret;
                 buffer *buf = (buffer *)msg.args[0].toPtr();
-                if (NativeJSFileIO::strToJsval(cx, (const char *)buf->data,
+                if (NativeJSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, &ret, encoding)) {
                     
                     params[1] = ret;
@@ -476,7 +476,7 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
 
     jsval ret;
 
-    if (!NativeJSFileIO::strToJsval(cx, buf, len, &ret, cencoding)) {
+    if (!NativeJSUtils::strToJsval(cx, buf, len, &ret, cencoding)) {
         return false;
     }
 
@@ -576,9 +576,8 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
         switch (msg.event()) {
             case NATIVEFILE_READ_SUCCESS:
             {
-                printf("suucess read?\n");
                 buffer *buf = (buffer *)msg.args[0].toPtr();
-                NativeJSFileIO::strToJsval(cx, (const char *)buf->data,
+                NativeJSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, &params[1], encoding);
                 break;
             }
@@ -660,48 +659,4 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
     JS_SetPrivate(ret, NJSFIO);
 
     return ret;
-}
-
-bool NativeJSFileIO::strToJsval(JSContext *cx, const char *buf, size_t len, jsval *ret,
-    const char *encoding)
-{
-    *ret = JSVAL_NULL;
-
-    if (encoding) {
-        if (strcasecmp(encoding, "utf8") == 0) {
-            size_t jlen = 0;
-
-            NativePtrAutoDelete<jschar *> content(NativeUtils::Utf8ToUtf16(buf, len, &jlen));
-
-            if (content.ptr() == NULL) {
-                JS_ReportError(cx, "Could not decode string to utf8");
-                return false;
-            }
-
-            JSString *str = JS_NewUCString(cx, content.ptr(), jlen);
-            if (!str) {
-                return false;
-            }
-
-            content.disable(); /* JS_NewUCString took ownership */
-            *ret = STRING_TO_JSVAL(str);
-
-        } else {
-            *ret = STRING_TO_JSVAL(JS_NewStringCopyN(cx, buf, len));
-        }
-    } else {
-        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
-
-        if (arrayBuffer == NULL) {
-            JS_ReportOutOfMemory(cx);
-            return false;
-        } else {
-            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
-            memcpy(adata, buf, len);
-
-            *ret = OBJECT_TO_JSVAL(arrayBuffer);
-        }        
-    }
-
-    return true;
 }

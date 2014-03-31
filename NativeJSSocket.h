@@ -30,10 +30,6 @@ enum {
     NATIVE_SOCKET_ISSERVER = 1 << 2
 };
 
-enum {
-    SOCKET_PROP_BINARY,
-    SOCKET_PROP_READLINE
-};
 
 #define SOCKET_LINEBUFFER_MAX 8192
 
@@ -59,6 +55,8 @@ class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
     unsigned short port;
     ape_socket *socket;
     int flags;
+
+    char *m_Encoding;
 
     struct {
         char *data;

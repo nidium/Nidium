@@ -30,27 +30,14 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::V
     *ret = JSVAL_NULL;
 
     if (encoding) {
-        if (strcasecmp(encoding, "utf8") == 0) {
-            size_t jlen = 0;
 
-            NativePtrAutoDelete<jschar *> content(NativeUtils::Utf8ToUtf16(buf, len, &jlen));
-
-            if (content.ptr() == NULL) {
-                JS_ReportError(cx, "Could not decode string to utf8");
-                return false;
-            }
-
-            JSString *str = JS_NewUCString(cx, content.ptr(), jlen);
-            if (!str) {
-                return false;
-            }
-
-            content.disable(); /* JS_NewUCString took ownership */
-            *ret = STRING_TO_JSVAL(str);
-
-        } else {
-            *ret = STRING_TO_JSVAL(JS_NewStringCopyN(cx, buf, len));
+        JSString *str = NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding);
+        if (!str) {
+            return false;
         }
+
+        *ret = STRING_TO_JSVAL(str);
+
     } else {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
 
@@ -66,4 +53,29 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::V
     }
 
     return true;
+}
+
+static JSString *newStringWithEncoding(JSContext *cx, const char *buf,
+        size_t len, const char *encoding)
+{
+
+    if (encoding != NULL && strcasecmp(encoding, "utf8") == 0) {
+        size_t jlen = 0;
+
+        NativePtrAutoDelete<jschar *> content(NativeUtils::Utf8ToUtf16(buf, len, &jlen));
+
+        if (content.ptr() == NULL) {
+            JS_ReportError(cx, "Could not decode string to utf8");
+            return NULL;
+        }
+
+        JSString *str = JS_NewUCString(cx, content.ptr(), jlen);
+
+        content.disable(); /* JS_NewUCString took ownership */
+        
+        return str;
+
+    }
+
+    return JS_NewStringCopyN(cx, buf, len);
 }

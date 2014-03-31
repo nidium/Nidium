@@ -33,6 +33,9 @@ public:
     */
     static bool strToJsval(JSContext *cx, const char *buf, size_t len,
         JS::Value *jsval, const char *encoding);
+
+    static JSString *newStringWithEncoding(JSContext *cx, const char *buf,
+        size_t len, const char *encoding);
 };
 
 #endif

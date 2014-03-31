@@ -97,6 +97,9 @@ class NativeHTTPRequest
             this->datafree = datafree;
         }
     private:
+
+        void setDefaultHeaders();
+
         char *host;
         char *path;
         char *data;

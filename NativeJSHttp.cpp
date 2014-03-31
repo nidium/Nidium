@@ -19,6 +19,7 @@
 */
 
 #include "NativeJSHttp.h"
+#include "NativeJSUtils.h"
 //#include "ape_http_parser.h"
 
 #include "NativeJS.h"
@@ -332,9 +333,33 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         case NativeHTTP::DATA_STRING:
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("string"))));
-            jdata = STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                (const char *)h->data->data, h->data->used));
+
+            NativeJSUtils::strToJsval(cx, (const char *)h->data->data,
+                h->data->used, &jdata, "utf8");
             break;
+        case NativeHTTP::DATA_JSON:
+        {
+            JSString *str;
+            const jschar *chars;
+            size_t clen;
+            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("json"))));
+
+            str = JS_NewStringCopyN(cx, (const char *)h->data->data,
+                h->data->used);
+            if (str == NULL) {
+                printf("Cant encode json string\n");
+                break;
+            }
+            chars = JS_GetStringCharsZAndLength(cx, str, &clen);
+
+            if (JS_ParseJSON(cx, chars, clen, &jdata) == JS_FALSE) {
+                jdata = JSVAL_NULL;
+                printf("Cant JSON parse\n");
+            }
+
+            break;
+        }
         #if 0
         case NativeHTTP::DATA_IMAGE:
         {
@@ -362,29 +387,6 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             break;
         }
         #endif
-        case NativeHTTP::DATA_JSON:
-        {
-            JSString *str;
-            const jschar *chars;
-            size_t clen;
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("json"))));
-
-            str = JS_NewStringCopyN(cx, (const char *)h->data->data,
-                h->data->used);
-            if (str == NULL) {
-                printf("Cant encode json string\n");
-                break;
-            }
-            chars = JS_GetStringCharsZAndLength(cx, str, &clen);
-
-            if (JS_ParseJSON(cx, chars, clen, &jdata) == JS_FALSE) {
-                jdata = JSVAL_NULL;
-                printf("Cant JSON parse\n");
-            }
-
-            break;
-        }
         default:
         {
             JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);
