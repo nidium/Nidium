@@ -1137,13 +1137,16 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
         case 128:
         case 256:
         case 512:
+        case 1024:
+        case 2048:
+        case 4096:
             // Supported buffer size
             // Multiply by 8 to get the bufferSize in bytes 
             // rather than in samples per buffer
             bufferSize *= 8;
             break;
         default :
-            JS_ReportError(cx, "Unsuported buffer size %d. Supported values are : 16, 32, 64, 128, 256, 512 \n", bufferSize);
+            JS_ReportError(cx, "Unsuported buffer size %d. Supported values are : 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 \n", bufferSize);
             return JS_FALSE;
             break;
     }

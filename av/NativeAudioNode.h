@@ -288,6 +288,7 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         NativeAudioSource(int out, NativeAudio *audio, bool external);
 
         friend class NativeVideo;
+        friend class NativeVideoAudioSource;
 
         NativeAudioParameters *outputParameters;
 
@@ -315,10 +316,8 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         int initInternal();
         void seek(double time);
 
-        void onProgress(size_t buffered, size_t len) {};
-
         int avail();
-        bool buffer();
+        virtual bool buffer();
         void buffer(AVPacket *pkt);
         static void bufferCoro(void *arg);
         bool bufferInternal();
@@ -329,10 +328,11 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         bool decode();
         int resample(int destSamples);
         double getClock();
-        void drop(double ms);
+        double drop(double ms);
 
         void closeInternal(bool reset);
-        ~NativeAudioSource();
+
+        virtual ~NativeAudioSource();
     private:
         AVCodecContext *codecCtx;
 
