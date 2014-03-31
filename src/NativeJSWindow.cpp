@@ -9,6 +9,7 @@
 #include "NativeDB.h"
 #include "NativeNML.h"
 #include "NativeMacros.h"
+#include "NativeJSUtils.h"
 
 #include <NativeJSFileIO.h>
 
@@ -207,8 +208,9 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     event = JS_NewObject(cx, &NMLEvent_class, NULL, NULL);
     jevent = OBJECT_TO_JSVAL(event);
 
-    EVENT_PROP("data", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-        (const char *)tag.content.data, tag.content.len)));
+
+    EVENT_PROP("data", STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
+        (const char *)tag.content.data, tag.content.len, "utf8")));
     EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
     EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
 
@@ -318,7 +320,8 @@ void NativeJSwindow::textInput(const char *data)
     event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
 
     EVENT_PROP("val",
-        STRING_TO_JSVAL(JS_NewStringCopyN(cx, data, strlen(data))));
+        STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, data,
+        strlen(data), "utf8")));
 
     jevent = OBJECT_TO_JSVAL(event);
 
@@ -549,7 +552,9 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case WINDOW_PROP_TITLE:
         {
-            JSString *str = JS_NewStringCopyZ(cx, NUI->getWindowTitle());
+            const char *title =  NUI->getWindowTitle();
+            JSString *str = NativeJSUtils::newStringWithEncoding(cx, title,
+                strlen(title), "utf8");
             vp.set(STRING_TO_JSVAL(str));
         }
         break;

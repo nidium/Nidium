@@ -11,6 +11,8 @@
 #include <NativePath.h>
 #include <jsapi.h>
 
+#include "NativeJSUtils.h"
+
 NativeNML::NativeNML(ape_global *net) :
     net(net), stream(NULL), nassets(0),
     njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL)
@@ -358,8 +360,8 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-#define NODE_STR(data, len) STRING_TO_JSVAL(JS_NewStringCopyN(cx, \
-        (const char *)data, len))
+#define NODE_STR(data, len) STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, \
+        (const char *)data, len, "utf8"))
 
     using namespace rapidxml;
     JSContext *cx = this->njs->cx;
