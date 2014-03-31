@@ -315,7 +315,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
     SDL_GLContext contexteOpenGL;
 
     if (!this->initialized) {
-        if (SDL_Init( SDL_INIT_EVERYTHING | SDL_INIT_TIMER) == -1)
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
             printf( "Can't init SDL:  %s\n", SDL_GetError( ));
             return false;

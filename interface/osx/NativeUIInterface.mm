@@ -493,7 +493,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     if (!this->initialized) {
         SDL_GLContext contexteOpenGL;
         
-        if (SDL_Init( SDL_INIT_EVERYTHING) == -1)
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
             printf( "Can't init SDL:  %s\n", SDL_GetError( ));
             return false;
