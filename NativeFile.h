@@ -85,6 +85,10 @@ public:
         return m_Path;
     }
 
+    FILE *getFd() const {
+        return m_Fd;
+    }
+
     void onMessage(const NativeSharedMessages::Message &msg);
     void onMessageLost(const NativeSharedMessages::Message &msg);
 private:

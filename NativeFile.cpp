@@ -160,6 +160,7 @@ void NativeFile::readTask(size_t size, void *arg)
 
     buffer *buf = buffer_new(clamped_len + 1);
 
+    printf("Read at position : %ld\n", ftell(m_Fd));
     if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {        
         this->checkRead(true, arg);
         buffer_destroy(buf);

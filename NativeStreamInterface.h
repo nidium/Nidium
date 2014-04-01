@@ -108,8 +108,8 @@ public:
         Check whether there is data pending
     */
     virtual bool hasDataAvailable() const {
-        return !m_DataBuffer.alreadyRead ||
-        (m_DataBuffer.ended && m_DataBuffer.back->used);
+        return !m_PendingSeek && (!m_DataBuffer.alreadyRead ||
+        (m_DataBuffer.ended && m_DataBuffer.back->used));
     }
 
 protected:
