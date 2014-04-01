@@ -111,6 +111,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
         off_t streamSize;
         unsigned const char* streamBuffer;
         int error;
+        bool m_HaveDataAvailable;
 };
 
 
