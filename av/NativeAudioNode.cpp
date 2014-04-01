@@ -934,7 +934,7 @@ int NativeAudioSource::initInternal()
     }
 
     NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
-	if (!avcodec_open2(this->codecCtx, codec, NULL) < 0) {
+	if (avcodec_open2(this->codecCtx, codec, NULL) < 0) {
 		fprintf(stderr, "Could not find or open the needed codec\n");
 		return ERR_NO_CODEC;
 	}
