@@ -68,7 +68,7 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
         NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net)
     : source(source), totalRead(0), readCallback(readCallback), callbackPrivate(callbackPrivate),
       opened(false), streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0),
-      streamBuffer(NULL), error(0)
+      streamBuffer(NULL), error(0), m_HaveDataAvailable(false)
 {
     this->async = true;
     this->stream = NativeBaseStream::create(NativePath(src));
@@ -122,10 +122,16 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 break;
                 case NativeBaseStream::STREAM_EAGAIN:
                     SPAM(("Got eagain\n"));
-                    // Got EAGAIN, switch back to main coro
-                    // and wait for onDataAvailable callback
-                    thiz->pending = true;
-                    Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
+                    if (!thiz->m_HaveDataAvailable) {
+                        // Got EAGAIN, switch back to main coro
+                        // and wait for onDataAvailable callback
+                        thiz->pending = true;
+                        Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
+                        printf("post coro switch\n");
+                    } else {
+                        // Another packet is already available
+                        // (Packet has been received while waiting for the MSG_READ reply)
+                    }
                 break;
                 default:
                     printf("received unknown error (%d) and streamBuffer is null. Returning EOF\n", thiz->streamErr);
@@ -255,6 +261,7 @@ void NativeAVStreamReader::onMessage(const NativeSharedMessages::Message &msg)
             break;
         case MSG_READ:
             this->streamBuffer = this->stream->getNextPacket(&this->streamPacketSize, &this->streamErr);
+            m_HaveDataAvailable = false;
             break;
         case MSG_STOP:
             delete this->stream;
@@ -294,6 +301,7 @@ void NativeAVStreamReader::onError(NativeStream::StreamError err)
 void NativeAVStreamReader::onAvailableData(size_t len) 
 {
     this->error = 0;
+    m_HaveDataAvailable = true;
     SPAM(("onAvailableData=%d/%d\n", len, this->opened));
 
     if (this->pending) {
