@@ -1147,14 +1147,9 @@ return false;
     }
     // No last packet, get a new one
     if (this->packetConsumed) {
-        if (this->externallyManaged) {
-            SPAM(("decode() no packet avail\n"));
+        if (!this->buffer()) {
+            SPAM(("decode() buffer call failed\n"));
             return false;
-        } else {
-            if (!this->buffer()) {
-                SPAM(("decode() buffer call failed\n"));
-                return false;
-            }
         }
     }
 
@@ -1184,7 +1179,6 @@ return false;
 
             return true;
         } else if (len < this->tmpPacket->size) {
-            //printf("Read len = %u/%d\n", len, this->tmpPacket->size);
             this->tmpPacket->data += len;
             this->tmpPacket->size -= len;
         } else {
@@ -1193,11 +1187,6 @@ return false;
         }
 
         m_FailedDecoding = 0;
-
-        /*
-        int dataSize = av_samples_get_buffer_size(NULL, this->codecCtx->channels, tmpFrame->nb_samples, this->codecCtx->sample_fmt, 1);
-        this->clock += (double)dataSize / (double( 2 * this->codecCtx->channels * this->codecCtx->sample_rate));
-        */
 
         // Didn't got a frame let's try next time
         if (gotFrame == 0) {
@@ -1232,14 +1221,6 @@ return false;
             memcpy(this->tmpFrame.data, tmpFrame->data[0], tmpFrame->linesize[0]);
             this->tmpFrame.nbSamples = tmpFrame->nb_samples;
         }
-
-
-        /*
-        float *c = (float *)this->tmpFrame.data;
-        for (int i = 0; i < this->tmpFrame.nbSamples; i++) {
-            printf("f32 data %f/%f\n", *c++, *c++);
-        }
-        */
 
         // Reset frequency converter input
         if (this->fCvt) {
@@ -1341,23 +1322,24 @@ int NativeAudioSource::resample(int destSamples) {
 double NativeAudioSource::getClock() {
     ring_buffer_size_t queuedSource = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
 
-    double coef = this->audio->outputParameters->sampleRate * av_get_bytes_per_sample(AV_SAMPLE_FMT_FLT);
+    double delay = ((double)(queuedSource - this->tmpFrame.nbSamples)* ((double)1/this->audio->outputParameters->sampleRate));
 
-    double delay = ((double)queuedSource * NativeAudio::FLOAT32 * this->outCount) / (coef * this->outCount);
-    //double audioBuffer = ((double)queuedAudio * NativeAudio::FLOAT32 * this->outCount) / (coef * this->audio->outputParameters->channels);
-    //printf("queue=%f audiobuff=%f\n", delay, audioBuffer);
-    delay += this->audio->getLatency();
+    // Remove the duration of the last consumed frame
+    // (since the clock is for the start of the sample)
+    delay -= this->tmpFrame.nbSamples / this->audio->outputParameters->sampleRate;
 
-    // TODO : This can be more accurate by calculating how much data is in NativeAudio buffer
-    // but i couldn't figure how to do it right (yet)
-    return this->clock - delay + 0.28;
+    return this->clock - delay;
 }
 
-void NativeAudioSource::drop(double ms) 
+double NativeAudioSource::drop(double sec) 
 {
-    ring_buffer_size_t del = (ms * (this->audio->outputParameters->sampleRate * NativeAudio::FLOAT32) * this->outCount / (NativeAudio::FLOAT32 * this->outCount));
+    ring_buffer_size_t drop = ceil(sec /(double)(1/this->audio->outputParameters->sampleRate));
     ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
-    PaUtil_AdvanceRingBufferReadIndex(this->rBufferOut, del > avail ? avail : del);
+    ring_buffer_size_t actualDrop = drop > avail ? drop : avail;
+
+    PaUtil_AdvanceRingBufferReadIndex(this->rBufferOut, actualDrop);
+
+    return actualDrop * 1/this->audio->outputParameters->sampleRate;
 }
 
 void NativeAudioCustomSource::play()

@@ -41,7 +41,7 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
         throw;
     }
 
-    if (!(this->cbkBuffer = (float *)calloc(bufferSize, NativeAudio::FLOAT32))) {
+    if (!(this->cbkBuffer = (float *)calloc(bufferSize, channels * NativeAudio::FLOAT32))) {
         printf("Failed to init cbkBUffer\n");
         free(this->rBufferOutData);
         free(this->cbkBuffer);
@@ -66,7 +66,6 @@ void *NativeAudio::queueThread(void *args)
 {
     NativeAudio *audio = (NativeAudio *)args;
     bool wrote;
-    int cause = 0;
 
     while (true) {
         bool msgFlush = audio->m_SharedMsgFlush;
@@ -87,8 +86,6 @@ void *NativeAudio::queueThread(void *args)
 
         if (lockErr == 0 && audio->output != NULL && msgFlush != true) {
             wrote = false;
-            cause = 0;
-
 
             if (audio->threadShutdown) {
                 pthread_mutex_unlock(&audio->recurseLock);
@@ -96,12 +93,6 @@ void *NativeAudio::queueThread(void *args)
             }
 
             for (;;) {
-/*
-                if (PaUtil_GetRingBufferReadAvailable(audio->rBufferOut) >= (audio->outputParameters->framesPerBuffer * audio->outputParameters->channels)*32) {
-                    printf("Output have enought data\n");
-                    break;
-                }
-*/
                 if (audio->canWriteFrame()) {
                     audio->processQueue();
 
@@ -113,18 +104,13 @@ void *NativeAudio::queueThread(void *args)
                     audio->output->processed = false;
 
                     // Copy output node frame data to output ring buffer
-                    for (int i = 0; i < audio->output->inCount; i++) {
-                        if (audio->volume != 1) {
-                            int frameSize = audio->outputParameters->bufferSize/audio->outputParameters->channels;
-                            for (int j = 0; j < frameSize; j++) {
-                                audio->output->frames[i][j] *= audio->volume;
-                            }
+                    // XXX : Find a more efficient way to copy data to output right buffer
+                    for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
+                        for (int j = 0; j < audio->outputParameters->channels; j++) {
+                            audio->output->frames[j][i] *= audio->volume;
+                            PaUtil_WriteRingBuffer(audio->rBufferOut, &audio->output->frames[j][i], 1);
                         }
-                        PaUtil_WriteRingBuffer(audio->rBufferOut, audio->output->frames[i], audio->outputParameters->framesPerBuffer);
                     }
-                } else {
-                    cause = 1;
-                    break;
                 }
             }
 
@@ -140,15 +126,12 @@ void *NativeAudio::queueThread(void *args)
 
         if (audio->threadShutdown) break;
 
-        if (cause == 0) {
-            //do {
-                SPAM(("Waiting for more data\n"));
-                NATIVE_PTHREAD_WAIT(&audio->queueHaveData)
-            //} while (!audio->haveSourceActive(false));
-        } else {
-            //(!audio->canWriteFrame() || cause == 2) {
-                SPAM(("Waiting for more space\n"));
+        if (!audio->canWriteFrame()) {
+            SPAM(("Waiting for more space\n"));
             NATIVE_PTHREAD_WAIT(&audio->queueHaveSpace)
+        } else {
+            SPAM(("Waiting for more data\n"));
+            NATIVE_PTHREAD_WAIT(&audio->queueHaveData)
         }
 
         if (audio->threadShutdown) break;
@@ -242,7 +225,7 @@ void *NativeAudio::decodeThread(void *args)
             haveEnought = 0;
 
             if (sources->curr != NULL && !sources->externallyManaged) {
-                source = static_cast<NativeAudioSource *>(sources->curr);
+                source = static_cast<NativeAudioSource*>(sources->curr);
 
                 // Loop as long as there is data to read and write
                 while (source->work()) {}
@@ -313,7 +296,7 @@ int NativeAudio::openOutput() {
     // Set output parameters for PortAudio
     paOutputParameters.device = device; 
     paOutputParameters.channelCount = this->outputParameters->channels; 
-    paOutputParameters.suggestedLatency = infos->defaultHighOutputLatency; 
+    paOutputParameters.suggestedLatency = infos->defaultLowInputLatency;
     paOutputParameters.hostApiSpecificStreamInfo = 0; /* no api specific data */
     paOutputParameters.sampleFormat = paFloat32;
 
@@ -322,7 +305,7 @@ int NativeAudio::openOutput() {
             0,
             &paOutputParameters,
             this->outputParameters->sampleRate,  
-            this->outputParameters->framesPerBuffer,
+            this->outputParameters->framesPerBuffer,  
             paNoFlag,  
             &NativeAudio::paOutputCallback,  
             (void *)this); 
@@ -340,42 +323,35 @@ int NativeAudio::openOutput() {
     return 0;
 }
 
-// The instance callback, where we have access to every method/variable of NativeAudio
 int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuffer,
     unsigned long framesPerBuffer,
     const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags)
 {
-    float *out = (float *)outputBuffer;
-
     (void) timeInfo; 
     (void) statusFlags;
     (void) inputBuffer;
 
-    if (PaUtil_GetRingBufferReadAvailable(this->rBufferOut) >= (ring_buffer_size_t) (framesPerBuffer * this->outputParameters->channels)) {
-        //SPAM(("------------------------------------data avail\n"));
-        //SPAM(("SIZE avail : %lu\n", PaUtil_GetRingBufferReadAvailable(this->rBufferOut)));
-        PaUtil_ReadRingBuffer(this->rBufferOut, this->cbkBuffer, framesPerBuffer * this->outputParameters->channels);
-        for (unsigned int i = 0; i < framesPerBuffer; i++)
-        {
-            for (int j = 0; j < this->outputParameters->channels; j++) {
-                *out++ = this->cbkBuffer[i + (j * framesPerBuffer)];
-                /*
-                if (j%2 == 0) {
-                SPAM(("play data %f", this->cbkBuffer[i + (j * framesPerBuffer)]));
-                } else {
-                SPAM(("/%f\n", this->cbkBuffer[i + (j * framesPerBuffer)]));
-                }
-                */
-            }
-        }
-    } else {
-        //SPAM(("-----------------------------------NO DATA\n"));
-        for (unsigned int i = 0; i < framesPerBuffer; i++)
-        {
-            *out++ = 0.0f;
-            *out++ = 0.0f;
-        }
+    float *out = (float*)outputBuffer;
+    int channels = this->outputParameters->channels;
+    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBufferOut) / channels;
+    avail = framesPerBuffer > avail ? avail : framesPerBuffer;
+    int left = framesPerBuffer - avail;
+
+
+    //PaUtil_ReadRingBuffer(this->rBufferOut, out, avail * channels);
+    PaUtil_ReadRingBuffer(this->rBufferOut, out, avail * channels);
+
+#if 0
+    SPAM(("frames per buffer=%ld avail=%ld processing=%ld left=%d\n", framesPerBuffer, PaUtil_GetRingBufferReadAvailable(this->rBufferOut), avail, left));
+    if (left > 0) {
+        SPAM(("WARNING DROPING %d\n", left));
+    }
+#endif
+
+    for (unsigned int i = 0; i < left * channels; i++)
+    {
+        *out++ = 0.0f;
     }
 
     NATIVE_PTHREAD_SIGNAL(&this->queueHaveSpace);
@@ -434,8 +410,7 @@ int NativeAudio::getSampleSize(int sampleFormat) {
 
 double NativeAudio::getLatency() {
     ring_buffer_size_t queuedAudio = PaUtil_GetRingBufferReadAvailable(this->rBufferOut);
-    NativeAudioParameters *params = this->outputParameters;
-    return ((double)queuedAudio * NativeAudio::FLOAT32 * params->channels) / (params->sampleRate * NativeAudio::FLOAT32 * params->channels);
+    return (queuedAudio * ((double)1/this->outputParameters->sampleRate)) / this->outputParameters->channels;
 }
 
 NativeAudioNode *NativeAudio::addSource(NativeAudioNode *source, bool externallyManaged) 
@@ -610,7 +585,7 @@ void NativeAudio::unlockSources()
 
 bool NativeAudio::canWriteFrame()
 {
-    return PaUtil_GetRingBufferWriteAvailable(this->rBufferOut) >= 
+    return PaUtil_GetRingBufferWriteAvailable(this->rBufferOut) >=
         this->outputParameters->framesPerBuffer * this->outputParameters->channels;
 }
 

@@ -5,16 +5,17 @@
 #include <stdint.h>
 #include <native_netlib.h>
 #include "NativeAudio.h"
+#include "NativeAudioNode.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
 }
 
-#define NATIVE_VIDEO_BUFFER_SAMPLES 8
-#define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.05 
-#define NATIVE_VIDEO_SYNC_THRESHOLD 0.01 
+#define NATIVE_VIDEO_BUFFER_SAMPLES 16
+#define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.5
+#define NATIVE_VIDEO_SYNC_THRESHOLD 0.01
 #define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
-#define NATIVE_VIDEO_PACKET_BUFFER 256
+#define NATIVE_VIDEO_PACKET_BUFFER 64 
 
 #define NATIVE_VIDEO_SEEK_KEYFRAME 0x1
 #define NATIVE_VIDEO_SEEK_PREVIOUS 0x2
@@ -29,6 +30,8 @@ struct AVFrame;
 
 class NativeVideo : public NativeAVSource
 {
+    friend class NativeVideoAudioSource;
+
     public :
         NativeVideo(ape_global *n);
 
@@ -62,7 +65,6 @@ class NativeVideo : public NativeAVSource
         TimerItem *timers[NATIVE_VIDEO_BUFFER_SAMPLES];
         PacketQueue *audioQueue;
         PacketQueue *videoQueue;
-        Packet *freePacket;
         int timerIdx;
         int lastTimer;
         int timersDelay;
@@ -77,11 +79,11 @@ class NativeVideo : public NativeAVSource
 
         uint8_t *tmpFrame;
         uint8_t *frameBuffer;
+        double frameTimer;
         int frameSize;
         double lastPts;
         double videoClock;
         double audioClock;
-        double frameTimer;
         double lastDelay;
 
         bool playing;
@@ -145,6 +147,7 @@ class NativeVideo : public NativeAVSource
         bool m_ThreadCreated;
         bool m_SourceNeedWork;
         pthread_mutex_t audioLock;
+        pthread_mutex_t packetLock;
 
         void closeInternal(bool reset);
         static void seekCoro(void *arg);
@@ -174,9 +177,34 @@ class NativeVideo : public NativeAVSource
         void clearVideoQueue();
         void flushBuffers();
 
-        static int getBuffer(struct AVCodecContext *c, AVFrame *pic);
-        static void releaseBuffer(struct AVCodecContext *c, AVFrame *pic);
+        static void audioProcessed(NativeAudioNode *node, void *custom);
+};
 
+class NativeVideoAudioSource: public NativeAudioSource 
+{
+  public:
+      NativeVideoAudioSource(int out, NativeVideo *video, bool external) :
+          NativeAudioSource(out, video->audio, external), 
+          m_Video(video), m_FreePacket(NULL) 
+      {
+      };
+
+      bool buffer();
+
+    ~NativeVideoAudioSource() {
+        if (m_FreePacket != NULL) {
+            if (!this->packetConsumed) {
+                // Free the packet here, otherwise the source destructor
+                // will do it after we delete it.
+                av_free_packet(this->tmpPacket);
+                this->packetConsumed = true;
+            }
+            delete m_FreePacket;
+        }
+    }
+  private:
+      NativeVideo *m_Video;
+      NativeVideo::Packet *m_FreePacket;
 };
 
 #endif

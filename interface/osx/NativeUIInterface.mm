@@ -389,8 +389,8 @@ void NativeCocoaUIInterface::stopApplication()
     }
     if (this->NativeCtx) {
         delete this->NativeCtx;
-        NativeMessages::destroyReader();
         this->NativeCtx = NULL;
+        NativeMessages::destroyReader();
     }
 
     glClearColor(1, 1, 1, 1);
@@ -529,50 +529,17 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         [[window contentView] addSubview:this->dragNSView];
 
         this->patchSDLView([window contentView]);
-        //[center addObserver:self selector:@selector(windowBeingResized) name:NSWindowWillStartLiveResizeNotification object window];
-/*
-    NSNotificationCenter *center;
-    NSWindow *window = data->nswindow;
-    NSView *view = [window contentView];
-
-    _data = data;
-    observingVisible = YES;
-    wasVisible = [window isVisible];
-
-    center = [NSNotificationCenter defaultCenter];
-
-    if ([window delegate] != nil) {
-        [center addObserver:self selector:@selector(windowDidExpose:) name:NSWindowDidExposeNotification object:window];
-        [center addObserver:self selector:@selector(windowDidMove:) name:NSWindowDidMoveNotification object:window];
-        [center addObserver:self selector:@selector(windowDidResize:) name:NSWindowDidResizeNotification object:window];
-        [center addObserver:self selector:@selector(windowDidMiniaturize:) name:NSWindowDidMiniaturizeNotification object:window];
-        [center addObserver:self selector:@selector(windowDidDeminiaturize:) name:NSWindowDidDeminiaturizeNotification object:window];
-        [center addObserver:self selector:@selector(windowDidBecomeKey:) name:NSWindowDidBecomeKeyNotification object:window];
-        [center addObserver:self selector:@selector(windowDidResignKey:) name:NSWindowDidResignKeyNotification object:window];
-    } else {
-        [window setDelegate:self];
-    }
-*/
 
         [window setCollectionBehavior:
                  NSWindowCollectionBehaviorFullScreenPrimary];
 
         initControls();
 
-        //[btn setFrame:CGRectMake(btn.frame.origin.x, btn.frame.origin.y-4, btn.frame.size.width, btn.frame.size.width)];
-
-        //[window setBackgroundColor:[NSColor colorWithSRGBRed:0.0980 green:0.1019 blue:0.09411 alpha:1.]];
-
         [window setFrameAutosaveName:@"nativeMainWindow"];
         if (kNativeTitleBarHeight != 0) {
             [window setStyleMask:NSTexturedBackgroundWindowMask|NSTitledWindowMask];
-
-            //[window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
-            //[window setOpaque:NO];
         }
-        //[window setMovableByWindowBackground:NO];
-        //[window setOpaque:NO]; // YES by default
-        //[window setAlphaValue:0.5];
+
 #if NIDIUM_ENABLE_HIDPI
         NSView *openglview = [window contentView];
         [openglview setWantsBestResolutionOpenGLSurface:YES];
@@ -591,6 +558,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         this->initialized = true;
         glViewport(0, 0, width, height);
         NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+    } else {
+        this->setWindowSize(width, height);
     }
     
     NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
@@ -879,7 +848,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->ptr;
     NativeContext *ctx = UI->getNativeContext();
 
-    if (ctx->isSizeDirty()) {
+    if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];
         ctx->sizeChanged(UI->getWidth(), UI->getHeight());
     }
