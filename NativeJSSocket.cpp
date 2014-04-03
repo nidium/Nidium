@@ -89,15 +89,14 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get());
+    
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
         return false;
     }
-
     switch(JSID_TO_INT(id)) {
         case SOCKET_PROP_BINARY:
         {
-            NativeJSSocket *nsocket;
             if (vp.isBoolean()) {
 
                 nsocket->flags = (vp.toBoolean() == JS_TRUE ?
@@ -476,7 +475,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *host;
     unsigned int port;
     NativeJSSocket *nsocket;
-    jsval isBinary = JSVAL_FALSE;
+    JS::Value isBinary = JSVAL_FALSE;
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
@@ -598,6 +597,8 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 
         if (strncasecmp("udp", cproto.ptr(), 3) == 0) {
             protocol = APE_SOCKET_PT_UDP;
+        } else if (strncasecmp("ssl", cproto.ptr(), 3) == 0) {
+            protocol = APE_SOCKET_PT_SSL;
         }
 
         localport = (args.length() > 1 ? (uint16_t)args[1].toInt32() : 0);
