@@ -97,7 +97,7 @@ static int headers_complete_cb(http_parser *p)
         buffer_append_char(nhttp->http.headers.tval, '\0');
     }
 
-    if (p->content_length >= LLONG_MAX) {
+    if (p->content_length == ULLONG_MAX) {
         nhttp->http.contentlength = 0;
         nhttp->headerEnded();
         return 0;
@@ -106,9 +106,6 @@ static int headers_complete_cb(http_parser *p)
     if (p->content_length > HTTP_MAX_CL) {
         return -1;
     }
-
-    /* /!\ TODO: what happend if there is no content-length? */
-    if (p->content_length) nhttp->http.data = buffer_new(p->content_length);
 
     nhttp->http.contentlength = p->content_length;
     nhttp->headerEnded();
@@ -485,6 +482,7 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
         ctimer->flags &= ~APE_TIMER_IS_PROTECTED;
         m_TimeoutTimer = ctimer->identifier;
     }
+
     return 1;
 }
 
@@ -594,7 +592,6 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     free(durl);
 
     this->setDefaultHeaders();
-
 }
 
 void NativeHTTPRequest::setDefaultHeaders()
@@ -624,6 +621,12 @@ buffer *NativeHTTPRequest::getHeadersData() const
     buffer_append_string_n(ret, CONST_STR_LEN(" HTTP/1.1\n"));
     buffer_append_string_n(ret, CONST_STR_LEN("Host: "));
     buffer_append_string(ret, this->host);
+
+    if (this->getPort() != 80) {
+        char portstr[8];
+        sprintf(portstr, ":%hu", this->getPort());
+        buffer_append_string(ret, portstr);
+    }
     buffer_append_string_n(ret, CONST_STR_LEN("\n"));
 
     buffer *k, *v;
