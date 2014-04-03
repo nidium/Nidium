@@ -35,7 +35,7 @@ void NativeFileStream::onStart(size_t packets, size_t seek)
         m_DataBuffer.back = buffer_new(packets);
         m_DataBuffer.front = buffer_new(packets);
     }
-    printf("File start with packet siwe of %ld\n", packets);
+
     m_File.open("r");
 
     if (seek) {
@@ -49,10 +49,7 @@ const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
 {
     unsigned char *data;
 
-    printf("get next packet called\n");
-
     if (m_DataBuffer.back == NULL) {
-        printf("back is null\n");
         *err = STREAM_ERROR;
         return NULL;
     }
@@ -62,9 +59,9 @@ const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
             Notify the listener whenever data become available
         */
         m_NeedToSendUpdate = !m_DataBuffer.ended;
-        *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead ?
+        *err = (m_DataBuffer.ended && m_DataBuffer.alreadyRead && !m_PendingSeek ?
             STREAM_END : STREAM_EAGAIN);
-        printf("[Error returned] %d\n", *err);
+
         return NULL;        
     }
 
@@ -77,7 +74,7 @@ const unsigned char *NativeFileStream::onGetNextPacket(size_t *len, int *err)
     if (!m_DataBuffer.ended) {
         m_File.read(m_PacketsSize);
     }
-    printf("2. (%ld) give data %x\n", *len, *data);
+
     return data;
 }
 
@@ -128,7 +125,6 @@ void NativeFileStream::seek(size_t pos)
     if (!m_File.isOpen()) {
         return;
     }
-    printf("%p, Seek to %ld\n", this, pos);
     m_File.seek(pos);
     m_File.read(m_PacketsSize);
     m_PendingSeek = true;
@@ -147,15 +143,12 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             this->error(NATIVESTREAM_ERROR_OPEN, msg.args[0].toInt());
             break;
         case NATIVEFILE_SEEK_ERROR:
-            printf("seek error\n");
             this->error(NATIVESTREAM_ERROR_SEEK, -1);
             /* fall through */
         case NATIVEFILE_SEEK_SUCCESS:
             m_PendingSeek = false;
-            printf("seek ok :)\n");
             break;
         case NATIVEFILE_READ_ERROR:
-            printf("read error\n");
             this->error(NATIVESTREAM_ERROR_READ, msg.args[0].toInt());
             break;
         case NATIVEFILE_READ_SUCCESS:
@@ -173,6 +166,27 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             if (m_File.eof()) {
                 m_DataBuffer.ended = true;
             }
+
+            m_DataBuffer.alreadyRead = false;
+
+            if (m_DataBuffer.back != NULL) {
+                m_DataBuffer.back->used = 0;
+                if (buf->data != NULL) {
+                    /*
+                        Feed the backbuffer with the new data (copy)
+                    */
+                    buffer_append_data(m_DataBuffer.back, buf->data, buf->used);
+
+                    if (m_NeedToSendUpdate) {
+                        m_NeedToSendUpdate = false;
+                        CREATE_MESSAGE(message_available,
+                            NATIVESTREAM_AVAILABLE_DATA);
+                        message_available->args[0].set(buf->used);
+                        this->notify(message_available);
+                    }
+                }
+            }
+
             CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
             message->args[0].set(buf);
 
@@ -182,31 +196,6 @@ void NativeFileStream::onMessage(const NativeSharedMessages::Message &msg)
             */
             this->notify(message);
 
-            if (m_PendingSeek) {
-                break;
-            }
-
-            m_DataBuffer.alreadyRead = false;
-
-            if (m_DataBuffer.back != NULL) {
-                printf("[%p] Read ok =] %x %x %x %x\n", this, buf->data[0], buf->data[1], buf->data[2], buf->data[3]);
-                m_DataBuffer.back->used = 0;
-                if (buf->data != NULL) {
-                    /*
-                        Feed the backbuffer with the new data (copy)
-                    */
-                    buffer_append_data(m_DataBuffer.back, buf->data, buf->used);
-
-                    if (m_NeedToSendUpdate) {
-                        printf("update sent\n");
-                        m_NeedToSendUpdate = false;
-                        CREATE_MESSAGE(message_available,
-                            NATIVESTREAM_AVAILABLE_DATA);
-                        message_available->args[0].set(buf->used);
-                        this->notify(message_available);
-                    }
-                }
-            }
             break;
         }
     }

@@ -160,7 +160,6 @@ void NativeFile::readTask(size_t size, void *arg)
 
     buffer *buf = buffer_new(clamped_len + 1);
 
-    printf("Read at position : %ld\n", ftell(m_Fd));
     if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {        
         this->checkRead(true, arg);
         buffer_destroy(buf);
@@ -209,6 +208,8 @@ void NativeFile::seekTask(size_t pos, void *arg)
         NATIVE_FILE_NOTIFY(errno, NATIVEFILE_SEEK_ERROR, arg);
         return;
     }
+
+    this->checkEOF();
 
     NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_SEEK_SUCCESS, arg);
 }
@@ -267,7 +268,7 @@ void NativeFile::seek(size_t pos, void *arg)
     task->args[0].set(NATIVEFILE_TASK_SEEK);
     task->args[1].set(pos);
     task->args[7].set(arg);
-    
+
     task->setFunction(NativeFile_dispatchTask);
 
     this->addTask(task);
@@ -275,10 +276,13 @@ void NativeFile::seek(size_t pos, void *arg)
 
 bool NativeFile::checkEOF()
 {
-    if (m_Fd && ((m_Eof = (bool)feof(m_Fd)) == true ||
-        (m_Eof = (ftell(m_Fd) == this->m_Filesize))) && m_AutoClose) {
+    if (m_Fd &&
+        ((m_Eof = (bool)feof(m_Fd)) == true ||
+        (m_Eof = (ftell(m_Fd) == this->m_Filesize)))) {
         
-        this->closeTask();
+        if (m_AutoClose) {
+            this->closeTask();
+        }
     }
 
     return m_Eof;
