@@ -449,7 +449,9 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
     ape_socket *socket;
     this->delegate = delegate;
 
-    if ((socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, net)) == NULL) {
+    if ((socket = APE_socket_new(this->req->isSSL() ?
+        APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, net)) == NULL) {
+
         printf("[Socket] Cant load socket (new)\n");
         if (this->delegate) {
             this->delegate->onError(ERROR_SOCKET);
@@ -509,7 +511,7 @@ NativeHTTP::~NativeHTTP()
 
 
 int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
-    u_short *port, char *file, const char *prefix)
+    u_short *port, char *file, const char *prefix, u_short default_port)
 {
     char *p;
     const char *p2;
@@ -547,14 +549,14 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
         if (*port == 0)
             return -1;
     } else
-        *port = 80;
+        *port = default_port;
 
     return 0;
 }
 
 NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     method(NATIVE_HTTP_GET), data(NULL), datalen(0),
-    datafree(free), headers(ape_array_new(8))
+    datafree(free), headers(ape_array_new(8)), m_isSSL(false)
 {
     size_t url_len = strlen(url);
     char *durl = (char *)malloc(sizeof(char) * (url_len+1));
@@ -566,9 +568,24 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     memset(this->host, 0, url_len+1);
     memset(this->path, 0, url_len+1);
 
-    if (NativeHTTP::ParseURI(durl, url_len, this->host,
-        &this->port, this->path) == -1) {
+    u_short default_port = 80;
 
+    const char *prefix = NULL;
+    if (strncasecmp(url, CONST_STR_LEN("https://")) == 0) {
+        prefix = "https://";
+        m_isSSL = true;
+        default_port = 443;
+    } else if (strncasecmp(url, CONST_STR_LEN("http://")) == 0) {
+        prefix = "http://";
+    } else {
+        port = 0;
+        memset(host, 0, url_len+1);
+        memset(path, 0, url_len+1);
+        return;
+    }
+
+    if (NativeHTTP::ParseURI(durl, url_len, this->host,
+        &this->port, this->path, prefix, default_port) == -1) {
         memset(host, 0, url_len+1);
         memset(path, 0, url_len+1);
         port = 0;
@@ -582,7 +599,9 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
 
 void NativeHTTPRequest::setDefaultHeaders()
 {
-    this->setHeader("User-Agent", "nidium");
+    this->setHeader("User-Agent", "Mozilla/5.0 (Unknown arch) nidium/0.1 (nidium, like Gecko) nidium/0.1");
+    this->setHeader("Accept-Charset", "UTF-8");
+    this->setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
 }
 
 buffer *NativeHTTPRequest::getHeadersData() const

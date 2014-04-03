@@ -96,6 +96,10 @@ class NativeHTTPRequest
         {
             this->datafree = datafree;
         }
+
+        bool isSSL() const {
+            return m_isSSL;
+        }
     private:
 
         void setDefaultHeaders();
@@ -108,6 +112,8 @@ class NativeHTTPRequest
         u_short port;
 
         ape_array_t *headers;
+
+        bool m_isSSL;
 };
 
 class NativeHTTP : public NativeIStreamer, public NativeMessages
@@ -162,7 +168,7 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
     } http;
 
     static int ParseURI(char *url, size_t url_len, char *host,
-    u_short *port, char *file, const char *prefix = "http://");
+    u_short *port, char *file, const char *prefix = "http://", u_short default_port = 80);
     void requestEnded();
     void headerEnded();
     void stopRequest(bool timeout=false);

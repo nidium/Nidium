@@ -125,6 +125,7 @@ void NativeFileStream::seek(size_t pos)
     if (!m_File.isOpen()) {
         return;
     }
+
     m_File.seek(pos);
     m_File.read(m_PacketsSize);
     m_PendingSeek = true;

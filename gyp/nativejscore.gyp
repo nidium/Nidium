@@ -19,7 +19,8 @@
         },
         'defines': [
             '_FILE_OFFSET_BITS=64',
-            '__STDC_LIMIT_MACROS'
+            '__STDC_LIMIT_MACROS',
+            '_HAVE_SSL_SUPPORT'
         ],
         'dependencies': [
             '../network/gyp/network.gyp:nativenetwork',
