@@ -152,6 +152,8 @@
                         '/usr/lib/libbz2.dylib',
                         '/usr/lib/libz.dylib',
                         'libiconv.dylib',
+                        'libssl.dylib',
+                        'libcrypto.dylib'
                     ],
                 },
                 "xcode_settings": {
