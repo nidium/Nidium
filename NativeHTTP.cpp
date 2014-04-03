@@ -576,6 +576,13 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
 
     free(durl);
 
+    this->setDefaultHeaders();
+
+}
+
+void NativeHTTPRequest::setDefaultHeaders()
+{
+    this->setHeader("User-Agent", "nidium");
 }
 
 buffer *NativeHTTPRequest::getHeadersData() const
