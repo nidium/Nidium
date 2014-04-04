@@ -206,6 +206,11 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSStream *jstream = new NativeJSStream(cx,
         (ape_global *)JS_GetContextPrivate(cx), curl.ptr());
 
+    if (jstream->getStream() == NULL) {
+        JS_ReportError(cx, "Failed to create stream");
+        return false;
+    }
+
     JS_SetPrivate(ret, jstream);
     jstream->cx = cx;
     jstream->jsobj = ret;
@@ -230,8 +235,6 @@ NativeJSStream::NativeJSStream(JSContext *cx, ape_global *net, const char *url)
     }
 
     m_Stream->setListener(this);
-
-    printf("CReated stream\n");
 }
 
 NativeJSStream::~NativeJSStream()

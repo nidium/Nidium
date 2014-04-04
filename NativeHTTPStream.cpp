@@ -24,6 +24,8 @@
 #include <errno.h>
 #include <sys/mman.h>
 
+#define MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH (1024LL*1024LL*64LL)
+
 NativeHTTPStream::NativeHTTPStream(const char *location) : 
     NativeBaseStream(location), m_StartPosition(0),
     m_BytesBuffered(0), m_LastReadUntil(0)
@@ -291,11 +293,13 @@ void NativeHTTPStream::onHeader()
 
     m_PendingSeek = false;
 
-    m_Mapped.size = m_Http->http.contentlength;
+    m_Mapped.size = (!m_Http->http.contentlength ?
+        MMAP_SIZE_FOR_UNKNOWN_CONTENT_LENGTH : m_Http->http.contentlength);
 
     if (ftruncate(m_Mapped.fd, m_Mapped.size) == -1) {
         m_Mapped.size = 0;
         this->stop();
+
         return;
     }
 
@@ -308,6 +312,7 @@ void NativeHTTPStream::onHeader()
         m_Mapped.addr = NULL;
         m_Mapped.size = 0;
         this->stop();
+
         return;
     }
 }
