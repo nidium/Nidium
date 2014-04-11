@@ -128,6 +128,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         (&event.key)->keysym.sym == SDLK_r &&
                         event.key.keysym.mod & KMOD_GUI && event.key.keysym.mod & KMOD_SHIFT && event.type == SDL_KEYDOWN) {
 
+                        NUII->NativeCtx->setWindowFrame(400, 400, 512, 600);
+                        break;
+
                         if (++nrefresh > 1) {
                             break;
                         }
@@ -489,8 +492,8 @@ NativeUICocoaConsole *NativeCocoaUIInterface::getConsole(bool create, bool *crea
 
 bool NativeCocoaUIInterface::createWindow(int width, int height)
 {
-    NSWindow *window;
     if (!this->initialized) {
+        NSWindow *window;
         SDL_GLContext contexteOpenGL;
         
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
@@ -559,26 +562,15 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         glViewport(0, 0, width, height);
         NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
     } else {
-        this->setWindowSize(width, height);
+        //this->patchSDLView([NativeCocoaWindow(win) contentView]);
     }
-    
-    NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
-    window = NativeCocoaWindow(win);
 
+    this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
+        NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
+
+    NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
     [this->dragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
-#if 0
-    id observation = [[NSNotificationCenter defaultCenter] addObserverForName:NSWindowDidResizeNotification
-    object:window queue:nil usingBlock:^(NSNotification *notif){
-        NSRect rect = [window contentRectForFrameRect:[window frame]];
-        int x, y, w, h;
-        ConvertNSRect(&rect);
-        x = (int)rect.origin.x;
-        y = (int)rect.origin.y;
-        w = (int)rect.size.width;
-        h = (int)rect.size.height;
-        NativeJSwindow::getNativeClass(NativeCtx->getNJS())->resized(w, h);
-    }];
-#endif
+
     return true;
 }
 
@@ -755,6 +747,7 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
     
     this->width = w;
     this->height = h;
+    CGRect oldframe = [nswindow frame];
 
     int screen_width, screen_height;
     if (x == NATIVE_WINDOWPOS_CENTER_MASK || y == NATIVE_WINDOWPOS_CENTER_MASK) {
@@ -768,6 +761,13 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
         }
     }
 
+    if (x == NATIVE_WINDOWPOS_UNDEFINED_MASK) {
+        x = oldframe.origin.x;
+    }
+    if (y == NATIVE_WINDOWPOS_UNDEFINED_MASK) {
+        y = oldframe.origin.y;
+    }    
+
     CGRect newframe = [nswindow frameRectForContentRect:CGRectMake(x, y, w, h)];
     [nswindow setFrame:newframe display:YES];
 
@@ -776,7 +776,7 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 
 void NativeCocoaUIInterface::setWindowSize(int w, int h)
 {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSLog(@"set window size");
     NSWindow *nswindow = NativeCocoaWindow(this->win);
 
     NSSize size;
@@ -786,9 +786,17 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
     this->width = w;
     this->height = h;
 
-    [nswindow setContentSize:size];
+    NSRect frame = [nswindow frame];
+    frame.origin.y += frame.size.height;
+    frame.origin.y -= h;
 
-    [pool drain];
+    frame.size = size;
+
+    //[nswindow setFrame:frame display:YES];
+
+    SDL_SetWindowSize(this->win, w, h);
+    //[(NSOpenGLContext *)this->getGLContext() update];
+    //[nswindow setContentSize:size];
 }
 
 void NativeCocoaUIInterface::alert(const char *message)
@@ -820,7 +828,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 @interface NSPointer : NSObject
 {
 @public
-    void *ptr;
+    void *m_Ptr;
 }
 
 - (id) initWithPtr:(void *)ptr;
@@ -832,7 +840,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
     self = [super init];
     if (!self) return nil;
 
-    self->ptr = ptr;
+    self->m_Ptr = ptr;
 
     return self;
 }
@@ -845,9 +853,9 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
 - (void) drawRect:(NSRect)dirtyRect
 {
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
-    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->ptr;
+    NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->m_Ptr;
     NativeContext *ctx = UI->getNativeContext();
-
+    
     if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];
         ctx->sizeChanged(UI->getWidth(), UI->getHeight());

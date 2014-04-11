@@ -414,6 +414,7 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     if (NativeSkia::glcontext) {
         context = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
         context->ref();
+        NLOG("Already got a gl interface");
     } else {
         interface = GrGLCreateNativeInterface();
 
@@ -434,6 +435,8 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
     
+    NLOG("Create gl context widtg %dx%d", width, height);
+
     desc.fWidth = SkScalarRound(width*ratio);
     desc.fHeight = SkScalarRound(height*ratio);
     desc.fConfig = kSkia8888_GrPixelConfig;
@@ -441,11 +444,11 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     desc.fStencilBits = 0;
     desc.fSampleCnt = 0;
     //GR_GL_GetIntegerv(interface, GR_GL_STENCIL_BITS, &desc.fStencilBits);
-#if 1
+#if 0
     GrGLint buffer = 0;
     GR_GL_GetIntegerv(interface, GR_GL_FRAMEBUFFER_BINDING, &buffer);
 #endif
-    desc.fRenderTargetHandle = buffer;
+    desc.fRenderTargetHandle = 0;
     GrRenderTarget * target = context->wrapBackendRenderTarget(desc);
 
     if (target == NULL) {
