@@ -22,6 +22,7 @@ NativeUIInterface::NativeUIInterface() :
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
+    NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
 
     NativeTaskManager::createManager();
 }
