@@ -404,7 +404,7 @@ void NativeX11UIInterface::setCursor(CURSOR_TYPE type)
 
 void NativeX11UIInterface::setWindowTitle(const char *name)
 {
-    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "NATiVE" : name));
+    SDL_SetWindowTitle(win, (name == NULL || *name == '\0' ? "nidium" : name));
 }
 const char *NativeX11UIInterface::getWindowTitle() const
 {
