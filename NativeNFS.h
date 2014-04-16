@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <NativeHash.h>
 
@@ -70,10 +71,13 @@ public:
     bool validateArchive();
 
     NativeNFS(uint8_t *content, size_t size);
+    NativeNFS();
     ~NativeNFS();
 
-
+    bool save(const char *dest);
     bool mkdir(const char *name_utf8, size_t name_len);
+    bool writeFile(const char *name_utf8, size_t name_len, char *content,
+        size_t len, int flags = 0);
 
 private:
     uint8_t *m_Content;
@@ -84,7 +88,8 @@ private:
     NativeHash<NativeNFSTree *> m_Hash;
 
     NativeNFSTree m_Root;
-
+    
+    void writeTree(FILE *fd, NativeNFSTree *cur);
     void releaseTree(NativeNFSTree *root);
 };
 

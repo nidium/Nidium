@@ -116,7 +116,7 @@ public:
         bool isDefault = false);
     static schemeInfo *getScheme(const char *url, const char **pURL = NULL);
 
-    static char *sanitize(const char *path, bool *external = NULL);
+    static char *sanitize(const char *path, bool *external = NULL, bool relative = true);
 
     static void chroot(const char *root) {
         if (g_m_Root != NULL && root != g_m_Root) {

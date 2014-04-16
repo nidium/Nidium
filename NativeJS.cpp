@@ -53,6 +53,9 @@
 #include "NativeWebSocket.h"
 #include "NativePath.h"
 
+#include <NativeNFS.h>
+#include <NativeStreamInterface.h>
+
 static pthread_key_t gAPE = 0;
 static pthread_key_t gJS = 0;
 
@@ -551,10 +554,25 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
 
-    NativePath p("private://foo/bar.txt");
+    NativePath p("foo.mp4");
+    NativeBaseStream *mov = p.createStream();
 
-    printf("Resolved : %s in dir : %s\n", p.path(), p.dir());
+    char *content;
+    size_t len;
+    mov->getContentSync(&content, &len);
 
+    NativeNFS *nfs = new NativeNFS();
+
+    printf("Create header 1 %d\n", nfs->mkdir("/hello", strlen("/hello")));
+    printf("Create header 1 %d\n", nfs->mkdir("/foo", strlen("/foo")));
+    printf("Create header 2 %d\n", nfs->mkdir("/hello/th", strlen("/hello/th")));
+    printf("Create header 2 %d\n", nfs->mkdir("/foo/bar", strlen("/foo/bar")));
+
+    printf("Create header 2 %d\n", nfs->writeFile("/foo/toto", strlen("/foo/foo.mp4"), content, len));
+
+    free(content);
+
+    nfs->save("/tmp/test");
 }
 
 

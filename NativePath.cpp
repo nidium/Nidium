@@ -229,7 +229,7 @@ const char * NativePath::currentJSCaller(JSContext *cx)
     return JS_GetScriptFilename(cx, parent);
 }
 
-char *NativePath::sanitize(const char *path, bool *external)
+char *NativePath::sanitize(const char *path, bool *external, bool relative)
 {
     enum {
         PATH_STATE_START,
@@ -311,7 +311,7 @@ char *NativePath::sanitize(const char *path, bool *external)
             finalPath += "../";
         }
     } else {
-        finalPath += "./";
+        finalPath += (relative ? "./" : "/");
     }
 
     for (int i = 0; elements[i].length() != 0; i++) {
