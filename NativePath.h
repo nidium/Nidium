@@ -132,6 +132,8 @@ public:
         g_m_Pwd = (dir != NULL ? strdup(dir) : NULL);
     }
 
+    static char *getDir(const char *fullpath);
+
     static const char *getRoot() {
         return g_m_Root;
     }

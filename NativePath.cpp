@@ -137,6 +137,24 @@ bool NativePath::isRelative(const char *path)
     return pPath[0] != '/';
 }
 
+char *NativePath::getDir(const char *fullpath)
+{
+    int len = strlen(fullpath);
+    char *ret;
+    if (len == 0) {
+        return NULL;
+    }
+    ret = (char *)malloc(sizeof(char) * (len + 1));
+    memcpy(ret, fullpath, len + 1);
+
+    char *pos = strrchr(ret, '/');
+    if (pos != NULL) {
+        pos[1] = '\0';
+    }
+
+    return ret;
+}
+
 void NativePath::setDir()
 {
     int len = strlen(m_Path);
