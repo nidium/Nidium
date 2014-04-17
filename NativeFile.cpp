@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/mman.h>
 
 #define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
@@ -47,6 +48,8 @@ NativeFile::NativeFile(const char *name) :
     m_Filesize(0), m_AutoClose(true),
     m_Eof(false), m_OpenSync(false)
 {
+    m_Mmap.addr = NULL;
+    m_Mmap.size = 0;
     m_Path = strdup(name);
 }
 
@@ -305,9 +308,13 @@ void NativeFile::checkRead(bool async, void *arg)
 
 NativeFile::~NativeFile()
 {
+    if (m_Mmap.addr) {
+        munmap(m_Mmap.addr, m_Mmap.size);
+    }
     if (this->isOpen()) {
         this->closeTask();
     }
+
     free(m_Path);
 }
 
@@ -383,6 +390,29 @@ ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
     }
 
     return ret;
+}
+
+ssize_t NativeFile::mmapSync(char **buffer, int *err)
+{
+    *err = 0;
+    
+    if (!this->isOpen()) {
+        return -1;
+    }
+
+    m_Mmap.addr = mmap(NULL, this->getFileSize(),
+        PROT_READ,
+        MAP_SHARED,
+        fileno(m_Fd), 0);
+
+    if (m_Mmap.addr == MAP_FAILED) {
+        *err = errno;
+        return -1;
+    }
+
+    *buffer = (char *)m_Mmap.addr;
+
+    return this->getFileSize();
 }
 
 ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)

@@ -49,7 +49,12 @@ public:
 
     virtual void stop();
     virtual void getContent();
-    virtual bool getContentSync(char **data, size_t *len);
+
+    /*
+        In case mmap is false, caller is responsible for freeing the data.
+        In case of a mmap, the file is unmmaped in dtor.
+    */
+    virtual bool getContentSync(char **data, size_t *len, bool mmap = false);
     virtual size_t getFileSize() const;
     virtual void seek(size_t pos);
     

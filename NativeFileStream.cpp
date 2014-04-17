@@ -96,7 +96,7 @@ void NativeFileStream::getContent()
     m_File.close();
 }
 
-bool NativeFileStream::getContentSync(char **data, size_t *len)
+bool NativeFileStream::getContentSync(char **data, size_t *len, bool mmap)
 {
     int err;
     ssize_t slen;
@@ -105,9 +105,16 @@ bool NativeFileStream::getContentSync(char **data, size_t *len)
         return false;
     }
 
-    if ((slen = m_File.readSync(m_File.getFileSize(), data, &err)) < 0) {
-        *len = 0;
-        return false;
+    if (!mmap) {
+        if ((slen = m_File.readSync(m_File.getFileSize(), data, &err)) < 0) {
+            *len = 0;
+            return false;
+        }
+    } else {
+        if ((slen = m_File.mmapSync(data, &err)) < 0) {
+            *len = 0;
+            return false;
+        }        
     }
 
     *len = slen;

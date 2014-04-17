@@ -55,6 +55,8 @@ public:
 
     int openSync(const char *modes, int *err);
     ssize_t readSync(uint64_t len, char **buffer, int *err);
+    ssize_t mmapSync(char **buffer, int *err);
+
     ssize_t writeSync(char *data, uint64_t len, int *err);
     int seekSync(size_t pos, int *err);
     void closeSync();
@@ -102,6 +104,11 @@ private:
     bool m_AutoClose;
     bool m_Eof;
     bool m_OpenSync;
+
+    struct {
+        size_t size;
+        void *addr;
+    } m_Mmap;
 };
 
 #endif
