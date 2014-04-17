@@ -81,6 +81,7 @@ public:
 
 private:
     uint8_t *m_Content;
+    off_t m_ContentPtr;
     size_t m_Size;
 
     struct nativenfs_header_s m_Header;
@@ -88,9 +89,12 @@ private:
     NativeHash<NativeNFSTree *> m_Hash;
 
     NativeNFSTree m_Root;
-    
+
     void writeTree(FILE *fd, NativeNFSTree *cur);
+    void readTree(NativeNFSTree *parent);
     void releaseTree(NativeNFSTree *root);
+
+    bool readContent(void *dest, size_t len);
 };
 
 
