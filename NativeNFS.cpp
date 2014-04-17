@@ -193,6 +193,23 @@ bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
     return true;
 }
 
+const char *NativeNFS::readFile(const char *filename, size_t *len,
+    int *flags) const
+{
+    NativeNFSTree *file = m_Hash.get(filename);
+    if (file == NULL || (file->header.flags & NFS_FILE_DIR)) {
+        return NULL;
+    }
+
+    if (flags) {
+        *flags = file->header.flags;
+    }
+
+    *len = file->header.size;
+
+    return (const char *)file->meta.content;
+}
+
 bool NativeNFS::save(const char *dest)
 {
     FILE *fd = fopen(dest, "w+");
@@ -221,10 +238,10 @@ void NativeNFS::writeTree(FILE *fd, NativeNFSTree *cur)
     if (!(cur->header.flags & NFS_FILE_DIR)) {
         fwrite(cur->meta.content, 1, cur->header.size, fd);
     } else if (cur->header.flags & NFS_FILE_DIR) {
-        writeTree(fd, cur->meta.children);
+        this->writeTree(fd, cur->meta.children);
     }
 
-    writeTree(fd, cur->next);
+    this->writeTree(fd, cur->next);
 }
 
 void NativeNFS::readTree(NativeNFSTree *parent)
@@ -239,15 +256,18 @@ void NativeNFS::readTree(NativeNFSTree *parent)
     parent->meta.children = item;
 
     this->readContent(&item->header, sizeof(struct nativenfs_file_header_s));
-    item->filename_utf8 = (char *)malloc(item->header.filename_length);
+    item->filename_utf8 = (char *)malloc(item->header.filename_length + 1);
     this->readContent(item->filename_utf8, item->header.filename_length);
+    item->filename_utf8[item->header.filename_length] = '\0';
 
     m_Hash.set(item->filename_utf8, item);
 
     if (!(item->header.flags & NFS_FILE_DIR)) {
+        printf("Got a file : %s\n", item->filename_utf8);
         item->meta.content = m_Content + m_ContentPtr;
         m_ContentPtr += item->header.size;
     } else if (item->header.flags & NFS_FILE_DIR) {
+        printf("Got a dir : %s\n", item->filename_utf8);
         this->readTree(item);
     }
 
@@ -275,10 +295,10 @@ void NativeNFS::releaseTree(NativeNFSTree *root)
         return;
     }
 
-    releaseTree(cur->next);
+    this->releaseTree(cur->next);
 
     if (root->header.flags & NFS_FILE_DIR) {
-        releaseTree(root->meta.children);
+        this->releaseTree(root->meta.children);
     }
     
     free(root->filename_utf8);

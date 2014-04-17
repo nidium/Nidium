@@ -79,6 +79,9 @@ public:
     bool writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags = 0);
 
+    const char *readFile(const char *filename, size_t *len,
+        int *flags = NULL) const;
+
 private:
     uint8_t *m_Content;
     off_t m_ContentPtr;
