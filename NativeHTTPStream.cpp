@@ -100,7 +100,7 @@ const unsigned char *NativeHTTPStream::onGetNextPacket(size_t *len, int *err)
         return NULL;
     }
 
-    size_t byteLeft = m_Mapped.size - m_LastReadUntil;
+    ssize_t byteLeft = m_Mapped.size - m_LastReadUntil;
     *len = native_min(m_PacketsSize, byteLeft);
 
     data = (unsigned char *)m_Mapped.addr + m_LastReadUntil;

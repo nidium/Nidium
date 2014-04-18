@@ -90,7 +90,7 @@ public:
     */
     virtual void getContent()=0;
 
-    virtual bool getContentSync(char **data, size_t *len) {
+    virtual bool getContentSync(char **data, size_t *len, bool mmap = false) {
         return false;
     }
 

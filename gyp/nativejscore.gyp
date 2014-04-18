@@ -69,6 +69,7 @@
             '../NativeStreamInterface.cpp',
             '../NativeFileStream.cpp',
             '../NativeHTTPStream.cpp',
+            '../NativeNFSStream.cpp',
             '../NativeHTTPListener.cpp',
             '../NativeWebSocket.cpp',
             '../NativeJSWebSocket.cpp',
