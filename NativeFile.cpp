@@ -445,6 +445,8 @@ ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
         return -1;
     }
 
+    data[readsize] = '\0';
+
     *buffer = data;
 
     this->checkEOF();
