@@ -104,7 +104,7 @@ public:
 
     NativeArgs args;
 
-    friend NativeManaged;
+    friend class NativeManaged;
 private:
     void setObject(NativeManaged *obj) {
         m_Obj = obj;
