@@ -73,7 +73,6 @@ void NativeBaseStream::start(size_t packets, size_t seek)
 
     m_PacketsSize = packets;
     m_NeedToSendUpdate = true;
-
     this->onStart(packets, seek);
 }
 

@@ -360,7 +360,7 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (!scriptpath.getScheme()->allowSyncStream) {
+    if (!scriptpath.getScheme()->allowSyncStream()) {
         JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
         return false;
     }
