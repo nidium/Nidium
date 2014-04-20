@@ -116,13 +116,16 @@
                 ],
                 "link_settings": {
                     'libraries': [
+                        '$(SDKROOT)/System/Library/Frameworks/Carbon.framework',
+                        '$(SDKROOT)/System/Library/Frameworks/ForceFeedback.framework',
+                        '$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                         '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
                         '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
                         '$(SDKROOT)/System/Library/Frameworks/CoreAudioKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
                         '$(SDKROOT)/System/Library/Frameworks/AudioUnit.framework',
-                        'SDL2.framework',
+                        'libSDL2.a',
                         'libskia_sfnt.a',
                         'libskia_opts_ssse3.a',
                         'libskia_opts.a',
@@ -153,8 +156,9 @@
                         '/usr/lib/libz.dylib',
                         'libiconv.dylib',
                         'libssl.dylib',
-                        'libcrypto.dylib'
+                        'libcrypto.dylib',
                     ],
+
                 },
                 "xcode_settings": {
                     'MACOSX_DEPLOYMENT_TARGET': [
@@ -188,14 +192,14 @@
                     '<(third_party_path)/portaudio/src/common/pa_ringbuffer.o'
                 ],
                 'postbuilds': [
-                    {
-                        'postbuild_name': 'Copy Frameworks',
-                        'action': [
-                            'ditto',
-                            '<(native_output)/third-party-libs/.libs/SDL2.framework/',
-                            '<(native_exec_path)/<(native_exec_name).app/Contents/Frameworks/SDL2.framework'
-                        ]
-                    },
+                    #{
+                    #    'postbuild_name': 'Copy Frameworks',
+                    #    'action': [
+                    #        'ditto',
+                    #        '<(native_output)/third-party-libs/.libs/SDL2.framework/',
+                    #        '<(native_exec_path)/<(native_exec_name).app/Contents/Frameworks/SDL2.framework'
+                    #    ]
+                    #},
                     {
                         'postbuild_name': 'Copy resources',
                         'action': [

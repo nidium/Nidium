@@ -3,8 +3,10 @@ import sys, os
 import deps
 from deps import log, spinner
 
+SDL2_BUILD_AS_FRAMEWORK = False
+
 def buildSDL2():
-    if deps.system == "Darwin":
+    if deps.system == "Darwin" and SDL2_BUILD_AS_FRAMEWORK:
         deps.buildDep("SDL2.framework", "SDL2/Xcode/SDL", ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], outlibs=["SDL2/Xcode/SDL/out/SDL2.framework"])
     else:
         deps.mkdir_p("SDL2/build/")
