@@ -24,6 +24,7 @@
 #include <native_netlib.h>
 #include <ape_buffer.h>
 
+
 #ifdef NIDIUM_INC_PRIVATE_BIN
   #include NIDIUM_INC_PRIVATE_BIN
 #endif
@@ -146,9 +147,11 @@ bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
     }
 
     if (!mmap) {
-        *data = (char *)malloc(*len);
+        *data = (char *)malloc(*len + 1);
         memcpy(*data, ret, *len);
+        *data[*len] = '\0';
     } else {
+        /* /!\ data is not null terminated */
         *data = (char *)ret;
     }
 
