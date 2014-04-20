@@ -37,7 +37,7 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
     if (origin == NULL) {
         return;
     }
-
+    const char *pOrigin;
     int originlen = strlen(origin);
     if (originlen > MAXPATHLEN-1 || origin[originlen-1] == '/') {
         return;
@@ -47,12 +47,15 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
 
     if (!NativePath::getPwd() && URLSCHEME_MATCH(origin, "file")) {
         realpath(origin, m_Path);
-        m_Scheme = NativePath::getScheme(origin);
+        m_Scheme = NativePath::getScheme(origin, &pOrigin);
     } else if (!NativePath::getPwd() || noFilter) {
-        memcpy(m_Path, origin, originlen+1);
-        m_Scheme = NativePath::getScheme(origin);
+        m_Scheme = NativePath::getScheme(origin, &pOrigin);
+        if (m_Scheme->getBaseDir() != NULL) {
+            strcat(m_Path, m_Scheme->getBaseDir());
+
+        }
+        strcat(m_Path, pOrigin);
     } else {
-        const char *pOrigin;
         bool outsideRoot      = false;
         schemeInfo *pwdScheme = NativePath::getPwdScheme();
         schemeInfo *scheme    = NativePath::getScheme(origin, &pOrigin);
