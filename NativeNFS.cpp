@@ -42,7 +42,7 @@ NativeNFS::NativeNFS(uint8_t *content, size_t size) :
 }
 
 NativeNFS::NativeNFS() :
-    m_Content(NULL), m_Size(0), m_ContentPtr(0)
+    m_Content(NULL), m_ContentPtr(0), m_Size(0)
 {
     m_Root.header.filename_length = 1;
     m_Root.filename_utf8 = strdup("/");
@@ -210,10 +210,9 @@ const char *NativeNFS::readFile(const char *filename, size_t *len,
     return (const char *)file->meta.content;
 }
 
-bool NativeNFS::save(const char *dest)
+bool NativeNFS::save(FILE *fd)
 {
-    FILE *fd = fopen(dest, "w+");
-    if (!dest) {
+    if (!fd) {
         return false;
     }
 
@@ -221,9 +220,21 @@ bool NativeNFS::save(const char *dest)
 
     writeTree(fd, m_Root.meta.children);
 
+    return true;
+}
+
+bool NativeNFS::save(const char *dest)
+{
+    FILE *fd = fopen(dest, "w+");
+    if (!fd) {
+        return false;
+    }
+
+    bool ret = this->save(fd);
+
     fclose(fd);
 
-    return true;
+    return ret;
 }
 
 void NativeNFS::writeTree(FILE *fd, NativeNFSTree *cur)
@@ -263,11 +274,9 @@ void NativeNFS::readTree(NativeNFSTree *parent)
     m_Hash.set(item->filename_utf8, item);
 
     if (!(item->header.flags & NFS_FILE_DIR)) {
-        printf("Got a file : %s\n", item->filename_utf8);
         item->meta.content = m_Content + m_ContentPtr;
         m_ContentPtr += item->header.size;
     } else if (item->header.flags & NFS_FILE_DIR) {
-        printf("Got a dir : %s\n", item->filename_utf8);
         this->readTree(item);
     }
 
@@ -289,13 +298,11 @@ bool NativeNFS::readContent(void *dest, size_t len)
 
 void NativeNFS::releaseTree(NativeNFSTree *root)
 {
-    NativeNFSTree *cur;
-
     if (root == NULL) {
         return;
     }
 
-    this->releaseTree(cur->next);
+    this->releaseTree(root->next);
 
     if (root->header.flags & NFS_FILE_DIR) {
         this->releaseTree(root->meta.children);

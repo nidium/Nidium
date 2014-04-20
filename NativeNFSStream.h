@@ -48,6 +48,7 @@ public:
 
     virtual void stop();
     virtual void getContent();
+    void _getContent();
 
     virtual bool getContentSync(char **data, size_t *len, bool mmap = false);
     virtual size_t getFileSize() const;
@@ -57,7 +58,6 @@ protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);
     virtual void onStart(size_t packets, size_t seek);
 private:
-
     NativeNFS *m_NFS;
 
     struct {

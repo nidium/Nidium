@@ -75,6 +75,8 @@ public:
     ~NativeNFS();
 
     bool save(const char *dest);
+    bool save(FILE *fd);
+
     bool mkdir(const char *name_utf8, size_t name_len);
     bool writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags = 0);

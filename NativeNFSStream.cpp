@@ -24,24 +24,19 @@
 #include <native_netlib.h>
 #include <ape_buffer.h>
 
+#ifdef NIDIUM_INC_PRIVATE_BIN
+  #include NIDIUM_INC_PRIVATE_BIN
+#endif
 NativeNFSStream::NativeNFSStream(const char *location) : 
     NativeBaseStream(location)
 {
     static NativeNFS *nfs = NULL;
 
+#ifdef NIDIUM_INC_PRIVATE_BIN
     if (nfs == NULL) {
-        char *content;
-        size_t len;
-
-        NativeBaseStream *fs = NativeBaseStream::create("/tmp/test");
-        if (!fs->getContentSync(&content, &len, true)) {
-            printf("Failed to open Nidium VFS\n");
-            return;
-        }
-
-        nfs = new NativeNFS((unsigned char *)content, len);
+        nfs = new NativeNFS(private_bin, sizeof(private_bin));
     }
-
+#endif
     m_NFS = nfs;
     m_File.pos = 0;
 }
@@ -53,6 +48,8 @@ void NativeNFSStream::onStart(size_t packets, size_t seek)
 
     if (m_File.data == NULL) {
         this->error(NATIVESTREAM_ERROR_OPEN, 0);
+
+        return;
     }
 
     CREATE_MESSAGE(message_available,
@@ -103,9 +100,40 @@ void NativeNFSStream::stop()
     */
 }
 
+int NativeNFSStream_getContent(void *arg)
+{
+    ((NativeNFSStream *)arg)->_getContent();
+
+    return 0;
+}
+
 void NativeNFSStream::getContent()
 {
+    ape_global *ape = NativeJS::getNet();
+    timer_dispatch_async_unprotected(NativeNFSStream_getContent, this);
+}
 
+void NativeNFSStream::_getContent()
+{
+    m_File.data = (const unsigned char *)m_NFS->readFile(m_Location, &m_File.len);
+    m_File.pos = 0;
+
+    if (m_File.data == NULL) {
+        this->error(NATIVESTREAM_ERROR_OPEN, 0);
+
+        return;
+    }
+
+    buffer buf;
+    buffer_init(&buf);
+
+    buf.data = (unsigned char *)m_File.data;
+    buf.size = buf.used = m_File.len;
+
+    CREATE_MESSAGE(message, NATIVESTREAM_READ_BUFFER);
+    message->args[0].set(&buf);
+
+    this->notify(message);
 }
 
 bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
