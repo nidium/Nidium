@@ -774,6 +774,13 @@ int NativeJS::LoadScriptReturn(JSContext *cx,
 int NativeJS::LoadScriptContent(const char *data, size_t len,
     const char *filename)
 {
+    /*
+        Detect JSBytecode using XDR magic number ad defined in xdr.h
+    */
+    if ((*(uint32_t *)data & 0xFFFFFF00) == 0xb973c000) {
+        return this->LoadBytecode((void *)data, len, filename);
+    }
+
     uint32_t oldopts;
     JSObject *gbl = JS_GetGlobalObject(cx);
     oldopts = JS_GetOptions(cx);
