@@ -3,7 +3,6 @@ HEADER=private_bin.h
 XXD = xxd
 DIR_BIN = ../../framework/dist/private
 
-
 all: $(SOURCES) $(HEADER)
 
 clean:

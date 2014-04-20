@@ -109,7 +109,7 @@ unsigned long _ape_seed;
     if (self->isRunning) {
         self->UI->restartApplication([filename UTF8String]);
     }
-    
+
     return true;
 }
 

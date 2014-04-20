@@ -33,7 +33,6 @@ public:
     explicit NativePrivateStream(const char *location) :
         NativeFileStream(location)
     {
-        printf("Create private %s\n", location);
     }
 
     static NativeBaseStream *createStream(const char *location) {

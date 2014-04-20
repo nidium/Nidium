@@ -100,6 +100,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     /*
         TODO: Why is "native.js" hardcoded???
     */
+#if 1
     const char *loadPreload[] = {
         "falcon/native.js",
         "../scripts/preload.js"
@@ -111,10 +112,12 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
             m_JS->LoadBytecode(script);
         }
     }
+#endif
     m_WSClient = NULL;
     m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
     m_WS->setListener(this);
     m_WS->start();
+
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
@@ -304,7 +307,6 @@ NativeContext::~NativeContext()
     printf("destroy reader\n");
     delete m_WS;
     
-
     NativeSkia::glcontext = NULL;
 
     ShFinalize();

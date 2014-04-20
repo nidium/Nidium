@@ -81,14 +81,29 @@ int main(int argc, char **argv)
 {
     initNativeJSCore();
 
+    if (argc <= 1) {
+        printf("$ %s <path> [prefix] [> out]\n", argv[0]);
+        return 1;
+    }
+
     DIR *dir = opendir(argv[1]);
     if (!dir) {
         fprintf(stderr, "Cant open dir %s\n", argv[1]);
     }
     NativeNFS *nfs = new NativeNFS();
 
-    listdir(nfs, dir, argv[1], strlen(argv[1]));
+    if (argc == 3) {
+        std::string prefix = "/";
+        prefix += argv[2];
 
+        fprintf(stderr, "Create prefix %s...\n", prefix.c_str());
+
+        nfs->mkdir(prefix.c_str(), strlen(prefix.c_str()));
+
+        listdir(nfs, dir, argv[1], strlen(argv[1]));
+    } else {
+        listdir(nfs, dir, argv[1], strlen(argv[1]));
+    }
     nfs->save(stdout);
 
     return 0;

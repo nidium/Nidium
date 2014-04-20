@@ -67,6 +67,8 @@ void NativeNML::loadFile(const char *file, NMLLoadedCallback cb, void *arg)
 
     NativePath path(file);
 
+    printf("NML path : %s\n", path.path());
+
     stream = NativeBaseStream::create(path);
     if (stream == NULL) {
         NativeSystemInterface::getInstance()->
@@ -234,7 +236,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
 
 void NativeNML::loadDefaultItems(NativeAssets *assets)
 {
-#ifndef NIDIUM_DONT_LOAD_FRAMEWORK
+#if 1
     NativeAssets::Item *item = new NativeAssets::Item("private://falcon/native.js",
         NativeAssets::Item::ITEM_SCRIPT, net);
 
@@ -435,7 +437,19 @@ void NativeNML::onGetContent(const char *data, size_t len)
 {
     rapidxml::xml_document<> doc;
 
-    if (this->loadData((char *)data, len, doc)) {
+    char *data_nullterminated;
+    bool needRelease = false;
+
+    if (data[len] != '\0') {
+        data_nullterminated = (char *)malloc(len + 1);
+        memcpy(data_nullterminated, data, len);
+        data_nullterminated[len] = '\0';
+        needRelease = true;
+    } else {
+        data_nullterminated = (char *)data;
+    }
+
+    if (this->loadData(data_nullterminated, len, doc)) {
         this->loaded(this->loaded_arg);
 
         if (m_Layout) {
@@ -455,4 +469,8 @@ void NativeNML::onGetContent(const char *data, size_t len)
     ape_global *ape = net;
     timer_dispatch_async(delete_stream, stream);
     stream = NULL;
+
+    if (needRelease) {
+        free(data_nullterminated);
+    }
 }

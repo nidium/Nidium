@@ -208,7 +208,6 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     event = JS_NewObject(cx, &NMLEvent_class, NULL, NULL);
     jevent = OBJECT_TO_JSVAL(event);
 
-    NLOG("asset ready %d", tag.content.len);
     EVENT_PROP("data", STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
         (const char *)tag.content.data, tag.content.len, "utf8")));
     EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
