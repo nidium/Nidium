@@ -335,6 +335,8 @@ static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *script = NULL;
+    char *content;
+    size_t len;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
         return false;
@@ -358,39 +360,24 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (!njs->LoadScript(scriptpath.path())) {
+    if (!scriptpath.getScheme()->allowSyncStream) {
+        JS_ReportError(cx, "script error : \"%s\" scheme can't load in a sync way", schemePwd->str);
+        return false;
+    }
+
+    NativePtrAutoDelete<NativeBaseStream *> stream(scriptpath.createStream());
+
+    if (!stream.ptr() || !stream.ptr()->getContentSync(&content, &len, true)) {
+        JS_ReportError(cx, "load() failed read script");
+        return false;        
+    }
+
+    if (!njs->LoadScriptContent(content, len, scriptpath.path())) {
         JS_ReportError(cx, "load() failed to load script");
         return false;
-    }
+    }    
 
     return true;
-#if 0
-    if (njs->m_Delegate != NULL && 
-            njs->m_Delegate->onLoad(njs, scriptstr.ptr(), argc, vp)) {
-        return true;
-    }
-
-    NativeJS::getNativeClass(cx)->LoadScript(scriptstr.ptr());
-
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
-    filename_parent = JS_GetScriptFilename(cx, parent);
-
-    char *basepath = NativeStream::resolvePath(filename_parent, NativeStream::STREAM_RESOLVE_PATH);
-    char *finalfile = (char *)malloc(sizeof(char) *
-        (1 + strlen(basepath) + strlen(filename_parent)));
-
-    if (!NativeJS::getNativeClass(cx)->LoadScript(finalfile)) {
-        free(finalfile);
-        free(basepath);
-        return false;
-    } 
-
-    free(finalfile);
-    free(basepath);
-
-    return true;
-
-#endif
 }
 
 #if 0
@@ -554,16 +541,32 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
 
-    NativePath p("foo.mp4");
-    NativeBaseStream *mov = p.createStream();
+#if 0
+    NativeBaseStream *stream = NativeBaseStream::create("nvfs:///libs/zip.lib.js");
+    char *ret;
+    size_t retlen;
+
+    if (stream->getContentSync(&ret, &retlen)) {
+        printf("Got the file\n");
+        printf("ret : %s\n", ret);
+    }
+
+
+    NativeBaseStream *mov = NativeBaseStream::create("/tmp/test");
 
     char *content;
     size_t len;
-    mov->getContentSync(&content, &len);
+    if (!mov->getContentSync(&content, &len, true)) {
+        printf("Failed to open file\n");
+    }
 
-    NativeNFS *nfs = new NativeNFS();
+    NativeNFS *nfs = new NativeNFS((unsigned char *)content, len);
 
-    printf("Create header 1 %d\n", nfs->mkdir("/hello", strlen("/hello")));
+
+    const char *mp4file = nfs->readFile("/foo/toto", &len);
+
+    printf("Got a file of len %ld\n", len);
+    /*printf("Create header 1 %d\n", nfs->mkdir("/hello", strlen("/hello")));
     printf("Create header 1 %d\n", nfs->mkdir("/foo", strlen("/foo")));
     printf("Create header 2 %d\n", nfs->mkdir("/hello/th", strlen("/hello/th")));
     printf("Create header 2 %d\n", nfs->mkdir("/foo/bar", strlen("/foo/bar")));
@@ -573,6 +576,10 @@ NativeJS::NativeJS(ape_global *net) :
     free(content);
 
     nfs->save("/tmp/test");
+
+    */
+#endif
+
 }
 
 
