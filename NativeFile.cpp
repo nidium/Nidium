@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/mman.h>
+#include <stdio.h>
 
 #define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
@@ -309,6 +310,7 @@ void NativeFile::checkRead(bool async, void *arg)
 NativeFile::~NativeFile()
 {
     if (m_Mmap.addr) {
+        fprintf(stderr, "unmaped file at %p for size %ld\n", m_Mmap.addr, m_Mmap.size);
         munmap(m_Mmap.addr, m_Mmap.size);
     }
     if (this->isOpen()) {
@@ -399,8 +401,9 @@ ssize_t NativeFile::mmapSync(char **buffer, int *err)
     if (!this->isOpen()) {
         return -1;
     }
+    size_t size = this->getFileSize();
 
-    m_Mmap.addr = mmap(NULL, this->getFileSize(),
+    m_Mmap.addr = mmap(NULL, size,
         PROT_READ,
         MAP_SHARED,
         fileno(m_Fd), 0);
@@ -409,6 +412,8 @@ ssize_t NativeFile::mmapSync(char **buffer, int *err)
         *err = errno;
         return -1;
     }
+
+    m_Mmap.size = size;
 
     *buffer = (char *)m_Mmap.addr;
 
