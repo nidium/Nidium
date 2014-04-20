@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include <NativeHash.h>
+#include <jspubtd.h>
 
 #define NATIVE_NFS_MAGIC 0x27121986
 
@@ -81,6 +82,8 @@ public:
     bool writeFile(const char *name_utf8, size_t name_len, char *content,
         size_t len, int flags = 0);
 
+    void initJSWithCX(JSContext *cx);
+
     const char *readFile(const char *filename, size_t *len,
         int *flags = NULL) const;
 
@@ -100,6 +103,15 @@ private:
     void releaseTree(NativeNFSTree *root);
 
     bool readContent(void *dest, size_t len);
+
+    void initRoot();
+
+    void *buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen);
+    
+    struct {
+        JSRuntime *rt;
+        JSContext *cx;
+    } m_JS;
 };
 
 
