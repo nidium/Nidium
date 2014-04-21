@@ -21,7 +21,11 @@
 #define nativeprivatestream_h__
 
 #include <NativeFileStream.h>
+#include <NativeNFSStream.h>
 #include <NativeSystemInterface.h>
+#include <string>
+
+#if 0
 
 class NativePrivateStream : public NativeFileStream
 {
@@ -29,7 +33,6 @@ public:
     explicit NativePrivateStream(const char *location) :
         NativeFileStream(location)
     {
-
     }
 
     static NativeBaseStream *createStream(const char *location) {
@@ -48,5 +51,38 @@ public:
         return NativeSystemInterface::getInstance()->getPrivateDirectory();
     }
 };
+
+#else
+
+class NativePrivateStream : public NativeNFSStream
+{
+public:
+    explicit NativePrivateStream(const char *location) :
+#if 0
+        NativeNFSStream((std::string("/private") + location).c_str())
+#else
+        NativeNFSStream(location)
+#endif
+    {
+    }
+
+    static NativeBaseStream *createStream(const char *location) {
+        return new NativePrivateStream(location);
+    }
+
+    static bool allowLocalFileStream() {
+        return true;
+    }
+
+    static bool allowSyncStream() {
+        return true;
+    }
+
+    static const char *getBaseDir() {
+        return "/";
+    }
+};
+
+#endif
 
 #endif

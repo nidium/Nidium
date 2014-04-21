@@ -12,7 +12,8 @@
             'UINT32_MAX=4294967295u',
             '_FILE_OFFSET_BITS=64',
             '_HAVE_SSL_SUPPORT',
-            'NIDIUM_DONT_LOAD_FRAMEWORK'
+            'NIDIUM_DONT_LOAD_FRAMEWORK',
+            'NIDIUM_INC_PRIVATE_BIN="../tools/NFS/private_bin.h"'
         ],
         'default_configuration': 'Release',
         'configurations': {

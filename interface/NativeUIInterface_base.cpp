@@ -7,6 +7,7 @@
 #include <NativeHTTPStream.h>
 #include <NativeFileStream.h>
 #include <NativePrivateStream.h>
+#include <NativeNFSStream.h>
 
 #include <SDL.h>
 #define GL_GLEXT_PROTOTYPES
@@ -23,6 +24,7 @@ NativeUIInterface::NativeUIInterface() :
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
+    NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    NativeNFSStream,     false));
 
     NativeTaskManager::createManager();
 }
