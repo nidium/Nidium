@@ -7,7 +7,11 @@
 #include <NativeUtils.h>
 #include <string>
 #include <native_netlib.h>
-//clang++  main.cpp ../../nativejscore/external/json/jsoncpp.cpp ../../nativejscore/network/gyp/build/Release/libnativenetwork.a ../../nativejscore/gyp/build/Release/libnativejscore.a ../../out/third-party-libs/.libs/libhttp_parser.a ../../out/third-party-libs/.libs/libnspr4.a ../../out/third-party-libs/.libs/libcares.a ../../out/third-party-libs/release/libjs_static.a ../../out/third-party-libs/release/libzip.a -I../../nativejscore/ -I../../nativejscore/network/ -I../../nativejscore/external/json/  -lz -lssl -lcrypto
+#include <jsapi.h>
+
+/*
+clang++  main.cpp ../../nativejscore/external/json/jsoncpp.cpp ../../nativejscore/network/gyp/build/Release/libnativenetwork.a ../../nativejscore/gyp/build/Release/libnativejscore.a ../../out/third-party-libs/.libs/libhttp_parser.a ../../out/third-party-libs/.libs/libnspr4.a ../../out/third-party-libs/.libs/libcares.a ../../out/third-party-libs/release/libjs_static.a ../../out/third-party-libs/release/libzip.a -I../../nativejscore/ -I../../nativejscore/network/ -I../../nativejscore/external/json/ -I ../../third-party/mozilla-central/js/src/dist/include/  -lz -lssl -lcrypto -o dir2nvfs
+*/
 
 unsigned long _ape_seed;
 
@@ -37,16 +41,17 @@ void listdir(NativeNFS *nfs, DIR *dir, std::string fullpath, int strip)
             listdir(nfs, opendir(newpath.c_str()), newpath, strip);
         } else if (cur->d_type & DT_REG) {
 
-            NativePtrAutoDelete<NativeBaseStream *> stream(NativeBaseStream::create(newpath.c_str()));
+            //NativePtrAutoDelete<NativeBaseStream *> stream(NativeBaseStream::create(newpath.c_str()));
+            NativeBaseStream *stream = NativeBaseStream::create(newpath.c_str());
 
-            if (stream.ptr() == NULL) {
+            if (stream == NULL) {
                 fprintf(stderr, "Could not create stream for file %s\n", newpath.c_str());
                 continue;
             }
             char *content;
             size_t len;
 
-            if (!stream.ptr()->getContentSync(&content, &len, true)) {
+            if (!stream->getContentSync(&content, &len, true)) {
                 fprintf(stderr, "Could not read stream for file %s\n", newpath.c_str());
                 continue;
             }
@@ -90,7 +95,26 @@ int main(int argc, char **argv)
     if (!dir) {
         fprintf(stderr, "Cant open dir %s\n", argv[1]);
     }
+
+    /* Init Spidermonkey */
+    JSRuntime *rt = JS_NewRuntime(32L * 1024L * 1024L, JS_USE_HELPER_THREADS);
+    if (rt == NULL) {
+       return 1;
+    }
+
+    JSContext *cx = JS_NewContext(rt, 8192);
+    if (cx == NULL) {
+       return 1;
+    }
+
+    JS_BeginRequest(cx);
+
+    JS_SetOptions(cx, JSOPTION_NO_SCRIPT_RVAL);
+    JS_SetVersion(cx, JSVERSION_LATEST);
+
     NativeNFS *nfs = new NativeNFS();
+
+    nfs->initJSWithCX(cx);
 
     if (argc == 3) {
         std::string prefix = "/";
@@ -106,5 +130,12 @@ int main(int argc, char **argv)
     }
     nfs->save(stdout);
 
+    JS_EndRequest(cx);
+
+    JS_DestroyContext(cx);
+    JS_DestroyRuntime(rt);
+
+    JS_ShutDown();
+    
     return 0;
 }
