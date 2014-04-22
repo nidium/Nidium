@@ -15,6 +15,22 @@
         'direct_dependent_settings': {
             'include_dirs': [
                 '../'
+            ],
+            'conditions': [
+                ['OS=="linux"', {
+                    "link_settings": {
+                        'libraries': [
+                            '-l/home/efyx/dev/NativeStudio/node/out/Release/libopenssl.a'
+                        ]
+                    }
+                }],
+                ['OS=="mac"', {
+                    "link_settings": {
+                        'libraries': [
+                            'libssl.dylib'
+                        ]
+                    }
+                }]
             ]
         },
         'defines': [
