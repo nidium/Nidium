@@ -12,3 +12,7 @@ def registerDeps():
     deps.registerDep("leveldb",
         partial(deps.downloadDep, "leveldb", deps.depsURL + "/leveldb.tar.gz"),
         buildLevelDB)
+
+    deps.registerDep("openssl",
+        partial(deps.downloadDep, "openssl", deps.depsURL + "/openssl-1.0.1g.tar.gz", "openssl"),
+        partial(deps.buildDep, "libssl", "openssl", ["./config", "make"], outlibs=["openssl/libssl", "openssl/libcrypto"]))

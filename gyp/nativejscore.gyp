@@ -15,12 +15,14 @@
         'direct_dependent_settings': {
             'include_dirs': [
                 '../'
+                '<(third_party_path)/openssl/',
             ],
             'conditions': [
                 ['OS=="linux"', {
                     "link_settings": {
                         'libraries': [
-                            '-l/home/efyx/dev/NativeStudio/node/out/Release/libopenssl.a'
+                            '-lssl',
+                            '-lcrypto'
                         ]
                     }
                 }],
