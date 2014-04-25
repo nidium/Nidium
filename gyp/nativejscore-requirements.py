@@ -8,6 +8,13 @@ def buildLevelDB():
 
     deps.buildDep("libleveldb", "leveldb", [flags + " make"], outlibs=["leveldb/libleveldb"])
 
+def buildOpenSSL():
+    configure = "./config"
+    if deps.system == "Darwin":
+        configure = "./Configure darwin64-x86_64-cc -no-shared"
+
+    deps.buildDep("libssl", "openssl", [configure, "make build_crypto", "make build_ssl"], outlibs=["openssl/libssl", "openssl/libcrypto"])
+
 def registerDeps():
     deps.registerDep("leveldb",
         partial(deps.downloadDep, "leveldb", deps.depsURL + "/leveldb.tar.gz"),
@@ -15,4 +22,4 @@ def registerDeps():
 
     deps.registerDep("openssl",
         partial(deps.downloadDep, "openssl", deps.depsURL + "/openssl-1.0.1g.tar.gz", "openssl"),
-        partial(deps.buildDep, "libssl", "openssl", ["./config", "make"], outlibs=["openssl/libssl", "openssl/libcrypto"]))
+        buildOpenSSL)

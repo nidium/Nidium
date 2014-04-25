@@ -15,7 +15,7 @@
         'direct_dependent_settings': {
             'include_dirs': [
                 '../'
-                '<(third_party_path)/openssl/',
+                '<(DEPTH)/<(third_party_path)/openssl/include/',
             ],
             'conditions': [
                 ['OS=="linux"', {
@@ -29,7 +29,8 @@
                 ['OS=="mac"', {
                     "link_settings": {
                         'libraries': [
-                            'libssl.dylib'
+                            'libssl.a',
+                            'libcrypto.a'
                         ]
                     }
                 }]
