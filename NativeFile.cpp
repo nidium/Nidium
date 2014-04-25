@@ -310,7 +310,6 @@ void NativeFile::checkRead(bool async, void *arg)
 NativeFile::~NativeFile()
 {
     if (m_Mmap.addr) {
-        fprintf(stderr, "unmaped file at %p for size %ld\n", m_Mmap.addr, m_Mmap.size);
         munmap(m_Mmap.addr, m_Mmap.size);
     }
     if (this->isOpen()) {
