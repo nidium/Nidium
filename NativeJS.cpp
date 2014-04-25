@@ -946,6 +946,10 @@ static int native_timer_deleted(void *arg)
 
     JS_RemoveValueRoot(params->cx, &params->func);
 
+    for (int i = 0; i < params->argc; i++) {
+        JS_RemoveValueRoot(params->cx, &params->argv[i]);
+    }
+
     if (params->argv != NULL) {
         free(params->argv);
     }
@@ -995,6 +999,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     for (i = 0; i < (int)argc-2; i++) {
         params->argv[i] = JS_ARGV(cx, vp)[i+2];
+        JS_AddValueRoot(cx, &params->argv[i]);
     }
 
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
@@ -1048,6 +1053,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 
     for (i = 0; i < (int)argc-2; i++) {
         params->argv[i] = JS_ARGV(cx, vp)[i+2];
+        JS_AddValueRoot(cx, &params->argv[i]);
     }
 
     params->timerng = add_timer(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
