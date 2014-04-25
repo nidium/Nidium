@@ -203,10 +203,10 @@ int NativeVideo::openInitInternal()
     }
 
     // Allocate video frame
-    this->decodedFrame = avcodec_alloc_frame();
+    this->decodedFrame = av_frame_alloc();
 
     // Allocate an AVFrame structure
-    this->convertedFrame = avcodec_alloc_frame();
+    this->convertedFrame = av_frame_alloc();
     if (this->decodedFrame == NULL || this->convertedFrame == NULL) {
         fprintf(stderr, "Failed to alloc frame\n");
         return ERR_OOM;

@@ -147,7 +147,6 @@ class NativeVideo : public NativeAVSource
         bool m_ThreadCreated;
         bool m_SourceNeedWork;
         pthread_mutex_t audioLock;
-        pthread_mutex_t packetLock;
 
         void closeInternal(bool reset);
         static void seekCoro(void *arg);

@@ -8,6 +8,10 @@
 #include "NativeMessages.h"
 #include "native_netlib.h"
 
+extern "C" {
+#include "libavutil/time.h"
+}
+
 #define NATIVE_AVIO_BUFFER_SIZE 32768 
 #define CORO_STACK_SIZE         4096*4
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8

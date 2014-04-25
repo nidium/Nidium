@@ -1158,7 +1158,7 @@ return false;
         int gotFrame, len;
         AVFrame *tmpFrame;
 
-        if (!(tmpFrame = avcodec_alloc_frame())) {
+        if (!(tmpFrame = av_frame_alloc())) {
             SPAM(("Failed to alloc frame\n"));
             RETURN_WITH_ERROR(ERR_OOM);
         }
