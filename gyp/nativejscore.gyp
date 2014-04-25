@@ -12,34 +12,9 @@
             '../network/',
             '../',
         ],
-        'direct_dependent_settings': {
-            'include_dirs': [
-                '../'
-                '<(DEPTH)/<(third_party_path)/openssl/include/',
-            ],
-            'conditions': [
-                ['OS=="linux"', {
-                    "link_settings": {
-                        'libraries': [
-                            '-lssl',
-                            '-lcrypto'
-                        ]
-                    }
-                }],
-                ['OS=="mac"', {
-                    "link_settings": {
-                        'libraries': [
-                            'libssl.a',
-                            'libcrypto.a'
-                        ]
-                    }
-                }]
-            ]
-        },
         'defines': [
             '_FILE_OFFSET_BITS=64',
-            '__STDC_LIMIT_MACROS',
-            '_HAVE_SSL_SUPPORT'
+            '__STDC_LIMIT_MACROS'
         ],
         'dependencies': [
             '../network/gyp/network.gyp:nativenetwork',
