@@ -25,7 +25,7 @@
 #include <NativeSystemInterface.h>
 #include <string>
 
-#if 0
+#ifndef NATIVE_EMBED_PRIVATE
 
 class NativePrivateStream : public NativeFileStream
 {

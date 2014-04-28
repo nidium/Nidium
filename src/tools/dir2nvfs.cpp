@@ -9,6 +9,10 @@
 #include <native_netlib.h>
 #include <jsapi.h>
 
+#ifndef DIR2NFS_OUTPUT
+#define DIR2NFS_OUTPUT stdout
+#endif
+
 /*
 clang++  main.cpp ../../nativejscore/external/json/jsoncpp.cpp ../../nativejscore/network/gyp/build/Release/libnativenetwork.a ../../nativejscore/gyp/build/Release/libnativejscore.a ../../out/third-party-libs/.libs/libhttp_parser.a ../../out/third-party-libs/.libs/libnspr4.a ../../out/third-party-libs/.libs/libcares.a ../../out/third-party-libs/release/libjs_static.a ../../out/third-party-libs/release/libzip.a -I../../nativejscore/ -I../../nativejscore/network/ -I../../nativejscore/external/json/ -I ../../third-party/mozilla-central/js/src/dist/include/  -lz -lssl -lcrypto -o dir2nvfs
 */
@@ -128,7 +132,8 @@ int main(int argc, char **argv)
     } else {
         listdir(nfs, dir, argv[1], strlen(argv[1]));
     }
-    nfs->save(stdout);
+
+    nfs->save(DIR2NFS_OUTPUT);
 
     JS_EndRequest(cx);
 

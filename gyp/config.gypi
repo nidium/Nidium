@@ -4,6 +4,9 @@
         'native_webgl%': 0,
         'native_audio%': 1,
         'native_embed_private%': 0,
+        'native_private_dir': '../framework/dist/private/',
+        'native_private_bin_header': '../src/Native_private_bin.h',
+        'native_private_bin': '../resources/private.bin',
 
         'native_src_path': '../src/',
         'native_av_path': '../av/',

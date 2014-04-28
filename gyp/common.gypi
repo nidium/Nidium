@@ -12,8 +12,7 @@
             'UINT32_MAX=4294967295u',
             '_FILE_OFFSET_BITS=64',
             '_HAVE_SSL_SUPPORT',
-            'NIDIUM_DONT_LOAD_FRAMEWORK',
-            'NIDIUM_INC_PRIVATE_BIN="../tools/NFS/private_bin.h"'
+            'NIDIUM_DONT_LOAD_FRAMEWORK'
         ],
         'default_configuration': 'Release',
         'configurations': {
@@ -139,6 +138,12 @@
         'conditions': [
             ['native_enable_breakpad==1', {
                 'defines': [ 'NATIVE_ENABLE_BREAKPAD' ],
+            }],
+            # XXX : Remove me once we switched to .nfs file for privates
+            ['native_embed_private==1', {
+                'defines': [
+                    'NATIVE_EMBED_PRIVATE="<(native_private_bin_header)"',
+                ]
             }],
             ['addresse_sanitizer==1', {
                 'cflags': [

@@ -67,13 +67,14 @@ if __name__ == '__main__':
     d.log.step("Checking dependencies");
     d.downloadAndBuildDeps()
 
-    # Build the project(s)
-    success = d.runGyp()
-    if success:
-        d.log.success("Build successfull")
- 
-        for action in d.availableActions["post"]:
-            action(opt)
+    # Call pre action (actually these actions are the build phase)
+    for action in d.availableActions["pre"]:
+        action()
+
+    d.log.success("Build successfull")
+
+    for action in d.availableActions["post"]:
+        action(opt)
 
     d.log.info("Finished \\o/")
     # we don't want to run the rest of the script
@@ -187,14 +188,17 @@ def parseArguments():
     
     return opt, args
 
-def registerAction(register, parse = None, action = None):
+def registerAction(register, parse = None, post = None, pre = None):
     availableOptions.append(register)
 
     if parse is not None:
         availableActions["parse"].append(parse)
 
-    if action is not None:
-        availableActions["post"].append(action)
+    if post is not None:
+        availableActions["post"].append(post)
+
+    if pre is not None:
+        availableActions["pre"].append(pre);
 
 def needDep(dep):
     return dep in deps
@@ -791,23 +795,17 @@ def processRequirements(fileName):
 
     os.chdir(cwd)
 
-def runGyp():
+def buildTarget(target):
     cwd = os.getcwd()
     os.chdir("gyp")
-    log.step("Preparing gyp")
-
-    code, output = runCommand(GYP + " --include=config.gypi --include=common.gypi --depth ./ all.gyp " + gypArgs)
-
-    if code != 0:
-        sys.exit(1)
-
+    
     makeCmd = ""
     if system == "Darwin":
-        makeCmd = "xcodebuild -project all.xcodeproj -jobs " + str(nbCpu)
+        makeCmd = "xcodebuild -project " + target + " -jobs " + str(nbCpu)
         if BUILD == "debug":
             makeCmd += " -configuration Debug"
     elif system == "Linux":
-        makeCmd = "CC=" + CLANG + " CXX=" + CLANGPP +" make -j" + str(nbCpu)
+        makeCmd = "CC=" + CLANG + " CXX=" + CLANGPP +" make " + target + " -j" + str(nbCpu)
         if VERBOSE:
             makeCmd += " V=1"
         if BUILD == "debug":
@@ -816,11 +814,25 @@ def runGyp():
         log.error("TODO")
         sys.exit(0)
     
-    log.step("Running gyp");
+    log.step("Running gyp for target " + target);
     code, output = runCommand(makeCmd)
 
     if code != 0:
         log.error("Failed to build project")
+        sys.exit(1)
+
+    os.chdir(cwd)
+
+    return True
+
+def runGyp(target="all.gyp", args=""):
+    cwd = os.getcwd()
+    os.chdir("gyp")
+    log.step("Preparing gyp")
+
+    code, output = runCommand(GYP + " --include=config.gypi --include=common.gypi --depth ./ %s %s" % (target, args))
+
+    if code != 0:
         sys.exit(1)
 
     os.chdir(cwd)
