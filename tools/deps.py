@@ -801,7 +801,7 @@ def buildTarget(target):
     
     makeCmd = ""
     if system == "Darwin":
-        makeCmd = "xcodebuild -project " + target + " -jobs " + str(nbCpu)
+        makeCmd = "xcodebuild -project " + target + ".xcodeproj -jobs " + str(nbCpu)
         if BUILD == "debug":
             makeCmd += " -configuration Debug"
     elif system == "Linux":
