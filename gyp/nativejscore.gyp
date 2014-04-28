@@ -9,7 +9,6 @@
             '<(DEPTH)/<(third_party_path)/c-ares/',
             '<(DEPTH)/<(third_party_path)/http-parser/',
             '<(DEPTH)/<(third_party_path)/leveldb/include/',
-            '../network/',
             '../',
         ],
         'defines': [
@@ -42,6 +41,59 @@
                 ],
             }]
         ],
+        'direct_dependent_settings': {
+            'include_dirs': [
+                '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/dist/include/',
+                '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/',
+                '<(DEPTH)/<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
+                '<(DEPTH)/<(third_party_path)/c-ares/',
+                '<(DEPTH)/<(third_party_path)/http-parser/',
+                '<(DEPTH)/<(third_party_path)/leveldb/include/',
+                '../',
+            ],
+            'defines': [
+                '_FILE_OFFSET_BITS=64',
+                '__STDC_LIMIT_MACROS'
+            ],
+            'conditions': [
+                ['OS=="mac"', {
+                    'xcode_settings': {
+                        'OTHER_CFLAGS': [
+                            '-fvisibility=hidden'
+                        ],
+                    },
+                    "link_settings": {
+                        'libraries': [
+                            'libcares.a',
+                            'libhttp_parser.a',
+                            'libnspr4.a',
+                            'libjs_static.a',
+                            '/usr/lib/libz.dylib',
+                        ]
+                    }
+                }],
+                ['OS=="linux"', {
+                    'cflags': [
+                        '-fvisibility=hidden',
+                        '-Wno-c++0x-extensions',
+                        '-Wno-invalid-offsetof'
+                    ],
+                    "link_settings": {
+                        'libraries': [
+                            '-lpthread',
+                            '-lz',
+                            '-ldl',
+                            '-lrt',
+                            '-ljs_static',
+                            '-lnspr4',
+                            '-lcares',
+                            '-lhttp_parser',
+                            '-lleveldb',
+                        ]
+                    }
+                }]
+            ],
+        },
         'sources': [
             '../NativeFileIO.cpp',
             '../NativeHTTP.cpp',
