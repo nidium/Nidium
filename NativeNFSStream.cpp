@@ -25,15 +25,15 @@
 #include <ape_buffer.h>
 
 
-#ifdef NIDIUM_INC_PRIVATE_BIN
-  #include NIDIUM_INC_PRIVATE_BIN
+#ifdef NATIVE_EMBED_PRIVATE
+  #include NATIVE_EMBED_PRIVATE
 #endif
 NativeNFSStream::NativeNFSStream(const char *location) : 
     NativeBaseStream(location)
 {
     static NativeNFS *nfs = NULL;
 
-#ifdef NIDIUM_INC_PRIVATE_BIN
+#ifdef NATIVE_EMBED_PRIVATE
     if (nfs == NULL) {
         nfs = new NativeNFS(private_bin, sizeof(private_bin));
     }
