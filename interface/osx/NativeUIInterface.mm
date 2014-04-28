@@ -128,9 +128,6 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                         (&event.key)->keysym.sym == SDLK_r &&
                         event.key.keysym.mod & KMOD_GUI && event.key.keysym.mod & KMOD_SHIFT && event.type == SDL_KEYDOWN) {
 
-                        NUII->NativeCtx->setWindowFrame(400, 400, 512, 600);
-                        break;
-
                         if (++nrefresh > 1) {
                             break;
                         }
