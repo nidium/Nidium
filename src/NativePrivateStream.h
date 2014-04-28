@@ -25,7 +25,7 @@
 #include <NativeSystemInterface.h>
 #include <string>
 
-#if 0
+#if 1
 
 class NativePrivateStream : public NativeFileStream
 {
