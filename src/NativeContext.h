@@ -20,8 +20,7 @@ class NativeWebSocketClientConnection;
 
 typedef struct _ape_global ape_global;
 
-class NativeContext : public NativeJSDelegate,
-                      public NativeMessages
+class NativeContext : public NativeMessages
 {
     public:
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
@@ -80,9 +79,6 @@ class NativeContext : public NativeJSDelegate,
     }
 
     NativeHash<NativeBytecodeScript *> preload;
-
-    // NativeJS delegate
-    bool onLoad(NativeJS *njs, char *filename, int argc, jsval *vp);
 
     void onMessage(const NativeSharedMessages::Message &msg);
 

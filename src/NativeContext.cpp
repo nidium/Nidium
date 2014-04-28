@@ -12,7 +12,6 @@
 #include "NativeJSDocument.h"
 #include "NativeJSWindow.h"
 #include "NativeJSConsole.h"
-#include "NativeJS_preload.h"
 #include "NativeUIInterface.h"
 #ifdef __linux__
 #include "SkImageDecoder.h"
@@ -87,7 +86,6 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_JS->setLogger(NativeContext_Logger);
     m_JS->setLogger(NativeContext_vLogger);
-    m_JS->setDelegate(this);
 
     m_NML->setNJS(m_JS);
     /*
@@ -95,24 +93,6 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     */
     m_JS->setPath(NativePath::getPwd());
 
-    __preloadScripts(&this->preload);
-
-    /*
-        TODO: Why is "native.js" hardcoded???
-    */
-#if 1
-    const char *loadPreload[] = {
-        "falcon/native.js",
-        "../scripts/preload.js"
-    };
-
-    for (int i = 0; i < (sizeof(loadPreload) / sizeof(intptr_t)); i++) {
-        NativeBytecodeScript *script = this->preload.get(loadPreload[i]);
-        if (script) {
-            m_JS->LoadBytecode(script);
-        }
-    }
-#endif
     m_WSClient = NULL;
     m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
     m_WS->setListener(this);
@@ -339,65 +319,6 @@ void NativeContext::initHandlers(int width, int height)
     m_RootHandler = new NativeCanvasHandler(width, height);
     m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
-}
-
-bool NativeContext::onLoad(NativeJS *njs, char *filename, int argc, jsval *vp)
-{
-    JSContext *cx = njs->cx;
-    int interfaceLen = 0;
-    NativeStream::StreamInterfaces interface = 
-        NativeStream::typeInterface(filename, &interfaceLen);
-    char *file = NativeStream::resolvePath(filename, NativeStream::STREAM_RESOLVE_FILE);
-    const char *prefix = njs->getPath();
-    char *finalfile;
-    
-    if (interface == NativeStream::INTERFACE_PRIVATE) {
-        finalfile = strdup(file);
-    } else {
-        finalfile = (char *)malloc(sizeof(char) *
-            (1 + strlen(prefix) + strlen(file)));
-        sprintf(finalfile, "%s%s", prefix, file);
-    }
-
-    // More than 1 argument, assume it's nss loading
-    if (argc > 1) {
-        JS::RootedValue type(cx, JS_ARGV(cx, vp)[1]);
-        if (type.isString()) {
-            JS::RootedValue ret(cx, JSVAL_NULL);
-            if (!NativeJS::LoadScriptReturn(cx, finalfile, ret.address())) {
-                JS_ReportError(cx, "Failed to load %s\n", finalfile);
-            }
-
-            JS_SET_RVAL(cx, vp, ret);
-        }
-
-        free(file);
-        free(finalfile);
-
-        return true;
-    }
-
-#ifdef NATIVE_EMBED_PRIVATE
-    if (interface == NativeStream::INTERFACE_PRIVATE) {
-        // XXX : This is a temporary hack until we got VFS working
-        // If falcon framework is embeded inside the binary so all call to load()
-        // with private:// have to load data from the binary 
-        njs->LoadBytecode(this->preload->get(&filename[interfaceLen]));
-
-        free(file);
-        free(finalfile);
-
-        return true;
-    } 
-#endif
-
-    if (!njs->LoadScript(finalfile)) {
-        JS_ReportError(cx, "Failed to load %s\n", finalfile);
-    }
-    
-    free(file);
-    free(finalfile);
-    return true;
 }
 
 void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
