@@ -120,7 +120,7 @@ def buildNidium():
     global RELEASE
 
     # Generate project build file
-    deps.runGyp(deps.gypArgs);
+    deps.runGyp("all.gyp", deps.gypArgs);
 
     if RELEASE:
         if not os.path.exists("tools/dir2nvfs"):
