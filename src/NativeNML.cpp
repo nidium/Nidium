@@ -281,9 +281,9 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
 
         item->setTagName(child->name());
         
-        if (!strncasecmp(child->name(), "script", 6)) {
+        if (!strncasecmp(child->name(), CONST_STR_LEN("script"))) {
             item->fileType = NativeAssets::Item::ITEM_SCRIPT;
-        } else if (!strncasecmp(child->name(), "style", 6)) {
+        } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
             item->fileType = NativeAssets::Item::ITEM_NSS;
         }
         //printf("Node : %s\n", child->name());
