@@ -4,6 +4,7 @@ import deps
 from deps import log, spinner
 
 SDL2_BUILD_AS_FRAMEWORK = False
+RELEASE = False 
 
 def buildSDL2():
     if deps.system == "Darwin" and SDL2_BUILD_AS_FRAMEWORK:
@@ -111,8 +112,32 @@ def registerDeps():
         None)
         #partial(deps.buildDep, "libbreakpad_client", "breakpad", ["./configure", "make"], outlibs=["breakpad/src/client/linux/libbreakpad_client"]))
 
-    deps.registerAction(releaseActionRegister, releaseActionParse, releaseAction);
-    deps.registerAction(stripActionRegister, None, stripAction)
+    deps.registerAction(releaseActionRegister, releaseActionParse, 
+            post=releaseAction, pre=buildNidium);
+    deps.registerAction(stripActionRegister, post = stripAction)
+
+def buildNidium():
+    global RELEASE
+
+    # Generate project build file
+    deps.runGyp("all.gyp", deps.gypArgs);
+
+    if RELEASE:
+        if not os.path.exists("tools/dir2nvfs"):
+            deps.runGyp("tools.gyp")
+            # In Release mode, we need to embed the private
+            # Dir2NFS is needed in order to generate the privates
+            deps.buildTarget("dir2nvfs")
+
+        deps.runGyp("actions.gyp")
+        deps.buildTarget("generate-private");
+
+        # Now that the privates are build
+        # we can add add native_embed_private flag
+        deps.runGyp("all.gyp", deps.gypArgs + " -Dnative_embed_private=1");
+
+    # Build the Nidium app
+    deps.buildTarget("all");
 
 def stripActionRegister(parser):
     parser.add_option("--strip", dest="strip", action="store_true", default=False, help="Strip executable")
@@ -122,7 +147,9 @@ def stripAction(options):
         stripExecutable()
 
 def releaseActionParse(options):
+    global RELEASE
     if options.release:
+        RELEASE = True
         deps.gypArgs += " -Dnative_enable_breakpad=1"
 
 def releaseActionRegister(parser):

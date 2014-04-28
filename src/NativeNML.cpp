@@ -237,10 +237,15 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
 void NativeNML::loadDefaultItems(NativeAssets *assets)
 {
 #if 1
-    NativeAssets::Item *item = new NativeAssets::Item("private://falcon/native.js",
+    NativeAssets::Item *preload = new NativeAssets::Item("private://preload.js",
         NativeAssets::Item::ITEM_SCRIPT, net);
 
-    assets->addToPendingList(item);
+    assets->addToPendingList(preload);
+
+    NativeAssets::Item *falcon = new NativeAssets::Item("private://falcon/native.js",
+        NativeAssets::Item::ITEM_SCRIPT, net);
+
+    assets->addToPendingList(falcon);
 #endif
 }
 
