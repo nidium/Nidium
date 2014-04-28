@@ -93,23 +93,25 @@ void *NativeAudio::queueThread(void *args)
             }
 
             for (;;) {
-                if (audio->canWriteFrame()) {
-                    audio->processQueue();
+                if (!audio->canWriteFrame()) {
+                    break;
+                }
 
-                    if (!audio->output->processed) {
-                        break;
-                    } 
+                audio->processQueue();
 
-                    wrote = true;
-                    audio->output->processed = false;
+                if (!audio->output->processed) {
+                    break;
+                } 
 
-                    // Copy output node frame data to output ring buffer
-                    // XXX : Find a more efficient way to copy data to output right buffer
-                    for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
-                        for (int j = 0; j < audio->outputParameters->channels; j++) {
-                            audio->output->frames[j][i] *= audio->volume;
-                            PaUtil_WriteRingBuffer(audio->rBufferOut, &audio->output->frames[j][i], 1);
-                        }
+                wrote = true;
+                audio->output->processed = false;
+
+                // Copy output node frame data to output ring buffer
+                // XXX : Find a more efficient way to copy data to output right buffer
+                for (int i = 0; i < audio->outputParameters->framesPerBuffer; i++) {
+                    for (int j = 0; j < audio->outputParameters->channels; j++) {
+                        audio->output->frames[j][i] *= audio->volume;
+                        PaUtil_WriteRingBuffer(audio->rBufferOut, &audio->output->frames[j][i], 1);
                     }
                 }
             }
