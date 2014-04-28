@@ -447,7 +447,7 @@ void NativeJS::initNet(ape_global *net)
 }
 
 NativeJS::NativeJS(ape_global *net) :
-    m_Delegate(NULL), m_Logger(NULL), m_vLogger(NULL)
+    m_Logger(NULL), m_vLogger(NULL)
 {
     JSRuntime *rt;
     JSObject *gbl;
