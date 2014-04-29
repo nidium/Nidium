@@ -1578,13 +1578,13 @@ bool NativeAudioSource::process() {
     }
 
     // Get the frame
-    if (this->nbChannel > 1) { // More than 1 channel, need to split
+    if (this->outCount > 1) { // More than 1 channel, need to split
         float *tmp;
         int j;
 
         j = 0;
         // TODO : malloc each time could be avoided?
-        tmp = (float *)malloc(this->audio->outputParameters->bufferSize);
+        tmp = (float *)malloc(this->audio->outputParameters->bufferSize * this->outCount);
 
         PaUtil_ReadRingBuffer(this->rBufferOut, tmp, this->audio->outputParameters->framesPerBuffer);
 
