@@ -127,17 +127,18 @@ def buildNidium():
             deps.runGyp("tools.gyp")
             # In Release mode, we need to embed the private
             # Dir2NFS is needed in order to generate the privates
-            deps.buildTarget("dir2nvfs")
+            deps.buildTarget("tools", "dir2nvfs")
+
 
         deps.runGyp("actions.gyp")
-        deps.buildTarget("generate-private");
+        deps.buildTarget("actions", "generate-private");
 
         # Now that the privates are build
         # we can add add native_embed_private flag
         deps.runGyp("all.gyp", deps.gypArgs + " -Dnative_embed_private=1");
 
     # Build the Nidium app
-    deps.buildTarget("all");
+    deps.buildTarget("all", "native");
 
 def stripActionRegister(parser):
     parser.add_option("--strip", dest="strip", action="store_true", default=False, help="Strip executable")

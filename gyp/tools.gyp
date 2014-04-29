@@ -13,6 +13,11 @@
         ],
         'defines': [
             'DIR2NFS_OUTPUT="<(native_private_bin)"',
-        ]
+        ],
+        "xcode_settings": {
+            'OTHER_LDFLAGS': [ 
+                '-stdlib=libc++',
+            ],
+        },
     }]
 }

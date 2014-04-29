@@ -36,9 +36,9 @@
                     '<(native_private_bin_header)'
                 ],
                 'outputs': [
-                    ''
+                    'dummyFile' # We need to set something here, otherwise action is not executed (OSX)
                 ],
-                'action': ['sed', '-i', '1s/.*/unsigned char private_bin[] = {/', '<@(_inputs)'],
+                'action': ['sed', '-i', '""', '-e', '1s/.*/unsigned char private_bin[] = {/', '<@(_inputs)'],
                 'process_outputs_as_sources': 1
             }
         ]

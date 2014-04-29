@@ -795,15 +795,19 @@ def processRequirements(fileName):
 
     os.chdir(cwd)
 
-def buildTarget(target):
+def buildTarget(project=None, target=None):
     cwd = os.getcwd()
     os.chdir("gyp")
-    
+
     makeCmd = ""
     if system == "Darwin":
-        makeCmd = "xcodebuild -project " + target + ".xcodeproj -jobs " + str(nbCpu)
+        makeCmd = "xcodebuild -project " + project + ".xcodeproj -jobs " + str(nbCpu)
         if BUILD == "debug":
             makeCmd += " -configuration Debug"
+
+        if target is not None:
+            makeCmd += " -target " + target
+
     elif system == "Linux":
         makeCmd = "CC=" + CLANG + " CXX=" + CLANGPP +" make " + target + " -j" + str(nbCpu)
         if VERBOSE:
