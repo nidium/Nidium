@@ -81,6 +81,12 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
 int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size) 
 {
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
+    if (thiz->streamErr == AVERROR_EXIT) {
+        SPAM(("NativeAVStreamReader, streamErr is EXIT\n"));
+        thiz->pending = false;
+        thiz->needWakup = false;
+        return AVERROR_EXIT;
+    }
 
     size_t copied = 0;
     int avail = (thiz->streamPacketSize - thiz->streamRead);
@@ -112,6 +118,11 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         SPAM(("store streamBuffer=%p / size=%d / err=%d\n", thiz->streamBuffer, thiz->streamPacketSize, thiz->streamErr));
         if (!thiz->streamBuffer) {
             switch (thiz->streamErr) {
+                case AVERROR_EXIT:
+                    SPAM(("Got EXIT\n"));
+                    thiz->pending = false;
+                    thiz->needWakup = false;
+                    return AVERROR_EXIT;
                 case NativeBaseStream::STREAM_END:
                 case NativeBaseStream::STREAM_ERROR:
                     thiz->error = AVERROR_EOF;
@@ -127,14 +138,13 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                         // and wait for onDataAvailable callback
                         thiz->pending = true;
                         Coro_switchTo_(thiz->source->coro, thiz->source->mainCoro);
-                        printf("post coro switch\n");
                     } else {
                         // Another packet is already available
                         // (Packet has been received while waiting for the MSG_READ reply)
                     }
                 break;
                 default:
-                    printf("received unknown error (%d) and streamBuffer is null. Returning EOF\n", thiz->streamErr);
+                    printf("received unknown error (%d) and streamBuffer is null. Returning EOF, copied = %d\n", thiz->streamErr, copied);
                     thiz->error = AVERROR_EOF;
                     return copied > 0 ? copied : thiz->error;
             }
@@ -211,6 +221,10 @@ int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
     thiz->streamRead = STREAM_BUFFER_SIZE;
     thiz->totalRead = pos;
     thiz->streamSeekPos = pos;
+
+    if (thiz->streamErr == AVERROR_EXIT) {
+        return pos;
+    }
 
     if (NativeUtils::isMainThread()) {
         thiz->stream->seek(pos);
@@ -321,14 +335,20 @@ void NativeAVStreamReader::onAvailableData(size_t len)
     }
 }
 
+void NativeAVStreamReader::finish()
+{
+    this->streamBuffer = NULL;
+    this->streamErr = AVERROR_EXIT;
+
+    // Clean pending messages 
+    // (we can have a MSG_READ/MSG_SEEK event if we were waiting for stream data/seek)
+    this->delMessages();
+    
+    NATIVE_PTHREAD_SIGNAL(&this->m_ThreadCond);
+}
+
 NativeAVStreamReader::~NativeAVStreamReader() 
 {
-    // In case the stream is waiting for data when the destructor is called
-    // Reset the stream to EOF and wakup the read() method
-    this->streamBuffer = NULL;
-    this->streamErr = NativeBaseStream::STREAM_END;
-    NATIVE_PTHREAD_SIGNAL(&this->m_ThreadCond);
-
     if (NativeUtils::isMainThread()) {
         delete this->stream;
     } else {

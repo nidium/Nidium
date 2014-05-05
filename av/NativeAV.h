@@ -62,6 +62,7 @@ class NativeAVReader
         bool needWakup;
         bool async;
 
+        virtual void finish() = 0;
         virtual ~NativeAVReader() {};
 };
 
@@ -72,6 +73,7 @@ class NativeAVBufferReader : public NativeAVReader
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
 
+        void finish() {};
         ~NativeAVBufferReader() {};
     private:
         uint8_t *buffer;
@@ -92,6 +94,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
         static int64_t seek(void *opaque, int64_t offset, int whence);
         
         void onAvailableData(size_t len);
+        void finish();
         ~NativeAVStreamReader();
     private:
         enum {

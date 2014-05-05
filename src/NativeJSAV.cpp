@@ -902,6 +902,8 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
 
 void NativeJSAudioNode::onMessage(const NativeSharedMessages::Message &msg)
 {
+    if (m_IsDestructing) return;
+
     native_av_thread_message(cx, this->getJSObject(), msg);
 }
 
@@ -992,6 +994,8 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
 NativeJSAudioNode::~NativeJSAudioNode()
 {
     NativeJSAudio::Nodes *nodes = this->audio->nodes;
+    m_IsDestructing = true;
+
     // Block NativeAudio threads execution.
     // While the node is destructed we don't want any thread
     // to call some method on a node that is being destroyed
@@ -1060,9 +1064,10 @@ NativeJSAudioNode::~NativeJSAudioNode()
         JS_SetPrivate(this->jsobj, NULL);
     }
 
+    delete node;
+
     this->audio->audio->unlockQueue();
     this->audio->audio->unlockSources();
-
 }
 
 
@@ -1978,7 +1983,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 NativeJSVideo::NativeJSVideo(NativeSkia *nskia, JSContext *cx) 
-    : video(NULL), audioNode(NULL), arrayContent(NULL), nskia(nskia), cx(cx)
+    : video(NULL), audioNode(NULL), arrayContent(NULL), m_IsDestructing(false), nskia(nskia), cx(cx)
 {
     this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx));
     this->video->frameCallback(NativeJSVideo::frameCallback, this);
@@ -1999,6 +2004,8 @@ void NativeJSVideo::stopAudio()
 
 void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
 {
+    if (m_IsDestructing) return;
+
     native_av_thread_message(cx, this->getJSObject(), msg);
 }
 
@@ -2211,6 +2218,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 NativeJSVideo::~NativeJSVideo() 
 {
     JSAutoRequest ar(cx);
+    m_IsDestructing = true;
     if (this->audioNode) {
         NativeJSAudioNode *node = static_cast<NativeJSAudioNode *>(JS_GetPrivate(this->audioNode));
         NJS->unrootObject(this->audioNode);

@@ -130,7 +130,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
     public :
         NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
             :  audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
-               arrayContent(NULL) 
+               arrayContent(NULL), m_IsDestructing(false)
         { 
             this->jsobj = NULL;
 
@@ -209,6 +209,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         static void registerObject(JSContext *cx);
     private : 
         void add();
+        bool m_IsDestructing;
 };
 
 class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessages
@@ -233,6 +234,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
         
         ~NativeJSVideo();
     private :
+        bool m_IsDestructing;
         NativeSkia *nskia;
         JSContext *cx;
 };

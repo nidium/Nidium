@@ -37,7 +37,13 @@ NativeVideo::NativeVideo(ape_global *n)
       reader(NULL), buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false)
 {
     NATIVE_PTHREAD_VAR_INIT(&this->bufferCond);
+
     pthread_mutex_init(&this->audioLock, NULL);
+
+    pthread_mutexattr_t mta;
+    pthread_mutexattr_init(&mta);
+    pthread_mutexattr_settype(&mta, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&this->decodeThreadLock, &mta);
 
     this->audioQueue = new PacketQueue();
     this->videoQueue = new PacketQueue();
@@ -136,6 +142,9 @@ void NativeVideo::openInitCoro(void *arg)
     int ret = thiz->openInitInternal();
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
+        // We can't close a source from a coroutine.
+        // Set m_SourceDoClose to true so the source will 
+        // be closed from the thread
         thiz->m_SourceDoClose = true;
     }
     Coro_switchTo_(thiz->coro, thiz->mainCoro);
@@ -916,6 +925,10 @@ void *NativeVideo::decode(void *args)
 
     for (;;) {
         DPRINT("decode loop\n");
+        v->lockDecodeThread();
+
+        if (v->shutdown) break;
+
         if (v->opened) {
             DPRINT("opened buffering=%d\n", v->buffering);
             if (!v->buffering && !v->seeking) {
@@ -929,11 +942,6 @@ void *NativeVideo::decode(void *args)
                         DPRINT("    running seek coro\n");
                         Coro_startCoro_(v->mainCoro, v->coro, v, NativeVideo::seekCoro);
                     } 
-                    if (v->doSeek == true) { 
-                        DPRINT("     Waiting for seekCond\n");
-                        NATIVE_PTHREAD_WAIT(&v->bufferCond);
-                        DPRINT("     seekCond go\n");
-                    }
                     DPRINT("done seeking\n");
                 } else {
                     DPRINT("buffering\n");
@@ -958,6 +966,8 @@ void *NativeVideo::decode(void *args)
             }
         }
 
+        v->unlockDecodeThread();
+
         if (v->shutdown) break;
 
         if (v->m_SourceNeedWork) {
@@ -970,6 +980,7 @@ void *NativeVideo::decode(void *args)
             v->m_SourceNeedWork = false;
         } else if (v->m_SourceDoClose) {
             DPRINT("m_SourceDoClose set to true\n");
+            v->m_SourceDoClose = false;
             v->closeInternal(true);
             return NULL;
         } else if (!v->doSeek) {
@@ -977,8 +988,6 @@ void *NativeVideo::decode(void *args)
             NATIVE_PTHREAD_WAIT(&v->bufferCond);
             DPRINT("Waked up from bufferCond!");
         }
-
-        if (v->shutdown) break;
     }
 
     v->shutdown = false;
@@ -988,7 +997,7 @@ void *NativeVideo::decode(void *args)
 
 void NativeVideo::stopAudio()
 {
-    pthread_mutex_lock(&this->audioLock);
+    NativePthreadAutoLock lock(&this->audioLock);
 
     this->clearAudioQueue();
 
@@ -996,8 +1005,6 @@ void NativeVideo::stopAudio()
     // NativeVideo::stopAudio() is called when the audio node
     // is being destructed, so we just set the audioSource to null
     this->audioSource = NULL; 
-
-    pthread_mutex_unlock(&this->audioLock);
 }
 
 void NativeVideo::sourceNeedWork(void *ptr)
@@ -1009,6 +1016,7 @@ void NativeVideo::sourceNeedWork(void *ptr)
 
 bool NativeVideo::processAudio() 
 {
+    NativePthreadAutoLock lock(&this->audioLock);
     DPRINT("processing audio\n");
 
     if (this->audioSource == NULL) {
@@ -1019,11 +1027,7 @@ bool NativeVideo::processAudio()
         return false;
     }
 
-    pthread_mutex_lock(&this->audioLock);
-
     while (this->audioSource->work()) {}
-
-    pthread_mutex_unlock(&this->audioLock);
 
     // TODO : We should wakup the thread only 
     // if source had processed data
@@ -1288,24 +1292,64 @@ void NativeVideo::releaseBuffer(struct AVCodecContext *c, AVFrame *pic) {
 }
 #endif
 
-void NativeVideo::closeInternal(bool reset) {
+void NativeVideo::lockDecodeThread()
+{
+    pthread_mutex_lock(&this->decodeThreadLock);
+}
+
+void NativeVideo::unlockDecodeThread()
+{
+    pthread_mutex_unlock(&this->decodeThreadLock);
+}
+
+void NativeVideo::closeFFMpeg()
+{
+    if (this->opened) {
+        NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
+        avcodec_close(this->codecCtx);
+        av_free(this->container->pb);
+        avformat_close_input(&this->container);
+    } else {
+        if (this->container) {
+            av_free(this->container->pb);
+            avformat_free_context(this->container);
+        }
+    }
+}
+
+void NativeVideo::closeInternal(bool reset) 
+{
+    if (m_ThreadCreated && m_SourceDoClose) {
+        // When m_SourceDoClose is true, the source will
+        // be closed from the decode thread 
+        return;
+    }
+
     this->clearTimers(reset);
 
-    // Stream need to be closed first to avoid
-    // blocking the thread if it's waiting for data
-    delete this->reader;
+    if (m_ThreadCreated) {
+        // Finish the reader first, any pending call
+        // will be finished (seek, read) so we can lock the thread
+        this->reader->finish();
 
-    if (m_ThreadCreated && !m_SourceDoClose) {
-        // m_SourceDoClose is true when source need to be closed
-        // from the decode thread. So we don't want to join the thread
+        this->lockDecodeThread();
+
         this->shutdown = true;
+        this->closeFFMpeg();
+
+        this->unlockDecodeThread();
 
         NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
         pthread_join(this->threadDecode, NULL);
-
         m_ThreadCreated = false;
+
         this->shutdown = false;
+    } else {
+        this->closeFFMpeg();
     }
+
+    delete this->reader;
+    this->reader = NULL;
 
     this->flushBuffers();
 
@@ -1334,18 +1378,6 @@ void NativeVideo::closeInternal(bool reset) {
 
     delete this->rBuff;
 
-    if (this->opened) {
-        NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
-        avcodec_close(this->codecCtx);
-        av_free(this->container->pb);
-        avformat_close_input(&this->container);
-    } else {
-        if (this->container) {
-            av_free(this->container->pb);
-            avformat_free_context(this->container);
-        }
-    }
-
     av_free(this->convertedFrame);
     av_free(this->decodedFrame);
     av_free(this->frameBuffer);
@@ -1366,14 +1398,6 @@ void NativeVideo::closeInternal(bool reset) {
     this->container = NULL;
     this->reader = NULL;
     this->avioBuffer = NULL;
-
-    if (this->avioBuffer != NULL) {
-        if (!this->opened && this->container != NULL) {
-            av_free(this->container->pb);
-            avformat_free_context(this->container);
-            //av_free(this->avioBuffer); //freed by avformat_free_context
-        }
-    }
 
     if (this->audioSource != NULL) {
         delete this->audioSource;

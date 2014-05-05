@@ -147,6 +147,7 @@ class NativeVideo : public NativeAVSource
         bool m_ThreadCreated;
         bool m_SourceNeedWork;
         pthread_mutex_t audioLock;
+        pthread_mutex_t decodeThreadLock;
 
         void closeInternal(bool reset);
         static void seekCoro(void *arg);
@@ -175,6 +176,9 @@ class NativeVideo : public NativeAVSource
         void clearAudioQueue();
         void clearVideoQueue();
         void flushBuffers();
+        void lockDecodeThread();
+        void unlockDecodeThread();
+        void closeFFMpeg();
 
         static void audioProcessed(NativeAudioNode *node, void *custom);
 };
