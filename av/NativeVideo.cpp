@@ -285,6 +285,7 @@ void NativeVideo::play() {
     }
 
     this->playing = true;
+    this->frameTimer = 0;
 
     bool haveTimer = false;
     for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
