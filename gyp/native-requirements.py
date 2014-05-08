@@ -307,6 +307,27 @@ def stripExecutable():
         # Window TODO
         print("TODO")
 
+
+def signCode(path):
+    import subprocess
+
+    log.step("Signing object...")
+
+    code, output = deps.runCommand(" ".join([
+        "codesign",
+        "--force",
+        "--sign",
+        "'Anthony Catel'",
+        path
+    ]))
+
+    if code != 0:
+        log.setError()
+        log.error("Failed to build dmg")
+        sys.exit(3)
+
+    log.info(path)
+
 def packageExecutable():
     import time
     import subprocess
@@ -341,6 +362,11 @@ def packageExecutable():
     spinner.start()
 
     if deps.system == "Darwin":
+
+        signCode(path + "nidium.app")
+
+        log.step("Create dmg...")
+
         resources += "osx/"
         name += ".dmg"
         cmd = [
