@@ -65,8 +65,58 @@ unsigned long _ape_seed;
     }
 }
 
+- (void) refreshApp
+{
+    self->UI->refreshApplication();
+}
+
+- (void) openConsole
+{
+    bool created;
+    NativeUICocoaConsole *console = self->UI->getConsole(true, &created);
+
+    if (!created) {
+        if (console->hidden()) {
+            console->show();
+        } else {
+            console->hide();
+        }
+    }    
+}
+
+- (void) stopApplication
+{
+    self->UI->stopApplication();
+}
+
+- (void)createMenu
+{
+    NSMenu *mainmenu = [NSApp mainMenu];
+
+
+    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"foo" action:NULL keyEquivalent:@""];
+    NSMenu *submenu = [[NSMenu alloc] initWithTitle:@"Application"];
+
+    [submenu addItemWithTitle:@"Refresh" action:@selector(refreshApp) keyEquivalent:@"r"];
+    [submenu addItemWithTitle:@"Toggle console" action:@selector(openConsole) keyEquivalent:@"d"];
+    [submenu addItemWithTitle:@"Stop" action:@selector(stopApplication) keyEquivalent:@"u"];
+
+    [item setSubmenu:submenu];
+
+    [mainmenu addItem:item];
+
+    /*
+NSMenuItem *testItem = [[[NSMenuItem alloc] initWithTitle:@"Testing!" action:nil keyEquivalent:@""] autorelease];
+NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
+[subMenu addItemWithTitle:@"Another test." action:nil keyEquivalent:@""];
+[testItem setSubmenu:subMenu];
+[menubar addItem:testItem]; 
+    */
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    [self createMenu];
     NSLog(@"[Cocoa] applicationDidFinishLaunching");
     //[self setupWorkingDirectory:YES];
     _ape_seed = time(NULL) ^ (getpid() << 16);

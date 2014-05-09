@@ -159,3 +159,21 @@ int NativeUIInterface::useOffScreenRendering(bool val)
 
     return 0;
 }
+
+void NativeUIInterface::refreshApplication(bool clearConsole)
+{
+
+    if (clearConsole) {
+        NativeUIConsole *console = this->getConsole();
+        if (console && !console->hidden()) {
+            console->clear();
+        }
+    }
+
+    /* Trigger GC before refreshing */
+    if (NativeCtx && NativeCtx->getNJS()) {
+        NativeCtx->getNJS()->gc();
+    }
+
+    this->restartApplication();
+}

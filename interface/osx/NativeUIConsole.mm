@@ -171,6 +171,11 @@ void NativeUICocoaConsole::hide()
     [this->window setIsHidden:YES];
 }
 
+bool NativeUICocoaConsole::hidden()
+{
+    return this->isHidden;
+}
+
 void NativeUICocoaConsole::show()
 {
     if (!this->isHidden) {

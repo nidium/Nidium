@@ -43,6 +43,8 @@ class NativeUIInterface
         NativeUIInterface();
         virtual void stopApplication()=0;
         virtual void restartApplication(const char *path=NULL)=0;
+
+        virtual void refreshApplication(bool clearConsole = false);
         virtual bool runApplication(const char *path)=0;
         virtual void setWindowTitle(const char *)=0;
         virtual const char *getWindowTitle() const=0;
@@ -80,6 +82,7 @@ class NativeUIInterface
             virtual void show()=0;
             virtual void hide()=0;
             virtual void clear()=0;
+            virtual bool hidden()=0;
         };
         virtual NativeUIConsole *getConsole(bool create=false, bool *created=NULL)=0;
 

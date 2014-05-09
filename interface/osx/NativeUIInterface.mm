@@ -124,61 +124,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     int keyCode = 0;
                     
                     int mod = 0;
-                    if (
-                        (&event.key)->keysym.sym == SDLK_r &&
-                        event.key.keysym.mod & KMOD_GUI && event.key.keysym.mod & KMOD_SHIFT && event.type == SDL_KEYDOWN) {
 
-                        if (++nrefresh > 1) {
-                            break;
-                        }
-
-                        if (NUII->NativeCtx) {
-                            NUII->NativeCtx->getNJS()->gc();
-                        }
-                        NUII->restartApplication();
-                        break;
-                    }
-                    else if (
-                        (&event.key)->keysym.sym == SDLK_r &&
-                        event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
-                        if (++nrefresh > 1) {
-                            break;
-                        }
-                        NativeUICocoaConsole *console = NUII->getConsole();
-
-                        if (console && !console->isHidden) {
-                            console->clear();
-                        }
-                        
-                        if (NUII->NativeCtx) {
-                            NUII->NativeCtx->getNJS()->gc();
-                        }
-                        NUII->restartApplication();
-                        //SDL_GL_SwapBuffers();
-                        break;
-                    }
-                    else if (
-                        (&event.key)->keysym.sym == SDLK_d &&
-                        event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
-
-                        bool created;
-                        NativeUICocoaConsole *console = NUII->getConsole(true, &created);
-
-                        if (!created) {
-                            if (console->isHidden) {
-                                console->show();
-                            } else {
-                                console->hide();
-                            }
-                        }
-                    }
-                    else if (
-                        (&event.key)->keysym.sym == SDLK_u &&
-                        event.key.keysym.mod & KMOD_GUI && event.type == SDL_KEYDOWN) {
-
-                        NUII->stopApplication();
-                        break;
-                    }
                     if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
                         keyCode = event.key.keysym.sym - 32;
                     } else {

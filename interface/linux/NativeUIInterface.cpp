@@ -618,6 +618,11 @@ void NativeUIX11Console::hide()
 {
 }
 
+bool NativeUIX11Console::hidden()
+{
+    return true;
+}
+
 void NativeUIX11Console::clear()
 {
 }

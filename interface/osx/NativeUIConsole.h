@@ -29,6 +29,7 @@ class NativeUICocoaConsole : public NativeUIInterface::NativeUIConsole
         void hide();
         void clear();
         void flush();
+        bool hidden();
         bool isHidden;
     private:
         NativeConsole *window;
