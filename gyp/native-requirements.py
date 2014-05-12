@@ -65,10 +65,10 @@ def registerDeps():
     deps.registerDep("ffmpeg",
         partial(deps.downloadDep, "ffmpeg", deps.depsURL + "/ffmpeg-snapshot.tar.bz2"),
         partial(deps.buildDep, "libavcodec", "ffmpeg", ["./configure \
-        --disable-avdevice --disable-postproc --disable-avfilter --disable-programs --disable-ffplay --disable-ffserver --disable-ffprobe --disable-everything \
-        --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video\
-        --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac \
-        --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav", "make"], outlibs=[
+        --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver \
+        --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
+        --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
+        --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf", "make"], outlibs=[
     "ffmpeg/libavcodec/libavcodec",
     "ffmpeg/libswresample/libswresample",
     "ffmpeg/libavutil/libavutil",
