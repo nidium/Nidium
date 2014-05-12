@@ -302,7 +302,6 @@ class NativeAudioSource: public NativeAudioNode, public NativeAVSource
         bool stopped;
         bool loop;
         int nbChannel;
-        bool doClose;
 
         void play();
         void pause();

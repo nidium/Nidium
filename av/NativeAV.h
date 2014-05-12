@@ -196,7 +196,7 @@ struct NativeAVSourceEvent {
     };
 };
 
-class NativeAVSource 
+class NativeAVSource : public NativeMessages
 {
     public :
         NativeAVSource();
@@ -229,6 +229,10 @@ class NativeAVSource
         int getBitrate();
         AVDictionary *getMetadata();
 
+        enum {
+            MSG_CLOSE
+        };
+
         virtual ~NativeAVSource() = 0;
     protected:
 	    AVFormatContext *container;
@@ -246,6 +250,8 @@ class NativeAVSource
         bool m_SourceDoClose;
 
         int readError(int err);
+
+        void onMessage(const NativeSharedMessages::Message &msg);
 };
 
 #endif

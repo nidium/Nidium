@@ -142,10 +142,9 @@ void NativeVideo::openInitCoro(void *arg)
     int ret = thiz->openInitInternal();
     if (ret != 0) {
         thiz->sendEvent(SOURCE_EVENT_ERROR, ret, false);
-        // We can't close a source from a coroutine.
-        // Set m_SourceDoClose to true so the source will 
-        // be closed from the thread
-        thiz->m_SourceDoClose = true;
+        // Send a message to close the source from the main thread
+        // (As we can't close a source from a coroutine/thread)
+        thiz->postMessage(thiz, NativeAVSource::MSG_CLOSE);
     }
     Coro_switchTo_(thiz->coro, thiz->mainCoro);
 }
@@ -979,11 +978,6 @@ void *NativeVideo::decode(void *args)
                 v->buffering = false;
             }
             v->m_SourceNeedWork = false;
-        } else if (v->m_SourceDoClose) {
-            DPRINT("m_SourceDoClose set to true\n");
-            v->m_SourceDoClose = false;
-            v->closeInternal(true);
-            return NULL;
         } else if (!v->doSeek) {
             DPRINT("wait bufferCond, no work needed\n");
             NATIVE_PTHREAD_WAIT(&v->bufferCond);
@@ -1320,12 +1314,6 @@ void NativeVideo::closeFFMpeg()
 
 void NativeVideo::closeInternal(bool reset) 
 {
-    if (m_ThreadCreated && m_SourceDoClose) {
-        // When m_SourceDoClose is true, the source will
-        // be closed from the decode thread 
-        return;
-    }
-
     this->clearTimers(reset);
 
     if (m_ThreadCreated) {

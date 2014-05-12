@@ -427,6 +427,16 @@ int NativeAVSource::readError(int err)
     return 0;
 }
 
+
+void NativeAVSource::onMessage(const NativeSharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case MSG_CLOSE:
+            this->close();
+        break;
+    }
+}
+
 NativeAVSource::~NativeAVSource() 
 {
 }

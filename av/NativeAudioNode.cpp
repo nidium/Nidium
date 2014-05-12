@@ -759,7 +759,7 @@ bool NativeAudioNodeCustom::process()
 
 NativeAudioSource::NativeAudioSource(int out, NativeAudio *audio, bool external) 
     : NativeAudioNode(0, out, audio), rBufferOut(NULL), reader(NULL), externallyManaged(external), 
-      playing(false), stopped(false), loop(false), nbChannel(0), doClose(false),
+      playing(false), stopped(false), loop(false), nbChannel(0),
       codecCtx(NULL), tmpPacket(NULL), clock(0), 
       frameConsumed(true), packetConsumed(true), samplesConsumed(0), audioStream(-1), 
       m_FailedDecoding(0), swrCtx(NULL), fCvt(NULL), eof(false), buffering(false)
@@ -819,7 +819,7 @@ void NativeAudioSource::openInitCoro(void *arg)
 {
 #define RETURN_WITH_ERROR(err) \
 thiz->sendEvent(SOURCE_EVENT_ERROR, err, false);\
-thiz->doClose = true; \
+thiz->postMessage(thiz, NativeAVSource::MSG_CLOSE);\
 Coro_switchTo_(thiz->coro, thiz->mainCoro);
     NativeAudioSource *thiz = static_cast<NativeAudioSource *>(arg);
     thiz->m_SourceDoOpen = false;
@@ -1086,11 +1086,6 @@ bool NativeAudioSource::work()
                 this->buffering = false;
             }
         }
-    }
-
-    if (this->doClose) {
-        this->closeInternal(true);
-        return false;
     }
 
     if (this->doSeek) {
@@ -1676,7 +1671,6 @@ void NativeAudioSource::closeInternal(bool reset)
     this->audioStream = -1;
     this->container = NULL;
     this->avioBuffer = NULL;
-    this->doClose = false;
 
     this->audio->unlockQueue();
     this->audio->unlockSources();
@@ -1724,6 +1718,8 @@ void NativeAudioSource::stop()
 
 void NativeAudioSource::close() 
 {
+    this->closeInternal(false);
+#if 0
     if (!this->opened) {
         return;
     }
@@ -1746,6 +1742,7 @@ void NativeAudioSource::close()
     this->resetFrames();
 
     avcodec_flush_buffers(this->codecCtx);
+#endif
 }
 
 bool NativeAudioSource::isActive()

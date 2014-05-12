@@ -179,8 +179,6 @@ class NativeVideo : public NativeAVSource
         void lockDecodeThread();
         void unlockDecodeThread();
         void closeFFMpeg();
-
-        static void audioProcessed(NativeAudioNode *node, void *custom);
 };
 
 class NativeVideoAudioSource: public NativeAudioSource 
