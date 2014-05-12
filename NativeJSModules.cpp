@@ -487,7 +487,6 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
 
 #undef MAX_EXT_SIZE 
 
-
 JS::Value NativeJSModule::require(char *name)
 {
     JS::Value ret;
@@ -524,13 +523,13 @@ JS::Value NativeJSModule::require(char *name)
             getcwd(dir, MAXPATHLEN);
             this->absoluteDir = strdup(dir);
 
-            return;
-        }
+        } else {
 
-        // absoluteDir is needed for findModulePath
-        NativePath p(this->filePath);
-        this->absoluteDir = strdup(p.dir());
-        DPRINT("Global scope loading\n");
+            // absoluteDir is needed for findModulePath
+            NativePath p(this->filePath);
+            this->absoluteDir = strdup(p.dir());
+            DPRINT("Global scope loading\n");
+        }
     } else {
         DPRINT("Module scope loading\n");
     }
