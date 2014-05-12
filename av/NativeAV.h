@@ -247,7 +247,6 @@ class NativeAVSource : public NativeMessages
         int error;
 
         bool m_SourceDoOpen;
-        bool m_SourceDoClose;
 
         int readError(int err);
 

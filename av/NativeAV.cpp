@@ -361,7 +361,7 @@ NativeAVSource::NativeAVSource()
     : eventCbk(NULL), eventCbkCustom(NULL),
       opened(false), eof(false), container(NULL), coro(NULL), mainCoro(NULL),
       seeking(false), doSeek(false),  error(0),
-      m_SourceDoOpen(false), m_SourceDoClose(false)
+      m_SourceDoOpen(false)
 {
 }
 
