@@ -516,9 +516,17 @@ JS::Value NativeJSModule::require(char *name)
 
         free(this->filePath);
         free(this->absoluteDir);
-
         // filePath is needed for cyclic deps check
         this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
+
+        if (this->filePath == NULL) {
+            static char dir[MAXPATHLEN];
+            getcwd(dir, MAXPATHLEN);
+            this->absoluteDir = strdup(dir);
+
+            return;
+        }
+
         // absoluteDir is needed for findModulePath
         NativePath p(this->filePath);
         this->absoluteDir = strdup(p.dir());
