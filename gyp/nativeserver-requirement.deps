@@ -2,3 +2,4 @@ mozilla-central
 c-ares
 http-parser
 gyp
+nativeserver-requirements.py
