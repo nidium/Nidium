@@ -43,6 +43,10 @@ public:
             return static_cast<uint32_t>(m_Value);
         }
 
+        bool toBool() const {
+            return (bool)m_Value;
+        }
+
         bool isSet() const {
             return m_isSet;
         }
@@ -101,6 +105,10 @@ public:
     */
     const NativeArgsValue& operator[] (int idx) const {
         return *m_Args[idx];
+    }
+
+    int size() const {
+        return m_numArgs;
     }
 private:
     NativeArgsValue **m_Args;

@@ -22,9 +22,11 @@
 #define nativemessages_h__
 
 #include <NativeSharedMessages.h>
+#include <NativeHash.h>
 #include <pthread.h>
 
 typedef struct _ape_global ape_global;
+class NativeEvents;
 
 #define CREATE_MESSAGE(var, ev) NativeSharedMessages::Message *var = new NativeSharedMessages::Message(ev);
 
@@ -49,8 +51,13 @@ public:
     static void destroyReader();
 
     NativeSharedMessages *getSharedMessages();
+
+    void listenFor(NativeEvents *obj, bool enable);
 private:
     pthread_t m_GenesisThread;
+
+    /* Keep track on which objects we are listening events */
+    NativeHash64<NativeEvents *>m_Listening;
 };
 
 #endif

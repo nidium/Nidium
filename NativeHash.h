@@ -62,6 +62,11 @@ class NativeHash64 : public NativeNoncopyable
         static void cleaner(ape_htable_item_t *item) {
             delete (T)item->content.addrs;
         }
+
+        struct _ape_htable *accessCStruct() const {
+            return table;
+        }
+
     private:
 
         struct _ape_htable *table;

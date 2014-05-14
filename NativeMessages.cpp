@@ -23,6 +23,7 @@
 #include "NativeSharedMessages.h"
 #include <native_netlib.h>
 #include <stdio.h>
+#include <NativeEvents.h>
 
 /*
     TODO: make thread local storage
@@ -63,6 +64,13 @@ NativeMessages::NativeMessages()
 NativeMessages::~NativeMessages()
 {
     g_MessagesList->delMessagesForDest(this);
+
+    ape_htable_item_t *item;
+
+    for (item = m_Listening.accessCStruct()->first; item != NULL; item = item->lnext) {
+        NativeEvents *sender = (NativeEvents *)item->content.addrs;
+        sender->removeListener(this, false);
+    }
 }
 
 void NativeMessages::postMessage(void *dataptr, int event)
@@ -83,7 +91,7 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
 
     /*
         Message sent from the same thread. Don't need 
-        to send in an asynchronous way
+        to be sent in an asynchronous way
     */
     if (pthread_equal(m_GenesisThread, pthread_self())) {
         // Make sure pending messagess are read so that we don't break the FIFO rule
@@ -106,6 +114,15 @@ void NativeMessages::initReader(ape_global *ape)
         NativeMessages_handle, NULL);
 
     timer->flags &= ~APE_TIMER_IS_PROTECTED;
+}
+
+void NativeMessages::listenFor(NativeEvents *obj, bool enable)
+{
+    if (enable) {
+        m_Listening.set((uint64_t)obj, obj);
+    } else {
+        m_Listening.erase((uint64_t)obj);
+    }
 }
 
 void NativeMessages::delMessages(int event)
