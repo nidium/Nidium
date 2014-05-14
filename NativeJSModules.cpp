@@ -515,6 +515,12 @@ JS::Value NativeJSModule::require(char *name)
 
         free(this->filePath);
         free(this->absoluteDir);
+<<<<<<< Updated upstream
+=======
+
+        printf("Filename : %s\n", JS_GetScriptFilename(this->cx, script));
+
+>>>>>>> Stashed changes
         // filePath is needed for cyclic deps check
         this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
 
