@@ -12,6 +12,7 @@ class NativeUIX11Console : public NativeUIInterface::NativeUIConsole
         void hide();
         void clear();
         void flush();
+        bool hidden();
 };
 
 class NativeX11UIInterface : public NativeUIInterface
