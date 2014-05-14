@@ -42,7 +42,7 @@ public:
             listener->listenFor(this, false);
         }
     }
-
+    template <typename T>
     void fireEvent(int event, const NativeArgs &args) {
         ape_htable_item_t *item;
 
@@ -51,8 +51,10 @@ public:
 
             NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVEEVENTS_MESSAGE_BITS(event));
 
+            msg->args[0].set(static_cast<T>(this));
+
             for (int i = 0; i < args.size(); i++) {
-                msg->args[i].set(args[0].toInt64());
+                msg->args[i+1].set(args[i].toInt64());
             }
 
             receiver->postMessage(msg);
