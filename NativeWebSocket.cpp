@@ -26,7 +26,7 @@
     CONST_STR_LEN(header "\0"))
 
 static void native_on_ws_frame(websocket_state *state,
-    const unsigned char *data, ssize_t length);
+    const unsigned char *data, ssize_t length, int binary);
 
 NativeWebSocketListener::NativeWebSocketListener(uint16_t port, const char *ip) :
     NativeHTTPListener(port, ip)
@@ -44,7 +44,7 @@ void NativeWebSocketListener::onClientConnect(ape_socket *client, ape_global *ap
 
 NativeWebSocketClientConnection::NativeWebSocketClientConnection(
         NativeHTTPListener *httpserver, ape_socket *socket) :
-    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false)
+    NativeHTTPClientConnection(httpserver, socket), m_Handshaked(false), m_Data(NULL)
 {
     ape_ws_init(&m_WSState);
     m_WSState.socket = socket;
@@ -112,13 +112,15 @@ void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
     ape_ws_process_frame(&m_WSState, data, len);
 }
 
-void NativeWebSocketClientConnection::onFrame(const char *data, size_t len)
+void NativeWebSocketClientConnection::onFrame(const char *data, size_t len,
+    bool binary)
 {
     CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_FRAME);
 
     msg->args[0].set(this);
     msg->args[1].set((void *)data);
     msg->args[2].set(len);
+    msg->args[3].set(binary);
 
     m_HTTPListener->notify(msg);
 }
@@ -139,7 +141,7 @@ void NativeWebSocketClientConnection::write(const char *data,
 }
 
 static void native_on_ws_frame(websocket_state *state,
-    const unsigned char *data, ssize_t length)
+    const unsigned char *data, ssize_t length, int binary)
 {
     ape_socket *sock = state->socket;
     if (sock == NULL) {
@@ -153,5 +155,5 @@ static void native_on_ws_frame(websocket_state *state,
         return;
     }
 
-    con->onFrame((const char *)data, length);
+    con->onFrame((const char *)data, length, (bool)binary);
 }

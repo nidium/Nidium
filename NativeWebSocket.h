@@ -45,7 +45,7 @@ public:
         ape_socket *socket);
     ~NativeWebSocketClientConnection();
 
-    virtual void onFrame(const char *data, size_t len);
+    virtual void onFrame(const char *data, size_t len, bool binary);
 
     /* TODO: support "buffering" detection + ondrain()
         (need ape_websocket.c modification)
@@ -58,11 +58,20 @@ public:
     virtual void onDisconnect(ape_global *ape);
     virtual void onUpgrade(const char *to);
     virtual void onContent(const char *data, size_t len);
+    
+    virtual void setData(void *data) {
+        m_Data = data;
+    }
+    virtual void *getData() const {
+        return m_Data;
+    }
 
     virtual void close();
 private:
     websocket_state m_WSState;
     bool m_Handshaked;
+
+    void *m_Data;
 };
 
 #endif

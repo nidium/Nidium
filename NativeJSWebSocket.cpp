@@ -20,6 +20,12 @@
 #include "NativeJSWebSocket.h"
 #include "NativeHTTP.h"
 
+#include <NativeJSUtils.h>
+
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
+
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj);
 
@@ -39,7 +45,7 @@ static JSClass WebSocketServer_client_class = {
 
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 {
-
+    printf("Ws client finalized\n");
 }
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -48,6 +54,7 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
 
     if (wss != NULL) {
         delete wss;
+        printf("Delete websocket server...\n");
     }    
 }
 
@@ -117,6 +124,11 @@ NativeJSWebSocketServer::NativeJSWebSocketServer(const char *host,
     m_WebSocketServer->setListener(this);
 }
 
+NativeJSWebSocketServer::~NativeJSWebSocketServer()
+{
+    delete m_WebSocketServer;
+}
+
 JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection *client)
 {
     JSObject *jclient;
@@ -126,6 +138,7 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
     JS_SetPrivate(jclient, client);
 
     NativeJSObj(cx)->rootObjectUntilShutdown(jclient);
+    client->setData(jclient);
 
     return jclient;
 }
@@ -136,9 +149,33 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
     switch (msg.event()) {
         case NATIVEWEBSOCKET_SERVER_FRAME:
         {
+            jsval arg[2];
             const char *data = (const char *)msg.args[1].toPtr();
             int len = msg.args[2].toInt();
+            bool binary = msg.args[3].toBool();
             
+            JSObject *jclient = (JSObject *)((NativeWebSocketClientConnection *)msg.args[0].toPtr())->getData();
+
+            if (!jclient) {
+                return;
+            }
+
+            if (JS_GetProperty(cx, this->getJSObject(), "onmessage", &oncallback) &&
+                JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
+
+                jsval jdata;
+
+                JSObject *event = JS_NewObject(cx, NULL, NULL, NULL);           
+                NativeJSUtils::strToJsval(cx, data, len, &jdata, !binary ? "utf8" : NULL);
+                SET_PROP(event, "data", jdata);
+
+                arg[0].setObjectOrNull(jclient);
+                arg[1].setObjectOrNull(event);
+
+                JS_CallFunctionValue(cx, this->getJSObject(), oncallback,
+                    2, arg, &rval);
+            }
+
             break;
         }
         case NATIVEWEBSOCKET_SERVER_CONNECT:
@@ -147,7 +184,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             JSObject *jclient = this->createClient(
                 (NativeWebSocketClientConnection *)msg.args[0].toPtr());
 
-            arg = OBJECT_TO_JSVAL(jclient);
+            arg.setObjectOrNull(jclient);
 
             if (JS_GetProperty(cx, this->getJSObject(), "onopen", &oncallback) &&
                 JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
