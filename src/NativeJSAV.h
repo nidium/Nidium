@@ -32,6 +32,7 @@ enum {
 
 class NativeJS;
 class NativeJSAudioNode;
+class NativeCanvas2DContext;
 
 struct NativeJSAVMessageCallback {
     JSObject *callee;
@@ -215,7 +216,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessages
 {
     public :
-        NativeJSVideo(NativeSkia *nskia, JSContext *cx);
+        NativeJSVideo(NativeCanvas2DContext *canvasCtx, JSContext *cx);
 
         NativeVideo *video;
 
@@ -236,7 +237,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
         ~NativeJSVideo();
     private :
         bool m_IsDestructing;
-        NativeSkia *nskia;
+        NativeCanvas2DContext *m_CanvasCtx;
         JSContext *cx;
 };
 

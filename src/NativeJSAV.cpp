@@ -1991,10 +1991,10 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
     } 
 }
 
-NativeJSVideo::NativeJSVideo(NativeSkia *nskia, JSContext *cx) : 
+NativeJSVideo::NativeJSVideo(NativeCanvas2DContext *canvasCtx, JSContext *cx) : 
     video(NULL), audioNode(NULL), arrayContent(NULL), 
     m_Width(-1), m_Height(-1), m_IsDestructing(false), 
-    nskia(nskia), cx(cx)
+    m_CanvasCtx(canvasCtx), cx(cx)
 {
     this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx));
     this->video->frameCallback(NativeJSVideo::frameCallback, this);
@@ -2034,7 +2034,7 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
-    v->nskia->drawPixels(data, v->video->m_Width, v->video->m_Height, 0, 0);
+    v->m_CanvasCtx->getSurface()->drawPixels(data, v->video->m_Width, v->video->m_Height, 0, 0);
 
     jsval onframe;
     if (JS_GetProperty(v->cx, v->jsobj, "onframe", &onframe) &&
@@ -2063,18 +2063,18 @@ void NativeJSVideo::setSize(int width, int height)
     if (width == 0) width = -1;
     if (height == 0) height = -1;
 
-    int videoWidth = video->codecCtx->width;
-    int videoHeight = video->codecCtx->height;;
-
     // Size the video
     if (m_Width == -1 || m_Height == -1) {
+        int videoWidth = video->codecCtx->width;
+        int videoHeight = video->codecCtx->height;;
+
         if ((videoWidth > videoHeight && m_Width == -1) || m_Height > 0) { // Portrait or forced height
-            width = nskia->getWidth();
+            width = m_CanvasCtx->getHandler()->getWidth();
             if (height < 1) {
                 height = videoHeight / (double)videoWidth * width; 
             }
         } else { // Landscape
-            height = nskia->getHeight();
+            height = m_CanvasCtx->getHandler()->getHeight();
             if (width < 1) {
                 width = videoWidth / (double)videoHeight * height;
             }
@@ -2285,9 +2285,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
     NJS->rootObjectUntilShutdown(ret);
 
-    NativeSkia *nskia = ((NativeCanvas2DContext *)ncc)->getSurface();
-
-    NativeJSVideo *v = new NativeJSVideo(nskia, cx);
+    NativeJSVideo *v = new NativeJSVideo((NativeCanvas2DContext*)ncc, cx);
 
     JS_DefineFunctions(cx, ret, Video_funcs);
     JS_DefineProperties(cx, ret, Video_props);
