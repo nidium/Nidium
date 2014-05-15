@@ -2072,8 +2072,7 @@ void NativeJSVideo::setSize(int width, int height)
 
     // Size the video
     if (m_Width == -1 || m_Height == -1) {
-        // Size to canvas with automatic ratio
-        if (videoWidth > videoHeight || (m_Width == -1 && m_Height == 0)) { // Portrait
+        if ((videoWidth > videoHeight && m_Width == -1) || m_Height > 0) { // Portrait or forced height
             width = nskia->getWidth();
             if (height < 1) {
                 height = videoHeight / (double)videoWidth * width; 
