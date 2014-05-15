@@ -108,7 +108,7 @@ void NativeCanvasHandler::setSize(int width, int height, bool redraw)
     arg[0].set(width);
     arg[1].set(height);
 
-    this->fireEvent<NativeCanvasHandler *>(NATIVE_CANVAS_RESIZE_EVENT, arg);
+    this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
 
     updateChildrenSize(true, true);
 }

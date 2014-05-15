@@ -10,12 +10,6 @@
 class NativeSkia;
 class NativeCanvasContext;
 
-#define NATIVE_CANVAS_EVENTS_MESSAGE_BITS(id) NATIVEEVENTS_MESSAGE_BITS(((1 << 16) | id))
-
-enum {
-    NATIVE_CANVAS_RESIZE_EVENT = NATIVE_CANVAS_EVENTS_MESSAGE_BITS(1),
-};
-
 /*
     - Handle a canvas layer.
     - Agnostic to any renderer.
@@ -70,12 +64,19 @@ class NativeCanvasHandler : public NativeEvents
     public:
         friend class NativeSkia;
 
+        static const uint8_t EventID = 1;
+
         enum COORD_MODE {
             kLeft_Coord   = 1 << 0,
             kRight_Coord  = 1 << 1,
             kTop_Coord    = 1 << 2,
             kBottom_Coord = 1 << 3
         };
+
+        enum Events {
+            RESIZE_EVENT = 1,
+        };
+
 
         enum Position {
             POSITION_FRONT,
@@ -350,6 +351,7 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *m_Next;
         NativeCanvasHandler *m_Prev;
         NativeCanvasHandler *m_Last;
+
     private:
         int32_t nchildren;
         void dispatchMouseEvents(NativeCanvasHandler *layer);
