@@ -4,8 +4,8 @@
 #include "NativeCanvasHandler.h"
 #include "NativeContext.h"
 
-#define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
-#define HANDLER_FROM_CALLEE ((class NativeCanvasHandler *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+//#define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
+
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
@@ -17,7 +17,7 @@
         args.rval().setUndefined(); \
         return true; \
     } \
-    ofclass *NativeObject = (ofclass *)JS_GetPrivate(thisobj)
+    ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj))->getHandler())
 
 extern jsval gfunc;
 
@@ -208,6 +208,16 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setScale", native_canvas_setScale, 2, 0),
     JS_FS_END
 };
+
+NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
+{
+    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
+    if (!jscanvas) {
+        return NULL;
+    }
+
+    return jscanvas->getHandler();
+}
 
 static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -481,7 +491,7 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         return false;
     }
 
-    handler = (NativeCanvasHandler *)JS_GetPrivate(sub);
+    handler = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(sub))->getHandler();
 
     if (handler == NULL) {
         return true;
@@ -894,7 +904,12 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    JS_SetPrivate(ret, handler);
+    NativeJSCanvas *jscanvas = new NativeJSCanvas(handler);
+
+    jscanvas->cx = cx;
+    jscanvas->jsobj = ret;
+
+    JS_SetPrivate(ret, jscanvas);
 
     //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);    
@@ -906,9 +921,10 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeCanvasHandler *handler = HANDLER_GETTER(obj);
-    if (handler != NULL) {
-        delete handler;
+    NativeJSCanvas *jscanvas = ((class NativeJSCanvas *)JS_GetPrivate(obj));
+
+    if (jscanvas != NULL) {
+        delete jscanvas;
     }
 }
 
@@ -959,7 +975,12 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
     JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
 
-    JS_SetPrivate(ret, handler);
+    NativeJSCanvas *jscanvas = new NativeJSCanvas(handler);
+
+    jscanvas->cx = cx;
+    jscanvas->jsobj = ret;
+
+    JS_SetPrivate(ret, jscanvas);
 
     //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
@@ -976,3 +997,30 @@ void NativeJSCanvas::registerObject(JSContext *cx)
         2, NULL, canvas_funcs, canvas_props, NULL);
 }
 
+
+void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
+{
+    switch (msg.event()) {
+        case NATIVE_CANVAS_RESIZE_EVENT:
+            break;
+        default:
+            break;
+    }
+}
+
+void NativeJSCanvas::onMessageLost(const NativeSharedMessages::Message &msg)
+{
+
+}
+
+NativeJSCanvas::NativeJSCanvas(NativeCanvasHandler *handler)
+{
+    m_CanvasHandler = handler;
+
+    m_CanvasHandler->addListener(this);
+}
+
+NativeJSCanvas::~NativeJSCanvas()
+{
+    delete m_CanvasHandler;
+}

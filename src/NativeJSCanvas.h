@@ -2,15 +2,29 @@
 #define nativejscanvas_h__
 
 #include "NativeJSExposer.h"
+#include <NativeMessages.h>
 
 class NativeCanvasHandler;
 
-class NativeJSCanvas: public NativeJSExposer<NativeJSCanvas>
+class NativeJSCanvas: public NativeJSExposer<NativeJSCanvas>, public NativeMessages
 {
-  public:
+public:
+    virtual void onMessage(const NativeSharedMessages::Message &msg);
+    virtual void onMessageLost(const NativeSharedMessages::Message &msg);
+
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, int width, int height,
         NativeCanvasHandler **out);
+
+    explicit NativeJSCanvas(NativeCanvasHandler *handler);
+    ~NativeJSCanvas();
+
+    NativeCanvasHandler *getHandler() const {
+        return m_CanvasHandler;
+    }
+
+private:
+    NativeCanvasHandler *m_CanvasHandler;
 };
 
 #endif

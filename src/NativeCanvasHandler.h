@@ -5,8 +5,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <NativeEvents.h>
+
 class NativeSkia;
 class NativeCanvasContext;
+
+#define NATIVE_CANVAS_EVENTS_MESSAGE_BITS(id) NATIVEEVENTS_MESSAGE_BITS(((1 << 16) | id))
+
+enum {
+    NATIVE_CANVAS_RESIZE_EVENT = NATIVE_CANVAS_EVENTS_MESSAGE_BITS(1),
+};
 
 /*
     - Handle a canvas layer.
@@ -57,7 +65,7 @@ struct NativeRect
     }
 };
 
-class NativeCanvasHandler
+class NativeCanvasHandler : public NativeEvents
 {
     public:
         friend class NativeSkia;
@@ -289,7 +297,7 @@ class NativeCanvasHandler
         }
         
         NativeCanvasHandler(int width, int height);
-        ~NativeCanvasHandler();
+        virtual ~NativeCanvasHandler();
 
         void unrootHierarchy();
 
