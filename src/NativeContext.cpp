@@ -95,7 +95,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_WSClient = NULL;
     m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
-    m_WS->setListener(this);
+    m_WS->addListener(this);
     m_WS->start();
 
 }

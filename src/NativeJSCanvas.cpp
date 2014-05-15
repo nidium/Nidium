@@ -1001,7 +1001,8 @@ void NativeJSCanvas::registerObject(JSContext *cx)
 void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 {
     switch (msg.event()) {
-        case NATIVE_CANVAS_RESIZE_EVENT:
+        case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
+            printf("Got a resize event...\n");
             break;
         default:
             break;
