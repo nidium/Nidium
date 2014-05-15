@@ -3,6 +3,7 @@
 #include "NativeJSThread.h"
 #include "NativeJS.h"
 
+#include "NativeJSCanvas.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
 
@@ -261,6 +262,7 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
 static JSBool native_video_nextframe(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_prevframe(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_video_frameat(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_video_setsize(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
 static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -277,6 +279,7 @@ static JSFunctionSpec Video_funcs[] = {
     JS_FN("nextFrame", native_video_nextframe, 0, 0),
     JS_FN("prevFrame", native_video_prevframe, 0, 0),
     JS_FN("frameAt", native_video_frameat, 1, 0),
+    JS_FN("setSize", native_video_setsize, 2, 0),
     JS_FS_END
 };
 
@@ -457,6 +460,12 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
         if (!prop) {
             delete cmsg;
             return;
+        }
+
+        NativeJSVideo *video= (NativeJSVideo*)JS_GetInstancePrivate(cx, obj, &Video_class, NULL);
+
+        if (video != NULL) {
+            video->setSize(video->m_Width, video->m_Height);
         }
 
         if (JS_GetProperty(cx, obj, prop, &jscbk) &&
@@ -1946,10 +1955,10 @@ static JSBool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHand
 
     switch(JSID_TO_INT(id)) {
         case VIDEO_PROP_WIDTH:
-            vp.set(INT_TO_JSVAL(v->video->width));
+            vp.set(INT_TO_JSVAL(v->video->codecCtx->width));
         break;
         case VIDEO_PROP_HEIGHT:
-            vp.set(INT_TO_JSVAL(v->video->height));
+            vp.set(INT_TO_JSVAL(v->video->codecCtx->height));
         break;
         default:
             return NativeJSAVSource::propGetter(v->video, cx, JSID_TO_INT(id), vp);
@@ -1982,8 +1991,10 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
     } 
 }
 
-NativeJSVideo::NativeJSVideo(NativeSkia *nskia, JSContext *cx) 
-    : video(NULL), audioNode(NULL), arrayContent(NULL), m_IsDestructing(false), nskia(nskia), cx(cx)
+NativeJSVideo::NativeJSVideo(NativeSkia *nskia, JSContext *cx) : 
+    video(NULL), audioNode(NULL), arrayContent(NULL), 
+    m_Width(-1), m_Height(-1), m_IsDestructing(false), 
+    nskia(nskia), cx(cx)
 {
     this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx));
     this->video->frameCallback(NativeJSVideo::frameCallback, this);
@@ -2006,7 +2017,11 @@ void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
 {
     if (m_IsDestructing) return;
 
-    native_av_thread_message(cx, this->getJSObject(), msg);
+    if (msg.event() == NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+        this->setSize(m_Width, m_Height);
+    } else {
+        native_av_thread_message(cx, this->getJSObject(), msg);
+    }
 }
 
 void NativeJSVideo::onEvent(const struct NativeAVSourceEvent *cev) 
@@ -2019,7 +2034,7 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
-    v->nskia->drawPixels(data, v->video->width, v->video->height, 0, 0);
+    v->nskia->drawPixels(data, v->video->m_Width, v->video->m_Height, 0, 0);
 
     jsval onframe;
     if (JS_GetProperty(v->cx, v->jsobj, "onframe", &onframe) &&
@@ -2032,6 +2047,48 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
         JSAutoRequest ar(v->cx);
         JS_CallFunctionValue(v->cx, v->jsobj, onframe, 1, &params, &rval);
     }
+}
+
+void NativeJSVideo::setSize(int width, int height)
+{
+    double ratio;
+    // 0 = Automatic adjust with ratio
+    // -1 = Size to canvas with ratio
+
+    m_Width = width;
+    m_Height = height;
+
+    if (!video->codecCtx) {
+        // setSize will be called again when video is ready
+        return;
+    }
+
+    // Invalid dimension, force size to canvas 
+    if (width == 0) width = -1;
+    if (height == 0) height = -1;
+
+    int videoWidth = video->codecCtx->width;
+    int videoHeight = video->codecCtx->height;;
+
+    // Size the video
+    if (m_Width == -1 || m_Height == -1) {
+        // Size to canvas with automatic ratio
+        if (videoWidth > videoHeight || (m_Width == -1 && m_Height == 0)) { // Portrait
+            width = nskia->getWidth();
+            if (height < 1) {
+                height = videoHeight / (double)videoWidth * width; 
+            }
+        } else { // Landscape
+            height = nskia->getHeight();
+            if (width < 1) {
+                width = videoWidth / (double)videoHeight * height;
+            }
+        }
+    }
+
+    // TODO : Calculate position in canvas
+
+    this->video->setSize(width, height);
 }
 
 static JSBool native_video_play(JSContext *cx, unsigned argc, jsval *vp)
@@ -2175,6 +2232,41 @@ static JSBool native_video_frameat(JSContext *cx, unsigned argc, jsval *vp)
     return JS_TRUE;
 }
 
+static JSBool native_video_setsize(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeJSVideo *v = NATIVE_VIDEO_GETTER(JS_THIS_OBJECT(cx, vp));
+    double width;
+    double height;
+
+    if (argc < 2) {
+        JS_ReportError(cx, "Wrong arguments count");
+        return false;
+    }
+
+    jsval jwidth = JS_ARGV(cx, vp)[0];
+    jsval jheight = JS_ARGV(cx, vp)[1];
+
+    if (JSVAL_IS_STRING(jwidth)) {
+        width = -1;
+    } else if (JSVAL_IS_INT(jwidth)) {
+        width = JSVAL_TO_INT(jwidth);
+    } else {
+        JS_ReportError(cx, "Wrong argument type for width");
+    }
+
+    if (JSVAL_IS_STRING(jheight)) {
+        height = -1;
+    } else if (JSVAL_IS_INT(jheight)) {
+        height = JSVAL_TO_INT(jheight);
+    } else {
+        JS_ReportError(cx, "Wrong argument type for height");
+    }
+
+    v->setSize(width, height);
+
+    return true;
+}
+
 static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &Video_class, vp);
@@ -2184,7 +2276,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_TRUE;
     }
 
-    NativeCanvasHandler *handler = static_cast<class NativeCanvasHandler *>(JS_GetInstancePrivate(cx, canvas, &Canvas_class, JS_ARGV(cx, vp)));
+    NativeCanvasHandler *handler = static_cast<class NativeJSCanvas*>(JS_GetInstancePrivate(cx, canvas, &Canvas_class, JS_ARGV(cx, vp)))->getHandler();
 
     if (!handler) {
         JS_ReportError(cx, "Video constructor argument must be Canvas");

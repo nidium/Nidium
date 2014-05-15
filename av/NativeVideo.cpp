@@ -29,14 +29,15 @@ extern "C" {
 NativeVideo::NativeVideo(ape_global *n) 
     : timerIdx(0), lastTimer(0),
       net(n), audioSource(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
-      tmpFrame(NULL), frameBuffer(NULL), frameTimer(0),
-      lastPts(0), videoClock(0), playing(false), stoped(false), width(-1), height(-1),
-      swsCtx(NULL), codecCtx(NULL), videoStream(-1), audioStream(-1), 
-      rBuff(NULL), buff(NULL), avioBuffer(NULL), m_FramesIdx(NULL), 
-      decodedFrame(NULL), convertedFrame(NULL),
-      reader(NULL), buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false)
+      frameTimer(0), lastPts(0), videoClock(0), playing(false), stoped(false),
+      m_Width(0), m_Height(0), swsCtx(NULL), codecCtx(NULL), 
+      videoStream(-1), audioStream(-1), rBuff(NULL), buff(NULL), avioBuffer(NULL), 
+      m_FramesIdx(NULL), decodedFrame(NULL), convertedFrame(NULL),
+      reader(NULL), buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false),
+      m_NoDisplay(false), m_InDisplay(false), m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0)
 {
     NATIVE_PTHREAD_VAR_INIT(&this->bufferCond);
+    NATIVE_PTHREAD_VAR_INIT(&this->m_NotInDisplay);
 
     pthread_mutex_init(&this->audioLock, NULL);
 
@@ -199,49 +200,12 @@ int NativeVideo::openInitInternal()
 		return ERR_NO_CODEC;
     }
 
-    this->width = this->codecCtx->width;
-    this->height = this->codecCtx->height;
-
-    this->swsCtx = sws_getContext(this->codecCtx->width, this->codecCtx->height, this->codecCtx->pix_fmt,
-                                  this->codecCtx->width, this->codecCtx->height, PIX_FMT_RGBA,
-                                  SWS_BICUBIC, NULL, NULL, NULL);
-
-    if (!this->swsCtx) {
-		return ERR_NO_VIDEO_CONVERTER;
-    }
-
-    // Allocate video frame
-    this->decodedFrame = av_frame_alloc();
-
-    // Allocate an AVFrame structure
-    this->convertedFrame = av_frame_alloc();
-    if (this->decodedFrame == NULL || this->convertedFrame == NULL) {
-        fprintf(stderr, "Failed to alloc frame\n");
-        return ERR_OOM;
-    }
-
-    // Determine required buffer size and allocate buffer
-    int frameSize = avpicture_get_size(PIX_FMT_RGBA, codecCtx->width, codecCtx->height);
-    this->frameSize = frameSize;
-    this->frameBuffer = (uint8_t *)av_malloc(frameSize * sizeof(uint8_t));
-    if (frameBuffer == NULL) {
-        fprintf(stderr, "Failed to alloc buffer\n");
-        return ERR_OOM;
-    }
-
-    avpicture_fill((AVPicture *)this->convertedFrame, this->frameBuffer, PIX_FMT_RGBA, this->codecCtx->width, this->codecCtx->height);
-
     // NativeAV stuff
     this->lastDelay = 40e-3; // 40ms, default delay between frames a 30fps 
 
-    this->tmpFrame = (uint8_t *) malloc(frameSize);
-    if (this->tmpFrame == NULL) {
-        fprintf(stderr, "Failed to alloc tmp frame\n");
-        return ERR_OOM;
-    }
-
+    // Ringbuffer that hold reference to decoded frames
     this->rBuff = new PaUtilRingBuffer();
-    this->buff = (uint8_t*) malloc(frameSize * NATIVE_VIDEO_BUFFER_SAMPLES);
+    this->buff = (uint8_t*) malloc(sizeof(NativeVideo::Frame) * NATIVE_VIDEO_BUFFER_SAMPLES);
 
     if (this->buff == NULL) {
         fprintf(stderr, "Failed to alloc buffer\n");
@@ -256,12 +220,9 @@ int NativeVideo::openInitInternal()
         return ERR_OOM;
     }
 
-    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
-        m_Frames[i] = (uint8_t*) malloc(frameSize);
-        if (!m_Frames[i]) {
-            fprintf(stderr, "Failed to setup frames pool\n");
-            return ERR_OOM;
-        }
+    int err;
+    if ((err = this->setSizeInternal()) < 0) {
+        return err;
     }
 
     this->opened = true;
@@ -708,7 +669,13 @@ NativeAudioSource *NativeVideo::getAudioNode(NativeAudio *audio)
 int NativeVideo::display(void *custom) {
     NativeVideo *v = (NativeVideo *)custom;
 
-    DPRINT("[DISPLAY]\n");
+    // Set pthread cond to false, so
+    // setSize will always wait for the signal
+    v->m_NotInDisplayCond = false;
+
+    v->m_InDisplay = true;
+
+    DPRINT("[DISPLAY] %d\n", v->m_NoDisplay);
 
     // Reset timer from queue
     v->timers[v->lastTimer]->id = -1;
@@ -718,6 +685,16 @@ int NativeVideo::display(void *custom) {
     if (v->lastTimer > NATIVE_VIDEO_BUFFER_SAMPLES-1) {
         v->lastTimer = 0;
     }
+
+    if (v->m_NoDisplay) {
+        // Frames are going to be resized.
+        // Don't do anything
+        v->scheduleDisplay(1, true);
+        v->m_InDisplay = false;
+        NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+        return 0;
+    }
+
     // Read frame from ring buffer
     if (PaUtil_GetRingBufferReadAvailable(v->rBuff) < 1) {
         if (!v->buffering && !v->seeking) {
@@ -726,12 +703,15 @@ int NativeVideo::display(void *custom) {
         if (v->eof) {
             DPRINT("No frame, eof reached\n");
             v->sendEvent(SOURCE_EVENT_EOF, 0, false);
-            return 0;
         } else {
             DPRINT("No frame, try again in 20ms\n");
             v->scheduleDisplay(1, true);
-            return 0;
         }
+
+        v->m_InDisplay = false;
+        NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+
+        return 0;
     }
 
     Frame frame;
@@ -796,9 +776,10 @@ int NativeVideo::display(void *custom) {
     if (v->playing) {
         if (actualDelay <= NATIVE_VIDEO_SYNC_THRESHOLD && diff <= 0) {
             DPRINT("Droping video frame\n");
-            if (int ret = v->display(v) != 0) {
-                return ret;
-            }
+            v->display(v);
+            v->m_InDisplay = false;
+            NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+            return 0;
         } else {
             DPRINT("Next display in %d\n", (int)(actualDelay * 1000));
             v->scheduleDisplay(((int)(actualDelay * 1000)));
@@ -819,7 +800,107 @@ int NativeVideo::display(void *custom) {
         NATIVE_PTHREAD_SIGNAL(&v->bufferCond);
     }
 
+    v->m_InDisplay = false;
+    NATIVE_PTHREAD_SIGNAL(&v->m_NotInDisplay);
+
     return 0;
+}
+
+int NativeVideo::setSizeInternal()
+{
+    m_NoDisplay = true;
+
+    if (m_InDisplay) {
+        NATIVE_PTHREAD_WAIT(&this->m_NotInDisplay);
+    }
+
+    // Flush buffers & timers to discard old frames
+    this->flushBuffers();
+    //this->clearTimers(true);
+
+    int width = m_NewWidth == 0 ? this->codecCtx->width : m_NewWidth;
+    int height = m_NewHeight == 0 ? this->codecCtx->height : m_NewHeight;
+
+    if (!this->swsCtx) {
+        // First call to setSizeInternal, init frames
+        this->decodedFrame = av_frame_alloc();
+        this->convertedFrame = av_frame_alloc();
+
+        if (this->decodedFrame == NULL || this->convertedFrame == NULL) {
+            fprintf(stderr, "Failed to alloc frame\n");
+            m_NoDisplay = false;
+            return ERR_OOM;
+        }
+    } else {
+        sws_freeContext(this->swsCtx);
+    }
+
+    this->swsCtx = sws_getContext(this->codecCtx->width, this->codecCtx->height, this->codecCtx->pix_fmt,
+                                  width, height, PIX_FMT_RGBA,
+                                  SWS_BICUBIC, NULL, NULL, NULL);
+
+    if (!this->swsCtx) {
+        m_NoDisplay = false;
+		return ERR_NO_VIDEO_CONVERTER;
+    }
+
+    // Update the size of the frames in the frame pool
+    int frameSize = avpicture_fill((AVPicture *)this->convertedFrame, NULL, PIX_FMT_RGBA, width, height);
+    for (int i = 0; i < NATIVE_VIDEO_BUFFER_SAMPLES; i++) {
+        free(m_Frames[i]);
+        m_Frames[i] = (uint8_t*) malloc(frameSize);
+    }
+
+    printf("Setting size finished\n");
+
+    m_Width = width;
+    m_Height = height;
+
+    m_NoDisplay = false;
+    return 0;
+#if 0
+    // XXX : Nop
+    // Determine required frameSize and allocate buffer frame pool
+    ring_buffer_size_t avail = PaUtil_GetRingBufferReadAvailable(this->rBuff);
+
+    int idx = m_FramesIdx;
+    uint8_t *data;
+    for (ring_buffer_size_t i = 0; i < avail; i++) {
+        Frame frame;
+
+        data = (uint8_t*) malloc(frameSize);
+        PaUtil_ReadRingBuffer(this->rBuff, (void *)&frame, 1);
+
+        this->convertFrame(&frame, data);
+
+        free(m_Frames[m_FramesIdx].data);
+        m_Frames[m_FramesIdx].data = data;
+
+        PaUtil_WriteRingBuffer(this->rBuff, &frame, 1);
+
+        if (idx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
+            idx = 0;
+        } else {
+            idx++;
+        }
+    }
+
+    m_FramesIdx = idx;
+#endif
+}
+
+void NativeVideo::setSize(int width, int height)
+{
+    if (width == m_Width && height == m_Height && this->swsCtx) {
+        return;
+    }
+
+    m_NewWidth = width;
+    m_NewHeight = height;
+
+    m_DoSetSize = true;
+
+    //NATIVE_PTHREAD_SIGNAL(&this->bufferCond);
 }
 
 void NativeVideo::buffer()
@@ -972,12 +1053,14 @@ void *NativeVideo::decode(void *args)
 
         if (v->m_SourceNeedWork) {
             DPRINT("readFlag, swithcing back to coro\n");
+            v->lockDecodeThread();
             Coro_switchTo_(v->mainCoro, v->coro);
             // Make sure another read call havn't been made
             if (!v->reader->pending) {
                 v->buffering = false;
             }
             v->m_SourceNeedWork = false;
+            v->unlockDecodeThread();
         } else if (!v->doSeek) {
             DPRINT("wait bufferCond, no work needed\n");
             NATIVE_PTHREAD_WAIT(&v->bufferCond);
@@ -1041,6 +1124,15 @@ bool NativeVideo::processVideo()
         return false;
     }
 
+    if (m_DoSetSize) {
+        m_DoSetSize = false;
+        int ret = this->setSizeInternal();
+
+        if (ret < 0) {
+            return false;
+        }
+    }
+
     int gotFrame;
     Packet *p = this->getPacket(this->videoQueue);
 
@@ -1072,15 +1164,25 @@ bool NativeVideo::processFrame(AVFrame *avFrame)
     frame.data = m_Frames[m_FramesIdx];
     frame.pts = this->getPts(avFrame);
 
+    bool ret = this->convertFrame(avFrame, (uint8_t*) frame.data);
+
+    // Write frame to rBuff, the frame will be consumed
+    // later by NativeVideo::display() (UI Thread)
+    PaUtil_WriteRingBuffer(this->rBuff, &frame, 1);
+
     if (m_FramesIdx == NATIVE_VIDEO_BUFFER_SAMPLES - 1) {
         m_FramesIdx = 0;
     } else {
         m_FramesIdx++;
     }
 
+    return ret;
+}
+bool NativeVideo::convertFrame(AVFrame *avFrame, uint8_t *dst)
+{
     // Format the frame for sws_scale
     uint8_t *tmp[1];
-    tmp[0] = (uint8_t *)frame.data;
+    tmp[0] = (uint8_t *)dst;
     uint8_t * const *out = (uint8_t * const*)tmp;
 
     // Convert the image from its native format to RGBA 
@@ -1088,10 +1190,6 @@ bool NativeVideo::processFrame(AVFrame *avFrame)
     sws_scale(this->swsCtx,
               avFrame->data, avFrame->linesize,
               0, this->codecCtx->height, out, this->convertedFrame->linesize);
-
-    // Write frame to rBuff, the frame will be consumed
-    // later by NativeVideo::display() (UI Thread)
-    PaUtil_WriteRingBuffer(this->rBuff, &frame, 1);
 
     return true;
 }
@@ -1369,21 +1467,17 @@ void NativeVideo::closeInternal(bool reset)
 
     av_free(this->convertedFrame);
     av_free(this->decodedFrame);
-    av_free(this->frameBuffer);
 
     sws_freeContext(this->swsCtx);
     
     free(this->buff);
-    free(this->tmpFrame);
 
     this->rBuff = NULL;
     this->codecCtx = NULL;
     this->convertedFrame = NULL;
     this->decodedFrame = NULL;
     this->swsCtx = NULL;
-    this->frameBuffer = NULL;
     this->buff = NULL;
-    this->tmpFrame = NULL;
     this->container = NULL;
     this->reader = NULL;
     this->avioBuffer = NULL;

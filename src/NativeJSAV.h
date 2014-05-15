@@ -222,10 +222,11 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
         JSObject *audioNode;
         void *arrayContent;
 
-        int width;
-        int height;
+        int m_Width;
+        int m_Height;
 
         void stopAudio();
+        void setSize(int width, int height);
 
         static void registerObject(JSContext *cx);
         static void frameCallback(uint8_t *data, void *custom);

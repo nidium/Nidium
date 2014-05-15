@@ -80,7 +80,6 @@ class NativeVideo : public NativeAVSource
         uint8_t *tmpFrame;
         uint8_t *frameBuffer;
         double frameTimer;
-        int frameSize;
         double lastPts;
         double videoClock;
         double audioClock;
@@ -90,8 +89,8 @@ class NativeVideo : public NativeAVSource
         bool stoped;
         int seekFlags;
 
-        int width;
-        int height;
+        int m_Width;
+        int m_Height;
 
         SwsContext *swsCtx;
         AVCodecContext *codecCtx;
@@ -134,6 +133,8 @@ class NativeVideo : public NativeAVSource
         NativeAudioSource *getAudioNode(NativeAudio *audio);
         static void* decode(void *args);
         static int display(void *custom);
+        void setSize(int width, int height);
+        int setSizeInternal();
         void stopAudio();
 
         static void sourceNeedWork(void *ptr);
@@ -146,7 +147,13 @@ class NativeVideo : public NativeAVSource
         bool seeking;
         bool m_ThreadCreated;
         bool m_SourceNeedWork;
+        bool m_DoSetSize;
+        int m_NewWidth;
+        int m_NewHeight;
+        bool m_NoDisplay;
+        bool m_InDisplay;
         pthread_mutex_t audioLock;
+        NATIVE_PTHREAD_VAR_DECL(m_NotInDisplay);
         pthread_mutex_t decodeThreadLock;
 
         void closeInternal(bool reset);
@@ -162,6 +169,7 @@ class NativeVideo : public NativeAVSource
         bool processAudio();
         bool processVideo();
         bool processFrame(AVFrame *frame);
+        bool convertFrame(AVFrame *frame, uint8_t *dst);
 
         double syncVideo(double pts);
         double getPts(AVPacket *packet);
