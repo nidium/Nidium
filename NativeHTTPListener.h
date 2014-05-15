@@ -24,38 +24,31 @@
 #include <ape_array.h>
 #include <http_parser.h>
 #include <stdio.h>
-#include "NativeMessages.h"
+#include <NativeMessages.h>
+#include <NativeEvents.h>
 
 #define HTTP_MAX_CL 1024L*1024L*1024L*2L
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 class NativeMessages;
 
-class NativeHTTPListener
+class NativeHTTPListener : public NativeEvents
 {
 public:
+    static const uint8_t EventID = 3;
+
+    enum Events {
+        NONE_EVENT = 1
+    };
+
     NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeHTTPListener();
     bool start();
     void stop();
-    
-    void setListener(NativeMessages *listener) {
-        m_Listener = listener;
-    }
 
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
 
-    void notify(NativeSharedMessages::Message *msg)
-    {
-        if (m_Listener) {
-            m_Listener->postMessage(msg);
-        } else {
-            delete msg;
-        }
-    }
-
 private:
-    NativeMessages *  m_Listener;
     ape_socket *      m_Socket;
     char *            m_IP;
     uint16_t          m_Port;

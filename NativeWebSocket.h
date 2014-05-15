@@ -34,6 +34,15 @@ enum {
 class NativeWebSocketListener : public NativeHTTPListener
 {
 public:
+
+    static const uint8_t EventID = 4;
+
+    enum Events {
+        SERVER_CONNECT = 1,
+        SERVER_FRAME,
+        SERVER_CLOSE
+    };
+
     NativeWebSocketListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual void onClientConnect(ape_socket *client, ape_global *ape);  
 };

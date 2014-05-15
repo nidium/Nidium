@@ -201,8 +201,7 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
 ////////////////////
 ////////////////////
 
-NativeHTTPListener::NativeHTTPListener(uint16_t port, const char *ip) :
-    m_Listener(NULL)
+NativeHTTPListener::NativeHTTPListener(uint16_t port, const char *ip)
 {
     ape_global *ape = NativeJS::getNet();
     m_Socket = APE_socket_new(APE_SOCKET_PT_TCP, 0, ape);

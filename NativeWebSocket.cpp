@@ -66,10 +66,10 @@ void NativeWebSocketClientConnection::onHeaderEnded()
 
 void NativeWebSocketClientConnection::onDisconnect(ape_global *ape)
 {
-    CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_CLOSE);
-    msg->args[0].set(this);
+    NativeArgs args;
+    args[0].set(this);
 
-    m_HTTPListener->notify(msg);
+    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CLOSE, args);
 }
 
 void NativeWebSocketClientConnection::onUpgrade(const char *to)
@@ -101,10 +101,11 @@ void NativeWebSocketClientConnection::onUpgrade(const char *to)
 
     m_Handshaked = true;
 
-    CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_CONNECT);
-    msg->args[0].set(this);
+    NativeArgs args;
+    args[0].set(this);
 
-    m_HTTPListener->notify(msg);
+    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_CONNECT, args);
+
 }
 
 void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
@@ -115,14 +116,13 @@ void NativeWebSocketClientConnection::onContent(const char *data, size_t len)
 void NativeWebSocketClientConnection::onFrame(const char *data, size_t len,
     bool binary)
 {
-    CREATE_MESSAGE(msg, NATIVEWEBSOCKET_SERVER_FRAME);
+    NativeArgs args;
+    args[0].set(this);
+    args[1].set((void *)data);
+    args[2].set(len);
+    args[3].set(binary);
 
-    msg->args[0].set(this);
-    msg->args[1].set((void *)data);
-    msg->args[2].set(len);
-    msg->args[3].set(binary);
-
-    m_HTTPListener->notify(msg);
+    m_HTTPListener->fireEvent<NativeWebSocketListener>(NativeWebSocketListener::SERVER_FRAME, args);
 }
 
 void NativeWebSocketClientConnection::close()

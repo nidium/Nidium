@@ -121,7 +121,7 @@ NativeJSWebSocketServer::NativeJSWebSocketServer(const char *host,
     unsigned short port)
 {
     m_WebSocketServer = new NativeWebSocketListener(port, host);
-    m_WebSocketServer->setListener(this);
+    m_WebSocketServer->addListener(this);
 }
 
 NativeJSWebSocketServer::~NativeJSWebSocketServer()
@@ -146,15 +146,16 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg)
 {
     jsval oncallback, rval;
+
     switch (msg.event()) {
-        case NATIVEWEBSOCKET_SERVER_FRAME:
+        case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
             jsval arg[2];
-            const char *data = (const char *)msg.args[1].toPtr();
-            int len = msg.args[2].toInt();
-            bool binary = msg.args[3].toBool();
+            const char *data = (const char *)msg.args[2].toPtr();
+            int len = msg.args[3].toInt();
+            bool binary = msg.args[4].toBool();
             
-            JSObject *jclient = (JSObject *)((NativeWebSocketClientConnection *)msg.args[0].toPtr())->getData();
+            JSObject *jclient = (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData();
 
             if (!jclient) {
                 return;
@@ -178,11 +179,11 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
 
             break;
         }
-        case NATIVEWEBSOCKET_SERVER_CONNECT:
+        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
         {
             jsval arg;
             JSObject *jclient = this->createClient(
-                (NativeWebSocketClientConnection *)msg.args[0].toPtr());
+                (NativeWebSocketClientConnection *)msg.args[1].toPtr());
 
             arg.setObjectOrNull(jclient);
 

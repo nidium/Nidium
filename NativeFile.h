@@ -26,6 +26,7 @@
 #include "NativeMessages.h"
 #include "NativeTaskManager.h"
 #include "NativeIStreamer.h"
+#include <NativeEvents.h>
 
 #define NATIVEFILE_MESSAGE_BITS(id) ((1 << 20) | id)
 
@@ -41,9 +42,23 @@ enum {
     NATIVEFILE_SEEK_ERROR =     NATIVEFILE_MESSAGE_BITS(9),
 };
 
-class NativeFile : public NativeManaged, public NativeIStreamer
+class NativeFile : public NativeManaged, public NativeIStreamer, public NativeEvents
 {
 public:
+    static const uint8_t EventID = 2;
+
+    enum Events {
+        OPEN_ERROR = 1,
+        OPEN_SUCCESS,
+        CLOSE_SUCCESS,
+        READ_SUCCESS,
+        READ_ERROR,
+        WRITE_SUCCESS,
+        WRITE_ERROR,
+        SEEK_SUCCESS, 
+        SEEK_ERROR
+    };
+
     explicit NativeFile(const char *path);
     ~NativeFile();
 
