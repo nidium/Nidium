@@ -25,8 +25,15 @@
 
 #include <NativeMessages.h>
 
-#define NATIVEEVENTS_MESSAGE_BITS(id) ((1 << 19) | id)
+#define NATIVE_EVENTS_MESSAGE_BITS(id) ((1 << 31) | id)
+#define NATIVE_EVENT(classe, event) (NATIVE_EVENTS_MESSAGE_BITS(classe::event) | (classe::EventID << 16))
 
+/*
+    Implementation Note :
+
+    Children of NativeEvents must define a static
+    const property "static const uint8_t EventID" with an unique 8bit identifier
+*/
 class NativeEvents
 {
 public:
@@ -43,15 +50,15 @@ public:
         }
     }
     template <typename T>
-    void fireEvent(int event, const NativeArgs &args) {
+    void fireEvent(typename T::Events event, const NativeArgs &args) {
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
             NativeMessages *receiver = (NativeMessages *)item->content.addrs;
 
-            NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVEEVENTS_MESSAGE_BITS(event));
+            NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(NATIVE_EVENTS_MESSAGE_BITS(event) | (T::EventID << 16));
 
-            msg->args[0].set(static_cast<T>(this));
+            msg->args[0].set(static_cast<T *>(this));
 
             for (int i = 0; i < args.size(); i++) {
                 msg->args[i+1].set(args[i].toInt64());
