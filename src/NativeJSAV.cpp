@@ -462,12 +462,6 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
             return;
         }
 
-        NativeJSVideo *video= (NativeJSVideo*)JS_GetInstancePrivate(cx, obj, &Video_class, NULL);
-
-        if (video != NULL) {
-            video->setSize(video->m_Width, video->m_Height);
-        }
-
         if (JS_GetProperty(cx, obj, prop, &jscbk) &&
             !JSVAL_IS_PRIMITIVE(jscbk) &&
             JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
@@ -2018,6 +2012,8 @@ void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
     if (m_IsDestructing) return;
 
     if (msg.event() == NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
+        this->setSize(m_Width, m_Height);
+    } else if (msg.event() == SOURCE_EVENT_PLAY) {
         this->setSize(m_Width, m_Height);
     } else {
         native_av_thread_message(cx, this->getJSObject(), msg);
