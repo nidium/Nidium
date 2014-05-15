@@ -2051,10 +2051,6 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 
 void NativeJSVideo::setSize(int width, int height)
 {
-    double ratio;
-    // 0 = Automatic adjust with ratio
-    // -1 = Size to canvas with ratio
-
     m_Width = width;
     m_Height = height;
 
