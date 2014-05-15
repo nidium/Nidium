@@ -1993,6 +1993,7 @@ NativeJSVideo::NativeJSVideo(NativeCanvas2DContext *canvasCtx, JSContext *cx) :
     this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx));
     this->video->frameCallback(NativeJSVideo::frameCallback, this);
     this->video->eventCallback(NativeJSVideo::onEvent, this);
+    m_CanvasCtx->getHandler()->addListener(this);
 }
 
 void NativeJSVideo::stopAudio() 
