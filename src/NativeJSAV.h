@@ -225,6 +225,8 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
 
         int m_Width;
         int m_Height;
+        int m_Left;
+        int m_Top;
 
         void stopAudio();
         void setSize(int width, int height);

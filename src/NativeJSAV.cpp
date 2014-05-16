@@ -458,7 +458,7 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
 
         const char *prop = NativeJSAVEventRead(msg.event());
         if (!prop) {
-            delete cmsg;
+            // delete cmsg; // XXX : Unknown message. Don't delete it.
             return;
         }
 
@@ -1987,7 +1987,7 @@ void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj)
 
 NativeJSVideo::NativeJSVideo(NativeCanvas2DContext *canvasCtx, JSContext *cx) : 
     video(NULL), audioNode(NULL), arrayContent(NULL), 
-    m_Width(-1), m_Height(-1), m_IsDestructing(false), 
+    m_Width(-1), m_Height(-1), m_Left(0), m_Top(0), m_IsDestructing(false), 
     m_CanvasCtx(canvasCtx), cx(cx)
 {
     this->video = new NativeVideo((ape_global *)JS_GetContextPrivate(cx));
@@ -2014,9 +2014,10 @@ void NativeJSVideo::onMessage(const NativeSharedMessages::Message &msg)
 
     if (msg.event() == NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT) && (m_Width == -1 || m_Height == -1)) {
         this->setSize(m_Width, m_Height);
-    } else if (msg.event() == SOURCE_EVENT_PLAY) {
-        this->setSize(m_Width, m_Height);
     } else {
+        if (msg.event() == SOURCE_EVENT_PLAY) {
+            this->setSize(m_Width, m_Height);
+        }
         native_av_thread_message(cx, this->getJSObject(), msg);
     }
 }
@@ -2031,7 +2032,8 @@ void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
 
-    v->m_CanvasCtx->getSurface()->drawPixels(data, v->video->m_Width, v->video->m_Height, 0, 0);
+    v->m_CanvasCtx->clear(0xFF000000);
+    v->m_CanvasCtx->getSurface()->drawPixels(data, v->video->m_Width, v->video->m_Height, v->m_Left, v->m_Top);
 
     jsval onframe;
     if (JS_GetProperty(v->cx, v->jsobj, "onframe", &onframe) &&
@@ -2056,6 +2058,9 @@ void NativeJSVideo::setSize(int width, int height)
         return;
     }
 
+    int canvasWidth = m_CanvasCtx->getHandler()->getWidth();
+    int canvasHeight = m_CanvasCtx->getHandler()->getHeight();
+
     // Invalid dimension, force size to canvas 
     if (width == 0) width = -1;
     if (height == 0) height = -1;
@@ -2065,19 +2070,26 @@ void NativeJSVideo::setSize(int width, int height)
         int videoWidth = video->codecCtx->width;
         int videoHeight = video->codecCtx->height;
 
-        int canvasWidth = m_CanvasCtx->getHandler()->getWidth();
-        int canvasHeight = m_CanvasCtx->getHandler()->getHeight();
-
         int maxWidth = native_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
         int maxHeight = native_min(m_Height == -1 ? canvasHeight : m_Height, canvasHeight);
-        double ratio = native_max(videoHeight / (double)maxHeight, videoWidth / (double)maxWidth);
+        double ratio = native_max(videoHeight / maxHeight, videoWidth / maxWidth);
 
         width = videoWidth / ratio;
         height = videoHeight / ratio;
     }
 
-    // TODO : Calculate position in canvas
+    if (height < canvasHeight) {
+        m_Top = (canvasHeight / 2) - (height / 2);
+    } else {
+        m_Top = 0;
+    }
 
+    if (width < canvasWidth) {
+        m_Left = (canvasWidth / 2) - (width / 2);
+    } else {
+        m_Left = 0;
+    }
+  
     this->video->setSize(width, height);
 }
 
