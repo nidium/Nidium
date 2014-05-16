@@ -2063,19 +2063,17 @@ void NativeJSVideo::setSize(int width, int height)
     // Size the video
     if (m_Width == -1 || m_Height == -1) {
         int videoWidth = video->codecCtx->width;
-        int videoHeight = video->codecCtx->height;;
+        int videoHeight = video->codecCtx->height;
 
-        if ((videoWidth > videoHeight && m_Width == -1) || m_Height > 0) { // Portrait or forced height
-            width = m_CanvasCtx->getHandler()->getWidth();
-            if (height < 1) {
-                height = videoHeight / (double)videoWidth * width; 
-            }
-        } else { // Landscape
-            height = m_CanvasCtx->getHandler()->getHeight();
-            if (width < 1) {
-                width = videoWidth / (double)videoHeight * height;
-            }
-        }
+        int canvasWidth = m_CanvasCtx->getHandler()->getWidth();
+        int canvasHeight = m_CanvasCtx->getHandler()->getHeight();
+
+        int maxWidth = native_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
+        int maxHeight = native_min(m_Height == -1 ? canvasHeight : m_Height, canvasHeight);
+        double ratio = native_max(videoHeight / (double)maxHeight, videoWidth / (double)maxWidth);
+
+        width = videoWidth / ratio;
+        height = videoHeight / ratio;
     }
 
     // TODO : Calculate position in canvas
