@@ -2072,7 +2072,7 @@ void NativeJSVideo::setSize(int width, int height)
 
         int maxWidth = native_min(m_Width == -1 ? canvasWidth : m_Width, canvasWidth);
         int maxHeight = native_min(m_Height == -1 ? canvasHeight : m_Height, canvasHeight);
-        double ratio = native_max(videoHeight / maxHeight, videoWidth / maxWidth);
+        double ratio = native_max(videoHeight / (double)maxHeight, videoWidth / (double)maxWidth);
 
         width = videoWidth / ratio;
         height = videoHeight / ratio;
