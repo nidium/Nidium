@@ -116,6 +116,8 @@
                         '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
                         '$(SDKROOT)/System/Library/Frameworks/OpenGL.framework',
                         '$(SDKROOT)/System/Library/Frameworks/CoreAudio.framework',
+                        '$(SDKROOT)/System/Library/Frameworks/CoreVideo.framework',
+                        '$(SDKROOT)/System/Library/Frameworks/VideoDecodeAcceleration.framework',
                         '$(SDKROOT)/System/Library/Frameworks/CoreAudioKit.framework',
                         '$(SDKROOT)/System/Library/Frameworks/AudioToolbox.framework',
                         '$(SDKROOT)/System/Library/Frameworks/AudioUnit.framework',
