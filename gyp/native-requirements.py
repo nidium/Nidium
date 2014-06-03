@@ -377,6 +377,7 @@ def packageExecutable():
             "--background " + resources + "/dmg-background.png",
             "--window-size 555 394",
             "--icon-size 96",
+            "--eula ./COPYING",
             "--app-drop-link 460 290",
             "--icon 'nidium' 460 80",
             "out/" + name,
