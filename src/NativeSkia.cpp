@@ -739,12 +739,52 @@ void NativeSkia::system(const char *text, int x, int y)
 
 void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 { 
-    SkShader *shader;
+    SkShader *shader = NULL;
 
     if (pattern->jsimg->img->img != NULL) {
+        bool repeat_x = false, repeat_y = false;
 
-        shader = SkShader::CreateBitmapShader(*pattern->jsimg->img->img,
-            SkShader::kRepeat_TileMode, SkShader::kRepeat_TileMode);
+        switch(pattern->mode) {
+            case NativeCanvasPattern::PATTERN_REPEAT_MIRROR:
+            case NativeCanvasPattern::PATTERN_REPEAT:
+                repeat_x = repeat_y = true;
+                break;
+            case NativeCanvasPattern::PATTERN_REPEAT_X:
+                repeat_x = true;
+                break;
+            case NativeCanvasPattern::PATTERN_REPEAT_Y:
+                repeat_y = true;
+                break;
+            default:
+                break;
+        }
+
+        if (repeat_x && repeat_y) {
+            shader = SkShader::CreateBitmapShader(*pattern->jsimg->img->img,
+                pattern->mode == NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
+                pattern->mode == NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
+                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);            
+        } else {
+            SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
+            SkShader::TileMode tileModeY = repeat_y ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
+
+            int expandW = repeat_x ? 0 : 1;
+            int expandH = repeat_y ? 0 : 1;
+
+            SkBitmap *bm = pattern->jsimg->img->img;
+            SkBitmap bm2;
+
+            bm2.setConfig(bm->config(), bm->width() + expandW, bm->height() + expandH);
+            bm2.allocPixels();
+            bm2.eraseARGB(0x00, 0x00, 0x00, 0x00);
+
+            SkCanvas canvas(bm2);
+            canvas.drawBitmap(*bm, 0, 0);
+
+            shader = SkShader::CreateBitmapShader(bm2, tileModeX, tileModeY);
+
+        }
 
         PAINT->setColor(SK_ColorBLACK);
         PAINT->setShader(shader);

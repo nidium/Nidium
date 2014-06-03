@@ -806,9 +806,24 @@ static JSBool native_canvas2dctx_createPattern(JSContext *cx,
 
     JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->jsobj));
 
+    NativeCanvasPattern::PATTERN_MODE pmode = NativeCanvasPattern::PATTERN_REPEAT;
+
+    JSAutoByteString cmode(cx, mode);
+
+    if (strcasecmp(cmode.ptr(), "repeat") == 0) {
+        pmode = NativeCanvasPattern::PATTERN_REPEAT;
+    } else if (strcasecmp(cmode.ptr(), "no-repeat") == 0) {
+        pmode = NativeCanvasPattern::PATTERN_NOREPEAT;
+    } else if (strcasecmp(cmode.ptr(), "repeat-x") == 0) {
+        pmode = NativeCanvasPattern::PATTERN_REPEAT_X;
+    } else if (strcasecmp(cmode.ptr(), "repeat-y") == 0) {
+        pmode = NativeCanvasPattern::PATTERN_REPEAT_Y;
+    } else if (strcasecmp(cmode.ptr(), "repeat-mirror") == 0) {
+        pmode = NativeCanvasPattern::PATTERN_REPEAT_MIRROR;
+    }
+
     JS_SetPrivate(patternObject,
-        new NativeCanvasPattern((NativeJSImage *)JS_GetPrivate(jsimage),
-        NativeCanvasPattern::PATTERN_REPEAT));
+        new NativeCanvasPattern((NativeJSImage *)JS_GetPrivate(jsimage), pmode));
 
     return JS_TRUE;
 }
@@ -948,7 +963,9 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
 
     JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
 
-    JSAutoByteString ctext(cx, text);
+    JSAutoByteString ctext;
+    ctext.encodeUtf8(cx, text);
+
     NativeSkia *n = NSKIA_NATIVE;
     
     OBJ_PROP("width", DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
