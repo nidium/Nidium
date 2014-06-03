@@ -68,6 +68,10 @@ unsigned long _ape_seed;
 - (void) refreshApp
 {
     self->UI->refreshApplication();
+    NativeUICocoaConsole *console = self->UI->getConsole(false, NULL);
+    if (console) {
+        console->clear();
+    }
 }
 
 - (void) openConsole
@@ -81,7 +85,7 @@ unsigned long _ape_seed;
         } else {
             console->hide();
         }
-    }    
+    }
 }
 
 - (void) stopApplication
@@ -93,18 +97,32 @@ unsigned long _ape_seed;
 {
     NSMenu *mainmenu = [NSApp mainMenu];
 
-
-    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"foo" action:NULL keyEquivalent:@""];
+    NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:@"_Application" action:NULL keyEquivalent:@""];
     NSMenu *submenu = [[NSMenu alloc] initWithTitle:@"Application"];
 
     [submenu addItemWithTitle:@"Refresh" action:@selector(refreshApp) keyEquivalent:@"r"];
     [submenu addItemWithTitle:@"Toggle console" action:@selector(openConsole) keyEquivalent:@"d"];
     [submenu addItemWithTitle:@"Stop" action:@selector(stopApplication) keyEquivalent:@"u"];
-
     [item setSubmenu:submenu];
-
     [mainmenu addItem:item];
 
+/*
+    NSMenuItem *HelpMenu = [[NSMenuItem alloc] initWithTitle:@"_Doc" action:NULL keyEquivalent:@""];
+    NSMenu *Helpsubmenu = [[NSMenu alloc] initWithTitle:@"Documentation"];
+
+    [HelpMenu setSubmenu:Helpsubmenu];
+
+    [mainmenu addItem:HelpMenu];
+
+    NSSearchField *searchField = [[NSSearchField alloc] init];    
+    NSRect cellFrame = [searchField frame];
+    NSMenuItem *search = [[NSMenuItem alloc] initWithTitle:@"Search" action:NULL keyEquivalent:@""];
+    [search setView:searchField];
+
+    searchField.frame = NSMakeRect(50, 0, 200, 40);
+
+    [Helpsubmenu addItem:search];
+*/
     /*
 NSMenuItem *testItem = [[[NSMenuItem alloc] initWithTitle:@"Testing!" action:nil keyEquivalent:@""] autorelease];
 NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
