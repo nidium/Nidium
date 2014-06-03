@@ -28,6 +28,27 @@ then
 fi
 INSTALL_DIR=`readlink -f $INSTALL_DIR`
 
+echo 
+echo -n "Before installing Nidium, you must agree with Nidium Software Licence Agreement"
+i=1
+while [ $i -le 4 ]
+do
+    sleep 0.6
+    echo -n "."
+    i=$((i+1))
+done
+
+less ./COPYING
+
+read -p "Do you agree with Nidium licence terms ? (y/n) " -n 1 -r
+echo    #  move to a new line
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "You must agree with Nidium licence terms to install Nidium"
+    exit 2
+fi
+
+
 echo "- Creating install dir ($INSTALL_DIR)"
 mkdir -p $INSTALL_DIR/
 
