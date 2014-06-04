@@ -48,16 +48,44 @@ def main(options, args):
     dmgFile, license = args
     with mktemp('.') as tmpFile:
         with open(tmpFile, 'w') as f:
-            f.write("""data 'LPic' (5000) {
-    $"0002 0011 0003 0001 0000 0000 0002 0000"
-    $"0000 000E 0006 0001 0005 0007 0000 0007"
-    $"0008 0000 0047 0009 0000 0034 000A 0001"
-    $"0035 000B 0001 0020 000C 0000 0011 000D"
-    $"0000 005B 0004 0000 0033 000F 0001 000C"
-    $"0010 0000 000B 000E 0000"
+            f.write("""data 'TMPL' (128, "LPic") {
+	$"1344 6566 6175 6C74 204C 616E 6775 6167"
+	$"6520 4944 4457 5244 0543 6F75 6E74 4F43"
+	$"4E54 042A 2A2A 2A4C 5354 430B 7379 7320"
+	$"6C61 6E67 2049 4444 5752 441E 6C6F 6361"
+	$"6C20 7265 7320 4944 2028 6F66 6673 6574"
+	$"2066 726F 6D20 3530 3030 4457 5244 1032"
+	$"2D62 7974 6520 6C61 6E67 7561 6765 3F44"
+	$"5752 4404 2A2A 2A2A 4C53 5445"          
+};
+
+data 'LPic' (5000) {
+	$"0000 0002 0000 0000 0000 0000 0000 0000"
+};
+
+data 'STR#' (5000, "English buttons") {
+	$"0006 0D45 6E67 6C69 7368 2074 6573 7431"
+	$"0541 6772 6565 0844 6973 6167 7265 6505"
+	$"5072 696E 7407 5361 7665 2E2E 2E7A 4966"
+	$"2079 6F75 2061 6772 6565 2077 6974 6820"
+	$"7468 6520 7465 726D 7320 6F66 2074 6869"
+	$"7320 6C69 6365 6E73 652C 2063 6C69 636B"
+	$"2022 4167 7265 6522 2074 6F20 6163 6365"
+	$"7373 2074 6865 2073 6F66 7477 6172 652E"
+	$"2020 4966 2079 6F75 2064 6F20 6E6F 7420"
+	$"6167 7265 652C 2070 7265 7373 2022 4469"
+	$"7361 6772 6565 2E22"                    
+};
+
+data 'styl' (5000, "English SLA") {
+	$"0003 0000 0000 000C 0009 0015 0000 0000"
+	$"0000 0000 0000 0000 002A 000C 0009 0015"
+	$"0100 0000 0000 0000 0000 0000 002E 000C"
+	$"0009 0015 0000 0000 0000 0000 0000"     
 };\n\n""")
+
             with open(license, 'r') as l:
-                f.write('data \'TEXT\' (5002, "English") {\n')
+                f.write('data \'TEXT\' (5000, "English SLA") {\n')
                 for line in l:
                     if len(line) < 1000:
                         f.write('    "' + line.strip().replace('"', '\\"') +
@@ -68,24 +96,9 @@ def main(options, args):
                                     liner.strip().replace('"', '\\"') +
                                     '. \\n"\n')
                 f.write('};\n\n')
-            f.write("""resource 'STR#' (5002, "English") {
-    {
-        "English",
-        "Agree",
-        "Disagree",
-        "Print",
-        "Save...",
-        "IMPORTANT - By clicking on the \\"Agree\\" button, you agree "
-        "to be bound by the terms of the License Agreement.",
-        "Software License Agreement",
-        "This text cannot be saved. This disk may be full or locked, or the "
-        "file may be locked.",
-        "Unable to print. Make sure you have selected a printer."
-    }
-};""")
         os.system('/usr/bin/hdiutil unflatten -quiet "%s"' % dmgFile)
-        os.system('%s "%s/"*.r %s -a -o "%s"' %
-                  (options.rez, options.flat_carbon, tmpFile, dmgFile))
+        os.system('%s -a %s -o "%s"' %
+                  (options.rez, tmpFile, dmgFile))
 
         os.system('/usr/bin/hdiutil flatten -quiet "%s"' % dmgFile)
         if options.compression is not None:
@@ -133,8 +146,7 @@ if __name__ == '__main__':
              'Choices are bz2 and gz.'
     )
     options, args = parser.parse_args()
-    cond = len(args) != 2 or not os.path.exists(options.rez) \
-        or not os.path.exists(options.flat_carbon)
+    cond = len(args) != 2 or not os.path.exists(options.rez) 
     if cond:
         parser.print_usage()
         sys.exit(1)

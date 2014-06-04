@@ -94,13 +94,15 @@ class NativeCanvasPattern
 
         enum PATTERN_MODE {
             PATTERN_REPEAT,
-            PATTERN_NOREPEAT
+            PATTERN_NOREPEAT,
+            PATTERN_REPEAT_X,
+            PATTERN_REPEAT_Y,
+            PATTERN_REPEAT_MIRROR
         } mode;
 
         NativeCanvasPattern(NativeJSImage *img, PATTERN_MODE repeat) :
             jsimg(img), mode(repeat) {
         };
-
 };
 
 #endif
