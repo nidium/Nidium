@@ -54,8 +54,6 @@ static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audiothread_print(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_AudioNode_constructor(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_audionode_input(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_audionode_output(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_get(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *vp);
@@ -147,6 +145,18 @@ static JSPropertySpec Audio_props[] = {
 };
 
 static JSPropertySpec AudioNode_props[] = {
+    {"type", NODE_PROP_TYPE,
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_NULLWRAPPER,
+        JSOP_NULLWRAPPER},
+    {"input", NODE_PROP_INPUT,
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_NULLWRAPPER,
+        JSOP_NULLWRAPPER},
+    {"output", NODE_PROP_OUTPUT,
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_NULLWRAPPER,
+        JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -1340,6 +1350,32 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     jsval tmp = STRING_TO_JSVAL(name);
     JS_SetProperty(cx, ret, "type", &tmp);
 
+    JS::Value inputLinks, outputLinks;
+    inputLinks.setObjectOrNull(JS_NewArrayObject(cx, in, NULL));
+    outputLinks.setObjectOrNull(JS_NewArrayObject(cx, out, NULL));
+
+    for (int i = 0; i < in; i++) {
+        JSObject *link = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
+        JS_SetPrivate(link, node->node->input[i]);
+
+        JS_DefineElement(cx, inputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), NULL, NULL, 0);
+    }
+
+    for (int i = 0; i < out; i++) {
+        JSObject *link = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
+        JS_SetPrivate(link, node->node->output[i]);
+
+        JS_DefineElement(cx, outputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), NULL, NULL, 0);
+    }
+
+    if (in > 0) {
+        JS_SetProperty(cx, ret, "input", &inputLinks);
+    }
+
+    if (out > 0) {
+        JS_SetProperty(cx, ret, "output", &outputLinks);
+    }
+
     node->njs = NJS;
     node->jsobj = ret;
     node->cx = cx;
@@ -1499,59 +1535,6 @@ static JSBool native_AudioNode_constructor(JSContext *cx, unsigned argc, jsval *
 {
     JS_ReportError(cx, "Illegal constructor");
     return false;
-}
-
-static JSBool native_audionode_input(JSContext *cx, unsigned argc, jsval *vp)
-{
-    int channel;
-    NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
-
-    CHECK_INVALID_CTX(jnode);
-
-    NativeAudioNode *node = jnode->node;
-    JSObject *ret = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
-
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &channel)) {
-        return JS_TRUE;
-    }
-
-    if (channel < 0 || channel >= node->inCount) {
-        JS_ReportError(cx, "Wrong input channel\n");
-        return JS_FALSE;
-    }
-
-    JS_SetPrivate(ret, node->input[channel]);
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    return JS_TRUE;
-
-}
-
-static JSBool native_audionode_output(JSContext *cx, unsigned argc, jsval *vp)
-{
-    int channel;
-    NativeJSAudioNode *jnode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
-
-    CHECK_INVALID_CTX(jnode);
-
-    NativeAudioNode *node = jnode->node;
-    JSObject *ret = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
-
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &channel)) {
-        return JS_TRUE;
-    }
-
-    if (channel < 0 || channel > node->outCount) {
-        JS_ReportError(cx, "Wrong output channel\n");
-        return JS_FALSE;
-    }
-
-    JS_SetPrivate(ret, node->output[channel]);
-
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
-
-    return JS_TRUE;
 }
 
 static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
