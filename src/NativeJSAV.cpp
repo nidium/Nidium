@@ -145,18 +145,7 @@ static JSPropertySpec Audio_props[] = {
 };
 
 static JSPropertySpec AudioNode_props[] = {
-    {"type", NODE_PROP_TYPE,
-        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
-    {"input", NODE_PROP_INPUT,
-        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
-    {"output", NODE_PROP_OUTPUT,
-        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
-        JSOP_NULLWRAPPER,
-        JSOP_NULLWRAPPER},
+    /* type, input, ouput readonly props are created in createnode function */
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -1345,8 +1334,8 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    jsval tmp = STRING_TO_JSVAL(name);
-    JS_SetProperty(cx, ret, "type", &tmp);
+    JS_DefineProperty(cx, ret, "type", STRING_TO_JSVAL(name), NULL, NULL,
+        JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
 
     JS::Value inputLinks, outputLinks;
     inputLinks.setObjectOrNull(JS_NewArrayObject(cx, in, NULL));
@@ -1367,11 +1356,13 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (in > 0) {
-        JS_SetProperty(cx, ret, "input", &inputLinks);
+        JS_DefineProperty(cx, ret, "input", inputLinks, NULL, NULL,
+            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     }
 
     if (out > 0) {
-        JS_SetProperty(cx, ret, "output", &outputLinks);
+        JS_DefineProperty(cx, ret, "output", outputLinks, NULL, NULL,
+            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
     }
 
     node->njs = NJS;
