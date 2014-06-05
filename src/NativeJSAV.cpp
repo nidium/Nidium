@@ -2273,6 +2273,7 @@ static JSBool native_video_setsize(JSContext *cx, unsigned argc, jsval *vp)
         width = JSVAL_TO_INT(jwidth);
     } else {
         JS_ReportError(cx, "Wrong argument type for width");
+        return false;
     }
 
     if (JSVAL_IS_STRING(jheight)) {
@@ -2281,6 +2282,7 @@ static JSBool native_video_setsize(JSContext *cx, unsigned argc, jsval *vp)
         height = JSVAL_TO_INT(jheight);
     } else {
         JS_ReportError(cx, "Wrong argument type for height");
+        return false;
     }
 
     v->setSize(width, height);
