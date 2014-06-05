@@ -1134,8 +1134,22 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
 {
     unsigned int bufferSize, channels, sampleRate;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuu", &bufferSize, &channels, &sampleRate)) {
-        return false;
+    if (argc > 0) {
+        bufferSize = JSVAL_TO_INT(JS_ARGV(cx, vp)[0]);
+    } else {
+        bufferSize = 2048;
+    }
+
+    if (argc > 1) {
+        channels = JSVAL_TO_INT(JS_ARGV(cx, vp)[1]);
+    } else {
+        channels = 2;
+    }
+
+    if (argc >= 2) {
+        sampleRate = JSVAL_TO_INT(JS_ARGV(cx, vp)[2]);
+    } else {
+        sampleRate = 44100;
     }
 
     switch (bufferSize) {
