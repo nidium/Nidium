@@ -80,6 +80,7 @@ class NativeAudio
         bool connect(NodeLink *input, NodeLink *output);
         bool disconnect(NodeLink *input, NodeLink *output);
         void setVolume(float volume);
+        float getVolume();
 
         static inline int getSampleSize(int sampleFmt);
         double getLatency();

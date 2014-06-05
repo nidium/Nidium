@@ -538,6 +538,11 @@ void NativeAudio::setVolume(float volume)
     this->volume = volume;
 }
 
+float NativeAudio::getVolume()
+{
+    return this->volume;
+}
+
 void NativeAudio::wakeup() 
 {
     this->m_SharedMsgFlush = true;

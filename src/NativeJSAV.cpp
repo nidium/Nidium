@@ -75,6 +75,7 @@ static JSBool native_audionode_custom_source_pause(JSContext *cx, unsigned argc,
 static JSBool native_audionode_custom_source_stop(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+static JSBool native_audio_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
 static JSBool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 static JSBool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
@@ -130,8 +131,18 @@ static JSClass AudioNode_threaded_class = {
 };
 
 static JSPropertySpec Audio_props[] = {
-    {"type", NODE_PROP_TYPE, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
-    {"volume", AUDIO_PROP_VOLUME, 0, JSOP_NULLWRAPPER, JSOP_WRAPPER(native_audio_prop_setter)},
+    {"volume", AUDIO_PROP_VOLUME, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT, 
+        JSOP_WRAPPER(native_audio_prop_getter), JSOP_WRAPPER(native_audio_prop_setter)},
+    {"bufferSize", AUDIO_PROP_BUFFERSIZE, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_audio_prop_getter), JSOP_NULLWRAPPER},
+    {"channels", AUDIO_PROP_CHANNELS, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_audio_prop_getter), JSOP_NULLWRAPPER},
+    {"sampleRate", AUDIO_PROP_SAMPLERATE, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_WRAPPER(native_audio_prop_getter), JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -1209,13 +1220,6 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *ret = JS_NewObjectForConstructor(cx, &Audio_class, vp);
     NativeJSAudio *naudio = NativeJSAudio::getContext(cx, ret, bufferSize, channels, sampleRate);
 
-    JS_DefineProperty(cx, ret, "bufferSize", INT_TO_JSVAL(bufferSize/8), NULL, NULL, 
-            JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-    JS_DefineProperty(cx, ret, "channels", INT_TO_JSVAL(channels), NULL, NULL, 
-            JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-    JS_DefineProperty(cx, ret, "sampleRate", INT_TO_JSVAL(sampleRate), NULL, NULL, 
-            JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-
     if (naudio == NULL) {
         delete naudio;
         JS_ReportError(cx, "Failed to initialize audio context\n");
@@ -1460,6 +1464,35 @@ static JSBool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHand
     } 
 
     return JS_TRUE;
+}
+
+static JSBool native_audio_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+{
+    NativeJSAudio *jaudio = NativeJSAudio::getContext();
+
+    CHECK_INVALID_CTX(jaudio);
+
+    NativeAudioParameters *params = jaudio->audio->outputParameters;
+
+    switch(JSID_TO_INT(id)) {
+        case AUDIO_PROP_BUFFERSIZE:
+            vp.set(INT_TO_JSVAL(params->bufferSize/8));
+        break;
+        case AUDIO_PROP_CHANNELS:
+            vp.set(INT_TO_JSVAL(params->channels));
+        break;
+        case AUDIO_PROP_SAMPLERATE:
+            vp.set(INT_TO_JSVAL(params->sampleRate));
+        break;
+        case AUDIO_PROP_VOLUME:
+            vp.set(DOUBLE_TO_JSVAL(jaudio->audio->getVolume()));
+        break;
+        default:
+            return false;
+        break;
+    }
+
+    return true;
 }
 
 static JSBool native_AudioNode_constructor(JSContext *cx, unsigned argc, jsval *vp)
