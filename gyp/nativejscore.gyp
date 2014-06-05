@@ -22,7 +22,7 @@
         'conditions': [
             ['OS=="mac"', {
                 'defines': [
-                    'DSO_EXTENSION=".so"'
+                    'DSO_EXTENSION=".dylib"'
                 ],
                 'xcode_settings': {
                     'OTHER_CFLAGS': [
