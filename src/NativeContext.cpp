@@ -5,7 +5,7 @@
 #include <NativeMessages.h>
 #include <NativeStreamInterface.h>
 #include <NativeFileStream.h>
-#include <NativeHttpStream.h>
+#include <NativeHTTPStream.h>
 #include <NativePath.h>
 
 NativeContext::NativeContext(ape_global *net)
