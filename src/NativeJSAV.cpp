@@ -189,8 +189,6 @@ static JSFunctionSpec Audio_static_funcs[] = {
 };
 
 static JSFunctionSpec AudioNode_funcs[] = {
-    JS_FN("input", native_audionode_input, 1, 0),
-    JS_FN("output", native_audionode_output, 1, 0),
     JS_FN("set", native_audionode_set, 2, 0),
     JS_FN("get", native_audionode_get, 1, 0),
     JS_FS_END
