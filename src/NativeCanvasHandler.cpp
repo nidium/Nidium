@@ -68,6 +68,13 @@ bool NativeCanvasHandler::setWidth(int width)
             this->height + (this->padding.global * 2));
     }
 
+    NativeArgs arg;
+
+    arg[0].set(this->width);
+    arg[1].set(this->height);
+
+    this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
+
     updateChildrenSize(true, false);
 
     return true;
@@ -88,6 +95,13 @@ bool NativeCanvasHandler::setHeight(int height)
             this->height + (this->padding.global * 2));
     }
 
+    NativeArgs arg;
+
+    arg[0].set(this->width);
+    arg[1].set(this->height);
+
+    this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
+
     updateChildrenSize(false, true);
 
     return true;
@@ -95,6 +109,10 @@ bool NativeCanvasHandler::setHeight(int height)
 
 void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 {
+
+    if (height < 1) height = 1;
+    if (width < 1) width = 1;
+
     this->width = width;
     this->height = height;
 
