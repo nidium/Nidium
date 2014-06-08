@@ -35,10 +35,14 @@ template <typename T>
 class NativeHash64 : public NativeNoncopyable
 {
     public:
-        NativeHash64() :
+        explicit NativeHash64(int size = 0) :
             m_AutoDelete(false)
         {
-            this->table = hashtbl_init(APE_HASH_INT);
+            if (!size) {
+                this->table = hashtbl_init(APE_HASH_INT);
+            } else {
+                this->table = hashtbl_init_with_size(APE_HASH_INT, size);
+            }
         }
         ~NativeHash64() {
             hashtbl_free(this->table);

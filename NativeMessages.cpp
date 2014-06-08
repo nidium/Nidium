@@ -56,7 +56,8 @@ static void NativeMessages_lost(const NativeSharedMessages::Message &msg)
     obj->onMessageLost(msg);
 }
 
-NativeMessages::NativeMessages()
+NativeMessages::NativeMessages() :
+    m_Listening(8)
 {
     m_GenesisThread = pthread_self();
 }
