@@ -221,6 +221,7 @@ static void native_http_connected(ape_socket *s,
 
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
     nhttp->http.parser.data = nhttp;
+    nhttp->http.parser_rdy = true;
 
     buffer *headers = nhttp->getRequest()->getHeadersData();
 
@@ -247,7 +248,7 @@ static void native_http_disconnect(ape_socket *s,
 
     nhttp->clearTimeout();
 
-    if (!nhttp->isParsing()) {
+    if (!nhttp->isParsing() && nhttp->http.parser_rdy) {
         http_parser_execute(&nhttp->http.parser, &settings,
             NULL, 0);
     }
@@ -291,6 +292,7 @@ NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
 {
     this->req = req;
 
+    http.parser_rdy = false;
     http.data = NULL;
     http.headers.tval = NULL;
     http.headers.tkey = NULL;
@@ -395,7 +397,7 @@ void NativeHTTP::stopRequest(bool timeout)
             this->delegate->onError(ERROR_TIMEOUT);
         }
 
-        if (!m_isParsing) {
+        if (!m_isParsing && http.parser_rdy) {
             http_parser_execute(&http.parser, &settings, NULL, 0);
         }
     }

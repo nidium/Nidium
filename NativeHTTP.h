@@ -156,6 +156,7 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
 
     struct HTTPData {
         http_parser parser;
+        bool parser_rdy;
         struct {
             ape_array_t *list;
             buffer *tkey;
