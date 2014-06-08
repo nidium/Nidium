@@ -503,10 +503,9 @@ NativeHTTP::~NativeHTTP()
         delete req;
     }
 
-    if (!http.ended) {
-        if (http.headers.list) ape_array_destroy(http.headers.list);
-        if (http.data) buffer_destroy(http.data);
-    }
+    if (http.headers.list) ape_array_destroy(http.headers.list);
+    if (http.data) buffer_destroy(http.data);
+
 }
 
 
