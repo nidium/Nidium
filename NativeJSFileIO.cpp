@@ -258,11 +258,9 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         JSAutoByteString cstr(cx, str);
         size_t len = strlen(cstr.ptr());
 
-        char *dupstr = strndup(cstr.ptr(), len);
-
         NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-        file->write(dupstr, len, callback.toObjectOrNull());
+        file->write(cstr.ptr(), len, callback.toObjectOrNull());
 
     } else if (args[0].isObject()) {
         JSObject *jsobj = args[0].toObjectOrNull();
@@ -273,15 +271,10 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         }
         uint32_t len = JS_GetArrayBufferByteLength(jsobj);
         uint8_t *data = JS_GetArrayBufferData(jsobj);
-        char *cdata = (char *)malloc(sizeof(char) * len);
-
-        //printf("Got an arraybuffer of size : %d\n", len);
-
-        memcpy(cdata, data, len);
 
         NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-        file->write(cdata, len, callback.toObjectOrNull());
+        file->write((char *)data, len, callback.toObjectOrNull());
 
     } else {
         JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");

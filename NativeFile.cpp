@@ -88,6 +88,8 @@ void NativeFile_dispatchTask(NativeTask *task)
             char *buf = (char *)task->args[2].toPtr();
 
             file->writeTask(buf, buflen, arg);
+
+            free(buf);
             break;
         }
         case NATIVEFILE_TASK_SEEK:
@@ -255,10 +257,13 @@ void NativeFile::read(size_t size, void *arg)
 
 void NativeFile::write(char *buf, size_t size, void *arg)
 {
+    unsigned char *newbuf = (unsigned char *)malloc(size);
+    memcpy(newbuf, buf, size);
+
     NativeTask *task = new NativeTask();
     task->args[0].set(NATIVEFILE_TASK_WRITE);
     task->args[1].set(size);
-    task->args[2].set(buf);
+    task->args[2].set(newbuf);
     task->args[7].set(arg);
 
     task->setFunction(NativeFile_dispatchTask);
