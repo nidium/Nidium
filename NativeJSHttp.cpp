@@ -324,7 +324,10 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         JS_CallFunctionValue(cx, jsobj, request,
             1, &jevent, &rval);
 
+
         NativeJSObj(cx)->unrootObject(this->jsobj);
+
+        JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 
         return; 
     }
@@ -409,6 +412,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         1, &jevent, &rval);
 
     NativeJSObj(cx)->unrootObject(this->jsobj);
+    JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 }
 
 NativeJSHttp::NativeJSHttp()
