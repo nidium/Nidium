@@ -50,6 +50,8 @@ class NativeHTTPRequest
             if (data != NULL && datafree != NULL) {
                 datafree(data);
             }
+            free(host);
+            free(path);
         };
 
         void setHeader(const char *key, const char *val)
