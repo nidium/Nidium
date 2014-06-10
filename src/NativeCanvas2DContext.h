@@ -31,7 +31,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         bool setterDisabled;
 
-        void clear(uint32_t color);
+        void clear(uint32_t color = 0x00000000) override;
 
         /*
             draw layer on top of "this"
