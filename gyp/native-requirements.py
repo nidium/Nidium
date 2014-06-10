@@ -317,7 +317,7 @@ def signCode(path):
         "codesign",
         "--force",
         "--sign",
-        "'Anthony Catel'",
+        "'Developer ID Application: Anthony Catel'",
         path
     ]))
 

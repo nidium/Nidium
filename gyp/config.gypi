@@ -18,6 +18,7 @@
         'native_tools_path': '../tools/',
         'native_exec_name': 'nidium',
         'native_exec_path': '../framework/dist/',
+        'native_spidermonkey_path': '../third-party/mozilla-central/js/src/dist/include/',
 
         'third_party_path%': '../third-party/',
         'native_output%': '../out/',
