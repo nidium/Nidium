@@ -21,6 +21,7 @@
         'native_spidermonkey_path': '../third-party/mozilla-central/js/src/dist/include/',
 
         'third_party_path%': '../third-party/',
+        'third_party_rel_path': '../third-party/',
         'native_output%': '../out/',
         'addresse_sanitizer%': 0,
 
