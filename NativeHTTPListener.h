@@ -51,11 +51,28 @@ public:
         return m_Socket;
     }
 
+    /*
+        Subclasses can override this in order to set
+        their own NativeHTTPClientConnection subclass.
+
+        This method must set a NativeHTTPClientConnection on client->ctx.
+        NativeHTTPClientConnection is then automatically
+        deleted when the socket disconnect.
+
+    */
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
+
+    /*
+        Callbacks for subclasses
+    */
     virtual void onClientConnect(NativeHTTPClientConnection *client){};
     virtual void onClientDisconnect(NativeHTTPClientConnection *client){};
     virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len){};
-    virtual void onEnd(NativeHTTPClientConnection *client){};
+
+    /* return true to close the connection */
+    virtual bool onEnd(NativeHTTPClientConnection *client){
+        return true;
+    };
 
 private:
     ape_socket *      m_Socket;
@@ -68,11 +85,7 @@ class NativeHTTPClientConnection
 public:
     NativeHTTPClientConnection(NativeHTTPListener *httpserver,
         ape_socket *socket);
-    virtual ~NativeHTTPClientConnection(){
-        if (m_HttpState.data) {
-            buffer_destroy(m_HttpState.data);
-        }
-    };
+    virtual ~NativeHTTPClientConnection();
 
     enum PrevState {
         PSTATE_NOTHING,
@@ -122,7 +135,7 @@ public:
     virtual void onUpgrade(const char *to){};
     virtual void onContent(const char *data, size_t len){};
 
-    virtual void close(){};
+    virtual void close();
 protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;

@@ -142,7 +142,12 @@ static int message_complete_cb(http_parser *p)
 {
     NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
 
-    client->getHTTPListener()->onEnd(client);
+    if (client->getHTTPListener()->onEnd(client)) {
+        client->close();
+    } else {
+        /* Further reading possible */
+        client->resetData();
+    }
 
     return 0;
 }
@@ -212,6 +217,9 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
     }
     con->getHTTPListener()->onClientDisconnect(con);
     con->onDisconnect(ape);
+
+    socket_client->ctx = NULL;
+    delete con;
 }
 
 ////////////////////
@@ -310,3 +318,18 @@ void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
     }
 #undef REQUEST_HEADER    
 }
+
+void NativeHTTPClientConnection::close()
+{
+    if (m_SocketClient) {
+        APE_socket_shutdown(m_SocketClient);
+    }
+}
+
+
+NativeHTTPClientConnection::~NativeHTTPClientConnection()
+{
+    if (m_HttpState.data) {
+        buffer_destroy(m_HttpState.data);
+    }
+};
