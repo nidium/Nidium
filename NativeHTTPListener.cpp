@@ -140,19 +140,35 @@ static int headers_complete_cb(http_parser *p)
 
 static int message_complete_cb(http_parser *p)
 {
-    NativeHTTPListener *http = (NativeHTTPListener *)p->data;
+    NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
 
-    //nhttp->requestEnded();
+    client->getHTTPListener()->onEnd(client);
+
     return 0;
 }
 
 static int body_cb(http_parser *p, const char *buf, size_t len)
 {
+    NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
+
+    if (client->getHTTPState()->data == NULL) {
+        client->getHTTPState()->data = buffer_new(2048);
+    }
+
+    if (len != 0) {
+        buffer_append_data(client->getHTTPState()->data,
+            (const unsigned char *)buf, len);
+    }
+
+    client->getHTTPListener()->onData(client, buf, len);
+
     return 0;
 }
 
 static int request_url_cb(http_parser *p, const char *buf, size_t len)
 {
+    NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
+
     printf("Request URL cb %.*s\n", (int)len, buf);
     return 0;
 }
@@ -194,7 +210,7 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
     if (!con) {
         return;
     }
-
+    con->getHTTPListener()->onClientDisconnect(con);
     con->onDisconnect(ape);
 }
 
@@ -249,6 +265,8 @@ NativeHTTPListener::~NativeHTTPListener()
 void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 {
     client->ctx = new NativeHTTPClientConnection(this, client);
+
+    this->onClientConnect((NativeHTTPClientConnection *)client->ctx);
 }
 
 
@@ -264,6 +282,7 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     m_HttpState.headers.tkey = NULL;
     m_HttpState.headers.tval = NULL;
     m_HttpState.ended = 0;
+    m_HttpState.data  = NULL;
 
     http_parser_init(&m_HttpState.parser, HTTP_REQUEST);
     m_HttpState.parser.data = this;
@@ -280,8 +299,11 @@ void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
     if (m_HttpState.parser.upgrade) {
         this->onUpgrade((const char *)REQUEST_HEADER("upgrade")->data);
         if (nparsed < buf->used) {
+            /* Non-http data in the current packet (after the header) */
             this->onContent((const char *)&buf->data[nparsed], buf->used - nparsed);
         }
+
+        /* Change the callback for the next on_read calls */
         m_SocketClient->callbacks.on_read = native_socket_client_read_after_upgrade;
     } else if (nparsed != buf->used) {
         printf("Http error : %s\n", http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));

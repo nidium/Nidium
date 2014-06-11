@@ -31,6 +31,7 @@
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 class NativeMessages;
+class NativeHTTPClientConnection;
 
 class NativeHTTPListener : public NativeEvents
 {
@@ -46,7 +47,15 @@ public:
     bool start();
     void stop();
 
+    ape_socket *getSocket() const {
+        return m_Socket;
+    }
+
     virtual void onClientConnect(ape_socket *client, ape_global *ape);
+    virtual void onClientConnect(NativeHTTPClientConnection *client){};
+    virtual void onClientDisconnect(NativeHTTPClientConnection *client){};
+    virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len){};
+    virtual void onEnd(NativeHTTPClientConnection *client){};
 
 private:
     ape_socket *      m_Socket;
@@ -59,7 +68,11 @@ class NativeHTTPClientConnection
 public:
     NativeHTTPClientConnection(NativeHTTPListener *httpserver,
         ape_socket *socket);
-    virtual ~NativeHTTPClientConnection(){};
+    virtual ~NativeHTTPClientConnection(){
+        if (m_HttpState.data) {
+            buffer_destroy(m_HttpState.data);
+        }
+    };
 
     enum PrevState {
         PSTATE_NOTHING,
@@ -76,6 +89,7 @@ public:
         } headers;
         int ended;
         uint64_t contentlength;
+        buffer *data;
     };
 
     struct HTTPData *getHTTPState() {
@@ -88,6 +102,17 @@ public:
 
     NativeHTTPListener *getHTTPListener() const {
         return m_HTTPListener;
+    }
+
+    const buffer &getData() const {
+        return *m_HttpState.data;
+    }
+
+    void resetData() {
+        if (m_HttpState.data == NULL) {
+            return;
+        }
+        m_HttpState.data->used = 0;
     }
 
     void onRead(buffer *buf, ape_global *ape);

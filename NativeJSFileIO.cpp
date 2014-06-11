@@ -192,6 +192,11 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *opt = NULL;
     jsval curopt;
 
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return false;
+    }    
+
     JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/o", &url, &opt)) {
