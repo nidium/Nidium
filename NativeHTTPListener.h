@@ -32,7 +32,7 @@
 
 class NativeMessages;
 class NativeHTTPClientConnection;
-class NativeFile;
+class NativeHTTPResponse;
 
 class NativeHTTPListener : public NativeEvents
 {
@@ -133,6 +133,8 @@ public:
 
     void write(char *buf, size_t len);
 
+    void sendResponse(NativeHTTPResponse *resp);
+
     virtual void onHeaderEnded(){};
     virtual void onDisconnect(ape_global *ape){};
     virtual void onUpgrade(const char *to){};
@@ -159,12 +161,30 @@ public:
         ape_array_add(m_Headers, key, val);
     }
 
+    void setData(char *buf, size_t len) {
+        if (m_Content) {
+            return;
+        }
+
+        buffer_init(m_Content);
+        m_Content->data = (unsigned char *)buf;
+        m_Content->size = m_Content->used = len;
+    }
+
     ape_array_t *getHeaders() const {
         return m_Headers;
     }
 
     const buffer &getHeadersString();
+    const buffer *getDataBuffer();
     const char *getStatusDesc() const;
+
+    /*
+        We want zerocopy.
+        This is used to tell the object that the data
+        has been transfered to another owner.
+    */
+    void dataOwnershipTransfered();
 
 private:
     ape_array_t *m_Headers;

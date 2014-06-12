@@ -392,8 +392,25 @@ void NativeHTTPClientConnection::write(char *buf, size_t len)
     APE_socket_write(m_SocketClient, buf, len, APE_DATA_COPY);
 }
 
+void NativeHTTPClientConnection::sendResponse(NativeHTTPResponse *resp)
+{
+    const buffer &headers = resp->getHeadersString();
+    const buffer *data = resp->getDataBuffer();
+
+    printf("Response sent %s\n", headers.data);
+    APE_socket_write(m_SocketClient, headers.data, headers.used, APE_DATA_AUTORELEASE);
+
+    if (data && data->used) {
+        APE_socket_write(m_SocketClient, data->data, data->used, APE_DATA_AUTORELEASE);
+    }
+
+    resp->dataOwnershipTransfered();
+}
+
+//////
+
 NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
-    m_Headers(NULL), m_Statuscode(code), m_ContentLength(0),
+    m_Headers(ape_array_new(8)), m_Statuscode(code), m_ContentLength(0),
     m_Content(NULL), m_Headers_str(NULL)
 {
 
@@ -416,15 +433,19 @@ const buffer &NativeHTTPResponse::getHeadersString()
         m_Headers_str = buffer_new(512);
     }
 
-    char tmpbuf[16];
-    sprintf(tmpbuf, "%u ", m_Statuscode);
+    char tmpbuf[32];
+    sprintf(tmpbuf, "HTTP/1.1 %u ", m_Statuscode);
 
     buffer_append_string(m_Headers_str, tmpbuf);
     buffer_append_string(m_Headers_str, this->getStatusDesc());
     buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\n"));
 
-    sprintf(tmpbuf, "%ld", m_Content->used);
-    this->setHeader("Content-Length", tmpbuf);
+    if (m_Content) {
+        sprintf(tmpbuf, "%ld", m_Content->used);
+        this->setHeader("Content-Length", tmpbuf);
+    } else {
+        this->setHeader("Content-Length", "0");
+    }
 
     buffer *k, *v;
     APE_A_FOREACH(this->getHeaders(), k, v) {
@@ -439,6 +460,10 @@ const buffer &NativeHTTPResponse::getHeadersString()
     return *m_Headers_str;
 }
 
+const buffer *NativeHTTPResponse::getDataBuffer(){
+    return m_Content;
+}
+
 const char *NativeHTTPResponse::getStatusDesc() const
 {
     for (int i = 0; NativeHTTP_Codes[i].desc != NULL; i++) {
@@ -448,4 +473,16 @@ const char *NativeHTTPResponse::getStatusDesc() const
     }
 
     return NULL;
+}
+
+void NativeHTTPResponse::dataOwnershipTransfered()
+{
+    /*
+        Free the buffer object. We're only giving the data away.
+    */
+    free(m_Headers_str);
+    free(m_Content);
+
+    m_Headers_str = NULL;
+    m_Content = NULL;
 }
