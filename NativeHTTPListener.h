@@ -32,6 +32,7 @@
 
 class NativeMessages;
 class NativeHTTPClientConnection;
+class NativeFile;
 
 class NativeHTTPListener : public NativeEvents
 {
@@ -130,6 +131,8 @@ public:
 
     void onRead(buffer *buf, ape_global *ape);
 
+    void write(char *buf, size_t len);
+
     virtual void onHeaderEnded(){};
     virtual void onDisconnect(ape_global *ape){};
     virtual void onUpgrade(const char *to){};
@@ -141,5 +144,35 @@ protected:
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;
 };
+
+/*
+    TODO: add APE_socket_sendfile() support
+*/
+class NativeHTTPResponse
+{
+public:
+    explicit NativeHTTPResponse(uint16_t code);
+    ~NativeHTTPResponse();
+
+    void setHeader(const char *key, const char *val)
+    {
+        ape_array_add(m_Headers, key, val);
+    }
+
+    ape_array_t *getHeaders() const {
+        return m_Headers;
+    }
+
+    const buffer &getHeadersString();
+    const char *getStatusDesc() const;
+
+private:
+    ape_array_t *m_Headers;
+    uint16_t m_Statuscode;
+    uint64_t m_ContentLength;
+    buffer *m_Content;
+    buffer *m_Headers_str;
+};
+
 
 #endif

@@ -48,6 +48,55 @@ static http_parser_settings settings =
 .on_message_complete = message_complete_cb
 };
 
+
+static struct {
+    uint16_t code;
+    const char *desc;
+} NativeHTTP_Codes[] = {
+    {100, "Continue"},
+    {101, "Switching Protocols"},
+    {200, "OK"},
+    {201, "Created"},
+    {202, "Accepted"},
+    {203, "Non-Authoritative Information"},
+    {204, "No Content"},
+    {205, "Reset Content"},
+    {206, "Partial Content"},
+    {300, "Multiple Choices"},
+    {301, "Moved Permanently"},
+    {302, "Found"},
+    {303, "See Other"},
+    {304, "Not Modified"},
+    {305, "Use Proxy"},
+    {307, "Temporary Redirect"},
+    {400, "Bad Request"},
+    {401, "Unauthorized"},
+    {402, "Payment Required"},
+    {403, "Forbidden"},
+    {404, "Not Found"},
+    {405, "Method Not Allowed"},
+    {406, "Not Acceptable"},
+    {407, "Proxy Authentication Required"},
+    {408, "Request Time-out"},
+    {409, "Conflict"},
+    {410, "Gone"},
+    {411, "Length Required"},
+    {412, "Precondition Failed"},
+    {413, "Request Entity Too Large"},
+    {414, "Request-URI Too Large"},
+    {415, "Unsupported Media Type"},
+    {416, "Requested range not satisfiable"},
+    {417, "Expectation Failed"},
+    {500, "Internal Server Error"},
+    {501, "Not Implemented"},
+    {502, "Bad Gateway"},
+    {503, "Service Unavailable"},
+    {504, "Gateway Time-out"},
+    {505, "HTTP Version not support"},
+    {0, NULL}
+};
+
+
 static int message_begin_cb(http_parser *p)
 {
     NativeHTTPListener *http = (NativeHTTPListener *)p->data;
@@ -184,6 +233,8 @@ static void native_socket_onaccept(ape_socket *socket_server,
     NativeHTTPListener *http = GET_HTTP_OR_FAIL(socket_server);
 
     http->onClientConnect(socket_client, ape);
+
+    printf("New connexion\n");
 }
 
 static void native_socket_client_read(ape_socket *socket_client,
@@ -219,6 +270,8 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
     con->onDisconnect(ape);
 
     socket_client->ctx = NULL;
+
+    printf("Connexion closed\n");
     delete con;
 }
 
@@ -333,3 +386,66 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
         buffer_destroy(m_HttpState.data);
     }
 };
+
+void NativeHTTPClientConnection::write(char *buf, size_t len)
+{
+    APE_socket_write(m_SocketClient, buf, len, APE_DATA_COPY);
+}
+
+NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
+    m_Headers(NULL), m_Statuscode(code), m_ContentLength(0),
+    m_Content(NULL), m_Headers_str(NULL)
+{
+
+}
+
+NativeHTTPResponse::~NativeHTTPResponse()
+{
+    if (m_Headers) {
+        ape_array_destroy(m_Headers);
+    }
+
+    if (m_Content) {
+        buffer_destroy(m_Content);
+    }
+}
+
+const buffer &NativeHTTPResponse::getHeadersString()
+{
+    if (m_Headers_str == NULL) {
+        m_Headers_str = buffer_new(512);
+    }
+
+    char tmpbuf[16];
+    sprintf(tmpbuf, "%u ", m_Statuscode);
+
+    buffer_append_string(m_Headers_str, tmpbuf);
+    buffer_append_string(m_Headers_str, this->getStatusDesc());
+    buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\n"));
+
+    sprintf(tmpbuf, "%ld", m_Content->used);
+    this->setHeader("Content-Length", tmpbuf);
+
+    buffer *k, *v;
+    APE_A_FOREACH(this->getHeaders(), k, v) {
+        buffer_append_string_n(m_Headers_str, (char *)k->data, k->used);
+        buffer_append_string_n(m_Headers_str, ": ", 2);
+        buffer_append_string_n(m_Headers_str, (char *)v->data, v->used);
+        buffer_append_string_n(m_Headers_str, "\n", 1);
+    }
+
+    buffer_append_string_n(m_Headers_str, "\n", 1);
+
+    return *m_Headers_str;
+}
+
+const char *NativeHTTPResponse::getStatusDesc() const
+{
+    for (int i = 0; NativeHTTP_Codes[i].desc != NULL; i++) {
+        if (NativeHTTP_Codes[i].code == m_Statuscode) {
+            return NativeHTTP_Codes[i].desc;
+        }
+    }
+
+    return NULL;
+}
