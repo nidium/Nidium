@@ -223,7 +223,7 @@ static int request_url_cb(http_parser *p, const char *buf, size_t len)
 {
     NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
 
-    printf("Request URL cb %.*s\n", (int)len, buf);
+    //printf("Request URL cb %.*s\n", (int)len, buf);
     return 0;
 }
 
@@ -233,8 +233,6 @@ static void native_socket_onaccept(ape_socket *socket_server,
     NativeHTTPListener *http = GET_HTTP_OR_FAIL(socket_server);
 
     http->onClientConnect(socket_client, ape);
-
-    printf("New connexion\n");
 }
 
 static void native_socket_client_read(ape_socket *socket_client,
@@ -397,7 +395,6 @@ void NativeHTTPClientConnection::sendResponse(NativeHTTPResponse *resp)
     const buffer &headers = resp->getHeadersString();
     const buffer *data = resp->getDataBuffer();
 
-    printf("Response sent %s\n", headers.data);
     APE_socket_write(m_SocketClient, headers.data, headers.used, APE_DATA_AUTORELEASE);
 
     if (data && data->used) {
@@ -422,9 +419,27 @@ NativeHTTPResponse::~NativeHTTPResponse()
         ape_array_destroy(m_Headers);
     }
 
+    if (m_Headers_str) {
+        buffer_destroy(m_Headers_str);
+    }
     if (m_Content) {
         buffer_destroy(m_Content);
     }
+}
+
+void NativeHTTPResponse::setHeader(const char *key, const char *val)
+{
+    ape_array_add(m_Headers, key, val);
+}
+
+void NativeHTTPResponse::setData(char *buf, size_t len)
+{
+    if (m_Content) {
+        return;
+    }
+    m_Content = buffer_new(0);
+    m_Content->data = (unsigned char *)buf;
+    m_Content->size = m_Content->used = len;
 }
 
 const buffer &NativeHTTPResponse::getHeadersString()

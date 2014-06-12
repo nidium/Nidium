@@ -156,20 +156,13 @@ public:
     explicit NativeHTTPResponse(uint16_t code);
     ~NativeHTTPResponse();
 
-    void setHeader(const char *key, const char *val)
-    {
-        ape_array_add(m_Headers, key, val);
-    }
+    void setHeader(const char *key, const char *val);
 
-    void setData(char *buf, size_t len) {
-        if (m_Content) {
-            return;
-        }
-
-        buffer_init(m_Content);
-        m_Content->data = (unsigned char *)buf;
-        m_Content->size = m_Content->used = len;
-    }
+    /*
+        Give ownership
+        Use dataOwnershipTransfered if it's transfered
+    */
+    void setData(char *buf, size_t len);
 
     ape_array_t *getHeaders() const {
         return m_Headers;
