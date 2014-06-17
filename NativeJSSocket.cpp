@@ -159,8 +159,10 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onconnect", &onconnect) &&
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
 
+        PACK_TCP(s->s.fd);
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onconnect,
             0, NULL, &rval);
+        FLUSH_TCP(s->s.fd);
     }
 }
 
@@ -193,8 +195,10 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onaccept", &onaccept) &&
         JS_TypeOfValue(cx, onaccept) == JSTYPE_FUNCTION) {
 
+        PACK_TCP(socket_client->s.fd);
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onaccept,
             1, &arg, &rval);
+        FLUSH_TCP(socket_client->s.fd);
     }
 }
 
@@ -219,9 +223,10 @@ inline static void native_socket_readcb_lines(NativeJSSocket *nsocket, char *dat
 
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onread", &onread) &&
         JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
-
+        PACK_TCP(nsocket->socket->s.fd);
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onread,
             1, &jdata, &rval);
+        FLUSH_TCP(nsocket->socket->s.fd);
     }    
 }
 
@@ -347,8 +352,10 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onread", &onread) &&
         JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
 
+        PACK_TCP(socket_client->s.fd);
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onread,
             2, jparams, &rval);
+        FLUSH_TCP(socket_client->s.fd);
     }
 
 }
@@ -407,8 +414,10 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onread", &onread) &&
         JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
 
+        PACK_TCP(s->s.fd);
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onread,
             1, &jdata, &rval);
+        FLUSH_TCP(s->s.fd);
     }
 }
 
