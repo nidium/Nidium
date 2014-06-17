@@ -47,6 +47,10 @@ class NativeUtils
         // TODO : Windows support and better implementation
         return getpid() == syscall(SYS_gettid);
     }
+
+    static void sha1hmac(const unsigned char *key, uint32_t keylen,
+        const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
+    static void sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
 };
 
 class NativePthreadAutoLock {

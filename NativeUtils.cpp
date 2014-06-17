@@ -18,11 +18,13 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+
 #include "NativeUtils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <jsstr.h>
+#include <ape_sha1.h>
 
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
@@ -30,7 +32,8 @@
   #include <mach/mach_time.h>
 #else
   #include <time.h>
-  
+
+
 #ifdef __WIN32
 LARGE_INTEGER
 getFILETIMEoffset()
@@ -130,4 +133,15 @@ uint16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputle
     jsc[*outputlen] = jschar(0);
     
     return jsc;
+}
+
+void NativeUtils::sha1hmac(const unsigned char *key, uint32_t keylen,
+    const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+{
+    sha1_hmac((unsigned char *)key, keylen, (unsigned char *)buf, buflen, out);
+}
+
+void NativeUtils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
+{
+    sha1_csum((unsigned char *)buf, buflen, out);
 }
