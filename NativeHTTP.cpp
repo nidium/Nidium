@@ -225,14 +225,18 @@ static void native_http_connected(ape_socket *s,
 
     buffer *headers = nhttp->getRequest()->getHeadersData();
 
-    APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
-
     if (nhttp->getRequest()->getData() != NULL &&
         nhttp->getRequest()->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
 
+        PACK_TCP(s->s.fd);
+        APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
         APE_socket_write(s, (unsigned char *)nhttp->getRequest()->getData(),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
+        FLUSH_TCP(s->s.fd);
+    } else {
+        APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
     }
+
     buffer_destroy(headers);
 }
 
