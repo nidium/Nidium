@@ -553,7 +553,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     nsocket->cx         = cx;
     nsocket->jsobj      = caller;
 
-    if (APE_socket_listen(socket, nsocket->port, nsocket->host) == -1) {
+    if (APE_socket_listen(socket, nsocket->port, nsocket->host, 0) == -1) {
         JS_ReportError(cx, "Can't listen on socket (%s:%d)", nsocket->host,
             nsocket->port);
         /* TODO: close() leak */

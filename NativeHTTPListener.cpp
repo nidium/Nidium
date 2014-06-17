@@ -299,7 +299,7 @@ bool NativeHTTPListener::start()
     m_Socket->callbacks.arg           = NULL;
     m_Socket->ctx = this;
 
-    return (APE_socket_listen(m_Socket, m_Port, m_IP) != -1);
+    return (APE_socket_listen(m_Socket, m_Port, m_IP, 1) != -1);
 }
 
 void NativeHTTPListener::stop()
