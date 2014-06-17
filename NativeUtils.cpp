@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <jsstr.h>
 #include <ape_sha1.h>
+#include <ape_base64.h>
 
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
@@ -144,4 +145,9 @@ void NativeUtils::sha1hmac(const unsigned char *key, uint32_t keylen,
 void NativeUtils::sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20])
 {
     sha1_csum((unsigned char *)buf, buflen, out);
+}
+
+char *NativeUtils::b64Encode(const unsigned char *buf, size_t len)
+{
+    return base64_encode((unsigned char *)buf, len);
 }

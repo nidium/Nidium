@@ -51,6 +51,7 @@ class NativeUtils
     static void sha1hmac(const unsigned char *key, uint32_t keylen,
         const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
     static void sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
+    static char *b64Encode(const unsigned char *buf, size_t len);
 };
 
 class NativePthreadAutoLock {
