@@ -395,12 +395,14 @@ void NativeHTTPClientConnection::sendResponse(NativeHTTPResponse *resp)
     const buffer &headers = resp->getHeadersString();
     const buffer *data = resp->getDataBuffer();
 
+    PACK_TCP(m_SocketClient->s.fd);
     APE_socket_write(m_SocketClient, headers.data, headers.used, APE_DATA_AUTORELEASE);
 
     if (data && data->used) {
         APE_socket_write(m_SocketClient, data->data, data->used, APE_DATA_AUTORELEASE);
     }
-
+    FLUSH_TCP(m_SocketClient->s.fd);
+    
     resp->dataOwnershipTransfered();
 }
 
