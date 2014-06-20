@@ -142,7 +142,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     nhttp->http.headers.prevstate = NativeHTTP::PSTATE_FIELD;
 
     if (len != 0) {
-        buffer_append_data(nhttp->http.headers.tkey,
+        buffer_append_data_tolower(nhttp->http.headers.tkey,
             (const unsigned char *)buf, len);
     }
 
@@ -511,7 +511,6 @@ NativeHTTP::~NativeHTTP()
     if (http.data) buffer_destroy(http.data);
 
 }
-
 
 int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
     u_short *port, char *file, const char *prefix, u_short default_port)

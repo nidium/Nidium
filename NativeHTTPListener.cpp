@@ -136,7 +136,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     http_data->headers.prevstate = NativeHTTPClientConnection::PSTATE_FIELD;
 
     if (len != 0) {
-        buffer_append_data(http_data->headers.tkey,
+        buffer_append_data_tolower(http_data->headers.tkey,
             (const unsigned char *)buf, len);
     }
 
