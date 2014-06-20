@@ -130,10 +130,14 @@ public:
     }
 
     void onRead(buffer *buf, ape_global *ape);
-
     void write(char *buf, size_t len);
-
     void sendResponse(NativeHTTPResponse *resp);
+    void setContext(void *arg) {
+        m_Ctx = arg;
+    }
+    void *getContext() const {
+        return m_Ctx;
+    }
 
     virtual void onHeaderEnded(){};
     virtual void onDisconnect(ape_global *ape){};
@@ -141,10 +145,12 @@ public:
     virtual void onContent(const char *data, size_t len){};
 
     virtual void close();
+    void *m_Ctx;
 protected:
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;
+
 };
 
 /*

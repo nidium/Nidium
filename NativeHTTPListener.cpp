@@ -99,7 +99,18 @@ static struct {
 
 static int message_begin_cb(http_parser *p)
 {
-    NativeHTTPListener *http = (NativeHTTPListener *)p->data;
+    NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)p->data;
+    NativeHTTPClientConnection::HTTPData *http_data = con->getHTTPState();
+
+    /*
+        Resets the headers (in the case of keepalive)
+    */
+    if (http_data->headers.list) {
+        ape_array_destroy(http_data->headers.list);
+        http_data->headers.list = NULL;
+        http_data->headers.tkey = NULL;
+        http_data->headers.tval = NULL;
+    }
 
     return 0;
 }
@@ -197,6 +208,10 @@ static int message_complete_cb(http_parser *p)
         /* Further reading possible */
         client->resetData();
     }
+
+    NativeHTTPClientConnection::HTTPData *http_data = client->getHTTPState();
+
+    http_data->headers.prevstate = NativeHTTPClientConnection::PSTATE_NOTHING;
 
     return 0;
 }
@@ -333,7 +348,7 @@ void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 //////////////
 NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *httpserver,
     ape_socket *socket) :
-    m_SocketClient(socket), m_HTTPListener(httpserver)
+    m_SocketClient(socket), m_HTTPListener(httpserver), m_Ctx(NULL)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;
 
