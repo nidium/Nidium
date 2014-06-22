@@ -23,18 +23,50 @@
 #include "NativeJSExposer.h"
 #include "NativeHTTPListener.h"
 
+class NativeJSHTTPClientConnection;
+
+class NativeJSHTTPResponse : public NativeHTTPResponse,
+                             public NativeJSObjectMapper<NativeJSHTTPResponse>
+{
+public:
+    friend NativeJSHTTPClientConnection;
+protected:
+    explicit NativeJSHTTPResponse(JSContext *cx, uint16_t code = 200) :
+        NativeJSObjectMapper(cx, "HTTPResponse"),
+        NativeHTTPResponse(code){}
+};
+
+class NativeJSHTTPClientConnection : public NativeHTTPClientConnection,
+                                     public NativeJSObjectMapper<NativeJSHTTPClientConnection>
+{
+public:
+    NativeJSHTTPClientConnection(JSContext *cx, NativeHTTPListener *httpserver,
+        ape_socket *socket) :
+        NativeHTTPClientConnection(httpserver, socket),
+        NativeJSObjectMapper(cx, "HTTPClientConnection") {}
+    virtual NativeHTTPResponse *onCreateResponse() {
+        return new NativeJSHTTPResponse(m_JSCx);
+    }
+};
+
 class NativeJSHTTPListener :    public NativeJSExposer<NativeJSHTTPListener>,
                                 public NativeHTTPListener
 {
 public:
     NativeJSHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeJSHTTPListener();
+    virtual void onClientConnect(ape_socket *client, ape_global *ape) {
+        client->ctx = new NativeJSHTTPClientConnection(this->cx, this, client);
+
+        NativeHTTPListener::onClientConnect((NativeHTTPClientConnection *)client->ctx);
+    }
     virtual void onClientDisconnect(NativeHTTPClientConnection *client);
     virtual void onData(NativeHTTPClientConnection *client, const char *buf, size_t len);
     virtual bool onEnd(NativeHTTPClientConnection *client);
 
-    static void registerObject(JSContext *cx);
+    static void registerObject(JSContext *cx);    
 private:
 };
+
 
 #endif
