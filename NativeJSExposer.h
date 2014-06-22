@@ -73,6 +73,34 @@ class NativeJSExposer
     }
 };
 
+template <typename T>
+class NativeJSObjectMapper
+{
+public:
+    NativeJSObjectMapper(JSContext *cx, const char *name) :
+        m_JSCx(cx)
+    {
+        m_JSClass.name = name;
+
+        m_JSObj = JS_NewObject(m_JSCx, &m_JSClass, NULL, NULL);
+        JS_SetPrivate(m_JSObj, static_cast<T *>(this));
+        JS_AddObjectRoot(m_JSCx, &m_JSObj);
+    }
+    ~NativeJSObjectMapper()
+    {
+        JS_SetPrivate(m_JSObj, NULL);
+        JS_RemoveObjectRoot(m_JSCx, &m_JSObj);
+    }
+private:
+    JSClass m_JSClass = {
+        NULL, JSCLASS_HAS_PRIVATE,
+        JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+        JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
+    };
+    JSObject *m_JSObj;
+    JSContext *m_JSCx;
+};
+
 typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
@@ -110,5 +138,9 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
                              fnname, numBuf, (argc > 1 ? "s" : ""));  \
         return false;  \
     }
+
+#define JSOBJ_SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+        JSPROP_ENUMERATE)
 
 #endif
