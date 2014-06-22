@@ -81,6 +81,62 @@ private:
     uint16_t          m_Port;
 };
 
+
+/*
+    TODO: add APE_socket_sendfile() support
+*/
+class NativeHTTPResponse
+{
+public:
+
+    friend NativeHTTPClientConnection;
+
+    virtual ~NativeHTTPResponse();
+
+    void setHeader(const char *key, const char *val);
+
+    /*
+        Give ownership
+        Use dataOwnershipTransfered if it's transfered
+    */
+    void setData(char *buf, size_t len);
+
+    ape_array_t *getHeaders() const {
+        return m_Headers;
+    }
+
+    void setStatusCode(uint16_t code) {
+        m_Statuscode = code;
+    }
+
+    const buffer &getHeadersString();
+    const buffer *getDataBuffer();
+    const char *getStatusDesc() const;
+
+    void send();
+
+
+    /*
+        We want zerocopy.
+        This is used to tell the object that the data
+        has been transfered to another owner.
+    */
+    void dataOwnershipTransfered();
+
+private:
+    ape_array_t *m_Headers;
+    uint16_t m_Statuscode;
+    uint64_t m_ContentLength;
+    buffer *m_Content;
+    buffer *m_Headers_str;
+    bool m_HeaderSent;
+
+    NativeHTTPClientConnection *m_Con;
+protected:
+    explicit NativeHTTPResponse(uint16_t code = 200);
+};
+
+
 class NativeHTTPClientConnection
 {
 public:
@@ -131,7 +187,6 @@ public:
 
     void onRead(buffer *buf, ape_global *ape);
     void write(char *buf, size_t len);
-    void sendResponse(NativeHTTPResponse *resp);
     void setContext(void *arg) {
         m_Ctx = arg;
     }
@@ -139,59 +194,37 @@ public:
         return m_Ctx;
     }
 
+    NativeHTTPResponse *getResponse() {
+        return m_Response;
+    }
+
+    virtual NativeHTTPResponse *onCreateResponse();
+
     virtual void onHeaderEnded(){};
     virtual void onDisconnect(ape_global *ape){};
     virtual void onUpgrade(const char *to){};
     virtual void onContent(const char *data, size_t len){};
 
     virtual void close();
+
+    void _createResponse() {
+        printf("Create response...\n");
+        NativeHTTPResponse *resp = onCreateResponse();
+        if (m_Response && resp != m_Response) {
+            delete m_Response;
+        }
+        m_Response = resp;
+        m_Response->m_Con = this;
+    }
+    
     void *m_Ctx;
 protected:
+
+
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;
-
+    NativeHTTPResponse *m_Response;
 };
-
-/*
-    TODO: add APE_socket_sendfile() support
-*/
-class NativeHTTPResponse
-{
-public:
-    explicit NativeHTTPResponse(uint16_t code);
-    ~NativeHTTPResponse();
-
-    void setHeader(const char *key, const char *val);
-
-    /*
-        Give ownership
-        Use dataOwnershipTransfered if it's transfered
-    */
-    void setData(char *buf, size_t len);
-
-    ape_array_t *getHeaders() const {
-        return m_Headers;
-    }
-
-    const buffer &getHeadersString();
-    const buffer *getDataBuffer();
-    const char *getStatusDesc() const;
-
-    /*
-        We want zerocopy.
-        This is used to tell the object that the data
-        has been transfered to another owner.
-    */
-    void dataOwnershipTransfered();
-
-private:
-    ape_array_t *m_Headers;
-    uint16_t m_Statuscode;
-    uint64_t m_ContentLength;
-    buffer *m_Content;
-    buffer *m_Headers_str;
-};
-
 
 #endif

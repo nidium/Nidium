@@ -202,6 +202,8 @@ static int message_complete_cb(http_parser *p)
 {
     NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
 
+    client->_createResponse();
+
     if (client->getHTTPListener()->onEnd(client)) {
         client->close();
     } else {
@@ -348,7 +350,8 @@ void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 //////////////
 NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *httpserver,
     ape_socket *socket) :
-    m_SocketClient(socket), m_HTTPListener(httpserver), m_Ctx(NULL)
+    m_SocketClient(socket), m_HTTPListener(httpserver),
+    m_Ctx(NULL), m_Response(NULL)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;
 
@@ -398,6 +401,10 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
     if (m_HttpState.data) {
         buffer_destroy(m_HttpState.data);
     }
+
+    if (m_Response) {
+        delete m_Response;
+    }
 };
 
 void NativeHTTPClientConnection::write(char *buf, size_t len)
@@ -405,27 +412,17 @@ void NativeHTTPClientConnection::write(char *buf, size_t len)
     APE_socket_write(m_SocketClient, buf, len, APE_DATA_COPY);
 }
 
-void NativeHTTPClientConnection::sendResponse(NativeHTTPResponse *resp)
+NativeHTTPResponse *NativeHTTPClientConnection::onCreateResponse()
 {
-    const buffer &headers = resp->getHeadersString();
-    const buffer *data = resp->getDataBuffer();
-
-    PACK_TCP(m_SocketClient->s.fd);
-    APE_socket_write(m_SocketClient, headers.data, headers.used, APE_DATA_AUTORELEASE);
-
-    if (data && data->used) {
-        APE_socket_write(m_SocketClient, data->data, data->used, APE_DATA_AUTORELEASE);
-    }
-    FLUSH_TCP(m_SocketClient->s.fd);
-    
-    resp->dataOwnershipTransfered();
+    return new NativeHTTPResponse();
 }
+
 
 //////
 
 NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
     m_Headers(ape_array_new(8)), m_Statuscode(code), m_ContentLength(0),
-    m_Content(NULL), m_Headers_str(NULL)
+    m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false)
 {
 
 }
@@ -442,6 +439,28 @@ NativeHTTPResponse::~NativeHTTPResponse()
     if (m_Content) {
         buffer_destroy(m_Content);
     }
+}
+
+void NativeHTTPResponse::send()
+{
+    if (!m_Con || m_Con->getSocket() == NULL) {
+        return;
+    }
+
+    const buffer &headers = this->getHeadersString();
+    const buffer *data = this->getDataBuffer();
+
+    PACK_TCP(m_Con->getSocket()->s.fd);
+    APE_socket_write(m_Con->getSocket(), headers.data,
+        headers.used, APE_DATA_AUTORELEASE);
+
+    if (data && data->used) {
+        APE_socket_write(m_Con->getSocket(), data->data,
+            data->used, APE_DATA_AUTORELEASE);
+    }
+    FLUSH_TCP(m_Con->getSocket()->s.fd);
+    
+    this->dataOwnershipTransfered();    
 }
 
 void NativeHTTPResponse::setHeader(const char *key, const char *val)
@@ -463,6 +482,8 @@ const buffer &NativeHTTPResponse::getHeadersString()
 {
     if (m_Headers_str == NULL) {
         m_Headers_str = buffer_new(512);
+    } else {
+        m_Headers_str->used = 0;
     }
 
     char tmpbuf[32];
