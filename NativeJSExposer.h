@@ -80,9 +80,19 @@ public:
     NativeJSObjectMapper(JSContext *cx, const char *name) :
         m_JSCx(cx)
     {
-        m_JSClass.name = name;
+        static JSClass jsclass = {
+            NULL, JSCLASS_HAS_PRIVATE,
+            JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+            JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
+        };
 
-        m_JSObj = JS_NewObject(m_JSCx, &m_JSClass, NULL, NULL);
+        if (jsclass.name == NULL) {
+            jsclass.name = name;
+        }
+
+        m_JSClass = &jsclass;
+
+        m_JSObj = JS_NewObject(m_JSCx, m_JSClass, NULL, NULL);
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
         JS_AddObjectRoot(m_JSCx, &m_JSObj);
     }
@@ -91,12 +101,16 @@ public:
         JS_SetPrivate(m_JSObj, NULL);
         JS_RemoveObjectRoot(m_JSCx, &m_JSObj);
     }
-private:
-    JSClass m_JSClass = {
-        NULL, JSCLASS_HAS_PRIVATE,
-        JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-        JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
-    };
+
+    JSObject *getJSObject() const {
+        return m_JSObj;
+    }
+
+    static T *getObject(JSObject *jsobj) {
+        return (T *)JS_GetPrivate(jsobj);
+    }
+protected:
+    JSClass *m_JSClass;
     JSObject *m_JSObj;
     JSContext *m_JSCx;
 };
