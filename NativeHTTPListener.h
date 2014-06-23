@@ -113,15 +113,20 @@ public:
     const buffer *getDataBuffer();
     const char *getStatusDesc() const;
 
+    /*
+        Send a chunk of data
+    */
+    void sendChunk(char *buf, size_t len);
     void send();
-
+    void sendHeaders();
+    void end();
 
     /*
         We want zerocopy.
         This is used to tell the object that the data
         has been transfered to another owner.
     */
-    void dataOwnershipTransfered();
+    void dataOwnershipTransfered(bool onlyHeaders = false);
 
 private:
     ape_array_t *m_Headers;
@@ -130,6 +135,7 @@ private:
     buffer *m_Content;
     buffer *m_Headers_str;
     bool m_HeaderSent;
+    bool m_Chunked;
 
     NativeHTTPClientConnection *m_Con;
 protected:
