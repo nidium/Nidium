@@ -116,8 +116,15 @@ public:
     /*
         Send a chunk of data
     */
-    void sendChunk(char *buf, size_t len);
-    void send();
+    void sendChunk(char *buf, size_t len,
+        ape_socket_data_autorelease datatype = APE_DATA_AUTORELEASE,
+        bool willEnd = false);
+
+    /*
+        Send the request.
+        |datatype| defines how data ownership is managed
+    */
+    void send(ape_socket_data_autorelease datatype = APE_DATA_AUTORELEASE);
     void sendHeaders();
     void end();
 

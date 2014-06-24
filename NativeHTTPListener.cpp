@@ -458,18 +458,31 @@ void NativeHTTPResponse::sendHeaders()
 }
 
 
-void NativeHTTPResponse::sendChunk(char *buf, size_t len)
+void NativeHTTPResponse::sendChunk(char *buf, size_t len,
+    ape_socket_data_autorelease datatype, bool willEnd)
 {
     if (!m_Con || m_Con->getSocket() == NULL) {
         return;
     }
 
+    if (!m_Chunked && willEnd) {
+        this->setData(buf, len);
+        this->send(APE_DATA_COPY);
+        /*
+            Hack :
+            Avoid the destructor to release the data for us
+            (ownership is not transfered by sendChunk)
+        */
+        m_Content->data = NULL;
+        return;
+    }
+
+    m_Chunked = true;
+
     if (!m_HeaderSent) {
         this->setHeader("Transfer-Encoding", "chunked");
         this->sendHeaders();
     }
-
-    m_Chunked = true;
 
     char tmpbuf[64];
     int tmplen = sprintf(tmpbuf, "%lx\r\n", len);
@@ -477,13 +490,13 @@ void NativeHTTPResponse::sendChunk(char *buf, size_t len)
     PACK_TCP(m_Con->getSocket()->s.fd);
 
     APE_socket_write(m_Con->getSocket(), tmpbuf, tmplen, APE_DATA_STATIC);
-    APE_socket_write(m_Con->getSocket(), buf, len, APE_DATA_AUTORELEASE);
+    APE_socket_write(m_Con->getSocket(), buf, len, datatype);
     APE_socket_write(m_Con->getSocket(), (char *)CONST_STR_LEN("\r\n"), APE_DATA_STATIC);
 
     FLUSH_TCP(m_Con->getSocket()->s.fd);
 }
 
-void NativeHTTPResponse::send()
+void NativeHTTPResponse::send(ape_socket_data_autorelease datatype)
 {
     if (!m_Con || m_Con->getSocket() == NULL) {
         return;
@@ -503,11 +516,15 @@ void NativeHTTPResponse::send()
     }
     if (data && data->used) {
         APE_socket_write(m_Con->getSocket(), data->data,
-            data->used, APE_DATA_AUTORELEASE);
+            data->used, datatype);
     }
     FLUSH_TCP(m_Con->getSocket()->s.fd);
     
-    this->dataOwnershipTransfered();    
+    /*
+        If we are not in a APE_DATA_AUTORELEASE,
+        only transfert the headers ownership
+    */
+    this->dataOwnershipTransfered(!(datatype == APE_DATA_AUTORELEASE));
 }
 
 void NativeHTTPResponse::end()
@@ -556,21 +573,25 @@ const buffer &NativeHTTPResponse::getHeadersString()
     buffer_append_string(m_Headers_str, this->getStatusDesc());
     buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\n"));
 
-    if (m_Content && m_Content->used) {
-        sprintf(tmpbuf, "%ld", m_Content->used);
-        this->setHeader("Content-Length", tmpbuf);
-    } else {
-        this->setHeader("Content-Length", "0");
+    if (!m_Chunked) {
+        if (m_Content && m_Content->used) {
+            sprintf(tmpbuf, "%ld", m_Content->used);
+            this->setHeader("Content-Length", tmpbuf);
+        } else {
+            this->setHeader("Content-Length", "0");
+        }
     }
-
     buffer *k, *v;
-    APE_A_FOREACH(this->getHeaders(), k, v) {
-        buffer_append_string_n(m_Headers_str, (char *)k->data, k->used);
-        buffer_append_string_n(m_Headers_str, ": ", 2);
-        buffer_append_string_n(m_Headers_str, (char *)v->data, v->used);
+    if (this->getHeaders()) {
+        APE_A_FOREACH(this->getHeaders(), k, v) {
+            buffer_append_string_n(m_Headers_str, (char *)k->data, k->used);
+            buffer_append_string_n(m_Headers_str, ": ", 2);
+            buffer_append_string_n(m_Headers_str, (char *)v->data, v->used);
+            buffer_append_string_n(m_Headers_str, "\n", 1);
+        }
+    } else {
         buffer_append_string_n(m_Headers_str, "\n", 1);
     }
-
     buffer_append_string_n(m_Headers_str, "\n", 1);
 
     return *m_Headers_str;

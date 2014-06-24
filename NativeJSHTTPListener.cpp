@@ -20,7 +20,9 @@
 #include "NativeJSHTTPListener.h"
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSBool native_httprequest_write(JSContext *cx,
+static JSBool native_httpresponse_write(JSContext *cx,
+    unsigned argc, jsval *vp);
+static JSBool native_httpresponse_end(JSContext *cx,
     unsigned argc, jsval *vp);
 
 static JSClass HTTPListener_class = {
@@ -30,21 +32,18 @@ static JSClass HTTPListener_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSClass HTTPClientConnection_class = {
-    "HTTPClientConnection", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
-};
-
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
 };
 
-
-static JSFunctionSpec HTTPRequest_funcs[] = {
-    JS_FN("write", native_httprequest_write, 1, 0),
+/*
+    TODO: write is for response
+*/
+static JSFunctionSpec HTTPResponse_funcs[] = {
+    JS_FN("write", native_httpresponse_write, 1, 0),
+    JS_FN("end", native_httpresponse_end, 0, 0),
     JS_FS_END
 };
 
@@ -59,6 +58,13 @@ static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
     if (server != NULL) {
         delete server;
     }       
+}
+
+NativeJSHTTPResponse::NativeJSHTTPResponse(JSContext *cx, uint16_t code) :
+        NativeHTTPResponse(code),
+        NativeJSObjectMapper(cx, "HTTPResponse")
+{
+    JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
 }
 
 NativeJSHTTPListener::NativeJSHTTPListener(uint16_t port, const char *ip) :
@@ -76,8 +82,7 @@ NativeJSHTTPListener::~NativeJSHTTPListener()
 
 void NativeJSHTTPListener::onClientDisconnect(NativeHTTPClientConnection *client)
 {
-    JS_RemoveObjectRoot(cx, (JSObject **)&client->m_Ctx);
-    client->setContext(NULL);
+
 }
 
 void NativeJSHTTPListener::onData(NativeHTTPClientConnection *client,
@@ -90,23 +95,21 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 {
     JS::Value oncallback, rval;
     buffer *k, *v;
-    JSObject *objclient = JS_NewObject(cx, &HTTPClientConnection_class, NULL, NULL);
+    NativeJSHTTPClientConnection *subclient = static_cast<NativeJSHTTPClientConnection *>(client);
+
     JSObject *objrequest = JS_NewObject(cx, &HTTPRequest_class, NULL, NULL);
-
-    client->setContext(objclient);
-
-    JS_AddObjectRoot(cx, (JSObject **)&client->m_Ctx);
-
     JSObject *headers = JS_NewObject(cx, NULL, NULL, NULL);
 
-    APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
-            v->used-1);
-        JSOBJ_SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
-    }
 
+    if (client->getHTTPState()->headers.list) {
+        APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
+            JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
+                v->used-1);
+            JSOBJ_SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
+        }
+    }
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
-    JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(objclient));
+    JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 
     if (JS_GetProperty(cx, this->jsobj, "onrequest", &oncallback) &&
         JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
@@ -170,12 +173,46 @@ static JSBool native_HTTPRequest_class_constructor(JSContext *cx,
     return false;
 }
 
-static JSBool native_httprequest_write(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
+    NATIVE_CHECK_ARGS("write", 1);
+
+    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
     
+    /* TODO: accept arraybuffer */
+    if (args[0].isString()) {
+        JSAutoByteString jsdata(cx, args[0].toString());
+
+        resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY);
+
+    } else {
+        JS_ReportError(cx, "write() only accepts String");
+        return false;
+    }
+    
+    return true;
+}
+
+static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+
+    if (args.length() > 0) {
+        /* TODO: accept arraybuffer */
+        if (args[0].isString()) {
+            JSAutoByteString jsdata(cx, args[0].toString());
+            resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
+        }
+    }
+
+    resp->end();
+
     return true;
 }
 
@@ -184,8 +221,10 @@ void NativeJSHTTPListener::registerObject(JSContext *cx)
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPListener_class,
         native_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
-
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPRequest_class,
+/*
+    TODO: how to init a class from a NativeJSObjectMapper derived class
+*/
+    /*JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPRequest_class,
                 native_HTTPRequest_class_constructor,
-                0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);    
+                0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);*/
 }

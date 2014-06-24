@@ -31,9 +31,7 @@ class NativeJSHTTPResponse : public NativeHTTPResponse,
 public:
     friend NativeJSHTTPClientConnection;
 protected:
-    explicit NativeJSHTTPResponse(JSContext *cx, uint16_t code = 200) :
-        NativeJSObjectMapper(cx, "HTTPResponse"),
-        NativeHTTPResponse(code){}
+    explicit NativeJSHTTPResponse(JSContext *cx, uint16_t code = 200);
 };
 
 class NativeJSHTTPClientConnection : public NativeHTTPClientConnection,
