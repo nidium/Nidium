@@ -73,6 +73,10 @@ class NativeJSExposer
     }
 };
 
+/*  TODO: add a way to define whether object life define JSObject life
+    (addroot/unroot or if jsobject life define obj life (finalizer))
+*/
+
 template <typename T>
 class NativeJSObjectMapper
 {
@@ -96,7 +100,7 @@ public:
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
         JS_AddObjectRoot(m_JSCx, &m_JSObj);
     }
-    ~NativeJSObjectMapper()
+    virtual ~NativeJSObjectMapper()
     {
         JS_SetPrivate(m_JSObj, NULL);
         JS_RemoveObjectRoot(m_JSCx, &m_JSObj);
