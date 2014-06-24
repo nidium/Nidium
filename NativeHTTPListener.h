@@ -125,8 +125,11 @@ public:
         |datatype| defines how data ownership is managed
     */
     void send(ape_socket_data_autorelease datatype = APE_DATA_AUTORELEASE);
-    void sendHeaders();
+    void sendHeaders(bool chunked = false);
     void end();
+    bool isHeadersAlreadySent() const {
+        return m_HeaderSent;
+    }
 
     /*
         We want zerocopy.

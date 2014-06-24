@@ -441,10 +441,14 @@ NativeHTTPResponse::~NativeHTTPResponse()
     }
 }
 
-void NativeHTTPResponse::sendHeaders()
+void NativeHTTPResponse::sendHeaders(bool chunked)
 {
     if (!m_Con || m_Con->getSocket() == NULL || m_HeaderSent) {
         return;
+    }
+
+    if (chunked) {
+        m_Chunked = true;
     }
 
     const buffer &headers = this->getHeadersString();
@@ -480,7 +484,6 @@ void NativeHTTPResponse::sendChunk(char *buf, size_t len,
     m_Chunked = true;
 
     if (!m_HeaderSent) {
-        this->setHeader("Transfer-Encoding", "chunked");
         this->sendHeaders();
     }
 
@@ -580,6 +583,8 @@ const buffer &NativeHTTPResponse::getHeadersString()
         } else {
             this->setHeader("Content-Length", "0");
         }
+    } else {
+        this->setHeader("Transfer-Encoding", "chunked");
     }
     buffer *k, *v;
     if (this->getHeaders()) {
@@ -610,7 +615,7 @@ const char *NativeHTTPResponse::getStatusDesc() const
         }
     }
 
-    return NULL;
+    return "Unknown";
 }
 
 void NativeHTTPResponse::dataOwnershipTransfered(bool onlyHeaders)

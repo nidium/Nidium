@@ -24,6 +24,8 @@ static JSBool native_httpresponse_write(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_httpresponse_end(JSContext *cx,
     unsigned argc, jsval *vp);
+static JSBool native_httpresponse_writeHead(JSContext *cx,
+    unsigned argc, jsval *vp);
 
 static JSClass HTTPListener_class = {
     "HTTPListener", JSCLASS_HAS_PRIVATE,
@@ -44,6 +46,7 @@ static JSClass HTTPRequest_class = {
 static JSFunctionSpec HTTPResponse_funcs[] = {
     JS_FN("write", native_httpresponse_write, 1, 0),
     JS_FN("end", native_httpresponse_end, 0, 0),
+    JS_FN("writeHead", native_httpresponse_writeHead, 1, 0),
     JS_FS_END
 };
 
@@ -181,7 +184,10 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
     NATIVE_CHECK_ARGS("write", 1);
 
     NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
-    
+    if (!resp) {
+        return true;
+    }
+
     /* TODO: accept arraybuffer */
     if (args[0].isString()) {
         JSAutoByteString jsdata(cx, args[0].toString());
@@ -202,6 +208,9 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
     NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    if (!resp) {
+        return true;
+    }
 
     if (args.length() > 0) {
         /* TODO: accept arraybuffer */
@@ -212,6 +221,60 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     resp->end();
+
+    return true;
+}
+
+static JSBool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *vp)
+{
+    uint16_t statuscode;
+    JSObject *headers = NULL;
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "c/o",
+        &statuscode, &headers)) {
+        return false;
+    }
+
+    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    if (!resp) {
+        return true;
+    }
+
+    if (resp->isHeadersAlreadySent()) {
+        return true;
+    }
+
+    resp->setStatusCode(statuscode);
+
+    if (args.length() >= 2 && !args[1].isPrimitive()) {
+
+        JS::RootedId idp(cx);
+        JS::RootedObject iterator(cx);
+
+        iterator = JS_NewPropertyIterator(cx, headers);
+
+        while (JS_NextProperty(cx, iterator, idp.address()) && !JSID_IS_VOID(idp)) {
+            if (!JSID_IS_STRING(idp)) {
+                continue;
+            }
+            JSString *key = JSID_TO_STRING(idp);
+            JS::Value val;
+
+            if (!JS_GetPropertyById(cx, headers, idp, &val) || !val.isString()) {
+                continue;
+            }
+
+            JSAutoByteString ckey(cx, key);
+            JSAutoByteString cval(cx, val.toString());
+
+            resp->setHeader(ckey.ptr(), cval.ptr());
+        }
+    }
+
+    resp->sendHeaders(true);
 
     return true;
 }
