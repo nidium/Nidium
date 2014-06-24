@@ -176,6 +176,7 @@ public:
         int ended;
         uint64_t contentlength;
         buffer *data;
+        buffer *url;
     };
 
     struct HTTPData *getHTTPState() {
@@ -190,15 +191,21 @@ public:
         return m_HTTPListener;
     }
 
-    const buffer &getData() const {
-        return *m_HttpState.data;
+    buffer *getData() const {
+        return m_HttpState.data;
+    }
+
+    buffer *getURL() const {
+        return m_HttpState.url;
     }
 
     void resetData() {
-        if (m_HttpState.data == NULL) {
-            return;
+        if (m_HttpState.data != NULL) {
+            m_HttpState.data->used = 0;
         }
-        m_HttpState.data->used = 0;
+        if (m_HttpState.url != NULL) {
+            m_HttpState.url->used = 0;
+        }
     }
 
     void onRead(buffer *buf, ape_global *ape);

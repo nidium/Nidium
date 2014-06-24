@@ -239,6 +239,14 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
 static int request_url_cb(http_parser *p, const char *buf, size_t len)
 {
     NativeHTTPClientConnection *client = (NativeHTTPClientConnection *)p->data;
+    if (client->getHTTPState()->url == NULL) {
+        client->getHTTPState()->url = buffer_new(512);
+    }
+
+    if (len != 0) {
+        buffer_append_data(client->getHTTPState()->url,
+            (const unsigned char *)buf, len);
+    }
 
     //printf("Request URL cb %.*s\n", (int)len, buf);
     return 0;
@@ -360,6 +368,7 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     m_HttpState.headers.tval = NULL;
     m_HttpState.ended = 0;
     m_HttpState.data  = NULL;
+    m_HttpState.url  = NULL;
 
     http_parser_init(&m_HttpState.parser, HTTP_REQUEST);
     m_HttpState.parser.data = this;
@@ -400,6 +409,10 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
 {
     if (m_HttpState.data) {
         buffer_destroy(m_HttpState.data);
+    }
+
+    if (m_HttpState.url) {
+        buffer_destroy(m_HttpState.url);
     }
 
     if (m_Response) {

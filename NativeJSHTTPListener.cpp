@@ -103,7 +103,6 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     JSObject *objrequest = JS_NewObject(cx, &HTTPRequest_class, NULL, NULL);
     JSObject *headers = JS_NewObject(cx, NULL, NULL, NULL);
 
-
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
             JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
@@ -111,6 +110,13 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
             JSOBJ_SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
         }
     }
+
+    buffer *url = client->getHTTPState()->url;
+    if (url) {
+        JSString *jsurl = JS_NewStringCopyN(cx, (char *)url->data, url->used);
+        JSOBJ_SET_PROP(objrequest, "url", STRING_TO_JSVAL(jsurl));
+    }
+
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
     JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 
