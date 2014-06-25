@@ -587,6 +587,12 @@ const buffer &NativeHTTPResponse::getHeadersString()
 
     buffer_append_string(m_Headers_str, tmpbuf);
     buffer_append_string(m_Headers_str, this->getStatusDesc());
+
+    char httpdate[256];
+    NativeUtils::HTTPTime(httpdate);
+
+    this->setHeader("Date", httpdate);
+
     buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\n"));
 
     if (!m_Chunked) {
