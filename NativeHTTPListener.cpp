@@ -294,7 +294,6 @@ static void native_socket_client_disconnect(ape_socket *socket_client,
 
     socket_client->ctx = NULL;
 
-    printf("Connexion closed\n");
     delete con;
 }
 
@@ -356,6 +355,18 @@ void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 
 //////////////
 //////////////
+
+int NativeHTTPClientConnection_checktimeout(void *arg)
+{
+    NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)arg;
+
+    if (NativeUtils::getTick(true) - con->getLastActivity() > con->getTimeoutAfterMs()) {
+        con->close();
+    }
+
+    return 1000;
+}
+
 NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *httpserver,
     ape_socket *socket) :
     m_SocketClient(socket), m_HTTPListener(httpserver),
@@ -370,14 +381,27 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     m_HttpState.data  = NULL;
     m_HttpState.url  = NULL;
 
+    m_ClientTimeoutMs = 10000;
+
     http_parser_init(&m_HttpState.parser, HTTP_REQUEST);
     m_HttpState.parser.data = this;
+
+    ape_global *net = socket->ape;
+
+    ape_timer *timer = add_timer(&socket->ape->timersng, 1000,
+        NativeHTTPClientConnection_checktimeout, this);
+
+    m_TimeoutTimer = timer->identifier;
+
+    m_LastAcitivty = NativeUtils::getTick(true);
 }
 
 void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
 {
 #define REQUEST_HEADER(header) ape_array_lookup(m_HttpState.headers.list, \
     CONST_STR_LEN(header "\0"))
+
+    m_LastAcitivty = NativeUtils::getTick(true);
 
     int nparsed = http_parser_execute(&m_HttpState.parser, &settings,
         (const char *)buf->data, (size_t)buf->used);
@@ -404,9 +428,14 @@ void NativeHTTPClientConnection::close()
     }
 }
 
-
 NativeHTTPClientConnection::~NativeHTTPClientConnection()
 {
+    if (m_TimeoutTimer) {
+        ape_global *ape = NativeJS::getNet();
+        clear_timer_by_id(&ape->timersng, m_TimeoutTimer, 1);
+        m_TimeoutTimer = 0;
+    }   
+
     if (m_HttpState.data) {
         buffer_destroy(m_HttpState.data);
     }

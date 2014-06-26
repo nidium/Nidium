@@ -221,6 +221,14 @@ public:
         return m_Response;
     }
 
+    uint64_t getTimeoutAfterMs() const {
+        return m_ClientTimeoutMs;
+    }
+
+    uint64_t getLastActivity() const {
+        return m_LastAcitivty;
+    }
+
     virtual NativeHTTPResponse *onCreateResponse();
 
     virtual void onHeaderEnded(){};
@@ -231,7 +239,6 @@ public:
     virtual void close();
 
     void _createResponse() {
-        printf("Create response...\n");
         NativeHTTPResponse *resp = onCreateResponse();
         if (m_Response && resp != m_Response) {
             delete m_Response;
@@ -242,12 +249,13 @@ public:
     
     void *m_Ctx;
 protected:
-
-
     struct HTTPData m_HttpState;
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;
     NativeHTTPResponse *m_Response;
+    int m_TimeoutTimer;
+    uint64_t m_LastAcitivty;
+    int m_ClientTimeoutMs;
 };
 
 #endif

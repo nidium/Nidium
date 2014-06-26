@@ -114,11 +114,10 @@ static __inline uint64_t mach_absolute_time()
 #endif
 
 /* TODO: iOS : http://shiftedbits.org/2008/10/01/mach_absolute_time-on-the-iphone/ */
-uint64_t NativeUtils::getTick()
+uint64_t NativeUtils::getTick(bool ms)
 {
-    return mach_absolute_time();
+    return mach_absolute_time() / (ms ? 1000000LL : 1LL);
 }
-
 
 uint16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputlen)
 {
