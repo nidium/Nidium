@@ -120,11 +120,16 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     }
 
     buffer *data = client->getHTTPState()->data;
-    if (client->getHTTPState()->parser.method == HTTP_POST && data && data->used) {
+    if (client->getHTTPState()->parser.method == HTTP_POST) {
         JS::Value strdata;
-        if (NativeJSUtils::strToJsval(cx, (const char *)data->data, data->used, &strdata, "utf8")) {
-            JSOBJ_SET_PROP(objrequest, "data", strdata);
+        if (data == NULL || data->used == 0) {
+            strdata = JS_GetEmptyStringValue(cx);
+        } else {
+            NativeJSUtils::strToJsval(cx, (const char *)data->data,
+                data->used, &strdata, "utf8");
         }
+
+        JSOBJ_SET_PROP(objrequest, "data", strdata);
     }
 
     JS::Value method;
