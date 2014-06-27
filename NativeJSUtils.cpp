@@ -33,6 +33,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::V
 
         JSString *str = NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding);
         if (!str) {
+            *ret = JS_GetEmptyStringValue(cx);
             return false;
         }
 
