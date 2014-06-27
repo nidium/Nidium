@@ -18,6 +18,8 @@
 */
 
 #include "NativeJSHTTPListener.h"
+#include "NativeJSUtils.h"
+
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSBool native_httpresponse_write(JSContext *cx,
@@ -117,6 +119,31 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
         JSOBJ_SET_PROP(objrequest, "url", STRING_TO_JSVAL(jsurl));
     }
 
+    buffer *data = client->getHTTPState()->data;
+    if (client->getHTTPState()->parser.method == HTTP_POST && data && data->used) {
+        JS::Value strdata;
+        if (NativeJSUtils::strToJsval(cx, (const char *)data->data, data->used, &strdata, "utf8")) {
+            JSOBJ_SET_PROP(objrequest, "data", strdata);
+        }
+    }
+
+    JS::Value method;
+    switch (client->getHTTPState()->parser.method) {
+        case HTTP_POST:
+            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("POST")));
+            break;
+        case HTTP_GET:
+            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("GET")));
+            break;
+        case HTTP_PUT:
+            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("PUT")));
+            break;
+        default:
+            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("UNKOWN")));
+            break;
+    }
+
+    JSOBJ_SET_PROP(objrequest, "method", method);
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
     JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 

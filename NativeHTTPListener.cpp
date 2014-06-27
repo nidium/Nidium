@@ -359,8 +359,11 @@ void NativeHTTPListener::onClientConnect(ape_socket *client, ape_global *ape)
 int NativeHTTPClientConnection_checktimeout(void *arg)
 {
     NativeHTTPClientConnection *con = (NativeHTTPClientConnection *)arg;
-
-    if (NativeUtils::getTick(true) - con->getLastActivity() > con->getTimeoutAfterMs()) {
+    uint64_t timeout = con->getTimeoutAfterMs();
+    /*
+        Never timeout if set to 0
+    */
+    if (timeout && NativeUtils::getTick(true) - con->getLastActivity() > timeout) {
         con->close();
     }
 
