@@ -347,11 +347,11 @@ bool NativeJSModules::getFileContent(const char *file, char **content, size_t *s
         return false;
     }
 
-    stream->getContentSync(content, size);
+    bool ret = stream->getContentSync(content, size);
 
     delete stream;
 
-    return true;
+    return ret;
 }
 
 std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char *path) 
@@ -451,7 +451,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                 char *data = NULL;
                 size_t size;
 
-                if (!NativeJSModules::getFileContent(dir.c_str(), &data, &size)) {
+                if (!NativeJSModules::getFileContent(dir.c_str(), &data, &size) || data == NULL) {
                     fprintf(stderr, "Failed to open %s", dir.c_str());
                     return false;
                 }
@@ -583,7 +583,7 @@ JS::Value NativeJSModule::require(char *name)
             JSFunction *fn;
             jsval rval;
     
-            if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize)) {
+            if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 return ret;
             }

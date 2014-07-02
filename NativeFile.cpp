@@ -428,6 +428,8 @@ ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
 {
     *err = 0;
 
+    *buffer = NULL;
+
     if (!this->isOpen()) {
         return -1;
     }

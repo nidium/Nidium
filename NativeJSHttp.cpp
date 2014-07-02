@@ -60,6 +60,11 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeHTTP *nhttp;
     NativeJSHttp *jshttp;
 
+    if (!JS_IsConstructing(cx, vp)) {
+        JS_ReportError(cx, "Bad constructor");
+        return false;
+    }
+
     JSObject *ret = JS_NewObjectForConstructor(cx, &Http_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {

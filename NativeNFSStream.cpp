@@ -139,6 +139,8 @@ void NativeNFSStream::_getContent()
 
 bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
 {
+    *data = NULL;
+    
     const char *ret = m_NFS->readFile(m_Location, len);
 
     if (!ret) {

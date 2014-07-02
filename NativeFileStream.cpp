@@ -101,6 +101,8 @@ bool NativeFileStream::getContentSync(char **data, size_t *len, bool mmap)
     int err;
     ssize_t slen;
 
+    *data = NULL;
+
     if (!m_File.openSync("r", &err)) {
         return false;
     }
