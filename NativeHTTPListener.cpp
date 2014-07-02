@@ -625,7 +625,7 @@ const buffer &NativeHTTPResponse::getHeadersString()
 
     this->setHeader("Date", httpdate);
 
-    buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\n"));
+    buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\r\n"));
 
     if (!m_Chunked) {
         if (m_Content && m_Content->used) {
@@ -643,12 +643,12 @@ const buffer &NativeHTTPResponse::getHeadersString()
             buffer_append_string_n(m_Headers_str, (char *)k->data, k->used);
             buffer_append_string_n(m_Headers_str, ": ", 2);
             buffer_append_string_n(m_Headers_str, (char *)v->data, v->used);
-            buffer_append_string_n(m_Headers_str, "\n", 1);
+            buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\r\n"));
         }
     } else {
-        buffer_append_string_n(m_Headers_str, "\n", 1);
+        buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\r\n"));
     }
-    buffer_append_string_n(m_Headers_str, "\n", 1);
+    buffer_append_string_n(m_Headers_str, CONST_STR_LEN("\r\n"));
 
     return *m_Headers_str;
 }

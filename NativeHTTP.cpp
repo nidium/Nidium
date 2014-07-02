@@ -622,7 +622,7 @@ buffer *NativeHTTPRequest::getHeadersData() const
     }
 
     buffer_append_string(ret, this->path);
-    buffer_append_string_n(ret, CONST_STR_LEN(" HTTP/1.1\n"));
+    buffer_append_string_n(ret, CONST_STR_LEN(" HTTP/1.1\r\n"));
     buffer_append_string_n(ret, CONST_STR_LEN("Host: "));
     buffer_append_string(ret, this->host);
 
@@ -631,17 +631,17 @@ buffer *NativeHTTPRequest::getHeadersData() const
         sprintf(portstr, ":%hu", this->getPort());
         buffer_append_string(ret, portstr);
     }
-    buffer_append_string_n(ret, CONST_STR_LEN("\n"));
+    buffer_append_string_n(ret, CONST_STR_LEN("\r\n"));
 
     buffer *k, *v;
     APE_A_FOREACH(this->getHeaders(), k, v) {
         buffer_append_string_n(ret, (char *)k->data, k->used);
         buffer_append_string_n(ret, ": ", 2);
         buffer_append_string_n(ret, (char *)v->data, v->used);
-        buffer_append_string_n(ret, "\n", 1);
+        buffer_append_string_n(ret, CONST_STR_LEN("\r\n"));
     }
 
-    buffer_append_string_n(ret, "\n", 1);
+    buffer_append_string_n(ret, CONST_STR_LEN("\r\n"));
 
     return ret;
 }
