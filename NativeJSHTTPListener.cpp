@@ -228,7 +228,8 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 
     /* TODO: accept arraybuffer */
     if (args[0].isString()) {
-        JSAutoByteString jsdata(cx, args[0].toString());
+        JSAutoByteString jsdata;
+        jsdata.encodeUtf8(cx, args[0].toString());
 
         resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY);
 
@@ -253,7 +254,9 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     if (args.length() > 0) {
         /* TODO: accept arraybuffer */
         if (args[0].isString()) {
-            JSAutoByteString jsdata(cx, args[0].toString());
+            JSAutoByteString jsdata;
+            jsdata.encodeUtf8(cx, args[0].toString());
+            
             resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
         }
     }
