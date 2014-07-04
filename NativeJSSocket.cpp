@@ -666,7 +666,9 @@ static JSBool native_socket_client_write(JSContext *cx,
 
     if (args[0].isString()) {
 
-        JSAutoByteString cdata(cx, args[0].toString());
+        JSAutoByteString cdata;
+
+        cdata.encodeUtf8(cx, args[0].toString());
 
         int ret = APE_socket_write(socket_client, (unsigned char *)cdata.ptr(),
             strlen(cdata.ptr()), APE_DATA_COPY);
@@ -717,7 +719,9 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (args[0].isString()) {
-        JSAutoByteString cdata(cx, args[0].toString());
+        JSAutoByteString cdata;
+
+        cdata.encodeUtf8(cx, args[0].toString());
 
         int ret = nsocket->write((unsigned char*)cdata.ptr(),
             strlen(cdata.ptr()), APE_DATA_COPY);
