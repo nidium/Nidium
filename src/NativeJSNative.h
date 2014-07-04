@@ -12,11 +12,10 @@ class NativeJSNative : public NativeJSExposer<NativeJSNative>
      NativeJSNative(){};
     ~NativeJSNative(){};
 
-    static bool showFPS;
     static void registerObject(JSContext *cx);
 
     static const char *getJSObjectName() {
-        return "Native";
+        return "native";
     }
 
     static JSClass *jsclass;
