@@ -180,7 +180,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         /* TODO: handle ArrayBuffer */
         JSString *data = JS_ValueToString(cx, curopt);
         if (data != NULL) {
-            char *hdata = JS_EncodeString(cx, data);
+            char *hdata = JS_EncodeStringToUTF8(cx, data);
             req->setData(hdata, strlen(hdata));
             req->setDataReleaser(js_free);
 
