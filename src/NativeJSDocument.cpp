@@ -4,8 +4,11 @@
 #include "NativeUIInterface.h"
 #include <native_netlib.h>
 #include <jsapi.h>
+#include <jsstr.h>
 
 #define NJSDOC_GETTER(obj) ((class NativeJSdocument *)JS_GetPrivate(obj))
+
+bool NativeJSdocument::showFPS = false;
 
 static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -13,6 +16,10 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
 static JSPropertySpec document_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
+
+static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
@@ -25,6 +32,9 @@ JSClass *NativeJSdocument::jsclass = &document_class;
 
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", native_document_run, 1, 0),
+    JS_FN("showFPS", native_document_showfps, 1, 0),
+    JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, 0),
+    JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, 0),
     JS_FS_END
 };
 
@@ -33,6 +43,69 @@ struct _native_document_restart_async
     NativeUIInterface *ui;
     char *location;
 };
+
+static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
+        &str)) {
+        return false;
+    }
+
+    char *text = JS_EncodeStringToUTF8(cx, str);
+
+    NativeContext::getNativeClass(cx)->getUI()->setClipboardText(text);
+
+    js_free(text);
+
+    return JS_TRUE;
+}
+
+static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
+{
+    using namespace js;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
+
+    if (text == NULL) {
+        args.rval().setNull();
+        return true;
+    }
+
+    size_t len = strlen(text)*2;
+    jschar *jsc = new jschar[len];
+    js::InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
+
+    JSString *jret = JS_NewUCStringCopyN(cx, jsc, len);
+
+    args.rval().set(STRING_TO_JSVAL(jret));
+
+    free(text);
+    delete[] jsc;
+
+    return true;
+}
+
+static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSBool show = JS_FALSE;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "b", &show)) {
+        return false;
+    }
+
+    NativeJSdocument::showFPS = (show == JS_TRUE) ? true : false;
+
+    if (show) {
+        NativeContext::getNativeClass(cx)->createDebugCanvas();
+    }
+
+    return JS_TRUE;
+}
+
 
 static int native_document_restart(void *param)
 {
@@ -85,6 +158,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
         return false;
     }
     JSObject *jret = ret.toObjectOrNull();
+
 
     NativeJS::copyProperties(cx, jret, this->stylesheet);
 

@@ -6,6 +6,7 @@
 #include "NativeGLState.h"
 #include "NativeSkia.h"
 #include "NativeJSNative.h"
+#include "NativeJSDocument.h"
 #include "NativeJS.h"
 #include "NativeJSAV.h"
 #include "NativeJSCanvas.h"
@@ -193,7 +194,7 @@ void NativeContext::createDebugCanvas()
 
 void NativeContext::postDraw()
 {
-    if (NativeJSNative::showFPS && m_DebugHandler) {
+    if (NativeJSdocument::showFPS && m_DebugHandler) {
 
         NativeSkia *s = ((NativeCanvas2DContext *)m_DebugHandler->getContext())->getSurface();
         m_DebugHandler->bringToFront();
@@ -309,7 +310,12 @@ void NativeContext::frame()
 
     /* We draw on the UI fbo */
     glBindFramebuffer(GL_FRAMEBUFFER, m_UI->getFBO());
-    m_RootHandler->layerize(NULL, 0, 0, 1.0, 1.0, NULL);
+    NativeLayerizeContext ctx;
+    ctx.reset();
+    NativeLayerSiblingContext sctx;
+    ctx.siblingCtx = &sctx;
+    
+    m_RootHandler->layerize(ctx);
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }

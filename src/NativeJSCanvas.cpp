@@ -597,6 +597,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 handler->setPositioning(NativeCanvasHandler::COORD_ABSOLUTE);
             } else if(strcasecmp(mode.ptr(), "fixed") == 0) {
                 handler->setPositioning(NativeCanvasHandler::COORD_FIXED);
+            } else if (strcasecmp(mode.ptr(), "inline") == 0) {
+                handler->setPositioning(NativeCanvasHandler::COORD_INLINE);
             } else {
                 handler->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
             }
@@ -864,7 +866,11 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         {
             switch (handler->getPositioning()) {
                 case NativeCanvasHandler::COORD_RELATIVE:
-                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "relative")));
+                    if (handler->getFlowMode() & NativeCanvasHandler::kFlowInlinePreviousSibling) {
+                        vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline")));
+                    } else {
+                        vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "relative")));
+                    }
                     break;
                 case NativeCanvasHandler::COORD_ABSOLUTE:
                     vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "absolute")));
@@ -872,6 +878,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
                 case NativeCanvasHandler::COORD_FIXED:
                     vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "fixed")));
                     break;
+                case NativeCanvasHandler::COORD_INLINE:
+                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline")));
+                    break;                
             }
             break;
         }

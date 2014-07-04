@@ -9,6 +9,8 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
   public:
     NativeJSdocument(){};
     ~NativeJSdocument(){};
+
+    static bool showFPS;
     bool populateStyle(JSContext *cx, const char *data,
         size_t len, const char *filename);
     static void registerObject(JSContext *cx);

@@ -59,6 +59,35 @@ struct NativeRect
     }
 };
 
+struct NativeLayerSiblingContext {
+    double maxLineHeight;
+    double maxLineHeightPreviousLine;
+
+    NativeLayerSiblingContext() :
+        maxLineHeight(0.), maxLineHeightPreviousLine(0.){}
+};
+
+struct NativeLayerizeContext {
+    class NativeCanvasHandler *layer;
+    double pleft;
+    double ptop;
+    double aopacity;
+    double azoom;
+    NativeRect *clip;
+
+    struct NativeLayerSiblingContext *siblingCtx;
+
+    void reset() {
+        layer = NULL;
+        pleft = 0.;
+        ptop = 0.;
+        aopacity = 1.0;
+        azoom = 1.0;
+        clip = NULL;
+        siblingCtx = NULL;
+    }
+};
+
 class NativeCanvasHandler : public NativeEvents
 {
     public:
@@ -77,15 +106,21 @@ class NativeCanvasHandler : public NativeEvents
             RESIZE_EVENT = 1,
         };
 
-
         enum Position {
             POSITION_FRONT,
             POSITION_BACK
         };
+
         enum COORD_POSITION {
             COORD_RELATIVE,
             COORD_ABSOLUTE,
-            COORD_FIXED
+            COORD_FIXED,
+            COORD_INLINE
+        };
+
+        enum FLOW_MODE {
+            kFlowDoesntInteract = 0,
+            kFlowInlinePreviousSibling = 1 << 0
         };
 
         enum Visibility {
@@ -245,6 +280,10 @@ class NativeCanvasHandler : public NativeEvents
         }
 
         void setLeft(double val) {
+            if (m_FlowMode & kFlowInlinePreviousSibling) {
+                this->left = 0;
+                return;
+            }
             coordMode |= kLeft_Coord;
             this->left = val;
             if (!hasFixedWidth()) {
@@ -260,6 +299,10 @@ class NativeCanvasHandler : public NativeEvents
         }
 
         void setTop(double val) {
+            if (m_FlowMode & kFlowInlinePreviousSibling) {
+                this->left = 0;
+                return;
+            }
             coordMode |= kTop_Coord;
             this->top = val;
             if (!hasFixedHeight()) {
@@ -295,6 +338,10 @@ class NativeCanvasHandler : public NativeEvents
 
         COORD_POSITION getPositioning() const {
             return coordPosition;
+        }
+
+        unsigned int getFlowMode() const {
+            return m_FlowMode;
         }
         
         NativeCanvasHandler(int width, int height);
@@ -342,8 +389,7 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *getPrevSibling() const { return m_Prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
-        void layerize(NativeCanvasHandler *layer, double pleft,
-            double ptop, double aopacity, double zoom, NativeRect *clip);
+        void layerize(NativeLayerizeContext &layerContext);
 
         NativeCanvasHandler *m_Parent;
         NativeCanvasHandler *m_Children;
@@ -351,12 +397,23 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *m_Next;
         NativeCanvasHandler *m_Prev;
         NativeCanvasHandler *m_Last;
+    protected:
+        NativeCanvasHandler *getPrevInlineSibling() const {
+            NativeCanvasHandler *prev;
+            for (prev = m_Prev; prev != NULL; prev = prev->m_Prev) {
+                if (prev->m_FlowMode & kFlowInlinePreviousSibling) {
+                    return prev;
+                }
+            }
 
+            return NULL;
+        }
     private:
         int32_t nchildren;
         void dispatchMouseEvents(NativeCanvasHandler *layer);
         COORD_POSITION coordPosition;
         Visibility visibility;
+        unsigned m_FlowMode;
         unsigned coordMode : 16;
         double opacity;
         double zoom;

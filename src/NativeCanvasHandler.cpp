@@ -17,6 +17,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     m_Parent(NULL), m_Children(NULL), m_Next(NULL),
     m_Prev(NULL), m_Last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE),
+    m_FlowMode(kFlowDoesntInteract),
     coordMode(kLeft_Coord | kTop_Coord),
     opacity(1.0),
     zoom(1.0),
@@ -43,6 +44,13 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
 
 void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mode)
 {
+    if (mode == COORD_INLINE) {
+        mode = COORD_RELATIVE;
+        m_FlowMode |= kFlowInlinePreviousSibling;
+    } else {
+        m_FlowMode &= ~kFlowInlinePreviousSibling;
+    }
+
     coordPosition = mode;
     this->computeAbsolutePosition();
 }
@@ -59,6 +67,10 @@ bool NativeCanvasHandler::setWidth(int width)
 
     if (!this->hasFixedWidth()) {
         return false;
+    }
+
+    if (this->width == width) {
+        return true;
     }
 
     this->width = width;
@@ -87,7 +99,9 @@ bool NativeCanvasHandler::setHeight(int height)
     if (!this->hasFixedHeight()) {
         return false;
     }
-
+    if (this->height == height) {
+        return true;
+    }
     this->height = height;
 
     if (m_Context) {
@@ -109,9 +123,12 @@ bool NativeCanvasHandler::setHeight(int height)
 
 void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 {
-
     if (height < 1) height = 1;
     if (width < 1) width = 1;
+
+    if (this->height == height && this->width == width) {
+        return;
+    }
 
     this->width = width;
     this->height = height;
@@ -248,7 +265,6 @@ void NativeCanvasHandler::removeFromParent()
     }
 
     if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
-        printf("Reference barrier\n");
         JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
     
@@ -281,36 +297,64 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
     }
 }
 
-void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
-    double pleft, double ptop, double aopacity, double azoom, NativeRect *clip)
+void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 {
     NativeCanvasHandler *cur;
     NativeRect nclip;
+    NativeLayerSiblingContext *sctx = layerContext.siblingCtx;
 
     if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
         return;
     }
 
     //double pzoom = this->zoom * azoom;
-    double popacity = this->opacity * aopacity;
+    double popacity = this->opacity * layerContext.aopacity;
 
-    int tmpLeft = this->getLeft();
-    int tmpTop = this->getTop();
+    int tmpLeft;
+    int tmpTop;
+
+    if (this->coordPosition == COORD_RELATIVE && this->m_FlowMode & kFlowInlinePreviousSibling) {
+        NativeCanvasHandler *prev = getPrevInlineSibling();
+
+        if (!prev) {
+            tmpLeft = tmpTop = 0;
+        } else {
+            tmpLeft = prev->a_left + prev->getWidth();
+            tmpTop = prev->a_top;
+
+            if (m_Parent) {
+                /* New "line" */
+                if (tmpLeft + this->getWidth() > m_Parent->a_left + m_Parent->getWidth()) {
+                    sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
+                    sctx->maxLineHeight = this->getHeight();
+
+                    tmpTop = prev->a_top + sctx->maxLineHeightPreviousLine;
+                    tmpLeft = 0;
+                }
+            }
+        }
+        if (this->getHeight() > sctx->maxLineHeight) {
+            sctx->maxLineHeight = this->getHeight();
+        }
+    } else {
+        tmpLeft = this->getLeft();
+        tmpTop = this->getTop();
+    }
 
     /*
         Fill the root layer with white
         This is the base surface on top of the window frame buffer
     */
-    if (layer == NULL && m_Context) {
-        layer = this;
+    if (layerContext.layer == NULL && m_Context) {
+        layerContext.layer = this;
         m_Context->clear(0xFFFFFFFF);
         m_Context->flush();
     } else {
         double cleft = 0.0, ctop = 0.0;
 
         if (coordPosition != COORD_ABSOLUTE) {
-            cleft = pleft;
-            ctop = ptop;
+            cleft = layerContext.pleft;
+            ctop = layerContext.ptop;
         }
 
         /*
@@ -324,7 +368,7 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             Dispatch current mouse position.
         */
 
-        this->dispatchMouseEvents(layer);
+        this->dispatchMouseEvents(layerContext.layer);
 
         /*
             draw current context on top of the root layer
@@ -334,32 +378,33 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             /*
                 Not visible. Don't call composeWith()
             */
-            if (!clip || coordPosition == COORD_ABSOLUTE || (clip->checkIntersect(
+            if (!layerContext.clip || coordPosition == COORD_ABSOLUTE ||
+              (layerContext.clip->checkIntersect(
                 this->a_left - this->padding.global,
                 this->a_top - this->padding.global,
                 this->a_left + this->padding.global + this->getWidth(),
                 this->a_top + this->padding.global + this->getHeight()))) {
             
-                this->m_Context->composeWith((NativeCanvas2DContext *)layer->m_Context,
+                this->m_Context->composeWith((NativeCanvas2DContext *)layerContext.layer->m_Context,
                     this->a_left - this->padding.global, 
                     this->a_top - this->padding.global, popacity, zoom,
-                    (coordPosition == COORD_ABSOLUTE) ? NULL : clip);
+                    (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
             }
         }
     }
 
     if (!this->overflow) {
-        if (clip == NULL) {
-            clip = &nclip;
-            clip->fLeft = this->a_left;
-            clip->fTop = this->a_top;
-            clip->fRight = this->width + this->a_left;
-            clip->fBottom = this->height + this->a_top;
+        if (layerContext.clip == NULL) {
+            layerContext.clip = &nclip;
+            layerContext.clip->fLeft = this->a_left;
+            layerContext.clip->fTop = this->a_top;
+            layerContext.clip->fRight = this->width + this->a_left;
+            layerContext.clip->fBottom = this->height + this->a_top;
             /*
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
-        } else if (!clip->intersect(this->a_left, this->a_top,
+        } else if (!layerContext.clip->intersect(this->a_left, this->a_top,
                     this->width + this->a_left, this->height + this->a_top)) {
             /* don't need to draw children (out of bounds) */
             return;
@@ -370,8 +415,8 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
         NativeRect tmpClip;
 
         /* Save the clip */
-        if (clip != NULL) {
-            memcpy(&tmpClip, clip, sizeof(NativeRect));
+        if (layerContext.clip != NULL) {
+            memcpy(&tmpClip, layerContext.clip, sizeof(NativeRect));
         }
         /* Occlusion culling */
 #if 0
@@ -384,25 +429,35 @@ void NativeCanvasHandler::layerize(NativeCanvasHandler *layer,
             
         }
 #endif
+        struct NativeLayerSiblingContext siblingctx;
+
         for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
             int offsetLeft = 0, offsetTop = 0;
             if (cur->coordPosition == COORD_RELATIVE) {
                 offsetLeft = -this->content.scrollLeft;
                 offsetTop  = -this->content.scrollTop;
             }
-            cur->layerize(layer,
-                    tmpLeft + this->translate_s.x + pleft + offsetLeft,
-                    tmpTop + this->translate_s.y + ptop + offsetTop,
-                    popacity, zoom, clip);
+
+            struct NativeLayerizeContext ctx = {
+                .layer = layerContext.layer,
+                .pleft = tmpLeft + this->translate_s.x + layerContext.pleft + offsetLeft,
+                .ptop  = tmpTop + this->translate_s.y + layerContext.ptop + offsetTop,
+                .aopacity = popacity,
+                .azoom = zoom,
+                .clip = layerContext.clip,
+                .siblingCtx = &siblingctx
+            };
+
+            cur->layerize(ctx);
 
             /* restore the old clip (layerize could have altered it) */
-            if (clip != NULL) {
-                memcpy(clip, &tmpClip, sizeof(NativeRect));
+            if (layerContext.clip != NULL) {
+                memcpy(layerContext.clip, &tmpClip, sizeof(NativeRect));
             }
         }
     }
 
-    if (layer == this) {
+    if (layerContext.layer == this) {
         this->mousePosition.consumed = true;
     }
 }
@@ -446,6 +501,23 @@ void NativeCanvasHandler::computeAbsolutePosition()
         this->a_top = this->getTop();
         this->a_left = this->getLeft();
         return;
+    }
+
+    if (this->coordPosition == COORD_RELATIVE &&
+        m_FlowMode & kFlowInlinePreviousSibling) {
+        this->left = 0;
+        this->top = 0;
+        NativeCanvasHandler *prev = getPrevInlineSibling();
+        if (prev) {
+            double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
+
+            prev->computeAbsolutePosition();
+
+            this->a_top = ctop + prev->a_top;
+            this->a_left = cleft + prev->a_left + prev->getWidth();
+
+            return;
+        }
     }
 
     double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
