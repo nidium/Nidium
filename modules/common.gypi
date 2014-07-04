@@ -4,6 +4,7 @@
         'include_dirs': [
             '<(native_src_path)',
             '<(native_spidermonkey_path)',
+            '<(third_party_path)/http-parser/',
         ],
         'xcode_settings': {
             'OTHER_CFLAGS': [
