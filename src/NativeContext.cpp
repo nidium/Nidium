@@ -1,3 +1,5 @@
+#define _HAVE_SSL_SUPPORT 1
+
 #include "NativeContext.h"
 #include "NativeMacros.h"
 #include <NativeJS.h>
@@ -5,6 +7,20 @@
 #include <NativeMessages.h>
 #include <NativeStreamInterface.h>
 #include <NativeFileStream.h>
+#include <native_netlib.h>
+
+
+int NativeContext_ping(void *arg)
+{
+    static uint64_t framecount = 0;
+    NativeJS *js = (NativeJS *)arg;
+
+    if (++framecount % 1000 == 0) {
+        js->gc();
+    }
+
+    return 8;
+}
 
 NativeContext::NativeContext(ape_global *net)
 {
@@ -19,6 +35,7 @@ NativeContext::NativeContext(ape_global *net)
 
     NativeJSconsole::registerObject(m_JS->cx);
 
+    add_timer(&net->timersng, 1, NativeContext_ping, (void *)m_JS);
 }
 
 NativeContext::~NativeContext()

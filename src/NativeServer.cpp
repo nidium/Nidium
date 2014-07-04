@@ -1,3 +1,5 @@
+#define _HAVE_SSL_SUPPORT 1
+
 #include <native_netlib.h>
 #include <string.h>
 #include <stdio.h>
