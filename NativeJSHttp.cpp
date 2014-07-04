@@ -251,6 +251,7 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
     JS_CallFunctionValue(cx, jsobj, onerror_callback,
         1, &jevent, &rval);    
 
+    NativeJSObj(cx)->unrootObject(this->jsobj);
 }
 
 void NativeJSHttp::onProgress(size_t offset, size_t len,
@@ -296,7 +297,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     jevent = OBJECT_TO_JSVAL(event);
 
     JS_CallFunctionValue(cx, jsobj, ondata_callback,
-        1, &jevent, &rval);    
+        1, &jevent, &rval);
 }
 
 void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
