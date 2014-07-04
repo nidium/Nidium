@@ -439,6 +439,10 @@ NativeHTTPClientConnection::~NativeHTTPClientConnection()
         m_TimeoutTimer = 0;
     }   
 
+    if (m_HttpState.headers.list) {
+        ape_array_destroy(m_HttpState.headers.list);
+    }
+
     if (m_HttpState.data) {
         buffer_destroy(m_HttpState.data);
     }
