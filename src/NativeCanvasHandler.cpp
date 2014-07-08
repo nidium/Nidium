@@ -508,19 +508,9 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
     if (this->coordPosition == COORD_RELATIVE &&
         m_FlowMode & kFlowInlinePreviousSibling) {
-        this->left = 0;
-        this->top = 0;
-        NativeCanvasHandler *prev = getPrevInlineSibling();
-        if (prev) {
-            double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
 
-            prev->computeAbsolutePosition();
-
-            this->a_top = ctop + prev->a_top;
-            this->a_left = cleft + prev->a_left + prev->getWidth();
-
-            return;
-        }
+        
+        return;
     }
 
     double ctop = this->getTopScrolled(), cleft = this->getLeftScrolled();
