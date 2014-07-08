@@ -106,7 +106,12 @@ static __inline uint64_t mach_absolute_time()
 static __inline uint64_t mach_absolute_time()
 {
     struct timespec t;
-    clock_gettime(CLOCK_MONOTONIC, &t);
+#ifdef CLOCK_MONOTONIC_RAW
+  #define USED_CLOCK CLOCK_MONOTONIC_RAW
+#else
+  #define USED_CLOCK CLOCK_MONOTONIC
+#endif
+    clock_gettime(USED_CLOCK, &t);
 
     return (uint64_t)t.tv_sec * 1000000000 + (uint64_t)t.tv_nsec;
 }
