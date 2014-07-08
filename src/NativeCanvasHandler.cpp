@@ -327,7 +327,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
             if (m_Parent) {
                 /* New "line" */
-                if (tmpLeft + this->getWidth() > m_Parent->a_left + m_Parent->getWidth()) {
+                if (tmpLeft + this->getWidth() > m_Parent->getWidth()) {
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
                     sctx->maxLineHeight = this->getHeight();
 
@@ -498,6 +498,25 @@ bool NativeCanvasHandler::isDisplayed() const
     return (m_Parent ? m_Parent->isDisplayed() : true);
 }
 
+/*
+ else {
+            this->left = tmpLeft = prev->left + prev->getWidth();
+            this->top = tmpTop = prev->top;
+
+            if (m_Parent) {
+                if (tmpLeft + this->getWidth() > m_Parent->a_left + m_Parent->getWidth()) {
+                    sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
+                    sctx->maxLineHeight = this->getHeight();
+
+                    tmpTop = this->top = prev->top + sctx->maxLineHeightPreviousLine;
+                    tmpLeft = this->left = 0;
+                }
+            }
+        }
+        if (this->getHeight() > sctx->maxLineHeight) {
+            sctx->maxLineHeight = this->getHeight();
+        }
+*/
 void NativeCanvasHandler::computeAbsolutePosition()
 {
     if (this->coordPosition == COORD_ABSOLUTE) {
@@ -509,7 +528,50 @@ void NativeCanvasHandler::computeAbsolutePosition()
     if (this->coordPosition == COORD_RELATIVE &&
         m_FlowMode & kFlowInlinePreviousSibling) {
 
-        
+        if (m_Parent == NULL) {
+            this->a_top = this->a_left = 0;
+            return;
+        }
+
+        NativeCanvasHandler *elem;
+
+        m_Parent->computeAbsolutePosition();
+
+        double offset_x = m_Parent->a_left, offset_y = m_Parent->a_top;
+        double maxLineHeightPreviousLine = 0, maxLineHeight = 0;
+
+        for (elem = m_Parent->getFirstChild(); elem != NULL;
+            elem = elem->m_Next) {
+
+            if (elem->m_Prev) {
+                elem->left = elem->m_Prev->left + elem->m_Prev->getWidth();
+                elem->top = elem->m_Prev->top;
+
+                if (elem->left + elem->getWidth() >  m_Parent->getWidth()) {
+                    maxLineHeightPreviousLine = maxLineHeight;
+                    maxLineHeight = elem->getHeight();
+
+                    elem->top = elem->m_Prev->top + maxLineHeightPreviousLine;
+                    elem->left = 0;
+                }
+            } else {
+                /* The first element is aligned to the parent's top-left */
+                elem->left = 0;
+                elem->top = 0;
+            }
+
+            elem->a_left = elem->left + offset_x;
+            elem->a_top = elem->top + offset_y;
+
+            if (elem->getHeight() > maxLineHeight) {
+                maxLineHeight = elem->getHeight();
+            }
+
+            if (elem == this) {
+                break;
+            }
+        }
+
         return;
     }
 
