@@ -775,6 +775,10 @@ int NativeJS::LoadScriptReturn(JSContext *cx,
 int NativeJS::LoadScriptContent(const char *data, size_t len,
     const char *filename)
 {
+    if (!len) {
+        /* silently success */
+        return 1;
+    }
     /*
         Detect JSBytecode using XDR magic number ad defined in xdr.h
     */
