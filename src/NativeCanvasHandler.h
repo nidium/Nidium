@@ -281,7 +281,6 @@ class NativeCanvasHandler : public NativeEvents
 
         void setLeft(double val) {
             if (m_FlowMode & kFlowInlinePreviousSibling) {
-                this->left = 0;
                 return;
             }
             coordMode |= kLeft_Coord;
@@ -300,14 +299,13 @@ class NativeCanvasHandler : public NativeEvents
 
         void setTop(double val) {
             if (m_FlowMode & kFlowInlinePreviousSibling) {
-                this->left = 0;
                 return;
             }
             coordMode |= kTop_Coord;
             this->top = val;
             if (!hasFixedHeight()) {
                 setSize(this->width, this->getHeight());
-            }            
+            }
         }
 
         void setBottom(double val) {

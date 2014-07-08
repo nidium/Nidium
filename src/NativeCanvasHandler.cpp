@@ -318,9 +318,12 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
         if (!prev) {
             tmpLeft = tmpTop = 0;
+            this->left = 0;
+            this->top = 0;
+
         } else {
-            tmpLeft = prev->a_left + prev->getWidth();
-            tmpTop = prev->a_top;
+            this->left = tmpLeft = prev->left + prev->getWidth();
+            this->top = tmpTop = prev->top;
 
             if (m_Parent) {
                 /* New "line" */
@@ -328,8 +331,8 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
                     sctx->maxLineHeight = this->getHeight();
 
-                    tmpTop = prev->a_top + sctx->maxLineHeightPreviousLine;
-                    tmpLeft = 0;
+                    tmpTop = this->top = prev->top + sctx->maxLineHeightPreviousLine;
+                    tmpLeft = this->left = 0;
                 }
             }
         }
