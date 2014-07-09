@@ -1011,8 +1011,16 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
-            printf("Got a resize event...\n");
+        {
+            JS::Value oncallback, rval;
+            if (JS_GetProperty(cx, this->jsobj, "onresize", &oncallback) &&
+                JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
+
+                JS_CallFunctionValue(cx, this->jsobj, oncallback,
+                    0, NULL, &rval);
+            }
             break;
+        }
         default:
             break;
     }
