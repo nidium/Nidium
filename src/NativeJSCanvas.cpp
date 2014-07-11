@@ -63,12 +63,26 @@ enum {
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Trace(JSTracer *trc, JSRawObject obj);
 
+static JSBool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
+
 JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
     0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
+
+JSClass Canvas_Inherit_class = {
+    "CanvasInherit", JSCLASS_HAS_PRIVATE,
+        JS_PropertyStub,
+        JS_PropertyStub,
+        CanvasInherit_get,
+        JS_StrictPropertyStub,
+        JS_EnumerateStub,
+        JS_ResolveStub,
+        JS_ConvertStub
+};
+
 
 static JSClass *NativeLocalClass = &Canvas_class;
 
@@ -223,6 +237,32 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FN("setScale", native_canvas_setScale, 2, 0),
     JS_FS_END
 };
+
+static JSBool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+{
+    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
+    if (!jscanvas) {
+        return true;
+    }
+
+    NativeCanvasHandler *handler = jscanvas->getHandler(), *parent;
+
+    if (vp.get() == JSVAL_VOID) {
+
+        if ((parent = handler->getParent()) == NULL || !parent->jsobj) {
+            return true;
+        }
+
+        NativeJSCanvas *jscanvas_parent =
+            (class NativeJSCanvas *)JS_GetPrivate(parent->jsobj);
+
+        JS::Value ret;
+        JS_GetPropertyById(cx, jscanvas_parent->getInherit(), id, &ret);
+        vp.set(ret);
+    }
+
+    return true;
+}
 
 NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
 {
@@ -1000,6 +1040,9 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
 
+    JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
+        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
         &width, &height)) {
         return false;
@@ -1011,11 +1054,13 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     handler->jscx = cx;
 
     NativeJSCanvas *jscanvas = new NativeJSCanvas(handler);
+    jscanvas->setInherit(inherit);
 
     jscanvas->cx = cx;
     jscanvas->jsobj = ret;
 
     JS_SetPrivate(ret, jscanvas);
+    JS_SetPrivate(inherit, jscanvas);
 
     //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);    
@@ -1068,6 +1113,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
+    JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
+        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 
     handler = new NativeCanvasHandler(width, height);
     handler->setContext(new NativeCanvas2DContext(handler, cx, width, height, ui));
@@ -1083,10 +1130,12 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
     NativeJSCanvas *jscanvas = new NativeJSCanvas(handler);
 
+    jscanvas->setInherit(inherit);
     jscanvas->cx = cx;
     jscanvas->jsobj = ret;
 
     JS_SetPrivate(ret, jscanvas);
+    JS_SetPrivate(inherit, jscanvas);
 
     //JS_DefineFunctions(cx, ret, canvas_funcs);
     JS_DefineProperties(cx, ret, canvas_props);
@@ -1128,10 +1177,9 @@ void NativeJSCanvas::onMessageLost(const NativeSharedMessages::Message &msg)
 
 }
 
-NativeJSCanvas::NativeJSCanvas(NativeCanvasHandler *handler)
+NativeJSCanvas::NativeJSCanvas(NativeCanvasHandler *handler) :
+    m_CanvasHandler(handler), m_Inherit(NULL)
 {
-    m_CanvasHandler = handler;
-
     m_CanvasHandler->addListener(this);
 }
 

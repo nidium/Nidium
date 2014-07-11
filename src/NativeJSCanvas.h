@@ -23,8 +23,17 @@ public:
         return m_CanvasHandler;
     }
 
+    void setInherit(JSObject *obj) {
+        m_Inherit = obj;
+    }
+
+    JSObject *getInherit() const {
+        return m_Inherit;
+    }
+
 private:
     NativeCanvasHandler *m_CanvasHandler;
+    JSObject *m_Inherit;
 };
 
 #endif
