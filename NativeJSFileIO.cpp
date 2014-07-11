@@ -466,12 +466,13 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
 
     NativePtrAutoDelete<char *> cbuf(buf, free);
     char *cencoding = NULL;
+    JSAutoByteString encoding;
 
     GET_OPT("encoding") {
-        JSAutoByteString encoding(cx, curopt.toString());
+        encoding.encodeLatin1(cx, curopt.toString());
         cencoding = encoding.ptr();
     }
-
+    
     jsval ret;
 
     if (!NativeJSUtils::strToJsval(cx, buf, len, &ret, cencoding)) {
