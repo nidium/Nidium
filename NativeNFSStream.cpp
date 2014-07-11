@@ -151,7 +151,7 @@ bool NativeNFSStream::getContentSync(char **data, size_t *len, bool mmap)
     if (!mmap) {
         *data = (char *)malloc(*len + 1);
         memcpy(*data, ret, *len);
-        *data[*len] = '\0';
+        (*data)[*len] = '\0';
     } else {
         /* /!\ data is not null terminated */
         *data = (char *)ret;
