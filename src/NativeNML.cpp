@@ -15,7 +15,7 @@
 
 NativeNML::NativeNML(ape_global *net) :
     net(net), stream(NULL), nassets(0),
-    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL)
+    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL), m_defaultItemsLoaded(false)
 {
     assetsList.size = 0;
     assetsList.allocated = 4;
@@ -236,7 +236,12 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
 
 void NativeNML::loadDefaultItems(NativeAssets *assets)
 {
-#if 1
+    if (m_defaultItemsLoaded) {
+        return;
+    }
+
+    m_defaultItemsLoaded = true;
+
     NativeAssets::Item *preload = new NativeAssets::Item("private://preload.js",
         NativeAssets::Item::ITEM_SCRIPT, net);
 
@@ -246,7 +251,6 @@ void NativeNML::loadDefaultItems(NativeAssets *assets)
         NativeAssets::Item::ITEM_SCRIPT, net);
 
     assets->addToPendingList(falcon);
-#endif
 }
 
 NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)

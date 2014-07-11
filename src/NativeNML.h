@@ -115,6 +115,8 @@ public:
 
     rapidxml::xml_node<> *m_Layout;
     JSObject *m_JSObjectLayout;
+
+    bool m_defaultItemsLoaded;
 };
 
 

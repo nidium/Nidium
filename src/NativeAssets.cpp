@@ -46,9 +46,8 @@ void NativeAssets::Item::onMessage(const NativeSharedMessages::Message &msg)
         }
         default:
             break;
-    }   
+    }
 }
-
 
 NativeAssets::Item::~Item()
 {
@@ -105,7 +104,7 @@ void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
 
     if (len) {
         this->data.data = (unsigned char *)malloc(len);
-        memcpy(this->data.data, data, len);
+        memcpy(this->data.data, data, len); 
     } else {
         this->data.data = NULL;
     }
@@ -125,7 +124,6 @@ void NativeAssets::addToPendingList(Item *item)
     struct item_list *il = (struct item_list *)malloc(sizeof(*il));
 
     this->nitems++;
-
     il->item = item;
     il->next = NULL;
     item->state = NativeAssets::Item::ITEM_LOADING;
@@ -164,6 +162,7 @@ void NativeAssets::endListUpdate(ape_global *ape)
 
 void NativeAssets::pendingListUpdate()
 {
+    bool worked = false;
     struct item_list *il = pending_list.head, *ilnext;
     while (il != NULL && il->item->state == NativeAssets::Item::ITEM_LOADED) {
         this->nitems--;
@@ -181,9 +180,11 @@ void NativeAssets::pendingListUpdate()
         free(il);
 
         il = ilnext;
+
+        worked = true;
     }
 
-    if (this->nitems == 0) {
+    if (this->nitems == 0 && worked) {
         assetsReady(this, readyArg);
     }
 }
