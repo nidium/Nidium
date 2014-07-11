@@ -165,7 +165,7 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
         if (!updateHeight && !updateWidth) {
             continue;
         }
-        NLOG("Update size of %p through parent", cur);
+        //NLOG("Update size of %p through parent", cur);
         cur->setSize(updateWidth ? cur->getWidth() : cur->width,
             updateHeight ? cur->getHeight() : cur->height);
     }
@@ -498,25 +498,6 @@ bool NativeCanvasHandler::isDisplayed() const
     return (m_Parent ? m_Parent->isDisplayed() : true);
 }
 
-/*
- else {
-            this->left = tmpLeft = prev->left + prev->getWidth();
-            this->top = tmpTop = prev->top;
-
-            if (m_Parent) {
-                if (tmpLeft + this->getWidth() > m_Parent->a_left + m_Parent->getWidth()) {
-                    sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
-                    sctx->maxLineHeight = this->getHeight();
-
-                    tmpTop = this->top = prev->top + sctx->maxLineHeightPreviousLine;
-                    tmpLeft = this->left = 0;
-                }
-            }
-        }
-        if (this->getHeight() > sctx->maxLineHeight) {
-            sctx->maxLineHeight = this->getHeight();
-        }
-*/
 void NativeCanvasHandler::computeAbsolutePosition()
 {
     if (this->coordPosition == COORD_ABSOLUTE) {
@@ -533,7 +514,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
             return;
         }
 
-        NativeCanvasHandler *elem;
+        NativeCanvasHandler *elem, *prev = NULL;
 
         m_Parent->computeAbsolutePosition();
 
@@ -543,15 +524,19 @@ void NativeCanvasHandler::computeAbsolutePosition()
         for (elem = m_Parent->getFirstChild(); elem != NULL;
             elem = elem->m_Next) {
 
-            if (elem->m_Prev) {
-                elem->left = elem->m_Prev->left + elem->m_Prev->getWidth();
-                elem->top = elem->m_Prev->top;
+            if (!(elem->getFlowMode() & kFlowInlinePreviousSibling)) {
+                continue;
+            }
+
+            if (prev) {
+                elem->left = prev->left + prev->getWidth();
+                elem->top = prev->top;
 
                 if (elem->left + elem->getWidth() >  m_Parent->getWidth()) {
                     maxLineHeightPreviousLine = maxLineHeight;
                     maxLineHeight = elem->getHeight();
 
-                    elem->top = elem->m_Prev->top + maxLineHeightPreviousLine;
+                    elem->top = prev->top + maxLineHeightPreviousLine;
                     elem->left = 0;
                 }
             } else {
@@ -570,6 +555,8 @@ void NativeCanvasHandler::computeAbsolutePosition()
             if (elem == this) {
                 break;
             }
+
+            prev = elem;
         }
 
         return;

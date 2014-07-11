@@ -215,10 +215,19 @@ class NativeCanvasHandler : public NativeEvents
         }
 
         double getRight() const {
-            return this->right;
+            if (hasStaticRight() || !m_Parent) {
+                return this->right;
+            }
+            
+            return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
         }
+
         double getBottom() const {
-            return this->bottom;
+            if (hasStaticBottom() || !m_Parent) {
+                return this->bottom;
+            }
+            
+            return m_Parent->getHeight() - (getTopScrolled() + getHeight());
         }
 
         /*
@@ -261,6 +270,22 @@ class NativeCanvasHandler : public NativeEvents
         bool hasFixedHeight() const {
             return !((coordMode & (kTop_Coord | kBottom_Coord))
                     == (kTop_Coord|kBottom_Coord));
+        }
+
+        bool hasStaticLeft() const {
+            return coordMode & kLeft_Coord;
+        }
+
+        bool hasStaticRight() const {
+            return coordMode & kRight_Coord;
+        }
+
+        bool hasStaticTop() const {
+            return coordMode & kTop_Coord;
+        }
+
+        bool hasStaticBottom() const {
+            return coordMode & kBottom_Coord;
         }        
 
         void unsetLeft() {

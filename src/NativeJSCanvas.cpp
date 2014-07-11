@@ -53,7 +53,11 @@ enum {
     CANVAS_PROP_SCROLLLEFT,
     CANVAS_PROP___FIXED,
     CANVAS_PROP___OUTOFBOUND,
-    CANVAS_PROP_ALLOWNEGATIVESCROLL
+    CANVAS_PROP_ALLOWNEGATIVESCROLL,
+    CANVAS_PROP_STATICLEFT,
+    CANVAS_PROP_STATICRIGHT,
+    CANVAS_PROP_STATICTOP,
+    CANVAS_PROP_STATICBOTTOM
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -182,6 +186,17 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+
+    {"staticLeft", CANVAS_PROP_STATICLEFT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"staticRight", CANVAS_PROP_STATICRIGHT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"staticTop", CANVAS_PROP_STATICTOP, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"staticBottom", CANVAS_PROP_STATICBOTTOM, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -613,8 +628,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             JS_ValueToECMAUint32(cx, vp, &dval);
 
             if (!handler->setWidth(dval)) {
-                JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
-                return JS_FALSE;
+                //JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
+                return true;
             }
         }
         break;
@@ -627,14 +642,20 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             JS_ValueToECMAUint32(cx, vp, &dval);
             
             if (!handler->setHeight(dval)) {
-                JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
-                return JS_FALSE;
+                //JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
+                return true;
             }
         }
         break;
         case CANVAS_PROP_LEFT:
         {
             double dval;
+
+            if (!handler->hasStaticLeft()) {
+                //JS_ReportError(cx, "Can't set .left property if .staticLeft == false");
+                return true;
+            }
+
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetLeft();
                 return JS_TRUE;
@@ -649,6 +670,12 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_RIGHT:
         {
             double dval;
+
+            if (!handler->hasStaticRight()) {
+                //JS_ReportError(cx, "Can't set .right property if .staticRight == false");
+                return true;
+            }
+
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetRight();
                 return JS_TRUE;
@@ -663,6 +690,9 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_TOP:
         {
             double dval;
+            if (!handler->hasStaticTop()) {
+                return true;
+            }
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetTop();
                 return JS_TRUE;
@@ -677,6 +707,9 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_BOTTOM:
         {
             double dval;
+            if (!handler->hasStaticBottom()) {
+                return true;
+            }
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetBottom();
                 return JS_TRUE;
@@ -759,7 +792,59 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             JS_ValueToNumber(cx, vp, &dval);
             handler->setOpacity(dval);      
         }
-        break;     
+        break;
+        case CANVAS_PROP_STATICLEFT:
+        {
+            if (!vp.isBoolean()) {
+                return true;
+            }
+
+            if (vp.toBoolean()) {
+                handler->setLeft(handler->getLeft());
+            } else {
+                handler->unsetLeft();
+            }
+        }
+        break;
+        case CANVAS_PROP_STATICRIGHT:
+        {
+            if (!vp.isBoolean()) {
+                return true;
+            }
+
+            if (vp.toBoolean()) {
+                handler->setRight(handler->getRight());
+            } else {
+                handler->unsetRight();
+            }
+        }
+        break;
+        case CANVAS_PROP_STATICTOP:
+        {
+            if (!vp.isBoolean()) {
+                return true;
+            }
+
+            if (vp.toBoolean()) {
+                handler->setTop(handler->getTop());
+            } else {
+                handler->unsetTop();
+            }
+        }
+        break;
+        case CANVAS_PROP_STATICBOTTOM:
+        {
+            if (!vp.isBoolean()) {
+                return true;
+            }
+
+            if (vp.toBoolean()) {
+                handler->setBottom(handler->getBottom());
+            } else {
+                handler->unsetBottom();
+            }
+        }
+        break;
         default:
             break;
     }
@@ -808,6 +893,18 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_CLIENTTOP:
             vp.set(INT_TO_JSVAL(handler->getTop() - handler->padding.global));
+            break;
+        case CANVAS_PROP_STATICLEFT:
+            vp.setBoolean(handler->hasStaticLeft());
+            break;
+        case CANVAS_PROP_STATICRIGHT:
+            vp.setBoolean(handler->hasStaticRight());
+            break;
+        case CANVAS_PROP_STATICTOP:
+            vp.setBoolean(handler->hasStaticTop());
+            break;
+        case CANVAS_PROP_STATICBOTTOM:
+            vp.setBoolean(handler->hasStaticBottom());
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
