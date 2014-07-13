@@ -4,6 +4,8 @@
 #include "NativeCanvasHandler.h"
 #include "NativeContext.h"
 
+#include <assert.h>
+
 //#define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
 
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
@@ -194,9 +196,9 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__left", CANVAS_PROP___LEFT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY,
+    {"__fixed", CANVAS_PROP___FIXED, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
-    {"__outofbound", CANVAS_PROP___OUTOFBOUND, JSPROP_PERMANENT | JSPROP_READONLY,
+    {"__outofbound", CANVAS_PROP___OUTOFBOUND, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_SHARED,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"ctx", CANVAS_PROP_CTX, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
@@ -268,6 +270,19 @@ NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
     if (!jscanvas) {
+        return NULL;
+    }
+
+    return jscanvas->getHandler();
+}
+
+static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, jsval *argv = NULL)
+{
+    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetInstancePrivate(cx, obj, &Canvas_class, argv);
+    if (!jscanvas) {
+        JSClass *cl = JS_GetClass(obj);
+        printf("Missmatch classe %s\n", cl->name);
+        //assert(1!=1);
         return NULL;
     }
 
@@ -636,7 +651,10 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
-    NativeCanvasHandler *handler = HANDLER_GETTER(obj.get());
+    NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj.get());
+    if (!handler) {
+        return true;
+    }
 
     switch(JSID_TO_INT(id)) {
 
@@ -895,7 +913,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
-    NativeCanvasHandler *handler = HANDLER_GETTER(obj.get());
+    NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj.get());
+    if (!handler) {
+        return true;
+    }
 
     switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_OPACITY:
@@ -1062,9 +1083,6 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SetPrivate(ret, jscanvas);
     JS_SetPrivate(inherit, jscanvas);
 
-    //JS_DefineFunctions(cx, ret, canvas_funcs);
-    JS_DefineProperties(cx, ret, canvas_props);    
-
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     return JS_TRUE;
@@ -1137,9 +1155,6 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     JS_SetPrivate(ret, jscanvas);
     JS_SetPrivate(inherit, jscanvas);
 
-    //JS_DefineFunctions(cx, ret, canvas_funcs);
-    JS_DefineProperties(cx, ret, canvas_props);
-
     *out = handler;
 
     return ret;
@@ -1149,7 +1164,7 @@ void NativeJSCanvas::registerObject(JSContext *cx)
 {
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas_class,
         native_Canvas_constructor,
-        2, NULL, canvas_funcs, canvas_props, NULL);
+        2, canvas_props, canvas_funcs, NULL, NULL);
 }
 
 
