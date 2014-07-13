@@ -95,9 +95,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_JS->setPath(NativePath::getPwd());
 
     m_WSClient = NULL;
-    m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
+    m_WS = NULL;
+    /*m_WS = new NativeWebSocketListener(4000, "127.0.0.1");
     m_WS->addListener(this);
-    m_WS->start();
+    m_WS->start();*/
 
 }
 
