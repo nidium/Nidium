@@ -161,4 +161,9 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
+#define JSNATIVE_PROLOGUE(ofclass) \
+    JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj);
+
 #endif
