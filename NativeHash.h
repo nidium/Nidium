@@ -82,10 +82,14 @@ template <typename T>
 class NativeHash : public NativeNoncopyable
 {
     public:
-        NativeHash() :
+        NativeHash(int size = 0) :
             m_AutoDelete(false)
         {
-            this->table = hashtbl_init(APE_HASH_STR);
+           if (!size) {
+                this->table = hashtbl_init(APE_HASH_STR);
+            } else {
+                this->table = hashtbl_init_with_size(APE_HASH_STR, size);
+            }
         }
         ~NativeHash() {
             hashtbl_free(this->table);
