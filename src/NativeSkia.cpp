@@ -434,8 +434,6 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
-    
-    NLOG("Create gl context widtg %dx%d", width, height);
 
     desc.fWidth = SkScalarRound(width*ratio);
     desc.fHeight = SkScalarRound(height*ratio);

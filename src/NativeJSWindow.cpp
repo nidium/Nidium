@@ -921,7 +921,7 @@ void NativeJSwindow::initDataBase()
     if (m_Db->ok()) {
         this->createStorage();
     } else {
-        NLOG("[Storage] Unable to create database for window.storage");
+        NLOG("[Notice] Unable to create window.storage (empty identifier tag in NML?)");
     }
 }
 
