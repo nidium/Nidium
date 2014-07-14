@@ -49,6 +49,7 @@
 #include "Sk2DPathEffect.h"
 
 #include <NativePath.h>
+#include <NativeJSDocument.h>
 #include <SkStream.h>
 
 SkCanvas *NativeSkia::glcontext = NULL;
@@ -599,8 +600,18 @@ void NativeSkia::setFontSize(double size)
     PAINT_STROKE->setTextSize(ssize);
 }
 
-void NativeSkia::setFontType(const char *str)
+void NativeSkia::setFontType(char *str, NativeJSdocument *doc)
 {
+    if (doc) {
+        SkTypeface *tf = doc->getFont(str);
+        if (tf) {
+            PAINT->setTypeface(tf);
+            PAINT_STROKE->setTypeface(tf);
+
+            return;
+        }
+    }
+    //NativeJSdocument *jdoc = NativeJSdocument::
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
     // Workarround for skia bug #1648
@@ -1041,14 +1052,12 @@ void NativeSkia::fill()
     }
 
     SkShader *shader = PAINT->getShader();
-    const SkMatrix *m = NULL;
+    SkShader *tmpShader;
 
     if (shader != NULL) {
-        if (shader->hasLocalMatrix()) {
-            m = &shader->getLocalMatrix();
-        }
-
-        shader->setLocalMatrix(m_Canvas->getTotalMatrix());
+        tmpShader = SkShader::CreateLocalMatrixShader(shader, m_Canvas->getTotalMatrix());
+        shader->ref();
+        PAINT->setShader(tmpShader)->unref();
     }
     /* The matrix was already applied point by point */
     m_Canvas->save(SkCanvas::kMatrix_SaveFlag);
@@ -1056,10 +1065,8 @@ void NativeSkia::fill()
     m_Canvas->drawPath(*currentPath, *PAINT);
     m_Canvas->restore();
 
-    if (shader != NULL && m != NULL) {
-        shader->setLocalMatrix(*m);
-    } else if (shader != NULL) {
-        shader->resetLocalMatrix();
+    if (shader != NULL) {
+        PAINT->setShader(shader)->unref();
     }
 
     CANVAS_FLUSH();
@@ -1071,14 +1078,12 @@ void NativeSkia::stroke()
         return;
     }
     SkShader *shader = PAINT_STROKE->getShader();
-    const SkMatrix *m = NULL;
+    SkShader *tmpShader;
 
     if (shader != NULL) {
-        if (shader->hasLocalMatrix()) {
-            m = &shader->getLocalMatrix();
-        }
-
-        shader->setLocalMatrix(m_Canvas->getTotalMatrix());
+        tmpShader = SkShader::CreateLocalMatrixShader(shader, m_Canvas->getTotalMatrix());
+        shader->ref();
+        PAINT->setShader(tmpShader)->unref();
     }
 
     /* The matrix was already applied point by point */
@@ -1100,10 +1105,8 @@ void NativeSkia::stroke()
 
     m_Canvas->restore();
 
-    if (shader != NULL && m != NULL) {
-        shader->setLocalMatrix(*m);
-    } else if (shader != NULL) {
-        shader->resetLocalMatrix();
+    if (shader != NULL) {
+        PAINT->setShader(shader)->unref();
     }
 
     CANVAS_FLUSH();
