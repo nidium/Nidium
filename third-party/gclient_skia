@@ -1,6 +1,6 @@
 solutions = [
   { "name"        : "skia",
-    "url"         : "http://skia.googlecode.com/svn/trunk@r12373",
+    "url"         : "http://skia.googlecode.com/svn/trunk@r15017",
     "deps_file"   : "DEPS",
     "managed"     : True,
     "custom_deps" : {
