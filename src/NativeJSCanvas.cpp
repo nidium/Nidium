@@ -16,8 +16,9 @@
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) return false; \
     if (JS_GetClass(thisobj) != NativeLocalClass) { \
+        JS_ReportError(cx, "Illegal invocation");\
         args.rval().setUndefined(); \
-        return true; \
+        return false; \
     } \
     ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj))->getHandler())
 

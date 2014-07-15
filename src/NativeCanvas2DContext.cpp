@@ -264,7 +264,7 @@ static JSBool native_canvas2dctx_stub(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, width, height, rx = 0, ry = 0;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd/dd", &x, &y,
         &width, &height, &rx, &ry)) {
@@ -283,7 +283,7 @@ static JSBool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, jsval *v
 
 static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, width, height, rx = 0, ry = 0;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd/dd", &x, &y,
         &width, &height, &rx, &ry)) {
@@ -304,7 +304,7 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
 {
     double x, y, width, height;
 
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd", &x, &y,
         &width, &height)) {
@@ -319,7 +319,7 @@ static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *
 static JSBool native_canvas2dctx_breakText(JSContext *cx,
     unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -375,7 +375,7 @@ static JSBool native_canvas2dctx_breakText(JSContext *cx,
 
 static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     int x, y, maxwidth;
     JSString *str;
 
@@ -400,7 +400,7 @@ static JSBool native_canvas2dctx_shadow(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_beginPath(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     NSKIA_NATIVE->beginPath();
 
     return JS_TRUE;
@@ -408,7 +408,7 @@ static JSBool native_canvas2dctx_beginPath(JSContext *cx, unsigned argc, jsval *
 
 static JSBool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
@@ -422,7 +422,7 @@ static JSBool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
@@ -436,7 +436,7 @@ static JSBool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_fill(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     NSKIA_NATIVE->fill();
 
     return JS_TRUE;
@@ -444,14 +444,14 @@ static JSBool native_canvas2dctx_fill(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_stroke(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     NSKIA_NATIVE->stroke();
 
     return JS_TRUE;
 }
 static JSBool native_canvas2dctx_closePath(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     NSKIA_NATIVE->closePath();
 
     return JS_TRUE;
@@ -459,7 +459,7 @@ static JSBool native_canvas2dctx_closePath(JSContext *cx, unsigned argc, jsval *
 
 static JSBool native_canvas2dctx_clip(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     NSKIA_NATIVE->clip();
 
     return JS_TRUE;
@@ -467,7 +467,7 @@ static JSBool native_canvas2dctx_clip(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_rect(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, width, height;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &x, &y,
@@ -482,7 +482,7 @@ static JSBool native_canvas2dctx_rect(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_arc(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     int x, y, radius;
     double startAngle, endAngle;
     JSBool CCW = JS_FALSE;
@@ -500,7 +500,7 @@ static JSBool native_canvas2dctx_arc(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &cpx, &cpy,
         &x, &y)) {
@@ -515,7 +515,7 @@ static JSBool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy, cpx2, cpy2;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd", &cpx, &cpy,
         &cpx2, &cpy2, &x, &y)) {
@@ -529,7 +529,7 @@ static JSBool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
 
 static JSBool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double angle;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &angle)) {
@@ -543,7 +543,7 @@ static JSBool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_scale(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
@@ -557,7 +557,7 @@ static JSBool native_canvas2dctx_scale(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_translate(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
@@ -571,7 +571,7 @@ static JSBool native_canvas2dctx_translate(JSContext *cx, unsigned argc, jsval *
 
 static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey, rotate;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd/d",
@@ -591,7 +591,7 @@ static JSBool native_canvas2dctx_transform(JSContext *cx, unsigned argc, jsval *
 
 static JSBool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
@@ -607,7 +607,7 @@ static JSBool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, jsval 
 
 static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
     NativeCanvasHandler *handler = CppObj->getHandler();
@@ -625,7 +625,7 @@ static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, jsva
 
 static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
     JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(thisobj, 0));
     JSObject *saved = JS_NewObject(cx, NULL, NULL, NULL);
@@ -652,7 +652,7 @@ static JSBool native_canvas2dctx_save(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_canvas2dctx_restore(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
     JSObject *savedArray = JSVAL_TO_OBJECT(JS_GetReservedSlot(thisobj, 0));
     NSKIA_NATIVE->restore();
@@ -707,7 +707,7 @@ static JSBool native_canvas2dctx_createLinearGradient(JSContext *cx,
 static JSBool native_canvas2dctx_getImageData(JSContext *cx,
     unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     int left, top, width, height;
     JSObject *dataObject;
     JSObject *arrBuffer;
@@ -741,7 +741,7 @@ static JSBool native_canvas2dctx_getImageData(JSContext *cx,
 static JSBool native_canvas2dctx_putImageData(JSContext *cx,
     unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JSObject *dataObject;
     int x, y;
     uint8_t *pixels;
@@ -917,7 +917,7 @@ static JSBool native_canvas2dctx_requestAnimationFrame(JSContext *cx,
 
 static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JSObject *jsimage;
     NativeSkImage *image;
     double x, y, width, height;
@@ -981,7 +981,7 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
 static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JSString *text;
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
@@ -1010,7 +1010,7 @@ static JSBool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &x, &y)) {
@@ -1031,7 +1031,7 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
 {
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double left = 0, right = 0, top = 0, bottom = 0;
     JSObject *obj = JS_NewObject(cx, NULL, NULL, NULL);
 
@@ -1050,7 +1050,7 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     CppObj->detachShader();
 
     return true;
@@ -1059,7 +1059,7 @@ static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc
 static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
     uint32_t vertex;
     double x, y;
@@ -1077,7 +1077,7 @@ static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JSString *glsl;
 
     size_t program;
@@ -1381,7 +1381,7 @@ static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsig
 static JSBool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, z;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ddd", &x, &y, &z)) {
