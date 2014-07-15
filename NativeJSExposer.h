@@ -166,4 +166,22 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj);
 
+#define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
+    JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    if (!thisobj) { \
+        JS_ReportError(cx, "Illegal invocation"); \
+        return false; \
+    } \
+    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
+    if (!CppObj) { \
+        JS_ReportError(cx, "Illegal invocation"); \
+        return false; \
+    }
+
+#define JS_INITOPT() JS::Value __curopt;
+
+#define JSGET_OPT(obj, name) if (JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
+#define JSGET_OPT_TYPE(obj, name, type) if (JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL && __curopt.is ## type())
+
 #endif
