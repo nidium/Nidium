@@ -884,7 +884,7 @@ NativeShadowLooper *NativeSkia::buildShadow()
         return NULL;
     }
 
-    return new NativeShadowLooper (SkDoubleToScalar(currentShadow.blur),
+    return NativeShadowLooper::Create(SkDoubleToScalar(currentShadow.blur),
                                 SkDoubleToScalar(currentShadow.x),
                                 SkDoubleToScalar(currentShadow.y),
                                 currentShadow.color,
