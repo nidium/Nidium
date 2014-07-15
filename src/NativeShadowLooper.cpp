@@ -12,40 +12,36 @@
 #include "SkString.h"
 #include "SkStringUtils.h"
 
-void NativeShadowLooper::init(SkCanvas* canvas) {
-    fState = kBeforeEdge;
-}
-
 
 void NativeShadowLooper::init(SkScalar sigma, SkScalar dx, SkScalar dy,
                             SkColor color, uint32_t flags) {
-
+    fSigma = sigma;
     fDx = dx;
     fDy = dy;
     fBlurColor = color;
     fBlurFlags = flags;
-    fState = kDone;
 
-    SkASSERT(flags <= kAll_BlurFlag);
-    if (sigma > 0) {
-        uint32_t blurFlags = flags & kIgnoreTransform_BlurFlag ?
-            SkBlurMaskFilter::kIgnoreTransform_BlurFlag :
-            SkBlurMaskFilter::kNone_BlurFlag;
+    this->initEffects();
+}
 
-        blurFlags |= flags & kHighQuality_BlurFlag ?
-            SkBlurMaskFilter::kHighQuality_BlurFlag :
-            SkBlurMaskFilter::kNone_BlurFlag;
+void NativeShadowLooper::initEffects()
+{
+    SkASSERT(fBlurFlags <= kAll_BlurFlag);
+    if (fSigma > 0) {
+        uint32_t flags = fBlurFlags & kIgnoreTransform_BlurFlag ?
+                            SkBlurMaskFilter::kIgnoreTransform_BlurFlag :
+                            SkBlurMaskFilter::kNone_BlurFlag;
 
-        fBlur = SkBlurMaskFilter::Create(SkBlurMaskFilter::kNormal_BlurStyle,
-                                         sigma,
-                                         blurFlags);
+        flags |= fBlurFlags & kHighQuality_BlurFlag ?
+                    SkBlurMaskFilter::kHighQuality_BlurFlag :
+                    SkBlurMaskFilter::kNone_BlurFlag;
+
+        fBlur = SkBlurMaskFilter::Create(kNormal_SkBlurStyle, fSigma, flags);
     } else {
         fBlur = NULL;
     }
 
-
     fColorFilter = NULL;
-
 }
 
 NativeShadowLooper::NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
@@ -58,15 +54,24 @@ NativeShadowLooper::NativeShadowLooper(SkColor color, SkScalar sigma,
     this->init(sigma, dx, dy, color, flags);
 }
 
-NativeShadowLooper::NativeShadowLooper(SkFlattenableReadBuffer& buffer)
-: INHERITED(buffer) {
+NativeShadowLooper::NativeShadowLooper(SkReadBuffer& buffer) : INHERITED(buffer) {
 
+    fSigma = buffer.readScalar();
     fDx = buffer.readScalar();
     fDy = buffer.readScalar();
     fBlurColor = buffer.readColor();
-    fBlur = buffer.readMaskFilter();
-    fColorFilter = buffer.readColorFilter();
     fBlurFlags = buffer.readUInt() & kAll_BlurFlag;
+
+    this->initEffects();
+}
+
+void NativeShadowLooper::flatten(SkWriteBuffer& buffer) const {
+    this->INHERITED::flatten(buffer);
+    buffer.writeScalar(fSigma);
+    buffer.writeScalar(fDx);
+    buffer.writeScalar(fDy);
+    buffer.writeColor(fBlurColor);
+    buffer.write32(fBlurFlags);
 }
 
 NativeShadowLooper::~NativeShadowLooper() {
@@ -74,17 +79,32 @@ NativeShadowLooper::~NativeShadowLooper() {
     SkSafeUnref(fColorFilter);
 }
 
-void NativeShadowLooper::flatten(SkFlattenableWriteBuffer& buffer) const {
-    this->INHERITED::flatten(buffer);
-    buffer.writeScalar(fDx);
-    buffer.writeScalar(fDy);
-    buffer.writeColor(fBlurColor);
-    buffer.writeFlattenable(fBlur);
-    buffer.writeFlattenable(fColorFilter);
-    buffer.writeUInt(fBlurFlags);
+bool NativeShadowLooper::asABlurShadow(BlurShadowRec* rec) const {
+    if (fSigma <= 0 || (fBlurFlags & fBlurFlags & kIgnoreTransform_BlurFlag)) {
+        return false;
+    }
+
+    if (rec) {
+        rec->fSigma = fSigma;
+        rec->fColor = fBlurColor;
+        rec->fOffset.set(fDx, fDy);
+        rec->fStyle = kNormal_SkBlurStyle;
+        rec->fQuality = (fBlurFlags & kHighQuality_BlurFlag) ?
+                        kHigh_SkBlurQuality : kLow_SkBlurQuality;
+    }
+    return true;
 }
 
-bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
+NativeShadowLooper::Context* NativeShadowLooper::createContext(SkCanvas*, void* storage) const {
+    return SkNEW_PLACEMENT_ARGS(storage, NativeShadowLooperContext, (this));
+}
+
+
+NativeShadowLooper::NativeShadowLooperContext::NativeShadowLooperContext(
+        const NativeShadowLooper* looper)
+    : fLooper(looper), fState(NativeShadowLooper::kBeforeEdge) {}
+
+bool NativeShadowLooper::NativeShadowLooperContext::next(SkCanvas* canvas, SkPaint* paint) {
     U8CPU a;
     switch (fState) {
         case kBeforeEdge:
@@ -94,20 +114,20 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
                 return false;
             }
             a = paint->getAlpha();
-            paint->setColor(fBlurColor);
+            paint->setColor(fLooper->fBlurColor);
             paint->setAlpha(SkAlphaMul(paint->getAlpha(), SkAlpha255To256(a)));
 
             paint->setShader(NULL);
-            paint->setMaskFilter(fBlur);
+            paint->setMaskFilter(fLooper->fBlur);
 
             canvas->save(SkCanvas::kMatrix_SaveFlag);
 
-            if (fBlurFlags & kIgnoreTransform_BlurFlag) {
+            if (fLooper->fBlurFlags & kIgnoreTransform_BlurFlag) {
                 SkMatrix transform(canvas->getTotalMatrix());
-                transform.postTranslate(fDx, fDy);
+                transform.postTranslate(fLooper->fDx, fLooper->fDy);
                 canvas->setMatrix(transform);
             } else {
-                canvas->translate(fDx, fDy);
+                canvas->translate(fLooper->fDx, fLooper->fDy);
             }
             fState = kAfterEdge;
             return true;
@@ -121,7 +141,7 @@ bool NativeShadowLooper::next(SkCanvas* canvas, SkPaint* paint) {
     }
 }
 
-#ifdef SK_DEVELOPER
+#ifdef SK_IGNORE_TO_STRING
 void NativeShadowLooper::toString(SkString* str) const {
     str->append("SkBlurDrawLooper: ");
 

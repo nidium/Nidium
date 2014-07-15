@@ -3,7 +3,7 @@
 
 #include "SkDrawLooper.h"
 #include "SkColor.h"
-
+#include "SkBlurMask.h"
 
 class SkMaskFilter;
 class SkColorFilter;
@@ -28,28 +28,39 @@ public:
         kAll_BlurFlag = 0x07
     };
 
-    NativeShadowLooper(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
-                     uint32_t flags = kNone_BlurFlag);
+    static NativeShadowLooper* Create(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
+                                    uint32_t flags = kNone_BlurFlag) {
+        return SkNEW_ARGS(NativeShadowLooper, (color, sigma, dx, dy, flags));
+    }
 
-    NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy, SkColor color, 
-                     uint32_t flags = kNone_BlurFlag);
+    static NativeShadowLooper* Create(SkScalar radius, SkScalar dx, SkScalar dy,
+                                   SkColor color, uint32_t flags) {
+        return SkNEW_ARGS(NativeShadowLooper, (color, SkBlurMask::ConvertRadiusToSigma(radius), dx, dy, flags));
+    }
+
     virtual ~NativeShadowLooper();
 
-    // overrides from SkDrawLooper
-    virtual void init(SkCanvas*);
-    virtual bool next(SkCanvas*, SkPaint* paint);
+    virtual NativeShadowLooper::Context* createContext(SkCanvas*, void* storage) const SK_OVERRIDE;
+    virtual size_t contextSize() const SK_OVERRIDE { return sizeof(NativeShadowLooperContext); }
 
-    SK_DEVELOPER_TO_STRING()
+    SK_TO_STRING_OVERRIDE()
     SK_DECLARE_PUBLIC_FLATTENABLE_DESERIALIZATION_PROCS(NativeShadowLooper)
 
 protected:
-    NativeShadowLooper(SkFlattenableReadBuffer&);
-    virtual void flatten(SkFlattenableWriteBuffer&) const SK_OVERRIDE;
+
+    NativeShadowLooper(SkColor color, SkScalar sigma, SkScalar dx, SkScalar dy,
+                    uint32_t flags = kNone_BlurFlag);
+    NativeShadowLooper(SkScalar radius, SkScalar dx, SkScalar dy,
+                    SkColor color, uint32_t flags = kNone_BlurFlag);
+    NativeShadowLooper(SkReadBuffer&);
+
+    virtual void flatten(SkWriteBuffer&) const SK_OVERRIDE;
+    virtual bool asABlurShadow(BlurShadowRec*) const SK_OVERRIDE;
 
 private:
     SkMaskFilter*   fBlur;
     SkColorFilter*  fColorFilter;
-    SkScalar        fDx, fDy;
+    SkScalar        fDx, fDy, fSigma;
     SkColor         fBlurColor;
     uint32_t        fBlurFlags;  
 
@@ -58,9 +69,19 @@ private:
         kAfterEdge,
         kDone
     };
-    State   fState;
+    class NativeShadowLooperContext : public SkDrawLooper::Context {
+    public:
+        explicit NativeShadowLooperContext(const NativeShadowLooper* looper);
+
+        virtual bool next(SkCanvas* canvas, SkPaint* paint) SK_OVERRIDE;
+
+    private:
+        const NativeShadowLooper* fLooper;
+        State fState;
+    };
 
     void init(SkScalar sigma, SkScalar dx, SkScalar dy, SkColor color, uint32_t flags);
+    void initEffects();
     
     typedef SkDrawLooper INHERITED;
 };
