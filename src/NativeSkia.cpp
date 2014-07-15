@@ -1658,16 +1658,23 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     SkPaint pt;
     SkRect r;
 
-    uint32_t *PMPixels = (uint32_t *)malloc(width * height * 4);
+    SkSrcPixelInfo srcPx;
+    srcPx.fPixels = pixels;
+    srcPx.fColorType = kRGBA_8888_SkColorType;
+    srcPx.fAlphaType = kUnpremul_SkAlphaType;
+    srcPx.fRowBytes  = width*height*4;
+
+    SkDstPixelInfo dstPx;
+    dstPx.fColorType = kN32_SkColorType;
+    dstPx.fAlphaType = kPremul_SkAlphaType;
+    dstPx.fRowBytes  = width*height*4;
+
+    srcPx.convertPixelsTo(&dstPx, width, height);
+
     bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
 
-    SkConvertConfig8888Pixels(PMPixels, width*4,
-        SkCanvas::kNative_Premul_Config8888,
-        (uint32_t*)pixels, width*4, SkCanvas::kRGBA_Unpremul_Config8888,
-        width, height);
-
     bt.setIsVolatile(true);
-    bt.setPixels(PMPixels);
+    bt.setPixels(dstPx.fPixels);
     r.setXYWH(x, y, width, height);
 
     pt.setFilterLevel(PAINT->getFilterLevel());
@@ -1676,8 +1683,6 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
         m_Canvas->drawColor(SK_ColorWHITE);
         m_Canvas->drawBitmap(bt, x, y, &pt);
     m_Canvas->restore();
-
-    free(PMPixels);
 }
 
 int NativeSkia::readPixels(int top, int left, int width, int height,
