@@ -141,7 +141,7 @@ bool NativeShadowLooper::NativeShadowLooperContext::next(SkCanvas* canvas, SkPai
     }
 }
 
-#ifdef SK_IGNORE_TO_STRING
+#if 1
 void NativeShadowLooper::toString(SkString* str) const {
     str->append("SkBlurDrawLooper: ");
 

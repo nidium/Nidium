@@ -437,8 +437,8 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
 
-    desc.fWidth = SkScalarRound(width*ratio);
-    desc.fHeight = SkScalarRound(height*ratio);
+    desc.fWidth = SkScalarRoundToInt(width*ratio);
+    desc.fHeight = SkScalarRoundToInt(height*ratio);
     desc.fConfig = kSkia8888_GrPixelConfig;
     desc.fOrigin = kBottomLeft_GrSurfaceOrigin;
     desc.fStencilBits = 0;

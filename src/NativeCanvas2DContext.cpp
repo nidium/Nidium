@@ -2234,9 +2234,10 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
         NativeSkia::glcontext = ncanvas;
 
     } else {
-#if 1
+#if 0
         ndev = NativeSkia::glcontext->createCompatibleDevice(SkBitmap::kARGB_8888_Config,
                                     width*ratio, height*ratio, false);
+        NativeSkia::glcontext->getDevice()->createCompatibleDevice(const SkImageInfo &)
 #else
         GrContext *gr = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
         ndev = m_Skia->createNewGPUDevice(gr, width*ratio, height*ratio);
