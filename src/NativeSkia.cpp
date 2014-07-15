@@ -51,6 +51,7 @@
 #include <NativePath.h>
 #include <NativeJSDocument.h>
 #include <SkStream.h>
+#include <SkImageInfo.h>
 
 SkCanvas *NativeSkia::glcontext = NULL;
 
@@ -1682,14 +1683,10 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
 int NativeSkia::readPixels(int top, int left, int width, int height,
     uint8_t *pixels)
 {
-    SkBitmap bt;
+    const SkImageInfo &info = SkImageInfo::Make(width, height,
+        kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-    bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
-    memset(pixels, 0, width * height * 4);
-
-    bt.setPixels(pixels);
-
-    if (!m_Canvas->readPixels(&bt, left, top, SkCanvas::kRGBA_Premul_Config8888)) {
+    if (!m_Canvas->readPixels(info, pixels, width * height * 4, left, top)) {
         printf("Failed to read pixels\n");
         return 0;
     }
