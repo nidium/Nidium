@@ -915,8 +915,13 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
 
 void NativeJSwindow::initDataBase()
 {
-    m_Db = new NativeDB(
-        NativeContext::getNativeClass(this->cx)->getNML()->getIdentifier());
+    NativeNML *nml = NativeContext::getNativeClass(this->cx)->getNML();
+    if (!nml) {
+        NLOG("[Notice] Unable to create window.storage (no NML provided)");
+        return;
+    }
+
+    m_Db = new NativeDB(nml->getIdentifier());
 
     if (m_Db->ok()) {
         this->createStorage();

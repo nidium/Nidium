@@ -88,7 +88,9 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_JS->setLogger(NativeContext_Logger);
     m_JS->setLogger(NativeContext_vLogger);
 
-    m_NML->setNJS(m_JS);
+    if (m_NML) {
+        m_NML->setNJS(m_JS);
+    }
     /*
         Set path for modules
     */

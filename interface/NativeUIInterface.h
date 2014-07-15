@@ -45,6 +45,9 @@ class NativeUIInterface
         virtual void restartApplication(const char *path=NULL)=0;
 
         virtual void refreshApplication(bool clearConsole = false);
+        virtual bool runJSWithoutNML(const char *path, int width = 800, int height = 600) {
+            return false;
+        };
         virtual bool runApplication(const char *path)=0;
         virtual void setWindowTitle(const char *)=0;
         virtual const char *getWindowTitle() const=0;
