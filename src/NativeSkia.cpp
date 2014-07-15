@@ -49,6 +49,7 @@
 #include "Sk2DPathEffect.h"
 
 #include <NativePath.h>
+#include <NativeJSDocument.h>
 #include <SkStream.h>
 
 SkCanvas *NativeSkia::glcontext = NULL;
@@ -599,8 +600,18 @@ void NativeSkia::setFontSize(double size)
     PAINT_STROKE->setTextSize(ssize);
 }
 
-void NativeSkia::setFontType(const char *str)
+void NativeSkia::setFontType(char *str, NativeJSdocument *doc)
 {
+    if (doc) {
+        SkTypeface *tf = doc->getFont(str);
+        if (tf) {
+            PAINT->setTypeface(tf);
+            PAINT_STROKE->setTypeface(tf);
+
+            return;
+        }
+    }
+    //NativeJSdocument *jdoc = NativeJSdocument::
     SkTypeface *tf = SkTypeface::CreateFromName(str,
         SkTypeface::kNormal);
     // Workarround for skia bug #1648
