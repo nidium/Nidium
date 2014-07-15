@@ -3,11 +3,29 @@
 
 #include "NativeJSExposer.h"
 
+class SkTypeface;
+
+class nativefont {
+public:
+    SkTypeface *typeface;
+
+    enum Style {
+        kNativeFontBold,
+        kNativeFontNormal,
+        kNativeFontItalic
+    } style;
+
+    int weight;
+
+    nativefont *next;
+};
+
 
 class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
 {
   public:
-    NativeJSdocument(){};
+    NativeJSdocument() : 
+        m_Fonts(256000) {};
     ~NativeJSdocument(){};
 
     static bool showFPS;
@@ -21,6 +39,14 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
     static JSClass *jsclass;
 
     JSObject *stylesheet;
+    NativeHash<nativefont *>m_Fonts;
+
+    bool loadFont(const char *path, const char *name, int weight = 400,
+        nativefont::Style = nativefont::kNativeFontNormal);
+
+    SkTypeface *getFont(char *name);
 };
+
+
 
 #endif

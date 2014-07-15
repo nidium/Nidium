@@ -5,6 +5,9 @@
 #include <native_netlib.h>
 #include <jsapi.h>
 #include <jsstr.h>
+#include <NativeStreamInterface.h>
+#include <SkTypeface.h>
+#include <SkStream.h>
 
 #define NJSDOC_GETTER(obj) ((class NativeJSdocument *)JS_GetPrivate(obj))
 
@@ -20,6 +23,7 @@ static JSPropertySpec document_props[] = {
 static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
@@ -35,6 +39,7 @@ static JSFunctionSpec document_funcs[] = {
     JS_FN("showFPS", native_document_showfps, 1, 0),
     JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, 0),
     JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, 0),
+    JS_FN("loadFont", native_document_loadFont, 1, JSPROP_ENUMERATE),
     JS_FS_END
 };
 
@@ -189,3 +194,104 @@ void NativeJSdocument::registerObject(JSContext *cx)
     JS_DefineProperties(cx, documentObj, document_props);
 }
 
+// todo destroy with NativeHash cleaner
+bool NativeJSdocument::loadFont(const char *path, const char *name,
+    int weight, nativefont::Style style)
+{
+    NativeBaseStream *stream = NativeBaseStream::create(path);
+    if (!stream) {
+        return false;
+    }
+
+    NativePtrAutoDelete<NativeBaseStream *> npad(stream);
+
+    char *data;
+    size_t len;
+
+    if (!stream->getContentSync(&data, &len)) {
+        return false;
+    }
+
+    SkMemoryStream *skmemory = new SkMemoryStream(data, len, true);
+    free(data);
+
+    SkTypeface *tf = SkTypeface::CreateFromStream(skmemory);
+    if (tf == NULL) {
+        delete skmemory;
+        return false;
+    }
+
+    nativefont *oldfont = m_Fonts.get(name);
+
+    nativefont *newfont = new nativefont();
+    newfont->weight = weight;
+    newfont->style = style;
+    newfont->typeface = tf;
+
+    newfont->next = oldfont;
+
+    m_Fonts.set(name, newfont);
+
+    return true;
+}
+
+static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS_INITOPT();
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JSObject *thisobj = NativeJSdocument::getJSGlobalObject(cx);
+    NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj);
+
+    JSObject *fontdef;
+
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &fontdef)) {
+        return false;
+    }
+
+    JSAutoByteString cfile, cname;
+
+    JSGET_OPT_TYPE(fontdef, "file", String) {
+        cfile.encodeUtf8(cx, __curopt.toString());
+    } else {
+        JS_ReportError(cx, "Missing 'file' (string) value");
+        return false;
+    }
+
+    JSGET_OPT_TYPE(fontdef, "name", String) {
+        cname.encodeLatin1(cx, __curopt.toString());
+    } else {
+        JS_ReportError(cx, "Missing 'name' (string) value");
+        return false;
+    }
+
+    char *pTmp = cname.ptr();
+
+    while (*pTmp != '\0') {
+        *pTmp = tolower(*pTmp);
+        pTmp++;
+    }
+
+    NativePath fpath(cfile.ptr());
+
+    args.rval().setBoolean(CppObj->loadFont(fpath.path(), cname.ptr()));
+
+    return true;
+}
+
+SkTypeface *NativeJSdocument::getFont(char *name)
+{
+    char *pTmp = name;
+
+    while (*pTmp != '\0') {
+        *pTmp = tolower(*pTmp);
+        pTmp++;
+    }
+
+    nativefont *font = m_Fonts.get(name);
+    if (font) {
+        return font->typeface;
+    }
+
+    return NULL;
+}
