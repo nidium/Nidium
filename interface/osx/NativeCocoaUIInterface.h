@@ -24,6 +24,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void setWindowFrame(int x, int y, int w, int h);
         void restartApplication(const char *path=NULL);
         bool runApplication(const char *path);
+        bool runJSWithoutNML(const char *path, int width = 800, int height = 600);
         void openFileDialog(const char *files[],
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
         const char *getCacheDirectory() const;

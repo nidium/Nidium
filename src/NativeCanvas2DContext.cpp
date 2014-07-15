@@ -1,5 +1,6 @@
 #include "NativeCanvas2DContext.h"
 #include "NativeJSCanvas.h"
+#include "NativeJSDocument.h"
 #include "NativeSkia.h"
 #include "NativeSkGradient.h"
 #include "NativeSkImage.h"
@@ -21,7 +22,6 @@
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
 #define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
-#define NCTX_NATIVE ((class NativeCanvas2DContext *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
 #define CANVASCTX_PROLOGUE
 
@@ -610,7 +610,7 @@ static JSBool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, jsva
     JSNATIVE_PROLOGUE(NativeCanvas2DContext);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
-    NativeCanvasHandler *handler = NCTX_NATIVE->getHandler();
+    NativeCanvasHandler *handler = CppObj->getHandler();
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddddd",
         &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
@@ -1050,7 +1050,8 @@ static JSBool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NCTX_NATIVE->detachShader();
+    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
+    CppObj->detachShader();
 
     return true;
 }
@@ -1058,7 +1059,7 @@ static JSBool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc
 static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    NativeCanvas2DContext *nctx = NCTX_NATIVE;
+    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
 
     uint32_t vertex;
     double x, y;
@@ -1068,7 +1069,7 @@ static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
         return false;
     }
 
-    nctx->setVertexDeformation(vertex, x, y);
+    CppObj->setVertexDeformation(vertex, x, y);
 
     return true;
 }
@@ -1076,8 +1077,8 @@ static JSBool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
 static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    JSNATIVE_PROLOGUE(NativeCanvas2DContext);
     JSString *glsl;
-    NativeCanvas2DContext *nctx = NCTX_NATIVE;
 
     size_t program;
 
@@ -1088,7 +1089,7 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
 
     JSAutoByteString cglsl(cx, glsl);
 
-    if ((program = nctx->attachShader(cglsl.ptr())) == 0) {
+    if ((program = CppObj->attachShader(cglsl.ptr())) == 0) {
         JS_ReportError(cx, "Failed to compile GLSL shader");
         return false;
     }
@@ -1505,7 +1506,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
             JSAutoByteString font(cx, JSVAL_TO_STRING(vp));
-            curSkia->setFontType(font.ptr());          
+            curSkia->setFontType(font.ptr(), NativeJSdocument::getNativeClass(cx));
         }
         break;
         case CTX_PROP(fontFile):

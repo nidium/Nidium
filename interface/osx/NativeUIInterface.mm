@@ -12,6 +12,7 @@
 #import <native_netlib.h>
 #import <NativeMacros.h>
 #import <NativeMessages.h>
+#import <NativePath.h>
 
 #import <NativeNML.h>
 #import <sys/stat.h>
@@ -350,6 +351,38 @@ void NativeCocoaUIInterface::restartApplication(const char *path)
 {
     this->stopApplication();
     this->runApplication(path == NULL ? this->filePath : path);
+}
+
+bool NativeCocoaUIInterface::runJSWithoutNML(const char *path, int width, int height)
+{
+    NativeMessages::initReader(gnet);
+    if (path != this->filePath) {
+        if (this->filePath) {
+            free(this->filePath);
+        }
+        this->filePath = strdup(path);
+    }
+    if (strlen(path) < 5) {
+        return false;
+    }
+
+    if (!this->createWindow(
+        width, height+kNativeTitleBarHeight)) {
+        return false;
+    }
+
+    this->setWindowTitle("Nidium");
+
+    NativeJS::initNet(gnet);
+
+    NativePath jspath(path);
+
+    NativePath::cd(jspath.dir());
+    NativePath::chroot(jspath.dir());
+
+    NativeCtx->getNJS()->LoadScript(path);
+
+    return true;
 }
 
 bool NativeCocoaUIInterface::runApplication(const char *path)

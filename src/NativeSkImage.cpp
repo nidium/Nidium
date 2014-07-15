@@ -114,7 +114,7 @@ void NativeSkImage::markColorsInAlpha()
 
     SkColor *pixels = (SkColor *)img->getPixels();
     for (int i = 0; i < size; i++) {
-        U8CPU alpha;
+        U8CPU alpha = 0;
 
         SkColor pixel = pixels[i];
 

@@ -15,6 +15,7 @@ class NativeShadowLooper;
 class GrContext;
 class NativeCanvasPattern;
 class SkGpuDevice;
+class NativeJSdocument;
 
 typedef uint32_t SkPMColor;
 typedef uint32_t SkColor;
@@ -118,9 +119,9 @@ class NativeSkia
         void setShadowOffsetY(double y);
         void setShadowBlur(double blur);
         void setShadowColor(const char *str);
-        void setSmooth(bool val, int level = 1);
+        void setSmooth(bool val,const  int level = 1);
         void setFontSize(double size);
-        void setFontType(const char *str);
+        void setFontType(char *str, NativeJSdocument *doc = NULL);
         bool setFontFile(const char *str);
         void drawText(const char *text, int x, int y);
         void drawTextf(int x, int y, const char *text, ...);
