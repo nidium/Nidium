@@ -340,7 +340,7 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
 
 bool NativeJSModules::getFileContent(const char *file, char **content, size_t *size)
 {
-    NativePath path(file);
+    NativePath path(file, false, true);
     NativeBaseStream *stream = path.createStream(true);
 
     if (!stream) {
@@ -452,7 +452,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                 size_t size;
 
                 if (!NativeJSModules::getFileContent(dir.c_str(), &data, &size) || data == NULL) {
-                    fprintf(stderr, "Failed to open %s", dir.c_str());
+                    fprintf(stderr, "Failed to open %s\n", dir.c_str());
                     return false;
                 }
 
@@ -463,16 +463,16 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
                 bool parsingSuccessful = reader.parse(data, data + size, root);
 
                 if (!parsingSuccessful) {
-                    fprintf(stderr, "Failed to parse %s\n  %s", dir.c_str(), reader.getFormatedErrorMessages().c_str());
+                    fprintf(stderr, "Failed to parse %s\n  %s\n", dir.c_str(), reader.getFormatedErrorMessages().c_str());
                     return false;
                 }
-
+                
                 std::string main = root.get("main", "").asString();
                 dir.erase(len);
                 dir += std::string("/") + main;
 
                 if (access(dir.c_str(), F_OK) != 0) {
-                    fprintf(stderr, "Failed to access file %s", dir.c_str());
+                    fprintf(stderr, "Failed to access file %s\n", dir.c_str());
                     return false;
                 }
 
@@ -582,7 +582,7 @@ JS::Value NativeJSModule::require(char *name)
 
             JSFunction *fn;
             jsval rval;
-    
+
             if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
                 return ret;
