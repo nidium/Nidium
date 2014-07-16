@@ -123,7 +123,8 @@
             '../NativePath.cpp',
             '../NativeJSUtils.cpp',
             '../NativeNFS.cpp',
-            '../NativeJSHTTPListener.cpp'
+            '../NativeJSHTTPListener.cpp',
+            '../NativeJSDebug.cpp'
         ],
     }],
 }

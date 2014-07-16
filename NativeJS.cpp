@@ -30,6 +30,7 @@
 #include "NativeJSStream.h"
 #include "NativeJSWebSocket.h"
 #include "NativeJSHTTPListener.h"
+#include "NativeJSDebug.h"
 
 #include "NativeStream.h"
 #include "NativeUtils.h"
@@ -883,6 +884,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSWebSocketServer::registerObject(cx);
     /* HTTPListener object */
     NativeJSHTTPListener::registerObject(cx);
+    /* Debug object */
+    NativeJSDebug::registerObject(cx);
 
     modules = new NativeJSModules(cx);
     if (!modules) {
