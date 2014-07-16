@@ -88,8 +88,9 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = CallArgsFromVp(argc, vp);
     JSObject *objdata = NULL;
+    uint32_t offset = 0;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &objdata)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o/u", &objdata, &offset)) {
         return false;
     }
 
@@ -101,7 +102,12 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
     uint8_t *data = JS_GetArrayBufferData(objdata);
     JS::Value inval;
 
-    if (!JS_ReadStructuredClone(cx, (uint64_t *)data, len,
+    if (offset >= len) {
+        JS_ReportError(cx, "unserialize() offset overflow");
+        return false;              
+    }
+
+    if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
         JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;             
