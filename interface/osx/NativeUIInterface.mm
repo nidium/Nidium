@@ -181,6 +181,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case NativeCocoaUIInterface::CLOSEDHAND:
                     [[NSCursor closedHandCursor] set];
                     break;
+                case NativeCocoaUIInterface::RESIZELEFTRIGHT:
+                    [[NSCursor resizeLeftRightCursor] set];
+                    break;
                 case NativeCocoaUIInterface::HIDDEN:
                     SDL_ShowCursor(0);
                     break;

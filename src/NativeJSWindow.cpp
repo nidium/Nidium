@@ -125,11 +125,16 @@ static struct native_cursors {
     const char *str;
     NativeUIInterface::CURSOR_TYPE type;
 } native_cursors_list[] = {
+    {"default",             NativeUIInterface::ARROW},
     {"arrow",               NativeUIInterface::ARROW},
     {"beam",                NativeUIInterface::BEAM},
+    {"text",                NativeUIInterface::BEAM},
     {"pointer",             NativeUIInterface::POINTING},
+    {"grabbing",            NativeUIInterface::CLOSEDHAND},
     {"drag",                NativeUIInterface::CLOSEDHAND},
     {"hidden",              NativeUIInterface::HIDDEN},
+    {"none",                NativeUIInterface::HIDDEN},
+    {"col-resize",          NativeUIInterface::RESIZELEFTRIGHT},
     {NULL,                  NativeUIInterface::NOCHANGE},
 };
 
