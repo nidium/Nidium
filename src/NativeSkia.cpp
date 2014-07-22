@@ -1651,30 +1651,16 @@ void NativeSkia::drawPixelsGL(uint8_t *pixels, int width, int height,
 void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     int x, int y)
 {
-    //drawPixelsGL(pixels, width, height, x, y);
-    //return;
-
     SkBitmap bt;
     SkPaint pt;
     SkRect r;
 
-    SkSrcPixelInfo srcPx;
-    srcPx.fPixels = pixels;
-    srcPx.fColorType = kRGBA_8888_SkColorType;
-    srcPx.fAlphaType = kUnpremul_SkAlphaType;
-    srcPx.fRowBytes  = width*height*4;
-
-    SkDstPixelInfo dstPx;
-    dstPx.fColorType = kN32_SkColorType;
-    dstPx.fAlphaType = kPremul_SkAlphaType;
-    dstPx.fRowBytes  = width*height*4;
-
-    srcPx.convertPixelsTo(&dstPx, width, height);
-
     bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
 
     bt.setIsVolatile(true);
-    bt.setPixels(dstPx.fPixels);
+    bt.installPixels(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType,
+        kUnpremul_SkAlphaType), pixels, width*4);
+
     r.setXYWH(x, y, width, height);
 
     pt.setFilterLevel(PAINT->getFilterLevel());
@@ -1691,7 +1677,7 @@ int NativeSkia::readPixels(int top, int left, int width, int height,
     const SkImageInfo &info = SkImageInfo::Make(width, height,
         kRGBA_8888_SkColorType, kPremul_SkAlphaType);
 
-    if (!m_Canvas->readPixels(info, pixels, width * height * 4, left, top)) {
+    if (!m_Canvas->readPixels(info, pixels, width * 4, left, top)) {
         printf("Failed to read pixels\n");
         return 0;
     }
