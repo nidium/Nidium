@@ -9,8 +9,6 @@
 #include <SkTypeface.h>
 #include <SkStream.h>
 
-#define NJSDOC_GETTER(obj) ((class NativeJSdocument *)JS_GetPrivate(obj))
-
 bool NativeJSdocument::showFPS = false;
 
 static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp);
