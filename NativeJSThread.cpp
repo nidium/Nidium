@@ -22,6 +22,8 @@
 #include "NativeSharedMessages.h"
 #include "NativeJS.h"
 
+#include <jsdbgapi.h>
+
 extern void reportError(JSContext *cx, const char *message,
 	JSErrorReport *report);
 static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
@@ -111,6 +113,11 @@ static void *native_thread(void *arg)
     nthread->jsRuntime = rt;
     nthread->jsCx      = tcx;
 
+    /*
+        repportError read the runtime private to use the logger
+    */
+    JS_SetRuntimePrivate(rt, nthread->njs);
+
     JS_BeginRequest(tcx);
 
     gbl = JS_NewGlobalObject(tcx, &global_Thread_class, NULL);
@@ -146,9 +153,15 @@ static void *native_thread(void *arg)
 
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
-
+/*
+JS_CompileFunction(JSContext *cx, JSObject *obj, const char *name,
+                   unsigned nargs, const char **argnames,
+                   const char *bytes, size_t length,
+                   const char *filename, unsigned lineno);
+*/
+printf("caller lineno : %d\n", nthread->m_CallerLineno);
     JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
-        strlen(scoped), NULL, 0);
+        strlen(scoped), nthread->m_CallerFileName, nthread->m_CallerLineno);
 
     delete[] scoped;
     
@@ -222,6 +235,7 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
 
     nthread->params.argc = argc;
 
+
     /* TODO: check if already running */
     pthread_create(&nthread->threadHandle, NULL,
                             native_thread, nthread);
@@ -284,7 +298,8 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
-
+    JSScript *parent;
+    
     NativeJSThread *nthread = new NativeJSThread();
     JSFunction *nfn;
 
@@ -298,6 +313,10 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     nthread->jsObject 	= ret;
     nthread->njs 		= NJS;
+
+
+    JS_DescribeScriptedCaller(cx, &parent, &nthread->m_CallerLineno);
+    nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent);
 
     JS_AddStringRoot(cx, &nthread->jsFunction);
 

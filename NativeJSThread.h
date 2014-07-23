@@ -50,6 +50,9 @@ class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMess
     bool markedStop;
 
     pthread_t threadHandle;
+
+    const char *m_CallerFileName;
+    uint32_t m_CallerLineno;
 };
 
 enum {
