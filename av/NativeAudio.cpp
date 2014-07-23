@@ -15,7 +15,7 @@ extern "C" {
 NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
     : net(n), sourcesCount(0), output(NULL), inputStream(NULL),
       outputStream(NULL), rBufferOutData(NULL), cbkBuffer(NULL), volume(1),
-      m_SourceNeedWork(false), m_SharedMsgFlush(false), threadShutdown(false), sources(NULL)
+      m_SourceNeedWork(false), m_SharedMsgFlush(false), threadShutdown(false), sources(NULL), m_MainCtx(NULL)
 {
     NATIVE_PTHREAD_VAR_INIT(&this->queueHaveData);
     NATIVE_PTHREAD_VAR_INIT(&this->queueHaveSpace);
