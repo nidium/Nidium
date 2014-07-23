@@ -12,7 +12,6 @@
 #include "NativeJSCanvas.h"
 #include "NativeJSDocument.h"
 #include "NativeJSWindow.h"
-#include "NativeJSConsole.h"
 #include "NativeUIInterface.h"
 #ifdef __linux__
 #include "SkImageDecoder.h"
@@ -137,8 +136,6 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSNative::registerObject(cx);
     /* window() object */
     NativeJSwindow::registerObject(cx, width, height);
-    /* console() object */
-    NativeJSconsole::registerObject(cx);
     /* document() object */
     NativeJSdocument::registerObject(cx);
 
