@@ -21,6 +21,7 @@
 #include "NativeJSThread.h"
 #include "NativeSharedMessages.h"
 #include "NativeJS.h"
+#include "NativeJSConsole.h"
 
 #include <jsdbgapi.h>
 
@@ -136,6 +137,8 @@ static void *native_thread(void *arg)
 
     JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
 
+    NativeJSconsole::registerObject(tcx);
+
     JSAutoByteString str(tcx, nthread->jsFunction);
     char *scoped = new char[strlen(str.ptr()) + 128];
 
@@ -153,13 +156,7 @@ static void *native_thread(void *arg)
 
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
-/*
-JS_CompileFunction(JSContext *cx, JSObject *obj, const char *name,
-                   unsigned nargs, const char **argnames,
-                   const char *bytes, size_t length,
-                   const char *filename, unsigned lineno);
-*/
-printf("caller lineno : %d\n", nthread->m_CallerLineno);
+
     JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
         strlen(scoped), nthread->m_CallerFileName, nthread->m_CallerLineno);
 
@@ -184,7 +181,6 @@ printf("caller lineno : %d\n", nthread->m_CallerLineno);
 
     if (JS_CallFunction(tcx, gbl, cf, nthread->params.argc,
         arglst, &rval) == JS_FALSE) {
-        printf("Got an error?\n"); /* or thread has ended */
     }
 
     JS_EndRequest(tcx);
@@ -299,7 +295,7 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
     JSScript *parent;
-    
+
     NativeJSThread *nthread = new NativeJSThread();
     JSFunction *nfn;
 

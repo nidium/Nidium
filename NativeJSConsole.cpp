@@ -1,8 +1,6 @@
 #include "NativeJSConsole.h"
 #include "NativeJS.h"
-#include "NativeUIInterface.h"
-#include "NativeContext.h"
-#include "NativeMacros.h"
+//#include "NativeContext.h"
 #include "NativeStream.h"
 
 #include <jsdbgapi.h>
@@ -40,27 +38,31 @@ static JSFunctionSpec console_funcs[] = {
 static JSBool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+#if 0
     if (NativeContext::getNativeClass(cx)->getUI()->getConsole()) {
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->hide();
     }
+#endif
     return JS_TRUE;
 }
 
 static JSBool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+#if 0
     NativeContext::getNativeClass(cx)->getUI()->getConsole(true)->show();
-
+#endif
     return JS_TRUE;
 }
 
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+#if 0
     if (NativeContext::getNativeClass(cx)->getUI()->getConsole()) {
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->clear();
     }
-
+#endif
     return JS_TRUE;
 }
 
@@ -77,7 +79,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
 
     JS_DescribeScriptedCaller(cx, &parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
-    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+    NativeJS *js = NativeJS::getNativeClass(cx);
 
     if (filename_parent == NULL) {
         filename_parent = "(null)";
@@ -98,15 +100,15 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         if (!bytes)
             return false;
         if (i) {
-            ui->log(" ");
+            js->log(" ");
         } else {
-            ui->logf("[%s:%d] ", filename_parent, lineno);
+            js->logf("[%s:%d] ", filename_parent, lineno);
         }
-        ui->log(bytes);
+        js->log(bytes);
 
         JS_free(cx, bytes);
     }
-    ui->log("\n");
+    js->log("\n");
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
@@ -116,8 +118,7 @@ static JSBool native_console_write(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     JSString *str;
-
-    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+    NativeJS *js = NativeJS::getNativeClass(cx);
 
     NATIVE_CHECK_ARGS("write", 1);
 
@@ -131,8 +132,8 @@ static JSBool native_console_write(JSContext *cx, unsigned argc,
 
     cstr.encodeUtf8(cx, str);
 
-    ui->log(cstr.ptr());
-    ui->log("\n");
+    js->log(cstr.ptr());
+    js->log("\n");
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;

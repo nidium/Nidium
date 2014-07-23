@@ -31,6 +31,7 @@
 #include "NativeJSWebSocket.h"
 #include "NativeJSHTTPListener.h"
 #include "NativeJSDebug.h"
+#include "NativeJSConsole.h"
 
 #include "NativeStream.h"
 #include "NativeUtils.h"
@@ -254,6 +255,11 @@ void NativeJS::logf(const char *format, ...)
         m_vLogger(format, args);
     }
     va_end(args);
+}
+
+void NativeJS::log(const char *format)
+{
+    m_Logger(format);
 }
 
 JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
@@ -886,6 +892,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSHTTPListener::registerObject(cx);
     /* Debug object */
     NativeJSDebug::registerObject(cx);
+    /* console object */
+    NativeJSconsole::registerObject(cx);
 
     modules = new NativeJSModules(cx);
     if (!modules) {

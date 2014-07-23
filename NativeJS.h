@@ -142,7 +142,7 @@ class NativeJS
                                                  JSObject *obj, void *closure);
 
         void logf(const char *format, ...);
-
+        void log(const char *format);
     private:
         NativeJSModules *modules;
         void *privateslot;
