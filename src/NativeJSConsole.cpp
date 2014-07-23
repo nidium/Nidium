@@ -81,7 +81,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         filename_parent = "(null)";
     }
 
-    char *fname = strrchr(filename_parent, '/');
+    char *fname = (char *)strrchr(filename_parent, '/');
     if (fname != NULL) {
         filename_parent = &fname[1];
     }
