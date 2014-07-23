@@ -188,15 +188,20 @@ void NativeUICocoaConsole::show()
 
 void NativeUICocoaConsole::log(const char *str)
 {
-    if (!needFlush) {
-        [[[this->window textview] textStorage] beginEditing];
-        needFlush = true;
-    }
-    if (this->isHidden) {
-        return;
-    }
-    NSString *nstr = [NSString stringWithCString:str encoding:NSUTF8StringEncoding];
-    [this->window log:nstr];
+    char *copy_str = strdup(str);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!needFlush) {
+            [[[this->window textview] textStorage] beginEditing];
+            needFlush = true;
+        }
+        if (this->isHidden) {
+            return;
+        }
+        NSString *nstr = [NSString stringWithCString:copy_str encoding:NSUTF8StringEncoding];
+        [this->window log:nstr];
+
+        free(copy_str);
+    });
 }
 
 NativeUICocoaConsole::~NativeUICocoaConsole()

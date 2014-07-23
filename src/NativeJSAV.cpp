@@ -2,6 +2,7 @@
 #include "NativeSharedMessages.h"
 #include "NativeJSThread.h"
 #include "NativeJS.h"
+#include <NativeJSConsole.h>
 
 #include "NativeJSCanvas.h"
 #include "NativeCanvasHandler.h"
@@ -572,6 +573,8 @@ NativeJSAudio *NativeJSAudio::getContext(JSContext *cx, JSObject *obj, int buffe
         return NULL;
     }
 
+    audio->setMainCtx(cx);
+
     return new NativeJSAudio(audio, cx, obj);
 }
 
@@ -638,9 +641,12 @@ bool NativeJSAudio::createContext()
 
         JS_SetOptions(this->tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
-        JS_SetErrorReporter(this->tcx, FIXMEReportError);
+        JS_SetErrorReporter(this->tcx, reportError);
         JS_SetGlobalObject(this->tcx, this->gbl);
         JS_DefineFunctions(this->tcx, this->gbl, glob_funcs_threaded);
+        NativeJSconsole::registerObject(this->tcx);
+
+        JS_SetRuntimePrivate(this->rt, NativeJS::getNativeClass(this->audio->getMainCtx()));
 
         //JS_SetContextPrivate(this->tcx, static_cast<void *>(this));
     }
@@ -661,7 +667,7 @@ bool NativeJSAudio::run(char *str)
 
     JSAutoRequest ar(this->tcx);
 
-    fun = JS_CompileFunction(this->tcx, JS_GetGlobalObject(this->tcx), "Audio_run", 0, NULL, str, strlen(str), "FILENAME (TODO)", 0);
+    fun = JS_CompileFunction(this->tcx, JS_GetGlobalObject(this->tcx), "Audio_run", 0, NULL, str, strlen(str), "(Audio Thread)", 0);
 
     if (!fun) {
         JS_ReportError(this->tcx, "Failed to execute script on audio thread\n");

@@ -7,10 +7,10 @@ import sys, os
 from pprint import pprint
 
 # Variables to configure
-OUTPUT = "out/"
-THIRD_PARTY = "third-party/"
+OUTPUT = "/home/efyx/dev/NativeStudio/NativeStudio/out/"
+THIRD_PARTY = "/home/efyx/dev/NativeStudio/NativeStudio/third-party/"
 BUILD = "release"
-AUTOCONF = "/usr/local/bin/autoconf"
+AUTOCONF = "/usr/bin/autoconf2.13"
 GIT = "/usr/bin/git"
 GCC = "/usr/bin/gcc"
 GPP = "/usr/bin/g++"

@@ -140,7 +140,6 @@
             '<(native_src_path)/NativeCanvasHandler.cpp',
             '<(native_src_path)/NativeCanvas2DContext.cpp',
             '<(native_src_path)/NativeApp.cpp',
-		    '<(native_src_path)/NativeJSConsole.cpp',
 			'<(native_src_path)/NativeNML.cpp',
 			'<(native_src_path)/NativeAssets.cpp',
             '<(native_src_path)/NativeContext.cpp',
