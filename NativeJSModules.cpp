@@ -186,6 +186,7 @@ bool NativeJSModules::init(NativeJSModule *module)
 bool NativeJSModule::initNative()
 {
     JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
+    NativeJS *njs = NativeJS::getNativeClass(this->cx);
     if (!exports) {
         return false;
     }
@@ -203,7 +204,7 @@ bool NativeJSModule::initNative()
     }
 
     this->exports = exports;
-    JS_AddObjectRoot(cx, &this->exports);
+    njs->rootObjectUntilShutdown(this->exports);
 
     return true;
 }
@@ -258,7 +259,7 @@ bool NativeJSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     this->exports = gbl;
-    JS_AddObjectRoot(cx, &this->exports);
+    njs->rootObjectUntilShutdown(this->exports);
 
     return true;
 #undef TRY_OR_DIE
@@ -491,6 +492,7 @@ JS::Value NativeJSModule::require(char *name)
 {
     JS::Value ret;
     NativeJSModule *cmodule;
+    NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
     ret.setUndefined();
 
@@ -632,7 +634,7 @@ JS::Value NativeJSModule::require(char *name)
                 JS_free(cx, jchars);
 
                 cmodule->exports = JSVAL_TO_OBJECT(jsonData);
-                JS_AddObjectRoot(cx, &cmodule->exports);
+                njs->rootObjectUntilShutdown(cmodule->exports);
             }
         }
     } 
@@ -660,10 +662,6 @@ NativeJSModule::~NativeJSModule()
 {
     if (this->filePath) {
         this->modules->remove(this);
-    }
-
-    if (this->exports != NULL) {
-        JS_RemoveObjectRoot(this->cx, &this->exports);
     }
 
     free(this->name);
