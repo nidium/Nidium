@@ -118,6 +118,7 @@ class NativeAudio
         NATIVE_PTHREAD_VAR_DECL(queueHaveData)
         NATIVE_PTHREAD_VAR_DECL(queueHaveSpace)
         NATIVE_PTHREAD_VAR_DECL(queueNeedData)
+        NATIVE_PTHREAD_VAR_DECL(queueMessagesFlushed)
 
         pthread_mutex_t shutdownLock, recurseLock, sourcesLock;
 

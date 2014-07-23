@@ -20,6 +20,7 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     NATIVE_PTHREAD_VAR_INIT(&this->queueHaveData);
     NATIVE_PTHREAD_VAR_INIT(&this->queueHaveSpace);
     NATIVE_PTHREAD_VAR_INIT(&this->queueNeedData);
+    NATIVE_PTHREAD_VAR_INIT(&this->queueMessagesFlushed);
 
     pthread_mutexattr_t mta;
     pthread_mutexattr_init(&mta);
@@ -74,6 +75,7 @@ void *NativeAudio::queueThread(void *args)
 
         if (msgFlush && audio->m_SharedMsgFlush) {
             audio->m_SharedMsgFlush = false;
+            NATIVE_PTHREAD_SIGNAL(&audio->queueMessagesFlushed);
         }
 
         // Using a trylock because we don't want to wait for another thread to
@@ -549,6 +551,8 @@ void NativeAudio::wakeup()
 
     NATIVE_PTHREAD_SIGNAL(&this->queueHaveData);
     NATIVE_PTHREAD_SIGNAL(&this->queueHaveSpace);
+
+    NATIVE_PTHREAD_WAIT(&this->queueMessagesFlushed);
 }
 
 void NativeAudio::shutdown()
