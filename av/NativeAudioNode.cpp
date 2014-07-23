@@ -1365,7 +1365,9 @@ void NativeAudioCustomSource::setSeek(SeekCallback cbk, void *custom)
 void NativeAudioCustomSource::seek(double ms)
 {
     m_SeekTime = ms;
-    this->callback(NativeAudioCustomSource::seekMethod, NULL);
+    if (m_SeekCallback != NULL) { 
+        this->callback(NativeAudioCustomSource::seekMethod, NULL);
+    }
 }
 
 // Called from Audio thread
