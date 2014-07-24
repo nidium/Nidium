@@ -41,7 +41,7 @@ void FIXMEReportError(JSContext *cx, const char *message, JSErrorReport *report)
 extern void reportError(JSContext *cx, const char *message, JSErrorReport *report);
 
 static void AudioNode_Finalize(JSFreeOp *fop, JSObject *obj);
-static void Audio_Finalize(JSFreeOp *fop, JSObject *obj);
+static void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSBool native_Audio_constructor(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp);
@@ -90,7 +90,14 @@ static JSClass messageEvent_class = {
 static JSClass Audio_class = {
     "Audio", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Audio_Finalize,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+static JSClass AudioContext_class = {
+    "AudioContext", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, AudioContext_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -129,7 +136,7 @@ static JSClass AudioNode_threaded_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSPropertySpec Audio_props[] = {
+static JSPropertySpec AudioContext_props[] = {
     {"volume", AUDIO_PROP_VOLUME, 
         JSPROP_ENUMERATE|JSPROP_PERMANENT, 
         JSOP_WRAPPER(native_audio_prop_getter), JSOP_WRAPPER(native_audio_prop_setter)},
@@ -163,7 +170,7 @@ static JSPropertySpec AudioNodeCustom_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSFunctionSpec Audio_funcs[] = {
+static JSFunctionSpec AudioContext_funcs[] = {
     JS_FN("run", native_audio_run, 1, 0),
     JS_FN("load", native_audio_load, 1, 0),
     JS_FN("createNode", native_audio_createnode, 3, 0),
@@ -596,8 +603,8 @@ NativeJSAudio::NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj)
 
     NJS->rootObjectUntilShutdown(obj);
 
-    JS_DefineFunctions(cx, obj, Audio_funcs);
-    JS_DefineProperties(cx, obj, Audio_props);
+    JS_DefineFunctions(cx, obj, AudioContext_funcs);
+    JS_DefineProperties(cx, obj, AudioContext_props);
 
     NATIVE_PTHREAD_VAR_INIT(&this->m_ShutdownWait)
 
@@ -1220,7 +1227,7 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
         delete jaudio;
     } 
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &Audio_class, vp);
+    JSObject *ret = JS_NewObjectForConstructor(cx, &AudioContext_class, vp);
     NativeJSAudio *naudio = NativeJSAudio::getContext(cx, ret, bufferSize, channels, sampleRate);
 
     if (naudio == NULL) {
@@ -1994,7 +2001,7 @@ static JSBool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHand
     return NativeJSAVSource::propSetter(v->video, JSID_TO_INT(id), vp);
 }
 
-void Audio_Finalize(JSFreeOp *fop, JSObject *obj)
+void AudioContext_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSAudio *audio= NATIVE_AUDIO_GETTER(obj);
     if (audio != NULL) {
@@ -2482,11 +2489,13 @@ void NativeJSAudioNode::registerObject(JSContext *cx)
 
 void NativeJSAudio::registerObject(JSContext *cx)
 {
-    JSObject *obj;
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, 
+        &Audio_class, native_Audio_constructor, 0, 
+        NULL, NULL, NULL, Audio_static_funcs);
 
-    obj = JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, 
-            &Audio_class, native_Audio_constructor, 0, 
-            Audio_props, Audio_funcs, NULL, Audio_static_funcs);
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, 
+        &AudioContext_class, native_Audio_constructor, 0, 
+        AudioContext_props, AudioContext_funcs, NULL, NULL);
 }
 
 NATIVE_OBJECT_EXPOSE(Video);
