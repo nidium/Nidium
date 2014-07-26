@@ -2098,9 +2098,12 @@ void NativeJSVideo::onEvent(const struct NativeAVSourceEvent *cev)
 void NativeJSVideo::frameCallback(uint8_t *data, void *custom)
 {
     NativeJSVideo *v = (NativeJSVideo *)custom;
+    NativeCanvasHandler *handler = v->m_CanvasCtx->getHandler();
+    NativeSkia *surface = v->m_CanvasCtx->getSurface();
 
-    v->m_CanvasCtx->clear(0xFF000000);
-    v->m_CanvasCtx->getSurface()->drawPixels(data, v->video->m_Width, v->video->m_Height, v->m_Left, v->m_Top);
+    surface->setFillColor(0xFF000000);
+    surface->drawRect(0, 0, handler->getWidth(), handler->getHeight(), 0);
+    surface->drawPixels(data, v->video->m_Width, v->video->m_Height, v->m_Left, v->m_Top);
 
     jsval onframe;
     if (JS_GetProperty(v->cx, v->jsobj, "onframe", &onframe) &&
