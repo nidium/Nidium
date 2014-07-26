@@ -5,6 +5,8 @@
 #include "pa_ringbuffer.h"
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
+#include "NativeAudioNodeGain.h"
+#include "NativeAudioNodeDelay.h"
 #include <NativeSharedMessages.h>
 #include "Coro.h"
 extern "C" {

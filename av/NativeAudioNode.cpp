@@ -573,24 +573,6 @@ bool NativeAudioNodeTarget::process()
     return true;
 }
 
-NativeAudioNodeGain::NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio) 
-    : NativeAudioNode(inCount, outCount, audio), gain(1)
-{
-    this->args[0] = new ExportsArgs("gain", DOUBLE, &this->gain);
-}
-
-bool NativeAudioNodeGain::process() 
-{
-    SPAM(("|process called on gain\n"));
-    for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
-        for (int j = 0; j < this->inCount; j++) {
-            this->frames[this->input[j]->channel][i] *= this->gain;
-        }
-        //SPAM(("Gain data %f/%f\n", this->frames[0][i], this->frames[1][i]));
-    }
-    return true;
-}
-
 NativeAudioNodeReverb::NativeAudioNodeReverb(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNode(inCount, outCount, audio), delay(500)
 {
@@ -614,94 +596,6 @@ bool NativeAudioNodeReverb::process()
     }
 #endif
     return true;
-}
-
-NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
-    : NativeAudioNode(inCount, outCount, audio), delay(500), wet(1), dry(1), idx(0)
-{
-    this->args[0] = new ExportsArgs("delay", INT, DELAY, NativeAudioNodeDelay::argCallback);
-    this->args[1] = new ExportsArgs("wet", DOUBLE, WET, NativeAudioNodeDelay::argCallback);
-    this->args[2] = new ExportsArgs("dry", DOUBLE, DRY, NativeAudioNodeDelay::argCallback);
-
-    int max = inCount > outCount ? inCount : outCount;
-    this->buffers = (float **)malloc(max * sizeof(void *));
-    for (int i = 0; i < max; i++) {
-        this->buffers[i] = (float *)calloc(audio->outputParameters->sampleRate * ceil((double)delay/1000), NativeAudio::FLOAT32);
-        if (!this->buffers[i]) {
-            this->doNotProcess = true;
-        }
-    }
-}
-
-bool NativeAudioNodeDelay::process()
-{
-    for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
-        if (this->idx >= audio->outputParameters->sampleRate * (delay / 1000)) {
-            this->idx = 0;
-        }
-        for (int j = 0; j < this->inCount; j++) {
-            float tmp = this->frames[this->input[j]->channel][i];
-            this->frames[this->input[j]->channel][i] = (tmp  * this->dry) + (this->wet * this->buffers[this->input[j]->channel][this->idx]);
-            this->buffers[this->input[j]->channel][this->idx] = tmp;
-        }
-        this->idx++;
-    }
-
-    return true;
-}
-
-void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp, int size)
-{
-    NativeAudioNodeDelay *thiz = static_cast<NativeAudioNodeDelay *>(node);
-    switch (id) {
-        case DELAY: {
-            int val = *((int*)tmp);
-            if (val < 0 || val > 10000) {
-                printf("NativeAudioNodeDelay delay must be between 0 and 10000\n");
-                return;
-            }
-            if (val > thiz->delay) {
-                int max = thiz->inCount > thiz->outCount ? thiz->inCount : thiz->outCount;
-                for (int i = 0; i < max; i++) {
-                    int newSize = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (ceil((double)val / 1000));
-                    int prevSize = NativeAudio::FLOAT32 * thiz->audio->outputParameters->sampleRate * (ceil((double)thiz->delay / 1000));
-                    if (newSize == prevSize) return;
-
-                    thiz->buffers[i] = (float *)realloc(thiz->buffers[i], newSize);
-                    if (!thiz->buffers[i]) {
-                        thiz->doNotProcess = true;
-                    } else { 
-                        thiz->doNotProcess = false;
-                    }
-                }
-            }
-            thiz->delay = val;
-        }
-        break;
-        case WET: {
-            double val = *((double*)tmp);
-            if (val > 1) val = 1;
-            if (val < 0) val = 0;
-            thiz->wet = val;
-        }
-        break;
-        case DRY: {
-            double val = *((double*)tmp);
-            if (val > 1) val = 1;
-            if (val < 0) val = 0;
-            thiz->dry = val;
-        }
-        break;
-    }
-}
-
-NativeAudioNodeDelay::~NativeAudioNodeDelay()
-{
-    int max = this->inCount > this->outCount ? this->inCount : this->outCount;
-    for (int i = 0; i < max; i++) {
-        free(this->buffers[i]);
-    }
-    free(this->buffers);
 }
 
 NativeAudioNodeStereoEnhancer::NativeAudioNodeStereoEnhancer(int inCount, int outCount, NativeAudio *audio)
@@ -1757,3 +1651,5 @@ NativeAudioSource::~NativeAudioSource() {
     this->audio->removeSource(this);
     this->closeInternal(false);
 }
+
+NativeAudioProcessor::~NativeAudioProcessor() {};
