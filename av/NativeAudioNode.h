@@ -336,7 +336,7 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom
 {
     public:
         NativeAudioCustomSource(int out, NativeAudio *audio) 
-            : NativeAudioNodeCustom(0, out, audio), m_Playing(true), 
+            : NativeAudioNodeCustom(0, out, audio), m_Playing(false), 
               m_SeekCallback(NULL)
         {
         }
