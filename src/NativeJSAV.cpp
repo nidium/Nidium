@@ -1282,7 +1282,7 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSAudio *audio;
     NativeJSAudioNode *node;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &Audio_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     audio = CppObj;
 
     node = NULL;
@@ -1401,7 +1401,7 @@ static JSBool native_audio_connect(JSContext *cx, unsigned argc, jsval *vp)
     NodeLink *nlink2;
     NativeJSAudio *jaudio;
     
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &Audio_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     jaudio = CppObj;
 
     NativeAudio *audio = jaudio->audio;
@@ -1444,7 +1444,7 @@ static JSBool native_audio_disconnect(JSContext *cx, unsigned argc, jsval *vp)
     NodeLink *nlink2;
     NativeJSAudio *jaudio;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &Audio_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudio, &AudioContext_class);
     jaudio = CppObj;
 
     NativeAudio *audio = jaudio->audio;
@@ -1884,9 +1884,9 @@ static JSBool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject 
 
 static JSBool native_audionode_custom_source_play(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NativeAudioSource *source;
+    NativeAudioCustomSource *source;
 
-    JSNATIVE_AV_GET_NODE(NativeAudioSource, source);
+    JSNATIVE_AV_GET_NODE(NativeAudioCustomSource, source);
 
     source->play();
 
@@ -2210,6 +2210,8 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
     NativeJSVideo *v;
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
+
+    v = CppObj;
 
     if (!jaudio) {
         JS_ReportError(cx, "No Audio context");
