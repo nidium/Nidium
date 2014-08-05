@@ -111,7 +111,7 @@ bool NativeJSModule::init()
         return false;
     }
 
-    NativePath p(this->filePath);
+    NativePath p(this->filePath, false, true);
 
     if (!p.dir()) {
         return false;
@@ -283,18 +283,15 @@ char *NativeJSModules::findModulePath(NativeJSModule *parent, NativeJSModule *mo
 {
     std::string modulePath;
     NativeJSModules *modules = module->modules;
+    const char *topDir = modules->m_TopDir;
 
     if (module->name[0] == '.') {
         // Relative module, only look in current script directory
         modulePath = NativeJSModules::findModuleInPath(module, parent->absoluteDir);
     }  else if (module->name[0] == '/') {
-        modulePath = NativeJSModules::findModuleInPath(module, "");
+        modulePath = NativeJSModules::findModuleInPath(module, topDir);
     }  else {
         std::string path = parent->absoluteDir;
-        const char *topDir = module->modules->m_TopDir;
-        if (topDir == NULL) {
-            topDir = "/";
-        }
 
         DPRINT("[findModulePath] absolute topDir=%s dir=%s path=%s\n", topDir, parent->absoluteDir, path.c_str());
 
@@ -524,11 +521,9 @@ JS::Value NativeJSModule::require(char *name)
             static char dir[MAXPATHLEN];
             getcwd(dir, MAXPATHLEN);
             this->absoluteDir = strdup(dir);
-
         } else {
-
             // absoluteDir is needed for findModulePath
-            NativePath p(this->filePath);
+            NativePath p(this->filePath, false, true);
             this->absoluteDir = strdup(p.dir());
             DPRINT("Global scope loading\n");
         }
