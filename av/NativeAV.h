@@ -158,7 +158,6 @@ enum {
     ERR_DECODING,
     ERR_SEEKING,
     ERR_INTERNAL,
-    ERR_STREAMING_NOT_SUPPORTED,
     ERR_IO,
     ERR_MAX
 };
@@ -177,7 +176,6 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
     "Failed to decode stream",
     "Failed to seek",
     "Internal error",
-    "HTTP Streaming on unknown file size is not supported yet",
     "Input/Output error"
 }; 
 
