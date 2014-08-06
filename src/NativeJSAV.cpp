@@ -897,7 +897,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
         arr = JS_NewFloat32ArrayWithBuffer(tcx, arrBuff, 0, -1);
         if (arr != NULL) {
             JS_DefineElement(tcx, frames, i, OBJECT_TO_JSVAL(arr), 
-                NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT | JSPROP_READONLY);
+                NULL, NULL, JSPROP_ENUMERATE | JSPROP_PERMANENT);
         } else {
             JS_ReportOutOfMemory(tcx);
             return;
@@ -919,10 +919,19 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     for (int i = 0; i < count; i++) 
     {
         JS::Value val;
+        JSObject *arr;
 
         JS_GetElement(tcx, frames, i, &val);
+        if (!val.isObject()) {
+            continue;
+        }
 
-        memcpy(ev->data[i], JS_GetFloat32ArrayData(val.toObjectOrNull()), size);
+        arr = val.toObjectOrNull();
+        if (arr == NULL || !JS_IsFloat32Array(arr) || JS_GetTypedArrayLength(arr) != ev->size) {
+            continue;
+        }
+
+        memcpy(ev->data[i], JS_GetFloat32ArrayData(arr), size);
     }
 }
 
