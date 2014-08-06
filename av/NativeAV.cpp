@@ -163,7 +163,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
             SPAM(("totalRead=%lld, streamSize=%lld\n", thiz->totalRead, thiz->streamSize));
 
             // Got enought data, return
-            if (copied == size || thiz->totalRead >= thiz->streamSize) {
+            if (copied == size || (thiz->streamSize != 0 && thiz->totalRead >= thiz->streamSize)) {
                 SPAM(("wrote enough, return %u \n", copied));
                 thiz->error = 0;
                 thiz->pending = false;
@@ -326,10 +326,6 @@ void NativeAVStreamReader::onAvailableData(size_t len)
 
     if (!this->opened) {
         this->streamSize = this->stream->getFileSize();
-        if (this->streamSize == 0) {
-            this->source->sendEvent(SOURCE_EVENT_ERROR, ERR_STREAMING_NOT_SUPPORTED, false);
-            return;
-        }
         this->opened = true;
         this->source->openInit();
     }
