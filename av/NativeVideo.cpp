@@ -1054,12 +1054,12 @@ void *NativeVideo::decode(void *args)
         if (v->m_SourceNeedWork) {
             DPRINT("readFlag, swithcing back to coro\n");
             v->lockDecodeThread();
+            v->m_SourceNeedWork = false;
             Coro_switchTo_(v->mainCoro, v->coro);
             // Make sure another read call havn't been made
             if (!v->reader->pending) {
                 v->buffering = false;
             }
-            v->m_SourceNeedWork = false;
             v->unlockDecodeThread();
         } else if (!v->doSeek) {
             DPRINT("wait bufferCond, no work needed\n");
