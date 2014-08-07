@@ -587,6 +587,51 @@ NativeJSAudio *NativeJSAudio::getContext(JSContext *cx, JSObject *obj, int buffe
     return new NativeJSAudio(audio, cx, obj);
 }
 
+void NativeJSAudio::initNode(NativeJSAudioNode *node, JSObject *jnode, JSString *name)
+{
+    int in = node->node->inCount;
+    int out = node->node->outCount;
+    JS::Value inputLinks, outputLinks;
+
+    JS_DefineProperty(cx, jnode, "type", STRING_TO_JSVAL(name), NULL, NULL,
+        JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+
+    inputLinks.setObjectOrNull(JS_NewArrayObject(cx, in, NULL));
+    outputLinks.setObjectOrNull(JS_NewArrayObject(cx, out, NULL));
+
+    for (int i = 0; i < in; i++) {
+        JSObject *link = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
+        JS_SetPrivate(link, node->node->input[i]);
+
+        JS_DefineElement(cx, inputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), NULL, NULL, 0);
+    }
+
+    for (int i = 0; i < out; i++) {
+        JSObject *link = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
+        JS_SetPrivate(link, node->node->output[i]);
+
+        JS_DefineElement(cx, outputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), NULL, NULL, 0);
+    }
+
+    if (in > 0) {
+        JS_DefineProperty(cx, jnode, "input", inputLinks, NULL, NULL,
+            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+    }
+
+    if (out > 0) {
+        JS_DefineProperty(cx, jnode, "output", outputLinks, NULL, NULL,
+            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
+    }
+
+    node->njs = NJS;
+    node->jsobj = jnode;
+    node->cx = cx;
+
+    NJS->rootObjectUntilShutdown(node->jsobj);
+    JS_SetPrivate(jnode, node);
+}
+
+
 NativeJSAudio *NativeJSAudio::getContext()
 {
     return NativeJSAudio::instance;
@@ -1359,44 +1404,8 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JS_DefineProperty(cx, ret, "type", STRING_TO_JSVAL(name), NULL, NULL,
-        JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
-
-    JS::Value inputLinks, outputLinks;
-    inputLinks.setObjectOrNull(JS_NewArrayObject(cx, in, NULL));
-    outputLinks.setObjectOrNull(JS_NewArrayObject(cx, out, NULL));
-
-    for (int i = 0; i < in; i++) {
-        JSObject *link = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
-        JS_SetPrivate(link, node->node->input[i]);
-
-        JS_DefineElement(cx, inputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), NULL, NULL, 0);
-    }
-
-    for (int i = 0; i < out; i++) {
-        JSObject *link = JS_NewObject(cx, &AudioNodeLink_class, NULL, NULL);
-        JS_SetPrivate(link, node->node->output[i]);
-
-        JS_DefineElement(cx, outputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), NULL, NULL, 0);
-    }
-
-    if (in > 0) {
-        JS_DefineProperty(cx, ret, "input", inputLinks, NULL, NULL,
-            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
-    }
-
-    if (out > 0) {
-        JS_DefineProperty(cx, ret, "output", outputLinks, NULL, NULL,
-            JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
-    }
-
-    node->njs = NJS;
-    node->jsobj = ret;
-    node->cx = cx;
-
-    NJS->rootObjectUntilShutdown(node->jsobj);
-    JS_SetPrivate(ret, node);
-
+    audio->initNode(node, ret, name);
+    
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
     return true;
@@ -2240,15 +2249,10 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
 
         v->audioNode = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
 
-        node->njs = NJS;
-        node->jsobj = v->audioNode;
-        node->cx = cx;
-
-        //JS_AddObjectRoot(cx, &node->jsobj);
-        NJS->rootObjectUntilShutdown(v->audioNode);
+        JSString *name = JS_NewStringCopyN(cx, "video-source", 12);
+        jaudio->initNode(node, v->audioNode, name);
 
         JS_SetReservedSlot(node->jsobj, 0, OBJECT_TO_JSVAL(v->jsobj));
-        JS_SetPrivate(v->audioNode, node);
 
         JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(v->audioNode));
     } else {
