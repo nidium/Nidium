@@ -67,7 +67,7 @@ int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 NativeAVStreamReader::NativeAVStreamReader(const char *src,
         NativeAVStreamReadCallback readCallback, void *callbackPrivate, NativeAVSource *source, ape_global *net)
     : source(source), totalRead(0), readCallback(readCallback), callbackPrivate(callbackPrivate),
-      opened(false), streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0),
+      opened(false), streamRead(STREAM_BUFFER_SIZE), streamPacketSize(0), streamSize(0), streamErr(-1),
       streamBuffer(NULL), error(0), m_HaveDataAvailable(false)
 {
     this->async = true;
