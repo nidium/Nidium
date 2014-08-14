@@ -34,8 +34,8 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
         this->args[i] = NULL;
     }
 
-    memset(this->input, 0, sizeof(NodeLink *) * 32);
-    memset(this->output, 0, sizeof(NodeLink *) * 32);
+    memset(this->input, 0, sizeof(this->input));
+    memset(this->output, 0, sizeof(this->output));
 
     // Init node IO queue
     for (int i = 0; i < inCount; i++) {
@@ -48,7 +48,7 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
 
     // Malloc node I/O frames
     max = (inCount > outCount ? inCount : outCount);
-    this->frames = (float **)calloc(max, NativeAudio::FLOAT32);
+    this->frames = (float **)calloc(max, sizeof( void *));
 
     for (int i = 0; i < max; i++) {
         this->frames[i] = NULL;
