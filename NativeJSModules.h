@@ -65,9 +65,9 @@ class NativeJSModule
 class NativeJSModules
 {
     public:
-        NativeJSModules(JSContext *cx) : m_TopDir(NULL), cx(cx)
+        NativeJSModules(JSContext *cx) : m_TopDir("/"), cx(cx)
         {
-            m_Paths[0] = (const char *)"nidium_modules";
+            m_Paths[0] = (const char *)"modules";
             m_Paths[1] = (const char *)"node_modules";
         }
 
