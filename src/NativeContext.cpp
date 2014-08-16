@@ -51,6 +51,12 @@ int NativeContext_vLogger(const char *format, va_list ap)
     return 0;
 }
 
+int NativeContext_LogClear()
+{
+    __NativeUI->logclear();
+
+    return 0;
+}
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
@@ -86,6 +92,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_JS->setLogger(NativeContext_Logger);
     m_JS->setLogger(NativeContext_vLogger);
+    m_JS->setLogger(NativeContext_LogClear);
 
     if (m_NML) {
         m_NML->setNJS(m_JS);
@@ -203,7 +210,7 @@ void NativeContext::postDraw()
         s->drawRect(0, 0, m_DebugHandler->getWidth(), m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
-        s->setFontType("monospace");
+        s->setFontType((char *)"monospace");
         s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime/1000000LL);
         s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);

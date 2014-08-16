@@ -71,6 +71,7 @@ class NativeUIInterface
         virtual void log(const char *buf)=0;
         virtual void logf(const char *format, ...)=0;
         virtual void vlog(const char *buf, va_list ap)=0;
+        virtual void logclear()=0;
 
         virtual void alert(const char *message)=0;
 

@@ -317,6 +317,13 @@ void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
     free(buff);
 }
 
+void NativeCocoaUIInterface::logclear()
+{
+    if (this->console && !this->console->isHidden) {
+        this->console->clear();
+    }
+}
+
 void NativeCocoaUIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
