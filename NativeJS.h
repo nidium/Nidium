@@ -69,6 +69,7 @@ class NativeJS
 
         typedef int (*logger)(const char *format);
         typedef int (*vlogger)(const char *format, va_list ap);
+        typedef int (*logger_clear)();
 
         JSContext *cx;
         NativeSharedMessages *messages;
@@ -112,6 +113,10 @@ class NativeJS
             m_vLogger = lfunc;
         }
 
+        void setLogger(logger_clear clearfunc) {
+            m_LogClear = clearfunc;
+        }
+
         void loadGlobalObjects();
         
         static void copyProperties(JSContext *cx, JSObject *source, JSObject *into);
@@ -143,6 +148,7 @@ class NativeJS
 
         void logf(const char *format, ...);
         void log(const char *format);
+        void logclear();
     private:
         NativeJSModules *modules;
         void *privateslot;
@@ -154,5 +160,7 @@ class NativeJS
 
         /* va_list argument */
         vlogger m_vLogger;
+
+        logger_clear m_LogClear;
 };
 #endif

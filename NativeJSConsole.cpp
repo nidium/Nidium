@@ -38,6 +38,7 @@ static JSFunctionSpec console_funcs[] = {
 static JSBool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+
 #if 0
     if (NativeContext::getNativeClass(cx)->getUI()->getConsole()) {
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->hide();
@@ -58,6 +59,9 @@ static JSBool native_console_show(JSContext *cx, unsigned argc,
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    NativeJS *js = NativeJS::getNativeClass(cx);
+
+    js->logclear();
 #if 0
     if (NativeContext::getNativeClass(cx)->getUI()->getConsole()) {
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->clear();

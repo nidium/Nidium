@@ -259,7 +259,20 @@ void NativeJS::logf(const char *format, ...)
 
 void NativeJS::log(const char *format)
 {
-    m_Logger(format);
+    if (!m_Logger) {
+        fwrite(format, sizeof(char), strlen(format), stdout);
+    } else {
+        m_Logger(format);
+    }
+}
+
+void NativeJS::logclear()
+{
+    if (!m_LogClear) {
+        return;
+    }
+
+    m_LogClear();
 }
 
 JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
@@ -455,7 +468,7 @@ void NativeJS::initNet(ape_global *net)
 }
 
 NativeJS::NativeJS(ape_global *net) :
-    m_Logger(NULL), m_vLogger(NULL)
+    m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
     JSRuntime *rt;
     JSObject *gbl;
