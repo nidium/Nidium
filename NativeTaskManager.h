@@ -98,7 +98,7 @@ public:
         return m_Func;
     }
 
-    void *getObject() const {
+    NativeManaged *getObject() const {
         return m_Obj;
     }
 
