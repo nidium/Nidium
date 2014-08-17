@@ -136,8 +136,8 @@ static JSFunctionSpec File_funcs[] = {
 };
 
 static JSFunctionSpec File_static_funcs[] = {
-    JS_FN("readFileSync", native_file_readFileSync, 1, 0),
-    JS_FN("readFile",     native_file_readFile, 2, 0),
+    JS_FN("readSync", native_file_readFileSync, 1, 0),
+    JS_FN("read",     native_file_readFile, 2, 0),
     JS_FS_END
 };
 
