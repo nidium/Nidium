@@ -32,6 +32,7 @@
 #include "NativeJSHTTPListener.h"
 #include "NativeJSDebug.h"
 #include "NativeJSConsole.h"
+#include "NativeJSFS.h"
 
 #include "NativeStream.h"
 #include "NativeUtils.h"
@@ -907,6 +908,8 @@ void NativeJS::loadGlobalObjects()
     NativeJSDebug::registerObject(cx);
     /* console object */
     NativeJSconsole::registerObject(cx);
+    /* fs object */
+    NativeJSFS::registerObject(cx);
 
     modules = new NativeJSModules(cx);
     if (!modules) {

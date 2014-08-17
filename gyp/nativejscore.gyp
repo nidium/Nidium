@@ -125,7 +125,8 @@
             '../NativeNFS.cpp',
             '../NativeJSHTTPListener.cpp',
             '../NativeJSDebug.cpp',
-            '../NativeJSConsole.cpp'
+            '../NativeJSConsole.cpp',
+            '../NativeJSFS.cpp'
         ],
     }],
 }
