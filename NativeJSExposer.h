@@ -24,6 +24,7 @@
 #include <jsapi.h>
 #include <jsfriendapi.h>
 #include "NativeJS.h"
+#include "NativeTaskManager.h"
 
 template <typename T>
 class NativeJSExposer
@@ -71,6 +72,61 @@ class NativeJSExposer
     static T* getNativeClass(JSContext *cx) {
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
+};
+
+#define NATIVE_ASYNC_MAXCALLBACK 4
+class NativeJSAsyncHandler : public NativeManaged
+{
+public:
+    NativeJSAsyncHandler(JSContext *ctx) :
+        m_Ctx(ctx) {
+        memset(m_CallBack, 0, sizeof(m_CallBack));
+    }
+
+    virtual ~NativeJSAsyncHandler() {
+        if (m_Ctx == NULL) {
+            return;
+        }
+
+        for (int i = 0; i < NATIVE_ASYNC_MAXCALLBACK; i++) {
+            if (m_CallBack[i] != NULL) {
+                NativeJS::getNativeClass(m_Ctx)->unrootObject(m_CallBack[i]);
+            }
+        }
+    }
+
+    void setCallback(int idx, JSObject *callback)
+    {
+        if (idx >= NATIVE_ASYNC_MAXCALLBACK || m_Ctx == NULL) {
+            return;
+        }
+
+        if (m_CallBack[idx] != NULL) {
+            NativeJS::getNativeClass(m_Ctx)->unrootObject(m_CallBack[idx]);
+        }
+
+        if (callback) {
+            NativeJS::getNativeClass(m_Ctx)->rootObjectUntilShutdown(callback);
+        }
+        m_CallBack[idx] = callback;
+    }
+
+    JSObject *getCallback(int idx) const {
+        if (idx >= NATIVE_ASYNC_MAXCALLBACK || m_Ctx == NULL) {
+            return NULL;
+        }
+
+        return m_CallBack[idx];
+    }
+
+    JSContext *getJSContext() const {
+        return m_Ctx;
+    }
+
+    virtual void onMessage(const NativeSharedMessages::Message &msg)=0;
+private:
+    JSContext *m_Ctx;
+    JSObject *m_CallBack[NATIVE_ASYNC_MAXCALLBACK];
 };
 
 /*  TODO: add a way to define whether object life define JSObject life
@@ -160,6 +216,10 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define JSOBJ_SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
+
+#define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, val)))
+#define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(val))
+#define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, INT_TO_JSVAL(val))
 
 #define JSNATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = CallArgsFromVp(argc, vp); \
