@@ -39,21 +39,6 @@ static JSFunctionSpec FS_static_funcs[] = {
     JS_FS_END
 };
 
-static const char *NativeJSFS_dirtype_to_str(const dirent *entry)
-{
-    switch (entry->d_type) {
-        case DT_DIR:
-            return "dir";
-        case DT_REG:
-            return "file";
-        case DT_LNK:
-            return "link";
-        case DT_SOCK:
-            return "socket";
-        default:
-            return "unknown";
-    }
-}
 
 class NativeJSFSAsyncHandler : public NativeJSAsyncHandler
 {
@@ -75,9 +60,9 @@ public:
                 JSObject *param = JS_NewObject(cx, NULL, NULL, NULL);
 
                 JSOBJ_SET_PROP_STR(param, "name",
-                    JS_NewStringCopyN(cx, cur->d_name, cur->d_namlen));
+                    JS_NewStringCopyZ(cx, cur->d_name));
 
-                JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
+                //JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
 
                 arg = OBJECT_TO_JSVAL(param);
 
@@ -128,6 +113,7 @@ void NativeJSFS_readDir_Task(NativeTask *task)
 
 static JSBool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
 {
+    return true;
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
