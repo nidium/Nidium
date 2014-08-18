@@ -1346,6 +1346,17 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
+    if (in == 0 && out == 0) {
+        JS_ReportError(cx, "Node must have at least one input or output");
+        return false;
+    } else if (in < 0 || out < 0) {
+        JS_ReportError(cx, "Wrong channel count (Must be greater or equal to 0)");
+        return false;
+    } else if (in > 32 || out > 32) {
+        JS_ReportError(cx, "Wrong channel count (Must be lower or equal to 32)");
+        return false;
+    }
+
     JSAutoByteString cname(cx, name);
     ret = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
     if (!ret) {
