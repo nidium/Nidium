@@ -664,7 +664,7 @@ void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
 }
 
 void NativeCocoaUIInterface::openFileDialog(const char *files[],
-    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
+    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
     NSOpenPanel* openDlg = [NSOpenPanel openPanel];
 
@@ -676,9 +676,10 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
         }
         [openDlg setAllowedFileTypes:fileTypesArray];
     }
-    [openDlg setCanChooseFiles:YES];
-    [openDlg setCanChooseDirectories:NO];
-    [openDlg setAllowsMultipleSelection:YES];
+    
+    [openDlg setCanChooseFiles:(flags & kOpenFile_CanChooseFile ? YES : NO)];
+    [openDlg setCanChooseDirectories:(flags & kOpenFile_CanChooseDir ? YES : NO)];
+    [openDlg setAllowsMultipleSelection:(flags & kOpenFile_AlloMultipleSelection ? YES : NO)];
 
     //[openDlg runModal];
 

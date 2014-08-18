@@ -26,7 +26,7 @@ class NativeX11UIInterface : public NativeUIInterface
         void setTitleBarRGBAColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
         void setWindowControlsOffset(double x, double y);
         void openFileDialog(const char *files[],
-            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg);
+            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
         const char *getCacheDirectory() const {
             return "/tmp/";
         };

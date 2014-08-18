@@ -31,6 +31,13 @@ class NativeUIInterface
             HIDDEN,
             NOCHANGE
         } currentCursor;
+
+        enum OPENFILE_FLAGS {
+            kOpenFile_CanChooseDir = 1 << 0,
+            kOpenFile_CanChooseFile = 1 << 1,
+            kOpenFile_AlloMultipleSelection = 1 << 2
+        };
+
         NativeContext *NativeCtx;
         NativeNML *nml;
         struct SDL_Window *win;
@@ -58,7 +65,7 @@ class NativeUIInterface
         virtual void setClipboardText(const char *text)=0;
         virtual char *getClipboardText()=0;
         virtual void openFileDialog(const char *files[],
-            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
+            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
         virtual const char *getCacheDirectory() const=0;
 
         virtual void setWindowSize(int w, int h);

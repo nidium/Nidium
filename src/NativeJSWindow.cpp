@@ -19,6 +19,7 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_center(JSContext *cx, unsigned argc, jsval *vp);
@@ -113,6 +114,7 @@ static JSFunctionSpec storage_funcs[] = {
 
 static JSFunctionSpec window_funcs[] = {
     JS_FN("openFileDialog", native_window_openFileDialog, 2, 0),
+    JS_FN("openDirDialog", native_window_openDirDialog, 1, 0),
     JS_FN("setSize", native_window_setSize, 2, 0),
     JS_FN("requestAnimationFrame", native_window_requestAnimationFrame, 1, 0),
     JS_FN("center", native_window_center, 0, 0),
@@ -747,6 +749,28 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
+static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *vp)
+{
+    jsval callback;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "v", &callback)) {
+        return false;
+    }
+
+    struct _nativeopenfile *nof = (struct _nativeopenfile *)malloc(sizeof(*nof));
+    nof->cb = callback;
+    nof->cx = cx;
+
+    JS_AddValueRoot(cx, &nof->cb);
+
+    NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
+        NULL,
+        native_window_openfilecb, nof,
+        NativeUIInterface::kOpenFile_CanChooseDir);
+
+    return true;
+}
+
 /* TODO: leak if the user click "cancel" */
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -790,7 +814,10 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
 
     JS_AddValueRoot(cx, &nof->cb);
 
-    NativeContext::getNativeClass(cx)->getUI()->openFileDialog((const char **)ctypes, native_window_openfilecb, nof);
+    NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
+        (const char **)ctypes,
+        native_window_openfilecb, nof,
+        NativeUIInterface::kOpenFile_CanChooseFile | NativeUIInterface::kOpenFile_AlloMultipleSelection);
 
     if (ctypes) {
         for (int i = 0; i < len; i++) {
