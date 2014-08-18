@@ -23,6 +23,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <dirent.h>
+#include <sys/types.h>
+
 #include "NativeMessages.h"
 #include "NativeTaskManager.h"
 #include "NativeIStreamer.h"
@@ -40,6 +43,7 @@ enum {
     NATIVEFILE_WRITE_ERROR =    NATIVEFILE_MESSAGE_BITS(7),
     NATIVEFILE_SEEK_SUCCESS =   NATIVEFILE_MESSAGE_BITS(8),
     NATIVEFILE_SEEK_ERROR =     NATIVEFILE_MESSAGE_BITS(9),
+    NATIVEFILE_LISTFILES_ENTRIES = NATIVEFILE_MESSAGE_BITS(10),
 };
 
 class NativeFile : public NativeManaged, public NativeIStreamer, public NativeEvents
@@ -59,6 +63,12 @@ public:
         SEEK_ERROR
     };
 
+    struct DirEntries {
+        int size;
+        int allocated;
+        dirent *lst;
+    };
+
     explicit NativeFile(const char *path);
     ~NativeFile();
 
@@ -67,6 +77,7 @@ public:
     void read(size_t size, void *arg = NULL);
     void write(char *buf, size_t size, void *arg = NULL);
     void seek(size_t pos, void *arg = NULL);
+    void listFiles(void *arg = NULL);
 
     int openSync(const char *modes, int *err);
     ssize_t readSync(uint64_t len, char **buffer, int *err);
@@ -81,6 +92,7 @@ public:
     void readTask(size_t size, void *arg = NULL);
     void writeTask(char *buf, size_t buflen, void *arg = NULL);
     void seekTask(size_t pos, void *arg = NULL);
+    void listFilesTask(void *arg = NULL);
 
     void setAutoClose(bool close) { m_AutoClose = close; }
     void setListener(NativeMessages *listener) {
@@ -90,8 +102,12 @@ public:
         return m_Filesize;
     }
 
+    bool isDir() const {
+        return m_isDir;
+    }
+
     bool isOpen() const {
-        return m_Fd != NULL;
+        return m_Fd || m_Dir;
     }
 
     bool eof() const {
@@ -106,19 +122,37 @@ public:
         return m_Fd;
     }
 
+    DIR *getDir() const {
+        return m_Dir;
+    }
+
     void onMessage(const NativeSharedMessages::Message &msg);
     void onMessageLost(const NativeSharedMessages::Message &msg);
 private:
     bool checkEOF();
     void checkRead(bool async = true, void *arg = NULL);
+    void closeFd() {
+        if (m_isDir && m_Dir) {
+            closedir(m_Dir);
+        } else if (m_Fd) {
+            fclose(m_Fd);
+        }
 
+        m_Fd = NULL;
+        m_Dir = NULL;
+        m_isDir = false;
+    }
+
+    DIR *m_Dir;
     FILE *m_Fd;
+
     NativeMessages *m_Delegate;
     char *m_Path;
     size_t m_Filesize;
     bool m_AutoClose;
     bool m_Eof;
     bool m_OpenSync;
+    bool m_isDir;
 
     struct {
         size_t size;

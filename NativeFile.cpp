@@ -21,12 +21,15 @@
 #include "NativeFile.h"
 #include "NativeUtils.h"
 
+#include <sys/stat.h>
+
 #include <ape_buffer.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/mman.h>
 #include <stdio.h>
+#include <stddef.h>
 
 #define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
@@ -41,13 +44,14 @@ enum {
     NATIVEFILE_TASK_CLOSE,
     NATIVEFILE_TASK_READ,
     NATIVEFILE_TASK_WRITE,
-    NATIVEFILE_TASK_SEEK
+    NATIVEFILE_TASK_SEEK,
+    NATIVEFILE_TASK_LISTFILES
 };
 
 NativeFile::NativeFile(const char *name) :
-    m_Fd(NULL), m_Delegate(NULL),
+    m_Dir(NULL), m_Fd(NULL), m_Delegate(NULL),
     m_Filesize(0), m_AutoClose(true),
-    m_Eof(false), m_OpenSync(false)
+    m_Eof(false), m_OpenSync(false), m_isDir(false)
 {
     m_Mmap.addr = NULL;
     m_Mmap.size = 0;
@@ -98,6 +102,11 @@ void NativeFile_dispatchTask(NativeTask *task)
             file->seekTask(pos, arg);
             break;
         }
+        case NATIVEFILE_TASK_LISTFILES:
+        {
+            file->listFilesTask(arg);
+            break;
+        }
         default:
             break;
     }
@@ -114,16 +123,31 @@ void NativeFile::openTask(const char *mode, void *arg)
         return;
     }
 
-    m_Fd = fopen(m_Path, mode);
+    struct stat s;
 
-    if (m_Fd == NULL) {
+    if (lstat(m_Path, &s) != 0) {
         NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
-        return;
+        return;        
     }
-    
-    fseek(m_Fd, 0L, SEEK_END);
-    m_Filesize = ftell(m_Fd);
-    fseek(m_Fd, 0L, SEEK_SET);
+
+    if (s.st_mode & S_IFDIR) {
+        m_Dir = opendir(m_Path);
+        if (!m_Dir) {
+            NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
+            return;   
+        }
+        m_isDir = true;
+        m_Filesize = 0;
+    } else {
+        m_Fd = fopen(m_Path, mode);
+        if (m_Fd == NULL) {
+            NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
+            return;
+        }
+
+        m_Filesize = s.st_size;
+        m_isDir = false;
+    }
 
     NATIVE_FILE_NOTIFY(m_Fd, NATIVEFILE_OPEN_SUCCESS, arg);
 }
@@ -137,11 +161,11 @@ void NativeFile::closeTask(void *arg)
         return;
     }
 
-    fclose(m_Fd);
+    closeFd();
+
     if (!m_OpenSync) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_CLOSE_SUCCESS, arg);
     }
-    m_Fd = NULL;
 }
 
 /*
@@ -149,7 +173,7 @@ void NativeFile::closeTask(void *arg)
 */
 void NativeFile::readTask(size_t size, void *arg)
 {
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_READ_ERROR, arg);
         return;
     }
@@ -184,7 +208,7 @@ void NativeFile::readTask(size_t size, void *arg)
 */
 void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 {
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_WRITE_ERROR, arg);
         return;
     }
@@ -206,7 +230,7 @@ void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 */
 void NativeFile::seekTask(size_t pos, void *arg)
 {
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         return;
     }
 
@@ -218,6 +242,42 @@ void NativeFile::seekTask(size_t pos, void *arg)
     this->checkEOF();
 
     NATIVE_FILE_NOTIFY((void *)NULL, NATIVEFILE_SEEK_SUCCESS, arg);
+}
+
+/*
+    /!\ Exec in a worker thread
+*/
+void NativeFile::listFilesTask(void *arg)
+{
+    if (!this->isOpen() || !this->isDir()) {
+        return;
+    }
+
+    dirent *cur;
+    DirEntries *entries = (DirEntries *)malloc(sizeof(DirEntries));
+    entries->allocated = 64;
+    entries->lst = (dirent *)malloc(sizeof(dirent) * entries->allocated);
+    
+    entries->size = 0;
+
+    while ((cur = readdir(m_Dir)) != NULL) {
+        if (strcmp(cur->d_name, ".") == 0 || strcmp(cur->d_name, "..") == 0) {
+            continue;
+        }
+
+        memcpy(&entries->lst[entries->size], cur, sizeof(dirent));
+        entries->size++;
+
+        if (entries->size == entries->allocated) {
+            entries->allocated *= 2;
+            entries->lst = (dirent *)realloc(entries->lst,
+                sizeof(dirent) * entries->allocated);
+        }
+    }
+
+    NATIVE_FILE_NOTIFY(entries, NATIVEFILE_LISTFILES_ENTRIES, arg);
+
+    rewinddir(m_Dir);
 }
 
 void NativeFile::open(const char *mode, void *arg)
@@ -283,6 +343,17 @@ void NativeFile::seek(size_t pos, void *arg)
     this->addTask(task);
 }
 
+void NativeFile::listFiles(void *arg)
+{
+    NativeTask *task = new NativeTask();
+    task->args[0].set(NATIVEFILE_TASK_LISTFILES);
+    task->args[7].set(arg);
+
+    task->setFunction(NativeFile_dispatchTask);
+
+    this->addTask(task);
+}
+
 bool NativeFile::checkEOF()
 {
     if (m_Fd &&
@@ -337,6 +408,13 @@ void NativeFile::onMessage(const NativeSharedMessages::Message &msg)
             buffer_delete(buf);
             break;
         }
+        case NATIVEFILE_LISTFILES_ENTRIES:
+        {
+            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
+            free(entries->lst);
+            free(entries);
+            break;
+        }
     }
 }
 
@@ -347,6 +425,13 @@ void NativeFile::onMessageLost(const NativeSharedMessages::Message &msg)
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
             buffer_delete(buf);
+            break;
+        }
+        case NATIVEFILE_LISTFILES_ENTRIES:
+        {
+            DirEntries *entries = (DirEntries *)msg.args[0].toPtr();
+            free(entries->lst);
+            free(entries);
             break;
         }
     }
@@ -362,18 +447,35 @@ int NativeFile::openSync(const char *modes, int *err)
     if (this->isOpen()) {
         return 1;
     }
-    
-    if ((m_Fd = fopen(m_Path, modes)) == NULL) {
-        printf("Failed to open : %s errno=%d\n", m_Path, errno);
+
+    struct stat s;
+
+    if (lstat(m_Path, &s) != 0) {
+        printf("Failed to lstat : %s errno=%d\n", m_Path, errno);
         *err = errno;
-        return 0;
+        return 0;        
     }
 
-    m_OpenSync = true;
+    if (s.st_mode & S_IFDIR) {
+        m_Dir = opendir(m_Path);
+        if (!m_Dir) {
+            printf("Failed to open : %s errno=%d\n", m_Path, errno);
 
-    fseek(m_Fd, 0L, SEEK_END);
-    m_Filesize = ftell(m_Fd);
-    fseek(this->m_Fd, 0L, SEEK_SET);
+            *err = errno;
+            return 0;   
+        }
+        m_isDir = true;
+        m_Filesize = 0;
+    } else {
+        if ((m_Fd = fopen(m_Path, modes)) == NULL) {
+            printf("Failed to open : %s errno=%d\n", m_Path, errno);
+            *err = errno;
+            return 0;
+        }
+
+         m_Filesize = s.st_size;
+    }
+    m_OpenSync = true;
 
     return 1;
 }
@@ -382,7 +484,7 @@ ssize_t NativeFile::writeSync(char *data, uint64_t len, int *err)
 {
     *err = 0;
 
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         return -1;
     }
     int ret;
@@ -402,7 +504,7 @@ ssize_t NativeFile::mmapSync(char **buffer, int *err)
 {
     *err = 0;
     
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         return -1;
     }
     size_t size = this->getFileSize();
@@ -430,7 +532,7 @@ ssize_t NativeFile::readSync(uint64_t len, char **buffer, int *err)
 
     *buffer = NULL;
 
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         return -1;
     }
 
@@ -471,15 +573,13 @@ void NativeFile::closeSync()
         return;
     }
 
-    fclose(m_Fd);
-
-    m_Fd = NULL;
+    closeFd();
 }
 
 int NativeFile::seekSync(size_t pos, int *err)
 {
     *err = 0;
-    if (!this->isOpen()) {
+    if (!this->isOpen() || this->isDir()) {
         return -1;
     }
 
