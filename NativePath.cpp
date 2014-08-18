@@ -39,7 +39,8 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
     }
     const char *pOrigin;
     int originlen = strlen(origin);
-    if (originlen > MAXPATHLEN-1 || origin[originlen-1] == '/') {
+
+    if (originlen > MAXPATHLEN-1/* || origin[originlen-1] == '/'*/) {
         return;
     }
     m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN*4 + 1));
@@ -330,6 +331,8 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
     if (external) {
         *external = outsideRoot;
     }
-
+    if (strcmp(finalPath.c_str(), ".") == 0 && strlen(finalPath.c_str()) == 1) {
+        return strdup("./");
+    }
     return strdup(finalPath.c_str());
 }
