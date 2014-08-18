@@ -69,7 +69,7 @@ bool NativeCanvasHandler::setMinWidth(int width)
 {
     if (width < 1) width = 1;
 
-    m_MinWidth = native_min(width, m_MaxWidth);
+    m_MinWidth = m_MaxWidth ? native_min(width, m_MaxWidth) : width;
 
     if (m_Width < m_MinWidth) {
         this->setWidth(m_MinWidth);
@@ -82,7 +82,7 @@ bool NativeCanvasHandler::setMinHeight(int height)
 {
     if (height < 1) height = 1;
 
-    m_MinHeight = native_min(height, m_MaxHeight);
+    m_MinHeight = m_MaxHeight ? native_min(height, m_MaxHeight) : height;
 
     if (m_Height < m_MinHeight) {
         this->setHeight(m_MinHeight);
