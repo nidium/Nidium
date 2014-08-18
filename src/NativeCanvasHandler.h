@@ -132,7 +132,7 @@ class NativeCanvasHandler : public NativeEvents
         class JSObject *jsobj;
         struct JSContext *jscx;
 
-        int m_Width, m_Height;
+        int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
         /*
             left and top are relative to parent
             a_left and a_top are relative to the root layer
@@ -164,7 +164,7 @@ class NativeCanvasHandler : public NativeEvents
             bool consumed;
         } mousePosition;
 
-        bool overflow;
+        bool m_Overflow;
 
         NativeCanvasContext *getContext() const {
             return this->m_Context;
@@ -260,6 +260,22 @@ class NativeCanvasHandler : public NativeEvents
             if (pheight == 0) return 0.;
 
             return pheight - this->getTop() - this->getBottom();
+        }
+
+        int getMinWidth() const {
+            return m_MinWidth;
+        }
+
+        int getMaxWidth() const {
+            return m_MaxWidth;
+        }
+
+        int getMinHeight() const {
+            return m_MinHeight;
+        }
+
+        int getMaxHeight() const {
+            return m_MaxHeight;
         }
 
         bool hasFixedWidth() const {
@@ -376,6 +392,13 @@ class NativeCanvasHandler : public NativeEvents
 
         bool setWidth(int width);
         bool setHeight(int height);
+
+        bool setMinWidth(int width);
+        bool setMinHeight(int height);
+
+        bool setMaxWidth(int width);
+        bool setMaxHeight(int height);
+
         void updateChildrenSize(bool width, bool height);
         void setSize(int width, int height, bool redraw = true);
         void setPadding(int padding);
@@ -443,6 +466,7 @@ class NativeCanvasHandler : public NativeEvents
 
         double scaleX, scaleY;
         bool m_AllowNegativeScroll;
+        bool m_ExpandWidth, m_ExpandHeight;
 
         void recursiveScale(double x, double y, double oldX, double oldY);
 };

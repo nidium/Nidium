@@ -7,13 +7,10 @@
 #include <jsapi.h>
 #include <js/GCAPI.h>
 
-#define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
-#define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
-
 NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     right(0.0), bottom(0.0),
-    overflow(true),
+    m_Overflow(true),
     m_Parent(NULL), m_Children(NULL), m_Next(NULL),
     m_Prev(NULL), m_Last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE),
@@ -27,6 +24,13 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
 {
     m_Width = native_max(width, 2);
     m_Height = native_max(height, 2);
+    m_MaxHeight = 0;
+    m_MaxWidth = 0;
+    m_MinWidth = 2;
+    m_MinHeight = 2;
+
+    m_ExpandHeight = false;
+    m_ExpandWidth = false;
 
     memset(&this->padding, 0, sizeof(this->padding));
     memset(&this->translate_s, 0, sizeof(this->translate_s));
@@ -34,8 +38,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
 
     this->mousePosition.consumed = true;
 
-    this->content.width = width;
-    this->content.height = height;
+    this->content.width = m_Width;
+    this->content.height = m_Height;
     this->content.scrollLeft = 0;
     this->content.scrollTop = 0;
 
@@ -61,9 +65,58 @@ void NativeCanvasHandler::translate(double x, double y)
     this->translate_s.y += y;
 }
 
-bool NativeCanvasHandler::setWidth(int width)
+bool NativeCanvasHandler::setMinWidth(int width)
 {
     if (width < 1) width = 1;
+
+    m_MinWidth = native_min(width, m_MaxWidth);
+
+    if (m_Width < m_MinWidth) {
+        this->setWidth(m_MinWidth);
+    }
+
+    return true;
+}
+
+bool NativeCanvasHandler::setMinHeight(int height)
+{
+    if (height < 1) height = 1;
+
+    m_MinHeight = native_min(height, m_MaxHeight);
+
+    if (m_Height < m_MinHeight) {
+        this->setHeight(m_MinHeight);
+    }
+
+    return true;
+}
+
+bool NativeCanvasHandler::setMaxWidth(int width)
+{
+    m_MaxWidth = width < 1 ? 0 : native_max(m_MinWidth, width);
+
+    if (m_Width > m_MaxWidth) {
+        this->setWidth(m_MaxWidth);
+    }
+
+    return true;
+}
+
+bool NativeCanvasHandler::setMaxHeight(int height)
+{
+    m_MaxHeight = height < 1 ? 0 : native_max(m_MinHeight, height);
+
+    if (m_Height > m_MaxHeight) {
+        this->setHeight(m_MaxHeight);
+    }
+
+    return true;
+}
+
+bool NativeCanvasHandler::setWidth(int width)
+{
+    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) : 
+                           native_max(width, m_MinWidth);
 
     if (!this->hasFixedWidth()) {
         return false;
@@ -94,7 +147,8 @@ bool NativeCanvasHandler::setWidth(int width)
 
 bool NativeCanvasHandler::setHeight(int height)
 {
-    if (height < 1) height = 1;
+    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
+                           native_max(height, m_MinHeight);
 
     if (!this->hasFixedHeight()) {
         return false;
@@ -123,8 +177,12 @@ bool NativeCanvasHandler::setHeight(int height)
 
 void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 {
-    if (height < 1) height = 1;
-    if (width < 1) width = 1;
+
+    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
+                           native_max(height, m_MinHeight);
+
+    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) : 
+                           native_max(width, m_MinWidth);
 
     if (m_Height == height && m_Width == width) {
         return;
@@ -396,7 +454,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
         }
     }
 
-    if (!this->overflow) {
+    if (!m_Overflow) {
         if (layerContext.clip == NULL) {
             layerContext.clip = &nclip;
             layerContext.clip->fLeft = this->a_left;
@@ -594,7 +652,7 @@ bool NativeCanvasHandler::isOutOfBound()
     NativeCanvasHandler *cur;
 
     for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
-        if (!cur->overflow) {
+        if (!cur->m_Overflow) {
             
             cur->computeAbsolutePosition();
             this->computeAbsolutePosition();
@@ -616,7 +674,7 @@ NativeRect NativeCanvasHandler::getViewport()
     for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
         if (!cur->m_Parent) break;
 
-        if (!cur->overflow) {
+        if (!cur->m_Overflow) {
             
             cur->computeAbsolutePosition();
 
@@ -657,7 +715,7 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
     this->content.height = this->getHeight();
 
     /* don't go further if it doesn't overflow (and not the requested handler) */
-    if (!this->overflow && cWidth && cHeight) {
+    if (!m_Overflow && cWidth && cHeight) {
         *cWidth = this->content.width;
         *cHeight = this->content.height;
         return;

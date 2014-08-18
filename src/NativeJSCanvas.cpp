@@ -60,7 +60,11 @@ enum {
     CANVAS_PROP_STATICLEFT,
     CANVAS_PROP_STATICRIGHT,
     CANVAS_PROP_STATICTOP,
-    CANVAS_PROP_STATICBOTTOM
+    CANVAS_PROP_STATICBOTTOM,
+    CANVAS_PROP_MINWIDTH,
+    CANVAS_PROP_MINHEIGHT,
+    CANVAS_PROP_MAXWIDTH,
+    CANVAS_PROP_MAXHEIGHT,
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -167,6 +171,22 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"height", CANVAS_PROP_HEIGHT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"maxWidth", CANVAS_PROP_MAXWIDTH, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"maxHeight", CANVAS_PROP_MAXHEIGHT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"minWidth", CANVAS_PROP_MINWIDTH, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get),
+        JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"minHeight", CANVAS_PROP_MINHEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
 
@@ -692,6 +712,32 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
         }
         break;
+        case CANVAS_PROP_MINWIDTH:
+        {
+            uint32_t dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToECMAUint32(cx, vp, &dval);
+
+            if (!handler->setMinWidth(dval)) {
+                return true;
+            }
+        }
+        break;
+        case CANVAS_PROP_MAXWIDTH:
+        {
+            uint32_t dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToECMAUint32(cx, vp, &dval);
+
+            if (!handler->setMaxWidth(dval)) {
+                return true;
+            }
+        }
+        break;
         case CANVAS_PROP_HEIGHT:
         {
             uint32_t dval;
@@ -702,6 +748,32 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             
             if (!handler->setHeight(dval)) {
                 //JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
+                return true;
+            }
+        }
+        break;
+        case CANVAS_PROP_MINHEIGHT:
+        {
+            uint32_t dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToECMAUint32(cx, vp, &dval);
+
+            if (!handler->setMinHeight(dval)) {
+                return true;
+            }
+        }
+        break;
+        case CANVAS_PROP_MAXHEIGHT:
+        {
+            uint32_t dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+            JS_ValueToECMAUint32(cx, vp, &dval);
+
+            if (!handler->setMaxHeight(dval)) {
                 return true;
             }
         }
@@ -828,7 +900,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return JS_TRUE;
             }
 
-            handler->overflow = JSVAL_TO_BOOLEAN(vp);
+            handler->m_Overflow = JSVAL_TO_BOOLEAN(vp);
         }
         break;
         case CANVAS_PROP_PADDING:
@@ -926,11 +998,23 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_WIDTH:
             vp.set(INT_TO_JSVAL(handler->getWidth()));
             break;
+        case CANVAS_PROP_MINWIDTH:
+            vp.set(INT_TO_JSVAL(handler->getMinWidth()));
+            break;
+        case CANVAS_PROP_MAXWIDTH:
+            vp.set(INT_TO_JSVAL(handler->getMaxWidth()));
+            break;
         case CANVAS_PROP_CLIENTWIDTH:
             vp.set(INT_TO_JSVAL(handler->getWidth() + (handler->padding.global * 2)));
             break;
         case CANVAS_PROP_HEIGHT:
             vp.set(INT_TO_JSVAL(handler->getHeight()));
+            break;
+        case CANVAS_PROP_MINHEIGHT:
+            vp.set(INT_TO_JSVAL(handler->getMinHeight()));
+            break;
+        case CANVAS_PROP_MAXHEIGHT:
+            vp.set(INT_TO_JSVAL(handler->getMaxHeight()));
             break;
         case CANVAS_PROP_CLIENTHEIGHT:
             vp.set(INT_TO_JSVAL(handler->getHeight() + (handler->padding.global * 2)));
@@ -972,7 +1056,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
             break;
         case CANVAS_PROP_OVERFLOW:
-            vp.set(BOOLEAN_TO_JSVAL(handler->overflow));
+            vp.set(BOOLEAN_TO_JSVAL(handler->m_Overflow));
             break;
         case CANVAS_PROP___VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(handler->isDisplayed()));
@@ -1140,7 +1224,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     handler->getContext()->setGLState(NativeContext::getNativeClass(cx)->getGLState());
 
     /* window.canvas.overflow default to false */
-    handler->overflow = false;
+    handler->m_Overflow = false;
 
     handler->jsobj = ret;
     handler->jscx = cx;
