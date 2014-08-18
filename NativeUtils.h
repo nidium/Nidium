@@ -103,6 +103,8 @@ class NativePtrAutoDelete {
 
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
+#define native_clamp(val, min, max) native_max(native_min(val, max), min)
+
 #define CONST_STR_LEN(x) x, x ? sizeof(x) - 1 : 0
 
 #define APE_CTX(CX) ((ape_global *)JS_GetContextPrivate(CX))
