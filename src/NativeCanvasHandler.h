@@ -132,7 +132,7 @@ class NativeCanvasHandler : public NativeEvents
         class JSObject *jsobj;
         struct JSContext *jscx;
 
-        int width, height;
+        int m_Width, m_Height;
         /*
             left and top are relative to parent
             a_left and a_top are relative to the root layer
@@ -182,7 +182,7 @@ class NativeCanvasHandler : public NativeEvents
             if (absolute) return a_left;
 
             if (!(coordMode & kLeft_Coord)) {
-                return m_Parent->getWidth() - (this->width + this->right);
+                return m_Parent->getWidth() - (m_Width + this->right);
             }
 
             return this->left;
@@ -191,7 +191,7 @@ class NativeCanvasHandler : public NativeEvents
             if (absolute) return a_top;
 
             if (!(coordMode & kTop_Coord)) {
-                return m_Parent->getHeight() - (this->height + this->bottom);
+                return m_Parent->getHeight() - (m_Height + this->bottom);
             }
 
             return this->top;
@@ -235,7 +235,7 @@ class NativeCanvasHandler : public NativeEvents
         */
         double getWidth() const {
             if (hasFixedWidth()) {
-                return this->width;
+                return m_Width;
             }
             if (m_Parent == NULL) return 0.;
 
@@ -251,7 +251,7 @@ class NativeCanvasHandler : public NativeEvents
         */
         double getHeight() const {
             if (hasFixedHeight()) {
-                return this->height;
+                return m_Height;
             }
             if (m_Parent == NULL) return 0.;
 
@@ -311,14 +311,14 @@ class NativeCanvasHandler : public NativeEvents
             coordMode |= kLeft_Coord;
             this->left = val;
             if (!hasFixedWidth()) {
-                setSize(this->getWidth(), this->height);
+                setSize(this->getWidth(), m_Height);
             }
         }
         void setRight(double val) {
             coordMode |= kRight_Coord;
             this->right = val; 
             if (!hasFixedWidth()) {
-                setSize(this->getWidth(), this->height);
+                setSize(this->getWidth(), m_Height);
             }
         }
 
@@ -329,7 +329,7 @@ class NativeCanvasHandler : public NativeEvents
             coordMode |= kTop_Coord;
             this->top = val;
             if (!hasFixedHeight()) {
-                setSize(this->width, this->getHeight());
+                setSize(m_Width, this->getHeight());
             }
         }
 
@@ -337,7 +337,7 @@ class NativeCanvasHandler : public NativeEvents
             coordMode |= kBottom_Coord;
             this->bottom = val;
             if (!hasFixedHeight()) {
-                setSize(this->width, this->getHeight());
+                setSize(m_Width, this->getHeight());
             }            
         }
 
