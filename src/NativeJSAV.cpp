@@ -1747,7 +1747,7 @@ static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc,
     JSString *name;
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
     jnode = CppObj;
 
     if (jnode->hashObj == NULL) {
@@ -1774,7 +1774,7 @@ static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc
     size_t nbytes;
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
     jnode = CppObj;
 
     struct native_thread_msg *msg;
