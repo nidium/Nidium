@@ -412,7 +412,7 @@ const char *NativeX11UIInterface::getWindowTitle() const
 }
 
 void NativeX11UIInterface::openFileDialog(const char *files[],
-    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0)
+    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
 #ifdef NATIVE_USE_GTK
     GtkWidget *dialog;
