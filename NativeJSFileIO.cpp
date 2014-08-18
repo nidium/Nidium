@@ -675,8 +675,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                 for (int i = 0; i < entries->size; i++) {
                     JSObject *entry = JS_NewObject(cx, NULL, NULL, NULL);
                     JSOBJ_SET_PROP_STR(entry, "name",
-                        JS_NewStringCopyN(cx, entries->lst[i].d_name,
-                            entries->lst[i].d_namlen));
+                        JS_NewStringCopyZ(cx, entries->lst[i].d_name));
 
                     JSOBJ_SET_PROP_CSTR(entry, "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
