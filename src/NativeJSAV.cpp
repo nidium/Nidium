@@ -1346,6 +1346,17 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
+    if (in == 0 && out == 0) {
+        JS_ReportError(cx, "Node must have at least one input or output");
+        return false;
+    } else if (in < 0 || out < 0) {
+        JS_ReportError(cx, "Wrong channel count (Must be greater or equal to 0)");
+        return false;
+    } else if (in > 32 || out > 32) {
+        JS_ReportError(cx, "Wrong channel count (Must be lower or equal to 32)");
+        return false;
+    }
+
     JSAutoByteString cname(cx, name);
     ret = JS_NewObjectForConstructor(cx, &AudioNode_class, vp);
     if (!ret) {
@@ -1736,7 +1747,7 @@ static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc,
     JSString *name;
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
     jnode = CppObj;
 
     if (jnode->hashObj == NULL) {
@@ -1763,7 +1774,7 @@ static JSBool native_audionode_custom_threaded_send(JSContext *cx, unsigned argc
     size_t nbytes;
     NativeJSAudioNode *jnode;
 
-    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_class);
+    JSNATIVE_PROLOGUE_CLASS(NativeJSAudioNode, &AudioNode_threaded_class);
     jnode = CppObj;
 
     struct native_thread_msg *msg;
