@@ -118,7 +118,6 @@ class NativeAudio
         PaStream *outputStream;
 
         float *rBufferOutData;
-        float *cbkBuffer;
         float volume;
 
         pthread_t threadDecode;
