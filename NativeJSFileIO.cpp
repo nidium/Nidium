@@ -111,6 +111,8 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp);
@@ -132,6 +134,8 @@ static JSFunctionSpec File_funcs[] = {
     JS_FN("seek", native_file_seek, 2, 0),
     JS_FN("close", native_file_close, 0, 0),
     JS_FN("write", native_file_write, 1, 0),
+    JS_FN("isDir", native_file_isDir, 0, 0),
+    JS_FN("listFiles", native_file_listFiles, 1, 0),
     JS_FS_END
 };
 
@@ -256,6 +260,10 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     file = NJSFIO->getFile();
+    
+    if (!file->isOpen()) {
+        file->open("a+");
+    }
 
     if (args[0].isString()) {
         //printf("got a string to write\n");
@@ -285,6 +293,63 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
         return false;        
     }
+
+    return true;
+}
+
+static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    NativeJSFileIO *NJSFIO;
+    NativeFile *file;
+
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
+    }
+
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+
+    file = NJSFIO->getFile();
+
+    args.rval().setBoolean(file->isDir());
+
+    return true;
+}
+
+static JSBool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
+{
+    jsval callback;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    NativeJSFileIO *NJSFIO;
+    NativeFile *file;
+
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
+    }
+
+
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+
+    NATIVE_CHECK_ARGS("listFiles", 1);
+
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback)) {
+        JS_ReportError(cx, "listFiles() bad callback");
+        return false;
+    }
+
+    file = NJSFIO->getFile();
+
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
+
+    /*
+        If the directory is not open, open it anyway
+    */
+    if (!file->isOpen()) {
+        file->open("r");
+    }
+    file->listFiles(callback.toObjectOrNull());
 
     return true;
 }
@@ -320,6 +385,9 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
+    if (!file->isOpen()) {
+        file->open("r");
+    }
     file->read((uint64_t)read_size, callback.toObjectOrNull());
 
     return true;
@@ -563,6 +631,22 @@ bool NativeJSFileIO::handleError(JSContext *cx, const NativeSharedMessages::Mess
     return true;
 }
 
+static const char *NativeJSFileIO_dirtype_to_str(const dirent *entry)
+{
+    switch (entry->d_type) {
+        case DT_DIR:
+            return "dir";
+        case DT_REG:
+            return "file";
+        case DT_LNK:
+            return "link";
+        case DT_SOCK:
+            return "socket";
+        default:
+            return "unknown";
+    }
+}
+
 bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     const NativeSharedMessages::Message &msg, JSObject *thisobj,
     const char *encoding)
@@ -583,6 +667,27 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
             case NATIVEFILE_WRITE_SUCCESS:
                 params[1] = DOUBLE_TO_JSVAL(msg.args[0].toInt64());
                 break;
+            case NATIVEFILE_LISTFILES_ENTRIES:
+            {
+                NativeFile::DirEntries *entries = (NativeFile::DirEntries *)msg.args[0].toPtr();
+                JSObject *arr = JS_NewArrayObject(cx, entries->size, NULL);
+
+                for (int i = 0; i < entries->size; i++) {
+                    JSObject *entry = JS_NewObject(cx, NULL, NULL, NULL);
+                    JSOBJ_SET_PROP_STR(entry, "name",
+                        JS_NewStringCopyN(cx, entries->lst[i].d_name,
+                            entries->lst[i].d_namlen));
+
+                    JSOBJ_SET_PROP_CSTR(entry, "type",
+                        NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
+
+                    jsval val = OBJECT_TO_JSVAL(entry);
+                    JS_SetElement(cx, arr, i, &val);
+
+                }
+
+                params[1] = OBJECT_TO_JSVAL(arr);
+            }
         }
     }
     JSObject *callback = (JSObject *)msg.args[7].toPtr();
