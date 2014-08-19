@@ -20,6 +20,12 @@ class NativeWebSocketClientConnection;
 
 typedef struct _ape_global ape_global;
 
+struct NativeJobQueue {
+    void (*job)(void *arg);
+    struct NativeJobQueue *next;
+    void *arg;
+};
+
 class NativeContext : public NativeMessages
 {
     public:
@@ -81,6 +87,7 @@ class NativeContext : public NativeMessages
     NativeHash<NativeBytecodeScript *> preload;
 
     void onMessage(const NativeSharedMessages::Message &msg);
+    void addJob(void (*job)(void *arg), void *arg);
 
     private:
     NativeGLResources         m_Resources;
@@ -111,6 +118,12 @@ class NativeContext : public NativeMessages
     void loadNativeObjects(int width, int height);
 
     void initHandlers(int width, int height);
+    struct {
+        struct NativeJobQueue *head;
+        struct NativeJobQueue *queue;
+    } m_Jobs;
+
+    void execJobs();
 };
 
 #endif

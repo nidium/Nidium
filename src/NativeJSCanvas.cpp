@@ -65,6 +65,7 @@ enum {
     CANVAS_PROP_MINHEIGHT,
     CANVAS_PROP_MAXWIDTH,
     CANVAS_PROP_MAXHEIGHT,
+    CANVAS_PROP_FLUIDHEIGHT
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -232,6 +233,9 @@ static JSPropertySpec canvas_props[] = {
     {"staticTop", CANVAS_PROP_STATICTOP, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"staticBottom", CANVAS_PROP_STATICBOTTOM, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"fluidHeight", CANVAS_PROP_FLUIDHEIGHT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
@@ -976,6 +980,14 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
         }
         break;
+        case CANVAS_PROP_FLUIDHEIGHT:
+        {
+            if (!vp.isBoolean()) {
+                return true;
+            }
+            handler->setFluidHeight(vp.toBoolean());
+        }
+        break;
         default:
             break;
     }
@@ -1051,6 +1063,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_STATICBOTTOM:
             vp.setBoolean(handler->hasStaticBottom());
+            break;
+        case CANVAS_PROP_FLUIDHEIGHT:
+            vp.setBoolean(handler->isHeightFluid());
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));

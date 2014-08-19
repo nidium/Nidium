@@ -2,6 +2,7 @@
 #include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeMacros.h"
+#include "NativeContext.h"
 #include <stdio.h>
 
 #include <jsapi.h>
@@ -20,7 +21,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     zoom(1.0),
     scaleX(1.0),
     scaleY(1.0),
-    m_AllowNegativeScroll(false)
+    m_AllowNegativeScroll(false),
+    m_NativeContext(NULL)
 {
     m_Width = native_max(width, 2);
     m_Height = native_max(height, 2);
@@ -29,8 +31,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     m_MinWidth = 2;
     m_MinHeight = 2;
 
-    m_ExpandHeight = false;
-    m_ExpandWidth = false;
+    m_FluidHeight = false;
+    m_FluidWidth = false;
 
     memset(&this->padding, 0, sizeof(this->padding));
     memset(&this->translate_s, 0, sizeof(this->translate_s));
@@ -312,6 +314,11 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
             break;
     }
     
+    /*
+        Inherit from parent context;
+    */    
+    insert->m_NativeContext = m_NativeContext;
+
     insert->m_Parent = this;
     this->nchildren++;
 }
@@ -345,7 +352,7 @@ void NativeCanvasHandler::removeFromParent()
     m_Parent = NULL;
     m_Next = NULL;
     m_Prev = NULL;
-
+    m_NativeContext = NULL;
 }
 
 void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
@@ -518,21 +525,40 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
         }
     }
 
+    /*
+        Height is dynamic.
+        It's automatically adjusted by the height of its content
+    */
+    if (m_FluidHeight) {
+        int contentHeight = this->getContentHeight(true);
+
+        int newHeight = m_MaxHeight ? native_clamp(contentHeight, m_MinHeight, m_MaxHeight) : 
+                           native_max(contentHeight, m_MinHeight);
+
+        if (m_Height != newHeight) {
+            NativeArgs *args = new NativeArgs();
+            args[0][0].set(this);
+            args[0][1].set(contentHeight);
+
+            m_NativeContext->addJob(NativeCanvasHandler::_jobResize, args);
+        }
+    }
+
     if (layerContext.layer == this) {
         this->mousePosition.consumed = true;
     }
 }
 
-int NativeCanvasHandler::getContentWidth()
+int NativeCanvasHandler::getContentWidth(bool inner)
 {
-    this->computeContentSize(NULL, NULL);
+    this->computeContentSize(NULL, NULL, inner);
 
     return this->content.width;
 }
 
-int NativeCanvasHandler::getContentHeight()
+int NativeCanvasHandler::getContentHeight(bool inner)
 {
-    this->computeContentSize(NULL, NULL);
+    this->computeContentSize(NULL, NULL, inner);
 
     return this->content.height;
 }
@@ -708,11 +734,11 @@ NativeRect NativeCanvasHandler::getVisibleRect()
     };
 }
 
-void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
+void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inner)
 {
     NativeCanvasHandler *cur;
-    this->content.width = this->getWidth();
-    this->content.height = this->getHeight();
+    this->content.width = inner ? 0 : this->getWidth();
+    this->content.height = inner ? 0 : this->getHeight();
 
     /* don't go further if it doesn't overflow (and not the requested handler) */
     if (!m_Overflow && cWidth && cHeight) {
@@ -727,7 +753,7 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight)
             
             int retWidth, retHeight;
 
-            cur->computeContentSize(&retWidth, &retHeight);
+            cur->computeContentSize(&retWidth, &retHeight, false);
 
             if (retWidth + cur->getLeft() > this->content.width) {
                 this->content.width = retWidth + cur->getLeft();
@@ -787,6 +813,12 @@ void NativeCanvasHandler::setContext(NativeCanvasContext *context)
     this->m_Context->translate(this->padding.global, this->padding.global);
 }
 
+bool NativeCanvasHandler::setFluidHeight(bool val)
+{
+    m_FluidHeight = val;
+    return true;
+}
+
 void NativeCanvasHandler::recursiveScale(double x, double y,
     double oldX, double oldY)
 {
@@ -830,6 +862,18 @@ void NativeCanvasHandler::unrootHierarchy()
     }
     children = NULL;
     #endif
+}
+
+void NativeCanvasHandler::_jobResize(void *arg)
+{
+    NativeArgs *args = (NativeArgs *)arg;
+    NativeCanvasHandler *handler = (NativeCanvasHandler *)args[0][0].toPtr();
+
+    int64_t height = args[0][1].toInt64();
+
+    handler->setHeight(height);
+
+    delete args;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()

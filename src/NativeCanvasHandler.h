@@ -9,6 +9,7 @@
 
 class NativeSkia;
 class NativeCanvasContext;
+class NativeContext;
 
 /*
     - Handle a canvas layer.
@@ -278,6 +279,10 @@ class NativeCanvasHandler : public NativeEvents
             return m_MaxHeight;
         }
 
+        NativeContext *getNativeContext() const {
+            return m_NativeContext;
+        }
+
         bool hasFixedWidth() const {
             return !((coordMode & (kLeft_Coord | kRight_Coord))
                     == (kLeft_Coord|kRight_Coord));
@@ -357,6 +362,10 @@ class NativeCanvasHandler : public NativeEvents
             }            
         }
 
+        void setNativeContext(NativeContext *ctx) {
+            m_NativeContext = ctx;
+        }
+
         void setScale(double x, double y);
 
         double getScaleX() const {
@@ -382,6 +391,14 @@ class NativeCanvasHandler : public NativeEvents
         unsigned int getFlowMode() const {
             return m_FlowMode;
         }
+
+        bool isHeightFluid() const {
+            return m_FluidHeight;
+        }
+
+        bool isWidthFluid() const {
+            return m_FluidWidth;
+        }
         
         NativeCanvasHandler(int width, int height);
         virtual ~NativeCanvasHandler();
@@ -399,6 +416,8 @@ class NativeCanvasHandler : public NativeEvents
         bool setMaxWidth(int width);
         bool setMaxHeight(int height);
 
+        bool setFluidHeight(bool val);
+
         void updateChildrenSize(bool width, bool height);
         void setSize(int width, int height, bool redraw = true);
         void setPadding(int padding);
@@ -406,7 +425,7 @@ class NativeCanvasHandler : public NativeEvents
         void setScrollTop(int value);
         void setScrollLeft(int value);
         void computeAbsolutePosition();
-        void computeContentSize(int *cWidth, int *cHeight);
+        void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
         void translate(double x, double y);
         bool isOutOfBound();
         NativeRect getViewport();
@@ -417,8 +436,8 @@ class NativeCanvasHandler : public NativeEvents
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
-        int getContentWidth();
-        int getContentHeight();
+        int getContentWidth(bool inner = false);
+        int getContentHeight(bool inner = false);
         void setHidden(bool val);
         bool isDisplayed() const;
         bool isHidden() const;
@@ -443,6 +462,9 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *m_Next;
         NativeCanvasHandler *m_Prev;
         NativeCanvasHandler *m_Last;
+
+        static void _jobResize(void *arg);
+        
     protected:
         NativeCanvasHandler *getPrevInlineSibling() const {
             NativeCanvasHandler *prev;
@@ -466,7 +488,9 @@ class NativeCanvasHandler : public NativeEvents
 
         double scaleX, scaleY;
         bool m_AllowNegativeScroll;
-        bool m_ExpandWidth, m_ExpandHeight;
+        bool m_FluidWidth, m_FluidHeight;
+
+        NativeContext *m_NativeContext;
 
         void recursiveScale(double x, double y, double oldX, double oldY);
 };

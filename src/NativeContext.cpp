@@ -108,6 +108,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_WS->addListener(this);
     m_WS->start();*/
 
+    m_Jobs.head = NULL;
+    m_Jobs.queue = NULL;
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
@@ -312,6 +314,8 @@ void NativeContext::frame()
     this->callFrame();
     this->postDraw();
 
+    this->execJobs();
+    
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
 
@@ -330,8 +334,48 @@ void NativeContext::frame()
 void NativeContext::initHandlers(int width, int height)
 {
     m_RootHandler = new NativeCanvasHandler(width, height);
+
+    m_RootHandler->setNativeContext(this);
     m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
+}
+
+void NativeContext::addJob(void (*job)(void *arg), void *arg)
+{
+    struct NativeJobQueue *obj = (struct NativeJobQueue *)malloc(sizeof(struct NativeJobQueue));
+
+    obj->job = job;
+    obj->arg = arg;
+    obj->next = NULL;
+
+    if (m_Jobs.head == NULL) {
+        m_Jobs.head = obj;
+    }
+    if (m_Jobs.queue == NULL) {
+        m_Jobs.queue = obj;
+    } else {
+        m_Jobs.queue->next = obj;
+    }
+}
+
+void NativeContext::execJobs()
+{
+    if (m_Jobs.head == NULL) {
+        return;
+    }
+
+    struct NativeJobQueue *obj, *tObj;
+
+    for (obj = m_Jobs.head; obj != NULL; obj = tObj) {
+        tObj = obj->next;
+
+        obj->job(obj->arg);
+
+        free(obj);
+    }
+
+    m_Jobs.head = NULL;
+    m_Jobs.queue = NULL;
 }
 
 void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
