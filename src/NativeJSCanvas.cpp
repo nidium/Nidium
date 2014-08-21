@@ -65,7 +65,8 @@ enum {
     CANVAS_PROP_MINHEIGHT,
     CANVAS_PROP_MAXWIDTH,
     CANVAS_PROP_MAXHEIGHT,
-    CANVAS_PROP_FLUIDHEIGHT
+    CANVAS_PROP_FLUIDHEIGHT,
+    CANVAS_PROP_ID
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -236,6 +237,9 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"fluidHeight", CANVAS_PROP_FLUIDHEIGHT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"id", CANVAS_PROP_ID, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
@@ -610,10 +614,12 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
     NATIVE_CHECK_ARGS("getContext", 1);
 
+    NativeContext *nctx = NativeContext::getNativeClass(cx);
+
     JSString *mode = args[0].toString();
     JSAutoByteString cmode(cx, mode);
 
-    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *ui = nctx->getUI();
 
     NativeCanvasContext::mode ctxmode = NativeCanvasContext::CONTEXT_2D;
 
@@ -655,7 +661,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
         }
 
         canvasctx = NativeObject->getContext();
-        canvasctx->setGLState(NativeContext::getNativeClass(cx)->getGLState());
+        canvasctx->setGLState(nctx->getGLState());
 
         /*  Protect against GC
             Canvas.slot[0] = context
@@ -988,6 +994,16 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->setFluidHeight(vp.toBoolean());
         }
         break;
+        case CANVAS_PROP_ID:
+        {
+            JSString *sid = JS_ValueToString(cx, vp);
+            if (!sid) {
+                return true;
+            }
+            JSAutoByteString cid(cx, sid);
+            handler->setId(cid.ptr());
+        }
+        break;        
         default:
             break;
     }
@@ -1142,6 +1158,15 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             }
             break;
         }
+        case CANVAS_PROP_ID:
+        {
+            char *id;
+            uint64_t numid = handler->getIdentifier(&id);
+
+            vp.setString(JS_NewStringCopyZ(cx, id));
+
+            break;
+        }
         default:
             break;
     }
@@ -1169,7 +1194,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    handler = new NativeCanvasHandler(width, height);
+    handler = new NativeCanvasHandler(width, height, NativeContext::getNativeClass(cx));
     handler->m_Context = NULL;
     handler->jsobj = ret;
     handler->jscx = cx;
@@ -1228,15 +1253,16 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 {
     JSObject *ret;
     NativeCanvasHandler *handler;
-    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+    NativeContext *nctx = NativeContext::getNativeClass(cx);
+    NativeUIInterface *ui = nctx->getUI();
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
     JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 
-    handler = new NativeCanvasHandler(width, height);
+    handler = new NativeCanvasHandler(width, height, nctx);
     handler->setContext(new NativeCanvas2DContext(handler, cx, width, height, ui));
-    handler->getContext()->setGLState(NativeContext::getNativeClass(cx)->getGLState());
+    handler->getContext()->setGLState(nctx->getGLState());
 
     /* window.canvas.overflow default to false */
     handler->m_Overflow = false;

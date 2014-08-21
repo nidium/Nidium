@@ -8,6 +8,7 @@
 #include <NativeStreamInterface.h>
 #include <SkTypeface.h>
 #include <SkStream.h>
+#include <NativeCanvasHandler.h>
 
 bool NativeJSdocument::showFPS = false;
 
@@ -22,6 +23,7 @@ static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
@@ -38,6 +40,7 @@ static JSFunctionSpec document_funcs[] = {
     JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, 0),
     JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, 0),
     JS_FN("loadFont", native_document_loadFont, 1, JSPROP_ENUMERATE),
+    JS_FN("getCanvasById", native_document_getElementById, 1, JSPROP_ENUMERATE),
     JS_FS_END
 };
 
@@ -46,6 +49,25 @@ struct _native_document_restart_async
     NativeUIInterface *ui;
     char *location;
 };
+
+static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
+        &str)) {
+        return false;
+    }
+
+    JSAutoByteString cid(cx, str);
+
+    NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
+
+    args.rval().set(elem ? OBJECT_TO_JSVAL(elem->jsobj) : JSVAL_NULL);
+
+    return true;
+}
 
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {

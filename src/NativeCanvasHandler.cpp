@@ -8,7 +8,7 @@
 #include <jsapi.h>
 #include <js/GCAPI.h>
 
-NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
+NativeCanvasHandler::NativeCanvasHandler(int width, int height, NativeContext *NativeCtx) :
     m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     right(0.0), bottom(0.0),
     m_Overflow(true),
@@ -22,8 +22,18 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height) :
     scaleX(1.0),
     scaleY(1.0),
     m_AllowNegativeScroll(false),
-    m_NativeContext(NULL)
+    m_NativeContext(NativeCtx)
 {
+    /*
+        TODO: thread safe
+    */
+    static uint64_t _lastIdx = 0;
+
+    m_Identifier.idx = ++_lastIdx;
+    asprintf(&m_Identifier.str, "%lld", m_Identifier.idx);
+
+    m_NativeContext->m_CanvasList.set(m_Identifier.str, this);
+
     m_Width = native_max(width, 2);
     m_Height = native_max(height, 2);
     m_MaxHeight = 0;
@@ -59,6 +69,19 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
 
     coordPosition = mode;
     this->computeAbsolutePosition();
+}
+
+void NativeCanvasHandler::setId(const char *str)
+{
+    if (!str) {
+        return;
+    }
+    
+    m_NativeContext->m_CanvasList.erase(m_Identifier.str);
+    m_NativeContext->m_CanvasList.set(str, this);
+
+    free(m_Identifier.str);
+    m_Identifier.str = strdup(str);
 }
 
 void NativeCanvasHandler::translate(double x, double y)
@@ -115,12 +138,12 @@ bool NativeCanvasHandler::setMaxHeight(int height)
     return true;
 }
 
-bool NativeCanvasHandler::setWidth(int width)
+bool NativeCanvasHandler::setWidth(int width, bool force)
 {
     width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) : 
                            native_max(width, m_MinWidth);
 
-    if (!this->hasFixedWidth()) {
+    if (!force && !this->hasFixedWidth()) {
         return false;
     }
 
@@ -147,12 +170,12 @@ bool NativeCanvasHandler::setWidth(int width)
     return true;
 }
 
-bool NativeCanvasHandler::setHeight(int height)
+bool NativeCanvasHandler::setHeight(int height, bool force)
 {
     height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
                            native_max(height, m_MinHeight);
 
-    if (!this->hasFixedHeight()) {
+    if (!force && !this->hasFixedHeight()) {
         return false;
     }
     if (m_Height == height) {
@@ -314,11 +337,6 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
             break;
     }
     
-    /*
-        Inherit from parent context;
-    */    
-    insert->m_NativeContext = m_NativeContext;
-
     insert->m_Parent = this;
     this->nchildren++;
 }
@@ -352,7 +370,6 @@ void NativeCanvasHandler::removeFromParent()
     m_Parent = NULL;
     m_Next = NULL;
     m_Prev = NULL;
-    m_NativeContext = NULL;
 }
 
 void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
@@ -392,12 +409,14 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
             if (m_Parent) {
                 /* New "line" */
-                if (tmpLeft + this->getWidth() > m_Parent->getWidth()) {
+                if (hasStaticRight() || tmpLeft + this->getWidth() > m_Parent->getWidth()) {
+
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
                     sctx->maxLineHeight = this->getHeight();
 
                     tmpTop = this->top = prev->top + sctx->maxLineHeightPreviousLine;
                     tmpLeft = this->left = 0;
+
                 }
             }
         }
@@ -871,7 +890,10 @@ void NativeCanvasHandler::_jobResize(void *arg)
 
     int64_t height = args[0][1].toInt64();
 
-    handler->setHeight(height);
+    /*
+        Force resize even if it hasn't a fixed height
+    */
+    handler->setHeight(height, true);
 
     delete args;
 }
@@ -889,4 +911,6 @@ NativeCanvasHandler::~NativeCanvasHandler()
         cur->removeFromParent();
         cur = cnext;
     }
+
+    free(m_Identifier.str);
 }

@@ -290,7 +290,7 @@ class NativeCanvasHandler : public NativeEvents
 
         bool hasFixedHeight() const {
             return !((coordMode & (kTop_Coord | kBottom_Coord))
-                    == (kTop_Coord|kBottom_Coord));
+                    == (kTop_Coord|kBottom_Coord) && !m_FluidHeight);
         }
 
         bool hasStaticLeft() const {
@@ -362,11 +362,9 @@ class NativeCanvasHandler : public NativeEvents
             }            
         }
 
-        void setNativeContext(NativeContext *ctx) {
-            m_NativeContext = ctx;
-        }
-
         void setScale(double x, double y);
+
+        void setId(const char *str);
 
         double getScaleX() const {
             return this->scaleX;
@@ -375,6 +373,14 @@ class NativeCanvasHandler : public NativeEvents
         double getScaleY() const {
             return this->scaleY;
         }
+
+        uint64_t getIdentifier(char **str = NULL) {
+            if (str != NULL) {
+                *str = m_Identifier.str;
+            }
+
+            return m_Identifier.idx;
+        } 
 
         void setAllowNegativeScroll(bool val) {
             m_AllowNegativeScroll = val;
@@ -400,15 +406,15 @@ class NativeCanvasHandler : public NativeEvents
             return m_FluidWidth;
         }
         
-        NativeCanvasHandler(int width, int height);
+        NativeCanvasHandler(int width, int height, NativeContext *NativeCtx);
         virtual ~NativeCanvasHandler();
 
         void unrootHierarchy();
 
         void setContext(NativeCanvasContext *context);
 
-        bool setWidth(int width);
-        bool setHeight(int height);
+        bool setWidth(int width, bool force = false);
+        bool setHeight(int height, bool force = false);
 
         bool setMinWidth(int width);
         bool setMinHeight(int height);
@@ -491,6 +497,11 @@ class NativeCanvasHandler : public NativeEvents
         bool m_FluidWidth, m_FluidHeight;
 
         NativeContext *m_NativeContext;
+
+        struct {
+            uint64_t idx;
+            char *str;
+        } m_Identifier;
 
         void recursiveScale(double x, double y, double oldX, double oldY);
 };

@@ -191,7 +191,7 @@ void NativeContext::createDebugCanvas()
 {
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
+    m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -333,9 +333,8 @@ void NativeContext::frame()
 
 void NativeContext::initHandlers(int width, int height)
 {
-    m_RootHandler = new NativeCanvasHandler(width, height);
+    m_RootHandler = new NativeCanvasHandler(width, height, this);
 
-    m_RootHandler->setNativeContext(this);
     m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
 }

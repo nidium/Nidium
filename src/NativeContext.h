@@ -7,6 +7,7 @@
 #include "NativeTypes.h"
 #include "NativeGLResources.h"
 #include <NativeMessages.h>
+#include <NativeHash.h>
 
 class NativeSkia;
 class NativeCanvasHandler;
@@ -29,6 +30,9 @@ struct NativeJobQueue {
 class NativeContext : public NativeMessages
 {
     public:
+
+    friend class NativeCanvasHandler;
+    
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
         int width, int height, ape_global *net);
     ~NativeContext();
@@ -89,6 +93,10 @@ class NativeContext : public NativeMessages
     void onMessage(const NativeSharedMessages::Message &msg);
     void addJob(void (*job)(void *arg), void *arg);
 
+    NativeCanvasHandler *getCanvasById(const char *str) {
+        return m_CanvasList.get(str);
+    }
+
     private:
     NativeGLResources         m_Resources;
     NativeJS *                m_JS;
@@ -122,6 +130,8 @@ class NativeContext : public NativeMessages
         struct NativeJobQueue *head;
         struct NativeJobQueue *queue;
     } m_Jobs;
+
+    NativeHash<NativeCanvasHandler *> m_CanvasList;
 
     void execJobs();
 };
