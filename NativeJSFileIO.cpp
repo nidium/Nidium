@@ -50,8 +50,12 @@ public:
         char *encoding = (char *)m_Args[1].toPtr();
 
         switch (msg.event()) {
-            case NATIVESTREAM_ERROR:
+            case NATIVESTREAM_ERROR: {
+                NativeBaseStream::StreamErrors err = 
+                (NativeBaseStream::StreamErrors)msg.args[0].toInt();
+                printf("Got an error :'( %d\n", err);
                 params[0].setString(JS_NewStringCopyZ(cx, "Stream error"));
+            }
                 break;
             case NATIVESTREAM_READ_BUFFER:
             {
@@ -560,7 +564,7 @@ static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
     jsval argcallback, callback;
     jsval curopt;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    char *cencoding;
+    char *cencoding = NULL;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "So", &filename, &secondarg)) {
         return false;
