@@ -131,9 +131,13 @@ class NativeContext : public NativeMessages
         struct NativeJobQueue *queue;
     } m_Jobs;
 
+    /* Hash of all canvases (key: identifier string) */
     NativeHash<NativeCanvasHandler *> m_CanvasList;
+    /* Hash of all canvases with pending jobs (key: addr) */
+    NativeHash64<NativeCanvasHandler *> m_CanvasPendingJobs;
 
     void execJobs();
+    void execPendingCanvasChanges();
 };
 
 #endif

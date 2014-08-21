@@ -219,6 +219,7 @@ void NativeContext::postDraw()
         s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps, m_Stats.sampleminfps);
 
         s->setLineWidth(0.0);
+
         for (int i = 0; i < sizeof(m_Stats.samples)/sizeof(float); i++) {
             //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
@@ -294,7 +295,6 @@ NativeContext::~NativeContext()
 
     delete m_JS;
     delete m_GLState;
-    printf("destroy reader\n");
     delete m_WS;
     
     NativeSkia::glcontext = NULL;
@@ -311,11 +311,27 @@ void NativeContext::rendered(uint8_t *pdata, int width, int height)
 
 void NativeContext::frame()
 {
+    /*
+        Execute canvas jobs
+        e.g. Canvas that need to be resized because of a fluidheight
+    */
+    this->execJobs();
+    /*
+        Pending canvas events.
+        (e.g. resize events requested between frames)
+    */
+    this->execPendingCanvasChanges();
+
+    /* Call requestAnimationFrame */
     this->callFrame();
     this->postDraw();
 
-    this->execJobs();
-    
+    /*
+        Exec the pending events a second time in case
+        there are resize in the requestAnimationFrame
+    */
+    this->execPendingCanvasChanges();
+
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
 
@@ -326,6 +342,9 @@ void NativeContext::frame()
     NativeLayerSiblingContext sctx;
     ctx.siblingCtx = &sctx;
     
+    /*
+        Compose canvas eachother on the main framebuffer
+    */
     m_RootHandler->layerize(ctx);
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
@@ -375,6 +394,17 @@ void NativeContext::execJobs()
 
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
+}
+
+void NativeContext::execPendingCanvasChanges()
+{
+    int i = 0;
+    ape_htable_item_t *item, *tmpItem;
+    for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
+        tmpItem = item->lnext;
+        NativeCanvasHandler *handler = (NativeCanvasHandler *)item->content.addrs;
+        handler->execPending();
+    }
 }
 
 void NativeContext::onMessage(const NativeSharedMessages::Message &msg)

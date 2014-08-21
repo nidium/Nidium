@@ -93,6 +93,7 @@ class NativeCanvasHandler : public NativeEvents
 {
     public:
         friend class NativeSkia;
+        friend class NativeContext;
 
         static const uint8_t EventID = 1;
 
@@ -223,11 +224,11 @@ class NativeCanvasHandler : public NativeEvents
             return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
         }
 
-        double getBottom() const {
+        double getBottom() {
             if (hasStaticBottom() || !m_Parent) {
                 return this->bottom;
             }
-            
+
             return m_Parent->getHeight() - (getTopScrolled() + getHeight());
         }
 
@@ -250,10 +251,11 @@ class NativeCanvasHandler : public NativeEvents
         /*
             Get the height in logical pixels
         */
-        double getHeight() const {
-            if (hasFixedHeight()) {
+        double getHeight() {
+            if (hasFixedHeight() || m_FluidHeight) {
                 return m_Height;
             }
+            
             if (m_Parent == NULL) return 0.;
 
             double pheight = m_Parent->getHeight();
@@ -290,7 +292,7 @@ class NativeCanvasHandler : public NativeEvents
 
         bool hasFixedHeight() const {
             return !((coordMode & (kTop_Coord | kBottom_Coord))
-                    == (kTop_Coord|kBottom_Coord) && !m_FluidHeight);
+                    == (kTop_Coord|kBottom_Coord) || m_FluidHeight);
         }
 
         bool hasStaticLeft() const {
@@ -483,6 +485,9 @@ class NativeCanvasHandler : public NativeEvents
             return NULL;
         }
     private:
+        void deviceSetSize(int width, int height);
+        void execPending();
+
         int32_t nchildren;
         void dispatchMouseEvents(NativeCanvasHandler *layer);
         COORD_POSITION coordPosition;
@@ -504,6 +509,14 @@ class NativeCanvasHandler : public NativeEvents
         } m_Identifier;
 
         void recursiveScale(double x, double y, double oldX, double oldY);
+        void setPendingFlags(int flags, bool append = true);
+
+        enum PENDING_JOBS {
+            kPendingResizeWidth = 1 << 0,
+            kPendingResizeHeight = 1 << 1,
+        };
+
+        int m_Pending;
 };
 
 #endif

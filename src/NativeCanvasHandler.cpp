@@ -22,7 +22,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height, NativeContext *N
     scaleX(1.0),
     scaleY(1.0),
     m_AllowNegativeScroll(false),
-    m_NativeContext(NativeCtx)
+    m_NativeContext(NativeCtx),
+    m_Pending(0)
 {
     /*
         TODO: thread safe
@@ -76,7 +77,7 @@ void NativeCanvasHandler::setId(const char *str)
     if (!str) {
         return;
     }
-    
+
     m_NativeContext->m_CanvasList.erase(m_Identifier.str);
     m_NativeContext->m_CanvasList.set(str, this);
 
@@ -153,17 +154,7 @@ bool NativeCanvasHandler::setWidth(int width, bool force)
 
     m_Width = width;
 
-    if (m_Context) {
-        m_Context->setSize(m_Width + (this->padding.global * 2),
-            m_Height + (this->padding.global * 2));
-    }
-
-    NativeArgs arg;
-
-    arg[0].set(m_Width);
-    arg[1].set(m_Height);
-
-    this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
+    this->setPendingFlags(kPendingResizeWidth);
 
     updateChildrenSize(true, false);
 
@@ -172,28 +163,19 @@ bool NativeCanvasHandler::setWidth(int width, bool force)
 
 bool NativeCanvasHandler::setHeight(int height, bool force)
 {
-    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
-                           native_max(height, m_MinHeight);
-
     if (!force && !this->hasFixedHeight()) {
         return false;
     }
+    
+    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
+                           native_max(height, m_MinHeight);
+
     if (m_Height == height) {
         return true;
     }
     m_Height = height;
 
-    if (m_Context) {
-        m_Context->setSize(m_Width + (this->padding.global * 2),
-            m_Height + (this->padding.global * 2));
-    }
-
-    NativeArgs arg;
-
-    arg[0].set(m_Width);
-    arg[1].set(m_Height);
-
-    this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
+    this->setPendingFlags(kPendingResizeHeight);
 
     updateChildrenSize(false, true);
 
@@ -216,20 +198,25 @@ void NativeCanvasHandler::setSize(int width, int height, bool redraw)
     m_Width = width;
     m_Height = height;
 
+    this->setPendingFlags(kPendingResizeWidth | kPendingResizeHeight);
+
+    updateChildrenSize(true, true);
+}
+
+void NativeCanvasHandler::deviceSetSize(int width, int height)
+{
     if (m_Context) {
-        m_Context->setSize(m_Width + (this->padding.global * 2),
-            m_Height + (this->padding.global * 2), redraw);
+        m_Context->setSize(width + (this->padding.global * 2),
+            height + (this->padding.global * 2));
     }
 
     NativeArgs arg;
 
     arg[0].set(width);
     arg[1].set(height);
-
     this->fireEvent<NativeCanvasHandler>(RESIZE_EVENT, arg);
-
-    updateChildrenSize(true, true);
 }
+
 
 void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 {
@@ -898,6 +885,32 @@ void NativeCanvasHandler::_jobResize(void *arg)
     delete args;
 }
 
+void NativeCanvasHandler::setPendingFlags(int flags, bool append)
+{
+    if (!append) {
+        m_Pending = 0;
+    }
+
+    m_Pending |= flags;
+
+    if (m_Pending == 0) {
+        m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
+        return;
+    }
+    if (!m_NativeContext->m_CanvasPendingJobs.get((uint64_t)this)) {
+        m_NativeContext->m_CanvasPendingJobs.set((uint64_t)this, this);
+    }
+}
+
+void NativeCanvasHandler::execPending()
+{
+    if (m_Pending & kPendingResizeHeight || m_Pending & kPendingResizeWidth) {
+        this->deviceSetSize(m_Width, m_Height);
+    }
+
+    this->setPendingFlags(0, false);
+}
+
 NativeCanvasHandler::~NativeCanvasHandler()
 {
     NativeCanvasHandler *cur = m_Children, *cnext;
@@ -913,4 +926,6 @@ NativeCanvasHandler::~NativeCanvasHandler()
     }
 
     free(m_Identifier.str);
+
+    m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
 }
