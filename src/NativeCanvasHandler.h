@@ -96,6 +96,7 @@ class NativeCanvasHandler : public NativeEvents
         friend class NativeContext;
 
         static const uint8_t EventID = 1;
+        static int LastIdx;
 
         enum COORD_MODE {
             kLeft_Coord   = 1 << 0,

@@ -352,6 +352,8 @@ void NativeContext::frame()
 
 void NativeContext::initHandlers(int width, int height)
 {
+    NativeCanvasHandler::LastIdx = 0;
+    
     m_RootHandler = new NativeCanvasHandler(width, height, this);
 
     m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));

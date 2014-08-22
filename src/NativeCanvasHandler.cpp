@@ -8,6 +8,8 @@
 #include <jsapi.h>
 #include <js/GCAPI.h>
 
+int NativeCanvasHandler::LastIdx = 0;
+
 NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     NativeContext *NativeCtx, bool lazyLoad) :
     m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
@@ -30,19 +32,18 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     /*
         TODO: thread safe
     */
-    static uint64_t _lastIdx = 0;
+    m_Identifier.idx = ++NativeCanvasHandler::LastIdx;
 
-    m_Identifier.idx = ++_lastIdx;
     asprintf(&m_Identifier.str, "%lld", m_Identifier.idx);
 
     m_NativeContext->m_CanvasList.set(m_Identifier.str, this);
 
-    m_Width = native_max(width, 2);
-    m_Height = native_max(height, 2);
+    m_Width = native_max(width, 1);
+    m_Height = native_max(height, 1);
     m_MaxHeight = 0;
     m_MaxWidth = 0;
-    m_MinWidth = 2;
-    m_MinHeight = 2;
+    m_MinWidth = 1;
+    m_MinHeight = 1;
 
     m_FluidHeight = false;
     m_FluidWidth = false;
