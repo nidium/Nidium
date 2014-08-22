@@ -185,7 +185,7 @@ class NativeCanvasHandler : public NativeEvents
         double getLeft(bool absolute = false) const {
             if (absolute) return a_left;
 
-            if (!(coordMode & kLeft_Coord)) {
+            if (!(coordMode & kLeft_Coord) && m_Parent) {
                 return m_Parent->getWidth() - (m_Width + this->right);
             }
 
@@ -194,7 +194,7 @@ class NativeCanvasHandler : public NativeEvents
         double getTop(bool absolute = false) const {
             if (absolute) return a_top;
 
-            if (!(coordMode & kTop_Coord)) {
+            if (!(coordMode & kTop_Coord) && m_Parent) {
                 return m_Parent->getHeight() - (m_Height + this->bottom);
             }
 
