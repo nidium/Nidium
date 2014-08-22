@@ -51,7 +51,9 @@ enum {
     CANVAS_PROP_OPACITY,
     CANVAS_PROP_OVERFLOW,
     CANVAS_PROP_CONTENTWIDTH,
+    CANVAS_PROP_INNERWIDTH,
     CANVAS_PROP_CONTENTHEIGHT,
+    CANVAS_PROP_INNERHEIGHT,
     CANVAS_PROP_SCROLLTOP,
     CANVAS_PROP_SCROLLLEFT,
     CANVAS_PROP___FIXED,
@@ -212,6 +214,10 @@ static JSPropertySpec canvas_props[] = {
     {"contentWidth", CANVAS_PROP_CONTENTWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"contentHeight", CANVAS_PROP_CONTENTHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"innerWidth", CANVAS_PROP_INNERWIDTH, NATIVE_JS_PROP | JSPROP_READONLY,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
+    {"innerHeight", CANVAS_PROP_INNERHEIGHT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
     {"__visible", CANVAS_PROP___VISIBLE, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_NULLWRAPPER},
@@ -1097,6 +1103,12 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_CONTENTHEIGHT:
             vp.set(INT_TO_JSVAL(handler->getContentHeight()));
+            break;
+        case CANVAS_PROP_INNERWIDTH:
+            vp.set(INT_TO_JSVAL(handler->getContentWidth(true)));
+            break;
+        case CANVAS_PROP_INNERHEIGHT:
+            vp.set(INT_TO_JSVAL(handler->getContentHeight(true)));
             break;
         case CANVAS_PROP_SCROLLLEFT:
             vp.set(INT_TO_JSVAL(handler->content.scrollLeft));
