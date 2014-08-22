@@ -166,7 +166,7 @@ bool NativeCanvasHandler::setHeight(int height, bool force)
     if (!force && !this->hasFixedHeight()) {
         return false;
     }
-    
+
     height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
                            native_max(height, m_MinHeight);
 
@@ -244,6 +244,10 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 void NativeCanvasHandler::setPadding(int padding)
 {
     if (padding < 0) padding = 0;
+    
+    if (padding == this->padding.global) {
+        return;
+    }
 
     int tmppadding = this->padding.global;
 
