@@ -225,7 +225,7 @@ class NativeCanvasHandler : public NativeEvents
             return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
         }
 
-        double getBottom() {
+        double getBottom() const {
             if (hasStaticBottom() || !m_Parent) {
                 return this->bottom;
             }
@@ -252,7 +252,7 @@ class NativeCanvasHandler : public NativeEvents
         /*
             Get the height in logical pixels
         */
-        double getHeight() {
+        double getHeight() const {
             if (hasFixedHeight() || m_FluidHeight) {
                 return m_Height;
             }
