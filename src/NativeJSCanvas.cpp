@@ -43,7 +43,7 @@ enum {
     /* conveniance getter for getContext("2D") */
     CANVAS_PROP_CTX,
 
-    CANVAS_PROP_PADDING,
+    CANVAS_PROP_COATING,
     CANVAS_PROP_CLIENTLEFT,
     CANVAS_PROP_CLIENTTOP,
     CANVAS_PROP_CLIENTWIDTH,
@@ -168,7 +168,7 @@ static JSPropertySpec canvas_props[] = {
     {"clientLeft", CANVAS_PROP_CLIENTLEFT, NATIVE_JS_PROP | JSPROP_READONLY,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_NULLWRAPPER},
-    {"padding", CANVAS_PROP_PADDING, NATIVE_JS_PROP,
+    {"coating", CANVAS_PROP_COATING, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
 
@@ -913,7 +913,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->m_Overflow = JSVAL_TO_BOOLEAN(vp);
         }
         break;
-        case CANVAS_PROP_PADDING:
+        case CANVAS_PROP_COATING:
         {
             int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
@@ -1047,7 +1047,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_CLIENTHEIGHT:
             vp.set(INT_TO_JSVAL(handler->getHeight() + (handler->padding.global * 2)));
             break;
-        case CANVAS_PROP_PADDING:
+        case CANVAS_PROP_COATING:
             vp.set(INT_TO_JSVAL(handler->padding.global));
             break;
         case CANVAS_PROP_LEFT:
