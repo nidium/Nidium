@@ -1178,6 +1178,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     int width, height;
     NativeCanvasHandler *handler;
+    JSObject *opt = NULL;
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
@@ -1189,12 +1190,28 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii",
-        &width, &height)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii/o",
+        &width, &height, &opt)) {
         return false;
     }
 
-    handler = new NativeCanvasHandler(width, height, NativeContext::getNativeClass(cx));
+    bool lazyLoad = false;
+
+    JS_INITOPT();
+
+    /*
+        Unused
+    */
+    JSGET_OPT_TYPE(opt, "lazy", Boolean) {
+        lazyLoad = __curopt.toBoolean();
+    }
+    /*
+        Always lazy load for now.
+
+    */
+    handler = new NativeCanvasHandler(width, height,
+        NativeContext::getNativeClass(cx), true);
+
     handler->m_Context = NULL;
     handler->jsobj = ret;
     handler->jscx = cx;
@@ -1293,21 +1310,19 @@ void NativeJSCanvas::registerObject(JSContext *cx)
         2, canvas_props, canvas_funcs, NULL, NULL);
 }
 
-
 void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 {
     switch (msg.event()) {
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
-            JS::Value oncallback, rval;
-            if (JS_GetProperty(cx, this->jsobj, "onresize", &oncallback) &&
-                JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
-
-                JS_CallFunctionValue(cx, this->jsobj, oncallback,
-                    0, NULL, &rval);
-            }
+            JSOBJ_CALLFUNCNAME(this->jsobj, "onresize", 0, NULL);
             break;
         }
+        case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
+        {
+            JSOBJ_CALLFUNCNAME(this->jsobj, "onload", 0, NULL);
+            break;
+        }        
         default:
             break;
     }
@@ -1322,6 +1337,11 @@ NativeJSCanvas::NativeJSCanvas(NativeCanvasHandler *handler) :
     m_CanvasHandler(handler), m_Inherit(NULL)
 {
     m_CanvasHandler->addListener(this);
+
+    /*
+        Trigger "loaded" event if not lazy loaded
+    */
+    m_CanvasHandler->checkLoaded();
 }
 
 NativeJSCanvas::~NativeJSCanvas()

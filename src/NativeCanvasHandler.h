@@ -106,6 +106,7 @@ class NativeCanvasHandler : public NativeEvents
 
         enum Events {
             RESIZE_EVENT = 1,
+            LOADED_EVENT = 2
         };
 
         enum Position {
@@ -408,7 +409,9 @@ class NativeCanvasHandler : public NativeEvents
             return m_FluidWidth;
         }
         
-        NativeCanvasHandler(int width, int height, NativeContext *NativeCtx);
+        NativeCanvasHandler(int width, int height,
+            NativeContext *NativeCtx, bool lazyLoad = false);
+
         virtual ~NativeCanvasHandler();
 
         void unrootHierarchy();
@@ -454,6 +457,8 @@ class NativeCanvasHandler : public NativeEvents
         void setZoom(double val);
         void removeFromParent();
         void getChildren(NativeCanvasHandler **out) const;
+
+        bool checkLoaded();
 
         NativeCanvasHandler *getParent() const { return m_Parent; }
         NativeCanvasHandler *getFirstChild() const { return m_Children; }
@@ -517,6 +522,8 @@ class NativeCanvasHandler : public NativeEvents
         };
 
         int m_Pending;
+
+        bool m_Loaded;
 };
 
 #endif

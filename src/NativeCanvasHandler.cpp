@@ -8,7 +8,8 @@
 #include <jsapi.h>
 #include <js/GCAPI.h>
 
-NativeCanvasHandler::NativeCanvasHandler(int width, int height, NativeContext *NativeCtx) :
+NativeCanvasHandler::NativeCanvasHandler(int width, int height,
+    NativeContext *NativeCtx, bool lazyLoad) :
     m_Context(NULL), jsobj(NULL), jscx(NULL), left(0.0), top(0.0), a_left(0), a_top(0),
     right(0.0), bottom(0.0),
     m_Overflow(true),
@@ -23,7 +24,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height, NativeContext *N
     scaleY(1.0),
     m_AllowNegativeScroll(false),
     m_NativeContext(NativeCtx),
-    m_Pending(0)
+    m_Pending(0),
+    m_Loaded(!lazyLoad)
 {
     /*
         TODO: thread safe
@@ -385,6 +387,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
     int tmpLeft;
     int tmpTop;
+    bool willDraw = true;
 
     if (this->coordPosition == COORD_RELATIVE && this->m_FlowMode & kFlowInlinePreviousSibling) {
         NativeCanvasHandler *prev = getPrevInlineSibling();
@@ -452,22 +455,21 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
             draw current context on top of the root layer
         */
 
-        if (m_Context) {
-            /*
-                Not visible. Don't call composeWith()
-            */
-            if (!layerContext.clip || coordPosition == COORD_ABSOLUTE ||
+        willDraw = (!layerContext.clip || coordPosition == COORD_ABSOLUTE ||
               (layerContext.clip->checkIntersect(
                 this->a_left - this->padding.global,
                 this->a_top - this->padding.global,
                 this->a_left + this->padding.global + this->getWidth(),
-                this->a_top + this->padding.global + this->getHeight()))) {
-            
-                this->m_Context->composeWith((NativeCanvas2DContext *)layerContext.layer->m_Context,
-                    this->a_left - this->padding.global, 
-                    this->a_top - this->padding.global, popacity, zoom,
-                    (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
-            }
+                this->a_top + this->padding.global + this->getHeight())));
+
+        if (m_Context && willDraw) {
+            /*
+                Not visible. Don't call composeWith()
+            */
+            this->m_Context->composeWith((NativeCanvas2DContext *)layerContext.layer->m_Context,
+                this->a_left - this->padding.global, 
+                this->a_top - this->padding.global, popacity, zoom,
+                (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
         }
     }
 
@@ -552,6 +554,11 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
             m_NativeContext->addJob(NativeCanvasHandler::_jobResize, args);
         }
+    }
+    
+    if (!m_Loaded && willDraw) {
+        m_Loaded = true;
+        this->checkLoaded();
     }
 
     if (layerContext.layer == this) {
@@ -913,6 +920,16 @@ void NativeCanvasHandler::execPending()
     }
 
     this->setPendingFlags(0, false);
+}
+
+bool NativeCanvasHandler::checkLoaded()
+{
+    if (m_Loaded) {
+        NativeArgs arg;
+        this->fireEvent<NativeCanvasHandler>(LOADED_EVENT, arg, true);        
+        return true;
+    }
+    return false;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
