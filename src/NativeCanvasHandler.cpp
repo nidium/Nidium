@@ -390,7 +390,9 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
     int tmpTop;
     bool willDraw = true;
 
-    if (this->coordPosition == COORD_RELATIVE && this->m_FlowMode & kFlowInlinePreviousSibling) {
+    if (this->coordPosition == COORD_RELATIVE &&
+        this->m_FlowMode & kFlowInlinePreviousSibling) {
+
         NativeCanvasHandler *prev = getPrevInlineSibling();
 
         if (!prev) {
@@ -399,19 +401,22 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
             this->top = 0;
 
         } else {
-            this->left = tmpLeft = prev->left + prev->getWidth();
+            int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
+                                                    0 : prev->getWidth();
+
+            this->left = tmpLeft = prev->left + prevWidth;
             this->top = tmpTop = prev->top;
 
             if (m_Parent) {
                 /* New "line" */
-                if (hasStaticRight() || tmpLeft + this->getWidth() > m_Parent->getWidth()) {
+                if (hasStaticRight() ||
+                    tmpLeft + this->getWidth() > m_Parent->getWidth()) {
 
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
                     sctx->maxLineHeight = this->getHeight();
 
                     tmpTop = this->top = prev->top + sctx->maxLineHeightPreviousLine;
                     tmpLeft = this->left = 0;
-
                 }
             }
         }
@@ -549,11 +554,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                            native_max(contentHeight, m_MinHeight);
 
         if (m_Height != newHeight) {
-            NativeArgs *args = new NativeArgs();
-            args[0][0].set(this);
-            args[0][1].set(contentHeight);
-
-            m_NativeContext->addJob(NativeCanvasHandler::_jobResize, args);
+            this->setHeight(newHeight, true);
         }
     }
     
@@ -633,7 +634,10 @@ void NativeCanvasHandler::computeAbsolutePosition()
             }
 
             if (prev) {
-                elem->left = prev->left + prev->getWidth();
+                int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
+                                                    0 : prev->getWidth(); 
+
+                elem->left = prev->left + prevWidth;
                 elem->top = prev->top;
 
                 if (elem->left + elem->getWidth() >  m_Parent->getWidth()) {

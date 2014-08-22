@@ -311,14 +311,11 @@ void NativeContext::rendered(uint8_t *pdata, int width, int height)
 
 void NativeContext::frame()
 {
-    /*
-        Execute canvas jobs
-        e.g. Canvas that need to be resized because of a fluidheight
-    */
-    this->execJobs();
+    //this->execJobs();
     /*
         Pending canvas events.
-        (e.g. resize events requested between frames)
+        (e.g. resize events requested between frames,
+        Canvas that need to be resized because of a fluidheight)
     */
     this->execPendingCanvasChanges();
 
