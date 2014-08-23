@@ -165,7 +165,9 @@ public:
     JSObject *getJSObject() const {
         return m_JSObj;
     }
-
+    /*
+        TODO : need to check against instance
+    */
     static T *getObject(JSObject *jsobj) {
         return (T *)JS_GetPrivate(jsobj);
     }
@@ -217,6 +219,15 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
+#define JSOBJ_CALLFUNCNAME(where, name, argc, argv) \
+    { \
+        JS::Value oncallback, rval; \
+        if (JS_GetProperty(cx, where, name, &oncallback) && \
+            JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) { \
+            JS_CallFunctionValue(cx, where, oncallback, \
+                argc, argv, &rval); \
+        } \
+    }
 #define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, val)))
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(val))
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, INT_TO_JSVAL(val))
@@ -241,7 +252,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define JS_INITOPT() JS::Value __curopt;
 
-#define JSGET_OPT(obj, name) if (JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
-#define JSGET_OPT_TYPE(obj, name, type) if (JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL && __curopt.is ## type())
+#define JSGET_OPT(obj, name) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
+#define JSGET_OPT_TYPE(obj, name, type) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL && __curopt.is ## type())
 
 #endif
