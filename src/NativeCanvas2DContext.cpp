@@ -2222,7 +2222,9 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
 {
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
-
+    char *id;
+    getHandler()->getIdentifier(&id);
+    printf("Canvas of size : %dx%d %s\n", width, height, id);
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
