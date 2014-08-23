@@ -73,6 +73,7 @@ static pthread_key_t gJS = 0;
 #endif
 
 #define NATIVE_SCTAG_FUNCTION JS_SCTAG_USER_MIN+1
+#define NATIVE_SCTAG_HIDDEN JS_SCTAG_USER_MIN+2
 
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
@@ -300,13 +301,27 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
             free(pdata);
 
             if (cf == NULL) {
-                return NULL;
+                /*
+                    We don't want "JS_CompileFunction" to repport error
+                */
+                if (JS_IsExceptionPending(cx)) {
+                    JS_ClearPendingException(cx);
+                }
+                return JS_NewObject(cx, NULL, NULL, NULL);
             }
 
             return JS_GetFunctionObject(cf);
         }
+        case NATIVE_SCTAG_HIDDEN:
+        {
+            uint8_t nullbyte;
+            if (!JS_ReadBytes(r, &nullbyte, data)) {
+                return NULL;
+            }
+            return JS_NewObject(cx, NULL, NULL, NULL);
+        }
         default:
-            return NULL;
+            return JS_NewObject(cx, NULL, NULL, NULL);
     }
 
     return NULL;
@@ -331,7 +346,15 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
             break;
         }
         default:
-            return false;
+        {
+            const uint8_t nullbyte = '\0';
+
+            JS_WriteUint32Pair(w, NATIVE_SCTAG_HIDDEN, 1);
+            JS_WriteBytes(w, &nullbyte, 1);
+
+            break;
+        }
+
     }
 
     return true;
