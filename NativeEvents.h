@@ -50,7 +50,9 @@ public:
         }
     }
     template <typename T>
-    void fireEvent(typename T::Events event, const NativeArgs &args) {
+    void fireEvent(typename T::Events event, const NativeArgs &args,
+        bool forceAsync = false) {
+        
         ape_htable_item_t *item;
 
         for (item = m_Listeners.accessCStruct()->first; item != NULL; item = item->lnext) {
@@ -64,7 +66,7 @@ public:
                 msg->args[i+1].set(args[i].toInt64());
             }
 
-            receiver->postMessage(msg);
+            receiver->postMessage(msg, forceAsync);
         }
     }
 

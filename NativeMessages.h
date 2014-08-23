@@ -42,9 +42,9 @@ public:
     virtual void onMessage(const NativeSharedMessages::Message &msg){};
     virtual void onMessageLost(const NativeSharedMessages::Message &msg){};
 
-    void postMessage(void *dataptr, int event);
-    void postMessage(uint64_t dataint, int event);
-    void postMessage(NativeSharedMessages::Message *msg);
+    void postMessage(void *dataptr, int event, bool forceAsync = false);
+    void postMessage(uint64_t dataint, int event, bool forceAsync = false);
+    void postMessage(NativeSharedMessages::Message *msg, bool forceAsync = false);
     void delMessages(int event = -1);
 
     static void initReader(ape_global *ape);

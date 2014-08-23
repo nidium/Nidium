@@ -74,19 +74,19 @@ NativeMessages::~NativeMessages()
     }
 }
 
-void NativeMessages::postMessage(void *dataptr, int event)
+void NativeMessages::postMessage(void *dataptr, int event, bool forceAsync)
 {
     NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataptr, event);
-    this->postMessage(msg);
+    this->postMessage(msg, forceAsync);
 }
 
-void NativeMessages::postMessage(uint64_t dataint, int event)
+void NativeMessages::postMessage(uint64_t dataint, int event, bool forceAsync)
 {
     NativeSharedMessages::Message *msg = new NativeSharedMessages::Message(dataint, event);
-    this->postMessage(msg);
+    this->postMessage(msg, forceAsync);
 }
 
-void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
+void NativeMessages::postMessage(NativeSharedMessages::Message *msg, bool forceAsync)
 {
     msg->setDest(this);
 
@@ -94,7 +94,7 @@ void NativeMessages::postMessage(NativeSharedMessages::Message *msg)
         Message sent from the same thread. Don't need 
         to be sent in an asynchronous way
     */
-    if (pthread_equal(m_GenesisThread, pthread_self())) {
+    if (!forceAsync && pthread_equal(m_GenesisThread, pthread_self())) {
         // Make sure pending messagess are read so that we don't break the FIFO rule
         (void)NativeMessages_handle(NULL);
 
