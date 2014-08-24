@@ -554,8 +554,9 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     socket->callbacks.on_read       = native_socket_wrapper_client_read;
     socket->callbacks.on_disconnect = native_socket_wrapper_client_disconnect;
     socket->callbacks.on_message    = native_socket_wrapper_client_onmessage;
-    socket->callbacks.on_drain      = native_socket_wrapper_client_ondrain;
-
+    /* TODO: need a drain for client socket */
+    //socket->callbacks.on_drain      = native_socket_wrapper_client_ondrain;
+    socket->callbacks.on_drain = NULL;
     socket->ctx = nsocket;
 
     nsocket->socket     = socket;
