@@ -35,8 +35,7 @@ template <typename T>
 class NativeHash64 : public NativeNoncopyable
 {
     public:
-        explicit NativeHash64(int size = 0) :
-            m_AutoDelete(false)
+        explicit NativeHash64(int size = 0)
         {
             if (!size) {
                 this->table = hashtbl_init(APE_HASH_INT);
@@ -74,7 +73,6 @@ class NativeHash64 : public NativeNoncopyable
     private:
 
         struct _ape_htable *table;
-        bool m_AutoDelete;
 };
    
 
@@ -82,8 +80,7 @@ template <typename T>
 class NativeHash : public NativeNoncopyable
 {
     public:
-        NativeHash(int size = 0) :
-            m_AutoDelete(false)
+        NativeHash(int size = 0)
         {
            if (!size) {
                 this->table = hashtbl_init(APE_HASH_STR);
@@ -116,7 +113,6 @@ class NativeHash : public NativeNoncopyable
     private:
 
         struct _ape_htable *table;
-        bool m_AutoDelete;
 };
 
 template <>
