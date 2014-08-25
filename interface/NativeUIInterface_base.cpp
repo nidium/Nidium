@@ -18,7 +18,7 @@
 #endif
 
 NativeUIInterface::NativeUIInterface() :
-    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL)
+    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL), m_readPixelInBuffer(false)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
@@ -122,6 +122,75 @@ void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
 
     this->setWindowSize(w, h);
     this->setWindowPosition(x, y);
+}
+
+void NativeUIInterface::toggleOfflineBuffer(bool val)
+{
+    if (val && !m_readPixelInBuffer) {
+        this->initPBOs();
+    } else if (!val && m_readPixelInBuffer) {
+        m_PBOs.front = m_PBOs.back = NULL;
+
+        glDeleteBuffers(2, m_PBOs.pbo);
+        free(m_FrameBuffer);
+    }
+    m_readPixelInBuffer = val;
+}
+
+void NativeUIInterface::initPBOs()
+{
+    if (m_readPixelInBuffer) {
+        return;
+    }
+
+    uint32_t screenPixelSize = width * 2 * height * 2 * 4;
+
+    glGenBuffers(2, m_PBOs.pbo);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[0]);
+    glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[1]);
+    glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    m_PBOs.front = &m_PBOs.pbo[0];
+    m_PBOs.back  = &m_PBOs.pbo[1];
+
+    m_FrameBuffer = (uint8_t *)malloc(screenPixelSize);
+}
+
+uint8_t *NativeUIInterface::readScreenPixel()
+{
+    if (!m_readPixelInBuffer) {
+        this->toggleOfflineBuffer(true);
+    }
+
+    uint32_t screenPixelSize = width * 2 * height * 2 * 4;
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, *m_PBOs.front);
+    glReadPixels(0, 0, width*2, height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, *m_PBOs.back);
+    uint8_t *ret = (uint8_t *)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, screenPixelSize, GL_MAP_READ_BIT);
+    if (!ret) {
+        uint32_t err = glGetError();
+        printf("Failed to map buffer %p %p\n", m_PBOs.front, m_PBOs.back);
+        return NULL;
+    }
+
+    memcpy(m_FrameBuffer, ret, screenPixelSize);
+
+    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    uint32_t *tmp = m_PBOs.front;
+    m_PBOs.front = m_PBOs.back;
+    m_PBOs.back = tmp;
+
+    return m_FrameBuffer;
 }
 
 int NativeUIInterface::useOffScreenRendering(bool val)

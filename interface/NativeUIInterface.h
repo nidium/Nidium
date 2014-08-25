@@ -102,6 +102,14 @@ class NativeUIInterface
         virtual SDL_GLContext getCurrentGLContext();
 
         virtual int useOffScreenRendering(bool val);
+        virtual void toggleOfflineBuffer(bool val);
+        uint8_t *readScreenPixel();
+
+        void initPBOs();
+
+        bool hasPixelBuffer() const {
+            return m_readPixelInBuffer;
+        }
 
         SDL_GLContext getGLContext() {
             return m_mainGLCtx;
@@ -126,8 +134,15 @@ class NativeUIInterface
         char *filePath;
         bool initialized;
         bool m_isOffscreen;
+        bool m_readPixelInBuffer;
         int m_FBO;
         uint8_t *m_FrameBuffer;
+
+        struct {
+            uint32_t pbo[2];
+
+            uint32_t *front, *back;
+        } m_PBOs;
 
 
         NativeUIConsole *console;
