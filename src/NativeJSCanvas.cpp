@@ -106,6 +106,10 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp);
+static JSBool native_canvas_insertBefore(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_insertAfter(JSContext *cx, unsigned argc,
+    jsval *vp);
 static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_bringToFront(JSContext *cx, unsigned argc,
@@ -254,6 +258,8 @@ static JSPropertySpec canvas_props[] = {
 static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getContext", native_canvas_getContext, 1, 0),
     JS_FN("add", native_canvas_addSubCanvas, 1, 0),
+    JS_FN("insertBefore", native_canvas_insertBefore, 2, 0),
+    JS_FN("insertAfter", native_canvas_insertAfter, 2, 0),
     JS_FN("removeFromParent", native_canvas_removeFromParent, 0, 0),
     JS_FN("show", native_canvas_show, 0, 0),
     JS_FN("hide", native_canvas_hide, 0, 0),
@@ -585,14 +591,14 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     JSObject *sub;
-    NativeCanvasHandler *handler;
+    NativeCanvasHandler *handler = NULL;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub)) {
         return false;
     }
 
     if (!JS_InstanceOf(cx, sub, &Canvas_class, NULL)) {
-        JS_ReportError(cx, "Not a Canvas Object");
+        JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
@@ -604,7 +610,6 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
 
     if (NativeObject == handler) {
         JS_ReportError(cx, "Canvas: can't add to itself");
-        printf("Cant add canvas to itself\n");
         return false;
     }
 
@@ -613,6 +618,80 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     return true;
 }
 
+static JSBool native_canvas_insertBefore(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    JSObject *insert, *ref;
+
+    NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
+        return false;
+    }
+
+    if (!JS_InstanceOf(cx, insert, &Canvas_class, NULL)) {
+        JS_ReportError(cx, "add() First parameter is not a Canvas Object");
+        return false;
+    }
+
+    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert))->getHandler();
+
+    if (handler_insert == NULL) {
+        return true;
+    }
+
+    if (JS_InstanceOf(cx, ref, &Canvas_class, NULL)) {
+        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
+    }
+
+    if (NativeObject == handler_insert) {
+        JS_ReportError(cx, "Canvas: can't add to itself");
+        return false;
+    }
+
+    NativeObject->insertBefore(handler_insert, handler_ref);
+
+    return true;
+}
+
+static JSBool native_canvas_insertAfter(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+
+    JSObject *insert, *ref;
+    NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
+        return false;
+    }
+
+    if (!JS_InstanceOf(cx, insert, &Canvas_class, NULL)) {
+        JS_ReportError(cx, "add() First parameter is not a Canvas Object");
+        return false;
+    }
+
+    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert))->getHandler();
+
+    if (handler_insert == NULL) {
+        return true;
+    }
+
+    if (JS_InstanceOf(cx, ref, &Canvas_class, NULL)) {
+        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
+    }
+
+    if (NativeObject == handler_insert) {
+        JS_ReportError(cx, "Canvas: can't add to itself");
+        return false;
+    }
+
+    NativeObject->insertAfter(handler_insert, handler_ref);
+
+    return true;
+}
 
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     jsval *vp)
@@ -648,7 +727,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                 NativeCanvas2DContext *ctx2d = new NativeCanvas2DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
-
+                
                 if (ctx2d->getSurface() == NULL) {
                     delete ctx2d;
                     JS_ReportError(cx, "Could not create 2D context for this canvas");

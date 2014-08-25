@@ -298,9 +298,50 @@ void NativeCanvasHandler::sendToBack()
     m_Parent->addChild(this, POSITION_BACK);
 }
 
+void NativeCanvasHandler::insertBefore(NativeCanvasHandler *insert,
+    NativeCanvasHandler *ref)
+{
+    if (!ref || !insert) {
+        this->addChild(insert, POSITION_FRONT);
+        return;
+    }
+    if (ref->getParent() != this || ref == insert || insert == this) {
+        return;
+    }
+
+    insert->removeFromParent();
+
+    insert->m_Prev = ref->m_Prev;
+    insert->m_Next = ref;
+
+    if (ref->m_Prev) {
+        ref->m_Prev->m_Next = insert;
+        ref->m_Prev = insert;
+    } else {
+        m_Children = insert;
+    }
+
+    insert->m_Parent = this;
+    this->nchildren++;
+}
+
+void NativeCanvasHandler::insertAfter(NativeCanvasHandler *insert,
+    NativeCanvasHandler *ref)
+{
+    if (!ref) {
+        this->addChild(insert, POSITION_FRONT);
+        return;
+    }
+
+    this->insertBefore(insert, ref->m_Next);
+}
+
 void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
     NativeCanvasHandler::Position position)
 {
+    if (!insert || insert == this) {
+        return;
+    }
     /* Already belong to a parent? move it */
     insert->removeFromParent();
 
@@ -454,7 +495,6 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
         /*
             Dispatch current mouse position.
         */
-
         this->dispatchMouseEvents(layerContext.layer);
 
         /*
@@ -490,7 +530,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
-        } else if (!layerContext.clip->intersect(this->a_left, this->a_top,
+        } else if (!m_FluidHeight && !layerContext.clip->intersect(this->a_left, this->a_top,
                     m_Width + this->a_left, m_Height + this->a_top)) {
             /* don't need to draw children (out of bounds) */
             return;
@@ -763,7 +803,7 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inn
     this->content.height = inner ? 0 : this->getHeight();
 
     /* don't go further if it doesn't overflow (and not the requested handler) */
-    if (!m_Overflow && cWidth && cHeight) {
+    if (!m_Overflow && /*!m_FluidHeight && */cWidth && cHeight) {
         *cWidth = this->content.width;
         *cHeight = this->content.height;
         return;
@@ -775,7 +815,7 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inn
             
             int retWidth, retHeight;
 
-            cur->computeContentSize(&retWidth, &retHeight, false);
+            cur->computeContentSize(&retWidth, &retHeight, /*cur->m_FluidHeight*/ false);
 
             if (retWidth + cur->getLeft() > this->content.width) {
                 this->content.width = retWidth + cur->getLeft();

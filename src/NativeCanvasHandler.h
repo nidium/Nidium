@@ -448,6 +448,9 @@ class NativeCanvasHandler : public NativeEvents
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
+        void insertBefore(NativeCanvasHandler *insert, NativeCanvasHandler *ref);
+        void insertAfter(NativeCanvasHandler *insert, NativeCanvasHandler *ref);
+
         int getContentWidth(bool inner = false);
         int getContentHeight(bool inner = false);
         void setHidden(bool val);
@@ -523,7 +526,6 @@ class NativeCanvasHandler : public NativeEvents
         };
 
         int m_Pending;
-
         bool m_Loaded;
 };
 
