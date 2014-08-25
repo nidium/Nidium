@@ -27,6 +27,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
 {
     public:
 
+        static JSClass *ImageData_jsclass;
+
         friend class NativeJSCanvas;
 
         bool setterDisabled;
@@ -104,5 +106,6 @@ class NativeCanvasPattern
             jsimg(img), mode(repeat) {
         };
 };
+
 
 #endif
