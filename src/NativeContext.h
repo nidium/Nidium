@@ -138,6 +138,12 @@ class NativeContext : public NativeMessages
 
     void execJobs();
     void execPendingCanvasChanges();
+
+    static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                         JSObject *obj, void *closure);
+
+    static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                           uint32_t tag, uint32_t data, void *closure);
 };
 
 #endif

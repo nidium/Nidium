@@ -37,6 +37,10 @@
 
 jsval gfunc  = JSVAL_VOID;
 
+enum {
+    NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
+};
+
 int NativeContext_Logger(const char *format)
 {
     __NativeUI->log(format);
@@ -85,6 +89,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     this->initHandlers(width, height);
 
     m_JS = new NativeJS(net);
+
+    m_JS->setStructuredCloneAddition(NativeContext::writeStructuredCloneOp, NativeContext::readStructuredCloneOp);
     m_JS->setPrivate(this);
 
     m_JS->loadGlobalObjects();
@@ -414,6 +420,82 @@ void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
             printf("New WS client for render :)\n");
             break;
     }
+}
+
+JSBool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                     JSObject *obj, void *closure)
+{
+
+    JS::Value vobj = OBJECT_TO_JSVAL(obj);
+    JSType type = JS_TypeOfValue(cx, vobj);
+
+    if (type != JSTYPE_OBJECT) {
+        return false;
+    }
+
+    if (JS_GetClass(obj) == NativeCanvas2DContext::ImageData_jsclass) {
+        JS::Value iwidth, iheight, idata;
+        uint32_t dwidth, dheight;
+
+        if (!JS_GetProperty(cx, obj, "width", &iwidth)) {
+            return false;
+        }
+        if (!JS_GetProperty(cx, obj, "height", &iheight)) {
+            return false;
+        }
+        if (!JS_GetProperty(cx, obj, "data", &idata)) {
+            return false;
+        }
+
+        dwidth = iwidth.toInt32();
+        dheight = iheight.toInt32();
+
+        JS_WriteUint32Pair(w, NATIVE_SCTAG_IMAGEDATA,
+            (sizeof(uint32_t) * 2) + dwidth * dheight * 4);
+
+        JS_WriteBytes(w, &dwidth, sizeof(uint32_t));
+        JS_WriteBytes(w, &dheight, sizeof(uint32_t));
+        JS_WriteTypedArray(w, idata);
+
+        return true;
+    }
+
+    return false;
+}
+
+JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                       uint32_t tag, uint32_t data, void *closure)
+{
+    switch (tag) {
+        case NATIVE_SCTAG_IMAGEDATA:
+        {
+            if (data < sizeof(uint32_t) * 2 + 1) {
+                return JS_NewObject(cx, NULL, NULL, NULL);
+            }
+            uint32_t width, height;
+            JS::Value arr;
+
+            JS_ReadBytes(r, &width, sizeof(uint32_t));
+            JS_ReadBytes(r, &height, sizeof(uint32_t));
+
+            JS_ReadTypedArray(r, &arr);
+
+            JSObject *dataObject = JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL);
+            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
+                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
+                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+            JS_DefineProperty(cx, dataObject, "data", arr, NULL,
+                NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+            return dataObject;
+        }
+        default:
+            break;
+    }
+    return JS_NewObject(cx, NULL, NULL, NULL);
 }
 
 void NativeContext::forceLinking()
