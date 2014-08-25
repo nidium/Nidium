@@ -31,6 +31,12 @@
 #include <NativeMessages.h>
 
 enum {
+    NATIVE_SCTAG_FUNCTION = JS_SCTAG_USER_MIN+1,
+    NATIVE_SCTAG_HIDDEN,
+    NATIVE_SCTAG_MAX
+};
+
+enum {
     NATIVE_KEY_SHIFT = 1 << 0,
     NATIVE_KEY_ALT = 1 << 1,
     NATIVE_KEY_CTRL = 1 << 2,
@@ -149,6 +155,21 @@ class NativeJS
         void logf(const char *format, ...);
         void log(const char *format);
         void logclear();
+
+        void setStructuredCloneAddition(WriteStructuredCloneOp write,
+            ReadStructuredCloneOp read)
+        {
+            m_StructuredCloneAddition.write = write;
+            m_StructuredCloneAddition.read = read;
+        }
+
+        ReadStructuredCloneOp getReadStructuredCloneAddition() const {
+            return m_StructuredCloneAddition.read;
+        }
+        WriteStructuredCloneOp getWriteStructuredCloneAddition() const {
+            return m_StructuredCloneAddition.write;
+        }
+        
     private:
         NativeJSModules *modules;
         void *privateslot;
@@ -162,5 +183,10 @@ class NativeJS
         vlogger m_vLogger;
 
         logger_clear m_LogClear;
+
+        struct {
+            WriteStructuredCloneOp write;
+            ReadStructuredCloneOp read;
+        } m_StructuredCloneAddition;
 };
 #endif

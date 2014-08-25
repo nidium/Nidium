@@ -60,7 +60,8 @@ static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
     uint64_t *data;
     size_t data_len;
 
-    if (!JS_WriteStructuredClone(cx, args.array()[0], &data, &data_len, NULL, NULL, JSVAL_VOID)) {
+    if (!JS_WriteStructuredClone(cx, args.array()[0], &data, &data_len,
+        NULL, NativeJS::getNativeClass(cx), JSVAL_VOID)) {
         JS_ReportError(cx, "serialize() failed");
         return false;
     }
@@ -108,7 +109,7 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NativeJS::getNativeClass(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;             
     }

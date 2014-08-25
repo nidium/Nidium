@@ -72,9 +72,6 @@ static pthread_key_t gJS = 0;
 #define DEFAULT_MAX_STACK_SIZE 500000
 #endif
 
-#define NATIVE_SCTAG_FUNCTION JS_SCTAG_USER_MIN+1
-#define NATIVE_SCTAG_HIDDEN JS_SCTAG_USER_MIN+2
-
 size_t gMaxStackSize = DEFAULT_MAX_STACK_SIZE;
 
 struct _native_sm_timer
@@ -280,6 +277,8 @@ void NativeJS::logclear()
 JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                            uint32_t tag, uint32_t data, void *closure)
 {
+    NativeJS *js = (NativeJS *)closure;
+
     switch(tag) {
         case NATIVE_SCTAG_FUNCTION:
         {
@@ -321,18 +320,25 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
             return JS_NewObject(cx, NULL, NULL, NULL);
         }
         default:
-            return JS_NewObject(cx, NULL, NULL, NULL);
+        {
+            ReadStructuredCloneOp op;
+            if (js && (op = js->getReadStructuredCloneAddition())) {
+                return op(cx, r, tag, data, closure);
+            }
+        }
     }
 
-    return NULL;
+    return JS_NewObject(cx, NULL, NULL, NULL);
 }
 
 JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                          JSObject *obj, void *closure)
 {
     JS::Value vobj = OBJECT_TO_JSVAL(obj);
+    JSType type = JS_TypeOfValue(cx, vobj);
+    NativeJS *js = (NativeJS *)closure;
 
-    switch(JS_TypeOfValue(cx, vobj)) {
+    switch(type) {
         /* Serialize function into a string */
         case JSTYPE_FUNCTION:
         {
@@ -347,6 +353,16 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
         }
         default:
         {
+            if (js && type == JSTYPE_OBJECT) {
+                
+                WriteStructuredCloneOp op;
+                if ((op = js->getWriteStructuredCloneAddition()) &&
+                    op(cx, w, obj, closure)) {
+
+                    return true;
+                }
+
+            }
             const uint8_t nullbyte = '\0';
 
             JS_WriteUint32Pair(w, NATIVE_SCTAG_HIDDEN, 1);
@@ -498,6 +514,9 @@ NativeJS::NativeJS(ape_global *net) :
     JSObject *gbl;
     this->privateslot = NULL;
     this->relPath = NULL;
+
+    m_StructuredCloneAddition.read = NULL;
+    m_StructuredCloneAddition.write = NULL;
 
     static int isUTF8 = 0;
     
