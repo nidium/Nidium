@@ -1413,7 +1413,32 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         {
             JSOBJ_CALLFUNCNAME(this->jsobj, "onload", 0, NULL);
             break;
-        }        
+        }
+        case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
+        {
+            JSObject *ev = JS_NewObject(cx, NULL, NULL, NULL);
+            const char *name = NULL;
+            JS::Value value, arg;
+
+            switch (msg.args[1].toInt()) {
+                case NativeCanvasHandler::kContentWidth_Changed:
+                    name = "contentWidth";
+                    value.setInt32(this->getHandler()->content._width);
+                    break;
+                case NativeCanvasHandler::kContentHeight_Changed:
+                    name = "contentHeight";
+                    value.setInt32(this->getHandler()->content._height);
+                    break;                
+            }
+
+            JSOBJ_SET_PROP_CSTR(ev, "property", name);
+            JSOBJ_SET_PROP(ev, "value", value);
+
+            arg.setObjectOrNull(ev);
+
+            JSOBJ_CALLFUNCNAME(this->jsobj, "onchange", 1, &arg);
+            break;
+        }
         default:
             break;
     }

@@ -94,6 +94,7 @@ class NativeCanvasHandler : public NativeEvents
     public:
         friend class NativeSkia;
         friend class NativeContext;
+        friend class NativeJSCanvas;
 
         static const uint8_t EventID = 1;
         static int LastIdx;
@@ -105,9 +106,15 @@ class NativeCanvasHandler : public NativeEvents
             kBottom_Coord = 1 << 3
         };
 
+        enum EventsChangedProperty {
+            kContentHeight_Changed,
+            kContentWidth_Changed
+        };
+
         enum Events {
             RESIZE_EVENT = 1,
-            LOADED_EVENT = 2
+            LOADED_EVENT = 2,
+            CHANGE_EVENT = 3
         };
 
         enum Position {
@@ -161,6 +168,8 @@ class NativeCanvasHandler : public NativeEvents
             int height;
             int scrollTop;
             int scrollLeft;
+
+            int _width, _height;
         } content;
 
         struct {
@@ -493,6 +502,8 @@ class NativeCanvasHandler : public NativeEvents
 
             return NULL;
         }
+
+        void propertyChanged(EventsChangedProperty property);
     private:
         void deviceSetSize(int width, int height);
         void execPending();

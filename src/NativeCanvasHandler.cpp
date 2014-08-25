@@ -56,6 +56,10 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
 
     this->content.width = m_Width;
     this->content.height = m_Height;
+
+    this->content._width = m_Width;
+    this->content._height = m_Height;
+
     this->content.scrollLeft = 0;
     this->content.scrollTop = 0;
 
@@ -423,6 +427,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
     if (visibility == CANVAS_VISIBILITY_HIDDEN || opacity == 0.0) {
         return;
     }
+    int maxChildrenHeight = this->getHeight(), maxChildrenWidth = this->getWidth();
 
     //double pzoom = this->zoom * azoom;
     double popacity = this->opacity * layerContext.aopacity;
@@ -576,11 +581,40 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
             cur->layerize(ctx);
 
+            /*
+                Incrementaly check the bottom/right most children
+                in order to compute the contentHeight/Width
+            */
+            if (cur->coordPosition == COORD_RELATIVE &&
+                cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
+
+                int actualChildrenHeightPlusTop = cur->getTop() + (cur->m_Overflow ?
+                                        cur->content._height : cur->getHeight());
+                int actualChildrenWidthPlusLeft = cur->getLeft() + (cur->m_Overflow ?
+                                        cur->content._width : cur->getWidth());
+
+                if (actualChildrenHeightPlusTop > maxChildrenHeight) {
+                    maxChildrenHeight = actualChildrenHeightPlusTop;
+                }
+                if (actualChildrenWidthPlusLeft > maxChildrenWidth) {
+                    maxChildrenWidth = actualChildrenWidthPlusLeft;
+                }
+            }
             /* restore the old clip (layerize could have altered it) */
             if (layerContext.clip != NULL) {
                 memcpy(layerContext.clip, &tmpClip, sizeof(NativeRect));
             }
         }
+    }
+    if (this->content._height != maxChildrenHeight) {
+        this->content._height = maxChildrenHeight;
+
+        this->propertyChanged(kContentHeight_Changed);
+    }
+    if (this->content._width != maxChildrenWidth) {
+        this->content._width = maxChildrenWidth;
+
+        this->propertyChanged(kContentWidth_Changed);
     }
 
     /*
@@ -975,6 +1009,25 @@ bool NativeCanvasHandler::checkLoaded()
         return true;
     }
     return false;
+}
+
+void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
+{
+    NativeArgs arg;
+    arg[0].set(property);
+
+    switch (property) {
+        case kContentWidth_Changed:
+            arg[1].set(content._width);
+            break;
+        case kContentHeight_Changed:
+            arg[1].set(content._height);
+            break;
+        default:
+            break;
+    }
+
+    this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()
