@@ -127,7 +127,7 @@ bool NativeCanvasHandler::setMinHeight(int height)
 bool NativeCanvasHandler::setMaxWidth(int width)
 {
     if (width < 1) width = 1;
-    
+
     m_MaxWidth = native_max(m_MinWidth, width);
 
     if (m_Width > m_MaxWidth) {
@@ -459,7 +459,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
             if (m_Parent) {
                 /* New "line" */
-                if (hasStaticRight() ||
+                if (/*hasStaticRight() ||*/
                     tmpLeft + this->getWidth() > m_Parent->getWidth()) {
 
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
