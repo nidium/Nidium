@@ -256,7 +256,7 @@ class NativeCanvasHandler : public NativeEvents
 
             if (pwidth == 0) return 0.;
 
-            return pwidth - this->getLeft() - this->getRight();
+            return native_max(pwidth - this->getLeft() - this->getRight(), 1);
         }
 
         /*
@@ -273,7 +273,7 @@ class NativeCanvasHandler : public NativeEvents
 
             if (pheight == 0) return 0.;
 
-            return pheight - this->getTop() - this->getBottom();
+            return native_max(pheight - this->getTop() - this->getBottom(), 1);
         }
 
         int getMinWidth() const {

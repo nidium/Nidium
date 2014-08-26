@@ -126,7 +126,9 @@ bool NativeCanvasHandler::setMinHeight(int height)
 
 bool NativeCanvasHandler::setMaxWidth(int width)
 {
-    m_MaxWidth = width < 1 ? 0 : native_max(m_MinWidth, width);
+    if (width < 1) width = 1;
+    
+    m_MaxWidth = native_max(m_MinWidth, width);
 
     if (m_Width > m_MaxWidth) {
         this->setWidth(m_MaxWidth);
@@ -137,7 +139,9 @@ bool NativeCanvasHandler::setMaxWidth(int width)
 
 bool NativeCanvasHandler::setMaxHeight(int height)
 {
-    m_MaxHeight = height < 1 ? 0 : native_max(m_MinHeight, height);
+    if (height < 1) height = 1;
+
+    m_MaxHeight = native_max(m_MinHeight, height);
 
     if (m_Height > m_MaxHeight) {
         this->setHeight(m_MaxHeight);
@@ -535,8 +539,8 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                 if clip is not null, reduce it to intersect the current rect.
                 /!\ clip->intersect changes "clip"
             */
-        } else if (!m_FluidHeight && !layerContext.clip->intersect(this->a_left, this->a_top,
-                    m_Width + this->a_left, m_Height + this->a_top)) {
+        } else if (!layerContext.clip->intersect(this->a_left, this->a_top,
+                    m_Width + this->a_left, m_Height + this->a_top) && !m_FluidHeight) {
             /* don't need to draw children (out of bounds) */
             return;
         }

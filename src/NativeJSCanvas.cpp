@@ -1423,11 +1423,11 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             switch (msg.args[1].toInt()) {
                 case NativeCanvasHandler::kContentWidth_Changed:
                     name = "contentWidth";
-                    value.setInt32(this->getHandler()->content._width);
+                    value.setInt32(msg.args[2].toInt());
                     break;
                 case NativeCanvasHandler::kContentHeight_Changed:
                     name = "contentHeight";
-                    value.setInt32(this->getHandler()->content._height);
+                    value.setInt32(msg.args[2].toInt());
                     break;                
             }
 
