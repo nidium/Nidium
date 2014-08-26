@@ -126,12 +126,15 @@ class NativeCanvasHandler : public NativeEvents
             COORD_RELATIVE,
             COORD_ABSOLUTE,
             COORD_FIXED,
-            COORD_INLINE
+            COORD_INLINE,
+            COORD_INLINEBREAK
         };
 
         enum FLOW_MODE {
             kFlowDoesntInteract = 0,
-            kFlowInlinePreviousSibling = 1 << 0
+            kFlowInlinePreviousSibling = 1 << 0,
+            kFlowBreakPreviousSibling = 1 << 1,
+            kFlowBreakAndInlinePreviousSibling = (kFlowInlinePreviousSibling | kFlowBreakPreviousSibling)
         };
 
         enum Visibility {

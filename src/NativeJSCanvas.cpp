@@ -788,6 +788,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 handler->setPositioning(NativeCanvasHandler::COORD_FIXED);
             } else if (strcasecmp(mode.ptr(), "inline") == 0) {
                 handler->setPositioning(NativeCanvasHandler::COORD_INLINE);
+            } else if (strcasecmp(mode.ptr(), "inline-break") == 0) {
+                handler->setPositioning(NativeCanvasHandler::COORD_INLINEBREAK);
             } else {
                 handler->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
             }
@@ -1231,7 +1233,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         {
             switch (handler->getPositioning()) {
                 case NativeCanvasHandler::COORD_RELATIVE:
-                    if (handler->getFlowMode() & NativeCanvasHandler::kFlowInlinePreviousSibling) {
+                    if (handler->getFlowMode() & NativeCanvasHandler::kFlowBreakPreviousSibling) {
+                        vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline-break")));
+                    } else if (handler->getFlowMode() & NativeCanvasHandler::kFlowInlinePreviousSibling) {
                         vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline")));
                     } else {
                         vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "relative")));
@@ -1245,7 +1249,10 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
                     break;
                 case NativeCanvasHandler::COORD_INLINE:
                     vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline")));
-                    break;                
+                    break;
+                case NativeCanvasHandler::COORD_INLINEBREAK:
+                    vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline-break")));
+                    break; 
             }
             break;
         }

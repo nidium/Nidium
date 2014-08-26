@@ -71,8 +71,11 @@ void NativeCanvasHandler::setPositioning(NativeCanvasHandler::COORD_POSITION mod
     if (mode == COORD_INLINE) {
         mode = COORD_RELATIVE;
         m_FlowMode |= kFlowInlinePreviousSibling;
+    } else if (mode == COORD_INLINEBREAK) {
+        mode = COORD_RELATIVE;
+        m_FlowMode |= kFlowBreakAndInlinePreviousSibling;
     } else {
-        m_FlowMode &= ~kFlowInlinePreviousSibling;
+        m_FlowMode &= ~kFlowBreakAndInlinePreviousSibling;
     }
 
     coordPosition = mode;
@@ -441,7 +444,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
     bool willDraw = true;
 
     if (this->coordPosition == COORD_RELATIVE &&
-        this->m_FlowMode & kFlowInlinePreviousSibling) {
+        this->m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
 
         NativeCanvasHandler *prev = getPrevInlineSibling();
 
@@ -459,7 +462,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
 
             if (m_Parent) {
                 /* New "line" */
-                if (/*hasStaticRight() ||*/
+                if ((this->m_FlowMode & kFlowBreakPreviousSibling) || 
                     tmpLeft + this->getWidth() > m_Parent->getWidth()) {
 
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
@@ -470,9 +473,9 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                 }
             }
         }
-        if (this->getHeight() > sctx->maxLineHeight) {
-            sctx->maxLineHeight = this->getHeight();
-        }
+
+        sctx->maxLineHeight = native_max(this->getHeight(), sctx->maxLineHeight);
+
     } else {
         tmpLeft = this->getLeft();
         tmpTop = this->getTop();
@@ -688,7 +691,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
     }
 
     if (this->coordPosition == COORD_RELATIVE &&
-        m_FlowMode & kFlowInlinePreviousSibling) {
+        m_FlowMode & kFlowBreakAndInlinePreviousSibling) {
 
         if (m_Parent == NULL) {
             this->a_top = this->a_left = 0;
@@ -718,7 +721,8 @@ void NativeCanvasHandler::computeAbsolutePosition()
                 elem->left = prev->left + prevWidth;
                 elem->top = prev->top;
 
-                if (elem->left + elem->getWidth() >  m_Parent->getWidth()) {
+                if ((this->m_FlowMode & kFlowBreakPreviousSibling) ||
+                    elem->left + elem->getWidth() >  m_Parent->getWidth()) {
                     maxLineHeightPreviousLine = maxLineHeight;
                     maxLineHeight = elem->getHeight();
 
@@ -783,10 +787,10 @@ bool NativeCanvasHandler::isOutOfBound()
             cur->computeAbsolutePosition();
             this->computeAbsolutePosition();
 
-            return (this->getLeft(true)+m_Width <= cur->getLeft(true) ||
-                this->getTop(true)+m_Height <= cur->getTop(true)
-                || this->getLeft(true) >= cur->getLeft(true) + cur->m_Width ||
-                this->getTop(true) >= cur->getTop(true) + cur->m_Height);
+            return (this->getLeft(true)+getWidth() <= cur->getLeft(true) ||
+                this->getTop(true)+getHeight() <= cur->getTop(true)
+                || this->getLeft(true) >= cur->getLeft(true) + cur->getWidth() ||
+                this->getTop(true) >= cur->getTop(true) + cur->getHeight());
         }
     }
 
@@ -804,21 +808,27 @@ NativeRect NativeCanvasHandler::getViewport()
             
             cur->computeAbsolutePosition();
 
-            return {
+            NativeRect rect = {
                 cur->getLeft(true),
                 cur->getTop(true),
-                cur->getTop(true)+cur->m_Height,
-                cur->getLeft(true)+cur->m_Width
+                cur->getTop(true)+cur->getHeight(),
+                cur->getLeft(true)+cur->getWidth()
             };
+
+            NativeRect prect = m_Parent->getViewport();
+
+            rect.intersect(prect.fLeft, prect.fTop, prect.fRight, prect.fBottom);
+
+            return rect;
         }
     }
     if (!cur) cur = this;
 
     return {
-        cur->getLeft(),
-        cur->getTop(),
-        cur->getTop()+cur->m_Height,
-        cur->getLeft()+cur->m_Width};
+        cur->getLeft(true),
+        cur->getTop(true),
+        cur->getTop(true)+cur->getHeight(),
+        cur->getLeft(true)+cur->getWidth()};
 }
 
 NativeRect NativeCanvasHandler::getVisibleRect()
@@ -829,8 +839,8 @@ NativeRect NativeCanvasHandler::getVisibleRect()
     return {
         .fLeft   = native_min(native_max(this->getLeft(true), vp.fLeft), vp.fRight),
         .fTop    = native_min(native_max(this->getTop(true), vp.fTop), vp.fBottom),
-        .fBottom = native_min(this->getTop(true)+m_Height, vp.fBottom),
-        .fRight  = native_min(this->getLeft(true)+m_Width, vp.fRight)
+        .fBottom = native_min(this->getTop(true)+getHeight(), vp.fBottom),
+        .fRight  = native_min(this->getLeft(true)+getWidth(), vp.fRight)
     };
 }
 
