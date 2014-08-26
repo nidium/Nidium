@@ -138,10 +138,12 @@ class NativeUIInterface
         int m_FBO;
         uint8_t *m_FrameBuffer;
 
-        struct {
-            uint32_t pbo[2];
+#define NUM_PBOS 3
 
-            uint32_t *front, *back;
+        struct {
+            uint32_t pbo[NUM_PBOS];
+            int vram2sys;
+            int gpu2vram;
         } m_PBOs;
 
 

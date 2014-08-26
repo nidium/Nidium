@@ -129,9 +129,8 @@ void NativeUIInterface::toggleOfflineBuffer(bool val)
     if (val && !m_readPixelInBuffer) {
         this->initPBOs();
     } else if (!val && m_readPixelInBuffer) {
-        m_PBOs.front = m_PBOs.back = NULL;
 
-        glDeleteBuffers(2, m_PBOs.pbo);
+        glDeleteBuffers(NUM_PBOS, m_PBOs.pbo);
         free(m_FrameBuffer);
     }
     m_readPixelInBuffer = val;
@@ -145,17 +144,16 @@ void NativeUIInterface::initPBOs()
 
     uint32_t screenPixelSize = width * 2 * height * 2 * 4;
 
-    glGenBuffers(2, m_PBOs.pbo);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[0]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);
-
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[1]);
-    glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);
+    glGenBuffers(NUM_PBOS, m_PBOs.pbo);
+    for (int i = 0; i < NUM_PBOS; i++) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[i]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);        
+    }
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-    m_PBOs.front = &m_PBOs.pbo[0];
-    m_PBOs.back  = &m_PBOs.pbo[1];
+    m_PBOs.vram2sys = 0;
+    m_PBOs.gpu2vram = NUM_PBOS-1;
 
     m_FrameBuffer = (uint8_t *)malloc(screenPixelSize);
 }
@@ -170,14 +168,14 @@ uint8_t *NativeUIInterface::readScreenPixel()
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, *m_PBOs.front);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.gpu2vram]);
     glReadPixels(0, 0, width*2, height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, *m_PBOs.back);
-    uint8_t *ret = (uint8_t *)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, screenPixelSize, GL_MAP_READ_BIT);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
+    uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
-        printf("Failed to map buffer %p %p\n", m_PBOs.front, m_PBOs.back);
+        printf("Failed to map buffer\n");
         return NULL;
     }
 
@@ -186,9 +184,10 @@ uint8_t *NativeUIInterface::readScreenPixel()
     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
-    uint32_t *tmp = m_PBOs.front;
-    m_PBOs.front = m_PBOs.back;
-    m_PBOs.back = tmp;
+    int temp = m_PBOs.pbo[0];
+    for (int i=1; i<NUM_PBOS; i++)
+        m_PBOs.pbo[i-1] = m_PBOs.pbo[i];
+    m_PBOs.pbo[NUM_PBOS - 1] = temp;
 
     return m_FrameBuffer;
 }
