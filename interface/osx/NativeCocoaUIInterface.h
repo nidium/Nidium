@@ -29,8 +29,11 @@ class NativeCocoaUIInterface : public NativeUIInterface
             void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags = 0);
         const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
-
+        void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
+        void hideWindow();
+        void showWindow();
         void alert(const char *message);
+        void quit();
 
         struct {
             CGRect closeFrame;
@@ -54,7 +57,6 @@ class NativeCocoaUIInterface : public NativeUIInterface
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
-        
     private:
         bool initContext();
         bool createWindow(int width, int height);

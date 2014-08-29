@@ -51,7 +51,7 @@ void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj);
 
 extern JSClass Canvas_class;
 
-static JSClass Canvas2DContext_class = {
+JSClass Canvas2DContext_class = {
     "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_finalize,
@@ -2224,8 +2224,6 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
 {
     SkBaseDevice *ndev = NULL;
     SkCanvas *ncanvas;
-    char *id;
-    getHandler()->getIdentifier(&id);
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 

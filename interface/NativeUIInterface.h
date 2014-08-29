@@ -100,9 +100,12 @@ class NativeUIInterface
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
-
         virtual int useOffScreenRendering(bool val);
         virtual void toggleOfflineBuffer(bool val);
+        virtual void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0){};
+
+        virtual void quit();
+
         uint8_t *readScreenPixel();
 
         void initPBOs();
@@ -128,6 +131,12 @@ class NativeUIInterface
             return m_FrameBuffer;
         }
 
+        virtual void hideWindow();
+        virtual void showWindow();
+        bool isWindowHidden() const {
+            return m_Hidden;
+        }
+
     protected:
         int width;
         int height;
@@ -135,6 +144,7 @@ class NativeUIInterface
         bool initialized;
         bool m_isOffscreen;
         bool m_readPixelInBuffer;
+        bool m_Hidden;
         int m_FBO;
         uint8_t *m_FrameBuffer;
 

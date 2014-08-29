@@ -92,7 +92,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case SDL_USEREVENT:
                     break;
                 case SDL_QUIT:
-                    NSLog(@"Quit?");
+                    if (window && !window->onClose()) {
+                        break;
+                    }
                     NUII->stopApplication();
                     SDL_Quit();
                     [[NSApplication sharedApplication] terminate:nil];
@@ -131,17 +133,17 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     } else {
                         keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
                     }
-                    
-                    if (event.key.keysym.mod & KMOD_SHIFT) {
+
+                    if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
                         mod |= NATIVE_KEY_SHIFT;
                     }
-                    if (event.key.keysym.mod & KMOD_ALT) {
+                    if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
                         mod |= NATIVE_KEY_ALT;
                     }
-                    if (event.key.keysym.mod & KMOD_CTRL) {
+                    if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
                         mod |= NATIVE_KEY_CTRL;
                     }
-                    if (event.key.keysym.mod & KMOD_GUI) {
+                    if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
                         mod |= NATIVE_KEY_META;
                     }
                     if (window) {
@@ -864,4 +866,46 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
     objc_setAssociatedObject(sdlview, drawRect_Associated_obj, idthis, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
     [idthis release];
+}
+
+void NativeCocoaUIInterface::enableSysTray(const void *imgData,
+    size_t imageDataSize)
+{
+    NSStatusItem *statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+
+    statusItem.title = @"";
+    NSImage *icon = [NSApp applicationIconImage];
+    [icon setScalesWhenResized:YES];
+    [icon setSize: NSMakeSize(20.0, 20.0)];
+
+    statusItem.image = icon;
+    statusItem.highlightMode = YES;
+}
+
+void NativeCocoaUIInterface::quit()
+{
+    this->stopApplication();
+    SDL_Quit();
+    [[NSApplication sharedApplication] terminate:nil];
+}
+
+void NativeCocoaUIInterface::hideWindow()
+{
+    if (!m_Hidden) {
+        m_Hidden = true;
+        SDL_HideWindow(win);
+
+        /* Hide the Application (Dock, etc...) */
+        [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
+    }
+}
+
+void NativeCocoaUIInterface::showWindow()
+{
+    if (m_Hidden) {
+        m_Hidden = false;
+        SDL_ShowWindow(win);
+
+        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
+    }
 }

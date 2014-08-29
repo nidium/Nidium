@@ -18,7 +18,8 @@
 #endif
 
 NativeUIInterface::NativeUIInterface() :
-    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL), m_readPixelInBuffer(false)
+    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL),
+    m_readPixelInBuffer(false), m_Hidden(false)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
@@ -61,6 +62,12 @@ SDL_GLContext NativeUIInterface::createSharedContext()
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
 {
     SDL_GL_DeleteContext(ctx);
+}
+
+void NativeUIInterface::quit()
+{
+    this->stopApplication();
+    SDL_Quit();
 }
 
 void NativeUIInterface::refresh()
@@ -244,4 +251,20 @@ void NativeUIInterface::refreshApplication(bool clearConsole)
     }
 
     this->restartApplication();
+}
+
+void NativeUIInterface::hideWindow()
+{
+    if (!m_Hidden) {
+        m_Hidden = true;
+        SDL_HideWindow(win);
+    }
+}
+
+void NativeUIInterface::showWindow()
+{
+    if (m_Hidden) {
+        m_Hidden = false;
+        SDL_ShowWindow(win);
+    }
 }

@@ -12,7 +12,7 @@
 
 class NativeCocoaUIInterface;
 
-@interface NativeStudioAppDelegate : NSObject <NSApplicationDelegate>
+@interface NativeStudioAppDelegate : NSObject <NSApplicationDelegate, NSUserNotificationCenterDelegate>
 {
     NSArray *position;
     NSString *appfile;

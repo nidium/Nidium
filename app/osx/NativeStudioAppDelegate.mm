@@ -132,9 +132,14 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     */
 }
 
+- (BOOL)userNotificationCenter:(NSUserNotificationCenter *)center shouldPresentNotification:(NSUserNotification *)notification{
+    return YES;
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     [self createMenu];
+    [[NSUserNotificationCenter defaultUserNotificationCenter] setDelegate:self];
 
     NSUserDefaults *args = [NSUserDefaults standardUserDefaults];
     BOOL noNML = ([args objectForKey:@"no-nml"] != nil);
@@ -247,8 +252,16 @@ void SetCrashKeyValue(BreakpadRef breakpad, NSString *key, NSString *value) {
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
     BreakpadRelease(breakpad);
+
+    NSLog(@"quit????");
     return NSTerminateNow;
 }
+
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed
+{
+    return NO;
+}
+
 #endif
 
 @end
