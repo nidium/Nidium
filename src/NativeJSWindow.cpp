@@ -11,6 +11,8 @@
 #include "NativeMacros.h"
 #include "NativeJSUtils.h"
 
+#include <NativeSystemInterface.h>
+
 #include <NativeJSFileIO.h>
 
 static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
@@ -25,6 +27,10 @@ static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, 
 static JSBool native_window_center(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setFrame(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_quit(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_close(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
@@ -120,6 +126,10 @@ static JSFunctionSpec window_funcs[] = {
     JS_FN("center", native_window_center, 0, 0),
     JS_FN("setPosition", native_window_setPosition, 2, 0),
     JS_FN("setFrame", native_window_setFrame, 4, 0),
+    JS_FN("notify", native_window_notify, 2, 0),
+    JS_FN("quit", native_window_quit, 0, 0),
+    JS_FN("close", native_window_close, 0, 0),
+    JS_FN("open", native_window_open, 0, 0),
     JS_FS_END
 };
 
@@ -204,6 +214,22 @@ void NativeJSwindow::onReady(JSObject *layout)
     }
 }
 
+bool NativeJSwindow::onClose()
+{
+    jsval onclose, rval;
+
+    if (JS_GetProperty(cx, this->jsobj, "_onbeforeclose", &onclose) &&
+        !JSVAL_IS_PRIMITIVE(onclose) && 
+        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclose))) {
+
+        JS_CallFunctionValue(cx, this->jsobj, onclose, 0, NULL, &rval);
+
+        return (rval.isUndefined() || rval.toBoolean());
+    }    
+
+    return true;
+}
+
 void NativeJSwindow::assetReady(const NMLTag &tag)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
@@ -279,13 +305,13 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 
         JS_CallFunctionValue(cx, event, onwheel, 1, &jevent, &rval);
     }
-   
+#undef EVENT_PROP
 }
 
 void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int location)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE)
     
     JSObject *event;
     jsval jevent, onkeyupdown, rval;
@@ -300,6 +326,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
     EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
     EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
     EVENT_PROP("metaKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_META)));
+    EVENT_PROP("spaceKey", BOOLEAN_TO_JSVAL(keycode == 32));
     EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
 
     jevent = OBJECT_TO_JSVAL(event);
@@ -311,6 +338,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
 
         JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
     }
+#undef EVENT_PROP
 }
 
 void NativeJSwindow::textInput(const char *data)
@@ -373,16 +401,13 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 
 bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 {
-    jsval rval, jevent;
+    jsval rval, jevent, ondragevent;
     JSObject *event;
-
-    jsval ondragevent;
 
     JSAutoRequest ar(cx);
 
     event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
 
-    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -399,9 +424,12 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
         !JSVAL_IS_PRIMITIVE(ondragevent) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragevent))) {
 
-        JS_CallFunctionValue(cx, event, ondragevent, 1, &jevent, &rval);
+        if (!JS_CallFunctionValue(cx, event, ondragevent, 1, &jevent, &rval)) {
+            printf("Failed to exec func\n");
+            return false;
+        }
 
-        return JSVAL_TO_BOOLEAN(rval);
+        return rval.toBoolean();
     }    
 
     return false;
@@ -418,7 +446,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
 
     m_Dragging = true;
 
-    m_DragedFiles = JS_NewArrayObject(cx, nfiles, NULL);
+    m_DragedFiles = JS_NewArrayObject(cx, (int)nfiles, NULL);
 
     for (int i = 0; i < nfiles; i++) {
         jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(cx, files[i]));
@@ -445,8 +473,8 @@ bool NativeJSwindow::dragUpdate(int x, int y)
     if (!m_Dragging) {
         return false;
     }
-
-    return this->dragEvent("_onFileDrag", x, y);
+    bool drag = this->dragEvent("_onFileDrag", x, y);
+    return drag;
 }
 
 bool NativeJSwindow::dragDroped(int x, int y)
@@ -863,6 +891,57 @@ static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp)
         NATIVE_WINDOWPOS_UNDEFINED_MASK : args[1].toInt32();
 
     NativeContext::getNativeClass(cx)->getUI()->setWindowPosition(x, y);
+
+    return true;
+}
+
+static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_CHECK_ARGS("notify", 2);
+
+    JSString *title, *body;
+    JSBool sound = false;
+
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "SS/b", &title, &body, &sound)) {
+        return false;
+    }
+
+    JSAutoByteString ctitle;
+    ctitle.encodeUtf8(cx, title);
+
+    JSAutoByteString cbody;
+    cbody.encodeUtf8(cx, body);
+
+    NativeSystemInterface::getInstance()->sendNotification(ctitle.ptr(), cbody.ptr(), sound);
+
+    return true;
+}
+
+static JSBool native_window_quit(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+
+    NUI->quit();
+
+    return true;
+}
+
+static JSBool native_window_close(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+
+    NUI->hideWindow();
+
+    return true;
+}
+
+static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+
+    NUI->showWindow();
 
     return true;
 }
