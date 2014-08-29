@@ -258,6 +258,8 @@ void NativeUIInterface::hideWindow()
     if (!m_Hidden) {
         m_Hidden = true;
         SDL_HideWindow(win);
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 1);
     }
 }
 
@@ -266,5 +268,7 @@ void NativeUIInterface::showWindow()
     if (m_Hidden) {
         m_Hidden = false;
         SDL_ShowWindow(win);
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 0);
     }
 }

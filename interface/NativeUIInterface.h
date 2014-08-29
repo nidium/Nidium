@@ -103,6 +103,7 @@ class NativeUIInterface
         virtual int useOffScreenRendering(bool val);
         virtual void toggleOfflineBuffer(bool val);
         virtual void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0){};
+        virtual void disableSysTray(){};
 
         virtual void quit();
 

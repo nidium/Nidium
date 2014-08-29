@@ -194,10 +194,11 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
+
         //glUseProgram(0);
         if (NUII->NativeCtx) {
             NUII->makeMainGLCurrent();
-            NUII->NativeCtx->frame();
+            NUII->NativeCtx->frame(!NUII->isWindowHidden());
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();
@@ -341,6 +342,7 @@ void NativeCocoaUIInterface::onNMLLoaded()
 void NativeCocoaUIInterface::stopApplication()
 {
     [this->dragNSView setResponder:nil];
+    this->disableSysTray();
 
     if (this->nml) {
         delete this->nml;
@@ -452,7 +454,8 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
     return false;
 }
 
-NativeCocoaUIInterface::NativeCocoaUIInterface()
+NativeCocoaUIInterface::NativeCocoaUIInterface() :
+    m_StatusItem(NULL)
 {
     this->width = 0;
     this->height = 0;
@@ -465,6 +468,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
 
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
+
 
     gnet = native_netlib_init();
 }
@@ -871,15 +875,26 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
 void NativeCocoaUIInterface::enableSysTray(const void *imgData,
     size_t imageDataSize)
 {
-    NSStatusItem *statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+    m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
 
-    statusItem.title = @"";
+    m_StatusItem.title = @"";
     NSImage *icon = [NSApp applicationIconImage];
     [icon setScalesWhenResized:YES];
     [icon setSize: NSMakeSize(20.0, 20.0)];
 
-    statusItem.image = icon;
-    statusItem.highlightMode = YES;
+    m_StatusItem.image = icon;
+    m_StatusItem.highlightMode = YES;
+}
+
+void NativeCocoaUIInterface::disableSysTray()
+{
+    if (!m_StatusItem) {
+        return;
+    }
+    [[NSStatusBar systemStatusBar] removeStatusItem:m_StatusItem];
+    [m_StatusItem release];
+
+    m_StatusItem = NULL;
 }
 
 void NativeCocoaUIInterface::quit()
@@ -897,6 +912,8 @@ void NativeCocoaUIInterface::hideWindow()
 
         /* Hide the Application (Dock, etc...) */
         [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 1);
     }
 }
 
@@ -907,5 +924,7 @@ void NativeCocoaUIInterface::showWindow()
         SDL_ShowWindow(win);
 
         [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 0);
     }
 }
