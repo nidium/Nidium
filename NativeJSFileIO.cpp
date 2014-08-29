@@ -102,7 +102,7 @@ static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
 static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
 
-static JSClass File_class = {
+JSClass File_class = {
     "File", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, File_Finalize,

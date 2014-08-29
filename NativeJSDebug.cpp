@@ -131,6 +131,7 @@ void NativeJSDebug::registerObject(JSContext *cx)
 
     JS_SetPrivate(debugObj, jdebug);
     jdebug->jsobj = debugObj;
+    jdebug->cx = cx;
 
     njs->jsobjects.set(NativeJSDebug::getJSObjectName(), debugObj);
 
