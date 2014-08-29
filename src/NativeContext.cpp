@@ -116,6 +116,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
+
+    //nui->enableSysTray();
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
@@ -315,7 +317,7 @@ void NativeContext::rendered(uint8_t *pdata, int width, int height)
     }
 }
 
-void NativeContext::frame()
+void NativeContext::frame(bool draw)
 {
     //this->execJobs();
     /*
@@ -327,7 +329,9 @@ void NativeContext::frame()
 
     /* Call requestAnimationFrame */
     this->callFrame();
-    this->postDraw();
+    if (draw) {
+        this->postDraw();
+    }
 
     /*
         Exec the pending events a second time in case
@@ -348,7 +352,7 @@ void NativeContext::frame()
     /*
         Compose canvas eachother on the main framebuffer
     */
-    m_RootHandler->layerize(ctx);
+    m_RootHandler->layerize(ctx, draw);
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }

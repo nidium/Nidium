@@ -48,6 +48,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     m_FluidHeight = false;
     m_FluidWidth = false;
 
+    memset(&this->m_Margin, 0, sizeof(this->m_Margin));
     memset(&this->padding, 0, sizeof(this->padding));
     memset(&this->translate_s, 0, sizeof(this->translate_s));
     memset(&this->mousePosition, 0, sizeof(this->mousePosition));
@@ -425,7 +426,7 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
     }
 }
 
-void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
+void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
 {
     NativeCanvasHandler *cur;
     NativeRect nclip;
@@ -449,16 +450,15 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
         NativeCanvasHandler *prev = getPrevInlineSibling();
 
         if (!prev) {
-            tmpLeft = tmpTop = 0;
-            this->left = 0;
-            this->top = 0;
+            this->left = tmpLeft = m_Margin.left;
+            this->top = tmpTop = m_Margin.top;
 
         } else {
             int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
                                                     0 : prev->getWidth();
 
-            this->left = tmpLeft = prev->left + prevWidth;
-            this->top = tmpTop = prev->top;
+            this->left = tmpLeft = (prev->left + prevWidth + prev->m_Margin.right) + m_Margin.left;
+            this->top = tmpTop = (prev->top - prev->m_Margin.top) + m_Margin.top;
 
             if (m_Parent) {
                 /* New "line" */
@@ -466,15 +466,15 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                     tmpLeft + this->getWidth() > m_Parent->getWidth()) {
 
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
-                    sctx->maxLineHeight = this->getHeight();
+                    sctx->maxLineHeight = this->getHeight() + m_Margin.bottom + m_Margin.top;
 
-                    tmpTop = this->top = prev->top + sctx->maxLineHeightPreviousLine;
-                    tmpLeft = this->left = 0;
+                    tmpTop = this->top = (prev->top - prev->m_Margin.top) + sctx->maxLineHeightPreviousLine + m_Margin.top;
+                    tmpLeft = this->left = m_Margin.left;
                 }
             }
         }
 
-        sctx->maxLineHeight = native_max(this->getHeight(), sctx->maxLineHeight);
+        sctx->maxLineHeight = native_max(this->getHeight() + m_Margin.bottom + m_Margin.top, sctx->maxLineHeight);
 
     } else {
         tmpLeft = this->getLeft();
@@ -520,7 +520,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                 this->a_left + this->padding.global + this->getWidth(),
                 this->a_top + this->padding.global + this->getHeight())));
 
-        if (m_Context && willDraw) {
+        if (draw && m_Context && willDraw) {
             /*
                 Not visible. Don't call composeWith()
             */
@@ -586,7 +586,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext)
                 .siblingCtx = &siblingctx
             };
 
-            cur->layerize(ctx);
+            cur->layerize(ctx, draw);
 
             /*
                 Incrementaly check the bottom/right most children

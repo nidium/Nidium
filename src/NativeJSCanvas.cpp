@@ -6,6 +6,8 @@
 
 #include <assert.h>
 
+extern JSClass Canvas2DContext_class;
+
 //#define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
 
 #define native_min(val1, val2)  ((val1 > val2) ? (val2) : (val1))
@@ -68,7 +70,11 @@ enum {
     CANVAS_PROP_MAXWIDTH,
     CANVAS_PROP_MAXHEIGHT,
     CANVAS_PROP_FLUIDHEIGHT,
-    CANVAS_PROP_ID
+    CANVAS_PROP_ID,
+    CANVAS_PROP_MARGINLEFT,
+    CANVAS_PROP_MARGINRIGHT,
+    CANVAS_PROP_MARGINTOP,
+    CANVAS_PROP_MARGINBOTTOM
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -103,6 +109,8 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_canvas_setContext(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -252,11 +260,20 @@ static JSPropertySpec canvas_props[] = {
     {"id", CANVAS_PROP_ID, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
+    {"marginLeft", CANVAS_PROP_MARGINLEFT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"marginRight", CANVAS_PROP_MARGINRIGHT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"marginTop", CANVAS_PROP_MARGINTOP, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"marginBottom", CANVAS_PROP_MARGINBOTTOM, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 static JSFunctionSpec canvas_funcs[] = {
     JS_FN("getContext", native_canvas_getContext, 1, 0),
+    JS_FN("setContext", native_canvas_setContext, 1, 0),
     JS_FN("add", native_canvas_addSubCanvas, 1, 0),
     JS_FN("insertBefore", native_canvas_insertBefore, 2, 0),
     JS_FN("insertAfter", native_canvas_insertAfter, 2, 0),
@@ -763,6 +780,37 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
     return true;
 }
 
+static JSBool native_canvas_setContext(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NATIVE_PROLOGUE(NativeCanvasHandler);
+    NATIVE_CHECK_ARGS("setContext", 1);
+
+    JSObject *obj = args[0].toObjectOrNull();
+    if (!obj) {
+        return true;
+    }
+
+    NativeCanvasContext *context;
+
+    if (!(context = (NativeCanvasContext *)JS_GetInstancePrivate(cx,
+            obj, &Canvas2DContext_class, NULL))) {
+        JS_ReportError(cx, "setContext() argument must a CanvasRenderingContext2D object");
+        return false;
+    }
+
+    NativeObject->setContext(context);
+
+    /*
+        If a context was already attached, it's going to be GC'd
+        since it's not logner reachable from slot 0.
+    */
+    JS_SetReservedSlot(NativeObject->jsobj, 0, OBJECT_TO_JSVAL(context->jsobj));
+
+    return true;
+}
+
+
 /* TODO: do not change the value when a wrong type is set */
 static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
@@ -1028,7 +1076,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             if (vp.toBoolean()) {
-                handler->setLeft(handler->getLeft());
+                handler->setLeft(handler->left);
             } else {
                 handler->unsetLeft();
             }
@@ -1041,7 +1089,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             if (vp.toBoolean()) {
-                handler->setRight(handler->getRight());
+                handler->setRight(handler->right);
             } else {
                 handler->unsetRight();
             }
@@ -1054,7 +1102,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             if (vp.toBoolean()) {
-                handler->setTop(handler->getTop());
+                handler->setTop(handler->top);
             } else {
                 handler->unsetTop();
             }
@@ -1065,9 +1113,8 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!vp.isBoolean()) {
                 return true;
             }
-
             if (vp.toBoolean()) {
-                handler->setBottom(handler->getBottom());
+                handler->setBottom(handler->bottom);
             } else {
                 handler->unsetBottom();
             }
@@ -1090,7 +1137,57 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             JSAutoByteString cid(cx, sid);
             handler->setId(cid.ptr());
         }
-        break;        
+        break;  
+        case CANVAS_PROP_MARGINLEFT:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
+                handler->m_Margin.bottom, dval);
+        }
+        break;
+        case CANVAS_PROP_MARGINRIGHT:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+
+            JS_ValueToNumber(cx, vp, &dval);
+            handler->setMargin(handler->m_Margin.top, dval,
+                handler->m_Margin.bottom, handler->m_Margin.left);
+        }
+        break;
+        case CANVAS_PROP_MARGINTOP:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+
+            JS_ValueToNumber(cx, vp, &dval);
+
+            handler->setMargin(dval, handler->m_Margin.right,
+                handler->m_Margin.bottom, handler->m_Margin.left);
+        }
+        break;
+        case CANVAS_PROP_MARGINBOTTOM:
+        {
+            double dval;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                return JS_TRUE;
+            }
+
+            JS_ValueToNumber(cx, vp, &dval);
+            
+            handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
+                dval, handler->m_Margin.left);
+        }
+        break;  
         default:
             break;
     }
@@ -1263,6 +1360,26 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 
             vp.setString(JS_NewStringCopyZ(cx, id));
 
+            break;
+        }
+        case CANVAS_PROP_MARGINLEFT:
+        {
+            vp.setDouble(handler->m_Margin.left);
+            break;
+        }
+        case CANVAS_PROP_MARGINRIGHT:
+        {
+            vp.setDouble(handler->m_Margin.right);
+            break;
+        }
+        case CANVAS_PROP_MARGINTOP:
+        {
+            vp.setDouble(handler->m_Margin.top);
+            break;
+        }
+        case CANVAS_PROP_MARGINBOTTOM:
+        {
+            vp.setDouble(handler->m_Margin.bottom);
             break;
         }
         default:

@@ -67,7 +67,7 @@ class NativeContext : public NativeMessages
     void callFrame();
     void createDebugCanvas();
     void postDraw();
-    void frame();
+    void frame(bool draw = true);
 
     // called during offline rendering
     void rendered(uint8_t *pdata, int width, int height);

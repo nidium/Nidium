@@ -162,6 +162,13 @@ class NativeCanvasHandler : public NativeEvents
         } padding;
 
         struct {
+            double top;
+            double right;
+            double bottom;
+            double left;
+        } m_Margin;
+
+        struct {
             double x;
             double y;
         } translate_s;
@@ -341,6 +348,14 @@ class NativeCanvasHandler : public NativeEvents
             coordMode &= ~kBottom_Coord;
         }
 
+        void setMargin(double top, double right, double bottom, double left)
+        {
+            m_Margin.top = top;
+            m_Margin.right = right;
+            m_Margin.bottom = bottom;
+            m_Margin.left = left;
+        }
+
         void setLeft(double val) {
             if (m_FlowMode & kFlowInlinePreviousSibling) {
                 return;
@@ -373,6 +388,7 @@ class NativeCanvasHandler : public NativeEvents
         void setBottom(double val) {
             coordMode |= kBottom_Coord;
             this->bottom = val;
+
             if (!hasFixedHeight()) {
                 setSize(m_Width, this->getHeight());
             }            
@@ -483,7 +499,7 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *getPrevSibling() const { return m_Prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
-        void layerize(NativeLayerizeContext &layerContext);
+        void layerize(NativeLayerizeContext &layerContext, bool draw);
 
         NativeCanvasHandler *m_Parent;
         NativeCanvasHandler *m_Children;
