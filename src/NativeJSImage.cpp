@@ -4,6 +4,8 @@
 #include "NativeSkia.h"
 #include <string.h>
 #include <native_netlib.h>
+#include <NativeFile.h>
+#include <NativeJSFileIO.h>
 
 JSObject *NativeJSImage::classe = NULL;
 
@@ -18,6 +20,8 @@ static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+
+extern JSClass File_class;
 
 static JSClass Image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
@@ -106,6 +110,27 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
                 stream->setListener(nimg);
                 stream->getContent();
+            } else if (vp.isObject()) {
+                NativeFile *file = NativeJSFileIO::GetFileFromJSObject(cx,
+                    vp.toObjectOrNull());
+
+                if (!file) {
+                    vp.set(JSVAL_VOID);
+                    return true;
+                }
+
+                NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+
+                NativeBaseStream *stream = NativeBaseStream::create(file->getFullPath());
+                if (stream == NULL) {
+                    break;
+                }
+                nimg->m_Stream = stream;
+
+                stream->setListener(nimg);
+                stream->getContent();
+                    
+
             } else {
                 vp.set(JSVAL_VOID);
                 return JS_TRUE;
@@ -200,12 +225,16 @@ void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
 bool NativeJSImage::setupWithBuffer(buffer *buf)
 {
     if (buf->used == 0) {
+
+        NativeJSObj(cx)->unrootObject(jsobj);
         return false;
     }
 
     NativeSkImage *ImageObject = new NativeSkImage(buf->data, buf->used);
     if (ImageObject->img == NULL) {
         delete ImageObject;
+
+        NativeJSObj(cx)->unrootObject(jsobj);
         return false;
     }
 
