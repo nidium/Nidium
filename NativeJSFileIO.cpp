@@ -767,3 +767,11 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
 
     return ret;
 }
+
+NativeFile *NativeJSFileIO::GetFileFromJSObject(JSContext *cx, JSObject *jsobj)
+{
+    NativeJSFileIO *nfio = (NativeJSFileIO *)JS_GetInstancePrivate(cx, jsobj,
+        &File_class, NULL);
+
+    return nfio ? nfio->getFile() : NULL;
+}

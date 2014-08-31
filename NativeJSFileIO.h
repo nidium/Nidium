@@ -33,6 +33,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
   public:
     void onMessage(const NativeSharedMessages::Message &msg);
 
+    static NativeFile *GetFileFromJSObject(JSContext *cx, JSObject *jsobj);
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
 
