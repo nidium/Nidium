@@ -45,7 +45,7 @@ public:
 
     NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeHTTPListener();
-    bool start();
+    bool start(bool reuseport = false);
     void stop();
 
     ape_socket *getSocket() const {
