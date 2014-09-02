@@ -117,7 +117,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
 
-    //nui->enableSysTray();
+    nui->enableSysTray();
 }
 
 void NativeContext::loadNativeObjects(int width, int height)

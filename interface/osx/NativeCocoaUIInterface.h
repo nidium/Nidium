@@ -30,6 +30,8 @@ class NativeCocoaUIInterface : public NativeUIInterface
         const char *getCacheDirectory() const;
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
         void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
+        void disableSysTray();
+        
         void hideWindow();
         void showWindow();
         void alert(const char *message);
@@ -70,4 +72,5 @@ class NativeCocoaUIInterface : public NativeUIInterface
 
         NativeUICocoaConsole *console;
         NativeDragNSView *dragNSView;
+        NSStatusItem *m_StatusItem;
 };

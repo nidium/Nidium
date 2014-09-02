@@ -10,6 +10,7 @@
 #include "NativeNML.h"
 #include "NativeMacros.h"
 #include "NativeJSUtils.h"
+#include "NativeJSImage.h"
 
 #include <NativeSystemInterface.h>
 
@@ -31,9 +32,11 @@ static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_quit(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
+
 
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Storage_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -130,6 +133,7 @@ static JSFunctionSpec window_funcs[] = {
     JS_FN("quit", native_window_quit, 0, 0),
     JS_FN("close", native_window_close, 0, 0),
     JS_FN("open", native_window_open, 0, 0),
+    JS_FN("setSystemTray", native_window_setSystemTray, 1, 0),
     JS_FS_END
 };
 
@@ -942,6 +946,33 @@ static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp)
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
     NUI->showWindow();
+
+    return true;
+}
+
+static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp)
+{
+    NATIVE_CHECK_ARGS("notify", 1);
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+
+    JS::Value jobj = args[0];
+
+    if (jobj.isNull() || !jobj.isObject()) {
+
+        NUI->disableSysTray();
+
+        return true;
+    }
+
+    JS_INITOPT();
+
+    JSGET_OPT_TYPE(jobj.toObjectOrNull(), "icon", Object) {
+        JSObject *jsimg = __curopt.toObjectOrNull();
+        if (NativeJSImage::JSObjectIs(cx, jsimg)) {
+            
+        }
+    }
 
     return true;
 }
