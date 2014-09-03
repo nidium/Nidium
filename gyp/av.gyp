@@ -15,6 +15,7 @@
             '<(third_party_path)/http-parser/',
             '<(third_party_path)/skia/include/core/',
             '<(third_party_path)/skia/include/config/',
+            '<(third_party_path)/mozilla-central/js/src/dist/include/',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'
@@ -24,6 +25,8 @@
             '<(native_av_path)NativeAudioNode.cpp',
             '<(native_av_path)NativeAudio.cpp',
             '<(native_av_path)NativeVideo.cpp',
+            '<(native_av_path)NativeAudioNodeGain.cpp',
+            '<(native_av_path)NativeAudioNodeDelay.cpp',
         ],
     }],
 }

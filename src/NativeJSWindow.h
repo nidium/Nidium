@@ -19,6 +19,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     ~NativeJSwindow();
 
     void onReady(JSObject *layout);
+    bool onClose();
     void assetReady(const NMLTag &tag);
     void windowFocus();
     void windowBlur();

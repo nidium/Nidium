@@ -92,7 +92,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case SDL_USEREVENT:
                     break;
                 case SDL_QUIT:
-                    NSLog(@"Quit?");
+                    if (window && !window->onClose()) {
+                        break;
+                    }
                     NUII->stopApplication();
                     SDL_Quit();
                     [[NSApplication sharedApplication] terminate:nil];
@@ -131,17 +133,17 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                     } else {
                         keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
                     }
-                    
-                    if (event.key.keysym.mod & KMOD_SHIFT) {
+
+                    if (event.key.keysym.mod & KMOD_SHIFT || SDL_KEYCODE_GET_CODE(keyCode) == 16) {
                         mod |= NATIVE_KEY_SHIFT;
                     }
-                    if (event.key.keysym.mod & KMOD_ALT) {
+                    if (event.key.keysym.mod & KMOD_ALT || SDL_KEYCODE_GET_CODE(keyCode) == 18) {
                         mod |= NATIVE_KEY_ALT;
                     }
-                    if (event.key.keysym.mod & KMOD_CTRL) {
+                    if (event.key.keysym.mod & KMOD_CTRL || SDL_KEYCODE_GET_CODE(keyCode) == 17) {
                         mod |= NATIVE_KEY_CTRL;
                     }
-                    if (event.key.keysym.mod & KMOD_GUI) {
+                    if (event.key.keysym.mod & KMOD_GUI || SDL_KEYCODE_GET_CODE(keyCode) == 91) {
                         mod |= NATIVE_KEY_META;
                     }
                     if (window) {
@@ -181,6 +183,9 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case NativeCocoaUIInterface::CLOSEDHAND:
                     [[NSCursor closedHandCursor] set];
                     break;
+                case NativeCocoaUIInterface::RESIZELEFTRIGHT:
+                    [[NSCursor resizeLeftRightCursor] set];
+                    break;
                 case NativeCocoaUIInterface::HIDDEN:
                     SDL_ShowCursor(0);
                     break;
@@ -189,10 +194,11 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             }
             NUII->currentCursor = NativeCocoaUIInterface::NOCHANGE;
         }
+
         //glUseProgram(0);
         if (NUII->NativeCtx) {
             NUII->makeMainGLCurrent();
-            NUII->NativeCtx->frame();
+            NUII->NativeCtx->frame(!NUII->isWindowHidden());
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();
@@ -314,6 +320,13 @@ void NativeCocoaUIInterface::vlog(const char *format, va_list ap)
     free(buff);
 }
 
+void NativeCocoaUIInterface::logclear()
+{
+    if (this->console && !this->console->isHidden) {
+        this->console->clear();
+    }
+}
+
 void NativeCocoaUIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
@@ -329,6 +342,7 @@ void NativeCocoaUIInterface::onNMLLoaded()
 void NativeCocoaUIInterface::stopApplication()
 {
     [this->dragNSView setResponder:nil];
+    this->disableSysTray();
 
     if (this->nml) {
         delete this->nml;
@@ -440,7 +454,8 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
     return false;
 }
 
-NativeCocoaUIInterface::NativeCocoaUIInterface()
+NativeCocoaUIInterface::NativeCocoaUIInterface() :
+    m_StatusItem(NULL)
 {
     this->width = 0;
     this->height = 0;
@@ -453,6 +468,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface()
 
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
+
 
     gnet = native_netlib_init();
 }
@@ -654,7 +670,7 @@ void NativeCocoaUIInterface::setWindowControlsOffset(double x, double y)
 }
 
 void NativeCocoaUIInterface::openFileDialog(const char *files[],
-    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)
+    void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags)
 {
     NSOpenPanel* openDlg = [NSOpenPanel openPanel];
 
@@ -666,9 +682,10 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
         }
         [openDlg setAllowedFileTypes:fileTypesArray];
     }
-    [openDlg setCanChooseFiles:YES];
-    [openDlg setCanChooseDirectories:NO];
-    [openDlg setAllowsMultipleSelection:YES];
+    
+    [openDlg setCanChooseFiles:(flags & kOpenFile_CanChooseFile ? YES : NO)];
+    [openDlg setCanChooseDirectories:(flags & kOpenFile_CanChooseDir ? YES : NO)];
+    [openDlg setAllowsMultipleSelection:(flags & kOpenFile_AlloMultipleSelection ? YES : NO)];
 
     //[openDlg runModal];
 
@@ -853,4 +870,61 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
     objc_setAssociatedObject(sdlview, drawRect_Associated_obj, idthis, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
     [idthis release];
+}
+
+void NativeCocoaUIInterface::enableSysTray(const void *imgData,
+    size_t imageDataSize)
+{
+    m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+
+    m_StatusItem.title = @"";
+    NSImage *icon = [NSApp applicationIconImage];
+    [icon setScalesWhenResized:YES];
+    [icon setSize: NSMakeSize(20.0, 20.0)];
+
+    m_StatusItem.image = icon;
+    m_StatusItem.highlightMode = YES;
+}
+
+void NativeCocoaUIInterface::disableSysTray()
+{
+    if (!m_StatusItem) {
+        return;
+    }
+    [[NSStatusBar systemStatusBar] removeStatusItem:m_StatusItem];
+    [m_StatusItem release];
+
+    m_StatusItem = NULL;
+}
+
+void NativeCocoaUIInterface::quit()
+{
+    this->stopApplication();
+    SDL_Quit();
+    [[NSApplication sharedApplication] terminate:nil];
+}
+
+void NativeCocoaUIInterface::hideWindow()
+{
+    if (!m_Hidden) {
+        m_Hidden = true;
+        SDL_HideWindow(win);
+
+        /* Hide the Application (Dock, etc...) */
+        [NSApp setActivationPolicy: NSApplicationActivationPolicyAccessory];
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 1);
+    }
+}
+
+void NativeCocoaUIInterface::showWindow()
+{
+    if (m_Hidden) {
+        m_Hidden = false;
+        SDL_ShowWindow(win);
+
+        [NSApp setActivationPolicy: NSApplicationActivationPolicyRegular];
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 0);
+    }
 }

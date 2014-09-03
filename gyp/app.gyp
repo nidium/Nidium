@@ -48,6 +48,7 @@
                         '-lfreetype',
                         '-lrt',
                         '-lz',
+                        '-lbz2',
                         '-ldl',
 
                         '-Wl,-Bstatic ',

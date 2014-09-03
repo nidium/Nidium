@@ -7,6 +7,7 @@
 #include "NativeTypes.h"
 #include "NativeGLResources.h"
 #include <NativeMessages.h>
+#include <NativeHash.h>
 
 class NativeSkia;
 class NativeCanvasHandler;
@@ -20,9 +21,18 @@ class NativeWebSocketClientConnection;
 
 typedef struct _ape_global ape_global;
 
+struct NativeJobQueue {
+    void (*job)(void *arg);
+    struct NativeJobQueue *next;
+    void *arg;
+};
+
 class NativeContext : public NativeMessages
 {
     public:
+
+    friend class NativeCanvasHandler;
+    
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
         int width, int height, ape_global *net);
     ~NativeContext();
@@ -57,7 +67,7 @@ class NativeContext : public NativeMessages
     void callFrame();
     void createDebugCanvas();
     void postDraw();
-    void frame();
+    void frame(bool draw = true);
 
     // called during offline rendering
     void rendered(uint8_t *pdata, int width, int height);
@@ -81,6 +91,11 @@ class NativeContext : public NativeMessages
     NativeHash<NativeBytecodeScript *> preload;
 
     void onMessage(const NativeSharedMessages::Message &msg);
+    void addJob(void (*job)(void *arg), void *arg);
+
+    NativeCanvasHandler *getCanvasById(const char *str) {
+        return m_CanvasList.get(str);
+    }
 
     private:
     NativeGLResources         m_Resources;
@@ -111,6 +126,24 @@ class NativeContext : public NativeMessages
     void loadNativeObjects(int width, int height);
 
     void initHandlers(int width, int height);
+    struct {
+        struct NativeJobQueue *head;
+        struct NativeJobQueue *queue;
+    } m_Jobs;
+
+    /* Hash of all canvases (key: identifier string) */
+    NativeHash<NativeCanvasHandler *> m_CanvasList;
+    /* Hash of all canvases with pending jobs (key: addr) */
+    NativeHash64<NativeCanvasHandler *> m_CanvasPendingJobs;
+
+    void execJobs();
+    void execPendingCanvasChanges();
+
+    static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                         JSObject *obj, void *closure);
+
+    static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                           uint32_t tag, uint32_t data, void *closure);
 };
 
 #endif

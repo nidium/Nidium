@@ -18,7 +18,8 @@
 #endif
 
 NativeUIInterface::NativeUIInterface() :
-    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL)
+    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL),
+    m_readPixelInBuffer(false), m_Hidden(false)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
@@ -61,6 +62,12 @@ SDL_GLContext NativeUIInterface::createSharedContext()
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
 {
     SDL_GL_DeleteContext(ctx);
+}
+
+void NativeUIInterface::quit()
+{
+    this->stopApplication();
+    SDL_Quit();
 }
 
 void NativeUIInterface::refresh()
@@ -124,6 +131,74 @@ void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
     this->setWindowPosition(x, y);
 }
 
+void NativeUIInterface::toggleOfflineBuffer(bool val)
+{
+    if (val && !m_readPixelInBuffer) {
+        this->initPBOs();
+    } else if (!val && m_readPixelInBuffer) {
+
+        glDeleteBuffers(NUM_PBOS, m_PBOs.pbo);
+        free(m_FrameBuffer);
+    }
+    m_readPixelInBuffer = val;
+}
+
+void NativeUIInterface::initPBOs()
+{
+    if (m_readPixelInBuffer) {
+        return;
+    }
+
+    uint32_t screenPixelSize = width * 2 * height * 2 * 4;
+
+    glGenBuffers(NUM_PBOS, m_PBOs.pbo);
+    for (int i = 0; i < NUM_PBOS; i++) {
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[i]);
+        glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);        
+    }
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    m_PBOs.vram2sys = 0;
+    m_PBOs.gpu2vram = NUM_PBOS-1;
+
+    m_FrameBuffer = (uint8_t *)malloc(screenPixelSize);
+}
+
+uint8_t *NativeUIInterface::readScreenPixel()
+{
+    if (!m_readPixelInBuffer) {
+        this->toggleOfflineBuffer(true);
+    }
+
+    uint32_t screenPixelSize = width * 2 * height * 2 * 4;
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.gpu2vram]);
+    glReadPixels(0, 0, width*2, height*2, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[m_PBOs.vram2sys]);
+    uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+    if (!ret) {
+        uint32_t err = glGetError();
+        printf("Failed to map buffer\n");
+        return NULL;
+    }
+
+    memcpy(m_FrameBuffer, ret, screenPixelSize);
+
+    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
+    int temp = m_PBOs.pbo[0];
+    for (int i=1; i<NUM_PBOS; i++)
+        m_PBOs.pbo[i-1] = m_PBOs.pbo[i];
+    m_PBOs.pbo[NUM_PBOS - 1] = temp;
+
+    return m_FrameBuffer;
+}
+
 int NativeUIInterface::useOffScreenRendering(bool val)
 {
     if (!val && m_isOffscreen) {
@@ -176,4 +251,24 @@ void NativeUIInterface::refreshApplication(bool clearConsole)
     }
 
     this->restartApplication();
+}
+
+void NativeUIInterface::hideWindow()
+{
+    if (!m_Hidden) {
+        m_Hidden = true;
+        SDL_HideWindow(win);
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 1);
+    }
+}
+
+void NativeUIInterface::showWindow()
+{
+    if (m_Hidden) {
+        m_Hidden = false;
+        SDL_ShowWindow(win);
+
+        set_timer_to_low_resolution(&this->gnet->timersng, 0);
+    }
 }

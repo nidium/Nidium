@@ -23,14 +23,6 @@
  * --------------------------------------------------------------------------- * 
  */
 
-/*
-Les grands orateurs qui dominent les assemblées par l’éclat de leur parole sont,
-en général, les hommes politiques les plus médiocres : il ne faut pas les
-combattre par des paroles, ils en ont toujours de plus ronflantes que les vôtres
-; il faut opposer à leur faconde un raisonnement serré, logique ; leur force est
-dans le vague, il faut les ramener dans la réalité des faits : la pratique les
-tue.
-*/
 
 document.body = window.canvas;
 

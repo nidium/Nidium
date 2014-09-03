@@ -12,7 +12,6 @@
 #include "NativeJSCanvas.h"
 #include "NativeJSDocument.h"
 #include "NativeJSWindow.h"
-#include "NativeJSConsole.h"
 #include "NativeUIInterface.h"
 #ifdef __linux__
 #include "SkImageDecoder.h"
@@ -38,6 +37,10 @@
 
 jsval gfunc  = JSVAL_VOID;
 
+enum {
+    NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
+};
+
 int NativeContext_Logger(const char *format)
 {
     __NativeUI->log(format);
@@ -52,6 +55,12 @@ int NativeContext_vLogger(const char *format, va_list ap)
     return 0;
 }
 
+int NativeContext_LogClear()
+{
+    __NativeUI->logclear();
+
+    return 0;
+}
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
@@ -80,6 +89,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     this->initHandlers(width, height);
 
     m_JS = new NativeJS(net);
+
+    m_JS->setStructuredCloneAddition(NativeContext::writeStructuredCloneOp, NativeContext::readStructuredCloneOp);
     m_JS->setPrivate(this);
 
     m_JS->loadGlobalObjects();
@@ -87,6 +98,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_JS->setLogger(NativeContext_Logger);
     m_JS->setLogger(NativeContext_vLogger);
+    m_JS->setLogger(NativeContext_LogClear);
 
     if (m_NML) {
         m_NML->setNJS(m_JS);
@@ -102,6 +114,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_WS->addListener(this);
     m_WS->start();*/
 
+    m_Jobs.head = NULL;
+    m_Jobs.queue = NULL;
+
+    nui->enableSysTray();
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
@@ -137,8 +153,6 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSNative::registerObject(cx);
     /* window() object */
     NativeJSwindow::registerObject(cx, width, height);
-    /* console() object */
-    NativeJSconsole::registerObject(cx);
     /* document() object */
     NativeJSdocument::registerObject(cx);
 
@@ -185,7 +199,7 @@ void NativeContext::createDebugCanvas()
 {
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
     static const int DEBUG_HEIGHT = 60;
-    m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT);
+    m_DebugHandler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
     NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_DebugHandler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
     m_DebugHandler->setContext(ctx2d);
     ctx2d->setGLState(this->getGLState());
@@ -206,13 +220,14 @@ void NativeContext::postDraw()
         s->drawRect(0, 0, m_DebugHandler->getWidth(), m_DebugHandler->getHeight(), 0);
         s->setFillColor(0xFFEEEEEEu);
 
-        s->setFontType("monospace");
+        s->setFontType((char *)"monospace");
         s->drawTextf(5, 12, "NATiVE build %s %s", __DATE__, __TIME__);
         s->drawTextf(5, 25, "Frame: %lld (%lldms)\n", m_Stats.nframe, m_Stats.lastdifftime/1000000LL);
         s->drawTextf(5, 38, "Time : %lldns\n", m_Stats.lastmeasuredtime-m_Stats.starttime);
         s->drawTextf(5, 51, "FPS  : %.2f (%.2f)", m_Stats.fps, m_Stats.sampleminfps);
 
         s->setLineWidth(0.0);
+
         for (int i = 0; i < sizeof(m_Stats.samples)/sizeof(float); i++) {
             //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
@@ -288,7 +303,6 @@ NativeContext::~NativeContext()
 
     delete m_JS;
     delete m_GLState;
-    printf("destroy reader\n");
     delete m_WS;
     
     NativeSkia::glcontext = NULL;
@@ -303,10 +317,27 @@ void NativeContext::rendered(uint8_t *pdata, int width, int height)
     }
 }
 
-void NativeContext::frame()
+void NativeContext::frame(bool draw)
 {
+    //this->execJobs();
+    /*
+        Pending canvas events.
+        (e.g. resize events requested between frames,
+        Canvas that need to be resized because of a fluidheight)
+    */
+    this->execPendingCanvasChanges();
+
+    /* Call requestAnimationFrame */
     this->callFrame();
-    this->postDraw();
+    if (draw) {
+        this->postDraw();
+    }
+
+    /*
+        Exec the pending events a second time in case
+        there are resize in the requestAnimationFrame
+    */
+    this->execPendingCanvasChanges();
 
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
@@ -318,16 +349,71 @@ void NativeContext::frame()
     NativeLayerSiblingContext sctx;
     ctx.siblingCtx = &sctx;
     
-    m_RootHandler->layerize(ctx);
+    /*
+        Compose canvas eachother on the main framebuffer
+    */
+    m_RootHandler->layerize(ctx, draw);
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }
 
 void NativeContext::initHandlers(int width, int height)
 {
-    m_RootHandler = new NativeCanvasHandler(width, height);
+    NativeCanvasHandler::LastIdx = 0;
+    
+    m_RootHandler = new NativeCanvasHandler(width, height, this);
+
     m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
     m_RootHandler->getContext()->setGLState(this->getGLState());
+}
+
+void NativeContext::addJob(void (*job)(void *arg), void *arg)
+{
+    struct NativeJobQueue *obj = (struct NativeJobQueue *)malloc(sizeof(struct NativeJobQueue));
+
+    obj->job = job;
+    obj->arg = arg;
+    obj->next = NULL;
+
+    if (m_Jobs.head == NULL) {
+        m_Jobs.head = obj;
+    }
+    if (m_Jobs.queue == NULL) {
+        m_Jobs.queue = obj;
+    } else {
+        m_Jobs.queue->next = obj;
+    }
+}
+
+void NativeContext::execJobs()
+{
+    if (m_Jobs.head == NULL) {
+        return;
+    }
+
+    struct NativeJobQueue *obj, *tObj;
+
+    for (obj = m_Jobs.head; obj != NULL; obj = tObj) {
+        tObj = obj->next;
+
+        obj->job(obj->arg);
+
+        free(obj);
+    }
+
+    m_Jobs.head = NULL;
+    m_Jobs.queue = NULL;
+}
+
+void NativeContext::execPendingCanvasChanges()
+{
+    int i = 0;
+    ape_htable_item_t *item, *tmpItem;
+    for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
+        tmpItem = item->lnext;
+        NativeCanvasHandler *handler = (NativeCanvasHandler *)item->content.addrs;
+        handler->execPending();
+    }
 }
 
 void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
@@ -338,6 +424,82 @@ void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
             printf("New WS client for render :)\n");
             break;
     }
+}
+
+JSBool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+                                     JSObject *obj, void *closure)
+{
+
+    JS::Value vobj = OBJECT_TO_JSVAL(obj);
+    JSType type = JS_TypeOfValue(cx, vobj);
+
+    if (type != JSTYPE_OBJECT) {
+        return false;
+    }
+
+    if (JS_GetClass(obj) == NativeCanvas2DContext::ImageData_jsclass) {
+        JS::Value iwidth, iheight, idata;
+        uint32_t dwidth, dheight;
+
+        if (!JS_GetProperty(cx, obj, "width", &iwidth)) {
+            return false;
+        }
+        if (!JS_GetProperty(cx, obj, "height", &iheight)) {
+            return false;
+        }
+        if (!JS_GetProperty(cx, obj, "data", &idata)) {
+            return false;
+        }
+
+        dwidth = iwidth.toInt32();
+        dheight = iheight.toInt32();
+
+        JS_WriteUint32Pair(w, NATIVE_SCTAG_IMAGEDATA,
+            (sizeof(uint32_t) * 2) + dwidth * dheight * 4);
+
+        JS_WriteBytes(w, &dwidth, sizeof(uint32_t));
+        JS_WriteBytes(w, &dheight, sizeof(uint32_t));
+        JS_WriteTypedArray(w, idata);
+
+        return true;
+    }
+
+    return false;
+}
+
+JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
+                                       uint32_t tag, uint32_t data, void *closure)
+{
+    switch (tag) {
+        case NATIVE_SCTAG_IMAGEDATA:
+        {
+            if (data < sizeof(uint32_t) * 2 + 1) {
+                return JS_NewObject(cx, NULL, NULL, NULL);
+            }
+            uint32_t width, height;
+            JS::Value arr;
+
+            JS_ReadBytes(r, &width, sizeof(uint32_t));
+            JS_ReadBytes(r, &height, sizeof(uint32_t));
+
+            JS_ReadTypedArray(r, &arr);
+
+            JSObject *dataObject = JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL);
+            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
+                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
+                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+            JS_DefineProperty(cx, dataObject, "data", arr, NULL,
+                NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+            return dataObject;
+        }
+        default:
+            break;
+    }
+    return JS_NewObject(cx, NULL, NULL, NULL);
 }
 
 void NativeContext::forceLinking()

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "NativeAV.h"
 #include "native_netlib.h"
+#include <jspubtd.h>
 
 #if 0
   #define SPAM(a) \
@@ -95,6 +96,14 @@ class NativeAudio
         void lockQueue();
         void unlockQueue();
 
+        JSContext *getMainCtx() const {
+            return m_MainCtx;
+        }
+
+        void setMainCtx(JSContext *ctx) {
+            m_MainCtx = ctx;
+        }
+
         ~NativeAudio();
     private:
         struct NativeAudioSources {
@@ -109,7 +118,6 @@ class NativeAudio
         PaStream *outputStream;
 
         float *rBufferOutData;
-        float *cbkBuffer;
         float volume;
 
         pthread_t threadDecode;
@@ -118,6 +126,7 @@ class NativeAudio
         NATIVE_PTHREAD_VAR_DECL(queueHaveData)
         NATIVE_PTHREAD_VAR_DECL(queueHaveSpace)
         NATIVE_PTHREAD_VAR_DECL(queueNeedData)
+        NATIVE_PTHREAD_VAR_DECL(queueMessagesFlushed)
 
         pthread_mutex_t shutdownLock, recurseLock, sourcesLock;
 
@@ -136,6 +145,8 @@ class NativeAudio
 
         void processQueue();
         bool canWriteFrame();
+
+        JSContext *m_MainCtx;
 
         inline bool haveSourceActive(bool excludeExternal);
         static int paOutputCallback(const void *inputBuffer, void *outputBuffer,

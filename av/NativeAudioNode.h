@@ -174,16 +174,6 @@ class NativeAudioNodeTarget : public NativeAudioNode
         virtual bool process();
 };
 
-class NativeAudioNodeGain : public NativeAudioNode
-{
-    public :
-        NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio);
-
-        double gain;
-
-        virtual bool process();
-};
-
 class NativeAudioNodeCustom : public NativeAudioNode
 {
     public :
@@ -195,28 +185,6 @@ class NativeAudioNodeCustom : public NativeAudioNode
     private : 
         NodeCallback cbk;
         void *custom;
-};
-
-class NativeAudioNodeDelay : public NativeAudioNode
-{
-    public :
-        NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio);
-        
-        enum Args {
-            DELAY, WET, DRY 
-        };
-
-        int delay;
-        double wet;
-        double dry;
-        float **buffers;
-
-        virtual bool process();
-        static void argCallback(NativeAudioNode *node, int id, void *val, int size);
-    
-        ~NativeAudioNodeDelay();
-    private : 
-        int idx;
 };
 
 class NativeAudioNodeStereoEnhancer : public NativeAudioNode
@@ -368,7 +336,8 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom
 {
     public:
         NativeAudioCustomSource(int out, NativeAudio *audio) 
-            : NativeAudioNodeCustom(0, out, audio), m_Playing(true)
+            : NativeAudioNodeCustom(0, out, audio), m_Playing(false),
+              m_SeekCallback(NULL)
         {
         }
 
@@ -389,6 +358,72 @@ class NativeAudioCustomSource : public NativeAudioNodeCustom
 
         bool process();
         bool isActive();
+};
+
+class NativeAudioProcessor
+{
+  public:
+    virtual void process(float *in, int *i) = 0;
+    virtual ~NativeAudioProcessor() = 0;
+};
+
+class NativeAudioNodeProcessor: public NativeAudioNode
+{
+  public:
+    NativeAudioNodeProcessor(int inCount, int outCount, NativeAudio *audio)
+        : NativeAudioNode(inCount, outCount, audio) 
+    {
+        for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
+            for (int j = 0; j < NATIVE_AUDIONODE_CHANNEL_SIZE; j++) {
+                m_Processor[i][j] = NULL;
+            }
+        }
+    };
+
+    void setProcessor(int channel, ...) 
+    {
+        va_list args;
+        va_start(args, channel);
+        NativeAudioProcessor *p = va_arg(args, NativeAudioProcessor*);
+
+        while (p != NULL) {
+            this->setProcessor(channel, p);
+            p = va_arg(args, NativeAudioProcessor*);
+        }
+
+        va_end(args);
+    }
+
+    void setProcessor(int channel, NativeAudioProcessor *processor) {
+        for (int i = 0; i < NATIVE_AUDIONODE_CHANNEL_SIZE; i++) {
+            if (m_Processor[channel][i] == NULL) {
+                printf("Adding processor %d/%d %p\n", channel, i, processor);
+                m_Processor[channel][i] = processor;
+                break;
+            }
+        }
+    }
+
+    bool process() 
+    {
+        for (int i = 0; i < this->audio->outputParameters->framesPerBuffer; i++) {
+            for (int j = 0; j < this->inCount; j++) {
+                for (int k = 0; k < NATIVE_AUDIONODE_CHANNEL_SIZE; k++) {
+                    NativeAudioProcessor *p = m_Processor[this->input[j]->channel][k];
+                    if (p != NULL) {
+                        p->process(&this->frames[this->input[j]->channel][i], &i);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        return true;
+    };
+
+    ~NativeAudioNodeProcessor() {}
+  private:
+    NativeAudioProcessor *m_Processor[NATIVE_AUDIONODE_CHANNEL_SIZE][NATIVE_AUDIONODE_CHANNEL_SIZE];
 };
 
 class NativeAudioNodeException : public std::exception

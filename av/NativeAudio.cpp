@@ -5,6 +5,8 @@
 #include "pa_ringbuffer.h"
 #include "NativeAudio.h"
 #include "NativeAudioNode.h"
+#include "NativeAudioNodeGain.h"
+#include "NativeAudioNodeDelay.h"
 #include <NativeSharedMessages.h>
 #include "Coro.h"
 extern "C" {
@@ -12,14 +14,31 @@ extern "C" {
 #include "libavformat/avformat.h"
 }
 
+// Next power of 2
+// Taken from http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+static uint32_t upperPow2(uint32_t num)
+{
+    uint32_t n = num > 0 ? num - 1 : 0;
+
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+
+    return n;
+}
+
 NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
     : net(n), sourcesCount(0), output(NULL), inputStream(NULL),
-      outputStream(NULL), rBufferOutData(NULL), cbkBuffer(NULL), volume(1),
-      m_SourceNeedWork(false), m_SharedMsgFlush(false), threadShutdown(false), sources(NULL)
+      outputStream(NULL), rBufferOutData(NULL), volume(1),
+      m_SourceNeedWork(false), m_SharedMsgFlush(false), threadShutdown(false), sources(NULL), m_MainCtx(NULL)
 {
     NATIVE_PTHREAD_VAR_INIT(&this->queueHaveData);
     NATIVE_PTHREAD_VAR_INIT(&this->queueHaveSpace);
     NATIVE_PTHREAD_VAR_INIT(&this->queueNeedData);
+    NATIVE_PTHREAD_VAR_INIT(&this->queueMessagesFlushed);
 
     pthread_mutexattr_t mta;
     pthread_mutexattr_init(&mta);
@@ -28,35 +47,21 @@ NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sample
     pthread_mutex_init(&this->sourcesLock, &mta);
     pthread_mutex_init(&this->recurseLock, &mta);
 
-    this->sharedMsg = new NativeSharedMessages();
-
     av_register_all();
+
+    this->sharedMsg = new NativeSharedMessages();
 
     this->outputParameters = new NativeAudioParameters(bufferSize, channels, NativeAudio::FLOAT32, sampleRate);
 
+    // Portaudio ring buffer needs a number power of two 
+    // for the number of elements in the ring buffer
+    uint32_t count = upperPow2(bufferSize * channels);
+
     this->rBufferOut = new PaUtilRingBuffer();
+    this->rBufferOutData = (float *)calloc(count, NativeAudio::FLOAT32);
 
-    if (!(this->rBufferOutData = (float *)calloc(bufferSize * channels, NativeAudio::FLOAT32))) {
-        printf("Failed to init ouput ringbuffer\n");
-        throw;
-    }
-
-    if (!(this->cbkBuffer = (float *)calloc(bufferSize, channels * NativeAudio::FLOAT32))) {
-        printf("Failed to init cbkBUffer\n");
-        free(this->rBufferOutData);
-        free(this->cbkBuffer);
-        throw;
-    }
-
-    if (0 > PaUtil_InitializeRingBuffer(this->rBufferOut, 
-            NativeAudio::FLOAT32,
-            bufferSize * channels,
-            this->rBufferOutData)) {
-        fprintf(stderr, "Failed to init output ringbuffer\n");
-        free(this->rBufferOutData);
-        free(this->cbkBuffer);
-        throw;
-    }
+    PaUtil_InitializeRingBuffer(this->rBufferOut, NativeAudio::FLOAT32, 
+            count, this->rBufferOutData);
 
     pthread_create(&this->threadDecode, NULL, NativeAudio::decodeThread, this);
     pthread_create(&this->threadQueue, NULL, NativeAudio::queueThread, this);
@@ -74,6 +79,7 @@ void *NativeAudio::queueThread(void *args)
 
         if (msgFlush && audio->m_SharedMsgFlush) {
             audio->m_SharedMsgFlush = false;
+            NATIVE_PTHREAD_SIGNAL(&audio->queueMessagesFlushed);
         }
 
         // Using a trylock because we don't want to wait for another thread to
@@ -549,6 +555,8 @@ void NativeAudio::wakeup()
 
     NATIVE_PTHREAD_SIGNAL(&this->queueHaveData);
     NATIVE_PTHREAD_SIGNAL(&this->queueHaveSpace);
+
+    NATIVE_PTHREAD_WAIT(&this->queueMessagesFlushed);
 }
 
 void NativeAudio::shutdown()
@@ -613,7 +621,6 @@ NativeAudio::~NativeAudio() {
 
     Pa_Terminate(); 
 
-    free(this->cbkBuffer);
     free(this->rBufferOutData);
 
     delete this->outputParameters;

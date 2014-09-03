@@ -31,6 +31,13 @@ class NativeUIInterface
             HIDDEN,
             NOCHANGE
         } currentCursor;
+
+        enum OPENFILE_FLAGS {
+            kOpenFile_CanChooseDir = 1 << 0,
+            kOpenFile_CanChooseFile = 1 << 1,
+            kOpenFile_AlloMultipleSelection = 1 << 2
+        };
+
         NativeContext *NativeCtx;
         NativeNML *nml;
         struct SDL_Window *win;
@@ -58,7 +65,7 @@ class NativeUIInterface
         virtual void setClipboardText(const char *text)=0;
         virtual char *getClipboardText()=0;
         virtual void openFileDialog(const char *files[],
-            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg)=0;
+            void (*cb)(void *nof, const char *lst[], uint32_t len), void *arg, int flags=0)=0;
         virtual const char *getCacheDirectory() const=0;
 
         virtual void setWindowSize(int w, int h);
@@ -71,6 +78,7 @@ class NativeUIInterface
         virtual void log(const char *buf)=0;
         virtual void logf(const char *format, ...)=0;
         virtual void vlog(const char *buf, va_list ap)=0;
+        virtual void logclear()=0;
 
         virtual void alert(const char *message)=0;
 
@@ -92,8 +100,20 @@ class NativeUIInterface
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
-
         virtual int useOffScreenRendering(bool val);
+        virtual void toggleOfflineBuffer(bool val);
+        virtual void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0){};
+        virtual void disableSysTray(){};
+
+        virtual void quit();
+
+        uint8_t *readScreenPixel();
+
+        void initPBOs();
+
+        bool hasPixelBuffer() const {
+            return m_readPixelInBuffer;
+        }
 
         SDL_GLContext getGLContext() {
             return m_mainGLCtx;
@@ -112,14 +132,30 @@ class NativeUIInterface
             return m_FrameBuffer;
         }
 
+        virtual void hideWindow();
+        virtual void showWindow();
+        bool isWindowHidden() const {
+            return m_Hidden;
+        }
+
     protected:
         int width;
         int height;
         char *filePath;
         bool initialized;
         bool m_isOffscreen;
+        bool m_readPixelInBuffer;
+        bool m_Hidden;
         int m_FBO;
         uint8_t *m_FrameBuffer;
+
+#define NUM_PBOS 3
+
+        struct {
+            uint32_t pbo[NUM_PBOS];
+            int vram2sys;
+            int gpu2vram;
+        } m_PBOs;
 
 
         NativeUIConsole *console;

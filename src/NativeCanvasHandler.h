@@ -9,6 +9,7 @@
 
 class NativeSkia;
 class NativeCanvasContext;
+class NativeContext;
 
 /*
     - Handle a canvas layer.
@@ -92,8 +93,11 @@ class NativeCanvasHandler : public NativeEvents
 {
     public:
         friend class NativeSkia;
+        friend class NativeContext;
+        friend class NativeJSCanvas;
 
         static const uint8_t EventID = 1;
+        static int LastIdx;
 
         enum COORD_MODE {
             kLeft_Coord   = 1 << 0,
@@ -102,8 +106,15 @@ class NativeCanvasHandler : public NativeEvents
             kBottom_Coord = 1 << 3
         };
 
+        enum EventsChangedProperty {
+            kContentHeight_Changed,
+            kContentWidth_Changed
+        };
+
         enum Events {
             RESIZE_EVENT = 1,
+            LOADED_EVENT = 2,
+            CHANGE_EVENT = 3
         };
 
         enum Position {
@@ -115,12 +126,15 @@ class NativeCanvasHandler : public NativeEvents
             COORD_RELATIVE,
             COORD_ABSOLUTE,
             COORD_FIXED,
-            COORD_INLINE
+            COORD_INLINE,
+            COORD_INLINEBREAK
         };
 
         enum FLOW_MODE {
             kFlowDoesntInteract = 0,
-            kFlowInlinePreviousSibling = 1 << 0
+            kFlowInlinePreviousSibling = 1 << 0,
+            kFlowBreakPreviousSibling = 1 << 1,
+            kFlowBreakAndInlinePreviousSibling = (kFlowInlinePreviousSibling | kFlowBreakPreviousSibling)
         };
 
         enum Visibility {
@@ -132,7 +146,7 @@ class NativeCanvasHandler : public NativeEvents
         class JSObject *jsobj;
         struct JSContext *jscx;
 
-        int width, height;
+        int m_Width, m_Height, m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight;
         /*
             left and top are relative to parent
             a_left and a_top are relative to the root layer
@@ -148,6 +162,13 @@ class NativeCanvasHandler : public NativeEvents
         } padding;
 
         struct {
+            double top;
+            double right;
+            double bottom;
+            double left;
+        } m_Margin;
+
+        struct {
             double x;
             double y;
         } translate_s;
@@ -157,6 +178,8 @@ class NativeCanvasHandler : public NativeEvents
             int height;
             int scrollTop;
             int scrollLeft;
+
+            int _width, _height;
         } content;
 
         struct {
@@ -164,7 +187,7 @@ class NativeCanvasHandler : public NativeEvents
             bool consumed;
         } mousePosition;
 
-        bool overflow;
+        bool m_Overflow;
 
         NativeCanvasContext *getContext() const {
             return this->m_Context;
@@ -181,8 +204,8 @@ class NativeCanvasHandler : public NativeEvents
         double getLeft(bool absolute = false) const {
             if (absolute) return a_left;
 
-            if (!(coordMode & kLeft_Coord)) {
-                return m_Parent->getWidth() - (this->width + this->right);
+            if (!(coordMode & kLeft_Coord) && m_Parent) {
+                return m_Parent->getWidth() - (m_Width + this->right);
             }
 
             return this->left;
@@ -190,8 +213,8 @@ class NativeCanvasHandler : public NativeEvents
         double getTop(bool absolute = false) const {
             if (absolute) return a_top;
 
-            if (!(coordMode & kTop_Coord)) {
-                return m_Parent->getHeight() - (this->height + this->bottom);
+            if (!(coordMode & kTop_Coord) && m_Parent) {
+                return m_Parent->getHeight() - (m_Height + this->bottom);
             }
 
             return this->top;
@@ -226,7 +249,7 @@ class NativeCanvasHandler : public NativeEvents
             if (hasStaticBottom() || !m_Parent) {
                 return this->bottom;
             }
-            
+
             return m_Parent->getHeight() - (getTopScrolled() + getHeight());
         }
 
@@ -235,7 +258,7 @@ class NativeCanvasHandler : public NativeEvents
         */
         double getWidth() const {
             if (hasFixedWidth()) {
-                return this->width;
+                return m_Width;
             }
             if (m_Parent == NULL) return 0.;
 
@@ -243,23 +266,44 @@ class NativeCanvasHandler : public NativeEvents
 
             if (pwidth == 0) return 0.;
 
-            return pwidth - this->getLeft() - this->getRight();
+            return native_max(pwidth - this->getLeft() - this->getRight(), 1);
         }
 
         /*
             Get the height in logical pixels
         */
         double getHeight() const {
-            if (hasFixedHeight()) {
-                return this->height;
+            if (hasFixedHeight() || m_FluidHeight) {
+                return m_Height;
             }
+            
             if (m_Parent == NULL) return 0.;
 
             double pheight = m_Parent->getHeight();
 
             if (pheight == 0) return 0.;
 
-            return pheight - this->getTop() - this->getBottom();
+            return native_max(pheight - this->getTop() - this->getBottom(), 1);
+        }
+
+        int getMinWidth() const {
+            return m_MinWidth;
+        }
+
+        int getMaxWidth() const {
+            return m_MaxWidth;
+        }
+
+        int getMinHeight() const {
+            return m_MinHeight;
+        }
+
+        int getMaxHeight() const {
+            return m_MaxHeight;
+        }
+
+        NativeContext *getNativeContext() const {
+            return m_NativeContext;
         }
 
         bool hasFixedWidth() const {
@@ -269,7 +313,7 @@ class NativeCanvasHandler : public NativeEvents
 
         bool hasFixedHeight() const {
             return !((coordMode & (kTop_Coord | kBottom_Coord))
-                    == (kTop_Coord|kBottom_Coord));
+                    == (kTop_Coord|kBottom_Coord) || m_FluidHeight);
         }
 
         bool hasStaticLeft() const {
@@ -304,6 +348,14 @@ class NativeCanvasHandler : public NativeEvents
             coordMode &= ~kBottom_Coord;
         }
 
+        void setMargin(double top, double right, double bottom, double left)
+        {
+            m_Margin.top = top;
+            m_Margin.right = right;
+            m_Margin.bottom = bottom;
+            m_Margin.left = left;
+        }
+
         void setLeft(double val) {
             if (m_FlowMode & kFlowInlinePreviousSibling) {
                 return;
@@ -311,14 +363,14 @@ class NativeCanvasHandler : public NativeEvents
             coordMode |= kLeft_Coord;
             this->left = val;
             if (!hasFixedWidth()) {
-                setSize(this->getWidth(), this->height);
+                setSize(this->getWidth(), m_Height);
             }
         }
         void setRight(double val) {
             coordMode |= kRight_Coord;
             this->right = val; 
             if (!hasFixedWidth()) {
-                setSize(this->getWidth(), this->height);
+                setSize(this->getWidth(), m_Height);
             }
         }
 
@@ -329,19 +381,22 @@ class NativeCanvasHandler : public NativeEvents
             coordMode |= kTop_Coord;
             this->top = val;
             if (!hasFixedHeight()) {
-                setSize(this->width, this->getHeight());
+                setSize(m_Width, this->getHeight());
             }
         }
 
         void setBottom(double val) {
             coordMode |= kBottom_Coord;
             this->bottom = val;
+
             if (!hasFixedHeight()) {
-                setSize(this->width, this->getHeight());
+                setSize(m_Width, this->getHeight());
             }            
         }
 
         void setScale(double x, double y);
+
+        void setId(const char *str);
 
         double getScaleX() const {
             return this->scaleX;
@@ -350,6 +405,14 @@ class NativeCanvasHandler : public NativeEvents
         double getScaleY() const {
             return this->scaleY;
         }
+
+        uint64_t getIdentifier(char **str = NULL) {
+            if (str != NULL) {
+                *str = m_Identifier.str;
+            }
+
+            return m_Identifier.idx;
+        } 
 
         void setAllowNegativeScroll(bool val) {
             m_AllowNegativeScroll = val;
@@ -366,16 +429,35 @@ class NativeCanvasHandler : public NativeEvents
         unsigned int getFlowMode() const {
             return m_FlowMode;
         }
+
+        bool isHeightFluid() const {
+            return m_FluidHeight;
+        }
+
+        bool isWidthFluid() const {
+            return m_FluidWidth;
+        }
         
-        NativeCanvasHandler(int width, int height);
+        NativeCanvasHandler(int width, int height,
+            NativeContext *NativeCtx, bool lazyLoad = false);
+
         virtual ~NativeCanvasHandler();
 
         void unrootHierarchy();
 
         void setContext(NativeCanvasContext *context);
 
-        bool setWidth(int width);
-        bool setHeight(int height);
+        bool setWidth(int width, bool force = false);
+        bool setHeight(int height, bool force = false);
+
+        bool setMinWidth(int width);
+        bool setMinHeight(int height);
+
+        bool setMaxWidth(int width);
+        bool setMaxHeight(int height);
+
+        bool setFluidHeight(bool val);
+
         void updateChildrenSize(bool width, bool height);
         void setSize(int width, int height, bool redraw = true);
         void setPadding(int padding);
@@ -383,7 +465,7 @@ class NativeCanvasHandler : public NativeEvents
         void setScrollTop(int value);
         void setScrollLeft(int value);
         void computeAbsolutePosition();
-        void computeContentSize(int *cWidth, int *cHeight);
+        void computeContentSize(int *cWidth, int *cHeight, bool inner = false);
         void translate(double x, double y);
         bool isOutOfBound();
         NativeRect getViewport();
@@ -394,8 +476,11 @@ class NativeCanvasHandler : public NativeEvents
         void addChild(NativeCanvasHandler *insert,
             NativeCanvasHandler::Position position = POSITION_FRONT);
 
-        int getContentWidth();
-        int getContentHeight();
+        void insertBefore(NativeCanvasHandler *insert, NativeCanvasHandler *ref);
+        void insertAfter(NativeCanvasHandler *insert, NativeCanvasHandler *ref);
+
+        int getContentWidth(bool inner = false);
+        int getContentHeight(bool inner = false);
         void setHidden(bool val);
         bool isDisplayed() const;
         bool isHidden() const;
@@ -405,6 +490,8 @@ class NativeCanvasHandler : public NativeEvents
         void removeFromParent();
         void getChildren(NativeCanvasHandler **out) const;
 
+        bool checkLoaded();
+
         NativeCanvasHandler *getParent() const { return m_Parent; }
         NativeCanvasHandler *getFirstChild() const { return m_Children; }
         NativeCanvasHandler *getLastChild() const { return m_Last; }
@@ -412,7 +499,7 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *getPrevSibling() const { return m_Prev; }
         int32_t countChildren() const;
         bool containsPoint(double x, double y) const;
-        void layerize(NativeLayerizeContext &layerContext);
+        void layerize(NativeLayerizeContext &layerContext, bool draw);
 
         NativeCanvasHandler *m_Parent;
         NativeCanvasHandler *m_Children;
@@ -420,6 +507,9 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *m_Next;
         NativeCanvasHandler *m_Prev;
         NativeCanvasHandler *m_Last;
+
+        static void _jobResize(void *arg);
+        
     protected:
         NativeCanvasHandler *getPrevInlineSibling() const {
             NativeCanvasHandler *prev;
@@ -431,7 +521,12 @@ class NativeCanvasHandler : public NativeEvents
 
             return NULL;
         }
+
+        void propertyChanged(EventsChangedProperty property);
     private:
+        void deviceSetSize(int width, int height);
+        void execPending();
+
         int32_t nchildren;
         void dispatchMouseEvents(NativeCanvasHandler *layer);
         COORD_POSITION coordPosition;
@@ -443,8 +538,25 @@ class NativeCanvasHandler : public NativeEvents
 
         double scaleX, scaleY;
         bool m_AllowNegativeScroll;
+        bool m_FluidWidth, m_FluidHeight;
+
+        NativeContext *m_NativeContext;
+
+        struct {
+            uint64_t idx;
+            char *str;
+        } m_Identifier;
 
         void recursiveScale(double x, double y, double oldX, double oldY);
+        void setPendingFlags(int flags, bool append = true);
+
+        enum PENDING_JOBS {
+            kPendingResizeWidth = 1 << 0,
+            kPendingResizeHeight = 1 << 1,
+        };
+
+        int m_Pending;
+        bool m_Loaded;
 };
 
 #endif

@@ -116,6 +116,7 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         NativeJSAudioNode *target;
 
         bool createContext();
+        void initNode(NativeJSAudioNode *node, JSObject *jnode, JSString *name);
         bool run(char *str);
         static void ctxCallback(NativeAudioNode *node, void *custom);
         static void runCallback(NativeAudioNode *node, void *custom);

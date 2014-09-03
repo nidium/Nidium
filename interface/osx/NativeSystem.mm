@@ -83,3 +83,17 @@ const char *NativeSystem::pwd()
 
     return dir;
 }
+
+
+void NativeSystem::sendNotification(const char *title, const char *content, bool sound)
+{
+    NSUserNotification *notification = [[NSUserNotification alloc] init];
+
+    notification.title = [NSString stringWithCString:title encoding:NSUTF8StringEncoding];
+    notification.informativeText = [NSString stringWithCString:content encoding:NSUTF8StringEncoding];
+    if (sound) {
+        notification.soundName = NSUserNotificationDefaultSoundName;
+    }
+
+    [[NSUserNotificationCenter defaultUserNotificationCenter] deliverNotification:notification];
+}

@@ -8,8 +8,10 @@
 #include <NativeStreamInterface.h>
 #include <SkTypeface.h>
 #include <SkStream.h>
+#include <NativeCanvasHandler.h>
+#include "NativeSkia.h"
 
-#define NJSDOC_GETTER(obj) ((class NativeJSdocument *)JS_GetPrivate(obj))
+#include "NativeCanvas2DContext.h"
 
 bool NativeJSdocument::showFPS = false;
 
@@ -24,6 +26,8 @@ static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
@@ -40,6 +44,8 @@ static JSFunctionSpec document_funcs[] = {
     JS_FN("setPasteBuffer", native_document_setPasteBuffer, 1, 0),
     JS_FN("getPasteBuffer", native_document_getPasteBuffer, 0, 0),
     JS_FN("loadFont", native_document_loadFont, 1, JSPROP_ENUMERATE),
+    JS_FN("getCanvasById", native_document_getElementById, 1, JSPROP_ENUMERATE),
+    JS_FN("getScreenData", native_document_getScreenData, 0, 0),
     JS_FS_END
 };
 
@@ -48,6 +54,68 @@ struct _native_document_restart_async
     NativeUIInterface *ui;
     char *location;
 };
+
+static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
+        &str)) {
+        return false;
+    }
+
+    JSAutoByteString cid(cx, str);
+
+    NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
+
+    args.rval().set(elem ? OBJECT_TO_JSVAL(elem->jsobj) : JSVAL_NULL);
+
+    return true;
+}
+
+static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
+    NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
+    NativeSkia *skia = context->getSurface();
+
+    int width, height;
+    context->getSize(&width, &height);
+
+    JSObject *arrBuffer = JS_NewUint8ClampedArray(cx, width * height * 4);
+    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
+
+
+    NativeContext *nctx = NativeContext::getNativeClass(cx);
+
+    uint8_t *fb = nctx->getUI()->readScreenPixel();
+
+    memcpy(pixels, fb, width * height * 4);
+    
+    //skia->readPixels(0, 0, width, height, pixels);
+    //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
+
+    //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    JSObject *dataObject = JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL);
+
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
+        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    args.rval().setObject(*dataObject);
+
+    return true;
+}
 
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {

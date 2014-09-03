@@ -21,11 +21,20 @@
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())
 #define NSKIA_NATIVE (CppObj->getSurface())
-#define HANDLER_GETTER(obj) ((class NativeCanvasHandler *)JS_GetPrivate(obj))
+#define HANDLER_GETTER(obj) ((NativeCanvasHandler *)((class NativeJSCanvas *)JS_GetPrivate(obj))->getHandler())
 
 #define CANVASCTX_PROLOGUE
 
 extern jsval gfunc;
+
+static JSClass imageData_class = {
+    "ImageData", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+JSClass *NativeCanvas2DContext::ImageData_jsclass = &imageData_class;
 
 enum {
 #define CANVAS_2D_CTX_PROP(prop) CTX_PROP_ ## prop,
@@ -42,7 +51,7 @@ void Canvas2DContext_finalize(JSFreeOp *fop, JSObject *obj);
 
 extern JSClass Canvas_class;
 
-static JSClass Canvas2DContext_class = {
+JSClass Canvas2DContext_class = {
     "CanvasRenderingContext2D", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas2DContext_finalize,
@@ -67,13 +76,6 @@ static JSClass canvasPattern_class = {
     "CanvasPattern", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, CanvasPattern_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-
-static JSClass imageData_class = {
-    "ImageData", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -918,7 +920,7 @@ static JSBool native_canvas2dctx_requestAnimationFrame(JSContext *cx,
 static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
-    JSObject *jsimage;
+    JSObject *jsimage = NULL;
     NativeSkImage *image;
     double x, y, width, height;
     int sx, sy, swidth, sheight;
@@ -943,6 +945,7 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
     */
     if (JS_InstanceOf(cx, jsimage, &Canvas_class, NULL)) {
         NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
+
         if (drawctx == NULL || drawctx->m_Mode != NativeCanvasContext::CONTEXT_2D) {
             JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
@@ -2182,7 +2185,6 @@ void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
         //glDisable(GL_ALPHA_TEST);
         
         this->updateMatrix(left*ratio, top*ratio, layerSize.width(), layerSize.height());
-
         /* draw layer->skia->getCanvas() (textureID) in skia->getCanvas() (getMainFBO) */
         layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
 

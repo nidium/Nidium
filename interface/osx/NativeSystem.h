@@ -18,6 +18,7 @@ class NativeSystem : public NativeSystemInterface
         const char *getPrivateDirectory();
         const char *pwd();
         void alert(const char *message, AlertType type = ALERT_INFO);
+        void sendNotification(const char *title, const char *content, bool sound = false);
 };
 
 #endif

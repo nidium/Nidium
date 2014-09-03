@@ -148,8 +148,17 @@ NativeUICocoaConsole::NativeUICocoaConsole()
 }
 
 void NativeUICocoaConsole::clear()
-{    
-    [this->window clear];
+{   
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            this->flush();
+            [this->window clear];
+        });        
+    } else {
+        this->flush();
+        [this->window clear];
+    }
+
 }
 
 void NativeUICocoaConsole::flush()
@@ -188,15 +197,30 @@ void NativeUICocoaConsole::show()
 
 void NativeUICocoaConsole::log(const char *str)
 {
-    if (!needFlush) {
-        [[[this->window textview] textStorage] beginEditing];
-        needFlush = true;
+    char *copy_str = strdup(str);
+    typedef void(^_closure)();
+
+    _closure func = ^{
+        if (!needFlush) {
+            [[[this->window textview] textStorage] beginEditing];
+            needFlush = true;
+        }
+        if (this->isHidden) {
+            return;
+        }
+        NSString *nstr = [NSString stringWithCString:copy_str encoding:NSUTF8StringEncoding];
+        [this->window log:nstr];
+
+        free(copy_str);
+    };
+
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            func();
+        });
+    } else {
+        func();
     }
-    if (this->isHidden) {
-        return;
-    }
-    NSString *nstr = [NSString stringWithCString:str encoding:NSUTF8StringEncoding];
-    [this->window log:nstr];
 }
 
 NativeUICocoaConsole::~NativeUICocoaConsole()
