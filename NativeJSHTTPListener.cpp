@@ -169,6 +169,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
 {
     uint16_t port;
     JSString *ip_bind = NULL;
+    JSBool reuseport = false;
     NativeJSHTTPListener *listener;
 
     if (!JS_IsConstructing(cx, vp)) {
@@ -178,8 +179,8 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &HTTPListener_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "c/S",
-        &port, &ip_bind)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "c/bS",
+        &port, &reuseport, &ip_bind)) {
         return false;
     }
 
@@ -190,7 +191,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
         listener = new NativeJSHTTPListener(port);
     }
 
-    if (!listener->start()) {
+    if (!listener->start((bool)reuseport)) {
         JS_ReportError(cx, "HTTPListener() couldn't listener on %d", port);
         delete listener;
         return false;
