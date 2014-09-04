@@ -124,13 +124,11 @@ void NativeFile::openTask(const char *mode, void *arg)
     }
 
     struct stat s;
+    int ret;
 
-    if (lstat(m_Path, &s) != 0) {
-        NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
-        return;        
-    }
+    ret = lstat(m_Path, &s);
 
-    if (s.st_mode & S_IFDIR) {
+    if (ret == 0 && s.st_mode & S_IFDIR) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
