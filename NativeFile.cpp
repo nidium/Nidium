@@ -143,7 +143,7 @@ void NativeFile::openTask(const char *mode, void *arg)
             return;
         }
 
-        m_Filesize = s.st_size;
+        m_Filesize = ret == 0 ? s.st_size : 0;
         m_isDir = false;
     }
 
