@@ -12,10 +12,9 @@
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
-            '<(third_party_path)/http-parser/',
-            '<(third_party_path)/skia/include/core/',
-            '<(third_party_path)/skia/include/config/',
-            '<(third_party_path)/mozilla-central/js/src/dist/include/',
+        ],
+        'dependencies': [
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'

@@ -2,20 +2,18 @@
     'targets': [{
         'target_name': 'nativeinterface',
         'type': 'static_library',
-        'dependencies': [
-            # NativeApp.h is included and it needs jsoncpp includes
-            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
-        ],
         'include_dirs': [
             '../src/',
             '<(native_network_path)',
-            '<(third_party_path)/mozilla-central/js/src/dist/include/',
+            '<(native_nativejscore_path)/',
+            '<(native_interface_path)/',
             '<(third_party_path)/libzip/lib/',
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/c-ares/',
-			'<(third_party_path)/http-parser/',
-            '<(native_nativejscore_path)/',
-            '<(native_interface_path)/',
+        ],
+        'dependencies': [
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
         'sources': [
             '<(native_interface_path)/NativeUIInterface_base.cpp',
