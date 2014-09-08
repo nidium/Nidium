@@ -1,0 +1,82 @@
+#!/usr/bin/python
+import os
+
+from konstructor import Deps
+from konstructor import CommandLine
+from konstructor import Build
+from konstructor import Builder
+from konstructor import Platform
+from konstructor import Variables
+from konstructor import Konstruct
+
+Deps.set(
+    "libnspr4", 
+    "mozilla-central", 
+    "leveldb",
+    "http-parser",
+    Deps.Konstruct("network", "network/configure")
+)
+
+DEPEDENCY_REPO = Variables.get("depsRepo")
+Gyp = Builder.Gyp
+
+@Deps.register("leveldb")
+def leveldb():
+    flags = ""
+    if Platform.system == "Darwin":
+        flags = "CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
+
+    return {
+        "location": DEPEDENCY_REPO + "/leveldb.tar.gz",
+        "build": [flags + " make"], 
+        "outputs": ["libleveldb(.a|.lib)"]
+    }
+
+@Deps.register("libnspr4")
+def libnspr():
+    configure = "./configure"
+    if Platform.wordSize == 64:
+        configure += " --enable-64bit"
+
+    return {
+        "chdir": "mozilla-central/nsprpub/",
+        "build": [configure, "make"],
+        "outputs": ["dist/lib/libnspr4(.a|.lib)"]
+    }
+
+@Deps.register("mozilla-central")
+def mozilla():
+    nsprDir = os.path.realpath(os.path.join("mozilla-central/nsprpub/"))
+    nsprFlags = "--with-nspr-cflags=\"-I" + nsprDir + "/dist/include/nspr/\" --with-nspr-libs=\"" + nsprDir + "/dist/lib/libnspr4.a " + nsprDir + "/dist/lib/libplds4.a " + nsprDir + "/dist/lib/libplc4.a\""
+
+    configure = "./configure --enable-threadsafe --enable-ctypes " + nsprFlags
+
+    if Konstruct.config("debug", "valgring"):
+        configure += " --enable-debug --disable-optimize"
+
+    if Konstruct.config("valgrind"):
+        configure += " --enable-valgrind "
+
+    if Konstruct.config("mozillaci"):
+        location = Deps.GitRepo("git@github.com:nidium/NativeStudio.git")
+    else:
+        location = DEPEDENCY_REPO + "/mozilla-central.bz2"
+
+    return {
+        "location": location,
+        "chdir": "js/src/",
+        "build": ["autoconf2.13", configure, "make"],
+        "outputs": ["libjs_static(.a|.lib)"]
+    }
+
+@Deps.register("http-parser")
+def httpParser():
+    return {
+        "location": Deps.GitRepo("git@github.com:joyent/http-parser.git", tag="v2.3"),
+        "build": ["make package"],
+        "outputs": ["libhttp_parser.a"]
+    }
+
+if __name__ == '__main__':
+    Build.add(Gyp("gyp/nativejscore.gyp"))
+    Konstruct.start()

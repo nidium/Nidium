@@ -2,13 +2,16 @@
     'targets': [{
         'target_name': 'nativejscore',
         'type': 'static_library',
+        'includes': [
+            '../network/gyp/config.gypi',
+            '../network/gyp/common.gypi',
+        ],
         'include_dirs': [
-            '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/dist/include/',
-            '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/',
-            '<(DEPTH)/<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-            '<(DEPTH)/<(third_party_path)/c-ares/',
-            '<(DEPTH)/<(third_party_path)/http-parser/',
-            '<(DEPTH)/<(third_party_path)/leveldb/include/',
+            '<(third_party_path)/mozilla-central/js/src/dist/include/',
+            '<(third_party_path)/mozilla-central/js/src/',
+            '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
+            '<(third_party_path)/leveldb/include/',
+            '<(third_party_path)/http-parser/',
             '../',
         ],
         'defines': [
@@ -43,12 +46,11 @@
         ],
         'direct_dependent_settings': {
             'include_dirs': [
-                '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/dist/include/',
-                '<(DEPTH)/<(third_party_path)/mozilla-central/js/src/',
-                '<(DEPTH)/<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-                '<(DEPTH)/<(third_party_path)/c-ares/',
-                '<(DEPTH)/<(third_party_path)/http-parser/',
-                '<(DEPTH)/<(third_party_path)/leveldb/include/',
+                '<(third_party_path)/mozilla-central/js/src/dist/include/',
+                '<(third_party_path)/mozilla-central/js/src/',
+                '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
+                '<(third_party_path)/http-parser/',
+                '<(third_party_path)/leveldb/include/',
                 '../',
             ],
             'defines': [
