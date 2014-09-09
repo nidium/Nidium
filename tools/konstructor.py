@@ -490,7 +490,11 @@ class Dep:
                 # Get the time of the directory
                 srcDir = self._getDir();
                 if srcDir != ".":
-                    dirTime = os.path.getmtime(os.path.realpath(srcDir))
+                    try:
+                        dirTime = os.path.getmtime(os.path.realpath(srcDir))
+                    except:
+                        self.needBuild = True
+                        return
                 else:
                     dirTime = None
 
@@ -588,9 +592,15 @@ class Dep:
                 path, name = os.path.split(l)
                 if path == "":
                     path = "."
-                files = os.listdir(path)
 
                 out = {"found": False, "src": os.path.join(depDir, path, l)}
+
+		try:
+                    files = os.listdir(path) 
+		except:
+                    outputs.append(out)
+                    continue
+                    
                 for f in files:
                     if re.match(name, f):
                         out["found"] = True
