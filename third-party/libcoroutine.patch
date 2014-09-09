@@ -26,8 +26,8 @@
  SYS ?= $(shell uname -s)
  
  ifeq ($(SYS),Darwin)
--#CFLAGS += -falign-loops=16
-+CFLAGS += -falign-loops=16
+-CFLAGS += -falign-loops=16
++#CFLAGS += -falign-loops=16
  CFLAGS += -fPIC
  DLL_SUFFIX := dylib
  DLL_COMMAND := -dynamiclib
