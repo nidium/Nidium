@@ -165,6 +165,9 @@ def ffmpeg():
         ]
     }
 
+if Konstruct.config("release"):
+    Gyp.set("native_enable_breakpad", 1)
+
 Build.add(Gyp("gyp/all.gyp"));
 
 if __name__ == '__main__':

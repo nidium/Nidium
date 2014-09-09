@@ -826,7 +826,7 @@ class Builder:
 
         @staticmethod
         def setExec(path):
-            Builder.Gyp._exec = os.path.abspath(path);
+            Builder.Gyp._exec = path;
 
         @staticmethod
         def setConfiguration(config):
@@ -838,7 +838,8 @@ class Builder:
         def run(self, target=None):
             defines = ""
             for key, value in Builder.Gyp._defines.iteritems():
-                defines += "-D%s=%s" % (key, value)
+                defines += " -D%s=%s" % (key, value)
+            defines += " "
 
             code, output = Utils.run("%s --generator-output=%s %s %s %s" % (Builder.Gyp._exec, "build", defines, Builder.Gyp._args, self.name))
             cwd = os.getcwd()
@@ -861,7 +862,7 @@ class Builder:
                 runCmd = "make"
 
                 if target is not None:
-                    runCmd += " target" 
+                    runCmd += " " + target
                 if Variables.get("verbose", False):
                     runCmd += " V=1"
                 if Builder.Gyp._config is not None:
@@ -872,7 +873,8 @@ class Builder:
                 # TODO : Windows support
                 Utils.exit("Missing windows support");
             
-            #Log.echo("Running gyp for target " + target);
+            Log.debug("Running gyp. File=%s Target=%s" % (self.name, target));
+
             code, output = Utils.run(runCmd)
 
             if code != 0:
