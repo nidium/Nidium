@@ -58,7 +58,7 @@ def skia():
         exports = "GYP_DEFINES='skia_arch_width=64"
     else:
         exports = "GYP_DEFINES='skia_arch_width=32"
-    exports += " custom_header=../../../../../gyp/skia_gl_config.h'"
+    exports += " skia_custom_header=../../../../../gyp/skia_gl_config.h'"
 
     makeFlags = ""
     if Variables.get("verbose"):
