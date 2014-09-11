@@ -14,7 +14,7 @@ import configure
 
 Gyp = Builder.Gyp
 
-Konstruct.setConfigs("release")
+Konstruct.setConfigs(["release"])
 Gyp.setConfiguration("Release")
 
 OUTPUT_BINARY = os.path.join("build", Gyp._config, "nidium")
