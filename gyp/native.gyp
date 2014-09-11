@@ -97,6 +97,8 @@
                     'UINT32_MAX=4294967295u',
                     'GR_RELEASE=1',
                     '__STDC_CONSTANT_MACROS',
+                    'TRACING',
+                    'JS_THREADSAFE',
                 ],
                 'cflags+': [
                     '-fno-rtti',

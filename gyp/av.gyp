@@ -4,8 +4,6 @@
         'type': 'static_library',
         'include_dirs': [
             '<(native_src_path)',
-            '<(native_network_path)',
-            '<(native_nativejscore_path)',
             '<(third_party_path)/portaudio/src/common/',
             '<(third_party_path)/portaudio/include/',
             '<(third_party_path)/zita-resampler/libs/',
@@ -14,6 +12,7 @@
             '<(third_party_path)/basekit/source/',
         ],
         'dependencies': [
+            '<(native_network_path)/gyp/network.gyp:nativenetwork',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
         ],
         'defines': [

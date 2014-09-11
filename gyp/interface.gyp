@@ -12,6 +12,7 @@
             '<(third_party_path)/c-ares/',
         ],
         'dependencies': [
+            '<(native_network_path)/gyp/network.gyp:nativenetwork',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
         ],
