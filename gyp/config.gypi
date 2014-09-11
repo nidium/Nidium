@@ -24,7 +24,7 @@
         'native_exec_path': '../framework/dist/',
 
         'native_output%': '../out/',
-        'third_party_path': '../third-party2/',
+        'third_party_path': '../third-party/',
 #'asan%': 0,
 
         'native_interface': 'auto', 
