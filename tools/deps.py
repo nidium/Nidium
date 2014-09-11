@@ -84,7 +84,7 @@ if __name__ == '__main__':
 # Setup environement variables
 system = platform.system()
 nbCpu = multiprocessing.cpu_count()
-depsURL = "http://deps.nativejs.org"
+depsURL = "http://deps.nidium.com"
 is64bits = sys.maxsize > 2**32
 gypArgs = ""
 optionParser = OptionParser(usage="Usage: %prog [requirements_file] [options]")
@@ -671,7 +671,7 @@ def copyAndLinkDep(outlibs, symlink = True):
     import re
     import shutil
     for l in outlibs:
-        RENAMe = None
+        rename = None
 
         if type(l) == list:
             rename = l[1] + getLibExt(l[1])
