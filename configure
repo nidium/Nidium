@@ -31,8 +31,7 @@ Deps.set(
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 
-#DEPEDENCY_REPO = Variables.get("depsRepo")
-DEPEDENCY_REPO = "http://deps.nativejs.org"
+DEPEDENCY_REPO = Variables.get("depsRepo")
 
 @Deps.register("portaudio")
 def portaudio():
