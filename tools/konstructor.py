@@ -582,29 +582,42 @@ class Dep:
 
         depDir = os.path.realpath(os.path.join(ROOT, Deps.path, self._getDir()))
         with Utils.Chdir(depDir):
-            for l in self.options["outputs"]:
+            for output in self.options["outputs"]:
                 rename = None
                 found = False
-                if type(l) == list:
-                    rename = l[1]
-                    l = l[0]
+                copy = False
+                if type(output) == list:
+                    rename = output[1]
+                    outFile = output[0]
+                elif type(output) == dict:
+                    copy = True
+                    outFile = output["src"]
+                else:
+                    outFile = output
 
-                path, name = os.path.split(l)
+                path, name = os.path.split(outFile)
                 if path == "":
                     path = "."
 
-                out = {"found": False, "src": os.path.join(depDir, path, l)}
+                out = {"copyOnly": False, "found": False, "src": os.path.join(depDir, path, outFile)}
 
-		try:
+                try:
                     files = os.listdir(path) 
-		except:
-                    outputs.append(out)
+                except:
+                    outputs.append(outFile)
                     continue
                     
                 for f in files:
                     if re.match(name, f):
                         out["found"] = True
-                        out["file"] = re.sub(name, rename, f) if rename is not None else f
+                        if rename:
+                            out["file"] = re.sub(name, rename, f) 
+                        elif copy:
+                            out["copyOnly"] = True
+                            out["file"] = os.path.join("..", output["dest"])
+                        else:
+                            out["file"] = f
+
                         out["src"] = os.path.join(depDir, path, f)
                         break
 
@@ -633,15 +646,16 @@ class Dep:
                     Log.debug("Found output %s, copy to %s symlink to %s" % (output["src"], destFile, os.path.join(ROOT, OUTPUT, "third-party", output["file"])))
                     Log.debug("output = " + self.outputsDir)
                     shutil.copyfile(os.path.join(output["src"]), destFile)
-                    Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
+                    if not f["copyOnly"]:
+                        Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
                 else:
                     Utils.exit("Output %s for %s not found" % (output["src"], self.name))
         else:
             # Everything is already built and in cache
             # Symlink the current config
             for f in outputs:
-                Utils.symlink(os.path.join("." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"])))
-            
+                if not f["copyOnly"]:
+                    Utils.symlink(os.path.join("." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))) 
 
 class Deps:
     path = "third-party"
