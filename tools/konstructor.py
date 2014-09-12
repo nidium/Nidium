@@ -31,6 +31,11 @@ class Konstruct:
         CommandLine.parse()
         Deps._process()
         Build.run()
+        if len(Platform._exported)  > 0:
+            Log.info("\n\n--------------------------\nYou have enabled some features that needs to export shell variables. Please execute the following commands :\n")
+            for cmd in Platform._exported:
+                Log.info(cmd)
+            Log.info("--------------------------")
 
 
     @staticmethod
@@ -150,12 +155,21 @@ class Platform:
     system = platform.system()
     cpuCount = multiprocessing.cpu_count()
     wordSize = 64 if sys.maxsize > 2**32 else 32 
+    _exported = []
+
+    @staticmethod
+    def exportEnviron(arg):
+        Platform._exported.append("export " + arg)
 
     @staticmethod
     def setEnviron(*args):
         for env in args:
             tmp = env.split("=")
-            os.environ[tmp[0]] = tmp[1]
+            pprint(tmp)
+            if tmp[0][:-1] == "+":
+                os.environ[tmp[0][:-1]] += os.pathsep + tmp[1]
+            else:
+                os.environ[tmp[0]] = tmp[1]
 
 # }}}
 
@@ -646,7 +660,7 @@ class Dep:
                     Log.debug("Found output %s, copy to %s symlink to %s" % (output["src"], destFile, os.path.join(ROOT, OUTPUT, "third-party", output["file"])))
                     Log.debug("output = " + self.outputsDir)
                     shutil.copyfile(os.path.join(output["src"]), destFile)
-                    if not f["copyOnly"]:
+                    if not output["copyOnly"]:
                         Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
                 else:
                     Utils.exit("Output %s for %s not found" % (output["src"], self.name))
