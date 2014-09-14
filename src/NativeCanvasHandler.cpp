@@ -718,29 +718,28 @@ void NativeCanvasHandler::computeAbsolutePosition()
                 int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
                                                     0 : prev->getWidth(); 
 
-                elem->left = prev->left + prevWidth;
-                elem->top = prev->top;
+                elem->left = (prev->left + prevWidth + prev->m_Margin.right) + elem->m_Margin.left;
+                elem->top = (prev->top - prev->m_Margin.top) + elem->m_Margin.top;
 
-                if ((this->m_FlowMode & kFlowBreakPreviousSibling) ||
-                    elem->left + elem->getWidth() >  m_Parent->getWidth()) {
+                if ((elem->m_FlowMode & kFlowBreakPreviousSibling) ||
+                    elem->left + elem->getWidth() > m_Parent->getWidth()) {
+
                     maxLineHeightPreviousLine = maxLineHeight;
-                    maxLineHeight = elem->getHeight();
+                    maxLineHeight = elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top;
 
-                    elem->top = prev->top + maxLineHeightPreviousLine;
-                    elem->left = 0;
+                    elem->top = (prev->top - prev->m_Margin.top) + maxLineHeightPreviousLine + elem->m_Margin.top;
+                    elem->left = elem->m_Margin.left;
                 }
             } else {
                 /* The first element is aligned to the parent's top-left */
-                elem->left = 0;
-                elem->top = 0;
+                elem->left = elem->m_Margin.left;
+                elem->top = elem->m_Margin.top;
             }
 
             elem->a_left = elem->left + offset_x;
             elem->a_top = elem->top + offset_y;
 
-            if (elem->getHeight() > maxLineHeight) {
-                maxLineHeight = elem->getHeight();
-            }
+            maxLineHeight = native_max(elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top, maxLineHeight);
 
             if (elem == this) {
                 break;
