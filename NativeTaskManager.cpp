@@ -175,7 +175,7 @@ void NativeTaskManager::stopAll()
 
 NativeTaskManager::workerInfo *NativeTaskManager::getAvailableWorker()
 {
-    return &m_Threadpool.worker[0];
+    return &m_Threadpool.worker[rand() % m_Threadpool.count];
 }
 
 NativeTaskManager *NativeTaskManager::getManager()
