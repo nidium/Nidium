@@ -461,9 +461,16 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             this->top = tmpTop = (prev->top - prev->m_Margin.top) + m_Margin.top;
 
             if (m_Parent) {
-                /* New "line" */
+                /* 
+                    Line break if :
+                        - flow mode is kFlowBreakPreviousSibling (inline-break) or
+                        - Element would overflow-x its parent + parent doesn't have a fluid width
+                        - Element would overflow-x its parent + parent has a fluid height but a maxWidth
+                */
                 if ((this->m_FlowMode & kFlowBreakPreviousSibling) || 
-                    tmpLeft + this->getWidth() > m_Parent->getWidth()) {
+                    ((!m_Parent->isWidthFluid() ||
+                        (m_Parent->m_MaxWidth && tmpLeft + this->getWidth() > m_Parent->m_MaxWidth)) &&
+                        tmpLeft + this->getWidth() > m_Parent->getWidth())) {
 
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
                     sctx->maxLineHeight = this->getHeight() + m_Margin.bottom + m_Margin.top;
@@ -733,7 +740,9 @@ void NativeCanvasHandler::computeAbsolutePosition()
                 elem->top = (prev->top - prev->m_Margin.top) + elem->m_Margin.top;
 
                 if ((elem->m_FlowMode & kFlowBreakPreviousSibling) ||
-                    elem->left + elem->getWidth() > m_Parent->getWidth()) {
+                    ((!m_Parent->isWidthFluid() ||
+                        (m_Parent->m_MaxWidth && elem->left + elem->getWidth() > m_Parent->m_MaxWidth)) &&
+                    elem->left + elem->getWidth() > m_Parent->getWidth())) {
 
                     maxLineHeightPreviousLine = maxLineHeight;
                     maxLineHeight = elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top;
