@@ -18,6 +18,12 @@ float NativeSystem::backingStorePixelRatio()
     return fbackingStorePixelRatio;
 }
 
+void NativeSystem::openURLInBrowser(const char *url)
+{
+    NSString *nsurl = [NSString stringWithCString:url encoding:NSASCIIStringEncoding];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:nsurl]];
+}
+
 const char *NativeSystem::getPrivateDirectory()
 {
     static char parentdir[MAXPATHLEN];

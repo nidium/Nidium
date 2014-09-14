@@ -16,6 +16,9 @@ class NativeSystemInterface
         };
 
         virtual float backingStorePixelRatio()=0;
+        virtual void openURLInBrowser(const char *url) {
+            return;
+        }
         virtual const char *getCacheDirectory()=0;
         virtual const char *getPrivateDirectory()=0;
         virtual const char *getUserDirectory() {
