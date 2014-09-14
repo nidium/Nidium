@@ -90,6 +90,7 @@ static JSBool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, jsval *v
 static JSBool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas2dctx_strokeText(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_beginPath(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, jsval *vp);
@@ -195,6 +196,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("onerror", native_canvas2dctx_stub, 0, 0),
     JS_FN("fillRect", native_canvas2dctx_fillRect, 4, 0),
     JS_FN("fillText", native_canvas2dctx_fillText, 3, 0),
+    JS_FN("strokeText", native_canvas2dctx_strokeText, 3, 0),
     JS_FN("strokeRect", native_canvas2dctx_strokeRect, 4, 0),
     JS_FN("clearRect", native_canvas2dctx_clearRect, 4, 0),
     JS_FN("beginPath", native_canvas2dctx_beginPath, 0, 0),
@@ -390,6 +392,25 @@ static JSBool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, jsval *v
     text.encodeUtf8(cx, str);
 
     NSKIA_NATIVE->drawText(text.ptr(), x, y);
+
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctx_strokeText(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
+    int x, y, maxwidth;
+    JSString *str;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Sii/i",
+            &str, &x, &y, &maxwidth)) {
+        return false;
+    }
+
+    JSAutoByteString text;
+    text.encodeUtf8(cx, str);
+
+    NSKIA_NATIVE->drawText(text.ptr(), x, y, true);
 
     return JS_TRUE;
 }

@@ -541,7 +541,7 @@ NativeSkia::NativeSkia() :
     state(NULL), paint_system(NULL), currentPath(NULL),
     m_Debug(false), m_FontSkew(-0.25)
 {
-    
+
 }
 
 NativeSkia::~NativeSkia()
@@ -674,7 +674,7 @@ bool NativeSkia::setFontFile(const char *str)
 }
 
 /* TODO: bug with alpha */
-void NativeSkia::drawText(const char *text, int x, int y)
+void NativeSkia::drawText(const char *text, int x, int y, bool stroke)
 {
     SkPaint::FontMetrics metrics;
     PAINT->getFontMetrics(&metrics);
@@ -697,7 +697,7 @@ void NativeSkia::drawText(const char *text, int x, int y)
     }
 
     m_Canvas->drawText(text, strlen(text),
-        sx, sy, *PAINT);
+        sx, sy, (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
 }
