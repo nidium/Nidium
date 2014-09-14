@@ -59,6 +59,17 @@ const char *NativeSystem::getCacheDirectory()
     return NULL;
 }
 
+const char *NativeSystem::getUserDirectory()
+{
+    NSString* userDir = [NSString stringWithFormat:@"%@/", NSHomeDirectory()];
+
+    if (!userDir) {
+        return NULL;
+    }
+
+    return [userDir cStringUsingEncoding:NSUTF8StringEncoding];
+}
+
 void NativeSystem::alert(const char *message, AlertType type)
 {
     NSAlert *alert = [[NSAlert alloc] init];
