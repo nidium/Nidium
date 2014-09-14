@@ -31,6 +31,8 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#include <fts.h>
+
 #define NATIVE_FILE_NOTIFY(param, event, arg) \
     do {   \
         NativeSharedMessages::Message *__msg = new NativeSharedMessages::Message(event); \
@@ -131,6 +133,7 @@ void NativeFile::openTask(const char *mode, void *arg)
     if (ret == 0 && s.st_mode & S_IFDIR) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
+            printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
             NATIVE_FILE_NOTIFY(errno, NATIVEFILE_OPEN_ERROR, arg);
             return;   
         }
@@ -379,6 +382,50 @@ void NativeFile::checkRead(bool async, void *arg)
     if (async && err != -1) {
         NATIVE_FILE_NOTIFY(err, NATIVEFILE_READ_ERROR, arg);
     }
+}
+
+static int NativeFile_compare(const FTSENT** one, const FTSENT** two)
+{
+    return (strcmp((*one)->fts_name, (*two)->fts_name));
+}
+
+void NativeFile::rmrf()
+{
+    if (!isDir()) {
+        return;
+    }
+
+    FTS *tree;
+    FTSENT *f;
+
+    char *path[] = {m_Path, NULL};
+
+    tree = fts_open(path,
+        FTS_COMFOLLOW | FTS_NOCHDIR, NativeFile_compare);
+
+    if (!tree) {
+        printf("Failed to fts_open()\n");
+        return;
+    }
+    while ((f = fts_read(tree))) {
+        switch(f->fts_info) {
+            case FTS_F:
+            case FTS_NS:
+            case FTS_SL:
+            case FTS_SLNONE:
+                unlink(f->fts_path);
+                break;
+            case FTS_DP:
+                rmdir(f->fts_path);
+                break;
+            default:
+                break;
+        }
+    }
+
+    fts_close(tree);
+    
+    closeFd();
 }
 
 NativeFile::~NativeFile()

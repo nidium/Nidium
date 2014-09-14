@@ -78,6 +78,7 @@ public:
     void write(char *buf, size_t size, void *arg = NULL);
     void seek(size_t pos, void *arg = NULL);
     void listFiles(void *arg = NULL);
+    void rmrf();
 
     int openSync(const char *modes, int *err);
     ssize_t readSync(uint64_t len, char **buffer, int *err);
@@ -124,6 +125,10 @@ public:
 
     DIR *getDir() const {
         return m_Dir;
+    }
+
+    NativeFile *dup() {
+        return new NativeFile(m_Path);
     }
 
     void onMessage(const NativeSharedMessages::Message &msg);

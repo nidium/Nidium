@@ -114,9 +114,11 @@ static JSBool native_file_openSync(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_file_closeSync(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_file_rmrf(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp);
@@ -137,9 +139,11 @@ static JSFunctionSpec File_funcs[] = {
     JS_FN("read", native_file_read, 2, 0),
     JS_FN("seek", native_file_seek, 2, 0),
     JS_FN("close", native_file_close, 0, 0),
+    JS_FN("closeSync", native_file_closeSync, 0, 0),
     JS_FN("write", native_file_write, 1, 0),
     JS_FN("isDir", native_file_isDir, 0, 0),
     JS_FN("listFiles", native_file_listFiles, 1, 0),
+    JS_FN("rmrf", native_file_rmrf, 0, 0),
     JS_FS_END
 };
 
@@ -317,6 +321,27 @@ static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
     file = NJSFIO->getFile();
 
     args.rval().setBoolean(file->isDir());
+    printf("Catching %s %d\n", file->getFullPath(), file->isDir());
+
+    return true;
+}
+
+static JSBool native_file_rmrf(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    NativeJSFileIO *NJSFIO;
+    NativeFile *file;
+
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
+    }
+
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+
+    file = NJSFIO->getFile();
+
+    file->rmrf();
 
     return true;
 }
@@ -503,6 +528,27 @@ static JSBool native_file_readSync(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_file_writeSync(JSContext *cx, unsigned argc, jsval *vp)
 {
+    return true;
+}
+
+static JSBool native_file_closeSync(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+    NativeJSFileIO *NJSFIO;
+    NativeFile *file;
+
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+        return false;
+    }
+
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+
+    file = NJSFIO->getFile();
+
+    file->closeSync();
+
     return true;
 }
 
