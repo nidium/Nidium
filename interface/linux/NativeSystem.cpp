@@ -34,12 +34,8 @@ const char *NativeSystem::getPrivateDirectory()
 
 const char *NativeSystem::getCacheDirectory()
 {
-    char *homedir = getenv("HOME");
+    char *homedir = getUserDirectory();
     char nHome[1024];
-
-    if (!homedir) {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
 
     snprintf(nHome, 1024, "%s/.nidium/", homedir);
 
@@ -49,6 +45,16 @@ const char *NativeSystem::getCacheDirectory()
     }
 
     return strdup(nHome);
+}
+
+const char *NativeSystem::getUserDirectory()
+{
+    char *homedir = getenv("HOME");
+    if (!homedir) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+
+    return homedir;
 }
 
 void NativeSystem::alert(const char *message, AlertType type)
