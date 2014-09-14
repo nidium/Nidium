@@ -34,6 +34,9 @@ static JSBool native_window_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp);
 
+static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, jsval *vp);
+
+
 static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
 
@@ -134,6 +137,7 @@ static JSFunctionSpec window_funcs[] = {
     JS_FN("close", native_window_close, 0, 0),
     JS_FN("open", native_window_open, 0, 0),
     JS_FN("setSystemTray", native_window_setSystemTray, 1, 0),
+    JS_FN("openURL", native_window_openURLInBrowser, 1, 0),
     JS_FS_END
 };
 
@@ -777,6 +781,20 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeContext::getNativeClass(cx)->setWindowSize(w, h);
+
+    return true;
+}
+
+static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *url;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
+        return false;
+    }
+
+    JSAutoByteString curl(cx, url);
+
+    NativeSystemInterface::getInstance()->openURLInBrowser(curl.ptr());
 
     return true;
 }
