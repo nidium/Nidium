@@ -31,6 +31,11 @@ class Konstruct:
         CommandLine.parse()
         Deps._process()
         Build.run()
+        if len(Platform._exported)  > 0:
+            Log.info("\n\n--------------------------\nYou have enabled some features that needs to export shell variables. Please execute the following commands :\n")
+            for cmd in Platform._exported:
+                Log.info(cmd)
+            Log.info("--------------------------")
 
 
     @staticmethod
@@ -150,12 +155,21 @@ class Platform:
     system = platform.system()
     cpuCount = multiprocessing.cpu_count()
     wordSize = 64 if sys.maxsize > 2**32 else 32 
+    _exported = []
+
+    @staticmethod
+    def exportEnviron(arg):
+        Platform._exported.append("export " + arg)
 
     @staticmethod
     def setEnviron(*args):
         for env in args:
             tmp = env.split("=")
-            os.environ[tmp[0]] = tmp[1]
+            pprint(tmp)
+            if tmp[0][:-1] == "+":
+                os.environ[tmp[0][:-1]] += os.pathsep + tmp[1]
+            else:
+                os.environ[tmp[0]] = tmp[1]
 
 # }}}
 
@@ -230,26 +244,38 @@ class Utils:
             os.chdir(self.cwd)
 
     @staticmethod
-    def patch(directory, patchFile):
+    def patch(directory, patchFile, pNum=1):
         if not os.path.exists(directory):
             Utils.exit("Directory %s does not exist. Not patching." % directory)
 
+        if not os.path.exists(patchFile):
+            Utils.exit("Patch file %s does not exist. Not patching." % patchFile)
+
         import subprocess
 
+        pNum = "-p" + str(pNum);
         patch = open(patchFile)
         nullout = open(os.devnull, 'w')
 
         with Utils.Chdir(directory):
-            applied = subprocess.call(["patch", "-p1", "-N", "--dry-run", "--silent"], stdin=patch, stdout=nullout, stderr=subprocess.STDOUT)
-
+            # First check if the patch might have been already aplied
+            applied = subprocess.call(["patch", pNum, "-N", "-R", "--dry-run", "--silent"], stdin=patch, stdout=nullout, stderr=subprocess.STDOUT)
+            
             if applied == 0:
-                Log.info("    Applying patch " + patchFile)
-                patch.seek(0)
-                success, output = Utils.run("patch -p1 -N", stdin=patch)
-                if success != 0:
-                    Utils.exit("Failed to patch")
-            else:
                 Log.info("    Already applied patch "+ patchFile + " in " + directory + ". Skipping.")
+            else:
+                Log.info("    Applying patch " + patchFile)
+
+                # Check if the patch will succeed
+                patch.seek(0)
+                patched = subprocess.call(["patch", pNum, "-N", "--dry-run", "--silent"], stdin=patch, stderr=subprocess.STDOUT)
+                if patched == 0:
+                    patch.seek(0)
+                    success, output = Utils.run("patch " + pNum + " -N", stdin=patch)
+                    if success != 0:
+                        Utils.exit("Failed to patch")
+                else:
+                    Utils.exit("Failed to patch")
 
             patch.close()
             nullout.close()
@@ -582,29 +608,42 @@ class Dep:
 
         depDir = os.path.realpath(os.path.join(ROOT, Deps.path, self._getDir()))
         with Utils.Chdir(depDir):
-            for l in self.options["outputs"]:
+            for output in self.options["outputs"]:
                 rename = None
                 found = False
-                if type(l) == list:
-                    rename = l[1]
-                    l = l[0]
+                copy = False
+                if type(output) == list:
+                    rename = output[1]
+                    outFile = output[0]
+                elif type(output) == dict:
+                    copy = True
+                    outFile = output["src"]
+                else:
+                    outFile = output
 
-                path, name = os.path.split(l)
+                path, name = os.path.split(outFile)
                 if path == "":
                     path = "."
 
-                out = {"found": False, "src": os.path.join(depDir, path, l)}
+                out = {"copyOnly": False, "found": False, "src": os.path.join(depDir, path, outFile)}
 
-		try:
+                try:
                     files = os.listdir(path) 
-		except:
-                    outputs.append(out)
+                except:
+                    outputs.append(outFile)
                     continue
                     
                 for f in files:
                     if re.match(name, f):
                         out["found"] = True
-                        out["file"] = re.sub(name, rename, f) if rename is not None else f
+                        if rename:
+                            out["file"] = re.sub(name, rename, f) 
+                        elif copy:
+                            out["copyOnly"] = True
+                            out["file"] = os.path.join("..", output["dest"])
+                        else:
+                            out["file"] = f
+
                         out["src"] = os.path.join(depDir, path, f)
                         break
 
@@ -633,15 +672,16 @@ class Dep:
                     Log.debug("Found output %s, copy to %s symlink to %s" % (output["src"], destFile, os.path.join(ROOT, OUTPUT, "third-party", output["file"])))
                     Log.debug("output = " + self.outputsDir)
                     shutil.copyfile(os.path.join(output["src"]), destFile)
-                    Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
+                    if not output["copyOnly"]:
+                        Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
                 else:
                     Utils.exit("Output %s for %s not found" % (output["src"], self.name))
         else:
             # Everything is already built and in cache
             # Symlink the current config
             for f in outputs:
-                Utils.symlink(os.path.join("." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"])))
-            
+                if not f["copyOnly"]:
+                    Utils.symlink(os.path.join("." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))) 
 
 class Deps:
     path = "third-party"
@@ -785,7 +825,7 @@ class Deps:
         Deps.path = path;
 
     @staticmethod
-    def getPath():
+    def getDir():
         return Deps.path
         
     @staticmethod
