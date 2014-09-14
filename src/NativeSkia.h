@@ -129,7 +129,7 @@ class NativeSkia
         }
         void setFontType(char *str, NativeJSdocument *doc = NULL);
         bool setFontFile(const char *str);
-        void drawText(const char *text, int x, int y);
+        void drawText(const char *text, int x, int y, bool stroke = false);
         void drawTextf(int x, int y, const char *text, ...);
         void system(const char *text, int x, int y);
         void drawRect(double x, double y, double width, 
