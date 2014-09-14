@@ -538,9 +538,10 @@ void NativeSkia::drawRect(double x, double y, double width,
 NativeSkia::NativeSkia() :
     m_Canvas(NULL),
     native_canvas_bind_mode(NativeSkia::BIND_NO),
-    state(NULL), paint_system(NULL), currentPath(NULL), m_Debug(false)
+    state(NULL), paint_system(NULL), currentPath(NULL),
+    m_Debug(false), m_FontSkew(-0.25)
 {
-
+    
 }
 
 NativeSkia::~NativeSkia()
@@ -598,6 +599,15 @@ void NativeSkia::setFontSize(double size)
     SkScalar ssize = SkDoubleToScalar(size);
     PAINT->setTextSize(ssize);
     PAINT_STROKE->setTextSize(ssize);
+}
+
+void NativeSkia::setFontStyle(const char *style)
+{
+    PAINT->setFakeBoldText((strcasestr(style, "bold")));
+    PAINT->setUnderlineText((strcasestr(style, "underline")));
+    PAINT->setStrikeThruText((strcasestr(style, "strike")));
+
+    PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }
 
 void NativeSkia::setFontType(char *str, NativeJSdocument *doc)

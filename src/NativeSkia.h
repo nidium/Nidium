@@ -76,6 +76,8 @@ class NativeSkia
         void addPath(const SkPath& path, SkPath *to);
 
         bool m_Debug;
+
+        double m_FontSkew;
         
     public:
         ~NativeSkia();
@@ -121,6 +123,10 @@ class NativeSkia
         void setShadowColor(const char *str);
         void setSmooth(bool val,const  int level = 1);
         void setFontSize(double size);
+        void setFontStyle(const char *style);
+        void setFontSkew(double val) {
+            m_FontSkew = val;
+        }
         void setFontType(char *str, NativeJSdocument *doc = NULL);
         bool setFontFile(const char *str);
         void drawText(const char *text, int x, int y);

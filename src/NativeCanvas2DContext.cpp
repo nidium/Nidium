@@ -1478,6 +1478,30 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
         }
         break;
+        case CTX_PROP(fontStyle):
+        {
+            if (!JSVAL_IS_STRING(vp)) {
+                vp.set(JSVAL_VOID);
+
+                return JS_TRUE;
+            }
+            JSAutoByteString style(cx, JSVAL_TO_STRING(vp));
+
+            curSkia->setFontStyle(style.ptr());
+        }
+        break;
+        case CTX_PROP(fontSkew):
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &ret);
+
+            curSkia->setFontSkew(ret);
+        }
+        break;
         case CTX_PROP(textBaseline):
         {
             if (!JSVAL_IS_STRING(vp)) {
