@@ -543,7 +543,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 /!\ clip->intersect changes "clip"
             */
         } else if (!layerContext.clip->intersect(this->a_left, this->a_top,
-                    m_Width + this->a_left, m_Height + this->a_top) && !m_FluidHeight) {
+                    m_Width + this->a_left, m_Height + this->a_top) && (!m_FluidHeight || !m_FluidWidth)) {
             /* don't need to draw children (out of bounds) */
             return;
         }
@@ -637,6 +637,17 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         if (m_Height != newHeight) {
             this->setHeight(newHeight, true);
         }
+    }
+
+    if (m_FluidWidth) {
+        int contentWidth = this->getContentWidth(true);
+
+        int newWidth = m_MaxWidth ? native_clamp(contentWidth, m_MinWidth, m_MaxWidth) : 
+                           native_max(contentWidth, m_MinWidth);
+
+        if (m_Width != newWidth) {
+            this->setWidth(newWidth, true);
+        }   
     }
     
     if (!m_Loaded && willDraw) {
@@ -925,6 +936,12 @@ void NativeCanvasHandler::setContext(NativeCanvasContext *context)
 bool NativeCanvasHandler::setFluidHeight(bool val)
 {
     m_FluidHeight = val;
+    return true;
+}
+
+bool NativeCanvasHandler::setFluidWidth(bool val)
+{
+    m_FluidWidth = val;
     return true;
 }
 

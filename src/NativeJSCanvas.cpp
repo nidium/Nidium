@@ -70,6 +70,7 @@ enum {
     CANVAS_PROP_MAXWIDTH,
     CANVAS_PROP_MAXHEIGHT,
     CANVAS_PROP_FLUIDHEIGHT,
+    CANVAS_PROP_FLUIDWIDTH,
     CANVAS_PROP_ID,
     CANVAS_PROP_MARGINLEFT,
     CANVAS_PROP_MARGINRIGHT,
@@ -255,6 +256,9 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"fluidHeight", CANVAS_PROP_FLUIDHEIGHT, NATIVE_JS_PROP,
+        JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+
+    {"fluidWidth", CANVAS_PROP_FLUIDWIDTH, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
 
     {"id", CANVAS_PROP_ID, NATIVE_JS_PROP,
@@ -1128,6 +1132,14 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->setFluidHeight(vp.toBoolean());
         }
         break;
+        case CANVAS_PROP_FLUIDWIDTH:
+        {
+            if (!vp.isBoolean()) {
+                return true;
+            }
+            handler->setFluidWidth(vp.toBoolean());
+        }
+        break;
         case CANVAS_PROP_ID:
         {
             JSString *sid = JS_ValueToString(cx, vp);
@@ -1266,6 +1278,9 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
         case CANVAS_PROP_FLUIDHEIGHT:
             vp.setBoolean(handler->isHeightFluid());
+            break;
+        case CANVAS_PROP_FLUIDWIDTH:
+            vp.setBoolean(handler->isWidthFluid());
             break;
         case CANVAS_PROP_VISIBLE:
             vp.set(BOOLEAN_TO_JSVAL(!handler->isHidden()));
