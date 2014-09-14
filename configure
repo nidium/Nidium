@@ -170,4 +170,8 @@ if Konstruct.config("release"):
 Build.add(Gyp("gyp/all.gyp"));
 
 if __name__ == '__main__':
+    # We need to apply patch to rapidxml.hpp, 
+    # since it's not a real dependency, we do the patch "by hand"
+    Utils.patch(".", os.path.join(Deps.getDir(), "rapidxml.patch"));
+
     Konstruct.start() 
