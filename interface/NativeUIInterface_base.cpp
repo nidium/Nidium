@@ -8,6 +8,7 @@
 #include <NativeFileStream.h>
 #include <NativePrivateStream.h>
 #include <NativeNFSStream.h>
+#include <NativeSystemStream.h>
 
 #include <SDL.h>
 #define GL_GLEXT_PROTOTYPES
@@ -23,6 +24,10 @@ NativeUIInterface::NativeUIInterface() :
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
+#if 1
+    NativePath::registerScheme(SCHEME_DEFINE("system://",  NativeSystemStream,  false));
+    NativePath::registerScheme(SCHEME_DEFINE("user://",    NativeUserStream,    false));
+#endif
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    NativeNFSStream,     false));
