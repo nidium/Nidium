@@ -227,15 +227,24 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
         return true;
     }
 
-    /* TODO: accept arraybuffer */
     if (args[0].isString()) {
         JSAutoByteString jsdata;
         jsdata.encodeUtf8(cx, args[0].toString());
 
         resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY);
 
+    }  else if (args[0].isObject()) {
+        JSObject *objdata = args[0].toObjectOrNull();
+        if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
+            return false;            
+        }
+        uint32_t len = JS_GetArrayBufferByteLength(objdata);
+        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        resp->sendChunk((char *)data, len, APE_DATA_COPY, true);
     } else {
-        JS_ReportError(cx, "write() only accepts String");
+        JS_ReportError(cx, "write() only accepts String or ArrayBuffer");
         return false;
     }
     
@@ -253,12 +262,21 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (args.length() > 0) {
-        /* TODO: accept arraybuffer */
         if (args[0].isString()) {
             JSAutoByteString jsdata;
             jsdata.encodeUtf8(cx, args[0].toString());
             
             resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
+        } else if (args[0].isObject()) {
+            JSObject *objdata = args[0].toObjectOrNull();
+            if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+                JS_ReportError(cx, "end() invalid data (must be either a string or an ArrayBuffer)");
+                return false;            
+            }
+            uint32_t len = JS_GetArrayBufferByteLength(objdata);
+            uint8_t *data = JS_GetArrayBufferData(objdata);
+
+            resp->sendChunk((char *)data, len, APE_DATA_COPY, true);
         }
     }
 
