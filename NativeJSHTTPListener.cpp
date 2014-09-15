@@ -242,7 +242,7 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
         uint32_t len = JS_GetArrayBufferByteLength(objdata);
         uint8_t *data = JS_GetArrayBufferData(objdata);
 
-        resp->sendChunk((char *)data, len, APE_DATA_COPY, true);
+        resp->sendChunk((char *)data, len, APE_DATA_COPY);
     } else {
         JS_ReportError(cx, "write() only accepts String or ArrayBuffer");
         return false;
