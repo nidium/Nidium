@@ -9,6 +9,7 @@
 #include <SkTypeface.h>
 #include <SkStream.h>
 #include <NativeCanvasHandler.h>
+#include <NativeNML.h>
 #include "NativeSkia.h"
 
 #include "NativeCanvas2DContext.h"
@@ -28,6 +29,7 @@ static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval
 static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
@@ -46,6 +48,7 @@ static JSFunctionSpec document_funcs[] = {
     JS_FN("loadFont", native_document_loadFont, 1, JSPROP_ENUMERATE),
     JS_FN("getCanvasById", native_document_getElementById, 1, JSPROP_ENUMERATE),
     JS_FN("getScreenData", native_document_getScreenData, 0, 0),
+    JS_FN("parseNML", native_document_parseNML, 1, 0),
     JS_FS_END
 };
 
@@ -54,6 +57,24 @@ struct _native_document_restart_async
     NativeUIInterface *ui;
     char *location;
 };
+
+static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *str;
+    JS::CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
+        &str)) {
+        return false;
+    }
+
+    JSAutoByteString cstr;
+    cstr.encodeUtf8(cx, str);
+
+    args.rval().setObjectOrNull(NativeNML::BuildLST(cx, cstr.ptr()));
+
+    return true;
+}
 
 static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp)
 {

@@ -363,13 +363,23 @@ bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     return true;
 }
 
-/*
-    <canvas>
-        <next></next>   
-    </canvas>
-    <foo></foo>
-*/
-JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
+
+JSObject *NativeNML::BuildLST(JSContext *cx, char *str)
+{
+    using namespace rapidxml;
+
+    rapidxml::xml_document<> doc;
+
+    try {
+        doc.parse<0>(str);
+    } catch(rapidxml::parse_error &err) {
+        return NULL;
+    }
+
+    return BuildLSTFromNode(cx, doc);
+}
+
+JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -377,7 +387,6 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
         (const char *)data, len, "utf8"))
 
     using namespace rapidxml;
-    JSContext *cx = this->njs->cx;
 
     JS::RootedObject input(cx, JS_NewArrayObject(cx, 0, NULL));
 
@@ -410,7 +419,7 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
                 }
 
                 /* obj.children */
-                JS::RootedObject obj_children(cx, this->buildLayoutTree(*child));
+                JS::RootedObject obj_children(cx, BuildLSTFromNode(cx, *child));
                 NODE_PROP(obj, "children", OBJECT_TO_JSVAL(obj_children.get()));
                 break;
             }
@@ -429,6 +438,17 @@ JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
     }
     return input;
 #undef NODE_PROP
+}
+
+/*
+    <canvas>
+        <next></next>   
+    </canvas>
+    <foo></foo>
+*/
+JSObject *NativeNML::buildLayoutTree(rapidxml::xml_node<> &node)
+{
+    return BuildLSTFromNode(this->njs->cx, node);
 }
 
 static int delete_stream(void *arg)

@@ -73,7 +73,16 @@ public:
 
     void setNJS(NativeJS *js);
 
-    private:
+    /*
+        str must be null-terminated.
+        str is going to be modified
+    */
+    static JSObject *BuildLST(JSContext *cx, char *str);
+
+private:
+
+    static JSObject *BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node);
+
     bool loadData(char *data, size_t len, rapidxml::xml_document<> &doc);
     void addAsset(NativeAssets *);
     ape_global *net;
