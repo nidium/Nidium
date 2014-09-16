@@ -30,6 +30,15 @@
 #define kNativeVSYNC 1
 
 
+@interface NativeCocoaUIInterfaceWrapper: NSObject {
+    NativeCocoaUIInterface *base;
+}
+
+- (NSMenu *) renderSystemTray;
+- (void) menuClicked:(id)ev;
+
+@end
+
 uint64_t ttfps = 0;
 
 static __inline__ void ConvertNSRect(NSRect *r)
@@ -469,6 +478,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface() :
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
 
+    m_Wrapper = [[NativeCocoaUIInterfaceWrapper alloc] initWithUI:this];
 
     gnet = native_netlib_init();
 }
@@ -875,15 +885,35 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
 void NativeCocoaUIInterface::enableSysTray(const void *imgData,
     size_t imageDataSize)
 {
+#if 0
     m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
 
-    m_StatusItem.title = @"";
+    
     NSImage *icon = [NSApp applicationIconImage];
     [icon setScalesWhenResized:YES];
     [icon setSize: NSMakeSize(20.0, 20.0)];
 
     m_StatusItem.image = icon;
     m_StatusItem.highlightMode = YES;
+
+    NSMenu *stackMenu = [[NSMenu alloc] initWithTitle:@""];
+
+    NSMenuItem *menuOpen = 
+        [[NSMenuItem alloc] initWithTitle:@"Open" action:nil keyEquivalent:@""];
+    NSMenuItem *menuClose = 
+        [[NSMenuItem alloc] initWithTitle:@"Close" action:nil keyEquivalent:@""];
+
+    [stackMenu addItem:menuOpen];
+    [stackMenu addItem:menuClose];
+
+    [menuOpen setEnabled:YES];
+    [menuClose setEnabled:YES];
+
+    [m_StatusItem setMenu:stackMenu];
+    m_StatusItem.title = @"";
+#endif
+
+    this->renderSystemTray();
 }
 
 void NativeCocoaUIInterface::disableSysTray()
@@ -928,3 +958,69 @@ void NativeCocoaUIInterface::showWindow()
         set_timer_to_low_resolution(&this->gnet->timersng, 0);
     }
 }
+
+void NativeCocoaUIInterface::renderSystemTray()
+{
+    NativeSystemMenuItem *item = m_SystemMenu.items();
+    if (!item) {
+        return;
+    }
+
+    if (!m_StatusItem) {
+        m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+        m_StatusItem.highlightMode = YES;
+        NSImage *icon = [NSApp applicationIconImage];
+        [icon setScalesWhenResized:YES];
+        [icon setSize: NSMakeSize(20.0, 20.0)];
+
+        m_StatusItem.image = icon;
+    }
+
+    NSMenu *stackMenu = [m_Wrapper renderSystemTray];
+
+    [m_StatusItem setMenu:stackMenu];
+}
+
+
+@implementation NativeCocoaUIInterfaceWrapper
+
+- (id) initWithUI:(NativeCocoaUIInterface *)ui
+{
+    if (self = [super init]) {
+        self->base = ui;
+    }
+    return self;
+}
+
+- (void) menuClicked:(id)ev
+{
+
+}
+
+- (NSMenu *) renderSystemTray
+{
+    NativeCocoaUIInterface *ui = self->base;
+    NativeSystemMenu &m_SystemMenu = ui->getSystemMenu();
+
+    NativeSystemMenuItem *item = m_SystemMenu.items();
+    if (!item) {
+        return nil;
+    }
+
+    NSMenu *stackMenu = [[[NSMenu alloc] initWithTitle:@""] retain];
+
+    while (item) {
+        NSString *title = [NSString stringWithCString:item->title() encoding:NSUTF8StringEncoding];
+        NSMenuItem *curMenu = 
+            [[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@"="];
+
+        [stackMenu addItem:curMenu];
+        [curMenu setEnabled:YES];
+
+        item = item->m_Next;
+    }
+
+    return stackMenu;
+}
+
+@end

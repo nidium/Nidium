@@ -970,7 +970,7 @@ static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NATIVE_CHECK_ARGS("notify", 1);
+    NATIVE_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = CallArgsFromVp(argc, vp);
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
@@ -991,6 +991,44 @@ static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *v
             
         }
     }
+
+    JSGET_OPT_TYPE(jobj.toObjectOrNull(), "menu", Object) {
+        JSObject *arr = __curopt.toObjectOrNull();
+        if (JS_IsArrayObject(cx, arr)) {
+            uint32_t len;
+            JS_GetArrayLength(cx, arr, &len);
+
+            /*
+                The list is a FIFO
+                Walk in inverse order to keep the same Array definition order
+            */
+            for (int i = len-1; i >= 0; i--) {
+                JS::Value val;
+                JS_GetElement(cx, arr, i, &val);
+
+                if (val.isObject()) {
+                    NativeSystemMenuItem *menuItem = new NativeSystemMenuItem();
+                    JSGET_OPT_TYPE(val.toObjectOrNull(), "title", String) {
+
+                        JSAutoByteString ctitle;
+                        ctitle.encodeUtf8(cx, __curopt.toString());
+                        menuItem->title(ctitle.ptr());
+                    }
+                    JSGET_OPT_TYPE(val.toObjectOrNull(), "id", String) {
+                        JSAutoByteString cid;
+                        cid.encodeUtf8(cx, __curopt.toString());
+                        menuItem->id(cid.ptr());
+                    }
+
+                    NUI->getSystemMenu().addItem(menuItem);
+
+                }
+            }
+        }
+
+    }
+
+    NUI->enableSysTray();
 
     return true;
 }

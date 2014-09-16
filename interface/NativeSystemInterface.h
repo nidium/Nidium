@@ -5,6 +5,7 @@
 
 class NativeSystem;
 
+
 class NativeSystemInterface
 {
     public:

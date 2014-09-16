@@ -3,18 +3,99 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define NATIVE_WINDOWPOS_UNDEFINED_MASK   0xFFFFFFF0
 #define NATIVE_WINDOWPOS_CENTER_MASK   0xFFFFFFF1
 
 class NativeContext;
 class NativeNML;
+class NativeUIInterface;
 
 typedef void *SDL_GLContext;
+
+class NativeSystemMenuItem {
+public:
+    NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
+        m_Enabled(false), m_Next(NULL), m_Id(NULL), m_Title(NULL)
+    {
+        this->id(id);
+        this->title(title);
+    }
+
+    ~NativeSystemMenuItem(){
+        free(m_Title);
+        free(m_Id);
+    };
+    NativeSystemMenuItem *m_Next;
+
+    bool enabled(bool val) {
+        m_Enabled = val;
+
+        return m_Enabled;
+    }
+
+    bool enabled() const {
+        return m_Enabled;
+    }
+
+    const char *id() const {
+        return (const char *)m_Id;
+    }
+
+    void id(const char *id) {
+        if (m_Id) {
+            free(m_Id);
+        }
+        m_Id = id ? strdup(id) : NULL;
+    }
+
+    const char *title() const {
+        return m_Title;
+    }
+
+    void title(const char *title) {
+        if (m_Title) {
+            free(m_Title);
+        }
+        m_Title = title ? strdup(title) : NULL;
+    }
+
+private:
+    char *m_Id;
+    char *m_Title;
+    bool m_Enabled;
+};
+
+class NativeSystemMenu {
+public:
+    NativeSystemMenu(NativeUIInterface *ui);
+    ~NativeSystemMenu();
+
+    void enable(bool val);
+    void setIcon(uint8_t *data, size_t len);
+    void addItem(NativeSystemMenuItem *item);
+    void deleteItems();
+
+    NativeSystemMenuItem *items() const {
+        return m_Items;
+    }
+private:
+    struct {
+        uint8_t *data;
+        size_t len;
+    } m_Icon;
+
+    NativeSystemMenuItem *m_Items;
+    NativeUIInterface *m_UI;
+};
 
 class NativeUIInterface
 {
     public:
+        friend class NativeSystemMenu;
+
         enum CURSOR_TYPE {
             ARROW,
             BEAM,
@@ -138,7 +219,13 @@ class NativeUIInterface
             return m_Hidden;
         }
 
+        NativeSystemMenu &getSystemMenu() {
+            return m_SystemMenu;
+        }
+
     protected:
+        virtual void renderSystemTray(){};
+
         int width;
         int height;
         char *filePath;
@@ -160,6 +247,8 @@ class NativeUIInterface
 
         NativeUIConsole *console;
         SDL_GLContext m_mainGLCtx;
+
+        NativeSystemMenu m_SystemMenu;
 };
 
 #endif

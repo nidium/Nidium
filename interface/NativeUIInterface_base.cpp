@@ -20,7 +20,7 @@
 
 NativeUIInterface::NativeUIInterface() :
     m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL),
-    m_readPixelInBuffer(false), m_Hidden(false)
+    m_readPixelInBuffer(false), m_Hidden(false), m_SystemMenu(this)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
@@ -276,4 +276,30 @@ void NativeUIInterface::showWindow()
 
         set_timer_to_low_resolution(&this->gnet->timersng, 0);
     }
+}
+
+void NativeSystemMenu::addItem(NativeSystemMenuItem *item)
+{
+    item->m_Next = m_Items;
+    m_Items = item;
+}
+
+void NativeSystemMenu::deleteItems()
+{
+    NativeSystemMenuItem *tmp = NULL, *cur = m_Items;
+    while (cur != NULL) {
+        tmp = cur->m_Next;
+        delete cur;
+        cur = tmp;
+    }
+}
+
+NativeSystemMenu::NativeSystemMenu(NativeUIInterface *ui) : m_UI(ui)
+{
+    m_Items = NULL;
+}
+
+NativeSystemMenu::~NativeSystemMenu()
+{
+    this->deleteItems();
 }
