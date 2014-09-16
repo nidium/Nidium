@@ -992,9 +992,14 @@ void NativeCocoaUIInterface::renderSystemTray()
     return self;
 }
 
-- (void) menuClicked:(id)ev
+- (void) menuClicked:(id)sender
 {
+    NSString *identifier = [sender representedObject];
 
+    NativeJSwindow *window = NativeJSwindow::getNativeClass(self->base->NativeCtx->getNJS());
+    if (window) {
+        window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
+    }
 }
 
 - (NSMenu *) renderSystemTray
@@ -1011,13 +1016,18 @@ void NativeCocoaUIInterface::renderSystemTray()
 
     while (item) {
         NSString *title = [NSString stringWithCString:item->title() encoding:NSUTF8StringEncoding];
+        NSString *identifier = [NSString stringWithCString:item->id() encoding:NSUTF8StringEncoding];
+
         NSMenuItem *curMenu = 
-            [[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@"="];
+            [[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""];
 
         [stackMenu addItem:curMenu];
         [curMenu setEnabled:YES];
 
         item = item->m_Next;
+        curMenu.target = self;
+
+        [curMenu setRepresentedObject:identifier];
     }
 
     return stackMenu;

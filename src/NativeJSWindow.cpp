@@ -375,6 +375,16 @@ void NativeJSwindow::textInput(const char *data)
     }
 }
 
+void NativeJSwindow::systemMenuClicked(const char *id)
+{
+    JSObject *event = JS_NewObject(cx, NULL, NULL, NULL);
+
+    JSOBJ_SET_PROP_CSTR(event, "id", id);
+    JS::Value ev = OBJECT_TO_JSVAL(event);
+
+    JSOBJ_CALLFUNCNAME(this->jsobj, "_onsystemtrayclick", 1, &ev);
+}
+
 void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
