@@ -292,11 +292,23 @@ void NativeSystemMenu::deleteItems()
         delete cur;
         cur = tmp;
     }
+
+    m_Items = NULL;
+}
+
+void NativeSystemMenu::setIcon(const uint8_t *data, size_t width, size_t height)
+{
+    m_Icon.data = data;
+    m_Icon.len = width * height * 4;
+    m_Icon.width = width;
+    m_Icon.height = height;
 }
 
 NativeSystemMenu::NativeSystemMenu(NativeUIInterface *ui) : m_UI(ui)
 {
     m_Items = NULL;
+    m_Icon.data = NULL;
+    m_Icon.len = 0;
 }
 
 NativeSystemMenu::~NativeSystemMenu()

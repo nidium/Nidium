@@ -352,6 +352,7 @@ void NativeCocoaUIInterface::stopApplication()
 {
     [this->dragNSView setResponder:nil];
     this->disableSysTray();
+    m_SystemMenu.deleteItems();
 
     if (this->nml) {
         delete this->nml;
@@ -969,10 +970,34 @@ void NativeCocoaUIInterface::renderSystemTray()
     if (!m_StatusItem) {
         m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
         m_StatusItem.highlightMode = YES;
-        NSImage *icon = [NSApp applicationIconImage];
-        [icon setScalesWhenResized:YES];
-        [icon setSize: NSMakeSize(20.0, 20.0)];
 
+        size_t icon_len, icon_width, icon_height;
+        const uint8_t *icon_custom = m_SystemMenu.getIcon(&icon_len,
+                                        &icon_width, &icon_height);
+
+        NSImage *icon;
+
+        if (!icon_len || !icon_custom) {
+            icon = [NSApp applicationIconImage];
+            [icon setSize: NSMakeSize(20.0, 20.0)];
+        } else {
+
+            NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&icon_custom
+                                                                            pixelsWide:icon_width
+                                                                            pixelsHigh:icon_height
+                                                                            bitsPerSample:8
+                                                                            samplesPerPixel:4
+                                                                            hasAlpha:YES
+                                                                            isPlanar:NO
+                                                                            colorSpaceName:NSDeviceRGBColorSpace
+                                                                            bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
+                                                                            bytesPerRow:icon_width*4
+                                                                            bitsPerPixel:32];
+
+            icon = [[[NSImage alloc] initWithSize:NSMakeSize(32.f, 32.f)] autorelease];
+
+            [icon addRepresentation:rep];
+        }
         m_StatusItem.image = icon;
     }
 
@@ -1017,10 +1042,13 @@ void NativeCocoaUIInterface::renderSystemTray()
     while (item) {
         NSString *title = [NSString stringWithCString:item->title() encoding:NSUTF8StringEncoding];
         NSString *identifier = [NSString stringWithCString:item->id() encoding:NSUTF8StringEncoding];
-
-        NSMenuItem *curMenu = 
-            [[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""];
-
+        NSMenuItem *curMenu;
+        if ([title isEqualToString:@"-"]) {
+            curMenu = [NSMenuItem separatorItem];
+        } else {
+            curMenu = 
+                [[[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""] autorelease];
+        }
         [stackMenu addItem:curMenu];
         [curMenu setEnabled:YES];
 

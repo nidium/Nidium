@@ -74,17 +74,24 @@ public:
     ~NativeSystemMenu();
 
     void enable(bool val);
-    void setIcon(uint8_t *data, size_t len);
+    void setIcon(const uint8_t *data, size_t width, size_t height);
     void addItem(NativeSystemMenuItem *item);
     void deleteItems();
+    const uint8_t *getIcon(size_t *len, size_t *width, size_t *height) const {
+        *len = m_Icon.len;
+        *width = m_Icon.width;
+        *height = m_Icon.height;
+        return m_Icon.data;
+    }
 
     NativeSystemMenuItem *items() const {
         return m_Items;
     }
 private:
     struct {
-        uint8_t *data;
+        const uint8_t *data;
         size_t len;
+        size_t width, height;
     } m_Icon;
 
     NativeSystemMenuItem *m_Items;

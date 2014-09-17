@@ -11,6 +11,7 @@
 #include "NativeMacros.h"
 #include "NativeJSUtils.h"
 #include "NativeJSImage.h"
+#include "NativeSkImage.h"
 
 #include <NativeSystemInterface.h>
 
@@ -995,10 +996,17 @@ static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *v
 
     JS_INITOPT();
 
+    NativeSystemMenu &menu = NUI->getSystemMenu();
+    menu.deleteItems();
+
     JSGET_OPT_TYPE(jobj.toObjectOrNull(), "icon", Object) {
         JSObject *jsimg = __curopt.toObjectOrNull();
-        if (NativeJSImage::JSObjectIs(cx, jsimg)) {
+        NativeSkImage *skimage;
+        if (NativeJSImage::JSObjectIs(cx, jsimg) &&
+            (skimage = NativeJSImage::JSObjectToNativeSkImage(jsimg))) {
             
+            const uint8_t *pixels = skimage->getPixels(NULL);
+            menu.setIcon(pixels, skimage->getWidth(), skimage->getHeight());
         }
     }
 
@@ -1023,14 +1031,18 @@ static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *v
                         JSAutoByteString ctitle;
                         ctitle.encodeUtf8(cx, __curopt.toString());
                         menuItem->title(ctitle.ptr());
+                    } else {
+                        menuItem->title("");
                     }
                     JSGET_OPT_TYPE(val.toObjectOrNull(), "id", String) {
                         JSAutoByteString cid;
                         cid.encodeUtf8(cx, __curopt.toString());
                         menuItem->id(cid.ptr());
+                    } else {
+                        menuItem->id("");
                     }
 
-                    NUI->getSystemMenu().addItem(menuItem);
+                    menu.addItem(menuItem);
 
                 }
             }
