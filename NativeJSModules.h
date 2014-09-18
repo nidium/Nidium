@@ -42,6 +42,7 @@ class NativeJSModule
         char *filePath;
         char *name;
         int m_ModuleType;
+        bool m_Cached;
 
         JSObject *exports;
 
@@ -85,6 +86,7 @@ class NativeJSModules
         void add(NativeJSModule *module)
         {
             m_Cache.set(module->filePath, module);
+            module->m_Cached = true;
         }
 
         void remove(NativeJSModule *module)

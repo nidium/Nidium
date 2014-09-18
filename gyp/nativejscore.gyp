@@ -15,7 +15,7 @@
             '../',
         ],
         'defines': [
-            '_FILE_OFFSET_BITS=64',
+            #'_FILE_OFFSET_BITS=64',
             '__STDC_LIMIT_MACROS'
         ],
         'dependencies': [
@@ -54,7 +54,7 @@
                 '../',
             ],
             'defines': [
-                '_FILE_OFFSET_BITS=64',
+                #'_FILE_OFFSET_BITS=64',
                 '__STDC_LIMIT_MACROS'
             ],
             'conditions': [
