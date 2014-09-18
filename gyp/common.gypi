@@ -7,7 +7,7 @@
             'NATIVE_VERSION_STR="<(native_version)"',
             'NATIVE_BUILD="<!@(git rev-parse HEAD)"',
             'UINT32_MAX=4294967295u',
-            '_FILE_OFFSET_BITS=64',
+            #'_FILE_OFFSET_BITS=64',
             'NATIVE_NO_PRIVATE_DIR'
         ],
         'default_configuration': 'Release',
