@@ -6,6 +6,10 @@
 #include <time.h>
 #include <unistd.h>
 #include <getopt.h>
+#ifdef __linux__
+#include <sys/time.h>
+#include <sys/resource.h>
+#endif
 
 #include "NativeServer.h"
 #include "NativeContext.h"
