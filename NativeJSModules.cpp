@@ -71,7 +71,7 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
 
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
     : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE), 
-      exports(NULL), parent(parent), modules(modules), cx(cx)
+      m_Cached(false), exports(NULL), parent(parent), modules(modules), cx(cx)
 {
 }
 
@@ -655,7 +655,7 @@ JS::Value NativeJSModule::require(char *name)
 
 NativeJSModule::~NativeJSModule()
 {
-    if (this->filePath) {
+    if (this->filePath && m_Cached) {
         this->modules->remove(this);
     }
 
