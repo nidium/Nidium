@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "NativeUtils.h"
-
+#include <iterator>
 
 /*
     C++ wrapper to ape_hash
@@ -109,6 +109,41 @@ class NativeHash : public NativeNoncopyable
         }
         static void cleaner(ape_htable_item_t *item) {
             delete (T)item->content.addrs;
+        }
+        struct _ape_htable *accessCStruct() const {
+            return table;
+        }
+
+        class iterator: public std::iterator<std::input_iterator_tag, T>
+        {
+            public:
+                iterator(ape_htable_item_t *ptr): ptr(ptr) {}
+                iterator& operator++() {
+                    ptr = ptr->lnext;
+                    return *this;
+                }
+                bool operator != (iterator& other) {
+                    return  ptr != other.ptr; 
+                }
+                T operator->() {
+                    return (T)ptr->content.addrs;
+                }
+            private:
+                ape_htable_item_t *ptr;
+        };
+
+        iterator begin() 
+        {
+            if (!table->first) {
+                return iterator(NULL);
+            } else {
+                return iterator(table->first);
+            }
+        }
+
+        iterator end()
+        {
+            return iterator(NULL);
         }
     private:
 
