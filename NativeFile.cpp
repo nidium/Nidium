@@ -494,14 +494,11 @@ int NativeFile::openSync(const char *modes, int *err)
     }
 
     struct stat s;
+    int ret;
 
-    if (lstat(m_Path, &s) != 0) {
-        printf("Failed to lstat : %s errno=%d\n", m_Path, errno);
-        *err = errno;
-        return 0;        
-    }
+    ret = lstat(m_Path, &s);
 
-    if (s.st_mode & S_IFDIR) {
+    if (ret == 0 && s.st_mode & S_IFDIR) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open : %s errno=%d\n", m_Path, errno);
