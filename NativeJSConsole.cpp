@@ -2,6 +2,7 @@
 #include "NativeJS.h"
 //#include "NativeContext.h"
 #include "NativeStream.h"
+#include "NativeJSProfiler.h"
 
 #include <jsdbgapi.h>
 
@@ -14,6 +15,10 @@ static JSBool native_console_hide(JSContext *cx, unsigned argc,
 static JSBool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
+    jsval *vp);
+static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
     jsval *vp);
 
 static JSClass console_class = {
@@ -32,6 +37,8 @@ static JSFunctionSpec console_funcs[] = {
     JS_FN("hide", native_console_hide, 0, 0),
     JS_FN("show", native_console_show, 0, 0),
     JS_FN("clear", native_console_clear, 0, 0),
+    JS_FN("profile", native_console_profile_start, 0, 0),
+    JS_FN("profileEnd", native_console_profile_end, 0, 0),
     JS_FS_END
 };
 
@@ -140,6 +147,33 @@ static JSBool native_console_write(JSContext *cx, unsigned argc,
     js->log("\n");
 
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    return true;
+}
+
+static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    /*
+    JSString *tmp;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &tmp)) {
+        return false;
+    }
+
+    JSAutoByteString name(cx, tmp);
+    */
+
+    NativeProfiler *tracer = NativeProfiler::getInstance(cx);
+    tracer->start(NULL);
+
+    return true;
+}
+static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
+    jsval *vp)
+{
+    NativeProfiler *tracer = NativeProfiler::getInstance(cx);
+    tracer->stop();
+    JS::Value val(OBJECT_TO_JSVAL(tracer->getJSObject()));
+    JS_SET_RVAL(cx, vp, val);
     return true;
 }
 
