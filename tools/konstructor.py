@@ -515,20 +515,24 @@ class Dep:
 
                 # Get the time of the directory
                 srcDir = self._getDir();
-                if srcDir != ".":
-                    try:
-                        dirTime = os.path.getmtime(os.path.realpath(srcDir))
-                    except:
-                        self.needBuild = True
-                        return
-                else:
-                    dirTime = None
+                try:
+                    dirTime = os.path.getmtime(os.path.realpath(srcDir))
+                except:
+                    self.needBuild = True
+                    return
 
                 for output in self.findOutputs():
                     if output["found"] is False:
                         Log.debug("Need build %s, because output file %s havn't been found" % (self.name, output["src"]))
                         self.needBuild = True
                         break
+                    # This code have some issues 
+                    # - It does not detect change made in subdirectories
+                    # - Changing configuration might trigger a rebuild 
+                    #   since the outputs could be older than the directory when depdency is rebuilt in another configuration
+                    #
+                    # Util a better alternative is found, do not check if output is more recent
+                    """
                     else:
                         import datetime
                         try:
@@ -549,6 +553,7 @@ class Dep:
                             ))
                             self.needBuild = True
                             break
+                    """
 
     def download(self):
         if not self.needDownload:
