@@ -34,7 +34,7 @@ const char *NativeSystem::getPrivateDirectory()
 
 const char *NativeSystem::getCacheDirectory()
 {
-    char *homedir = getUserDirectory();
+    const char *homedir = getUserDirectory();
     char nHome[2048];
 
     snprintf(nHome, 2048, "%s.nidium/", homedir);
