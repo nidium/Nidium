@@ -1,8 +1,5 @@
 {
     'target_defaults': {
-        'include_dirs': [
-            '<(third_party_path)/c-ares/',
-        ],
         'defines': [
             'NATIVE_VERSION_STR="<(native_version)"',
             'NATIVE_BUILD="<!@(git rev-parse HEAD)"',
@@ -36,8 +33,8 @@
                 ],
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
-                        '-L<(native_output)/third-party-libs/debug/',
-                        '-F<(native_output)/third-party-libs/debug/',
+                        '-L<(native_output)/third-party/',
+                        '-F<(native_output)/third-party/',
                     ],
                     'OTHER_CPLUSPLUSFLAGS': [ 
                         '-stdlib=libc++'
@@ -57,7 +54,7 @@
                     ]
                 },
                 'ldflags': [
-                    '-L<(native_output)/third-party-libs/debug/',
+                    '-L<(native_output)/third-party/',
                 ],
             },
             'Release': {
@@ -86,8 +83,8 @@
                 },
                 'xcode_settings': {
                     "OTHER_LDFLAGS": [
-                        '-L<(native_output)/third-party-libs/release/',
-                        '-F<(native_output)/third-party-libs/release/'
+                        '-L<(native_output)/third-party/',
+                        '-F<(native_output)/third-party/'
                     ],
                     'ARCHS': [
                         'x86_64',
@@ -114,7 +111,7 @@
                     ]
                 },
                 'ldflags': [
-                    '-L<(native_output)/third-party-libs/release/',
+                    '-L<(native_output)/third-party/',
                 ],
                 'cflags': [
                     '-O2',
