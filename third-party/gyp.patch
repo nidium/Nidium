@@ -1,7 +1,7 @@
 Index: pylib/gyp/input.py
 ===================================================================
---- pylib/gyp/input.py	(révision 1967)
-+++ pylib/gyp/input.py	(copie de travail)
+--- gyp/pylib/gyp/input.py	(révision 1967)
++++ gyp/pylib/gyp/input.py	(copie de travail)
 @@ -62,13 +62,15 @@
    # considered PathSections. Using manual string matching since that
    # is much faster than the regexp and this can be called hundreds of
@@ -24,8 +24,8 @@ Index: pylib/gyp/input.py
  
 Index: gyp_main.py
 ===================================================================
---- gyp_main.py	(révision 1967)
-+++ gyp_main.py	(copie de travail)
+--- gyp/gyp_main.py	(révision 1967)
++++ gyp/gyp_main.py	(copie de travail)
 @@ -15,4 +15,4 @@
    import gyp
  
