@@ -518,9 +518,7 @@ JS::Value NativeJSModule::require(char *name)
         this->filePath = realpath(strdup(JS_GetScriptFilename(this->cx, script)), NULL);
 
         if (this->filePath == NULL) {
-            static char dir[MAXPATHLEN];
-            getcwd(dir, MAXPATHLEN);
-            this->absoluteDir = strdup(dir);
+            this->absoluteDir = strdup(NativePath::getPwd());
         } else {
             // absoluteDir is needed for findModulePath
             NativePath p(this->filePath, false, true);
