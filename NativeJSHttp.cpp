@@ -364,7 +364,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             if (JS_ParseJSON(cx, chars, clen, &jdata) == JS_FALSE) {
                 jdata = JSVAL_NULL;
-                printf("Cant JSON parse\n");
+                printf("Cant parse JSON of size %ld :\n===%.*s\n===\n",
+                    h->data->used, (int)h->data->used, h->data->data);
             }
 
             break;
