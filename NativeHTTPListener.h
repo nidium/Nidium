@@ -221,8 +221,8 @@ public:
         return m_Response;
     }
 
-    void setTimeout(uint64_t val) {
-        m_TimeoutTimer = val;
+    void setTimeout(int val) {
+        m_ClientTimeoutMs = val;
     }
 
     uint64_t getTimeoutAfterMs() const {
