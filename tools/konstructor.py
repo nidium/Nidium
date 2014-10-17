@@ -297,7 +297,10 @@ class Utils:
     @staticmethod
     def symlink(src, dst):
         if os.path.lexists(dst):
-            os.unlink(dst)
+            try:
+                os.unlink(dst)
+            except:
+                Utils.exit("Can not unlink %s/%s. Manually rename or remove this file" % (os.getcwd(), dst))
 
         if Platform.system == "Windows":
             # TODO : Not supported
@@ -505,22 +508,19 @@ class Dep:
             elif not exists:
                 Log.debug("Need download because output dir does not exists")
                 self.needDownload = True
-            elif not os.path.exists(self.linkDir["dest"]):
+            elif not os.path.islink(self.linkDir["dest"]):
                 Utils.symlink(self.linkDir["src"], self.linkDir["dest"])
 
         # Define some variables needed for building/symlinking
         cache = self.cache.find(self.name + "-build", self.options)
         self.buildConfig = cache
         self.outputsDir = os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", "." + cache["config"]))
+        Utils.mkdir(self.outputsDir)
 
         if self.needDownload:
             self.needBuild = True
         elif not self.needBuild:
-            if not os.path.isdir(self.outputsDir):
-                Log.debug("Need build, because output directory (%s) does not exists" % self.outputsDir)
-                Utils.mkdir(self.outputsDir)
-                self.needBuild = True
-            elif cache["new"]:
+            if cache["new"]:
                 Log.debug("Need build, because configuration for this dep is new")
                 self.needBuild = True
             elif "outputs" in self.options:
@@ -704,7 +704,7 @@ class Dep:
             # Symlink the current config
             for f in outputs:
                 if not f["copyOnly"]:
-                    Utils.symlink(os.path.join("." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))) 
+                    Utils.symlink(os.path.join("..", "..", Deps.getDir(), "..", OUTPUT, "third-party", "." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))) 
 
 class Deps:
     path = "third-party"
