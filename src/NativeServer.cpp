@@ -22,7 +22,7 @@ unsigned long _ape_seed;
 static void signal_handler(int sign)
 {
     ape_running = 0;
-    NLOG("[Quit] Shutting down...");
+    NLOG("Signal %d received, shutting down...", sign);
 }
 
 static int inc_rlimit(int nofile)
@@ -76,6 +76,7 @@ int NativeServer::Start(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
+    signal(SIGQUIT, &signal_handler);
 
     int ch;
 
