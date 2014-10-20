@@ -133,6 +133,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeHTTPRequest *req = nhttp->getRequest();
 
+    jshttp = (NativeJSHttp *)nhttp->getPrivate();
+
     GET_OPT("method") {
         JSString *method = JSVAL_TO_STRING(curopt);
         JSAutoByteString cmethod(cx, method);
@@ -197,7 +199,12 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
-    jshttp = (NativeJSHttp *)nhttp->getPrivate();
+    GET_OPT("eval") {
+        if (curopt.isBoolean()) {
+            jshttp->m_Eval = curopt.toBoolean();
+        }
+    }
+
     jshttp->request = callback;
     JS_SetReservedSlot(caller, 0, callback);
 
@@ -338,6 +345,10 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         return; 
     }
 
+    if (!m_Eval) {
+        type = NativeHTTP::DATA_STRING;
+    }
+
     switch(type) {
         case NativeHTTP::DATA_STRING:
             SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
@@ -423,7 +434,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 }
 
 NativeJSHttp::NativeJSHttp()
-    : request(JSVAL_NULL), refHttp(NULL)
+    : request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
 {
 }
 

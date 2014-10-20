@@ -42,6 +42,8 @@ class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDele
         NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onError(NativeHTTP::HTTPError err);
     void onHeader(){};
+
+    bool m_Eval;
 };
 
 
