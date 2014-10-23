@@ -24,7 +24,7 @@ Gyp = Builder.Gyp
 def leveldb():
     flags = ""
     if Platform.system == "Darwin":
-        flags = "CXXFLAGS='-mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
+        flags = "CXXFLAGS='-stdlib=libc++ -mmacosx-version-min=10.7' CFLAGS='-mmacosx-version-min=10.7'"
 
     return {
         "location": DEPEDENCY_REPO + "/leveldb.tar.gz",
