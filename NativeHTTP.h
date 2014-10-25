@@ -56,7 +56,8 @@ class NativeHTTPRequest
 
         void setHeader(const char *key, const char *val)
         {
-            ape_array_add(this->headers, key, val);
+            ape_array_add_camelkey_n(this->headers,
+                key, strlen(key), val, strlen(val));
         }
 
         buffer *getHeadersData() const;

@@ -597,7 +597,7 @@ void NativeHTTPResponse::end()
 
 void NativeHTTPResponse::setHeader(const char *key, const char *val)
 {
-    ape_array_add(m_Headers, key, val);
+    ape_array_add_camelkey_n(m_Headers, key, strlen(key), val, strlen(val));
 }
 
 void NativeHTTPResponse::setData(char *buf, size_t len)
