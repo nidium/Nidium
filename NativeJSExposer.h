@@ -215,9 +215,12 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
         return false;  \
     }
 
-#define JSOBJ_SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
-        JSPROP_ENUMERATE)
+
+#define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(cx, where, \
+    (const char *)name, val, NULL, NULL, flags)
+
+#define JSOBJ_SET_PROP(where, name, val) JSOBJ_SET_PROP_FLAGS(where, name, val, \
+        JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
 #define JSOBJ_CALLFUNCNAME(where, name, argc, argv) \
     { \
