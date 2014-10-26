@@ -62,7 +62,7 @@ static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 
     if (server != NULL) {
         delete server;
-    }       
+    }
 }
 
 NativeJSHTTPResponse::NativeJSHTTPResponse(JSContext *cx, uint16_t code) :

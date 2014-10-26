@@ -283,6 +283,9 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
 
         JSObject *remote = JS_NewObject(cx, NULL, NULL, NULL);
 
+        /*
+            TODO: inet_ntoa is not reentrant
+        */
         char *cip = inet_ntoa(addr->sin_addr);
         jsval jip = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip));
         jsval jport = INT_TO_JSVAL(ntohs(addr->sin_port));
