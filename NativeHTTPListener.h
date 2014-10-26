@@ -199,6 +199,8 @@ public:
         return m_HttpState.url;
     }
 
+    const char *getHeader(const char *key);
+
     void resetData() {
         if (m_HttpState.data != NULL) {
             m_HttpState.data->used = 0;

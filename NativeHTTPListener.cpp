@@ -461,6 +461,23 @@ void NativeHTTPClientConnection::write(char *buf, size_t len)
     APE_socket_write(m_SocketClient, buf, len, APE_DATA_COPY);
 }
 
+const char *NativeHTTPClientConnection::getHeader(const char *key)
+{
+    ape_array_t *arr = getHTTPState()->headers.list;
+    if (!arr) {
+        return NULL;
+    }
+
+    buffer *k, *v;
+    APE_A_FOREACH(arr, k, v) {
+        if (strcmp((char *)k->data, key) == 0) {
+            return (char *)v->data;
+        }
+    }
+
+    return NULL;
+}
+
 NativeHTTPResponse *NativeHTTPClientConnection::onCreateResponse()
 {
     return new NativeHTTPResponse();
@@ -592,6 +609,14 @@ void NativeHTTPResponse::end()
     if (m_Chunked) {
         APE_socket_write(m_Con->getSocket(),
             (char *)CONST_STR_LEN("0\r\n\r\n"), APE_DATA_STATIC);
+    }
+
+    const char *header_connection = m_Con->getHeader("connection");
+    if (header_connection && strcasecmp(header_connection, "close") == 0) {
+        /*
+            TODO: temporise to (try to) avoid active close?
+        */
+        m_Con->close();
     }
 }
 
