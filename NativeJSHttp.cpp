@@ -321,7 +321,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     APE_A_FOREACH(h->headers.list, k, v) {
         JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
             v->used-1);
-        SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
+        JSOBJ_SET_PROP_FLAGS(headers, k->data,
+            STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
     }
     
     SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));

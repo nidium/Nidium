@@ -109,7 +109,8 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
             JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
                 v->used-1);
-            JSOBJ_SET_PROP(headers, k->data, STRING_TO_JSVAL(jstr));
+            JSOBJ_SET_PROP_FLAGS(headers, k->data,
+                STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
         }
     }
 
