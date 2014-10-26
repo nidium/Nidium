@@ -190,6 +190,8 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     JS_DefineFunctions(cx, jclient, socket_client_funcs);
 
+    JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
+
     arg = OBJECT_TO_JSVAL(jclient);
 
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onaccept", &onaccept) &&
