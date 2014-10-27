@@ -490,7 +490,7 @@ NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
     m_Headers(ape_array_new(8)), m_Statuscode(code), m_ContentLength(0),
     m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
 {
-
+    this->setHeader("Server", "nidium/1.0");
 }
 
 NativeHTTPResponse::~NativeHTTPResponse()
