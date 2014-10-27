@@ -85,6 +85,8 @@ static int message_begin_cb(http_parser *p)
 {
     NativeHTTP *nhttp = (NativeHTTP *)p->data;
 
+    nhttp->clearState();
+
     nhttp->clearTimeout();
 
     return 0;
@@ -204,7 +206,6 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
     return 0;
 }
 
-
 static void native_http_connected(ape_socket *s,
     ape_global *ape, void *socket_arg)
 {
@@ -212,12 +213,7 @@ static void native_http_connected(ape_socket *s,
 
     if (nhttp == NULL) return;
 
-    nhttp->http.headers.list = NULL;
-    nhttp->http.headers.tkey = NULL;
-    nhttp->http.headers.tval = NULL;
     nhttp->http.data = buffer_new(0);
-    nhttp->http.ended = 0;
-
     nhttp->http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
@@ -297,16 +293,10 @@ NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
 {
     this->req = req;
 
-    http.parser_rdy = false;
-    http.data = NULL;
-    http.headers.tval = NULL;
-    http.headers.tkey = NULL;
-    http.headers.list = NULL;
-    http.ended = 0;
-    http.contentlength = 0;
+    memset(&http, 0, sizeof(http));
 
+    http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
     native_http_data_type = DATA_NULL;
-
 }
 
 void NativeHTTP::setPrivate(void *ptr)
@@ -378,23 +368,23 @@ void NativeHTTP::headerEnded()
 #undef REQUEST_HEADER
 }
 
+/*
+    stopRequest can be used to shutdown slow or maliscious connections
+    since the shutdown is not queued
+*/
 void NativeHTTP::stopRequest(bool timeout)
 {
     this->clearTimeout();
 
     if (!http.ended) {
-        if (http.headers.list) {
-            ape_array_destroy(http.headers.list);
-        }
-
-        if (http.data) buffer_destroy(http.data);
         http.ended = 1;
-        http.data = NULL;
-        http.headers.tval = NULL;
-        http.headers.tkey = NULL;
-        http.headers.list = NULL;
+        
+        this->clearState();
 
         if (m_CurrentSock) {
+            /*
+                Make sur the connection is closed right now
+            */
             APE_socket_shutdown_now(m_CurrentSock);
         }
 
@@ -415,22 +405,22 @@ void NativeHTTP::requestEnded()
 
         delegate->onRequest(&http, native_http_data_type);
 
-        if (http.headers.list) {
-            ape_array_destroy(http.headers.list);
-        }
-
-        if (http.data) {
-            buffer_destroy(http.data);
-        }
-        http.data = NULL;
-        http.headers.tval = NULL;
-        http.headers.tkey = NULL;
-        http.headers.list = NULL;
+        this->clearState();
 
         if (m_CurrentSock) {
             APE_socket_shutdown(m_CurrentSock);
         }
     } 
+}
+
+void NativeHTTP::clearState()
+{
+    ape_array_destroy(http.headers.list);
+    buffer_destroy(http.data);
+    http.data = NULL;
+
+    memset(&http.headers, 0, sizeof(http.headers));
+    http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 }
 
 static int NativeHTTP_handle_timeout(void *arg)

@@ -208,6 +208,14 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
         return req;
     }
 
+    void close() {
+        if (m_CurrentSock) {
+            APE_socket_shutdown(m_CurrentSock);
+        }
+    }
+
+    void clearState();
+
     NativeHTTP(NativeHTTPRequest *req, ape_global *n);
     int request(NativeHTTPDelegate *delegate);
     ~NativeHTTP();
