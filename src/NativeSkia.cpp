@@ -15,7 +15,6 @@
 #include "NativeSkImage.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeSystemInterface.h"
-#include "NativeStream.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
