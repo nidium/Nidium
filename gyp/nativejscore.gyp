@@ -108,7 +108,6 @@
             '../NativeJSSocket.cpp',
             '../NativeJSThread.cpp',
             '../NativeSharedMessages.cpp',
-            '../NativeStream.cpp',
             '../NativeUtils.cpp',
             '../NativeJSStream.cpp',
             '../NativeMessages.cpp',
