@@ -54,10 +54,29 @@ class NativeHTTPRequest
             free(path);
         };
 
+        void recycle() {
+            ape_array_destroy(this->headers);
+            this->headers = ape_array_new(8);
+            if (data != NULL && datafree != NULL) {
+                datafree(data);
+            }
+            data = NULL;
+            datalen = 0;
+            method = NATIVE_HTTP_GET;
+
+            this->setDefaultHeaders();
+        }
+
         void setHeader(const char *key, const char *val)
         {
             ape_array_add_camelkey_n(this->headers,
                 key, strlen(key), val, strlen(val));
+        }
+
+        const char *getHeader(const char *key)
+        {
+            buffer *ret = ape_array_lookup_nocase(headers, key, strlen(key));
+            return ret ? (const char *)ret->data : NULL;
         }
 
         buffer *getHeadersData() const;
@@ -72,6 +91,14 @@ class NativeHTTPRequest
 
         const char *getPath() const {
             return this->path;
+        }
+
+        void setPath(char *lpath) {
+            if (this->path && lpath != this->path) {
+                free(this->path);
+            }
+
+            this->path = strdup(lpath);
         }
 
         u_short getPort() const {
@@ -121,9 +148,9 @@ class NativeHTTPRequest
 
 class NativeHTTP : public NativeIStreamer, public NativeMessages
 {
-  private:
+private:
     void *ptr;
-  public:
+public:
     enum DataType {
         DATA_STRING = 1,
         DATA_BINARY,
@@ -205,24 +232,46 @@ class NativeHTTP : public NativeIStreamer, public NativeMessages
     }
 
     NativeHTTPRequest *getRequest() const {
-        return req;
+        return m_Request;
     }
 
-    void close() {
+    const char *getHeader(const char *key);
+
+    void close(bool now = false) {
         if (m_CurrentSock) {
-            APE_socket_shutdown(m_CurrentSock);
+            m_SocketClosing = true;
+            if (now) {
+                APE_socket_shutdown_now(m_CurrentSock);
+            } else {
+                APE_socket_shutdown(m_CurrentSock);
+            }
         }
     }
 
     void clearState();
+    bool request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate);
+    bool isKeepAlive();
 
-    NativeHTTP(NativeHTTPRequest *req, ape_global *n);
-    int request(NativeHTTPDelegate *delegate);
+    bool canDoRequest() const {
+        return m_CanDoRequest && !m_SocketClosing;
+    }
+
+    bool canDoRequest(bool val) {
+        m_CanDoRequest = val;
+
+        return canDoRequest();
+    }
+
+    NativeHTTP(ape_global *n);
     ~NativeHTTP();
-    private:
-        NativeHTTPRequest *req;
-        uint64_t m_FileSize;
-        bool m_isParsing; // http_parser_execute is working
+private:
+    bool createConnection();
+
+    uint64_t m_FileSize;
+    bool m_isParsing; // http_parser_execute is working
+    NativeHTTPRequest *m_Request;
+    bool m_CanDoRequest;
+    bool m_SocketClosing;
 };
 
 class NativeHTTPDelegate

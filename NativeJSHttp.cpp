@@ -73,18 +73,11 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSAutoByteString curl(cx, url);
 
-    NativeHTTPRequest *req = new NativeHTTPRequest(curl.ptr());
 
-    if (!req->isValid()) {
-        JS_ReportError(cx, "Invalid URL");
-        delete req;
-        return false;
-    }
+    nhttp = new NativeHTTP((ape_global *)JS_GetContextPrivate(cx));
 
-    nhttp = new NativeHTTP(req,
-        (ape_global *)JS_GetContextPrivate(cx));
+    jshttp = new NativeJSHttp(curl.ptr());
 
-    jshttp = new NativeJSHttp();
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
     jshttp->jsobj = ret;
@@ -110,6 +103,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSHttp *jshttp;
     JSObject *options = NULL;
     jsval curopt;
+    NativeHTTPRequest *req;
 
     NATIVE_CHECK_ARGS("request", 2);
 
@@ -128,12 +122,27 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if ((nhttp = (NativeHTTP *)JS_GetPrivate(caller)) == NULL) {
-        return JS_TRUE;
+        return true;
     }
 
-    NativeHTTPRequest *req = nhttp->getRequest();
+    if (!nhttp->canDoRequest()) {
+        JS_ReportError(cx, "A request is already pending.");
+        return false;
+    }
 
     jshttp = (NativeJSHttp *)nhttp->getPrivate();
+
+    if ((req = nhttp->getRequest()) == NULL) {
+        req = new NativeHTTPRequest(jshttp->m_URL);
+    }
+
+    if (!req->isValid()) {
+        JS_ReportError(cx, "Invalid URL");
+        if (nhttp->getRequest() == NULL) {
+            delete req;
+        }
+        return false;
+    }
 
     GET_OPT("method") {
         JSString *method = JSVAL_TO_STRING(curopt);
@@ -212,7 +221,10 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     //printf("Request : %s\n", req->getHeadersData()->data);
 
-    nhttp->request(jshttp);
+    if (!nhttp->request(req, jshttp)) {
+        JS_ReportError(cx, "Failed to exec request");
+        return false;
+    }
 
     return JS_TRUE;
 }
@@ -434,9 +446,10 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 }
 
-NativeJSHttp::NativeJSHttp()
+NativeJSHttp::NativeJSHttp(char *url)
     : request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
 {
+    m_URL = strdup(url);
 }
 
 NativeJSHttp::~NativeJSHttp()
@@ -444,6 +457,7 @@ NativeJSHttp::~NativeJSHttp()
     if (refHttp) {
         delete refHttp;
     }
+    free(m_URL);
 }
 
 NATIVE_OBJECT_EXPOSE(Http)

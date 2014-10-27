@@ -220,14 +220,15 @@ static void native_http_connected(ape_socket *s,
     nhttp->http.parser.data = nhttp;
     nhttp->http.parser_rdy = true;
 
-    buffer *headers = nhttp->getRequest()->getHeadersData();
+    NativeHTTPRequest *request = nhttp->getRequest();
+    buffer *headers = request->getHeadersData();
 
-    if (nhttp->getRequest()->getData() != NULL &&
-        nhttp->getRequest()->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
+    if (request->getData() != NULL &&
+        request->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
-        APE_socket_write(s, (unsigned char *)nhttp->getRequest()->getData(),
+        APE_socket_write(s, (unsigned char *)request->getData(),
             nhttp->getRequest()->getDataLength(), APE_DATA_OWN);
         FLUSH_TCP(s->s.fd);
     } else {
@@ -259,6 +260,10 @@ static void native_http_disconnect(ape_socket *s,
     if (!nhttp->http.ended) {
         nhttp->delegate->onError(NativeHTTP::ERROR_DISCONNECTED);
     }
+
+    nhttp->clearState();
+
+    nhttp->canDoRequest(true);
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape,
@@ -286,12 +291,13 @@ static void native_http_read(ape_socket *s, ape_global *ape,
     }
 }
 
-NativeHTTP::NativeHTTP(NativeHTTPRequest *req, ape_global *n) :
+NativeHTTP::NativeHTTP(ape_global *n) :
     ptr(NULL), net(n), m_CurrentSock(NULL),
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
-    m_TimeoutTimer(0), delegate(NULL), m_FileSize(0), m_isParsing(false)
+    m_TimeoutTimer(0), delegate(NULL),
+    m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
+    m_SocketClosing(false)
 {
-    this->req = req;
 
     memset(&http, 0, sizeof(http));
 
@@ -381,12 +387,10 @@ void NativeHTTP::stopRequest(bool timeout)
         
         this->clearState();
 
-        if (m_CurrentSock) {
-            /*
-                Make sur the connection is closed right now
-            */
-            APE_socket_shutdown_now(m_CurrentSock);
-        }
+        /*
+            Make sur the connection is closed right now
+        */
+        this->close(true);
 
         if (timeout) {
             this->delegate->onError(ERROR_TIMEOUT);
@@ -400,17 +404,24 @@ void NativeHTTP::stopRequest(bool timeout)
 
 void NativeHTTP::requestEnded()
 {
+    m_CanDoRequest = true;
+
     if (!http.ended) {
         http.ended = 1;
+        bool doclose = !this->isKeepAlive();
+
+        if (doclose) {
+            m_SocketClosing = true;
+        }
 
         delegate->onRequest(&http, native_http_data_type);
 
         this->clearState();
 
-        if (m_CurrentSock) {
-            APE_socket_shutdown(m_CurrentSock);
+        if (doclose) {
+            this->close();
         }
-    } 
+    }
 }
 
 void NativeHTTP::clearState()
@@ -421,6 +432,28 @@ void NativeHTTP::clearState()
 
     memset(&http.headers, 0, sizeof(http.headers));
     http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
+}
+
+bool NativeHTTP::isKeepAlive()
+{
+    /*
+        First check the server "connection" header
+    */
+    const char *header_connection = this->getHeader("connection");
+    if (header_connection && strcasecmp(header_connection, "close") == 0) {
+        return false;
+    }
+
+    /*
+        Then check ours
+    */
+    if (m_Request) {
+        header_connection = m_Request->getHeader("connection");
+        if (header_connection && strcasecmp(header_connection, "close") == 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 static int NativeHTTP_handle_timeout(void *arg)
@@ -438,37 +471,72 @@ void NativeHTTP::clearTimeout()
     }
 }
 
-int NativeHTTP::request(NativeHTTPDelegate *delegate)
+bool NativeHTTP::createConnection()
 {
-    ape_socket *socket;
-    this->delegate = delegate;
+    if (!m_Request) {
+        return false;
+    }
 
-    if ((socket = APE_socket_new(this->req->isSSL() ?
+    ape_socket *socket;
+
+    if ((socket = APE_socket_new(m_Request->isSSL() ?
         APE_SOCKET_PT_SSL : APE_SOCKET_PT_TCP, 0, net)) == NULL) {
 
         printf("[Socket] Cant load socket (new)\n");
         if (this->delegate) {
             this->delegate->onError(ERROR_SOCKET);
         }
-        return 0;
+        return false;
     }
 
-    if (APE_socket_connect(socket, this->req->getPort(), this->req->getHost(), 0) == -1) {
+    if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(), 0) == -1) {
         printf("[Socket] Cant connect (0)\n");
         if (this->delegate) {
             this->delegate->onError(ERROR_SOCKET);
         }
-        return 0;
+        return false;
     }
 
-    socket->callbacks.on_connected = native_http_connected;
-    socket->callbacks.on_read = native_http_read;
+    m_SocketClosing = false;
+    socket->callbacks.on_connected  = native_http_connected;
+    socket->callbacks.on_read       = native_http_read;
     socket->callbacks.on_disconnect = native_http_disconnect;
 
-    http.ended = 0;
     socket->ctx = this;
-    
+
     this->m_CurrentSock = socket;
+
+    return true;
+}
+
+bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
+{
+    ape_socket *socket;
+
+    if (!canDoRequest()) {
+        return false;
+    }
+
+    /* A fresh request is given */
+    if (m_Request && req != m_Request) {
+        delete m_Request;
+    } else if (m_Request == req) {
+        m_Request->recycle();
+    }
+
+    m_Request = req;
+    bool reusesock = (m_CurrentSock != NULL);
+
+    /*
+        If we have an available socket, reuse it (keep alive)
+    */
+    if (!m_CurrentSock && !createConnection()) {
+        return false;
+    }
+
+    this->delegate = delegate;
+    http.ended = 0;
+
     delegate->httpref = this;
 
     if (m_Timeout) {
@@ -480,27 +548,38 @@ int NativeHTTP::request(NativeHTTPDelegate *delegate)
         m_TimeoutTimer = ctimer->identifier;
     }
 
-    return 1;
+    m_CanDoRequest = false;
+
+    if (reusesock) {
+        native_http_connected(m_CurrentSock, net, NULL);
+    }
+
+    return true;
 }
 
 NativeHTTP::~NativeHTTP()
 {
     if (m_CurrentSock != NULL) {
         m_CurrentSock->ctx = NULL;
-        APE_socket_shutdown_now(m_CurrentSock);
+        this->close(true);
     }
 
     if (m_TimeoutTimer) {
         this->clearTimeout();
     }
 
-    if (req) {
-        delete req;
+    if (m_Request) {
+        delete m_Request;
     }
 
-    if (http.headers.list) ape_array_destroy(http.headers.list);
-    if (http.data) buffer_destroy(http.data);
+    this->clearState();
 
+}
+
+const char *NativeHTTP::getHeader(const char *key)
+{
+    buffer *ret = ape_array_lookup_nocase(http.headers.list, key, strlen(key));
+    return ret ? (const char *)ret->data : NULL;
 }
 
 int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,

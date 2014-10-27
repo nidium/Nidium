@@ -463,19 +463,9 @@ void NativeHTTPClientConnection::write(char *buf, size_t len)
 
 const char *NativeHTTPClientConnection::getHeader(const char *key)
 {
-    ape_array_t *arr = getHTTPState()->headers.list;
-    if (!arr) {
-        return NULL;
-    }
-
-    buffer *k, *v;
-    APE_A_FOREACH(arr, k, v) {
-        if (strcmp((char *)k->data, key) == 0) {
-            return (char *)v->data;
-        }
-    }
-
-    return NULL;
+    buffer *ret = ape_array_lookup_nocase(getHTTPState()->headers.list,
+        key, strlen(key));
+    return ret ? (const char *)ret->data : NULL;
 }
 
 NativeHTTPResponse *NativeHTTPClientConnection::onCreateResponse()

@@ -35,8 +35,7 @@ NativeHTTPStream::NativeHTTPStream(const char *location) :
     m_Mapped.fd   = 0;
     m_Mapped.size = 0;
 
-    NativeHTTPRequest *req = new NativeHTTPRequest(location);
-    m_Http = new NativeHTTP(req, NativeJS::getNet());
+    m_Http = new NativeHTTP(NativeJS::getNet());
 }
 
 NativeHTTPStream::~NativeHTTPStream()
@@ -68,7 +67,13 @@ void NativeHTTPStream::onStart(size_t packets, size_t seek)
     m_StartPosition = seek;
     m_BytesBuffered = 0;
 
-    m_Http->request(this);
+
+    NativeHTTPRequest *req = m_Http->getRequest();
+    if (!req) {
+        req = new NativeHTTPRequest(m_Location);
+    }
+
+    m_Http->request(req, this);
 }
 
 bool NativeHTTPStream::hasDataAvailable() const
@@ -159,6 +164,7 @@ void NativeHTTPStream::seek(size_t pos)
         We need to seek in HTTP
     */
     NativeHTTPRequest *req = m_Http->getRequest();
+
     m_Http->stopRequest();
 
     m_PendingSeek = true;
@@ -166,7 +172,7 @@ void NativeHTTPStream::seek(size_t pos)
     sprintf(seekstr, "bytes=%zu-", pos);
     req->setHeader("Range", seekstr);
 
-    m_Http->request(this);
+    m_Http->request(req, this);
 
     m_StartPosition = pos;
     m_LastReadUntil = 0;
