@@ -1,7 +1,7 @@
 #include "NativeJSConsole.h"
 #include "NativeJS.h"
 //#include "NativeContext.h"
-#include "NativeStream.h"
+
 #include "NativeJSProfiler.h"
 
 #include <jsdbgapi.h>

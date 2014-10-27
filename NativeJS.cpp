@@ -34,7 +34,6 @@
 #include "NativeJSConsole.h"
 #include "NativeJSFS.h"
 
-#include "NativeStream.h"
 #include "NativeUtils.h"
 #include "NativeMessages.h"
 
