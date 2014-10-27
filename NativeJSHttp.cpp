@@ -134,6 +134,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     if ((req = nhttp->getRequest()) == NULL) {
         req = new NativeHTTPRequest(jshttp->m_URL);
+    } else {
+        req->recycle();
     }
 
     if (!req->isValid()) {

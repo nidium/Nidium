@@ -170,6 +170,9 @@ void NativeHTTPStream::seek(size_t pos)
     m_PendingSeek = true;
     char seekstr[64];
     sprintf(seekstr, "bytes=%zu-", pos);
+
+    req->recycle();
+
     req->setHeader("Range", seekstr);
 
     m_Http->request(req, this);

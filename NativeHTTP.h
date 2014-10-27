@@ -75,7 +75,7 @@ class NativeHTTPRequest
 
         const char *getHeader(const char *key)
         {
-            buffer *ret = ape_array_lookup_nocase(headers, key, strlen(key));
+            buffer *ret = ape_array_lookup(headers, key, strlen(key));
             return ret ? (const char *)ret->data : NULL;
         }
 

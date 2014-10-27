@@ -264,6 +264,7 @@ static void native_http_disconnect(ape_socket *s,
     nhttp->clearState();
 
     nhttp->canDoRequest(true);
+
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape,
@@ -424,6 +425,9 @@ void NativeHTTP::requestEnded()
     }
 }
 
+/*
+    Don't call close() right before (m_SocketClosing would be reset)
+*/
 void NativeHTTP::clearState()
 {
     ape_array_destroy(http.headers.list);
@@ -432,10 +436,13 @@ void NativeHTTP::clearState()
 
     memset(&http.headers, 0, sizeof(http.headers));
     http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
+
+    m_SocketClosing = false;
 }
 
 bool NativeHTTP::isKeepAlive()
 {
+    printf("Check keep alive\n");
     /*
         First check the server "connection" header
     */
@@ -520,8 +527,6 @@ bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
     /* A fresh request is given */
     if (m_Request && req != m_Request) {
         delete m_Request;
-    } else if (m_Request == req) {
-        m_Request->recycle();
     }
 
     m_Request = req;
@@ -578,7 +583,7 @@ NativeHTTP::~NativeHTTP()
 
 const char *NativeHTTP::getHeader(const char *key)
 {
-    buffer *ret = ape_array_lookup_nocase(http.headers.list, key, strlen(key));
+    buffer *ret = ape_array_lookup(http.headers.list, key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }
 
