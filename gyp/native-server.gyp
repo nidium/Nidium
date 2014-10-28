@@ -17,6 +17,7 @@
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeJSConsole.cpp',
             '<(native_src_path)/NativeREPL.cpp',
+            '<(native_src_path)/NativeJSSystem.cpp',
         ],
         'conditions': [
             ['OS=="linux"', {
