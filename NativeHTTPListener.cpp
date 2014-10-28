@@ -463,7 +463,7 @@ void NativeHTTPClientConnection::write(char *buf, size_t len)
 
 const char *NativeHTTPClientConnection::getHeader(const char *key)
 {
-    buffer *ret = ape_array_lookup(getHTTPState()->headers.list,
+    buffer *ret = ape_array_lookup_cstr(getHTTPState()->headers.list,
         key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }

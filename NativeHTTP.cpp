@@ -442,7 +442,6 @@ void NativeHTTP::clearState()
 
 bool NativeHTTP::isKeepAlive()
 {
-    printf("Check keep alive\n");
     /*
         First check the server "connection" header
     */
@@ -583,7 +582,7 @@ NativeHTTP::~NativeHTTP()
 
 const char *NativeHTTP::getHeader(const char *key)
 {
-    buffer *ret = ape_array_lookup(http.headers.list, key, strlen(key));
+    buffer *ret = ape_array_lookup_cstr(http.headers.list, key, strlen(key));
     return ret ? (const char *)ret->data : NULL;
 }
 
