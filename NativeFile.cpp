@@ -130,7 +130,7 @@ void NativeFile::openTask(const char *mode, void *arg)
 
     ret = lstat(m_Path, &s);
 
-    if (ret == 0 && s.st_mode & S_IFDIR) {
+    if (ret == 0 && S_ISDIR(s.st_mode)) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open dir %s : %s\n", m_Path, strerror(errno));
@@ -498,7 +498,7 @@ int NativeFile::openSync(const char *modes, int *err)
 
     ret = lstat(m_Path, &s);
 
-    if (ret == 0 && s.st_mode & S_IFDIR) {
+    if (ret == 0 && S_ISDIR(s.st_mode)) {
         m_Dir = opendir(m_Path);
         if (!m_Dir) {
             printf("Failed to open : %s errno=%d\n", m_Path, errno);
