@@ -5,8 +5,9 @@
 #include "NativeMacros.h"
 
 #ifdef __linux__
-#include <sys/time.h>
-#include <sys/resource.h>
+  #include <sys/time.h>
+  #include <sys/resource.h>
+  #include <linux/stat.h>
 #endif
 #include <errno.h>
 #include <sys/stat.h>
@@ -53,7 +54,7 @@ static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
     for (int i = 0; i <= rl.rlim_cur; i++ ) {
         if (fstat(i, &stats) == 0) {
             fdcounter++;
-            if (S_ISSOCK(stats.st_mode)) {
+            if ((stats.st_mode & S_IFMT) == S_IFSOCK) {
                 sockcounter++;
             } else {
                 othercount++;
