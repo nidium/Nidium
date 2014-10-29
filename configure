@@ -66,7 +66,7 @@ def mozilla():
         "location": location,
         "chdir": "js/src/",
         "build": ["autoconf2.13", configure, "make"],
-        "outputs": ["libjs_static(.a|.lib)"]
+        "outputs": ["libjs_static.a$"]
     }
 
 @Deps.register("http-parser")
