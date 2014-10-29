@@ -1,7 +1,8 @@
 #include "NativeJSSystem.h"
 #include <NativeJS.h>
-#include <NativeContext.h>
-#include <NativeMacros.h>
+
+#include "NativeContext.h"
+#include "NativeMacros.h"
 
 #ifdef __linux__
 #include <sys/time.h>
