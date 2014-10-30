@@ -18,7 +18,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <NativeHTTP.h>
+#include "NativeHTTP.h"
 //#include "ape_http_parser.h"
 #include <http_parser.h>
 #include <native_netlib.h>
@@ -88,6 +88,8 @@ static int message_begin_cb(http_parser *p)
     nhttp->clearState();
 
     nhttp->clearTimeout();
+
+    nhttp->http.data = buffer_new(0);
 
     return 0;
 }
@@ -212,9 +214,6 @@ static void native_http_connected(ape_socket *s,
     NativeHTTP *nhttp = (NativeHTTP *)s->ctx;
 
     if (nhttp == NULL) return;
-
-    nhttp->http.data = buffer_new(0);
-    nhttp->http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
     nhttp->http.parser.data = nhttp;
