@@ -94,6 +94,7 @@ public:
     virtual ~NativeHTTPResponse();
 
     void setHeader(const char *key, const char *val);
+    void removeHeader(const char *key);
 
     /*
         Give ownership
