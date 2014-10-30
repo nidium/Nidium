@@ -615,6 +615,11 @@ void NativeHTTPResponse::setHeader(const char *key, const char *val)
     ape_array_add_camelkey_n(m_Headers, key, strlen(key), val, strlen(val));
 }
 
+void NativeHTTPResponse::removeHeader(const char *key)
+{
+    ape_array_delete(m_Headers, key, strlen(key));
+}
+
 void NativeHTTPResponse::setData(char *buf, size_t len)
 {
     if (m_Content) {
@@ -655,6 +660,7 @@ const buffer &NativeHTTPResponse::getHeadersString()
         }
     } else {
         this->setHeader("Transfer-Encoding", "chunked");
+        this->removeHeader("Content-Length");
     }
     buffer *k, *v;
     if (this->getHeaders()) {
