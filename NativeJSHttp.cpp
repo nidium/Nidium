@@ -216,6 +216,14 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
+    GET_OPT("path") {
+        if (curopt.isString()) {
+            JSAutoByteString cstr(cx, curopt.toString());
+
+            req->setPath(cstr.ptr());
+        }
+    }
+
     jshttp->request = callback;
     JS_SetReservedSlot(caller, 0, callback);
 
