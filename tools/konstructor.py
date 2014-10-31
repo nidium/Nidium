@@ -60,12 +60,18 @@ from collections import OrderedDict
 from optparse import OptionParser
 import types
 class CommandLine:
-    optionParser = OptionParser(usage="Usage: %prog [requirements_file] [options]")
+    optionParser = OptionParser(usage="Usage: %prog [options]")
     _options = OrderedDict()
+    _required = []
 
     @staticmethod
     def parse():
         options, args = CommandLine.optionParser.parse_args()
+        optionsDict = vars(options)
+
+        for required in CommandLine._required:
+            if not optionsDict.get(required):
+                CommandLine.optionParser.error("You need to specify %s argument" % required)
 
         out = {}
         for name, callbacks in CommandLine._options.items():
@@ -76,6 +82,7 @@ class CommandLine:
                 for option, value in vars(options).iteritems():
                     if option == name:
                         out[callback].append(value)
+
 
         for callback, args in out.items():
             callback(*args)
@@ -88,6 +95,10 @@ class CommandLine:
             default = None
             action = "store"
             t = "string"
+
+            if "required" in kwargs:
+                CommandLine._required.append(name)
+
             if "default" in kwargs:
                 default = kwargs["default"]
                 if type(default) == types.BooleanType:
@@ -703,7 +714,10 @@ class Dep:
             # Symlink the current config
             for f in outputs:
                 if not f["copyOnly"]:
-                    Utils.symlink(os.path.join("..", "..", Deps.getDir(), "..", OUTPUT, "third-party", "." + self.buildConfig["config"], f["file"]), os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))) 
+                    Utils.symlink(
+                        os.path.join(Deps.getDir(), "..", OUTPUT, "third-party", "." + self.buildConfig["config"], f["file"]), 
+                        os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))
+                    ) 
 
 class Deps:
     path = "third-party"
@@ -844,7 +858,7 @@ class Deps:
 
     @staticmethod
     def setDir(path):
-        Deps.path = path;
+        Deps.path = os.path.abspath(path);
 
     @staticmethod
     def getDir():
