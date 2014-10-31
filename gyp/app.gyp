@@ -6,8 +6,8 @@
         'product_dir': '<(native_exec_path)',
         'dependencies': [
             'native.gyp:*',
-            '<(native_network_path)/gyp/network.gyp:nativenetwork',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            '<(native_network_path)/gyp/network.gyp:*',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:*',
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'interface.gyp:nativeinterface',
         ],

@@ -12,8 +12,8 @@
             '<(third_party_path)/basekit/source/',
         ],
         'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'

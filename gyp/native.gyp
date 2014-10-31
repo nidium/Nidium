@@ -3,8 +3,8 @@
         'target_name': 'nativestudio',
         'type': 'static_library',
         'dependencies': [
-            '<(native_network_path)/gyp/network.gyp:nativenetwork',
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'angle.gyp:*',
         ],
