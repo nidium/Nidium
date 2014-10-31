@@ -720,7 +720,7 @@ class Dep:
                     ) 
 
 class Deps:
-    path = "third-party"
+    path = os.path.abspath("third-party")
     deps = []
 
     class Konstruct:
