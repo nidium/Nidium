@@ -4,7 +4,7 @@
         'type': 'executable',
         'product_dir': '<(native_exec_path)',
         'dependencies': [
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore'
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:*'
         ],
         'include_dirs': [
             '<(native_network_path)',
