@@ -165,7 +165,6 @@ class Platform:
     def setEnviron(*args):
         for env in args:
             tmp = env.split("=")
-            pprint(tmp)
             if tmp[0][:-1] == "+":
                 os.environ[tmp[0][:-1]] += os.pathsep + tmp[1]
             else:
@@ -653,7 +652,7 @@ class Dep:
                 try:
                     files = os.listdir(path) 
                 except:
-                    outputs.append(outFile)
+                    outputs.append(out)
                     continue
                     
                 for f in files:
