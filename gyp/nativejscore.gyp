@@ -1,5 +1,72 @@
 {
     'targets': [{
+        'target_name': 'nativejscore-includes',
+        'type': 'none',
+        'direct_dependent_settings': {
+            'include_dirs': [
+                '<(third_party_path)/mozilla-central/js/src/dist/include/',
+                '<(third_party_path)/mozilla-central/js/src/',
+                '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
+                '<(third_party_path)/http-parser/',
+                '<(third_party_path)/leveldb/include/',
+                '../',
+            ],
+            'defines': [
+                #'_FILE_OFFSET_BITS=64',
+                '__STDC_LIMIT_MACROS'
+            ],
+            'conditions': [
+                ['OS=="mac"', {
+                    'xcode_settings': {
+                        'OTHER_CFLAGS': [
+                            '-fvisibility=hidden'
+                        ],
+                    },
+                }],
+                ['OS=="linux"', {
+                    'cflags': [
+                        '-fvisibility=hidden',
+                        '-Wno-c++0x-extensions',
+                        '-Wno-invalid-offsetof'
+                    ],
+                }]
+            ],
+        },
+    }, {
+        'target_name': 'nativejscore-link',
+        'type': 'none',
+        'direct_dependent_settings': {
+            'conditions': [
+                ['OS=="mac"', {
+                    "link_settings": {
+                        'libraries': [
+                            'libcares.a',
+                            'libhttp_parser.a',
+                            'libnspr4.a',
+                            'libjs_static.a',
+                            'libleveldb.a',
+                            '/usr/lib/libz.dylib',
+                        ]
+                    }
+                }],
+                ['OS=="linux"', {
+                    "link_settings": {
+                        'libraries': [
+                            '-lpthread',
+                            '-lz',
+                            '-ldl',
+                            '-lrt',
+                            '-ljs_static',
+                            '-lnspr4',
+                            '-lcares',
+                            '-lhttp_parser',
+                            '-lleveldb',
+                        ]
+                    }
+                }]
+            ],
+        },
+    }, {
         'target_name': 'nativejscore',
         'type': 'static_library',
         'includes': [
@@ -19,7 +86,7 @@
             '__STDC_LIMIT_MACROS'
         ],
         'dependencies': [
-            '../network/gyp/network.gyp:nativenetwork',
+            '../network/gyp/network.gyp:*',
             'jsoncpp.gyp:jsoncpp'
         ],
         'conditions': [
@@ -44,59 +111,6 @@
                 ],
             }]
         ],
-        'direct_dependent_settings': {
-            'include_dirs': [
-                '<(third_party_path)/mozilla-central/js/src/dist/include/',
-                '<(third_party_path)/mozilla-central/js/src/',
-                '<(third_party_path)/mozilla-central/nsprpub/dist/include/nspr/',
-                '<(third_party_path)/http-parser/',
-                '<(third_party_path)/leveldb/include/',
-                '../',
-            ],
-            'defines': [
-                #'_FILE_OFFSET_BITS=64',
-                '__STDC_LIMIT_MACROS'
-            ],
-            'conditions': [
-                ['OS=="mac"', {
-                    'xcode_settings': {
-                        'OTHER_CFLAGS': [
-                            '-fvisibility=hidden'
-                        ],
-                    },
-                    "link_settings": {
-                        'libraries': [
-                            'libcares.a',
-                            'libhttp_parser.a',
-                            'libnspr4.a',
-                            'libjs_static.a',
-                            'libleveldb.a',
-                            '/usr/lib/libz.dylib',
-                        ]
-                    }
-                }],
-                ['OS=="linux"', {
-                    'cflags': [
-                        '-fvisibility=hidden',
-                        '-Wno-c++0x-extensions',
-                        '-Wno-invalid-offsetof'
-                    ],
-                    "link_settings": {
-                        'libraries': [
-                            '-lpthread',
-                            '-lz',
-                            '-ldl',
-                            '-lrt',
-                            '-ljs_static',
-                            '-lnspr4',
-                            '-lcares',
-                            '-lhttp_parser',
-                            '-lleveldb',
-                        ]
-                    }
-                }]
-            ],
-        },
         'sources': [
             '../NativeFileIO.cpp',
             '../NativeHTTP.cpp',
