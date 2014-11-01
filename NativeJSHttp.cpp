@@ -273,6 +273,8 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
             SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("http_response_code"))));      
             break;
+        default:
+            break;
     }
 
     jevent = OBJECT_TO_JSVAL(event);

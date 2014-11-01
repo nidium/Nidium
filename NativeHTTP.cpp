@@ -257,7 +257,7 @@ static void native_http_disconnect(ape_socket *s,
     nhttp->m_CurrentSock = NULL;
 
     if (!nhttp->http.ended) {
-        nhttp->delegate->onError(NativeHTTP::ERROR_DISCONNECTED);
+        nhttp->setPendingError(NativeHTTP::ERROR_DISCONNECTED);
     }
 
     nhttp->clearState();
@@ -285,7 +285,7 @@ static void native_http_read(ape_socket *s, ape_global *ape,
         printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
-        nhttp->delegate->onError(NativeHTTP::ERROR_RESPONSE);
+        nhttp->setPendingError(NativeHTTP::ERROR_RESPONSE);
 
         APE_socket_shutdown_now(s);
     }
@@ -296,13 +296,21 @@ NativeHTTP::NativeHTTP(ape_global *n) :
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
     m_TimeoutTimer(0), delegate(NULL),
     m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-    m_SocketClosing(false)
+    m_SocketClosing(false), m_PendingError(ERROR_NOERR)
 {
-
     memset(&http, 0, sizeof(http));
 
     http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
     native_http_data_type = DATA_NULL;
+}
+
+void NativeHTTP::reportPendingError()
+{
+    if (this->delegate && m_PendingError != ERROR_NOERR) {
+        this->delegate->onError(m_PendingError);
+    }
+
+    m_PendingError = ERROR_NOERR;
 }
 
 void NativeHTTP::setPrivate(void *ptr)
@@ -357,7 +365,7 @@ void NativeHTTP::headerEnded()
             m_FileSize = http.contentlength;
         }
     }
-
+/*
     switch (http.parser.status_code/100) {
         case 1:
         case 2:
@@ -370,6 +378,9 @@ void NativeHTTP::headerEnded()
             this->delegate->onError(ERROR_HTTPCODE);
             break;
     }
+*/
+
+    this->delegate->onHeader();
     
 #undef REQUEST_HEADER
 }
@@ -385,16 +396,16 @@ void NativeHTTP::stopRequest(bool timeout)
     if (!http.ended) {
         http.ended = 1;
         
-        this->clearState();
-
         /*
             Make sur the connection is closed right now
         */
         this->close(true);
 
         if (timeout) {
-            this->delegate->onError(ERROR_TIMEOUT);
+            this->setPendingError(ERROR_TIMEOUT);
         }
+
+        this->clearState();
 
         if (!m_isParsing && http.parser_rdy) {
             http_parser_execute(&http.parser, &settings, NULL, 0);
@@ -414,7 +425,9 @@ void NativeHTTP::requestEnded()
             m_SocketClosing = true;
         }
 
-        delegate->onRequest(&http, native_http_data_type);
+        if (!hasPendingError()) {
+            delegate->onRequest(&http, native_http_data_type);
+        }
 
         this->clearState();
 
@@ -429,6 +442,8 @@ void NativeHTTP::requestEnded()
 */
 void NativeHTTP::clearState()
 {
+    this->reportPendingError();
+
     ape_array_destroy(http.headers.list);
     buffer_destroy(http.data);
     http.data = NULL;
@@ -489,7 +504,7 @@ bool NativeHTTP::createConnection()
 
         printf("[Socket] Cant load socket (new)\n");
         if (this->delegate) {
-            this->delegate->onError(ERROR_SOCKET);
+            this->setPendingError(ERROR_SOCKET);
         }
         return false;
     }
@@ -497,7 +512,7 @@ bool NativeHTTP::createConnection()
     if (APE_socket_connect(socket, m_Request->getPort(), m_Request->getHost(), 0) == -1) {
         printf("[Socket] Cant connect (0)\n");
         if (this->delegate) {
-            this->delegate->onError(ERROR_SOCKET);
+            this->setPendingError(ERROR_SOCKET);
         }
         return false;
     }
@@ -519,6 +534,7 @@ bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
     ape_socket *socket;
 
     if (!canDoRequest()) {
+        this->clearState();
         return false;
     }
 
@@ -534,6 +550,7 @@ bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
         If we have an available socket, reuse it (keep alive)
     */
     if (!m_CurrentSock && !createConnection()) {
+        this->clearState();
         return false;
     }
 
@@ -574,6 +591,9 @@ NativeHTTP::~NativeHTTP()
     if (m_Request) {
         delete m_Request;
     }
+
+    this->delegate = NULL;
+    m_PendingError = ERROR_NOERR;
 
     this->clearState();
 

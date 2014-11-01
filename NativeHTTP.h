@@ -162,6 +162,7 @@ public:
     } native_http_data_type;
 
     enum HTTPError {
+        ERROR_NOERR,
         ERROR_TIMEOUT,
         ERROR_RESPONSE,
         ERROR_DISCONNECTED,
@@ -262,9 +263,23 @@ public:
         return canDoRequest();
     }
 
+    void setPendingError(NativeHTTP::HTTPError err) {
+        m_PendingError = err;
+    }
+    
+    void clearPendingError() {
+        m_PendingError = ERROR_NOERR;
+    }
+
+    bool hasPendingError() const {
+        return (m_PendingError != ERROR_NOERR);
+    }
+
     NativeHTTP(ape_global *n);
     ~NativeHTTP();
 private:
+    void reportPendingError();
+
     bool createConnection();
 
     uint64_t m_FileSize;
@@ -272,6 +287,7 @@ private:
     NativeHTTPRequest *m_Request;
     bool m_CanDoRequest;
     bool m_SocketClosing;
+    HTTPError m_PendingError;
 };
 
 class NativeHTTPDelegate
