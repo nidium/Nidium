@@ -264,6 +264,8 @@ static void native_http_disconnect(ape_socket *s,
 
     nhttp->canDoRequest(true);
 
+    s->ctx = NULL;
+
 }
 
 static void native_http_read(ape_socket *s, ape_global *ape,
@@ -296,7 +298,7 @@ NativeHTTP::NativeHTTP(ape_global *n) :
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
     m_TimeoutTimer(0), delegate(NULL),
     m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-    m_SocketClosing(false), m_PendingError(ERROR_NOERR)
+    m_PendingError(ERROR_NOERR)
 {
     memset(&http, 0, sizeof(http));
 
@@ -421,10 +423,6 @@ void NativeHTTP::requestEnded()
         http.ended = 1;
         bool doclose = !this->isKeepAlive();
 
-        if (doclose) {
-            m_SocketClosing = true;
-        }
-
         if (!hasPendingError()) {
             delegate->onRequest(&http, native_http_data_type);
         }
@@ -433,13 +431,12 @@ void NativeHTTP::requestEnded()
 
         if (doclose) {
             this->close();
+            native_http_disconnect(m_CurrentSock, m_CurrentSock->ape, NULL);
         }
     }
 }
 
-/*
-    Don't call close() right before (m_SocketClosing would be reset)
-*/
+
 void NativeHTTP::clearState()
 {
     this->reportPendingError();
@@ -451,7 +448,6 @@ void NativeHTTP::clearState()
     memset(&http.headers, 0, sizeof(http.headers));
     http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
 
-    m_SocketClosing = false;
 }
 
 bool NativeHTTP::isKeepAlive()
@@ -517,7 +513,6 @@ bool NativeHTTP::createConnection()
         return false;
     }
 
-    m_SocketClosing = false;
     socket->callbacks.on_connected  = native_http_connected;
     socket->callbacks.on_read       = native_http_read;
     socket->callbacks.on_disconnect = native_http_disconnect;

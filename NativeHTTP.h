@@ -240,7 +240,6 @@ public:
 
     void close(bool now = false) {
         if (m_CurrentSock) {
-            m_SocketClosing = true;
             if (now) {
                 APE_socket_shutdown_now(m_CurrentSock);
             } else {
@@ -254,7 +253,7 @@ public:
     bool isKeepAlive();
 
     bool canDoRequest() const {
-        return m_CanDoRequest && !m_SocketClosing;
+        return m_CanDoRequest && !hasPendingError();
     }
 
     bool canDoRequest(bool val) {
@@ -286,7 +285,6 @@ private:
     bool m_isParsing; // http_parser_execute is working
     NativeHTTPRequest *m_Request;
     bool m_CanDoRequest;
-    bool m_SocketClosing;
     HTTPError m_PendingError;
 };
 
