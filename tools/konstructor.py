@@ -524,7 +524,7 @@ class Dep:
         # Define some variables needed for building/symlinking
         cache = self.cache.find(self.name + "-build", self.options)
         self.buildConfig = cache
-        self.outputsDir = os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", "." + cache["config"]))
+        self.outputsDir = os.path.join(ROOT, OUTPUT, "third-party", "." + cache["config"])
         Utils.mkdir(self.outputsDir)
 
         if self.needDownload:
@@ -639,7 +639,7 @@ class Dep:
         if "outputs" not in self.options:
             return outputs
 
-        depDir = os.path.realpath(os.path.join(ROOT, Deps.path, self._getDir()))
+        depDir = os.path.join(Deps.path, self._getDir())
         with Utils.Chdir(depDir):
             for output in self.options["outputs"]:
                 rename = None
@@ -692,32 +692,28 @@ class Dep:
             Log.debug("No outputs for " + self.name)
             return
 
-        destDir = os.path.relpath(os.path.join(ROOT, Deps.path, self.outputsDir))
         outputs = self.findOutputs()
-        if self.needBuild:
-            # New outputs have been generated
-            # Copy them to the build dir and link the curent config
+        for output in outputs:
+            if output["found"]:
+                destDir = os.path.join(Deps.getDir(), "..", OUTPUT, "third-party", "." + self.buildConfig["config"])
+                destFile = os.path.join(destDir, output["file"])
+                Utils.mkdir(destDir)
 
-            for output in outputs:
-                if output["found"]:
-                    destFile = os.path.join(destDir, output["file"])
+                if self.needBuild:
+                    # New outputs have been generated
+                    # Copy them to the build dir 
+                    Log.debug("Found output %s, copy to %s" % (output["src"], destFile))
+                    shutil.copyfile(output["src"], destFile)
 
-                    Log.debug("Found output %s, copy to %s symlink to %s" % (output["src"], destFile, os.path.join(ROOT, OUTPUT, "third-party", output["file"])))
-                    Log.debug("output = " + self.outputsDir)
-                    shutil.copyfile(os.path.join(output["src"]), destFile)
-                    if not output["copyOnly"]:
-                        Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
-                else:
-                    Utils.exit("Output %s for %s not found" % (output["src"], self.name))
-        else:
-            # Everything is already built and in cache
-            # Symlink the current config
-            for f in outputs:
-                if not f["copyOnly"]:
-                    Utils.symlink(
-                        os.path.join(Deps.getDir(), "..", OUTPUT, "third-party", "." + self.buildConfig["config"], f["file"]), 
-                        os.path.relpath(os.path.join(ROOT, OUTPUT, "third-party", f["file"]))
-                    ) 
+                # Symlink the current config
+                if not output["copyOnly"]:
+                    Log.debug("symlink src=%s dst=%s" % (destFile, os.path.join(self.outputsDir, "..", output["file"])))
+                    Utils.symlink(destFile, os.path.join(self.outputsDir, "..", output["file"]))
+
+                #if not output["copyOnly"]:
+                #    Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
+            else:
+                Utils.exit("Output %s for %s not found" % (output["src"], self.name))
 
 class Deps:
     path = os.path.abspath("third-party")
