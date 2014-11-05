@@ -395,7 +395,7 @@ std::string NativeJSModules::findModuleInPath(NativeJSModule *module, const char
                     }
 
                     for (int j = 1; j < 4; j++) {
-                        size_t tmpPos = tmp.find(extensions[j], pos, tmp.length() - pos);
+                        size_t tmpPos = tmp.find(extensions[j], pos);
                         if (tmpPos != std::string::npos) {
                             switch (j) {
                                 case 1:
