@@ -5,7 +5,7 @@
     ],
     'variables' : {
         'native_version': '0.1',
-        'native_webgl%': 0,
+        'native_webgl%': 1,
         'native_audio%': 1,
         'native_embed_private%': 0,
         'native_private_dir': '../framework/dist/private/',

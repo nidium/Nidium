@@ -1,6 +1,7 @@
 #include "NativeJSCanvas.h"
 #include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeCanvas3DContext.h"
 #include "NativeCanvasHandler.h"
 #include "NativeContext.h"
 
@@ -763,6 +764,11 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                     TODO :
                     NativeObject->setContext(new NativeCanvasWebGLContext(...))
                 */
+                NativeCanvas3DContext *ctx2d = new NativeCanvas3DContext(NativeObject, cx,
+                        NativeObject->getWidth() + (NativeObject->padding.global * 2),
+                        NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
+
+                NativeObject->setContext(ctx2d);
                 break;
         }
 

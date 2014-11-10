@@ -71,7 +71,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
         NativeCanvas2DContext(NativeCanvasHandler *handler,
             struct JSContext *cx, int width, int height, NativeUIInterface *ui);
         
-        ~NativeCanvas2DContext();
+        virtual ~NativeCanvas2DContext();
     private:
         NativeSkia *m_Skia;
 

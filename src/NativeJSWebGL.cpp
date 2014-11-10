@@ -31,7 +31,7 @@ static JSClass NativeGL_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
-static JSClass WebGLRenderingContext_class = {
+JSClass WebGLRenderingContext_class = {
     "WebGLRenderingContext", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
@@ -542,7 +542,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS_END
 };
 
-static JSConstDoubleSpec WebGLRenderingContext_const [] = {
+JSConstDoubleSpec WebGLRenderingContext_const [] = {
     //{NGL_ES_VERSION_2_0, "ES_VERSION_2_0", 0, {0,0,0}},
     {NGL_DEPTH_BUFFER_BIT, "DEPTH_BUFFER_BIT", 0, {0,0,0}},
     {NGL_STENCIL_BUFFER_BIT, "STENCIL_BUFFER_BIT", 0, {0,0,0}},
@@ -2350,17 +2350,30 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *v
     return JS_TRUE;
 }
 
+static JSBool native_Canvas3DContext_constructor(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JS_ReportError(cx, "Illegal constructor");
+    return JS_FALSE;
+}
+
+
+
 NATIVE_OBJECT_EXPOSE(NativeGL);
 void NativeJSWebGLRenderingContext::registerObject(JSContext *cx) {
-    JSObject *proto;
 
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &WebGLRenderingContext_class,
+                native_Canvas3DContext_constructor,
+                0, NULL, WebGLRenderingContext_funcs, NULL, NULL);
+#if 0
     proto = JS_NewObject(cx, NULL, NULL, NULL);
     JS_DefineConstDoubles(cx, proto, WebGLRenderingContext_const);
     JS_DefineFunctions(cx, proto, WebGLRenderingContext_funcs);
-    
+
     JS_DefineObject(cx, JS_GetGlobalObject(cx),
                     "WebGLRenderingContext", &WebGLRenderingContext_class,
                     proto, 0);
+#endif
 }
 
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLObject);

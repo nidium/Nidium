@@ -2,6 +2,10 @@
 #include "NativeUtils.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeCanvas3DContext.h"
+#ifdef NATIVE_WEBGL_ENABLED
+  #include "NativeJSWebGL.h"
+#endif
 #include "NativeCanvasContext.h"
 #include "NativeGLState.h"
 #include "NativeSkia.h"
@@ -122,7 +126,7 @@ void NativeContext::loadNativeObjects(int width, int height)
 {
     JSContext *cx = m_JS->cx;
 
-   /* CanvasRenderingContext2D object */
+    /* CanvasRenderingContext2D object */
     NativeCanvas2DContext::registerObject(cx);
     /* Canvas() object */
     NativeJSCanvas::registerObject(cx);
