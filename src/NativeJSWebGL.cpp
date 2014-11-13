@@ -1,18 +1,18 @@
 #include "NativeJSWebGL.h"
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
+#include "NativeSkia.h"
+#include "NativeCanvas2DContext.h"
 #include "GLSLANG/ShaderLang.h"
+#include <SkCanvas.h>
+#include <NativeContext.h>
+#include <NativeUIInterface.h>
+#include <NativeMacros.h>
 
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
-#else
-#include <GL/gl.h>
-#include <GL/glext.h>
-#endif
+#define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
-#define NATIVE_GL_GETTER(obj) ((class NativeJSNativeGL *)JS_GetPrivate(obj))
+//#define GL_CALL(fn) fn
+#define GL_CALL(fn) fn; { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #fn);}
 
 #define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
 
@@ -25,13 +25,17 @@
             &name ## _class , NULL, 0); \
     }
 
+#define MAKE_GL_CURRENT(cx, vp) \
+    //NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp)); \
+    //ngl->MakeGLCurrent();
+
 static JSClass NativeGL_class = {
     "NativeGL", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
-JSClass WebGLRenderingContext_class = {
+static JSClass WebGLRenderingContext_class = {
     "WebGLRenderingContext", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
@@ -85,6 +89,12 @@ static JSClass WebGLUniformLocation_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+static JSClass WebGLShaderPrecisionFormat_class = {
+    "WebGLShaderPrecisionFormat", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
 
 static JSBool NativeGL_uniform_x_f(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
@@ -106,16 +116,16 @@ static JSBool NativeGL_uniform_x_f(JSContext *cx, unsigned int argc, jsval *vp, 
 
     switch (nb) {
         case 1:
-            glUniform1f(clocation, (GLfloat)x);
+            GL_CALL(glUniform1f(clocation, (GLfloat)x));
             break;
         case 2:
-            glUniform2f(clocation, (GLfloat)x, (GLfloat)y);
+            GL_CALL(glUniform2f(clocation, (GLfloat)x, (GLfloat)y));
             break;
         case 3:
-            glUniform3f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z);
+            GL_CALL(glUniform3f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z));
             break;
         case 4:
-            glUniform4f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w);
+            GL_CALL(glUniform4f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w));
             break;
     }
 
@@ -132,7 +142,7 @@ static JSBool NativeGL_uniform_x_fv(JSContext *cx, unsigned int argc, jsval *vp,
 
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &location, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     clocation = (intptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, JS_ARGV(cx, vp));
@@ -147,21 +157,21 @@ static JSBool NativeGL_uniform_x_fv(JSContext *cx, unsigned int argc, jsval *vp,
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
-        return JS_TRUE;
+        return false;
     }
 
     switch (nb) {
         case 1:
-            glUniform1fv(clocation, length, carray);
+            GL_CALL(glUniform1fv(clocation, length, carray));
             break;
         case 2:
-            glUniform2fv(clocation, length/2, carray);
+            GL_CALL(glUniform2fv(clocation, length/2, carray));
             break;
         case 3:
-            glUniform3fv(clocation, length/3, carray);
+            GL_CALL(glUniform3fv(clocation, length/3, carray));
             break;
         case 4:
-            glUniform4fv(clocation, length/4, carray);
+            GL_CALL(glUniform4fv(clocation, length/4, carray));
             break;
     }
 
@@ -188,16 +198,16 @@ static JSBool NativeGL_uniform_x_i(JSContext *cx, unsigned int argc, jsval *vp, 
 
     switch (nb) {
         case 1:
-            glUniform1i(clocation, x);
+            GL_CALL(glUniform1i(clocation, x));
             break;
         case 2:
-            glUniform2i(clocation, x, y);
+            GL_CALL(glUniform2i(clocation, x, y));
             break;
         case 3:
-            glUniform3i(clocation, x, y, z);
+            GL_CALL(glUniform3i(clocation, x, y, z));
             break;
         case 4:
-            glUniform4i(clocation, x, y, z, w);
+            GL_CALL(glUniform4i(clocation, x, y, z, w));
             break;
     }
     
@@ -214,7 +224,7 @@ static JSBool NativeGL_uniform_x_iv(JSContext *cx, unsigned int argc, jsval *vp,
     JSObject *location;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &location, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, JS_ARGV(cx, vp));
@@ -228,17 +238,17 @@ static JSBool NativeGL_uniform_x_iv(JSContext *cx, unsigned int argc, jsval *vp,
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Int32 array");
-        return JS_TRUE;
+        return false;
     }
 
     if (nb == 1) {
-        glUniform1iv(clocation, length, carray);
+        GL_CALL(glUniform1iv(clocation, length, carray));
     } else if (nb == 2) {
-        glUniform2iv(clocation, length/2, carray);
+        GL_CALL(glUniform2iv(clocation, length/2, carray));
     } else if (nb == 3) {
-        glUniform3iv(clocation, length/3, carray);
+        GL_CALL(glUniform3iv(clocation, length/3, carray));
     } else if (nb == 4) {
-        glUniform4iv(clocation, length/4, carray);
+        GL_CALL(glUniform4iv(clocation, length/4, carray));
     }
     
     return JS_TRUE;
@@ -255,7 +265,7 @@ static JSBool NativeGL_uniformMatrix_x_fv(JSContext *cx, unsigned int argc, jsva
     JSObject *location;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "obo", &location, &transpose, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, JS_ARGV(cx, vp));
@@ -268,18 +278,18 @@ static JSBool NativeGL_uniformMatrix_x_fv(JSContext *cx, unsigned int argc, jsva
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
-        return JS_TRUE;
+        return false;
     }
     
     switch (nb) {
         case 2:
-            glUniformMatrix2fv(clocation, length/4, (GLboolean)transpose, carray);
+            GL_CALL(glUniformMatrix2fv(clocation, length/4, (GLboolean)transpose, carray));
             break;
         case 3:
-            glUniformMatrix3fv(clocation, length/8, (GLboolean)transpose, carray);
+            GL_CALL(glUniformMatrix3fv(clocation, length/8, (GLboolean)transpose, carray));
             break;
         case 4:
-            glUniformMatrix4fv(clocation, length/16, (GLboolean)transpose, carray);
+            GL_CALL(glUniformMatrix4fv(clocation, length/16, (GLboolean)transpose, carray));
             break;
     }
     
@@ -304,16 +314,16 @@ static JSBool NativeGL_vertexAttrib_x_f(JSContext *cx, unsigned int argc, jsval 
 
     switch (nb) {
         case 1:
-            glVertexAttrib1f(index, (GLfloat)v0);
+            GL_CALL(glVertexAttrib1f(index, (GLfloat)v0));
             break;
         case 2:
-            glVertexAttrib2f(index, (GLfloat)v0, (GLfloat)v1);
+            GL_CALL(glVertexAttrib2f(index, (GLfloat)v0, (GLfloat)v1));
             break;
         case 3:
-            glVertexAttrib3f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2);
+            GL_CALL(glVertexAttrib3f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2));
             break;
         case 4:
-            glVertexAttrib4f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2, (GLfloat)v3);
+            GL_CALL(glVertexAttrib4f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2, (GLfloat)v3));
             break;
     }
 
@@ -338,42 +348,166 @@ static JSBool NativeGL_vertexAttrib_x_fv(JSContext *cx, unsigned int argc, jsval
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
-        return JS_TRUE;
+        return false;
     }
 
     switch (nb) {
         case 1:
-            glVertexAttrib1fv(index, carray);
+            GL_CALL(glVertexAttrib1fv(index, carray));
             break;
         case 2:
-            glVertexAttrib2fv(index, carray);
+            GL_CALL(glVertexAttrib2fv(index, carray));
             break;
         case 3:
-            glVertexAttrib3fv(index, carray);
+            GL_CALL(glVertexAttrib3fv(index, carray));
             break;
         case 4:
-            glVertexAttrib4fv(index, carray);
+            GL_CALL(glVertexAttrib4fv(index, carray));
             break;
     }
 
     return JS_TRUE;
 }
 
-NativeJSNativeGL::NativeJSNativeGL () 
-    : jsobj(NULL), unpackFlipY(false), unpackPremultiplyAlpha(false)
+#if 0
+NativeCanvasWebGLContext::NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height) 
+    : unpackFlipY(false), unpackPremultiplyAlpha(false)
 {
+    //int texType = attributes->m_Antialias ? GL_EXT_framebuffer_multisample : GL_TEXTURE_2D;
+    // TODO : Test for GL version if > 3.2 use GL_TEXTURE_2D_MULTISAMPLE else GL_EXT_framebuffer_multisample
+    int texType = GL_TEXTURE_2D; // OpenGL 2.1 doesn't support multisampling
+    this->jscx = cx;
+
+    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
+
+    m_GLContext = new NativeGLContext(ui);
+    NLOG("Current : %d", this->MakeGLCurrent());
+
+    GL_CALL(glViewport(0, 0, width, height));
+    GL_CALL(glEnable(GL_TEXTURE_2D));
+    GL_CALL(glEnable(GL_MULTISAMPLE));
+
+    //GL_CALL(glShadeModel(GL_SMOOTH));
+    GL_CALL(glEnable(GL_DEPTH_TEST));
+    GL_CALL(glDepthFunc(GL_LEQUAL));
+    //GL_CALL(glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST));
+    GL_CALL(glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
+
+
+    //GL_CALL(glEnable(GL_FRAGMENT_PRECISION_HIGH));
+
+    GL_CALL(glGenTextures(1, &m_tex));
+    GL_CALL(glBindTexture(texType, m_tex));
+
+    GL_CALL(glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CALL(glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+    /* Allocate memory for the new texture */
+    GL_CALL(glTexImage2D(
+            texType,
+            0,
+            GL_RGBA,
+            width, height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            NULL
+    ));
+
+    GL_CALL(glBindTexture(texType, 0));
+
+    /* Generate the FBO */
+    GL_CALL(glGenFramebuffers(1, &m_fbo));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, m_fbo));
+
+    /* Set the FBO backing store using the new texture */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        texType, m_tex, 0);
+
+    GLenum status;
+    status = GL_CALL(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            printf("OH YEAH\n");
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            exit(2);
+            return;
+        default:
+            printf("fbo fatal error wat %d\n", status);
+            exit(2);
+            return;
+    }
+
+    m_width = width;
+    m_height = height;
+
+    // OpenGL context is ready, setup JS
+    jsval proto;
+    JSObject *webGLContext;
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLRenderingContext", &proto);
+	webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, JSVAL_TO_OBJECT(proto), NULL);
+
+    if (webGLContext == NULL) {
+        JS_ReportError(cx, "Failed to create WebGLRenderingContext");
+        // TODO
+        exit(2);
+    } 
+
+    JS_SetPrivate(webGLContext, static_cast<void *>(this));
+    this->jsobj = webGLContext;
+
+    // Compatibility OpenGL/WebGL
+    // XXX : Is this belongs here ?
+    GL_CALL(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+    GL_CALL(glEnable(GL_POINT_SPRITE));
+    GL_CALL(glEnableVertexAttribArray(0));
+
+    //GL_ARB_point
+    //JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(webGLContext));
 
 }
 
-NativeJSNativeGL::~NativeJSNativeGL() 
+void NativeCanvasWebGLContext::composeWith(NativeCanvas2DContext *layer,
+    double left, double top, double opacity,
+    double zoom, const NativeRect *rclip)
 {
+    this->MakeGLCurrent();
+    GL_CALL(glFinish());
+    GLenum err;
+    layer->MakeGLCurrent();
+
+    NativeSkia *skia = layer->getSurface();
+    skia->canvas->flush();
+
+    GL_CALL(glUseProgram(0));
+
+    layer->drawTexIDToFBO(m_tex, m_width, m_height, left, top, layer->getMainFBO());
+    layer->resetGLContext();
+}
+
+NativeCanvasWebGLContext::~NativeCanvasWebGLContext() 
+{
+    // TODO
+    /*
+    //Delete resources
+    GL_CALL(glDeleteRenderbuffersEXT(1, &color_rb));
+    GL_CALL(glDeleteRenderbuffersEXT(1, &depth_rb));
+    //Bind 0, which means render to back buffer, as a result, fb is unbound
+    GL_CALL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
+    GL_CALL(glDeleteFramebuffersEXT(1, &fb));
+    */
 
 }
+#endif
 
 D_NGL_JS_FN(WebGLRenderingContext_isContextLost)
 D_NGL_JS_FN(WebGLRenderingContext_getExtension)
 D_NGL_JS_FN(WebGLRenderingContext_activeTexture)
 D_NGL_JS_FN(WebGLRenderingContext_attachShader)
+D_NGL_JS_FN(WebGLRenderingContext_bindAttribLocation)
 D_NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
@@ -405,6 +539,7 @@ D_NGL_JS_FN(WebGLRenderingContext_drawElements)
 D_NGL_JS_FN(WebGLRenderingContext_enable)
 D_NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
 D_NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
+D_NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
 D_NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D)
 D_NGL_JS_FN(WebGLRenderingContext_frontFace)
@@ -453,6 +588,7 @@ D_NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer);
 D_NGL_JS_FN(WebGLRenderingContext_viewport)
 D_NGL_JS_FN(WebGLRenderingContext_useProgram)
 D_NGL_JS_FN(WebGLRenderingContext_getError)
+D_NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 
 
 static JSFunctionSpec WebGLRenderingContext_funcs [] = {
@@ -460,6 +596,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("getExtension", WebGLRenderingContext_getExtension, 1, 0),
     JS_FS("activeTexture", WebGLRenderingContext_activeTexture, 1, 0),
     JS_FS("attachShader", WebGLRenderingContext_attachShader, 2, 0),
+    JS_FS("bindAttribLocation", WebGLRenderingContext_bindAttribLocation, 3, 0),
     JS_FS("bindBuffer", WebGLRenderingContext_bindBuffer, 2, 0),
     JS_FS("bindFramebuffer", WebGLRenderingContext_bindFramebuffer, 2, 0),
     JS_FS("bindRenderbuffer", WebGLRenderingContext_bindRenderbuffer, 2, 0),
@@ -502,6 +639,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("getShaderParameter", WebGLRenderingContext_getShaderParameter, 2, 0),
     JS_FS("getShaderInfoLog", WebGLRenderingContext_getShaderInfoLog, 1, 0),
     JS_FS("getUniformLocation", WebGLRenderingContext_getUniformLocation, 2, 0),
+    JS_FS("getShaderPrecisionFormat", WebGLRenderingContext_getShaderPrecisionFormat, 2, 0),
     JS_FS("lineWidth", WebGLRenderingContext_lineWidth, 1, 0),
     JS_FS("linkProgram", WebGLRenderingContext_linkProgram, 1, 0),
     JS_FS("pixelStorei", WebGLRenderingContext_pixelStorei, 2, 0),
@@ -539,6 +677,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("viewport", WebGLRenderingContext_viewport, 4, 0),
     JS_FS("useProgram", WebGLRenderingContext_useProgram, 1, 0),
     JS_FS("getError", WebGLRenderingContext_getError, 0, 0),
+    JS_FS("swapBuffer", WebGLRenderingContext_swapBuffer, 0, 0),
     JS_FS_END
 };
 
@@ -816,6 +955,7 @@ JSConstDoubleSpec WebGLRenderingContext_const [] = {
     {NGL_DEPTH_COMPONENT16, "DEPTH_COMPONENT16", 0, {0,0,0}},
     {NGL_STENCIL_INDEX, "STENCIL_INDEX", 0, {0,0,0}},
     {NGL_STENCIL_INDEX8, "STENCIL_INDEX8", 0, {0,0,0}},
+    {NGL_DEPTH_STENCIL, "DEPTH_STENCIL", 0, {0,0,0}},
     {NGL_RENDERBUFFER_WIDTH, "RENDERBUFFER_WIDTH", 0, {0,0,0}},
     {NGL_RENDERBUFFER_HEIGHT, "RENDERBUFFER_HEIGHT", 0, {0,0,0}},
     {NGL_RENDERBUFFER_INTERNAL_FORMAT, "RENDERBUFFER_INTERNAL_FORMAT", 0, {0,0,0}},
@@ -832,6 +972,7 @@ JSConstDoubleSpec WebGLRenderingContext_const [] = {
     {NGL_COLOR_ATTACHMENT0, "COLOR_ATTACHMENT0", 0, {0,0,0}},
     {NGL_DEPTH_ATTACHMENT, "DEPTH_ATTACHMENT", 0, {0,0,0}},
     {NGL_STENCIL_ATTACHMENT, "STENCIL_ATTACHMENT", 0, {0,0,0}},
+    {NGL_DEPTH_STENCIL_ATTACHMENT, "DEPTH_STENCIL_ATTACHMENT", 0, {0,0,0}},
     {NGL_NONE, "NONE", 0, {0,0,0}},
     {NGL_FRAMEBUFFER_COMPLETE, "FRAMEBUFFER_COMPLETE", 0, {0,0,0}},
     {NGL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT, "FRAMEBUFFER_INCOMPLETE_ATTACHMENT", 0, {0,0,0}},
@@ -852,6 +993,7 @@ JSConstDoubleSpec WebGLRenderingContext_const [] = {
 
 NGL_JS_FN(WebGLRenderingContext_isContextLost) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     // TODO
     JS_SET_RVAL(cx, vp, BOOLEAN_TO_JSVAL(false));
     return JS_TRUE;
@@ -859,6 +1001,7 @@ NGL_JS_FN(WebGLRenderingContext_isContextLost)
 
 NGL_JS_FN(WebGLRenderingContext_getExtension) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     JS_SET_RVAL(cx, vp, JSVAL_NULL);
     return JS_TRUE;
 }
@@ -866,44 +1009,70 @@ NGL_JS_FN(WebGLRenderingContext_getExtension)
 
 NGL_JS_FN(WebGLRenderingContext_activeTexture) 
 {
+	MAKE_GL_CURRENT(cx, vp);
 	GLuint texture;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &texture)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glActiveTexture(texture);
+    GL_CALL(glActiveTexture(texture));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_attachShader)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     NGLShader *cshader;
     JSObject *program;
     JSObject *shader;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &program, &shader)) {
-        return JS_TRUE;
+        return false;
     }
 
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
 
-    glAttachShader(cprogram, cshader->shader);
+    GL_CALL(glAttachShader(cprogram, cshader->shader));
+    
+    return JS_TRUE;
+}
+
+NGL_JS_FN(WebGLRenderingContext_bindAttribLocation)  
+{
+	MAKE_GL_CURRENT(cx, vp);
+    uintptr_t cprogram;
+    GLuint vertex;
+    const char *cname;
+    JSObject *program;
+    JSString *name;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ouS", &program, &vertex, &name)) {
+        return false;
+    }
+
+    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
+    cname = JS_EncodeString(cx, name);
+
+    GL_CALL(glBindAttribLocation(cprogram, vertex, cname));
+
+    JS_free(cx, (void *)cname);
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_bindBuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     uintptr_t cbuffer;
     JSObject *buffer;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
-        return JS_TRUE;
+        return false;
     }
 
 	if (buffer == NULL) {
@@ -913,119 +1082,126 @@ NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 
     cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLBuffer_class, JS_ARGV(cx, vp));
 
-    glBindBuffer(target, cbuffer);
+    GL_CALL(glBindBuffer(target, cbuffer));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_bindFramebuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     uintptr_t cbuffer;
     JSObject *buffer;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
-        return JS_TRUE;
+        return false;
     }
 
 	if (buffer == NULL) return JS_TRUE;
 
     cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLFrameBuffer_class, JS_ARGV(cx, vp));
 
-    glBindFramebuffer(target, cbuffer);
+    GL_CALL(glBindFramebuffer(target, cbuffer));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     uintptr_t cbuffer;
     JSObject *buffer;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
-        return JS_TRUE;
+        return false;
     }
 
 	if (buffer == NULL) return JS_TRUE;
 
     cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLRenderbuffer_class, JS_ARGV(cx, vp));
 
-    glBindRenderbuffer(target, cbuffer);
+    GL_CALL(glBindRenderbuffer(target, cbuffer));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_bindTexture) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     uintptr_t ctexture;
     JSObject *texture;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &texture)) {
-        return JS_TRUE;
+        return false;
     }
 
 	// No argv passed, as texture starting at 0
     ctexture = (uintptr_t)JS_GetInstancePrivate(cx, texture, &WebGLTexture_class, NULL);
-    glBindTexture(target, ctexture);
+    GL_CALL(glBindTexture(target, ctexture));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_blendEquation) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint mode;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &mode)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendEquation(mode);
+    GL_CALL(glBlendEquation(mode));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)     
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint modeRGB;
     GLenum modeAlpha;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu", &modeRGB, &modeAlpha)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendEquationSeparate(modeRGB, modeAlpha);
+    GL_CALL(glBlendEquationSeparate(modeRGB, modeAlpha));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_blendFunc) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum sfactor;
     GLuint dfactor;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu", &sfactor, &dfactor)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendFunc(sfactor, dfactor);
+    GL_CALL(glBlendFunc(sfactor, dfactor));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint srcRGB;
     GLuint dstRGB;
     GLenum srcAlpha;
     GLenum dstAlpha;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuu", &srcRGB, &dstRGB, &srcAlpha, &dstAlpha)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+    GL_CALL(glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha));
 
     return JS_TRUE;
 }
@@ -1033,85 +1209,91 @@ NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate)
 
 NGL_JS_FN(WebGLRenderingContext_bufferData) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     JSObject *array;
     GLenum usage;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uou", &target, &array, &usage)) {
-        return JS_TRUE;
+        return false;
     }
 
 	if (array == NULL || !JS_IsTypedArrayObject(array)) {
         JS_ReportError(cx, "Invalid value");
-		return JS_TRUE;
+		return false;
 	}
 
-    glBufferData(target, JS_GetArrayBufferViewByteLength(array), JS_GetArrayBufferViewData(array), usage);
+    GL_CALL(glBufferData(target, JS_GetArrayBufferViewByteLength(array), JS_GetArrayBufferViewData(array), usage));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_clear) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLbitfield bits;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &bits)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glClear(bits);
+    GL_CALL(glClear(bits | GL_DEPTH_BUFFER_BIT));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_clearColor) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     double r;
     double g;
     double b;
     double a;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &r, &g, &b, &a)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glClearColor(r, g, b, a);
+    GL_CALL(glClearColor(r, g, b, a));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_clearDepth) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     double clampd;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &clampd)) {
-        return JS_TRUE;
+        return false;
     }
-    glClearDepth(clampd);
+    GL_CALL(glClearDepth(clampd));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_clearStencil) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLint s;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &s)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glClearStencil(s);
+    GL_CALL(glClearStencil(s));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_compileShader) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     NGLShader *cshader;
     JSObject *shader;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
-        return JS_TRUE;
+        return false;
     }
 
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
@@ -1123,21 +1305,31 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 
     ShInitBuiltInResources(&resources);
 
-    // TODO use real values
-    resources.MaxVertexAttribs = 8;
-    resources.MaxVertexUniformVectors = 128;
-    resources.MaxVaryingVectors = 8;
-    resources.MaxVertexTextureImageUnits = 0;
-    resources.MaxCombinedTextureImageUnits = 8;
-    resources.MaxTextureImageUnits = 8;
-    resources.MaxFragmentUniformVectors = 16;
+    // TODO use real values (see third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp )
+    resources.MaxVertexAttribs = 8*4;
+    resources.MaxVertexUniformVectors = 128*4;
+    resources.MaxVaryingVectors = 8*4;
+    resources.MaxVertexTextureImageUnits = 4*4;
+    resources.MaxCombinedTextureImageUnits = 8*4;
+    resources.MaxTextureImageUnits = 8*4;
+    resources.MaxFragmentUniformVectors = 16*4;
     resources.MaxDrawBuffers = 1;
+
+    resources.OES_standard_derivatives = 1;
+    resources.FragmentPrecisionHigh = 1;
 
     compiler = ShConstructCompiler((ShShaderType)cshader->type, SH_WEBGL_SPEC, SH_GLSL_OUTPUT, &resources);
     // XXX : Might be interesting to use SH_VALIDATE
-    if (!ShCompile(compiler, &cshader->source, 1, SH_OBJECT_CODE)) {
-        JS_ReportError(cx, "Failed to translate shader to GLSL.");
-        return JS_TRUE;
+    if (!ShCompile(compiler, &cshader->source, 1, SH_OBJECT_CODE|SH_ATTRIBUTES_UNIFORMS|SH_ENFORCE_PACKING_RESTRICTIONS|SH_MAP_LONG_VARIABLE_NAMES)) {
+        size_t bufferLen;
+        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &bufferLen);
+        char *buffer = (char*) malloc(bufferLen * sizeof(char));
+        ShGetInfoLog(compiler, buffer);
+
+        JS_ReportError(cx, "Failed to translate shader to GLSL. %s", buffer);
+        free(buffer);
+
+        return false;
     }
 
     ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &len);
@@ -1145,10 +1337,10 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     ShGetObjectCode(compiler, str);
     const char *foo = (const char *)str;
 
-    GLint shaderLen;
-    glShaderSource(cshader->shader, 1, &foo, &shaderLen);
+    GLint shaderLen = len;
+    GL_CALL(glShaderSource(cshader->shader, 1, &foo, &shaderLen));
 
-    glCompileShader(cshader->shader);
+    GL_CALL(glCompileShader(cshader->shader));
 
     ShDestruct(compiler);
     JS_free(cx, (void *)cshader->source);
@@ -1159,11 +1351,12 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 
 NGL_JS_FN(WebGLRenderingContext_createBuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     intptr_t buffer;
     jsval proto;
     JSObject *ret;
     
-    glGenBuffers(1, (GLuint *)&buffer);
+    GL_CALL(glGenBuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLBuffer", &proto);
     ret = JS_NewObject(cx, &WebGLBuffer_class, JSVAL_TO_OBJECT(proto), NULL);
@@ -1176,11 +1369,12 @@ NGL_JS_FN(WebGLRenderingContext_createBuffer)
 
 NGL_JS_FN(WebGLRenderingContext_createFramebuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     intptr_t buffer;
     jsval proto;
     JSObject *ret;
     
-    glGenFramebuffers(1, (GLuint *)&buffer);
+    GL_CALL(glGenFramebuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLFrameBuffer", &proto);
     ret = JS_NewObject(cx, &WebGLFrameBuffer_class, JSVAL_TO_OBJECT(proto), NULL);
@@ -1193,11 +1387,12 @@ NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
 
 NGL_JS_FN(WebGLRenderingContext_createRenderbuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     intptr_t buffer;
     jsval proto;
     JSObject *ret;
     
-    glGenRenderbuffers(1, (GLuint *)&buffer);
+    GL_CALL(glGenRenderbuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLRenderbuffer", &proto);
     ret = JS_NewObject(cx, &WebGLRenderbuffer_class, JSVAL_TO_OBJECT(proto), NULL);
@@ -1210,7 +1405,8 @@ NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
 
 NGL_JS_FN(WebGLRenderingContext_createProgram) 
 {
-    intptr_t program = glCreateProgram();
+	MAKE_GL_CURRENT(cx, vp);
+    intptr_t program = GL_CALL(glCreateProgram());
     jsval proto;
     JSObject *ret;
     
@@ -1225,6 +1421,7 @@ NGL_JS_FN(WebGLRenderingContext_createProgram)
 
 NGL_JS_FN(WebGLRenderingContext_createShader)     
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum type;
     NGLShader *shader;
     GLuint cshader;
@@ -1232,15 +1429,15 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
     JSObject *ret;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &type)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (type != NGL_VERTEX_SHADER && type != NGL_FRAGMENT_SHADER) {
         JS_ReportError(cx, "Invalid shader type");
-        return JS_TRUE;
+        return false;
     }
 
-    cshader = glCreateShader(type);
+    cshader = GL_CALL(glCreateShader(type));
     shader = new NGLShader(type, cshader);
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLShader", &proto);
@@ -1255,11 +1452,12 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
 
 NGL_JS_FN(WebGLRenderingContext_createTexture) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t texture;
 	JSObject *ret;
     jsval proto;
 
-    glGenTextures(1, (GLuint *)&texture);
+    GL_CALL(glGenTextures(1, (GLuint *)&texture));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLTexture", &proto);
     ret = JS_NewObject(cx, &WebGLTexture_class, JSVAL_TO_OBJECT(proto), NULL);
@@ -1273,28 +1471,30 @@ NGL_JS_FN(WebGLRenderingContext_createTexture)
 
 NGL_JS_FN(WebGLRenderingContext_cullFace) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint mode;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &mode)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glCullFace(mode);
+    GL_CALL(glCullFace(mode));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_deleteShader) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     JSObject *shader;
     NGLShader *cshader;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
-        return JS_TRUE;
+        return false;
     }
 
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
-    glDeleteShader(cshader->shader);
+    GL_CALL(glDeleteShader(cshader->shader));
     delete cshader;
     
     return JS_TRUE;
@@ -1302,119 +1502,129 @@ NGL_JS_FN(WebGLRenderingContext_deleteShader)
 
 NGL_JS_FN(WebGLRenderingContext_depthFunc) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint func;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &func)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDepthFunc(func);
+    GL_CALL(glDepthFunc(func));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_depthMask) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     JSBool flag;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "b", &flag)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glDepthMask((GLboolean)flag);
+    GL_CALL(glDepthMask((GLboolean)flag));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_disable) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum cap;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &cap)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDisable(cap);
+    GL_CALL(glDisable(cap));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_disableVertexAttribArray) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint attr;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &attr)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDisableVertexAttribArray(attr);
+    GL_CALL(glDisableVertexAttribArray(attr));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_drawArrays) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum mode;
     GLint first;
     GLsizei count;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uii", &mode, &first, &count)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDrawArrays(mode, first, count);
+    GL_CALL(glDrawArrays(mode, first, count));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_drawElements) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum mode;
     GLsizei count;
     GLenum type;
     GLint offset;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiui", &mode, &count, &type, &offset)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (offset+count < offset || offset+count < count) {
         JS_ReportError(cx, "Overflow in drawElements");
-        return JS_TRUE;
+        return false;
     }
     
-    glDrawElements(mode, count, type, (void *)offset);
+    printf("in glDrawElements %d\n", offset);
+    GL_CALL(glDrawElements(mode, count, type, (void *)(intptr_t)offset));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_enable) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint bits;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &bits)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glEnable(bits);
+    GL_CALL(glEnable(bits));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint attr;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &attr)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glEnableVertexAttribArray(attr);
+    GL_CALL(glEnableVertexAttribArray(attr));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_getUniformLocation) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     intptr_t location;
     JSString *name;
@@ -1424,13 +1634,13 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     const char *cname;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &program, &name)) {
-        return JS_TRUE;
+        return false;
     }
 
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
     cname = JS_EncodeString(cx, name);
  
-    location = glGetUniformLocation(cprogram, cname);
+    location = GL_CALL(glGetUniformLocation(cprogram, cname));
 
     if (location < 0 ) {
         JS_SET_RVAL(cx, vp, JSVAL_NULL);
@@ -1446,63 +1656,136 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     return JS_TRUE;
 }
 
+NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat) 
+{
+#define SET_PROP(prop, val) JS_SetProperty(cx, obj, prop, val)
+    GLenum shaderType, precisionType;
+    GLint crange[2];
+    GLint cprecision;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu", &shaderType, &precisionType)) {
+        return false;
+    }
+
+    jsval proto, rangeMin, rangeMax, precision;
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLShaderPrecisionFormat", &proto);
+	JSObject *obj = JS_NewObject(cx, &WebGLShaderPrecisionFormat_class, JSVAL_TO_OBJECT(proto), NULL);
+
+    // Since getShaderPrecisionFormat is not available everywhere...
+    // (Taken from mozilla GLContext.h)
+
+    switch (precisionType) {
+        case NGL_LOW_FLOAT:
+        case NGL_MEDIUM_FLOAT:
+        case NGL_HIGH_FLOAT:
+            // Assume IEEE 754 precision
+            crange[0] = 127;
+            crange[1] = 127;
+            cprecision = 23;
+            break;
+        case NGL_LOW_INT:
+        case NGL_MEDIUM_INT:
+        case NGL_HIGH_INT:
+            // Some (most) hardware only supports single-precision floating-point numbers,
+            // which can accurately represent integers up to +/-16777216
+            crange[0] = 24;
+            crange[1] = 24;
+            cprecision = 0;
+            break;
+    }
+
+    rangeMin = INT_TO_JSVAL(crange[0]);
+    rangeMax = INT_TO_JSVAL(crange[1]);
+    precision = INT_TO_JSVAL(cprecision);
+
+    SET_PROP("rangeMin", &rangeMin);
+    SET_PROP("rangeMax", &rangeMax);
+    SET_PROP("precision", &precision);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+
+    return JS_TRUE;
+#undef SET_PROP
+}
+
 NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
 	GLenum target, attachement, renderbuffertarget;
 	uintptr_t crenderbuffer;
 	JSObject *renderbuffer;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuoi", &target, &attachement, &renderbuffertarget, &renderbuffer)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuo", &target, &attachement, &renderbuffertarget, &renderbuffer)) {
+        return false;
     }
 
     crenderbuffer = (uintptr_t)JS_GetInstancePrivate(cx, renderbuffer, &WebGLRenderbuffer_class, JS_ARGV(cx, vp));
 
-	glFramebufferRenderbuffer(target, attachement, renderbuffertarget, crenderbuffer);
+	GL_CALL(glFramebufferRenderbuffer(target, attachement, renderbuffertarget, crenderbuffer));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target, attachement, textarget;
 	uintptr_t ctexture, level;
     JSObject *texture;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuoi", &target, &attachement, &textarget, &texture, &level)) {
-        return JS_TRUE;
+        return false;
     }
 
 	// No argv passed, as texture starting at 0
     ctexture = (uintptr_t)JS_GetInstancePrivate(cx, texture, &WebGLTexture_class, NULL);
 
-	glFramebufferTexture2D(target, attachement, textarget, ctexture, level);
+	GL_CALL(glFramebufferTexture2D(target, attachement, textarget, ctexture, level));
+
+    GLenum status;
+    status = GL_CALL(glCheckFramebufferStatus(GL_FRAMEBUFFER));
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            printf("OH YEAH\n");
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            exit(2);
+            return false;
+        default:
+            printf("fbo fatal error wat %d\n", status);
+            exit(2);
+            return false;
+    }
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_frontFace) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint mode;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &mode)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glFrontFace(mode);
+    GL_CALL(glFrontFace(mode));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_generateMipmap) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &target)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glGenerateMipmap(target);
+    GL_CALL(glGenerateMipmap(target));
     
     return JS_TRUE;
 }
@@ -1510,6 +1793,7 @@ NGL_JS_FN(WebGLRenderingContext_generateMipmap)
 
 NGL_JS_FN(WebGLRenderingContext_getAttribLocation) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     GLint location;
     JSString *attr;
@@ -1517,13 +1801,13 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
     const char *cattr;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &program, &attr)) {
-        return JS_TRUE;
+        return false;
     }
     
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
     cattr = JS_EncodeString(cx, attr);
 
-    location = glGetAttribLocation(cprogram, cattr);
+    location = GL_CALL(glGetAttribLocation(cprogram, cattr));
 
     JS_free(cx, (void *)cattr);
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(location));
@@ -1533,11 +1817,12 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
 
 NGL_JS_FN(WebGLRenderingContext_getParameter) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum name;
     JS::Value value;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &name)) {
-        return JS_TRUE;
+        return false;
     }
 
     switch (name) {
@@ -1547,7 +1832,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_VERSION:
         case NGL_SHADING_LANGUAGE_VERSION:
         {
-            const char *cstr = (const char *)glGetString(name);
+            const char *cstr = (const char *)GL_CALL(glGetString(name));
             JSString *str = JS_NewStringCopyZ(cx, cstr);
 
             value.setString(str);
@@ -1575,7 +1860,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_GENERATE_MIPMAP_HINT:
         {
             GLint i = 0;
-            glGetIntegerv(name, &i);
+            GL_CALL(glGetIntegerv(name, &i));
             value.setNumber(uint32_t(i));
             break;
         }
@@ -1607,7 +1892,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         //case NGL_NUM_COMPRESSED_TEXTURE_FORMATS:
         {
             GLint i = 0;
-            glGetIntegerv(name, &i);
+            GL_CALL(glGetIntegerv(name, &i));
             value.setInt32(i);
             break;
         }
@@ -1632,7 +1917,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             uint32_t *data;
             JSObject *obj;
 
-            glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &length);
+            GL_CALL(glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &length));
             obj = JS_NewUint32Array(cx, length);
             textures = (GLint *)malloc(sizeof(GLint) * length);
 
@@ -1640,11 +1925,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
                 if (textures != NULL) {
                     free(textures);
                 }
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, textures);
+            GL_CALL(glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, textures));
 
             data = JS_GetUint32ArrayData(obj);
             memcpy(data, textures, length * sizeof(GLint));
@@ -1661,7 +1946,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_STENCIL_WRITEMASK:
         {
             GLint i = 0; // the GL api (glGetIntegerv) only does signed ints
-            glGetIntegerv(name, &i);
+            GL_CALL(glGetIntegerv(name, &i));
             GLuint i_unsigned(i); // this is where -1 becomes 2^32-1
             double i_double(i_unsigned); // pass as FP value to allow large values such as 2^32-1.
             value.setDouble(i_double);
@@ -1689,7 +1974,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_SAMPLE_COVERAGE_VALUE:
         {
             GLfloat f = 0.f;
-            glGetFloatv(name, &f);
+            GL_CALL(glGetFloatv(name, &f));
             value.setDouble(f);
             break;
         }
@@ -1706,7 +1991,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_DEPTH_WRITEMASK:
         {
             GLboolean b = 0;
-            glGetBooleanv(name, &b);
+            GL_CALL(glGetBooleanv(name, &b));
             value.setBoolean(b);
             break;
         }
@@ -1732,11 +2017,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             float *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetFloatv(name, fv);
+            GL_CALL(glGetFloatv(name, fv));
 
             data = JS_GetFloat32ArrayData(obj);
             memcpy(data, fv, 2 * sizeof(float));
@@ -1752,11 +2037,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             float *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetFloatv(name, fv);
+            GL_CALL(glGetFloatv(name, fv));
 
             data = JS_GetFloat32ArrayData(obj);
             memcpy(data, fv, 4 * sizeof(GLfloat));
@@ -1771,11 +2056,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             int32_t *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetIntegerv(name, iv);
+            GL_CALL(glGetIntegerv(name, iv));
 
             data = JS_GetInt32ArrayData(obj);
             memcpy(data, iv, 2 * sizeof(GLint));
@@ -1791,11 +2076,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             int32_t *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetIntegerv(name, iv);
+            GL_CALL(glGetIntegerv(name, iv));
 
             data = JS_GetInt32ArrayData(obj);
             memcpy(data, iv, 4 * sizeof(GLint));
@@ -1807,7 +2092,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         {
             GLboolean gl_bv[4] = { 0 };
 
-            glGetBooleanv(name, gl_bv);
+            GL_CALL(glGetBooleanv(name, gl_bv));
 
             JS::Value vals[4] = { JS::BooleanValue(bool(gl_bv[0])),
                                   JS::BooleanValue(bool(gl_bv[1])),
@@ -1817,8 +2102,8 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             JSObject* obj = JS_NewArrayObject(cx, 4, vals);
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
 
@@ -1849,18 +2134,19 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
 
 NGL_JS_FN(WebGLRenderingContext_getProgramParameter)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     GLenum param;
     GLint status;
     JSObject *program;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou", &program, &param)) {
-        return JS_TRUE;
+        return false;
     }
 
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glGetProgramiv(cprogram, param, &status);
+    GL_CALL(glGetProgramiv(cprogram, param, &status));
     
     switch (param) {
         case GL_DELETE_STATUS:
@@ -1878,6 +2164,7 @@ NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
 
 NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     GLsizei max;
     GLsizei length;
@@ -1886,15 +2173,15 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
     char *clog;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
-        return JS_TRUE;
+        return false;
     }
 
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
     
-    glGetProgramiv(cprogram, GL_INFO_LOG_LENGTH, &max);
+    GL_CALL(glGetProgramiv(cprogram, GL_INFO_LOG_LENGTH, &max));
 
     clog = (char *)malloc(max);
-    glGetProgramInfoLog(cprogram, max, &length, clog);
+    GL_CALL(glGetProgramInfoLog(cprogram, max, &length, clog));
     log = JS_NewStringCopyN(cx, clog, length);
     free(clog);
 
@@ -1905,18 +2192,19 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
 
 NGL_JS_FN(WebGLRenderingContext_getShaderParameter) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     NGLShader *cshader;
     GLenum pname;
     GLint param;
     JSObject *shader;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou", &shader, &pname)) {
-        return JS_TRUE;
+        return false;
     }
 
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
 
-    glGetShaderiv(cshader->shader, pname, &param);
+    GL_CALL(glGetShaderiv(cshader->shader, pname, &param));
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(param));
     
@@ -1925,6 +2213,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderParameter)
 
 NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     NGLShader *cshader;
     GLsizei length;
     GLsizei max;
@@ -1933,14 +2222,14 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
     char *clog;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
-        return JS_TRUE;
+        return false;
     }
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
     
-    glGetShaderiv(cshader->shader, GL_INFO_LOG_LENGTH, &max);
+    GL_CALL(glGetShaderiv(cshader->shader, GL_INFO_LOG_LENGTH, &max));
 
     clog = (char *)malloc(max);
-    glGetShaderInfoLog(cshader->shader, max, &length, clog);
+    GL_CALL(glGetShaderInfoLog(cshader->shader, max, &length, clog));
     log = JS_NewStringCopyN(cx, clog, length);
     free(clog);
 
@@ -1951,60 +2240,65 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
 
 NGL_JS_FN(WebGLRenderingContext_lineWidth) 
 {
-    GLfloat width;
+	MAKE_GL_CURRENT(cx, vp);
+    //GLfloat width;
+    double width;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &width)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glLineWidth(width);
+    GL_CALL(glLineWidth((GLfloat)width));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_linkProgram) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     JSObject *program;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
-        return JS_TRUE;
+        return false;
     }
     
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glLinkProgram(cprogram);
+    GL_CALL(glLinkProgram(cprogram));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_pixelStorei)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint param;
     GLint value;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ui", &param, &value)) {
-        return JS_TRUE;
+        return false;
     }
 
     switch (param) {
         case NGL_UNPACK_FLIP_Y_WEBGL:
         {
-            NativeJSNativeGL *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
+            NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
             ngl->unpackFlipY = (bool)value;
             break;
         }
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
         {
-            NativeJSNativeGL *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
+            NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
             ngl->unpackPremultiplyAlpha = (bool)value;
             break;
         }
         case NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL:
             JS_ReportError(cx, "Not implemented");
+            return false;
         break;
         default: 
-            glPixelStorei(param, value);
+            GL_CALL(glPixelStorei(param, value));
         break;
     }
     
@@ -2013,20 +2307,22 @@ NGL_JS_FN(WebGLRenderingContext_pixelStorei)
 
 NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target, internalFormat;
 	GLsizei width, height;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuii", &target, &internalFormat, &width, &height)) {
-        return JS_TRUE;
+        return false;
     }
 
-	glRenderbufferStorage(target, internalFormat, width, height);
+	GL_CALL(glRenderbufferStorage(target, internalFormat, width, height));
 
 	return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_shaderSource) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     NGLShader *cshader;
     GLsizei length;
     JSString *source;
@@ -2034,7 +2330,7 @@ NGL_JS_FN(WebGLRenderingContext_shaderSource)
     const char *csource;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &shader, &source)) {
-        return JS_TRUE;
+        return false;
     }
 
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
@@ -2044,7 +2340,7 @@ NGL_JS_FN(WebGLRenderingContext_shaderSource)
     cshader->source = csource;
     cshader->length = length;
     
-    //glShaderSource(cshader->shader, 1, &csource, &length);
+    //GL_CALL(glShaderSource(cshader->shader, 1, &csource, &length));
 
     //JS_free(cx, (void *)csource);
     
@@ -2053,6 +2349,7 @@ NGL_JS_FN(WebGLRenderingContext_shaderSource)
 
 NGL_JS_FN(WebGLRenderingContext_texImage2D) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLenum target;
     GLint level;
     GLint internalFormat;
@@ -2062,7 +2359,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
     int width, height;
 	NativeJSImage *nimg;
     void *pixels = NULL;
-    NativeJSNativeGL *ngl;
+    NativeCanvasWebGLContext *ngl;
     unsigned char *rgbaPixels;
 
     ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
@@ -2072,24 +2369,24 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         JSObject *array;
 
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiiiiuuo", &target, &level, &internalFormat, &width, &height, &border, &format, &type, &array)) {
-            return JS_TRUE;
+            return false;
         }
 
         if (array != NULL && JS_IsTypedArrayObject(array)) {
             pixels = JS_GetArrayBufferViewData(array);
         } 
         
-        glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
+        GL_CALL(glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels));
     } else {
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image)) {
-            return JS_TRUE;
+            return false;
         }
 
         // XXX : UNSAFE use JS_GetInstancePrivate Image_class 
         //if ((nimg = static_cast<NativeJSImage *>(JS_GetInstancePrivate(cx, image, &Image_class, JS_ARGV(cx, vp)))) == NULL) {
         if ((nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image))) == NULL) {
             JS_ReportError(cx, "Invalid image object");
-            return JS_TRUE;
+            return false;
         }
 
         width = nimg->img->getWidth();
@@ -2097,16 +2394,13 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         
         rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
 
-        /*
-        // TODO : Uncoment me once ConvertToRGBA is back in NativeSkImage
         if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, ngl->unpackFlipY, 
                 ngl->unpackPremultiplyAlpha)) {
             JS_ReportError(cx, "Failed to read image data");
-            return JS_TRUE;
+            return false;
         }
-        */
 
-        glTexImage2D(target, level, internalFormat, width, height, 0, format, type, rgbaPixels);
+        GL_CALL(glTexImage2D(target, level, internalFormat, width, height, 0, format, type, rgbaPixels));
 
         free(rgbaPixels);
     }
@@ -2117,156 +2411,185 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
 
 NGL_JS_FN(WebGLRenderingContext_texParameteri) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint target;
     GLuint pname;
     GLuint param;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuu", &target, &pname, &param)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glTexParameteri(target, pname, param);
+    GL_CALL(glTexParameteri(target, pname, param));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform1f)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_f(cx, argc, vp, 1);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform1fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_fv(cx, argc, vp, 1);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform1i) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_i(cx, argc, vp, 1);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform1iv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_iv(cx, argc, vp, 1);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform2f)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_f(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform2fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_fv(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform2i) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_i(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform2iv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_iv(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform3f)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_f(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform3fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_fv(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform3i) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_i(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform3iv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_iv(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform4f)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_f(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform4fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_fv(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform4i) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_i(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniform4iv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniform_x_iv(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniformMatrix2fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniformMatrix_x_fv(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniformMatrix3fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniformMatrix_x_fv(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_uniformMatrix4fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_uniformMatrix_x_fv(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib1f) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_f(cx, argc, vp, 1);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib1fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 1);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib2f) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_f(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib2fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 2);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib3f) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_f(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib3fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 3);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib4f) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_f(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttrib4fv) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 4);
 }
 
 NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLuint attr;
     GLint size;
     GLenum type;
@@ -2275,66 +2598,88 @@ NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer)
     JSBool normalized;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiubii", &attr, &size, &type, &normalized, &stride, &offset)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (offset+size < offset || offset+size < size) {
         JS_ReportError(cx, "Overflow in vertexAttribPointer");
-        return JS_TRUE;
+        return false;
     }
 
-    glVertexAttribPointer(attr, size, type, (GLboolean)normalized, stride, (void *)offset);
+    GL_CALL(glVertexAttribPointer(attr, size, type, (GLboolean)normalized, stride, (void *)(intptr_t)offset));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_useProgram)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     uintptr_t cprogram;
     JSObject *program;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
+    if (JSVAL_IS_INT(JS_ARGV(cx, vp)[0])) {
+        int prog = JSVAL_TO_INT(JS_ARGV(cx, vp)[0]);
+        printf("program=%d\n", prog);
+        GL_CALL(glUseProgram(prog));
         return JS_TRUE;
+    }
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
+        return false;
     }
     
     cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glUseProgram(cprogram);
+    GL_CALL(glUseProgram(cprogram));
     
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_viewport)  
 {
+	MAKE_GL_CURRENT(cx, vp);
     GLint x, y, w, h;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &w, &h)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glViewport(x, y, w, h);
+    GL_CALL(glViewport(x, y, w, h));
 
     return JS_TRUE;
 }
 
 NGL_JS_FN(WebGLRenderingContext_getError) 
 {
+	MAKE_GL_CURRENT(cx, vp);
     JS_SET_RVAL(cx, vp, UINT_TO_JSVAL(glGetError()));
+    return JS_TRUE;
+}
+
+NGL_JS_FN(WebGLRenderingContext_swapBuffer) 
+{
+#if 0
+	MAKE_GL_CURRENT(cx, vp);
+    NativeContext::getNativeClass(cx)->getUI()->swapGLBuffer();
+    return JS_TRUE;
+#endif
     return JS_TRUE;
 }
 
 static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
+    return true;
+#if 0
     jsval proto;
     JSObject *webGLContext;
-    NativeJSNativeGL *ngl = new NativeJSNativeGL();
+    NativeCanvasWebGLContext *ngl = new NativeCanvasWebGLContext(cx);
     
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLRenderingContext", &proto);
 	webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, JSVAL_TO_OBJECT(proto), NULL);
 
     if (webGLContext == NULL) {
         JS_ReportError(cx, "Failed to create WebGLRenderingContext");
-        return JS_TRUE;
+        return false;
     } 
 
     JS_SetPrivate(webGLContext, static_cast<void *>(ngl));
@@ -2342,38 +2687,34 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *v
 
     // Compatibility OpenGL/WebGL
     // XXX : Is this belongs here ?
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    //glEnable(GL_POINT_SPRITE);
+    GL_CALL(glEnable(GL_VERTEX_PROGRAM_POINT_SIZE));
+    //GL_CALL(glEnable(GL_POINT_SPRITE));
     //GL_ARB_point
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(webGLContext));
 
     return JS_TRUE;
+#endif
 }
 
-static JSBool native_Canvas3DContext_constructor(JSContext *cx,
+static JSBool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
-    return JS_FALSE;
+    return false;
 }
 
-
-
-NATIVE_OBJECT_EXPOSE(NativeGL);
 void NativeJSWebGLRenderingContext::registerObject(JSContext *cx) {
-
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &WebGLRenderingContext_class,
-                native_Canvas3DContext_constructor,
+    JSObject *obj;
+    JSObject *ctor;
+    obj = JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &WebGLRenderingContext_class,
+                NativeJSWebGLRenderingContext_constructor,
                 0, NULL, WebGLRenderingContext_funcs, NULL, NULL);
-#if 0
-    proto = JS_NewObject(cx, NULL, NULL, NULL);
-    JS_DefineConstDoubles(cx, proto, WebGLRenderingContext_const);
-    JS_DefineFunctions(cx, proto, WebGLRenderingContext_funcs);
 
-    JS_DefineObject(cx, JS_GetGlobalObject(cx),
-                    "WebGLRenderingContext", &WebGLRenderingContext_class,
-                    proto, 0);
-#endif
+    if (!obj || !(ctor = JS_GetConstructor(cx, obj))) {
+        // TODO : Handle failure. Throw exception ? 
+    }
+
+    JS_DefineConstDoubles(cx, ctor, WebGLRenderingContext_const);
 }
 
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLObject);
@@ -2384,3 +2725,4 @@ NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLRenderbuffer);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShader);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
+NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
