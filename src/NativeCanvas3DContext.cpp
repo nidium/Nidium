@@ -164,9 +164,10 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
             return false;
     }
 
-    printf("New FBO on %p at %d\n", this, m_GLObjects.fbo);
-    this->makeGLCurrent();
-
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+#ifdef GL_POINT_SPRITE
+    glEnable(GL_POINT_SPRITE);
+#endif
     // ??? keep framebuffer bound?
     //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
