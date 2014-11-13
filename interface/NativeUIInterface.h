@@ -207,7 +207,7 @@ class NativeUIInterface
             return m_mainGLCtx;
         }
         
-        SDL_GLContext createSharedContext();
+        SDL_GLContext createSharedContext(bool webgl = false);
 
 
         void deleteGLContext(SDL_GLContext ctx);

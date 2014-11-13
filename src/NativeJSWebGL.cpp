@@ -35,12 +35,14 @@ static JSClass NativeGL_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
-static JSClass WebGLRenderingContext_class = {
+
+JSClass WebGLRenderingContext_class = {
     "WebGLRenderingContext", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
 static JSClass WebGLObject_class = {
     "WebGLObject", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,

@@ -29,6 +29,12 @@ public:
         double zoom, const NativeRect *rclip) override;
 private:
     
+    bool createFBO();
+
+    struct {
+        uint32_t fbo;
+        uint32_t texture;
+    } m_GLObjects;
 };
 
 #endif

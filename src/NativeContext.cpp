@@ -140,7 +140,6 @@ void NativeContext::loadNativeObjects(int width, int height)
 #endif
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED
-    NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLObject::registerObject(cx);
     NativeJSWebGLBuffer::registerObject(cx);

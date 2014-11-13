@@ -180,10 +180,11 @@ void NativeSkImage::desaturate()
     img->notifyPixelsChanged();
 }
 
-#if 0
+
 bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
         bool flipY, bool premultiply) 
 {
+#if 0
     int length;
     int k;
     const unsigned char *pixels;
@@ -224,6 +225,7 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
             k += 4;
         }
     }
+#endif
     return true;
 }
-#endif
+

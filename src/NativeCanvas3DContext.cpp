@@ -3,6 +3,8 @@
 
 #include "NativeMacros.h"
 
+#include "NativeGLState.h"
+
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl3.h>
@@ -43,6 +45,8 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     jscx  = cx;
 
     JS_SetPrivate(jsobj, this);
+
+
 }
 
 static JSBool native_Canvas3DContext_constructor(JSContext *cx,
@@ -89,4 +93,13 @@ void NativeCanvas3DContext::composeWith(NativeCanvas2DContext *layer,
     double zoom, const NativeRect *rclip)
 {
 
+}
+
+
+bool NativeCanvas3DContext::createFBO()
+{
+    glEnable(GL_TEXTURE_2D);
+
+
+    return true;
 }
