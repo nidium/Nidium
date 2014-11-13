@@ -9,7 +9,7 @@
 
 #include "NativeGLContext.h"
 
-#define NATIVE_MAKE_CURRENT_EACH_GL_CALL 0
+#define NATIVE_MAKE_CURRENT_EACH_GL_CALL 1
 
 #if NATIVE_MAKE_CURRENT_EACH_GL_CALL
 
@@ -97,10 +97,7 @@ public:
     void setProgram(uint32_t program);
 
     bool makeGLCurrent() {
-        if (m_GLContext) {
-            return m_GLContext->makeCurrent();
-        }
-        return false;
+        return m_GLContext->makeCurrent();
     }
 
     void setVertexDeformation(uint32_t vertex, float x, float y);

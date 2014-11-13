@@ -37,7 +37,7 @@ class NativeGLContext
             if (!m_UI->makeGLCurrent(oldctx)) {
                 NLOG("Cant restore old ctx");
             }
-            NLOG("New context created");
+            NLOG("New OpenGL context created");
         }
 
         bool makeCurrent() {

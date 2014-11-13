@@ -756,6 +756,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                     return false;
                 }
                 NativeObject->setContext(ctx2d);
+                ctx2d->setGLState(nctx->getGLState());
                 
                 break;
             }
@@ -764,16 +765,15 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                     TODO :
                     NativeObject->setContext(new NativeCanvasWebGLContext(...))
                 */
-                NativeCanvas3DContext *ctx2d = new NativeCanvas3DContext(NativeObject, cx,
+                NativeCanvas3DContext *ctx3d = new NativeCanvas3DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
 
-                NativeObject->setContext(ctx2d);
+                NativeObject->setContext(ctx3d);
                 break;
         }
 
         canvasctx = NativeObject->getContext();
-        canvasctx->setGLState(nctx->getGLState());
 
         /*  Protect against GC
             Canvas.slot[0] = context

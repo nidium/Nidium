@@ -39,6 +39,8 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     NativeCanvasContext(handler)
 {
     m_Mode = CONTEXT_WEBGL;
+    m_GLObjects.fbo = 0;
+    m_GLObjects.texture = 0;
 
     jsobj = JS_NewObject(cx, &WebGLRenderingContext_class, NULL, NULL);
 
@@ -83,11 +85,14 @@ void NativeCanvas3DContext::clear(uint32_t color)
 {
     m_GLState->makeGLCurrent();
 
+    glClearColor(0., 0., 0., 0.);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void NativeCanvas3DContext::flush()
 {
-
+    m_GLState->makeGLCurrent();
+    glFlush();
 }
 
 uint32_t NativeCanvas3DContext::getTextureID() const
@@ -98,13 +103,12 @@ uint32_t NativeCanvas3DContext::getTextureID() const
 /* Returns the size in device pixel */
 void NativeCanvas3DContext::getSize(int *width, int *height) const
 {
-
+    if (width) *width = m_Device.width;
+    if (height) *height = m_Device.height;
 }
-
 
 bool NativeCanvas3DContext::createFBO(int width, int height)
 {
-
     /*
         Create a WebGL context with passthrough program
     */
@@ -114,6 +118,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     /*
         Following call are made on the newly created OpenGL Context
     */
+
     m_GLState->makeGLCurrent();
 
     glGenTextures(1, &m_GLObjects.texture);
@@ -149,6 +154,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
 
     switch(status) {
         case GL_FRAMEBUFFER_COMPLETE:
+            printf("fbo created\n");
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
             printf("fbo unsupported\n");
@@ -158,9 +164,11 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
             return false;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    printf("New FBO on %p at %d\n", this, m_GLObjects.fbo);
+    this->makeGLCurrent();
 
-    printf("FBO and texture created\n");
+    // ??? keep framebuffer bound?
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     return true;
 }

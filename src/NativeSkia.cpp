@@ -47,6 +47,8 @@
 
 #include "Sk2DPathEffect.h"
 
+#include <NativeContext.h>
+
 #include <NativePath.h>
 #include <NativeJSDocument.h>
 #include <SkStream.h>
@@ -400,16 +402,14 @@ int NativeSkia::bindOnScreen(int width, int height)
 
 
 void glcb(const GrGLInterface*) {
-    //printf("Got a gl call\n");
+    printf("Got a gl call\n");
 }
 
-SkCanvas *NativeSkia::createGLCanvas(int width, int height)
+SkCanvas *NativeSkia::createGLCanvas(int width, int height,
+    NativeContext *nativectx)
 {
     const GrGLInterface *interface = NULL;
     GrContext *context = NULL;
-
-    //GrGLInterface *interface_noconst = (GrGLInterface *)interface;
-    //((GrGLInterface*)interface)->fCallback = glcb;
 
     if (NativeSkia::glcontext) {
         context = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
@@ -423,12 +423,16 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
             return NULL;
         }
 
+        ((GrGLInterface*)interface)->fCallback = NativeContext::glCallback;
+        ((GrGLInterface*)interface)->fCallbackData = (uintptr_t)nativectx;
+
         context = GrContext::Create(kOpenGL_GrBackend,
             (GrBackendContext)interface);
 
         if (context == NULL) {
             return NULL;
         }
+
     }
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
     
@@ -469,11 +473,11 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
 
 }
 
-int NativeSkia::bindGL(int width, int height)
+int NativeSkia::bindGL(int width, int height, NativeContext *nativectx)
 {
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
-    if ((m_Canvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+    if ((m_Canvas = NativeSkia::createGLCanvas(width, height, nativectx)) == NULL) {
         return 0;
     }
 

@@ -223,6 +223,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             
             NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
         } else {
+            NUII->makeMainGLCurrent();
             SDL_GL_SwapWindow(NUII->win);
         }
 
@@ -807,7 +808,7 @@ void NativeCocoaUIInterface::alert(const char *message)
 {
     
 }
-
+#if 0
 bool NativeCocoaUIInterface::makeMainGLCurrent()
 {
     [((NSOpenGLContext *)m_mainGLCtx) makeCurrentContext];
@@ -819,13 +820,16 @@ SDL_GLContext NativeCocoaUIInterface::getCurrentGLContext()
 {
     return (SDL_GLContext)[NSOpenGLContext currentContext];
 }
+#endif
 
+#if 0
 bool NativeCocoaUIInterface::makeGLCurrent(SDL_GLContext ctx)
 {
     [((NSOpenGLContext *)ctx) makeCurrentContext];
 
     return true;
 }
+#endif
 
 static const char *drawRect_Associated_obj = "_NativeUIInterface";
 

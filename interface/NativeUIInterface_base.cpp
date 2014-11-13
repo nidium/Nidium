@@ -54,7 +54,7 @@ SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
 {
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
 
-    if (webgl) {
+    if (webgl && 0) {
         SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8 );
         SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8 );
         SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8 );
@@ -71,7 +71,10 @@ SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
     }
-    return SDL_GL_CreateContext(this->win);    
+
+    SDL_GLContext created = SDL_GL_CreateContext(this->win);
+
+    return created;    
 }
 
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)

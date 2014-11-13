@@ -77,8 +77,6 @@ public:
     }
 
     bool makeGLCurrent() {
-        if (!m_GLState) return false;
-
         return m_GLState->makeGLCurrent();
     }
     /*

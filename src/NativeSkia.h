@@ -108,8 +108,9 @@ class NativeSkia
         double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
-        static SkCanvas *createGLCanvas(int width, int height);
-        int bindGL(int width, int height);
+        static SkCanvas *createGLCanvas(int width, int height,
+            NativeContext *nativectx);
+        int bindGL(int width, int height, NativeContext *nativectx);
         void flush();
         void unlink();
         /* Basics */

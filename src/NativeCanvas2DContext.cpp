@@ -2000,6 +2000,7 @@ void NativeCanvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top)
 {
     GLenum err;
+
     NATIVE_GL_CALL_MAIN(BindTexture(GL_TEXTURE_2D, textureID));
 
     NATIVE_GL_CALL_MAIN(TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
@@ -2190,7 +2191,8 @@ void NativeCanvas2DContext::setSize(int width, int height, bool redraw)
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
     if (m_Skia->native_canvas_bind_mode == NativeSkia::BIND_GL) {
-        if ((ncanvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+        if ((ncanvas = NativeSkia::createGLCanvas(width, height,
+            __NativeUI->getNativeContext())) == NULL) {
             NLOG("[Error] Couldnt resize the canvas to %dx%d", width, height);
             return;
         }
@@ -2277,7 +2279,8 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
     int state;
 
     if (isGL) {
-        state = m_Skia->bindGL(width, height);
+
+        state = m_Skia->bindGL(width, height, ui->getNativeContext());
     } else {
         state = m_Skia->bindOnScreen(width, height);
     }

@@ -56,10 +56,11 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void logf(const char *format, ...);
         void vlog(const char *format, va_list ap);
         void logclear();
-
+#if 0
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
+#endif
     private:
         void renderSystemTray();
         bool initContext();

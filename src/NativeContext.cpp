@@ -29,8 +29,9 @@
 #include "NativeNML.h"
 
 #include <NativeWebSocket.h>
-
 #include <NativeSystemInterface.h>
+
+#include <gl/GrGLInterface.h>
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
@@ -197,6 +198,11 @@ void NativeContext::sizeChanged(int w, int h)
     m_UI->refresh();
 }
 
+void NativeContext::glCallback(const GrGLInterface *interface)
+{
+    __NativeUI->makeMainGLCurrent();
+}
+
 void NativeContext::createDebugCanvas()
 {
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
@@ -341,6 +347,8 @@ void NativeContext::frame(bool draw)
     */
     this->execPendingCanvasChanges();
 
+    m_UI->makeMainGLCurrent();
+
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
 
@@ -355,6 +363,7 @@ void NativeContext::frame(bool draw)
         Compose canvas eachother on the main framebuffer
     */
     m_RootHandler->layerize(ctx, draw);
+    m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }

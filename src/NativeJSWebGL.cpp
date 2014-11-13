@@ -1242,7 +1242,7 @@ NGL_JS_FN(WebGLRenderingContext_clearColor)
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &r, &g, &b, &a)) {
         return false;
     }
-    
+
     GL_CALL(CppObj, ClearColor(r, g, b, a));
     
     return true;
