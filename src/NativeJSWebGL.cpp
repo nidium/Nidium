@@ -14,8 +14,6 @@
 
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
-#define NGL_GET_NATIVE JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
-
 #define GL_CALL(IFACE, FN)\
     NATIVE_GL_CALL(IFACE, FN); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
@@ -27,7 +25,7 @@
 #define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
 
 #define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp) {\
-    NGL_GET_NATIVE
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
 
 #define NATIVE_GL_OBJECT_EXPOSE_NOT_INST(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
