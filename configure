@@ -30,6 +30,7 @@ Deps.set(
 )
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
+Gyp.set("skia_resource_cache_mb_limit", 256)
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 
