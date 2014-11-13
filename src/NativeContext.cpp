@@ -149,6 +149,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSWebGLShader::registerObject(cx);
     NativeJSWebGLTexture::registerObject(cx);
     NativeJSWebGLUniformLocation::registerObject(cx);
+    NativeJSWebGLShaderPrecisionFormat::registerObject(cx);
 #endif
     /* Native() object */
     NativeJSNative::registerObject(cx);
