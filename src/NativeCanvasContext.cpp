@@ -336,7 +336,7 @@ void NativeCanvasContext::setupShader(float opacity, int width, int height,
     int left, int top, int wWidth, int wHeight)
 {
     uint32_t program = this->getProgram();
-    NATIVE_GL_CALL(glctx, UseProgram(program));
+    NATIVE_GL_CALL_MAIN(UseProgram(program));
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
