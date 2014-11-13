@@ -1996,25 +1996,25 @@ void NativeCanvas2DContext::setupCommonDraw()
 }
 #endif
 
-void NativeCanvas2DContext::drawTexIDToFBO2(uint32_t textureID, uint32_t width,
-    uint32_t height, uint32_t left, uint32_t top, uint32_t fbo)
+void NativeCanvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
+    uint32_t height, uint32_t left, uint32_t top)
 {
     GLenum err;
-    NATIVE_GL_CALL(this->m_GLState, BindTexture(GL_TEXTURE_2D, textureID));
+    NATIVE_GL_CALL_MAIN(BindTexture(GL_TEXTURE_2D, textureID));
 
-    NATIVE_GL_CALL(this->m_GLState, TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
-    NATIVE_GL_CALL(this->m_GLState, TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ));    
+    NATIVE_GL_CALL_MAIN(TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
+    NATIVE_GL_CALL_MAIN(TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ));    
 
     /* Anti Aliasing */
-    NATIVE_GL_CALL(this->m_GLState, TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
-    NATIVE_GL_CALL(this->m_GLState, TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
+    NATIVE_GL_CALL_MAIN(TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
+    NATIVE_GL_CALL_MAIN(TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
 
-    NATIVE_GL_CALL(this->m_GLState, DrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
+    NATIVE_GL_CALL_MAIN(DrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
 
-    NATIVE_GL_CALL(this->m_GLState, BindTexture(GL_TEXTURE_2D, 0));
+    NATIVE_GL_CALL_MAIN(BindTexture(GL_TEXTURE_2D, 0));
 
     /* Unbind vertex array bound by resetGLContext() */
-    NATIVE_GL_CALL(this->m_GLState, BindVertexArray(0));
+    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
 }
 
 #if 0
@@ -2161,95 +2161,12 @@ void NativeCanvas2DContext::setVertexDeformation(uint32_t vertex,
     state->setVertexDeformation(vertex, x, y);
 }
 
-void NativeCanvas2DContext::setupShader(float opacity, int width, int height,
-    int left, int top, int wWidth, int wHeight)
+uint32_t NativeCanvas2DContext::getTextureID() const
 {
-    uint32_t program = this->getProgram();
-    NATIVE_GL_CALL(this->m_GLState, UseProgram(program));
+    GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->getCanvas()->
+                                        getDevice()->accessRenderTarget();
 
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
-
-    if (program > 0) {
-        if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
-            NATIVE_GL_CALL(this->m_GLState, Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
-        }
-        float padding = this->getHandler()->padding.global * ratio;
-
-        if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
-            NATIVE_GL_CALL(this->m_GLState, Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution, (width)-(padding*2), (height)-(padding*2)));
-        if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
-            NATIVE_GL_CALL(this->m_GLState, Uniform2f(m_GLState->m_GLObjects.uniforms.u_position , ratio*left, ratio*wHeight - (height+ratio*top)));
-        if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
-            NATIVE_GL_CALL(this->m_GLState, Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
-    }
-
-}
-
-void NativeCanvas2DContext::composeWith(NativeCanvas2DContext *layer,
-    double left, double top, double opacity,
-    double zoom, const NativeRect *rclip)
-{
-    bool revertScissor = false;
-
-    SkPaint pt;
-    pt.setAlpha(opacity * (double)255.);
-    
-    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
-
-    NativeSkia *skia = layer->getSurface();
-    SkISize layerSize = skia->getCanvas()->getDeviceSize();
-
-    if (rclip != NULL) {
-        SkRect r;
-        r.set(SkDoubleToScalar(rclip->fLeft*(double)ratio),
-            SkDoubleToScalar(rclip->fTop*(double)ratio),
-            SkDoubleToScalar(rclip->fRight*(double)ratio),
-            SkDoubleToScalar(rclip->fBottom*(double)ratio));
-        NATIVE_GL_CALL(this->m_GLState, Enable(GL_SCISSOR_TEST));
-        NATIVE_GL_CALL(this->m_GLState, Scissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height()));
-        revertScissor = true;
-    }
-
-    /* TODO: disable alpha testing? */
-    if (this->hasShader()) {
-        int width, height;
-
-        /* TODO: /!\ Skia context is dirty here, is that a problem? */
-        this->flush();
-
-        /* get the layer's Texture ID */
-        uint32_t textureID = this->getSkiaTextureID(&width, &height);
-        /* Use our custom shader */
-        this->resetGLContext();
-
-        this->setupShader((float)opacity, width, height,
-            left, top,
-            (int)layer->getHandler()->getWidth(),
-            (int)layer->getHandler()->getHeight());
-
-        //glDisable(GL_ALPHA_TEST);
-        
-        this->updateMatrix(left*ratio, top*ratio, layerSize.width(), layerSize.height());
-        /* draw layer->skia->getCanvas() (textureID) in skia->getCanvas() (getMainFBO) */
-        layer->drawTexIDToFBO2(textureID, width, height, left*ratio, top*ratio, layer->getMainFBO());
-
-        /* Reset skia GL context */
-        //this->resetSkiaContext();
-    } else {
-        const SkBitmap &bitmapLayer = this->getSurface()->getCanvas()->getDevice()->accessBitmap(false);
-
-        this->resetSkiaContext();
-        layer->flush();
-        this->flush();
-        skia->getCanvas()->scale(SkDoubleToScalar(zoom), SkDoubleToScalar(zoom));
-        skia->getCanvas()->drawBitmap(bitmapLayer,
-            left*ratio, top*ratio, &pt);
-        skia->getCanvas()->scale(SkDoubleToScalar(1./zoom), SkDoubleToScalar(1./zoom));        
-    }
-
-    if (revertScissor) {
-        NATIVE_GL_CALL(this->m_GLState, Disable(GL_SCISSOR_TEST));
-    }
+    return backingTarget->asTexture()->getTextureHandle();
 }
 
 void NativeCanvas2DContext::flush()

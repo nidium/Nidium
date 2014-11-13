@@ -10,7 +10,7 @@ class NativeGLContext
 {
     public:
         NativeGLContext(NativeUIInterface *ui,
-            SDL_GLContext wrappedCtx = NULL) :
+            SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
             m_UI(ui)
         {
             if (wrappedCtx) {
@@ -28,7 +28,7 @@ class NativeGLContext
                 NLOG("Cant make main current");
             }
 
-            m_SDLGLCtx = m_UI->createSharedContext();
+            m_SDLGLCtx = m_UI->createSharedContext(webgl);
             if (m_SDLGLCtx == NULL) {
                 NLOG("Cant create context");
             }

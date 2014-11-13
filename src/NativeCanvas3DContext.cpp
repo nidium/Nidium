@@ -5,6 +5,8 @@
 
 #include "NativeGLState.h"
 
+#include <NativeSystemInterface.h>
+
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl3.h>
@@ -46,7 +48,12 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
 
     JS_SetPrivate(jsobj, this);
 
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
+    m_Device.width = width * ratio;
+    m_Device.height = height * ratio;
+
+    this->createFBO(m_Device.width, m_Device.height);
 }
 
 static JSBool native_Canvas3DContext_constructor(JSContext *cx,
@@ -74,6 +81,7 @@ void NativeCanvas3DContext::setScale(double x, double y, double px, double py)
 
 void NativeCanvas3DContext::clear(uint32_t color)
 {
+    m_GLState->makeGLCurrent();
 
 }
 
@@ -82,24 +90,77 @@ void NativeCanvas3DContext::flush()
 
 }
 
+uint32_t NativeCanvas3DContext::getTextureID() const
+{
+    return m_GLObjects.texture;
+}
+
 /* Returns the size in device pixel */
 void NativeCanvas3DContext::getSize(int *width, int *height) const
 {
 
 }
 
-void NativeCanvas3DContext::composeWith(NativeCanvas2DContext *layer,
-    double left, double top, double opacity,
-    double zoom, const NativeRect *rclip)
+
+bool NativeCanvas3DContext::createFBO(int width, int height)
 {
 
-}
+    /*
+        Create a WebGL context with passthrough program
+    */
+    m_GLState = new NativeGLState(__NativeUI, true, true);
+    m_GLState->setShared(false);
 
+    /*
+        Following call are made on the newly created OpenGL Context
+    */
+    m_GLState->makeGLCurrent();
 
-bool NativeCanvas3DContext::createFBO()
-{
-    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &m_GLObjects.texture);
+    glBindTexture(GL_TEXTURE_2D, m_GLObjects.texture);
 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    /* Allocate memory for the new texture */
+    glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA,
+            width, height,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            NULL
+    );
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    /* Generate the FBO */
+    glGenFramebuffers(1, &m_GLObjects.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_GLObjects.fbo);
+
+    /* Set the FBO backing store using the new texture */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D, m_GLObjects.texture, 0);
+
+    GLenum status;
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            return false;
+        default:
+            printf("fbo fatal error\n");
+            return false;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    printf("FBO and texture created\n");
 
     return true;
 }

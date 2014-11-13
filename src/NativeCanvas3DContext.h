@@ -11,6 +11,9 @@ class NativeUIInterface;
 class NativeCanvas3DContext : public NativeCanvasContext
 {
 public:
+    /*
+        width and height is in logical pixel
+    */
     NativeCanvas3DContext(NativeCanvasHandler *handler,
         struct JSContext *cx, int width, int height, NativeUIInterface *ui);
     virtual ~NativeCanvas3DContext();
@@ -20,21 +23,29 @@ public:
     virtual void setScale(double x, double y, double px=1, double py=1) override;
     virtual void clear(uint32_t color = 0x00000000) override;
     virtual void flush() override;
+    virtual uint32_t getTextureID() const override;
 
     /* Returns the size in device pixel */
     virtual void getSize(int *width, int *height) const override;
-
-    virtual void composeWith(NativeCanvas2DContext *layer,
-        double left, double top, double opacity,
-        double zoom, const NativeRect *rclip) override;
 private:
     
-    bool createFBO();
+    /*
+        width and height are in device pixel
+    */
+    bool createFBO(int width, int height);
 
     struct {
         uint32_t fbo;
         uint32_t texture;
     } m_GLObjects;
+
+    struct {
+        /*
+            int device pixel
+        */
+        int width;
+        int height;
+    } m_Device;
 };
 
 #endif

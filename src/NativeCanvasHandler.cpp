@@ -531,7 +531,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             /*
                 Not visible. Don't call composeWith()
             */
-            this->m_Context->composeWith((NativeCanvas2DContext *)layerContext.layer->m_Context,
+            this->m_Context->preComposeOn((NativeCanvas2DContext *)layerContext.layer->m_Context,
                 this->a_left - this->padding.global, 
                 this->a_top - this->padding.global, popacity, zoom,
                 (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
