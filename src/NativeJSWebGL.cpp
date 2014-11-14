@@ -10,6 +10,7 @@
 #include <NativeContext.h>
 #include <NativeUIInterface.h>
 #include <NativeMacros.h>
+#include <NativeSystemInterface.h>
 
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
@@ -1096,7 +1097,13 @@ NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
         return false;
     }
 
-	if (buffer == NULL) return true;
+	if (buffer == NULL) {
+        /*
+            Bind to the default framebuffer
+        */
+        GL_CALL(CppObj, BindFramebuffer(target, CppObj->getFrameBufferID()));
+        return true;
+    }
 
     cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLFrameBuffer_class, JS_ARGV(cx, vp));
 
@@ -1561,8 +1568,7 @@ NGL_JS_FN(WebGLRenderingContext_drawElements)
         JS_ReportError(cx, "Overflow in drawElements");
         return false;
     }
-    
-    printf("in glDrawElements %d\n", offset);
+
     GL_CALL(CppObj, DrawElements(mode, count, type, (void *)(intptr_t)offset));
     
     return true;
@@ -1588,7 +1594,7 @@ NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &attr)) {
         return false;
     }
-    
+
     GL_CALL(CppObj, EnableVertexAttribArray(attr));
     
     return true;
@@ -2334,13 +2340,14 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         
         GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, border, format, type, pixels));
     } else {
-        if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image)) {
+        if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image) || image == NULL) {
+            JS_ReportError(cx, "texImage2D() invalid arguments");
             return false;
         }
 
         // XXX : UNSAFE use JS_GetInstancePrivate Image_class 
         //if ((nimg = static_cast<NativeJSImage *>(JS_GetInstancePrivate(cx, image, &Image_class, JS_ARGV(cx, vp)))) == NULL) {
-        if ((nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image))) == NULL) {
+        if (!OBJECT_TO_JSVAL(image).isObject() || (nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image))) == NULL) {
             JS_ReportError(cx, "Invalid image object");
             return false;
         }
@@ -2350,7 +2357,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         
         rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
 
-        if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, ngl->unpackFlipY, 
+       if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, ngl->unpackFlipY, 
                 ngl->unpackPremultiplyAlpha)) {
             JS_ReportError(cx, "Failed to read image data");
             return false;
@@ -2565,11 +2572,13 @@ NGL_JS_FN(WebGLRenderingContext_viewport)
 //{
     GLint x, y, w, h;
 
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &w, &h)) {
         return false;
     }
 
-    GL_CALL(CppObj, Viewport(x, y, w, h));
+    GL_CALL(CppObj, Viewport(x*ratio, y*ratio, w*ratio, h*ratio));
 
     return true;
 }

@@ -13,7 +13,7 @@
 #include <SkDevice.h>
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -1742,7 +1742,8 @@ void NativeCanvas2DContext::clear(uint32_t color)
 char *NativeCanvas2DContext::genModifiedFragmentShader(const char *data)
 {
     const char *prologue =
-        "#version 100\nprecision mediump float;\n"
+        //"#version 100\nprecision mediump float;\n"
+        //"precision mediump float;\n"
         "vec4 _nm_gl_FragCoord;\n"
         "#define main _nm_main\n"
         "#define gl_FragCoord _nm_gl_FragCoord\n";
@@ -1805,7 +1806,8 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
 uint32_t NativeCanvas2DContext::compileCoopFragmentShader()
 {
     const char *coop =
-        "#version 100\nprecision mediump float;\n"
+        //"#version 100\nprecision mediump float;\n"
+        //"precision mediump float;\n"
         "void _nm_main(void);\n"
         "uniform sampler2D Texture;\n"
         "uniform vec2 n_Position;\n"
@@ -2015,7 +2017,7 @@ void NativeCanvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
     NATIVE_GL_CALL_MAIN(BindTexture(GL_TEXTURE_2D, 0));
 
     /* Unbind vertex array bound by resetGLContext() */
-    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
+    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(0));
 }
 
 #if 0

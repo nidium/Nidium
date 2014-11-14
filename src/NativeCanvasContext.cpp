@@ -12,7 +12,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -173,7 +173,7 @@ void NativeCanvasContext::resetGLContext()
 uint32_t NativeCanvasContext::createPassThroughVertex()
 {
     /* PassThrough Vertex shader */
-    const char *vertex_s = "#version 100\nprecision mediump float;\nattribute vec4 Position;\n"
+    const char *vertex_s = "attribute vec4 Position;\n"
     "attribute vec2 TexCoordIn;\n"
     "attribute vec2 Modifier;\n"
     "varying vec2 TexCoordOut;\n"
@@ -190,7 +190,7 @@ uint32_t NativeCanvasContext::createPassThroughVertex()
 
 uint32_t NativeCanvasContext::createPassThroughFragment()
 {
-    const char *fragment_s = "#version 100\nprecision mediump float;\n"
+    const char *fragment_s = "\n"
     "uniform sampler2D Texture;\n"
     "uniform float u_opacity;\n"
     "varying vec2 TexCoordOut;\n"

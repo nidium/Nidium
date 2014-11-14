@@ -184,15 +184,15 @@ void NativeSkImage::desaturate()
 bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
         bool flipY, bool premultiply) 
 {
-#if 0
+#if 1
     int length;
     int k;
     const unsigned char *pixels;
     int width;
 
-    nimg->img.lockPixels();
-    if ((pixels = static_cast<const unsigned char*>(nimg->img.getPixels())) == NULL) {
-        nimg->img.unlockPixels();
+    nimg->img->lockPixels();
+    if ((pixels = static_cast<const unsigned char*>(nimg->img->getPixels())) == NULL) {
+        nimg->img->unlockPixels();
         return false;
     }
 

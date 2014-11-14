@@ -9,7 +9,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -164,12 +164,27 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
             return false;
     }
 
+    glClearColor(0., 0., 0., 0.);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glViewport(0, 0, width, height);
+
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 #ifdef GL_POINT_SPRITE
     glEnable(GL_POINT_SPRITE);
 #endif
-    // ??? keep framebuffer bound?
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    /* Vertex Array Buffer are required in GL3.0+ */
+    uint32_t vao;
+    glGenVertexArraysAPPLE(1, &vao);
+    glBindVertexArrayAPPLE(vao);
+
+    glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    
+    /*
+        We keep the newly created framebuffer bound.
+    */
 
     return true;
 }

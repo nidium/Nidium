@@ -6,7 +6,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -46,7 +46,7 @@ void NativeGLState::setVertexDeformation(uint32_t vertex, float x, float y)
 bool NativeGLState::initGLBase(bool withProgram)
 {
     NATIVE_GL_CALL_MAIN(GenBuffers(2, m_GLObjects.vbo));
-    NATIVE_GL_CALL_MAIN(GenVertexArrays(1, &m_GLObjects.vao));
+    NATIVE_GL_CALL_MAIN(GenVertexArraysAPPLE(1, &m_GLObjects.vao));
 
     m_Resources.add(m_GLObjects.vbo[0], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
@@ -54,7 +54,7 @@ bool NativeGLState::initGLBase(bool withProgram)
 
     NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
 
-    NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
+    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(m_GLObjects.vao));
 
     NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION));
     NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD));
@@ -95,7 +95,7 @@ bool NativeGLState::initGLBase(bool withProgram)
             m_GLObjects.uniforms.u_opacity);    
     }
 
-    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
+    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(0));
 
     return true;
 }
@@ -112,7 +112,7 @@ void NativeGLState::setProgram(uint32_t program)
 
 void NativeGLState::setActive()
 {
-    NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
+    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(m_GLObjects.vao));
     NATIVE_GL_CALL_MAIN(ActiveTexture(GL_TEXTURE0));
 }
 

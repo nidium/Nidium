@@ -27,6 +27,10 @@ public:
 
     /* Returns the size in device pixel */
     virtual void getSize(int *width, int *height) const override;
+
+    uint32_t getFrameBufferID() const {
+        return m_GLObjects.fbo;
+    }
 private:
     
     /*
