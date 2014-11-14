@@ -513,9 +513,11 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
         SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
         
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
         //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         
         win = SDL_CreateWindow("nidium", 100, 100,
@@ -566,7 +568,12 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         glViewport(0, 0, width, height);
 
         NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
-        NLOG("[Debug] GLSL : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        NLOG("[DEBUG] GLSL : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+
+        int depth;
+        glGetIntegerv(GL_DEPTH_BITS, &depth);
+
+        NLOG("[DEBUG] Deph buffer %i", depth);
     } else {
         //this->patchSDLView([NativeCocoaWindow(win) contentView]);
     }
