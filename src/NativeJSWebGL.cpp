@@ -1074,11 +1074,10 @@ NGL_JS_FN(WebGLRenderingContext_bindBuffer)
     }
 
 	if (buffer == NULL) {
-        printf("nullbuffer\n");
-        return true;
+        cbuffer = 0;
+    } else {
+        cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLBuffer_class, JS_ARGV(cx, vp));
     }
-
-    cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLBuffer_class, JS_ARGV(cx, vp));
 
     GL_CALL(CppObj, BindBuffer(target, cbuffer));
     
@@ -1297,13 +1296,13 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     ShInitBuiltInResources(&resources);
 
     // TODO use real values (see third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp )
-    resources.MaxVertexAttribs = 8*4;
-    resources.MaxVertexUniformVectors = 128*4;
-    resources.MaxVaryingVectors = 8*4;
-    resources.MaxVertexTextureImageUnits = 4*4;
-    resources.MaxCombinedTextureImageUnits = 8*4;
-    resources.MaxTextureImageUnits = 8*4;
-    resources.MaxFragmentUniformVectors = 16*4;
+    resources.MaxVertexAttribs = 8;
+    resources.MaxVertexUniformVectors = 128;
+    resources.MaxVaryingVectors = 8;
+    resources.MaxVertexTextureImageUnits = 4;
+    resources.MaxCombinedTextureImageUnits = 8;
+    resources.MaxTextureImageUnits = 8;
+    resources.MaxFragmentUniformVectors = 16;
     resources.MaxDrawBuffers = 1;
 
     resources.OES_standard_derivatives = 1;
