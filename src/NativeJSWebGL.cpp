@@ -14,8 +14,6 @@
 
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
-#define NGL_GET_NATIVE JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
-
 #define GL_CALL(IFACE, FN)\
     NATIVE_GL_CALL(IFACE, FN); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
@@ -27,7 +25,7 @@
 #define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
 
 #define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp) {\
-    NGL_GET_NATIVE
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
 
 #define NATIVE_GL_OBJECT_EXPOSE_NOT_INST(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
@@ -35,10 +33,6 @@
         JS_DefineObject(cx, JS_GetGlobalObject(cx), #name, \
             &name ## _class , NULL, 0); \
     }
-
-#define MAKE_GL_CURRENT(cx, vp) \
-    //NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp)); \
-    //ngl->MakeGLCurrent();
 
 JSClass WebGLRenderingContext_class = {
     "WebGLRenderingContext", JSCLASS_HAS_PRIVATE,
@@ -523,6 +517,7 @@ D_NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)
 D_NGL_JS_FN(WebGLRenderingContext_blendFunc)
 D_NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate)
 D_NGL_JS_FN(WebGLRenderingContext_bufferData)
+D_NGL_JS_FN(WebGLRenderingContext_bufferSubData)
 D_NGL_JS_FN(WebGLRenderingContext_clear)
 D_NGL_JS_FN(WebGLRenderingContext_clearColor)
 D_NGL_JS_FN(WebGLRenderingContext_clearDepth)
@@ -612,6 +607,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("blendFunc", WebGLRenderingContext_blendFunc, 2, 0),
     JS_FS("blendFuncSeparate", WebGLRenderingContext_blendFuncSeparate, 4, 0),
     JS_FS("bufferData", WebGLRenderingContext_bufferData, 3, 0),
+    JS_FS("bufferSubData", WebGLRenderingContext_bufferSubData, 3, 0),
     JS_FS("clear", WebGLRenderingContext_clear, 1, 0),
     JS_FS("clearColor", WebGLRenderingContext_clearColor, 4, 0),
     JS_FS("clearDepth", WebGLRenderingContext_clearDepth, 1, 0),
@@ -1076,11 +1072,10 @@ NGL_JS_FN(WebGLRenderingContext_bindBuffer)
     }
 
 	if (buffer == NULL) {
-        printf("nullbuffer\n");
-        return true;
+        cbuffer = 0;
+    } else {
+        cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLBuffer_class, JS_ARGV(cx, vp));
     }
-
-    cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLBuffer_class, JS_ARGV(cx, vp));
 
     GL_CALL(CppObj, BindBuffer(target, cbuffer));
     
@@ -1226,6 +1221,30 @@ NGL_JS_FN(WebGLRenderingContext_bufferData)
     return true;
 }
 
+NGL_JS_FN(WebGLRenderingContext_bufferSubData)
+//{
+    GLenum target;
+    GLint offset;
+    JSObject *array;
+
+    GLsizei size;
+    GLvoid *data;
+
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuo", &target, &offset, &array)) {
+        return false;
+    }
+
+	if (array == NULL || !JS_IsTypedArrayObject(array) || !JS_IsArrayBufferViewObject(array)) {
+        JS_ReportError(cx, "Invalid value");
+		return false;
+	}
+
+    GL_CALL(CppObj, BufferSubData(target, offset, JS_GetArrayBufferViewByteLength(array), JS_GetArrayBufferViewData(array)));
+    
+    return true;
+}
+
 NGL_JS_FN(WebGLRenderingContext_clear)
 //{
     GLbitfield bits;
@@ -1299,13 +1318,13 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     ShInitBuiltInResources(&resources);
 
     // TODO use real values (see third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp )
-    resources.MaxVertexAttribs = 8*4;
-    resources.MaxVertexUniformVectors = 128*4;
-    resources.MaxVaryingVectors = 8*4;
-    resources.MaxVertexTextureImageUnits = 4*4;
-    resources.MaxCombinedTextureImageUnits = 8*4;
-    resources.MaxTextureImageUnits = 8*4;
-    resources.MaxFragmentUniformVectors = 16*4;
+    resources.MaxVertexAttribs = 8;
+    resources.MaxVertexUniformVectors = 128;
+    resources.MaxVaryingVectors = 8;
+    resources.MaxVertexTextureImageUnits = 4;
+    resources.MaxCombinedTextureImageUnits = 8;
+    resources.MaxTextureImageUnits = 8;
+    resources.MaxFragmentUniformVectors = 16;
     resources.MaxDrawBuffers = 1;
 
     resources.OES_standard_derivatives = 1;
@@ -2321,11 +2340,8 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
     int width, height;
 	NativeJSImage *nimg;
     void *pixels = NULL;
-    NativeCanvasWebGLContext *ngl;
     unsigned char *rgbaPixels;
 
-    ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-    
     if (argc == 9) {
         GLint border;
         JSObject *array;
@@ -2357,8 +2373,8 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         
         rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
 
-       if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, ngl->unpackFlipY, 
-                ngl->unpackPremultiplyAlpha)) {
+       if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, true, 
+                false)) {
             JS_ReportError(cx, "Failed to read image data");
             return false;
         }
