@@ -242,6 +242,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
     JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    (void)args;\
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) { \
         JS_ReportError(cx, "Illegal invocation"); \
