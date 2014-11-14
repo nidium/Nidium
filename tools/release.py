@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys, os
+import sys, os, imp
 sys.path.append(".")
 sys.path.append("tools")
 
@@ -9,13 +9,14 @@ from konstructor import Platform
 from konstructor import Utils
 from konstructor import Log
 
-import configure
-
+imp.load_source("configure", "configure");
 
 Gyp = Builder.Gyp
 
 Konstruct.setConfigs(["release"])
 Gyp.setConfiguration("Release")
+
+Gyp.set("native_enable_breakpad", 1)
 
 OUTPUT_BINARY = os.path.join("build", Gyp._config, "nidium")
 
@@ -90,13 +91,16 @@ def release():
     def get_content_type(filename):
         return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
 
-    breakpadSymFile = "build/out/" + Gyp._config + "/nidium.sym"
     symFile = ""
     binFile = ""
+    breakpadSymFile = ""
+
     if Platform.system == "Darwin":
+        breakpadSymFile = "gyp/build/" + Gyp._config + "/nidium.sym"
         symFile = "gyp/build/Release/nidium.app.dSYM/Contents/Resources/DWARF/nidium"
         binFile = "framework/dist/nidium.app/Contents/MacOS/nidium"
     elif Platform.system == "Linux":
+        breakpadSymFile = "build/out/" + Gyp._config + "/nidium.sym"
         symFile = "build/out/" + Gyp._config + " /nidium.debug"
         binFile = OUTPUT_BINARY
     else:
@@ -122,6 +126,9 @@ def release():
         myzip.write(breakpadSymFile, "nidium.sym")
         myzip.write(symFile, "nidium.debug")
 
+    stripExecutable()
+    packageExecutable()
+
     Log.info("Uploading application symbols. Bytes : %s " % (os.stat(symArchive).st_size));
     symbols = open(symArchive, "rb").read()
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip()
@@ -139,16 +146,14 @@ def release():
     os.unlink(symArchive)
     os.unlink(breakpadSymFile)
 
-    stripExecutable()
-    packageExecutable()
 
 def stripExecutable():
     Log.info("Striping executable")
-    if deps.system == "Darwin":
-        deps.runCommand("strip framework/dist/nidium.app/Contents/MacOS/nidium")
+    if Platform.system == "Darwin":
+        Utils.run("strip framework/dist/nidium.app/Contents/MacOS/nidium")
         return
-    elif deps.system == "Linux":
-        deps.runCommand("strip " + OUTPUT_BINARY)
+    elif Platform.system == "Linux":
+        Utils.run("strip " + OUTPUT_BINARY)
     else:
         # Window TODO
         print("TODO")
@@ -157,9 +162,9 @@ def stripExecutable():
 def signCode(path):
     import subprocess
 
-    log.step("Signing object...")
+    Log.info("Signing object...")
 
-    code, output = deps.runCommand(" ".join([
+    code, output = Utils.run(" ".join([
         "codesign",
         "--force",
         "--sign",
@@ -168,11 +173,9 @@ def signCode(path):
     ]))
 
     if code != 0:
-        log.setError()
-        log.error("Failed to build dmg")
-        sys.exit(3)
+        Utils.exit("Failed to build dmg")
 
-    log.info(path)
+    Log.info(path)
 
 def packageExecutable():
     import time
@@ -192,16 +195,16 @@ def packageExecutable():
     except:
         tag = None
 
-    if deps.is64bits:
+    if Platform.wordSize == 64:
         arch = "x86_64"
     else:
         arch = "i386"
 
     if tag is None:
         datetime = time.strftime("%Y%m%d_%H%M%S")
-        name = "Nidium_%s_%s_%s_%s" % (datetime, revision, deps.system, arch)
+        name = "Nidium_%s_%s_%s_%s" % (datetime, revision, Platform.system, arch)
     else:
-        name = "Nidium_%s_%s_%s" % (tag, deps.system, arch)
+        name = "Nidium_%s_%s_%s" % (tag, Platform.system, arch)
 
     Log.info("Packaging executable")
 
@@ -227,10 +230,10 @@ def packageExecutable():
             "out/" + name,
             path + "nidium.app/"
         ]
-        code, output = deps.runCommand(" ".join(cmd))
+        code, output = Utils.run(" ".join(cmd))
         if code != 0:
             Utils.exit("Failed to build dmg")
-    elif deps.system == "Linux":
+    elif Platform.system == "Linux":
         import shutil
         resources += "linux/"
         name += ".run"
@@ -244,7 +247,7 @@ def packageExecutable():
         shutil.copy(path + "nidium",  tmpDir + "dist/")
         shutil.copy(path + "nidium-crash-reporter", tmpDir + "dist/")
 
-        deps.runCommand("tools/installer/linux/makeself.sh %s out/%s 'Nidium installer' ./installer.sh " % (tmpDir, name))
+        Utils.run("tools/installer/linux/makeself.sh %s out/%s 'Nidium installer' ./installer.sh " % (tmpDir, name))
 
         shutil.rmtree(tmpDir);
 
