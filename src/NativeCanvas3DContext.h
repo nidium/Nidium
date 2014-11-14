@@ -37,10 +37,12 @@ private:
         width and height are in device pixel
     */
     bool createFBO(int width, int height);
+    void cleanUp();
 
     struct {
         uint32_t fbo;
         uint32_t texture;
+        uint32_t vao;
     } m_GLObjects;
 
     struct {

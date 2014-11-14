@@ -1096,7 +1096,8 @@ NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
         /*
             Bind to the default framebuffer
         */
-        GL_CALL(CppObj, BindFramebuffer(target, CppObj->getFrameBufferID()));
+        uint32_t fbo = CppObj->getFrameBufferID();
+        GL_CALL(CppObj, BindFramebuffer(target, fbo));
         return true;
     }
 
@@ -2267,14 +2268,14 @@ NGL_JS_FN(WebGLRenderingContext_pixelStorei)
     switch (param) {
         case NGL_UNPACK_FLIP_Y_WEBGL:
         {
-            NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-            ngl->unpackFlipY = (bool)value;
+            //NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
+            //ngl->unpackFlipY = (bool)value;
             break;
         }
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
         {
-            NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-            ngl->unpackPremultiplyAlpha = (bool)value;
+            //NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
+            //ngl->unpackPremultiplyAlpha = (bool)value;
             break;
         }
         case NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL:
