@@ -11,6 +11,12 @@ class NativeUIInterface;
 class NativeCanvas3DContext : public NativeCanvasContext
 {
 public:
+
+    enum FLags {
+        kUNPACK_FLIP_Y_WEBGL_Flag             = 1 << 0,
+        kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag  = 1 << 1
+    };
+
     /*
         width and height is in logical pixel
     */
@@ -30,6 +36,26 @@ public:
 
     uint32_t getFrameBufferID() const {
         return m_GLObjects.fbo;
+    }
+
+    void setFlag(uint32_t flag) {
+        m_Flags = flag;
+    }
+
+    uint32_t getFlag() const {
+        return m_Flags;
+    }
+
+    void removeFlag(uint32_t flag) {
+        m_Flags &= ~flag;
+    }
+
+    void addFlag(uint32_t flag) {
+        m_Flags |= flag;
+    }
+
+    bool hasFlag(uint32_t flag) {
+        return m_Flags & flag;
     }
 private:
     
@@ -52,6 +78,8 @@ private:
         int width;
         int height;
     } m_Device;
+
+    uint32_t m_Flags;
 };
 
 #endif

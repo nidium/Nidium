@@ -37,7 +37,7 @@ NativeCanvas3DContext::~NativeCanvas3DContext()
 
 NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     JSContext *cx, int width, int height, NativeUIInterface *ui) :
-    NativeCanvasContext(handler)
+    NativeCanvasContext(handler), m_Flags(0)
 {
     m_Mode = CONTEXT_WEBGL;
 

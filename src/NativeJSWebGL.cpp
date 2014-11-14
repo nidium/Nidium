@@ -1990,9 +1990,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
 
         // bool, WebGL-specific
         case NGL_UNPACK_FLIP_Y_WEBGL:
+            value.setBoolean(CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag));
+            break;
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
-            value.setBoolean(false);
-        break;
+            value.setBoolean(CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag));
+            break;
 
         // uint, WebGL-specific
         case NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL:
@@ -2268,14 +2270,20 @@ NGL_JS_FN(WebGLRenderingContext_pixelStorei)
     switch (param) {
         case NGL_UNPACK_FLIP_Y_WEBGL:
         {
-            //NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-            //ngl->unpackFlipY = (bool)value;
+            if (value) {
+                CppObj->addFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
+            } else {
+                CppObj->removeFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
+            }
             break;
         }
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
         {
-            //NativeCanvasWebGLContext *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-            //ngl->unpackPremultiplyAlpha = (bool)value;
+            if (value) {
+                CppObj->addFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
+            } else {
+                CppObj->removeFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
+            }
             break;
         }
         case NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL:
@@ -2374,8 +2382,10 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         
         rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
 
-       if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, true, 
-                false)) {
+       if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels,
+                CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag), 
+                CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
+        
             JS_ReportError(cx, "Failed to read image data");
             return false;
         }
