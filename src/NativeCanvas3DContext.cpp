@@ -32,6 +32,7 @@ void Canvas3DContext_finalize(JSFreeOp *fop, JSObject *obj)
 
 NativeCanvas3DContext::~NativeCanvas3DContext()
 {
+    this->cleanUp();
 }
 
 NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
@@ -39,8 +40,8 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     NativeCanvasContext(handler)
 {
     m_Mode = CONTEXT_WEBGL;
-    m_GLObjects.fbo = 0;
-    m_GLObjects.texture = 0;
+
+    memset(&m_GLObjects, 0, sizeof(m_GLObjects));
 
     jsobj = JS_NewObject(cx, &WebGLRenderingContext_class, NULL, NULL);
 
@@ -73,7 +74,18 @@ void NativeCanvas3DContext::translate(double x, double y)
 
 void NativeCanvas3DContext::setSize(int width, int height, bool redraw)
 {
+    if (width == m_Device.width && height == m_Device.height) {
+        return;
+    }
 
+    this->cleanUp();
+
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    m_Device.width = width * ratio;
+    m_Device.height = height * ratio;
+
+    this->createFBO(m_Device.width, m_Device.height);
 }
 
 void NativeCanvas3DContext::setScale(double x, double y, double px, double py)
@@ -107,13 +119,40 @@ void NativeCanvas3DContext::getSize(int *width, int *height) const
     if (height) *height = m_Device.height;
 }
 
+void NativeCanvas3DContext::cleanUp()
+{
+    printf("Clearup on %p\n", this);
+    m_GLState->makeGLCurrent();
+
+    if (m_GLObjects.texture) {
+        glDeleteTextures(1, &m_GLObjects.texture);
+        m_GLObjects.texture = 0;
+    }
+
+    if (m_GLObjects.fbo) {
+        glDeleteFramebuffers(1, &m_GLObjects.fbo);
+        m_GLObjects.fbo = 0;
+    }
+
+    if (m_GLObjects.vao) {
+        glDeleteVertexArraysAPPLE(1, &m_GLObjects.vao);
+        m_GLObjects.vao = 0;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 bool NativeCanvas3DContext::createFBO(int width, int height)
 {
     /*
         Create a WebGL context with passthrough program
     */
-    m_GLState = new NativeGLState(__NativeUI, true, true);
-    m_GLState->setShared(false);
+
+    if (!m_GLState) {
+        m_GLState = new NativeGLState(__NativeUI, true, true);
+        m_GLState->setShared(false);
+    }
 
     /*
         Following call are made on the newly created OpenGL Context
@@ -154,7 +193,6 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
 
     switch(status) {
         case GL_FRAMEBUFFER_COMPLETE:
-            printf("fbo created\n");
             break;
         case GL_FRAMEBUFFER_UNSUPPORTED:
             printf("fbo unsupported\n");
@@ -176,15 +214,26 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
 
     /* Vertex Array Buffer are required in GL3.0+ */
     uint32_t vao;
-    glGenVertexArraysAPPLE(1, &vao);
-    glBindVertexArrayAPPLE(vao);
+    glGenVertexArraysAPPLE(1, &m_GLObjects.vao);
+    glBindVertexArrayAPPLE(m_GLObjects.vao);
 
+    /*
+        Cull face is enabled by default on WebGL
+    */
     glFrontFace(GL_CCW);
     glEnable(GL_CULL_FACE);
-    
     /*
         We keep the newly created framebuffer bound.
     */
+
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_MULTISAMPLE);
+
+    //glShadeModel(GL_SMOOTH);
+    //glDepthFunc(GL_LEQUAL);
+    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    //GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
 
     return true;
 }
