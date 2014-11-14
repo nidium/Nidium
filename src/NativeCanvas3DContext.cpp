@@ -121,7 +121,6 @@ void NativeCanvas3DContext::getSize(int *width, int *height) const
 
 void NativeCanvas3DContext::cleanUp()
 {
-    printf("Clearup on %p\n", this);
     m_GLState->makeGLCurrent();
 
     if (m_GLObjects.texture) {
@@ -137,6 +136,11 @@ void NativeCanvas3DContext::cleanUp()
     if (m_GLObjects.vao) {
         glDeleteVertexArraysAPPLE(1, &m_GLObjects.vao);
         m_GLObjects.vao = 0;
+    }
+
+    if (m_GLObjects.renderbuffer) {
+        glDeleteRenderbuffers(1, &m_GLObjects.renderbuffer);
+        m_GLObjects.renderbuffer = 0;
     }
 
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -188,6 +192,11 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         GL_TEXTURE_2D, m_GLObjects.texture, 0);
 
+    glGenRenderbuffers(1, &m_GLObjects.renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_GLObjects.renderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_GLObjects.renderbuffer);
+
     GLenum status;
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -202,8 +211,8 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
             return false;
     }
 
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glClearColor(0., 0., 0., 0.);
-    glClear(GL_COLOR_BUFFER_BIT);
 
     glViewport(0, 0, width, height);
 
@@ -229,11 +238,21 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_MULTISAMPLE);
 
-    //glShadeModel(GL_SMOOTH);
-    //glDepthFunc(GL_LEQUAL);
-    //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+#if 0
+    glShadeModel(GL_SMOOTH);
+    glDepthFunc(GL_LEQUAL);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-    //GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
+    GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LEQUAL);
+    glDepthRange(0.f, 1.f);
+#endif
+    
+    glEnable(GL_DEPTH_TEST);
+    glClearDepth(1.0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     return true;
 }

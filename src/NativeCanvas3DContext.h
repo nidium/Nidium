@@ -69,6 +69,7 @@ private:
         uint32_t fbo;
         uint32_t texture;
         uint32_t vao;
+        uint32_t renderbuffer;
     } m_GLObjects;
 
     struct {
