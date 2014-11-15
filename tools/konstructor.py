@@ -175,9 +175,13 @@ class Platform:
     @staticmethod
     def setEnviron(*args):
         for env in args:
-            tmp = env.split("=")
-            if tmp[0][:-1] == "+":
-                os.environ[tmp[0][:-1]] += os.pathsep + tmp[1]
+            tmp = env.split("=", 1)
+            if tmp[0].endswith("+"):
+                key = tmp[0][:-1]
+                if key in os.environ:
+                    os.environ[key] = os.environ.get(key, "") + os.pathsep + tmp[1]
+                else:
+                    os.environ[key] = tmp[1]
             else:
                 os.environ[tmp[0]] = tmp[1]
 
