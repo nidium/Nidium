@@ -10,6 +10,7 @@
             '<(third_party_path)/libzip/lib/',
             '<(third_party_path)/SDL2/include/',
             '<(third_party_path)/c-ares/',
+            '<(third_party_path)/angle/include/',
         ],
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',

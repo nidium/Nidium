@@ -24,7 +24,6 @@
 #include <string.h>
 #include "NativeMacros.h"
 
-#include "GLSLANG/ShaderLang.h"
 #include "NativeMacros.h"
 #include "NativeNML.h"
 
@@ -74,8 +73,6 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     gfunc = JSVAL_VOID;
     //nui->useOffScreenRendering(true);
 
-    ShInitialize();
-
     m_SizeDirty = false;
     m_Stats.nframe = 0;
     m_Stats.starttime = NativeUtils::getTick();
@@ -91,6 +88,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     this->m_GLState = new NativeGLState(nui);
 
+    this->initShaderLang();
     this->initHandlers(width, height);
 
     m_JS = new NativeJS(net);
@@ -365,6 +363,87 @@ void NativeContext::frame(bool draw)
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
+}
+
+// From third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp
+// TODO : Handle OpenGL ES
+bool NativeContext::initShaderLang()
+{
+    GLint maxVertexAttribs;
+    GLint maxTextureUnits;
+    GLint maxTextureSize;
+    GLint maxCubeMapTextureSize;
+    GLint maxRenderbufferSize;
+    GLint maxTextureImageUnits;
+    GLint maxVertexTextureImageUnits;
+    GLint maxFragmentUniformVectors;
+    GLint maxVertexUniformVectors;
+    GLint maxVaryingVectors;
+    GLenum error;
+
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &maxCubeMapTextureSize);
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureImageUnits);
+    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &maxVertexTextureImageUnits);
+
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &maxFragmentUniformVectors);
+    maxFragmentUniformVectors /= 4;
+    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVertexUniformVectors);
+    maxVertexUniformVectors /= 4;
+
+#if 0
+    // we are now going to try to read GL_MAX_VERTEX_OUTPUT_COMPONENTS and GL_MAX_FRAGMENT_INPUT_COMPONENTS,
+    // however these constants only entered the OpenGL standard at OpenGL 3.2. So we will try reading,
+    // and check OpenGL error for INVALID_ENUM.
+
+    // before we start, we check that no error already occurred, to prevent hiding it in our subsequent error handling
+    error = glGetError();
+    if (error != GL_NO_ERROR) {
+        printf("GL error 0x%x occurred during initShaderLang context initialization!\n", error);
+        return false;
+    }
+
+    // On the public_webgl list, "problematic GetParameter pnames" thread, the following formula was given:
+    //   mGLMaxVaryingVectors = min (GL_MAX_VERTEX_OUTPUT_COMPONENTS, GL_MAX_FRAGMENT_INPUT_COMPONENTS) / 4
+    GLint maxVertexOutputComponents,
+          minFragmentInputComponents;
+    glGetIntegerv(GL_MAX_VERTEX_OUTPUT_COMPONENTS, &maxVertexOutputComponents);
+    glGetIntegerv(GL_MAX_FRAGMENT_INPUT_COMPONENTS, &minFragmentInputComponents);
+
+    error = glGetError();
+    switch (error) {
+        case GL_NO_ERROR:
+            maxVaryingVectors = std::min(maxVertexOutputComponents, minFragmentInputComponents) / 4;
+            break;
+        case GL_INVALID_ENUM:
+            maxVaryingVectors = 16; // = 64/4, 64 is the min value for maxVertexOutputComponents in OpenGL 3.2 spec
+            break;
+        default:
+            printf("GL error 0x%x occurred during WebGL context initialization!\n", error);
+            return false;
+    }   
+#endif
+
+    ShInitialize();
+
+    ShInitBuiltInResources(&m_ShResources);
+
+    m_ShResources.MaxVertexAttribs = maxVertexAttribs;
+    m_ShResources.MaxVertexUniformVectors = maxVertexUniformVectors;
+    m_ShResources.MaxVaryingVectors = 16;
+    m_ShResources.MaxVertexTextureImageUnits = maxVertexTextureImageUnits;
+    m_ShResources.MaxCombinedTextureImageUnits = maxTextureImageUnits;
+    m_ShResources.MaxTextureImageUnits = maxTextureImageUnits;
+    m_ShResources.MaxFragmentUniformVectors = maxFragmentUniformVectors;
+    m_ShResources.MaxDrawBuffers = 1;
+
+    // FIXME : Check if extension is supported and enable or not
+    m_ShResources.OES_standard_derivatives = 0;
+    m_ShResources.OES_EGL_image_external = 0;
 }
 
 void NativeContext::initHandlers(int width, int height)

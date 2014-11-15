@@ -1,5 +1,5 @@
+#include "NativeContext.h"
 #include "NativeCanvasContext.h"
-#include "GLSLANG/ShaderLang.h"
 #include "NativeMacros.h"
 #include "NativeCanvasHandler.h"
 
@@ -19,24 +19,11 @@
 
 char *NativeCanvasContext::processShader(const char *content, shaderType type)
 {
-    ShBuiltInResources resources;
-    ShInitBuiltInResources(&resources);
-    resources.MaxVertexAttribs = 8;
-    resources.MaxVertexUniformVectors = 128;
-    resources.MaxVaryingVectors = 8;
-    resources.MaxVertexTextureImageUnits = 0;
-    resources.MaxCombinedTextureImageUnits = 8;
-    resources.MaxTextureImageUnits = 8;
-    resources.MaxFragmentUniformVectors = 16;
-    resources.MaxDrawBuffers = 1;
-
-    resources.OES_standard_derivatives = 0;
-    resources.OES_EGL_image_external = 0;
-
     ShHandle compiler = NULL;
 
     compiler = ShConstructCompiler((ShShaderType)type,
-        SH_WEBGL_SPEC, SH_GLSL_OUTPUT, &resources);
+        SH_WEBGL_SPEC, SH_GLSL_OUTPUT, 
+        NativeContext::getNativeClass(NativeJS::getNativeClass())->getShaderResources());
 
     if (compiler == NULL) {
         NLOG("Shader : Compiler not supported");
@@ -60,6 +47,8 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
     char *ocode = (char *)malloc(bufferLen);
 
     ShGetObjectCode(compiler, ocode);
+
+    ShDestruct(compiler);
 
     return ocode;
 }

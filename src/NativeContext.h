@@ -9,6 +9,8 @@
 #include <NativeMessages.h>
 #include <NativeHash.h>
 
+#include "GLSLANG/ShaderLang.h"
+
 class NativeSkia;
 class NativeCanvasHandler;
 class NativeUIInterface;
@@ -56,6 +58,10 @@ class NativeContext : public NativeMessages
 
     NativeGLState *getGLState() const {
         return m_GLState;
+    }
+
+    ShBuiltInResources *getShaderResources() {
+        return &m_ShResources;
     }
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
@@ -111,6 +117,7 @@ class NativeContext : public NativeMessages
     NativeGLState *           m_GLState;
     NativeWebSocketListener * m_WS;
     NativeWebSocketClientConnection *m_WSClient;
+    ShBuiltInResources        m_ShResources;
     bool                      m_SizeDirty;
 
     struct {
@@ -129,6 +136,7 @@ class NativeContext : public NativeMessages
     void forceLinking();
     void loadNativeObjects(int width, int height);
 
+    bool initShaderLang();
     void initHandlers(int width, int height);
     struct {
         struct NativeJobQueue *head;
