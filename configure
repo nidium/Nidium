@@ -64,9 +64,8 @@ def skia():
         makeFlags = "V=1"
 
     return {
-        "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="27346f52cb0d5094732cb8154814b3b4d6c70cef"),
+        "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
         "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
-        "patchs": ["skia_defines.patch"],
         "outputs": [
             "out/Release/libskia_pdf.a",
             "out/Release/libskia_ports.a",
