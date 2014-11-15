@@ -30,7 +30,6 @@ Deps.set(
 )
 
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
-Gyp.set("skia_resource_cache_mb_limit", 256)
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
 
@@ -55,17 +54,23 @@ def zitaresampler():
 @Deps.register("skia")
 def skia():
     if Platform.wordSize == 64:
-        exports = "GYP_DEFINES='skia_arch_width=64'"
+        exports = "GYP_DEFINES='skia_arch_width=64 skia_osx_deployment_target=10.7'"
     else:
-        exports = "GYP_DEFINES='skia_arch_width=32'"
+        exports = "GYP_DEFINES='skia_arch_width=32 skia_osx_deployment_target=10.7'"
 
     makeFlags = ""
     if Variables.get("verbose"):
         makeFlags = "V=1"
 
+    Gyp.set("skia_resource_cache_mb_limit", 256)
+
+    # Add depot_tools to path needed for skia
+    Platform.setEnviron("PATH+=" + os.path.join(Deps.getDir(), "depot_tools"))
+
     return {
         "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="ed4dc2afaa4285a6d10a16fca77d1b9cbe3083d3"),
         "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
+        "patchs": ["skia_defines.patch"],
         "outputs": [
             "out/Release/libskia_pdf.a",
             "out/Release/libskia_ports.a",
@@ -163,9 +168,6 @@ def ffmpeg():
             "libswscale/libswscale(.a|.lib)"
         ]
     }
-
-if Konstruct.config("release"):
-    Gyp.set("native_enable_breakpad", 1)
 
 Build.add(Gyp("gyp/all.gyp"));
 
