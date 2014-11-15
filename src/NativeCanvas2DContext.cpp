@@ -967,7 +967,7 @@ static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *
     if (JS_InstanceOf(cx, jsimage, &Canvas_class, NULL)) {
         NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
-        if (drawctx == NULL || drawctx->m_Mode != NativeCanvasContext::CONTEXT_2D) {
+        if (drawctx == NULL || drawctx->getContextType() != NativeCanvasContext::CONTEXT_2D) {
             JS_ReportError(cx, "Invalid image canvas (must be backed by a 2D context)");
             return false;
         }
@@ -2304,6 +2304,14 @@ void NativeCanvas2DContext::setScale(double x, double y,
     m_Skia->scale(1./px, 1./py);
 
     m_Skia->scale(x, y);
+}
+
+uint8_t *NativeCanvas2DContext::getPixels()
+{
+    this->flush();
+    
+    return (uint8_t *)m_Skia->getCanvas()->getDevice()->
+        accessBitmap(false).getPixels();
 }
 
 NativeCanvas2DContext::~NativeCanvas2DContext()

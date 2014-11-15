@@ -41,6 +41,7 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
 {
     m_Mode = CONTEXT_WEBGL;
 
+    memset(&m_CachedPixels, 0, sizeof(m_CachedPixels));
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
 
     jsobj = JS_NewObject(cx, &WebGLRenderingContext_class, NULL, NULL);
@@ -69,7 +70,13 @@ static JSBool native_Canvas3DContext_constructor(JSContext *cx,
 
 void NativeCanvas3DContext::translate(double x, double y)
 {
+    if (m_CachedPixels.pixels) {
+        free(m_CachedPixels.pixels);
+        m_CachedPixels.pixels = NULL;
+    }
 
+    m_CachedPixels.width = 0;
+    m_CachedPixels.height = 0;
 }
 
 void NativeCanvas3DContext::setSize(int width, int height, bool redraw)
@@ -145,6 +152,34 @@ void NativeCanvas3DContext::cleanUp()
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+uint8_t *NativeCanvas3DContext::getPixels()
+{
+    m_GLState->makeGLCurrent();
+
+    this->flush();
+
+    if (m_CachedPixels.pixels &&
+        (m_CachedPixels.width != m_Device.width ||
+        m_CachedPixels.height != m_Device.height)) {
+
+        free(m_CachedPixels.pixels);
+        m_CachedPixels.pixels = NULL;
+    }
+
+    if (!m_CachedPixels.pixels) {
+        m_CachedPixels.width = m_Device.width;
+        m_CachedPixels.height = m_Device.height;
+
+        m_CachedPixels.pixels = (uint8_t *)malloc(m_CachedPixels.width *
+            m_CachedPixels.height * 4);
+    }
+
+    glReadPixels(0, 0, m_Device.width, m_Device.height,
+        GL_RGBA, GL_UNSIGNED_BYTE, m_CachedPixels.pixels);
+
+    return m_CachedPixels.pixels;
 }
 
 bool NativeCanvas3DContext::createFBO(int width, int height)
@@ -248,7 +283,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     glDepthFunc(GL_LEQUAL);
     glDepthRange(0.f, 1.f);
 #endif
-    
+
     glEnable(GL_DEPTH_TEST);
     glClearDepth(1.0);
 

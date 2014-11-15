@@ -41,6 +41,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         void resetSkiaContext(uint32_t flags = 0);
 
+        uint8_t *getPixels() override;
         uint32_t getTextureID() const;
         void flush();
         void setSize(int width, int height, bool redraw = true);

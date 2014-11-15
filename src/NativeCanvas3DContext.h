@@ -34,6 +34,12 @@ public:
     /* Returns the size in device pixel */
     virtual void getSize(int *width, int *height) const override;
 
+    /*
+        Read pixels from the underlying buffer
+        Memory can be modified but not free'd
+    */
+    virtual uint8_t *getPixels() override;
+
     uint32_t getFrameBufferID() const {
         return m_GLObjects.fbo;
     }
@@ -81,6 +87,13 @@ private:
     } m_Device;
 
     uint32_t m_Flags;
+
+    struct {
+        int width;
+        int height;
+
+        uint8_t *pixels;
+    } m_CachedPixels;
 };
 
 #endif
