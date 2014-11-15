@@ -1,9 +1,9 @@
---- skia/gyp/common.gypi 2013-10-07 11:52:50.000000000 +0200
-+++ skia/gyp/common.gypi 2013-10-07 11:52:47.000000000 +0200
-@@ -14,6 +14,7 @@
-     'defines': [
+--- skia/gyp/common.gypi
++++ skia/gyp/common.gypi
+@@ -16,6 +16,7 @@
        'SK_GAMMA_SRGB',
        'SK_GAMMA_APPLY_TO_A8',
+       'SK_SCALAR_TO_FLOAT_EXCLUDED',  # temporary to allow Chrome to call SkFloatToScalar
 +      'GR_GL_CUSTOM_SETUP_HEADER=<../../../../../gyp/skia_gl_config.h>',
      ],
  
