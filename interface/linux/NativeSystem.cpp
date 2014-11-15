@@ -34,14 +34,10 @@ const char *NativeSystem::getPrivateDirectory()
 
 const char *NativeSystem::getCacheDirectory()
 {
-    char *homedir = getenv("HOME");
-    char nHome[1024];
+    const char *homedir = getUserDirectory();
+    char nHome[2048];
 
-    if (!homedir) {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-
-    snprintf(nHome, 1024, "%s/.nidium/", homedir);
+    snprintf(nHome, 2048, "%s.nidium/", homedir);
 
     if (mkdir(nHome, 0755) == -1 && errno != EEXIST) {
         printf("Cant create cache directory %s\n", nHome);
@@ -49,6 +45,20 @@ const char *NativeSystem::getCacheDirectory()
     }
 
     return strdup(nHome);
+}
+
+const char *NativeSystem::getUserDirectory()
+{
+    static char retHome[2048];
+
+    char *homedir = getenv("HOME");
+    if (!homedir) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+
+    sprintf(retHome, "%s/", homedir);
+
+    return retHome;
 }
 
 void NativeSystem::alert(const char *message, AlertType type)

@@ -6,6 +6,9 @@
         'product_dir': '<(native_exec_path)',
         'dependencies': [
             'native.gyp:*',
+            '<(native_network_path)/gyp/network.gyp:*',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:*',
+            '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp',
             'interface.gyp:nativeinterface',
         ],
         'include_dirs': [
@@ -45,6 +48,7 @@
                         '-lasound',
                         '-lpthread',
                         '-lpng',
+                        '-ljack',
                         '-lfreetype',
                         '-lrt',
                         '-lz',
@@ -157,9 +161,9 @@
                     'LD_RUNPATH_SEARCH_PATHS': [
                         '@loader_path/../Frameworks'
                     ],
-                    'OTHER_LDFLAGS': [ 
-                        '-stdlib=libc++',
-                    ],
+		    'OTHER_LDFLAGS': [
+			    '-stdlib=libc++',
+		    ],
                     'OTHER_CFLAGS': [ 
                         '-g',
                         '-O2',

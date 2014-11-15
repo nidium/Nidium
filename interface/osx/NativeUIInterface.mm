@@ -30,6 +30,15 @@
 #define kNativeVSYNC 1
 
 
+@interface NativeCocoaUIInterfaceWrapper: NSObject {
+    NativeCocoaUIInterface *base;
+}
+
+- (NSMenu *) renderSystemTray;
+- (void) menuClicked:(id)ev;
+
+@end
+
 uint64_t ttfps = 0;
 
 static __inline__ void ConvertNSRect(NSRect *r)
@@ -214,6 +223,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
             
             NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
         } else {
+            NUII->makeMainGLCurrent();
             SDL_GL_SwapWindow(NUII->win);
         }
 
@@ -343,6 +353,7 @@ void NativeCocoaUIInterface::stopApplication()
 {
     [this->dragNSView setResponder:nil];
     this->disableSysTray();
+    m_SystemMenu.deleteItems();
 
     if (this->nml) {
         delete this->nml;
@@ -469,6 +480,7 @@ NativeCocoaUIInterface::NativeCocoaUIInterface() :
     this->currentCursor = NOCHANGE;
     this->NativeCtx = NULL;
 
+    m_Wrapper = [[NativeCocoaUIInterfaceWrapper alloc] initWithUI:this];
 
     gnet = native_netlib_init();
 }
@@ -501,10 +513,12 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
         SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
         
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+        //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         
         win = SDL_CreateWindow("nidium", 100, 100,
             width, height,
@@ -552,7 +566,15 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 
         this->initialized = true;
         glViewport(0, 0, width, height);
+
+        int depth;
+        glGetIntegerv(GL_DEPTH_BITS, &depth);
+
+        NLOG("[DEBUG] OpenGL Context at %p", contexteOpenGL);
         NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+        NLOG("[DEBUG] GLSL Version : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        NLOG("[DEBUG] Deph buffer %i", depth);
+        
     } else {
         //this->patchSDLView([NativeCocoaWindow(win) contentView]);
     }
@@ -796,7 +818,7 @@ void NativeCocoaUIInterface::alert(const char *message)
 {
     
 }
-
+#if 0
 bool NativeCocoaUIInterface::makeMainGLCurrent()
 {
     [((NSOpenGLContext *)m_mainGLCtx) makeCurrentContext];
@@ -808,13 +830,16 @@ SDL_GLContext NativeCocoaUIInterface::getCurrentGLContext()
 {
     return (SDL_GLContext)[NSOpenGLContext currentContext];
 }
+#endif
 
+#if 0
 bool NativeCocoaUIInterface::makeGLCurrent(SDL_GLContext ctx)
 {
     [((NSOpenGLContext *)ctx) makeCurrentContext];
 
     return true;
 }
+#endif
 
 static const char *drawRect_Associated_obj = "_NativeUIInterface";
 
@@ -875,15 +900,35 @@ void NativeCocoaUIInterface::patchSDLView(NSView *sdlview)
 void NativeCocoaUIInterface::enableSysTray(const void *imgData,
     size_t imageDataSize)
 {
+#if 0
     m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
 
-    m_StatusItem.title = @"";
+    
     NSImage *icon = [NSApp applicationIconImage];
     [icon setScalesWhenResized:YES];
     [icon setSize: NSMakeSize(20.0, 20.0)];
 
     m_StatusItem.image = icon;
     m_StatusItem.highlightMode = YES;
+
+    NSMenu *stackMenu = [[NSMenu alloc] initWithTitle:@""];
+
+    NSMenuItem *menuOpen = 
+        [[NSMenuItem alloc] initWithTitle:@"Open" action:nil keyEquivalent:@""];
+    NSMenuItem *menuClose = 
+        [[NSMenuItem alloc] initWithTitle:@"Close" action:nil keyEquivalent:@""];
+
+    [stackMenu addItem:menuOpen];
+    [stackMenu addItem:menuClose];
+
+    [menuOpen setEnabled:YES];
+    [menuClose setEnabled:YES];
+
+    [m_StatusItem setMenu:stackMenu];
+    m_StatusItem.title = @"";
+#endif
+
+    this->renderSystemTray();
 }
 
 void NativeCocoaUIInterface::disableSysTray()
@@ -928,3 +973,106 @@ void NativeCocoaUIInterface::showWindow()
         set_timer_to_low_resolution(&this->gnet->timersng, 0);
     }
 }
+
+void NativeCocoaUIInterface::renderSystemTray()
+{
+    NativeSystemMenuItem *item = m_SystemMenu.items();
+    if (!item) {
+        return;
+    }
+
+    if (!m_StatusItem) {
+        m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
+        m_StatusItem.highlightMode = YES;
+
+        size_t icon_len, icon_width, icon_height;
+        const uint8_t *icon_custom = m_SystemMenu.getIcon(&icon_len,
+                                        &icon_width, &icon_height);
+
+        NSImage *icon;
+
+        if (!icon_len || !icon_custom) {
+            icon = [NSApp applicationIconImage];
+            [icon setSize: NSMakeSize(20.0, 20.0)];
+        } else {
+
+            NSBitmapImageRep *rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&icon_custom
+                                                                            pixelsWide:icon_width
+                                                                            pixelsHigh:icon_height
+                                                                            bitsPerSample:8
+                                                                            samplesPerPixel:4
+                                                                            hasAlpha:YES
+                                                                            isPlanar:NO
+                                                                            colorSpaceName:NSDeviceRGBColorSpace
+                                                                            bitmapFormat:NSAlphaNonpremultipliedBitmapFormat
+                                                                            bytesPerRow:icon_width*4
+                                                                            bitsPerPixel:32];
+
+            icon = [[[NSImage alloc] initWithSize:NSMakeSize(32.f, 32.f)] autorelease];
+
+            [icon addRepresentation:rep];
+        }
+        m_StatusItem.image = icon;
+    }
+
+    NSMenu *stackMenu = [m_Wrapper renderSystemTray];
+
+    [m_StatusItem setMenu:stackMenu];
+}
+
+
+@implementation NativeCocoaUIInterfaceWrapper
+
+- (id) initWithUI:(NativeCocoaUIInterface *)ui
+{
+    if (self = [super init]) {
+        self->base = ui;
+    }
+    return self;
+}
+
+- (void) menuClicked:(id)sender
+{
+    NSString *identifier = [sender representedObject];
+
+    NativeJSwindow *window = NativeJSwindow::getNativeClass(self->base->NativeCtx->getNJS());
+    if (window) {
+        window->systemMenuClicked([identifier cStringUsingEncoding:NSUTF8StringEncoding]);
+    }
+}
+
+- (NSMenu *) renderSystemTray
+{
+    NativeCocoaUIInterface *ui = self->base;
+    NativeSystemMenu &m_SystemMenu = ui->getSystemMenu();
+
+    NativeSystemMenuItem *item = m_SystemMenu.items();
+    if (!item) {
+        return nil;
+    }
+
+    NSMenu *stackMenu = [[[NSMenu alloc] initWithTitle:@""] retain];
+
+    while (item) {
+        NSString *title = [NSString stringWithCString:item->title() encoding:NSUTF8StringEncoding];
+        NSString *identifier = [NSString stringWithCString:item->id() encoding:NSUTF8StringEncoding];
+        NSMenuItem *curMenu;
+        if ([title isEqualToString:@"-"]) {
+            curMenu = [NSMenuItem separatorItem];
+        } else {
+            curMenu = 
+                [[[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""] autorelease];
+        }
+        [stackMenu addItem:curMenu];
+        [curMenu setEnabled:YES];
+
+        item = item->m_Next;
+        curMenu.target = self;
+
+        [curMenu setRepresentedObject:identifier];
+    }
+
+    return stackMenu;
+}
+
+@end

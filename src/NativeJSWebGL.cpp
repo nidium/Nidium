@@ -1,22 +1,42 @@
 #include "NativeJSWebGL.h"
 #include "NativeJSImage.h"
 #include "NativeSkImage.h"
+#include "NativeSkia.h"
+#include "NativeCanvas2DContext.h"
+#include "NativeCanvas3DContext.h"
+#include "NativeJSCanvas.h"
+#include "NativeGLState.h"
 #include "GLSLANG/ShaderLang.h"
+#include <SkCanvas.h>
+#include <NativeContext.h>
+#include <NativeUIInterface.h>
+#include <NativeMacros.h>
+#include <NativeSystemInterface.h>
+
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
-#include <GL/glext.h>
 #endif
 
-#define NATIVE_GL_GETTER(obj) ((class NativeJSNativeGL *)JS_GetPrivate(obj))
+extern JSClass Canvas_class;
+
+#define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
+
+#define GL_CALL(IFACE, FN)\
+    NATIVE_GL_CALL(IFACE, FN); \
+    { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
+
+#define GL_CALL_RET(IFACE, FN, RET)\
+    NATIVE_GL_CALL_RET(IFACE, FN, RET); \
+    { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
 #define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
 
-#define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp)
+#define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp) {\
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
 
 #define NATIVE_GL_OBJECT_EXPOSE_NOT_INST(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
@@ -25,46 +45,98 @@
             &name ## _class , NULL, 0); \
     }
 
-static JSClass NativeGL_class = {
-    "NativeGL", JSCLASS_HAS_PRIVATE,
+class WebGLResource {
+public:
+    enum ResourceType {
+        kTexture,
+        kProgram,
+        kShader,
+        kBuffer,
+        kFrameBuffer,
+        kRenderBuffer,
+        kVertexArray,
+        kResources_end
+    };
+
+    WebGLResource(uint32_t id, ResourceType type,
+        NativeCanvas3DContext *ctx, JSObject *jsobj) :
+        m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj){};
+
+    ~WebGLResource() {
+        switch(m_Type) {
+            case kProgram:
+                GL_CALL(m_GLctx, DeleteProgram(m_GlIdentifier));
+                break;
+            case kShader:
+                GL_CALL(m_GLctx, DeleteShader(m_GlIdentifier));
+                break;
+            case kTexture:
+                GL_CALL(m_GLctx, DeleteTextures(1, &m_GlIdentifier));
+                break;
+            case kBuffer:
+                GL_CALL(m_GLctx, DeleteBuffers(1, &m_GlIdentifier));
+                break;
+            case kVertexArray:
+                GL_CALL(m_GLctx, DeleteVertexArraysAPPLE(1, &m_GlIdentifier));
+                break;
+            case kFrameBuffer:
+                GL_CALL(m_GLctx, DeleteFramebuffers(1, &m_GlIdentifier));
+                break;
+            case kRenderBuffer:
+                GL_CALL(m_GLctx, DeleteRenderbuffers(1, &m_GlIdentifier));
+                break;
+            default:
+                break;
+        }
+    }
+
+    uint32_t id() const {
+        return m_GlIdentifier;
+    }
+
+    JSObject *jsobj() const {
+        return m_JSObj;
+    }
+
+    uint32_t m_GlIdentifier;
+    NativeCanvas3DContext *m_GLctx;
+    ResourceType m_Type;
+    JSObject *m_JSObj;
+};
+
+static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj);
+static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj);
+
+JSClass WebGLRenderingContext_class = {
+    "WebGLRenderingContext",
+    JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(WebGLResource::kResources_end),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebGLRenderingContext_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
-static JSClass WebGLRenderingContext_class = {
-    "WebGLRenderingContext", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
-static JSClass WebGLObject_class = {
-    "WebGLObject", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
-};
+
 static JSClass WebGLBuffer_class = {
     "WebGLBuffer", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 static JSClass WebGLFrameBuffer_class = {
     "WebGLFrameBuffer", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 static JSClass WebGLProgram_class = {
     "WebGLProgram", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 static JSClass WebGLRenderbuffer_class = {
     "WebGLRenderbuffer", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 static JSClass WebGLShader_class = {
@@ -76,7 +148,7 @@ static JSClass WebGLShader_class = {
 static JSClass WebGLTexture_class = {
     "WebGLTexture", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Buffer_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 static JSClass WebGLUniformLocation_class = {
@@ -85,9 +157,31 @@ static JSClass WebGLUniformLocation_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+static JSClass WebGLShaderPrecisionFormat_class = {
+    "WebGLShaderPrecisionFormat", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
 
-static JSBool NativeGL_uniform_x_f(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
+    WebGLResource *res = (WebGLResource *)JS_GetPrivate(obj);
+
+    if (res) {
+        delete res;
+    }
+}
+
+static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeCanvas3DContext *ctx = (NativeCanvas3DContext *)JS_GetPrivate(obj);
+    if (ctx) {
+        delete ctx;
+    }
+}
+
+bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) {
     uintptr_t clocation;
     JSObject *location;
     jsval *argv = JS_ARGV(cx, vp);
@@ -106,23 +200,23 @@ static JSBool NativeGL_uniform_x_f(JSContext *cx, unsigned int argc, jsval *vp, 
 
     switch (nb) {
         case 1:
-            glUniform1f(clocation, (GLfloat)x);
+            GL_CALL(glctx, Uniform1f(clocation, (GLfloat)x));
             break;
         case 2:
-            glUniform2f(clocation, (GLfloat)x, (GLfloat)y);
+            GL_CALL(glctx, Uniform2f(clocation, (GLfloat)x, (GLfloat)y));
             break;
         case 3:
-            glUniform3f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z);
+            GL_CALL(glctx, Uniform3f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z));
             break;
         case 4:
-            glUniform4f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w);
+            GL_CALL(glctx, Uniform4f(clocation, (GLfloat)x, (GLfloat)y, (GLfloat)z, (GLfloat)w));
             break;
     }
 
-    return JS_TRUE;
+    return true;
 } 
 
-static JSBool NativeGL_uniform_x_fv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+bool NGL_uniformxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
     intptr_t clocation;
     GLsizei length;
@@ -132,7 +226,7 @@ static JSBool NativeGL_uniform_x_fv(JSContext *cx, unsigned int argc, jsval *vp,
 
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &location, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     clocation = (intptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, JS_ARGV(cx, vp));
@@ -147,28 +241,28 @@ static JSBool NativeGL_uniform_x_fv(JSContext *cx, unsigned int argc, jsval *vp,
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
-        return JS_TRUE;
+        return false;
     }
 
     switch (nb) {
         case 1:
-            glUniform1fv(clocation, length, carray);
+            GL_CALL(glctx, Uniform1fv(clocation, length, carray));
             break;
         case 2:
-            glUniform2fv(clocation, length/2, carray);
+            GL_CALL(glctx, Uniform2fv(clocation, length/2, carray));
             break;
         case 3:
-            glUniform3fv(clocation, length/3, carray);
+            GL_CALL(glctx, Uniform3fv(clocation, length/3, carray));
             break;
         case 4:
-            glUniform4fv(clocation, length/4, carray);
+            GL_CALL(glctx, Uniform4fv(clocation, length/4, carray));
             break;
     }
 
-    return JS_TRUE;
+    return true;
 } 
 
-static JSBool NativeGL_uniform_x_i(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
     uintptr_t clocation;
     GLint x;
@@ -188,23 +282,23 @@ static JSBool NativeGL_uniform_x_i(JSContext *cx, unsigned int argc, jsval *vp, 
 
     switch (nb) {
         case 1:
-            glUniform1i(clocation, x);
+            GL_CALL(glctx, Uniform1i(clocation, x));
             break;
         case 2:
-            glUniform2i(clocation, x, y);
+            GL_CALL(glctx, Uniform2i(clocation, x, y));
             break;
         case 3:
-            glUniform3i(clocation, x, y, z);
+            GL_CALL(glctx, Uniform3i(clocation, x, y, z));
             break;
         case 4:
-            glUniform4i(clocation, x, y, z, w);
+            GL_CALL(glctx, Uniform4i(clocation, x, y, z, w));
             break;
     }
     
-    return JS_TRUE;
+    return true;
 } 
 
-static JSBool NativeGL_uniform_x_iv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
     uintptr_t clocation;
     GLsizei length;
@@ -214,7 +308,7 @@ static JSBool NativeGL_uniform_x_iv(JSContext *cx, unsigned int argc, jsval *vp,
     JSObject *location;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &location, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, JS_ARGV(cx, vp));
@@ -228,23 +322,23 @@ static JSBool NativeGL_uniform_x_iv(JSContext *cx, unsigned int argc, jsval *vp,
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Int32 array");
-        return JS_TRUE;
+        return false;
     }
 
     if (nb == 1) {
-        glUniform1iv(clocation, length, carray);
+        GL_CALL(glctx, Uniform1iv(clocation, length, carray));
     } else if (nb == 2) {
-        glUniform2iv(clocation, length/2, carray);
+        GL_CALL(glctx, Uniform2iv(clocation, length/2, carray));
     } else if (nb == 3) {
-        glUniform3iv(clocation, length/3, carray);
+        GL_CALL(glctx, Uniform3iv(clocation, length/3, carray));
     } else if (nb == 4) {
-        glUniform4iv(clocation, length/4, carray);
+        GL_CALL(glctx, Uniform4iv(clocation, length/4, carray));
     }
     
-    return JS_TRUE;
+    return true;
 } 
 
-static JSBool NativeGL_uniformMatrix_x_fv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
     uintptr_t clocation;
     GLint length;
@@ -255,7 +349,7 @@ static JSBool NativeGL_uniformMatrix_x_fv(JSContext *cx, unsigned int argc, jsva
     JSObject *location;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "obo", &location, &transpose, &array)) {
-        return JS_TRUE;
+        return false;
     }
 
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, JS_ARGV(cx, vp));
@@ -268,25 +362,25 @@ static JSBool NativeGL_uniformMatrix_x_fv(JSContext *cx, unsigned int argc, jsva
         length = (GLsizei)JS_GetTypedArrayLength(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
-        return JS_TRUE;
+        return false;
     }
     
     switch (nb) {
         case 2:
-            glUniformMatrix2fv(clocation, length/4, (GLboolean)transpose, carray);
+            GL_CALL(glctx, UniformMatrix2fv(clocation, length/4, (GLboolean)transpose, carray));
             break;
         case 3:
-            glUniformMatrix3fv(clocation, length/8, (GLboolean)transpose, carray);
+            GL_CALL(glctx, UniformMatrix3fv(clocation, length/8, (GLboolean)transpose, carray));
             break;
         case 4:
-            glUniformMatrix4fv(clocation, length/16, (GLboolean)transpose, carray);
+            GL_CALL(glctx, UniformMatrix4fv(clocation, length/16, (GLboolean)transpose, carray));
             break;
     }
     
-    return JS_TRUE;
+    return true;
 }
 
-static JSBool NativeGL_vertexAttrib_x_f(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
     GLuint index;
     jsval *argv = JS_ARGV(cx, vp);
@@ -304,23 +398,23 @@ static JSBool NativeGL_vertexAttrib_x_f(JSContext *cx, unsigned int argc, jsval 
 
     switch (nb) {
         case 1:
-            glVertexAttrib1f(index, (GLfloat)v0);
+            GL_CALL(glctx, VertexAttrib1f(index, (GLfloat)v0));
             break;
         case 2:
-            glVertexAttrib2f(index, (GLfloat)v0, (GLfloat)v1);
+            GL_CALL(glctx, VertexAttrib2f(index, (GLfloat)v0, (GLfloat)v1));
             break;
         case 3:
-            glVertexAttrib3f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2);
+            GL_CALL(glctx, VertexAttrib3f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2));
             break;
         case 4:
-            glVertexAttrib4f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2, (GLfloat)v3);
+            GL_CALL(glctx, VertexAttrib4f(index, (GLfloat)v0, (GLfloat)v1, (GLfloat)v2, (GLfloat)v3));
             break;
     }
 
-    return JS_TRUE;
+    return true;
 }
 
-static JSBool NativeGL_vertexAttrib_x_fv(JSContext *cx, unsigned int argc, jsval *vp, int nb) 
+bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) 
 {
     GLuint index;
     GLfloat *carray;
@@ -338,42 +432,32 @@ static JSBool NativeGL_vertexAttrib_x_fv(JSContext *cx, unsigned int argc, jsval
         carray = (GLfloat *)JS_GetFloat32ArrayData(tmp);
     } else {
         JS_ReportError(cx, "Array is not a Float32 array");
-        return JS_TRUE;
+        return false;
     }
 
     switch (nb) {
         case 1:
-            glVertexAttrib1fv(index, carray);
+            GL_CALL(glctx, VertexAttrib1fv(index, carray));
             break;
         case 2:
-            glVertexAttrib2fv(index, carray);
+            GL_CALL(glctx, VertexAttrib2fv(index, carray));
             break;
         case 3:
-            glVertexAttrib3fv(index, carray);
+            GL_CALL(glctx, VertexAttrib3fv(index, carray));
             break;
         case 4:
-            glVertexAttrib4fv(index, carray);
+            GL_CALL(glctx, VertexAttrib4fv(index, carray));
             break;
     }
 
-    return JS_TRUE;
-}
-
-NativeJSNativeGL::NativeJSNativeGL () 
-    : jsobj(NULL), unpackFlipY(false), unpackPremultiplyAlpha(false)
-{
-
-}
-
-NativeJSNativeGL::~NativeJSNativeGL() 
-{
-
+    return true;
 }
 
 D_NGL_JS_FN(WebGLRenderingContext_isContextLost)
 D_NGL_JS_FN(WebGLRenderingContext_getExtension)
 D_NGL_JS_FN(WebGLRenderingContext_activeTexture)
 D_NGL_JS_FN(WebGLRenderingContext_attachShader)
+D_NGL_JS_FN(WebGLRenderingContext_bindAttribLocation)
 D_NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
@@ -383,6 +467,7 @@ D_NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)
 D_NGL_JS_FN(WebGLRenderingContext_blendFunc)
 D_NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate)
 D_NGL_JS_FN(WebGLRenderingContext_bufferData)
+D_NGL_JS_FN(WebGLRenderingContext_bufferSubData)
 D_NGL_JS_FN(WebGLRenderingContext_clear)
 D_NGL_JS_FN(WebGLRenderingContext_clearColor)
 D_NGL_JS_FN(WebGLRenderingContext_clearDepth)
@@ -405,6 +490,7 @@ D_NGL_JS_FN(WebGLRenderingContext_drawElements)
 D_NGL_JS_FN(WebGLRenderingContext_enable)
 D_NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
 D_NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
+D_NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
 D_NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D)
 D_NGL_JS_FN(WebGLRenderingContext_frontFace)
@@ -453,6 +539,7 @@ D_NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer);
 D_NGL_JS_FN(WebGLRenderingContext_viewport)
 D_NGL_JS_FN(WebGLRenderingContext_useProgram)
 D_NGL_JS_FN(WebGLRenderingContext_getError)
+D_NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 
 
 static JSFunctionSpec WebGLRenderingContext_funcs [] = {
@@ -460,6 +547,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("getExtension", WebGLRenderingContext_getExtension, 1, 0),
     JS_FS("activeTexture", WebGLRenderingContext_activeTexture, 1, 0),
     JS_FS("attachShader", WebGLRenderingContext_attachShader, 2, 0),
+    JS_FS("bindAttribLocation", WebGLRenderingContext_bindAttribLocation, 3, 0),
     JS_FS("bindBuffer", WebGLRenderingContext_bindBuffer, 2, 0),
     JS_FS("bindFramebuffer", WebGLRenderingContext_bindFramebuffer, 2, 0),
     JS_FS("bindRenderbuffer", WebGLRenderingContext_bindRenderbuffer, 2, 0),
@@ -469,6 +557,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("blendFunc", WebGLRenderingContext_blendFunc, 2, 0),
     JS_FS("blendFuncSeparate", WebGLRenderingContext_blendFuncSeparate, 4, 0),
     JS_FS("bufferData", WebGLRenderingContext_bufferData, 3, 0),
+    JS_FS("bufferSubData", WebGLRenderingContext_bufferSubData, 3, 0),
     JS_FS("clear", WebGLRenderingContext_clear, 1, 0),
     JS_FS("clearColor", WebGLRenderingContext_clearColor, 4, 0),
     JS_FS("clearDepth", WebGLRenderingContext_clearDepth, 1, 0),
@@ -502,6 +591,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("getShaderParameter", WebGLRenderingContext_getShaderParameter, 2, 0),
     JS_FS("getShaderInfoLog", WebGLRenderingContext_getShaderInfoLog, 1, 0),
     JS_FS("getUniformLocation", WebGLRenderingContext_getUniformLocation, 2, 0),
+    JS_FS("getShaderPrecisionFormat", WebGLRenderingContext_getShaderPrecisionFormat, 2, 0),
     JS_FS("lineWidth", WebGLRenderingContext_lineWidth, 1, 0),
     JS_FS("linkProgram", WebGLRenderingContext_linkProgram, 1, 0),
     JS_FS("pixelStorei", WebGLRenderingContext_pixelStorei, 2, 0),
@@ -539,582 +629,679 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("viewport", WebGLRenderingContext_viewport, 4, 0),
     JS_FS("useProgram", WebGLRenderingContext_useProgram, 1, 0),
     JS_FS("getError", WebGLRenderingContext_getError, 0, 0),
+    JS_FS("swapBuffer", WebGLRenderingContext_swapBuffer, 0, 0),
     JS_FS_END
 };
 
-static JSConstDoubleSpec WebGLRenderingContext_const [] = {
+JSConstDoubleSpec WebGLRenderingContext_const [] = {
     //{NGL_ES_VERSION_2_0, "ES_VERSION_2_0", 0, {0,0,0}},
-    {NGL_DEPTH_BUFFER_BIT, "DEPTH_BUFFER_BIT", 0, {0,0,0}},
-    {NGL_STENCIL_BUFFER_BIT, "STENCIL_BUFFER_BIT", 0, {0,0,0}},
-    {NGL_COLOR_BUFFER_BIT, "COLOR_BUFFER_BIT", 0, {0,0,0}},
-    {NGL_POINTS, "POINTS", 0, {0,0,0}},
-    {NGL_LINES, "LINES", 0, {0,0,0}},
-    {NGL_LINE_LOOP, "LINE_LOOP", 0, {0,0,0}},
-    {NGL_LINE_STRIP, "LINE_STRIP", 0, {0,0,0}},
-    {NGL_TRIANGLES, "TRIANGLES", 0, {0,0,0}},
-    {NGL_TRIANGLE_STRIP, "TRIANGLE_STRIP", 0, {0,0,0}},
-    {NGL_TRIANGLE_FAN, "TRIANGLE_FAN", 0, {0,0,0}},
-    {NGL_ZERO, "ZERO", 0, {0,0,0}},
-    {NGL_ONE, "ONE", 0, {0,0,0}},
-    {NGL_SRC_COLOR, "SRC_COLOR", 0, {0,0,0}},
-    {NGL_ONE_MINUS_SRC_COLOR, "ONE_MINUS_SRC_COLOR", 0, {0,0,0}},
-    {NGL_SRC_ALPHA, "SRC_ALPHA", 0, {0,0,0}},
-    {NGL_ONE_MINUS_SRC_ALPHA, "ONE_MINUS_SRC_ALPHA", 0, {0,0,0}},
-    {NGL_DST_ALPHA, "DST_ALPHA", 0, {0,0,0}},
-    {NGL_ONE_MINUS_DST_ALPHA, "ONE_MINUS_DST_ALPHA", 0, {0,0,0}},
-    {NGL_DST_COLOR, "DST_COLOR", 0, {0,0,0}},
-    {NGL_ONE_MINUS_DST_COLOR, "ONE_MINUS_DST_COLOR", 0, {0,0,0}},
-    {NGL_SRC_ALPHA_SATURATE, "SRC_ALPHA_SATURATE", 0, {0,0,0}},
-    {NGL_FUNC_ADD, "FUNC_ADD", 0, {0,0,0}},
-    {NGL_BLEND_EQUATION, "BLEND_EQUATION", 0, {0,0,0}},
-    {NGL_BLEND_EQUATION_RGB, "BLEND_EQUATION_RGB", 0, {0,0,0}},
-    {NGL_BLEND_EQUATION_ALPHA, "BLEND_EQUATION_ALPHA", 0, {0,0,0}},
-    {NGL_FUNC_SUBTRACT, "FUNC_SUBTRACT", 0, {0,0,0}},
-    {NGL_FUNC_REVERSE_SUBTRACT, "FUNC_REVERSE_SUBTRACT", 0, {0,0,0}},
-    {NGL_BLEND_DST_RGB, "BLEND_DST_RGB", 0, {0,0,0}},
-    {NGL_BLEND_SRC_RGB, "BLEND_SRC_RGB", 0, {0,0,0}},
-    {NGL_BLEND_DST_ALPHA, "BLEND_DST_ALPHA", 0, {0,0,0}},
-    {NGL_BLEND_SRC_ALPHA, "BLEND_SRC_ALPHA", 0, {0,0,0}},
-    {NGL_CONSTANT_COLOR, "CONSTANT_COLOR", 0, {0,0,0}},
-    {NGL_ONE_MINUS_CONSTANT_COLOR, "ONE_MINUS_CONSTANT_COLOR", 0, {0,0,0}},
-    {NGL_CONSTANT_ALPHA, "CONSTANT_ALPHA", 0, {0,0,0}},
-    {NGL_ONE_MINUS_CONSTANT_ALPHA, "ONE_MINUS_CONSTANT_ALPHA", 0, {0,0,0}},
-    {NGL_BLEND_COLOR, "BLEND_COLOR", 0, {0,0,0}},
-    {NGL_ARRAY_BUFFER, "ARRAY_BUFFER", 0, {0,0,0}},
-    {NGL_ELEMENT_ARRAY_BUFFER, "ELEMENT_ARRAY_BUFFER", 0, {0,0,0}},
-    {NGL_ARRAY_BUFFER_BINDING, "ARRAY_BUFFER_BINDING", 0, {0,0,0}},
-    {NGL_ELEMENT_ARRAY_BUFFER_BINDING, "ELEMENT_ARRAY_BUFFER_BINDING", 0, {0,0,0}},
-    {NGL_STREAM_DRAW, "STREAM_DRAW", 0, {0,0,0}},
-    {NGL_STATIC_DRAW, "STATIC_DRAW", 0, {0,0,0}},
-    {NGL_DYNAMIC_DRAW, "DYNAMIC_DRAW", 0, {0,0,0}},
-    {NGL_BUFFER_SIZE, "BUFFER_SIZE", 0, {0,0,0}},
-    {NGL_BUFFER_USAGE, "BUFFER_USAGE", 0, {0,0,0}},
-    {NGL_CURRENT_VERTEX_ATTRIB, "CURRENT_VERTEX_ATTRIB", 0, {0,0,0}},
-    {NGL_FRONT, "FRONT", 0, {0,0,0}},
-    {NGL_BACK, "BACK", 0, {0,0,0}},
-    {NGL_FRONT_AND_BACK, "FRONT_AND_BACK", 0, {0,0,0}},
-    {NGL_TEXTURE_2D, "TEXTURE_2D", 0, {0,0,0}},
-    {NGL_CULL_FACE, "CULL_FACE", 0, {0,0,0}},
-    {NGL_BLEND, "BLEND", 0, {0,0,0}},
-    {NGL_DITHER, "DITHER", 0, {0,0,0}},
-    {NGL_STENCIL_TEST, "STENCIL_TEST", 0, {0,0,0}},
-    {NGL_DEPTH_TEST, "DEPTH_TEST", 0, {0,0,0}},
-    {NGL_SCISSOR_TEST, "SCISSOR_TEST", 0, {0,0,0}},
-    {NGL_POLYGON_OFFSET_FILL, "POLYGON_OFFSET_FILL", 0, {0,0,0}},
-    {NGL_SAMPLE_ALPHA_TO_COVERAGE, "SAMPLE_ALPHA_TO_COVERAGE", 0, {0,0,0}},
-    {NGL_SAMPLE_COVERAGE, "SAMPLE_COVERAGE", 0, {0,0,0}},
-    {NGL_NO_ERROR, "NO_ERROR", 0, {0,0,0}},
-    {NGL_INVALID_ENUM, "INVALID_ENUM", 0, {0,0,0}},
-    {NGL_INVALID_VALUE, "INVALID_VALUE", 0, {0,0,0}},
-    {NGL_INVALID_OPERATION, "INVALID_OPERATION", 0, {0,0,0}},
-    {NGL_OUT_OF_MEMORY, "OUT_OF_MEMORY", 0, {0,0,0}},
-    {NGL_CW, "CW", 0, {0,0,0}},
-    {NGL_CCW, "CCW", 0, {0,0,0}},
-    {NGL_LINE_WIDTH, "LINE_WIDTH", 0, {0,0,0}},
-    {NGL_ALIASED_POINT_SIZE_RANGE, "ALIASED_POINT_SIZE_RANGE", 0, {0,0,0}},
-    {NGL_ALIASED_LINE_WIDTH_RANGE, "ALIASED_LINE_WIDTH_RANGE", 0, {0,0,0}},
-    {NGL_CULL_FACE_MODE, "CULL_FACE_MODE", 0, {0,0,0}},
-    {NGL_FRONT_FACE, "FRONT_FACE", 0, {0,0,0}},
-    {NGL_DEPTH_RANGE, "DEPTH_RANGE", 0, {0,0,0}},
-    {NGL_DEPTH_WRITEMASK, "DEPTH_WRITEMASK", 0, {0,0,0}},
-    {NGL_DEPTH_CLEAR_VALUE, "DEPTH_CLEAR_VALUE", 0, {0,0,0}},
-    {NGL_DEPTH_FUNC, "DEPTH_FUNC", 0, {0,0,0}},
-    {NGL_STENCIL_CLEAR_VALUE, "STENCIL_CLEAR_VALUE", 0, {0,0,0}},
-    {NGL_STENCIL_FUNC, "STENCIL_FUNC", 0, {0,0,0}},
-    {NGL_STENCIL_FAIL, "STENCIL_FAIL", 0, {0,0,0}},
-    {NGL_STENCIL_PASS_DEPTH_FAIL, "STENCIL_PASS_DEPTH_FAIL", 0, {0,0,0}},
-    {NGL_STENCIL_PASS_DEPTH_PASS, "STENCIL_PASS_DEPTH_PASS", 0, {0,0,0}},
-    {NGL_STENCIL_REF, "STENCIL_REF", 0, {0,0,0}},
-    {NGL_STENCIL_VALUE_MASK, "STENCIL_VALUE_MASK", 0, {0,0,0}},
-    {NGL_STENCIL_WRITEMASK, "STENCIL_WRITEMASK", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_FUNC, "STENCIL_BACK_FUNC", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_FAIL, "STENCIL_BACK_FAIL", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_REF, "STENCIL_BACK_REF", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_VALUE_MASK, "STENCIL_BACK_VALUE_MASK", 0, {0,0,0}},
-    {NGL_STENCIL_BACK_WRITEMASK, "STENCIL_BACK_WRITEMASK", 0, {0,0,0}},
-    {NGL_VIEWPORT, "VIEWPORT", 0, {0,0,0}},
-    {NGL_SCISSOR_BOX, "SCISSOR_BOX", 0, {0,0,0}},
-    {NGL_COLOR_CLEAR_VALUE, "COLOR_CLEAR_VALUE", 0, {0,0,0}},
-    {NGL_COLOR_WRITEMASK, "COLOR_WRITEMASK", 0, {0,0,0}},
-    {NGL_UNPACK_ALIGNMENT, "UNPACK_ALIGNMENT", 0, {0,0,0}},
-    {NGL_PACK_ALIGNMENT, "PACK_ALIGNMENT", 0, {0,0,0}},
-    {NGL_MAX_TEXTURE_SIZE, "MAX_TEXTURE_SIZE", 0, {0,0,0}},
-    {NGL_MAX_VIEWPORT_DIMS, "MAX_VIEWPORT_DIMS", 0, {0,0,0}},
-    {NGL_SUBPIXEL_BITS, "SUBPIXEL_BITS", 0, {0,0,0}},
-    {NGL_RED_BITS, "RED_BITS", 0, {0,0,0}},
-    {NGL_GREEN_BITS, "GREEN_BITS", 0, {0,0,0}},
-    {NGL_BLUE_BITS, "BLUE_BITS", 0, {0,0,0}},
-    {NGL_ALPHA_BITS, "ALPHA_BITS", 0, {0,0,0}},
-    {NGL_DEPTH_BITS, "DEPTH_BITS", 0, {0,0,0}},
-    {NGL_STENCIL_BITS, "STENCIL_BITS", 0, {0,0,0}},
-    {NGL_POLYGON_OFFSET_UNITS, "POLYGON_OFFSET_UNITS", 0, {0,0,0}},
-    {NGL_POLYGON_OFFSET_FACTOR, "POLYGON_OFFSET_FACTOR", 0, {0,0,0}},
-    {NGL_TEXTURE_BINDING_2D, "TEXTURE_BINDING_2D", 0, {0,0,0}},
-    {NGL_SAMPLE_BUFFERS, "SAMPLE_BUFFERS", 0, {0,0,0}},
-    {NGL_SAMPLES, "SAMPLES", 0, {0,0,0}},
-    {NGL_SAMPLE_COVERAGE_VALUE, "SAMPLE_COVERAGE_VALUE", 0, {0,0,0}},
-    {NGL_SAMPLE_COVERAGE_INVERT, "SAMPLE_COVERAGE_INVERT", 0, {0,0,0}},
-    //{NGL_NUM_COMPRESSED_TEXTURE_FORMATS, "NUM_COMPRESSED_TEXTURE_FORMATS", 0, {0,0,0}},
-    {NGL_COMPRESSED_TEXTURE_FORMATS, "COMPRESSED_TEXTURE_FORMATS", 0, {0,0,0}},
-    {NGL_DONT_CARE, "DONT_CARE", 0, {0,0,0}},
-    {NGL_FASTEST, "FASTEST", 0, {0,0,0}},
-    {NGL_NICEST, "NICEST", 0, {0,0,0}},
-    {NGL_GENERATE_MIPMAP_HINT, "GENERATE_MIPMAP_HINT", 0, {0,0,0}},
-    {NGL_BYTE, "BYTE", 0, {0,0,0}},
-    {NGL_UNSIGNED_BYTE, "UNSIGNED_BYTE", 0, {0,0,0}},
-    {NGL_SHORT, "SHORT", 0, {0,0,0}},
-    {NGL_UNSIGNED_SHORT, "UNSIGNED_SHORT", 0, {0,0,0}},
-    {NGL_INT, "INT", 0, {0,0,0}},
-    {NGL_UNSIGNED_INT, "UNSIGNED_INT", 0, {0,0,0}},
-    {NGL_FLOAT, "FLOAT", 0, {0,0,0}},
-    //{NGL_FIXED, "FIXED", 0, {0,0,0}},
-    {NGL_DEPTH_COMPONENT, "DEPTH_COMPONENT", 0, {0,0,0}},
-    {NGL_ALPHA, "ALPHA", 0, {0,0,0}},
-    {NGL_RGB, "RGB", 0, {0,0,0}},
-    {NGL_RGBA, "RGBA", 0, {0,0,0}},
-    {NGL_LUMINANCE, "LUMINANCE", 0, {0,0,0}},
-    {NGL_LUMINANCE_ALPHA, "LUMINANCE_ALPHA", 0, {0,0,0}},
-    {NGL_UNSIGNED_SHORT_4_4_4_4, "UNSIGNED_SHORT_4_4_4_4", 0, {0,0,0}},
-    {NGL_UNSIGNED_SHORT_5_5_5_1, "UNSIGNED_SHORT_5_5_5_1", 0, {0,0,0}},
-    {NGL_UNSIGNED_SHORT_5_6_5, "UNSIGNED_SHORT_5_6_5", 0, {0,0,0}},
-    {NGL_FRAGMENT_SHADER, "FRAGMENT_SHADER", 0, {0,0,0}},
-    {NGL_VERTEX_SHADER, "VERTEX_SHADER", 0, {0,0,0}},
-    {NGL_MAX_VERTEX_ATTRIBS, "MAX_VERTEX_ATTRIBS", 0, {0,0,0}},
-    {NGL_MAX_VERTEX_UNIFORM_VECTORS, "MAX_VERTEX_UNIFORM_VECTORS", 0, {0,0,0}},
-    {NGL_MAX_VARYING_VECTORS, "MAX_VARYING_VECTORS", 0, {0,0,0}},
-    {NGL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, "MAX_COMBINED_TEXTURE_IMAGE_UNITS", 0, {0,0,0}},
-    {NGL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, "MAX_VERTEX_TEXTURE_IMAGE_UNITS", 0, {0,0,0}},
-    {NGL_MAX_TEXTURE_IMAGE_UNITS, "MAX_TEXTURE_IMAGE_UNITS", 0, {0,0,0}},
-    {NGL_MAX_FRAGMENT_UNIFORM_VECTORS, "MAX_FRAGMENT_UNIFORM_VECTORS", 0, {0,0,0}},
-    {NGL_SHADER_TYPE, "SHADER_TYPE", 0, {0,0,0}},
-    {NGL_DELETE_STATUS, "DELETE_STATUS", 0, {0,0,0}},
-    {NGL_LINK_STATUS, "LINK_STATUS", 0, {0,0,0}},
-    {NGL_VALIDATE_STATUS, "VALIDATE_STATUS", 0, {0,0,0}},
-    {NGL_ATTACHED_SHADERS, "ATTACHED_SHADERS", 0, {0,0,0}},
-    {NGL_ACTIVE_UNIFORMS, "ACTIVE_UNIFORMS", 0, {0,0,0}},
-    //{NGL_ACTIVE_UNIFORM_MAX_LENGTH, "ACTIVE_UNIFORM_MAX_LENGTH", 0, {0,0,0}},
-    {NGL_ACTIVE_ATTRIBUTES, "ACTIVE_ATTRIBUTES", 0, {0,0,0}},
-    //{NGL_ACTIVE_ATTRIBUTE_MAX_LENGTH, "ACTIVE_ATTRIBUTE_MAX_LENGTH", 0, {0,0,0}},
-    {NGL_SHADING_LANGUAGE_VERSION, "SHADING_LANGUAGE_VERSION", 0, {0,0,0}},
-    {NGL_CURRENT_PROGRAM, "CURRENT_PROGRAM", 0, {0,0,0}},
-    {NGL_NEVER, "NEVER", 0, {0,0,0}},
-    {NGL_LESS, "LESS", 0, {0,0,0}},
-    {NGL_EQUAL, "EQUAL", 0, {0,0,0}},
-    {NGL_LEQUAL, "LEQUAL", 0, {0,0,0}},
-    {NGL_GREATER, "GREATER", 0, {0,0,0}},
-    {NGL_NOTEQUAL, "NOTEQUAL", 0, {0,0,0}},
-    {NGL_GEQUAL, "GEQUAL", 0, {0,0,0}},
-    {NGL_ALWAYS, "ALWAYS", 0, {0,0,0}},
-    {NGL_KEEP, "KEEP", 0, {0,0,0}},
-    {NGL_REPLACE, "REPLACE", 0, {0,0,0}},
-    {NGL_INCR, "INCR", 0, {0,0,0}},
-    {NGL_DECR, "DECR", 0, {0,0,0}},
-    {NGL_INVERT, "INVERT", 0, {0,0,0}},
-    {NGL_INCR_WRAP, "INCR_WRAP", 0, {0,0,0}},
-    {NGL_DECR_WRAP, "DECR_WRAP", 0, {0,0,0}},
-    {NGL_VENDOR, "VENDOR", 0, {0,0,0}},
-    {NGL_RENDERER, "RENDERER", 0, {0,0,0}},
-    {NGL_VERSION, "VERSION", 0, {0,0,0}},
-    //{NGL_EXTENSIONS, "EXTENSIONS", 0, {0,0,0}},
-    {NGL_NEAREST, "NEAREST", 0, {0,0,0}},
-    {NGL_LINEAR, "LINEAR", 0, {0,0,0}},
-    {NGL_NEAREST_MIPMAP_NEAREST, "NEAREST_MIPMAP_NEAREST", 0, {0,0,0}},
-    {NGL_LINEAR_MIPMAP_NEAREST, "LINEAR_MIPMAP_NEAREST", 0, {0,0,0}},
-    {NGL_NEAREST_MIPMAP_LINEAR, "NEAREST_MIPMAP_LINEAR", 0, {0,0,0}},
-    {NGL_LINEAR_MIPMAP_LINEAR, "LINEAR_MIPMAP_LINEAR", 0, {0,0,0}},
-    {NGL_TEXTURE_MAG_FILTER, "TEXTURE_MAG_FILTER", 0, {0,0,0}},
-    {NGL_TEXTURE_MIN_FILTER, "TEXTURE_MIN_FILTER", 0, {0,0,0}},
-    {NGL_TEXTURE_WRAP_S, "TEXTURE_WRAP_S", 0, {0,0,0}},
-    {NGL_TEXTURE_WRAP_T, "TEXTURE_WRAP_T", 0, {0,0,0}},
-    {NGL_TEXTURE, "TEXTURE", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP, "TEXTURE_CUBE_MAP", 0, {0,0,0}},
-    {NGL_TEXTURE_BINDING_CUBE_MAP, "TEXTURE_BINDING_CUBE_MAP", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP_POSITIVE_X, "TEXTURE_CUBE_MAP_POSITIVE_X", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP_NEGATIVE_X, "TEXTURE_CUBE_MAP_NEGATIVE_X", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP_POSITIVE_Y, "TEXTURE_CUBE_MAP_POSITIVE_Y", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "TEXTURE_CUBE_MAP_NEGATIVE_Y", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP_POSITIVE_Z, "TEXTURE_CUBE_MAP_POSITIVE_Z", 0, {0,0,0}},
-    {NGL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "TEXTURE_CUBE_MAP_NEGATIVE_Z", 0, {0,0,0}},
-    {NGL_MAX_CUBE_MAP_TEXTURE_SIZE, "MAX_CUBE_MAP_TEXTURE_SIZE", 0, {0,0,0}},
-    {NGL_TEXTURE0, "TEXTURE0", 0, {0,0,0}},
-    {NGL_TEXTURE1, "TEXTURE1", 0, {0,0,0}},
-    {NGL_TEXTURE2, "TEXTURE2", 0, {0,0,0}},
-    {NGL_TEXTURE3, "TEXTURE3", 0, {0,0,0}},
-    {NGL_TEXTURE4, "TEXTURE4", 0, {0,0,0}},
-    {NGL_TEXTURE5, "TEXTURE5", 0, {0,0,0}},
-    {NGL_TEXTURE6, "TEXTURE6", 0, {0,0,0}},
-    {NGL_TEXTURE7, "TEXTURE7", 0, {0,0,0}},
-    {NGL_TEXTURE8, "TEXTURE8", 0, {0,0,0}},
-    {NGL_TEXTURE9, "TEXTURE9", 0, {0,0,0}},
-    {NGL_TEXTURE10, "TEXTURE10", 0, {0,0,0}},
-    {NGL_TEXTURE11, "TEXTURE11", 0, {0,0,0}},
-    {NGL_TEXTURE12, "TEXTURE12", 0, {0,0,0}},
-    {NGL_TEXTURE13, "TEXTURE13", 0, {0,0,0}},
-    {NGL_TEXTURE14, "TEXTURE14", 0, {0,0,0}},
-    {NGL_TEXTURE15, "TEXTURE15", 0, {0,0,0}},
-    {NGL_TEXTURE16, "TEXTURE16", 0, {0,0,0}},
-    {NGL_TEXTURE17, "TEXTURE17", 0, {0,0,0}},
-    {NGL_TEXTURE18, "TEXTURE18", 0, {0,0,0}},
-    {NGL_TEXTURE19, "TEXTURE19", 0, {0,0,0}},
-    {NGL_TEXTURE20, "TEXTURE20", 0, {0,0,0}},
-    {NGL_TEXTURE21, "TEXTURE21", 0, {0,0,0}},
-    {NGL_TEXTURE22, "TEXTURE22", 0, {0,0,0}},
-    {NGL_TEXTURE23, "TEXTURE23", 0, {0,0,0}},
-    {NGL_TEXTURE24, "TEXTURE24", 0, {0,0,0}},
-    {NGL_TEXTURE25, "TEXTURE25", 0, {0,0,0}},
-    {NGL_TEXTURE26, "TEXTURE26", 0, {0,0,0}},
-    {NGL_TEXTURE27, "TEXTURE27", 0, {0,0,0}},
-    {NGL_TEXTURE28, "TEXTURE28", 0, {0,0,0}},
-    {NGL_TEXTURE29, "TEXTURE29", 0, {0,0,0}},
-    {NGL_TEXTURE30, "TEXTURE30", 0, {0,0,0}},
-    {NGL_TEXTURE31, "TEXTURE31", 0, {0,0,0}},
-    {NGL_ACTIVE_TEXTURE, "ACTIVE_TEXTURE", 0, {0,0,0}},
-    {NGL_REPEAT, "REPEAT", 0, {0,0,0}},
-    {NGL_CLAMP_TO_EDGE, "CLAMP_TO_EDGE", 0, {0,0,0}},
-    {NGL_MIRRORED_REPEAT, "MIRRORED_REPEAT", 0, {0,0,0}},
-    {NGL_FLOAT_VEC2, "FLOAT_VEC2", 0, {0,0,0}},
-    {NGL_FLOAT_VEC3, "FLOAT_VEC3", 0, {0,0,0}},
-    {NGL_FLOAT_VEC4, "FLOAT_VEC4", 0, {0,0,0}},
-    {NGL_INT_VEC2, "INT_VEC2", 0, {0,0,0}},
-    {NGL_INT_VEC3, "INT_VEC3", 0, {0,0,0}},
-    {NGL_INT_VEC4, "INT_VEC4", 0, {0,0,0}},
-    {NGL_BOOL, "BOOL", 0, {0,0,0}},
-    {NGL_BOOL_VEC2, "BOOL_VEC2", 0, {0,0,0}},
-    {NGL_BOOL_VEC3, "BOOL_VEC3", 0, {0,0,0}},
-    {NGL_BOOL_VEC4, "BOOL_VEC4", 0, {0,0,0}},
-    {NGL_FLOAT_MAT2, "FLOAT_MAT2", 0, {0,0,0}},
-    {NGL_FLOAT_MAT3, "FLOAT_MAT3", 0, {0,0,0}},
-    {NGL_FLOAT_MAT4, "FLOAT_MAT4", 0, {0,0,0}},
-    {NGL_SAMPLER_2D, "SAMPLER_2D", 0, {0,0,0}},
-    {NGL_SAMPLER_CUBE, "SAMPLER_CUBE", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_ENABLED, "VERTEX_ATTRIB_ARRAY_ENABLED", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_SIZE, "VERTEX_ATTRIB_ARRAY_SIZE", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_STRIDE, "VERTEX_ATTRIB_ARRAY_STRIDE", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_TYPE, "VERTEX_ATTRIB_ARRAY_TYPE", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_NORMALIZED, "VERTEX_ATTRIB_ARRAY_NORMALIZED", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_POINTER, "VERTEX_ATTRIB_ARRAY_POINTER", 0, {0,0,0}},
-    {NGL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING", 0, {0,0,0}},
-    //{NGL_IMPLEMENTATION_COLOR_READ_TYPE, "IMPLEMENTATION_COLOR_READ_TYPE", 0, {0,0,0}},
-    //{NGL_IMPLEMENTATION_COLOR_READ_FORMAT, "IMPLEMENTATION_COLOR_READ_FORMAT", 0, {0,0,0}},
-    {NGL_COMPILE_STATUS, "COMPILE_STATUS", 0, {0,0,0}},
-    //{NGL_INFO_LOG_LENGTH, "INFO_LOG_LENGTH", 0, {0,0,0}},
-    //{NGL_SHADER_SOURCE_LENGTH, "SHADER_SOURCE_LENGTH", 0, {0,0,0}},
-    //{NGL_SHADER_COMPILER, "SHADER_COMPILER", 0, {0,0,0}},
-    {NGL_LOW_FLOAT, "LOW_FLOAT", 0, {0,0,0}},
-    {NGL_MEDIUM_FLOAT, "MEDIUM_FLOAT", 0, {0,0,0}},
-    {NGL_HIGH_FLOAT, "HIGH_FLOAT", 0, {0,0,0}},
-    {NGL_LOW_INT, "LOW_INT", 0, {0,0,0}},
-    {NGL_MEDIUM_INT, "MEDIUM_INT", 0, {0,0,0}},
-    {NGL_HIGH_INT, "HIGH_INT", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER, "FRAMEBUFFER", 0, {0,0,0}},
-    {NGL_RENDERBUFFER, "RENDERBUFFER", 0, {0,0,0}},
-    {NGL_RGBA4, "RGBA4", 0, {0,0,0}},
-    {NGL_RGB5_A1, "RGB5_A1", 0, {0,0,0}},
-    {NGL_RGB565, "RGB565", 0, {0,0,0}},
-    {NGL_DEPTH_COMPONENT16, "DEPTH_COMPONENT16", 0, {0,0,0}},
-    {NGL_STENCIL_INDEX, "STENCIL_INDEX", 0, {0,0,0}},
-    {NGL_STENCIL_INDEX8, "STENCIL_INDEX8", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_WIDTH, "RENDERBUFFER_WIDTH", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_HEIGHT, "RENDERBUFFER_HEIGHT", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_INTERNAL_FORMAT, "RENDERBUFFER_INTERNAL_FORMAT", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_RED_SIZE, "RENDERBUFFER_RED_SIZE", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_GREEN_SIZE, "RENDERBUFFER_GREEN_SIZE", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_BLUE_SIZE, "RENDERBUFFER_BLUE_SIZE", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_ALPHA_SIZE, "RENDERBUFFER_ALPHA_SIZE", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_DEPTH_SIZE, "RENDERBUFFER_DEPTH_SIZE", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_STENCIL_SIZE, "RENDERBUFFER_STENCIL_SIZE", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL, "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE, "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE", 0, {0,0,0}},
-    {NGL_COLOR_ATTACHMENT0, "COLOR_ATTACHMENT0", 0, {0,0,0}},
-    {NGL_DEPTH_ATTACHMENT, "DEPTH_ATTACHMENT", 0, {0,0,0}},
-    {NGL_STENCIL_ATTACHMENT, "STENCIL_ATTACHMENT", 0, {0,0,0}},
-    {NGL_NONE, "NONE", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_COMPLETE, "FRAMEBUFFER_COMPLETE", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT, "FRAMEBUFFER_INCOMPLETE_ATTACHMENT", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT, "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", 0, {0,0,0}},
-    //{NGL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT, "FRAMEBUFFER_INCOMPLETE_DIMENSIONS", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_UNSUPPORTED, "FRAMEBUFFER_UNSUPPORTED", 0, {0,0,0}},
-    {NGL_FRAMEBUFFER_BINDING, "FRAMEBUFFER_BINDING", 0, {0,0,0}},
-    {NGL_RENDERBUFFER_BINDING, "RENDERBUFFER_BINDING", 0, {0,0,0}},
-    {NGL_MAX_RENDERBUFFER_SIZE, "MAX_RENDERBUFFER_SIZE", 0, {0,0,0}},
-    {NGL_INVALID_FRAMEBUFFER_OPERATION, "INVALID_FRAMEBUFFER_OPERATION", 0, {0,0,0}},
-    {NGL_UNPACK_FLIP_Y_WEBGL, "UNPACK_FLIP_Y_WEBGL", 0, {0,0,0}},
-    {NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, "UNPACK_PREMULTIPLY_ALPHA_WEBGL", 0, {0,0,0}},
-    {NGL_CONTEXT_LOST_WEBGL, "CONTEXT_LOST_WEBGL", 0, {0,0,0}},
-    {NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL, "UNPACK_COLORSPACE_CONVERSION_WEBGL", 0, {0,0,0}},
-    {NGL_BROWSER_DEFAULT_WEBGL, "BROWSER_DEFAULT_WEBGL", 0, {0,0,0}},
+    {NGL_DEPTH_BUFFER_BIT, "DEPTH_BUFFER_BIT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BUFFER_BIT, "STENCIL_BUFFER_BIT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_COLOR_BUFFER_BIT, "COLOR_BUFFER_BIT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_POINTS, "POINTS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINES, "LINES", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINE_LOOP, "LINE_LOOP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINE_STRIP, "LINE_STRIP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TRIANGLES, "TRIANGLES", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TRIANGLE_STRIP, "TRIANGLE_STRIP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TRIANGLE_FAN, "TRIANGLE_FAN", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ZERO, "ZERO", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE, "ONE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SRC_COLOR, "SRC_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE_MINUS_SRC_COLOR, "ONE_MINUS_SRC_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SRC_ALPHA, "SRC_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE_MINUS_SRC_ALPHA, "ONE_MINUS_SRC_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DST_ALPHA, "DST_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE_MINUS_DST_ALPHA, "ONE_MINUS_DST_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DST_COLOR, "DST_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE_MINUS_DST_COLOR, "ONE_MINUS_DST_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SRC_ALPHA_SATURATE, "SRC_ALPHA_SATURATE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FUNC_ADD, "FUNC_ADD", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_EQUATION, "BLEND_EQUATION", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_EQUATION_RGB, "BLEND_EQUATION_RGB", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_EQUATION_ALPHA, "BLEND_EQUATION_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FUNC_SUBTRACT, "FUNC_SUBTRACT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FUNC_REVERSE_SUBTRACT, "FUNC_REVERSE_SUBTRACT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_DST_RGB, "BLEND_DST_RGB", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_SRC_RGB, "BLEND_SRC_RGB", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_DST_ALPHA, "BLEND_DST_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_SRC_ALPHA, "BLEND_SRC_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CONSTANT_COLOR, "CONSTANT_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE_MINUS_CONSTANT_COLOR, "ONE_MINUS_CONSTANT_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CONSTANT_ALPHA, "CONSTANT_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ONE_MINUS_CONSTANT_ALPHA, "ONE_MINUS_CONSTANT_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND_COLOR, "BLEND_COLOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ARRAY_BUFFER, "ARRAY_BUFFER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ELEMENT_ARRAY_BUFFER, "ELEMENT_ARRAY_BUFFER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ARRAY_BUFFER_BINDING, "ARRAY_BUFFER_BINDING", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ELEMENT_ARRAY_BUFFER_BINDING, "ELEMENT_ARRAY_BUFFER_BINDING", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STREAM_DRAW, "STREAM_DRAW", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STATIC_DRAW, "STATIC_DRAW", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DYNAMIC_DRAW, "DYNAMIC_DRAW", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BUFFER_SIZE, "BUFFER_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BUFFER_USAGE, "BUFFER_USAGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CURRENT_VERTEX_ATTRIB, "CURRENT_VERTEX_ATTRIB", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRONT, "FRONT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BACK, "BACK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRONT_AND_BACK, "FRONT_AND_BACK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_2D, "TEXTURE_2D", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CULL_FACE, "CULL_FACE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLEND, "BLEND", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DITHER, "DITHER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_TEST, "STENCIL_TEST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_TEST, "DEPTH_TEST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SCISSOR_TEST, "SCISSOR_TEST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_POLYGON_OFFSET_FILL, "POLYGON_OFFSET_FILL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLE_ALPHA_TO_COVERAGE, "SAMPLE_ALPHA_TO_COVERAGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLE_COVERAGE, "SAMPLE_COVERAGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NO_ERROR, "NO_ERROR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INVALID_ENUM, "INVALID_ENUM", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INVALID_VALUE, "INVALID_VALUE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INVALID_OPERATION, "INVALID_OPERATION", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_OUT_OF_MEMORY, "OUT_OF_MEMORY", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CW, "CW", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CCW, "CCW", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINE_WIDTH, "LINE_WIDTH", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ALIASED_POINT_SIZE_RANGE, "ALIASED_POINT_SIZE_RANGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ALIASED_LINE_WIDTH_RANGE, "ALIASED_LINE_WIDTH_RANGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CULL_FACE_MODE, "CULL_FACE_MODE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRONT_FACE, "FRONT_FACE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_RANGE, "DEPTH_RANGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_WRITEMASK, "DEPTH_WRITEMASK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_CLEAR_VALUE, "DEPTH_CLEAR_VALUE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_FUNC, "DEPTH_FUNC", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_CLEAR_VALUE, "STENCIL_CLEAR_VALUE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_FUNC, "STENCIL_FUNC", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_FAIL, "STENCIL_FAIL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_PASS_DEPTH_FAIL, "STENCIL_PASS_DEPTH_FAIL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_PASS_DEPTH_PASS, "STENCIL_PASS_DEPTH_PASS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_REF, "STENCIL_REF", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_VALUE_MASK, "STENCIL_VALUE_MASK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_WRITEMASK, "STENCIL_WRITEMASK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_FUNC, "STENCIL_BACK_FUNC", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_FAIL, "STENCIL_BACK_FAIL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_PASS_DEPTH_FAIL, "STENCIL_BACK_PASS_DEPTH_FAIL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_PASS_DEPTH_PASS, "STENCIL_BACK_PASS_DEPTH_PASS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_REF, "STENCIL_BACK_REF", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_VALUE_MASK, "STENCIL_BACK_VALUE_MASK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BACK_WRITEMASK, "STENCIL_BACK_WRITEMASK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VIEWPORT, "VIEWPORT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SCISSOR_BOX, "SCISSOR_BOX", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_COLOR_CLEAR_VALUE, "COLOR_CLEAR_VALUE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_COLOR_WRITEMASK, "COLOR_WRITEMASK", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNPACK_ALIGNMENT, "UNPACK_ALIGNMENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_PACK_ALIGNMENT, "PACK_ALIGNMENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_TEXTURE_SIZE, "MAX_TEXTURE_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_VIEWPORT_DIMS, "MAX_VIEWPORT_DIMS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SUBPIXEL_BITS, "SUBPIXEL_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RED_BITS, "RED_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_GREEN_BITS, "GREEN_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BLUE_BITS, "BLUE_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ALPHA_BITS, "ALPHA_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_BITS, "DEPTH_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_BITS, "STENCIL_BITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_POLYGON_OFFSET_UNITS, "POLYGON_OFFSET_UNITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_POLYGON_OFFSET_FACTOR, "POLYGON_OFFSET_FACTOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_BINDING_2D, "TEXTURE_BINDING_2D", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLE_BUFFERS, "SAMPLE_BUFFERS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLES, "SAMPLES", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLE_COVERAGE_VALUE, "SAMPLE_COVERAGE_VALUE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLE_COVERAGE_INVERT, "SAMPLE_COVERAGE_INVERT", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_NUM_COMPRESSED_TEXTURE_FORMATS, "NUM_COMPRESSED_TEXTURE_FORMATS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_COMPRESSED_TEXTURE_FORMATS, "COMPRESSED_TEXTURE_FORMATS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DONT_CARE, "DONT_CARE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FASTEST, "FASTEST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NICEST, "NICEST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_GENERATE_MIPMAP_HINT, "GENERATE_MIPMAP_HINT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BYTE, "BYTE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNSIGNED_BYTE, "UNSIGNED_BYTE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SHORT, "SHORT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNSIGNED_SHORT, "UNSIGNED_SHORT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INT, "INT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNSIGNED_INT, "UNSIGNED_INT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT, "FLOAT", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_FIXED, "FIXED", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_COMPONENT, "DEPTH_COMPONENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ALPHA, "ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RGB, "RGB", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RGBA, "RGBA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LUMINANCE, "LUMINANCE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LUMINANCE_ALPHA, "LUMINANCE_ALPHA", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNSIGNED_SHORT_4_4_4_4, "UNSIGNED_SHORT_4_4_4_4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNSIGNED_SHORT_5_5_5_1, "UNSIGNED_SHORT_5_5_5_1", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNSIGNED_SHORT_5_6_5, "UNSIGNED_SHORT_5_6_5", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAGMENT_SHADER, "FRAGMENT_SHADER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_SHADER, "VERTEX_SHADER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_VERTEX_ATTRIBS, "MAX_VERTEX_ATTRIBS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_VERTEX_UNIFORM_VECTORS, "MAX_VERTEX_UNIFORM_VECTORS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_VARYING_VECTORS, "MAX_VARYING_VECTORS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, "MAX_COMBINED_TEXTURE_IMAGE_UNITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, "MAX_VERTEX_TEXTURE_IMAGE_UNITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_TEXTURE_IMAGE_UNITS, "MAX_TEXTURE_IMAGE_UNITS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_FRAGMENT_UNIFORM_VECTORS, "MAX_FRAGMENT_UNIFORM_VECTORS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SHADER_TYPE, "SHADER_TYPE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DELETE_STATUS, "DELETE_STATUS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINK_STATUS, "LINK_STATUS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VALIDATE_STATUS, "VALIDATE_STATUS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ATTACHED_SHADERS, "ATTACHED_SHADERS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ACTIVE_UNIFORMS, "ACTIVE_UNIFORMS", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_ACTIVE_UNIFORM_MAX_LENGTH, "ACTIVE_UNIFORM_MAX_LENGTH", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ACTIVE_ATTRIBUTES, "ACTIVE_ATTRIBUTES", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_ACTIVE_ATTRIBUTE_MAX_LENGTH, "ACTIVE_ATTRIBUTE_MAX_LENGTH", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SHADING_LANGUAGE_VERSION, "SHADING_LANGUAGE_VERSION", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CURRENT_PROGRAM, "CURRENT_PROGRAM", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NEVER, "NEVER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LESS, "LESS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_EQUAL, "EQUAL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LEQUAL, "LEQUAL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_GREATER, "GREATER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NOTEQUAL, "NOTEQUAL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_GEQUAL, "GEQUAL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ALWAYS, "ALWAYS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_KEEP, "KEEP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_REPLACE, "REPLACE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INCR, "INCR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DECR, "DECR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INVERT, "INVERT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INCR_WRAP, "INCR_WRAP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DECR_WRAP, "DECR_WRAP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VENDOR, "VENDOR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERER, "RENDERER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERSION, "VERSION", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_EXTENSIONS, "EXTENSIONS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NEAREST, "NEAREST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINEAR, "LINEAR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NEAREST_MIPMAP_NEAREST, "NEAREST_MIPMAP_NEAREST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINEAR_MIPMAP_NEAREST, "LINEAR_MIPMAP_NEAREST", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NEAREST_MIPMAP_LINEAR, "NEAREST_MIPMAP_LINEAR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LINEAR_MIPMAP_LINEAR, "LINEAR_MIPMAP_LINEAR", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_MAG_FILTER, "TEXTURE_MAG_FILTER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_MIN_FILTER, "TEXTURE_MIN_FILTER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_WRAP_S, "TEXTURE_WRAP_S", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_WRAP_T, "TEXTURE_WRAP_T", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE, "TEXTURE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP, "TEXTURE_CUBE_MAP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_BINDING_CUBE_MAP, "TEXTURE_BINDING_CUBE_MAP", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP_POSITIVE_X, "TEXTURE_CUBE_MAP_POSITIVE_X", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP_NEGATIVE_X, "TEXTURE_CUBE_MAP_NEGATIVE_X", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP_POSITIVE_Y, "TEXTURE_CUBE_MAP_POSITIVE_Y", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP_NEGATIVE_Y, "TEXTURE_CUBE_MAP_NEGATIVE_Y", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP_POSITIVE_Z, "TEXTURE_CUBE_MAP_POSITIVE_Z", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE_CUBE_MAP_NEGATIVE_Z, "TEXTURE_CUBE_MAP_NEGATIVE_Z", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_CUBE_MAP_TEXTURE_SIZE, "MAX_CUBE_MAP_TEXTURE_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE0, "TEXTURE0", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE1, "TEXTURE1", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE2, "TEXTURE2", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE3, "TEXTURE3", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE4, "TEXTURE4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE5, "TEXTURE5", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE6, "TEXTURE6", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE7, "TEXTURE7", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE8, "TEXTURE8", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE9, "TEXTURE9", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE10, "TEXTURE10", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE11, "TEXTURE11", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE12, "TEXTURE12", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE13, "TEXTURE13", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE14, "TEXTURE14", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE15, "TEXTURE15", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE16, "TEXTURE16", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE17, "TEXTURE17", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE18, "TEXTURE18", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE19, "TEXTURE19", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE20, "TEXTURE20", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE21, "TEXTURE21", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE22, "TEXTURE22", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE23, "TEXTURE23", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE24, "TEXTURE24", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE25, "TEXTURE25", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE26, "TEXTURE26", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE27, "TEXTURE27", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE28, "TEXTURE28", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE29, "TEXTURE29", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE30, "TEXTURE30", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_TEXTURE31, "TEXTURE31", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_ACTIVE_TEXTURE, "ACTIVE_TEXTURE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_REPEAT, "REPEAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CLAMP_TO_EDGE, "CLAMP_TO_EDGE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MIRRORED_REPEAT, "MIRRORED_REPEAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT_VEC2, "FLOAT_VEC2", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT_VEC3, "FLOAT_VEC3", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT_VEC4, "FLOAT_VEC4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INT_VEC2, "INT_VEC2", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INT_VEC3, "INT_VEC3", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INT_VEC4, "INT_VEC4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BOOL, "BOOL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BOOL_VEC2, "BOOL_VEC2", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BOOL_VEC3, "BOOL_VEC3", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BOOL_VEC4, "BOOL_VEC4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT_MAT2, "FLOAT_MAT2", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT_MAT3, "FLOAT_MAT3", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FLOAT_MAT4, "FLOAT_MAT4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLER_2D, "SAMPLER_2D", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_SAMPLER_CUBE, "SAMPLER_CUBE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_ENABLED, "VERTEX_ATTRIB_ARRAY_ENABLED", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_SIZE, "VERTEX_ATTRIB_ARRAY_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_STRIDE, "VERTEX_ATTRIB_ARRAY_STRIDE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_TYPE, "VERTEX_ATTRIB_ARRAY_TYPE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_NORMALIZED, "VERTEX_ATTRIB_ARRAY_NORMALIZED", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_POINTER, "VERTEX_ATTRIB_ARRAY_POINTER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_IMPLEMENTATION_COLOR_READ_TYPE, "IMPLEMENTATION_COLOR_READ_TYPE", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_IMPLEMENTATION_COLOR_READ_FORMAT, "IMPLEMENTATION_COLOR_READ_FORMAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_COMPILE_STATUS, "COMPILE_STATUS", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_INFO_LOG_LENGTH, "INFO_LOG_LENGTH", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_SHADER_SOURCE_LENGTH, "SHADER_SOURCE_LENGTH", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_SHADER_COMPILER, "SHADER_COMPILER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LOW_FLOAT, "LOW_FLOAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MEDIUM_FLOAT, "MEDIUM_FLOAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_HIGH_FLOAT, "HIGH_FLOAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_LOW_INT, "LOW_INT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MEDIUM_INT, "MEDIUM_INT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_HIGH_INT, "HIGH_INT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER, "FRAMEBUFFER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER, "RENDERBUFFER", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RGBA4, "RGBA4", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RGB5_A1, "RGB5_A1", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RGB565, "RGB565", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_COMPONENT16, "DEPTH_COMPONENT16", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_INDEX, "STENCIL_INDEX", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_INDEX8, "STENCIL_INDEX8", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_STENCIL, "DEPTH_STENCIL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_WIDTH, "RENDERBUFFER_WIDTH", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_HEIGHT, "RENDERBUFFER_HEIGHT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_INTERNAL_FORMAT, "RENDERBUFFER_INTERNAL_FORMAT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_RED_SIZE, "RENDERBUFFER_RED_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_GREEN_SIZE, "RENDERBUFFER_GREEN_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_BLUE_SIZE, "RENDERBUFFER_BLUE_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_ALPHA_SIZE, "RENDERBUFFER_ALPHA_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_DEPTH_SIZE, "RENDERBUFFER_DEPTH_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_STENCIL_SIZE, "RENDERBUFFER_STENCIL_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL, "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE, "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_COLOR_ATTACHMENT0, "COLOR_ATTACHMENT0", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_ATTACHMENT, "DEPTH_ATTACHMENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_STENCIL_ATTACHMENT, "STENCIL_ATTACHMENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_DEPTH_STENCIL_ATTACHMENT, "DEPTH_STENCIL_ATTACHMENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_NONE, "NONE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_COMPLETE, "FRAMEBUFFER_COMPLETE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT, "FRAMEBUFFER_INCOMPLETE_ATTACHMENT", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT, "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT", JSPROP_ENUMERATE, {0,0,0}},
+    //{NGL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT, "FRAMEBUFFER_INCOMPLETE_DIMENSIONS", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_UNSUPPORTED, "FRAMEBUFFER_UNSUPPORTED", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_FRAMEBUFFER_BINDING, "FRAMEBUFFER_BINDING", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_RENDERBUFFER_BINDING, "RENDERBUFFER_BINDING", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_MAX_RENDERBUFFER_SIZE, "MAX_RENDERBUFFER_SIZE", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_INVALID_FRAMEBUFFER_OPERATION, "INVALID_FRAMEBUFFER_OPERATION", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNPACK_FLIP_Y_WEBGL, "UNPACK_FLIP_Y_WEBGL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL, "UNPACK_PREMULTIPLY_ALPHA_WEBGL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_CONTEXT_LOST_WEBGL, "CONTEXT_LOST_WEBGL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL, "UNPACK_COLORSPACE_CONVERSION_WEBGL", JSPROP_ENUMERATE, {0,0,0}},
+    {NGL_BROWSER_DEFAULT_WEBGL, "BROWSER_DEFAULT_WEBGL", JSPROP_ENUMERATE, {0,0,0}},
     {0, NULL, 0, {0,0,0}}
 };
 
-NGL_JS_FN(WebGLRenderingContext_isContextLost) 
-{
+NGL_JS_FN(WebGLRenderingContext_isContextLost)
+//{
     // TODO
     JS_SET_RVAL(cx, vp, BOOLEAN_TO_JSVAL(false));
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getExtension) 
-{
+NGL_JS_FN(WebGLRenderingContext_getExtension)
+//{
     JS_SET_RVAL(cx, vp, JSVAL_NULL);
-    return JS_TRUE;
+    return true;
 }
 
 
-NGL_JS_FN(WebGLRenderingContext_activeTexture) 
-{
+NGL_JS_FN(WebGLRenderingContext_activeTexture)
+//{
 	GLuint texture;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &texture)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glActiveTexture(texture);
+    GL_CALL(CppObj, ActiveTexture(texture));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_attachShader)  
-{
-    uintptr_t cprogram;
+NGL_JS_FN(WebGLRenderingContext_attachShader) 
+//{
     NGLShader *cshader;
     JSObject *program;
     JSObject *shader;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oo", &program, &shader)) {
-        return JS_TRUE;
+        return false;
     }
 
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
-    cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glAttachShader(cprogram, cshader->shader);
+    cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader,
+        &WebGLShader_class, JS_ARGV(cx, vp));
+
+    GL_CALL(CppObj, AttachShader(res->id(), cshader->shader));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_bindBuffer) 
-{
+NGL_JS_FN(WebGLRenderingContext_bindAttribLocation) 
+//{
+    GLuint vertex;
+    const char *cname;
+    JSObject *program;
+    JSString *name;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ouS", &program, &vertex, &name)) {
+        return false;
+    }
+
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
+
+    cname = JS_EncodeString(cx, name);
+
+    GL_CALL(CppObj, BindAttribLocation(res->id(), vertex, cname));
+
+    JS_free(cx, (void *)cname);
+    
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_bindBuffer)
+//{
+    GLenum target;
+    JSObject *buffer;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
+        return false;
+    }
+
+    if (buffer == NULL) {
+        JS_SetReservedSlot(thisobj, WebGLResource::kBuffer, JSVAL_NULL);
+        GL_CALL(CppObj, BindBuffer(target, 0));
+
+        return true;
+    }
+
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, buffer,
+        &WebGLBuffer_class, JS_ARGV(cx, vp));
+
+    JS_SetReservedSlot(thisobj, WebGLResource::kBuffer,
+        OBJECT_TO_JSVAL(res->jsobj()));
+
+    GL_CALL(CppObj, BindBuffer(target, res->id()));
+    
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
+//{
     GLenum target;
     uintptr_t cbuffer;
     JSObject *buffer;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
-        return JS_TRUE;
+        return false;
     }
 
 	if (buffer == NULL) {
-        printf("nullbuffer\n");
-        return JS_TRUE;
+        /*
+            Bind to the default framebuffer
+        */
+        uint32_t fbo = CppObj->getFrameBufferID();
+        GL_CALL(CppObj, BindFramebuffer(target, fbo));
+
+        JS_SetReservedSlot(thisobj, WebGLResource::kFrameBuffer, JSVAL_NULL);
+
+        return true;
     }
 
-    cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLBuffer_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx,
+        buffer, &WebGLFrameBuffer_class, JS_ARGV(cx, vp));
 
-    glBindBuffer(target, cbuffer);
+    JS_SetReservedSlot(thisobj, WebGLResource::kFrameBuffer,
+        OBJECT_TO_JSVAL(res->jsobj()));
+
+    GL_CALL(CppObj, BindFramebuffer(target, res->id()));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_bindFramebuffer) 
-{
+NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
+//{
     GLenum target;
-    uintptr_t cbuffer;
     JSObject *buffer;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
-        return JS_TRUE;
+        return false;
     }
 
-	if (buffer == NULL) return JS_TRUE;
-
-    cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLFrameBuffer_class, JS_ARGV(cx, vp));
-
-    glBindFramebuffer(target, cbuffer);
-    
-    return JS_TRUE;
-}
-
-NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer) 
-{
-    GLenum target;
-    uintptr_t cbuffer;
-    JSObject *buffer;
-    
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
-        return JS_TRUE;
+	if (buffer == NULL) {
+        GL_CALL(CppObj, BindRenderbuffer(target, 0));
+        JS_SetReservedSlot(thisobj, WebGLResource::kRenderBuffer, JSVAL_NULL);
+        return true;
     }
 
-	if (buffer == NULL) return JS_TRUE;
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, buffer,
+        &WebGLRenderbuffer_class, JS_ARGV(cx, vp));
 
-    cbuffer = (uintptr_t)JS_GetInstancePrivate(cx, buffer, &WebGLRenderbuffer_class, JS_ARGV(cx, vp));
+    JS_SetReservedSlot(thisobj, WebGLResource::kRenderBuffer,
+        OBJECT_TO_JSVAL(res->jsobj()));
 
-    glBindRenderbuffer(target, cbuffer);
+    GL_CALL(CppObj, BindRenderbuffer(target, res->id()));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_bindTexture) 
-{
+NGL_JS_FN(WebGLRenderingContext_bindTexture)
+//{
     GLenum target;
-    uintptr_t ctexture;
     JSObject *texture;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &texture)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, 
+        &texture)) {
+        return false;
+    }
+
+    if (texture == NULL) {
+        GL_CALL(CppObj, BindTexture(target, 0));
+        JS_SetReservedSlot(thisobj, WebGLResource::kTexture, JSVAL_NULL);        
+        return true;
     }
 
 	// No argv passed, as texture starting at 0
-    ctexture = (uintptr_t)JS_GetInstancePrivate(cx, texture, &WebGLTexture_class, NULL);
-    glBindTexture(target, ctexture);
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx,
+        texture, &WebGLTexture_class, NULL);
+
+    JS_SetReservedSlot(thisobj, WebGLResource::kTexture,
+        OBJECT_TO_JSVAL(res->jsobj()));
+
+    GL_CALL(CppObj, BindTexture(target, res->id()));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_blendEquation) 
-{
+NGL_JS_FN(WebGLRenderingContext_blendEquation)
+//{
     GLuint mode;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &mode)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendEquation(mode);
+    GL_CALL(CppObj, BlendEquation(mode));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)     
-{
+NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)    
+//{
     GLuint modeRGB;
     GLenum modeAlpha;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu", &modeRGB, &modeAlpha)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendEquationSeparate(modeRGB, modeAlpha);
+    GL_CALL(CppObj, BlendEquationSeparate(modeRGB, modeAlpha));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_blendFunc) 
-{
+NGL_JS_FN(WebGLRenderingContext_blendFunc)
+//{
     GLenum sfactor;
     GLuint dfactor;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu", &sfactor, &dfactor)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glBlendFunc(sfactor, dfactor);
+    GL_CALL(CppObj, BlendFunc(sfactor, dfactor));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate) 
-{
+NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate)
+//{
     GLuint srcRGB;
     GLuint dstRGB;
     GLenum srcAlpha;
     GLenum dstAlpha;
     
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuu", &srcRGB, &dstRGB, &srcAlpha, &dstAlpha)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuu",
+        &srcRGB, &dstRGB, &srcAlpha, &dstAlpha)) {
+        return false;
     }
     
-    glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+    GL_CALL(CppObj, BlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha));
 
-    return JS_TRUE;
+    return true;
 }
 
 
-NGL_JS_FN(WebGLRenderingContext_bufferData) 
-{
+NGL_JS_FN(WebGLRenderingContext_bufferData)
+//{
     GLenum target;
     JSObject *array;
     GLenum usage;
     
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uou", &target, &array, &usage)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uou",
+        &target, &array, &usage)) {
+        return false;
     }
 
 	if (array == NULL || !JS_IsTypedArrayObject(array)) {
         JS_ReportError(cx, "Invalid value");
-		return JS_TRUE;
+		return false;
 	}
 
-    glBufferData(target, JS_GetArrayBufferViewByteLength(array), JS_GetArrayBufferViewData(array), usage);
+    GL_CALL(CppObj, BufferData(target, JS_GetArrayBufferViewByteLength(array),
+        JS_GetArrayBufferViewData(array), usage));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_clear) 
-{
+NGL_JS_FN(WebGLRenderingContext_bufferSubData)
+//{
+    GLenum target;
+    GLint offset;
+    JSObject *array;
+
+    GLsizei size;
+    GLvoid *data;
+
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuo",
+        &target, &offset, &array)) {
+        return false;
+    }
+
+	if (array == NULL || !JS_IsTypedArrayObject(array) ||
+        !JS_IsArrayBufferViewObject(array)) {
+
+        JS_ReportError(cx, "Invalid value");
+		return false;
+	}
+
+    GL_CALL(CppObj, BufferSubData(target, offset,
+        JS_GetArrayBufferViewByteLength(array), JS_GetArrayBufferViewData(array)));
+    
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_clear)
+//{
     GLbitfield bits;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &bits)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glClear(bits);
+    GL_CALL(CppObj, Clear(bits | GL_DEPTH_BUFFER_BIT));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_clearColor) 
-{
+NGL_JS_FN(WebGLRenderingContext_clearColor)
+//{
     double r;
     double g;
     double b;
     double a;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dddd", &r, &g, &b, &a)) {
-        return JS_TRUE;
+        return false;
     }
+
+    GL_CALL(CppObj, ClearColor(r, g, b, a));
     
-    glClearColor(r, g, b, a);
-    
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_clearDepth) 
-{
+NGL_JS_FN(WebGLRenderingContext_clearDepth)
+//{
     double clampd;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &clampd)) {
-        return JS_TRUE;
+        return false;
     }
-    glClearDepth(clampd);
+    GL_CALL(CppObj, ClearDepth(clampd));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_clearStencil) 
-{
+NGL_JS_FN(WebGLRenderingContext_clearStencil)
+//{
     GLint s;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &s)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glClearStencil(s);
+    GL_CALL(CppObj, ClearStencil(s));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_compileShader) 
-{
+NGL_JS_FN(WebGLRenderingContext_compileShader)
+//{
     NGLShader *cshader;
     JSObject *shader;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
-        return JS_TRUE;
+        return false;
     }
 
-    cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
+    cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader,
+        &WebGLShader_class, JS_ARGV(cx, vp));
 
     ShBuiltInResources resources; 
     ShHandle compiler = 0;
@@ -1123,21 +1310,34 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 
     ShInitBuiltInResources(&resources);
 
-    // TODO use real values
+    // TODO use real values (see third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp )
     resources.MaxVertexAttribs = 8;
     resources.MaxVertexUniformVectors = 128;
     resources.MaxVaryingVectors = 8;
-    resources.MaxVertexTextureImageUnits = 0;
+    resources.MaxVertexTextureImageUnits = 4;
     resources.MaxCombinedTextureImageUnits = 8;
     resources.MaxTextureImageUnits = 8;
     resources.MaxFragmentUniformVectors = 16;
     resources.MaxDrawBuffers = 1;
 
-    compiler = ShConstructCompiler((ShShaderType)cshader->type, SH_WEBGL_SPEC, SH_GLSL_OUTPUT, &resources);
+    resources.OES_standard_derivatives = 1;
+    resources.FragmentPrecisionHigh = 1;
+
+    compiler = ShConstructCompiler((ShShaderType)cshader->type,
+        SH_WEBGL_SPEC, SH_GLSL_OUTPUT, &resources);
     // XXX : Might be interesting to use SH_VALIDATE
-    if (!ShCompile(compiler, &cshader->source, 1, SH_OBJECT_CODE)) {
-        JS_ReportError(cx, "Failed to translate shader to GLSL.");
-        return JS_TRUE;
+    if (!ShCompile(compiler, &cshader->source, 1,
+        SH_OBJECT_CODE|SH_ATTRIBUTES_UNIFORMS|SH_ENFORCE_PACKING_RESTRICTIONS|SH_MAP_LONG_VARIABLE_NAMES)) {
+
+        size_t bufferLen;
+        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &bufferLen);
+        char *buffer = (char*) malloc(bufferLen * sizeof(char));
+        ShGetInfoLog(compiler, buffer);
+
+        JS_ReportError(cx, "Failed to translate shader to GLSL. %s", buffer);
+        free(buffer);
+
+        return false;
     }
 
     ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &len);
@@ -1145,86 +1345,96 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     ShGetObjectCode(compiler, str);
     const char *foo = (const char *)str;
 
-    GLint shaderLen;
-    glShaderSource(cshader->shader, 1, &foo, &shaderLen);
+    GLint shaderLen = len;
+    GL_CALL(CppObj, ShaderSource(cshader->shader, 1, &foo, &shaderLen));
 
-    glCompileShader(cshader->shader);
+    GL_CALL(CppObj, CompileShader(cshader->shader));
 
     ShDestruct(compiler);
     JS_free(cx, (void *)cshader->source);
     free(str);
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_createBuffer) 
-{
+NGL_JS_FN(WebGLRenderingContext_createBuffer)
+//{
     intptr_t buffer;
     jsval proto;
     JSObject *ret;
     
-    glGenBuffers(1, (GLuint *)&buffer);
+    GL_CALL(CppObj, GenBuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLBuffer", &proto);
     ret = JS_NewObject(cx, &WebGLBuffer_class, JSVAL_TO_OBJECT(proto), NULL);
-    JS_SetPrivate(ret, (void *)buffer);
+
+    JS_SetPrivate(ret, new WebGLResource(buffer,
+        WebGLResource::kBuffer, CppObj, ret));
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_createFramebuffer) 
-{
-    intptr_t buffer;
+NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
+//{
+    uintptr_t buffer;
     jsval proto;
     JSObject *ret;
     
-    glGenFramebuffers(1, (GLuint *)&buffer);
+    GL_CALL(CppObj, GenFramebuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLFrameBuffer", &proto);
     ret = JS_NewObject(cx, &WebGLFrameBuffer_class, JSVAL_TO_OBJECT(proto), NULL);
-    JS_SetPrivate(ret, (void *)buffer);
+
+    JS_SetPrivate(ret, new WebGLResource(buffer,
+        WebGLResource::kFrameBuffer, CppObj, ret));
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_createRenderbuffer) 
-{
+NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
+//{
     intptr_t buffer;
     jsval proto;
     JSObject *ret;
     
-    glGenRenderbuffers(1, (GLuint *)&buffer);
+    GL_CALL(CppObj, GenRenderbuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLRenderbuffer", &proto);
     ret = JS_NewObject(cx, &WebGLRenderbuffer_class, JSVAL_TO_OBJECT(proto), NULL);
-    JS_SetPrivate(ret, (void *)buffer);
+
+    JS_SetPrivate(ret, new WebGLResource(buffer,
+        WebGLResource::kRenderBuffer, CppObj, ret));
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_createProgram) 
-{
-    intptr_t program = glCreateProgram();
+NGL_JS_FN(WebGLRenderingContext_createProgram)
+//{
+    GLuint program;
     jsval proto;
     JSObject *ret;
+
+    GL_CALL_RET(CppObj, CreateProgram(), program);
     
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLProgram", &proto);
     ret = JS_NewObject(cx, &WebGLProgram_class, JSVAL_TO_OBJECT(proto), NULL);
-    JS_SetPrivate(ret, (void *)program);
+
+    JS_SetPrivate(ret, new WebGLResource(program,
+        WebGLResource::kProgram, CppObj, ret));
     
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_createShader)     
-{
+NGL_JS_FN(WebGLRenderingContext_createShader)    
+//{
     GLenum type;
     NGLShader *shader;
     GLuint cshader;
@@ -1232,15 +1442,15 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
     JSObject *ret;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &type)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (type != NGL_VERTEX_SHADER && type != NGL_FRAGMENT_SHADER) {
         JS_ReportError(cx, "Invalid shader type");
-        return JS_TRUE;
+        return false;
     }
 
-    cshader = glCreateShader(type);
+    GL_CALL_RET(CppObj, CreateShader(type), cshader);
     shader = new NGLShader(type, cshader);
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLShader", &proto);
@@ -1250,173 +1460,176 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
     
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_createTexture) 
-{
+NGL_JS_FN(WebGLRenderingContext_createTexture)
+//{
     uintptr_t texture;
 	JSObject *ret;
     jsval proto;
 
-    glGenTextures(1, (GLuint *)&texture);
+    GL_CALL(CppObj, GenTextures(1, (GLuint *)&texture));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLTexture", &proto);
+
     ret = JS_NewObject(cx, &WebGLTexture_class, JSVAL_TO_OBJECT(proto), NULL);
-    JS_SetPrivate(ret, (void *)texture);
+
+    JS_SetPrivate(ret, new WebGLResource(texture,
+        WebGLResource::kTexture, CppObj, ret));
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
-    return JS_TRUE;
+    return true;
 }
 
 
-NGL_JS_FN(WebGLRenderingContext_cullFace) 
-{
+NGL_JS_FN(WebGLRenderingContext_cullFace)
+//{
     GLuint mode;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &mode)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glCullFace(mode);
+    GL_CALL(CppObj, CullFace(mode));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_deleteShader) 
-{
+NGL_JS_FN(WebGLRenderingContext_deleteShader)
+//{
     JSObject *shader;
     NGLShader *cshader;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
-        return JS_TRUE;
+        return false;
     }
 
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
-    glDeleteShader(cshader->shader);
+    GL_CALL(CppObj, DeleteShader(cshader->shader));
     delete cshader;
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_depthFunc) 
-{
+NGL_JS_FN(WebGLRenderingContext_depthFunc)
+//{
     GLuint func;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &func)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDepthFunc(func);
+    GL_CALL(CppObj, DepthFunc(func));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_depthMask) 
-{
+NGL_JS_FN(WebGLRenderingContext_depthMask)
+//{
     JSBool flag;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "b", &flag)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glDepthMask((GLboolean)flag);
+    GL_CALL(CppObj, DepthMask((GLboolean)flag));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_disable) 
-{
+NGL_JS_FN(WebGLRenderingContext_disable)
+//{
     GLenum cap;
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &cap)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDisable(cap);
+    GL_CALL(CppObj, Disable(cap));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_disableVertexAttribArray) 
-{
+NGL_JS_FN(WebGLRenderingContext_disableVertexAttribArray)
+//{
     GLuint attr;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &attr)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDisableVertexAttribArray(attr);
+    GL_CALL(CppObj, DisableVertexAttribArray(attr));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_drawArrays) 
-{
+NGL_JS_FN(WebGLRenderingContext_drawArrays)
+//{
     GLenum mode;
     GLint first;
     GLsizei count;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uii", &mode, &first, &count)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glDrawArrays(mode, first, count);
+    GL_CALL(CppObj, DrawArrays(mode, first, count));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_drawElements) 
-{
+NGL_JS_FN(WebGLRenderingContext_drawElements)
+//{
     GLenum mode;
     GLsizei count;
     GLenum type;
     GLint offset;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiui", &mode, &count, &type, &offset)) {
-        return JS_TRUE;
+        return false;
     }
 
     if (offset+count < offset || offset+count < count) {
         JS_ReportError(cx, "Overflow in drawElements");
-        return JS_TRUE;
+        return false;
     }
+
+    GL_CALL(CppObj, DrawElements(mode, count, type, (void *)(intptr_t)offset));
     
-    glDrawElements(mode, count, type, (void *)offset);
-    
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_enable) 
-{
+NGL_JS_FN(WebGLRenderingContext_enable)
+//{
     GLuint bits;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &bits)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glEnable(bits);
+    GL_CALL(CppObj, Enable(bits));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray) 
-{
+NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
+//{
     GLuint attr;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &attr)) {
-        return JS_TRUE;
+        return false;
     }
+
+    GL_CALL(CppObj, EnableVertexAttribArray(attr));
     
-    glEnableVertexAttribArray(attr);
-    
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getUniformLocation) 
-{
-    uintptr_t cprogram;
-    intptr_t location;
+NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
+//{
+    uint32_t cprogram;
+    GLint location;
     JSString *name;
     JSObject *program;
     JSObject *ret;
@@ -1424,120 +1637,193 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     const char *cname;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &program, &name)) {
-        return JS_TRUE;
+        return false;
     }
 
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
+
     cname = JS_EncodeString(cx, name);
  
-    location = glGetUniformLocation(cprogram, cname);
+    GL_CALL_RET(CppObj, GetUniformLocation(res->id(), cname), location);
 
     if (location < 0 ) {
         JS_SET_RVAL(cx, vp, JSVAL_NULL);
     } else {
         JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLUniformLocation", &proto);
         ret = JS_NewObject(cx, &WebGLUniformLocation_class, JSVAL_TO_OBJECT(proto), NULL);
-        JS_SetPrivate(ret, (void *)location);
+        JS_SetPrivate(ret, (void *)(uintptr_t)location);
         
         JS_free(cx, (void *)cname);
         JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
     }
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer) 
-{
-	GLenum target, attachement, renderbuffertarget;
-	uintptr_t crenderbuffer;
-	JSObject *renderbuffer;
+NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
+//{
+#define SET_PROP(prop, val) JS_SetProperty(cx, obj, prop, val)
+    GLenum shaderType, precisionType;
+    GLint crange[2];
+    GLint cprecision;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuoi", &target, &attachement, &renderbuffertarget, &renderbuffer)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uu", &shaderType, &precisionType)) {
+        return false;
     }
 
-    crenderbuffer = (uintptr_t)JS_GetInstancePrivate(cx, renderbuffer, &WebGLRenderbuffer_class, JS_ARGV(cx, vp));
+    jsval proto, rangeMin, rangeMax, precision;
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLShaderPrecisionFormat", &proto);
+	JSObject *obj = JS_NewObject(cx, &WebGLShaderPrecisionFormat_class, JSVAL_TO_OBJECT(proto), NULL);
 
-	glFramebufferRenderbuffer(target, attachement, renderbuffertarget, crenderbuffer);
+    // Since getShaderPrecisionFormat is not available everywhere...
+    // (Taken from mozilla GLContext.h)
 
-    return JS_TRUE;
+    switch (precisionType) {
+        case NGL_LOW_FLOAT:
+        case NGL_MEDIUM_FLOAT:
+        case NGL_HIGH_FLOAT:
+            // Assume IEEE 754 precision
+            crange[0] = 127;
+            crange[1] = 127;
+            cprecision = 23;
+            break;
+        case NGL_LOW_INT:
+        case NGL_MEDIUM_INT:
+        case NGL_HIGH_INT:
+            // Some (most) hardware only supports single-precision floating-point numbers,
+            // which can accurately represent integers up to +/-16777216
+            crange[0] = 24;
+            crange[1] = 24;
+            cprecision = 0;
+            break;
+    }
+
+    rangeMin = INT_TO_JSVAL(crange[0]);
+    rangeMax = INT_TO_JSVAL(crange[1]);
+    precision = INT_TO_JSVAL(cprecision);
+
+    SET_PROP("rangeMin", &rangeMin);
+    SET_PROP("rangeMax", &rangeMax);
+    SET_PROP("precision", &precision);
+
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+
+    return true;
+#undef SET_PROP
 }
 
-NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D) 
-{
+NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer)
+//{
+	GLenum target, attachement, renderbuffertarget;
+	JSObject *renderbuffer;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuo", &target,
+        &attachement, &renderbuffertarget, &renderbuffer)) {
+        return false;
+    }
+
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, renderbuffer,
+        &WebGLRenderbuffer_class, JS_ARGV(cx, vp));
+
+	GL_CALL(CppObj, FramebufferRenderbuffer(target, attachement,
+        renderbuffertarget, res->id()));
+
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D)
+//{
     GLenum target, attachement, textarget;
-	uintptr_t ctexture, level;
+	uintptr_t level;
     JSObject *texture;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuoi", &target, &attachement, &textarget, &texture, &level)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuuoi",
+        &target, &attachement, &textarget, &texture, &level)) {
+        return false;
     }
 
 	// No argv passed, as texture starting at 0
-    ctexture = (uintptr_t)JS_GetInstancePrivate(cx, texture, &WebGLTexture_class, NULL);
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, texture,
+        &WebGLTexture_class, NULL);
 
-	glFramebufferTexture2D(target, attachement, textarget, ctexture, level);
+	GL_CALL(CppObj, FramebufferTexture2D(target, attachement,
+        textarget, res->id(), level));
+
+    GLenum status;
+    GL_CALL_RET(CppObj, CheckFramebufferStatus(GL_FRAMEBUFFER), status);
+
+    switch(status) {
+        case GL_FRAMEBUFFER_COMPLETE:
+            break;
+        case GL_FRAMEBUFFER_UNSUPPORTED:
+            JS_ReportError(cx, "FBO unsupported");
+            return false;
+        default:
+            JS_ReportError(cx, "FBO fatal error wat %d\n", status);
+            return false;
+    }
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_frontFace) 
-{
+NGL_JS_FN(WebGLRenderingContext_frontFace)
+//{
     GLuint mode;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &mode)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glFrontFace(mode);
+    GL_CALL(CppObj, FrontFace(mode));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_generateMipmap) 
-{
+NGL_JS_FN(WebGLRenderingContext_generateMipmap)
+//{
     GLenum target;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &target)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glGenerateMipmap(target);
+    GL_CALL(CppObj, GenerateMipmap(target));
     
-    return JS_TRUE;
+    return true;
 }
 
 
-NGL_JS_FN(WebGLRenderingContext_getAttribLocation) 
-{
-    uintptr_t cprogram;
+NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
+//{
     GLint location;
     JSString *attr;
     JSObject *program;
     const char *cattr;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &program, &attr)) {
-        return JS_TRUE;
+        return false;
     }
     
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
     cattr = JS_EncodeString(cx, attr);
 
-    location = glGetAttribLocation(cprogram, cattr);
+    GL_CALL_RET(CppObj, GetAttribLocation(res->id(), cattr), location);
 
     JS_free(cx, (void *)cattr);
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(location));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getParameter) 
-{
+NGL_JS_FN(WebGLRenderingContext_getParameter)
+//{
     GLenum name;
     JS::Value value;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &name)) {
-        return JS_TRUE;
+        return false;
     }
 
     switch (name) {
@@ -1547,8 +1833,9 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_VERSION:
         case NGL_SHADING_LANGUAGE_VERSION:
         {
-            const char *cstr = (const char *)glGetString(name);
-            JSString *str = JS_NewStringCopyZ(cx, cstr);
+            const GLubyte *cstr;
+            GL_CALL_RET(CppObj, GetString(name), cstr);
+            JSString *str = JS_NewStringCopyZ(cx, (const char *)cstr);
 
             value.setString(str);
 
@@ -1575,7 +1862,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_GENERATE_MIPMAP_HINT:
         {
             GLint i = 0;
-            glGetIntegerv(name, &i);
+            GL_CALL(CppObj, GetIntegerv(name, &i));
             value.setNumber(uint32_t(i));
             break;
         }
@@ -1607,7 +1894,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         //case NGL_NUM_COMPRESSED_TEXTURE_FORMATS:
         {
             GLint i = 0;
-            glGetIntegerv(name, &i);
+            GL_CALL(CppObj, GetIntegerv(name, &i));
             value.setInt32(i);
             break;
         }
@@ -1632,7 +1919,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             uint32_t *data;
             JSObject *obj;
 
-            glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &length);
+            GL_CALL(CppObj, GetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &length));
             obj = JS_NewUint32Array(cx, length);
             textures = (GLint *)malloc(sizeof(GLint) * length);
 
@@ -1640,11 +1927,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
                 if (textures != NULL) {
                     free(textures);
                 }
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, textures);
+            GL_CALL(CppObj, GetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, textures));
 
             data = JS_GetUint32ArrayData(obj);
             memcpy(data, textures, length * sizeof(GLint));
@@ -1661,7 +1948,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_STENCIL_WRITEMASK:
         {
             GLint i = 0; // the GL api (glGetIntegerv) only does signed ints
-            glGetIntegerv(name, &i);
+            GL_CALL(CppObj, GetIntegerv(name, &i));
             GLuint i_unsigned(i); // this is where -1 becomes 2^32-1
             double i_double(i_unsigned); // pass as FP value to allow large values such as 2^32-1.
             value.setDouble(i_double);
@@ -1689,7 +1976,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_SAMPLE_COVERAGE_VALUE:
         {
             GLfloat f = 0.f;
-            glGetFloatv(name, &f);
+            GL_CALL(CppObj, GetFloatv(name, &f));
             value.setDouble(f);
             break;
         }
@@ -1706,16 +1993,18 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         case NGL_DEPTH_WRITEMASK:
         {
             GLboolean b = 0;
-            glGetBooleanv(name, &b);
+            GL_CALL(CppObj, GetBooleanv(name, &b));
             value.setBoolean(b);
             break;
         }
 
         // bool, WebGL-specific
         case NGL_UNPACK_FLIP_Y_WEBGL:
+            value.setBoolean(CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag));
+            break;
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
-            value.setBoolean(false);
-        break;
+            value.setBoolean(CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag));
+            break;
 
         // uint, WebGL-specific
         case NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL:
@@ -1732,11 +2021,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             float *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetFloatv(name, fv);
+            GL_CALL(CppObj, GetFloatv(name, fv));
 
             data = JS_GetFloat32ArrayData(obj);
             memcpy(data, fv, 2 * sizeof(float));
@@ -1752,11 +2041,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             float *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetFloatv(name, fv);
+            GL_CALL(CppObj, GetFloatv(name, fv));
 
             data = JS_GetFloat32ArrayData(obj);
             memcpy(data, fv, 4 * sizeof(GLfloat));
@@ -1771,11 +2060,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             int32_t *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetIntegerv(name, iv);
+            GL_CALL(CppObj, GetIntegerv(name, iv));
 
             data = JS_GetInt32ArrayData(obj);
             memcpy(data, iv, 2 * sizeof(GLint));
@@ -1791,11 +2080,11 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             int32_t *data;
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
-            glGetIntegerv(name, iv);
+            GL_CALL(CppObj, GetIntegerv(name, iv));
 
             data = JS_GetInt32ArrayData(obj);
             memcpy(data, iv, 4 * sizeof(GLint));
@@ -1807,7 +2096,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
         {
             GLboolean gl_bv[4] = { 0 };
 
-            glGetBooleanv(name, gl_bv);
+            GL_CALL(CppObj, GetBooleanv(name, gl_bv));
 
             JS::Value vals[4] = { JS::BooleanValue(bool(gl_bv[0])),
                                   JS::BooleanValue(bool(gl_bv[1])),
@@ -1817,8 +2106,8 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             JSObject* obj = JS_NewArrayObject(cx, 4, vals);
 
             if (!obj) {
-                JS_ReportError(cx, "OOM");
-                return JS_TRUE;
+                JS_ReportOutOfMemory(cx);
+                return false;
             }
 
 
@@ -1839,28 +2128,29 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
 
         default:
             JS_ReportError(cx, "getParameter invalue value");
-            return JS_TRUE;
+            return true;
     }
 
     JS_SET_RVAL(cx, vp, value);
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getProgramParameter)  
-{
-    uintptr_t cprogram;
+NGL_JS_FN(WebGLRenderingContext_getProgramParameter) 
+//{
     GLenum param;
     GLint status;
     JSObject *program;
     
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou", &program, &param)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou",
+        &program, &param)) {
+        return false;
     }
 
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glGetProgramiv(cprogram, param, &status);
+    GL_CALL(CppObj, GetProgramiv(res->id(), param, &status));
     
     switch (param) {
         case GL_DELETE_STATUS:
@@ -1873,12 +2163,11 @@ NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
             break;
     }
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog) 
-{
-    uintptr_t cprogram;
+NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
+//{
     GLsizei max;
     GLsizei length;
     JSString *log;
@@ -1886,45 +2175,46 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
     char *clog;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
-        return JS_TRUE;
+        return false;
     }
 
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
     
-    glGetProgramiv(cprogram, GL_INFO_LOG_LENGTH, &max);
+    GL_CALL(CppObj, GetProgramiv(res->id(), GL_INFO_LOG_LENGTH, &max));
 
     clog = (char *)malloc(max);
-    glGetProgramInfoLog(cprogram, max, &length, clog);
+    GL_CALL(CppObj, GetProgramInfoLog(res->id(), max, &length, clog));
     log = JS_NewStringCopyN(cx, clog, length);
     free(clog);
 
     JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(log));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getShaderParameter) 
-{
+NGL_JS_FN(WebGLRenderingContext_getShaderParameter)
+//{
     NGLShader *cshader;
     GLenum pname;
     GLint param;
     JSObject *shader;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou", &shader, &pname)) {
-        return JS_TRUE;
+        return false;
     }
 
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
 
-    glGetShaderiv(cshader->shader, pname, &param);
+    GL_CALL(CppObj, GetShaderiv(cshader->shader, pname, &param));
 
     JS_SET_RVAL(cx, vp, INT_TO_JSVAL(param));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog) 
-{
+NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
+//{
     NGLShader *cshader;
     GLsizei length;
     GLsizei max;
@@ -1933,100 +2223,109 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
     char *clog;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
-        return JS_TRUE;
+        return false;
     }
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
     
-    glGetShaderiv(cshader->shader, GL_INFO_LOG_LENGTH, &max);
+    GL_CALL(CppObj, GetShaderiv(cshader->shader, GL_INFO_LOG_LENGTH, &max));
 
     clog = (char *)malloc(max);
-    glGetShaderInfoLog(cshader->shader, max, &length, clog);
+    GL_CALL(CppObj, GetShaderInfoLog(cshader->shader, max, &length, clog));
     log = JS_NewStringCopyN(cx, clog, length);
     free(clog);
 
     JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(log));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_lineWidth) 
-{
-    GLfloat width;
+NGL_JS_FN(WebGLRenderingContext_lineWidth)
+//{
+    //GLfloat width;
+    double width;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &width)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glLineWidth(width);
+    GL_CALL(CppObj, LineWidth((GLfloat)width));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_linkProgram) 
-{
-    uintptr_t cprogram;
+NGL_JS_FN(WebGLRenderingContext_linkProgram)
+//{
     JSObject *program;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
-        return JS_TRUE;
+        return false;
     }
     
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glLinkProgram(cprogram);
+    GL_CALL(CppObj, LinkProgram(res->id()));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_pixelStorei)  
-{
+NGL_JS_FN(WebGLRenderingContext_pixelStorei) 
+//{
     GLuint param;
     GLint value;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ui", &param, &value)) {
-        return JS_TRUE;
+        return false;
     }
 
     switch (param) {
         case NGL_UNPACK_FLIP_Y_WEBGL:
         {
-            NativeJSNativeGL *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-            ngl->unpackFlipY = (bool)value;
+            if (value) {
+                CppObj->addFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
+            } else {
+                CppObj->removeFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag);
+            }
             break;
         }
         case NGL_UNPACK_PREMULTIPLY_ALPHA_WEBGL:
         {
-            NativeJSNativeGL *ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-            ngl->unpackPremultiplyAlpha = (bool)value;
+            if (value) {
+                CppObj->addFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
+            } else {
+                CppObj->removeFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag);
+            }
             break;
         }
         case NGL_UNPACK_COLORSPACE_CONVERSION_WEBGL:
             JS_ReportError(cx, "Not implemented");
+            return false;
         break;
         default: 
-            glPixelStorei(param, value);
+            GL_CALL(CppObj, PixelStorei(param, value));
         break;
     }
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)  
-{
+NGL_JS_FN(WebGLRenderingContext_renderbufferStorage) 
+//{
     GLenum target, internalFormat;
 	GLsizei width, height;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuii", &target, &internalFormat, &width, &height)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuii",
+        &target, &internalFormat, &width, &height)) {
+        return false;
     }
 
-	glRenderbufferStorage(target, internalFormat, width, height);
+	GL_CALL(CppObj, RenderbufferStorage(target, internalFormat, width, height));
 
-	return JS_TRUE;
+	return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_shaderSource) 
-{
+NGL_JS_FN(WebGLRenderingContext_shaderSource)
+//{
     NGLShader *cshader;
     GLsizei length;
     JSString *source;
@@ -2034,25 +2333,26 @@ NGL_JS_FN(WebGLRenderingContext_shaderSource)
     const char *csource;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &shader, &source)) {
-        return JS_TRUE;
+        return false;
     }
 
-    cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader, &WebGLShader_class, JS_ARGV(cx, vp));
+    cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader,
+        &WebGLShader_class, JS_ARGV(cx, vp));
     csource = JS_EncodeString(cx, source);
     length = JS_GetStringLength(source);
 
     cshader->source = csource;
     cshader->length = length;
     
-    //glShaderSource(cshader->shader, 1, &csource, &length);
+    //GL_CALL(CppObj, ShaderSource(cshader->shader, 1, &csource, &length));
 
     //JS_free(cx, (void *)csource);
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_texImage2D) 
-{
+NGL_JS_FN(WebGLRenderingContext_texImage2D)
+//{
     GLenum target;
     GLint level;
     GLint internalFormat;
@@ -2060,213 +2360,224 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
     GLenum type;
     JSObject *image;
     int width, height;
-	NativeJSImage *nimg;
-    void *pixels = NULL;
-    NativeJSNativeGL *ngl;
-    unsigned char *rgbaPixels;
 
-    ngl = NATIVE_GL_GETTER(JS_THIS_OBJECT(cx, vp));
-    
     if (argc == 9) {
         GLint border;
         JSObject *array;
+        void *pixels = NULL;
 
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiiiiuuo", &target, &level, &internalFormat, &width, &height, &border, &format, &type, &array)) {
-            return JS_TRUE;
+            return false;
         }
 
         if (array != NULL && JS_IsTypedArrayObject(array)) {
             pixels = JS_GetArrayBufferViewData(array);
         } 
         
-        glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
+        GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, border, format, type, pixels));
     } else {
-        if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image)) {
-            return JS_TRUE;
+        unsigned char *pixels;
+
+        if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image) || image == NULL) {
+            JS_ReportError(cx, "texImage2D() invalid arguments");
+            return false;
         }
 
-        // XXX : UNSAFE use JS_GetInstancePrivate Image_class 
-        //if ((nimg = static_cast<NativeJSImage *>(JS_GetInstancePrivate(cx, image, &Image_class, JS_ARGV(cx, vp)))) == NULL) {
-        if ((nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image))) == NULL) {
+        if (!OBJECT_TO_JSVAL(image).isObject()) {
             JS_ReportError(cx, "Invalid image object");
-            return JS_TRUE;
+            return false;
         }
 
-        width = nimg->img->getWidth();
-        height = nimg->img->getHeight();
-        
-        rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
+        if (NativeJSImage::JSObjectIs(cx, image)) {
+	        NativeJSImage *nimg;
 
-        /*
-        // TODO : Uncoment me once ConvertToRGBA is back in NativeSkImage
-        if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels, ngl->unpackFlipY, 
-                ngl->unpackPremultiplyAlpha)) {
-            JS_ReportError(cx, "Failed to read image data");
-            return JS_TRUE;
+            nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image));
+
+            width = nimg->img->getWidth();
+            height = nimg->img->getHeight();
+            
+            pixels = (unsigned char*)malloc(nimg->img->img->getSize());
+
+           if (!NativeSkImage::ConvertToRGBA(nimg->img, pixels,
+                    CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag), 
+                    CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
+            
+                JS_ReportError(cx, "Failed to read image data");
+                return false;
+            }
+        } else if (JS_InstanceOf(cx, image, &Canvas_class, NULL)) {
+            NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>
+                (static_cast<NativeJSCanvas*>(JS_GetPrivate(image))->getHandler());
+            NativeCanvas2DContext *ctx = static_cast<NativeCanvas2DContext *>(handler->getContext());
+
+            width = handler->getWidth();
+            height = handler->getHeight();
+
+            pixels = (unsigned char*)malloc(width * height * 4);
+            ctx->getSurface()->readPixels(0, 0, width, height, pixels);
         }
-        */
 
-        glTexImage2D(target, level, internalFormat, width, height, 0, format, type, rgbaPixels);
+        GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, 0, format, type, pixels));
 
-        free(rgbaPixels);
+        free(pixels);
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 
-NGL_JS_FN(WebGLRenderingContext_texParameteri) 
-{
+NGL_JS_FN(WebGLRenderingContext_texParameteri)
+//{
     GLuint target;
     GLuint pname;
     GLuint param;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuu", &target, &pname, &param)) {
-        return JS_TRUE;
+        return false;
     }
     
-    glTexParameteri(target, pname, param);
+    GL_CALL(CppObj, TexParameteri(target, pname, param));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform1f)  
-{
-    return NativeGL_uniform_x_f(cx, argc, vp, 1);
+NGL_JS_FN(WebGLRenderingContext_uniform1f) 
+//{
+    return NGL_uniformxf(CppObj, cx, argc, vp, 1);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform1fv) 
-{
-    return NativeGL_uniform_x_fv(cx, argc, vp, 1);
+NGL_JS_FN(WebGLRenderingContext_uniform1fv)
+//{
+    return NGL_uniformxfv(CppObj, cx, argc, vp, 1);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform1i) 
-{
-    return NativeGL_uniform_x_i(cx, argc, vp, 1);
+NGL_JS_FN(WebGLRenderingContext_uniform1i)
+//{
+    return NGL_uniformxi(CppObj, cx, argc, vp, 1);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform1iv) 
-{
-    return NativeGL_uniform_x_iv(cx, argc, vp, 1);
+NGL_JS_FN(WebGLRenderingContext_uniform1iv)
+//{
+    return NGL_uniformxiv(CppObj, cx, argc, vp, 1);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform2f)  
-{
-    return NativeGL_uniform_x_f(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_uniform2f) 
+//{
+    return NGL_uniformxf(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform2fv) 
-{
-    return NativeGL_uniform_x_fv(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_uniform2fv)
+//{
+    return NGL_uniformxfv(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform2i) 
-{
-    return NativeGL_uniform_x_i(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_uniform2i)
+//{
+    return NGL_uniformxi(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform2iv) 
-{
-    return NativeGL_uniform_x_iv(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_uniform2iv)
+//{
+    return NGL_uniformxiv(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform3f)  
-{
-    return NativeGL_uniform_x_f(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_uniform3f) 
+//{
+    return NGL_uniformxf(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform3fv) 
-{
-    return NativeGL_uniform_x_fv(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_uniform3fv)
+//{
+    return NGL_uniformxfv(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform3i) 
-{
-    return NativeGL_uniform_x_i(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_uniform3i)
+//{
+    return NGL_uniformxi(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform3iv) 
-{
-    return NativeGL_uniform_x_iv(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_uniform3iv)
+//{
+    return NGL_uniformxiv(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform4f)  
-{
-    return NativeGL_uniform_x_f(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_uniform4f) 
+//{
+    return NGL_uniformxf(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform4fv) 
-{
-    return NativeGL_uniform_x_fv(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_uniform4fv)
+//{
+    return NGL_uniformxfv(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform4i) 
-{
-    return NativeGL_uniform_x_i(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_uniform4i)
+//{
+    return NGL_uniformxi(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniform4iv) 
-{
-    return NativeGL_uniform_x_iv(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_uniform4iv)
+//{
+    return NGL_uniformxiv(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniformMatrix2fv) 
-{
-    return NativeGL_uniformMatrix_x_fv(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_uniformMatrix2fv)
+//{
+    return NGL_uniformMatrixxfv(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniformMatrix3fv) 
-{
-    return NativeGL_uniformMatrix_x_fv(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_uniformMatrix3fv)
+//{
+    return NGL_uniformMatrixxfv(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_uniformMatrix4fv) 
-{
-    return NativeGL_uniformMatrix_x_fv(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_uniformMatrix4fv)
+//{
+    return NGL_uniformMatrixxfv(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib1f) 
-{
-    return NativeGL_vertexAttrib_x_f(cx, argc, vp, 1);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib1f)
+//{
+    return NGL_vertexAttribxf(CppObj, cx, argc, vp, 1);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib1fv) 
-{
-    return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 1);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib1fv)
+//{
+    return NGL_vertexAttribxfv(CppObj, cx, argc, vp, 1);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib2f) 
-{
-    return NativeGL_vertexAttrib_x_f(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib2f)
+//{
+    return NGL_vertexAttribxf(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib2fv) 
-{
-    return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 2);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib2fv)
+//{
+    return NGL_vertexAttribxfv(CppObj, cx, argc, vp, 2);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib3f) 
-{
-    return NativeGL_vertexAttrib_x_f(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib3f)
+//{
+    return NGL_vertexAttribxf(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib3fv) 
-{
-    return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 3);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib3fv)
+//{
+    return NGL_vertexAttribxfv(CppObj, cx, argc, vp, 3);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib4f) 
-{
-    return NativeGL_vertexAttrib_x_f(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib4f)
+//{
+    return NGL_vertexAttribxf(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttrib4fv) 
-{
-    return NativeGL_vertexAttrib_x_fv(cx, argc, vp, 4);
+NGL_JS_FN(WebGLRenderingContext_vertexAttrib4fv)
+//{
+    return NGL_vertexAttribxfv(CppObj, cx, argc, vp, 4);
 }
 
-NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer) 
-{
+NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer)
+//{
     GLuint attr;
     GLint size;
     GLenum type;
@@ -2274,67 +2585,100 @@ NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer)
     GLint offset;
     JSBool normalized;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiubii", &attr, &size, &type, &normalized, &stride, &offset)) {
-        return JS_TRUE;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiubii", &attr,
+        &size, &type, &normalized, &stride, &offset)) {
+        return false;
     }
 
     if (offset+size < offset || offset+size < size) {
         JS_ReportError(cx, "Overflow in vertexAttribPointer");
-        return JS_TRUE;
+        return false;
     }
 
-    glVertexAttribPointer(attr, size, type, (GLboolean)normalized, stride, (void *)offset);
+    GL_CALL(CppObj, VertexAttribPointer(attr, size, type,
+        (GLboolean)normalized, stride, (void *)(intptr_t)offset));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_useProgram)  
-{
-    uintptr_t cprogram;
+NGL_JS_FN(WebGLRenderingContext_useProgram) 
+//{
     JSObject *program;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
-        return JS_TRUE;
+    if (JSVAL_IS_INT(JS_ARGV(cx, vp)[0])) {
+        int prog = JSVAL_TO_INT(JS_ARGV(cx, vp)[0]);
+        printf("program=%d\n", prog);
+        GL_CALL(CppObj, UseProgram(prog));
+        return true;
     }
-    
-    cprogram = (uintptr_t)JS_GetInstancePrivate(cx, program, &WebGLProgram_class, JS_ARGV(cx, vp));
 
-    glUseProgram(cprogram);
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
+        return false;
+    }
+
+    if (program == NULL) {
+        JS_SetReservedSlot(thisobj, WebGLResource::kProgram, JSVAL_NULL);
+        GL_CALL(CppObj, UseProgram(0));
+        return true;
+    }
+
+    printf("Use Program on %p\n", CppObj->getGLState()->getNativeGLContext()->getGLContext());
+
+    WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
+        &WebGLProgram_class, JS_ARGV(cx, vp));
+
+    JS_SetReservedSlot(thisobj, WebGLResource::kProgram,
+        OBJECT_TO_JSVAL(res->jsobj()));
+
+    GL_CALL(CppObj, UseProgram(res->id()));
     
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_viewport)  
-{
+NGL_JS_FN(WebGLRenderingContext_viewport) 
+//{
     GLint x, y, w, h;
 
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiii", &x, &y, &w, &h)) {
-        return JS_TRUE;
+        return false;
     }
 
-    glViewport(x, y, w, h);
+    GL_CALL(CppObj, Viewport(x*ratio, y*ratio, w*ratio, h*ratio));
 
-    return JS_TRUE;
+    return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_getError) 
-{
+NGL_JS_FN(WebGLRenderingContext_getError)
+//{
     JS_SET_RVAL(cx, vp, UINT_TO_JSVAL(glGetError()));
-    return JS_TRUE;
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_swapBuffer)
+//{
+#if 0
+    NativeContext::getNativeClass(cx)->getUI()->swapGLBuffer();
+    return true;
+#endif
+    return true;
 }
 
 static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
+    return true;
+#if 0
     jsval proto;
     JSObject *webGLContext;
-    NativeJSNativeGL *ngl = new NativeJSNativeGL();
+    NativeCanvasWebGLContext *ngl = new NativeCanvasWebGLContext(cx);
     
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLRenderingContext", &proto);
 	webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, JSVAL_TO_OBJECT(proto), NULL);
 
     if (webGLContext == NULL) {
         JS_ReportError(cx, "Failed to create WebGLRenderingContext");
-        return JS_TRUE;
+        return false;
     } 
 
     JS_SetPrivate(webGLContext, static_cast<void *>(ngl));
@@ -2342,28 +2686,38 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *v
 
     // Compatibility OpenGL/WebGL
     // XXX : Is this belongs here ?
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-    //glEnable(GL_POINT_SPRITE);
+    GL_CALL(CppObj, Enable(GL_VERTEX_PROGRAM_POINT_SIZE));
+    //GL_CALL(CppObj, Enable(GL_POINT_SPRITE));
     //GL_ARB_point
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(webGLContext));
 
-    return JS_TRUE;
+    return true;
+#endif
 }
 
-NATIVE_OBJECT_EXPOSE(NativeGL);
+static JSBool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JS_ReportError(cx, "Illegal constructor");
+    return false;
+}
+
 void NativeJSWebGLRenderingContext::registerObject(JSContext *cx) {
-    JSObject *proto;
+    JSObject *obj;
+    JSObject *ctor;
+    obj = JS_InitClass(cx, JS_GetGlobalObject(cx), NULL,
+                &WebGLRenderingContext_class,
+                NativeJSWebGLRenderingContext_constructor,
+                0, NULL, WebGLRenderingContext_funcs, NULL, NULL);
 
-    proto = JS_NewObject(cx, NULL, NULL, NULL);
-    JS_DefineConstDoubles(cx, proto, WebGLRenderingContext_const);
-    JS_DefineFunctions(cx, proto, WebGLRenderingContext_funcs);
-    
-    JS_DefineObject(cx, JS_GetGlobalObject(cx),
-                    "WebGLRenderingContext", &WebGLRenderingContext_class,
-                    proto, 0);
+    if (!obj || !(ctor = JS_GetConstructor(cx, obj))) {
+        // TODO : Handle failure. Throw exception ? 
+        return;
+    }
+
+    JS_DefineConstDoubles(cx, ctor, WebGLRenderingContext_const);
 }
 
-NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLObject);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLBuffer);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLFrameBuffer);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLProgram);
@@ -2371,3 +2725,4 @@ NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLRenderbuffer);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShader);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
+NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);

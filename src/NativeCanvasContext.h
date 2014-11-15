@@ -46,6 +46,10 @@ public:
     */
     static NativeCanvasContext *Create(NativeContextType type);
 
+    mode getContextType() const {
+        return m_Mode;
+    }
+
     /*
         Check if the context has a program installed
     */
@@ -77,8 +81,6 @@ public:
     }
 
     bool makeGLCurrent() {
-        if (!m_GLState) return false;
-
         return m_GLState->makeGLCurrent();
     }
     /*
@@ -94,13 +96,14 @@ public:
     virtual void setScale(double x, double y, double px=1, double py=1)=0;
     virtual void clear(uint32_t color = 0x00000000)=0;
     virtual void flush()=0;
+    virtual uint32_t getTextureID() const=0;
 
     /* Returns the size in device pixel */
     virtual void getSize(int *width, int *height) const=0;
-
-    virtual void composeWith(NativeCanvas2DContext *layer,
-        double left, double top, double opacity,
-        double zoom, const NativeRect *rclip)=0;
+    
+    virtual uint8_t *getPixels() {
+        return NULL;
+    }
 
     /*
         Create a grid of |resolution^2| points using triangle strip
@@ -113,14 +116,22 @@ public:
     static uint32_t createPassThroughVertex();
     static uint32_t createPassThroughFragment();
     static uint32_t createPassThroughProgram(NativeGLResources &resource);
+
+
+    void preComposeOn(NativeCanvas2DContext *layer,
+        double left, double top, double opacity,
+        double zoom, const NativeRect *rclip);
 protected:
     /* Hold the current matrix (model) sent to the Vertex shader */
     SkMatrix44 m_Transform;
     NativeCanvasHandler *m_Handler;
     NativeGLState *m_GLState;
     NativeGLResources m_Resources;
-    void updateMatrix(double left, double top, int layerWidth, int layerHeight);
+    void updateMatrix(double left, double top, int layerWidth,
+        int layerHeight, NativeGLState *glstate);
 
+    void setupShader(float opacity, int width, int height,
+        int left, int top, int wWidth, int wHeight);
 };
 
 #endif

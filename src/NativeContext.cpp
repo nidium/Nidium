@@ -2,6 +2,10 @@
 #include "NativeUtils.h"
 #include "NativeCanvasHandler.h"
 #include "NativeCanvas2DContext.h"
+#include "NativeCanvas3DContext.h"
+#ifdef NATIVE_WEBGL_ENABLED
+  #include "NativeJSWebGL.h"
+#endif
 #include "NativeCanvasContext.h"
 #include "NativeGLState.h"
 #include "NativeSkia.h"
@@ -25,12 +29,13 @@
 #include "NativeNML.h"
 
 #include <NativeWebSocket.h>
-
 #include <NativeSystemInterface.h>
+
+#include <gl/GrGLInterface.h>
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -116,15 +121,13 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     m_Jobs.head = NULL;
     m_Jobs.queue = NULL;
-
-    nui->enableSysTray();
 }
 
 void NativeContext::loadNativeObjects(int width, int height)
 {
     JSContext *cx = m_JS->cx;
 
-   /* CanvasRenderingContext2D object */
+    /* CanvasRenderingContext2D object */
     NativeCanvas2DContext::registerObject(cx);
     /* Canvas() object */
     NativeJSCanvas::registerObject(cx);
@@ -138,9 +141,7 @@ void NativeContext::loadNativeObjects(int width, int height)
 #endif
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED
-    NativeJSNativeGL::registerObject(cx);
     NativeJSWebGLRenderingContext::registerObject(cx);
-    NativeJSWebGLObject::registerObject(cx);
     NativeJSWebGLBuffer::registerObject(cx);
     NativeJSWebGLFrameBuffer::registerObject(cx);
     NativeJSWebGLProgram::registerObject(cx);
@@ -148,6 +149,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     NativeJSWebGLShader::registerObject(cx);
     NativeJSWebGLTexture::registerObject(cx);
     NativeJSWebGLUniformLocation::registerObject(cx);
+    NativeJSWebGLShaderPrecisionFormat::registerObject(cx);
 #endif
     /* Native() object */
     NativeJSNative::registerObject(cx);
@@ -193,6 +195,11 @@ void NativeContext::sizeChanged(int w, int h)
     jswindow->getCanvasHandler()->setSize((int)w, (int)h);
     /* Redraw */
     m_UI->refresh();
+}
+
+void NativeContext::glCallback(const GrGLInterface *interface)
+{
+    __NativeUI->makeMainGLCurrent();
 }
 
 void NativeContext::createDebugCanvas()
@@ -339,6 +346,8 @@ void NativeContext::frame(bool draw)
     */
     this->execPendingCanvasChanges();
 
+    m_UI->makeMainGLCurrent();
+
     m_RootHandler->getContext()->flush();
     m_RootHandler->getContext()->resetGLContext();
 
@@ -353,6 +362,7 @@ void NativeContext::frame(bool draw)
         Compose canvas eachother on the main framebuffer
     */
     m_RootHandler->layerize(ctx, draw);
+    m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }

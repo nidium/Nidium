@@ -11,6 +11,7 @@
 #include "NativeMacros.h"
 #include "NativeJSUtils.h"
 #include "NativeJSImage.h"
+#include "NativeSkImage.h"
 
 #include <NativeSystemInterface.h>
 
@@ -33,6 +34,9 @@ static JSBool native_window_quit(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_close(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp);
+
+static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, jsval *vp);
+
 
 static JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp);
@@ -134,6 +138,7 @@ static JSFunctionSpec window_funcs[] = {
     JS_FN("close", native_window_close, 0, 0),
     JS_FN("open", native_window_open, 0, 0),
     JS_FN("setSystemTray", native_window_setSystemTray, 1, 0),
+    JS_FN("openURL", native_window_openURLInBrowser, 1, 0),
     JS_FS_END
 };
 
@@ -369,6 +374,16 @@ void NativeJSwindow::textInput(const char *data)
 
         JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
     }
+}
+
+void NativeJSwindow::systemMenuClicked(const char *id)
+{
+    JSObject *event = JS_NewObject(cx, NULL, NULL, NULL);
+
+    JSOBJ_SET_PROP_CSTR(event, "id", id);
+    JS::Value ev = OBJECT_TO_JSVAL(event);
+
+    JSOBJ_CALLFUNCNAME(this->jsobj, "_onsystemtrayclick", 1, &ev);
 }
 
 void NativeJSwindow::mouseClick(int x, int y, int state, int button)
@@ -781,6 +796,20 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
+static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSString *url;
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
+        return false;
+    }
+
+    JSAutoByteString curl(cx, url);
+
+    NativeSystemInterface::getInstance()->openURLInBrowser(curl.ptr());
+
+    return true;
+}
+
 static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
@@ -952,7 +981,7 @@ static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp)
 {
-    NATIVE_CHECK_ARGS("notify", 1);
+    NATIVE_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = CallArgsFromVp(argc, vp);
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
@@ -967,12 +996,61 @@ static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *v
 
     JS_INITOPT();
 
+    NativeSystemMenu &menu = NUI->getSystemMenu();
+    menu.deleteItems();
+
     JSGET_OPT_TYPE(jobj.toObjectOrNull(), "icon", Object) {
         JSObject *jsimg = __curopt.toObjectOrNull();
-        if (NativeJSImage::JSObjectIs(cx, jsimg)) {
+        NativeSkImage *skimage;
+        if (NativeJSImage::JSObjectIs(cx, jsimg) &&
+            (skimage = NativeJSImage::JSObjectToNativeSkImage(jsimg))) {
             
+            const uint8_t *pixels = skimage->getPixels(NULL);
+            menu.setIcon(pixels, skimage->getWidth(), skimage->getHeight());
         }
     }
+
+    JSGET_OPT_TYPE(jobj.toObjectOrNull(), "menu", Object) {
+        JSObject *arr = __curopt.toObjectOrNull();
+        if (JS_IsArrayObject(cx, arr)) {
+            uint32_t len;
+            JS_GetArrayLength(cx, arr, &len);
+
+            /*
+                The list is a FIFO
+                Walk in inverse order to keep the same Array definition order
+            */
+            for (int i = len-1; i >= 0; i--) {
+                JS::Value val;
+                JS_GetElement(cx, arr, i, &val);
+
+                if (val.isObject()) {
+                    NativeSystemMenuItem *menuItem = new NativeSystemMenuItem();
+                    JSGET_OPT_TYPE(val.toObjectOrNull(), "title", String) {
+
+                        JSAutoByteString ctitle;
+                        ctitle.encodeUtf8(cx, __curopt.toString());
+                        menuItem->title(ctitle.ptr());
+                    } else {
+                        menuItem->title("");
+                    }
+                    JSGET_OPT_TYPE(val.toObjectOrNull(), "id", String) {
+                        JSAutoByteString cid;
+                        cid.encodeUtf8(cx, __curopt.toString());
+                        menuItem->id(cid.ptr());
+                    } else {
+                        menuItem->id("");
+                    }
+
+                    menu.addItem(menuItem);
+
+                }
+            }
+        }
+
+    }
+
+    NUI->enableSysTray();
 
     return true;
 }

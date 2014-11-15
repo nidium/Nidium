@@ -4,10 +4,15 @@
 #include "NativeCanvasHandler.h"
 
 #include "NativeCanvas2DContext.h"
+#include "NativeSkia.h"
+
+#include <SkCanvas.h>
+#include <NativeSystemInterface.h>
+
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -168,7 +173,7 @@ void NativeCanvasContext::resetGLContext()
 uint32_t NativeCanvasContext::createPassThroughVertex()
 {
     /* PassThrough Vertex shader */
-    const char *vertex_s = "#version 100\nprecision mediump float;\nattribute vec4 Position;\n"
+    const char *vertex_s = "attribute vec4 Position;\n"
     "attribute vec2 TexCoordIn;\n"
     "attribute vec2 Modifier;\n"
     "varying vec2 TexCoordOut;\n"
@@ -185,7 +190,7 @@ uint32_t NativeCanvasContext::createPassThroughVertex()
 
 uint32_t NativeCanvasContext::createPassThroughFragment()
 {
-    const char *fragment_s = "#version 100\nprecision mediump float;\n"
+    const char *fragment_s = "\n"
     "uniform sampler2D Texture;\n"
     "uniform float u_opacity;\n"
     "varying vec2 TexCoordOut;\n"
@@ -215,21 +220,22 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 
     GLint linkSuccess;
 
-    glAttachShader(programHandle, vertexshader);
-    glAttachShader(programHandle, fragmentshader);
+    NATIVE_GL_CALL_MAIN(AttachShader(programHandle, vertexshader));
 
-    glBindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_POSITION, "Position");
+    NATIVE_GL_CALL_MAIN(AttachShader(programHandle, fragmentshader));
 
-    glBindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn");
+    NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_POSITION, "Position"));
 
-    glBindAttribLocation(programHandle,
-        NativeCanvasContext::SH_ATTR_MODIFIER, "Modifier");
+    NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
+
+    NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
+        NativeCanvasContext::SH_ATTR_MODIFIER, "Modifier"));
     
-    glLinkProgram(programHandle);
+    NATIVE_GL_CALL_MAIN(LinkProgram(programHandle));
 
-    glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
+    NATIVE_GL_CALL_MAIN(GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
 
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
@@ -269,7 +275,7 @@ static void dump_Matrix(float *matrix)
 }
 
 void NativeCanvasContext::updateMatrix(double left, double top,
-    int layerWidth, int layerHeight)
+    int layerWidth, int layerHeight, NativeGLState *glstate)
 {
 
     if (!m_GLState) {
@@ -314,9 +320,86 @@ void NativeCanvasContext::updateMatrix(double left, double top,
     if (m_GLState->m_GLObjects.uniforms.u_projectionMatrix != -1) {
         GLfloat mat4[16];
         m_Transform.asColMajorf(mat4);
-        NATIVE_GL_CALL(m_GLState, UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix, 1, GL_FALSE, mat4));
+
+        /*
+            Execute the call on the specified (should be main) OpenGL context
+        */
+        NATIVE_GL_CALL(glstate,
+            UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
+                1, GL_FALSE, mat4));
     } else {
         NLOG("No uniform found");
+    }
+}
+
+
+void NativeCanvasContext::setupShader(float opacity, int width, int height,
+    int left, int top, int wWidth, int wHeight)
+{
+    uint32_t program = this->getProgram();
+    NATIVE_GL_CALL_MAIN(UseProgram(program));
+
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    if (program > 0) {
+        if (m_GLState->m_GLObjects.uniforms.u_opacity != -1) {
+            NATIVE_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_opacity, opacity));
+        }
+        float padding = this->getHandler()->padding.global * ratio;
+
+        if (m_GLState->m_GLObjects.uniforms.u_resolution != -1)
+            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_resolution, (width)-(padding*2), (height)-(padding*2)));
+        if (m_GLState->m_GLObjects.uniforms.u_position  != -1)
+            NATIVE_GL_CALL_MAIN(Uniform2f(m_GLState->m_GLObjects.uniforms.u_position , ratio*left, ratio*wHeight - (height+ratio*top)));
+        if (m_GLState->m_GLObjects.uniforms.u_padding != -1)
+            NATIVE_GL_CALL_MAIN(Uniform1f(m_GLState->m_GLObjects.uniforms.u_padding, padding));
+    }
+
+}
+
+void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
+    double left, double top, double opacity,
+    double zoom, const NativeRect *rclip)
+{
+    bool revertScissor = false;
+    float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
+
+    NativeSkia *skia = layer->getSurface();
+    SkISize layerSize = skia->getCanvas()->getDeviceSize();
+
+    /*
+        Setup clipping
+    */
+    if (rclip != NULL) {
+        SkRect r;
+        r.set(SkDoubleToScalar(rclip->fLeft*(double)ratio),
+            SkDoubleToScalar(rclip->fTop*(double)ratio),
+            SkDoubleToScalar(rclip->fRight*(double)ratio),
+            SkDoubleToScalar(rclip->fBottom*(double)ratio));
+        NATIVE_GL_CALL(layer->m_GLState, Enable(GL_SCISSOR_TEST));
+        NATIVE_GL_CALL(layer->m_GLState, Scissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height()));
+        revertScissor = true;
+    }
+
+    this->flush();
+    this->resetGLContext();
+
+    int width, height;
+
+    this->getSize(&width, &height);
+
+    this->setupShader((float)opacity, width, height,
+        left, top,
+        (int)layer->getHandler()->getWidth(),
+        (int)layer->getHandler()->getHeight());
+
+    this->updateMatrix(left*ratio, top*ratio, layerSize.width(),
+        layerSize.height(), layer->m_GLState);
+
+    layer->drawTexture(this->getTextureID(), width, height, left*ratio, top*ratio);
+
+    if (revertScissor) {
+        NATIVE_GL_CALL(layer->m_GLState, Disable(GL_SCISSOR_TEST));
     }
 }
 

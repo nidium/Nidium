@@ -461,9 +461,16 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             this->top = tmpTop = (prev->top - prev->m_Margin.top) + m_Margin.top;
 
             if (m_Parent) {
-                /* New "line" */
+                /* 
+                    Line break if :
+                        - flow mode is kFlowBreakPreviousSibling (inline-break) or
+                        - Element would overflow-x its parent + parent doesn't have a fluid width
+                        - Element would overflow-x its parent + parent has a fluid height but a maxWidth
+                */
                 if ((this->m_FlowMode & kFlowBreakPreviousSibling) || 
-                    tmpLeft + this->getWidth() > m_Parent->getWidth()) {
+                    ((!m_Parent->isWidthFluid() ||
+                        (m_Parent->m_MaxWidth && tmpLeft + this->getWidth() > m_Parent->m_MaxWidth)) &&
+                        tmpLeft + this->getWidth() > m_Parent->getWidth())) {
 
                     sctx->maxLineHeightPreviousLine = sctx->maxLineHeight;
                     sctx->maxLineHeight = this->getHeight() + m_Margin.bottom + m_Margin.top;
@@ -524,7 +531,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             /*
                 Not visible. Don't call composeWith()
             */
-            this->m_Context->composeWith((NativeCanvas2DContext *)layerContext.layer->m_Context,
+            this->m_Context->preComposeOn((NativeCanvas2DContext *)layerContext.layer->m_Context,
                 this->a_left - this->padding.global, 
                 this->a_top - this->padding.global, popacity, zoom,
                 (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
@@ -543,7 +550,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 /!\ clip->intersect changes "clip"
             */
         } else if (!layerContext.clip->intersect(this->a_left, this->a_top,
-                    m_Width + this->a_left, m_Height + this->a_top) && !m_FluidHeight) {
+                    m_Width + this->a_left, m_Height + this->a_top) && (!m_FluidHeight || !m_FluidWidth)) {
             /* don't need to draw children (out of bounds) */
             return;
         }
@@ -638,6 +645,17 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             this->setHeight(newHeight, true);
         }
     }
+
+    if (m_FluidWidth) {
+        int contentWidth = this->getContentWidth(true);
+
+        int newWidth = m_MaxWidth ? native_clamp(contentWidth, m_MinWidth, m_MaxWidth) : 
+                           native_max(contentWidth, m_MinWidth);
+
+        if (m_Width != newWidth) {
+            this->setWidth(newWidth, true);
+        }   
+    }
     
     if (!m_Loaded && willDraw) {
         m_Loaded = true;
@@ -718,29 +736,30 @@ void NativeCanvasHandler::computeAbsolutePosition()
                 int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
                                                     0 : prev->getWidth(); 
 
-                elem->left = prev->left + prevWidth;
-                elem->top = prev->top;
+                elem->left = (prev->left + prevWidth + prev->m_Margin.right) + elem->m_Margin.left;
+                elem->top = (prev->top - prev->m_Margin.top) + elem->m_Margin.top;
 
-                if ((this->m_FlowMode & kFlowBreakPreviousSibling) ||
-                    elem->left + elem->getWidth() >  m_Parent->getWidth()) {
+                if ((elem->m_FlowMode & kFlowBreakPreviousSibling) ||
+                    ((!m_Parent->isWidthFluid() ||
+                        (m_Parent->m_MaxWidth && elem->left + elem->getWidth() > m_Parent->m_MaxWidth)) &&
+                    elem->left + elem->getWidth() > m_Parent->getWidth())) {
+
                     maxLineHeightPreviousLine = maxLineHeight;
-                    maxLineHeight = elem->getHeight();
+                    maxLineHeight = elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top;
 
-                    elem->top = prev->top + maxLineHeightPreviousLine;
-                    elem->left = 0;
+                    elem->top = (prev->top - prev->m_Margin.top) + maxLineHeightPreviousLine + elem->m_Margin.top;
+                    elem->left = elem->m_Margin.left;
                 }
             } else {
                 /* The first element is aligned to the parent's top-left */
-                elem->left = 0;
-                elem->top = 0;
+                elem->left = elem->m_Margin.left;
+                elem->top = elem->m_Margin.top;
             }
 
             elem->a_left = elem->left + offset_x;
             elem->a_top = elem->top + offset_y;
 
-            if (elem->getHeight() > maxLineHeight) {
-                maxLineHeight = elem->getHeight();
-            }
+            maxLineHeight = native_max(elem->getHeight() + elem->m_Margin.bottom + elem->m_Margin.top, maxLineHeight);
 
             if (elem == this) {
                 break;
@@ -926,6 +945,12 @@ void NativeCanvasHandler::setContext(NativeCanvasContext *context)
 bool NativeCanvasHandler::setFluidHeight(bool val)
 {
     m_FluidHeight = val;
+    return true;
+}
+
+bool NativeCanvasHandler::setFluidWidth(bool val)
+{
+    m_FluidWidth = val;
     return true;
 }
 

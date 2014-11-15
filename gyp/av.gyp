@@ -4,18 +4,16 @@
         'type': 'static_library',
         'include_dirs': [
             '<(native_src_path)',
-            '<(native_network_path)',
-            '<(native_nativejscore_path)',
             '<(third_party_path)/portaudio/src/common/',
             '<(third_party_path)/portaudio/include/',
             '<(third_party_path)/zita-resampler/libs/',
             '<(third_party_path)/ffmpeg/',
             '<(third_party_path)/libcoroutine/source/',
             '<(third_party_path)/basekit/source/',
-            '<(third_party_path)/http-parser/',
-            '<(third_party_path)/skia/include/core/',
-            '<(third_party_path)/skia/include/config/',
-            '<(third_party_path)/mozilla-central/js/src/dist/include/',
+        ],
+        'dependencies': [
+            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
         ],
         'defines': [
             '__STDC_CONSTANT_MACROS'

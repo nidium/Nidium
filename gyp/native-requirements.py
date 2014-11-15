@@ -24,6 +24,9 @@ def buildSkia():
         exports = "GYP_DEFINES='skia_arch_width=64"
     else:
         exports = "GYP_DEFINES='skia_arch_width=32"
+
+    exports += " skia_custom_header=../../../../gyp/skia_gl_config.h"
+
     if gypDefines is not None:
         exports += " " + gypDefines
 

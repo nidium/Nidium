@@ -27,6 +27,8 @@ struct NativeJobQueue {
     void *arg;
 };
 
+class GrGLInterface;
+
 class NativeContext : public NativeMessages
 {
     public:
@@ -63,6 +65,8 @@ class NativeContext : public NativeMessages
     static NativeContext *getNativeClass(NativeJS *njs) {
         return (NativeContext *)njs->getPrivate();
     }
+
+    static void glCallback(const GrGLInterface *interface);
 
     void callFrame();
     void createDebugCanvas();

@@ -10,7 +10,7 @@ from pprint import pprint
 OUTPUT = "out/"
 THIRD_PARTY = "third-party/"
 BUILD = "release"
-AUTOCONF = "/usr/local/bin/autoconf"
+AUTOCONF = "/usr/bin/autoconf2.13"
 GIT = "/usr/bin/git"
 GCC = "/usr/bin/gcc"
 GPP = "/usr/bin/g++"
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 # Setup environement variables
 system = platform.system()
 nbCpu = multiprocessing.cpu_count()
-depsURL = "http://deps.nativejs.org"
+depsURL = "http://deps.nidium.com"
 is64bits = sys.maxsize > 2**32
 gypArgs = ""
 optionParser = OptionParser(usage="Usage: %prog [requirements_file] [options]")

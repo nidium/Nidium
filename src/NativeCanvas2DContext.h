@@ -40,10 +40,9 @@ class NativeCanvas2DContext : public NativeCanvasContext
         */
 
         void resetSkiaContext(uint32_t flags = 0);
-        void composeWith(NativeCanvas2DContext *layer, double left,
-            double top, double opacity, double zoom,
-            const NativeRect *clip);
 
+        uint8_t *getPixels() override;
+        uint32_t getTextureID() const;
         void flush();
         void setSize(int width, int height, bool redraw = true);
         void translate(double x, double y);
@@ -62,6 +61,9 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void setScale(double x, double y, double px=1, double py=1);
 
         uint32_t createProgram(const char *data);
+        
+        void drawTexture(uint32_t textureID, uint32_t width,
+            uint32_t height, uint32_t left, uint32_t top);
 
         static void registerObject(JSContext *cx);
 
@@ -70,8 +72,8 @@ class NativeCanvas2DContext : public NativeCanvasContext
 
         NativeCanvas2DContext(NativeCanvasHandler *handler,
             struct JSContext *cx, int width, int height, NativeUIInterface *ui);
-        
-        ~NativeCanvas2DContext();
+
+        virtual ~NativeCanvas2DContext();
     private:
         NativeSkia *m_Skia;
 
@@ -81,12 +83,9 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void drawTexToFBO(uint32_t textureID);
         void drawTexIDToFBO(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
-        void drawTexIDToFBO2(uint32_t textureID, uint32_t width,
-            uint32_t height, uint32_t left, uint32_t top, uint32_t fbo);
+
         uint32_t getSkiaTextureID(int *width = NULL, int *height = NULL);
         uint32_t getMainFBO();
-        void setupShader(float opacity, int width, int height,
-            int left, int top, int wWidth, int wHeight);
 };
 
 class NativeCanvasPattern

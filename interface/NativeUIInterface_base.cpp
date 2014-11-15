@@ -8,21 +8,26 @@
 #include <NativeFileStream.h>
 #include <NativePrivateStream.h>
 #include <NativeNFSStream.h>
+#include <NativeSystemStream.h>
 
 #include <SDL.h>
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
 
 NativeUIInterface::NativeUIInterface() :
     m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL),
-    m_readPixelInBuffer(false), m_Hidden(false)
+    m_readPixelInBuffer(false), m_Hidden(false), m_SystemMenu(this)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
+#if 1
+    NativePath::registerScheme(SCHEME_DEFINE("system://",  NativeSystemStream,  false));
+    NativePath::registerScheme(SCHEME_DEFINE("user://",    NativeUserStream,    false));
+#endif
     NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("https://",   NativeHTTPStream,    true));
     NativePath::registerScheme(SCHEME_DEFINE("nvfs://",    NativeNFSStream,     false));
@@ -32,6 +37,7 @@ NativeUIInterface::NativeUIInterface() :
 
 bool NativeUIInterface::makeMainGLCurrent()
 {
+    if (!m_mainGLCtx) return false;
     return (SDL_GL_MakeCurrent(this->win, m_mainGLCtx) == 0);
 }
 
@@ -45,18 +51,13 @@ bool NativeUIInterface::makeGLCurrent(SDL_GLContext ctx)
     return (SDL_GL_MakeCurrent(this->win, ctx) == 0);
 }
 
-SDL_GLContext NativeUIInterface::createSharedContext()
+SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
 {
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5 );
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
-    SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
-    return SDL_GL_CreateContext(this->win);    
+    SDL_GLContext created = SDL_GL_CreateContext(this->win);
+
+    return created;    
 }
 
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
@@ -271,4 +272,42 @@ void NativeUIInterface::showWindow()
 
         set_timer_to_low_resolution(&this->gnet->timersng, 0);
     }
+}
+
+void NativeSystemMenu::addItem(NativeSystemMenuItem *item)
+{
+    item->m_Next = m_Items;
+    m_Items = item;
+}
+
+void NativeSystemMenu::deleteItems()
+{
+    NativeSystemMenuItem *tmp = NULL, *cur = m_Items;
+    while (cur != NULL) {
+        tmp = cur->m_Next;
+        delete cur;
+        cur = tmp;
+    }
+
+    m_Items = NULL;
+}
+
+void NativeSystemMenu::setIcon(const uint8_t *data, size_t width, size_t height)
+{
+    m_Icon.data = data;
+    m_Icon.len = width * height * 4;
+    m_Icon.width = width;
+    m_Icon.height = height;
+}
+
+NativeSystemMenu::NativeSystemMenu(NativeUIInterface *ui) : m_UI(ui)
+{
+    m_Items = NULL;
+    m_Icon.data = NULL;
+    m_Icon.len = 0;
+}
+
+NativeSystemMenu::~NativeSystemMenu()
+{
+    this->deleteItems();
 }

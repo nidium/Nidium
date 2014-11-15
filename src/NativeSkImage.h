@@ -25,6 +25,8 @@ class NativeSkImage
 
     ~NativeSkImage();
 
+    const uint8_t *getPixels(size_t *len);
+
     int getWidth();
     int getHeight();
     void shiftHue(int val, U8CPU alpha);

@@ -1,7 +1,11 @@
 {
+    'includes': [
+        '../nativejscore/network/gyp/config.gypi',
+        '../nativejscore/network/gyp/common.gypi'
+    ],
     'variables' : {
         'native_version': '0.1',
-        'native_webgl%': 0,
+        'native_webgl%': 1,
         'native_audio%': 1,
         'native_embed_private%': 0,
         'native_private_dir': '../framework/dist/private/',
@@ -18,12 +22,10 @@
         'native_tools_path': '../tools/',
         'native_exec_name': 'nidium',
         'native_exec_path': '../framework/dist/',
-        'native_spidermonkey_path': '../third-party/mozilla-central/js/src/dist/include/',
 
-        'third_party_path%': '../third-party/',
-        'third_party_rel_path': '../third-party/',
         'native_output%': '../out/',
-        'addresse_sanitizer%': 0,
+        'third_party_path': '../third-party/',
+#'asan%': 0,
 
         'native_interface': 'auto', 
 

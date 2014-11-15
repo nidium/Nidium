@@ -5,6 +5,7 @@
 class NativeUICocoaConsole;
 
 @class NativeDragNSView;
+@class NativeCocoaUIInterfaceWrapper;
 
 class NativeCocoaUIInterface : public NativeUIInterface
 {
@@ -55,11 +56,13 @@ class NativeCocoaUIInterface : public NativeUIInterface
         void logf(const char *format, ...);
         void vlog(const char *format, va_list ap);
         void logclear();
-
+#if 0
         virtual bool makeMainGLCurrent();
         virtual bool makeGLCurrent(SDL_GLContext ctx);
         virtual SDL_GLContext getCurrentGLContext();
+#endif
     private:
+        void renderSystemTray();
         bool initContext();
         bool createWindow(int width, int height);
 
@@ -73,4 +76,5 @@ class NativeCocoaUIInterface : public NativeUIInterface
         NativeUICocoaConsole *console;
         NativeDragNSView *dragNSView;
         NSStatusItem *m_StatusItem;
+        NativeCocoaUIInterfaceWrapper *m_Wrapper;
 };

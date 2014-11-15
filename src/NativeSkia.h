@@ -76,6 +76,8 @@ class NativeSkia
         void addPath(const SkPath& path, SkPath *to);
 
         bool m_Debug;
+
+        double m_FontSkew;
         
     public:
         ~NativeSkia();
@@ -106,8 +108,9 @@ class NativeSkia
         double breakText(const char *str, size_t len,
             struct _NativeLine lines[], double maxWidth, int *length = NULL);
         int bindOnScreen(int width, int height);
-        static SkCanvas *createGLCanvas(int width, int height);
-        int bindGL(int width, int height);
+        static SkCanvas *createGLCanvas(int width, int height,
+            NativeContext *nativectx);
+        int bindGL(int width, int height, NativeContext *nativectx);
         void flush();
         void unlink();
         /* Basics */
@@ -121,9 +124,13 @@ class NativeSkia
         void setShadowColor(const char *str);
         void setSmooth(bool val,const  int level = 1);
         void setFontSize(double size);
+        void setFontStyle(const char *style);
+        void setFontSkew(double val) {
+            m_FontSkew = val;
+        }
         void setFontType(char *str, NativeJSdocument *doc = NULL);
         bool setFontFile(const char *str);
-        void drawText(const char *text, int x, int y);
+        void drawText(const char *text, int x, int y, bool stroke = false);
         void drawTextf(int x, int y, const char *text, ...);
         void system(const char *text, int x, int y);
         void drawRect(double x, double y, double width, 

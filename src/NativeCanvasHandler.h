@@ -257,7 +257,7 @@ class NativeCanvasHandler : public NativeEvents
             Get the width in logical pixels
         */
         double getWidth() const {
-            if (hasFixedWidth()) {
+            if (hasFixedWidth() || m_FluidWidth) {
                 return m_Width;
             }
             if (m_Parent == NULL) return 0.;
@@ -308,7 +308,7 @@ class NativeCanvasHandler : public NativeEvents
 
         bool hasFixedWidth() const {
             return !((coordMode & (kLeft_Coord | kRight_Coord))
-                    == (kLeft_Coord|kRight_Coord));
+                    == (kLeft_Coord|kRight_Coord) || m_FluidWidth);
         }
 
         bool hasFixedHeight() const {
@@ -457,6 +457,7 @@ class NativeCanvasHandler : public NativeEvents
         bool setMaxHeight(int height);
 
         bool setFluidHeight(bool val);
+        bool setFluidWidth(bool val);
 
         void updateChildrenSize(bool width, bool height);
         void setSize(int width, int height, bool redraw = true);

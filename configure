@@ -1,0 +1,178 @@
+#!/usr/bin/python
+import sys 
+import os
+sys.path.append("tools")
+
+from konstructor import Deps
+from konstructor import CommandLine
+from konstructor import Build
+from konstructor import Builder
+from konstructor import Platform
+from konstructor import Konstruct
+from konstructor import Utils
+from konstructor import Variables 
+
+Gyp = Builder.Gyp
+
+Deps.set(
+    "portaudio",
+    "zita-resampler",
+    "depot_tools",
+    "skia",
+    "libzip",
+    "breakpad",
+    "angle",
+    "basekit",
+    "libcoroutine",
+    "SDL2",
+    "ffmpeg",
+    Deps.Konstruct("nativejscore", "nativejscore/configure")
+)
+
+Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
+Gyp.set("skia_resource_cache_mb_limit", 256)
+
+DEPEDENCY_REPO = Variables.get("depsRepo")
+
+@Deps.register("portaudio")
+def portaudio():
+    return {
+        "location": DEPEDENCY_REPO + "/portaudio.tgz",
+        "build": ["./configure", "make"],
+        "outputs": ["lib/.libs/libportaudio.a"]
+    }
+
+@Deps.register("zita-resampler")
+def zitaresampler():
+    return {
+        "location": DEPEDENCY_REPO + "/zita-resampler-1.3.0.tar.bz2",
+        "patchs": ["zita.patch"],
+        "chdir": "libs/",
+        "build": ["make"],
+        "outputs": ["libzita-resampler(.a|.lib)"]
+    }
+
+@Deps.register("skia")
+def skia():
+    if Platform.wordSize == 64:
+        exports = "GYP_DEFINES='skia_arch_width=64'"
+    else:
+        exports = "GYP_DEFINES='skia_arch_width=32'"
+
+    makeFlags = ""
+    if Variables.get("verbose"):
+        makeFlags = "V=1"
+
+    return {
+        "location": Deps.Gclient("https://skia.googlesource.com/skia.git", revision="27346f52cb0d5094732cb8154814b3b4d6c70cef"),
+        "build": [exports + " ./gyp_skia", exports + " make tests BUILDTYPE=Release " + makeFlags + " -j " + str(Platform.cpuCount)],
+        "patchs": ["skia_defines.patch"],
+        "outputs": [
+            "out/Release/libskia_pdf.a",
+            "out/Release/libskia_ports.a",
+            "out/Release/libskia_skgpu.a",
+            "out/Release/libskia_utils.a",
+            "out/Release/libskia_effects.a",
+            "out/Release/libskia_core.a",
+            "out/Release/libskia_sfnt.a",
+            "out/Release/libskia_images.a",
+            "out/Release/libskia_opts_ssse3.a",
+            "out/Release/libskia_opts.a"
+        ]
+    }
+
+@Deps.register("libzip")
+def libzip():
+    return {
+        "location": DEPEDENCY_REPO + "/libzip-0.10.1.tar.bz2",
+        "build": ["./configure", "make"],
+        "outputs": ["lib/.libs/libzip.a"]
+    }
+
+@Deps.register("angle")
+def angle():
+    return {
+        "location": DEPEDENCY_REPO + "/angle.tar.gz"
+    }
+
+@Deps.register("breakpad")
+def breakpad():
+    return {
+        "location": DEPEDENCY_REPO + "/breakpad.tar.gz"
+    }
+
+@Deps.register("SDL2")
+def SDL2():
+    # SDL2 Build as framework
+    #build: ["xcodebuild -configuration 'Release' CONFIGURATION_BUILD_DIR='out' -target 'Framework'"], 
+    #outputs["SDL2/Xcode/SDL/out/SDL2.framework"])
+    return {
+        "location": DEPEDENCY_REPO + "/SDL-2-2.0.3.tar.gz",
+        "chdir": "build",
+        "build": ["../configure", "make"], 
+        "outputs": ["build/.libs/libSDL2.a"]
+    }
+
+@Deps.register("depot_tools")
+def depotTools():
+    Deps.Gclient.setExec(os.path.join("depot_tools", "gclient"))
+    return {
+        "location": DEPEDENCY_REPO + "/depot_tools.tar.gz"
+    }
+
+@Deps.register("basekit")
+def basekit():
+    return {
+        "location": DEPEDENCY_REPO + "/libbasekit.zip",
+        "build": ["make"],
+        "patchs": ["basekit.patch"],
+        "outputs": ["_build/lib/libbasekit(.a|.lib)"]
+    }
+
+@Deps.register("libcoroutine")
+def libcoro():
+    patchs = ["libcoroutine.patch"]
+    if Konstruct.config("debug", "valgrind"):
+        patchs.append("libcoroutine.debug.patch")
+    return {
+        "location": DEPEDENCY_REPO + "/libcoroutine.zip",
+        "patchs": patchs,
+        "build": ["make"],
+        "outputs": [["_build/lib/liblibcoroutine(.a|.lib)", "libcoroutine\\1"]]
+    }
+
+@Deps.register("ffmpeg")
+def ffmpeg():
+    return {
+        "location": DEPEDENCY_REPO + "/ffmpeg-snapshot.tar.bz2",
+        "patch": [],
+        "build":
+        [
+            "./configure \
+            --disable-avdevice --disable-postproc --disable-avfilter --disable-ffserver \
+            --enable-decoder=ac3,aac,mp3,vorbis,pcm_s16be_planar,pcm_s16le,pcm_s16le_planar,pcm_s24be,pcm_s24daud,pcm_s24le,pcm_s24le_planar,pcm_s32be,pcm_s32le,pcm_s32le_planar,pcm_s8,pcm_s8_planar,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpeg4,mpeg2video,wmv1,wmv2,wmv3,wmv3_crystalhd,wmv3_vdpau,wmv3image,wmalossless,wmapro,wmav1,wmav2,wmavoice,vc1,vc1_crystalhd,vc1_vdpau,vc1image\
+            --enable-parser=vorbis,mpegaudio,mpegvideo,mpeg4video,h264,vp8,aac,vc1\
+            --enable-demuxer=matroska,mp3,ogg,vorbis,pcm_alaw,pcm_f32be,pcm_f32le,pcm_f64be,pcm_f64le,pcm_mulaw,pcm_s16be,pcm_s16le,pcm_s24be,pcm_s24le,pcm_s32be,pcm_s32le,pcm_s8,pcm_u16be,pcm_u16le,pcm_u24be,pcm_u24le,pcm_u32be,pcm_u32le,pcm_u8,h264,mpegvideo,aac,mov,avi,wav,asf", 
+            "make"
+        ],
+        "outputs": 
+        [
+            "libavcodec/libavcodec(.a|.lib)",
+            "libswresample/libswresample(.a|.lib)",
+            "libavutil/libavutil(.a|.lib)",
+            "libavformat/libavformat(.a|.lib)",
+            "libswscale/libswscale(.a|.lib)"
+        ]
+    }
+
+if Konstruct.config("release"):
+    Gyp.set("native_enable_breakpad", 1)
+
+Build.add(Gyp("gyp/all.gyp"));
+
+if __name__ == '__main__':
+    # We need to apply patch to rapidxml.hpp, 
+    # since it's not a real dependency, we do the patch "by hand"
+    Utils.patch(".", os.path.join(Deps.getDir(), "rapidxml.patch"));
+
+    Konstruct.start() 

@@ -36,6 +36,25 @@ static SkData* dataToData(void *data, size_t size) {
     return SkData::NewWithProc(data, size, NULL, NULL);
 }
 
+const uint8_t *NativeSkImage::getPixels(size_t *len)
+{   
+    if (len) {
+        *len = 0;
+    }
+    if (!img) {
+        return NULL;
+    }
+
+    if (len) {
+        *len = img->getSize();
+    }
+    void *data = img->getPixels();
+
+    printf("Pixels : %x %d\n", ((uint8_t *)data)[500], img->height());
+
+    return (const uint8_t *)img->getPixels();
+}
+
 NativeSkImage::NativeSkImage(SkCanvas *canvas)
 {
 	//canvas->readPixels(SkIRect::MakeSize(canvas->getDeviceSize()), &img);
@@ -161,18 +180,19 @@ void NativeSkImage::desaturate()
     img->notifyPixelsChanged();
 }
 
-#if 0
+
 bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
         bool flipY, bool premultiply) 
 {
+#if 1
     int length;
     int k;
     const unsigned char *pixels;
     int width;
 
-    nimg->img.lockPixels();
-    if ((pixels = static_cast<const unsigned char*>(nimg->img.getPixels())) == NULL) {
-        nimg->img.unlockPixels();
+    nimg->img->lockPixels();
+    if ((pixels = static_cast<const unsigned char*>(nimg->img->getPixels())) == NULL) {
+        nimg->img->unlockPixels();
         return false;
     }
 
@@ -205,6 +225,7 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
             k += 4;
         }
     }
+#endif
     return true;
 }
-#endif
+

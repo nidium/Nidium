@@ -18,6 +18,12 @@ float NativeSystem::backingStorePixelRatio()
     return fbackingStorePixelRatio;
 }
 
+void NativeSystem::openURLInBrowser(const char *url)
+{
+    NSString *nsurl = [NSString stringWithCString:url encoding:NSASCIIStringEncoding];
+    [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:nsurl]];
+}
+
 const char *NativeSystem::getPrivateDirectory()
 {
     static char parentdir[MAXPATHLEN];
@@ -57,6 +63,17 @@ const char *NativeSystem::getCacheDirectory()
         return cpath;
     }
     return NULL;
+}
+
+const char *NativeSystem::getUserDirectory()
+{
+    NSString* userDir = [NSString stringWithFormat:@"%@/", NSHomeDirectory()];
+
+    if (!userDir) {
+        return NULL;
+    }
+
+    return [userDir cStringUsingEncoding:NSUTF8StringEncoding];
 }
 
 void NativeSystem::alert(const char *message, AlertType type)

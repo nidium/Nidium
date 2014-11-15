@@ -16,17 +16,73 @@ class NativeJS ## name: public NativeJSExposer<NativeJS ## name>\
         static void registerObject(JSContext *cx);\
 };
 
-class NativeJSNativeGL: public NativeJSExposer<NativeJSNativeGL>
+#define GL_GLEXT_PROTOTYPES
+#if __APPLE__
+#include <OpenGL/gl.h>
+#include <OpenGL/gl3ext.h>
+#else
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include <GL/glx.h>
+#include <GL/glxext.h>
+#endif
+
+#include "NativeCanvasContext.h"
+#include "NativeGLContext.h"
+
+struct NGLContextAttributes {
+    bool m_Alpha;
+    bool m_Depth;
+    bool m_Stencil;
+    bool m_Antialias;
+    bool m_PremultipliedAlpha;
+    bool m_PreserveDrawingBuffer;
+    bool m_PreferLowPowerToHightPerformance;
+
+    void set(bool alpha, bool depth, bool stencil, 
+            bool antialias, bool premultipliedAlpha, 
+            bool preserveDrawingBuffer, bool preferLowPowerToHightPerformance) 
+    {
+        m_Alpha = alpha;
+        m_Depth = depth;
+        m_Stencil = stencil;
+        m_Antialias = antialias;
+        m_PremultipliedAlpha = premultipliedAlpha;
+        m_PreserveDrawingBuffer = preserveDrawingBuffer;
+        m_PreferLowPowerToHightPerformance = preferLowPowerToHightPerformance;
+    }
+
+    NGLContextAttributes() 
+        :  m_Alpha(true), m_Depth(true), m_Stencil(false), m_Antialias(true), 
+           m_PremultipliedAlpha(true), m_PreserveDrawingBuffer(false), 
+           m_PreferLowPowerToHightPerformance(false) 
+    {
+    }
+};
+
+class NativeCanvasWebGLContext: public NativeCanvasContext
 {
     public :
-        NativeJSNativeGL(); 
-        ~NativeJSNativeGL();
+        NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height); 
+        ~NativeCanvasWebGLContext();
 
-        JSObject *jsobj;
+        void translate(double x, double y) {};
+        void setSize(int width, int height) {};
+        void setScale(double x, double y, double px=1, double py=1) {};
+        void clear(uint32_t color) {};
+        void flush() {};
+
+        void composeWith(NativeCanvas2DContext *layer,
+            double left, double top, double opacity,
+            double zoom, const NativeRect *rclip);
+
         bool unpackFlipY;
         bool unpackPremultiplyAlpha;
-
-        static void registerObject(JSContext *cx);
+    private:
+        GLuint m_tex;
+        GLuint m_fbo;
+        int m_width;
+        int m_height;
 };
 
 struct NGLShader {
@@ -48,6 +104,7 @@ NEW_CLASS(WebGLRenderbuffer)
 NEW_CLASS(WebGLShader)
 NEW_CLASS(WebGLTexture)
 NEW_CLASS(WebGLUniformLocation)
+NEW_CLASS(WebGLShaderPrecisionFormat)
 
 /* ClearBufferMask */
 #define NGL_DEPTH_BUFFER_BIT                0x00000100

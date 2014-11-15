@@ -10,7 +10,7 @@ class NativeGLContext
 {
     public:
         NativeGLContext(NativeUIInterface *ui,
-            SDL_GLContext wrappedCtx = NULL) :
+            SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
             m_UI(ui)
         {
             if (wrappedCtx) {
@@ -28,7 +28,7 @@ class NativeGLContext
                 NLOG("Cant make main current");
             }
 
-            m_SDLGLCtx = m_UI->createSharedContext();
+            m_SDLGLCtx = m_UI->createSharedContext(webgl);
             if (m_SDLGLCtx == NULL) {
                 NLOG("Cant create context");
             }
@@ -37,7 +37,10 @@ class NativeGLContext
             if (!m_UI->makeGLCurrent(oldctx)) {
                 NLOG("Cant restore old ctx");
             }
-            NLOG("New context created");
+        }
+
+        SDL_GLContext getGLContext() const {
+            return m_SDLGLCtx;
         }
 
         bool makeCurrent() {
@@ -46,7 +49,12 @@ class NativeGLContext
 
         ~NativeGLContext() {
             if (!wrapped) {
-                m_UI->deleteGLContext(m_SDLGLCtx);
+                m_UI->makeMainGLCurrent();
+                /*
+                    TODO: LEAK :
+                    Whenever we try to delete a GL ctx, the screen become black.
+                */
+                //m_UI->deleteGLContext(m_SDLGLCtx);
             }
         }
 

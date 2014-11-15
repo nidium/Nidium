@@ -4,7 +4,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -15,7 +15,6 @@
 #include "NativeSkImage.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeSystemInterface.h"
-#include "NativeStream.h"
 #include "SkCanvas.h"
 #include "SkDevice.h"
 #include "SkGpuDevice.h"
@@ -47,6 +46,8 @@
 #include "NativeMacros.h"
 
 #include "Sk2DPathEffect.h"
+
+#include <NativeContext.h>
 
 #include <NativePath.h>
 #include <NativeJSDocument.h>
@@ -402,16 +403,14 @@ int NativeSkia::bindOnScreen(int width, int height)
 
 
 void glcb(const GrGLInterface*) {
-    //printf("Got a gl call\n");
+    printf("Got a gl call\n");
 }
 
-SkCanvas *NativeSkia::createGLCanvas(int width, int height)
+SkCanvas *NativeSkia::createGLCanvas(int width, int height,
+    NativeContext *nativectx)
 {
     const GrGLInterface *interface = NULL;
     GrContext *context = NULL;
-
-    //GrGLInterface *interface_noconst = (GrGLInterface *)interface;
-    //((GrGLInterface*)interface)->fCallback = glcb;
 
     if (NativeSkia::glcontext) {
         context = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
@@ -425,12 +424,16 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
             return NULL;
         }
 
+        ((GrGLInterface*)interface)->fCallback = NativeContext::glCallback;
+        ((GrGLInterface*)interface)->fCallbackData = (uintptr_t)nativectx;
+
         context = GrContext::Create(kOpenGL_GrBackend,
             (GrBackendContext)interface);
 
         if (context == NULL) {
             return NULL;
         }
+
     }
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
     
@@ -471,11 +474,11 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height)
 
 }
 
-int NativeSkia::bindGL(int width, int height)
+int NativeSkia::bindGL(int width, int height, NativeContext *nativectx)
 {
     this->native_canvas_bind_mode = NativeSkia::BIND_GL;
 
-    if ((m_Canvas = NativeSkia::createGLCanvas(width, height)) == NULL) {
+    if ((m_Canvas = NativeSkia::createGLCanvas(width, height, nativectx)) == NULL) {
         return 0;
     }
 
@@ -539,7 +542,8 @@ void NativeSkia::drawRect(double x, double y, double width,
 NativeSkia::NativeSkia() :
     m_Canvas(NULL),
     native_canvas_bind_mode(NativeSkia::BIND_NO),
-    state(NULL), paint_system(NULL), currentPath(NULL), m_Debug(false)
+    state(NULL), paint_system(NULL), currentPath(NULL),
+    m_Debug(false), m_FontSkew(-0.25)
 {
 
 }
@@ -599,6 +603,15 @@ void NativeSkia::setFontSize(double size)
     SkScalar ssize = SkDoubleToScalar(size);
     PAINT->setTextSize(ssize);
     PAINT_STROKE->setTextSize(ssize);
+}
+
+void NativeSkia::setFontStyle(const char *style)
+{
+    PAINT->setFakeBoldText((strcasestr(style, "bold")));
+    PAINT->setUnderlineText((strcasestr(style, "underline")));
+    PAINT->setStrikeThruText((strcasestr(style, "strike")));
+
+    PAINT->setTextSkewX(strcasestr(style, "italic") ? m_FontSkew : 0);
 }
 
 void NativeSkia::setFontType(char *str, NativeJSdocument *doc)
@@ -665,7 +678,7 @@ bool NativeSkia::setFontFile(const char *str)
 }
 
 /* TODO: bug with alpha */
-void NativeSkia::drawText(const char *text, int x, int y)
+void NativeSkia::drawText(const char *text, int x, int y, bool stroke)
 {
     SkPaint::FontMetrics metrics;
     PAINT->getFontMetrics(&metrics);
@@ -688,7 +701,7 @@ void NativeSkia::drawText(const char *text, int x, int y)
     }
 
     m_Canvas->drawText(text, strlen(text),
-        sx, sy, *PAINT);
+        sx, sy, (stroke ? *PAINT_STROKE : *PAINT));
 
     CANVAS_FLUSH();
 }

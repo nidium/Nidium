@@ -8,6 +8,8 @@
         'component': 'static_library'
     },
     'includes': [
+        # Can't use variable in includes 
+        # https://code.google.com/p/gyp/wiki/InputFormatReference#Processing_Order
         '../third-party/angle/src/build_angle.gypi'
     ],
     'targets': [{
