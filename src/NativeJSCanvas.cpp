@@ -780,6 +780,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
         */
         JS_SetReservedSlot(NativeObject->jsobj, 0, OBJECT_TO_JSVAL(NativeObject->getContext()->jsobj));
     } else if (canvasctx->m_Mode != ctxmode) {
+        JS_ReportWarning(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
         args.rval().setNull();
         return true;        

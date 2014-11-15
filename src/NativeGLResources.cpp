@@ -2,7 +2,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -45,7 +45,7 @@ NativeGLResources::Resource::~Resource()
             glDeleteBuffers(1, &this->m_Glid);
             break;
         case NativeGLResources::RVERTEX_ARRAY:
-            glDeleteVertexArrays(1, &this->m_Glid);
+            glDeleteVertexArraysAPPLE(1, &this->m_Glid);
             break;
         default:
             break;

@@ -46,6 +46,10 @@ public:
     */
     static NativeCanvasContext *Create(NativeContextType type);
 
+    mode getContextType() const {
+        return m_Mode;
+    }
+
     /*
         Check if the context has a program installed
     */
@@ -96,6 +100,10 @@ public:
 
     /* Returns the size in device pixel */
     virtual void getSize(int *width, int *height) const=0;
+    
+    virtual uint8_t *getPixels() {
+        return NULL;
+    }
 
     /*
         Create a grid of |resolution^2| points using triangle strip

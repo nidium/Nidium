@@ -35,7 +35,7 @@
 
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
-#include <OpenGL/gl3.h>
+#include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
@@ -142,7 +142,6 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* WebGL*() object */
 #ifdef NATIVE_WEBGL_ENABLED
     NativeJSWebGLRenderingContext::registerObject(cx);
-    NativeJSWebGLObject::registerObject(cx);
     NativeJSWebGLBuffer::registerObject(cx);
     NativeJSWebGLFrameBuffer::registerObject(cx);
     NativeJSWebGLProgram::registerObject(cx);
