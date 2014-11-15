@@ -14,21 +14,9 @@
 #include <GL/gl.h>
 #endif
 
-#define CANVASCTX_GETTER(obj) ((class NativeCanvas3DContext *)JS_GetPrivate(obj))
-
-void Canvas3DContext_finalize(JSFreeOp *fop, JSObject *obj);
-
 extern JSClass WebGLRenderingContext_class;
 extern JSConstDoubleSpec WebGLRenderingContext_const;
 
-
-void Canvas3DContext_finalize(JSFreeOp *fop, JSObject *obj)
-{
-    NativeCanvas3DContext *canvasctx = CANVASCTX_GETTER(obj);
-    if (canvasctx != NULL) {
-        delete canvasctx;
-    }
-}
 
 NativeCanvas3DContext::~NativeCanvas3DContext()
 {

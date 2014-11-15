@@ -39,13 +39,22 @@ class NativeGLContext
             }
         }
 
+        SDL_GLContext getGLContext() const {
+            return m_SDLGLCtx;
+        }
+
         bool makeCurrent() {
             return m_UI->makeGLCurrent(m_SDLGLCtx);
         }
 
         ~NativeGLContext() {
             if (!wrapped) {
-                m_UI->deleteGLContext(m_SDLGLCtx);
+                m_UI->makeMainGLCurrent();
+                /*
+                    TODO: LEAK :
+                    Whenever we try to delete a GL ctx, the screen become black.
+                */
+                //m_UI->deleteGLContext(m_SDLGLCtx);
             }
         }
 

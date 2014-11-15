@@ -37,6 +37,7 @@ NativeUIInterface::NativeUIInterface() :
 
 bool NativeUIInterface::makeMainGLCurrent()
 {
+    if (!m_mainGLCtx) return false;
     return (SDL_GL_MakeCurrent(this->win, m_mainGLCtx) == 0);
 }
 

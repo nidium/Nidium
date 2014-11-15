@@ -567,13 +567,14 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         this->initialized = true;
         glViewport(0, 0, width, height);
 
-        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
-        NLOG("[DEBUG] GLSL : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
-
         int depth;
         glGetIntegerv(GL_DEPTH_BITS, &depth);
 
+        NLOG("[DEBUG] OpenGL Context at %p", contexteOpenGL);
+        NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
+        NLOG("[DEBUG] GLSL Version : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
         NLOG("[DEBUG] Deph buffer %i", depth);
+        
     } else {
         //this->patchSDLView([NativeCocoaWindow(win) contentView]);
     }

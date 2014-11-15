@@ -105,13 +105,13 @@ public:
 };
 
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj);
-
+static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj);
 
 JSClass WebGLRenderingContext_class = {
     "WebGLRenderingContext",
     JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(WebGLResource::kResources_end),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebGLRenderingContext_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -167,7 +167,18 @@ static JSClass WebGLShaderPrecisionFormat_class = {
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     WebGLResource *res = (WebGLResource *)JS_GetPrivate(obj);
-    delete res;
+
+    if (res) {
+        delete res;
+    }
+}
+
+static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
+{
+    NativeCanvas3DContext *ctx = (NativeCanvas3DContext *)JS_GetPrivate(obj);
+    if (ctx) {
+        delete ctx;
+    }
 }
 
 bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) {
@@ -441,140 +452,6 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
 
     return true;
 }
-
-#if 0
-NativeCanvasWebGLContext::NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height) 
-    : unpackFlipY(false), unpackPremultiplyAlpha(false)
-{
-    //int texType = attributes->m_Antialias ? GL_EXT_framebuffer_multisample : GL_TEXTURE_2D;
-    // TODO : Test for GL version if > 3.2 use GL_TEXTURE_2D_MULTISAMPLE else GL_EXT_framebuffer_multisample
-    int texType = GL_TEXTURE_2D; // OpenGL 2.1 doesn't support multisampling
-    this->jscx = cx;
-
-    NativeUIInterface *ui = NativeContext::getNativeClass(cx)->getUI();
-
-    m_GLContext = new NativeGLContext(ui);
-    NLOG("Current : %d", this->MakeGLCurrent());
-
-    GL_CALL(CppObj, Viewport(0, 0, width, height));
-    GL_CALL(CppObj, Enable(GL_TEXTURE_2D));
-    GL_CALL(CppObj, Enable(GL_MULTISAMPLE));
-
-    //GL_CALL(CppObj, ShadeModel(GL_SMOOTH));
-    GL_CALL(CppObj, Enable(GL_DEPTH_TEST));
-    GL_CALL(CppObj, DepthFunc(GL_LEQUAL));
-    //GL_CALL(CppObj, Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST));
-    GL_CALL(CppObj, Hint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
-
-
-    //GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
-
-    GL_CALL(CppObj, GenTextures(1, &m_tex));
-    GL_CALL(CppObj, BindTexture(texType, m_tex));
-
-    GL_CALL(CppObj, TexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL_CALL(CppObj, TexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
-    /* Allocate memory for the new texture */
-    GL_CALL(CppObj, TexImage2D(
-            texType,
-            0,
-            GL_RGBA,
-            width, height,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            NULL
-    ));
-
-    GL_CALL(CppObj, BindTexture(texType, 0));
-
-    /* Generate the FBO */
-    GL_CALL(CppObj, GenFramebuffers(1, &m_fbo));
-    GL_CALL(CppObj, BindFramebuffer(GL_FRAMEBUFFER, m_fbo));
-
-    /* Set the FBO backing store using the new texture */
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        texType, m_tex, 0);
-
-    GLenum status;
-    status = GL_CALL(CppObj, CheckFramebufferStatus(GL_FRAMEBUFFER));
-
-    switch(status) {
-        case GL_FRAMEBUFFER_COMPLETE:
-            printf("OH YEAH\n");
-            break;
-        case GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
-            exit(2);
-            return;
-        default:
-            printf("fbo fatal error wat %d\n", status);
-            exit(2);
-            return;
-    }
-
-    m_width = width;
-    m_height = height;
-
-    // OpenGL context is ready, setup JS
-    jsval proto;
-    JSObject *webGLContext;
-    JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLRenderingContext", &proto);
-	webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, JSVAL_TO_OBJECT(proto), NULL);
-
-    if (webGLContext == NULL) {
-        JS_ReportError(cx, "Failed to create WebGLRenderingContext");
-        // TODO
-        exit(2);
-    } 
-
-    JS_SetPrivate(webGLContext, static_cast<void *>(this));
-    this->jsobj = webGLContext;
-
-    // Compatibility OpenGL/WebGL
-    // XXX : Is this belongs here ?
-    GL_CALL(CppObj, Enable(GL_VERTEX_PROGRAM_POINT_SIZE));
-    GL_CALL(CppObj, Enable(GL_POINT_SPRITE));
-    GL_CALL(CppObj, EnableVertexAttribArray(0));
-
-    //GL_ARB_point
-    //JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(webGLContext));
-
-}
-
-void NativeCanvasWebGLContext::composeWith(NativeCanvas2DContext *layer,
-    double left, double top, double opacity,
-    double zoom, const NativeRect *rclip)
-{
-    this->MakeGLCurrent();
-    GL_CALL(CppObj, Finish());
-    GLenum err;
-    layer->MakeGLCurrent();
-
-    NativeSkia *skia = layer->getSurface();
-    skia->canvas->flush();
-
-    GL_CALL(CppObj, UseProgram(0));
-
-    layer->drawTexIDToFBO(m_tex, m_width, m_height, left, top, layer->getMainFBO());
-    layer->resetGLContext();
-}
-
-NativeCanvasWebGLContext::~NativeCanvasWebGLContext() 
-{
-    // TODO
-    /*
-    //Delete resources
-    GL_CALL(CppObj, DeleteRenderbuffersEXT(1, &color_rb));
-    GL_CALL(CppObj, DeleteRenderbuffersEXT(1, &depth_rb));
-    //Bind 0, which means render to back buffer, as a result, fb is unbound
-    GL_CALL(CppObj, BindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
-    GL_CALL(CppObj, DeleteFramebuffersEXT(1, &fb));
-    */
-
-}
-#endif
 
 D_NGL_JS_FN(WebGLRenderingContext_isContextLost)
 D_NGL_JS_FN(WebGLRenderingContext_getExtension)
@@ -2744,7 +2621,9 @@ NGL_JS_FN(WebGLRenderingContext_useProgram)
         GL_CALL(CppObj, UseProgram(0));
         return true;
     }
-    
+
+    printf("Use Program on %p\n", CppObj->getGLState()->getNativeGLContext()->getGLContext());
+
     WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
         &WebGLProgram_class, JS_ARGV(cx, vp));
 
