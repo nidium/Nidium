@@ -4,6 +4,7 @@
 #include "NativeSkia.h"
 #include "NativeCanvas2DContext.h"
 #include "NativeCanvas3DContext.h"
+#include "NativeJSCanvas.h"
 #include "NativeGLState.h"
 #include "GLSLANG/ShaderLang.h"
 #include <SkCanvas.h>
@@ -12,12 +13,15 @@
 #include <NativeMacros.h>
 #include <NativeSystemInterface.h>
 
+
 #define GL_GLEXT_PROTOTYPES
 #if __APPLE__
 #include <OpenGL/gl.h>
 #else
 #include <GL/gl.h>
 #endif
+
+extern JSClass Canvas_class;
 
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
@@ -2479,13 +2483,11 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
     GLenum type;
     JSObject *image;
     int width, height;
-	NativeJSImage *nimg;
-    void *pixels = NULL;
-    unsigned char *rgbaPixels;
 
     if (argc == 9) {
         GLint border;
         JSObject *array;
+        void *pixels = NULL;
 
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiiiiuuo", &target, &level, &internalFormat, &width, &height, &border, &format, &type, &array)) {
             return false;
@@ -2497,34 +2499,50 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         
         GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, border, format, type, pixels));
     } else {
+        unsigned char *pixels;
+
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image) || image == NULL) {
             JS_ReportError(cx, "texImage2D() invalid arguments");
             return false;
         }
 
-        // XXX : UNSAFE use JS_GetInstancePrivate Image_class 
-        //if ((nimg = static_cast<NativeJSImage *>(JS_GetInstancePrivate(cx, image, &Image_class, JS_ARGV(cx, vp)))) == NULL) {
-        if (!OBJECT_TO_JSVAL(image).isObject() || (nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image))) == NULL) {
+        if (!OBJECT_TO_JSVAL(image).isObject()) {
             JS_ReportError(cx, "Invalid image object");
             return false;
         }
 
-        width = nimg->img->getWidth();
-        height = nimg->img->getHeight();
-        
-        rgbaPixels = (unsigned char*)malloc(nimg->img->img->getSize());
+        if (NativeJSImage::JSObjectIs(cx, image)) {
+	        NativeJSImage *nimg;
 
-       if (!NativeSkImage::ConvertToRGBA(nimg->img, rgbaPixels,
-                CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag), 
-                CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
-        
-            JS_ReportError(cx, "Failed to read image data");
-            return false;
+            nimg = static_cast<NativeJSImage *>(JS_GetPrivate(image));
+
+            width = nimg->img->getWidth();
+            height = nimg->img->getHeight();
+            
+            pixels = (unsigned char*)malloc(nimg->img->img->getSize());
+
+           if (!NativeSkImage::ConvertToRGBA(nimg->img, pixels,
+                    CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_FLIP_Y_WEBGL_Flag), 
+                    CppObj->hasFlag(NativeCanvas3DContext::kUNPACK_PREMULTIPLY_ALPHA_WEBGL_Flag))) {
+            
+                JS_ReportError(cx, "Failed to read image data");
+                return false;
+            }
+        } else if (JS_InstanceOf(cx, image, &Canvas_class, NULL)) {
+            NativeCanvasHandler *handler = static_cast<NativeCanvasHandler *>
+                (static_cast<NativeJSCanvas*>(JS_GetPrivate(image))->getHandler());
+            NativeCanvas2DContext *ctx = static_cast<NativeCanvas2DContext *>(handler->getContext());
+
+            width = handler->getWidth();
+            height = handler->getHeight();
+
+            pixels = (unsigned char*)malloc(width * height * 4);
+            ctx->getSurface()->readPixels(0, 0, width, height, pixels);
         }
 
-        GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, 0, format, type, rgbaPixels));
+        GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, 0, format, type, pixels));
 
-        free(rgbaPixels);
+        free(pixels);
     }
 
     return true;
