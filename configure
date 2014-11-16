@@ -29,6 +29,8 @@ Deps.set(
     Deps.Konstruct("nativejscore", "nativejscore/configure")
 )
 
+Platform.setEnviron("MACOSX_DEPLOYMENT_TARGET=10.7")
+
 Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")
 
 DEPEDENCY_REPO = Variables.get("depsRepo")
