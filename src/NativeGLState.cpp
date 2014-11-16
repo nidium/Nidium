@@ -4,12 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <NativeOpenGLHeader.h>
 
 NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :
     m_Shared(true)

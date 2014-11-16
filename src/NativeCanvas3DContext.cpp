@@ -6,13 +6,7 @@
 #include "NativeGLState.h"
 
 #include <NativeSystemInterface.h>
-
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <NativeOpenGLHeader.h>
 
 extern JSClass WebGLRenderingContext_class;
 extern JSConstDoubleSpec WebGLRenderingContext_const;
@@ -214,7 +208,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     /* Set the FBO backing store using the new texture */
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
         GL_TEXTURE_2D, m_GLObjects.texture, 0);
-
+    //glRenderbufferStorageMultisample
     glGenRenderbuffers(1, &m_GLObjects.renderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, m_GLObjects.renderbuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
@@ -276,6 +270,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     glClearDepth(1.0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 
     return true;
 }

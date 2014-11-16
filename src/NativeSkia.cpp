@@ -2,12 +2,7 @@
    #define UINT32_MAX 4294967295u
 #endif
 
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <NativeOpenGLHeader.h>
 
 #include <jsapi.h>
 #include "NativeSkia.h"
@@ -409,23 +404,24 @@ void glcb(const GrGLInterface*) {
 SkCanvas *NativeSkia::createGLCanvas(int width, int height,
     NativeContext *nativectx)
 {
+
+    if (!nativectx) {
+        NLOG("createGLCanvas() : invalid native context");
+        return NULL;
+    }
+
     const GrGLInterface *interface = NULL;
     GrContext *context = NULL;
 
     if (NativeSkia::glcontext) {
         context = ((SkGpuDevice *)NativeSkia::glcontext->getDevice())->context();
         context->ref();
-        NLOG("Already got a gl interface");
     } else {
-        interface = GrGLCreateNativeInterface();
 
-        if (interface == NULL) {
+        if ((interface = nativectx->getGLState()->getNativeGLContext()->iface()) == NULL) {
             NLOG("Cant get OpenGL interface");
             return NULL;
         }
-
-        ((GrGLInterface*)interface)->fCallback = NativeContext::glCallback;
-        ((GrGLInterface*)interface)->fCallbackData = (uintptr_t)nativectx;
 
         context = GrContext::Create(kOpenGL_GrBackend,
             (GrBackendContext)interface);

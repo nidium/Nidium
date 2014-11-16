@@ -72,8 +72,6 @@ class NativeContext : public NativeMessages
         return (NativeContext *)njs->getPrivate();
     }
 
-    static void glCallback(const GrGLInterface *interface);
-
     void callFrame();
     void createDebugCanvas();
     void postDraw();

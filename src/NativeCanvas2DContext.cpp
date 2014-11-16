@@ -11,12 +11,8 @@
 #include "NativeMacros.h"
 
 #include <SkDevice.h>
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+
+#include <NativeOpenGLHeader.h>
 
 #define CANVASCTX_GETTER(obj) ((class NativeCanvas2DContext *)JS_GetPrivate(obj))
 #define NSKIA_NATIVE_GETTER(obj) ((class NativeSkia *)((class NativeCanvas2DContext *)JS_GetPrivate(obj))->getSurface())

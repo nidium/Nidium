@@ -13,7 +13,6 @@
 
 #if NATIVE_MAKE_CURRENT_EACH_GL_CALL
 
-
 /*
     Make the context pointed by IFANCE current and make a GL call
     e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));

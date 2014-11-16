@@ -32,12 +32,7 @@
 
 #include <gl/GrGLInterface.h>
 
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <NativeOpenGLHeader.h>
 
 jsval gfunc  = JSVAL_VOID;
 
@@ -86,6 +81,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
 
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 
+    m_UI->NativeCtx = this;
     this->m_GLState = new NativeGLState(nui);
 
     this->initShaderLang();
@@ -193,11 +189,6 @@ void NativeContext::sizeChanged(int w, int h)
     jswindow->getCanvasHandler()->setSize((int)w, (int)h);
     /* Redraw */
     m_UI->refresh();
-}
-
-void NativeContext::glCallback(const GrGLInterface *interface)
-{
-    __NativeUI->makeMainGLCurrent();
 }
 
 void NativeContext::createDebugCanvas()
@@ -446,6 +437,8 @@ bool NativeContext::initShaderLang()
     // FIXME : Check if extension is supported and enable or not
     m_ShResources.OES_standard_derivatives = 0;
     m_ShResources.OES_EGL_image_external = 0;
+
+    return true;
 }
 
 void NativeContext::initHandlers(int width, int height)

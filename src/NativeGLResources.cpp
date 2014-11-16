@@ -1,11 +1,6 @@
 #include "NativeGLResources.h"
 
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <NativeOpenGLHeader.h>
 
 void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 {

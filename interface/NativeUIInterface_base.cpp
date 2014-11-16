@@ -11,12 +11,7 @@
 #include <NativeSystemStream.h>
 
 #include <SDL.h>
-#define GL_GLEXT_PROTOTYPES
-#if __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <NativeOpenGLHeader.h>
 
 NativeUIInterface::NativeUIInterface() :
     m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL),
