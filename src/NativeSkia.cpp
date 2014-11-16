@@ -1679,7 +1679,10 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     pt.setFilterLevel(PAINT->getFilterLevel());
     m_Canvas->saveLayer(NULL, NULL);
         m_Canvas->clipRect(r, SkRegion::kReplace_Op);
-        m_Canvas->drawColor(SK_ColorWHITE);
+        /*
+            TODO: why?
+        */
+        //m_Canvas->drawColor(SK_ColorWHITE);
         m_Canvas->drawBitmap(bt, x, y, &pt);
     m_Canvas->restore();
 }
