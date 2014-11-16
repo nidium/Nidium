@@ -703,7 +703,7 @@ class Dep:
                 destFile = os.path.join(destDir, output["file"])
                 Utils.mkdir(destDir)
 
-                if self.needBuild:
+                if self.needBuild or not os.path.exists(destFile) :
                     # New outputs have been generated
                     # Copy them to the build dir 
                     Log.debug("Found output %s, copy to %s" % (output["src"], destFile))
@@ -713,9 +713,6 @@ class Dep:
                 if not output["copyOnly"]:
                     Log.debug("symlink src=%s dst=%s" % (destFile, os.path.join(self.outputsDir, "..", output["file"])))
                     Utils.symlink(destFile, os.path.join(self.outputsDir, "..", output["file"]))
-
-                #if not output["copyOnly"]:
-                #    Utils.symlink(os.path.join("." + self.buildConfig["config"], output["file"]), os.path.join(ROOT, OUTPUT, "third-party", output["file"]))
             else:
                 Utils.exit("Output %s for %s not found" % (output["src"], self.name))
 
