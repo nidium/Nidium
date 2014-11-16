@@ -524,6 +524,8 @@ D_NGL_JS_FN(WebGLRenderingContext_drawArrays)
 D_NGL_JS_FN(WebGLRenderingContext_drawElements)
 D_NGL_JS_FN(WebGLRenderingContext_enable)
 D_NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
+D_NGL_JS_FN(WebGLRenderingContext_finish)
+D_NGL_JS_FN(WebGLRenderingContext_flush)
 D_NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
 D_NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
 D_NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer)
@@ -625,6 +627,8 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("drawElements", WebGLRenderingContext_drawElements, 4, JSPROP_ENUMERATE),
     JS_FS("enable", WebGLRenderingContext_enable, 1, JSPROP_ENUMERATE),
     JS_FS("enableVertexAttribArray", WebGLRenderingContext_enableVertexAttribArray, 1, JSPROP_ENUMERATE),
+    JS_FS("finish", WebGLRenderingContext_finish, 0, JSPROP_ENUMERATE),
+    JS_FS("flush", WebGLRenderingContext_flush, 0, JSPROP_ENUMERATE),
     JS_FS("framebufferRenderbuffer", WebGLRenderingContext_framebufferRenderbuffer, 4, JSPROP_ENUMERATE),
     JS_FS("framebufferTexture2D", WebGLRenderingContext_framebufferTexture2D, 5, JSPROP_ENUMERATE),
     JS_FS("frontFace", WebGLRenderingContext_frontFace, 1, JSPROP_ENUMERATE),
@@ -1720,6 +1724,18 @@ NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
 
     GL_CALL(CppObj, EnableVertexAttribArray(attr));
     
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_finish)
+//{
+    GL_CALL(CppObj, Finish());
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_finish)
+//{
+    GL_CALL(CppObj, Flush());
     return true;
 }
 
