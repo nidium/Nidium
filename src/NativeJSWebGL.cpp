@@ -20,11 +20,11 @@ extern JSClass Canvas_class;
 #define NATIVE_GL_GETTER(obj) ((class NativeCanvasWebGLContext*)JS_GetPrivate(obj))
 
 #define GL_CALL(IFACE, FN)\
-    NATIVE_GL_CALL(IFACE, FN); \
+    NATIVE_GL_CALL((IFACE)->getGLContext(), FN); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
 #define GL_CALL_RET(IFACE, FN, RET)\
-    NATIVE_GL_CALL_RET(IFACE, FN, RET); \
+    NATIVE_GL_CALL_RET((IFACE)->getGLContext(), FN, RET); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
 #define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
@@ -71,7 +71,7 @@ public:
                 GL_CALL(m_GLctx, DeleteBuffers(1, &m_GlIdentifier));
                 break;
             case kVertexArray:
-                GL_CALL(m_GLctx, DeleteVertexArraysAPPLE(1, &m_GlIdentifier));
+                GL_CALL(m_GLctx, DeleteVertexArrays(1, &m_GlIdentifier));
                 break;
             case kFrameBuffer:
                 GL_CALL(m_GLctx, DeleteFramebuffers(1, &m_GlIdentifier));
@@ -1284,7 +1284,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 //{
     NGLShader *cshader;
     JSObject *shader;
-    char *shaderStr;
+    const char *shaderStr;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
         return false;
@@ -1304,7 +1304,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     GL_CALL(CppObj, CompileShader(cshader->shader));
 
     JS_free(cx, (void *)cshader->source);
-    free(shaderStr);
+    free((char *)shaderStr);
     
     return true;
 }

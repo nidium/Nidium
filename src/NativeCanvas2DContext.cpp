@@ -1772,26 +1772,29 @@ uint32_t NativeCanvas2DContext::createProgram(const char *data)
     }
 
     GLuint programHandle;
-    NATIVE_GL_CALL_RET(this->m_GLState, CreateProgram(), programHandle);
+
+    NativeGLContext *iface = m_GLState->getNativeGLContext();
+
+    NATIVE_GL_CALL_RET(iface, CreateProgram(), programHandle);
     
     GLint linkSuccess;
 
-    NATIVE_GL_CALL(this->m_GLState, AttachShader(programHandle, vertex));
-    NATIVE_GL_CALL(this->m_GLState, AttachShader(programHandle, coop));
-    NATIVE_GL_CALL(this->m_GLState, AttachShader(programHandle, fragment));
+    NATIVE_GL_CALL(iface, AttachShader(programHandle, vertex));
+    NATIVE_GL_CALL(iface, AttachShader(programHandle, coop));
+    NATIVE_GL_CALL(iface, AttachShader(programHandle, fragment));
 
-    NATIVE_GL_CALL(this->m_GLState, BindAttribLocation(programHandle,
+    NATIVE_GL_CALL(iface, BindAttribLocation(programHandle,
         NativeCanvasContext::SH_ATTR_POSITION, "Position"));
 
-    NATIVE_GL_CALL(this->m_GLState, BindAttribLocation(programHandle,
+    NATIVE_GL_CALL(iface, BindAttribLocation(programHandle,
         NativeCanvasContext::SH_ATTR_TEXCOORD, "TexCoordIn"));
 
-    NATIVE_GL_CALL(this->m_GLState, LinkProgram(programHandle));
+    NATIVE_GL_CALL(iface, LinkProgram(programHandle));
 
-    NATIVE_GL_CALL(this->m_GLState, GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));
+    NATIVE_GL_CALL(iface, GetProgramiv(programHandle, GR_GL_LINK_STATUS, &linkSuccess));
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
-        NATIVE_GL_CALL(this->m_GLState, GetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]));
+        NATIVE_GL_CALL(iface, GetProgramInfoLog(programHandle, sizeof(messages), 0, &messages[0]));
         NLOG("createProgram error : %s", messages);
         return 0;
     }
@@ -1999,21 +2002,21 @@ void NativeCanvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
 {
     GLenum err;
 
-    NATIVE_GL_CALL_MAIN(BindTexture(GL_TEXTURE_2D, textureID));
+    NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
-    NATIVE_GL_CALL_MAIN(TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
-    NATIVE_GL_CALL_MAIN(TexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ));    
+    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));
+    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER ));    
 
     /* Anti Aliasing */
-    NATIVE_GL_CALL_MAIN(TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
-    NATIVE_GL_CALL_MAIN(TexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
+    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
+    NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
 
-    NATIVE_GL_CALL_MAIN(DrawElements(GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
+    NATIVE_GL_CALL_MAIN(DrawElements(GR_GL_TRIANGLE_STRIP, m_GLState->m_GLObjects.vtx->nindices, GL_UNSIGNED_INT, 0));
 
-    NATIVE_GL_CALL_MAIN(BindTexture(GL_TEXTURE_2D, 0));
+    NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, 0));
 
     /* Unbind vertex array bound by resetGLContext() */
-    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(0));
+    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
 }
 
 #if 0
@@ -2116,15 +2119,17 @@ uint32_t NativeCanvas2DContext::attachShader(const char *string)
 
         m_GLState->setProgram(program);
 
-        NATIVE_GL_CALL_RET(this->m_GLState,
+        NativeGLContext *iface = m_GLState->getNativeGLContext();
+
+        NATIVE_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Resolution"),
             m_GLState->m_GLObjects.uniforms.u_resolution);
 
-        NATIVE_GL_CALL_RET(this->m_GLState,
+        NATIVE_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Position"),
             m_GLState->m_GLObjects.uniforms.u_position);
 
-        NATIVE_GL_CALL_RET(this->m_GLState,
+        NATIVE_GL_CALL_RET(iface,
             GetUniformLocation(program, "n_Padding"),
             m_GLState->m_GLObjects.uniforms.u_padding);
     }

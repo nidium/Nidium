@@ -14,6 +14,10 @@ NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl
 
     m_GLContext = new NativeGLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
 
+    if (!ui->NativeCtx->getGLState()) {
+        ui->NativeCtx->setGLState(this);
+    }
+
     if (!this->initGLBase(withProgram)) {
         NLOG("[OpenGL] Failed to init base GL");
     }
@@ -40,8 +44,10 @@ void NativeGLState::setVertexDeformation(uint32_t vertex, float x, float y)
 
 bool NativeGLState::initGLBase(bool withProgram)
 {
+    //glctx->iface()->fExtensions.print();
+
     NATIVE_GL_CALL_MAIN(GenBuffers(2, m_GLObjects.vbo));
-    NATIVE_GL_CALL_MAIN(GenVertexArraysAPPLE(1, &m_GLObjects.vao));
+    NATIVE_GL_CALL_MAIN(GenVertexArrays(1, &m_GLObjects.vao));
 
     m_Resources.add(m_GLObjects.vbo[0], NativeGLResources::RBUFFER);
     m_Resources.add(m_GLObjects.vbo[1], NativeGLResources::RBUFFER);
@@ -49,30 +55,30 @@ bool NativeGLState::initGLBase(bool withProgram)
 
     NativeVertices *vtx = m_GLObjects.vtx = NativeCanvasContext::buildVerticesStripe(4);
 
-    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(m_GLObjects.vao));
+    NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
 
     NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_POSITION));
     NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_TEXCOORD));
     NATIVE_GL_CALL_MAIN(EnableVertexAttribArray(NativeCanvasContext::SH_ATTR_MODIFIER));
 
     /* Upload the list of vertex */
-    NATIVE_GL_CALL_MAIN(BindBuffer(GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
-    NATIVE_GL_CALL_MAIN(BufferData(GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
+    NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ARRAY_BUFFER, m_GLObjects.vbo[0]));
+    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ARRAY_BUFFER, sizeof(NativeVertex) * vtx->nvertices,
         vtx->vertices, GL_DYNAMIC_DRAW));
 
     /* Upload the indexes for triangle strip */
-    NATIVE_GL_CALL_MAIN(BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
-    NATIVE_GL_CALL_MAIN(BufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
+    NATIVE_GL_CALL_MAIN(BindBuffer(GR_GL_ELEMENT_ARRAY_BUFFER, m_GLObjects.vbo[1]));
+    NATIVE_GL_CALL_MAIN(BufferData(GR_GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * vtx->nindices,
         vtx->indices, GL_STATIC_DRAW));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GL_FLOAT, GL_FALSE,
+    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_POSITION, 3, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(NativeVertex), 0));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GL_FLOAT, GL_FALSE,
+    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_TEXCOORD, 2, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(NativeVertex),
                           (GLvoid*) offsetof(NativeVertex, TexCoord)));
 
-    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_MODIFIER, 2, GL_FLOAT, GL_FALSE,
+    NATIVE_GL_CALL_MAIN(VertexAttribPointer(NativeCanvasContext::SH_ATTR_MODIFIER, 2, GR_GL_FLOAT, GR_GL_FALSE,
                           sizeof(NativeVertex),
                           (GLvoid*) offsetof(NativeVertex, Modifier)));
 
@@ -90,7 +96,7 @@ bool NativeGLState::initGLBase(bool withProgram)
             m_GLObjects.uniforms.u_opacity);    
     }
 
-    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(0));
+    NATIVE_GL_CALL_MAIN(BindVertexArray(0));
 
     return true;
 }
@@ -107,8 +113,8 @@ void NativeGLState::setProgram(uint32_t program)
 
 void NativeGLState::setActive()
 {
-    NATIVE_GL_CALL_MAIN(BindVertexArrayAPPLE(m_GLObjects.vao));
-    NATIVE_GL_CALL_MAIN(ActiveTexture(GL_TEXTURE0));
+    NATIVE_GL_CALL_MAIN(BindVertexArray(m_GLObjects.vao));
+    NATIVE_GL_CALL_MAIN(ActiveTexture(GR_GL_TEXTURE0));
 }
 
 NativeGLState::~NativeGLState()

@@ -5,15 +5,43 @@
 #include "NativeMacros.h"
 
 #include <gl/GrGLInterface.h>
+#include <gl/GrGLDefines.h>
+
+#include <NativeContext.h>
 
 typedef void *SDL_GLContext;
+
+
+/*
+    Make the context pointed by IFACE current and make a GL call
+    e.g. NATIVE_GL_CALL(this->context, Clear(0, 0, 0, 0));
+*/
+
+#define NATIVE_GL_MAIN_IFACE (__NativeUI->getNativeContext()->getGLState()->getNativeGLContext())
+
+#define NATIVE_GL_CALL(IFACE, X)                         \
+    do {                                                 \
+        NativeGLContext::GLCallback(IFACE->m_Interface);  \
+        (IFACE)->m_Interface->fFunctions.f##X;            \
+    } while (false)
+
+#define NATIVE_GL_CALL_RET(IFACE, X, RET)   \
+    do {                                    \
+        NativeGLContext::GLCallback(IFACE->m_Interface);  \
+        (RET) =  (IFACE)->m_Interface->fFunctions.f##X;   \
+    } while (false)
+
+#define NATIVE_GL_CALL_MAIN(X) NATIVE_GL_CALL((NATIVE_GL_MAIN_IFACE), X) 
+
+#define NATIVE_GL_CALL_RET_MAIN(X, RET) NATIVE_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
+
 
 class NativeGLContext 
 {
     public:
         NativeGLContext(NativeUIInterface *ui,
             SDL_GLContext wrappedCtx = NULL, bool webgl = false) :
-            m_UI(ui), m_Interface(NULL)
+            m_Interface(NULL), m_UI(ui)
         {
             if (wrappedCtx) {
                 m_SDLGLCtx = wrappedCtx;
@@ -77,10 +105,11 @@ class NativeGLContext
             return m_UI;
         }
 
-        static void GLCallback(const GrGLInterface *interface) {
+        inline static void GLCallback(const GrGLInterface *interface) {
             NativeGLContext *_this = (NativeGLContext *)interface->fCallbackData;
             _this->makeCurrent();
         }
+        const GrGLInterface *m_Interface;
     private:
 
         void createInterface() {
@@ -94,6 +123,5 @@ class NativeGLContext
         SDL_GLContext m_SDLGLCtx;
         NativeUIInterface *m_UI;
         bool wrapped;
-        const GrGLInterface *m_Interface;
 };
 #endif

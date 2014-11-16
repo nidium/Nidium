@@ -308,7 +308,7 @@ void NativeCanvasContext::updateMatrix(double left, double top,
         /*
             Execute the call on the specified (should be main) OpenGL context
         */
-        NATIVE_GL_CALL(glstate,
+        NATIVE_GL_CALL(glstate->getNativeGLContext(),
             UniformMatrix4fv(m_GLState->m_GLObjects.uniforms.u_projectionMatrix,
                 1, GL_FALSE, mat4));
     } else {
@@ -354,8 +354,8 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
     /*
         Activate alpha blending
     */
-    NATIVE_GL_CALL(layer->m_GLState, Enable(GL_BLEND));
-    NATIVE_GL_CALL(layer->m_GLState, BlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_BLEND));
+    NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), BlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
 
     /*
         Setup clipping
@@ -366,8 +366,8 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
             SkDoubleToScalar(rclip->fTop*(double)ratio),
             SkDoubleToScalar(rclip->fRight*(double)ratio),
             SkDoubleToScalar(rclip->fBottom*(double)ratio));
-        NATIVE_GL_CALL(layer->m_GLState, Enable(GL_SCISSOR_TEST));
-        NATIVE_GL_CALL(layer->m_GLState, Scissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height()));
+        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Enable(GL_SCISSOR_TEST));
+        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Scissor(r.left(), layerSize.height()-(r.top()+r.height()), r.width(), r.height()));
         revertScissor = true;
     }
 
@@ -389,7 +389,7 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
     layer->drawTexture(this->getTextureID(), width, height, left*ratio, top*ratio);
 
     if (revertScissor) {
-        NATIVE_GL_CALL(layer->m_GLState, Disable(GL_SCISSOR_TEST));
+        NATIVE_GL_CALL(layer->m_GLState->getNativeGLContext(), Disable(GR_GL_SCISSOR_TEST));
     }
 }
 

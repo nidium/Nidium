@@ -56,8 +56,12 @@ class NativeContext : public NativeMessages
         return m_NML;
     }
 
-    NativeGLState *getGLState() const {
+    inline NativeGLState *getGLState() const {
         return m_GLState;
+    }
+
+    void setGLState(NativeGLState *state) {
+        m_GLState = state;
     }
 
     ShBuiltInResources *getShaderResources() {

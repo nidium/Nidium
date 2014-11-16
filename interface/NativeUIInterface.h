@@ -131,7 +131,7 @@ class NativeUIInterface
         struct SDL_Window *win;
         struct _ape_global *gnet;
 
-        NativeContext *getNativeContext() const {
+        inline NativeContext *getNativeContext() const {
             return NativeCtx;
         }
 

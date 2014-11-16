@@ -63,7 +63,7 @@ int NativeContext_LogClear()
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    m_DebugHandler(NULL), m_UI(nui), m_NML(nml)
+    m_DebugHandler(NULL), m_UI(nui), m_NML(nml), m_GLState(NULL)
 {
     gfunc = JSVAL_VOID;
     //nui->useOffScreenRendering(true);
@@ -82,7 +82,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 
     m_UI->NativeCtx = this;
-    this->m_GLState = new NativeGLState(nui);
+    NativeGLState *state = new NativeGLState(nui);
+    if (!m_GLState) {
+        m_GLState = state;
+    }
 
     this->initShaderLang();
     this->initHandlers(width, height);

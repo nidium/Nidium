@@ -76,8 +76,17 @@ public:
         m_GLState = state;
     }
 
-    NativeGLState *getGLState() const {
+    inline NativeGLState *getGLState() const {
         return m_GLState;
+    }
+
+    inline NativeGLContext *getGLContext() const {
+        if (!m_GLState) {
+            NLOG("getGLContext() invalid glstate on %p", this);
+            return NULL;
+        }
+
+        return m_GLState->getNativeGLContext();
     }
 
     bool makeGLCurrent() {

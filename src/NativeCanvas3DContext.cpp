@@ -11,6 +11,8 @@
 extern JSClass WebGLRenderingContext_class;
 extern JSConstDoubleSpec WebGLRenderingContext_const;
 
+#define GL_CALL(X) NATIVE_GL_CALL(m_GLState->getNativeGLContext(), X)
+#define GL_CALL_RET(X, RET) NATIVE_GL_CALL_RET(m_GLState->getNativeGLContext(), X, RET)
 
 NativeCanvas3DContext::~NativeCanvas3DContext()
 {
@@ -84,16 +86,13 @@ void NativeCanvas3DContext::setScale(double x, double y, double px, double py)
 
 void NativeCanvas3DContext::clear(uint32_t color)
 {
-    m_GLState->makeGLCurrent();
-
-    glClearColor(0., 0., 0., 0.);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GL_CALL(ClearColor(0., 0., 0., 0.));
+    GL_CALL(Clear(GL_COLOR_BUFFER_BIT));
 }
 
 void NativeCanvas3DContext::flush()
 {
-    m_GLState->makeGLCurrent();
-    glFlush();
+    GL_CALL(Flush());
 }
 
 uint32_t NativeCanvas3DContext::getTextureID() const
@@ -110,36 +109,33 @@ void NativeCanvas3DContext::getSize(int *width, int *height) const
 
 void NativeCanvas3DContext::cleanUp()
 {
-    m_GLState->makeGLCurrent();
 
     if (m_GLObjects.texture) {
-        glDeleteTextures(1, &m_GLObjects.texture);
+        GL_CALL(DeleteTextures(1, &m_GLObjects.texture));
         m_GLObjects.texture = 0;
     }
 
     if (m_GLObjects.fbo) {
-        glDeleteFramebuffers(1, &m_GLObjects.fbo);
+        GL_CALL(DeleteFramebuffers(1, &m_GLObjects.fbo));
         m_GLObjects.fbo = 0;
     }
 
     if (m_GLObjects.vao) {
-        glDeleteVertexArraysAPPLE(1, &m_GLObjects.vao);
+        GL_CALL(DeleteVertexArrays(1, &m_GLObjects.vao));
         m_GLObjects.vao = 0;
     }
 
     if (m_GLObjects.renderbuffer) {
-        glDeleteRenderbuffers(1, &m_GLObjects.renderbuffer);
+        GL_CALL(DeleteRenderbuffers(1, &m_GLObjects.renderbuffer));
         m_GLObjects.renderbuffer = 0;
     }
 
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL_CALL(BindTexture(GL_TEXTURE_2D, 0));
+    GL_CALL(BindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 uint8_t *NativeCanvas3DContext::getPixels()
 {
-    m_GLState->makeGLCurrent();
-
     this->flush();
 
     if (m_CachedPixels.pixels &&
@@ -158,8 +154,8 @@ uint8_t *NativeCanvas3DContext::getPixels()
             m_CachedPixels.height * 4);
     }
 
-    glReadPixels(0, 0, m_Device.width, m_Device.height,
-        GL_RGBA, GL_UNSIGNED_BYTE, m_CachedPixels.pixels);
+    GL_CALL(ReadPixels(0, 0, m_Device.width, m_Device.height,
+        GL_RGBA, GL_UNSIGNED_BYTE, m_CachedPixels.pixels));
 
     return m_CachedPixels.pixels;
 }
@@ -171,6 +167,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     */
 
     if (!m_GLState) {
+        printf("GL state created on %p\n", this);
         m_GLState = new NativeGLState(__NativeUI, true, true);
         m_GLState->setShared(false);
     }
@@ -178,49 +175,46 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     /*
         Following call are made on the newly created OpenGL Context
     */
+    GL_CALL(GenTextures(1, &m_GLObjects.texture));
+    GL_CALL(BindTexture(GR_GL_TEXTURE_2D, m_GLObjects.texture));
 
-    m_GLState->makeGLCurrent();
-
-    glGenTextures(1, &m_GLObjects.texture);
-    glBindTexture(GL_TEXTURE_2D, m_GLObjects.texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL_CALL(TexParameteri(GR_GL_TEXTURE_2D, GR_GL_TEXTURE_MIN_FILTER, GR_GL_LINEAR));
+    GL_CALL(TexParameteri(GR_GL_TEXTURE_2D, GR_GL_TEXTURE_MAG_FILTER, GR_GL_LINEAR));
 
     /* Allocate memory for the new texture */
-    glTexImage2D(
-            GL_TEXTURE_2D,
+    GL_CALL(TexImage2D(
+            GR_GL_TEXTURE_2D,
             0,
-            GL_RGBA,
+            GR_GL_RGBA,
             width, height,
             0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
+            GR_GL_RGBA,
+            GR_GL_UNSIGNED_BYTE,
             NULL
-    );
+    ));
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL_CALL(BindTexture(GR_GL_TEXTURE_2D, 0));
 
     /* Generate the FBO */
-    glGenFramebuffers(1, &m_GLObjects.fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_GLObjects.fbo);
+    GL_CALL(GenFramebuffers(1, &m_GLObjects.fbo));
+    GL_CALL(BindFramebuffer(GR_GL_FRAMEBUFFER, m_GLObjects.fbo));
 
     /* Set the FBO backing store using the new texture */
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        GL_TEXTURE_2D, m_GLObjects.texture, 0);
+    GL_CALL(FramebufferTexture2D(GR_GL_FRAMEBUFFER, GR_GL_COLOR_ATTACHMENT0,
+        GR_GL_TEXTURE_2D, m_GLObjects.texture, 0));
     //glRenderbufferStorageMultisample
-    glGenRenderbuffers(1, &m_GLObjects.renderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_GLObjects.renderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_GLObjects.renderbuffer);
+    GL_CALL(GenRenderbuffers(1, &m_GLObjects.renderbuffer));
+    GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
+    GL_CALL(RenderbufferStorage(GR_GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height));
+    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_DEPTH_ATTACHMENT, GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
 
     GLenum status;
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    GL_CALL_RET(CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
 
     switch(status) {
-        case GL_FRAMEBUFFER_COMPLETE:
+        case GR_GL_FRAMEBUFFER_COMPLETE:
             break;
-        case GL_FRAMEBUFFER_UNSUPPORTED:
+        case GR_GL_FRAMEBUFFER_UNSUPPORTED:
             printf("fbo unsupported\n");
             return false;
         default:
@@ -228,48 +222,45 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
             return false;
     }
 
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glClearColor(0., 0., 0., 0.);
+    GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, 0));
+    GL_CALL(ClearColor(0., 0., 0., 0.));
 
-    glViewport(0, 0, width, height);
+    GL_CALL(Viewport(0, 0, width, height));
 
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-#ifdef GL_POINT_SPRITE
-    glEnable(GL_POINT_SPRITE);
-#endif
+    GL_CALL(Enable(GR_GL_VERTEX_PROGRAM_POINT_SIZE));
 
     /* Vertex Array Buffer are required in GL3.0+ */
     uint32_t vao;
-    glGenVertexArraysAPPLE(1, &m_GLObjects.vao);
-    glBindVertexArrayAPPLE(m_GLObjects.vao);
+    GL_CALL(GenVertexArrays(1, &m_GLObjects.vao));
+    GL_CALL(BindVertexArray(m_GLObjects.vao));
 
     /*
         Cull face is enabled by default on WebGL
     */
-    glFrontFace(GL_CCW);
-    glEnable(GL_CULL_FACE);
+    GL_CALL(FrontFace(GR_GL_CCW));
+    GL_CALL(Enable(GR_GL_CULL_FACE));
     /*
         We keep the newly created framebuffer bound.
     */
 
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_MULTISAMPLE);
+    GL_CALL(Enable(GR_GL_TEXTURE_2D));
+    GL_CALL(Enable(GR_GL_MULTISAMPLE));
 
 #if 0
-    glShadeModel(GL_SMOOTH);
-    glDepthFunc(GL_LEQUAL);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    GL_CALL(ShadeModel(GL_SMOOTH));
+    GL_CALL(DepthFunc(GL_LEQUAL));
+    GL_CALL(Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST));
+    GL_CALL(Hint(GL_POLYGON_SMOOTH_HINT, GL_NICEST));
     GL_CALL(CppObj, Enable(GL_FRAGMENT_PRECISION_HIGH));
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LEQUAL);
-    glDepthRange(0.f, 1.f);
+    GL_CALL(DepthMask(GL_TRUE));
+    GL_CALL(DepthFunc(GL_LEQUAL));
+    GL_CALL(DepthRange(0.f, 1.f));
 #endif
 
-    glEnable(GL_DEPTH_TEST);
-    glClearDepth(1.0);
+    GL_CALL(Enable(GR_GL_DEPTH_TEST));
+    GL_CALL(ClearDepth(1.0));
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL_CALL(Clear(GR_GL_COLOR_BUFFER_BIT | GR_GL_DEPTH_BUFFER_BIT));
     //glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 
     return true;
