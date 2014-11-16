@@ -30,7 +30,8 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
         return NULL;
     }
 
-    if (!ShCompile(compiler, &content, 1, SH_OBJECT_CODE)) {
+    if (!ShCompile(compiler, &content, 1, SH_OBJECT_CODE | SH_ATTRIBUTES_UNIFORMS | 
+            SH_ENFORCE_PACKING_RESTRICTIONS | SH_MAP_LONG_VARIABLE_NAMES)) {
         size_t logLen;
         ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &logLen);
         char *log = (char *)malloc(logLen);
