@@ -1044,7 +1044,6 @@ NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
 //{
     GLenum target;
-    uintptr_t cbuffer;
     JSObject *buffer;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uo", &target, &buffer)) {
@@ -1215,10 +1214,6 @@ NGL_JS_FN(WebGLRenderingContext_bufferSubData)
     GLint offset;
     JSObject *array;
 
-    GLsizei size;
-    GLvoid *data;
-
-    
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uuo",
         &target, &offset, &array)) {
         return false;
@@ -1295,6 +1290,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
 //{
     NGLShader *cshader;
     JSObject *shader;
+    char *shaderStr;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &shader)) {
         return false;
@@ -1303,23 +1299,18 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader,
         &WebGLShader_class, JS_ARGV(cx, vp));
 
-    ShHandle compiler = 0;
-    size_t len = 0;
-    char *str;
-
-    if (!(str = NativeCanvasContext::processShader(
+    if (!(shaderStr = NativeCanvasContext::processShader(
             cshader->source, (NativeCanvasContext::shaderType)cshader->type))) {
         return false;
     }
 
-    GLint shaderLen = strlen(str);
-    GL_CALL(CppObj, ShaderSource(cshader->shader, 1, &str, &shaderLen));
+    GLint shaderLen = strlen(shaderStr);
+    GL_CALL(CppObj, ShaderSource(cshader->shader, 1, &shaderStr, &shaderLen));
 
     GL_CALL(CppObj, CompileShader(cshader->shader));
 
-    ShDestruct(compiler);
     JS_free(cx, (void *)cshader->source);
-    free(str);
+    free(shaderStr);
     
     return true;
 }
@@ -2382,6 +2373,9 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
             pixels = (unsigned char*)malloc(width * height * 4);
 
             ctx->getSurface()->readPixels(0, 0, width, height, pixels);
+        } else {
+            JS_ReportError(cx, "Unsupported or invalid image data");
+            return false;
         }
 
         GL_CALL(CppObj, TexImage2D(target, level, internalFormat, width, height, 0, format, type, pixels));
