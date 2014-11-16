@@ -456,6 +456,7 @@ D_NGL_JS_FN(WebGLRenderingContext_bindBuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindTexture)
+D_NGL_JS_FN(WebGLRenderingContext_copyTexSubImage2D)
 D_NGL_JS_FN(WebGLRenderingContext_blendEquation)
 D_NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)
 D_NGL_JS_FN(WebGLRenderingContext_blendFunc)
@@ -466,6 +467,7 @@ D_NGL_JS_FN(WebGLRenderingContext_clear)
 D_NGL_JS_FN(WebGLRenderingContext_clearColor)
 D_NGL_JS_FN(WebGLRenderingContext_clearDepth)
 D_NGL_JS_FN(WebGLRenderingContext_clearStencil)
+D_NGL_JS_FN(WebGLRenderingContext_colorMask)
 D_NGL_JS_FN(WebGLRenderingContext_compileShader)
 D_NGL_JS_FN(WebGLRenderingContext_createBuffer)
 D_NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
@@ -546,6 +548,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("bindFramebuffer", WebGLRenderingContext_bindFramebuffer, 2, JSPROP_ENUMERATE),
     JS_FS("bindRenderbuffer", WebGLRenderingContext_bindRenderbuffer, 2, JSPROP_ENUMERATE),
     JS_FS("bindTexture", WebGLRenderingContext_bindTexture, 2, JSPROP_ENUMERATE),
+    JS_FS("copyTexSubImage2D", WebGLRenderingContext_copyTexSubImage2D, 8, JSPROP_ENUMERATE),
     JS_FS("blendEquation", WebGLRenderingContext_blendEquation, 1, JSPROP_ENUMERATE),
     JS_FS("blendEquationSeparate", WebGLRenderingContext_blendEquationSeparate, 2, JSPROP_ENUMERATE),
     JS_FS("blendFunc", WebGLRenderingContext_blendFunc, 2, JSPROP_ENUMERATE),
@@ -556,6 +559,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("clearColor", WebGLRenderingContext_clearColor, 4, JSPROP_ENUMERATE),
     JS_FS("clearDepth", WebGLRenderingContext_clearDepth, 1, JSPROP_ENUMERATE),
     JS_FS("clearStencil", WebGLRenderingContext_clearStencil, 1, JSPROP_ENUMERATE),
+    JS_FS("colorMask", WebGLRenderingContext_colorMask, 0, JSPROP_ENUMERATE),
     JS_FS("compileShader", WebGLRenderingContext_compileShader, 1, JSPROP_ENUMERATE),
     JS_FS("texImage2D", WebGLRenderingContext_texImage2D, 6, JSPROP_ENUMERATE),
     JS_FS("createBuffer", WebGLRenderingContext_createBuffer, 0, JSPROP_ENUMERATE),
@@ -1121,6 +1125,28 @@ NGL_JS_FN(WebGLRenderingContext_bindTexture)
     return true;
 }
 
+NGL_JS_FN(WebGLRenderingContext_copyTexSubImage2D)
+//{
+    GLenum target;
+    GLint level;
+    GLenum internalFormat;
+    GLint x;
+    GLint y;
+    GLsizei width;
+    GLsizei height;
+    GLint border;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiuiiiii", &target, 
+        &level, &internalFormat, &x, &y, &width, &height, &border)) {
+        return false;
+    }
+
+    GL_CALL(CppObj, CopyTexSubImage2D(target, level, internalFormat, 
+        x, y, width, height, border));
+
+    return true;
+}
+
 NGL_JS_FN(WebGLRenderingContext_blendEquation)
 //{
     GLuint mode;
@@ -1276,6 +1302,32 @@ NGL_JS_FN(WebGLRenderingContext_clearStencil)
     }
 
     GL_CALL(CppObj, ClearStencil(s));
+
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_colorMask)
+//{
+    JSBool red = true;
+    JSBool green = true;
+    JSBool blue = true;
+    JSBool alpha = true;
+
+    GLboolean gred = GL_TRUE;
+    GLboolean ggreen = GL_TRUE;
+    GLboolean gblue = GL_TRUE;
+    GLboolean galpha = GL_TRUE;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "/bbbb", &red, &green, &blue, &alpha)) {
+        return false;
+    }
+
+    if (!red) gred = GL_FALSE;
+    if (!green) ggreen = GL_FALSE;
+    if (!blue) gblue = GL_FALSE;
+    if (!alpha) galpha = GL_FALSE;
+
+    GL_CALL(CppObj, ColorMask(gred, ggreen, gblue, galpha));
 
     return true;
 }
