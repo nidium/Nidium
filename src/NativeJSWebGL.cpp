@@ -511,6 +511,7 @@ D_NGL_JS_FN(WebGLRenderingContext_deleteShader)
 D_NGL_JS_FN(WebGLRenderingContext_deleteTexture)
 D_NGL_JS_FN(WebGLRenderingContext_depthFunc)
 D_NGL_JS_FN(WebGLRenderingContext_depthMask)
+D_NGL_JS_FN(WebGLRenderingContext_depthRange)
 D_NGL_JS_FN(WebGLRenderingContext_disable)
 D_NGL_JS_FN(WebGLRenderingContext_disableVertexAttribArray)
 D_NGL_JS_FN(WebGLRenderingContext_drawArrays)
@@ -610,6 +611,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("deleteTexture", WebGLRenderingContext_deleteTexture, 1, JSPROP_ENUMERATE),
     JS_FS("depthFunc", WebGLRenderingContext_depthFunc, 1, JSPROP_ENUMERATE),
     JS_FS("depthMask", WebGLRenderingContext_depthMask, 1, JSPROP_ENUMERATE),
+    JS_FS("depthRange", WebGLRenderingContext_depthRange, 2, JSPROP_ENUMERATE),
     JS_FS("disable", WebGLRenderingContext_disable, 1, JSPROP_ENUMERATE),
     JS_FS("disableVertexAttribArray", WebGLRenderingContext_disableVertexAttribArray, 1, JSPROP_ENUMERATE),
     JS_FS("drawArrays", WebGLRenderingContext_drawArrays, 3, JSPROP_ENUMERATE),
@@ -1593,6 +1595,20 @@ NGL_JS_FN(WebGLRenderingContext_depthMask)
     }
 
     GL_CALL(CppObj, DepthMask((GLboolean)flag));
+    
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_depthRange)
+//{
+    double zNear;
+    double zFar;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &zNear, &zFar)) {
+        return false;
+    }
+
+    GL_CALL(CppObj, DepthRange(zNear, zFar));
     
     return true;
 }
