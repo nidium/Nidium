@@ -358,6 +358,12 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
     SkISize layerSize = skia->getCanvas()->getDeviceSize();
 
     /*
+        Activate alpha blending
+    */
+    NATIVE_GL_CALL(layer->m_GLState, Enable(GL_BLEND));
+    NATIVE_GL_CALL(layer->m_GLState, BlendFunc (GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+
+    /*
         Setup clipping
     */
     if (rclip != NULL) {
