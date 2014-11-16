@@ -349,9 +349,13 @@ class Utils:
 
         displaySpinner = True
         stdin = None 
+        failExit = True
 
         if "stdin" in kwargs:
             stdin = kwargs["stdin"]
+
+        if "failExit" in kwargs:
+            failExit = kwargs["failExit"]
 
         child = None
 
@@ -365,7 +369,8 @@ class Utils:
         code = child.returncode
 
         if code != 0:
-            Utils.exit("Failed to run previous command")
+            if failExit:
+                Utils.exit("Failed to run previous command")
         else:
             Log.success("Success")
         
