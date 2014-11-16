@@ -457,6 +457,7 @@ D_NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
 D_NGL_JS_FN(WebGLRenderingContext_bindTexture)
 D_NGL_JS_FN(WebGLRenderingContext_copyTexImage2D)
+D_NGL_JS_FN(WebGLRenderingContext_copyTexSubImage2D)
 D_NGL_JS_FN(WebGLRenderingContext_blendEquation)
 D_NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)
 D_NGL_JS_FN(WebGLRenderingContext_blendFunc)
@@ -549,6 +550,7 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("bindRenderbuffer", WebGLRenderingContext_bindRenderbuffer, 2, JSPROP_ENUMERATE),
     JS_FS("bindTexture", WebGLRenderingContext_bindTexture, 2, JSPROP_ENUMERATE),
     JS_FS("copyTexImage2D", WebGLRenderingContext_copyTexImage2D, 8, JSPROP_ENUMERATE),
+    JS_FS("copyTexSubImage2D", WebGLRenderingContext_copyTexSubImage2D, 8, JSPROP_ENUMERATE),
     JS_FS("blendEquation", WebGLRenderingContext_blendEquation, 1, JSPROP_ENUMERATE),
     JS_FS("blendEquationSeparate", WebGLRenderingContext_blendEquationSeparate, 2, JSPROP_ENUMERATE),
     JS_FS("blendFunc", WebGLRenderingContext_blendFunc, 2, JSPROP_ENUMERATE),
@@ -1143,6 +1145,28 @@ NGL_JS_FN(WebGLRenderingContext_copyTexImage2D)
 
     GL_CALL(CppObj, CopyTexImage2D(target, level, internalFormat, 
         x, y, width, height, border));
+
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_copyTexSubImage2D)
+//{
+    GLenum target;
+    GLint level;
+    GLint xoffset;
+    GLint yoffset;
+    GLint x;
+    GLint y;
+    GLsizei width;
+    GLsizei height;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "uiiiiiii", &target, 
+        &level, &xoffset, &yoffset, &x, &y, &width, &height)) {
+        return false;
+    }
+
+    GL_CALL(CppObj, CopyTexSubImage2D(target, level, xoffset, 
+        yoffset, x, y, width, height));
 
     return true;
 }
