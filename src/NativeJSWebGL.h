@@ -85,20 +85,10 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
         int m_height;
 };
 
-struct NGLShader {
-    GLenum type;
-    GLuint shader;
-    const char *source;
-    int length;
-
-    NGLShader(GLenum type, GLuint shader) 
-        : type(type), shader(shader), source(NULL), length(0) {};
-};
-
 NEW_CLASS(WebGLRenderingContext)
 NEW_CLASS(WebGLObject)
 NEW_CLASS(WebGLBuffer)
-NEW_CLASS(WebGLFrameBuffer)
+NEW_CLASS(WebGLFramebuffer)
 NEW_CLASS(WebGLProgram)
 NEW_CLASS(WebGLRenderbuffer)
 NEW_CLASS(WebGLShader)

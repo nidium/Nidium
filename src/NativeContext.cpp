@@ -140,7 +140,7 @@ void NativeContext::loadNativeObjects(int width, int height)
 #ifdef NATIVE_WEBGL_ENABLED
     NativeJSWebGLRenderingContext::registerObject(cx);
     NativeJSWebGLBuffer::registerObject(cx);
-    NativeJSWebGLFrameBuffer::registerObject(cx);
+    NativeJSWebGLFramebuffer::registerObject(cx);
     NativeJSWebGLProgram::registerObject(cx);
     NativeJSWebGLRenderbuffer::registerObject(cx);
     NativeJSWebGLShader::registerObject(cx);
