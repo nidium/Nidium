@@ -1666,7 +1666,6 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
 {
     SkBitmap bt;
     SkPaint pt;
-    SkRect r;
 
     bt.setConfig(SkBitmap::kARGB_8888_Config, width, height, width*4);
 
@@ -1674,17 +1673,10 @@ void NativeSkia::drawPixels(uint8_t *pixels, int width, int height,
     bt.installPixels(SkImageInfo::Make(width, height, kRGBA_8888_SkColorType,
         kUnpremul_SkAlphaType), pixels, width*4);
 
-    r.setXYWH(x, y, width, height);
-
     pt.setFilterLevel(PAINT->getFilterLevel());
-    m_Canvas->saveLayer(NULL, NULL);
-        m_Canvas->clipRect(r, SkRegion::kReplace_Op);
-        /*
-            TODO: why?
-        */
-        //m_Canvas->drawColor(SK_ColorWHITE);
-        m_Canvas->drawBitmap(bt, x, y, &pt);
-    m_Canvas->restore();
+
+    pt.setXfermodeMode(SkXfermode::kSrc_Mode);
+    m_Canvas->drawBitmap(bt, x, y, &pt);
 }
 
 int NativeSkia::readPixels(int top, int left, int width, int height,
