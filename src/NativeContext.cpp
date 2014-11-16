@@ -441,6 +441,8 @@ bool NativeContext::initShaderLang()
     m_ShResources.MaxFragmentUniformVectors = maxFragmentUniformVectors;
     m_ShResources.MaxDrawBuffers = 1;
 
+    m_ShResources.FragmentPrecisionHigh = 1;
+
     // FIXME : Check if extension is supported and enable or not
     m_ShResources.OES_standard_derivatives = 0;
     m_ShResources.OES_EGL_image_external = 0;
