@@ -1303,50 +1303,17 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     cshader = (NGLShader *)JS_GetInstancePrivate(cx, shader,
         &WebGLShader_class, JS_ARGV(cx, vp));
 
-    ShBuiltInResources resources; 
     ShHandle compiler = 0;
     size_t len = 0;
     char *str;
 
-    ShInitBuiltInResources(&resources);
-
-    // TODO use real values (see third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp )
-    resources.MaxVertexAttribs = 8;
-    resources.MaxVertexUniformVectors = 128;
-    resources.MaxVaryingVectors = 8;
-    resources.MaxVertexTextureImageUnits = 4;
-    resources.MaxCombinedTextureImageUnits = 8;
-    resources.MaxTextureImageUnits = 8;
-    resources.MaxFragmentUniformVectors = 16;
-    resources.MaxDrawBuffers = 1;
-
-    resources.OES_standard_derivatives = 1;
-    resources.FragmentPrecisionHigh = 1;
-
-    compiler = ShConstructCompiler((ShShaderType)cshader->type,
-        SH_WEBGL_SPEC, SH_GLSL_OUTPUT, &resources);
-    // XXX : Might be interesting to use SH_VALIDATE
-    if (!ShCompile(compiler, &cshader->source, 1,
-        SH_OBJECT_CODE|SH_ATTRIBUTES_UNIFORMS|SH_ENFORCE_PACKING_RESTRICTIONS|SH_MAP_LONG_VARIABLE_NAMES)) {
-
-        size_t bufferLen;
-        ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &bufferLen);
-        char *buffer = (char*) malloc(bufferLen * sizeof(char));
-        ShGetInfoLog(compiler, buffer);
-
-        JS_ReportError(cx, "Failed to translate shader to GLSL. %s", buffer);
-        free(buffer);
-
+    if (!(str = NativeCanvasContext::processShader(
+            cshader->source, (NativeCanvasContext::shaderType)cshader->type))) {
         return false;
     }
 
-    ShGetInfo(compiler, SH_OBJECT_CODE_LENGTH, &len);
-    str = (char *)malloc(len * sizeof(char));
-    ShGetObjectCode(compiler, str);
-    const char *foo = (const char *)str;
-
-    GLint shaderLen = len;
-    GL_CALL(CppObj, ShaderSource(cshader->shader, 1, &foo, &shaderLen));
+    GLint shaderLen = strlen(str);
+    GL_CALL(CppObj, ShaderSource(cshader->shader, 1, &str, &shaderLen));
 
     GL_CALL(CppObj, CompileShader(cshader->shader));
 
@@ -1628,7 +1595,6 @@ NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
 
 NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
 //{
-    uint32_t cprogram;
     GLint location;
     JSString *name;
     JSObject *program;
@@ -2414,6 +2380,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
             height = handler->getHeight();
 
             pixels = (unsigned char*)malloc(width * height * 4);
+
             ctx->getSurface()->readPixels(0, 0, width, height, pixels);
         }
 
@@ -2605,13 +2572,6 @@ NGL_JS_FN(WebGLRenderingContext_useProgram)
 //{
     JSObject *program;
 
-    if (JSVAL_IS_INT(JS_ARGV(cx, vp)[0])) {
-        int prog = JSVAL_TO_INT(JS_ARGV(cx, vp)[0]);
-        printf("program=%d\n", prog);
-        GL_CALL(CppObj, UseProgram(prog));
-        return true;
-    }
-
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "o", &program)) {
         return false;
     }
@@ -2621,8 +2581,6 @@ NGL_JS_FN(WebGLRenderingContext_useProgram)
         GL_CALL(CppObj, UseProgram(0));
         return true;
     }
-
-    printf("Use Program on %p\n", CppObj->getGLState()->getNativeGLContext()->getGLContext());
 
     WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, program,
         &WebGLProgram_class, JS_ARGV(cx, vp));
