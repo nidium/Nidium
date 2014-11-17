@@ -188,6 +188,12 @@ static JSClass WebGLShaderPrecisionFormat_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+static JSClass WebGLActiveInfo_class = {
+    "WebGLActiveInfo", JSCLASS_HAS_PRIVATE,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
 
 static void Buffer_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -532,6 +538,8 @@ D_NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer)
 D_NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D)
 D_NGL_JS_FN(WebGLRenderingContext_frontFace)
 D_NGL_JS_FN(WebGLRenderingContext_generateMipmap)
+D_NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
+D_NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
 D_NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
 D_NGL_JS_FN(WebGLRenderingContext_getParameter)
 D_NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
@@ -633,6 +641,8 @@ static JSFunctionSpec WebGLRenderingContext_funcs [] = {
     JS_FS("framebufferTexture2D", WebGLRenderingContext_framebufferTexture2D, 5, JSPROP_ENUMERATE),
     JS_FS("frontFace", WebGLRenderingContext_frontFace, 1, JSPROP_ENUMERATE),
     JS_FS("generateMipmap", WebGLRenderingContext_generateMipmap, 1, JSPROP_ENUMERATE),
+    JS_FS("getActiveAttrib", WebGLRenderingContext_getActiveAttrib, 2, JSPROP_ENUMERATE),
+    JS_FS("getActiveUniform", WebGLRenderingContext_getActiveUniform, 2, JSPROP_ENUMERATE),
     JS_FS("getAttribLocation", WebGLRenderingContext_getAttribLocation, 2, JSPROP_ENUMERATE),
     JS_FS("getParameter", WebGLRenderingContext_getParameter, 1, JSPROP_ENUMERATE),
     JS_FS("getProgramParameter", WebGLRenderingContext_getProgramParameter, 2, JSPROP_ENUMERATE),
@@ -991,6 +1001,24 @@ JSConstDoubleSpec WebGLRenderingContext_const [] = {
     {NGL_BROWSER_DEFAULT_WEBGL, "BROWSER_DEFAULT_WEBGL", JSPROP_ENUMERATE, {0,0,0}},
     {0, NULL, 0, {0,0,0}}
 };
+
+static JSFunctionSpec WebGLActiveInfo_funcs[] = {
+    JS_FS_END
+};
+
+static JSPropertySpec WebGLActiveInfo_props[] = {
+    {"size", 0, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
+    {"type", 0, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
+    {"name", 0, 
+        JSPROP_ENUMERATE|JSPROP_PERMANENT|JSPROP_READONLY, 
+        JSOP_NULLWRAPPER, JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
 
 NGL_JS_FN(WebGLRenderingContext_isContextLost)
 //{
@@ -1733,7 +1761,7 @@ NGL_JS_FN(WebGLRenderingContext_finish)
     return true;
 }
 
-NGL_JS_FN(WebGLRenderingContext_finish)
+NGL_JS_FN(WebGLRenderingContext_flush)
 //{
     GL_CALL(CppObj, Flush());
     return true;
@@ -1902,6 +1930,67 @@ NGL_JS_FN(WebGLRenderingContext_generateMipmap)
     GL_CALL(CppObj, GenerateMipmap(target));
     
     return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
+//{
+    unsigned int index;
+    WebGLResource *cprogram;
+    JSObject *program;
+    char buff[2048];
+    int len;
+    int csize;
+    unsigned int ctype;
+
+    jsval proto;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou", &program, &index)) {
+        return false;
+    }
+
+    NGL_GET_RESOURCE(Program, program, cprogram)
+
+    GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &csize, &ctype, buff))
+
+    GLint err = glGetError(); 
+    if (err != 0) {
+        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        return true;
+    }
+
+    JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLActiveInfo", &proto);
+	JSObject *obj = JS_NewObject(cx, &WebGLActiveInfo_class, JSVAL_TO_OBJECT(proto), NULL);
+
+    JS::Value size;
+    JS::Value type;
+    JS::Value name;
+
+    size.setInt32(csize);
+    type.setNumber(ctype);
+    name.setString(JS_NewStringCopyZ(cx, buff));
+
+    JS_SetProperty(cx, obj, "size", &size);
+    JS_SetProperty(cx, obj, "type", &type);
+    JS_SetProperty(cx, obj, "name", &name);
+    
+    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+
+    return true;
+}
+
+NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
+//{
+#if 0
+    GLenum target;
+    
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "u", &target)) {
+        return false;
+    }
+    
+    GL_CALL(CppObj, GenerateMipmap(target));
+    
+    return true;
+#endif
 }
 
 
@@ -2828,3 +2917,4 @@ NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShader);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
+NATIVE_OBJECT_EXPOSE_NOT_INST(WebGLActiveInfo);

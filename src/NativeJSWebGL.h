@@ -85,6 +85,15 @@ class NativeCanvasWebGLContext: public NativeCanvasContext
         int m_height;
 };
 
+class NativeJSWebGLActiveInfo : public NativeJSExposer<NativeJSWebGLActiveInfo>
+{
+    public :
+        NativeJSWebGLActiveInfo();
+        ~NativeJSWebGLActiveInfo();
+        JSObject *jsobj;
+        static void registerObject(JSContext *cx);
+};
+
 NEW_CLASS(WebGLRenderingContext)
 NEW_CLASS(WebGLObject)
 NEW_CLASS(WebGLBuffer)
