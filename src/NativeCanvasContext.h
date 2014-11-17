@@ -92,6 +92,9 @@ public:
     bool makeGLCurrent() {
         return m_GLState->makeGLCurrent();
     }
+
+    bool validateCurrentFBO();
+
     /*
         Set the appropriate OpenGL state (bind buffers, ...)
     */

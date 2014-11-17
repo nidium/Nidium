@@ -76,6 +76,9 @@ private:
         uint32_t texture;
         uint32_t vao;
         uint32_t renderbuffer;
+        uint32_t colorbuffer;
+
+        uint32_t fbo_sampled;
     } m_GLObjects;
 
     struct {

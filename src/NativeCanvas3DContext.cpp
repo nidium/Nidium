@@ -93,6 +93,15 @@ void NativeCanvas3DContext::clear(uint32_t color)
 void NativeCanvas3DContext::flush()
 {
     GL_CALL(Flush());
+
+    GL_CALL(BindFramebuffer(GR_GL_READ_FRAMEBUFFER, m_GLObjects.fbo_sampled));
+    GL_CALL(BindFramebuffer(GR_GL_DRAW_FRAMEBUFFER, m_GLObjects.fbo));
+
+    GL_CALL(BlitFramebuffer(0, 0, m_Device.width, m_Device.height,
+        0, 0, m_Device.width, m_Device.height,
+        GR_GL_COLOR_BUFFER_BIT, GR_GL_NEAREST));
+
+    GL_CALL(BindFramebuffer(GR_GL_FRAMEBUFFER, m_GLObjects.fbo_sampled));
 }
 
 uint32_t NativeCanvas3DContext::getTextureID() const
@@ -128,6 +137,15 @@ void NativeCanvas3DContext::cleanUp()
     if (m_GLObjects.renderbuffer) {
         GL_CALL(DeleteRenderbuffers(1, &m_GLObjects.renderbuffer));
         m_GLObjects.renderbuffer = 0;
+    }
+    if (m_GLObjects.colorbuffer) {
+        GL_CALL(DeleteRenderbuffers(1, &m_GLObjects.colorbuffer));
+        m_GLObjects.colorbuffer = 0;
+    }
+
+    if (m_GLObjects.fbo_sampled) {
+        GL_CALL(DeleteFramebuffers(1, &m_GLObjects.fbo_sampled));
+        m_GLObjects.fbo_sampled = 0;
     }
 
     GL_CALL(BindTexture(GL_TEXTURE_2D, 0));
@@ -165,12 +183,12 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     /*
         Create a WebGL context with passthrough program
     */
-
     if (!m_GLState) {
-        printf("GL state created on %p\n", this);
         m_GLState = new NativeGLState(__NativeUI, true, true);
         m_GLState->setShared(false);
     }
+
+    GL_CALL(Enable(GR_GL_MULTISAMPLE));
 
     /*
         Following call are made on the newly created OpenGL Context
@@ -202,24 +220,33 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     /* Set the FBO backing store using the new texture */
     GL_CALL(FramebufferTexture2D(GR_GL_FRAMEBUFFER, GR_GL_COLOR_ATTACHMENT0,
         GR_GL_TEXTURE_2D, m_GLObjects.texture, 0));
-    //glRenderbufferStorageMultisample
+
+    if (!validateCurrentFBO()) {
+        printf("Failed on FBO step 1\n");
+        exit(1);
+        return false;
+    }
+
+    GL_CALL(GenFramebuffers(1, &m_GLObjects.fbo_sampled));
+    GL_CALL(BindFramebuffer(GR_GL_FRAMEBUFFER, m_GLObjects.fbo_sampled));
+
+    /* Generate color render buffer */
+    GL_CALL(GenRenderbuffers(1, &m_GLObjects.colorbuffer));
+    GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, m_GLObjects.colorbuffer));
+    GL_CALL(RenderbufferStorageMultisample(GR_GL_RENDERBUFFER, 4, GR_GL_RGBA8, width, height));
+    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_COLOR_ATTACHMENT0, GR_GL_RENDERBUFFER, m_GLObjects.colorbuffer));
+
+    /* Generate depth render buffer */
     GL_CALL(GenRenderbuffers(1, &m_GLObjects.renderbuffer));
     GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
-    GL_CALL(RenderbufferStorage(GR_GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height));
+    GL_CALL(RenderbufferStorageMultisample(GR_GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8, width, height));
     GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_DEPTH_ATTACHMENT, GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
+    GL_CALL(FramebufferRenderbuffer(GR_GL_FRAMEBUFFER, GR_GL_STENCIL_ATTACHMENT, GR_GL_RENDERBUFFER, m_GLObjects.renderbuffer));
 
-    GLenum status;
-    GL_CALL_RET(CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
-
-    switch(status) {
-        case GR_GL_FRAMEBUFFER_COMPLETE:
-            break;
-        case GR_GL_FRAMEBUFFER_UNSUPPORTED:
-            printf("fbo unsupported\n");
-            return false;
-        default:
-            printf("fbo fatal error\n");
-            return false;
+    if (!validateCurrentFBO()) {
+        printf("Failde on FBO step 2\n");
+        exit(1);
+        return false;
     }
 
     GL_CALL(BindRenderbuffer(GR_GL_RENDERBUFFER, 0));
@@ -239,12 +266,7 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     */
     GL_CALL(FrontFace(GR_GL_CCW));
     GL_CALL(Enable(GR_GL_CULL_FACE));
-    /*
-        We keep the newly created framebuffer bound.
-    */
-
     GL_CALL(Enable(GR_GL_TEXTURE_2D));
-    GL_CALL(Enable(GR_GL_MULTISAMPLE));
 
 #if 0
     GL_CALL(ShadeModel(GL_SMOOTH));
@@ -261,7 +283,6 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     GL_CALL(ClearDepth(1.0));
 
     GL_CALL(Clear(GR_GL_COLOR_BUFFER_BIT | GR_GL_DEPTH_BUFFER_BIT));
-    //glRenderbufferStorageMultisample(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
 
     return true;
 }

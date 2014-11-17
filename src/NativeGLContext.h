@@ -109,6 +109,7 @@ class NativeGLContext
             NativeGLContext *_this = (NativeGLContext *)interface->fCallbackData;
             _this->makeCurrent();
         }
+        
         const GrGLInterface *m_Interface;
     private:
 

@@ -393,6 +393,30 @@ void NativeCanvasContext::preComposeOn(NativeCanvas2DContext *layer,
     }
 }
 
+bool NativeCanvasContext::validateCurrentFBO()
+{
+    GrGLenum status;
+    NATIVE_GL_CALL_RET(m_GLState->getNativeGLContext(),
+        CheckFramebufferStatus(GR_GL_FRAMEBUFFER), status);
+
+    switch(status) {
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+            printf("fbo %x (incomplete multisample)\n", status);
+            break;
+        case GR_GL_FRAMEBUFFER_COMPLETE:
+            break;
+        case GR_GL_FRAMEBUFFER_UNSUPPORTED:
+            printf("fbo unsupported\n");
+            return false;
+        default:
+            printf("fbo fatal error %x\n", status);
+            exit(1);
+            return false;
+    }
+
+    return true;
+}
+
 /*
     TODO: implement
 */
