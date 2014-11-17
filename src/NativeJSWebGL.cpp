@@ -1217,8 +1217,10 @@ NGL_JS_FN(WebGLRenderingContext_copyTexImage2D)
         return false;
     }
 
+/*
     GL_CALL(CppObj, CopyTexImage2D(target, level, internalFormat, 
         x, y, width, height, border));
+*/
 
     return true;
 }
@@ -1644,7 +1646,7 @@ NGL_JS_FN(WebGLRenderingContext_depthRange)
         return false;
     }
 
-    GL_CALL(CppObj, DepthRange(zNear, zFar));
+    //GL_CALL(CppObj, DepthRange(zNear, zFar));
     
     return true;
 }
@@ -1663,7 +1665,7 @@ NGL_JS_FN(WebGLRenderingContext_detachShader)
     NGL_GET_RESOURCE(Program, program, cprogram)
     NGL_GET_RESOURCE(Shader, shader, cshader)
 
-    GL_CALL(CppObj, DetachShader(cprogram->id(), cshader->id()));
+    //GL_CALL(CppObj, DetachShader(cprogram->id(), cshader->id()));
     
     return true;
 }
@@ -1950,7 +1952,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 
     NGL_GET_RESOURCE(Program, program, cprogram)
 
-    GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &csize, &ctype, buff))
+    //GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &csize, &ctype, buff))
 
     GLint err = glGetError(); 
     if (err != 0) {
