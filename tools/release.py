@@ -164,16 +164,19 @@ def signCode(path):
 
     Log.info("Signing object...")
 
+    identity = "Anthony Catel"
+
     code, output = Utils.run(" ".join([
         "codesign",
         "--force",
         "--sign",
-        "'Developer ID Application: Anthony Catel'",
+        "'Developer ID Application: %s '" % identity,
         path
-    ]))
+    ]), failExit=False)
 
     if code != 0:
-        Utils.exit("Failed to build dmg")
+        Log.error("WARNING : App signing failed with identity %s. Not signing app" % identity)
+        Log.error(output)
 
     Log.info(path)
 
@@ -271,7 +274,6 @@ def uploadExecutable(path, name):
         Log.info(status)
 
     Log.info("Uploading executable")
-
     s = ftplib.FTP("nidium.com", "nidium", "i8V}8B833G51gZJ")
     f = open(path + name, 'rb')
     s.storbinary("STOR release/" + name, f, 1024, callback)
