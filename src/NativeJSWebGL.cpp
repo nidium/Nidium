@@ -41,7 +41,9 @@ extern JSClass Canvas_class;
     if (obj != NULL) { \
         WebGLResource *res = (WebGLResource *)JS_GetInstancePrivate(cx, obj, \
             &WebGL## NAME ##_class, JS_ARGV(cx, vp)); \
-        JS_SetReservedSlot(thisobj, WebGLResource::k## NAME, JSVAL_NULL); \
+        if (JS_GetReservedSlot(thisobj, WebGLResource::k## NAME).toObjectOrNull() == res->jsobj()) { \
+            JS_SetReservedSlot(thisobj, WebGLResource::k## NAME, JSVAL_NULL); \
+        } \
         delete res;\
     } \
     return true;\
@@ -82,6 +84,7 @@ public:
         m_GlIdentifier(id), m_GLctx(ctx), m_Type(type), m_JSObj(jsobj) {};
 
     ~WebGLResource() {
+        JS_SetPrivate(m_JSObj, NULL);
         switch(m_Type) {
             case kProgram:
                 GL_CALL(m_GLctx, DeleteProgram(m_GlIdentifier));
