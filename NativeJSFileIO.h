@@ -42,7 +42,8 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
         const NativeSharedMessages::Message &msg,
         JSObject *thisobj, const char *encoding = NULL);
 
-    NativeJSFileIO()  : m_Encoding(NULL) {
+    NativeJSFileIO(JSObject *obj, JSContext *cx) :
+        NativeJSExposer<NativeJSFileIO>(obj, cx), m_Encoding(NULL) {
     };
 
     ~NativeJSFileIO() {
@@ -53,8 +54,6 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
 
     NativeFile *getFile() const { return m_File; }
     void setFile(NativeFile *file) { m_File = file; }
-
-    JSObject *jsobj;
 
     char *m_Encoding;
   private:

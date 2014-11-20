@@ -76,13 +76,11 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     nhttp = new NativeHTTP((ape_global *)JS_GetContextPrivate(cx));
 
-    jshttp = new NativeJSHttp(curl.ptr());
+    jshttp = new NativeJSHttp(ret, cx, curl.ptr());
 
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
     jshttp->jsobj = ret;
-
-    jshttp->cx = cx;
 
     /* TODO: store jshttp intead of nhttp */
     JS_SetPrivate(ret, nhttp);
@@ -243,14 +241,15 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
 {
     jsval onerror_callback, jevent, rval;
     JSObject *event;
+    JSContext *cx = m_Cx;
 
-    if (!JS_GetProperty(cx, jsobj, "onerror", &onerror_callback) ||
-            JS_TypeOfValue(cx, onerror_callback) != JSTYPE_FUNCTION) {
+    if (!JS_GetProperty(m_Cx, jsobj, "onerror", &onerror_callback) ||
+            JS_TypeOfValue(m_Cx, onerror_callback) != JSTYPE_FUNCTION) {
 
         return;
     }
 
-    event = JS_NewObject(cx, NULL, NULL, NULL);
+    event = JS_NewObject(m_Cx, NULL, NULL, NULL);
 
     switch(err) {
         case NativeHTTP::ERROR_RESPONSE:
@@ -290,6 +289,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
 {
     JSObject *event;
     jsval jdata, jevent, ondata_callback, rval;
+    JSContext *cx = m_Cx;
 
     if (!JS_GetProperty(cx, jsobj, "ondata", &ondata_callback) ||
             JS_TypeOfValue(cx, ondata_callback) != JSTYPE_FUNCTION) {
@@ -336,14 +336,15 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     buffer *k, *v;
     JSObject *headers, *event;
     jsval rval, jevent, jdata = JSVAL_NULL;
+    JSContext *cx = m_Cx;
 
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(cx, NULL, NULL, NULL);
-    headers = JS_NewObject(cx, NULL, NULL, NULL);
+    event = JS_NewObject(m_Cx, NULL, NULL, NULL);
+    headers = JS_NewObject(m_Cx, NULL, NULL, NULL);
 
     APE_A_FOREACH(h->headers.list, k, v) {
-        JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
+        JSString *jstr = JS_NewStringCopyN(m_Cx, (char *)v->data,
             v->used-1);
         JSOBJ_SET_PROP_FLAGS(headers, k->data,
             STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
@@ -458,8 +459,9 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 }
 
-NativeJSHttp::NativeJSHttp(char *url)
-    : request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
+NativeJSHttp::NativeJSHttp(JSObject *obj, JSContext *cx, char *url) :
+    NativeJSExposer<NativeJSHttp>(obj, cx),
+    request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
 {
     m_URL = strdup(url);
 }

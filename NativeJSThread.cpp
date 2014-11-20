@@ -243,7 +243,7 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
 
 void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     struct native_thread_msg *ptr;
     char prop[16];
@@ -264,7 +264,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 
     jsval inval = JSVAL_NULL;
 
-    if (!JS_ReadStructuredClone(cx, ptr->data, ptr->nbytes,
+    if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
         JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
 
         printf("Failed to read input data (readMessage)\n");
@@ -273,16 +273,16 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         return;
     }
 
-    if (JS_GetProperty(cx, ptr->callee, prop, &jscbk) &&
+    if (JS_GetProperty(m_Cx, ptr->callee, prop, &jscbk) &&
         !JSVAL_IS_PRIMITIVE(jscbk) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(jscbk))) {
 
-        event = JS_NewObject(cx, &messageEvent_class, NULL, NULL);
+        event = JS_NewObject(m_Cx, &messageEvent_class, NULL, NULL);
 
         EVENT_PROP("data", inval);
 
         jevent = OBJECT_TO_JSVAL(event);
-        JS_CallFunctionValue(cx, event, jscbk, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, jscbk, 1, &jevent, &rval);
 
     }
     JS_ClearStructuredClone(ptr->data, ptr->nbytes);
@@ -296,10 +296,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
     JSScript *parent;
 
-    NativeJSThread *nthread = new NativeJSThread();
+    NativeJSThread *nthread = new NativeJSThread(ret, cx);
     JSFunction *nfn;
-
-    nthread->cx = cx;
 
     if ((nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0])) == NULL ||
     	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
@@ -382,8 +380,8 @@ static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 
 NativeJSThread::~NativeJSThread()
 {
-    if (jsFunction && this->cx) {
-        JS_RemoveStringRoot(this->cx, &jsFunction);
+    if (jsFunction && m_Cx) {
+        JS_RemoveStringRoot(m_Cx, &jsFunction);
     }
     this->markedStop = true;
     if (this->jsRuntime) {
@@ -392,8 +390,10 @@ NativeJSThread::~NativeJSThread()
     }
 }
 
-NativeJSThread::NativeJSThread()
-	: jsFunction(NULL), jsRuntime(NULL), jsCx(NULL),
+NativeJSThread::NativeJSThread(JSObject *obj, JSContext *cx)
+	:
+    NativeJSExposer<NativeJSThread>(obj, cx),
+    jsFunction(NULL), jsRuntime(NULL), jsCx(NULL),
     jsObject(NULL), njs(NULL), markedStop(false)
 {
 	/* cx hold the main context (caller) */

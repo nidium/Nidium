@@ -30,11 +30,30 @@ template <typename T>
 class NativeJSExposer
 {
   public:
-    JSContext *cx;
     JSObject *getJSObject() const {
-        return this->jsobj;
+        return m_JSObject;
     }
-    JSObject *jsobj;
+
+    JSObject **getJSObjectAddr()  {
+        return &m_JSObject;
+    }
+
+    JSContext *getJSContext() const {
+        return m_Cx;
+    }
+
+    void setJSObject(JSObject *obj) {
+        m_JSObject = obj;
+    }
+
+    void setJSContext(JSContext *cx) {
+        m_Cx = cx;
+    }
+
+    NativeJSExposer(JSObject *jsobj, JSContext *cx) {
+        m_JSObject = jsobj;
+        m_Cx = cx;
+    }
 
     static const char *getJSObjectName() { return NULL; }
 
@@ -72,6 +91,9 @@ class NativeJSExposer
     static T* getNativeClass(JSContext *cx) {
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
+  protected:
+    JSContext *m_Cx;
+    JSObject *m_JSObject;
 };
 
 #define NATIVE_ASYNC_MAXCALLBACK 4
@@ -216,7 +238,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     }
 
 
-#define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(cx, where, \
+#define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
     (const char *)name, val, NULL, NULL, flags)
 
 #define JSOBJ_SET_PROP(where, name, val) JSOBJ_SET_PROP_FLAGS(where, name, val, \
@@ -231,7 +253,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
                 argc, argv, &rval); \
         } \
     }
-#define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, val)))
+#define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(m_Cx, val)))
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(val))
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, INT_TO_JSVAL(val))
 

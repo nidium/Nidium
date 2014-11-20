@@ -51,11 +51,12 @@ class NativeJSHTTPListener :    public NativeJSExposer<NativeJSHTTPListener>,
                                 public NativeHTTPListener
 {
 public:
-    NativeJSHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
+    NativeJSHTTPListener(JSObject *obj, JSContext *cx,
+        uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeJSHTTPListener();
     virtual void onClientConnect(ape_socket *client, ape_global *ape) {
         NativeJSHTTPClientConnection *conn;
-        client->ctx = conn = new NativeJSHTTPClientConnection(this->cx, this, client);
+        client->ctx = conn = new NativeJSHTTPClientConnection(m_Cx, this, client);
 
         JSObject *obj = conn->getJSObject();
 

@@ -55,7 +55,7 @@ public:
 
                 dirent *cur = (dirent *)msg.dataPtr();
                 JSObject *callback = this->getCallback(0);
-                JSContext *cx = this->getJSContext();
+                JSContext *cx, *m_Cx = this->getJSContext();
 
                 JSObject *param = JS_NewObject(cx, NULL, NULL, NULL);
 

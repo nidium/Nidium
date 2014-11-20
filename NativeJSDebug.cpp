@@ -122,16 +122,16 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
 void NativeJSDebug::registerObject(JSContext *cx)
 {
     JSObject *debugObj;
-    NativeJSDebug *jdebug = new NativeJSDebug();
+    
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
     debugObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSDebug::getJSObjectName(),
         &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
+    NativeJSDebug *jdebug = new NativeJSDebug(debugObj, cx);
+
     JS_SetPrivate(debugObj, jdebug);
-    jdebug->jsobj = debugObj;
-    jdebug->cx = cx;
 
     njs->jsobjects.set(NativeJSDebug::getJSObjectName(), debugObj);
 

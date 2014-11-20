@@ -223,7 +223,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    NJSFIO = new NativeJSFileIO();
+    NJSFIO = new NativeJSFileIO(ret, cx);
     file = new NativeFile(path.path());
     file->setListener(NJSFIO);
 
@@ -231,9 +231,6 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
         JSAutoByteString encoding(cx, curopt.toString());
         NJSFIO->m_Encoding = strdup(encoding.ptr());
     }
-
-    NJSFIO->jsobj = ret;
-    NJSFIO->cx = cx;
 
     NJSFIO->setFile(file);
 
@@ -704,6 +701,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     JS::Value rval, params[2];
 
     params[1].setUndefined();
+    JSContext *m_Cx = cx;
 
     if (!NativeJSFileIO::handleError(cx, msg, params[0])) {
         switch (msg.event()) {
@@ -759,7 +757,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
 
 void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
 {
-    NativeJSFileIO::callbackForMessage(cx, msg, jsobj, m_Encoding);
+    NativeJSFileIO::callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }
 
 #if 0
@@ -797,12 +795,9 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
     NativeFile *file;
     NativeJSFileIO *NJSFIO;
 
-    NJSFIO = new NativeJSFileIO();
+    NJSFIO = new NativeJSFileIO(ret, cx);
     file = new NativeFile(path);
     file->setListener(NJSFIO);
-
-    NJSFIO->jsobj = ret;
-    NJSFIO->cx = cx;
 
     NJSFIO->setFile(file);
 

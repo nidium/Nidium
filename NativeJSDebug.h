@@ -26,7 +26,9 @@
 class NativeJSDebug : public NativeJSExposer<NativeJSDebug>
 {
   public:
-    NativeJSDebug(){};
+    NativeJSDebug(JSObject *obj, JSContext *cx) :
+    NativeJSExposer<NativeJSDebug>(obj, cx)
+    {};
     virtual ~NativeJSDebug(){};
 
     static void registerObject(JSContext *cx);

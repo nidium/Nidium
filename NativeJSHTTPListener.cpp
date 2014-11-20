@@ -72,7 +72,9 @@ NativeJSHTTPResponse::NativeJSHTTPResponse(JSContext *cx, uint16_t code) :
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
 }
 
-NativeJSHTTPListener::NativeJSHTTPListener(uint16_t port, const char *ip) :
+NativeJSHTTPListener::NativeJSHTTPListener(JSObject *obj, JSContext *cx,
+    uint16_t port, const char *ip) :
+    NativeJSExposer<NativeJSHTTPListener>(obj, cx),
     NativeHTTPListener(port, ip)
 
 {
@@ -102,12 +104,12 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     buffer *k, *v;
     NativeJSHTTPClientConnection *subclient = static_cast<NativeJSHTTPClientConnection *>(client);
 
-    JSObject *objrequest = JS_NewObject(cx, &HTTPRequest_class, NULL, NULL);
-    JSObject *headers = JS_NewObject(cx, NULL, NULL, NULL);
+    JSObject *objrequest = JS_NewObject(m_Cx, &HTTPRequest_class, NULL, NULL);
+    JSObject *headers = JS_NewObject(m_Cx, NULL, NULL, NULL);
 
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
-            JSString *jstr = JS_NewStringCopyN(cx, (char *)v->data,
+            JSString *jstr = JS_NewStringCopyN(m_Cx, (char *)v->data,
                 v->used-1);
             JSOBJ_SET_PROP_FLAGS(headers, k->data,
                 STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
@@ -116,7 +118,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 
     buffer *url = client->getHTTPState()->url;
     if (url) {
-        JSString *jsurl = JS_NewStringCopyN(cx, (char *)url->data, url->used);
+        JSString *jsurl = JS_NewStringCopyN(m_Cx, (char *)url->data, url->used);
         JSOBJ_SET_PROP(objrequest, "url", STRING_TO_JSVAL(jsurl));
     }
 
@@ -124,9 +126,9 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     if (client->getHTTPState()->parser.method == HTTP_POST) {
         JS::Value strdata;
         if (data == NULL || data->used == 0) {
-            strdata = JS_GetEmptyStringValue(cx);
+            strdata = JS_GetEmptyStringValue(m_Cx);
         } else {
-            NativeJSUtils::strToJsval(cx, (const char *)data->data,
+            NativeJSUtils::strToJsval(m_Cx, (const char *)data->data,
                 data->used, &strdata, "utf8");
         }
 
@@ -136,16 +138,16 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     JS::Value method;
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
-            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("POST")));
+            method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));
             break;
         case HTTP_GET:
-            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("GET")));
+            method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("GET")));
             break;
         case HTTP_PUT:
-            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("PUT")));
+            method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("PUT")));
             break;
         default:
-            method.setString(JS_NewStringCopyN(cx, CONST_STR_LEN("UNKOWN")));
+            method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("UNKOWN")));
             break;
     }
 
@@ -153,12 +155,12 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
     JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 
-    if (JS_GetProperty(cx, this->jsobj, "onrequest", &oncallback) &&
-        JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
+    if (JS_GetProperty(m_Cx, m_JSObject, "onrequest", &oncallback) &&
+        JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
         JS::Value arg[2];
         arg[0].setObjectOrNull(objrequest);
         arg[1].setObjectOrNull(static_cast<NativeJSHTTPResponse*>(client->getResponse())->getJSObject());
-        JS_CallFunctionValue(cx, this->jsobj, oncallback,
+        JS_CallFunctionValue(m_Cx, m_JSObject, oncallback,
             2, arg, &rval);
     }
 
@@ -187,9 +189,9 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
 
     if (ip_bind) {
         JSAutoByteString cip(cx, ip_bind);
-        listener = new NativeJSHTTPListener(port, cip.ptr());
+        listener = new NativeJSHTTPListener(ret, cx, port, cip.ptr());
     } else {
-        listener = new NativeJSHTTPListener(port);
+        listener = new NativeJSHTTPListener(ret, cx, port);
     }
 
     if (!listener->start((bool)reuseport)) {
@@ -197,9 +199,6 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
         delete listener;
         return false;
     }
-
-    listener->cx = cx;
-    listener->jsobj = ret;
 
     JS_SetPrivate(ret, listener);
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));

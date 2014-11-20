@@ -28,7 +28,8 @@ class NativeJSWebSocketServer : public NativeJSExposer<NativeJSWebSocketServer>,
                                 public NativeMessages
 {
 public:
-    NativeJSWebSocketServer(const char *host, unsigned short port);
+    NativeJSWebSocketServer(JSObject *obj, JSContext *cx,
+        const char *host, unsigned short port);
     ~NativeJSWebSocketServer();
     bool start();
     static void registerObject(JSContext *cx);

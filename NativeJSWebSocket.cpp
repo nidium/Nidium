@@ -90,9 +90,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
         return false;
     }
 
-    NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(host, port);
-    wss->jsobj = ret;
-    wss->cx = cx;
+    NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(ret, cx, host, port);
 
     free(path);
     free(host);
@@ -117,8 +115,9 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
     return true;
 }
 
-NativeJSWebSocketServer::NativeJSWebSocketServer(const char *host,
-    unsigned short port)
+NativeJSWebSocketServer::NativeJSWebSocketServer(JSObject *obj, JSContext *cx,
+    const char *host,
+    unsigned short port) : NativeJSExposer<NativeJSWebSocketServer>(obj, cx)
 {
     m_WebSocketServer = new NativeWebSocketListener(port, host);
     m_WebSocketServer->addListener(this);
@@ -133,11 +132,11 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 {
     JSObject *jclient;
 
-    jclient = JS_NewObject(cx, &WebSocketServer_client_class, NULL, NULL);
+    jclient = JS_NewObject(m_Cx, &WebSocketServer_client_class, NULL, NULL);
 
     JS_SetPrivate(jclient, client);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(jclient);
+    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
     client->setData(jclient);
 
     return jclient;
@@ -146,6 +145,7 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg)
 {
     jsval oncallback, rval;
+    JSContext *cx = m_Cx;
 
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
@@ -161,19 +161,19 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
                 return;
             }
 
-            if (JS_GetProperty(cx, this->getJSObject(), "onmessage", &oncallback) &&
-                JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
+            if (JS_GetProperty(m_Cx, this->getJSObject(), "onmessage", &oncallback) &&
+                JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 jsval jdata;
 
-                JSObject *event = JS_NewObject(cx, NULL, NULL, NULL);           
-                NativeJSUtils::strToJsval(cx, data, len, &jdata, !binary ? "utf8" : NULL);
+                JSObject *event = JS_NewObject(m_Cx, NULL, NULL, NULL);           
+                NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
                 SET_PROP(event, "data", jdata);
 
                 arg[0].setObjectOrNull(jclient);
                 arg[1].setObjectOrNull(event);
 
-                JS_CallFunctionValue(cx, this->getJSObject(), oncallback,
+                JS_CallFunctionValue(m_Cx, this->getJSObject(), oncallback,
                     2, arg, &rval);
             }
 

@@ -521,7 +521,7 @@ void NativeHTTPResponse::sendHeaders(bool chunked)
 void NativeHTTPResponse::sendChunk(char *buf, size_t len,
     ape_socket_data_autorelease datatype, bool willEnd)
 {
-    if (!m_Con || m_Con->getSocket() == NULL || !len) {
+    if (!m_Con || m_Con->getSocket() == NULL) {
         return;
     }
 

@@ -31,7 +31,7 @@ class NativeJS;
 class NativeJSThread : public NativeJSExposer<NativeJSThread>, public NativeMessages
 {
   public:
-    NativeJSThread();
+    NativeJSThread(JSObject *obj, JSContext *cx);
     ~NativeJSThread();
     static void registerObject(JSContext *cx);
     void onComplete(jsval *vp);

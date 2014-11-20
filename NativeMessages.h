@@ -33,6 +33,7 @@ class NativeEvents;
 class NativeMessages
 {
 public:
+    friend class NativeEvents;
     NativeMessages();
     virtual ~NativeMessages()=0;
 
@@ -52,8 +53,8 @@ public:
 
     NativeSharedMessages *getSharedMessages();
 
-    void listenFor(NativeEvents *obj, bool enable);
 private:
+    void listenFor(NativeEvents *obj, bool enable);
     pthread_t m_GenesisThread;
 
     /* Keep track on which objects we are listening events */

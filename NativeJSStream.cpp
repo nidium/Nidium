@@ -203,7 +203,7 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSAutoByteString curl(cx, url);
 
-    NativeJSStream *jstream = new NativeJSStream(cx,
+    NativeJSStream *jstream = new NativeJSStream(ret, cx,
         (ape_global *)JS_GetContextPrivate(cx), curl.ptr());
 
     if (jstream->getStream() == NULL) {
@@ -212,8 +212,6 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     JS_SetPrivate(ret, jstream);
-    jstream->cx = cx;
-    jstream->jsobj = ret;
 
     JS_DefineFunctions(cx, ret, Stream_funcs);
     JS_DefineProperties(cx, ret, Stream_props);
@@ -223,7 +221,9 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-NativeJSStream::NativeJSStream(JSContext *cx, ape_global *net, const char *url)
+NativeJSStream::NativeJSStream(JSObject *obj, JSContext *cx,
+    ape_global *net, const char *url) :
+    NativeJSExposer<NativeJSStream>(obj, cx)
 {
     std::string str = url;
     //str += NativeJS::getNativeClass(cx)->getPath();
@@ -265,14 +265,14 @@ void NativeJSStream::onProgress(size_t buffered, size_t total)
 void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
 {
     jsval onavailable_callback, rval;
-    JS::RootedObject obj(this->cx, this->jsobj);
+    JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
         case NATIVESTREAM_AVAILABLE_DATA:
-            if (JS_GetProperty(this->cx, obj, "onavailabledata", &onavailable_callback) &&
-                JS_TypeOfValue(this->cx, onavailable_callback) == JSTYPE_FUNCTION) {
+            if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
+                JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
-                JS_CallFunctionValue(this->cx, obj, onavailable_callback,
+                JS_CallFunctionValue(m_Cx, obj, onavailable_callback,
                     0, NULL, &rval);
             }
             break;
