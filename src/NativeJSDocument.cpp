@@ -262,15 +262,16 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 void NativeJSdocument::registerObject(JSContext *cx)
 {
     JSObject *documentObj;
-    NativeJSdocument *jdoc = new NativeJSdocument();
+    
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
     documentObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSdocument::getJSObjectName(),
         &document_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE);
 
+    NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
+
     JS_SetPrivate(documentObj, jdoc);
-    jdoc->jsobj = documentObj;
 
     /* We have to root it since the user can replace the document object */
     njs->rootObjectUntilShutdown(documentObj);

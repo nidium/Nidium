@@ -853,7 +853,7 @@ static JSBool native_canvas2dctx_createPattern(JSContext *cx,
 
     NativeJSImage *img = (NativeJSImage *)JS_GetPrivate(jsimage);
 
-    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->jsobj));
+    JS_SetReservedSlot(patternObject, 0, OBJECT_TO_JSVAL(img->getJSObject()));
 
     NativeCanvasPattern::PATTERN_MODE pmode = NativeCanvasPattern::PATTERN_REPEAT;
 

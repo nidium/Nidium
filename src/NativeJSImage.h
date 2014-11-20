@@ -16,11 +16,10 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>,
 {
   public:
 
-    NativeJSImage();
+    NativeJSImage(JSObject *obj, JSContext *cx);
     virtual ~NativeJSImage();
 
     NativeSkImage *img;
-    JSObject *jsobj;
     NativeBaseStream *m_Stream;
 
     static NativeSkImage *JSObjectToNativeSkImage(JSObject *obj);

@@ -165,9 +165,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return JS_FALSE;
     }
 
-    nimg = new NativeJSImage();
-    nimg->cx = cx;
-    nimg->jsobj = ret;
+    nimg = new NativeJSImage(ret, cx);
 
     JS_SetPrivate(ret, nimg);
 
@@ -200,17 +198,17 @@ static int delete_stream(void *arg)
 
 void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
 {
-    ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
+    ape_global *ape = (ape_global *)JS_GetContextPrivate(m_Cx);
 
     switch (msg.event()) {
         case NATIVESTREAM_READ_BUFFER:
         {
             jsval rval, onload_callback;
             if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
-                if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
-                    JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
+                if (JS_GetProperty(m_Cx, m_JSObject, "onload", &onload_callback) &&
+                    JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
 
-                    JS_CallFunctionValue(cx, jsobj, onload_callback,
+                    JS_CallFunctionValue(m_Cx, m_JSObject, onload_callback,
                         0, NULL, &rval);
                 }
             }
@@ -226,7 +224,7 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
 {
     if (buf->used == 0) {
 
-        NativeJSObj(cx)->unrootObject(jsobj);
+        NativeJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
@@ -234,20 +232,20 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
     if (ImageObject->img == NULL) {
         delete ImageObject;
 
-        NativeJSObj(cx)->unrootObject(jsobj);
+        NativeJSObj(m_Cx)->unrootObject(m_JSObject);
         return false;
     }
 
     img = ImageObject;
-    JS_DefineProperty(cx, jsobj, "width",
+    JS_DefineProperty(m_Cx, m_JSObject, "width",
         INT_TO_JSVAL(ImageObject->getWidth()), NULL, NULL,
         JSPROP_PERMANENT | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, jsobj, "height",
+    JS_DefineProperty(m_Cx, m_JSObject, "height",
         INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
         JSPROP_PERMANENT | JSPROP_READONLY);
 
-    NativeJSObj(cx)->unrootObject(jsobj);
+    NativeJSObj(m_Cx)->unrootObject(m_JSObject);
 
     return true;
 }
@@ -297,11 +295,9 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 	const char name[])
 {	
 	JSObject *ret = JS_NewObject(cx, &Image_class, NativeJSImage::classe, NULL);
-    NativeJSImage *nimg = new NativeJSImage();
+    NativeJSImage *nimg = new NativeJSImage(ret, cx);
 
     nimg->img   = image;
-    nimg->jsobj = ret;
-    nimg->cx    = cx;
 
     JS_SetPrivate(ret, nimg);
 
@@ -323,8 +319,9 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
 	return ret;
 }
 
-NativeJSImage::NativeJSImage() :
-    img(NULL), jsobj(NULL), m_Stream(NULL)
+NativeJSImage::NativeJSImage(JSObject *obj, JSContext *cx) :
+    NativeJSExposer<NativeJSImage>(obj, cx),
+    img(NULL), m_Stream(NULL)
 {
 
 }

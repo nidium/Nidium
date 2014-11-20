@@ -278,7 +278,7 @@ def uploadExecutable(path, name):
     f = open(path + name, 'rb')
     s.storbinary("STOR release/" + name, f, 1024, callback)
 
-    os.unlink(path + name);
+    #os.unlink(path + name);
     Log.info("Executable uploaded to http://release.nidium.com/" + name)
 # }}}
 

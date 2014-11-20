@@ -24,7 +24,8 @@ public:
 class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
 {
   public:
-    NativeJSdocument() : 
+    NativeJSdocument(JSObject *obj, JSContext *cx) :
+    NativeJSExposer<NativeJSdocument>(obj, cx),
         m_Fonts(256000) {};
     ~NativeJSdocument(){};
 

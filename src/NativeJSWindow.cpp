@@ -206,20 +206,20 @@ NativeJSwindow::~NativeJSwindow()
 void NativeJSwindow::onReady(JSObject *layout)
 {
     jsval onready, rval, arg[1];
-    JS::RootedObject rlayout(cx);
+    JS::RootedObject rlayout(m_Cx);
 
     if (layout) {
         rlayout = layout;
         arg[0] = OBJECT_TO_JSVAL(rlayout);
     } else {
-        arg[0] = OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, NULL));
+        arg[0] = OBJECT_TO_JSVAL(JS_NewArrayObject(m_Cx, 0, NULL));
     }
 
-    if (JS_GetProperty(cx, this->jsobj, "_onready", &onready) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, "_onready", &onready) &&
         !JSVAL_IS_PRIMITIVE(onready) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onready))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onready))) {
 
-        JS_CallFunctionValue(cx, this->jsobj, onready, 1, arg, &rval);
+        JS_CallFunctionValue(m_Cx, m_JSObject, onready, 1, arg, &rval);
     }
 }
 
@@ -227,11 +227,11 @@ bool NativeJSwindow::onClose()
 {
     jsval onclose, rval;
 
-    if (JS_GetProperty(cx, this->jsobj, "_onbeforeclose", &onclose) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, "_onbeforeclose", &onclose) &&
         !JSVAL_IS_PRIMITIVE(onclose) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclose))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onclose))) {
 
-        JS_CallFunctionValue(cx, this->jsobj, onclose, 0, NULL, &rval);
+        JS_CallFunctionValue(m_Cx, m_JSObject, onclose, 0, NULL, &rval);
 
         return (rval.isUndefined() || rval.toBoolean());
     }    
@@ -241,13 +241,14 @@ bool NativeJSwindow::onClose()
 
 void NativeJSwindow::assetReady(const NMLTag &tag)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
         val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
-
+    
+    JSContext *cx = m_Cx;
     jsval onassetready, rval, jevent;
     JSObject *event;
 
-    event = JS_NewObject(cx, &NMLEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &NMLEvent_class, NULL, NULL);
     jevent = OBJECT_TO_JSVAL(event);
 
     EVENT_PROP("data", STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
@@ -255,7 +256,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
     EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
 
-    if (JS_GetProperty(cx, this->jsobj, "_onassetready", &onassetready) &&
+    if (JS_GetProperty(cx, m_JSObject, "_onassetready", &onassetready) &&
         !JSVAL_IS_PRIMITIVE(onassetready) && 
         JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onassetready))) {
 
@@ -267,12 +268,12 @@ void NativeJSwindow::windowFocus()
 {
     jsval rval, onfocus;
 
-    if (JS_GetProperty(cx, this->jsobj,
+    if (JS_GetProperty(m_Cx, m_JSObject,
         "_onfocus", &onfocus) &&
         !JSVAL_IS_PRIMITIVE(onfocus) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onfocus))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onfocus))) {
 
-        JS_CallFunctionValue(cx, NULL, onfocus, 0, NULL, &rval);
+        JS_CallFunctionValue(m_Cx, NULL, onfocus, 0, NULL, &rval);
     }    
 }
 
@@ -280,26 +281,26 @@ void NativeJSwindow::windowBlur()
 {
     jsval rval, onblur;
 
-    if (JS_GetProperty(cx, this->jsobj,
+    if (JS_GetProperty(m_Cx, m_JSObject,
         "_onblur", &onblur) &&
         !JSVAL_IS_PRIMITIVE(onblur) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onblur))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onblur))) {
 
-        JS_CallFunctionValue(cx, NULL, onblur, 0, NULL, &rval);
+        JS_CallFunctionValue(m_Cx, NULL, onblur, 0, NULL, &rval);
     }   
 }
 
 void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
     jsval rval, jevent, onwheel;
     JSObject *event;
 
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &mouseEvent_class, NULL, NULL);
 
     EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
     EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
@@ -308,26 +309,26 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj, "_onmousewheel", &onwheel) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, "_onmousewheel", &onwheel) &&
         !JSVAL_IS_PRIMITIVE(onwheel) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onwheel))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onwheel))) {
 
-        JS_CallFunctionValue(cx, event, onwheel, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, onwheel, 1, &jevent, &rval);
     }
 #undef EVENT_PROP
 }
 
 void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int location)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE)
     
     JSObject *event;
     jsval jevent, onkeyupdown, rval;
 
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(cx, &keyEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &keyEvent_class, NULL, NULL);
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
     EVENT_PROP("location", INT_TO_JSVAL(location));
@@ -340,55 +341,56 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj,
+    if (JS_GetProperty(m_Cx, m_JSObject,
         (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
         !JSVAL_IS_PRIMITIVE(onkeyupdown) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onkeyupdown))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onkeyupdown))) {
 
-        JS_CallFunctionValue(cx, event, onkeyupdown, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, onkeyupdown, 1, &jevent, &rval);
     }
 #undef EVENT_PROP
 }
 
 void NativeJSwindow::textInput(const char *data)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     JSObject *event;
     jsval jevent, ontextinput, rval;
 
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(cx, &textEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &textEvent_class, NULL, NULL);
 
     EVENT_PROP("val",
-        STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, data,
+        STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(m_Cx, data,
         strlen(data), "utf8")));
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj, "_ontextinput", &ontextinput) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, "_ontextinput", &ontextinput) &&
         !JSVAL_IS_PRIMITIVE(ontextinput) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ontextinput))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(ontextinput))) {
 
-        JS_CallFunctionValue(cx, event, ontextinput, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, ontextinput, 1, &jevent, &rval);
     }
 }
 
 void NativeJSwindow::systemMenuClicked(const char *id)
 {
-    JSObject *event = JS_NewObject(cx, NULL, NULL, NULL);
+    JSContext *cx = m_Cx;
+    JSObject *event = JS_NewObject(m_Cx, NULL, NULL, NULL);
 
     JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::Value ev = OBJECT_TO_JSVAL(event);
 
-    JSOBJ_CALLFUNCNAME(this->jsobj, "_onsystemtrayclick", 1, &ev);
+    JSOBJ_CALLFUNCNAME(m_JSObject, "_onsystemtrayclick", 1, &ev);
 }
 
 void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     jsval rval, jevent;
@@ -396,9 +398,9 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 
     jsval onclick;
 
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &mouseEvent_class, NULL, NULL);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -408,12 +410,12 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj,
+    if (JS_GetProperty(m_Cx, m_JSObject,
         (state ? "_onmousedown" : "_onmouseup"), &onclick) &&
         !JSVAL_IS_PRIMITIVE(onclick) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onclick))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onclick))) {
 
-        JS_CallFunctionValue(cx, event, onclick, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, onclick, 1, &jevent, &rval);
     }
 }
 
@@ -423,9 +425,9 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     jsval rval, jevent, ondragevent;
     JSObject *event;
 
-    JSAutoRequest ar(cx);
+    JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(cx, &dragEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &dragEvent_class, NULL, NULL);
 
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
@@ -439,11 +441,11 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj, name, &ondragevent) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, name, &ondragevent) &&
         !JSVAL_IS_PRIMITIVE(ondragevent) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(ondragevent))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(ondragevent))) {
 
-        if (!JS_CallFunctionValue(cx, event, ondragevent, 1, &jevent, &rval)) {
+        if (!JS_CallFunctionValue(m_Cx, event, ondragevent, 1, &jevent, &rval)) {
             printf("Failed to exec func\n");
             return false;
         }
@@ -456,7 +458,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 
 bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t nfiles)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
     if (m_Dragging) {
@@ -465,14 +467,14 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
 
     m_Dragging = true;
 
-    m_DragedFiles = JS_NewArrayObject(cx, (int)nfiles, NULL);
+    m_DragedFiles = JS_NewArrayObject(m_Cx, (int)nfiles, NULL);
 
     for (int i = 0; i < nfiles; i++) {
-        jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(cx, files[i]));
-        JS_SetElement(cx, m_DragedFiles, i, &val);         
+        jsval val = OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(m_Cx, files[i]));
+        JS_SetElement(m_Cx, m_DragedFiles, i, &val);         
     }
 
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(m_DragedFiles);
+    NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DragedFiles);
 
     return this->dragEvent("_onFileDragEnter", x, y);
 
@@ -511,7 +513,7 @@ void NativeJSwindow::dragEnd()
         return;
     }
 
-    NativeJS::getNativeClass(cx)->unrootObject(m_DragedFiles);
+    NativeJS::getNativeClass(m_Cx)->unrootObject(m_DragedFiles);
 
     m_DragedFiles = NULL;
     m_Dragging = false;
@@ -519,18 +521,18 @@ void NativeJSwindow::dragEnd()
 
 void NativeJSwindow::resized(int width, int height)
 {
-    NativeContext::getNativeClass(cx)->sizeChanged(width, height);
+    NativeContext::getNativeClass(m_Cx)->sizeChanged(width, height);
 }
 
 void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 {
-#define EVENT_PROP(name, val) JS_DefineProperty(cx, event, name, \
+#define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
     
     jsval rval, jevent, onmove;
     JSObject *event;
 
-    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(this->cx)->getRootHandler();
+    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(this->m_Cx)->getRootHandler();
 
     rootHandler->mousePosition.x = x;
     rootHandler->mousePosition.y = y;
@@ -539,7 +541,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
     rootHandler->mousePosition.consumed = false;
     
-    event = JS_NewObject(cx, &mouseEvent_class, NULL, NULL);
+    event = JS_NewObject(m_Cx, &mouseEvent_class, NULL, NULL);
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -550,11 +552,11 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
     jevent = OBJECT_TO_JSVAL(event);
 
-    if (JS_GetProperty(cx, this->jsobj, "_onmousemove", &onmove) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, "_onmousemove", &onmove) &&
         !JSVAL_IS_PRIMITIVE(onmove) && 
-        JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(onmove))) {
+        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(onmove))) {
 
-        JS_CallFunctionValue(cx, event, onmove, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, onmove, 1, &jevent, &rval);
     }
 
 }
@@ -573,10 +575,10 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 
 }
 
-static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
+static JSBool native_window_prop_get(JSContext *m_Cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
-    NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
+    NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
 
     switch(JSID_TO_INT(id)) {
         case WINDOW_PROP_DEVICE_PIXELRATIO:
@@ -606,7 +608,7 @@ static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
         case WINDOW_PROP_TITLE:
         {
             const char *title =  NUI->getWindowTitle();
-            JSString *str = NativeJSUtils::newStringWithEncoding(cx, title,
+            JSString *str = NativeJSUtils::newStringWithEncoding(m_Cx, title,
                 strlen(title), "utf8");
             vp.set(STRING_TO_JSVAL(str));
         }
@@ -1106,7 +1108,7 @@ void NativeJSwindow::addFrameCallback(jsval &cb)
 
     m_RequestedFrame = frame;
 
-    JS_AddValueRoot(this->cx, &frame->cb);
+    JS_AddValueRoot(m_Cx, &frame->cb);
 }
 
 void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
@@ -1121,11 +1123,11 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
 
     while (frame != NULL) {
         if (!garbage) {
-            JS_CallFunctionValue(this->cx, JS_GetGlobalObject(this->cx),
+            JS_CallFunctionValue(m_Cx, JS_GetGlobalObject(m_Cx),
                 frame->cb, 1, arg, &rval);
         }
 
-        JS_RemoveValueRoot(this->cx, &frame->cb);
+        JS_RemoveValueRoot(m_Cx, &frame->cb);
 
         struct _requestedFrame *tmp = frame->next;
         delete frame;
@@ -1135,7 +1137,7 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
 
 void NativeJSwindow::initDataBase()
 {
-    NativeNML *nml = NativeContext::getNativeClass(this->cx)->getNML();
+    NativeNML *nml = NativeContext::getNativeClass(m_Cx)->getNML();
     if (!nml) {
         NLOG("[Notice] Unable to create window.storage (no NML provided)");
         return;
@@ -1154,25 +1156,25 @@ void NativeJSwindow::createMainCanvas(int width, int height)
 {
     JSObject *canvas;
 
-    canvas = NativeJSCanvas::generateJSObject(this->cx, width,
+    canvas = NativeJSCanvas::generateJSObject(m_Cx, width,
         height, &m_handler);
 
-    NativeContext::getNativeClass(cx)->getRootHandler()->addChild(m_handler);
+    NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_handler);
 
-    JS_DefineProperty(this->cx, this->jsobj, "canvas",
+    JS_DefineProperty(m_Cx, m_JSObject, "canvas",
         OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 void NativeJSwindow::createStorage()
 {
-    JS::RootedObject obj(this->cx, this->jsobj);
-    JS::RootedObject storage(cx, JS_NewObject(cx, &storage_class, NULL, NULL));
+    JS::RootedObject obj(m_Cx, m_JSObject);
+    JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &storage_class, NULL, NULL));
 
-    JS_DefineFunctions(this->cx, storage, storage_funcs);
+    JS_DefineFunctions(m_Cx, storage, storage_funcs);
 
     jsval jsstorage = OBJECT_TO_JSVAL(storage.get());
 
-    JS_SetProperty(this->cx, obj.get(), "storage", &jsstorage);
+    JS_SetProperty(m_Cx, obj.get(), "storage", &jsstorage);
 }
 
 JSBool native_storage_set(JSContext *cx, unsigned argc, jsval *vp)
@@ -1253,7 +1255,6 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp)
 
 void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
 {
-    NativeJSwindow *jwin = new NativeJSwindow();
     
     JSObject *windowObj;
     windowObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
@@ -1261,8 +1262,8 @@ void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
         &window_class , NULL,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    jwin->jsobj = windowObj;
-    jwin->cx = cx;
+    NativeJSwindow *jwin = new NativeJSwindow(windowObj, cx);
+
     JS_SetPrivate(windowObj, jwin);
 
     jwin->initDataBase();

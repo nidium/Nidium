@@ -16,7 +16,7 @@ public:
     static JSObject *generateJSObject(JSContext *cx, int width, int height,
         NativeCanvasHandler **out);
 
-    explicit NativeJSCanvas(NativeCanvasHandler *handler);
+    NativeJSCanvas(JSObject *obj, JSContext *cx, NativeCanvasHandler *handler);
     ~NativeJSCanvas();
 
     NativeCanvasHandler *getHandler() const {

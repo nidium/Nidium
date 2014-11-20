@@ -9,7 +9,11 @@ class NativeCanvasHandler;
 class NativeJSNative : public NativeJSExposer<NativeJSNative>
 {
   public:
-     NativeJSNative(){};
+    NativeJSNative(JSObject *obj, JSContext *cx) :
+        NativeJSExposer<NativeJSNative>(obj, cx)
+    {
+
+    }
     ~NativeJSNative(){};
 
     static void registerObject(JSContext *cx);

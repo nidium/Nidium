@@ -1453,11 +1453,8 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    NativeJSCanvas *jscanvas = new NativeJSCanvas(handler);
+    NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
     jscanvas->setInherit(inherit);
-
-    jscanvas->cx = cx;
-    jscanvas->jsobj = ret;
 
     JS_SetPrivate(ret, jscanvas);
     JS_SetPrivate(inherit, jscanvas);
@@ -1526,11 +1523,9 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
     JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
 
-    NativeJSCanvas *jscanvas = new NativeJSCanvas(handler);
+    NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
 
     jscanvas->setInherit(inherit);
-    jscanvas->cx = cx;
-    jscanvas->jsobj = ret;
 
     JS_SetPrivate(ret, jscanvas);
     JS_SetPrivate(inherit, jscanvas);
@@ -1549,15 +1544,16 @@ void NativeJSCanvas::registerObject(JSContext *cx)
 
 void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 {
+    JSContext *cx = m_Cx;
     switch (msg.event()) {
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
-            JSOBJ_CALLFUNCNAME(this->jsobj, "onresize", 0, NULL);
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onresize", 0, NULL);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
         {
-            JSOBJ_CALLFUNCNAME(this->jsobj, "onload", 0, NULL);
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onload", 0, NULL);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
@@ -1582,7 +1578,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 
             arg.setObjectOrNull(ev);
 
-            JSOBJ_CALLFUNCNAME(this->jsobj, "onchange", 1, &arg);
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
             break;
         }
         default:
@@ -1595,7 +1591,9 @@ void NativeJSCanvas::onMessageLost(const NativeSharedMessages::Message &msg)
 
 }
 
-NativeJSCanvas::NativeJSCanvas(NativeCanvasHandler *handler) :
+NativeJSCanvas::NativeJSCanvas(JSObject *obj, JSContext *cx,
+    NativeCanvasHandler *handler) :
+    NativeJSExposer<NativeJSCanvas>(obj, cx),
     m_CanvasHandler(handler), m_Inherit(NULL)
 {
     m_CanvasHandler->addListener(this);

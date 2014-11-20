@@ -37,16 +37,13 @@ void NativeJSNative::registerObject(JSContext *cx)
 {
     JSObject *NativeObj;
 
-    NativeJSNative *jnative = new NativeJSNative();
-
     //JSObject *titleBar;
 
     NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSNative::getJSObjectName(),
         &Native_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    jnative->jsobj = NativeObj;
-    jnative->cx = cx;
+    NativeJSNative *jnative = new NativeJSNative(NativeObj, cx);
 
     JS_SetPrivate(NativeObj, jnative);
 

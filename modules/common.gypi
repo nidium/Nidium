@@ -20,7 +20,7 @@
             '-Wno-invalid-offsetof',
             '-Wno-c++0x-extensions'
         ],
-        'product_dir': '../framework/nidium_modules/',
+        'product_dir': '../framework/modules/',
         'default_configuration': 'Release',
         'configurations': {
             'Debug': {

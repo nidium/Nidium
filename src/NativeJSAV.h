@@ -135,11 +135,13 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
 class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public NativeMessages
 {
     public :
-        NativeJSAudioNode(NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
-            :  audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
-               arrayContent(NULL), m_IsDestructing(false)
+        NativeJSAudioNode(JSObject *obj, JSContext *cx,
+            NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
+            :   NativeJSExposer<NativeJSAudioNode>(obj, cx),
+                audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
+                arrayContent(NULL), m_IsDestructing(false)
         { 
-            this->jsobj = NULL;
+            m_JSObject = NULL;
 
             try {
                 this->node = audio->audio->createNode(type, in, out);
@@ -158,8 +160,9 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
             }
         }
 
-        NativeJSAudioNode(NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
-            :  audio(audio), node(node), type(type), 
+        NativeJSAudioNode(JSObject *obj, JSContext *cx,
+               NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
+            :  NativeJSExposer<NativeJSAudioNode>(obj, cx), audio(audio), node(node), type(type), 
                hashObj(NULL), arrayContent(NULL) 
         { 
             this->add();
@@ -222,7 +225,7 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessages
 {
     public :
-        NativeJSVideo(NativeCanvas2DContext *canvasCtx, JSContext *cx);
+        NativeJSVideo(JSObject *obj, NativeCanvas2DContext *canvasCtx, JSContext *cx);
 
         NativeVideo *video;
 

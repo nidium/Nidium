@@ -10,9 +10,9 @@ class NativeDB;
 class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 {
   public:
-    NativeJSwindow() : 
+    NativeJSwindow(JSObject *jsobj, JSContext *cx) : 
         m_RequestedFrame(NULL), m_handler(NULL), m_Db(NULL),
-        m_Dragging(false), m_DragedFiles(NULL)
+        m_Dragging(false), m_DragedFiles(NULL), NativeJSExposer<NativeJSwindow>(jsobj, cx)
     {
     };
 
