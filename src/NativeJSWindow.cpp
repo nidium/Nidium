@@ -319,9 +319,9 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
         JS_CallFunctionValue(m_Cx, event, onwheel, 1, &jevent, &rval);
     }
 
-    JSObject *obj = NativeJSEvents::CreateEventObject(m_Cx);
+    /*JSObject *obj = NativeJSEvents::CreateEventObject(m_Cx);
 
-    this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obj));
+    this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obj));*/
 
 #undef EVENT_PROP
 }
