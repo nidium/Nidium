@@ -50,10 +50,13 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
         return m_Db;
     }
 
-    static void registerObject(JSContext *cx, int width, int height);
+    static NativeJSwindow *registerObject(JSContext *cx, int width, int height);
     static const char *getJSObjectName() {
-        return "window";
+        return "Window";
     }
+
+    static NativeJSwindow* getNativeClass(JSContext *cx);
+    static NativeJSwindow* getNativeClass(NativeJS *njs);
 
     static JSClass *jsclass;
 

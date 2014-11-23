@@ -151,7 +151,7 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* Native() object */
     NativeJSNative::registerObject(cx);
     /* window() object */
-    NativeJSwindow::registerObject(cx, width, height);
+    m_JSWindow = NativeJSwindow::registerObject(cx, width, height);
     /* document() object */
     NativeJSdocument::registerObject(cx);
 
@@ -184,12 +184,10 @@ void NativeContext::sizeChanged(int w, int h)
 
     m_SizeDirty = false;
 
-    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(m_JS);
-
     /* Skia GL */
     this->getRootHandler()->setSize((int)w, (int)h);
     /* Native Canvas */
-    jswindow->getCanvasHandler()->setSize((int)w, (int)h);
+    m_JSWindow->getCanvasHandler()->setSize((int)w, (int)h);
     /* Redraw */
     m_UI->refresh();
 }
@@ -275,7 +273,7 @@ void NativeContext::callFrame()
         m_Stats.samples[0] = m_Stats.fps;
     }
 
-    NativeJSwindow::getNativeClass(m_JS)->callFrameCallbacks(tmptime);
+    m_JSWindow->callFrameCallbacks(tmptime);
 
     if (gfunc != JSVAL_VOID) {
         JSAutoRequest ar(m_JS->cx);
@@ -297,12 +295,12 @@ NativeContext::~NativeContext()
         delete m_RootHandler;
     }
 
-    NativeJSwindow *jswindow = NativeJSwindow::getNativeClass(m_JS);
-    jswindow->callFrameCallbacks(0, true);
+    m_JSWindow->callFrameCallbacks(0, true);
 
     delete m_JS;
     delete m_GLState;
     delete m_WS;
+    delete m_JSWindow;
     
     NativeSkia::glcontext = NULL;
 

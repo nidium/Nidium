@@ -20,6 +20,7 @@ class NativeCanvasContext;
 class NativeGLState;
 class NativeWebSocketListener;
 class NativeWebSocketClientConnection;
+class NativeJSwindow;
 
 typedef struct _ape_global ape_global;
 
@@ -56,6 +57,14 @@ class NativeContext : public NativeMessages
         return m_NML;
     }
 
+    NativeJSwindow *getJSWindow() const {
+        return m_JSWindow;
+    }
+
+    void setJSWindow(NativeJSwindow *obj) {
+        m_JSWindow = obj;
+    }
+
     inline NativeGLState *getGLState() const {
         return m_GLState;
     }
@@ -66,6 +75,10 @@ class NativeContext : public NativeMessages
 
     ShBuiltInResources *getShaderResources() {
         return &m_ShResources;
+    }
+
+    static NativeContext *getNativeClass() {
+        return (NativeContext *)NativeJS::getNativeClass(NULL)->getPrivate();
     }
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
@@ -120,6 +133,7 @@ class NativeContext : public NativeMessages
     NativeWebSocketListener * m_WS;
     NativeWebSocketClientConnection *m_WSClient;
     ShBuiltInResources        m_ShResources;
+    NativeJSwindow *          m_JSWindow;
     bool                      m_SizeDirty;
 
     struct {

@@ -124,7 +124,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
         }
     }
     /* TODO: allow the callback to change content ? */
-
+    
     NativeJSwindow::getNativeClass(njs)->assetReady(tag);
 }
 

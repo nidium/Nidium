@@ -318,6 +318,11 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 
         JS_CallFunctionValue(m_Cx, event, onwheel, 1, &jevent, &rval);
     }
+
+    JSObject *obj = NativeJSEvents::CreateEventObject(m_Cx);
+
+    this->fireJSEvent("wheel", OBJECT_TO_JSVAL(obj));
+
 #undef EVENT_PROP
 }
 
@@ -566,7 +571,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj)
 {
-    NativeJSwindow *jwin = NativeJSwindow::getNativeClass(obj);
+    NativeJSwindow *jwin = NativeContext::getNativeClass()->getJSWindow();
 
     if (jwin != NULL) {
         delete jwin;
@@ -1256,28 +1261,30 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
+NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width, int height)
 {
-    
     JSObject *windowObj;
+#if 0
     windowObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSwindow::getJSObjectName(),
         &window_class , NULL,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+#else
+    windowObj = JS_GetGlobalObject(cx);
+#endif
+    NativeJSwindow *jwin = new NativeJSwindow(JS_GetGlobalObject(cx), cx);
 
-    NativeJSwindow *jwin = new NativeJSwindow(windowObj, cx);
-
-    JS_SetPrivate(windowObj, jwin);
+    //JS_SetPrivate(windowObj, jwin);
 
     jwin->initDataBase();
     
     jwin->createMainCanvas(width, height);
 
-    NativeJS::getNativeClass(cx)->jsobjects.set(
-        NativeJSwindow::getJSObjectName(), windowObj);
+    /*NativeJS::getNativeClass(cx)->jsobjects.set(
+        NativeJSwindow::getJSObjectName(), windowObj);*/
 
-    JS_DefineFunctions(cx, windowObj, window_funcs);
-    JS_DefineProperties(cx, windowObj, window_props);
+    JS_DefineFunctions(cx, JS_GetGlobalObject(cx), window_funcs);
+    JS_DefineProperties(cx, JS_GetGlobalObject(cx), window_props);
 
     jsval val;
 
@@ -1286,5 +1293,19 @@ void NativeJSwindow::registerObject(JSContext *cx, int width, int height)
 
     val = DOUBLE_TO_JSVAL(0);
     JS_SetProperty(cx, windowObj, "titleBarControlsOffsetY", &val);
+
+    return jwin;
+}
+
+
+NativeJSwindow* NativeJSwindow::getNativeClass(JSContext *cx)
+{
+    return NativeContext::getNativeClass(cx)->getJSWindow();
+}
+
+
+NativeJSwindow* NativeJSwindow::getNativeClass(NativeJS *njs)
+{
+    return NativeContext::getNativeClass(njs)->getJSWindow();
 }
 
