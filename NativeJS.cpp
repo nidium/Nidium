@@ -137,9 +137,11 @@ static JSPropertySpec glob_props[] = {
    {"global", GLOBAL_PROP_GLOBAL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
         JSOP_WRAPPER(native_global_prop_get),
         JSOP_NULLWRAPPER},
+#ifndef NATIVE_DISABLE_WINDOW_GLOBAL
    {"window", GLOBAL_PROP_WINDOW, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
         JSOP_WRAPPER(native_global_prop_get),
         JSOP_NULLWRAPPER},
+#endif
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
