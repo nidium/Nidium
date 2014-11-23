@@ -92,6 +92,10 @@ class NativeJSEvents
 {
 public:
 
+    static JSObject *CreateEventObject(JSContext *cx) {
+        return JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL);
+    }
+
     NativeJSEvents(char *name) :
         m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)) {}
     ~NativeJSEvents() {
@@ -218,9 +222,6 @@ class NativeJSExposer
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
 
-    static JSObject *CreateEventObject(JSContext *cx) {
-        return JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL);
-    }
   protected:
     void initEvents() {
         if (m_Events) {
@@ -244,10 +245,11 @@ class NativeJSExposer
         events->add(ev);
     }
 
-    void fireJSEvent(char *name, jsval evobj) {
+    void fireJSEvent(const char *name, jsval evobj) {
         if (!JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
             &NativeJSEvent_class, NULL)) {
-            return;
+            
+            evobj.setUndefined();
         }
         NativeJSEvents *events = m_Events->get(name);
         if (!events) {

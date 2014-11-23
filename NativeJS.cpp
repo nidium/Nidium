@@ -91,6 +91,7 @@ enum {
     GLOBAL_PROP___DIRNAME,
     GLOBAL_PROP___FILENAME,
     GLOBAL_PROP_GLOBAL,
+    GLOBAL_PROP_WINDOW
 };
 
 JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
@@ -136,6 +137,9 @@ static JSPropertySpec glob_props[] = {
    {"global", GLOBAL_PROP_GLOBAL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
         JSOP_WRAPPER(native_global_prop_get),
         JSOP_NULLWRAPPER},
+   {"window", GLOBAL_PROP_WINDOW, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_global_prop_get),
+        JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -154,6 +158,7 @@ static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
             vp.setString(JS_NewStringCopyZ(cx, path.dir()));
             break;
         }
+        case GLOBAL_PROP_WINDOW:
         case GLOBAL_PROP_GLOBAL:
         {
             vp.setObjectOrNull(JS_GetGlobalObject(cx));
