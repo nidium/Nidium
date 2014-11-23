@@ -99,6 +99,7 @@
                     '__STDC_CONSTANT_MACROS',
                     'TRACING',
                     'JS_THREADSAFE',
+                    'GR_GL_CUSTOM_SETUP_HEADER=<../gyp/skia_gl_config.h>'
                 ],
                 'cflags+': [
                     '-fno-rtti',
