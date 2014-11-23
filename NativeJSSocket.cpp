@@ -53,6 +53,9 @@ static JSClass Socket_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSSocket>::jsclass = &Socket_class;
+
 static JSClass socket_client_class = {
     "SocketClient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,

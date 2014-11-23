@@ -47,6 +47,10 @@ static JSClass Thread_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSThread>::jsclass = &Thread_class;
+
+
 static JSClass messageEvent_class = {
     "ThreadMessageEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,

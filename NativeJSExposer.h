@@ -26,6 +26,119 @@
 #include "NativeJS.h"
 #include "NativeTaskManager.h"
 
+#define JSNATIVE_PROLOGUE(ofclass) \
+    JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj);
+
+#define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
+    JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    (void)args;\
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    if (!thisobj) { \
+        JS_ReportError(cx, "Illegal invocation"); \
+        return false; \
+    } \
+    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
+    if (!CppObj) { \
+        JS_ReportError(cx, "Illegal invocation"); \
+        return false; \
+    }
+
+#define NATIVE_CHECK_ARGS(fnname, minarg) \
+    if (argc < minarg) { \
+                         \
+        char numBuf[12];  \
+        snprintf(numBuf, sizeof numBuf, "%u", argc);  \
+        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_MORE_ARGS_NEEDED,  \
+                             fnname, numBuf, (argc > 1 ? "s" : ""));  \
+        return false;  \
+    }
+
+
+static JSClass NativeJSEvent_class = {
+    "NativeJSEvent", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+
+struct NativeJSEvent
+{
+    NativeJSEvent(JSContext *cx, jsval func) {
+        once = false;
+        next = prev = NULL;
+
+        m_Cx = cx;
+        m_Function = func;
+
+        JS_AddValueRoot(m_Cx, &m_Function);
+    }
+    ~NativeJSEvent() {
+        JS_RemoveValueRoot(m_Cx, &m_Function);
+    }
+
+    JSContext *m_Cx;
+    jsval m_Function;
+
+    bool once;
+
+    NativeJSEvent *next;
+    NativeJSEvent *prev;
+};
+
+class NativeJSEvents
+{
+public:
+
+    NativeJSEvents(char *name) :
+        m_Head(NULL), m_Queue(NULL), m_Name(strdup(name)) {}
+    ~NativeJSEvents() {
+        NativeJSEvent *ev, *tmpEv;
+        for (ev = m_Head; ev != NULL;) {
+            tmpEv = ev->next;
+            free(ev);
+
+            ev = tmpEv;
+        }
+        free(m_Name);
+    }
+
+    void add(NativeJSEvent *ev) {
+        ev->prev = m_Queue;
+        ev->next = NULL;
+
+        if (m_Head == NULL) {
+            m_Head = ev;
+        }
+
+        if (m_Queue) {
+            m_Queue->next = ev;
+        }
+
+        m_Queue = ev;
+    }
+
+    bool fire(jsval evobj) {
+        NativeJSEvent *ev, *tmpEv;
+        JS::Value rval;
+        for (ev = m_Head; ev != NULL;) {
+            // Use tmp in case the event was self deleted during trigger
+            tmpEv = ev->next;
+            JS_CallFunctionValue(ev->m_Cx, evobj.toObjectOrNull(),
+                ev->m_Function, 1, &evobj, &rval);
+
+            ev = tmpEv;
+        }
+        return false;
+    }
+
+    NativeJSEvent *m_Head;
+    NativeJSEvent *m_Queue;
+    char *m_Name;
+};
+
 template <typename T>
 class NativeJSExposer
 {
@@ -50,9 +163,22 @@ class NativeJSExposer
         m_Cx = cx;
     }
 
-    NativeJSExposer(JSObject *jsobj, JSContext *cx) {
-        m_JSObject = jsobj;
-        m_Cx = cx;
+    NativeJSExposer(JSObject *jsobj, JSContext *cx) :
+        m_JSObject(jsobj), m_Cx(cx), m_Events(NULL)
+    {
+        static JSFunctionSpec NativeJSEvent_funcs[] = {
+            JS_FN("addListener",
+                NativeJSExposer<T>::native_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FS_END
+        };
+
+        JS_DefineFunctions(cx, jsobj, NativeJSEvent_funcs);
+    }
+
+    virtual ~NativeJSExposer() {
+        if (m_Events) {
+            delete m_Events;
+        }
     }
 
     static const char *getJSObjectName() { return NULL; }
@@ -91,9 +217,78 @@ class NativeJSExposer
     static T* getNativeClass(JSContext *cx) {
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
+
+    static JSObject *CreateEventObject(JSContext *cx) {
+        return JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL);
+    }
   protected:
-    JSContext *m_Cx;
+    void initEvents() {
+        if (m_Events) {
+            return;
+        }
+
+        m_Events = new NativeHash<NativeJSEvents *>(32);
+        m_Events->setAutoDelete(true);
+    }
+
+    void addJSEvent(char *name, jsval func) {
+        initEvents();
+
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            events = new NativeJSEvents(name);
+            m_Events->set(name, events);
+        }
+
+        NativeJSEvent *ev = new NativeJSEvent(m_Cx, func);
+        events->add(ev);
+    }
+
+    void fireJSEvent(char *name, jsval evobj) {
+        if (!JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
+            &NativeJSEvent_class, NULL)) {
+            return;
+        }
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        events->fire(evobj);
+    }
+
     JSObject *m_JSObject;
+    JSContext *m_Cx;
+    NativeHash<NativeJSEvents *> *m_Events;
+
+    static JSClass *jsclass;
+private:
+
+    static JSBool native_jsevent_addEventListener(JSContext *cx,
+        unsigned argc, jsval *vp)
+    {
+        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
+
+        NATIVE_CHECK_ARGS("addEventListener", 2);
+
+        JSString *name;
+        JS::Value cb;
+
+        if (!JS_ConvertArguments(cx, 1, args.array(), "S", &name)) {
+            return false;
+        }
+
+        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
+            JS_ReportError(cx, "Bad callback given");
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+
+        CppObj->addJSEvent(cname.ptr(), cb);
+
+        return true;
+    }
 };
 
 #define NATIVE_ASYNC_MAXCALLBACK 4
@@ -227,16 +422,6 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
         return constructor(cx, exports); \
     }
 
-#define NATIVE_CHECK_ARGS(fnname, minarg) \
-    if (argc < minarg) { \
-                         \
-        char numBuf[12];  \
-        snprintf(numBuf, sizeof numBuf, "%u", argc);  \
-        JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_MORE_ARGS_NEEDED,  \
-                             fnname, numBuf, (argc > 1 ? "s" : ""));  \
-        return false;  \
-    }
-
 
 #define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
     (const char *)name, val, NULL, NULL, flags)
@@ -257,24 +442,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(val))
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, INT_TO_JSVAL(val))
 
-#define JSNATIVE_PROLOGUE(ofclass) \
-    JS::CallArgs args = CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj);
 
-#define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
-    JS::CallArgs args = CallArgsFromVp(argc, vp); \
-    (void)args;\
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
-    if (!thisobj) { \
-        JS_ReportError(cx, "Illegal invocation"); \
-        return false; \
-    } \
-    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
-    if (!CppObj) { \
-        JS_ReportError(cx, "Illegal invocation"); \
-        return false; \
-    }
 
 #define JS_INITOPT() JS::Value __curopt;
 

@@ -38,6 +38,10 @@ static JSClass Http_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSHttp>::jsclass = &Http_class;
+
+
 static JSFunctionSpec http_funcs[] = {
     JS_FN("request", native_http_request, 2, 0),
     JS_FS_END

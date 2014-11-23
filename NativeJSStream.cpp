@@ -45,6 +45,9 @@ static JSClass Stream_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSStream>::jsclass = &Stream_class;
+
 static JSFunctionSpec Stream_funcs[] = {
     JS_FN("seek", native_stream_seek, 1, 0),
     JS_FN("start", native_stream_start, 0, 0),

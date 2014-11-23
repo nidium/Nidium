@@ -36,6 +36,9 @@ static JSClass HTTPListener_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSHTTPListener>::jsclass = &HTTPListener_class;
+
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,

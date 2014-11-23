@@ -109,6 +109,9 @@ JSClass File_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSFileIO>::jsclass = &File_class;
+
 static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_openSync(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp);

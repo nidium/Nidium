@@ -36,6 +36,10 @@ static JSClass WebSocketServer_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSWebSocketServer>::jsclass = &WebSocketServer_class;
+
+
 static JSClass WebSocketServer_client_class = {
     "WebSocketServerClient", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
