@@ -40,6 +40,9 @@ static JSClass document_class = {
 
 JSClass *NativeJSdocument::jsclass = &document_class;
 
+template<>
+JSClass *NativeJSExposer<NativeJSdocument>::jsclass = &document_class;
+
 static JSFunctionSpec document_funcs[] = {
     JS_FN("run", native_document_run, 1, 0),
     JS_FN("showFPS", native_document_showfps, 1, 0),

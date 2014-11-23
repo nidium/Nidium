@@ -103,6 +103,10 @@ static JSClass AudioContext_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSAudio>::jsclass = &AudioContext_class;
+
+
 static JSClass global_AudioThread_class = {
     "_GLOBALAudioThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
@@ -130,6 +134,9 @@ static JSClass AudioNode_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, AudioNode_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+template<>
+JSClass *NativeJSExposer<NativeJSAudioNode>::jsclass = &AudioNode_class;
 
 static JSClass AudioNode_threaded_class = {
     "AudioNodeThreaded", JSCLASS_HAS_PRIVATE,
@@ -307,6 +314,9 @@ static JSClass Video_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Video_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+template<>
+JSClass *NativeJSExposer<NativeJSVideo>::jsclass = &Video_class;
 
 static JSPropertySpec Video_props[] = {
     {"width", VIDEO_PROP_WIDTH, 

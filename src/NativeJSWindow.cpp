@@ -73,6 +73,9 @@ static JSClass storage_class = {
 };
 
 JSClass *NativeJSwindow::jsclass = &window_class;
+template<>
+JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &window_class;
+
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,

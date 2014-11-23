@@ -30,6 +30,10 @@ static JSClass Image_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
+
+
 static JSPropertySpec Image_props[] = {
     {"src", IMAGE_PROP_SRC, 0, JSOP_NULLWRAPPER,
     	JSOP_WRAPPER(native_image_prop_set)},

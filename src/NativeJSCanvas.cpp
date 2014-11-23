@@ -91,6 +91,10 @@ JSClass Canvas_class = {
     0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
+template<>
+JSClass *NativeJSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
+
+
 JSClass Canvas_Inherit_class = {
     "CanvasInherit", JSCLASS_HAS_PRIVATE,
         JS_PropertyStub,

@@ -18,6 +18,8 @@ static JSClass Native_class = {
 };
 
 JSClass *NativeJSNative::jsclass = &Native_class;
+template<>
+JSClass *NativeJSExposer<NativeJSNative>::jsclass = &Native_class;
 
 
 static JSFunctionSpec Native_funcs[] = {
