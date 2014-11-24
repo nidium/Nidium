@@ -246,9 +246,8 @@ class NativeJSExposer
     }
 
     void fireJSEvent(const char *name, jsval evobj) {
-        if (!JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
+        if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
             &NativeJSEvent_class, NULL)) {
-            
             evobj.setUndefined();
         }
         NativeJSEvents *events = m_Events->get(name);
@@ -396,6 +395,7 @@ protected:
     JSContext *m_JSCx;
 };
 
+
 typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define NativeJSObj(cx) (NativeJS::getNativeClass(cx))
@@ -450,5 +450,51 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define JSGET_OPT(obj, name) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
 #define JSGET_OPT_TYPE(obj, name, type) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL && __curopt.is ## type())
+
+
+class NativeJSObjectBuilder
+{
+public:
+    NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
+        m_Obj = JS_NewObject(m_Cx, clasp, NULL, NULL);
+        m_Cx = cx;
+    };
+
+    NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) {
+        m_Obj = wrapped;
+        m_Cx = cx;
+    };    
+
+    void set(const char *name, uint32_t value) {
+        JSOBJ_SET_PROP_INT(m_Obj, name, value);
+    }
+
+    void set(const char *name, const char *value) {
+        JSOBJ_SET_PROP_CSTR(m_Obj, name, value);
+    }
+
+    void set(const char *name, JSString *value) {
+        JSOBJ_SET_PROP_STR(m_Obj, name, value);
+    }
+
+    void set(const char *name, bool value) {
+        JSOBJ_SET_PROP(m_Obj, name, BOOLEAN_TO_JSVAL(value));
+    }
+
+    JSObject *obj() const {
+        return m_Obj;
+    }
+
+    JS::Value jsval() const {
+        return OBJECT_TO_JSVAL(m_Obj);
+    }
+
+    ~NativeJSObjectBuilder(){};
+
+private:
+    JSObject *m_Obj;
+    JSContext *m_Cx;
+};
+
 
 #endif
