@@ -423,7 +423,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     }
 
 #define NATIVE_REGISTER_MODULE(constructor) \
-    extern "C" bool __NativeRegisterModule(JSContext *cx, JSObject *exports) \
+    extern "C" __attribute__((__visibility__("default"))) bool __NativeRegisterModule(JSContext *cx, JSObject *exports) \
     { \
         return constructor(cx, exports); \
     }
