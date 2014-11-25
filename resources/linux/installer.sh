@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 IS_ROOT=0
 BASE_INSTALL_DIR="${HOME}/nidium"
