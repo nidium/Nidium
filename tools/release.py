@@ -243,6 +243,7 @@ def packageExecutable():
         tmpDir = "out/nidium.tmp/"
         Utils.mkdir(tmpDir + "dist/")
         Utils.mkdir(tmpDir + "resources/")
+        shutil.copy("./COPYING", tmpDir)
         shutil.copy(resources + "/nidium.desktop", tmpDir + "resources/")
         shutil.copy(resources + "/x-application-nidium.xml", tmpDir + "resources/")
         shutil.copy(resources + "/nidium.png", tmpDir + "resources/")
