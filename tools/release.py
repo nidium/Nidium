@@ -287,7 +287,7 @@ if not os.path.exists("tools/dir2nvfs"):
     # Dir2NFS is needed in order to generate the privates
     Gyp("gyp/tools.gyp").run("dir2nvfs")
 
-Gyp("gyp/actions.gyp").run("generate-private")
+Gyp("gyp/actions.gyp").run("generate-private", parallel=False)
 
 # Now that the privates are build
 # we can add add native_embed_private flag
