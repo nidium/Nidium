@@ -5,7 +5,11 @@
         'product_dir': '../tools/',
         'dependencies': [
             '<(native_network_path)/gyp/network.gyp:nativenetwork',
+            '<(native_network_path)/gyp/network.gyp:nativenetwork-includes',
+            '<(native_network_path)/gyp/network.gyp:nativenetwork-link',
             '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-includes',
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore-link',
             '<(native_nativejscore_path)/gyp/jsoncpp.gyp:jsoncpp'
         ],
         'sources': [
