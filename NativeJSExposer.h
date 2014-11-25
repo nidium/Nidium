@@ -222,6 +222,22 @@ class NativeJSExposer
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
 
+    void fireJSEvent(const char *name, jsval evobj) {
+        if (!m_Events) {
+            return;
+        }
+        if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
+            &NativeJSEvent_class, NULL)) {
+            evobj.setUndefined();
+        }
+        NativeJSEvents *events = m_Events->get(name);
+        if (!events) {
+            return;
+        }
+
+        events->fire(evobj);
+    }
+
   protected:
     void initEvents() {
         if (m_Events) {
@@ -245,18 +261,6 @@ class NativeJSExposer
         events->add(ev);
     }
 
-    void fireJSEvent(const char *name, jsval evobj) {
-        if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
-            &NativeJSEvent_class, NULL)) {
-            evobj.setUndefined();
-        }
-        NativeJSEvents *events = m_Events->get(name);
-        if (!events) {
-            return;
-        }
-
-        events->fire(evobj);
-    }
 
     JSObject *m_JSObject;
     JSContext *m_Cx;
