@@ -100,6 +100,9 @@ int NativeServer::Start(int argc, char *argv[])
         }
         NativeServer::Daemonize();
     } else {
+#ifdef DEBUG
+        printf("[Warn] Running in Debug mode\n");
+#endif
         if (argc > 1) {
             ctx.getNJS()->LoadScript(argv[argc-1]);
         }

@@ -35,6 +35,7 @@ static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 {
     struct rlimit rl;
     struct stat   stats;
+    JSContext *m_Cx = cx;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
