@@ -18,7 +18,7 @@ Gyp.setConfiguration("Release")
 
 Gyp.set("native_enable_breakpad", 1)
 
-OUTPUT_BINARY = os.path.join("build", Gyp._config, "nidium")
+OUTPUT_BINARY = os.path.join("build", "out", Gyp._config, "nidium")
 
 # {{{ Release Utilities
 def release():
@@ -101,7 +101,7 @@ def release():
         binFile = "framework/dist/nidium.app/Contents/MacOS/nidium"
     elif Platform.system == "Linux":
         breakpadSymFile = "build/out/" + Gyp._config + "/nidium.sym"
-        symFile = "build/out/" + Gyp._config + " /nidium.debug"
+        symFile = "build/out/" + Gyp._config + "/nidium.debug"
         binFile = OUTPUT_BINARY
     else:
         # Window TODO
@@ -120,7 +120,7 @@ def release():
         print("TODO")
 
     Log.info("Archiving debug symbols")
-    symArchive = "out/nidium.sym.zip"
+    symArchive = "build/out/nidium.sym.zip"
 
     with zipfile.ZipFile(symArchive, 'w', zipfile.ZIP_DEFLATED) as myzip:
         myzip.write(breakpadSymFile, "nidium.sym")
