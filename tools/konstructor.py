@@ -118,7 +118,7 @@ class CommandLine:
         return decorator 
 
 @CommandLine.option("--configuration", default="")
-def verbose(config):
+def configuration(config):
     config = config.split(",")
     if len(config) > 0:
         Konstruct.setConfigs(config)
@@ -913,7 +913,7 @@ class Builder:
         def __init__(self, name):
             self.name = name
 
-        def run(self, target=None):
+        def run(self, target=None, parallel=True):
             defines = ""
             for key, value in Builder.Gyp._defines.iteritems():
                 defines += " -D%s=%s" % (key, value)
@@ -928,7 +928,9 @@ class Builder:
 
             if Platform.system == "Darwin":
                 project = os.path.splitext(self.name)[0]
-                runCmd = "xcodebuild -project " + project + ".xcodeproj -jobs " + str(Platform.cpuCount)
+                runCmd = "xcodebuild -project " + project + ".xcodeproj"
+                if parallel:
+                    runCmd += "-jobs " + str(Platform.cpuCount)
                 if Builder.Gyp._config is not None:
                     runCmd += " -configuration " + Builder.Gyp._config
 
@@ -945,8 +947,8 @@ class Builder:
                     runCmd += " V=1"
                 if Builder.Gyp._config is not None:
                     runCmd += " BUILDTYPE=" + Builder.Gyp._config
-
-                runCmd += " -j%i" % Platform.cpuCount
+                if parallel:
+                    runCmd += " -j%i" % Platform.cpuCount
             else:
                 # TODO : Windows support
                 Utils.exit("Missing windows support");
