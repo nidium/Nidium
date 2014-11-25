@@ -40,7 +40,7 @@ NativePath::NativePath(const char *origin, bool allowAll, bool noFilter) :
     const char *pOrigin;
     int originlen = strlen(origin);
 
-    if (originlen > MAXPATHLEN-1/* || origin[originlen-1] == '/'*/) {
+    if (originlen > MAXPATHLEN-1 || !originlen/* || origin[originlen-1] == '/'*/) {
         return;
     }
     m_Path = (char *)malloc(sizeof(char) * (MAXPATHLEN*4 + 1));
