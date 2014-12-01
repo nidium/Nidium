@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <system/native_atom.h>
 
 static pthread_key_t gManager = 0;
 
@@ -48,6 +49,8 @@ void *NativeTaskManager::workerInfo::work()
         while ((msg = m_Messages.readMessage())) {
             NativeTask *task = (NativeTask *)msg->dataPtr();
             task->getFunction()(task);
+            native_atomic_dec(&task->getObject()->m_TaskQueued);
+            
             delete task;
             delete msg;
         }
@@ -218,5 +221,8 @@ void NativeManaged::addTask(NativeTask *task)
     }
 
     task->setObject(this);
+
+    native_atomic_inc(&m_TaskQueued);
+
     m_Worker->addTask(task);
 }

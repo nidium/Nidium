@@ -118,7 +118,7 @@ private:
 class NativeManaged : public NativeMessages
 {
 public:
-    NativeManaged() : m_Worker(NULL) {
+    NativeManaged() : m_TaskQueued(0), m_Worker(NULL) {
         m_Manager = NativeTaskManager::getManager();
     }
     ~NativeManaged() {
@@ -127,6 +127,7 @@ public:
         }
     };
     void addTask(NativeTask *task);
+    int32_t m_TaskQueued;
 private:
     NativeTaskManager *m_Manager;
     NativeTaskManager::workerInfo *m_Worker;
