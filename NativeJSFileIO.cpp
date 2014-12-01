@@ -302,6 +302,8 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         return false;        
     }
 
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+
     return true;
 }
 
@@ -380,6 +382,8 @@ static JSBool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
     }
     file->listFiles(callback.toObjectOrNull());
 
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+
     return true;
 }
 
@@ -417,7 +421,10 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
     if (!file->isOpen()) {
         file->open("r");
     }
+
     file->read((uint64_t)read_size, callback.toObjectOrNull());
+
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -455,6 +462,8 @@ static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 
     file->seek(seek_pos, callback.toObjectOrNull());
 
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+
     return true;
 }
 
@@ -475,7 +484,9 @@ static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
 
     file = NJSFIO->getFile();
 
-    file->close();    
+    file->close();
+
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
     return JS_TRUE;
 }
@@ -512,6 +523,8 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
     file->open(cmodes.ptr(), callback.toObjectOrNull());
+
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
     return true;
 }
@@ -753,6 +766,10 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
             2, params, &rval);
     }
 
+    if (!this->getFile()->m_TaskQueued) {
+        NativeJS::getNativeClass(cx)->unrootObject(thisobj);
+    }
+
     NativeJS::getNativeClass(cx)->unrootObject(callback);
 
     return true;
@@ -760,7 +777,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
 
 void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
 {
-    NativeJSFileIO::callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
+    this->callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }
 
 #if 0
