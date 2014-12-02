@@ -930,7 +930,7 @@ class Builder:
                 project = os.path.splitext(self.name)[0]
                 runCmd = "xcodebuild -project " + project + ".xcodeproj"
                 if parallel:
-                    runCmd += "-jobs " + str(Platform.cpuCount)
+                    runCmd += " -jobs " + str(Platform.cpuCount)
                 if Builder.Gyp._config is not None:
                     runCmd += " -configuration " + Builder.Gyp._config
 
