@@ -19,7 +19,7 @@
                 ['OS=="mac"', {
                     'xcode_settings': {
                         'OTHER_CFLAGS': [
-                            '-fvisibility=hidden'
+                            #'-fvisibility=hidden'
                         ],
                     },
                 }],
@@ -142,7 +142,8 @@
             '../NativeJSDebug.cpp',
             '../NativeJSConsole.cpp',
             '../NativeJSProfiler.cpp',
-            '../NativeJSFS.cpp'
+            '../NativeJSFS.cpp',
+            '../NativeJSProcess.cpp'
         ],
     }],
 }
