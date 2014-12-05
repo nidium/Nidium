@@ -52,6 +52,7 @@ class NativeUtils
         const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
     static void sha1(const unsigned char *buf, uint32_t buflen, unsigned char out[20]);
     static char *b64Encode(const unsigned char *buf, size_t len);
+    static int b64Decode(unsigned char *out, const char *in, int out_length);
     static void HTTPTime(char *buf);
 };
 

@@ -156,6 +156,11 @@ char *NativeUtils::b64Encode(const unsigned char *buf, size_t len)
     return base64_encode((unsigned char *)buf, len);
 }
 
+int NativeUtils::b64Decode(unsigned char *out, const char *in, int out_length)
+{
+    return base64_decode(out, in, out_length);
+}
+
 static const char  *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 static const char  *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
