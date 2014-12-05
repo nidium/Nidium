@@ -93,6 +93,9 @@ int NativeServer::Start(int argc, char *argv[])
     }
 
     NativeContext ctx(net);
+    const NativeJS *js = ctx.getNJS();
+    NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
+    
     /*
         Daemon requires a .js to load
     */
@@ -113,10 +116,6 @@ int NativeServer::Start(int argc, char *argv[])
         sure that it's deleted before NativeJS */
         repl = new NativeREPL(ctx.getNJS());
     }
-
-    const NativeJS *js = ctx.getNJS();
-
-    NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
 
     events_loop(net);
 
