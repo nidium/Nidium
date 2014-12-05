@@ -16,6 +16,8 @@
 #include "NativeMacros.h"
 #include "NativeREPL.h"
 
+#include <NativeJSProcess.h>
+
 int ape_running = 1;
 unsigned long _ape_seed;
 
@@ -111,6 +113,10 @@ int NativeServer::Start(int argc, char *argv[])
         sure that it's deleted before NativeJS */
         repl = new NativeREPL(ctx.getNJS());
     }
+
+    const NativeJS *js = ctx.getNJS();
+
+    NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
 
     events_loop(net);
 
