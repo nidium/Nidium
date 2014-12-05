@@ -137,6 +137,9 @@ private:
     bool checkEOF();
     void checkRead(bool async = true, void *arg = NULL);
     void closeFd() {
+        if (!isOpen()) {
+            return;
+        }
         if (m_isDir && m_Dir) {
             closedir(m_Dir);
         } else if (m_Fd) {

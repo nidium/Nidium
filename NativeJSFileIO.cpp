@@ -27,6 +27,9 @@
 
 #include "NativeJSUtils.h"
 
+
+#define FILE_ROOT_DEBUG 0
+
 enum {
     FILE_PROP_FILESIZE,
     FILE_PROP_FILENAME,
@@ -161,6 +164,9 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
 {
     NativeJSFileIO *NJSFIO = (NativeJSFileIO *)JS_GetPrivate(obj);
     if (NJSFIO != NULL) {
+#if FILE_ROOT_DEBUG
+        printf("Finalize %p\n", obj);
+#endif
         NativeFile *file = NJSFIO->getFile();
         delete file;
         delete NJSFIO;
@@ -323,8 +329,9 @@ static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
     file = NJSFIO->getFile();
 
     args.rval().setBoolean(file->isDir());
+#if FILE_ROOT_DEBUG
     printf("Catching %s %d\n", file->getFullPath(), file->isDir());
-
+#endif
     return true;
 }
 
@@ -423,7 +430,9 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     file->read((uint64_t)read_size, callback.toObjectOrNull());
-
+#if FILE_ROOT_DEBUG
+    printf("Root read %p\n", caller.get());
+#endif
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
     return true;
@@ -485,7 +494,9 @@ static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
     file = NJSFIO->getFile();
 
     file->close();
-
+#if FILE_ROOT_DEBUG
+    printf("Root close %p\n", caller.get());
+#endif
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
     return JS_TRUE;
@@ -523,7 +534,9 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
     file->open(cmodes.ptr(), callback.toObjectOrNull());
-
+#if FILE_ROOT_DEBUG
+    printf("Root open %p\n", caller.get());
+#endif
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
     return true;
@@ -719,6 +732,8 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     params[1].setUndefined();
     JSContext *m_Cx = cx;
 
+    JS::RootedObject jsthis(cx, thisobj); 
+
     if (!NativeJSFileIO::handleError(cx, msg, params[0])) {
         switch (msg.event()) {
             case NATIVEFILE_READ_SUCCESS:
@@ -755,6 +770,13 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     }
     JSObject *callback = (JSObject *)msg.args[7].toPtr();
 
+    if (!this->getFile()->m_TaskQueued) {
+#if FILE_ROOT_DEBUG
+        printf("Unroot %p\n", thisobj);
+#endif
+        NativeJS::getNativeClass(cx)->unrootObject(jsthis);
+    }
+
     if (!callback) {
         return false;
     }
@@ -762,12 +784,8 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     if (JS_ObjectIsCallable(cx, callback)) {
 
         JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-        JS_CallFunctionValue(cx, thisobj, OBJECT_TO_JSVAL(callback),
+        JS_CallFunctionValue(cx, jsthis, OBJECT_TO_JSVAL(callback),
             2, params, &rval);
-    }
-
-    if (!this->getFile()->m_TaskQueued) {
-        NativeJS::getNativeClass(cx)->unrootObject(thisobj);
     }
 
     NativeJS::getNativeClass(cx)->unrootObject(callback);

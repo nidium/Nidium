@@ -158,10 +158,6 @@ void NativeFile::openTask(const char *mode, void *arg)
 */
 void NativeFile::closeTask(void *arg)
 {
-    if (!this->isOpen()) {
-        return;
-    }
-
     closeFd();
 
     if (!m_OpenSync) {
@@ -182,14 +178,16 @@ void NativeFile::readTask(size_t size, void *arg)
     uint64_t clamped_len;
     clamped_len = native_min(m_Filesize, size);
 
+    buffer *buf = buffer_new(clamped_len + 1);
+    
     /*
         Read an empty file
     */
     if (clamped_len == 0) {
+        NATIVE_FILE_NOTIFY((void *)buf, NATIVEFILE_READ_SUCCESS, arg);
+        buf->data[0] = '\0';
         return;
     }
-
-    buffer *buf = buffer_new(clamped_len + 1);
 
     if ((buf->used = fread(buf->data, 1, clamped_len, m_Fd)) == 0) {        
         this->checkRead(true, arg);
@@ -232,6 +230,8 @@ void NativeFile::writeTask(char *buf, size_t buflen, void *arg)
 void NativeFile::seekTask(size_t pos, void *arg)
 {
     if (!this->isOpen() || this->isDir()) {
+        int err = 0;
+        NATIVE_FILE_NOTIFY(err, NATIVEFILE_SEEK_ERROR, arg);
         return;
     }
 
