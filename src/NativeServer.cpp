@@ -81,6 +81,7 @@ int NativeServer::Start(int argc, char *argv[])
     signal(SIGQUIT, &signal_handler);
 
     int ch;
+    opterr = 0;
 
     while ((ch = getopt_long(argc, argv, "d", long_options, NULL)) != -1) {
         switch (ch) {
@@ -95,7 +96,7 @@ int NativeServer::Start(int argc, char *argv[])
     NativeContext ctx(net);
     const NativeJS *js = ctx.getNJS();
     NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
-    
+
     /*
         Daemon requires a .js to load
     */
