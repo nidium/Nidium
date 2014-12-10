@@ -14,6 +14,6 @@
 
         'third_party_path%': '../third-party/',
         'native_output%': '../out/',
-        'addresse_sanitizer%': 0,
+        'asan%': 0,
     },
 }
