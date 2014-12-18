@@ -477,6 +477,10 @@ public:
         JSOBJ_SET_PROP_CSTR(m_Obj, name, value);
     }
 
+    void set(const char *name, double value) {
+        JSOBJ_SET_PROP(m_Obj, name, JS_NumberValue(value));
+    }
+
     void set(const char *name, JSString *value) {
         JSOBJ_SET_PROP_STR(m_Obj, name, value);
     }
