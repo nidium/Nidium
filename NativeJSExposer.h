@@ -473,6 +473,10 @@ public:
         JSOBJ_SET_PROP_INT(m_Obj, name, value);
     }
 
+    void set(const char *name, int32_t value) {
+        JSOBJ_SET_PROP_INT(m_Obj, name, value);
+    }
+
     void set(const char *name, const char *value) {
         JSOBJ_SET_PROP_CSTR(m_Obj, name, value);
     }
