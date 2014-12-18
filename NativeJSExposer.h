@@ -460,8 +460,8 @@ class NativeJSObjectBuilder
 {
 public:
     NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
-        m_Obj = JS_NewObject(m_Cx, clasp, NULL, NULL);
         m_Cx = cx;
+        m_Obj = JS_NewObject(m_Cx, clasp, NULL, NULL);
     };
 
     NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) {
