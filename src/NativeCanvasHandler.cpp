@@ -422,7 +422,7 @@ void NativeCanvasHandler::removeFromParent()
 void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
 {
     if (!layer->mousePosition.consumed) {
-        //printf("Mouse event : %dx%d\n", layer->mousePosition.x, layer->mousePosition.y);
+        printf("Mouse event : %dx%d\n", layer->mousePosition.x, layer->mousePosition.y);
     }
 }
 
@@ -510,7 +510,6 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         this->a_left = cleft + tmpLeft + this->translate_s.x;
         this->a_top = ctop + tmpTop + this->translate_s.y;
 
-
         /*
             Dispatch current mouse position.
         */
@@ -519,7 +518,6 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         /*
             draw current context on top of the root layer
         */
-
         willDraw = (!layerContext.clip || coordPosition == COORD_ABSOLUTE ||
               (layerContext.clip->checkIntersect(
                 this->a_left - this->padding.global,
@@ -528,9 +526,6 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 this->a_top + this->padding.global + this->getHeight())));
 
         if (draw && m_Context && willDraw) {
-            /*
-                Not visible. Don't call composeWith()
-            */
             this->m_Context->preComposeOn((NativeCanvas2DContext *)layerContext.layer->m_Context,
                 this->a_left - this->padding.global, 
                 this->a_top - this->padding.global, popacity, zoom,
@@ -1083,6 +1078,8 @@ NativeCanvasHandler::~NativeCanvasHandler()
         cur = cnext;
     }
 
+    m_NativeContext->m_CanvasList.erase(m_Identifier.str);
+    
     free(m_Identifier.str);
 
     m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);
