@@ -114,7 +114,8 @@ class NativeCanvasHandler : public NativeEvents
         enum Events {
             RESIZE_EVENT = 1,
             LOADED_EVENT = 2,
-            CHANGE_EVENT = 3
+            CHANGE_EVENT = 3,
+            MOUSE_EVENT  = 4
         };
 
         enum Position {
@@ -529,7 +530,7 @@ class NativeCanvasHandler : public NativeEvents
         void execPending();
 
         int32_t nchildren;
-        void dispatchMouseEvents(NativeCanvasHandler *layer);
+        void dispatchMouseEvents(NativeLayerizeContext &layerContext);
         COORD_POSITION coordPosition;
         Visibility visibility;
         unsigned m_FlowMode;

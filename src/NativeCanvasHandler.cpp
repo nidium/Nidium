@@ -419,10 +419,32 @@ void NativeCanvasHandler::removeFromParent()
     m_Prev = NULL;
 }
 
-void NativeCanvasHandler::dispatchMouseEvents(NativeCanvasHandler *layer)
+void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
 {
-    if (!layer->mousePosition.consumed) {
-        printf("Mouse event : %dx%d\n", layer->mousePosition.x, layer->mousePosition.y);
+    if (layerContext.layer->mousePosition.consumed) {
+        return;
+    }
+
+    NativeRect actualRect;
+    actualRect.fLeft = this->a_left - this->padding.global;
+    actualRect.fTop = this->a_top - this->padding.global;
+    actualRect.fRight = m_Width + this->a_left;
+    actualRect.fBottom = m_Height + this->a_top;
+
+    if (layerContext.clip) {
+
+        if (!actualRect.intersect(layerContext.clip->fLeft,
+            layerContext.clip->fTop,
+            layerContext.clip->fRight,
+            layerContext.clip->fBottom)) {
+
+            return;
+        }
+    }
+    if (actualRect.contains(layerContext.layer->mousePosition.x,
+        layerContext.layer->mousePosition.y)) {
+
+        m_NativeContext->m_CanvasOrderedEvents.push_back(this);
     }
 }
 
@@ -511,11 +533,6 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
         this->a_top = ctop + tmpTop + this->translate_s.y;
 
         /*
-            Dispatch current mouse position.
-        */
-        this->dispatchMouseEvents(layerContext.layer);
-
-        /*
             draw current context on top of the root layer
         */
         willDraw = (!layerContext.clip || coordPosition == COORD_ABSOLUTE ||
@@ -530,6 +547,12 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
                 this->a_left - this->padding.global, 
                 this->a_top - this->padding.global, popacity, zoom,
                 (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
+
+            /*
+                Dispatch current mouse position.
+            */
+            this->dispatchMouseEvents(layerContext);
+
         }
     }
 
@@ -1079,7 +1102,7 @@ NativeCanvasHandler::~NativeCanvasHandler()
     }
 
     m_NativeContext->m_CanvasList.erase(m_Identifier.str);
-    
+
     free(m_Identifier.str);
 
     m_NativeContext->m_CanvasPendingJobs.erase((uint64_t)this);

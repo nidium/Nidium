@@ -8,6 +8,7 @@
 #include "NativeGLResources.h"
 #include <NativeMessages.h>
 #include <NativeHash.h>
+#include <vector>
 
 #include "GLSLANG/ShaderLang.h"
 
@@ -163,9 +164,11 @@ class NativeContext : public NativeMessages
     NativeHash<NativeCanvasHandler *> m_CanvasList;
     /* Hash of all canvases with pending jobs (key: addr) */
     NativeHash64<NativeCanvasHandler *> m_CanvasPendingJobs;
+    std::vector<NativeCanvasHandler *> m_CanvasOrderedEvents;
 
     void execJobs();
     void execPendingCanvasChanges();
+    void triggerEvents();
 
     static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                          JSObject *obj, void *closure);

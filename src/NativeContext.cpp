@@ -347,14 +347,35 @@ void NativeContext::frame(bool draw)
     ctx.reset();
     NativeLayerSiblingContext sctx;
     ctx.siblingCtx = &sctx;
+
+    m_CanvasOrderedEvents.clear();
     
     /*
         Compose canvas eachother on the main framebuffer
     */
     m_RootHandler->layerize(ctx, draw);
+
+    this->triggerEvents();
+
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
+}
+
+void NativeContext::triggerEvents()
+{
+    for (auto h = m_CanvasOrderedEvents.rbegin(); h != m_CanvasOrderedEvents.rend(); h++) {
+        NativeCanvasHandler *handler = *h;
+
+        NativeArgs arg;
+        arg[0].set(1);
+
+        for (NativeCanvasHandler *tmp = handler; tmp != NULL; tmp = tmp->getParent()) {
+            if (!tmp->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
+                break;
+            }
+        }
+    }
 }
 
 // From third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp

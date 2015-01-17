@@ -1585,6 +1585,20 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
             break;
         }
+        case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
+        {
+            JSObject *obj = NativeJSEvents::CreateEventObject(m_Cx);
+            this->fireJSEvent("mousemove", OBJECT_TO_JSVAL(obj));
+
+            JS::Value cancelBubble;
+            if (JS_GetProperty(cx, obj, "cancelBubble", &cancelBubble)) {
+                if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
+                    /* TODO: sort out this dirty hack */
+                    NativeSharedMessages::Message *nonconstmsg = (NativeSharedMessages::Message *)&msg;
+                    nonconstmsg->priv = 1;
+                }
+            }
+        }
         default:
             break;
     }
