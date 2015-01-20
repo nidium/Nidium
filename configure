@@ -3,11 +3,32 @@ from konstructor import Build
 from konstructor import Builder
 from konstructor import Konstruct
 from konstructor import Deps
+from konstructor import CommandLine
 Gyp = Builder.Gyp
 
+@Deps.register("jemalloc")
+def jemalloc():
+    return {
+        "location": "http://www.canonware.com/download/jemalloc/jemalloc-3.6.0.tar.bz2",
+        "build": ["./configure --enable-prof", "make"],
+        "outputs": ["lib/libjemalloc.a"]
+    }
+
 Deps.set(
-    Deps.Konstruct("nativejscore", "nativejscore/configure")
+    Deps.Konstruct("nativejscore", "nativejscore/configure"),
 )
+
+@CommandLine.option("--jemalloc", default=False)
+def jemalloc(jemalloc):
+    if jemalloc:
+        Deps.set("jemalloc")
+        Gyp.set("jemalloc", 1)
+
+@CommandLine.option("--heap-profiling", default=False)
+def heapProfiling(profiling):
+    if profiling:
+        jemalloc(True)
+        Deps.set("gperftools")
 
 if __name__ == '__main__':
     Gyp.setArgs("--depth ./ --include=gyp/config.gypi --include=gyp/common.gypi")

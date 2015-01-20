@@ -15,5 +15,6 @@
         'third_party_path%': '../third-party/',
         'native_output%': '../out/',
         'asan%': 0,
+        'jemalloc%': 0,
     },
 }
