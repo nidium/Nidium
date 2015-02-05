@@ -519,6 +519,10 @@ public:
         JSOBJ_SET_PROP(m_Obj, name, BOOLEAN_TO_JSVAL(value));
     }
 
+    void set (const char *name, JS::Value jval) {
+        JSOBJ_SET_PROP(m_Obj, name, jval);
+    }
+
     JSObject *obj() const {
         return m_Obj;
     }

@@ -25,7 +25,7 @@
                 }],
                 ['OS=="linux"', {
                     'cflags': [
-                        '-fvisibility=hidden',
+                    #    '-fvisibility=hidden',
                         '-Wno-c++0x-extensions',
                         '-Wno-invalid-offsetof'
                     ],
@@ -102,7 +102,7 @@
             }],
             ['OS=="linux"', {
                 'cflags': [
-                    '-fvisibility=hidden',
+                    #'-fvisibility=hidden',
                     '-Wno-c++0x-extensions',
                     '-Wno-invalid-offsetof'
                 ],

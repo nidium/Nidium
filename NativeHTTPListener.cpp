@@ -410,14 +410,18 @@ void NativeHTTPClientConnection::onRead(buffer *buf, ape_global *ape)
         (const char *)buf->data, (size_t)buf->used);
 
     if (m_HttpState.parser.upgrade) {
-        this->onUpgrade((const char *)REQUEST_HEADER("upgrade")->data);
-        if (nparsed < buf->used) {
-            /* Non-http data in the current packet (after the header) */
-            this->onContent((const char *)&buf->data[nparsed], buf->used - nparsed);
-        }
+        buffer *upgrade_header = REQUEST_HEADER("upgrade");
 
-        /* Change the callback for the next on_read calls */
-        m_SocketClient->callbacks.on_read = native_socket_client_read_after_upgrade;
+        if (upgrade_header) {
+            this->onUpgrade((const char *)upgrade_header->data);
+            if (nparsed < buf->used) {
+                /* Non-http data in the current packet (after the header) */
+                this->onContent((const char *)&buf->data[nparsed], buf->used - nparsed);
+            }
+
+            /* Change the callback for the next on_read calls */
+            m_SocketClient->callbacks.on_read = native_socket_client_read_after_upgrade;
+        }
     } else if (nparsed != buf->used) {
         printf("Http error : %s\n", http_errno_description(HTTP_PARSER_ERRNO(&m_HttpState.parser)));
     }
