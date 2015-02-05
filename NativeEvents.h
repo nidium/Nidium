@@ -50,7 +50,7 @@ public:
         }
     }
     template <typename T>
-    void fireEvent(typename T::Events event, const NativeArgs &args,
+    bool fireEvent(typename T::Events event, const NativeArgs &args,
         bool forceAsync = false) {
         
         ape_htable_item_t *item;
@@ -65,9 +65,17 @@ public:
             for (int i = 0; i < args.size(); i++) {
                 msg->args[i+1].set(args[i].toInt64());
             }
+            msg->priv = 0;
 
             receiver->postMessage(msg, forceAsync);
+
+            /* stop propagation */
+            if (msg->priv) {
+                return false;
+            }
         }
+
+        return true;
     }
 
     virtual ~NativeEvents() {

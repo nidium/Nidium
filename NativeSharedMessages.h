@@ -82,6 +82,7 @@ class NativeSharedMessages
 
             Message *prev;
             NativeArgs args;
+            uint32_t priv;
         private:
 
             union {

@@ -91,9 +91,16 @@ struct NativeJSEvent
 class NativeJSEvents
 {
 public:
-
     static JSObject *CreateEventObject(JSContext *cx) {
-        return JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL);
+        static JSFunctionSpec NativeJSEvents_funcs[] = {
+            JS_FN("stopPropagation",
+                NativeJSEvents::native_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FS_END
+        };
+
+        JSObject *ret = JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL);
+        JS_DefineFunctions(cx, ret, NativeJSEvents_funcs);
+        return ret;
     }
 
     NativeJSEvents(char *name) :
@@ -141,6 +148,25 @@ public:
     NativeJSEvent *m_Head;
     NativeJSEvent *m_Queue;
     char *m_Name;
+private:
+    static JSBool native_jsevents_stopPropagation(JSContext *cx,
+        unsigned argc, jsval *vp)
+    {
+        JS::CallArgs args = CallArgsFromVp(argc, vp);
+        JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
+        if (!thisobj) {
+            JS_ReportError(cx, "Illegal invocation");
+            return false;
+        }
+        if (!JS_InstanceOf(cx, thisobj, &NativeJSEvent_class, NULL)) {
+            JS_ReportError(cx, "Illegal invocation");
+            return false;            
+        }
+        JS::Value cancelBubble = JS::BooleanValue(true);
+        JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble);
+
+        return true;
+    }
 };
 
 template <typename T>
