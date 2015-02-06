@@ -41,7 +41,7 @@ enum {
 #undef CANVAS_2D_CTX_PROP_GET
 };
 
-#if 1
+#if 0
 #define NATIVE_LOG_2D_CALL() \
     JSObject *_callee = JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)); \
     if (JS_ObjectIsFunction(cx, _callee)) { \
@@ -50,7 +50,7 @@ enum {
         NLOG("[Canvas2D] %s()", _fun_namec.ptr()); \
     }
 #else
-#define NATIVE_LOG_2D_CALL() (void)
+#define NATIVE_LOG_2D_CALL()
 #endif 
 
 void CanvasGradient_Finalize(JSFreeOp *fop, JSObject *obj);

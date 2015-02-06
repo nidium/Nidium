@@ -1588,7 +1588,9 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
             JSObject *obj = NativeJSEvents::CreateEventObject(m_Cx);
-            this->fireJSEvent("mousemove", OBJECT_TO_JSVAL(obj));
+            if (!this->fireJSEvent("mousemove", OBJECT_TO_JSVAL(obj))) {
+                break;
+            }
 
             JS::Value cancelBubble;
             if (JS_GetProperty(cx, obj, "cancelBubble", &cancelBubble)) {
