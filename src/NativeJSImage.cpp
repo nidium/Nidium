@@ -107,6 +107,8 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                 NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
 
                 if (stream == NULL) {
+                    JS_ReportError(cx, "Invalid path");
+                    return false;
                     break;
                 }
 
