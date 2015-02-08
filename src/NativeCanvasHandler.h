@@ -526,6 +526,8 @@ class NativeCanvasHandler : public NativeEvents
 
         void propertyChanged(EventsChangedProperty property);
     private:
+        
+        bool handleEvents();
         void deviceSetSize(int width, int height);
         void execPending();
 

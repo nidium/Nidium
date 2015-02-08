@@ -444,6 +444,9 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
     if (actualRect.contains(layerContext.layer->mousePosition.x,
         layerContext.layer->mousePosition.y)) {
 
+
+        memcpy(&this->mousePosition,
+            &layerContext.layer->mousePosition, sizeof(mousePosition));
         m_NativeContext->m_CanvasOrderedEvents.push_back(this);
     }
 }
@@ -682,6 +685,8 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
 
     if (layerContext.layer == this) {
         this->mousePosition.consumed = true;
+        this->mousePosition.xrel = 0;
+        this->mousePosition.yrel = 0;
     }
 }
 
@@ -1085,6 +1090,39 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
     }
 
     this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
+}
+
+/*
+    Called by NativeContext whenever there are pending events on this canvas
+    Currently only handle mouse events.
+
+*/
+bool NativeCanvasHandler::handleEvents()
+{
+    /*
+        TODO, target is always |this|?
+    */
+    /* Propagate through parents */
+    for (NativeCanvasHandler *handler = this; handler != NULL;
+        handler = handler->getParent()) {
+
+        NativeArgs arg;
+
+        arg[0].set(mousePosition.x);
+        arg[1].set(mousePosition.y);
+        arg[2].set(mousePosition.xrel);
+        arg[3].set(mousePosition.yrel);
+        arg[4].set(mousePosition.x - a_left); // layerX
+        arg[5].set(mousePosition.y - a_top);  // layerY
+
+        /* fireEvent returns false if a stopPropagation is detected */
+        if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
+            break;
+        }
+
+    }
+
+    return true;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()

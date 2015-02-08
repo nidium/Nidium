@@ -365,16 +365,8 @@ void NativeContext::frame(bool draw)
 void NativeContext::triggerEvents()
 {
     for (auto h = m_CanvasOrderedEvents.rbegin(); h != m_CanvasOrderedEvents.rend(); h++) {
-        NativeCanvasHandler *handler = *h;
-
-        NativeArgs arg;
-        arg[0].set(1);
-
-        for (NativeCanvasHandler *tmp = handler; tmp != NULL; tmp = tmp->getParent()) {
-            if (!tmp->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
-                break;
-            }
-        }
+        (*h)->handleEvents();
+        break; /* Only handle the top-most element for now */
     }
 }
 
