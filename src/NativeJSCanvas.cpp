@@ -1590,12 +1590,16 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             NativeJSObjectBuilder obj = NativeJSObjectBuilder(m_Cx,
                 NativeJSEvents::CreateEventObject(m_Cx));
 
+            NativeCanvasHandler *target = (NativeCanvasHandler *)msg.args[7].toPtr();
+
             obj.set("x", msg.args[1].toInt());
             obj.set("y", msg.args[2].toInt());
             obj.set("xrel", msg.args[3].toInt());
             obj.set("yrel", msg.args[4].toInt());
             obj.set("layerX", msg.args[5].toInt());
             obj.set("layerY", msg.args[6].toInt());
+            obj.set("target", OBJECT_TO_JSVAL(target->jsobj));
+
             if (!this->fireJSEvent("mousemove", obj.jsval())) {
                 break;
             }

@@ -1103,6 +1103,7 @@ bool NativeCanvasHandler::handleEvents()
         TODO, target is always |this|?
     */
     /* Propagate through parents */
+    NativeCanvasHandler *target = this;
     for (NativeCanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
 
@@ -1114,6 +1115,7 @@ bool NativeCanvasHandler::handleEvents()
         arg[3].set(mousePosition.yrel);
         arg[4].set(mousePosition.x - a_left); // layerX
         arg[5].set(mousePosition.y - a_top);  // layerY
+        arg[6].set(target);
 
         /* fireEvent returns false if a stopPropagation is detected */
         if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
