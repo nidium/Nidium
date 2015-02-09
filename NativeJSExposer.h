@@ -495,7 +495,19 @@ public:
     NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) {
         m_Obj = wrapped;
         m_Cx = cx;
-    };    
+    };
+
+    void set (const char *name, JS::Value jval) {
+        JSOBJ_SET_PROP(m_Obj, name, jval);
+    }
+
+    void set(const char *name, JSString *value) {
+        JSOBJ_SET_PROP_STR(m_Obj, name, value);
+    }
+
+    void set(const char *name, const char *value) {
+        JSOBJ_SET_PROP_CSTR(m_Obj, name, value);
+    }
 
     void set(const char *name, uint32_t value) {
         JSOBJ_SET_PROP_INT(m_Obj, name, value);
@@ -505,24 +517,12 @@ public:
         JSOBJ_SET_PROP_INT(m_Obj, name, value);
     }
 
-    void set(const char *name, const char *value) {
-        JSOBJ_SET_PROP_CSTR(m_Obj, name, value);
-    }
-
     void set(const char *name, double value) {
         JSOBJ_SET_PROP(m_Obj, name, JS_NumberValue(value));
     }
 
-    void set(const char *name, JSString *value) {
-        JSOBJ_SET_PROP_STR(m_Obj, name, value);
-    }
-
     void set(const char *name, bool value) {
         JSOBJ_SET_PROP(m_Obj, name, BOOLEAN_TO_JSVAL(value));
-    }
-
-    void set (const char *name, JS::Value jval) {
-        JSOBJ_SET_PROP(m_Obj, name, jval);
     }
 
     JSObject *obj() const {
