@@ -15,7 +15,8 @@
 
 NativeNML::NativeNML(ape_global *net) :
     net(net), stream(NULL), nassets(0),
-    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL), m_defaultItemsLoaded(false)
+    njs(NULL), m_Layout(NULL), m_JSObjectLayout(NULL),
+    m_defaultItemsLoaded(false), m_loadDefaultItems(true)
 {
     assetsList.size = 0;
     assetsList.allocated = 4;
@@ -236,7 +237,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadMeta(rapidxml::xml_node<> &node)
 
 void NativeNML::loadDefaultItems(NativeAssets *assets)
 {
-    if (m_defaultItemsLoaded) {
+    if (m_defaultItemsLoaded || !m_loadDefaultItems) {
         return;
     }
 
@@ -336,6 +337,14 @@ bool NativeNML::loadData(char *data, size_t len, rapidxml::xml_document<> &doc)
     if (node == NULL) {
         NativeSystemInterface::getInstance()->alert("<application> node not found", NativeSystemInterface::ALERT_CRITIC);
         return false;
+    }
+
+    xml_attribute<char> *framework = node->first_attribute(CONST_STR_LEN("framework"), false);
+
+    if (framework) {
+        if (strncasecmp(framework->value(), CONST_STR_LEN("false")) == 0) {
+            m_loadDefaultItems = false;
+        }
     }
 
     for (xml_node<> *child = node->first_node(); child != NULL;

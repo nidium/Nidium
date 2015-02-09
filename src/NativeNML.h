@@ -126,6 +126,7 @@ private:
     JSObject *m_JSObjectLayout;
 
     bool m_defaultItemsLoaded;
+    bool m_loadDefaultItems;
 };
 
 
