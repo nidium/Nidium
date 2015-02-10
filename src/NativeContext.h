@@ -9,6 +9,7 @@
 #include <NativeMessages.h>
 #include <NativeHash.h>
 #include <vector>
+#include <ape_pool.h>
 
 #include "GLSLANG/ShaderLang.h"
 
@@ -30,6 +31,41 @@ struct NativeJobQueue {
     struct NativeJobQueue *next;
     void *arg;
 };
+
+class NativeInputEvent
+{
+public:
+    enum Type {
+        kMouseMove_Type = 1,
+        kMouseClick_Type,
+        kMouseClickRelease_Type,
+        kMouseDoubleClick_Type
+    };
+
+    NativeInputEvent(Type type, int ix, int iy,
+        uint32_t *idata = NULL, uint8_t idata_len = 0) :
+        x(ix), y(iy), m_Next(NULL), m_Handler(NULL), m_Type(type)  {
+
+        if (idata && idata_len <= 8) {
+            memcpy(data, idata, sizeof(uint32_t) * idata_len);
+        }
+    }
+
+    NativeInputEvent *dupWithHandler(NativeCanvasHandler *handler) {
+        NativeInputEvent *dup = new NativeInputEvent(*this);
+        dup->m_Handler = handler;
+
+        return dup;
+    }
+
+    int x, y;
+    uint32_t data[8];
+    NativeInputEvent *m_Next;
+    NativeCanvasHandler *m_Handler;
+private:
+    Type m_Type;
+};
+
 
 class GrGLInterface;
 
@@ -123,6 +159,27 @@ class NativeContext : public NativeMessages
         return m_CanvasList.get(str);
     }
 
+    void addInputEvent(NativeInputEvent *ev);
+    void resetInputEvents() {
+        m_InputEvents.head = NULL;
+        m_InputEvents.queue = NULL;
+    }
+
+    void clearInputEvents() {
+        NativeInputEvent *tmp;
+        for (NativeInputEvent *ev = m_InputEvents.head; ev != NULL; ev = tmp) {
+            tmp = ev->m_Next;
+
+            delete(ev);
+        }
+        m_InputEvents.head = NULL;
+        m_InputEvents.queue = NULL;
+    }
+
+    NativeInputEvent *getInputEvents() const {
+        return m_InputEvents.head;
+    }
+
     private:
     NativeGLResources         m_Resources;
     NativeJS *                m_JS;
@@ -150,6 +207,11 @@ class NativeContext : public NativeMessages
         float sampleminfps;
     } m_Stats;
 
+    struct {
+        NativeInputEvent *head;
+        NativeInputEvent *queue;
+    } m_InputEvents;
+
     void forceLinking();
     void loadNativeObjects(int width, int height);
 
@@ -165,6 +227,8 @@ class NativeContext : public NativeMessages
     /* Hash of all canvases with pending jobs (key: addr) */
     NativeHash64<NativeCanvasHandler *> m_CanvasPendingJobs;
     std::vector<NativeCanvasHandler *> m_CanvasOrderedEvents;
+
+    ape_pool_list_t m_CanvasEventsCanvas;
 
     void execJobs();
     void execPendingCanvasChanges();

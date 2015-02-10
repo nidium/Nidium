@@ -68,6 +68,10 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     gfunc = JSVAL_VOID;
     //nui->useOffScreenRendering(true);
 
+    resetInputEvents();
+
+    ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
+
     m_SizeDirty = false;
     m_Stats.nframe = 0;
     m_Stats.starttime = NativeUtils::getTick();
@@ -304,6 +308,9 @@ NativeContext::~NativeContext()
     
     NativeSkia::glcontext = NULL;
 
+    ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
+    this->clearInputEvents();
+
     ShFinalize();
 }
 
@@ -356,14 +363,39 @@ void NativeContext::frame(bool draw)
     m_RootHandler->layerize(ctx, draw);
 
     this->triggerEvents();
+    this->clearInputEvents();
 
     m_UI->makeMainGLCurrent();
     /* Skia context is dirty after a call to layerize */
     ((NativeCanvas2DContext *)m_RootHandler->getContext())->resetSkiaContext();
 }
 
+void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
+{
+    if (!pool->ptr.data) {
+        return;
+    }
+    NativeInputEvent *ev = (NativeInputEvent *)pool->ptr.data;
+
+    ev->m_Handler->_handleEvent(ev);
+    
+    delete ev;
+}
+
 void NativeContext::triggerEvents()
 {
+    void *val;
+    APE_P_FOREACH((&m_CanvasEventsCanvas), val) {
+        ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
+            NativeContext_destroy_and_handle_events, NULL);
+        __pool_item->ptr.data = NULL;
+    }
+
+    /*
+        Reset the 'push' pointer.
+    */
+    ape_pool_rewind(&m_CanvasEventsCanvas);
+
     for (auto h = m_CanvasOrderedEvents.rbegin(); h != m_CanvasOrderedEvents.rend(); h++) {
         (*h)->handleEvents();
         break; /* Only handle the top-most element for now */
@@ -598,6 +630,19 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
             break;
     }
     return JS_NewObject(cx, NULL, NULL, NULL);
+}
+
+void NativeContext::addInputEvent(NativeInputEvent *ev)
+{
+    if (m_InputEvents.head == NULL) {
+        m_InputEvents.head = ev;
+    }
+
+    if (m_InputEvents.queue) {
+        m_InputEvents.queue->m_Next = ev;
+    }
+
+    m_InputEvents.queue = ev;
 }
 
 void NativeContext::forceLinking()

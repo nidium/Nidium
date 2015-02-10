@@ -7,15 +7,16 @@
 
 #include <NativeEvents.h>
 
-class NativeSkia;
-class NativeCanvasContext;
-class NativeContext;
-
 /*
     - Handle a canvas layer.
     - Agnostic to any renderer.
     - All size are in logical pixels (device ratio is handled by NativeCanvasContext)
 */
+
+class NativeSkia;
+class NativeCanvasContext;
+class NativeContext;
+class NativeInputEvent;
 
 struct NativeRect
 {
@@ -511,7 +512,7 @@ class NativeCanvasHandler : public NativeEvents
         NativeCanvasHandler *m_Last;
 
         static void _jobResize(void *arg);
-        
+        bool _handleEvent(NativeInputEvent *ev);
     protected:
         NativeCanvasHandler *getPrevInlineSibling() const {
             NativeCanvasHandler *prev;
@@ -528,6 +529,7 @@ class NativeCanvasHandler : public NativeEvents
     private:
         
         bool handleEvents();
+        
         void deviceSetSize(int width, int height);
         void execPending();
 

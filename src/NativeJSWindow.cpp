@@ -410,6 +410,15 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
 
     event = JS_NewObject(m_Cx, &mouseEvent_class, NULL, NULL);
 
+    NativeContext *nctx = NativeContext::getNativeClass(this->m_Cx);
+    NativeInputEvent *ev = new NativeInputEvent(state ?
+        NativeInputEvent::kMouseClick_Type :
+        NativeInputEvent::kMouseClickRelease_Type, x, y);
+
+    ev->data[0] = button;
+
+    nctx->addInputEvent(ev);
+
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
     EVENT_PROP("clientX", INT_TO_JSVAL(x));
@@ -436,7 +445,6 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
     JSAutoRequest ar(m_Cx);
 
     event = JS_NewObject(m_Cx, &dragEvent_class, NULL, NULL);
-
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -540,14 +548,21 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
     jsval rval, jevent, onmove;
     JSObject *event;
 
-    NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(this->m_Cx)->getRootHandler();
+    NativeContext *nctx = NativeContext::getNativeClass(this->m_Cx);
+
+    NativeCanvasHandler *rootHandler = nctx->getRootHandler();
 
     rootHandler->mousePosition.x = x;
     rootHandler->mousePosition.y = y;
     rootHandler->mousePosition.xrel += xrel;
     rootHandler->mousePosition.yrel += yrel;
-
     rootHandler->mousePosition.consumed = false;
+
+    NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseMove_Type, x, y);
+    ev->data[0] = xrel;
+    ev->data[1] = yrel;
+
+    nctx->addInputEvent(ev);
     
     event = JS_NewObject(m_Cx, &mouseEvent_class, NULL, NULL);
 

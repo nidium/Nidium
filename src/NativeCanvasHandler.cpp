@@ -421,7 +421,8 @@ void NativeCanvasHandler::removeFromParent()
 
 void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
 {
-    if (layerContext.layer->mousePosition.consumed) {
+    NativeInputEvent *ev = m_NativeContext->getInputEvents();
+    if (layerContext.layer->mousePosition.consumed || ev == NULL) {
         return;
     }
 
@@ -441,9 +442,27 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
             return;
         }
     }
+
+    ape_pool_list_t *evlist = NULL;
+
+    for (; ev != NULL; ev = ev->m_Next) {
+        //printf("Ev : %p\n", ev);
+        if (actualRect.contains(ev->x, ev->y)) {
+            if (!evlist) {
+                evlist = ape_new_pool_list(0, 4);
+            }
+            NativeInputEvent *dup = ev->dupWithHandler(this);
+
+            ape_pool_push(evlist, dup);
+        }
+    }
+
+    if (evlist) {
+        ape_pool_push(&m_NativeContext->m_CanvasEventsCanvas, evlist);
+    }
+
     if (actualRect.contains(layerContext.layer->mousePosition.x,
         layerContext.layer->mousePosition.y)) {
-
 
         memcpy(&this->mousePosition,
             &layerContext.layer->mousePosition, sizeof(mousePosition));
@@ -1090,6 +1109,17 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
     }
 
     this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
+}
+
+/*
+    Called by NativeContext whenever there are pending events on this canvas
+    Currently only handle mouse events.
+
+*/
+bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
+{
+    printf("Event handled :) %lld\n", this->getIdentifier());
+    return true;
 }
 
 /*
