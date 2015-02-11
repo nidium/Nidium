@@ -193,16 +193,20 @@ class NativeJSExposer
         m_Cx = cx;
     }
 
-    NativeJSExposer(JSObject *jsobj, JSContext *cx) :
+    NativeJSExposer(JSObject *jsobj, JSContext *cx, bool impEvents = true) :
         m_JSObject(jsobj), m_Cx(cx), m_Events(NULL)
     {
         static JSFunctionSpec NativeJSEvent_funcs[] = {
-            JS_FN("addListener",
+            JS_FN("addEventListener",
                 NativeJSExposer<T>::native_jsevent_addEventListener, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FN("fireEvent",
+                NativeJSExposer<T>::native_jsevent_fireEvent, 2, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
-        JS_DefineFunctions(cx, jsobj, NativeJSEvent_funcs);
+        if (impEvents) {
+            JS_DefineFunctions(cx, jsobj, NativeJSEvent_funcs);
+        }
     }
 
     virtual ~NativeJSExposer() {
@@ -296,7 +300,26 @@ class NativeJSExposer
 
     static JSClass *jsclass;
 private:
+    static JSBool native_jsevent_fireEvent(JSContext *cx,
+        unsigned argc, jsval *vp)
+    {
+        JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
 
+        NATIVE_CHECK_ARGS("fireEvent", 2);
+
+        JSString *name;
+        JSObject *evobj;
+
+        if (!JS_ConvertArguments(cx, 2, args.array(), "So", &name, &evobj)) {
+            return false;
+        }
+
+        JSAutoByteString cname(cx, name);
+
+        CppObj->fireJSEvent(cname.ptr(), OBJECT_TO_JSVAL(evobj));
+
+        return true;
+    }
     static JSBool native_jsevent_addEventListener(JSContext *cx,
         unsigned argc, jsval *vp)
     {
