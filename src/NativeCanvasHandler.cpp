@@ -422,7 +422,7 @@ void NativeCanvasHandler::removeFromParent()
 void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContext)
 {
     NativeInputEvent *ev = m_NativeContext->getInputEvents();
-    if (layerContext.layer->mousePosition.consumed || ev == NULL) {
+    if (ev == NULL) {
         return;
     }
 
@@ -1115,13 +1115,14 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
 
         NativeArgs arg;
 
-        arg[0].set(ev->x);
-        arg[1].set(ev->y);
-        arg[2].set(ev->data[0]);
-        arg[3].set(ev->data[1]);
-        arg[4].set(ev->x - a_left); // layerX
-        arg[5].set(ev->y - a_top);  // layerY
-        arg[6].set(target);
+        arg[0].set(ev->getType());
+        arg[1].set(ev->x);
+        arg[2].set(ev->y);
+        arg[3].set(ev->data[0]);
+        arg[4].set(ev->data[1]);
+        arg[5].set(ev->x - a_left); // layerX
+        arg[6].set(ev->y - a_top);  // layerY
+        arg[7].set(target);
 
         /* fireEvent returns false if a stopPropagation is detected */
         if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {

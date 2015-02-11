@@ -32,11 +32,18 @@ struct NativeJobQueue {
     void *arg;
 };
 
+static const char * NativeInputEvent_Names[4] = {
+    "mousemove",
+    "mousedown",
+    "mouseup",
+    "dblclick"
+};
+
 class NativeInputEvent
 {
 public:
     enum Type {
-        kMouseMove_Type = 1,
+        kMouseMove_Type,
         kMouseClick_Type,
         kMouseClickRelease_Type,
         kMouseDoubleClick_Type
@@ -56,6 +63,14 @@ public:
         dup->m_Handler = handler;
 
         return dup;
+    }
+
+    Type getType() const {
+        return m_Type;
+    }
+
+    static const char *getName(int type) {
+        return NativeInputEvent_Names[type];
     }
 
     int x, y;

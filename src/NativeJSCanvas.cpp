@@ -1590,17 +1590,33 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             NativeJSObjectBuilder obj = NativeJSObjectBuilder(m_Cx,
                 NativeJSEvents::CreateEventObject(m_Cx));
 
-            NativeCanvasHandler *target = (NativeCanvasHandler *)msg.args[7].toPtr();
+            NativeCanvasHandler *target = (NativeCanvasHandler *)msg.args[8].toPtr();
 
-            obj.set("x", msg.args[1].toInt());
-            obj.set("y", msg.args[2].toInt());
-            obj.set("xrel", msg.args[3].toInt());
-            obj.set("yrel", msg.args[4].toInt());
-            obj.set("layerX", msg.args[5].toInt());
-            obj.set("layerY", msg.args[6].toInt());
+            obj.set("x", msg.args[2].toInt());
+            obj.set("y", msg.args[3].toInt());
+            obj.set("clientX", msg.args[2].toInt());
+            obj.set("clientY", msg.args[3].toInt());
+            obj.set("layerX", msg.args[6].toInt());
+            obj.set("layerY", msg.args[7].toInt());
             obj.set("target", OBJECT_TO_JSVAL(target->jsobj));
 
-            if (!this->fireJSEvent("mousemove", obj.jsval())) {
+            switch ((NativeInputEvent::Type)msg.args[1].toInt()) {
+                case NativeInputEvent::kMouseClick_Type:
+                case NativeInputEvent::kMouseDoubleClick_Type:
+                case NativeInputEvent::kMouseClickRelease_Type:
+                    obj.set("which", msg.args[4].toInt());
+                    break;
+                case NativeInputEvent::kMouseMove_Type:
+                    obj.set("xrel", msg.args[4].toInt());
+                    obj.set("yrel", msg.args[5].toInt());
+                    break;
+                default:
+                    break;
+            }
+
+            if (!this->fireJSEvent(NativeInputEvent::getName(msg.args[1].toInt()),
+                obj.jsval())) {
+
                 break;
             }
 

@@ -396,7 +396,7 @@ void NativeJSwindow::systemMenuClicked(const char *id)
     JSOBJ_CALLFUNCNAME(m_JSObject, "_onsystemtrayclick", 1, &ev);
 }
 
-void NativeJSwindow::mouseClick(int x, int y, int state, int button)
+void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
 {
 #define EVENT_PROP(name, val) JS_DefineProperty(m_Cx, event, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -418,6 +418,18 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button)
     ev->data[0] = button;
 
     nctx->addInputEvent(ev);
+
+    /*
+        Handle double click.
+        clicks receiv the number of successive clicks.
+        Only trigger for even number on release.
+    */
+    if (clicks % 2 == 0 && !state) {
+        NativeInputEvent *ev = new NativeInputEvent(NativeInputEvent::kMouseDoubleClick_Type, x, y);
+
+        ev->data[0] = button;
+        nctx->addInputEvent(ev);
+    }
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));

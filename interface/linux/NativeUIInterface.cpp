@@ -121,7 +121,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                 case SDL_MOUSEBUTTONDOWN:
                     if (window) {
                         window->mouseClick(event.button.x, event.button.y - kNativeTitleBarHeight,
-                                    event.button.state, event.button.button);
+                                    event.button.state, event.button.button, event.button.clicks);
                     }
                 break;
                 case SDL_KEYDOWN:

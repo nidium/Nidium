@@ -388,6 +388,7 @@ void NativeContext::triggerEvents()
     int n = 0;
     APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val) {
         if (n == 0) {
+            /* process through the cleaner callback avoiding a complete iteration */
             ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
                 NativeContext_destroy_and_handle_events, NULL);
         } else {

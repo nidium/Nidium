@@ -26,7 +26,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void resized(int width, int height);
     void mouseWheel(int xrel, int yrel, int x, int y);
     void mouseMove(int x, int y, int xrel, int yrel);
-    void mouseClick(int x, int y, int state, int button);
+    void mouseClick(int x, int y, int state, int button, int clicks);
     void systemMenuClicked(const char *id);
 
     bool dragBegin(int x, int y, const char * const *files, size_t nfiles);
