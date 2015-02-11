@@ -460,14 +460,6 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
     if (evlist) {
         ape_pool_push(&m_NativeContext->m_CanvasEventsCanvas, evlist);
     }
-
-    if (actualRect.contains(layerContext.layer->mousePosition.x,
-        layerContext.layer->mousePosition.y)) {
-
-        memcpy(&this->mousePosition,
-            &layerContext.layer->mousePosition, sizeof(mousePosition));
-        m_NativeContext->m_CanvasOrderedEvents.push_back(this);
-    }
 }
 
 void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool draw)
@@ -1114,11 +1106,32 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 /*
     Called by NativeContext whenever there are pending events on this canvas
     Currently only handle mouse events.
-
 */
 bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
 {
     printf("Event handled :) %lld\n", this->getIdentifier());
+
+    NativeCanvasHandler *target = this;
+    for (NativeCanvasHandler *handler = this; handler != NULL;
+        handler = handler->getParent()) {
+
+        NativeArgs arg;
+
+        arg[0].set(ev->x);
+        arg[1].set(ev->y);
+        arg[2].set(ev->data[0]);
+        arg[3].set(ev->data[1]);
+        arg[4].set(ev->x - a_left); // layerX
+        arg[5].set(ev->y - a_top);  // layerY
+        arg[6].set(target);
+
+        /* fireEvent returns false if a stopPropagation is detected */
+        if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
+            break;
+        }
+
+    }    
+
     return true;
 }
 

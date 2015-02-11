@@ -385,9 +385,16 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
 void NativeContext::triggerEvents()
 {
     void *val;
+    int n = 0;
     APE_P_FOREACH((&m_CanvasEventsCanvas), val) {
-        ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
-            NativeContext_destroy_and_handle_events, NULL);
+        if (n == 0) {
+            ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
+                NativeContext_destroy_and_handle_events, NULL);
+        } else {
+            ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
+                NULL, NULL);            
+        }
+        n++;
         __pool_item->ptr.data = NULL;
     }
 
@@ -395,11 +402,6 @@ void NativeContext::triggerEvents()
         Reset the 'push' pointer.
     */
     ape_pool_rewind(&m_CanvasEventsCanvas);
-
-    for (auto h = m_CanvasOrderedEvents.rbegin(); h != m_CanvasOrderedEvents.rend(); h++) {
-        (*h)->handleEvents();
-        break; /* Only handle the top-most element for now */
-    }
 }
 
 // From third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp
