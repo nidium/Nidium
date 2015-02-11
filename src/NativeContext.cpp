@@ -386,13 +386,13 @@ void NativeContext::triggerEvents()
 {
     void *val;
     int n = 0;
-    APE_P_FOREACH((&m_CanvasEventsCanvas), val) {
+    APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val) {
         if (n == 0) {
             ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
                 NativeContext_destroy_and_handle_events, NULL);
         } else {
             ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
-                NULL, NULL);            
+                NULL, NULL);
         }
         n++;
         __pool_item->ptr.data = NULL;

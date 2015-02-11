@@ -1109,8 +1109,6 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
 */
 bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
 {
-    printf("Event handled :) %lld\n", this->getIdentifier());
-
     NativeCanvasHandler *target = this;
     for (NativeCanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
