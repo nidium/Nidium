@@ -104,6 +104,10 @@ public:
         const version doesn't protect against overflow
     */
     const NativeArgsValue& operator[] (int idx) const {
+        if (idx >= m_numArgs) {
+            printf("/!\\ Overflow in accessing NativeArgs value. Beggining of the array returned\n");
+            return *m_Args[0];
+        }
         return *m_Args[idx];
     }
 
