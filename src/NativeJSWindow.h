@@ -50,7 +50,9 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
         return m_Db;
     }
 
-    static NativeJSwindow *registerObject(JSContext *cx, int width, int height);
+    static NativeJSwindow *registerObject(JSContext *cx, int width,
+        int height, JSObject *doc);
+
     static const char *getJSObjectName() {
         return "Window";
     }
@@ -64,7 +66,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     bool dragEvent(const char *name, int x, int y);
 
-    void createMainCanvas(int width, int height);
+    void createMainCanvas(int width, int height, JSObject *doc);
     void createStorage();
 
     struct _requestedFrame {

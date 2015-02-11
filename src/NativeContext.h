@@ -32,7 +32,7 @@ struct NativeJobQueue {
     void *arg;
 };
 
-static const char * NativeInputEvent_Names[4] = {
+static const char * NativeInputEvent_Names[] = {
     "mousemove",
     "mousedown",
     "mouseup",

@@ -25,14 +25,14 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
 {
   public:
     NativeJSdocument(JSObject *obj, JSContext *cx) :
-    NativeJSExposer<NativeJSdocument>(obj, cx),
+    NativeJSExposer<NativeJSdocument>(obj, cx, false),
         m_Fonts(256000) {};
     ~NativeJSdocument(){};
 
     static bool showFPS;
     bool populateStyle(JSContext *cx, const char *data,
         size_t len, const char *filename);
-    static void registerObject(JSContext *cx);
+    static JSObject *registerObject(JSContext *cx);
     static const char *getJSObjectName() {
         return "document";
     }

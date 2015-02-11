@@ -262,7 +262,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     return true;
 }
 
-void NativeJSdocument::registerObject(JSContext *cx)
+JSObject *NativeJSdocument::registerObject(JSContext *cx)
 {
     JSObject *documentObj;
     
@@ -285,6 +285,8 @@ void NativeJSdocument::registerObject(JSContext *cx)
     JS_SetProperty(cx, documentObj, "stylesheet", &obj);
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
+
+    return documentObj;
 }
 
 // todo destroy with NativeHash cleaner

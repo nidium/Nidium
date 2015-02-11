@@ -172,10 +172,16 @@ static JSPropertySpec window_props[] = {
     {"top", WINDOW_PROP_TOP, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
-    {"width", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"innerWidth", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
-    {"height", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+    {"outerWidth", WINDOW_PROP_WIDTH, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"innerHeight", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
+        JSOP_WRAPPER(native_window_prop_get),
+        JSOP_WRAPPER(native_window_prop_set)},
+    {"outerHeight", WINDOW_PROP_HEIGHT, JSPROP_PERMANENT | JSPROP_ENUMERATE,
         JSOP_WRAPPER(native_window_prop_get),
         JSOP_WRAPPER(native_window_prop_set)},
     {"title", WINDOW_PROP_TITLE, JSPROP_PERMANENT | JSPROP_ENUMERATE,
@@ -1187,7 +1193,7 @@ void NativeJSwindow::initDataBase()
     }
 }
 
-void NativeJSwindow::createMainCanvas(int width, int height)
+void NativeJSwindow::createMainCanvas(int width, int height, JSObject *doc)
 {
     JSObject *canvas;
 
@@ -1196,7 +1202,7 @@ void NativeJSwindow::createMainCanvas(int width, int height)
 
     NativeContext::getNativeClass(m_Cx)->getRootHandler()->addChild(m_handler);
 
-    JS_DefineProperty(m_Cx, m_JSObject, "canvas",
+    JS_DefineProperty(m_Cx, doc, "canvas",
         OBJECT_TO_JSVAL(canvas), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
@@ -1288,7 +1294,8 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width, int height)
+NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
+    int height, JSObject *doc)
 {
     JSObject *windowObj;
 #if 0
@@ -1305,7 +1312,7 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width, int hei
 
     jwin->initDataBase();
     
-    jwin->createMainCanvas(width, height);
+    jwin->createMainCanvas(width, height, doc);
 
     /*NativeJS::getNativeClass(cx)->jsobjects.set(
         NativeJSwindow::getJSObjectName(), windowObj);*/

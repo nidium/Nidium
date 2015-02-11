@@ -154,10 +154,10 @@ void NativeContext::loadNativeObjects(int width, int height)
 #endif
     /* Native() object */
     NativeJSNative::registerObject(cx);
-    /* window() object */
-    m_JSWindow = NativeJSwindow::registerObject(cx, width, height);
     /* document() object */
-    NativeJSdocument::registerObject(cx);
+    JSObject *jsdoc = NativeJSdocument::registerObject(cx);
+    /* window() object */
+    m_JSWindow = NativeJSwindow::registerObject(cx, width, height, jsdoc);
 
     //NativeJSDebug::registerObject(cx);    
 }
