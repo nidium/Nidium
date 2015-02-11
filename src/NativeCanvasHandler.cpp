@@ -3,6 +3,7 @@
 #include "NativeCanvas2DContext.h"
 #include "NativeMacros.h"
 #include "NativeContext.h"
+#include <NativeUIInterface.h>
 #include <stdio.h>
 
 #include <jsapi.h>
@@ -27,7 +28,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     m_AllowNegativeScroll(false),
     m_NativeContext(NativeCtx),
     m_Pending(0),
-    m_Loaded(!lazyLoad)
+    m_Loaded(!lazyLoad),
+    m_Cursor(NativeUIInterface::ARROW)
 {
     /*
         TODO: thread safe
@@ -1103,6 +1105,11 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
     this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
 }
 
+void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
+{
+    __NativeUI->setCursor((NativeUIInterface::CURSOR_TYPE)this->getCursor());
+}
+
 /*
     Called by NativeContext whenever there are pending events on this canvas
     Currently only handle mouse events.
@@ -1130,6 +1137,8 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
         }
 
     }    
+
+    this->onMouseEvent(ev);
 
     return true;
 }
@@ -1167,6 +1176,23 @@ bool NativeCanvasHandler::handleEvents()
     }
 
     return true;
+}
+
+void NativeCanvasHandler::setCursor(int cursor)
+{
+    m_Cursor = cursor;
+    printf("Sursor set to %d on %lld\n", cursor, this->getIdentifier());
+    __NativeUI->setCursor((NativeUIInterface::CURSOR_TYPE)this->getCursor());
+}
+
+
+int NativeCanvasHandler::getCursor()
+{
+    if (m_Cursor != NativeUIInterface::ARROW) {
+        return m_Cursor;
+    }
+
+    return m_Parent ? m_Parent->getCursor() : NativeUIInterface::ARROW;
 }
 
 NativeCanvasHandler::~NativeCanvasHandler()

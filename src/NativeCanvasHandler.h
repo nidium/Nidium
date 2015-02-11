@@ -495,6 +495,9 @@ class NativeCanvasHandler : public NativeEvents
 
         bool checkLoaded();
 
+        void setCursor(int cursor);
+        int getCursor();
+
         NativeCanvasHandler *getParent() const { return m_Parent; }
         NativeCanvasHandler *getFirstChild() const { return m_Children; }
         NativeCanvasHandler *getLastChild() const { return m_Last; }
@@ -532,6 +535,7 @@ class NativeCanvasHandler : public NativeEvents
         
         void deviceSetSize(int width, int height);
         void execPending();
+        void onMouseEvent(NativeInputEvent *ev);
 
         int32_t nchildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);
@@ -563,6 +567,8 @@ class NativeCanvasHandler : public NativeEvents
 
         int m_Pending;
         bool m_Loaded;
+
+        int m_Cursor;
 };
 
 #endif

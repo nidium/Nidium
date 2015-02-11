@@ -25,6 +25,24 @@ extern JSClass Canvas2DContext_class;
     } \
     ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj))->getHandler())
 
+
+static struct native_cursors {
+    const char *str;
+    NativeUIInterface::CURSOR_TYPE type;
+} native_cursors_list[] = {
+    {"default",             NativeUIInterface::ARROW},
+    {"arrow",               NativeUIInterface::ARROW},
+    {"beam",                NativeUIInterface::BEAM},
+    {"text",                NativeUIInterface::BEAM},
+    {"pointer",             NativeUIInterface::POINTING},
+    {"grabbing",            NativeUIInterface::CLOSEDHAND},
+    {"drag",                NativeUIInterface::CLOSEDHAND},
+    {"hidden",              NativeUIInterface::HIDDEN},
+    {"none",                NativeUIInterface::HIDDEN},
+    {"col-resize",          NativeUIInterface::RESIZELEFTRIGHT},
+    {NULL,                  NativeUIInterface::NOCHANGE},
+};
+
 extern jsval gfunc;
 
 enum {
@@ -76,7 +94,8 @@ enum {
     CANVAS_PROP_MARGINLEFT,
     CANVAS_PROP_MARGINRIGHT,
     CANVAS_PROP_MARGINTOP,
-    CANVAS_PROP_MARGINBOTTOM
+    CANVAS_PROP_MARGINBOTTOM,
+    CANVAS_PROP_CURSOR
 };
 
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -277,6 +296,9 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
     {"marginBottom", CANVAS_PROP_MARGINBOTTOM, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get), JSOP_WRAPPER(native_canvas_prop_set)},
+    {"cursor", CANVAS_PROP_CURSOR, NATIVE_JS_PROP,
+        JSOP_NULLWRAPPER,
+        JSOP_WRAPPER(native_canvas_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -1210,7 +1232,23 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 dval, handler->m_Margin.left);
         }
-        break;  
+        break;
+        case CANVAS_PROP_CURSOR:
+        {
+            if (!JSVAL_IS_STRING(vp)) {
+                return true;
+            }
+            JSAutoByteString type(cx, JSVAL_TO_STRING(vp));
+
+            for (int i = 0; native_cursors_list[i].str != NULL; i++) {
+                if (strncasecmp(native_cursors_list[i].str, type.ptr(),
+                    strlen(native_cursors_list[i].str)) == 0) {
+                    handler->setCursor(native_cursors_list[i].type);
+                    break;
+                }
+            }            
+        }
+        break;
         default:
             break;
     }
