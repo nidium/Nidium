@@ -36,7 +36,10 @@ static const char * NativeInputEvent_Names[] = {
     "mousemove",
     "mousedown",
     "mouseup",
-    "dblclick"
+    "dblclick",
+    "dragstart",
+    "dragend",
+    "dragover"
 };
 
 class NativeInputEvent
@@ -46,7 +49,10 @@ public:
         kMouseMove_Type,
         kMouseClick_Type,
         kMouseClickRelease_Type,
-        kMouseDoubleClick_Type
+        kMouseDoubleClick_Type,
+        kMouseDragStart_Type,
+        kMouseDragEnd_Type,
+        kMouseDragOver_Type
     };
 
     NativeInputEvent(Type type, int ix, int iy,
@@ -195,6 +201,14 @@ class NativeContext : public NativeMessages
         return m_InputEvents.head;
     }
 
+    void setCurrentClickedHandler(NativeCanvasHandler *handler) {
+        m_currentClickedHandler = handler;
+    }
+
+    NativeCanvasHandler *getCurrentClickedHandler() const {
+        return m_currentClickedHandler;
+    }
+
     private:
     NativeGLResources         m_Resources;
     NativeJS *                m_JS;
@@ -244,6 +258,8 @@ class NativeContext : public NativeMessages
     std::vector<NativeCanvasHandler *> m_CanvasOrderedEvents;
 
     ape_pool_list_t m_CanvasEventsCanvas;
+
+    NativeCanvasHandler *m_currentClickedHandler;
 
     void execJobs();
     void execPendingCanvasChanges();

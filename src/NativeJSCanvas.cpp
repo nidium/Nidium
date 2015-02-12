@@ -1623,6 +1623,10 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
             break;
         }
+        case NATIVE_EVENT(NativeCanvasHandler, DRAG_EVENT):
+        {
+            printf("Drag event detected\n");
+        } 
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
             NativeJSObjectBuilder obj = NativeJSObjectBuilder(m_Cx,

@@ -29,7 +29,8 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     m_NativeContext(NativeCtx),
     m_Pending(0),
     m_Loaded(!lazyLoad),
-    m_Cursor(NativeUIInterface::ARROW)
+    m_Cursor(NativeUIInterface::ARROW),
+    m_Flags(0)
 {
     /*
         TODO: thread safe
@@ -394,6 +395,10 @@ void NativeCanvasHandler::removeFromParent()
 {   
     if (!m_Parent) {
         return;
+    }
+
+    if (m_NativeContext->getCurrentClickedHandler() == this) {
+        m_NativeContext->setCurrentClickedHandler(NULL);
     }
 
     if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
@@ -1105,8 +1110,61 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
     this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
 }
 
+void NativeCanvasHandler::onDrag(NativeInputEvent *ev, bool end)
+{
+    NativeArgs arg;
+
+    if (!end) {
+        arg[0].set((m_Flags & kDrag_Flag) == 0 ?
+            NativeInputEvent::kMouseDragStart_Type :
+            NativeInputEvent::kMouseDragOver_Type);
+    } else {
+        arg[0].set(NativeInputEvent::kMouseDragEnd_Type);
+    }
+    arg[1].set(ev->x);
+    arg[2].set(ev->y);
+    arg[3].set((m_Flags & kDrag_Flag) == 0 ? 1 : 0);
+    arg[4].set((int64_t)0);
+    arg[5].set(ev->x - a_left); // layerX
+    arg[6].set(ev->y - a_top);  // layerY
+    arg[7].set(this);
+
+    if (!end && (m_Flags & kDrag_Flag) == 0) {
+        m_Flags |= kDrag_Flag;
+    } else if (end) {
+        m_Flags &= ~kDrag_Flag;
+    }
+
+    this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
+}
+
 void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
 {
+    switch (ev->getType()) {
+        case NativeInputEvent::kMouseClick_Type:
+            if (ev->data[0] == 1) // left click
+                m_NativeContext->setCurrentClickedHandler(this);
+            break;
+        case NativeInputEvent::kMouseClickRelease_Type:
+            if (ev->data[0] == 1) {
+                NativeCanvasHandler *drag;
+                if ((drag = m_NativeContext->getCurrentClickedHandler())) {
+                    drag->onDrag(ev, true);
+                }                
+                m_NativeContext->setCurrentClickedHandler(NULL);
+            }
+            break;
+        case NativeInputEvent::kMouseMove_Type:
+        {
+            NativeCanvasHandler *drag;
+            if ((drag = m_NativeContext->getCurrentClickedHandler())) {
+                drag->onDrag(ev);
+            }
+            break;
+        }
+        default:
+            break;
+    }
     __NativeUI->setCursor((NativeUIInterface::CURSOR_TYPE)this->getCursor());
 }
 
@@ -1143,45 +1201,10 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
     return true;
 }
 
-/*
-    Called by NativeContext whenever there are pending events on this canvas
-    Currently only handle mouse events.
-
-*/
-bool NativeCanvasHandler::handleEvents()
-{
-    /*
-        TODO, target is always |this|?
-    */
-    /* Propagate through parents */
-    NativeCanvasHandler *target = this;
-    for (NativeCanvasHandler *handler = this; handler != NULL;
-        handler = handler->getParent()) {
-
-        NativeArgs arg;
-
-        arg[0].set(mousePosition.x);
-        arg[1].set(mousePosition.y);
-        arg[2].set(mousePosition.xrel);
-        arg[3].set(mousePosition.yrel);
-        arg[4].set(mousePosition.x - a_left); // layerX
-        arg[5].set(mousePosition.y - a_top);  // layerY
-        arg[6].set(target);
-
-        /* fireEvent returns false if a stopPropagation is detected */
-        if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {
-            break;
-        }
-
-    }
-
-    return true;
-}
 
 void NativeCanvasHandler::setCursor(int cursor)
 {
     m_Cursor = cursor;
-    printf("Sursor set to %d on %lld\n", cursor, this->getIdentifier());
     __NativeUI->setCursor((NativeUIInterface::CURSOR_TYPE)this->getCursor());
 }
 
@@ -1192,6 +1215,7 @@ int NativeCanvasHandler::getCursor()
         return m_Cursor;
     }
 
+    /* Inherit from parent when default */
     return m_Parent ? m_Parent->getCursor() : NativeUIInterface::ARROW;
 }
 

@@ -63,7 +63,8 @@ int NativeContext_LogClear()
 
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
-    m_DebugHandler(NULL), m_UI(nui), m_NML(nml), m_GLState(NULL)
+    m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
+    m_GLState(NULL), m_currentClickedHandler(NULL)
 {
     gfunc = JSVAL_VOID;
     //nui->useOffScreenRendering(true);

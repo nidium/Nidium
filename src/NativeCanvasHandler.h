@@ -107,6 +107,10 @@ class NativeCanvasHandler : public NativeEvents
             kBottom_Coord = 1 << 3
         };
 
+        enum Flags {
+            kDrag_Flag = 1 << 0
+        };
+
         enum EventsChangedProperty {
             kContentHeight_Changed,
             kContentWidth_Changed
@@ -114,9 +118,10 @@ class NativeCanvasHandler : public NativeEvents
 
         enum Events {
             RESIZE_EVENT = 1,
-            LOADED_EVENT = 2,
-            CHANGE_EVENT = 3,
-            MOUSE_EVENT  = 4
+            LOADED_EVENT,
+            CHANGE_EVENT,
+            MOUSE_EVENT,
+            DRAG_EVENT
         };
 
         enum Position {
@@ -516,6 +521,9 @@ class NativeCanvasHandler : public NativeEvents
 
         static void _jobResize(void *arg);
         bool _handleEvent(NativeInputEvent *ev);
+
+        uint32_t m_Flags;
+
     protected:
         NativeCanvasHandler *getPrevInlineSibling() const {
             NativeCanvasHandler *prev;
@@ -531,11 +539,10 @@ class NativeCanvasHandler : public NativeEvents
         void propertyChanged(EventsChangedProperty property);
     private:
         
-        bool handleEvents();
-        
         void deviceSetSize(int width, int height);
         void execPending();
         void onMouseEvent(NativeInputEvent *ev);
+        void onDrag(NativeInputEvent *ev, bool end = false);
 
         int32_t nchildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);
