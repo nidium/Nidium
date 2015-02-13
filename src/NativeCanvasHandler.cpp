@@ -1110,7 +1110,7 @@ void NativeCanvasHandler::propertyChanged(EventsChangedProperty property)
     this->fireEvent<NativeCanvasHandler>(CHANGE_EVENT, arg, true);
 }
 
-void NativeCanvasHandler::onDrag(NativeInputEvent *ev, bool end)
+void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end)
 {
     NativeArgs arg;
 
@@ -1123,17 +1123,30 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, bool end)
     }
     arg[1].set(ev->x);
     arg[2].set(ev->y);
-    arg[3].set((m_Flags & kDrag_Flag) == 0 ? 1 : 0);
+    arg[3].set((int64_t)0);
     arg[4].set((int64_t)0);
     arg[5].set(ev->x - a_left); // layerX
     arg[6].set(ev->y - a_top);  // layerY
-    arg[7].set(this);
+    arg[7].set(target);
 
     if (!end && (m_Flags & kDrag_Flag) == 0) {
         m_Flags |= kDrag_Flag;
-    } else if (end) {
-        m_Flags &= ~kDrag_Flag;
     }
+
+    this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
+}
+
+void NativeCanvasHandler::onDrop(NativeInputEvent *ev, NativeCanvasHandler *drop)
+{
+    NativeArgs arg;
+    arg[0].set(NativeInputEvent::kMouseDrop_Type);
+    arg[1].set(ev->x);
+    arg[2].set(ev->y);
+    arg[3].set((int64_t)0);
+    arg[4].set((int64_t)0);
+    arg[5].set(ev->x - a_left); // layerX
+    arg[6].set(ev->y - a_top);  // layerY
+    arg[7].set(drop);
 
     this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
 }
@@ -1148,8 +1161,13 @@ void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
         case NativeInputEvent::kMouseClickRelease_Type:
             if (ev->data[0] == 1) {
                 NativeCanvasHandler *drag;
-                if ((drag = m_NativeContext->getCurrentClickedHandler())) {
-                    drag->onDrag(ev, true);
+                if ((drag = m_NativeContext->getCurrentClickedHandler()) &&
+                    (drag->m_Flags & kDrag_Flag)) {
+                    drag->onDrag(ev, this, true);
+                    this->onDrop(ev, drag);
+
+                    drag->m_Flags &= ~kDrag_Flag;
+
                 }                
                 m_NativeContext->setCurrentClickedHandler(NULL);
             }
@@ -1158,7 +1176,7 @@ void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
         {
             NativeCanvasHandler *drag;
             if ((drag = m_NativeContext->getCurrentClickedHandler())) {
-                drag->onDrag(ev);
+                drag->onDrag(ev, this);
             }
             break;
         }

@@ -1652,6 +1652,15 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                     obj.set("xrel", msg.args[4].toInt());
                     obj.set("yrel", msg.args[5].toInt());
                     break;
+                case NativeInputEvent::kMouseDragOver_Type:
+                case NativeInputEvent::kMouseDragStart_Type:
+                case NativeInputEvent::kMouseDragEnd_Type:
+                    obj.set("source", OBJECT_TO_JSVAL(this->getJSObject()));
+                    break;
+                case NativeInputEvent::kMouseDrop_Type:
+                    obj.set("source", OBJECT_TO_JSVAL(target->jsobj));
+                    obj.set("target", OBJECT_TO_JSVAL(this->getJSObject()));
+                    break;
                 default:
                     break;
             }

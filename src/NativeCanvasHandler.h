@@ -542,7 +542,8 @@ class NativeCanvasHandler : public NativeEvents
         void deviceSetSize(int width, int height);
         void execPending();
         void onMouseEvent(NativeInputEvent *ev);
-        void onDrag(NativeInputEvent *ev, bool end = false);
+        void onDrag(NativeInputEvent *ev, NativeCanvasHandler *target, bool end = false);
+        void onDrop(NativeInputEvent *ev, NativeCanvasHandler *droped);
 
         int32_t nchildren;
         void dispatchMouseEvents(NativeLayerizeContext &layerContext);

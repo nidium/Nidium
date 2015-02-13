@@ -39,7 +39,8 @@ static const char * NativeInputEvent_Names[] = {
     "dblclick",
     "dragstart",
     "dragend",
-    "dragover"
+    "dragover",
+    "drop"
 };
 
 class NativeInputEvent
@@ -52,7 +53,8 @@ public:
         kMouseDoubleClick_Type,
         kMouseDragStart_Type,
         kMouseDragEnd_Type,
-        kMouseDragOver_Type
+        kMouseDragOver_Type,
+        kMouseDrop_Type
     };
 
     NativeInputEvent(Type type, int ix, int iy,
