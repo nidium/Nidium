@@ -130,6 +130,10 @@ class NativeHTTPRequest
         bool isSSL() const {
             return m_isSSL;
         }
+
+        void gziped(bool val) {
+            m_gzip = val;
+        }
     private:
 
         void setDefaultHeaders();
@@ -144,6 +148,7 @@ class NativeHTTPRequest
         ape_array_t *headers;
 
         bool m_isSSL;
+        bool m_gzip;
 };
 
 class NativeHTTP : public NativeIStreamer, public NativeMessages

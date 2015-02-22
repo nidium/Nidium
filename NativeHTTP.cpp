@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <zlib.h>
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -216,6 +217,7 @@ static void native_http_connected(ape_socket *s,
     if (nhttp == NULL) return;
 
     http_parser_init(&nhttp->http.parser, HTTP_RESPONSE);
+
     nhttp->http.parser.data = nhttp;
     nhttp->http.parser_rdy = true;
 
@@ -304,6 +306,7 @@ NativeHTTP::NativeHTTP(ape_global *n) :
 
     http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
     native_http_data_type = DATA_NULL;
+    
 }
 
 void NativeHTTP::reportPendingError()
@@ -646,7 +649,7 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
 
 NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     method(NATIVE_HTTP_GET), data(NULL), datalen(0),
-    datafree(free), headers(ape_array_new(8)), m_isSSL(false)
+    datafree(free), headers(ape_array_new(8)), m_isSSL(false), m_gzip(false)
 {
     size_t url_len = strlen(url);
     char *durl = (char *)malloc(sizeof(char) * (url_len+1));
