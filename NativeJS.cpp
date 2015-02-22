@@ -510,8 +510,7 @@ void NativeJS::initNet(ape_global *net)
         pthread_key_create(&gAPE, NULL);
     }
 
-    pthread_setspecific(gAPE, net);
-
+    pthread_setspecific(gAPE, net); 
 }
 
 NativeJS::NativeJS(ape_global *net) :
@@ -524,30 +523,6 @@ NativeJS::NativeJS(ape_global *net) :
 
     m_StructuredCloneAddition.read = NULL;
     m_StructuredCloneAddition.write = NULL;
-
-    buffer *buf = buffer_new(32);
-    buffer_set_gzip(buf);
-    buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("Bonjour ma couille"));
-    buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("Bonjour ma couille"));
-    buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("Bonjour ma couille"));
-    buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("Bonjour ma couille"));
-    buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("Bonjour ma couille"));
-    buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("qsdfkjsqdkjfhkqsjdhfkjqshdfkjhqskjdhfkjqshdfkjhsqd sqdfhjsqkdjfh sdjfhsqkhfsqdf"));
-
-    FILE *fp = fopen("/dev/urandom", "r");
-    char *garbage = (char *)malloc(1024*1024*8);
-    
-    //fread(garbage, 1024*1024*8, 1, fp);
-
-    buffer_append_data(buf, (unsigned char *)garbage, 1024*1024*8);
-    buffer_append_data(buf, (unsigned char *)garbage, 1024*1024*8);
-    buffer_append_data(buf, (unsigned char *)garbage, 1024*1024*8);
-    int ret;
-    buffer_data(buf, &ret);
-    printf("data returned : %d buffer size %ld\n", ret, buf->size);
-    //buf->zbuf->flush = 1;
-
-    //buffer_append_data(buf, (const unsigned char *)CONST_STR_LEN("This is the last"));
 
     static int isUTF8 = 0;
     
