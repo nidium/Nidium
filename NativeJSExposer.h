@@ -131,13 +131,13 @@ public:
         m_Queue = ev;
     }
 
-    bool fire(jsval evobj) {
+    bool fire(jsval evobj, JSObject *thisobj) {
         NativeJSEvent *ev, *tmpEv;
         JS::Value rval;
         for (ev = m_Head; ev != NULL;) {
             // Use tmp in case the event was self deleted during trigger
             tmpEv = ev->next;
-            JS_CallFunctionValue(ev->m_Cx, evobj.toObjectOrNull(),
+            JS_CallFunctionValue(ev->m_Cx, thisobj,
                 ev->m_Function, 1, &evobj, &rval);
 
             ev = tmpEv;
@@ -265,7 +265,7 @@ class NativeJSExposer
             return false;
         }
 
-        events->fire(evobj);
+        events->fire(evobj, m_JSObject);
 
         return true;
     }
