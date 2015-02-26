@@ -75,6 +75,14 @@ public:
         return true;
     };
 
+    uint16_t getPort() const {
+        return m_Port;
+    }
+
+    const char *getIP() const {
+        return m_IP;
+    }
+
 private:
     ape_socket *      m_Socket;
     char *            m_IP;
