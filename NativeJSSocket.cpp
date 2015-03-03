@@ -43,6 +43,8 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSBool native_socket_client_write(JSContext *cx,
     unsigned argc, jsval *vp);
+static JSBool native_socket_client_sendFile(JSContext *cx,
+    unsigned argc, jsval *vp);
 static JSBool native_socket_client_close(JSContext *cx,
     unsigned argc, jsval *vp);
 
@@ -64,6 +66,7 @@ static JSClass socket_client_class = {
 };
 
 static JSFunctionSpec socket_client_funcs[] = {
+    JS_FN("sendFile", native_socket_client_sendFile, 1, 0),
     JS_FN("write", native_socket_client_write, 1, 0),
     JS_FN("disconnect", native_socket_client_close, 0, 0),  /* TODO: add force arg */
     JS_FS_END
@@ -645,6 +648,18 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
+    return true;
+}
+
+static JSBool native_socket_client_sendFile(JSContext *cx,
+    unsigned argc, jsval *vp)
+{
+    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    ape_socket *socket_client;
+
+    NATIVE_CHECK_ARGS("sendFile", 1);
+
+    
     return true;
 }
 

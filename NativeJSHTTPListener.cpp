@@ -92,7 +92,7 @@ NativeJSHTTPListener::~NativeJSHTTPListener()
 
 void NativeJSHTTPListener::onClientDisconnect(NativeHTTPClientConnection *client)
 {
-
+    
 }
 
 void NativeJSHTTPListener::onData(NativeHTTPClientConnection *client,

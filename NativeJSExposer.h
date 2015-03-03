@@ -95,6 +95,10 @@ public:
         static JSFunctionSpec NativeJSEvents_funcs[] = {
             JS_FN("stopPropagation",
                 NativeJSEvents::native_jsevents_stopPropagation, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FN("preventDefault",
+                NativeJSEvents::native_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
+            JS_FN("forcePropagation",
+                NativeJSEvents::native_jsevents_stub, 0, JSPROP_ENUMERATE | JSPROP_PERMANENT /*| JSPROP_READONLY*/),
             JS_FS_END
         };
 
@@ -164,6 +168,12 @@ private:
         }
         JS::Value cancelBubble = JS::BooleanValue(true);
         JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble);
+
+        return true;
+    }
+    static JSBool native_jsevents_stub(JSContext *cx,
+        unsigned argc, jsval *vp)
+    {
 
         return true;
     }
