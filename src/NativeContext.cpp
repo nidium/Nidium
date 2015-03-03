@@ -378,6 +378,7 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
     }
     NativeInputEvent *ev = (NativeInputEvent *)pool->ptr.data;
 
+    /* top-most element */
     if (ev->getDepth() == ev->m_Origin->getDepth()) {
         ev->m_Handler->_handleEvent(ev);
     }

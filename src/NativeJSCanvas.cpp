@@ -1643,23 +1643,31 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             obj.set("layerY", msg.args[7].toInt());
             obj.set("target", OBJECT_TO_JSVAL(target->jsobj));
 
-            switch ((NativeInputEvent::Type)msg.args[1].toInt()) {
+            int evtype = (NativeInputEvent::Type)msg.args[1].toInt();
+
+            switch (evtype) {
+                case NativeInputEvent::kMouseMove_Type:
+                case NativeInputEvent::kMouseDrag_Type:
+                case NativeInputEvent::kMouseDragOver_Type:
+                    obj.set("xrel", msg.args[4].toInt());
+                    obj.set("yrel", msg.args[5].toInt());
+                    break;
+                default:
+                    break;                    
+            }
+
+            switch (evtype) {
                 case NativeInputEvent::kMouseClick_Type:
                 case NativeInputEvent::kMouseDoubleClick_Type:
                 case NativeInputEvent::kMouseClickRelease_Type:
                     obj.set("which", msg.args[4].toInt());
                     break;
-                case NativeInputEvent::kMouseMove_Type:
-                    obj.set("xrel", msg.args[4].toInt());
-                    obj.set("yrel", msg.args[5].toInt());
-                    break;
-                case NativeInputEvent::kMouseDragOver_Type:
-                    obj.set("xrel", msg.args[4].toInt());
-                    obj.set("yrel", msg.args[5].toInt());
+                case NativeInputEvent::kMouseDrag_Type:
                 case NativeInputEvent::kMouseDragStart_Type:
                 case NativeInputEvent::kMouseDragEnd_Type:
                     obj.set("source", OBJECT_TO_JSVAL(this->getJSObject()));
                     break;
+                case NativeInputEvent::kMouseDragOver_Type:                  
                 case NativeInputEvent::kMouseDrop_Type:
                     obj.set("source", OBJECT_TO_JSVAL(target->jsobj));
                     obj.set("target", OBJECT_TO_JSVAL(this->getJSObject()));

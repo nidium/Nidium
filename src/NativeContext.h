@@ -40,7 +40,8 @@ static const char * NativeInputEvent_Names[] = {
     "dragstart",
     "dragend",
     "dragover",
-    "drop"
+    "drop",
+    "drag"
 };
 
 class NativeInputEvent
@@ -54,12 +55,13 @@ public:
         kMouseDragStart_Type,
         kMouseDragEnd_Type,
         kMouseDragOver_Type,
-        kMouseDrop_Type
+        kMouseDrop_Type,
+        kMouseDrag_Type
     };
 
     NativeInputEvent(Type type, int ix, int iy,
         uint32_t *idata = NULL, uint8_t idata_len = 0) :
-        x(ix), y(iy), m_Next(NULL), m_Handler(NULL),
+        x(ix), y(iy), m_Next(NULL), m_PassThroughEvent(NULL), m_Handler(NULL),
         m_Type(type), m_Origin(NULL), m_depthAffectedCanvas(0)  {
 
         if (idata && idata_len <= 8) {
@@ -71,6 +73,8 @@ public:
         NativeInputEvent *dup = new NativeInputEvent(*this);
         dup->m_Handler = handler;
         dup->m_Origin = this;
+
+        this->m_PassThroughEvent = dup;
 
         return dup;
     }
@@ -91,9 +95,14 @@ public:
         return NativeInputEvent_Names[type];
     }
 
+    NativeInputEvent *getEventForNextCanvas() const {
+        return m_PassThroughEvent;
+    }
+
     int x, y;
     uint32_t data[8];
     NativeInputEvent *m_Next;
+    NativeInputEvent *m_PassThroughEvent;
     NativeCanvasHandler *m_Handler;
     NativeInputEvent *m_Origin;
     unsigned m_depthAffectedCanvas;
