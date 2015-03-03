@@ -139,7 +139,7 @@ void NativeUIInterface::toggleOfflineBuffer(bool val)
     m_readPixelInBuffer = val;
 }
 
-void NativeUIInterface::initPBOs()
+void NativeUIInterface::initPBOs()  
 {
     if (m_readPixelInBuffer) {
         return;

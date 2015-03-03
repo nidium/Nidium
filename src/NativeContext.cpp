@@ -378,7 +378,9 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
     }
     NativeInputEvent *ev = (NativeInputEvent *)pool->ptr.data;
 
-    ev->m_Handler->_handleEvent(ev);
+    if (ev->getDepth() == ev->m_Origin->getDepth()) {
+        ev->m_Handler->_handleEvent(ev);
+    }
     
     delete ev;
 }
@@ -386,20 +388,14 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
 void NativeContext::triggerEvents()
 {
     void *val;
-    int n = 0;
+
     APE_P_FOREACH_REVERSE((&m_CanvasEventsCanvas), val) {
-        if (n == 0) {
-            /* process through the cleaner callback avoiding a complete iteration */
-            ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
+        /* process through the cleaner callback avoiding a complete iteration */
+        ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
                 NativeContext_destroy_and_handle_events, NULL);
-        } else {
-            ape_destroy_pool_list_ordered((ape_pool_list_t *)val,
-                NULL, NULL);
-        }
-        n++;
         __pool_item->ptr.data = NULL;
     }
-
+    
     /*
         Reset the 'push' pointer.
     */

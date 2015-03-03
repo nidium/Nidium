@@ -453,8 +453,12 @@ void NativeCanvasHandler::dispatchMouseEvents(NativeLayerizeContext &layerContex
     ape_pool_list_t *evlist = NULL;
 
     for (; ev != NULL; ev = ev->m_Next) {
-        //printf("Ev : %p\n", ev);
         if (actualRect.contains(ev->x, ev->y)) {
+            /*
+                Increment depth (Nth canvas affected by this event)
+            */
+            ev->inc();
+
             if (!evlist) {
                 evlist = ape_new_pool_list(0, 4);
             }
@@ -1123,8 +1127,8 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *targ
     }
     arg[1].set(ev->x);
     arg[2].set(ev->y);
-    arg[3].set((int64_t)0);
-    arg[4].set((int64_t)0);
+    arg[3].set(ev->data[0]);
+    arg[4].set(ev->data[1]);
     arg[5].set(ev->x - a_left); // layerX
     arg[6].set(ev->y - a_top);  // layerY
     arg[7].set(target);
@@ -1132,7 +1136,7 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *targ
     if (!end && (m_Flags & kDrag_Flag) == 0) {
         m_Flags |= kDrag_Flag;
     }
-
+    
     this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
 }
 
@@ -1192,7 +1196,6 @@ void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
 */
 bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
 {
-    NativeCanvasHandler *target = this;
     for (NativeCanvasHandler *handler = this; handler != NULL;
         handler = handler->getParent()) {
 
@@ -1201,11 +1204,11 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
         arg[0].set(ev->getType());
         arg[1].set(ev->x);
         arg[2].set(ev->y);
-        arg[3].set(ev->data[0]);
-        arg[4].set(ev->data[1]);
+        arg[3].set(ev->data[0]); // xrel
+        arg[4].set(ev->data[1]); // yrel
         arg[5].set(ev->x - a_left); // layerX
         arg[6].set(ev->y - a_top);  // layerY
-        arg[7].set(target);
+        arg[7].set(this); // target
 
         /* fireEvent returns false if a stopPropagation is detected */
         if (!handler->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg)) {

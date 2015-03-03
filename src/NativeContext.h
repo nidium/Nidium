@@ -59,7 +59,8 @@ public:
 
     NativeInputEvent(Type type, int ix, int iy,
         uint32_t *idata = NULL, uint8_t idata_len = 0) :
-        x(ix), y(iy), m_Next(NULL), m_Handler(NULL), m_Type(type)  {
+        x(ix), y(iy), m_Next(NULL), m_Handler(NULL),
+        m_Type(type), m_Origin(NULL), m_depthAffectedCanvas(0)  {
 
         if (idata && idata_len <= 8) {
             memcpy(data, idata, sizeof(uint32_t) * idata_len);
@@ -69,12 +70,21 @@ public:
     NativeInputEvent *dupWithHandler(NativeCanvasHandler *handler) {
         NativeInputEvent *dup = new NativeInputEvent(*this);
         dup->m_Handler = handler;
+        dup->m_Origin = this;
 
         return dup;
     }
 
     Type getType() const {
         return m_Type;
+    }
+
+    void inc() {
+        m_depthAffectedCanvas++;
+    }
+
+    unsigned getDepth() const {
+        return m_depthAffectedCanvas;
     }
 
     static const char *getName(int type) {
@@ -85,6 +95,8 @@ public:
     uint32_t data[8];
     NativeInputEvent *m_Next;
     NativeCanvasHandler *m_Handler;
+    NativeInputEvent *m_Origin;
+    unsigned m_depthAffectedCanvas;
 private:
     Type m_Type;
 };

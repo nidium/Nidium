@@ -1541,6 +1541,7 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
     }
 }
 
+
 JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, 
     int height, NativeCanvasHandler **out)
 {
@@ -1653,6 +1654,8 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                     obj.set("yrel", msg.args[5].toInt());
                     break;
                 case NativeInputEvent::kMouseDragOver_Type:
+                    obj.set("xrel", msg.args[4].toInt());
+                    obj.set("yrel", msg.args[5].toInt());
                 case NativeInputEvent::kMouseDragStart_Type:
                 case NativeInputEvent::kMouseDragEnd_Type:
                     obj.set("source", OBJECT_TO_JSVAL(this->getJSObject()));
