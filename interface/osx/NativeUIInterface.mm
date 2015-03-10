@@ -207,7 +207,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
         //glUseProgram(0);
         if (NUII->NativeCtx) {
             NUII->makeMainGLCurrent();
-            NUII->NativeCtx->frame(!NUII->isWindowHidden());
+            NUII->NativeCtx->frame(true);
         }
         if (NUII->getConsole()) {
             NUII->getConsole()->flush();

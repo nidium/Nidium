@@ -20,6 +20,9 @@ class NativeSystemInterface
         virtual void openURLInBrowser(const char *url) {
             return;
         }
+        virtual const char *execute(const char *cmd) {
+            return NULL;
+        }
         virtual const char *getCacheDirectory()=0;
         virtual const char *getPrivateDirectory()=0;
         virtual const char *getUserDirectory() {
