@@ -135,8 +135,6 @@ static JSBool native_canvas2dctx_createRadialGradient(JSContext *cx,
     unsigned argc, jsval *vp);
 static JSBool native_canvas2dctxGradient_addColorStop(JSContext *cx,
     unsigned argc, jsval *vp);
-static JSBool native_canvas2dctx_requestAnimationFrame(JSContext *cx,
-    unsigned argc, jsval *vp);
 
 static JSBool native_canvas2dctx_stub(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, jsval *vp);
@@ -232,7 +230,6 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("createPattern", native_canvas2dctx_createPattern, 2, 0),
     JS_FN("putImageData", native_canvas2dctx_putImageData, 3, 0),
     JS_FN("getImageData", native_canvas2dctx_getImageData, 4, 0),
-    JS_FN("requestAnimationFrame", native_canvas2dctx_requestAnimationFrame, 1, 0),
     JS_FN("drawImage", native_canvas2dctx_drawImage, 3, 0),
     JS_FN("measureText", native_canvas2dctx_measureText, 1, 0),
     JS_FN("isPointInPath", native_canvas2dctx_isPointInPath, 2, 0),
@@ -967,19 +964,6 @@ static JSBool native_canvas2dctxGradient_addColorStop(JSContext *cx,
 
     NATIVE_LOG_2D_CALL();
 
-    return JS_TRUE;
-}
-
-static JSBool native_canvas2dctx_requestAnimationFrame(JSContext *cx,
-    unsigned argc, jsval *vp)
-{
-
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &gfunc)) {
-        return JS_TRUE;
-    }
-    JS_AddValueRoot(cx, &gfunc);
-
-    NATIVE_LOG_2D_CALL();
     return JS_TRUE;
 }
 

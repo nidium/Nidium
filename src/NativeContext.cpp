@@ -34,8 +34,6 @@
 
 #include <NativeOpenGLHeader.h>
 
-jsval gfunc  = JSVAL_VOID;
-
 enum {
     NATIVE_SCTAG_IMAGEDATA = NATIVE_SCTAG_MAX,
 };
@@ -61,19 +59,8 @@ int NativeContext_LogClear()
     return 0;
 }
 
-NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
-    int width, int height, ape_global *net) :
-    m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
-    m_GLState(NULL), m_currentClickedHandler(NULL)
+void NativeContext::initStats()
 {
-    gfunc = JSVAL_VOID;
-    //nui->useOffScreenRendering(true);
-
-    resetInputEvents();
-
-    ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
-
-    m_SizeDirty = false;
     m_Stats.nframe = 0;
     m_Stats.starttime = NativeUtils::getTick();
     m_Stats.lastmeasuredtime = m_Stats.starttime;
@@ -84,14 +71,23 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     m_Stats.minfps = UINT32_MAX;
     m_Stats.sampleminfps = 0.f;
 
-    memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
+    memset(m_Stats.samples, 0, sizeof(m_Stats.samples)); 
+}
+
+NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
+    int width, int height, ape_global *net) :
+    m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
+    m_GLState(NULL), m_currentClickedHandler(NULL), m_SizeDirty(false)
+{
+
+    this->resetInputEvents();
+
+    ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
     m_UI->NativeCtx = this;
-    NativeGLState *state = new NativeGLState(nui);
-    if (!m_GLState) {
-        m_GLState = state;
-    }
+    m_GLState = new NativeGLState(nui);
 
+    this->initStats();
     this->initShaderLang();
     this->initHandlers(width, height);
 
@@ -280,16 +276,10 @@ void NativeContext::callFrame()
 
     m_JSWindow->callFrameCallbacks(tmptime);
 
-    if (gfunc != JSVAL_VOID) {
-        JSAutoRequest ar(m_JS->cx);
-        JS_CallFunctionValue(m_JS->cx, JS_GetGlobalObject(m_JS->cx), gfunc, 0, NULL, &rval);
-    }
 }
 
 NativeContext::~NativeContext()
 {
-    JS_RemoveValueRoot(m_JS->cx, &gfunc);
-
     if (m_DebugHandler != NULL) {
         delete m_DebugHandler->getContext();
         delete m_DebugHandler;

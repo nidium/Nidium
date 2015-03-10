@@ -492,7 +492,7 @@ static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *parent = NativeObject->getParent();
 
-    args.rval().set(parent ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
+    args.rval().set(parent && parent->jsobj ? OBJECT_TO_JSVAL(parent->jsobj) : JSVAL_NULL);
 
     return true;
 }
@@ -782,6 +782,8 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                     return false;
                 }
                 NativeObject->setContext(ctx2d);
+                
+                /* Inherit from the NativeContext glstate */
                 ctx2d->setGLState(nctx->getGLState());
                 
                 break;
@@ -1591,11 +1593,13 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
     switch (msg.event()) {
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
+            // TODO : fireEvent
             JSOBJ_CALLFUNCNAME(m_JSObject, "onresize", 0, NULL);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
         {
+            // TODO : fireEvent
             JSOBJ_CALLFUNCNAME(m_JSObject, "onload", 0, NULL);
             break;
         }
@@ -1620,7 +1624,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             JSOBJ_SET_PROP(ev, "value", value);
 
             arg.setObjectOrNull(ev);
-
+            // TODO : fireEvent
             JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
             break;
         }

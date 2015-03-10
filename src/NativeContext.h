@@ -267,6 +267,7 @@ class NativeContext : public NativeMessages
     void forceLinking();
     void loadNativeObjects(int width, int height);
 
+    void initStats();
     bool initShaderLang();
     void initHandlers(int width, int height);
     struct {
