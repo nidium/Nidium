@@ -74,6 +74,11 @@ void NativeContext::initStats()
     memset(m_Stats.samples, 0, sizeof(m_Stats.samples)); 
 }
 
+void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
+{
+    new NativeContext(ui, ui->nml, ui->getWidth(), ui->getHeight(), gnet);
+}
+
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
     m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
@@ -85,7 +90,8 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     ape_init_pool_list(&m_CanvasEventsCanvas, 0, 8);
 
     m_UI->NativeCtx = this;
-    m_GLState = new NativeGLState(nui);
+
+    NativeGLState::CreateForContext(this);
 
     this->initStats();
     this->initShaderLang();
@@ -106,6 +112,7 @@ NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     if (m_NML) {
         m_NML->setNJS(m_JS);
     }
+
     /*
         Set path for modules
     */

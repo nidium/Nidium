@@ -555,6 +555,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 #endif
         contexteOpenGL = SDL_GL_CreateContext(win);
         m_mainGLCtx = contexteOpenGL;
+        
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
         }
@@ -582,7 +583,8 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     this->setWindowFrame(NATIVE_WINDOWPOS_UNDEFINED_MASK,
         NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
 
-    NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
+    NativeContext::CreateAndAssemble(this, gnet);
+    
     [this->dragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
 
     return true;

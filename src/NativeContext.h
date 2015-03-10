@@ -232,6 +232,8 @@ class NativeContext : public NativeMessages
         return m_currentClickedHandler;
     }
 
+    static void CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet);
+
     private:
     NativeGLResources         m_Resources;
     NativeJS *                m_JS;

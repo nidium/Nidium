@@ -389,10 +389,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         this->setWindowSize(width, height);
     }
 
-    //NJS = new NativeJS(kNativeWidth, kNativeHeight);
-    NativeCtx = new NativeContext(this, this->nml, width, height, gnet);
-
-    //NJS->LoadApplication("./demo.npa");
+    NativeContext::CreateAndAssemble(this, gnet);
 
     return true;
 }

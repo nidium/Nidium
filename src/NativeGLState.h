@@ -63,7 +63,11 @@ public:
         } uniforms;
     } m_GLObjects;
 
+    static void CreateForContext(NativeContext *nctx);
+
 private:
+    NativeGLState(NativeContext *nctx);
+
     NativeGLResources m_Resources;
 
     bool m_Shared;

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#include <NativeMacros.h>
 #include <NativeOpenGLHeader.h>
 
 NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl) :
@@ -14,13 +15,34 @@ NativeGLState::NativeGLState(NativeUIInterface *ui, bool withProgram, bool webgl
 
     m_GLContext = new NativeGLContext(ui, webgl ? NULL : ui->getGLContext(), webgl);
 
-    if (!ui->NativeCtx->getGLState()) {
-        ui->NativeCtx->setGLState(this);
-    }
-
     if (!this->initGLBase(withProgram)) {
         NLOG("[OpenGL] Failed to init base GL");
     }
+}
+
+NativeGLState::NativeGLState(NativeContext *nctx) :
+    m_Shared(true)
+{
+    NativeUIInterface *ui = nctx->getUI();
+
+    memset(&this->m_GLObjects, 0, sizeof(this->m_GLObjects));
+    memset(&this->m_GLObjects.uniforms, -1, sizeof(this->m_GLObjects.uniforms));
+
+    m_GLContext = new NativeGLContext(ui, ui->getGLContext(), false);
+}
+
+void NativeGLState::CreateForContext(NativeContext *nctx)
+{
+    NativeUIInterface *ui;
+    if ((ui = nctx->getUI()) == NULL || ui->NativeCtx->getGLState()) {
+        NLOG("Failed to init the first NativeGLState");
+        return;
+    }
+
+    NativeGLState *_this = new NativeGLState(nctx);
+
+    nctx->setGLState(_this);
+    _this->initGLBase(true);
 }
 
 void NativeGLState::destroy()
