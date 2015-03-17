@@ -117,20 +117,27 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case SOCKET_PROP_READLINE:
         {
-            if (vp.isBoolean()) {
+            bool isactive = ((vp.isBoolean() && vp.toBoolean() == JS_TRUE) || vp.isInt32());
 
-                nsocket->flags = (vp.toBoolean() == JS_TRUE ?
-                    nsocket->flags | NATIVE_SOCKET_READLINE :
-                    nsocket->flags & ~NATIVE_SOCKET_READLINE);
+            if (isactive) {
 
-                if (vp.toBoolean() == JS_TRUE &&
-                    nsocket->lineBuffer.data == NULL) {
+                nsocket->flags |= NATIVE_SOCKET_READLINE;
+
+                if (nsocket->lineBuffer.data == NULL) {
 
                     nsocket->lineBuffer.data = (char *)malloc(sizeof(char)
                         * SOCKET_LINEBUFFER_MAX);
                     nsocket->lineBuffer.pos = 0;
                 }
+
+                /*
+                    Default delimiter is line feed.
+                */
+                nsocket->m_FrameDelimiter = vp.isBoolean() ? '\n' : vp.toInt32() & 0xFF;
+
             } else {
+                nsocket->flags &= ~NATIVE_SOCKET_READLINE;
+                
                 vp.set(JSVAL_FALSE);
                 return JS_TRUE;
             }
@@ -335,7 +342,7 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
         size_t len = socket_client->data_in.used;
         char *eol;
 
-        while (len > 0 && (eol = (char *)memchr(pBuf, '\n', len)) != NULL) {
+        while (len > 0 && (eol = (char *)memchr(pBuf, nsocket->m_FrameDelimiter, len)) != NULL) {
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {

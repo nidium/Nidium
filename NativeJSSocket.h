@@ -63,6 +63,8 @@ class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
         char *data;
         size_t pos;
     } lineBuffer;
+
+    uint8_t m_FrameDelimiter;
 };
 
 #endif
