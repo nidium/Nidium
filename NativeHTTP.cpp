@@ -711,6 +711,9 @@ buffer *NativeHTTPRequest::getHeadersData() const
         case NATIVE_HTTP_PUT:
             buffer_append_string_n(ret, CONST_STR_LEN("PUT "));
             break;
+        case NATIVE_HTTP_DELETE:
+            buffer_append_string_n(ret, CONST_STR_LEN("DELETE "));
+            break;
     }
 
     buffer_append_string(ret, this->path);
