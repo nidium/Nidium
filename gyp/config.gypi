@@ -8,8 +8,8 @@
         'native_exec_name': 'nidium-server',
         'native_exec_path': '../dist/',
 
-        'third_party_path%': '../../NativeStudio/third-party/',
-        'native_output%': '../../NativeStudio/out/',
+        'third_party_path%': '../third-party/',
+        'native_output%': '../out/',
         'addresse_sanitizer%': 0,
     },
 }
