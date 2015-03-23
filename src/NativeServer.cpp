@@ -16,6 +16,8 @@
 #include "NativeMacros.h"
 #include "NativeREPL.h"
 
+#include <NativeJSProcess.h>
+
 int ape_running = 1;
 unsigned long _ape_seed;
 
@@ -79,6 +81,7 @@ int NativeServer::Start(int argc, char *argv[])
     signal(SIGQUIT, &signal_handler);
 
     int ch;
+    opterr = 0;
 
     while ((ch = getopt_long(argc, argv, "d", long_options, NULL)) != -1) {
         switch (ch) {
@@ -91,6 +94,9 @@ int NativeServer::Start(int argc, char *argv[])
     }
 
     NativeContext ctx(net);
+    const NativeJS *js = ctx.getNJS();
+    NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
+
     /*
         Daemon requires a .js to load
     */
@@ -100,6 +106,9 @@ int NativeServer::Start(int argc, char *argv[])
         }
         NativeServer::Daemonize();
     } else {
+#ifdef DEBUG
+        printf("[Warn] Running in Debug mode\n");
+#endif
         if (argc > 1) {
             ctx.getNJS()->LoadScript(argv[argc-1]);
         }

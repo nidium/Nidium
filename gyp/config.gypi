@@ -1,4 +1,8 @@
 {
+    'includes': [
+        '../nativejscore/network/gyp/config.gypi',
+        '../nativejscore/network/gyp/common.gypi'
+    ],
     'variables' : {
         'native_version': '0.1',
 

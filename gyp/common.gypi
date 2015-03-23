@@ -32,10 +32,6 @@
                     '-g',
                 ],
                 'xcode_settings': {
-                    "OTHER_LDFLAGS": [
-                        '-L<(native_output)/third-party/',
-                        '-F<(native_output)/third-party/',
-                    ],
                     'OTHER_CPLUSPLUSFLAGS': [ 
                         '-stdlib=libc++'
                     ],
@@ -53,9 +49,6 @@
                         '-O0'
                     ]
                 },
-                'ldflags': [
-                    '-L<(native_output)/third-party/',
-                ],
             },
             'Release': {
                 'product_dir': '<(native_output)/release/',
@@ -82,10 +75,6 @@
                     }          
                 },
                 'xcode_settings': {
-                    "OTHER_LDFLAGS": [
-                        '-L<(native_output)/third-party/',
-                        '-F<(native_output)/third-party/'
-                    ],
                     'ARCHS': [
                         'x86_64',
                     ],
@@ -110,9 +99,6 @@
                         '-Wno-invalid-offsetof'
                     ]
                 },
-                'ldflags': [
-                    '-L<(native_output)/third-party/',
-                ],
                 'cflags': [
                     '-O2',
                     '-g',

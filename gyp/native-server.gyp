@@ -4,7 +4,8 @@
         'type': 'executable',
         'product_dir': '<(native_exec_path)',
         'dependencies': [
-            '<(native_nativejscore_path)/gyp/nativejscore.gyp:nativejscore'
+            '<(native_nativejscore_path)/gyp/nativejscore.gyp:*',
+            '<(native_network_path)/gyp/network.gyp:*'
         ],
         'include_dirs': [
             '<(native_network_path)',
@@ -17,6 +18,7 @@
             '<(native_src_path)/NativeContext.cpp',
             '<(native_src_path)/NativeJSConsole.cpp',
             '<(native_src_path)/NativeREPL.cpp',
+            '<(native_src_path)/NativeJSSystem.cpp',
         ],
         'conditions': [
             ['OS=="linux"', {

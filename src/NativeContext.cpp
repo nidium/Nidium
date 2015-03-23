@@ -4,6 +4,7 @@
 #include "NativeMacros.h"
 #include <NativeJS.h>
 #include "NativeJSConsole.h"
+#include "NativeJSSystem.h"
 #include <NativeMessages.h>
 #include <NativeStreamInterface.h>
 #include <NativeFileStream.h>
@@ -42,6 +43,7 @@ NativeContext::NativeContext(ape_global *net)
     m_JS->loadGlobalObjects();
 
     NativeJSconsole::registerObject(m_JS->cx);
+    NativeJSSystem::registerObject(m_JS->cx);
 
     add_timer(&net->timersng, 1, NativeContext_ping, (void *)m_JS);
 }
