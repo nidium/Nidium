@@ -40,7 +40,8 @@ class NativeHTTPRequest
         enum {
             NATIVE_HTTP_GET,
             NATIVE_HTTP_POST,
-            NATIVE_HTTP_HEAD
+            NATIVE_HTTP_HEAD,
+            NATIVE_HTTP_PUT
         } method;
 
         explicit NativeHTTPRequest(const char *url);

@@ -155,7 +155,9 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
             req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
         } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
             req->method = NativeHTTPRequest::NATIVE_HTTP_HEAD;
-        } else {
+        } else if (strcmp("PUT", cmethod.ptr()) == 0) {
+            req->method = NativeHTTPRequest::NATIVE_HTTP_PUT;
+        }  else {
             req->method = NativeHTTPRequest::NATIVE_HTTP_GET;
         }
     }
@@ -199,7 +201,10 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
             req->setData(hdata, strlen(hdata));
             req->setDataReleaser(js_free);
 
-            req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
+            if (req->method != NativeHTTPRequest::NATIVE_HTTP_PUT) {
+                req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
+            }
+            
             char num[16];
             sprintf(num, "%ld", req->getDataLength());
             req->setHeader("Content-Length", num);
