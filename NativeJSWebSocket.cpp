@@ -262,6 +262,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
 
             JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, &arg);
 
+            JS_SetPrivate(jclient, NULL);
             NativeJSObj(m_Cx)->unrootObject(jclient);
 
             break;
