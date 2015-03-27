@@ -223,7 +223,8 @@ static void native_http_connected(ape_socket *s,
     buffer *headers = request->getHeadersData();
 
     if (request->getData() != NULL &&
-        request->method == NativeHTTPRequest::NATIVE_HTTP_POST) {
+        (request->method == NativeHTTPRequest::NATIVE_HTTP_POST ||
+            request->method == NativeHTTPRequest::NATIVE_HTTP_PUT)) {
 
         PACK_TCP(s->s.fd);
         APE_socket_write(s, headers->data, headers->used, APE_DATA_COPY);
@@ -706,6 +707,12 @@ buffer *NativeHTTPRequest::getHeadersData() const
             break;
         case NATIVE_HTTP_POST:
             buffer_append_string_n(ret, CONST_STR_LEN("POST "));
+            break;
+        case NATIVE_HTTP_PUT:
+            buffer_append_string_n(ret, CONST_STR_LEN("PUT "));
+            break;
+        case NATIVE_HTTP_DELETE:
+            buffer_append_string_n(ret, CONST_STR_LEN("DELETE "));
             break;
     }
 
