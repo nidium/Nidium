@@ -28,6 +28,8 @@
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj);
+static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass WebSocketServer_class = {
     "WebSocketServer", JSCLASS_HAS_PRIVATE,
@@ -39,6 +41,11 @@ static JSClass WebSocketServer_class = {
 template<>
 JSClass *NativeJSExposer<NativeJSWebSocketServer>::jsclass = &WebSocketServer_class;
 
+static JSFunctionSpec wsclient_funcs[] = {
+    JS_FN("send", native_websocketclient_send, 1, 0),
+    JS_FN("close", native_websocketclient_close, 0, 0),
+    JS_FS_END
+};
 
 static JSClass WebSocketServer_client_class = {
     "WebSocketServerClient", JSCLASS_HAS_PRIVATE,
@@ -60,6 +67,54 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
         delete wss;
         printf("Delete websocket server...\n");
     }    
+}
+
+static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSNATIVE_PROLOGUE_CLASS(NativeWebSocketClientConnection,
+        &WebSocketServer_client_class);
+
+    NATIVE_CHECK_ARGS("send", 1);
+
+    if (args[0].isString()) {
+        JSAutoByteString cdata;
+
+        cdata.encodeUtf8(cx, args[0].toString());
+
+        CppObj->write((unsigned char *)cdata.ptr(),
+            strlen(cdata.ptr()), false, APE_DATA_COPY);
+
+        args.rval().setInt32(0);
+
+    } else if (args[0].isObject()) {
+        JSObject *objdata = args[0].toObjectOrNull();
+
+        if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+            JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
+            return false;            
+        }
+        uint32_t len = JS_GetArrayBufferByteLength(objdata);
+        uint8_t *data = JS_GetArrayBufferData(objdata);
+
+        CppObj->write((unsigned char *)data, len, true, APE_DATA_COPY);
+
+        args.rval().setInt32(0);
+
+    } else {
+        JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
+        return false;
+    }
+
+    return true;
+}
+
+static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+
+
+    return true;
 }
 
 static JSBool native_WebSocketServer_constructor(JSContext *cx,
@@ -138,6 +193,8 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 
     jclient = JS_NewObject(m_Cx, &WebSocketServer_client_class, NULL, NULL);
 
+    JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
+
     JS_SetPrivate(jclient, client);
 
     NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
@@ -191,15 +248,24 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
 
             arg.setObjectOrNull(jclient);
 
-            if (JS_GetProperty(cx, this->getJSObject(), "onopen", &oncallback) &&
-                JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) {
-
-                JS_CallFunctionValue(cx, this->getJSObject(), oncallback,
-                    1, &arg, &rval);
-            }
+            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onopen", 1, &arg);
 
             break;
         }
+        case NATIVE_EVENT(NativeWebSocketListener, SERVER_CLOSE):
+        {
+            jsval arg;
+            NativeWebSocketClientConnection *client = (NativeWebSocketClientConnection *)msg.args[1].toPtr();
+            JSObject *jclient = (JSObject *)client->getData();
+
+            arg.setObjectOrNull(jclient);
+
+            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, &arg);
+
+            NativeJSObj(m_Cx)->unrootObject(jclient);
+
+            break;
+        }        
         default:
             break;
     }

@@ -134,7 +134,7 @@ void NativeWebSocketClientConnection::close()
     ape_ws_close(&m_WSState);
 }
 
-void NativeWebSocketClientConnection::write(const char *data,
+void NativeWebSocketClientConnection::write(unsigned char *data,
     size_t len, bool binary, ape_socket_data_autorelease type)
 {
     ape_ws_write(m_SocketClient, (unsigned char *)data, len, (int)binary, type);

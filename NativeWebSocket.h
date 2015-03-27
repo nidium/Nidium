@@ -59,7 +59,7 @@ public:
     /* TODO: support "buffering" detection + ondrain()
         (need ape_websocket.c modification)
     */
-    void write(const char *data, size_t len,
+    void write(unsigned char *data, size_t len,
         bool binary = false,
         ape_socket_data_autorelease type = APE_DATA_COPY);
 
