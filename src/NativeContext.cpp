@@ -315,7 +315,7 @@ NativeContext::~NativeContext()
 void NativeContext::rendered(uint8_t *pdata, int width, int height)
 {
     if (m_WSClient) {
-        m_WSClient->write((const char *)pdata, width*height*4, true);
+        m_WSClient->write((unsigned char *)pdata, width*height*4, true);
     }
 }
 
