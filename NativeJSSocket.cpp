@@ -342,7 +342,9 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
         size_t len = socket_client->data_in.used;
         char *eol;
 
-        while (len > 0 && (eol = (char *)memchr(pBuf, nsocket->m_FrameDelimiter, len)) != NULL) {
+        while (len > 0 && (eol = (char *)memchr(pBuf,
+            nsocket->m_FrameDelimiter, len)) != NULL) {
+
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {
@@ -404,7 +406,9 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
         size_t len = s->data_in.used;
         char *eol;
 
-        while (len > 0 && (eol = (char *)memchr(pBuf, '\n', len)) != NULL) {
+        while (len > 0 && (eol = (char *)memchr(pBuf,
+            nsocket->m_FrameDelimiter, len)) != NULL) {
+            
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {
