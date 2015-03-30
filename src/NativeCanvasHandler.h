@@ -495,7 +495,7 @@ class NativeCanvasHandler : public NativeEvents
         bool hasAFixedAncestor() const;
         void setOpacity(double val);
         void setZoom(double val);
-        void removeFromParent();
+        void removeFromParent(bool willBeAdopted = false);
         void getChildren(NativeCanvasHandler **out) const;
 
         bool checkLoaded();
