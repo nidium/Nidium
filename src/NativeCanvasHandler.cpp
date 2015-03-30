@@ -324,7 +324,7 @@ void NativeCanvasHandler::insertBefore(NativeCanvasHandler *insert,
         return;
     }
 
-    insert->removeFromParent();
+    insert->removeFromParent(true);
 
     insert->m_Prev = ref->m_Prev;
     insert->m_Next = ref;
@@ -358,7 +358,7 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
         return;
     }
     /* Already belong to a parent? move it */
-    insert->removeFromParent();
+    insert->removeFromParent(true);
 
     switch(position) {
         case POSITION_FRONT:
@@ -391,13 +391,13 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
     this->nchildren++;
 }
 
-void NativeCanvasHandler::removeFromParent()
+void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
 {   
     if (!m_Parent) {
         return;
     }
 
-    if (m_NativeContext->getCurrentClickedHandler() == this) {
+    if (!willBeAdopted && m_NativeContext->getCurrentClickedHandler() == this) {
         m_NativeContext->setCurrentClickedHandler(NULL);
     }
 
