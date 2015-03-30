@@ -217,10 +217,11 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     }
 }
 
-inline static void native_socket_readcb_lines(NativeJSSocket *nsocket, char *data, size_t len)
+inline static void native_socket_readcb_lines(NativeJSSocket *nsocket,
+    char *data, size_t len, ape_socket *client)
 {
 
-    jsval onread, rval, jdata;
+    jsval onread, rval, jdata[2];
     JSContext *cx = nsocket->getJSContext();
     //JSString *tstr = JS_NewStringCopyN(cx, data, len);
     JSString *tstr = NativeJSUtils::newStringWithEncoding(cx, data, len, nsocket->m_Encoding);
@@ -234,13 +235,18 @@ inline static void native_socket_readcb_lines(NativeJSSocket *nsocket, char *dat
         nsocket->lineBuffer.pos = 0;
     }
 
-    jdata = STRING_TO_JSVAL(jstr);
+    if (client) {
+        jdata[0].setObjectOrNull(NATIVE_SOCKET_JSOBJECT(client));
+        jdata[1].setString(jstr);
+    } else {
+        jdata[0].setString(jstr);
+    }
 
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onread", &onread) &&
         JS_TypeOfValue(cx, onread) == JSTYPE_FUNCTION) {
         PACK_TCP(nsocket->socket->s.fd);
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onread,
-            1, &jdata, &rval);
+            client ? 2 : 1, jdata, &rval);
         FLUSH_TCP(nsocket->socket->s.fd);
     }    
 }
@@ -348,7 +354,7 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {
-                native_socket_readcb_lines(nsocket, pBuf, pLen);
+                native_socket_readcb_lines(nsocket, pBuf, pLen, socket_client);
                 pBuf = eol+1;
             }
         }
@@ -412,7 +418,7 @@ static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
             size_t pLen = eol - pBuf;
             len -= pLen;
             if (len-- > 0) {
-                native_socket_readcb_lines(nsocket, pBuf, pLen);
+                native_socket_readcb_lines(nsocket, pBuf, pLen, NULL);
                 pBuf = eol+1;
             }
         }
