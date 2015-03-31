@@ -29,7 +29,7 @@ enum {
 };
 
 /* only use on connected clients */
-#define NATIVE_SOCKET_JSOBJECT(socket) ((JSObject *)socket->ctx)
+#define NATIVE_SOCKET_JSOBJECT(socket) (((NativeJSSocket *)socket)->getJSObject())
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
@@ -195,9 +195,14 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     m_Cx = nsocket->getJSContext();
 
     jclient = JS_NewObject(m_Cx, &socket_client_class, NULL, NULL);
-    socket_client->ctx = jclient;
-
     NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
+
+    NativeJSSocket *sobj = new NativeJSSocket(jclient,
+        nsocket->getJSContext(), APE_socket_ipv4(socket_client), 0);
+
+    sobj->m_ParentServer = nsocket;
+
+    socket_client->ctx = sobj;
 
     JS_SetPrivate(jclient, socket_client);
 
@@ -320,13 +325,77 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     }
 }
 
+void NativeJSSocket::onRead()
+{
+    if (!isJSCallable()) {
+        return;
+    }
+
+    JS::Value jparams[2];
+    int dataPosition = 0;
+
+    if (isClientFromOwnServer()) {
+        dataPosition = 1;
+        jparams[0].setObjectOrNull(this->getJSObject());
+    } else {
+        dataPosition = 0;
+    }
+
+    if (this->getFlags() & NATIVE_SOCKET_ISBINARY) {
+        JSObject *arrayBuffer = JS_NewArrayBuffer(m_Cx, socket->data_in.used);
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
+        memcpy(data, socket->data_in.data, socket->data_in.used);
+
+        jparams[dataPosition] = OBJECT_TO_JSVAL(arrayBuffer);
+
+    } else if (this->getFlags() & NATIVE_SOCKET_READLINE) {
+        char *pBuf = (char *)socket->data_in.data;
+        size_t len = socket->data_in.used;
+        char *eol;
+
+        while (len > 0 && (eol = (char *)memchr(pBuf,
+            this->getFrameDelimiter(), len)) != NULL) {
+
+            size_t pLen = eol - pBuf;
+            len -= pLen;
+            if (len-- > 0) {
+                native_socket_readcb_lines(nsocket, pBuf, pLen, socket);
+                pBuf = eol+1;
+            }
+        }
+
+        if (len && len+this->lineBuffer.pos <= SOCKET_LINEBUFFER_MAX) {
+            memcpy(this->lineBuffer.data+this->lineBuffer.pos, pBuf, len);
+            this->lineBuffer.pos += len;
+        } else if (len) {
+            this->lineBuffer.pos = 0;
+        }
+
+        return;
+
+    } else {
+        JSString *jstr = NativeJSUtils::newStringWithEncoding(m_Cx,
+            (char *)socket->data_in.data,
+            socket->data_in.used, this->getEncoding());
+
+        jparams[dataPosition] = STRING_TO_JSVAL(jstr);        
+    }
+
+}
+
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
     ape_global *ape, void *socket_arg)
 {
     JSContext *cx;
     jsval onread, rval, jparams[2];
-    ape_socket *socket_server = socket_client->parent;
-    NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
+
+    NativeJSSocket *client = (NativeJSSocket *)socket_client->ctx;
+
+    if (client == NULL) {
+        return;
+    }
+
+    NativeJSSocket *nsocket = client->getParentServer();
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -336,20 +405,20 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
 
     jparams[0] = OBJECT_TO_JSVAL(NATIVE_SOCKET_JSOBJECT(socket_client));
 
-    if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
+    if (client->getFlags() & NATIVE_SOCKET_ISBINARY) {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, socket_client->data_in.used);
         uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, socket_client->data_in.data, socket_client->data_in.used);
 
         jparams[1] = OBJECT_TO_JSVAL(arrayBuffer);
 
-    } else if (nsocket->flags & NATIVE_SOCKET_READLINE) {
+    } else if (client->getFlags() & NATIVE_SOCKET_READLINE) {
         char *pBuf = (char *)socket_client->data_in.data;
         size_t len = socket_client->data_in.used;
         char *eol;
 
         while (len > 0 && (eol = (char *)memchr(pBuf,
-            nsocket->m_FrameDelimiter, len)) != NULL) {
+            client->getFrameDelimiter(), len)) != NULL) {
 
             size_t pLen = eol - pBuf;
             len -= pLen;
@@ -899,7 +968,8 @@ static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 
 NativeJSSocket::NativeJSSocket(JSObject *obj, JSContext *cx,
     const char *host, unsigned short port)
-    :  NativeJSExposer<NativeJSSocket>(obj, cx), socket(NULL), flags(0)
+    :  NativeJSExposer<NativeJSSocket>(obj, cx),
+    socket(NULL), flags(0), m_ParentServer(NULL)
 {
     this->host = strdup(host);
     this->port = port;
@@ -933,6 +1003,9 @@ bool NativeJSSocket::isAttached()
 
 bool NativeJSSocket::isJSCallable()
 {
+    if (m_ParentServer && !m_ParentServer->getJSObject()) {
+        return false;
+    }
     return (this->getJSObject() != NULL);
 }
 

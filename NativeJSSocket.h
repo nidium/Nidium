@@ -25,9 +25,10 @@
 #include <native_netlib.h>
 
 enum {
-    NATIVE_SOCKET_ISBINARY = 1 << 0,
-    NATIVE_SOCKET_READLINE = 1 << 1,
-    NATIVE_SOCKET_ISSERVER = 1 << 2
+    NATIVE_SOCKET_ISBINARY          = 1 << 0,
+    NATIVE_SOCKET_READLINE          = 1 << 1,
+    NATIVE_SOCKET_ISSERVER          = 1 << 2,
+    NATIVE_SOCKET_ISCONNECTEDCLIENT = 1 << 3
 };
 
 
@@ -35,7 +36,7 @@ enum {
 
 class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
 {
-  public:
+public:
     static void registerObject(JSContext *cx);
     NativeJSSocket(JSObject *obj, JSContext *cx,
         const char *host, unsigned short port);
@@ -52,6 +53,33 @@ class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
 
     bool isJSCallable();
 
+    void onRead();
+
+    NativeJSSocket *getParentServer() const {
+        return m_ParentServer;
+    }
+
+    void setParentServer(NativeJSSocket *parent) {
+        m_ParentServer = parent;
+        flags |= NATIVE_SOCKET_ISCONNECTEDCLIENT;
+    }
+
+    int getFlags() const {
+        return m_ParentServer ? m_ParentServer->flags : flags;
+    }
+
+    const char *getEncoding() const {
+        return m_ParentServer ? m_ParentServer->m_Encoding : m_Encoding;
+    }
+
+    uint8_t getFrameDelimiter() const {
+        return m_ParentServer ? m_ParentServer->m_FrameDelimiter : m_FrameDelimiter;
+    }
+
+    bool isClientFromOwnServer() const {
+        return (m_ParentServer != NULL);
+    }
+
     char *host;
     unsigned short port;
     ape_socket *socket;
@@ -65,6 +93,12 @@ class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
     } lineBuffer;
 
     uint8_t m_FrameDelimiter;
+
+
+    NativeJSSocket *m_ParentServer;
+
+private:
+    void readFrame();
 };
 
 #endif
