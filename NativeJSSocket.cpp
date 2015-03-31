@@ -325,7 +325,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
 
 void NativeJSSocket::onRead()
 {
-    jsval onread, rval, jdata[2];
+    jsval onread, rval;
 
     if (!isJSCallable()) {
         return;
@@ -385,7 +385,7 @@ void NativeJSSocket::onRead()
         JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
         PACK_TCP(socket->s.fd);
         JS_CallFunctionValue(m_Cx, getReceiverJSObject(), onread,
-            isClientFromOwnServer() ? 2 : 1, jdata, &rval);
+            isClientFromOwnServer() ? 2 : 1, jparams, &rval);
         FLUSH_TCP(socket->s.fd);
     } 
 
