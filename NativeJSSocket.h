@@ -80,6 +80,10 @@ public:
         return (m_ParentServer != NULL);
     }
 
+    JSObject *getReceiverJSObject() const {
+        return m_ParentServer ? m_ParentServer->getJSObject() : this->getJSObject();
+    }
+
     char *host;
     unsigned short port;
     ape_socket *socket;
@@ -98,7 +102,7 @@ public:
     NativeJSSocket *m_ParentServer;
 
 private:
-    void readFrame();
+    void readFrame(const char *buf, size_t len);
 };
 
 #endif
