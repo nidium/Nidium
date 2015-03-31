@@ -200,15 +200,14 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     NativeJSSocket *sobj = new NativeJSSocket(jclient,
         nsocket->getJSContext(), APE_socket_ipv4(socket_client), 0);
 
+    sobj->m_ParentServer = nsocket;
+    sobj->socket = socket_client;
 
     if (sobj->getFlags() & NATIVE_SOCKET_READLINE) {
         sobj->lineBuffer.data = (char *)malloc(sizeof(char)
             * SOCKET_LINEBUFFER_MAX);
         sobj->lineBuffer.pos = 0;
     }
-
-    sobj->m_ParentServer = nsocket;
-    sobj->socket = socket_client;
 
     socket_client->ctx = sobj;
 
