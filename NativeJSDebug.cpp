@@ -58,7 +58,7 @@ static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NATIVE_CHECK_ARGS("serialize", 1);
     uint64_t *data;
@@ -91,7 +91,7 @@ static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *objdata = NULL;
     uint32_t offset = 0;
 
