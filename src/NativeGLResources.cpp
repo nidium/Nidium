@@ -40,7 +40,11 @@ NativeGLResources::Resource::~Resource()
             glDeleteBuffers(1, &this->m_Glid);
             break;
         case NativeGLResources::RVERTEX_ARRAY:
+#ifdef __APPLE__
             glDeleteVertexArraysAPPLE(1, &this->m_Glid);
+#else
+            glDeleteVertexArrays(1, &this->m_Glid);
+#endif
             break;
         default:
             break;
