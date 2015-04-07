@@ -418,7 +418,7 @@ void NativeVideo::seekInternal(double time)
     target = this->seekTarget(time, &flags);
 
     DPRINT("[SEEK] diff = %f, time=%lld\n", diff, av_gettime());
-    if (diff > SEEK_THRESHOLD || diff <= 0 || this->seekFlags & NATIVE_VIDEO_SEEK_KEYFRAME) {
+    if (diff > SEEK_THRESHOLD || diff <= 0 || (this->seekFlags & NATIVE_VIDEO_SEEK_KEYFRAME)) {
         // Flush all buffers
         this->clearAudioQueue();
         this->clearVideoQueue();
@@ -550,10 +550,10 @@ void NativeVideo::seekInternal(double time)
             DPRINT("[SEEK] got video frame at=%f flags=%d\n", pts, packet.flags);
 
 
-            if (packet.flags & AV_PKT_FLAG_KEY || keyframe) {
+            if ((packet.flags & AV_PKT_FLAG_KEY) || keyframe) {
                 // We have our frame!
                 if ((pts >= time || seekTime == 0) && gotFrame) {
-                    if (this->seekFlags & NATIVE_VIDEO_SEEK_PREVIOUS && (pts != time && seekTime != 0)) {
+                    if ((this->seekFlags & NATIVE_VIDEO_SEEK_PREVIOUS) && (pts != time && seekTime != 0)) {
                         // When seeking to the previous frame, we need to be at
                         // the exact frame. As it's not the case, seek backward
                         pts += 120; 

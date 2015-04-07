@@ -132,7 +132,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     int mod = 0;
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
-                        event.key.keysym.mod & KMOD_CTRL && event.type == SDL_KEYDOWN) {
+                        (event.key.keysym.mod & KMOD_CTRL) && event.type == SDL_KEYDOWN) {
                         if (++nrefresh > 1) {
                             break;
                         }
