@@ -237,7 +237,7 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
     JSString *tstr = NativeJSUtils::newStringWithEncoding(m_Cx, buf, len, this->getEncoding());
     JSString *jstr = tstr;
 
-    if (this->lineBuffer.pos && this->getFlags() & NATIVE_SOCKET_READLINE) {
+    if (this->lineBuffer.pos && (this->getFlags() & NATIVE_SOCKET_READLINE)) {
         JSString *left = NativeJSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
             this->lineBuffer.pos, this->getEncoding());
 
