@@ -85,6 +85,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                                 break;
                         }
                     }
+                    break;
                 case SDL_TEXTINPUT:
                     if (window && event.text.text) {
                         window->textInput(event.text.text);
