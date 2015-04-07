@@ -134,6 +134,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     switch (nhttp->http.headers.prevstate) {
         case NativeHTTP::PSTATE_NOTHING:
             nhttp->http.headers.list = ape_array_new(16);
+            /* fall through */
         case NativeHTTP::PSTATE_VALUE:
             nhttp->http.headers.tkey = buffer_new(16);
             if (nhttp->http.headers.tval != NULL) {

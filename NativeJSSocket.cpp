@@ -150,6 +150,7 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
                 nsocket->m_Encoding = strdup(enc.ptr());
             }
         }
+        break;
         default:
             break;
     }

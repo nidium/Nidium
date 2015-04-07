@@ -123,6 +123,7 @@ static int header_field_cb(http_parser *p, const char *buf, size_t len)
     switch (http_data->headers.prevstate) {
         case NativeHTTPClientConnection::PSTATE_NOTHING:
             http_data->headers.list = ape_array_new(16);
+            /* fall through */
         case NativeHTTPClientConnection::PSTATE_VALUE:
             http_data->headers.tkey = buffer_new(16);
             if (http_data->headers.tval != NULL) {
