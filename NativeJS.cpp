@@ -385,7 +385,7 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
 static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativePath cur(NativePath::currentJSCaller(cx), false, true);
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (cur.dir() == NULL) {
         args.rval().setUndefined();
