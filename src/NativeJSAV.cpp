@@ -1188,7 +1188,7 @@ NativeJSAudioNode::~NativeJSAudioNode()
 
 static JSBool native_audio_pFFT(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *x, *y;
     int dir, n;
 

@@ -64,7 +64,7 @@ struct _native_document_restart_async
 static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *str;
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
         &str)) {
@@ -82,7 +82,7 @@ static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *str;
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
         &str)) {
@@ -101,7 +101,7 @@ static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval
 static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *str;
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
@@ -144,7 +144,7 @@ static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval 
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSString *str;
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
         &str)) {
@@ -163,7 +163,7 @@ static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval
 static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {
     using namespace js;
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     char *text = NativeContext::getNativeClass(cx)->getUI()->getClipboardText();
 
@@ -333,7 +333,7 @@ bool NativeJSdocument::loadFont(const char *path, const char *name,
 static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS_INITOPT();
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *thisobj = NativeJSdocument::getJSGlobalObject(cx);
     NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj);
 
