@@ -208,7 +208,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
             }
 
             char num[16];
-            sprintf(num, "%ld", req->getDataLength());
+            sprintf(num, "%ld", (unsigned long) req->getDataLength());
             req->setHeader("Content-Length", num);
         }
     }
@@ -413,7 +413,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             if (JS_ParseJSON(cx, chars, clen, &jdata) == JS_FALSE) {
                 jdata = JSVAL_NULL;
                 printf("Cant parse JSON of size %ld :\n===%.*s\n===\n",
-                    h->data->used, (int)h->data->used, h->data->data);
+                    (unsigned long) h->data->used, (int)h->data->used, h->data->data);
             }
 
             break;

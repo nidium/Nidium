@@ -108,7 +108,7 @@ static int headers_complete_cb(http_parser *p)
         return 0;
     }
 
-    if (p->content_length > HTTP_MAX_CL) {
+    if (p->content_length > (uint64_t) HTTP_MAX_CL) {
         return -1;
     }
 
@@ -195,7 +195,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
         nhttp->http.data = buffer_new(2048);
     }
 
-    if (nhttp->http.data->used+len > HTTP_MAX_CL) {
+    if ( (uint64_t)( nhttp->http.data->used + len) > (uint64_t) HTTP_MAX_CL) {
         return -1;
     }
 
@@ -286,7 +286,7 @@ static void native_http_read(ape_socket *s, ape_global *ape,
     nhttp->parsing(false);
 
     if (nparsed != s->data_in.used && !nhttp->http.ended) {
-        printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, nparsed,
+        printf("[HTTP] (socket %p) Parser returned %ld with error %s\n", s, (unsigned long) nparsed,
             http_errno_description(HTTP_PARSER_ERRNO(&nhttp->http.parser)));
 
         nhttp->setPendingError(NativeHTTP::ERROR_RESPONSE);
