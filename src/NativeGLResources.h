@@ -28,7 +28,6 @@ public:
     private:
         uint32_t m_Glid;
         ResourceType m_Type;
-        char *m_Name;
     };
 
     NativeGLResources()

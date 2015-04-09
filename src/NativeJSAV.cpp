@@ -1694,6 +1694,7 @@ static JSBool native_audionode_custom_set(JSContext *cx, unsigned argc, jsval *v
         name = NULL;
     } else if (argc == 1) {
         JS_ReportError(cx, "Invalid arguments");
+        return false;
     } else {
         if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &name)) {
             return false;

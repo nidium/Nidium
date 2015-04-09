@@ -12,7 +12,6 @@
 #include <NativeUIInterface.h>
 #include <NativeMacros.h>
 #include <NativeSystemInterface.h>
-
 #include <NativeOpenGLHeader.h>
 
 extern JSClass Canvas_class;
@@ -1943,10 +1942,8 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     WebGLResource *cprogram;
     JSObject *program;
     char buff[2048];
-    int len;
-    int csize;
     unsigned int ctype;
-
+    int csize;
     jsval proto;
     
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ou", &program, &index)) {
@@ -1955,6 +1952,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 
     NGL_GET_RESOURCE(Program, program, cprogram)
 
+    //int len;
     //GL_CALL(CppObj, GetActiveAttrib(cprogram->id(), index, 2048, &len, &csize, &ctype, buff))
 
     GLint err = glGetError(); 
@@ -1994,8 +1992,8 @@ NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
     
     GL_CALL(CppObj, GenerateMipmap(target));
     
-    return true;
 #endif
+    return true;
 }
 
 
@@ -2533,12 +2531,10 @@ NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)
 
 NGL_JS_FN(WebGLRenderingContext_shaderSource)
 //{
-    GLsizei length;
     JSString *source;
     JSObject *shader;
     WebGLResource *cshader;
     WebGLResource::ShaderData *shaderData;
-    const char *csource;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "oS", &shader, &source)) {
         return false;
@@ -2861,10 +2857,9 @@ NGL_JS_FN(WebGLRenderingContext_swapBuffer)
     return true;
 }
 
+#if 0
 static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    return true;
-#if 0
     jsval proto;
     JSObject *webGLContext;
     NativeCanvasWebGLContext *ngl = new NativeCanvasWebGLContext(cx);
@@ -2888,8 +2883,8 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *v
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(webGLContext));
 
     return true;
-#endif
 }
+#endif
 
 static JSBool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
     unsigned argc, jsval *vp)

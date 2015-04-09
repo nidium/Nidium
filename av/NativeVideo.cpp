@@ -1034,8 +1034,10 @@ void *NativeVideo::decode(void *args)
             DPRINT("doSeek=%d readFlag=%d seeking=%d\n", v->doSeek, v->m_SourceNeedWork, v->seeking);
             if (!v->doSeek) {
                 DPRINT("processing\n");
+#ifdef DPRINT
                 bool videoFailed = !v->processVideo();
                 bool audioFailed = !v->processAudio();
+#endif
                 DPRINT("audioFailed=%d videoFailed=%d\n", audioFailed, videoFailed);
             }
         } else if (v->m_SourceDoOpen) {

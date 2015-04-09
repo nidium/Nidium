@@ -996,8 +996,6 @@ static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp)
     JSString *title, *body;
     JSBool sound = false;
 
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
-
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "SS/b", &title, &body, &sound)) {
         return false;
     }

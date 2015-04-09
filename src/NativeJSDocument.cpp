@@ -100,12 +100,10 @@ static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval
 
 static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *str;
     JS::CallArgs args = CallArgsFromVp(argc, vp);
 
     NativeCanvasHandler *rootHandler = NativeContext::getNativeClass(cx)->getRootHandler();
     NativeCanvas2DContext *context = (NativeCanvas2DContext *)rootHandler->getContext();
-    NativeSkia *skia = context->getSurface();
 
     int width, height;
     context->getSize(&width, &height);
@@ -120,9 +118,9 @@ static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval 
 
     memcpy(pixels, fb, width * height * 4);
     
+    //NativeSkia *skia = context->getSurface();
     //skia->readPixels(0, 0, width, height, pixels);
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
-
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     JSObject *dataObject = JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL);

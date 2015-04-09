@@ -252,7 +252,6 @@ void NativeContext::postDraw()
 /* TODO, move out */
 void NativeContext::callFrame()
 {
-    jsval rval;
     uint64_t tmptime = NativeUtils::getTick();
     m_Stats.nframe++;
 
@@ -413,8 +412,6 @@ bool NativeContext::initShaderLang()
     GLint maxVertexTextureImageUnits;
     GLint maxFragmentUniformVectors;
     GLint maxVertexUniformVectors;
-    GLint maxVaryingVectors;
-    GLenum error;
 
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
@@ -431,6 +428,9 @@ bool NativeContext::initShaderLang()
     maxVertexUniformVectors /= 4;
 
 #if 0
+    GLint maxVaryingVectors;
+    GLenum error;
+
     // we are now going to try to read GL_MAX_VERTEX_OUTPUT_COMPONENTS and GL_MAX_FRAGMENT_INPUT_COMPONENTS,
     // however these constants only entered the OpenGL standard at OpenGL 3.2. So we will try reading,
     // and check OpenGL error for INVALID_ENUM.
@@ -535,7 +535,6 @@ void NativeContext::execJobs()
 
 void NativeContext::execPendingCanvasChanges()
 {
-    int i = 0;
     ape_htable_item_t *item, *tmpItem;
     for (item = m_CanvasPendingJobs.accessCStruct()->first; item != NULL; item = tmpItem) {
         tmpItem = item->lnext;
