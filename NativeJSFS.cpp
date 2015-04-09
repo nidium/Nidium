@@ -57,6 +57,8 @@ public:
                 JSObject *callback = this->getCallback(0);
                 JSContext *cx, *m_Cx = this->getJSContext();
 
+                cx = m_Cx;
+
                 JSObject *param = JS_NewObject(cx, NULL, NULL, NULL);
 
                 JSOBJ_SET_PROP_STR(param, "name",

@@ -142,7 +142,7 @@ void NativeHTTPStream::seek(size_t pos)
 {
     size_t max = m_StartPosition + m_BytesBuffered;
 
-    printf("Seek to %ld\n", pos);
+    printf("Seek to %ld\n", (unsigned long) pos);
 
     /*
         We can read directly from our buffer
