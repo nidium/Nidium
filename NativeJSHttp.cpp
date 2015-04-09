@@ -418,7 +418,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             break;
         }
-        #if 0
+#if 0
         case NativeHTTP::DATA_IMAGE:
         {
             NativeSkImage *nimg;
@@ -444,7 +444,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             break;
         }
-        #endif
+#endif
         default:
         {
             JSObject *arr = JS_NewArrayBuffer(cx, h->data->used);

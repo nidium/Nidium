@@ -172,8 +172,7 @@ static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
-void
-reportError(JSContext *cx, const char *message, JSErrorReport *report)
+void reportError(JSContext *cx, const char *message, JSErrorReport *report)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
 
@@ -454,10 +453,12 @@ static void gccb(JSRuntime *rt, JSGCStatus status)
 }
 #endif
 
+#ifdef DEBUG
 static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 {
     snprintf(buf, bufsize, "[0x%p].mJSVal", trc->debugPrintArg);
 }
+#endif
 
 static void NativeTraceBlack(JSTracer *trc, void *data)
 {

@@ -89,7 +89,6 @@ private:
     uint16_t          m_Port;
 };
 
-
 /*
     TODO: add APE_socket_sendfile() support
 */
@@ -150,7 +149,6 @@ public:
 private:
     ape_array_t *m_Headers;
     uint16_t m_Statuscode;
-    uint64_t m_ContentLength;
     buffer *m_Content;
     buffer *m_Headers_str;
     bool m_HeaderSent;

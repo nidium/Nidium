@@ -267,7 +267,7 @@ void NativeJSStream::onProgress(size_t buffered, size_t total)
 
 void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
 {
-    jsval onavailable_callback, rval;
+    jsval onavailable_callback, onerror_callback, rval;
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
@@ -280,7 +280,7 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
             }
             break;
         case NATIVESTREAM_ERROR:
-        {
+        	{
             NativeBaseStream::StreamErrors err = 
                 (NativeBaseStream::StreamErrors)msg.args[0].toInt();
             int code = msg.args[1].toInt();
@@ -296,9 +296,17 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                     break;
             }
             break;
+            if (JS_GetProperty(m_Cx, obj, "onerror", &onerror_callback) &&
+                JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
 
-            // TODO: onerror
-        }
+                jsval args[1];
+
+                args[0] = INT_TO_JSVAL( code );
+                JS_CallFunctionValue(m_Cx, obj, onerror_callback,
+                		1, args, &rval);
+                }
+            }
+            break;
         default:
             break;
     }

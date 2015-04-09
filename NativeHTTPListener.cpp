@@ -390,8 +390,6 @@ NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *https
     http_parser_init(&m_HttpState.parser, HTTP_REQUEST);
     m_HttpState.parser.data = this;
 
-    ape_global *net = socket->ape;
-
     ape_timer *timer = add_timer(&socket->ape->timersng, 1000,
         NativeHTTPClientConnection_checktimeout, this);
 
@@ -478,12 +476,9 @@ NativeHTTPResponse *NativeHTTPClientConnection::onCreateResponse()
     return new NativeHTTPResponse();
 }
 
-
-//////
-
 NativeHTTPResponse::NativeHTTPResponse(uint16_t code) :
-    m_Headers(ape_array_new(8)), m_Statuscode(code), m_ContentLength(0),
-    m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
+    m_Headers(ape_array_new(8)), m_Statuscode(code),
+	m_Content(NULL), m_Headers_str(NULL), m_HeaderSent(false), m_Chunked(false)
 {
     this->setHeader("Server", "nidium/1.0");
 }

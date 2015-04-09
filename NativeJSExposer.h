@@ -156,7 +156,6 @@ private:
     static JSBool native_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, jsval *vp)
     {
-        JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
         JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
         if (!thisobj) {
             JS_ReportError(cx, "Illegal invocation");
@@ -302,7 +301,6 @@ class NativeJSExposer
         NativeJSEvent *ev = new NativeJSEvent(m_Cx, func);
         events->add(ev);
     }
-
 
     JSObject *m_JSObject;
     JSContext *m_Cx;

@@ -379,7 +379,6 @@ void NativeJSSocket::onRead()
         }
 
         return;
-
     } else {
         JSString *jstr = NativeJSUtils::newStringWithEncoding(m_Cx,
             (char *)socket->data_in.data,
@@ -401,9 +400,6 @@ void NativeJSSocket::onRead()
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
     ape_global *ape, void *socket_arg)
 {
-    JSContext *cx;
-    jsval onread, rval, jparams[2];
-
     NativeJSSocket *client = (NativeJSSocket *)socket_client->ctx;
 
     if (client == NULL) {
@@ -416,9 +412,6 @@ static void native_socket_wrapper_client_read(ape_socket *socket_client,
 static void native_socket_wrapper_read(ape_socket *s, ape_global *ape,
     void *socket_arg)
 {
-    JSContext *cx;
-    jsval onread, rval, jdata;
-
     NativeJSSocket *nsocket = (NativeJSSocket *)s->ctx;
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
@@ -635,20 +628,30 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_socket_client_sendFile(JSContext *cx,
     unsigned argc, jsval *vp)
 {
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
-    ape_socket *socket_client;
+	JSString *file;
 
     NATIVE_CHECK_ARGS("sendFile", 1);
-
     
+    JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
+
+    if (!CppObj->isAttached()) {
+        JS_ReportWarning(cx, "socket.sendFile() Invalid socket (not connected)");
+        return true;
+    }
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &file)) {
+        return false;
+    }
+
+    JSAutoByteString cfile(cx, file);
+
+    APE_sendfile(CppObj->socket, cfile.ptr());
+
     return true;
 }
 
 static JSBool native_socket_client_write(JSContext *cx,
     unsigned argc, jsval *vp)
 {
-    JSString *data;
-    ape_socket *socket_client;
 
     NATIVE_CHECK_ARGS("write", 1);
 
@@ -695,8 +698,6 @@ static JSBool native_socket_client_write(JSContext *cx,
 
 static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *data;
-
     NATIVE_CHECK_ARGS("write", 1);
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
