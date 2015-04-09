@@ -17,7 +17,10 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     right(0.0), bottom(0.0),
     m_Overflow(true),
     m_Parent(NULL), m_Children(NULL), m_Next(NULL),
-    m_Prev(NULL), m_Last(NULL), nchildren(0), coordPosition(COORD_RELATIVE),
+    m_Prev(NULL), m_Last(NULL),
+    m_Flags(0),
+    nchildren(0),
+    coordPosition(COORD_RELATIVE),
     visibility(CANVAS_VISIBILITY_VISIBLE),
     m_FlowMode(kFlowDoesntInteract),
     coordMode(kLeft_Coord | kTop_Coord),
@@ -29,8 +32,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     m_NativeContext(NativeCtx),
     m_Pending(0),
     m_Loaded(!lazyLoad),
-    m_Cursor(NativeUIInterface::ARROW),
-    m_Flags(0)
+    m_Cursor(NativeUIInterface::ARROW)
 {
     /*
         TODO: thread safe

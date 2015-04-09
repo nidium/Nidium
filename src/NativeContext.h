@@ -62,7 +62,7 @@ public:
     NativeInputEvent(Type type, int ix, int iy,
         uint32_t *idata = NULL, uint8_t idata_len = 0) :
         x(ix), y(iy), m_Next(NULL), m_PassThroughEvent(NULL), m_Handler(NULL),
-        m_Type(type), m_Origin(NULL), m_depthAffectedCanvas(0)  {
+        m_Origin(NULL), m_depthAffectedCanvas(0), m_Type(type) {
 
         if (idata && idata_len <= 8) {
             memcpy(data, idata, sizeof(uint32_t) * idata_len);

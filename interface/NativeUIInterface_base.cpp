@@ -14,8 +14,8 @@
 #include <NativeOpenGLHeader.h>
 
 NativeUIInterface::NativeUIInterface() :
-    m_isOffscreen(false), m_FBO(0), m_FrameBuffer(NULL),
-    m_readPixelInBuffer(false), m_Hidden(false), m_SystemMenu(this)
+    m_isOffscreen(false), m_readPixelInBuffer(false), m_Hidden(false),
+    m_FBO(0), m_FrameBuffer(NULL), m_SystemMenu(this)
 {
     NativePath::registerScheme(SCHEME_DEFINE("file://",    NativeFileStream,    false), true); // default
     NativePath::registerScheme(SCHEME_DEFINE("private://", NativePrivateStream, false));
