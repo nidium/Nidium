@@ -373,8 +373,7 @@ int NativeHTTPClientConnection_checktimeout(void *arg)
 
 NativeHTTPClientConnection::NativeHTTPClientConnection(NativeHTTPListener *httpserver,
     ape_socket *socket) :
-    m_SocketClient(socket), m_HTTPListener(httpserver),
-    m_Ctx(NULL), m_Response(NULL)
+    m_Ctx(NULL), m_SocketClient(socket), m_HTTPListener(httpserver), m_Response(NULL)
 {
     m_HttpState.headers.prevstate = PSTATE_NOTHING;
 

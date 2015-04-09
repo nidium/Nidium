@@ -100,7 +100,7 @@ class NativeProfileEntry
             NativeProfileEntry *parent)
             : m_Script(strdup(script)), m_Fun(strdup(fun)), m_Line(line), m_Signature(strdup(signature)),
               m_MeanTime(0), m_MaxTime(0), m_MinTime(0), m_TotalCall(0), m_TotalTime(0), m_TotalTSC(0),
-              m_CurrentChild(NULL), m_Parent(parent)
+              m_Parent(parent), m_CurrentChild(NULL)
         {
             m_Childs.setAutoDelete(true);
         }
