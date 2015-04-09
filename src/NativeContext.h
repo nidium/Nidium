@@ -110,8 +110,7 @@ private:
     Type m_Type;
 };
 
-
-class GrGLInterface;
+struct GrGLInterface;
 
 class NativeContext : public NativeMessages
 {
