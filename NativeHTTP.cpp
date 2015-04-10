@@ -528,8 +528,6 @@ bool NativeHTTP::createConnection()
 
 bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
 {
-    ape_socket *socket;
-
     if (!canDoRequest()) {
         this->clearState();
         return false;

@@ -4,7 +4,7 @@
 #include "NativeJSExposer.h"
 
 #if defined(__MACH__) && defined(__APPLE__)
-# include <mach/mach_time.h>
+#include <mach/mach_time.h>
 #endif
 #include <sstream> 
 
@@ -190,7 +190,6 @@ JSObject *NativeProfiler::getJSObject()
 
 JSObject *NativeProfiler::toJSObject() 
 {
-    ape_htable_item_t *item;
     JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
 
     for (NativeHash<NativeProfileEntry *>::iterator entry = m_Entries.begin(), end = m_Entries.end(); entry != end; ++entry) {
@@ -212,7 +211,6 @@ bool NativeProfiler::toCacheGrind(const char *dest)
         return false;
     }
 
-    ape_htable_item_t *item;
     std::string ret = "";
 
     for (NativeHash<NativeProfileEntry *>::iterator entry = m_Entries.begin(), end = m_Entries.end(); entry != end; ++entry) {
@@ -298,7 +296,6 @@ char *NativeProfileEntry::generateSignature(const char *script, const char *fun,
 
 JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
 {
-    ape_htable_item_t *item;
     uint64_t childCostTSC = 0;
     uint64_t childCostTime = 0;
     JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
@@ -323,9 +320,11 @@ JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
 
     JS::Value total(INT_TO_JSVAL(m_TotalCall));
     JS::Value time(DOUBLE_TO_JSVAL((double)(m_TotalTime - childCostTime)/1000000.));
-    //JS::Value mean(DOUBLE_TO_JSVAL((double)m_MeanTime/1000000.));
-    //JS::Value max(DOUBLE_TO_JSVAL((double)m_MaxTime/1000000.));
-    //JS::Value min(DOUBLE_TO_JSVAL((double)m_MinTime/1000000.));
+#if DEBUG
+    JS::Value mean(DOUBLE_TO_JSVAL((double)m_MeanTime/1000000.));
+    JS::Value max(DOUBLE_TO_JSVAL((double)m_MaxTime/1000000.));
+    JS::Value min(DOUBLE_TO_JSVAL((double)m_MinTime/1000000.));
+#endif
     JS::Value tsc(INT_TO_JSVAL(m_TotalTSC - childCostTSC));
 
     JS_SetProperty(cx, obj, "script", &script);
@@ -346,7 +345,6 @@ JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
 std::string NativeProfileEntry::toCacheGrind()
 {
     std::string ret = "";
-    ape_htable_item_t *item;
     uint64_t childCost = 0;
 
     for (NativeHash<NativeProfileChildEntry *>::iterator child = m_Childs.begin(), end = m_Childs.end(); child != end; ++child) {

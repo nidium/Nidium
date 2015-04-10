@@ -55,9 +55,11 @@ static JSFunctionSpec HTTPResponse_funcs[] = {
     JS_FS_END
 };
 
+#if 0
 static JSPropertySpec HTTPRequest_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
+#endif
 
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj)
 {
@@ -79,7 +81,6 @@ NativeJSHTTPListener::NativeJSHTTPListener(JSObject *obj, JSContext *cx,
     uint16_t port, const char *ip) :
     NativeJSExposer<NativeJSHTTPListener>(obj, cx),
     NativeHTTPListener(port, ip)
-
 {
 
 }
@@ -211,12 +212,14 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
     return true;
 }
 
+#if 0
 static JSBool native_HTTPRequest_class_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return false;
 }
+#endif
 
 static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -347,10 +350,10 @@ void NativeJSHTTPListener::registerObject(JSContext *cx)
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPListener_class,
         native_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
-/*
-    TODO: how to init a class from a NativeJSObjectMapper derived class
-*/
-    /*JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPRequest_class,
+#if 0
+    //TODO: how to init a class from a NativeJSObjectMapper derived class
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPRequest_class,
                 native_HTTPRequest_class_constructor,
-                0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);*/
+                0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);
+#endif
 }

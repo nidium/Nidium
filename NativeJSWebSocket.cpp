@@ -110,7 +110,6 @@ static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *v
 
 static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
 
 
@@ -135,10 +134,10 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
 
     JSAutoByteString clocalhost(cx, localhost);
 
+    uint16_t port;
     char *url = strdup(clocalhost.ptr());
     char *host = (char *)malloc(clocalhost.length());
     char *path = (char *)malloc(clocalhost.length());
-    uint16_t port;
 
     if (NativeHTTP::ParseURI(url, clocalhost.length(), host,
         &port, path, "ws://") == -1) {

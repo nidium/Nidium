@@ -100,10 +100,14 @@ public:
 #define NJSFIO_GETTER(obj) ((class NativeJSFileIO *)JS_GetPrivate(obj))
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
+
 static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
+
+#if 0
 static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
+#endif
 
 JSClass File_class = {
     "File", JSCLASS_HAS_PRIVATE,
@@ -192,6 +196,8 @@ static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
     return JS_TRUE;
 }
 
+#if 0
+// currently no props
 static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp)
 {
@@ -201,9 +207,9 @@ static JSBool native_file_prop_set(JSContext *cx, JSHandleObject obj,
         return true;
     }
 
-    // currently no props
     return true;    
 }
+#endif
 
 static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -546,7 +552,7 @@ static JSBool native_file_openSync(JSContext *cx, unsigned argc, jsval *vp)
 {
     return true;
 }
-
+#if 0
 static JSBool native_file_readSync(JSContext *cx, unsigned argc, jsval *vp)
 {
     return true;
@@ -556,6 +562,7 @@ static JSBool native_file_writeSync(JSContext *cx, unsigned argc, jsval *vp)
 {
     return true;
 }
+#endif
 
 static JSBool native_file_closeSync(JSContext *cx, unsigned argc, jsval *vp)
 {
@@ -586,7 +593,6 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
     jsval curopt;
     char *buf;
     size_t len;
-    bool isRawBuffer = true;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &filename, &opt)) {
         return false;
@@ -799,7 +805,6 @@ void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
 }
 
 #if 0
-
 void NativeJSFileIO::onNFIOWrite(NativeFileIO *NSFIO, size_t written)
 {
     jsval rval;
