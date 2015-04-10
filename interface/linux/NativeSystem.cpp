@@ -73,10 +73,14 @@ void NativeSystem::alert(const char *message, AlertType type)
     switch (type) {
         case ALERT_WARNING:
             gtkType = GTK_MESSAGE_WARNING;
-        break;
+            break;
         case ALERT_CRITIC:
             gtkType = GTK_MESSAGE_ERROR;
-        break;
+            break;
+        case ALERT_INFO:
+            break;
+        default:
+            break;
     }
 
     GtkWidget *dialog = gtk_message_dialog_new ((GtkWindow *)NULL,
