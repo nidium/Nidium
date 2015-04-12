@@ -2,6 +2,7 @@
     'target_defaults': {
         'defines': [
             'NATIVE_VERSION_STR="<(native_version)"',
+            'NATIVE_FRAMEWORK_STR="<(native_framework)"',
             'NATIVE_BUILD="<!@(git rev-parse HEAD)"',
             'NATIVE_CRASH_COLLECTOR_HOST="<(native_crash_collector_host)"',
             'NATIVE_CRASH_COLLECTOR_PORT=<(native_crash_collector_port)',
@@ -9,7 +10,7 @@
 #'UINT32_MAX=4294967295u',
 #'_FILE_OFFSET_BITS=64',
 #'_HAVE_SSL_SUPPORT',
-            'NIDIUM_DONT_LOAD_FRAMEWORK'
+#'NIDIUM_DONT_LOAD_FRAMEWORK'
         ],
         'default_configuration': 'Release',
         'configurations': {

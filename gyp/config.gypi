@@ -5,6 +5,7 @@
     ],
     'variables' : {
         'native_version': '0.1',
+        'native_framework': 'falcon',
         'native_webgl%': 1,
         'native_audio%': 1,
         'native_embed_private%': 0,
