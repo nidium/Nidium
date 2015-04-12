@@ -334,9 +334,6 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setHinting(SkPaint::kFull_Hinting);
     PAINT_STROKE->setDither(true);
     PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
-    
-    this->setLineWidth(1);
-    this->setMiterLimit(10);
 
     asComposite = 0;
 }
@@ -1002,10 +999,20 @@ void NativeSkia::setGlobalComposite(const char *str)
     
     asComposite = 1;
 }
+double NativeSkia::getLineWidth()
+{
+    return PAINT_STROKE->getStrokeWidth();
+}
+
 
 void NativeSkia::setLineWidth(double size)
 {
     PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
+}
+
+double NativeSkia::getMiterLimit()
+{
+    PAINT_STROKE->getStrokeMiter();
 }
 
 void NativeSkia::setMiterLimit(double size)

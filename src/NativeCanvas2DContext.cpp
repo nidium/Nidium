@@ -1772,7 +1772,17 @@ static JSBool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(INT_TO_JSVAL(curSkia->getHeight()));
         }
         break;
-        default:
+        case CTX_PROP(lineWidth):
+        {
+            vp.set(DOUBLE_TO_JSVAL(curSkia->getLineWidth()));
+        }
+        break;
+        case CTX_PROP(miterLimit):
+        {
+            vp.set(DOUBLE_TO_JSVAL(curSkia->getMiterLimit()));
+        }
+        break;
+       default:
             break;
     }
 
@@ -2344,6 +2354,14 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
+
+    // Set the defaults accourding to the standard: http://www.w3.org/TR/2dcontext/
+    jsval val;
+    val = DOUBLE_TO_JSVAL(1);
+    JS_SetProperty( cx, jsobj, "lineWidth", &val);
+    val = DOUBLE_TO_JSVAL(10);
+    JS_SetProperty( cx, jsobj, "miterLimit", &val);
+    //TODO: also for font, text, ..
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
