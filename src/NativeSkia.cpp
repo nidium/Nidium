@@ -336,6 +336,7 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
     
     this->setLineWidth(1);
+    this->setMiterLimit(10);
 
     asComposite = 0;
 }
@@ -1005,6 +1006,11 @@ void NativeSkia::setGlobalComposite(const char *str)
 void NativeSkia::setLineWidth(double size)
 {
     PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
+}
+
+void NativeSkia::setMiterLimit(double size)
+{
+    PAINT_STROKE->setStrokeMiter(SkDoubleToScalar(size));
 }
 
 void NativeSkia::beginPath()
@@ -1779,3 +1785,4 @@ void NativeSkia::setCanvas(SkCanvas *canvas)
 {
     SkRefCnt_SafeAssign(m_Canvas, canvas);
 }
+

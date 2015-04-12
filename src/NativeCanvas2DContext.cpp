@@ -1692,6 +1692,17 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setLineWidth(ret);
         }
         break;
+        case CTX_PROP(miterLimit):
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &ret);
+            curSkia->setMiterLimit(ret);
+        }
+        break;
         case CTX_PROP(globalAlpha):
         {
             double ret;
