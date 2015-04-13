@@ -26,7 +26,7 @@
 #include <ape_array.h>
 #include <http_parser.h>
 
-#define HTTP_MAX_CL 1024L*1024L*1024L*2L
+#define HTTP_MAX_CL (1024ULL*1024ULL*1024ULL*2ULL)
 #define HTTP_DEFAULT_TIMEOUT 15000
 
 #include "NativeIStreamer.h"
