@@ -95,12 +95,14 @@ class NativeHTTPRequest
             return this->path;
         }
 
-        void setPath(char *lpath) {
+        void setPath(const char *lpath) {
+            printf("0 path size : %ld\n", strlen(lpath));
             if (this->path && lpath != this->path) {
                 free(this->path);
             }
 
             this->path = strdup(lpath);
+            printf("path size : %ld\n", strlen(this->path));
         }
 
         u_short getPort() const {
@@ -132,6 +134,8 @@ class NativeHTTPRequest
         bool isSSL() const {
             return m_isSSL;
         }
+
+        bool resetURL(const char *url);
     private:
 
         void setDefaultHeaders();
@@ -288,6 +292,12 @@ private:
     NativeHTTPRequest *m_Request;
     bool m_CanDoRequest;
     HTTPError m_PendingError;
+
+    struct {
+        const char *to;
+        bool enabled;
+        int count;
+    } m_Redirect;
 };
 
 class NativeHTTPDelegate
