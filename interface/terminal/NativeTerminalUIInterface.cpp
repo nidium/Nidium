@@ -23,7 +23,7 @@ bool NativeTerminalUIInterface::runApplication(const char *path)
 
     this->nml = new NativeNML(this->gnet);
     this->nml->setNJS(this->NJS);
-    this->nml->loadFile("index.nml");
+    this->nml->loadFile("index.nml", NULL, NULL);
 
     return true;
 }
@@ -93,6 +93,11 @@ void NativeUITerminalConsole::show()
 
 void NativeUITerminalConsole::hide()
 {
+}
+
+bool NativeUITerminalConsole::hidden()
+{
+    return isHidden;
 }
 
 void NativeUITerminalConsole::clear()
