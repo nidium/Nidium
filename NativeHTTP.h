@@ -95,7 +95,7 @@ class NativeHTTPRequest
             return this->path;
         }
 
-        void setPath(char *lpath) {
+        void setPath(const char *lpath) {
             if (this->path && lpath != this->path) {
                 free(this->path);
             }
@@ -132,6 +132,8 @@ class NativeHTTPRequest
         bool isSSL() const {
             return m_isSSL;
         }
+
+        bool resetURL(const char *url);
     private:
 
         void setDefaultHeaders();
@@ -169,7 +171,8 @@ public:
         ERROR_RESPONSE,
         ERROR_DISCONNECTED,
         ERROR_SOCKET,
-        ERROR_HTTPCODE
+        ERROR_HTTPCODE,
+        ERROR_REDIRECTMAX
     };
 
     enum PrevState {
@@ -251,7 +254,8 @@ public:
     }
 
     void clearState();
-    bool request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate);
+    bool request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate,
+        bool forceNewConnection = false);
     bool isKeepAlive();
 
     bool canDoRequest() const {
@@ -276,6 +280,10 @@ public:
         return (m_PendingError != ERROR_NOERR);
     }
 
+    void setMaxRedirect(int max) {
+        m_MaxRedirect = max;
+    }
+
     NativeHTTP(ape_global *n);
     ~NativeHTTP();
 private:
@@ -288,6 +296,14 @@ private:
     NativeHTTPRequest *m_Request;
     bool m_CanDoRequest;
     HTTPError m_PendingError;
+
+    int m_MaxRedirect;
+
+    struct {
+        const char *to;
+        bool enabled;
+        int count;
+    } m_Redirect;
 };
 
 class NativeHTTPDelegate

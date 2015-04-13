@@ -22,6 +22,7 @@
 //#include "ape_http_parser.h"
 #include <http_parser.h>
 #include <native_netlib.h>
+#include "NativePath.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -300,9 +301,10 @@ NativeHTTP::NativeHTTP(ape_global *n) :
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
     m_TimeoutTimer(0), delegate(NULL),
     m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-    m_PendingError(ERROR_NOERR)
+    m_PendingError(ERROR_NOERR), m_MaxRedirect(8)
 {
     memset(&http, 0, sizeof(http));
+    memset(&m_Redirect, 0, sizeof(m_Redirect));
 
     http.headers.prevstate = NativeHTTP::PSTATE_NOTHING;
     native_http_data_type = DATA_NULL;
@@ -337,9 +339,11 @@ void NativeHTTP::headerEnded()
 {
 #define REQUEST_HEADER(header) ape_array_lookup(http.headers.list, \
     CONST_STR_LEN(header "\0"))
+    
+    m_Redirect.enabled = false;
 
     if (http.headers.list != NULL) {
-        buffer *content_type, *content_range;
+        buffer *content_type, *content_range, *location;
 
         if ((content_type = REQUEST_HEADER("Content-Type")) != NULL &&
             content_type->used > 3) {
@@ -365,8 +369,27 @@ void NativeHTTP::headerEnded()
                     m_FileSize = 0;
                 }
             }
+        } else if ((http.parser.status_code == 301 ||
+                    http.parser.status_code == 302) &&
+                (location = REQUEST_HEADER("Location")) != NULL) {
+
+            m_FileSize = 0;
+
+            m_Redirect.enabled = true;
+            m_Redirect.to = (const char *)location->data;
+            m_Redirect.count++;
+
+            if (m_Redirect.count > m_MaxRedirect) {
+                setPendingError(ERROR_REDIRECTMAX);
+            }
+
+            return;
         } else {
             m_FileSize = http.contentlength;
+
+
+
+            return;
         }
     }
 /*
@@ -420,6 +443,20 @@ void NativeHTTP::stopRequest(bool timeout)
 void NativeHTTP::requestEnded()
 {
     m_CanDoRequest = true;
+
+    if (m_Redirect.enabled && !hasPendingError()) {
+
+        if (URLSCHEME_MATCH(m_Redirect.to, "http")) {
+            m_Request->resetURL(m_Redirect.to);
+
+        } else {
+            m_Request->setPath(m_Redirect.to);
+
+        }
+        this->clearState();
+        this->request(m_Request, delegate, true);
+        return;
+    }
 
     if (!http.ended) {
         http.ended = 1;
@@ -526,7 +563,8 @@ bool NativeHTTP::createConnection()
     return true;
 }
 
-bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
+bool NativeHTTP::request(NativeHTTPRequest *req,
+    NativeHTTPDelegate *delegate, bool forceNewConnection)
 {
     if (!canDoRequest()) {
         this->clearState();
@@ -541,10 +579,17 @@ bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
     m_Request = req;
     bool reusesock = (m_CurrentSock != NULL);
 
+    if (reusesock && forceNewConnection) {
+        reusesock = false;
+
+        m_CurrentSock->ctx = NULL;
+        APE_socket_shutdown_now(m_CurrentSock);
+    }
+
     /*
         If we have an available socket, reuse it (keep alive)
     */
-    if (!m_CurrentSock && !createConnection()) {
+    if (!reusesock && !createConnection()) {
         this->clearState();
         return false;
     }
@@ -646,8 +691,19 @@ int NativeHTTP::ParseURI(char *url, size_t url_len, char *host,
 
 NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     method(NATIVE_HTTP_GET), data(NULL), datalen(0),
-    datafree(free), headers(ape_array_new(8)), m_isSSL(false)
+    datafree(free), headers(ape_array_new(8)),
+    m_isSSL(false), host(NULL), path(NULL)
 {
+    this->resetURL(url);
+    this->setDefaultHeaders();
+}
+
+bool NativeHTTPRequest::resetURL(const char *url)
+{
+    m_isSSL = false;
+    if (this->host) free(this->host);
+    if (this->path) free(this->path);
+
     size_t url_len = strlen(url);
     char *durl = (char *)malloc(sizeof(char) * (url_len+1));
 
@@ -655,6 +711,7 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
 
     this->host = (char *)malloc(url_len+1);
     this->path = (char *)malloc(url_len+1);
+
     memset(this->host, 0, url_len+1);
     memset(this->path, 0, url_len+1);
 
@@ -668,10 +725,8 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
     } else if (strncasecmp(url, CONST_STR_LEN("http://")) == 0) {
         prefix = "http://";
     } else {
-        port = 0;
-        memset(host, 0, url_len+1);
-        memset(path, 0, url_len+1);
-        return;
+        /* No prefix provided. Assuming 'default url' => no SSL, port 80 */
+        prefix = "";
     }
 
     if (NativeHTTP::ParseURI(durl, url_len, this->host,
@@ -679,11 +734,14 @@ NativeHTTPRequest::NativeHTTPRequest(const char *url) :
         memset(host, 0, url_len+1);
         memset(path, 0, url_len+1);
         port = 0;
+        
+        free(durl);
+        return false;
     }
 
     free(durl);
 
-    this->setDefaultHeaders();
+    return true;
 }
 
 void NativeHTTPRequest::setDefaultHeaders()
