@@ -96,13 +96,11 @@ class NativeHTTPRequest
         }
 
         void setPath(const char *lpath) {
-            printf("0 path size : %ld\n", strlen(lpath));
             if (this->path && lpath != this->path) {
                 free(this->path);
             }
 
             this->path = strdup(lpath);
-            printf("path size : %ld\n", strlen(this->path));
         }
 
         u_short getPort() const {
@@ -173,7 +171,8 @@ public:
         ERROR_RESPONSE,
         ERROR_DISCONNECTED,
         ERROR_SOCKET,
-        ERROR_HTTPCODE
+        ERROR_HTTPCODE,
+        ERROR_REDIRECTMAX
     };
 
     enum PrevState {
@@ -255,7 +254,8 @@ public:
     }
 
     void clearState();
-    bool request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate);
+    bool request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate,
+        bool forceNewConnection = false);
     bool isKeepAlive();
 
     bool canDoRequest() const {
@@ -280,6 +280,10 @@ public:
         return (m_PendingError != ERROR_NOERR);
     }
 
+    void setMaxRedirect(int max) {
+        m_MaxRedirect = max;
+    }
+
     NativeHTTP(ape_global *n);
     ~NativeHTTP();
 private:
@@ -292,6 +296,8 @@ private:
     NativeHTTPRequest *m_Request;
     bool m_CanDoRequest;
     HTTPError m_PendingError;
+
+    int m_MaxRedirect;
 
     struct {
         const char *to;

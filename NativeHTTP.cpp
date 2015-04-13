@@ -22,6 +22,7 @@
 //#include "ape_http_parser.h"
 #include <http_parser.h>
 #include <native_netlib.h>
+#include "NativePath.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -299,7 +300,7 @@ NativeHTTP::NativeHTTP(ape_global *n) :
     err(0), m_Timeout(HTTP_DEFAULT_TIMEOUT),
     m_TimeoutTimer(0), delegate(NULL),
     m_FileSize(0), m_isParsing(false), m_Request(NULL), m_CanDoRequest(true),
-    m_PendingError(ERROR_NOERR)
+    m_PendingError(ERROR_NOERR), m_MaxRedirect(8)
 {
     memset(&http, 0, sizeof(http));
     memset(&m_Redirect, 0, sizeof(m_Redirect));
@@ -372,10 +373,14 @@ void NativeHTTP::headerEnded()
                 (location = REQUEST_HEADER("Location")) != NULL) {
 
             m_FileSize = 0;
-            printf("Got a location redirect to %s\n", location->data);
+
             m_Redirect.enabled = true;
             m_Redirect.to = (const char *)location->data;
             m_Redirect.count++;
+
+            if (m_Redirect.count > m_MaxRedirect) {
+                setPendingError(ERROR_REDIRECTMAX);
+            }
 
             return;
         } else {
@@ -438,12 +443,17 @@ void NativeHTTP::requestEnded()
 {
     m_CanDoRequest = true;
 
-
     if (m_Redirect.enabled && !hasPendingError()) {
-        printf("Request ended with redirect enabled (%s)\n", m_Redirect.to);
-        m_Request->setPath(m_Redirect.to);
+
+        if (URLSCHEME_MATCH(m_Redirect.to, "http")) {
+            m_Request->resetURL(m_Redirect.to);
+
+        } else {
+            m_Request->setPath(m_Redirect.to);
+
+        }
         this->clearState();
-        this->request(m_Request, delegate);
+        this->request(m_Request, delegate, true);
         return;
     }
 
@@ -552,7 +562,8 @@ bool NativeHTTP::createConnection()
     return true;
 }
 
-bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
+bool NativeHTTP::request(NativeHTTPRequest *req,
+    NativeHTTPDelegate *delegate, bool forceNewConnection)
 {
     ape_socket *socket;
 
@@ -568,6 +579,13 @@ bool NativeHTTP::request(NativeHTTPRequest *req, NativeHTTPDelegate *delegate)
 
     m_Request = req;
     bool reusesock = (m_CurrentSock != NULL);
+
+    if (reusesock && forceNewConnection) {
+        reusesock = false;
+
+        m_CurrentSock->ctx = NULL;
+        APE_socket_shutdown_now(m_CurrentSock);
+    }
 
     /*
         If we have an available socket, reuse it (keep alive)
@@ -737,8 +755,6 @@ void NativeHTTPRequest::setDefaultHeaders()
 buffer *NativeHTTPRequest::getHeadersData() const
 {
     buffer *ret = buffer_new(1024);
-
-    printf("Get header data : %ld\n", strlen(this->path));
 
     switch (this->method) {
         case NATIVE_HTTP_GET:

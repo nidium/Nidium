@@ -219,6 +219,15 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
+    GET_OPT("maxredirect") {
+        uint32_t max = 8;
+        if (JSVAL_IS_NUMBER(curopt)) {
+            JS_ValueToECMAUint32(cx, curopt, &max);
+
+            nhttp->setMaxRedirect(max);
+        }        
+    }
+
     GET_OPT("eval") {
         if (curopt.isBoolean()) {
             jshttp->m_Eval = curopt.toBoolean();
@@ -282,6 +291,10 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
         case NativeHTTP::ERROR_HTTPCODE:
             SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
                 CONST_STR_LEN("http_response_code"))));      
+            break;
+        case NativeHTTP::ERROR_REDIRECTMAX:
+            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_max_redirect_exceeded"))));      
             break;
         default:
             break;
