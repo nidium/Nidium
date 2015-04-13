@@ -208,7 +208,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
             }
 
             char num[16];
-            sprintf(num, "%ld", (unsigned long) req->getDataLength());
+            sprintf(num, "%zu", req->getDataLength());
             req->setHeader("Content-Length", num);
         }
     }

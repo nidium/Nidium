@@ -108,7 +108,7 @@ static int headers_complete_cb(http_parser *p)
         return 0;
     }
 
-    if (p->content_length > (uint64_t) HTTP_MAX_CL) {
+    if (p->content_length > HTTP_MAX_CL) {
         return -1;
     }
 
@@ -195,7 +195,7 @@ static int body_cb(http_parser *p, const char *buf, size_t len)
         nhttp->http.data = buffer_new(2048);
     }
 
-    if ( (uint64_t)( nhttp->http.data->used + len) > (uint64_t) HTTP_MAX_CL) {
+    if ((uint64_t)(nhttp->http.data->used + len) > HTTP_MAX_CL) {
         return -1;
     }
 

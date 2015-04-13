@@ -92,7 +92,7 @@ void NativeFileStream::getContent()
     }
 
     m_File.open("r");
-    m_File.read(UINT32_MAX);
+    m_File.read(UINT_MAX);
     m_File.close();
 }
 

@@ -186,7 +186,7 @@ static int headers_complete_cb(http_parser *p)
         return 0;
     }
 
-    if (p->content_length > (uint64_t) HTTP_MAX_CL) {
+    if (p->content_length > HTTP_MAX_CL) {
         return -1;
     }
 
@@ -544,7 +544,7 @@ void NativeHTTPResponse::sendChunk(char *buf, size_t len,
     }
 
     char tmpbuf[64];
-    int tmplen = sprintf(tmpbuf, "%lx\r\n", (unsigned long) len);
+    int tmplen = sprintf(tmpbuf, "%zx\r\n", len);
 
     PACK_TCP(m_Con->getSocket()->s.fd);
 
@@ -653,7 +653,7 @@ const buffer &NativeHTTPResponse::getHeadersString()
 
     if (!m_Chunked) {
         if (m_Content && m_Content->used) {
-            sprintf(tmpbuf, "%ld", (unsigned long) m_Content->used);
+            sprintf(tmpbuf, "%zu", m_Content->used);
             this->setHeader("Content-Length", tmpbuf);
         } else {
             this->setHeader("Content-Length", "0");
