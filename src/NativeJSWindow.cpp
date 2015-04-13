@@ -884,23 +884,18 @@ static JSBool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
             // http://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
 #if defined( _WIN32 ) || defined( _WIN64 )
             platform = "Win32";
-#elif __APPLE__
-#include "TargetConditionals.h"
-#if TARGET_IPHONE_SIMULATOR
-            platform = "iPhone Simulator";
-#elif TARGET_OS_IPHONE
-            platform = "iPhone";
-#elif TARGET_OS_MAC
-            platform = "Macintosh";
-#else
-            platform = "Mac";
-#endif
+#elif defined( __APPLE ) || defined( _WIN64 )
+            platform = "MacOSX";
+#elif defined( __FreeBSD )
+            platform = "FreeBSD";
+#elif defined( __DragonFly )
+            platform = "DragonFly";
 #elif __linux
-            platform = "Linux"; 
+            platform = "Linux";
 #elif __unix 
-            platform = "Unix"; 
+            platform = "Unix";
 #elif __posix
-            platform = "Posix"; 
+            platform = "Posix";
 #else
             platfrom = "Unknown"
 #endif
