@@ -386,10 +386,6 @@ void NativeHTTP::headerEnded()
             return;
         } else {
             m_FileSize = http.contentlength;
-
-
-
-            return;
         }
     }
 /*
