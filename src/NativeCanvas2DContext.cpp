@@ -2160,7 +2160,8 @@ void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
         flag = kProgram_GrGLBackendState
                 | kTextureBinding_GrGLBackendState
                 | kVertex_GrGLBackendState
-                | kView_GrGLBackendState;
+                | kView_GrGLBackendState
+                | kBlend_GrGLBackendState;
     }
 
     backingTarget->getContext()->resetContext(flag);
