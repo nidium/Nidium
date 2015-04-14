@@ -85,6 +85,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                                 break;
                         }
                     }
+                    break;
                 case SDL_TEXTINPUT:
                     if (window && event.text.text) {
                         window->textInput(event.text.text);
@@ -132,7 +133,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     int mod = 0;
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
-                        event.key.keysym.mod & KMOD_CTRL && event.type == SDL_KEYDOWN) {
+                        (event.key.keysym.mod & KMOD_CTRL) && event.type == SDL_KEYDOWN) {
                         if (++nrefresh > 1) {
                             break;
                         }

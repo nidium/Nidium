@@ -15,7 +15,7 @@ extern JSClass Canvas2DContext_class;
 #define native_max(val1, val2)  ((val1 < val2) ? (val2) : (val1))
 
 #define NATIVE_PROLOGUE(ofclass) \
-    JS::CallArgs args = CallArgsFromVp(argc, vp); \
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) return false; \
     if (JS_GetClass(thisobj) != NativeLocalClass) { \

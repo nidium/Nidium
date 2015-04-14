@@ -953,7 +953,7 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
 static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_CHECK_ARGS("requestAnimationFrame", 1);
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     jsval cb;
 
     if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &cb)) {
@@ -976,7 +976,7 @@ static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_CHECK_ARGS("setPosition", 2);
 
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     int x = (args[0].isUndefined() || args[0].isNull()) ?
         NATIVE_WINDOWPOS_UNDEFINED_MASK : args[0].toInt32();
@@ -996,7 +996,7 @@ static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp)
     JSString *title, *body;
     JSBool sound = false;
 
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "SS/b", &title, &body, &sound)) {
         return false;
@@ -1043,7 +1043,7 @@ static JSBool native_window_open(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_CHECK_ARGS("setSystemTray", 1);
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
     JS::Value jobj = args[0];
@@ -1120,7 +1120,7 @@ static JSBool native_window_setFrame(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_CHECK_ARGS("setFrame", 4);
 
-    JS::CallArgs args = CallArgsFromVp(argc, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     int x = 0, y = 0;
 
