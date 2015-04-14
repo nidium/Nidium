@@ -774,7 +774,7 @@ buffer *NativeHTTPRequest::getHeadersData() const
     buffer_append_string_n(ret, CONST_STR_LEN("Host: "));
     buffer_append_string(ret, this->host);
 
-    if (this->getPort() != 80) {
+    if (this->getPort() != 80 && this->getPort() != 443) {
         char portstr[8];
         sprintf(portstr, ":%hu", this->getPort());
         buffer_append_string(ret, portstr);
