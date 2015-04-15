@@ -30,7 +30,7 @@
 
 #include <unistd.h>
 
-#import "SDL_keycode_translate.h"
+#include "SDL_keycode_translate.h"
 
 #define kNativeWidth 1280
 #define kNativeHeight 600
