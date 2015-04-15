@@ -70,8 +70,6 @@ int main(int argc, char **argv)
 
     UI.runLoop();
 
-    free(_root);
-
     return 0;
 }
 
