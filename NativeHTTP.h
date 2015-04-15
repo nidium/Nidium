@@ -32,6 +32,8 @@
 #include "NativeIStreamer.h"
 #include "NativeMessages.h"
 
+#include <string>
+
 class NativeHTTPDelegate;
 
 class NativeHTTPRequest
@@ -284,6 +286,10 @@ public:
         m_MaxRedirect = max;
     }
 
+    const char *getPath() const {
+        return m_Path.c_str();
+    }
+
     NativeHTTP(ape_global *n);
     ~NativeHTTP();
 private:
@@ -298,6 +304,8 @@ private:
     HTTPError m_PendingError;
 
     int m_MaxRedirect;
+
+    std::string m_Path;
 
     struct {
         const char *to;

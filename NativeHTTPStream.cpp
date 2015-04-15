@@ -76,6 +76,15 @@ void NativeHTTPStream::onStart(size_t packets, size_t seek)
     m_Http->request(req, this);
 }
 
+const char *NativeHTTPStream::getPath() const
+{
+    if (!m_Http) {
+        return NULL;
+    }
+
+    return m_Http->getPath();
+}
+
 bool NativeHTTPStream::hasDataAvailable() const
 {
     /*
@@ -141,8 +150,6 @@ int NativeHTTPStream_notifyAvailable(void *arg)
 void NativeHTTPStream::seek(size_t pos)
 {
     size_t max = m_StartPosition + m_BytesBuffered;
-
-    printf("Seek to %ld\n", (unsigned long) pos);
 
     /*
         We can read directly from our buffer

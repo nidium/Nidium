@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <string>
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -589,6 +590,14 @@ bool NativeHTTP::request(NativeHTTPRequest *req,
         this->clearState();
         return false;
     }
+
+    m_Path = req->isSSL() ? std::string("https://") : std::string("http://") + std::string(req->getHost());
+
+    if (req->getPort() != 80 && req->getPort() != 443) {
+        m_Path += std::string(":") + std::to_string(req->getPort());
+    }
+
+    m_Path += req->getPath();
 
     this->delegate = delegate;
     http.ended = 0;

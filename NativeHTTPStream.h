@@ -53,6 +53,8 @@ public:
     virtual size_t getFileSize() const;
     virtual bool hasDataAvailable() const;
 
+    virtual const char *getPath() const override;
+
     void notifyAvailable();
 protected:
     virtual const unsigned char *onGetNextPacket(size_t *len, int *err);

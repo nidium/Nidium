@@ -95,6 +95,13 @@ public:
     }
 
     /*
+        Return the base path for the stream
+    */
+    virtual const char *getPath() const {
+        return NULL;
+    }
+
+    /*
         Get file size
     */
     virtual size_t getFileSize() const=0;
