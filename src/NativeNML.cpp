@@ -475,6 +475,19 @@ void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVESTREAM_READ_BUFFER:
         {
             buffer *buf = (buffer *)msg.args[0].toPtr();
+
+            /*
+                Some stream can have dynamic path (e.g http 301 or 302).
+                We make sure to update the root path in that case 
+            */
+            const char *streamPath = stream->getPath();
+
+            if (streamPath != NULL) {
+                NativePath path(streamPath);
+                NativePath::cd(path.dir());
+                NativePath::chroot(path.dir());
+            }
+
             this->onGetContent((const char *)buf->data, buf->used);
             break;
         }
