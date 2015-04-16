@@ -82,7 +82,7 @@ void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
 NativeContext::NativeContext(NativeUIInterface *nui, NativeNML *nml,
     int width, int height, ape_global *net) :
     m_DebugHandler(NULL), m_UI(nui), m_NML(nml),
-    m_GLState(NULL), m_currentClickedHandler(NULL), m_SizeDirty(false)
+    m_GLState(NULL), m_SizeDirty(false), m_currentClickedHandler(NULL)
 {
 
     this->resetInputEvents();

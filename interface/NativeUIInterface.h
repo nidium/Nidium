@@ -18,7 +18,7 @@ typedef void *SDL_GLContext;
 class NativeSystemMenuItem {
 public:
     NativeSystemMenuItem(char *title = NULL, char *id = NULL) :
-        m_Enabled(false), m_Next(NULL), m_Id(NULL), m_Title(NULL)
+        m_Next(NULL), m_Id(NULL), m_Title(NULL), m_Enabled(false)
     {
         this->id(id);
         this->title(title);

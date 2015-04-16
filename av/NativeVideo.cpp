@@ -23,18 +23,18 @@ extern "C" {
   #define DPRINT(...) (void)0
 #endif
 
-// XXX : Well, NativeVideo need a better interaction with NativeAudi. 
+// XXX : Well, NativeVideo need a better interaction with NativeAudio.
 // There's a lot of little hack to work nicely with it.
 
 NativeVideo::NativeVideo(ape_global *n) 
     : timerIdx(0), lastTimer(0),
-      net(n), audioSource(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false), 
+      net(n), audioSource(NULL), frameCbk(NULL), frameCbkArg(NULL), shutdown(false),
       frameTimer(0), lastPts(0), videoClock(0), playing(false), stoped(false),
-      m_Width(0), m_Height(0), swsCtx(NULL), codecCtx(NULL), 
-      videoStream(-1), audioStream(-1), rBuff(NULL), buff(NULL), avioBuffer(NULL), 
+      m_Width(0), m_Height(0), swsCtx(NULL), codecCtx(NULL),
+      videoStream(-1), audioStream(-1), rBuff(NULL), buff(NULL), avioBuffer(NULL),
       m_FramesIdx(NULL), decodedFrame(NULL), convertedFrame(NULL),
       reader(NULL), buffering(false), m_ThreadCreated(false), m_SourceNeedWork(false),
-      m_NoDisplay(false), m_InDisplay(false), m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0)
+      m_DoSetSize(false), m_NewWidth(0), m_NewHeight(0), m_NoDisplay(false), m_InDisplay(false)
 {
     NATIVE_PTHREAD_VAR_INIT(&this->bufferCond);
     NATIVE_PTHREAD_VAR_INIT(&this->m_NotInDisplay);

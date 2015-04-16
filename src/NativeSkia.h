@@ -78,7 +78,7 @@ class NativeSkia
         bool m_Debug;
 
         double m_FontSkew;
-        
+
     public:
         ~NativeSkia();
         NativeSkia();
