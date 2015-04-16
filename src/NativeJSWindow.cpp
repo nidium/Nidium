@@ -897,7 +897,7 @@ static JSBool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
 #elif __posix
             platform = "Posix";
 #else
-            platfrom = "Unknown"
+            platform = "Unknown";
 #endif
             JSString *jStr = JS_NewStringCopyZ( m_Cx, platform);
             vp.set(STRING_TO_JSVAL(jStr));
