@@ -22,6 +22,9 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
 static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
+static JSBool native_navigator_prop_get(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp);
+
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp);
@@ -64,6 +67,23 @@ static JSClass window_class = {
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+enum {
+	NAVIGATOR_PROP_LANGUAGE,
+	NAVIGATOR_PROP_VIBRATE,
+	NAVIGATOR_PROP_APPNAME,
+	NAVIGATOR_PROP_APPVERSION,
+	NAVIGATOR_PROP_PLATFORM,
+	NAVIGATOR_PROP_USERAGENT
+};
+
+static JSClass navigator_class = {
+    "Navigator", 0,
+    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
+    JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
 
 static JSClass storage_class = {
     "NidiumStorage", JSCLASS_HAS_PRIVATE,
@@ -201,6 +221,27 @@ static JSPropertySpec window_props[] = {
         JSOP_NULLWRAPPER,
         JSOP_WRAPPER(native_window_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+};
+
+static JSPropertySpec navigator_props[] = {
+    {"language", NAVIGATOR_PROP_LANGUAGE, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_navigator_prop_get),
+        JSOP_NULLWRAPPER},
+    {"vibrate", NAVIGATOR_PROP_VIBRATE, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_navigator_prop_get),
+        JSOP_NULLWRAPPER},
+    {"appName", NAVIGATOR_PROP_APPNAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_navigator_prop_get),
+        JSOP_NULLWRAPPER},
+    {"appVersion", NAVIGATOR_PROP_APPVERSION, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_navigator_prop_get),
+        JSOP_NULLWRAPPER},
+    {"platform", NAVIGATOR_PROP_PLATFORM, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_navigator_prop_get),
+        JSOP_NULLWRAPPER},
+    {"userAgent", NAVIGATOR_PROP_USERAGENT, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        JSOP_WRAPPER(native_navigator_prop_get),
+        JSOP_NULLWRAPPER},
 };
 
 NativeJSwindow::~NativeJSwindow()
@@ -798,6 +839,79 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
+static JSBool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
+    JSHandleId id, JSMutableHandleValue vp)
+{
+    NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
+
+#define APP_NAME "nidium"
+#define APP_LANGUAGE "en"
+#define APP_LOCALE APP_LANGUAGE "-US"
+    switch(JSID_TO_INT(id)) {
+       case NAVIGATOR_PROP_LANGUAGE:
+            {
+            JSString *jStr = JS_NewStringCopyZ( m_Cx, APP_LANGUAGE );
+            vp.set(STRING_TO_JSVAL(jStr));
+            }
+            break;
+        case NAVIGATOR_PROP_VIBRATE:
+            {
+            vp.setBoolean(false);
+            }
+            break;
+           break;
+        case NAVIGATOR_PROP_APPVERSION:
+            {
+            JSString *jStr = JS_NewStringCopyZ( m_Cx, NATIVE_VERSION_STR );
+            vp.set(STRING_TO_JSVAL(jStr));
+            }
+            break;
+        case NAVIGATOR_PROP_APPNAME:
+            {
+            JSString *jStr = JS_NewStringCopyZ( m_Cx, APP_NAME );
+            vp.set(STRING_TO_JSVAL(jStr));
+            }
+            break;
+        case NAVIGATOR_PROP_USERAGENT:
+            {
+            JSString *jStr = JS_NewStringCopyZ( m_Cx, APP_NAME "/" NATIVE_VERSION_STR "(" APP_LOCALE "; rv:" NATIVE_BUILD ") " NATIVE_FRAMEWORK_STR );
+            vp.set(STRING_TO_JSVAL(jStr));
+            }
+            break;
+        case NAVIGATOR_PROP_PLATFORM:
+            {
+            const char *platform;
+            // http://stackoverflow.com/questions/19877924/what-is-the-list-of-possible-values-for-navigator-platform-as-of-today
+#if defined( _WIN32 ) || defined( _WIN64 )
+            platform = "Win32";
+#elif defined( __APPLE ) || defined( _WIN64 )
+            platform = "MacOSX";
+#elif defined( __FreeBSD )
+            platform = "FreeBSD";
+#elif defined( __DragonFly )
+            platform = "DragonFly";
+#elif __linux
+            platform = "Linux";
+#elif __unix 
+            platform = "Unix";
+#elif __posix
+            platform = "Posix";
+#else
+            platfrom = "Unknown"
+#endif
+            JSString *jStr = JS_NewStringCopyZ( m_Cx, platform);
+            vp.set(STRING_TO_JSVAL(jStr));
+            }
+            break;
+    }
+#undef APP_NAME
+#undef APP_LANGUAGE
+#undef APP_LOCALE APP_LANGUAGE
+
+    return true;
+}
+
+
 struct _nativeopenfile
 {
     JSContext *cx;
@@ -1345,6 +1459,31 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
 
     val = DOUBLE_TO_JSVAL(0);
     JS_SetProperty(cx, windowObj, "titleBarControlsOffsetY", &val);
+
+    // Set the __nidium__ properties
+    JSObject *nidiumObj = JS_NewObject(cx,  NULL, NULL, NULL);
+
+    JSString *jVersion = JS_NewStringCopyZ( cx, NATIVE_VERSION_STR );
+    JS_DefineProperty(cx, nidiumObj, "version", STRING_TO_JSVAL( jVersion ), NULL,
+        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JSString *jFramework = JS_NewStringCopyZ( cx, NATIVE_FRAMEWORK_STR );
+    JS_DefineProperty(cx, nidiumObj, "build", STRING_TO_JSVAL( jFramework ), NULL,
+        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    JSString *jRevision = JS_NewStringCopyZ( cx, NATIVE_BUILD );
+    JS_DefineProperty(cx, nidiumObj, "revision", STRING_TO_JSVAL( jRevision ), NULL,
+        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+
+    val = OBJECT_TO_JSVAL( nidiumObj);
+    JS_SetProperty(cx, windowObj, "__nidium__", &val);
+
+    //  Set the navigator properties
+    JSObject *navigatorObj = JS_NewObject(cx, &navigator_class, NULL, NULL);
+    JS_DefineProperties(cx, navigatorObj, navigator_props);
+
+    val = OBJECT_TO_JSVAL( navigatorObj);
+    JS_SetProperty(cx, windowObj, "navigator", &val);
 
     return jwin;
 }

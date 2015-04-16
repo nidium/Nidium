@@ -248,7 +248,7 @@ void NativeNML::loadDefaultItems(NativeAssets *assets)
 
     assets->addToPendingList(preload);
 
-    NativeAssets::Item *falcon = new NativeAssets::Item("private://falcon/native.js",
+    NativeAssets::Item *falcon = new NativeAssets::Item("private://" NATIVE_FRAMEWORK_STR "/native.js",
         NativeAssets::Item::ITEM_SCRIPT, net);
 
     assets->addToPendingList(falcon);
