@@ -336,6 +336,7 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
     
     this->setLineWidth(1);
+    this->setMiterLimit(10);
 
     asComposite = 0;
 }
@@ -1006,6 +1007,11 @@ void NativeSkia::setLineWidth(double size)
     PAINT_STROKE->setStrokeWidth(SkDoubleToScalar(size));
 }
 
+void NativeSkia::setMiterLimit(double size)
+{
+    PAINT_STROKE->setStrokeMiter(SkDoubleToScalar(size));
+}
+
 void NativeSkia::beginPath()
 {
     if (currentPath) {
@@ -1289,6 +1295,25 @@ void NativeSkia::arc(int x, int y, int r,
     } else {
         currentPath->addPath(tmppath);
     }
+}
+
+void NativeSkia::arcTo(int x1, int y1, int x2, int y2, int r)
+{
+    if (!r) {
+        return;
+    }
+    if (!currentPath) {
+        beginPath();
+    }
+
+    SkMatrix m = m_Canvas->getTotalMatrix();
+    SkScalar cx1 = SkIntToScalar(x1);
+    SkScalar cy1 = SkIntToScalar(y1);
+    SkScalar cx2 = SkIntToScalar(x2);
+    SkScalar cy2 = SkIntToScalar(y2);
+    SkScalar radius = SkIntToScalar(r);
+
+    currentPath->arcTo(cx1, cy1, cx2, cy2, radius );
 }
 
 void NativeSkia::quadraticCurveTo(double cpx, double cpy, double x, double y)
