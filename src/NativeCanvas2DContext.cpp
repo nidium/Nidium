@@ -106,6 +106,7 @@ static JSBool native_canvas2dctx_fill(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_stroke(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_closePath(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_arc(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_rect(JSContext *cx, unsigned argc, jsval *vp);
 static JSBool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
     jsval *vp);
@@ -213,6 +214,7 @@ static JSFunctionSpec canvas2dctx_funcs[] = {
     JS_FN("closePath", native_canvas2dctx_closePath, 0, 0),
     JS_FN("clip", native_canvas2dctx_clip, 0, 0),
     JS_FN("arc", native_canvas2dctx_arc, 5, 0),
+    JS_FN("arcTo", native_canvas2dctx_arcTo, 5, 0),
     JS_FN("rect", native_canvas2dctx_rect, 4, 0),
     JS_FN("quadraticCurveTo", native_canvas2dctx_quadraticCurveTo, 4, 0),
     JS_FN("bezierCurveTo", native_canvas2dctx_bezierCurveTo, 4, 0),
@@ -535,6 +537,23 @@ static JSBool native_canvas2dctx_arc(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NSKIA_NATIVE->arc(x, y, radius, startAngle, endAngle, CCW);
+
+    NATIVE_LOG_2D_CALL();
+    return JS_TRUE;
+}
+
+static JSBool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, jsval *vp)
+{
+    JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
+    int x1, y1, x2, y2, radius;
+    JSBool CCW = JS_FALSE;
+
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "iiiii", &x1, &y1,
+        &x2, &y2, &radius)) {
+        return false;
+    }
+
+    NSKIA_NATIVE->arcTo(x1, y1, x2, y2, radius);
 
     NATIVE_LOG_2D_CALL();
     return JS_TRUE;
@@ -1692,6 +1711,17 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
             curSkia->setLineWidth(ret);
         }
         break;
+        case CTX_PROP(miterLimit):
+        {
+            double ret;
+            if (!JSVAL_IS_NUMBER(vp)) {
+                vp.set(JSVAL_VOID);
+                return JS_TRUE;
+            }
+            JS_ValueToNumber(cx, vp, &ret);
+            curSkia->setMiterLimit(ret);
+        }
+        break;
         case CTX_PROP(globalAlpha):
         {
             double ret;
@@ -1761,7 +1791,17 @@ static JSBool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
             vp.set(INT_TO_JSVAL(curSkia->getHeight()));
         }
         break;
-        default:
+        case CTX_PROP(lineWidth):
+        {
+            vp.set(DOUBLE_TO_JSVAL(curSkia->getLineWidth()));
+        }
+        break;
+        case CTX_PROP(miterLimit):
+        {
+            vp.set(DOUBLE_TO_JSVAL(curSkia->getMiterLimit()));
+        }
+        break;
+       default:
             break;
     }
 
@@ -2332,6 +2372,14 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 
     /* Vertex buffers were unbound by parent constructor */
     this->resetSkiaContext(kVertex_GrGLBackendState);
+
+    // Set the defaults accourding to the standard: http://www.w3.org/TR/2dcontext/
+    jsval val;
+    val = DOUBLE_TO_JSVAL(1);
+    JS_SetProperty( cx, jsobj, "lineWidth", &val);
+    val = DOUBLE_TO_JSVAL(10);
+    JS_SetProperty( cx, jsobj, "miterLimit", &val);
+    //TODO: also for font, text, ..
 }
 
 NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,

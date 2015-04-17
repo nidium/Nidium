@@ -1,6 +1,7 @@
 CANVAS_2D_CTX_PROP(fillStyle)
 CANVAS_2D_CTX_PROP(strokeStyle)
 CANVAS_2D_CTX_PROP(lineWidth)
+CANVAS_2D_CTX_PROP(miterLimit)
 CANVAS_2D_CTX_PROP(globalAlpha)
 CANVAS_2D_CTX_PROP(globalCompositeOperation)
 CANVAS_2D_CTX_PROP(fontSize)
