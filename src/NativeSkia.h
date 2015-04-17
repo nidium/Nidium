@@ -145,9 +145,7 @@ class NativeSkia
         void setStrokeColor(const char *str);
         void setStrokeColor(NativeSkGradient *gradient);
         void setStrokeColor(uint32_t color);
-        double getLineWidth();
         void setLineWidth(double size);
-        double getMiterLimit();
         void setMiterLimit(double size);
         void setGlobalAlpha(double value);
         void setGlobalComposite(const char *str);
