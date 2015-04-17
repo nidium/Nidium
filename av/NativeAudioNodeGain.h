@@ -19,7 +19,6 @@ class NativeAudioNodeGain: public NativeAudioNodeProcessor
     
         ~NativeAudioNodeGain() {};
     private : 
-        double m_Gain;
         NativeAudioProcessorGain *m_GainProcessor;
 };
 #endif

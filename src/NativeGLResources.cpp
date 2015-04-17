@@ -18,7 +18,7 @@ void NativeGLResources::add(uint32_t glid, ResourceType type, const char *name)
 NativeGLResources::Resource::Resource(uint32_t glid,
     NativeGLResources::ResourceType type, char *name) :
     
-    m_Glid(glid), m_Type(type), m_Name(name)
+    m_Glid(glid), m_Type(type)
 
 {
 

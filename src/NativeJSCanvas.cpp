@@ -1422,7 +1422,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_ID:
         {
             char *id;
-            uint64_t numid = handler->getIdentifier(&id);
+            handler->getIdentifier(&id);
 
             vp.setString(JS_NewStringCopyZ(cx, id));
 
@@ -1695,6 +1695,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 }
             }
         }
+        	break;
         default:
             break;
     }

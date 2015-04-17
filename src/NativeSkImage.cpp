@@ -29,12 +29,11 @@ static bool SetImageRef(SkBitmap* bitmap, SkStream* stream,
         return false;
     }
 }
-#endif
-
 static SkData* dataToData(void *data, size_t size) {
 
     return SkData::NewWithProc(data, size, NULL, NULL);
 }
+#endif
 
 const uint8_t *NativeSkImage::getPixels(size_t *len)
 {   
