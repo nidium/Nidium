@@ -44,13 +44,14 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     this->createFBO(m_Device.width, m_Device.height);
 }
 
+#if 0
 static JSBool native_Canvas3DContext_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return JS_FALSE;
 }
-
+#endif
 
 void NativeCanvas3DContext::translate(double x, double y)
 {
@@ -257,7 +258,6 @@ bool NativeCanvas3DContext::createFBO(int width, int height)
     GL_CALL(Enable(GR_GL_VERTEX_PROGRAM_POINT_SIZE));
 
     /* Vertex Array Buffer are required in GL3.0+ */
-    uint32_t vao;
     GL_CALL(GenVertexArrays(1, &m_GLObjects.vao));
     GL_CALL(BindVertexArray(m_GLObjects.vao));
 

@@ -178,7 +178,7 @@ uint8_t *NativeUIInterface::readScreenPixel()
     uint8_t *ret = (uint8_t *)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
     if (!ret) {
         uint32_t err = glGetError();
-        printf("Failed to map buffer\n");
+        fprintf(stderr, "Failed to map buffer: Error %d\n", err);
         return NULL;
     }
 
@@ -203,7 +203,7 @@ int NativeUIInterface::useOffScreenRendering(bool val)
         m_FBO = 0;
         free(m_FrameBuffer);
         m_FrameBuffer = NULL;
-        // todo : delete fbo & renderbuffer
+        // TODO : delete fbo & renderbuffer
         return 0;
     }
 

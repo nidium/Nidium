@@ -247,6 +247,7 @@ NativeCanvasContext::~NativeCanvasContext()
     }
 }
 
+#if DEBUG
 static void dump_Matrix(float *matrix)
 {
     int i = 4;
@@ -257,6 +258,7 @@ static void dump_Matrix(float *matrix)
     }
     printf("==========\n");
 }
+#endif
 
 void NativeCanvasContext::updateMatrix(double left, double top,
     int layerWidth, int layerHeight, NativeGLState *glstate)

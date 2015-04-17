@@ -274,7 +274,6 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         NativeAssets::Item *item = NULL;
 
         if ((src = child->first_attribute("src"))) {
-            xml_attribute<> *id = child->first_attribute("id");
             item = new NativeAssets::Item(src->value(),
                 NativeAssets::Item::ITEM_UNKNOWN, net);
 

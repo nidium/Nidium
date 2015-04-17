@@ -2063,8 +2063,6 @@ void NativeCanvas2DContext::setupCommonDraw()
 void NativeCanvas2DContext::drawTexture(uint32_t textureID, uint32_t width,
     uint32_t height, uint32_t left, uint32_t top)
 {
-    GLenum err;
-
     NATIVE_GL_CALL_MAIN(BindTexture(GR_GL_TEXTURE_2D, textureID));
 
     NATIVE_GL_CALL_MAIN(TexParameteri( GR_GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER ));

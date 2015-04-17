@@ -398,7 +398,7 @@ class NativeCanvasHandler : public NativeEvents
 
             if (!hasFixedHeight()) {
                 setSize(m_Width, this->getHeight());
-            }            
+            }
         }
 
         void setScale(double x, double y);
