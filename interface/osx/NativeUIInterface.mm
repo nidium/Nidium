@@ -456,7 +456,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
         } else {
             delete app;
         }
-    } else if (strncasecmp(ext, ".nml", 4) == 0) {
+    } else {
         this->nml = new NativeNML(this->gnet);
         this->nml->loadFile(path, NativeCocoaUIInterface_onNMLLoaded, this);
 

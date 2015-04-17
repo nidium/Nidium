@@ -695,7 +695,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
         } else {
             delete app;
         }
-    } else if (strncasecmp(ext, ".nml", 4) == 0) {
+    } else {
         this->nml = new NativeNML(this->gnet);
         this->nml->loadFile(path, NativeX11UIInterface_onNMLLoaded, this);
 
