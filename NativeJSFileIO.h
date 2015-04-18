@@ -22,7 +22,6 @@
 #define nativejsfileio_h__
 
 #include "NativeJSExposer.h"
-#include "NativeFileIO.h"
 #include "NativeFile.h"
 #include "NativeMessages.h"
 #include <ape_buffer.h>

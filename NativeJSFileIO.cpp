@@ -804,25 +804,6 @@ void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
     this->callbackForMessage(m_Cx, msg, m_JSObject, m_Encoding);
 }
 
-#if 0
-void NativeJSFileIO::onNFIOWrite(NativeFileIO *NSFIO, size_t written)
-{
-    jsval rval;
-    jsval jdata;
-    NativeJSFileIO *NJSFIO = static_cast<NativeJSFileIO *>(NSFIO->getDelegate());
-
-    JSAutoRequest ar(cx);
-
-    jdata = DOUBLE_TO_JSVAL((double)written);
-
-    JS_CallFunctionValue(cx, NJSFIO->jsobj, NJSFIO->callbacks.write,
-        1, &jdata, &rval);
-
-    NativeJS::getNativeClass(cx)->unrootObject(JSVAL_TO_OBJECT(NJSFIO->callbacks.write));
-}
-
-#endif
-
 void NativeJSFileIO::registerObject(JSContext *cx)
 {
     JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &File_class,

@@ -112,7 +112,6 @@
             }]
         ],
         'sources': [
-            '../NativeFileIO.cpp',
             '../NativeHTTP.cpp',
             '../NativeJS.cpp',
             '../NativeJSExposer.cpp',
