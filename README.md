@@ -14,7 +14,7 @@ This is the highest level project and it handle the build of everything:
 ### You can start by just doing this :
 
 ```
-$ git clone —recursive https://github.com/nidium/NativeStudio
+$ git clone —recursive git@github.com:nidium/NativeStudio.git
 $ cd NativeStudio
 $ ./configure
 ```
