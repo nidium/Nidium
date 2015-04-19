@@ -96,7 +96,8 @@
                 ],
                 'xcode_settings': {
                     'OTHER_CFLAGS': [
-                        '-fvisibility=hidden'
+                        '-fvisibility=hidden',
+                    	'-std=c++0x'
                     ],
                 },
             }],
@@ -104,7 +105,8 @@
                 'cflags': [
                     #'-fvisibility=hidden',
                     '-Wno-c++0x-extensions',
-                    '-Wno-invalid-offsetof'
+                    '-Wno-invalid-offsetof',
+                    '-std=c++0x'
                 ],
                 'defines': [
                     'DSO_EXTENSION=".so"'
