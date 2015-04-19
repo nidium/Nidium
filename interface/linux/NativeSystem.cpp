@@ -87,7 +87,7 @@ void NativeSystem::alert(const char *message, AlertType type)
             GTK_DIALOG_DESTROY_WITH_PARENT,
             gtkType,
             GTK_BUTTONS_CLOSE,
-            message);
+            "%s", message);
 
     gtk_dialog_run (GTK_DIALOG (dialog));
 

@@ -88,7 +88,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
         return AVERROR_EXIT;
     }
 
-    size_t copied = 0;
+    int copied = 0;
     int avail = (thiz->streamPacketSize - thiz->streamRead);
 
     // Have data inside buffer

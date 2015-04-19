@@ -30,7 +30,7 @@ static uint32_t upperPow2(uint32_t num)
     return n;
 }
 
-NativeAudio::NativeAudio(ape_global *n, int bufferSize, int channels, int sampleRate)
+NativeAudio::NativeAudio(ape_global *n, unsigned int bufferSize, unsigned int channels, unsigned int sampleRate)
     : net(n), sourcesCount(0), output(NULL), inputStream(NULL),
       outputStream(NULL), rBufferOutData(NULL), volume(1),
       m_SourceNeedWork(false), m_SharedMsgFlush(false), threadShutdown(false), sources(NULL), m_MainCtx(NULL)
