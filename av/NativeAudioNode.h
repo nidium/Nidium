@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include "NativeAV.h"
 #include "NativeAudio.h"
-#include "NativeFileIO.h"
 #include <exception>
 
 #define NATIVE_AUDIONODE_ARGS_SIZE      32
