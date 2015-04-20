@@ -39,7 +39,7 @@ NativeCanvasHandler::NativeCanvasHandler(int width, int height,
     */
     m_Identifier.idx = ++NativeCanvasHandler::LastIdx;
 
-    asprintf(&m_Identifier.str, "%lld", m_Identifier.idx);
+    asprintf(&m_Identifier.str, "%zd", m_Identifier.idx);
 
     m_NativeContext->m_CanvasList.set(m_Identifier.str, this);
 
