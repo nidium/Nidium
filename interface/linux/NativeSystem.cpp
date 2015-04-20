@@ -11,10 +11,45 @@
 #include <gtk/gtk.h>
 #include <string>
 #include <unistd.h>
+#include <X11/Xlib.h>
+
+static void get_dpi(int *x, int *y)
+{
+        double xres, yres;
+        Display *dpy;
+        char *displayname = NULL;
+        int scr = 0; /* Screen number */
+
+        if( (NULL == x) || (NULL == y)){ return ; }
+
+        dpy = XOpenDisplay (displayname);
+
+        /*
+         *      * there are 2.54 centimeters to an inch; so there are 25.4 millimeters.
+         *           *
+         *                *     dpi = N pixels / (M millimeters / (25.4 millimeters / 1 inch))
+         *                     *         = N pixels / (M inch / 25.4)
+         *                          *         = N * 25.4 pixels / M inch
+         *                               */
+        xres = ((((double) DisplayWidth(dpy,scr)) * 25.4) /
+                        ((double) DisplayWidthMM(dpy,scr)));
+        yres = ((((double) DisplayHeight(dpy,scr)) * 25.4) /
+                        ((double) DisplayHeightMM(dpy,scr)));
+
+        *x = (int) (xres + 0.5);
+        *y = (int) (yres + 0.5);
+
+        XCloseDisplay (dpy);
+}
+
 
 NativeSystem::NativeSystem() : m_SystemUIReady(false)
 {
-    fbackingStorePixelRatio = 1.0;
+    int x, y;
+    get_dpi(&x, &y);
+
+    fbackingStorePixelRatio = float(x) / 96.f;
+    fbackingStorePixelRatio = 2.0;
 }
 
 float NativeSystem::backingStorePixelRatio()

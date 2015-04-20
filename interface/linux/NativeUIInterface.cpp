@@ -4,7 +4,7 @@
 #include <NativeApp.h>
 #include <NativeJSWindow.h> 
 #include <NativeContext.h>
-#include <NativeSystem.h>
+#include "NativeSystem.h"
 #ifdef NATIVE_USE_GTK
 #include <gtk/gtk.h>
 #endif
@@ -380,7 +380,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
             printf("Cant vsync\n");
         }
 
-        glViewport(0, 0, width, height);
+        glViewport(0, 0, width*2, height*2);
         NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
 
         console = new NativeUIX11Console();
@@ -672,7 +672,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
         }
         NativeApp *app = new NativeApp(path);
         if (app->open()) {
-            if (!this->createWindow(app->getWidth(), app->getHeight()+kNativeTitleBarHeight)) {
+            if (!this->createWindow(app->getWidth()*2, 2*app->getHeight()+kNativeTitleBarHeight)) {
                 return false;
             }
             this->setWindowTitle(app->getTitle());
@@ -723,8 +723,8 @@ void NativeX11UIInterface::stopApplication()
 void NativeX11UIInterface::onNMLLoaded()
 {
     if (!this->createWindow(
-        this->nml->getMetaWidth(),
-        this->nml->getMetaHeight()+kNativeTitleBarHeight)) {
+        this->nml->getMetaWidth()*2,
+        this->nml->getMetaHeight()*2+kNativeTitleBarHeight)) {
 
         return;
     }
