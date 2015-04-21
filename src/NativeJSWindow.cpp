@@ -242,6 +242,7 @@ static JSPropertySpec navigator_props[] = {
     {"userAgent", NAVIGATOR_PROP_USERAGENT, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
         JSOP_WRAPPER(native_navigator_prop_get),
         JSOP_NULLWRAPPER},
+    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
 NativeJSwindow::~NativeJSwindow()
