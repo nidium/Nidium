@@ -171,6 +171,9 @@ class NativeContext : public NativeMessages
 
     void callFrame();
     void createDebugCanvas();
+#if DEBUG
+    void createDebug2Canvas();
+#endif
     void postDraw();
     void frame(bool draw = true);
 
@@ -238,6 +241,9 @@ class NativeContext : public NativeMessages
     NativeJS *                m_JS;
     NativeCanvasHandler *     m_RootHandler;
     NativeCanvasHandler *     m_DebugHandler;
+#ifdef DEBUG
+    NativeCanvasHandler *     m_Debug2Handler;
+#endif
     NativeUIInterface *       m_UI;
     NativeNML *               m_NML;
     NativeGLState *           m_GLState;

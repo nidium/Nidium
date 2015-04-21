@@ -163,6 +163,9 @@ void NativeContext::loadNativeObjects(int width, int height)
     /* window() object */
     m_JSWindow = NativeJSwindow::registerObject(cx, width, height, jsdoc);
 
+#if DEBUG
+    createDebug2Canvas();
+#endif
     //NativeJSDebug::registerObject(cx);    
 }
 
@@ -210,9 +213,27 @@ void NativeContext::createDebugCanvas()
     ctx2d->setGLState(this->getGLState());
 
     m_RootHandler->addChild(m_DebugHandler);
+
     m_DebugHandler->setRight(0);
     m_DebugHandler->setOpacity(0.6);
 }
+
+#if DEBUG
+void NativeContext::createDebug2Canvas()
+{
+    NativeCanvas2DContext *context = (NativeCanvas2DContext *)m_RootHandler->getContext();
+    static const int DEBUG_HEIGHT = 60;
+    m_Debug2Handler = new NativeCanvasHandler(context->getSurface()->getWidth(), DEBUG_HEIGHT, this);
+    NativeCanvas2DContext *ctx2d =  new NativeCanvas2DContext(m_Debug2Handler, context->getSurface()->getWidth(), DEBUG_HEIGHT, NULL, false);
+    m_Debug2Handler->setContext(ctx2d);
+    ctx2d->setGLState(this->getGLState());
+
+    m_RootHandler->addChild(m_Debug2Handler);
+    m_Debug2Handler->unsetTop();
+    m_Debug2Handler->setRight(0);
+    m_Debug2Handler->setBottom(0);
+}
+#endif
 
 void NativeContext::postDraw()
 {
@@ -247,6 +268,17 @@ void NativeContext::postDraw()
         //s->system(fps, 5, 10);
         s->flush();
     }
+#if DEBUG
+    m_Debug2Handler->bringToFront();
+    m_Debug2Handler->getContext()->clear();
+    NativeSkia *rootctx = ((NativeCanvas2DContext *)m_Debug2Handler->getContext())->getSurface();
+    rootctx->save();
+
+    rootctx->setFillColor("black");
+    rootctx->drawText("DEBUG build", 10, 30);
+    rootctx->restore();
+    rootctx->flush();
+#endif
 }
 
 /* TODO, move out */
