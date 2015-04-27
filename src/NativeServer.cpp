@@ -98,6 +98,7 @@ int NativeServer::initWorker(int *idx)
     /* Execute the worker for the child process and returns 0 */
     if ((pid = fork()) == 0) {
         NativeWorker worker(*idx);
+        setproctitle("Native worker (%d)", *idx);
         worker.run(m_Args.argc, m_Args.argv);
 
         return 0;
@@ -111,6 +112,10 @@ int NativeServer::initWorker(int *idx)
 
 int NativeServer::Start(int argc, char *argv[])
 {
+#ifdef INIT_SETPROCTITLE_REPLACEMENT
+    spt_init(argc, argv);
+#endif
+
     NativeServer *server = new NativeServer(argc, argv);
 
     return server->init();

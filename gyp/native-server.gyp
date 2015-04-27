@@ -19,6 +19,7 @@
             '<(native_src_path)/NativeJSConsole.cpp',
             '<(native_src_path)/NativeREPL.cpp',
             '<(native_src_path)/NativeJSSystem.cpp',
+            '<(native_src_path)/setproctitle.c',
         ],
         'conditions': [
             ['OS=="linux"', {
