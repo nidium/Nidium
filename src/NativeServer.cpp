@@ -8,6 +8,7 @@
 #ifdef __linux__
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <sys/wait.h>
 #endif
 
 #include "NativeServer.h"
