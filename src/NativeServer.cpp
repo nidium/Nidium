@@ -163,6 +163,9 @@ int NativeServer::init()
         exit(1);
     }
 
+    if (daemon) {
+        this->daemonize();
+    }
 
     if (workers) {
         for (int i = 0; i < workers; i++) {
@@ -176,8 +179,6 @@ int NativeServer::init()
     /*
         Only executed by the parent process
     */
-
-    sleep(2);
     this->wait();
 
     return 1;
