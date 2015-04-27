@@ -3,11 +3,13 @@
 
 #include <NativeJS.h>
 
+class NativeWorker;
+
 class NativeContext
 {
 public:
 
-    NativeContext(ape_global *ape);
+    NativeContext(ape_global *ape, NativeWorker *worker);
     ~NativeContext();
 
     static NativeContext *getNativeClass(struct JSContext *cx) {
@@ -23,8 +25,13 @@ public:
     }
 
     void loadNativeObjects();
+
+    NativeWorker *getWorker() const {
+        return m_Worker;
+    }
 private:
     NativeJS *m_JS;
+    NativeWorker *m_Worker;
 };
 
 #endif

@@ -17,6 +17,8 @@
 
 #include <NativeJSProcess.h>
 
+#define NATIVE_MAX_WORKERS 64
+
 int ape_running = 1;
 unsigned long _ape_seed;
 
@@ -58,10 +60,22 @@ void NativeServer::Daemonize(int pidfile)
     }
 }
 
+int NativeServer::initWorker(int argc, char **argv, int idx)
+{
+    if (fork() != 0) {
+        NativeWorker worker(idx);
+        worker.run(argc, argv);
+
+        return 1;
+    }
+
+    return 0;
+}
+
 int NativeServer::Start(int argc, char *argv[])
 {
     bool daemon = false;
-    NativeREPL *repl = NULL;
+    int workers = 1;
 
     static struct option long_options[] =
     {
@@ -71,11 +85,7 @@ int NativeServer::Start(int argc, char *argv[])
     };
 
     _ape_seed = time(NULL) ^ (getpid() << 16);
-    ape_global *net = native_netlib_init();
 
-    inc_rlimit(64000);
-
-    signal(SIGPIPE, SIG_IGN);
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
     signal(SIGQUIT, &signal_handler);
@@ -95,21 +105,60 @@ int NativeServer::Start(int argc, char *argv[])
                 daemon = true;
                 break;
             case '?':
-                exit(0);
+                exit(1);
+                break;
+            case 'w':
+                workers = atoi(optarg);
                 break;
             default:
                 break;            
         }
     }
 
-    NativeContext ctx(net);
+    if (workers > NATIVE_MAX_WORKERS) {
+        fprintf(stderr, "[Error] Too many worker requested : max %d\n", NATIVE_MAX_WORKERS);
+        exit(1);
+    }
+
+    if (workers) {
+        for (int i = 0; i < workers; i++) {
+            if (NativeServer::initWorker(argc, argv, i+1) == 1) {
+                break;
+            }
+        }
+    }
+
+    return 1;
+}
+
+NativeWorker::NativeWorker(int idx) : 
+    m_Idx(idx)
+{
+
+}
+
+NativeWorker::~NativeWorker()
+{
+
+}
+
+int NativeWorker::run(int argc, char **argv)
+{
+    NativeREPL *repl = NULL;
+    ape_global *net = native_netlib_init();
+
+    inc_rlimit(64000);
+
+    signal(SIGPIPE, SIG_IGN);
+
+    NativeContext ctx(net, this);
     const NativeJS *js = ctx.getNJS();
     NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
 
     /*
         Daemon requires a .js to load
     */
-    if (daemon) {
+    if (0) {
         if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
             return 1;
         }
@@ -124,14 +173,14 @@ int NativeServer::Start(int argc, char *argv[])
 
         /* Heap allocated because we need to be
         sure that it's deleted before NativeJS */
-        repl = new NativeREPL(ctx.getNJS());
+        //repl = new NativeREPL(ctx.getNJS());
     }
-
 
     events_loop(net);
 
     if (repl) {
         delete repl;
     }
-    return 1;
+
+    return 0;
 }

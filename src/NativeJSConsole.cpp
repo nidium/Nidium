@@ -6,6 +6,8 @@
 #include <NativeJSProfiler.h>
 #include <jsdbgapi.h>
 
+#include "NativeServer.h"
+
 static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp);
 static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
@@ -80,6 +82,8 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         filename_parent = &fname[1];
     }
 
+    NativeContext *nctx = NativeContext::getNativeClass(cx);
+
     argv = JS_ARGV(cx, vp);
 
     for (i = 0; i < argc; i++) {
@@ -92,7 +96,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
         if (i) {
             printf(" ");
         } else {
-            printf("[%s:%d] ", filename_parent, lineno);
+            printf("(worker %d) [%s:%d] ", nctx->getWorker()->getIdentifier(), filename_parent, lineno);
         }
         printf("%s", bytes);
 

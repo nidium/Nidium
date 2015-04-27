@@ -25,7 +25,8 @@ int NativeContext_ping(void *arg)
     return 8;
 }
 
-NativeContext::NativeContext(ape_global *net)
+NativeContext::NativeContext(ape_global *net, NativeWorker *worker) :
+    m_Worker(worker)
 {
 
     //NativePath::cd("/Users/paraboul/dev/");
