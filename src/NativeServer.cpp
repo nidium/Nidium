@@ -1,5 +1,4 @@
 #define _HAVE_SSL_SUPPORT 1
-
 #include <native_netlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -67,6 +66,7 @@ int NativeServer::Start(int argc, char *argv[])
     static struct option long_options[] =
     {
         {"daemon",     no_argument,       0, 'd'},
+        {"workers",    required_argument, 0, 'w'},
         {0, 0, 0, 0}
     };
 
@@ -81,12 +81,21 @@ int NativeServer::Start(int argc, char *argv[])
     signal(SIGQUIT, &signal_handler);
 
     int ch;
-    opterr = 0;
+    //opterr = 0;
 
-    while ((ch = getopt_long(argc, argv, "d", long_options, NULL)) != -1) {
+    /*
+        Needed on macosx so that arguments doesn't fail after the .js file
+    */
+    setenv("POSIXLY_CORRECT", "1", 1);
+
+    while ((ch = getopt_long(argc, argv, "dw:", long_options, NULL)) != -1) {
+        //printf("Got %c (%s)\n", ch, optarg);
         switch (ch) {
             case 'd':
                 daemon = true;
+                break;
+            case '?':
+                exit(0);
                 break;
             default:
                 break;            
@@ -118,8 +127,11 @@ int NativeServer::Start(int argc, char *argv[])
         repl = new NativeREPL(ctx.getNJS());
     }
 
+
     events_loop(net);
 
-    delete repl;
+    if (repl) {
+        delete repl;
+    }
     return 1;
 }
