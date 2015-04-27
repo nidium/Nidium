@@ -44,6 +44,8 @@ private:
     int m_WorkerIdx;
 
     std::map<pid_t, int> m_PidIdxMapper;
+
+    char *m_InstanceName;
 };
 
 class NativeWorker

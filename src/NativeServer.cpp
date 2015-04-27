@@ -98,7 +98,9 @@ int NativeServer::initWorker(int *idx)
     /* Execute the worker for the child process and returns 0 */
     if ((pid = fork()) == 0) {
         NativeWorker worker(*idx);
-        setproctitle("Native worker (%d)", *idx);
+        setproctitle("Native-Server:<%s> (worker %d)",
+            m_InstanceName ? m_InstanceName : "noname", *idx);
+
         worker.run(m_Args.argc, m_Args.argv);
 
         return 0;
@@ -130,6 +132,7 @@ int NativeServer::init()
     {
         {"daemon",     no_argument,       0, 'd'},
         {"workers",    required_argument, 0, 'w'},
+        {"name",       required_argument, 0, 'n'},
         {0, 0, 0, 0}
     };
 
@@ -147,7 +150,7 @@ int NativeServer::init()
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dw:", long_options, NULL)) != -1) {
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dnw:", long_options, NULL)) != -1) {
         //printf("Got %c (%s)\n", ch, optarg);
         switch (ch) {
             case 'd':
@@ -158,6 +161,9 @@ int NativeServer::init()
                 break;
             case 'w':
                 workers = atoi(optarg);
+                break;
+            case 'n':
+                m_InstanceName = strdup(optarg);
                 break;
             default:
                 break;            
@@ -191,7 +197,7 @@ int NativeServer::init()
 }
 
 NativeServer::NativeServer(int argc, char **argv) : 
-    m_WorkerIdx(0)
+    m_WorkerIdx(0), m_InstanceName(NULL)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
