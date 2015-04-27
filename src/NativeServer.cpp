@@ -38,7 +38,7 @@ static int inc_rlimit(int nofile)
     return setrlimit(RLIMIT_NOFILE, &rl);
 }
 
-void NativeServer::Daemonize(int pidfile)
+void NativeServer::daemonize(int pidfile)
 {
     if (0 != fork()) { 
         exit(0);
@@ -60,19 +60,62 @@ void NativeServer::Daemonize(int pidfile)
     }
 }
 
-int NativeServer::initWorker(int argc, char **argv, int idx)
+void NativeServer::wait()
 {
-    if (fork() != 0) {
-        NativeWorker worker(idx);
-        worker.run(argc, argv);
+    int pid;
+    int state;
+    while ((pid = waitpid(-1, &state, 0))) {
+        if (errno == ECHILD) {
+            break;
+        } else {
 
-        return 1;
+            if (WIFEXITED(state)) {
+                continue;
+            }
+
+            if (WIFSIGNALED(state)) {
+                int idx_crash = m_PidIdxMapper[pid];
+                fprintf(stderr, "[Crash] Worker %d has crashed :'(\n", idx_crash);
+
+                if (this->initWorker(&idx_crash) == 0) {
+                    return;
+                }
+            }
+        }
     }
 
-    return 0;
+    printf("Main process ended\n");
+}
+
+int NativeServer::initWorker(int *idx)
+{
+    if (!(*idx)) {
+        *idx = ++m_WorkerIdx;
+    }
+
+    pid_t pid;
+    /* Execute the worker for the child process and returns 0 */
+    if ((pid = fork()) == 0) {
+        NativeWorker worker(*idx);
+        worker.run(m_Args.argc, m_Args.argv);
+
+        return 0;
+    }
+
+    m_PidIdxMapper[pid] = *idx;
+
+    /* Parent process returns the pid */
+    return pid;
 }
 
 int NativeServer::Start(int argc, char *argv[])
+{
+    NativeServer *server = new NativeServer(argc, argv);
+
+    return server->init();
+}
+
+int NativeServer::init()
 {
     bool daemon = false;
     int workers = 1;
@@ -98,7 +141,7 @@ int NativeServer::Start(int argc, char *argv[])
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    while ((ch = getopt_long(argc, argv, "dw:", long_options, NULL)) != -1) {
+    while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dw:", long_options, NULL)) != -1) {
         //printf("Got %c (%s)\n", ch, optarg);
         switch (ch) {
             case 'd':
@@ -120,15 +163,31 @@ int NativeServer::Start(int argc, char *argv[])
         exit(1);
     }
 
+
     if (workers) {
         for (int i = 0; i < workers; i++) {
-            if (NativeServer::initWorker(argc, argv, i+1) == 1) {
-                break;
+            int idx = 0;
+            if (this->initWorker(&idx) == 0) {
+                return 1;
             }
         }
     }
 
+    /*
+        Only executed by the parent process
+    */
+
+    sleep(2);
+    this->wait();
+
     return 1;
+}
+
+NativeServer::NativeServer(int argc, char **argv) : 
+    m_WorkerIdx(0)
+{
+    m_Args.argc = argc;
+    m_Args.argv = argv;
 }
 
 NativeWorker::NativeWorker(int idx) : 
@@ -162,7 +221,7 @@ int NativeWorker::run(int argc, char **argv)
         if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
             return 1;
         }
-        NativeServer::Daemonize();
+        
     } else {
 #ifdef DEBUG
         printf("[Warn] Running in Debug mode\n");
