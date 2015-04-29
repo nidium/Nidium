@@ -46,12 +46,13 @@ private:
     std::map<pid_t, int> m_PidIdxMapper;
 
     char *m_InstanceName;
+    bool m_HasREPL;
 };
 
 class NativeWorker
 {
 public:
-     NativeWorker(int idx);
+     NativeWorker(int idx, bool repl = false);
     ~NativeWorker();
     int run(int argc, char **argv);
 
@@ -60,6 +61,7 @@ public:
     }
 private:
     int m_Idx;
+    bool m_RunREPL;
 };
 
 #endif

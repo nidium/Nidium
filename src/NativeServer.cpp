@@ -97,7 +97,8 @@ int NativeServer::initWorker(int *idx)
     pid_t pid;
     /* Execute the worker for the child process and returns 0 */
     if ((pid = fork()) == 0) {
-        NativeWorker worker(*idx);
+        NativeWorker worker(*idx, (m_HasREPL && *idx == 1));
+
         setproctitle("Native-Server:<%s> (worker %d)",
             m_InstanceName ? m_InstanceName : "noname", *idx);
 
@@ -141,6 +142,7 @@ int NativeServer::init()
     signal(SIGINT, &signal_handler);
     signal(SIGTERM, &signal_handler);
     signal(SIGQUIT, &signal_handler);
+    //signal(SIGCHLD, SIG_IGN);
 
     int ch;
     //opterr = 0;
@@ -149,6 +151,8 @@ int NativeServer::init()
         Needed on macosx so that arguments doesn't fail after the .js file
     */
     setenv("POSIXLY_CORRECT", "1", 1);
+
+    const char *pname = m_Args.argv[0];
 
     while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dnw:", long_options, NULL)) != -1) {
         //printf("Got %c (%s)\n", ch, optarg);
@@ -166,17 +170,26 @@ int NativeServer::init()
                 m_InstanceName = strdup(optarg);
                 break;
             default:
-                break;            
+                break;
         }
     }
+
+    m_Args.argc -= optind;
+    m_Args.argv += optind;
 
     if (workers > NATIVE_MAX_WORKERS) {
         fprintf(stderr, "[Error] Too many worker requested : max %d\n", NATIVE_MAX_WORKERS);
         exit(1);
     }
 
-    if (daemon) {
+    /*
+        Don't demonize if no JS file was provided
+    */
+    if (daemon && m_Args.argc >= 1) {
+        m_HasREPL = false;
         this->daemonize();
+    } else if (daemon) {
+        fprintf(stderr, "Can't demonize if no JS file is provided\n");
     }
 
     if (workers) {
@@ -197,14 +210,14 @@ int NativeServer::init()
 }
 
 NativeServer::NativeServer(int argc, char **argv) : 
-    m_WorkerIdx(0), m_InstanceName(NULL)
+    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
 }
 
-NativeWorker::NativeWorker(int idx) : 
-    m_Idx(idx)
+NativeWorker::NativeWorker(int idx, bool repl) : 
+    m_Idx(idx), m_RunREPL(repl)
 {
 
 }
@@ -230,22 +243,18 @@ int NativeWorker::run(int argc, char **argv)
     /*
         Daemon requires a .js to load
     */
-    if (0) {
-        if (!ctx.getNJS()->LoadScript(argv[argc-1])) {
-            return 1;
-        }
-        
-    } else {
-#ifdef DEBUG
-        printf("[Warn] Running in Debug mode\n");
-#endif
-        if (argc > 1) {
-            ctx.getNJS()->LoadScript(argv[argc-1]);
-        }
 
-        /* Heap allocated because we need to be
-        sure that it's deleted before NativeJS */
-        //repl = new NativeREPL(ctx.getNJS());
+#ifdef DEBUG
+    printf("[Warn] Running in Debug mode\n");
+#endif
+    if (argc >= 1) {
+        ctx.getNJS()->LoadScript(argv[0]);
+    }
+
+    /* Heap allocated because we need to be
+    sure that it's deleted before NativeJS */
+    if (m_RunREPL) {
+        repl = new NativeREPL(ctx.getNJS());
     }
 
     events_loop(net);
