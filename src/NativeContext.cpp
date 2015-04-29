@@ -13,7 +13,7 @@
 #include <native_netlib.h>
 
 
-int NativeContext_ping(void *arg)
+static int NativeContext_ping(void *arg)
 {
     static uint64_t framecount = 0;
     NativeJS *js = (NativeJS *)arg;
