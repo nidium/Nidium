@@ -84,8 +84,6 @@ void NativeServer::wait()
             }
         }
     }
-
-    printf("Main process ended\n");
 }
 
 int NativeServer::initWorker(int *idx)
