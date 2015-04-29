@@ -225,6 +225,19 @@ NativeWorker::~NativeWorker()
 
 }
 
+static int NativeCheckParentAlive_ping(void *arg)
+{
+    pid_t ppid = getppid();
+    /*
+        If the parent's pid is 0 or 1, it means that our parent is dead. Exit.
+    */
+    if (ppid == 0 || ppid == 1) {
+        exit(0);
+    }
+
+    return 1000;
+}
+
 int NativeWorker::run(int argc, char **argv)
 {
     NativeREPL *repl = NULL;
@@ -255,6 +268,7 @@ int NativeWorker::run(int argc, char **argv)
         repl = new NativeREPL(ctx.getNJS());
     }
 
+    add_timer(&net->timersng, 1, NativeCheckParentAlive_ping, NULL);
     events_loop(net);
 
     if (repl) {
