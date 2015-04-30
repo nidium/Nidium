@@ -33,7 +33,6 @@
 
 #define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    (void)args;\
     JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
     if (!thisobj) { \
         JS_ReportError(cx, "Illegal invocation"); \
@@ -43,7 +42,8 @@
     if (!CppObj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
-    }
+    } \
+    args.rval().setUndefined();
 
 #define NATIVE_CHECK_ARGS(fnname, minarg) \
     if (argc < minarg) { \
