@@ -25,7 +25,8 @@
 enum {
     SOCKET_PROP_BINARY,
     SOCKET_PROP_READLINE,
-    SOCKET_PROP_ENCODING
+    SOCKET_PROP_ENCODING,
+    SOCKET_PROP_TIMEOUT
 };
 
 /* only use on connected clients */
@@ -88,6 +89,8 @@ static JSPropertySpec Socket_props[] = {
     JSOP_WRAPPER(native_socket_prop_set)},
     {"encoding", SOCKET_PROP_ENCODING, 0, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_socket_prop_set)},
+    {"timeout", SOCKET_PROP_TIMEOUT, 0, JSOP_NULLWRAPPER,
+    JSOP_WRAPPER(native_socket_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -148,6 +151,21 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
             if (vp.isString()) {
                 JSAutoByteString enc(cx, vp.toString());
                 nsocket->m_Encoding = strdup(enc.ptr());
+            }
+        }
+        break;
+        case SOCKET_PROP_TIMEOUT:
+        {
+            if (vp.isNumber()) {
+                int timeout = vp.toInt32();
+
+                nsocket->m_TCPTimeout = APE_ABS(vp.toInt32());
+
+                if (nsocket->socket &&
+                    !APE_socket_setTimeout(nsocket->socket, nsocket->m_TCPTimeout)) {
+
+                        JS_ReportWarning(cx, "Couldn't set TCP timeout on socket");
+                }
             }
         }
         break;
@@ -553,6 +571,12 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 
     CppObj->socket     = socket;
 
+    if (CppObj->m_TCPTimeout) {
+        if (!APE_socket_setTimeout(socket, CppObj->m_TCPTimeout)) {
+            JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
+        }
+    }
+
     if (APE_socket_listen(socket, CppObj->port, CppObj->host, 0, 0) == -1) {
         JS_ReportError(cx, "Can't listen on socket (%s:%d)", CppObj->host,
             CppObj->port);
@@ -612,6 +636,12 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 
     CppObj->socket   = socket;
 
+    if (CppObj->m_TCPTimeout) {
+        if (!APE_socket_setTimeout(socket, CppObj->m_TCPTimeout)) {
+            JS_ReportWarning(cx, "Couldn't set TCP timeout on socket\n");
+        }
+    }
+
     if (APE_socket_connect(socket, CppObj->port, CppObj->host, localport) == -1) {
         JS_ReportError(cx, "Can't connect on socket (%s:%d)", CppObj->host,
             CppObj->port);
@@ -636,6 +666,7 @@ static JSBool native_socket_client_sendFile(JSContext *cx,
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.sendFile() Invalid socket (not connected)");
+        args.rval().setInt32(-1);
         return true;
     }
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &file)) {
@@ -660,6 +691,7 @@ static JSBool native_socket_client_write(JSContext *cx,
     if (!CppObj->isAttached()) {
 
         JS_ReportWarning(cx, "socket.write() Invalid socket (not connected)");
+        args.rval().setInt32(-1);
         return true;
     }
 
@@ -705,6 +737,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     if (!CppObj->isAttached()) {
 
         JS_ReportWarning(cx, "socket.write() Invalid socket (not connected)");
+        args.rval().setInt32(-1);
         return true;
     }
 
@@ -748,6 +781,7 @@ static JSBool native_socket_client_close(JSContext *cx,
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
+        args.rval().setInt32(-1);
         return true;
     }
 
@@ -762,6 +796,7 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!CppObj->isAttached()) {
         JS_ReportWarning(cx, "socket.close() Invalid socket (not connected)");
+        args.rval().setInt32(-1);
         return true;
     }
 
@@ -849,7 +884,7 @@ static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
 NativeJSSocket::NativeJSSocket(JSObject *obj, JSContext *cx,
     const char *host, unsigned short port)
     :  NativeJSExposer<NativeJSSocket>(obj, cx),
-    socket(NULL), flags(0), m_ParentServer(NULL)
+    socket(NULL), flags(0), m_ParentServer(NULL), m_TCPTimeout(0)
 {
     this->host = strdup(host);
     this->port = port;

@@ -98,8 +98,9 @@ public:
 
     uint8_t m_FrameDelimiter;
 
-
     NativeJSSocket *m_ParentServer;
+
+    int m_TCPTimeout;
 
 private:
     void readFrame(const char *buf, size_t len);
