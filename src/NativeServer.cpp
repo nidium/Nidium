@@ -150,8 +150,6 @@ int NativeServer::init()
     */
     setenv("POSIXLY_CORRECT", "1", 1);
 
-    const char *pname = m_Args.argv[0];
-
     while ((ch = getopt_long(m_Args.argc, m_Args.argv, "dnw:", long_options, NULL)) != -1) {
         //printf("Got %c (%s)\n", ch, optarg);
         switch (ch) {
