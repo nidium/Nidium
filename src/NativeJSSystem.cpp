@@ -52,7 +52,7 @@ static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
     int fdcounter = 0, sockcounter = 0, othercount = 0;
 
-    for (int i = 0; i <= rl.rlim_cur; i++ ) {
+    for (size_t i = 0; i <= rl.rlim_cur; i++ ) {
         if (fstat(i, &stats) == 0) {
             fdcounter++;
             if ((stats.st_mode & S_IFMT) == S_IFSOCK) {
