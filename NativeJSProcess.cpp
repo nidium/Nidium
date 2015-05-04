@@ -51,7 +51,7 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 
-void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc)
+void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
 {
     JSObject *ProcessObj;
     
@@ -78,6 +78,9 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc)
     }
 
     JS::Value jsargv_v = OBJECT_TO_JSVAL(jsargv);
+    JS::Value workerid_v = JS::Int32Value(workerId);
+
     JS_SetProperty(cx, ProcessObj, "argv", &jsargv_v);
+    JS_SetProperty(cx, ProcessObj, "workerId", &workerid_v);
 }
 
