@@ -271,7 +271,7 @@ protected:
     ape_socket *m_SocketClient;
     NativeHTTPListener *m_HTTPListener;
     NativeHTTPResponse *m_Response;
-    int m_TimeoutTimer;
+    uint64_t m_TimeoutTimer;
     uint64_t m_LastAcitivty;
     int m_ClientTimeoutMs;
 };

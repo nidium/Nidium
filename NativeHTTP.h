@@ -188,7 +188,7 @@ public:
 
     int err;
     uint32_t m_Timeout;
-    int m_TimeoutTimer;
+    uint64_t m_TimeoutTimer;
 
     NativeHTTPDelegate *delegate;
 

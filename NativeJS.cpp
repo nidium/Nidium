@@ -1092,7 +1092,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
     params->timerng->clearfunc = native_timer_deleted;
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
+    JS_SET_RVAL(cx, vp, JS_NumberValue(params->timerng->identifier));
 
     return JS_TRUE;
 }
@@ -1146,21 +1146,21 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
     params->timerng->clearfunc = native_timer_deleted;
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(params->timerng->identifier));
+    JS_SET_RVAL(cx, vp, JS_NumberValue(params->timerng->identifier));
 
     return JS_TRUE; 
 }
 
 static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
-    unsigned int identifier;
+    double identifier;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "i", &identifier)) {
+    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &identifier)) {
         return false;
     }
 
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
-        identifier, 0);
+        (uint64_t)identifier, 0);
 
     return JS_TRUE;    
 }
