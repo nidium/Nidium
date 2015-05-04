@@ -157,8 +157,6 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
         case SOCKET_PROP_TIMEOUT:
         {
             if (vp.isNumber()) {
-                int timeout = vp.toInt32();
-
                 nsocket->m_TCPTimeout = APE_ABS(vp.toInt32());
 
                 if (nsocket->socket &&

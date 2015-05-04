@@ -45,7 +45,12 @@ public:
 
     NativeHTTPListener(uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeHTTPListener();
-    bool start(bool reuseport = false);
+
+    /*
+        @param reuseport true to allow the server to re use the listening port
+        @param timeout <seconds> to set a TCP keepalive timeout
+    */
+    bool start(bool reuseport = false, int timeout = 0);
     void stop();
 
     ape_socket *getSocket() const {

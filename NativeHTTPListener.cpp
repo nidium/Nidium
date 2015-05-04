@@ -310,7 +310,7 @@ NativeHTTPListener::NativeHTTPListener(uint16_t port, const char *ip)
     m_Port = port;
 }
 
-bool NativeHTTPListener::start(bool reuseport)
+bool NativeHTTPListener::start(bool reuseport, int timeout)
 {
     if (!m_Socket) {
         return false;
@@ -323,6 +323,10 @@ bool NativeHTTPListener::start(bool reuseport)
     m_Socket->callbacks.on_drain      = NULL;
     m_Socket->callbacks.arg           = NULL;
     m_Socket->ctx = this;
+
+    if (timeout) {
+        APE_socket_setTimeout(m_Socket, timeout);
+    }
 
     return (APE_socket_listen(m_Socket, m_Port, m_IP, 1, (int)reuseport) != -1);
 }
