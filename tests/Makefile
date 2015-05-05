@@ -1,8 +1,8 @@
 CC=clang++
 VALGRIND=valgrind
 
-CC_FLAGS=-Wall -Wextra
- LD_FLAGS=-lstdc++ -lpthread -lz -lrt -ldl
+CC_FLAGS=-g -O2 -Wall -Wextra
+LD_FLAGS=-g -O2
 
 GTEST_DIR=../../third-party/.default/angle/third_party/googletest
 GTEST_LIB=$(GTEST_DIR)/libgtest.a $(GTEST_DIR)/libgtest_main.a
@@ -25,13 +25,38 @@ INCLUDES= \
 
 LIBS = \
 	-Wl,--start-group \
-		-Wl,-Bstatic \
-		$(shell find ../../build/out/Release/obj.target/ -type f -name '*.a' ) \
+		-Wl,-Bdynamic \
+		-L../../build/out/Release/obj.target/gyp/ -lnativeinterface \
+		-L../../build/out/Release/obj.target/gyp/ -ltranslator_glsl \
+		-L../../build/out/Release/obj.target/gyp/ -lnativeav \
+		-L../../build/out/Release/obj.target/gyp/ -lnativestudio \
+		-L../../build/out/Release/obj.target/gyp/ -ltranslator_common \
+		-L../../build/out/Release/obj.target/gyp/ -lpreprocessor \
+		-L../../build/out/Release/obj.target/nativejscore/gyp/ -lnativejscore \
+		-L../../build/out/Release/obj.target/nativejscore/gyp/ -ljsoncpp \
+		-L../../build/out/Release/obj.target/nativejscore/network/gyp/ -lnativenetwork \
 	-Wl,--end-group \
 	-Wl,--start-group \
 		-Wl,-Bdynamic \
-		$(shell find ../../build/third-party/.default/ -type f -name '*.a' ) \
+		-L../../build/third-party/.default \
+		-lavutil \
+		-lbasekit \
+		-lcares \
+		-lcoroutine \
+		-lhttp_parser \
+		-lleveldb \
+		-lportaudio \
+		-lSDL2 \
+		-lssl -lcrypto \
+		-ljs_static -lnspr4 \
+		-lavcodec -lavformat \
+		-lswresample -lswscale \
+		-lskia_core -lskia_effects -lskia_images -lskia_opts -lskia_opts_ssse3 -lskia_pdf -lskia_ports -lskia_sfnt -lskia_skgpu -lskia_utils \
+		-lzip \
+		-lzita-resampler \
 	-Wl,--end-group \
+	-Wl,-Bdynamic \
+		-lstdc++ -lpthread -lz -lrt -ldl
 
 TEST_OBJECTS=unittest_utils.o 
 	
