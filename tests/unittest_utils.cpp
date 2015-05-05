@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <gtest/gtest.h>
+#include "unittest.h"
 
 #include <ape_sha1.h>
 #include <ape_base64.h>
@@ -17,11 +17,11 @@ TEST(NativeUtils, NativeNoncopyable)
 
 TEST(NativeUtils, NativeTick)
 {
-        uint64_t tick;
-        NativeUtils nu;
+	uint64_t tick;
+	NativeUtils nu;
 
-        tick = nu.getTick(true);
-        EXPECT_TRUE(tick > 10);
+	tick = nu.getTick(true);
+	EXPECT_TRUE(tick > 10);
 }
 
 TEST(NativeUtils, Utf8)

@@ -1,8 +1,9 @@
 CC=clang++
 VALGRIND=valgrind
 
-CC_FLAGS=-g -O2 -Wall -Wextra
 LD_FLAGS=-g -O2
+CC_FLAGS=-g -O2 -Wall -Wextra 
+#-DNATIVE_NO_PRIVATE_DIR
 
 GTEST_DIR=../../third-party/.default/angle/third_party/googletest
 GTEST_LIB=$(GTEST_DIR)/libgtest.a $(GTEST_DIR)/libgtest_main.a
@@ -58,9 +59,44 @@ LIBS = \
 	-Wl,-Bdynamic \
 		-lstdc++ -lpthread -lz -lrt -ldl
 
-TEST_OBJECTS=unittest_utils.o 
-	
+TEST_OBJECTS=unittest_0.o \
+	unittest_utils.o \
+	unittest_nfs.o \
+
+TODO =\
+	unittest_db.o \
+	unittest_websocket.o \
+	unittest_httpstream.o \
+	unittest_httplistener.o \
+	unittest_http.o \
+	unittest_filestream.o \
+	unittest_file.o \
+	unittest_taskmanager.o \
+	unittest_streaminterface.o \
+	unittest_sharedmessages.o \
+	unittest_path.o \
+	unittest_nfsstream.o \
+	unittest_messages.o \
+	unittest_jsexposer.o \
+	unittest_jsmodules.o \
+	unittest_jswebsocket.o \
+	unittest_jsutils.o \
+	unittest_Jsthread.o \
+	unittest_jsstream.o \
+	unittest_jssocket.o \
+	unittest_jsprofiler.o \
+	unittest_jsprocess.o \
+	unittest_jshttplistener.o \
+	unittest_jshttp.o \
+	unittest_jsfs.o \
+	unittest_jsfileio.o \
+	unittest_jsdebug.o \
+	unittest_jsconsole.o \
+	unittest_js.o \
+
 TEST_EXEC=run_unittests
+
+unittest_db.o:			EXCEPTION = 
 
 all: $(TEST_EXEC)
 
@@ -70,13 +106,15 @@ $(TEST_EXEC): $(TEST_OBJECTS)
 	@echo "Run\t" $@
 	$(VALGRIND) ./$@
 
+
 unittest_%.o: unittest_%.cpp
 	@echo "CC\t" $@
-	@$(CC) $(CC_FLAGS) -o $@ -c $< $(INCLUDES)
+	@$(CC) $(CC_FLAGS) -o $@ -c $< $(EXCEPTION) $(INCLUDES)
 
 .PHONY: clean
 
 clean:
 	@echo "rm\t" $@
 	@rm -rf $(TEST_EXEC) $(TEST_OBJECTS)
+
 
