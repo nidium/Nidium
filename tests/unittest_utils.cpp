@@ -52,3 +52,12 @@ TEST(Common, ConstStrLenMacro)
 
 }
 
+TEST(Common, NativeTick)
+{
+        uint64_t tick;
+        NativeUtils nu;
+
+        tick = nu.getTick(true);
+        EXPECT_TRUE( tick > 10);
+
+}

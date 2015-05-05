@@ -1,29 +1,37 @@
-CC=clang
+CC=clang++
 VALGRIND=valgrind
 
 CC_FLAGS=-Wall -Wextra
-LD_FLAGS=-lstdc++ -lpthread -lz
+ LD_FLAGS=-lstdc++ -lpthread -lz -lrt -ldl
 
 GTEST_DIR=../../third-party/.default/angle/third_party/googletest
 GTEST_LIB=$(GTEST_DIR)/libgtest.a $(GTEST_DIR)/libgtest_main.a
 
 INCLUDES= \
-        -isystem../../third-party/.default/c-ares \
-        -isystem../../third-party/mozilla-central/js/src/dist/include \
-        -isystem../../third-party/mozilla-central/js/src \
-        -isystem../../third-party/mozilla-central/nsprpub/dist/include/nspr \
-        -isystem../../third-party/leveldb/include \
-        -isystem../../third-party/http-parser \
-        -isystem../../nativejscore \
-        -isystem../../nativejscore/network \
-        -isystem../../third-party/c-ares \
-        -isystem../../third-party/openssl/include \
-        -isystem../../nativejscore/external/json \
-        -isystem../../nativejscore/network \
-        -I../ \
-        -isystem $(GTEST_DIR)/include/
-LIBS=../../build/out/Release/obj.target/nativejscore/network/gyp/libnativenetwork.a \
-        ../../build/out/Release/obj.target/nativejscore/gyp/libnativejscore.a
+	-isystem../../third-party/.default/c-ares \
+	-isystem../../third-party/mozilla-central/js/src/dist/include \
+	-isystem../../third-party/mozilla-central/js/src \
+	-isystem../../third-party/mozilla-central/nsprpub/dist/include/nspr \
+	-isystem../../third-party/leveldb/include \
+	-isystem../../third-party/http-parser \
+	-isystem../../nativejscore \
+	-isystem../../nativejscore/network \
+	-isystem../../third-party/c-ares \
+	-isystem../../third-party/openssl/include \
+	-isystem../../nativejscore/external/json \
+	-isystem../../nativejscore/network \
+	-I../ \
+	-isystem $(GTEST_DIR)/include/
+
+LIBS = \
+	-Wl,--start-group \
+		-Wl,-Bstatic \
+		$(shell find ../../build/out/Release/obj.target/ -type f -name '*.a' ) \
+	-Wl,--end-group \
+	-Wl,--start-group \
+		-Wl,-Bdynamic \
+		$(shell find ../../build/third-party/.default/ -type f -name '*.a' ) \
+	-Wl,--end-group \
 
 TEST_OBJECTS=unittest_utils.o 
 	
@@ -33,7 +41,7 @@ all: $(TEST_EXEC)
 
 $(TEST_EXEC): $(TEST_OBJECTS)
 	@echo "LD\t" $@
-	@$(CC) $(LD_FLAGS) -o $@ $(LIBS) $^ $(GTEST_LIB)
+	@$(CC) $(LD_FLAGS) -o $@ $^ $(LIBS) $(GTEST_LIB)
 	@echo "Run\t" $@
 	$(VALGRIND) ./$@
 
