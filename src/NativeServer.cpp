@@ -18,6 +18,7 @@
 
 #include <NativeJSProcess.h>
 
+#define NATIVE_SERVER_VERSION "0.1"
 #define NATIVE_MAX_WORKERS 64
 
 int ape_running = 1;
@@ -65,6 +66,11 @@ void NativeServer::wait()
 {
     int pid;
     int state;
+
+    if (m_HasREPL) {
+        this->displayVersion();
+    }
+
     while ((pid = waitpid(-1, &state, 0))) {
         if (errno == ECHILD) {
             break;
@@ -84,6 +90,13 @@ void NativeServer::wait()
             }
         }
     }
+}
+
+void NativeServer::displayVersion()
+{
+#include "NativeASCII.h"
+    fprintf(stdout, native_ascii, NATIVE_SERVER_VERSION,
+        __DATE__, __TIME__, getpid(), m_NWorkers);
 }
 
 int NativeServer::initWorker(int *idx)
@@ -191,6 +204,7 @@ int NativeServer::init()
     }
 
     if (workers) {
+        m_NWorkers = workers;
         for (int i = 0; i < workers; i++) {
             int idx = 0;
             if (this->initWorker(&idx) == 0) {
@@ -208,7 +222,7 @@ int NativeServer::init()
 }
 
 NativeServer::NativeServer(int argc, char **argv) : 
-    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true)
+    m_WorkerIdx(0), m_InstanceName(NULL), m_HasREPL(true), m_NWorkers(0)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;

@@ -35,6 +35,7 @@ private:
     void daemonize(int pidfile = 0);
     int initWorker(int *idx);
     void wait();
+    void displayVersion();
 
     struct {
         int argc;
@@ -47,6 +48,7 @@ private:
 
     char *m_InstanceName;
     bool m_HasREPL;
+    int m_NWorkers;
 };
 
 class NativeWorker
