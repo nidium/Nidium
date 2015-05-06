@@ -18,7 +18,7 @@
 
 #include <NativeJSProcess.h>
 
-#define NATIVE_SERVER_VERSION "0.1"
+#define NATIVE_SERVER_VERSION "0.2-dev"
 #define NATIVE_MAX_WORKERS 64
 
 int ape_running = 1;
