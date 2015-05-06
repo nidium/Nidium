@@ -62,6 +62,7 @@ LIBS = \
 TEST_OBJECTS=unittest_0.o \
 	unittest_utils.o \
 	unittest_nfs.o \
+	unittest_path.o \
 
 TODO =\
 	unittest_db.o \
@@ -74,7 +75,6 @@ TODO =\
 	unittest_taskmanager.o \
 	unittest_streaminterface.o \
 	unittest_sharedmessages.o \
-	unittest_path.o \
 	unittest_nfsstream.o \
 	unittest_messages.o \
 	unittest_jsexposer.o \
