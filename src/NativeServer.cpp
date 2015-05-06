@@ -249,7 +249,8 @@ int NativeWorker::run(int argc, char **argv)
 
     NativeContext ctx(net, this);
     const NativeJS *js = ctx.getNJS();
-    NativeJSProcess::registerObject(js->getJSContext(), argv, argc);
+    NativeJSProcess::registerObject(js->getJSContext(), argv, argc,
+        this->getIdentifier());
 
     /*
         Daemon requires a .js to load
