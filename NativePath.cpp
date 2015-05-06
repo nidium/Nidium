@@ -198,6 +198,17 @@ void NativePath::registerScheme(const NativePath::schemeInfo &scheme,
     }
 }
 
+void NativePath::unRegisterSchemes()
+{
+    schemeInfo *scheme;
+
+    for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
+        scheme = &NativePath::g_m_Schemes[i];
+        free((char*)scheme->str);
+    }
+    NativePath::g_m_SchemesCount = 0;
+}
+
 NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL)
 {
     for (int i = 0; i < NativePath::g_m_SchemesCount; i++) {
@@ -336,3 +347,4 @@ char *NativePath::sanitize(const char *path, bool *external, bool relative)
     }
     return strdup(finalPath.c_str());
 }
+
