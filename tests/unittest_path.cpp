@@ -142,11 +142,13 @@ TEST(NativePath, Changes)
 	EXPECT_TRUE(strcmp(path.dir(), "/tmp/") == 0);
 }
 
+#if 0
 TEST(NativePath, Cleanup)
 {
 	NativePath::unRegisterSchemes();
 	EXPECT_EQ(NativePath::g_m_SchemesCount, 0);
 }
+#endif
 
 //@TODO: const char * NativePath::currentJSCaller(JSContext *cx)
 //@TODO: static char *sanitize(const char *path, bool *external = NULL, bool relative = true);

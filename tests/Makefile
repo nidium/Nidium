@@ -63,11 +63,12 @@ TEST_OBJECTS=unittest_0.o \
 	unittest_utils.o \
 	unittest_nfs.o \
 	unittest_path.o \
+	unittest_websocket.o \
+	unittest_httpstream.o \
+	unittest_args.o \
 
 TODO =\
 	unittest_db.o \
-	unittest_websocket.o \
-	unittest_httpstream.o \
 	unittest_httplistener.o \
 	unittest_http.o \
 	unittest_filestream.o \
