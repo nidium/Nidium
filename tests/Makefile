@@ -61,40 +61,40 @@ LIBS = \
 
 TEST_OBJECTS=unittest_0.o \
 	unittest_utils.o \
-	unittest_nfs.o \
-	unittest_path.o \
-	unittest_websocket.o \
-	unittest_httpstream.o \
 	unittest_args.o \
 	unittest_hash.o \
+	unittest_sharedmessages.o \
+	unittest_messages.o \
+	unittest_events.o \
+	unittest_istreamer.o \
+	unittest_path.o \
+	unittest_nfs.o \
+	unittest_websocket.o \
+	unittest_httpstream.o \
 
 TODO =\
 	unittest_db.o \
 	unittest_httplistener.o \
 	unittest_http.o \
-	unittest_filestream.o \
-	unittest_file.o \
-	unittest_taskmanager.o \
 	unittest_streaminterface.o \
-	unittest_sharedmessages.o \
+	unittest_taskmanager.o \
+	unittest_file.o \
+	unittest_filestream.o \
 	unittest_nfsstream.o \
-	unittest_messages.o \
+	unittest_js.o \
 	unittest_jsexposer.o \
-	unittest_jsmodules.o \
-	unittest_jswebsocket.o \
 	unittest_jsutils.o \
+	unittest_jsmodules.o \
 	unittest_Jsthread.o \
 	unittest_jsstream.o \
-	unittest_jssocket.o \
 	unittest_jsprofiler.o \
-	unittest_jsprocess.o \
-	unittest_jshttplistener.o \
-	unittest_jshttp.o \
 	unittest_jsfs.o \
 	unittest_jsfileio.o \
+	unittest_jsprocess.o \
+	unittest_jshttp.o \
+	unittest_jswebsocket.o \
 	unittest_jsdebug.o \
 	unittest_jsconsole.o \
-	unittest_js.o \
 
 TEST_EXEC=run_unittests
 
