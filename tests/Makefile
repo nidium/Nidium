@@ -66,6 +66,7 @@ TEST_OBJECTS=unittest_0.o \
 	unittest_websocket.o \
 	unittest_httpstream.o \
 	unittest_args.o \
+	unittest_hash.o \
 
 TODO =\
 	unittest_db.o \
