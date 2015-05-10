@@ -66,6 +66,7 @@ TEST_OBJECTS=unittest_0.o \
 	unittest_sharedmessages.o \
 	unittest_messages.o \
 	unittest_events.o \
+	unittest_taskmanager.o \
 	unittest_istreamer.o \
 	unittest_path.o \
 	unittest_nfs.o \
@@ -77,7 +78,6 @@ TODO =\
 	unittest_httplistener.o \
 	unittest_http.o \
 	unittest_streaminterface.o \
-	unittest_taskmanager.o \
 	unittest_file.o \
 	unittest_filestream.o \
 	unittest_nfsstream.o \
