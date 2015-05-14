@@ -72,19 +72,19 @@ TEST_OBJECTS=unittest_0.o \
 	unittest_nfs.o \
 	unittest_websocket.o \
 	unittest_httpstream.o \
+	unittest_js.o \
+	unittest_jsmodules.o \
+	unittest_file.o \
 
 TODO =\
 	unittest_db.o \
 	unittest_httplistener.o \
 	unittest_http.o \
 	unittest_streaminterface.o \
-	unittest_file.o \
 	unittest_filestream.o \
 	unittest_nfsstream.o \
-	unittest_js.o \
 	unittest_jsexposer.o \
 	unittest_jsutils.o \
-	unittest_jsmodules.o \
 	unittest_Jsthread.o \
 	unittest_jsstream.o \
 	unittest_jsprofiler.o \

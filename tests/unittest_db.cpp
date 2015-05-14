@@ -7,6 +7,9 @@
 
 static const char * secret = "tetetetetetetetet";
 
+#include "NativeSystem.h"
+NativeSystemInterface *NativeSystemInterface::_interface = new NativeSystem();
+
 TEST(NativeDB, Simple)
 {
 	bool inserted, success;
