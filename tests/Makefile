@@ -60,6 +60,9 @@ LIBS = \
 		-lstdc++ -lpthread -lz -lrt -ldl
 
 TEST_OBJECTS=unittest_0.o \
+	unittest_http.o \
+
+e = \
 	unittest_utils.o \
 	unittest_args.o \
 	unittest_hash.o \
@@ -68,6 +71,7 @@ TEST_OBJECTS=unittest_0.o \
 	unittest_events.o \
 	unittest_taskmanager.o \
 	unittest_istreamer.o \
+	unittest_streaminterface.o \
 	unittest_path.o \
 	unittest_nfs.o \
 	unittest_websocket.o \
@@ -79,8 +83,6 @@ TEST_OBJECTS=unittest_0.o \
 TODO =\
 	unittest_db.o \
 	unittest_httplistener.o \
-	unittest_http.o \
-	unittest_streaminterface.o \
 	unittest_filestream.o \
 	unittest_nfsstream.o \
 	unittest_jsexposer.o \
