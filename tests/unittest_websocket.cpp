@@ -5,7 +5,7 @@
 
 #include <NativeWebSocket.h>
 
-TEST(Websocket, Simple)
+TEST(NativeWebsocket, Simple)
 {
 	ape_global * g_ape;
 	ape_socket *socket;
