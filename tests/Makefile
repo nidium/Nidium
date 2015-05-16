@@ -60,9 +60,15 @@ LIBS = \
 		-lstdc++ -lpthread -lz -lrt -ldl
 
 TEST_OBJECTS=unittest_0.o \
-	unittest_jswebsocket.o \
+	unittest_jsprofiler.o \
 
 e = \
+	unittest_jsprocess.o \
+	unittest_jssocket.o \
+	unittest_jsstream.o \
+	unittest_path.o \
+	unittest_jswebsocket.o \
+	unittest_jsthread.o \
 	unittest_jsutils.o \
 	unittest_filestream.o \
 	unittest_nfsstream.o \
@@ -75,7 +81,6 @@ e = \
 	unittest_taskmanager.o \
 	unittest_istreamer.o \
 	unittest_streaminterface.o \
-	unittest_path.o \
 	unittest_nfs.o \
 	unittest_http.o \
 	unittest_websocket.o \
@@ -88,12 +93,8 @@ TODO =\
 	unittest_db.o \
 	unittest_httplistener.o \
 	unittest_jsexposer.o \
-	unittest_Jsthread.o \
-	unittest_jsstream.o \
-	unittest_jsprofiler.o \
 	unittest_jsfs.o \
 	unittest_jsfileio.o \
-	unittest_jsprocess.o \
 	unittest_jshttp.o \
 	unittest_jsdebug.o \
 	unittest_jsconsole.o \

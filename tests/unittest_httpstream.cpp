@@ -5,7 +5,7 @@
 
 #include <NativeHTTPStream.h>
 
-TEST(HttpStream, Simple)
+TEST(NativeHttpStream, Simple)
 {
 	ape_global * g_ape;
 

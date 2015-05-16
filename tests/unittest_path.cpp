@@ -155,5 +155,15 @@ TEST(NativePath, Cleanup)
 //@TODO: NativeBaseStream *createStream(bool onlySync = false) const {
 //@TODO: Constructor with allowAll and noFilter variants
 
+#if 0 
+//FIXME: do not register already existing path
+TEST(NativePath, Reregister)
+{
+	EXPECT_EQ(NativePath::g_m_SchemesCount, 2);
+	NativePath::registerScheme(SCHEME_DEFINE("http://",    NativeHTTPStream,    true));
+	EXPECT_EQ(NativePath::g_m_SchemesCount, 2);
+}
+#endif
+
 #undef MAX_PATH_LENGTH
 

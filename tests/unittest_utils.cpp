@@ -108,7 +108,7 @@ TEST(NativeUtils, HttpTime)
 	EXPECT_TRUE(strlen(buf) > 0);
 }
 
-TEST(Utils, MinMax)
+TEST(NativeUtils, MinMax)
 {
 	size_t mini, maxi;
 	long minil, maxil;
