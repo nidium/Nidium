@@ -92,7 +92,7 @@ class NativePtrAutoDelete {
 
     ~NativePtrAutoDelete() {
         if (!m_Free) {
-            delete m_Ptr;
+            delete (T) m_Ptr;
         } else {
             m_Free(m_Ptr);
         }
