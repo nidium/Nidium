@@ -809,7 +809,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
         return 0;
     }
 
-    if (JS_CallFunction(cx, gbl, cf, 0, NULL, ret) == JS_FALSE) {
+    if (JS_CallFunction(cx, gbl, cf, 0, NULL, ret) == false) {
         printf("Got an error?\n"); /* or thread has ended */
 
         return 0;
@@ -1053,7 +1053,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     if (params == NULL || argc < 2) {
         if (params) free(params);
-        return JS_TRUE;
+        return true;
     }
 
     params->cx = cx;
@@ -1069,7 +1069,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
         free(params->argv);
         free(params);
-        return JS_TRUE;
+        return true;
     }
 
     if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
@@ -1094,7 +1094,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, JS_NumberValue(params->timerng->identifier));
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
@@ -1107,7 +1107,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 
     if (params == NULL || argc < 2) {
         if (params) free(params);
-        return JS_TRUE;
+        return true;
     }
 
     params->cx = cx;
@@ -1121,7 +1121,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
         free(params->argv);
         free(params);
-        return JS_TRUE;
+        return true;
     }
 
     if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
@@ -1148,7 +1148,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, JS_NumberValue(params->timerng->identifier));
 
-    return JS_TRUE; 
+    return true; 
 }
 
 static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
@@ -1162,7 +1162,7 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
     clear_timer_by_id(&((ape_global *)JS_GetContextPrivate(cx))->timersng,
         (uint64_t)identifier, 0);
 
-    return JS_TRUE;    
+    return true;    
 }
 
 static int native_timerng_wrapper(void *arg)

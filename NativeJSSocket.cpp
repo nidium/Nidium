@@ -108,19 +108,19 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
         {
             if (vp.isBoolean()) {
 
-                nsocket->flags = (vp.toBoolean() == JS_TRUE ?
+                nsocket->flags = (vp.toBoolean() == true ?
                     nsocket->flags | NATIVE_SOCKET_ISBINARY :
                     nsocket->flags & ~NATIVE_SOCKET_ISBINARY);
 
             } else {
                 vp.set(JSVAL_FALSE);
-                return JS_TRUE;
+                return true;
             }
         }
         break;
         case SOCKET_PROP_READLINE:
         {
-            bool isactive = ((vp.isBoolean() && vp.toBoolean() == JS_TRUE) || vp.isInt32());
+            bool isactive = ((vp.isBoolean() && vp.toBoolean() == true) || vp.isInt32());
 
             if (isactive) {
 
@@ -142,7 +142,7 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
                 nsocket->flags &= ~NATIVE_SOCKET_READLINE;
                 
                 vp.set(JSVAL_FALSE);
-                return JS_TRUE;
+                return true;
             }
         }
         break;
@@ -170,7 +170,7 @@ static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
         default:
             break;
     }
-    return JS_TRUE;
+    return true;
 }
 
 static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
@@ -539,7 +539,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
     if (CppObj->isAttached()) {
-        return JS_TRUE;
+        return true;
     }
 
     if (args.length() > 0) {
@@ -579,7 +579,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
         JS_ReportError(cx, "Can't listen on socket (%s:%d)", CppObj->host,
             CppObj->port);
         /* TODO: close() leak */
-        return JS_FALSE;
+        return false;
     }
 
     NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
@@ -588,7 +588,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 
     CppObj->flags |= NATIVE_SOCKET_ISSERVER;
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
@@ -768,7 +768,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_socket_client_close(JSContext *cx,
@@ -811,14 +811,14 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == false) {
         return false;
     }
 
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(caller);
 
     if (nsocket == NULL || !nsocket->isAttached()) {
-        return JS_TRUE;
+        return true;
     }
 
     if (!(nsocket->flags & NATIVE_SOCKET_ISSERVER)) {

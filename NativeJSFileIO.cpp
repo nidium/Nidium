@@ -193,7 +193,7 @@ static JSBool native_file_prop_get(JSContext *cx, JSHandleObject obj,
 
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 #if 0
@@ -255,7 +255,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, NJSFIO);
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
@@ -266,7 +266,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -326,7 +326,7 @@ static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -348,7 +348,7 @@ static JSBool native_file_rmrf(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -369,7 +369,7 @@ static JSBool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -410,7 +410,7 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
     NativeFile *file;
     double read_size;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -454,7 +454,7 @@ static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
     NativeFile *file;
     double seek_pos;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -491,7 +491,7 @@ static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -505,7 +505,7 @@ static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
 #endif
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
@@ -519,7 +519,7 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("open", 2);
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 
@@ -572,7 +572,7 @@ static JSBool native_file_closeSync(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == JS_FALSE) {
+    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
         return false;
     }
 

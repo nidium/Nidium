@@ -83,9 +83,9 @@ static JSBool JSThreadCallback(JSContext *cx)
 
     if ((nthread = (NativeJSThread *)JS_GetContextPrivate(cx)) == NULL ||
         nthread->markedStop) {
-        return JS_FALSE;
+        return false;
     }
-    return JS_TRUE;
+    return true;
 }
 
 static void *native_thread(void *arg)
@@ -184,7 +184,7 @@ static void *native_thread(void *arg)
     }
 
     if (JS_CallFunction(tcx, gbl, cf, nthread->params.argc,
-        arglst, &rval) == JS_FALSE) {
+        arglst, &rval) == false) {
     }
 
     JS_EndRequest(tcx);
@@ -211,12 +211,12 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSThread *nthread;
     JSObject *caller = JS_THIS_OBJECT(cx, vp);
 
-    if (JS_InstanceOf(cx, caller, &Thread_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    if (JS_InstanceOf(cx, caller, &Thread_class, JS_ARGV(cx, vp)) == false) {
+        return true;
     }    
 
     if ((nthread = (NativeJSThread *)JS_GetPrivate(caller)) == NULL) {
-        return JS_TRUE;
+        return true;
     }
 
     nthread->params.argv = (argc ?
@@ -242,7 +242,7 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
 
     nthread->njs->rootObjectUntilShutdown(caller);
 
-    return JS_TRUE;
+    return true;
 }
 
 void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
@@ -306,7 +306,7 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     if ((nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0])) == NULL ||
     	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
     	printf("Failed to read Threaded function\n");
-    	return JS_TRUE;
+    	return true;
     }
 
     nthread->jsObject 	= ret;
@@ -324,7 +324,7 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_DefineFunctions(cx, ret, Thread_funcs);
 
-    return JS_TRUE;
+    return true;
 }
 
 void NativeJSThread::onComplete(jsval *vp)

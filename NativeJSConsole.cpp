@@ -51,7 +51,7 @@ static JSBool native_console_hide(JSContext *cx, unsigned argc,
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->hide();
     }
 #endif
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_console_show(JSContext *cx, unsigned argc,
@@ -60,7 +60,7 @@ static JSBool native_console_show(JSContext *cx, unsigned argc,
 #if 0
     NativeContext::getNativeClass(cx)->getUI()->getConsole(true)->show();
 #endif
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_console_clear(JSContext *cx, unsigned argc,
@@ -74,7 +74,7 @@ static JSBool native_console_clear(JSContext *cx, unsigned argc,
         NativeContext::getNativeClass(cx)->getUI()->getConsole()->clear();
     }
 #endif
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_console_log(JSContext *cx, unsigned argc,

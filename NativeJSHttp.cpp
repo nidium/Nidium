@@ -109,8 +109,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("request", 2);
 
-    if (JS_InstanceOf(cx, caller, &Http_class, JS_ARGV(cx, vp)) == JS_FALSE) {
-        return JS_TRUE;
+    if (JS_InstanceOf(cx, caller, &Http_class, JS_ARGV(cx, vp)) == false) {
+        return true;
     }
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
@@ -254,7 +254,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 void NativeJSHttp::onError(NativeHTTP::HTTPError err)
@@ -423,7 +423,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             }
             chars = JS_GetStringCharsZAndLength(cx, str, &clen);
 
-            if (JS_ParseJSON(cx, chars, clen, &jdata) == JS_FALSE) {
+            if (JS_ParseJSON(cx, chars, clen, &jdata) == false) {
                 jdata = JSVAL_NULL;
                 printf("Cant parse JSON of size %ld :\n===%.*s\n===\n",
                     (unsigned long) h->data->used, (int)h->data->used, h->data->data);

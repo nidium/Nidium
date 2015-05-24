@@ -211,7 +211,7 @@ bool NativeJSModule::initNative()
 
 bool NativeJSModule::initJS()
 {
-#define TRY_OR_DIE(call) if (call == JS_FALSE) { return false; }
+#define TRY_OR_DIE(call) if (call == false) { return false; }
     JSObject *gbl = JS_NewObject(this->cx, &native_modules_exports_class, NULL, NULL);
     if (!gbl) {
         return false;
