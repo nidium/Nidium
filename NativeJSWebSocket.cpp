@@ -110,8 +110,8 @@ static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *v
 
 static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
-
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     return true;
 }
@@ -119,6 +119,7 @@ static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *
 static JSBool native_WebSocketServer_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *localhost, *protocol = NULL;
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
@@ -127,7 +128,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &WebSocketServer_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/S",
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S/S",
         &localhost, &protocol)) {
         return false;
     }

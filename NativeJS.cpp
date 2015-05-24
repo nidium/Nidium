@@ -403,8 +403,9 @@ static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
     JSString *script = NULL;
     char *content;
     size_t len;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &script)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &script)) {
         return false;
     }
     
@@ -1045,9 +1046,10 @@ static int native_timer_deleted(void *arg)
 static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
-
     int ms, i;
-    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *obj = &args.thisv().toObject();
 
     params = (struct _native_sm_timer *)malloc(sizeof(*params));
 
@@ -1066,13 +1068,13 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
     params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
+    if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &params->func)) {
         free(params->argv);
         free(params);
         return true;
     }
 
-    if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+    if (!JS_ConvertArguments(cx, 1, &args.array()[1], "i", &ms)) {
         free(params->argv);
         free(params);
         return false;
@@ -1081,7 +1083,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     JS_AddValueRoot(cx, &params->func);
 
     for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i] = JS_ARGV(cx, vp)[i+2];
+        params->argv[i] = args.array()[i+2];
         JS_AddValueRoot(cx, &params->argv[i]);
     }
 
@@ -1101,7 +1103,9 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
     int ms, i;
-    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *obj = &args.thisv().toObject();
 
     params = (struct _native_sm_timer *)malloc(sizeof(*params));
 
@@ -1118,13 +1122,13 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 
     params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[0], JSTYPE_FUNCTION, &params->func)) {
+    if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &params->func)) {
         free(params->argv);
         free(params);
         return true;
     }
 
-    if (!JS_ConvertArguments(cx, 1, &JS_ARGV(cx, vp)[1], "i", &ms)) {
+    if (!JS_ConvertArguments(cx, 1, &args.array()[1], "i", &ms)) {
         free(params->argv);
         free(params);
         return false;
@@ -1135,7 +1139,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     JS_AddValueRoot(cx, &params->func);
 
     for (i = 0; i < (int)argc-2; i++) {
-        params->argv[i] = JS_ARGV(cx, vp)[i+2];
+        params->argv[i] = args.array()[i+2];
         JS_AddValueRoot(cx, &params->argv[i]);
     }
 
@@ -1155,7 +1159,9 @@ static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     double identifier;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "d", &identifier)) {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
+    if (!JS_ConvertArguments(cx, argc, args.array(), "d", &identifier)) {
         return false;
     }
 

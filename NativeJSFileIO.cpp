@@ -219,6 +219,8 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *opt = NULL;
     jsval curopt;
 
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
         return false;
@@ -226,7 +228,7 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S/o", &url, &opt)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &url, &opt)) {
         return false;
     }
 
@@ -249,7 +251,8 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     NJSFIO->setFile(file);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
+
     JS_DefineFunctions(cx, ret, File_funcs);
     JS_DefineProperties(cx, ret, File_props);   
 
@@ -262,7 +265,8 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
+    
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -322,7 +326,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -344,7 +348,7 @@ static JSBool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_file_rmrf(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -365,7 +369,7 @@ static JSBool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
@@ -404,7 +408,7 @@ static JSBool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -448,7 +452,7 @@ static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -486,7 +490,7 @@ static JSBool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
@@ -512,7 +516,7 @@ static JSBool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 {
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
     JSString *modes;
@@ -567,7 +571,7 @@ static JSBool native_file_writeSync(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_file_closeSync(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NativeJSFileIO *NJSFIO;
     NativeFile *file;

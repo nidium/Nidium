@@ -209,9 +209,10 @@ static void *native_thread(void *arg)
 static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSThread *nthread;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *caller = &args.thisv().toObject();
 
-    if (JS_InstanceOf(cx, caller, &Thread_class, JS_ARGV(cx, vp)) == false) {
+    if (JS_InstanceOf(cx, caller, &Thread_class, args.array()) == false) {
         return true;
     }    
 
@@ -225,7 +226,7 @@ static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
         (size_t *)malloc(sizeof(*nthread->params.nbytes) * argc) : NULL);
 
     for (int i = 0; i < (int)argc; i++) {
-        if (!JS_WriteStructuredClone(cx, JS_ARGV(cx, vp)[i],
+        if (!JS_WriteStructuredClone(cx, args.array()[i],
             &nthread->params.argv[i], &nthread->params.nbytes[i],
             NULL, NULL, JSVAL_VOID)) {
 
@@ -297,13 +298,14 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 
 static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
     JSScript *parent;
 
     NativeJSThread *nthread = new NativeJSThread(ret, cx);
     JSFunction *nfn;
 
-    if ((nfn = JS_ValueToFunction(cx, JS_ARGV(cx, vp)[0])) == NULL ||
+    if ((nfn = JS_ValueToFunction(cx, args.array()[0])) == NULL ||
     	(nthread->jsFunction = JS_DecompileFunction(cx, nfn, 0)) == NULL) {
     	printf("Failed to read Threaded function\n");
     	return true;

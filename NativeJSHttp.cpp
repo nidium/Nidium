@@ -63,6 +63,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *url;
     NativeHTTP *nhttp;
     NativeJSHttp *jshttp;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
@@ -71,7 +72,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Http_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &url)) {
         return false;
     }
 
@@ -101,7 +102,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 #define GET_OPT(name) if (JS_GetProperty(cx, options, name, &curopt) && curopt != JSVAL_VOID && curopt != JSVAL_NULL)
     jsval callback;
     NativeHTTP *nhttp;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *caller = &args.thisv().toObject();
     NativeJSHttp *jshttp;
     JSObject *options = NULL;
     jsval curopt;
@@ -109,17 +111,17 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("request", 2);
 
-    if (JS_InstanceOf(cx, caller, &Http_class, JS_ARGV(cx, vp)) == false) {
+    if (JS_InstanceOf(cx, caller, &Http_class, args.array()) == false) {
         return true;
     }
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
 
-    if (!JS_ConvertArguments(cx, 1, JS_ARGV(cx, vp), "o", &options)) {
+    if (!JS_ConvertArguments(cx, 1, args.array(), "o", &options)) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, JS_ARGV(cx, vp)[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args.array()[1], JSTYPE_FUNCTION, &callback)) {
         return false;
     }
 

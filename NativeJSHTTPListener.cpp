@@ -178,6 +178,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
     JSString *ip_bind = NULL;
     JSBool reuseport = false;
     NativeJSHTTPListener *listener;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
@@ -186,7 +187,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &HTTPListener_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "c/bS",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "c/bS",
         &port, &reuseport, &ip_bind)) {
         return false;
     }
@@ -224,7 +225,7 @@ static JSBool native_HTTPRequest_class_constructor(JSContext *cx,
 static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NATIVE_CHECK_ARGS("write", 1);
 
@@ -260,7 +261,7 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
     if (!resp) {
@@ -297,7 +298,7 @@ static JSBool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval 
     JSObject *headers = NULL;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "c/o",
         &statuscode, &headers)) {

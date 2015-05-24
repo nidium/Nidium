@@ -500,6 +500,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     unsigned int port;
     NativeJSSocket *nsocket;
     JS::Value isBinary = JSVAL_FALSE;
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
@@ -508,7 +509,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JSObject *ret = JS_NewObjectForConstructor(cx, &Socket_class, vp);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "Su",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "Su",
         &host, &port)) {
         return false;
     }
@@ -667,7 +668,7 @@ static JSBool native_socket_client_sendFile(JSContext *cx,
         args.rval().setInt32(-1);
         return true;
     }
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &file)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &file)) {
         return false;
     }
 
@@ -805,11 +806,10 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JSObject *caller = &args.thisv().toObject();
 
     NATIVE_CHECK_ARGS("sendto", 3);
-
-    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == false) {
         return false;

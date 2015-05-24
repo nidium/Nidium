@@ -28,12 +28,12 @@
 
 #define JSNATIVE_PROLOGUE(ofclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) ); \
     ofclass *CppObj = (ofclass *)JS_GetPrivate(thisobj);
 
 #define JSNATIVE_PROLOGUE_CLASS(ofclass, fclass) \
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp)); \
+    JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) ); \
     if (!thisobj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
@@ -156,7 +156,7 @@ private:
     static JSBool native_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, jsval *vp)
     {
-        JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp));
+        JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) );
         if (!thisobj) {
             JS_ReportError(cx, "Illegal invocation");
             return false;

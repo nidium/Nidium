@@ -426,7 +426,7 @@ static JSBool native_profile_tocachegrind(JSContext *cx, unsigned argc, jsval *v
 
     JSString *tmp;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &tmp)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &tmp)) {
         return false;
     }
 

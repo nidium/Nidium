@@ -118,7 +118,7 @@ static JSBool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
     return true;
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject caller(cx, JS_THIS_OBJECT(cx, vp));
+    JS::RootedObject caller(cx, &args.thisv().toObject());
     JSString *path;
 
     NATIVE_CHECK_ARGS("readDir", 2);
