@@ -289,6 +289,7 @@ int NativeWorker::run(int argc, char **argv)
     if (repl) {
         delete repl;
     }
+    native_netlib_destroy(net);
 
     return 0;
 }
