@@ -90,7 +90,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
     /* TODO: store jshttp intead of nhttp */
     JS_SetPrivate(ret, nhttp);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
     JS_DefineFunctions(cx, ret, http_funcs);
 
     return true;
@@ -115,7 +115,7 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         return true;
     }
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(caller));
+    args.rval().setObjectOrNull(caller);
 
     if (!JS_ConvertArguments(cx, 1, args.array(), "o", &options)) {
         return false;

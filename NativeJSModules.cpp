@@ -685,7 +685,7 @@ static JSBool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 
     JS::Value ret = module->require(namestr.ptr());
 
-    JS_SET_RVAL(cx, vp, ret);
+    args.rval().set(ret);
 
     if (ret.isUndefined()) {
         return false;

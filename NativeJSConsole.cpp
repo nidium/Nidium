@@ -170,10 +170,11 @@ static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
 static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->stop();
-    JS::Value val(OBJECT_TO_JSVAL(tracer->getJSObject()));
-    JS_SET_RVAL(cx, vp, val);
+
+    args.rval().setObjectOrNull(tracer->getJSObject());
     return true;
 }
 

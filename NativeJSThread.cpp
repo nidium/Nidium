@@ -322,7 +322,7 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, nthread);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     JS_DefineFunctions(cx, ret, Thread_funcs);
 

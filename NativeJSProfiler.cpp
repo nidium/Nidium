@@ -414,8 +414,7 @@ static JSBool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp)
 	JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
     JS::RootedObject obj(cx, CppObj->toJSObject());
 
-    JS::Value val(OBJECT_TO_JSVAL(obj));
-    JS_SET_RVAL(cx, vp, val);
+    args.rval().setObjectOrNull(obj);
 
     return true;
 }

@@ -1094,7 +1094,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
     params->timerng->clearfunc = native_timer_deleted;
 
-    JS_SET_RVAL(cx, vp, JS_NumberValue(params->timerng->identifier));
+    args.rval().setNumber((double)params->timerng->identifier);
 
     return true;
 }
@@ -1150,7 +1150,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng->flags &= ~APE_TIMER_IS_PROTECTED;
     params->timerng->clearfunc = native_timer_deleted;
 
-    JS_SET_RVAL(cx, vp, JS_NumberValue(params->timerng->identifier));
+    args.rval().setNumber((double)params->timerng->identifier);
 
     return true; 
 }

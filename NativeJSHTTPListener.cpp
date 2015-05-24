@@ -206,7 +206,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
     }
 
     JS_SetPrivate(ret, listener);
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     NativeJSObj(cx)->rootObjectUntilShutdown(ret);
 

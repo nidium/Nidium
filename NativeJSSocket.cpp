@@ -520,7 +520,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, nsocket);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
@@ -585,7 +585,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(thisobj));
+    args.rval().setObjectOrNull(thisobj);
 
     CppObj->flags |= NATIVE_SOCKET_ISSERVER;
 
@@ -649,7 +649,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(thisobj));
+    args.rval().setObjectOrNull(thisobj);
 
     return true;
 }

@@ -164,7 +164,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
 
     JS_SetPrivate(ret, wss);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().setObjectOrNull(ret);
 
     /*
         Server is listening at this point. Don't collect.
