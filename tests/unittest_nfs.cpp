@@ -8,11 +8,11 @@
 
 TEST(NativeNFS, Simple)
 {
-	class NativeNFS * nfs = new NativeNFS();
-	EXPECT_TRUE(nfs != NULL);
-	EXPECT_TRUE(nfs->validateArchive() == false);
-	
-	delete nfs;
+    class NativeNFS * nfs = new NativeNFS();
+    EXPECT_TRUE(nfs != NULL);
+    EXPECT_TRUE(nfs->validateArchive() == false);
+
+    delete nfs;
 }
 
 

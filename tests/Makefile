@@ -24,6 +24,8 @@ INCLUDES= \
 	-I../ \
 	-isystem $(GTEST_DIR)/include/
 
+#	-isystem../../interface/linux -isystem../../interface \
+
 LIBS = \
 	-Wl,--start-group \
 		-Wl,-Bdynamic \
@@ -94,7 +96,8 @@ TEST_OBJECTS=unittest_0.o \
 	unittest_httpstream.o \
 	unittest_js.o \
 	unittest_file.o \
-	unittest_db.o \
+
+#	unittest_db.o \
 
 TEST_EXEC=run_unittests
 

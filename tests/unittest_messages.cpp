@@ -9,37 +9,37 @@ static int dummyState = 0;
 
 class SimpleMessages: NativeMessages{
 public:
-	SimpleMessages(){
-		dummyState = 0;
-	}
-	void onMessage(const NativeSharedMessages::Message &msg){
-		dummyState = 1;
-	};
-	void onMessageLost(const NativeSharedMessages::Message &msg){
-		dummyState = 2;
-	};
-	void delMessages(int event = -1) {
-		dummyState = event;
-		
-	}
+    SimpleMessages() {
+        dummyState = 0;
+    }
+    void onMessage(const NativeSharedMessages::Message &msg) {
+        dummyState = 1;
+    };
+    void onMessageLost(const NativeSharedMessages::Message &msg) {
+        dummyState = 2;
+    };
+    void delMessages(int event = -1) {
+        dummyState = event;
+
+    }
 };
 
 #if 0
 TEST(NativeMessages, Simple)
 {
-	SimpleMessages *m;
-	
-	m = new SimpleMessages();
+    SimpleMessages *m;
 
-	//@FIXME:  segfault
-	m->onMessage(NULL);
-	EXPECT_EQ(dummyState, 1);
-	
-	m->onMessageLost(NULL);
-	EXPECT_EQ(dummyState, 2);
+    m = new SimpleMessages();
 
-	m->delMessages();
-	EXPECT_EQ(dummyState, -1);
+    //@FIXME:  segfault
+    m->onMessage(NULL);
+    EXPECT_EQ(dummyState, 1);
+
+    m->onMessageLost(NULL);
+    EXPECT_EQ(dummyState, 2);
+
+    m->delMessages();
+    EXPECT_EQ(dummyState, -1);
 
 //@TODO: void postMessage(void *dataptr, int event, bool forceAsync = false);
 //@TODO: void postMessage(uint64_t dataint, int event, bool forceAsync = false);
@@ -49,7 +49,8 @@ TEST(NativeMessages, Simple)
 //@TODO: static void destroyReader();
 //@TODO: NativeSharedMessages *getSharedMessages();
 
-	delete m;
+    delete m;
 }
 
 #endif
+

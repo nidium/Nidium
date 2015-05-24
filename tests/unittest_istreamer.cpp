@@ -7,10 +7,10 @@
 
 TEST(NativeIStream, Simple)
 {
-	NativeIStreamer *i;
-	
-	i = new NativeIStreamer();
+    NativeIStreamer *i;
 
-	delete i;
+    i = new NativeIStreamer();
+
+    delete i;
 }
 

@@ -7,13 +7,13 @@
 
 TEST(NativeEvents, Simple)
 {
-	NativeEvents *e;
-	
-	e = new NativeEvents();
-	//@TODO: addListener
-	//@TODO: removeListener
-	//@TODO: fireEvent
+    NativeEvents *e;
 
-	delete e;
+    e = new NativeEvents();
+    //@TODO: addListener
+    //@TODO: removeListener
+    //@TODO: fireEvent
+
+    delete e;
 }
 
