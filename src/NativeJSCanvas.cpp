@@ -1472,7 +1472,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ii/o",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii/o",
         &width, &height, &opt)) {
         return false;
     }

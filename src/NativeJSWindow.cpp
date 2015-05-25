@@ -947,7 +947,7 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double w, h;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "dd", &w, &h)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &w, &h)) {
         return false;
     }
 
@@ -961,7 +961,7 @@ static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, jsval
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *url;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &url)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &url)) {
         return false;
     }
 
@@ -977,7 +977,7 @@ static JSBool native_window_exec(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *url;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &url)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &url)) {
         return false;
     }
 
@@ -994,7 +994,7 @@ static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *v
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     jsval callback;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "v", &callback)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "v", &callback)) {
         return false;
     }
 
@@ -1019,7 +1019,7 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *
     JSObject *types;
     jsval callback;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ov", &types, &callback)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ov", &types, &callback)) {
         return false;
     }
 
@@ -1116,7 +1116,7 @@ static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp)
     JSString *title, *body;
     JSBool sound = false;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "SS/b", &title, &body, &sound)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "SS/b", &title, &body, &sound)) {
         return false;
     }
 

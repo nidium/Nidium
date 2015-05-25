@@ -189,7 +189,7 @@ static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSBool show = false;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "b", &show)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "b", &show)) {
         return false;
     }
 
@@ -220,7 +220,7 @@ static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *location;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &location)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &location)) {
         return false;
     }
 

@@ -60,7 +60,7 @@ static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
     int val;
     int color;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ii", &val, &color)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii", &val, &color)) {
         return false;
     }
 

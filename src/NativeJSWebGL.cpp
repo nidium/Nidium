@@ -34,7 +34,7 @@ extern JSClass Canvas_class;
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, NAME) \
     NGL_JS_FN(FUNC_NAME) \
     JSObject *obj; \
-    if (!JS_ConvertArguments(cx, argc, args.array(), "o", &obj)) { \
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &obj)) { \
         return false;\
     } \
     if (obj != NULL) { \
@@ -260,7 +260,7 @@ bool NGL_uniformxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
     JSObject *location;
 
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oo", &location, &array)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &location, &array)) {
         return false;
     }
 
@@ -344,7 +344,7 @@ bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
     JSObject *array;
     JSObject *location;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oo", &location, &array)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &location, &array)) {
         return false;
     }
 
@@ -386,7 +386,7 @@ bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned 
     JSObject *array;
     JSObject *location;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "obo", &location, &transpose, &array)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "obo", &location, &transpose, &array)) {
         return false;
     }
 
@@ -1047,7 +1047,7 @@ NGL_JS_FN(WebGLRenderingContext_activeTexture)
 //{
     GLuint texture;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &texture)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &texture)) {
         return false;
     }
 
@@ -1063,7 +1063,7 @@ NGL_JS_FN(WebGLRenderingContext_attachShader)
     WebGLResource *cprogram;
     WebGLResource *cshader;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oo", &program, &shader)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &program, &shader)) {
         return false;
     }
 
@@ -1083,7 +1083,7 @@ NGL_JS_FN(WebGLRenderingContext_bindAttribLocation)
     JSString *name;
     WebGLResource *cprogram;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ouS", &program, &vertex, &name)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ouS", &program, &vertex, &name)) {
         return false;
     }
     
@@ -1104,7 +1104,7 @@ NGL_JS_FN(WebGLRenderingContext_bindBuffer)
     JSObject *buffer;
     WebGLResource *cbuffer;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uo", &target, &buffer)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uo", &target, &buffer)) {
         return false;
     }
 
@@ -1131,7 +1131,7 @@ NGL_JS_FN(WebGLRenderingContext_bindFramebuffer)
     JSObject *buffer;
     WebGLResource *cbuffer;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uo", &target, &buffer)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uo", &target, &buffer)) {
         return false;
     }
 
@@ -1163,7 +1163,7 @@ NGL_JS_FN(WebGLRenderingContext_bindRenderbuffer)
     JSObject *buffer;
     WebGLResource *cbuffer;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uo", &target, &buffer)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uo", &target, &buffer)) {
         return false;
     }
 
@@ -1189,7 +1189,7 @@ NGL_JS_FN(WebGLRenderingContext_bindTexture)
     JSObject *texture;
     WebGLResource *ctexture;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uo", &target, 
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uo", &target, 
         &texture)) {
         return false;
     }
@@ -1221,7 +1221,7 @@ NGL_JS_FN(WebGLRenderingContext_copyTexImage2D)
     GLsizei height;
     GLint border;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uiuiiiii", &target, 
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiuiiiii", &target, 
         &level, &internalFormat, &x, &y, &width, &height, &border)) {
         return false;
     }
@@ -1245,7 +1245,7 @@ NGL_JS_FN(WebGLRenderingContext_copyTexSubImage2D)
     GLsizei width;
     GLsizei height;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uiiiiiii", &target, 
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiiiiiii", &target, 
         &level, &xoffset, &yoffset, &x, &y, &width, &height)) {
         return false;
     }
@@ -1260,7 +1260,7 @@ NGL_JS_FN(WebGLRenderingContext_blendEquation)
 //{
     GLuint mode;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &mode)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &mode)) {
         return false;
     }
     
@@ -1274,7 +1274,7 @@ NGL_JS_FN(WebGLRenderingContext_blendEquationSeparate)
     GLuint modeRGB;
     GLenum modeAlpha;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uu", &modeRGB, &modeAlpha)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uu", &modeRGB, &modeAlpha)) {
         return false;
     }
     
@@ -1288,7 +1288,7 @@ NGL_JS_FN(WebGLRenderingContext_blendFunc)
     GLenum sfactor;
     GLuint dfactor;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uu", &sfactor, &dfactor)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uu", &sfactor, &dfactor)) {
         return false;
     }
     
@@ -1304,7 +1304,7 @@ NGL_JS_FN(WebGLRenderingContext_blendFuncSeparate)
     GLenum srcAlpha;
     GLenum dstAlpha;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uuuu",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uuuu",
         &srcRGB, &dstRGB, &srcAlpha, &dstAlpha)) {
         return false;
     }
@@ -1321,7 +1321,7 @@ NGL_JS_FN(WebGLRenderingContext_bufferData)
     JSObject *array;
     GLenum usage;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uou",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uou",
         &target, &array, &usage)) {
         return false;
     }
@@ -1343,7 +1343,7 @@ NGL_JS_FN(WebGLRenderingContext_bufferSubData)
     GLint offset;
     JSObject *array;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uuo",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uuo",
         &target, &offset, &array)) {
         return false;
     }
@@ -1365,7 +1365,7 @@ NGL_JS_FN(WebGLRenderingContext_clear)
 //{
     GLbitfield bits;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "i", &bits)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "i", &bits)) {
         return false;
     }
     
@@ -1381,7 +1381,7 @@ NGL_JS_FN(WebGLRenderingContext_clearColor)
     double b;
     double a;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "dddd", &r, &g, &b, &a)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd", &r, &g, &b, &a)) {
         return false;
     }
 
@@ -1394,7 +1394,7 @@ NGL_JS_FN(WebGLRenderingContext_clearDepth)
 //{
     double clampd;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "d", &clampd)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "d", &clampd)) {
         return false;
     }
     GL_CALL(CppObj, ClearDepth(clampd));
@@ -1406,7 +1406,7 @@ NGL_JS_FN(WebGLRenderingContext_clearStencil)
 //{
     GLint s;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "i", &s)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "i", &s)) {
         return false;
     }
 
@@ -1427,7 +1427,7 @@ NGL_JS_FN(WebGLRenderingContext_colorMask)
     GLboolean gblue = GL_TRUE;
     GLboolean galpha = GL_TRUE;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "/bbbb", &red, &green, &blue, &alpha)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "/bbbb", &red, &green, &blue, &alpha)) {
         return false;
     }
 
@@ -1448,7 +1448,7 @@ NGL_JS_FN(WebGLRenderingContext_compileShader)
     JSObject *shader;
     const char *shaderStr;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "o", &shader)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &shader)) {
         return false;
     }
 
@@ -1554,7 +1554,7 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
     jsval proto;
     JSObject *ret;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &type)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &type)) {
         return false;
     }
 
@@ -1604,7 +1604,7 @@ NGL_JS_FN(WebGLRenderingContext_cullFace)
 //{
     GLuint mode;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &mode)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &mode)) {
         return false;
     }
     
@@ -1624,7 +1624,7 @@ NGL_JS_FN(WebGLRenderingContext_depthFunc)
 //{
     GLuint func;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &func)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &func)) {
         return false;
     }
     
@@ -1637,7 +1637,7 @@ NGL_JS_FN(WebGLRenderingContext_depthMask)
 //{
     JSBool flag;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "b", &flag)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "b", &flag)) {
         return false;
     }
 
@@ -1651,7 +1651,7 @@ NGL_JS_FN(WebGLRenderingContext_depthRange)
     double zNear;
     double zFar;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "dd", &zNear, &zFar)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &zNear, &zFar)) {
         return false;
     }
 
@@ -1667,7 +1667,7 @@ NGL_JS_FN(WebGLRenderingContext_detachShader)
     WebGLResource *cprogram;
     WebGLResource *cshader;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oo", &program, &shader)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &program, &shader)) {
         return false;
     }
 
@@ -1682,7 +1682,7 @@ NGL_JS_FN(WebGLRenderingContext_detachShader)
 NGL_JS_FN(WebGLRenderingContext_disable)
 //{
     GLenum cap;
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &cap)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &cap)) {
         return false;
     }
     
@@ -1695,7 +1695,7 @@ NGL_JS_FN(WebGLRenderingContext_disableVertexAttribArray)
 //{
     GLuint attr;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &attr)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &attr)) {
         return false;
     }
     
@@ -1710,7 +1710,7 @@ NGL_JS_FN(WebGLRenderingContext_drawArrays)
     GLint first;
     GLsizei count;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uii", &mode, &first, &count)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uii", &mode, &first, &count)) {
         return false;
     }
     
@@ -1726,7 +1726,7 @@ NGL_JS_FN(WebGLRenderingContext_drawElements)
     GLenum type;
     GLint offset;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uiui", &mode, &count, &type, &offset)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiui", &mode, &count, &type, &offset)) {
         return false;
     }
 
@@ -1744,7 +1744,7 @@ NGL_JS_FN(WebGLRenderingContext_enable)
 //{
     GLuint bits;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &bits)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &bits)) {
         return false;
     }
     
@@ -1757,7 +1757,7 @@ NGL_JS_FN(WebGLRenderingContext_enableVertexAttribArray)
 //{
     GLuint attr;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &attr)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &attr)) {
         return false;
     }
 
@@ -1788,7 +1788,7 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     const char *cname;
     WebGLResource *cprogram;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oS", &program, &name)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oS", &program, &name)) {
         return false;
     }
 
@@ -1819,7 +1819,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     GLint crange[2];
     GLint cprecision;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uu", &shaderType, &precisionType)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uu", &shaderType, &precisionType)) {
         return false;
     }
 
@@ -1870,7 +1870,7 @@ NGL_JS_FN(WebGLRenderingContext_framebufferRenderbuffer)
 	JSObject *renderbuffer;
     WebGLResource *crenderbuffer;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uuuo", &target,
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uuuo", &target,
         &attachement, &renderbuffertarget, &renderbuffer)) {
         return false;
     }
@@ -1890,7 +1890,7 @@ NGL_JS_FN(WebGLRenderingContext_framebufferTexture2D)
     JSObject *texture;
     WebGLResource *ctexture;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uuuoi",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uuuoi",
         &target, &attachement, &textarget, &texture, &level)) {
         return false;
     }
@@ -1921,7 +1921,7 @@ NGL_JS_FN(WebGLRenderingContext_frontFace)
 //{
     GLuint mode;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &mode)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &mode)) {
         return false;
     }
     
@@ -1934,7 +1934,7 @@ NGL_JS_FN(WebGLRenderingContext_generateMipmap)
 //{
     GLenum target;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &target)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &target)) {
         return false;
     }
     
@@ -1953,7 +1953,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     int csize;
     jsval proto;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ou", &program, &index)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ou", &program, &index)) {
         return false;
     }
 
@@ -1993,7 +1993,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveUniform)
 #if 0
     GLenum target;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &target)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &target)) {
         return false;
     }
     
@@ -2012,7 +2012,7 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
     WebGLResource *cprogram;
     const char *cattr;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oS", &program, &attr)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oS", &program, &attr)) {
         return false;
     }
     
@@ -2033,7 +2033,7 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
     GLenum name;
     JS::Value value;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "u", &name)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &name)) {
         return false;
     }
 
@@ -2354,7 +2354,7 @@ NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
     JSObject *program;
     WebGLResource *cprogram;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ou",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ou",
         &program, &param)) {
         return false;
     }
@@ -2386,7 +2386,7 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
     WebGLResource *cprogram;
     char *clog;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "o", &program)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &program)) {
         return false;
     }
 
@@ -2411,7 +2411,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderParameter)
     JSObject *shader;
     WebGLResource *cshader;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ou", &shader, &pname)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ou", &shader, &pname)) {
         return false;
     }
 
@@ -2433,7 +2433,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
     JSString *log;
     char *clog;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "o", &shader)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &shader)) {
         return false;
     }
 
@@ -2456,7 +2456,7 @@ NGL_JS_FN(WebGLRenderingContext_lineWidth)
     //GLfloat width;
     double width;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "d", &width)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "d", &width)) {
         return false;
     }
 
@@ -2470,7 +2470,7 @@ NGL_JS_FN(WebGLRenderingContext_linkProgram)
     JSObject *program;
     WebGLResource *cprogram;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "o", &program)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &program)) {
         return false;
     }
     
@@ -2486,7 +2486,7 @@ NGL_JS_FN(WebGLRenderingContext_pixelStorei)
     GLuint param;
     GLint value;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "ui", &param, &value)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ui", &param, &value)) {
         return false;
     }
 
@@ -2526,7 +2526,7 @@ NGL_JS_FN(WebGLRenderingContext_renderbufferStorage)
     GLenum target, internalFormat;
 	GLsizei width, height;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uuii",
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uuii",
         &target, &internalFormat, &width, &height)) {
         return false;
     }
@@ -2543,7 +2543,7 @@ NGL_JS_FN(WebGLRenderingContext_shaderSource)
     WebGLResource *cshader;
     WebGLResource::ShaderData *shaderData;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "oS", &shader, &source)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oS", &shader, &source)) {
         return false;
     }
 
@@ -2570,7 +2570,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
         JSObject *array;
         void *pixels = NULL;
 
-        if (!JS_ConvertArguments(cx, argc, args.array(), "uiiiiiuuo", &target, &level, &internalFormat, &width, &height, &border, &format, &type, &array)) {
+        if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiiiiiuuo", &target, &level, &internalFormat, &width, &height, &border, &format, &type, &array)) {
             return false;
         }
 
@@ -2582,7 +2582,7 @@ NGL_JS_FN(WebGLRenderingContext_texImage2D)
     } else {
         unsigned char *pixels;
 
-        if (!JS_ConvertArguments(cx, argc, args.array(), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image) || image == NULL) {
+        if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiiuuo", &target, &level, &internalFormat, &format, &type, &image) || image == NULL) {
             JS_ReportError(cx, "texImage2D() invalid arguments");
             return false;
         }
@@ -2640,7 +2640,7 @@ NGL_JS_FN(WebGLRenderingContext_texParameteri)
     GLuint pname;
     GLuint param;
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uuu", &target, &pname, &param)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uuu", &target, &pname, &param)) {
         return false;
     }
     
@@ -2793,7 +2793,7 @@ NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer)
     GLint offset;
     JSBool normalized;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "uiubii", &attr,
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiubii", &attr,
         &size, &type, &normalized, &stride, &offset)) {
         return false;
     }
@@ -2814,7 +2814,7 @@ NGL_JS_FN(WebGLRenderingContext_useProgram)
     JSObject *program;
     WebGLResource *cprogram;
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "o", &program)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &program)) {
         return false;
     }
 
@@ -2840,7 +2840,7 @@ NGL_JS_FN(WebGLRenderingContext_viewport)
 
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "iiii", &x, &y, &w, &h)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "iiii", &x, &y, &w, &h)) {
         return false;
     }
 
