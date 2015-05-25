@@ -973,7 +973,7 @@ static JSBool native_canvas2dctxGradient_addColorStop(JSContext *cx,
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double position;
     JSString *color;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();;
     NativeSkGradient *gradient;
 
     if (!JS_ConvertArguments(cx, argc, args.array(), "dS",
@@ -1204,7 +1204,7 @@ static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsi
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *location;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();
     uint32_t program;
 
     if (!JS_ConvertArguments(cx, argc, args.array(), "S",
@@ -1230,7 +1230,7 @@ static JSBool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     int location, val;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();
     uint32_t program;
 
     if (!JS_ConvertArguments(cx, argc, args.array(), "ii",
@@ -1259,7 +1259,7 @@ static JSBool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     int location;
     double val;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();
     uint32_t program;
     
     if (!JS_ConvertArguments(cx, argc, args.array(), "id",
@@ -1293,7 +1293,7 @@ static JSBool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     JSObject *array;
     int location;
     uint32_t program;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();
     program = (size_t)JS_GetPrivate(caller);
     
     if (!JS_ConvertArguments(cx, argc, args.array(), "io", &location, &array)) {
@@ -1353,7 +1353,7 @@ static JSBool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     JSObject *array;
     int location;
     uint32_t program;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();
     program = (size_t)JS_GetPrivate(caller);
     
     if (!JS_ConvertArguments(cx, argc, args.array(), "io", &location, &array)) {
@@ -1458,8 +1458,9 @@ static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsig
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uint32_t program;
-    JSObject *caller = JS_THIS_OBJECT(cx, vp);
+    JSObject *caller = &args.thisv().toObject();
     program = (size_t)JS_GetPrivate(caller);
 
     int nactives = 0;

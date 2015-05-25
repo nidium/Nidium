@@ -1741,7 +1741,7 @@ static JSBool native_audionode_custom_get(JSContext *cx, unsigned argc, jsval *v
     JSString *name;
     printf("get node\n");
 
-    jsNode = NATIVE_AUDIO_NODE_GETTER(JS_THIS_OBJECT(cx, vp));
+    jsNode = NATIVE_AUDIO_NODE_GETTER(&args.thisv().toObject());
 
     printf("convert\n");
     if (!JS_ConvertArguments(cx, argc, args.array(), "S", &name)) {
