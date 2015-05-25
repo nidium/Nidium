@@ -1457,6 +1457,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
 
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     int width, height;
     NativeCanvasHandler *handler;
     JSObject *opt = NULL;
@@ -1471,7 +1472,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii/o",
+    if (!JS_ConvertArguments(cx, argc, args.array(), "ii/o",
         &width, &height, &opt)) {
         return false;
     }

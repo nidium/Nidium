@@ -55,11 +55,12 @@ static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeJSImage *nimg = IMAGE_FROM_CALLEE;
     int val;
     int color;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ii", &val, &color)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "ii", &val, &color)) {
         return false;
     }
 

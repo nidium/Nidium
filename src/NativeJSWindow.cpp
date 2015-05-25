@@ -907,7 +907,7 @@ static JSBool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
     }
 #undef APP_NAME
 #undef APP_LANGUAGE
-#undef APP_LOCALE APP_LANGUAGE
+#undef APP_LOCALE
 
     return true;
 }
@@ -944,9 +944,10 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
 
 static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double w, h;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "dd", &w, &h)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "dd", &w, &h)) {
         return false;
     }
 
@@ -957,8 +958,10 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *url;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
+
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &url)) {
         return false;
     }
 
@@ -974,7 +977,7 @@ static JSBool native_window_exec(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *url;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &url)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &url)) {
         return false;
     }
 
@@ -988,9 +991,10 @@ static JSBool native_window_exec(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     jsval callback;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "v", &callback)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "v", &callback)) {
         return false;
     }
 
@@ -1011,10 +1015,11 @@ static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, jsval *v
 /* TODO: leak if the user click "cancel" */
 static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *types;
     jsval callback;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "ov", &types, &callback)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "ov", &types, &callback)) {
         return false;
     }
 
@@ -1107,11 +1112,11 @@ static JSBool native_window_setPosition(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_window_notify(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_CHECK_ARGS("notify", 2);
-
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *title, *body;
     JSBool sound = false;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "SS/b", &title, &body, &sound)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "SS/b", &title, &body, &sound)) {
         return false;
     }
 

@@ -186,9 +186,10 @@ static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval
 
 static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSBool show = false;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "b", &show)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "b", &show)) {
         return false;
     }
 
@@ -216,9 +217,10 @@ static int native_document_restart(void *param)
 
 static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSString *location;
 
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &location)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &location)) {
         return false;
     }
 
