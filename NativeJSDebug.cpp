@@ -82,7 +82,7 @@ static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_ClearStructuredClone(data, data_len);
 
-    JSObject *arraybuffer = JS_NewArrayBufferWithContents(cx, content);
+    JS::RootedObject arraybuffer(cx, JS_NewArrayBufferWithContents(cx, content));
 
     args.rval().setObjectOrNull(arraybuffer);
 
@@ -92,10 +92,10 @@ static JSBool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *objdata = NULL;
+    JS::RootedObject objdata(cx);
     uint32_t offset = 0;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o/u", &objdata, &offset)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o/u", objdata.address(), &offset)) {
         return false;
     }
 
@@ -105,7 +105,8 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
     }
     uint32_t len = JS_GetArrayBufferByteLength(objdata);
     uint8_t *data = JS_GetArrayBufferData(objdata);
-    JS::Value inval;
+
+    JS::RootedValue inval(cx);
 
     if (offset >= len) {
         JS_ReportError(cx, "unserialize() offset overflow");
@@ -113,7 +114,7 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NativeJS::getNativeClass(cx))) {
+        JS_STRUCTURED_CLONE_VERSION, inval.address(), NULL, NativeJS::getNativeClass(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;             
     }
@@ -125,13 +126,11 @@ static JSBool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
 
 void NativeJSDebug::registerObject(JSContext *cx)
 {
-    JSObject *debugObj;
-    
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
-    debugObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject debugObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSDebug::getJSObjectName(),
-        &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+        &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     NativeJSDebug *jdebug = new NativeJSDebug(debugObj, cx);
 

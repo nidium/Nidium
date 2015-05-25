@@ -102,7 +102,7 @@ public:
             JS_FS_END
         };
 
-        JSObject *ret = JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL);
+        JS::RootedObject ret(cx, JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL));
         JS_DefineFunctions(cx, ret, NativeJSEvents_funcs);
         return ret;
     }

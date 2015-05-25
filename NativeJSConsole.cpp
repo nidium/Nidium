@@ -102,7 +102,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     }
 
     for (i = 0; i < args.length(); i++) {
-        str = JS_ValueToString(cx, args[i]);
+        str = JS::RootedString(cx, JS_ValueToString(cx, args[i]));
         if (!str)
             return false;
         bytes = JS_EncodeStringToUTF8(cx, str);
@@ -133,7 +133,7 @@ static JSBool native_console_write(JSContext *cx, unsigned argc,
 
     NATIVE_CHECK_ARGS("write", 1);
 
-    str = args[0].toString();
+    str = JS::RootedString(cx, args[0].toString());
     if (!str) {
         JS_ReportError(cx, "Bad argument");
         return false;
@@ -181,9 +181,10 @@ static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
 
 void NativeJSconsole::registerObject(JSContext *cx)
 {
-    JSObject *consoleObj;
-    consoleObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "console",
-        &console_class , NULL, 0);
+    JS::RootedObject consoleObj(cx, JS_DefineObject(cx,
+        JS_GetGlobalObject(cx), "console",
+        &console_class, NULL, 0));
+
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
 

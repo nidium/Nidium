@@ -216,7 +216,8 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JSString *url;
     NativeFile *file;
     NativeJSFileIO *NJSFIO;
-    JSObject *opt = NULL;
+
+    JS::RootedObject opt(cx);
     jsval curopt;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -226,9 +227,9 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }    
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &File_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &File_class, vp));
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &url, &opt)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &url, opt.address())) {
         return false;
     }
 
@@ -291,7 +292,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 
     if (args[0].isString()) {
         //printf("got a string to write\n");
-        JSString *str = args[0].toString();
+        JS::RootedString str(cx, args[0].toString());
         JSAutoByteString cstr(cx, str);
         size_t len = strlen(cstr.ptr());
 
@@ -300,7 +301,7 @@ static JSBool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         file->write(cstr.ptr(), len, callback.toObjectOrNull());
 
     } else if (args[0].isObject()) {
-        JSObject *jsobj = args[0].toObjectOrNull();
+        JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
         if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
             JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
@@ -591,14 +592,15 @@ static JSBool native_file_closeSync(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *filename;
-    JSObject *opt = NULL;
+    JS::RootedString filename(cx);
+    JS::RootedObject opt(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     jsval curopt;
     char *buf;
     size_t len;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &filename, &opt)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(),
+        "S/o", filename.address(), opt.address())) {
         return false;
     }
 
@@ -648,7 +650,8 @@ static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     char *cencoding = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "So", &filename, &secondarg)) {
+    if (!JS_ConvertArguments(cx, args.length(),
+        args.array(), "So", &filename, &secondarg)) {
         return false;
     }
 
@@ -684,6 +687,8 @@ static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
     async->m_Args[0].set(cx);
     async->m_Args[1].set(cencoding);
     async->m_Args[2].set(stream);
+
+    /* XXX RootedObject */
     async->m_Args[7].set(callback.toObjectOrNull());
 
     stream->setListener(async);
@@ -693,7 +698,7 @@ static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 bool NativeJSFileIO::handleError(JSContext *cx, const NativeSharedMessages::Message &msg,
-    jsval &vals)
+    JS::MutableHandleValue vals)
 {
     switch (msg.event()) {
         case NATIVEFILE_OPEN_ERROR:
@@ -742,9 +747,11 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     params[1].setUndefined();
     JSContext *m_Cx = cx;
 
+    JS::AutoArrayRooter paramsRoot(cx, 2, params);
+
     JS::RootedObject jsthis(cx, thisobj); 
 
-    if (!NativeJSFileIO::handleError(cx, msg, params[0])) {
+    if (!NativeJSFileIO::handleError(cx, msg, paramsRoot.handleAt(0))) {
         switch (msg.event()) {
             case NATIVEFILE_READ_SUCCESS:
             {
@@ -759,7 +766,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
             case NATIVEFILE_LISTFILES_ENTRIES:
             {
                 NativeFile::DirEntries *entries = (NativeFile::DirEntries *)msg.args[0].toPtr();
-                JSObject *arr = JS_NewArrayObject(cx, entries->size, NULL);
+                JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size, NULL));
 
                 for (int i = 0; i < entries->size; i++) {
                     JSObject *entry = JS_NewObject(cx, NULL, NULL, NULL);
@@ -817,9 +824,7 @@ void NativeJSFileIO::registerObject(JSContext *cx)
 
 JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
 {
-    JSObject *ret;
-
-    ret = JS_NewObject(cx, &File_class, NULL, NULL);
+    JS::RootedObject ret(cx, JS_NewObject(cx, &File_class, NULL, NULL));
     NativeFile *file;
     NativeJSFileIO *NJSFIO;
 

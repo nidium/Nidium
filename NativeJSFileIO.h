@@ -36,7 +36,7 @@ class NativeJSFileIO : public NativeJSExposer<NativeJSFileIO>,
     static void registerObject(JSContext *cx);
     static JSObject *generateJSObject(JSContext *cx, const char *path);
 
-    static bool handleError(JSContext *cx, const NativeSharedMessages::Message &msg, jsval &vals);
+    static bool handleError(JSContext *cx, const NativeSharedMessages::Message &msg, JS::MutableHandleValue vals);
     bool callbackForMessage(JSContext *cx,
         const NativeSharedMessages::Message &msg,
         JSObject *thisobj, const char *encoding = NULL);
