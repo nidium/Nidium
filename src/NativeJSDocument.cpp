@@ -155,7 +155,7 @@ static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval
 
     js_free(text);
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
@@ -186,19 +186,19 @@ static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval
 
 static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSBool show = JS_FALSE;
+    JSBool show = false;
 
     if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "b", &show)) {
         return false;
     }
 
-    NativeJSdocument::showFPS = (show == JS_TRUE) ? true : false;
+    NativeJSdocument::showFPS = show;
 
     if (show) {
         NativeContext::getNativeClass(cx)->createDebugCanvas();
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 

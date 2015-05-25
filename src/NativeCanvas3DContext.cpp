@@ -49,7 +49,7 @@ static JSBool native_Canvas3DContext_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
-    return JS_FALSE;
+    return false;
 }
 #endif
 

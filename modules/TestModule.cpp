@@ -5,7 +5,7 @@
 static JSBool hello(JSContext *cx, unsigned argc, jsval *vp)
 {
     printf("Hello from C\n");
-    return JS_TRUE;
+    return true;
 }
 
 static JSFunctionSpec TestModule_funcs[] = {

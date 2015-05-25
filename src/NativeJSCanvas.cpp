@@ -866,7 +866,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_STRING(vp)) {
                 vp.set(JSVAL_VOID);
 
-                return JS_TRUE;
+                return true;
             }
             JSAutoByteString mode(cx, JSVAL_TO_STRING(vp));
             if (strcasecmp(mode.ptr(), "absolute") == 0) {
@@ -886,7 +886,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
@@ -900,7 +900,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
@@ -913,7 +913,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
@@ -926,7 +926,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
             
@@ -940,7 +940,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
@@ -953,7 +953,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             uint32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
 
@@ -973,10 +973,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetLeft();
-                return JS_TRUE;
+                return true;
             }
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             handler->setLeft(dval);
@@ -993,10 +993,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetRight();
-                return JS_TRUE;
+                return true;
             }
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             handler->setRight(dval);
@@ -1010,10 +1010,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetTop();
-                return JS_TRUE;
+                return true;
             }
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             handler->setTop(dval);
@@ -1027,10 +1027,10 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
             if (JSVAL_IS_NULL(vp)) {
                 handler->unsetBottom();
-                return JS_TRUE;
+                return true;
             }
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             handler->setBottom(dval);
@@ -1040,7 +1040,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             JS_ValueToECMAInt32(cx, vp, &dval);
@@ -1052,7 +1052,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             JS_ValueToECMAInt32(cx, vp, &dval);
@@ -1063,7 +1063,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_ALLOWNEGATIVESCROLL:
         {
             if (!JSVAL_IS_BOOLEAN(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             handler->setAllowNegativeScroll(JSVAL_TO_BOOLEAN(vp));
@@ -1072,7 +1072,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_VISIBLE:
         {
             if (!JSVAL_IS_BOOLEAN(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             handler->setHidden(!JSVAL_TO_BOOLEAN(vp));
@@ -1081,7 +1081,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_OVERFLOW:
         {
             if (!JSVAL_IS_BOOLEAN(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             handler->m_Overflow = JSVAL_TO_BOOLEAN(vp);
@@ -1091,7 +1091,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             int32_t dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
              JS_ValueToECMAInt32(cx, vp, &dval);
 
@@ -1102,7 +1102,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
             handler->setOpacity(dval);      
@@ -1189,7 +1189,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             JS_ValueToNumber(cx, vp, &dval);
@@ -1201,7 +1201,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             JS_ValueToNumber(cx, vp, &dval);
@@ -1213,7 +1213,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             JS_ValueToNumber(cx, vp, &dval);
@@ -1226,7 +1226,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         {
             double dval;
             if (!JSVAL_IS_NUMBER(vp)) {
-                return JS_TRUE;
+                return true;
             }
 
             JS_ValueToNumber(cx, vp, &dval);
@@ -1255,7 +1255,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             break;
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
@@ -1452,7 +1452,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
             break;
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
@@ -1505,7 +1505,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
 
-    return JS_TRUE;
+    return true;
 }
 
 void Canvas_Finalize(JSFreeOp *fop, JSObject *obj)

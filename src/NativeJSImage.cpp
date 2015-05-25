@@ -50,7 +50,7 @@ static JSFunctionSpec Image_funcs[] = {
 
 static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp)
 {
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
@@ -66,7 +66,7 @@ static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
     if (nimg->img) {
         nimg->img->shiftHue(val, color);
     }
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_image_markColorInAlpha(JSContext *cx,
@@ -77,7 +77,7 @@ static JSBool native_image_markColorInAlpha(JSContext *cx,
         nimg->img->markColorsInAlpha();
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_image_desaturate(JSContext *cx,
@@ -88,7 +88,7 @@ static JSBool native_image_desaturate(JSContext *cx,
         nimg->img->desaturate();
     }
 
-    return JS_TRUE;
+    return true;
 }
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
@@ -139,14 +139,14 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
             } else {
                 vp.set(JSVAL_VOID);
-                return JS_TRUE;
+                return true;
             }
         }
         break;
         default:
             break;
     }
-    return JS_TRUE;
+    return true;
 }
 
 void Image_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -168,7 +168,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
-        return JS_FALSE;
+        return false;
     }
 
     nimg = new NativeJSImage(ret, cx);
@@ -180,7 +180,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineProperties(cx, ret, Image_props);
     //JS_DefineFunctions(cx, ret, Image_funcs);
 
-    return JS_TRUE;
+    return true;
 }
 
 bool NativeJSImage::JSObjectIs(JSContext *cx, JSObject *obj)
