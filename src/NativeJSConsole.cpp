@@ -35,14 +35,6 @@ static JSFunctionSpec console_funcs[] = {
 static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    /*
-    JSString *tmp;
-    if (!JS_ConvertArguments(cx, argc, JS_ARGV(cx, vp), "S", &tmp)) {
-        return false;
-    }
-    JSAutoByteString name(cx, tmp);
-    */
-
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->start(NULL);
 
@@ -51,10 +43,14 @@ static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
 static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
     jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->stop();
     JS::Value val(OBJECT_TO_JSVAL(tracer->getJSObject()));
-    JS_SET_RVAL(cx, vp, val);
+
+    args.rval().set(val);
+
     return true;
 }
 
@@ -62,7 +58,6 @@ static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
 static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    jsval *argv;
     unsigned i;
     JSString *str;
     char *bytes;
@@ -70,6 +65,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     const char *filename_parent;
     unsigned lineno;
 
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS_DescribeScriptedCaller(cx, &parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
 
@@ -84,10 +80,8 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
 
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
-    argv = JS_ARGV(cx, vp);
-
-    for (i = 0; i < argc; i++) {
-        str = JS_ValueToString(cx, argv[i]);
+    for (i = 0; i < args.length(); i++) {
+        str = JS::RootedString(cx, JS_ValueToString(cx, args[i]));
         if (!str)
             return false;
         bytes = JS_EncodeStringToUTF8(cx, str);
@@ -104,7 +98,8 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     }
     printf("\n");
 
-    JS_SET_RVAL(cx, vp, JSVAL_VOID);
+    args.rval().setUndefined();
+
     return true;
 }
 
