@@ -1504,7 +1504,7 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_SetPrivate(ret, jscanvas);
     JS_SetPrivate(inherit, jscanvas);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }

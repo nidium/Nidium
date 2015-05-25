@@ -164,6 +164,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 
 static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
+    JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *ret = JS_NewObjectForConstructor(cx, &Image_class, vp);
     NativeJSImage *nimg;
 
@@ -176,7 +177,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetPrivate(ret, nimg);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
     //JS_DefineFunctions(cx, ret, Image_funcs);

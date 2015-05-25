@@ -381,7 +381,7 @@ static JSBool native_canvas2dctx_breakText(JSContext *cx,
     SET_PROP(res, "height", DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
     SET_PROP(res, "lines", OBJECT_TO_JSVAL(alines));
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(res));
+    args.rval().set(OBJECT_TO_JSVAL(res));
 
     delete[] lines;
 
@@ -767,7 +767,7 @@ static JSBool native_canvas2dctx_createLinearGradient(JSContext *cx,
 
     linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(linearObject));
+    args.rval().set(OBJECT_TO_JSVAL(linearObject));
 
     JS_SetPrivate(linearObject,
         new NativeSkGradient(x1, y1, x2, y2));
@@ -806,7 +806,7 @@ static JSBool native_canvas2dctx_getImageData(JSContext *cx,
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer),
         NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(dataObject));
+    args.rval().set(OBJECT_TO_JSVAL(dataObject));
 
     NATIVE_LOG_2D_CALL();
     return true;
@@ -885,7 +885,7 @@ static JSBool native_canvas2dctx_createImageData(JSContext *cx,
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
         NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(dataObject));
+    args.rval().set(OBJECT_TO_JSVAL(dataObject));
 
     NATIVE_LOG_2D_CALL();
 
@@ -911,7 +911,7 @@ static JSBool native_canvas2dctx_createPattern(JSContext *cx,
 
     patternObject = JS_NewObject(cx, &canvasPattern_class, NULL, NULL);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(patternObject));
+    args.rval().set(OBJECT_TO_JSVAL(patternObject));
 
     NativeJSImage *img = (NativeJSImage *)JS_GetPrivate(jsimage);
 
@@ -955,7 +955,7 @@ static JSBool native_canvas2dctx_createRadialGradient(JSContext *cx,
 
     linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(linearObject));
+    args.rval().set(OBJECT_TO_JSVAL(linearObject));
 
     JS_SetPrivate(linearObject,
         new NativeSkGradient(x1, y1, r1, x2, y2, r2));
@@ -1188,7 +1188,7 @@ static JSBool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc
     }
     JSObject *canvasProgram = JS_NewObject(cx, &canvasGLProgram_class, NULL, NULL);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(canvasProgram));
+    args.rval().set(OBJECT_TO_JSVAL(canvasProgram));
 
     JS_DefineFunctions(cx, canvasProgram, glprogram_funcs);
 
@@ -1218,7 +1218,7 @@ static JSBool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsi
 
     int ret = glGetUniformLocation(program, clocation.ptr());
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(ret));
+    args.rval().set(INT_TO_JSVAL(ret));
 
     NATIVE_LOG_2D_CALL();
 
@@ -1468,7 +1468,7 @@ static JSBool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsig
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &nactives);
 
     JSObject *arr = JS_NewArrayObject(cx, nactives, NULL);
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(arr));
+    args.rval().set(OBJECT_TO_JSVAL(arr));
 
     char name[512];
     for (int i = 0; i < nactives; i++) {

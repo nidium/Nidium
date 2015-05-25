@@ -1309,7 +1309,7 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (!paramsChanged && jaudio) {
-        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(jaudio->getJSObject()));
+        args.rval().set(OBJECT_TO_JSVAL(jaudio->getJSObject()));
         return true;
     }
 
@@ -1329,7 +1329,7 @@ static JSBool native_audio_getcontext(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1429,7 +1429,7 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
             node = new NativeJSAudioNode(ret, cx, NativeAudio::GAIN, in, out, audio);
         } else if (strcmp("target", cname.ptr()) == 0) {                      
             if (audio->target != NULL) {
-                JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(audio->target->getJSObject()));
+                args.rval().set(OBJECT_TO_JSVAL(audio->target->getJSObject()));
                 return true;
             } else {
                 node = new NativeJSAudioNode(ret, cx, NativeAudio::TARGET, in, out, audio);
@@ -1454,8 +1454,8 @@ static JSBool native_audio_createnode(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     audio->initNode(node, ret, name);
-    
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1759,7 +1759,7 @@ static JSBool native_audionode_custom_get(JSContext *cx, unsigned argc, jsval *v
     printf("return\n");
     JS_ClearRuntimeThread(JS_GetRuntime(cx));
 
-    JS_SET_RVAL(cx, vp, val);
+    args.rval().set(val);
 
     return true;
 }
@@ -1815,7 +1815,7 @@ static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc,
     jnode = CppObj;
 
     if (jnode->hashObj == NULL) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        args.rval().set(JSVAL_NULL);
         return false;
     }
 
@@ -1827,7 +1827,7 @@ static JSBool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc,
 
     JS_GetProperty(jnode->audio->tcx, jnode->hashObj, str.ptr(), &val);
 
-    JS_SET_RVAL(cx, vp, val);
+    args.rval().set(val);
 
     return true;
 }
@@ -2292,12 +2292,12 @@ static JSBool native_video_open(JSContext *cx, unsigned argc, jsval *vp)
         JS_StealArrayBufferContents(cx, arrayBuff, &v->arrayContent, &data);
 
         if (v->video->open(data, length) < 0) {
-            JS_SET_RVAL(cx, vp, JSVAL_FALSE);
+            args.rval().set(JSVAL_FALSE);
             return true;
         }
     }
 
-    JS_SET_RVAL(cx, vp, JSVAL_TRUE);
+    args.rval().set(JSVAL_TRUE);
 
     return true;
 }
@@ -2313,12 +2313,12 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
 
     if (!jaudio) {
         JS_ReportError(cx, "No Audio context");
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        args.rval().set(JSVAL_NULL);
         return false;
     }
 
     if (v->audioNode) {
-        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(v->audioNode));
+        args.rval().set(OBJECT_TO_JSVAL(v->audioNode));
         return true;
     }
 
@@ -2335,9 +2335,9 @@ static JSBool native_video_get_audionode(JSContext *cx, unsigned argc, jsval *vp
 
         JS_SetReservedSlot(node->getJSObject(), 0, OBJECT_TO_JSVAL(v->getJSObject()));
 
-        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(v->audioNode));
+        args.rval().set(OBJECT_TO_JSVAL(v->audioNode));
     } else {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        args.rval().set(JSVAL_NULL);
     }
 
     return true;
@@ -2448,7 +2448,7 @@ static JSBool native_Video_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_SetProperty(cx, ret, "canvas", &(args.array()[0]));
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }

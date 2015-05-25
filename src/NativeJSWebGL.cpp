@@ -1032,20 +1032,20 @@ static JSPropertySpec WebGLActiveInfo_props[] = {
 NGL_JS_FN(WebGLRenderingContext_isContextLost)
 //{
     // TODO
-    JS_SET_RVAL(cx, vp, BOOLEAN_TO_JSVAL(false));
+    args.rval().setBoolean(false);
     return true;
 }
 
 NGL_JS_FN(WebGLRenderingContext_getExtension)
 //{
-    JS_SET_RVAL(cx, vp, JSVAL_NULL);
+    args.rval().set(JSVAL_NULL);
     return true;
 }
 
 
 NGL_JS_FN(WebGLRenderingContext_activeTexture)
 //{
-	GLuint texture;
+    GLuint texture;
 
     if (!JS_ConvertArguments(cx, argc, args.array(), "u", &texture)) {
         return false;
@@ -1485,7 +1485,7 @@ NGL_JS_FN(WebGLRenderingContext_createBuffer)
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kBuffer, CppObj, ret));
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1504,7 +1504,7 @@ NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kFramebuffer, CppObj, ret));
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1523,7 +1523,7 @@ NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kRenderbuffer, CppObj, ret));
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1542,7 +1542,7 @@ NGL_JS_FN(WebGLRenderingContext_createProgram)
     JS_SetPrivate(ret, new WebGLResource(program,
         WebGLResource::kProgram, CppObj, ret));
     
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
     
     return true;
 }
@@ -1574,7 +1574,7 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
 
     JS_SetPrivate(ret, res);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
     
     return true;
 }
@@ -1594,7 +1594,7 @@ NGL_JS_FN(WebGLRenderingContext_createTexture)
     JS_SetPrivate(ret, new WebGLResource(texture,
         WebGLResource::kTexture, CppObj, ret));
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1799,16 +1799,16 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
     GL_CALL_RET(CppObj, GetUniformLocation(cprogram->id(), cname), location);
 
     if (location < 0 ) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        args.rval().set(JSVAL_NULL);
     } else {
         JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLUniformLocation", &proto);
         ret = JS_NewObject(cx, &WebGLUniformLocation_class, JSVAL_TO_OBJECT(proto), NULL);
         JS_SetPrivate(ret, (void *)(uintptr_t)location);
-        
+
         JS_free(cx, (void *)cname);
-        JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(ret));
+        args.rval().set(OBJECT_TO_JSVAL(ret));
     }
-    
+
     return true;
 }
 
@@ -1858,7 +1858,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     SET_PROP("rangeMax", &rangeMax);
     SET_PROP("precision", &precision);
 
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    args.rval().set(OBJECT_TO_JSVAL(obj));
 
     return true;
 #undef SET_PROP
@@ -1964,7 +1964,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
 
     GLint err = glGetError(); 
     if (err != 0) {
-        JS_SET_RVAL(cx, vp, JSVAL_NULL);
+        args.rval().set(JSVAL_NULL);
         return true;
     }
 
@@ -1983,7 +1983,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     JS_SetProperty(cx, obj, "type", &type);
     JS_SetProperty(cx, obj, "name", &name);
     
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(obj));
+    args.rval().set(OBJECT_TO_JSVAL(obj));
 
     return true;
 }
@@ -2023,8 +2023,8 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
     GL_CALL_RET(CppObj, GetAttribLocation(cprogram->id(), cattr), location);
 
     JS_free(cx, (void *)cattr);
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(location));
-    
+    args.rval().set(INT_TO_JSVAL(location));
+
     return true;
 }
 
@@ -2342,8 +2342,8 @@ NGL_JS_FN(WebGLRenderingContext_getParameter)
             return true;
     }
 
-    JS_SET_RVAL(cx, vp, value);
-    
+    args.rval().set(value);
+
     return true;
 }
 
@@ -2367,10 +2367,10 @@ NGL_JS_FN(WebGLRenderingContext_getProgramParameter)
         case GL_DELETE_STATUS:
         case GL_LINK_STATUS:
         case GL_VALIDATE_STATUS:
-            JS_SET_RVAL(cx, vp, BOOLEAN_TO_JSVAL((GLboolean)status));
+            args.rval().setBoolean((bool)(GLboolean)status);
             break;
         default:
-            JS_SET_RVAL(cx, vp, INT_TO_JSVAL(status));
+            args.rval().set(INT_TO_JSVAL(status));
             break;
     }
     
@@ -2399,7 +2399,7 @@ NGL_JS_FN(WebGLRenderingContext_getProgramInfoLog)
     log = JS_NewStringCopyN(cx, clog, length);
     free(clog);
 
-    JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(log));
+    args.rval().set(STRING_TO_JSVAL(log));
     
     return true;
 }
@@ -2419,8 +2419,8 @@ NGL_JS_FN(WebGLRenderingContext_getShaderParameter)
 
     GL_CALL(CppObj, GetShaderiv(cshader->id(), pname, &param));
 
-    JS_SET_RVAL(cx, vp, INT_TO_JSVAL(param));
-    
+    args.rval().set(INT_TO_JSVAL(param));
+
     return true;
 }
 
@@ -2446,8 +2446,8 @@ NGL_JS_FN(WebGLRenderingContext_getShaderInfoLog)
     log = JS_NewStringCopyN(cx, clog, length);
     free(clog);
 
-    JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(log));
-    
+    args.rval().set(STRING_TO_JSVAL(log));
+
     return true;
 }
 
@@ -2851,7 +2851,7 @@ NGL_JS_FN(WebGLRenderingContext_viewport)
 
 NGL_JS_FN(WebGLRenderingContext_getError)
 //{
-    JS_SET_RVAL(cx, vp, UINT_TO_JSVAL(glGetError()));
+    args.rval().setNumber(glGetError());
     return true;
 }
 
@@ -2887,7 +2887,7 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *v
     GL_CALL(CppObj, Enable(GL_VERTEX_PROGRAM_POINT_SIZE));
     //GL_CALL(CppObj, Enable(GL_POINT_SPRITE));
     //GL_ARB_point
-    JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(webGLContext));
+    args.rval().set(OBJECT_TO_JSVAL(webGLContext));
 
     return true;
 }
