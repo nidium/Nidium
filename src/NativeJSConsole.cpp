@@ -58,7 +58,6 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     unsigned i;
-    JSString *str;
     char *bytes;
     JS::RootedScript parent(cx);
     const char *filename_parent;
@@ -80,7 +79,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
     for (i = 0; i < args.length(); i++) {
-        str = JS::RootedString(cx, JS_ValueToString(cx, args[i]));
+        JS::RootedString str(cx, JS_ValueToString(cx, args[i]));
         if (!str)
             return false;
         bytes = JS_EncodeStringToUTF8(cx, str);

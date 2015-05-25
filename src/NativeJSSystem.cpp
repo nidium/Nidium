@@ -77,9 +77,8 @@ static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
 void NativeJSSystem::registerObject(JSContext *cx)
 {
-    JS::RootedObject systemObj(cx);
-    JS_DefineObject(cx, JS_GetGlobalObject(cx), "System",
-        &system_class , NULL, 0);
+    JS::RootedObject systemObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx), 
+        "System", &system_class , NULL, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }
 
