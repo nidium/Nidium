@@ -54,19 +54,18 @@ static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
     return true;
 }
 
-
 static JSBool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     unsigned i;
     JSString *str;
     char *bytes;
-    JSScript *parent;
+    JS::RootedScript parent(cx);
     const char *filename_parent;
     unsigned lineno;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
+    JS_DescribeScriptedCaller(cx, &parent.get(), &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
 
     if (filename_parent == NULL) {
