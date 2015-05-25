@@ -212,6 +212,8 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
             jsval arg[2];
+            JS::AutoArrayRooter argRooter(cx, 2, arg);
+
             const char *data = (const char *)msg.args[2].toPtr();
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
@@ -225,7 +227,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             if (JS_GetProperty(m_Cx, this->getJSObject(), "onmessage", &oncallback) &&
                 JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
-                jsval jdata;
+                JS::RootedValue jdata(cx);
 
                 JSObject *event = JS_NewObject(m_Cx, NULL, NULL, NULL);           
                 NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
@@ -242,25 +244,24 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
         }
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CONNECT):
         {
-            jsval arg;
             JSObject *jclient = this->createClient(
                 (NativeWebSocketClientConnection *)msg.args[1].toPtr());
 
-            arg.setObjectOrNull(jclient);
+            jsval arg[1] = { OBJECT_TO_JSVAL(jclient) };
 
-            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onopen", 1, &arg);
+            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onopen", 1, arg);
 
             break;
         }
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CLOSE):
         {
-            jsval arg;
             NativeWebSocketClientConnection *client = (NativeWebSocketClientConnection *)msg.args[1].toPtr();
             JSObject *jclient = (JSObject *)client->getData();
 
-            arg.setObjectOrNull(jclient);
+            jsval arg[1] = { OBJECT_TO_JSVAL(jclient) };
+            JS::AutoArrayRooter rooter(cx, 1, arg);
 
-            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, &arg);
+            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, arg);
 
             JS_SetPrivate(jclient, NULL);
             NativeJSObj(m_Cx)->unrootObject(jclient);

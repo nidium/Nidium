@@ -42,11 +42,14 @@ class NativeJSFileAsyncReader : public NativeMessages
 public:
     void onMessage(const NativeSharedMessages::Message &msg)
     {
-        jsval params[2], rval;
 
+        jsval params[2];
         params[0].setNull();
         params[1].setUndefined();
         JSContext *cx = (JSContext *)m_Args[0].toPtr();
+        JS::AutoArrayRooter paramsRoot(cx, 2, params);
+        JS::RootedValue rval(cx);
+
         NativeBaseStream *stream = (NativeBaseStream *)m_Args[2].toPtr();
         JSObject *callback = (JSObject *)m_Args[7].toPtr();
 
@@ -62,7 +65,7 @@ public:
                 break;
             case NATIVESTREAM_READ_BUFFER:
             {
-                jsval ret;
+                JS::RootedValue ret(cx);
                 buffer *buf = (buffer *)msg.args[0].toPtr();
                 if (NativeJSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, &ret, encoding)) {
@@ -79,7 +82,7 @@ public:
 
             JSAutoRequest ar(cx); // TODO: Why do we need a request here?
             JS_CallFunctionValue(cx, NULL, OBJECT_TO_JSVAL(callback),
-                2, params, &rval);
+                2, params, rval.address());
         }
 
         NativeJS::getNativeClass(cx)->unrootObject(callback);        
@@ -629,7 +632,7 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
         cencoding = encoding.ptr();
     }
     
-    jsval ret;
+    JS::RootedValue ret(cx);
 
     if (!NativeJSUtils::strToJsval(cx, buf, len, &ret, cencoding)) {
         return false;
@@ -742,7 +745,9 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     const NativeSharedMessages::Message &msg, JSObject *thisobj,
     const char *encoding)
 {
-    JS::Value rval, params[2];
+    JS::Value params[2];
+
+    JS::RootedValue rval(cx);
 
     params[1].setUndefined();
     JSContext *m_Cx = cx;
@@ -757,7 +762,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
             {
                 buffer *buf = (buffer *)msg.args[0].toPtr();
                 NativeJSUtils::strToJsval(cx, (const char *)buf->data,
-                    buf->used, &params[1], encoding);
+                    buf->used, paramsRoot.handleAt(1), encoding);
                 break;
             }
             case NATIVEFILE_WRITE_SUCCESS:
@@ -802,7 +807,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
 
         JSAutoRequest ar(cx); // TODO: Why do we need a request here?
         JS_CallFunctionValue(cx, jsthis, OBJECT_TO_JSVAL(callback),
-            2, params, &rval);
+            2, params, rval.address());
     }
 
     NativeJS::getNativeClass(cx)->unrootObject(callback);

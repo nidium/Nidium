@@ -128,9 +128,9 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 
     buffer *data = client->getHTTPState()->data;
     if (client->getHTTPState()->parser.method == HTTP_POST) {
-        JS::Value strdata;
+        JS::RootedValue strdata(m_Cx);
         if (data == NULL || data->used == 0) {
-            strdata = JS_GetEmptyStringValue(m_Cx);
+            strdata.setObjectOrNull(JSVAL_TO_OBJECT(JS_GetEmptyStringValue(m_Cx)));
         } else {
             NativeJSUtils::strToJsval(m_Cx, (const char *)data->data,
                 data->used, &strdata, "utf8");

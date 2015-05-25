@@ -24,20 +24,20 @@
 #include "NativeJSUtils.h"
 #include "NativeUtils.h"
 
-bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::Value *ret,
+bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::MutableHandleValue ret,
     const char *encoding)
 {
-    *ret = JSVAL_NULL;
+    ret.setNull();
 
     if (encoding) {
 
         JSString *str = NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding);
         if (!str) {
-            *ret = JS_GetEmptyStringValue(cx);
+            ret.set(JS_GetEmptyStringValue(cx));
             return false;
         }
 
-        *ret = STRING_TO_JSVAL(str);
+        ret.setString(str);
 
     } else {
         JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
@@ -49,7 +49,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::V
             uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
             memcpy(adata, buf, len);
 
-            *ret = OBJECT_TO_JSVAL(arrayBuffer);
+            ret.setObject(*arrayBuffer);
         }        
     }
 
