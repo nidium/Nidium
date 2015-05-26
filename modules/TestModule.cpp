@@ -14,9 +14,9 @@ static JSFunctionSpec TestModule_funcs[] = {
 };
 
 static JSPropertySpec TestModule_props[] = {
-    {"bar", 0, 
-        JSPROP_ENUMERATE, 
-        JSOP_NULLWRAPPER, 
+    {"bar", 0,
+        JSPROP_ENUMERATE,
+        JSOP_NULLWRAPPER,
         JSOP_NULLWRAPPER},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
@@ -25,7 +25,7 @@ bool registerCallback(JSContext *cx, JSObject *exports) {
     JS_DefineFunctions(cx, exports, TestModule_funcs);
     JS_DefineProperties(cx, exports, TestModule_props);
 
-    JS::Value bar;
+    JS::RootedValue bar(cx);
     bar.setInt32(42);
 
     JS_SetProperty(cx, exports, "bar", &bar);
@@ -34,5 +34,6 @@ bool registerCallback(JSContext *cx, JSObject *exports) {
 
     return true;
 }
- 
+
 NATIVE_REGISTER_MODULE(registerCallback)
+

@@ -52,7 +52,7 @@ struct _nativeState {
     SkPaint *paint_stroke;
     enum _NativeBaseline baseline;
 
-    struct _nativeState *next;    
+    struct _nativeState *next;
 };
 
 class NativeSkia
@@ -133,7 +133,7 @@ class NativeSkia
         void drawText(const char *text, int x, int y, bool stroke = false);
         void drawTextf(int x, int y, const char *text, ...);
         void system(const char *text, int x, int y);
-        void drawRect(double x, double y, double width, 
+        void drawRect(double x, double y, double width,
             double height, int stroke);
         void drawRect(double x, double y, double width,
             double height, double rx, double ry, int stroke);

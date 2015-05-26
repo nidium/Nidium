@@ -12,7 +12,7 @@ uint32_t ttfps = 0;
 
 static int NativeProcessUI(void *arg)
 {
-    return 16; 
+    return 16;
 }
 
 bool NativeTerminalUIInterface::runApplication(const char *path)
@@ -69,11 +69,11 @@ void NativeTerminalUIInterface::setWindowControlsOffset(double x, double y)
 void NativeTerminalUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
-    
-    events_loop(gnet);  
+
+    events_loop(gnet);
 }
 
-NativeUITerminalConsole::NativeUITerminalConsole () 
+NativeUITerminalConsole::NativeUITerminalConsole ()
     : isHidden(false), needFlush(false)
 {
 }
@@ -108,6 +108,6 @@ void NativeUITerminalConsole::flush()
 {
 }
 
-NativeUITerminalConsole::~NativeUITerminalConsole() 
+NativeUITerminalConsole::~NativeUITerminalConsole()
 {
 }

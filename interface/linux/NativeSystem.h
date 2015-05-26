@@ -8,7 +8,7 @@ class NativeSystem : public NativeSystemInterface
     public:
         NativeSystem();
         ~NativeSystem(){};
-        float backingStorePixelRatio();     
+        float backingStorePixelRatio();
         const char *getCacheDirectory();
         const char *getPrivateDirectory();
         const char *getUserDirectory();

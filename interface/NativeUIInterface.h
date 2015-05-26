@@ -171,7 +171,7 @@ class NativeUIInterface
         virtual void alert(const char *message)=0;
 
         virtual void refresh();
-        
+
         int getWidth() const { return this->width; }
         int getHeight() const { return this->height; }
         class NativeUIConsole
@@ -206,7 +206,7 @@ class NativeUIInterface
         SDL_GLContext getGLContext() {
             return m_mainGLCtx;
         }
-        
+
         SDL_GLContext createSharedContext(bool webgl = false);
 
 

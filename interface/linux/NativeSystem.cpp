@@ -60,7 +60,7 @@ float NativeSystem::backingStorePixelRatio()
 const char *NativeSystem::getPrivateDirectory()
 {
     static char privatedir[MAXPATHLEN];
-    
+
     strncpy(privatedir, this->pwd(), MAXPATHLEN - (sizeof("/private/") + 1));
     strcat(privatedir, "/private/");
 

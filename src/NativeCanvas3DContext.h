@@ -64,7 +64,7 @@ public:
         return m_Flags & flag;
     }
 private:
-    
+
     /*
         width and height are in device pixel
     */

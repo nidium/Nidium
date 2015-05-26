@@ -115,7 +115,7 @@ bool NativeGLState::initGLBase(bool withProgram)
             m_GLObjects.uniforms.u_projectionMatrix);
 
         NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
-            m_GLObjects.uniforms.u_opacity);    
+            m_GLObjects.uniforms.u_opacity);
     }
 
     NATIVE_GL_CALL_MAIN(BindVertexArray(0));
@@ -130,7 +130,7 @@ void NativeGLState::setProgram(uint32_t program)
     NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_projectionMatrix"),
         m_GLObjects.uniforms.u_projectionMatrix);
     NATIVE_GL_CALL_RET_MAIN(GetUniformLocation(m_GLObjects.program, "u_opacity"),
-        m_GLObjects.uniforms.u_opacity);     
+        m_GLObjects.uniforms.u_opacity);
 }
 
 void NativeGLState::setActive()

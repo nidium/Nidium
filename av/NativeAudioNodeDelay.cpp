@@ -1,13 +1,13 @@
 #include "NativeAudioNodeDelay.h"
 
-NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio) 
+NativeAudioNodeDelay::NativeAudioNodeDelay(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNodeProcessor(inCount, outCount, audio)
 {
-    this->args[0] = new ExportsArgs("wet", 
+    this->args[0] = new ExportsArgs("wet",
         DOUBLE, WET, NativeAudioNodeDelay::argCallback);
-    this->args[1] = new ExportsArgs("delay", 
+    this->args[1] = new ExportsArgs("delay",
         INT, DELAY, NativeAudioNodeDelay::argCallback);
-    this->args[2] = new ExportsArgs("feedback", 
+    this->args[2] = new ExportsArgs("feedback",
         DOUBLE, FEEDBACK, NativeAudioNodeDelay::argCallback);
 
     m_DelayProcessor = new NativeAudioProcessorDelay(this->audio->outputParameters->sampleRate, 2000);
@@ -31,3 +31,4 @@ void NativeAudioNodeDelay::argCallback(NativeAudioNode *node, int id, void *tmp,
         break;
     }
 }
+

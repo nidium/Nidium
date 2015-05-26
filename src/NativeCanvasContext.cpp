@@ -16,7 +16,7 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
     ShHandle compiler = NULL;
 
     compiler = ShConstructCompiler((ShShaderType)type,
-        SH_WEBGL_SPEC, SH_GLSL_OUTPUT, 
+        SH_WEBGL_SPEC, SH_GLSL_OUTPUT,
         NativeContext::getNativeClass(NativeJS::getNativeClass())->getShaderResources());
 
     if (compiler == NULL) {
@@ -24,7 +24,7 @@ char *NativeCanvasContext::processShader(const char *content, shaderType type)
         return NULL;
     }
 
-    if (!ShCompile(compiler, &content, 1, SH_OBJECT_CODE | SH_ATTRIBUTES_UNIFORMS | 
+    if (!ShCompile(compiler, &content, 1, SH_OBJECT_CODE | SH_ATTRIBUTES_UNIFORMS |
             SH_ENFORCE_PACKING_RESTRICTIONS | SH_MAP_LONG_VARIABLE_NAMES)) {
         size_t logLen;
         ShGetInfo(compiler, SH_INFO_LOG_LENGTH, &logLen);
@@ -70,7 +70,7 @@ uint32_t NativeCanvasContext::compileShader(const char *data, int type)
         NLOG("Shader error %d : %s\n%s", len, messages, data);
         return 0;
     }
-    
+
     return shaderHandle;
 }
 
@@ -82,22 +82,22 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
 
     float xstep = 2. / ((float)x-1.);
     float ystep = 2. / ((float)y-1.);
-    
+
     float txstep = 1.  / ((float)x-1.);
     float tystep = 1.  / ((float)y-1.);
-    
+
     NativeVertices *info = (NativeVertices *)malloc(sizeof(NativeVertices));
-    
+
     info->vertices = (NativeVertex *)malloc(sizeof(NativeVertex) * x * y);
 
     info->nvertices = x*y;
-    
+
     info->indices = (unsigned int *)malloc((sizeof(int) * x * y) * 2);
     info->nindices = 0;
-    
+
     NativeVertex *vert = info->vertices;
     unsigned int *indices = info->indices;
-    
+
     for (int i = 0; i < y; i++) {
         for (int j = 0; j < x; j++, t++) {
             /* TODO: Normalize using glAttributeVertex? */
@@ -106,7 +106,7 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
             vert[t].Position[2] = 0.;
 
             //NLOG("Create vertex: %f %f", vert[t].Position[0], vert[t].Position[1]);
-            
+
             vert[t].TexCoord[0] = ((float)j*txstep);
             vert[t].TexCoord[1] = 1-(((float)i*tystep));
 
@@ -119,21 +119,20 @@ NativeVertices *NativeCanvasContext::buildVerticesStripe(int resolution)
     int colSteps = x * 2;
     int rowSteps = y - 1;
     int pos = 0;
-    
+
     for ( int r = 0; r < rowSteps; r++) {
         for ( int c = 0; c < colSteps; c++, pos++ ) {
             int t = c + r * colSteps;
-            
+
             if ( c == colSteps - 1 ) {
                 indices[pos] = n;
             }
             else {
                 indices[pos] = n;
-                
+
                 if ( t%2 == 0 ) {
                     n += x;
-                }
-                else {
+                } else {
                     if (r%2 == 0) {
                         n -= x-1;
                     } else {
@@ -181,14 +180,14 @@ uint32_t NativeCanvasContext::createPassThroughFragment()
     "void main(void) {\n"
     "    gl_FragColor = texture2D(Texture, TexCoordOut.xy) * u_opacity;\n"
     "}";
-    
+
     uint32_t fragmentshader = NativeCanvasContext::compileShader(fragment_s, GL_FRAGMENT_SHADER);
 
     return fragmentshader;
 }
 
 uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resource)
-{   
+{
     uint32_t vertexshader = NativeCanvasContext::createPassThroughVertex();
     uint32_t fragmentshader = NativeCanvasContext::createPassThroughFragment();
 
@@ -216,7 +215,7 @@ uint32_t NativeCanvasContext::createPassThroughProgram(NativeGLResources &resour
 
     NATIVE_GL_CALL_MAIN(BindAttribLocation(programHandle,
         NativeCanvasContext::SH_ATTR_MODIFIER, "Modifier"));
-    
+
     NATIVE_GL_CALL_MAIN(LinkProgram(programHandle));
 
     NATIVE_GL_CALL_MAIN(GetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess));

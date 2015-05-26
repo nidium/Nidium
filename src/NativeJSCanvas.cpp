@@ -182,7 +182,7 @@ static JSPropertySpec canvas_props[] = {
         JSOP_WRAPPER(native_canvas_prop_set)},
     {"overflow", CANVAS_PROP_OVERFLOW, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
-        JSOP_WRAPPER(native_canvas_prop_set)},  
+        JSOP_WRAPPER(native_canvas_prop_set)},
     {"scrollLeft", CANVAS_PROP_SCROLLLEFT, NATIVE_JS_PROP,
         JSOP_WRAPPER(native_canvas_prop_get),
         JSOP_WRAPPER(native_canvas_prop_set)},
@@ -347,8 +347,8 @@ static JSBool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id
         NativeJSCanvas *jscanvas_parent =
             (class NativeJSCanvas *)JS_GetPrivate(parent->jsobj);
 
-        JS::Value ret;
-        JS_GetPropertyById(cx, jscanvas_parent->getInherit(), id, &ret);
+        JS::RootedValue ret(cx);
+        JS_GetPropertyById(cx, jscanvas_parent->getInherit(), id, &ret.get());
         vp.set(ret);
     }
 
@@ -392,7 +392,7 @@ static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeObject->setHidden(true);
-    
+
     return true;
 }
 
@@ -403,7 +403,7 @@ static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
     if (NativeObject->m_Context) {
         NativeObject->m_Context->clear(0x00000000);
     }
-    
+
     return true;
 }
 
@@ -419,7 +419,7 @@ static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeObject->setZoom(zoom);
-    
+
     return true;
 }
 
@@ -435,7 +435,7 @@ static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeObject->setScale(x, y);
-    
+
     return true;
 }
 
@@ -451,7 +451,7 @@ static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     NativeObject->setSize(width, height);
-    
+
     return true;
 }
 
@@ -461,7 +461,7 @@ static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeObject->removeFromParent();
-    
+
     return true;
 }
 
@@ -558,7 +558,7 @@ static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
     }
 
     NativeCanvasHandler *list[count];
-    jsval *jlist = (jsval *)malloc(sizeof(jsval) * count);
+    jsval *jlist = (jsval *)malloc(sizeof(jsval) * count); //@todo Jsmalloc etc JSHeap??
 
     NativeObject->getChildren(list);
 
@@ -579,14 +579,12 @@ static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeRect rect = NativeObject->getVisibleRect();
-    JSObject *ret;
-
-    ret = JS_NewObject(cx, NULL, NULL, NULL);
+    JS::RootedObject ret(cx, JS_NewObject(cx, NULL, NULL, NULL));
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
-    
+
     SET_PROP(ret, "left", DOUBLE_TO_JSVAL(rect.fLeft));
     SET_PROP(ret, "top", DOUBLE_TO_JSVAL(rect.fTop));
     SET_PROP(ret, "width", DOUBLE_TO_JSVAL(native_max(0, rect.fRight-rect.fLeft)));
@@ -638,10 +636,10 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JSObject *sub;
+    JS::RootedObject sub(cx);
     NativeCanvasHandler *handler = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub.get())) {
         return false;
     }
 
@@ -671,11 +669,12 @@ static JSBool native_canvas_insertBefore(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JSObject *insert, *ref;
+    JS::RootedObject insert(cx);
+    JS::RootedObject ref(cx);
 
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert.get(), &ref.get())) {
         return false;
     }
 
@@ -709,10 +708,11 @@ static JSBool native_canvas_insertAfter(JSContext *cx, unsigned argc,
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
-    JSObject *insert, *ref;
+    JS::RootedObject insert(cx);
+    JS::RootedObject ref(cx);
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert.get(), &ref.get())) {
         return false;
     }
 
@@ -749,7 +749,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
 
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
-    JSString *mode = args[0].toString();
+    JS::RootedString mode(cx, args[0].toString());
     JSAutoByteString cmode(cx, mode);
 
     NativeUIInterface *ui = nctx->getUI();
@@ -775,17 +775,17 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
                 NativeCanvas2DContext *ctx2d = new NativeCanvas2DContext(NativeObject, cx,
                         NativeObject->getWidth() + (NativeObject->padding.global * 2),
                         NativeObject->getHeight() + (NativeObject->padding.global * 2), ui);
-                
+
                 if (ctx2d->getSurface() == NULL) {
                     delete ctx2d;
                     JS_ReportError(cx, "Could not create 2D context for this canvas");
                     return false;
                 }
                 NativeObject->setContext(ctx2d);
-                
+
                 /* Inherit from the NativeContext glstate */
                 ctx2d->setGLState(nctx->getGLState());
-                
+
                 break;
             }
             case NativeCanvasContext::CONTEXT_WEBGL:
@@ -811,7 +811,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
         JS_ReportWarning(cx, "Bad context requested");
         /* A mode is requested but another one was already created */
         args.rval().setNull();
-        return true;        
+        return true;
     }
 
     args.rval().set(OBJECT_TO_JSVAL(canvasctx->jsobj));
@@ -825,7 +825,7 @@ static JSBool native_canvas_setContext(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
     NATIVE_CHECK_ARGS("setContext", 1);
 
-    JSObject *obj = args[0].toObjectOrNull();
+    JS::RootedObject obj(cx, args[0].toObjectOrNull());
     if (!obj) {
         return true;
     }
@@ -880,7 +880,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             } else {
                 handler->setPositioning(NativeCanvasHandler::COORD_RELATIVE);
             }
-        }    
+        }
         break;
         case CANVAS_PROP_WIDTH:
         {
@@ -929,7 +929,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return true;
             }
             JS_ValueToECMAUint32(cx, vp, &dval);
-            
+
             if (!handler->setHeight(dval)) {
                 //JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
                 return true;
@@ -1105,7 +1105,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                 return true;
             }
             JS_ValueToNumber(cx, vp, &dval);
-            handler->setOpacity(dval);      
+            handler->setOpacity(dval);
         }
         break;
         case CANVAS_PROP_STATICLEFT:
@@ -1177,14 +1177,14 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_ID:
         {
-            JSString *sid = JS_ValueToString(cx, vp);
+            JS::RootedString sid(cx, JS_ValueToString(cx, vp));
             if (!sid) {
                 return true;
             }
             JSAutoByteString cid(cx, sid);
             handler->setId(cid.ptr());
         }
-        break;  
+        break;
         case CANVAS_PROP_MARGINLEFT:
         {
             double dval;
@@ -1230,7 +1230,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             }
 
             JS_ValueToNumber(cx, vp, &dval);
-            
+
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 dval, handler->m_Margin.left);
         }
@@ -1248,7 +1248,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
                     handler->setCursor(native_cursors_list[i].type);
                     break;
                 }
-            }            
+            }
         }
         break;
         default:
@@ -1415,7 +1415,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
                     break;
                 case NativeCanvasHandler::COORD_INLINEBREAK:
                     vp.set(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, "inline-break")));
-                    break; 
+                    break;
             }
             break;
         }
@@ -1460,20 +1460,20 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     int width, height;
     NativeCanvasHandler *handler;
-    JSObject *opt = NULL;
+    JS::RootedObject opt(cx);
 
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &Canvas_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, vp));
 
-    JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
-        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
+        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii/o",
-        &width, &height, &opt)) {
+        &width, &height, &opt.get())) {
         return false;
     }
 
@@ -1545,17 +1545,17 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
 }
 
 
-JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width, 
+JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     int height, NativeCanvasHandler **out)
 {
-    JSObject *ret;
+    JS::RootedObject ret(cx);
     NativeCanvasHandler *handler;
     NativeContext *nctx = NativeContext::getNativeClass(cx);
     NativeUIInterface *ui = nctx->getUI();
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
-    JSObject *inherit = JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
-        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
+        JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     handler = new NativeCanvasHandler(width, height, nctx);
     handler->setContext(new NativeCanvas2DContext(handler, cx, width, height, ui));
@@ -1606,9 +1606,10 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         }
         case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
         {
-            JSObject *ev = JS_NewObject(cx, NULL, NULL, NULL);
+            JS::RootedObject ev(cx, JS_NewObject(cx, NULL, NULL, NULL));
             const char *name = NULL;
-            JS::Value value, arg;
+            JS::RootedValue value(cx);
+            JS::RootedValue arg(cx);
 
             switch (msg.args[1].toInt()) {
                 case NativeCanvasHandler::kContentWidth_Changed:
@@ -1618,7 +1619,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 case NativeCanvasHandler::kContentHeight_Changed:
                     name = "contentHeight";
                     value.setInt32(msg.args[2].toInt());
-                    break;                
+                    break;
             }
 
             JSOBJ_SET_PROP_CSTR(ev, "property", name);
@@ -1626,13 +1627,13 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
 
             arg.setObjectOrNull(ev);
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg.get());
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, DRAG_EVENT):
         {
             printf("Drag event detected\n");
-        } 
+        }
         case NATIVE_EVENT(NativeCanvasHandler, MOUSE_EVENT):
         {
             NativeJSObjectBuilder obj = NativeJSObjectBuilder(m_Cx,
@@ -1658,7 +1659,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                     obj.set("yrel", msg.args[5].toInt());
                     break;
                 default:
-                    break;                    
+                    break;
             }
 
             switch (evtype) {
@@ -1672,7 +1673,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 case NativeInputEvent::kMouseDragEnd_Type:
                     obj.set("source", OBJECT_TO_JSVAL(this->getJSObject()));
                     break;
-                case NativeInputEvent::kMouseDragOver_Type:                  
+                case NativeInputEvent::kMouseDragOver_Type:
                 case NativeInputEvent::kMouseDrop_Type:
                     obj.set("source", OBJECT_TO_JSVAL(target->jsobj));
                     obj.set("target", OBJECT_TO_JSVAL(this->getJSObject()));
@@ -1687,8 +1688,8 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 break;
             }
 
-            JS::Value cancelBubble;
-            if (JS_GetProperty(cx, obj.obj(), "cancelBubble", &cancelBubble)) {
+            JS::RootedValue cancelBubble(cx);
+            if (JS_GetProperty(cx, obj.obj(), "cancelBubble", &cancelBubble.get())) {
                 if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
                     /* TODO: sort out this dirty hack */
                     NativeSharedMessages::Message *nonconstmsg = (NativeSharedMessages::Message *)&msg;
@@ -1696,7 +1697,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                 }
             }
         }
-        	break;
+            break;
         default:
             break;
     }

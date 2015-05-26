@@ -71,7 +71,7 @@ void NativeContext::initStats()
     m_Stats.minfps = UINT32_MAX;
     m_Stats.sampleminfps = 0.f;
 
-    memset(m_Stats.samples, 0, sizeof(m_Stats.samples)); 
+    memset(m_Stats.samples, 0, sizeof(m_Stats.samples));
 }
 
 void NativeContext::CreateAndAssemble(NativeUIInterface *ui, ape_global *gnet)
@@ -166,7 +166,7 @@ void NativeContext::loadNativeObjects(int width, int height)
 #if DEBUG
     createDebug2Canvas();
 #endif
-    //NativeJSDebug::registerObject(cx);    
+    //NativeJSDebug::registerObject(cx);
 }
 
 void NativeContext::setWindowSize(int w, int h)
@@ -258,11 +258,11 @@ void NativeContext::postDraw()
             //s->drawLine(300+i*3, 55, 300+i*3, (40/60)*m_Stats.samples[i]);
             s->setStrokeColor(0xFF004400u);
             s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, 20.f);
-            s->setStrokeColor(0xFF00BB00u);   
+            s->setStrokeColor(0xFF00BB00u);
             s->drawLine(m_DebugHandler->getWidth()-20-i*3, 55, m_DebugHandler->getWidth()-20-i*3, native_min(60-((40.f/62.f)*(float)m_Stats.samples[i]), 55));
         }
         //s->setLineWidth(1.0);
-        
+
         //s->translate(10, 10);
         //sprintf(fps, "%d fps", currentFPS);
         //s->system(fps, 5, 10);
@@ -334,7 +334,7 @@ NativeContext::~NativeContext()
     delete m_GLState;
     delete m_WS;
     delete m_JSWindow;
-    
+
     NativeSkia::glcontext = NULL;
 
     ape_destroy_pool_ordered(m_CanvasEventsCanvas.head, NULL, NULL);
@@ -385,7 +385,7 @@ void NativeContext::frame(bool draw)
     ctx.siblingCtx = &sctx;
 
     m_CanvasOrderedEvents.clear();
-    
+
     /*
         Compose canvas eachother on the main framebuffer
     */
@@ -410,7 +410,7 @@ void NativeContext_destroy_and_handle_events(ape_pool_t *pool, void *ctx)
     if (ev->getDepth() == ev->m_Origin->getDepth()) {
         ev->m_Handler->_handleEvent(ev);
     }
-    
+
     delete ev;
 }
 
@@ -424,7 +424,7 @@ void NativeContext::triggerEvents()
                 NativeContext_destroy_and_handle_events, NULL);
         __pool_item->ptr.data = NULL;
     }
-    
+
     /*
         Reset the 'push' pointer.
     */
@@ -492,7 +492,7 @@ bool NativeContext::initShaderLang()
         default:
             printf("GL error 0x%x occurred during WebGL context initialization!\n", error);
             return false;
-    }   
+    }
 #endif
 
     ShInitialize();
@@ -520,7 +520,7 @@ bool NativeContext::initShaderLang()
 void NativeContext::initHandlers(int width, int height)
 {
     NativeCanvasHandler::LastIdx = 0;
-    
+
     m_RootHandler = new NativeCanvasHandler(width, height, this);
 
     m_RootHandler->setContext(new NativeCanvas2DContext(m_RootHandler, width, height, m_UI));
@@ -589,7 +589,7 @@ JSBool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWri
                                      JSObject *obj, void *closure)
 {
 
-    JS::Value vobj = OBJECT_TO_JSVAL(obj);
+    JS::RootedValue vobj(cx, OBJECT_TO_JSVAL(obj));
     JSType type = JS_TypeOfValue(cx, vobj);
 
     if (type != JSTYPE_OBJECT) {
@@ -643,7 +643,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
 
             JS_ReadTypedArray(r, &arr);
 
-            JSObject *dataObject = JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL);
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL));
             JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 

@@ -39,9 +39,9 @@ struct NGLContextAttributes {
     bool m_PreserveDrawingBuffer;
     bool m_PreferLowPowerToHightPerformance;
 
-    void set(bool alpha, bool depth, bool stencil, 
-            bool antialias, bool premultipliedAlpha, 
-            bool preserveDrawingBuffer, bool preferLowPowerToHightPerformance) 
+    void set(bool alpha, bool depth, bool stencil,
+            bool antialias, bool premultipliedAlpha,
+            bool preserveDrawingBuffer, bool preferLowPowerToHightPerformance)
     {
         m_Alpha = alpha;
         m_Depth = depth;
@@ -52,10 +52,10 @@ struct NGLContextAttributes {
         m_PreferLowPowerToHightPerformance = preferLowPowerToHightPerformance;
     }
 
-    NGLContextAttributes() 
-        :  m_Alpha(true), m_Depth(true), m_Stencil(false), m_Antialias(true), 
-           m_PremultipliedAlpha(true), m_PreserveDrawingBuffer(false), 
-           m_PreferLowPowerToHightPerformance(false) 
+    NGLContextAttributes()
+        :  m_Alpha(true), m_Depth(true), m_Stencil(false), m_Antialias(true),
+           m_PremultipliedAlpha(true), m_PreserveDrawingBuffer(false),
+           m_PreferLowPowerToHightPerformance(false)
     {
     }
 };
@@ -63,7 +63,7 @@ struct NGLContextAttributes {
 class NativeCanvasWebGLContext: public NativeCanvasContext
 {
     public :
-        NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height); 
+        NativeCanvasWebGLContext(JSContext *cx, NGLContextAttributes *attributes, int width, int height);
         ~NativeCanvasWebGLContext();
 
         void translate(double x, double y) {};

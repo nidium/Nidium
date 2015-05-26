@@ -17,8 +17,8 @@ class SK_API NativeShadowLooper : public SkDrawLooper {
 public:
     enum BlurFlags {
         kNone_BlurFlag = 0x00,
-        /** 
-            The blur layer's dx/dy/radius aren't affected by the canvas 
+        /**
+            The blur layer's dx/dy/radius aren't affected by the canvas
             transform.
         */
         kIgnoreTransform_BlurFlag   = 0x01,
@@ -62,7 +62,7 @@ private:
     SkColorFilter*  fColorFilter;
     SkScalar        fDx, fDy, fSigma;
     SkColor         fBlurColor;
-    uint32_t        fBlurFlags;  
+    uint32_t        fBlurFlags;
 
     enum State {
         kBeforeEdge,
@@ -82,7 +82,7 @@ private:
 
     void init(SkScalar sigma, SkScalar dx, SkScalar dy, SkColor color, uint32_t flags);
     void initEffects();
-    
+
     typedef SkDrawLooper INHERITED;
 };
 

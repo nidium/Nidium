@@ -48,7 +48,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void translate(double x, double y);
 
         void getSize(int *width, int *height) const;
-        
+
         uint32_t attachShader(const char *string);
         void detachShader();
 
@@ -61,7 +61,7 @@ class NativeCanvas2DContext : public NativeCanvasContext
         void setScale(double x, double y, double px=1, double py=1);
 
         uint32_t createProgram(const char *data);
-        
+
         void drawTexture(uint32_t textureID, uint32_t width,
             uint32_t height, uint32_t left, uint32_t top);
 

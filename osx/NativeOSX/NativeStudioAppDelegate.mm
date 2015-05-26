@@ -52,7 +52,7 @@ unsigned int fboTex, fboHandle;
     }
 }
 
-Uint32 NativeFPS(Uint32 interval, 
+Uint32 NativeFPS(Uint32 interval,
                  void*  param)
 {
     NJS->currentFPS = tfps;
@@ -72,7 +72,7 @@ static int NativeProcessUI(void *arg)
 static void NativeRunMainLoop(ape_global *net, SDL_Window *win)
 {
     add_timer(&net->timersng, 1, NativeProcessUI, (void *)win);
-    
+
     events_loop(net);
 }
 

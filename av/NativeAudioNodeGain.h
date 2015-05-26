@@ -10,15 +10,17 @@ class NativeAudioNodeGain: public NativeAudioNodeProcessor
 {
     public :
         NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio);
-        
+
         enum Args {
             GAIN
         };
 
         static void argCallback(NativeAudioNode *node, int id, void *val, int size);
-    
+
         ~NativeAudioNodeGain() {};
-    private : 
+    private :
         NativeAudioProcessorGain *m_GainProcessor;
 };
+
 #endif
+

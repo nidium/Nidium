@@ -36,7 +36,7 @@ static SkData* dataToData(void *data, size_t size) {
 #endif
 
 const uint8_t *NativeSkImage::getPixels(size_t *len)
-{   
+{
     if (len) {
         *len = 0;
     }
@@ -180,8 +180,8 @@ void NativeSkImage::desaturate()
 }
 
 
-bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
-        bool flipY, bool premultiply) 
+bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
+        bool flipY, bool premultiply)
 {
 #if 1
     int length;
@@ -200,8 +200,7 @@ bool NativeSkImage::ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
     width *= 4;
     k = flipY ? length - width: 0;
 
-    for (int i = 0; i < length; i += 4) 
-    {
+    for (int i = 0; i < length; i += 4) {
         const uint32_t pixel = *reinterpret_cast<const uint32_t*>(&pixels[i]);
         int alpha = SkGetPackedA32(pixel);
 

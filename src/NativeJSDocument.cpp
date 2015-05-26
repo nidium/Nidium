@@ -63,7 +63,7 @@ struct _native_document_restart_async
 
 static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *str;
+    JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
@@ -81,7 +81,7 @@ static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *str;
+    JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
@@ -108,7 +108,7 @@ static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval 
     int width, height;
     context->getSize(&width, &height);
 
-    JSObject *arrBuffer = JS_NewUint8ClampedArray(cx, width * height * 4);
+    JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width * height * 4));
     uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
 
@@ -117,13 +117,13 @@ static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval 
     uint8_t *fb = nctx->getUI()->readScreenPixel();
 
     memcpy(pixels, fb, width * height * 4);
-    
+
     //NativeSkia *skia = context->getSurface();
     //skia->readPixels(0, 0, width, height, pixels);
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-    JSObject *dataObject = JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL);
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL));
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -141,7 +141,7 @@ static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval 
 
 static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *str;
+    JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
@@ -174,7 +174,7 @@ static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval
     jschar *jsc = new jschar[len];
     js::InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
 
-    JSString *jret = JS_NewUCStringCopyN(cx, jsc, len);
+    JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, len));
 
     args.rval().set(STRING_TO_JSVAL(jret));
 
@@ -218,7 +218,7 @@ static int native_document_restart(void *param)
 static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSString *location;
+    JS::RootedString location(cx);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &location)) {
         return false;
@@ -250,12 +250,11 @@ static void Document_Finalize(JSFreeOp *fop, JSObject *obj)
 bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
-    JS::Value ret;
-    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
+    JS::RootedValue ret(cx);
+    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret.get())) {
         return false;
     }
-    JSObject *jret = ret.toObjectOrNull();
-
+    JS::RootedObject jret(cx, ret.toObjectOrNull());
 
     NativeJS::copyProperties(cx, jret, this->stylesheet);
 
@@ -264,8 +263,8 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 
 JSObject *NativeJSdocument::registerObject(JSContext *cx)
 {
-    JSObject *documentObj;
-    
+    JS::RootedObject documentObj(cx);
+
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
     documentObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
@@ -281,8 +280,8 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
     jdoc->stylesheet = JS_NewObject(cx, NULL, NULL, NULL);
-    jsval obj = OBJECT_TO_JSVAL(jdoc->stylesheet);
-    JS_SetProperty(cx, documentObj, "stylesheet", &obj);
+    JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
+    JS_SetProperty(cx, documentObj, "stylesheet", &objV.get());
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
 
@@ -334,11 +333,10 @@ static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS_INITOPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *thisobj = NativeJSdocument::getJSGlobalObject(cx);
+    JS::RootedObject thisobj(cx, NativeJSdocument::getJSGlobalObject(cx));
     NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj);
 
-    JSObject *fontdef;
-
+    JS::RootedObject fontdef(cx);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &fontdef)) {
         return false;

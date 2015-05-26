@@ -10,7 +10,7 @@ class SkCanvas;
 class SkBitmap;
 
 class NativeSkImage
-{   
+{
   public:
     int isCanvas;
     SkCanvas *canvasRef;
@@ -20,7 +20,7 @@ class NativeSkImage
 #endif
     NativeSkImage(SkCanvas *canvas);
     NativeSkImage(void *data, size_t len);
-    static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba, 
+    static bool ConvertToRGBA(NativeSkImage *nimg, unsigned char* rgba,
         bool flipY, bool premultiply);
 
     ~NativeSkImage();

@@ -55,7 +55,7 @@ unsigned long _ape_seed;
 - (void)handleURLEvent:(NSAppleEventDescriptor*)event withReplyEvent:(NSAppleEventDescriptor*)replyEvent
 {
     NSString* filename = [[event paramDescriptorForKeyword:keyDirectObject] stringValue];
-    
+
     NSString *f = [[[NSString alloc] initWithFormat:@"http%@", [filename substringFromIndex:sizeof("native")-1]] autorelease];
 
     self.appfile = f;
@@ -114,7 +114,7 @@ unsigned long _ape_seed;
 
     [mainmenu addItem:HelpMenu];
 
-    NSSearchField *searchField = [[NSSearchField alloc] init];    
+    NSSearchField *searchField = [[NSSearchField alloc] init];
     NSRect cellFrame = [searchField frame];
     NSMenuItem *search = [[NSMenuItem alloc] initWithTitle:@"Search" action:NULL keyEquivalent:@""];
     [search setView:searchField];
@@ -128,7 +128,7 @@ NSMenuItem *testItem = [[[NSMenuItem alloc] initWithTitle:@"Testing!" action:nil
 NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
 [subMenu addItemWithTitle:@"Another test." action:nil keyEquivalent:@""];
 [testItem setSubmenu:subMenu];
-[menubar addItem:testItem]; 
+[menubar addItem:testItem];
     */
 }
 
@@ -156,14 +156,14 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
     //[console attachToStdout];
     NativeCocoaUIInterface *nUI = new NativeCocoaUIInterface;
     __NativeUI = nUI;
-    
+
     self->UI = nUI;
     self->isRunning = YES;
 #if NIDIUM_DISPATCH_MAINTHREAD
     dispatch_async(dispatch_get_main_queue(), ^{
 #endif
         const char *filename;
-        
+
         if (self.appfile == nil) {
             filename = "private://default.nml";
         } else {
@@ -178,7 +178,7 @@ NSMenu *subMenu = [[[NSMenu alloc] initWithTitle:@"Testing!"] autorelease];
             if (!nUI->runJSWithoutNML(filename, appWidth, appHeight)) {
                 [[NSApplication sharedApplication] terminate:nil];
                 return;
-            }        
+            }
         }
         nUI->runLoop();
 #if NIDIUM_DISPATCH_MAINTHREAD

@@ -10,7 +10,7 @@
     if (!(self = [super init])) return nil;
 
     self.isHidden = NO;
-    
+
     self.window = [[NSWindow alloc] initWithContentRect:NSMakeRect(100, 100, 700, 480) styleMask: NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
 
     [self.window setFrameAutosaveName:@"nativeConsole"];
@@ -30,56 +30,56 @@
     [mview setWantsLayer:YES];
 
     NSScrollView *scrollview = [[NSScrollView alloc]
-                                
+
                                 initWithFrame:frame];
 
     [mview addSubview:scrollview];
-    
+
     NSSize contentSize = [scrollview contentSize];
 
     [mview addSubview:btn];
-    
+
     [scrollview setBorderType:NSNoBorder];
-    
+
     [scrollview setHasVerticalScroller:YES];
-    
+
     [scrollview setHasHorizontalScroller:NO];
-    
+
     [scrollview setAutoresizingMask:NSViewWidthSizable];
-    
+
     self.textview = [[NSTextView alloc] initWithFrame:NSMakeRect(0,
-                                                                 0,  
+                                                                 0,
                                                                  contentSize.width,
                                                                  contentSize.height)];
-    
+
     [textview setMinSize:NSMakeSize(0.0, contentSize.height)];
-    
+
     [textview setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
-    
+
     [textview setVerticallyResizable:YES];
-    
+
     [textview setHorizontallyResizable:NO];
     [[textview layoutManager] setBackgroundLayoutEnabled:YES];
     [[textview layoutManager] setAllowsNonContiguousLayout:YES];
-    
+
     [textview setAutoresizingMask:NSViewWidthSizable];
- 
+
     [[textview textContainer] setContainerSize:NSMakeSize(contentSize.width, FLT_MAX)];
-    
-    [[textview textContainer] setWidthTracksTextView:YES];    
+
+    [[textview textContainer] setWidthTracksTextView:YES];
 
     [scrollview setDocumentView:textview];
-    
+
     [window setContentView:mview];
-    
+
     [window makeKeyAndOrderFront:nil];
-    
+
     [window makeFirstResponder:textview];
 
     [self.window setContentBorderThickness:32.0 forEdge:NSMinYEdge];
     [self.window release];
     [self.textview release];
-    
+
     [textview insertText:@"Console ready.\n"];
     [textview setBackgroundColor:[NSColor blackColor]];
     [textview setTextColor:[NSColor greenColor]];
@@ -107,7 +107,7 @@
     @try {
         [textview insertText:@"Console ready.\n"];
     } @catch(NSException *e){}
-    
+
     [textview setFont:[NSFont fontWithName:@"Monaco" size:10]];
 }
 
@@ -115,9 +115,9 @@
 {
     NSPipe *pipe = [NSPipe pipe];
     NSFileHandle *pipeReadHandle = [pipe fileHandleForReading];
-    
+
     dup2([[pipe fileHandleForWriting] fileDescriptor], fileno(stdout));
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleNotification:)
                                                  name:NSFileHandleReadCompletionNotification
@@ -131,7 +131,7 @@
     NSFileHandle *pipeReadHandle = notification.object;
     [pipeReadHandle readInBackgroundAndNotify];
     NSString *str = [[NSString alloc] initWithData: [[notification userInfo] objectForKey: NSFileHandleNotificationDataItem] encoding: NSASCIIStringEncoding];
-    
+
     [self log:str];
 
 }
@@ -148,12 +148,12 @@ NativeUICocoaConsole::NativeUICocoaConsole()
 }
 
 void NativeUICocoaConsole::clear()
-{   
+{
     if (![NSThread isMainThread]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             this->flush();
             [this->window clear];
-        });        
+        });
     } else {
         this->flush();
         [this->window clear];

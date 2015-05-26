@@ -12,7 +12,7 @@ extern "C" {
 #include "libavutil/time.h"
 }
 
-#define NATIVE_AVIO_BUFFER_SIZE 32768 
+#define NATIVE_AVIO_BUFFER_SIZE 32768
 #define CORO_STACK_SIZE         4096*4
 #define NAV_IO_BUFFER_SIZE      NATIVE_AVIO_BUFFER_SIZE*8
 
@@ -92,7 +92,7 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 
         static int read(void *opaque, uint8_t *buffer, int size);
         static int64_t seek(void *opaque, int64_t offset, int whence);
-        
+
         void onAvailableData(size_t len);
         void finish();
         ~NativeAVStreamReader();
@@ -124,11 +124,11 @@ class NativeAVStreamReader : public NativeAVReader, public NativeMessages
 
 struct NativeAudioParameters {
     int bufferSize, channels, sampleFmt, sampleRate, framesPerBuffer;
-    NativeAudioParameters(int bufferSize, int channels, 
+    NativeAudioParameters(int bufferSize, int channels,
                           int sampleFmt, int sampleRate)
-        : bufferSize(bufferSize), channels(channels), 
-          sampleFmt(sampleFmt), sampleRate(sampleRate), 
-          framesPerBuffer(bufferSize/(sampleFmt * channels)) 
+        : bufferSize(bufferSize), channels(channels),
+          sampleFmt(sampleFmt), sampleRate(sampleRate),
+          framesPerBuffer(bufferSize/(sampleFmt * channels))
     {
     }
 };
@@ -177,10 +177,10 @@ const char * const NativeAVErrorsStr[ERR_MAX] = {
     "Failed to seek",
     "Internal error",
     "Input/Output error"
-}; 
+};
 
 // Used for event (play, pause, stop, error, buffered...)
-typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*ev); 
+typedef void (*NativeAVSourceEventCallback)(const struct NativeAVSourceEvent*ev);
 
 struct NativeAVSourceEvent {
     NativeAVSource *source;
@@ -189,7 +189,7 @@ struct NativeAVSourceEvent {
     void *custom;
     bool fromThread;
     NativeAVSourceEvent(NativeAVSource *source, int ev, void *custom, bool fromThread)
-        : source(source), ev(ev), custom(custom), fromThread(fromThread) 
+        : source(source), ev(ev), custom(custom), fromThread(fromThread)
     {
     };
 };
@@ -220,7 +220,7 @@ class NativeAVSource : public NativeMessages
         virtual int open(const char *src) = 0;
         virtual int open(void *buffer, int size) = 0;
         virtual int openInit() = 0;
-        
+
         virtual double getClock() = 0;
         virtual void seek(double time) = 0;
         double getDuration();
@@ -233,8 +233,8 @@ class NativeAVSource : public NativeMessages
 
         virtual ~NativeAVSource() = 0;
     protected:
-	    AVFormatContext *container;
-       
+        AVFormatContext *container;
+
         Coro *coro;
         Coro *mainCoro;
 

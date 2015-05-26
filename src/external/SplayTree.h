@@ -8,7 +8,7 @@ class SplayTree {
     public:
         SplayTree( ) : root( 0 ) { }
 
-        typedef int (*SplayCompare)(T first, T second); 
+        typedef int (*SplayCompare)(T first, T second);
 
         struct node {
             node *left, *right;

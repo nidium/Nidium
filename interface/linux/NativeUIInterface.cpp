@@ -2,7 +2,7 @@
 #include <NativeJS.h>
 #include <NativeSkia.h>
 #include <NativeApp.h>
-#include <NativeJSWindow.h> 
+#include <NativeJSWindow.h>
 #include <NativeContext.h>
 #include "NativeSystem.h"
 #ifdef NATIVE_USE_GTK
@@ -13,7 +13,7 @@
 #include <QFileDialog>
 #include <QString>
 #endif
-#include <../build/include/SDL_config.h> 
+#include <../build/include/SDL_config.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include <SDL_syswm.h>
@@ -60,7 +60,7 @@ void NativeX11UIInterface_onNMLLoaded(void *arg)
 }
 
 int NativeEvents(NativeX11UIInterface *NUII)
-{   
+{
     SDL_Event event;
     int nrefresh = 0;
     //while(1) {
@@ -129,7 +129,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                 case SDL_KEYUP:
                 {
                     int keyCode = 0;
-                    
+
                     int mod = 0;
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
@@ -153,7 +153,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     } else {
                         keyCode = SDL_KEYCODE_TO_DOMCODE(event.key.keysym.sym);
                     }
-                    
+
                     if (event.key.keysym.mod & KMOD_SHIFT) {
                         mod |= NATIVE_KEY_SHIFT;
                     }
@@ -163,7 +163,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
                     if (event.key.keysym.mod & KMOD_CTRL) {
                         mod |= NATIVE_KEY_CTRL;
                     }
-                    
+
                     if (window) {
                         window->keyupdown(SDL_KEYCODE_GET_CODE(keyCode), mod,
                             event.key.state, event.key.repeat,
@@ -214,7 +214,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
             SDL_VERSION(&info.version);
 
             if (SDL_GetWindowWMInfo(NUII->win, &info)) {
-                Cursor c = XCreateFontCursor(info.info.x11.display, cursor); 
+                Cursor c = XCreateFontCursor(info.info.x11.display, cursor);
                 Display *d = info.info.x11.display;
 
                 XDefineCursor(d, info.info.x11.window, c);
@@ -237,7 +237,7 @@ int NativeEvents(NativeX11UIInterface *NUII)
 
             glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
             uint8_t *pdata = NUII->getFrameBufferData();
-            
+
             NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
         } else {
             SDL_GL_SwapWindow(NUII->win);
@@ -330,7 +330,7 @@ bool NativeX11UIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
         SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
-        
+
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
@@ -450,7 +450,7 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
         }
 
         if (nameLength > 0) {
-            gtk_file_filter_set_name(GTK_FILE_FILTER(filter), (const gchar *)names); 
+            gtk_file_filter_set_name(GTK_FILE_FILTER(filter), (const gchar *)names);
         }
 
         gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), GTK_FILE_FILTER(filter));
@@ -462,7 +462,7 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
     {
         GSList *filenames, *list;
-        filenames = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(dialog));      
+        filenames = gtk_file_chooser_get_filenames (GTK_FILE_CHOOSER(dialog));
         guint len = g_slist_length(filenames);
 
         lst = (const char **)malloc(sizeof(char *) * len);
@@ -477,7 +477,7 @@ void NativeX11UIInterface::openFileDialog(const char *files[],
                 lst[i] = strdup((const char *)list->data);
                 g_free (list->data);
                 i++;
-            } 
+            }
             list = list->next;
         }
 
@@ -591,11 +591,11 @@ void NativeX11UIInterface::runLoop()
 {
 
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
-    
-    events_loop(gnet);  
+
+    events_loop(gnet);
 }
 
-NativeUIX11Console::NativeUIX11Console () 
+NativeUIX11Console::NativeUIX11Console ()
 {
 }
 
@@ -639,7 +639,7 @@ char *NativeX11UIInterface::getClipboardText()
     return SDL_GetClipboardText();
 }
 
-NativeUIX11Console::~NativeUIX11Console() 
+NativeUIX11Console::~NativeUIX11Console()
 {
 }
 
@@ -652,7 +652,7 @@ void NativeX11UIInterface::restartApplication(const char *path)
 bool NativeX11UIInterface::runApplication(const char *path)
 {
     NativeMessages::initReader(gnet);
-    
+
     if (path != this->filePath) {
         if (this->filePath) {
             free(this->filePath);
@@ -683,7 +683,7 @@ bool NativeX11UIInterface::runApplication(const char *path)
             char *uidpath = (char *)malloc(sizeof(char) *
                                 (strlen(app->getUDID()) + strlen(cachePath) + 16));
             sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
-            
+
             app->extractApp(uidpath, NativeDoneExtracting, this);
             free(uidpath);
             /*this->mainjs.buf = (char *)malloc(fsize);
@@ -717,7 +717,7 @@ void NativeX11UIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     /* Also clear the front buffer */
     SDL_GL_SwapWindow(this->win);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);  
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void NativeX11UIInterface::onNMLLoaded()

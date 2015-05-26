@@ -12,7 +12,7 @@
 #define CUSTOM_SOURCE_SEND 100
 
 enum {
-    NODE_EV_PROP_DATA, 
+    NODE_EV_PROP_DATA,
     NODE_EV_PROP_SIZE,
     NODE_PROP_TYPE,
     NODE_PROP_INPUT,
@@ -40,7 +40,7 @@ class NativeJSAudioNode;
 class NativeCanvas2DContext;
 
 struct NativeJSAVMessageCallback {
-    JSObject *callee;
+    JSObject *callee; //@TODO JS::Heap
     int ev;
     int arg1;
     int arg2;
@@ -52,7 +52,7 @@ struct NativeJSAVMessageCallback {
 class JSTransferableFunction
 {
     public :
-        JSTransferableFunction() : m_Data(NULL), m_Fn(NULL), m_DestCx(NULL) 
+        JSTransferableFunction() : m_Data(NULL), m_Fn(NULL), m_DestCx(NULL)
         {
         }
 
@@ -94,9 +94,9 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
             Nodes *prev;
             Nodes *next;
 
-            Nodes(NativeJSAudioNode *curr, Nodes *prev, Nodes *next) 
+            Nodes(NativeJSAudioNode *curr, Nodes *prev, Nodes *next)
                 : curr(curr), prev(prev), next(next) {}
-            Nodes() 
+            Nodes()
                 : curr(NULL), prev(NULL), next(NULL) {}
         };
 
@@ -127,7 +127,7 @@ class NativeJSAudio: public NativeJSExposer<NativeJSAudio>
         static void registerObject(JSContext *cx);
 
         ~NativeJSAudio();
-    private : 
+    private :
         NativeJSAudio(NativeAudio *audio, JSContext *cx, JSObject *obj);
         static NativeJSAudio *instance;
 };
@@ -136,11 +136,11 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 {
     public :
         NativeJSAudioNode(JSObject *obj, JSContext *cx,
-            NativeAudio::Node type, int in, int out, NativeJSAudio *audio) 
+            NativeAudio::Node type, int in, int out, NativeJSAudio *audio)
             :   NativeJSExposer<NativeJSAudioNode>(obj, cx),
-                audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL), 
+                audio(audio), node(NULL), type(type), nodeObj(NULL), hashObj(NULL),
                 arrayContent(NULL), m_IsDestructing(false)
-        { 
+        {
             m_JSObject = NULL;
 
             try {
@@ -161,10 +161,10 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
         }
 
         NativeJSAudioNode(JSObject *obj, JSContext *cx,
-               NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio) 
-            :  NativeJSExposer<NativeJSAudioNode>(obj, cx), audio(audio), node(node), type(type), 
-               hashObj(NULL), arrayContent(NULL) 
-        { 
+               NativeAudio::Node type, NativeAudioNode *node, NativeJSAudio *audio)
+            :  NativeJSExposer<NativeJSAudioNode>(obj, cx), audio(audio), node(node), type(type),
+               hashObj(NULL), arrayContent(NULL)
+        {
             this->add();
 
             for (int i = 0; i < END_FN; i++) {
@@ -213,11 +213,11 @@ class NativeJSAudioNode: public NativeJSExposer<NativeJSAudioNode>, public Nativ
 
         // Custom source node
         static void seekCallback(NativeAudioCustomSource *node, double seekTime, void *custom);
-        static bool propSetter(NativeJSAudioNode *node, JSContext *cx, 
+        static bool propSetter(NativeJSAudioNode *node, JSContext *cx,
                 int id, JSMutableHandleValue vp);
 
         static void registerObject(JSContext *cx);
-    private : 
+    private :
         void add();
         bool m_IsDestructing;
 };
@@ -244,7 +244,7 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
         static void frameCallback(uint8_t *data, void *custom);
         void onMessage(const NativeSharedMessages::Message &msg);
         static void onEvent(const struct NativeAVSourceEvent *cev);
-        
+
         ~NativeJSVideo();
     private :
         bool m_IsDestructing;

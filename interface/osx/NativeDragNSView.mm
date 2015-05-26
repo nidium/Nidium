@@ -1,5 +1,5 @@
 #import "NativeDragNSView.h"
-#import <NativeJSWindow.h> 
+#import <NativeJSWindow.h>
 
 @implementation NativeDragNSView
 
@@ -8,7 +8,7 @@
 - (id) initWithFrame:(NSRect)rect
 {
     if (!(self = [super initWithFrame:rect])) return nil;
-    
+
     [self registerForDraggedTypes:[NSArray arrayWithObject:NSFilenamesPboardType]];
 
     self.responder = nil;
@@ -70,7 +70,7 @@
         return;
     }
 
-    self.responder->dragLeave();    
+    self.responder->dragLeave();
 }
 
 - (BOOL)wantsPeriodicDraggingUpdates {

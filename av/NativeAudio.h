@@ -44,11 +44,11 @@ class NativeAudio
         friend class NativeAudioCustomSource;
 
         enum SampleFormat {
-            FLOAT32 = sizeof(float), 
-            DOUBLE = sizeof(double), 
+            FLOAT32 = sizeof(float),
+            DOUBLE = sizeof(double),
             INT32 = sizeof(int32_t),
-            INT24 = sizeof(int), 
-            INT16 = sizeof(int16_t), 
+            INT24 = sizeof(int),
+            INT16 = sizeof(int16_t),
             UINT8 = sizeof(uint8_t)
         };
 
@@ -162,5 +162,5 @@ class NativeAudio
 
 };
 
-
 #endif
+

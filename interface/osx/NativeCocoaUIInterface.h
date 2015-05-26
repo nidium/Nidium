@@ -32,7 +32,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
         NativeUICocoaConsole *getConsole(bool create=false, bool *created = NULL);
         void enableSysTray(const void *imgData = NULL, size_t imageDataSize = 0);
         void disableSysTray();
-        
+
         void hideWindow();
         void showWindow();
         void alert(const char *message);
@@ -43,7 +43,7 @@ class NativeCocoaUIInterface : public NativeUIInterface
             CGRect zoomFrame;
             CGRect minFrame;
         } controls;
-        
+
         struct {
             char *buf;
             size_t len;

@@ -80,7 +80,7 @@ const char *NativeSystem::getPrivateDirectory()
         resolved = true;
     }
     CFRelease(url);
-    CFRelease(url2);    
+    CFRelease(url2);
 
     return parentdir;
 }
@@ -96,7 +96,7 @@ const char *NativeSystem::getCacheDirectory()
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
             printf("Cant create cache directory %s\n", cpath);
             return NULL;
-        }  
+        }
         return cpath;
     }
     return NULL;

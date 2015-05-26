@@ -47,7 +47,7 @@ class NativeX11UIInterface : public NativeUIInterface
         void log(const char *buf);
         void logf(const char *format, ...);
         void logclear() {};
-        
+
         void alert(const char *msg) {}
         /*
         struct {
@@ -56,7 +56,7 @@ class NativeX11UIInterface : public NativeUIInterface
             CGRect minFrame;
         } controls;
         */
-        
+
         struct {
             char *buf;
             size_t len;

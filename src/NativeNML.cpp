@@ -125,7 +125,7 @@ void NativeNML::onAssetsItemReady(NativeAssets::Item *item)
         }
     }
     /* TODO: allow the callback to change content ? */
-    
+
     NativeJSwindow::getNativeClass(njs)->assetReady(tag);
 }
 
@@ -289,7 +289,7 @@ NativeNML::nidium_xml_ret_t NativeNML::loadAssets(rapidxml::xml_node<> &node)
         }
 
         item->setTagName(child->name());
-        
+
         if (!strncasecmp(child->name(), CONST_STR_LEN("script"))) {
             item->fileType = NativeAssets::Item::ITEM_SCRIPT;
         } else if (!strncasecmp(child->name(), CONST_STR_LEN("style"))) {
@@ -441,8 +441,8 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
         }
 
         /* push to input array */
-        jsval jobj = OBJECT_TO_JSVAL(obj);
-        JS_SetElement(cx, input, idx++, &jobj);
+        JS::RootedValue jobjV(cx, OBJECT_TO_JSVAL(obj));
+        JS_SetElement(cx, input, idx++, &jobjV.get());
     }
     return input;
 #undef NODE_PROP
@@ -450,7 +450,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 
 /*
     <canvas>
-        <next></next>   
+        <next></next>
     </canvas>
     <foo></foo>
 */
@@ -477,7 +477,7 @@ void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
 
             /*
                 Some stream can have dynamic path (e.g http 301 or 302).
-                We make sure to update the root path in that case 
+                We make sure to update the root path in that case
             */
             const char *streamPath = stream->getPath();
 
@@ -491,11 +491,11 @@ void NativeNML::onMessage(const NativeSharedMessages::Message &msg)
             break;
         }
         case NATIVESTREAM_ERROR:
-        {   
+        {
             NativeSystemInterface::getInstance()->
                 alert("NML error : stream error",
                 NativeSystemInterface::ALERT_CRITIC);
-            exit(1);            
+            exit(1);
             break;
         }
         default:

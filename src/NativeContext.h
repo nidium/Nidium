@@ -3,15 +3,18 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "NativeJS.h"
-#include "NativeTypes.h"
-#include "NativeGLResources.h"
-#include <NativeMessages.h>
-#include <NativeHash.h>
 #include <vector>
+
 #include <ape_pool.h>
 
 #include "GLSLANG/ShaderLang.h"
+
+#include <NativeJS.h>
+#include <NativeMessages.h>
+#include <NativeHash.h>
+
+#include "NativeTypes.h"
+#include "NativeGLResources.h"
 
 class NativeSkia;
 class NativeCanvasHandler;
@@ -117,7 +120,7 @@ class NativeContext : public NativeMessages
     public:
 
     friend class NativeCanvasHandler;
-    
+
     NativeContext(NativeUIInterface *nui, NativeNML *nml,
         int width, int height, ape_global *net);
     ~NativeContext();

@@ -24,7 +24,7 @@ class NativeSkGradient
         double radius;
     } startPoint;
 
-    struct 
+    struct
     {
         double x;
         double y;
@@ -53,3 +53,4 @@ class NativeSkGradient
 };
 
 #endif
+

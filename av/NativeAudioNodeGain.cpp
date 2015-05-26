@@ -1,10 +1,10 @@
 #include "NativeAudioNodeGain.h"
 #include "processor/Gain.hpp"
 
-NativeAudioNodeGain::NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio) 
+NativeAudioNodeGain::NativeAudioNodeGain(int inCount, int outCount, NativeAudio *audio)
     : NativeAudioNodeProcessor(inCount, outCount, audio)
 {
-    this->args[0] = new ExportsArgs("gain", 
+    this->args[0] = new ExportsArgs("gain",
         DOUBLE, GAIN, NativeAudioNodeGain::argCallback);
 
     m_GainProcessor = new NativeAudioProcessorGain();

@@ -4,15 +4,14 @@
 class NativeAudioParameters {
     public :
         int bufferSize, channels, sampleFmt, sampleRate, framesPerBuffer;
-        NativeAudioParameters(int bufferSize, int channels, 
+        NativeAudioParameters(int bufferSize, int channels,
                               int sampleFmt, int sampleRate)
-            : bufferSize(bufferSize), channels(channels), 
-              sampleFmt(sampleFmt), sampleRate(sampleRate), 
-              framesPerBuffer(bufferSize/(sampleFmt * channels)) 
+            : bufferSize(bufferSize), channels(channels),
+              sampleFmt(sampleFmt), sampleRate(sampleRate),
+              framesPerBuffer(bufferSize/(sampleFmt * channels))
         {
         }
 };
-
 
 enum {
     NATIVE_AUDIO_NODE_SET,
@@ -21,3 +20,4 @@ enum {
     NATIVE_AUDIO_SHUTDOWN
 };
 #endif
+

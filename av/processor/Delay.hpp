@@ -8,8 +8,8 @@
 class NativeAudioProcessorDelay: public NativeAudioProcessor
 {
   public:
-    NativeAudioProcessorDelay(int sampleRate, int maxDelay) 
-        : m_Buffer(NULL), m_Delay(0), m_Wet(1), m_Feedback(0), m_BuffIndex(0), 
+    NativeAudioProcessorDelay(int sampleRate, int maxDelay)
+        : m_Buffer(NULL), m_Delay(0), m_Wet(1), m_Feedback(0), m_BuffIndex(0),
           m_Idx(0), m_MaxDelay(maxDelay), m_SamplRate(sampleRate)
     {
         int size = ceil(m_MaxDelay/1000) * sampleRate;
@@ -23,7 +23,7 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
         this->setFeedback(0.15);
     };
 
-    void process(float *in, int *i) 
+    void process(float *in, int *i)
     {
         int j = 0;
 
@@ -45,10 +45,10 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
         m_Delay = native_max(native_min(delay, m_MaxDelay), 1);
         m_BuffIndex = ceil((m_Delay/1000) * m_MaxSamples);
     }
-    
+
     void setFeedback(double feedback)
     {
-        m_Feedback = native_max(native_min(feedback, 0.8), 0.0);    
+        m_Feedback = native_max(native_min(feedback, 0.8), 0.0);
     }
 
     void setWet(double wet)
@@ -67,7 +67,7 @@ class NativeAudioProcessorDelay: public NativeAudioProcessor
     int m_BufferSize;
     int m_BuffIndex;
     int m_Idx;
-    int m_MaxSamples; 
+    int m_MaxSamples;
     int m_MaxDelay;
     int m_SamplRate;
 };

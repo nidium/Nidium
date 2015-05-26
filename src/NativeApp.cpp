@@ -22,7 +22,7 @@ static void *native_appworker_thread(void *arg)
     NativeApp *app = (NativeApp *)arg;
 
     printf("Starting NativeApp worker...\n");
-    
+
     while (!app->action.stop) {
         pthread_mutex_lock(&app->threadMutex);
 
@@ -39,7 +39,7 @@ static void *native_appworker_thread(void *arg)
             {
 #define APP_READ_SIZE (1024L*1024L*2)
                 struct zip_file *zfile;
-                
+
                 zfile = zip_fopen_index(app->fZip, app->action.u32,
                     ZIP_FL_UNCHANGED);
 
@@ -50,7 +50,7 @@ static void *native_appworker_thread(void *arg)
                 char *content = (char *)malloc(sizeof(char) * APP_READ_SIZE);
                 size_t total = 0;
                 int r = 0;
-                
+
                 while ((r = zip_fread(zfile, content, APP_READ_SIZE)) >= 0) {
                     total += r;
                     app->actionExtractRead(content, r, total, app->action.u64);
@@ -137,7 +137,7 @@ void NativeApp::runWorker(ape_global *net)
 
     pthread_mutex_lock(&threadMutex);
         pthread_cond_signal(&threadCond);
-    pthread_mutex_unlock(&threadMutex);    
+    pthread_mutex_unlock(&threadMutex);
 }
 
 int NativeApp::open()
@@ -154,7 +154,7 @@ int NativeApp::open()
 
     if ((numFiles = zip_get_num_entries(fZip, ZIP_FL_UNCHANGED)) == -1 ||
         numFiles == 0) {
-        
+
         zip_close(fZip);
         fZip = NULL;
 
@@ -243,7 +243,7 @@ static bool NativeExtractor(const char * buf,
     }
 
     return true;
-} 
+}
 
 int NativeApp::extractApp(const char *path,
         void (*done)(void *, const char *), void *closure)

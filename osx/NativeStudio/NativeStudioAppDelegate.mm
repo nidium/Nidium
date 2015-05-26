@@ -52,7 +52,7 @@ unsigned int fboTex, fboHandle;
     }
 }
 
-Uint32 NativeFPS(Uint32 interval, 
+Uint32 NativeFPS(Uint32 interval,
                  void*  param)
 {
     NJS->currentFPS = tfps;
@@ -72,13 +72,13 @@ static int NativeProcessUI(void *arg)
 static void NativeRunMainLoop(ape_global *net, SDL_Window *win)
 {
     add_timer(&net->timersng, 1, NativeProcessUI, (void *)win);
-    
+
     events_loop(net);
 }
 
 
 int NativeEvents(SDL_Window *win)
-{   
+{
 
     SDL_Event event;
     uint32_t tstart, tend;
@@ -118,7 +118,7 @@ int NativeEvents(SDL_Window *win)
                 case SDL_KEYUP:
                 {
                     int keyCode = 0;
-                    
+
                     int mod = 0;
                     if (
                         (&event.key)->keysym.sym == SDLK_r &&
@@ -126,10 +126,10 @@ int NativeEvents(SDL_Window *win)
                         //printf("Refresh...\n");
                         [console clear];
                         delete NJS;
-                        
+
                         glClearColor(1, 1, 1, 0);
                         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-                        
+
                         NJS = new NativeJS();
                         NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
                         NJS->bindNetObject(gnet);
@@ -142,7 +142,7 @@ int NativeEvents(SDL_Window *win)
                     } else {
                         keyCode = event.key.keysym.sym;
                     }
-                    
+
                     if (event.key.keysym.mod & KMOD_SHIFT) {
                         mod |= NATIVE_KEY_SHIFT;
                     }
@@ -152,7 +152,7 @@ int NativeEvents(SDL_Window *win)
                     if (event.key.keysym.mod & KMOD_CTRL) {
                         mod |= NATIVE_KEY_CTRL;
                     }
-                    
+
                     NJS->keyupdown(keyCode, mod, event.key.state, event.key.repeat);
                     /*printf("Mapped to %d\n", keyCode);
                     printf("Key : %d %d %d %d %d uni : %d\n", event.key.keysym.sym,
@@ -166,14 +166,14 @@ int NativeEvents(SDL_Window *win)
                 }
             }
         }
-        
+
         //NJS->nskia->redrawScreen();
         /*glClear (GL_STENCIL_BUFFER_BIT);
 
         glEnable(GL_STENCIL_TEST) ;
         glStencilFunc(GL_ALWAYS, 1, 1);
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);*/
-        
+
 
 //        glDisable(GL_ALPHA_TEST);
 
@@ -184,7 +184,7 @@ int NativeEvents(SDL_Window *win)
         //NJS->nskia->resetGLContext();
 
         tend = SDL_GetTicks();
-    
+
         if (tend - tstart > 10) {
             //NSLog(@"Took : %d\n", tend - tstart);
         //NJS->gc();
@@ -202,19 +202,19 @@ int NativeEvents(SDL_Window *win)
 void resizeGLScene(int width, int height)
 {
     glViewport(0, 0, width, height);
-    
-#if 0    
+
+#if 0
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    
+
     //gluPerspective( 0, 640.f/480.f, 1.0, 1024.0 );
     //gluPerspective(45.0f, (GLfloat)width/(GLfloat)height, 0.1f, 100.0f);
     glOrtho(0, width, height, 0, 0, 1024);
-    
+
     glMatrixMode(GL_MODELVIEW);
-    
+
     glLoadIdentity();
-#endif    
+#endif
 }
 
 void setupFBO()
@@ -222,14 +222,14 @@ void setupFBO()
     int fbo_width = kNativeWidth;
     int fbo_height = kNativeHeight;
     unsigned int depth;
-    
+
     glEnable(GL_TEXTURE_2D);
-    
+
     glGenFramebuffers(1, &fboHandle);
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, fboHandle);
     glGenTextures(1, &fboTex);
-    
+
     glBindTexture(GL_TEXTURE_2D, fboTex);
     glTexImage2D( GL_TEXTURE_2D,
                  0,
@@ -239,13 +239,13 @@ void setupFBO()
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  NULL);
-    
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTex, 0);
-    
+
     glGenRenderbuffers(1, &depth);
-    
+
     //glBindRenderbuffer(GL_RENDERBUFFER, depth);
     //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, fbo_width, fbo_height);
     //glFramebufferRenderbuffer(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
@@ -256,11 +256,11 @@ void setupFBO()
         case GL_FRAMEBUFFER_COMPLETE:
             printf("fbo complete %d\n", fboHandle);
             break;
-            
+
         case GL_FRAMEBUFFER_UNSUPPORTED:
             printf("fbo unsupported\n");
             break;
-            
+
         default:
             /* programming error; will fail on all hardware */
             printf("fbo error\n");
@@ -286,26 +286,26 @@ int initGL()
     //glEnable(GL_MULTISAMPLE);
     //glClearDepth(1.0f);
     //glEnable(GL_DEPTH_TEST);
-    //glDepthFunc(GL_LEQUAL);    
+    //glDepthFunc(GL_LEQUAL);
     //glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     //glBindFramebuffer(GL_FRAMEBUFFER, val);
     //glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
     //glViewport(0,0,1024,768);
-    
+
     //setupFBO();
-    
+
     return 1;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
-    
+
     [self.window close];
     SDL_Window *win;
     SDL_GLContext contexteOpenGL;
-    
+
     console = [[NativeConsole alloc] init];
     [console attachToStdout];
 
@@ -316,7 +316,7 @@ int initGL()
     }
 
     //SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-    
+
     //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, true );
     //SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, 4 ); /* TODO check */
 
@@ -327,12 +327,12 @@ int initGL()
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0 );
     SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
-    
+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    
+
     NJS = new NativeJS();
-    
+
     win = SDL_CreateWindow("Native - Running", 100, 100, kNativeWidth, kNativeHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 
     contexteOpenGL = SDL_GL_CreateContext(win);
@@ -351,21 +351,20 @@ int initGL()
     NJS->nskia->bindGL(kNativeWidth, kNativeHeight);
     //NJS->nskia->drawRect(0, 0, 10, 10, 0);
 
-    
+
     int e = 0;
     if ((e = glGetError()) != GL_NO_ERROR) {
         printf("first error %d\n", e);
     }
     [self setupWorkingDirectory:YES];
-    
+
     SDL_AddTimer(1000, NativeFPS, NULL);
     SDL_StartTextInput();
-    
+
     gnet = native_netlib_init();
-    
+
     NJS->bindNetObject(gnet);
 
-    
     if (!NJS->LoadScript("./main.js")) {
         NSLog(@"Cant load script");
     }
@@ -373,7 +372,7 @@ int initGL()
     e = 0;
     if ((e = glGetError()) != GL_NO_ERROR) {
         printf("got an error here %d\n", e);
-    }    
+    }
     printf("[DEBUG] OpenGL %s\n", glGetString(GL_VERSION));
     atexit( SDL_Quit );
     //glClear(GL_COLOR_BUFFER_BIT);

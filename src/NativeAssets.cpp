@@ -40,8 +40,8 @@ void NativeAssets::Item::onMessage(const NativeSharedMessages::Message &msg)
             break;
         }
         case NATIVESTREAM_ERROR:
-        {   
-            this->setContent(NULL, 0);           
+        {
+            this->setContent(NULL, 0);
             break;
         }
         default:
@@ -74,7 +74,7 @@ void NativeAssets::Item::download()
     if (this->stream == NULL) {
         this->setName(url);
 
-        /* 
+        /*
             setContent to NULL .
             In async way (3rd param) so that NativeContext
             has time to set setNJS().
@@ -82,7 +82,7 @@ void NativeAssets::Item::download()
         this->setContent(NULL, 0, true);
         return;
     }
-    
+
     /* Reset the name with the new location forged by NativeStream */
     this->setName(this->stream->getLocation());
 
@@ -104,7 +104,7 @@ void NativeAssets::Item::setContent(const char *data, size_t len, bool async) {
 
     if (len) {
         this->data.data = (unsigned char *)malloc(len);
-        memcpy(this->data.data, data, len); 
+        memcpy(this->data.data, data, len);
     } else {
         this->data.data = NULL;
     }

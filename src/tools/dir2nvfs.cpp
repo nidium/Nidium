@@ -141,6 +141,7 @@ int main(int argc, char **argv)
     JS_DestroyRuntime(rt);
 
     JS_ShutDown();
-    
+
     return 0;
 }
+

@@ -59,7 +59,7 @@ public:
             int32_t u_opacity;
             int32_t u_resolution;
             int32_t u_position;
-            int32_t u_padding;            
+            int32_t u_padding;
         } uniforms;
     } m_GLObjects;
 

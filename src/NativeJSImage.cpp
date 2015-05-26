@@ -36,7 +36,7 @@ JSClass *NativeJSExposer<NativeJSImage>::jsclass = &Image_class;
 
 static JSPropertySpec Image_props[] = {
     {"src", IMAGE_PROP_SRC, 0, JSOP_NULLWRAPPER,
-    	JSOP_WRAPPER(native_image_prop_set)},
+        JSOP_WRAPPER(native_image_prop_set)},
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
@@ -104,7 +104,7 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                 JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
-                
+
                 NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
 
                 if (stream == NULL) {
@@ -136,7 +136,7 @@ static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
 
                 stream->setListener(nimg);
                 stream->getContent();
-                    
+
 
             } else {
                 vp.set(JSVAL_VOID);
@@ -165,7 +165,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
 static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *ret = JS_NewObjectForConstructor(cx, &Image_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, vp));
     NativeJSImage *nimg;
 
     if (!JS_IsConstructing(cx, vp)) {
@@ -187,7 +187,7 @@ static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 bool NativeJSImage::JSObjectIs(JSContext *cx, JSObject *obj)
 {
-	return JS_InstanceOf(cx, obj, &Image_class, NULL);
+    return JS_InstanceOf(cx, obj, &Image_class, NULL);
 }
 
 NativeSkImage *NativeJSImage::JSObjectToNativeSkImage(JSObject *obj)
@@ -211,13 +211,14 @@ void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
     switch (msg.event()) {
         case NATIVESTREAM_READ_BUFFER:
         {
-            jsval rval, onload_callback;
+            JS::RootedValue rval(m_Cx);
+            JS::RootedValue onload_callback(m_Cx);
             if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
-                if (JS_GetProperty(m_Cx, m_JSObject, "onload", &onload_callback) &&
+                if (JS_GetProperty(m_Cx, m_JSObject, "onload", &onload_callback.get()) &&
                     JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
 
                     JS_CallFunctionValue(m_Cx, m_JSObject, onload_callback,
-                        0, NULL, &rval);
+                        0, NULL, &rval.get());
                 }
             }
 
@@ -261,7 +262,8 @@ bool NativeJSImage::setupWithBuffer(buffer *buf)
 #if 0
 void NativeJSImage::onGetContent(const char *data, size_t len)
 {
-    jsval rval, onload_callback;
+    JS::RootedValue rval(cx);
+    JS::RootedValue onload_callback(cx);
     ape_global *ape = (ape_global *)JS_GetContextPrivate(cx);
 
     if (data == NULL || len == 0) {
@@ -287,10 +289,10 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         INT_TO_JSVAL(ImageObject->getHeight()), NULL, NULL,
         JSPROP_PERMANENT | JSPROP_READONLY);
 
-    if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
+    if (JS_GetProperty(cx, jsobj, "onload", &onload_callback.get()) &&
         JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, jsobj, onload_callback,
+        JS_CallFunctionValue(cx, jsobj, onload_callback.get(),
             0, NULL, &rval);
     }
 
@@ -299,10 +301,11 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
     stream = NULL;
 }
 #endif
+
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
-	const char name[])
-{	
-	JSObject *ret = JS_NewObject(cx, &Image_class, NativeJSImage::classe, NULL);
+    const char name[])
+{
+    JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, NativeJSImage::classe, NULL));
     NativeJSImage *nimg = new NativeJSImage(ret, cx);
 
     nimg->img   = image;
@@ -322,9 +325,9 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     JS_DefineProperty(cx, ret, "src",
         STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (name ? name : "unknown"))),
         NULL, NULL,
-        JSPROP_PERMANENT | JSPROP_READONLY);    
+        JSPROP_PERMANENT | JSPROP_READONLY);
 
-	return ret;
+    return ret;
 }
 
 NativeJSImage::NativeJSImage(JSObject *obj, JSContext *cx) :
@@ -346,7 +349,7 @@ NativeJSImage::~NativeJSImage()
 
 void NativeJSImage::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Image_class, 
+    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Image_class,
         native_Image_constructor,
         0, NULL, Image_funcs, NULL, NULL);
 }

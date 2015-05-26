@@ -52,7 +52,7 @@ SDL_GLContext NativeUIInterface::createSharedContext(bool webgl)
 
     SDL_GLContext created = SDL_GL_CreateContext(this->win);
 
-    return created;    
+    return created;
 }
 
 void NativeUIInterface::deleteGLContext(SDL_GLContext ctx)
@@ -115,7 +115,7 @@ void NativeUIInterface::setWindowSize(int w, int h)
     this->width = w;
     this->height = h;
 
-    SDL_SetWindowSize(this->win, w, h);    
+    SDL_SetWindowSize(this->win, w, h);
 }
 
 void NativeUIInterface::setWindowFrame(int x, int y, int w, int h)
@@ -139,7 +139,7 @@ void NativeUIInterface::toggleOfflineBuffer(bool val)
     m_readPixelInBuffer = val;
 }
 
-void NativeUIInterface::initPBOs()  
+void NativeUIInterface::initPBOs()
 {
     if (m_readPixelInBuffer) {
         return;
@@ -150,7 +150,7 @@ void NativeUIInterface::initPBOs()
     glGenBuffers(NUM_PBOS, m_PBOs.pbo);
     for (int i = 0; i < NUM_PBOS; i++) {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, m_PBOs.pbo[i]);
-        glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);        
+        glBufferData(GL_PIXEL_PACK_BUFFER, screenPixelSize, 0, GL_DYNAMIC_READ);
     }
 
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);

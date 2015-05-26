@@ -12,10 +12,10 @@ extern "C" {
 
 pthread_mutex_t NativeAVSource::ffmpegLock = PTHREAD_MUTEX_INITIALIZER;
 
-NativeAVBufferReader::NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize) 
+NativeAVBufferReader::NativeAVBufferReader(uint8_t *buffer, unsigned long bufferSize)
     : buffer(buffer), bufferSize(bufferSize), pos(0) {}
 
-int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size) 
+int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
 {
     NativeAVBufferReader *reader = static_cast<NativeAVBufferReader *>(opaque);
 
@@ -32,7 +32,7 @@ int NativeAVBufferReader::read(void *opaque, uint8_t *buffer, int size)
 }
 
 
-int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence) 
+int64_t NativeAVBufferReader::seek(void *opaque, int64_t offset, int whence)
 {
     NativeAVBufferReader *reader = static_cast<NativeAVBufferReader *>(opaque);
     int64_t pos = 0;
@@ -78,7 +78,7 @@ NativeAVStreamReader::NativeAVStreamReader(const char *src,
     NATIVE_PTHREAD_VAR_INIT(&this->m_ThreadCond);
 }
 
-int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size) 
+int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
 {
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     if (thiz->streamErr == AVERROR_EXIT) {
@@ -170,7 +170,7 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
                 thiz->needWakup = false;
 
                 return copied;
-            } 
+            }
         }
     }
 
@@ -179,10 +179,10 @@ int NativeAVStreamReader::read(void *opaque, uint8_t *buffer, int size)
           exit(1);
     }
 
-    return 0; 
+    return 0;
 }
 
-int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence) 
+int64_t NativeAVStreamReader::seek(void *opaque, int64_t offset, int whence)
 {
     NativeAVStreamReader *thiz = static_cast<NativeAVStreamReader *>(opaque);
     int64_t pos = 0;
@@ -312,7 +312,7 @@ void NativeAVStreamReader::onError(NativeStream::StreamError err)
 }
 */
 
-void NativeAVStreamReader::onAvailableData(size_t len) 
+void NativeAVStreamReader::onAvailableData(size_t len)
 {
     this->error = 0;
     m_HaveDataAvailable = true;
@@ -336,14 +336,14 @@ void NativeAVStreamReader::finish()
     this->streamBuffer = NULL;
     this->streamErr = AVERROR_EXIT;
 
-    // Clean pending messages 
+    // Clean pending messages
     // (we can have a MSG_READ/MSG_SEEK event if we were waiting for stream data/seek)
     this->delMessages();
-    
+
     NATIVE_PTHREAD_SIGNAL(&this->m_ThreadCond);
 }
 
-NativeAVStreamReader::~NativeAVStreamReader() 
+NativeAVStreamReader::~NativeAVStreamReader()
 {
     if (NativeUtils::isMainThread()) {
         delete this->stream;
@@ -361,7 +361,7 @@ NativeAVSource::NativeAVSource()
 {
 }
 
-void NativeAVSource::eventCallback(NativeAVSourceEventCallback cbk, void *custom) 
+void NativeAVSource::eventCallback(NativeAVSourceEventCallback cbk, void *custom)
 {
     this->eventCbk = cbk;
     this->eventCbkCustom = custom;
@@ -372,21 +372,21 @@ NativeAVSourceEvent *NativeAVSource::createEvent(int ev, bool fromThread)
     return new NativeAVSourceEvent(this, ev, this->eventCbkCustom, fromThread);
 }
 
-void NativeAVSource::sendEvent(int type, int value, bool fromThread) 
+void NativeAVSource::sendEvent(int type, int value, bool fromThread)
 {
     NativeAVSourceEvent *ev = this->createEvent(type, fromThread);
     ev->args[0].set(value);
     this->sendEvent(ev);
 }
 
-void NativeAVSource::sendEvent(NativeAVSourceEvent *ev) 
+void NativeAVSource::sendEvent(NativeAVSourceEvent *ev)
 {
     if (this->eventCbk != NULL) {
         this->eventCbk(ev);
     }
 }
 
-AVDictionary *NativeAVSource::getMetadata() 
+AVDictionary *NativeAVSource::getMetadata()
 {
     if (!this->opened) {
         return NULL;
@@ -399,7 +399,7 @@ int NativeAVSource::getBitrate()
     return this->container ? this->container->bit_rate : 0;
 }
 
-double NativeAVSource::getDuration() 
+double NativeAVSource::getDuration()
 {
     if (!this->opened) {
         return 0;
@@ -433,7 +433,7 @@ void NativeAVSource::onMessage(const NativeSharedMessages::Message &msg)
     }
 }
 
-NativeAVSource::~NativeAVSource() 
+NativeAVSource::~NativeAVSource()
 {
 }
 

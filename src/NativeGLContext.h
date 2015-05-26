@@ -55,12 +55,12 @@ typedef void *SDL_GLContext;
         } while (false)
 #endif
 
-#define NATIVE_GL_CALL_MAIN(X) NATIVE_GL_CALL((NATIVE_GL_MAIN_IFACE), X) 
+#define NATIVE_GL_CALL_MAIN(X) NATIVE_GL_CALL((NATIVE_GL_MAIN_IFACE), X)
 
 #define NATIVE_GL_CALL_RET_MAIN(X, RET) NATIVE_GL_CALL_RET(NATIVE_GL_MAIN_IFACE, X, RET)
 
 
-class NativeGLContext 
+class NativeGLContext
 {
     public:
         NativeGLContext(NativeUIInterface *ui,
@@ -91,7 +91,7 @@ class NativeGLContext
             }
 
             this->createInterface();
-            
+
             /* Restore to the old GL Context */
             if (!m_UI->makeGLCurrent(oldctx)) {
                 NLOG("Cant restore old ctx");
@@ -133,7 +133,7 @@ class NativeGLContext
             NativeGLContext *_this = (NativeGLContext *)interface->fCallbackData;
             _this->makeCurrent();
         }
-        
+
         const GrGLInterface *m_Interface;
     private:
 
@@ -142,7 +142,7 @@ class NativeGLContext
 
             m_Interface = GrGLCreateNativeInterface();
             ((GrGLInterface *)m_Interface)->fCallback = NativeGLContext::GLCallback;
-            ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)this;            
+            ((GrGLInterface *)m_Interface)->fCallbackData = (uintptr_t)this;
         }
 
         SDL_GLContext m_SDLGLCtx;

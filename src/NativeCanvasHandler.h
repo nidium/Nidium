@@ -248,7 +248,7 @@ class NativeCanvasHandler : public NativeEvents
             if (hasStaticRight() || !m_Parent) {
                 return this->right;
             }
-            
+
             return m_Parent->getWidth() - (getLeftScrolled() + getWidth());
         }
 
@@ -283,7 +283,7 @@ class NativeCanvasHandler : public NativeEvents
             if (hasFixedHeight() || m_FluidHeight) {
                 return m_Height;
             }
-            
+
             if (m_Parent == NULL) return 0.;
 
             double pheight = m_Parent->getHeight();
@@ -337,7 +337,7 @@ class NativeCanvasHandler : public NativeEvents
 
         bool hasStaticBottom() const {
             return coordMode & kBottom_Coord;
-        }        
+        }
 
         void unsetLeft() {
             coordMode &= ~kLeft_Coord;
@@ -375,7 +375,7 @@ class NativeCanvasHandler : public NativeEvents
         }
         void setRight(double val) {
             coordMode |= kRight_Coord;
-            this->right = val; 
+            this->right = val;
             if (!hasFixedWidth()) {
                 setSize(this->getWidth(), m_Height);
             }
@@ -419,7 +419,7 @@ class NativeCanvasHandler : public NativeEvents
             }
 
             return m_Identifier.idx;
-        } 
+        }
 
         void setAllowNegativeScroll(bool val) {
             m_AllowNegativeScroll = val;
@@ -444,7 +444,7 @@ class NativeCanvasHandler : public NativeEvents
         bool isWidthFluid() const {
             return m_FluidWidth;
         }
-        
+
         NativeCanvasHandler(int width, int height,
             NativeContext *NativeCtx, bool lazyLoad = false);
 
@@ -538,7 +538,7 @@ class NativeCanvasHandler : public NativeEvents
 
         void propertyChanged(EventsChangedProperty property);
     private:
-        
+
         void deviceSetSize(int width, int height);
         void execPending();
         void onMouseEvent(NativeInputEvent *ev);

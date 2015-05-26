@@ -211,9 +211,9 @@ static SkColor SkPMColorToColor(SkPMColor pm)
         // In production, return 0 to protect against division by zero.
         return 0;
     }
-   
+
     uint32_t scale = (255 << 16) / a;
-   
+
     return SkColorSetARGB(a,
                           InvScaleByte(SkGetPackedR32(pm), scale),
                           InvScaleByte(SkGetPackedG32(pm), scale),
@@ -233,9 +233,9 @@ SkColor makeRGBAFromHSLA(double hue, double saturation, double lightness, double
 
     double temp2 = lightness < 0.5 ? lightness * (1.0 + saturation) : lightness + saturation - lightness * saturation;
     double temp1 = 2.0 * lightness - temp2;
-    
+
     return SkColorSetARGB(static_cast<int>(alpha * scaleFactor),
-                    static_cast<int>(calcHue(temp1, temp2, hue + 1.0 / 3.0) * scaleFactor), 
+                    static_cast<int>(calcHue(temp1, temp2, hue + 1.0 / 3.0) * scaleFactor),
                     static_cast<int>(calcHue(temp1, temp2, hue) * scaleFactor),
                     static_cast<int>(calcHue(temp1, temp2, hue - 1.0 / 3.0) * scaleFactor));
 }
@@ -259,16 +259,16 @@ uint32_t NativeSkia::parseColor(const char *str)
 
     } else if (strncasecmp(str, "hsl", 3) == 0) {
         SkScalar array[4];
-        
+
         int count = count_separators(str, ",") + 1;
-        
+
         if (count == 4) {
             if (str[3] != 'a') {
                 count = 3;
             }
         } else if (count != 3) {
             return 0;
-        } 
+        }
         array[3] = SK_Scalar1;
 
         const char* end = SkParse::FindScalars(&str[(str[3] == 'a' ? 5 : 4)],
@@ -309,7 +309,7 @@ void NativeSkia::initPaints()
 
     PAINT->setStyle(SkPaint::kFill_Style);
     PAINT->setFilterLevel(SkPaint::kNone_FilterLevel);
- 
+
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
     PAINT->setHinting(SkPaint::kFull_Hinting);
@@ -322,7 +322,7 @@ void NativeSkia::initPaints()
     paint_system->setStyle(SkPaint::kFill_Style);
     PAINT->setSubpixelText(true);
     PAINT->setAutohinted(true);
-   
+
     PAINT_STROKE = new SkPaint;
 
     PAINT_STROKE->setARGB(255, 0, 0, 0);
@@ -334,7 +334,7 @@ void NativeSkia::initPaints()
     PAINT_STROKE->setHinting(SkPaint::kFull_Hinting);
     PAINT_STROKE->setDither(true);
     PAINT_STROKE->setFilterLevel(SkPaint::kNone_FilterLevel);
-    
+
     this->setLineWidth(1);
     this->setMiterLimit(10);
 
@@ -350,7 +350,7 @@ SkGpuDevice *NativeSkia::createNewGPUDevice(GrContext *gr, int width, int height
     desc.fHeight = height;
     desc.fSampleCnt = 0;
     GrTexture *tex = gr->createUncachedTexture(desc, NULL, 0);
-    
+
     return SkGpuDevice::Create(tex);
 }
 
@@ -374,7 +374,7 @@ int NativeSkia::bindOnScreen(int width, int height)
     if (dev == NULL) {
         return 0;
     }
-    
+
     m_Canvas = new SkCanvas(dev);
     this->scale(ratio, ratio);
 
@@ -433,7 +433,7 @@ SkCanvas *NativeSkia::createGLCanvas(int width, int height,
 
     }
     float ratio = NativeSystemInterface::getInstance()->backingStorePixelRatio();
-    
+
     GrBackendRenderTargetDesc desc;
     //GrGLRenderTarget *t = new GrGLRenderTarget();
 
@@ -508,7 +508,7 @@ void NativeSkia::drawRect(double x, double y, double width,
     double height, int stroke)
 {
     SkRect r;
-    
+
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
 
@@ -583,7 +583,7 @@ void NativeSkia::clearRect(double x, double y, double width, double height)
 
     r.setXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
-    
+
     clearPaint.setStyle(SkPaint::kFill_Style);
     clearPaint.setARGB(0,0,0,0);
     clearPaint.setXfermodeMode(SkXfermode::kClear_Mode);
@@ -627,7 +627,7 @@ void NativeSkia::setFontType(char *str, NativeJSdocument *doc)
     // Workarround for skia bug #1648
     // https://code.google.com/p/skia/issues/detail?id=1648
     if (tf == NULL) {
-        tf = SkTypeface::CreateFromName(NULL, 
+        tf = SkTypeface::CreateFromName(NULL,
                 SkTypeface::kNormal);
         if (tf == NULL) return;
     }
@@ -757,7 +757,7 @@ void NativeSkia::system(const char *text, int x, int y)
 }
 
 void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
-{ 
+{
     SkShader *shader = NULL;
 
     if (pattern->jsimg->img->img != NULL) {
@@ -783,7 +783,7 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
                 pattern->mode == NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
                     SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode,
                 pattern->mode == NativeCanvasPattern::PATTERN_REPEAT_MIRROR ?
-                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);            
+                    SkShader::kMirror_TileMode : SkShader::kRepeat_TileMode);
         } else {
             SkShader::TileMode tileModeX = repeat_x ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
             SkShader::TileMode tileModeY = repeat_y ? SkShader::kRepeat_TileMode : SkShader::kClamp_TileMode;
@@ -811,7 +811,7 @@ void NativeSkia::setFillColor(NativeCanvasPattern *pattern)
 }
 
 void NativeSkia::setFillColor(NativeSkGradient *gradient)
-{ 
+{
     SkShader *shader;
 
     if ((shader = gradient->build()) == NULL) {
@@ -823,11 +823,11 @@ void NativeSkia::setFillColor(NativeSkGradient *gradient)
     PAINT->setColor(SK_ColorBLACK);
 
     PAINT->setShader(shader);
-    //NLOG("Add gradient : %p (%d)", shader, shader->getRefCnt());    
+    //NLOG("Add gradient : %p (%d)", shader, shader->getRefCnt());
 }
 
 void NativeSkia::setFillColor(const char *str)
-{   
+{
     SkColor color = parseColor(str);
 
     SkShader *shader = PAINT->getShader();
@@ -840,7 +840,7 @@ void NativeSkia::setFillColor(const char *str)
 }
 
 void NativeSkia::setFillColor(uint32_t color)
-{   
+{
     SkShader *shader = PAINT->getShader();
 
     if (shader) {
@@ -851,7 +851,7 @@ void NativeSkia::setFillColor(uint32_t color)
 }
 
 void NativeSkia::setStrokeColor(const char *str)
-{   
+{
     SkColor color = parseColor(str);
 
     SkShader *shader = PAINT_STROKE->getShader();
@@ -865,7 +865,7 @@ void NativeSkia::setStrokeColor(const char *str)
 }
 
 void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
-{ 
+{
     SkShader *shader;
 
     if ((shader = gradient->build()) == NULL) {
@@ -877,7 +877,7 @@ void NativeSkia::setStrokeColor(NativeSkGradient *gradient)
 
 
 void NativeSkia::setStrokeColor(uint32_t color)
-{   
+{
     SkShader *shader = PAINT_STROKE->getShader();
 
     if (shader) {
@@ -998,7 +998,7 @@ void NativeSkia::setGlobalComposite(const char *str)
             break;
         }
     }
-    
+
     asComposite = 1;
 }
 
@@ -1197,7 +1197,7 @@ void NativeSkia::rect(double x, double y, double width, double height)
 
     SkRect r = SkRect::MakeXYWH(SkDoubleToScalar(x), SkDoubleToScalar(y),
         SkDoubleToScalar(width), SkDoubleToScalar(height));
-    
+
     SkPath tmpPath;
 
     tmpPath.addRect(r);
@@ -1278,14 +1278,14 @@ void NativeSkia::arc(int x, int y, int r,
         // Draw the circle.
         tmppath.addOval(rect);
         // Force a moveTo the end position.
-        tmppath.arcTo(rect, start + end, 0, true);        
+        tmppath.arcTo(rect, start + end, 0, true);
     } else {
         if (CCW && end > 0) {
             end -= s360;
         } else if (!CCW && end < 0) {
             end += s360;
         }
-        tmppath.arcTo(rect, start, end, false);        
+        tmppath.arcTo(rect, start, end, false);
     }
 
     /* TODO: do the transform in addPath */
@@ -1342,7 +1342,7 @@ void NativeSkia::bezierCurveTo(double cpx, double cpy, double cpx2, double cpy2,
     if (!currentPath) {
         return;
     }
-    
+
     if (!currentPath->countPoints()) {
         currentPath->moveTo(SkDoubleToScalar(cpx), SkDoubleToScalar(cpy));
     }
@@ -1411,7 +1411,7 @@ void NativeSkia::restore()
     } else {
         NLOG("restore() without matching save()\n");
     }
-    
+
     m_Canvas->restore();
 }
 
@@ -1484,7 +1484,7 @@ bool NativeSkia::SkPathContainsPoint(double x, double y)
     const SkScalar kMaxCoordinate = SkIntToScalar(1 << 15);
     SkScalar scale = SkScalarDiv(kMaxCoordinate, biggestCoord);
 
-    SkRegion rgn;  
+    SkRegion rgn;
     SkRegion clip;
     SkMatrix m;
     SkPath scaledPath;
@@ -1513,7 +1513,7 @@ void NativeSkia::itransform(double scalex, double skewy, double skewx,
     m.setAll(SkDoubleToScalar(scalex), SkDoubleToScalar(skewx),
         SkDoubleToScalar(translatex), SkDoubleToScalar(skewy),
         SkDoubleToScalar(scaley), SkDoubleToScalar(translatey), 0, 0, 0);
-    
+
     SkMatrix im;
     if (m.invert(&im)) {
         printf("transformed\n");
@@ -1591,7 +1591,7 @@ void NativeSkia::drawImage(NativeSkImage *image, double x, double y)
     }
 
     PAINT->setColor(old);
-    
+
     /* TODO: clear read'd pixel? */
     CANVAS_FLUSH();
 }
@@ -1641,7 +1641,7 @@ void NativeSkia::drawImage(NativeSkImage *image,
         bitmapImage.setIsVolatile(true);
 
         m_Canvas->drawBitmapRect(bitmapImage,
-            NULL, dst, PAINT);        
+            NULL, dst, PAINT);
     } else if (image->img != NULL) {
         m_Canvas->drawBitmapRect(*image->img,
             &src, dst, PAINT);
@@ -1657,7 +1657,7 @@ void NativeSkia::redrawScreen()
     m_Canvas->readPixels(SkIRect::MakeSize(m_Canvas->getDeviceSize()),
         screen);
     m_Canvas->writePixels(*screen, 0, 0);
-    CANVAS_FLUSH();  
+    CANVAS_FLUSH();
 }
 
 #if 0
@@ -1782,7 +1782,7 @@ double NativeSkia::breakText(const char *str, size_t len,
 static SkBitmap load_bitmap() {
     SkStream* stream = new SkFILEStream("/skimages/sesame_street_ensemble-hp.jpg");
     SkAutoUnref aur(stream);
-    
+
     SkBitmap bm;
     if (SkImageDecoder::DecodeStream(stream, &bm, SkBitmap::kNo_Config,
                                      SkImageDecoder::kDecodeBounds_Mode)) {

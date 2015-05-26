@@ -1,7 +1,7 @@
 #ifndef nativejsdocument_h__
 #define nativejsdocument_h__
 
-#include "NativeJSExposer.h"
+#include <NativeJSExposer.h>
 
 class SkTypeface;
 
@@ -47,7 +47,5 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
 
     SkTypeface *getFont(char *name);
 };
-
-
 
 #endif

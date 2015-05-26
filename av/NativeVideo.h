@@ -15,7 +15,7 @@ extern "C" {
 #define NATIVE_VIDEO_AUDIO_SYNC_THRESHOLD 0.5
 #define NATIVE_VIDEO_SYNC_THRESHOLD 0.01
 #define NATIVE_VIDEO_NOSYNC_THRESHOLD 10.0
-#define NATIVE_VIDEO_PACKET_BUFFER 64 
+#define NATIVE_VIDEO_PACKET_BUFFER 64
 
 #define NATIVE_VIDEO_SEEK_KEYFRAME 0x1
 #define NATIVE_VIDEO_SEEK_PREVIOUS 0x2
@@ -44,8 +44,8 @@ class NativeVideo : public NativeAVSource
         struct Packet {
             AVPacket curr;
             Packet *next;
-            
-            Packet() 
+
+            Packet()
                 : next(NULL) {}
         };
 
@@ -102,7 +102,7 @@ class NativeVideo : public NativeAVSource
         unsigned char *avioBuffer;
         uint8_t *m_Frames[NATIVE_VIDEO_BUFFER_SAMPLES];
         int m_FramesIdx;
-        AVFrame *decodedFrame; 
+        AVFrame *decodedFrame;
         AVFrame *convertedFrame;
 
         pthread_t threadDecode;
@@ -118,7 +118,7 @@ class NativeVideo : public NativeAVSource
         int openInitInternal();
         static void openInitCoro(void *arg);
         double getClock();
-        void seek(double time) 
+        void seek(double time)
         {
             this->seek(time, 0);
         }
@@ -189,12 +189,12 @@ class NativeVideo : public NativeAVSource
         void closeFFMpeg();
 };
 
-class NativeVideoAudioSource: public NativeAudioSource 
+class NativeVideoAudioSource: public NativeAudioSource
 {
   public:
       NativeVideoAudioSource(int out, NativeVideo *video, bool external) :
-          NativeAudioSource(out, video->audio, external), 
-          m_Video(video), m_FreePacket(NULL) 
+          NativeAudioSource(out, video->audio, external),
+          m_Video(video), m_FreePacket(NULL)
       {
       };
 

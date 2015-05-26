@@ -20,7 +20,7 @@ public:
 
     explicit NativeCanvasContext(NativeCanvasHandler *handler);
     virtual ~NativeCanvasContext();
-    
+
     /* Explicit name used by glBindAttribLocation */
     enum {
         SH_ATTR_POSITION = 0,
@@ -102,7 +102,7 @@ public:
 
     static char *processShader(const char *content, shaderType type);
     static uint32_t compileShader(const char *data, int type);
-    
+
     virtual void translate(double x, double y)=0;
     virtual void setSize(int width, int height, bool redraw = true)=0;
     virtual void setScale(double x, double y, double px=1, double py=1)=0;
@@ -112,7 +112,7 @@ public:
 
     /* Returns the size in device pixel */
     virtual void getSize(int *width, int *height) const=0;
-    
+
     virtual uint8_t *getPixels() {
         return NULL;
     }

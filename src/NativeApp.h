@@ -15,7 +15,7 @@ class NativeApp
 {
 public:
     char *path;
-    
+
     NativeApp(const char *path);
     int open();
     void runWorker(struct _ape_global *net);
@@ -85,7 +85,7 @@ private:
     struct {
         Json::Value title;
         Json::Value udid;
-        
+
         int width;
         int height;
     } appInfos;

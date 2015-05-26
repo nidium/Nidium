@@ -1,12 +1,13 @@
 #ifndef nativenml_h__
 #define nativenml_h__
 
-
 #include <native_netlib.h>
-#include "NativeAssets.h"
-#include "external/rapidxml.hpp"
-#include "NativeTypes.h"
+
 #include <NativeMessages.h>
+#include "external/rapidxml.hpp"
+
+#include "NativeAssets.h"
+#include "NativeTypes.h"
 
 #define XML_VP_MAX_WIDTH 8000
 #define XML_VP_MAX_HEIGHT 8000
@@ -60,7 +61,7 @@ public:
     int getMetaHeight() const {
         return this->meta.size.height;
     }
-    
+
     rapidxml::xml_node<> *getLayout() const {
         return m_Layout;
     }

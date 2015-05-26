@@ -38,7 +38,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
 
     void textInput(const char *data);
     void keyupdown(int keycode, int mod, int state, int repeat, int location);
-    void addFrameCallback(jsval &cb);
+    void addFrameCallback(jsval &cb); //@TODO: JS::MutableHandleValue
     void callFrameCallbacks(double ts, bool garbage = false);
 
     void initDataBase();

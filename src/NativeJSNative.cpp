@@ -32,18 +32,15 @@ void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 
     if (jnative != NULL) {
         delete jnative;
-    }    
+    }
 }
 
 void NativeJSNative::registerObject(JSContext *cx)
 {
-    JSObject *NativeObj;
-
-    //JSObject *titleBar;
-
-    NativeObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        NativeJSNative::getJSObjectName(),
-        &Native_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    //JS::RootedObject titleBar(cx);
+    JS::RootedObject NativeObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+        NativeJSNative::getJSObjectName(), &Native_class , NULL,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     NativeJSNative *jnative = new NativeJSNative(NativeObj, cx);
 

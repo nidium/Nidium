@@ -81,7 +81,7 @@ class NativeAssets
         typedef void (*readyAssets)(NativeAssets *assets, void *arg);
 
         void addToPendingList(Item *item);
-        
+
         NativeAssets(readyItem cb, readyAssets rcb, void *arg);
         ~NativeAssets();
 

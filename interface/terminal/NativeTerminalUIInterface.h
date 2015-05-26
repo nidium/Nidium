@@ -36,7 +36,7 @@ class NativeTerminalUIInterface : public NativeUIInterface
         NativeUITerminalConsole *getConsole() const {
             return this->console;
         }
-        
+
         struct {
             char *buf;
             size_t len;

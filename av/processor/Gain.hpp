@@ -8,12 +8,12 @@ class NativeAudioProcessorGain: public NativeAudioProcessor
   public:
     NativeAudioProcessorGain() : m_Gain(1) {};
 
-    void process(float *in, int *i) 
+    void process(float *in, int *i)
     {
         *in  = *in * m_Gain;
     }
 
-    void setGain(double gain) 
+    void setGain(double gain)
     {
         m_Gain = gain;
     }

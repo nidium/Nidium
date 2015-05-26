@@ -161,7 +161,7 @@ bool NativeCanvasHandler::setMaxHeight(int height)
 
 bool NativeCanvasHandler::setWidth(int width, bool force)
 {
-    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) : 
+    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) :
                            native_max(width, m_MinWidth);
 
     if (!force && !this->hasFixedWidth()) {
@@ -187,7 +187,7 @@ bool NativeCanvasHandler::setHeight(int height, bool force)
         return false;
     }
 
-    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
+    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) :
                            native_max(height, m_MinHeight);
 
     if (m_Height == height) {
@@ -205,10 +205,10 @@ bool NativeCanvasHandler::setHeight(int height, bool force)
 void NativeCanvasHandler::setSize(int width, int height, bool redraw)
 {
 
-    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) : 
+    height = m_MaxHeight ? native_clamp(height, m_MinHeight, m_MaxHeight) :
                            native_max(height, m_MinHeight);
 
-    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) : 
+    width = m_MaxWidth ? native_clamp(width, m_MinWidth, m_MaxWidth) :
                            native_max(width, m_MinWidth);
 
     if (m_Height == height && m_Width == width) {
@@ -264,7 +264,7 @@ void NativeCanvasHandler::updateChildrenSize(bool width, bool height)
 void NativeCanvasHandler::setPadding(int padding)
 {
     if (padding < 0) padding = 0;
-    
+
     if (padding == this->padding.global) {
         return;
     }
@@ -275,7 +275,7 @@ void NativeCanvasHandler::setPadding(int padding)
 
     if (m_Context) {
         m_Context->translate(-tmppadding, -tmppadding);
-     
+
         m_Context->setSize(m_Width + (this->padding.global * 2),
             m_Height + (this->padding.global * 2));
 
@@ -388,13 +388,13 @@ void NativeCanvasHandler::addChild(NativeCanvasHandler *insert,
             m_Children = insert;
             break;
     }
-    
+
     insert->m_Parent = this;
     this->nchildren++;
 }
 
 void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
-{   
+{
     if (!m_Parent) {
         return;
     }
@@ -406,7 +406,7 @@ void NativeCanvasHandler::removeFromParent(bool willBeAdopted)
     if (this->jsobj && JS::IsIncrementalBarrierNeeded(JS_GetRuntime(this->jscx))) {
         JS::IncrementalReferenceBarrier(this->jsobj, JSTRACE_OBJECT);
     }
-    
+
     if (m_Parent->m_Children == this) {
         m_Parent->m_Children = m_Next;
     }
@@ -511,13 +511,13 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
             this->top = tmpTop = (prev->top - prev->m_Margin.top) + m_Margin.top;
 
             if (m_Parent) {
-                /* 
+                /*
                     Line break if :
                         - flow mode is kFlowBreakPreviousSibling (inline-break) or
                         - Element would overflow-x its parent + parent doesn't have a fluid width
                         - Element would overflow-x its parent + parent has a fluid height but a maxWidth
                 */
-                if ((this->m_FlowMode & kFlowBreakPreviousSibling) || 
+                if ((this->m_FlowMode & kFlowBreakPreviousSibling) ||
                     ((!m_Parent->isWidthFluid() ||
                         (m_Parent->m_MaxWidth && tmpLeft + this->getWidth() > m_Parent->m_MaxWidth)) &&
                         tmpLeft + this->getWidth() > m_Parent->getWidth())) {
@@ -572,7 +572,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
 
         if (draw && m_Context && willDraw) {
             this->m_Context->preComposeOn((NativeCanvas2DContext *)layerContext.layer->m_Context,
-                this->a_left - this->padding.global, 
+                this->a_left - this->padding.global,
                 this->a_top - this->padding.global, popacity, zoom,
                 (coordPosition == COORD_ABSOLUTE) ? NULL : layerContext.clip);
 
@@ -617,7 +617,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
 
         NativeRect culRect;
         for (cur = last; cur != NULL; cur = cur->prev) {
-            
+
         }
 #endif
         struct NativeLayerSiblingContext siblingctx;
@@ -684,7 +684,7 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     if (m_FluidHeight) {
         int contentHeight = this->getContentHeight(true);
 
-        int newHeight = m_MaxHeight ? native_clamp(contentHeight, m_MinHeight, m_MaxHeight) : 
+        int newHeight = m_MaxHeight ? native_clamp(contentHeight, m_MinHeight, m_MaxHeight) :
                            native_max(contentHeight, m_MinHeight);
 
         if (m_Height != newHeight) {
@@ -695,14 +695,14 @@ void NativeCanvasHandler::layerize(NativeLayerizeContext &layerContext, bool dra
     if (m_FluidWidth) {
         int contentWidth = this->getContentWidth(true);
 
-        int newWidth = m_MaxWidth ? native_clamp(contentWidth, m_MinWidth, m_MaxWidth) : 
+        int newWidth = m_MaxWidth ? native_clamp(contentWidth, m_MinWidth, m_MaxWidth) :
                            native_max(contentWidth, m_MinWidth);
 
         if (m_Width != newWidth) {
             this->setWidth(newWidth, true);
-        }   
+        }
     }
-    
+
     if (!m_Loaded && willDraw) {
         m_Loaded = true;
         this->checkLoaded();
@@ -782,7 +782,7 @@ void NativeCanvasHandler::computeAbsolutePosition()
 
             if (prev) {
                 int prevWidth = prev->visibility == CANVAS_VISIBILITY_HIDDEN ?
-                                                    0 : prev->getWidth(); 
+                                                    0 : prev->getWidth();
 
                 elem->left = (prev->left + prevWidth + prev->m_Margin.right) + elem->m_Margin.left;
                 elem->top = (prev->top - prev->m_Margin.top) + elem->m_Margin.top;
@@ -850,7 +850,7 @@ bool NativeCanvasHandler::isOutOfBound()
 
     for (cur = m_Parent; cur != NULL; cur = cur->m_Parent) {
         if (!cur->m_Overflow) {
-            
+
             cur->computeAbsolutePosition();
             this->computeAbsolutePosition();
 
@@ -872,7 +872,7 @@ NativeRect NativeCanvasHandler::getViewport()
         if (!cur->m_Parent) break;
 
         if (!cur->m_Overflow) {
-            
+
             cur->computeAbsolutePosition();
 
             NativeRect rect = {
@@ -927,7 +927,7 @@ void NativeCanvasHandler::computeContentSize(int *cWidth, int *cHeight, bool inn
     for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
         if (cur->coordPosition == COORD_RELATIVE &&
             cur->visibility == CANVAS_VISIBILITY_VISIBLE) {
-            
+
             int retWidth, retHeight;
 
             cur->computeContentSize(&retWidth, &retHeight, /*cur->m_FluidHeight*/ false);
@@ -1008,7 +1008,7 @@ void NativeCanvasHandler::recursiveScale(double x, double y,
     NativeCanvasHandler *cur = this;
 
     if (!cur->m_Context) return;
-    
+
     cur->m_Context->setScale(x, y, oldX, oldY);
 
     for (cur = m_Children; cur != NULL; cur = cur->m_Next) {
@@ -1092,7 +1092,7 @@ bool NativeCanvasHandler::checkLoaded()
 {
     if (m_Loaded) {
         NativeArgs arg;
-        this->fireEvent<NativeCanvasHandler>(LOADED_EVENT, arg, true);        
+        this->fireEvent<NativeCanvasHandler>(LOADED_EVENT, arg, true);
         return true;
     }
     return false;
@@ -1142,7 +1142,7 @@ void NativeCanvasHandler::onDrag(NativeInputEvent *ev, NativeCanvasHandler *targ
     }
 
     this->fireEvent<NativeCanvasHandler>(NativeCanvasHandler::MOUSE_EVENT, arg);
-    
+
     if (!end) {
         arg[0].set(NativeInputEvent::kMouseDragOver_Type);
         arg[7].set(this); // source
@@ -1191,7 +1191,7 @@ void NativeCanvasHandler::onMouseEvent(NativeInputEvent *ev)
 
                     drag->m_Flags &= ~kDrag_Flag;
 
-                }                
+                }
                 m_NativeContext->setCurrentClickedHandler(NULL);
             }
             break;
@@ -1235,7 +1235,7 @@ bool NativeCanvasHandler::_handleEvent(NativeInputEvent *ev)
             break;
         }
 
-    }    
+    }
 
     this->onMouseEvent(ev);
 

@@ -7,7 +7,7 @@
 typedef struct _NMLTag {
     const char *id;
     const char *tag;
-    
+
     struct {
         const unsigned char *data;
         size_t len;
@@ -34,3 +34,4 @@ enum NativeContextType {
 };
 
 #endif
+

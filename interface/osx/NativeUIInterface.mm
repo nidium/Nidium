@@ -4,7 +4,7 @@
 #import <NativeContext.h>
 #import <NativeSkia.h>
 #import <NativeApp.h>
-#import <NativeJSWindow.h> 
+#import <NativeJSWindow.h>
 #import <SDL.h>
 #import <SDL_opengl.h>
 #import <SDL_syswm.h>
@@ -56,7 +56,7 @@ static NSWindow *NativeCocoaWindow(SDL_Window *win)
 }
 
 int NativeEvents(NativeCocoaUIInterface *NUII)
-{   
+{
     SDL_Event event;
     int nrefresh = 0;
     //while(1) {
@@ -134,7 +134,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
                 case SDL_KEYUP:
                 {
                     int keyCode = 0;
-                    
+
                     int mod = 0;
 
                     if (event.key.keysym.sym >= 97 && event.key.keysym.sym <= 122) {
@@ -220,7 +220,7 @@ int NativeEvents(NativeCocoaUIInterface *NUII)
 
             glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
             uint8_t *pdata = NUII->getFrameBufferData();
-            
+
             NUII->NativeCtx->rendered(pdata, NUII->getWidth(), NUII->getHeight());
         } else {
             NUII->makeMainGLCurrent();
@@ -300,7 +300,7 @@ void NativeCocoaUIInterface::log(const char *buf)
     } else {
         fwrite(buf, sizeof(char), strlen(buf), stdout);
         fflush(stdout);
-    }    
+    }
 }
 
 void NativeCocoaUIInterface::logf(const char *format, ...)
@@ -369,7 +369,7 @@ void NativeCocoaUIInterface::stopApplication()
     glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     /* Also clear the front buffer */
     SDL_GL_SwapWindow(this->win);
-    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);  
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void NativeCocoaUIInterface::restartApplication(const char *path)
@@ -444,7 +444,7 @@ bool NativeCocoaUIInterface::runApplication(const char *path)
             char *uidpath = (char *)malloc(sizeof(char) *
                                 (strlen(app->getUDID()) + strlen(cachePath) + 16));
             sprintf(uidpath, "%s%s.content/", cachePath, app->getUDID());
-            
+
             app->extractApp(uidpath, NativeDoneExtracting, this);
             free(uidpath);
             /*this->mainjs.buf = (char *)malloc(fsize);
@@ -499,7 +499,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
     if (!this->initialized) {
         NSWindow *window;
         SDL_GLContext contexteOpenGL;
-        
+
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) == -1)
         {
             printf( "Can't init SDL:  %s\n", SDL_GetError( ));
@@ -514,12 +514,12 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32 );
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1 );
         SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-        
+
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
         //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-        
+
         win = SDL_CreateWindow("nidium", 100, 100,
             width, height,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL /*| SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN*/);
@@ -555,7 +555,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
 #endif
         contexteOpenGL = SDL_GL_CreateContext(win);
         m_mainGLCtx = contexteOpenGL;
-        
+
         if (contexteOpenGL == NULL) {
             NLOG("Failed to create OpenGL context : %s", SDL_GetError());
         }
@@ -575,7 +575,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         NLOG("[DEBUG] OpenGL %s", glGetString(GL_VERSION));
         NLOG("[DEBUG] GLSL Version : %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
         NLOG("[DEBUG] Deph buffer %i", depth);
-        
+
     } else {
         //this->patchSDLView([NativeCocoaWindow(win) contentView]);
     }
@@ -584,7 +584,7 @@ bool NativeCocoaUIInterface::createWindow(int width, int height)
         NATIVE_WINDOWPOS_UNDEFINED_MASK, width, height);
 
     NativeContext::CreateAndAssemble(this, gnet);
-    
+
     [this->dragNSView setResponder:NativeJSwindow::getNativeClass(NativeCtx->getNJS())];
 
     return true;
@@ -601,7 +601,7 @@ const char *NativeCocoaUIInterface::getCacheDirectory() const
         if (mkdir(cpath, 0777) == -1 && errno != EEXIST) {
             NLOG("Cant create cache directory %s", cpath);
             return NULL;
-        }  
+        }
         return cpath;
     }
     return NULL;
@@ -706,7 +706,7 @@ void NativeCocoaUIInterface::openFileDialog(const char *files[],
         }
         [openDlg setAllowedFileTypes:fileTypesArray];
     }
-    
+
     [openDlg setCanChooseFiles:(flags & kOpenFile_CanChooseFile ? YES : NO)];
     [openDlg setCanChooseDirectories:(flags & kOpenFile_CanChooseDir ? YES : NO)];
     [openDlg setAllowsMultipleSelection:(flags & kOpenFile_AlloMultipleSelection ? YES : NO)];
@@ -743,7 +743,7 @@ void NativeCocoaUIInterface::runLoop()
 {
     add_timer(&gnet->timersng, 1, NativeProcessUI, (void *)this);
     add_timer(&gnet->timersng, 1, NativeProcessSystemLoop, (void *)this);
-    
+
     events_loop(gnet);
 }
 
@@ -761,7 +761,7 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *nswindow = NativeCocoaWindow(this->win);
-    
+
     this->width = w;
     this->height = h;
     CGRect oldframe = [nswindow frame];
@@ -783,7 +783,7 @@ void NativeCocoaUIInterface::setWindowFrame(int x, int y, int w, int h)
     }
     if (y == NATIVE_WINDOWPOS_UNDEFINED_MASK) {
         y = oldframe.origin.y;
-    }    
+    }
 
     CGRect newframe = [nswindow frameRectForContentRect:CGRectMake(x, y, w, h)];
     [nswindow setFrame:newframe display:YES];
@@ -799,7 +799,7 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
     NSSize size;
     size.width = w;
     size.height = h;
-    
+
     this->width = w;
     this->height = h;
 
@@ -818,13 +818,13 @@ void NativeCocoaUIInterface::setWindowSize(int w, int h)
 
 void NativeCocoaUIInterface::alert(const char *message)
 {
-    
+
 }
 #if 0
 bool NativeCocoaUIInterface::makeMainGLCurrent()
 {
     [((NSOpenGLContext *)m_mainGLCtx) makeCurrentContext];
-    
+
     return true;
 }
 
@@ -875,7 +875,7 @@ static const char *drawRect_Associated_obj = "_NativeUIInterface";
     NSPointer *idthis = objc_getAssociatedObject(self, drawRect_Associated_obj);
     NativeCocoaUIInterface *UI = (NativeCocoaUIInterface *)idthis->m_Ptr;
     NativeContext *ctx = UI->getNativeContext();
-    
+
     if (ctx && ctx->isSizeDirty()) {
         [(NSOpenGLContext *)UI->getGLContext() update];
         ctx->sizeChanged(UI->getWidth(), UI->getHeight());
@@ -905,7 +905,7 @@ void NativeCocoaUIInterface::enableSysTray(const void *imgData,
 #if 0
     m_StatusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength] retain];
 
-    
+
     NSImage *icon = [NSApp applicationIconImage];
     [icon setScalesWhenResized:YES];
     [icon setSize: NSMakeSize(20.0, 20.0)];
@@ -915,9 +915,9 @@ void NativeCocoaUIInterface::enableSysTray(const void *imgData,
 
     NSMenu *stackMenu = [[NSMenu alloc] initWithTitle:@""];
 
-    NSMenuItem *menuOpen = 
+    NSMenuItem *menuOpen =
         [[NSMenuItem alloc] initWithTitle:@"Open" action:nil keyEquivalent:@""];
-    NSMenuItem *menuClose = 
+    NSMenuItem *menuClose =
         [[NSMenuItem alloc] initWithTitle:@"Close" action:nil keyEquivalent:@""];
 
     [stackMenu addItem:menuOpen];
@@ -1062,7 +1062,7 @@ void NativeCocoaUIInterface::renderSystemTray()
         if ([title isEqualToString:@"-"]) {
             curMenu = [NSMenuItem separatorItem];
         } else {
-            curMenu = 
+            curMenu =
                 [[[NSMenuItem alloc] initWithTitle:title action:@selector(menuClicked:) keyEquivalent:@""] autorelease];
         }
         [stackMenu addItem:curMenu];
