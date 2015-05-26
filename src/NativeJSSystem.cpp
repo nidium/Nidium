@@ -13,8 +13,7 @@
 #include <sys/stat.h>
 
 static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
-    jsval *vp);
-
+    JS::Value *vp);
 
 static JSClass system_class = {
     "System", 0,
@@ -31,7 +30,7 @@ static JSFunctionSpec system_funcs[] = {
 
 
 static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     struct rlimit rl;
     struct stat   stats;
