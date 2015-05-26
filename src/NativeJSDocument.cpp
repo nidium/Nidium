@@ -172,6 +172,7 @@ static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval
 
     size_t len = strlen(text)*2;
     jschar *jsc = new jschar[len];
+    //@FIXME: js:: is private -> use JS::
     js::InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
 
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, len));

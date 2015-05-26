@@ -888,9 +888,9 @@ void NativeJSAudioNode::setPropCallback(NativeAudioNode *node, void *custom)
 
     if (msg->name == NULL) {
         JS::RootedObject props(tcx, JSVAL_TO_OBJECT(data));
-        js::AutoIdArray ida(tcx, JS_Enumerate(tcx, props));
+        JS::AutoIdArray ida(tcx, JS_Enumerate(tcx, props));
         for (size_t i = 0; i < ida.length(); i++) {
-            js::RootedId id(tcx, ida[i]);
+            JS::RootedId id(tcx, ida[i]);
             JS::RootedValue val(tcx);
             JSAutoByteString name(tcx, JSID_TO_STRING(id));
 
@@ -1652,7 +1652,7 @@ static JSBool native_audionode_set(JSContext *cx, unsigned argc, jsval *vp)
     NativeAudioNode *node = jnode->node;
     if (!JSVAL_IS_PRIMITIVE(args.array()[0])) {
         JS::RootedObject props(cx, JSVAL_TO_OBJECT(args.array()[0]));
-        js::AutoIdArray ida(cx, JS_Enumerate(cx, props));
+        JS::AutoIdArray ida(cx, JS_Enumerate(cx, props));
         for (size_t i = 0; i < ida.length(); i++) {
             JS::RootedId id(cx, ida[i]);
             JS::RootedValue val(cx);
