@@ -79,14 +79,14 @@ bool NativeJSModule::initMain()
 {
     this->name = strdup("__MAIN__");
 
-    JSObject *funObj;
-    JSFunction *fun = js::DefineFunctionWithReserved(this->cx, JS_GetGlobalObject(cx), 
-            "require", native_modules_require, 1, 0);
+    JS::RootedFunction fun(cx, js::DefineFunctionWithReserved(this->cx, JS_GetGlobalObject(cx), 
+            "require", native_modules_require, 1, 0));
+
     if (!fun) {
         return false;
     }
 
-    funObj = JS_GetFunctionObject(fun);
+    JS::RootedObject funObj(cx, JS_GetFunctionObject(fun));
 
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
@@ -185,6 +185,7 @@ bool NativeJSModules::init(NativeJSModule *module)
 
 bool NativeJSModule::initNative()
 {
+    /* XXX RootedObject */
     JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
     if (!exports) {
@@ -232,17 +233,18 @@ bool NativeJSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
     JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
-    JSObject *module = JS_NewObject(this->cx, &native_modules_class, NULL, NULL);
+    JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, NULL, NULL));
 
     if (!exports || !module) {
         return false;
     }
 
-    JS::Value id;
-    JSString *idstr = JS_NewStringCopyN(cx, this->name, strlen(this->name));
+    JS::RootedValue id(cx);
+    JS::RootedString idstr(cx, JS_NewStringCopyN(cx, this->name, strlen(this->name)));
     if (!idstr) {
         return false;
     }
+
     id.setString(idstr);
 
     jsval exportsVal = OBJECT_TO_JSVAL(exports);
@@ -253,7 +255,7 @@ bool NativeJSModule::initJS()
 
     TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
-    TRY_OR_DIE(JS_SetProperty(cx, module, "id", &id));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "id", id.address()));
     TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
 
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);

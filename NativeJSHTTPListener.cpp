@@ -104,12 +104,15 @@ void NativeJSHTTPListener::onData(NativeHTTPClientConnection *client,
 
 bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 {
-    JS::Value oncallback, rval;
     buffer *k, *v;
+
+    JS::RootedValue rval(m_Cx);
+    JS::RootedValue oncallback(m_Cx);
+
     NativeJSHTTPClientConnection *subclient = static_cast<NativeJSHTTPClientConnection *>(client);
 
-    JSObject *objrequest = JS_NewObject(m_Cx, &HTTPRequest_class, NULL, NULL);
-    JSObject *headers = JS_NewObject(m_Cx, NULL, NULL, NULL);
+    JS::RootedObject objrequest(m_Cx, JS_NewObject(m_Cx, &HTTPRequest_class, NULL, NULL));
+    JS::RootedObject headers(m_Cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
 
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
@@ -159,13 +162,13 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
     JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 
-    if (JS_GetProperty(m_Cx, m_JSObject, "onrequest", &oncallback) &&
+    if (JS_GetProperty(m_Cx, m_JSObject, "onrequest", oncallback.address()) &&
         JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
         JS::Value arg[2];
         arg[0].setObjectOrNull(objrequest);
         arg[1].setObjectOrNull(static_cast<NativeJSHTTPResponse*>(client->getResponse())->getJSObject());
         JS_CallFunctionValue(m_Cx, m_JSObject, oncallback,
-            2, arg, &rval);
+            2, arg, rval.address());
     }
 
     return false;
@@ -175,7 +178,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     uint16_t port;
-    JSString *ip_bind = NULL;
+    JS::RootedString ip_bind(cx);
     JSBool reuseport = false;
     NativeJSHTTPListener *listener;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -188,7 +191,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
     JSObject *ret = JS_NewObjectForConstructor(cx, &HTTPListener_class, vp);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "c/bS",
-        &port, &reuseport, &ip_bind)) {
+        &port, &reuseport, ip_bind.address())) {
         return false;
     }
 
@@ -241,7 +244,7 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
         resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY);
 
     }  else if (args[0].isObject()) {
-        JSObject *objdata = args[0].toObjectOrNull();
+        JS::RootedObject objdata(cx, args[0].toObjectOrNull());
         if (!objdata || !JS_IsArrayBufferObject(objdata)) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
             return false;            
@@ -275,7 +278,7 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
             
             resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
         } else if (args[0].isObject()) {
-            JSObject *objdata = args[0].toObjectOrNull();
+            JS::RootedObject objdata(cx, args[0].toObjectOrNull());
             if (!objdata || !JS_IsArrayBufferObject(objdata)) {
                 JS_ReportError(cx, "end() invalid data (must be either a string or an ArrayBuffer)");
                 return false;            
@@ -295,13 +298,13 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
 static JSBool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *vp)
 {
     uint16_t statuscode;
-    JSObject *headers = NULL;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+    JS::RootedObject headers(cx);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "c/o",
-        &statuscode, &headers)) {
+        &statuscode, headers.address())) {
         return false;
     }
 
@@ -327,10 +330,10 @@ static JSBool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval 
             if (!JSID_IS_STRING(idp)) {
                 continue;
             }
-            JSString *key = JSID_TO_STRING(idp);
-            JS::Value val;
+            JS::RootedString key(cx, JSID_TO_STRING(idp));
+            JS::RootedValue val(cx);
 
-            if (!JS_GetPropertyById(cx, headers, idp, &val) || !val.isString()) {
+            if (!JS_GetPropertyById(cx, headers, idp, val.address()) || !val.isString()) {
                 continue;
             }
 
