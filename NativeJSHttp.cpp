@@ -98,7 +98,6 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 {
-#define GET_OPT(name) if (JS_GetProperty(cx, options, name, curopt.address()) && curopt != JSVAL_VOID && curopt != JSVAL_NULL)
     NativeHTTP *nhttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *caller = &args.thisv().toObject();
@@ -109,6 +108,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     NativeHTTPRequest *req;
 
     NATIVE_CHECK_ARGS("request", 2);
+
+    JS_INITOPT();
 
     if (JS_InstanceOf(cx, caller, &Http_class, args.array()) == false) {
         return true;
@@ -149,8 +150,8 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    GET_OPT("method") {
-        JS::RootedString method(cx, curopt.toString());
+    JSGET_OPT_TYPE(options, "method", String) {
+        JS::RootedString method(cx, __curopt.toString());
         JSAutoByteString cmethod(cx, method);
         if (strcmp("POST", cmethod.ptr()) == 0) {
             req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
@@ -165,9 +166,10 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
-    GET_OPT("headers") {
-        if (!JSVAL_IS_PRIMITIVE(curopt)) {
-            JSObject *headers = JSVAL_TO_OBJECT(curopt);
+    JSGET_OPT_TYPE(options, "headers", Object) {
+        if (!JSVAL_IS_PRIMITIVE(__curopt)) {
+
+            JS::RootedObject headers(cx, __curopt.toObjectOrNull());
             JS::AutoIdArray ida(cx, JS_Enumerate(cx, headers));
 
             for (size_t i = 0; i < ida.length(); i++) {
@@ -197,9 +199,9 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
-    GET_OPT("data") {
+    JSGET_OPT_TYPE(options, "data", String) {
         /* TODO: handle ArrayBuffer */
-        JS::RootedString data(cx, JS_ValueToString(cx, curopt));
+        JS::RootedString data(cx, JS_ValueToString(cx, __curopt));
         if (data != NULL) {
             char *hdata = JS_EncodeStringToUTF8(cx, data);
             req->setData(hdata, strlen(hdata));
@@ -215,33 +217,30 @@ static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
-    GET_OPT("timeout") {
-        if (JSVAL_IS_NUMBER(curopt)) {
-            JS_ValueToECMAUint32(cx, curopt, &nhttp->m_Timeout);
-        }
+    JSGET_OPT_TYPE(options, "timeout", Number) {
+        JS_ValueToECMAUint32(cx, __curopt, &nhttp->m_Timeout);
     }
 
-    GET_OPT("maxredirect") {
+    JSGET_OPT_TYPE(options, "maxredirect", Number) {
+
         uint32_t max = 8;
-        if (JSVAL_IS_NUMBER(curopt)) {
-            JS_ValueToECMAUint32(cx, curopt, &max);
 
-            nhttp->setMaxRedirect(max);
-        }        
+        JS_ValueToECMAUint32(cx, __curopt, &max);
+
+        nhttp->setMaxRedirect(max);
+      
     }
 
-    GET_OPT("eval") {
-        if (curopt.isBoolean()) {
-            jshttp->m_Eval = curopt.toBoolean();
-        }
+    JSGET_OPT_TYPE(options, "eval", Boolean) {
+        jshttp->m_Eval = __curopt.toBoolean();
     }
 
-    GET_OPT("path") {
-        if (curopt.isString()) {
-            JSAutoByteString cstr(cx, curopt.toString());
+    JSGET_OPT_TYPE(options, "path", String) {
 
-            req->setPath(cstr.ptr());
-        }
+        JSAutoByteString cstr(cx, __curopt.toString());
+
+        req->setPath(cstr.ptr());
+
     }
 
     jshttp->request = callback;

@@ -51,6 +51,8 @@ public:
         JS::RootedValue rval(cx);
 
         NativeBaseStream *stream = (NativeBaseStream *)m_Args[2].toPtr();
+
+        /* XXX RootedObject */
         JSObject *callback = (JSObject *)m_Args[7].toPtr();
 
         char *encoding = (char *)m_Args[1].toPtr();
@@ -97,8 +99,6 @@ public:
 
     NativeArgs m_Args;
 };
-
-#define GET_OPT(name) if (opt != NULL && JS_GetProperty(cx, opt, name, &curopt) && curopt != JSVAL_VOID && curopt != JSVAL_NULL)
 
 #define NJSFIO_GETTER(obj) ((class NativeJSFileIO *)JS_GetPrivate(obj))
 
@@ -221,7 +221,6 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
 
     JS::RootedObject opt(cx);
-    jsval curopt;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -248,8 +247,10 @@ static JSBool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     file = new NativeFile(path.path());
     file->setListener(NJSFIO);
 
-    GET_OPT("encoding") {
-        JSAutoByteString encoding(cx, curopt.toString());
+    JS_INITOPT();
+
+    JSGET_OPT_TYPE(opt, "encoding", String) {
+        JSAutoByteString encoding(cx, __curopt.toString());
         NJSFIO->m_Encoding = strdup(encoding.ptr());
     }
 
@@ -598,9 +599,10 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
     JS::RootedString filename(cx);
     JS::RootedObject opt(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    jsval curopt;
     char *buf;
     size_t len;
+
+    JS_INITOPT();
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(),
         "S/o", filename.address(), opt.address())) {
@@ -627,8 +629,8 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
     char *cencoding = NULL;
     JSAutoByteString encoding;
 
-    GET_OPT("encoding") {
-        encoding.encodeLatin1(cx, curopt.toString());
+    JSGET_OPT_TYPE(opt, "encoding", String) {
+        encoding.encodeLatin1(cx, __curopt.toString());
         cencoding = encoding.ptr();
     }
     
@@ -645,11 +647,13 @@ static JSBool native_file_readFileSync(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSObject *opt = NULL;
-    JSObject *secondarg;
-    JSString *filename;
+    JS::RootedObject opt(cx);
+    JS::RootedObject secondarg(cx);
+    JS::RootedString filename(cx);
+
+    JS_INITOPT();
+
     jsval argcallback, callback;
-    jsval curopt;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     char *cencoding = NULL;
 
@@ -660,6 +664,7 @@ static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
 
     if (JS_TypeOfValue(cx, args[1]) != JSTYPE_FUNCTION) {
         NATIVE_CHECK_ARGS("readFile", 3);
+        
         opt = args[1].toObjectOrNull();
         argcallback = args[2];
     } else {
@@ -681,8 +686,8 @@ static JSBool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    GET_OPT("encoding") {
-        JSAutoByteString encoding(cx, curopt.toString());
+    JSGET_OPT_TYPE(opt, "encoding", String) {
+        JSAutoByteString encoding(cx, __curopt.toString());
         cencoding = strdup(encoding.ptr());
     }
 
