@@ -264,13 +264,11 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 
 JSObject *NativeJSdocument::registerObject(JSContext *cx)
 {
-    JS::RootedObject documentObj(cx);
+    JS::RootedObject documentObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+        NativeJSdocument::getJSObjectName(), &document_class , NULL, 
+        JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
     NativeJS *njs = NativeJS::getNativeClass(cx);
-
-    documentObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        NativeJSdocument::getJSObjectName(),
-        &document_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE);
 
     NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
 

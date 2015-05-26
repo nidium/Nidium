@@ -1469,7 +1469,8 @@ static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value 
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, vp));
 
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", 
+        &Canvas_Inherit_class, NULL,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii/o",
@@ -1554,7 +1555,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     NativeUIInterface *ui = nctx->getUI();
 
     ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", &Canvas_Inherit_class, NULL,
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
+        &Canvas_Inherit_class, NULL, 
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     handler = new NativeCanvasHandler(width, height, nctx);

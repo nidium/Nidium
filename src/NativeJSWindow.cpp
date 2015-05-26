@@ -1449,14 +1449,12 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     int height, JSObject *doc)
 {
-    JS::RootedObject windowObj(cx);
 #if 0
-    windowObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        NativeJSwindow::getJSObjectName(),
-        &window_class , NULL,
-        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedObject windowObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+        NativeJSwindow::getJSObjectName(), &window_class , NULL,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 #else
-    windowObj = JS_GetGlobalObject(cx);
+    JS::RootedObject windowObj(cx, JS_GetGlobalObject(cx));
 #endif
     NativeJSwindow *jwin = new NativeJSwindow(JS_GetGlobalObject(cx), cx);
 
