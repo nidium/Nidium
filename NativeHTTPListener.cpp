@@ -510,6 +510,11 @@ void NativeHTTPResponse::sendHeaders(bool chunked)
         m_Chunked = true;
     }
 
+    /* "No content requests must not be chunked" */
+    if (m_Statuscode == 204) {
+        m_Chunked = false;
+    }
+
     const buffer &headers = this->getHeadersString();
 
     APE_socket_write(m_Con->getSocket(), headers.data,
