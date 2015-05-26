@@ -47,7 +47,7 @@ static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
 
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
     tracer->stop();
-    JS::Value val(OBJECT_TO_JSVAL(tracer->getJSObject()));
+    JS::RootedValue val(cx, OBJECT_TO_JSVAL(tracer->getJSObject()));
 
     args.rval().set(val);
 
@@ -79,7 +79,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
     for (i = 0; i < args.length(); i++) {
-        JS::RootedString str(cx, JS_ValueToString(cx, args[i]));
+        JS::RootedString str(cx, args[i].toString());
         if (!str)
             return false;
         bytes = JS_EncodeStringToUTF8(cx, str);
