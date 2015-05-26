@@ -597,16 +597,18 @@ JSBool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWri
     }
 
     if (JS_GetClass(obj) == NativeCanvas2DContext::ImageData_jsclass) {
-        JS::Value iwidth, iheight, idata;
+        JS::RootedValue iwidth(cx);
+        JS::RootedValue iheight(cx);
+        JS::RootedValue idata(cx);
         uint32_t dwidth, dheight;
 
-        if (!JS_GetProperty(cx, obj, "width", &iwidth)) {
+        if (!JS_GetProperty(cx, obj, "width", &iwidth.get())) {
             return false;
         }
-        if (!JS_GetProperty(cx, obj, "height", &iheight)) {
+        if (!JS_GetProperty(cx, obj, "height", &iheight.get())) {
             return false;
         }
-        if (!JS_GetProperty(cx, obj, "data", &idata)) {
+        if (!JS_GetProperty(cx, obj, "data", &idata.get())) {
             return false;
         }
 
@@ -636,12 +638,12 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
                 return JS_NewObject(cx, NULL, NULL, NULL);
             }
             uint32_t width, height;
-            JS::Value arr;
+            JS::RootedValue arr(cx);
 
             JS_ReadBytes(r, &width, sizeof(uint32_t));
             JS_ReadBytes(r, &height, sizeof(uint32_t));
 
-            JS_ReadTypedArray(r, &arr);
+            JS_ReadTypedArray(r, &arr.get());
 
             JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL));
             JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,

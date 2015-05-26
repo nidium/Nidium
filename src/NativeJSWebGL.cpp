@@ -227,10 +227,10 @@ bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     JS_ValueToObject(cx, argv[0], &location.get());
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, args.array());
 
-    if (nb > 0) JS_ValueToNumber(cx, argv[1], &x);
-    if (nb > 1) JS_ValueToNumber(cx, argv[2], &y);
-    if (nb > 2) JS_ValueToNumber(cx, argv[3], &z);
-    if (nb > 3) JS_ValueToNumber(cx, argv[4], &w);
+    if (nb > 0) x = argv[1].toDouble();
+    if (nb > 1) y = argv[2].toDouble();
+    if (nb > 2) z = argv[3].toDouble();
+    if (nb > 3) w = argv[4].toDouble();
 
     switch (nb) {
         case 1:
@@ -309,10 +309,10 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     JS_ValueToObject(cx, argv[0], &location.get());
     clocation = (uintptr_t)JS_GetInstancePrivate(cx, location, &WebGLUniformLocation_class, args.array());
 
-    if (nb > 0) JS_ValueToInt32(cx, argv[1], &x);
-    if (nb > 1) JS_ValueToInt32(cx, argv[2], &y);
-    if (nb > 2) JS_ValueToInt32(cx, argv[3], &z);
-    if (nb > 3) JS_ValueToInt32(cx, argv[4], &w);
+    if (nb > 0) x = (GLint) argv[1].toInt32();
+    if (nb > 1) y = (GLint) argv[2].toInt32();
+    if (nb > 2) x = (GLint) argv[3].toInt32();
+    if (nb > 3) w = (GLint) argv[4].toInt32();
 
     switch (nb) {
         case 1:
@@ -426,12 +426,12 @@ bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned in
     double v2;
     double v3;
 
-    JS_ValueToECMAUint32(cx, argv[0], &index);
+    index = (GLuint) argv[0].toInt32();
 
-    if (nb > 0) JS_ValueToNumber(cx, argv[1], &v0);
-    if (nb > 1) JS_ValueToNumber(cx, argv[2], &v1);
-    if (nb > 2) JS_ValueToNumber(cx, argv[3], &v2);
-    if (nb > 3) JS_ValueToNumber(cx, argv[4], &v3);
+    if (nb > 0) v0 = argv[1].toDouble();
+    if (nb > 1) v1 = argv[2].toDouble();
+    if (nb > 2) v2 = argv[3].toDouble();
+    if (nb > 3) v3 = argv[4].toDouble();
 
     switch (nb) {
         case 1:
@@ -461,7 +461,7 @@ bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned i
     JS::RootedObject array(cx);
 
     argv = args.array();
-    JS_ValueToECMAUint32(cx, argv[0], &index);
+    index = (GLuint) argv[0].toInt32();
     JS_ValueToObject(cx, argv[1], &array.get());
 
     if (JS_IsFloat32Array(array)) {
@@ -1972,17 +1972,17 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     JS_GetProperty(cx, JS_GetGlobalObject(cx), "WebGLActiveInfo", &proto.get());
     JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLActiveInfo_class, JSVAL_TO_OBJECT(proto), NULL));
 
-    JS::Value size;
-    JS::Value type;
-    JS::Value name;
+    JS::RootedValue size(cx);
+    JS::RootedValue type(cx);
+    JS::RootedValue name(cx);
 
     size.setInt32(csize);
     type.setNumber(ctype);
     name.setString(JS_NewStringCopyZ(cx, buff));
 
-    JS_SetProperty(cx, obj, "size", &size);
-    JS_SetProperty(cx, obj, "type", &type);
-    JS_SetProperty(cx, obj, "name", &name);
+    JS_SetProperty(cx, obj, "size", &size.get());
+    JS_SetProperty(cx, obj, "type", &type.get());
+    JS_SetProperty(cx, obj, "name", &name.get());
 
     args.rval().set(OBJECT_TO_JSVAL(obj));
 
@@ -2031,7 +2031,7 @@ NGL_JS_FN(WebGLRenderingContext_getAttribLocation)
 NGL_JS_FN(WebGLRenderingContext_getParameter)
 //{
     GLenum name;
-    JS::Value value;
+    JS::RootedValue value(cx);
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "u", &name)) {
         return false;

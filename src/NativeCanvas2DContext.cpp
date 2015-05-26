@@ -21,7 +21,7 @@
 
 #define CANVASCTX_PROLOGUE
 
-extern jsval gfunc;
+extern JS::Value gfunc;
 
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
@@ -1533,7 +1533,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
 
             curSkia->setShadowOffsetX(ret);
         }
@@ -1546,7 +1546,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
 
             curSkia->setShadowOffsetY(ret);
         }
@@ -1559,7 +1559,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
 
             curSkia->setShadowBlur(ret);
         }
@@ -1583,7 +1583,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
             curSkia->setFontSize(ret);
 
         }
@@ -1608,7 +1608,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
 
             curSkia->setFontSkew(ret);
         }
@@ -1720,7 +1720,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
             curSkia->setLineWidth(ret);
         }
         break;
@@ -1732,7 +1732,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
             curSkia->setMiterLimit(ret);
         }
         break;
@@ -1744,7 +1744,7 @@ static JSBool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &ret);
+            ret = vp.toDouble();
             curSkia->setGlobalAlpha(ret);
         }
         break;

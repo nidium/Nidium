@@ -494,7 +494,7 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
             JS_ObjectIsCallable(cx, JSVAL_TO_OBJECT(jscbk))) {
 
             if (cmsg->ev == SOURCE_EVENT_ERROR) {
-                JS::Value event[2]; //@TODO RootedValue
+                JS::Value event[2];
                 int errorCode = cmsg->args[0].toInt();
                 const char *errorStr = NativeAVErrorsStr[errorCode];
 
@@ -503,7 +503,7 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
 
                 JS_CallFunctionValue(cx, obj, jscbk, 2, event, &rval.get());
             } else if (cmsg->ev == SOURCE_EVENT_BUFFERING) {
-                JS::Value event[2];//@TODO Rootedvalue
+                JS::Value event[2];
 
                 event[0] = INT_TO_JSVAL(cmsg->args[0].toInt());
                 event[1] = INT_TO_JSVAL(cmsg->args[1].toInt());
@@ -600,7 +600,8 @@ void NativeJSAudio::initNode(NativeJSAudioNode *node, JSObject *jnode, JSString 
 {
     int in = node->node->inCount;
     int out = node->node->outCount;
-    JS::Value inputLinks, outputLinks;
+    JS::RootedValue inputLinks(m_Cx);
+    JS::RootedValue outputLinks(m_Cx);
 
     JS_DefineProperty(m_Cx, jnode, "type", STRING_TO_JSVAL(name), NULL, NULL,
         JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
@@ -701,7 +702,6 @@ bool NativeJSAudio::createContext()
         }
 
         JS_SetVersion(this->tcx, JSVERSION_LATEST);
-
         JS_SetOptions(this->tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_TYPE_INFERENCE | JSOPTION_ION);
 
         JS_SetErrorReporter(this->tcx, reportError);
@@ -853,7 +853,7 @@ void native_audio_node_custom_set_internal(JSContext *cx, NativeJSAudioNode *nod
     setterFn = node->m_TransferableFuncs[NativeJSAudioNode::SETTER_FN];
     if (setterFn) {
         JS::RootedValue rval(cx);
-        JS::Value params[3]; //@TODO RootedValue
+        JS::Value params[3];
         params[0] = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, name));
         params[1] = *val;
         params[2] = OBJECT_TO_JSVAL(JS_GetGlobalObject(cx));
@@ -932,7 +932,7 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
 
     if (!processFn) return;
 
-    JS::Value params[2]; //@TODO JS::RootedValue
+    JS::Value params[2];
     JS::RootedValue rval(tcx);
     JS::RootedValue vFrames(tcx);
     JS::RootedValue vSize(tcx);
@@ -1093,7 +1093,7 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
         jnode->m_TransferableFuncs[NativeJSAudioNode::INIT_FN];
 
     if (initFn) {
-        JS::Value params[1]; //@TODO RootedValue
+        JS::Value params[1];
         JS::RootedValue rval(tcx);
 
         params[0] = OBJECT_TO_JSVAL(JS_GetGlobalObject(tcx));
@@ -1551,7 +1551,7 @@ static JSBool native_audiothread_print(JSContext *cx, unsigned argc, JS::Value *
 
     argv = args.array();
 
-    str = JS_ValueToString(cx, argv[0]);
+    str = argv[0].toString();
     if (!str)
         return true;
 
@@ -1794,7 +1794,7 @@ static JSBool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc,
     JS_SetProperty(cx, jnode->hashObj, str.ptr(), &val.get());
 
     if (fn) {
-        JS::Value params[4];    //@TODO RootedValue
+        JS::Value params[4];
         JS::RootedValue rval(cx);
 
         params[0] = STRING_TO_JSVAL(name);
@@ -2584,7 +2584,7 @@ void NativeJSAudioNode::seekCallback(NativeAudioCustomSource *node, double seekT
     JSTransferableFunction *fn = jnode->m_TransferableFuncs[NativeJSAudioNode::SEEK_FN];
     if (!fn) return;
 
-    JS::Value params[2]; //@TODO RootedValue
+    JS::Value params[2];
     JS::RootedValue rval(jnode->audio->tcx);
 
     params[0] = DOUBLE_TO_JSVAL(seekTime);;

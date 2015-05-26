@@ -888,7 +888,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToECMAUint32(cx, vp, &dval);
+            dval = (uint32_t) vp.toInt32();
 
             if (!handler->setWidth(dval)) {
                 //JS_ReportError(cx, "Can't set canvas width (this canvas has a dynamic width)");
@@ -902,7 +902,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToECMAUint32(cx, vp, &dval);
+            dval = (uint32_t) vp.toInt32();
 
             if (!handler->setMinWidth(dval)) {
                 return true;
@@ -915,7 +915,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToECMAUint32(cx, vp, &dval);
+            dval = (uint32_t) vp.toInt32();
 
             if (!handler->setMaxWidth(dval)) {
                 return true;
@@ -928,7 +928,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToECMAUint32(cx, vp, &dval);
+            dval = (uint32_t) vp.toInt32();
 
             if (!handler->setHeight(dval)) {
                 //JS_ReportError(cx, "Can't set canvas height (this canvas has a dynamic height)");
@@ -942,7 +942,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToECMAUint32(cx, vp, &dval);
+            dval = (uint32_t) vp.toInt32();
 
             if (!handler->setMinHeight(dval)) {
                 return true;
@@ -955,7 +955,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToECMAUint32(cx, vp, &dval);
+            dval = (uint32_t) vp.toInt32();
 
             if (!handler->setMaxHeight(dval)) {
                 return true;
@@ -978,7 +978,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setLeft(dval);
         }
         break;
@@ -998,7 +998,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setRight(dval);
         }
         break;
@@ -1015,7 +1015,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setTop(dval);
         }
         break;
@@ -1032,7 +1032,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setBottom(dval);
         }
         break;
@@ -1042,8 +1042,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-
-            JS_ValueToECMAInt32(cx, vp, &dval);
+            dval = vp.toInt32();
 
             handler->setScrollLeft(dval);
         }
@@ -1054,8 +1053,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-
-            JS_ValueToECMAInt32(cx, vp, &dval);
+            dval = vp.toInt32();
 
             handler->setScrollTop(dval);
         }
@@ -1090,10 +1088,11 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_COATING:
         {
             int32_t dval;
+
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-             JS_ValueToECMAInt32(cx, vp, &dval);
+            dval = vp.toInt32();
 
             handler->setPadding(dval);
         }
@@ -1101,10 +1100,11 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_OPACITY:
         {
             double dval;
+
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setOpacity(dval);
         }
         break;
@@ -1177,7 +1177,7 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         break;
         case CANVAS_PROP_ID:
         {
-            JS::RootedString sid(cx, JS_ValueToString(cx, vp));
+            JS::RootedString sid(cx, vp.toString());
             if (!sid) {
                 return true;
             }
@@ -1188,11 +1188,11 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_MARGINLEFT:
         {
             double dval;
+
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 handler->m_Margin.bottom, dval);
         }
@@ -1200,11 +1200,12 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_MARGINRIGHT:
         {
             double dval;
+
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
 
-            JS_ValueToNumber(cx, vp, &dval);
+            dval = vp.toDouble();
             handler->setMargin(handler->m_Margin.top, dval,
                 handler->m_Margin.bottom, handler->m_Margin.left);
         }
@@ -1212,12 +1213,12 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_MARGINTOP:
         {
             double dval;
+
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
 
-            JS_ValueToNumber(cx, vp, &dval);
-
+            dval = vp.toDouble();
             handler->setMargin(dval, handler->m_Margin.right,
                 handler->m_Margin.bottom, handler->m_Margin.left);
         }
@@ -1225,12 +1226,11 @@ static JSBool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
         case CANVAS_PROP_MARGINBOTTOM:
         {
             double dval;
+
             if (!JSVAL_IS_NUMBER(vp)) {
                 return true;
             }
-
-            JS_ValueToNumber(cx, vp, &dval);
-
+            dval = vp.toDouble();
             handler->setMargin(handler->m_Margin.top, handler->m_Margin.right,
                 dval, handler->m_Margin.left);
         }
@@ -1536,15 +1536,14 @@ static void Canvas_Trace(JSTracer *trc, JSRawObject obj)
         for (cur = handler->getFirstChild(); cur != NULL; cur = cur->m_Next) {
             if (cur->jsobj) {
 #ifdef DEBUG
-                JS_SET_TRACING_DETAILS(trc, PrintGetTraceName, cur, 0);
+                trc->debugPrinter = PrintGetTraceName;
+                trc->debugPrintArg = cur;
 #endif
-
                 JS_CallObjectTracer(trc, (JSObject *)cur->jsobj, "nativecanvasroot");
             }
         }
     }
 }
-
 
 JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     int height, NativeCanvasHandler **out)
