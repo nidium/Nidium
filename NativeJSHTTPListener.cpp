@@ -188,7 +188,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
         return false;
     }
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &HTTPListener_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPListener_class, vp));
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "c/bS",
         &port, &reuseport, ip_bind.address())) {

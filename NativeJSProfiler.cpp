@@ -119,8 +119,6 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
         JSString *jfunName = NULL;
         char *scriptName;
         unsigned lineno;
-
-        JSScript *parentScript;
         unsigned parentLineNo;
 
         JSScript *script = frame.script();
@@ -151,7 +149,8 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
             funName = (char *)"N/A";
         }
 
-        if (!JS_DescribeScriptedCaller(cx, &parentScript, &parentLineNo)) {
+        JS::RootedScript parentScript(cx);
+        if (!JS_DescribeScriptedCaller(cx, parentScript.address(), &parentLineNo)) {
             parentLineNo = 0;
         }
 

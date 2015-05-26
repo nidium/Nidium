@@ -205,8 +205,10 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 
 void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg)
 {
-    jsval oncallback, rval;
     JSContext *cx = m_Cx;
+
+    JS::RootedValue oncallback(cx);
+    JS::RootedValue rval(cx);
 
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
@@ -224,7 +226,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
                 return;
             }
 
-            if (JS_GetProperty(m_Cx, this->getJSObject(), "onmessage", &oncallback) &&
+            if (JS_GetProperty(m_Cx, this->getJSObject(), "onmessage", oncallback.address()) &&
                 JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 JS::RootedValue jdata(cx);
@@ -237,7 +239,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
                 arg[1].setObjectOrNull(event);
 
                 JS_CallFunctionValue(m_Cx, this->getJSObject(), oncallback,
-                    2, arg, &rval);
+                    2, arg, rval.address());
             }
 
             break;

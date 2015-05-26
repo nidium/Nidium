@@ -315,10 +315,11 @@ private:
 
         NATIVE_CHECK_ARGS("fireEvent", 2);
 
-        JSString *name;
-        JSObject *evobj;
+        JS::RootedString name(cx);
+        JS::RootedObject evobj(cx);
 
-        if (!JS_ConvertArguments(cx, 2, args.array(), "So", &name, &evobj)) {
+        if (!JS_ConvertArguments(cx, 2, args.array(), "So",
+            name.address(), evobj.address())) {
             return false;
         }
 
@@ -335,14 +336,14 @@ private:
 
         NATIVE_CHECK_ARGS("addEventListener", 2);
 
-        JSString *name;
-        JS::Value cb;
+        JS::RootedString name(cx);
+        JS::RootedValue cb(cx);
 
-        if (!JS_ConvertArguments(cx, 1, args.array(), "S", &name)) {
+        if (!JS_ConvertArguments(cx, 1, args.array(), "S", name.address())) {
             return false;
         }
 
-        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
+        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, cb.address())) {
             JS_ReportError(cx, "Bad callback given");
             return false;
         }
@@ -433,6 +434,7 @@ public:
 
         m_JSClass = &jsclass;
 
+        /* XXX RootedObject (Heap) */
         m_JSObj = JS_NewObject(m_JSCx, m_JSClass, NULL, NULL);
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
         JS_AddObjectRoot(m_JSCx, &m_JSObj);
@@ -474,9 +476,8 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
     { \
-        JSObject *name ## Obj; \
-        name ## Obj = JS_DefineObject(cx, JS_GetGlobalObject(cx), #name, \
-            &name ## _class , NULL, 0); \
+        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx), #name, \
+            &name ## _class , NULL, 0)); \
         JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
         JS_DefineProperties(cx, name ## Obj, name ## _props); \
     }
@@ -496,11 +497,13 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 #define JSOBJ_CALLFUNCNAME(where, name, argc, argv) \
     { \
-        JS::Value oncallback, rval; \
-        if (JS_GetProperty(cx, where, name, &oncallback) && \
+        JS::RootedValue _oncallback(cx); \
+        JS::RootedValue _rval(cx); \
+        JS::Value rval; \
+        if (JS_GetProperty(cx, where, name, _oncallback.address()) && \
             JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) { \
             JS_CallFunctionValue(cx, where, oncallback, \
-                argc, argv, &rval); \
+                argc, argv, _rval.address()); \
         } \
     }
 #define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(m_Cx, val)))
@@ -520,6 +523,7 @@ class NativeJSObjectBuilder
 public:
     NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
         m_Cx = cx;
+        /* XXX RootedObject (Heap) */
         m_Obj = JS_NewObject(m_Cx, clasp, NULL, NULL);
     };
 

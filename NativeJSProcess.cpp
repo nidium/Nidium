@@ -52,14 +52,12 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj)
 
 
 void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int workerId)
-{
-    JSObject *ProcessObj;
-    
+{    
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
-    ProcessObj = JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject ProcessObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
         NativeJSProcess::getJSObjectName(),
-        &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+        &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     NativeJSProcess *jProcess = new NativeJSProcess(ProcessObj, cx);
 
@@ -69,7 +67,7 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
 
     JS_DefineFunctions(cx, ProcessObj, Process_funcs);
 
-    JSObject *jsargv = JS_NewArrayObject(cx, argc, NULL);
+    JS::RootedObject jsargv(cx, JS_NewArrayObject(cx, argc, NULL));
 
     for (int i = 0; i < argc; i++) {
         jsval jelem = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, argv[i]));
@@ -78,9 +76,9 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
     }
 
     JS::Value jsargv_v = OBJECT_TO_JSVAL(jsargv);
-    JS::Value workerid_v = JS::Int32Value(workerId);
-
     JS_SetProperty(cx, ProcessObj, "argv", &jsargv_v);
+
+    JS::Value workerid_v = JS::Int32Value(workerId);
     JS_SetProperty(cx, ProcessObj, "workerId", &workerid_v);
 }
 
