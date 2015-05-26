@@ -134,45 +134,45 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_setContext(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_insertBefore(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_insertAfter(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_bringToFront(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
-    jsval *vp);
-static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp);
+    JS::Value *vp);
+static JSBool native_canvas_show(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_canvas_hide(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_canvas_clear(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp);
 
 #define NATIVE_JS_PROP JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_SHARED
 
@@ -378,7 +378,7 @@ static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, js
     return jscanvas->getHandler();
 }
 
-static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_canvas_show(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -387,7 +387,7 @@ static JSBool native_canvas_show(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_canvas_hide(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -396,7 +396,7 @@ static JSBool native_canvas_hide(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_canvas_clear(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -407,7 +407,7 @@ static JSBool native_canvas_clear(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -423,7 +423,7 @@ static JSBool native_canvas_setZoom(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -439,7 +439,7 @@ static JSBool native_canvas_setScale(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -456,7 +456,7 @@ static JSBool native_canvas_setSize(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -466,7 +466,7 @@ static JSBool native_canvas_removeFromParent(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_bringToFront(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -476,7 +476,7 @@ static JSBool native_canvas_bringToFront(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -486,7 +486,7 @@ static JSBool native_canvas_sendToBack(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -498,7 +498,7 @@ static JSBool native_canvas_getParent(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -510,7 +510,7 @@ static JSBool native_canvas_getFirstChild(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -522,7 +522,7 @@ static JSBool native_canvas_getLastChild(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -534,7 +534,7 @@ static JSBool native_canvas_getNextSibling(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -546,7 +546,7 @@ static JSBool native_canvas_getPrevSibling(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -574,7 +574,7 @@ static JSBool native_canvas_getChildren(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -597,7 +597,7 @@ static JSBool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -615,7 +615,7 @@ static JSBool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -632,7 +632,7 @@ static JSBool native_canvas_translate(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -665,7 +665,7 @@ static JSBool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_insertBefore(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -704,7 +704,7 @@ static JSBool native_canvas_insertBefore(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_insertAfter(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
@@ -742,7 +742,7 @@ static JSBool native_canvas_insertAfter(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
     NATIVE_CHECK_ARGS("getContext", 1);
@@ -820,7 +820,7 @@ static JSBool native_canvas_getContext(JSContext *cx, unsigned argc,
 }
 
 static JSBool native_canvas_setContext(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NATIVE_PROLOGUE(NativeCanvasHandler);
     NATIVE_CHECK_ARGS("setContext", 1);
@@ -1455,7 +1455,7 @@ static JSBool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
-static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     int width, height;
@@ -1725,3 +1725,4 @@ NativeJSCanvas::~NativeJSCanvas()
 {
     delete m_CanvasHandler;
 }
+

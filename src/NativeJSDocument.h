@@ -49,3 +49,4 @@ class NativeJSdocument : public NativeJSExposer<NativeJSdocument>
 };
 
 #endif
+

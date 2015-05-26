@@ -253,3 +253,4 @@ class NativeJSVideo : public NativeJSExposer<NativeJSVideo>, public NativeMessag
 };
 
 #endif
+

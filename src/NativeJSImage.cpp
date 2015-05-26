@@ -13,10 +13,10 @@ JSObject *NativeJSImage::classe = NULL;
 #define IMAGE_FROM_CALLEE ((class NativeJSImage *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
-static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_image_markColorInAlpha(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_image_desaturate(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSBool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSBool strict, JSMutableHandleValue vp);
@@ -48,12 +48,12 @@ static JSFunctionSpec Image_funcs[] = {
     JS_FS_END
 };
 
-static JSBool native_image_print(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;
 }
 
-static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeJSImage *nimg = IMAGE_FROM_CALLEE;
@@ -71,7 +71,7 @@ static JSBool native_image_shiftHue(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 static JSBool native_image_markColorInAlpha(JSContext *cx,
-    unsigned argc, jsval *vp)
+    unsigned argc, JS::Value *vp)
 {
     NativeJSImage *nimg = IMAGE_FROM_CALLEE;
     if (nimg->img) {
@@ -82,7 +82,7 @@ static JSBool native_image_markColorInAlpha(JSContext *cx,
 }
 
 static JSBool native_image_desaturate(JSContext *cx,
-    unsigned argc, jsval *vp)
+    unsigned argc, JS::Value *vp)
 {
     NativeJSImage *nimg = IMAGE_FROM_CALLEE;
     if (nimg->img) {
@@ -162,7 +162,7 @@ void Image_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static JSBool native_Image_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Image_class, vp));
@@ -355,3 +355,4 @@ void NativeJSImage::registerObject(JSContext *cx)
 }
 
 //NATIVE_OBJECT_EXPOSE(Image)
+

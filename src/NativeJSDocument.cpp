@@ -16,20 +16,20 @@
 
 bool NativeJSdocument::showFPS = false;
 
-static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp);
 static void Document_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSPropertySpec document_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp);
+static JSBool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp);
+static JSBool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass document_class = {
     "NativeDocument", JSCLASS_HAS_PRIVATE,
@@ -61,7 +61,7 @@ struct _native_document_restart_async
     char *location;
 };
 
-static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -79,7 +79,7 @@ static JSBool native_document_parseNML(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_getElementById(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -98,7 +98,7 @@ static JSBool native_document_getElementById(JSContext *cx, unsigned argc, jsval
     return true;
 }
 
-static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -139,7 +139,7 @@ static JSBool native_document_getScreenData(JSContext *cx, unsigned argc, jsval 
     return true;
 }
 
-static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -158,7 +158,7 @@ static JSBool native_document_setPasteBuffer(JSContext *cx, unsigned argc, jsval
     return true;
 }
 
-static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     using namespace js;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -185,7 +185,7 @@ static JSBool native_document_getPasteBuffer(JSContext *cx, unsigned argc, jsval
     return true;
 }
 
-static JSBool native_document_showfps(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_showfps(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSBool show = false;
@@ -216,7 +216,7 @@ static int native_document_restart(void *param)
     return 0;
 }
 
-static JSBool native_document_run(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString location(cx);
@@ -330,7 +330,7 @@ bool NativeJSdocument::loadFont(const char *path, const char *name,
     return true;
 }
 
-static JSBool native_document_loadFont(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS_INITOPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -389,3 +389,4 @@ SkTypeface *NativeJSdocument::getFont(char *name)
 
     return NULL;
 }
+

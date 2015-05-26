@@ -26,3 +26,4 @@ class NativeJSNative : public NativeJSExposer<NativeJSNative>
 };
 
 #endif
+

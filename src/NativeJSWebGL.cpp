@@ -26,9 +26,9 @@ extern JSClass Canvas_class;
     NATIVE_GL_CALL_RET((IFACE)->getGLContext(), FN, RET); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
-#define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp);
+#define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
 
-#define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, jsval *vp) {\
+#define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, JS::Value *vp) {\
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, NAME) \
@@ -214,7 +214,7 @@ static void WebGLRenderingContext_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb) {
+bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb) {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
     JS::RootedObject location(cx);
@@ -250,7 +250,7 @@ bool NGL_uniformxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     return true;
 }
 
-bool NGL_uniformxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb)
+bool NGL_uniformxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     intptr_t clocation;
@@ -295,7 +295,7 @@ bool NGL_uniformxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
     return true;
 }
 
-bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb)
+bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -332,7 +332,7 @@ bool NGL_uniformxi(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int arg
     return true;
 }
 
-bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb)
+bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -373,7 +373,7 @@ bool NGL_uniformxiv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int ar
     return true;
 }
 
-bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb)
+bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     uintptr_t clocation;
@@ -416,7 +416,7 @@ bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned 
     return true;
 }
 
-bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb)
+bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     GLuint index;
@@ -451,7 +451,7 @@ bool NGL_vertexAttribxf(NativeCanvas3DContext *glctx, JSContext *cx, unsigned in
     return true;
 }
 
-bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, jsval *vp, int nb)
+bool NGL_vertexAttribxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned int argc, JS::Value *vp, int nb)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     GLuint index;
@@ -2867,7 +2867,7 @@ NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 }
 
 #if 0
-static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedValuel proto(cx);
     JS::RootedObject webGLContext(cx);
@@ -2896,7 +2896,7 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, jsval *v
 #endif
 
 static JSBool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
-    unsigned argc, jsval *vp)
+    unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return false;
@@ -2927,3 +2927,4 @@ NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLTexture);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLUniformLocation);
 NATIVE_GL_OBJECT_EXPOSE_NOT_INST(WebGLShaderPrecisionFormat);
 NATIVE_OBJECT_EXPOSE_NOT_INST(WebGLActiveInfo);
+
