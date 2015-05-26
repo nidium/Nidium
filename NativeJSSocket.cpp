@@ -543,7 +543,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
         return true;
     }
 
-    if (args.length() > 0) {
+    if (args.length() > 0 && args[0].isString()) {
         JSString *farg = args[0].toString();
 
         JSAutoByteString cproto(cx, farg);
@@ -606,7 +606,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (args.length() > 0) {
+    if (args.length() > 0 && args[0].isString()) {
         JSString *farg = args[0].toString();
 
         JSAutoByteString cproto(cx, farg);
@@ -617,7 +617,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
             protocol = APE_SOCKET_PT_SSL;
         }
 
-        localport = (args.length() > 1 ? (uint16_t)args[1].toInt32() : 0);
+        localport = (args.length() > 1 && args[1].isNumber() ? (uint16_t)args[1].toInt32() : 0);
     }
 
     if ((socket = APE_socket_new(protocol, 0, net)) == NULL) {
@@ -826,8 +826,13 @@ static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
+    if (!args[0].isString()) {
+        JS_ReportError(cx, "sendto() IP must be a string");
+        return false;
+    }
+
     JSString *ip = args[0].toString();
-    unsigned int port = args[1].toInt32();
+    unsigned int port = args[1].isNumber() ? args[1].toInt32() : 0;
 
     JSAutoByteString cip(cx, ip);
 
