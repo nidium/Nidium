@@ -70,7 +70,7 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
     JS::RootedObject jsargv(cx, JS_NewArrayObject(cx, argc, NULL));
 
     for (int i = 0; i < argc; i++) {
-        jsval jelem = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, argv[i]));
+        JS::Value jelem = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, argv[i]));
 
         JS_SetElement(cx, jsargv, i, &jelem);
     }

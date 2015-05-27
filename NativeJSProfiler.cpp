@@ -366,27 +366,27 @@ JSObject *NativeProfileChildEntry::toJSObject(JSContext *cx)
 {
     JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
 
-    JS::Value script(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, m_Entry->getScript())));
-    JS::Value fun(STRING_TO_JSVAL(JS_NewStringCopyZ(cx, m_Entry->getFunction())));
-    JS::Value line(INT_TO_JSVAL(m_Entry->getLine()));
-    JS::Value callLine(INT_TO_JSVAL(m_Line));
+    JS::RootedValue script(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, m_Entry->getScript())));
+    JS::RootedValue fun(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, m_Entry->getFunction())));
+    JS::RootedValue line(cx, INT_TO_JSVAL(m_Entry->getLine()));
+    JS::RootedValue callLine(cx, INT_TO_JSVAL(m_Line));
 
-    JS::Value total(INT_TO_JSVAL(m_TotalCall));
-    JS::Value time(DOUBLE_TO_JSVAL((double)m_TotalTime/1000000.));
-    //JS::Value mean(DOUBLE_TO_JSVAL((double)m_MeanTime/1000000.));
-    //JS::Value max(DOUBLE_TO_JSVAL((double)m_MaxTime/1000000.));
-    //JS::Value min(DOUBLE_TO_JSVAL((double)m_MinTime/1000000.));
-    JS::Value tsc(INT_TO_JSVAL(m_TotalTSC));
+    JS::RootedValue total(cx, INT_TO_JSVAL(m_TotalCall));
+    JS::RootedValue time(cx, DOUBLE_TO_JSVAL((double)m_TotalTime/1000000.));
+    //JS::RootedValue mean(DOUBLE_TO_JSVAL((double)m_MeanTime/1000000.));
+    //JS::RootedValue max(DOUBLE_TO_JSVAL((double)m_MaxTime/1000000.));
+    //JS::RootedValue min(DOUBLE_TO_JSVAL((double)m_MinTime/1000000.));
+    JS::RootedValue tsc(cx, INT_TO_JSVAL(m_TotalTSC));
 
-    JS_SetProperty(cx, obj, "script", &script);
-    JS_SetProperty(cx, obj, "function", &fun);
-    JS_SetProperty(cx, obj, "line", &line);
+    JS_SetProperty(cx, obj, "script", script.address());
+    JS_SetProperty(cx, obj, "function", fun.address());
+    JS_SetProperty(cx, obj, "line", line.address());
 
-    JS_SetProperty(cx, obj, "call", &total);
-    JS_SetProperty(cx, obj, "callLine", &callLine);
+    JS_SetProperty(cx, obj, "call", total.address());
+    JS_SetProperty(cx, obj, "callLine", callLine.address());
 
-    JS_SetProperty(cx, obj, "tsc", &tsc);
-    JS_SetProperty(cx, obj, "time", &time);
+    JS_SetProperty(cx, obj, "tsc", tsc.address());
+    JS_SetProperty(cx, obj, "time", time.address());
     //JS_SetProperty(cx, obj, "mean", &mean);
     //JS_SetProperty(cx, obj, "max", &max);
     //JS_SetProperty(cx, obj, "min", &min);
@@ -422,9 +422,9 @@ static JSBool native_profile_tocachegrind(JSContext *cx, unsigned argc, jsval *v
 {
 	JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
 
-    JSString *tmp;
+    JS::RootedString tmp(cx);
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &tmp)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", tmp.address())) {
         return false;
     }
 

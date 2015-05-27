@@ -164,6 +164,8 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 
     if (JS_GetProperty(m_Cx, m_JSObject, "onrequest", oncallback.address()) &&
         JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
+
+        /* XXX RootedArray */
         JS::Value arg[2];
         arg[0].setObjectOrNull(objrequest);
         arg[1].setObjectOrNull(static_cast<NativeJSHTTPResponse*>(client->getResponse())->getJSObject());

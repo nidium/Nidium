@@ -249,7 +249,8 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             JSObject *jclient = this->createClient(
                 (NativeWebSocketClientConnection *)msg.args[1].toPtr());
 
-            jsval arg[1] = { OBJECT_TO_JSVAL(jclient) };
+            JS::Value arg[1] = { OBJECT_TO_JSVAL(jclient) };
+            JS::AutoArrayRooter rooter(cx, 1, arg);
 
             JSOBJ_CALLFUNCNAME(this->getJSObject(), "onopen", 1, arg);
 
@@ -260,7 +261,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             NativeWebSocketClientConnection *client = (NativeWebSocketClientConnection *)msg.args[1].toPtr();
             JSObject *jclient = (JSObject *)client->getData();
 
-            jsval arg[1] = { OBJECT_TO_JSVAL(jclient) };
+            JS::Value arg[1] = { OBJECT_TO_JSVAL(jclient) };
             JS::AutoArrayRooter rooter(cx, 1, arg);
 
             JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, arg);
