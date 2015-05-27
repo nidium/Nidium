@@ -149,7 +149,7 @@ class NativeJS
         static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,
                                                    uint32_t tag, uint32_t data, void *closure);
 
-        static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+        static bool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                                  JSObject *obj, void *closure);
 
         void logf(const char *format, ...);

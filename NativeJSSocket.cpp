@@ -34,19 +34,19 @@ enum {
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
-static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_socket_close(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp);
 
-static JSBool native_socket_client_write(JSContext *cx,
+static bool native_socket_client_write(JSContext *cx,
     unsigned argc, jsval *vp);
-static JSBool native_socket_client_sendFile(JSContext *cx,
+static bool native_socket_client_sendFile(JSContext *cx,
     unsigned argc, jsval *vp);
-static JSBool native_socket_client_close(JSContext *cx,
+static bool native_socket_client_close(JSContext *cx,
     unsigned argc, jsval *vp);
 
 static JSClass Socket_class = {
@@ -94,8 +94,8 @@ static JSPropertySpec Socket_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSBool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+static bool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, bool strict, JSMutableHandleValue vp)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get());
     
@@ -519,7 +519,7 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
     NativeJSObj(cx)->unrootObject(nsocket->getJSObject());
 }
 
-static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::RootedString host(cx);
 
@@ -558,7 +558,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
@@ -620,7 +620,7 @@ static JSBool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
 {
     ape_socket *socket;
     ape_socket_proto protocol = APE_SOCKET_PT_TCP;
@@ -682,7 +682,7 @@ static JSBool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_socket_client_sendFile(JSContext *cx,
+static bool native_socket_client_sendFile(JSContext *cx,
     unsigned argc, jsval *vp)
 {
 	JS::RootedString file(cx);
@@ -707,7 +707,7 @@ static JSBool native_socket_client_sendFile(JSContext *cx,
     return true;
 }
 
-static JSBool native_socket_client_write(JSContext *cx,
+static bool native_socket_client_write(JSContext *cx,
     unsigned argc, jsval *vp)
 {
 
@@ -756,7 +756,7 @@ static JSBool native_socket_client_write(JSContext *cx,
     return true;
 }
 
-static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     NATIVE_CHECK_ARGS("write", 1);
 
@@ -802,7 +802,7 @@ static JSBool native_socket_write(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_socket_client_close(JSContext *cx,
+static bool native_socket_client_close(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &socket_client_class);
@@ -818,7 +818,7 @@ static JSBool native_socket_client_close(JSContext *cx,
     return true;
 }
 
-static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeJSSocket, &Socket_class);
 
@@ -833,7 +833,7 @@ static JSBool native_socket_close(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *caller = &args.thisv().toObject();

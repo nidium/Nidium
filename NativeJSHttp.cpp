@@ -28,7 +28,7 @@
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
-static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp);
 static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Http_class = {
@@ -58,7 +58,7 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::RootedString url(cx);
     NativeHTTP *nhttp;
@@ -96,7 +96,7 @@ static JSBool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
 }
 
 
-static JSBool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeHTTP *nhttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);

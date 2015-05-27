@@ -6,19 +6,19 @@
 
 #include <jsdbgapi.h>
 
-static JSBool native_console_log(JSContext *cx, unsigned argc,
+static bool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_console_write(JSContext *cx, unsigned argc,
+static bool native_console_write(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_console_hide(JSContext *cx, unsigned argc,
+static bool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_console_show(JSContext *cx, unsigned argc,
+static bool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_console_clear(JSContext *cx, unsigned argc,
+static bool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
     jsval *vp);
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
     jsval *vp);
 
 static JSClass console_class = {
@@ -42,7 +42,7 @@ static JSFunctionSpec console_funcs[] = {
     JS_FS_END
 };
 
-static JSBool native_console_hide(JSContext *cx, unsigned argc,
+static bool native_console_hide(JSContext *cx, unsigned argc,
     jsval *vp)
 {
 
@@ -54,7 +54,7 @@ static JSBool native_console_hide(JSContext *cx, unsigned argc,
     return true;
 }
 
-static JSBool native_console_show(JSContext *cx, unsigned argc,
+static bool native_console_show(JSContext *cx, unsigned argc,
     jsval *vp)
 {
 #if 0
@@ -63,7 +63,7 @@ static JSBool native_console_show(JSContext *cx, unsigned argc,
     return true;
 }
 
-static JSBool native_console_clear(JSContext *cx, unsigned argc,
+static bool native_console_clear(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
@@ -77,7 +77,7 @@ static JSBool native_console_clear(JSContext *cx, unsigned argc,
     return true;
 }
 
-static JSBool native_console_log(JSContext *cx, unsigned argc,
+static bool native_console_log(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -124,7 +124,7 @@ static JSBool native_console_log(JSContext *cx, unsigned argc,
     return true;
 }
 
-static JSBool native_console_write(JSContext *cx, unsigned argc,
+static bool native_console_write(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     JSString *str;
@@ -150,7 +150,7 @@ static JSBool native_console_write(JSContext *cx, unsigned argc,
     return true;
 }
 
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     /*
@@ -167,7 +167,7 @@ static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
 
     return true;
 }
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
     jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);

@@ -65,8 +65,8 @@ static JSClass native_profile_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSBool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_profile_tocachegrind(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_profile_tocachegrind(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSFunctionSpec native_profile_funcs[] = {
     JS_FN("toJSObject", native_profile_tojs, 0, 0),
@@ -108,7 +108,7 @@ void NativeProfiler::stop()
 }
 
 void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isConstructing,
-        JSBool before, JSBool *ok, void *closure) 
+        bool before, bool *ok, void *closure) 
 {
     
     NativeProfileEntry *entry;
@@ -408,7 +408,7 @@ std::string NativeProfileChildEntry::toCacheGrind()
 /* }}} */
 
 /* {{{ NativeProfile JS function implementation */
-static JSBool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp)
 {
 	JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
     JS::RootedObject obj(cx, CppObj->toJSObject());
@@ -418,7 +418,7 @@ static JSBool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_profile_tocachegrind(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_profile_tocachegrind(JSContext *cx, unsigned argc, jsval *vp)
 {
 	JSNATIVE_PROLOGUE_CLASS(NativeProfiler, &native_profile_class);
 

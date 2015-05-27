@@ -28,8 +28,8 @@
 
 static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj);
 static void WebSocket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass WebSocketServer_class = {
     "WebSocketServer", JSCLASS_HAS_PRIVATE,
@@ -69,7 +69,7 @@ static void WebSocketServer_Finalize(JSFreeOp *fop, JSObject *obj)
     }    
 }
 
-static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeWebSocketClientConnection,
         &WebSocketServer_client_class);
@@ -108,7 +108,7 @@ static JSBool native_websocketclient_send(JSContext *cx, unsigned argc, jsval *v
     return true;
 }
 
-static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -116,7 +116,7 @@ static JSBool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *
     return true;
 }
 
-static JSBool native_WebSocketServer_constructor(JSContext *cx,
+static bool native_WebSocketServer_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);

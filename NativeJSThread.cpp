@@ -27,9 +27,9 @@
 
 extern void reportError(JSContext *cx, const char *message,
 	JSErrorReport *report);
-static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_post_message(JSContext *cx, unsigned argc, jsval *vp);
 static void Thread_Finalize(JSFreeOp *fop, JSObject *obj);
-static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_thread_start(JSContext *cx, unsigned argc, jsval *vp);
 
 #define NJS (NativeJS::getNativeClass(cx))
 
@@ -77,7 +77,7 @@ static void Thread_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static JSBool JSThreadCallback(JSContext *cx)
+static bool JSThreadCallback(JSContext *cx)
 {
     NativeJSThread *nthread;
 
@@ -207,7 +207,7 @@ static void *native_thread(void *arg)
 }
 
 
-static JSBool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_thread_start(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativeJSThread *nthread;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -300,7 +300,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 #undef EVENT_PROP
 }
 
-static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Thread_class, vp));
@@ -353,7 +353,7 @@ void NativeJSThread::onComplete(jsval *vp)
     njs->unrootObject(jsObject);
 }
 
-static JSBool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_post_message(JSContext *cx, unsigned argc, jsval *vp)
 {
     uint64_t *datap;
     size_t nbytes;

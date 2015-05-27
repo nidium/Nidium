@@ -22,11 +22,11 @@
 
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static JSBool native_httpresponse_write(JSContext *cx,
+static bool native_httpresponse_write(JSContext *cx,
     unsigned argc, jsval *vp);
-static JSBool native_httpresponse_end(JSContext *cx,
+static bool native_httpresponse_end(JSContext *cx,
     unsigned argc, jsval *vp);
-static JSBool native_httpresponse_writeHead(JSContext *cx,
+static bool native_httpresponse_writeHead(JSContext *cx,
     unsigned argc, jsval *vp);
 
 static JSClass HTTPListener_class = {
@@ -176,12 +176,12 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     return false;
 }
 
-static JSBool native_HTTPListener_constructor(JSContext *cx,
+static bool native_HTTPListener_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     uint16_t port;
     JS::RootedString ip_bind(cx);
-    JSBool reuseport = false;
+    bool reuseport = false;
     NativeJSHTTPListener *listener;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -219,7 +219,7 @@ static JSBool native_HTTPListener_constructor(JSContext *cx,
 }
 
 #if 0
-static JSBool native_HTTPRequest_class_constructor(JSContext *cx,
+static bool native_HTTPRequest_class_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
@@ -227,7 +227,7 @@ static JSBool native_HTTPRequest_class_constructor(JSContext *cx,
 }
 #endif
 
-static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -263,7 +263,7 @@ static JSBool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -297,7 +297,7 @@ static JSBool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *vp)
 {
     uint16_t statuscode;
 

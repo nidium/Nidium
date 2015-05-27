@@ -153,7 +153,7 @@ public:
     NativeJSEvent *m_Queue;
     char *m_Name;
 private:
-    static JSBool native_jsevents_stopPropagation(JSContext *cx,
+    static bool native_jsevents_stopPropagation(JSContext *cx,
         unsigned argc, jsval *vp)
     {
         JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) );
@@ -170,7 +170,7 @@ private:
 
         return true;
     }
-    static JSBool native_jsevents_stub(JSContext *cx,
+    static bool native_jsevents_stub(JSContext *cx,
         unsigned argc, jsval *vp)
     {
 
@@ -308,7 +308,7 @@ class NativeJSExposer
 
     static JSClass *jsclass;
 private:
-    static JSBool native_jsevent_fireEvent(JSContext *cx,
+    static bool native_jsevent_fireEvent(JSContext *cx,
         unsigned argc, jsval *vp)
     {
         JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
@@ -329,7 +329,7 @@ private:
 
         return true;
     }
-    static JSBool native_jsevent_addEventListener(JSContext *cx,
+    static bool native_jsevent_addEventListener(JSContext *cx,
         unsigned argc, jsval *vp)
     {
         JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);

@@ -103,16 +103,16 @@ static JSClass global_class = {
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
+static bool native_global_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
 /******** Natives ********/
-static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
-//static JSBool native_readData(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_load(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
+//static bool native_readData(JSContext *cx, unsigned argc, jsval *vp);
 /*************************/
 //static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
@@ -145,7 +145,7 @@ static JSPropertySpec glob_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static JSBool native_global_prop_get(JSContext *cx, JSHandleObject obj,
+static bool native_global_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
     switch(JSID_TO_INT(id)) {
@@ -336,7 +336,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
     return JS_NewObject(cx, NULL, NULL, NULL);
 }
 
-JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                          JSObject *obj, void *closure)
 {
     JS::Value vobj = OBJECT_TO_JSVAL(obj);
@@ -381,7 +381,7 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
     return true;
 }
 
-static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 {
     NativePath cur(NativePath::currentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -398,7 +398,7 @@ static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::RootedString script(cx);
     char *content;
@@ -1042,7 +1042,7 @@ static int native_timer_deleted(void *arg)
     return 1;
 }
 
-static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
     int ms, i;
@@ -1098,7 +1098,7 @@ static JSBool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
 {
     struct _native_sm_timer *params;
     int ms, i;
@@ -1154,7 +1154,7 @@ static JSBool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     return true; 
 }
 
-static JSBool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 {
     double identifier;
 

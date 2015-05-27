@@ -32,7 +32,7 @@ class NativeProfiler
         static NativeProfiler *m_Instance;
 
         static void *trace(JSContext *cx, JSAbstractFramePtr frame, bool isConstructing,
-                      JSBool before, JSBool *ok, void *closure);
+                      bool before, bool *ok, void *closure);
         NativeProfileEntry *add(const char *script, const char *fun, int line, NativeProfileEntry *parent, unsigned parentLine);
 
         JSContext *m_Cx;

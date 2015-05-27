@@ -29,14 +29,14 @@ enum {
     STREAM_PROP_FILESIZE
 };
 
-static JSBool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
+static bool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
-static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp);
-static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp);
 
 static JSClass Stream_class = {
     "Stream", JSCLASS_HAS_PRIVATE,
@@ -72,7 +72,7 @@ static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static JSBool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
+static bool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
 
@@ -87,7 +87,7 @@ static JSBool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
-static JSBool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -101,7 +101,7 @@ static JSBool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -120,7 +120,7 @@ static JSBool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -144,7 +144,7 @@ static JSBool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -188,7 +188,7 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
     return true;
 }
 
-static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::RootedString url(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
