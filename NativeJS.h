@@ -27,6 +27,7 @@
 #include "NativeSharedMessages.h"
 #include <jspubtd.h>
 #include <jsapi.h>
+#include <js/StructuredClone.h>
 
 #include <NativeMessages.h>
 

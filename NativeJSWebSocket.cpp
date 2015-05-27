@@ -33,7 +33,7 @@ static bool native_websocketclient_close(JSContext *cx, unsigned argc, jsval *vp
 
 static JSClass WebSocketServer_class = {
     "WebSocketServer", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebSocketServer_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
@@ -49,7 +49,7 @@ static JSFunctionSpec wsclient_funcs[] = {
 
 static JSClass WebSocketServer_client_class = {
     "WebSocketServerClient", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, WebSocket_Finalize_client,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

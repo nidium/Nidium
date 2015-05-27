@@ -40,7 +40,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSClass Stream_class = {
     "Stream", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Stream_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

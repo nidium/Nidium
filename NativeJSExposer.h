@@ -56,9 +56,9 @@
     }
 
 
-static JSClass NativeJSEvent_class = {
+static const JSClass NativeJSEvent_class = {
     "NativeJSEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
@@ -66,21 +66,20 @@ static JSClass NativeJSEvent_class = {
 
 struct NativeJSEvent
 {
-    NativeJSEvent(JSContext *cx, jsval func) {
+    NativeJSEvent(JSContext *cx, jsval func) : m_Function(cx) {
         once = false;
         next = prev = NULL;
 
         m_Cx = cx;
         m_Function = func;
 
-        JS_AddValueRoot(m_Cx, &m_Function);
     }
     ~NativeJSEvent() {
-        JS_RemoveValueRoot(m_Cx, &m_Function);
+
     }
 
     JSContext *m_Cx;
-    jsval m_Function;
+    JS::PersistentRootedValue m_Function;
 
     bool once;
 
@@ -339,7 +338,7 @@ private:
         JS::RootedString name(cx);
         JS::RootedValue cb(cx);
 
-        if (!JS_ConvertArguments(cx, 1, args.array(), "S", name.address())) {
+        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
             return false;
         }
 
@@ -490,7 +489,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 
 #define JSOBJ_SET_PROP_FLAGS(where, name, val, flags) JS_DefineProperty(m_Cx, where, \
-    (const char *)name, val, NULL, NULL, flags)
+    (const char *)name, val, flags)
 
 #define JSOBJ_SET_PROP(where, name, val) JSOBJ_SET_PROP_FLAGS(where, name, val, \
         JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
@@ -507,7 +506,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
         } \
     }
 #define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(m_Cx, val)))
-#define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(val))
+#define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, val)
 #define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, INT_TO_JSVAL(val))
 
 
@@ -532,20 +531,24 @@ public:
         m_Cx = cx;
     };
 
-    void set (const char *name, JS::Value jval) {
-        JSOBJ_SET_PROP(m_Obj, name, jval);
+    void set (const char *name, JS::HandleValue jval) {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP(obj, name, jval);
     }
 
-    void set(const char *name, JSString *value) {
-        JSOBJ_SET_PROP_STR(m_Obj, name, value);
+    void set(const char *name, JS::HandleString value) {
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP_STR(obj, name, value);
     }
 
     void set(const char *name, const char *value) {
-        JSOBJ_SET_PROP_CSTR(m_Obj, name, value);
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP_CSTR(obj, name, value);
     }
 
     void set(const char *name, uint32_t value) {
-        JSOBJ_SET_PROP_INT(m_Obj, name, value);
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP_INT(obj, name, value);
     }
 
     void set(const char *name, int32_t value) {
@@ -557,6 +560,7 @@ public:
     }
 
     void set(const char *name, bool value) {
+        JS_DefineProperty(m_Cx, m_Obj, "foo", 23, 0);
         JSOBJ_SET_PROP(m_Obj, name, BOOLEAN_TO_JSVAL(value));
     }
 
@@ -571,7 +575,7 @@ public:
     ~NativeJSObjectBuilder(){};
 
 private:
-    JSObject *m_Obj;
+    JS::Heap<JSObject *>m_Obj;
     JSContext *m_Cx;
 };
 

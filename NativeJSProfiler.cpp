@@ -60,7 +60,7 @@ static void native_profile_finalizer(JSFreeOp *fop, JSObject *obj);
 
 static JSClass native_profile_class = {
     "NativeProfile", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, native_profile_finalizer,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

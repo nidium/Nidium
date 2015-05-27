@@ -51,7 +51,7 @@ static bool native_socket_client_close(JSContext *cx,
 
 static JSClass Socket_class = {
     "Socket", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
@@ -61,7 +61,7 @@ JSClass *NativeJSExposer<NativeJSSocket>::jsclass = &Socket_class;
 
 static JSClass socket_client_class = {
     "SocketClient", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Socket_Finalize_client,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

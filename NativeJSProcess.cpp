@@ -25,7 +25,7 @@ static void Process_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Process_class = {
     "NativeProcess", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Process_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
@@ -67,12 +67,11 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
 
     JS_DefineFunctions(cx, ProcessObj, Process_funcs);
 
-    JS::RootedObject jsargv(cx, JS_NewArrayObject(cx, argc, NULL));
+    JS::RootedObject jsargv(cx, JS_NewArrayObject(cx, argc));
 
     for (int i = 0; i < argc; i++) {
-        JS::Value jelem = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, argv[i]));
-
-        JS_SetElement(cx, jsargv, i, &jelem);
+        JS::RootedString jelem(cx, JS_NewStringCopyZ(cx, argv[i]));
+        JS_SetElement(cx, jsargv, i, jelem);
     }
 
     JS::Value jsargv_v = OBJECT_TO_JSVAL(jsargv);

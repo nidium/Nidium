@@ -49,14 +49,14 @@ static void Exports_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass native_modules_exports_class = {
     "Exports", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Exports_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass native_modules_class = {
     "Module", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

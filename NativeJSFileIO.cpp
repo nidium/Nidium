@@ -114,7 +114,7 @@ static bool native_file_prop_set(JSContext *cx, JSHandleObject obj,
 
 JSClass File_class = {
     "File", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, File_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

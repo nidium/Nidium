@@ -33,7 +33,7 @@ static void Http_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Http_class = {
     "Http", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Http_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };

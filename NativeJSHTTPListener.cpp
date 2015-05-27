@@ -31,7 +31,7 @@ static bool native_httpresponse_writeHead(JSContext *cx,
 
 static JSClass HTTPListener_class = {
     "HTTPListener", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, HTTPListener_Finalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
@@ -41,7 +41,7 @@ JSClass *NativeJSExposer<NativeJSHTTPListener>::jsclass = &HTTPListener_class;
 
 static JSClass HTTPRequest_class = {
     "HTTPRequest", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
 };
 
