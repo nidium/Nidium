@@ -62,7 +62,7 @@ static JSClass native_profile_class = {
     "NativeProfile", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, native_profile_finalizer,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static bool native_profile_tojs(JSContext *cx, unsigned argc, jsval *vp);
