@@ -344,7 +344,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onmessage", onmessage.address()) &&
         JS_TypeOfValue(cx, onmessage) == JSTYPE_FUNCTION) {
 
-        JSObject *remote = JS_NewObject(cx, NULL, NULL, NULL);
+        JS::RootedObject remote(cx, JS_NewObject(cx, NULL, NULL, NULL));
 
         /*
             TODO: inet_ntoa is not reentrant
@@ -533,7 +533,7 @@ static JSBool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &Socket_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Socket_class, vp));
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "Su",
         host.address(), &port)) {

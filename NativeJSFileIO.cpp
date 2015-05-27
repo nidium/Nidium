@@ -780,14 +780,15 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
 
                 for (int i = 0; i < entries->size; i++) {
                     JSObject *entry = JS_NewObject(cx, NULL, NULL, NULL);
+
+                    jsval val = OBJECT_TO_JSVAL(entry);
+                    JS_SetElement(cx, arr, i, &val);
+
                     JSOBJ_SET_PROP_STR(entry, "name",
                         JS_NewStringCopyZ(cx, entries->lst[i].d_name));
 
                     JSOBJ_SET_PROP_CSTR(entry, "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
-
-                    jsval val = OBJECT_TO_JSVAL(entry);
-                    JS_SetElement(cx, arr, i, &val);
 
                 }
 

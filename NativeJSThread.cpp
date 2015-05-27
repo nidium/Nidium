@@ -303,7 +303,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Thread_class, vp));
 
     JS::RootedScript parent(cx);
 

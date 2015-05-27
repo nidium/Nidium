@@ -232,6 +232,7 @@ bool NativeJSModule::initJS()
 
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
+    /* XXX RootedObject (Heap?) */
     JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
     JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, NULL, NULL));
 

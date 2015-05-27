@@ -347,8 +347,8 @@ JSBool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *
         /* Serialize function into a string */
         case JSTYPE_FUNCTION:
         {
-            JSString *func = JS_DecompileFunction(cx,
-                JS_ValueToFunction(cx, vobj), 0 | JS_DONT_PRETTY_PRINT);
+            JS::RootedString func(cx, JS_DecompileFunction(cx,
+                JS_ValueToFunction(cx, vobj), 0 | JS_DONT_PRETTY_PRINT));
             JSAutoByteString cfunc(cx, func);
             size_t flen = cfunc.length();
 
@@ -400,12 +400,12 @@ static JSBool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
 
 static JSBool native_load(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *script = NULL;
+    JS::RootedString script(cx);
     char *content;
     size_t len;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &script)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", script.address())) {
         return false;
     }
     
@@ -519,7 +519,6 @@ NativeJS::NativeJS(ape_global *net) :
     m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
     JSRuntime *rt;
-    JSObject *gbl;
     this->privateslot = NULL;
     this->relPath = NULL;
 
@@ -566,7 +565,7 @@ NativeJS::NativeJS(ape_global *net) :
         printf("Failed to init JS context\n");
         return;     
     }
-
+    JS::RootedObject gbl(cx);
     JS_BeginRequest(cx);
     JS_SetVersion(cx, JSVERSION_LATEST);
     #ifdef NATIVE_DEBUG
@@ -918,7 +917,7 @@ int NativeJS::LoadBytecode(void *data, int size, const char *filename)
     JSObject *gbl = JS_GetGlobalObject(cx);
     js::RootedObject rgbl(cx, gbl);
 
-    JSScript *script = JS_DecodeScript(cx, data, size, NULL, NULL);
+    JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL, NULL));
 
     if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
         if (JS_IsExceptionPending(cx)) {

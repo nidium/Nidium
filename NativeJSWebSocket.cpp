@@ -129,7 +129,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
         return false;
     }
 
-    JSObject *ret = JS_NewObjectForConstructor(cx, &WebSocketServer_class, vp);
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &WebSocketServer_class, vp));
 
     if (!JS_ConvertArguments(cx, argc, args.array(), "S/S",
         localhost.address(), protocol.address())) {
@@ -222,6 +222,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
             
+            /* XXX RootedObject ??? */
             JSObject *jclient = (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData();
 
             if (!jclient) {
@@ -232,8 +233,8 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
                 JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 JS::RootedValue jdata(cx);
+                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
 
-                JSObject *event = JS_NewObject(m_Cx, NULL, NULL, NULL);           
                 NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
                 SET_PROP(event, "data", jdata);
 
