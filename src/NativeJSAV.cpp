@@ -728,15 +728,16 @@ bool NativeJSAudio::run(char *str)
 
     JS::RootedValue rval(this->tcx);
     JS::RootedFunction fun(this->tcx);
+    JS::RootedObject globalObj(this->tcx, JS_GetGlobalObject(this->tcx));
 
-    fun = JS_CompileFunction(this->tcx, JS_GetGlobalObject(this->tcx), "Audio_run", 0, NULL, str, strlen(str), "(Audio Thread)", 0);
+    fun = JS_CompileFunction(this->tcx, globalObj, "Audio_run", 0, NULL, str, strlen(str), "(Audio Thread)", 0);
 
     if (!fun) {
         JS_ReportError(this->tcx, "Failed to execute script on audio thread\n");
         return false;
     }
 
-    JS_CallFunction(this->tcx, JS_GetGlobalObject(this->tcx), fun, 0, NULL, &rval.get());
+    JS_CallFunction(this->tcx, globalObj, fun, 0, NULL, &rval.get());
 
     return true;
 }
@@ -1799,7 +1800,7 @@ static JSBool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc,
 
         params[0] = STRING_TO_JSVAL(name);
         params[1] = val;
-        params[2] = OBJECT_TO_JSVAL(JS_GetGlobalObject(cx));
+        params[2] = OBJECT_TO_JSVAL(JS_GetGlobalObject(cx /*, &args.callee()*/));
 
         fn->call(cx, jnode->nodeObj, 3, params, &rval.get());
     }

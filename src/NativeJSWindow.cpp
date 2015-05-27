@@ -1447,14 +1447,15 @@ JSBool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     int height, JSObject *doc)
 {
+    JS::RootedObject globalObj(cx, JS_GetGlobalObject(cx));
 #if 0
-    JS::RootedObject windowObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject windowObj(cx, JS_DefineObject(cx, globalObj,
         NativeJSwindow::getJSObjectName(), &window_class , NULL,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 #else
-    JS::RootedObject windowObj(cx, JS_GetGlobalObject(cx));
+    JS::RootedObject windowObj(cx, globalObj);
 #endif
-    NativeJSwindow *jwin = new NativeJSwindow(JS_GetGlobalObject(cx), cx);
+    NativeJSwindow *jwin = new NativeJSwindow(globalObj, cx);
 
     //JS_SetPrivate(windowObj, jwin);
 
@@ -1465,8 +1466,8 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     /*NativeJS::getNativeClass(cx)->jsobjects.set(
         NativeJSwindow::getJSObjectName(), windowObj);*/
 
-    JS_DefineFunctions(cx, JS_GetGlobalObject(cx), window_funcs);
-    JS_DefineProperties(cx, JS_GetGlobalObject(cx), window_props);
+    JS_DefineFunctions(cx, globalObj, window_funcs);
+    JS_DefineProperties(cx, globalObj, window_props);
 
     JS::RootedValue val(cx);
 
@@ -1504,12 +1505,10 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     return jwin;
 }
 
-
 NativeJSwindow* NativeJSwindow::getNativeClass(JSContext *cx)
 {
     return NativeContext::getNativeClass(cx)->getJSWindow();
 }
-
 
 NativeJSwindow* NativeJSwindow::getNativeClass(NativeJS *njs)
 {

@@ -349,7 +349,7 @@ NativeJSImage::~NativeJSImage()
 
 void NativeJSImage::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Image_class,
+	JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Image_class,
         native_Image_constructor,
         0, NULL, Image_funcs, NULL, NULL);
 }
