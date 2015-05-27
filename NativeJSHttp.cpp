@@ -271,7 +271,7 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
         return;
     }
 
-    JS::RootedObject event(cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
+    JS::RootedObject event(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     switch(err) {
         case NativeHTTP::ERROR_RESPONSE:
@@ -324,7 +324,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
         return;
     }
 
-    JS::RootedObject event(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject event(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     SET_PROP(event, "total", DOUBLE_TO_JSVAL(h->contentlength));
     SET_PROP(event, "read", DOUBLE_TO_JSVAL(offset + len));
@@ -371,8 +371,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
     JSAutoRequest ar(m_Cx);
 
-    JS::RootedObject event(cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
-    JS::RootedObject headers(cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
+    JS::RootedObject event(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject headers(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedValue jdata(cx);
     JS::RootedValue rval(cx);
     JS::RootedValue jevent(cx);

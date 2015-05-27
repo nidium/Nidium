@@ -214,7 +214,7 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     m_Cx = nsocket->getJSContext();
 
     /* XXX RootedObject (Heap ?) */
-    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &socket_client_class, NULL, NULL));
+    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &socket_client_class, JS::NullPtr(), JS::NullPtr()));
 
     NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
 
@@ -344,7 +344,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onmessage", onmessage.address()) &&
         JS_TypeOfValue(cx, onmessage) == JSTYPE_FUNCTION) {
 
-        JS::RootedObject remote(cx, JS_NewObject(cx, NULL, NULL, NULL));
+        JS::RootedObject remote(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
         /*
             TODO: inet_ntoa is not reentrant

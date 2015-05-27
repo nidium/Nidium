@@ -286,7 +286,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         !JSVAL_IS_PRIMITIVE(jscbk) && 
         JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(jscbk))) {
 
-        event = JS_NewObject(m_Cx, &messageEvent_class, NULL, NULL);
+        event = JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr());
 
         EVENT_PROP("data", inval);
 

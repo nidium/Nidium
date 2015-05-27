@@ -193,7 +193,7 @@ NativeJSWebSocketServer::~NativeJSWebSocketServer()
 JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection *client)
 {
 
-    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &WebSocketServer_client_class, NULL, NULL));
+    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &WebSocketServer_client_class, JS::NullPtr(), JS::NullPtr()));
 
     JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
 
@@ -233,7 +233,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
                 JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 JS::RootedValue jdata(cx);
-                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
+                JS::RootedObject event(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
                 NativeJSUtils::strToJsval(m_Cx, data, len, &jdata, !binary ? "utf8" : NULL);
                 SET_PROP(event, "data", jdata);

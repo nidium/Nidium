@@ -59,7 +59,7 @@ public:
 
                 cx = m_Cx;
 
-                JSObject *param = JS_NewObject(cx, NULL, NULL, NULL);
+                JSObject *param = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 
                 JSOBJ_SET_PROP_STR(param, "name",
                     JS_NewStringCopyZ(cx, cur->d_name));

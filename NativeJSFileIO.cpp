@@ -779,7 +779,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size, NULL));
 
                 for (int i = 0; i < entries->size; i++) {
-                    JSObject *entry = JS_NewObject(cx, NULL, NULL, NULL);
+                    JSObject *entry = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 
                     jsval val = OBJECT_TO_JSVAL(entry);
                     JS_SetElement(cx, arr, i, &val);
@@ -835,7 +835,7 @@ void NativeJSFileIO::registerObject(JSContext *cx)
 
 JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
 {
-    JS::RootedObject ret(cx, JS_NewObject(cx, &File_class, NULL, NULL));
+    JS::RootedObject ret(cx, JS_NewObject(cx, &File_class, JS::NullPtr(), JS::NullPtr()));
     NativeFile *file;
     NativeJSFileIO *NJSFIO;
 

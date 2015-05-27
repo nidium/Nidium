@@ -311,7 +311,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
                 if (JS_IsExceptionPending(cx)) {
                     JS_ClearPendingException(cx);
                 }
-                return JS_NewObject(cx, NULL, NULL, NULL);
+                return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
             }
 
             return JS_GetFunctionObject(cf);
@@ -322,7 +322,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
             if (!JS_ReadBytes(r, &nullbyte, data)) {
                 return NULL;
             }
-            return JS_NewObject(cx, NULL, NULL, NULL);
+            return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
         }
         default:
         {
@@ -333,7 +333,7 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
         }
     }
 
-    return JS_NewObject(cx, NULL, NULL, NULL);
+    return JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 }
 
 bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,

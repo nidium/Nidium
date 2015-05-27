@@ -179,7 +179,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
 
 JSObject *NativeProfiler::getJSObject() 
 {
-    JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, &native_profile_class, NULL, NULL));
+    JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, &native_profile_class, JS::NullPtr(), JS::NullPtr()));
 
     JS_DefineFunctions(m_Cx, obj, native_profile_funcs);
     JS_SetPrivate(obj, static_cast<void*>(this));
@@ -189,7 +189,7 @@ JSObject *NativeProfiler::getJSObject()
 
 JSObject *NativeProfiler::toJSObject() 
 {
-    JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
+    JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     for (NativeHash<NativeProfileEntry *>::iterator entry = m_Entries.begin(), end = m_Entries.end(); entry != end; ++entry) {
         JS::Value val(OBJECT_TO_JSVAL(entry->toJSObject(m_Cx)));
@@ -297,8 +297,8 @@ JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
 {
     uint64_t childCostTSC = 0;
     uint64_t childCostTime = 0;
-    JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
-    JS::RootedObject childsObj(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject obj(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject childsObj(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     JS::Value childs = OBJECT_TO_JSVAL(childsObj);
     JS_SetProperty(cx, obj, "childs", &childs);
@@ -364,7 +364,7 @@ std::string NativeProfileEntry::toCacheGrind()
 /* {{{ NativeProfileChildEntry */
 JSObject *NativeProfileChildEntry::toJSObject(JSContext *cx)
 {
-    JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject obj(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     JS::RootedValue script(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, m_Entry->getScript())));
     JS::RootedValue fun(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, m_Entry->getFunction())));

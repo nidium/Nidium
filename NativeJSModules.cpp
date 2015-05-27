@@ -186,7 +186,7 @@ bool NativeJSModules::init(NativeJSModule *module)
 bool NativeJSModule::initNative()
 {
     /* XXX RootedObject */
-    JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
+    JSObject *exports = JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr());
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
     if (!exports) {
         return false;
@@ -213,7 +213,7 @@ bool NativeJSModule::initNative()
 bool NativeJSModule::initJS()
 {
 #define TRY_OR_DIE(call) if (call == false) { return false; }
-    JSObject *gbl = JS_NewObject(this->cx, &native_modules_exports_class, NULL, NULL);
+    JSObject *gbl = JS_NewObject(this->cx, &native_modules_exports_class, JS::NullPtr(), JS::NullPtr());
     if (!gbl) {
         return false;
     }
@@ -233,8 +233,8 @@ bool NativeJSModule::initJS()
     js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
     /* XXX RootedObject (Heap?) */
-    JSObject *exports = JS_NewObject(this->cx, NULL, NULL, NULL);
-    JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, NULL, NULL));
+    JSObject *exports = JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr());
+    JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, JS::NullPtr(), JS::NullPtr()));
 
     if (!exports || !module) {
         return false;

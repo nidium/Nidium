@@ -102,7 +102,7 @@ public:
             JS_FS_END
         };
 
-        JS::RootedObject ret(cx, JS_NewObject(cx, &NativeJSEvent_class, NULL, NULL));
+        JS::RootedObject ret(cx, JS_NewObject(cx, &NativeJSEvent_class, JS::NullPtr(), JS::NullPtr()));
         JS_DefineFunctions(cx, ret, NativeJSEvents_funcs);
         return ret;
     }
@@ -435,7 +435,7 @@ public:
         m_JSClass = &jsclass;
 
         /* XXX RootedObject (Heap) */
-        m_JSObj = JS_NewObject(m_JSCx, m_JSClass, NULL, NULL);
+        m_JSObj = JS_NewObject(m_JSCx, m_JSClass, JS::NullPtr(), JS::NullPtr());
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
         JS_AddObjectRoot(m_JSCx, &m_JSObj);
     }
@@ -524,7 +524,7 @@ public:
     NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
         m_Cx = cx;
         /* XXX RootedObject (Heap) */
-        m_Obj = JS_NewObject(m_Cx, clasp, NULL, NULL);
+        m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
     };
 
     NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) {

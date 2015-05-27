@@ -111,8 +111,8 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 
     NativeJSHTTPClientConnection *subclient = static_cast<NativeJSHTTPClientConnection *>(client);
 
-    JS::RootedObject objrequest(m_Cx, JS_NewObject(m_Cx, &HTTPRequest_class, NULL, NULL));
-    JS::RootedObject headers(m_Cx, JS_NewObject(m_Cx, NULL, NULL, NULL));
+    JS::RootedObject objrequest(m_Cx, JS_NewObject(m_Cx, &HTTPRequest_class, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject headers(m_Cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     if (client->getHTTPState()->headers.list) {
         APE_A_FOREACH(client->getHTTPState()->headers.list, k, v) {
