@@ -95,7 +95,6 @@ static void *native_thread(void *arg)
     JSRuntime *rt;
     JSContext *tcx;
     jsval rval = JSVAL_VOID;
-    JSObject *gbl;
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
         printf("Failed to init JS runtime\n");
@@ -125,7 +124,7 @@ static void *native_thread(void *arg)
 
     JS_BeginRequest(tcx);
 
-    gbl = JS_NewGlobalObject(tcx, &global_Thread_class, NULL);
+    JS::RootedObject gbl(tcx, JS_NewGlobalObject(tcx, &global_Thread_class, NULL));
 
     JS_SetVersion(tcx, JSVERSION_LATEST);
 
@@ -161,8 +160,8 @@ static void *native_thread(void *arg)
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
 
-    JSFunction *cf = JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
-        strlen(scoped), nthread->m_CallerFileName, nthread->m_CallerLineno);
+    JS::RootedFunction cf(tcx, JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
+        strlen(scoped), nthread->m_CallerFileName, nthread->m_CallerLineno));
 
     delete[] scoped;
     
@@ -173,6 +172,8 @@ static void *native_thread(void *arg)
     }
     
     jsval *arglst = new jsval[nthread->params.argc];
+
+    JS::AutoArrayRooter arglstRooted(tcx, nthread->params.argc, arglst);
 
     for (int i = 0; i < nthread->params.argc; i++) {
         JS_ReadStructuredClone(tcx,
@@ -254,8 +255,11 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
     char prop[16];
     int ev = msg.event();
 
-    jsval jscbk, jevent, rval;
-    JSObject *event;
+    JS::RootedValue jscbk(m_Cx);
+    JS::RootedValue jevent(m_Cx);
+    JS::RootedValue rval(m_Cx);
+
+    JS::RootedObject event(m_Cx);
 
     ptr = static_cast<struct native_thread_msg *>(msg.dataPtr());
 
@@ -278,7 +282,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         return;
     }
 
-    if (JS_GetProperty(m_Cx, ptr->callee, prop, &jscbk) &&
+    if (JS_GetProperty(m_Cx, ptr->callee, prop, jscbk.address()) &&
         !JSVAL_IS_PRIMITIVE(jscbk) && 
         JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(jscbk))) {
 
@@ -287,7 +291,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         EVENT_PROP("data", inval);
 
         jevent = OBJECT_TO_JSVAL(event);
-        JS_CallFunctionValue(m_Cx, event, jscbk, 1, &jevent, &rval);
+        JS_CallFunctionValue(m_Cx, event, jscbk, 1, jevent.address(), rval.address());
 
     }
     JS_ClearStructuredClone(ptr->data, ptr->nbytes);
@@ -300,7 +304,8 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *ret = JS_NewObjectForConstructor(cx, &Thread_class, vp);
-    JSScript *parent;
+
+    JS::RootedScript parent(cx);
 
     NativeJSThread *nthread = new NativeJSThread(ret, cx);
     JSFunction *nfn;
@@ -315,9 +320,10 @@ static JSBool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
     nthread->njs 		= NJS;
 
 
-    JS_DescribeScriptedCaller(cx, &parent, &nthread->m_CallerLineno);
+    JS_DescribeScriptedCaller(cx, parent.address(), &nthread->m_CallerLineno);
     nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent);
 
+    /* XXX RootedString (Heap?) */
     JS_AddStringRoot(cx, &nthread->jsFunction);
 
     JS_SetPrivate(ret, nthread);

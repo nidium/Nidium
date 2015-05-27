@@ -40,7 +40,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
         ret.setString(str);
 
     } else {
-        JSObject *arrayBuffer = JS_NewArrayBuffer(cx, len);
+        JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
 
         if (arrayBuffer == NULL) {
             JS_ReportOutOfMemory(cx);

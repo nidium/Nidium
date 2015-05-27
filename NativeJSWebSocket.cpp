@@ -120,7 +120,10 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
     unsigned argc, jsval *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSString *localhost, *protocol = NULL;
+
+    JS::RootedString localhost(cx);
+    JS::RootedString protocol(cx);
+
     if (!JS_IsConstructing(cx, vp)) {
         JS_ReportError(cx, "Bad constructor");
         return false;
@@ -129,7 +132,7 @@ static JSBool native_WebSocketServer_constructor(JSContext *cx,
     JSObject *ret = JS_NewObjectForConstructor(cx, &WebSocketServer_class, vp);
 
     if (!JS_ConvertArguments(cx, argc, args.array(), "S/S",
-        &localhost, &protocol)) {
+        localhost.address(), protocol.address())) {
         return false;
     }
 
@@ -189,9 +192,8 @@ NativeJSWebSocketServer::~NativeJSWebSocketServer()
 
 JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection *client)
 {
-    JSObject *jclient;
 
-    jclient = JS_NewObject(m_Cx, &WebSocketServer_client_class, NULL, NULL);
+    JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &WebSocketServer_client_class, NULL, NULL));
 
     JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
 

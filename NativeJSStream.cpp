@@ -190,7 +190,7 @@ static JSBool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *v
 
 static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *url;
+    JS::RootedString url(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     if (!JS_IsConstructing(cx, vp)) {
@@ -198,7 +198,7 @@ static JSBool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &url)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", url.address())) {
         return false;
     }
 
@@ -267,16 +267,20 @@ void NativeJSStream::onProgress(size_t buffered, size_t total)
 
 void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
 {
-    jsval onavailable_callback, onerror_callback, rval;
+    JS::RootedValue onavailable_callback(m_Cx);
+    JS::RootedValue onerror_callback(m_Cx);
+    JS::RootedValue rval(m_Cx);
+
+    /* XXX RootedObject (heap?) */
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     switch (msg.event()) {
         case NATIVESTREAM_AVAILABLE_DATA:
-            if (JS_GetProperty(m_Cx, obj, "onavailabledata", &onavailable_callback) &&
+            if (JS_GetProperty(m_Cx, obj, "onavailabledata", onavailable_callback.address()) &&
                 JS_TypeOfValue(m_Cx, onavailable_callback) == JSTYPE_FUNCTION) {
 
                 JS_CallFunctionValue(m_Cx, obj, onavailable_callback,
-                    0, NULL, &rval);
+                    0, NULL, rval.address());
             }
             break;
         case NATIVESTREAM_ERROR:
@@ -296,14 +300,14 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                     break;
             }
             break;
-            if (JS_GetProperty(m_Cx, obj, "onerror", &onerror_callback) &&
+            if (JS_GetProperty(m_Cx, obj, "onerror", onerror_callback.address()) &&
                 JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
 
                 jsval args[1];
 
                 args[0] = INT_TO_JSVAL( code );
                 JS_CallFunctionValue(m_Cx, obj, onerror_callback,
-                		1, args, &rval);
+                		1, args, rval.address());
                 }
             }
             break;
