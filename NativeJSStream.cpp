@@ -29,8 +29,8 @@ enum {
     STREAM_PROP_FILESIZE
 };
 
-static bool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
@@ -72,8 +72,8 @@ static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static bool native_stream_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
 
     NativeJSStream *stream = (NativeJSStream *)JS_GetPrivate(obj.get());    

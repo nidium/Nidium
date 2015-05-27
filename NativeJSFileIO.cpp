@@ -104,12 +104,12 @@ public:
 
 static void File_Finalize(JSFreeOp *fop, JSObject *obj);
 
-static bool native_file_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
 #if 0
-static bool native_file_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 #endif
 
 JSClass File_class = {
@@ -180,8 +180,8 @@ static void File_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static bool native_file_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_file_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeFile *file = NJSFIO_GETTER(obj.get())->getFile();
 
@@ -201,8 +201,8 @@ static bool native_file_prop_get(JSContext *cx, JSHandleObject obj,
 
 #if 0
 // currently no props
-static bool native_file_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSFileIO *nfio = NJSFIO_GETTER(obj.get());
 

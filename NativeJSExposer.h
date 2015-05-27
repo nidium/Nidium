@@ -423,8 +423,8 @@ public:
     {
         static JSClass jsclass = {
             NULL, JSCLASS_HAS_PRIVATE,
-            JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-            JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub
+            JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+            JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JSCLASS_NO_OPTIONAL_MEMBERS
         };
 
         if (jsclass.name == NULL) {

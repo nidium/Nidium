@@ -34,8 +34,8 @@ enum {
 
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
-static bool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 static bool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp);
 static bool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp);
 static bool native_socket_write(JSContext *cx, unsigned argc, jsval *vp);
@@ -94,8 +94,8 @@ static JSPropertySpec Socket_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static bool native_socket_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get());
     

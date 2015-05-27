@@ -103,8 +103,8 @@ static JSClass global_class = {
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
-static bool native_global_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
 /******** Natives ********/
 static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
@@ -145,8 +145,8 @@ static JSPropertySpec glob_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static bool native_global_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     switch(JSID_TO_INT(id)) {
         case GLOBAL_PROP___FILENAME:
