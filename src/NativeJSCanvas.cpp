@@ -360,7 +360,7 @@ NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
     return jscanvas->getHandler();
 }
 
-static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, JS::Value *argv = NULL)
+static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, JS::Value *argv = nullptr)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetInstancePrivate(cx, obj, &Canvas_class, argv);
     if (!jscanvas) {
@@ -548,7 +548,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     int32_t count = NativeObject->countChildren();
 
     if (!count) {
-        args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, NULL)));
+        args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, nullptr)));
         return true;
     }
 
@@ -574,10 +574,10 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeRect rect = NativeObject->getVisibleRect();
-    JS::RootedObject ret(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+    (const char *)name, val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
     SET_PROP(ret, "left", DOUBLE_TO_JSVAL(rect.fLeft));
@@ -638,7 +638,7 @@ static bool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
         return false;
     }
 
-    if (!JS_InstanceOf(cx, sub, &Canvas_class, NULL)) {
+    if (!JS_InstanceOf(cx, sub, &Canvas_class, nullptr)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -673,7 +673,7 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
         return false;
     }
 
-    if (!JS_InstanceOf(cx, insert, &Canvas_class, NULL)) {
+    if (!JS_InstanceOf(cx, insert, &Canvas_class, nullptr)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -684,7 +684,7 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
         return true;
     }
 
-    if (JS_InstanceOf(cx, ref, &Canvas_class, NULL)) {
+    if (JS_InstanceOf(cx, ref, &Canvas_class, nullptr)) {
         handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
     }
 
@@ -711,7 +711,7 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
         return false;
     }
 
-    if (!JS_InstanceOf(cx, insert, &Canvas_class, NULL)) {
+    if (!JS_InstanceOf(cx, insert, &Canvas_class, nullptr)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
@@ -722,7 +722,7 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
         return true;
     }
 
-    if (JS_InstanceOf(cx, ref, &Canvas_class, NULL)) {
+    if (JS_InstanceOf(cx, ref, &Canvas_class, nullptr)) {
         handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
     }
 
@@ -828,7 +828,7 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
     NativeCanvasContext *context;
 
     if (!(context = (NativeCanvasContext *)JS_GetInstancePrivate(cx,
-            obj, &Canvas2DContext_class, NULL))) {
+            obj, &Canvas2DContext_class, nullptr))) {
         JS_ReportError(cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;
     }
@@ -1465,7 +1465,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, vp));
 
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit", 
-        &Canvas_Inherit_class, NULL,
+        &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii/o",
@@ -1548,9 +1548,9 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     NativeContext *nctx = NativeContext::getNativeClass(cx);
     NativeUIInterface *ui = nctx->getUI();
 
-    ret = JS_NewObject(cx, &Canvas_class, NULL, NULL);
+    ret = JS_NewObject(cx, &Canvas_class, nullptr, nullptr);
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
-        &Canvas_Inherit_class, NULL, 
+        &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     handler = new NativeCanvasHandler(width, height, nctx);
@@ -1579,9 +1579,9 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
 void NativeJSCanvas::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas_class,
+    JS_InitClass(cx, JS_GetGlobalObject(cx), nullptr, &Canvas_class,
         native_Canvas_constructor,
-        2, canvas_props, canvas_funcs, NULL, NULL);
+        2, canvas_props, canvas_funcs, nullptr, nullptr);
 }
 
 void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
@@ -1591,18 +1591,18 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         case NATIVE_EVENT(NativeCanvasHandler, RESIZE_EVENT):
         {
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onresize", 0, NULL);
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onresize", 0, nullptr);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, LOADED_EVENT):
         {
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onload", 0, NULL);
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onload", 0, nullptr);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
         {
-            JS::RootedObject ev(cx, JS_NewObject(cx, NULL, NULL, NULL));
+            JS::RootedObject ev(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
             const char *name = NULL;
             JS::RootedValue value(cx);
             JS::RootedValue arg(cx);

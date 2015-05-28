@@ -76,7 +76,7 @@ static JSClass canvasGradient_class = {
 static JSClass canvasGLProgram_class = {
     "CanvasGLProgram", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -339,10 +339,10 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+    (const char *)name, val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
     JS::RootedString str(cx);
-    JS::RootedObject res(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject res(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
     double maxWidth;
     int length = 0;
 
@@ -369,7 +369,7 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
 
     SkScalar ret = CppObj->getSurface()->breakText(text.ptr(), len,
                     lines, maxWidth, &length);
-    JS::RootedObject alines(cx, JS_NewArrayObject(cx, length, NULL));
+    JS::RootedObject alines(cx, JS_NewArrayObject(cx, length, nullptr));
 
     for (int i = 0; i < len && i < length; i++) {
         JS::RootedValue val(cx, STRING_TO_JSVAL(JS_NewStringCopyN(cx,
@@ -385,6 +385,7 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
     delete[] lines;
 
     NATIVE_LOG_2D_CALL();
+
     return true;
 #undef SET_PROP
 }
@@ -697,7 +698,7 @@ static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
     JS::RootedObject savedArray(cx, JSVAL_TO_OBJECT(JS_GetReservedSlot(thisobj, 0)));
-    JS::RootedObject saved(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject saved(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
     JS::RootedValue outval(cx);
 
 #define CANVAS_2D_CTX_PROP_GET(prop)
@@ -765,7 +766,7 @@ static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
         return false;
     }
 
-    linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
+    linearObject = JS_NewObject(cx, &canvasGradient_class, nullptr, nullptr);
 
     args.rval().set(OBJECT_TO_JSVAL(linearObject));
 
@@ -791,7 +792,7 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
         return false;
     }
 
-    dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
+    dataObject = JS_NewObject(cx, &imageData_class, nullptr, nullptr);
 
     arrBuffer = JS_NewUint8ClampedArray(cx, width*height * 4);
     data = JS_GetUint8ClampedArrayData(arrBuffer);
@@ -799,11 +800,11 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
-        NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+        nullptr, nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
-        NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+        nullptr, nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
     JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer),
-        NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+        nullptr, nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().set(OBJECT_TO_JSVAL(dataObject));
 
@@ -828,7 +829,7 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
         return false;
     }
 
-    if (!JS_InstanceOf(cx, dataObject, &imageData_class, NULL)) {
+    if (!JS_InstanceOf(cx, dataObject, &imageData_class, nullptr)) {
         JS_ReportError(cx, "First argument must be a imageData object");
         return false;
     }
@@ -874,17 +875,17 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
         return false;
     }
 
-    dataObject = JS_NewObject(cx, &imageData_class, NULL, NULL);
+    dataObject = JS_NewObject(cx, &imageData_class, nullptr, nullptr);
 
-    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), NULL, NULL,
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), NULL, NULL,
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
 
-    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
-        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), nullptr,
+        nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().set(OBJECT_TO_JSVAL(dataObject));
 
@@ -911,7 +912,7 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
         return false;
     }
 
-    patternObject = JS_NewObject(cx, &canvasPattern_class, NULL, NULL);
+    patternObject = JS_NewObject(cx, &canvasPattern_class, nullptr, nullptr);
 
     args.rval().set(OBJECT_TO_JSVAL(patternObject));
 
@@ -955,7 +956,7 @@ static bool native_canvas2dctx_createRadialGradient(JSContext *cx,
         return false;
     }
 
-    linearObject = JS_NewObject(cx, &canvasGradient_class, NULL, NULL);
+    linearObject = JS_NewObject(cx, &canvasGradient_class, nullptr, nullptr);
 
     args.rval().set(OBJECT_TO_JSVAL(linearObject));
 
@@ -1020,7 +1021,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
     /*
         TODO: work with WebGL canvas
     */
-    if (JS_InstanceOf(cx, jsimage, &Canvas_class, NULL)) {
+    if (JS_InstanceOf(cx, jsimage, &Canvas_class, nullptr)) {
         NativeCanvasContext *drawctx = HANDLER_GETTER(jsimage)->getContext();
 
         if (drawctx == NULL || drawctx->getContextType() != NativeCanvasContext::CONTEXT_2D) {
@@ -1074,7 +1075,7 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
         return false;
     }
 
-    JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
 
     JSAutoByteString ctext;
     ctext.encodeUtf8(cx, text);
@@ -1119,7 +1120,7 @@ static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double left = 0, right = 0, top = 0, bottom = 0;
-    JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
 
     NSKIA_NATIVE->getPathBounds(&left, &right, &top, &bottom);
 
@@ -1463,7 +1464,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
 
     glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &nactives);
 
-    JS::RootedObject arr(cx,JS_NewArrayObject(cx, nactives, NULL));
+    JS::RootedObject arr(cx,JS_NewArrayObject(cx, nactives, nullptr));
     args.rval().set(OBJECT_TO_JSVAL(arr));
 
     char name[512];
@@ -1471,7 +1472,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
         int length = 0, size = 0;
         GLenum type = GL_ZERO;
 
-        JS::RootedObject in(cx,JS_NewObject(cx, NULL, NULL, NULL));
+        JS::RootedObject in(cx,JS_NewObject(cx, nullptr, nullptr, nullptr));
 
         glGetActiveUniform(program, i, sizeof(name)-1, &length, &size, &type, name);
         name[length] = '\0';
@@ -1670,7 +1671,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
                 curSkia->setFillColor(colorName.ptr());
             } else if (!JSVAL_IS_PRIMITIVE(vp) &&
                 JS_InstanceOf(cx, JSVAL_TO_OBJECT(vp),
-                    &canvasGradient_class, NULL)) {
+                    &canvasGradient_class, nullptr)) {
 
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(JSVAL_TO_OBJECT(vp));
@@ -1679,7 +1680,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 
             } else if (!JSVAL_IS_PRIMITIVE(vp) &&
                 JS_InstanceOf(cx, JSVAL_TO_OBJECT(vp),
-                    &canvasPattern_class, NULL)) {
+                    &canvasPattern_class, nullptr)) {
 
                 NativeCanvasPattern *pattern = (class NativeCanvasPattern *)
                                             JS_GetPrivate(JSVAL_TO_OBJECT(vp));
@@ -1699,7 +1700,7 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
                 curSkia->setStrokeColor(colorName.ptr());
             } else if (!JSVAL_IS_PRIMITIVE(vp) &&
                 JS_InstanceOf(cx, JSVAL_TO_OBJECT(vp),
-                    &canvasGradient_class, NULL)) {
+                    &canvasGradient_class, nullptr)) {
 
                 NativeSkGradient *gradient = (class NativeSkGradient *)
                                             JS_GetPrivate(JSVAL_TO_OBJECT(vp));
@@ -2356,14 +2357,14 @@ NativeCanvas2DContext::NativeCanvas2DContext(NativeCanvasHandler *handler,
 {
     m_Mode = CONTEXT_2D;
 
-    jsobj = JS_NewObject(cx, &Canvas2DContext_class, NULL, NULL);
+    jsobj = JS_NewObject(cx, &Canvas2DContext_class, nullptr, nullptr);
     jscx  = cx;
 
     /*
         TODO: BUG: xxx setter doesn't work if we remove this the definesProperties
     */
     JS_DefineProperties(cx, jsobj, canvas2dctx_props);
-    JS::RootedObject saved(cx, JS_NewArrayObject(cx, 0, NULL));
+    JS::RootedObject saved(cx, JS_NewArrayObject(cx, 0, nullptr));
     JS_SetReservedSlot(jsobj, 0, OBJECT_TO_JSVAL(saved));
 
     m_Skia = new NativeSkia();
@@ -2437,7 +2438,8 @@ static bool native_Canvas2DContext_constructor(JSContext *cx,
 
 void NativeCanvas2DContext::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &Canvas2DContext_class,
-                native_Canvas2DContext_constructor,
-                0, canvas2dctx_props, canvas2dctx_funcs, NULL, NULL);
+    JS_InitClass(cx, JS_GetGlobalObject(cx), nullptr, &Canvas2DContext_class,
+    native_Canvas2DContext_constructor, 0, canvas2dctx_props,
+    canvas2dctx_funcs, nullptr, nullptr);
 }
+

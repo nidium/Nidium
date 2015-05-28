@@ -390,20 +390,20 @@ JSObject *NativeNML::BuildLST(JSContext *cx, char *str)
 JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
 #define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
+    val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 #define NODE_STR(data, len) STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, \
         (const char *)data, len, "utf8"))
 
     using namespace rapidxml;
 
-    JS::RootedObject input(cx, JS_NewArrayObject(cx, 0, NULL));
+    JS::RootedObject input(cx, JS_NewArrayObject(cx, 0, nullptr));
 
     uint32_t idx = 0;
     for (xml_node<> *child = node.first_node(); child != NULL;
         child = child->next_sibling()) {
 
         /* obj */
-        JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
+        JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
 
         bool skip = false;
         switch (child->type()) {
@@ -419,7 +419,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 
                 /* obj.attributes */
 
-                JS::RootedObject obj_attr(cx, JS_NewObject(cx, NULL, NULL, NULL));
+                JS::RootedObject obj_attr(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
                 NODE_PROP(obj, "attributes", OBJECT_TO_JSVAL(obj_attr.get()));
                 for (xml_attribute<> *attr = child->first_attribute(); attr != NULL;
                     attr = attr->next_attribute()) {

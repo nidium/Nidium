@@ -635,7 +635,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
         case NATIVE_SCTAG_IMAGEDATA:
         {
             if (data < sizeof(uint32_t) * 2 + 1) {
-                return JS_NewObject(cx, NULL, NULL, NULL);
+                return JS_NewObject(cx, nullptr, nullptr, nullptr);
             }
             uint32_t width, height;
             JS::RootedValue arr(cx);
@@ -645,22 +645,25 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
 
             JS_ReadTypedArray(r, &arr.get());
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL));
-            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
+            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
+                nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
+            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
+                nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject, "data", arr, NULL,
-                NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+            JS_DefineProperty(cx, dataObject, "data", arr,
+               nullptr, nullptr,
+               JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
             return dataObject;
         }
         default:
             break;
     }
-    return JS_NewObject(cx, NULL, NULL, NULL);
+    return JS_NewObject(cx, nullptr, nullptr, nullptr);
 }
 
 void NativeContext::addInputEvent(NativeInputEvent *ev)

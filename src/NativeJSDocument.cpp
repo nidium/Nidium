@@ -123,16 +123,16 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, NULL, NULL));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
 
-    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), NULL, NULL,
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), NULL, NULL,
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), NULL,
-        NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), nullptr,
+        nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObject(*dataObject);
 
@@ -265,7 +265,7 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 JSObject *NativeJSdocument::registerObject(JSContext *cx)
 {
     JS::RootedObject documentObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        NativeJSdocument::getJSObjectName(), &document_class , NULL, 
+        NativeJSdocument::getJSObjectName(), &document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
     NativeJS *njs = NativeJS::getNativeClass(cx);
@@ -278,7 +278,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     njs->rootObjectUntilShutdown(documentObj);
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
-    jdoc->stylesheet = JS_NewObject(cx, NULL, NULL, NULL);
+    jdoc->stylesheet = JS_NewObject(cx, nullptr, nullptr, nullptr);
     JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
     JS_SetProperty(cx, documentObj, "stylesheet", &objV.get());
     JS_DefineFunctions(cx, documentObj, document_funcs);

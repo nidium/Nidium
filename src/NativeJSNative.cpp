@@ -39,7 +39,7 @@ void NativeJSNative::registerObject(JSContext *cx)
 {
     //JS::RootedObject titleBar(cx);
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        NativeJSNative::getJSObjectName(), &Native_class , NULL,
+        NativeJSNative::getJSObjectName(), &Native_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     NativeJSNative *jnative = new NativeJSNative(NativeObj, cx);
@@ -57,6 +57,6 @@ void NativeJSNative::registerObject(JSContext *cx)
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
     /*JS_DefineProperty(cx, NativeObj, "titleBar",
-        OBJECT_TO_JSVAL(titleBar), NULL, NULL, JSPROP_READONLY | JSPROP_PERMANENT);*/
+        OBJECT_TO_JSVAL(titleBar), nullptr, nullptr, JSPROP_READONLY | JSPROP_PERMANENT);*/
 }
 
