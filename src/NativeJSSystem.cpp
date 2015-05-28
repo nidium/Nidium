@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 static JSClass system_class = {
@@ -29,7 +29,7 @@ static JSFunctionSpec system_funcs[] = {
 };
 
 
-static JSBool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
+static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     struct rlimit rl;

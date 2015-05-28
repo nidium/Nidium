@@ -8,11 +8,11 @@
 
 #include "NativeServer.h"
 
-static JSBool native_console_log(JSContext *cx, unsigned argc,
+static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
     JS::Value *vp);
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
     JS::Value *vp);
 
 static JSClass console_class = {
@@ -32,7 +32,7 @@ static JSFunctionSpec console_funcs[] = {
     JS_FS_END
 };
 
-static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
+static bool native_console_profile_start(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
@@ -40,7 +40,7 @@ static JSBool native_console_profile_start(JSContext *cx, unsigned argc,
 
     return true;
 }
-static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
+static bool native_console_profile_end(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -54,7 +54,7 @@ static JSBool native_console_profile_end(JSContext *cx, unsigned argc,
     return true;
 }
 
-static JSBool native_console_log(JSContext *cx, unsigned argc,
+static bool native_console_log(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     unsigned i;
