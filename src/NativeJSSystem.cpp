@@ -44,7 +44,7 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
         return true;
     }
 
-    JS::RootedObject ret(cx, JS_NewObject(cx, NULL, NULL, NULL));
+    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
 
     JSOBJ_SET_PROP_INT(ret, "cur", rl.rlim_cur);
     JSOBJ_SET_PROP_INT(ret, "max", rl.rlim_max);
@@ -77,7 +77,7 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 void NativeJSSystem::registerObject(JSContext *cx)
 {
     JS::RootedObject systemObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx), 
-        "System", &system_class , NULL, 0));
+        "System", &system_class , nullptr, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }
 

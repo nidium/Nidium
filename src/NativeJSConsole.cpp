@@ -104,7 +104,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 void NativeJSconsole::registerObject(JSContext *cx)
 {
     JS::RootedObject consoleObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
-        "console", &console_class , NULL, 0));
+        "console", &console_class , nullptr, 0));
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
 
