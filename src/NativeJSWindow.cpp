@@ -1288,7 +1288,7 @@ static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-void NativeJSwindow::addFrameCallback(jsval &cb)
+void NativeJSwindow::addFrameCallback(JS::Value &cb)
 {
     struct _requestedFrame *frame = new struct _requestedFrame;
     frame->next = this->m_RequestedFrame;

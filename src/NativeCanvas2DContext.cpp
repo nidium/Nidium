@@ -109,9 +109,9 @@ static bool native_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -120,7 +120,7 @@ static bool native_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value
 static bool native_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_clip(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_createImageData(JSContext *cx,
     unsigned argc, JS::Value *vp);
@@ -140,48 +140,48 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
 static bool native_canvas2dctx_stub(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 
 /* GLSL related */
 static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 
 static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 
 static bool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 
 static bool native_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 
 static JSPropertySpec canvas2dctx_props[] = {
 #define CANVAS_2D_CTX_PROP(prop) {#prop, CTX_PROP_ ## prop, JSPROP_PERMANENT | \
@@ -561,7 +561,7 @@ static bool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp
 }
 
 static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy;
@@ -576,7 +576,7 @@ static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy, cpx2, cpy2;
@@ -1063,7 +1063,7 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
 }
 
 static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JS::RootedString text(cx);
@@ -1093,7 +1093,7 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
@@ -1114,7 +1114,7 @@ static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
 
 /* TODO: return undefined if the path is invalid */
 static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
@@ -1137,7 +1137,7 @@ static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     CppObj->detachShader();
@@ -1148,7 +1148,7 @@ static bool native_canvas2dctx_detachGLSLFragment(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
@@ -1168,7 +1168,7 @@ static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JS::RootedString glsl(cx);
@@ -1199,7 +1199,7 @@ static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString location(cx);
@@ -1225,7 +1225,7 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
 }
 
 static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -1253,7 +1253,7 @@ static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
 }
 
 static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -1402,55 +1402,55 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
 }
 
 static bool native_canvas2dctxGLProgram_uniform1iv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 1);
 }
 
 static bool native_canvas2dctxGLProgram_uniform2iv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 2);
 }
 
 static bool native_canvas2dctxGLProgram_uniform3iv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 3);
 }
 
 static bool native_canvas2dctxGLProgram_uniform4iv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXiv(cx, argc, vp, 4);
 }
 
 static bool native_canvas2dctxGLProgram_uniform1fv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 1);
 }
 
 static bool native_canvas2dctxGLProgram_uniform2fv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 2);
 }
 
 static bool native_canvas2dctxGLProgram_uniform3fv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 3);
 }
 
 static bool native_canvas2dctxGLProgram_uniform4fv(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     return native_canvas2dctxGLProgram_uniformXfv(cx, argc, vp, 4);
 }
 
 static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -1488,7 +1488,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
 }
 
 static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, z;

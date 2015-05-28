@@ -43,7 +43,7 @@ static struct native_cursors {
     {NULL,                  NativeUIInterface::NOCHANGE},
 };
 
-extern jsval gfunc;
+extern JS::Value gfunc;
 
 enum {
     CANVAS_PROP_WIDTH = 1,
@@ -553,7 +553,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     }
 
     NativeCanvasHandler *list[count];
-    jsval *jlist = (jsval *)malloc(sizeof(jsval) * count); //@todo Jsmalloc etc JSHeap??
+    JS::Value *jlist = (JS::Value *)malloc(sizeof(JS::Value) * count); //@todo Jsmalloc etc JSHeap??
 
     NativeObject->getChildren(list);
 

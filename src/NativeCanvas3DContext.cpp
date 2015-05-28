@@ -46,7 +46,7 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
 
 #if 0
 static bool native_Canvas3DContext_constructor(JSContext *cx,
-    unsigned argc, jsval *vp)
+    unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return false;
