@@ -12,9 +12,9 @@ static void Native_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static JSClass Native_class = {
     "native", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Native_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 JSClass *NativeJSNative::jsclass = &Native_class;

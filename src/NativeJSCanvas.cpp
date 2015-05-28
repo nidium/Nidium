@@ -105,9 +105,9 @@ static bool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, 
 
 JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Canvas_Finalize,
-    0,0,0,0, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
+    nullptr, nullptr, nullptr, Canvas_Trace, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 template<>
@@ -116,15 +116,10 @@ JSClass *NativeJSExposer<NativeJSCanvas>::jsclass = &Canvas_class;
 
 JSClass Canvas_Inherit_class = {
     "CanvasInherit", JSCLASS_HAS_PRIVATE,
-        JS_PropertyStub,
-        JS_PropertyStub,
-        CanvasInherit_get,
-        JS_StrictPropertyStub,
-        JS_EnumerateStub,
-        JS_ResolveStub,
-        JS_ConvertStub
+    JS_PropertyStub, JS_DeletePropertyStub, CanvasInherit_get, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
-
 
 static JSClass *NativeLocalClass = &Canvas_class;
 

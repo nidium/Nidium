@@ -84,23 +84,23 @@ static bool native_audionode_custom_source_prop_setter(JSContext *cx, JSHandleOb
 
 static JSClass messageEvent_class = {
     "ThreadMessageEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass Audio_class = {
     "Audio", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass AudioContext_class = {
     "AudioContext", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, AudioContext_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 template<>
@@ -108,30 +108,30 @@ JSClass *NativeJSExposer<NativeJSAudio>::jsclass = &AudioContext_class;
 
 static JSClass global_AudioThread_class = {
     "_GLOBALAudioThread", JSCLASS_GLOBAL_FLAGS | JSCLASS_IS_GLOBAL,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass AudioNodeLink_class = {
     "AudioNodeLink", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass AudioNodeEvent_class = {
     "AudioNodeEvent", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass AudioNode_class = {
     "AudioNode", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, AudioNode_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 template<>
@@ -139,9 +139,9 @@ JSClass *NativeJSExposer<NativeJSAudioNode>::jsclass = &AudioNode_class;
 
 static JSClass AudioNode_threaded_class = {
     "AudioNodeThreaded", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSPropertySpec AudioContext_props[] = {
@@ -309,9 +309,9 @@ static JSFunctionSpec Video_funcs[] = {
 
 static JSClass Video_class = {
     "Video", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(1),
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Video_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 template<>

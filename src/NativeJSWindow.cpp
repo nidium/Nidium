@@ -63,9 +63,9 @@ enum {
 
 static JSClass window_class = {
     "Window", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Window_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 enum {
@@ -79,17 +79,16 @@ enum {
 
 static JSClass navigator_class = {
     "Navigator", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
-
 
 static JSClass storage_class = {
     "NidiumStorage", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Storage_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 JSClass *NativeJSwindow::jsclass = &window_class;
@@ -99,48 +98,47 @@ JSClass *NativeJSExposer<NativeJSwindow>::jsclass = &window_class;
 
 static JSClass mouseEvent_class = {
     "MouseEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass dragEvent_class = {
     "DragEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 #if 0
 static JSClass windowEvent_class = {
     "WindowEvent", 0,
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 #endif
 
 static JSClass textEvent_class = {
     "TextInputEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass keyEvent_class = {
     "keyEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 static JSClass NMLEvent_class = {
     "NMLEvent", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
-
 
 static JSFunctionSpec storage_funcs[] = {
     JS_FN("set", native_storage_set, 2, 0),

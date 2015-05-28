@@ -25,9 +25,9 @@ extern JSClass File_class;
 
 static JSClass Image_class = {
     "Image", JSCLASS_HAS_PRIVATE,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Image_Finalize,
-    JSCLASS_NO_OPTIONAL_MEMBERS
+	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 template<>
