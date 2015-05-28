@@ -17,8 +17,8 @@ static bool native_console_profile_end(JSContext *cx, unsigned argc,
 
 static JSClass console_class = {
     "Console", 0,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
