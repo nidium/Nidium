@@ -142,7 +142,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
         JSOBJ_SET_PROP(objrequest, "data", strdata);
     }
 
-    JS::Value method;
+    JS::RootedValue method(m_cx);
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
             method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));
@@ -158,7 +158,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
             break;
     }
 
-    JSOBJ_SET_PROP(objrequest, "method", method);
+    JSOBJ_SET_PROP(objrequest, "method", method.get());
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
     JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 

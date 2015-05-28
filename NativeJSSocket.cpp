@@ -205,7 +205,9 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     JSContext *m_Cx;
  
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
-    jsval onaccept, rval, arg;
+    JS::RootedValue onaccept(cx);
+    JS::RootedValue rval(cx);
+    JS::RootedValue arg(cx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -240,12 +242,12 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     arg = OBJECT_TO_JSVAL(jclient);
 
-    if (JS_GetProperty(m_Cx, nsocket->getJSObject(), "onaccept", &onaccept) &&
+    if (JS_GetProperty(m_Cx, nsocket->getJSObject(), "onaccept", &onaccept.get()) &&
         JS_TypeOfValue(m_Cx, onaccept) == JSTYPE_FUNCTION) {
 
         PACK_TCP(socket_client->s.fd);
         JS_CallFunctionValue(m_Cx, nsocket->getJSObject(), onaccept,
-            1, &arg, &rval);
+            1, &arg.get(), &rval.get());
         FLUSH_TCP(socket_client->s.fd);
     }
 }
@@ -350,12 +352,12 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
             TODO: inet_ntoa is not reentrant
         */
         char *cip = inet_ntoa(addr->sin_addr);
-        JS::Value jip = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip));
+        JS::RootedValue jip(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip)));
 
-        JS_SetProperty(cx, remote, "ip", &jip);
-        JS::Value jport = INT_TO_JSVAL(ntohs(addr->sin_port));
+        JS_SetProperty(cx, remote, "ip", &jip.get());
+        JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
         
-        JS_SetProperty(cx, remote, "port", &jport);
+        JS_SetProperty(cx, remote, "port", &jport.get());
         jparams[1] = OBJECT_TO_JSVAL(remote);
 
         JS_CallFunctionValue(cx, nsocket->getJSObject(), onmessage,
@@ -551,9 +553,9 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
 
-    JS::Value isBinary = JSVAL_FALSE;
+    JS::RootedValue isBinary(cx, JSVAL_FALSE);
 
-    JS_SetProperty(cx, ret, "binary", &isBinary);
+    JS_SetProperty(cx, ret, "binary", &isBinary.get());
 
     return true;
 }

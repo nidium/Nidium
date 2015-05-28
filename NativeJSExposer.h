@@ -136,12 +136,12 @@ public:
 
     bool fire(jsval evobj, JSObject *thisobj) {
         NativeJSEvent *ev, *tmpEv;
-        JS::Value rval;
+        JS::RootedValue rval(cx);
         for (ev = m_Head; ev != NULL;) {
             // Use tmp in case the event was self deleted during trigger
             tmpEv = ev->next;
             JS_CallFunctionValue(ev->m_Cx, thisobj,
-                ev->m_Function, 1, &evobj, &rval);
+                ev->m_Function, 1, &evobj, &rval.get());
 
             ev = tmpEv;
         }
@@ -164,8 +164,8 @@ private:
             JS_ReportError(cx, "Illegal invocation");
             return false;            
         }
-        JS::Value cancelBubble = JS::BooleanValue(true);
-        JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble);
+        JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
+        JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble.get());
 
         return true;
     }
@@ -511,7 +511,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 
 
 
-#define JS_INITOPT() JS::Value __curopt;
+#define JS_INITOPT() JS::RootedValue __curopt(cx);
 
 #define JSGET_OPT(obj, name) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL)
 #define JSGET_OPT_TYPE(obj, name, type) if (obj && JS_GetProperty(cx, obj, name, &__curopt) && __curopt != JSVAL_VOID && __curopt != JSVAL_NULL && __curopt.is ## type())

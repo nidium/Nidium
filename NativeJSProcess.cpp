@@ -74,10 +74,10 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
         JS_SetElement(cx, jsargv, i, jelem);
     }
 
-    JS::Value jsargv_v = OBJECT_TO_JSVAL(jsargv);
-    JS_SetProperty(cx, ProcessObj, "argv", &jsargv_v);
+    JS::RootedValue jsargv_v(cx, OBJECT_TO_JSVAL(jsargv));
+    JS_SetProperty(cx, ProcessObj, "argv", &jsargv_v.get());
 
-    JS::Value workerid_v = JS::Int32Value(workerId);
-    JS_SetProperty(cx, ProcessObj, "workerId", &workerid_v);
+    JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));
+    JS_SetProperty(cx, ProcessObj, "workerId", &workerid_v.get());
 }
 

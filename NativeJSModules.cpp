@@ -248,16 +248,16 @@ bool NativeJSModule::initJS()
 
     id.setString(idstr);
 
-    jsval exportsVal = OBJECT_TO_JSVAL(exports);
-    jsval moduleVal  = OBJECT_TO_JSVAL(module);
+    JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports));
+    JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module));
 
     TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
     TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal));
 
     TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal.get()));
     TRY_OR_DIE(JS_SetProperty(cx, module, "id", id.address()));
-    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", &exportsVal.get()));
 
     js::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
@@ -490,7 +490,7 @@ bool NativeJSModules::loadDirectoryModule(std::string &dir)
 
 JS::Value NativeJSModule::require(char *name)
 {
-    JS::Value ret;
+    JS::RootedValue ret(cx);
     NativeJSModule *cmodule;
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
@@ -559,9 +559,9 @@ JS::Value NativeJSModule::require(char *name)
         // Found a cyclic dependency
         if (strcmp(cmodule->filePath, m->filePath) == 0) {
             JSObject *gbl = m->exports;
-            jsval module;
-            JS_GetProperty(cx, gbl, "module", &module);
-            JS_GetProperty(cx, JSVAL_TO_OBJECT(module), "exports", &ret);
+            JS::RootedValue module(cx);
+            JS_GetProperty(cx, gbl, "module", &module.get());
+            JS_GetProperty(cx, JSVAL_TO_OBJECT(module), "exports", &ret.get());
             return ret;
         }
 
@@ -579,7 +579,7 @@ JS::Value NativeJSModule::require(char *name)
             char *data;
 
             JSFunction *fn;
-            jsval rval;
+            JS::RootedValue rval(cx);
 
             if (!NativeJSModules::getFileContent(cmodule->filePath, &data, &filesize) || data == NULL) {
                 JS_ReportError(cx, "Failed to open module %s\n", cmodule->name);
@@ -600,13 +600,13 @@ JS::Value NativeJSModule::require(char *name)
                     return ret;
                 }
 
-                if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
+                if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval.get())) {
                     return ret;
                 }
             } else {
                 size_t len;
                 jschar *jchars;
-                jsval jsonData;
+                JS::RootedValue jsonData(cx);
 
                 if (!JS_DecodeBytes(cx, data, filesize, NULL, &len)) {
                     return ret;
@@ -622,7 +622,7 @@ JS::Value NativeJSModule::require(char *name)
                     return ret;
                 }
 
-                if (!JS_ParseJSON(cx, jchars, len, &jsonData)) {
+                if (!JS_ParseJSON(cx, jchars, len, &jsonData.get())) {
                     JS_free(cx, jchars);
                     return ret;
                 }
@@ -638,8 +638,8 @@ JS::Value NativeJSModule::require(char *name)
     switch (cmodule->m_ModuleType) {
         case JS:
         {
-            JS::Value module;
-            JS_GetProperty(cx, cmodule->exports, "module", &module);
+            JS::RootedValue module(cx);
+            JS_GetProperty(cx, cmodule->exports, "module", &module.get());
             JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret);
         }
         break;
@@ -678,7 +678,7 @@ static bool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
     JSAutoByteString namestr(cx, name);
 
     JSObject *callee = (JS_CALLEE(cx, vp)).toObjectOrNull();
-    JS::Value reserved = js::GetFunctionNativeReserved(callee, 0);
+    JS::RootedValue reserved(cx, js::GetFunctionNativeReserved(callee, 0));
     if (!reserved.isDouble()) {
         JS_ReportError(cx, "InternalError");
         return false;
@@ -686,7 +686,7 @@ static bool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJSModule *module = static_cast<NativeJSModule *>(JSVAL_TO_PRIVATE(reserved));
 
-    JS::Value ret = module->require(namestr.ptr());
+    JS::RootedValue ret(cx, module->require(namestr.ptr()));
 
     args.rval().set(ret);
 

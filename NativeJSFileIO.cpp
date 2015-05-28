@@ -268,7 +268,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 static bool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 {
-    jsval callback;
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
     
@@ -283,7 +283,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("write", 2);
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "write() bad callback");
         return false;
     }
@@ -372,7 +372,7 @@ static bool native_file_rmrf(JSContext *cx, unsigned argc, jsval *vp)
 
 static bool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
 {
-    jsval callback;
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
@@ -387,7 +387,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("listFiles", 1);
 
-    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args[0], JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "listFiles() bad callback");
         return false;
     }
@@ -411,7 +411,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
 
 static bool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 {
-    jsval callback;
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
@@ -431,7 +431,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("read", 2);
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "read() bad callback");
         return false;
     }
@@ -455,7 +455,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 
 static bool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 {
-    jsval callback;
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
@@ -473,7 +473,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("seek", 2);
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "seek() bad callback");
         return false;
     }
@@ -519,7 +519,7 @@ static bool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
 
 static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 {
-    jsval callback;
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
@@ -536,7 +536,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "open() invalid callback");
         return false;
     }
@@ -653,7 +653,8 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
 
     JS_INITOPT();
 
-    jsval argcallback, callback;
+    JS::RootedValue argcallback(cx);
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     char *cencoding = NULL;
 
@@ -671,7 +672,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
         argcallback = args[1];
     }
 
-    if (!JS_ConvertValue(cx, argcallback, JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, argcallback.get(), JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "readFile() invalid callback");
         return false;
     }
@@ -781,7 +782,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                 for (int i = 0; i < entries->size; i++) {
                     JSObject *entry = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 
-                    jsval val = OBJECT_TO_JSVAL(entry);
+                    JS::RootedValue val(cx, OBJECT_TO_JSVAL(entry));
                     JS_SetElement(cx, arr, i, &val);
 
                     JSOBJ_SET_PROP_STR(entry, "name",

@@ -94,7 +94,6 @@ static void *native_thread(void *arg)
 
     JSRuntime *rt;
     JSContext *tcx;
-    jsval rval = JSVAL_VOID;
 
     if ((rt = JS_NewRuntime(128L * 1024L * 1024L, JS_USE_HELPER_THREADS)) == NULL) {
         printf("Failed to init JS runtime\n");
@@ -109,6 +108,7 @@ static void *native_thread(void *arg)
         printf("Failed to init JS context\n");
         return NULL;     
     }
+    JS::RootedValue rval(tcx, JSVAL_VOID);
     JS_SetGCParameterForThread(tcx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
     JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
@@ -171,7 +171,7 @@ static void *native_thread(void *arg)
         return NULL;
     }
     
-    jsval *arglst = new jsval[nthread->params.argc];
+    JS::Value *arglst = new jsval[nthread->params.argc];
 
     JS::AutoArrayRooter arglstRooted(tcx, nthread->params.argc, arglst);
 
@@ -185,7 +185,7 @@ static void *native_thread(void *arg)
     }
 
     if (JS_CallFunction(tcx, gbl, cf, nthread->params.argc,
-        arglst, &rval) == false) {
+        arglst), &rval.get()) == false) {
     }
 
     JS_EndRequest(tcx);
@@ -195,7 +195,7 @@ static void *native_thread(void *arg)
 
     delete[] arglst;
 
-    nthread->onComplete(&rval);
+    nthread->onComplete(&rval.get());
 
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
@@ -271,10 +271,10 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         strcpy(prop, "oncomplete");
     }
 
-    jsval inval = JSVAL_NULL;
+    JS::RootedValue inval(cx, JSVAL_NULL);
 
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
-        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
+        JS_STRUCTURED_CLONE_VERSION, &inval.get(), NULL, NULL)) {
 
         printf("Failed to read input data (readMessage)\n");
 

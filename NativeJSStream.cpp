@@ -303,7 +303,7 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
             if (JS_GetProperty(m_Cx, obj, "onerror", onerror_callback.address()) &&
                 JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
 
-                jsval args[1];
+                JS::Value args[1];
 
                 args[0] = INT_TO_JSVAL( code );
                 JS_CallFunctionValue(m_Cx, obj, onerror_callback,

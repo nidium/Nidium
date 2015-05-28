@@ -51,13 +51,13 @@ public:
         switch(msg.event()) {
             case NATIVE_JSFS_MSG_READDIR_FILE:
             {
-                JS::Value rval, arg;
-
                 dirent *cur = (dirent *)msg.dataPtr();
                 JSObject *callback = this->getCallback(0);
                 JSContext *cx, *m_Cx = this->getJSContext();
 
                 cx = m_Cx;
+                JS::RootedValue rval(cx);
+                JS::RootedValue arg(cx);
 
                 JSObject *param = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
 
@@ -69,7 +69,7 @@ public:
                 arg = OBJECT_TO_JSVAL(param);
 
                 JS_CallFunctionValue(cx, NULL,
-                    OBJECT_TO_JSVAL(callback), 1, &arg, &rval);
+                    OBJECT_TO_JSVAL(callback), 1, &arg.get(), &rval.get());
 
                 free(cur);
                 break;
@@ -115,8 +115,9 @@ void NativeJSFS_readDir_Task(NativeTask *task)
 
 static bool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
 {
-    return true;
-    jsval callback;
+    return true;  //@FIXME why is this returning immed?
+
+    JS::RootedValue callback(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
     JSString *path;
@@ -127,7 +128,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
+    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback.get())) {
         JS_ReportError(cx, "open() invalid callback");
         return false;
     }

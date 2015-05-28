@@ -759,21 +759,22 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
     js::AutoIdArray ida(cx, JS_Enumerate(cx, source));
 
     for (size_t i = 0; i < ida.length(); i++) {
-        js::Rooted<jsid> id(cx, ida[i]);
-        jsval val;
+        JS::RootedId id(cx, ida[i]);
+        JS::RootedValue val(cx);
 
         JSString *prop = JSID_TO_STRING(id);
         JSAutoByteString cprop(cx, prop);
 
-        if (!JS_GetPropertyById(cx, source, id, &val)) {
+        if (!JS_GetPropertyById(cx, source, id, &val.get())) {
             break;
         }
         /* TODO : has own property */
         switch(JS_TypeOfValue(cx, val)) {
             case JSTYPE_OBJECT:
             {
-                jsval oldval;
-                if (!JS_GetPropertyById(cx, into, id, &oldval) ||
+                JS::RootedValue oldval(cx);
+
+                if (!JS_GetPropertyById(cx, into, id, &oldval.get()) ||
                     JSVAL_IS_VOID(oldval) || JSVAL_IS_PRIMITIVE(oldval)) {
                     JS_SetPropertyById(cx, into, id, &val);
                 } else {
@@ -782,7 +783,7 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
                 break;
             }
             default:
-                JS_SetPropertyById(cx, into, id, &val);
+                JS_SetPropertyById(cx, into, id, &val.get());
                 break;
         }
     }
@@ -1172,13 +1173,13 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
 
 static int native_timerng_wrapper(void *arg)
 {
-    jsval rval;
+    JS::RootedValue rval(cx);
     struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
 
     JSAutoRequest ar(params->cx);
 
     JS_CallFunctionValue(params->cx, params->global, params->func,
-        params->argc, params->argv, &rval);
+        params->argc, params->argv, &rval.get());
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 
