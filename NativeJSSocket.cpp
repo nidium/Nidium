@@ -263,8 +263,8 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
     jstr = tstr;
 
     if (this->lineBuffer.pos && (this->getFlags() & NATIVE_SOCKET_READLINE)) {
-        JSString *left = NativeJSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
-            this->lineBuffer.pos, this->getEncoding());
+        JS::RootedString left(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
+            this->lineBuffer.pos, this->getEncoding()));
 
         jstr = JS_ConcatStrings(m_Cx, left, tstr);
         this->lineBuffer.pos = 0;
@@ -336,9 +336,9 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
         jparams[0] = OBJECT_TO_JSVAL(arrayBuffer);
 
     } else {
-        JSString *jstr = NativeJSUtils::newStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding);
+        JS::RootedString jstr(cx, NativeJSUtils::newStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding));
 
-        jparams[0] = STRING_TO_JSVAL(jstr);        
+        jparams[0] = STRING_TO_JSVAL(jstr);
     }
 
     if (JS_GetProperty(cx, nsocket->getJSObject(), "onmessage", onmessage.address()) &&
@@ -415,11 +415,11 @@ void NativeJSSocket::onRead()
 
         return;
     } else {
-        JSString *jstr = NativeJSUtils::newStringWithEncoding(m_Cx,
+        JS::RootedString jstr(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx,
             (char *)socket->data_in.data,
-            socket->data_in.used, this->getEncoding());
+            socket->data_in.used, this->getEncoding()));
 
-        jparams[dataPosition] = STRING_TO_JSVAL(jstr);        
+        jparams[dataPosition] = STRING_TO_JSVAL(jstr);
     }
 
     if (JS_GetProperty(m_Cx, getReceiverJSObject(), "onread", onread.address()) &&
@@ -572,7 +572,7 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (args.length() > 0 && args[0].isString()) {
-        JSString *farg = args[0].toString();
+        JS::RootedString farg(cx, args[0].toString());
 
         JSAutoByteString cproto(cx, farg);
 
@@ -635,9 +635,9 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     if (args.length() > 0 && args[0].isString()) {
-        JSString *farg = args[0].toString();
+        JS::RootedString farg(cx, args[0].toString());
 
-        JSAutoByteString cproto(cx, farg);
+        JSAutoByteString cproto(cx, farg.get());
 
         if (strncasecmp("udp", cproto.ptr(), 3) == 0) {
             protocol = APE_SOCKET_PT_UDP;
@@ -860,10 +860,10 @@ static bool native_socket_sendto(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JSString *ip = args[0].toString();
+    JS::RootedString ip(cx, args[0].toString());
     unsigned int port = args[1].isNumber() ? args[1].toInt32() : 0;
 
-    JSAutoByteString cip(cx, ip);
+    JSAutoByteString cip(cx, ip.get());
 
     if (args[2].isString()) {
         JSAutoByteString cdata(cx, args[2].toString());

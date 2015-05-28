@@ -668,14 +668,14 @@ NativeJSModule::~NativeJSModule()
 
 static bool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *name = NULL;
+    JS::RootedString name(cx, NULL);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &name)) {
+    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &name.get())) {
         return false;
     }
 
-    JSAutoByteString namestr(cx, name);
+    JSAutoByteString namestr(cx, name.get());
 
     JSObject *callee = (JS_CALLEE(cx, vp)).toObjectOrNull();
     JS::Value reserved = js::GetFunctionNativeReserved(callee, 0);
@@ -688,7 +688,7 @@ static bool native_modules_require(JSContext *cx, unsigned argc, jsval *vp)
 
     JS::Value ret = module->require(namestr.ptr());
 
-    args.rval().set(ret);
+    args.rval().set(ret.get());
 
     if (ret.isUndefined()) {
         return false;
