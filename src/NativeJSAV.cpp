@@ -529,7 +529,7 @@ bool JSTransferableFunction::prepare(JSContext *cx, JS::Value val)
     return true;
 }
 
-bool JSTransferableFunction::call(JSContext *cx, JSObject *obj, int argc, jsval *params, jsval *rval)
+bool JSTransferableFunction::call(JSContext *cx, JSObject *obj, int argc, JS::Value *params, JS::Value *rval)
 {
     if (m_Fn == NULL) {
         if (m_Data == NULL) return false;

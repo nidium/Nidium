@@ -360,7 +360,7 @@ NativeCanvasHandler *HANDLER_GETTER(JSObject *obj)
     return jscanvas->getHandler();
 }
 
-static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, jsval *argv = NULL)
+static NativeCanvasHandler *HANDLER_GETTER_SAFE(JSContext *cx, JSObject *obj, JS::Value *argv = NULL)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetInstancePrivate(cx, obj, &Canvas_class, argv);
     if (!jscanvas) {

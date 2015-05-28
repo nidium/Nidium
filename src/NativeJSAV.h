@@ -56,8 +56,8 @@ class JSTransferableFunction
         {
         }
 
-        bool prepare(JSContext *cx, jsval val);
-        bool call(JSContext *cx, JSObject *obj, int argc, jsval *params, jsval *rval);
+        bool prepare(JSContext *cx, JS::Value val);
+        bool call(JSContext *cx, JSObject *obj, int argc, JS::Value *params, JS::Value *rval);
 
         ~JSTransferableFunction();
    private :
@@ -73,7 +73,7 @@ class JSTransferableFunction
 class NativeJSAVSource
 {
     public:
-        static inline int open(NativeAVSource *source, JSContext *cx, unsigned argc, jsval *vp);
+        static inline int open(NativeAVSource *source, JSContext *cx, unsigned argc, JS::Value *vp);
         static inline int play();
         static inline int pause();
         static inline int stop();
