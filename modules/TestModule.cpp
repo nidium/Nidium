@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <NativeJSExposer.h>
 
-static JSBool hello(JSContext *cx, unsigned argc, jsval *vp)
+static bool hello(JSContext *cx, unsigned argc, jsval *vp)
 {
     printf("Hello from C\n");
     return true;

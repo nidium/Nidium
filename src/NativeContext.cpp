@@ -585,7 +585,7 @@ void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
     }
 }
 
-JSBool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                      JSObject *obj, void *closure)
 {
 

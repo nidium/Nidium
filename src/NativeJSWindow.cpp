@@ -17,32 +17,32 @@
 
 #include <NativeJSFileIO.h>
 
-static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp);
-static JSBool native_window_prop_get(JSContext *cx, JSHandleObject obj,
+static bool native_window_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_window_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
-static JSBool native_navigator_prop_get(JSContext *cx, JSHandleObject obj,
+static bool native_navigator_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp);
 
-static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static JSBool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
-static JSBool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp);
 
 
 static void Window_Finalize(JSFreeOp *fop, JSObject *obj);
@@ -673,7 +673,7 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 
 }
 
-static JSBool native_window_prop_get(JSContext *m_Cx, JSHandleObject obj,
+static bool native_window_prop_get(JSContext *m_Cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
@@ -716,8 +716,8 @@ static JSBool native_window_prop_get(JSContext *m_Cx, JSHandleObject obj,
     return true;
 }
 
-static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSBool strict, JSMutableHandleValue vp)
+static bool native_window_prop_set(JSContext *cx, JSHandleObject obj,
+    JSHandleId id, bool strict, JSMutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
@@ -859,7 +859,7 @@ static JSBool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
-static JSBool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
+static bool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
@@ -958,7 +958,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     free(nof);
 }
 
-static JSBool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double w, h;
@@ -972,7 +972,7 @@ static JSBool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString url(cx);
@@ -988,7 +988,7 @@ static JSBool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::V
     return true;
 }
 
-static JSBool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString url(cx);
@@ -1005,7 +1005,7 @@ static JSBool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue callback(cx);
@@ -1029,7 +1029,7 @@ static JSBool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Valu
 }
 
 /* TODO: leak if the user click "cancel" */
-static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject types(cx);
@@ -1086,7 +1086,7 @@ static JSBool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Val
     return true;
 }
 
-static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_CHECK_ARGS("requestAnimationFrame", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1100,14 +1100,14 @@ static JSBool native_window_requestAnimationFrame(JSContext *cx, unsigned argc, 
     return true;
 }
 
-static JSBool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_center(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeContext::getNativeClass(cx)->getUI()->centerWindow();
 
     return true;
 }
 
-static JSBool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_CHECK_ARGS("setPosition", 2);
 
@@ -1124,13 +1124,13 @@ static JSBool native_window_setPosition(JSContext *cx, unsigned argc, JS::Value 
     return true;
 }
 
-static JSBool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_CHECK_ARGS("notify", 2);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString title(cx);
     JS::RootedString body(cx);
-    JSBool sound = false;
+    bool sound = false;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "SS/b", &title, &body, &sound)) {
         return false;
@@ -1147,7 +1147,7 @@ static JSBool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static JSBool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
@@ -1156,7 +1156,7 @@ static JSBool native_window_quit(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static JSBool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
@@ -1165,7 +1165,7 @@ static JSBool native_window_close(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static JSBool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
 
@@ -1174,7 +1174,7 @@ static JSBool native_window_open(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_CHECK_ARGS("setSystemTray", 1);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -1247,7 +1247,7 @@ static JSBool native_window_setSystemTray(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static JSBool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_window_setFrame(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NATIVE_CHECK_ARGS("setFrame", 4);
 
@@ -1368,7 +1368,7 @@ void NativeJSwindow::createStorage()
     JS_SetProperty(m_Cx, obj.get(), "storage", &jsstorage.get());
 }
 
-JSBool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
+bool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -1392,7 +1392,7 @@ JSBool native_storage_set(JSContext *cx, unsigned argc, JS::Value *vp)
     return true;
 }
 
-JSBool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
+bool native_storage_get(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 

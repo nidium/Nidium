@@ -299,7 +299,7 @@ class NativeContext : public NativeMessages
     void execPendingCanvasChanges();
     void triggerEvents();
 
-    static JSBool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
+    static bool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
                                          JSObject *obj, void *closure);
 
     static JSObject *readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader *r,

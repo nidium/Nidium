@@ -26,9 +26,9 @@ extern JSClass Canvas_class;
     NATIVE_GL_CALL_RET((IFACE)->getGLContext(), FN, RET); \
     { GLint err = glGetError(); if (err != 0) NLOG("err = %d / call = %s\n", err, #FN); }
 
-#define D_NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
+#define D_NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp);
 
-#define NGL_JS_FN(func_name) static JSBool func_name(JSContext *cx, unsigned int argc, JS::Value *vp) {\
+#define NGL_JS_FN(func_name) static bool func_name(JSContext *cx, unsigned int argc, JS::Value *vp) {\
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas3DContext, &WebGLRenderingContext_class);
 
 #define NGL_JS_FN_DELETE_X(FUNC_NAME, NAME) \
@@ -379,7 +379,7 @@ bool NGL_uniformMatrixxfv(NativeCanvas3DContext *glctx, JSContext *cx, unsigned 
     uintptr_t clocation;
     GLint length;
     GLfloat *carray;
-    JSBool transpose;
+    bool transpose;
     JS::RootedObject tmp(cx);
     JS::RootedObject array(cx);
     JS::RootedObject location(cx);
@@ -1416,10 +1416,10 @@ NGL_JS_FN(WebGLRenderingContext_clearStencil)
 
 NGL_JS_FN(WebGLRenderingContext_colorMask)
 //{
-    JSBool red = true;
-    JSBool green = true;
-    JSBool blue = true;
-    JSBool alpha = true;
+    bool red = true;
+    bool green = true;
+    bool blue = true;
+    bool alpha = true;
 
     GLboolean gred = GL_TRUE;
     GLboolean ggreen = GL_TRUE;
@@ -1633,7 +1633,7 @@ NGL_JS_FN(WebGLRenderingContext_depthFunc)
 
 NGL_JS_FN(WebGLRenderingContext_depthMask)
 //{
-    JSBool flag;
+    bool flag;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "b", &flag)) {
         return false;
@@ -2791,7 +2791,7 @@ NGL_JS_FN(WebGLRenderingContext_vertexAttribPointer)
     GLenum type;
     GLsizei stride;
     GLint offset;
-    JSBool normalized;
+    bool normalized;
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "uiubii", &attr,
         &size, &type, &normalized, &stride, &offset)) {
@@ -2867,7 +2867,7 @@ NGL_JS_FN(WebGLRenderingContext_swapBuffer)
 }
 
 #if 0
-static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
+static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValuel proto(cx);
@@ -2896,7 +2896,7 @@ static JSBool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Valu
 }
 #endif
 
-static JSBool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
+static bool NativeJSWebGLRenderingContext_constructor(JSContext *cx,
     unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
