@@ -89,7 +89,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
         return false;
     }
 
-    JSAutoByteString cid(cx, str.get());
+    JSAutoByteString cid(cx, str);
 
     NativeCanvasHandler *elem = NativeContext::getNativeClass(cx)->getCanvasById(cid.ptr());
 
@@ -109,7 +109,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     context->getSize(&width, &height);
 
     JS::RootedObject arrBuffer(cx, JS_NewUint8ClampedArray(cx, width * height * 4));
-    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer.get());
+    uint8_t *pixels = JS_GetUint8ClampedArrayData(arrBuffer);
 
 
     NativeContext *nctx = NativeContext::getNativeClass(cx);
@@ -125,16 +125,16 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
 
     JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
 
-    JS_DefineProperty(cx, dataObject.get(), "width", UINT_TO_JSVAL(width), nullptr, nullptr,
+    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject.get(), "height", UINT_TO_JSVAL(height), nullptr, nullptr,
+    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject.get(), "data", OBJECT_TO_JSVAL(arrBuffer.get()), nullptr,
+    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), nullptr,
         nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    args.rval().setObject(dataObject.get());
+    args.rval().setObject(dataObject);
 
     return true;
 }
@@ -176,7 +176,7 @@ static bool native_document_getPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     js::InflateUTF8StringToBufferReplaceInvalid(cx, text, strlen(text), jsc, &len);
 
     JS::RootedString jret(cx, JS_NewUCStringCopyN(cx, jsc, len));
-    args.rval().set(STRING_TO_JSVAL(jret.get()));
+    args.rval().set(STRING_TO_JSVAL(jret));
 
     free(text);
     delete[] jsc;
@@ -225,7 +225,7 @@ static bool native_document_run(JSContext *cx, unsigned argc, JS::Value *vp)
     }
 
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
-    JSAutoByteString locationstr(cx, location.get());
+    JSAutoByteString locationstr(cx, location);
 
     struct _native_document_restart_async *ndra = (struct _native_document_restart_async *)malloc(sizeof(*ndra));
 
@@ -251,12 +251,12 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
     size_t len, const char *filename)
 {
     JS::RootedValue ret(cx);
-    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret.get())) {
+    if (!NativeJS::LoadScriptReturn(cx, data, len, filename, &ret)) {
         return false;
     }
     JS::RootedObject jret(cx, ret.toObjectOrNull());
 
-    NativeJS::copyProperties(cx, jret.get(), this->stylesheet);
+    NativeJS::copyProperties(cx, jret, this->stylesheet);
 
     return true;
 }
@@ -269,17 +269,17 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
 
     NativeJS *njs = NativeJS::getNativeClass(cx);
 
-    NativeJSdocument *jdoc = new NativeJSdocument(documentObj.get(), cx);
+    NativeJSdocument *jdoc = new NativeJSdocument(documentObj, cx);
 
-    JS_SetPrivate(documentObj.get(), jdoc);
+    JS_SetPrivate(documentObj, jdoc);
 
     /* We have to root it since the user can replace the document object */
-    njs->rootObjectUntilShutdown(documentObj.get());
-    njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj.get());
+    njs->rootObjectUntilShutdown(documentObj);
+    njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
     jdoc->stylesheet = JS_NewObject(cx, nullptr, nullptr, nullptr);
     JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
-    JS_SetProperty(cx, documentObj.get(), "stylesheet", &objV.get());
+    JS_SetProperty(cx, documentObj, "stylesheet", &objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
 
@@ -332,7 +332,7 @@ static bool native_document_loadFont(JSContext *cx, unsigned argc, JS::Value *vp
     JS_INITOPT();
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject thisobj(cx, NativeJSdocument::getJSGlobalObject(cx));
-    NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj.get());
+    NativeJSdocument *CppObj = (NativeJSdocument *)JS_GetPrivate(thisobj);
 
     JS::RootedObject fontdef(cx);
 

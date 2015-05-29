@@ -39,16 +39,16 @@ void NativeJSNative::registerObject(JSContext *cx)
 {
     //JS::RootedObject titleBar(cx);
 	JS::RootedObject global(cx, JS_GetGlobalObject(cx));
-    JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global.get(),
+    JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
         NativeJSNative::getJSObjectName(), &Native_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    NativeJSNative *jnative = new NativeJSNative(NativeObj.get(), cx);
+    NativeJSNative *jnative = new NativeJSNative(NativeObj, cx);
 
-    JS_SetPrivate(NativeObj.get(), jnative);
+    JS_SetPrivate(NativeObj, jnative);
 
     NativeJS::getNativeClass(cx)->jsobjects.set(
-        NativeJSNative::getJSObjectName(), NativeObj.get());
+        NativeJSNative::getJSObjectName(), NativeObj);
 
     //titleBar = NativeJSCanvas::generateJSObject(cx, width, 35);
     //((NativeCanvasHandler *)JS_GetPrivate(canvas))->translate(0, 35);

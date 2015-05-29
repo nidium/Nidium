@@ -602,13 +602,13 @@ bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWrite
         JS::RootedValue idata(cx);
         uint32_t dwidth, dheight;
 
-        if (!JS_GetProperty(cx, obj, "width", &iwidth.get())) {
+        if (!JS_GetProperty(cx, obj, "width", &iwidth)) {
             return false;
         }
-        if (!JS_GetProperty(cx, obj, "height", &iheight.get())) {
+        if (!JS_GetProperty(cx, obj, "height", &iheight)) {
             return false;
         }
-        if (!JS_GetProperty(cx, obj, "data", &idata.get())) {
+        if (!JS_GetProperty(cx, obj, "data", &idata)) {
             return false;
         }
 
@@ -643,18 +643,18 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
             JS_ReadBytes(r, &width, sizeof(uint32_t));
             JS_ReadBytes(r, &height, sizeof(uint32_t));
 
-            JS_ReadTypedArray(r, &arr.get());
+            JS_ReadTypedArray(r, &arr);
 
             JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
-            JS_DefineProperty(cx, dataObject.get(), "width", UINT_TO_JSVAL(width),
+            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
                 nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject.get(), "height", UINT_TO_JSVAL(height),
+            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
                 nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject.get(), "data", arr.get(),
+            JS_DefineProperty(cx, dataObject, "data", arr,
                nullptr, nullptr,
                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 

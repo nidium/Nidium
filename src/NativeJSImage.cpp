@@ -10,7 +10,7 @@
 JSObject *NativeJSImage::classe = NULL;
 
 #define NATIVE_IMAGE_GETTER(obj) ((class NativeJSImage *)JS_GetPrivate(obj))
-#define IMAGE_FROM_CALLEE ((class NativeJSImage *)JS_GetPrivate(JS_GetParent(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))))
+#define IMAGE_FROM_CALLEE ((class NativeJSImage *)JS_GetPrivate(JS_GetParent(JS_CALLEE(cx, vp).toObject())))
 
 static void Image_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -95,7 +95,7 @@ static bool native_image_desaturate(JSContext *cx,
 static bool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, bool strict, JSMutableHandleValue vp)
 {
-    NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj.get());
+    NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
 
     switch(JSID_TO_INT(id)) {
         case IMAGE_PROP_SRC:
@@ -103,7 +103,7 @@ static bool native_image_prop_set(JSContext *cx, JSHandleObject obj,
             if (vp.isString()) {
                 JSAutoByteString imgPath(cx, vp.toString());
 
-                NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+                NativeJSObj(cx)->rootObjectUntilShutdown(obj);
 
                 NativeBaseStream *stream = NativeBaseStream::create(NativePath(imgPath.ptr()));
 
@@ -126,7 +126,7 @@ static bool native_image_prop_set(JSContext *cx, JSHandleObject obj,
                     return true;
                 }
 
-                NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
+                NativeJSObj(cx)->rootObjectUntilShutdown(obj);
 
                 NativeBaseStream *stream = NativeBaseStream::create(file->getFullPath());
                 if (stream == NULL) {
@@ -173,11 +173,11 @@ static bool native_Image_constructor(JSContext *cx, unsigned argc, JS::Value *vp
         return false;
     }
 
-    nimg = new NativeJSImage(ret.get(), cx);
+    nimg = new NativeJSImage(ret, cx);
 
-    JS_SetPrivate(ret.get(), nimg);
+    JS_SetPrivate(ret, nimg);
 
-    args.rval().set(OBJECT_TO_JSVAL(ret.get()));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     JS_DefineProperties(cx, ret, Image_props);
     JS_DefineFunctions(cx, ret, Image_funcs);
@@ -214,11 +214,11 @@ void NativeJSImage::onMessage(const NativeSharedMessages::Message &msg)
             JS::RootedValue rval(m_Cx);
             JS::RootedValue onload_callback(m_Cx);
             if (this->setupWithBuffer((buffer *)msg.args[0].toPtr())) {
-                if (JS_GetProperty(m_Cx, m_JSObject, "onload", &onload_callback.get()) &&
+                if (JS_GetProperty(m_Cx, m_JSObject, "onload", &onload_callback) &&
                     JS_TypeOfValue(m_Cx, onload_callback) == JSTYPE_FUNCTION) {
 
-                    JS_CallFunctionValue(m_Cx, m_JSObject, onload_callback.get(),
-                        0, nullptr, &rval.get());
+                    JS_CallFunctionValue(m_Cx, m_JSObject, onload_callback,
+                        0, nullptr, &rval);
                 }
             }
 
@@ -289,10 +289,10 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
         INT_TO_JSVAL(ImageObject->getHeight()), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_READONLY);
 
-    if (JS_GetProperty(cx, jsobj, "onload", &onload_callback.get()) &&
+    if (JS_GetProperty(cx, jsobj, "onload", &onload_callback) &&
         JS_TypeOfValue(cx, onload_callback) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, jsobj, onload_callback.get(),
+        JS_CallFunctionValue(cx, jsobj, onload_callback,
             0, nullptr, &rval);
     }
 
@@ -306,23 +306,23 @@ JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     const char name[])
 {
     JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, NativeJSImage::classe, nullptr));
-    NativeJSImage *nimg = new NativeJSImage(ret.get(), cx);
+    NativeJSImage *nimg = new NativeJSImage(ret, cx);
 
     nimg->img   = image;
 
-    JS_SetPrivate(ret.get(), nimg);
+    JS_SetPrivate(ret, nimg);
 
     printf("Build image object\n");
 
-    JS_DefineProperty(cx, ret.get(), "width",
+    JS_DefineProperty(cx, ret, "width",
         INT_TO_JSVAL(image->getWidth()), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, ret.get(), "height",
+    JS_DefineProperty(cx, ret, "height",
         INT_TO_JSVAL(image->getHeight()), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, ret.get(), "src",
+    JS_DefineProperty(cx, ret, "src",
         STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (name ? name : "unknown"))),
         nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_READONLY);

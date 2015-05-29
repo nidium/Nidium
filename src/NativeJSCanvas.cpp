@@ -18,12 +18,12 @@ extern JSClass Canvas2DContext_class;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
     JS::RootedObject thisobj(cx, &args.thisv().toObject()); \
     if (!thisobj) return false; \
-    if (JS_GetClass(thisobj.get()) != NativeLocalClass) { \
+    if (JS_GetClass(thisobj) != NativeLocalClass) { \
         JS_ReportError(cx, "Illegal invocation");\
         args.rval().setUndefined(); \
         return false; \
     } \
-    ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj.get()))->getHandler())
+    ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj))->getHandler())
 
 
 static struct native_cursors {
@@ -326,14 +326,14 @@ static JSFunctionSpec canvas_funcs[] = {
 
 static bool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
 {
-    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj.get());
+    NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
     if (!jscanvas) {
         return true;
     }
 
     NativeCanvasHandler *handler = jscanvas->getHandler(), *parent;
 
-    if (vp.get() == JSVAL_VOID) {
+    if (vp == JSVAL_VOID) {
 
         if ((parent = handler->getParent()) == NULL || !parent->jsobj) {
             return true;
@@ -344,8 +344,8 @@ static bool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, 
 
         JS::RootedValue ret(cx);
         JS::RootedObject parent(cx, jscanvas_parent->getInherit());
-        JS_GetPropertyById(cx, parent.get(), id, &ret.address());
-        vp.set(ret.get());
+        JS_GetPropertyById(cx, parent, id, &ret.address());
+        vp.set(ret);
     }
 
     return true;
@@ -577,7 +577,7 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     NativeRect rect = NativeObject->getVisibleRect();
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
 
-#define SET_PROP(where, name, val) JS_DefineProperty(cx, where.get(), \
+#define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
@@ -587,7 +587,7 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     SET_PROP(ret, "height", DOUBLE_TO_JSVAL(native_max(0, rect.fBottom-rect.fTop)));
 #undef SET_PROP
 
-    args.rval().set(OBJECT_TO_JSVAL(ret.get()));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -635,16 +635,16 @@ static bool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     JS::RootedObject sub(cx);
     NativeCanvasHandler *handler = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub.get())) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub)) {
         return false;
     }
 
-    if (!JS_InstanceOf(cx, sub.get(), &Canvas_class, nullptr)) {
+    if (!JS_InstanceOf(cx, sub, &Canvas_class, nullptr)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
-    handler = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(sub.get()))->getHandler();
+    handler = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(sub))->getHandler();
 
     if (handler == NULL) {
         return true;
@@ -670,22 +670,22 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert.get(), &ref.get())) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
         return false;
     }
-    if (!JS_InstanceOf(cx, insert.get(), &Canvas_class, nullptr)) {
+    if (!JS_InstanceOf(cx, insert, &Canvas_class, nullptr)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
-    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert.get()))->getHandler();
+    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert))->getHandler();
 
     if (handler_insert == NULL) {
         return true;
     }
 
-    if (JS_InstanceOf(cx, ref.get(), &Canvas_class, nullptr)) {
-        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref.get()))->getHandler();
+    if (JS_InstanceOf(cx, ref, &Canvas_class, nullptr)) {
+        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
     }
 
     if (NativeObject == handler_insert) {
@@ -707,23 +707,23 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
     JS::RootedObject ref(cx);
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert.get(), &ref.get())) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
         return false;
     }
 
-    if (!JS_InstanceOf(cx, insert.get(), &Canvas_class, nullptr)) {
+    if (!JS_InstanceOf(cx, insert, &Canvas_class, nullptr)) {
         JS_ReportError(cx, "add() First parameter is not a Canvas Object");
         return false;
     }
 
-    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert.get()))->getHandler();
+    handler_insert = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(insert))->getHandler();
 
     if (handler_insert == NULL) {
         return true;
     }
 
-    if (JS_InstanceOf(cx, ref.get(), &Canvas_class, nullptr)) {
-        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref.get()))->getHandler();
+    if (JS_InstanceOf(cx, ref, &Canvas_class, nullptr)) {
+        handler_ref = (NativeCanvasHandler *)((NativeJSCanvas *)JS_GetPrivate(ref))->getHandler();
     }
 
     if (NativeObject == handler_insert) {
@@ -745,7 +745,7 @@ static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     NativeContext *nctx = NativeContext::getNativeClass(cx);
 
     JS::RootedString mode(cx, args[0].toString());
-    JSAutoByteString cmode(cx, mode.get());
+    JSAutoByteString cmode(cx, mode);
 
     NativeUIInterface *ui = nctx->getUI();
 
@@ -828,7 +828,7 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
     NativeCanvasContext *context;
 
     if (!(context = (NativeCanvasContext *)JS_GetInstancePrivate(cx,
-            obj.get(), &Canvas2DContext_class, nullptr))) {
+            obj, &Canvas2DContext_class, nullptr))) {
         JS_ReportError(cx, "setContext() argument must a CanvasRenderingContext2D object");
         return false;
     }
@@ -849,12 +849,12 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
 static bool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     JSHandleId id, bool strict, JSMutableHandleValue vp)
 {
-    NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj.get());
+    NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
     if (!handler) {
         return true;
     }
 
-    switch(JSID_TO_INT(id.get())) {
+    switch(JSID_TO_INT(id)) {
 
         case CANVAS_PROP_POSITION:
         {
@@ -1176,7 +1176,7 @@ static bool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
             if (!sid) {
                 return true;
             }
-            JSAutoByteString cid(cx, sid.get());
+            JSAutoByteString cid(cx, sid);
             handler->setId(cid.ptr());
         }
         break;
@@ -1256,12 +1256,12 @@ static bool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
 static bool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
     JSHandleId id, JSMutableHandleValue vp)
 {
-    NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj.get());
+    NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
     if (!handler) {
         return true;
     }
 
-    switch(JSID_TO_INT(id.get())) {
+    switch(JSID_TO_INT(id)) {
         case CANVAS_PROP_OPACITY:
             vp.set(DOUBLE_TO_JSVAL(handler->getOpacity()));
             break;
@@ -1464,12 +1464,12 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Canvas_class, vp));
 
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret.get(), "inherit",
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
         &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
     if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii/o",
-        &width, &height, &opt.get())) {
+        &width, &height, &opt)) {
         return false;
     }
 
@@ -1494,13 +1494,13 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    NativeJSCanvas *jscanvas = new NativeJSCanvas(ret.get(), cx, handler);
-    jscanvas->setInherit(inherit.get());
+    NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
+    jscanvas->setInherit(inherit);
 
-    JS_SetPrivate(ret.get(), jscanvas);
-    JS_SetPrivate(inherit.get(), jscanvas);
+    JS_SetPrivate(ret, jscanvas);
+    JS_SetPrivate(inherit, jscanvas);
 
-    args.rval().set(OBJECT_TO_JSVAL(ret.get()));
+    args.rval().set(OBJECT_TO_JSVAL(ret));
 
     return true;
 }
@@ -1549,7 +1549,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     NativeUIInterface *ui = nctx->getUI();
 
     ret = JS_NewObject(cx, &Canvas_class, nullptr, nullptr);
-    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret.get(), "inherit",
+    JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
         &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
@@ -1563,14 +1563,14 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     handler->jsobj = ret;
     handler->jscx = cx;
 
-    JS_SetReservedSlot(ret.get(), 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
+    JS_SetReservedSlot(ret, 0, OBJECT_TO_JSVAL(handler->m_Context->jsobj));
 
-    NativeJSCanvas *jscanvas = new NativeJSCanvas(ret.get(), cx, handler);
+    NativeJSCanvas *jscanvas = new NativeJSCanvas(ret, cx, handler);
 
-    jscanvas->setInherit(inherit.get());
+    jscanvas->setInherit(inherit);
 
-    JS_SetPrivate(ret.get(), jscanvas);
-    JS_SetPrivate(inherit.get(), jscanvas);
+    JS_SetPrivate(ret, jscanvas);
+    JS_SetPrivate(inherit, jscanvas);
 
     *out = handler;
 
@@ -1580,7 +1580,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 void NativeJSCanvas::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS_GetGlobalObject(cx));
-    JS_InitClass(cx, global.get(), nullptr, &Canvas_class,
+    JS_InitClass(cx, global, nullptr, &Canvas_class,
         native_Canvas_constructor,
         2, canvas_props, canvas_funcs, nullptr, nullptr);
 }
@@ -1619,12 +1619,12 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
                     break;
             }
 
-            JSOBJ_SET_PROP_CSTR(ev.get(), "property", name);
+            JSOBJ_SET_PROP_CSTR(ev, "property", name);
             JSOBJ_SET_PROP(ev, "value", value);
 
-            arg.setObjectOrNull(ev.get());
+            arg.setObjectOrNull(ev);
             // TODO : fireEvent
-            JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg.get());
+            JSOBJ_CALLFUNCNAME(m_JSObject, "onchange", 1, &arg);
             break;
         }
         case NATIVE_EVENT(NativeCanvasHandler, DRAG_EVENT):
@@ -1686,7 +1686,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
             }
 
             JS::RootedValue cancelBubble(cx);
-            if (JS_GetProperty(cx, obj.obj(), "cancelBubble", &cancelBubble.get())) {
+            if (JS_GetProperty(cx, obj.obj(), "cancelBubble", &cancelBubble)) {
                 if (cancelBubble.isBoolean() && cancelBubble.toBoolean()) {
                     /* TODO: sort out this dirty hack */
                     NativeSharedMessages::Message *nonconstmsg = (NativeSharedMessages::Message *)&msg;
