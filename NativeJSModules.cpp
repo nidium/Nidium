@@ -67,7 +67,7 @@ static JSPropertySpec native_modules_exports_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-static bool native_modules_require(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp);
 
 NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJSModule *parent, const char *name) 
     : absoluteDir(NULL), filePath(NULL), name(strdup(name)), m_ModuleType(NONE), 

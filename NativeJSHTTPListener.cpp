@@ -23,11 +23,11 @@
 static void HTTPListener_Finalize(JSFreeOp *fop, JSObject *obj);
 
 static bool native_httpresponse_write(JSContext *cx,
-    unsigned argc, jsval *vp);
+    unsigned argc, JS::Value *vp);
 static bool native_httpresponse_end(JSContext *cx,
-    unsigned argc, jsval *vp);
+    unsigned argc, JS::Value *vp);
 static bool native_httpresponse_writeHead(JSContext *cx,
-    unsigned argc, jsval *vp);
+    unsigned argc, JS::Value *vp);
 
 static JSClass HTTPListener_class = {
     "HTTPListener", JSCLASS_HAS_PRIVATE,
@@ -177,7 +177,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 }
 
 static bool native_HTTPListener_constructor(JSContext *cx,
-    unsigned argc, jsval *vp)
+    unsigned argc, JS::Value *vp)
 {
     uint16_t port;
     JS::RootedString ip_bind(cx);
@@ -220,14 +220,14 @@ static bool native_HTTPListener_constructor(JSContext *cx,
 
 #if 0
 static bool native_HTTPRequest_class_constructor(JSContext *cx,
-    unsigned argc, jsval *vp)
+    unsigned argc, JS::Value *vp)
 {
     JS_ReportError(cx, "Illegal constructor");
     return false;
 }
 #endif
 
-static bool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_httpresponse_write(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -263,7 +263,7 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_httpresponse_end(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -297,7 +297,7 @@ static bool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     uint16_t statuscode;
 

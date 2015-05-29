@@ -7,19 +7,19 @@
 #include <jsdbgapi.h>
 
 static bool native_console_log(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_console_write(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_console_hide(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_console_show(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_console_clear(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_console_profile_start(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 static bool native_console_profile_end(JSContext *cx, unsigned argc,
-    jsval *vp);
+    JS::Value *vp);
 
 static JSClass console_class = {
     "Console", 0,
@@ -43,7 +43,7 @@ static JSFunctionSpec console_funcs[] = {
 };
 
 static bool native_console_hide(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
 
 #if 0
@@ -55,7 +55,7 @@ static bool native_console_hide(JSContext *cx, unsigned argc,
 }
 
 static bool native_console_show(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
 #if 0
     NativeContext::getNativeClass(cx)->getUI()->getConsole(true)->show();
@@ -64,7 +64,7 @@ static bool native_console_show(JSContext *cx, unsigned argc,
 }
 
 static bool native_console_clear(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
 
@@ -78,7 +78,7 @@ static bool native_console_clear(JSContext *cx, unsigned argc,
 }
 
 static bool native_console_log(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned i;
@@ -124,7 +124,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 }
 
 static bool native_console_write(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     NativeJS *js = NativeJS::getNativeClass(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -149,7 +149,7 @@ static bool native_console_write(JSContext *cx, unsigned argc,
 }
 
 static bool native_console_profile_start(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     /*
     JSString *tmp;
@@ -166,7 +166,7 @@ static bool native_console_profile_start(JSContext *cx, unsigned argc,
     return true;
 }
 static bool native_console_profile_end(JSContext *cx, unsigned argc,
-    jsval *vp)
+    JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     NativeProfiler *tracer = NativeProfiler::getInstance(cx);
