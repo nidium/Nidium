@@ -92,11 +92,11 @@ static bool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
+    if (!JS_InstanceOf(cx, caller.get(), &Stream_class, args.array())) {
         return true;
     }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->stop();
+    ((NativeJSStream *)JS_GetPrivate(caller.get()))->getStream()->stop();
 
     return true;
 }
@@ -107,7 +107,7 @@ static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
     JS::RootedObject caller(cx, &args.thisv().toObject());
     uint32_t pos;
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
+    if (!JS_InstanceOf(cx, caller.get(), &Stream_class, args.array())) {
         return true;
     }
 
@@ -115,7 +115,7 @@ static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->seek(pos);
+    ((NativeJSStream *)JS_GetPrivate(caller.get()))->getStream()->seek(pos);
 
     return true;
 }
@@ -126,7 +126,7 @@ static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
     JS::RootedObject caller(cx, &args.thisv().toObject());
     size_t packetlen = 4096;
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
+    if (!JS_InstanceOf(cx, caller.get(), &Stream_class, args.array())) {
         return true;
     }
     if (args.length() > 0 && args[0].isInt32()) {
@@ -137,9 +137,9 @@ static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
         }
     }
 
-    ((NativeJSStream *)JS_GetPrivate(caller))->getStream()->start(packetlen);
+    ((NativeJSStream *)JS_GetPrivate(caller.get()))->getStream()->start(packetlen);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(caller);
+    NativeJSObj(cx)->rootObjectUntilShutdown(caller.get());
 
     return true;
 }
@@ -149,7 +149,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args.array())) {
+    if (!JS_InstanceOf(cx, caller.get(), &Stream_class, args.array())) {
         return true;
     }
 
@@ -157,7 +157,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
     int                   err;
     const unsigned char   *ret;
 
-    ret = ((NativeJSStream *)JS_GetPrivate(caller))->
+    ret = ((NativeJSStream *)JS_GetPrivate(caller.get()))->
         getStream()->getNextPacket(&len, &err);
 
     if (ret == NULL) {
@@ -180,7 +180,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
-    uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
+    uint8_t *data = JS_GetArrayBufferData(arrayBuffer.get());
     memcpy(data, ret, len);
 
     args.rval().setObject(*arrayBuffer);
@@ -214,7 +214,7 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JS_SetPrivate(ret, jstream);
+    JS_SetPrivate(ret.get(), jstream);
 
     JS_DefineFunctions(cx, ret, Stream_funcs);
     JS_DefineProperties(cx, ret, Stream_props);
@@ -300,13 +300,13 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                     break;
             }
             break;
-            if (JS_GetProperty(m_Cx, obj, "onerror", onerror_callback.address()) &&
+            if (JS_GetProperty(m_Cx, obj.get(), "onerror", onerror_callback.address()) &&
                 JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
 
-                jsval args[1];
+                JS::Value args[1];
 
                 args[0] = INT_TO_JSVAL( code );
-                JS_CallFunctionValue(m_Cx, obj, onerror_callback,
+                JS_CallFunctionValue(m_Cx, obj.get(), onerror_callback.get(),
                 		1, args, rval.address());
                 }
             }

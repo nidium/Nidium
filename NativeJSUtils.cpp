@@ -46,7 +46,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
             JS_ReportOutOfMemory(cx);
             return false;
         } else {
-            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
+            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer.get());
             memcpy(adata, buf, len);
 
             ret.setObject(*arrayBuffer);

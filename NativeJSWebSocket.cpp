@@ -152,7 +152,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
         return false;
     }
 
-    NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(ret, cx, host, port);
+    NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(ret.get(), cx, host, port);
 
     free(path);
     free(host);
@@ -165,14 +165,14 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
         return false;
     }
 
-    JS_SetPrivate(ret, wss);
+    JS_SetPrivate(ret.get(), wss);
 
     args.rval().setObjectOrNull(ret);
 
     /*
         Server is listening at this point. Don't collect.
     */
-    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+    NativeJSObj(cx)->rootObjectUntilShutdown(ret.get());
 
     return true;
 }
@@ -197,10 +197,10 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 
     JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
 
-    JS_SetPrivate(jclient, client);
+    JS_SetPrivate(jclient.get(), client);
 
-    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
-    client->setData(jclient);
+    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient.get());
+    client->setData(jclient.get());
 
     return jclient;
 }

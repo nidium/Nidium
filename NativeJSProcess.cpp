@@ -59,11 +59,11 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
         NativeJSProcess::getJSObjectName(),
         &Process_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    NativeJSProcess *jProcess = new NativeJSProcess(ProcessObj, cx);
+    NativeJSProcess *jProcess = new NativeJSProcess(ProcessObj.get(), cx);
 
-    JS_SetPrivate(ProcessObj, jProcess);
+    JS_SetPrivate(ProcessObj.get(), jProcess);
 
-    njs->jsobjects.set(NativeJSProcess::getJSObjectName(), ProcessObj);
+    njs->jsobjects.set(NativeJSProcess::getJSObjectName(), ProcessObj.get());
 
     JS_DefineFunctions(cx, ProcessObj, Process_funcs);
 
@@ -74,10 +74,10 @@ void NativeJSProcess::registerObject(JSContext *cx, char **argv, int argc, int w
         JS_SetElement(cx, jsargv, i, jelem);
     }
 
-    JS::Value jsargv_v = OBJECT_TO_JSVAL(jsargv);
-    JS_SetProperty(cx, ProcessObj, "argv", &jsargv_v);
+    JS::RootedValue jsargv_v(cx, OBJECT_TO_JSVAL(jsargv.get()));
+    JS_SetProperty(cx, ProcessObj.get(), "argv", &jsargv_v.get());
 
-    JS::Value workerid_v = JS::Int32Value(workerId);
-    JS_SetProperty(cx, ProcessObj, "workerId", &workerid_v);
+    JS::RootedValue workerid_v(cx, JS::Int32Value(workerId));
+    JS_SetProperty(cx, ProcessObj.get(), "workerId", &workerid_v.get());
 }
 

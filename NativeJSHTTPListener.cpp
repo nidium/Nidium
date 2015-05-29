@@ -142,7 +142,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
         JSOBJ_SET_PROP(objrequest, "data", strdata);
     }
 
-    JS::Value method;
+    JS::RootedValue method(m_Cx);
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
             method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));
@@ -158,7 +158,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
             break;
     }
 
-    JSOBJ_SET_PROP(objrequest, "method", method);
+    JSOBJ_SET_PROP(objrequest, "method", method.get());
     JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
     JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
 
@@ -167,9 +167,9 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
 
         /* XXX RootedArray */
         JS::Value arg[2];
-        arg[0].setObjectOrNull(objrequest);
+        arg[0].setObjectOrNull(objrequest.get());
         arg[1].setObjectOrNull(static_cast<NativeJSHTTPResponse*>(client->getResponse())->getJSObject());
-        JS_CallFunctionValue(m_Cx, m_JSObject, oncallback,
+        JS_CallFunctionValue(m_Cx, m_JSObject, oncallback.get(),
             2, arg, rval.address());
     }
 
@@ -199,9 +199,9 @@ static bool native_HTTPListener_constructor(JSContext *cx,
 
     if (ip_bind) {
         JSAutoByteString cip(cx, ip_bind);
-        listener = new NativeJSHTTPListener(ret, cx, port, cip.ptr());
+        listener = new NativeJSHTTPListener(ret.get(), cx, port, cip.ptr());
     } else {
-        listener = new NativeJSHTTPListener(ret, cx, port);
+        listener = new NativeJSHTTPListener(ret.get(), cx, port);
     }
 
     if (!listener->start((bool)reuseport)) {
@@ -210,10 +210,10 @@ static bool native_HTTPListener_constructor(JSContext *cx,
         return false;
     }
 
-    JS_SetPrivate(ret, listener);
+    JS_SetPrivate(ret.get(), listener);
     args.rval().setObjectOrNull(ret);
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
+    NativeJSObj(cx)->rootObjectUntilShutdown(ret.get());
 
     return true;
 }
@@ -234,7 +234,7 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("write", 1);
 
-    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller.get());
     if (!resp) {
         return true;
     }
@@ -247,12 +247,12 @@ static bool native_httpresponse_write(JSContext *cx, unsigned argc, jsval *vp)
 
     }  else if (args[0].isObject()) {
         JS::RootedObject objdata(cx, args[0].toObjectOrNull());
-        if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+        if (!objdata || !JS_IsArrayBufferObject(objdata.get())) {
             JS_ReportError(cx, "write() invalid data (must be either a string or an ArrayBuffer)");
             return false;            
         }
-        uint32_t len = JS_GetArrayBufferByteLength(objdata);
-        uint8_t *data = JS_GetArrayBufferData(objdata);
+        uint32_t len = JS_GetArrayBufferByteLength(objdata.get());
+        uint8_t *data = JS_GetArrayBufferData(objdata.get());
 
         resp->sendChunk((char *)data, len, APE_DATA_COPY);
     } else {
@@ -268,7 +268,7 @@ static bool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
-    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller.get());
     if (!resp) {
         return true;
     }
@@ -281,12 +281,12 @@ static bool native_httpresponse_end(JSContext *cx, unsigned argc, jsval *vp)
             resp->sendChunk(jsdata.ptr(), jsdata.length(), APE_DATA_COPY, true);
         } else if (args[0].isObject()) {
             JS::RootedObject objdata(cx, args[0].toObjectOrNull());
-            if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+            if (!objdata || !JS_IsArrayBufferObject(objdata.get())) {
                 JS_ReportError(cx, "end() invalid data (must be either a string or an ArrayBuffer)");
                 return false;            
             }
-            uint32_t len = JS_GetArrayBufferByteLength(objdata);
-            uint8_t *data = JS_GetArrayBufferData(objdata);
+            uint32_t len = JS_GetArrayBufferByteLength(objdata.get());
+            uint8_t *data = JS_GetArrayBufferData(objdata.get());
 
             resp->sendChunk((char *)data, len, APE_DATA_COPY, true);
         }
@@ -310,7 +310,7 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *v
         return false;
     }
 
-    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller);
+    NativeJSHTTPResponse *resp = NativeJSHTTPResponse::getObject(caller.get());
     if (!resp) {
         return true;
     }
@@ -327,19 +327,18 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *v
         JS::RootedObject iterator(cx);
 
         iterator = JS_NewPropertyIterator(cx, headers);
-
-        while (JS_NextProperty(cx, iterator, idp.address()) && !JSID_IS_VOID(idp)) {
+        while (JS_NextProperty(cx, iterator.get(), idp.address()) && !JSID_IS_VOID(idp)) {
             if (!JSID_IS_STRING(idp)) {
                 continue;
             }
             JS::RootedString key(cx, JSID_TO_STRING(idp));
             JS::RootedValue val(cx);
 
-            if (!JS_GetPropertyById(cx, headers, idp, val.address()) || !val.isString()) {
+            if (!JS_GetPropertyById(cx, headers.get(), idp.get(), val.address()) || !val.isString()) {
                 continue;
             }
 
-            JSAutoByteString ckey(cx, key);
+            JSAutoByteString ckey(cx, key.get());
             JSAutoByteString cval(cx, val.toString());
 
             resp->setHeader(ckey.ptr(), cval.ptr());
@@ -353,7 +352,8 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *v
 
 void NativeJSHTTPListener::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPListener_class,
+    JS::RootedObject global(cx, JS_GetGlobalObject(cx));
+    JS_InitClass(cx, global, nullptr, &HTTPListener_class,
         native_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
 #if 0
@@ -363,3 +363,4 @@ void NativeJSHTTPListener::registerObject(JSContext *cx)
                 0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);
 #endif
 }
+
