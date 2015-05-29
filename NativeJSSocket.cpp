@@ -205,7 +205,10 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
     JSContext *m_Cx;
  
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
-    jsval onaccept, rval, arg;
+
+    JS::RootedValue onaccept(m_Cx);
+    JS::RootedValue rval(m_Cx);
+    JS::RootedValue arg(m_Cx);
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
@@ -240,11 +243,13 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     arg = OBJECT_TO_JSVAL(jclient);
 
-    if (JS_GetProperty(m_Cx, nsocket->getJSObject(), "onaccept", &onaccept) &&
+    JS::RootedObject socketjs(m_Cx, nsocket->getJSObject());
+
+    if (JS_GetProperty(m_Cx, socketjs, "onaccept", &onaccept) &&
         JS_TypeOfValue(m_Cx, onaccept) == JSTYPE_FUNCTION) {
 
         PACK_TCP(socket_client->s.fd);
-        JS_CallFunctionValue(m_Cx, nsocket->getJSObject(), onaccept,
+        JS_CallFunctionValue(m_Cx, socketjs, onaccept,
             1, &arg, &rval);
         FLUSH_TCP(socket_client->s.fd);
     }
@@ -263,8 +268,8 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
     jstr = tstr;
 
     if (this->lineBuffer.pos && (this->getFlags() & NATIVE_SOCKET_READLINE)) {
-        JSString *left = NativeJSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
-            this->lineBuffer.pos, this->getEncoding());
+        JS::RootedString left(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, this->lineBuffer.data,
+            this->lineBuffer.pos, this->getEncoding()));
 
         jstr = JS_ConcatStrings(m_Cx, left, tstr);
         this->lineBuffer.pos = 0;
