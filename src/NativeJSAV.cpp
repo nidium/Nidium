@@ -75,12 +75,12 @@ static bool native_audionode_custom_source_play(JSContext *cx, unsigned argc, JS
 static bool native_audionode_custom_source_pause(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_audionode_custom_source_stop(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp);
-static bool native_audio_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
-static bool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp);
-static bool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp);
-static bool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
-static bool native_audionode_custom_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_audio_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_audio_prop_getter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
+static bool native_audionode_custom_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_audionode_source_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_audionode_source_prop_getter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
+static bool native_audionode_custom_source_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 
 static JSClass messageEvent_class = {
     "ThreadMessageEvent", 0,
@@ -288,8 +288,8 @@ static bool native_video_prevframe(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_video_setsize(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
-static bool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_video_prop_getter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
+static bool native_video_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 
 static void Video_Finalize(JSFreeOp *fop, JSObject *obj);
 
@@ -450,7 +450,7 @@ const char *NativeJSAVEventRead(int ev)
     }
 }
 
-void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMessages::Message &msg)
+static void native_av_thread_message(JSContext *cx, JS::HandleObject *obj, const NativeSharedMessages::Message &msg)
 {
     JS::RootedValue jscbk(cx);
     JS::RootedValue rval(cx);
@@ -1566,7 +1566,7 @@ static bool native_audiothread_print(JSContext *cx, unsigned argc, JS::Value *vp
     return true;
 }
 
-static bool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_audio_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSAudio *jaudio = NativeJSAudio::getContext();
 
@@ -1579,7 +1579,7 @@ static bool native_audio_prop_setter(JSContext *cx, JSHandleObject obj, JSHandle
     return true;
 }
 
-static bool native_audio_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+static bool native_audio_prop_getter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeJSAudio *jaudio = NativeJSAudio::getContext();
 
@@ -1955,7 +1955,7 @@ static bool native_audionode_source_close(JSContext *cx, unsigned argc, JS::Valu
     return true;
 }
 
-static bool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+static bool native_audionode_source_prop_getter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeJSAudioNode *jnode = (NativeJSAudioNode *)JS_GetPrivate(obj);
 
@@ -1966,7 +1966,7 @@ static bool native_audionode_source_prop_getter(JSContext *cx, JSHandleObject ob
     return NativeJSAVSource::propGetter(source, cx, JSID_TO_INT(id), vp);
 }
 
-static bool native_audionode_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_audionode_source_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSAudioNode *jnode = (NativeJSAudioNode *)JS_GetPrivate(obj);
 
@@ -2010,7 +2010,7 @@ static bool native_audionode_custom_source_stop(JSContext *cx, unsigned argc, JS
     return true;
 }
 
-static bool native_audionode_custom_source_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_audionode_custom_source_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSAudioNode *jnode = (NativeJSAudioNode *)JS_GetPrivate(obj);
 
@@ -2019,7 +2019,7 @@ static bool native_audionode_custom_source_prop_setter(JSContext *cx, JSHandleOb
     return NativeJSAudioNode::propSetter(jnode, cx, JSID_TO_INT(id), vp);
 }
 
-static bool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_audionode_custom_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSAudioNode *jnode = (NativeJSAudioNode *)JS_GetPrivate(obj);
     JSTransferableFunction *fun;
@@ -2070,7 +2070,7 @@ static bool native_audionode_custom_prop_setter(JSContext *cx, JSHandleObject ob
     return true;
 }
 
-static bool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+static bool native_video_prop_getter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
     if (v == NULL) {
@@ -2092,7 +2092,7 @@ static bool native_video_prop_getter(JSContext *cx, JSHandleObject obj, JSHandle
     return true;
 }
 
-static bool native_video_prop_setter(JSContext *cx, JSHandleObject obj, JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_video_prop_setter(JSContext *cx, JS::HandleObject obj, JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSVideo *v = (NativeJSVideo *)JS_GetPrivate(obj);
     if (v == NULL) {

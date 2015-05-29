@@ -17,13 +17,13 @@
 
 #include <NativeJSFileIO.h>
 
-static bool native_window_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp);
-static bool native_window_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_window_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
-static bool native_navigator_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_navigator_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
 static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -557,7 +557,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
 
     for (int i = 0; i < nfiles; i++) {
         JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(m_Cx, files[i])));
-        JS_SetElement(m_Cx, m_DragedFiles, i, &val);
+        JS_SetElement(m_Cx, m_DragedFiles, i, val);
     }
 
     NativeJS::getNativeClass(m_Cx)->rootObjectUntilShutdown(m_DragedFiles);
@@ -670,8 +670,8 @@ static void Storage_Finalize(JSFreeOp *fop, JSObject *obj)
 
 }
 
-static bool native_window_prop_get(JSContext *m_Cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_window_prop_get(JSContext *m_Cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
 
@@ -713,8 +713,8 @@ static bool native_window_prop_get(JSContext *m_Cx, JSHandleObject obj,
     return true;
 }
 
-static bool native_window_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_window_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(cx)->getUI();
     switch(JSID_TO_INT(id)) {
@@ -856,8 +856,8 @@ static bool native_window_prop_set(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
-static bool native_navigator_prop_get(JSContext *m_Cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_navigator_prop_get(JSContext *m_Cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeUIInterface *NUI = NativeContext::getNativeClass(m_Cx)->getUI();
 
@@ -944,7 +944,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
 
     for (int i = 0; i < len; i++) {
         JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(nof->cx, lst[i])));
-        JS_SetElement(nof->cx, arr, i, &val);
+        JS_SetElement(nof->cx, arr, i, val);
     }
 
     JS::RootedValue jarr(nof->cx, OBJECT_TO_JSVAL(arr));

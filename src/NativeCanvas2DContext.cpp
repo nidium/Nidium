@@ -87,10 +87,10 @@ static JSClass canvasPattern_class = {
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
-static bool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp);
-static bool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
 static bool native_canvas2dctx_breakText(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_canvas2dctx_shadow(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -705,7 +705,7 @@ static bool native_canvas2dctx_save(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue savedVal(cx, OBJECT_TO_JSVAL(saved));
 
     JS_GetArrayLength(cx, savedArray, &arr_length);
-    JS_SetElement(cx, savedArray, arr_length, &savedVal);
+    JS_SetElement(cx, savedArray, arr_length, savedVal);
 
     CppObj->getSurface()->save();
 
@@ -1479,8 +1479,8 @@ static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     return true;
 }
 
-static bool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
 
@@ -1766,8 +1766,8 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JSHandleObject obj,
 #undef CTX_PROP
 }
 
-static bool native_canvas2dctx_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_canvas2dctx_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
 #define CTX_PROP(prop) CTX_PROP_ ## prop
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);

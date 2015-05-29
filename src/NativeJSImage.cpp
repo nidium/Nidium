@@ -18,8 +18,8 @@ static bool native_image_markColorInAlpha(JSContext *cx, unsigned argc, JS::Valu
 static bool native_image_desaturate(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_image_print(JSContext *cx, unsigned argc, JS::Value *vp);
 
-static bool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp);
+static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
 
 extern JSClass File_class;
 
@@ -92,8 +92,8 @@ static bool native_image_desaturate(JSContext *cx,
     return true;
 }
 
-static bool native_image_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_image_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeJSImage *nimg = NATIVE_IMAGE_GETTER(obj);
 

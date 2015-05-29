@@ -101,7 +101,7 @@ enum {
 static void Canvas_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Canvas_Trace(JSTracer *trc, JSRawObject obj);
 
-static bool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp);
+static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
 
 JSClass Canvas_class = {
     "Canvas", JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS | JSCLASS_HAS_RESERVED_SLOTS(1),
@@ -123,10 +123,10 @@ JSClass Canvas_Inherit_class = {
 
 static JSClass *NativeLocalClass = &Canvas_class;
 
-static bool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp);
-static bool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp);
+static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp);
 
 static bool native_canvas_getContext(JSContext *cx, unsigned argc,
     JS::Value *vp);
@@ -324,7 +324,7 @@ static JSFunctionSpec canvas_funcs[] = {
     JS_FS_END
 };
 
-static bool CanvasInherit_get(JSContext *cx, JSHandleObject obj, JSHandleId id, JSMutableHandleValue vp)
+static bool CanvasInherit_get(JSContext *cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeJSCanvas *jscanvas = (class NativeJSCanvas *)JS_GetPrivate(obj);
     if (!jscanvas) {
@@ -841,8 +841,8 @@ static bool native_canvas_setContext(JSContext *cx, unsigned argc,
 
 
 /* TODO: do not change the value when a wrong type is set */
-static bool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, bool strict, JSMutableHandleValue vp)
+static bool native_canvas_prop_set(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
     if (!handler) {
@@ -1248,8 +1248,8 @@ static bool native_canvas_prop_set(JSContext *cx, JSHandleObject obj,
     return true;
 }
 
-static bool native_canvas_prop_get(JSContext *cx, JSHandleObject obj,
-    JSHandleId id, JSMutableHandleValue vp)
+static bool native_canvas_prop_get(JSContext *cx, JS::HandleObject obj,
+    JS::HandleId id, JS::MutableHandleValue vp)
 {
     NativeCanvasHandler *handler = HANDLER_GETTER_SAFE(cx, obj);
     if (!handler) {

@@ -396,7 +396,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 
     using namespace rapidxml;
 
-    JS::RootedObject input(cx, JS_NewArrayObject(cx, 0, nullptr));
+    JS::RootedObject input(cx, JS_NewArrayObject(cx, 0));
 
     uint32_t idx = 0;
     for (xml_node<> *child = node.first_node(); child != NULL;
@@ -442,7 +442,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 
         /* push to input array */
         JS::RootedValue jobjV(cx, OBJECT_TO_JSVAL(obj));
-        JS_SetElement(cx, input, idx++, &jobjV);
+        JS_SetElement(cx, input, idx++, jobjV);
     }
     return input;
 #undef NODE_PROP
