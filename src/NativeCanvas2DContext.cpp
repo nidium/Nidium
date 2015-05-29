@@ -1489,7 +1489,6 @@ static bool native_canvas2dctx_prop_set(JSContext *cx, JS::HandleObject obj,
     }
 
     NativeSkia *curSkia = NSKIA_NATIVE_GETTER(obj);
-
     switch(JSID_TO_INT(id)) {
         case CTX_PROP(imageSmoothingEnabled):
         {

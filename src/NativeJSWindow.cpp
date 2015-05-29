@@ -268,7 +268,7 @@ void NativeJSwindow::onReady(JSObject *layout)
     }
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_onready", &onready) &&
-        !JSVAL_IS_PRIMITIVE(onready) &&
+        !onready.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &onready.toObject())) {
 
         JS_CallFunctionValue(m_Cx, m_JSObject, onready, 1, arg, &rval);
@@ -281,7 +281,7 @@ bool NativeJSwindow::onClose()
     JS::RootedValue rval(m_Cx);
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_onbeforeclose", &onclose) &&
-        !JSVAL_IS_PRIMITIVE(onclose) &&
+        !onclose.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &onclose.toObject())) {
 
         JS_CallFunctionValue(m_Cx, m_JSObject, onclose, 0, nullptr, &rval);
@@ -312,7 +312,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
 
     if (JS_GetProperty(cx, m_JSObject, "_onassetready", &onassetready) &&
-        !JSVAL_IS_PRIMITIVE(onassetready) &&
+        !onassetready.isPrimitive() &&
         JS_ObjectIsCallable(cx, &onassetready.toObject())) {
 
         JS_CallFunctionValue(cx, event, onassetready, 1, &jevent, &rval);
@@ -325,7 +325,7 @@ void NativeJSwindow::windowFocus()
     JS::RootedValue onfocus(m_Cx);
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_onfocus", &onfocus) &&
-        !JSVAL_IS_PRIMITIVE(onfocus) &&
+        !onfocus.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &onfocus.toObject())) {
 
         JS_CallFunctionValue(m_Cx, nullptr, onfocus, 0, nullptr, &rval);
@@ -338,7 +338,7 @@ void NativeJSwindow::windowBlur()
     JS::RootedValue onblur(m_Cx);
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_onblur", &onblur) &&
-        !JSVAL_IS_PRIMITIVE(onblur) &&
+        !onblur.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &onblur.toObject())) {
 
         JS_CallFunctionValue(m_Cx, nullptr, onblur, 0, nullptr, &rval);
@@ -367,7 +367,7 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
     jevent = OBJECT_TO_JSVAL(event);
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_onmousewheel", &onwheel) &&
-        !JSVAL_IS_PRIMITIVE(onwheel) &&
+        !onwheel.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &onwheel.toObject())) {
 
         JS_CallFunctionValue(m_Cx, event, onwheel, 1, &jevent, &rval);
@@ -407,7 +407,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
 
     if (JS_GetProperty(m_Cx, m_JSObject,
         (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
-        !JSVAL_IS_PRIMITIVE(onkeyupdown) &&
+        !onkeyupdown.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &onkeyupdown.toObject())) {
 
         JS_CallFunctionValue(m_Cx, event, onkeyupdown, 1, &jevent, &rval);
@@ -436,7 +436,7 @@ void NativeJSwindow::textInput(const char *data)
     jevent = OBJECT_TO_JSVAL(event);
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_ontextinput", &ontextinput) &&
-        !JSVAL_IS_PRIMITIVE(ontextinput) &&
+        !ontextinput.isPrimitive() &&
         JS_ObjectIsCallable(m_Cx, &ontextinput.toObject())) {
 
         JS_CallFunctionValue(m_Cx, event, ontextinput, 1, &jevent, &rval);
@@ -1054,7 +1054,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
             JS::RootedValue val(cx);
             JS_GetElement(cx, types, i, &val);
 
-            if (JSVAL_IS_STRING(val)) {
+            if (val.isString()) {
                 JS::RootedString str(cx, val.toString());
                 ctypes[j] = JS_EncodeString(cx, str);
                 j++;
