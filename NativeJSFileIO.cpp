@@ -216,7 +216,7 @@ static bool native_file_prop_set(JSContext *cx, JS::HandleObject obj,
 
 static bool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 {
-    JSString *url;
+    JS::RootedString url(cx);
     NativeFile *file;
     NativeJSFileIO *NJSFIO;
 
@@ -231,7 +231,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &File_class, vp));
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &url, opt.address())) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S/o", &url.get(), opt.address())) {
         return false;
     }
 

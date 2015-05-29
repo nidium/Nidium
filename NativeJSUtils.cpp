@@ -31,13 +31,13 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
 
     if (encoding) {
 
-        JSString *str = NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding);
-        if (!str) {
+        JS::RootedString str(cx, NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding));
+        if (!str.get()) {
             ret.set(JS_GetEmptyStringValue(cx));
             return false;
         }
 
-        ret.setString(str);
+        ret.setString(str.get());
 
     } else {
         JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
@@ -70,14 +70,14 @@ JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
             return NULL;
         }
 
-        JSString *str = JS_NewUCString(cx, content.ptr(), jlen);
-        if (str == NULL) {
+        JS::RootedString str(cx, JS_NewUCString(cx, content.ptr(), jlen));
+        if (str.get() == NULL) {
             return NULL;
         }
 
         content.disable(); /* JS_NewUCString took ownership */
         
-        return str;
+        return str.get();
 
     }
 

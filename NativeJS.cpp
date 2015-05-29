@@ -391,9 +391,9 @@ static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
         return true;
     }
 
-    JSString *res = JS_NewStringCopyZ(cx, cur.dir());
+    JS::RootedString res(cx, JS_NewStringCopyZ(cx, cur.dir()));
 
-    args.rval().setString(res);
+    args.rval().setString(res.get());
 
     return true;
 }
@@ -762,8 +762,8 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
         js::Rooted<jsid> id(cx, ida[i]);
         jsval val;
 
-        JSString *prop = JSID_TO_STRING(id);
-        JSAutoByteString cprop(cx, prop);
+        JS::RootedString prop(cx, JSID_TO_STRING(id));
+        JSAutoByteString cprop(cx, prop.get());
 
         if (!JS_GetPropertyById(cx, source, id, &val)) {
             break;

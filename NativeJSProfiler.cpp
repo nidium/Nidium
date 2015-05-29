@@ -116,7 +116,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
 
     if (before) {
         char *funName;
-        JSString *jfunName = NULL;
+        JS::RootedString jfunName(cx);
         char *scriptName;
         unsigned lineno;
         unsigned parentLineNo;
@@ -137,7 +137,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
         JSFunction *fun = frame.maybeFun();
         if (fun) {
             jfunName = JS_GetFunctionId(fun);
-            if (jfunName) {
+            if (jfunName.get()) {
                 name.initBytes(JS_EncodeString(cx, jfunName));
                 funName = name.ptr();
             } else {
@@ -157,7 +157,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
         entry = profiler->add(scriptName, funName, lineno, profiler->m_LastEntryEnter, parentLineNo);
         entry->enter();
 
-        if (jfunName == NULL) {
+        if (jfunName.get() == NULL) {
             free(funName);
         }
 

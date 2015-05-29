@@ -380,8 +380,8 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     jdata.setNull();
 
     APE_A_FOREACH(h->headers.list, k, v) {
-        JSString *jstr = JS_NewStringCopyN(m_Cx, (char *)v->data,
-            v->used-1);
+        JS::RootedString jstr(m_CX, JS_NewStringCopyN(m_Cx, (char *)v->data,
+            v->used-1));
         JSOBJ_SET_PROP_FLAGS(headers, k->data,
             STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
     }

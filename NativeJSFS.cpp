@@ -119,11 +119,11 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
     jsval callback;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
-    JSString *path;
+    JS::RootedString path(cx);
 
     NATIVE_CHECK_ARGS("readDir", 2);
 
-    if (!JS_ConvertArguments(cx, 1, args.array(), "S", &path)) {
+    if (!JS_ConvertArguments(cx, 1, args.array(), "S", &path.get())) {
         return false;
     }
 
@@ -132,7 +132,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JSAutoByteString cpath(cx, path);
+    JSAutoByteString cpath(cx, path.get());
 
     NativeJSFSAsyncHandler *handler = new NativeJSFSAsyncHandler(cx);
     printf("Calling with cx : %p\n", cx);
