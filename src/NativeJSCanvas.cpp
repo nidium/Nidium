@@ -23,7 +23,7 @@ extern JSClass Canvas2DContext_class;
         args.rval().setUndefined(); \
         return false; \
     } \
-    ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj))->getHandler())
+    ofclass *NativeObject = ((ofclass *)((class NativeJSCanvas *)JS_GetPrivate(thisobj.get()))->getHandler())
 
 
 static struct native_cursors {

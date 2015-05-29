@@ -952,7 +952,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
 
     JS_CallFunctionValue(nof->cx, JS_GetGlobalObject(nof->cx), cb, 1, &jarr.get(), &rval.get());
 
-    JS_RemoveValueRoot(nof->cx, &nof->cb);
+    JS::RemoveValueRoot(nof->cx, &nof->cb);
     free(nof);
 }
 
@@ -1016,7 +1016,7 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     nof->cb = callback;
     nof->cx = cx;
 
-    JS_AddValueRoot(cx, &nof->cb);
+    JS::AddValueRoot(cx, &nof->cb);
 
     NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
         NULL,
@@ -1068,7 +1068,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     nof->cb = callback;
     nof->cx = cx;
 
-    JS_AddValueRoot(cx, &nof->cb);
+    JS::AddValueRoot(cx, &nof->cb);
 
     NativeContext::getNativeClass(cx)->getUI()->openFileDialog(
         (const char **)ctypes,
@@ -1296,7 +1296,7 @@ void NativeJSwindow::addFrameCallback(JS::Value &cb)
 
     m_RequestedFrame = frame;
 
-    JS_AddValueRoot(m_Cx, &frame->cb);
+    JS::AddValueRoot(m_Cx, &frame->cb);
 }
 
 void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
@@ -1316,7 +1316,7 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
                 frame->cb, 1, arg, &rval.get());
         }
 
-        JS_RemoveValueRoot(m_Cx, &frame->cb);
+        JS::RemoveValueRoot(m_Cx, &frame->cb);
 
         struct _requestedFrame *tmp = frame->next;
         delete frame;

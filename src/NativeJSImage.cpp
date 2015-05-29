@@ -100,8 +100,8 @@ static bool native_image_prop_set(JSContext *cx, JSHandleObject obj,
     switch(JSID_TO_INT(id)) {
         case IMAGE_PROP_SRC:
         {
-            if (JSVAL_IS_STRING(vp)) {
-                JSAutoByteString imgPath(cx, JSVAL_TO_STRING(vp));
+            if (vp.isString()) {
+                JSAutoByteString imgPath(cx, vp.toString());
 
                 NativeJSObj(cx)->rootObjectUntilShutdown(obj.get());
 
