@@ -173,7 +173,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
             JS::AutoIdArray ida(cx, JS_Enumerate(cx, headers));
 
             for (size_t i = 0; i < ida.length(); i++) {
-                JS::Rooted<jsid> id(cx, ida[i]);
+                JS::RootedId id(cx, ida[i]);
                 JS::RootedValue idval(cx);
                 JS_IdToValue(cx, id.get(), idval.address());
 

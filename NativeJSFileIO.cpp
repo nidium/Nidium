@@ -43,7 +43,7 @@ public:
     void onMessage(const NativeSharedMessages::Message &msg)
     {
 
-        jsval params[2];
+        JS::Value params[2];
         params[0].setNull();
         params[1].setUndefined();
         JSContext *cx = (JSContext *)m_Args[0].toPtr();
@@ -52,8 +52,7 @@ public:
 
         NativeBaseStream *stream = (NativeBaseStream *)m_Args[2].toPtr();
 
-        /* XXX RootedObject */
-        JSObject *callback = (JSObject *)m_Args[7].toPtr();
+        JS::RootedObject callback(cx, (JSObject *)m_Args[7].toPtr());
 
         char *encoding = (char *)m_Args[1].toPtr();
 
@@ -80,14 +79,14 @@ public:
                 return;
         }
 
-        if (JS_ObjectIsCallable(cx, callback)) {
+        if (JS_ObjectIsCallable(cx, callback.get())) {
 
             JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-            JS_CallFunctionValue(cx, NULL, OBJECT_TO_JSVAL(callback),
+            JS_CallFunctionValue(cx, NULL, OBJECT_TO_JSVAL(callback.get()),
                 2, params, rval.address());
         }
 
-        NativeJS::getNativeClass(cx)->unrootObject(callback);        
+        NativeJS::getNativeClass(cx)->unrootObject(callback.get());
 
         stream->setListener(NULL);
 
@@ -524,7 +523,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
     JS::RootedObject caller(cx, &args.thisv().toObject());
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
-    JSString *modes;
+    JS::RootedString modes(cx);
 
     NATIVE_CHECK_ARGS("open", 2);
 
@@ -545,7 +544,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     file = NJSFIO->getFile();
 
-    JSAutoByteString cmodes(cx, modes);
+    JSAutoByteString cmodes(cx, modes.get());
 
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
     file->open(cmodes.ptr(), callback.toObjectOrNull());
@@ -780,20 +779,20 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                 JS::RootedObject arr(cx, JS_NewArrayObject(cx, entries->size, NULL));
 
                 for (int i = 0; i < entries->size; i++) {
-                    JSObject *entry = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
+                    JS::RootedObject entry(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-                    JS::RootedValue val(cx, OBJECT_TO_JSVAL(entry));
-                    JS_SetElement(cx, arr, i, &val);
+                    JS::RootedValue val(cx, OBJECT_TO_JSVAL(entry.get()));
+                    JS_SetElement(cx, arr.get(), i, &val.get());
 
-                    JSOBJ_SET_PROP_STR(entry, "name",
+                    JSOBJ_SET_PROP_STR(entry.get(), "name",
                         JS_NewStringCopyZ(cx, entries->lst[i].d_name));
 
-                    JSOBJ_SET_PROP_CSTR(entry, "type",
+                    JSOBJ_SET_PROP_CSTR(entry.get(), "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
 
                 }
 
-                params[1] = OBJECT_TO_JSVAL(arr);
+                params[1] = OBJECT_TO_JSVAL(arr.get());
             }
         }
     }
@@ -829,7 +828,8 @@ void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
 
 void NativeJSFileIO::registerObject(JSContext *cx)
 {
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &File_class,
+    JS::RootedObject global(cx, JS_GetGlobalObject(cx));
+    JS_InitClass(cx, global.get(), NULL, &File_class,
         native_File_constructor,
         0, NULL, NULL, NULL, File_static_funcs);
 }

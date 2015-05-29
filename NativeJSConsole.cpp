@@ -82,7 +82,6 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     unsigned i;
-    JSString *str;
     char *bytes;
     JSScript *parent;
     const char *filename_parent;
@@ -102,10 +101,10 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     }
 
     for (i = 0; i < args.length(); i++) {
-        str = JS::RootedString(cx, JS_ValueToString(cx, args[i]));
+        JS::RootedString str(cx, JS_ValueToString(cx, args[i]));
         if (!str)
             return false;
-        bytes = JS_EncodeStringToUTF8(cx, str);
+        bytes = JS_EncodeStringToUTF8(cx, str.get());
         if (!bytes)
             return false;
         if (i) {
@@ -127,21 +126,20 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 static bool native_console_write(JSContext *cx, unsigned argc,
     jsval *vp)
 {
-    JSString *str;
     NativeJS *js = NativeJS::getNativeClass(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
     NATIVE_CHECK_ARGS("write", 1);
 
-    str = JS::RootedString(cx, args[0].toString());
-    if (!str) {
+    JS::RootedString str(cx, args[0].toString());
+    if (!str.get()) {
         JS_ReportError(cx, "Bad argument");
         return false;
     }
 
     JSAutoByteString cstr;
 
-    cstr.encodeUtf8(cx, str);
+    cstr.encodeUtf8(cx, str.get());
 
     js->log(cstr.ptr());
     js->log("\n");
