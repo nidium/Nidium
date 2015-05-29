@@ -258,6 +258,10 @@ public:
             (header_connection && strcasecmp(header_connection, "close") == 0));
     }
 
+    void setMaxRequestsCount(uint64_t n) {
+        m_MaxRequestsCount = n;
+    }
+
     virtual NativeHTTPResponse *onCreateResponse();
 
     virtual void onHeaderEnded(){};
