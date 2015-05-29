@@ -76,18 +76,18 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JSAutoByteString curl(cx, url);
+    JSAutoByteString curl(cx, url.get());
 
     nhttp = new NativeHTTP((ape_global *)JS_GetContextPrivate(cx));
 
-    jshttp = new NativeJSHttp(ret, cx, curl.ptr());
+    jshttp = new NativeJSHttp(ret.get(), cx, curl.ptr());
 
     nhttp->setPrivate(jshttp);
     jshttp->refHttp = nhttp;
     jshttp->jsobj = ret;
 
     /* TODO: store jshttp intead of nhttp */
-    JS_SetPrivate(ret, nhttp);
+    JS_SetPrivate(ret.get(), nhttp);
 
     args.rval().setObjectOrNull(ret);
     JS_DefineFunctions(cx, ret, http_funcs);
@@ -152,7 +152,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     JSGET_OPT_TYPE(options, "method", String) {
         JS::RootedString method(cx, __curopt.toString());
-        JSAutoByteString cmethod(cx, method);
+        JSAutoByteString cmethod(cx, method.get());
         if (strcmp("POST", cmethod.ptr()) == 0) {
             req->method = NativeHTTPRequest::NATIVE_HTTP_POST;
         } else if (strcmp("HEAD", cmethod.ptr()) == 0) {
@@ -167,7 +167,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     JSGET_OPT_TYPE(options, "headers", Object) {
-        if (!JSVAL_IS_PRIMITIVE(__curopt)) {
+        if (!__curopt.isPrimitive()) {
 
             JS::RootedObject headers(cx, __curopt.toObjectOrNull());
             JS::AutoIdArray ida(cx, JS_Enumerate(cx, headers));
@@ -183,16 +183,16 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
                     continue;
                 }
 
-                JSAutoByteString cidstr(cx, idstr);
+                JSAutoByteString cidstr(cx, idstr.get());
 
                 JS_GetPropertyById(cx, headers, id.get(), idval.address());
 
-                idstr = JS_ValueToString(cx, idval);
+                idstr = idval.toString() ;
                 if (idstr == NULL) {
 
                     continue;
                 }
-                JSAutoByteString cvalstr(cx, idstr);
+                JSAutoByteString cvalstr(cx, idstr.get());
 
                 req->setHeader(cidstr.ptr(), cvalstr.ptr());
             }
@@ -201,7 +201,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
 
     JSGET_OPT_TYPE(options, "data", String) {
         /* TODO: handle ArrayBuffer */
-        JS::RootedString data(cx, JS_ValueToString(cx, __curopt));
+        JS::RootedString data(cx, __curopt.toString());
         if (data != NULL) {
             char *hdata = JS_EncodeStringToUTF8(cx, data);
             req->setData(hdata, strlen(hdata));
@@ -218,14 +218,13 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     JSGET_OPT_TYPE(options, "timeout", Number) {
-        JS_ValueToECMAUint32(cx, __curopt, &nhttp->m_Timeout);
+        nhttp->m_TimeoutTimer = __curopt.toInt32();
     }
 
     JSGET_OPT_TYPE(options, "maxredirect", Number) {
 
         uint32_t max = 8;
-
-        JS_ValueToECMAUint32(cx, __curopt, &max);
+        max = __curopt.toInt32();
 
         nhttp->setMaxRedirect(max);
       
@@ -244,7 +243,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, jsval *vp)
     }
 
     jshttp->request = callback;
-    JS_SetReservedSlot(caller, 0, callback);
+    JS_SetReservedSlot(caller, 0, callback.get());
 
     NativeJSObj(cx)->rootObjectUntilShutdown(caller);
 
@@ -302,10 +301,10 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
             break;
     }
 
-    jevent.setObject(*event);
+    jevent.setObject(event.get());
 
-    JS_CallFunctionValue(cx, jsobj, onerror_callback,
-        1, jevent.address(), rval.address());    
+    JS_CallFunctionValue(cx, jsobj, onerror_callback.get(),
+        1, jevent.address(), rval.address());
 
     NativeJSObj(cx)->unrootObject(this->jsobj);
 }
@@ -359,7 +358,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
 
     jevent.setObject(*event);
 
-    JS_CallFunctionValue(cx, jsobj, ondata_callback,
+    JS_CallFunctionValue(cx, jsobj, ondata_callback.get(),
         1, jevent.address(), rval.address());
 }
 
@@ -386,13 +385,13 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
             STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
     }
     
-    SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
+    SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers.get()));
     SET_PROP(event, "statusCode", INT_TO_JSVAL(h->parser.status_code));
 
     if (h->data == NULL) {
         SET_PROP(event, "data", JSVAL_NULL);
 
-        jevent = OBJECT_TO_JSVAL(event);
+        jevent = OBJECT_TO_JSVAL(event.get());
         SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
             CONST_STR_LEN("null"))));
 
@@ -433,7 +432,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
                 printf("Cant encode json string\n");
                 break;
             }
-            chars = JS_GetStringCharsZAndLength(cx, str, &clen);
+            chars = JS_GetStringCharsZAndLength(cx, str.get(), &clen);
 
             if (JS_ParseJSON(cx, chars, clen, jdata.address()) == false) {
                 jdata.setNull();
@@ -473,7 +472,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         default:
         {
             JS::RootedObject arr(cx, JS_NewArrayBuffer(cx, h->data->used));
-            uint8_t *data = JS_GetArrayBufferData(arr);
+            uint8_t *data = JS_GetArrayBufferData(arr.get());
 
             memcpy(data, h->data->data, h->data->used);
             

@@ -261,7 +261,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, jsval *vp)
     JS_DefineFunctions(cx, ret, File_funcs);
     JS_DefineProperties(cx, ret, File_props);   
 
-    JS_SetPrivate(ret, NJSFIO);
+    JS_SetPrivate(ret.get(), NJSFIO);
 
     return true;
 }
@@ -275,11 +275,11 @@ static bool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     NATIVE_CHECK_ARGS("write", 2);
 
@@ -297,7 +297,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     if (args[0].isString()) {
         //printf("got a string to write\n");
         JS::RootedString str(cx, args[0].toString());
-        JSAutoByteString cstr(cx, str);
+        JSAutoByteString cstr(cx, str.get());
         size_t len = strlen(cstr.ptr());
 
         NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
@@ -307,12 +307,12 @@ static bool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
     } else if (args[0].isObject()) {
         JS::RootedObject jsobj(cx, args[0].toObjectOrNull());
 
-        if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj)) {
+        if (jsobj == NULL || !JS_IsArrayBufferObject(jsobj.get())) {
             JS_ReportError(cx, "NATIVE_INVALID_VALUE : only accept string or ArrayBuffer");
             return false;
         }
-        uint32_t len = JS_GetArrayBufferByteLength(jsobj);
-        uint8_t *data = JS_GetArrayBufferData(jsobj);
+        uint32_t len = JS_GetArrayBufferByteLength(jsobj.get());
+        uint8_t *data = JS_GetArrayBufferData(jsobj.get());
 
         NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
@@ -323,7 +323,7 @@ static bool native_file_write(JSContext *cx, unsigned argc, jsval *vp)
         return false;        
     }
 
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller.get());
 
     return true;
 }
@@ -335,11 +335,11 @@ static bool native_file_isDir(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     file = NJSFIO->getFile();
 
@@ -357,11 +357,11 @@ static bool native_file_rmrf(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     file = NJSFIO->getFile();
 
@@ -378,7 +378,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
@@ -404,7 +404,7 @@ static bool native_file_listFiles(JSContext *cx, unsigned argc, jsval *vp)
     }
     file->listFiles(callback.toObjectOrNull());
 
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller.get());
 
     return true;
 }
@@ -419,7 +419,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
     NativeFile *file;
     double read_size;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
@@ -427,7 +427,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     NATIVE_CHECK_ARGS("read", 2);
 
@@ -448,7 +448,7 @@ static bool native_file_read(JSContext *cx, unsigned argc, jsval *vp)
 #if FILE_ROOT_DEBUG
     printf("Root read %p\n", caller.get());
 #endif
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller.get());
 
     return true;
 }
@@ -463,7 +463,7 @@ static bool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
     NativeFile *file;
     double seek_pos;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
@@ -480,13 +480,13 @@ static bool native_file_seek(JSContext *cx, unsigned argc, jsval *vp)
 
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     file = NJSFIO->getFile();
 
     file->seek(seek_pos, callback.toObjectOrNull());
 
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller.get());
 
     return true;
 }
@@ -500,11 +500,11 @@ static bool native_file_close(JSContext *cx, unsigned argc, jsval *vp)
     NativeJSFileIO *NJSFIO;
     NativeFile *file;
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     file = NJSFIO->getFile();
 
@@ -528,7 +528,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 
     NATIVE_CHECK_ARGS("open", 2);
 
-    if (JS_InstanceOf(cx, caller, &File_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller.get(), &File_class, args.array()) == false) {
         return false;
     }
 
@@ -541,7 +541,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller);
+    NJSFIO = (NativeJSFileIO *)JS_GetPrivate(caller.get());
 
     file = NJSFIO->getFile();
 
@@ -552,7 +552,7 @@ static bool native_file_open(JSContext *cx, unsigned argc, jsval *vp)
 #if FILE_ROOT_DEBUG
     printf("Root open %p\n", caller.get());
 #endif
-    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller);
+    NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(caller.get());
 
     return true;
 }
@@ -677,7 +677,7 @@ static bool native_file_readFile(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    JSAutoByteString cfilename(cx, filename);
+    JSAutoByteString cfilename(cx, filename.get());
     NativeJS::getNativeClass(cx)->rootObjectUntilShutdown(callback.toObjectOrNull());
 
     NativeBaseStream *stream = NativeBaseStream::create(NativePath(cfilename.ptr()));
@@ -813,7 +813,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     if (JS_ObjectIsCallable(cx, callback)) {
 
         JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-        JS_CallFunctionValue(cx, jsthis, OBJECT_TO_JSVAL(callback),
+        JS_CallFunctionValue(cx, jsthis.get(), OBJECT_TO_JSVAL(callback),
             2, params, rval.address());
     }
 
@@ -840,7 +840,7 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
     NativeFile *file;
     NativeJSFileIO *NJSFIO;
 
-    NJSFIO = new NativeJSFileIO(ret, cx);
+    NJSFIO = new NativeJSFileIO(ret.get(), cx);
     file = new NativeFile(path);
     file->setListener(NJSFIO);
 
@@ -849,7 +849,7 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
     JS_DefineFunctions(cx, ret, File_funcs);
     JS_DefineProperties(cx, ret, File_props);   
 
-    JS_SetPrivate(ret, NJSFIO);
+    JS_SetPrivate(ret.get(), NJSFIO);
 
     return ret;
 }

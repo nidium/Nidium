@@ -99,12 +99,12 @@ static bool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
         return false;
     }
 
-    if (!objdata || !JS_IsArrayBufferObject(objdata)) {
+    if (!objdata || !JS_IsArrayBufferObject(objdata.get())) {
         JS_ReportError(cx, "unserialize() invalid data (not an ArrayBuffer)");
         return false;            
     }
-    uint32_t len = JS_GetArrayBufferByteLength(objdata);
-    uint8_t *data = JS_GetArrayBufferData(objdata);
+    uint32_t len = JS_GetArrayBufferByteLength(objdata.get());
+    uint8_t *data = JS_GetArrayBufferData(objdata.get());
 
     JS::RootedValue inval(cx);
 
@@ -132,11 +132,11 @@ void NativeJSDebug::registerObject(JSContext *cx)
         NativeJSDebug::getJSObjectName(),
         &debug_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
-    NativeJSDebug *jdebug = new NativeJSDebug(debugObj, cx);
+    NativeJSDebug *jdebug = new NativeJSDebug(debugObj.get(), cx);
 
-    JS_SetPrivate(debugObj, jdebug);
+    JS_SetPrivate(debugObj.get(), jdebug);
 
-    njs->jsobjects.set(NativeJSDebug::getJSObjectName(), debugObj);
+    njs->jsobjects.set(NativeJSDebug::getJSObjectName(), debugObj.get());
 
     JS_DefineFunctions(cx, debugObj, debug_funcs);
 }

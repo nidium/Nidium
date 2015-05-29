@@ -38,7 +38,7 @@
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
     } \
-    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
+    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj.get(), fclass, NULL); \
     if (!CppObj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
@@ -136,8 +136,8 @@ public:
 
     bool fire(jsval evobj, JSObject *thisobj) {
         NativeJSEvent *ev, *tmpEv;
-        JS::RootedValue rval(cx);
         for (ev = m_Head; ev != NULL;) {
+            JS::RootedValue rval(ev->m_Cx);
             // Use tmp in case the event was self deleted during trigger
             tmpEv = ev->next;
             JS_CallFunctionValue(ev->m_Cx, thisobj,
@@ -165,7 +165,7 @@ private:
             return false;            
         }
         JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
-        JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble.get());
+        JS_SetProperty(cx, thisobj.get(), "cancelBubble", &cancelBubble.get());
 
         return true;
     }
@@ -324,7 +324,7 @@ private:
 
         JSAutoByteString cname(cx, name);
 
-        CppObj->fireJSEvent(cname.ptr(), OBJECT_TO_JSVAL(evobj));
+        CppObj->fireJSEvent(cname.ptr(), OBJECT_TO_JSVAL(evobj.get()));
 
         return true;
     }
@@ -347,9 +347,9 @@ private:
             return false;
         }
 
-        JSAutoByteString cname(cx, name);
+        JSAutoByteString cname(cx, name.get());
 
-        CppObj->addJSEvent(cname.ptr(), cb);
+        CppObj->addJSEvent(cname.ptr(), cb.get());
 
         return true;
     }
@@ -467,7 +467,8 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define NATIVE_OBJECT_EXPOSE(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
     { \
-        JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &name ## _class, \
+        JS::RootedObject global(cx, JS_GetGlobalObject(cx)); \
+        JS_InitClass(cx, global, NULL, &name ## _class, \
             native_ ## name ## _constructor, \
             0, NULL, NULL, NULL, NULL); \
     }

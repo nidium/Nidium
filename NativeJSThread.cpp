@@ -131,14 +131,14 @@ static void *native_thread(void *arg)
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION/* | JSOPTION_ASMJS*/);
 
-    if (!JS_InitStandardClasses(tcx, gbl))
+    if (!JS_InitStandardClasses(tcx, gbl.get()))
         return NULL;
     
     JS_SetErrorReporter(tcx, reportError);
 
-    JS_SetGlobalObject(tcx, gbl);
+    JS_SetGlobalObject(tcx, gbl.get());
 
-    JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
+    JS_DefineFunctions(tcx, gbl.get(), glob_funcs_threaded);
 
     NativeJSconsole::registerObject(tcx);
 
@@ -160,7 +160,7 @@ static void *native_thread(void *arg)
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
 
-    JS::RootedFunction cf(tcx, JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
+    JS::RootedFunction cf(tcx, JS_CompileFunction(tcx, gbl.get(), NULL, 0, NULL, scoped,
         strlen(scoped), nthread->m_CallerFileName, nthread->m_CallerLineno));
 
     delete[] scoped;
@@ -184,8 +184,8 @@ static void *native_thread(void *arg)
         JS_ClearStructuredClone(nthread->params.argv[i], nthread->params.nbytes[i]);
     }
 
-    if (JS_CallFunction(tcx, gbl, cf, nthread->params.argc,
-        arglst), &rval.get()) == false) {
+    if (JS_CallFunction(tcx, gbl.get(), cf, nthread->params.argc,
+        arglst, &rval.get()) == false) {
     }
 
     JS_EndRequest(tcx);
@@ -271,7 +271,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         strcpy(prop, "oncomplete");
     }
 
-    JS::RootedValue inval(cx, JSVAL_NULL);
+    JS::RootedValue inval(m_Cx, JSVAL_NULL);
 
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
         JS_STRUCTURED_CLONE_VERSION, &inval.get(), NULL, NULL)) {
@@ -283,15 +283,14 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
     }
 
     if (JS_GetProperty(m_Cx, ptr->callee, prop, jscbk.address()) &&
-        !JSVAL_IS_PRIMITIVE(jscbk) && 
-        JS_ObjectIsCallable(m_Cx, JSVAL_TO_OBJECT(jscbk))) {
+        jscbk.isPrimitive() && JS_ObjectIsCallable(m_Cx, jscbk.toObject())) {
 
         event = JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr());
 
         EVENT_PROP("data", inval);
 
         jevent = OBJECT_TO_JSVAL(event);
-        JS_CallFunctionValue(m_Cx, event, jscbk, 1, jevent.address(), rval.address());
+        JS_CallFunctionValue(m_Cx, event.get(), jscbk.get(), 1, jevent.address(), rval.address());
 
     }
     JS_ClearStructuredClone(ptr->data, ptr->nbytes);
@@ -307,7 +306,7 @@ static bool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
     JS::RootedScript parent(cx);
 
-    NativeJSThread *nthread = new NativeJSThread(ret, cx);
+    NativeJSThread *nthread = new NativeJSThread(ret.get(), cx);
     JSFunction *nfn;
 
     if ((nfn = JS_ValueToFunction(cx, args.array()[0])) == NULL ||
@@ -321,16 +320,16 @@ static bool native_Thread_constructor(JSContext *cx, unsigned argc, jsval *vp)
 
 
     JS_DescribeScriptedCaller(cx, parent.address(), &nthread->m_CallerLineno);
-    nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent);
+    nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent.get());
 
     /* XXX RootedString (Heap?) */
     JS_AddStringRoot(cx, &nthread->jsFunction);
 
-    JS_SetPrivate(ret, nthread);
+    JS_SetPrivate(ret.get(), nthread);
 
     args.rval().setObjectOrNull(ret);
 
-    JS_DefineFunctions(cx, ret, Thread_funcs);
+    JS_DefineFunctions(cx, ret.get(), Thread_funcs);
 
     return true;
 }

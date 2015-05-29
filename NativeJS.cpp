@@ -762,28 +762,28 @@ void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
         JS::RootedId id(cx, ida[i]);
         JS::RootedValue val(cx);
 
-        JSString *prop = JSID_TO_STRING(id);
+        JSString *prop = JSID_TO_STRING(id.get());
         JSAutoByteString cprop(cx, prop);
 
-        if (!JS_GetPropertyById(cx, source, id, &val.get())) {
+        if (!JS_GetPropertyById(cx, source, id.get(), &val.get())) {
             break;
         }
         /* TODO : has own property */
-        switch(JS_TypeOfValue(cx, val)) {
+        switch(JS_TypeOfValue(cx, val.get())) {
             case JSTYPE_OBJECT:
             {
                 JS::RootedValue oldval(cx);
 
-                if (!JS_GetPropertyById(cx, into, id, &oldval.get()) ||
-                    JSVAL_IS_VOID(oldval) || JSVAL_IS_PRIMITIVE(oldval)) {
-                    JS_SetPropertyById(cx, into, id, &val);
+                if (!JS_GetPropertyById(cx, into, id.get(), &oldval.get()) ||
+                    oldval.isNullOrUndefined() || oldval.isPrimitive()) {
+                    JS_SetPropertyById(cx, into, id.get(), &val.get());
                 } else {
-                    NativeJS::copyProperties(cx, JSVAL_TO_OBJECT(val), JSVAL_TO_OBJECT(oldval));
+                    NativeJS::copyProperties(cx, &val.toObject(), &oldval.toObject());
                 }
                 break;
             }
             default:
-                JS_SetPropertyById(cx, into, id, &val.get());
+                JS_SetPropertyById(cx, into, id.get(), &val.get());
                 break;
         }
     }
@@ -874,7 +874,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
 
     JS_SetOptions(cx, oldopts);
 
-    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, rgbl.get(), script, NULL)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -920,7 +920,7 @@ int NativeJS::LoadBytecode(void *data, int size, const char *filename)
 
     JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL, NULL));
 
-    if (script == NULL || !JS_ExecuteScript(cx, rgbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, rgbl.get(), script.get(), NULL)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
