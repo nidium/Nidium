@@ -185,6 +185,6 @@ void NativeJSconsole::registerObject(JSContext *cx)
         JS_GetGlobalObject(cx), "console",
         &console_class, NULL, 0));
 
-    JS_DefineFunctions(cx, consoleObj, console_funcs);
+    JS_DefineFunctions(cx, consoleObj.get(), console_funcs);
 }
 
