@@ -33,7 +33,7 @@ class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDele
     NativeJSHttp(JSObject *obj, JSContext *cx, char *url);
     virtual ~NativeJSHttp();
 
-    jsval request;
+    JS::Value request;
     NativeHTTP *refHttp;
     JSObject *jsobj;
 

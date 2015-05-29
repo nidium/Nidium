@@ -133,7 +133,7 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     if (client->getHTTPState()->parser.method == HTTP_POST) {
         JS::RootedValue strdata(m_Cx);
         if (data == NULL || data->used == 0) {
-            strdata.setObjectOrNull(JSVAL_TO_OBJECT(JS_GetEmptyStringValue(m_Cx)));
+            strdata.setObjectOrNull(&JS_GetEmptyStringValue(m_Cx).toObject());
         } else {
             NativeJSUtils::strToJsval(m_Cx, (const char *)data->data,
                 data->used, &strdata, "utf8");
@@ -198,7 +198,7 @@ static bool native_HTTPListener_constructor(JSContext *cx,
     }
 
     if (ip_bind) {
-        JSAutoByteString cip(cx, ip_bind);
+        JSAutoByteString cip(cx, ip_bind.get());
         listener = new NativeJSHTTPListener(ret.get(), cx, port, cip.ptr());
     } else {
         listener = new NativeJSHTTPListener(ret.get(), cx, port);
@@ -211,7 +211,7 @@ static bool native_HTTPListener_constructor(JSContext *cx,
     }
 
     JS_SetPrivate(ret.get(), listener);
-    args.rval().setObjectOrNull(ret);
+    args.rval().setObjectOrNull(ret.get());
 
     NativeJSObj(cx)->rootObjectUntilShutdown(ret.get());
 
@@ -327,11 +327,11 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *v
         JS::RootedObject iterator(cx);
 
         iterator = JS_NewPropertyIterator(cx, headers);
-        while (JS_NextProperty(cx, iterator.get(), idp.address()) && !JSID_IS_VOID(idp)) {
-            if (!JSID_IS_STRING(idp)) {
+        while (JS_NextProperty(cx, iterator.get(), idp.address()) && !JSID_IS_VOID(idp.get())) {
+            if (!JSID_IS_STRING(idp.get())) {
                 continue;
             }
-            JS::RootedString key(cx, JSID_TO_STRING(idp));
+            JS::RootedString key(cx, JSID_TO_STRING(idp.get()));
             JS::RootedValue val(cx);
 
             if (!JS_GetPropertyById(cx, headers.get(), idp.get(), val.address()) || !val.isString()) {
@@ -353,12 +353,12 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, jsval *v
 void NativeJSHTTPListener::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS_GetGlobalObject(cx));
-    JS_InitClass(cx, global, nullptr, &HTTPListener_class,
+    JS_InitClass(cx, global.get(), nullptr, &HTTPListener_class,
         native_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
 #if 0
     //TODO: how to init a class from a NativeJSObjectMapper derived class
-    JS_InitClass(cx, JS_GetGlobalObject(cx), NULL, &HTTPRequest_class,
+    JS_InitClass(cx, global.get(), NULL, &HTTPRequest_class,
                 native_HTTPRequest_class_constructor,
                 0, HTTPRequest_props, HTTPRequest_funcs, NULL, NULL);
 #endif

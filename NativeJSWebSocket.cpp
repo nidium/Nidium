@@ -215,7 +215,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
-            jsval arg[2];
+            JS::Value arg[2];
             JS::AutoArrayRooter argRooter(cx, 2, arg);
 
             const char *data = (const char *)msg.args[2].toPtr();

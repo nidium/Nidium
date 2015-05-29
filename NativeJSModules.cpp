@@ -78,8 +78,8 @@ NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJS
 bool NativeJSModule::initMain() 
 {
     this->name = strdup("__MAIN__");
-
-    JS::RootedFunction fun(cx, JS::DefineFunctionWithReserved(this->cx, JS_GetGlobalObject(cx),
+    JS::RootedObject global(cx, JS_GetGlobalObject(cx));
+    JS::RootedFunction fun(cx, JS::DefineFunctionWithReserved(this->cx, global,
             "require", native_modules_require, 1, 0));
 
     if (!fun) {
@@ -88,7 +88,7 @@ bool NativeJSModule::initMain()
 
     JS::RootedObject funObj(cx, JS_GetFunctionObject(fun.get()));
 
-    JS::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
+    JS::SetFunctionNativeReserved(funObj.get(), 0, PRIVATE_TO_JSVAL((void *)this));
 
     this->exports = NULL; // Main module is not a real module, thus no exports
 
@@ -213,17 +213,17 @@ bool NativeJSModule::initNative()
 bool NativeJSModule::initJS()
 {
 #define TRY_OR_DIE(call) if (call == false) { return false; }
-    JSObject *gbl = JS_NewObject(this->cx, &native_modules_exports_class, JS::NullPtr(), JS::NullPtr());
-    if (!gbl) {
+    JS::RootedObject gbl(cx, JS_NewObject(this->cx, &native_modules_exports_class, JS::NullPtr(), JS::NullPtr()));
+    if (!gbl.get()) {
         return false;
     }
 
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
-    JS_SetPrivate(gbl, this);
+    JS_SetPrivate(gbl.get(), this);
 
-    JSObject *funObj;
-    JSFunction *fun = JS::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
+    JS::RootedObject funObj(cx);
+    JSFunction *fun = JS::DefineFunctionWithReserved(this->cx, gbl.get(), "require", native_modules_require, 1, 0);
     if (!fun) {
         return false;
     }
@@ -232,7 +232,7 @@ bool NativeJSModule::initJS()
 
     JS::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
-    JS::RootedObject exports(cx,JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::RootedObject exports(cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, JS::NullPtr(), JS::NullPtr()));
 
     if (!exports.get() || !module.get()) {
@@ -250,15 +250,15 @@ bool NativeJSModule::initJS()
     JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports.get()));
     JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module.get()));
 
-    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", &exportsVal.get()));
+    TRY_OR_DIE(JS_DefineProperties(cx, gbl.get(), native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl.get(), "exports", &exportsVal.get()));
 
     TRY_OR_DIE(JS_DefineProperties(cx, module.get(), native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", &moduleVal.get()));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl.get(), "module", &moduleVal.get()));
     TRY_OR_DIE(JS_SetProperty(cx, module.get(), "id", id.address()));
     TRY_OR_DIE(JS_SetProperty(cx, module.get(), "exports", &exportsVal.get()));
 
-    JS::SetFunctionNativeReserved(funObj, 1, exportsVal);
+    JS::SetFunctionNativeReserved(funObj.get(), 1, exportsVal);
 
     this->exports = gbl;
     njs->rootObjectUntilShutdown(this->exports);
@@ -557,10 +557,10 @@ JS::Value NativeJSModule::require(char *name)
 
         // Found a cyclic dependency
         if (strcmp(cmodule->filePath, m->filePath) == 0) {
-            JSObject *gbl = m->exports;
+            JS::RootedObject gbl(cx, m->exports);
             JS::RootedValue module(cx);
-            JS_GetProperty(cx, gbl, "module", &module.get());
-            JS_GetProperty(cx, module.toObject(), "exports", &ret.get());
+            JS_GetProperty(cx, gbl.get(), "module", &module.get());
+            JS_GetProperty(cx, module.get(), "exports", &ret.get());
             return ret;
         }
 
