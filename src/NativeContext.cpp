@@ -432,7 +432,7 @@ void NativeContext::triggerEvents()
 }
 
 // From third-party/mozilla-central/content/canvas/src/WebGLContextValidate.cpp
-// TODO : Handle OpenGL ES
+// TODO : Handle OpenGL ESJSVAL_
 bool NativeContext::initShaderLang()
 {
     GLint maxVertexAttribs;
@@ -646,15 +646,15 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
             JS_ReadTypedArray(r, &arr.get());
 
             JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
-            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
+            JS_DefineProperty(cx, dataObject.get(), "width", UINT_TO_JSVAL(width),
                 nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
+            JS_DefineProperty(cx, dataObject.get(), "height", UINT_TO_JSVAL(height),
                 nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject, "data", arr,
+            JS_DefineProperty(cx, dataObject.get(), "data", arr.get(),
                nullptr, nullptr,
                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 

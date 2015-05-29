@@ -389,7 +389,7 @@ JSObject *NativeNML::BuildLST(JSContext *cx, char *str)
 
 JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 {
-#define NODE_PROP(where, name, val) JS_DefineProperty(cx, where, name, \
+#define NODE_PROP(where, name, val) JS_DefineProperty(cx, where.get(), name, \
     val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 #define NODE_STR(data, len) STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx, \
         (const char *)data, len, "utf8"))
@@ -441,8 +441,8 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
         }
 
         /* push to input array */
-        JS::RootedValue jobjV(cx, OBJECT_TO_JSVAL(obj));
-        JS_SetElement(cx, input, idx++, &jobjV.get());
+        JS::RootedValue jobjV(cx, OBJECT_TO_JSVAL(obj.get()));
+        JS_SetElement(cx, input.get(), idx++, &jobjV.get());
     }
     return input;
 #undef NODE_PROP
