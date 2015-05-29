@@ -756,12 +756,12 @@ void NativeJS::bindNetObject(ape_global *net)
 void NativeJS::copyProperties(JSContext *cx, JSObject *source, JSObject *into)
 {
 
-    js::AutoIdArray ida(cx, JS_Enumerate(cx, source));
+    JS::AutoIdArray ida(cx, JS_Enumerate(cx, source));
 
     for (size_t i = 0; i < ida.length(); i++) {
         JS::RootedId id(cx, ida[i]);
-        JS::RootedValue val(cx);
 
+        JS::RootedValue val(cx);
         JS::RootedString prop(cx, JSID_TO_STRING(id));
         JSAutoByteString cprop(cx, prop.get());
 
@@ -868,7 +868,7 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
-    js::RootedObject rgbl(cx, gbl);
+    JS::RootedObject rgbl(cx, gbl);
 
     JSScript *script = JS::Compile(cx, rgbl, options, data, len);
 
@@ -916,7 +916,7 @@ int NativeJS::LoadBytecode(NativeBytecodeScript *script)
 int NativeJS::LoadBytecode(void *data, int size, const char *filename)
 {
     JSObject *gbl = JS_GetGlobalObject(cx);
-    js::RootedObject rgbl(cx, gbl);
+    JS::RootedObject rgbl(cx, gbl);
 
     JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL, NULL));
 

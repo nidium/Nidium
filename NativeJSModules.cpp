@@ -79,8 +79,7 @@ bool NativeJSModule::initMain()
 {
     this->name = strdup("__MAIN__");
 
-    JS::RootedObject global(this->cx, JS_GetGlobalObject(cx));
-    JS::RootedFunction fun(cx, js::DefineFunctionWithReserved(this->cx, global.get(),
+    JS::RootedFunction fun(cx, JS::DefineFunctionWithReserved(this->cx, JS_GetGlobalObject(cx),
             "require", native_modules_require, 1, 0));
 
     if (!fun) {
@@ -89,7 +88,7 @@ bool NativeJSModule::initMain()
 
     JS::RootedObject funObj(cx, JS_GetFunctionObject(fun.get()));
 
-    js::SetFunctionNativeReserved(funObj.get(), 0, PRIVATE_TO_JSVAL((void *)this));
+    JS::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
     this->exports = NULL; // Main module is not a real module, thus no exports
 
@@ -224,14 +223,14 @@ bool NativeJSModule::initJS()
     JS_SetPrivate(gbl, this);
 
     JSObject *funObj;
-    JSFunction *fun = js::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
+    JSFunction *fun = JS::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
     if (!fun) {
         return false;
     }
 
     funObj = JS_GetFunctionObject(fun);
 
-    js::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
+    JS::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
     JS::RootedObject exports(cx,JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, JS::NullPtr(), JS::NullPtr()));
@@ -259,7 +258,7 @@ bool NativeJSModule::initJS()
     TRY_OR_DIE(JS_SetProperty(cx, module.get(), "id", id.address()));
     TRY_OR_DIE(JS_SetProperty(cx, module.get(), "exports", &exportsVal.get()));
 
-    js::SetFunctionNativeReserved(funObj, 1, exportsVal);
+    JS::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     this->exports = gbl;
     njs->rootObjectUntilShutdown(this->exports);
@@ -678,7 +677,11 @@ static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString namestr(cx, name.get());
 
     JSObject *callee = (JS_CALLEE(cx, vp)).toObjectOrNull();
+<<<<<<< HEAD
     JS::RootedValue reserved(cx, js::GetFunctionNativeReserved(callee, 0));
+=======
+    JS::Value reserved = JS::GetFunctionNativeReserved(callee, 0);
+>>>>>>> 23986cd74b02b635ccef13f5401ca0fbb0f6cb49
     if (!reserved.isDouble()) {
         JS_ReportError(cx, "InternalError");
         return false;
