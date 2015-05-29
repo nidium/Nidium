@@ -280,8 +280,7 @@ static bool native_canvas2dctx_fillRect(JSContext *cx, unsigned argc, JS::Value 
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, width, height, rx = 0, ry = 0;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd/dd", &x, &y,
-        &width, &height, &rx, &ry)) {
+    if (!JS_ConvertArguments(cx, args, "dddd/dd", &x, &y, &width, &height, &rx, &ry)) {
         return false;
     }
 
@@ -300,7 +299,7 @@ static bool native_canvas2dctx_strokeRect(JSContext *cx, unsigned argc, JS::Valu
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, width, height, rx = 0, ry = 0;
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd/dd", &x, &y,
+    if (!JS_ConvertArguments(cx, args, "dddd/dd", &x, &y,
         &width, &height, &rx, &ry)) {
         return false;
     }
@@ -322,7 +321,7 @@ static bool native_canvas2dctx_clearRect(JSContext *cx, unsigned argc, JS::Value
 
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd", &x, &y,
+    if (!JS_ConvertArguments(cx, args, "dddd", &x, &y,
         &width, &height)) {
         return false;
     }
@@ -346,7 +345,7 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
     double maxWidth;
     int length = 0;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "Sd", &str, &maxWidth)) {
+    if (!JS_ConvertArguments(cx, args, "Sd", &str, &maxWidth)) {
         return false;
     }
 
@@ -396,8 +395,7 @@ static bool native_canvas2dctx_fillText(JSContext *cx, unsigned argc, JS::Value 
     int x, y, maxwidth;
     JS::RootedString str(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "Sii/i",
-            &str, &x, &y, &maxwidth)) {
+    if (!JS_ConvertArguments(cx, args, "Sii/i", &str, &x, &y, &maxwidth)) {
         return false;
     }
 
@@ -416,8 +414,7 @@ static bool native_canvas2dctx_strokeText(JSContext *cx, unsigned argc, JS::Valu
     int x, y, maxwidth;
     JS::RootedString str(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "Sii/i",
-            &str, &x, &y, &maxwidth)) {
+    if (!JS_ConvertArguments(cx, args, "Sii/i", &str, &x, &y, &maxwidth)) {
         return false;
     }
 
@@ -449,7 +446,7 @@ static bool native_canvas2dctx_moveTo(JSContext *cx, unsigned argc, JS::Value *v
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
 
@@ -464,7 +461,7 @@ static bool native_canvas2dctx_lineTo(JSContext *cx, unsigned argc, JS::Value *v
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
 
@@ -514,8 +511,7 @@ static bool native_canvas2dctx_rect(JSContext *cx, unsigned argc, JS::Value *vp)
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, width, height;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd", &x, &y,
-        &width, &height)) {
+    if (!JS_ConvertArguments(cx, args, "dddd", &x, &y, &width, &height)) {
         return false;
     }
 
@@ -532,8 +528,8 @@ static bool native_canvas2dctx_arc(JSContext *cx, unsigned argc, JS::Value *vp)
     double startAngle, endAngle;
     bool CCW = false;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "iiidd/b", &x, &y,
-        &radius, &startAngle, &endAngle, &CCW)) {
+    if (!JS_ConvertArguments(cx, args, "iiidd/b", &x, &y, &radius, &startAngle,
+        &endAngle, &CCW)) {
         return false;
     }
 
@@ -549,8 +545,7 @@ static bool native_canvas2dctx_arcTo(JSContext *cx, unsigned argc, JS::Value *vp
     int x1, y1, x2, y2, radius;
     bool CCW = false;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "iiiii", &x1, &y1,
-        &x2, &y2, &radius)) {
+    if (!JS_ConvertArguments(cx, args, "iiiii", &x1, &y1, &x2, &y2, &radius)) {
         return false;
     }
 
@@ -565,8 +560,7 @@ static bool native_canvas2dctx_quadraticCurveTo(JSContext *cx, unsigned argc,
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy;
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd", &cpx, &cpy,
-        &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dddd", &cpx, &cpy, &x, &y)) {
         return false;
     }
 
@@ -580,8 +574,8 @@ static bool native_canvas2dctx_bezierCurveTo(JSContext *cx, unsigned argc,
 {
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, cpx, cpy, cpx2, cpy2;
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddddd", &cpx, &cpy,
-        &cpx2, &cpy2, &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dddddd", &cpx, &cpy, &cpx2, &cpy2,
+        &x, &y)) {
         return false;
     }
 
@@ -596,7 +590,7 @@ static bool native_canvas2dctx_rotate(JSContext *cx, unsigned argc, JS::Value *v
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double angle;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "d", &angle)) {
+    if (!JS_ConvertArguments(cx, args, "d", &angle)) {
         return false;
     }
 
@@ -611,7 +605,7 @@ static bool native_canvas2dctx_scale(JSContext *cx, unsigned argc, JS::Value *vp
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
 
@@ -626,7 +620,7 @@ static bool native_canvas2dctx_translate(JSContext *cx, unsigned argc, JS::Value
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
 
@@ -641,8 +635,8 @@ static bool native_canvas2dctx_transform(JSContext *cx, unsigned argc, JS::Value
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey, rotate;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddddd/d",
-        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey, &rotate)) {
+    if (!JS_ConvertArguments(cx, args, "dddddd/d", &scalex, &skewx, &skewy,
+        &scaley, &translatex, &translatey, &rotate)) {
         return false;
     }
 
@@ -662,8 +656,7 @@ static bool native_canvas2dctx_iTransform(JSContext *cx, unsigned argc, JS::Valu
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double scalex, skewx, skewy, scaley, translatex, translatey;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddddd",
-        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+    if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
         return false;
     }
 
@@ -681,8 +674,7 @@ static bool native_canvas2dctx_setTransform(JSContext *cx, unsigned argc, JS::Va
 
     NativeCanvasHandler *handler = CppObj->getHandler();
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddddd",
-        &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
+    if (!JS_ConvertArguments(cx, args, "dddddd", &scalex, &skewx, &skewy, &scaley, &translatex, &translatey)) {
         return false;
     }
 
@@ -761,8 +753,7 @@ static bool native_canvas2dctx_createLinearGradient(JSContext *cx,
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject linearObject(cx);
     double x1, y1, x2, y2;
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddd",
-        &x1, &y1, &x2, &y2)) {
+    if (!JS_ConvertArguments(cx, args, "dddd", &x1, &y1, &x2, &y2)) {
         return false;
     }
 
@@ -787,8 +778,7 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
     JS::RootedObject arrBuffer(cx);
     uint8_t *data;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "iiii",
-        &left, &top, &width, &height)) {
+    if (!JS_ConvertArguments(cx, args, "iiii", &left, &top, &width, &height)) {
         return false;
     }
 
@@ -824,8 +814,7 @@ static bool native_canvas2dctx_putImageData(JSContext *cx,
     JS::RootedValue jwidth(cx);
     JS::RootedValue jheight(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oii",
-        &dataObject, &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "oii", &dataObject, &x, &y)) {
         return false;
     }
 
@@ -857,8 +846,7 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
     JS::RootedObject arrBuffer(cx);
     unsigned long x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "uu",
-        &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "uu", &x, &y)) {
         return false;
     }
 
@@ -902,8 +890,7 @@ static bool native_canvas2dctx_createPattern(JSContext *cx,
     JS::RootedObject patternObject(cx);
     JS::RootedString mode(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oS",
-        &jsimage, &mode)) {
+    if (!JS_ConvertArguments(cx, args, "oS", &jsimage, &mode)) {
         return false;
     }
 
@@ -951,8 +938,7 @@ static bool native_canvas2dctx_createRadialGradient(JSContext *cx,
     JS::RootedObject linearObject(cx);
     double x1, y1, x2, y2, r1, r2;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dddddd",
-        &x1, &y1, &r1, &x2, &y2, &r2)) {
+    if (!JS_ConvertArguments(cx, args, "dddddd", &x1, &y1, &r1, &x2, &y2, &r2)) {
         return false;
     }
 
@@ -979,8 +965,7 @@ static bool native_canvas2dctxGradient_addColorStop(JSContext *cx,
     double position;
     NativeSkGradient *gradient;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dS",
-        &position, &color)) {
+    if (!JS_ConvertArguments(cx, args, "dS", &position, &color)) {
         return false;
     }
 
@@ -1006,13 +991,11 @@ static bool native_canvas2dctx_drawImage(JSContext *cx, unsigned argc, JS::Value
     int need_free = 0;
 
     if (argc == 9) {
-         if (!JS_ConvertArguments(cx, args.length(), args.array(), "oiiiidddd",
-            &jsimage, &sx, &sy, &swidth, &sheight, &x, &y, &width, &height)) {
+         if (!JS_ConvertArguments(cx, args, "oiiiidddd", &jsimage, &sx, &sy, &swidth, &sheight, &x, &y, &width, &height)) {
             return false;
         }
     } else {
-        if (!JS_ConvertArguments(cx, args.length(), args.array(), "odd/dd",
-            &jsimage, &x, &y, &width, &height)) {
+        if (!JS_ConvertArguments(cx, args, "odd/dd", &jsimage, &x, &y, &width, &height)) {
             return false;
         }
     }
@@ -1070,8 +1053,7 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
     val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
-        &text)) {
+    if (!JS_ConvertArguments(cx, args, "S", &text)) {
         return false;
     }
 
@@ -1098,7 +1080,7 @@ static bool native_canvas2dctx_isPointInPath(JSContext *cx, unsigned argc,
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         vp->setBoolean(false);
         return false;
     }
@@ -1155,8 +1137,7 @@ static bool native_canvas2dctx_setVertexOffset(JSContext *cx, unsigned argc,
     uint32_t vertex;
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "udd",
-        &vertex, &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "udd", &vertex, &x, &y)) {
         return false;
     }
 
@@ -1174,8 +1155,7 @@ static bool native_canvas2dctx_attachGLSLFragment(JSContext *cx, unsigned argc,
     JS::RootedString glsl(cx);
     size_t program;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
-        &glsl)) {
+    if (!JS_ConvertArguments(cx, args, "S", &glsl)) {
         return false;
     }
 
@@ -1206,8 +1186,7 @@ static bool native_canvas2dctxGLProgram_getUniformLocation(JSContext *cx, unsign
     JS::RootedObject caller(cx,  &args.thisv().toObject());
     uint32_t program;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
-        &location)) {
+    if (!JS_ConvertArguments(cx, args, "S", &location)) {
         return false;
     }
 
@@ -1232,8 +1211,7 @@ static bool native_canvas2dctxGLProgram_uniform1i(JSContext *cx, unsigned argc,
     int location, val;
     uint32_t program;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii",
-        &location, &val)) {
+    if (!JS_ConvertArguments(cx, args, "ii", &location, &val)) {
         return false;
     }
 
@@ -1261,8 +1239,7 @@ static bool native_canvas2dctxGLProgram_uniform1f(JSContext *cx, unsigned argc,
     double val;
     uint32_t program;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "id",
-        &location, &val)) {
+    if (!JS_ConvertArguments(cx, args, "id", &location, &val)) {
         return false;
     }
 
@@ -1295,7 +1272,7 @@ static bool native_canvas2dctxGLProgram_uniformXiv(JSContext *cx,
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "io", &location, &array)) {
+    if (!JS_ConvertArguments(cx, args, "io", &location, &array)) {
         return false;
     }
 
@@ -1354,7 +1331,7 @@ static bool native_canvas2dctxGLProgram_uniformXfv(JSContext *cx,
     uint32_t program;
     program = (size_t)JS_GetPrivate(caller);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "io", &location, &array)) {
+    if (!JS_ConvertArguments(cx, args, "io", &location, &array)) {
         return false;
     }
 
@@ -1492,7 +1469,7 @@ static bool native_canvas2dctx_light(JSContext *cx, unsigned argc,
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double x, y, z;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ddd", &x, &y, &z)) {
+    if (!JS_ConvertArguments(cx, args, "ddd", &x, &y, &z)) {
         return false;
     }
 

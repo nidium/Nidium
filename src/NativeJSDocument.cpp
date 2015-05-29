@@ -66,8 +66,7 @@ static bool native_document_parseNML(JSContext *cx, unsigned argc, JS::Value *vp
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
-        &str)) {
+    if (!JS_ConvertArguments(cx, args, "S", &str)) {
         return false;
     }
 
@@ -84,8 +83,7 @@ static bool native_document_getElementById(JSContext *cx, unsigned argc, JS::Val
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
-        &str)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &str)) {
         return false;
     }
 
@@ -144,8 +142,7 @@ static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S",
-        &str)) {
+    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &str)) {
         return false;
     }
 

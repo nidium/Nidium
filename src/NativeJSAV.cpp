@@ -1197,7 +1197,7 @@ static bool native_audio_pFFT(JSContext *cx, unsigned argc, JS::Value *vp)
 
 //int FFT(int dir,int m,double *x,double *y)
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(),
+    if (!JS_ConvertArguments(cx, args,
         "ooii", &x, &y, &n, &dir)) {
         return false;
     }
@@ -1382,7 +1382,7 @@ static bool native_audio_createnode(JSContext *cx, unsigned argc, JS::Value *vp)
     node = NULL;
     ret = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "Suu", &name, &in, &out)) {
+    if (!JS_ConvertArguments(cx, args, "Suu", &name, &in, &out)) {
         return false;
     }
 
@@ -1475,7 +1475,7 @@ static bool native_audio_connect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NativeAudio *audio = jaudio->audio;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &link1, &link2)) {
+    if (!JS_ConvertArguments(cx, args, "oo", &link1, &link2)) {
         return true;
     }
 
@@ -1518,7 +1518,7 @@ static bool native_audio_disconnect(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NativeAudio *audio = jaudio->audio;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &link1, &link2)) {
+    if (!JS_ConvertArguments(cx, args, "oo", &link1, &link2)) {
         return true;
     }
 
@@ -1664,7 +1664,7 @@ static bool native_audionode_set(JSContext *cx, unsigned argc, JS::Value *vp)
             native_audionode_set_internal(cx, node, name.ptr(), &val);
         }
     } else {
-        if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &name)) {
+        if (!JS_ConvertArguments(cx, args, "S", &name)) {
             return false;
         }
 
@@ -1700,7 +1700,7 @@ static bool native_audionode_custom_set(JSContext *cx, unsigned argc, JS::Value 
         JS_ReportError(cx, "Invalid arguments");
         return false;
     } else {
-        if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &name)) {
+        if (!JS_ConvertArguments(cx, args, "S", &name)) {
             return false;
         }
         val = args.array()[1];
@@ -1746,7 +1746,7 @@ static bool native_audionode_custom_get(JSContext *cx, unsigned argc, JS::Value 
     jsNode = NATIVE_AUDIO_NODE_GETTER(&args.thisv().toObject());
 
     printf("convert\n");
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &name)) {
+    if (!JS_ConvertArguments(cx, args, "S", &name)) {
         return true;
     }
 
@@ -1782,7 +1782,7 @@ static bool native_audionode_custom_threaded_set(JSContext *cx, unsigned argc, J
         return false;
     }
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &name)) {
+    if (!JS_ConvertArguments(cx, args, "S", &name)) {
         return false;
     }
 
@@ -1821,7 +1821,7 @@ static bool native_audionode_custom_threaded_get(JSContext *cx, unsigned argc, J
         return false;
     }
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &name)) {
+    if (!JS_ConvertArguments(cx, args, "S", &name)) {
         return false;
     }
 
@@ -2371,7 +2371,7 @@ static bool native_video_frameat(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JSNATIVE_PROLOGUE_CLASS(NativeJSVideo, &Video_class);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "db", &time, &keyframe)) {
+    if (!JS_ConvertArguments(cx, args, "db", &time, &keyframe)) {
         return true;
     }
 
@@ -2423,7 +2423,7 @@ static bool native_Video_constructor(JSContext *cx, unsigned argc, JS::Value *vp
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Video_class, vp));
     JS::RootedObject canvas(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &canvas)) {
+    if (!JS_ConvertArguments(cx, args, "o", &canvas)) {
         return true;
     }
 

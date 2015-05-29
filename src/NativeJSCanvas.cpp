@@ -409,8 +409,7 @@ static bool native_canvas_setZoom(JSContext *cx, unsigned argc, JS::Value *vp)
 
     double zoom;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "d",
-        &zoom)) {
+    if (!JS_ConvertArguments(cx, args, "d", &zoom)) {
         return false;
     }
 
@@ -425,8 +424,7 @@ static bool native_canvas_setScale(JSContext *cx, unsigned argc, JS::Value *vp)
 
     double x, y;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
-        &x, &y)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &x, &y)) {
         return false;
     }
 
@@ -441,8 +439,7 @@ static bool native_canvas_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
 
     int width, height;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii",
-        &width, &height)) {
+    if (!JS_ConvertArguments(cx, args, "ii", &width, &height)) {
         return false;
     }
 
@@ -599,8 +596,7 @@ static bool native_canvas_setCoordinates(JSContext *cx, unsigned argc,
 
     double left, top;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
-        &left, &top)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &left, &top)) {
         return false;
     }
 
@@ -617,8 +613,7 @@ static bool native_canvas_translate(JSContext *cx, unsigned argc,
 
     double left, top;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd",
-        &left, &top)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &left, &top)) {
         return false;
     }
 
@@ -635,7 +630,7 @@ static bool native_canvas_addSubCanvas(JSContext *cx, unsigned argc,
     JS::RootedObject sub(cx);
     NativeCanvasHandler *handler = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "o", &sub)) {
+    if (!JS_ConvertArguments(cx, args, "o", &sub)) {
         return false;
     }
 
@@ -670,7 +665,7 @@ static bool native_canvas_insertBefore(JSContext *cx, unsigned argc,
 
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
+    if (!JS_ConvertArguments(cx, args, "oo", &insert, &ref)) {
         return false;
     }
     if (!JS_InstanceOf(cx, insert, &Canvas_class, nullptr)) {
@@ -707,7 +702,7 @@ static bool native_canvas_insertAfter(JSContext *cx, unsigned argc,
     JS::RootedObject ref(cx);
     NativeCanvasHandler *handler_insert = NULL, *handler_ref = NULL;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "oo", &insert, &ref)) {
+    if (!JS_ConvertArguments(cx, args, "oo", &insert, &ref)) {
         return false;
     }
 
@@ -1468,8 +1463,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
         &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii/o",
-        &width, &height, &opt)) {
+    if (!JS_ConvertArguments(cx, args, "ii/o", &width, &height, &opt)) {
         return false;
     }
 

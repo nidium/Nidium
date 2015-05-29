@@ -60,7 +60,7 @@ static bool native_image_shiftHue(JSContext *cx, unsigned argc, JS::Value *vp)
     int val;
     int color;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ii", &val, &color)) {
+    if (!JS_ConvertArguments(cx, args, "ii", &val, &color)) {
         return false;
     }
 

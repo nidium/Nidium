@@ -71,7 +71,7 @@ class NativeJSwindow : public NativeJSExposer<NativeJSwindow>
     void createStorage();
 
     struct _requestedFrame {
-    	JS::Value cb;
+        JS::Value cb;
         struct _requestedFrame *next;
     } *m_RequestedFrame;
 

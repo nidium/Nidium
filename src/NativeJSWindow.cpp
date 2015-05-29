@@ -960,7 +960,7 @@ static bool native_window_setSize(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     double w, h;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "dd", &w, &h)) {
+    if (!JS_ConvertArguments(cx, args, "dd", &w, &h)) {
         return false;
     }
 
@@ -974,7 +974,7 @@ static bool native_window_openURLInBrowser(JSContext *cx, unsigned argc, JS::Val
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString url(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &url)) {
+    if (!JS_ConvertArguments(cx, args, "S", &url)) {
         return false;
     }
 
@@ -990,7 +990,7 @@ static bool native_window_exec(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedString url(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &url)) {
+    if (!JS_ConvertArguments(cx, args, "S", &url)) {
         return false;
     }
 
@@ -1007,7 +1007,7 @@ static bool native_window_openDirDialog(JSContext *cx, unsigned argc, JS::Value 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedValue callback(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "v", &callback)) {
+    if (!JS_ConvertArguments(cx, args, "v", &callback)) {
         return false;
     }
 
@@ -1032,7 +1032,7 @@ static bool native_window_openFileDialog(JSContext *cx, unsigned argc, JS::Value
     JS::RootedObject types(cx);
     JS::RootedValue callback(cx);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "ov", &types, &callback)) {
+    if (!JS_ConvertArguments(cx, args, "ov", &types, &callback)) {
         return false;
     }
 
@@ -1129,7 +1129,7 @@ static bool native_window_notify(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedString body(cx);
     bool sound = false;
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "SS/b", &title, &body, &sound)) {
+    if (!JS_ConvertArguments(cx, args, "SS/b", &title, &body, &sound)) {
         return false;
     }
 

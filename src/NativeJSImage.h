@@ -26,7 +26,7 @@ class NativeJSImage : public NativeJSExposer<NativeJSImage>,
     static void registerObject(JSContext *cx);
     static bool JSObjectIs(JSContext *cx, JSObject *obj);
     static JSObject *buildImageObject(JSContext *cx, NativeSkImage *image,
-    	const char name[] = NULL);
+        const char name[] = NULL);
     static JSObject *classe;
 
     void onMessage(const NativeSharedMessages::Message &msg);
