@@ -677,11 +677,9 @@ static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
     JSAutoByteString namestr(cx, name.get());
 
     JSObject *callee = (JS_CALLEE(cx, vp)).toObjectOrNull();
-<<<<<<< HEAD
-    JS::RootedValue reserved(cx, js::GetFunctionNativeReserved(callee, 0));
-=======
-    JS::Value reserved = JS::GetFunctionNativeReserved(callee, 0);
->>>>>>> 23986cd74b02b635ccef13f5401ca0fbb0f6cb49
+
+    JS::RootedValue reserved(cx, JS::GetFunctionNativeReserved(callee, 0));
+
     if (!reserved.isDouble()) {
         JS_ReportError(cx, "InternalError");
         return false;
