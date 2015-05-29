@@ -25,8 +25,8 @@
 #include <jsstr.h>
 
 static void Debug_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass debug_class = {
     "NativeDebug", JSCLASS_HAS_PRIVATE,
@@ -56,7 +56,7 @@ static void Debug_Finalize(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-static bool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_debug_serialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -89,7 +89,7 @@ static bool native_debug_serialize(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_debug_unserialize(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject objdata(cx);

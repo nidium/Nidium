@@ -33,10 +33,10 @@ static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, JS::MutableHandleValue vp);
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
-static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass Stream_class = {
     "Stream", JSCLASS_HAS_PRIVATE,
@@ -87,7 +87,7 @@ static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
     return true;
 }
 
-static bool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -101,7 +101,7 @@ static bool native_stream_stop(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -120,7 +120,7 @@ static bool native_stream_seek(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -144,7 +144,7 @@ static bool native_stream_start(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -188,7 +188,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_Stream_constructor(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString url(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -249,12 +249,12 @@ NativeJSStream::~NativeJSStream()
 void NativeJSStream::onProgress(size_t buffered, size_t total)
 {
     JS::RootedObject obj(cx, this->jsobj);
-    jsval onprogress_callback;
+    JS::Value onprogress_callback;
 
     if (JS_GetProperty(this->cx, obj, "onProgress", &onprogress_callback) &&
         JS_TypeOfValue(this->cx, onprogress_callback) == JSTYPE_FUNCTION) {
 
-        jsval args[2], rval;
+        JS::Value args[2], rval;
 
         args[0] = INT_TO_JSVAL(buffered);
         args[1] = INT_TO_JSVAL(total);

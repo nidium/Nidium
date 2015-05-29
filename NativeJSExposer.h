@@ -66,7 +66,7 @@ static const JSClass NativeJSEvent_class = {
 
 struct NativeJSEvent
 {
-    NativeJSEvent(JSContext *cx, jsval func) : m_Function(cx) {
+    NativeJSEvent(JSContext *cx, JS::Value func) : m_Function(cx) {
         once = false;
         next = prev = NULL;
 
@@ -134,7 +134,7 @@ public:
         m_Queue = ev;
     }
 
-    bool fire(jsval evobj, JSObject *thisobj) {
+    bool fire(JS::Value evobj, JSObject *thisobj) {
         NativeJSEvent *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
             JS::RootedValue rval(ev->m_Cx);
@@ -153,7 +153,7 @@ public:
     char *m_Name;
 private:
     static bool native_jsevents_stopPropagation(JSContext *cx,
-        unsigned argc, jsval *vp)
+        unsigned argc, JS::Value *vp)
     {
         JS::RootedObject thisobj(cx, JS_THIS_OBJECT(cx, vp) );
         if (!thisobj) {
@@ -170,7 +170,7 @@ private:
         return true;
     }
     static bool native_jsevents_stub(JSContext *cx,
-        unsigned argc, jsval *vp)
+        unsigned argc, JS::Value *vp)
     {
 
         return true;
@@ -260,7 +260,7 @@ class NativeJSExposer
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
 
-    bool fireJSEvent(const char *name, jsval evobj) {
+    bool fireJSEvent(const char *name, JS::Value evobj) {
         if (!m_Events) {
             return false;
         }
@@ -288,7 +288,7 @@ class NativeJSExposer
         m_Events->setAutoDelete(true);
     }
 
-    void addJSEvent(char *name, jsval func) {
+    void addJSEvent(char *name, JS::Value func) {
         initEvents();
 
         NativeJSEvents *events = m_Events->get(name);
@@ -308,7 +308,7 @@ class NativeJSExposer
     static JSClass *jsclass;
 private:
     static bool native_jsevent_fireEvent(JSContext *cx,
-        unsigned argc, jsval *vp)
+        unsigned argc, JS::Value *vp)
     {
         JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
 
@@ -329,7 +329,7 @@ private:
         return true;
     }
     static bool native_jsevent_addEventListener(JSContext *cx,
-        unsigned argc, jsval *vp)
+        unsigned argc, JS::Value *vp)
     {
         JSNATIVE_PROLOGUE_CLASS(NativeJSExposer<T>, NativeJSExposer<T>::jsclass);
 

@@ -25,7 +25,7 @@ enum {
     NATIVE_JSFS_MSG_READDIR_FILE = 1
 };
 
-static bool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp);
 
 static JSClass fs_class = {
     "fs", 0,
@@ -113,7 +113,7 @@ void NativeJSFS_readDir_Task(NativeTask *task)
     closedir(dir);
 }
 
-static bool native_fs_readDir(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     return true;  //@FIXME why is this returning immed?
 

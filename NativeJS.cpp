@@ -107,12 +107,12 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, JS::MutableHandleValue vp);
 
 /******** Natives ********/
-static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_load(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_set_interval(JSContext *cx, unsigned argc, jsval *vp);
-static bool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp);
-//static bool native_readData(JSContext *cx, unsigned argc, jsval *vp);
+static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp);
+static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp);
+//static bool native_readData(JSContext *cx, unsigned argc, JS::Value *vp);
 /*************************/
 //static void native_timer_wrapper(struct _native_sm_timer *params, int *last);
 static int native_timerng_wrapper(void *arg);
@@ -381,7 +381,7 @@ bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
     return true;
 }
 
-static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativePath cur(NativePath::currentJSCaller(cx), false, true);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
@@ -398,7 +398,7 @@ static bool native_pwd(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_load(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_load(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::RootedString script(cx);
     char *content;
@@ -820,7 +820,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
 }
 
 int NativeJS::LoadScriptReturn(JSContext *cx,
-    const char *filename, jsval *ret)
+    const char *filename, JS::Value *ret)
 {   
     int err;
     char *data;
@@ -1043,7 +1043,7 @@ static int native_timer_deleted(void *arg)
     return 1;
 }
 
-static bool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     struct _native_sm_timer *params;
     int ms, i;
@@ -1066,7 +1066,7 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     params->timerng = NULL;
     params->ms = 0;
 
-    params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
+    params->argv = (argc-2 ? (JS::Value *)malloc(sizeof(*params->argv) * argc-2) : NULL);
 
     if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &params->func)) {
         free(params->argv);
@@ -1099,7 +1099,7 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, jsval *vp)
     return true;
 }
 
-static bool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     struct _native_sm_timer *params;
     int ms, i;
@@ -1120,7 +1120,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     params->cleared = 0;
     params->timer = NULL;
 
-    params->argv = (argc-2 ? (jsval *)malloc(sizeof(*params->argv) * argc-2) : NULL);
+    params->argv = (argc-2 ? (JS::Value *)malloc(sizeof(*params->argv) * argc-2) : NULL);
 
     if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &params->func)) {
         free(params->argv);
@@ -1155,7 +1155,7 @@ static bool native_set_interval(JSContext *cx, unsigned argc, jsval *vp)
     return true; 
 }
 
-static bool native_clear_timeout(JSContext *cx, unsigned argc, jsval *vp)
+static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     double identifier;
 
