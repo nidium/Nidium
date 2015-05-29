@@ -21,16 +21,16 @@ static JSPropertySpec TestModule_props[] = {
     {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
 };
 
-bool registerCallback(JSContext *cx, JSObject *exports) {
+bool registerCallback(JSContext *cx, JS::HandleObject exports) {
     JS_DefineFunctions(cx, exports, TestModule_funcs);
     JS_DefineProperties(cx, exports, TestModule_props);
 
     JS::RootedValue bar(cx);
     bar.setInt32(42);
 
-    JS_SetProperty(cx, exports, "bar", &bar);
+    JS_SetProperty(cx, exports, "bar", bar);
 
-    printf("regsiter callback called\n");
+    printf("register callback called\n");
 
     return true;
 }

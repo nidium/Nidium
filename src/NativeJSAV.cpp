@@ -468,7 +468,7 @@ void native_av_thread_message(JSContext *cx, JSObject *obj, const NativeSharedMe
                 return;
             }
 
-            JS::RootedObject event(cx, JS_NewObject(cx, &messageEvent_class, nullptr, nullptr));
+            JS::RootedObject event(cx, JS_NewObject(cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr()));
 
             JS_DefineProperty(cx, event, "data", inval, nullptr, nullptr,
                     JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE);
@@ -605,18 +605,18 @@ void NativeJSAudio::initNode(NativeJSAudioNode *node, JSObject *jnode, JSString 
     JS_DefineProperty(m_Cx, jnode, "type", STRING_TO_JSVAL(name), nullptr, nullptr,
         JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT);
 
-    inputLinks.setObjectOrNull(JS_NewArrayObject(m_Cx, in, nullptr));
-    outputLinks.setObjectOrNull(JS_NewArrayObject(m_Cx, out, nullptr));
+    inputLinks.setObjectOrNull(JS_NewArrayObject(m_Cx, in));
+    outputLinks.setObjectOrNull(JS_NewArrayObject(m_Cx, out));
 
     for (int i = 0; i < in; i++) {
-        JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class, nullptr, nullptr));
+        JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class, JS::NullPtr(), JS::NullPtr()));
         JS_SetPrivate(link, node->node->input[i]);
 
         JS_DefineElement(m_Cx, inputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), nullptr, nullptr, 0);
     }
 
     for (int i = 0; i < out; i++) {
-        JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class, nullptr, nullptr));
+        JS::RootedObject link(m_Cx, JS_NewObject(m_Cx, &AudioNodeLink_class, JS::NullPtr(), JS::NullPtr()));
         JS_SetPrivate(link, node->node->output[i]);
 
         JS_DefineElement(m_Cx, outputLinks.toObjectOrNull(), i, OBJECT_TO_JSVAL(link), nullptr, nullptr, 0);
@@ -944,10 +944,10 @@ void NativeJSAudioNode::customCallback(const struct NodeEvent *ev)
     count = thiz->node->inCount > thiz->node->outCount ? thiz->node->inCount : thiz->node->outCount;
     size = thiz->node->audio->outputParameters->bufferSize/2;
 
-    obj = JS_NewObject(tcx, &AudioNodeEvent_class, nullptr, nullptr);
+    obj = JS_NewObject(tcx, &AudioNodeEvent_class, JS::NullPtr(), JS::NullPtr());
     JS_DefineProperties(tcx, obj, AudioNodeEvent_props);
 
-    frames = JS_NewArrayObject(tcx, 0, nullptr);
+    frames = JS_NewArrayObject(tcx, 0);
 
     for (int i = 0; i < count; i++) {
         JS::RootedObject arrBuff(tcx);
@@ -1071,14 +1071,14 @@ void NativeJSAudioNode::initCustomObject(NativeAudioNode *node, void *custom)
 
     JSAutoRequest ar(tcx);
 
-    jnode->hashObj = JS_NewObject(tcx, nullptr, nullptr, nullptr);
+    jnode->hashObj = JS_NewObject(tcx, nullptr, JS::NullPtr(), JS::NullPtr());
     if (!jnode->hashObj) {
         JS_PROPAGATE_ERROR(tcx, "Failed to create hash object for custom node");
         return;
     }
     JS_AddObjectRoot(tcx, &jnode->hashObj);
 
-    jnode->nodeObj = JS_NewObject(tcx, &AudioNode_threaded_class, nullptr, nullptr);
+    jnode->nodeObj = JS_NewObject(tcx, &AudioNode_threaded_class, JS::NullPtr(), JS::NullPtr());
     if (!jnode->nodeObj) {
         JS_PROPAGATE_ERROR(tcx, "Failed to create node object for custom node");
         return;
@@ -2518,7 +2518,7 @@ bool NativeJSAVSource::propGetter(NativeAVSource *source, JSContext *cx, int id,
             AVDictionary *cmetadata = source->getMetadata();
 
             if (cmetadata != NULL) {
-                JS::RootedObject metadata(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
+                JS::RootedObject metadata(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
                 while ((tag = av_dict_get(cmetadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
                     JS::RootedString val(cx, JS_NewStringCopyN(cx, tag->value, strlen(tag->value)));

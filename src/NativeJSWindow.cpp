@@ -264,7 +264,7 @@ void NativeJSwindow::onReady(JSObject *layout)
         rlayout = layout;
         arg[0] = OBJECT_TO_JSVAL(rlayout);
     } else {
-        arg[0] = OBJECT_TO_JSVAL(JS_NewArrayObject(m_Cx, 0, nullptr));
+        arg[0] = OBJECT_TO_JSVAL(JS_NewArrayObject(m_Cx, 0));
     }
 
     if (JS_GetProperty(m_Cx, m_JSObject, "_onready", &onready) &&
@@ -303,7 +303,7 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     JS::RootedValue jevent(cx);
     JS::RootedObject event(cx);
 
-    event = JS_NewObject(m_Cx, &NMLEvent_class, nullptr, nullptr);
+    event = JS_NewObject(m_Cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr());
     jevent = OBJECT_TO_JSVAL(event);
 
     EVENT_PROP("data", STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
@@ -357,7 +357,7 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
 
     JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(m_Cx, &mouseEvent_class, nullptr, nullptr);
+    event = JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr());
 
     EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
     EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
@@ -392,7 +392,7 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
 
     JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(m_Cx, &keyEvent_class, nullptr, nullptr);
+    event = JS_NewObject(m_Cx, &keyEvent_class, JS::NullPtr(), JS::NullPtr());
 
     EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
     EVENT_PROP("location", INT_TO_JSVAL(location));
@@ -446,7 +446,7 @@ void NativeJSwindow::textInput(const char *data)
 void NativeJSwindow::systemMenuClicked(const char *id)
 {
     JSContext *cx = m_Cx;
-    JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr, nullptr, nullptr));
+    JS::RootedObject event(cx, JS_NewObject(m_Cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     JSOBJ_SET_PROP_CSTR(event, "id", id);
     JS::RootedValue ev(cx, OBJECT_TO_JSVAL(event));
@@ -466,7 +466,7 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
 
     JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(m_Cx, &mouseEvent_class, nullptr, nullptr);
+    event = JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr());
 
     NativeContext *nctx = NativeContext::getNativeClass(this->m_Cx);
     NativeInputEvent *ev = new NativeInputEvent(state ?
@@ -514,7 +514,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
 
     JSAutoRequest ar(m_Cx);
 
-    event = JS_NewObject(m_Cx, &dragEvent_class, nullptr, nullptr);
+    event = JS_NewObject(m_Cx, &dragEvent_class, JS::NullPtr(), JS::NullPtr());
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -553,7 +553,7 @@ bool NativeJSwindow::dragBegin(int x, int y, const char * const *files, size_t n
 
     m_Dragging = true;
 
-    m_DragedFiles = JS_NewArrayObject(m_Cx, (int)nfiles, nullptr);
+    m_DragedFiles = JS_NewArrayObject(m_Cx, (int)nfiles);
 
     for (int i = 0; i < nfiles; i++) {
         JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(m_Cx, files[i])));
@@ -637,7 +637,7 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
 
     nctx->addInputEvent(ev);
 
-    event = JS_NewObject(m_Cx, &mouseEvent_class, nullptr, nullptr);
+    event = JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr());
 
     EVENT_PROP("x", INT_TO_JSVAL(x));
     EVENT_PROP("y", INT_TO_JSVAL(y));
@@ -940,7 +940,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
     struct _nativeopenfile *nof = (struct _nativeopenfile *)_nof;
     JS::RootedValue rval(nof->cx);
     JS::RootedValue cb(nof->cx, nof->cb);
-    JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len, nullptr));
+    JS::RootedObject arr(nof->cx, JS_NewArrayObject(nof->cx, len));
 
     for (int i = 0; i < len; i++) {
         JS::RootedValue val(nof->cx, OBJECT_TO_JSVAL(NativeJSFileIO::generateJSObject(nof->cx, lst[i])));
@@ -1356,7 +1356,7 @@ void NativeJSwindow::createMainCanvas(int width, int height, JSObject *doc)
 void NativeJSwindow::createStorage()
 {
     JS::RootedObject obj(m_Cx, m_JSObject);
-    JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &storage_class, nullptr, nullptr));
+    JS::RootedObject storage(m_Cx, JS_NewObject(m_Cx, &storage_class, JS::NullPtr(), JS::NullPtr()));
 
     JS_DefineFunctions(m_Cx, storage, storage_funcs);
 
@@ -1475,7 +1475,7 @@ NativeJSwindow *NativeJSwindow::registerObject(JSContext *cx, int width,
     JS_SetProperty(cx, windowObj, "titleBarControlsOffsetY", &val);
 
     // Set the __nidium__ properties
-    JS::RootedObject nidiumObj(cx, JS_NewObject(cx,  nullptr, nullptr, nullptr));
+    JS::RootedObject nidiumObj(cx, JS_NewObject(cx,  nullptr, JS::NullPtr(), JS::NullPtr()));
 
     JS::RootedString jVersion(cx, JS_NewStringCopyZ(cx, NATIVE_VERSION_STR));
     JS_DefineProperty(cx, nidiumObj, "version", STRING_TO_JSVAL(jVersion), nullptr,

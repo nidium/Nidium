@@ -121,7 +121,7 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     //glReadPixels(0, 0, NUII->getWidth(), NUII->getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, NUII->getFrameBufferData());
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
+    JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
 
     JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), nullptr, nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -274,7 +274,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
     njs->rootObjectUntilShutdown(documentObj);
     njs->jsobjects.set(NativeJSdocument::getJSObjectName(), documentObj);
 
-    jdoc->stylesheet = JS_NewObject(cx, nullptr, nullptr, nullptr);
+    jdoc->stylesheet = JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
     JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
     JS_SetProperty(cx, documentObj, "stylesheet", &objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);

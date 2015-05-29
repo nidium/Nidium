@@ -403,7 +403,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
         child = child->next_sibling()) {
 
         /* obj */
-        JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
+        JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
         bool skip = false;
         switch (child->type()) {
@@ -419,7 +419,7 @@ JSObject *NativeNML::BuildLSTFromNode(JSContext *cx, rapidxml::xml_node<> &node)
 
                 /* obj.attributes */
 
-                JS::RootedObject obj_attr(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
+                JS::RootedObject obj_attr(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
                 NODE_PROP(obj, "attributes", OBJECT_TO_JSVAL(obj_attr));
                 for (xml_attribute<> *attr = child->first_attribute(); attr != NULL;
                     attr = attr->next_attribute()) {

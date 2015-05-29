@@ -586,7 +586,7 @@ void NativeContext::onMessage(const NativeSharedMessages::Message &msg)
 }
 
 bool NativeContext::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                     JSObject *obj, void *closure)
+                                     JS::HandleObject obj, void *closure)
 {
 
     JS::RootedValue vobj(cx, OBJECT_TO_JSVAL(obj));
@@ -635,7 +635,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
         case NATIVE_SCTAG_IMAGEDATA:
         {
             if (data < sizeof(uint32_t) * 2 + 1) {
-                return JS_NewObject(cx, nullptr, nullptr, nullptr);
+                return JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
             }
             uint32_t width, height;
             JS::RootedValue arr(cx);
@@ -645,7 +645,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
 
             JS_ReadTypedArray(r, &arr);
 
-            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, nullptr, nullptr));
+            JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
             JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
                 nullptr, nullptr,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
@@ -663,7 +663,7 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
         default:
             break;
     }
-    return JS_NewObject(cx, nullptr, nullptr, nullptr);
+    return JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
 }
 
 void NativeContext::addInputEvent(NativeInputEvent *ev)

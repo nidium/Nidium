@@ -546,7 +546,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     int32_t count = NativeObject->countChildren();
 
     if (!count) {
-        args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0, nullptr)));
+        args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, 0)));
         return true;
     }
 
@@ -572,7 +572,7 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     NATIVE_PROLOGUE(NativeCanvasHandler);
 
     NativeRect rect = NativeObject->getVisibleRect();
-    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
+    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
     (const char *)name, val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | \
@@ -1542,7 +1542,7 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
     NativeContext *nctx = NativeContext::getNativeClass(cx);
     NativeUIInterface *ui = nctx->getUI();
 
-    ret = JS_NewObject(cx, &Canvas_class, nullptr, nullptr);
+    ret = JS_NewObject(cx, &Canvas_class, JS::NullPtr(), JS::NullPtr());
     JS::RootedObject inherit(cx, JS_DefineObject(cx, ret, "inherit",
         &Canvas_Inherit_class, nullptr,
         JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
@@ -1597,7 +1597,7 @@ void NativeJSCanvas::onMessage(const NativeSharedMessages::Message &msg)
         }
         case NATIVE_EVENT(NativeCanvasHandler, CHANGE_EVENT):
         {
-            JS::RootedObject ev(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
+            JS::RootedObject ev(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
             const char *name = NULL;
             JS::RootedValue value(cx);
             JS::RootedValue arg(cx);

@@ -305,7 +305,7 @@ void NativeJSImage::onGetContent(const char *data, size_t len)
 JSObject *NativeJSImage::buildImageObject(JSContext *cx, NativeSkImage *image,
     const char name[])
 {
-    JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, NativeJSImage::classe, nullptr));
+    JS::RootedObject ret(cx, JS_NewObject(cx, &Image_class, NativeJSImage::classe, JS::NullPtr()));
     NativeJSImage *nimg = new NativeJSImage(ret, cx);
 
     nimg->img   = image;

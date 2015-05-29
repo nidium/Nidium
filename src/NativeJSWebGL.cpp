@@ -1479,7 +1479,7 @@ NGL_JS_FN(WebGLRenderingContext_createBuffer)
     GL_CALL(CppObj, GenBuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLBuffer", &proto);
-    ret = JS_NewObject(cx, &WebGLBuffer_class, proto.toObject(), nullptr);
+    ret = JS_NewObject(cx, &WebGLBuffer_class, proto.toObject(), JS::NullPtr());
 
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kBuffer, CppObj, ret));
@@ -1498,7 +1498,7 @@ NGL_JS_FN(WebGLRenderingContext_createFramebuffer)
     GL_CALL(CppObj, GenFramebuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLFramebuffer", &proto);
-    ret = JS_NewObject(cx, &WebGLFramebuffer_class, &proto.toObject(), nullptr);
+    ret = JS_NewObject(cx, &WebGLFramebuffer_class, &proto.toObject(), JS::NullPtr());
 
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kFramebuffer, CppObj, ret));
@@ -1517,7 +1517,7 @@ NGL_JS_FN(WebGLRenderingContext_createRenderbuffer)
     GL_CALL(CppObj, GenRenderbuffers(1, (GLuint *)&buffer));
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLRenderbuffer", &proto);
-    ret = JS_NewObject(cx, &WebGLRenderbuffer_class, &proto.toObject(), nullptr);
+    ret = JS_NewObject(cx, &WebGLRenderbuffer_class, &proto.toObject(), JS::NullPtr());
 
     JS_SetPrivate(ret, new WebGLResource(buffer,
         WebGLResource::kRenderbuffer, CppObj, ret));
@@ -1536,7 +1536,7 @@ NGL_JS_FN(WebGLRenderingContext_createProgram)
     GL_CALL_RET(CppObj, CreateProgram(), program);
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLProgram", &proto);
-    ret = JS_NewObject(cx, &WebGLProgram_class, proto.toObject(), nullptr);
+    ret = JS_NewObject(cx, &WebGLProgram_class, proto.toObject(), JS::NullPtr());
 
     JS_SetPrivate(ret, new WebGLResource(program,
         WebGLResource::kProgram, CppObj, ret));
@@ -1565,7 +1565,7 @@ NGL_JS_FN(WebGLRenderingContext_createShader)
     GL_CALL_RET(CppObj, CreateShader(type), cshader);
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLShader", &proto);
-    ret = JS_NewObject(cx, &WebGLShader_class, &proto.toObject()), nullptr);
+    ret = JS_NewObject(cx, &WebGLShader_class, &proto.toObject()), JS::NullPtr());
 
     WebGLResource *res = new WebGLResource(cshader, WebGLResource::kShader, CppObj, ret);
     WebGLResource::ShaderData *shaderData = res->getShaderData();
@@ -1588,7 +1588,7 @@ NGL_JS_FN(WebGLRenderingContext_createTexture)
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLTexture", &proto);
 
-    ret = JS_NewObject(cx, &WebGLTexture_class, &proto.toObject(), nullptr);
+    ret = JS_NewObject(cx, &WebGLTexture_class, &proto.toObject(), JS::NullPtr());
 
     JS_SetPrivate(ret, new WebGLResource(texture,
         WebGLResource::kTexture, CppObj, ret));
@@ -1800,7 +1800,7 @@ NGL_JS_FN(WebGLRenderingContext_getUniformLocation)
         args.rval().set(JSVAL_NULL);
     } else {
         JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLUniformLocation", &proto);
-        ret = JS_NewObject(cx, &WebGLUniformLocation_class, &proto.toObject(), nullptr);
+        ret = JS_NewObject(cx, &WebGLUniformLocation_class, &proto.toObject(), JS::NullPtr());
         JS_SetPrivate(ret, (void *)(uintptr_t)location);
 
         JS_free(cx, (void *)cname);
@@ -1826,7 +1826,7 @@ NGL_JS_FN(WebGLRenderingContext_getShaderPrecisionFormat)
     JS::RootedValue rangeMax(cx);
     JS::RootedValue precision(cx);
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLShaderPrecisionFormat", &proto);
-    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLShaderPrecisionFormat_class, &proto.toObject(), nullptr));
+    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLShaderPrecisionFormat_class, &proto.toObject(), JS::NullPtr()));
 
     // Since getShaderPrecisionFormat is not available everywhere...
     // (Taken from mozilla GLContext.h)
@@ -1970,7 +1970,7 @@ NGL_JS_FN(WebGLRenderingContext_getActiveAttrib)
     }
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLActiveInfo", &proto);
-    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLActiveInfo_class, &proto.toObject(), nullptr));
+    JS::RootedObject obj(cx, JS_NewObject(cx, &WebGLActiveInfo_class, &proto.toObject(), JS::NullPtr()));
 
     JS::RootedValue size(cx);
     JS::RootedValue type(cx);
@@ -2875,7 +2875,7 @@ static bool native_NativeGL_constructor(JSContext *cx, unsigned argc, JS::Value 
     NativeCanvasWebGLContext *ngl = new NativeCanvasWebGLContext(cx);
 
     JS_GetProperty(cx, JS_GetGlobalObject(cx /*, &args.callee()*/), "WebGLRenderingContext", &proto);
-    webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, &proto.toObject(), nullptr);
+    webGLContext = JS_NewObject(cx, &WebGLRenderingContext_class, &proto.toObject(), JS::NullPtr());
 
     if (webGLContext == NULL) {
         JS_ReportError(cx, "Failed to create WebGLRenderingContext");
