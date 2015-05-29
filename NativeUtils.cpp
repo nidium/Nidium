@@ -130,7 +130,7 @@ uint16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputle
 
     jschar *jsc = (jschar *)malloc(*outputlen);
 
-    if (!js::InflateUTF8StringToBufferReplaceInvalid(NULL, str, len, jsc, outputlen)) {
+    if (!JS::InflateUTF8StringToBufferReplaceInvalid(NULL, str, len, jsc, outputlen)) {
         free(jsc);
         return NULL;
     }

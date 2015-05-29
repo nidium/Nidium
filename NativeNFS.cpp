@@ -223,7 +223,7 @@ void *NativeNFS::buildJS(const char *data, size_t len, const char *filename, uin
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
-    js::RootedObject rgbl(m_JS.cx, gbl);
+    JS::RootedObject rgbl(m_JS.cx, gbl);
 
     JS_SetOptions(m_JS.cx, JSOPTION_VAROBJFIX|JSOPTION_NO_SCRIPT_RVAL);
 
