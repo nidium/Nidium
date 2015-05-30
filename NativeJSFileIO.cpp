@@ -764,7 +764,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                 break;
             }
             case NATIVEFILE_WRITE_SUCCESS:
-                params[1] = DOUBLE_TO_JSVAL(msg.args[0].toInt64());
+                params[1].setDouble(msg.args[0].toInt64());
                 break;
             case NATIVEFILE_LISTFILES_ENTRIES:
             {
@@ -778,14 +778,14 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
                     JS_SetElement(cx, arr, i, val);
 
                     JSOBJ_SET_PROP_STR(entry, "name",
-                        JS_NewStringCopyZ(cx, entries->lst[i].d_name));
+                        JS::RootedString(cx, JS_NewStringCopyZ(cx, entries->lst[i].d_name)));
 
                     JSOBJ_SET_PROP_CSTR(entry, "type",
                         NativeJSFileIO_dirtype_to_str(&entries->lst[i]));
 
                 }
 
-                params[1] = OBJECT_TO_JSVAL(arr);
+                params[1].setObject(*arr);
             }
         }
     }
@@ -822,9 +822,9 @@ void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
 void NativeJSFileIO::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, NULL, &File_class,
+    JS_InitClass(cx, global, JS::NullPtr(), &File_class,
         native_File_constructor,
-        0, NULL, NULL, NULL, File_static_funcs);
+        0, nullptr, nullptr, nullptr, File_static_funcs);
 }
 
 JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
@@ -847,7 +847,7 @@ JSObject *NativeJSFileIO::generateJSObject(JSContext *cx, const char *path)
     return ret;
 }
 
-NativeFile *NativeJSFileIO::GetFileFromJSObject(JSContext *cx, JSObject *jsobj)
+NativeFile *NativeJSFileIO::GetFileFromJSObject(JSContext *cx, JS::HandleObject jsobj)
 {
     NativeJSFileIO *nfio = (NativeJSFileIO *)JS_GetInstancePrivate(cx, jsobj,
         &File_class, NULL);

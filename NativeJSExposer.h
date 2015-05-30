@@ -327,8 +327,9 @@ private:
         }
 
         JSAutoByteString cname(cx, name);
+        JS::RootedValue evjsobj(cx, JS::ObjectValue(*evobj));
 
-        CppObj->fireJSEvent(cname.ptr(), OBJECT_TO_JSVAL(evobj));
+        CppObj->fireJSEvent(cname.ptr(), &evjsobj);
 
         return true;
     }
@@ -472,7 +473,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
     void NativeJS ## name::registerObject(JSContext *cx) \
     { \
         JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-        JS_InitClass(cx, global, NULL, &name ## _class, \
+        JS_InitClass(cx, global, JS::NullPtr(), &name ## _class, \
             native_ ## name ## _constructor, \
             0, NULL, NULL, NULL, NULL); \
     }

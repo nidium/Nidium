@@ -107,6 +107,8 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedValue callback(cx);
     NativeHTTPRequest *req;
 
+    args.rval();
+
     NATIVE_CHECK_ARGS("request", 2);
 
     JS_INITOPT();
@@ -175,7 +177,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
             for (size_t i = 0; i < ida.length(); i++) {
                 JS::RootedId id(cx, ida[i]);
                 JS::RootedValue idval(cx);
-                JS_IdToValue(cx, *id.get(), &idval);
+                JS_IdToValue(cx, id, &idval);
 
                 JS::RootedString idstr(cx, idval.toString());
 
@@ -271,39 +273,38 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
         return;
     }
 
-    JS::AutoValueArray<2> event(cx);
-    event[0] = JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr());
+    JS::AutoValueArray<1> event(cx);
+    JS::RootedObject evobj(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    event[0].setObject(*evobj);
 
     switch(err) {
         case NativeHTTP::ERROR_RESPONSE:
-            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("http_invalid_response"))));            
+            JSOBJ_SET_PROP_STR(evobj, "error", JS::RootedString(cx, JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_invalid_response"))));
             break;
         case NativeHTTP::ERROR_DISCONNECTED:
-            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            JSOBJ_SET_PROP_STR(evobj, "error", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("http_server_disconnected"))));      
             break;
         case NativeHTTP::ERROR_SOCKET:
-            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("http_connection_error"))));      
+            JSOBJ_SET_PROP_STR(evobj, "error", JS::RootedString(cx, JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_connection_error"))));   
             break;
         case NativeHTTP::ERROR_TIMEOUT:
-            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("http_timedout"))));      
+            JSOBJ_SET_PROP_STR(evobj, "error", JS::RootedString(cx, JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_timedout"))));       
             break;
         case NativeHTTP::ERROR_HTTPCODE:
-            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
-                CONST_STR_LEN("http_response_code"))));      
+            JSOBJ_SET_PROP_STR(evobj, "error", JS::RootedString(cx, JS_NewStringCopyN(cx,
+                CONST_STR_LEN("http_response_code"))));  
             break;
         case NativeHTTP::ERROR_REDIRECTMAX:
-            SET_PROP(event, "error", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            JSOBJ_SET_PROP_STR(evobj, "error", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("http_max_redirect_exceeded"))));      
             break;
         default:
             break;
     }
-
-    jevent.setObject(event);
 
     JS_CallFunctionValue(cx, obj, onerror_callback, event, &rval);
 
@@ -327,13 +328,14 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
 
     JS::RootedObject event(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
-    SET_PROP(event, "total", DOUBLE_TO_JSVAL(h->contentlength));
-    SET_PROP(event, "read", DOUBLE_TO_JSVAL(offset + len));
+    JSOBJ_SET_PROP(event, "total", (double)h->contentlength);
+    JSOBJ_SET_PROP(event, "read", (double)(offset + len));
 
     switch(type) {
         case NativeHTTP::DATA_JSON:
         case NativeHTTP::DATA_STRING:
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+
+            JSOBJ_SET_PROP_STR(event, "type", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("string"))));
 
             jdata.setString(JS_NewStringCopyN(cx,
@@ -347,7 +349,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
 
             memcpy(data, &h->data->data[offset], len);
             
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            JSOBJ_SET_PROP_STR(event, "type", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("binary"))));
 
             jdata.setObject(*arr);
@@ -356,9 +358,9 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
         }
     }
     
-    SET_PROP(event, "data", jdata);
+    JSOBJ_SET_PROP(event, "data", jdata);
 
-    jevent[1] = event;
+    jevent[1].setObject(*event);
 
     JS_CallFunctionValue(cx, obj, ondata_callback, jevent, &rval);
 }
@@ -383,19 +385,19 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     APE_A_FOREACH(h->headers.list, k, v) {
         JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, (char *)v->data,
             v->used-1));
-        JSOBJ_SET_PROP_FLAGS(headers, k->data,
-            STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
+        JSOBJ_SET_PROP_FLAGS(headers, k->data, jstr, JSPROP_ENUMERATE);
     }
     
-    SET_PROP(event, "headers", OBJECT_TO_JSVAL(headers));
-    SET_PROP(event, "statusCode", INT_TO_JSVAL(h->parser.status_code));
+    JSOBJ_SET_PROP(event, "headers", headers);
+    JSOBJ_SET_PROP(event, "statusCode", h->parser.status_code);
 
     if (h->data == NULL) {
-        SET_PROP(event, "data", JSVAL_NULL);
+        JSOBJ_SET_PROP(event, "data", JS::NullHandleValue);
 
-        jevent[0] = OBJECT_TO_JSVAL(event);
-        SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+        jevent[0].setObject(*event);
+        JSOBJ_SET_PROP(event, "type", JS::RootedString(cx, JS_NewStringCopyN(cx,
             CONST_STR_LEN("null"))));
+
         JS::RootedValue req(cx, request);
         JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
@@ -412,7 +414,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
     switch(type) {
         case NativeHTTP::DATA_STRING:
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            JSOBJ_SET_PROP(event, "type", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("string"))));
 
             NativeJSUtils::strToJsval(cx, (const char *)h->data->data,
@@ -423,7 +425,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             const jschar *chars;
             size_t clen;
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            JSOBJ_SET_PROP(event, "type", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("json"))));
 
             JS::RootedString str(cx, JS_NewStringCopyN(cx, (const char *)h->data->data,
@@ -476,7 +478,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
             memcpy(data, h->data->data, h->data->used);
             
-            SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
+            JSOBJ_SET_PROP(event, "type", JS::RootedString(cx, JS_NewStringCopyN(cx,
                 CONST_STR_LEN("binary"))));
 
             jdata.setObject(*arr);
@@ -485,11 +487,11 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
         }
     }
 
-    SET_PROP(event, "data", jdata);
+    JSOBJ_SET_PROP(event, "data", jdata);
 
-    jevent[0] = event;
+    jevent[0].setObject(*event);
+
     JS::RootedValue req(cx, request);
-    JS::RootedObject obj(cx, jsobj);
     JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
     NativeJSObj(cx)->unrootObject(this->jsobj);

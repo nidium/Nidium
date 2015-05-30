@@ -33,9 +33,10 @@ class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDele
     NativeJSHttp(JS::HandleObject obj, JSContext *cx, char *url);
     virtual ~NativeJSHttp();
 
-    JS::Value request;
+    JS::Heap<JS::Value> request;
+    JS::Heap<JSObject *>jsobj;
+    
     NativeHTTP *refHttp;
-    JSObject *jsobj;
 
     void onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType);
     void onProgress(size_t offset, size_t len,
