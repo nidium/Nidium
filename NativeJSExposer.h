@@ -590,5 +590,38 @@ private:
     JSContext *m_Cx;
 };
 
+/*
+    Tinyid were removed in SM31.
+    This template act as a workaround (create a unique getter/setter and keep a unique identifier)
+*/
+
+#define NATIVE_JS_SETTER(tinyid, setter) JSOP_WRAPPER((NativeJSPropertyAccessors::Setter<tinyid, setter>))
+#define NATIVE_JS_GETTER(tinyid, getter) JSOP_WRAPPER((NativeJSPropertyAccessors::Getter<tinyid, getter>))
+
+struct NativeJSPropertyAccessors
+{
+    typedef bool
+    (* NativeJSGetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
+                           bool strict, JS::MutableHandleValue vp);
+
+    typedef bool
+    (* NativeJSSetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
+                           JS::MutableHandleValue vp);    
+
+    template <int N, NativeJSGetterOp FN>
+    static bool Setter(JSContext *cx, JS::HandleObject obj,
+        JS::HandleId id, bool strict, JS::MutableHandleValue vp) {
+        return true;
+        //return FN(cx, obj, TINYID, strict, vp);
+    }
+
+    template <uint8_t TINYID, NativeJSSetterOp FN>
+    static bool Getter(JSContext *cx, JS::HandleObject obj,
+        JS::HandleId id, JS::MutableHandleValue vp) {
+
+        return FN(cx, obj, TINYID, vp);
+    }
+};
+
 
 #endif
