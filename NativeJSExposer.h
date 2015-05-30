@@ -608,9 +608,10 @@ struct NativeJSPropertyAccessors
     (* NativeJSSetterOp)(JSContext *cx, JS::HandleObject obj, uint8_t id,
                            JS::MutableHandleValue vp);    
 
-    template <int TINYID, NativeJSGetterOp FN>
+    template <uint8_t TINYID, NativeJSGetterOp FN>
     static bool Setter(JSContext *cx, JS::HandleObject obj,
         JS::HandleId id, bool strict, JS::MutableHandleValue vp) {
+        
         return FN(cx, obj, TINYID, strict, vp);
     }
 
