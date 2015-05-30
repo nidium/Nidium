@@ -192,8 +192,7 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
 
         PACK_TCP(s->s.fd);
-        JS::RootedValue array(cx, JS_NewArrayObject(cx, 0));
-        JS_CallFunctionValue(cx, obj, onconnect, array, &rval);
+        JS_CallFunctionValue(cx, obj, onconnect, JS::HandleValueArray::empty(), &rval);
         FLUSH_TCP(s->s.fd);
     }
 }
@@ -214,8 +213,7 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     JS::RootedValue onaccept(m_Cx);
     JS::RootedValue rval(m_Cx);
-    JS::RootedValue arg(m_Cx);
-    /* XXX RootedObject (Heap ?) */
+    JS::AutoValueArray<1> params(m_Cx);
     JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &socket_client_class, JS::NullPtr(), JS::NullPtr()));
 
     NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
@@ -240,7 +238,7 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
 
-    arg = OBJECT_TO_JSVAL(jclient);
+    params[0] = OBJECT_TO_JSVAL(jclient);
 
     JS::RootedObject socketjs(m_Cx, nsocket->getJSObject());
 
@@ -248,8 +246,8 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
         JS_TypeOfValue(m_Cx, onaccept) == JSTYPE_FUNCTION) {
 
         PACK_TCP(socket_client->s.fd);
-        JS_CallFunctionValue(m_Cx, socketjs, onaccept,
-            1, &arg, &rval);
+        JS::RootedValue onacceptVal(m_Cx, onaccept);
+        JS_CallFunctionValue(m_Cx, socketjs, onacceptVal, params, &rval);
         FLUSH_TCP(socket_client->s.fd);
     }
 }
@@ -258,7 +256,7 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
-    JS::RootedValue jdata(m_Cx, JS_NewArrayObject(m_Cx, 2));
+    JS::AutoValueArray<2> jdata(m_Cx);
     JS::RootedString tstr(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, buf, len, this->getEncoding()));
     JS::RootedString jstr(m_Cx);
     jstr = tstr;
@@ -305,8 +303,7 @@ static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
 
     if (JS_GetProperty(cx, obj, "ondrain", &ondrain) &&
         JS_TypeOfValue(cx, ondrain) == JSTYPE_FUNCTION) {
-    	JS::RootedValue array(cx, JS_NewArrayObject(cx, 0));
-        JS_CallFunctionValue(cx, obj, ondrain, array, &rval);
+        JS_CallFunctionValue(cx, obj, ondrain, JS::HandleValueArray::empty(), &rval);
     }
 }
 
@@ -323,7 +320,7 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     }
 
     cx = nsocket->getJSContext();
-    JS::RootedValue jparams(cx, JS_NewArrayObject(cx, 2));
+    JS::AutoValueArray<2> jparams(cx);;
     JS::RootedValue onmessage(cx);
     JS::RootedValue rval(cx);
 
@@ -371,7 +368,7 @@ void NativeJSSocket::onRead()
         return;
     }
 
-    JS::RootedValue jparams(m_Cx, JS_NewArrayObject(m_Cx, 2));
+    JS::AutoValueArray<2> jparams(m_Cx);
     int dataPosition = 0;
 
     if (isClientFromOwnServer()) {
@@ -475,7 +472,7 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     JS::RootedValue ondisconnect(cx);
     JS::RootedValue rval(cx);
 
-    JS::RootedValue jparams(cx, JS_NewArrayObject(cx, 1));
+    JS::AutoValueArray<1> jparams(cx);;
     jparams[1] =  OBJECT_TO_JSVAL(csocket->getJSObject());
 
     csocket->dettach();
@@ -510,8 +507,7 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
     JS::RootedObject obj(cx, nsocket->getJSObject());
     if (JS_GetProperty(cx, obj, "ondisconnect", &ondisconnect) &&
         JS_TypeOfValue(cx, ondisconnect) == JSTYPE_FUNCTION) {
-    	JS::RootedValue array(cx, JS_NewArrayObject(cx, 0));
-        JS_CallFunctionValue(cx, obj, ondisconnect, array, &rval);
+        JS_CallFunctionValue(cx, obj, ondisconnect, JS::HandleValueArray::empty(), &rval);
     }
 
     NativeJSObj(cx)->unrootObject(nsocket->getJSObject());

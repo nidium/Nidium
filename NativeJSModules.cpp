@@ -594,13 +594,13 @@ JS::Value NativeJSModule::require(char *name)
             }
 
             if (cmodule->m_ModuleType == JS) {
-                fn = JS_CompileFunction(cx, cmodule->exports, 
-                        "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
+            	JS::RootedValue expObj(cx, cmodule->exports);
+                fn = JS_CompileFunction(cx, expObj, "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
                 if (!fn) {
                     return ret;
                 }
 
-                if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval)) {
+                if (!JS_CallFunction(cx, expObj, fn, JS::HandleValueArray::empty(), &rval)) {
                     return ret;
                 }
             } else {

@@ -131,8 +131,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &WebSocketServer_class, vp));
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S/S",
-        localhost.address(), protocol.address())) {
+    if (!JS_ConvertArguments(cx, args, "S/S", &localhost, &protocol)) {
         return false;
     }
 
@@ -215,7 +214,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
-            JS::RootedValue arg(cx, JS_NewArrayObject(cx, 2));
+            JS::AutoValueArray<2> arg(cx);
 
             const char *data = (const char *)msg.args[2].toPtr();
             int len = msg.args[3].toInt();

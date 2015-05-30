@@ -137,11 +137,14 @@ public:
     bool fire(JS::Value evobj, JSObject *thisobj) {
         NativeJSEvent *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
+            JS::AutoValueArray<1> params(ev->m_Cx);
+            params[0] = evobj;
             JS::RootedValue rval(ev->m_Cx);
             // Use tmp in case the event was self deleted during trigger
             tmpEv = ev->next;
-            JS_CallFunctionValue(ev->m_Cx, thisobj,
-                ev->m_Function, 1, &evobj, &rval);
+            JS::RootedObject obj(ev->m_Cx, thisobj);
+            JS::RootedValue fun(ev->m_Cx, ev->m_Function);
+            JS_CallFunctionValue(ev->m_Cx, obj, fun, params, &rval);
 
             ev = tmpEv;
         }
@@ -165,7 +168,7 @@ private:
             return false;            
         }
         JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
-        JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble);
+        JS_SetProperty(cx, thisobj, "cancelBubble", cancelBubble);
 
         return true;
     }
@@ -317,8 +320,7 @@ private:
         JS::RootedString name(cx);
         JS::RootedObject evobj(cx);
 
-        if (!JS_ConvertArguments(cx, 2, args.array(), "So",
-            name.address(), evobj.address())) {
+        if (!JS_ConvertArguments(cx, args, "So", &name, &evobj)) {
             return false;
         }
 
@@ -338,11 +340,11 @@ private:
         JS::RootedString name(cx);
         JS::RootedValue cb(cx);
 
-        if (!JS_ConvertArguments(cx, args, "S", name.address())) {
+        if (!JS_ConvertArguments(cx, args, "S", &name)) {
             return false;
         }
 
-        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, cb.address())) {
+        if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &cb)) {
             JS_ReportError(cx, "Bad callback given");
             return false;
         }

@@ -150,7 +150,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
         }
 
         JS::RootedScript parentScript(cx);
-        if (!JS_DescribeScriptedCaller(cx, parentScript.address(), &parentLineNo)) {
+        if (!JS_DescribeScriptedCaller(cx, &parentScript, &parentLineNo)) {
             parentLineNo = 0;
         }
 

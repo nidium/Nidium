@@ -72,7 +72,7 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Http_class, vp));
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", url.address())) {
+    if (!JS_ConvertArguments(cx, args, "S", &url)) {
         return false;
     }
 
@@ -100,7 +100,7 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     NativeHTTP *nhttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *caller = &args.thisv().toObject();
+    JS::RootedObject caller(cx,  &args.thisv().toObject());
     NativeJSHttp *jshttp;
     JS::RootedObject options(cx);
     JS::RootedValue curopt(cx);
@@ -111,17 +111,17 @@ static bool native_http_request(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS_INITOPT();
 
-    if (JS_InstanceOf(cx, caller, &Http_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller, &Http_class, &args) == false) {
         return true;
     }
 
     args.rval().setObjectOrNull(caller);
 
-    if (!JS_ConvertArguments(cx, args, "o", options.address())) {
+    if (!JS_ConvertArguments(cx, args, "o", &options)) {
         return false;
     }
-
-    if (!JS_ConvertValue(cx, args.array()[1], JSTYPE_FUNCTION, callback.address())) {
+    JS::RootedValue args1(cx, args.array()[1]);
+    if (!JS_ConvertValue(cx, args1, JSTYPE_FUNCTION, &callback)) {
         return false;
     }
 
@@ -271,7 +271,8 @@ void NativeJSHttp::onError(NativeHTTP::HTTPError err)
         return;
     }
 
-    JS::RootedValueArray event(cx, JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr()));
+    JS::AutoValueArray<2> event(cx);
+    event[0] = JS_NewObject(m_Cx, NULL, JS::NullPtr(), JS::NullPtr());
 
     switch(err) {
         case NativeHTTP::ERROR_RESPONSE:
@@ -316,7 +317,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     JS::RootedValue rval(cx);
     JS::RootedValue ondata_callback(cx);
     JS::RootedValue jdata(cx);
-    JS::RootedValue jevent(cx);
+    JS::AutoValueArray<1> jevent(cx);
     JS::RootedObject obj(cx, jsobj);
 
     if (!JS_GetProperty(cx, obj, "ondata", &ondata_callback) ||
@@ -357,7 +358,7 @@ void NativeJSHttp::onProgress(size_t offset, size_t len,
     
     SET_PROP(event, "data", jdata);
 
-    jevent.setObject(*event);
+    jevent[1] = event;
 
     JS_CallFunctionValue(cx, obj, ondata_callback, jevent, &rval);
 }
@@ -375,7 +376,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JS::RootedObject obj(cx, jsobj);
     JS::RootedValue jdata(cx);
     JS::RootedValue rval(cx);
-    JS::RootedValue jevent(cx);
+    JS::AutoValueArray<1> jevent(cx);
 
     jdata.setNull();
 
@@ -392,12 +393,11 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     if (h->data == NULL) {
         SET_PROP(event, "data", JSVAL_NULL);
 
-        jevent = OBJECT_TO_JSVAL(event);
+        jevent[0] = OBJECT_TO_JSVAL(event);
         SET_PROP(event, "type", STRING_TO_JSVAL(JS_NewStringCopyN(cx,
             CONST_STR_LEN("null"))));
-
-        JS_CallFunctionValue(cx, obj, request, jevent, &rval);
-
+        JS::RootedValue req(cx, request);
+        JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
         NativeJSObj(cx)->unrootObject(this->jsobj);
 
@@ -487,9 +487,10 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
 
     SET_PROP(event, "data", jdata);
 
-    jevent.setObject(*event);
-
-    JS_CallFunctionValue(cx, jsobj, request, jevent, &rval);
+    jevent[0] = event;
+    JS::RootedValue req(cx, request);
+    JS::RootedObject obj(cx, jsobj);
+    JS_CallFunctionValue(cx, obj, req, jevent, &rval);
 
     NativeJSObj(cx)->unrootObject(this->jsobj);
     JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);

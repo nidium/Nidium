@@ -171,9 +171,9 @@ static void *native_thread(void *arg)
         return NULL;
     }
     
-    JS::RootedValue arglst(tcx, JS_NewArrayObject(tcx, nthread->params.argc));
-
-    for (int i = 0; i < nthread->params.argc; i++) {
+    JS::AutoValueArray<nthread->params.argc> arglst(tcx);
+    size_t i
+    for (i = 0; i < nthread->params.argc; i++) {
         JS_ReadStructuredClone(tcx,
                     nthread->params.argv[i],
                     nthread->params.nbytes[i],
@@ -250,7 +250,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
     int ev = msg.event();
 
     JS::RootedValue jscbk(m_Cx);
-    JS::RootedValue jevent(m_Cx);
+    JS::AutoValueArray<1> jevent(m_Cx);
     JS::RootedValue rval(m_Cx);
 
     JS::RootedObject event(m_Cx);
@@ -283,7 +283,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 
         EVENT_PROP("data", inval);
 
-        jevent = OBJECT_TO_JSVAL(event);
+        jevent[0] = OBJECT_TO_JSVAL(event);
         JS_CallFunctionValue(m_Cx, event, jscbk, jevent, &rval);
 
     }
@@ -313,7 +313,7 @@ static bool native_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
     nthread->njs 		= NJS;
 
 
-    JS_DescribeScriptedCaller(cx, parent.address(), &nthread->m_CallerLineno);
+    JS_DescribeScriptedCaller(cx, &parent, &nthread->m_CallerLineno);
     nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent);
 
     /* XXX RootedString (Heap?) */

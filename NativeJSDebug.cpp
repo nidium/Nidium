@@ -114,7 +114,7 @@ static bool native_debug_unserialize(JSContext *cx, unsigned argc, JS::Value *vp
     }
 
     if (!JS_ReadStructuredClone(cx, (uint64_t *)(data+offset), len-offset,
-        JS_STRUCTURED_CLONE_VERSION, inval.address(), NULL, NativeJS::getNativeClass(cx))) {
+        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NativeJS::getNativeClass(cx))) {
         JS_ReportError(cx, "unserialize() invalid data");
         return false;             
     }

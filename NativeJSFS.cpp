@@ -57,19 +57,18 @@ public:
 
                 cx = m_Cx;
                 JS::RootedValue rval(cx);
-                JS::RootedValue arg(cx);
+                JS::AutoValueArray<1> params(cx);
 
-                JSObject *param = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
+                JS::RootedObject param(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
-                JSOBJ_SET_PROP_STR(param, "name",
-                    JS_NewStringCopyZ(cx, cur->d_name));
-
+                JSOBJ_SET_PROP_STR(param, "name", str);
                 //JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
 
-                arg = OBJECT_TO_JSVAL(param);
+                params[0] = OBJECT_TO_JSVAL(param);
+                JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
 
-                JS_CallFunctionValue(cx, NULL,
-                    OBJECT_TO_JSVAL(callback), 1, &arg, &rval);
+                JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
 
                 free(cur);
                 break;

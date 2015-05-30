@@ -813,7 +813,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
         return 0;
     }
 
-    if (JS_CallFunction(cx, gbl, cf, 0, NULL, ret) == false) {
+    if (JS_CallFunction(cx, gbl, cf, JS::HandleValueArray::empty(), ret) == false) {
         printf("Got an error?\n"); /* or thread has ended */
 
         return 0;
@@ -1066,8 +1066,9 @@ static bool native_set_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
     params->ms = 0;
 
     params->argv = (argc-2 ? (JS::Value *)malloc(sizeof(*params->argv) * argc-2) : NULL);
-
-    if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &params->func)) {
+    JS::RootedValue args0(cx, args.array()[0]);
+    JS::RootedValue func(cx, params->func);
+    if (!JS_ConvertValue(cx, args0, JSTYPE_FUNCTION, &func)) {
         free(params->argv);
         free(params);
         return true;
@@ -1120,8 +1121,9 @@ static bool native_set_interval(JSContext *cx, unsigned argc, JS::Value *vp)
     params->timer = NULL;
 
     params->argv = (argc-2 ? (JS::Value *)malloc(sizeof(*params->argv) * argc-2) : NULL);
-
-    if (!JS_ConvertValue(cx, args.array()[0], JSTYPE_FUNCTION, &params->func)) {
+    JS::RootedValue args0(cx, args.array()[0]);
+    JS::RootedValue func(cx, params->func);
+    if (!JS_ConvertValue(cx, args0, JSTYPE_FUNCTION, &func)) {
         free(params->argv);
         free(params);
         return true;
@@ -1160,7 +1162,7 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "d", &identifier)) {
+    if (!JS_ConvertArguments(cx, args, "d", &identifier)) {
         return false;
     }
 
@@ -1172,13 +1174,18 @@ static bool native_clear_timeout(JSContext *cx, unsigned argc, JS::Value *vp)
 
 static int native_timerng_wrapper(void *arg)
 {
-    JS::RootedValue rval(cx);
     struct _native_sm_timer *params = (struct _native_sm_timer *)arg;
+    size_t i;
 
     JSAutoRequest ar(params->cx);
-
-    JS_CallFunctionValue(params->cx, params->global, params->func,
-        params->argc, params->argv, &rval);
+    JS::RootedValue rval(params->cx);
+    JS::AutoValueArray <params->argc> array(params->cx);
+    JS::RootedValue func(params->cx, params->func);
+    JS::RootedObject global(params->cx, params->global);
+    for(i = 0; i< params->argc; i++) {
+    	array[i] = params->argv[i];
+    }
+    JS_CallFunctionValue(params->cx, global, func, array, &rval);
 
     //timers_stats_print(&((ape_global *)JS_GetContextPrivate(params->cx))->timersng);
 

@@ -152,8 +152,8 @@ static bool native_console_profile_start(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
     /*
-    JSString *tmp;
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &tmp)) {
+    JS::RootedString tmp(cx);
+    if (!JS_ConvertArguments(cx, args, "S", &tmp)) {
         return false;
     }
 

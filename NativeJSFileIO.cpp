@@ -43,7 +43,7 @@ public:
     void onMessage(const NativeSharedMessages::Message &msg)
     {
 
-        JS::RootedValue params(cx, JS_NewArrayObject(cx, 2));
+        JS::AutoValueArray<2> params(cx);
         params[0].setNull();
         params[1].setUndefined();
         JSContext *cx = (JSContext *)m_Args[0].toPtr();
@@ -81,7 +81,8 @@ public:
         if (JS_ObjectIsCallable(cx, callback)) {
 
             JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-            JS_CallFunctionValue(cx, JS::NullPtr(), OBJECT_TO_JSVAL(callback), params, &rval);
+            JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+            JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
         }
 
         NativeJS::getNativeClass(cx)->unrootObject(callback);
@@ -746,7 +747,7 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     const NativeSharedMessages::Message &msg, JSObject *thisobj,
     const char *encoding)
 {
-    JS::RootedValue params(cx, JS_NewArrayObject(cx, 2));
+    JS::AutoValueArray<2> params(cx);
     JS::RootedValue rval(cx);
 
     params[1].setUndefined();
@@ -804,8 +805,8 @@ bool NativeJSFileIO::callbackForMessage(JSContext *cx,
     if (JS_ObjectIsCallable(cx, callback)) {
 
         JSAutoRequest ar(cx); // TODO: Why do we need a request here?
-        JS_CallFunctionValue(cx, jsthis, OBJECT_TO_JSVAL(callback),
-            2, params, rval.address());
+        JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
+        JS_CallFunctionValue(cx, jsthis, cb, params, &rval);
     }
 
     NativeJS::getNativeClass(cx)->unrootObject(callback);
@@ -820,7 +821,7 @@ void NativeJSFileIO::onMessage(const NativeSharedMessages::Message &msg)
 
 void NativeJSFileIO::registerObject(JSContext *cx)
 {
-    JS::RootedObject global(cx, JS_GetGlobalObject(cx));
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS_InitClass(cx, global, NULL, &File_class,
         native_File_constructor,
         0, NULL, NULL, NULL, File_static_funcs);

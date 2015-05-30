@@ -143,6 +143,8 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     }
 
     JS::RootedValue method(m_Cx);
+    JS::RootedValue head(m_Cx, OBJECT_TO_JSVAL(headers));
+    JS::RootedValue cli(m_Cx, OBJECT_TO_JSVAL(subclient->getJSObject()));
     switch (client->getHTTPState()->parser.method) {
         case HTTP_POST:
             method.setString(JS_NewStringCopyN(m_Cx, CONST_STR_LEN("POST")));
@@ -159,16 +161,16 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
     }
 
     JSOBJ_SET_PROP(objrequest, "method", method);
-    JSOBJ_SET_PROP(objrequest, "headers", OBJECT_TO_JSVAL(headers));
-    JSOBJ_SET_PROP(objrequest, "client", OBJECT_TO_JSVAL(subclient->getJSObject()));
-
-    if (JS_GetProperty(m_Cx, m_JSObject, "onrequest", oncallback.address()) &&
+    JSOBJ_SET_PROP(objrequest, "headers", headers);
+    JSOBJ_SET_PROP(objrequest, "client", cli);
+    JS::RootedObject obj(m_Cx, m_JSObject);
+    if (JS_GetProperty(m_Cx, obj, "onrequest", &oncallback) &&
         JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
-        JS::RootedValueArray arg[2];
+        JS::AutoValueArray<2> arg(m_Cx);
         arg[0].setObjectOrNull(objrequest);
         arg[1].setObjectOrNull(static_cast<NativeJSHTTPResponse*>(client->getResponse())->getJSObject());
-        JS_CallFunctionValue(m_Cx, m_JSObject, oncallback, arg, &rval);
+        JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
     }
 
     return false;
