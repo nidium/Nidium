@@ -172,7 +172,7 @@ int NativeServer::init()
                 daemon = true;
                 break;
             case '?':
-                exit(1);
+                exit(1);JS_DescribeScriptedCaller
                 break;
             case 'w':
                 workers = atoi(optarg);

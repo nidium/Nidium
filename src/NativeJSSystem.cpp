@@ -35,6 +35,7 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
     struct rlimit rl;
     struct stat   stats;
     JSContext *m_Cx = cx;
+    size_t i;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
@@ -44,14 +45,14 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
         return true;
     }
 
-    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, nullptr, nullptr));
+    JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
-    JSOBJ_SET_PROP_INT(ret, "cur", rl.rlim_cur);
-    JSOBJ_SET_PROP_INT(ret, "max", rl.rlim_max);
+    JSOBJ_SET_PROP_INT(ret, "cur", (int) rl.rlim_cur);
+    JSOBJ_SET_PROP_INT(ret, "max", (int) rl.rlim_max);
 
     int fdcounter = 0, sockcounter = 0, othercount = 0;
 
-    for (int i = 0; i <= rl.rlim_cur; i++ ) {
+    for (i = 0; i <= rl.rlim_cur; i++ ) {
         if (fstat(i, &stats) == 0) {
             fdcounter++;
             if ((stats.st_mode & S_IFMT) == S_IFSOCK) {
@@ -76,7 +77,8 @@ static bool native_system_getOpenFileStats(JSContext *cx, unsigned argc,
 
 void NativeJSSystem::registerObject(JSContext *cx)
 {
-    JS::RootedObject systemObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx), 
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject systemObj(cx, JS_DefineObject(cx, global,
         "System", &system_class , nullptr, 0));
     JS_DefineFunctions(cx, systemObj, system_funcs);
 }

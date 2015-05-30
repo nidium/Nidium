@@ -39,7 +39,7 @@ void NativeREPL::onMessage(const NativeSharedMessages::Message &msg)
 {
     buffer_append_string(m_Buffer, (char *)msg.dataPtr());
 
-    JS::RootedObject rgbl(m_JS->cx, JS_GetGlobalObject(m_JS->cx));
+    JS::RootedObject rgbl(m_JS->cx, JS::CurrentGlobalOrNull(m_JS->cx));
 
     if (JS_BufferIsCompilableUnit(m_JS->cx, rgbl,
         (char *)m_Buffer->data, m_Buffer->used)) {

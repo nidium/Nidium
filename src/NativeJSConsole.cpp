@@ -64,7 +64,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
     unsigned lineno;
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS_DescribeScriptedCaller(cx, &parent.get(), &lineno);
+    JS_DescribeScriptedCaller(cx, parent, &lineno);
     filename_parent = JS_GetScriptFilename(cx, parent);
 
     if (filename_parent == NULL) {
@@ -103,7 +103,8 @@ static bool native_console_log(JSContext *cx, unsigned argc,
 
 void NativeJSconsole::registerObject(JSContext *cx)
 {
-    JS::RootedObject consoleObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject consoleObj(cx, JS_DefineObject(cx, global,
         "console", &console_class , nullptr, 0));
     JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
