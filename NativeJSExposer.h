@@ -243,10 +243,13 @@ class NativeJSExposer
         return T::getJSGlobalObject(NativeJS::getNativeClass(cx));
     }
 
-    static T* getNativeClass(JS::HandleObject obj, JSContext *cx = NULL)
+    static T* getNativeClass(JSObject *obj, JSContext *cx = NULL)
     {
         if (cx != NULL) {
-            return (T *)JS_GetInstancePrivate(cx, obj, T::jsclass, NULL);
+            if (JS_GetClass(obj) == T::jsclass) {
+                return (T *)JS_GetPrivate(obj);
+            }
+            return NULL;
         }
         return (T *)JS_GetPrivate(obj);
     }
@@ -424,7 +427,7 @@ class NativeJSObjectMapper
 {
 public:
     NativeJSObjectMapper(JSContext *cx, const char *name) :
-        m_JSCx(cx)
+        m_JSCx(cx), m_JSObj(cx)
     {
         static JSClass jsclass = {
             NULL, JSCLASS_HAS_PRIVATE,
@@ -441,12 +444,10 @@ public:
         /* XXX RootedObject (Heap) */
         m_JSObj = JS_NewObject(m_JSCx, m_JSClass, JS::NullPtr(), JS::NullPtr());
         JS_SetPrivate(m_JSObj, static_cast<T *>(this));
-        JS_AddObjectRoot(m_JSCx, &m_JSObj);
     }
     virtual ~NativeJSObjectMapper()
     {
         JS_SetPrivate(m_JSObj, NULL);
-        JS_RemoveObjectRoot(m_JSCx, &m_JSObj);
     }
 
     JSObject *getJSObject() const {
@@ -460,7 +461,8 @@ public:
     }
 protected:
     JSClass *m_JSClass;
-    JSObject *m_JSObj;
+
+    JS::PersistentRootedObject m_JSObj;
     JSContext *m_JSCx;
 };
 

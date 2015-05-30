@@ -58,7 +58,7 @@ public:
         NativeJSHTTPClientConnection *conn;
         client->ctx = conn = new NativeJSHTTPClientConnection(m_Cx, this, client);
 
-        JSObject *obj = conn->getJSObject();
+        JS::RootedObject obj(m_Cx, conn->getJSObject());
 
         JSOBJ_SET_PROP_CSTR(obj, "ip", APE_socket_ipv4(client));
 

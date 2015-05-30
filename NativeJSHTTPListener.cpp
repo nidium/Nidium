@@ -119,14 +119,14 @@ bool NativeJSHTTPListener::onEnd(NativeHTTPClientConnection *client)
             JS::RootedString jstr(m_Cx, JS_NewStringCopyN(m_Cx, (char *)v->data,
                 v->used-1));
             JSOBJ_SET_PROP_FLAGS(headers, k->data,
-                STRING_TO_JSVAL(jstr), JSPROP_ENUMERATE);
+                jstr, JSPROP_ENUMERATE);
         }
     }
 
     buffer *url = client->getHTTPState()->url;
     if (url) {
         JS::RootedString jsurl(m_Cx, JS_NewStringCopyN(m_Cx, (char *)url->data, url->used));
-        JSOBJ_SET_PROP(objrequest, "url", STRING_TO_JSVAL(jsurl));
+        JSOBJ_SET_PROP(objrequest, "url", jsurl);
     }
 
     buffer *data = client->getHTTPState()->data;
@@ -324,10 +324,10 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
     if (args.length() >= 2 && !args[1].isPrimitive()) {
 
         JS::RootedId idp(cx);
-        JS::RootedObject iterator(cx);
 
-        iterator = JS_NewPropertyIterator(cx, headers);
-        while (JS_NextProperty(cx, iterator, &idp) && !JSID_IS_VOID(idp)) {
+        JS::RootedObject iterator(cx, JS_NewPropertyIterator(cx, headers));
+
+        while (JS_NextProperty(cx, iterator, idp.address()) && !JSID_IS_VOID(idp)) {
             if (!JSID_IS_STRING(idp)) {
                 continue;
             }
@@ -353,7 +353,7 @@ static bool native_httpresponse_writeHead(JSContext *cx, unsigned argc, JS::Valu
 void NativeJSHTTPListener::registerObject(JSContext *cx)
 {
     JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-    JS_InitClass(cx, global, nullptr, &HTTPListener_class,
+    JS_InitClass(cx, global, JS::NullPtr(), &HTTPListener_class,
         native_HTTPListener_constructor,
         0, NULL, NULL, NULL, NULL);
 #if 0

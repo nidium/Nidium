@@ -82,6 +82,7 @@ static JSFunctionSpec socket_funcs[] = {
     JS_FS_END
 };
 
+
 static JSPropertySpec Socket_props[] = {
     {"binary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
     JSOP_WRAPPER(native_socket_prop_set)},
@@ -97,6 +98,7 @@ static JSPropertySpec Socket_props[] = {
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
+    NativeJSGetter::Fun<8, NULL>();
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
     
     if (nsocket == NULL) {
