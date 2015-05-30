@@ -63,7 +63,7 @@ JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
     if (encoding != NULL && strcasecmp(encoding, "utf8") == 0) {
         size_t jlen = 0;
 
-        NativePtrAutoDelete<jschar *> content(NativeUtils::Utf8ToUtf16(buf, len, &jlen), free);
+        NativePtrAutoDelete<char16_t *> content(NativeUtils::Utf8ToUtf16(buf, len, &jlen), free);
 
         if (content.ptr() == NULL) {
             JS_ReportError(cx, "Could not decode string to utf8");

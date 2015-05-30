@@ -30,7 +30,7 @@ enum {
 };
 
 static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
+    uint8_t id, JS::MutableHandleValue vp);
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj);
 static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -56,11 +56,12 @@ static JSFunctionSpec Stream_funcs[] = {
     JS_FS_END
 };
 
+/* STREAM_PROP_FILESIZE */
 static JSPropertySpec Stream_props[] = {
-    {"fileSize", STREAM_PROP_FILESIZE, JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
-        JSOP_WRAPPER(native_stream_prop_get),
+    {"fileSize", JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE,
+        NATIVE_JS_GETTER(STREAM_PROP_FILESIZE, native_stream_prop_get),
         JSOP_NULLWRAPPER},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
@@ -73,12 +74,12 @@ static void Stream_Finalize(JSFreeOp *fop, JSObject *obj)
 }
 
 static bool native_stream_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, JS::MutableHandleValue vp)
 {
 
     NativeJSStream *stream = (NativeJSStream *)JS_GetPrivate(obj);
 
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case STREAM_PROP_FILESIZE:
             vp.setInt32(stream->getStream()->getFileSize());
             break;
@@ -92,7 +93,7 @@ static bool native_stream_stop(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args)) {
+    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
         return true;
     }
 
@@ -107,7 +108,7 @@ static bool native_stream_seek(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, &args.thisv().toObject());
     uint32_t pos;
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args)) {
+    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
         return true;
     }
 
@@ -126,7 +127,7 @@ static bool native_stream_start(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedObject caller(cx, &args.thisv().toObject());
     size_t packetlen = 4096;
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args)) {
+    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
         return true;
     }
     if (args.length() > 0 && args[0].isInt32()) {
@@ -149,7 +150,7 @@ static bool native_stream_getNextPacket(JSContext *cx, unsigned argc, JS::Value 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
 
-    if (!JS_InstanceOf(cx, caller, &Stream_class, args)) {
+    if (!JS_InstanceOf(cx, caller, &Stream_class, &args)) {
         return true;
     }
 
@@ -301,7 +302,7 @@ void NativeJSStream::onMessage(const NativeSharedMessages::Message &msg)
                 JS_TypeOfValue(m_Cx, onerror_callback) == JSTYPE_FUNCTION) {
                 JS::AutoValueArray<1> args(m_Cx);
 
-                args[0] = INT_TO_JSVAL( code );
+                args[0].setInt32(code);
                 JS_CallFunctionValue(m_Cx, obj, onerror_callback, args, &rval);
                 }
             }

@@ -124,7 +124,7 @@ uint64_t NativeUtils::getTick(bool ms)
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
 }
 
-uint16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputlen)
+char16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputlen)
 {
     *outputlen = sizeof(jschar) * (len + 1);
 

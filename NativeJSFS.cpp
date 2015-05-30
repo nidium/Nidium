@@ -65,7 +65,8 @@ public:
                 JSOBJ_SET_PROP_STR(param, "name", str);
                 //JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
 
-                params[0] = OBJECT_TO_JSVAL(param);
+                params[0].setObject(*param);
+
                 JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
 
                 JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
@@ -123,7 +124,7 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NATIVE_CHECK_ARGS("readDir", 2);
 
-    if (!JS_ConvertArguments(cx, args, "S", path)) {
+    if (!JS_ConvertArguments(cx, args, "S", &path)) {
         return false;
     }
 
