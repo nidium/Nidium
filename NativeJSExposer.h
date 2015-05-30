@@ -138,7 +138,7 @@ public:
         NativeJSEvent *ev, *tmpEv;
         for (ev = m_Head; ev != NULL;) {
             JS::AutoValueArray<1> params(ev->m_Cx);
-            params[0] = evobj;
+            params[0].set(evobj);
             JS::RootedValue rval(ev->m_Cx);
             // Use tmp in case the event was self deleted during trigger
             tmpEv = ev->next;
@@ -204,7 +204,7 @@ class NativeJSExposer
         m_Cx = cx;
     }
 
-    NativeJSExposer(JSObject *jsobj, JSContext *cx, bool impEvents = true) :
+    NativeJSExposer(JS::HandleObject jsobj, JSContext *cx, bool impEvents = true) :
         m_JSObject(jsobj), m_Cx(cx), m_Events(NULL)
     {
         static JSFunctionSpec NativeJSEvent_funcs[] = {
@@ -304,7 +304,8 @@ class NativeJSExposer
         events->add(ev);
     }
 
-    JSObject *m_JSObject;
+    JS::Heap<JSObject *>m_JSObject;
+    
     JSContext *m_Cx;
     NativeHash<NativeJSEvents *> *m_Events;
 
@@ -509,9 +510,9 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
                 argv, &_rval); \
         } \
     }
-#define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(m_Cx, val)))
+#define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, JS::RootedString(m_Cx, JS_NewStringCopyZ(m_Cx, val)))
 #define JSOBJ_SET_PROP_STR(where, name, val) JSOBJ_SET_PROP(where, name, val)
-#define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, INT_TO_JSVAL(val))
+#define JSOBJ_SET_PROP_INT(where, name, val) JSOBJ_SET_PROP(where, name, val)
 
 
 
@@ -527,7 +528,7 @@ public:
     NativeJSObjectBuilder(JSContext *cx, JSClass *clasp = NULL) {
         m_Cx = cx;
         /* XXX RootedObject (Heap) */
-        m_Obj = JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr());
+        m_Obj.set(JS_NewObject(m_Cx, clasp, JS::NullPtr(), JS::NullPtr()));
     };
 
     NativeJSObjectBuilder(JSContext *cx, JSObject *wrapped) {
@@ -556,16 +557,18 @@ public:
     }
 
     void set(const char *name, int32_t value) {
-        JSOBJ_SET_PROP_INT(m_Obj, name, value);
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP_INT(obj, name, value);
     }
 
     void set(const char *name, double value) {
-        JSOBJ_SET_PROP(m_Obj, name, JS_NumberValue(value));
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP(obj, name, value);
     }
 
     void set(const char *name, bool value) {
-        JS_DefineProperty(m_Cx, m_Obj, "foo", 23, 0);
-        JSOBJ_SET_PROP(m_Obj, name, BOOLEAN_TO_JSVAL(value));
+        JS::RootedObject obj(m_Cx, m_Obj);
+        JSOBJ_SET_PROP(obj, name, value);
     }
 
     JSObject *obj() const {
