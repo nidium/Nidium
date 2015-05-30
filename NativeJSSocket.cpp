@@ -35,7 +35,7 @@ enum {
 static void Socket_Finalize(JSFreeOp *fop, JSObject *obj);
 static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj);
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp);
+    uint8_t id, bool strict, JS::MutableHandleValue vp);
 static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp);
 static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -84,28 +84,23 @@ static JSFunctionSpec socket_funcs[] = {
 
 
 static JSPropertySpec Socket_props[] = {
-    {"binary", SOCKET_PROP_BINARY, 0, JSOP_NULLWRAPPER,
-    JSOP_WRAPPER(native_socket_prop_set)},
-    {"readline", SOCKET_PROP_READLINE, 0, JSOP_NULLWRAPPER,
-    JSOP_WRAPPER(native_socket_prop_set)},
-    {"encoding", SOCKET_PROP_ENCODING, 0, JSOP_NULLWRAPPER,
-    JSOP_WRAPPER(native_socket_prop_set)},
-    {"timeout", SOCKET_PROP_TIMEOUT, 0, JSOP_NULLWRAPPER,
-    JSOP_WRAPPER(native_socket_prop_set)},
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    {"binary",   0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_BINARY, native_socket_prop_set)},
+    {"readline", 0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_READLINE, native_socket_prop_set)},
+    {"encoding", 0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_ENCODING, native_socket_prop_set)},
+    {"timeout",  0, JSOP_NULLWRAPPER, NATIVE_JS_SETTER(SOCKET_PROP_TIMEOUT, native_socket_prop_set)},
+    JS_PS_END
 };
 
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, bool strict, JS::MutableHandleValue vp)
+    uint8_t id, bool strict, JS::MutableHandleValue vp)
 {
-    NativeJSGetter::Fun<8, NULL>();
     NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
     
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
         return false;
     }
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case SOCKET_PROP_BINARY:
         {
             if (vp.isBoolean()) {
