@@ -41,7 +41,7 @@
 
 #include <jsapi.h>
 #include <jsfriendapi.h>
-#include <jsdbgapi.h>
+//#include <jsdbgapi.h>
 #include <jsprf.h>
 
 #include <stdio.h>
@@ -98,13 +98,13 @@ JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
-    JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+    JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp);
+    uint8_t, JS::MutableHandleValue vp);
 
 /******** Natives ********/
 static bool native_pwd(JSContext *cx, unsigned argc, JS::Value *vp);
@@ -128,27 +128,27 @@ static JSFunctionSpec glob_funcs[] = {
 };
 
 static JSPropertySpec glob_props[] = {
-    {"__filename", GLOBAL_PROP___FILENAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+    {"__filename", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(GLOBAL_PROP___FILENAME, native_global_prop_get),
         JSOP_NULLWRAPPER},
-   {"__dirname", GLOBAL_PROP___DIRNAME, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+   {"__dirname", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(GLOBAL_PROP___DIRNAME, native_global_prop_get),
         JSOP_NULLWRAPPER},
-   {"global", GLOBAL_PROP_GLOBAL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+   {"global", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(GLOBAL_PROP_GLOBAL, native_global_prop_get),
         JSOP_NULLWRAPPER},
 #ifndef NATIVE_DISABLE_WINDOW_GLOBAL
-   {"window", GLOBAL_PROP_WINDOW, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
-        JSOP_WRAPPER(native_global_prop_get),
+   {"window", JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY,
+        NATIVE_JS_GETTER(GLOBAL_PROP_WINDOW, native_global_prop_get),
         JSOP_NULLWRAPPER},
 #endif
-    {0, 0, 0, JSOP_NULLWRAPPER, JSOP_NULLWRAPPER}
+    JS_PS_END
 };
 
 static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
-    JS::HandleId id, JS::MutableHandleValue vp)
+    uint8_t id, JS::MutableHandleValue vp)
 {
-    switch(JSID_TO_INT(id)) {
+    switch(id) {
         case GLOBAL_PROP___FILENAME:
         {
             vp.setString(JS_NewStringCopyZ(cx, NativePath::currentJSCaller()));
