@@ -32,12 +32,12 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
     if (encoding) {
 
         JS::RootedString str(cx, NativeJSUtils::newStringWithEncoding(cx, buf, len, encoding));
-        if (!str.get()) {
+        if (!str) {
             ret.set(JS_GetEmptyStringValue(cx));
             return false;
         }
 
-        ret.setString(str.get());
+        ret.setString(str);
 
     } else {
         JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
@@ -46,7 +46,7 @@ bool NativeJSUtils::strToJsval(JSContext *cx, const char *buf, size_t len, JS::M
             JS_ReportOutOfMemory(cx);
             return false;
         } else {
-            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer.get());
+            uint8_t *adata = JS_GetArrayBufferData(arrayBuffer);
             memcpy(adata, buf, len);
 
             ret.setObject(*arrayBuffer);
@@ -77,7 +77,7 @@ JSString *NativeJSUtils::newStringWithEncoding(JSContext *cx, const char *buf,
 
         content.disable(); /* JS_NewUCString took ownership */
         
-        return str.get();
+        return str;
 
     }
 

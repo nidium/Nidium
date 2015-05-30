@@ -104,7 +104,7 @@ static bool native_console_log(JSContext *cx, unsigned argc,
         JS::RootedString str(cx, JS_ValueToString(cx, args[i]));
         if (!str)
             return false;
-        bytes = JS_EncodeStringToUTF8(cx, str.get());
+        bytes = JS_EncodeStringToUTF8(cx, str);
         if (!bytes)
             return false;
         if (i) {
@@ -132,14 +132,14 @@ static bool native_console_write(JSContext *cx, unsigned argc,
     NATIVE_CHECK_ARGS("write", 1);
 
     JS::RootedString str(cx, args[0].toString());
-    if (!str.get()) {
+    if (!str) {
         JS_ReportError(cx, "Bad argument");
         return false;
     }
 
     JSAutoByteString cstr;
 
-    cstr.encodeUtf8(cx, str.get());
+    cstr.encodeUtf8(cx, str);
 
     js->log(cstr.ptr());
     js->log("\n");
@@ -183,6 +183,6 @@ void NativeJSconsole::registerObject(JSContext *cx)
         JS_GetGlobalObject(cx), "console",
         &console_class, NULL, 0));
 
-    JS_DefineFunctions(cx, consoleObj.get(), console_funcs);
+    JS_DefineFunctions(cx, consoleObj, console_funcs);
 }
 

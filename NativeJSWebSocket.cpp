@@ -78,8 +78,8 @@ static bool native_websocketclient_send(JSContext *cx, unsigned argc, JS::Value 
 
     if (args[0].isString()) {
         JSAutoByteString cdata;
-
-        cdata.encodeUtf8(cx, args[0].toString());
+        JS::RootedString str(cx, args[0].toString());
+        cdata.encodeUtf8(cx, str);
 
         CppObj->write((unsigned char *)cdata.ptr(),
             strlen(cdata.ptr()), false, APE_DATA_COPY);
@@ -152,7 +152,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
         return false;
     }
 
-    NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(ret.get(), cx, host, port);
+    NativeJSWebSocketServer *wss = new NativeJSWebSocketServer(ret, cx, host, port);
 
     free(path);
     free(host);
@@ -165,14 +165,14 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
         return false;
     }
 
-    JS_SetPrivate(ret.get(), wss);
+    JS_SetPrivate(ret, wss);
 
     args.rval().setObjectOrNull(ret);
 
     /*
         Server is listening at this point. Don't collect.
     */
-    NativeJSObj(cx)->rootObjectUntilShutdown(ret.get());
+    NativeJSObj(cx)->rootObjectUntilShutdown(ret);
 
     return true;
 }
@@ -197,10 +197,10 @@ JSObject *NativeJSWebSocketServer::createClient(NativeWebSocketClientConnection 
 
     JS_DefineFunctions(m_Cx, jclient, wsclient_funcs);
 
-    JS_SetPrivate(jclient.get(), client);
+    JS_SetPrivate(jclient, client);
 
-    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient.get());
-    client->setData(jclient.get());
+    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
+    client->setData(jclient);
 
     return jclient;
 }
@@ -215,21 +215,19 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
     switch (msg.event()) {
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_FRAME):
         {
-            JS::Value arg[2];
-            JS::AutoArrayRooter argRooter(cx, 2, arg);
+            JS::RootedValue arg(cx, JS_NewArrayObject(cx, 2));
 
             const char *data = (const char *)msg.args[2].toPtr();
             int len = msg.args[3].toInt();
             bool binary = msg.args[4].toBool();
             
-            /* XXX RootedObject ??? */
-            JSObject *jclient = (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData();
+            JS::RootedObject jclient(cx, (JSObject *)((NativeWebSocketClientConnection *)msg.args[1].toPtr())->getData());
 
-            if (!jclient) {
+            if (!jclient.get()) {
                 return;
             }
-
-            if (JS_GetProperty(m_Cx, this->getJSObject(), "onmessage", oncallback.address()) &&
+            JS::RootedObject obj(m_Cx, this->getJSObject());
+            if (JS_GetProperty(m_Cx, obj, "onmessage", &oncallback) &&
                 JS_TypeOfValue(m_Cx, oncallback) == JSTYPE_FUNCTION) {
 
                 JS::RootedValue jdata(cx);
@@ -241,8 +239,7 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
                 arg[0].setObjectOrNull(jclient);
                 arg[1].setObjectOrNull(event);
 
-                JS_CallFunctionValue(m_Cx, this->getJSObject(), oncallback,
-                    2, arg, rval.address());
+                JS_CallFunctionValue(m_Cx, obj, oncallback, arg, &rval);
             }
 
             break;
@@ -252,22 +249,22 @@ void NativeJSWebSocketServer::onMessage(const NativeSharedMessages::Message &msg
             JSObject *jclient = this->createClient(
                 (NativeWebSocketClientConnection *)msg.args[1].toPtr());
 
-            JS::Value arg[1] = { OBJECT_TO_JSVAL(jclient) };
-            JS::AutoArrayRooter rooter(cx, 1, arg);
+            JS::RootedObject obj(cx, this->getJSObject());
+            JS::RootedValue arg(cx, JS_NewArrayObject(cx, 1));
+            arg[1] = OBJECT_TO_JSVAL(jclient);
 
-            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onopen", 1, arg);
+            JSOBJ_CALLFUNCNAME(obj, "onopen", arg);
 
             break;
         }
         case NATIVE_EVENT(NativeWebSocketListener, SERVER_CLOSE):
         {
             NativeWebSocketClientConnection *client = (NativeWebSocketClientConnection *)msg.args[1].toPtr();
-            JSObject *jclient = (JSObject *)client->getData();
-
-            JS::Value arg[1] = { OBJECT_TO_JSVAL(jclient) };
-            JS::AutoArrayRooter rooter(cx, 1, arg);
-
-            JSOBJ_CALLFUNCNAME(this->getJSObject(), "onclose", 1, arg);
+            JS::RootedObject jclient(cx, (JSObject *)client->getData());
+            JS::RootedObject obj(cx, this->getJSObject());
+            JS::RootedValue arg(cx, JS_NewArrayObject(cx, 1));
+            arg[0] = OBJECT_TO_JSVAL(jclient);
+            JSOBJ_CALLFUNCNAME(obj, "onclose", arg);
 
             JS_SetPrivate(jclient, NULL);
             NativeJSObj(m_Cx)->unrootObject(jclient);

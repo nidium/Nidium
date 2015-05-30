@@ -38,7 +38,7 @@
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
     } \
-    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj.get(), fclass, NULL); \
+    ofclass *CppObj = (ofclass *)JS_GetInstancePrivate(cx, thisobj, fclass, NULL); \
     if (!CppObj) { \
         JS_ReportError(cx, "Illegal invocation"); \
         return false; \
@@ -141,7 +141,7 @@ public:
             // Use tmp in case the event was self deleted during trigger
             tmpEv = ev->next;
             JS_CallFunctionValue(ev->m_Cx, thisobj,
-                ev->m_Function, 1, &evobj, &rval.get());
+                ev->m_Function, 1, &evobj, &rval);
 
             ev = tmpEv;
         }
@@ -165,7 +165,7 @@ private:
             return false;            
         }
         JS::RootedValue cancelBubble(cx, JS::BooleanValue(true));
-        JS_SetProperty(cx, thisobj.get(), "cancelBubble", &cancelBubble.get());
+        JS_SetProperty(cx, thisobj, "cancelBubble", &cancelBubble);
 
         return true;
     }
@@ -324,7 +324,7 @@ private:
 
         JSAutoByteString cname(cx, name);
 
-        CppObj->fireJSEvent(cname.ptr(), OBJECT_TO_JSVAL(evobj.get()));
+        CppObj->fireJSEvent(cname.ptr(), OBJECT_TO_JSVAL(evobj));
 
         return true;
     }
@@ -347,9 +347,9 @@ private:
             return false;
         }
 
-        JSAutoByteString cname(cx, name.get());
+        JSAutoByteString cname(cx, name);
 
-        CppObj->addJSEvent(cname.ptr(), cb.get());
+        CppObj->addJSEvent(cname.ptr(), cb);
 
         return true;
     }
@@ -467,7 +467,7 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define NATIVE_OBJECT_EXPOSE(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
     { \
-        JS::RootedObject global(cx, JS_GetGlobalObject(cx)); \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
         JS_InitClass(cx, global, NULL, &name ## _class, \
             native_ ## name ## _constructor, \
             0, NULL, NULL, NULL, NULL); \
@@ -495,15 +495,15 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define JSOBJ_SET_PROP(where, name, val) JSOBJ_SET_PROP_FLAGS(where, name, val, \
         JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE)
 
-#define JSOBJ_CALLFUNCNAME(where, name, argc, argv) \
+#define JSOBJ_CALLFUNCNAME(where, name, argv) \
     { \
         JS::RootedValue _oncallback(cx); \
         JS::RootedValue _rval(cx); \
-        JS::Value rval; \
-        if (JS_GetProperty(cx, where, name, _oncallback.address()) && \
-            JS_TypeOfValue(cx, oncallback) == JSTYPE_FUNCTION) { \
-            JS_CallFunctionValue(cx, where, oncallback, \
-                argc, argv, _rval.address()); \
+        JS::RootedValue rval(cx); \
+        if (JS_GetProperty(cx, where, name, &_oncallback) && \
+            JS_TypeOfValue(cx, _oncallback) == JSTYPE_FUNCTION) { \
+            JS_CallFunctionValue(cx, where, _oncallback, \
+                argv, &_rval); \
         } \
     }
 #define JSOBJ_SET_PROP_CSTR(where, name, val) JSOBJ_SET_PROP(where, name, STRING_TO_JSVAL(JS_NewStringCopyZ(m_Cx, val)))

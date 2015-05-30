@@ -131,14 +131,14 @@ static void *native_thread(void *arg)
     JS_SetOptions(tcx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION/* | JSOPTION_ASMJS*/);
 
-    if (!JS_InitStandardClasses(tcx, gbl.get()))
+    if (!JS_InitStandardClasses(tcx, gbl))
         return NULL;
     
     JS_SetErrorReporter(tcx, reportError);
 
-    JS_SetGlobalObject(tcx, gbl.get());
+    JS_SetGlobalObject(tcx, gbl);
 
-    JS_DefineFunctions(tcx, gbl.get(), glob_funcs_threaded);
+    JS_DefineFunctions(tcx, gbl, glob_funcs_threaded);
 
     NativeJSconsole::registerObject(tcx);
 
@@ -160,7 +160,7 @@ static void *native_thread(void *arg)
     /* Hold the parent cx */
     JS_SetContextPrivate(tcx, nthread);
 
-    JS::RootedFunction cf(tcx, JS_CompileFunction(tcx, gbl.get(), NULL, 0, NULL, scoped,
+    JS::RootedFunction cf(tcx, JS_CompileFunction(tcx, gbl, NULL, 0, NULL, scoped,
         strlen(scoped), nthread->m_CallerFileName, nthread->m_CallerLineno));
 
     delete[] scoped;
@@ -171,9 +171,7 @@ static void *native_thread(void *arg)
         return NULL;
     }
     
-    JS::Value *arglst = new jsval[nthread->params.argc];
-
-    JS::AutoArrayRooter arglstRooted(tcx, nthread->params.argc, arglst);
+    JS::RootedValue arglst(tcx, JS_NewArrayObject(tcx, nthread->params.argc));
 
     for (int i = 0; i < nthread->params.argc; i++) {
         JS_ReadStructuredClone(tcx,
@@ -184,8 +182,7 @@ static void *native_thread(void *arg)
         JS_ClearStructuredClone(nthread->params.argv[i], nthread->params.nbytes[i]);
     }
 
-    if (JS_CallFunction(tcx, gbl.get(), cf, nthread->params.argc,
-        arglst, &rval.get()) == false) {
+    if (JS_CallFunction(tcx, gbl, cf, arglst, &rval) == false) {
     }
 
     JS_EndRequest(tcx);
@@ -193,9 +190,7 @@ static void *native_thread(void *arg)
     free(nthread->params.argv);
     free(nthread->params.nbytes);
 
-    delete[] arglst;
-
-    nthread->onComplete(&rval.get());
+    nthread->onComplete(&rval.get);
 
     JS_DestroyContext(tcx);
     JS_DestroyRuntime(rt);
@@ -212,7 +207,7 @@ static bool native_thread_start(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JSObject *caller = &args.thisv().toObject();
 
-    if (JS_InstanceOf(cx, caller, &Thread_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller, &Thread_class, args) == false) {
         return true;
     }    
 
@@ -273,15 +268,15 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
     JS::RootedValue inval(m_Cx, JSVAL_NULL);
 
     if (!JS_ReadStructuredClone(m_Cx, ptr->data, ptr->nbytes,
-        JS_STRUCTURED_CLONE_VERSION, &inval.get(), NULL, NULL)) {
+        JS_STRUCTURED_CLONE_VERSION, &inval, NULL, NULL)) {
 
         printf("Failed to read input data (readMessage)\n");
 
         delete ptr;
         return;
     }
-
-    if (JS_GetProperty(m_Cx, ptr->callee, prop, jscbk.address()) &&
+    JS::RootedObject callee(m_Cx, ptr->callee);
+    if (JS_GetProperty(m_Cx, callee, prop, &jscbk) &&
         jscbk.isPrimitive() && JS_ObjectIsCallable(m_Cx, jscbk.toObject())) {
 
         event = JS_NewObject(m_Cx, &messageEvent_class, JS::NullPtr(), JS::NullPtr());
@@ -289,7 +284,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
         EVENT_PROP("data", inval);
 
         jevent = OBJECT_TO_JSVAL(event);
-        JS_CallFunctionValue(m_Cx, event.get(), jscbk.get(), 1, jevent.address(), rval.address());
+        JS_CallFunctionValue(m_Cx, event, jscbk, jevent, &rval);
 
     }
     JS_ClearStructuredClone(ptr->data, ptr->nbytes);
@@ -305,7 +300,7 @@ static bool native_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
     JS::RootedScript parent(cx);
 
-    NativeJSThread *nthread = new NativeJSThread(ret.get(), cx);
+    NativeJSThread *nthread = new NativeJSThread(ret, cx);
     JSFunction *nfn;
 
     if ((nfn = JS_ValueToFunction(cx, args.array()[0])) == NULL ||
@@ -319,16 +314,16 @@ static bool native_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
 
     JS_DescribeScriptedCaller(cx, parent.address(), &nthread->m_CallerLineno);
-    nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent.get());
+    nthread->m_CallerFileName = JS_GetScriptFilename(cx, parent);
 
     /* XXX RootedString (Heap?) */
     JS_AddStringRoot(cx, &nthread->jsFunction);
 
-    JS_SetPrivate(ret.get(), nthread);
+    JS_SetPrivate(ret, nthread);
 
     args.rval().setObjectOrNull(ret);
 
-    JS_DefineFunctions(cx, ret.get(), Thread_funcs);
+    JS_DefineFunctions(cx, ret, Thread_funcs);
 
     return true;
 }
