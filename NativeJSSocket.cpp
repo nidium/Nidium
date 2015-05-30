@@ -235,7 +235,7 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
 
-    params[0] = OBJECT_TO_JSVAL(jclient);
+    params[0].setObject(*jclient);
 
     JS::RootedObject socketjs(m_Cx, nsocket->getJSObject());
 
@@ -326,12 +326,12 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
         uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, packet, len);
 
-        jparams[0] = OBJECT_TO_JSVAL(arrayBuffer);
+        jparams[0].setObject(*arrayBuffer);
 
     } else {
         JS::RootedString jstr(cx, NativeJSUtils::newStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding));
 
-        jparams[0] = STRING_TO_JSVAL(jstr);
+        jparams[0].setString(jstr);
     }
 
     JS::RootedObject obj(cx, nsocket->getJSObject());
@@ -350,7 +350,8 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
         JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
         
         JS_SetProperty(cx, remote, "port", jport);
-        jparams[1] = OBJECT_TO_JSVAL(remote);
+
+        jparams[1].setObject(*remote);
 
         JS_CallFunctionValue(cx, obj, onmessage, jparams, &rval);
     }
@@ -381,7 +382,7 @@ void NativeJSSocket::onRead()
         uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, socket->data_in.data, socket->data_in.used);
 
-        jparams[dataPosition] = OBJECT_TO_JSVAL(arrayBuffer);
+        jparams[dataPosition].setObject(*arrayBuffer);
 
     } else if (this->getFlags() & NATIVE_SOCKET_READLINE) {
         char *pBuf = (char *)socket->data_in.data;
@@ -412,7 +413,7 @@ void NativeJSSocket::onRead()
             (char *)socket->data_in.data,
             socket->data_in.used, this->getEncoding()));
 
-        jparams[dataPosition] = STRING_TO_JSVAL(jstr);
+        jparams[dataPosition].setString(jstr);
     }
 
     JS::RootedObject obj(m_Cx, getReceiverJSObject());
@@ -469,8 +470,8 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     JS::RootedValue ondisconnect(cx);
     JS::RootedValue rval(cx);
 
-    JS::AutoValueArray<1> jparams(cx);;
-    jparams[1] =  OBJECT_TO_JSVAL(csocket->getJSObject());
+    JS::AutoValueArray<1> jparams(cx);
+    jparams[1].setObject(*csocket->getJSObject());
 
     csocket->dettach();
 
@@ -830,7 +831,7 @@ static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NATIVE_CHECK_ARGS("sendto", 3);
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, args) == false) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, &args) == false) {
         return false;
     }
 
