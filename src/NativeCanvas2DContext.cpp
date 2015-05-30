@@ -338,7 +338,7 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | \
+    (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
     JS::RootedString str(cx);
     JS::RootedObject res(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
@@ -788,13 +788,15 @@ static bool native_canvas2dctx_getImageData(JSContext *cx,
     data = JS_GetUint8ClampedArrayData(arrBuffer);
 
     NSKIA_NATIVE->readPixels(top, left, width, height, data);
-
-    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
-        nullptr, nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
-        nullptr, nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
-    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer),
-        nullptr, nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
+    JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
+    JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
+    JS_DefineProperty(cx, dataObject, "width", widthVal,
+         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "height", heightVal,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", arVal,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().set(OBJECT_TO_JSVAL(dataObject));
 
@@ -863,17 +865,19 @@ static bool native_canvas2dctx_createImageData(JSContext *cx,
         return false;
     }
 
-    dataObject = JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr()r);
+    dataObject = JS_NewObject(cx, &imageData_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedValue width(cx, UINT_TO_JSVAL(x));
+    JS::RootedValue height(cx, UINT_TO_JSVAL(y));
 
-    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(x), nullptr, nullptr,
+    JS_DefineProperty(cx, dataObject, "width", width,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(y), nullptr, nullptr,
+    JS_DefineProperty(cx, dataObject, "height", height,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-
-    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), nullptr,
-        nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedValue array(cx, OBJECT_TO_JSVAL(arrBuffer));
+    JS_DefineProperty(cx, dataObject, "data", array,
+        JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().set(OBJECT_TO_JSVAL(dataObject));
 
@@ -1051,7 +1055,7 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     JS::RootedString text(cx);
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
+    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
 
     if (!JS_ConvertArguments(cx, args, "S", &text)) {
         return false;
@@ -1099,7 +1103,7 @@ static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     JS::Value *vp)
 {
 #define OBJ_PROP(name, val) JS_DefineProperty(cx, obj, name, \
-    val, NULL, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
+    val, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY)
     JSNATIVE_PROLOGUE_CLASS(NativeCanvas2DContext, &Canvas2DContext_class);
     double left = 0, right = 0, top = 0, bottom = 0;
     JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
@@ -1429,7 +1433,7 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     JS::Value *vp)
 {
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY | \
+    (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
     JS::RootedObject caller(cx, &args.thisv().toObject());
@@ -2413,8 +2417,8 @@ static bool native_Canvas2DContext_constructor(JSContext *cx,
 
 void NativeCanvas2DContext::registerObject(JSContext *cx)
 {
-	JS::RootedObject global(cx, JS_GetGlobalObject(cx));
-    JS_InitClass(cx, global, nullptr, &Canvas2DContext_class,
+	JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS_InitClass(cx, global, JS::NullPtr(), &Canvas2DContext_class,
     native_Canvas2DContext_constructor, 0, canvas2dctx_props,
     canvas2dctx_funcs, nullptr, nullptr);
 }

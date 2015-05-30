@@ -57,7 +57,7 @@ class JSTransferableFunction
         }
 
         bool prepare(JSContext *cx, JS::Value val);
-        bool call(JSContext *cx, JSObject *obj, int argc, JS::Value *params, JS::Value *rval);
+        bool call(JSContext *cx, JS::HandleObject obj, JS::HandleValue *params, JS::MutableHandleValue *rval);
 
         ~JSTransferableFunction();
    private :

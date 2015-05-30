@@ -646,16 +646,15 @@ JSObject *NativeContext::readStructuredCloneOp(JSContext *cx, JSStructuredCloneR
             JS_ReadTypedArray(r, &arr);
 
             JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
-            JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width),
-                nullptr, nullptr,
+            JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
+            JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
+            JS_DefineProperty(cx, dataObject, "width", widthVal,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-            JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height),
-                nullptr, nullptr,
+            JS_DefineProperty(cx, dataObject, "height", heightVal,
                 JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
             JS_DefineProperty(cx, dataObject, "data", arr,
-               nullptr, nullptr,
                JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
             return dataObject;

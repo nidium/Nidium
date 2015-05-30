@@ -551,7 +551,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
     }
 
     NativeCanvasHandler *list[count];
-    JS::Value *jlist = (JS::Value *)malloc(sizeof(JS::Value) * count); //@todo Jsmalloc etc JSHeap??
+    JS::RootedValue jlist(cx, JS_NewArrayObject(cx, count));
 
     NativeObject->getChildren(list);
 
@@ -559,9 +559,7 @@ static bool native_canvas_getChildren(JSContext *cx, unsigned argc,
         jlist[i] = OBJECT_TO_JSVAL(list[i]->jsobj);
     }
 
-    args.rval().set(OBJECT_TO_JSVAL(JS_NewArrayObject(cx, count, jlist)));
-
-    free(jlist);
+    args.rval().set(OBJECT_TO_JSVAL(jlist));
 
     return true;
 }
@@ -575,7 +573,7 @@ static bool native_canvas_getVisibleRect(JSContext *cx, unsigned argc,
     JS::RootedObject ret(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
 #define SET_PROP(where, name, val) JS_DefineProperty(cx, where, \
-    (const char *)name, val, nullptr, nullptr, JSPROP_PERMANENT | JSPROP_READONLY | \
+    (const char *)name, val, JSPROP_PERMANENT | JSPROP_READONLY | \
         JSPROP_ENUMERATE)
 
     SET_PROP(ret, "left", DOUBLE_TO_JSVAL(rect.fLeft));
@@ -1452,7 +1450,7 @@ static bool native_Canvas_constructor(JSContext *cx, unsigned argc, JS::Value *v
     NativeCanvasHandler *handler;
     JS::RootedObject opt(cx);
 
-    if (!JS_IsConstructing(cx, vp)) {
+    if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }
@@ -1573,8 +1571,8 @@ JSObject *NativeJSCanvas::generateJSObject(JSContext *cx, int width,
 
 void NativeJSCanvas::registerObject(JSContext *cx)
 {
-    JS::RootedObject global(cx, JS_GetGlobalObject(cx));
-    JS_InitClass(cx, global, nullptr, &Canvas_class,
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS_InitClass(cx, global, JS::NullPtr(), &Canvas_class,
         native_Canvas_constructor,
         2, canvas_props, canvas_funcs, nullptr, nullptr);
 }

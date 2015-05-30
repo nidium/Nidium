@@ -29,8 +29,8 @@ NativeCanvas3DContext::NativeCanvas3DContext(NativeCanvasHandler *handler,
     memset(&m_GLObjects, 0, sizeof(m_GLObjects));
 
     jsobj = JS_NewObject(cx, &WebGLRenderingContext_class, JS::NullPtr(), JS::NullPtr());
-
-    JS_DefineConstDoubles(cx, jsobj, &WebGLRenderingContext_const);
+    JS::RootedObject obj(cx, jsobj);
+    JS_DefineConstDoubles(cx, obj, &WebGLRenderingContext_const);
 
     jscx  = cx;
 

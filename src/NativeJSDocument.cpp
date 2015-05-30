@@ -122,15 +122,17 @@ static bool native_document_getScreenData(JSContext *cx, unsigned argc, JS::Valu
     //glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     JS::RootedObject dataObject(cx, JS_NewObject(cx,  NativeCanvas2DContext::ImageData_jsclass, JS::NullPtr(), JS::NullPtr()));
-
-    JS_DefineProperty(cx, dataObject, "width", UINT_TO_JSVAL(width), nullptr, nullptr,
+    JS::RootedValue widthVal(cx, UINT_TO_JSVAL(width));
+    JS::RootedValue heightVal(cx, UINT_TO_JSVAL(height));
+    JS::RootedValue arVal(cx, OBJECT_TO_JSVAL(arrBuffer));
+    JS_DefineProperty(cx, dataObject, "width", widthVal,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "height", UINT_TO_JSVAL(height), nullptr, nullptr,
+    JS_DefineProperty(cx, dataObject, "height", heightVal,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
-    JS_DefineProperty(cx, dataObject, "data", OBJECT_TO_JSVAL(arrBuffer), nullptr,
-        nullptr, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS_DefineProperty(cx, dataObject, "data", arVal,
+         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
 
     args.rval().setObject(dataObject);
 
@@ -142,7 +144,7 @@ static bool native_document_setPasteBuffer(JSContext *cx, unsigned argc, JS::Val
     JS::RootedString str(cx);
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "S", &str)) {
+    if (!JS_ConvertArguments(cx, args, "S", &str)) {
         return false;
     }
 
@@ -260,7 +262,8 @@ bool NativeJSdocument::populateStyle(JSContext *cx, const char *data,
 
 JSObject *NativeJSdocument::registerObject(JSContext *cx)
 {
-    JS::RootedObject documentObj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx),
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject documentObj(cx, JS_DefineObject(cx, global,
         NativeJSdocument::getJSObjectName(), &document_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE));
 
@@ -276,7 +279,7 @@ JSObject *NativeJSdocument::registerObject(JSContext *cx)
 
     jdoc->stylesheet = JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
     JS::RootedValue objV(cx, OBJECT_TO_JSVAL(jdoc->stylesheet));
-    JS_SetProperty(cx, documentObj, "stylesheet", &objV);
+    JS_SetProperty(cx, documentObj, "stylesheet", objV);
     JS_DefineFunctions(cx, documentObj, document_funcs);
     JS_DefineProperties(cx, documentObj, document_props);
 

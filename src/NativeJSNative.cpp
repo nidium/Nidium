@@ -38,7 +38,7 @@ void Native_Finalize(JSFreeOp *fop, JSObject *obj)
 void NativeJSNative::registerObject(JSContext *cx)
 {
     //JS::RootedObject titleBar(cx);
-	JS::RootedObject global(cx, JS_GetGlobalObject(cx));
+	JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedObject NativeObj(cx, JS_DefineObject(cx, global,
         NativeJSNative::getJSObjectName(), &Native_class , nullptr,
         JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
@@ -57,7 +57,7 @@ void NativeJSNative::registerObject(JSContext *cx)
     //NJS->rootHandler->addChild((NativeCanvasHandler *)JS_GetPrivate(titleBar));
 
     JS_DefineFunctions(cx, NativeObj, Native_funcs);
-    /*JS_DefineProperty(cx, NativeObj, "titleBar",
-        OBJECT_TO_JSVAL(titleBar), nullptr, nullptr, JSPROP_READONLY | JSPROP_PERMANENT);*/
+    /*JS::RootedValue titleVal(cx, OBJECT_TO_JSVAL(titleBar));
+    JS_DefineProperty(cx, NativeObj, "titleBar", titleVal, JSPROP_READONLY | JSPROP_PERMANENT);*/
 }
 
