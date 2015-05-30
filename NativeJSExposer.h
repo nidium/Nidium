@@ -243,7 +243,7 @@ class NativeJSExposer
         return T::getJSGlobalObject(NativeJS::getNativeClass(cx));
     }
 
-    static T* getNativeClass(JSObject *obj, JSContext *cx = NULL)
+    static T* getNativeClass(JS::HandleObject obj, JSContext *cx = NULL)
     {
         if (cx != NULL) {
             return (T *)JS_GetInstancePrivate(cx, obj, T::jsclass, NULL);

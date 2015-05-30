@@ -6,7 +6,7 @@
 class NativeJSProcess : public NativeJSExposer<NativeJSProcess>
 {
   public:
-    NativeJSProcess(JSObject *obj, JSContext *cx) :
+    NativeJSProcess(JS::HandleObject obj, JSContext *cx) :
         NativeJSExposer<NativeJSProcess>(obj, cx) {};
     virtual ~NativeJSProcess(){};
 

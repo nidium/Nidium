@@ -224,7 +224,7 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
     return true;
 }
 
-NativeJSStream::NativeJSStream(JSObject *obj, JSContext *cx,
+NativeJSStream::NativeJSStream(JS::HandleObject obj, JSContext *cx,
     ape_global *net, const char *url) :
     NativeJSExposer<NativeJSStream>(obj, cx)
 {

@@ -906,7 +906,7 @@ static void Socket_Finalize_client(JSFreeOp *fop, JSObject *obj)
     }
 }
 
-NativeJSSocket::NativeJSSocket(JSObject *obj, JSContext *cx,
+NativeJSSocket::NativeJSSocket(JS::HandleObject obj, JSContext *cx,
     const char *host, unsigned short port)
     :  NativeJSExposer<NativeJSSocket>(obj, cx),
     socket(NULL), flags(0), m_ParentServer(NULL), m_TCPTimeout(0)

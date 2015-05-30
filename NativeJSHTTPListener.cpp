@@ -77,7 +77,7 @@ NativeJSHTTPResponse::NativeJSHTTPResponse(JSContext *cx, uint16_t code) :
     JS_DefineFunctions(cx, m_JSObj, HTTPResponse_funcs);
 }
 
-NativeJSHTTPListener::NativeJSHTTPListener(JSObject *obj, JSContext *cx,
+NativeJSHTTPListener::NativeJSHTTPListener(JS::HandleObject obj, JSContext *cx,
     uint16_t port, const char *ip) :
     NativeJSExposer<NativeJSHTTPListener>(obj, cx),
     NativeHTTPListener(port, ip)

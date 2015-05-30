@@ -38,7 +38,7 @@ class NativeJSSocket : public NativeJSExposer<NativeJSSocket>
 {
 public:
     static void registerObject(JSContext *cx);
-    NativeJSSocket(JSObject *obj, JSContext *cx,
+    NativeJSSocket(JS::HandleObject obj, JSContext *cx,
         const char *host, unsigned short port);
     ~NativeJSSocket();
 

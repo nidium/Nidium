@@ -176,7 +176,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
     return true;
 }
 
-NativeJSWebSocketServer::NativeJSWebSocketServer(JSObject *obj, JSContext *cx,
+NativeJSWebSocketServer::NativeJSWebSocketServer(JS::HandleObject obj, JSContext *cx,
     const char *host,
     unsigned short port) : NativeJSExposer<NativeJSWebSocketServer>(obj, cx)
 {

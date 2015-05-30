@@ -51,7 +51,7 @@ class NativeJSHTTPListener :    public NativeJSExposer<NativeJSHTTPListener>,
                                 public NativeHTTPListener
 {
 public:
-    NativeJSHTTPListener(JSObject *obj, JSContext *cx,
+    NativeJSHTTPListener(JS::HandleObject obj, JSContext *cx,
         uint16_t port, const char *ip = "0.0.0.0");
     virtual ~NativeJSHTTPListener();
     virtual void onClientConnect(ape_socket *client, ape_global *ape) {

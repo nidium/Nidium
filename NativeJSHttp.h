@@ -30,7 +30,7 @@ class NativeJSHttp : public NativeJSExposer<NativeJSHttp>, public NativeHTTPDele
 {
   public:
     static void registerObject(JSContext *cx);
-    NativeJSHttp(JSObject *obj, JSContext *cx, char *url);
+    NativeJSHttp(JS::HandleObject obj, JSContext *cx, char *url);
     virtual ~NativeJSHttp();
 
     JS::Value request;

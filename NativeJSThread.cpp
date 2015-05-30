@@ -395,7 +395,7 @@ NativeJSThread::~NativeJSThread()
     }
 }
 
-NativeJSThread::NativeJSThread(JSObject *obj, JSContext *cx)
+NativeJSThread::NativeJSThread(JS::HandleObject obj, JSContext *cx)
 	:
     NativeJSExposer<NativeJSThread>(obj, cx),
     jsFunction(NULL), jsRuntime(NULL), jsCx(NULL),

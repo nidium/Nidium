@@ -496,7 +496,7 @@ void NativeJSHttp::onRequest(NativeHTTP::HTTPData *h, NativeHTTP::DataType type)
     JS_SetReservedSlot(jsobj, 0, JSVAL_NULL);
 }
 
-NativeJSHttp::NativeJSHttp(JSObject *obj, JSContext *cx, char *url) :
+NativeJSHttp::NativeJSHttp(JS::HandleObject obj, JSContext *cx, char *url) :
     NativeJSExposer<NativeJSHttp>(obj, cx),
     request(JSVAL_NULL), refHttp(NULL), m_Eval(true)
 {
