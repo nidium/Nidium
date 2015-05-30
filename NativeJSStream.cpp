@@ -202,7 +202,7 @@ static bool native_Stream_constructor(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Stream_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Stream_class, args));
 
     JSAutoByteString curl(cx, url);
 

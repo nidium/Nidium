@@ -263,14 +263,15 @@ class NativeJSExposer
         return T::getNativeClass(NativeJS::getNativeClass(cx));
     }
 
-    bool fireJSEvent(const char *name, JS::Value evobj) {
+    bool fireJSEvent(const char *name, JS::MutableHandleValue evobj) {
         if (!m_Events) {
             return false;
         }
+        /*
         if (0 && !JS_InstanceOf(m_Cx, evobj.toObjectOrNull(),
             &NativeJSEvent_class, NULL)) {
             evobj.setUndefined();
-        }
+        }*/
         NativeJSEvents *events = m_Events->get(name);
         if (!events) {
             return false;

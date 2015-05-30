@@ -527,7 +527,7 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Socket_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Socket_class, args));
 
     if (!JS_ConvertArguments(cx, args, "Su", &host, &port)) {
         return false;

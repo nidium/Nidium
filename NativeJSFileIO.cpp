@@ -43,10 +43,10 @@ public:
     void onMessage(const NativeSharedMessages::Message &msg)
     {
 
+        JSContext *cx = (JSContext *)m_Args[0].toPtr();
         JS::AutoValueArray<2> params(cx);
         params[0].setNull();
         params[1].setUndefined();
-        JSContext *cx = (JSContext *)m_Args[0].toPtr();
         JS::RootedValue rval(cx);
 
         NativeBaseStream *stream = (NativeBaseStream *)m_Args[2].toPtr();
@@ -70,7 +70,7 @@ public:
                 if (NativeJSUtils::strToJsval(cx, (const char *)buf->data,
                     buf->used, &ret, encoding)) {
                     
-                    params[1] = ret;
+                    params[1].set(ret);
                 }
                 break;
             }
@@ -227,7 +227,7 @@ static bool native_File_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }    
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &File_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &File_class, args));
 
     if (!JS_ConvertArguments(cx, args, "S/o", &url, &opt)) {
         return false;

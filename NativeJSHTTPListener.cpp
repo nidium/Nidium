@@ -190,7 +190,7 @@ static bool native_HTTPListener_constructor(JSContext *cx,
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPListener_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &HTTPListener_class, args));
 
     if (!JS_ConvertArguments(cx, args, "c/bS", &port, &reuseport, &ip_bind)) {
         return false;

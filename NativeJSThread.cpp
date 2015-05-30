@@ -296,7 +296,7 @@ void NativeJSThread::onMessage(const NativeSharedMessages::Message &msg)
 static bool native_Thread_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Thread_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Thread_class, args));
 
     JS::RootedScript parent(cx);
 

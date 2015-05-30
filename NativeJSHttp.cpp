@@ -70,7 +70,7 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Http_class, vp));
+    JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Http_class, args));
 
     if (!JS_ConvertArguments(cx, args, "S", &url)) {
         return false;
