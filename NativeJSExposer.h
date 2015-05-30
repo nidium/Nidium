@@ -476,7 +476,8 @@ typedef bool (*register_module_t)(JSContext *cx, JSObject *exports);
 #define NATIVE_OBJECT_EXPOSE_NOT_INST(name) \
     void NativeJS ## name::registerObject(JSContext *cx) \
     { \
-        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, JS_GetGlobalObject(cx), #name, \
+        JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+        JS::RootedObject name ## Obj(cx, JS_DefineObject(cx, global, #name, \
             &name ## _class , NULL, 0)); \
         JS_DefineFunctions(cx, name ## Obj, name ## _funcs); \
         JS_DefineProperties(cx, name ## Obj, name ## _props); \

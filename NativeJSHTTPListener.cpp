@@ -183,7 +183,7 @@ static bool native_HTTPListener_constructor(JSContext *cx,
     NativeJSHTTPListener *listener;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_IsConstructing(cx, vp)) {
+    if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }

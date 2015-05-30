@@ -124,7 +124,7 @@ static bool native_WebSocketServer_constructor(JSContext *cx,
     JS::RootedString localhost(cx);
     JS::RootedString protocol(cx);
 
-    if (!JS_IsConstructing(cx, vp)) {
+    if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }

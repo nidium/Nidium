@@ -65,7 +65,7 @@ static bool native_Http_constructor(JSContext *cx, unsigned argc, JS::Value *vp)
     NativeJSHttp *jshttp;
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_IsConstructing(cx, vp)) {
+    if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }
