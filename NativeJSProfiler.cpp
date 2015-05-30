@@ -137,7 +137,7 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
         JSFunction *fun = frame.maybeFun();
         if (fun) {
             jfunName = JS_GetFunctionId(fun);
-            if (jfunName.get()) {
+            if (jfunName) {
                 name.initBytes(JS_EncodeString(cx, jfunName));
                 funName = name.ptr();
             } else {
@@ -150,14 +150,14 @@ void *NativeProfiler::trace(JSContext *cx, JSAbstractFramePtr frame, bool isCons
         }
 
         JS::RootedScript parentScript(cx);
-        if (!JS_DescribeScriptedCaller(cx, parentScript.address(), &parentLineNo)) {
+        if (!JS_DescribeScriptedCaller(cx, &parentScript, &parentLineNo)) {
             parentLineNo = 0;
         }
 
         entry = profiler->add(scriptName, funName, lineno, profiler->m_LastEntryEnter, parentLineNo);
         entry->enter();
 
-        if (jfunName.get() == NULL) {
+        if (jfunName == NULL) {
             free(funName);
         }
 
@@ -181,8 +181,8 @@ JSObject *NativeProfiler::getJSObject()
 {
     JS::RootedObject obj(m_Cx, JS_NewObject(m_Cx, &native_profile_class, JS::NullPtr(), JS::NullPtr()));
 
-    JS_DefineFunctions(m_Cx, obj.get(), native_profile_funcs);
-    JS_SetPrivate(obj.get(), static_cast<void*>(this));
+    JS_DefineFunctions(m_Cx, obj, native_profile_funcs);
+    JS_SetPrivate(obj, static_cast<void*>(this));
 
     return obj;
 }
@@ -193,7 +193,7 @@ JSObject *NativeProfiler::toJSObject()
 
     for (NativeHash<NativeProfileEntry *>::iterator entry = m_Entries.begin(), end = m_Entries.end(); entry != end; ++entry) {
         JS::RootedValue val(m_Cx, OBJECT_TO_JSVAL(entry->toJSObject(m_Cx)));
-        JS_SetProperty(m_Cx, obj.get(), entry->getSignature(), &val.get());
+        JS_SetProperty(m_Cx, obj, entry->getSignature(), val);
     }
 
     return obj;
@@ -301,13 +301,13 @@ JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
     JS::RootedObject childsObj(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
 
     JS::RootedValue childs(cx, OBJECT_TO_JSVAL(childsObj));
-    JS_SetProperty(cx, obj.get(), "childs", &childs.get());
-    JS_SetPrivate(obj.get(), this);
+    JS_SetProperty(cx, obj, "childs", childs);
+    JS_SetPrivate(obj, this);
 
     for (NativeHash<NativeProfileChildEntry *>::iterator child = m_Childs.begin(), end = m_Childs.end(); child != end; ++child) {
         
         JS::RootedValue val(cx, OBJECT_TO_JSVAL(child->toJSObject(cx)));
-        JS_SetProperty(cx, childsObj.get(), child->getEntry()->getSignature(), &val.get());
+        JS_SetProperty(cx, childsObj, child->getEntry()->getSignature(), val);
 
         childCostTSC += child->getTotalTSC();
         childCostTime += child->getTotalTime();
@@ -326,17 +326,17 @@ JSObject *NativeProfileEntry::toJSObject(JSContext *cx)
 #endif
     JS::RootedValue tsc(cx, INT_TO_JSVAL(m_TotalTSC - childCostTSC));
 
-    JS_SetProperty(cx, obj.get(), "script", &script.get());
-    JS_SetProperty(cx, obj.get(), "function", &fun.get());
-    JS_SetProperty(cx, obj.get(), "line", &line.get());
+    JS_SetProperty(cx, obj, "script", script);
+    JS_SetProperty(cx, obj, "function", fun);
+    JS_SetProperty(cx, obj, "line", line);
 
-    JS_SetProperty(cx, obj.get(), "call", &total.get());
+    JS_SetProperty(cx, obj, "call", total);
 
-    JS_SetProperty(cx, obj.get(), "tsc", &tsc.get());
-    JS_SetProperty(cx, obj.get(), "time", &time.get());
-    //JS_SetProperty(cx, obj.get(), "mean", &mean.get());
-    //JS_SetProperty(cx, obj.get(), "max", &max.get());
-    //JS_SetProperty(cx, obj.get(), "min", &min.get());
+    JS_SetProperty(cx, obj, "tsc", tsc);
+    JS_SetProperty(cx, obj, "time", time);
+    //JS_SetProperty(cx, obj, "mean", mean);
+    //JS_SetProperty(cx, obj, "max", max);
+    //JS_SetProperty(cx, obj, "min", min);
 
     return obj;
 }
@@ -378,18 +378,18 @@ JSObject *NativeProfileChildEntry::toJSObject(JSContext *cx)
     //JS::RootedValue min(DOUBLE_TO_JSVAL((double)m_MinTime/1000000.));
     JS::RootedValue tsc(cx, INT_TO_JSVAL(m_TotalTSC));
 
-    JS_SetProperty(cx, ob.get()j, "script", script.address());
-    JS_SetProperty(cx, obj.get(), "function", fun.address());
-    JS_SetProperty(cx, obj.get(), "line", line.address());
+    JS_SetProperty(cx, obj, "script", script);
+    JS_SetProperty(cx, obj, "function", fun);
+    JS_SetProperty(cx, obj, "line", line);
 
-    JS_SetProperty(cx, obj.get(), "call", total.address());
-    JS_SetProperty(cx, obj.get(), "callLine", callLine.address());
+    JS_SetProperty(cx, obj, "call", total);
+    JS_SetProperty(cx, obj, "callLine", callLine);
 
-    JS_SetProperty(cx, obj.get(), "tsc", tsc.address());
-    JS_SetProperty(cx, obj.get(), "time", time.address());
-    //JS_SetProperty(cx, obj.get(), "mean", &mean);
-    //JS_SetProperty(cx, obj.get(), "max", &max);
-    //JS_SetProperty(cx, obj.get(), "min", &min);
+    JS_SetProperty(cx, obj, "tsc", tsc);
+    JS_SetProperty(cx, obj, "time", time);
+    //JS_SetProperty(cx, obj, "mean", mean);
+    //JS_SetProperty(cx, obj, "max", max);
+    //JS_SetProperty(cx, obj, "min", min);
 
     return obj;
 }
@@ -424,7 +424,7 @@ static bool native_profile_tocachegrind(JSContext *cx, unsigned argc, JS::Value 
 
     JS::RootedString tmp(cx);
 
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", tmp.address())) {
+    if (!JS_ConvertArguments(cx, args, "S", tmp)) {
         return false;
     }
 

@@ -97,7 +97,7 @@ static JSPropertySpec Socket_props[] = {
 static bool native_socket_prop_set(JSContext *cx, JS::HandleObject obj,
     JS::HandleId id, bool strict, JS::MutableHandleValue vp)
 {
-    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj.get());
+    NativeJSSocket *nsocket = (NativeJSSocket *)JS_GetPrivate(obj);
     
     if (nsocket == NULL) {
         JS_ReportError(cx, "Invalid socket object");
@@ -187,13 +187,12 @@ static void native_socket_wrapper_onconnected(ape_socket *s, ape_global *ape,
     }
 
     cx = nsocket->getJSContext();
-
-    if (JS_GetProperty(cx, nsocket->getJSObject(), "onconnect", onconnect.address()) &&
+    JS::RootedObject obj(cx, nsocket->getJSObject());
+    if (JS_GetProperty(cx, obj, "onconnect", &onconnect) &&
         JS_TypeOfValue(cx, onconnect) == JSTYPE_FUNCTION) {
 
         PACK_TCP(s->s.fd);
-        JS_CallFunctionValue(cx, nsocket->getJSObject(), onconnect.get(),
-            0, NULL, rval.address());
+        JS_CallFunctionValue(cx, obj, onconnect, JS::HandleValueArray::empty(), &rval);
         FLUSH_TCP(s->s.fd);
     }
 }
@@ -214,13 +213,12 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     JS::RootedValue onaccept(m_Cx);
     JS::RootedValue rval(m_Cx);
-    JS::RootedValue arg(m_Cx);
-    /* XXX RootedObject (Heap ?) */
+    JS::AutoValueArray<1> params(m_Cx);
     JS::RootedObject jclient(m_Cx, JS_NewObject(m_Cx, &socket_client_class, JS::NullPtr(), JS::NullPtr()));
 
-    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient.get());
+    NativeJSObj(m_Cx)->rootObjectUntilShutdown(jclient);
 
-    NativeJSSocket *sobj = new NativeJSSocket(jclient.get(),
+    NativeJSSocket *sobj = new NativeJSSocket(jclient,
         nsocket->getJSContext(), APE_socket_ipv4(socket_client), 0);
 
     sobj->m_ParentServer = nsocket;
@@ -234,22 +232,22 @@ static void native_socket_wrapper_onaccept(ape_socket *socket_server,
 
     socket_client->ctx = sobj;
 
-    JS_SetPrivate(jclient.get(), sobj);
+    JS_SetPrivate(jclient, sobj);
 
     JS_DefineFunctions(m_Cx, jclient, socket_client_funcs);
 
-    JSOBJ_SET_PROP_CSTR(jclient.get(), "ip", APE_socket_ipv4(socket_client));
+    JSOBJ_SET_PROP_CSTR(jclient, "ip", APE_socket_ipv4(socket_client));
 
-    arg = OBJECT_TO_JSVAL(jclient.get());
+    params[0] = OBJECT_TO_JSVAL(jclient);
 
     JS::RootedObject socketjs(m_Cx, nsocket->getJSObject());
 
-    if (JS_GetProperty(m_Cx, socketjs.get(), "onaccept", &onaccept.get()) &&
+    if (JS_GetProperty(m_Cx, socketjs, "onaccept", &onaccept) &&
         JS_TypeOfValue(m_Cx, onaccept) == JSTYPE_FUNCTION) {
 
         PACK_TCP(socket_client->s.fd);
-        JS_CallFunctionValue(m_Cx, socketjs.get(), onaccept.get(),
-            1, &arg.get(), &rval.get());
+        JS::RootedValue onacceptVal(m_Cx, onaccept);
+        JS_CallFunctionValue(m_Cx, socketjs, onacceptVal, params, &rval);
         FLUSH_TCP(socket_client->s.fd);
     }
 }
@@ -258,10 +256,7 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
 {
     JS::RootedValue onread(m_Cx);
     JS::RootedValue rval(m_Cx);
-
-    JS::Value jdata[2];
-    JS::AutoArrayRooter jdataRooter(m_Cx, 2, jdata);
-
+    JS::AutoValueArray<2> jdata(m_Cx);
     JS::RootedString tstr(m_Cx, NativeJSUtils::newStringWithEncoding(m_Cx, buf, len, this->getEncoding()));
     JS::RootedString jstr(m_Cx);
     jstr = tstr;
@@ -281,11 +276,11 @@ void NativeJSSocket::readFrame(const char *buf, size_t len)
         jdata[0].setString(jstr);
     }
 
-    if (JS_GetProperty(m_Cx, getReceiverJSObject(), "onread", onread.address()) &&
+    JS::RootedObject obj(m_Cx, getReceiverJSObject());
+    if (JS_GetProperty(m_Cx, obj, "onread", &onread) &&
         JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
         PACK_TCP(socket->s.fd);
-        JS_CallFunctionValue(m_Cx, getReceiverJSObject(), onread.get(),
-            isClientFromOwnServer() ? 2 : 1, jdata, rval.address());
+        JS_CallFunctionValue(m_Cx, obj, onread, jdata, &rval);
         FLUSH_TCP(socket->s.fd);
     }  
 }
@@ -304,12 +299,11 @@ static void native_socket_wrapper_client_ondrain(ape_socket *socket_server,
 
     JS::RootedValue ondrain(cx);
     JS::RootedValue rval(cx);
+    JS::RootedObject obj(cx, nsocket->getJSObject());
 
-    if (JS_GetProperty(cx, nsocket->getJSObject(), "ondrain", ondrain.address()) &&
+    if (JS_GetProperty(cx, obj, "ondrain", &ondrain) &&
         JS_TypeOfValue(cx, ondrain) == JSTYPE_FUNCTION) {
-
-        JS_CallFunctionValue(cx, nsocket->getJSObject(), ondrain.get(),
-            0, NULL, rval.address());
+        JS_CallFunctionValue(cx, obj, ondrain, JS::HandleValueArray::empty(), &rval);
     }
 }
 
@@ -320,24 +314,22 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
     JSContext *cx;
     NativeJSSocket *nsocket = (NativeJSSocket *)socket_server->ctx;
 
-    JS::Value jparams[2];
 
     if (nsocket == NULL || !nsocket->isJSCallable()) {
         return;
     }
 
     cx = nsocket->getJSContext();
-
+    JS::AutoValueArray<2> jparams(cx);;
     JS::RootedValue onmessage(cx);
     JS::RootedValue rval(cx);
-    JS::AutoArrayRooter jparamsRooted(cx, 2, jparams);
 
     if (nsocket->flags & NATIVE_SOCKET_ISBINARY) {
         JS::RootedObject arrayBuffer(cx, JS_NewArrayBuffer(cx, len));
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer.get());
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, packet, len);
 
-        jparams[0] = OBJECT_TO_JSVAL(arrayBuffer.get());
+        jparams[0] = OBJECT_TO_JSVAL(arrayBuffer);
 
     } else {
         JS::RootedString jstr(cx, NativeJSUtils::newStringWithEncoding(cx, (char *)packet, len, nsocket->m_Encoding));
@@ -345,7 +337,8 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
         jparams[0] = STRING_TO_JSVAL(jstr);
     }
 
-    if (JS_GetProperty(cx, nsocket->getJSObject(), "onmessage", onmessage.address()) &&
+    JS::RootedObject obj(cx, nsocket->getJSObject());
+    if (JS_GetProperty(cx, obj, "onmessage", &onmessage) &&
         JS_TypeOfValue(cx, onmessage) == JSTYPE_FUNCTION) {
 
         JS::RootedObject remote(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
@@ -356,14 +349,13 @@ static void native_socket_wrapper_client_onmessage(ape_socket *socket_server,
         char *cip = inet_ntoa(addr->sin_addr);
         JS::RootedValue jip(cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, cip)));
 
-        JS_SetProperty(cx, remote.get(), "ip", &jip.get());
+        JS_SetProperty(cx, remote, "ip", jip);
         JS::RootedValue jport(cx, INT_TO_JSVAL(ntohs(addr->sin_port)));
         
-        JS_SetProperty(cx, remote.get(), "port", &jport.get());
-        jparams[1] = OBJECT_TO_JSVAL(remote.get());
+        JS_SetProperty(cx, remote, "port", jport);
+        jparams[1] = OBJECT_TO_JSVAL(remote);
 
-        JS_CallFunctionValue(cx, nsocket->getJSObject(), onmessage.get(),
-            2, jparams, rval.address());
+        JS_CallFunctionValue(cx, obj, onmessage, jparams, &rval);
     }
 }
 
@@ -376,23 +368,23 @@ void NativeJSSocket::onRead()
         return;
     }
 
-    JS::Value jparams[2];
-    JS::AutoArrayRooter jparamsRooted(m_Cx, 2, jparams);
+    JS::AutoValueArray<2> jparams(m_Cx);
     int dataPosition = 0;
 
     if (isClientFromOwnServer()) {
         dataPosition = 1;
-        jparams[0].setObjectOrNull(this->getJSObject());
+        JS::RootedObject obj(m_Cx, this->getJSObject());
+        jparams[0].setObjectOrNull(obj);
     } else {
         dataPosition = 0;
     }
 
     if (this->getFlags() & NATIVE_SOCKET_ISBINARY) {
         JS::RootedObject arrayBuffer(m_Cx, JS_NewArrayBuffer(m_Cx, socket->data_in.used));
-        uint8_t *data = JS_GetArrayBufferData(arrayBuffer.get());
+        uint8_t *data = JS_GetArrayBufferData(arrayBuffer);
         memcpy(data, socket->data_in.data, socket->data_in.used);
 
-        jparams[dataPosition] = OBJECT_TO_JSVAL(arrayBuffer.get());
+        jparams[dataPosition] = OBJECT_TO_JSVAL(arrayBuffer);
 
     } else if (this->getFlags() & NATIVE_SOCKET_READLINE) {
         char *pBuf = (char *)socket->data_in.data;
@@ -426,14 +418,13 @@ void NativeJSSocket::onRead()
         jparams[dataPosition] = STRING_TO_JSVAL(jstr);
     }
 
-    if (JS_GetProperty(m_Cx, getReceiverJSObject(), "onread", onread.address()) &&
+    JS::RootedObject obj(m_Cx, getReceiverJSObject());
+    if (JS_GetProperty(m_Cx, obj, "onread", &onread) &&
         JS_TypeOfValue(m_Cx, onread) == JSTYPE_FUNCTION) {
         PACK_TCP(socket->s.fd);
-        JS_CallFunctionValue(m_Cx, getReceiverJSObject(), onread.get(),
-            isClientFromOwnServer() ? 2 : 1, jparams, rval.address());
+        JS_CallFunctionValue(m_Cx, obj, onread, jparams, &rval);
         FLUSH_TCP(socket->s.fd);
     } 
-
 }
 
 static void native_socket_wrapper_client_read(ape_socket *socket_client,
@@ -481,16 +472,16 @@ static void native_socket_wrapper_client_disconnect(ape_socket *socket_client,
     JS::RootedValue ondisconnect(cx);
     JS::RootedValue rval(cx);
 
-    JS::Value jparams[1] = { OBJECT_TO_JSVAL(csocket->getJSObject()) };
-    JS::AutoArrayRooter jparamsRooter(cx, 1, jparams);
+    JS::AutoValueArray<1> jparams(cx);;
+    jparams[1] =  OBJECT_TO_JSVAL(csocket->getJSObject());
 
     csocket->dettach();
 
-    if (JS_GetProperty(cx, ssocket->getJSObject(), "ondisconnect", ondisconnect.address()) &&
+    JS::RootedObject obj(cx, ssocket->getJSObject());
+    if (JS_GetProperty(cx, obj, "ondisconnect", &ondisconnect) &&
         JS_TypeOfValue(cx, ondisconnect) == JSTYPE_FUNCTION) {
 
-        JS_CallFunctionValue(cx, ssocket->getJSObject(), ondisconnect.get(),
-            1, jparams, rval.address());
+        JS_CallFunctionValue(cx, obj, ondisconnect, jparams, &rval);
     }
 
     NativeJSObj(cx)->unrootObject(csocket->getJSObject());
@@ -513,11 +504,10 @@ static void native_socket_wrapper_disconnect(ape_socket *s, ape_global *ape,
 
     nsocket->dettach();
 
-    if (JS_GetProperty(cx, nsocket->getJSObject(), "ondisconnect", ondisconnect.address()) &&
+    JS::RootedObject obj(cx, nsocket->getJSObject());
+    if (JS_GetProperty(cx, obj, "ondisconnect", &ondisconnect) &&
         JS_TypeOfValue(cx, ondisconnect) == JSTYPE_FUNCTION) {
-
-        JS_CallFunctionValue(cx, nsocket->getJSObject(), ondisconnect.get(),
-            0, NULL, rval.address());
+        JS_CallFunctionValue(cx, obj, ondisconnect, JS::HandleValueArray::empty(), &rval);
     }
 
     NativeJSObj(cx)->unrootObject(nsocket->getJSObject());
@@ -532,32 +522,31 @@ static bool native_Socket_constructor(JSContext *cx, unsigned argc, JS::Value *v
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 
-    if (!JS_IsConstructing(cx, vp)) {
+    if (!args.isConstructing()) {
         JS_ReportError(cx, "Bad constructor");
         return false;
     }
 
     JS::RootedObject ret(cx, JS_NewObjectForConstructor(cx, &Socket_class, vp));
 
-    if (!JS_ConvertArguments(cx, args.length(), args.array(), "Su",
-        host.address(), &port)) {
+    if (!JS_ConvertArguments(cx, args, "Su", &host, &port)) {
         return false;
     }
 
     JSAutoByteString chost(cx, host);
 
-    nsocket = new NativeJSSocket(ret.get(), cx, chost.ptr(), port);
+    nsocket = new NativeJSSocket(ret, cx, chost.ptr(), port);
 
-    JS_SetPrivate(ret.get(), nsocket);
+    JS_SetPrivate(ret, nsocket);
 
-    args.rval().setObjectOrNull(ret.get());
+    args.rval().setObjectOrNull(ret);
 
     JS_DefineFunctions(cx, ret, socket_funcs);
     JS_DefineProperties(cx, ret, Socket_props);
 
     JS::RootedValue isBinary(cx, JSVAL_FALSE);
 
-    JS_SetProperty(cx, ret.get(), "binary", &isBinary.get());
+    JS_SetProperty(cx, ret, "binary", isBinary);
 
     return true;
 }
@@ -615,9 +604,9 @@ static bool native_socket_listen(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(thisobj.get());
+    NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
-    args.rval().setObjectOrNull(thisobj.get());
+    args.rval().setObjectOrNull(thisobj);
 
     CppObj->flags |= NATIVE_SOCKET_ISSERVER;
 
@@ -641,7 +630,7 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
     if (args.length() > 0 && args[0].isString()) {
         JS::RootedString farg(cx, args[0].toString());
 
-        JSAutoByteString cproto(cx, farg.get());
+        JSAutoByteString cproto(cx, farg);
 
         if (strncasecmp("udp", cproto.ptr(), 3) == 0) {
             protocol = APE_SOCKET_PT_UDP;
@@ -679,7 +668,7 @@ static bool native_socket_connect(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSObj(cx)->rootObjectUntilShutdown(thisobj.get());
+    NativeJSObj(cx)->rootObjectUntilShutdown(thisobj);
 
     args.rval().setObjectOrNull(thisobj);
 
@@ -700,7 +689,7 @@ static bool native_socket_client_sendFile(JSContext *cx,
         args.rval().setInt32(-1);
         return true;
     }
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", file.address())) {
+    if (!JS_ConvertArguments(cx, args, "S", &file)) {
         return false;
     }
 
@@ -729,8 +718,8 @@ static bool native_socket_client_write(JSContext *cx,
     if (args[0].isString()) {
 
         JSAutoByteString cdata;
-
-        cdata.encodeUtf8(cx, args[0].toString());
+        JS::RootedString str(cx, args[0].toString());
+        cdata.encodeUtf8(cx, str);
 
         int ret = CppObj->write((unsigned char *)cdata.ptr(),
             strlen(cdata.ptr()), APE_DATA_COPY);
@@ -775,8 +764,8 @@ static bool native_socket_write(JSContext *cx, unsigned argc, JS::Value *vp)
 
     if (args[0].isString()) {
         JSAutoByteString cdata;
-
-        cdata.encodeUtf8(cx, args[0].toString());
+        JS::RootedString str(cx, args[0].toString());
+        cdata.encodeUtf8(cx, str);
 
         int ret = CppObj->write((unsigned char*)cdata.ptr(),
             strlen(cdata.ptr()), APE_DATA_COPY);
@@ -840,11 +829,11 @@ static bool native_socket_close(JSContext *cx, unsigned argc, JS::Value *vp)
 static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
 {
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    JSObject *caller = &args.thisv().toObject();
+    JS::RootedObject caller(cx, &args.thisv().toObject());
 
     NATIVE_CHECK_ARGS("sendto", 3);
 
-    if (JS_InstanceOf(cx, caller, &Socket_class, args.array()) == false) {
+    if (JS_InstanceOf(cx, caller, &Socket_class, args) == false) {
         return false;
     }
 
@@ -867,7 +856,7 @@ static bool native_socket_sendto(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedString ip(cx, args[0].toString());
     unsigned int port = args[1].isNumber() ? args[1].toInt32() : 0;
 
-    JSAutoByteString cip(cx, ip.get());
+    JSAutoByteString cip(cx, ip);
 
     if (args[2].isString()) {
         JSAutoByteString cdata(cx, args[2].toString());

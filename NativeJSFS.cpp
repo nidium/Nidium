@@ -57,19 +57,18 @@ public:
 
                 cx = m_Cx;
                 JS::RootedValue rval(cx);
-                JS::RootedValue arg(cx);
+                JS::AutoValueArray<1> params(cx);
 
-                JSObject *param = JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr());
+                JS::RootedObject param(cx, JS_NewObject(cx, NULL, JS::NullPtr(), JS::NullPtr()));
+                JS::RootedString str(cx, JS_NewStringCopyZ(cx, cur->d_name));
 
-                JSOBJ_SET_PROP_STR(param, "name",
-                    JS_NewStringCopyZ(cx, cur->d_name));
-
+                JSOBJ_SET_PROP_STR(param, "name", str);
                 //JSOBJ_SET_PROP_CSTR(param, "type", NativeJSFS_dirtype_to_str(cur));
 
-                arg = OBJECT_TO_JSVAL(param);
+                params[0] = OBJECT_TO_JSVAL(param);
+                JS::RootedValue cb(cx, OBJECT_TO_JSVAL(callback));
 
-                JS_CallFunctionValue(cx, NULL,
-                    OBJECT_TO_JSVAL(callback), 1, &arg.get(), &rval.get());
+                JS_CallFunctionValue(cx, JS::NullPtr(), cb, params, &rval);
 
                 free(cur);
                 break;
@@ -124,16 +123,16 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
     NATIVE_CHECK_ARGS("readDir", 2);
 
-    if (!JS_ConvertArguments(cx, 1, args.array(), "S", &path.get())) {
+    if (!JS_ConvertArguments(cx, args, "S", path)) {
         return false;
     }
 
-    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback.get())) {
+    if (!JS_ConvertValue(cx, args[1], JSTYPE_FUNCTION, &callback)) {
         JS_ReportError(cx, "open() invalid callback");
         return false;
     }
 
-    JSAutoByteString cpath(cx, path.get());
+    JSAutoByteString cpath(cx, path);
 
     NativeJSFSAsyncHandler *handler = new NativeJSFSAsyncHandler(cx);
     printf("Calling with cx : %p\n", cx);
@@ -150,9 +149,9 @@ static bool native_fs_readDir(JSContext *cx, unsigned argc, JS::Value *vp)
 
 void NativeJSFS::registerObject(JSContext *cx)
 {
-    JSObject *fsObj;
-    fsObj = JS_DefineObject(cx, JS_GetGlobalObject(cx), "fs",
-        &fs_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedObject fsObj(cx, JS_DefineObject(cx, global, "fs",
+        &fs_class , NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY));
 
     JS_DefineFunctions(cx, fsObj, FS_static_funcs);
 }

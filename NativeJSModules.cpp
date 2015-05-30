@@ -78,7 +78,7 @@ NativeJSModule::NativeJSModule(JSContext *cx, NativeJSModules *modules, NativeJS
 bool NativeJSModule::initMain() 
 {
     this->name = strdup("__MAIN__");
-    JS::RootedObject global(cx, JS_GetGlobalObject(cx));
+    JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
     JS::RootedFunction fun(cx, JS::DefineFunctionWithReserved(this->cx, global,
             "require", native_modules_require, 1, 0));
 
@@ -86,9 +86,9 @@ bool NativeJSModule::initMain()
         return false;
     }
 
-    JS::RootedObject funObj(cx, JS_GetFunctionObject(fun.get()));
+    JS::RootedObject funObj(cx, JS_GetFunctionObject(fun));
 
-    JS::SetFunctionNativeReserved(funObj.get(), 0, PRIVATE_TO_JSVAL((void *)this));
+    JS::SetFunctionNativeReserved(funObj, 0, PRIVATE_TO_JSVAL((void *)this));
 
     this->exports = NULL; // Main module is not a real module, thus no exports
 
@@ -214,16 +214,16 @@ bool NativeJSModule::initJS()
 {
 #define TRY_OR_DIE(call) if (call == false) { return false; }
     JS::RootedObject gbl(cx, JS_NewObject(this->cx, &native_modules_exports_class, JS::NullPtr(), JS::NullPtr()));
-    if (!gbl.get()) {
+    if (!gbl) {
         return false;
     }
 
     NativeJS *njs = NativeJS::getNativeClass(this->cx);
 
-    JS_SetPrivate(gbl.get(), this);
+    JS_SetPrivate(gbl, this);
 
     JS::RootedObject funObj(cx);
-    JSFunction *fun = JS::DefineFunctionWithReserved(this->cx, gbl.get(), "require", native_modules_require, 1, 0);
+    JSFunction *fun = JS::DefineFunctionWithReserved(this->cx, gbl, "require", native_modules_require, 1, 0);
     if (!fun) {
         return false;
     }
@@ -235,7 +235,7 @@ bool NativeJSModule::initJS()
     JS::RootedObject exports(cx, JS_NewObject(this->cx, NULL, JS::NullPtr(), JS::NullPtr()));
     JS::RootedObject module(cx, JS_NewObject(this->cx, &native_modules_class, JS::NullPtr(), JS::NullPtr()));
 
-    if (!exports.get() || !module.get()) {
+    if (!exports || !module) {
         return false;
     }
 
@@ -245,20 +245,20 @@ bool NativeJSModule::initJS()
         return false;
     }
 
-    id.setString(idstr.get());
+    id.setString(idstr);
 
-    JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports.get()));
-    JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module.get()));
+    JS::RootedValue exportsVal(cx, OBJECT_TO_JSVAL(exports));
+    JS::RootedValue moduleVal(cx, OBJECT_TO_JSVAL(module));
 
-    TRY_OR_DIE(JS_DefineProperties(cx, gbl.get(), native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl.get(), "exports", &exportsVal.get()));
+    TRY_OR_DIE(JS_DefineProperties(cx, gbl, native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "exports", exportsVal));
 
-    TRY_OR_DIE(JS_DefineProperties(cx, module.get(), native_modules_exports_props));
-    TRY_OR_DIE(JS_SetProperty(cx, gbl.get(), "module", &moduleVal.get()));
-    TRY_OR_DIE(JS_SetProperty(cx, module.get(), "id", id.address()));
-    TRY_OR_DIE(JS_SetProperty(cx, module.get(), "exports", &exportsVal.get()));
+    TRY_OR_DIE(JS_DefineProperties(cx, module, native_modules_exports_props));
+    TRY_OR_DIE(JS_SetProperty(cx, gbl, "module", moduleVal));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "id", id));
+    TRY_OR_DIE(JS_SetProperty(cx, module, "exports", exportsVal));
 
-    JS::SetFunctionNativeReserved(funObj.get(), 1, exportsVal);
+    JS::SetFunctionNativeReserved(funObj, 1, exportsVal);
 
     this->exports = gbl;
     njs->rootObjectUntilShutdown(this->exports);
@@ -559,8 +559,9 @@ JS::Value NativeJSModule::require(char *name)
         if (strcmp(cmodule->filePath, m->filePath) == 0) {
             JS::RootedObject gbl(cx, m->exports);
             JS::RootedValue module(cx);
-            JS_GetProperty(cx, gbl.get(), "module", &module.get());
-            JS_GetProperty(cx, module.get(), "exports", &ret.get());
+            JS_GetProperty(cx, gbl, "module", &module);
+            JS::RootedObject modObj(cx, module.toObject());
+            JS_GetProperty(cx, modObj, "exports", &ret);
             return ret;
         }
 
@@ -593,13 +594,13 @@ JS::Value NativeJSModule::require(char *name)
             }
 
             if (cmodule->m_ModuleType == JS) {
-                fn = JS_CompileFunction(cx, cmodule->exports, 
-                        "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
+            	JS::RootedValue expObj(cx, cmodule->exports);
+                fn = JS_CompileFunction(cx, expObj, "", 0, NULL, data, strlen(data), cmodule->filePath, 0);
                 if (!fn) {
                     return ret;
                 }
 
-                if (!JS_CallFunction(cx, cmodule->exports, fn, 0, NULL, &rval.get())) {
+                if (!JS_CallFunction(cx, expObj, fn, JS::HandleValueArray::empty(), &rval)) {
                     return ret;
                 }
             } else {
@@ -621,7 +622,7 @@ JS::Value NativeJSModule::require(char *name)
                     return ret;
                 }
 
-                if (!JS_ParseJSON(cx, jchars, len, &jsonData.get())) {
+                if (!JS_ParseJSON(cx, jchars, len, &jsonData)) {
                     JS_free(cx, jchars);
                     return ret;
                 }
@@ -638,8 +639,10 @@ JS::Value NativeJSModule::require(char *name)
         case JS:
         {
             JS::RootedValue module(cx);
-            JS_GetProperty(cx, cmodule->exports, "module", &module.get());
-            JS_GetProperty(cx, module.toObjectOrNull(), "exports", &ret.get());
+            JS::RootedObject expObj(cx, cmodule->exports);
+            JS_GetProperty(cx, expObj, "module", &module);
+            JS::RootedObject modObj(cx, module.toObject());
+            JS_GetProperty(cx, modObj, "exports", &ret);
         }
         break;
         case JSON:
@@ -670,11 +673,11 @@ static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
     JS::RootedString name(cx, NULL);
 
     JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-    if (!JS_ConvertArguments(cx, argc, args.array(), "S", &name.get())) {
+    if (!JS_ConvertArguments(cx, args, "S", &name)) {
         return false;
     }
 
-    JSAutoByteString namestr(cx, name.get());
+    JSAutoByteString namestr(cx, name);
 
     JSObject *callee = (JS_CALLEE(cx, vp)).toObjectOrNull();
 
@@ -685,11 +688,11 @@ static bool native_modules_require(JSContext *cx, unsigned argc, JS::Value *vp)
         return false;
     }
 
-    NativeJSModule *module = static_cast<NativeJSModule *>(JSVAL_TO_PRIVATE(reserved.get()));
+    NativeJSModule *module = static_cast<NativeJSModule *>(JSVAL_TO_PRIVATE(reserved));
 
     JS::RootedValue ret(cx, module->require(namestr.ptr()));
 
-    args.rval().set(ret.get());
+    args.rval().set(ret);
 
     if (ret.isUndefined()) {
         return false;
