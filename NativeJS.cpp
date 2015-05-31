@@ -312,8 +312,12 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
 
             memcpy(pdata+sizeof(pre) + data-1, end, sizeof(end));
             JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx));
-            JSFunction *cf = JS_CompileFunction(cx, global, NULL, 0, NULL, pdata,
-                strlen(pdata), NULL, 0);
+            JS::CompileOptions options(cx);
+            options.setUTF8(true);
+
+            JS::RootedFunction cf(cx);
+
+            cf = JS::CompileFunction(cx, global, options, NULL, 0, NULL, pdata, strlen(pdata));
 
             free(pdata);
 
@@ -476,6 +480,7 @@ static void PrintGetTraceName(JSTracer* trc, char *buf, size_t bufsize)
 }
 #endif
 
+#if 0
 static void NativeTraceBlack(JSTracer *trc, void *data)
 {
     class NativeJS *self = (class NativeJS *)data;
@@ -493,16 +498,20 @@ static void NativeTraceBlack(JSTracer *trc, void *data)
         //printf("Tracing object at %p\n", item->addrs);
     }
 }
+#endif
 
 /* Use obj address as key */
 void NativeJS::rootObjectUntilShutdown(JSObject *obj)
 {
-    hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
+    m_RootedSet->put(obj);
+    //JS::AutoHashSetRooter<JSObject *> rooterhash(cx, 0);
+    //hashtbl_append64(this->rootedObj, (uint64_t)obj, obj);
 }
 
 void NativeJS::unrootObject(JSObject *obj)
 {
-    hashtbl_erase64(this->rootedObj, (uint64_t)obj);
+    m_RootedSet->remove(obj);
+    //hashtbl_erase64(this->rootedObj, (uint64_t)obj);
 }
 
 NativeJS *NativeJS::getNativeClass(JSContext *cx)
@@ -638,9 +647,9 @@ NativeJS::NativeJS(ape_global *net) :
     gbl = NativeJS::CreateJSGlobal(cx);
 
     JSAutoCompartment ac(cx, gbl);
-
+#if 0
     JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
-
+#endif
     if (NativeJS::jsscc == NULL) {
         NativeJS::jsscc = new JSStructuredCloneCallbacks();
         NativeJS::jsscc->read = NativeJS::readStructuredCloneOp;
@@ -661,6 +670,8 @@ NativeJS::NativeJS(ape_global *net) :
     registeredMessagesIdx = 8; // The 8 first slots are reserved for Native internals messages
     registeredMessagesSize = 16;
 
+    m_RootedSet = new JS::AutoHashSetRooter<JSObject *>(cx, 0);
+    m_RootedSet->init(1024);
 #if 0
     NativeBaseStream *stream = NativeBaseStream::create("nvfs:///libs/zip.lib.js");
     char *ret;
@@ -840,7 +851,7 @@ void NativeJS::copyProperties(JSContext *cx, JS::HandleObject source, JS::Mutabl
 }
 
 int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
-    size_t len, const char *filename, JS::Value *ret)
+    size_t len, const char *filename, JS::MutableHandleValue ret)
 {
     JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
@@ -851,8 +862,13 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
     strncat(func, data, len);
     strcat(func, ");");
 
-    JSFunction *cf = JS_CompileFunction(cx, gbl, NULL, 0, NULL, func,
-        strlen(func), filename, 1);
+    JS::RootedFunction cf(cx);
+
+    JS::CompileOptions options(cx);
+    options.setFileAndLine(filename, 1)
+           .setUTF8(true);
+
+    cf = JS::CompileFunction(cx, gbl, options, NULL, 0, NULL, func, strlen(func));
 
     free(func);
     if (cf == NULL) {
@@ -870,7 +886,7 @@ int NativeJS::LoadScriptReturn(JSContext *cx, const char *data,
 }
 
 int NativeJS::LoadScriptReturn(JSContext *cx,
-    const char *filename, JS::Value *ret)
+    const char *filename, JS::MutableHandleValue ret)
 {   
     int err;
     char *data;
@@ -908,21 +924,22 @@ int NativeJS::LoadScriptContent(const char *data, size_t len,
     }
 
     uint32_t oldopts;
-    JS::RootedObject gbl(cx,JS::CurrentGlobalOrNull(cx));
-    oldopts = JS_GetOptions(cx);
+    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
 
-    JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO |
-        JSOPTION_NO_SCRIPT_RVAL | JSOPTION_VAROBJFIX);
+    /* RAII helper that resets to origin options state */
+    JS::AutoSaveContextOptions asco(cx);
+
+    JS::ContextOptionsRef(cx).setNoScriptRval(true)
+                             .setVarObjFix(true);
 
     JS::CompileOptions options(cx);
     options.setUTF8(true)
-           .setFileAndLine(filename, 1);
+           .setFileAndLine(filename, 1)
+           .setCompileAndGo(true);
 
-    JSScript *script = JS::Compile(cx, gbl, options, data, len);
+    JS::RootedScript script(cx, JS::Compile(cx, gbl, options, data, len));
 
-    JS_SetOptions(cx, oldopts);
-
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -963,10 +980,10 @@ int NativeJS::LoadBytecode(NativeBytecodeScript *script)
 
 int NativeJS::LoadBytecode(void *data, int size, const char *filename)
 {
-    JS::RootedObject gbl(cx, JS::CurrentCallerOrNull(cx));
-    JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL, NULL));
+    JS::RootedObject gbl(cx, JS::CurrentGlobalOrNull(cx));
+    JS::RootedScript script(cx, JS_DecodeScript(cx, data, size, NULL));
 
-    if (script == NULL || !JS_ExecuteScript(cx, gbl, script, NULL)) {
+    if (script == NULL || !JS_ExecuteScript(cx, gbl, script)) {
         if (JS_IsExceptionPending(cx)) {
             if (!JS_ReportPendingException(cx)) {
                 JS_ClearPendingException(cx);
@@ -1232,7 +1249,7 @@ static int native_timerng_wrapper(void *arg)
     JS::AutoValueVector arr(params->cx);
     JS::RootedValue     func(params->cx, params->func);
     JS::RootedObject    global(params->cx, params->global);
-    
+
     arr.resize(params->argc);
     for(size_t i = 0; i< params->argc; i++) {
     	arr[i] = params->argv[i]->get();

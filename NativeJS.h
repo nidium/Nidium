@@ -82,6 +82,8 @@ class NativeJS
         NativeSharedMessages *messages;
 
         NativeHash<JSObject *> jsobjects;
+        
+        JS::AutoHashSetRooter<JSObject *> *m_RootedSet;
         struct _ape_htable *rootedObj;
         struct _ape_global *net;
 
@@ -128,9 +130,9 @@ class NativeJS
         
         static void copyProperties(JSContext *cx, JS::HandleObject source, JS::MutableHandleObject into);
         static int LoadScriptReturn(JSContext *cx, const char *data,
-            size_t len, const char *filename, JS::Value *ret);
+            size_t len, const char *filename, JS::MutableHandleValue ret);
         static int LoadScriptReturn(JSContext *cx,
-            const char *filename, JS::Value *ret);
+            const char *filename, JS::MutableHandleValue ret);
         int LoadScriptContent(const char *data, size_t len,
             const char *filename);
         int LoadScript(const char *filename);

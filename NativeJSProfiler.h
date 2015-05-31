@@ -4,7 +4,7 @@
 #include "NativeUtils.h"
 #include <jsapi.h>
 #include <jsfriendapi.h>
-#include <jsdbgapi.h>
+//#include <jsdbgapi.h>
 #include <string>
 
 #define NATIVE_MAX_PROFILER 1024
