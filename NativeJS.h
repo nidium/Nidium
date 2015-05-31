@@ -151,7 +151,7 @@ class NativeJS
                                                    uint32_t tag, uint32_t data, void *closure);
 
         static bool writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                                 JSObject *obj, void *closure);
+                                                 JS::HandleObject obj, void *closure);
 
         void logf(const char *format, ...);
         void log(const char *format);
@@ -172,6 +172,9 @@ class NativeJS
         }
         
     private:
+        static JSObject *CreateJSGlobal(JSContext *cx);
+        static void SetJSRuntimeOptions(JSRuntime *rt);
+
         NativeJSModules *modules;
         void *privateslot;
         bool shutdown;

@@ -42,6 +42,8 @@
 #include <jsapi.h>
 #include <jsfriendapi.h>
 //#include <jsdbgapi.h>
+#include <js/OldDebugAPI.h>
+
 #include <jsprf.h>
 
 #include <stdio.h>
@@ -99,8 +101,8 @@ JSStructuredCloneCallbacks *NativeJS::jsscc = NULL;
 static JSClass global_class = {
     "global", JSCLASS_GLOBAL_FLAGS,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
-    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
-    nullptr, nullptr, nullptr, nullptr, JSCLASS_NO_INTERNAL_MEMBERS
+    JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, nullptr,
+    nullptr, nullptr, nullptr, JS_GlobalObjectTraceHook, JSCLASS_NO_INTERNAL_MEMBERS
 };
 
 static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
@@ -339,9 +341,9 @@ JSObject *NativeJS::readStructuredCloneOp(JSContext *cx, JSStructuredCloneReader
 }
 
 bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
-                                         JSObject *obj, void *closure)
+                                         JS::HandleObject obj, void *closure)
 {
-    JS::RootedValue vobj(cx, OBJECT_TO_JSVAL(obj));
+    JS::RootedValue vobj(cx, JS::ObjectValue(*obj));
     JSType type = JS_TypeOfValue(cx, vobj);
     NativeJS *js = (NativeJS *)closure;
 
@@ -349,7 +351,8 @@ bool NativeJS::writeStructuredCloneOp(JSContext *cx, JSStructuredCloneWriter *w,
         /* Serialize function into a string */
         case JSTYPE_FUNCTION:
         {
-            JS::RootedValue fun(cx, JS_ValueToFunction(cx, vobj));
+
+            JS::RootedFunction fun(cx, JS_ValueToFunction(cx, vobj));
             JS::RootedString func(cx, JS_DecompileFunction(cx,
                 fun, 0 | JS_DONT_PRETTY_PRINT));
             JSAutoByteString cfunc(cx, func);
@@ -518,6 +521,41 @@ void NativeJS::initNet(ape_global *net)
     pthread_setspecific(gAPE, net); 
 }
 
+JSObject *NativeJS::CreateJSGlobal(JSContext *cx)
+{
+    JS::CompartmentOptions options;
+    options.setVersion(JSVERSION_LATEST);
+
+    JS::RootedObject glob(cx, JS_NewGlobalObject(cx, &global_class, nullptr,
+                                             JS::DontFireOnNewGlobalHook, options));
+
+    JSAutoCompartment ac(cx, glob);
+
+    JS_InitStandardClasses(cx, glob);
+    JS_DefineDebuggerObject(cx, glob);
+
+    JS_DefineFunctions(cx, glob, glob_funcs);
+    JS_DefineProperties(cx, glob, glob_props);
+
+    JS_FireOnNewGlobalObject(cx, glob);
+
+
+    return glob;
+    //JS::RegisterPerfMeasurement(cx, glob);
+
+    //https://bugzilla.mozilla.org/show_bug.cgi?id=880330
+    // context option vs compile option?
+}
+
+void NativeJS::SetJSRuntimeOptions(JSRuntime *rt)
+{
+    JS::RuntimeOptionsRef(rt).setBaseline(true)
+                             .setIon(true)
+                             .setAsmJS(true);
+
+    //rt->profilingScripts For profiling?
+}
+
 NativeJS::NativeJS(ape_global *net) :
     m_Logger(NULL), m_vLogger(NULL), m_LogClear(NULL)
 {
@@ -557,8 +595,9 @@ NativeJS::NativeJS(ape_global *net) :
         return;
     }
 
+    NativeJS::SetJSRuntimeOptions(rt);
+
     JS_SetGCParameter(rt, JSGC_MAX_BYTES, 0xffffffff);
-    JS_SetGCParameter(rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
     JS_SetGCParameter(rt, JSGC_SLICE_TIME_BUDGET, 15);
     JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
 
@@ -570,24 +609,22 @@ NativeJS::NativeJS(ape_global *net) :
     }
     JS::RootedObject gbl(cx);
     JS_BeginRequest(cx);
-    JS_SetVersion(cx, JSVERSION_LATEST);
+#if 0
     #ifdef NATIVE_DEBUG
     JS_SetOptions(cx, JSOPTION_VAROBJFIX);
     #else
-    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT | JSOPTION_METHODJIT_ALWAYS |
+
+    JS_SetOptions(cx, JSOPTION_VAROBJFIX | JSOPTION_METHODJIT_ALWAYS |
         JSOPTION_TYPE_INFERENCE | JSOPTION_ION | JSOPTION_ASMJS | JSOPTION_BASELINE);
     #endif
+#endif
     JS_SetErrorReporter(cx, reportError);
 
-    if ((gbl = JS_NewGlobalObject(cx, &global_class, JS::NullPtr())) == NULL ||
-        !JS_InitStandardClasses(cx, gbl)) {
+    gbl = NativeJS::CreateJSGlobal(cx);
 
-        return;
-    }
+    JSAutoCompartment ac(cx, gbl);
 
-    //js::frontend::ion::js_IonOptions.gvnIsOptimistic = true;
-    //JS_SetGCCallback(rt, gccb);
-    JS_SetExtraGCRootsTracer(rt, NativeTraceBlack, this);
+    JS_AddExtraGCRootsTracer(rt, NativeTraceBlack, this);
 
     if (NativeJS::jsscc == NULL) {
         NativeJS::jsscc = new JSStructuredCloneCallbacks();
@@ -598,13 +635,7 @@ NativeJS::NativeJS(ape_global *net) :
 
     JS_SetStructuredCloneCallbacks(rt, NativeJS::jsscc);
 
-    /* TODO: HAS_CTYPE in clang */
-    JS_InitCTypesClass(cx, gbl);
-    JS_InitReflect(cx, gbl);
-
-    JS_SetGlobalObject(cx, gbl);
-    JS_DefineFunctions(cx, gbl, glob_funcs);
-    JS_DefineProperties(cx, gbl, glob_props);
+    js::SetDefaultObjectForContext(cx, gbl);
 
     this->bindNetObject(net);
 
