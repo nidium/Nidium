@@ -21,8 +21,6 @@
 
 #define CANVASCTX_PROLOGUE
 
-extern JS::Value gfunc;
-
 static JSClass imageData_class = {
     "ImageData", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub,

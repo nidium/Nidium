@@ -72,7 +72,8 @@ class NativeAudioNode
             int id;
 
             ExportsArgs(const char *name, ArgType type, void *ptr) : name(name), type(type), ptr(ptr) {};
-            ExportsArgs(const char *name, ArgType type, int id, ArgCallback cbk) : name(name), type(type), ptr(NULL), cbk(cbk), id(id)  {};
+            ExportsArgs(const char *name, ArgType type, int id, ArgCallback cbk) :
+               name(name), type(type), ptr(NULL), cbk(cbk), id(id)  {};
         };
 
         ExportsArgs *args[NATIVE_AUDIONODE_ARGS_SIZE];
@@ -151,7 +152,8 @@ class NativeAudioNode
         void post(int msg, ExportsArgs *arg, void *val, unsigned long size);
         bool isFrameOwner(float *frame)
         {
-            void *tmp = (void *)*((ptrdiff_t *)&(frame[this->audio->outputParameters->bufferSize/this->audio->outputParameters->channels]));
+            void *tmp = (void *)*((ptrdiff_t *)&(frame[this->audio->outputParameters->bufferSize
+                / this->audio->outputParameters->channels]));
             return tmp == (void*)this;
         }
         NodeIO **getWire(NodeLink *link)
@@ -226,7 +228,7 @@ class NativeAudioNodeMixer : public NativeAudioNode
 
                     tmpL = tmpR = 0;
 
-                    for (int j = 0; j < this->inCount; j+=2) {
+                    for (int j = 0; j < this->inCount; j += 2) {
                         tmpL += this->frames[j][i];
                         tmpR += this->frames[j+1][i];
                     }
@@ -442,4 +444,6 @@ class NativeAudioNodeException : public std::exception
     private:
         const char *err;
 };
+
 #endif
+

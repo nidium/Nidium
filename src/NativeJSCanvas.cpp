@@ -43,8 +43,6 @@ static struct native_cursors {
     {NULL,                  NativeUIInterface::NOCHANGE},
 };
 
-extern JS::Value gfunc;
-
 enum {
     CANVAS_PROP_WIDTH = 1,
     CANVAS_PROP_HEIGHT,

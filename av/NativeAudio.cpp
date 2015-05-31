@@ -260,7 +260,7 @@ void *NativeAudio::decodeThread(void *args)
                 NATIVE_PTHREAD_SIGNAL(&audio->queueHaveData);
                 //audio->haveData = true;
             }  else {
-                SPAM(("dont Have data %lu\n",PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
+                SPAM(("dont Have data %lu\n", PaUtil_GetRingBufferWriteAvailable(audio->rBufferOut)));
             }
         }
 
@@ -351,7 +351,8 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     PaUtil_ReadRingBuffer(this->rBufferOut, out, avail * channels);
 
 #if 0
-    SPAM(("frames per buffer=%ld avail=%ld processing=%ld left=%d\n", framesPerBuffer, PaUtil_GetRingBufferReadAvailable(this->rBufferOut), avail, left));
+    SPAM(("frames per buffer = %ld avail = %ld processing = %ld left = %d\n", 
+        framesPerBuffer, PaUtil_GetRingBufferReadAvailable(this->rBufferOut), avail, left));
     if (left > 0) {
         SPAM(("WARNING DROPING %d\n", left));
     }
@@ -367,11 +368,11 @@ int NativeAudio::paOutputCallbackMethod(const void *inputBuffer, void *outputBuf
     return paContinue;
 }
 
-int NativeAudio::paOutputCallback( const void *inputBuffer, void *outputBuffer,
+int NativeAudio::paOutputCallback(const void *inputBuffer, void *outputBuffer,
     unsigned long framesPerBuffer,
     const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags,
-    void *userData )
+    void *userData)
 {
     return ((NativeAudio*)userData)->paOutputCallbackMethod(inputBuffer, outputBuffer,
         framesPerBuffer,

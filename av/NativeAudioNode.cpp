@@ -48,7 +48,7 @@ NativeAudioNode::NativeAudioNode(int inCount, int outCount, NativeAudio *audio)
 
     // Malloc node I/O frames
     max = (inCount > outCount ? inCount : outCount);
-    this->frames = (float **)calloc(max, sizeof( void *));
+    this->frames = (float **)calloc(max, sizeof(void *));
 
     for (int i = 0; i < max; i++) {
         this->frames[i] = NULL;
@@ -693,7 +693,8 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 
+         0, this->reader, NativeAVStreamReader::read, NULL, NativeAVStreamReader::seek);
     if (!this->container) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -755,7 +756,8 @@ return err;
         RETURN_WITH_ERROR(ERR_OOM);
     }
 
-    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 0, this->reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
+    this->container->pb = avio_alloc_context(this->avioBuffer, NATIVE_AVIO_BUFFER_SIZE, 
+        0, this->reader, NativeAVBufferReader::read, NULL, NativeAVBufferReader::seek);
     if (!this->container->pb) {
         RETURN_WITH_ERROR(ERR_OOM);
     }
@@ -776,37 +778,37 @@ return err;
 
 int NativeAudioSource::initStream()
 {
-	// Open input
-	int ret = avformat_open_input(&this->container, "dummyFile", NULL, NULL);
+    // Open input
+    int ret = avformat_open_input(&this->container, "dummyFile", NULL, NULL);
 
-	if (ret != 0) {
-		char error[1024];
-		av_strerror(ret, error, 1024);
-		fprintf(stderr, "Couldn't open file : %s\n", error);
+    if (ret != 0) {
+        char error[1024];
+        av_strerror(ret, error, 1024);
+        fprintf(stderr, "Couldn't open file : %s\n", error);
         return ERR_INTERNAL;
-	}
+    }
 
     NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
-	// Retrieve stream information
-	if (avformat_find_stream_info(this->container, NULL) < 0) {
-		fprintf(stderr, "Couldn't find stream information\n");
+    // Retrieve stream information
+    if (avformat_find_stream_info(this->container, NULL) < 0) {
+        fprintf(stderr, "Couldn't find stream information\n");
         return ERR_NO_INFORMATION;
-	}
+    }
 
-	// Dump information about file onto standard error
-	av_dump_format(this->container, 0, "Memory input", 0);
+    // Dump information about file onto standard error
+    av_dump_format(this->container, 0, "Memory input", 0);
 
-	// Find first audio stream
-	for (unsigned int i = 0; i < this->container->nb_streams; i++) {
-		if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
-			this->audioStream = i;
+    // Find first audio stream
+    for (unsigned int i = 0; i < this->container->nb_streams; i++) {
+        if (this->container->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO) {
+            this->audioStream = i;
             break;
-		}
-	}
+        }
+    }
 
-	if (this->audioStream == -1) {
-		return ERR_NO_AUDIO;
-	}
+    if (this->audioStream == -1) {
+        return ERR_NO_AUDIO;
+    }
 
     return 0;
 }
@@ -820,18 +822,18 @@ int NativeAudioSource::initInternal()
     this->tmpPacket = new AVPacket();
     av_init_packet(this->tmpPacket);
 
-	// Find the apropriate codec and open it
-	this->codecCtx = this->container->streams[this->audioStream]->codec;
-	codec = avcodec_find_decoder(this->codecCtx->codec_id);
+    // Find the apropriate codec and open it
+    this->codecCtx = this->container->streams[this->audioStream]->codec;
+    codec = avcodec_find_decoder(this->codecCtx->codec_id);
     if (!codec) {
         return ERR_NO_CODEC;
     }
 
     NativePthreadAutoLock lock(&NativeAVSource::ffmpegLock);
-	if (avcodec_open2(this->codecCtx, codec, NULL) < 0) {
-		fprintf(stderr, "Could not find or open the needed codec\n");
-		return ERR_NO_CODEC;
-	}
+    if (avcodec_open2(this->codecCtx, codec, NULL) < 0) {
+        fprintf(stderr, "Could not find or open the needed codec\n");
+        return ERR_NO_CODEC;
+    }
 
     // Frequency resampling
     if (this->codecCtx->sample_rate != this->audio->outputParameters->sampleRate) {
@@ -879,8 +881,7 @@ int NativeAudioSource::initInternal()
         this->swrCtx = swr_alloc_set_opts(NULL,
                 AV_CH_LAYOUT_STEREO_DOWNMIX, AV_SAMPLE_FMT_FLT, this->codecCtx->sample_rate,
                 channelLayout, this->codecCtx->sample_fmt, this->codecCtx->sample_rate,
-                0, NULL
-            );
+                0, NULL);
         if (!this->swrCtx || swr_init(this->swrCtx) < 0) {
             fprintf(stderr, "Failed to init sample resampling converter\n");
             return ERR_NO_RESAMPLING_CONVERTER;
@@ -995,7 +996,8 @@ bool NativeAudioSource::work()
     }
 
     if (this->doNotProcess || !this->opened || this->stopped) {
-        SPAM(("Source will not be decoded. doNotProcess=%d opened=%d stopped=%d", this->doNotProcess, this->opened, this->stopped));
+        SPAM(("Source will not be decoded. doNotProcess = %d opened = %d stopped = %d", 
+            this->doNotProcess, this->opened, this->stopped));
         return false;
     }
 
@@ -1092,7 +1094,8 @@ return false;
                 free(this->tmpFrame.data);
             }
             this->tmpFrame.size = tmpFrame->linesize[0];
-            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);// XXX : Right now, source output is always stereo
+            this->tmpFrame.data = (float *)malloc(tmpFrame->nb_samples * NativeAudio::FLOAT32 * 2);
+            // XXX : Right now, source output is always stereo
             if (this->tmpFrame.data == NULL) {
                 RETURN_WITH_ERROR(ERR_OOM);
             }
