@@ -23,9 +23,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <jsstr.h>
+//#include <jsstr.h>
 #include <ape_sha1.h>
 #include <ape_base64.h>
+
+#include <js/CharacterEncoding.h>
 
 /* TODO : http://nadeausoftware.com/articles/2012/04/c_c_tip_how_measure_elapsed_real_time_benchmarking */
 
@@ -124,21 +126,18 @@ uint64_t NativeUtils::getTick(bool ms)
     return mach_absolute_time() / (ms ? 1000000LL : 1LL);
 }
 
-char16_t *NativeUtils::Utf8ToUtf16(const char *str, size_t len, size_t *outputlen)
+char16_t *NativeUtils::Utf8ToUtf16(JSContext *cx,
+  const char *str, size_t len, size_t *outputlen)
 {
-    *outputlen = sizeof(jschar) * (len + 1);
+    *outputlen = sizeof(char16_t) * (len + 1);
 
-    jschar *jsc = (jschar *)malloc(*outputlen);
+    JS::UTF8Chars utf8string(str, len);
+    JS::TwoByteCharsZ ret;
+    /* XXX not sure */
+    ret = JS::LossyUTF8CharsToNewTwoByteCharsZ(cx, utf8string, outputlen);
 
-    if (!JS::InflateUTF8StringToBufferReplaceInvalid(NULL, str, len, jsc, outputlen)) {
-        free(jsc);
-        return NULL;
-    }
+    return ret.get();
 
-    // null terminate
-    jsc[*outputlen] = jschar(0);
-
-    return jsc;
 }
 
 void NativeUtils::sha1hmac(const unsigned char *key, uint32_t keylen,

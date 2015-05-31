@@ -5,14 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <jsapi.h>
 
 namespace leveldb {
     class DB;
 };
 
-namespace JS {
-    class Value;
-}
 
 class JSObject;
 struct JSContext;
@@ -38,7 +36,7 @@ class NativeDB
             Caller is responsible for knowing how to
             decode the data during a get()
         */
-        bool insert(const char *key, JSContext *cx, const JS::Value &val);
+        bool insert(const char *key, JSContext *cx, JS::HandleValue val);
 
         bool get(const char *key, std::string &ret);
     private:

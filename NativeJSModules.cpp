@@ -518,7 +518,7 @@ JS::Value NativeJSModule::require(char *name)
         free(this->filePath);
         free(this->absoluteDir);
         // filePath is needed for cyclic deps check
-        this->filePath = realpath(strdup(filename.get()), NULL);
+        this->filePath = realpath(filename.get(), NULL);
 
         if (this->filePath == NULL) {
             this->absoluteDir = strdup(NativePath::getPwd());

@@ -27,6 +27,7 @@
 #include <sys/syscall.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <jsapi.h>
 
 class NativeNoncopyable {
 public:
@@ -41,7 +42,7 @@ class NativeUtils
 {
     public:
     static uint64_t getTick(bool ms = false);
-    static char16_t *Utf8ToUtf16(const char *str, size_t len, size_t *outputlen);
+    static char16_t *Utf8ToUtf16(JSContext *cx, const char *str, size_t len, size_t *outputlen);
     static bool isMainThread()
     {
         // TODO : Windows support and better implementation

@@ -162,7 +162,9 @@ static bool native_global_prop_get(JSContext *cx, JS::HandleObject obj,
     switch(id) {
         case GLOBAL_PROP___FILENAME:
         {
-            vp.setString(JS_NewStringCopyZ(cx, NativePath::currentJSCaller()));
+            char *filename = NativePath::currentJSCaller();
+            vp.setString(JS_NewStringCopyZ(cx, filename));
+            free(filename);
             break;
         }
         case GLOBAL_PROP___DIRNAME:

@@ -217,17 +217,19 @@ bool NativeNFS::writeFile(const char *name_utf8, size_t name_len, char *content,
 
 void *NativeNFS::buildJS(const char *data, size_t len, const char *filename, uint32_t *outlen)
 {
-    JSObject *gbl = JS_GetGlobalObject(m_JS.cx);
+    JS::RootedObject gbl(m_JS.cx, JS::CurrentGlobalOrNull(m_JS.cx));
     JS::CompileOptions options(m_JS.cx);
 
     options.setUTF8(true)
            .setFileAndLine(filename, 1);
 
     JS::RootedObject rgbl(m_JS.cx, gbl);
+    JS::AutoSaveContextOptions asco(m_JS.cx);
 
-    JS_SetOptions(m_JS.cx, JSOPTION_VAROBJFIX|JSOPTION_NO_SCRIPT_RVAL);
+    JS::ContextOptionsRef(m_JS.cx).setNoScriptRval(true)
+                             .setVarObjFix(true);
 
-    JSScript *script = JS::Compile(m_JS.cx, rgbl, options, data, len);
+    JS::RootedScript script(m_JS.cx, JS::Compile(m_JS.cx, rgbl, options, data, len));
 
     if (!script) {
         if (JS_IsExceptionPending(m_JS.cx)) {

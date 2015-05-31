@@ -19,7 +19,7 @@
 
 #include "NativePath.h"
 #include "NativeJS.h"
-#include <jsdbgapi.h>
+#include <js/OldDebugAPI.h>
 #include <vector>
 #include <string>
 #include <NativeUtils.h>
@@ -217,7 +217,7 @@ NativePath::schemeInfo *NativePath::getScheme(const char *url, const char **pURL
     return g_m_DefaultScheme;
 }
 
-const char * NativePath::currentJSCaller(JSContext *cx)
+char * NativePath::currentJSCaller(JSContext *cx)
 {
     if (cx == NULL) {
         /* lookup in the TLS */
@@ -227,10 +227,12 @@ const char * NativePath::currentJSCaller(JSContext *cx)
         }
     }
 
-    JSScript *parent;
     unsigned lineno;
-    JS_DescribeScriptedCaller(cx, &parent, &lineno);
-    return JS_GetScriptFilename(cx, parent);
+
+    JS::AutoFilename af;
+    JS::DescribeScriptedCaller(cx, &af, &lineno);
+
+    return strdup(af.get());
 }
 
 char *NativePath::sanitize(const char *path, bool *external, bool relative)

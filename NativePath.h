@@ -149,7 +149,7 @@ public:
         return NativePath::getScheme(g_m_Pwd);
     }
 
-    static const char *currentJSCaller(JSContext *cx = NULL);
+    static char *currentJSCaller(JSContext *cx = NULL);
     static int g_m_SchemesCount;
     static struct schemeInfo g_m_Schemes[NATIVE_MAX_REGISTERED_SCHEMES];
     static struct schemeInfo *g_m_DefaultScheme;
