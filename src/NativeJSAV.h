@@ -56,8 +56,8 @@ class JSTransferableFunction
         {
         }
 
-        bool prepare(JSContext *cx, JS::Value val);
-        bool call(JSContext *cx, JS::HandleObject obj, JS::HandleValue *params, JS::MutableHandleValue *rval);
+        bool prepare(JSContext *cx, JS::HandleValue val);
+        bool call(JSContext *cx, JS::HandleObject obj, JS::HandleValueArray params, JS::MutableHandleValue *rval);
 
         ~JSTransferableFunction();
    private :
@@ -78,8 +78,8 @@ class NativeJSAVSource
         static inline int pause();
         static inline int stop();
 
-        static inline bool propSetter(NativeAVSource *source, int id, JSMutableHandleValue vp);
-        static inline bool propGetter(NativeAVSource *source, JSContext *ctx, int id, JSMutableHandleValue vp);
+        static inline bool propSetter(NativeAVSource *source, int id, JS::MutableHandleValue vp);
+        static inline bool propGetter(NativeAVSource *source, JSContext *ctx, int id, JS::MutableHandleValue vp);
 };
 
 class NativeJSAudio: public NativeJSExposer<NativeJSAudio>

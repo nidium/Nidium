@@ -375,9 +375,10 @@ static bool native_canvas2dctx_breakText(JSContext *cx,
             lines[i].line, lines[i].len)));
         JS_SetElement(cx, alines, i, val);
     }
-
-    SET_PROP(res, "height", DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
-    SET_PROP(res, "lines", OBJECT_TO_JSVAL(alines));
+    JS::RootedValue heightVal(cx, DOUBLE_TO_JSVAL(SkScalarToDouble(ret)));
+    JS::RootedValue linesVal(cx, OBJECT_TO_JSVAL(alines));
+    SET_PROP(res, "height", heightVal);
+    SET_PROP(res, "lines", linesVal);
 
     args.rval().set(OBJECT_TO_JSVAL(res));
 
@@ -1067,9 +1068,8 @@ static bool native_canvas2dctx_measureText(JSContext *cx, unsigned argc,
     ctext.encodeUtf8(cx, text);
 
     NativeSkia *n = NSKIA_NATIVE;
-
-    OBJ_PROP("width", DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(),
-        strlen(ctext.ptr()))));
+    JS::RootedValue widthVal(cx, DOUBLE_TO_JSVAL(n->measureText(ctext.ptr(), strlen(ctext.ptr()))));
+    OBJ_PROP("width", widthVal);
 
     args.rval().setObjectOrNull(obj);
 
@@ -1109,11 +1109,14 @@ static bool native_canvas2dctx_getPathBounds(JSContext *cx, unsigned argc,
     JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
     NSKIA_NATIVE->getPathBounds(&left, &right, &top, &bottom);
-
-    OBJ_PROP("left", DOUBLE_TO_JSVAL(left));
-    OBJ_PROP("right", DOUBLE_TO_JSVAL(right));
-    OBJ_PROP("top", DOUBLE_TO_JSVAL(top));
-    OBJ_PROP("bottom", DOUBLE_TO_JSVAL(bottom));
+    JS::RootedValue leftVal(cx, DOUBLE_TO_JSVAL(left));
+    JS::RootedValue rightVal(cx, DOUBLE_TO_JSVAL(right));
+    JS::RootedValue topVal(cx, DOUBLE_TO_JSVAL(top));
+    JS::RootedValue bottomVal(cx, DOUBLE_TO_JSVAL(bottom));
+    OBJ_PROP("left", leftVal);
+    OBJ_PROP("right", rightVal);
+    OBJ_PROP("top", topVal);
+    OBJ_PROP("bottom", bottomVal);
 
     vp->setObject(*obj);
 
@@ -1451,14 +1454,15 @@ static bool native_canvas2dctxGLProgram_getActiveUniforms(JSContext *cx, unsigne
     for (int i = 0; i < nactives; i++) {
         int length = 0, size = 0;
         GLenum type = GL_ZERO;
-
         JS::RootedObject in(cx,JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 
         glGetActiveUniform(program, i, sizeof(name)-1, &length, &size, &type, name);
         name[length] = '\0';
-        SET_PROP(in, "name", STRING_TO_JSVAL(JS_NewStringCopyN(cx, name, length)));
-        SET_PROP(in, "location", INT_TO_JSVAL(glGetUniformLocation(program, name)));
+        JS::RootedString nameStr (cx, STRING_TO_JSVAL(JS_NewStringCopyN(cx, name, length)));
+        JS::RootedValue locationVal(cx, INT_TO_JSVAL(glGetUniformLocation(program, name)));
         JS::RootedValue inval(cx, OBJECT_TO_JSVAL(in));
+        SET_PROP(in, "name", nameStr);
+        SET_PROP(in, "location", locationVal);
         JS_SetElement(cx, arr, i, inval);
     }
 
@@ -2008,7 +2012,7 @@ void NativeCanvas2DContext::initCopyTex(uint32_t textureID)
 uint32_t NativeCanvas2DContext::getMainFBO()
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->getCanvas()->
-                                        getDevice()->accessRenderTa;
+                                        getDevice()->accessRenderTarget();
 
     return (uint32_t)backingTarget->getRenderTargetHandle();
 }
@@ -2161,7 +2165,7 @@ void NativeCanvas2DContext::drawTexToFBO(uint32_t textureID)
 uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->getCanvas()->
-                                        getDevice()->accessRenderTa;
+                                        getDevice()->accessRenderTarget();
 
     if (width != NULL && height != NULL) {
         SkISize size = m_Skia->getCanvas()->getDeviceSize();
@@ -2177,7 +2181,7 @@ uint32_t NativeCanvas2DContext::getSkiaTextureID(int *width, int *height)
 void NativeCanvas2DContext::resetSkiaContext(uint32_t flag)
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->getCanvas()->
-                                        getDevice()->accessRenderTa;
+                                        getDevice()->accessRenderTarget();
 
     if (flag == 0) {
         flag = kProgram_GrGLBackendState
@@ -2255,7 +2259,7 @@ void NativeCanvas2DContext::setVertexDeformation(uint32_t vertex,
 uint32_t NativeCanvas2DContext::getTextureID() const
 {
     GrRenderTarget* backingTarget = (GrRenderTarget*)m_Skia->getCanvas()->
-                                        getDevice()->accessRenderTa;
+                                        getDevice()->accessRenderTarget();
 
     return backingTarget->asTexture()->getTextureHandle();
 }

@@ -262,9 +262,9 @@ void NativeJSwindow::onReady(JSObject *layout)
 
     if (layout) {
         rlayout = layout;
-        arg[0] = OBJECT_TO_JSVAL(rlayout);
+        arg[0].set(OBJECT_TO_JSVAL(rlayout));
     } else {
-        arg[0] = OBJECT_TO_JSVAL(JS_NewArrayObject(m_Cx, 0));
+        arg[0].set(OBJECT_TO_JSVAL(JS_NewArrayObject(m_Cx, 0)));
     }
     JS::RootedObject obj(m_Cx, m_JSObject);
     if (JS_GetProperty(m_Cx, obj, "_onready", &onready) &&
@@ -304,12 +304,14 @@ void NativeJSwindow::assetReady(const NMLTag &tag)
     JS::RootedObject obj(cx, m_JSObject);
 
     event = JS_NewObject(m_Cx, &NMLEvent_class, JS::NullPtr(), JS::NullPtr());
-    jevent[0] = OBJECT_TO_JSVAL(event);
-
-    EVENT_PROP("data", STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
+    jevent[0].set(OBJECT_TO_JSVAL(event));
+    JS::RootedString tagStr = STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag));
+    JS::RootedString idStr(m_Cx, STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
+    JS::RootedString dataStr(m_Cx,  STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(cx,
         (const char *)tag.content.data, tag.content.len, "utf8")));
-    EVENT_PROP("tag", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.tag)));
-    EVENT_PROP("id", STRING_TO_JSVAL(JS_NewStringCopyZ(cx, (const char *)tag.id)));
+    EVENT_PROP("tag", tagStr);
+    EVENT_PROP("id", idStr);
+    EVENT_PROP("data", dataStr);
 
     if (JS_GetProperty(cx, obj, "_onassetready", &onassetready) &&
         !onassetready.isPrimitive() &&
@@ -357,13 +359,16 @@ void NativeJSwindow::mouseWheel(int xrel, int yrel, int x, int y)
     JSAutoRequest ar(m_Cx);
 
     event = JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedValue xrelv(m_Cx, INT_TO_JSVAL(xrel));
+    JS::RootedValue yrelv(m_Cx, INT_TO_JSVAL(yrel));
+    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
+    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    EVENT_PROP("xrel", xrelv);
+    EVENT_PROP("yrel", yrelv);
+    EVENT_PROP("x", xv);
+    EVENT_PROP("y", yv);
 
-    EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
-    EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
-    EVENT_PROP("x", INT_TO_JSVAL(x));
-    EVENT_PROP("y", INT_TO_JSVAL(y));
-
-    jevent[0] = OBJECT_TO_JSVAL(event);
+    jevent[0].set(OBJECT_TO_JSVAL(event));
 
     if (JS_GetProperty(m_Cx, obj, "_onmousewheel", &onwheel) &&
         !onwheel.isPrimitive() &&
@@ -393,17 +398,24 @@ void NativeJSwindow::keyupdown(int keycode, int mod, int state, int repeat, int 
     JSAutoRequest ar(m_Cx);
 
     event = JS_NewObject(m_Cx, &keyEvent_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedValue keyV(m_Cx, INT_TO_JSVAL(keycode));
+    JS::RootedValue locationV(m_Cx, INT_TO_JSVAL(location));
+    JS::RootedValue alt(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
+    JS::RootedValue ctl(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
+    JS::RootedValue shift(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
+    JS::RootedValue meta(m_Cx, BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_META)));
+    JS::RootedValue space(m_Cx, BOOLEAN_TO_JSVAL(keycode == 32));
+    JS::RootedValue rep(m_Cx, BOOLEAN_TO_JSVAL(!!(repeat)));
+    EVENT_PROP("keyCode", keyV);
+    EVENT_PROP("location", locationV);
+    EVENT_PROP("altKey", alt);
+    EVENT_PROP("ctrlKey", ctl);
+    EVENT_PROP("shiftKey", shift);
+    EVENT_PROP("metaKey", meta);
+    EVENT_PROP("spaceKey", space);
+    EVENT_PROP("repeat", rep);
 
-    EVENT_PROP("keyCode", INT_TO_JSVAL(keycode));
-    EVENT_PROP("location", INT_TO_JSVAL(location));
-    EVENT_PROP("altKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_ALT)));
-    EVENT_PROP("ctrlKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_CTRL)));
-    EVENT_PROP("shiftKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_SHIFT)));
-    EVENT_PROP("metaKey", BOOLEAN_TO_JSVAL(!!(mod & NATIVE_KEY_META)));
-    EVENT_PROP("spaceKey", BOOLEAN_TO_JSVAL(keycode == 32));
-    EVENT_PROP("repeat", BOOLEAN_TO_JSVAL(!!(repeat)));
-
-    jevent[0] = OBJECT_TO_JSVAL(event);
+    jevent[0].set(OBJECT_TO_JSVAL(event));
 
     if (JS_GetProperty(m_Cx, obj,
         (state ? "_onkeydown" : "_onkeyup"), &onkeyupdown) &&
@@ -428,12 +440,10 @@ void NativeJSwindow::textInput(const char *data)
     JS::RootedObject obj(m_Cx, m_JSObject);
 
     event = JS_NewObject(m_Cx, &textEvent_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedString str(m_Cx, STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(m_Cx, data, strlen(data), "utf8")));
+    EVENT_PROP("val", str);
 
-    EVENT_PROP("val",
-        STRING_TO_JSVAL(NativeJSUtils::newStringWithEncoding(m_Cx, data,
-        strlen(data), "utf8")));
-
-    jevent[0] = OBJECT_TO_JSVAL(event);
+    jevent[0].set(OBJECT_TO_JSVAL(event));
 
     if (JS_GetProperty(m_Cx, obj, "_ontextinput", &ontextinput) &&
         !ontextinput.isPrimitive() &&
@@ -489,14 +499,16 @@ void NativeJSwindow::mouseClick(int x, int y, int state, int button, int clicks)
         ev->data[0] = button;
         nctx->addInputEvent(ev);
     }
+    JS::RootedValue xv(m_Cx, INT_TO_JSVAL(x));
+    JS::RootedValue yv(m_Cx, INT_TO_JSVAL(y));
+    JS::RootedValue bv(m_Cx, INT_TO_JSVAL(button));
+    EVENT_PROP("x", xv);
+    EVENT_PROP("y", yv);
+    EVENT_PROP("clientX", xv);
+    EVENT_PROP("clientY", yv);
+    EVENT_PROP("which", bv);
 
-    EVENT_PROP("x", INT_TO_JSVAL(x));
-    EVENT_PROP("y", INT_TO_JSVAL(y));
-    EVENT_PROP("clientX", INT_TO_JSVAL(x));
-    EVENT_PROP("clientY", INT_TO_JSVAL(y));
-    EVENT_PROP("which", INT_TO_JSVAL(button));
-
-    jevent[0] = OBJECT_TO_JSVAL(event);
+    jevent[0].set(OBJECT_TO_JSVAL(event));
     if (JS_GetProperty(m_Cx, obj,
         (state ? "_onmousedown" : "_onmouseup"), &onclick) &&
         !onclick.isPrimitive() &&
@@ -526,7 +538,7 @@ bool NativeJSwindow::dragEvent(const char *name, int x, int y)
         EVENT_PROP("files", OBJECT_TO_JSVAL(this->m_DragedFiles));
     }
 
-    jevent[0] = OBJECT_TO_JSVAL(event);
+    jevent[0].set(OBJECT_TO_JSVAL(event));
 
     if (JS_GetProperty(m_Cx, obj, name, &ondragevent) &&
         !ondragevent.isPrimitive() &&
@@ -641,15 +653,18 @@ void NativeJSwindow::mouseMove(int x, int y, int xrel, int yrel)
     nctx->addInputEvent(ev);
 
     event = JS_NewObject(m_Cx, &mouseEvent_class, JS::NullPtr(), JS::NullPtr());
+    JS::RootedValue xv(INT_TO_JSVAL(x));
+    JS::RootedValue yv(INT_TO_JSVAL(y));
+    JS::RootedValue xrelv(INT_TO_JSVAL(xrel));
+    JS::RootedValue yrelv(INT_TO_JSVAL(yrel));
+    EVENT_PROP("x", xv);
+    EVENT_PROP("y", yv);
+    EVENT_PROP("xrel", xrelv);
+    EVENT_PROP("yrel", yrelv);
+    EVENT_PROP("clientX", xv);
+    EVENT_PROP("clientY", yv);
 
-    EVENT_PROP("x", INT_TO_JSVAL(x));
-    EVENT_PROP("y", INT_TO_JSVAL(y));
-    EVENT_PROP("xrel", INT_TO_JSVAL(xrel));
-    EVENT_PROP("yrel", INT_TO_JSVAL(yrel));
-    EVENT_PROP("clientX", INT_TO_JSVAL(x));
-    EVENT_PROP("clientY", INT_TO_JSVAL(y));
-
-    jevent[0] = OBJECT_TO_JSVAL(event);
+    jevent[0].set(OBJECT_TO_JSVAL(event));
 
     if (JS_GetProperty(m_Cx, obj, "_onmousemove", &onmove) &&
         !onmove.isPrimitive() &&
@@ -952,7 +967,7 @@ static void native_window_openfilecb(void *_nof, const char *lst[], uint32_t len
 
     JS::RootedValue global(nof->cx, JS::CurrentGlobalOrNull(nof->cx));
     JS::AutoValueArray<1> jarr(nof->cx);
-    jarr[0] = OBJECT_TO_JSVAL(arr);
+    jarr[0].set(OBJECT_TO_JSVAL(arr));
     JS_CallFunctionValue(nof->cx, global, cb, jarr, &rval);
 
     JS::RemoveValueRoot(nof->cx, &nof->cb);
@@ -1311,7 +1326,7 @@ void NativeJSwindow::callFrameCallbacks(double ts, bool garbage)
     /* Set to NULL so that callbacks can "fork" the new chain */
     m_RequestedFrame = NULL;
 
-    arg[0] = JS_NumberValue(ts/1000000L);
+    arg[0].set(JS_NumberValue(ts / 1000000L));
 
     while (frame != NULL) {
         if (!garbage) {
